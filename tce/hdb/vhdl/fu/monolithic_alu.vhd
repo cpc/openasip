@@ -75,14 +75,14 @@ use IEEE.numeric_std.all;
 use work.util.all;
 use work.opcodes_abs_add_and_eq_gt_gtu_ior_max_maxu_min_minu_neg_shl_shr_shru_sub_sxhw_sxqw_xor.all;
 
-package shl_shr_shru_pkg is
+package monolithic_alu_shift_pkg is
 
   function shift_func (input: std_logic_vector; shft_amount : std_logic_vector;
                        opc : std_logic_vector;dataw : integer; shiftw : integer) 
     return std_logic_vector;
-end shl_shr_shru_pkg;
+end monolithic_alu_shift_pkg;
 
-package body shl_shr_shru_pkg is
+package body monolithic_alu_shift_pkg is
 
   function shift_func (input: std_logic_vector; shft_amount : std_logic_vector;
                        opc: std_logic_vector;dataw : integer; shiftw : integer) 
@@ -128,14 +128,14 @@ package body shl_shr_shru_pkg is
     end if;
     return y;
   end shift_func;
-end shl_shr_shru_pkg;
+end monolithic_alu_shift_pkg;
 
 library IEEE;
 use IEEE.numeric_std.all;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
 use work.opcodes_abs_add_and_eq_gt_gtu_ior_max_maxu_min_minu_neg_shl_shr_shru_sub_sxhw_sxqw_xor.all;
-use work.shl_shr_shru_pkg.all;
+use work.monolithic_alu_shift_pkg.all;
 
 entity abs_add_and_eq_gt_gtu_ior_max_maxu_min_minu_neg_shl_shr_shru_sub_sxhw_sxqw_xor_arith is
   generic (

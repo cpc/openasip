@@ -22,11 +22,11 @@ Clang                 3.5+
 Library               supported versions                   library license
 -----------------     ------------------                   ---------------
 Xerces-C++            2.3.0+                               Apache v2.0
-wxWidgets             2.6+                                 wxWidgets
+wxWidgets             2.8+                                 wxWidgets
 Tcl                   8.0-8.4                              BSD-style
 Boost                 1.48.0-1.53.0                        very permissive
 sqlite3               3.2.0+                               public domain
-LLVM                  3.7-3.8                              LLVM Release License
+LLVM                  4.0-5.0                              LLVM Release License
 Editline              2.9                                  BSD-style
 Python                2.4-2.8                              PSF license
 
@@ -37,18 +37,22 @@ Remember to install the '-dev' versions of the packages in order to get
 the library headers which are need to compile client code against them.
 You also need a version of "GNU Make" to build TCE.
 
-For example, to install the required libraries and tools for Ubuntu
+For example, to install the required libraries and tools for Ubuntu 16.04 LTS
 using its package manager 'apt-get', you need to execute the following
 command:
 
-  sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
-    tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
-    libffi-dev
+  sudo apt-get install libwxgtk3.0-dev libboost-all-dev \
+    tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make latex2html \
+    libffi-dev autoconf automake libtool subversion git cmake
 
 This installs the required packages for an Red Hat 6 (and CentOS):
 
   sudo yum install -y bzr wxGTK-devel boost-devel tcl-devel libedit-devel sqlite-devel \
 xerces-c-devel gcc-c++ make autoconf automake libtool
+
+See INSTALL.Debian for package list in other versions of Debian-based
+distributions such as Debian and Ubuntu, and INSTALL.RedHat for more information
+on installing TCE on Red Hat based distros.
 
 Editline
 --------
@@ -85,7 +89,7 @@ issues affecting TCE use.
 
 You can do this most easily by executing 
  
-   tools/scripts/install_llvm_3.8.sh DEST_PATH
+   tools/scripts/install_llvm_5.0.sh DEST_PATH
 
 where DEST_PATH is the absolute directory where you want the LLVM
 to be installed. This script installs some required patches
@@ -128,6 +132,9 @@ Running 'make'
 After running configure, it should be enough to just type
 
       make && make install
+
+Note: you need to run 'make' before 'make install' due to a newlib's
+build system issue.
 
 After installing TCE to somewhere in PATH, you can run a "smoke test" suite
 for the most important tools in the TCE installation by running the command

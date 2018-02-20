@@ -24,7 +24,8 @@
 /**
  * Implementation of SimControlLanguageCommand class
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka JÃ¤Ã¤skelÃ¤inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Henry LinjamÃ¤ki 2017 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -183,6 +184,21 @@ SimControlLanguageCommand::checkProgramLoaded() {
             SimulatorToolbox::textGenerator().text(
                 Texts::TXT_NO_PROGRAM_LOADED).str());
 
+        return false;
+    }
+    return true;
+}
+
+
+/**
+ * Checks that the simulated machine has been loaded successfully.
+ *
+ * @return True if machine has been loaded.
+ */
+bool
+SimControlLanguageCommand::checkMachineLoaded() {
+    if (!simulatorFrontend().isMachineLoaded()) {
+        interpreter()->setError(std::string("No machine loaded."));
         return false;
     }
     return true;
@@ -721,6 +737,75 @@ SimControlLanguageCommand::verifyBreakpointHandles(
     }
     return true;
 }
+
+/**
+ * Parses the address string to corresponding memory address and address space.
+ *
+ * @param addressString Memory address command string to parse.
+ * @param addressSpaceName Address space name to be set.
+ * @param memoryAddress Memory address to be set.
+ * @return true on success.
+ */
+bool
+SimControlLanguageCommand::setMemoryAddress(
+    const std::string& addressString,
+    std::string& addressSpaceName,
+    std::size_t& memoryAddress) {
+
+    try {
+        const TTAProgram::Address& parsedAddress =
+            parseDataAddressExpression(addressString);
+        if (&parsedAddress.space() !=
+            &TTAMachine::NullAddressSpace::instance()) {
+            addressSpaceName = parsedAddress.space().name();
+        }
+        memoryAddress = parsedAddress.location();
+    } catch(const IllegalParameters& n) {
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Sets memory instance from a given AddressSpaceName to given memory.
+ *
+ * @param memory Memory pointer to be set
+ * @param addressSpaceName The name of the address space.
+ * @return true on success.
+ */
+bool
+SimControlLanguageCommand::setMemoryPointer(
+    MemorySystem::MemoryPtr& memory,
+    const std::string& addressSpaceName) {
+
+    if (simulatorFrontend().memorySystem().memoryCount() < 1) {
+        interpreter()->setError(
+            SimulatorToolbox::textGenerator().text(
+                Texts::TXT_ADDRESS_SPACE_NOT_FOUND).str());
+        return false;
+    } else if (simulatorFrontend().memorySystem().memoryCount() == 1) {
+        memory = simulatorFrontend().memorySystem().memory(0);
+    } else {
+        /// must have the address space defined
+        if (addressSpaceName == "") {
+            interpreter()->setError(
+                SimulatorToolbox::textGenerator().text(
+                    Texts::TXT_NO_ADDRESS_SPACE_GIVEN).str());
+            return false;
+        }
+        try {
+            memory =
+                simulatorFrontend().memorySystem().memory(addressSpaceName);
+        } catch (const InstanceNotFound&) {
+            interpreter()->setError(
+                SimulatorToolbox::textGenerator().text(
+                    Texts::TXT_ADDRESS_SPACE_NOT_FOUND).str());
+            return false;
+        }
+    }
+    return true;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // SimControlLanguageSubCommand

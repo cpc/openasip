@@ -165,7 +165,7 @@ writeCustomOpMacro(
 	os << "FU\".";
 	break;
     case ADDRESSPACE:
-	os << "\"_AS.\"AS\".";
+	os << "\"_AS.\" AS\".";
 	break;
     default:
 	os << "\"";

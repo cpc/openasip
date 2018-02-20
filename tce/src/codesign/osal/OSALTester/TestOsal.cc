@@ -103,9 +103,17 @@ CmdTrigger::execute(const std::vector<DataObject>& arguments)
 
     string opName = arguments[1].stringValue();
 
-    Operation& op = interp->operation(opName);
+    Operation* op = NULL;
+    try {
+        op = &interp->operation(opName);
+    } catch (const IllegalOperationBehavior& e) {
+        // Catch error due to undefined or missing operation behavior.
+        obj->setString(e.errorMessage());
+        interp->setResult(obj);
+        return false;
+    }
 
-    if (&op == &NullOperation::instance()) {
+    if (op == &NullOperation::instance()) {
         obj->setString("unknown operation \"" + opName + "\"");
         interp->setResult(obj);
         return false;
@@ -125,26 +133,24 @@ CmdTrigger::execute(const std::vector<DataObject>& arguments)
 
     OperationSimulator& simulator = OperationSimulator::instance();
     InstructionAddress oldPC = opContext.programCounter();
-    if (!simulator.simulateTrigger(
-            op, inputs, args, opContext, result)) {
 
+    if (!simulator.simulateTrigger(*op, inputs, args, opContext, result)) {
         for (unsigned int i = 0; i < args.size(); i++) {
             delete args[i];
         }
         obj->setString(result);
         interp->setResult(obj);
         return false;
-
     } else {
 
-        for (int i = 0; i < op.numberOfOutputs(); i++) {
+        for (int i = 0; i < op->numberOfOutputs(); i++) {
 
-            SimValue* current = args[op.numberOfInputs() + i];
+            SimValue* current = args[op->numberOfInputs() + i];
             string output = context.toOutputFormat(current);
             result += output;
 
             // put blank everywhere else but after the last output
-            if (i < op.numberOfOutputs() - 1) {
+            if (i < op->numberOfOutputs() - 1) {
                 result += " ";
             }
         }
@@ -798,7 +804,8 @@ CmdMem::execute(const std::vector<DataObject>& arguments)
             resultValue = resultInt;
         } else if (size == MEM_DOUBLE_WORD) {
             DoubleWord result = 0.0;
-            memory.read(address, result);
+            // TODO: when to read in LE?
+            memory.readBE(address, result);
             resultValue = result;
         }
     } catch (const OutOfRange& o) {
@@ -975,7 +982,8 @@ int main(int argc, char* argv[]) {
     reader->initialize(">> ");
 
     // memory is 64k bytes
-    IdealSRAM* memory = new IdealSRAM(0, 65535, 8);
+    // TODO: what endianess
+    IdealSRAM* memory = new IdealSRAM(0, 65535, 8, false);
     context.operationContext().setMemory(memory);
 
     if (options.numberOfArguments() > 0) {

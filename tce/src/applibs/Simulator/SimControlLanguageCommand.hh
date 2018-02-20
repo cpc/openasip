@@ -26,7 +26,7 @@
  *
  * Declaration of SimControlLanguageCommand class.
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -42,6 +42,7 @@
 #include "Exception.hh"
 #include "SimulatorConstants.hh"
 #include "Address.hh"
+#include "MemorySystem.hh"
 
 class SimulatorFrontend;
 class Breakpoint;
@@ -78,6 +79,7 @@ public:
     bool checkSimulationStopped();
     bool checkSimulationEnded();
     bool checkProgramLoaded();
+    bool checkMachineLoaded();
 
     InstructionAddress parseInstructionAddressExpression(
         const std::string& expression)
@@ -97,6 +99,16 @@ public:
     bool verifyBreakpointHandles(
         const std::vector<DataObject>& arguments, 
         std::size_t startIndex = 1);
+
+protected:
+    bool setMemoryAddress(
+        const std::string& addressString,
+        std::string& addressSpaceName,
+        std::size_t& memoryAddress);
+    bool setMemoryPointer(
+        MemorySystem::MemoryPtr& memory,
+        const std::string& addressSpaceName);
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////

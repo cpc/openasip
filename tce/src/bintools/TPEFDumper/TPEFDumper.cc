@@ -263,7 +263,8 @@ TPEFDumper::memoryInfo() {
                 currentMemtypes.first = true;
                                                               
             } else if (currSect.type() == Section::ST_DATA ||
-                       currSect.type() == Section::ST_UDATA) {
+                       currSect.type() == Section::ST_UDATA ||
+                       currSect.type() == Section::ST_LEDATA) {
 
                 currMax += dynamic_cast<const UDataSection*>(
                     &currSect)->lengthInMAUs();
@@ -620,7 +621,8 @@ TPEFDumper::section(Section &sect) {
             
             std::string locationAddress;
 
-            if (relocSect.referencedSection()->type() == Section::ST_DATA) {
+            if (relocSect.referencedSection()->type() == Section::ST_DATA || 
+                relocSect.referencedSection()->type() == Section::ST_LEDATA) {
                 Chunk* srcChunk = dynamic_cast<Chunk*>(reloc->location());
 
                 DataSection* dataSect =
@@ -666,6 +668,7 @@ TPEFDumper::section(Section &sect) {
                         *dynamic_cast<InstructionElement*>(reloc->destination()));
                     
                 } else if (dstSection.type() == Section::ST_DATA ||
+                           dstSection.type() == Section::ST_LEDATA ||
                            dstSection.type() == Section::ST_UDATA) {
                     
                     UDataSection& uDataSect =
@@ -889,6 +892,30 @@ TPEFDumper::section(Section &sect) {
         }
 
         out_ << std::endl;
+    } break;
+
+    case Section::ST_LEDATA: {
+        out_ << "Low Endian Data section:"
+             << std::endl << std::endl;
+
+        out_ << sectionHeader() << std::endl;
+        out_ << sectionHeader(sect) << std::endl;
+
+        DataSection &data = dynamic_cast<DataSection&>(sect);
+
+        for (Word i = 0; i < data.lengthInMAUs(); i++) {
+
+            if (i%16 == 0) {
+                out_ << std::endl << std::setw(9) <<
+                    Conversion::toString(i + data.startingAddress()) + ":";
+            }
+
+            out_ << std::setw(sizeof(MinimumAddressableUnit)*2 + 3)
+                 << Conversion::toHexString(data.MAU(i));
+
+        }
+
+        out_ << std::endl;
 
     } break;
 
@@ -1064,6 +1091,7 @@ TPEFDumper::sectionTypeString(
     case Section::ST_CODE:   typeStr = "CODE";   break;
     case Section::ST_DATA:   typeStr = "DATA";   break;
     case Section::ST_UDATA:  typeStr = "UDATA";  break;
+    case Section::ST_LEDATA: typeStr = "LEDATA";   break;
     case Section::ST_DUMMY:  typeStr = "DUMMY";  break;
     default: typeStr = "UNKNOWN";
     }

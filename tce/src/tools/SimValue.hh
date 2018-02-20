@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Declaration of SimValue class.
  *
- * @author Pekka J‰‰skel‰inen 2004,2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2004,2010,2014 (pjaaskel-no.spam-cs.tut.fi)
  * @author Mikko Jarvela 2013, 2014 (mikko.jarvela-no.spam-.tut.fi)
  * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
@@ -55,32 +55,38 @@ class TCEString;
  * of the target architecture template, and provides the interface to access
  * the data in predefined types.
  *
- * Values are always stored in big-endian convention in the rawData_ byte 
- * array and the array is filled from the array's "right end" to left. For
- * instance, let's assume the array is 128 bytes wide and a 32-bit UIntWord
- * 305419896 (0x12345678) value is assigned to the SimValue. The value is 
- * laid out in the array as follows:
- * [0] = ...
- * [1] = ... 
- * ...
- * [124] = 0x12
- * [125] = 0x34
- * [126] = 0x56
- * [127] = 0x78
+ * Values are always (regardless of the endianness of the machine) stored in 
+ * little-endian convention in the rawData_ byte array. This is to model 
+ * closer the internal registers and buses where the convention is to:
+ *
+ * - store the smallest vector elements to the smallest bit position,
+ *   in the SimValue case, the smallest bytes in the storage array
+ * - store the elements in little-endian format 
+ *
+ * This is to avoid the need to implement two variations of function unit
+ * implementations, for both endianness modes.
+ *
+ * This also means that big endian machines need endianness-aware
+ * load/stores as they need to swap the elements to the little-endian
+ * "internal format". However, as we lean towards using little-endian
+ * with vector machines (for example due to buggy LLVM BE/vector code gen),
+ * it means we usually use endianness-unaware "chunk" memory operations
+ * that can be uses both for scalar and vector data.
  *
  * When a user wants to interpret SimValue as any primitive value 
  * (FloatWord, UIntWord, etc.), depending on the user's machine endianness
  * the interpreted bytes are swapped correctly to be either in big-endian
- * or little-endian convention. For instance, if the user has a little-endian
+ * or little-endian convention. For instance, if the user has a big-endian
  * machine and calls the uIntWordValue() function for a SimValue, which has
- * the above value, a new value with the 0x78563412 byte order is returned.
+ * the above value, it gets swapped so the OSAL operations can treat the
+ * result as a host integer to model the computation with.
  *
  * The same swapping convention also occurs when a primitive value is
- * assigned to SimValue. If the value to be assigned is in little-endian 
+ * assigned to SimValue. If the value to be assigned is in big-endian
  * and its bytes are 0xabcd0000, the last four bytes in the SimValue are
  * as 0x0000cdab.
  *
- * SimValue users don't need to worry about this possible byte swapping
+ * SimValue users don't need to worry about the possible byte swapping
  * since it is automatic and is done only if the user's machine is a
  * little-endian machine. However, users shouldn't access the public 
  * rawData_ member directly unless they know exactly what they are doing.
@@ -146,12 +152,14 @@ public:
     HalfFloatWord halfFloatWordValue() const;
 
     TCEString binaryValue() const;
-    TCEString hexValue() const;
+    TCEString hexValue(bool noHexIdentifier = false) const;
 
     void setValue(TCEString hexValue);
     void clearToZero(int bitWidth);
+    void clearToZero();
+    TCEString dump() const;
 
-    /// Array that contains SimValue's underlaying bytes in big endian.
+    /// Array that contains SimValue's underlaying bytes in little endian.
     Byte rawData_[SIMVALUE_MAX_BYTE_SIZE];
 
     /// The bitwidth of the value.

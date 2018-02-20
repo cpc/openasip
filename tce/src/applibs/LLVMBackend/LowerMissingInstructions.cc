@@ -105,22 +105,41 @@ namespace {
 
         
         // from llvm::Pass:
-        bool doInitialization(Module &M);
-        bool doFinalization (Module &M);
+        bool doInitialization(Module &M) override;
+        bool doFinalization (Module &M) override;
 
         // to suppress Clang warnings
         using llvm::BasicBlockPass::doInitialization;
         using llvm::BasicBlockPass::doFinalization;
 
-        bool runOnBasicBlock(BasicBlock &BB);
+        bool runOnBasicBlock(BasicBlock &BB) override;
 
-        virtual const char *getPassName() const {
+#if LLVM_OLDER_THAN_4_0
+    virtual const char *getPassName() const override {
+#else
+    virtual StringRef getPassName() const override {
+#endif
             return "TCE: LowerMissingInstructions";
         }
 
         void addFunctionForFootprints(
             Module& M, FunctionType* fType, Operation& op, 
             std::string suffix);
+
+    private:
+        std::string stringType(const Type* type) const;
+
+        ARGLIST_CONST Type* getLLVMType(
+            Operand::OperandType type, ARGLIST_CONST Type* llvmIntegerType);
+
+        std::string getFootprint(Instruction& I);
+
+#ifndef LLVM_OLDER_THAN_3_9
+        // getGlobalContext() was removed form LLVM.
+        LLVMContext& getGlobalContext() const {
+            return dstModule_->getContext();
+        }
+#endif
     };
 
     char LowerMissingInstructions::ID = 0;    
@@ -143,34 +162,36 @@ LowerMissingInstructions::LowerMissingInstructions(
 }
 
 // convert type name to string
-std::string stringType(const Type* type) {
-    
-    if (type == Type::getInt64Ty(getGlobalContext())) {
+std::string 
+LowerMissingInstructions::stringType(const Type* type) const {
+    LLVMContext& context = getGlobalContext();
+    if (type == Type::getInt64Ty(context)) {
         return "i64";
-    } else if (type == Type::getInt32Ty(getGlobalContext())) {
+    } else if (type == Type::getInt32Ty(context)) {
         return "i32";
-    }  else if (type == Type::getInt16Ty(getGlobalContext())) {
+    }  else if (type == Type::getInt16Ty(context)) {
         return "i16";
-    }  else if (type == Type::getInt8Ty(getGlobalContext())) {
+    }  else if (type == Type::getInt8Ty(context)) {
         return "i8";
-    }  else if (type == Type::getInt1Ty(getGlobalContext())) {
+    }  else if (type == Type::getInt1Ty(context)) {
         return "i1";
-    }  else if (type == Type::getHalfTy(getGlobalContext())) {
-	return "f16";
-    }  else if (type == Type::getFloatTy(getGlobalContext())) {
+    }  else if (type == Type::getHalfTy(context)) {
+        return "f16";
+    }  else if (type == Type::getFloatTy(context)) {
         return "f32";
-    }  else if (type == Type::getDoubleTy(getGlobalContext())) {
+    }  else if (type == Type::getDoubleTy(context)) {
         return "f64";
-    }  else if (type == Type::getLabelTy(getGlobalContext())) {
+    }  else if (type == Type::getLabelTy(context)) {
         return "label";
-    }  else if (type == Type::getVoidTy(getGlobalContext())) {
+    }  else if (type == Type::getVoidTy(context)) {
         return "void";
     } else {
         return "unknown";
     }
 }
 
-ARGLIST_CONST Type* getLLVMType(
+ARGLIST_CONST Type* 
+LowerMissingInstructions::getLLVMType(
     Operand::OperandType type, ARGLIST_CONST Type* llvmIntegerType) {
     switch (type) {
     case Operand::SINT_WORD:
@@ -282,14 +303,15 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
     return footprints[tceOp];
 }
 
-std::string getFootprint(Instruction& I) {
+std::string 
+LowerMissingInstructions::getFootprint(Instruction& I) {
     
     std::string footPrint = stringType(I.getType());
 
     switch (I.getOpcode()) {
 
     case Instruction::FCmp: {
-        FCmpInst* cmpInst = dynamic_cast<FCmpInst*>(&I);
+        FCmpInst* cmpInst = dyn_cast<FCmpInst>(&I);
         footPrint += std::string(".") + cmpInst->getOpcodeName() + ".";
         
         switch (cmpInst->getPredicate()) {
@@ -347,11 +369,11 @@ std::string getFootprint(Instruction& I) {
     } break;
 
     case Instruction::Call: {
-        if (dynamic_cast<CallInst*>(&I) == NULL ||
-            dynamic_cast<CallInst*>(&I)->getCalledFunction() == NULL)
+        if (!isa<CallInst>(&I) ||
+            dyn_cast<CallInst>(&I)->getCalledFunction() == NULL)
             break;
         std::string calledName = 
-            dynamic_cast<CallInst*>(&I)->getCalledFunction()->getName();
+            dyn_cast<CallInst>(&I)->getCalledFunction()->getName();
         if (calledName == "llvm.sqrt.f32") {
             return "f32.sqrt.f32";
         }
@@ -408,7 +430,7 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
         opSet = MachineInfo::getOpset(*mach_);
     
     OperationDAGSelector::OperationSet
-        requiredSet = LLVMBackend::llvmRequiredOpset();
+        requiredSet = LLVMBackend::llvmRequiredOpset(true, mach_->isLittleEndian());
     
     OperationPool osal;
     
@@ -537,7 +559,7 @@ bool LowerMissingInstructions::doFinalization(Module& /* M */) {
 //
 bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
     bool Changed = false;
-    
+
     BasicBlock::InstListType &BBIL = BB.getInstList();
 
     // Loop over all of the instructions, looking for instructions to lower

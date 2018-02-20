@@ -64,6 +64,10 @@ public:
     TCEString& operator<<(const char* rhs);
     TCEString& operator<<(const int rhs);
 
+    struct ICLess {
+        bool operator() (const TCEString& lhs, const TCEString& rhs) const;
+    };
+
 private:
 };
 

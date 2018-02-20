@@ -93,7 +93,7 @@ private:
     CostDatabase(const HDB::HDBManager& hdb);
 
     /// Finds string matches using regular expressions.
-    boost::smatch getValues(std::string text, std::string regex);
+    boost::smatch getValues(const std::string& text, const std::string& regex);
 
     /// Value type for map of search types.
     typedef std::pair<

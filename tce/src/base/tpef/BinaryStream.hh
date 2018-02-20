@@ -52,12 +52,13 @@ namespace TPEF {
  * The bits read from the stream are converted to the byte order of
  * the host machine. Conversely, the bits written into the stream will
  * be converted to the standard byte order of TTA Program Exchange
- * Format files.
+ * Format files which adheres to the byte order of the ADF the TPEF
+ * is associated with (by default big endian).
  */
 class BinaryStream {
 public:
-    BinaryStream(std::ostream &stream);
-    BinaryStream(std::string name);
+    BinaryStream(std::ostream &stream, bool littleEndian=false);
+    BinaryStream(std::string name, bool littleEndian=false);
     virtual ~BinaryStream();
 
     Byte readByte() throw (UnreachableStream, EndOfFile);
@@ -102,6 +103,10 @@ private:
     /// Externally given output stream.
     std::ostream* extOStream_;
 
+    /// In case we want to store the words in little endian order,
+    /// big endian otherwise.
+    bool littleEndianStorage_;
+
     /// Assignment not allowed.
     BinaryStream& operator=(BinaryStream& old);
     /// Copying not allowed.
@@ -113,6 +118,7 @@ private:
     Byte getByte() throw (UnreachableStream, EndOfFile);
     void putByte(Byte byte) throw (UnreachableStream, WritePastEOF);
 
+    bool needsSwap() const;
 };
 }
 

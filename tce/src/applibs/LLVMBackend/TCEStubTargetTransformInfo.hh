@@ -60,9 +60,17 @@ namespace llvm {
               TM(TM), ST(TM->getSubtargetImpl()) {}
 
         unsigned getNumberOfRegisters(bool vector);
+#ifdef LLVM_OLDER_THAN_5_0
         unsigned getRegisterBitWidth(bool vector);
+#else
+	unsigned getRegisterBitWidth(bool vector) const;
+#endif
         unsigned getMaxInterleaveFactor(unsigned VF);
-        unsigned getCastInstrCost(unsigned Opcode, Type *Dst, Type *Src);
+        unsigned getCastInstrCost(unsigned Opcode, Type *Dst, Type *Src
+#ifndef LLVM_OLDER_THAN_5_0
+				  , const Instruction* = nullptr
+#endif
+				  );
     };
 }
 

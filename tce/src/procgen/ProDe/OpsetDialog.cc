@@ -134,23 +134,33 @@ OpsetDialog::onSelectOperation(wxCommandEvent&) {
     if (operation_ == "")
         return;
 
-    OperationPool pool;
-    const Operation& op = pool.operation(operation_.c_str());
-
-    // update operation description
+    wxString opDesc;
+    wxString inputCount;
+    wxString outputCount;
+    try {
+        OperationPool pool;
+        const Operation& op = pool.operation(operation_.c_str());
+        opDesc = WxConversion::toWxString(op.description());
+        inputCount = WxConversion::toWxString(op.numberOfInputs());
+        outputCount = WxConversion::toWxString(op.numberOfOutputs());
+    } catch (Exception&) {
+        opDesc = WxConversion::toWxString(
+            "Error in loading the operation description.");
+        inputCount = WxConversion::toWxString("N/A");
+        outputCount = WxConversion::toWxString("N/A");
+    }
+    // Set operation description
     wxTextCtrl *opDescription = dynamic_cast<wxTextCtrl*>(
         FindWindow(ID_OP_DESCRIPTION));
     opDescription->Clear();
-    opDescription->AppendText(WxConversion::toWxString(op.description()));
-    // update inputs and outputs count
+    opDescription->AppendText(opDesc);
+    // Set inputs and outputs count
     wxStaticText *inputsLabel = dynamic_cast<wxStaticText*>(
         FindWindow(ID_OP_INPUTS));
-    inputsLabel->SetLabel(
-        wxT("Inputs: ") + WxConversion::toWxString(op.numberOfInputs()));
+    inputsLabel->SetLabel(wxT("Inputs: ") + inputCount);
     wxStaticText *outputsLabel = dynamic_cast<wxStaticText*>(
         FindWindow(ID_OP_OUTPUTS));
-    outputsLabel->SetLabel(
-        wxT("Outputs: ") + WxConversion::toWxString(op.numberOfOutputs()));
+    outputsLabel->SetLabel(wxT("Outputs: ") + outputCount);
 }
 
 

@@ -99,7 +99,7 @@ MachineStateBuilderTest::testBuildMachineState() {
     MemorySystem memSys(*machine);
     MemorySystem::MemoryPtr sram = 
         MemorySystem::MemoryPtr(
-            new IdealSRAM(as1->start(), as1->end(), 8));
+            new IdealSRAM(as1->start(), as1->end(), 8, false));
     TS_ASSERT_THROWS_NOTHING(memSys.addAddressSpace(*as1, sram));
 
     MachineStateBuilder builder;

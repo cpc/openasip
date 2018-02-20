@@ -55,7 +55,11 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/Analysis/CFG.h"
 
 #include "llvm/Support/Compiler.h"
+#ifdef LLVM_OLDER_THAN_6_0
 #include "llvm/Target/TargetInstrInfo.h"
+#else
+#include "llvm/CodeGen/TargetInstrInfo.h"
+#endif
 #include "llvm/ADT/DepthFirstIterator.h"
 
 #include "llvm/Analysis/CallGraph.h"
@@ -74,15 +78,19 @@ struct ProgramPartitioner : public llvm::MachineFunctionPass {
     static char ID;
     ProgramPartitioner() : MachineFunctionPass(ID) {}
 
-    virtual bool doInitialization(llvm::Module &M);
-    virtual bool runOnMachineFunction(llvm::MachineFunction &MF);
-    virtual bool doFinalization(llvm::Module &M);
+    virtual bool doInitialization(llvm::Module &M) override;
+    virtual bool runOnMachineFunction(llvm::MachineFunction &MF) override;
+    virtual bool doFinalization(llvm::Module &M) override;
     virtual bool findNodeIndex(
         const llvm::MachineInstr &I, 
         hash_map<const llvm::MachineInstr*, unsigned>& partitions,
         llvm::MachineFunction& MF,
         unsigned int& index);
-    virtual const char *getPassName() const {
+#if LLVM_OLDER_THAN_4_0
+    virtual const char *getPassName() const override {
+#else
+    virtual llvm::StringRef getPassName() const override {
+#endif
         return "TCE: program variables to register file partitioner";
     }
 

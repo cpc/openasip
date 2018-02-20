@@ -110,7 +110,8 @@ prode_SOURCES = Model.cc\
 		  BlockImplementationDialog.cc ImplementMachineCmd.cc \
 		  GenerateProcessorDialog.cc OpsetDialog.cc \
 		  CallExplorerPlugin.cc CallExplorerPluginCmd.cc \
-		  EditParameterDialog.cc AutoSelectImplementationsDialog.cc
+		  EditParameterDialog.cc AutoSelectImplementationsDialog.cc \
+		  MachineDialog.cc EditMachineCmd.cc VLIWConnectICCmd.cc
 
 prode_LDFLAGS = $(TCE_LDFLAGS)
 
@@ -198,7 +199,7 @@ prode_SOURCES += \
 	ProDeTextGenerator.hh AboutCmd.hh \
 	OpsetDialog.hh ModifyComponentCmd.hh \
 	PrintCmd.hh ProDeGCUEditPolicy.hh \
-	MDFLayoutConstraints.hh EditParameterDialog.hh \
+	EditParameterDialog.hh \
 	DeleteBridgeCmd.hh FitHeightCmd.hh \
 	ZoomOutCmd.hh ModifySRPortCmd.hh \
 	AddIUCmd.hh BusDialog.hh \
@@ -237,5 +238,6 @@ prode_SOURCES += \
 	ProDeOptionsSerializer.hh AddIUFromHDBCmd.hh \
 	ModifyRFCmd.hh AddASCmd.hh \
 	ProDeRFEditPolicy.hh PasteComponentCmd.icc \
-	MDFView.icc AutoSelectImplementationsDialog.hh
+	MDFView.icc AutoSelectImplementationsDialog.hh \
+	MachineDialog.hh EditMachineCmd.hh VLIWConnectICCmd.hh
 ## headers end

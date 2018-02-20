@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -71,7 +71,8 @@ unsigned const TDGen::REQUIRED_I32_REGS = 5;
 TDGen::TDGen(const TTAMachine::Machine& mach) :
     mach_(mach), dregNum_(0), maxVectorSize_(1), 
     highestLaneInt_(-1), highestLaneBool_(-1),
-    hasExBoolRegs_(false), hasExIntRegs_(false), hasSelect_(false) {
+    hasExBoolRegs_(false), hasExIntRegs_(false), hasSelect_(false),
+    littleEndian_(mach.isLittleEndian()) {
     tempRegFiles_ = MachineConnectivityCheck::tempRegisterFiles(mach);
     hasConditionalMoves_ =  
         MachineConnectivityCheck::hasConditionalMoves(mach_);
@@ -531,18 +532,44 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
     // --- Hardcoded reserved registers. ---
     writeRegisterDef(o, regs32bit_[0], "SP", "R32", "", RESERVED);
     writeRegisterDef(o, regs32bit_[1], "IRES0", "R32", "", RESULT);
+    writeRegisterDef(o, regs32bit_[2], "FP", "R32", "", RESERVED);
     writeRegisterDef(
-        o, regs32bit_[2], "KLUDGE_REGISTER", "R32", "", RESERVED);
-
+        o, regs32bit_[3], "KLUDGE_REGISTER", "R32", "", RESERVED);
     // -------------------------------------
     
-    for (unsigned i = 3; i < regs32bit_.size(); i++) {
+    for (unsigned i = 4; i < regs32bit_.size(); i++) {
         std::string regName = "I" + Conversion::toString(i);
         writeRegisterDef(o, regs32bit_[i], regName, "R32", "", GPR);
+        
+        if (regsInRFClasses_.find(regs32bit_[i].rf) == regsInRFClasses_.end()) {
+            regsInRFClasses_[regs32bit_[i].rf] = std::vector<std::string>();
+        }
+        
+         regsInRFClasses_[regs32bit_[i].rf].push_back(regName);
     }
 
     o << std::endl;
 
+    for (RegClassMap::iterator 
+        it = regsInRFClasses_.begin(); it != regsInRFClasses_.end(); ++it) {
+        o << "def R32_" 
+          << it->first 
+          << "_Regs : RegisterClass<\"TCE\", [i32,f32,f16], 32, (add ";
+        
+        for (std::vector<std::string>::iterator r = it->second.begin();
+             r != it->second.end(); ++r) {
+            if (r != it->second.begin()) {
+                o << ", ";
+            }
+            
+            o << *r;
+        }
+        
+        o << ")>;" << std::endl;
+    }
+    
+    o << std::endl;
+    
     // Register classes for all 32-bit registers.
     // TODO: why are these needed? same as integer classes below?
     for (RegClassMap::iterator ri = regsInClasses_.begin(); 
@@ -1028,9 +1055,12 @@ TDGen::checkRequiredRegisters()
 void
 TDGen::writeInstrInfo(std::ostream& os) {
 
+    // llvm-version-dependent
+    writeCallSeqStart(os);
+
     OperationDAGSelector::OperationSet opNames;
     OperationDAGSelector::OperationSet requiredOps =
-        LLVMBackend::llvmRequiredOpset();
+        LLVMBackend::llvmRequiredOpset(true, littleEndian_);
 
     const TTAMachine::Machine::FunctionUnitNavigator fuNav =
         mach_.functionUnitNavigator();
@@ -1045,15 +1075,28 @@ TDGen::writeInstrInfo(std::ostream& os) {
         }
     }
 
-    opNames_["LDWfr"] = "LDW";
-    opNames_["LDWfi"] = "LDW";
-    opNames_["STWfr"] = "STW";
-    opNames_["STWfi"] = "STW";
+    if (littleEndian_) {
+        opNames_["LD32fr"] = "LD32";
+        opNames_["LD32fi"] = "LD32";
+        opNames_["ST32fr"] = "ST32";
+        opNames_["ST32fi"] = "ST32";
+        
+        opNames_["LD16hr"] = "LDU16";
+        opNames_["LD16hi"] = "LDU16";
+        opNames_["ST16hr"] = "ST16";
+        opNames_["ST16hi"] = "ST16";
 
-    opNames_["LDHhr"] = "LDHU";
-    opNames_["LDHhi"] = "LDHU";
-    opNames_["STHhr"] = "STH";
-    opNames_["STHhi"] = "STH";
+    } else {
+        opNames_["LDWfr"] = "LDW";
+        opNames_["LDWfi"] = "LDW";
+        opNames_["STWfr"] = "STW";
+        opNames_["STWfi"] = "STW";
+        
+        opNames_["LDHhr"] = "LDHU";
+        opNames_["LDHhi"] = "LDHU";
+        opNames_["STHhr"] = "STH";
+        opNames_["STHhi"] = "STH";
+    }
 
     // some global/address immediate if conversion fails
     // so commented out
@@ -1199,24 +1242,26 @@ TDGen::writeInstrInfo(std::ostream& os) {
         }
     }
 
-    if (opNames.find("LDQ") != opNames.end()) {
+    if ((opNames.find("LDQ") != opNames.end() && !littleEndian_) ||
+        (opNames.find("LD8") != opNames.end() && littleEndian_ )) {
         createByteExtLoadPatterns(os);
     } else {
-        os << "//No LDQ op found! No byte ext load patterns either!"
+        os << "//No LDQ/LD8 op found! No byte ext load patterns either!"
                   << std::endl;
 
-        std::cerr << "No LDQ op found! No byte ext load patterns either!"
+        std::cerr << "No LDQ/LD8 op found! No byte ext load patterns either!"
                   << std::endl;
     }
 
-    if (opNames.find("LDH") != opNames.end()) {
+    if ((opNames.find("LDH") != opNames.end() && !littleEndian_) ||
+        (opNames.find("LD16") != opNames.end() && littleEndian_)) {
         createShortExtLoadPatterns(os);
     } else {
-        os << "//No LDH op found! No short ext load patterns either!"
+        os << "//No LDH/LD16 op found! No short ext load patterns either!"
                   << std::endl;
 
 
-        std::cerr << "No LDH op found! No short ext load patterns either!"
+        std::cerr << "No LDH/LD16 op found! No short ext load patterns either!"
                   << std::endl;
     }
 
@@ -1408,6 +1453,7 @@ TDGen::writeBackendCode(std::ostream& o) {
     generateLoadStoreCopyGenerator(o);
     createMinMaxGenerator(o);
     createGetMaxMemoryAlignment(o);
+    createEndiannesQuery(o);
 }
 
 /**
@@ -1485,7 +1531,18 @@ TDGen::writeOperationDefs(
         op.name() != "ALDH" && op.name() != "ALDHU" &&
         op.name() != "ALDW" && op.name() != "ALDD" &&
         op.name() != "ASTQ" && op.name() != "ASTH" &&
-        op.name() != "ASTW" && op.name() != "ASTD") {
+        op.name() != "ASTW" && op.name() != "ASTD" &&
+
+        op.name() != "LD8" && op.name() != "LDU8" &&
+        op.name() != "LD16" && op.name() != "LDU16" &&
+        op.name() != "LD32" && op.name() != "LD64" &&
+        op.name() != "ST8" && op.name() != "ST16" &&
+        op.name() != "ST32" && op.name() != "ST64" &&
+        op.name() != "ALD8" && op.name() != "ALDU8" &&
+        op.name() != "ALD16" && op.name() != "ALDU16" &&
+        op.name() != "ALD32" && op.name() != "ALD64" &&
+        op.name() != "AST8" && op.name() != "AST16" &&
+        op.name() != "AST32" && op.name() != "AST64") {
 
         if (op.readsMemory()) attrs += " mayLoad = 1";
         if (op.readsMemory() && op.writesMemory()) attrs += ", ";
@@ -2100,8 +2157,13 @@ TDGen::llvmOperationPattern(const Operation& op, char operandType) {
     if (opName == "cifu") return "uint_to_fp %1%";
     if (opName == "cfiu") return "fp_to_uint %1%";
 
+#if LLVM_OLDER_THAN_4_0
     if (opName == "cfh") return "fround %1%";
     if (opName == "chf") return "fextend %1%";
+#else
+    if (opName == "cfh") return "fpround %1%";
+    if (opName == "chf") return "fpextend %1%";
+#endif
 
     if (opName == "cih") return "sint_to_fp %1%";
     if (opName == "chi") return "fp_to_sint %1%";
@@ -2137,17 +2199,30 @@ TDGen::llvmOperationPattern(const Operation& op, char operandType) {
     if (opName == "chs") return "fp_to_sint %1%";
     if (opName == "chsu") return "fp_to_uint %1%";
 
-    if (opName == "ldq") return "sextloadi8 %1%";
-    if (opName == "ldqu") return "zextloadi8 %1%";
-    if (opName == "ldh") return "sextloadi16 %1%";
-    if (opName == "ldhu") return "zextloadi16 %1%";
-    if (opName == "ldw") return "load %1%";
-    //if (opName == "ldd") return "load";
-
-    if (opName == "stq") return "truncstorei8 %2%, %1%";
-    if (opName == "sth") return "truncstorei16 %2%, %1%";
-    if (opName == "stw") return "store %2%, %1%";
-    //if (opName == "std") return "load";
+    if (littleEndian_) {
+        if (opName == "ld8") return "sextloadi8 %1%";
+        if (opName == "ldu8") return "zextloadi8 %1%";
+        if (opName == "ld16") return "sextloadi16 %1%";
+        if (opName == "ldu16") return "zextloadi16 %1%";
+        if (opName == "ld32") return "load %1%";
+        //if (opName == "ldd") return "load";
+        
+        if (opName == "st8") return "truncstorei8 %2%, %1%";
+        if (opName == "st16") return "truncstorei16 %2%, %1%";
+        if (opName == "st32") return "store %2%, %1%";
+    } else {
+        if (opName == "ldq") return "sextloadi8 %1%";
+        if (opName == "ldqu") return "zextloadi8 %1%";
+        if (opName == "ldh") return "sextloadi16 %1%";
+        if (opName == "ldhu") return "zextloadi16 %1%";
+        if (opName == "ldw") return "load %1%";
+        //if (opName == "ldd") return "load";
+        
+        if (opName == "stq") return "truncstorei8 %2%, %1%";
+        if (opName == "sth") return "truncstorei16 %2%, %1%";
+        if (opName == "stw") return "store %2%, %1%";
+        //if (opName == "std") return "load";
+    } 
 
     if (opName == "sxhw") {
         switch (operandType) {
@@ -2255,21 +2330,40 @@ TDGen::llvmOperationName(const Operation& op) {
     if (opName == "cfi") return "fp_to_sint";
     if (opName == "cifu") return "uint_to_fp";
     if (opName == "cfiu") return "fp_to_uint";
-    
+
+#if LLVM_OLDER_THAN_4_0
     if (opName == "cfh") return "fround";
     if (opName == "chf") return "fextend";
+#else
+    if (opName == "cfh") return "fpround";
+    if (opName == "chf") return "fpextend";
+#endif
 
-    if (opName == "ldq") return "sextloadi8";
-    if (opName == "ldqu") return "zextloadi8";
-    if (opName == "ldh") return "sextloadi16";
-    if (opName == "ldhu") return "zextloadi16";
-    if (opName == "ldw") return "load";
-    //if (opName == "ldd") return "load";
+    if (littleEndian_) {
+        if (opName == "ld8") return "sextloadi8";
+        if (opName == "ldu8") return "zextloadi8";
+        if (opName == "ld16") return "sextloadi16";
+        if (opName == "ldu16") return "zextloadi16";
+        if (opName == "ld32") return "load";
+        //if (opName == "ldd") return "load";
+        
+        if (opName == "st8") return "truncstorei8";
+        if (opName == "st16") return "truncstorei16";
+        if (opName == "st32") return "store";
+        //if (opName == "std") return "load";
+    } else { // big-endian
+        if (opName == "ldq") return "sextloadi8";
+        if (opName == "ldqu") return "zextloadi8";
+        if (opName == "ldh") return "sextloadi16";
+        if (opName == "ldhu") return "zextloadi16";
+        if (opName == "ldw") return "load";
+        //if (opName == "ldd") return "load";
 
-    if (opName == "stq") return "truncstorei8";
-    if (opName == "sth") return "truncstorei16";
-    if (opName == "stw") return "store";
-    //if (opName == "std") return "load";
+        if (opName == "stq") return "truncstorei8";
+        if (opName == "sth") return "truncstorei16";
+        if (opName == "stw") return "store";
+        //if (opName == "std") return "load";
+    }
 
     if (opName == "sxhw") return "sext_inreg";
     if (opName == "sxqw") return "sext_inreg";
@@ -3112,96 +3206,119 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
     TCEString prefix = "&"; // address of -operator
     TCEString rcpf = "RegsRegClass";
     TCEString rapf = "TCE::RARegRegClass";
+    TCEString boolStore = littleEndian_ ? "ST8Brb;" : "STQBrb;";
+    TCEString intStore =  littleEndian_ ? "ST32"   : "STW";
+    TCEString halfStore = littleEndian_ ? "ST16"   : "STH";
 
     os << "#include <stdio.h>" << std::endl 
        << "int GeneratedTCEPlugin::getStore(const TargetRegisterClass *rc)"
        << " const {" << std::endl;
     
     os << "\tif (rc == " << prefix << rapf
-       << ") return TCE::STWRArr;"
+       << ") return TCE::" << intStore << "RArr;"
        << std::endl;
 
     for (RegClassMap::iterator ri = regsInClasses_.begin(); 
          ri != regsInClasses_.end(); ri++) {
         if (ri->first.find("R1") == 0) {
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
-               << rcpf << ") return TCE::STQBrb;" << std::endl;
+               << rcpf << ") return TCE::" << boolStore << std::endl;
         }
         if (ri->first.find("R32") == 0) {
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
-               << rcpf << ") return TCE::STWrr;" << std::endl;
+               << rcpf << ") return TCE::" << intStore << "rr;" << std::endl;
             
             os << "\tif (rc == " << prefix << "TCE::"  << ri->first
-               << "I" << rcpf << ") return TCE::STWrr;" << std::endl;
+               << "I" << rcpf << ") return TCE::" << intStore << "rr;" << std::endl;
             
             os << "\tif (rc == " << prefix << "TCE::"  << ri->first
-               << "FP" << rcpf << ") return TCE::STWfr;" << std::endl;
+               << "FP" << rcpf << ") return TCE::" << intStore << "fr;" << std::endl;
             
             os << "\tif (rc == " << prefix << "TCE::"  << ri->first
-               << "HFP" << rcpf << ") return TCE::STHhr;" << std::endl;
+               << "HFP" << rcpf << ") return TCE::" << halfStore << "hr;" << std::endl;
         }
     }
     
-    if (opNames_.find("STW2vr") != opNames_.end()) {
-        os << "\tif (rc == " << prefix << "TCE::V2R32I" << rcpf 
-           << ") return TCE::STW2vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V2R32FP" << rcpf 
-           << ") return TCE::STW2mr;"
-           << std::endl;
-
-        os << "\tif (rc == " << prefix << "TCE::V2R32_L_0I" << rcpf 
-           << ") return TCE::STW2vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V2R32_L_0FP" << rcpf << ") return TCE::STW2mr;"
-           << std::endl;
-
-        os << "\tif (rc == " << prefix << "TCE::V2R32_L_2I" << rcpf << ") return TCE::STW2vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V2R32_L_2FP" << rcpf << ") return TCE::STW2mr;"
-           << std::endl;
-
-        os << "\tif (rc == " << prefix << "TCE::V2R32_L_4I" << rcpf << ") return TCE::STW2vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V2R32_L_4FP" << rcpf << ") return TCE::STW2mr;"
-           << std::endl;
-
-        os << "\tif (rc == " << prefix << "TCE::V2R32_L_6I" << rcpf << ") return TCE::STW2vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V2R32_L_6FP" << rcpf << ") return TCE::STW2mr;"
-           << std::endl;
+    for (RegClassMap::iterator ri = regsInRFClasses_.begin(); 
+         ri != regsInRFClasses_.end(); ri++) {
+            os << "\tif (rc == " 
+               << prefix << "TCE::R32_"  << ri->first << "_"
+               << rcpf << ") return TCE::" <<intStore << "rr;" << std::endl;    
     }
-    if (opNames_.find("STW4vr") != opNames_.end()) {
-        os << "\tif (rc == " << prefix << "TCE::V4R32I" << rcpf << ") return TCE::STW4vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V4R32FP" << rcpf << ") return TCE::STW4mr;"
-           << std::endl;
+    
+    TCEString boolLoad = littleEndian_ ? "LD8Br;" : "LDQBr;";
+    TCEString intLoad = littleEndian_ ? "LD32" : "LDW";
+    TCEString halfLoad = littleEndian_ ? "LD16" : "LDH";
 
-        os << "\tif (rc == " << prefix << "TCE::V4R32_L_0I" << rcpf << ") return TCE::STW4vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V4R32_L_0FP" << rcpf << ") return TCE::STW4mr;"
-           << std::endl;
-
-        os << "\tif (rc == " << prefix << "TCE::V4R32_L_4I" << rcpf << ") return TCE::STW4vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V4R32_L_4FP" << rcpf << ") return TCE::STW4mr;"
-           << std::endl;
-    }
-    if (opNames_.find("STW8vr") != opNames_.end()) {
-        os << "\tif (rc == " << prefix << "TCE::V8R32I" << rcpf << ") return TCE::STW8vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V8R32FP" << rcpf << ") return TCE::STW8mr;"
-           << std::endl;
-
-        os << "\tif (rc == " << prefix << "TCE::V8R32_L_0I" << rcpf << ") return TCE::STW8vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V8R32_L_0FP" << rcpf << ") return TCE::STW8mr;"
-           << std::endl;
+    if (!littleEndian_) {
+        if (opNames_.find("STW2vr") != opNames_.end()) {
+            os << "\tif (rc == " << prefix << "TCE::V2R32I" << rcpf 
+               << ") return TCE::STW2vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V2R32FP" << rcpf 
+               << ") return TCE::STW2mr;"
+               << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::V2R32_L_0I" << rcpf 
+               << ") return TCE::STW2vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V2R32_L_0FP" << rcpf << ") return TCE::STW2mr;"
+               << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::V2R32_L_2I" << rcpf << ") return TCE::STW2vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V2R32_L_2FP" << rcpf << ") return TCE::STW2mr;"
+               << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::V2R32_L_4I" << rcpf << ") return TCE::STW2vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V2R32_L_4FP" << rcpf << ") return TCE::STW2mr;"
+               << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::V2R32_L_6I" << rcpf << ") return TCE::STW2vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V2R32_L_6FP" << rcpf << ") return TCE::STW2mr;"
+               << std::endl;
+        }
+        if (opNames_.find("STW4vr") != opNames_.end()) {
+            os << "\tif (rc == " << prefix << "TCE::V4R32I" << rcpf << ") return TCE::STW4vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V4R32FP" << rcpf << ") return TCE::STW4mr;"
+               << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::V4R32_L_0I" << rcpf << ") return TCE::STW4vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V4R32_L_0FP" << rcpf << ") return TCE::STW4mr;"
+               << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::V4R32_L_4I" << rcpf << ") return TCE::STW4vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V4R32_L_4FP" << rcpf << ") return TCE::STW4mr;"
+               << std::endl;
+        }
+        if (opNames_.find("STW8vr") != opNames_.end()) {
+            os << "\tif (rc == " << prefix << "TCE::V8R32I" << rcpf << ") return TCE::STW8vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V8R32FP" << rcpf << ") return TCE::STW8mr;"
+               << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::V8R32_L_0I" << rcpf << ") return TCE::STW8vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V8R32_L_0FP" << rcpf << ") return TCE::STW8mr;"
+               << std::endl;
+        }
     }
 #ifdef LLVM_3_5
     os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
 #else
+#ifdef LLVM_OLDER_THAN_5_0
     os  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl
+#elif LLVM_OLDER_THAN_6_0
+    os  << "\tprintf(\"regclass of size %d \\n\",rc->SpillSize);" << std::endl
+#else
+    os  << "\tprintf(\"regclass of size %d \\n\",rc->MC->getSize());"
+        << std::endl
+#endif
 #endif
         << "\tassert(0&&\"Storing given regclass to stack not supported. "
         << "Bug in backend?\");"
@@ -3212,93 +3329,111 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
         << "int GeneratedTCEPlugin::getLoad(const TargetRegisterClass *rc)"
         << " const {" << std::endl;
 
-    os << "\tif (rc == " << prefix << rapf << ") return TCE::LDWRAr;"
+    os << "\tif (rc == " << prefix << rapf << ") return TCE::" << intLoad << "RAr;"
        << std::endl;
 
     for (RegClassMap::iterator ri = regsInClasses_.begin(); 
          ri != regsInClasses_.end(); ri++) {
         if (ri->first.find("R1") == 0) {
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
-               << rcpf <<") return TCE::LDQBr;" << std::endl;
+               << rcpf <<") return TCE::" << boolLoad << std::endl;
         }
         if (ri->first.find("R32") == 0) {
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
-               << rcpf << ") return TCE::LDWrr;" << std::endl;
+               << rcpf << ") return TCE::" << intLoad << "rr;" << std::endl;
             
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
-               << "I" << rcpf << ") return TCE::LDWrr;" << std::endl;
+               << "I" << rcpf << ") return TCE::" << intLoad << "rr;" << std::endl;
             
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
-               << "FP" << rcpf << ") return TCE::LDWfr;" << std::endl;
+               << "FP" << rcpf << ") return TCE::" << intLoad << "fr;" << std::endl;
             
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
-               << "HFP" << rcpf << ") return TCE::LDHhr;" << std::endl;
+               << "HFP" << rcpf << ") return TCE::" << halfLoad << "hr;" << std::endl;
         }
     }
 
-    if (opNames_.find("LDW2vr") != opNames_.end()) {
-        os << "\tif (rc == " << prefix << "TCE::V2R32I" << rcpf << ") return TCE::LDW2vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V2R32FP" << rcpf << ") return TCE::LDW2mr;"
-           << std::endl;
-
-        os << "\tif (rc == " << prefix << "TCE::V2R32_L_0I" << rcpf << ") return TCE::LDW2vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V2R32_L_0FP" << rcpf << ") return TCE::LDW2mr;"
-           << std::endl;
-
-        os << "\tif (rc == " << prefix << "TCE::V2R32_L_2I" << rcpf << ") return TCE::LDW2vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V2R32_L_2FP" << rcpf << ") return TCE::LDW2mr;"
-           << std::endl;
-
-        os << "\tif (rc == " << prefix << "TCE::V2R32_L_4I" << rcpf << ") return TCE::LDW2vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V2R32_L_4FP" << rcpf << ") return TCE::LDW2mr;"
-           << std::endl;
-
-        os << "\tif (rc == " << prefix << "TCE::V2R32_L_6I" << rcpf << ") return TCE::LDW2vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V2R32_L_6FP" << rcpf << ") return TCE::LDW2mr;"
-           << std::endl;
+    for (RegClassMap::iterator ri = regsInRFClasses_.begin(); 
+         ri != regsInRFClasses_.end(); ri++) {
+ 
+            os << "\tif (rc == " << prefix 
+               << "TCE::R32_"  << ri->first << "_"
+               << rcpf << ") return TCE::" << intLoad << "rr;" << std::endl;
+            
     }
-    if (opNames_.find("LDW4vr") != opNames_.end()) {
-        os << "\tif (rc == " << prefix << "TCE::V4R32I" << rcpf << ") return TCE::LDW4vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V4R32FP" << rcpf << ") return TCE::LDW4mr;"
+    
+    if (!littleEndian_) {
+        if (opNames_.find("LDW2vr") != opNames_.end()) {
+            os << "\tif (rc == " << prefix << "TCE::V2R32I" << rcpf << ") return TCE::LDW2vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V2R32FP" << rcpf << ") return TCE::LDW2mr;"
+               << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::V2R32_L_0I" << rcpf << ") return TCE::LDW2vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V2R32_L_0FP" << rcpf << ") return TCE::LDW2mr;"
+               << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::V2R32_L_2I" << rcpf << ") return TCE::LDW2vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V2R32_L_2FP" << rcpf << ") return TCE::LDW2mr;"
+               << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::V2R32_L_4I" << rcpf << ") return TCE::LDW2vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V2R32_L_4FP" << rcpf << ") return TCE::LDW2mr;"
+               << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::V2R32_L_6I" << rcpf << ") return TCE::LDW2vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V2R32_L_6FP" << rcpf << ") return TCE::LDW2mr;"
+               << std::endl;
+        }
+        if (opNames_.find("LDW4vr") != opNames_.end()) {
+            os << "\tif (rc == " << prefix << "TCE::V4R32I" << rcpf << ") return TCE::LDW4vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V4R32FP" << rcpf << ") return TCE::LDW4mr;"
+               << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::V4R32_L_0I" << rcpf << ") return TCE::LDW4vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V4R32_L_0FP" << rcpf << ") return TCE::LDW4mr;"
+               << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::V4R32_L_4I" << rcpf << ") return TCE::LDW4vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V4R32_L_4FP" << rcpf << ") return TCE::LDW4mr;"
+               << std::endl;
+        }
+        if (opNames_.find("LDW8vr") != opNames_.end()) {
+            os << "\tif (rc == " << prefix << "TCE::V8R32I" << rcpf << ") return TCE::LDW8vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V8R32FP" << rcpf << ") return TCE::LDW8mr;"
            << std::endl;
-
-        os << "\tif (rc == " << prefix << "TCE::V4R32_L_0I" << rcpf << ") return TCE::LDW4vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V4R32_L_0FP" << rcpf << ") return TCE::LDW4mr;"
-           << std::endl;
-
-        os << "\tif (rc == " << prefix << "TCE::V4R32_L_4I" << rcpf << ") return TCE::LDW4vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V4R32_L_4FP" << rcpf << ") return TCE::LDW4mr;"
-           << std::endl;
-    }
-    if (opNames_.find("LDW8vr") != opNames_.end()) {
-        os << "\tif (rc == " << prefix << "TCE::V8R32I" << rcpf << ") return TCE::LDW8vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V8R32FP" << rcpf << ") return TCE::LDW8mr;"
-           << std::endl;
-
-        os << "\tif (rc == " << prefix << "TCE::V8R32_L_0I" << rcpf << ") return TCE::LDW8vr;"
-           << std::endl
-           << "\tif (rc == " << prefix << "TCE::V8R32_L_0FP" << rcpf << ") return TCE::LDW8mr;"
-           << std::endl;
+            
+            os << "\tif (rc == " << prefix << "TCE::V8R32_L_0I" << rcpf << ") return TCE::LDW8vr;"
+               << std::endl
+               << "\tif (rc == " << prefix << "TCE::V8R32_L_0FP" << rcpf << ") return TCE::LDW8mr;"
+               << std::endl;
+        }
     }
 #ifdef LLVM_3_5
     os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
 #else
+#ifdef LLVM_OLDER_THAN_5_0
     os  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl
+#elif LLVM_OLDER_THAN_6_0
+    os  << "\tprintf(\"regclass of size %d \\n\",rc->SpillSize);" << std::endl
+#else
+    os  << "\tprintf(\"regclass of size %d \\n\",rc->MC->getSize());"
+        << std::endl
+#endif
 #endif
         << "\tassert(0&&\"loading from stack to given regclass not supported."
         << " Bug in backend?\");"
-       << std::endl
-       << "} " << std::endl
-       << std::endl;
+        << std::endl
+        << "} " << std::endl
+        << std::endl;
 }
 
 void
@@ -3343,23 +3478,44 @@ TDGen::createMinMaxGenerator(std::ostream& os) {
     os << "\treturn -1; " << std::endl << "}" << std::endl;
 }
 
+void TDGen::createEndiannesQuery(std::ostream& os) {
+    os << "bool GeneratedTCEPlugin::isLittleEndian() const {" << std::endl;
+    os << "return " << littleEndian_ << "; }" << std::endl;
+}
+
 void TDGen::createByteExtLoadPatterns(std::ostream& os) {
-    os << "def : Pat<(i32 (zextloadi1 ADDRrr:$addr)), (ANDrri (LDQrr ADDRrr:$addr),1)>;" << std::endl
-       << "def : Pat<(i32 (zextloadi1 ADDRri:$addr)), (ANDrri (LDQri ADDRri:$addr),1)>;" << std::endl
-       << "def : Pat<(i32 (sextloadi1 ADDRrr:$addr)), (SUBrir 0,(ANDrri (LDQrr ADDRrr:$addr),1))>;" << std::endl
-       << "def : Pat<(i32 (sextloadi1 ADDRri:$addr)), (SUBrir 0,(ANDrri (LDQri ADDRri:$addr),1))>;" << std::endl
-       << "// anyextloads -> sextloads" << std::endl
-        
-       << "def : Pat<(i32 (extloadi1 ADDRrr:$src)), (LDQrr ADDRrr:$src)>;" << std::endl
-       << "def : Pat<(i32 (extloadi1 ADDRri:$src)), (LDQri ADDRri:$src)>;" << std::endl
-       << "def : Pat<(i32 (extloadi8 ADDRrr:$src)), (LDQrr ADDRrr:$src)>;" << std::endl
-       << "def : Pat<(i32 (extloadi8 ADDRri:$src)), (LDQri ADDRri:$src)>;" << std::endl
-       << std::endl;
+    TCEString load = littleEndian_ ? "LD8" : "LDQ";
+    os << "def : Pat<(i32 (zextloadi1 ADDRrr:$addr)), "
+          "(ANDrrr (" << load << "rr ADDRrr:$addr), (MOVI32ri 1))>;"
+       << std::endl
+       << "def : Pat<(i32 (zextloadi1 ADDRri:$addr)), "
+          "(ANDrrr (" << load << "ri ADDRri:$addr), (MOVI32ri 1))>;"
+       << std::endl
+       << "def : Pat<(i32 (sextloadi1 ADDRrr:$addr)), "
+          "(SUBrrr (MOVI32ri 0), "
+              "(ANDrrr (" << load << "rr ADDRrr:$addr), (MOVI32ri 1)))>;"
+       << std::endl
+       << "def : Pat<(i32 (sextloadi1 ADDRrr:$addr)), "
+          "(SUBrrr (MOVI32ri 0), "
+              "(ANDrrr (" << load << "rr ADDRrr:$addr), (MOVI32ri 1)))>;"
+       << std::endl
+       << "def : Pat<(i32 (sextloadi1 ADDRri:$addr)), "
+          "(SUBrrr (MOVI32ri 0), "
+              "(ANDrrr (" << load << "ri ADDRri:$addr), (MOVI32ri 1)))>;"
+       << std::endl
+        << "// anyextloads -> sextloads" << std::endl
+         
+       << "def : Pat<(i32 (extloadi1 ADDRrr:$src)), (" << load << "rr ADDRrr:$src)>;" << std::endl
+       << "def : Pat<(i32 (extloadi1 ADDRri:$src)), (" << load << "ri ADDRri:$src)>;" << std::endl
+       << "def : Pat<(i32 (extloadi8 ADDRrr:$src)), (" << load << "rr ADDRrr:$src)>;" << std::endl
+       << "def : Pat<(i32 (extloadi8 ADDRri:$src)), (" << load << "ri ADDRri:$src)>;" << std::endl
+           << std::endl;
 }
 
 void TDGen::createShortExtLoadPatterns(std::ostream& os) {
-    os     << "def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHrr ADDRrr:$src)>;" << std::endl
-           << "def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHri ADDRri:$src)>;" << std::endl;
+    TCEString load = littleEndian_ ? "LD16" : "LDH";
+    os     << "def : Pat<(i32 (extloadi16 ADDRrr:$src)), (" << load << "rr ADDRrr:$src)>;" << std::endl
+           << "def : Pat<(i32 (extloadi16 ADDRri:$src)), (" << load << "ri ADDRri:$src)>;" << std::endl;
 
 }
 
@@ -3565,4 +3721,35 @@ void TDGen::createSelectPatterns(std::ostream& os) {
     } else {
         os << "// Has select instr!. " << std::endl;
     }
+}
+
+void TDGen::writeCallSeqStart(std::ostream& os) {
+
+#ifdef LLVM_OLDER_THAN_5_0
+
+  os << "def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32>]>;"
+     << std::endl << std::endl
+     << "def callseq_start : SDNode<\"ISD::CALLSEQ_START\", "
+     << "SDT_TCECallSeqStart, [SDNPHasChain, SDNPOutGlue]>;" << std::endl
+     << std::endl
+     << "let Defs = [SP], Uses = [SP] in {" << std::endl
+     << "def ADJCALLSTACKDOWN : Pseudo<(outs), (ins i32imm:$amt),"
+     << "\"# ADJCALLSTACKDOWN $amt\","
+     << "[(callseq_start timm:$amt)]>;}" << std::endl << std::endl;
+
+#else
+
+  os << "def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32>,"
+     << "SDTCisVT<1, i32> ]>;" << std::endl << std::endl
+     << "def callseq_start : SDNode<\"ISD::CALLSEQ_START\", "
+     << "SDT_TCECallSeqStart, [SDNPHasChain, SDNPOutGlue]>;" << std::endl
+     << std::endl
+     << "let Defs = [SP], Uses = [SP] in {" << std::endl
+     << "def ADJCALLSTACKDOWN : Pseudo<(outs),"
+     << "(ins i32imm:$amt1, i32imm:$amt2),"
+     << "\"# ADJCALLSTACKDOWN $amt1, $amt2\","
+     << "[(callseq_start timm:$amt1, timm:$amt2)]>;}"
+     << std::endl << std::endl;
+
+#endif
 }

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,7 +28,7 @@
  *
  * @author Tommi Rantanen 2004 (tommi.rantanen-no.spam-tut.fi)
  * @author Ari Mets‰halme 2004 (ari.metsahalme-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005-2014 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #include <iostream>
@@ -85,7 +85,7 @@ END_TRIGGER;
 END_OPERATION(SUB)
 
 //////////////////////////////////////////////////////////////////////////////
-// LDW - load 4 minimum addressable units from memory
+// LDW - load a 32-bit word in big endian order from memory
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(LDW)
 
@@ -94,11 +94,27 @@ TRIGGER
        RUNTIME_ERROR_WITH_INT(
            "Memory access alignment error, address: ", UINT(1));
     UIntWord data;
-    MEMORY.read(UINT(1), 4, data);
+    MEMORY.readBE(UINT(1), 4, data);
     IO(2) = data;
 END_TRIGGER;
 
 END_OPERATION(LDW)
+
+//////////////////////////////////////////////////////////////////////////////
+// LD32 - load a 32-bit word in little endian order from memory
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(LD32)
+
+TRIGGER
+   if (UINT(1) % 4 != 0) 
+       RUNTIME_ERROR_WITH_INT(
+           "Memory access alignment error, address: ", UINT(1));
+    UIntWord data;
+    MEMORY.readLE(UINT(1), 4, data);
+    IO(2) = data;
+END_TRIGGER;
+
+END_OPERATION(LD32)
 
 //////////////////////////////////////////////////////////////////////////////
 // LDQ - load 1 mimimum addressable unit from memory
@@ -107,14 +123,14 @@ OPERATION(LDQ)
 
 TRIGGER
     UIntWord data;
-    MEMORY.read(UINT(1), 1, data);
+    MEMORY.readBE(UINT(1), 1, data);
     IO(2) = SIGN_EXTEND(data, MAU_SIZE);
 END_TRIGGER;
 
 END_OPERATION(LDQ)
 
 //////////////////////////////////////////////////////////////////////////////
-// LDH - load 2 mimimum addressable units from memory
+// LDH - load 16-bit word in big endian order from memory with sign extension
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(LDH)
 
@@ -123,11 +139,28 @@ TRIGGER
 	RUNTIME_ERROR_WITH_INT(
 	    "Memory access alignment error, address: ", UINT(1));
     UIntWord data;
-    MEMORY.read(UINT(1), 2, data);
+    MEMORY.readBE(UINT(1), 2, data);
     IO(2) = SIGN_EXTEND(data, MAU_SIZE*2);
 END_TRIGGER;
 
 END_OPERATION(LDH)
+
+//////////////////////////////////////////////////////////////////////////////
+// LD16 - load 16-bit word in little endian order from memory with sign extension
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(LD16)
+
+TRIGGER
+    if (UINT(1) % 2 != 0)
+    RUNTIME_ERROR_WITH_INT(
+        "Memory access alignment error, address: ", UINT(1));
+    UIntWord data;
+    MEMORY.readLE(UINT(1), 2, data);
+    // See the comment in ST32.
+    IO(2) = SIGN_EXTEND(data, MAU_SIZE*2);
+END_TRIGGER;
+
+END_OPERATION(LD16)
 
 //////////////////////////////////////////////////////////////////////////////
 // LDD - load double word (64 bits) from memory
@@ -142,14 +175,14 @@ TRIGGER
 	RUNTIME_ERROR_WITH_INT(
 	    "Memory access alignment error, address: ", UINT(1));
     DoubleWord d;
-    MEMORY.read(UINT(1), d);
+    MEMORY.readBE(UINT(1), d);
     IO(2) = d;
 END_TRIGGER;
 
 END_OPERATION(LDD)
 
 //////////////////////////////////////////////////////////////////////////////
-// STW - store 4 minimum addressable units to memory
+// STW - store a 32-bit word to memory in big endian byte order
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(STW)
 
@@ -157,10 +190,25 @@ TRIGGER
     if (UINT(1) % 4 != 0)
 	RUNTIME_ERROR_WITH_INT(
 	    "Memory access alignment error, address: ", UINT(1));
-    MEMORY.write(UINT(1), 4, UINT(2));
+    MEMORY.writeBE(UINT(1), 4, UINT(2));
 END_TRIGGER;
 
 END_OPERATION(STW)
+
+//////////////////////////////////////////////////////////////////////////////
+// ST32 - store a 32-bit word to memory in little endian byte order
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(ST32)
+
+TRIGGER
+    if (UINT(1) % 4 != 0)
+    RUNTIME_ERROR_WITH_INT(
+        "Memory access alignment error, address: ", UINT(1));
+    UIntWord data = UINT(2);
+    MEMORY.writeLE(UINT(1), 4, data);
+END_TRIGGER;
+
+END_OPERATION(ST32)
 
 //////////////////////////////////////////////////////////////////////////////
 // STQ - store 1 mimimum addressable unit to memory
@@ -168,13 +216,13 @@ END_OPERATION(STW)
 OPERATION(STQ)
 
 TRIGGER
-    MEMORY.write(UINT(1), 1, UINT(2));
+    MEMORY.writeBE(UINT(1), 1, UINT(2));
 END_TRIGGER;
 
 END_OPERATION(STQ)
 
 //////////////////////////////////////////////////////////////////////////////
-// STH - store 2 mimimum addressable units to memory
+// STH - store a 16-bit word to memory in big endian byte order
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(STH)
 
@@ -182,10 +230,26 @@ TRIGGER
     if (UINT(1) % 2 != 0)
 	RUNTIME_ERROR_WITH_INT(
 	    "Memory access alignment error, address: ", UINT(1));
-    MEMORY.write(UINT(1), 2, UINT(2));
+    MEMORY.writeBE(UINT(1), 2, UINT(2));
 END_TRIGGER;
 
 END_OPERATION(STH)
+
+//////////////////////////////////////////////////////////////////////////////
+// ST16 - store a 16-bit word to memory in little endian byte order
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(ST16)
+
+TRIGGER
+    if (UINT(1) % 2 != 0)
+    RUNTIME_ERROR_WITH_INT(
+        "Memory access alignment error, address: ", UINT(1));
+    // See the comment in ST32.
+    UIntWord data = UINT(2);
+    MEMORY.writeLE(UINT(1), 2, data);
+END_TRIGGER;
+
+END_OPERATION(ST16)
 
 //////////////////////////////////////////////////////////////////////////////
 // STD  - store double word (64 bits) to memory
@@ -202,7 +266,7 @@ TRIGGER
     assert(MAU_SIZE == sizeof(Byte)*8 && 
            "STD works only with byte sized MAU at the moment.");
 
-    MEMORY.write(UINT(1), DBL(2));
+    MEMORY.writeBE(UINT(1), DBL(2));
 END_TRIGGER;
 
 END_OPERATION(STD)
@@ -1209,21 +1273,21 @@ END_TRIGGER;
 END_OPERATION(MINF)
 
 //////////////////////////////////////////////////////////////////////////////
-// LDQU - load 1 mimimum addressable unit from memory (unsigned)
+// LDQU - load a byte from memory and zero extend to the output port width
 //////////////////////////////////////////////////////////////////////////////
 
 OPERATION(LDQU)
 
 TRIGGER
     UIntWord data;
-    MEMORY.read(UINT(1), 1, data);
+    MEMORY.readBE(UINT(1), 1, data);
     IO(2) = ZERO_EXTEND(data, MAU_SIZE);
 END_TRIGGER;
 
 END_OPERATION(LDQU)
 
 //////////////////////////////////////////////////////////////////////////////
-// LDHU - load 2 mimimum addressable units from memory (unsigned)
+// LDHU - load a 16-bit big endian word from memory with zero extension
 //////////////////////////////////////////////////////////////////////////////
 
 OPERATION(LDHU)
@@ -1233,11 +1297,29 @@ TRIGGER
 	RUNTIME_ERROR_WITH_INT(
 	    "Memory access alignment error, address: ", UINT(1));
     UIntWord data;
-    MEMORY.read(UINT(1), 2, data);
+    MEMORY.readBE(UINT(1), 2, data);
     IO(2) = ZERO_EXTEND(data, MAU_SIZE*2);
 END_TRIGGER;
 
 END_OPERATION(LDHU)
+
+//////////////////////////////////////////////////////////////////////////////
+// LDU16 - load a 16-bit little endian word from memory with zero extension
+//////////////////////////////////////////////////////////////////////////////
+
+OPERATION(LDU16)
+
+TRIGGER
+    if (UINT(1) % 2 != 0)
+    RUNTIME_ERROR_WITH_INT(
+        "Memory access alignment error, address: ", UINT(1));
+    UIntWord data;
+    MEMORY.readLE(UINT(1), 2, data);
+    // See the comment in ST32.
+    IO(2) = ZERO_EXTEND(data, MAU_SIZE*2);
+END_TRIGGER;
+
+END_OPERATION(LDU16)
 
 //////////////////////////////////////////////////////////////////////////////
 // STDOUT - Output a byte of data to "standard output", whatever it might

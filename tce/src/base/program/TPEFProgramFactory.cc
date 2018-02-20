@@ -2144,7 +2144,8 @@ TPEFProgramFactory::createDataMemories(Program &prog) {
         Section* currSect = binary_->section(i);
         
         if (currSect->type() == Section::ST_DATA || 
-            currSect->type() == Section::ST_UDATA) {
+            currSect->type() == Section::ST_UDATA ||
+            currSect->type() == Section::ST_LEDATA) {
             
             UDataSection* uDataSect = dynamic_cast<UDataSection*>(currSect);
 
@@ -2184,13 +2185,15 @@ TPEFProgramFactory::createDataMemories(Program &prog) {
                 DataDefinition* newDef = 
                     new DataDefinition(
                         Address(currSect->startingAddress(), aSpace),
-                        static_cast<int>(currSect->lengthInMAUs()));
+                        static_cast<int>(currSect->lengthInMAUs()),
+                        prog.targetProcessor().isLittleEndian());
 
                 newDataMem->addDataDefinition(newDef);
                                
             } else {
                 // -------- create initialized data definition
-                assert(currSect->type() == Section::ST_DATA);
+                assert(currSect->type() == Section::ST_DATA ||
+                       currSect->type() == Section::ST_LEDATA);
                                
                 // find relocation section for this section
                 RelocSection* relocs = NULL;
@@ -2257,7 +2260,8 @@ TPEFProgramFactory::createDataMemories(Program &prog) {
                             
                             DataInstructionAddressDef* newDataDef = 
                                 new DataInstructionAddressDef(
-                                    startAddr, mauSize, instrRef);
+                                    startAddr, mauSize, instrRef,
+                                    prog.targetProcessor().isLittleEndian());
                             
                             newDataMem->addDataDefinition(newDataDef);
                             
@@ -2296,7 +2300,8 @@ TPEFProgramFactory::createDataMemories(Program &prog) {
                                                       
                             DataAddressDef* newDataDef = 
                                 new DataAddressDef(
-                                    startAddr, mauSize, dstAddr);
+                                    startAddr, mauSize, dstAddr,
+                                    prog.targetProcessor().isLittleEndian());
 
                             newDataMem->addDataDefinition(newDataDef);
                             
@@ -2383,7 +2388,9 @@ TPEFProgramFactory::createDataMemories(Program &prog) {
                     if (allZeros) {
                         newDataDef = new DataDefinition(
                             Address(currArea.first, aSpace),
-                            currArea.second, NULL, true );        
+                            currArea.second,
+                            prog.targetProcessor().isLittleEndian(),
+                            NULL, true );
                     } else {
                         for (int l = 0; l < currArea.second; l++) {
                             initData.push_back(dataSect->MAU(mauIndex++));
@@ -2391,7 +2398,7 @@ TPEFProgramFactory::createDataMemories(Program &prog) {
                     
                         newDataDef = new DataDefinition(
                             Address(currArea.first, aSpace),
-                            initData);
+                            initData, prog.targetProcessor().isLittleEndian());
                     }
                     
                     newDataMem->addDataDefinition(newDataDef);

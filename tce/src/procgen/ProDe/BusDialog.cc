@@ -173,7 +173,7 @@ BusDialog::BusDialog(
 
     // Editing segments is unsupported feature => hide segment ui
     segmentSizer_->Show(false);
-    Layout();
+    GetSizer()->SetSizeHints(this);
 }
 
 

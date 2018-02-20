@@ -156,12 +156,14 @@ ComponentImplementationSelector::fuImplementations(
     }
 
     // Estimate costs the the implementations
-    for (; iter != fuImplementations.end(); iter++) {
+    while (iter != fuImplementations.end()) {
+        auto rmIt = iter;
         try {
             double area = estimator_.functionUnitArea(fu, *(*iter));
             if (area > maxArea && static_cast<int>(maxArea) > 0) {
                 // FU area too large
-                fuImplementations.erase(iter);
+                iter++;
+                fuImplementations.erase(rmIt);
                 continue;
             }
             double delayInNanoSeconds = 
@@ -170,7 +172,8 @@ ComponentImplementationSelector::fuImplementations(
             // 1000/ns = MHz
             if (delayInNanoSeconds > 0 && (static_cast<double>(1000) / static_cast<double>(delayInNanoSeconds)) < static_cast<double>(frequencyMHz)) {
                 // FU too slow
-                fuImplementations.erase(iter);
+                iter++;
+                fuImplementations.erase(rmIt);
                 continue;
             }
             CostEstimates* estimates = new CostEstimates();
@@ -181,9 +184,11 @@ ComponentImplementationSelector::fuImplementations(
                     (*iter), estimates));
         } catch (CannotEstimateCost& e) {
             // Couldn't estimate the fu.
-            fuImplementations.erase(iter);
+            iter++;
+            fuImplementations.erase(rmIt);
             continue;
         }
+        iter++;
     }
     return results;
 }
@@ -439,12 +444,14 @@ ComponentImplementationSelector::rfImplementations(
         return results;
     }
 
-    for (; iter != rfImplementations.end(); iter++) {
+    while (iter != rfImplementations.end()) {
+        auto rmIt = iter;
         try {
             double area = estimator_.registerFileArea(rf, *(*iter));
             if (area > maxArea && static_cast<int>(maxArea) > 0) {
                 // RF area too large
-                rfImplementations.erase(iter);
+                iter++;
+                rfImplementations.erase(rmIt);
                 continue;
             }
             double delayInNanoSeconds = 
@@ -453,7 +460,8 @@ ComponentImplementationSelector::rfImplementations(
             // 1000/ns = MHz
             if ((1000/delayInNanoSeconds) < frequencyMHz) {
                 // RF too slow
-                rfImplementations.erase(iter);
+                iter++;
+                rfImplementations.erase(rmIt);
                 continue;
             }
             CostEstimates* estimates = new CostEstimates();
@@ -464,9 +472,11 @@ ComponentImplementationSelector::rfImplementations(
                     (*iter), estimates));
         } catch (CannotEstimateCost& e) {
             // Couldn't estimate the rf.
-            rfImplementations.erase(iter);
+            iter++;
+            rfImplementations.erase(rmIt);
             continue;
         }
+        iter++;
     }
     return results;
 }
@@ -542,12 +552,14 @@ ComponentImplementationSelector::iuImplementations(
         return results;
     }
 
-    for (; iter != iuImplementations.end(); iter++) {
+    while (iter != iuImplementations.end()) {
+        auto rmIt = iter;
         try {
             double area = estimator_.registerFileArea(iu, *(*iter));
             if (area > maxArea && static_cast<int>(maxArea) > 0) {
                 // IU area too large
-                iuImplementations.erase(iter);
+                iter++;
+                iuImplementations.erase(rmIt);
                 continue;
             }
             double delayInNanoSeconds = 
@@ -556,7 +568,8 @@ ComponentImplementationSelector::iuImplementations(
             // 1000/ns = MHz
             if ((1000/delayInNanoSeconds) < frequencyMHz) {
                 // RF too slow
-                iuImplementations.erase(iter);
+                iter++;
+                iuImplementations.erase(rmIt);
                 continue;
             }
             CostEstimates* estimates = new CostEstimates();
@@ -567,9 +580,11 @@ ComponentImplementationSelector::iuImplementations(
                     (*iter), estimates));
         } catch (CannotEstimateCost& e) {
             // Couldn't estimate the iu.
-            iuImplementations.erase(iter);
+            iter++;
+            iuImplementations.erase(rmIt);
             continue;
         }
+        iter++;
     }
     return results;
 }

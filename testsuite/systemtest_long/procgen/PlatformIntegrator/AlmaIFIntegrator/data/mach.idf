@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>tce:DefaultICDecoderPlugin.so</file>
+    <parameter name="debugger">
+      <value>external</value>
+    </parameter>
+  </ic-decoder-plugin>
+
+  <fu name="mul">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>391</fu-id>
+  </fu>
+
+  <fu name="LSU_DATA">
+    <hdb-file>tce:almaif.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <fu name="ALU">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>395</fu-id>
+  </fu>
+
+  <fu name="LSU_PARAM">
+    <hdb-file>tce:almaif.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <fu name="LSU_PRIVATE">
+    <hdb-file>tce:almaif.hdb</hdb-file>
+    <fu-id>4</fu-id>
+  </fu>
+
+  <fu name="ALU2">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>395</fu-id>
+  </fu>
+
+  <rf name="RF">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>191</rf-id>
+  </rf>
+
+  <rf name="BOOL">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>958</rf-id>
+  </rf>
+
+  <iu name="IU_1x32">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>96</rf-id>
+  </iu>
+
+</adf-implementation>

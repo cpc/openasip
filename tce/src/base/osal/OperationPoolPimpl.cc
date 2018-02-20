@@ -170,8 +170,10 @@ const llvm::MCInstrDesc& tid
 ) {
 #ifdef LLVM_3_0
     TCEString opName = TCEString(tid.getName());
-#else
+#elif LLVM_OLDER_THAN_4_0
     TCEString opName = llvmTargetInstrInfo_->getName(tid.getOpcode());
+#else
+    TCEString opName = llvmTargetInstrInfo_->getName(tid.getOpcode()).str();
 #endif
     Operation* op = new Operation(opName, NullOperationBehavior::instance());
    

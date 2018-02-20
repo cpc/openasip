@@ -52,12 +52,19 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "TCEStubTargetTransformInfo.hh"
 #endif
 #include "TCEStubSubTarget.hh"
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetLoweringObjectFile.h>
+#else
+#include <llvm/CodeGen/TargetLoweringObjectFile.h>
+#endif
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/CodeGen/Passes.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Target/TargetOptions.h>
+#ifndef LLVM_OLDER_THAN_3_9
+#include <llvm/CodeGen/TargetPassConfig.h>
+#endif
 
 using namespace llvm;
 
@@ -65,10 +72,19 @@ Target llvm::TheTCETarget;
 Target llvm::TheTCELETarget;
 
 extern "C" void LLVMInitializeTCETargetInfo() {
+#ifdef LLVM_OLDER_THAN_6_0
     RegisterTarget<Triple::tce, /*HasJIT=*/false>
         X(TheTCETarget, "tce", "TCE custom processor");
     RegisterTarget<Triple::tcele, false>
         Y(TheTCELETarget, "tcele", "TCE custom processor (little endian)");
+#else
+    RegisterTarget<Triple::tce, /*HasJIT=*/false>
+        X(TheTCETarget, "tce", "TCE custom processor",
+          "TODO: wonder what this button does");
+    RegisterTarget<Triple::tcele, false>
+        Y(TheTCELETarget, "tcele", "TCE custom processor (little endian)",
+          "TODO: wonder what this button does");
+#endif
 }
 
 #ifndef LLVM_OLDER_THAN_3_7
@@ -118,6 +134,7 @@ TCEBaseTargetMachine::TCEBaseTargetMachine(
 #endif
 
 #ifndef LLVM_OLDER_THAN_3_7
+#ifdef LLVM_OLDER_THAN_3_9
 TCEStubTargetMachine::TCEStubTargetMachine(
     const Target &T, const Triple &TT, const std::string& CPU, 
     const std::string& FS, const TargetOptions &Options,
@@ -126,7 +143,34 @@ TCEStubTargetMachine::TCEStubTargetMachine(
     TLOF(new TargetLoweringObjectFileELF) {
     ST = new TCEStubSubTarget(TT, CPU, FS, *this);
 }
+#elif LLVM_OLDER_THAN_6_0
+TCEStubTargetMachine::TCEStubTargetMachine(
+    const Target &T, const Triple &TT, const std::string& CPU,
+    const std::string& FS, const TargetOptions &Options,
+    Optional<Reloc::Model> RM, CodeModel::Model CM, CodeGenOpt::Level OL) :
+    TCEBaseTargetMachine(T, TT, CPU, FS, Options,
+                         RM?*RM:Reloc::Model::Static, CM, OL),
+    // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
+    TLOF(new TargetLoweringObjectFileELF) {
+    ST = new TCEStubSubTarget(TT, CPU, FS, *this);
+}
+#else
+TCEStubTargetMachine::TCEStubTargetMachine(
+    const Target &T, const Triple &TT, const std::string& CPU,
+    const std::string& FS, const TargetOptions &Options,
+    Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
+    CodeGenOpt::Level OL, bool) :
+    TCEBaseTargetMachine(T, TT, CPU, FS, Options,
+                         RM?*RM:Reloc::Model::Static,
+                         CM?*CM:CodeModel::Small, OL),
+    // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
+    // Note: CodeModel does not have "Default" named member. "Small" is ok?
+    TLOF(new TargetLoweringObjectFileELF) {
+    ST = new TCEStubSubTarget(TT, CPU, FS, *this);
+}
+#endif
 
+#ifdef LLVM_OLDER_THAN_6_0
 TargetIRAnalysis TCEStubTargetMachine::getTargetIRAnalysis() {
 #ifdef LLVM_OLDER_THAN_3_8
     return TargetIRAnalysis(
@@ -138,6 +182,7 @@ TargetIRAnalysis TCEStubTargetMachine::getTargetIRAnalysis() {
             return TargetTransformInfo(TCEStubTTIImpl(this, F)); });
 #endif
 }
+#endif
 
 TCEStubTargetMachine::~TCEStubTargetMachine() {}
 
@@ -148,7 +193,11 @@ namespace {
     class TCEStubPassConfig : public TargetPassConfig {
     public:
         TCEStubPassConfig(TCEStubTargetMachine *TM, PassManagerBase &PM)
+#ifdef LLVM_OLDER_THAN_5_0
             : TargetPassConfig(TM, PM) {}
+#else
+            : TargetPassConfig(*TM, PM) {}
+#endif
 
         TCEStubTargetMachine &getTCEStubTargetMachine() const {
             return getTM<TCEStubTargetMachine>();

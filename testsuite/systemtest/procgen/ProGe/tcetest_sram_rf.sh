@@ -66,11 +66,11 @@ $PIG -d -w4 -p $testTpef -x $pdir $testAdf || abort_w_msg "Error from PIG"
 
 rtl-simulate ||  abort_w_msg "Error from rtl simulation or bus trace mismatch."
 
-$TCECC -O0 -a $testAdf -o $testTpef $testC || abort_w_msg "Error from tcecc"
+$TCECC -O1 -a $testAdf -o $testTpef $testC || abort_w_msg "Error from tcecc"
 $GENBUSTRACE -o $TTABUSTRACE $testAdf $testTpef
 $PIG -d -w4 -p $testTpef -x $pdir $testAdf || abort_w_msg "Error from PIG"
 
-rtl-simulate
+rtl-simulate ||  abort_w_msg "Error from rtl simulation or bus trace mismatch."
 grep -q TT $pdir/printchar_output.txt \
     || abort_w_msg "Error from test program."
 

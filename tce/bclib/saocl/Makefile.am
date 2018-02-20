@@ -1,10 +1,5 @@
-pkglibdir = ${prefix}/tce-llvm/lib
-pkglib_LIBRARIES = liboclhost-sa.a 
+srclib_datadir = ${prefix}/share/tce/srclibs/
+srclib_data_DATA = liboclhost-sa.sa
 
-liboclhost_sa_a_SOURCES = oclhostsa.cc
-
-TCECC_CPPFLAGS = -I${srcdir}/../include
-TCECC = ../../src/bintools/Compiler/tcecc
-
-.cc.o:
-	$(TCECC) $(TCECC_CPPFLAGS) -g -c -O3 -o $@ $<
+src_datadir = ${srclib_datadir}/saocl
+src_data_DATA = oclhostsa.cc

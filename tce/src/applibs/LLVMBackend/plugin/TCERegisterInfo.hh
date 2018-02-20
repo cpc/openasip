@@ -42,28 +42,34 @@
 
 #include "tce_config.h"
 
+#ifndef LLVM_OLDER_THAN_3_7
+// LLVM 3.7 tdgen expects the name class TCEFrameLowering
+#define TCEFrameInfo TCEFrameLowering 
+#endif
+
 namespace llvm {
     class TargetInstrInfo;
     class Type;
+    class TCEFrameInfo;
 
     /**
      * Class which handles registers in the TCE backend.
      */
     class TCERegisterInfo : public TCEGenRegisterInfo {
     public:
-        TCERegisterInfo(const TargetInstrInfo& tii, int stackAlignment);
+        TCERegisterInfo(const TargetInstrInfo& tii);
         virtual ~TCERegisterInfo() {};
 
 #ifdef LLVM_3_5
-        const uint16_t *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
+        const uint16_t *getCalleeSavedRegs(const MachineFunction *MF = 0) const override;
 #else
         const MCPhysReg* getCalleeSavedRegs(const MachineFunction *MF = 0) const override;
 #endif
 
         // TODO: These are in TCEFrameInfo now, but those delegate here
         // TODO: Moved them there some day.
-        void emitPrologue(MachineFunction& mf) const;
-        void emitEpilogue(MachineFunction& mf, MachineBasicBlock& mbb) const;
+        //void emitPrologue(MachineFunction& mf) const;
+        //void emitEpilogue(MachineFunction& mf, MachineBasicBlock& mbb) const;
 
         BitVector getReservedRegs(const MachineFunction &MF) const override;
 
@@ -77,11 +83,12 @@ namespace llvm {
 
         int getDwarfRegNum(unsigned regNum, bool isEH) const;
         int getLLVMRegNum(unsigned int, bool) const;
-
+        // TODO: call TCEFrameInfo::hasFP(MF)
+        bool hasFP(const MachineFunction &MF) const;
+        void setTFI(const TCEFrameInfo* tfi) { tfi_ = tfi; };
     private:
         const TargetInstrInfo& tii_;
-        bool containsCall(MachineFunction& mf) const;
-        int stackAlignment_;
+        const TCEFrameInfo* tfi_;
     };
 }
 

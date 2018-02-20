@@ -106,15 +106,18 @@ CallExplorerPluginWindow::CallExplorerPluginWindow(
 
     // Get explorer plugin names.
     std::vector<DesignSpaceExplorerPlugin*> plugins = explorer_.getPlugins();
+    std::set<string> addedPlugins;
 
     for (std::size_t i = 0; i < plugins.size(); i++) {
         DesignSpaceExplorerPlugin *plugin = plugins[i];
 
         if (plugin->producesArchitecture() &&
             !plugin->requiresHDB() && 
-            !plugin->requiresSimulationData()) {
-            
+            !plugin->requiresSimulationData() &&
+            addedPlugins.find(plugin->name()) == addedPlugins.end()) {
+
             plugins_.push_back(plugin);
+            addedPlugins.insert(plugin->name());
         }
 
     }

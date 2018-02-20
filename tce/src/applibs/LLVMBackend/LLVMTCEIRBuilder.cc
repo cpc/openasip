@@ -121,7 +121,7 @@ LLVMTCEIRBuilder::LLVMTCEIRBuilder(
             dynamic_cast<LLVMTCECmdLineOptions*>(
                 Application::cmdLineOptions());
     }
-    delaySlotFilling_ = true;
+    delaySlotFilling_ = !options_->disableDelaySlotFiller();
 }
 
 bool
@@ -153,7 +153,11 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
     TTAMachine::AddressSpace* as = mach_->controlUnit()->addressSpace();
     
     SmallString<256> Buffer;
+#ifdef LLVM_OLDER_THAN_6_0
     mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
+#else
+    mang_->getNameWithPrefix(Buffer, &mf.getFunction(), false);
+#endif
     TCEString fnName(Buffer.c_str());
 
     TTAProgram::Procedure* procedure = 
@@ -232,7 +236,11 @@ ControlFlowGraph*
 LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
 
     SmallString<256> Buffer;
+#ifdef LLVM_OLDER_THAN_6_0
     mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
+#else
+    mang_->getNameWithPrefix(Buffer, &mf.getFunction(), false);
+#endif
     TCEString fnName(Buffer.c_str());
 
     ControlFlowGraph* cfg = new ControlFlowGraph(fnName, prog_);
@@ -431,7 +439,11 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
             }
 
             TTAProgram::Instruction* instr = NULL;
-            instr = emitInstruction(j, bb);                        
+#if LLVM_OLDER_THAN_4_0
+            instr = emitInstruction(j, bb);
+#else
+            instr = emitInstruction(&*j, bb);
+#endif
 
             if (instr == NULL) {
                 continue;
@@ -679,7 +691,10 @@ LLVMTCEIRBuilder::compileOptimized(
     }
 
     CycleLookBackSoftwareBypasser bypasser;
-    BBSchedulerController bbsc(*ipData_, &bypasser, &delaySlotFiller());
+    CopyingDelaySlotFiller* dsf = nullptr;
+    if (delaySlotFilling_)
+        dsf = &delaySlotFiller();
+    BBSchedulerController bbsc(*ipData_, &bypasser, dsf);
     if (delaySlotFilling_)
         delaySlotFiller().initialize(cfg, *ddg, *mach_);
     bbsc.handleCFGDDG(cfg, *ddg, *mach_ );
@@ -873,10 +888,18 @@ LLVMTCEIRBuilder::operationName(const MachineInstr& mi) const {
 #elif (defined LLVM_OLDER_THAN_3_7)
         return targetMachine().getSubtargetImpl()->getInstrInfo()->getName(
             mi.getOpcode());
-#else
+#elif (defined LLVM_OLDER_THAN_4_0)
         return targetMachine().getSubtargetImpl(
             *mi.getParent()->getParent()->getFunction())->getInstrInfo()->
             getName(mi.getOpcode());
+#elif defined LLVM_OLDER_THAN_6_0
+        return targetMachine().getSubtargetImpl(
+            *mi.getParent()->getParent()->getFunction())->getInstrInfo()->
+            getName(mi.getOpcode()).str();
+#else
+        return targetMachine().getSubtargetImpl(
+            mi.getParent()->getParent()->getFunction())->getInstrInfo()->
+            getName(mi.getOpcode()).str();
 #endif
     }
 }

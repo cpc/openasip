@@ -1,21 +1,104 @@
-1.14         Unknown
-====================
+1.17       unreleased
+=====================
 
 Notable changes and features
 ----------------------------
-- Support for Ubuntu 16.04 (see TROUBLESHOOTING in case of problems).
+- Support for LLVM 6.0.
+
+Usability features
+----------------------------
+
+Notable bugfixes
+----------------
+
+1.16   September 2017
+=====================
+
+Notable changes and features
+----------------------------
+- Support for LLVM 5.0.
+- Support for little-endian TTAs.
+- VLIWConnectIC: An explorer plugin which creates a VLIW-like interconnection
+  network and creates a separate RF for each distinct bus width.
+
+Usability features
+----------------------------
+- Proxim: Added ability to search for a certain pattern in dissasembly window
+  The feature can be accessed by pressing ctrl-f in the main window.
+- ProDe/Proxim: Zoom in/out the machine canvas with mouse wheel.
+- ProDe: Improved search in 'Add FU From HDB'-dialog.
+- OSEd: Fixed OperationDAGDialog scaling at resize time.
+
+Notable bugfixes
+----------------
+- ProDe: fix crashes in "Add from OSAL"-dialog.
+- ProDe: Address space dialog now displays max-address correctly with 32bits.
+- Fixed execution of TCE tools from the build tree in Debian Stretch.
+
+1.15       March 2017
+=====================
+
+Notable changes and features
+----------------------------
+- Support for LLVM 4.0.
+
+Other features and improvements
+-------------------------------
+- Bus trace format is changed to comma separated values listing. Bus
+  values are displayed in hexadecimals and more than 32 bits.
+- GHDL test bench scripts updated to work with its latest version.
+
+Notable bugfixes
+----------------
+- ttasim: Operation state is now reset with 'kill' command.
+- tcecc: Fix alias analysis or separating RA save/restore on function.
+- tcecc: Register renamer did not handle frame pointer correctly.
+
+1.14    November 2016
+=====================
+
+Notable changes and features
+----------------------------
+- Support for LLVM 3.9.
+- Support for wxWidgets 3.x and thus Ubuntu 16.04 which doesn't ship wxW 2.x
+  anymore. Check the TROUBLESHOOTING file in case encountering problems.
+- Support for variable-length local arrays and alloca, that is, dynamic
+  stack objects. When using dynamic stack objects, the architecture must
+  have an additional 32-bit register (total minimum of 6) as one of them
+  will be used as a frame pointer in functions with dynamic stack objects.
+- ProGe now can generate a simple control interface "AlmaIF" that can be
+  used for control and debug access to TCE processors integrated in SoCs.
+- Added source code debugging window to Proxim.
+
+Other features and improvements
+-------------------------------
+- TCE_INSTALL_DIR environment variable can be set pointing to directory where
+  user manually installed TCE.
+- Added ability to modify memory in simulator with load_data command.
 
 Usability features
 ------------------
 - HBDEditor automatically fills new implementations with sequential opcode
-  numbers
-- ProDe shows machine instruction width in status bar
-- Column/list sorting in some ProDe/OSEd dialogs
-- TCE_INSTALL_DIR environment variable can be set pointing to directory where
-  user manually installed TCE
+  numbers.
+- Made IDF's more portable: In case referring to the TCE-shipped HDB files,
+  a magic string tce: can be used instead of absolute paths which differ from
+  the system to system.
+- SVG export was added when using wxWidgets 3.0 (replaces the EPS export)
+- ProDe shows machine instruction width in status bar.
+- ProDe now shows more information of the operations in the opset dialog.
+- Column/list sorting in various ProDe/OSEd dialogs.
+- List filtering in ProDe dialogs 'Add from opset' and 'Add FU from HDB'.
 - Directory where ttasim dumps simulation traces can be changed using an
   environment variable TTASIM_TRACE_DIR.
-- Added export to SVG (wxwidgets 3.* only) in ProDe.
+
+Documentation
+-------------
+- Added descriptions for all non-obvious base.opp operations.
+
+Notable bugfixes
+----------------
+- If the processor had narrower than 32-bit buses that can transport
+  immediate values, broken code could have been generated
 
 1.13   February 2016
 ====================

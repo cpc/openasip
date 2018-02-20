@@ -1,0 +1,412 @@
+-- Copyright (c) 2016 Tampere University of Technology
+-- 
+-- Permission is hereby granted, free of charge, to any person obtaining a
+-- copy of this software and associated documentation files (the "Software"),
+-- to deal in the Software without restriction, including without limitation
+-- the rights to use, copy, modify, merge, publish, distribute, sublicense,
+-- and/or sell copies of the Software, and to permit persons to whom the
+-- Software is furnished to do so, subject to the following conditions:
+-- 
+-- The above copyright notice and this permission notice shall be included in
+-- all copies or substantial portions of the Software.
+-- 
+-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+-- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+-- DEALINGS IN THE SOFTWARE.
+-----------------------------------------------------------------------------
+-- Title      : AXI interface for AlmaIF wrapper
+-- Project    : 
+-------------------------------------------------------------------------------
+-- File       : tta-accel-rtl.vhdl
+-- Author     : Viitanen Timo (Tampere University of Technology)  <timo.2.viitanen@tut.fi>
+-- Company    : 
+-- Created    : 2016-01-27
+-- Last update: 2016-01-27
+-- Platform   : 
+-- Standard   : VHDL'93
+-------------------------------------------------------------------------------
+-- Description: 
+-------------------------------------------------------------------------------
+-- Copyright (c) 2015 
+-------------------------------------------------------------------------------
+-- Revisions  :
+-- Date        Version  Author  Description
+-- 2016-01-27  1.0      viitanet  Created
+-------------------------------------------------------------------------------
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
+use work.ENTITY_STR_globals.all;
+use work.ENTITY_STR_toplevel_params.all;
+use work.ENTITY_STR_imem_mau.all;
+use work.tce_util.all;
+use work.debugger_if.all;
+
+architecture rtl of tta_accel is
+
+  constant dataw_c      : integer := 32;  -- one memory bank
+
+  -- Round up instruction word width to next multiple of 8
+  constant instr_dataw_bytes_c : integer := ((IMEMDATAWIDTH+7)/8);
+  -- Axi sees IMEM as 32-bit wide memory, with LSB as word select
+  constant instr_word_width_c  : integer := (IMEMDATAWIDTH+31)/32;
+  constant instr_word_sel_c    : integer := bit_width(instr_word_width_c);
+
+  constant mem_widths : integer_array(3 downto 0) :=
+                            (IMEMADDRWIDTH+instr_word_sel_c,
+                            db_addr_width,
+                            fu_LSU_PARAM_addrw-2,
+                            fu_LSU_DATA_addrw-2);
+
+  constant io_addrw_c : integer := 2+return_highest(mem_widths, 4);
+
+  -- AXI controller
+  signal io_addr    : std_logic_vector(io_addrw_c-1 downto 0);
+  signal io_wr_data : std_logic_vector(dataw_c-1 downto 0);
+  signal io_wr_mask : std_logic_vector(dataw_c/8-1 downto 0);
+  signal io_rd_data : std_logic_vector(dataw_c-1 downto 0);
+  signal io_rd_en   : std_logic;
+  signal io_wr_en   : std_logic;
+
+  signal dbg_wen_fpga       : std_logic;
+  signal dbg_ren_fpga       : std_logic;
+  signal dbg_addr_fpga      : std_logic_vector(db_addr_width-1 downto 0);
+  signal dbg_din_fpga       : std_logic_vector(db_data_width-1 downto 0);
+  signal dbg_dout_fpga      : std_logic_vector(db_data_width-1 downto 0);
+  signal dbg_dv_fpga        : std_logic;
+
+  signal dbg_busy           : std_logic;
+  
+  signal io_active : std_logic;
+  signal io_active_delay : std_logic;
+  signal io_target_memory : std_logic_vector(1 downto 0);
+  signal io_target_memory_delay : std_logic_vector(1 downto 0);
+  constant IO_CTRL : std_logic_vector(1 downto 0) := "00";
+  constant IO_IMEM : std_logic_vector(1 downto 0) := "01";
+  constant IO_DMEM : std_logic_vector(1 downto 0) := "10";
+  constant IO_param : std_logic_vector(1 downto 0) := "11";
+
+  -- TODO: Allow for memory widths other than 32
+  signal saved_tta_data_addr : std_logic_vector((fu_LSU_DATA_addrw-2)-1
+                                                            downto 0);
+  signal saved_tta_data_wr_mask :  std_logic_vector(32/8-1 downto 0);
+  signal saved_tta_data_data_in : std_logic_vector(31 downto 0);
+  signal saved_tta_data_wr_en : std_logic;
+  signal saved_tta_data_mem_en : std_logic;
+  signal saved_tta_param_addr : std_logic_vector((fu_LSU_PARAM_addrw-2)-1
+                                                                downto 0);
+  signal saved_tta_param_wr_mask :  std_logic_vector(32/8-1 downto 0);
+  signal saved_tta_param_data_in : std_logic_vector(31 downto 0);
+  signal saved_tta_param_wr_en : std_logic;
+  signal saved_tta_param_mem_en : std_logic;
+  signal lock_tta_dmem, lock_tta_param, lock_tta, tta_locked : std_logic;
+
+  function endian_swap(a : std_logic_vector) return std_logic_vector is
+    variable result : std_logic_vector(a'high downto 0);
+    variable j   : integer;
+  begin
+    for i in 0 to (a'high+1)/8-1 loop
+        j := (a'high+1)/8-1-i;
+        result((i+1)*8-1 downto i*8) := a((j+1)*8-1 downto j*8);
+    end loop;
+    return result;
+  end;
+
+  function endian_swap_strb(a : std_logic_vector) return std_logic_vector is
+    variable result: std_logic_vector(a'range);
+  begin
+    for i in 0 to a'high loop
+        result(i) := a(a'high-1);
+    end loop;
+    return result;
+  end;
+
+
+
+  signal wstrb_buf : std_logic_vector(instr_word_width_c*4-1 downto 0);
+begin
+  
+
+  -----------------------------------------------------------------------------
+  -- AXI Controller
+  -----------------------------------------------------------------------------
+  tta_axislave_1: entity work.tta_axislave
+  generic map (
+    -- Must be at least max address space width with 8-bit MAUs
+    -- with CTRL, PARAM, DATA and instruction memory
+    axi_addrw_g => axi_addrw_g,
+    axi_dataw_g => dataw_c
+  )
+  port map (
+    clk            => clk,
+    nreset         => nreset,
+    io_addr        => io_addr,
+    io_wr_data     => io_wr_data,
+    io_wr_mask     => io_wr_mask,
+    io_rd_data     => io_rd_data,
+    io_rd_en       => io_rd_en,
+    io_wr_en       => io_wr_en,
+    s_axi_awaddr   => s_axi_awaddr,
+    s_axi_awvalid  => s_axi_awvalid,
+    s_axi_awready  => s_axi_awready,
+    s_axi_wdata    => s_axi_wdata,
+    s_axi_wstrb    => s_axi_wstrb,
+    s_axi_wvalid   => s_axi_wvalid,
+    s_axi_wready   => s_axi_wready,
+    s_axi_bresp    => s_axi_bresp,
+    s_axi_bvalid   => s_axi_bvalid,
+    s_axi_bready   => s_axi_bready,
+    s_axi_araddr   => s_axi_araddr,
+    s_axi_arvalid  => s_axi_arvalid,
+    s_axi_arready  => s_axi_arready,
+    s_axi_rdata    => s_axi_rdata,
+    s_axi_rresp    => s_axi_rresp,
+    s_axi_rvalid   => s_axi_rvalid,
+    s_axi_rready   => s_axi_rready
+  );
+  -----------------------------------------------------------------------------
+  -- core
+  -----------------------------------------------------------------------------
+
+--  core_fu_LSUP_rd_data     <= param0_1_rdata & param0_0_rdata;
+  core_fu_LSU_DATA_data_in      <= data_data_out;
+  core_fu_LSU_PARAM_data_in <= param_data_out;
+  core_imem_data           <= instr_data_out(core_imem_data'range);
+  core_busy                <= tta_locked;  -- no memory blocking
+  
+
+  ------------------------------------------------------------------------------
+  -- Debugger
+  ------------------------------------------------------------------------------
+  debugger_1: entity work.debugger
+    generic map (
+      data_width_g    => db_data_width,
+      addr_width_g    => db_addr_width,
+      nof_bustraces_g => db_bustrace_count,
+      use_cdc_g       => false
+      )
+    port map (
+      nreset            => nreset,
+      clk_fpga          => clk,
+      wen_fpga          => dbg_wen_fpga,
+      ren_fpga          => dbg_ren_fpga,
+      addr_fpga         => dbg_addr_fpga,
+      din_fpga          => dbg_din_fpga,
+      dout_fpga         => dbg_dout_fpga,
+      clk_tta           => clk,
+      pc_start          => core_db_pc_start,
+      pc                => core_db_pc,
+      bustraces         => core_db_bustraces,
+      lockcnt           => core_db_lockcnt,
+      cyclecnt          => core_db_cyclecnt,
+      pc_next           => core_db_pc_next,
+      extlock           => tta_locked,
+      bp_lockrq         => core_db_lockrq,
+      tta_nreset        => core_db_tta_nreset,
+      tta_jump          => '1',
+      busy              => dbg_busy
+      );
+
+
+
+  ------------------------------------------------------------------------------
+  -- Memory arbitration between IO and TTA
+  ------------------------------------------------------------------------------
+  io_target_memory <= io_addr(io_addrw_c-1 downto io_addrw_c-2);
+  io_active <= io_wr_en or io_rd_en;
+  
+  io_regs : process(clk, nreset) is
+  begin
+    if (nreset = '0') then
+      io_active_delay <= '0';
+      io_target_memory_delay <= "00";
+      tta_locked <= '0';
+    elsif (rising_edge(clk)) then
+      io_active_delay <= io_active;
+      io_target_memory_delay <= io_target_memory;
+      tta_locked <= lock_tta;
+    end if;
+  end process;
+  lock_tta <= lock_tta_dmem or lock_tta_param;
+
+  dbg_io_interface : process(io_target_memory, io_active, io_rd_en, io_wr_en) is
+  begin 
+    dbg_ren_fpga <= '1';
+    dbg_wen_fpga <= '1';
+    if    io_target_memory = IO_CTRL and io_active = '1' then
+      -- debugger read
+      if (io_rd_en = '1') then
+        dbg_ren_fpga <= '0';
+      end if;
+      -- debugger write
+      if (io_wr_en = '1') then
+        dbg_wen_fpga <= '0';
+      end if;
+    end if;
+  end process;
+  dbg_addr_fpga <= io_addr(db_addr_width-1 downto 0);
+  dbg_din_fpga <= io_wr_data;
+
+  -- Dmem & param interfaces are designed to always give single-cycle access
+  -- to the AXI I/O.
+  -- -> In case of access conflict, TTA stalls (via lock_tta signal), and the
+  -- TTA's memory request is saved (saved_tta_data_*) and retried before
+  -- resuming execution.
+
+    data_io_interface : process(io_target_memory, io_active, io_wr_en, io_rd_en,
+                                io_addr, io_wr_data, io_wr_mask,
+                                saved_tta_data_addr, core_fu_LSU_DATA_wr_en,
+                                core_fu_LSU_DATA_mem_en, core_fu_LSU_DATA_addr,
+                                core_fu_LSU_DATA_data_out,
+                                core_fu_LSU_DATA_wr_mask, tta_locked) is
+  begin
+    lock_tta_dmem <= '0';
+
+    if io_target_memory = IO_DMEM and io_active = '1' then
+      if core_fu_LSU_DATA_mem_en = "1" then
+        lock_tta_dmem <= '1';
+      end if;
+      data_wr_en <= io_wr_en;
+      data_mem_en <= io_wr_en or io_rd_en;
+      data_addr <= io_addr(fu_LSU_DATA_addrw-2-1 downto 0);
+      data_data_in <= endian_swap(io_wr_data);
+      data_wr_mask <= endian_swap_strb(io_wr_mask);
+    elsif tta_locked ='1' then
+      data_wr_en <= saved_tta_data_wr_en;
+      data_mem_en <= saved_tta_data_mem_en;
+      data_addr <= saved_tta_data_addr;
+      data_data_in <= saved_tta_data_data_in;
+      data_wr_mask <= saved_tta_data_wr_mask;
+    else
+      data_wr_en <= core_fu_LSU_DATA_wr_en(0);
+      data_mem_en <= core_fu_LSU_DATA_mem_en(0);
+      data_addr <= core_fu_LSU_DATA_addr;
+      data_data_in <= core_fu_LSU_DATA_data_out;
+      data_wr_mask <= core_fu_LSU_DATA_wr_mask;
+    end if;
+  end process;
+
+  data_io_interface_regs : process(clk, nreset) is
+  begin
+    if (nreset = '0') then
+      saved_tta_data_addr <= (others=>'0');
+      saved_tta_data_data_in <= (others=>'0');
+      saved_tta_data_wr_mask <= (others=>'0');
+      saved_tta_data_wr_en <= '0';
+      saved_tta_data_mem_en <= '0';
+    elsif (rising_edge(clk)) then
+      if core_fu_LSU_DATA_mem_en = "1" and lock_tta = '1' then
+        saved_tta_data_addr <= core_fu_LSU_DATA_addr;
+        saved_tta_data_data_in <= core_fu_LSU_DATA_data_out;
+        saved_tta_data_wr_mask <= core_fu_LSU_DATA_wr_mask;
+        saved_tta_data_wr_en <= core_fu_LSU_DATA_wr_en(0);
+        saved_tta_data_mem_en <= core_fu_LSU_DATA_mem_en(0);
+      end if;
+    end if;
+  end process;
+
+  param_io_interface : process(io_target_memory, io_active, io_wr_en, io_rd_en,
+                               io_addr, saved_tta_param_addr,
+                               core_fu_LSU_PARAM_wr_en,
+                               core_fu_LSU_PARAM_mem_en, core_fu_LSU_PARAM_addr,
+                              core_fu_LSU_PARAM_data_out,
+                              core_fu_LSU_PARAM_wr_mask, tta_locked) is
+  begin
+    lock_tta_param <= '0';
+
+    if io_target_memory = IO_param and io_active = '1' then
+      if core_fu_LSU_PARAM_mem_en = "1" then
+        lock_tta_param <= '1';
+      end if;
+      param_wr_en <= io_wr_en;
+      param_mem_en <= io_wr_en or io_rd_en;
+      param_addr <= io_addr(fu_LSU_PARAM_addrw-2-1 downto 0);
+      param_data_in <= endian_swap(io_wr_data);
+      param_wr_mask <= endian_swap_strb(io_wr_mask);
+    elsif tta_locked ='1' then
+      param_wr_en <= saved_tta_param_wr_en;
+      param_mem_en <= saved_tta_param_mem_en;
+      param_addr <= saved_tta_param_addr;
+      param_data_in <= saved_tta_param_data_in;
+      param_wr_mask <= saved_tta_param_wr_mask;
+    else
+      param_wr_en <= core_fu_LSU_PARAM_wr_en(0);
+      param_mem_en <= core_fu_LSU_PARAM_mem_en(0);
+      param_addr <= core_fu_LSU_PARAM_addr;
+      param_data_in <= core_fu_LSU_PARAM_data_out;
+      param_wr_mask <= core_fu_LSU_PARAM_wr_mask;
+    end if;
+  end process;
+
+  param_io_interface_regs : process(clk, nreset) is
+  begin
+    if (nreset = '0') then
+      saved_tta_param_addr <= (others=>'0');
+      saved_tta_param_data_in <= (others=>'0');
+      saved_tta_param_wr_mask <= (others=>'0');
+      saved_tta_param_wr_en <= '0';
+      saved_tta_param_mem_en <= '0';
+    elsif (rising_edge(clk)) then
+      if core_fu_LSU_PARAM_mem_en = "1" and lock_tta = '1' then
+        saved_tta_param_addr <= core_fu_LSU_PARAM_addr;
+        saved_tta_param_data_in <= core_fu_LSU_PARAM_data_out;
+        saved_tta_param_wr_mask <= core_fu_LSU_PARAM_wr_mask;
+        saved_tta_param_wr_en <= core_fu_LSU_PARAM_wr_en(0);
+        saved_tta_param_mem_en <= core_fu_LSU_PARAM_mem_en(0);
+      end if;
+    end if;
+  end process;
+
+  instr_io_interface : process(io_target_memory, io_active, io_addr,
+                               core_imem_addr, wstrb_buf, io_wr_en, io_wr_mask)
+                               is
+  begin
+    wstrb_buf <= (others=>'0');
+
+    if io_target_memory = IO_IMEM and io_wr_en = '1' then
+      instr_addr <= io_addr(IMEMADDRWIDTH+instr_word_sel_c-1 downto
+                                                    instr_word_sel_c);
+      instr_wr_en <= '1';
+
+      for I in instr_word_width_c-1 downto 0 loop
+        if to_integer(unsigned(io_addr(instr_word_sel_c-1 downto 0))) = I then
+          wstrb_buf(4*(I+1)-1 downto I*4) <= io_wr_mask;
+        end if;
+      end loop;
+    else
+      instr_addr <= core_imem_addr;
+      instr_wr_en <= '0';
+    end if;
+    instr_wr_mask <= wstrb_buf(instr_wr_mask'range);
+  end process;
+
+  instr_mem_en <= '1';
+
+  io_wr_data_expand : process (io_wr_data) is
+  begin
+    for I in instr_dataw_bytes_c-1 downto 0 loop
+      instr_data_in(8*(I+1)-1 downto 8*I)
+                            <= io_wr_data(((I mod 4)+1)*8-1 downto (I mod 4)*8);
+    end loop;
+  end process;
+
+  io_read_result : process(io_target_memory_delay, dbg_dout_fpga, data_data_out,
+                           param_data_out) is
+  begin
+    if    io_target_memory_delay = IO_CTRL then
+      io_rd_data <= dbg_dout_fpga;
+    elsif io_target_memory_delay = IO_DMEM then
+      io_rd_data <= endian_swap(data_data_out);
+    elsif io_target_memory_delay = IO_param then
+      io_rd_data <= endian_swap(param_data_out);
+    else  -- IO_IMEM
+      -- Write-only IMEM
+      io_rd_data <= (others=>'0');
+    end if;
+  end process;
+end architecture rtl;

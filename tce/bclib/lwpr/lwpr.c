@@ -33,7 +33,7 @@
 #include <stdio.h>
 
 __attribute__((noinline))
-void lwpr_print_str(char* str) {
+void lwpr_print_str(const char* str) {
     while (*str) {
         putchar(*str++);
     }

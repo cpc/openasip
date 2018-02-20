@@ -34,7 +34,12 @@
 #define TCE_INSTR_INFO_H
 
 #include <llvm/Support/ErrorHandling.h>
+#include "tce_config.h"
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetInstrInfo.h>
+#else
+#include <llvm/CodeGen/TargetInstrInfo.h>
+#endif
 #include "TCERegisterInfo.hh"
 
 #define GET_INSTRINFO_HEADER
@@ -55,14 +60,18 @@ namespace llvm {
 
     class TCEInstrInfo : public TCEGenInstrInfo {
     public:
-        TCEInstrInfo(const TCETargetMachinePlugin* plugin, int stackAlignment);
+        TCEInstrInfo(const TCETargetMachinePlugin* plugin);
         virtual ~TCEInstrInfo();
 
         virtual const TargetRegisterInfo& getRegisterInfo() const { 
             return ri_; 
         }
 
+#ifdef LLVM_OLDER_THAN_4_0
         virtual unsigned InsertBranch(
+#else
+        virtual unsigned insertBranch(
+#endif
             MachineBasicBlock &MBB, MachineBasicBlock *TBB,
             MachineBasicBlock *FBB,
 #ifdef LLVM_OLDER_THAN_3_7
@@ -70,9 +79,25 @@ namespace llvm {
 #else
             ArrayRef<MachineOperand> Cond,
 #endif
-	    DebugLoc DL) const override;
+#ifdef LLVM_OLDER_THAN_3_9
+            DebugLoc DL
+#else
+            const DebugLoc& DL
+#endif
+#ifdef LLVM_OLDER_THAN_4_0
+        ) const override;
+#else
+        , int *BytesAdded = nullptr) const override;
+#endif
 
+
+#ifdef LLVM_OLDER_THAN_4_0
         unsigned RemoveBranch(MachineBasicBlock &mbb) const override;
+#else
+        unsigned removeBranch(
+            MachineBasicBlock &mbb,
+            int *BytesRemoved = nullptr) const override;
+#endif
 
         virtual bool BlockHasNoFallThrough(
             const MachineBasicBlock &MBB) const;
@@ -109,36 +134,68 @@ namespace llvm {
             loadRegFromStackSlot(mbb, mbbi, destReg, frameIndex, rc);
         }
 
-	virtual void copyPhysReg(
-	    MachineBasicBlock& mbb,
-	    MachineBasicBlock::iterator mbbi, DebugLoc DL,
-	    unsigned destReg, unsigned srcReg,
-	    bool KillSrc) const override;
+    virtual void copyPhysReg(
+        MachineBasicBlock& mbb,
+        MachineBasicBlock::iterator mbbi,
+#ifdef LLVM_OLDER_THAN_3_9
+        DebugLoc DL,
+#else
+        const DebugLoc& DL,
+#endif
+        unsigned destReg, unsigned srcReg,
+        bool KillSrc) const override;
 
+#if LLVM_OLDER_THAN_4_0
         virtual bool ReverseBranchCondition(
+#else
+        virtual bool reverseBranchCondition(
+#endif
             llvm::SmallVectorImpl<llvm::MachineOperand>& cond) const override;
 
+#ifdef LLVM_OLDER_THAN_3_9
         virtual bool AnalyzeBranch(
+#else
+        virtual bool analyzeBranch(
+#endif
             MachineBasicBlock &MBB, MachineBasicBlock *&TBB,
             MachineBasicBlock *&FBB, 
             llvm::SmallVectorImpl<llvm::MachineOperand>& cond,
-	    bool allowModify = false)
+            bool allowModify = false)
             const override;
 
-	virtual bool isPredicated(const MachineInstr *MI) const override;
-	virtual bool isPredicable(MachineInstr *MI) const override;
-#ifdef LLVM_OLDER_THAN_3_7
-	virtual bool PredicateInstruction(
-	    MachineInstr *mi,
-	    const SmallVectorImpl<MachineOperand> &cond) const override;
+#ifdef LLVM_OLDER_THAN_3_9
+    virtual bool isPredicated(const MachineInstr *MI) const override;
+    virtual bool isPredicable(MachineInstr *MI) const override;
 #else
-	virtual bool PredicateInstruction(
-	    MachineInstr *mi,
-	    ArrayRef<MachineOperand> cond) const override;
+    virtual bool isPredicated(const MachineInstr& MI) const override;
+#ifdef LLVM_OLDER_THAN_5_0
+    virtual bool isPredicable(MachineInstr& MI) const override;
+#else
+    virtual bool isPredicable(const MachineInstr& MI) const override;
+#endif
 #endif
 
-	virtual bool DefinesPredicate(MachineInstr *MI,
-				      std::vector<MachineOperand> &Pred) const override;
+#ifdef LLVM_OLDER_THAN_3_7
+    virtual bool PredicateInstruction(
+        MachineInstr *mi,
+        const SmallVectorImpl<MachineOperand> &cond) const override;
+#elif defined LLVM_OLDER_THAN_3_9
+    virtual bool PredicateInstruction(
+        MachineInstr *mi,
+        ArrayRef<MachineOperand> cond) const override;
+#else
+    virtual bool PredicateInstruction(
+        MachineInstr &mi,
+        ArrayRef<MachineOperand> cond) const override;
+#endif
+
+    virtual bool DefinesPredicate(
+#ifdef LLVM_OLDER_THAN_3_9
+        MachineInstr *MI,
+#else
+        MachineInstr& MI,
+#endif
+        std::vector<MachineOperand> &Pred) const override;
 
 #ifdef LLVM_OLDER_THAN_3_7
 	virtual bool

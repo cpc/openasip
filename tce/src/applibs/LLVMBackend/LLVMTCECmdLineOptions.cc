@@ -45,6 +45,7 @@ const std::string LLVMTCECmdLineOptions::SWL_OPT_LEVEL = "optimize";
 const std::string LLVMTCECmdLineOptions::SWS_OPT_LEVEL = "O";
 const std::string LLVMTCECmdLineOptions::VERBOSE_SWITCH = "verbose";
 const std::string LLVMTCECmdLineOptions::DISABLE_LLVMAA = "disable-llvmaa";
+const std::string LLVMTCECmdLineOptions::DISABLE_DSF = "disable-dsf";
 const std::string LLVMTCECmdLineOptions::CONSERVATIVE_PRE_RA_SCHEDULER= 
     "conservative-pre-ra-scheduler";
 
@@ -111,6 +112,11 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
         new BoolCmdLineOptionParser(
             DISABLE_LLVMAA, "Disable use of LLVM alias analysis.", 
             DISABLE_LLVMAA));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            DISABLE_DSF, "Disable post-pass delay slot filler optimizer.",
+            DISABLE_DSF));
 
     addOption(
         new BoolCmdLineOptionParser(
@@ -280,6 +286,12 @@ bool
 LLVMTCECmdLineOptions::disableLLVMAA() const {
     return findOption(DISABLE_LLVMAA)->isDefined();
 }
+
+bool
+LLVMTCECmdLineOptions::disableDelaySlotFiller() const {
+    return findOption(DISABLE_DSF)->isDefined();
+}
+
 /**
  * Return true if the verbose switch was defined in the command line.
  *

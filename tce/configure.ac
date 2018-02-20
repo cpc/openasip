@@ -2,12 +2,12 @@
 # Process this file with autoconf to produce a configure script.
 
 # Mandatory macro. Set the name of the package and the version number.
-# Email address is for bug reporting. 
-AC_INIT([tce],[1.14-pre],[tce-users@cs.tut.fi])
+# Email address is for bug reporting.
+AC_INIT([tce],[1.17-pre],[tce-users@cs.tut.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
-REVNO=$(which bzr > /dev/null && bzr revno >/dev/null 2>&1 && echo "-r" | tr -d "\n" && bzr revno 2>/dev/null || echo "" | tr -d "\n")
+REVNO=$(which git > /dev/null && echo -n "-r" && git rev-list --all --count)
 
 
 AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
@@ -26,7 +26,10 @@ AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 # TCE 1.12 = 12:0:
 # TCE 1.13 = 13:0:0
 # TCE 1.14 = 14:0:0
-AC_SUBST([LIB_VERSION], ["14:0:0"])
+# TCE 1.15 = 15:0:0
+# TCE 1.16 = 16:0:0
+# TCE 1.17 = 17:0:0
+AC_SUBST([LIB_VERSION], ["17:0:0"])
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
@@ -435,7 +438,7 @@ AC_ARG_WITH(llvm,
  llvmConf="$llvmDir/bin/llvm-config"
 ],
 [llvmDir=""
-AC_PATH_PROGS([LLVM_CONFIG], [llvm-config llvm-config-3.5 llvm-config-3.4 llvm-config-3.3 llvm-config-3.2 ])
+AC_PATH_PROGS([LLVM_CONFIG], [llvm-config llvm-config-6.0 llvm-config-5.0 llvm-config-3.5 llvm-config-3.4 llvm-config-3.3 llvm-config-3.2 ])
 llvmConf=$LLVM_CONFIG
 ]
 )
@@ -450,15 +453,38 @@ else
 AC_CHECK_FILE($llvmConf, 
 [
 LLVM_VERSION=$($llvmConf --version)
+LLVM_MAJOR_VERSION=$($llvmConf --version | cut -d '.' -f 1-2)
 LLVM_LIBDIR=$($llvmConf --libdir)
 LLVM_BINDIR=$($llvmConf --bindir)
-LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
-LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+LLVM_SHARED_LIB=-lLLVM-$LLVM_MAJOR_VERSION
+LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_MAJOR_VERSION$LIBRARY_SUFFIX
 LLVM_CPPFLAGS=$($llvmConf --cppflags)
 LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
 LLVM_INCLUDEDIR=$($llvmConf --includedir)
 LLVM_RTTI_CHECK=$($llvmConf --cxxflags | grep -i "\-fno-rtti")
 LLVM_TCE_PATCHES=$($llvmConf --tce-patches 2>&1)
+
+if test x"$LLVM_RTTI_CHECK" != x; then
+AC_MSG_ERROR([Your LLVM was not built with RTTI. You should rebuild LLVM with 'make REQUIRES_RTTI=1'. See TCE's INSTALL file for more information.])
+fi
+
+# Check if the tcele target is supported.
+AC_LANG_CONFTEST(
+[AC_LANG_PROGRAM(
+  [])
+])
+
+LLVM_TCELE_TARGET=no
+
+AC_MSG_CHECKING([if the little endian tcele target is supported in Clang/LLVM])
+if $LLVM_BINDIR/clang conftest.c -target tcele-tut-llvm -emit-llvm -S -c -o - 2>/dev/null | grep -cq 'target triple = "tcele-tut-llvm"';
+then
+  AC_MSG_RESULT([yes])
+  LLVM_TCELE_TARGET=yes
+  AC_DEFINE_UNQUOTED(LLVM_TCELE_TARGET, 1, [LLVM patched to support tcele target])
+else
+  AC_MSG_ERROR([tcele target in LLVM required, install one using a install_llvm_*.sh script])
+fi
 
 if test x"$LLVM_RTTI_CHECK" != x; then
 AC_MSG_ERROR([Your LLVM was not built with RTTI. You should rebuild LLVM with 'make REQUIRES_RTTI=1'. See TCE's INSTALL file for more information.])
@@ -482,23 +508,76 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_3_6=1
      LLVM_OLDER_THAN_3_7=1
      LLVM_OLDER_THAN_3_8=1
+     LLVM_OLDER_THAN_3_9=1
+     LLVM_OLDER_THAN_4_0=1
+     LLVM_OLDER_THAN_5_0=1
+     LLVM_OLDER_THAN_6_0=1
    ;;
      3.6*)
      AC_DEFINE([LLVM_3_6], [], "Using LLVM 3.6")
      LLVM_OLDER_THAN_3_7=1
      LLVM_OLDER_THAN_3_8=1
+     LLVM_OLDER_THAN_3_9=1
+     LLVM_OLDER_THAN_4_0=1
+     LLVM_OLDER_THAN_5_0=1
+     LLVM_OLDER_THAN_6_0=1
    ;;
      3.7*)
      AC_DEFINE([LLVM_3_7], [], "Using LLVM 3.7")
      LLVM_OLDER_THAN_3_8=1
+     LLVM_OLDER_THAN_3_9=1
+     LLVM_OLDER_THAN_4_0=1
+     LLVM_OLDER_THAN_5_0=1
+     LLVM_OLDER_THAN_6_0=1
    ;;
      3.8*)
      AC_DEFINE([LLVM_3_8], [], "Using LLVM 3.8")
+     LLVM_OLDER_THAN_3_9=1
+     LLVM_OLDER_THAN_4_0=1
+     LLVM_OLDER_THAN_5_0=1
+     LLVM_OLDER_THAN_6_0=1
+   ;;
+     3.9*)
+     AC_DEFINE([LLVM_3_9], [], "Using LLVM 3.9")
+     LLVM_OLDER_THAN_4_0=1
+     LLVM_OLDER_THAN_5_0=1
+     LLVM_OLDER_THAN_6_0=1
+   ;;
+     4.0*)
+     AC_DEFINE([LLVM_4_0], [], "Using LLVM 4.0")
+     LLVM_OLDER_THAN_5_0=1
+     LLVM_OLDER_THAN_6_0=1
+   ;;
+     5.0.0svn*)
+     AC_DEFINE([LLVM_5_0], [], "Using LLVM 5.0svn")
+     LLVM_VERSION=5.0
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+     LLVM_OLDER_THAN_6_0=1
+   ;;
+     5.0*)
+     AC_DEFINE([LLVM_5_0], [], "Using LLVM 5.0")
+     LLVM_OLDER_THAN_6_0=1
+   ;;
+     6.0.0svn*)
+     AC_DEFINE([LLVM_6_0], [], "Using LLVM 6.0svn")
+     LLVM_VERSION=6.0
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+   ;;
+     6.0*)
+     AC_DEFINE([LLVM_6_0], [], "Using LLVM 6.0")
+     LLVM_VERSION=6.0
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
    ;;
      *)
    AC_MSG_NOTICE(
    [
-Unsupported LLVM version. 
+Unsupported LLVM version $LLVM_VERSION.
    ])
    LLVM_VERSION=
    ;;
@@ -525,8 +604,25 @@ then
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_3_8, 1, [LLVM version is older than 3.8])
 fi
 
-AM_CONDITIONAL([LLVM_OLDER_THAN_3_7], test ! -z $LLVM_OLDER_THAN_3_7)
-AM_CONDITIONAL([LLVM_3_7_OR_NEWER], test -z $LLVM_OLDER_THAN_3_7)
+if  test "x$LLVM_OLDER_THAN_3_9" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_3_9, 1, [LLVM version is older than 3.9])
+fi
+
+if  test "x$LLVM_OLDER_THAN_4_0" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_4_0, 1, [LLVM version is older than 4.0])
+fi
+
+if  test "x$LLVM_OLDER_THAN_5_0" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_5_0, 1, [LLVM version is older than 5.0])
+fi
+
+if  test "x$LLVM_OLDER_THAN_6_0" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_6_0, 1, [LLVM version is older than 6.0])
+fi
 
 if test ! -e $LLVM_SHARED_LIB_FILE;
 then
@@ -544,6 +640,8 @@ fi
 
 # test if $llvmConf is empty string
 fi
+
+AM_CONDITIONAL(TCELE_AVAILABLE, test x$LLVM_TCELE_TARGET = xyes)
 
 AC_DEFINE_UNQUOTED([LLVM_VERSION], ["$LLVM_VERSION"], 
 "The LLVM version string.")
@@ -1142,35 +1240,6 @@ AC_CHECK_SIZEOF(char)
 # first, define WORDS_BIGENDIAN
 AC_C_BIGENDIAN
 
-# Define the target TTA processor byte order (endianess).
-# --enable-bigendian=yes : the target machine stores the most significant
-# byte of a word at the lowest address
-# --enable-bigendian=no : the target machine stores the least significant
-# byte of a word at the lowest address
-# Default target machine byte order is most significant byte first.
-AC_ARG_ENABLE(bigendian,
-[AS_HELP_STRING([--enable-bigendian],[target machine uses bigendian])],
-[ case "${enableval}" in
-  yes) 
-    bigendian=true 
-    ;;
-  no) 
-    bigendian=false 
-    ;;
-  *) 
-    AC_MSG_ERROR(bad value ${enableval for --enable-bigendian}) 
-    ;;
-  esac], 
-  [bigendian=true]
-)
-
-# If target machine is big-endian, define TARGET_WORDS_BIGENDIAN.
-if test x"$bigendian" = xtrue; then
-   AC_DEFINE(TARGET_WORDS_BIGENDIAN, 1, 
-   [defines whether the target processor has big-endian byte order])
-fi
-
-
 #################################################################
 #
 # Determine whether the C++11 language standard is enabled or not.
@@ -1335,7 +1404,8 @@ SHARED_CXX_FLAGS=$SHARED_CXX_FLAGS
 LIBRARY_SUFFIX=$LIBRARY_SUFFIX
 DL_FLAGS=$DL_FLAGS
 
-CPPFLAGS=$CPPFLAGS 
+CPPFLAGS=$CPPFLAGS
+CXXFLAGS=$CXXFLAGS
 LLVM_CPPFLAGS=$LLVM_CPPFLAGS
 
 DYNAMIC_FLAG=$DYNAMIC_FLAG
@@ -1502,32 +1572,47 @@ AC_CONFIG_FILES([src/bintools/Compiler/tcecc],
 # Configure newlib as well
 m4_pattern_allow([^AS_FOR_TARGET$])
 
+NEWLIB_CFLAGS="-O2 -fno-builtin -Wno-unknown-warning-option \
+-Wno-literal-range -Wno-pointer-sign -Wno-return-type \
+-Wno-empty-body -Wno-dangling-else -Wno-implicit-function-declaration -Wno-unused-value"
+
 AC_CONFIG_COMMANDS_POST ([
-echo "=== Configuring newlib =====";
+echo "=== Configuring newlib for big endian machines =====";
 # make srcdir absolute
 builddirectory=$PWD
 cd $srcdir;
 srcdir=$PWD;
 cd $builddirectory;
 # create builddir (if necessary)
-mkdir -p newlib-1.17.0; 
-cd newlib-1.17.0;
-#echo RANLIB_FOR_TARGET=llvm-ranlib \
-#NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
-#AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
-#CFLAGS=-O2 \
-#CXX_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
-#CC_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
-#$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss ;
+mkdir -p newlib-1.17.0/tce-llvm; 
+cd newlib-1.17.0/tce-llvm;
 RANLIB_FOR_TARGET=ranlib \
 NM_FOR_TARGET=nm AR_FOR_TARGET=ar \
 AS_FOR_TARGET=as LD_FOR_TARGET=ld \
-CFLAGS_FOR_TARGET="-O2 -fno-builtin -Wno-unknown-warning-option \
--Wno-literal-range -Wno-pointer-sign -Wno-return-type \
--Wno-empty-body -Wno-dangling-else -Wno-implicit-function-declaration -Wno-unused-value" \
-CXX_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
-CC_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
+CFLAGS_FOR_TARGET=$NEWLIB_CFLAGS \
+CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
+CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss \
+2>&1 | egrep -v "to force reconfigure";
+])
+
+AC_CONFIG_COMMANDS_POST ([
+echo "=== Configuring newlib for little endian machines =====";
+# make srcdir absolute
+builddirectory=$PWD
+cd $srcdir;
+srcdir=$PWD;
+cd $builddirectory;
+# create builddir (if necessary)
+mkdir -p newlib-1.17.0/tcele-llvm; 
+cd newlib-1.17.0/tcele-llvm;
+RANLIB_FOR_TARGET=ranlib \
+NM_FOR_TARGET=nm AR_FOR_TARGET=ar \
+AS_FOR_TARGET=as LD_FOR_TARGET=ld \
+CFLAGS_FOR_TARGET="--little-endian $NEWLIB_CFLAGS" \
+CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
+CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
+$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tcele-llvm --disable-multilib --disable-libgloss \
 2>&1 | egrep -v "to force reconfigure";
 ])
 

@@ -350,7 +350,8 @@ AddressSpaceDialog::onBitWidthText(wxCommandEvent&) {
 void
 AddressSpaceDialog::onBitWidth(wxSpinEvent&) {
 
-    int maxAddress = static_cast<int> (pow(2, bitWidthSpinCtrl_->GetValue()) - 1);
+    unsigned maxAddress = static_cast<unsigned>(
+        pow(2, bitWidthSpinCtrl_->GetValue()) - 1u);
     maxControl_->setValue(maxAddress);
 
     wxCommandEvent dummy;
@@ -510,7 +511,7 @@ AddressSpaceDialog::createContents(
     wxStaticBoxSizer *item5 = new wxStaticBoxSizer( item6, wxVERTICAL );
     minAddressSizer_ = item5;
 
-    NumberControl* item7 = new NumberControl(parent, ID_MIN_ADDRESS, wxDefaultPosition, wxSize(140, 20), (NumberControl::MODE_UNSIGNED | NumberControl::MODE_HEXADECIMAL));
+    NumberControl* item7 = new NumberControl(parent, ID_MIN_ADDRESS, wxDefaultPosition, wxSize(180, -1), (NumberControl::MODE_UNSIGNED | NumberControl::MODE_HEXADECIMAL));
     wxASSERT( item7 );
     item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -529,7 +530,7 @@ AddressSpaceDialog::createContents(
     wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxVERTICAL );
     maxAddressSizer_ = item11;
 
-    NumberControl* item13 = new NumberControl(parent, ID_MAX_ADDRESS, wxDefaultPosition, wxSize(140, 20), (NumberControl::MODE_UNSIGNED | NumberControl::MODE_HEXADECIMAL));
+    NumberControl* item13 = new NumberControl(parent, ID_MAX_ADDRESS, wxDefaultPosition, wxSize(180, -1), (NumberControl::MODE_UNSIGNED | NumberControl::MODE_HEXADECIMAL));
     wxASSERT( item13 );
     item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 

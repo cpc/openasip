@@ -36,6 +36,7 @@ skipSystemTests=no
 useMutt=no
 skipUnitTests=no
 installAfterCompile=no
+runSelfTests=no
 tagIfSuccess=no
 
 # These are used by the script to figure out how many successive compile test
@@ -59,7 +60,7 @@ mkdir -p ${HOME}/.tce
 touch -a "${lastOkRevisionFile}"
 
 # Process command line arguments (from Advanced Bash-Scripting Guide).
-while getopts "vhngqckmsuit" Option
+while getopts "vhngqckmsuiIt" Option
 do
     case $Option in
         v     ) 
@@ -103,6 +104,11 @@ do
         i     ) 
 
         installAfterCompile=yes;;
+
+        I     )
+        runSelfTests=yes
+        installAfterCompile=yes
+        ;;
 
         t     )
 
@@ -151,7 +157,9 @@ do
         echo "    progress.";
         echo
         echo "-i  Install tce after compile.";
-        echo 
+        echo
+        echo "-I  Runs installation self-tests. This implies -i option."
+        echo
         echo "-t  Tag current revision as fully_tested if all (unit, short,";
         echo "    and long) tests pass."
         echo "    Notice that you shouldn't use this if you have local";
@@ -262,13 +270,21 @@ distcc.*Warning.*|\
 .*boost/.*warning:.unused.parameter.'.*|\
 .*boost/.*warning:.anonymous.types.declared.in.an.anonymous.union.are.an.extension.*|\
 .*boost/.*graph_concepts.hpp.*warning:.*|\
-.*/wx/any.h.*warning:.expression.with.side.effects.will.be.evaluated.despite.being.used.as.an.operand.to.*..Wpotentially.evaluated.expression."
+.*/wx/any.h.*warning:.expression.with.side.effects.will.be.evaluated.despite.being.used.as.an.operand.to.*..Wpotentially.evaluated.expression.*|\
+.*libtool:.relink:.warning:.*libstdc\+\+\.la.*seems.to.be.moved.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\
 Warning:.Directive.'register_long_arrays'.is.deprecated.*|\
 Warning:.Directive.'magic_quotes_gpc'.is.deprecated.*|\
 ^$"
+
+SELF_TEST_FILTERS="\
+Testing.the.TCE.installation..this.can.take.a.long.time.*|\
+Use.-v.to.see.the.progress.|\
+-*.*|\
+Ran.[[:digit:]]*.tests.in.[[:digit:]]*\.[[:digit:]]*s.*|\
+OK.*"
 
 MAIL_FILTER="\
 Differences.found.in.inputs.and.outputs.are.stored.into.*"
@@ -535,6 +551,23 @@ function install {
     pop_dir
 }
 
+# run TCE installation self tests
+function run_self_tests {
+    push_dir
+
+    # In subshell so exported variables do not interfere with other tests.
+    (
+        PREFIX=$(bash ./tce-config --prefix)
+        export LD_LIBRARY_PATH=$PREFIX/lib:$LD_LIBRARY_PATH
+        export PATH=$PREFIX/bin:$PATH
+        tce-selftest -q 2>&1 | grep -vEx $SELF_TEST_FILTERS
+    ) 1> $TEMP_FILE 2>&1
+
+    log_failure self-test
+
+    pop_dir
+}
+
 # "Pretty prints" elapsed time (e.g. 12d4h1m23s).
 # 
 # 1: time in seconds
@@ -738,9 +771,14 @@ function compile_test {
     # compilation
     run_tests "compile: " "compile"
 
-    if [ "x$installAfterCompile" == "xyes" ]; then
+    if [ "x$installAfterCompile" == "xyes" -o "x$runSelfTests" == "xyes" ]; then
         # install after compile
         run_tests "install: " "install"
+    fi
+
+    if [ "x$runSelfTests" == "xyes" ]; then
+        # self tests after installation
+        run_tests "self test: " "run_self_tests"
     fi
 
     if [ "x${errors}" == "xyes" -a "x${RETURN_IF_ERRORS}" == "xyes" ]; then

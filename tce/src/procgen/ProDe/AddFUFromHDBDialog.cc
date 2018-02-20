@@ -38,6 +38,7 @@
 #include <wx/dir.h>
 #include <wx/textctrl.h>
 #include <wx/imaglist.h>
+#include <wx/srchctrl.h>
 
 #include "AddFUFromHDBDialog.hh"
 #include "Model.hh"
@@ -75,6 +76,7 @@ BEGIN_EVENT_TABLE(AddFUFromHDBDialog, wxDialog)
     EVT_BUTTON(ID_CLOSE, AddFUFromHDBDialog::onClose)
     EVT_TEXT(ID_FILTER_TEXTCTRL, AddFUFromHDBDialog::onFilterChange)
     EVT_LIST_COL_CLICK(ID_LIST, AddFUFromHDBDialog::onColumnClick)
+    EVT_TIMER(ID_FILTER_TIMER, AddFUFromHDBDialog::onFilterTimeOut)
 END_EVENT_TABLE()
 
 
@@ -133,10 +135,12 @@ AddFUFromHDBDialog::AddFUFromHDBDialog(
         parent, -1, _T("HDB Function Units"),
         wxDefaultPosition, wxDefaultSize,
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
-    model_(model), sortColumn_(1), sortASC_(true) {        
+    model_(model),
+    filterTimer_(this, ID_FILTER_TIMER),
+    sortColumn_(1), sortASC_(true) {
 
     createContents(this, true, true);
-    SetSize(400, 300);
+    SetSize(500, 400);
 
     list_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_LIST));
 
@@ -178,6 +182,16 @@ AddFUFromHDBDialog::TransferDataToWindow() {
 
     MapTools::deleteAllValues(fuArchitectures_);
     list_->DeleteAllItems();
+
+    if (filterCtrl_) {
+        std::string tmp = WxConversion::toString(filterCtrl_->GetValue());
+        std::istringstream rawFilterRules(tmp.c_str());
+        filterPatterns_.clear();
+        std::string keyword;
+        while (rawFilterRules >> keyword) {
+            filterPatterns_.push_back(keyword);
+        }
+    }
 
     HDBRegistry& registry = HDBRegistry::instance();
     registry.loadFromSearchPaths();
@@ -226,7 +240,7 @@ AddFUFromHDBDialog::loadHDB(const HDBManager& manager) {
         FUArchitecture* arch = manager.fuArchitectureByID(*iter);
         FunctionUnit& fu = arch->architecture();
 
-        if (!acceptToList(*arch, filterPatterns_)) {
+        if (!acceptToList(path, *arch, filterPatterns_)) {
             continue;
         }
 
@@ -292,6 +306,7 @@ AddFUFromHDBDialog::loadHDB(const HDBManager& manager) {
  */
 bool
 AddFUFromHDBDialog::acceptToList(
+    const std::string hdbFilePath,
     const HDB::FUArchitecture& arch,
     const std::vector<std::string>& filterList) {
 
@@ -311,10 +326,18 @@ AddFUFromHDBDialog::acceptToList(
 
     }
 
-    for (auto& c : archStr) c = toupper(c);
+    for (auto& c : archStr) c = tolower(c);
 
     for (const string& keyword : filterList) {
-        if (archStr.find(keyword) == std::string::npos) {
+        if (keyword.size() > 0 && keyword.front() == '!') {
+            if (keyword.size() < 2) {
+                continue;
+            } else if (archStr.find(keyword.substr(1)) != std::string::npos ||
+                hdbFilePath.find(keyword.substr(1)) != std::string::npos) {
+                return false;
+            }
+        } else if (archStr.find(keyword) == std::string::npos &&
+            hdbFilePath.find(keyword) == std::string::npos) {
             return false;
         }
     }
@@ -327,20 +350,19 @@ AddFUFromHDBDialog::acceptToList(
  * Updates FU architecture list view accordingly to new filter rule.
  */
 void
-AddFUFromHDBDialog::onFilterChange(wxCommandEvent& event) {
-
-    std::vector<std::string>& keywordList = filterPatterns_;
-
-    std::string tmp(event.GetString().mb_str());
-    std::istringstream rawFilterRules(tmp.c_str());
-    keywordList.clear();
-    std::string keyword;
-
-    while (rawFilterRules >> keyword) {
-        for (auto& c: keyword) c = toupper(c);
-        keywordList.push_back(keyword);
+AddFUFromHDBDialog::onFilterChange(wxCommandEvent&) {
+    if (filterTimer_.Start(250, /*oneShot = */ true)) {
+        return;
     }
 
+    // Timer could not be started for some reason.
+    // Do filtering immediately instead.
+    AddFUFromHDBDialog::TransferDataToWindow();
+}
+
+
+void
+AddFUFromHDBDialog::onFilterTimeOut(wxTimerEvent&) {
     AddFUFromHDBDialog::TransferDataToWindow();
 }
 
@@ -481,9 +503,11 @@ AddFUFromHDBDialog::createContents(
     wxListCtrl *item1 = new wxListCtrl( parent, ID_LIST, wxDefaultPosition, wxSize(160,120), wxLC_REPORT|wxSUNKEN_BORDER );
     item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
-    wxTextCtrl *filterCtrl = new wxTextCtrl(parent,
+    filterCtrl_ = new wxSearchCtrl(parent,
         ID_FILTER_TEXTCTRL, wxT(""), wxDefaultPosition, wxDefaultSize, 0);
-    item0->Add(filterCtrl, 0, wxGROW|wxALL, 5);
+    filterCtrl_->SetDescriptiveText(
+        wxT("Filter operations or HDBs. '!PATTERN' to exclude."));
+    item0->Add(filterCtrl_, 0, wxGROW|wxALL, 5);
 
     wxButton *item2 = new wxButton( parent, ID_ADD, wxT("&Add"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );

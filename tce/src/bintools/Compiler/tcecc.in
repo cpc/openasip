@@ -1,20 +1,20 @@
 #!/usr/bin/env @PYTHON_BIN@
 # -*- coding: utf-8 -*-
-# 
-# Copyright (c) 2002-2012 Tampere University of Technology.
+#
+# Copyright (c) 2002-2014 Tampere University of Technology.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
 # deal in the Software without restriction, including without limitation the
 # rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 # sell copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,7 +24,7 @@
 # IN THE SOFTWARE.
 #
 # @author 2006-2009 Veli-Pekka Jääskeläinen
-# @author 2006-2012 Pekka Jääskeläinen
+# @author 2006-2014 Pekka Jääskeläinen
 #
 # High-level language compiler driver for TCE.
 #
@@ -50,6 +50,7 @@ def runCommandBuffered(command, echoOutput):
         print output
 
     return (exitCode, output)
+
 
 # global variables...
 debugMode = False
@@ -81,7 +82,7 @@ def runCommand(command, echoOutput=True, echoStderr=False, stdoutFD=None):
     """Runs the given shell command and returns its exit code.
 
     If echoOutput is False, stdout and stderr are redirected to /dev/null."""
-       
+
     if echoOutput:
         print command
         stderrFD = None
@@ -100,8 +101,8 @@ def runCommand(command, echoOutput=True, echoStderr=False, stdoutFD=None):
              stderr=stderrFD, close_fds=False)
     return process.wait()
 
-poclInstalled = None 
-poclVersion = None   
+poclInstalled = None
+poclVersion = None
 def isOpenCLEnabled():
     global poclInstalled
     if poclInstalled is not None: return poclInstalled
@@ -115,19 +116,19 @@ def isOpenCLEnabled():
 
 def loadTextData(file_name):
     """Loads the given data file and returns it as a string."""
-    
+
     return open(os.path.join(dataDir, file_name), 'r').read()
 
 # TODO: add support for ll and check if file is .bc object from magic number...
-def processInputFiles(inFiles, tmpDir, verbose):
-    
+def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
     """ Compiles input files to .bc files and returns list
     cotaining all the files to link together.
     """
+    if tceopsDir is None: tceopsDir = tmpDir
 
     tripleOption = " -target "
-        
-    compileFlags = newlib_includes + " " + bclib_includes + " "
+
+    compileFlags = newlibIncludes(options) + " " + bclib_includes + " "
 
     if options.compile_only and not options.use_clang:
         compileFlags += "-c "
@@ -141,7 +142,10 @@ def processInputFiles(inFiles, tmpDir, verbose):
     for i in options.include_dirs:
         compileFlags += "-I" + i + " "
 
-    compileFlags += "-include " + tmpDir + "/tceops.h "
+    compileFlags += "-include " + tceopsDir + "/tceops.h "
+
+    if tceopsDir != tmpDir:
+        compileFlags += "-I " + tceopsDir + " "
 
     for w in options.warnings:
         # Types of warnings supported by the compiler:
@@ -153,7 +157,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
                           'no-bad-literal',
                           'no-literal-range',
                           'no-pointer-sign',
-                          'no-return-type', 
+                          'no-return-type',
                           'no-unused-value',
                           'no-ignored-qualifiers',
                           'no-incompatible-pointer-types-discards-qualifiers',
@@ -164,7 +168,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
     if not options.use_clang: # Clang 1.0 does not support -B
         for i in options.B_cc_switches:
             compileFlags += "-B" + i + " "
-        
+
     for i in options.f_cc_switches:
         if options.use_clang:
             # Some of the gcc -f flags not supported by clang,
@@ -182,13 +186,17 @@ def processInputFiles(inFiles, tmpDir, verbose):
         knownSuffices.append(".cl")
 
     linkList = []
+    if isLittleEndianBuild(options):
+        triple = "tcele-tut-llvm"
+    else:
+        triple = "tce-tut-llvm"
 
     # Compile input files if needed
     if len(inFiles) == 0:
         exitWithError(
-            1, 
+            1,
             "There must be at least one .bc, .c, .cc or .cpp file given.\n")
-    else: 
+    else:
         for fName in inFiles:
             # check file type based on knownSuffices
             baseName = ""
@@ -210,12 +218,12 @@ def processInputFiles(inFiles, tmpDir, verbose):
                     else:
                         baseName = ""
                         suffix = ""
-            
+
             if baseName != "" and suffix != "":
                 # gen command for compiling, for files that need to
                 # be compiled first
                 command = ""
-                
+
                 extra_opts = ""
                 if options.language != "":
                     extra_opts += "-x %s " % options.language
@@ -223,10 +231,10 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 # Disable generation of fmuladd intrinsics automatically in
                 # case soft float is used. This causes problems because the
                 # intrinsics is lowered later after emulated instructions are
-                # figured after which it's too late to try to lower it to fmul + fadd or 
-                # fmac (which need to be emulated). This is not the best
-                # possible fix, but soft float should not be used for
-                # performance critical FP code anyways.
+                # figured after which it's too late to try to lower it
+                # to fmul + fadd or fmac (which need to be emulated).
+                # This is not the best possible fix, but soft float should
+                # not be used for performance critical FP code anyways.
 
                 if options.soft_float:
                     extra_opts += " -ffp-contract=off"
@@ -234,64 +242,57 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 if "@LLVM_VERSION@" >= "3.4" and (options.soft_float or not options.autovectorize):
                     extra_opts += " -fno-vectorize -fno-slp-vectorize"
 
-
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
                 if suffix == ".c":
-                    if options.use_clang:
-                        command =  ("clang -O%d %s tce-tut-llvm -emit-llvm -c "\
-                                       "-I" + tmpDir +\
-                                       " " + compileFlags + " " + extra_opts + " " + baseName + suffix + " -o " +\
-                                       outFileName + ".tobelowered;" ) % \
-                                       (options.frontend_optlevel, \
-                                       tripleOption)
-                        
-                    else:
-                        command = ("tce-llvm-gcc --emit-llvm -O%d -ffreestanding "\
-                                       "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
-                                       " " + compileFlags + baseName + suffix + " -o " +\
-                                       outFileName + ".tobelowered;") % \
-                                       options.frontend_optlevel
+                    command =  ("clang -D__TCE__ -O%d %s %s -emit-llvm -c "\
+                                    "-I" + tmpDir +\
+                                    " " + compileFlags + " " + extra_opts + " " + baseName + suffix + " -o " +\
+                                    outFileName + ".tobelowered;" ) % \
+                                    (options.frontend_optlevel, \
+                                         tripleOption, triple)
 
                     command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
-                    
+
                 elif suffix == ".cl":
 
                     if options.adf_file == "":
                         exitWithError(1, "ADF file required when compiling OpenCL kernels.")
-                    
+
                     extra_flags = ""
                     if options.soft_float:
                         extra_flags += " POCL_VECTORIZE_NO_FP=1 "
                         print "You are compiling OpenCL code with software floating point emulation!"
                         print "Expect abysmal peformance!"
-                    
+
                     if not options.vector_backend:
                         extra_flags += " POCL_VECTORIZE_WORK_GROUPS=0 "
 
                     input_file = baseName + suffix
                     oclextgen = os.path.join(tceOclExtGenDir, "tceoclextgen") + " "  + options.adf_file
 
-                    # Generate the ADF specific header file with extension 
+                    # Generate the ADF specific header file with extension
                     # functions for (custom) operations etc.
                     device_header = mkstemp("_oclext.h", dir=tempDir)
 
-                    exitCode = runCommand(oclextgen, verbose, echoStderr=True, stdoutFD=device_header[0]) 
+                    exitCode = runCommand(oclextgen, options.verbose, echoStderr=True,
+                                          stdoutFD=device_header[0])
 
                     if exitCode != 0:
                         os.unlink(device_header[1])
                         exitWithError(
-                            1, 
+                            1,
                             "Error while generating the OpenCL C device header.\n")
 
-                    # Generate the parallelized bitcode, the trampoline and the kernel 
+                    # Generate the parallelized bitcode, the trampoline and the kernel
                     # registration object.
                     cpp_trampoline = mkstemp("_ocl_launcher.cpp", dir=tempDir)[1]
                     kernel_bc = mkstemp("_kernel.o", dir=tempDir)[1]
 
-                    runCommand(('EXTRA_CLANG_FLAGS="-D__TCE_DEVICE__ %s tce-tut-llvm -fasm -include %s" ' % (tripleOption, device_header[1])) + \
+                    runCommand(('EXTRA_CLANG_FLAGS="-D__TCE_DEVICE__ %s %s -fasm -include %s" ' % \
+                                (tripleOption, triple, device_header[1])) + \
                                "%s pocl-standalone -t tce -h %s -o %s %s" % \
-                               (extra_flags, cpp_trampoline, kernel_bc, input_file), verbose, 
-                               echoStderr=True)
+                               (extra_flags, cpp_trampoline, kernel_bc, input_file),
+                               options.verbose, echoStderr=True)
                     if exitCode != 0:
                         exitWithError(
                             1, "Error while compiling the OpenCL C file %s.\n" % input_file)
@@ -301,15 +302,15 @@ def processInputFiles(inFiles, tmpDir, verbose):
                         if options.soft_float:
                             extra_opts += "-ffp-contract=off"
 
-                        command = ("clang %s tce-tut-llvm " + \
+                        command = ("clang %s %s " + \
                                        "-emit-llvm -O3 "\
                                        "-fno-inline -c -I" + tmpDir +\
                                        " " + input + " " + extra_opts + \
                                        " %s `pkg-config pocl --cflags`" + \
                                        " -o " + output) % \
-                                       (tripleOption,  \
-                                       "-I " + tceSAOpenCLIncDir + " "  + newlib_includes)
-                        exitCode = runCommand(command, verbose, echoStderr=True) 
+                                       (tripleOption, triple,  \
+                                       "-I " + tceSAOpenCLIncDir + " "  + newlibIncludes(options))
+                        exitCode = runCommand(command, options.verbose, echoStderr=True)
                         if exitCode != 0:
                             exitWithError(1, "Error while compiling %s." % input)
 
@@ -329,7 +330,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
                         m = re.search(r'#define\s_(\S+)_NUM_ARGS\s(\d+)', line)
                         if m is not None:
                             kernels.append(OpenCLKernelInfo(m.group(1), m.group(2)))
-                    tfr.close()                                           
+                    tfr.close()
 
                     tf = open(cpp_trampoline, 'a')
                     tf.write(loadTextData("oclc_launcher_header.c"))
@@ -341,8 +342,8 @@ def processInputFiles(inFiles, tmpDir, verbose):
                         count = 0
                         converted_name = "_" + kernel.name + "_workgroup"
 
-        
-                        # Add a class that registers the kernel to host API's kernel 
+
+                        # Add a class that registers the kernel to host API's kernel
                         # registry at program startup
                         initializer_object = loadTextData("oclc_initializer_object.cc") % \
                             {'kernel_name' : kernel.name}
@@ -351,12 +352,12 @@ def processInputFiles(inFiles, tmpDir, verbose):
                                   'kernel_name' : kernel.name,
                                   'converted_name' : converted_name} + \
                                   initializer_object
-                    
+
                         tf.write(trampoline_func + "\n")
-                    
+
                     tf.close()
 
-                    trampoline_bc = cpp_trampoline + ".o"                   
+                    trampoline_bc = cpp_trampoline + ".o"
                     compile(cpp_trampoline, trampoline_bc)
 
                     # Link the trampoline (+registration object) and the kernel together.
@@ -364,19 +365,19 @@ def processInputFiles(inFiles, tmpDir, verbose):
                                (kernel_bc, trampoline_bc, outFileName)
 
                     command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
-                   
+
                 elif suffix == ".cpp" or suffix == ".cc":
                     input_file = baseName + suffix
-                    
+
                     if options.soft_float:
                         extra_opts += " -ffp-contract=off"
 
-                    command = ("clang %s tce-tut-llvm %s -emit-llvm " +\
+                    command = ("clang %s %s %s -emit-llvm " +\
                                     "-O%d "\
                                     "-fno-inline -c -I" + tmpDir + \
                                     " " + compileFlags + " " + input_file + " -o " +\
                                     outFileName + ".tobelowered1;") % \
-                                    (tripleOption, extra_opts, options.frontend_optlevel)
+                                    (tripleOption, triple, extra_opts, options.frontend_optlevel)
 
                     # For some reason C++ code does not get mallocs lowered to
                     # calls by the frontend, do it manually here with the -lowerallocs
@@ -386,6 +387,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
 #                        (outFileName + ".tobelowered1", outFileName + ".tobelowered")
 
                     command += lowerMemIntrinsicCommand(outFileName + ".tobelowered1", outFileName)
+
                 elif suffix == ".ll":
                     command = ("llvm-as " + baseName + suffix + " -o " + outFileName + ".tobelowered;")
 
@@ -405,16 +407,16 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 # add all files to list for linkage
                 linkList += [outFileName]
 
-                if command != "":                    
-                    exitCode = runCommand(command, verbose, echoStderr=True)
+                if command != "":
+                    exitCode = runCommand(command, options.verbose, echoStderr=True)
                     if exitCode != 0:
                         exitWithError(
-                            1, 
+                            1,
                             "Error while compiling file: " +\
                             baseName + suffix + "\n")
             else:
                 exitWithError(
-                    1, 
+                    1,
                     "Unknown input file type: " +\
                     fName + ". Supported file types " +\
                     str(knownSuffices) + "\n")
@@ -432,10 +434,10 @@ def lowerMemIntrinsicCommand(srcFile, dstFile):
     if "@LLVM_VERSION@" >= "3.4":
         optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
 
-    commandp = "opt -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
+    commandp = "opt -f -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
     command = commandp + " -o " + dstFile + " " + srcFile + " " + optSwitches
     return command
-    
+
 ###
 # Links bytecode files and returns name of the linked file.
 ##
@@ -445,10 +447,10 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
     nmidx = 0
     if "@LLVM_VERSION@" >= "3.7":
         nmidx = 1
-        
+
     startFiles = [os.path.join(newlib_libdir, "crt0.o ")]
 
-    libNoSys = os.path.join(newlib_libdir,"libnosys.a")
+    libNoSys = os.path.join(newlib_libdir, "libnosys.a")
     if not os.path.exists(libNoSys):
         libNoSys = ""
 
@@ -483,11 +485,11 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
         for name in libFiles:
             runCommand("cp " + name + " " + libDirName, options.verbose, echoStderr=True)
-    
+
         for name in os.listdir(libDirName):
             runCommand("sh -c 'cd " + libDirName + ";ar x " + libDirName + "/" + name + "'", options.verbose, echoStderr=True)
             runCommand("rm " + libDirName + "/" + name, options.verbose, echoStderr=True)
-        
+
     defSyms=['llvm.dbg.declare']
     undefSyms=[]
 
@@ -505,7 +507,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
                     defSyms.append(split[nmidx+1])
 
     if not '_start' in defSyms:
-	linkFiles = startFiles + linkFiles 
+	linkFiles = startFiles + linkFiles
 
     defSyms=['llvm.dbg.declare']
     undefSyms=[]
@@ -583,7 +585,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
                 if not sym in defSyms:
                     undefSyms.append(sym)
 
-    command = "llvm-link -o " + linkedFileName + ".bc " 
+    command = "llvm-link -o " + linkedFileName + ".bc "
 
     for name in linkFiles:
         command += " " + name
@@ -596,7 +598,8 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
             sys.exit(exitCode)
 
     # remove annoying autogenerated script.
-    tryRemove(linkedFileName)
+    if not options.leave_dirty:
+        tryRemove(linkedFileName)
 
 
     return linkedFileName + ".bc"
@@ -618,11 +621,11 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     # disable-simplify-libcalls needed to prevent memset/memset loop detection in
     # LoopIdiomRecognize pass, which breaks things due to memset contents being
-    # converted to memset calls which causes infinite recursion. This has to be done 
+    # converted to memset calls which causes infinite recursion. This has to be done
     # because we always do full program linkage and optimization for TTA targets.
     default_opts = " -O3 --disable-simplify-libcalls "
 
-    # no inline 
+    # no inline
     default_opts += options.noinline and "-disable-inlining " or "-inline-threshold=%d " % options.inline_threshold
 
     # no need to run this, since intrinsics are lowered in isel...
@@ -630,13 +633,13 @@ def optimizeBytecode(inFile, fileNamePrefix):
     # hower if it's run before some optimizations is might be still
     # possible before isel in that case later optimization passes
     # must be selected very carefully in TCETargetMachine::addPreISel()
-    
+
     #lowerIntrinsicsPass = " -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
     #default_opts += lowerIntrinsicsPass
 
     # unroll swithes and disabling (threshold 0 should work as disable in opt)
     default_opts += "-unroll-allow-partial -unroll-threshold=%d " % options.unroll_threshold
-       
+
     # -O0 optimization doesn't exist in opt
     optSwitches = ""
 
@@ -645,22 +648,22 @@ def optimizeBytecode(inFile, fileNamePrefix):
         if "@LLVM_VERSION@" > "3.5":
             optSwitches = (default_opts)
         else:
-            optSwitches = (default_opts + "-disable-internalize ") 
+            optSwitches = (default_opts + "-disable-internalize ")
     elif options.optimization_level > 1:
         optSwitches = (" -internalize "+ default_opts)
-        
+
     if options.extra_llvm_opts != "":
         extra_opts = options.extra_llvm_opts.split(',')
         optSwitches += ' -' + ' -'.join(extra_opts)
-    
+
     internalize_api_list = " -internalize-public-api-list=_start,_pthread_start"
     if options.keep_symbols != "":
         internalize_api_list += "," + options.keep_symbols
-        
+
     optSwitches += internalize_api_list
 
     outputName = fileNamePrefix + "_optimized.bc"
-    
+
     if options.soft_float:
         optSwitches += " -fp-contract=off "
 
@@ -696,7 +699,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     # if software floatingpoint should be lowered, link the emulation functions in
     emulationLib = os.path.join(newlib_libdir, "float_emulation.o") + " "
     linkedName = fileNamePrefix + "_libemul.bc"
-        
+
     command = ("llvm-link -f " + inFile + " " + emulationLib + " -o " + linkedName)
 
     (exitCode, output) = runCommandBuffered(command, verbose)
@@ -709,7 +712,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     internalize_api_list = " -internalize-public-api-list=_start"
     if options.keep_symbols != "":
         internalize_api_list += "," + options.keep_symbols
-    
+
     no_inline = ""
     if options.noinline:
         no_inline = " -disable-inlining"
@@ -726,6 +729,64 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
 
     return outputName
 
+class SourceDescription(object):
+
+    def __init__(self, relpath, full_path=None, compiler_options=None):
+        self.symbols_provided = []
+        self.symbols_required = []
+        self.relpath = relpath
+        self.options = compiler_options
+        self.fullPath = full_path or self._findSource(relpath)
+
+    def _findSource(self, relpath):
+        """Finds the given source from the search paths for source library
+        source code files."""
+        for searchPath in sourceLibSearchPaths:
+            fullPath = os.path.join(searchPath, relpath)
+            if os.path.exists(fullPath):
+                return fullPath
+        raise Exception("Could not find full path for a .sa source file %s." % relpath)
+
+class SourceLib(object):
+    def __init__(self, libname, fn=None):
+        self.libname = libname
+        self.sources = []
+        # For now, assume all sources are compiled with the same switches.
+        self.compiler_options = [""]
+        if fn is not None:
+            f = open(fn, 'r')
+            self._parse(f)
+
+    def _parse(self, f):
+        """Parses a source library descriptor (.sa)."""
+        for line in f.readlines():
+            line = line.strip()
+            if line.startswith(".files "):
+                for relpath in line.split(' ')[1:]:
+                    self.sources.append(SourceDescription(relpath,
+                                        compiler_options=self.compiler_options))
+            elif line.startswith(".switches "):
+                self.compiler_options = line.split(" ")[1:]
+
+    def build(self, targetPath):
+        """Builds the source lib to a set of bitcode objects."""
+        dirName = os.path.join(targetPath, "sourcelib" + self.libname)
+        # We might have already expanded the library archive if we are using
+        # a previous compilation temp dir (--temp-dir=).
+        if not os.path.exists(dirName):
+            os.makedirs(dirName)
+
+        sourceFiles = [x.fullPath for x in self.sources]
+
+        #print self.compiler_options
+        compilerOptions, inFiles = optionParser.parse_args(self.compiler_options)
+        compilerOptions.compile_only = True
+        compilerOptions.frontend_optlevel = 1
+
+        return processInputFiles(sourceFiles, dirName, compilerOptions, targetPath)
+
+
+
 #############################################
 # Main program
 #############################################
@@ -734,6 +795,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
 usage = "usage: %prog [options] source-or-bc-file1 source-or-bc-file2 ..."
 
 p = optparse.OptionParser(usage)
+optionParser = p
 
 p.add_option('-a', '--adf-file',
              type="string", action="store", metavar='file',
@@ -773,27 +835,27 @@ p.add_option('-v', '--verbose', action="store_true",
              dest='verbose', default=False,
              help="Print out commands and outputs for each phase.")
 
-p.add_option('-D', '--preprocessor-define', 
+p.add_option('-D', '--preprocessor-define',
              type="string", action="append", metavar='string',
              dest="defines", default=[],
              help="Passed to gcc.")
 
-p.add_option('-I', '--include-directory', 
+p.add_option('-I', '--include-directory',
              type="string", action="append", metavar='directory',
              dest="include_dirs", default=[],
              help="Passed to gcc.")
 
-p.add_option('-L', '--library-directory', 
+p.add_option('-L', '--library-directory',
              type="string", action="append", metavar='directory',
              dest="lib_dirs", default=[],
              help="Passed to gcc.")
 
-p.add_option('-l', '--library-link', 
+p.add_option('-l', '--library-link',
              type="string", action="append", metavar='libname',
              dest="libs", default=[],
              help="Converted to static link command. i.e. -lpthread  => /llvm-install/tce-llvm/lib/libpthread.a")
 
-p.add_option('-W', '--warning', 
+p.add_option('-W', '--warning',
              type="string", action="append", metavar='type',
              dest="warnings", default=[],
              help="Ignored.")
@@ -875,22 +937,22 @@ p.add_option('--debug', action="store_true",
              dest="debug", default=False,
              help="Print LLVM debug data.")
 
-p.add_option('--isystem', 
+p.add_option('--isystem',
              type="string", action="append", metavar='directory',
              dest="isystem_cc_switches", default=[],
              help="Passed to gcc as -system switch. Also -isystem is supported.")
 
-p.add_option('-B', 
+p.add_option('-B',
              type="string", action="append", metavar='directory',
              dest="B_cc_switches", default=[],
              help="Passed to gcc.")
 
-p.add_option('-f', 
+p.add_option('-f',
              type="string", action="append", metavar='opt_var',
              dest="f_cc_switches", default=[],
              help="Passed to gcc.")
 
-p.add_option('-g', 
+p.add_option('-g',
              action="store_true",
              dest="g_cc_switch", default=False,
              help="Passed to gcc.")
@@ -906,7 +968,7 @@ p.add_option('--frontend-optlevel',
              help=\
 """The level of optimization done by the frontend compiler,
 if applicable. The -O switch controls the optimizations applied to the
-whole linked program.""")             
+whole linked program.""")
 
 if @CLANG_AS_DEFAULT@:
     p.add_option('--llvm-gcc', action='store_false', dest='use_clang', default=True,
@@ -923,9 +985,9 @@ p.add_option('--autovectorize', action='store_true', dest='autovectorize', defau
 
 p.add_option('-x', type='string', action='store', metavar='language',
              dest="language", default='', help=\
-"""Bypass language detection and use the given language for compilation.""")             
+"""Bypass language detection and use the given language for compilation.""")
 
-p.add_option('--supported-languages', action='store_true', 
+p.add_option('--supported-languages', action='store_true',
              dest="list_langs", default=False, help=\
 """List the supported languages and exit.""")
 
@@ -953,6 +1015,11 @@ p.add_option('--no-rename-registers', action='store_false', dest='rename_registe
              help=\
 """Disable register renaming, which renames registers during scheduling, after the actual register allocation.""")
 
+p.add_option('--disable-dsf', action="store_true",
+             dest='disable_dsf', default=False,
+             help=\
+"""Disable the post-pass delay slot filler optimizer.""")
+
 p.add_option('--vector-backend', action='store_true', dest='vector_backend', default=False,
              help=\
 """Enable vector registes support by cobining multiple RF's into one vector RF.""")
@@ -977,23 +1044,23 @@ if isOpenCLEnabled():
              type="int", action="store",
              dest='opencl_max_parallel_wi_count', default=8,
              help=\
-   """The maximum number of work items that are compiled (unrolled) to 
+   """The maximum number of work items that are compiled (unrolled) to
 be executed in parallel.""")
 
-p.add_option('--bottom-up-scheduler', action='store_true', dest='bu_scheduler', 
+p.add_option('--bottom-up-scheduler', action='store_true', dest='bu_scheduler',
              default=False,
              help=\
 "Use the bottom-up scheduler (experimental).")
 
 p.add_option('--recursive-scheduler', action='store_true',
-             dest='recursive_scheduler', 
+             dest='recursive_scheduler',
              default=False,
              help=\
 "Use the recursive bypassing bottom-up scheduler (experimental).")
 
 p.add_option('--use-old-backend-src',
              action="store_true", default=False,
-             dest="use_old_backend_src", 
+             dest="use_old_backend_src",
              help="Use the backend sources from the given temp directory instead of "
              "regenerating them.")
 
@@ -1002,10 +1069,14 @@ p.add_option('--temp-dir',
              dest="temp_dir", default=None,
              help="Use the given directory for temporary files.")
 
-p.add_option('--init-sp', 
+p.add_option('--init-sp',
              type="long", action="store", metavar='value',
              dest='init_sp', default=None,
              help="Set the initial stack pointer of the program to the given value.")
+
+p.add_option('--little-endian',
+             action="store_true", dest='little_endian', default=False,
+             help="Compile using the little-endian TCE target.")
 
 # Commandline argument parsing
 
@@ -1093,36 +1164,91 @@ else:
 ## source tree libraries and binaries
 scriptDir = os.path.abspath(os.path.dirname(sys.argv[0]))
 runningInstalled = 'src/bintools/Compiler' not in scriptDir or not \
-     os.path.exists(os.path.join("@abs_top_builddir@", 
+     os.path.exists(os.path.join("@abs_top_builddir@",
                                  "src/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so"))
+
+# Cache the endianness mode as we know that we are always building
+# for at most one ADF at once and the automatic endianness detection
+# from ADF requires loading and scanning the ADF file.
+littleEndianBuild = None
+def isLittleEndianBuild(options):
+    global littleEndianBuild
+    if littleEndianBuild is not None:
+        return littleEndianBuild
+    machineLittleEndian = False
+    if options.adf_file != "":
+        machineLittleEndian = "<little-endian/>" in open(options.adf_file).read()
+
+    if options.little_endian or machineLittleEndian:
+        if options.adf_file != "" and not machineLittleEndian:
+            exitWithError(1, \
+              "error: Trying to compile in little endian mode with a big endian machine.")
+        littleEndianBuild = True
+        return littleEndianBuild
+    else:
+        if options.adf_file != "" and machineLittleEndian:
+            exitWithError(1, \
+              "error: Trying to compile in big endian mode with a little endian machine.")
+        littleEndianBuild = False
+        return littleEndianBuild
+
+def newlibLibdir(options):
+    if runningInstalled:
+        if isLittleEndianBuild(options):
+            return os.path.join(tceprefix, "tcele-llvm/lib")
+        else:
+            return os.path.join(tceprefix, "tce-llvm/lib")
+    else:
+        if isLittleEndianBuild(options):
+            return os.path.join("@abs_top_builddir@", "newlib-1.17.0/tcele-llvm/tcele-llvm/newlib")
+        else:
+            return os.path.join("@abs_top_builddir@", "newlib-1.17.0/tce-llvm/tce-llvm/newlib")
+
+def newlibIncludes(options):
+    if runningInstalled:
+        if isLittleEndianBuild(options):
+            return "-I " + os.path.join(tceprefix, "tcele-llvm/include")
+        else:
+            return "-I " + os.path.join(tceprefix, "tce-llvm/include")
+    else:
+        if isLittleEndianBuild(options):
+            return ("-I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/tcele-llvm/tcele-llvm/newlib/targ-include") +
+                    " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libc/include") +
+                    " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libm/include") + " ")
+        else:
+            return ("-I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/tce-llvm/tce-llvm/newlib/targ-include") +
+                    " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libc/include") +
+                    " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libm/include") + " ")
 
 assert not runningInstalled or (tceInstalled and tceprefix != ""), \
         "Could not find TCE prefix. Is TCE installed in PATH?"
 
 if runningInstalled:
     lowerintrinsicsplugin = os.path.join(tceprefix,"lib/tce/LowerIntrinsics.so")
-    newlib_libdir = os.path.join(tceprefix,"tce-llvm/lib")
-    newlib_includes = "-I " + os.path.join(tceprefix,"tce-llvm/include") + " "
-    bclib_includes = "" # same as newlib_includes
-    bclib_libdirs = [newlib_libdir] # all libs should be in the same newlib_libdir
+    newlib_libdir = newlibLibdir(options)
+    newlib_includes = newlibIncludes(options)
+    bclib_includes = "-I "  + os.path.join(tceprefix,"share/tce/srclibs/include") + " "
     opencl_includes = "" # same as newlib_includes
     srcRoot = None
     tceSAOpenCLBinDir = tceprefix + "/bin"
     tceSAOpenCLIncDir = os.path.join(tceprefix, "tce-llvm", "include")
     tceOclExtGenDir = os.path.join(tceprefix, "bin")
     tceOclBitcodeLibDir = os.path.join(tceprefix, "lib/llvmopencl")
-
+    sourceLibSearchPaths = [os.path.join(tceprefix, "share/tce/srclibs/"),]
     dataDir = os.path.join(tceprefix, "share/tce/data/tcecc")
+
+    # All bclibs should be in the same newlib_libdir.
+    # The source libs are located in separate dirs which
+    # are priorized over bclibs.
+    bclib_libdirs = sourceLibSearchPaths + [newlib_libdir]
+
 else:
     srcRoot = "@abs_top_srcdir@"
     lowerintrinsicsplugin = os.path.join("@abs_top_builddir@", "src/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so")
-    newlib_libdir = os.path.join("@abs_top_builddir@","newlib-1.17.0/tce-llvm/newlib")
-    newlib_includes = ("-I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/tce-llvm/newlib/targ-include") +
-                       " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libc/include") +
-                       " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libm/include") + " ")
     bclib_includes = ("-I " + os.path.join("@abs_top_srcdir@", "bclib/include"))
     lwpr_libdir = os.path.join("@abs_top_srcdir@", "bclib/lwpr")
     cpp_libdir = os.path.join("@abs_top_srcdir@", "bclib/cpp")
+    newlib_libdir = newlibLibdir(options)
 
     # The standalone OpenCL paths.
     tceSAOpenCLDir = os.path.join(srcRoot, "bclib/saocl")
@@ -1132,15 +1258,17 @@ else:
 
     bclib_libdirs = [newlib_libdir, lwpr_libdir, tceSAOpenCLBitcodeLibDir, cpp_libdir]
 
+    # The search paths for source files defined in source libraries (.sa files).
+    sourceLibSearchPaths = (os.path.join("@abs_top_srcdir@", "bclib"),)
+
     dataDir = os.path.join(srcRoot, "data/tcecc")
 
 if options.verbose:
     if runningInstalled:
-        print "Running installed TCE from PATH."    
+        print "Running installed TCE from PATH."
     else:
         print "Running from a TCE build tree rooted at '%s'." % "@abs_top_builddir@"
-    
-    
+
 namePrefix = tempDir + "/" + os.path.basename(outputName)
 
 if not options.compile_only and not options.adf_file and not options.emit_llvm:
@@ -1150,7 +1278,7 @@ if not options.compile_only and not options.adf_file and not options.emit_llvm:
 
 
 if options.compile_only and options.output_name != "" and len(inFiles) > 1:
-    sys.stdout.write("Cannot specify -o  with -c and multiple input files.\n")
+    sys.stdout.write("Cannot specify -o with -c and multiple input files.\n")
     cleanup(tempDir)
     sys.exit(1)
 
@@ -1158,25 +1286,26 @@ elif len(inFiles) == 1 and not options.force_link and (options.no_link or inFile
     # Only one .bc inputfile given. No need to compile, link or optimize anything.
     # Note: Already linked bytecode can't be linked or optimized
     # with -lowermissing again anyway!
-    optimizedFileName = processInputFiles(inFiles, tempDir, options.verbose)[0]
+    optimizedFileName = processInputFiles(inFiles, tempDir, options)[0]
 else:
     # Compile, link and optimize input files.
-    
+
     # generate tceops.h
     if runningInstalled:
         tceopgen = "tceopgen"
     else:
         tceopgen = "@abs_top_builddir@" + "/src/bintools/Compiler/tceopgen/tceopgen"
-        
+
     (exitCode, output) = runCommandBuffered(
         tceopgen + " -o " + tempDir + "/tceops.h" , options.verbose)
-    
+
     if exitCode != 0:
         sys.stderr.write("Error while generating custom operation macros:\n")
         exitWithError(1, output)
-    
-    linkList = processInputFiles(inFiles, tempDir, options.verbose)
 
+    linkList = processInputFiles(inFiles, tempDir, options)
+
+    # if only compiling
     if options.compile_only:
         if options.output_name != "":
             (exitCode, output) = runCommandBuffered(
@@ -1198,19 +1327,30 @@ else:
 
     for i in options.lib_dirs:
         library_search_paths.append(i)
-         
+
     for i in options.libs:
         lib_found = False
-        for p in library_search_paths:
-            lib_path = os.path.join(p, "lib%s.a" % i)
-            if os.path.exists(lib_path):
+        for path in library_search_paths:
+            lib_path = os.path.join(path, "lib%s.a" % i)
+            src_lib_path = os.path.join(path, "lib%s.sa" % i)
+
+            if os.path.exists(src_lib_path):
+                # Prefer source libraries as they work for both LE and BE,
+                # and can take in account the target specifics.
+                if options.verbose:
+                    print "note: Using source library for", i
+                slib = SourceLib(i, src_lib_path)
+                linkList += slib.build(tempDir)
+                lib_found = True
+                break
+            elif os.path.exists(lib_path):
                 linkList.append(lib_path)
                 lib_found = True
-                break 
+                break
         if not lib_found:
             exitWithError(1, "Could not find lib%s.a in library search paths %s" % \
                               (i, library_search_paths))
-    
+
     linkedFileName = linkBytecode(linkList, namePrefix, options.verbose)
 
     # optimize the fully linked program also
@@ -1222,7 +1362,8 @@ else:
             options.verbose)
         cleanup(tempDir)
         sys.exit(0)
-        
+
+
 #### Schedule compiled sequential code for machines
 if options.adf_file != "":
 
@@ -1252,18 +1393,19 @@ if options.adf_file != "":
         command += " --init-sp=%d" % options.init_sp
 
     command += " --backend-cache-dir=%s " % options.plugin_cache_dir
+
     if options.use_old_backend_src and options.temp_dir:
-        command += " --use-old-backend-src" 
+        command += " --use-old-backend-src"
 
     if options.verbose:
         command += " -v"
-        
+
     if options.debug:
         command += " --debug"
 
     if options.conservative_pre_ra_scheduler:
         command += " --conservative-pre-ra-scheduler"
-     
+
     if options.print_resource_constraints:
         command += " --print-resource-constraints"
 
@@ -1272,7 +1414,7 @@ if options.adf_file != "":
 
     if not options.cache_backend_plugin:
         command += " --no-save-backend-plugin "
-        
+
     if options.dump_ddgs:
         command += " --dump-ddgs-dot --dump-ddgs-xml"
     else:
@@ -1287,9 +1429,12 @@ if options.adf_file != "":
     else:
         command += " --no-rename-registers"
 
+    if options.disable_dsf:
+        command += " --disable-dsf"
+
     if options.vector_backend:
         command += " --vector-backend"
-        
+
     if options.analyze_ipatterns:
         command += " --analyze-instruction-patterns"
 
@@ -1302,7 +1447,7 @@ if options.adf_file != "":
         command += " --bottom-up-scheduler"
     elif options.recursive_scheduler:
         command += " --recursive-scheduler"
-        
+
     stdEmulationLib = os.path.join(newlib_libdir, "standard_emulation.o ")
 
     command += " --bypass-distance=%d" % options.bypass_distance
@@ -1310,18 +1455,18 @@ if options.adf_file != "":
     if poclInstalled:
         (exitCode, output) = runCommandBuffered("pkg-config pocl --variable=libdir", False)
         if exitCode == 0:
-            command += " --wi-aa-filename=" + output + "/pocl/llvmopencl.so" 
+            command += " --wi-aa-filename=" + output + "/pocl/llvmopencl.so"
 
     if options.sequential_schedule:
         command += " -O0"
     else:
-        command += " -O" + str(options.optimization_level)    
-        
+        command += " -O" + str(options.optimization_level)
+
     command += (" -a " + options.adf_file +
-                " -o " + outFile +        
+                " -o " + outFile +
                 " -e" + stdEmulationLib +
                 " " + toCodeGenFname)
-       
+
     exitCode = runCommand(command, options.verbose, True)
     if exitCode != 0:
         if options.verbose:

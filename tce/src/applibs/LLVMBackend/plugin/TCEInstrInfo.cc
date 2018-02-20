@@ -30,8 +30,8 @@
  *       easier to track and copy paste changes from LLVM.
  *       So please follow LLVM style when adding or fixing things.
  *
- * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistï¿½ 2009 (mikael.lepisto-no.spam-tut.fi)
  * @author Heikki Kultala 2011-2012 (heikki.kultala-no.spam-tut.fi)
  */
 
@@ -62,9 +62,9 @@ using namespace llvm;
  * Constructor.
  */
 TCEInstrInfo::TCEInstrInfo(
-    const TCETargetMachinePlugin* plugin, int stackAlignment) :
+    const TCETargetMachinePlugin* plugin) :
     TCEGenInstrInfo(TCE::ADJCALLSTACKDOWN, TCE::ADJCALLSTACKUP),
-    ri_(*this, stackAlignment), plugin_(plugin) {
+    ri_(*this), plugin_(plugin) {
 }
 
 /**
@@ -84,8 +84,12 @@ TCEInstrInfo:: ~TCEInstrInfo() {
  *
  * @return number of branch instructions inserted
  */
-unsigned 
+unsigned
+#if LLVM_OLDER_THAN_4_0
 TCEInstrInfo::InsertBranch(
+#else
+TCEInstrInfo::insertBranch(
+#endif
     MachineBasicBlock& mbb,
     MachineBasicBlock* tbb,
     MachineBasicBlock* fbb,
@@ -94,7 +98,16 @@ TCEInstrInfo::InsertBranch(
 #else
     ArrayRef<MachineOperand> cond,
 #endif
-    DebugLoc dl) const {
+#ifdef LLVM_OLDER_THAN_3_9
+    DebugLoc dl
+#else
+    const DebugLoc& dl
+#endif
+#ifdef LLVM_OLDER_THAN_4_0
+    ) const {
+#else
+    , int *BytesAdded) const {
+#endif
 
     if (mbb.size() != 0) {
         // already has a uncond branch, no need for another.
@@ -152,7 +165,12 @@ TCEInstrInfo::InsertBranch(
  * @return number of braches removed
  */
 unsigned
+#if LLVM_OLDER_THAN_4_0
 TCEInstrInfo::RemoveBranch(MachineBasicBlock &mbb) const {
+#else
+TCEInstrInfo::removeBranch(
+    MachineBasicBlock &mbb, int *BytesRemoved) const {
+#endif
     MachineBasicBlock::iterator i = mbb.end();
     if (i == mbb.begin()) return 0;
     i--;
@@ -187,7 +205,6 @@ TCEInstrInfo::BlockHasNoFallThrough(const MachineBasicBlock& MBB) const {
     if (MBB.empty()) return false;
     switch (MBB.back().getOpcode()) {
     case TCE::RETL:    // Return.
-    case TCE::RETL_old:
     case TCE::TCEBR:  // Uncond branch.
     case TCE::TCEBRIND:  // Uncond indirect branch.
         return true;
@@ -230,7 +247,12 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
  */
 void TCEInstrInfo::copyPhysReg(
     MachineBasicBlock& mbb,
-    MachineBasicBlock::iterator mbbi, DebugLoc DL,
+    MachineBasicBlock::iterator mbbi,
+#ifdef LLVM_OLDER_THAN_3_9
+    DebugLoc DL,
+#else
+    const DebugLoc& DL,
+#endif
     unsigned destReg, unsigned srcReg,
     bool killSrc) const
 {
@@ -293,8 +315,12 @@ void TCEInstrInfo::copyPhysReg(
  *
  * @return false if did reverse condition, true if could not.
  */
-bool 
+bool
+#if LLVM_OLDER_THAN_4_0
 TCEInstrInfo::ReverseBranchCondition(
+#else
+TCEInstrInfo::reverseBranchCondition(
+#endif
     llvm::SmallVectorImpl<llvm::MachineOperand>& cond) const {
 
     assert(cond.size() != 0);
@@ -325,8 +351,12 @@ TCEInstrInfo::ReverseBranchCondition(
  * @param cond puts the condition data (predcate reg and T/F) here
  * @return false if could analyze, true if could not analyze
  */
-bool 
-TCEInstrInfo::AnalyzeBranch(
+bool
+#ifdef LLVM_OLDER_THAN_3_9
+    TCEInstrInfo::AnalyzeBranch(
+#else
+    TCEInstrInfo::analyzeBranch(
+#endif
     MachineBasicBlock &mbb, MachineBasicBlock *&tbb,
     MachineBasicBlock *&fbb, 
     llvm::SmallVectorImpl<llvm::MachineOperand>& cond, bool allowModify)
@@ -386,10 +416,16 @@ TCEInstrInfo::AnalyzeBranch(
     // should never be here
     return true;
 }
+
 bool 
+#ifdef LLVM_OLDER_THAN_3_9
 TCEInstrInfo::isPredicated(const MachineInstr *mi) const {
+#else
+TCEInstrInfo::isPredicated(const MachineInstr& mi_ref) const {
+    const MachineInstr* mi = &mi_ref;
+#endif
     // TODO: should be conditional move here..
-    if (mi->getOpcode() == TCE::RETL || mi->getOpcode() == TCE::RETL_old) {
+    if (mi->getOpcode() == TCE::RETL) {
         return false;
     }
 
@@ -402,18 +438,33 @@ TCEInstrInfo::isPredicated(const MachineInstr *mi) const {
     return opName[0] == '?' || opName[0] == '!';
 }
 
-bool TCEInstrInfo::isPredicable(MachineInstr *mi) const {
+bool
+#ifdef LLVM_OLDER_THAN_3_9
+TCEInstrInfo::isPredicable(MachineInstr *mi) const {
+#else
+#ifdef LLVM_OLDER_THAN_5_0
+TCEInstrInfo::isPredicable(MachineInstr& mi_ref) const {
+    MachineInstr* mi = &mi_ref;
+#else
+TCEInstrInfo::isPredicable(const MachineInstr& mi_ref) const {
+    const MachineInstr* mi = &mi_ref;
+#endif
 
+#endif
     if (mi->getOpcode() == TCE::COPY) {
         return false;
     }
 
     // TODO: why is RETL not predicable?
-    if (mi->getOpcode() == TCE::RETL || mi->getOpcode() == TCE::RETL_old) {
+    if (mi->getOpcode() == TCE::RETL) {
         return false;
     }
 
+#ifdef LLVM_OLDER_THAN_3_9
     if (isPredicated(mi)) {
+#else
+    if (isPredicated(*mi)) {
+#endif
         return false;
     }
 
@@ -427,7 +478,11 @@ bool TCEInstrInfo::isPredicable(MachineInstr *mi) const {
 // todo: mostlly ripped from hexagon.
 // check the legal things
 bool TCEInstrInfo::PredicateInstruction(
+#ifdef LLVM_OLDER_THAN_3_9
     MachineInstr *mi,
+#else
+    MachineInstr& mi_ref,
+#endif
 #ifdef LLVM_OLDER_THAN_3_7
     const SmallVectorImpl<MachineOperand> &cond
 #else
@@ -435,9 +490,18 @@ bool TCEInstrInfo::PredicateInstruction(
 #endif
 ) const {
 
+#ifndef LLVM_OLDER_THAN_3_9
+    MachineInstr *mi = &mi_ref;
+#endif
+
     int opc = mi->getOpcode();
 
+#ifdef LLVM_OLDER_THAN_3_9
     assert (isPredicable(mi) && "Expected predicable instruction");
+#else
+    assert (isPredicable(*mi) && "Expected predicable instruction");
+#endif
+
     bool invertJump = (cond.size() >1 && cond[1].isImm() &&
                        (cond[1].getImm() == 0));
     
@@ -498,8 +562,15 @@ int TCEInstrInfo::getMatchingCondBranchOpcode(int opc, bool inv) const {
 
 // mostly ripped from hexagon
 bool
-TCEInstrInfo::DefinesPredicate(MachineInstr *MI,
-			       std::vector<MachineOperand> &Pred) const {
+#ifdef LLVM_OLDER_THAN_3_9
+TCEInstrInfo::DefinesPredicate(
+    MachineInstr *MI, std::vector<MachineOperand> &Pred) const {
+#else
+TCEInstrInfo::DefinesPredicate(
+    MachineInstr& MI_ref, std::vector<MachineOperand> &Pred) const {
+
+    MachineInstr *MI = &MI_ref;
+#endif
     for (unsigned oper = 0; oper < MI->getNumOperands(); ++oper) {
 	MachineOperand MO = MI->getOperand(oper);
 	if (MO.isReg() && MO.isDef()) {

@@ -1,0 +1,8 @@
+ld16 0x64
+st16 0x64 0x0102
+!advanceclock
+!mem byte 0x64
+!mem byte 0x65
+!output hex
+ld16 0x64
+!quit

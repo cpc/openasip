@@ -95,9 +95,14 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/CodeGen/MachineInstr.h>
 #include <llvm/CodeGen/MachineMemOperand.h>
 #include <llvm/CodeGen/MachineConstantPool.h>
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetInstrInfo.h>
-#include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetLowering.h>
+#else
+#include <llvm/CodeGen/TargetInstrInfo.h>
+#include <llvm/CodeGen/TargetLowering.h>
+#endif
+#include <llvm/Target/TargetMachine.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
 
@@ -375,7 +380,8 @@ LLVMTCEBuilder::initDataSections() {
         if (pad > 0) {
             TTAProgram::Address address(dataEndPos, aSpace);
             dmem.addDataDefinition(
-                new TTAProgram::DataDefinition(address, pad, NULL, true));
+                new TTAProgram::DataDefinition(
+                    address, pad, mach_->isLittleEndian(), NULL, true));
             dataEndPos += pad;
         }
 
@@ -407,7 +413,8 @@ LLVMTCEBuilder::initDataSections() {
         if (pad > 0) {
             TTAProgram::Address address(dataEndPos, aSpace);
             dmem.addDataDefinition(
-                new TTAProgram::DataDefinition(address, pad));
+                new TTAProgram::DataDefinition(
+                    address, pad, mach_->isLittleEndian()));
 
             dataEndPos += pad;
         }
@@ -463,7 +470,8 @@ LLVMTCEBuilder::emitDataDef(const DataDef& def) {
 
         TTAProgram::Address addr(def.address, aSpace);
         dmem.addDataDefinition(
-            new TTAProgram::DataDefinition(addr, def.size));
+            new TTAProgram::DataDefinition(
+                addr, def.size, mach_->isLittleEndian()));
 
         return;
     } else {
@@ -529,10 +537,9 @@ LLVMTCEBuilder::createDataDefinition(
         std::vector<MinimumAddressableUnit> zeros(pad, 0);
         TTAProgram::Address address(addr, aSpace);
         dmem.addDataDefinition(
-            new TTAProgram::DataDefinition(address, zeros));
-
+            new TTAProgram::DataDefinition(
+                address, zeros, mach_->isLittleEndian()));
         addr += pad;
-
     }
 
     // paddedAddr is the actual address data was put to
@@ -545,8 +552,8 @@ LLVMTCEBuilder::createDataDefinition(
         (cv->isNullValue() || dyn_cast<UndefValue>(cv) != NULL)) {
         TTAProgram::Address address(addr, aSpace);
         dmem.addDataDefinition(
-            new TTAProgram::DataDefinition(address, sz, NULL, false));
-
+            new TTAProgram::DataDefinition(
+                address, sz, mach_->isLittleEndian(), NULL, true));
         addr += sz;
         return paddedAddr;
     }
@@ -571,10 +578,11 @@ LLVMTCEBuilder::createDataDefinition(
         if (cda->isNullValue()) {
             TTAProgram::Address address(addr, aSpace);
             dmem.addDataDefinition( 
-                new TTAProgram::DataDefinition(address, sz, NULL, false) );
+                new TTAProgram::DataDefinition(
+                    address, sz, mach_->isLittleEndian(), NULL, false) );
         } else {
             /* If the array has non-zero values, do not split the
-               definitions to iinitialized and initialized data sections, but
+               definitions to initialized and uninitialized data sections, but
                initialize them all. Otherwise we might end up having zillions
                of UData and Data sections after each other in the TPEF for the
                initialization data, because the sections have only one start 
@@ -648,11 +656,17 @@ LLVMTCEBuilder::createIntDataDefinition(
     
     TTAProgram::DataDefinition* def;
 
-    for (unsigned i = 0; i < sz; i++) {
-        maus.push_back(u.bytes[sz - i - 1]);
+    if (!mach_->isLittleEndian()) {
+        for (unsigned i = 0; i < sz; i++) {
+            maus.push_back(u.bytes[sz - i - 1]);
+        }
+    } else {
+        for (unsigned i = 0; i < sz; i++) {
+            maus.push_back(u.bytes[i]);
+        }
     }
 
-    def = new TTAProgram::DataDefinition(start, maus);
+    def = new TTAProgram::DataDefinition(start, maus, mach_->isLittleEndian());
     addr += def->size();
     dmem.addDataDefinition(def);
 }
@@ -690,10 +704,17 @@ LLVMTCEBuilder::createFPDataDefinition(
         } u;
 
         u.d = val;
-        for (unsigned i = 0; i < sz; i++) {
-            maus.push_back(u.bytes[sz - i - 1]);
+        if (!mach_->isLittleEndian()) {
+            for (unsigned i = 0; i < sz; i++) {
+                maus.push_back(u.bytes[sz - i - 1]);
+            }
+        } else {
+            for (unsigned i = 0; i < sz; i++) {
+                maus.push_back(u.bytes[i]);
+            }
         }
-        def = new TTAProgram::DataDefinition(start, maus);
+        def = new TTAProgram::DataDefinition(
+            start, maus, mach_->isLittleEndian());
     } else if (type->getTypeID() == Type::FloatTyID) {
 
         float val = cfp->getValueAPF().convertToFloat();
@@ -704,15 +725,27 @@ LLVMTCEBuilder::createFPDataDefinition(
         } u;
 
         u.f = val;
-        for (unsigned i = 0; i < sz; i++) {
-            maus.push_back(u.bytes[sz - i - 1]);
+        if (!mach_->isLittleEndian()) {
+            for (unsigned i = 0; i < sz; i++) {
+                maus.push_back(u.bytes[sz - i - 1]);
+            }
+        } else {
+            for (unsigned i = 0; i < sz; i++) {
+                maus.push_back(u.bytes[i]);
+            }
         }
-        def = new TTAProgram::DataDefinition(start, maus);
+        def = new TTAProgram::DataDefinition(
+            start, maus, mach_->isLittleEndian());
     } else if (type->getTypeID() == Type::HalfTyID) {
 
-		APFloat apf = cfp->getValueAPF();
-		bool inexact;
-        apf.convert( APFloat::IEEEhalf, APFloat::rmNearestTiesToEven, &inexact);
+        APFloat apf = cfp->getValueAPF();
+        bool inexact;
+#if LLVM_OLDER_THAN_4_0
+        apf.convert(APFloat::IEEEhalf, APFloat::rmNearestTiesToEven, &inexact);
+#else
+        apf.convert(APFloat::IEEEhalf(),
+            APFloat::rmNearestTiesToEven, &inexact);
+#endif
         APInt api = apf.bitcastToAPInt();
         assert(sz == 2);
         union {
@@ -721,13 +754,20 @@ LLVMTCEBuilder::createFPDataDefinition(
         } u;
 
         u.i = api.getRawData()[0];
-		for (unsigned i = sz; i < 4; i++) {
+        for (unsigned i = sz; i < 4; i++) {
             maus.push_back(0);
-			}
-        for (unsigned i = 0; i < sz; i++) {
-            maus.push_back(u.bytes[sz - i - 1]);
         }
-        def = new TTAProgram::DataDefinition(start, maus);
+        if (!mach_->isLittleEndian()) {
+            for (unsigned i = 0; i < sz; i++) {
+                maus.push_back(u.bytes[sz - i - 1]);
+            }
+        } else {
+            for (unsigned i = 0; i < sz; i++) {
+                maus.push_back(u.bytes[i]);
+            }
+        }
+        def = new TTAProgram::DataDefinition(
+            start, maus, mach_->isLittleEndian());
     } else {
         assert(false && "Unknown floating point typeID!");
     }
@@ -775,12 +815,14 @@ LLVMTCEBuilder::createGlobalValueDataDefinition(
         TTAProgram::InstructionReference ref =
             prog_->instructionReferenceManager().createReference(*instr);
 
-        def = new TTAProgram::DataInstructionAddressDef(start, sz, ref);
+        def = new TTAProgram::DataInstructionAddressDef(
+            start, sz, ref, mach_->isLittleEndian());
     } else if (dataLabels_.find(label) != dataLabels_.end()) {
         TTAProgram::Address ref(
             (dataLabels_[label] + offset), aSpace);
 
-        def = new TTAProgram::DataAddressDef(start, sz, ref);
+        def = new TTAProgram::DataAddressDef(
+            start, sz, ref, mach_->isLittleEndian());
     } else {
         assert(false && "Global value label not found!");
     }
@@ -807,8 +849,16 @@ LLVMTCEBuilder::createExprDataDefinition(
         const Constant* ptr = ce->getOperand(0);
         SmallVector<Value*, 8> idxVec(ce->op_begin() + 1, ce->op_end());
 
+#ifdef LLVM_OLDER_THAN_3_9
         int64_t ptrOffset = offset + dl_->getIndexedOffset(
             ptr->getType(), idxVec);
+#else
+        APInt offsetAI(dl_->getPointerTypeSizeInBits(ce->getType()), 0);
+        bool success = cast<GEPOperator>(ce)->accumulateConstantOffset(
+            *dl_, offsetAI);
+        assert(success); // Fails if GEP is not all-constant.
+        int64_t ptrOffset = offset + offsetAI.getSExtValue();
+#endif
 
         if (const GlobalValue* gv = dyn_cast<GlobalValue>(ptr)) {
             createGlobalValueDataDefinition(
@@ -908,7 +958,11 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
     // TODO: make list of mf's which for the pass will be ran afterwards..
     
     SmallString<256> Buffer;
+#ifdef LLVM_OLDER_THAN_6_0
     mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
+#else
+    mang_->getNameWithPrefix(Buffer, &mf.getFunction(), false);
+#endif
     TCEString fnName(Buffer.c_str());
 
     emitConstantPool(*mf.getConstantPool());
@@ -937,7 +991,11 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
             std::cerr << "### converting: ";
             std::cerr << std::endl;
 #endif
+#if LLVM_OLDER_THAN_4_0
             instr = emitInstruction(j, proc);
+#else
+            instr = emitInstruction(&*j, proc);
+#endif
 
             // Pseudo instructions:
             if (instr == NULL) continue;
@@ -1792,12 +1850,6 @@ void
 LLVMTCEBuilder::debugDataToAnnotations(
     const llvm::MachineInstr* mi, TTAProgram::Move* move) {
 
-    DebugLoc dl = mi->getDebugLoc();
-#ifndef LLVM_OLDER_THAN_3_7
-    if (!dl)
-        return;
-#endif
-
     // annotate the moves generated from known ra saves.
     if (mi->getFlag(MachineInstr::FrameSetup)) {
             TTAProgram::ProgramAnnotation progAnnotation(
@@ -1805,6 +1857,14 @@ LLVMTCEBuilder::debugDataToAnnotations(
             move->setAnnotation(progAnnotation); 
     }
 
+    DebugLoc dl = mi->getDebugLoc();
+#ifndef LLVM_OLDER_THAN_3_7
+    if (!dl)
+        return;
+#endif
+
+    // TODO: nobody currently generates these
+    // spill line number kludges, this is deprecated.
     // annotate the moves generated from known spill instructions
     if (dl.getLine() == 0xFFFFFFF0) {
         TTAProgram::ProgramAnnotation progAnnotation(
@@ -1915,18 +1975,22 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
         return createTerminalRegister(rfName, idx);
     } else if (mo.isFPImm()) {
         const APFloat& apf = mo.getFPImm()->getValueAPF();
-		if (&apf.getSemantics() == &APFloat::IEEEhalf) { //Half float
-			APInt api = apf.bitcastToAPInt();
-			uint16_t binary = (uint16_t)api.getRawData()[0];
-		    SimValue val(32);
-			val = HalfFloatWord( binary );
-        	return new TTAProgram::TerminalImmediate(val);
-		} else {
-        	float fval = apf.convertToFloat();
-        	SimValue val(32);
+#if LLVM_OLDER_THAN_4_0
+        if (&apf.getSemantics() == &APFloat::IEEEhalf) { //Half float
+#else
+        if (&apf.getSemantics() == &APFloat::IEEEhalf()) { //Half float
+#endif
+            APInt api = apf.bitcastToAPInt();
+            uint16_t binary = (uint16_t)api.getRawData()[0];
+            SimValue val(32);
+            val = HalfFloatWord( binary );
+            return new TTAProgram::TerminalImmediate(val);
+        } else {
+            float fval = apf.convertToFloat();
+            SimValue val(32);
             val = fval;
-        	return new TTAProgram::TerminalImmediate(val);
-		}
+            return new TTAProgram::TerminalImmediate(val);
+        }
     } else if (mo.isImm()) {
         int width = bitLimit;
         SimValue val(mo.getImm(), width);
@@ -2278,7 +2342,11 @@ LLVMTCEBuilder::emitSelect(
 std::string
 LLVMTCEBuilder::mbbName(const MachineBasicBlock& mbb) {
     SmallString<256> Buffer;
+#ifdef LLVM_OLDER_THAN_6_0
     mang_->getNameWithPrefix(Buffer, mbb.getParent()->getFunction(), false);
+#else
+    mang_->getNameWithPrefix(Buffer, &mbb.getParent()->getFunction(), false);
+#endif
     TCEString name(Buffer.c_str());
     name += " ";
     name += Conversion::toString(mbb.getNumber());
@@ -2942,7 +3010,7 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
                     }
 
                     // Emit the call.
-                    GlobalValue* gv =  dynamic_cast<GlobalValue*>(
+                    GlobalValue* gv =  dyn_cast<GlobalValue>(
                         cs->getOperand(1));
                     assert(gv != NULL&&"global constructor name not constv");
 

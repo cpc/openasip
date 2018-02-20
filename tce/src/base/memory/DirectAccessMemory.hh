@@ -57,7 +57,7 @@ public:
     DirectAccessMemory(
         Word start,
         Word end,
-        Word MAUSize);
+        Word MAUSize, bool littleEndian);
 
     virtual ~DirectAccessMemory();
 
@@ -67,11 +67,19 @@ public:
         Word address,
         UIntWord data);
     
-    void fastWrite2MAUs(
+    void fastWrite2MAUsBE(
         Word address,
         UIntWord data);
     
-    void fastWrite4MAUs(
+    void fastWrite4MAUsBE(
+        Word address,
+        UIntWord data);
+
+    void fastWrite2MAUsLE(
+        Word address,
+        UIntWord data);
+    
+    void fastWrite4MAUsLE(
         Word address,
         UIntWord data);
 
@@ -81,11 +89,19 @@ public:
         Word address,
         UIntWord& data);
     
-    void fastRead2MAUs(
+    void fastRead2MAUsBE(
         Word address,
         UIntWord& data);
     
-    void fastRead4MAUs(
+    void fastRead4MAUsBE(
+        Word address,
+        UIntWord& data);
+
+    void fastRead2MAUsLE(
+        Word address,
+        UIntWord& data);
+    
+    void fastRead4MAUsLE(
         Word address,
         UIntWord& data);
 
@@ -93,7 +109,7 @@ public:
     virtual void reset() {}
     virtual void fillWithZeros();
 
-    void write(Word address, int count, UIntWord data);
+    void writeBE(Word address, int count, UIntWord data);
 
 
     using Memory::write;

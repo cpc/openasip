@@ -107,6 +107,10 @@ const string ProDeConstants::CMD_NAME_TOGGLE_UNIT_DETAILS =
 
 const string ProDeConstants::CMD_NAME_FULLY_CONNECT_BUSSES =
     "Fully Connect IC";
+const string ProDeConstants::CMD_NAME_VLIW_CONNECT_IC =
+    "VLIW Connect IC";
+const string ProDeConstants::CMD_NAME_EDIT_MACHINE =
+    "Processor Configurations";
 
 const string ProDeConstants::CMD_NAME_VERIFY_MACHINE = "Verify Machine";
 const string ProDeConstants::CMD_NAME_IMPLEMENTATION =
@@ -155,10 +159,12 @@ const string ProDeConstants::CMD_SNAME_SAVE_OPTIONS = "Sv Opt";
 const string ProDeConstants::CMD_SNAME_SAVEAS_OPTIONS = "SvAs Opt";
 const string ProDeConstants::CMD_SNAME_EDIT_ADDRESS_SPACES = "AS's";
 const string ProDeConstants::CMD_SNAME_EDIT_TEMPLATES = "ITs";
+const string ProDeConstants::CMD_SNAME_EDIT_MACHINE = "Mach Opt";
 const string ProDeConstants::CMD_SNAME_EDIT_IMMEDIATE_SLOTS = "ImmSlots";
 const string ProDeConstants::CMD_SNAME_EDIT_BUS_ORDER = "Bus Ord.";
 const string ProDeConstants::CMD_SNAME_EDIT_CONNECTIONS = "Connect";
 const string ProDeConstants::CMD_SNAME_FULLY_CONNECT_BUSSES = "Full IC";
+const string ProDeConstants::CMD_SNAME_VLIW_CONNECT_IC = "VLIW IC";
 const string ProDeConstants::CMD_SNAME_VERIFY_MACHINE = "Verify";
 const string ProDeConstants::CMD_SNAME_IMPLEMENTATION = "Implement";
 const string ProDeConstants::CMD_SNAME_EXPLORER_PLUGIN = "Explorer";
@@ -185,6 +191,7 @@ const string ProDeConstants::CMD_ICON_SAVE_OPTIONS = "filesave.png";
 const string ProDeConstants::CMD_ICON_EDIT_ADDRESS_SPACES = "memory.png";
 const string ProDeConstants::CMD_ICON_EDIT_TEMPLATES = "default.png";
 const string ProDeConstants::CMD_ICON_EDIT_CONNECTIONS = "connect.png";
+const string ProDeConstants::CMD_ICON_EDIT_MACHINE = "default.png";
 
 const string ProDeConstants::CMD_ICON_VERIFY_MACHINE = "verify_machine.png";
 const string ProDeConstants::CMD_ICON_IMPLEMENTATION = "default.png";
@@ -223,11 +230,6 @@ const string ProDeConstants::COMP_NEW_NAME_PREFIX_PORT = "P";
 const string ProDeConstants::COMP_NEW_NAME_PREFIX_BRIDGE = "Br";
 const string ProDeConstants::COMP_NEW_NAME_PREFIX_OPERATION = "operation";
 const string ProDeConstants::COMP_NEW_NAME_PREFIX_AS = "AS";
-
-const double ProDeConstants::MAX_ZOOM_FACTOR = 3;
-// Zoom factors less than 0.25 seem to bug with GTK1 wxWidgets.
-const double ProDeConstants::MIN_ZOOM_FACTOR = 0.25;
-const double ProDeConstants::ZOOM_STEP = 0.1;
 
 const string ProDeConstants::PROCESSOR_ARCH_FILE_EXTENSION = ".adf";
 const string ProDeConstants::PROCESSOR_CONFIG_FILE_EXTENSION = ".cfg";

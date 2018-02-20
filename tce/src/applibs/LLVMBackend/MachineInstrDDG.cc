@@ -38,11 +38,19 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/MachineBasicBlock.h"
 #include "llvm/CodeGen/MachineFunction.h"
-#include "llvm/Target/TargetRegisterInfo.h"
 #include "tce_config.h"
+#ifdef LLVM_OLDER_THAN_6_0
+#include "llvm/Target/TargetRegisterInfo.h"
+#else
+#include "llvm/CodeGen/TargetRegisterInfo.h"
+#endif
 #include "llvm/IR/Function.h"
 #ifndef LLVM_3_5
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetSubtargetInfo.h>
+#else
+#include <llvm/CodeGen/TargetSubtargetInfo.h>
+#endif
 #endif
 
 #include "MachineInstrDDG.hh"
@@ -69,15 +77,22 @@ MachineInstrDDG::MachineInstrDDG(
     llvm::MachineFunction& mf, 
     bool onlyTrueDeps) :
     BoostGraph<MIDDGNode, MIDDGEdge>(
+#ifdef LLVM_OLDER_THAN_6_0
         std::string(mf.getFunction()->getName().str()) + "_middg", true),
+#else
+        std::string(mf.getFunction().getName().str()) + "_middg", true),
+#endif
     onlyTrueDeps_(onlyTrueDeps), mf_(mf), 
 #ifdef LLVM_3_5
     regInfo_(mf_.getTarget().getRegisterInfo()) 
 #elif (defined LLVM_OLDER_THAN_3_7)
     regInfo_(mf_.getTarget().getSubtargetImpl()->getRegisterInfo()) 
-#else
+#elif LLVM_OLDER_THAN_6_0
     regInfo_(mf_.getTarget().getSubtargetImpl(
                  *mf_.getFunction())->getRegisterInfo()) 
+#else
+    regInfo_(mf_.getTarget().getSubtargetImpl(
+                 mf_.getFunction())->getRegisterInfo())
 #endif
 {
     int instructions = 0;
@@ -555,11 +570,17 @@ MIDDGNode::osalOperationName() const {
     const llvm::TargetInstrInfo *TII = 
         machineInstr()->getParent()->getParent()->getTarget().
         getSubtargetImpl()->getInstrInfo();
-#else
+#elif LLVM_OLDER_THAN_6_0
     const llvm::TargetInstrInfo *TII = 
         machineInstr()->getParent()->getParent()->getTarget().
         getSubtargetImpl(
             *machineInstr()->getParent()->getParent()->getFunction())->
+        getInstrInfo();
+#else
+    const llvm::TargetInstrInfo *TII =
+        machineInstr()->getParent()->getParent()->getTarget().
+        getSubtargetImpl(
+            machineInstr()->getParent()->getParent()->getFunction())->
         getInstrInfo();
 #endif
     // If it's a custom operation call, try to figure out
@@ -573,7 +594,11 @@ MIDDGNode::osalOperationName() const {
             ++numDefs;
         opName = mi_->getOperand(numDefs).getSymbolName();
     } else {
+#if LLVM_OLDER_THAN_4_0
         opName = TII->getName(mi_->getOpcode());
+#else
+        opName = TII->getName(mi_->getOpcode()).str();
+#endif
     }
 
     // Clean up the operand type string encoded as 

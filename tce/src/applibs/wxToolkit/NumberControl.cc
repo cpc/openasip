@@ -138,7 +138,7 @@ NumberControl::create(const wxSize& size) {
     wxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
 
     int textWidth = size.GetWidth();
-    if ((style_ & NO_MODE_CHOICER) != 0) {
+    if ((style_ & NO_MODE_CHOICER) == 0) {
         textWidth = textWidth - CHOICER_WIDTH;
         if (textWidth < 20) {
             textWidth = 20;

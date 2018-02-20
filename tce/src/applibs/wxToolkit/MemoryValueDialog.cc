@@ -143,7 +143,7 @@ MemoryValueDialog::createContents(
 
     wxWindow *item1 = new NumberControl(
         parent, ID_VALUE, wxDefaultPosition,
-        wxSize(140, 20), NumberControl::MODE_BINARY |
+        wxSize(240, -1), NumberControl::MODE_BINARY |
         NumberControl::MODE_UNSIGNED | NumberControl::MODE_HEXADECIMAL |
         NumberControl::MODE_FLOAT);
 

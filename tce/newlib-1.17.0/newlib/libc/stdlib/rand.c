@@ -84,16 +84,18 @@ _DEFUN_VOID (rand)
      Edition, Addison-Wesley, 1998, p. 106 (line 26) & p. 108 */
  
     /* Original:
+
   _REENT_CHECK_RAND48(_REENT);
   _REENT_RAND_NEXT(_REENT) = 
      _REENT_RAND_NEXT(_REENT) * __extension__ 6364136223846793005LL + 1;
-  return (int)((_REENT_RAND_NEXT(_REENT) >> 32) & RAND_MAX); */
- 
-   /* Modified due to supporting only 32 bit ints in TCE (by Pekka): */
-   _REENT_CHECK_RAND48(_REENT);
-   _REENT_RAND_NEXT(_REENT) =
-      _REENT_RAND_NEXT(_REENT) * 3846793005UL + 1;
-   return (int)((_REENT_RAND_NEXT(_REENT)) & RAND_MAX);
+
+    return (int)((_REENT_RAND_NEXT(_REENT) >> 32) & RAND_MAX); */
+
+  /* Modified due to supporting only 32 bit ints in TCE (by Pekka): */
+  _REENT_CHECK_RAND48(_REENT);
+  _REENT_RAND_NEXT(_REENT) = 
+     _REENT_RAND_NEXT(_REENT) * 3846793005UL + 1;
+  return (int)((_REENT_RAND_NEXT(_REENT)) & RAND_MAX); 
 }
 
 #endif /* _REENT_ONLY */

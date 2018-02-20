@@ -104,6 +104,8 @@ namespace Texts {
         ///< Help text for command "kill" of the CLI.
         TXT_INTERP_HELP_X,
         ///< Help text for command "x" of the CLI.
+        TXT_INTERP_HELP_LOADDATA,
+        ///< Help text for command "load_data" of the CLI.
         TXT_CLI_ONLINE_HELP, 
         ///< Online help text.
         TXT_CMD_LINE_HELP,

@@ -26,9 +26,9 @@
  *
  * TCE compiler backend 
  *
- * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2009-2015
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2008 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistï¿½ 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2009-2015
  * @note rating: red
  */
 
@@ -53,7 +53,9 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/CodeGen/AsmPrinter.h>
 #include <llvm/CodeGen/Passes.h>
 #include <llvm/CodeGen/GCStrategy.h>
+#if LLVM_OLDER_THAN_4_0
 #include <llvm/CodeGen/MachineFunctionAnalysis.h>
+#endif
 
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
@@ -70,9 +72,17 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
 
+#if LLVM_OLDER_THAN_4_0
 #include <llvm/Bitcode/ReaderWriter.h>
+#else
+#include <llvm/Bitcode/BitcodeReader.h>
+#endif
 
 #include <llvm/IR/Verifier.h>
+
+#ifndef LLVM_OLDER_THAN_3_9
+#include <llvm-c/Core.h> // LLVMGetGlobalContext()
+#endif
 
 // tce_config.h defines these. this undef to avoid warning.
 // TODO: how to do this in tce_config.h???
@@ -139,7 +149,7 @@ const TCEString LLVMBackend::CXX11_FLAG = "-std=c++11";
  * @return Minimumn opset that is required for llvm.
  */
 OperationDAGSelector::OperationSet 
-LLVMBackend::llvmRequiredOpset(bool includeFloatOps) {
+LLVMBackend::llvmRequiredOpset(bool includeFloatOps, bool littleEndian) {
     OperationDAGSelector::OperationSet requiredOps;
 
     requiredOps.insert("ADD");
@@ -151,14 +161,25 @@ LLVMBackend::llvmRequiredOpset(bool includeFloatOps) {
     requiredOps.insert("MOD");
     requiredOps.insert("MODU");
 
-    requiredOps.insert("LDW");
-    requiredOps.insert("LDH");
-    requiredOps.insert("LDHU");
-    requiredOps.insert("LDQ");
-    requiredOps.insert("LDQU");
-    requiredOps.insert("STW");
-    requiredOps.insert("STH");
-    requiredOps.insert("STQ");
+    if (littleEndian) {
+        requiredOps.insert("LD32");
+        requiredOps.insert("LD16");
+        requiredOps.insert("LDU16");
+        requiredOps.insert("LD8");
+        requiredOps.insert("LDU8");
+        requiredOps.insert("ST32");
+        requiredOps.insert("ST16");
+        requiredOps.insert("ST8");
+    } else {
+        requiredOps.insert("LDW");
+        requiredOps.insert("LDH");
+        requiredOps.insert("LDHU");
+        requiredOps.insert("LDQ");
+        requiredOps.insert("LDQU");
+        requiredOps.insert("STW");
+        requiredOps.insert("STH");
+        requiredOps.insert("STQ");
+    }
 
     requiredOps.insert("SXHW");
     requiredOps.insert("SXQW");
@@ -296,7 +317,11 @@ LLVMBackend::compile(
 
     // Load bytecode file.
     std::string errMsgParse;
+#ifdef LLVM_OLDER_THAN_3_9
     LLVMContext &context = getGlobalContext();
+#else
+    LLVMContext context;
+#endif
 
     std::unique_ptr<llvm::Module> m;
 
@@ -315,16 +340,24 @@ LLVMBackend::compile(
     ErrorOr<Module*> module = parseBitcodeFile(buffer.get(), context);
 #elif defined(LLVM_OLDER_THAN_3_7)
     ErrorOr<Module*> module = parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
-#else
-    ErrorOr<std::unique_ptr<llvm::Module> > module = 
+#elif defined(LLVM_OLDER_THAN_4_0)
+    ErrorOr<std::unique_ptr<llvm::Module> > module =
         parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
+#else
+    Expected<std::unique_ptr<llvm::Module> > module =
+        parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
+    if (Error E = module.takeError()) {
+        THROW_EXCEPTION(CompileError, "Error parsing bytecode file: "
+            + bytecodeFile);
+    }
 #endif
 
 #ifdef LLVM_OLDER_THAN_3_7
     m.reset(module.get());
 #else
     // TODO: why does this work? it should not?
-    m.reset(module.get().get());
+//    m.reset(module.get().get());
+    m = std::move(module.get());
 #endif
 
     if (m.get() == 0) {
@@ -353,9 +386,17 @@ LLVMBackend::compile(
 #elif (defined LLVM_OLDER_THAN_3_7)
         ErrorOr<Module*> module = 
             parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
-#else
-        ErrorOr<std::unique_ptr<Module> > module = 
+#elif defined(LLVM_OLDER_THAN_4_0)
+        ErrorOr<std::unique_ptr<Module> > module =
             parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
+#else
+        Expected<std::unique_ptr<Module> > module =
+            parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
+        if (Error E = module.takeError()) {
+            THROW_EXCEPTION(CompileError, "Error parsing bytecode file: " +
+                emulationBytecodeFile + " of emulation library \n"
+                + errMsgParse);
+        }
 #endif
 
 #ifdef LLVM_OLDER_THAN_3_7
@@ -447,7 +488,7 @@ LLVMBackend::compile(
     throw (Exception) {
 
     ipData_ = ipData;
-    std::string targetStr = "tce-llvm";
+    std::string targetStr = target.isLittleEndian()?"tcele-llvm":"tce-llvm";
     std::string errorStr;
 
     std::string featureString ="";
@@ -485,7 +526,11 @@ LLVMBackend::compile(
     std::string cpuStr = "tce";
 
     TargetOptions Options;
+#ifdef LLVM_OLDER_THAN_5_0
     Options.LessPreciseFPMADOption = true; //EnableFPMAD;
+#else
+    // TODO: has this been removed or replaced with something else?
+#endif
     Options.PrintMachineCode = false; //PrintCode;
 #ifdef LLVM_OLDER_THAN_3_7
     Options.NoFramePointerElim = false; // DisableFPElim;
@@ -498,16 +543,30 @@ LLVMBackend::compile(
     Options.GuaranteedTailCallOpt = true; //EnableGuaranteedTailCallOpt;
     Options.StackAlignmentOverride = false; //OverrideStackAlignment;
 
-    TCETargetMachine* targetMachine = 
+    TCETargetMachine* targetMachine =
         static_cast<TCETargetMachine*>(
             tceTarget->createTargetMachine(
-        targetStr, cpuStr, featureString, Options));
+#ifdef LLVM_OLDER_THAN_3_9
+                targetStr, cpuStr, featureString, Options));
+#else
+                targetStr, cpuStr, featureString, Options,
+                Reloc::Model::Static));
+#endif
 
     if (!targetMachine) {
         errs() << "Could not create tce target machine" << "\n";
         return NULL;
     }
 
+#ifndef LLVM_OLDER_THAN_3_7
+    const llvm::DataLayout& moduleDL = module.getDataLayout();
+    const llvm::DataLayout& targetDL = targetMachine->createDataLayout();
+    if (moduleDL != targetDL) {
+      errs() << "DataLayout mismatch with module: " << module.getName() << "\n"
+             << "Module: " << moduleDL.getStringRepresentation() << "\n"
+             << "Target: " << targetDL.getStringRepresentation() << "\n";
+    }
+#endif
     // This hack must be cleaned up before adding TCE target to llvm upstream
     // these are needed by TCETargetMachine::addInstSelector passes
     targetMachine->setTargetMachinePlugin(plugin);
@@ -584,6 +643,12 @@ LLVMBackend::compile(
         spReg->first = plugin.rfName(plugin.spDRegNum());
         spReg->second = plugin.registerIndex(plugin.spDRegNum());
         ipData_->setDatum("STACK_POINTER", spReg);
+
+        // FP register datum.
+        RegDatum* fpReg = new RegDatum;
+        fpReg->first = plugin.rfName(plugin.fpDRegNum());
+        fpReg->second = plugin.registerIndex(plugin.fpDRegNum());
+        ipData_->setDatum("FRAME_POINTER", fpReg);
 
         // Return value register datum.
         RegDatum* rvReg = new RegDatum;
@@ -747,12 +812,14 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     tblgenCmd += " " + tempDir_ + FileSystem::DIRECTORY_SEPARATOR + "TCE.td";
 
     // Generate TCEGenRegisterInfo.inc
-
     std::string cmd = tblgenCmd +
         " -gen-register-info" +
         " -o " + tempDir_ + FileSystem::DIRECTORY_SEPARATOR +
         "TCEGenRegisterInfo.inc";
 
+    if (Application::verboseLevel() > 0) {
+        Application::logStream() << "LLVMBackend: " << cmd << std::endl;
+    }
     int ret = system(cmd.c_str());
     if (ret) {
         std::string msg = std::string() +
@@ -834,6 +901,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         srcsPath + "TCETargetMachinePlugin.cc " +
         srcsPath + "TCESubtarget.cc ";
 
+    TCEString endianOption = target.isLittleEndian() ?
+        "-DLITTLE_ENDIAN_TARGET" : "";
+
     // Compile plugin to cache.
     // CXX and SHARED_CXX_FLAGS defined in tce_config.h
     cmd = std::string(CXX) +
@@ -846,6 +916,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 #elif defined(HAVE_CXX11)
         " " + CXX11_FLAG +
 #endif
+        " " + endianOption +
         " " + pluginSources +
         " -o " + pluginFileName;
 
@@ -853,6 +924,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     // plugin. this is a temporary solution
     if (options_->useVectorBackend()) {
         cmd += " -DUSE_VECTOR_REGS";
+    }
+    if (Application::verboseLevel() > 0) {
+        Application::logStream() << "LLVMBackend: " << cmd << std::endl;
     }
     ret = system(cmd.c_str());
     if (ret) {

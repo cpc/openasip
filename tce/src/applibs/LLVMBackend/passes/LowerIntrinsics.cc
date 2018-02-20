@@ -145,7 +145,7 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
        changed = false;
        for (BasicBlock::iterator I = BB.begin(), E = BB.end(); I != E; ++I) {
            
-           CallInst* ci = dynamic_cast<CallInst*>(&(*I));
+           CallInst* ci = dyn_cast<CallInst>(&(*I));
            if (ci != NULL && ci->getNumArgOperands() != 0) {
                Function* callee = ci->getCalledFunction();
                if (callee != NULL && callee->isIntrinsic() &&
@@ -156,7 +156,11 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
                        // code even with full optimizations.
                        I->replaceAllUsesWith(
                            ConstantInt::get(
+#ifdef LLVM_OLDER_THAN_3_9
                                Type::getInt32Ty(getGlobalContext()), 0, true));
+#else
+                               Type::getInt32Ty(BB.getContext()), 0, true));
+#endif
                        I->eraseFromParent();
                        changed = true;
                        break;

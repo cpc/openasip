@@ -54,7 +54,7 @@ class MemoryContents;
  */
 class IdealSRAM : public Memory {
 public:
-    IdealSRAM(Word start, Word end, Word MAUSize);
+    IdealSRAM(Word start, Word end, Word MAUSize, bool littleEndian);
     virtual ~IdealSRAM();
 
     virtual void write(Word address, MAU data);

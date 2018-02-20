@@ -335,6 +335,8 @@ class IntegrationTestCase(object):
         self.valid = False
         if not "### TCE TESTCASE" in contents or \
                 not "### title: " in contents:
+            print >> sys.stderr, (str(self._file_name)
+                                  + ": Invalid test description.")
             sys.exit(2)
             return
 

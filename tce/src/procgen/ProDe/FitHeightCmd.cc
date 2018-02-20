@@ -37,6 +37,7 @@
 #include "MachineCanvas.hh"
 #include "ProDeConstants.hh"
 #include "ProDe.hh"
+#include "CanvasConstants.hh"
 
 using std::string;
 
@@ -68,25 +69,17 @@ FitHeightCmd::Do() {
     MDFView* mView = dynamic_cast<MDFView*>(view());
     MachineCanvas* canvas = mView->canvas();
 
-    int height;
-    int width;
-    canvas->GetVirtualSize(&width, &height);
+    wxSize figureSize = canvas->getFigureSize();
     wxSize cSize = canvas->GetSize();
 
     // Decrease zoom factor from maximum until the figure height is smaller
     // than the window height.
-    double factor = ProDeConstants::MAX_ZOOM_FACTOR;
-    while (cSize.GetHeight() < factor*height) {
-	factor = factor - ProDeConstants::ZOOM_STEP;
-    }
-
-    // if zoom factor is smaller than minimum, set as minimum
-    if (factor < ProDeConstants::MIN_ZOOM_FACTOR) {
-	factor = ProDeConstants::MIN_ZOOM_FACTOR;
+    double factor = CanvasConstants::MAX_ZOOM_FACTOR;
+    while (cSize.GetHeight() < factor*figureSize.GetHeight()) {
+        factor = factor - CanvasConstants::AUTOZOOM_STEP;
     }
 
     canvas->setZoomFactor(factor);
-    canvas->Refresh();
     return true;
 }
 
@@ -145,7 +138,7 @@ bool
 FitHeightCmd::isEnabled() {
     wxDocManager* manager = wxGetApp().docManager();
     if (manager->GetCurrentView() != NULL) {
-	return true;
+        return true;
     }
     return false;
 }

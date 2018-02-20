@@ -50,8 +50,8 @@ using TTAMachine::AddressSpace;
 class RemoteMemory : public Memory {
 public:
 	// TODO: hoist AddressSpace-based constructor to parent class?
-	RemoteMemory(const AddressSpace &space) :
-    Memory(space.start(), space.end(), space.width()), 
+	RemoteMemory(const AddressSpace &space, bool littleEndian) :
+        Memory(space.start(), space.end(), space.width(), littleEndian), 
     controller_(NULL), addressspace_(space) {}
 
 	/** 

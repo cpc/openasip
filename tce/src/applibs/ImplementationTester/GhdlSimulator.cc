@@ -84,7 +84,16 @@ bool GhdlSimulator::simulate(std::vector<std::string>& errors) {
         errors.push_back("Couldn't change directory to " + baseDir);
         return false;
     }
-    string command = "./testbench 2>&1";
+
+    string command;
+    if (FileSystem::fileExists("testbench")) {
+        command = "./testbench 2>&1";
+    } else {
+        // In the latest GHDL no executable is produces, thus the simulation
+        // command is different.
+        command = string("ghdl -r --ieee=synopsys --workdir=") + workDir()
+            + " testbench  2>&1";
+    }
     if (verbose()) {
         std::cout << command << std::endl;
     }

@@ -107,19 +107,16 @@ typedef unsigned char Byte;
 #endif
 
 /**
- * WORDS_BIGENDIAN is 1 when host machine lays out the most significant part
- * of a word at the lowest memory address.
+ * HOST_WORDS_BIGENDIAN is 1 when the host machine lays out the most 
+ * significant byte of the word at the lowest memory address.
  */
 #ifndef WORDS_BIGENDIAN
+#define HOST_BIGENDIAN 0
 #define WORDS_BIGENDIAN 0
+#else
+#ifndef HOST_BIGENDIAN
+#define HOST_BIGENDIAN 1
 #endif
-
-/**
- * TARGET_WORDS_BIGENDIAN is 1 when the target TTA processor lays out the
- * most significant part of a word at the lowest memory address.
- */
-#ifndef TARGET_WORDS_BIGENDIAN
-#define TARGET_WORDS_BIGENDIAN 0
 #endif
 
 /**

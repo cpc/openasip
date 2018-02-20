@@ -97,6 +97,7 @@ static const int REG_SP = 1;
 static const int REG_RV = 0;
 static const int REG_IPARAM = 2;
 static const int REG_RV_HIGH = 6;
+static const int REG_FP = 7;
 
 POP_COMPILER_DIAGS
 
@@ -144,6 +145,7 @@ DataDependenceGraphBuilder::DataDependenceGraphBuilder(InterPassData& ipd) :
     // return value register.
 
     static const TCEString SP_DATUM = "STACK_POINTER";
+    static const TCEString FP_DATUM = "FRAME_POINTER";
     static const TCEString RV_DATUM = "RV_REGISTER";
     // high part of 64-bit return values.
     static const TCEString RV_HIGH_DATUM = "RV_HIGH_REGISTER";
@@ -213,6 +215,21 @@ DataDependenceGraphBuilder::DataDependenceGraphBuilder(InterPassData& ipd) :
                 << "Warning: Return value register datum not found "
                 << "in interpassdata given to ddg builder. "
                 << "May generate invalid code if return values used."
+                << std::endl;
+        }
+    }
+
+    if (ipd.hasDatum(FP_DATUM)) {
+        RegDatum& fp = dynamic_cast<RegDatum&>(ipd.datum(FP_DATUM));
+        TCEString reg = fp.first + '.' + Conversion::toString(fp.second);
+        specialRegisters_[REG_FP] = reg;
+    } else {
+        if (Application::verboseLevel() >
+            Application::VERBOSE_LEVEL_DEFAULT) {
+            Application::logStream()
+                << "Warning: Frame Pointer Register datum not found "
+                << "in interpassdata given to ddg builder. "
+                << "May generate invalid code."
                 << std::endl;
         }
     }
@@ -1350,6 +1367,11 @@ DataDependenceGraphBuilder::processReturn(MoveNode& moveNode) {
     TCEString rvh = specialRegisters_[REG_RV_HIGH];
     if (rvh != "") {
         processRegUse(MoveNodeUse(moveNode,false,false,true),rvh);
+    }
+
+    TCEString fp = specialRegisters_[REG_FP];
+    if (fp != "") {
+        processRegUse(MoveNodeUse(moveNode,false,false,true),fp);
     }
 }
 
@@ -2518,6 +2540,12 @@ void DataDependenceGraphBuilder::processEntryNode(MoveNode& mn) {
         if(paramReg != "") {
             currentBB_->basicBlock().liveRangeData_->regDefReaches_[paramReg].insert(mnd2);
         }
+    }
+
+    TCEString fp = specialRegisters_[REG_FP];
+    if (fp != "") {
+        currentBB_->basicBlock().liveRangeData_->regDefReaches_[fp].insert(
+            mnd2);
     }
 }
 

@@ -273,7 +273,7 @@ AssemblerParser::errorLine() {
  * After calling this successfully parser should contain valid tpef.
  */
 void
-AssemblerParser::finalize() const
+AssemblerParser::finalize(bool littleEndian) const
     throw (CompileError) {
 
     bin_.setArch(Binary::FA_TTA_TUT);
@@ -281,7 +281,7 @@ AssemblerParser::finalize() const
 
     // these must be called in this order to make sure that all label values
     // are resolved before they are used
-    dataSectionCreator_.finalize(bin_, labelManager_);
+    dataSectionCreator_.finalize(bin_, labelManager_, littleEndian);
     codeSectionCreator_.finalize(bin_, labelManager_);
     labelManager_.finalize();
 }

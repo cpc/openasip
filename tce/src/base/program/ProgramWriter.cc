@@ -790,7 +790,7 @@ ProgramWriter::createBinary() const
     TPEFResourceUpdater resourceUpdater(prog_.targetProcessor(), *resources);
 
     createCodeSection(code, resourceUpdater);
-    createDataSections(newBin);
+    createDataSections(newBin, adf.isLittleEndian());
 
     // TODO: add labels here (all labels are inserted at once from skope
     // information after writing porgram sections)
@@ -892,7 +892,8 @@ ProgramWriter::createBinary() const
 
             if (currSect != NULL &&
                 (currSect->type() == Section::ST_DATA ||
-                 currSect->type() == Section::ST_UDATA) &&
+                 currSect->type() == Section::ST_UDATA||
+                 currSect->type() == Section::ST_LEDATA) &&
                 currSect->aSpace() == dstASpace &&
                 currSect->startingAddress() <= dstAddress &&
                 dstAddress <
@@ -1371,7 +1372,7 @@ ProgramWriter::terminalResource(
  * @param bin Binary to write the sections to.
  */
 void
-ProgramWriter::createDataSections(Binary* bin) const {
+ProgramWriter::createDataSections(Binary* bin, bool littleEndian) const {
     
     std::map<AddressSpace*, ASpaceElement*> aSpaceMap;
 
@@ -1397,18 +1398,23 @@ ProgramWriter::createDataSections(Binary* bin) const {
             if (currSect == NULL ||
                 
                 (currDef.isInitialized() && 
-                 currSect->type() != Section::ST_DATA) ||
+                 !currSect->isDataSection()) ||
                 
                 (!currDef.isInitialized() && 
-                 currSect->type() == Section::ST_DATA) ||
+                 currSect->isDataSection()) ||
                 
                 (currDef.startAddress().location() !=
                  currSect->startingAddress() +
                  currSect->lengthInMAUs())) {
                 
                 if (currDef.isInitialized()) {
-                    currSect = dynamic_cast<UDataSection*>(
-                        Section::createSection(Section::ST_DATA));
+                    if (!littleEndian) {
+                        currSect = dynamic_cast<DataSection*>(
+                            Section::createSection(Section::ST_DATA));
+                    } else {
+                        currSect = dynamic_cast<DataSection*>(
+                            Section::createSection(Section::ST_LEDATA));
+                    }
                 } else {
                     currSect = dynamic_cast<UDataSection*>(
                         Section::createSection(Section::ST_UDATA));
@@ -1453,9 +1459,32 @@ ProgramWriter::createDataSections(Binary* bin) const {
                     currSect->lengthInMAUs() + currDef.size());
             }
 
+
+#if 0
+            // Prints debug data of all encountered data definitions.
+            if (currSect != NULL) {
+                Application::logStream()
+                    << "datadef: addr: " 
+                    << currDef.startAddress().space().name() << ":"
+                    << currDef.startAddress().location()
+                    << "\t" << "size: " << currDef.size()
+                    << "\t" << "init: " << currDef.isInitialized()
+                    << "\t" << "isAddr: " << currDef.isAddress();
+                if (currDef.isAddress()) {
+                    Application::logStream()
+                        << "\t" << "dest: "
+                        << currDef.destinationAddress().space().name() << ":"
+                        << currDef.destinationAddress().location();
+                }
+                Application::logStream()
+                    << std::endl;
+            }
+#endif
+
 #if 0
             // prints out debug data of all created data sections
             if (currSect != NULL) {
+                DataSection* dSectTmp = dynamic_cast<DataSection*>(currSect);
                 Application::logStream()
                     << "data section " << currSect << " length: " 
                     << currSect->lengthInMAUs()
@@ -1464,7 +1493,8 @@ ProgramWriter::createDataSections(Binary* bin) const {
                         *bin, *currSect->aSpace())
                     << ":" << currSect->startingAddress()
                     << "\tinitialized: " 
-                    << static_cast<int>(currSect->isDataSection())
+                    // << static_cast<int>(currSect->isDataSection())
+                    << (dSectTmp?true:false)
                     << std::endl;
             }
 #endif

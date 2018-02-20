@@ -51,17 +51,23 @@ public:
     bool SelectADDRrr(SDValue N, SDValue &R1, SDValue &R2);
     bool SelectADDRri(SDValue N, SDValue &Base, SDValue &Offset);
 
+#ifdef LLVM_OLDER_THAN_3_9
     llvm::SDNode* Select(llvm::SDNode* op) override;
+#else
+    void Select(llvm::SDNode* op) override;
+#endif
 
+#if LLVM_OLDER_THAN_4_0
     virtual const char* getPassName() const override {
+#else
+    virtual StringRef getPassName() const override {
+#endif
         return "TCE DAG->DAG Pattern Instruction Selection";
     }
 
 private:
     llvm::TCETargetLowering& lowering_;
-#ifdef LLVM_OLDER_THAN_3_7
     const llvm::TCESubtarget& subtarget_;
-#endif
     llvm::TCETargetMachine* tm_;
 
     #include "TCEGenDAGISel.inc"
@@ -80,7 +86,7 @@ TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
 TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
     SelectionDAGISel(tm), 
     lowering_(*static_cast<TCETargetLowering*>(tm.getTargetLowering())), 
-    tm_(&tm) {
+    subtarget_(*tm.getSubtargetImpl()), tm_(&tm) {
 }
 #endif
 
@@ -97,18 +103,36 @@ TCEDAGToDAGISel::~TCEDAGToDAGISel() {
 //  CurDAG->RemoveDeadNodes();
 //}
 
+
+#ifdef LLVM_OLDER_THAN_3_9
+#define SELECT_NODE_AND_RETURN(args...) return CurDAG->SelectNodeTo(args)
+#else
+// in LLVM 3.9 select() returns void
+#define SELECT_NODE_AND_RETURN(args...) \
+    CurDAG->SelectNodeTo(args); \
+    return
+#endif
+
 /**
  * Handles custom instruction selections.
  *
  * @param op Operation to select.
  */
+#ifdef LLVM_OLDER_THAN_3_9
 SDNode*
+#else
+void
+#endif
 TCEDAGToDAGISel::Select(SDNode* n) {
     SDLoc dl(n);
     if (n->getOpcode() >= ISD::BUILTIN_OP_END &&
         n->getOpcode() < TCEISD::FIRST_NUMBER) {
         // Already selected.
+#ifdef LLVM_OLDER_THAN_3_9
         return NULL;
+#else
+        return;
+#endif
     } else if (n->getOpcode() == ISD::BRCOND) {
 
         // TODO: Check this. Following IA64 example..
@@ -119,7 +143,7 @@ TCEDAGToDAGISel::Select(SDNode* n) {
             cast<BasicBlockSDNode>(n->getOperand(2))->getBasicBlock();
 
         // FIXME? - this creates long branches all the time
-        return CurDAG->SelectNodeTo(
+        SELECT_NODE_AND_RETURN(
             n, TCE::TCEBRCOND, MVT::Other, cc,
             CurDAG->getBasicBlock(dest), chain);
         //} else if (n->getOpcode() == ISD::SETCC) {
@@ -137,18 +161,26 @@ TCEDAGToDAGISel::Select(SDNode* n) {
 
         MachineBasicBlock* dest =
             cast<BasicBlockSDNode>(n->getOperand(1))->getBasicBlock();
-        return CurDAG->SelectNodeTo(
+        SELECT_NODE_AND_RETURN(
 	    n, TCE::TCEBR, MVT::Other, CurDAG->getBasicBlock(dest), chain);
     } else if (n->getOpcode() == ISD::FrameIndex) {
         int fi = cast<FrameIndexSDNode>(n)->getIndex();
         if (n->hasOneUse()) {
-            return CurDAG->SelectNodeTo(
+            SELECT_NODE_AND_RETURN(
                 n, TCE::MOVI32ri, MVT::i32,
                 CurDAG->getTargetFrameIndex(fi, MVT::i32));
         } else {
+#ifdef LLVM_OLDER_THAN_3_9
             return CurDAG->getMachineNode(
                 TCE::MOVI32ri, dl, MVT::i32,
                 CurDAG->getTargetFrameIndex(fi, MVT::i32));
+#else
+            auto fiN = CurDAG->getMachineNode(
+                TCE::MOVI32ri, dl, MVT::i32,
+                CurDAG->getTargetFrameIndex(fi, MVT::i32));
+            ReplaceNode(n, fiN);
+            return;
+#endif
         }
     } else if (n->getOpcode() == ISD::SELECT) {
         SDValue cond = n->getOperand(0);
@@ -174,7 +206,7 @@ TCEDAGToDAGISel::Select(SDNode* n) {
                         case ISD::SETOLE:
                             opc = tm_->getMinOpcode(n);
                             if (opc != -1) {
-                                return CurDAG->SelectNodeTo(
+                                SELECT_NODE_AND_RETURN(
                                     n,opc, MVT::i32, val1, val2);
                             }
                             break;
@@ -184,7 +216,7 @@ TCEDAGToDAGISel::Select(SDNode* n) {
                         case ISD::SETOGE: // todo: what is ordered here? nan handling?
                             opc = tm_->getMaxOpcode(n);
                             if (opc != -1) {
-                                return CurDAG->SelectNodeTo(
+                                SELECT_NODE_AND_RETURN(
                                     n, opc, MVT::i32, val1, val2);
                             }
                             break;
@@ -192,7 +224,7 @@ TCEDAGToDAGISel::Select(SDNode* n) {
                         case ISD::SETULE:
                             opc = tm_->getMinuOpcode(n);
                             if (opc != -1) {
-                                return CurDAG->SelectNodeTo(
+                                SELECT_NODE_AND_RETURN(
                                     n, opc, MVT::i32, val1, val2);
                             }
                             break;
@@ -200,7 +232,7 @@ TCEDAGToDAGISel::Select(SDNode* n) {
                         case ISD::SETUGE:
                             opc = tm_->getMaxuOpcode(n);
                             if (opc != -1) {
-                                return CurDAG->SelectNodeTo(
+                                SELECT_NODE_AND_RETURN(
                                     n, opc, MVT::i32, val1, val2);
                             }
                             break;
@@ -212,10 +244,15 @@ TCEDAGToDAGISel::Select(SDNode* n) {
             }
         }
     }
-   
+#ifdef LLVM_OLDER_THAN_3_9
     SDNode* res =  SelectCode(n);
     return res;
+#else
+    SelectCode(n);
+#endif
 }
+#undef SELECT_NODE_AND_RETURN
+
 
 /**
  * Handles ADDRri operands.

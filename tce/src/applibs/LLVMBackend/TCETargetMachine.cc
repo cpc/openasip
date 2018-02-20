@@ -42,7 +42,11 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #else
 #include "llvm/IR/PassManager.h"
 #endif
+#ifdef LLVM_OLDER_THAN_6_0
 #include "llvm/Target/TargetRegisterInfo.h"
+#else
+#include "llvm/CodeGen/TargetRegisterInfo.h"
+#endif
 #include "llvm/CodeGen/SelectionDAGNodes.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/MC/MCContext.h"
@@ -103,10 +107,14 @@ MCInstPrinter *dummyInstrPrinterCtor(
 
 extern "C" void LLVMInitializeTCETarget() { 
     RegisterTargetMachine<TCETargetMachine> Y(TheTCETarget);
-    
+    RegisterTargetMachine<TCETargetMachine> X(TheTCELETarget);
+
     RegisterMCAsmInfo<TCEMCAsmInfo> Z(TheTCETarget);
+    RegisterMCAsmInfo<TCEMCAsmInfo> V(TheTCELETarget);
 #ifndef LLVM_OLDER_THAN_3_7
     TargetRegistry::RegisterMCInstPrinter(TheTCETarget, dummyInstrPrinterCtor);
+    TargetRegistry::RegisterMCInstPrinter(
+        TheTCELETarget, dummyInstrPrinterCtor);
 #endif
 }
 
@@ -130,13 +138,36 @@ TCETargetMachine::TCETargetMachine(
     TCEBaseTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL), plugin_(NULL),
     pluginTool_(NULL) {
 }
-#else
+#elif defined LLVM_OLDER_THAN_3_9
 TCETargetMachine::TCETargetMachine(
     const Target &T, const Triple& TTriple,
     const std::string& CPU, const std::string &FS, 
     const TargetOptions &Options,
     Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL) : 
     TCEBaseTargetMachine(T, TTriple, CPU, FS, Options, RM, CM, OL), 
+    plugin_(NULL), pluginTool_(NULL) {
+}
+#elif LLVM_OLDER_THAN_6_0
+TCETargetMachine::TCETargetMachine(
+    const Target &T, const Triple& TTriple,
+    const std::string& CPU, const std::string &FS,
+    const TargetOptions &Options,
+    Optional<Reloc::Model> RM, CodeModel::Model CM, CodeGenOpt::Level OL) :
+    TCEBaseTargetMachine(T, TTriple, CPU, FS, Options,
+                         RM?*RM:Reloc::Model::Static, CM, OL),
+    // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
+    plugin_(NULL), pluginTool_(NULL) {
+}
+#else
+TCETargetMachine::TCETargetMachine(
+    const Target &T, const Triple& TTriple,
+    const std::string& CPU, const std::string &FS,
+    const TargetOptions &Options,
+    Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM, CodeGenOpt::Level OL, bool) :
+    TCEBaseTargetMachine(T, TTriple, CPU, FS, Options,
+                         RM?*RM:Reloc::Model::Static, CM?*CM:CodeModel::Small, OL),
+    // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
+    // Note: CodeModel does not have "Default" named member. "Small" is ok?
     plugin_(NULL), pluginTool_(NULL) {
 }
 #endif

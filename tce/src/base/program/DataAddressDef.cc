@@ -41,8 +41,9 @@ namespace TTAProgram {
  * @param size Number of MAUs that area represents.
  * @param dest Address where to data definition refers.
  */
-DataAddressDef::DataAddressDef(Address start, int size, Address dest) :
-    DataDefinition(start, size), dest_(dest) {
+DataAddressDef::DataAddressDef(Address start, int size, Address dest,
+                               bool littleEndian) :
+    DataDefinition(start, size, littleEndian), dest_(dest) {
 
 }
 
@@ -100,7 +101,7 @@ DataAddressDef::setDestinationAddress(Address dest) {
 DataDefinition* 
 DataAddressDef::copy() const {
     DataAddressDef* newDef = new DataAddressDef(
-        startAddress(), size(), destinationAddress());
+        startAddress(), size(), destinationAddress(), isLittleEndian());
     
     return newDef;
 }

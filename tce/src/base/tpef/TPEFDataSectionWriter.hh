@@ -48,7 +48,7 @@ namespace TPEF {
 class TPEFDataSectionWriter : public TPEFSectionWriter {
 protected:
     virtual ~TPEFDataSectionWriter();
-    TPEFDataSectionWriter();
+    TPEFDataSectionWriter(bool reg = true);
 
     virtual Section::SectionType type() const;
 

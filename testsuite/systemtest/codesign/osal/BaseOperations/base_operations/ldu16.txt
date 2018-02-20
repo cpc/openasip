@@ -1,0 +1,8 @@
+st16 100 1000
+!advanceclock
+!output bin
+ldu16 100
+!output hex
+!mem byte 100
+!mem byte 101
+!quit

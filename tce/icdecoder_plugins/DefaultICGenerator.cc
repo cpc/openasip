@@ -28,15 +28,16 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Pekka J√§√§skel√§inen 2011
  * @author Vinogradov Viacheslav(added Verilog generating) 2012
- * @author Henry Linjam‰ki (henry.linjamaki-no.spam-tut.fi) 2014
+ * @author Henry Linjam√§ki 2014-2017 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <boost/format.hpp>
 
 #include "DefaultICGenerator.hh"
 #include "HDBTypes.hh"
@@ -957,8 +958,14 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
     if (language_ == VHDL) {
         stream << "library IEEE;" << endl;
         stream << "use IEEE.std_logic_1164.all;" << endl;
-        stream << "use IEEE.std_logic_arith.all;" << endl;
-        stream << "use STD.textio.all;" << endl;
+        stream << "use IEEE.std_logic_arith.ext;" << endl;
+        stream << "use IEEE.std_logic_arith.sxt;" << endl;
+        if (generateBusTrace_) {
+            stream << "use IEEE.numeric_std.all;" << endl;
+            stream << "use IEEE.math_real.all;" << endl;
+            stream << "use STD.textio.all;" << endl;
+            stream << "use IEEE.std_logic_textio.all;" << endl;
+        }
         stream << "use work." << entityNameStr_ << "_globals.all;" << endl
                << endl;
             
@@ -1686,6 +1693,68 @@ DefaultICGenerator::writeInputSocketComponentDeclaration(
 void
 DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
     if (language_ == VHDL) {
+
+        const std::string vhdlFunctionCeil4 =
+            "    -- Rounds integer up to next multiple of four.\n"
+            "    function ceil4 (\n"
+            "      constant val : natural)\n"
+            "      return natural is\n"
+            "    begin  -- function ceil4\n"
+            "      return natural(ceil(real(val)/real(4)))*4;\n"
+            "    end function ceil4;\n";
+
+        const std::string vhdlFunctionExt4 =
+            "   -- Extends std_logic_vector to multiple of four.\n"
+            "   function ext_to_multiple_of_4 (\n"
+            "     constant slv : std_logic_vector)\n"
+            "     return std_logic_vector is\n"
+            "    begin\n"
+            "      return std_logic_vector(resize(\n"
+            "        unsigned(slv), ceil4(slv'length)));\n"
+            "    end function ext_to_multiple_of_4;\n";
+
+        const std::string vhdlFunctionToHex =
+            "    function to_unsigned_hex (\n"
+            "      constant slv : std_logic_vector) return string is\n"
+            "      variable resized_slv : std_logic_vector(ceil4(slv'length)"
+                "-1 downto 0);\n"
+            "      variable result      : string(1 to ceil4(slv'length)/4)\n"
+            "        := (others => ' ');\n"
+            "      subtype digit_t is std_logic_vector(3 downto 0);\n"
+            "      variable digit : digit_t := \"0000\";\n"
+            "    begin\n"
+            "      resized_slv := ext_to_multiple_of_4(slv);\n"
+            "      for i in result'range loop\n"
+            "        digit := resized_slv(\n"
+            "          resized_slv'length-((i-1)*4)-1 downto "
+                "resized_slv'length-(i*4));\n"
+            "        case digit is\n"
+            "          when \"0000\" => result(i) := '0';\n"
+            "          when \"0001\" => result(i) := '1';\n"
+            "          when \"0010\" => result(i) := '2';\n"
+            "          when \"0011\" => result(i) := '3';\n"
+            "          when \"0100\" => result(i) := '4';\n"
+            "          when \"0101\" => result(i) := '5';\n"
+            "          when \"0110\" => result(i) := '6';\n"
+            "          when \"0111\" => result(i) := '7';\n"
+            "          when \"1000\" => result(i) := '8';\n"
+            "          when \"1001\" => result(i) := '9';\n"
+            "          when \"1010\" => result(i) := 'a';\n"
+            "          when \"1011\" => result(i) := 'b';\n"
+            "          when \"1100\" => result(i) := 'c';\n"
+            "          when \"1101\" => result(i) := 'd';\n"
+            "          when \"1110\" => result(i) := 'e';\n"
+            "          when \"1111\" => result(i) := 'f';\n"
+            "\n"
+            "          -- For TTAsim bustrace compatibility\n"
+            "          when others => \n"
+            "            result := (others => '0');\n"
+            "            return result;\n"
+            "        end case;\n"
+            "      end loop;  -- i in result'range\n"
+            "      return result;\n"
+            "    end function to_unsigned_hex;\n";
+
         stream << indentation(1)
                << "-- Dump the value on the buses into a file once in clock cycle"
                << endl;
@@ -1705,8 +1774,6 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                << endl;
         stream << indentation(2) << "variable executioncount : integer := 0;"
                << endl << endl;
-        stream << indentation(2) << "constant SEPARATOR : string := \" | \";"
-               << endl;
         stream << indentation(2) << "constant DUMP : boolean := true;" << endl;
         stream << indentation(2)
                << "constant REGULARDUMPFILE : string := \"bus.dump\";"
@@ -1714,7 +1781,9 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
         stream << indentation(2)
                << "constant EXECUTIONDUMPFILE : string := \"execbus.dump\";"
                << endl << endl;
-
+        stream << vhdlFunctionCeil4 << endl;
+        stream << vhdlFunctionExt4 << endl;
+        stream << vhdlFunctionToHex << endl;
         stream << indentation(1) << "begin" << endl;
         stream << indentation(2) << "if DUMP = true then" << endl;
         stream << indentation(3) << "if start = true then" << endl;
@@ -1736,32 +1805,31 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
             ind++;
         }
         stream << indentation(ind) << "write(lineout, cyclecount-"
-               << busTraceStartingCycle_ << ", right, 12);"
+               << busTraceStartingCycle_ << ");"
                << endl;
-        stream << indentation(ind) << "write(lineout, SEPARATOR);" << endl;
 
         Machine::BusNavigator busNav = machine_.busNavigator();
         for (int i = 0; i < busNav.count(); i++) {
-            stream << indentation(ind) << "write(lineout, conv_integer(signed(" 
-                   << busSignal(*busNav.item(i)) << ")), right, 12);" << endl;
-            stream << indentation(ind) << "write(lineout, SEPARATOR);" << endl;
+            stream << indentation(ind) << "write(lineout, string'(\",\"));"
+                    << endl;
+            stream << indentation(ind)
+                   << "write(lineout, to_unsigned_hex("
+                   << busSignal(*busNav.item(i)) << "));" << endl;
         }
         
         stream << endl << indentation(ind)
                << "writeline(regularfileout, lineout);" << endl;
 
         stream << indentation(ind) << "if glock = '0' then" << endl;
-        stream << indentation(ind+1) << "write(lineout, executioncount"
-               << ", right, 12);"
+        stream << indentation(ind+1) << "write(lineout, executioncount" << ");"
                << endl;
-        stream << indentation(ind+1) << "write(lineout, SEPARATOR);" << endl;
 
         for (int i = 0; i < busNav.count(); i++) {
-            stream << indentation(ind+1)
-                   << "write(lineout, conv_integer(signed("
-                   << busSignal(*busNav.item(i)) << ")), right, 12);" << endl;
-            stream << indentation(ind+1) << "write(lineout, SEPARATOR);"
+            stream << indentation(ind+1) << "write(lineout, string'(\",\"));"
                    << endl;
+            stream << indentation(ind+1)
+                   << "write(lineout, to_unsigned_hex("
+                   << busSignal(*busNav.item(i)) << "));" << endl;
         }
         stream << endl << indentation(ind+1)
                << "writeline(executionfileout, lineout);" << endl;
@@ -1776,6 +1844,7 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
         stream << indentation(2) << "end if;" << endl;
         stream << indentation(1) << "end process file_output;" << endl;
         stream << indentation(1) << "-- pragma synthesis_on" << endl;
+
     } else { // language_ == Verilog
         stream << indentation(1)
                << "// Dump the value on the buses into a file once in clock cycle"
@@ -1810,24 +1879,25 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                    << busTraceStartingCycle_ - 1
                    << ")" << endl;
         }
-        std::string format_string = " %11d";
+        std::string format_string = "%0d";
         std::string count_string = "count - " +
             Conversion::toString(busTraceStartingCycle_);
         std::string variable_list = "";
 
-
         Machine::BusNavigator busNav = machine_.busNavigator();
         for (int i = 0; i < busNav.count(); i++) {
-            format_string += " |  %11d";
-            variable_list += ", $signed(" +
-                Conversion::toString(busSignal(*busNav.item(i)))+")";
+            const Bus& bus = *busNav.item(i);
+            format_string += ",%0"
+                + Conversion::toString((bus.width()+3)/4) + "h";
+            variable_list += ", $unsigned(" +
+                Conversion::toString(busSignal(bus))+")";
         }
         
         stream << indentation(3) << "begin" << endl
                << indentation(4) << "regularfileout = "
                    "$fopen(`REGULARDUMPFILE,\"a\");" << endl
                << indentation(4) << "$fwrite(regularfileout,"
-               << "\"" << format_string << " | \\n\"" << ", "
+               << "\"" << format_string << "\\n\"" << ", "
                << count_string << variable_list << ");" << endl
                << indentation(4) << "$fclose(regularfileout);" << endl
                << indentation(4) << "if(glock == 0)" << endl
@@ -1835,7 +1905,7 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                << indentation(5) << "executionfileout = "
                "$fopen(`EXECUTIONDUMPFILE,\"a\");" << endl
                << indentation(5) << "$fwrite(executionfileout,"
-               << "\"" << format_string << " | \\n\"" << ", executioncount"
+               << "\"" << format_string << "\\n\"" << ", executioncount"
                << variable_list << ");" << endl
                << indentation(5) << "$fclose(executionfileout);" << endl
                << indentation(5) << "executioncount = executioncount + 1;"

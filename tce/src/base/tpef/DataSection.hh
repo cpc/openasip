@@ -69,6 +69,7 @@ public:
     virtual Word length() const;
     virtual void setDataLength(Word length);
 
+    virtual bool isDataSection() { return true; }
 protected:
     DataSection(bool init);
     virtual Section* clone() const;

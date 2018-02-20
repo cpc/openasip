@@ -185,6 +185,8 @@ BusResource::canAssign(
         if (node.move().source().port().width() > busWidth_) {
             sourceWontFit = true;
         }
+    } else {
+        sourceWontFit = true; // invalid extension of immediate
     }
     if (sourceWontFit &&
         node.move().destination().port().width() > busWidth_) {

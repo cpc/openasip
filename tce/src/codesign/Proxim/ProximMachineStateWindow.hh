@@ -109,10 +109,6 @@ private:
         ID_SPLITTER
     };
 
-    static const double ZOOM_STEP;
-    static const double MIN_ZOOM_FACTOR;
-    static const double MAX_ZOOM_FACTOR;
-
     /// Tells if the moves are displayed or not.
     bool showMoves_;
     /// Tells if the machine part utilizations are displayed or not.
