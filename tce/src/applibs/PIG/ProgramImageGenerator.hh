@@ -74,7 +74,8 @@ public:
         ARRAY, ///< ASCII 1's and 0's in array form.
         MIF, ///< MIF Memory Initialization File
         VHDL, ///< Array as a Vhdl package
-        COE ///< COE memory initialization format
+        COE, ///< COE memory initialization format
+		HEX  ///< HEX memory initialization format
     };
     typedef std::map<std::string, TPEF::Binary*> TPEFMap;
 
