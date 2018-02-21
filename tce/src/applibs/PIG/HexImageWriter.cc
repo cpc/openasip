@@ -32,7 +32,57 @@
 
 #include <cmath>
 #include <iostream>
+#include <iomanip>
+
 #include "AsciiImageWriter.hh"
-#include "CoeImageWriter.hh"
+#include "HexImageWriter.hh"
 #include "BitVector.hh"
-using std::endl;
+
+using namespace std;
+
+/**
+ * The constructor.
+ *
+ * @param bits The bits to write.
+ * @param rowLength Length of the rows to write.
+ */
+HexImageWriter::HexImageWriter(const BitVector& bits, int rowLength) :
+    AsciiImageWriter(bits, rowLength) {
+}
+
+/**
+ * The destructor.
+ */
+HexImageWriter::~HexImageWriter() {
+}
+
+/**
+ * Writes the bit image to the given stream.
+ *
+ * @param stream The stream to write.
+ */
+void HexImageWriter::writeImage(std::ostream& stream) const {
+    int lineCount =  static_cast<int>(
+        ceil(static_cast<double>(bits().size()) / rowLength()));
+
+    int nibbleCount = static_cast<int>(
+    	ceil(static_cast<double>(rowLength() / 4)));
+
+    if (lineCount == 0) {
+    	stream << std::hex << std::setfill('0') << std::setw(nibbleCount) << 0 << std::endl;
+    } else {
+
+    }
+}
+
+
+
+std::vector<std::uint8_t> split_uint8_t(const BitVector& bits, int lineCount, int rowLength) {
+
+	std::vector<std::uint8_t> result;
+
+// TODO: std::accumulate()
+
+    return result ;
+}
+

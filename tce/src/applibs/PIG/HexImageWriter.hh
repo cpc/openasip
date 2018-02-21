@@ -35,11 +35,14 @@
 #ifndef TTA_HEX_IMAGE_WRITER_HH
 #define TTA_HEX_IMAGE_WRITER_HH
 
+#include <cstdint>
+#include <vector>
+#include <iterator>
+
 #include "AsciiImageWriter.hh"
 
-
 /**
- * Writes the bit image in COE format. It's used at least by Xilinx tools
+ * Writes the bit image in HEX format. It's used for both ASIC and FPGA memory models
  */
 class HexImageWriter : public AsciiImageWriter {
 public:
@@ -48,9 +51,9 @@ public:
 
     virtual void writeImage(std::ostream& stream) const;
 
-
+private:
+    std::vector<std::uint8_t> split_uint8_t(const BitVector& bits, int lineCount, int rowLength);
 
 };
-
 
 #endif /* TTA_HEX_IMAGE_WRITER_HH */
