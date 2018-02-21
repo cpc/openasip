@@ -33,6 +33,7 @@
 #include <cmath>
 #include <iostream>
 #include <iomanip>
+#include <numeric>
 
 #include "AsciiImageWriter.hh"
 #include "HexImageWriter.hh"
@@ -40,7 +41,7 @@
 
 using namespace std;
 
-/**
+/**s
  * The constructor.
  *
  * @param bits The bits to write.
@@ -77,11 +78,15 @@ void HexImageWriter::writeImage(std::ostream& stream) const {
 
 
 
-std::vector<std::uint8_t> split_uint8_t(const BitVector& bits, int lineCount, int rowLength) {
+std::vector<std::uint8_t> split_uint8_t(const BitVector& bits, int lineCount, int nibbleCount) {
 
 	std::vector<std::uint8_t> result;
 
 // TODO: std::accumulate()
+	int i;
+	i = accumulate(bits.rbegin(), bits.rend(), 0, [](int x, int y) { return (x << 1) + y; });
+
+	result.push_back(i);
 
     return result ;
 }
