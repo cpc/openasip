@@ -50,10 +50,6 @@ public:
     virtual ~HexImageWriter();
 
     virtual void writeImage(std::ostream& stream) const;
-
-private:
-    std::vector<std::uint8_t> split_uint8_t(const BitVector& bits, int lineCount, int nibbleCount);
-
 };
 
 #endif /* TTA_HEX_IMAGE_WRITER_HH */

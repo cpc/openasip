@@ -41,7 +41,7 @@
 
 using namespace std;
 
-/**s
+/**
  * The constructor.
  *
  * @param bits The bits to write.
@@ -57,37 +57,34 @@ HexImageWriter::HexImageWriter(const BitVector& bits, int rowLength) :
 HexImageWriter::~HexImageWriter() {
 }
 
+
 /**
  * Writes the bit image to the given stream.
  *
  * @param stream The stream to write.
  */
 void HexImageWriter::writeImage(std::ostream& stream) const {
-    int lineCount =  static_cast<int>(
+    const int lineCount =  static_cast<int>(
         ceil(static_cast<double>(bits().size()) / rowLength()));
 
-    int nibbleCount = static_cast<int>(
+    const int nibbleCount = static_cast<int>(
     	ceil(static_cast<double>(rowLength() / 4)));
 
     if (lineCount == 0) {
     	stream << std::hex << std::setfill('0') << std::setw(nibbleCount) << 0 << std::endl;
-    } else {
 
+    } else {
+        bool padEndings = false;
+
+        for (int i=0; i<lineCount; ++i) {
+            writeHexSequence(stream, rowLength(), padEndings);
+            //writeSequence(stream, rowLength(), padEndings);
+            stream << endl;
+        }
     }
 }
 
 
 
-std::vector<std::uint8_t> split_uint8_t(const BitVector& bits, int lineCount, int nibbleCount) {
 
-	std::vector<std::uint8_t> result;
-
-// TODO: std::accumulate()
-	int i;
-	i = accumulate(bits.rbegin(), bits.rend(), 0, [](int x, int y) { return (x << 1) + y; });
-
-	result.push_back(i);
-
-    return result ;
-}
 

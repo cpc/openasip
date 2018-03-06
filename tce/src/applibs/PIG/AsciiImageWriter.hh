@@ -34,6 +34,9 @@
 #ifndef TTA_ASCII_IMAGE_WRITER_HH
 #define TTA_ASCII_IMAGE_WRITER_HH
 
+#include <cstdint>
+#include <vector>
+
 #include "BitImageWriter.hh"
 #include "Exception.hh"
 
@@ -49,12 +52,24 @@ public:
 
     virtual void writeImage(std::ostream& stream) const;
 
+
 protected:
     const BitVector& bits() const;
     int rowLength() const;
     void
     writeSequence(std::ostream& stream, int length, bool padEnd = false) const
         throw (OutOfRange);
+
+    void
+    writeHexSequence(std::ostream& stream, int length, bool padEnd = false) const
+        throw (OutOfRange);
+
+    //
+    uint8_t
+	calcNibble(const BitVector & bits, int lsb, int num) const;
+    //
+    std::vector<uint8_t>
+    bool2nibble(const BitVector & bits) const;
 
 private:
     /// The bits to be written.
