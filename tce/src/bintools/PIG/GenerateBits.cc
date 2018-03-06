@@ -468,7 +468,6 @@ int main(int argc, char* argv[]) {
                     tpefFile, piStream, ProgramImageGenerator::COE,
                     imemMAUsPerLine);
             } else if (piFormat == "hex") {
-            	// TODO: piheximage
             	imageGenerator.generateProgramImage(
             		tpefFile, piStream, ProgramImageGenerator::HEX,
 					imemMAUsPerLine);
@@ -519,7 +518,6 @@ int main(int argc, char* argv[]) {
                                 ProgramImageGenerator::COE,
                                 dmemMAUsPerLine, true);
                         } else if (diFormat == "hex") {
-                        	// TODO: dihexformat
                         	imageGenerator.generateDataImage(
                         		tpefFile, *program, as->name(), stream,
                         	    ProgramImageGenerator::HEX,
