@@ -8,7 +8,6 @@
 \RequirePackage{a4}
 \RequirePackage[english]{babel}
 \RequirePackage[T1]{fontenc}
-\RequirePackage[latin1]{inputenc}
 \RequirePackage[dvips]{graphicx}
 \RequirePackage{lastpage}
 \RequirePackage{longtable}
