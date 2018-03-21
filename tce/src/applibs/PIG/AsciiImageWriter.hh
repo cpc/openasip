@@ -64,13 +64,6 @@ protected:
     writeHexSequence(std::ostream& stream, int length, bool padEnd = false) const
         throw (OutOfRange);
 
-    //
-    uint8_t
-	calcNibble(const BitVector & bits, int lsb, int num) const;
-    //
-    std::vector<uint8_t>
-    bool2nibble(const BitVector & bits) const;
-
 private:
     /// The bits to be written.
     const BitVector& bits_;

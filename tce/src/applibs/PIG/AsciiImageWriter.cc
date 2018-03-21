@@ -34,6 +34,7 @@
 #include <string>
 #include <iomanip>
 #include <numeric>
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -144,41 +145,6 @@ AsciiImageWriter::writeSequence(
 }
         
 
-/**
- * Calculate the next nibble in HEX
- */
-uint8_t
-AsciiImageWriter::calcNibble(const BitVector & bits, int lsb, int num) const {
-    uint8_t nibble = 0;
-
-    for(int i=0; i<num; i++) {
-        if (bits[i+lsb]) {
-            nibble += (1 << i);
-        }
-    }
-
-    return nibble;
-}
-
-
-/**
- * Generate a vector of hex values (nibbles) out of a vector of bits
- */
-/*
-std::vector<uint8_t>
-AsciiImageWriter::bool2nibble(const BitVector & bits) const {
-    std::vector<uint8_t> nibbles;
-
-    const int end = bits.size();
-
-    for (int i=0; i<end; i+=4) {
-        int num = ((end-i) > 4) ? 4 : (end-i);
-        nibbles.push_back( calcNibble(bits, i, num) );
-    }
-
-    return nibbles;
-}
-*/
 
 /**
  * Writes a sequence of bits in hex format to the given stream.
@@ -202,23 +168,37 @@ AsciiImageWriter::writeHexSequence(
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
 
-/*
-    std::vector<bool> subbits(length, 0);
-    std::copy(std::begin(bits_)+nextBitIndex_, std::begin(bits_)+lastIndex, std::begin(subbits));
+    const int nibbleCount = static_cast<int>(
+        ceil(static_cast<double>(length / 4)));
 
-    std::vector<uint8_t> N = bool2nibble(subbits);
-    cout << "size(N) = " << N.size() << endl;
-*/
-    std::vector<uint8_t> nibbles;
-    for (int i = nextBitIndex_; i <= lastIndex; i+=4) {
-        int num = ((length-i) > 4) ? 4 : (length-i);
-        nibbles.push_back( calcNibble(bits_, i, num) );
+    std::vector<bool> bitRow;
+
+    // Copy bitstream for one row
+    for(int i=nextBitIndex_; i<=lastIndex; ++i) {
+        bitRow.push_back(bits_[i]);
     }
 
-    for (std::vector<uint8_t>::reverse_iterator rit = nibbles.rbegin(); rit!= nibbles.rend(); ++rit) {
-        cout << std::to_string(*rit);
+    // optionally extend bit stream
+    int numPadBits = 4*nibbleCount - length;
+    if (numPadBits) {
+        std::vector<bool> padBits(numPadBits, 0);
+        bitRow.insert(bitRow.begin(), padBits.begin(), padBits.end());
     }
-    cout << endl;
+
+    // Generate a list of nibble
+    std::vector<uint8_t> Nibble;
+    for (std::vector<bool>::iterator it=bitRow.begin(); it<bitRow.end(); it+=4) {
+        Nibble.push_back(
+            std::accumulate(
+                it, it+4, 0, [] (int x, int y) { return (x << 1) + y; }
+            )
+        );
+    }
+
+    // "print" hex stream
+    for (std::vector<uint8_t>::iterator ui8=Nibble.begin(); ui8<Nibble.end(); ++ui8) {
+        stream << std::hex << (int) *ui8;
+    }
 
     nextBitIndex_ += length;
 }

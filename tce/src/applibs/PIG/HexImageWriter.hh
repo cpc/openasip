@@ -35,9 +35,6 @@
 #ifndef TTA_HEX_IMAGE_WRITER_HH
 #define TTA_HEX_IMAGE_WRITER_HH
 
-#include <cstdint>
-#include <vector>
-#include <iterator>
 
 #include "AsciiImageWriter.hh"
 
