@@ -31,8 +31,10 @@
  * @note rating: red
  */
 
+#include <cstdint>
 #include <string>
 #include <iomanip>
+#include <vector>
 #include <numeric>
 #include <algorithm>
 #include <cmath>
@@ -157,29 +159,27 @@ AsciiImageWriter::writeSequence(
  * @exception OutOfRange If the bit vector does not contain enough bits for
  *                       the row.
  */
-void
-AsciiImageWriter::writeHexSequence(
-    std::ostream& stream, int length, bool padEnd) const
-    throw (OutOfRange) {
+void AsciiImageWriter::writeHexSequence(std::ostream& stream, int length,
+        bool padEnd) const throw (OutOfRange) {
     int lastIndex = nextBitIndex_ + length - 1;
 
     if (lastIndex >= bits_.size() && !padEnd) {
-        const string procName = "AsciiImageWriter::writeHexSequence";
+        const string procName = __func__;
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
 
-    const int nibbleCount = static_cast<int>(
-        ceil(static_cast<double>(length / 4)));
+    const int nibbleCount = static_cast<int>(ceil(
+            static_cast<double>(length) / 4.0));
 
     std::vector<bool> bitRow;
 
     // Copy bitstream for one row
-    for(int i=nextBitIndex_; i<=lastIndex; ++i) {
+    for (int i = nextBitIndex_; i <= lastIndex; ++i) {
         bitRow.push_back(bits_[i]);
     }
 
     // optionally extend bit stream
-    int numPadBits = 4*nibbleCount - length;
+    int numPadBits = 4 * nibbleCount - length;
     if (numPadBits) {
         std::vector<bool> padBits(numPadBits, 0);
         bitRow.insert(bitRow.begin(), padBits.begin(), padBits.end());
@@ -187,16 +187,16 @@ AsciiImageWriter::writeHexSequence(
 
     // Generate a list of nibble
     std::vector<uint8_t> Nibble;
-    for (std::vector<bool>::iterator it=bitRow.begin(); it<bitRow.end(); it+=4) {
+    for (std::vector<bool>::iterator it = bitRow.begin(); it < bitRow.end();
+            it += 4) {
         Nibble.push_back(
-            std::accumulate(
-                it, it+4, 0, [] (int x, int y) { return (x << 1) + y; }
-            )
-        );
+                std::accumulate(it, it + 4, 0,
+                        [] (int x, int y) {return (x << 1) + y;}));
     }
 
     // "print" hex stream
-    for (std::vector<uint8_t>::iterator ui8=Nibble.begin(); ui8<Nibble.end(); ++ui8) {
+    for (std::vector<uint8_t>::iterator ui8 = Nibble.begin();
+            ui8 < Nibble.end(); ++ui8) {
         stream << std::hex << (int) *ui8;
     }
 

@@ -34,9 +34,6 @@
 #ifndef TTA_ASCII_IMAGE_WRITER_HH
 #define TTA_ASCII_IMAGE_WRITER_HH
 
-#include <cstdint>
-#include <vector>
-
 #include "BitImageWriter.hh"
 #include "Exception.hh"
 
