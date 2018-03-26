@@ -59,6 +59,10 @@ protected:
     void writeHexSequence(
         std::ostream& stream, int length, bool padEnd = false) const;
 
+    void
+    writeHexSequence(std::ostream& stream, int length, bool padEnd = false) const
+        throw (OutOfRange);
+
 private:
     /// The bits to be written.
     const BitVector& bits_;
