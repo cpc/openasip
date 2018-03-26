@@ -1,5 +1,6 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2018 Tampere University of Technology
+    and Alexander Kobler.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,52 +23,31 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file AsciiImageWriter.hh
+ * @file HexImageWriter.hh
  *
- * Declaration of AsciiBinaryWriter class.
+ * Declaration of HexImageWriter class
  *
- * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
+ * @author Alexander Kobler 2018
  * @note rating: red
  */
 
-#ifndef TTA_ASCII_IMAGE_WRITER_HH
-#define TTA_ASCII_IMAGE_WRITER_HH
 
-#include "BitImageWriter.hh"
-#include "Exception.hh"
 
-class BitVector;
+#ifndef TTA_HEX_IMAGE_WRITER_HH
+#define TTA_HEX_IMAGE_WRITER_HH
+
+
+#include "AsciiImageWriter.hh"
 
 /**
- * Writes the bit image with ASCII 1's and 0's.
+ * Writes the bit image in HEX format. It's used for both ASIC and FPGA memory models
  */
-class AsciiImageWriter : public BitImageWriter {
+class HexImageWriter : public AsciiImageWriter {
 public:
-    AsciiImageWriter(const BitVector& bits, int rowLength);
-    virtual ~AsciiImageWriter();
+    HexImageWriter(const BitVector& bits, int rowLength);
+    virtual ~HexImageWriter();
 
     virtual void writeImage(std::ostream& stream) const;
-
-
-protected:
-    const BitVector& bits() const;
-    int rowLength() const;
-    void
-    writeSequence(std::ostream& stream, int length, bool padEnd = false) const
-        throw (OutOfRange);
-
-    void
-    writeHexSequence(std::ostream& stream, int length, bool padEnd = false) const
-        throw (OutOfRange);
-
-private:
-    /// The bits to be written.
-    const BitVector& bits_;
-    /// The length of a row in the output.
-    int rowLength_;
-    /// The index of the next bit to be written.
-    mutable unsigned int nextBitIndex_;
 };
 
-#endif
+#endif /* TTA_HEX_IMAGE_WRITER_HH */

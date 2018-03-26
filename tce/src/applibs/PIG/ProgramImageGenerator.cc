@@ -28,9 +28,9 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2008-2009 (otto.esko-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2009 (pekka.jaaskelainen-no.spam-tut.fi)
- * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2011
+ * @author Pekka JÃ¤Ã¤skelÃ¤inen 2009 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Otto Esko 2010(otto.esko-no.spam-tut.fi)
+ * @author Pekka JÃ¤Ã¤skelÃ¤inen 2011
  * @note rating: red
  */
 
@@ -46,6 +46,7 @@
 #include "VhdlImageWriter.hh"
 #include "VhdlProgramImageWriter.hh"
 #include "CoeImageWriter.hh"
+#include "HexImageWriter.hh"
 #include "InstructionBitVector.hh"
 #include "CodeCompressorPlugin.hh"
 #include "DefaultCompressor.hh"
@@ -364,6 +365,8 @@ ProgramImageGenerator::generateProgramImage(
         writer = new VhdlProgramImageWriter(*programBits, entityName_);
     } else if (format == COE) {
         writer = new CoeImageWriter(*programBits, mau);
+    } else if (format == HEX) {
+    	writer = new HexImageWriter(*programBits, mau);
     } else {
         assert(false);
     }
@@ -490,6 +493,8 @@ ProgramImageGenerator::generateDataImage(
             dataBits, as->width() * mausPerLine, entityName_);
     } else if (format == COE) {
         writer = new CoeImageWriter(dataBits, as->width() * mausPerLine);
+    } else if (format == HEX) {
+    	writer = new HexImageWriter(dataBits, as->width() * mausPerLine);
     } else {
         assert(false);
     }
