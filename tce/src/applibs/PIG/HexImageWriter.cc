@@ -72,13 +72,13 @@ void HexImageWriter::writeImage(std::ostream& stream) const {
         ceil(static_cast<double>(rowLength() / 4)));
 
     if (lineCount == 0) {
-    	stream << std::hex << std::setfill('0')
-    	       << std::setw(nibbleCount) << 0 << std::endl;
+        stream << std::hex << std::setfill('0')
+               << std::setw(nibbleCount) << 0 << std::endl;
 
     } else {
         bool padEndings = false;
 
-        for (int i=0; i<lineCount; ++i) {
+        for (int i = 0; i < lineCount; ++i) {
             writeHexSequence(stream, rowLength(), padEndings);
             stream << endl;
         }

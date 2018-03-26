@@ -145,7 +145,6 @@ AsciiImageWriter::writeSequence(
     }
     nextBitIndex_ = lastIndex + 1;
 }
-        
 
 
 /**
@@ -159,9 +158,11 @@ AsciiImageWriter::writeSequence(
  * @exception OutOfRange If the bit vector does not contain enough bits for
  *                       the row.
  */
-void AsciiImageWriter::writeHexSequence(std::ostream& stream, int length,
+void
+AsciiImageWriter::writeHexSequence(
+        std::ostream& stream, int length,
         bool padEnd) const throw (OutOfRange) {
-    int lastIndex = nextBitIndex_ + length - 1;
+    unsigned int lastIndex = nextBitIndex_ + length - 1;
 
     if (lastIndex >= bits_.size() && !padEnd) {
         const string procName = __func__;
@@ -169,12 +170,12 @@ void AsciiImageWriter::writeHexSequence(std::ostream& stream, int length,
     }
 
     const int nibbleCount = static_cast<int>(ceil(
-            static_cast<double>(length) / 4.0));
+        static_cast<double>(length) / 4.0));
 
     std::vector<bool> bitRow;
 
     // Copy bitstream for one row
-    for (int i = nextBitIndex_; i <= lastIndex; ++i) {
+    for (unsigned int i = nextBitIndex_; i <= lastIndex; ++i) {
         bitRow.push_back(bits_[i]);
     }
 
@@ -187,16 +188,13 @@ void AsciiImageWriter::writeHexSequence(std::ostream& stream, int length,
 
     // Generate a list of nibble
     std::vector<uint8_t> Nibble;
-    for (std::vector<bool>::iterator it = bitRow.begin(); it < bitRow.end();
-            it += 4) {
-        Nibble.push_back(
-                std::accumulate(it, it + 4, 0,
-                        [] (int x, int y) {return (x << 1) + y;}));
+    for (auto it = bitRow.begin(); it < bitRow.end(); it += 4) {
+        Nibble.push_back(std::accumulate(
+            it, it + 4, 0,[] (int x, int y) {return (x << 1) + y;}));
     }
 
     // "print" hex stream
-    for (std::vector<uint8_t>::iterator ui8 = Nibble.begin();
-            ui8 < Nibble.end(); ++ui8) {
+    for (auto ui8 = Nibble.begin(); ui8 < Nibble.end(); ++ui8) {
         stream << std::hex << (int) *ui8;
     }
 
