@@ -1,10 +1,23 @@
+1.18       Unreleased
+=====================
+
+Notable changes and features
+----------------------------
+- Added hexadecimal output to PIG
+
+Usability features
+----------------------------
+
+Notable bugfixes
+----------------
+
+
 1.17       March 2018
 =====================
 
 Notable changes and features
 ----------------------------
 - Support for LLVM 6.0.
-- Added hexadecimal output to PIG
 
 Usability features
 ------------------

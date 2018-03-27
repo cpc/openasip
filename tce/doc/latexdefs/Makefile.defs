@@ -62,6 +62,10 @@ $(DOC_NAME).html: $(DOC_NAME).dvi
 		-split 4 -toc_depth 3\
 		-local_icons\
 		-no_footnode\
+    -image_type gif\
+    -no_external_images\
+    -no_ps_images\
+    -images\
 		$(DOC_NAME).tex
 
 $(DOC_NAME).pdf: $(DOC_NAME).dvi
