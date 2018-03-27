@@ -31,11 +31,19 @@
  * @note rating: red
  */
 
+#include <cstdint>
 #include <string>
+#include <iomanip>
+#include <vector>
+#include <numeric>
+#include <algorithm>
+#include <cmath>
+#include <iostream>
 
 #include "AsciiImageWriter.hh"
 #include "BitVector.hh"
 
+using namespace std;
 using std::string;
 
 /**
@@ -137,4 +145,59 @@ AsciiImageWriter::writeSequence(
     }
     nextBitIndex_ = lastIndex + 1;
 }
-        
+
+
+/**
+ * Writes a sequence of bits in hex format to the given stream.
+ *
+ * When this method is called sequentially, the first bit to be written is
+ * the next bit to the last bit written in the previous method call.
+ *
+ * @param stream The output stream.
+ * @param length The length of the sequence to be written.
+ * @exception OutOfRange If the bit vector does not contain enough bits for
+ *                       the row.
+ */
+void
+AsciiImageWriter::writeHexSequence(
+        std::ostream& stream, int length,
+        bool padEnd) const throw (OutOfRange) {
+    unsigned int lastIndex = nextBitIndex_ + length - 1;
+
+    if (lastIndex >= bits_.size() && !padEnd) {
+        const string procName = __func__;
+        throw OutOfRange(__FILE__, __LINE__, procName);
+    }
+
+    const int nibbleCount = static_cast<int>(ceil(
+        static_cast<double>(length) / 4.0));
+
+    std::vector<bool> bitRow;
+
+    // Copy bitstream for one row
+    for (unsigned int i = nextBitIndex_; i <= lastIndex; ++i) {
+        bitRow.push_back(bits_[i]);
+    }
+
+    // optionally extend bit stream
+    int numPadBits = 4 * nibbleCount - length;
+    if (numPadBits) {
+        std::vector<bool> padBits(numPadBits, 0);
+        bitRow.insert(bitRow.begin(), padBits.begin(), padBits.end());
+    }
+
+    // Generate a list of nibble
+    std::vector<uint8_t> Nibble;
+    for (auto it = bitRow.begin(); it < bitRow.end(); it += 4) {
+        Nibble.push_back(std::accumulate(
+            it, it + 4, 0,[] (int x, int y) {return (x << 1) + y;}));
+    }
+
+    // "print" hex stream
+    for (auto ui8 = Nibble.begin(); ui8 < Nibble.end(); ++ui8) {
+        stream << std::hex << (int) *ui8;
+    }
+
+    nextBitIndex_ += length;
+}
+
