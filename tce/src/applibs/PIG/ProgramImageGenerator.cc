@@ -249,7 +249,7 @@ ProgramImageGenerator::generateProgramImage(
                 ++totalImmediates;
                 allImmediates.insert(value);
                 if (move.source().isAddress()) {
-                        dataAddresses.insert(value);
+                    dataAddresses.insert(value);
                 } else if (move.source().isInstructionAddress()) {
                     programAddresses.insert(value);
                 }
