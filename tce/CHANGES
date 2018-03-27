@@ -1,4 +1,4 @@
-1.17       unreleased
+1.17       March 2018
 =====================
 
 Notable changes and features
@@ -7,10 +7,12 @@ Notable changes and features
 - Added hexadecimal output to PIG
 
 Usability features
-----------------------------
+------------------
+- Sane defaults for OSEd GUI text editor.
 
-Notable bugfixes
-----------------
+Misc.
+-----
+- Clarified the TCE tour text.
 
 1.16   September 2017
 =====================
