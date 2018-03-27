@@ -77,8 +77,8 @@ PIGCmdLineOptions::PIGCmdLineOptions() : CmdLineOptions("") {
 
     StringCmdLineOptionParser* diOutputMode = new StringCmdLineOptionParser(
         DI_FORMAT_PARAM_NAME, "The output format of data image(s) "
-        "('ascii', 'array', 'mif', 'coe', 'vhdl', 'hex' or 'binary'). Default is "
-        "'ascii'.", "o");
+        "('ascii', 'array', 'mif', 'coe', 'vhdl', 'hex' or 'binary'). Default "
+        "is 'ascii'.", "o");
     addOption(diOutputMode);
 
     StringCmdLineOptionParser* pluginFile = new StringCmdLineOptionParser(

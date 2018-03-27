@@ -231,7 +231,7 @@ ProgramImageGenerator::generateProgramImage(
 
         Application::logStream()
             << (boost::format(
-                    "number of NOP moves: %d (%.1f%% of total move slots)\n")         
+                    "number of NOP moves: %d (%.1f%% of total move slots)\n")
                 % NOPCount % (float(NOPCount) * 100 / maxMoves)).str();
 
 
@@ -244,13 +244,14 @@ ProgramImageGenerator::generateProgramImage(
 
         for (int m = 0; m < prog.moveCount(); ++m) {
             const TTAProgram::Move& move = prog.moveAt(m);
+            const auto value = move.source().value().sIntWordValue();
             if (move.source().isImmediate()) {
                 ++totalImmediates;
-                allImmediates.insert(move.source().value().sIntWordValue());
+                allImmediates.insert(value);
                 if (move.source().isAddress()) {
-                        dataAddresses.insert(move.source().value().sIntWordValue());
+                        dataAddresses.insert(value);
                 } else if (move.source().isInstructionAddress()) {
-                    programAddresses.insert(move.source().value().sIntWordValue());
+                    programAddresses.insert(value);
                 }
             }
         }
@@ -260,13 +261,14 @@ ProgramImageGenerator::generateProgramImage(
             const TTAProgram::Instruction& instruction = **i;
             for (int imm = 0; imm < instruction.immediateCount(); ++imm) {
                 const Immediate& immediate = instruction.immediate(imm);
+                const auto value = immediate.value().value().sIntWordValue();
                 ++totalImmediates;
                 ++totalLongImmediates;
-                allImmediates.insert(immediate.value().value().sIntWordValue());
+                allImmediates.insert(value);
                 if (immediate.value().isAddress()) {
-                    dataAddresses.insert(immediate.value().value().sIntWordValue());
+                    dataAddresses.insert(value);
                 } else if (immediate.value().isInstructionAddress()) {
-                    programAddresses.insert(immediate.value().value().sIntWordValue());
+                    programAddresses.insert(value);
                 }
             }
                 
@@ -366,7 +368,7 @@ ProgramImageGenerator::generateProgramImage(
     } else if (format == COE) {
         writer = new CoeImageWriter(*programBits, mau);
     } else if (format == HEX) {
-    	writer = new HexImageWriter(*programBits, mau);
+        writer = new HexImageWriter(*programBits, mau);
     } else {
         assert(false);
     }
@@ -494,7 +496,7 @@ ProgramImageGenerator::generateDataImage(
     } else if (format == COE) {
         writer = new CoeImageWriter(dataBits, as->width() * mausPerLine);
     } else if (format == HEX) {
-    	writer = new HexImageWriter(dataBits, as->width() * mausPerLine);
+        writer = new HexImageWriter(dataBits, as->width() * mausPerLine);
     } else {
         assert(false);
     }
@@ -503,9 +505,11 @@ ProgramImageGenerator::generateDataImage(
     delete writer;
 }
 
-void ProgramImageGenerator::writeDataSection(TPEF::Binary& program, BitVector& dataBits,
-                      const std::string& addressSpace,
-                      Section& section) {
+void
+ProgramImageGenerator::writeDataSection(
+    TPEF::Binary& program, BitVector& dataBits,
+    const std::string& addressSpace,
+    Section& section) {
     
     // get the data section
     StringSection* stringSection = program.strings();

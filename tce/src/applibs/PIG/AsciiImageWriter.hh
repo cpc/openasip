@@ -58,8 +58,8 @@ protected:
         throw (OutOfRange);
 
     void
-    writeHexSequence(std::ostream& stream, int length, bool padEnd = false) const
-        throw (OutOfRange);
+    writeHexSequence(std::ostream& stream, int length, bool padEnd = false)
+        const throw (OutOfRange);
 
 private:
     /// The bits to be written.

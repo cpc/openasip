@@ -64,7 +64,8 @@ HexImageWriter::~HexImageWriter() {
  *
  * @param stream The stream to write.
  */
-void HexImageWriter::writeImage(std::ostream& stream) const {
+void
+HexImageWriter::writeImage(std::ostream& stream) const {
     const int lineCount =  static_cast<int>(
         ceil(static_cast<double>(bits().size()) / rowLength()));
 
