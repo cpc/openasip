@@ -145,7 +145,10 @@ AsciiImageWriter::writeSequence(
     }
     nextBitIndex_ = lastIndex + 1;
 }
+<<<<<<< HEAD
         
+=======
+>>>>>>> 6f1ee3726bcc4e6467ba5f5372ada65a61021855
 
 
 /**
@@ -159,9 +162,17 @@ AsciiImageWriter::writeSequence(
  * @exception OutOfRange If the bit vector does not contain enough bits for
  *                       the row.
  */
+<<<<<<< HEAD
 void AsciiImageWriter::writeHexSequence(std::ostream& stream, int length,
         bool padEnd) const throw (OutOfRange) {
     int lastIndex = nextBitIndex_ + length - 1;
+=======
+void
+AsciiImageWriter::writeHexSequence(
+        std::ostream& stream, int length,
+        bool padEnd) const throw (OutOfRange) {
+    unsigned int lastIndex = nextBitIndex_ + length - 1;
+>>>>>>> 6f1ee3726bcc4e6467ba5f5372ada65a61021855
 
     if (lastIndex >= bits_.size() && !padEnd) {
         const string procName = __func__;
@@ -169,12 +180,20 @@ void AsciiImageWriter::writeHexSequence(std::ostream& stream, int length,
     }
 
     const int nibbleCount = static_cast<int>(ceil(
+<<<<<<< HEAD
             static_cast<double>(length) / 4.0));
+=======
+        static_cast<double>(length) / 4.0));
+>>>>>>> 6f1ee3726bcc4e6467ba5f5372ada65a61021855
 
     std::vector<bool> bitRow;
 
     // Copy bitstream for one row
+<<<<<<< HEAD
     for (int i = nextBitIndex_; i <= lastIndex; ++i) {
+=======
+    for (unsigned int i = nextBitIndex_; i <= lastIndex; ++i) {
+>>>>>>> 6f1ee3726bcc4e6467ba5f5372ada65a61021855
         bitRow.push_back(bits_[i]);
     }
 
@@ -187,6 +206,7 @@ void AsciiImageWriter::writeHexSequence(std::ostream& stream, int length,
 
     // Generate a list of nibble
     std::vector<uint8_t> Nibble;
+<<<<<<< HEAD
     for (std::vector<bool>::iterator it = bitRow.begin(); it < bitRow.end();
             it += 4) {
         Nibble.push_back(
@@ -197,6 +217,15 @@ void AsciiImageWriter::writeHexSequence(std::ostream& stream, int length,
     // "print" hex stream
     for (std::vector<uint8_t>::iterator ui8 = Nibble.begin();
             ui8 < Nibble.end(); ++ui8) {
+=======
+    for (auto it = bitRow.begin(); it < bitRow.end(); it += 4) {
+        Nibble.push_back(std::accumulate(
+            it, it + 4, 0,[] (int x, int y) {return (x << 1) + y;}));
+    }
+
+    // "print" hex stream
+    for (auto ui8 = Nibble.begin(); ui8 < Nibble.end(); ++ui8) {
+>>>>>>> 6f1ee3726bcc4e6467ba5f5372ada65a61021855
         stream << std::hex << (int) *ui8;
     }
 

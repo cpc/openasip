@@ -11,15 +11,14 @@ LATEX_OPTS = -interaction=batchmode
 # default rule built by Makefile
 BUILD_DEFAULT = pdf
 
-
 include $(DEFS)/Makefile.defs
 
-publish: TCE.dvi html
+publish: TCE.dvi
 	# dvipdfm seems to produce a better PDF 
 	dvipdfm -o TCE_manual.pdf TCE.dvi
 	cp TCE_manual.pdf ../../../manual/
 
-publish_to_web: TCE.pdf TCE.ps html
-	scp -r TCE.pdf TCE.ps TCE ${USERNAME}@${HOST}:/home/tce/public_html/user_manual
+publish_to_web: TCE.pdf
+	scp -r TCE.pdf ${USERNAME}@${HOST}:/home/tce/public_html/user_manual
 
 distclean: veryclean

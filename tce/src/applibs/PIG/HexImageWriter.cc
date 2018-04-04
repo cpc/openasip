@@ -64,7 +64,12 @@ HexImageWriter::~HexImageWriter() {
  *
  * @param stream The stream to write.
  */
+<<<<<<< HEAD
 void HexImageWriter::writeImage(std::ostream& stream) const {
+=======
+void
+HexImageWriter::writeImage(std::ostream& stream) const {
+>>>>>>> 6f1ee3726bcc4e6467ba5f5372ada65a61021855
     const int lineCount =  static_cast<int>(
         ceil(static_cast<double>(bits().size()) / rowLength()));
 
@@ -72,13 +77,22 @@ void HexImageWriter::writeImage(std::ostream& stream) const {
         ceil(static_cast<double>(rowLength() / 4)));
 
     if (lineCount == 0) {
+<<<<<<< HEAD
     	stream << std::hex << std::setfill('0')
     	       << std::setw(nibbleCount) << 0 << std::endl;
+=======
+        stream << std::hex << std::setfill('0')
+               << std::setw(nibbleCount) << 0 << std::endl;
+>>>>>>> 6f1ee3726bcc4e6467ba5f5372ada65a61021855
 
     } else {
         bool padEndings = false;
 
+<<<<<<< HEAD
         for (int i=0; i<lineCount; ++i) {
+=======
+        for (int i = 0; i < lineCount; ++i) {
+>>>>>>> 6f1ee3726bcc4e6467ba5f5372ada65a61021855
             writeHexSequence(stream, rowLength(), padEndings);
             stream << endl;
         }

@@ -40,7 +40,12 @@
 #include "AsciiImageWriter.hh"
 
 /**
+<<<<<<< HEAD
  * Writes the bit image in HEX format. It's used for both ASIC and FPGA memory models
+=======
+ * Writes the bit image in HEX format. It's used for both ASIC and FPGA memory
+ * models
+>>>>>>> 6f1ee3726bcc4e6467ba5f5372ada65a61021855
  */
 class HexImageWriter : public AsciiImageWriter {
 public:

@@ -33,7 +33,11 @@ done
 shift "$((OPTIND-1))"
 
 clear_test_data() {
+<<<<<<< HEAD
 	rm -rf $PROGE_OUT
+=======
+    rm -rf $PROGE_OUT
+>>>>>>> 6f1ee3726bcc4e6467ba5f5372ada65a61021855
     rm -f $TPEF
     rm -f *.img *.hex
 }
