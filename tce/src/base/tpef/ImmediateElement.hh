@@ -62,9 +62,12 @@ public:
         throw (OutOfRange);
 
     void setWord(Word aValue);
+    void setSignedWord(SignedWord aValue);
 
     Word word() const
         throw (OutOfRange);
+
+    SignedWord signedWord() const;
 
     unsigned int length() const;
     

@@ -137,8 +137,9 @@ TPEFDisassembler::createInstruction(Word instructionIndex) const {
                 SimValue immValue(32);
                 immValue = imm->word();
 
+                // do not know if unit is signed or not without adf
                 DisassemblyImmediateAssignment* immAssign = 
-                    new DisassemblyImmediateAssignment(immValue, dest);
+                    new DisassemblyImmediateAssignment(immValue, false, dest);
                                
                 // add annotationes for the move
                 for (Word j = 0; j < imm->annotationCount(); j++) {

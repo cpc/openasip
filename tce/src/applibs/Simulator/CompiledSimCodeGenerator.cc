@@ -1293,8 +1293,12 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
              || move.source().isImmediateRegister()) &&
             (move.source().port().width() <= static_cast<int>(sizeof(UIntWord)*8)) &&
             move.source().port().width() == move.destination().port().width()) {
+            if (move.source().isImmediateRegister() && move.source().immediateUnit().signExtends()) {
+                moveSource += ".sIntWordValue()";
+            } else {
                 moveSource += ".uIntWordValue()";
             }
+        }
 
         if (!dependingMove) {
             *os_ << moveDestination << " = " << moveSource << "; ";
@@ -1417,10 +1421,15 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         if (immediate.destination().isFUPort()) {
             continue;
         }
-            
+
         *os_ << symbolGen_.immediateRegisterSymbol(immediate.destination());
-        unsigned int value = immediate.value().value().unsignedValue();
-        *os_  << " = " << value << "u;";
+        if (immediate.destination().immediateUnit().signExtends()) {
+            int value = immediate.value().value().intValue();
+            *os_  << " = SIntWord("<< value << ");";
+        } else {
+            unsigned int value = immediate.value().value().unsignedValue();
+            *os_  << " = " << value << "u;";
+        }
     }
     
     // Do bus moves

@@ -88,8 +88,14 @@ InstructionTest::testInstruction() {
 
     RegisterFile* reg_file = new RegisterFile(
         "RF", 32, 32, 1, 1, 0, RegisterFile::NORMAL);
+
+    ImmediateUnit* immu = new ImmediateUnit(
+        "immu", 2, 32, 1, 1, Machine::SIGN);
+
     RFPort* port1 = new RFPort("P1", *reg_file);
     RFPort* port2 = new RFPort("P2", *reg_file);
+    RFPort* port3 = new RFPort("P3", *immu);
+
     UIntWord index1 = 10;
     UIntWord index2 = 11;
 
@@ -103,10 +109,8 @@ InstructionTest::testInstruction() {
     TerminalRegister* dst_reg2 = new TerminalRegister(
         *port2, index2);
 
-    TerminalRegister* src_reg3 = new TerminalRegister(
-        *port1, index1);
-    TerminalRegister* dst_reg3 = new TerminalRegister(
-        *port2, index2);
+    TerminalRegister* immTerm = new TerminalRegister(*port3, 0);
+    TerminalRegister* immTerm2 = new TerminalRegister(*port3, 1);
 
     Bus moveBus("Bus1", 32, 32, Machine::ZERO);
 
@@ -128,10 +132,10 @@ InstructionTest::testInstruction() {
     SimValue imm_value = SimValue(1232, 32);
 
     Immediate* imm1 = new Immediate(
-        new TerminalImmediate(imm_value), src_reg3);
+        new TerminalImmediate(imm_value), immTerm);
 
     Immediate* imm2 = new Immediate(
-        new TerminalImmediate(imm_value), dst_reg3);
+        new TerminalImmediate(imm_value), immTerm2);
 
     TS_ASSERT_THROWS_NOTHING(ins.addImmediate(imm1));
     TS_ASSERT_THROWS(ins.addImmediate(imm1), ObjectAlreadyExists);

@@ -43,25 +43,12 @@
  */
 DisassemblyImmediateAssignment::DisassemblyImmediateAssignment(
     SimValue value,
+    bool sign,
     DisassemblyElement* destination):
     DisassemblyInstructionSlot(),
-    value_(value), destination_(destination), hasValue_(true) {
+    value_(value), signed_(sign), destination_(destination), hasValue_(true) {
 
 }
-
-/**
- * The construtor.
- *
- * @param destination The destination register.
- */
-DisassemblyImmediateAssignment::DisassemblyImmediateAssignment(
-    DisassemblyElement* destination):
-    DisassemblyInstructionSlot(),
-    destination_(destination),
-    hasValue_(false) {
-
-}
-
 
 /**
  * The destructor.
@@ -80,8 +67,13 @@ std::string
 DisassemblyImmediateAssignment::toString() const {
     std::string disassembly =  "[" + destination_->toString();
     if (hasValue_) {
-	disassembly =
-	    disassembly + "=" + Conversion::toString(value_.uIntWordValue());
+        if (signed_) {
+            disassembly =
+                disassembly + "=" + Conversion::toString(value_.sIntWordValue());
+        } else {
+            disassembly =
+                disassembly + "=" + Conversion::toString(value_.uIntWordValue());
+        }
     }
     disassembly = disassembly + "]";
     
