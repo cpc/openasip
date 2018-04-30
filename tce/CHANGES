@@ -10,7 +10,9 @@ Usability features
 
 Notable bugfixes
 ----------------
-
+- Bugfixes related to handling of long immediate units with
+  sign extension. Values to these could break in case multiple
+  instruction templates could write to these.
 
 1.17       March 2018
 =====================
