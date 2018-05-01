@@ -148,7 +148,6 @@ ImmediateElement::setSignedWord(SignedWord sValue) {
     Word tempValue = aValue;
 
     bool negative = sValue < 0;
-    bool unsign = false;
     int neededBytes = 1;
     for (unsigned int i = sizeof(aValue) ; i > 1; i--) {
         int upBits = tempValue >> 24;
@@ -250,7 +249,7 @@ ImmediateElement::signedWord() const {
     unsigned int byteMask = ((1 << BYTE_BITWIDTH)-1);
     if ((retValue >> (BYTE_BITWIDTH * length() -1) & 1) &&
         length() < sizeof(SignedWord)) {
-        for (int i = length(); i < sizeof(SignedWord); i++) {
+        for (unsigned int i = length(); i < sizeof(SignedWord); i++) {
             retValue |= (byteMask << (BYTE_BITWIDTH*i));
         }
     }
