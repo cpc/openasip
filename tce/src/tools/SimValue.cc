@@ -763,7 +763,7 @@ SimValue::sIntWordValue() const {
     memcpy(cast.bytes, rawData_, BYTE_COUNT);
 #endif
 
-    if (bitWidth_ >= sizeof(SIntWord) * BYTE_BITWIDTH) {
+    if ((unsigned)bitWidth_ >= sizeof(SIntWord) * BYTE_BITWIDTH) {
         return cast.value;
     } else {
         return MathTools::fastSignExtendTo(cast.value, bitWidth_);

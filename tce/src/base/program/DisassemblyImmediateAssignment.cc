@@ -46,7 +46,7 @@ DisassemblyImmediateAssignment::DisassemblyImmediateAssignment(
     bool sign,
     DisassemblyElement* destination):
     DisassemblyInstructionSlot(),
-    value_(value), signed_(sign), destination_(destination), hasValue_(true) {
+    value_(value), destination_(destination), hasValue_(true), signed_(sign) {
 
 }
 
