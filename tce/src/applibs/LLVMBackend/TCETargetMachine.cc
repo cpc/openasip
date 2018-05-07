@@ -214,7 +214,11 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     // Set data layout with correct stack alignment.
     unsigned alignBits = getMaxMemoryAlignment() * 8;
     TCEString dataLayoutStr("");
-    dataLayoutStr += "E-p:32:32:32";
+    if (plugin_->isLittleEndian()) {
+        dataLayoutStr += "e-p:32:32:32";
+    } else {
+        dataLayoutStr += "E-p:32:32:32";
+    }
     dataLayoutStr += "-a0:0:" + Conversion::toString(alignBits);
     dataLayoutStr += "-i1:8:8";
     dataLayoutStr += "-i8:8:32";
@@ -224,11 +228,11 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     dataLayoutStr += "-f16:16:16";
     dataLayoutStr += "-f32:32:32";
     dataLayoutStr += "-f64:32:64";
-    dataLayoutStr += "-v64:32:64";
-    dataLayoutStr += "-v128:32:128";
-    dataLayoutStr += "-v256:32:256";
-    dataLayoutStr += "-v512:32:512";
-    dataLayoutStr += "-v1024:32:1024";
+    dataLayoutStr += "-v64:64:64";
+    dataLayoutStr += "-v128:128:128";
+    dataLayoutStr += "-v256:256:256";
+    dataLayoutStr += "-v512:512:512";
+    dataLayoutStr += "-v1024:1024:1024";
 
     DataLayout* dl = plugin_->getDataLayout();
     dl->reset(dataLayoutStr.c_str());
