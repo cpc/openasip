@@ -169,8 +169,8 @@ CopyingDelaySlotFiller::fillDelaySlots(
 
     // if we have conditional jump, find the predicate register
     if (jumpMove != NULL && !jumpMove->isUnconditional()) {
-        Guard& g = jumpMove->guard().guard();
-        RegisterGuard* rg = dynamic_cast<RegisterGuard*>(&g);
+        const Guard& g = jumpMove->guard().guard();
+        const RegisterGuard* rg = dynamic_cast<const RegisterGuard*>(&g);
         if (rg != NULL) {
             grFile = rg->registerFile();
             grIndex = rg->registerIndex();
@@ -869,6 +869,7 @@ CopyingDelaySlotFiller::collectMoves(
                 if (oldMove.destination().isGPR()) {
                     return false;
                 }
+
                 if (oldMove.isTriggering()) {
                     Operation& o = oldMove.destination().operation();
                     if (o.writesMemory() || o.hasSideEffects() ||

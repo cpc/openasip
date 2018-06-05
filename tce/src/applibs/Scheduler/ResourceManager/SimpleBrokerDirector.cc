@@ -648,7 +648,7 @@ SimpleBrokerDirector::executionPipelineBroker() const {
 SimpleBrokerDirector::OriginalResources::OriginalResources(
     TTAProgram::Terminal* src,
     TTAProgram::Terminal* dst,
-    TTAMachine::Bus*    bus,
+    const TTAMachine::Bus* bus,
     TTAProgram::MoveGuard* guard,
     bool isGuarded) {
 

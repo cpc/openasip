@@ -100,14 +100,14 @@ private:
         OriginalResources(
             TTAProgram::Terminal*,
             TTAProgram::Terminal*,
-            TTAMachine::Bus*,
+            const TTAMachine::Bus*,
             TTAProgram::MoveGuard*,
             bool);
         ~OriginalResources();
 
         TTAProgram::Terminal* src_;
         TTAProgram::Terminal* dst_;
-        TTAMachine::Bus*    bus_;
+        const TTAMachine::Bus* bus_;
         TTAProgram::MoveGuard* guard_;
         bool isGuarded_;
     };

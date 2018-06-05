@@ -1359,7 +1359,7 @@ ControlFlowGraph::statistics() {
  * @return node where control falls thru from given node or NULL if not exist.
  */
 BasicBlockNode*
-ControlFlowGraph::fallThruSuccessor(BasicBlockNode& bbn) {
+ControlFlowGraph::fallThruSuccessor(const BasicBlockNode& bbn) {
     if (bbn.isExitBB()) {
         return NULL;
     }
@@ -1380,7 +1380,7 @@ ControlFlowGraph::fallThruSuccessor(BasicBlockNode& bbn) {
  * @param bbn bbn to check for fall-thru predecessors
  * @return if control can fall-thru to this BB.
  */
-bool ControlFlowGraph::hasFallThruPredecessor(BasicBlockNode& bbn) {
+bool ControlFlowGraph::hasFallThruPredecessor(const BasicBlockNode& bbn) {
     EdgeSet iEdges = inEdges(bbn);
     for (EdgeSet::iterator i = iEdges.begin(); i != iEdges.end(); i++) {
         if ((*i)->isFallThroughEdge() || (*i)->isCallPassEdge()) {

@@ -1132,16 +1132,16 @@ ProgramWriter::createCodeSection(
                         tpefMove->setGuarded(false);
                     } else {
 
-                        Guard *guard = &progMove.guard().guard();
+                        const Guard *guard = &progMove.guard().guard();
 
                         tpefMove->setGuarded(true);
 
                         tpefMove->setGuardInverted(guard->isInverted());
 
-                        PortGuard *portGuard = 
-                            dynamic_cast<PortGuard*>(guard);
-                        RegisterGuard *registerGuard = 
-                            dynamic_cast<RegisterGuard*>(guard);
+                        const PortGuard *portGuard =
+                            dynamic_cast<const PortGuard*>(guard);
+                        const RegisterGuard *registerGuard =
+                            dynamic_cast<const RegisterGuard*>(guard);
 
                         if (portGuard != NULL) {
                             tpefMove->setGuardType(MoveElement::MF_UNIT);

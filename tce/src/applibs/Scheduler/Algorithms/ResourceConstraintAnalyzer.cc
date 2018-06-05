@@ -517,10 +517,10 @@ ResourceConstraintAnalyzer::analyzeRegisterAntideps(
             if (edge.dependenceType() == DataDependenceEdge::DEP_WAR) {
                 if (tail.move().source().isGPR()) {
                     foundCounts[tail.move().source().registerFile().width()]++;
-                } else if (dynamic_cast<TTAMachine::RegisterGuard*>(
+                } else if (dynamic_cast<const TTAMachine::RegisterGuard*>(
                                &tail.move().guard().guard())) {
-                    TTAMachine::RegisterGuard* g = 
-                        dynamic_cast<TTAMachine::RegisterGuard*>(
+                    const TTAMachine::RegisterGuard* g =
+                        dynamic_cast<const TTAMachine::RegisterGuard*>(
                             &tail.move().guard().guard());
                     foundCounts[g->registerFile()->width()]++;
                 } else {

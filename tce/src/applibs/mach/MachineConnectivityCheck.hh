@@ -69,7 +69,7 @@ public:
     static bool isConnected(
         const TTAMachine::Port& sourcePort,
         const TTAMachine::Port& destinationPort,
-        TTAMachine::Guard* guard = NULL);
+        const TTAMachine::Guard* guard = NULL);
 
     static bool isConnected(
         const TTAMachine::BaseRegisterFile& sourceRF,
@@ -78,7 +78,7 @@ public:
     static bool isConnected(
         const TTAMachine::BaseRegisterFile& sourceRF,
         const TTAMachine::BaseRegisterFile& destRF,
-        TTAMachine::Guard* guard = NULL);
+        const TTAMachine::Guard* guard = NULL);
 
     static bool isConnectedWithBothGuards(
         const TTAMachine::BaseRegisterFile& sourceRF,
@@ -96,7 +96,7 @@ public:
     static bool isConnected(
         std::set<const TTAMachine::Port*> sourcePorts,
         std::set<const TTAMachine::Port*> destinationPorts,
-        TTAMachine::Guard* guard = NULL);
+        const TTAMachine::Guard* guard = NULL);
 
     static bool canWriteAllImmediates(TTAMachine::Port& destPort);
 
@@ -127,23 +127,23 @@ public:
     static bool toRfConnected(
         const TTAMachine::RegisterFile& brf);
 
-    static std::set<TTAMachine::Bus*> connectedSourceBuses(
+    static std::set<const TTAMachine::Bus*> connectedSourceBuses(
         const TTAMachine::Port& port);
 
-    static std::set<TTAMachine::Bus*> connectedDestinationBuses(
+    static std::set<const TTAMachine::Bus*> connectedDestinationBuses(
         const TTAMachine::Port& port);
 
     static void appendConnectedSourceBuses(
-        const TTAMachine::Port& port, std::set<TTAMachine::Bus*>& buses);
+        const TTAMachine::Port& port, std::set<const TTAMachine::Bus*>& buses);
 
     static void appendConnectedDestinationBuses(
-        const TTAMachine::Port& port, std::set<TTAMachine::Bus*>& buses);
+        const TTAMachine::Port& port, std::set<const TTAMachine::Bus*>& buses);
 
     static void appendConnectedSourceBuses(
-        const TTAMachine::Unit& unit, std::set<TTAMachine::Bus*>& buses);
+        const TTAMachine::Unit& unit, std::set<const TTAMachine::Bus*>& buses);
 
     static void appendConnectedDestinationBuses(
-        const TTAMachine::Unit& unit, std::set<TTAMachine::Bus*>& buses);
+        const TTAMachine::Unit& unit, std::set<const TTAMachine::Bus*>& buses);
 
     static std::vector<TTAMachine::RegisterFile*> tempRegisterFiles(
         const TTAMachine::Machine& machine);

@@ -56,10 +56,10 @@ public:
     Move(
         Terminal* src,
         Terminal* dst,
-        TTAMachine::Bus& bus,
+        const TTAMachine::Bus& bus,
         MoveGuard* guard);
     Move(
-        Terminal* src, Terminal* dst, TTAMachine::Bus& bus);
+        Terminal* src, Terminal* dst, const TTAMachine::Bus& bus);
     ~Move();
 
     Instruction& parent() const;
@@ -80,8 +80,8 @@ public:
     void setDestination(Terminal* dst);
     MoveGuard& guard() const;
     void setGuard(MoveGuard* guard);
-    TTAMachine::Bus& bus() const;
-    void setBus(TTAMachine::Bus& bus);
+    const TTAMachine::Bus& bus() const;
+    void setBus(const TTAMachine::Bus& bus);
     TTAMachine::Socket& destinationSocket() const;
     TTAMachine::Socket& sourceSocket() const;
     int guardLatency() const;
@@ -107,7 +107,7 @@ private:
     /// The destination of the move.
     Terminal* dst_;
     /// The bus where the transport is carried.
-    TTAMachine::Bus* bus_;
+    const TTAMachine::Bus* bus_;
     /// The boolean expression that predicates the move.
     MoveGuard* guard_;
 };

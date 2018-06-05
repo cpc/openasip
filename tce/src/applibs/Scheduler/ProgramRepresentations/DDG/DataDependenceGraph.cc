@@ -812,9 +812,9 @@ DataDependenceGraph::lastRegisterCycle(
         
         // check guard.
         if (!move.isUnconditional()) {
-            TTAMachine::Guard& guard = move.guard().guard();
-            TTAMachine::RegisterGuard* rg = 
-                dynamic_cast<TTAMachine::RegisterGuard*>(&guard);
+            const TTAMachine::Guard& guard = move.guard().guard();
+            const TTAMachine::RegisterGuard* rg =
+                dynamic_cast<const TTAMachine::RegisterGuard*>(&guard);
             if (rg != NULL) {
                 if (rg->registerFile() == &rf && 
                     rg->registerIndex() == registerIndex) {
@@ -911,9 +911,9 @@ DataDependenceGraph::firstRegisterCycle(
         
         // check guard.
         if (!move.isUnconditional()) {
-            TTAMachine::Guard& guard = move.guard().guard();
-            TTAMachine::RegisterGuard* rg = 
-                dynamic_cast<TTAMachine::RegisterGuard*>(&guard);
+            const TTAMachine::Guard& guard = move.guard().guard();
+            const TTAMachine::RegisterGuard* rg =
+                dynamic_cast<const TTAMachine::RegisterGuard*>(&guard);
             if (rg != NULL) {
                 if (rg->registerFile() == &rf && 
                     rg->registerIndex() == registerIndex) {
@@ -1012,9 +1012,9 @@ DataDependenceGraph::lastScheduledRegisterGuardReads(
             continue;
         }
 
-        TTAMachine::Guard* guard = &move.guard().guard();
-        TTAMachine::RegisterGuard* rg = 
-            dynamic_cast<TTAMachine::RegisterGuard*>(guard);
+        const TTAMachine::Guard* guard = &move.guard().guard();
+        const TTAMachine::RegisterGuard* rg =
+            dynamic_cast<const TTAMachine::RegisterGuard*>(guard);
         if (rg == NULL) {
             continue;
         }
@@ -1269,10 +1269,10 @@ DataDependenceGraph::sanityCheck() const {
 
             // tail writes a reg the head is guarded with 
             if (!head.move().isUnconditional() && tailDestination.isGPR() && 
-                dynamic_cast<TTAMachine::RegisterGuard*>(
+                dynamic_cast<const TTAMachine::RegisterGuard*>(
                     &head.move().guard().guard()) != NULL) {
-                TTAMachine::RegisterGuard& g = 
-                    dynamic_cast<TTAMachine::RegisterGuard&>(
+                const TTAMachine::RegisterGuard& g =
+                    dynamic_cast<const TTAMachine::RegisterGuard&>(
                         head.move().guard().guard());
                 if (g.registerFile() == &tailDestination.registerFile())
                     break; // TODO: check also the register index
@@ -3152,9 +3152,9 @@ DataDependenceGraph::fixInterBBAntiEdges(
             }
             // guard uses
             if (!move.isUnconditional()) {
-                TTAMachine::Guard& g = move.guard().guard();
-                TTAMachine::RegisterGuard* rg = 
-                    dynamic_cast<TTAMachine::RegisterGuard*>(&g);
+                const TTAMachine::Guard& g = move.guard().guard();
+                const TTAMachine::RegisterGuard* rg =
+                    dynamic_cast<const TTAMachine::RegisterGuard*>(&g);
                 if (rg != NULL) {
                     TCEString reg1 = DisassemblyRegister::registerName(
                         *rg->registerFile(), rg->registerIndex());

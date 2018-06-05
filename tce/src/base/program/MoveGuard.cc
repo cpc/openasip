@@ -46,7 +46,7 @@ namespace TTAProgram {
 
  * @param guard The guard.
  */
-MoveGuard::MoveGuard(TTAMachine::Guard& guard):
+MoveGuard::MoveGuard(const TTAMachine::Guard& guard):
     guard_(&guard) {
 }
 
@@ -82,7 +82,7 @@ MoveGuard::isInverted() const {
  *
  * @return The guard object.
  */
-Guard&
+const Guard&
 MoveGuard::guard() const {
     return *guard_;
 }

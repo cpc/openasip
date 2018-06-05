@@ -354,9 +354,9 @@ SequentialScheduler::scheduleMove(int earliestCycle, MoveNode& moveNode) {
         int guardLatency =
             targetMachine_->controlUnit()->globalGuardLatency();
 
-        TTAMachine::Guard& guard = moveNode.move().guard().guard();
-        TTAMachine::RegisterGuard* rg =
-            dynamic_cast<TTAMachine::RegisterGuard*>(&guard);
+        const TTAMachine::Guard& guard = moveNode.move().guard().guard();
+        const TTAMachine::RegisterGuard* rg =
+            dynamic_cast<const TTAMachine::RegisterGuard*>(&guard);
         if (rg != NULL) {
             guardLatency += rg->registerFile()->guardLatency();
         }

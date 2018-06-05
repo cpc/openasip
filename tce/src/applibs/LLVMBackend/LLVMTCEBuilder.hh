@@ -182,7 +182,7 @@ namespace llvm {
         TTAProgram::Move* createMove(
             TTAProgram::Terminal* src,
             TTAProgram::Terminal* dst,
-            TTAMachine::Bus &bus,
+            const TTAMachine::Bus &bus,
             TTAProgram::MoveGuard *guard = NULL);
 
         void emitConstantPool(const llvm::MachineConstantPool& cp);

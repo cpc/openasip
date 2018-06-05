@@ -78,7 +78,7 @@ TCEInstrInfo:: ~TCEInstrInfo() {
  *
  * If the MBB already has an unconditional branch at end, does nothing.
  * 
- * @param mbb where to inser the branch instructions.
+ * @param mbb where to insert the branch instructions.
  * @param tbb jump target basic block
  * @param fbb false condition jump target, if insertin 2 branches
  *

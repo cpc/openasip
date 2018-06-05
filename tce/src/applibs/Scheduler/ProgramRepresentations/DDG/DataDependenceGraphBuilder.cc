@@ -651,8 +651,8 @@ void
 DataDependenceGraphBuilder::processGuard(MoveNode& moveNode) {
 
     // new code
-    Guard& g = moveNode.move().guard().guard();
-    RegisterGuard* rg = dynamic_cast<RegisterGuard*>(&g);
+    const Guard& g = moveNode.move().guard().guard();
+    const RegisterGuard* rg = dynamic_cast<const RegisterGuard*>(&g);
     if (rg != NULL) {
         TCEString regName = rg->registerFile()->name() + '.' +
             Conversion::toString(rg->registerIndex());

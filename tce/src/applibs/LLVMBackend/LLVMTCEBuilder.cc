@@ -3567,7 +3567,7 @@ TTAProgram::Move*
 LLVMTCEBuilder::createMove(
     TTAProgram::Terminal* src,
     TTAProgram::Terminal* dst,
-    TTAMachine::Bus& bus,
+    const TTAMachine::Bus& bus,
     TTAProgram::MoveGuard* guard) {
 
     TTAProgram::Move* move = NULL;

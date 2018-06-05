@@ -297,16 +297,14 @@ MachineInfo::canEncodeImmediateInteger(
             // the extension mode is meaningless -> can interpret it as one wishes 
             // here.
             size_t maxBusW = 0;
-            std::set<TTAMachine::Bus*> buses;
+            std::set<const TTAMachine::Bus*> buses;
             MachineConnectivityCheck::appendConnectedDestinationBuses(
                 iu, buses);
-            for (std::set<TTAMachine::Bus*>::const_iterator ci = buses.begin();
-                 ci != buses.end(); ++ci) {
-                const Bus* bus = *ci;
+            for (auto bus: buses) {
                 if (static_cast<size_t>(bus->width()) > maxBusW)
                     maxBusW = bus->width();
             }
-                    
+
             if (supportedW == maxBusW &&
                 requiredBitsSigned < requiredBits)
                 requiredBits = requiredBitsSigned;

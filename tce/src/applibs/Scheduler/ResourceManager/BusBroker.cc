@@ -461,7 +461,7 @@ BusBroker::unassign(MoveNode& node) {
 
     if (MapTools::containsKey(assignedResources_, &node)) {
         Move& move = const_cast<MoveNode&>(node).move();
-        Bus& bus = move.bus();
+        const Bus& bus = move.bus();
         SchedulingResource* res = resourceOf(bus);
         BusResource& busRes = static_cast<BusResource&>(*res);
         busRes.unassign(node.cycle(),node);
@@ -536,7 +536,7 @@ BusBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
 bool
 BusBroker::isInUse(int cycle, const MoveNode& node) const {
     cycle = instructionIndex(cycle);
-    Bus& bus = const_cast<MoveNode&>(node).move().bus();
+    const Bus& bus = const_cast<MoveNode&>(node).move().bus();
     if (!hasResourceOf(bus)) {
         return false;
     }

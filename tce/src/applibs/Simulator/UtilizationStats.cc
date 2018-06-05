@@ -131,9 +131,11 @@ UtilizationStats::calculateForInstruction(
         // guarded moves
         if (!move.isUnconditional()) {
             // RF reads
-            if (dynamic_cast<TTAMachine::RegisterGuard*>(&move.guard().guard())) {
+            if (dynamic_cast<const TTAMachine::RegisterGuard*>(
+                    &move.guard().guard())) {
                 const TTAMachine::RegisterGuard& moveGuard =
-                    dynamic_cast<TTAMachine::RegisterGuard&>(move.guard().guard());
+                    dynamic_cast<const TTAMachine::RegisterGuard&>(
+                        move.guard().guard());
             
                 const std::string rfName = moveGuard.registerFile()->name();
                 const int regIndex = moveGuard.registerIndex();
@@ -143,9 +145,11 @@ UtilizationStats::calculateForInstruction(
                 guardRfAccesses_[rfName][regIndex].first =
                     guardRegisterReads(rfName, regIndex) + execCount;
             } else { // FU Port reads
-                if (dynamic_cast<TTAMachine::PortGuard*>(&move.guard().guard())) {
+                if (dynamic_cast<const TTAMachine::PortGuard*>(
+                        &move.guard().guard())) {
                     const TTAMachine::PortGuard& moveGuard =
-                    dynamic_cast<TTAMachine::PortGuard&>(move.guard().guard());
+                    dynamic_cast<const TTAMachine::PortGuard&>(
+                        move.guard().guard());
                     
                     const TTAMachine::FUPort& port = *moveGuard.port();
                     const std::string fuName = port.parentUnit()->name();

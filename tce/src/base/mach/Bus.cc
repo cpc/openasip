@@ -390,7 +390,7 @@ Bus::segmentCount() const {
  * Checks whether the bus has the given guard.
  */
 bool 
-Bus::hasGuard(Guard& guard) const {
+Bus::hasGuard(const Guard& guard) const {
     for (GuardTable::const_iterator iter = guards_.begin();
          iter != guards_.end(); iter++) {
         if ((*iter)->isEqual(guard)) {
