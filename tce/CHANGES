@@ -4,6 +4,8 @@
 Notable changes and features
 ----------------------------
 - Added hexadecimal output to PIG
+- Added HDB with register files and a basic ALU for Xilinx Series 7 devices.
+  Thanks to Guillermo Payá-Vayá for the contribution of the shifter.
 
 Usability features
 ----------------------------
