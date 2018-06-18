@@ -26,6 +26,9 @@ nobase_base_DATA = $(srcdir)/asic_130nm_1.5V.hdb \
                    $(srcdir)/stratixIII_vhdl/led_io/* \
                    $(srcdir)/stratixIII_vhdl/pushbutton/* \
                    $(srcdir)/stratixIII_vhdl/rtc/* \
-                   $(srcdir)/stratixIII_vhdl/switch/*
+                   $(srcdir)/stratixIII_vhdl/switch/* \
+                   $(srcdir)/almaif.hdb \
+                   $(srcdir)/almaif_vhdl/*
+
 
 EXTRA_DIST = ${nobase_base_DATA}
