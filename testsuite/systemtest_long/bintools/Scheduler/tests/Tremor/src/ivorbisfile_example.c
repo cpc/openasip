@@ -248,7 +248,8 @@ int main(void)
 		/* print 16bit samples */
 		i = 0;
 		for (; i < ret/2; ++i) {
-#if BYTE_ORDER==LITTLE_ENDIAN
+//#if BYTE_ORDER==LITTLE_ENDIAN
+#ifndef __BIG_ENDIAN__
 		    DPRINTF(("0x%02hhx ", pcmout[i*2]));
 		    DPRINTF(("0x%02hhx ", pcmout[i*2 + 1]));
 #else
@@ -282,8 +283,14 @@ int main(void)
 #ifdef __TCE_V1__
 	   int s = second;
 	   int f = first;
+#ifdef __BIG_ENDIAN__
             _TCE_OUTPUTDATA(s);
             _TCE_OUTPUTDATA(f);
+#else
+            _TCE_OUTPUTDATA(f);
+            _TCE_OUTPUTDATA(s);
+#endif
+
 #else
             WRITETO(outputdata.1, second);
             WRITETO(outputdata.1, first);
