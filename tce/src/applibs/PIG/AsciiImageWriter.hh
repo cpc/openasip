@@ -49,12 +49,17 @@ public:
 
     virtual void writeImage(std::ostream& stream) const;
 
+
 protected:
     const BitVector& bits() const;
     int rowLength() const;
     void
     writeSequence(std::ostream& stream, int length, bool padEnd = false) const
         throw (OutOfRange);
+
+    void
+    writeHexSequence(std::ostream& stream, int length, bool padEnd = false)
+        const throw (OutOfRange);
 
 private:
     /// The bits to be written.

@@ -35,7 +35,11 @@
 #include "tce_config.h"
 
 #include <llvm/Support/ErrorHandling.h>
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetFrameLowering.h>
+#else
+#include <llvm/CodeGen/TargetFrameLowering.h>
+#endif
 #include "TCERegisterInfo.hh"
 #include "TCEInstrInfo.hh"
 

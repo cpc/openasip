@@ -34,7 +34,12 @@
 #define TCE_INSTR_INFO_H
 
 #include <llvm/Support/ErrorHandling.h>
+#include "tce_config.h"
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetInstrInfo.h>
+#else
+#include <llvm/CodeGen/TargetInstrInfo.h>
+#endif
 #include "TCERegisterInfo.hh"
 
 #define GET_INSTRINFO_HEADER

@@ -44,9 +44,15 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include <llvm/Analysis/TargetTransformInfo.h>
 #include <llvm/Support/Debug.h>
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/CostTable.h>
 #include <llvm/Target/TargetLowering.h>
 #include <llvm/Target/TargetRegisterInfo.h>
+#else
+#include <llvm/CodeGen/CostTable.h>
+#include <llvm/CodeGen/TargetLowering.h>
+#include <llvm/CodeGen/TargetRegisterInfo.h>
+#endif
 
 using namespace llvm;
 

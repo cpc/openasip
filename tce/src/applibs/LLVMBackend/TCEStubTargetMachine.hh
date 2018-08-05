@@ -34,16 +34,24 @@
 
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Target/TargetMachine.h>
+#include "tce_config.h"
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetLowering.h>
+#else
+#include <llvm/CodeGen/TargetLowering.h>
+#endif
 // LLVM has function with parameter named as "PIC". Command line
 // option -DPIC messes up the compilation.
 #pragma push_macro("PIC")
 #undef PIC
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetLoweringObjectFile.h>
+#else
+#include <llvm/CodeGen/TargetLoweringObjectFile.h>
+#endif
 #include <llvm/CodeGen/TargetLoweringObjectFileImpl.h>
 #pragma pop_macro("PIC")
 
-#include "tce_config.h"
 #include "TCEStubSubTarget.hh"
 
 // initializes TCE target to LLVM
@@ -112,16 +120,26 @@ namespace llvm {
             const TargetOptions &Options,
             Reloc::Model RM, CodeModel::Model CM,
             CodeGenOpt::Level OL);
-#else
+#elif LLVM_OLDER_THAN_6_0
         TCEStubTargetMachine(
             const Target &T, const Triple& TT,
             const std::string& CPU, const std::string& FS,
             const TargetOptions &Options,
             Optional<Reloc::Model> RM, CodeModel::Model CM,
             CodeGenOpt::Level OL);
+#else
+        TCEStubTargetMachine(
+            const Target &T, const Triple& TT,
+            const std::string& CPU, const std::string& FS,
+            const TargetOptions &Options,
+            Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
+            CodeGenOpt::Level OL, bool isLittle);
 #endif
-
+        // TODO: this is no longer virtual in llvm 6.0
+        // I wonder what this button does..
+#ifdef LLVM_OLDER_THAN_6_0
         virtual TargetIRAnalysis getTargetIRAnalysis() override;
+#endif
         virtual ~TCEStubTargetMachine();
 
         //const TargetSubtargetInfo *getSubtargetImpl() const {

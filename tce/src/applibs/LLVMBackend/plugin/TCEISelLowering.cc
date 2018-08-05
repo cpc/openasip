@@ -38,7 +38,11 @@
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Intrinsics.h>
 #include <llvm/IR/CallingConv.h>
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetLowering.h>
+#else
+#include <llvm/CodeGen/TargetLowering.h>
+#endif
 #include <llvm/CodeGen/CallingConvLower.h>
 #include <llvm/CodeGen/SelectionDAG.h>
 #include <llvm/CodeGen/MachineFrameInfo.h>
@@ -46,7 +50,11 @@
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/Support/raw_ostream.h>
 
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetLoweringObjectFile.h>
+#else
+#include <llvm/CodeGen/TargetLoweringObjectFile.h>
+#endif
 
 //#include <llvm/Config/config.h>
 

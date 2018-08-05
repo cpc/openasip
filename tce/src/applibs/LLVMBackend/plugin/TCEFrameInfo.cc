@@ -216,7 +216,11 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
 
     if (hasFP(mf)) {
         // only need to save old FP if this function may return
+#ifdef LLVM_OLDER_THAN_6_0
         if (!mf.getFunction()->doesNotReturn()) {
+#else
+        if (!mf.getFunction().doesNotReturn()) {
+#endif
             BuildMI(mbb, ii, dl, tii_.get(TCE::SUBrri), TCE::SP)
                 .addReg(TCE::SP)
                 .addImm(stackAlignment_);

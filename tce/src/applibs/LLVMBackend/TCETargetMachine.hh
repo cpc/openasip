@@ -39,10 +39,14 @@
 
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
+#ifdef LLVM_OLDER_THAN_6_0
 #include "llvm/Target/TargetLowering.h"
-#include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetFrameLowering.h"
-
+#else
+#include "llvm/CodeGen/TargetLowering.h"
+#include "llvm/CodeGen/TargetFrameLowering.h"
+#endif
+#include "llvm/Target/TargetMachine.h"
 #ifdef LLVM_OLDER_THAN_3_9
 #include "llvm/Target/TargetSelectionDAGInfo.h"
 #else
@@ -135,13 +139,20 @@ plugin_(plugin) {
             const std::string& CPU, const std::string &FS, 
             const TargetOptions &Options,
             Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL);
-#else
+#elif LLVM_OLDER_THAN_6_0
         TCETargetMachine(
             const Target &T, const Triple& TTriple,
             const std::string& CPU, const std::string &FS,
             const TargetOptions &Options,
             Optional<Reloc::Model> RM, CodeModel::Model CM,
             CodeGenOpt::Level OL);
+#else
+        TCETargetMachine(
+            const Target &T, const Triple& TTriple,
+            const std::string& CPU, const std::string &FS,
+            const TargetOptions &Options,
+            Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
+            CodeGenOpt::Level OL, bool isLittle);
 #endif
         virtual ~TCETargetMachine();
 

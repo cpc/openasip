@@ -35,7 +35,11 @@
 
 #include <iosfwd>
 
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetInstrInfo.h>
+#else
+#include <llvm/CodeGen/TargetInstrInfo.h>
+#endif
 
 /**
  * Instruction selector and code printer creator declarations.

@@ -28,9 +28,9 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2008-2009 (otto.esko-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2009 (pekka.jaaskelainen-no.spam-tut.fi)
- * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Pekka J√§√§skel√§inen 2009 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Otto Esko 2010(otto.esko-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2011
  * @note rating: red
  */
 
@@ -46,6 +46,7 @@
 #include "VhdlImageWriter.hh"
 #include "VhdlProgramImageWriter.hh"
 #include "CoeImageWriter.hh"
+#include "HexImageWriter.hh"
 #include "InstructionBitVector.hh"
 #include "CodeCompressorPlugin.hh"
 #include "DefaultCompressor.hh"
@@ -230,7 +231,7 @@ ProgramImageGenerator::generateProgramImage(
 
         Application::logStream()
             << (boost::format(
-                    "number of NOP moves: %d (%.1f%% of total move slots)\n")         
+                    "number of NOP moves: %d (%.1f%% of total move slots)\n")
                 % NOPCount % (float(NOPCount) * 100 / maxMoves)).str();
 
 
@@ -243,13 +244,14 @@ ProgramImageGenerator::generateProgramImage(
 
         for (int m = 0; m < prog.moveCount(); ++m) {
             const TTAProgram::Move& move = prog.moveAt(m);
+            const auto value = move.source().value().sIntWordValue();
             if (move.source().isImmediate()) {
                 ++totalImmediates;
-                allImmediates.insert(move.source().value().sIntWordValue());
+                allImmediates.insert(value);
                 if (move.source().isAddress()) {
-                        dataAddresses.insert(move.source().value().sIntWordValue());
+                    dataAddresses.insert(value);
                 } else if (move.source().isInstructionAddress()) {
-                    programAddresses.insert(move.source().value().sIntWordValue());
+                    programAddresses.insert(value);
                 }
             }
         }
@@ -259,13 +261,14 @@ ProgramImageGenerator::generateProgramImage(
             const TTAProgram::Instruction& instruction = **i;
             for (int imm = 0; imm < instruction.immediateCount(); ++imm) {
                 const Immediate& immediate = instruction.immediate(imm);
+                const auto value = immediate.value().value().sIntWordValue();
                 ++totalImmediates;
                 ++totalLongImmediates;
-                allImmediates.insert(immediate.value().value().sIntWordValue());
+                allImmediates.insert(value);
                 if (immediate.value().isAddress()) {
-                    dataAddresses.insert(immediate.value().value().sIntWordValue());
+                    dataAddresses.insert(value);
                 } else if (immediate.value().isInstructionAddress()) {
-                    programAddresses.insert(immediate.value().value().sIntWordValue());
+                    programAddresses.insert(value);
                 }
             }
                 
@@ -364,6 +367,8 @@ ProgramImageGenerator::generateProgramImage(
         writer = new VhdlProgramImageWriter(*programBits, entityName_);
     } else if (format == COE) {
         writer = new CoeImageWriter(*programBits, mau);
+    } else if (format == HEX) {
+        writer = new HexImageWriter(*programBits, mau);
     } else {
         assert(false);
     }
@@ -490,6 +495,8 @@ ProgramImageGenerator::generateDataImage(
             dataBits, as->width() * mausPerLine, entityName_);
     } else if (format == COE) {
         writer = new CoeImageWriter(dataBits, as->width() * mausPerLine);
+    } else if (format == HEX) {
+        writer = new HexImageWriter(dataBits, as->width() * mausPerLine);
     } else {
         assert(false);
     }
@@ -498,9 +505,11 @@ ProgramImageGenerator::generateDataImage(
     delete writer;
 }
 
-void ProgramImageGenerator::writeDataSection(TPEF::Binary& program, BitVector& dataBits,
-                      const std::string& addressSpace,
-                      Section& section) {
+void
+ProgramImageGenerator::writeDataSection(
+    TPEF::Binary& program, BitVector& dataBits,
+    const std::string& addressSpace,
+    Section& section) {
     
     // get the data section
     StringSection* stringSection = program.strings();

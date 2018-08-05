@@ -153,7 +153,11 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
     TTAMachine::AddressSpace* as = mach_->controlUnit()->addressSpace();
     
     SmallString<256> Buffer;
+#ifdef LLVM_OLDER_THAN_6_0
     mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
+#else
+    mang_->getNameWithPrefix(Buffer, &mf.getFunction(), false);
+#endif
     TCEString fnName(Buffer.c_str());
 
     TTAProgram::Procedure* procedure = 
@@ -232,7 +236,11 @@ ControlFlowGraph*
 LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
 
     SmallString<256> Buffer;
+#ifdef LLVM_OLDER_THAN_6_0
     mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
+#else
+    mang_->getNameWithPrefix(Buffer, &mf.getFunction(), false);
+#endif
     TCEString fnName(Buffer.c_str());
 
     ControlFlowGraph* cfg = new ControlFlowGraph(fnName, prog_);
@@ -884,9 +892,13 @@ LLVMTCEIRBuilder::operationName(const MachineInstr& mi) const {
         return targetMachine().getSubtargetImpl(
             *mi.getParent()->getParent()->getFunction())->getInstrInfo()->
             getName(mi.getOpcode());
-#else
+#elif defined LLVM_OLDER_THAN_6_0
         return targetMachine().getSubtargetImpl(
             *mi.getParent()->getParent()->getFunction())->getInstrInfo()->
+            getName(mi.getOpcode()).str();
+#else
+        return targetMachine().getSubtargetImpl(
+            mi.getParent()->getParent()->getFunction())->getInstrInfo()->
             getName(mi.getOpcode()).str();
 #endif
     }

@@ -3,7 +3,7 @@
 
 # Mandatory macro. Set the name of the package and the version number.
 # Email address is for bug reporting.
-AC_INIT([tce],[1.17-pre],[tce-users@cs.tut.fi])
+AC_INIT([tce],[1.18-pre],[tce-users@cs.tut.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
@@ -29,7 +29,8 @@ AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 # TCE 1.15 = 15:0:0
 # TCE 1.16 = 16:0:0
 # TCE 1.17 = 17:0:0
-AC_SUBST([LIB_VERSION], ["17:0:0"])
+# TCE 1.18 = 18:0:0
+AC_SUBST([LIB_VERSION], ["18:0:0"])
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
@@ -438,7 +439,7 @@ AC_ARG_WITH(llvm,
  llvmConf="$llvmDir/bin/llvm-config"
 ],
 [llvmDir=""
-AC_PATH_PROGS([LLVM_CONFIG], [llvm-config llvm-config-3.5 llvm-config-3.4 llvm-config-3.3 llvm-config-3.2 ])
+AC_PATH_PROGS([LLVM_CONFIG], [llvm-config llvm-config-6.0 llvm-config-5.0 llvm-config-3.5 llvm-config-3.4 llvm-config-3.3 llvm-config-3.2 ])
 llvmConf=$LLVM_CONFIG
 ]
 )
@@ -453,10 +454,11 @@ else
 AC_CHECK_FILE($llvmConf, 
 [
 LLVM_VERSION=$($llvmConf --version)
+LLVM_MAJOR_VERSION=$($llvmConf --version | cut -d '.' -f 1-2)
 LLVM_LIBDIR=$($llvmConf --libdir)
 LLVM_BINDIR=$($llvmConf --bindir)
-LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
-LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+LLVM_SHARED_LIB=-lLLVM-$LLVM_MAJOR_VERSION
+LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_MAJOR_VERSION$LIBRARY_SUFFIX
 LLVM_CPPFLAGS=$($llvmConf --cppflags)
 LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
 LLVM_INCLUDEDIR=$($llvmConf --includedir)
@@ -510,6 +512,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_3_9=1
      LLVM_OLDER_THAN_4_0=1
      LLVM_OLDER_THAN_5_0=1
+     LLVM_OLDER_THAN_6_0=1
    ;;
      3.6*)
      AC_DEFINE([LLVM_3_6], [], "Using LLVM 3.6")
@@ -518,6 +521,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_3_9=1
      LLVM_OLDER_THAN_4_0=1
      LLVM_OLDER_THAN_5_0=1
+     LLVM_OLDER_THAN_6_0=1
    ;;
      3.7*)
      AC_DEFINE([LLVM_3_7], [], "Using LLVM 3.7")
@@ -525,25 +529,48 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_3_9=1
      LLVM_OLDER_THAN_4_0=1
      LLVM_OLDER_THAN_5_0=1
+     LLVM_OLDER_THAN_6_0=1
    ;;
      3.8*)
      AC_DEFINE([LLVM_3_8], [], "Using LLVM 3.8")
      LLVM_OLDER_THAN_3_9=1
      LLVM_OLDER_THAN_4_0=1
      LLVM_OLDER_THAN_5_0=1
+     LLVM_OLDER_THAN_6_0=1
    ;;
      3.9*)
      AC_DEFINE([LLVM_3_9], [], "Using LLVM 3.9")
      LLVM_OLDER_THAN_4_0=1
      LLVM_OLDER_THAN_5_0=1
+     LLVM_OLDER_THAN_6_0=1
    ;;
      4.0*)
      AC_DEFINE([LLVM_4_0], [], "Using LLVM 4.0")
      LLVM_OLDER_THAN_5_0=1
+     LLVM_OLDER_THAN_6_0=1
+   ;;
+     5.0.0svn*)
+     AC_DEFINE([LLVM_5_0], [], "Using LLVM 5.0svn")
+     LLVM_VERSION=5.0
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+     LLVM_OLDER_THAN_6_0=1
    ;;
      5.0*)
      AC_DEFINE([LLVM_5_0], [], "Using LLVM 5.0")
-     LLVM_VERSION=5.0
+     LLVM_OLDER_THAN_6_0=1
+   ;;
+     6.0.0svn*)
+     AC_DEFINE([LLVM_6_0], [], "Using LLVM 6.0svn")
+     LLVM_VERSION=6.0
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+   ;;
+     6.0*)
+     AC_DEFINE([LLVM_6_0], [], "Using LLVM 6.0")
+     LLVM_VERSION=6.0
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
@@ -593,8 +620,10 @@ then
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_5_0, 1, [LLVM version is older than 5.0])
 fi
 
-AM_CONDITIONAL([LLVM_OLDER_THAN_3_7], test ! -z $LLVM_OLDER_THAN_3_7)
-AM_CONDITIONAL([LLVM_3_7_OR_NEWER], test -z $LLVM_OLDER_THAN_3_7)
+if  test "x$LLVM_OLDER_THAN_6_0" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_6_0, 1, [LLVM version is older than 6.0])
+fi
 
 if test ! -e $LLVM_SHARED_LIB_FILE;
 then
@@ -1211,35 +1240,6 @@ AC_CHECK_SIZEOF(char)
 # If words in the host machine are stored with the most significant byte
 # first, define WORDS_BIGENDIAN
 AC_C_BIGENDIAN
-
-# Define the target TTA processor byte order (endianess).
-# --enable-bigendian=yes : the target machine stores the most significant
-# byte of a word at the lowest address
-# --enable-bigendian=no : the target machine stores the least significant
-# byte of a word at the lowest address
-# Default target machine byte order is most significant byte first.
-AC_ARG_ENABLE(bigendian,
-[AS_HELP_STRING([--enable-bigendian],[target machine uses bigendian])],
-[ case "${enableval}" in
-  yes) 
-    bigendian=true 
-    ;;
-  no) 
-    bigendian=false 
-    ;;
-  *) 
-    AC_MSG_ERROR(bad value ${enableval for --enable-bigendian}) 
-    ;;
-  esac], 
-  [bigendian=true]
-)
-
-# If target machine is big-endian, define TARGET_WORDS_BIGENDIAN.
-if test x"$bigendian" = xtrue; then
-   AC_DEFINE(TARGET_WORDS_BIGENDIAN, 1, 
-   [defines whether the target processor has big-endian byte order])
-fi
-
 
 #################################################################
 #

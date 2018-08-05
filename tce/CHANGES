@@ -1,14 +1,36 @@
-1.17       unreleased
+1.18       Unreleased
 =====================
 
 Notable changes and features
 ----------------------------
+- Added hexadecimal output to PIG
+- Added HDB with register files and a basic ALU optimized for Xilinx Series 7
+  devices. Thanks to Stephan Nolting and Guillermo Payá-Vayá / IMS, Leibniz
+  Univ. Hannover for the contribution of the shifter.
 
 Usability features
 ----------------------------
 
 Notable bugfixes
 ----------------
+- Bugfixes related to handling of long immediate units with
+  sign extension. Values to these could break in case multiple
+  instruction templates could write to these.
+
+1.17       March 2018
+=====================
+
+Notable changes and features
+----------------------------
+- Support for LLVM 6.0.
+
+Usability features
+------------------
+- Sane defaults for OSEd GUI text editor.
+
+Misc.
+-----
+- Clarified the TCE tour text.
 
 1.16   September 2017
 =====================

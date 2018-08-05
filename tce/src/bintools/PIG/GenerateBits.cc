@@ -28,9 +28,9 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2009 (otto.esko-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2009 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka JÃ¤Ã¤skelÃ¤inen 2009 (pekka.jaaskelainen-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2011
+ * @author Pekka JÃ¤Ã¤skelÃ¤inen 2011
  * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
@@ -388,10 +388,10 @@ int main(int argc, char* argv[]) {
     if (adfFile == "" || 
         (piFormat != "" && piFormat != "binary" && piFormat != "ascii" &&
          piFormat != "array" && piFormat != "mif" && piFormat != "vhdl" &&
-         piFormat != "coe") || 
+         piFormat != "coe" && piFormat != "hex") ||
         (diFormat != "" && diFormat != "binary" &&
          diFormat != "ascii" && diFormat != "array" && diFormat != "mif" &&
-         diFormat != "vhdl" && diFormat != "coe")) {
+         diFormat != "vhdl" && diFormat != "coe" && diFormat != "hex")) {
         options->printHelp();
         return EXIT_FAILURE;
     }
@@ -467,12 +467,16 @@ int main(int argc, char* argv[]) {
                 imageGenerator.generateProgramImage(
                     tpefFile, piStream, ProgramImageGenerator::COE,
                     imemMAUsPerLine);
+            } else if (piFormat == "hex") {
+                imageGenerator.generateProgramImage(
+                    tpefFile, piStream, ProgramImageGenerator::HEX,
+                    imemMAUsPerLine);
             } else {
                 assert(piFormat == "ascii" || piFormat == "");
                 imageGenerator.generateProgramImage(
                     tpefFile, piStream, ProgramImageGenerator::ASCII,
                     imemMAUsPerLine);
-            }         
+            }
             piStream.close();
 
             if (piFormat == "ascii" || piFormat == "") {
@@ -480,43 +484,48 @@ int main(int argc, char* argv[]) {
             }
 
             if (generateDataImages) {
-                Machine::AddressSpaceNavigator asNav = 
+                Machine::AddressSpaceNavigator asNav =
                     mach->addressSpaceNavigator();
                 for (int i = 0; i < asNav.count(); i++) {
                     AddressSpace* as = asNav.item(i);
                     if (!isInstructionMemory(*as)) {
-                        string fileName = 
+                        string fileName =
                             programDataImageFile(
                                 tpefFile, diFormat, as->name());
                         ofstream stream(fileName.c_str());
                         if (diFormat == "binary") {
                             imageGenerator.generateDataImage(
-                                tpefFile, *program, as->name(), stream, 
+                                tpefFile, *program, as->name(), stream,
                                 ProgramImageGenerator::BINARY, 1, true);
                         } else if (diFormat == "array") {
                             imageGenerator.generateDataImage(
-                                tpefFile, *program, as->name(), stream, 
+                                tpefFile, *program, as->name(), stream,
                                 ProgramImageGenerator::ARRAY,
                                 dmemMAUsPerLine, true);
                         } else if (diFormat == "mif") {
                             imageGenerator.generateDataImage(
-                                tpefFile, *program, as->name(), stream, 
+                                tpefFile, *program, as->name(), stream,
                                 ProgramImageGenerator::MIF,
                                 dmemMAUsPerLine, true);
                         } else if (diFormat == "vhdl") {
                             imageGenerator.generateDataImage(
-                                tpefFile, *program, as->name(), stream, 
+                                tpefFile, *program, as->name(), stream,
                                 ProgramImageGenerator::VHDL,
                                 dmemMAUsPerLine, true);
                         } else if (diFormat == "coe") {
                             imageGenerator.generateDataImage(
-                                tpefFile, *program, as->name(), stream, 
+                                tpefFile, *program, as->name(), stream,
                                 ProgramImageGenerator::COE,
+                                dmemMAUsPerLine, true);
+                        } else if (diFormat == "hex") {
+                            imageGenerator.generateDataImage(
+                                tpefFile, *program, as->name(), stream,
+                                ProgramImageGenerator::HEX,
                                 dmemMAUsPerLine, true);
                         } else {
                             assert(diFormat == "ascii" || diFormat == "");
                             imageGenerator.generateDataImage(
-                                tpefFile, *program, as->name(), stream, 
+                                tpefFile, *program, as->name(), stream,
                                 ProgramImageGenerator::ASCII,
                                 dmemMAUsPerLine, true);
                         }

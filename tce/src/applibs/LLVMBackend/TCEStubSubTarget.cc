@@ -34,7 +34,11 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "TCEStubTargetMachine.hh"
 #include "TCEStubSubTarget.hh"
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetSubtargetInfo.h>
+#else
+#include <llvm/CodeGen/TargetSubtargetInfo.h>
+#endif
 
 using namespace llvm;
 

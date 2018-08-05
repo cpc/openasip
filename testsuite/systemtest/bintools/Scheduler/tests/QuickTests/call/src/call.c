@@ -147,8 +147,14 @@ int call_struct(s1 s) {
    iprintf("    *s.g.b:%d\n", *(s.g.b));
    iprintf("    *s.g.c:%d\n", *(s.g.c));
    iprintf("    *s.g.u.a:%d\n", s.g.u.a);
+#ifdef __BIG_ENDIAN__
    iprintf("    *s.g.u.b[0]:%d\n", s.g.u.b[0]);
    iprintf("    *s.g.u.b[1]:%d\n", s.g.u.b[1]);
+#else // the test has big-endian-specific.
+   // fake things correct with little-endian.
+   iprintf("    *s.g.u.b[0]:%d\n", s.g.u.b[1]);
+   iprintf("    *s.g.u.b[1]:%d\n", s.g.u.b[0]);
+#endif
    return s.a + *(s.g.a) + s.g.u.a;
 }
 

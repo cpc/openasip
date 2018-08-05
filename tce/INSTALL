@@ -50,8 +50,9 @@ This installs the required packages for an Red Hat 6 (and CentOS):
   sudo yum install -y bzr wxGTK-devel boost-devel tcl-devel libedit-devel sqlite-devel \
 xerces-c-devel gcc-c++ make autoconf automake libtool
 
-See INSTALL.Debian for package list in other versions of Debian-based distributions and
-INSTALL.RedHat for more information on installing TCE on Red Hat based distros.
+See INSTALL.Debian for package list in other versions of Debian-based
+distributions such as Debian and Ubuntu, and INSTALL.RedHat for more information
+on installing TCE on Red Hat based distros.
 
 Editline
 --------
@@ -88,7 +89,7 @@ issues affecting TCE use.
 
 You can do this most easily by executing 
  
-   tools/scripts/install_llvm_5.0.sh DEST_PATH
+   tools/scripts/install_llvm_6.0.sh DEST_PATH
 
 where DEST_PATH is the absolute directory where you want the LLVM
 to be installed. This script installs some required patches
@@ -139,6 +140,9 @@ Running 'make'
 After running configure, it should be enough to just type
 
       make && make install
+
+Note: you need to run 'make' before 'make install' due to a newlib's
+build system issue.
 
 After installing TCE to somewhere in PATH, you can run a "smoke test" suite
 for the most important tools in the TCE installation by running the command

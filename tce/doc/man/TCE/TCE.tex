@@ -1,4 +1,4 @@
-% Copyright (c) 2002-2017 Tampere University of Technology.
+% Copyright (c) 2002-2018 Tampere University of Technology.
 %
 % This file is part of TTA-Based Co-design Environment (TCE).
 % 
@@ -22,15 +22,17 @@
 \documentclass[twoside]{tceusermanual}
 \usepackage{pslatex,verbatim}
 \usepackage[dvipdfm]{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
 
 % for index
 \makeindex
 
 \begin{document}
-\title{TTA-based Co-design Environment v1.17-pre}
-\ver{31}
+\title{TTA-based Co-design Environment v1.18-pre}
+\ver{32}
 \firstday{2006-10-25}
-\lastday{2017-09-20}
+\lastday{2018-03-09}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -46,7 +48,6 @@
 %\section{Document Overview}
 This is the user manual for TTA Co-design Environment (TCE)
 \cite{tcewww}
-\cite{lptce1}
 %\cite{lptce}.
 The document describes all the tools in the toolset, and a set of common use
 cases in the form of tutorials.
@@ -99,7 +100,7 @@ describe the use of each tool separately, and they can be referred to
 for information on more advanced usage the tools.
 
 Many people have contributed to this document, most notably Pekka
-Jääskeläinen, Otto Esko, Heikki Kultala, Vladimir Guzma and Erno
+JÃ¤Ã¤skelÃ¤inen, Otto Esko, Heikki Kultala, Vladimir Guzma and Erno
 Salminen.
 
 
@@ -574,9 +575,18 @@ lookup table. This is a quite usual method of algorithm optimization.
 
 \subsection{Starting Point Processor Architecture}
 \label{ssec:start_point}
-We use the {\em minimal architecture} as the starting point. File
-\file{minimal.adf} describes a minimalistic architecture containing
-just enough resources that the TCE compiler can still compile programs for it. 
+
+
+Copy the \file{minimal.adf} file included in TCE distribution to a new ADF
+file:
+
+\begin{verbatim}
+  cp $(tce-config --prefix)/share/tce/data/mach/minimal.adf start.adf
+\end{verbatim}
+
+The file describes a minimalistic architecture containing just enough
+resources that the TCE compiler can still compile programs for it.
+We use this {\em minimal architecture} as the starting point.
 Function units in \file{minimal.adf} are selected from the hardware
 database (HDB, Section~\ref{section:hdb}) so we are able to generate a VHDL
 implementation of the processor automatically later in the tutorial.
@@ -584,16 +594,15 @@ implementation of the processor automatically later in the tutorial.
 % design all the components from scratch in order to evaluate the architecture
 % without actually implementing the components in VHDL.
 
-Copy the \file{minimal.adf} included in TCE distribution to a new ADF
-file which is your starting point architecture. You can view it using the
-graphical Processor Designer (ProDe, Section~\ref{sec:prode}) tool:
+You can view the architecture using the graphical Processor Designer
+(ProDe, Section~\ref{sec:prode}) tool:
 
-\shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf start.adf}
-
-\shellcmd{prode start.adf \&}
+\begin{verbatim}
+  prode start.adf &
+\end{verbatim}
 
 Fig.~\ref{fig:prode} shows how Prode should look like. There is 1 bus
-and 5 units: global control unit (GCU), 2 register files , 1 ALU ,and
+and 5 units: global control unit (GCU), 2 register files, 1 ALU, and
 1 LSU.
 \begin{figure}
   \begin{center}
@@ -821,7 +830,7 @@ Let's try the latter option because this way we increase the number of registers
 that can be accessed simultaneously on one clock cycle. This can be done by
 selecting the RF and using copy and paste. Then connect it to the IC.
 Simulation statistics should indicate performance increase. As expected, the
-number of load and store opertations decreased. But notice also that the number
+number of load and store operations decreased. But notice also that the number
 of add operations decreased quite a lot. The reason is simple: addition is used
 to calculate stack memory addresses for the spilled registers.
 % over 50% further reduction to 935 cycles
@@ -1224,14 +1233,13 @@ Then:
 \item%
   Add a new function unit to the design, right click the canvas and
   select: \textit{Add>Function Unit}. Name the FU ''REFLECTER``. Add
-  one input port (named as trigger) and an output port (output1) to
-  the FU in the Function unit dialog. Set the input port (trigger)
-  triggering (\textit{Click the port named trigger->Edit->Check dialog
-    ''triggers``}). This port starts the execution of the operation
-  when it is written to.
+  one output port (named output1) and one input port (trigger), to
+  the FU in the Function unit dialog. When adding the input port, set
+  the port as triggering by checking the \textit{Triggers} checkbox. This port
+  starts the execution of the operation when it is written to.
 \item%
   Add the operation ''REFLECT8`` we defined to the FU: \textit{Add
-    from opset>REFLECT8>OK} and set the latency to 1. Click on the
+  from opset>REFLECT8>OK} and set the latency to 1. Click on the
   REFLECT8 operation and ensure that the operation input is bound to
   the input ports and the output is bound to the output port. Check
   that the operand usage is in such a way that input is read at cycle
@@ -1672,16 +1680,22 @@ level entity name, which in this case is ``tta0''.
 
 \paragraph{Simulation and verification}
 
-If you have GHDL installed you can now simulate the processor VHDL. First
-cd to proge-output directory:
+If you have GHDL or Modelsim installed you can now simulate the processor VHDL.
+First cd to proge-output directory:
 
 \shellcmd{cd proge-output}
 
-Then compile and simulate the testbench:
+Then compile and simulate the testbench. With GHDL:
 
 \shellcmd{./ghdl\_compile.sh}
 
 \shellcmd{./ghdl\_simulate.sh}
+
+Or with Modelsim:
+
+\shellcmd{./modsim\_compile.sh}
+
+\shellcmd{./modsim\_simulate.sh}
 
 Compilation gives a couple of warnings from Synopsys' std\_arith
 package but that should do no harm.  Simulation will take some time as
@@ -1690,8 +1704,8 @@ widths in Prode (Section~\ref{ssec:start_point} ), the simulation will crash and
 ``Killed''. There will be many warnings at $0 ns$ due uninitialized
 signals but you can ignore them. 
 
-Aftern simulation, you should see a message
-\shellcmd{./testbench:info: simulation stopped by --stop-time}
+After simulation, you should see a message
+\verb|./testbench:info: simulation stopped by --stop-time|
 The simulation produces file ``bus.dump'' which looks like this:
 \begin{verbatim}
 0,00000000
@@ -1715,9 +1729,9 @@ from the VHDL simulation and the architecture simulation:
 
 \shellcmd{diff -u sim.dump ../crc\_with\_custom\_op.tpef.bustrace}
 
-If the command does not print anything the dumps were equal and GHDL
+If the command does not print anything the dumps were equal and the RTL
 simulation matches the ttasim. Now you have succesfully added a custom
-operation, verified it, and gained notably performance increase. Well
+operation, verified it, and gained a notable performance increase. Well
 done!
 
 
@@ -2647,10 +2661,12 @@ assumes clock frequency of 100 MHz.
 
 Now compile the source code with the following command:
 
-\shellcmd{tcecc -O0 -{}-swfp -a test.adf -o std\_print.tpef std\_print.c}
+\begin{verbatim}
+  tcecc -O0 --swfp -a test.adf -o std_print.tpef std_print.c
+\end{verbatim}
 
 The compilation command contains a few flags that should be explained
-in more detail. Let's first look into the \textit{-{}-swfp} flag: this
+in more detail. Let's first look into the \verb|--swfp| flag: this
 tells the compiler to link the program with the floating point
 emulation library. Floating point support is needed because
 \textit{printf()} function includes support for printing floating
@@ -2952,7 +2968,7 @@ can be performed by using the \emph{float} datatype in C code, or by using macro
 \emph{tceops.h}, such as \emph{\_TCE\_ADDF}. 
 
 If the compilation target architecture does not support these operations, 
-they can be emulated using integer arithmetic in software. Passing the switch \emph{--swfp} 
+they can be emulated using integer arithmetic in software. Passing the switch \verb|--swfp| 
 to tcecc enables the software emulation library linkage.
 
 A set of floating-point FU implementations is included with TCE, in a HDB file named 
@@ -3232,22 +3248,22 @@ In order to add multiple TTA cores to your system level design, there are
 two useful switches in the Processor Generator and Program Image Generator 
 tools. 
 
-One of them is \textit{--shared-files-dir} which can be used to define 
+One of them is \verb|--shared-files-dir| which can be used to define 
 a directory to which HDL files that can be shared between multiple TTAs are 
 copied. This avoids name clashes, e.g. on FU names when two or more TTAs 
 use the same implementation. 
 
-The second useful switch is \textit{--entity-name}. This switch allows
+The second useful switch is \verb|--entity-name|. This switch allows
 naming the generated core in the HDL files with a custom name. The name 
 string is also inserted to all the core-specific component names to make
 them unique to avoid name clashes in HDL compilation of the system. It
 should be noted that the Program Image Generator (generatebits) also
-supports the \textit{--entity-name} switch and the same entity name should
+supports the \verb|--entity-name| switch and the same entity name should
 be given for both tools to produce functioning TTA cores.
 
 Using these switches, generating cores to designs with multiple TTAs can
-be done by using a shared HDL directory for all the cores (--shared-files-dir) 
-and then naming each core with a different entity name (--entity-name) to 
+be done by using a shared HDL directory for all the cores (\verb|--shared-files-dir|) 
+and then naming each core with a different entity name (\verb|--entity-name|) to 
 avoid name clashes. How the cores are connected and the generation of
 the shared memory hierarchy is currently out of scope of TCE. While
 these switches assist in HDL generation of multi-TTA designs, the
@@ -3265,7 +3281,7 @@ The OpenCL support uses the {Portable OpenCL (pocl)} project. In order to
 add OpenCL support to tcecc, you should download and install the latest version of 
 pocl. At the end of the configure run, the script 
 mentions whether the OpenCL support was enabled or not. After building TCE
-You can check if the OpenCL C support is enabled via ``tcecc --supported-languages''
+You can check if the OpenCL C support is enabled via ``\verb|tcecc --supported-languages|''
 switch.
 
 It must be emphasized that the OpenCL support is a work in progress and
@@ -3327,18 +3343,31 @@ kernel and moving the buffers etc.
 
 \section{System-on-a-Chip design with AlmaIF Integrator}
 
-% TODO: Intro
+AlmaIF is a ''TCE standard`` integration interface. When a TCE core adheres
+to the AlmaIF interfaces, they can be more easily plugged in to SoC designs with
+high-level programming model (OpenCL and HSA) support.
 
-This tutorial will cover TTA core generation and integration with a Zynq-7000
+This tutorial will cover generating TTA cores AlmaIF interfaces, and
+integration with a Zynq-7000
 series SoC, but the workflow should adapt quite well for other AXI4-capable
 Xilinx SoCs.
 
-% TODO: ProDe bits, e.g. need to choose right LSU (from almaif.hdb) and set
-%       AS names, example machine, program
+\subsection{Design the processor}
+
+The AlmaIF Integrator expects certain architectural and implementation features
+from its processors, related primarily to LSU and address space details.
+The integrator will attempt to connect two address spaces, named \textit{data}
+and \textit{param}, to the AXI4 slave interface, making them accessible over
+AXI.
+
+All AlmaIF cores must use LSUs in the almaif.hdb hardware database, or LSUs
+which use the same interface to memory. Specifically for Xilinx 7 Series
+devices, xilinx_series7.hdb has implentations for a basic ALU and register files
+optimized for these devices.
 
 \subsection{Generate the Processor}
 
-The command to generate a processor core with an AlmaIF wrapper is as follows:
+The commands to generate a processor core with an AlmaIF wrapper are as follows:
 
 \shellcmd{generateprocessor -d onchip -f onchip -e tta\_core -i mach.idf
 -g AlmaIFIntegrator -o proge-out -p program.tpef mach.adf}
@@ -6752,14 +6781,14 @@ c & compressor  & Name of the code compressor plugin file.\\
 u & compressorparam & Parameter to the code compressor in form 'name=value'. \\
 d & dataimages  & Creates data images.\\
 g & decompressor & Generates a decompressor block. \\
-o & diformat & The output format of data image(s) ('ascii', 'array', 'mif'
-or 'binary'). Default is 'ascii'. \\
+o & diformat & The output format of data image(s) ('ascii', 'array', 'mif', 
+'hex' or 'binary'). Default is 'ascii'. \\
 w & dmemwidthinmaus & Width of data memory in MAUs. Default is 1. \\
 x & hdl-dir & Directory root where are the ProGe generated HDL files
 generated by ProGe. If given, PIG will write imem\_mau\_pkg and compressor
 in that directory. Otherwise they are written to cwd.\\
 f & piformat & Determines the output format of the program image and data
-images. Value may be 'ascii', 'binary' or 'mif'.\\
+images. Value may be 'ascii', 'binary', 'hex' or 'mif'.\\
 s & showcompressors & Shows the compressor plugin descriptions. \\
 p & program & The TPEF program file(s).\\
 v & verbose & Display extra information during image creation: total 
@@ -7023,7 +7052,7 @@ The possible options for the application are as follows:\\
 \textbf{Short Name} &\textbf{Long Name} &\textbf{Description} \\
 \hline
 a & adf & Sets the architecture definition file (ADF). \\
-d & debugmode & Start simulator in interactive "debugging mode". This is enabled by default. Use --no-debugmode to disable.\\
+d & debugmode & Start simulator in interactive "debugging mode". This is enabled by default. Use \verb|--no-debugmode| to disable.\\
 e & execute-script & Executes the given string as a simulator control language script. For an examples of usage, see later in this section. \\
 p & program & Sets the program to be simulated. Program must be given as a TTA program exchange format file (.TPEF) \\
 q & quick & Simulates the program as fast as possible using the compiled simulation engine. \\
@@ -7686,7 +7715,7 @@ the 'callgrind\_annotate' tool from the 'valgrind' package:
  callgrind_annotate myprogram.tpef.trace.cachegrind --inclusive=yes
 \end{verbatim}
 
-In case --inclusive=yes is not given, exclusive call profile is printed.
+In case \verb|--inclusive=yes| is not given, exclusive call profile is printed.
 Exclusive profile shows the cycles for each function itself and does not
 include the cost from the called functions.
 
@@ -8028,7 +8057,7 @@ the application directory.
 \begin{tabular}{p{0.25\textwidth}p{0.60\textwidth}}
 \textbf{file name} &\textbf{Description} \\
 \hline
-program.bc & The program byte code (produced using ``tcecc --emit-llvm'').\\
+program.bc & The program byte code (produced using ``\verb|tcecc --emit-llvm|'').\\
 description.txt & The application description.\\
 simulate.ttasim & TTASIM simulation script piped to the TTASIM to produce
 ttasim.out file. If no such file is given the simulation is started with
@@ -8068,8 +8097,7 @@ Depending on the exploration plugin, the exploring results machine
 configurations in to the exploration result database dsdb. The best results
 from the previous exploration run are given at the end of the exploration:
 
-\shellcmd{explore -e RemoveUnconnectedComponents -a data/FFTTest --hdb=data/initial.hdb 
-data/test.dsdb}
+\verb|explore -e RemoveUnconnectedComponents -a data/FFTTest --hdb=data/initial.hdb data/test.dsdb|
 
 \begin{verbatim}
 Best result configurations:
@@ -8077,7 +8105,7 @@ Best result configurations:
 \end{verbatim}
 Exploration plugins may also estimate the costs of configurations with the
 available applications. If there are estimation results for the configuratios
-those can be queried with option \textbf{--conf\_summary} by giving the
+those can be queried with option \verb|--conf_summary| by giving the
 ordering of the results.
 
 The Explorer plugins explained in chapters below can be listed with a command:
@@ -8110,14 +8138,14 @@ The explore tool has a pareto set finder which can output the interesting
 configurations from the DSDB after the IC exploration. The pareto set
 can be printed with:
 
-\shellcmd{explore --pareto\_set C database.dsdb}
+\verb|explore --pareto_set C database.dsdb|
 
 This prints out the pareto efficient configurations using the
 number of connections in the architecture and the execution cycle count as
 the quality measures. For visualizing the pareto set you can use the
 \textit{pareto\_vis} script (installed with TCE) to plot the configurations:
 
-\shellcmd{explore --pareto\_set C database.dsdb | pareto\_vis}
+\verb#explore --pareto_set C database.dsdb | pareto_vis#
 
 \subsection{Explorer Plugin: SimpleICOptimizer}
 
@@ -8653,7 +8681,7 @@ in case the program uses dynamic memory allocation. It grows upwards.
 The stack, used to store the function local variables and to pass 
 parameters in the function calls, grows from the largest memory address 
 downwards. The start address of the stack can be changed with the tcecc 
-switch \textit{{--}init-sp}.
+switch \verb|--init-sp|.
 
 As both heap and stack grow dynamically towards each other, to way to
 increase the available space for heap/stack is to 

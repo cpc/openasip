@@ -50,8 +50,13 @@ IGNORE_CLANG_WARNING("-Wunused-local-typedef")
 POP_CLANG_DIAGS
 #include <llvm/CodeGen/MachineFunction.h>
 #include <llvm/Target/TargetMachine.h>
-#include <llvm/Target/TargetInstrInfo.h>
 #include "tce_config.h"
+#ifdef LLVM_OLDER_THAN_6_0
+#include <llvm/Target/TargetInstrInfo.h>
+#else
+#include <llvm/CodeGen/TargetInstrInfo.h>
+#endif
+
 #if defined(LLVM_3_2)
 #include <llvm/Function.h>
 #include <llvm/Module.h>
@@ -59,7 +64,11 @@ POP_CLANG_DIAGS
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Module.h>
 #if (!(defined(LLVM_3_3)) && !(defined(LLVM_3_4)) && !(defined(LLVM_3_5)))
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetSubtargetInfo.h>
+#else
+#include <llvm/CodeGen/TargetSubtargetInfo.h>
+#endif
 #endif
 #endif
 #include <llvm/MC/MCContext.h>
@@ -1817,9 +1826,12 @@ ControlFlowGraph::copyToLLVMMachineFunction(
 #elif (defined (LLVM_3_6))
         const llvm::TargetInstrInfo& tii = 
             *mf.getTarget().getSubtargetImpl()->getInstrInfo();
-#else
+#elif LLVM_OLDER_THAN_6_0
         const llvm::TargetInstrInfo& tii = 
             *mf.getTarget().getSubtargetImpl(*mf.getFunction())->getInstrInfo();
+#else
+        const llvm::TargetInstrInfo& tii =
+            *mf.getTarget().getSubtargetImpl(mf.getFunction())->getInstrInfo();
 #endif
         const llvm::MCInstrDesc& tid =
             findLLVMTargetInstrDesc("HBR_LABEL", tii);
@@ -2030,13 +2042,17 @@ ControlFlowGraph::buildMBBFromBB(
         for (BundleOrderIndex::const_iterator boi = bundleOrder.begin();
              boi != bundleOrder.end(); ++boi) {
             llvm::MachineInstr* mi = NULL;
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
+#if LLVM_OLDER_THAN_3_6
             const llvm::TargetInstrInfo& tii = 
                 *mbb.getParent()->getTarget().getInstrInfo();
-#else
+#elif LLVM_OLDER_THAN_6_0
             const llvm::TargetInstrInfo& tii = 
                 *mbb.getParent()->getTarget().getSubtargetImpl(
                     *mbb.getParent()->getFunction())->getInstrInfo();
+#else
+            const llvm::TargetInstrInfo& tii =
+                *mbb.getParent()->getTarget().getSubtargetImpl(
+                    mbb.getParent()->getFunction())->getInstrInfo();
 #endif
             if (startedOps.find(*boi) == startedOps.end()) {
 #if 0

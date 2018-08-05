@@ -47,8 +47,8 @@ class DisassemblyImmediateAssignment: public DisassemblyInstructionSlot {
 public:
     DisassemblyImmediateAssignment(
 	SimValue value,
+	bool sign,
 	DisassemblyElement* destination);
-    explicit DisassemblyImmediateAssignment(DisassemblyElement* destination);
 
     virtual ~DisassemblyImmediateAssignment();
     virtual std::string toString() const;
@@ -66,6 +66,8 @@ private:
     DisassemblyElement* destination_;
     /// True, if the immediate has value set.
     bool hasValue_;
+    /// True, if the imm unit is signed
+    bool signed_;
 };
 
 #endif

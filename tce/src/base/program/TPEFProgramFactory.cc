@@ -677,7 +677,11 @@ TPEFProgramFactory::createInstruction(
 
         ImmediateUnit& immUnit(findImmediateUnit(resources, iUnitID));
         SimValue simVal(instrTemplate.supportedWidth(immUnit));
-        simVal = imm->word();
+        if (immUnit.signExtends()) {
+            simVal = imm->signedWord();
+        } else {
+            simVal = imm->word();
+        }
 
         TerminalImmediate* immTerm = NULL;
 
@@ -1508,7 +1512,9 @@ TPEFProgramFactory::findInstrTemplate(
                 "Can't write two immediates to the same immediate unit "
                 " in the same instruction.");
         } else {
-            bitsToWrite[dstUnit] = MathTools::requiredBits(imm->word());
+            bitsToWrite[dstUnit] = dstUnit->zeroExtends() ?
+                MathTools::requiredBits(imm->word()) :
+                MathTools::requiredBitsSigned(imm->signedWord());
         }
     }
 

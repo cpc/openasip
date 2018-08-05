@@ -28,7 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Pekka J√§√§skel√§inen 2011
  * @note rating: red
  */
 
@@ -72,13 +72,13 @@ PIGCmdLineOptions::PIGCmdLineOptions() : CmdLineOptions("") {
     StringCmdLineOptionParser* piOutputMode = new StringCmdLineOptionParser(
         PI_FORMAT_PARAM_NAME,
         "The output format of program image(s) ('ascii', 'array', 'mif', "
-        "'coe', 'vhdl' or 'binary'). Default is 'ascii'.", "f");
+        "'coe', 'vhdl', 'hex' or 'binary'). Default is 'ascii'.", "f");
     addOption(piOutputMode);
 
     StringCmdLineOptionParser* diOutputMode = new StringCmdLineOptionParser(
         DI_FORMAT_PARAM_NAME, "The output format of data image(s) "
-        "('ascii', 'array', 'mif', 'coe', 'vhdl' or 'binary'). Default is "
-        "'ascii'.", "o");
+        "('ascii', 'array', 'mif', 'coe', 'vhdl', 'hex' or 'binary'). Default "
+        "is 'ascii'.", "o");
     addOption(diOutputMode);
 
     StringCmdLineOptionParser* pluginFile = new StringCmdLineOptionParser(

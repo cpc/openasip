@@ -102,10 +102,15 @@ LLVMTCEPOMBuilder::emitMove(
     TCEString opName(targetMachine().getInstrInfo()->getName(mi->getOpcode()));
 #elif (defined(LLVM_OLDER_THAN_3_7))
     TCEString opName(targetMachine().getSubtargetImpl()->getInstrInfo()->getName(mi->getOpcode()));
-#else
+#elif LLVM_OLDER_THAN_6_0
     TCEString opName(targetMachine().getSubtargetImpl(
                          *mi->getParent()->getParent()->getFunction())->
                      getInstrInfo()->getName(mi->getOpcode()));
+#else
+    TCEString opName(targetMachine().getSubtargetImpl(
+                         mi->getParent()->getParent()->getFunction())->
+                     getInstrInfo()->getName(mi->getOpcode()));
+
 #endif
     /* Non-trigger move. */
     if (opName == "MOVE")
@@ -142,10 +147,15 @@ LLVMTCEPOMBuilder::createFUTerminal(const MachineOperand& mo) const {
     TCEString regName(
         targetMachine().getSubtargetImpl()->
         getRegisterInfo()->getName(mo.getReg()));
-#else
+#elif LLVM_OLDER_THAN_6_0
     TCEString regName(
         targetMachine().getSubtargetImpl(
             *mo.getParent()->getParent()->getParent()->getFunction())->
+        getRegisterInfo()->getName(mo.getReg()));
+#else
+    TCEString regName(
+        targetMachine().getSubtargetImpl(
+            mo.getParent()->getParent()->getParent()->getFunction())->
         getRegisterInfo()->getName(mo.getReg()));
 #endif
     

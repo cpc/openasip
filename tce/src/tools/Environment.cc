@@ -980,40 +980,23 @@ Environment::defaultICDecoderPlugin() {
 }
 
 /**
- * Returns default text editor to be used.
+ * Returns default GUI text editor to be used, atm. for osed
  *
- * @return Full path of default text editor or contents of EDITOR/VISUAL
- * environment variables. Empty string is also returned if no editor is found.
+ * @return Full path of default text editor, first from VISUAL and, failing
+ *         that, from a list of popular GUI editors
  */
 string
 Environment::defaultTextEditorPath() {
 
-    std::string editor = environmentVariable("EDITOR");
+    std::string editor = environmentVariable("VISUAL");
+
     if (editor.empty()) {
-        editor = environmentVariable("VISUAL");
-    }
-    if (editor.empty()) {
-        // if couldn't get editor from env variables test if some usual
-        // default editor is found
+        // If env variable is empty, check a list of known GUI editors
         vector<std::string> editors;
-        editors.push_back("/usr/bin/emacs");
-        editors.push_back("/usr/bin/xemacs");
-        editors.push_back("/bin/nano");
-        editors.push_back("/usr/bin/nano");
-        editors.push_back("/usr/bin/vim");
-        editors.push_back("/usr/bin/vi");
-        for (unsigned int i = 0; i < editors.size(); ++i) {
-            if (FileSystem::fileIsExecutable(editors.at(i))) {
-                return editors.at(i);
-            }
-        }
-        // if none of above editors were found try to find from PATH env
-        // variable
-        editors.clear();
-        editors.push_back("nano");
-        editors.push_back("emacs");
-        editors.push_back("vim");
-        editors.push_back("vi");
+        editors.push_back("gedit");    // Gnome
+        editors.push_back("leafpad");  // LXDE
+        editors.push_back("mousepad"); // XFCE (old)
+        editors.push_back("kate");     // KDE
         vector<std::string> paths;
         parsePathEnvVariable(paths);
         for (unsigned int i = 0; i < paths.size(); ++i) {
@@ -1024,10 +1007,9 @@ Environment::defaultTextEditorPath() {
                 }
             }
         }
-         
         // no editor were found
         return "";
-    } 
+    }
 
     // testi if env variable contained full path to text editor executable
     if (FileSystem::fileIsExecutable(editor)) {

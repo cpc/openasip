@@ -42,7 +42,11 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #else
 #include "llvm/IR/PassManager.h"
 #endif
+#ifdef LLVM_OLDER_THAN_6_0
 #include "llvm/Target/TargetRegisterInfo.h"
+#else
+#include "llvm/CodeGen/TargetRegisterInfo.h"
+#endif
 #include "llvm/CodeGen/SelectionDAGNodes.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/MC/MCContext.h"
@@ -143,7 +147,7 @@ TCETargetMachine::TCETargetMachine(
     TCEBaseTargetMachine(T, TTriple, CPU, FS, Options, RM, CM, OL), 
     plugin_(NULL), pluginTool_(NULL) {
 }
-#else
+#elif LLVM_OLDER_THAN_6_0
 TCETargetMachine::TCETargetMachine(
     const Target &T, const Triple& TTriple,
     const std::string& CPU, const std::string &FS,
@@ -152,6 +156,18 @@ TCETargetMachine::TCETargetMachine(
     TCEBaseTargetMachine(T, TTriple, CPU, FS, Options,
                          RM?*RM:Reloc::Model::Static, CM, OL),
     // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
+    plugin_(NULL), pluginTool_(NULL) {
+}
+#else
+TCETargetMachine::TCETargetMachine(
+    const Target &T, const Triple& TTriple,
+    const std::string& CPU, const std::string &FS,
+    const TargetOptions &Options,
+    Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM, CodeGenOpt::Level OL, bool) :
+    TCEBaseTargetMachine(T, TTriple, CPU, FS, Options,
+                         RM?*RM:Reloc::Model::Static, CM?*CM:CodeModel::Small, OL),
+    // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
+    // Note: CodeModel does not have "Default" named member. "Small" is ok?
     plugin_(NULL), pluginTool_(NULL) {
 }
 #endif
@@ -198,7 +214,11 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     // Set data layout with correct stack alignment.
     unsigned alignBits = getMaxMemoryAlignment() * 8;
     TCEString dataLayoutStr("");
-    dataLayoutStr += "E-p:32:32:32";
+    if (plugin_->isLittleEndian()) {
+        dataLayoutStr += "e-p:32:32:32";
+    } else {
+        dataLayoutStr += "E-p:32:32:32";
+    }
     dataLayoutStr += "-a0:0:" + Conversion::toString(alignBits);
     dataLayoutStr += "-i1:8:8";
     dataLayoutStr += "-i8:8:32";
@@ -208,11 +228,11 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     dataLayoutStr += "-f16:16:16";
     dataLayoutStr += "-f32:32:32";
     dataLayoutStr += "-f64:32:64";
-    dataLayoutStr += "-v64:32:64";
-    dataLayoutStr += "-v128:32:128";
-    dataLayoutStr += "-v256:32:256";
-    dataLayoutStr += "-v512:32:512";
-    dataLayoutStr += "-v1024:32:1024";
+    dataLayoutStr += "-v64:64:64";
+    dataLayoutStr += "-v128:128:128";
+    dataLayoutStr += "-v256:256:256";
+    dataLayoutStr += "-v512:512:512";
+    dataLayoutStr += "-v1024:1024:1024";
 
     DataLayout* dl = plugin_->getDataLayout();
     dl->reset(dataLayoutStr.c_str());

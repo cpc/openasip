@@ -3313,8 +3313,11 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
 #else
 #ifdef LLVM_OLDER_THAN_5_0
     os  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl
-#else
+#elif LLVM_OLDER_THAN_6_0
     os  << "\tprintf(\"regclass of size %d \\n\",rc->SpillSize);" << std::endl
+#else
+    os  << "\tprintf(\"regclass of size %d \\n\",rc->MC->getSize());"
+        << std::endl
 #endif
 #endif
         << "\tassert(0&&\"Storing given regclass to stack not supported. "
@@ -3419,8 +3422,11 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
 #else
 #ifdef LLVM_OLDER_THAN_5_0
     os  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl
-#else
+#elif LLVM_OLDER_THAN_6_0
     os  << "\tprintf(\"regclass of size %d \\n\",rc->SpillSize);" << std::endl
+#else
+    os  << "\tprintf(\"regclass of size %d \\n\",rc->MC->getSize());"
+        << std::endl
 #endif
 #endif
         << "\tassert(0&&\"loading from stack to given regclass not supported."

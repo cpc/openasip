@@ -45,10 +45,16 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/CodeGen/MachineFunction.h>
 #include <llvm/CodeGen/MachineBasicBlock.h>
 #include <llvm/MC/MCInstrInfo.h>
+#ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetInstrInfo.h>
-#include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/Target/TargetSubtargetInfo.h>
 #include <llvm/Target/TargetOpcodes.h>
+#else
+#include <llvm/CodeGen/TargetInstrInfo.h>
+#include <llvm/CodeGen/TargetSubtargetInfo.h>
+#include <llvm/CodeGen/TargetOpcodes.h>
+#endif
+#include <llvm/CodeGen/MachineInstrBuilder.h>
 
 POP_COMPILER_DIAGS
 
@@ -190,10 +196,14 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
 #elif (defined LLVM_OLDER_THAN_3_7)
                     const llvm::MCInstrInfo* iinfo = 
                         mf.getTarget().getSubtargetImpl()->getInstrInfo();
+#elif LLVM_OLDER_THAN_6_0
+                    const llvm::MCInstrInfo* iinfo =
+                        mf.getTarget().getSubtargetImpl(
+                            *mf.getFunction())->getInstrInfo();
 #else
                     const llvm::MCInstrInfo* iinfo = 
                         mf.getTarget().getSubtargetImpl(
-                            *mf.getFunction())->getInstrInfo();
+                            mf.getFunction())->getInstrInfo();
 #endif
 #if 0
                     Application::logStream() 

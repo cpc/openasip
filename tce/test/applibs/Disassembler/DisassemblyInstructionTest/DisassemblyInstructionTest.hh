@@ -107,7 +107,7 @@ DisassemblyInstructionTest::testMoves() {
     DisassemblyMove* move2 = new DisassemblyMove(register2, fuPort2, guard);
 
     DisassemblyImmediateAssignment* assignment =
-	new DisassemblyImmediateAssignment(immValue, imm);
+        new DisassemblyImmediateAssignment(immValue, true, imm);
 
 
     instruction.addMove(move1);
@@ -155,7 +155,7 @@ DisassemblyInstructionTest::testDisassembly() {
     DisassemblyMove* move2 = new DisassemblyMove(register2, fuPort2, guard);
 
     DisassemblyImmediateAssignment* assignment =
-	new DisassemblyImmediateAssignment(immValue, imm);
+        new DisassemblyImmediateAssignment(immValue, true, imm);
 
     instruction.addMove(move1);
     TS_ASSERT_EQUALS(instruction.toString(), "rf1.1 -> add.port1 ;");
