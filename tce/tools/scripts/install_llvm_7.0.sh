@@ -40,7 +40,7 @@ function fetch_llvm {
 
     if ! test -d $llvm_co_dir;
     then
-        svn -q $REV_TO_FETCH co http://llvm.org/svn/llvm-project/llvm/trunk $llvm_co_dir \
+        svn -q $REV_TO_FETCH co http://llvm.org/svn/llvm-project/llvm/branches/release_70 $llvm_co_dir \
             || eexit "SVN co $REV_TO_FETCH from LLVM failed"
     else
         svn up $REV_TO_FETCH $llvm_co_dir \
@@ -54,7 +54,7 @@ function fetch_clang {
     cd $llvm_co_dir/tools
     if ! test -d clang;
     then
-        svn -q co http://llvm.org/svn/llvm-project/cfe/trunk clang \
+        svn -q co http://llvm.org/svn/llvm-project/cfe/branches/release_70 clang \
             || eexit "SVN co from Clang failed"
     else
         svn up clang || eexit "SVN update of Clang failed."
@@ -90,7 +90,7 @@ cmake -G "Unix Makefiles" \
     -DLLVM_ENABLE_RTTI=TRUE \
     .. \
     || eexit "Configuring LLVM/Clang failed."
-make -j12 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 \
+make -j8 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 \
     || eexit "Building LLVM/Clang failed."
 make install || eexit "Installation of LLVM/Clang failed."
 
