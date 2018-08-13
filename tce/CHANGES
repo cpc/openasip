@@ -3,6 +3,7 @@
 
 Notable changes and features
 ----------------------------
+- Support for LLVM 7.0.
 - Added hexadecimal output to PIG
 - Added HDB with register files and a basic ALU optimized for Xilinx Series 7
   devices. Thanks to Stephan Nolting and Guillermo Payá-Vayá / IMS, Leibniz
