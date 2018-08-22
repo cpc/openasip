@@ -3149,7 +3149,7 @@ TDGen::patOutputs(const Operation& op, const std::string& operandTypes) {
 OperationDAG*
 TDGen::createTrivialDAG(Operation& op) {
 
-    OperationDAG* dag = new OperationDAG(op.name());
+    OperationDAG* dag = new OperationDAG(op.impl());
     OperationNode* opNode = new OperationNode(op);
     dag->addNode(*opNode);
 
