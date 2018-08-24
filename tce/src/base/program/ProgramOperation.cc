@@ -655,6 +655,13 @@ ProgramOperation::Comparator::operator()(
     return po1->poId() < po2->poId();
 }
 
+bool
+ProgramOperation::Comparator::operator()(
+    const ProgramOperationPtr &po1, const ProgramOperationPtr &po2) const {
+    return po1.get()->poId() < po2.get()->poId();
+}
+
+
 /**
  * Switches inputs of 2-operand commutative operations
  */
