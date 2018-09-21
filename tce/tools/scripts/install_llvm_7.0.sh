@@ -22,7 +22,7 @@ echo "### LLVM build mode: "$LLVM_BUILD_MODE
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 patch_dir=$script_dir/../patches
-llvm_co_dir=llvm-trunk
+llvm_co_dir=release_70
 
 mkdir -p $build_dir
 cd $build_dir
@@ -73,6 +73,7 @@ function apply_patches {
     cd $llvm_co_dir
     try_patch $patch_dir/llvm-7.0-custom-vector-extension.patch
     try_patch $patch_dir/llvm-7.0-vect-datalayout.patch
+    try_patch $patch_dir/llvm-6.0-SPIR-address-space-numbers.patch
     cd ..
 }
 
