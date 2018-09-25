@@ -35,16 +35,23 @@
 #include "OperationDAG.hh"
 #include "OperationDAGEdge.hh"
 #include "OperationNode.hh"
+#include "OperationPimpl.hh"
+#include "Operation.hh"
 
-OperationDAG OperationDAG::null("NULL_DAG");
+OperationDAG OperationDAG::null;
+
+OperationDAG::OperationDAG() :
+     BoostGraph<OperationDAGNode,OperationDAGEdge>("NULL_DAG") {
+}
 
 /**
  * Constructor.
  *
  * @param name The graph can be named for debugging purposes.
  */
-OperationDAG::OperationDAG(const std::string& name) : 
-     BoostGraph<OperationDAGNode,OperationDAGEdge>(name) {
+OperationDAG::OperationDAG(const OperationPimpl& op) :
+    BoostGraph<OperationDAGNode,OperationDAGEdge>(op.name()),
+    op_(&op) {
 }
 
 /**

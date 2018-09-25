@@ -47,7 +47,8 @@ public:
     static OperationDAG null;
     bool isNull() const { return this == &null; }
 
-    OperationDAG(const std::string& name="");
+    OperationDAG();
+    OperationDAG(const class OperationPimpl& op);
     OperationDAG(const OperationDAG& other);
     virtual ~OperationDAG();    
     bool isTrivial() const;
@@ -55,7 +56,11 @@ public:
     int stepsToRoot(const OperationDAGNode& node) const;
     const OperationDAG::NodeSet& endNodes() const;
 
+    const class OperationPimpl& operation() const { assert(op_ != nullptr); return *op_; }
+    void setOperation(const class OperationPimpl& op) { op_ = &op; }
 private:    
+    const class OperationPimpl* op_;
+
     /// Map of known step counts, if dag is changed this must be cleared.
     mutable std::map<const OperationDAGNode*, int, 
                      OperationDAGNode::Comparator> stepMap_;    

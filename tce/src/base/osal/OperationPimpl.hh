@@ -62,6 +62,7 @@ public:
     void setBranch(bool setting);
     void setControlFlowOperation(bool setting);
     
+    Operand& operand(int id) const;
 private:
     OperationPimpl(
         const TCEString& name, 
@@ -105,7 +106,6 @@ private:
     void addInput(Operand* operand);
     Operand& output(int index) const;
     void addOutput(Operand* operand);
-    Operand& operand(int id) const;
 
     void setBehavior(OperationBehavior& behavior);
     OperationBehavior& behavior() const;

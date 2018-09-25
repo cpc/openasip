@@ -11,6 +11,8 @@ IMG=dmem_endianess.img
 HEX=dmem_endianess.hex
 PROGE_OUT="proge-out"
 TOP="top"
+TCECC=../../../../tce/src/bintools/Compiler/tcecc
+GENERATEBITS=../../../../tce/src/bintools/PIG/generatebits
 
 function eexit {
     echo $1
@@ -41,13 +43,13 @@ clear_test_data() {
 clear_test_data
 
 set -eu
-tcecc -O0 -llwpr -a $ADF -o $TPEF $SRC || echo "Error from tcecc."
-generatebits -e $TOP -x ${PROGE_OUT} -d -w 4 -p $TPEF -f ascii $ADF \
+$TCECC -O0 -llwpr -a $ADF -o $TPEF $SRC || echo "Error from tcecc."
+$GENERATEBITS -e $TOP -x ${PROGE_OUT} -d -w 4 -p $TPEF -f ascii $ADF \
     || echo "Error from PIG"
 
 ./img2hex.py $IMG $HEX 11
 
-generatebits -e $TOP -x ${PROGE_OUT} -d -w 4 -p $TPEF -f hex $ADF \
+$GENERATEBITS -e $TOP -x ${PROGE_OUT} -d -w 4 -p $TPEF -f hex $ADF \
     || echo "Error from PIG"
 
 set +e

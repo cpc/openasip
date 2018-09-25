@@ -153,6 +153,7 @@ public:
 
     TCEString emulationFunctionName() const;
     
+    OperationPimpl& impl() { return *pimpl_; }
 private:
     /// Private implementation in a separate source file.
     OperationPimpl* pimpl_;

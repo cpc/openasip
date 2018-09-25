@@ -655,8 +655,13 @@ LLVMBackend::compile(
         Passes, fouts(), TargetMachine::CGFT_AssemblyFile, OptLevel);
 #else
     llvm::raw_fd_ostream sos(STDOUT_FILENO, false);
+#ifdef LLVM_OLDER_THAN_7
     targetMachine->addPassesToEmitFile(
         Passes, sos, TargetMachine::CGFT_AssemblyFile, OptLevel);
+#else
+    targetMachine->addPassesToEmitFile(
+        Passes, sos, nullptr, TargetMachine::CGFT_AssemblyFile, OptLevel);
+#endif
 #endif
 
 

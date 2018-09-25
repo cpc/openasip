@@ -22,7 +22,7 @@ echo "### LLVM build mode: "$LLVM_BUILD_MODE
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 patch_dir=$script_dir/../patches
-llvm_co_dir=llvm-trunk
+llvm_co_dir=release_70
 
 mkdir -p $build_dir
 cd $build_dir
@@ -40,7 +40,7 @@ function fetch_llvm {
 
     if ! test -d $llvm_co_dir;
     then
-        svn -q $REV_TO_FETCH co http://llvm.org/svn/llvm-project/llvm/trunk $llvm_co_dir \
+        svn -q $REV_TO_FETCH co http://llvm.org/svn/llvm-project/llvm/branches/release_70 $llvm_co_dir \
             || eexit "SVN co $REV_TO_FETCH from LLVM failed"
     else
         svn up $REV_TO_FETCH $llvm_co_dir \
@@ -54,7 +54,7 @@ function fetch_clang {
     cd $llvm_co_dir/tools
     if ! test -d clang;
     then
-        svn -q co http://llvm.org/svn/llvm-project/cfe/trunk clang \
+        svn -q co http://llvm.org/svn/llvm-project/cfe/branches/release_70 clang \
             || eexit "SVN co from Clang failed"
     else
         svn up clang || eexit "SVN update of Clang failed."
@@ -72,6 +72,8 @@ function try_patch {
 function apply_patches {
     cd $llvm_co_dir
     try_patch $patch_dir/llvm-7.0-custom-vector-extension.patch
+    try_patch $patch_dir/llvm-7.0-vect-datalayout.patch
+    try_patch $patch_dir/llvm-6.0-SPIR-address-space-numbers.patch
     cd ..
 }
 
@@ -90,7 +92,7 @@ cmake -G "Unix Makefiles" \
     -DLLVM_ENABLE_RTTI=TRUE \
     .. \
     || eexit "Configuring LLVM/Clang failed."
-make -j12 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 \
+make -j8 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 \
     || eexit "Building LLVM/Clang failed."
 make install || eexit "Installation of LLVM/Clang failed."
 

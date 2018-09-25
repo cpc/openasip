@@ -50,7 +50,7 @@
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/Support/raw_ostream.h>
 
-#ifdef LLVM_OLDER_THAN_6_0
+#ifndef LLVM_6_0
 #include <llvm/Target/TargetLoweringObjectFile.h>
 #else
 #include <llvm/CodeGen/TargetLoweringObjectFile.h>
@@ -673,6 +673,12 @@ TCETargetLowering::TCETargetLowering(
 
     setOperationAction(ISD::TRAP, MVT::Other, Custom);
 
+// TODO: define TCE instruction for leading/trailing zero count
+#ifndef LLVM_OLDER_THAN_7
+    setOperationAction(ISD::CTLZ, MVT::i32, Expand);
+    setOperationAction(ISD::CTTZ, MVT::i32, Expand);
+    setOperationAction(ISD::CTPOP, MVT::i32, Expand);
+#endif
     // Using 'old way' MVT::Other to cover all value types is illegal now.
     setOperationAction(ISD::SELECT_CC, MVT::f16, Expand);
     setOperationAction(ISD::SELECT_CC, MVT::f32, Expand);
