@@ -33,6 +33,7 @@
 #include "DisassemblyImmediate.hh"
 #include "Conversion.hh"
 
+#include "TCEString.hh"
 /**
  * The constructor.
  *
@@ -65,8 +66,12 @@ DisassemblyImmediate::toString() const {
     // move slots's (bus) extension mode. Wrong extension mode can
     // produce wrong output that cannot be assembled in case
     // of a negative-looking value on a zero extending slot.
-    if (signExtend_)
-        return Conversion::toString(value_.intValue());
-    else
-        return Conversion::toString(value_.unsignedValue());
+    if (signExtend_) {
+        TCEString text = Conversion::toString(value_.sLongWordValue());
+        return text;
+    }
+    else {
+        TCEString text = Conversion::toString(value_.uLongWordValue());
+        return text;
+    }
 }

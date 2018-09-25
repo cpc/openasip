@@ -2,35 +2,39 @@ Index: lib/Support/Triple.cpp
 ===================================================================
 --- lib/Support/Triple.cpp	(revision 285547)
 +++ lib/Support/Triple.cpp	(working copy)
-@@ -44,6 +44,7 @@
+@@ -44,6 +44,8 @@
    case sparcel:        return "sparcel";
    case systemz:        return "s390x";
    case tce:            return "tce";
 +  case tcele:          return "tcele";
++  case tcele64:        return "tcele64";
    case thumb:          return "thumb";
    case thumbeb:        return "thumbeb";
    case x86:            return "i386";
-@@ -264,6 +265,7 @@
+@@ -264,6 +265,8 @@
      .Case("sparcv9", sparcv9)
      .Case("systemz", systemz)
      .Case("tce", tce)
 +    .Case("tcele", tcele)
++    .Case("tcele64", tcele64)
      .Case("thumb", thumb)
      .Case("thumbeb", thumbeb)
      .Case("x86", x86)
-@@ -379,6 +381,7 @@
+@@ -379,6 +381,8 @@
      .Case("sparcel", Triple::sparcel)
      .Cases("sparcv9", "sparc64", Triple::sparcv9)
      .Case("tce", Triple::tce)
 +    .Case("tcele", Triple::tcele)
++    .Case("tcele64", Triple::tcele64)
      .Case("xcore", Triple::xcore)
      .Case("nvptx", Triple::nvptx)
      .Case("nvptx64", Triple::nvptx64)
-@@ -613,6 +616,7 @@
+@@ -613,6 +616,8 @@
    case Triple::spir64:
    case Triple::systemz:
    case Triple::tce:
 +  case Triple::tcele:
++  case Triple::tcele64:
    case Triple::thumbeb:
    case Triple::wasm32:
    case Triple::wasm64:
@@ -42,6 +46,14 @@ Index: lib/Support/Triple.cpp
    case llvm::Triple::thumb:
    case llvm::Triple::thumbeb:
    case llvm::Triple::x86:
+@@ -1161,6 +1170,7 @@
+   case llvm::Triple::ppc64:
+   case llvm::Triple::ppc64le:
+   case llvm::Triple::sparcv9:
++  case llvm::Triple::tcele64:
+   case llvm::Triple::systemz:
+   case llvm::Triple::x86_64:
+   case llvm::Triple::amdil64:
 @@ -1215,6 +1220,7 @@
    case Triple::sparc:
    case Triple::sparcel:
@@ -50,14 +62,38 @@ Index: lib/Support/Triple.cpp
    case Triple::thumb:
    case Triple::thumbeb:
    case Triple::x86:
-@@ -1255,6 +1261,7 @@
-   case Triple::msp430:
-   case Triple::r600:
-   case Triple::tce:
-+  case Triple::tcele:
-   case Triple::xcore:
-   case Triple::sparcel:
+@@ -1234,6 +1245,7 @@
+   case Triple::nvptx64:        T.setArch(Triple::nvptx);   break;
+   case Triple::ppc64:          T.setArch(Triple::ppc);     break;
+   case Triple::sparcv9:        T.setArch(Triple::sparc);   break;
++  case Triple::tcele64:        T.setArch(Triple::tcele);   break;
+   case Triple::x86_64:         T.setArch(Triple::x86);     break;
+   case Triple::amdil64:        T.setArch(Triple::amdil);   break;
+   case Triple::hsail64:        T.setArch(Triple::hsail);   break;
+@@ -1277,6 +1290,7 @@
+   case Triple::ppc64le:
+   case Triple::sparcv9:
+   case Triple::systemz:
++  case Triple::tcele64:
+   case Triple::x86_64:
+   case Triple::wasm64:
+   case Triple::renderscript64:
+@@ -1295,6 +1309,7 @@
+   case Triple::amdil:           T.setArch(Triple::amdil64);    break;
+   case Triple::hsail:           T.setArch(Triple::hsail64);    break;
+   case Triple::spir:            T.setArch(Triple::spir64);     break;
++  case Triple::tcele:           T.setArch(Triple::tcele64);    break;
+   case Triple::thumb:           T.setArch(Triple::aarch64);    break;
+   case Triple::thumbeb:         T.setArch(Triple::aarch64_be); break;
+   case Triple::wasm32:          T.setArch(Triple::wasm64);     break;
+@@ -1327,6 +1342,7 @@
    case Triple::shave:
+   case Triple::spir64:
+   case Triple::spir:
++  case Triple::tcele64:
+   case Triple::wasm32:
+   case Triple::wasm64:
+   case Triple::x86:
 @@ -1342,6 +1349,7 @@
      T.setArch(UnknownArch);
      break;
@@ -82,11 +118,12 @@ Index: lib/Support/Triple.cpp
    case Triple::aarch64_be: T.setArch(Triple::aarch64);  break;
    case Triple::bpfeb:      T.setArch(Triple::bpfel);    break;
    case Triple::mips64:     T.setArch(Triple::mips64el); break;
-@@ -1418,6 +1426,7 @@
+@@ -1418,6 +1426,8 @@
    case Triple::x86:
    case Triple::x86_64:
    case Triple::xcore:
 +  case Triple::tcele:
++  case Triple::tcele64:
    case Triple::renderscript32:
    case Triple::renderscript64:
      return true;
@@ -94,11 +131,12 @@ Index: include/llvm/ADT/Triple.h
 ===================================================================
 --- include/llvm/ADT/Triple.h	(revision 285547)
 +++ include/llvm/ADT/Triple.h	(working copy)
-@@ -69,6 +69,7 @@
+@@ -69,6 +69,8 @@
      sparcel,        // Sparc: (endianness = little). NB: 'Sparcle' is a CPU variant
      systemz,        // SystemZ: s390x
      tce,            // TCE (http://tce.cs.tut.fi/): tce
 +    tcele,          // TCE little endian (http://tce.cs.tut.fi/): tcele
++    tcele64,        // TCE little endian 64 (http://tce.cs.tut.fi/): tcele64
      thumb,          // Thumb (little endian): thumb, thumbv.*
      thumbeb,        // Thumb (big endian): thumbeb
      x86,            // X86: i[3-9]86
@@ -120,7 +158,7 @@ Index: tools/clang/lib/Basic/Targets.cpp
      AddrSpaceMap = &TCEOpenCLAddrSpaceMap;
      UseAddrSpaceMapMangling = true;
    }
-@@ -7048,8 +7051,48 @@
+@@ -7048,8 +7051,89 @@
    ArrayRef<TargetInfo::GCCRegAlias> getGCCRegAliases() const override {
      return None;
    }
@@ -166,15 +204,59 @@ Index: tools/clang/lib/Basic/Targets.cpp
 +
 +};
 +
++class TCELE64TargetInfo : public TCETargetInfo {
++public:
++  TCELE64TargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
++      : TCETargetInfo(Triple, Opts) {
++    BigEndian = false;
++
++    resetDataLayout("e-p:64:64:64-i1:8:8-i8:8:64-"
++                    "i16:16:64-i32:32:64-i64:64:64-"
++                    "f32:32:64-f64:64:64-v64:64:64-"
++                    "v128:128:128-v256:256:256-v512:512:512-"
++                    "v1024:1024:1024-a0:0:64-n64");
++
++    LongWidth = LongLongWidth = 64;
++    PointerWidth = 64;
++    PointerAlign = 64;
++    LongAlign = LongLongAlign = 64;
++    IntPtrType = SignedLong;
++    SizeType = UnsignedLong;
++    PtrDiffType = SignedLong;
++    DoubleWidth = 64;
++    DoubleAlign = 64;
++    LongDoubleWidth = 64;
++    LongDoubleAlign = 64;
++    DoubleFormat = &llvm::APFloat::IEEEdouble;
++    LongDoubleFormat = &llvm::APFloat::IEEEdouble;
++  }
++
++  virtual void getTargetDefines(const LangOptions &Opts,
++                                MacroBuilder &Builder) const {
++    DefineStd(Builder, "tcele64", Opts);
++    Builder.defineMacro("__TCE__");
++    Builder.defineMacro("__TCE_V1__");
++    Builder.defineMacro("__TCELE__");
++    Builder.defineMacro("__TCELE_V1__");
++    Builder.defineMacro("__TCELE64__");
++    Builder.defineMacro("__TCELE64_V1__");
++    Builder.defineMacro("__TCE64__");
++  }
++
++};
++
  class BPFTargetInfo : public TargetInfo {
  public:
    BPFTargetInfo(const llvm::Triple &Triple, const TargetOptions &)
-@@ -8430,6 +8473,9 @@
+@@ -8430,6 +8473,12 @@
    case llvm::Triple::tce:
      return new TCETargetInfo(Triple, Opts);
  
 +  case llvm::Triple::tcele:
 +    return new TCELETargetInfo(Triple, Opts);
++
++  case llvm::Triple::tcele64:
++    return new TCELE64TargetInfo(Triple, Opts);
 +
    case llvm::Triple::x86:
      if (Triple.isOSDarwin())
@@ -183,12 +265,16 @@ Index: tools/clang/lib/CodeGen/TargetInfo.cpp
 ===================================================================
 --- tools/clang/lib/CodeGen/TargetInfo.cpp	(revision 288508)
 +++ tools/clang/lib/CodeGen/TargetInfo.cpp	(working copy)
-@@ -7993,6 +7993,10 @@
+@@ -7993,6 +7993,14 @@
    case llvm::Triple::tce:
      return SetCGInfo(new TCETargetCodeGenInfo(Types));
  
 +  // code gen info is same for tce and tce le
 +  case llvm::Triple::tcele:
++    return SetCGInfo(new TCETargetCodeGenInfo(Types));
++
++  // code gen info is same for tce and tce le
++  case llvm::Triple::tcele64:
 +    return SetCGInfo(new TCETargetCodeGenInfo(Types));
 +
    case llvm::Triple::x86: {
@@ -198,12 +284,15 @@ Index: tools/clang/lib/Driver/Driver.cpp
 ===================================================================
 --- tools/clang/lib/Driver/Driver.cpp	(revision 288508)
 +++ tools/clang/lib/Driver/Driver.cpp	(working copy)
-@@ -2686,6 +2686,9 @@
+@@ -2686,6 +2686,12 @@
        case llvm::Triple::tce:
          TC = new toolchains::TCEToolChain(*this, Target, Args);
          break;
 +      case llvm::Triple::tcele:
 +        TC = new toolchains::TCELEToolChain(*this, Target, Args);
++        break;
++      case llvm::Triple::tcele64:
++        TC = new toolchains::TCELE64ToolChain(*this, Target, Args);
 +        break;
        case llvm::Triple::hexagon:
          TC = new toolchains::HexagonToolChain(*this, Target, Args);
@@ -212,7 +301,7 @@ Index: tools/clang/lib/Driver/ToolChains.cpp
 ===================================================================
 --- tools/clang/lib/Driver/ToolChains.cpp	(revision 288508)
 +++ tools/clang/lib/Driver/ToolChains.cpp	(working copy)
-@@ -3341,6 +3341,14 @@
+@@ -3341,6 +3341,23 @@
    }
  }
  
@@ -224,6 +313,15 @@ Index: tools/clang/lib/Driver/ToolChains.cpp
 +TCELEToolChain::~TCELEToolChain() {
 +}
 +
++
++TCELE64ToolChain::TCELE64ToolChain(
++    const Driver &D, const llvm::Triple& Triple, const ArgList &Args)
++  : TCEToolChain(D, Triple, Args) {
++}
++
++TCELE64ToolChain::~TCELE64ToolChain() {
++}
++
  /// OpenBSD - OpenBSD tool chain which can call as(1) and ld(1) directly.
  
  OpenBSD::OpenBSD(const Driver &D, const llvm::Triple &Triple,
@@ -231,7 +329,7 @@ Index: tools/clang/lib/Driver/ToolChains.h
 ===================================================================
 --- tools/clang/lib/Driver/ToolChains.h	(revision 288508)
 +++ tools/clang/lib/Driver/ToolChains.h	(working copy)
-@@ -1024,6 +1024,13 @@
+@@ -1024,6 +1024,20 @@
    bool isPICDefaultForced() const override;
  };
  
@@ -240,6 +338,13 @@ Index: tools/clang/lib/Driver/ToolChains.h
 +  TCELEToolChain(const Driver &D, const llvm::Triple &Triple,
 +                 const llvm::opt::ArgList &Args);
 +  ~TCELEToolChain();
++};
++
++class LLVM_LIBRARY_VISIBILITY TCELE64ToolChain : public TCEToolChain {
++public:
++  TCELE64ToolChain(const Driver &D, const llvm::Triple &Triple,
++                   const llvm::opt::ArgList &Args);
++  ~TCELE64ToolChain();
 +};
 +
  class LLVM_LIBRARY_VISIBILITY MSVCToolChain : public ToolChain {

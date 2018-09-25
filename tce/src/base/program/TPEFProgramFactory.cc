@@ -677,10 +677,11 @@ TPEFProgramFactory::createInstruction(
 
         ImmediateUnit& immUnit(findImmediateUnit(resources, iUnitID));
         SimValue simVal(instrTemplate.supportedWidth(immUnit));
+
         if (immUnit.signExtends()) {
-            simVal = imm->signedWord();
+            simVal = imm->sLongWord();
         } else {
-            simVal = imm->word();
+            simVal = imm->longWord();
         }
 
         TerminalImmediate* immTerm = NULL;
@@ -789,7 +790,7 @@ TPEFProgramFactory::createTerminal(
 
                 int immWidth = aBus->immediateWidth();
                 SimValue simValue(immWidth);
-                simValue = imm->word();
+                simValue = imm->longWord();
                                 
                 // TODO: refactor with line createInstruction 
                 //       method's line 158
@@ -1513,8 +1514,8 @@ TPEFProgramFactory::findInstrTemplate(
                 " in the same instruction.");
         } else {
             bitsToWrite[dstUnit] = dstUnit->zeroExtends() ?
-                MathTools::requiredBits(imm->word()) :
-                MathTools::requiredBitsSigned(imm->signedWord());
+                MathTools::requiredBits(imm->longWord()) :
+                MathTools::requiredBitsSigned(imm->sLongWord());
         }
     }
 

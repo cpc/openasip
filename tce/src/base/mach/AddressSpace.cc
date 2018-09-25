@@ -73,8 +73,8 @@ const string AddressSpace::OSKEY_NUMERICAL_ID = "numerical-id";
 AddressSpace::AddressSpace(
     const string& name,
     int width,
-    unsigned int minAddress,
-    unsigned int maxAddress,
+    ULongWord minAddress,
+    ULongWord maxAddress,
     Machine& owner)
     throw (ComponentAlreadyExists, OutOfRange, InvalidName) :
     Component(name) {
@@ -167,7 +167,7 @@ AddressSpace::width() const {
  *
  * @return The lowest memory address of the address space.
  */
-unsigned int
+ULongWord
 AddressSpace::start() const {
     return minAddress_;
 }
@@ -178,7 +178,7 @@ AddressSpace::start() const {
  *
  * @return The highest memory address of the address space.
  */
-unsigned int
+ULongWord
 AddressSpace::end() const {
     return maxAddress_;
 }

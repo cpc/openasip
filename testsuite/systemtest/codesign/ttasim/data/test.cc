@@ -27,7 +27,7 @@ TRIGGER
 
 const char* testData = "Test12345";
 
-UIntWord addr = UINT(1);
+ULongWord addr = UINT(1);
 
 char* t = (char*)testData;
 
@@ -47,9 +47,9 @@ END_OPERATION(WRITE_TEST)
 OPERATION(READ_TEST)
 
 TRIGGER
-UIntWord addr = UINT(1);
+ULongWord addr = UINT(1);
 
-UIntWord c = 1;
+ULongWord c = 1;
 while (c) {
     MEMORY.read(addr, 1, c);
     if (c == 0) break;

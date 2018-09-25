@@ -84,7 +84,7 @@ public:
 
 private:
     Word cellAddress(int row, int column) const;
-    wxString memoryContents(Word addr);
+    wxString memoryContents(ULongWord addr);
 
     /// Memory to access.
     Memory& memory_;

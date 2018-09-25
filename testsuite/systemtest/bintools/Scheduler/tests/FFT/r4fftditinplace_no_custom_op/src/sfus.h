@@ -34,7 +34,7 @@ typedef short Scalar;
 typedef union {
     int word;
     struct {
-#if defined(__TCE__)
+#if defined __BIG_ENDIAN__
         Scalar real;
         Scalar imag;
 #else

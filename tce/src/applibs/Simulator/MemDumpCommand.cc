@@ -200,7 +200,7 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
     // read the wanted number (given with /n) of chunks of data to the result 
     while (newDisplayedCount > 0) {
 
-        UIntWord data = 0;
+        ULongWord data = 0;
         try {
             memory->read(newDisplayedAddress, MAUsToDisplay, data);
         } catch (const OutOfRange&) {

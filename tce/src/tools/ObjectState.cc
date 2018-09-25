@@ -144,6 +144,21 @@ ObjectState::setAttribute(const std::string& name, unsigned int value) {
     setAttribute(name, valueAsString);
 }
 
+/**
+ * Sets an attribute.
+ *
+ * If there is an attribute called the given name, its value is changed
+ * according to the given value. Otherwise a new attribute is created.
+ *
+ * @param name Name of the attribute.
+ * @param value Value of the attribute.
+ */
+void
+ObjectState::setAttribute(const std::string& name, ULongWord value) {
+    string valueAsString = Conversion::toString(value);
+    setAttribute(name, valueAsString);
+}
+
 
 /**
  * Sets an attribute.

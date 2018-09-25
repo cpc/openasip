@@ -44,9 +44,9 @@
  * width of SIMULATOR_MAX_INTWORD_BITWIDTH bits.
  */
 SimValue::SimValue() :
-    mask_(~UIntWord(0)) {
+    mask_(~ULongWord(0)) {
 
-    setBitWidth(SIMULATOR_MAX_INTWORD_BITWIDTH);
+    setBitWidth(SIMULATOR_MAX_LONGWORD_BITWIDTH);
 }
 
 /**
@@ -55,7 +55,7 @@ SimValue::SimValue() :
  * @param width The bit width of the created SimValue.
  */
 SimValue::SimValue(int width) :
-    mask_(~UIntWord(0)) {
+    mask_(~ULongWord(0)) {
 
     setBitWidth(width);
 }
@@ -67,8 +67,8 @@ SimValue::SimValue(int width) :
  * @param value The numeric value of this SimValue (in host endianness).
  * @param width The bit width of the created SimValue.
  */
-SimValue::SimValue(int value, int width) :
-    mask_(~UIntWord(0)) {
+SimValue::SimValue(SLongWord value, int width) :
+    mask_(~ULongWord(0)) {
 
     setBitWidth(width);
 
@@ -112,7 +112,7 @@ SimValue::setBitWidth(int width) {
 
     bitWidth_ = width;
     if (BYTE_BITWIDTH * sizeof(mask_) > static_cast<size_t>(width)) {
-        mask_ = ~((~UIntWord(0)) << bitWidth_);
+        mask_ = ~((~ULongWord(0)) << bitWidth_);
     }
 
     const int BYTE_COUNT = (width + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
@@ -162,6 +162,45 @@ SimValue::operator=(const UIntWord& source) {
 #endif
     return (*this);
 }
+
+/**
+ * Assignment operator for source value of type SLongWord.
+ *
+ * @param source The source value.
+ * @return Reference to itself.
+ */
+SimValue&
+SimValue::operator=(const SLongWord& source) {
+
+    const size_t BYTE_COUNT = sizeof(SLongWord);
+
+#if HOST_BIGENDIAN == 1
+    swapByteOrder((const Byte*)&source, BYTE_COUNT, rawData_);
+#else
+    memcpy(rawData_, &source, BYTE_COUNT);
+#endif
+    return (*this);
+}
+
+/**
+ * Assignment operator for source value of type ULongWord.
+ *
+ * @param source The source value.
+ * @return Reference to itself.
+ */
+SimValue&
+SimValue::operator=(const ULongWord& source) {
+
+    const size_t BYTE_COUNT = sizeof(ULongWord);
+
+#if HOST_BIGENDIAN == 1
+    swapByteOrder((const Byte*)&source, BYTE_COUNT, rawData_);
+#else
+    memcpy(rawData_, &source, BYTE_COUNT);
+#endif
+    return (*this);
+}
+
 
 /**
  * Assignment operator for source value of type HalfFloatWord.
@@ -305,6 +344,38 @@ SimValue::operator+(const UIntWord& rightHand) {
 }
 
 /**
+ * Explicit addition operator to SlongWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+const SimValue
+SimValue::operator+(const SLongWord& rightHand) {
+    SimValue copy(*this);
+    copy = sLongWordValue() + rightHand;
+    return copy;
+}
+
+/**
+ * Explicit addition operator to ULongWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+const SimValue
+SimValue::operator+(const ULongWord& rightHand) {
+    SimValue copy(*this);
+    copy = uLongWordValue() + rightHand;
+    return copy;
+}
+
+/**
  * Explicit addition operator to HalfFloatWord type.
  *
  * These operators are defined to avoid ambiguous overload because of built-in
@@ -402,6 +473,38 @@ SimValue::operator-(const UIntWord& rightHand) {
 }
 
 /**
+ * Explicit subtraction operator to SLongWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+const SimValue
+SimValue::operator-(const SLongWord& rightHand) {
+    SimValue copy(*this);
+    copy = sLongWordValue() - rightHand;
+    return copy;
+}
+
+/**
+ * Explicit subtraction operator to ULongWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+const SimValue
+SimValue::operator-(const ULongWord& rightHand) {
+    SimValue copy(*this);
+    copy = uLongWordValue() - rightHand;
+    return copy;
+}
+
+/**
  * Explicit subtraction operator to FloatWord type.
  *
  * These operators are defined to avoid ambiguous overload because of built-in
@@ -478,6 +581,38 @@ const SimValue
 SimValue::operator/(const UIntWord& rightHand) {
     SimValue copy(*this);
     copy = uIntWordValue() / rightHand;
+    return copy;
+}
+
+/**
+ * Explicit division operator to SLongWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+const SimValue
+SimValue::operator/(const SLongWord& rightHand) {
+    SimValue copy(*this);
+    copy = sLongWordValue() / rightHand;
+    return copy;
+}
+
+/**
+ * Explicit division operator to UIntWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+const SimValue
+SimValue::operator/(const ULongWord& rightHand) {
+    SimValue copy(*this);
+    copy = uLongWordValue() / rightHand;
     return copy;
 }
 
@@ -562,6 +697,38 @@ SimValue::operator*(const UIntWord& rightHand) {
 }
 
 /**
+ * Explicit multiplication operator to SLongWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+const SimValue
+SimValue::operator*(const SLongWord& rightHand) {
+    SimValue copy(*this);
+    copy = sLongWordValue() * rightHand;
+    return copy;
+}
+
+/**
+ * Explicit multiplication operator to UIntWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+const SimValue
+SimValue::operator*(const ULongWord& rightHand) {
+    SimValue copy(*this);
+    copy = uLongWordValue() * rightHand;
+    return copy;
+}
+
+/**
  * Explicit multiplication operator to FloatWord type.
  *
  * These operators are defined to avoid ambiguous overload because of built-in
@@ -641,6 +808,36 @@ SimValue::operator==(const SIntWord& rightHand) const {
 int
 SimValue::operator==(const UIntWord& rightHand) const {
     return uIntWordValue() == rightHand;
+}
+
+/**
+ * Explicit equality operator for SLongWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the comparison.
+ * @return Reference to itself.
+ *
+ */
+int
+SimValue::operator==(const SLongWord& rightHand) const {
+    return sLongWordValue() == rightHand;
+}
+
+/**
+ * Explicit equality operator for ULongWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the comparison.
+ * @return Reference to itself.
+ *
+ */
+int
+SimValue::operator==(const ULongWord& rightHand) const {
+    return uLongWordValue() == rightHand;
 }
 
 /**
@@ -783,6 +980,61 @@ SimValue::uIntWordValue() const {
     union CastUnion {
         Byte bytes[BYTE_COUNT];
         UIntWord value;
+    };
+
+    CastUnion cast;
+
+#if HOST_BIGENDIAN == 1
+    swapByteOrder(rawData_, BYTE_COUNT, cast.bytes);
+#else
+    memcpy(cast.bytes, rawData_, BYTE_COUNT);
+#endif
+    return cast.value & mask_;
+}
+
+/**
+ * Returns the SimValue as SIntWord value.
+ *
+ * @return SIntWord value.
+ */
+SLongWord
+SimValue::sLongWordValue() const {
+
+    const size_t BYTE_COUNT = sizeof(SLongWord);
+
+    union CastUnion {
+        Byte bytes[BYTE_COUNT];
+        SLongWord value;
+    };
+
+    CastUnion cast;
+
+#if HOST_BIGENDIAN == 1
+    swapByteOrder(rawData_, BYTE_COUNT, cast.bytes);
+#else
+    memcpy(cast.bytes, rawData_, BYTE_COUNT);
+#endif
+
+    if ((unsigned)bitWidth_ >= sizeof(SLongWord) * BYTE_BITWIDTH) {
+        return cast.value;
+    } else {
+        return MathTools::fastSignExtendTo(cast.value, bitWidth_);
+    }
+}
+
+/**
+ * Returns the SimValue as UIntWord value.
+ *
+ * @return UIntWord value.
+ */
+ULongWord
+SimValue::uLongWordValue() const {
+
+    const size_t BYTE_COUNT = sizeof(ULongWord);
+
+    union CastUnion {
+        Byte bytes[BYTE_COUNT];
+        ULongWord value;
     };
 
     CastUnion cast;
@@ -1018,7 +1270,7 @@ SimValue::dump() const {
     TCEString result = "width=";
     result += Conversion::toString(width());
     result += " mask=";
-    result += Conversion::toBinary(mask_, 32);
+    result += Conversion::toBinary(mask_, 64);
     result += " data=0x";
 
     // Convert the raw data buffer to hex string values one byte at a time.

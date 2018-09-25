@@ -187,7 +187,10 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
 
     linkList = []
     if isLittleEndianBuild(options):
-        triple = "tcele-tut-llvm"
+        if is64BitBuild(options):
+            triple = "tcele64-tut-llvm"
+        else:
+            triple = "tcele-tut-llvm"
     else:
         triple = "tce-tut-llvm"
 
@@ -1078,6 +1081,10 @@ p.add_option('--little-endian',
              action="store_true", dest='little_endian', default=False,
              help="Compile using the little-endian TCE target.")
 
+p.add_option('--little-endian64',
+             action="store_true", dest='little_endian64', default=False,
+             help="Compile using the little-endian 64-bit TCE target.")
+
 # Commandline argument parsing
 
 # fix gcc switches, which cannot be represented in OptionParser format by adding extra "-" before switch
@@ -1167,6 +1174,23 @@ runningInstalled = 'src/bintools/Compiler' not in scriptDir or not \
      os.path.exists(os.path.join("@abs_top_builddir@",
                                  "src/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so"))
 
+# TODO: also check ADF
+bitness64 = None
+def is64BitBuild(options):
+    global bitness64
+    if bitness64 is not None:
+        return bitness64
+    machine64Bits = False
+    if options.adf_file != "":
+        machine64Bits = "<bitness64/>" in open(options.adf_file).read()
+        if (machine64Bits):
+            print "detected 64-bit adf"
+    if options.little_endian64 or machine64Bits:
+        bitness64 = True
+    else:
+        bitness64 = False
+    return bitness64
+
 # Cache the endianness mode as we know that we are always building
 # for at most one ADF at once and the automatic endianness detection
 # from ADF requires loading and scanning the ADF file.
@@ -1179,7 +1203,7 @@ def isLittleEndianBuild(options):
     if options.adf_file != "":
         machineLittleEndian = "<little-endian/>" in open(options.adf_file).read()
 
-    if options.little_endian or machineLittleEndian:
+    if options.little_endian or options.little_endian64 or machineLittleEndian:
         if options.adf_file != "" and not machineLittleEndian:
             exitWithError(1, \
               "error: Trying to compile in little endian mode with a big endian machine.")
@@ -1195,11 +1219,16 @@ def isLittleEndianBuild(options):
 def newlibLibdir(options):
     if runningInstalled:
         if isLittleEndianBuild(options):
-            return os.path.join(tceprefix, "tcele-llvm/lib")
+            if is64BitBuild(options):
+                return os.path.join(tceprefix, "tcele64-llvm/lib")
+            else:
+                return os.path.join(tceprefix, "tcele-llvm/lib")
         else:
             return os.path.join(tceprefix, "tce-llvm/lib")
     else:
         if isLittleEndianBuild(options):
+            if is64BitBuild(options):
+                return os.path.join("@abs_top_builddir@", "newlib-1.17.0/tcele64-llvm/tcele64-llvm/newlib")
             return os.path.join("@abs_top_builddir@", "newlib-1.17.0/tcele-llvm/tcele-llvm/newlib")
         else:
             return os.path.join("@abs_top_builddir@", "newlib-1.17.0/tce-llvm/tce-llvm/newlib")
@@ -1207,14 +1236,21 @@ def newlibLibdir(options):
 def newlibIncludes(options):
     if runningInstalled:
         if isLittleEndianBuild(options):
+            if is64BitBuild(options):
+                return "-I " + os.path.join(tceprefix, "tcele64-llvm/include")
             return "-I " + os.path.join(tceprefix, "tcele-llvm/include")
         else:
             return "-I " + os.path.join(tceprefix, "tce-llvm/include")
     else:
         if isLittleEndianBuild(options):
-            return ("-I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/tcele-llvm/tcele-llvm/newlib/targ-include") +
+            if is64BitBuild(options):
+                return ("-I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/tcele64-llvm/tcele64-llvm/newlib/targ-include") +
                     " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libc/include") +
                     " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libm/include") + " ")
+            else:
+                return ("-I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/tcele-llvm/tcele-llvm/newlib/targ-include") +
+                        " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libc/include") +
+                        " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libm/include") + " ")
         else:
             return ("-I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/tce-llvm/tce-llvm/newlib/targ-include") +
                     " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libc/include") +

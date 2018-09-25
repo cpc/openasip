@@ -43,7 +43,7 @@
 class ConstantNode : public OperationDAGNode {
 public:
 
-    ConstantNode(int value);
+    ConstantNode(long value);
 
     ConstantNode(const ConstantNode& other);
 
@@ -51,7 +51,7 @@ public:
 
     virtual GraphNode* clone() const; 
 
-    virtual int value() const;
+    virtual long value() const;
 
     virtual std::string toString() const;
 

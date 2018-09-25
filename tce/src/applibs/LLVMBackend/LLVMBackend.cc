@@ -149,17 +149,8 @@ const TCEString LLVMBackend::CXX11_FLAG = "-std=c++11";
  * @return Minimumn opset that is required for llvm.
  */
 OperationDAGSelector::OperationSet 
-LLVMBackend::llvmRequiredOpset(bool includeFloatOps, bool littleEndian) {
+LLVMBackend::llvmRequiredOpset(bool includeFloatOps, bool littleEndian, bool bits64) {
     OperationDAGSelector::OperationSet requiredOps;
-
-    requiredOps.insert("ADD");
-    requiredOps.insert("SUB");
-    requiredOps.insert("MUL");
-    requiredOps.insert("DIV");
-    requiredOps.insert("DIVU");
-    requiredOps.insert("DIV");
-    requiredOps.insert("MOD");
-    requiredOps.insert("MODU");
 
     if (littleEndian) {
         requiredOps.insert("LD32");
@@ -180,29 +171,6 @@ LLVMBackend::llvmRequiredOpset(bool includeFloatOps, bool littleEndian) {
         requiredOps.insert("STH");
         requiredOps.insert("STQ");
     }
-
-    requiredOps.insert("SXHW");
-    requiredOps.insert("SXQW");
-
-    requiredOps.insert("AND");
-    requiredOps.insert("XOR");
-    requiredOps.insert("IOR");
-
-    requiredOps.insert("SHL");
-    requiredOps.insert("SHR");
-    requiredOps.insert("SHRU");
-
-    requiredOps.insert("EQ");
-    requiredOps.insert("NE");
-    requiredOps.insert("LT");
-    requiredOps.insert("LTU");
-    requiredOps.insert("LE");
-    requiredOps.insert("LEU");
-    requiredOps.insert("GT");
-    requiredOps.insert("GTU");
-    requiredOps.insert("GE");
-    requiredOps.insert("GEU");
-
    
     // -- Floating point operations --
     if (includeFloatOps) {
@@ -238,6 +206,77 @@ LLVMBackend::llvmRequiredOpset(bool includeFloatOps, bool littleEndian) {
         requiredOps.insert("ORDF");
         requiredOps.insert("UORDF");
     }
+
+    if (bits64) {
+        requiredOps.insert("LDU32");
+        requiredOps.insert("LD64");
+        requiredOps.insert("ST64");
+
+        requiredOps.insert("ADD64");
+        requiredOps.insert("SUB64");
+        requiredOps.insert("MUL64");
+        requiredOps.insert("DIV64");
+        requiredOps.insert("DIVU64");
+        requiredOps.insert("DIV64");
+        requiredOps.insert("MOD64");
+        requiredOps.insert("MODU64");
+
+        requiredOps.insert("SXH64");
+        requiredOps.insert("SXQ64");
+
+        requiredOps.insert("AND64");
+        requiredOps.insert("XOR64");
+        requiredOps.insert("IOR64");
+
+        requiredOps.insert("SHL64");
+        requiredOps.insert("SHR64");
+        requiredOps.insert("SHRU64");
+
+        requiredOps.insert("EQ64");
+        requiredOps.insert("NE64");
+        requiredOps.insert("LT64");
+        requiredOps.insert("LTU64");
+        requiredOps.insert("LE64");
+        requiredOps.insert("LEU64");
+        requiredOps.insert("GT64");
+        requiredOps.insert("GTU64");
+        requiredOps.insert("GE64");
+        requiredOps.insert("GEU64");
+
+        return requiredOps;
+    }
+
+    requiredOps.insert("ADD");
+    requiredOps.insert("SUB");
+    requiredOps.insert("MUL");
+    requiredOps.insert("DIV");
+    requiredOps.insert("DIVU");
+    requiredOps.insert("DIV");
+    requiredOps.insert("MOD");
+    requiredOps.insert("MODU");
+
+    requiredOps.insert("SXHW");
+    requiredOps.insert("SXQW");
+
+    requiredOps.insert("AND");
+    requiredOps.insert("XOR");
+    requiredOps.insert("IOR");
+
+    requiredOps.insert("SHL");
+    requiredOps.insert("SHR");
+    requiredOps.insert("SHRU");
+
+    requiredOps.insert("EQ");
+    requiredOps.insert("NE");
+    requiredOps.insert("LT");
+    requiredOps.insert("LTU");
+    requiredOps.insert("LE");
+    requiredOps.insert("LEU");
+    requiredOps.insert("GT");
+    requiredOps.insert("GTU");
+    requiredOps.insert("GE");
+    requiredOps.insert("GEU");
+
     return requiredOps;
 }
 /**
@@ -488,7 +527,16 @@ LLVMBackend::compile(
     throw (Exception) {
 
     ipData_ = ipData;
-    std::string targetStr = target.isLittleEndian()?"tcele-llvm":"tce-llvm";
+    // TODO: fixme
+    std::string targetStr = "tce-llvm";
+    if (target.isLittleEndian()) {
+        if (target.is64bit()) {
+            targetStr = "tcele64-llvm";
+        } else {
+            targetStr = "tcele-llvm";
+        }
+    }
+
     std::string errorStr;
 
     std::string featureString ="";
@@ -768,8 +816,8 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
             plugingen.generateBackend(tempDir_);
         } catch(Exception& e) {
             std::string msg =
-                "Failed to build compiler plugin for target architecture.";
-            
+                "Failed to build compiler plugin for target architecture: ";
+            msg += e.errorMessage();
             CompileError ne(__FILE__, __LINE__, __func__, msg);
             ne.setCause(e);
             throw ne;
@@ -904,6 +952,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     TCEString endianOption = target.isLittleEndian() ?
         "-DLITTLE_ENDIAN_TARGET" : "";
 
+    TCEString bitnessOption = target.is64bit() ? "-DTARGET64BIT" : "";
     // Compile plugin to cache.
     // CXX and SHARED_CXX_FLAGS defined in tce_config.h
     cmd = std::string(CXX) +
@@ -917,6 +966,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         " " + CXX11_FLAG +
 #endif
         " " + endianOption +
+        " " + bitnessOption +
         " " + pluginSources +
         " -o " + pluginFileName;
 

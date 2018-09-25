@@ -48,15 +48,15 @@
     E = D; D = C; C = ROT32(B,30); B = A; A = temp
 
 void
-memset (LONG * s, int c, int n, int e)
+local_memset (INT32 * s, int c, int n, int e)
 {
-  unsigned long uc;
-  unsigned long *p;
+  INT32 uc;
+  INT32 *p;
   int m;
 
   m = n / 4;
   uc = c;
-  p = (unsigned long *) s;
+  p = (INT32 *) s;
   while (e-- > 0)
     {
       p++;
@@ -68,15 +68,15 @@ memset (LONG * s, int c, int n, int e)
 }
 
 void
-byteorder_shift_memcpy (LONG * s1, const BYTE * s2, int n)
+local_memcpy (INT32 * s1, const BYTE * s2, int n)
 {
-  unsigned long *p1;
-  unsigned char *p2;
-  unsigned long tmp;
+  INT32 *p1;
+  BYTE *p2;
+  INT32 tmp;
   int m;
   m = n / 4;
-  p1 = (unsigned long *) s1;
-  p2 = (unsigned char *) s2;
+  p1 = (INT32 *) s1;
+  p2 = (BYTE *) s2;
 
   while (m-- > 0)
     {
@@ -96,7 +96,7 @@ static void
 sha_transform ()
 {
   int i;
-  LONG temp, A, B, C, D, E, W[80];
+  INT32 temp, A, B, C, D, E, W[80];
 
   for (i = 0; i < 16; ++i)
     {
@@ -155,20 +155,20 @@ sha_init ()
 void
 sha_update (const BYTE * buffer, int count)
 {
-  if ((sha_info_count_lo + ((LONG) count << 3)) < sha_info_count_lo)
+  if ((sha_info_count_lo + ((INT32) count << 3)) < sha_info_count_lo)
     {
       ++sha_info_count_hi;
     }
-  sha_info_count_lo += (LONG) count << 3;
-  sha_info_count_hi += (LONG) count >> 29;
+  sha_info_count_lo += (INT32) count << 3;
+  sha_info_count_hi += (INT32) count >> 29;
   while (count >= SHA_BLOCKSIZE)
     {
-      byteorder_shift_memcpy (sha_info_data, buffer, SHA_BLOCKSIZE);
+      local_memcpy (sha_info_data, buffer, SHA_BLOCKSIZE);
       sha_transform ();
       buffer += SHA_BLOCKSIZE;
       count -= SHA_BLOCKSIZE;
     }
-  byteorder_shift_memcpy (sha_info_data, buffer, count);
+  local_memcpy (sha_info_data, buffer, count);
 }
 
 /* finish computing the SHA digest */
@@ -177,8 +177,8 @@ void
 sha_final ()
 {
   int count;
-  LONG lo_bit_count;
-  LONG hi_bit_count;
+  INT32 lo_bit_count;
+  INT32 hi_bit_count;
 
   lo_bit_count = sha_info_count_lo;
   hi_bit_count = sha_info_count_hi;
@@ -186,13 +186,13 @@ sha_final ()
   sha_info_data[count++] = 0x80;
   if (count > 56)
     {
-      memset (sha_info_data, 0, 64 - count, count);
+      local_memset (sha_info_data, 0, 64 - count, count);
       sha_transform ();
-      memset (sha_info_data, 0, 56, 0);
+      local_memset (sha_info_data, 0, 56, 0);
     }
   else
     {
-      memset (sha_info_data, 0, 56 - count, count);
+      local_memset (sha_info_data, 0, 56 - count, count);
     }
   sha_info_data[14] = hi_bit_count;
   sha_info_data[15] = lo_bit_count;

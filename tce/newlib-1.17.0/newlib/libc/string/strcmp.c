@@ -47,7 +47,7 @@ QUICKREF
 #define DETECTNULL(X) (((X) - 0x01010101) & ~(X) & 0x80808080)
 #else
 #if LONG_MAX == 9223372036854775807L
-#define DETECTNULL(X) (((X) - 0x0101010101010101) & ~(X) & 0x8080808080808080)
+#define DETECTNULL(X) (((X) - 0x0101010101010101l) & ~(X) & 0x8080808080808080l)
 #else
 #error long int is not a 32bit or 64bit type.
 #endif

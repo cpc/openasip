@@ -196,8 +196,8 @@ public:
         const std::string& regName, 
         const SimValue& value) {
         return regName + " " + 
-            Conversion::toHexString(value.unsignedValue()) + " " + 
-            Conversion::toString(value.intValue());
+            Conversion::toHexString(value.uLongWordValue()) + " " +
+            Conversion::toString(value.sLongWordValue());
     }
 };
 

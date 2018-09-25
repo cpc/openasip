@@ -107,14 +107,18 @@ MCInstPrinter *dummyInstrPrinterCtor(
 
 extern "C" void LLVMInitializeTCETarget() { 
     RegisterTargetMachine<TCETargetMachine> Y(TheTCETarget);
+    RegisterTargetMachine<TCETargetMachine> X0(TheTCELE64Target);
     RegisterTargetMachine<TCETargetMachine> X(TheTCELETarget);
 
     RegisterMCAsmInfo<TCEMCAsmInfo> Z(TheTCETarget);
+    RegisterMCAsmInfo<TCEMCAsmInfo> V0(TheTCELE64Target);
     RegisterMCAsmInfo<TCEMCAsmInfo> V(TheTCELETarget);
 #ifndef LLVM_OLDER_THAN_3_7
     TargetRegistry::RegisterMCInstPrinter(TheTCETarget, dummyInstrPrinterCtor);
     TargetRegistry::RegisterMCInstPrinter(
         TheTCELETarget, dummyInstrPrinterCtor);
+    TargetRegistry::RegisterMCInstPrinter(
+        TheTCELE64Target, dummyInstrPrinterCtor);
 #endif
 }
 
@@ -187,13 +191,14 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
 
     plugin_ = &plugin;
     missingOps_.clear();
-    if (!plugin_->hasSDIV()) missingOps_.insert(std::make_pair(llvm::ISD::SDIV, MVT::i32));
-    if (!plugin_->hasUDIV()) missingOps_.insert(std::make_pair(llvm::ISD::UDIV, MVT::i32));
-    if (!plugin_->hasSREM()) missingOps_.insert(std::make_pair(llvm::ISD::SREM, MVT::i32));
-    if (!plugin_->hasUREM()) missingOps_.insert(std::make_pair(llvm::ISD::UREM, MVT::i32));
-    if (!plugin_->hasMUL()) missingOps_.insert(std::make_pair(llvm::ISD::MUL, MVT::i32));
-    if (!plugin_->hasROTL()) missingOps_.insert(std::make_pair(llvm::ISD::ROTL, MVT::i32));
-    if (!plugin_->hasROTR()) missingOps_.insert(std::make_pair(llvm::ISD::ROTR, MVT::i32));
+    MVT::SimpleValueType defType = plugin_->getDefaultType();
+    if (!plugin_->hasSDIV()) missingOps_.insert(std::make_pair(llvm::ISD::SDIV, defType));
+    if (!plugin_->hasUDIV()) missingOps_.insert(std::make_pair(llvm::ISD::UDIV, defType));
+    if (!plugin_->hasSREM()) missingOps_.insert(std::make_pair(llvm::ISD::SREM, defType));
+    if (!plugin_->hasUREM()) missingOps_.insert(std::make_pair(llvm::ISD::UREM, defType));
+    if (!plugin_->hasMUL()) missingOps_.insert(std::make_pair(llvm::ISD::MUL, defType));
+    if (!plugin_->hasROTL()) missingOps_.insert(std::make_pair(llvm::ISD::ROTL, defType));
+    if (!plugin_->hasROTR()) missingOps_.insert(std::make_pair(llvm::ISD::ROTR, defType));
 
     if (!plugin_->hasSXHW()) missingOps_.insert(
         std::make_pair(llvm::ISD::SIGN_EXTEND_INREG, MVT::i16));
@@ -211,11 +216,15 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
 
     initAsmInfo();
 
+    // TODO: check from the adf
+    bool is64bit = true;
+    bool isLittleEndian_ = true;
+
     // Set data layout with correct stack alignment.
     unsigned alignBits = getMaxMemoryAlignment() * 8;
     TCEString dataLayoutStr("");
     if (plugin_->isLittleEndian()) {
-        dataLayoutStr += "e-p:32:32:32";
+        dataLayoutStr += is64bit? "e-p:64:64:64" : "e-p:32:32:32";
     } else {
         dataLayoutStr += "E-p:32:32:32";
     }
@@ -224,10 +233,10 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     dataLayoutStr += "-i8:8:32";
     dataLayoutStr += "-i16:16:32";
     dataLayoutStr += "-i32:32:32";
-    dataLayoutStr += "-i64:32:32";
+    dataLayoutStr += "-i64:64:64";
     dataLayoutStr += "-f16:16:16";
     dataLayoutStr += "-f32:32:32";
-    dataLayoutStr += "-f64:32:64";
+    dataLayoutStr += "-f64:64:64";
     dataLayoutStr += "-v64:64:64";
     dataLayoutStr += "-v128:128:128";
     dataLayoutStr += "-v256:256:256";

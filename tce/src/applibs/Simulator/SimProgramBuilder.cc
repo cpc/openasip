@@ -274,7 +274,7 @@ SimProgramBuilder::processMove(
         // extend the immediate so we don't have to extend it
         // during runtime every time the move is simulated
         immediateSource = new InlineImmediateValue(move.bus().width());
-        int immediate = move.source().value().sIntWordValue();
+        long immediate = move.source().value().sLongWordValue();
 
         if (move.isControlFlowMove()) {
             int targetWidth = move.destination().port().width();

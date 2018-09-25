@@ -53,7 +53,7 @@ using std::string;
  * @param wordSize Number of MAUs that make up a natural word.
  * @param align Alignment of natural words, expressed in number of MAUs.
  */
-IdealSRAM::IdealSRAM(Word start, Word end, Word MAUSize, bool littleEndian) :
+IdealSRAM::IdealSRAM(ULongWord start, ULongWord end, Word MAUSize, bool littleEndian) :
     Memory(start, end, MAUSize, littleEndian), start_(start), end_(end), 
     MAUSize_(MAUSize) {
     data_ = new MemoryContents(end_ - start_);
@@ -80,7 +80,7 @@ IdealSRAM::~IdealSRAM() {
  * @param data The data to write.
  */
 void
-IdealSRAM::write(Word address, MAU data) {
+IdealSRAM::write(ULongWord address, MAU data) {
     data_->writeData(address - start_, data);
 }
 
@@ -93,7 +93,7 @@ IdealSRAM::write(Word address, MAU data) {
  * @return The data read.
  */
 Memory::MAU
-IdealSRAM::read(Word address) {
+IdealSRAM::read(ULongWord address) {
     return data_->readData(address - start_);
 }
 

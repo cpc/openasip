@@ -557,7 +557,7 @@ DataSectionCreator::sizeInWords(UValue value, int width, bool isSigned)
     int neededBits = 0;
     
     if (isSigned) {
-        neededBits = MathTools::requiredBitsSigned(value);
+        neededBits = MathTools::requiredBitsSigned(SLongWord(value));
     } else {
         neededBits = MathTools::requiredBits(value);     
     }

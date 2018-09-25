@@ -161,6 +161,8 @@ protected:
 
     void writeRegisterClasses(std::ostream& o);
 
+    void write64bitMoveDefs(std::ostream& o);
+
     virtual TCEString llvmOperationPattern(
         const Operation& op, char operandType = ' ');
     virtual TCEString llvmOperationName(
@@ -257,6 +259,8 @@ throw (InvalidData);
 
     virtual void createMinMaxGenerator(std::ostream& os);
 
+    void genTCEInstrInfo_copyPhys64bitReg(std::ostream&o) const;
+
     virtual void generateLoadStoreCopyGenerator(std::ostream& os);
 
     virtual void createGetMaxMemoryAlignment(std::ostream& os) const;
@@ -264,6 +268,7 @@ throw (InvalidData);
     virtual void writeCallingConv(std::ostream& os);
     void writeCallingConvLicenceText(std::ostream& os);
 
+    void writeAddressingModeDefs(std::ostream& o);
     void createSelectPatterns(std::ostream& os);
 
     void createByteExtLoadPatterns(std::ostream& os);
@@ -271,6 +276,7 @@ throw (InvalidData);
     void createEndiannesQuery(std::ostream& os);
 
     void writeCallSeqStart(std::ostream& os);
+    void writeMiscPatterns(std::ostream& o);
 
     const TTAMachine::Machine& mach_;
 
@@ -314,7 +320,7 @@ throw (InvalidData);
 
     bool littleEndian_;
     /// Minimum number of 32 bit registers.
-    unsigned static const REQUIRED_I32_REGS;
+    unsigned static const REQUIRED_FULL_WIDTH_REGS;
     /// List of register that are associated with a guard on a bus.
     std::set<RegInfo> guardedRegs_;
 

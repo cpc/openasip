@@ -64,6 +64,7 @@ namespace llvm {
         std::string pluginFileName();
         virtual bool isLittleEndian() const { return false; };
 
+        virtual bool is64bit() const { return false; }
 #if (!(defined(LLVM_3_5)))
         virtual const TargetInstrInfo* getInstrInfo() const override;
         virtual const TargetFrameLowering* getFrameLowering() const override;
@@ -92,7 +93,15 @@ namespace llvm {
         TCELESubtarget(TCETargetMachinePlugin* plugin) : 
             TCESubtarget(plugin) {}
 
-        virtual bool isLittleEndian() const { return true; }
+        virtual bool isLittleEndian() const override { return true; }
+    };
+
+    class TCELE64Subtarget: public TCELESubtarget {
+    public:
+        TCELE64Subtarget(TCETargetMachinePlugin* plugin) :
+            TCELESubtarget(plugin) {}
+
+        virtual bool is64bit() const override { return true; }
     };
 }
 

@@ -59,6 +59,28 @@ WxConversion::toWxString(const unsigned int& source) {
 }
 
 /**
+ * Converts an long to a wxString.
+ *
+ * @param source int to convert.
+ * @return The int as a wxString.
+ */
+wxString
+WxConversion::toWxString(const SLongWord& source) {
+    return wxString((Conversion::toString(source)).c_str(), *wxConvCurrent);
+}
+
+/**
+ * Converts an unsigned long to a wxString.
+ *
+ * @param source unsigned int to convert.
+ * @return The unsigned int as a wxString.
+ */
+wxString
+WxConversion::toWxString(const ULongWord& source) {
+    return wxString((Conversion::toString(source)).c_str(), *wxConvCurrent);
+}
+
+/**
  * Converts char to a wxString.
  *
  * @param source char to convert.

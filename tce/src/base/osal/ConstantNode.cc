@@ -36,7 +36,7 @@
 /**
  * Constructor.
  */
-ConstantNode::ConstantNode(int value) :
+ConstantNode::ConstantNode(long value) :
     OperationDAGNode(), value_(value) {}
 
 /**
@@ -56,7 +56,7 @@ ConstantNode::clone() const {
     return new ConstantNode(*this);
 }
 
-int 
+long
 ConstantNode::value() const {
     return value_;
 }

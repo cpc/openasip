@@ -69,10 +69,10 @@ DisassemblyImmediateAssignment::toString() const {
     if (hasValue_) {
         if (signed_) {
             disassembly =
-                disassembly + "=" + Conversion::toString(value_.sIntWordValue());
+                disassembly + "=" + Conversion::toString(value_.sLongWordValue());
         } else {
             disassembly =
-                disassembly + "=" + Conversion::toString(value_.uIntWordValue());
+                disassembly + "=" + Conversion::toString(value_.uLongWordValue());
         }
     }
     disassembly = disassembly + "]";

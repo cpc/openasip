@@ -61,12 +61,12 @@ public:
     virtual void advanceClock();
     virtual void reset();
 
-    virtual void write(Word address, MAU data);
-    virtual Memory::MAU read(Word address);
+    virtual void write(ULongWord address, MAU data) override;
+    virtual Memory::MAU read(ULongWord address) override;
 
-    virtual void write(Word address, int size, UIntWord data)
+    virtual void write(ULongWord address, int size, ULongWord data)
         { memory_->write(address, size, data); }
-    virtual void read(Word address, int size, UIntWord& data)
+    virtual void read(ULongWord address, int size, ULongWord& data)
         { memory_->write(address, size, data); }
 
     virtual void fillWithZeros() { memory_->fillWithZeros(); }

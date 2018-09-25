@@ -63,8 +63,10 @@ int putchar(int ch) {
 
 #ifdef STANDARD_IO
 
+#undef long
 #include <stdio.h>
 #include <stdlib.h>
+#define long int
 
 #endif
 

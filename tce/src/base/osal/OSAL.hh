@@ -310,6 +310,8 @@ bool simulateTrigger( \
  */
 #define INT(OPERAND) (io[(OPERAND) - 1]->intValue())
 #define UINT(OPERAND) (io[(OPERAND) - 1]->unsignedValue())
+#define LONG(OPERAND) (io[(OPERAND) - 1]->sLongWordValue())
+#define ULONG(OPERAND) (io[(OPERAND) - 1]->uLongWordValue())
 #define FLT(OPERAND) (io[(OPERAND) - 1]->floatWordValue())
 #define DBL(OPERAND) (io[(OPERAND) - 1]->doubleWordValue())
 #define HFLT(OPERAND) (io[(OPERAND) -1]->halfFloatWordValue())
@@ -374,10 +376,10 @@ bool simulateTrigger( \
  * The first argument is the integer that should be sign extended. 
  * The second argument is the bit width of the source argument. 
  * In the previous example, the bit width is 5. This is used to figure out 
- * which is the sign bit. Returns a sign extended (to 32 bits) IntWord.
+ * which is the sign bit. Returns a sign extended (to 64 bits) IntWord.
  */
 #define SIGN_EXTEND(VALUE, WIDTH) \
-    ((int)(VALUE << (sizeof(SIntWord)*8-(WIDTH))) >> (sizeof(SIntWord)*8-(WIDTH)))   
+    ((SLongWord)((SLongWord(VALUE) << (64-(WIDTH))) >> (64-(WIDTH))))
 
 /**
  * Zero extends the given integer.
@@ -394,10 +396,10 @@ bool simulateTrigger( \
  * Second argument is the bit width of the source argument. 
  * In the previous example, the bit width is 5. This is used to figure out 
  * which bits to reset in the destination. Returns a zero extended 
- * (to 32 bits) IntWord.
+ * (to 64 bits) IntWord.
  */
 #define ZERO_EXTEND(VALUE, WIDTH) \
-    ((VALUE << (sizeof(SIntWord)*8-(WIDTH))) >> (sizeof(SIntWord)*8-(WIDTH)))   
+    ((ULongWord(VALUE) << (64-(WIDTH))) >> (64-(WIDTH)))
 
 /**
  * Provides access to the output stream which can be used to print out debug 
@@ -412,7 +414,7 @@ bool simulateTrigger( \
  * Maximum bit width of the inputs and outputs currently fully supported by
  * behaviour models of base operations.
  */
-#define OSAL_WORD_WIDTH sizeof(UIntWord) * BYTE_BITWIDTH
+#define OSAL_WORD_WIDTH sizeof(ULongWord) * BYTE_BITWIDTH
 
 
 /**

@@ -40,21 +40,21 @@
 class MathTools {
 public:
     static unsigned int bitLength(long unsigned int number);
-    static int requiredBits(long unsigned int number);
-    static int requiredBitsSigned(long int number);
+    static int requiredBits(unsigned long int number);
+    static int requiredBitsSigned(SLongWord number);
     static int requiredBitsSigned(int number);
     static int requiredBitsSigned(UInt32 number);
-    static int requiredBitsSigned(unsigned long number);
-    static int signExtendTo(int value, int width);
-    static int zeroExtendTo(int value, int width);
+    static int requiredBitsSigned(ULongWord number);
+    static SLongWord signExtendTo(SLongWord value, int width);
+    static ULongWord zeroExtendTo(ULongWord value, int width);
     
-    static int fastSignExtendTo(int value, int width);
-    static int fastZeroExtendTo(int value, int width);
+    static SLongWord fastSignExtendTo(SLongWord value, int width);
+    static ULongWord fastZeroExtendTo(ULongWord value, int width);
 
-    static bool bit(unsigned int integer, unsigned int index);
+    static bool bit(ULongWord integer, unsigned int index);
     
     static int random(int, int);
-    static unsigned int roundDownToPowerTwo(unsigned int number);
+    static ULongWord roundDownToPowerTwo(ULongWord number);
 };
 
 #include "MathTools.icc"

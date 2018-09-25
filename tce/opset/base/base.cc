@@ -49,6 +49,14 @@
            tmpBuf, __FILE__, __LINE__, parent_);      \
 }
 
+#define RUNTIME_ERROR_WITH_LONG(MESSAGE, DATA) {\
+       int len = strlen(MESSAGE) + 21;                \
+       char *tmpBuf = static_cast<char*>(alloca(len));\
+       snprintf(tmpBuf, len, "%s %ld", MESSAGE, (long)DATA);    \
+       OperationGlobals::runtimeError(                \
+           tmpBuf, __FILE__, __LINE__, parent_);      \
+}
+
 // A macro to obtain maximum value that can be represented with 'x' bits.
 // NOTE: If this is needed a lot it should be in the OSAL
 // language. Currently I believe it will not be needed too much, and
@@ -74,6 +82,17 @@ END_TRIGGER;
 END_OPERATION(ADD)
 
 //////////////////////////////////////////////////////////////////////////////
+// ADD64 - long integer add
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(ADD64)
+
+TRIGGER
+    IO(3) = ULONG(1) + ULONG(2);
+END_TRIGGER;
+
+END_OPERATION(ADD64)
+
+//////////////////////////////////////////////////////////////////////////////
 // SUB - integer subtract
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(SUB)
@@ -85,6 +104,17 @@ END_TRIGGER;
 END_OPERATION(SUB)
 
 //////////////////////////////////////////////////////////////////////////////
+// SUB64 - long integer subtract
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(SUB64)
+
+TRIGGER
+    IO(3) = ULONG(1) - ULONG(2);
+END_TRIGGER;
+
+END_OPERATION(SUB64)
+
+//////////////////////////////////////////////////////////////////////////////
 // LDW - load a 32-bit word in big endian order from memory
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(LDW)
@@ -93,28 +123,61 @@ TRIGGER
    if (UINT(1) % 4 != 0) 
        RUNTIME_ERROR_WITH_INT(
            "Memory access alignment error, address: ", UINT(1));
-    UIntWord data;
+    ULongWord data;
     MEMORY.readBE(UINT(1), 4, data);
-    IO(2) = data;
+    IO(2) = SIGN_EXTEND(data, MAU_SIZE*4);
 END_TRIGGER;
 
 END_OPERATION(LDW)
 
 //////////////////////////////////////////////////////////////////////////////
-// LD32 - load a 32-bit word in little endian order from memory
+// LD32 - load a 32-bit word in little endian order from memory, sign-extend
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(LD32)
 
 TRIGGER
-   if (UINT(1) % 4 != 0) 
-       RUNTIME_ERROR_WITH_INT(
-           "Memory access alignment error, address: ", UINT(1));
-    UIntWord data;
-    MEMORY.readLE(UINT(1), 4, data);
-    IO(2) = data;
+   if (ULONG(1) % 4 != 0)
+       RUNTIME_ERROR_WITH_LONG(
+           "Memory access alignment error, address: ", ULONG(1));
+    ULongWord data;
+    MEMORY.readLE(ULONG(1), 4, data);
+    IO(2) = SIGN_EXTEND(data, MAU_SIZE*4);
 END_TRIGGER;
 
 END_OPERATION(LD32)
+
+//////////////////////////////////////////////////////////////////////////////
+// LDU32 - load a 32-bit word in little endian order from memory
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(LDU32)
+
+TRIGGER
+   if (ULONG(1) % 4 != 0)
+       RUNTIME_ERROR_WITH_LONG(
+           "Memory access alignment error, address: ", ULONG(1));
+    ULongWord data;
+    MEMORY.readLE(ULONG(1), 4, data);
+    IO(2) = ZERO_EXTEND(data, MAU_SIZE*4);
+END_TRIGGER;
+
+END_OPERATION(LDU32)
+
+//////////////////////////////////////////////////////////////////////////////
+// LD64 - load a 64-bit word in little endian order from memory
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(LD64)
+
+TRIGGER
+   if (ULONG(1) % 8 != 0)
+       RUNTIME_ERROR_WITH_LONG(
+           "Memory access alignment error, address: ", ULONG(1));
+    ULongWord data;
+    MEMORY.readLE(ULONG(1), 8, data);
+//std::cerr << "Reading 64-bit value: " << data << std::endl;
+    IO(2) = data;//, MAU_SIZE*8;
+END_TRIGGER;
+
+END_OPERATION(LD64)
 
 //////////////////////////////////////////////////////////////////////////////
 // LDQ - load 1 mimimum addressable unit from memory
@@ -122,7 +185,7 @@ END_OPERATION(LD32)
 OPERATION(LDQ)
 
 TRIGGER
-    UIntWord data;
+    ULongWord data;
     MEMORY.readBE(UINT(1), 1, data);
     IO(2) = SIGN_EXTEND(data, MAU_SIZE);
 END_TRIGGER;
@@ -138,7 +201,7 @@ TRIGGER
     if (UINT(1) % 2 != 0)
 	RUNTIME_ERROR_WITH_INT(
 	    "Memory access alignment error, address: ", UINT(1));
-    UIntWord data;
+    ULongWord data;
     MEMORY.readBE(UINT(1), 2, data);
     IO(2) = SIGN_EXTEND(data, MAU_SIZE*2);
 END_TRIGGER;
@@ -154,8 +217,8 @@ TRIGGER
     if (UINT(1) % 2 != 0)
     RUNTIME_ERROR_WITH_INT(
         "Memory access alignment error, address: ", UINT(1));
-    UIntWord data;
-    MEMORY.readLE(UINT(1), 2, data);
+    ULongWord data;
+    MEMORY.readLE(ULONG(1), 2, data);
     // See the comment in ST32.
     IO(2) = SIGN_EXTEND(data, MAU_SIZE*2);
 END_TRIGGER;
@@ -211,6 +274,21 @@ END_TRIGGER;
 END_OPERATION(ST32)
 
 //////////////////////////////////////////////////////////////////////////////
+// ST64 - store a 64-bit longword to memory in little endian byte order
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(ST64)
+
+TRIGGER
+    if (UINT(1) % 8 != 0)
+    RUNTIME_ERROR_WITH_LONG(
+        "Memory access alignment error, address: ", ULONG(1));
+    ULongWord data = ULONG(2);
+    MEMORY.writeLE(ULONG(1), 8, data);
+END_TRIGGER;
+
+END_OPERATION(ST64)
+
+//////////////////////////////////////////////////////////////////////////////
 // STQ - store 1 mimimum addressable unit to memory
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(STQ)
@@ -246,7 +324,7 @@ TRIGGER
         "Memory access alignment error, address: ", UINT(1));
     // See the comment in ST32.
     UIntWord data = UINT(2);
-    MEMORY.writeLE(UINT(1), 2, data);
+    MEMORY.writeLE(ULONG(1), 2, data);
 END_TRIGGER;
 
 END_OPERATION(ST16)
@@ -287,6 +365,21 @@ END_TRIGGER;
 END_OPERATION(EQ)
 
 //////////////////////////////////////////////////////////////////////////////
+// EQ64 - compare equal
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(EQ64)
+
+TRIGGER
+    if (ULONG(1) == ULONG(2)) {
+        IO(3) = 1l;
+    } else {
+        IO(3) = 0l;
+    }
+END_TRIGGER;
+
+END_OPERATION(EQ64)
+
+//////////////////////////////////////////////////////////////////////////////
 // GT - compare greater
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(GT)
@@ -300,6 +393,19 @@ END_TRIGGER;
 END_OPERATION(GT)
 
 //////////////////////////////////////////////////////////////////////////////
+// GT64 - compare greater
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(GT64)
+
+TRIGGER
+    SLongWord in1 = LONG(1);
+    SLongWord in2 = LONG(2);
+    IO(3) = (in1 > in2) ? 1l : 0l;
+END_TRIGGER;
+
+END_OPERATION(GT64)
+
+//////////////////////////////////////////////////////////////////////////////
 // GTU - compare greater, unsigned
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(GTU)
@@ -309,6 +415,17 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION(GTU)
+
+//////////////////////////////////////////////////////////////////////////////
+// GTU64 - compare greater, unsigned
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(GTU64)
+
+TRIGGER
+    IO(3) = (ULONG(1) > ULONG(2)) ? 1 : 0;
+END_TRIGGER;
+
+END_OPERATION(GTU64)
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -321,6 +438,17 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION(SHL)
+
+//////////////////////////////////////////////////////////////////////////////
+// SHL64 - bit shift left
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(SHL64)
+
+TRIGGER
+    IO(3) = ULONG(1) << ULONG(2);
+END_TRIGGER;
+
+END_OPERATION(SHL64)
 
 //////////////////////////////////////////////////////////////////////////////
 // SHR  - bit shift right, signed (arithmetic)
@@ -345,6 +473,27 @@ END_TRIGGER;
 END_OPERATION(SHR)
 
 //////////////////////////////////////////////////////////////////////////////
+// SHR64  - bit shift right, signed (arithmetic)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(SHR64)
+
+TRIGGER
+    SLongWord int1 = LONG(1);
+    SLongWord int2 = LONG(2);
+
+    if (int2 > MIN(
+            static_cast<SLongWord>(BWIDTH(1)),
+            static_cast<SLongWord>(OSAL_WORD_WIDTH))) {
+        IO(3) = 0;
+        return true;
+    }
+
+    IO(3) = int1 >> int2;
+END_TRIGGER;
+
+END_OPERATION(SHR64)
+
+//////////////////////////////////////////////////////////////////////////////
 // SHRU - bit shift right, unsigned (logical)
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(SHRU)
@@ -366,6 +515,27 @@ END_TRIGGER;
 END_OPERATION(SHRU)
 
 //////////////////////////////////////////////////////////////////////////////
+// SHRU64 - bit shift right, unsigned (logical)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(SHRU64)
+
+TRIGGER
+    ULongWord in1 = ULONG(1);
+    ULongWord in2 = ULONG(2);
+
+    if (in2 > MIN(
+            static_cast<ULongWord>(BWIDTH(1)),
+            static_cast<ULongWord>(OSAL_WORD_WIDTH))) {
+        IO(3) = 0;
+        return true;
+    }
+
+    IO(3) = in1 >> in2;
+END_TRIGGER;
+
+END_OPERATION(SHRU64)
+
+//////////////////////////////////////////////////////////////////////////////
 // AND - bitwise and
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(AND)
@@ -375,6 +545,17 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION(AND)
+
+//////////////////////////////////////////////////////////////////////////////
+// AND64 - bitwise and
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(AND64)
+
+TRIGGER
+    IO(3) = ULONG(1) & ULONG(2);
+END_TRIGGER;
+
+END_OPERATION(AND64)
 
 //////////////////////////////////////////////////////////////////////////////
 // IOR - inclusive bitwise or
@@ -388,6 +569,17 @@ END_TRIGGER;
 END_OPERATION(IOR)
 
 //////////////////////////////////////////////////////////////////////////////
+// IOR64 - inclusive bitwise or
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(IOR64)
+
+TRIGGER
+    IO(3) = ULONG(1) | ULONG(2);
+END_TRIGGER;
+
+END_OPERATION(IOR64)
+
+//////////////////////////////////////////////////////////////////////////////
 // XOR - exclusive bitwise or
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(XOR)
@@ -397,6 +589,17 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION(XOR)
+
+//////////////////////////////////////////////////////////////////////////////
+// XOR64 - exclusive bitwise or
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(XOR64)
+
+TRIGGER
+    IO(3) = ULONG(1) ^ ULONG(2);
+END_TRIGGER;
+
+END_OPERATION(XOR64)
 
 //////////////////////////////////////////////////////////////////////////////
 // JUMP - absolute jump
@@ -437,6 +640,20 @@ END_TRIGGER;
 END_OPERATION(MIN)
 
 //////////////////////////////////////////////////////////////////////////////
+// MIN64 - long integer minimum
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(MIN64)
+
+TRIGGER
+    SLongWord in1 = LONG(1);
+    SLongWord in2 = LONG(2);
+    SLongWord in3 = (in1 < in2) ? in1 : in2;
+    IO(3) = in3;
+END_TRIGGER;
+
+END_OPERATION(MIN64)
+
+//////////////////////////////////////////////////////////////////////////////
 // MAX - integer maximum
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(MAX)
@@ -449,6 +666,19 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION(MAX)
+
+//////////////////////////////////////////////////////////////////////////////
+// MAX64 - long integer maximum
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(MAX64)
+
+TRIGGER
+    SLongWord in1 = LONG(1);
+    SLongWord in2 = LONG(2);
+    IO(3) = (in1 < in2) ? in2 : in1;
+END_TRIGGER;
+
+END_OPERATION(MAX64)
 
 //////////////////////////////////////////////////////////////////////////////
 // MINU - integer minimum, unsigned
@@ -469,6 +699,24 @@ END_TRIGGER;
 END_OPERATION(MINU)
 
 //////////////////////////////////////////////////////////////////////////////
+// MINU64 - integer minimum, unsigned
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(MINU64)
+
+TRIGGER
+    ULongWord in1 = ULONG(1);
+    ULongWord in2 = ULONG(2);
+
+    if (in1 < in2) {
+        IO(3) = in1;
+    } else {
+        IO(3) = in2;
+    }
+END_TRIGGER;
+
+END_OPERATION(MINU64)
+
+//////////////////////////////////////////////////////////////////////////////
 // MAXU - integer maximum, unsigned
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(MAXU)
@@ -485,6 +733,24 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION(MAXU)
+
+//////////////////////////////////////////////////////////////////////////////
+// MAXU64 - integer maximum, unsigned
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(MAXU64)
+
+TRIGGER
+    ULongWord in1 = ULONG(1);
+    ULongWord in2 = ULONG(2);
+
+    if (in1 > in2) {
+        IO(3) = in1;
+    } else {
+        IO(3) = in2;
+    }
+END_TRIGGER;
+
+END_OPERATION(MAXU64)
 
 //////////////////////////////////////////////////////////////////////////////
 // SXBW - sign extend from 1 bit to 32 bits
@@ -520,6 +786,50 @@ END_TRIGGER;
 END_OPERATION(SXHW)
 
 //////////////////////////////////////////////////////////////////////////////
+// SXB64 - sign extend from 1 bits to 64 bits
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(SXB64)
+
+TRIGGER
+    IO(2) = SIGN_EXTEND(ULONG(1), 1);
+END_TRIGGER;
+
+END_OPERATION(SXB64)
+
+//////////////////////////////////////////////////////////////////////////////
+// SXQ64 - sign extend from 8 bits to 64 bits
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(SXQ64)
+
+TRIGGER
+    IO(2) = SIGN_EXTEND(ULONG(1), 8);
+END_TRIGGER;
+
+END_OPERATION(SXQ64)
+
+//////////////////////////////////////////////////////////////////////////////
+// SXH64 - sign extend from 16 bits to 64 bits
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(SXH64)
+
+TRIGGER
+    IO(2) = SIGN_EXTEND(ULONG(1), 16);
+END_TRIGGER;
+
+END_OPERATION(SXH64)
+
+//////////////////////////////////////////////////////////////////////////////
+// SXW64 - sign extend from 32 bits to 64 bits
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(SXW64)
+
+TRIGGER
+    IO(2) = SIGN_EXTEND(ULONG(1), 32);
+END_TRIGGER;
+
+END_OPERATION(SXW64)
+
+//////////////////////////////////////////////////////////////////////////////
 // TRUNCWH - truncate 32 bit int to 16 bit int
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(TRUNCWH)
@@ -542,6 +852,19 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION(NEG)
+
+//////////////////////////////////////////////////////////////////////////////
+// NEG64  - arithmetic negation
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(NEG64)
+
+TRIGGER
+    SLongWord in1 = LONG(1);
+    in1 = -in1;
+    IO(2) = in1;
+END_TRIGGER;
+
+END_OPERATION(NEG64)
 
 //////////////////////////////////////////////////////////////////////////////
 // NOT  - bitwise negation
@@ -589,6 +912,17 @@ END_TRIGGER;
 END_OPERATION(MUL)
 
 //////////////////////////////////////////////////////////////////////////////
+// MUL64 - long integer multiply
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(MUL64)
+
+TRIGGER
+    IO(3) = ULONG(1)*ULONG(2);
+END_TRIGGER;
+
+END_OPERATION(MUL64)
+
+//////////////////////////////////////////////////////////////////////////////
 // DIV - integer divide
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(DIV)
@@ -618,6 +952,34 @@ END_TRIGGER;
 END_OPERATION(DIVU)
 
 //////////////////////////////////////////////////////////////////////////////
+// DIV64 - long integer divide
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(DIV64)
+
+TRIGGER
+    if (ULONG(2) == 0)
+         RUNTIME_ERROR("Divide by zero.")
+
+    IO(3) = LONG(1) / LONG(2);
+END_TRIGGER;
+
+END_OPERATION(DIV64)
+
+//////////////////////////////////////////////////////////////////////////////
+// DIVU - long integer divide, unsigned
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(DIVU64)
+
+TRIGGER
+    if (ULONG(2) == 0)
+         RUNTIME_ERROR("Divide by zero.")
+
+    IO(3) = ULONG(1) / ULONG(2);
+END_TRIGGER;
+
+END_OPERATION(DIVU64)
+
+//////////////////////////////////////////////////////////////////////////////
 // MOD - integer modulo
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(MOD)
@@ -633,6 +995,23 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION(MOD)
+
+//////////////////////////////////////////////////////////////////////////////
+// MOD64 - long integer modulo
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(MOD64)
+
+TRIGGER
+    if (ULONG(2) == 0)
+         RUNTIME_ERROR("Divide by zero.")
+
+    SLongWord in1 = static_cast<SLongWord>(UINT(1));
+    SLongWord in2 = static_cast<SLongWord>(UINT(2));
+    SLongWord out1 = in1 % in2;
+    IO(3) = static_cast<SLongWord>(out1);
+END_TRIGGER;
+
+END_OPERATION(MOD64)
 
 //////////////////////////////////////////////////////////////////////////////
 // MODU - integer modulo, unsigned
@@ -654,6 +1033,24 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION(MODU)
+
+//////////////////////////////////////////////////////////////////////////////
+// MODU64 - long integer modulo, unsigned
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(MODU64)
+
+TRIGGER
+    if (ULONG(2) == 0)
+         RUNTIME_ERROR("Divide by zero.")
+
+    ULongWord in1 = ULONG(1);
+    ULongWord in2 = ULONG(2);
+    ULongWord out1 = in1 % in2;
+
+    IO(3) = out1;
+END_TRIGGER;
+
+END_OPERATION(MODU64)
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1197,6 +1594,22 @@ END_TRIGGER;
 END_OPERATION(ABS)
 
 //////////////////////////////////////////////////////////////////////////////
+// ABS - absolute value
+//////////////////////////////////////////////////////////////////////////////
+
+OPERATION(ABS64)
+
+TRIGGER
+    SLongWord temp = LONG(1);
+    if (temp < 0) {
+        temp = -temp;
+    }
+    IO(2) = temp;
+END_TRIGGER;
+
+END_OPERATION(ABS64)
+
+//////////////////////////////////////////////////////////////////////////////
 // ABSF - floating-point absolute value
 //////////////////////////////////////////////////////////////////////////////
 
@@ -1279,7 +1692,7 @@ END_OPERATION(MINF)
 OPERATION(LDQU)
 
 TRIGGER
-    UIntWord data;
+    ULongWord data;
     MEMORY.readBE(UINT(1), 1, data);
     IO(2) = ZERO_EXTEND(data, MAU_SIZE);
 END_TRIGGER;
@@ -1296,7 +1709,7 @@ TRIGGER
     if (UINT(1) % 2 != 0)
 	RUNTIME_ERROR_WITH_INT(
 	    "Memory access alignment error, address: ", UINT(1));
-    UIntWord data;
+    ULongWord data;
     MEMORY.readBE(UINT(1), 2, data);
     IO(2) = ZERO_EXTEND(data, MAU_SIZE*2);
 END_TRIGGER;
@@ -1313,8 +1726,8 @@ TRIGGER
     if (UINT(1) % 2 != 0)
     RUNTIME_ERROR_WITH_INT(
         "Memory access alignment error, address: ", UINT(1));
-    UIntWord data;
-    MEMORY.readLE(UINT(1), 2, data);
+    ULongWord data;
+    MEMORY.readLE(ULONG(1), 2, data);
     // See the comment in ST32.
     IO(2) = ZERO_EXTEND(data, MAU_SIZE*2);
 END_TRIGGER;

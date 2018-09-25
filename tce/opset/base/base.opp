@@ -32,6 +32,21 @@
   </operation>
 
   <operation>
+    <name>SHL1ADD64</name>
+    <description>Array indexing for 16-bit data types</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      SimValue shifted;
+      EXEC_OPERATION(shl64, IO(1), 1, shifted);
+      EXEC_OPERATION(add64, shifted, IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>SHL2ADD</name>
     <description>Array indexing for 32-bit data types</description>
     <inputs>2</inputs>
@@ -43,6 +58,36 @@
       SimValue shifted;
       EXEC_OPERATION(shl, IO(1), 2, shifted);
       EXEC_OPERATION(add, shifted, IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHL2ADD64</name>
+    <description>Array indexing for 32-bit data types</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      SimValue shifted;
+      EXEC_OPERATION(shl64, IO(1), 2, shifted);
+      EXEC_OPERATION(add64, shifted, IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHL3ADD64</name>
+    <description>Array indexing for 64-bit data types</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      SimValue shifted;
+      EXEC_OPERATION(shl64, IO(1), 3, shifted);
+      EXEC_OPERATION(add64, shifted, IO(2), IO(3));
     </trigger-semantics>
   </operation>
 
@@ -68,6 +113,27 @@
   </operation>
 
   <operation>
+    <name>ADD64</name>
+    <description>Integer addition. Output 3 is sum of inputs 1 and 2.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="SLongWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(add64, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>SUB</name>
     <description>Integer subtraction. Input 1 is minuend,  input 2 is subtrahend and output 3 is difference.</description>
     <inputs>2</inputs>
@@ -77,6 +143,19 @@
     <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sub, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SUB64</name>
+    <description>Integer subtraction. Input 1 is minuend,  input 2 is subtrahend and output 3 is difference.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sub64, IO(1), IO(2), IO(3));
     </trigger-semantics>
   </operation>
 
@@ -99,11 +178,11 @@
 
   <operation>
     <name>LD32</name>
-    <description>Loads a 32-bit word in little endian byte order.</description>
+    <description>Loads a 32-bit word in little endian byte order and sign-extend it</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
-    <in element-count="1" element-width="32" id="1" type="UIntWord">
+    <in element-count="1" element-width="64" id="1" type="UIntWord">
       <mem-address/>
     </in>
     <out element-count="1" element-width="32" id="2" type="RawData">
@@ -111,6 +190,40 @@
     </out>
     <trigger-semantics>
       EXEC_OPERATION(ld32, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDU32</name>
+    <description>Loads a 32-bit word in little endian byte order and zero-extend it</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in element-count="1" element-width="64" id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out element-count="1" element-width="32" id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>
+      EXEC_OPERATION(ldu32, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LD64</name>
+    <description>Loads a 64-bit long word in little endian byte order.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in element-count="1" element-width="64" id="1" type="ULongWord">
+      <mem-address/>
+    </in>
+    <out element-count="1" element-width="64" id="2" type="RawData">
+      <mem-data/>
+    </out>
+    <trigger-semantics>
+      EXEC_OPERATION(ld64, IO(1), IO(2));
     </trigger-semantics>
   </operation>
 
@@ -137,7 +250,7 @@
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <in element-count="1" element-width="32" id="1" type="UIntWord">
+    <in element-count="1" element-width="64" id="1" type="UIntWord">
       <mem-address/>
     </in>
     <in element-count="1" element-width="32" id="2" type="RawData">
@@ -145,6 +258,23 @@
     </in>
     <trigger-semantics>
       EXEC_OPERATION(st32, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ST64</name>
+    <description>Stores a 64-bit long word to little endian byte order.</description>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in element-count="1" element-width="64" id="1" type="ULongWord">
+      <mem-address/>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="RawData">
+      <mem-data/>
+    </in>
+    <trigger-semantics>
+      EXEC_OPERATION(st64, IO(1), IO(2));
     </trigger-semantics>
   </operation>
 
@@ -170,6 +300,27 @@
   </operation>
 
   <operation>
+    <name>EQ64</name>
+    <description>Equality comparison. Output 3 returns '1' if inputs 1 and 2 are equal and otherwise returns '0'.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="SLongWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(eq64, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>GT</name>
     <description>Greater-than signed integer comparison. 
 Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.</description>
@@ -180,6 +331,20 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(gt, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GT64</name>
+    <description>Greater-than signed integer comparison for 64-bit value
+Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(gt64, IO(1), IO(2), IO(3));
     </trigger-semantics>
   </operation>
 
@@ -197,6 +362,19 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>GTU64</name>
+    <description>Greater-than unsigned long integer comparison. Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <in element-count="1" element-width="64" id="2" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="3" type="ULongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(gtu64, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>LT</name>
     <description>Less-than signed integer comparison.</description>
     <inputs>2</inputs>
@@ -210,6 +388,19 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>LT64</name>
+    <description>Less-than signed integer comparison.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(gt64, IO(2), IO(1), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>LTU</name>
     <description>Less-than unsigned integer comparison.</description>
     <inputs>2</inputs>
@@ -219,6 +410,19 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(gtu, IO(2), IO(1), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LTU64</name>
+    <description>Less-than unsigned integer comparison.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <in element-count="1" element-width="64" id="2" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="3" type="ULongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(gtu64, IO(2), IO(1), IO(3));
     </trigger-semantics>
   </operation>
 
@@ -252,6 +456,35 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>NE64</name>
+    <description>Not equal signed integer comparison.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="SLongWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(eq64, IO(1), IO(2), t1);
+      EXEC_OPERATION(xor64, t1, 1, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(gt64, IO(1), IO(2), t1);
+      EXEC_OPERATION(gt64, IO(2), IO(1), t2);
+      EXEC_OPERATION(ior64, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>GE</name>
     <description>Greater or equal signed integer comparison.</description>
     <inputs>2</inputs>
@@ -269,6 +502,27 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
       EXEC_OPERATION(gt, IO(1), IO(2), t1);
       EXEC_OPERATION(eq, IO(1), IO(2), t2);
       EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GE64</name>
+    <description>Greater or equal signed long integer comparison.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(gt64, IO(2), IO(1), t1);
+      EXEC_OPERATION(xor64, t1, 1, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(gt64, IO(1), IO(2), t1);
+      EXEC_OPERATION(eq64, IO(1), IO(2), t2);
+      EXEC_OPERATION(ior64, t1, t2, IO(3));
     </trigger-semantics>
   </operation>
 
@@ -294,6 +548,27 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>GEU64</name>
+    <description>Greater or equal unsigned integer comparison.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <in element-count="1" element-width="64" id="2" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="3" type="ULongWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(gtu64, IO(2),IO(1), t1);
+      EXEC_OPERATION(xor64, t1, 1, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(gtu64, IO(1), IO(2), t1);
+      EXEC_OPERATION(eq64, IO(1), IO(2), t2);
+      EXEC_OPERATION(ior64, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>LE</name>
     <description>Less or equal signed integer comparison.</description>
     <inputs>2</inputs>
@@ -311,6 +586,27 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
       EXEC_OPERATION(eq, IO(1), IO(2), t1);
       EXEC_OPERATION(gt, IO(2), IO(1), t2);
       EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LE64</name>
+    <description>Less or equal signed integer comparison.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(gt64, IO(1),IO(2), t1);
+      EXEC_OPERATION(xor64, t1, 1, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(eq64, IO(1), IO(2), t1);
+      EXEC_OPERATION(gt64, IO(2), IO(1), t2);
+      EXEC_OPERATION(ior64, t1, t2, IO(3));
     </trigger-semantics>
   </operation>
 
@@ -336,6 +632,27 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>LEU64</name>
+    <description>Less or equal unsigned integer comparison.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <in element-count="1" element-width="64" id="2" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="3" type="ULongWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(gtu64, IO(1),IO(2), t1);
+      EXEC_OPERATION(xor64, t1, 1, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(eq64, IO(1), IO(2), t1);
+      EXEC_OPERATION(gtu64, IO(2), IO(1), t2);
+      EXEC_OPERATION(ior64, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>SHL</name>
     <description>Left logical shift. Input 1 is value to be shifted and input 2 is shift amount. Output 3 is result from operation.</description>
     <inputs>2</inputs>
@@ -345,6 +662,19 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(shl, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHL64</name>
+    <description>Left logical shift. Input 1 is value to be shifted and input 2 is shift amount. Output 3 is result from operation.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shl64, IO(1), IO(2), IO(3));
     </trigger-semantics>
   </operation>
 
@@ -362,6 +692,20 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>SHR64</name>
+    <description>Arithmetic shift right (sign bit duplicated). Input 1 is value to be shifted and input 2 is shift amount. Output 3 is result from operation.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shr64, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+
+  <operation>
     <name>SHRU</name>
     <description>Logical shift right (most siginificant bits zeroed). Input 1 is value to be shifted and input 2 is shift amount. Output 3 is result from operation.</description>
     <inputs>2</inputs>
@@ -369,6 +713,16 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
     <in element-count="1" element-width="32" id="2" type="UIntWord"/>
     <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>SHRU64</name>
+    <description>Logical shift right (most siginificant bits zeroed). Input 1 is value to be shifted and input 2 is shift amount. Output 3 is result from operation.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <in element-count="1" element-width="64" id="2" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="3" type="ULongWord"/>
   </operation>
 
   <operation>
@@ -389,6 +743,27 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(and, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>AND64</name>
+    <description>Bitwise AND. Operands 1 and 2 are inputs and 3 is output result.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="ULongWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="3" type="ULongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(and64, IO(1), IO(2), IO(3));
     </trigger-semantics>
   </operation>
 
@@ -414,6 +789,27 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>IOR64</name>
+    <description>Inclusive OR. Operands 1 and 2 are inputs and 3 is output result.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="ULongWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="3" type="ULongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(ior64, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>XOR</name>
     <description>Exclusive OR. Operands 1 and 2 are inputs and 3 is output result.</description>
     <inputs>2</inputs>
@@ -431,6 +827,27 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(xor, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>XOR64</name>
+    <description>Exclusive OR. Operands 1 and 2 are inputs and 3 is output result.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="ULongWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="3" type="ULongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(xor64, IO(1), IO(2), IO(3));
     </trigger-semantics>
   </operation>
 
@@ -482,6 +899,48 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>MIN64</name>
+    <description>Returns the smaller of the two signed integer values. Operands 1 and 2 are inputs and 3 is output result.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="SLongWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(min, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MAX64</name>
+    <description>Returns the larger of the two signed input values. Operands 1 and 2 are inputs and 3 is output result.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="SLongWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(max, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>MAX</name>
     <description>Returns the larger of the two signed input values. Operands 1 and 2 are inputs and 3 is output result.</description>
     <inputs>2</inputs>
@@ -524,6 +983,27 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>MINU64</name>
+    <description>Returns the smaller of the two unsigned input values.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="ULongWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="3" type="ULongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(minu, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>MAXU</name>
     <description>Returns the larger of the two unsigned input values.</description>
     <inputs>2</inputs>
@@ -539,6 +1019,27 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
       </can-swap>
     </in>
     <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(maxu, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MAXU64</name>
+    <description>Returns the larger of the two unsigned input values.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="ULongWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="3" type="ULongWord"/>
     <trigger-semantics>
       EXEC_OPERATION(maxu, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -757,6 +1258,54 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>SXB64</name>
+    <description>sign extend from 1 bit to 64 bits</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sxb64, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SXQ64</name>
+    <description>Sign extend from 8 bits of the input 1 to 64 bits into output 2.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sxq64, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SXH64</name>
+    <description>Sign extend from 16 bits of of the input 1 to 64 bits into output 2.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sxh64, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SXW64</name>
+    <description>Sign extend from 32 bits of of the input 1 to 32 bits into output 2.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sxw64, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>TRUNCWH</name>
     <description>truncate 32 bit int to 16 bit int</description>
     <inputs>1</inputs>
@@ -777,6 +1326,18 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <out element-count="1" element-width="32" id="2" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(neg, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>NEG64</name>
+    <description>Arithmetic negation, signed integer.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(neg64, IO(1), IO(2));
     </trigger-semantics>
   </operation>
 
@@ -896,6 +1457,27 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>MUL64</name>
+    <description>64-bit integer multiplication of the inputs 1 and 2 with lower result bits in the output 3.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="SLongWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(mul64, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>DIV</name>
     <description>Integer division.</description>
     <inputs>2</inputs>
@@ -909,6 +1491,19 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>DIV64</name>
+    <description>Long Integer division.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(div64, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>DIVU</name>
     <description>Unsigned integer division.</description>
     <inputs>2</inputs>
@@ -918,6 +1513,19 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(divu, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>DIVU64</name>
+    <description>Unsigned long integer division.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <in element-count="1" element-width="64" id="2" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="3" type="ULongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(divu64, IO(1), IO(2), IO(3));
     </trigger-semantics>
   </operation>
 
@@ -1452,6 +2060,30 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
   </operation>
 
   <operation>
+    <name>MAC64</name>
+    <description>Multiply and accumulate (signed long).</description>
+    <inputs>3</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="2" type="SLongWord">
+      <can-swap>
+        <in id="3"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="3" type="SLongWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="64" id="4" type="SLongWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(mul64, IO(2), IO(3), t1);
+      EXEC_OPERATION(add64, t1, IO(1), IO(4));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>EQH</name>
     <description>Half floating-point compare equal.</description>
     <inputs>2</inputs>
@@ -1823,6 +2455,15 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
   </operation>
 
   <operation>
+    <name>ABS64</name>
+    <description>Absolute value.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="2" type="SLongWord"/>
+  </operation>
+
+  <operation>
     <name>ABSF</name>
     <description>Floating-point absolute value.</description>
     <inputs>1</inputs>
@@ -1937,6 +2578,19 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
   </operation>
 
   <operation>
+    <name>MOD64</name>
+    <description>Integer modulo.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="3" type="SLongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(mod64, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>MODU</name>
     <description>Integer modulo (unsigned)</description>
     <inputs>2</inputs>
@@ -1946,6 +2600,19 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(modu, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MODU64</name>
+    <description>Integer modulo (unsigned)</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <in element-count="1" element-width="64" id="2" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="3" type="ULongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(modu64, IO(1), IO(2), IO(3));
     </trigger-semantics>
   </operation>
 

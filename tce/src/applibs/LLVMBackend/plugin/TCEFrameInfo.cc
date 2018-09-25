@@ -58,6 +58,25 @@ using namespace llvm;
 #define ERASE_INSTR_AND_RETURN(I) return MBB.erase(I)
 #endif
 
+#ifdef TARGET64BIT
+#define ADDIMM TCE::ADD64ssa
+#define SUBIMM TCE::SUB64ssa
+#define STREG  TCE::ST64ss
+#define LDREG  TCE::LD64ss
+#define LDRA   TCE::LD64RAs
+#define STRA   TCE::ST64RAss
+#define MOVREG TCE::MOV64ss
+#else
+#define ADDIMM TCE::ADDrri
+#define SUBIMM TCE::SUBrri
+#define STREG  TCE::ST32rr
+#define LDREG  TCE::LD32rr
+#define LDRA   TCE::LD32RAr
+#define STRA   TCE::ST32RArr
+#define MOVREG TCE::MOVI32rr
+#endif
+
+
 /**
  * Eliminates call frame pseudo instructions.
  *
@@ -87,7 +106,7 @@ TCEFrameInfo::eliminateCallFramePseudoInstr(
             if (val == 0) {
                 ERASE_INSTR_AND_RETURN(I);
             }
-            I->setDesc(tii_.get(TCE::SUBrri));
+            I->setDesc(tii_.get(SUBIMM));
             I->getOperand(0).ChangeToRegister(mo1.getReg(), mo1.isDef(),
                                               false/*mo.isImplicit()*/, mo1.isKill(),
                                               false/*dead*/, false/*undef*/,
@@ -104,7 +123,7 @@ TCEFrameInfo::eliminateCallFramePseudoInstr(
             if (val == 0) {
                 ERASE_INSTR_AND_RETURN(I);
             }
-            I->setDesc(tii_.get(TCE::ADDrri));
+            I->setDesc(tii_.get(ADDIMM));
             I->getOperand(0).ChangeToRegister(mo1.getReg(), mo1.isDef(),
                                               false/*mo.isImplicit()*/, mo1.isKill(),
                                               false/*dead*/, false/*undef*/,
@@ -193,13 +212,13 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
     // if (hasCalls && !mf.getFunction()->doesNotReturn()) {
     // However, there is a bug elsewhere and this triggers it.
     if (hasCalls) {
-        BuildMI(mbb, ii, dl, tii_.get(TCE::SUBrri), TCE::SP)
+        BuildMI(mbb, ii, dl, tii_.get(SUBIMM), TCE::SP)
             .addReg(TCE::SP)
             .addImm(stackAlignment_);
 
         // Save RA to stack.
 #ifdef LITTLE_ENDIAN_TARGET
-        BuildMI(mbb, ii, dl, tii_.get(TCE::ST32RArr))
+        BuildMI(mbb, ii, dl, tii_.get(STRA))
             .addReg(TCE::SP)
             .addImm(0)
             .addReg(TCE::RA)
@@ -221,12 +240,12 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
 #else
         if (!mf.getFunction().doesNotReturn()) {
 #endif
-            BuildMI(mbb, ii, dl, tii_.get(TCE::SUBrri), TCE::SP)
+            BuildMI(mbb, ii, dl, tii_.get(SUBIMM), TCE::SP)
                 .addReg(TCE::SP)
                 .addImm(stackAlignment_);
 
 #ifdef LITTLE_ENDIAN_TARGET
-            BuildMI(mbb, ii, dl, tii_.get(TCE::ST32rr))
+            BuildMI(mbb, ii, dl, tii_.get(STREG))
                 .addReg(TCE::SP)
                 .addImm(0)
                 .addReg(TCE::FP)
@@ -241,7 +260,7 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
             numBytes += stackAlignment_;
         }
         // if FP used by this function, move SP to FP
-        BuildMI(mbb, ii, dl, tii_.get(TCE::MOVI32rr), TCE::FP).addReg(TCE::SP)
+        BuildMI(mbb, ii, dl, tii_.get(MOVREG), TCE::FP).addReg(TCE::SP)
             .setMIFlag(MachineInstr::FrameSetup);
     }
 
@@ -249,7 +268,7 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
 
     // Adjust stack pointer
     if (varBytes != 0) {
-        BuildMI(mbb, ii, dl, tii_.get(TCE::SUBrri), TCE::SP)
+        BuildMI(mbb, ii, dl, tii_.get(SUBIMM), TCE::SP)
             .addReg(TCE::SP)
             .addImm(varBytes);
     }
@@ -295,13 +314,13 @@ TCEFrameInfo::emitEpilogue(
 
     if (hasFP(mf)) {
         // move FP to SP
-        BuildMI(mbb, mbbi, dl, tii_.get(TCE::MOVI32rr), TCE::SP)
+        BuildMI(mbb, mbbi, dl, tii_.get(MOVREG), TCE::SP)
             .addReg(TCE::FP)
             .setMIFlag(MachineInstr::FrameSetup);
 
         // restore old FP from stack
 #ifdef LITTLE_ENDIAN_TARGET
-        BuildMI(mbb, mbbi, dl, tii_.get(TCE::LD32rr), TCE::FP)
+        BuildMI(mbb, mbbi, dl, tii_.get(LDREG), TCE::FP)
             .addReg(TCE::FP)
             .addImm(0)
             .setMIFlag(MachineInstr::FrameSetup);
@@ -311,13 +330,13 @@ TCEFrameInfo::emitEpilogue(
             .addImm(0)
             .setMIFlag(MachineInstr::FrameSetup);
 #endif
-        BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
+        BuildMI(mbb, mbbi, dl, tii_.get(ADDIMM), TCE::SP)
             .addReg(TCE::SP)
             .addImm(stackAlignment_);
     } else {
         // no FP
         if (varBytes) {
-            BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
+            BuildMI(mbb, mbbi, dl, tii_.get(ADDIMM), TCE::SP)
                 .addReg(TCE::SP)
                 .addImm(varBytes);
         }
@@ -326,7 +345,7 @@ TCEFrameInfo::emitEpilogue(
     if (hasCalls) {
         // Restore RA from stack.
 #ifdef LITTLE_ENDIAN_TARGET
-        BuildMI(mbb, mbbi, dl, tii_.get(TCE::LD32RAr), TCE::RA)
+        BuildMI(mbb, mbbi, dl, tii_.get(LDRA), TCE::RA)
             .addReg(TCE::SP)
             .addImm(0)
             .setMIFlag(MachineInstr::FrameSetup);
@@ -336,7 +355,7 @@ TCEFrameInfo::emitEpilogue(
             .addImm(0)
             .setMIFlag(MachineInstr::FrameSetup);
 #endif
-        BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDrri), TCE::SP)
+        BuildMI(mbb, mbbi, dl, tii_.get(ADDIMM), TCE::SP)
             .addReg(TCE::SP)
             .addImm(stackAlignment_);
     }

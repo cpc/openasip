@@ -67,6 +67,7 @@ namespace TTAMachine {
 namespace llvm {
     extern Target TheTCETarget;
     extern Target TheTCELETarget;
+    extern Target TheTCELE64Target;
 
     class MCContext;
     class TargetMachine;

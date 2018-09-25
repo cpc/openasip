@@ -260,7 +260,8 @@ public:
 
     bool isLittleEndian() const { return littleEndian_; }
     void setLittleEndian(bool flag) { littleEndian_ = flag; }
-
+    bool is64bit() const { return bitness64_; }
+    bool set64bits(bool flag) { bitness64_ = flag; }
 private:
     /// Assignment not allowed.
     Machine& operator=(const Machine&);
@@ -332,6 +333,8 @@ private:
     bool fuOrdered_;
     // True in case the machine is little-endian, big-endian otherwise.
     bool littleEndian_;
+    // True in case the machine is 64-bit. Also has to be little-endian.
+    bool bitness64_;
 };
 }
 

@@ -134,8 +134,8 @@ TPEFDisassembler::createInstruction(Word instructionIndex) const {
                                              imm->destinationIndex(),
                                              immediates);
                 
-                SimValue immValue(32);
-                immValue = imm->word();
+                SimValue immValue(64);
+                immValue = imm->longWord();
 
                 // do not know if unit is signed or not without adf
                 DisassemblyImmediateAssignment* immAssign = 
@@ -372,8 +372,8 @@ TPEFDisassembler::createDisassemblyElement(
 
             assert(imm->isInline());
 
-            SimValue immValue(32);
-            immValue = imm->word();
+            SimValue immValue(64);
+            immValue = imm->sLongWord();
             return new DisassemblyImmediate(immValue, false);
 
         } else {

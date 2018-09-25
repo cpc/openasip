@@ -66,6 +66,8 @@ using llvm::MachineOperand;
 using llvm::TCETargetMachine;
 using llvm::TCETargetMachinePlugin;
 
+#define sub "SUB"
+
 char ConstantTransformer::ID; 
 
 bool
@@ -172,6 +174,7 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
                 if (inputIndex == 0) continue; 
                 const Operand& operand = op.operand(inputIndex);
                 if (operand.isNull() || !operand.isInput()) {
+                    continue; // ignore output operands
                     Application::errorStream() 
                         << "Input " << inputIndex 
                         << " not found for operation "
@@ -189,7 +192,7 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
                 if (MachineInfo::canEncodeImmediateInteger(mach_, 0) &&
                     MachineInfo::canEncodeImmediateInteger(
                         mach_, -mo.getImm()) && /* SUB is 32b */
-                    MachineInfo::supportsOperation(mach_, "SUB")) {  
+                    MachineInfo::supportsOperation(mach_, sub)) {
 
 #ifdef LLVM_3_5
                     const llvm::MCInstrInfo* iinfo = mf.getTarget().getInstrInfo();
@@ -211,7 +214,7 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
 #endif
                     // RV_HIGH = SUB 0 -X
                     BuildMI(
-                        mbb, j, j->getDebugLoc(), iinfo->get(plugin.opcode("SUB")), 
+                        mbb, j, j->getDebugLoc(), iinfo->get(plugin.opcode(sub)),
                         plugin.rvHighDRegNum()).addImm(0).addImm(-mo.getImm());
                         
                     // replace the original instruction's immediate operand

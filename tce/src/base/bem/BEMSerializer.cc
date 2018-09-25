@@ -64,7 +64,7 @@ const string TRUE = "true";
 const string FALSE = "false";
 
 const string ADF_ENCODING = "adf-encoding";
-const string VERSION = "version";
+const string ADF_VERSION = "version";
 const string REQUIRED_VERSION = "required-version";
 
 const string SOCKET_CODE_TABLE = "map-ports";
@@ -183,7 +183,7 @@ BEMSerializer::readState()
 
     ObjectState* fileState = XMLSerializer::readState();
 
-    double version = fileState->doubleAttribute(VERSION);
+    double version = fileState->doubleAttribute(ADF_VERSION);
     if (version < 1.2) {
         convertZeroEncExtraBits(fileState);
     }
@@ -317,7 +317,7 @@ BEMSerializer::convertToFileFormat(const ObjectState* state) {
     ObjectState* fileState = new ObjectState(ADF_ENCODING);
     const string version = "1.2";
     const string requiredVersion = "1.2";
-    fileState->setAttribute(VERSION, version);
+    fileState->setAttribute(ADF_VERSION, version);
     fileState->setAttribute(REQUIRED_VERSION, requiredVersion);
 
     // create socket code tables

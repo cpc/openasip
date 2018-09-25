@@ -133,8 +133,8 @@ BuslessExecutableMove::executeWrite() {
 
     if (guarded_) {
         const SimValue& regValue = guardReg_->value();
-        if (!((regValue.uIntWordValue() != 0 && !negated_) ||
-              (regValue.uIntWordValue() == 0 && negated_))) {
+        if (!((regValue.uLongWordValue() != 0 && !negated_) ||
+              (regValue.uLongWordValue() == 0 && negated_))) {
             // guard expression evaluated to false
             squashed_ = true;
             return; 

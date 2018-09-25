@@ -431,7 +431,8 @@ PreOptimizer::handleCFGDDG(
     for (int i = ddg.programOperationCount()-1; i>=0; i--) {
         ProgramOperation& po = ddg.programOperation(i);
         TTAProgram::CodeSnippet* parent = NULL;
-        if (po.operation().name() == "XOR") {
+        if (po.operation().name() == "XOR" ||
+            po.operation().name() == "XOR64") {
             parent = tryToRemoveXor(ddg,po,irm,cfg);
         }
         if (po.operation().name() == "EQ") {

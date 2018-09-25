@@ -857,6 +857,9 @@ llvmOperandType(Operand::OperandType type) {
         return "f32";
     case Operand::DOUBLE_WORD:
         return "f64";
+    case Operand::SLONG_WORD:
+    case Operand::ULONG_WORD:
+        return "i64";
     default:
         return "Unknown";
     }

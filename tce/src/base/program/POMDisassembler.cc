@@ -196,9 +196,9 @@ POMDisassembler::createMove(const Move& move) {
             move.parent().parent().isInProgram() &&
             labelCount(
                 move.parent().parent().parent(),
-                move.source().value().uIntWordValue()) > 0) {
+                move.source().value().uLongWordValue()) > 0) {
 
-            Word immediate = move.source().value().uIntWordValue();
+            LongWord immediate = move.source().value().uLongWordValue();
             std::string codelabel = label(
                 move.parent().parent().parent(), immediate, 0);
             sourceDis = new DisassemblyLabel(codelabel);

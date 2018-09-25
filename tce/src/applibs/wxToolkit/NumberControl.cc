@@ -372,6 +372,17 @@ NumberControl::setValue(const unsigned int value) {
     update();
 }
 
+/**
+ * Sets the value on the widget.
+ *
+ * @param value Integer value to set.
+ */
+void
+NumberControl::setValue(const ULongWord value) {
+    value_.uLongValue = value;
+    update();
+}
+
 
 /**
  * Sets the value on the widget.

@@ -53,7 +53,7 @@ using std::string;
  * @param MAUSize Bit width of the minimum addressable unit of the memory.
  */
 DirectAccessMemory::DirectAccessMemory(
-    Word start, Word end, Word MAUSize, bool littleEndian) : 
+    ULongWord start, ULongWord end, Word MAUSize, bool littleEndian) :
     Memory(start, end, MAUSize, littleEndian), 
     start_(start), end_(end), MAUSize_(MAUSize),
     MAUSize3_(MAUSize_ * 3), MAUSize2_(MAUSize_ * 2) {
@@ -98,7 +98,7 @@ DirectAccessMemory::fillWithZeros() {
  * @param data The data.
  */
 void
-DirectAccessMemory::write(Word address, Memory::MAU data) {
+DirectAccessMemory::write(ULongWord address, Memory::MAU data) {
     fastWriteMAU(address, data);
 }
 
@@ -113,7 +113,7 @@ DirectAccessMemory::write(Word address, Memory::MAU data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-DirectAccessMemory::writeBE(Word address, int count, UIntWord data) {
+DirectAccessMemory::writeBE(ULongWord address, int count, ULongWord data) {
     Memory::writeBE(address, count,  data);
     // compiled simulator does not call advance clock of
     // memories at every cycle for efficiency, so we have
@@ -128,8 +128,8 @@ DirectAccessMemory::writeBE(Word address, int count, UIntWord data) {
  * @return Data.
  */
 Memory::MAU 
-DirectAccessMemory::read(Word address) {
-    UIntWord data = 0;
+DirectAccessMemory::read(ULongWord address) {
+    ULongWord data = 0;
     fastReadMAU(address, data);
     return data;
 }
@@ -143,7 +143,7 @@ DirectAccessMemory::read(Word address) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastWriteMAU(Word address, UIntWord data) {
+DirectAccessMemory::fastWriteMAU(ULongWord address, ULongWord data) {
     data_->writeData(address - start_, (int)(data & mask_));
 }
 
@@ -156,7 +156,7 @@ DirectAccessMemory::fastWriteMAU(Word address, UIntWord data) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastWrite2MAUsBE(Word address, UIntWord data) {  
+DirectAccessMemory::fastWrite2MAUsBE(ULongWord address, ULongWord data) {
     const Word index = address - start_;
     data_->writeData(index, (int)((data >> MAUSize_) & mask_));
     data_->writeData(index + 1, (int)(data & mask_));
@@ -171,7 +171,7 @@ DirectAccessMemory::fastWrite2MAUsBE(Word address, UIntWord data) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastWrite2MAUsLE(Word address, UIntWord data) {  
+DirectAccessMemory::fastWrite2MAUsLE(ULongWord address, ULongWord data) {
     const Word index = address - start_;
     data_->writeData(index + 1, (int)((data >> MAUSize_) & mask_));
     data_->writeData(index, (int)(data & mask_));
@@ -186,7 +186,7 @@ DirectAccessMemory::fastWrite2MAUsLE(Word address, UIntWord data) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastWrite4MAUsBE(Word address, UIntWord data) {  
+DirectAccessMemory::fastWrite4MAUsBE(ULongWord address, ULongWord data) {
     const Word index = address - start_;
     data_->writeData(index, (int)((data >> MAUSize3_) & mask_));
     data_->writeData(index + 1, (int)((data >> MAUSize2_) & mask_));
@@ -203,7 +203,7 @@ DirectAccessMemory::fastWrite4MAUsBE(Word address, UIntWord data) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastWrite4MAUsLE(Word address, UIntWord data) {  
+DirectAccessMemory::fastWrite4MAUsLE(ULongWord address, ULongWord data) {
     const Word index = address - start_;
     data_->writeData(index + 3, (int)((data >> MAUSize3_) & mask_));
     data_->writeData(index + 2, (int)((data >> MAUSize2_) & mask_));
@@ -220,7 +220,7 @@ DirectAccessMemory::fastWrite4MAUsLE(Word address, UIntWord data) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastReadMAU(Word address, UIntWord& data) {
+DirectAccessMemory::fastReadMAU(ULongWord address, ULongWord& data) {
     data = data_->readData(address - start_);
 }
 
@@ -233,7 +233,7 @@ DirectAccessMemory::fastReadMAU(Word address, UIntWord& data) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastRead2MAUsBE(Word address, UIntWord& data) {
+DirectAccessMemory::fastRead2MAUsBE(ULongWord address, ULongWord& data) {
     const Word index = address - start_;
     data = data_->readData(index) << MAUSize_;
     data |= data_->readData(index + 1);
@@ -248,7 +248,7 @@ DirectAccessMemory::fastRead2MAUsBE(Word address, UIntWord& data) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastRead2MAUsLE(Word address, UIntWord& data) {
+DirectAccessMemory::fastRead2MAUsLE(ULongWord address, ULongWord& data) {
     const Word index = address - start_;
     data = data_->readData(index +1) << MAUSize_;
     data |= data_->readData(index);
@@ -263,7 +263,7 @@ DirectAccessMemory::fastRead2MAUsLE(Word address, UIntWord& data) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastRead4MAUsBE(Word address, UIntWord& data) {
+DirectAccessMemory::fastRead4MAUsBE(ULongWord address, ULongWord& data) {
     const Word index = address - start_;
     data = data_->readData(index) << MAUSize3_;
     data |= data_->readData(index + 1) << MAUSize2_;
@@ -280,7 +280,7 @@ DirectAccessMemory::fastRead4MAUsBE(Word address, UIntWord& data) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastRead4MAUsLE(Word address, UIntWord& data) {
+DirectAccessMemory::fastRead4MAUsLE(ULongWord address, ULongWord& data) {
     const Word index = address - start_;
     data = data_->readData(index + 3) << MAUSize3_;
     data |= data_->readData(index + 2) << MAUSize2_;

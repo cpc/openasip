@@ -1618,7 +1618,7 @@ CompiledSimCodeGenerator::generateLoadTrigger(
     const TTAMachine::HWOperation& op) {
     const FunctionUnit& fu = *op.parentUnit();
     std::stringstream ss;
-    string address = symbolGen_.portSymbol(*op.port(1)) + ".uIntWordValue()";
+    string address = symbolGen_.portSymbol(*op.port(1)) + ".uLongWordValue()";
     string memory = symbolGen_.DAMemorySymbol(op.parentUnit()->name());
     string MAUSize = Conversion::toString(fu.addressSpace()->width());
     string method;
@@ -1650,7 +1650,7 @@ CompiledSimCodeGenerator::generateLoadTrigger(
         + "(" + temp + ", (" + MAUSize + "*"
         + std::to_string(memOpDesc.mauCount) +"));";
 
-    ss << "UIntWord " << temp << "; " << memory + "." << method << "("
+    ss << "ULongWord " << temp << "; " << memory + "." << method << "("
        << address << ", " << temp << "); ";
 
     ss << resultSignExtend << " ";

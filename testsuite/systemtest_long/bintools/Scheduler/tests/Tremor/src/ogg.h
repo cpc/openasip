@@ -23,6 +23,8 @@ extern "C" {
 
 #include "os_types.h"
 
+#define long int
+
 typedef struct {
   long endbyte;
   int  endbit;

@@ -82,6 +82,13 @@ public:
         return &adfXML_;
     }
 
+    virtual MVT::SimpleValueType getDefaultType() const override {
+#ifdef TARGET64BIT
+        return MVT::i64;
+#else
+        return MVT::i32;
+#endif
+    }
     virtual std::string rfName(unsigned dwarfRegNum);
     virtual unsigned registerIndex(unsigned dwarfRegNum);
 
@@ -189,7 +196,11 @@ GeneratedTCEPlugin::registerTargetMachine(
     tm_ = &tm;
 
     if (isLittleEndian()) {
+#ifndef TARGET64BIT
         subTarget_ = new TCELESubtarget(this);
+#else
+        subTarget_ = new TCELE64Subtarget(this);
+#endif
     } else {
         subTarget_ = new TCESubtarget(this);
     }
@@ -315,6 +326,15 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     if (opc == TCE::MOVI32ri) return MOVE;
     if (opc == TCE::PRED_TRUE_MOVI32ri) return "?MOVE";
     if (opc == TCE::PRED_FALSE_MOVI32ri) return "!MOVE";
+    if (opc == TCE::MOVI64sa) return MOVE;
+    if (opc == TCE::PRED_TRUE_MOVI64sa) return "?MOVE";
+    if (opc == TCE::PRED_FALSE_MOVI64sa) return "!MOVE";
+    if (opc == TCE::MOV64ss) return MOVE;
+    if (opc == TCE::PRED_TRUE_MOV64ss) return "?MOVE";
+    if (opc == TCE::PRED_FALSE_MOV64ss) return "!MOVE";
+    if (opc == TCE::MOVI64I1ss) return MOVE;
+
+    // TODO: why no predicated version of this?
     if (opc == TCE::MOVF32ff) return MOVE;
     if (opc == TCE::MOVF32fi) return MOVE;
     if (opc == TCE::MOVF32fk) return MOVE;
@@ -328,9 +348,14 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     if (opc == TCE::MOVF16hi) return MOVE;
 
     if (opc == TCE::INLINEASM) return INLINEASM;
-
+#ifdef TARGET64BIT
+    if (opc == TCE::ANDext) return "and64";
+    if (opc == TCE::XORbicmp) return "xor64";
+#else
     if (opc == TCE::ANDext) return "and";
     if (opc == TCE::XORbicmp) return "xor";
+#endif
+
 
     if (opc == TCE::STQBrb) return "stq";
     if (opc == TCE::STQBib) return "stq";
@@ -354,11 +379,15 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
 
 
     // temporary RA register store/loads
+#ifdef TARGET64BIT
+    if (opc == TCE::ST64RAss) return "st64";
+    if (opc == TCE::LD64RAs) return "ld64";
+#else
     if (opc == TCE::STWRArr) return "stw";
     if (opc == TCE::LDWRAr) return "ldw";
     if (opc == TCE::ST32RArr) return "st32";
     if (opc == TCE::LD32RAr) return "ld32";
-    
+#endif
     if (opc == TCE::TCEBRCOND) return "?jump";
     if (opc == TCE::TCEBRICOND) return "!jump";
     if (opc == TCE::TCEBR) return "jump";

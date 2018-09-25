@@ -88,7 +88,7 @@ private:
         /**
          * Constructor.
          */
-        Item() : timer_(0), value_(32), index_(0) {}
+        Item() : timer_(0), value_(64), index_(0) {}
       
         /// Timer of the item.
         int timer_;

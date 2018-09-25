@@ -13,6 +13,10 @@ if TCELE_AVAILABLE
 SUBDIRS += newlib-1.17.0/tcele-llvm
 endif
 
+if TCELE64_AVAILABLE
+SUBDIRS += newlib-1.17.0/tcele64-llvm
+endif
+
 AUTOMAKE_OPTIONS = foreign
 
 # Include files from directory m4/

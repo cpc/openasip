@@ -71,16 +71,17 @@ LongImmediateRegisterState::setValue(const SimValue& value) {
     // which is the width of (int) otherwise we won't extend, as it's
     // probably a double. In the future when we support 64 bit or larger
     // integers, this check is not needed.
-    if (width_ <= WORD_BITWIDTH && value.width() < width_) {
+    if (value.width() < width_) {
         SimValue newValue(width_);
-        UIntWord toBeExtended = value.uIntWordValue();
         int ext = width_ - value.width();
 
         if (signExtend_) {
-            newValue = ((int)(toBeExtended << ext) >> ext);
+            SLongWord toBeExtended = value.sLongWordValue();
+            newValue = ((long)(toBeExtended << ext) >> ext);
         } else {
             // @todo: this might not be needed, we could assume the top bits 
             // to be zero already
+            ULongWord toBeExtended = value.uLongWordValue();
             newValue = ((toBeExtended << ext) >> ext);
         }
         parent_->setRegisterValue(index_, newValue);

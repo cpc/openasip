@@ -55,61 +55,61 @@ class MemoryContents;
 class DirectAccessMemory : public Memory {
 public:
     DirectAccessMemory(
-        Word start,
-        Word end,
+        ULongWord start,
+        ULongWord end,
         Word MAUSize, bool littleEndian);
 
     virtual ~DirectAccessMemory();
 
-    void write(Word address, Memory::MAU data);
+    void write(ULongWord address, Memory::MAU data) override;
     
     void fastWriteMAU(
-        Word address,
-        UIntWord data);
+        ULongWord address,
+        ULongWord data);
     
     void fastWrite2MAUsBE(
-        Word address,
-        UIntWord data);
+        ULongWord address,
+        ULongWord data);
     
     void fastWrite4MAUsBE(
-        Word address,
-        UIntWord data);
+        ULongWord address,
+        ULongWord data);
 
     void fastWrite2MAUsLE(
-        Word address,
-        UIntWord data);
+        ULongWord address,
+        ULongWord data);
     
     void fastWrite4MAUsLE(
-        Word address,
-        UIntWord data);
+        ULongWord address,
+        ULongWord data);
 
-    Memory::MAU read(Word address);
+    Memory::MAU read(ULongWord address) override;
     
     void fastReadMAU(
-        Word address,
-        UIntWord& data);
+        ULongWord address,
+        ULongWord& data);
     
     void fastRead2MAUsBE(
-        Word address,
-        UIntWord& data);
+        ULongWord address,
+        ULongWord& data);
     
     void fastRead4MAUsBE(
-        Word address,
-        UIntWord& data);
+        ULongWord address,
+        ULongWord& data);
 
     void fastRead2MAUsLE(
-        Word address,
-        UIntWord& data);
+        ULongWord address,
+        ULongWord& data);
     
     void fastRead4MAUsLE(
-        Word address,
-        UIntWord& data);
+        ULongWord address,
+        ULongWord& data);
 
     virtual void advanceClock() {}
     virtual void reset() {}
     virtual void fillWithZeros();
 
-    void writeBE(Word address, int count, UIntWord data);
+    void writeBE(ULongWord address, int count, ULongWord data) override;
 
 
     using Memory::write;

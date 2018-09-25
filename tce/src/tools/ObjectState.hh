@@ -38,6 +38,7 @@
 #include <vector>
 
 #include "Exception.hh"
+#include "BaseType.hh"
 
 /**
  * Class ObjectState represents state of an object.
@@ -75,6 +76,7 @@ public:
     void setValue(int value);
     void setValue(double value);
     void setValue(bool value);
+    void setValue(UIntWord value);
 
     std::string stringValue() const;
     int intValue() const
@@ -83,12 +85,14 @@ public:
         throw (NumberFormatException);
     bool boolValue() const
         throw (TypeMismatch);
+    int UIntWordValue() const;
 
     void setAttribute(const std::string& name, const std::string& value);
     void setAttribute(const std::string& name, int value);
     void setAttribute(const std::string& name, unsigned int value);
     void setAttribute(const std::string& name, double value);
     void setAttribute(const std::string& name, bool value);
+    void setAttribute(const std::string& name, ULongWord value);
 
     int attributeCount() const;
     Attribute* attribute(int index) const
@@ -105,6 +109,8 @@ public:
         throw (KeyNotFound, NumberFormatException);
     bool boolAttribute(const std::string& name) const
         throw (KeyNotFound, TypeMismatch);
+    UIntWord UIntWordAttribute(const std::string& name) const;
+
 
     bool hasChild(const std::string& name) const;
     void addChild(ObjectState* child);

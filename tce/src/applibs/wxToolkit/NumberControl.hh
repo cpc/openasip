@@ -37,6 +37,7 @@
 
 #include "Exception.hh"
 #include "FocusTrackingTextCtrl.hh"
+#include "BaseType.hh"
 
 /**
  * Text field widget for numeric value input.
@@ -72,6 +73,7 @@ public:
     unsigned int unsignedValue() const;
     float floatValue() const;
     double doubleValue() const;
+    ULongWord uLongValue() const;
 
     long mode() const;
 
@@ -82,6 +84,7 @@ public:
     void setFloatMode() throw (NotAvailable);
     void setDoubleMode() throw (NotAvailable);
 
+    void setValue(const ULongWord value);
     void setValue(const unsigned int value);
     void setValue(const int value);
     void setValue(const float value);
@@ -117,6 +120,7 @@ private:
     long style_;
 
     union Value {
+        ULongWord uLongValue;
         unsigned int unsignedValue;
         int intValue;
         float floatValue;

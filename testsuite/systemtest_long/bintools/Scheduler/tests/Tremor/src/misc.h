@@ -19,8 +19,10 @@
 #define _V_RANDOM_H_
 #include "ivorbiscodec.h"
 #include "os_types.h"
+#undef long
 #include <stdio.h>
 #include <stdlib.h>
+#define long int
 
 extern void *_vorbis_block_alloc(vorbis_block *vb,long bytes);
 extern void _vorbis_block_ripcord(vorbis_block *vb);

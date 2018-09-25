@@ -178,7 +178,7 @@ namespace llvm {
 	    const std::string& rfName, int index);
 
         TTAProgram::Terminal* createTerminal(
-            const MachineOperand& mo, int bitLimit = 32);
+            const MachineOperand& mo, int bitLimit = 0);
 
         TTAProgram::Move* createMove(
             TTAProgram::Terminal* src,
@@ -383,7 +383,8 @@ namespace llvm {
         static unsigned MAU_BITS;
 
         /// Target architecture pointer size in maus.
-        static unsigned POINTER_SIZE;
+        static unsigned POINTER_SIZE_32;
+        static unsigned POINTER_SIZE_64;
 
         llvm::Module* mod_;
 

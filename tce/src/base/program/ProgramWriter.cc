@@ -677,7 +677,7 @@ const HalfWord
 ProgramWriter::IMMEDIATE_ADDRESS_WIDTH = WORD_BITWIDTH;
 
 const int
-ProgramWriter::MAX_SIMM_WIDTH = 32;
+ProgramWriter::MAX_SIMM_WIDTH = 64;
 
 /**
  * Constructor.
@@ -884,7 +884,7 @@ ProgramWriter::createBinary() const
                                
         }
         UDataSection* dstSection = NULL;
-        Word dstAddress = currLabel.address().location();
+        LongWord dstAddress = currLabel.address().location();
 
         for (Word k = 0; k < newBin->sectionCount(); k++) {
             UDataSection *currSect = dynamic_cast<UDataSection*>(
@@ -1032,20 +1032,20 @@ ProgramWriter::createCodeSection(
                             }
                         }
 
-                        unsigned int uvalue = 
-                            progMove.source().value().unsignedValue();
 
                         // check that inline immediate fits to bus's 
                         // inline immediate field
-                        unsigned int wordToStore =
-                            progMove.source().value().unsignedValue();
+                        unsigned long wordToStore =
+                            progMove.source().value().uLongWordValue();
 
+                        unsigned long uvalue = wordToStore;
                         int requiredBits = 0;
                         int fieldWidth = progMove.bus().immediateWidth();
 
+                        // TODO: why here? immediateelement can handle this???
                         if (progMove.bus().signExtends()) {
                             // Interpret as signed and sign extend if needed
-                            int svalue = static_cast<int>(uvalue);
+                            long svalue = static_cast<long>(uvalue);
                             if (fieldWidth < MAX_SIMM_WIDTH) {
                                 svalue = MathTools::signExtendTo(
                                     svalue, fieldWidth);
@@ -1063,7 +1063,7 @@ ProgramWriter::createCodeSection(
                                     wordToStore, fieldWidth);
                         } else {
                             TCEString disasm = POMDisassembler::disassemble(progMove);
-                            int location =  
+                            long location =
                                 progMove.parent().address().location();
                             TCEString message = "In procedure:";
                             message << currProcedure.name() <<  " Move: " <<
@@ -1080,7 +1080,11 @@ ProgramWriter::createCodeSection(
                                 __FILE__, __LINE__, __func__, message);
                         }   
                         
-                        newImmediate->setWord(wordToStore);
+                        if (progMove.bus().signExtends()) {
+                            newImmediate->setSignedLong(wordToStore);
+                        } else {
+                            newImmediate->setULongWord(wordToStore);
+                        }
                         newImmediate->setDestinationUnit(
                             ResourceElement::INLINE_IMM);
                         newImmediate->setDestinationIndex(immediateIndex);
@@ -1225,9 +1229,9 @@ ProgramWriter::createCodeSection(
                 beginFlag = false;
 
                 if (imm.destination().immediateUnit().signExtends()) {
-                    tpefImm->setSignedWord(imm.value().value().sIntWordValue());
+                    tpefImm->setSignedLong(imm.value().value().sLongWordValue());
                 } else {
-                    tpefImm->setWord(imm.value().value().uIntWordValue());
+                    tpefImm->setULongWord(imm.value().value().uLongWordValue());
                 }
 
                 ResourceID dstRes =

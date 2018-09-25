@@ -82,7 +82,9 @@
 
 #else
 
+#undef long
 #  include <sys/types.h>
+#define long int
 #  include "config_types.h"
 
 #endif

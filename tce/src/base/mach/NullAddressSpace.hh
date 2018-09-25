@@ -47,15 +47,15 @@ public:
     static NullAddressSpace& instance();
 
     virtual int width() const;
-    virtual unsigned int start() const;
-    virtual unsigned int end() const;
+    virtual ULongWord start() const;
+    virtual ULongWord end() const;
 
     virtual std::string name() const;
     virtual void setName(const std::string& name)
         throw (ComponentAlreadyExists, InvalidName);
     virtual void setWidth(int width)
         throw (OutOfRange);
-    virtual void setAddressBounds(unsigned int start, unsigned int end)
+    virtual void setAddressBounds(ULongWord start, ULongWord end)
         throw (OutOfRange);
 
     virtual void setMachine(Machine& mach)

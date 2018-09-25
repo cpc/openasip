@@ -198,6 +198,10 @@ LowerMissingInstructions::getLLVMType(
         return llvmIntegerType;
     case Operand::UINT_WORD:
         return llvmIntegerType;
+    case Operand::SLONG_WORD:
+        return Type::getInt64Ty(getGlobalContext());
+    case Operand::ULONG_WORD:
+        return Type::getInt64Ty(getGlobalContext());
     case Operand::FLOAT_WORD:
         return Type::getFloatTy(getGlobalContext());
     case Operand::HALF_FLOAT_WORD:
@@ -430,7 +434,7 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
         opSet = MachineInfo::getOpset(*mach_);
     
     OperationDAGSelector::OperationSet
-        requiredSet = LLVMBackend::llvmRequiredOpset(true, mach_->isLittleEndian());
+        requiredSet = LLVMBackend::llvmRequiredOpset(true, mach_->isLittleEndian(), mach_->is64bit());
     
     OperationPool osal;
     

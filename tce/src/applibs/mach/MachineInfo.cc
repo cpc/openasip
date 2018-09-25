@@ -252,10 +252,10 @@ MachineInfo::canEncodeImmediateInteger(
 
     size_t requiredBitsSigned =
         std::min((unsigned)MathTools::requiredBitsSigned(
-                     static_cast<long int>(imm)), destWidth);
+                     static_cast<SLongWord>(imm)), destWidth);
     size_t requiredBitsUnsigned =
         std::min((unsigned)MathTools::requiredBits(
-             static_cast<long int>(imm)), destWidth);
+             static_cast<ULongWord>(imm)), destWidth);
 
     // first check the short immediate slots
     for (int bi = 0; bi < busNav.count(); ++bi) {

@@ -130,6 +130,97 @@ __mulsi3(uint32 a, uint32 b) {
     return res;
 }
 
+#ifdef __TCE64__
+
+uint64_t
+divmoddi4(int64_t modwanted, uint64_t num, uint64_t den)
+{
+    int64_t bit = 1;
+    int64_t res = 0;
+    int64_t prevden;
+    // count the highest bit here.
+    while (den < num && bit && !(den & (1L<<63)))
+    {
+        den <<=1;
+        bit <<=1;
+    }
+    while (bit)
+    {
+        if (num >= den)
+        {
+            num -= den;
+            res |= bit;
+        }
+        bit >>=1;
+        den >>=1;
+    }
+    if (modwanted) return num;
+    return res;
+}
+
+int64_t
+__moddi3 (int64_t numerator, int64_t denominator)
+{
+    int64_t sign = 0;
+    int64_t dividend;
+    int64_t modul;
+    
+
+    if (numerator < 0)
+    {
+        numerator = -numerator;
+        sign = 1;
+    }
+    if (denominator < 0)
+    {
+        denominator = -denominator;
+    }
+    
+    modul =  divmoddi4 (1, numerator, denominator);
+    if (sign)
+        return - modul;
+    return modul;
+}
+
+
+int64_t
+__umoddi3 (uint64_t numerator, uint64_t denominator)
+{
+    int64_t dividend;
+    int64_t modul;
+    modul= divmoddi4 (1,  numerator, denominator);
+    return modul;
+}
+
+int64_t
+__udivdi3 (uint64_t num, uint64_t den)
+{
+    int64_t bit = 1;
+    int64_t res = 0;
+    int64_t prevden;
+    // count the highest bit here.
+    while (den < num && bit && !(den & (1L<<63)))
+    {
+        den <<=1;
+        bit <<=1;
+    }
+    while (bit)
+    {
+        if (num >= den)
+        {
+            num -= den;
+            res |= bit;
+        }
+        bit >>=1;
+        den >>=1;
+    }
+    return res;
+}
+
+
+#endif
+
+
 #if 0
 /////////////////////////////////////////////////
 //

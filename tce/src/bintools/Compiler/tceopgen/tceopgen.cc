@@ -50,11 +50,17 @@ std::string
 operandTypeCString(const Operand& operand) {
     switch (operand.type()) {
     default:
+    case Operand::SLONG_WORD:
+        return "long";
+        break;
+    case Operand::ULONG_WORD:
+        return "unsigned long";
+        break;
     case Operand::SINT_WORD:
-        return "int";
+        return "long";
         break;
     case Operand::UINT_WORD:
-        return "unsigned";
+        return "unsigned long";
         break;
     case Operand::FLOAT_WORD:
         return "float";

@@ -37,6 +37,23 @@
 
 #include "tce_config.h"
 
+#define TCELE64DLString \
+    "E-p:64:64:64"    \
+    "-a0:0:64"        \
+    "-i1:8:8"         \
+    "-i8:8:32"        \
+    "-i16:16:32"      \
+    "-i32:32:32"      \
+    "-i64:64:64"      \
+    "-f16:16:16"      \
+    "-f32:32:32"      \
+    "-f64:64:64"      \
+    "-v64:64:64"      \
+    "-v128:128:128"    \
+    "-v256:256:256"    \
+    "-v512:512:512"    \
+    "-v1024:1024:1024"
+
 #define TCEBEDLString \
     "E-p:32:32:32"    \
     "-a0:0:32"        \
@@ -87,7 +104,7 @@ namespace llvm {
    class TCETargetMachinePlugin {
     public:
        TCETargetMachinePlugin() : lowering_(NULL), tm_(NULL),
-                                  dl_(TCEBEDLString)
+                                  dl_(TCELE64DLString)
 #ifdef LLVM_OLDER_THAN_3_7
            ,tsInfo_(&dl_)
 #else
@@ -193,7 +210,7 @@ namespace llvm {
            return &tsInfo_;
        }
 
-
+       virtual MVT::SimpleValueType getDefaultType() const = 0;
    protected:
        /// Target machine instruction info for the llvm framework. 
        TargetInstrInfo* instrInfo_;

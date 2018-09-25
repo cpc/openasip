@@ -39,6 +39,7 @@
 #include <set>
 
 #include "MachinePart.hh"
+#include "BaseType.hh"
 
 namespace TTAMachine {
 
@@ -52,8 +53,8 @@ public:
     AddressSpace(
         const std::string& name,
         int width,
-        unsigned int minAddress,
-        unsigned int maxAddress,
+        ULongWord minAddress,
+        ULongWord maxAddress,
         Machine& owner)
         throw (ComponentAlreadyExists, OutOfRange, InvalidName);
     AddressSpace(const ObjectState* state, Machine& owner)
@@ -61,8 +62,8 @@ public:
     virtual ~AddressSpace();
 
     virtual int width() const;
-    virtual unsigned int start() const;
-    virtual unsigned int end() const;
+    virtual ULongWord start() const;
+    virtual ULongWord end() const;
 
     virtual void setName(const std::string& name)
         throw (ComponentAlreadyExists, InvalidName);
@@ -102,9 +103,9 @@ private:
     /// Bit width of the minimum addressable word.
     int width_;
     /// Lowest address in the address space.
-    unsigned int minAddress_;
+    ULongWord minAddress_;
     /// Highest address in the address space.
-    unsigned int maxAddress_;
+    ULongWord maxAddress_;
     /// The numerical ids mapped to this address space.
     IDSet numericalIds_;
     /// True in case this address space maps to a memory that is shared

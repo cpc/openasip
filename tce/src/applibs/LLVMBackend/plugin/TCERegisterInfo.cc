@@ -65,6 +65,14 @@ using namespace llvm;
 
 #include "TCEGenRegisterInfo.inc"
 
+#ifdef TARGET64BIT
+#define ADDIMM TCE::ADD64ssa
+#define SUBIMM TCE::SUB64ssa
+#else
+#define ADDIMM TCE::ADDrri
+#define SUBIMM TCE::SUBrri
+#endif
+
 /**
  * The Constructor.
  *
@@ -148,11 +156,11 @@ void TCERegisterInfo::eliminateFrameIndex(
                 TCE::KLUDGE_REGISTER, false, false, true/*iskill*/);
             if (Offset > 0) {
                 BuildMI(
-                    *MI.getParent(), II, MI.getDebugLoc(), TII.get(TCE::ADDrri),
+                    *MI.getParent(), II, MI.getDebugLoc(), TII.get(ADDIMM),
                     TCE::KLUDGE_REGISTER).addReg(TCE::FP).addImm(Offset);
             } else { // for negative offsets used sub, not add
                 BuildMI(
-                    *MI.getParent(), II, MI.getDebugLoc(), TII.get(TCE::SUBrri),
+                    *MI.getParent(), II, MI.getDebugLoc(), TII.get(SUBIMM),
                     TCE::KLUDGE_REGISTER).addReg(TCE::FP).addImm(-Offset);
             }
         } else {
@@ -165,7 +173,7 @@ void TCERegisterInfo::eliminateFrameIndex(
         if (Offset != 0) {
             MI.getOperand(FIOperandNum).ChangeToRegister(TCE::KLUDGE_REGISTER, false);
             BuildMI(
-                *MI.getParent(), II, MI.getDebugLoc(), TII.get(TCE::ADDrri),
+                *MI.getParent(), II, MI.getDebugLoc(), TII.get(ADDIMM),
                 TCE::KLUDGE_REGISTER).addReg(TCE::SP).addImm(Offset);
         } else {
             MI.getOperand(FIOperandNum).ChangeToRegister(TCE::SP, false);

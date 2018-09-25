@@ -34,7 +34,7 @@
 |     outData : expected output data                                       |
 +--------------------------------------------------------------------------+
 */
-const LONG outData[5] =
+const INT32 outData[5] =
   { 0x006a5a37UL, 0x93dc9485UL, 0x2c412112UL, 0x63f7ba43UL, 0xad73f922UL };
 
 int

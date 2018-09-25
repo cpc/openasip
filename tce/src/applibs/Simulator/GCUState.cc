@@ -48,7 +48,7 @@ using std::string;
 GCUState::GCUState(
     int latency, 
     int nww) : 
-    naturalWordWidth_(nww), returnAddressRegister_(32), 
+    naturalWordWidth_(nww), returnAddressRegister_(64),
     latency_(latency), 
     operationContext_(
         NULL, programCounter_, returnAddressRegister_) {

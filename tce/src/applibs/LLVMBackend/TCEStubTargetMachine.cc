@@ -70,6 +70,7 @@ using namespace llvm;
 
 Target llvm::TheTCETarget;
 Target llvm::TheTCELETarget;
+Target llvm::TheTCELE64Target;
 
 extern "C" void LLVMInitializeTCETargetInfo() {
 #ifdef LLVM_OLDER_THAN_6_0
@@ -77,12 +78,17 @@ extern "C" void LLVMInitializeTCETargetInfo() {
         X(TheTCETarget, "tce", "TCE custom processor");
     RegisterTarget<Triple::tcele, false>
         Y(TheTCELETarget, "tcele", "TCE custom processor (little endian)");
+    RegisterTarget<Triple::tcele64, false>
+        Z(TheTCELE64Target, "tcele64", "64-bit TCE custom processor (little endian)");
 #else
     RegisterTarget<Triple::tce, /*HasJIT=*/false>
         X(TheTCETarget, "tce", "TCE custom processor",
           "TODO: wonder what this button does");
     RegisterTarget<Triple::tcele, false>
         Y(TheTCELETarget, "tcele", "TCE custom processor (little endian)",
+          "TODO: wonder what this button does");
+    RegisterTarget<Triple::tcele64, false>
+        Z(TheTCELE64Target, "tcele64", "64-bit TCE custom processor (little endian) ",
           "TODO: wonder what this button does");
 #endif
 }
@@ -92,6 +98,7 @@ extern "C" void LLVMInitializeTCEStubTarget() {
     // Register the targetmachine impl.
     RegisterTargetMachine<TCEStubTargetMachine> X(TheTCETarget);
     RegisterTargetMachine<TCEStubTargetMachine> Y(TheTCELETarget);
+    RegisterTargetMachine<TCEStubTargetMachine> Z(TheTCELE64Target);
 }
 #endif
 
@@ -107,11 +114,20 @@ StringRef DescriptionStringLE = "e-p:32:32:32-i1:8:8-i8:8:32-"
     "f32:32:32-f64:32:32-v64:64:64-"
     "v128:128:128-v256:256:256-v512:512:512-v1024:1024:1024-a0:0:32-n32";
 
+StringRef DescriptionStringLE64 = "e-p:64:64:64-i1:8:8-i8:8:64-"
+    "i16:16:64-i32:32:64-i64:64:64-"
+    "f32:32:64-f64:64:64-v64:64:64-"
+    "v128:128:128-v256:256:256-v512:512:512-v1024:1024:1024-a0:0:64-n64";
+
 StringRef getTargetDesc(const Triple &TT) {
     if (TT.getArchName().equals("tce"))
         return DescriptionStringBE;
-    else
-        return DescriptionStringLE;
+    else {
+        if (TT.getArchName().equals("tcele"))
+            return DescriptionStringLE;
+        else
+            return DescriptionStringLE64;
+    }
 }
 
 /* Base class constructor */

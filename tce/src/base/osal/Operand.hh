@@ -55,6 +55,8 @@ public:
      * Type of operand.
      */
     enum OperandType {
+        SLONG_WORD,
+        ULONG_WORD,
         SINT_WORD,
         UINT_WORD,
         FLOAT_WORD,
@@ -64,6 +66,8 @@ public:
         RAW_DATA
     };
 
+    static const std::string SLONG_WORD_STRING;
+    static const std::string ULONG_WORD_STRING;
     static const std::string SINT_WORD_STRING;
     static const std::string UINT_WORD_STRING;
     static const std::string HALF_FLOAT_WORD_STRING;

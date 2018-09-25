@@ -53,7 +53,7 @@
  * @param end Last address of the memory.
  * @param MAUSize Bit width of the minimum addressable unit of the memory.
  */
-Memory::Memory(Word start, Word end, Word MAUSize, bool littleEndian) : 
+Memory::Memory(ULongWord start, ULongWord end, ULongWord MAUSize, bool littleEndian) :
     littleEndian_(littleEndian), 
     start_(start), end_(end), MAUSize_(MAUSize),
     writeRequests_(new RequestQueue()) {
@@ -92,7 +92,7 @@ Memory::~Memory() {
  * @param data The data to write.
  */
 void
-Memory::write(Word, MAU) {
+Memory::write(ULongWord, MAU) {
     abortWithError("Must be implemented in the derived class.");
 }
 
@@ -109,7 +109,7 @@ Memory::write(Word, MAU) {
  * @param data The data to write.
  */
 void
-Memory::writeDirectlyBE(Word address, int count, UIntWord data) {
+Memory::writeDirectlyBE(ULongWord address, int count, ULongWord data) {
 
     checkRange(address, count);
 
@@ -134,7 +134,7 @@ Memory::writeDirectlyBE(Word address, int count, UIntWord data) {
  * @param data The data to write.
  */
 void
-Memory::writeDirectlyLE(Word address, int count, UIntWord data) {
+Memory::writeDirectlyLE(ULongWord address, int count, ULongWord data) {
 
     checkRange(address, count);
 
@@ -157,7 +157,7 @@ Memory::writeDirectlyLE(Word address, int count, UIntWord data) {
  * @return The data read.
  */
 Memory::MAU
-Memory::read(Word /*address*/) {
+Memory::read(ULongWord /*address*/) {
     return 0;
 }
 
@@ -172,7 +172,7 @@ Memory::read(Word /*address*/) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::write(Word address, int count, UIntWord data) {
+Memory::write(ULongWord address, int count, ULongWord data) {
     if (littleEndian_) {
         writeLE(address, count, data);
     } else {
@@ -191,7 +191,7 @@ Memory::write(Word address, int count, UIntWord data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::writeBE(Word address, int count, UIntWord data) {
+Memory::writeBE(ULongWord address, int count, ULongWord data) {
 
     checkRange(address, count);
 
@@ -218,7 +218,7 @@ Memory::writeBE(Word address, int count, UIntWord data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::writeLE(Word address, int count, UIntWord data) {
+Memory::writeLE(ULongWord address, int count, ULongWord data) {
 
     checkRange(address, count);
 
@@ -244,7 +244,7 @@ Memory::writeLE(Word address, int count, UIntWord data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::readBE(Word address, FloatWord& data) {
+Memory::readBE(ULongWord address, FloatWord& data) {
 
     assert(MAUSize() == sizeof(Byte)*8 && 
            "Loading FloatWords works only with byte sized MAU at the moment.");
@@ -261,7 +261,7 @@ Memory::readBE(Word address, FloatWord& data) {
     castUnion cast;
 
     for (std::size_t i = 0; i < MAUS; ++i) {
-        UIntWord data;
+        ULongWord data;
         // one byte so endian does not matter
         readBE(address + i, 1, data);
         // Byte order must be reversed if host is not bigendian.
@@ -285,7 +285,7 @@ Memory::readBE(Word address, FloatWord& data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::readLE(Word address, FloatWord& data) {
+Memory::readLE(ULongWord address, FloatWord& data) {
 
     assert(MAUSize() == sizeof(Byte)*8 && 
            "Loading FloatWords works only with byte sized MAU at the moment.");
@@ -302,7 +302,7 @@ Memory::readLE(Word address, FloatWord& data) {
     castUnion cast;
 
     for (std::size_t i = 0; i < MAUS; ++i) {
-        UIntWord data;
+        ULongWord data;
         // one bytes so endian does not matter
         readLE(address + i, 1, data);
         // Byte order must be reversed if host is not little endian.
@@ -326,7 +326,7 @@ Memory::readLE(Word address, FloatWord& data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::read(Word address, FloatWord& data) {
+Memory::read(ULongWord address, FloatWord& data) {
     if (littleEndian_) {
         readLE(address, data);
     } else {
@@ -344,7 +344,7 @@ Memory::read(Word address, FloatWord& data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::writeBE(Word address, FloatWord data) {
+Memory::writeBE(ULongWord address, FloatWord data) {
 
     assert(MAUSize() == sizeof(Byte)*8 && 
            "Writing FloatWords works only with byte sized MAU at the moment.");
@@ -389,7 +389,7 @@ Memory::writeBE(Word address, FloatWord data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::writeLE(Word address, FloatWord data) {
+Memory::writeLE(ULongWord address, FloatWord data) {
 
     assert(MAUSize() == sizeof(Byte)*8 && 
            "Writing FloatWords works only with byte sized MAU at the moment.");
@@ -436,7 +436,7 @@ Memory::writeLE(Word address, FloatWord data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::readBE(Word address, DoubleWord& data) {
+Memory::readBE(ULongWord address, DoubleWord& data) {
 
     assert(MAUSize() == sizeof(Byte)*8 && 
            "LDD works only with byte sized MAU at the moment.");
@@ -450,7 +450,7 @@ Memory::readBE(Word address, DoubleWord& data) {
     castUnion cast;
 
     for (std::size_t i = 0; i < MAUS; ++i) {
-        UIntWord data;
+        ULongWord data;
         readBE(address + i, 1, data);
         // Byte order must be reversed if host is not bigendian.
         #if WORDS_BIGENDIAN == 1
@@ -473,7 +473,7 @@ Memory::readBE(Word address, DoubleWord& data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::readLE(Word address, DoubleWord& data) {
+Memory::readLE(ULongWord address, DoubleWord& data) {
 
     assert(MAUSize() == sizeof(Byte)*8 && 
            "LDD works only with byte sized MAU at the moment.");
@@ -487,7 +487,7 @@ Memory::readLE(Word address, DoubleWord& data) {
     castUnion cast;
 
     for (std::size_t i = 0; i < MAUS; ++i) {
-        UIntWord data;
+        ULongWord data;
         readLE(address + i, 1, data);
         // Byte order must be reversed if host is not bigendian.
         #if WORDS_BIGENDIAN == 0
@@ -510,7 +510,7 @@ Memory::readLE(Word address, DoubleWord& data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::read(Word address, DoubleWord& data) {
+Memory::read(ULongWord address, DoubleWord& data) {
     if (littleEndian_) {
         readLE(address, data);
     } else {
@@ -528,7 +528,7 @@ Memory::read(Word address, DoubleWord& data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::write(Word address, DoubleWord data) {
+Memory::write(ULongWord address, DoubleWord data) {
     if (littleEndian_) {
         writeLE(address, data);
     } else {
@@ -546,7 +546,7 @@ Memory::write(Word address, DoubleWord data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::writeBE(Word address, DoubleWord data) {
+Memory::writeBE(ULongWord address, DoubleWord data) {
 
     assert(MAUSize() == sizeof(Byte)*8 && 
            "LDD works only with byte sized MAU at the moment.");
@@ -591,7 +591,7 @@ Memory::writeBE(Word address, DoubleWord data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::writeLE(Word address, DoubleWord data) {
+Memory::writeLE(ULongWord address, DoubleWord data) {
 
     assert(MAUSize() == sizeof(Byte)*8 && 
            "LDD works only with byte sized MAU at the moment.");
@@ -637,7 +637,7 @@ Memory::writeLE(Word address, DoubleWord data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::readBE(Word address, int size, UIntWord& data) {
+Memory::readBE(ULongWord address, int size, ULongWord& data) {
 
     checkRange(address, size);
 
@@ -660,7 +660,7 @@ Memory::readBE(Word address, int size, UIntWord& data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::read(Word address, int size, UIntWord& data) {
+Memory::read(ULongWord address, int size, ULongWord& data) {
     if (littleEndian_) {
         readLE(address, size, data);
     } else {
@@ -679,14 +679,15 @@ Memory::read(Word address, int size, UIntWord& data) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::readLE(Word address, int size, UIntWord& data) {
+Memory::readLE(ULongWord address, int size, ULongWord& data) {
 
     checkRange(address, size);
 
     data = 0;
-    int shiftCount = 0;
+    long shiftCount = 0;
     for (int i = 0; i < size; i++) {
-        data = data | (read(address + i) << shiftCount);
+        ULongWord readByte = read(address+i);
+        data = data | (readByte << shiftCount);
         shiftCount += MAUSize_;
     }
 }
@@ -733,7 +734,7 @@ Memory::reset() {
  * @param value The target of the packing.
  */
 void
-Memory::packBE(const Memory::MAUTable data, int size, UIntWord& value) {
+Memory::packBE(const Memory::MAUTable data, int size, ULongWord& value) {
 
     value = 0;
     int shiftCount = MAUSize_ * (size - 1);
@@ -753,7 +754,7 @@ Memory::packBE(const Memory::MAUTable data, int size, UIntWord& value) {
  * @param value The target of the packing.
  */
 void
-Memory::packLE(const Memory::MAUTable data, int size, UIntWord& value) {
+Memory::packLE(const Memory::MAUTable data, int size, ULongWord& value) {
 
     value = 0;
     int shiftCount = 0;
@@ -775,7 +776,7 @@ Memory::packLE(const Memory::MAUTable data, int size, UIntWord& value) {
  */
 void
 Memory::unpackBE(
-    const UIntWord& value,
+    const ULongWord& value,
     int size,
     Memory::MAUTable data) {
     int shiftCount = MAUSize_ * (size - 1);
@@ -797,7 +798,7 @@ Memory::unpackBE(
  */
 void
 Memory::unpackLE(
-    const UIntWord& value,
+    const ULongWord& value,
     int size,
     Memory::MAUTable data) {
     int shiftCount = 0;
@@ -840,7 +841,7 @@ Memory::advanceClock() {
  * @exception OutOfRange in case the range is illegal.
  */
 void
-Memory::checkRange(Word startAddress, int numberOfMAUs) {
+Memory::checkRange(ULongWord startAddress, int numberOfMAUs) {
 
     unsigned int low = start(); 
     unsigned int high = end(); 

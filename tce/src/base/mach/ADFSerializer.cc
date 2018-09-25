@@ -62,14 +62,17 @@ using namespace TTAMachine;
 const string MDF = "adf";
 const string MDF_VERSION = "version";
 // writes files according to ADF specs version 1.7.x
-const string MDF_VERSION_NUMBER = "1.8";
+const string MDF_VERSION_NUMBER = "1.9";
 
 // 1.8:
 // - adf: little-endian
+// 1.9:
+// - adf: bitness64
 
 
 const string TRIGGER_INVALIDATES_OLD_RESULTS = "trigger-invalidates-old-results";
 const string LITTLE_ENDIAN_MACHINE = "little-endian";
+const string BITNESS64 = "bitness64";
 const string ALWAYS_WRITE_BACK_RESULTS = "always-write-back-results";
 const string FUNCTION_UNITS_ORDERED = "fu-ordered";
 const string BUS = "bus";
@@ -314,7 +317,12 @@ ADFSerializer::convertToMDFFormat(const ObjectState* machineState) {
         machineState->boolAttribute(LITTLE_ENDIAN_MACHINE)) { 
         root->addChild(new ObjectState(LITTLE_ENDIAN_MACHINE));              
     }
-    
+
+    if (machineState->hasAttribute(BITNESS64) &&
+        machineState->boolAttribute(BITNESS64)) {
+        root->addChild(new ObjectState(BITNESS64));
+    }
+
     // add buses
     for (int i = 0; i < machineState->childCount(); i++) {
         ObjectState* child = machineState->child(i);
@@ -992,6 +1000,8 @@ ADFSerializer::convertToMachineFormat(const ObjectState* mdfState)
                     Machine::OSKEY_ALWAYS_WRITE_BACK_RESULTS, true);
             } else if (child->name() == LITTLE_ENDIAN_MACHINE) {
                 machine->setAttribute(LITTLE_ENDIAN_MACHINE, true);
+            } else if (child->name() == BITNESS64) {
+                machine->setAttribute(BITNESS64, true);
             } else if (child->name() == FUNCTION_UNITS_ORDERED) {
                 machine->setAttribute(
                     Machine::OSKEY_FUNCTION_UNITS_ORDERED, true);                

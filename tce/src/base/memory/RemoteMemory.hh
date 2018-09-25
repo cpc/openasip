@@ -64,8 +64,8 @@ public:
 	}
 
 	// overload the pure viruals of Memory
-	virtual void write(Word address, MAU data);
-	virtual Memory::MAU read(Word address);
+	virtual void write(ULongWord address, MAU data) override;
+	virtual Memory::MAU read(ULongWord address) override;
 	
 private:
 	RemoteController* controller_;

@@ -96,7 +96,7 @@ class SimValue {
 public:
     SimValue();
     explicit SimValue(int width);
-    explicit SimValue(int value, int width);
+    explicit SimValue(SLongWord value, int width);
     SimValue(const SimValue& source);
     ~SimValue() {}
 
@@ -105,6 +105,8 @@ public:
 
     SimValue& operator=(const SIntWord& source);
     SimValue& operator=(const UIntWord& source);
+    SimValue& operator=(const SLongWord& source);
+    SimValue& operator=(const ULongWord& source);
     SimValue& operator=(const HalfFloatWord& source);
     SimValue& operator=(const FloatWord& source);
     SimValue& operator=(const DoubleWord& source);
@@ -113,24 +115,32 @@ public:
 
     const SimValue operator+(const SIntWord& rightHand);
     const SimValue operator+(const UIntWord& rightHand);
+    const SimValue operator+(const SLongWord& rightHand);
+    const SimValue operator+(const ULongWord& rightHand);
     const SimValue operator+(const HalfFloatWord& rightHand);
     const SimValue operator+(const FloatWord& rightHand);
     const SimValue operator+(const DoubleWord& rightHand);
 
     const SimValue operator-(const SIntWord& rightHand);
     const SimValue operator-(const UIntWord& rightHand);
+    const SimValue operator-(const SLongWord& rightHand);
+    const SimValue operator-(const ULongWord& rightHand);
     const SimValue operator-(const HalfFloatWord& rightHand);
     const SimValue operator-(const FloatWord& rightHand);
     const SimValue operator-(const DoubleWord& rightHand);
 
     const SimValue operator/(const SIntWord& rightHand);
     const SimValue operator/(const UIntWord& rightHand);
+    const SimValue operator/(const SLongWord& rightHand);
+    const SimValue operator/(const ULongWord& rightHand);
     const SimValue operator/(const HalfFloatWord& rightHand);
     const SimValue operator/(const FloatWord& rightHand);
     const SimValue operator/(const DoubleWord& rightHand);
 
     const SimValue operator*(const SIntWord& rightHand);
     const SimValue operator*(const UIntWord& rightHand);
+    const SimValue operator*(const SLongWord& rightHand);
+    const SimValue operator*(const ULongWord& rightHand);
     const SimValue operator*(const HalfFloatWord& rightHand);
     const SimValue operator*(const FloatWord& rightHand);
     const SimValue operator*(const DoubleWord& rightHand);
@@ -138,6 +148,8 @@ public:
     int operator==(const SimValue& rightHand) const;
     int operator==(const SIntWord& rightHand) const;
     int operator==(const UIntWord& rightHand) const;
+    int operator==(const SLongWord& rightHand) const;
+    int operator==(const ULongWord& rightHand) const;
     int operator==(const HalfFloatWord& rightHand) const;
     int operator==(const FloatWord& rightHand) const;
     int operator==(const DoubleWord& rightHand) const;
@@ -147,6 +159,8 @@ public:
 
     SIntWord sIntWordValue() const;
     UIntWord uIntWordValue() const;
+    SLongWord sLongWordValue() const;
+    ULongWord uLongWordValue() const;
     DoubleWord doubleWordValue() const;
     FloatWord floatWordValue() const;
     HalfFloatWord halfFloatWordValue() const;
@@ -173,7 +187,7 @@ private:
     void swapByteOrder(const Byte* from, size_t byteCount, Byte* to) const;
 
     /// Mask for masking extra bits when returning unsigned value.
-    UIntWord mask_;
+    ULongWord mask_;
 
 };
 
@@ -199,5 +213,6 @@ private:
 };
 
 #define SIMULATOR_MAX_INTWORD_BITWIDTH 32
+#define SIMULATOR_MAX_LONGWORD_BITWIDTH 64
 
 #endif

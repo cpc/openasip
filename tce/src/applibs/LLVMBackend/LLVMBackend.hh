@@ -62,7 +62,7 @@ class LLVMTCECmdLineOptions;
 class LLVMBackend {
 public:
     static OperationDAGSelector::OperationSet 
-    llvmRequiredOpset(bool includeFloatOps, bool isLittleEndian);
+    llvmRequiredOpset(bool includeFloatOps, bool isLittleEndian, bool bits64);
 
     LLVMBackend(bool useInstalledVersion, TCEString tempDir);
     virtual ~LLVMBackend();

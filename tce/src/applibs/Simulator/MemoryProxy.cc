@@ -65,7 +65,7 @@ MemoryProxy::~MemoryProxy() {
  * Passes the call to the wrapped memory.
  */
 Memory::MAU
-MemoryProxy::read(Word address) {
+MemoryProxy::read(ULongWord address) {
 
     frontend_.eventHandler().handleEvent(
         SimulationEventHandler::SE_MEMORY_ACCESS);
@@ -81,7 +81,7 @@ MemoryProxy::read(Word address) {
  */
 void
 MemoryProxy::write(
-    Word address, MAU data) {
+    ULongWord address, MAU data) {
 
     frontend_.eventHandler().handleEvent(
         SimulationEventHandler::SE_MEMORY_ACCESS);

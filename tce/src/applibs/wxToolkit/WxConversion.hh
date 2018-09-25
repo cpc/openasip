@@ -36,6 +36,7 @@
 #include <wx/wx.h>
 #include <string>
 
+#include "BaseType.hh"
 /**
  * Contains functions for converting between wxString and std::string.
  */
@@ -46,6 +47,8 @@ public:
     static wxString toWxString(const std::string& source);
     static wxString toWxString(const int& source);
     static wxString toWxString(const unsigned int& source);
+    static wxString toWxString(const ULongWord& source);
+    static wxString toWxString(const SLongWord& source);
     static wxString toWxString(const float& source);
     static wxString toWxString(const double& source);
     static wxString toWxString(const char& source);

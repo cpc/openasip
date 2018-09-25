@@ -766,8 +766,8 @@ ITemplateBroker::findITemplates(
                 const AddressSpace& as
                         = *rm_->machine().controlUnit()->addressSpace();
                 int requiredBitWidth = unit.extensionMode() == Machine::SIGN ? 
-                        MathTools::requiredBitsSigned(as.end()) : 
-                        MathTools::requiredBits(as.end());
+                    MathTools::requiredBitsSigned(SLongWord(as.end())) :
+                    MathTools::requiredBits(as.end());
         	    
         	    if (requiredBitWidth > iTemplate.supportedWidth(unit)) {
         	        addResult = false;

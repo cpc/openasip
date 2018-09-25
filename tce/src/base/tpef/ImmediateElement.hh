@@ -63,9 +63,14 @@ public:
 
     void setWord(Word aValue);
     void setSignedWord(SignedWord aValue);
+    void setSignedLong(SLongWord aValue);
+    void setULongWord(ULongWord aValue);
 
     Word word() const
         throw (OutOfRange);
+
+    LongWord longWord() const;
+    SignedLongWord sLongWord() const;
 
     SignedWord signedWord() const;
 

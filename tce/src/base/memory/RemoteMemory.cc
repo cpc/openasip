@@ -34,14 +34,14 @@
 typedef MinimumAddressableUnit MAU;
 
 void
-RemoteMemory::write(Word address, MAU data)
+RemoteMemory::write(ULongWord address, MAU data)
 {
 	assert(controller_);
 	controller_->writeMem(address, data, addressspace_);
 }
 
 Memory::MAU
-RemoteMemory::read(Word address)
+RemoteMemory::read(ULongWord address)
 {
 	assert(controller_);
 	return controller_->readMem(address, addressspace_ );

@@ -126,6 +126,40 @@ ImmediateElement::setWord(Word aValue) {
 }
 
 /**
+ * Sets value of long word to immediate element.
+ *
+ * Clears old value and writes a word to element.
+ *
+ * If immediate is longer that written value, more significant bytes
+ * will be zeroed. See setWord(index, aValue) if you want to set
+ * word to any position of immediate without modifying other bytes
+ * stored inside.
+ *
+ * @param aValue Value to set.
+ */
+inline void
+ImmediateElement::setULongWord(LongWord aValue) {
+
+    // remove old value
+    value_.clear();
+
+    // check how many bytes are needed
+    LongWord tempValue = aValue;
+
+    for (unsigned int i = 0; i < sizeof(aValue); i++) {
+        if (tempValue > 0) {
+            addByte(0);
+        }
+        tempValue = tempValue >> BYTE_BITWIDTH;
+    }
+
+    for (unsigned int i = 1; i <= length(); i++) {
+        setByte(length() - i, static_cast<Byte>(aValue));
+        aValue = aValue >> BYTE_BITWIDTH;
+    }
+}
+
+/**
  * Sets value of one word to immediate element.
  *
  * Clears old value and writes a signed word to element.
@@ -182,6 +216,66 @@ ImmediateElement::setSignedWord(SignedWord sValue) {
     }
 }
 
+
+/**
+ * Sets value of one word to immediate element.
+ *
+ * Clears old value and writes a signed word to element.
+ *
+ * If immediate is longer that written value, more significant bytes
+ * will be zeroed. See setWord(index, aValue) if you want to set
+ * word to any position of immediate without modifying other bytes
+ * stored inside.
+ *
+ * @param aValue Value to set.
+ */
+inline void
+ImmediateElement::setSignedLong(SLongWord sValue) {
+
+    LongWord aValue = sValue;
+    // remove old value
+    value_.clear();
+
+    // check how many bytes are needed
+    LongWord tempValue = aValue;
+
+    bool negative = sValue < 0;
+    int neededBytes = 1;
+    for (unsigned int i = sizeof(aValue) ; i > 1; i--) {
+        int upBits = tempValue >> 56;
+        if ((negative && upBits != 255) ||
+            (!negative && upBits != 0)) {
+            neededBytes = i;
+            break;
+        } else {
+            tempValue <<= BYTE_BITWIDTH;
+        }
+
+    }
+
+    for (int i = 0; i < neededBytes; i++) {
+        addByte(0);
+    }
+
+    for (unsigned int i = 1; i <= length(); i++) {
+        setByte(length() - i, static_cast<Byte>(aValue));
+        aValue = aValue >> BYTE_BITWIDTH;
+    }
+
+    // if we have a negative sub-sized number but upper bit not set 1
+    // add a byte full of sign-bit ones.
+    if (negative && length() < 8 && (!((byte(0) & 128) == 128))) {
+        value_.insert(value_.begin(), 255); // big endian crap
+    }
+    // if we have a positive sub-sized number but upper bit is set 1,
+    // add a byte full of zeroes.
+    if (!negative && length() < 8 && (((byte(0) & 128) == 128))) {
+        value_.insert(value_.begin(), 0); // big endian crap
+    }
+}
+
+
+
 /**
  * Returns value of element as a word.
  *
@@ -196,6 +290,38 @@ ImmediateElement::word() const
     throw (OutOfRange) {
 
     Word retValue = 0;
+
+    // convert bytes to word
+    for (unsigned int i = 0; i < length(); i++) {
+        retValue =
+            ((retValue << BYTE_BITWIDTH) |
+             static_cast<Byte>(value_[i]));
+
+        if (retValue != 0 &&
+            length() - i > sizeof(retValue)) {
+
+            throw OutOfRange(
+                __FILE__, __LINE__, "ImmediateElement::word()",
+                "Value to return is longer than value to return.");
+        }
+    }
+
+    return retValue;
+}
+
+/**
+ * Returns value of element as a word.
+ *
+ * If you want to get word from given index of immediate see
+ * word(index). Empty immediates are read as zero value.
+ *
+ * @return Value of immediate.
+ * @exception OutOfRange Value is too big to return as a word.
+ */
+inline LongWord
+ImmediateElement::longWord() const {
+
+    LongWord retValue = 0;
 
     // convert bytes to word
     for (unsigned int i = 0; i < length(); i++) {
@@ -254,6 +380,47 @@ ImmediateElement::signedWord() const {
         }
     }
     return static_cast<SignedWord>(retValue);
+}
+
+/**
+ * Returns value of element as a signed word.
+ *
+ * If you want to get word from given index of immediate see
+ * word(index). Empty immediates are read as zero value.
+ *
+ * @return Value of immediate.
+ * @exception OutOfRange Value is too big to return as a signed word.
+ */
+inline SLongWord
+ImmediateElement::sLongWord() const {
+
+    SLongWord retValue = 0;
+
+    // convert bytes to word
+    for (unsigned int i = 0; i < length(); i++) {
+        retValue =
+            ((retValue << BYTE_BITWIDTH) |
+             static_cast<Byte>(value_[i]));
+
+        if (retValue != 0 &&
+            length() - i > sizeof(retValue)) {
+
+            throw OutOfRange(
+                __FILE__, __LINE__, "ImmediateElement::word()",
+                "Value to return is longer than value to return.");
+        }
+    }
+
+    // If the most upper bit is true, but length < sizeof(word),
+    // this is a signed value, which need to be manually sign-extended.
+    unsigned long byteMask = ((1 << BYTE_BITWIDTH)-1);
+    if ((retValue >> (BYTE_BITWIDTH * length() -1) & 1) &&
+        length() < sizeof(SLongWord)) {
+        for (unsigned int i = length(); i < sizeof(SLongWord); i++) {
+            retValue |= (byteMask << (BYTE_BITWIDTH*i));
+        }
+    }
+    return static_cast<SLongWord>(retValue);
 }
 
 

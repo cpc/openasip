@@ -487,6 +487,22 @@ else
   AC_MSG_ERROR([tcele target in LLVM required, install one using a install_llvm_*.sh script])
 fi
 
+# Check if the tcele target is supported.
+AC_LANG_CONFTEST(
+[AC_LANG_PROGRAM(
+  [])
+])
+
+AC_MSG_CHECKING([if the little endian 64-bit tcele64 target is supported in Clang/LLVM])
+if $LLVM_BINDIR/clang conftest.c -target tcele64-tut-llvm -emit-llvm -S -c -o - 2>/dev/null | grep -cq 'target triple = "tcele64-tut-llvm"';
+then
+  AC_MSG_RESULT([yes])
+  LLVM_TCELE64_TARGET=yes
+  AC_DEFINE_UNQUOTED(LLVM_TCELE64_TARGET, 1, [LLVM patched to support tcele64 target])
+else
+  AC_MSG_ERROR([tcele64 target in LLVM required, install one using a install_llvm_*.sh script])
+fi
+
 if test x"$LLVM_RTTI_CHECK" != x; then
 AC_MSG_ERROR([Your LLVM was not built with RTTI. You should rebuild LLVM with 'make REQUIRES_RTTI=1'. See TCE's INSTALL file for more information.])
 fi
@@ -643,6 +659,8 @@ fi
 fi
 
 AM_CONDITIONAL(TCELE_AVAILABLE, test x$LLVM_TCELE_TARGET = xyes)
+AM_CONDITIONAL(TCELE64_AVAILABLE, test x$LLVM_TCELE64_TARGET = xyes)
+
 
 AC_DEFINE_UNQUOTED([LLVM_VERSION], ["$LLVM_VERSION"], 
 "The LLVM version string.")
@@ -1614,6 +1632,26 @@ CFLAGS_FOR_TARGET="--little-endian $NEWLIB_CFLAGS" \
 CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
 CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tcele-llvm --disable-multilib --disable-libgloss \
+2>&1 | egrep -v "to force reconfigure";
+])
+
+AC_CONFIG_COMMANDS_POST ([
+echo "=== Configuring newlib for little endian 64-bit machines =====";
+# make srcdir absolute
+builddirectory=$PWD
+cd $srcdir;
+srcdir=$PWD;
+cd $builddirectory;
+# create builddir (if necessary)
+mkdir -p newlib-1.17.0/tcele64-llvm;
+cd newlib-1.17.0/tcele64-llvm;
+RANLIB_FOR_TARGET=ranlib \
+NM_FOR_TARGET=nm AR_FOR_TARGET=ar \
+AS_FOR_TARGET=as LD_FOR_TARGET=ld \
+CFLAGS_FOR_TARGET="--little-endian64 $NEWLIB_CFLAGS" \
+CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
+CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
+$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tcele64-llvm --disable-multilib --disable-libgloss \
 2>&1 | egrep -v "to force reconfigure";
 ])
 

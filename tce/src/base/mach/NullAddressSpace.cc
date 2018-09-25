@@ -81,7 +81,7 @@ NullAddressSpace::width() const {
  *
  * @return Never returns.
  */
-unsigned int
+ULongWord
 NullAddressSpace::start() const {
     abortWithError("start()");
     return 0;
@@ -93,7 +93,7 @@ NullAddressSpace::start() const {
  *
  * @return Never returns.
  */
-unsigned int
+ULongWord
 NullAddressSpace::end() const {
     abortWithError("end()");
     return 0;
@@ -145,7 +145,7 @@ NullAddressSpace::setWidth(int)
  * @exception OutOfRange Never thrown.
  */
 void
-NullAddressSpace::setAddressBounds(unsigned int, unsigned int)
+NullAddressSpace::setAddressBounds(ULongWord, ULongWord)
     throw (OutOfRange) {
 
     abortWithError("setAddressBounds()");

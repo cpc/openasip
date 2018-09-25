@@ -137,7 +137,8 @@ using namespace llvm;
 using TTAProgram::CodeGenerator;
 
 unsigned LLVMTCEBuilder::MAU_BITS = 8;
-unsigned LLVMTCEBuilder::POINTER_SIZE = 4; // Pointer size in maus.
+unsigned LLVMTCEBuilder::POINTER_SIZE_32 = 4; // Pointer size in maus.
+unsigned LLVMTCEBuilder::POINTER_SIZE_64 = 8; // Pointer size in maus.
 
 char LLVMTCEBuilder::ID = 0;
 
@@ -632,7 +633,7 @@ LLVMTCEBuilder::createIntDataDefinition(
     unsigned sz = ((ci->getBitWidth() + MAU_BITS-1) / MAU_BITS);
 
     if (isPointer) {
-        sz = POINTER_SIZE;
+        sz = mach_->is64bit() ? POINTER_SIZE_32 : POINTER_SIZE_64;
     }
 
     if (!(sz == 1 || sz == 2 || sz == 4 || sz == 8)) {
@@ -786,14 +787,9 @@ void
 LLVMTCEBuilder::createGlobalValueDataDefinition(
     int addressSpaceId, unsigned& addr, const GlobalValue* gv, int offset) {
 
-    assert(addr % POINTER_SIZE == 0 &&
-           "Invalid alignment for gv reference!");
-
     TYPE_CONST Type* type = gv->getType();
 
     unsigned sz = dl_->getTypeStoreSize(type);
-
-    assert(sz == POINTER_SIZE && "Unexpected pointer size!");
 
     SmallString<256> Buffer;
     mang_->getNameWithPrefix(Buffer, gv, false);
@@ -1117,7 +1113,7 @@ LLVMTCEBuilder::doFinalization(Module& m) {
     // Fix references to _end symbol.
     unsigned i = 0;
     for (; i < endReferences_.size(); i++) {
-        SimValue endLoc(32);
+        SimValue endLoc(mach_->is64bit() ? 64 : 32);
         endLoc = dataEndPos;
         TTAProgram::TerminalAddress* ea =
             new TTAProgram::TerminalAddress(endLoc, aSpace);
@@ -1572,7 +1568,7 @@ LLVMTCEBuilder::emitInstruction(
         const TTAMachine::HWOperation* jump =  &getHWOperation(opName);
         TTAProgram::TerminalFUPort* dst = 
         	new TTAProgram::TerminalFUPort(*jump, 1);
-        int width = 32; // FIXME
+        int width = mach_->is64bit() ? 64: 32;
         SimValue val(0, width);
                     
         TTAProgram::Move* move = createMove(
@@ -1953,6 +1949,9 @@ LLVMTCEBuilder::createTerminalRegister(
  */
 TTAProgram::Terminal*
 LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
+    if (bitLimit == 0) {
+        bitLimit = mach_->is64bit() ? 64: 32;
+    }
 
     if (mo.isReg()) {
         unsigned dRegNum = mo.getReg();
@@ -1982,12 +1981,12 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
 #endif
             APInt api = apf.bitcastToAPInt();
             uint16_t binary = (uint16_t)api.getRawData()[0];
-            SimValue val(32);
+            SimValue val(bitLimit);
             val = HalfFloatWord( binary );
             return new TTAProgram::TerminalImmediate(val);
         } else {
             float fval = apf.convertToFloat();
-            SimValue val(32);
+            SimValue val(bitLimit);
             val = fval;
             return new TTAProgram::TerminalImmediate(val);
         }
@@ -2003,7 +2002,7 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
         assert(false);
     } else if (mo.isCPI()) {
         if (!functionAtATime_) {
-            int width = 32; // FIXME
+            int width = bitLimit;
             unsigned idx = mo.getIndex();
             assert(currentFnCP_.find(idx) != currentFnCP_.end() &&
                "CPE not found!");
@@ -2037,7 +2036,7 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
         if (name == END_SYMBOL_NAME) {
             return createSymbolReference(name);
         } else if (dataLabels_.find(name) != dataLabels_.end()) {
-            SimValue address(dataLabels_[name] + mo.getOffset(), 32);
+            SimValue address(dataLabels_[name] + mo.getOffset(), bitLimit);
             return new TTAProgram::TerminalAddress(address, aSpace);
 
         } else {
@@ -2417,7 +2416,7 @@ LLVMTCEBuilder::emitSPInitialization(TTAProgram::CodeSnippet& target) {
         (addressSpaceById(0).end() & 0xfffffff8))
         ival = addressSpaceById(0).end() & 0xfffffff8;
 
-    SimValue val(ival, 32);
+    SimValue val(ival, mach_->is64bit() ? 64: 32);
     TTAProgram::TerminalImmediate* src =
         new TTAProgram::TerminalImmediate(val);
 
@@ -2898,7 +2897,7 @@ LLVMTCEBuilder::emitSetjmp(
     codeGenerator.pushRegisterToBuffer(*proc, sp, "RA");
 
     // Now save the desired return value.
-    SimValue immVal(32);
+    SimValue immVal(mach_->is64bit() ? 64: 32);
     immVal = 0;
     TTAProgram::TerminalImmediate *immTerminal =
         new TTAProgram::TerminalImmediate(immVal);
@@ -3524,7 +3523,7 @@ LLVMTCEBuilder::createMove(
     if (src == NULL) {
         // Create a dummy source Terminal so the move can be added to an
         // instruction.
-        SimValue val(0, 32);
+        SimValue val(0, mach_->is64bit() ? 64 : 32);
         src = new TTAProgram::TerminalImmediate(val);
         endRef = true;
     }

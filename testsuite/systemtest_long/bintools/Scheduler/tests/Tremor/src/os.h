@@ -16,8 +16,11 @@
  function: #ifdef jail to whip a few platforms into the UNIX ideal.
 
  ********************************************************************/
+#undef long
 
 #include <math.h>
+
+#define long int
 #include "os_types.h"
 
 #ifndef _V_IFDEFJAIL_H_

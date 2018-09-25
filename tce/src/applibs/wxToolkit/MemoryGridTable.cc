@@ -196,7 +196,7 @@ MemoryGridTable::SetValue(int, int, const wxString&) {
  * @return Memory contents as a wxString.
  */
 wxString
-MemoryGridTable::memoryContents(Word addr) {
+MemoryGridTable::memoryContents(ULongWord addr) {
 
     unsigned size = sizeOfCell();
     string dataString = NOT_AVAILABLE;
@@ -205,7 +205,7 @@ MemoryGridTable::memoryContents(Word addr) {
     if ((size * mauSize_) <= sizeof(SIntWord) * BYTE_BITWIDTH) {
 
         // read one word
-        UIntWord data = 0;
+        ULongWord data = 0;
 
         if (addr < start_ || addr > end_) {
             // memory not available

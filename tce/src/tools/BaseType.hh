@@ -43,6 +43,25 @@
 
 #include "tce_config_public.h"
 
+#define SIZEOF_LONG 8
+
+#if SIZEOF_LONG == 8
+// proper 64-bit unix system.
+typedef unsigned long LongWord;
+typedef long SignedLongWord;
+typedef unsigned long ULongWord;
+typedef long SLongWord;
+
+#else
+// 32-bit host or win64 crap.
+typedef unsigned long long LongWord;
+typedef long long SignedLongWord;
+typedef unsigned long long ULongWord;
+typedef long long SLongWord;
+
+#endif
+
+
 #if SIZEOF_FLOAT == 4
 
 /**
@@ -95,16 +114,10 @@ typedef unsigned short int HalfWord;
 #error Host machine size of short int not 2 bytes as expected.
 #endif
 
-#if SIZEOF_CHAR == 1
-
 /**
  * Machine-independent definition of byte type.
  */
 typedef unsigned char Byte;
-
-#else
-#error Host machine size of char not 1 byte as expected.
-#endif
 
 /**
  * HOST_WORDS_BIGENDIAN is 1 when the host machine lays out the most 
@@ -127,14 +140,15 @@ typedef Word UInt32;
 const Byte BYTE_BITWIDTH = 8*sizeof(Byte);
 const Byte HALFWORD_BITWIDTH = 8*sizeof(HalfWord);
 const Byte WORD_BITWIDTH = 8*sizeof(Word);
+const Byte LONGWORD_BITWIDTH = 8*sizeof(LongWord);
 
 /**
- * Maximum sized unsigned integer used in simulation.
+ * Maximum sized unsigned integer used in simulation in 32-bit mode.
  */
 typedef Word UIntWord;
 
 /**
- * Maximum sized signed integer used in simulation.
+ * Maximum sized signed integer used in simulation in 32-bit mode.
  */
 typedef SignedWord SIntWord;
 

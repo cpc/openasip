@@ -78,7 +78,7 @@ Machine::Machine() :
     dummyMachineTester_(new DummyMachineTester(*this)),
     EMPTY_ITEMP_NAME_("no_limm"), alwaysWriteResults_(false), 
     triggerInvalidatesResults_(false), fuOrdered_(false),
-    littleEndian_(false) {
+    littleEndian_(false), bitness64_(false) {
 
     new InstructionTemplate(EMPTY_ITEMP_NAME_, *this);
 }
@@ -95,7 +95,8 @@ Machine::Machine(const Machine& old) :
     Serializable(), controlUnit_(NULL), doValidityChecks_(false),
     machineTester_(new MachineTester(*this)), 
     dummyMachineTester_(new DummyMachineTester(*this)),
-    littleEndian_(old.littleEndian_) {
+    littleEndian_(old.littleEndian_),
+    bitness64_(old.bitness64_) {
     
     ObjectState* state = old.saveState();
     loadState(state);
@@ -737,6 +738,8 @@ Machine::saveState() const {
     rootState->setAttribute(
         OSKEY_FUNCTION_UNITS_ORDERED, fuOrdered_);
     rootState->setAttribute("little-endian", littleEndian_);
+    rootState->setAttribute("bitness64", bitness64_);
+
     
     return rootState;
 }
@@ -789,6 +792,9 @@ Machine::loadState(const ObjectState* state)
     setLittleEndian(
         state->hasAttribute("little-endian") &&
         state->boolAttribute("little-endian"));
+    set64bits(
+        state->hasAttribute("bitness64") &&
+        state->boolAttribute("bitness64"));
 
     try {
         // create skeletons

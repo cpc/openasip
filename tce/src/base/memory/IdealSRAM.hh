@@ -54,11 +54,11 @@ class MemoryContents;
  */
 class IdealSRAM : public Memory {
 public:
-    IdealSRAM(Word start, Word end, Word MAUSize, bool littleEndian);
+    IdealSRAM(ULongWord start, ULongWord end, Word MAUSize, bool littleEndian);
     virtual ~IdealSRAM();
 
-    virtual void write(Word address, MAU data);
-    virtual Memory::MAU read(Word address);
+    virtual void write(ULongWord address, MAU data) override;
+    virtual Memory::MAU read(ULongWord address) override;
 
     using Memory::write;
     using Memory::read;
@@ -72,9 +72,9 @@ private:
     IdealSRAM& operator=(const IdealSRAM&);
 
     /// Starting point of the address space.
-    Word start_;
+    UIntWord start_;
     /// End point of the address space.
-    Word end_;
+    UIntWord end_;
     /// Size of the minimum adressable unit.
     Word MAUSize_;
     /// Container for holding read/write requests.

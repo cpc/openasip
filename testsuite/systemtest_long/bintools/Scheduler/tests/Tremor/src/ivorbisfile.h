@@ -23,7 +23,10 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+#undef long
 #include <stdio.h>
+
+#define long int
 #include "ivorbiscodec.h"
 
 #define CHUNKSIZE 8192

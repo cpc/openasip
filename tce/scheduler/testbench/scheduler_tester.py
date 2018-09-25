@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # 
-# Copyright (c) 2002-2010 Tampere University of Technology.
+# Copyright (c) 2002-2018 Tampere University of Technology.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 # 
@@ -28,6 +28,7 @@
 
 import getopt, sys, os, glob, __builtin__, subprocess, time, signal, csv, tempfile, math
 
+# This shadows builtin open with the nasty os.open.
 from os import *
 from subprocess import *
 from difflib import unified_diff
@@ -43,7 +44,7 @@ schedulingTimeoutSec = 100*60
 simulationTimeoutSec = 120*60
 
 def usage():
-    print "Usage: scheduler_testbench.py [options]"
+    print "Usage: scheduler_tester.py [options]"
     print """
 Options:
   -a <ADF> Override architecture with which to run tests
@@ -95,7 +96,7 @@ Options:
                        directory, -a switch is ignored and only the ADFs
                        listed are used for benchmarking.
   description.txt      Description that is shown when test is runned -v
-  disable.txt          It test is disabled for specific reason this file can
+  disabled.txt         If test is disabled for specific reason this file can
                        be created with reason message.
   program.bc           LLVM byte code file is test should be ran when
                        -x switch *is* set.		       
@@ -258,6 +259,8 @@ def ParseCommandLine():
             worsenedIsErrorLimit = float(a)
         elif o == '-e':
             testRootDir = a
+        elif o == '-x':
+            pass
         else:
             usage()
             sys.exit(1)
@@ -540,8 +543,12 @@ class TestCase:
         tryRemove("cyclecount")
         tryRemove("generated_seq_program")
         tryRemove("src/generated_seq_program")
-        tryRemove("generated_program.bc")
-        tryRemove("src/generated_program.bc")
+        tryRemove("generated_program.be.bc")
+        tryRemove("generated_program.le.bc")
+        tryRemove("generated_program.64.bc")
+        tryRemove("src/generated_program.be.bc")
+        tryRemove("src/generated_program.le.bc")
+        tryRemove("src/generated_program.64.bc")
 
     def cleanupTestDirectory(self):
         global saveParallelPrograms, deleteOSALLink, leaveDirty
@@ -553,8 +560,12 @@ class TestCase:
         tryRemove("ttasim.out")
         tryRemove("generated_seq_program")
         tryRemove("src/generated_seq_program")
-        tryRemove("generated_program.bc")
-        tryRemove("src/generated_program.bc")
+        tryRemove("generated_program.be.bc")
+        tryRemove("generated_program.le.bc")
+        tryRemove("generated_program.64.bc")
+        tryRemove("src/generated_program.be.bc")
+        tryRemove("src/generated_program.le.bc")
+        tryRemove("src/generated_program.64.bc")
         tryRemove("operations_executed")
         tryRemove("registers_read")
         tryRemove("registers_written")
@@ -760,7 +771,7 @@ close $cycle_file
         self.stats[archFilename] = self.lastStats
         return True
 
-    def runWithArchitecture(self, architecture, seqProgFile):
+    def runWithArchitecture(self, architecture, seqProgFileBase):
         """Runs the test case with given architecture definition file.
 
         Returns true in case test passed.
@@ -775,7 +786,23 @@ close $cycle_file
         if not access(archFilename, R_OK):
             print "Cannot find ",archFilename
             sys.exit(2)
-            
+
+        machineLittleEndian = "<little-endian/>" in __builtin__.open(archFilename).read()
+        machine64bits = "<bitness64/>" in __builtin__.open(archFilename).read()
+        if machineLittleEndian:
+            if (machine64bits):
+                seqProgFile = seqProgFileBase + ".64.bc";
+                if verboseOutput:
+                    print "Machine is 64-bit. using 64 bc file."
+            else:
+                seqProgFile = seqProgFileBase + ".le.bc";
+                if verboseOutput:
+                    print "Machine is little endian. using LE bc file."
+        else:
+            seqProgFile = seqProgFileBase + ".be.bc";
+            if verboseOutput:
+                print "Machine is big endian. using BE bc file."
+
         if csvFormat:
             sys.stdout.write(self.title + "," + architecture + ",")
             sys.stdout.flush()
@@ -863,7 +890,9 @@ close $cycle_file
         # don't run generate if there is not Makefile for test
         if access("src/Makefile", R_OK):
 
-            seqProgramName = "generated_program.bc"
+            seqProgramNameBe = "generated_program.be.bc"
+            seqProgramNameLe = "generated_program.le.bc"
+            seqProgramName64 = "generated_program.64.bc"
             compileRule = "llvm"
             
             command = ("cd src;" +
@@ -871,7 +900,9 @@ close $cycle_file
                        'SCHEDULER_TESTER_FLAGS="'  + extraFlags + '" ' +                       
                        makeCommand + " GCCLLVM=" + tceccExe + " " + compileRule)
             
-            command += ";cp " + seqProgramName + " .."
+            command += ";cp " + seqProgramNameBe + " .."
+            command += ";cp " + seqProgramNameLe + " .."
+            command += ";cp " + seqProgramName64 + " .."
 
             # copy generated_program.bc to program.bc to be able to run the
             # tests with the latest compiled binary
@@ -891,8 +922,14 @@ close $cycle_file
 
             errorMessage = stdoutContents + stderrContents 
             
-            if not access(seqProgramName, R_OK):
-                print "Error while compiling program\n" + errorMessage
+            if not access(seqProgramNameBe, R_OK):
+                print "Error while compiling be program\n" + errorMessage
+                print "Error message over\n."
+                return False
+
+            if not access(seqProgramNameLe, R_OK):
+                print "Error while compiling le program\n" + errorMessage
+                print "Error message over\n."
                 return False
 
         else:
@@ -919,7 +956,7 @@ close $cycle_file
         allPassed = True
 
         # LLVM bytecode from LLVM/TCE
-        seqProgFile = "program.bc"
+        seqProgFileBase = "program"
 
         # Recompile and set names for test programs.
         if recompile:
@@ -931,11 +968,11 @@ close $cycle_file
                 os.chdir(self.oldDir)
                 return False
             else:
-                seqProgFile = "generated_program.bc"
+                seqProgFileBase = "generated_program"
         
 #        if configFileDefined:
         for arch in self.architectures:
-            allPassed = self.runWithArchitecture(arch, seqProgFile) and allPassed
+            allPassed = self.runWithArchitecture(arch, seqProgFileBase) and allPassed
             if stopTestingAfterFailingTest and not allPassed:
                 os.chdir(self.oldDir)
                 return False

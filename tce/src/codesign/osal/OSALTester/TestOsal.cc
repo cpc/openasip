@@ -781,7 +781,7 @@ CmdMem::execute(const std::vector<DataObject>& arguments)
 
     try {
         if (size == MEM_BYTE) {
-            UIntWord resultInt = 0;
+            ULongWord resultInt = 0;
             memory.read(address, 1, resultInt);
 
             // sign extension, if necessary
@@ -790,7 +790,7 @@ CmdMem::execute(const std::vector<DataObject>& arguments)
             }
             resultValue = resultInt;
         } else if (size == MEM_HALF_WORD) {
-            UIntWord resultInt = 0;
+            ULongWord resultInt = 0;
             memory.read(address, 2, resultInt);
 
             // sign extension, if necessary
@@ -799,7 +799,7 @@ CmdMem::execute(const std::vector<DataObject>& arguments)
             }
             resultValue = resultInt;
         } else if (size == MEM_WORD) {
-            UIntWord resultInt = 0;
+            ULongWord resultInt = 0;
             memory.read(address, 4, resultInt);
             resultValue = resultInt;
         } else if (size == MEM_DOUBLE_WORD) {

@@ -58,6 +58,8 @@ const string Operand::OPRND_OUT = "out";
 const string Operand::OPRND_ELEM_WIDTH = "element-width";
 const string Operand::OPRND_ELEM_COUNT = "element-count";
 
+const std::string Operand::SLONG_WORD_STRING = "SLongWord";
+const std::string Operand::ULONG_WORD_STRING = "ULongWord";
 const std::string Operand::SINT_WORD_STRING = "SIntWord";
 const std::string Operand::UINT_WORD_STRING = "UIntWord";
 const std::string Operand::FLOAT_WORD_STRING = "FloatWord";
@@ -188,6 +190,12 @@ Operand::typeString() const {
             break;
         case UINT_WORD:
             return UINT_WORD_STRING;
+            break;
+        case SLONG_WORD:
+            return SLONG_WORD_STRING;
+            break;
+        case ULONG_WORD:
+            return ULONG_WORD_STRING;
             break;
         case FLOAT_WORD:
             return FLOAT_WORD_STRING;
@@ -346,6 +354,10 @@ Operand::loadState(const ObjectState* state)
             type_ = SINT_WORD;
         } else if (typeString.compare(UINT_WORD_STRING) == 0) {
             type_ = UINT_WORD;
+        } else if (typeString.compare(SLONG_WORD_STRING) == 0) {
+            type_ = SLONG_WORD;
+        } else if (typeString.compare(ULONG_WORD_STRING) == 0) {
+            type_ = ULONG_WORD;
         } else if (typeString.compare(FLOAT_WORD_STRING) == 0) {
             type_ = FLOAT_WORD;
         } else if (typeString.compare(DOUBLE_WORD_STRING) == 0) {
@@ -448,6 +460,12 @@ Operand::saveState() const {
     case UINT_WORD:
         root->setAttribute(OPRND_TYPE, UINT_WORD_STRING);
         break;
+    case SLONG_WORD:
+        root->setAttribute(OPRND_TYPE, SLONG_WORD_STRING);
+        break;
+    case ULONG_WORD:
+        root->setAttribute(OPRND_TYPE, ULONG_WORD_STRING);
+        break;
     case FLOAT_WORD:
         root->setAttribute(OPRND_TYPE, FLOAT_WORD_STRING);
         break;
@@ -498,7 +516,7 @@ Operand::saveState() const {
  */
 int
 Operand::defaultElementWidth(OperandType type) {
-    if (type == DOUBLE_WORD) {
+    if (type == DOUBLE_WORD || type == SLONG_WORD || type == ULONG_WORD) {
         return 64;
     } else if (type == HALF_FLOAT_WORD) {
         return 16;

@@ -47,7 +47,7 @@
  * @return The number of bits required to represent the given number.
  */
 inline int
-MathTools::requiredBits(long unsigned int number) {
+MathTools::requiredBits(unsigned long int number) {
     if (number == 0) {
         return 1;
     } else {
@@ -71,7 +71,7 @@ MathTools::requiredBits(long unsigned int number) {
  */
 
 inline int
-MathTools::requiredBitsSigned(long int number) {
+MathTools::requiredBitsSigned(SLongWord number) {
     int bits = 1;
     while (number != -1 && number != 0) {
         number = number >> 1;
@@ -95,7 +95,7 @@ MathTools::requiredBitsSigned(UInt32 number) {
     
     // first cast to a signed type
     int32_t numberSigned = static_cast<int32_t>(number);
-    return requiredBitsSigned(static_cast<long int>(numberSigned));
+    return requiredBitsSigned(static_cast<SLongWord>(numberSigned));
 }
 
 /**
@@ -111,7 +111,7 @@ MathTools::requiredBitsSigned(UInt32 number) {
 inline int
 MathTools::requiredBitsSigned(int number) {
     
-    return requiredBitsSigned(static_cast<long int>(number));
+    return requiredBitsSigned(static_cast<SLongWord>(number));
 }
 
 /**
@@ -125,8 +125,8 @@ MathTools::requiredBitsSigned(int number) {
  */
 
 inline int
-MathTools::requiredBitsSigned(unsigned long number) {
-    return requiredBitsSigned(static_cast<long int>(number));
+MathTools::requiredBitsSigned(ULongWord number) {
+    return requiredBitsSigned(static_cast<SLongWord>(number));
 }
 
 /**
@@ -158,7 +158,7 @@ MathTools::bitLength(long unsigned int number) {
  * @return The value of the bit indicated by the given index.
  */
 inline bool
-MathTools::bit(unsigned int integer, unsigned int index) {
+MathTools::bit(ULongWord integer, unsigned int index) {
     return (integer & (1 << index)) != 0;
 }
 
@@ -177,10 +177,10 @@ MathTools::bit(unsigned int integer, unsigned int index) {
  * @return The sign-extended value of the integer.
  * @exception OutOfRange If width > integer size
  */
-inline int
-MathTools::signExtendTo(int value, int width) {
+inline SLongWord
+MathTools::signExtendTo(SLongWord value, int width) {
 
-    int bitsInInt = sizeof(int) * BYTE_BITWIDTH;
+    int bitsInInt = sizeof(value) * BYTE_BITWIDTH;
     if (width > bitsInInt) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -205,10 +205,10 @@ MathTools::signExtendTo(int value, int width) {
  * @return The zero-extended value of the integer.
  * @exception OutOfRange If width > integer size
  */
-inline int
-MathTools::zeroExtendTo(int value, int width) {
+inline ULongWord
+MathTools::zeroExtendTo(ULongWord value, int width) {
 
-    int bitsInInt = sizeof(int) * BYTE_BITWIDTH;
+    int bitsInInt = sizeof(value) * BYTE_BITWIDTH;
     if (width > bitsInInt) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -228,10 +228,10 @@ MathTools::zeroExtendTo(int value, int width) {
  * @note width must not exceed int bitwidth!
  * @return The sign-extended value of the integer.
  */
-inline int
-MathTools::fastSignExtendTo(int value, int width) {
+inline SLongWord
+MathTools::fastSignExtendTo(SLongWord value, int width) {
 
-    const int bitsInInt = sizeof(int) * BYTE_BITWIDTH;
+    const int bitsInInt = sizeof(SLongWord) * BYTE_BITWIDTH;
     
     value = value << (bitsInInt - width);
     value = value >> (bitsInInt - width);
@@ -248,10 +248,10 @@ MathTools::fastSignExtendTo(int value, int width) {
  * @note width must not exceed int bitwidth!
  * @return The zero-extended value of the integer.
  */
-inline int
-MathTools::fastZeroExtendTo(int value, int width) {
+inline ULongWord
+MathTools::fastZeroExtendTo(ULongWord value, int width) {
 
-    const int bitsInInt = sizeof(int) * BYTE_BITWIDTH;
+    const int bitsInInt = sizeof(value) * BYTE_BITWIDTH;
 
     // and with a mask with only the lower 'width' bits '1'
     value = value & (~0u >> (bitsInInt - width));
@@ -280,12 +280,12 @@ MathTools::random(int min, int max) {
 /**
  * Rounds a number downwards to a number which is of power-2.
  */
-inline unsigned int 
-MathTools::roundDownToPowerTwo(unsigned int number) {
-    unsigned int i = 0;
+inline ULongWord
+MathTools::roundDownToPowerTwo(ULongWord number) {
+    ULongWord i = 0;
     if (number == 0) {
 	return 0;
     }
-    for (; 1u << i <= number; i++) ;
-    return (1u<<i) >> 1;
+    for (; 1lu << i <= number; i++) ;
+    return (1lu<<i) >> 1;
 }
