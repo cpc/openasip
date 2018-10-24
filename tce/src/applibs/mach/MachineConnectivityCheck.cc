@@ -869,7 +869,7 @@ MachineConnectivityCheck::requiredImmediateWidth(
     int bits = -1;
     if (signExtension) {
         bits =
-            MathTools::requiredBitsSigned(source.value().uLongWordValue());
+            MathTools::requiredBitsSigned(source.value().sLongWordValue());
     } else if (!signExtension) {
         bits =
             MathTools::requiredBits(source.value().uLongWordValue());
