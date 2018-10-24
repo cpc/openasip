@@ -1275,7 +1275,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
-    <out element-count="1" element-width="32" id="2" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="2" type="SLongWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sxq64, IO(1), IO(2));
     </trigger-semantics>
@@ -1287,7 +1287,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
-    <out element-count="1" element-width="32" id="2" type="SLongWord"/>
+    <out element-count="1" element-width="64" id="2" type="SLongWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sxh64, IO(1), IO(2));
     </trigger-semantics>
