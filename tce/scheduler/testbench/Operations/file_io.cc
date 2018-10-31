@@ -44,7 +44,7 @@ TRIGGER
 std::string fileName = "";
 char c = 'x';
 for (int addr = INT(1); c != 0; ++addr) {
-    UIntWord temp = 0;
+    ULongWord temp = 0;
     MEMORY.read(addr, 1, temp);
     c = (char)temp;
     fileName += c;
@@ -100,7 +100,7 @@ TRIGGER
 std::string data = "";
 
 for (unsigned addr = UINT(2); addr < UINT(2) + UINT(3); ++addr) {
-    UIntWord temp = 0;
+    ULongWord temp = 0;
     MEMORY.read(addr, 1, temp);
     data += (char)temp;
 }
