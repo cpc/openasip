@@ -858,7 +858,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <outputs>0</outputs>
     <control-flow/>
     <is-branch/>
-    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="64" id="1" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(jump, IO(1));
     </trigger-semantics>
@@ -871,7 +871,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <outputs>0</outputs>
     <control-flow/>
     <is-call/>
-    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="64" id="1" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(call, IO(1));
     </trigger-semantics>
@@ -2433,6 +2433,16 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
   </operation>
 
   <operation>
+    <name>ROTL64</name>
+    <description>Rotate left.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <in element-count="1" element-width="64" id="2" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="3" type="ULongWord"/>
+  </operation>
+
+  <operation>
     <name>ROTR</name>
     <description>Rotate right.</description>
     <inputs>2</inputs>
@@ -2442,6 +2452,19 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(rotr, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ROTR64</name>
+    <description>Rotate right.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <in element-count="1" element-width="64" id="2" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="3" type="ULongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(rotr64, IO(1), IO(2), IO(3));
     </trigger-semantics>
   </operation>
 
@@ -2516,7 +2539,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
-    <in element-count="1" element-width="32" id="1" type="UIntWord">
+    <in element-count="1" element-width="64" id="1" type="UIntWord">
       <mem-address/>
     </in>
     <out element-count="1" element-width="8" id="2" type="RawData">
@@ -2553,10 +2576,10 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
-    <in element-count="1" element-width="32" id="1" type="UIntWord">
+    <in element-count="1" element-width="64" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out element-count="1" element-width="32" id="2" type="UIntWord">
+    <out element-count="1" element-width="16" id="2" type="UIntWord">
       <mem-data/>
     </out>
     <trigger-semantics>
@@ -2635,6 +2658,15 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
     <out element-count="1" element-width="32" id="2" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>NOT64</name>
+    <description>Bitwise negation.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="2" type="ULongWord"/>
   </operation>
 
   <operation>
@@ -3831,6 +3863,18 @@ Input operand is discarded.</description>
     <in element-count="1" element-width="32" id="2" type="RawData"/>
     <in element-count="1" element-width="32" id="3" type="UIntWord"/>
     <out element-count="1" element-width="32" id="4" type="RawData"/>
+    <trigger-semantics>
+    </trigger-semantics></operation>
+
+  <operation>
+    <name>SELECT64</name>
+    <description>Select one of two values</description>
+    <inputs>3</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="RawData"/>
+    <in element-count="1" element-width="64" id="2" type="RawData"/>
+    <in element-count="1" element-width="64" id="3" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="4" type="RawData"/>
     <trigger-semantics>
     </trigger-semantics></operation>
 

@@ -523,10 +523,8 @@ TRIGGER
     ULongWord in1 = ULONG(1);
     ULongWord in2 = ULONG(2);
 
-    if (in2 > MIN(
-            static_cast<ULongWord>(BWIDTH(1)),
-            static_cast<ULongWord>(OSAL_WORD_WIDTH))) {
-        IO(3) = 0;
+    if (in2 > 64) {
+        IO(3) = 0l;
         return true;
     }
 
@@ -880,6 +878,19 @@ END_TRIGGER;
 END_OPERATION(NOT)
 
 //////////////////////////////////////////////////////////////////////////////
+// NOT64  - bitwise negation
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(NOT64)
+
+TRIGGER
+    SIntWord in1 = static_cast<SLongWord>(UINT(1));
+    in1 = ~in1;
+    IO(2) = static_cast<SLongWord>(in1);
+END_TRIGGER;
+
+END_OPERATION(NOT64)
+
+//////////////////////////////////////////////////////////////////////////////
 // NEQF - arithmetic negation, floating-point
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(NEGF)
@@ -1005,8 +1016,8 @@ TRIGGER
     if (ULONG(2) == 0)
          RUNTIME_ERROR("Divide by zero.")
 
-    SLongWord in1 = static_cast<SLongWord>(UINT(1));
-    SLongWord in2 = static_cast<SLongWord>(UINT(2));
+    SLongWord in1 = static_cast<SLongWord>(LONG(1));
+    SLongWord in2 = static_cast<SLongWord>(LONG(2));
     SLongWord out1 = in1 % in2;
     IO(3) = static_cast<SLongWord>(out1);
 END_TRIGGER;
@@ -1545,17 +1556,27 @@ OPERATION(ROTL)
 TRIGGER
     UIntWord in1 = UINT(1);
     UIntWord in2 = UINT(2);
-    in2 = in2 % MIN(
-        static_cast<UIntWord>(BWIDTH(1)), 
-        static_cast<UIntWord>(OSAL_WORD_WIDTH));
-    IO(3) = (in1 << in2) | (in1 >> 
-                             (MIN(
-                                 static_cast<UIntWord>(BWIDTH(1)), 
-                                 static_cast<UIntWord>(OSAL_WORD_WIDTH)) - 
-                              in2));
+    in2 = in2 % 32;
+    IO(3) = (in1 << in2) | (in1 >> (32 - in2 ));
 END_TRIGGER;
 
 END_OPERATION(ROTL)
+
+
+//////////////////////////////////////////////////////////////////////////////
+// ROTL64 - rotate left
+//////////////////////////////////////////////////////////////////////////////
+
+OPERATION(ROTL64)
+
+TRIGGER
+    ULongWord in1 = ULONG(1);
+    ULongWord in2 = ULONG(2);
+    in2 = in2 % 64;
+    IO(3) = (in1 << in2) | (in1 >> (64 - in2 ));
+END_TRIGGER;
+
+END_OPERATION(ROTL64)
 
 //////////////////////////////////////////////////////////////////////////////
 // ROTR - rotate right
@@ -1564,18 +1585,28 @@ END_OPERATION(ROTL)
 OPERATION(ROTR)
 
 TRIGGER
-    UIntWord in1 = UINT(1);
-    UIntWord in2 = UINT(2);
-    in2 = in2 % MIN(
-        static_cast<UIntWord>(BWIDTH(1)), 
-        static_cast<UIntWord>(OSAL_WORD_WIDTH));
-    IO(3) = (in1 >> in2) | (in1 << (MIN(
-                                         static_cast<UIntWord>(BWIDTH(1)), 
-                                         static_cast<UIntWord>(OSAL_WORD_WIDTH))
-                                     - in2));
+    UIntWord in1 = ULONG(1);
+    UIntWord in2 = ULONG(2);
+    in2 = in2 % 32;
+    IO(3) = (in1 >> in2) | (in1 << (32 - in2));
 END_TRIGGER;
 
 END_OPERATION(ROTR)
+
+//////////////////////////////////////////////////////////////////////////////
+// ROTR64 - rotate right
+//////////////////////////////////////////////////////////////////////////////
+
+OPERATION(ROTR64)
+
+TRIGGER
+    ULongWord in1 = ULONG(1);
+    ULongWord in2 = ULONG(2);
+    in2 = in2 % 64;
+    IO(3) = (in1 >> in2) | (in1 << (64 - in2));
+END_TRIGGER;
+
+END_OPERATION(ROTR64)
 
 //////////////////////////////////////////////////////////////////////////////
 // ABS - absolute value
@@ -2139,6 +2170,20 @@ if (UINT(3) & 1) {
 //IO(4) = ((IO(3)) & 1) ? IO(1) : IO(2);
 END_TRIGGER;
 END_OPERATION(SELECT)
+
+//////////////////////////////////////////////////////////////////////////////
+// SELECT64 - select from two values
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(SELECT64)
+TRIGGER
+if (ULONG(3) & 1) {
+    IO(4) = IO(1);
+} else {
+    IO(4) = IO(2);
+}
+//IO(4) = ((IO(3)) & 1) ? IO(1) : IO(2);
+END_TRIGGER;
+END_OPERATION(SELECT64)
 
 ////////////////////////////////////////////////////////////////////////////////
 // CHS - convert half to short
