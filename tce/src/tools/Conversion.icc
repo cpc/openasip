@@ -268,6 +268,88 @@ Conversion::toInt(const T& source)
 }
 
 /**
+ * Converts the parameter to a long int.
+ *
+ * Allows spaces before and after the number. Binary and hexadecimal
+ * formats are accepted as well. Binary format is indicated by
+ * extension 'b' and hexadecimal has '0x' in the beginning.
+ *
+ *
+ * @param source Object to convert.
+ * @return Int representation of source.
+ * @exception NumberFormatException If source cannot be represented as
+ *                                  int including overflow.
+ */
+template <typename T>
+SLongWord
+Conversion::toLong(const T& source) {
+
+    SLongWord theLong = 0;
+    try {
+        convert<T, SLongWord, true>(source, theLong);
+    } catch (const NumberFormatException& e) {
+
+        // check whether the source in an integer in hex or in binary format
+        std::stringstream hexStream;
+        hexStream << source;
+        std::string binary = toString(source);
+
+        char first = hexStream.get();
+        char second = hexStream.get();
+
+        if (first == '0' && second == 'x') {
+
+            // source is in hex format
+
+            // need to read into unsigned integer at first if the
+            // hexadecimal contains 8 characters, hence being larger
+            // than integer
+            ULongWord theUnsigned = 0;
+            hexStream >> std::hex >> theUnsigned;
+            theLong = static_cast<SLongWord>(theUnsigned);
+
+            if (!restWhiteSpace(hexStream)) {
+                throw NumberFormatException(
+                    __FILE__, __LINE__, __func__,
+                    "Unable to convert the argument to integer: illegal hex "\
+                    "string.");
+            }
+        } else if (binary.length() > 1 &&
+                   binary[binary.length() - 1] == 'b') {
+
+            // source is in binary format
+            if (binary.length() - 1 > sizeof(SLongWord) * 8) {
+                throw NumberFormatException(
+                    __FILE__, __LINE__, __func__,
+                    "Unable to convert the argument to integer: too long " \
+                    "binary number.");
+            }
+
+            for (unsigned int i = 0; i < binary.length() - 1; i++) {
+                SLongWord bin = 2;
+                if (binary[i] == '0') {
+                    bin = 0;
+                } else if (binary[i] == '1') {
+                    bin = 1;
+                } else {
+                    throw;
+                }
+
+                theLong = (theLong << 1) | bin;
+            }
+        } else {
+            throw NumberFormatException(
+                __FILE__, __LINE__, __func__,
+                "Unable to convert the argument to integer: " +
+                e.errorMessage() + ".");
+        }
+
+    }
+
+    return theLong;
+}
+
+/**
  * Converts a double to an int.
  *
  * @todo Check for overflow (how?).
@@ -281,6 +363,21 @@ inline int
 Conversion::toInt(const double& source)
     throw (NumberFormatException) {
     return static_cast<int>(source);
+}
+
+/**
+ * Converts a double to an long.
+ *
+ * @todo Check for overflow (how?).
+ *
+ * @param source Object to convert.
+ * @return Int representation of source.
+ * @exception NumberFormatException If source cannot be represented as
+ *                                  int including overflow.
+ */
+inline SLongWord
+Conversion::toLong(const double& source) {
+    return static_cast<SLongWord>(source);
 }
 
 
@@ -366,6 +463,90 @@ Conversion::toUnsignedInt(const T& source)
 
     return theUnsignedInt;
 }
+
+
+
+/**
+ * Converts the parameter to an unsigned int.
+ *
+ * Allows spaces before and after the number. Binary and hexadecimal
+ * formats are accepted as well. Binary format is indicated by
+ * extension 'b' and hexadecimal has '0x' in the beginning.
+ *
+ *
+ * @param source Object to convert.
+ * @return Int representation of source.
+ * @exception NumberFormatException If source cannot be represented as
+ *                                  int including overflow.
+ */
+template <typename T>
+ULongWord
+Conversion::toUnsignedLong(const T& source)
+    throw (NumberFormatException) {
+
+    ULongWord theUnsignedLong = 0;
+    try {
+        convert<T, ULongWord, true>(source, theUnsignedLong);
+    } catch (NumberFormatException&) {
+
+        // check whether the source in an integer in hex or in binary format
+        std::stringstream hexStream;
+        hexStream << source;
+        std::string binary = toString(source);
+
+        char first = hexStream.get();
+        char second = hexStream.get();
+
+        if (first == '0' && second == 'x') {
+
+            // source is in hex format
+            hexStream >> std::hex >> theUnsignedLong;
+
+            if (!restWhiteSpace(hexStream)) {
+                throw NumberFormatException(
+                    __FILE__, __LINE__, __func__, "garbage at the end");
+            }
+        } else if (binary.length() > 1 &&
+                   binary[binary.length() - 1] == 'b') {
+
+            // source is in binary format
+            if (binary.length() - 1 > sizeof(ULongWord) * 8) {
+                throw NumberFormatException(
+                    __FILE__, __LINE__, __func__,
+                    "too long binary to convert");
+            }
+
+            for (unsigned int i = 0; i < binary.length() - 1; i++) {
+                SLongWord bin = 2;
+                if (binary[i] == '0') {
+                    bin = 0;
+                } else if (binary[i] == '1') {
+                    bin = 1;
+                } else {
+                    throw;
+                }
+
+                theUnsignedLong = (theUnsignedLong << 1) | bin;
+            }
+        } else {
+            throw;
+        }
+
+    }
+
+    // check if the source is signed
+    std::stringstream tempStream;
+    tempStream << source;
+    std::string firstToken = "";
+    tempStream >> firstToken;
+    if (firstToken[0] == '-') {
+        throw NumberFormatException(
+            __FILE__, __LINE__, __func__, "signed input value");
+    }
+
+    return theUnsignedLong;
+}
+
 
 
 /**

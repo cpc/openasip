@@ -59,6 +59,15 @@ DataObject::DataObject(int value) {
 }
 
 /**
+ * Constructor for integer data.
+ *
+ * @param value Value as integer.
+ */
+DataObject::DataObject(SLongWord value) {
+    setLong(value);
+}
+
+/**
  * Constructor for double data.
  *
  * @param value Value as double.
@@ -80,6 +89,21 @@ DataObject::DataObject(const std::string value) {
  * Destructor.
  */
 DataObject::~DataObject() {
+}
+
+/**
+ * Sets the integer value of DataObject.
+ *
+ * @param value The integer value.
+ */
+void
+DataObject::setLong(SLongWord value) {
+    type_ = TYPE_INT;
+    intFresh_ = true;
+    stringFresh_ = false;
+    doubleFresh_ = false;
+    floatFresh_ = false;
+    intValue_ = value;
 }
 
 /**
@@ -177,8 +201,7 @@ DataObject::setNull() {
  *            not initialized.
  */
 int
-DataObject::integerValue() const
-    throw (NumberFormatException) {
+DataObject::integerValue() const {
 
     if (intFresh_) {
         return intValue_;
@@ -236,6 +259,77 @@ DataObject::integerValue() const
         return intValue_;
     }
 }
+
+/**
+ * Returns the (long) integer value of DataObject.
+ *
+ * If integer value is not available, the conversion is done from the
+ * original value type. Note that a NULL DataObject is converted to 0.
+ *
+ * @return The integer value of DataObject.
+ * @exception NumberFormatException If conversion fails or if DataObject is
+ *            not initialized.
+ */
+SLongWord
+DataObject::longValue() const {
+
+    if (intFresh_) {
+        return intValue_;
+    } else {
+        try {
+            switch (type_) {
+            case TYPE_STRING:
+                intValue_ = Conversion::toLong(stringValue_);
+                break;
+            case TYPE_DOUBLE:
+                intValue_ = Conversion::toLong(doubleValue_);
+                break;
+            case TYPE_FLOAT:
+                intValue_ = Conversion::toLong(floatValue_);
+                break;
+            case TYPE_NOTYPE: {
+                string method = "DataObject::integerValue()";
+                string message = "DataObject not initialized.";
+                throw NumberFormatException(
+                    __FILE__, __LINE__, method, message);
+                break;
+            }
+            case TYPE_NULL:
+                intValue_ = 0;
+                break;
+            default:
+                break;
+            }
+        } catch (const NumberFormatException&) {
+
+            // it can be an unsigned int, let's try to convert to
+            // unsigned int first
+            switch (type_) {
+            case TYPE_STRING:
+                intValue_ = Conversion::toUnsignedLong(stringValue_);
+                break;
+            case TYPE_DOUBLE:
+                intValue_ = Conversion::toUnsignedLong(doubleValue_);
+                break;
+            case TYPE_FLOAT:
+                intValue_ = Conversion::toUnsignedLong(floatValue_);
+                break;
+            case TYPE_NOTYPE: {
+                string method = "DataObject::integerValue()";
+                string message = "DataObject not initialized.";
+                throw NumberFormatException(
+                    __FILE__, __LINE__, method, message);
+                break;
+            }
+            default:
+                break;
+            }
+        }
+        intFresh_ = true;
+        return intValue_;
+    }
+}
+
 
 /**
  * Returns the string value of DataObject.
@@ -477,6 +571,11 @@ NullDataObject::setInteger(int) {
 }
 
 void
+NullDataObject::setLong(SLongWord) {
+    abortWithError("setLong()");
+}
+
+void
 NullDataObject::setString(std::string) {
     abortWithError("setString()");
 }
@@ -497,9 +596,14 @@ NullDataObject::setNull() {
 }
 
 int
-NullDataObject::integerValue() const
-    throw (NumberFormatException) {
+NullDataObject::integerValue() const {
     abortWithError("integerValue()");
+    return 0;
+}
+
+SLongWord
+NullDataObject::longValue() const {
+    abortWithError("longValue()");
     return 0;
 }
 

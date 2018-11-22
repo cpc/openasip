@@ -119,6 +119,8 @@ public:
 
     static const std::string OUTPUT_FORMAT_INT_SIGNED;
     static const std::string OUTPUT_FORMAT_INT_UNSIGNED;
+    static const std::string OUTPUT_FORMAT_LONG_SIGNED;
+    static const std::string OUTPUT_FORMAT_LONG_UNSIGNED;
     static const std::string OUTPUT_FORMAT_DOUBLE;
     static const std::string OUTPUT_FORMAT_FLOAT;
     static const std::string OUTPUT_FORMAT_HALF;

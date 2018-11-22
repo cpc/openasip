@@ -260,6 +260,8 @@ CmdReset::helpText() const {
 
 const string CmdOutput::OUTPUT_FORMAT_INT_SIGNED = "signed";
 const string CmdOutput::OUTPUT_FORMAT_INT_UNSIGNED = "unsigned";
+const string CmdOutput::OUTPUT_FORMAT_LONG_SIGNED = "long";
+const string CmdOutput::OUTPUT_FORMAT_LONG_UNSIGNED = "ulong";
 const string CmdOutput::OUTPUT_FORMAT_DOUBLE = "double";
 const string CmdOutput::OUTPUT_FORMAT_FLOAT = "float";
 const string CmdOutput::OUTPUT_FORMAT_HALF = "half";
@@ -311,6 +313,8 @@ CmdOutput::execute(const std::vector<DataObject>& arguments)
 
     if (outputFormat == OUTPUT_FORMAT_INT_SIGNED ||
         outputFormat == OUTPUT_FORMAT_INT_UNSIGNED ||
+        outputFormat == OUTPUT_FORMAT_LONG_SIGNED ||
+        outputFormat == OUTPUT_FORMAT_LONG_UNSIGNED ||
         outputFormat == OUTPUT_FORMAT_DOUBLE ||
         outputFormat == OUTPUT_FORMAT_FLOAT ||
         outputFormat == OUTPUT_FORMAT_HALF ||
@@ -489,14 +493,14 @@ TesterContext::toOutputFormat(SimValue* value) {
     // width of the value. This means that leading zeroes are included in 
     // the output result (e.g. 32 bit value 0x15 = 0x00000015).
     if (outputFormat_ == CmdOutput::OUTPUT_FORMAT_HEX || 
-        (value->width() > 32 && 
+        (value->width() > 64 &&
          outputFormat_ != CmdOutput::OUTPUT_FORMAT_DOUBLE)) {
         output = value->hexValue();
     } else if (outputFormat_ == CmdOutput::OUTPUT_FORMAT_INT_SIGNED) {
-        output = Conversion::toString(value->intValue());
+        output = Conversion::toString(value->sLongWordValue());
 
     } else if(outputFormat_ == CmdOutput::OUTPUT_FORMAT_INT_UNSIGNED) {
-        output = Conversion::toString(value->unsignedValue());
+        output = Conversion::toString(value->uLongWordValue());
 
     } else if(outputFormat_ == CmdOutput::OUTPUT_FORMAT_DOUBLE) {
         DoubleWord doubleWord = value->doubleWordValue();
@@ -511,7 +515,8 @@ TesterContext::toOutputFormat(SimValue* value) {
         output = Conversion::toString(FloatWord(float(halfFloatWord)));
         
     } else if(outputFormat_ == CmdOutput::OUTPUT_FORMAT_BIN) {
-        output = Conversion::toBinString(value->intValue());
+        output = value->binaryValue();
+        output += 'b';
     }
     return output;
 }
@@ -663,12 +668,12 @@ CmdRegister::execute(const std::vector<DataObject>& arguments)
 
     if (registerValue == REGISTER_PROGRAM_COUNTER) {
         InstructionAddress& addr = context.programCounter();
-        SimValue value(32);
+        SimValue value(64);
         value = addr;
         output = context.toOutputFormat(&value);
     } else if (registerValue == REGISTER_RETURN_ADDRESS) {
         SimValue& addr = context.returnAddress();
-        SimValue value(32);
+        SimValue value(64);
         value = addr;
         output = context.toOutputFormat(&value);
     } else {
@@ -777,32 +782,31 @@ CmdMem::execute(const std::vector<DataObject>& arguments)
         return false;
     }
 
-    SimValue resultValue(32);
+    SimValue resultValue(64);
 
     try {
+        if (context.outputFormat() == CmdOutput::OUTPUT_FORMAT_LONG_UNSIGNED ||
+            context.outputFormat() == CmdOutput::OUTPUT_FORMAT_LONG_SIGNED) {
+            resultValue.setBitWidth(64);
+        }
         if (size == MEM_BYTE) {
+            resultValue.setBitWidth(8);
             ULongWord resultInt = 0;
             memory.read(address, 1, resultInt);
-
-            // sign extension, if necessary
-            if (context.outputFormat() == CmdOutput::OUTPUT_FORMAT_INT_SIGNED) {
-                resultInt = (((int)(resultInt << 24)) >> 24);
-            }
             resultValue = resultInt;
         } else if (size == MEM_HALF_WORD) {
+            resultValue.setBitWidth(16);
             ULongWord resultInt = 0;
             memory.read(address, 2, resultInt);
-
-            // sign extension, if necessary
-            if (context.outputFormat() == CmdOutput::OUTPUT_FORMAT_INT_SIGNED) {
-                resultInt = (((int)(resultInt << 16)) >> 16);
-            }
             resultValue = resultInt;
         } else if (size == MEM_WORD) {
+            resultValue.setBitWidth(32);
             ULongWord resultInt = 0;
             memory.read(address, 4, resultInt);
             resultValue = resultInt;
         } else if (size == MEM_DOUBLE_WORD) {
+            resultValue.setBitWidth(64);
+
             DoubleWord result = 0.0;
             // TODO: when to read in LE?
             memory.readBE(address, result);

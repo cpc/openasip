@@ -1169,7 +1169,7 @@ SimValue::hexValue(bool noHexIdentifier) const {
 
     const size_t BYTE_COUNT =
         (bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
-    const unsigned MSB_MASK = ~(0xffffffffu << (8-(BYTE_COUNT*8-bitWidth_)));
+    const unsigned MSB_MASK = ~(0xfffffffffffffffful << (8-(BYTE_COUNT*8-bitWidth_)));
 
     TCEString hexStr;
     // Convert the raw data buffer to hex string values one byte at a time.

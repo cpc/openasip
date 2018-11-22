@@ -43,6 +43,7 @@
 
 
 #include "Exception.hh"
+#include "BaseType.hh"
 
 #if _XERCES_VERSION >= 20200
 XERCES_CPP_NAMESPACE_USE
@@ -61,11 +62,20 @@ public:
     static int toInt(const T& source)
         throw (NumberFormatException);
 
+    template <typename T>
+    static SLongWord toLong(const T& source);
+
     static int toInt(const double& source)
         throw (NumberFormatException);
 
+    static SLongWord toLong(const double& source);
+
     template <typename T>
     static unsigned int toUnsignedInt(const T& source)
+        throw (NumberFormatException);
+
+    template <typename T>
+    static ULongWord toUnsignedLong(const T& source)
         throw (NumberFormatException);
 
     template <typename T>

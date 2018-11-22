@@ -36,7 +36,7 @@
 #include <string>
 
 #include "Exception.hh"
-
+#include "BaseType.hh"
 /**
  * Class that represents data in different formats.
  *
@@ -64,12 +64,16 @@ public:
 
     DataObject();
     explicit DataObject(int value);
+    explicit DataObject(SLongWord value);
     explicit DataObject(double value);
     explicit DataObject(const std::string value);
     virtual ~DataObject();
 
-    virtual int integerValue() const throw (NumberFormatException);
+    virtual int integerValue() const;
     virtual void setInteger(int value);
+    virtual void setLong(SLongWord value);
+
+    virtual SLongWord longValue() const;
 
     virtual std::string stringValue() const throw (NumberFormatException);
     virtual void setString(std::string value);
@@ -108,7 +112,7 @@ private:
     /// Flag indicating that the value of float is up-to-date.
     mutable bool floatFresh_;
     /// Value as integer.
-    mutable int intValue_;
+    mutable SLongWord intValue_;
     /// Value as string.
     mutable std::string stringValue_;
     /// Value as double.
@@ -125,20 +129,23 @@ private:
 class NullDataObject : public DataObject {
 public:
     static NullDataObject& instance();
-    virtual int integerValue() const throw (NumberFormatException);
-    virtual void setInteger(int value);
+    virtual int integerValue() const override;
+    virtual SLongWord longValue() const override;
+
+    virtual void setInteger(int value) override;
+    virtual void setLong(SLongWord value) override;
 
     virtual std::string stringValue() const throw (NumberFormatException);
-    virtual void setString(std::string value);
+    virtual void setString(std::string value) override;
 
     virtual double doubleValue() const throw (NumberFormatException);
-    virtual void setDouble(double value);
+    virtual void setDouble(double value) override;
 
     virtual float floatValue() const throw (NumberFormatException);
-    virtual void setFloat(float value);
+    virtual void setFloat(float value) override;
 
     virtual bool isNull() const throw (NumberFormatException);
-    virtual void setNull();
+    virtual void setNull() override;
 
 private:
 

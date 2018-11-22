@@ -55,15 +55,15 @@ public:
      * Type of operand.
      */
     enum OperandType {
-        SLONG_WORD,
-        ULONG_WORD,
         SINT_WORD,
         UINT_WORD,
         FLOAT_WORD,
         DOUBLE_WORD,
         HALF_FLOAT_WORD,
         BOOL,
-        RAW_DATA
+        RAW_DATA,
+        SLONG_WORD,
+        ULONG_WORD
     };
 
     static const std::string SLONG_WORD_STRING;

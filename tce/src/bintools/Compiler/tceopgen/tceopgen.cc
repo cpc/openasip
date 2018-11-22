@@ -50,17 +50,11 @@ std::string
 operandTypeCString(const Operand& operand) {
     switch (operand.type()) {
     default:
-    case Operand::SLONG_WORD:
-        return "long";
-        break;
-    case Operand::ULONG_WORD:
-        return "unsigned long";
-        break;
     case Operand::SINT_WORD:
-        return "long";
+        return "int";
         break;
     case Operand::UINT_WORD:
-        return "unsigned long";
+        return "unsigned";
         break;
     case Operand::FLOAT_WORD:
         return "float";
@@ -71,10 +65,16 @@ operandTypeCString(const Operand& operand) {
     case Operand::RAW_DATA:
         return "";
         break;
+    case Operand::SLONG_WORD:
+        return "long";
+        break;
+    case Operand::ULONG_WORD:
+        return "unsigned long";
+        break;
     }
-    // TODO: how do halffloats work?
-    // does this break them?
-    return "unsigned"; // a good guess ;)
+    // TODO: it never comes here!
+    // half floats take the "default".
+    return "unsigned";
 }
 
 /**

@@ -133,7 +133,7 @@ OperationSimulator::initializeSimValue(
         if (value.size() > 2 && value[0] == '0' && value[1] == 'x') {
             (*sim).setValue(TCEString(value));
         } else if (is_int && !is_float) {
-            *sim = Conversion::toInt(value);
+            *sim = Conversion::toLong(value);
         } else if (is_float) {
             *sim = Conversion::toFloat(value.substr(0, value.length()-1));
         } else {
