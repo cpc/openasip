@@ -2,7 +2,7 @@ Error: unknown operation "foo"
 Error: wrong number of arguments
 Error: illegal operand value "0002b"
 Error: illegal operand value "0xabcdefg"
-Error: illegal operand value "4294967290"
+Error: illegal operand value "15123123123456456456"
 Error: wrong number of arguments
 Error: unknown operation "foo"
 Error: wrong number of arguments

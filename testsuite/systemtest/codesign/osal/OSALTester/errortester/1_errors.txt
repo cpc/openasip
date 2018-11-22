@@ -2,8 +2,7 @@ foo 2 2
 add2 1
 mul2 0002b 23
 mul2 0xabcdefg 23
-add2 3 4294967290
-
+add2 3 15123123123456456456
 !reset
 !reset foo
 !quit foo
