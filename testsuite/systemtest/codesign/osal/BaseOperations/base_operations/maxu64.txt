@@ -1,0 +1,7 @@
+maxu64 -1 1
+maxu64 345675 34355
+maxu64 -243465 -3456
+!output hex
+maxu64 -2 -3
+maxu64 0xde34 0xff6a
+!quit

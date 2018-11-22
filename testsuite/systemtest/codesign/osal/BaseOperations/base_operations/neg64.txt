@@ -1,0 +1,10 @@
+neg64 7
+neg64 -7
+neg64 2345643
+neg64 -1002332
+neg64 0xffffffffffffffff
+neg64 1
+!output hex
+neg64 0xffffffff
+neg 0xffffffff
+!quit

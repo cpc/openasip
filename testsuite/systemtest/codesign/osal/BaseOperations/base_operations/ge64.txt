@@ -1,0 +1,7 @@
+ge64 3 5
+ge64 3 3
+ge64 10001243 210009
+ge64 189283 -1
+ge64 0xffffffffffff0000 2
+ge64 0x7ffffffffffffffe 0xffffffffffffffff
+!quit

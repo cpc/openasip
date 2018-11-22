@@ -1,0 +1,10 @@
+add64 35 34
+add64 3 -3
+add64 -3 3
+add64 2 -123
+add64 -123 2
+add64 0xffffffff 1
+add64 -3 -3
+add64 0xffffffffffffffff 1
+add64 0xfffffffffffffffe 1
+!quit

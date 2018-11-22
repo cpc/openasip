@@ -1,0 +1,11 @@
+sub64 35 34
+sub64 3 -3
+sub64 -3 3
+sub64 2 123
+sub64 2 -123
+sub64 -123 2
+sub64 0xffffffff -1
+sub64 0xffffffffffffffff -1
+sub64 0xfffffffffffffffe -1
+sub64 0 -1
+!quit

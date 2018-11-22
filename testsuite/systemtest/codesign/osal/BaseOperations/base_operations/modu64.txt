@@ -1,0 +1,9 @@
+!output unsigned
+modu64 10 5
+modu64 3 2
+modu64 69850 814
+modu64 -234 4
+modu64 123456789012345 123
+modu64 0xffffffffffffffff 0x1234567890
+modu64 0xeeeeeeeeeeeeeeee 3
+!quit

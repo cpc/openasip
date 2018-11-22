@@ -1,0 +1,9 @@
+ne64 35 35
+ne64 3 -3
+ne64 -3 -3
+ne64 -122 -123
+ne64 -1 1
+ne64 0xffffffff -1
+ne64 0x12345678ffffffff 0x23456789ffffffff
+ne64 0xffffffffffffffff -1
+!quit

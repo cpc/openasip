@@ -1,0 +1,9 @@
+le64 3 5
+le64 3 3
+le64 10001243 210009
+le64 189283 -1
+le64 -1 12345
+le64 -1 -1
+le64 -1 1
+le64 0xffffffffffffffff 0x7fffffffffffffff
+!quit

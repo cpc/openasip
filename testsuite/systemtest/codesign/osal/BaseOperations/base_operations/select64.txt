@@ -1,0 +1,8 @@
+select64 1 2 0
+select64 1 2 1
+select64 -1 1 0
+select64 -1 1 1
+!output hex
+select64 0x7fffffffffffffff 0x0000000000000000 0
+select64 0x7fffffffffffffff 0x0000000000000000 1
+!quit

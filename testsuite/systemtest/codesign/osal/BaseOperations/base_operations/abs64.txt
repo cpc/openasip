@@ -1,0 +1,4 @@
+abs64 -10
+abs64 10
+abs64 0xffffffffffffffff
+!quit

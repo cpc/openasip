@@ -1,0 +1,6 @@
+minu64 -1 1
+minu64 24567 2345
+minu64 -4 -7
+!output hex
+minu64 -2 -3
+!quit

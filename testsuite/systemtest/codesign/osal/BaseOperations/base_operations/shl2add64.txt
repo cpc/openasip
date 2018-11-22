@@ -1,0 +1,6 @@
+shl2add64 -1 1
+shl2add64 -2 -3
+shl2add64 4 5
+shl2add64 5 -6
+shl2add64 7000000000 2
+!quit

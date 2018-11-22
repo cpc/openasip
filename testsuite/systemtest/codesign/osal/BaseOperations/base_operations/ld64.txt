@@ -1,0 +1,11 @@
+!output bin
+st64 104 60
+st64 112 0xf0e1d2c3b4a59687
+!advanceclock
+ld64 104
+ld64 108
+!output hex
+ld64 112
+ld8 112
+ld8 119
+!quit

@@ -1,0 +1,5 @@
+-1
+345675
+-3456
+0xfffffffffffffffe
+0x000000000000ff6a

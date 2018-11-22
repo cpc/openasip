@@ -1,0 +1,8 @@
+eq64 35 35
+eq64 3 -3
+eq64 -3 -3
+eq64 -122 -123
+eq64 -1 1
+eq64 0xffffffff -1
+eq64 0xffffffffffffffff -1
+!quit

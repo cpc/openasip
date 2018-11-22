@@ -1,0 +1,9 @@
+lt64 3 2
+lt64 3 3
+lt64 -1 1
+lt64 1 -1
+lt64 -100 -1000
+lt64 -1 -1
+lt64 2000000000 5000000000
+lt64 0xffffffffffffffff 0x7fffffffffffffff
+!quit

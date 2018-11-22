@@ -1,0 +1,8 @@
+!output bin
+ior64 1010101010b 101010101b
+!output hex
+ior64 0x1234 0x4321
+ior64 0xefffffffffffffff 0xd000000000000000
+!output signed
+ior64 356882 456782
+!quit
