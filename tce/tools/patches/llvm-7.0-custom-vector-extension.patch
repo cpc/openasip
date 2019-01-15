@@ -665,7 +665,7 @@ Index: lib/IR/ValueTypes.cpp
    case MVT::v1i8:    return VectorType::get(Type::getInt8Ty(Context), 1);
    case MVT::v2i8:    return VectorType::get(Type::getInt8Ty(Context), 2);
    case MVT::v4i8:    return VectorType::get(Type::getInt8Ty(Context), 4);
-@@ -264,5 +274,8 @@
+@@ -264,15 +274,19 @@
    case MVT::v2f16:   return VectorType::get(Type::getHalfTy(Context), 2);
    case MVT::v4f16:   return VectorType::get(Type::getHalfTy(Context), 4);
    case MVT::v8f16:   return VectorType::get(Type::getHalfTy(Context), 8);
@@ -674,14 +674,14 @@ Index: lib/IR/ValueTypes.cpp
 +  case MVT::v64f16:  return VectorType::get(Type::getHalfTy(Context), 64);
    case MVT::v1f32:   return VectorType::get(Type::getFloatTy(Context), 1);
    case MVT::v2f32:   return VectorType::get(Type::getFloatTy(Context), 2);
-
-@@ -270,8 +283,9 @@
    case MVT::v4f32:   return VectorType::get(Type::getFloatTy(Context), 4);
    case MVT::v8f32:   return VectorType::get(Type::getFloatTy(Context), 8);
    case MVT::v16f32:   return VectorType::get(Type::getFloatTy(Context), 16);
 +  case MVT::v32f32:  return VectorType::get(Type::getFloatTy(Context), 32);
    case MVT::v1f64:   return VectorType::get(Type::getDoubleTy(Context), 1);
    case MVT::v2f64:   return VectorType::get(Type::getDoubleTy(Context), 2);
+   case MVT::v4f64:   return VectorType::get(Type::getDoubleTy(Context), 4);
+   case MVT::v8f64:   return VectorType::get(Type::getDoubleTy(Context), 8);
    case MVT::Metadata: return Type::getMetadataTy(Context);
   }
  }
