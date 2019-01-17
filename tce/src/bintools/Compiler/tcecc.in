@@ -38,18 +38,25 @@ from optparse import OptionParser
 from shutil import rmtree
 from subprocess import Popen, PIPE
 
-def runCommandBuffered(command, echoOutput):
+def runCommandBuffered(command, echoOutput, applyStdErr = True):
     """Runs a command and prints everything if requested."""
 
     if echoOutput:
         print command
 
-    (exitCode, output) = commands.getstatusoutput(command)
+    proc = Popen(command, shell=True, stdout = PIPE, stderr = PIPE)
+    output, errs = proc.communicate()
 
     if echoOutput:
         print output
 
-    return (exitCode, output)
+    if echoOutput and applyStdErr:
+        print errs
+
+    if applyStdErr:
+        return (proc.returncode, output + errs)
+    else:
+        return (proc.returncode, output)
 
 
 # global variables...
@@ -496,7 +503,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
     # Kludge to support DENBench. Link crt0.o only if _start is undefined.
 
     for name in linkFiles:
-        (exitCode, output) = runCommandBuffered("llvm-nm " + name, echoOutput=False)
+        (exitCode, output) = runCommandBuffered("llvm-nm " + name, echoOutput=False, applyStdErr=False)
         for line in output.splitlines():
             split = line.split()
             if split[0]=='U':
@@ -513,7 +520,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
     undefSyms=[]
 
     for name in linkFiles:
-        (exitCode, output) = runCommandBuffered("llvm-nm " + name, echoOutput=False)
+        (exitCode, output) = runCommandBuffered("llvm-nm " + name, echoOutput=False, applyStdErr=False)
         for line in output.splitlines():
             split = line.split()
             if split[0]=='U':
@@ -538,7 +545,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
         defsymToLib={}
         libToDefsyms={}
         libToUndefsyms={}
-        (exitCode, output) = runCommandBuffered("llvm-nm " + libDirName + "/*", echoOutput=False)
+        (exitCode, output) = runCommandBuffered("llvm-nm " + libDirName + "/*", echoOutput=False, applyStdErr=False)
 
         file=""
         tempDefsyms=[]
