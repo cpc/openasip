@@ -870,7 +870,7 @@ p.add_option('-W', '--warning',
 p.add_option('--plugin-cache-dir',
              type="string", action="store", metavar='directory',
              dest="plugin_cache_dir",
-             default=os.path.expanduser("~/.tce/tcecc/cache"),
+             default=os.path.expanduser("~/.cache/tce/tcecc"),
              help="Directory for cached llvm target plugins.")
 
 p.add_option('--no-plugin-cache', action="store_false",
