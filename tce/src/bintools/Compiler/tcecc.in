@@ -38,7 +38,7 @@ from optparse import OptionParser
 from shutil import rmtree
 from subprocess import Popen, PIPE
 
-def runCommandBuffered(command, echoOutput, applyStdErr = True):
+def runCommandBuffered(command, echoOutput, applyStdErr = True, stripOutput = True):
     """Runs a command and prints everything if requested."""
 
     if echoOutput:
@@ -54,9 +54,15 @@ def runCommandBuffered(command, echoOutput, applyStdErr = True):
         print errs
 
     if applyStdErr:
-        return (proc.returncode, output + errs)
+        if stripOutput:
+            return (proc.returncode, (output + errs).strip())
+        else:
+            return (proc.returncode, output + errs)
     else:
-        return (proc.returncode, output)
+        if stripOutput:
+            return (proc.returncode, output.strip())
+        else:
+            return (proc.returncode, output)
 
 
 # global variables...
@@ -709,7 +715,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
 
     command = ("llvm-link -f " + inFile + " " + emulationLib + " -o " + linkedName)
 
-    (exitCode, output) = runCommandBuffered(command, verbose)
+    (exitCode, output) = runCommandBuffered(command, verbose, stripOutput=False)
 
     if exitCode != 0:
         exitWithError(1, "Error while linking emulation lib: " + command + "\n")
@@ -728,7 +734,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
                " -f -internalize " + internalize_api_list + " -o " + outputName +
                 " " + optSwitches)
 
-    (exitCode, output) = runCommandBuffered(command, verbose)
+    (exitCode, output) = runCommandBuffered(command, verbose, stripOutput=False)
 
     if exitCode != 0:
         sys.stderr.write("Error while internalizing emulation functions: " + command + "\n")
@@ -1324,7 +1330,7 @@ else:
             for fName in linkList:
                 cmd += fName + " "
             cmd += "."
-            (exitCode, output) = runCommandBuffered(cmd, options.verbose)
+            (exitCode, output) = runCommandBuffered(cmd, options.verbose, stripOutput=False)
 
         cleanup(tempDir)
         sys.exit(0)
