@@ -883,7 +883,7 @@ END_OPERATION(NOT)
 OPERATION(NOT64)
 
 TRIGGER
-    SIntWord in1 = static_cast<SLongWord>(UINT(1));
+    SLongWord in1 = static_cast<SLongWord>(UINT(1));
     in1 = ~in1;
     IO(2) = static_cast<SLongWord>(in1);
 END_TRIGGER;
@@ -1013,7 +1013,7 @@ END_OPERATION(MOD)
 OPERATION(MOD64)
 
 TRIGGER
-    if (ULONG(2) == 0)
+    if (LONG(2) == 0)
          RUNTIME_ERROR("Divide by zero.")
 
     SLongWord in1 = static_cast<SLongWord>(LONG(1));
