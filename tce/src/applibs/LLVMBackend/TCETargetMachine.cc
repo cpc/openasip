@@ -216,9 +216,7 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
 
     initAsmInfo();
 
-    // TODO: check from the adf
-    bool is64bit = true;
-    bool isLittleEndian_ = true;
+    bool is64bit = plugin_->is64bit();
 
     // Set data layout with correct stack alignment.
     unsigned alignBits = getMaxMemoryAlignment() * 8;

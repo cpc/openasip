@@ -190,6 +190,7 @@ namespace llvm {
            unsigned nodeId, const llvm::TargetRegisterClass* current) const = 0;
 
        virtual bool isLittleEndian() const = 0;
+       virtual bool is64bit() const = 0;
 
        virtual const DataLayout* getDataLayout() const {
            return &dl_;
