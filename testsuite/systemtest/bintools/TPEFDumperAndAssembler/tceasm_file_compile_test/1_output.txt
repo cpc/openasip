@@ -50,7 +50,7 @@ index            type     address    address space    flags        link    size(
 11:       2 -> GCU.jump.1, ... ;
 12:       RF.1 -> RF.0, RF.2 -> RF.1 ;
 13:       RF.3 -> RF.2, ALU.add.3 -> RF.3 ;
-14:       RF.3 -> LSU.stq.1, 136 -> LSU.stq.2 ;
+14:       RF.3 -> LSU.stq.1, 18446744073709551496 -> LSU.stq.2 ;
 15:       ..., ... ;
 16:       ..., ... ;
 17:       ..., ... ;
