@@ -141,6 +141,7 @@ public:
 
     // If machine is little-endian.
     virtual bool isLittleEndian() const override;
+    virtual bool is64bit() const override;
 
 private:
     void initialize();

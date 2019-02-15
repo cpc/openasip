@@ -3773,6 +3773,8 @@ TDGen::createMinMaxGenerator(std::ostream& os) {
 void TDGen::createEndiannesQuery(std::ostream& os) {
     os << "bool GeneratedTCEPlugin::isLittleEndian() const {" << std::endl;
     os << "return " << littleEndian_ << "; }" << std::endl;
+    os << "bool GeneratedTCEPlugin::is64bit() const {" << std::endl;
+    os << "return " << mach_.is64bit() << "; }" << std::endl;
 }
 
 void TDGen::createByteExtLoadPatterns(std::ostream& os) {
