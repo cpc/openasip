@@ -3568,8 +3568,11 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
     os  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl
 #elif LLVM_OLDER_THAN_6_0
     os  << "\tprintf(\"regclass of size %d \\n\",rc->SpillSize);" << std::endl
-#else
+#elif LLVM_OLDER_THAN_8
     os  << "\tprintf(\"regclass of size %d \\n\",rc->MC->getSize());"
+        << std::endl
+#else
+    os  << "\tprintf(\"regclass of size %d \\n\",rc->MC->RegsSize);"
         << std::endl
 #endif
 #endif
@@ -3689,8 +3692,11 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
     os  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl
 #elif LLVM_OLDER_THAN_6_0
     os  << "\tprintf(\"regclass of size %d \\n\",rc->SpillSize);" << std::endl
-#else
+#elif LLVM_OLDER_THAN_8
     os  << "\tprintf(\"regclass of size %d \\n\",rc->MC->getSize());"
+        << std::endl
+#else
+    os  << "\tprintf(\"regclass of size %d \\n\",rc->MC->RegsSize);"
         << std::endl
 #endif
 #endif
