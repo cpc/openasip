@@ -1,6 +1,9 @@
 1.19       Unreleased
 =====================
+Notable changes and features
+----------------------------
 - Support for LLVM 8
+- Experimental support for 64-bit little-endian TTA processors.
 
 1.18   September 2018
 =====================
