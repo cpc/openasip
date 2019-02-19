@@ -240,7 +240,7 @@ AddressSpace::setWidth(int width)
  * @exception OutOfRange If the given start and end addresses are illegal.
  */
 void
-AddressSpace::setAddressBounds(unsigned int start, unsigned int end)
+AddressSpace::setAddressBounds(ULongWord start, ULongWord end)
     throw (OutOfRange) {
 
     if (start >= end) {
@@ -361,9 +361,9 @@ AddressSpace::loadState(const ObjectState* state)
 
     try {
         setWidth(state->intAttribute(OSKEY_WIDTH));
-        unsigned int minAddress = state->unsignedIntAttribute(
+        ULongWord minAddress = state->uLongAttribute(
             OSKEY_MIN_ADDRESS);
-        unsigned int maxAddress = state->unsignedIntAttribute(
+        ULongWord maxAddress = state->uLongAttribute(
             OSKEY_MAX_ADDRESS);
         setAddressBounds(minAddress, maxAddress);
 

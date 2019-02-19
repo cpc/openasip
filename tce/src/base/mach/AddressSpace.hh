@@ -69,7 +69,7 @@ public:
         throw (ComponentAlreadyExists, InvalidName);
     virtual void setWidth(int width)
         throw (OutOfRange);
-    virtual void setAddressBounds(unsigned int start, unsigned int end)
+    virtual void setAddressBounds(ULongWord start, ULongWord end)
         throw (OutOfRange);
 
     virtual void addNumericalId(unsigned id);

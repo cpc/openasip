@@ -283,6 +283,22 @@ ObjectState::intAttribute(const std::string& name) const
     return Conversion::toInt(value);
 }
 
+/**
+ * Returns the value of the requested attribute.
+ *
+ * @param name Name of the attribute.
+ * @return Value of the requested attribute.
+ * @exception KeyNotFound If no attribute called the given name is found.
+ * @exception NumberFormatException If the value of the requested attribute
+ *                                  can't be converted to int.
+ */
+ULongWord
+ObjectState::uLongAttribute(const std::string& name) const {
+
+    string value = stringAttribute(name);
+    return Conversion::toUnsignedLong(value);
+}
+
 
 /**
  * Returns the value of the requested attribute.

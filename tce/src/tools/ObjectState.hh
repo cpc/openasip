@@ -110,6 +110,7 @@ public:
     bool boolAttribute(const std::string& name) const
         throw (KeyNotFound, TypeMismatch);
     UIntWord UIntWordAttribute(const std::string& name) const;
+    ULongWord uLongAttribute(const std::string& name) const;
 
 
     bool hasChild(const std::string& name) const;
