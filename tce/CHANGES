@@ -1,6 +1,15 @@
 1.19       Unreleased
 =====================
+
+Notable changes and features
+----------------------------
 - Support for LLVM 8
+
+Usability features
+------------------
+- ProDe connection tool now tries to more intelligently figure out the
+  direction of a previously unconnected socket based on the connected
+  FU port or RF port, from the bound FU operands or the RF port name.
 
 1.18   September 2018
 =====================
