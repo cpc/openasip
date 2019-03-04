@@ -4210,12 +4210,13 @@ void TDGen::writeCallSeqStart(std::ostream& os) {
 #else
 
   if (!is64bit) {
-      os << "def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32>,";
+      os << "def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32>,"
+         << "SDTCisVT<1, i32> ]>;" << std::endl << std::endl;
   } else {
-      os << "def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i64>,";
+      os << "def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i64>,"
+         << "SDTCisVT<1, i64> ]>;" << std::endl << std::endl;
   }
-  os << "SDTCisVT<1, i32> ]>;" << std::endl << std::endl
-     << "def callseq_start : SDNode<\"ISD::CALLSEQ_START\", "
+  os << "def callseq_start : SDNode<\"ISD::CALLSEQ_START\", "
      << "SDT_TCECallSeqStart, [SDNPHasChain, SDNPOutGlue]>;" << std::endl
      << std::endl
      << "let Defs = [SP], Uses = [SP] in {" << std::endl
@@ -4225,7 +4226,7 @@ void TDGen::writeCallSeqStart(std::ostream& os) {
   } else {
       os << "(ins i64imm:$amt1, i64imm:$amt2),";
   }
-     << "\"# ADJCALLSTACKDOWN $amt1, $amt2\","
+  os << "\"# ADJCALLSTACKDOWN $amt1, $amt2\","
      << "[(callseq_start timm:$amt1, timm:$amt2)]>;}"
      << std::endl << std::endl;
 
