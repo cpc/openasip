@@ -1,0 +1,248 @@
+Index: lib/Support/Triple.cpp
+===================================================================
+--- lib/Support/Triple.cpp	(revision 285547)
++++ lib/Support/Triple.cpp	(working copy)
+@@ -48,6 +48,7 @@
+   case systemz:        return "s390x";
+   case tce:            return "tce";
+   case tcele:          return "tcele";
++  case tcele64:        return "tcele64";
+   case thumb:          return "thumb";
+   case thumbeb:        return "thumbeb";
+   case x86:            return "i386";
+@@ -286,6 +287,7 @@
+     .Case("systemz", systemz)
+     .Case("tce", tce)
+     .Case("tcele", tcele)
++    .Case("tcele64", tcele64)
+     .Case("thumb", thumb)
+     .Case("thumbeb", thumbeb)
+     .Case("x86", x86)
+@@ -416,6 +418,7 @@
+     .Cases("sparcv9", "sparc64", Triple::sparcv9)
+     .Case("tce", Triple::tce)
+     .Case("tcele", Triple::tcele)
++    .Case("tcele64", Triple::tcele64)
+     .Case("xcore", Triple::xcore)
+     .Case("nvptx", Triple::nvptx)
+     .Case("nvptx64", Triple::nvptx64)
+@@ -679,6 +682,7 @@
+   case Triple::systemz:
+   case Triple::tce:
+   case Triple::tcele:
++  case Triple::tcele64:
+   case Triple::thumbeb:
+   case Triple::xcore:
+     return Triple::ELF;
+@@ -1254,6 +1258,7 @@
+   case llvm::Triple::ppc64le:
+   case llvm::Triple::riscv64:
+   case llvm::Triple::sparcv9:
++  case llvm::Triple::tcele64:
+   case llvm::Triple::systemz:
+   case llvm::Triple::x86_64:
+   case llvm::Triple::amdil64:
+@@ -1330,7 +1335,8 @@
+   case Triple::nvptx64:        T.setArch(Triple::nvptx);   break;
+   case Triple::ppc64:          T.setArch(Triple::ppc);     break;
+   case Triple::sparcv9:        T.setArch(Triple::sparc);   break;
++  case Triple::tcele64:        T.setArch(Triple::tcele);   break;
+   case Triple::riscv64:        T.setArch(Triple::riscv32); break;
+   case Triple::x86_64:         T.setArch(Triple::x86);     break;
+   case Triple::amdil64:        T.setArch(Triple::amdil);   break;
+   case Triple::hsail64:        T.setArch(Triple::hsail);   break;
+@@ -1353,7 +1359,6 @@
+   case Triple::msp430:
+   case Triple::r600:
+   case Triple::tce:
+-  case Triple::tcele:
+   case Triple::xcore:
+   case Triple::sparcel:
+   case Triple::shave:
+@@ -1377,6 +1382,7 @@
+   case Triple::riscv64:
+   case Triple::sparcv9:
+   case Triple::systemz:
++  case Triple::tcele64:
+   case Triple::x86_64:
+   case Triple::wasm64:
+   case Triple::renderscript64:
+@@ -1396,6 +1403,7 @@
+   case Triple::amdil:           T.setArch(Triple::amdil64);    break;
+   case Triple::hsail:           T.setArch(Triple::hsail64);    break;
+   case Triple::spir:            T.setArch(Triple::spir64);     break;
++  case Triple::tcele:           T.setArch(Triple::tcele64);    break;
+   case Triple::thumb:           T.setArch(Triple::aarch64);    break;
+   case Triple::thumbeb:         T.setArch(Triple::aarch64_be); break;
+   case Triple::wasm32:          T.setArch(Triple::wasm64);     break;
+@@ -1430,6 +1438,7 @@
+   case Triple::shave:
+   case Triple::spir64:
+   case Triple::spir:
++  case Triple::tcele64:
+   case Triple::wasm32:
+   case Triple::wasm64:
+   case Triple::x86:
+@@ -1525,6 +1534,7 @@
+   case Triple::x86_64:
+   case Triple::xcore:
+   case Triple::tcele:
++  case Triple::tcele64:
+   case Triple::renderscript32:
+   case Triple::renderscript64:
+     return true;
+Index: include/llvm/ADT/Triple.h
+===================================================================
+--- include/llvm/ADT/Triple.h	(revision 285547)
++++ include/llvm/ADT/Triple.h	(working copy)
+@@ -73,6 +73,7 @@
+     systemz,        // SystemZ: s390x
+     tce,            // TCE (http://tce.cs.tut.fi/): tce
+     tcele,          // TCE little endian (http://tce.cs.tut.fi/): tcele
++    tcele64,        // TCE little endian 64 (http://tce.cs.tut.fi/): tcele64
+     thumb,          // Thumb (little endian): thumb, thumbv.*
+     thumbeb,        // Thumb (big endian): thumbeb
+     x86,            // X86: i[3-9]86
+Index: tools/clang/lib/Basic/Targets/TCE.h
+===================================================================
+--- tools/clang/lib/Basic/Targets/TCE.h	(revision 288508)
++++ tools/clang/lib/Basic/Targets/TCE.h	(working copy)
+@@ -118,6 +118,38 @@
+   void getTargetDefines(const LangOptions &Opts,
+                         MacroBuilder &Builder) const override;
+ };
++
++class TCELE64TargetInfo : public TCETargetInfo {
++public:
++  TCELE64TargetInfo(const llvm::Triple &Triple, const TargetOptions &Opts)
++      : TCETargetInfo(Triple, Opts) {
++    BigEndian = false;
++
++    resetDataLayout("e-p:64:64:64-i1:8:8-i8:8:64-"
++                    "i16:16:64-i32:32:64-i64:64:64-"
++                    "f32:32:64-f64:64:64-v64:64:64-"
++                    "v128:128:128-v256:256:256-v512:512:512-"
++                    "v1024:1024:1024-a0:0:64-n64");
++
++    LongWidth = LongLongWidth = 64;
++    PointerWidth = 64;
++    PointerAlign = 64;
++    LongAlign = LongLongAlign = 64;
++    IntPtrType = SignedLong;
++    SizeType = UnsignedLong;
++    PtrDiffType = SignedLong;
++    DoubleWidth = 32; // 64;
++    DoubleAlign = 32; // 64;
++    LongDoubleWidth = 32; // 64;
++    LongDoubleAlign = 32; // 64;
++    //DoubleFormat = &llvm::APFloat::IEEEdouble;
++    //LongDoubleFormat = &llvm::APFloat::IEEEdouble;
++  }
++
++   void getTargetDefines(const LangOptions &Opts,
++                         MacroBuilder &Builder) const override;
++};
++
+ } // namespace targets
+ } // namespace clang
+ #endif // LLVM_CLANG_LIB_BASIC_TARGETS_TCE_H
+Index: tools/clang/lib/Basic/Targets/TCE.cpp
+===================================================================
+--- tools/clang/lib/Basic/Targets/TCE.cpp	(revision 288508)
++++ tools/clang/lib/Basic/Targets/TCE.cpp	(working copy)
+@@ -24,7 +24,19 @@
+   Builder.defineMacro("__TCE__");
+   Builder.defineMacro("__TCE_V1__");
+ }
+ 
++void TCELE64TargetInfo::getTargetDefines(const LangOptions &Opts,
++                                         MacroBuilder &Builder) const {
++    DefineStd(Builder, "tcele64", Opts);
++    Builder.defineMacro("__TCE__");
++    Builder.defineMacro("__TCE_V1__");
++    Builder.defineMacro("__TCELE__");
++    Builder.defineMacro("__TCELE_V1__");
++    Builder.defineMacro("__TCELE64__");
++    Builder.defineMacro("__TCELE64_V1__");
++    Builder.defineMacro("__TCE64__");
++  }
++
+ void TCELETargetInfo::getTargetDefines(const LangOptions &Opts,
+                                        MacroBuilder &Builder) const {
+   DefineStd(Builder, "tcele", Opts);
+Index: tools/clang/lib/Basic/Targets.cpp
+===================================================================
+--- tools/clang/lib/Basic/Targets.cpp	(revision 288508)
++++ tools/clang/lib/Basic/Targets.cpp	(working copy)
+@@ -444,6 +444,9 @@
+   case llvm::Triple::tcele:
+    return new TCELETargetInfo(Triple, Opts);
+ 
++  case llvm::Triple::tcele64:
++    return new TCELE64TargetInfo(Triple, Opts);
++
+   case llvm::Triple::x86:
+     if (Triple.isOSDarwin())
+       return new DarwinI386TargetInfo(Triple, Opts);
+Index: tools/clang/lib/CodeGen/TargetInfo.cpp
+===================================================================
+--- tools/clang/lib/CodeGen/TargetInfo.cpp	(revision 288508)
++++ tools/clang/lib/CodeGen/TargetInfo.cpp	(working copy)
+@@ -9376,4 +9376,5 @@
+ 
+   case llvm::Triple::tce:
+   case llvm::Triple::tcele:
++  case llvm::Triple::tcele64:
+     return SetCGInfo(new TCETargetCodeGenInfo(Types));
+
+   case llvm::Triple::x86: {
+Index: tools/clang/lib/Driver/Driver.cpp
+===================================================================
+--- tools/clang/lib/Driver/Driver.cpp	(revision 288508)
++++ tools/clang/lib/Driver/Driver.cpp	(working copy)
+@@ -4621,6 +4621,9 @@
+       case llvm::Triple::tcele:
+         TC = llvm::make_unique<toolchains::TCELEToolChain>(*this, Target, Args);
+         break;
++      case llvm::Triple::tcele64:
++        TC = llvm::make_unique<toolchains::TCELE64ToolChain>(*this, Target, Args);
++        break;
+       case llvm::Triple::hexagon:
+         TC = llvm::make_unique<toolchains::HexagonToolChain>(*this, Target,
+                                                             Args);
+Index: tools/clang/lib/Driver/ToolChains.cpp
+===================================================================
+--- tools/clang/lib/Driver/ToolChains/TCE.cpp	(revision 288508)
++++ tools/clang/lib/Driver/ToolChains/TCE.cpp	(working copy)
+@@ -43,6 +43,13 @@
+                                const ArgList &Args)
+   : TCEToolChain(D, Triple, Args) {
+ }
++
++TCELE64ToolChain::TCELE64ToolChain(
++    const Driver &D, const llvm::Triple& Triple, const ArgList &Args)
++  : TCEToolChain(D, Triple, Args) {
++}
++
++TCELE64ToolChain::~TCELE64ToolChain() {}
+ 
+ TCELEToolChain::~TCELEToolChain() {}
+ 
+Index: tools/clang/lib/Driver/ToolChains.h
+===================================================================
+--- tools/clang/lib/Driver/ToolChains/TCE.h	(revision 288508)
++++ tools/clang/lib/Driver/ToolChains/TCE.h	(working copy)
+@@ -40,6 +40,13 @@
+   ~TCELEToolChain() override;
+ };
+ 
++class LLVM_LIBRARY_VISIBILITY TCELE64ToolChain : public TCEToolChain {
++public:
++  TCELE64ToolChain(const Driver &D, const llvm::Triple &Triple,
++                   const llvm::opt::ArgList &Args);
++  ~TCELE64ToolChain() override;
++};
++
+ } // end namespace toolchains
+ } // end namespace driver
+ } // end namespace clang
