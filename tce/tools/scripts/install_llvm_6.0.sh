@@ -71,6 +71,8 @@ function try_patch {
 function apply_patches {
     cd $llvm_co_dir
     try_patch $patch_dir/llvm-6.0-custom-vector-extension.patch
+    try_patch $patch_dir/llvm-6.0-vect-datalayout.patch
+    try_patch $patch_dir/llvm-6.0-SPIR-address-space-numbers.patch
     cd ..
 }
 
@@ -89,7 +91,7 @@ cmake -G "Unix Makefiles" \
     -DLLVM_ENABLE_RTTI=TRUE \
     .. \
     || eexit "Configuring LLVM/Clang failed."
-make -j12 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 \
+make -j4 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 \
     || eexit "Building LLVM/Clang failed."
 make install || eexit "Installation of LLVM/Clang failed."
 

@@ -1,16 +1,32 @@
-1.18       Unreleased
+1.19       Unreleased
 =====================
 
 Notable changes and features
 ----------------------------
-- Added hexadecimal output to PIG
+- Support for LLVM 8
 
 Usability features
+------------------
+- ProDe connection tool now tries to more intelligently figure out the
+  direction of a previously unconnected socket based on the connected
+  FU port or RF port, from the bound FU operands or the RF port name.
+
+1.18   September 2018
+=====================
+
+Notable changes and features
 ----------------------------
+- Support for LLVM 7.0.
+- Added hexadecimal output to PIG.
+- Added HDB with register files and a basic ALU optimized for Xilinx Series 7
+  devices. Thanks to Stephan Nolting and Guillermo Payá-Vayá / IMS, Leibniz
+  Univ. Hannover for the contribution of the shifter.
 
 Notable bugfixes
 ----------------
-
+- Bugfixes related to handling of long immediate units with
+  sign extension. Values to these could break in case multiple
+  instruction templates could write to these.
 
 1.17       March 2018
 =====================

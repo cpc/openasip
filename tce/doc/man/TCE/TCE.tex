@@ -29,7 +29,7 @@
 \makeindex
 
 \begin{document}
-\title{TTA-based Co-design Environment v1.18-pre}
+\title{TTA-based Co-design Environment v1.19-pre}
 \ver{32}
 \firstday{2006-10-25}
 \lastday{2018-03-09}
@@ -3347,18 +3347,31 @@ kernel and moving the buffers etc.
 
 \section{System-on-a-Chip design with AlmaIF Integrator}
 
-% TODO: Intro
+AlmaIF is a ''TCE standard`` integration interface. When a TCE core adheres
+to the AlmaIF interfaces, they can be more easily plugged in to SoC designs with
+high-level programming model (OpenCL and HSA) support.
 
-This tutorial will cover TTA core generation and integration with a Zynq-7000
+This tutorial will cover generating TTA cores AlmaIF interfaces, and
+integration with a Zynq-7000
 series SoC, but the workflow should adapt quite well for other AXI4-capable
 Xilinx SoCs.
 
-% TODO: ProDe bits, e.g. need to choose right LSU (from almaif.hdb) and set
-%       AS names, example machine, program
+\subsection{Design the processor}
+
+The AlmaIF Integrator expects certain architectural and implementation features
+from its processors, related primarily to LSU and address space details.
+The integrator will attempt to connect two address spaces, named \textit{data}
+and \textit{param}, to the AXI4 slave interface, making them accessible over
+AXI.
+
+All AlmaIF cores must use LSUs in the almaif.hdb hardware database, or LSUs
+which use the same interface to memory. Specifically for Xilinx 7 Series
+devices, xilinx\_series7.hdb has implentations for a basic ALU and register files
+optimized for these devices.
 
 \subsection{Generate the Processor}
 
-The command to generate a processor core with an AlmaIF wrapper is as follows:
+The commands to generate a processor core with an AlmaIF wrapper are as follows:
 
 \shellcmd{generateprocessor -d onchip -f onchip -e tta\_core -i mach.idf
 -g AlmaIFIntegrator -o proge-out -p program.tpef mach.adf}

@@ -3,7 +3,7 @@
 
 # Mandatory macro. Set the name of the package and the version number.
 # Email address is for bug reporting.
-AC_INIT([tce],[1.18-pre],[tce-users@cs.tut.fi])
+AC_INIT([tce],[1.19-pre],[tce-users@cs.tut.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
@@ -30,7 +30,9 @@ AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 # TCE 1.16 = 16:0:0
 # TCE 1.17 = 17:0:0
 # TCE 1.18 = 18:0:0
-AC_SUBST([LIB_VERSION], ["18:0:0"])
+# TCE 1.19 = 19:0:0
+
+AC_SUBST([LIB_VERSION], ["19:0:0"])
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
@@ -513,6 +515,8 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_4_0=1
      LLVM_OLDER_THAN_5_0=1
      LLVM_OLDER_THAN_6_0=1
+     LLVM_OLDER_THAN_7=1
+     LLVM_OLDER_THAN_8=1
    ;;
      3.6*)
      AC_DEFINE([LLVM_3_6], [], "Using LLVM 3.6")
@@ -522,6 +526,8 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_4_0=1
      LLVM_OLDER_THAN_5_0=1
      LLVM_OLDER_THAN_6_0=1
+     LLVM_OLDER_THAN_7=1
+     LLVM_OLDER_THAN_8=1
    ;;
      3.7*)
      AC_DEFINE([LLVM_3_7], [], "Using LLVM 3.7")
@@ -530,6 +536,8 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_4_0=1
      LLVM_OLDER_THAN_5_0=1
      LLVM_OLDER_THAN_6_0=1
+     LLVM_OLDER_THAN_7=1
+     LLVM_OLDER_THAN_8=1
    ;;
      3.8*)
      AC_DEFINE([LLVM_3_8], [], "Using LLVM 3.8")
@@ -537,17 +545,23 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_4_0=1
      LLVM_OLDER_THAN_5_0=1
      LLVM_OLDER_THAN_6_0=1
+     LLVM_OLDER_THAN_7=1
+     LLVM_OLDER_THAN_8=1
    ;;
      3.9*)
      AC_DEFINE([LLVM_3_9], [], "Using LLVM 3.9")
      LLVM_OLDER_THAN_4_0=1
      LLVM_OLDER_THAN_5_0=1
      LLVM_OLDER_THAN_6_0=1
+     LLVM_OLDER_THAN_7=1
+     LLVM_OLDER_THAN_8=1
    ;;
      4.0*)
      AC_DEFINE([LLVM_4_0], [], "Using LLVM 4.0")
      LLVM_OLDER_THAN_5_0=1
      LLVM_OLDER_THAN_6_0=1
+     LLVM_OLDER_THAN_7=1
+     LLVM_OLDER_THAN_8=1
    ;;
      5.0.0svn*)
      AC_DEFINE([LLVM_5_0], [], "Using LLVM 5.0svn")
@@ -556,21 +570,42 @@ case "$LLVM_VERSION" in
      LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
      LLVM_OLDER_THAN_6_0=1
+     LLVM_OLDER_THAN_7=1
+     LLVM_OLDER_THAN_8=1
    ;;
      5.0*)
      AC_DEFINE([LLVM_5_0], [], "Using LLVM 5.0")
      LLVM_OLDER_THAN_6_0=1
-   ;;
-     6.0.0svn*)
-     AC_DEFINE([LLVM_6_0], [], "Using LLVM 6.0svn")
-     LLVM_VERSION=6.0
-     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
-     LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
-     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+     LLVM_OLDER_THAN_7=1
+     LLVM_OLDER_THAN_8=1
    ;;
      6.0*)
      AC_DEFINE([LLVM_6_0], [], "Using LLVM 6.0")
      LLVM_VERSION=6.0
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+     LLVM_OLDER_THAN_7=1
+     LLVM_OLDER_THAN_8=1
+   ;;
+     7*)
+     AC_DEFINE([LLVM_7_0], [], "Using LLVM 7")
+     LLVM_VERSION=7
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+     LLVM_OLDER_THAN_8=1
+   ;;
+     8.0.0svn)
+     AC_DEFINE([LLVM_8], [], "Using LLVM 8-svn")
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
+     LLVM_VERSION=8
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+   ;;
+     8*)
+     AC_DEFINE([LLVM_8], [], "Using LLVM 8")
+     LLVM_VERSION=8
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
@@ -623,6 +658,16 @@ fi
 if  test "x$LLVM_OLDER_THAN_6_0" == "x1";
 then
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_6_0, 1, [LLVM version is older than 6.0])
+fi
+
+if  test "x$LLVM_OLDER_THAN_7" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_7, 1, [LLVM version is older than 7.0])
+fi
+
+if  test "x$LLVM_OLDER_THAN_8" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_8, 1, [LLVM version is older than 8])
 fi
 
 if test ! -e $LLVM_SHARED_LIB_FILE;

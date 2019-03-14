@@ -35,9 +35,15 @@ void put_data(char c) {
 /* ugly byteorder-kludgefix */
 void fwrite(void* data, int len, int foo, void* foo2) {
     int i;
+#ifdef __BIG_ENDIAN__
     for( i = len -1; i>= 0; i-- ) {
         put_data(((char*)data)[i]);
     }
+#else
+    for( i = 0; i< len; i++ ) {
+        put_data(((char*)data)[i]);
+    }
+#endif
 }
 
 void fwrite_nofix(void* data, int len, int foo, void* foo2) {

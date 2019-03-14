@@ -229,7 +229,8 @@ DisassemblyImmediateAssignment*
 POMDisassembler::createImmediateAssignment(const Immediate& immediate) {
     DisassemblyElement* destination = createTerminal(immediate.destination());
     SimValue value = immediate.value().value();
-    return new DisassemblyImmediateAssignment(value, destination);
+    bool signExt = immediate.destination().immediateUnit().signExtends();
+    return new DisassemblyImmediateAssignment(value, signExt, destination);
 }
 
 

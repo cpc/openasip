@@ -1224,7 +1224,11 @@ ProgramWriter::createCodeSection(
                 tpefImm->setBegin(beginFlag);
                 beginFlag = false;
 
-                tpefImm->setWord(imm.value().value().sIntWordValue());
+                if (imm.destination().immediateUnit().signExtends()) {
+                    tpefImm->setSignedWord(imm.value().value().sIntWordValue());
+                } else {
+                    tpefImm->setWord(imm.value().value().uIntWordValue());
+                }
 
                 ResourceID dstRes =
                     terminalResource(imm.destination(), updater);

@@ -48,6 +48,7 @@ POP_CLANG_DIAGS
 #include "Operation.hh"
 #include "TCEString.hh"
 #include "OperationDAG.hh"
+#include "OperationPimpl.hh"
 
 /**
  * Creates OperationDAG out of OSAL DAG language source code.
@@ -73,7 +74,7 @@ OperationDAGConverter::createDAG(const OperationPimpl& operation, std::string so
  
     if (result.full) {
         const TokenizerData::TokenTreeNode* root = g.tokenData_.tokenTree();
-        OperationDAG* retVal = new OperationDAG();
+        OperationDAG* retVal = new OperationDAG(operation);
         OperationDAGBuilder builder(operation, *retVal, *root);
     
         //    std::cerr << g.tokenData_.tokenTree()->toStr() << std::endl;
@@ -178,6 +179,8 @@ OperationDAGConverter::writeNode(
     std::map<std::string, std::string>* opReplace,
     std::vector<std::string>* varReplacements) {
 
+    static int tmpCounter = 0;
+
     DEBUG_CODE(static std::string recursion_level = ""; recursion_level += "----";);
 
     int currentStepsToRoot = dag.stepsToRoot(node);    
@@ -220,13 +223,20 @@ OperationDAGConverter::writeNode(
             VariableKey termKey(termNode, termNode->operandIndex());
             
             DEBUG_CODE(std::cerr << recursion_level 
-                       << "**** Started handling term node " << int(&node) 
+                       << "**** Started handling term node " << long(&node)
                        << ":" << currentStepsToRoot << ":" + ioName + "\n";);
             
             const bool inputTerminalNode = dag.inDegree(*termNode) == 0;
             if (inputTerminalNode) {
-                // set veriable binding for reading terminal value
-                varBindings[termKey] = ioName;                
+                // TODO: should only do extension here if different bit widths
+                TCEString tmpName = "inTmp_"; tmpName << tmpCounter++;
+                retVal += "SimValue " + tmpName + ";\n";
+                retVal += tmpName + " = " +
+                    castedVar(ioName, dag.operation().operand(
+                                  termNode->operandIndex()).type()) + ";\n";
+
+                // set veriable binding for reading (the extended) terminal value
+                varBindings[termKey] = tmpName;
                 DEBUG_CODE(std::cerr << recursion_level 
                            << "Added input terminal: " + ioName + "\n";);
                 
@@ -252,7 +262,7 @@ OperationDAGConverter::writeNode(
             }
 
             DEBUG_CODE(std::cerr << recursion_level 
-                       << "added terminal " << int (&node) 
+                       << "added terminal " << long (&node)
                        << "to already handled nodes\n";);
             
             currentlyHandling.erase(termNode);
@@ -276,7 +286,7 @@ OperationDAGConverter::writeNode(
             Operation &refOp = opNode->referencedOperation();
             
             DEBUG_CODE(std::cerr << recursion_level 
-                      << "Started handling opnode " << int(&node) << ":" 
+                      << "Started handling opnode " << long(&node) << ":"
                        << currentStepsToRoot << ": " + refOp.name() + "\n";);
 
             // go through in edges, copy bindings and create input string for
@@ -379,7 +389,7 @@ OperationDAGConverter::writeNode(
         
             // this node is processed.
             DEBUG_CODE(std::cerr << recursion_level << "added node " 
-                       << int (&node) << "to already handled nodes\n" ;);
+                       << long (&node) << "to already handled nodes\n" ;);
 
             currentlyHandling.erase(&node);
             alreadyHandled.insert(&node);

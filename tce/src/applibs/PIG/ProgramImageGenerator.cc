@@ -244,8 +244,8 @@ ProgramImageGenerator::generateProgramImage(
 
         for (int m = 0; m < prog.moveCount(); ++m) {
             const TTAProgram::Move& move = prog.moveAt(m);
-            const auto value = move.source().value().sIntWordValue();
             if (move.source().isImmediate()) {
+                const auto value = move.source().value().sIntWordValue();
                 ++totalImmediates;
                 allImmediates.insert(value);
                 if (move.source().isAddress()) {

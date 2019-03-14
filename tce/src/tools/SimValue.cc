@@ -762,7 +762,12 @@ SimValue::sIntWordValue() const {
 #else
     memcpy(cast.bytes, rawData_, BYTE_COUNT);
 #endif
-    return cast.value & mask_;
+
+    if ((unsigned)bitWidth_ >= sizeof(SIntWord) * BYTE_BITWIDTH) {
+        return cast.value;
+    } else {
+        return MathTools::fastSignExtendTo(cast.value, bitWidth_);
+    }
 }
 
 /**
@@ -904,9 +909,9 @@ SimValue::hexValue(bool noHexIdentifier) const {
     if (bitWidth_ <= 32) {
         if (noHexIdentifier) {
             return Conversion::toHexString(
-                sIntWordValue(), hexNumbers).substr(2);
+                uIntWordValue(), hexNumbers).substr(2);
         } else {
-            return Conversion::toHexString(sIntWordValue(), hexNumbers);
+            return Conversion::toHexString(uIntWordValue(), hexNumbers);
         }
     }
 

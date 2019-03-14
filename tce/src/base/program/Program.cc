@@ -1211,10 +1211,13 @@ Program::convertSymbolRef(Terminal& tsr) {
             for (int i = 0; i < globalScope_->globalDataLabelCount(); i++) {
                 const DataLabel& dl = globalScope_->globalDataLabel(i);
                 if (dl.name() == "_end") {
+                    // we do not know if this is going to sing- or zero
+                    // extending immediate, lets be sure it fits and use
+                    // signed. zero extends broke sign-extending ADFs
                     return new TTAProgram::TerminalImmediate(
                         SimValue(
                             dl.address().location(),
-                            MathTools::requiredBits(dl.address().location())));
+                            MathTools::requiredBitsSigned(dl.address().location())));
                 }
             }
             throw InstanceNotFound(__FILE__,__LINE__,__func__,

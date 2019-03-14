@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8
-# Copyright (c) 2002-2011 Tampere University of Technology.
+# Copyright (c) 2002-2018 Tampere University of Technology.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 # 
@@ -244,7 +244,7 @@ class TestCompiler(TCETestCase):
         "Test C compilation with -O3"
         self._test_compilation("-O3") 
 
-    def test_opencl_sa(self):
+    def DISABLEDtest_opencl_sa(self):
         "Test standalone OpenCL compilation if the support has been enabled"
 
         (timeout, stdout, stderr, code) = \

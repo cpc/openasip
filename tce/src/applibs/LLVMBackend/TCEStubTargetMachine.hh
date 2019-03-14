@@ -44,7 +44,8 @@
 // option -DPIC messes up the compilation.
 #pragma push_macro("PIC")
 #undef PIC
-#ifdef LLVM_OLDER_THAN_6_0
+#ifndef LLVM_6_0
+// LLVM, COULD YOU PLEASE TRY TO DECIDE WHERE TO PUT THIS FILE?
 #include <llvm/Target/TargetLoweringObjectFile.h>
 #else
 #include <llvm/CodeGen/TargetLoweringObjectFile.h>

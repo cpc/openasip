@@ -304,7 +304,7 @@ cond_true151:                                     ; preds = %cond_true145
   %tmp155 = shl i32 %tmp153154, 2
   %tmp156 = and i32 %tmp155, 131068
   %tmp176576 = getelementptr %struct.STATES, %struct.STATES* %tmp, i32 0, i32 3
-  %tmp177577 = load i16, i16* %tmp176576, align 4
+  %tmp177577 = load i16, i16* %tmp176576, align 2
   %tmp179578 = icmp eq i16 %tmp177577, %tmp29.lobit
   %iftmp.51.0579 = select i1 %tmp179578, i32 16384, i32 114688
   %tmp186580 = icmp eq i16 %tmp137, %tmp29.lobit
@@ -322,7 +322,7 @@ cond_true166:                                     ; preds = %cond_false160
 cond_next174:                                     ; preds = %cond_true166, %cond_false160, %cond_true145
   %FA1.0 = phi i32 [ %tmp170, %cond_true166 ], [ 98308, %cond_true145 ], [ 32764, %cond_false160 ]
   %tmp176 = getelementptr %struct.STATES, %struct.STATES* %tmp, i32 0, i32 3
-  %tmp177 = load i16, i16* %tmp176, align 4
+  %tmp177 = load i16, i16* %tmp176, align 2
   %tmp179 = icmp eq i16 %tmp177, %tmp29.lobit
   %iftmp.51.0 = select i1 %tmp179, i32 16384, i32 114688
   %tmp186 = icmp eq i16 %tmp137, %tmp29.lobit
@@ -589,7 +589,7 @@ cond_next511:                                     ; preds = %cond_next508, %cond
   store i16 %tmp513, i16* %tmp437.4, align 2
   %tmp519 = load i16, i16* %tmp136, align 4
   %tmp521 = getelementptr %struct.STATES, %struct.STATES* %tmp, i32 0, i32 3
-  store i16 %tmp519, i16* %tmp521, align 4
+  store i16 %tmp519, i16* %tmp521, align 2
   store i16 %tmp29.lobit, i16* %tmp136, align 4
   %tmp527 = getelementptr %struct.STATES, %struct.STATES* %tmp, i32 0, i32 1, i32 6
   %tmp528 = load i16, i16* %tmp527, align 2
@@ -728,7 +728,7 @@ cond_false58:                                     ; preds = %cond_true47
 cond_next62:                                      ; preds = %cond_false58, %cond_true47, %entry
   %iftmp.178.0 = phi i16 [ 5120, %cond_false58 ], [ 544, %entry ], [ %tmp38, %cond_true47 ]
   %tmp64 = getelementptr %struct.STATES, %struct.STATES* %tmp, i32 0, i32 7
-  store i16 %iftmp.178.0, i16* %tmp64, align 4
+  store i16 %iftmp.178.0, i16* %tmp64, align 2
   %tmp71 = getelementptr %struct.STATES, %struct.STATES* %tmp, i32 0, i32 10
   %tmp72 = load i32, i32* %tmp71, align 4
   %tmp73 = sub i32 0, %tmp72
@@ -747,7 +747,7 @@ cond_next62:                                      ; preds = %cond_false58, %cond
   %tmp104 = lshr i32 %tmp98, 6
   %tmp104105 = trunc i32 %tmp104 to i16
   %tmp107 = getelementptr %struct.STATES, %struct.STATES* %tmp, i32 0, i32 9
-  store i16 %tmp104105, i16* %tmp107, align 4
+  store i16 %tmp104105, i16* %tmp107, align 2
   ret void
 }
 
@@ -764,7 +764,7 @@ entry:
   %tmp14 = load i16, i16* %tmp13, align 2
   %tmp1516 = zext i16 %tmp14 to i32
   %tmp18 = getelementptr %struct.STATES, %struct.STATES* %tmp, i32 0, i32 5
-  %tmp19 = load i16, i16* %tmp18, align 4
+  %tmp19 = load i16, i16* %tmp18, align 2
   %tmp1920 = zext i16 %tmp19 to i32
   %tmp21 = sub i32 %tmp1516, %tmp1920
   %tmp22 = lshr i32 %tmp21, 5
@@ -911,15 +911,15 @@ entry:
   store i16 32, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 1, i32 5), align 2
   store i16 32, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 1, i32 7), align 2
   store i16 32, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 1, i32 6), align 2
-  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 3), align 4
+  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 3), align 2
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 2), align 4
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 6), align 4
-  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 5), align 4
+  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 5), align 2
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 4), align 4
-  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 7), align 4
+  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 7), align 2
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 8), align 4
   store i32 34816, i32* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 10), align 4
-  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 9), align 4
+  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 9), align 2
   ret void
 }
 
@@ -951,9 +951,9 @@ entry:
   %storemerge = select i1 %tmp3.i, i16 %tmp8.i, i16 64
   store i16 %storemerge, i16* @AL, align 2
   %tmp2.i4 = getelementptr %struct.STATES, %struct.STATES* %tmp.i1, i32 0, i32 7
-  %tmp3.i5 = load i16, i16* %tmp2.i4, align 4
+  %tmp3.i5 = load i16, i16* %tmp2.i4, align 2
   %tmp5.i = getelementptr %struct.STATES, %struct.STATES* %tmp.i1, i32 0, i32 9
-  %tmp6.i6 = load i16, i16* %tmp5.i, align 4
+  %tmp6.i6 = load i16, i16* %tmp5.i, align 2
   %tmp7.i = sub i16 %tmp3.i5, %tmp6.i6
   %tmp9.i7 = and i16 %tmp7.i, 8192
   %tmp11.i = icmp eq i16 %tmp9.i7, 0
@@ -1139,15 +1139,15 @@ entry:
   store i16 32, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 1, i32 5), align 2
   store i16 32, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 1, i32 7), align 2
   store i16 32, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 1, i32 6), align 2
-  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 3), align 4
+  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 3), align 2
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 2), align 4
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 6), align 4
-  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 5), align 4
+  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 5), align 2
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 4), align 4
-  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 7), align 4
+  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 7), align 2
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 8), align 4
   store i32 34816, i32* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 10), align 4
-  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 9), align 4
+  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 9), align 2
   ret void
 }
 
@@ -1160,8 +1160,8 @@ entry:
   %tmp8.i = lshr i16 %tmp2.i, 2
   %storemerge = select i1 %tmp3.i, i16 %tmp8.i, i16 64
   store i16 %storemerge, i16* @AL, align 2
-  %tmp3.i11 = load i16, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 7), align 4
-  %tmp6.i12 = load i16, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 9), align 4
+  %tmp3.i11 = load i16, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 7), align 2
+  %tmp6.i12 = load i16, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 9), align 2
   %tmp7.i13 = sub i16 %tmp3.i11, %tmp6.i12
   %tmp9.i14 = and i16 %tmp7.i13, 8192
   %tmp11.i = icmp eq i16 %tmp9.i14, 0
@@ -1656,15 +1656,15 @@ entry:
   store i16 32, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 1, i32 5), align 2
   store i16 32, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 1, i32 7), align 2
   store i16 32, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 1, i32 6), align 2
-  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 3), align 4
+  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 3), align 2
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 2), align 4
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 6), align 4
-  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 5), align 4
+  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 5), align 2
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 4), align 4
-  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 7), align 4
+  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 7), align 2
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 8), align 4
   store i32 34816, i32* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 10), align 4
-  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 9), align 4
+  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @E_STATES, i32 0, i32 9), align 2
   store %struct.STATES* @D_STATES, %struct.STATES** @X, align 4
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 0, i32 0), align 8
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 0, i32 1), align 2
@@ -1682,15 +1682,15 @@ entry:
   store i16 32, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 1, i32 5), align 2
   store i16 32, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 1, i32 7), align 2
   store i16 32, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 1, i32 6), align 2
-  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 3), align 4
+  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 3), align 2
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 2), align 4
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 6), align 4
-  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 5), align 4
+  store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 5), align 2
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 4), align 4
-  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 7), align 4
+  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 7), align 2
   store i16 0, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 8), align 4
   store i32 34816, i32* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 10), align 4
-  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 9), align 4
+  store i16 544, i16* getelementptr inbounds (%struct.STATES, %struct.STATES* @D_STATES, i32 0, i32 9), align 2
   br label %bb
 
 bb:                                               ; preds = %bb, %entry

@@ -52,7 +52,8 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "TCEStubTargetTransformInfo.hh"
 #endif
 #include "TCEStubSubTarget.hh"
-#ifdef LLVM_OLDER_THAN_6_0
+#ifndef LLVM_6_0
+// LLVM, COULD YOU PLEASE TRY TO DECIDE WHERE TO PUT THIS FILE?
 #include <llvm/Target/TargetLoweringObjectFile.h>
 #else
 #include <llvm/CodeGen/TargetLoweringObjectFile.h>
@@ -104,8 +105,8 @@ StringRef DescriptionStringBE = "E-p:32:32:32-i1:8:8-i8:8:32-"
 
 StringRef DescriptionStringLE = "e-p:32:32:32-i1:8:8-i8:8:32-"
     "i16:16:32-i32:32:32-i64:32:32-"
-    "f32:32:32-f64:32:32-v64:32:32-"
-    "v128:32:32-v256:32:32-v512:32:32-v1024:32:32-a0:0:32-n32";
+    "f32:32:32-f64:32:32-v64:64:64-"
+    "v128:128:128-v256:256:256-v512:512:512-v1024:1024:1024-a0:0:32-n32";
 
 StringRef getTargetDesc(const Triple &TT) {
     if (TT.getArchName().equals("tce"))

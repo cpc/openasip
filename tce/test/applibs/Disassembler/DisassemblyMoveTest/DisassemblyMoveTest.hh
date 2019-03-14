@@ -219,7 +219,7 @@ DisassemblyMoveTest::testImmediateAssignment() {
         new DisassemblyImmediateRegister("imm", 0);
     SimValue value(32);
     value = 123;
-    DisassemblyImmediateAssignment immAssignment(value, imm);
+    DisassemblyImmediateAssignment immAssignment(value, true, imm);
     string immAssignmentStr = immAssignment.toString();
     TS_ASSERT_EQUALS(immAssignmentStr, "[imm.0=123]");
 }
