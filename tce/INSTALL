@@ -95,6 +95,14 @@ where DEST_PATH is the absolute directory where you want the LLVM
 to be installed. This script installs some required patches
 to LLVM without which TCE refuses to build.
 
+After successfull installation add information about installed libraries to the
+search path. For example if the DEST_PATH was $HOME/local/
+
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/local/lib
+  export PATH=$PATH:$HOME/local/bin
+  export LDFLAGS=-L$HOME/local/lib
+
+
 Building and installing TCE
 ===========================
 
