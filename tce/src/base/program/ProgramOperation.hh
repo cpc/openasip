@@ -44,6 +44,7 @@
 class MoveNode;
 class MoveNodeSet;
 class Operation;
+class ProgramOperation;
 
 namespace llvm {
     class MachineInstr;
@@ -51,6 +52,11 @@ namespace llvm {
 namespace TTAProgram {
     class Move;
 }
+
+// use this smart_ptr type to point to POs to allow more safe sharing of
+// POs between POM and DDG, etc.
+typedef boost::shared_ptr<ProgramOperation> ProgramOperationPtr;
+
 
 /**
  * Represents a single execution of an operation in a program.
@@ -113,6 +119,9 @@ public:
     public:
         bool operator()(
             const ProgramOperation* po1, const ProgramOperation* po2) const;
+        bool operator()(
+            const ProgramOperationPtr &po1, const ProgramOperationPtr &po2) const;
+
     };
 
 private:
@@ -136,10 +145,6 @@ private:
     // Reference to original LLVM MachineInstruction
     const llvm::MachineInstr* mInstr_;
 };
-
-// use this smart_ptr type to point to POs to allow more safe sharing of
-// POs between POM and DDG, etc.
-typedef boost::shared_ptr<ProgramOperation> ProgramOperationPtr;
 
 class ProgramOperationPtrComparator {
 public:
