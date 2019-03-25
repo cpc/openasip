@@ -368,11 +368,7 @@ ProgramImageGenerator::generateProgramImage(
     } else if (format == COE) {
         writer = new CoeImageWriter(*programBits, mau);
     } else if (format == HEX) {
-<<<<<<< HEAD
     	writer = new HexImageWriter(*programBits, mau);
-=======
-        writer = new HexImageWriter(*programBits, mau);
->>>>>>> 6f1ee3726bcc4e6467ba5f5372ada65a61021855
     } else {
         assert(false);
     }
@@ -500,11 +496,7 @@ ProgramImageGenerator::generateDataImage(
     } else if (format == COE) {
         writer = new CoeImageWriter(dataBits, as->width() * mausPerLine);
     } else if (format == HEX) {
-<<<<<<< HEAD
     	writer = new HexImageWriter(dataBits, as->width() * mausPerLine);
-=======
-        writer = new HexImageWriter(dataBits, as->width() * mausPerLine);
->>>>>>> 6f1ee3726bcc4e6467ba5f5372ada65a61021855
     } else {
         assert(false);
     }

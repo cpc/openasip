@@ -468,15 +468,9 @@ int main(int argc, char* argv[]) {
                     tpefFile, piStream, ProgramImageGenerator::COE,
                     imemMAUsPerLine);
             } else if (piFormat == "hex") {
-<<<<<<< HEAD
-            	imageGenerator.generateProgramImage(
-            		tpefFile, piStream, ProgramImageGenerator::HEX,
-					imemMAUsPerLine);
-=======
                 imageGenerator.generateProgramImage(
                     tpefFile, piStream, ProgramImageGenerator::HEX,
                     imemMAUsPerLine);
->>>>>>> 6f1ee3726bcc4e6467ba5f5372ada65a61021855
             } else {
                 assert(piFormat == "ascii" || piFormat == "");
                 imageGenerator.generateProgramImage(
@@ -524,17 +518,10 @@ int main(int argc, char* argv[]) {
                                 ProgramImageGenerator::COE,
                                 dmemMAUsPerLine, true);
                         } else if (diFormat == "hex") {
-<<<<<<< HEAD
-                        	imageGenerator.generateDataImage(
-                        		tpefFile, *program, as->name(), stream,
-                        	    ProgramImageGenerator::HEX,
-                        	    dmemMAUsPerLine, true);
-=======
                             imageGenerator.generateDataImage(
                                 tpefFile, *program, as->name(), stream,
                                 ProgramImageGenerator::HEX,
                                 dmemMAUsPerLine, true);
->>>>>>> 6f1ee3726bcc4e6467ba5f5372ada65a61021855
                         } else {
                             assert(diFormat == "ascii" || diFormat == "");
                             imageGenerator.generateDataImage(
