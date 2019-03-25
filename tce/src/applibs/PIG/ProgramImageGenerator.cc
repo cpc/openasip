@@ -365,7 +365,7 @@ ProgramImageGenerator::generateProgramImage(
     } else if (format == COE) {
         writer = new CoeImageWriter(*programBits, mau);
     } else if (format == HEX) {
-        writer = new HexImageWriter(*programBits, mau);
+    	writer = new HexImageWriter(*programBits, mau);
     } else {
         assert(false);
     }
