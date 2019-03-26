@@ -6,7 +6,7 @@
 
 cmd=../../../tce/scripts/generate_cachegrind
 dis=../../../tce/src/bintools/Disassembler/tcedisasm
-mach=../../../tce/data/mach/minimal_with_stdout.adf
+mach=data/minimal_with_stdout.adf
 
 tmp=`mktemp tmpXXXXX`
 

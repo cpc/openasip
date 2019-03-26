@@ -112,7 +112,7 @@ DesignSpaceExplorerTest::testEvaluate() {
     // path to minimal adf under project root
     TTAMachine::Machine* adf =
         TTAMachine::Machine::loadFromADF(
-            "../../../../data/mach/minimal.adf");
+            "../../../../data/mach/minimal_be.adf");
     DSDBManager::MachineConfiguration conf;
     conf.architectureID = dsdb->addArchitecture(*adf);
     //conf.implementationID = dsdb->addImplementation(*idf, 0, 0);
