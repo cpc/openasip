@@ -1,4 +1,4 @@
--- Copyright (c) 2005-2010 Tampere University of Technology.
+-- Copyright (c) 2005-2010 Tampere University.
 --
 -- This library is free software; you can redistribute it and/or
 -- modify it under the terms of the GNU Lesser General Public
