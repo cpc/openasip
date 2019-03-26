@@ -606,7 +606,8 @@ LLVMTCEBuilder::createDataDefinition(
             }
         }
     } else {
-        cv->dump();
+        // LLVM does not include dump() when built in non-debug mode.
+        // cv->dump();
         abortWithError("Unknown cv type.");
     }
     return paddedAddr;
@@ -2053,7 +2054,8 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
         return createProgramOperationReference(mo);
     } else {
         std::cerr << "Unknown src operand type!" << std::endl;
-        mo.getParent()->dump();
+        // LLVM does not include dump() when built in non-debug mode.
+        // mo.getParent()->dump();
         assert(false);
     }
     abortWithError("Should not get here!");
