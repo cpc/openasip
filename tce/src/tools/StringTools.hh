@@ -55,6 +55,9 @@ public:
     static bool endsWith(
         const std::string& source,
         const std::string& searchString);
+    static bool startsWith(
+        const std::string& source,
+        const std::string& searchString);
 
     static std::string stringToUpper(const std::string& source);
     static std::string stringToLower(const std::string& source);

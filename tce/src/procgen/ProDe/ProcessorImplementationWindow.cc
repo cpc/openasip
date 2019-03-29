@@ -269,7 +269,7 @@ ProcessorImplementationWindow::updateRFList(const std::string& rfName, int index
     string hdb;
     int id = 0;
     try {
-        hdb = rfImpl.hdbFile();
+        hdb = Environment::shortHDBPath(rfImpl.hdbFile());
         id = rfImpl.id();
     } catch (FileNotFound& e) {
         hdb = "Warning: " + e.errorMessage();
@@ -313,7 +313,7 @@ ProcessorImplementationWindow::updateImplementationLists() {
             string hdb;
             int id = 0;
             try {
-                hdb = fuImpl.hdbFile();
+                hdb = Environment::shortHDBPath(fuImpl.hdbFile());
                 id = fuImpl.id();
             } catch (FileNotFound& e) {
                 hdb = "Warning: " + e.errorMessage();
@@ -338,7 +338,7 @@ ProcessorImplementationWindow::updateImplementationLists() {
             string hdb;
             int id = 0;
             try {
-                hdb = rfImpl.hdbFile();
+                hdb = Environment::shortHDBPath(rfImpl.hdbFile());
                 id = rfImpl.id();
             } catch (FileNotFound& e) {
                 hdb = "Warning: " + e.errorMessage();
@@ -362,7 +362,7 @@ ProcessorImplementationWindow::updateImplementationLists() {
             string hdb;
             int id = 0;
             try {
-                hdb = iuImpl.hdbFile();
+                hdb = Environment::shortHDBPath(iuImpl.hdbFile());
                 id = iuImpl.id();
             } catch (FileNotFound& e) {
                 hdb = "Warning: " + e.errorMessage();
@@ -491,7 +491,7 @@ void ProcessorImplementationWindow::updateFUList(const std::string& fuName, int 
     string hdb;
     int id = 0;
     try {
-        hdb = fuImpl.hdbFile();
+        hdb = Environment::shortHDBPath(fuImpl.hdbFile());
         id = fuImpl.id();
     } catch (FileNotFound& e) {
         hdb = "Warning: " + e.errorMessage();

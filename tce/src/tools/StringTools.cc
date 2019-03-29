@@ -133,6 +133,22 @@ StringTools::endsWith(
         searchString;
 }
 
+/**
+ * Checks whether a string starts with the given search string.
+ *
+ * @param source The investigated string.
+ * @param searchString The string to search from the start.
+ * @return True, if source starts with searchString.
+ */
+bool
+StringTools::startsWith(
+    const std::string& source,
+    const std::string& searchString) {
+
+    return source.size() >= searchString.size() &&
+        source.substr(0, searchString.size()) == searchString;
+}
+
 
 /**
  * Converts a string to upper case letters.

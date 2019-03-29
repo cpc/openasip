@@ -77,6 +77,7 @@ public:
     static std::vector<std::string> hwModulePaths();
     static std::vector<std::string> hdbPaths(
             bool libraryPathsOnly = false);
+    static std::string shortHDBPath(std::string hdbPath);
     static std::vector<std::string> vhdlPaths(const std::string& hdbPath);
     static std::vector<std::string> decompressorPaths(
             bool libraryPathsOnly = false);

@@ -704,6 +704,22 @@ Environment::hdbPaths(bool libraryPathsOnly) {
     return paths;
 }
 
+std::string
+Environment::shortHDBPath(std::string hdbPath) {
+    if (StringTools::startsWith(hdbPath, TCE_SRC_ROOT)) {
+        int rootPathLength = string(TCE_SRC_ROOT).length();
+        hdbPath = "<source tree>" + hdbPath.substr(rootPathLength);
+    } else if (StringTools::startsWith(hdbPath,
+                                        Application::installationDir())) {
+        int installDirLength = Application::installationDir().length();
+        hdbPath = "<install directory>" + hdbPath.substr(installDirLength);
+    } else if (StringTools::startsWith(hdbPath,
+               FileSystem::currentWorkingDir())) {
+        int cwdLength = FileSystem::currentWorkingDir().length();
+        hdbPath = "." + hdbPath.substr(cwdLength);
+    }
+    return hdbPath;
+}
 
 /**
  * Returns the paths in which VHDL files are searched for.
