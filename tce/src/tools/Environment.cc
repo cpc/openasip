@@ -706,17 +706,19 @@ Environment::hdbPaths(bool libraryPathsOnly) {
 
 std::string
 Environment::shortHDBPath(std::string hdbPath) {
-    if (StringTools::startsWith(hdbPath, TCE_SRC_ROOT)) {
-        int rootPathLength = string(TCE_SRC_ROOT).length();
-        hdbPath = "<source tree>" + hdbPath.substr(rootPathLength);
-    } else if (StringTools::startsWith(hdbPath,
-                                        Application::installationDir())) {
-        int installDirLength = Application::installationDir().length();
-        hdbPath = "<install directory>" + hdbPath.substr(installDirLength);
-    } else if (StringTools::startsWith(hdbPath,
-               FileSystem::currentWorkingDir())) {
-        int cwdLength = FileSystem::currentWorkingDir().length();
-        hdbPath = "." + hdbPath.substr(cwdLength);
+    string sourceRoot = string(TCE_SRC_ROOT) + DS;
+    string installRoot = Application::installationDir() + DS;
+    string cwd = FileSystem::currentWorkingDir() + DS;
+
+    if (StringTools::startsWith(hdbPath, sourceRoot)) {
+        int rootPathLength = sourceRoot.length();
+        hdbPath = "<source tree>" + DS + hdbPath.substr(rootPathLength);
+    } else if (StringTools::startsWith(hdbPath, installRoot)) {
+        int installDirLength = installRoot.length();
+        hdbPath = "<install directory>" + DS + hdbPath.substr(installDirLength);
+    } else if (StringTools::startsWith(hdbPath, cwd)) {
+        int cwdLength = cwd.length();
+        hdbPath = "." + DS + hdbPath.substr(cwdLength);
     }
     return hdbPath;
 }
