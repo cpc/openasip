@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2019 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -265,7 +265,7 @@ void
 ProcessorImplementationWindow::updateRFList(const std::string& rfName, int index) {
     const RFImplementationLocation rfImpl =
         impl_.rfImplementation(rfName);
-    
+
     string hdb;
     int id = 0;
     try {

@@ -704,23 +704,25 @@ Environment::hdbPaths(bool libraryPathsOnly) {
     return paths;
 }
 
-std::string
-Environment::shortHDBPath(std::string hdbPath) {
+TCEString
+Environment::shortHDBPath(const TCEString& hdbPath) {
     string sourceRoot = string(TCE_SRC_ROOT) + DS;
     string installRoot = Application::installationDir() + DS;
     string cwd = FileSystem::currentWorkingDir() + DS;
 
-    if (StringTools::startsWith(hdbPath, sourceRoot)) {
+    TCEString shortPath = hdbPath;
+    if (hdbPath.startsWith(sourceRoot)) {
         int rootPathLength = sourceRoot.length();
-        hdbPath = "<source tree>" + DS + hdbPath.substr(rootPathLength);
-    } else if (StringTools::startsWith(hdbPath, installRoot)) {
+        shortPath = "<source tree>" + DS + hdbPath.substr(rootPathLength);
+    } else if (hdbPath.startsWith(installRoot)) {
         int installDirLength = installRoot.length();
-        hdbPath = "<install directory>" + DS + hdbPath.substr(installDirLength);
-    } else if (StringTools::startsWith(hdbPath, cwd)) {
+        shortPath = "<install directory>" + DS +
+	  hdbPath.substr(installDirLength);
+    } else if (hdbPath.startsWith(cwd)) {
         int cwdLength = cwd.length();
-        hdbPath = "." + DS + hdbPath.substr(cwdLength);
+        shortPath = "." + DS + hdbPath.substr(cwdLength);
     }
-    return hdbPath;
+    return shortPath;
 }
 
 /**

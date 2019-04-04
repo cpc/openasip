@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2019 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -132,23 +132,6 @@ StringTools::endsWith(
             source.size() - searchString.size(), searchString.size()) ==
         searchString;
 }
-
-/**
- * Checks whether a string starts with the given search string.
- *
- * @param source The investigated string.
- * @param searchString The string to search from the start.
- * @return True, if source starts with searchString.
- */
-bool
-StringTools::startsWith(
-    const std::string& source,
-    const std::string& searchString) {
-
-    return source.size() >= searchString.size() &&
-        source.substr(0, searchString.size()) == searchString;
-}
-
 
 /**
  * Converts a string to upper case letters.

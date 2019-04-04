@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2019 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -53,9 +53,6 @@ public:
         bool caseSensitive = true);
 
     static bool endsWith(
-        const std::string& source,
-        const std::string& searchString);
-    static bool startsWith(
         const std::string& source,
         const std::string& searchString);
 
