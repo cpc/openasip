@@ -56,6 +56,8 @@ BEGIN_EVENT_TABLE(AutoSelectImplementationsDialog, wxDialog)
     EVT_BUTTON(ID_CLOSE, AutoSelectImplementationsDialog::onClose)
 END_EVENT_TABLE()
 
+const std::string AutoSelectImplementationsDialog::defaultHDB_
+    ("asic_130nm_1.5V.hdb");
 
 /**
  * The Constructor.
@@ -92,10 +94,16 @@ AutoSelectImplementationsDialog::AutoSelectImplementationsDialog(
     }
     if (!hdbs_.empty()) {
         std::set<TCEString>::iterator iter = hdbs_.begin();
+        bool defaultHDBFound = false;
+        int selection = 0;
         for (; iter != hdbs_.end(); iter++) {
             hdbChoice_->Append(WxConversion::toWxString(*iter));
+            if (!defaultHDBFound && StringTools::endsWith(*iter, defaultHDB_)) {
+                selection = hdbChoice_->GetCount() - 1;
+                defaultHDBFound = true;
+            }
         }
-        hdbChoice_->SetSelection(0);
+        hdbChoice_->SetSelection(selection);
     }
 }
 

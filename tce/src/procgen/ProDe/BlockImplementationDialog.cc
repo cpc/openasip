@@ -48,6 +48,7 @@
 #include "Conversion.hh"
 #include "UnitImplementationLocation.hh"
 #include "WidgetTools.hh"
+#include "StringTools.hh"
 #include "InformationDialog.hh"
 #include "ImmediateUnit.hh"
 
@@ -74,7 +75,7 @@ using namespace HDB;
 
 std::set<std::string> BlockImplementationDialog::hdbs_;
 int BlockImplementationDialog::selection_ = 0;
-
+const std::string BlockImplementationDialog::defaultHDB_("asic_130nm_1.5V.hdb");
 /**
  * The Constructor.
  *
@@ -112,8 +113,13 @@ BlockImplementationDialog::BlockImplementationDialog(
     }
     if (!hdbs_.empty()) {
         std::set<std::string>::iterator iter = hdbs_.begin();
+        bool defaultHDBFound = false;
         for (; iter != hdbs_.end(); iter++) {
             hdbChoice_->Append(WxConversion::toWxString(*iter));
+            if (!defaultHDBFound && StringTools::endsWith(*iter, defaultHDB_)) {
+                selection_ = hdbChoice_->GetCount() - 1;
+                defaultHDBFound = true;
+            }
         }
         hdbChoice_->SetSelection(selection_);
         wxCommandEvent dummy;
