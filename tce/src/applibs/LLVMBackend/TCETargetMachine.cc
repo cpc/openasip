@@ -195,6 +195,10 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     if (!plugin_->hasROTL()) missingOps_.insert(std::make_pair(llvm::ISD::ROTL, MVT::i32));
     if (!plugin_->hasROTR()) missingOps_.insert(std::make_pair(llvm::ISD::ROTR, MVT::i32));
 
+    if (!plugin_->hasSHL()) customLegalizedOps_.insert(std::make_pair(llvm::ISD::SHL, MVT::i32));
+    if (!plugin_->hasSHR()) customLegalizedOps_.insert(std::make_pair(llvm::ISD::SRA, MVT::i32));
+    if (!plugin_->hasSHRU()) customLegalizedOps_.insert(std::make_pair(llvm::ISD::SRL, MVT::i32));
+
     if (!plugin_->hasSXHW()) missingOps_.insert(
         std::make_pair(llvm::ISD::SIGN_EXTEND_INREG, MVT::i16));
 
@@ -325,6 +329,15 @@ TCETargetMachine::createMachine() {
 const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >*
 TCETargetMachine::missingOperations() {
     return &missingOps_;
+}
+
+/**
+ * Returns list of llvm::ISD SelectionDAG opcodes for operations that are not
+ * supported in the target architecture but will be custom-selected.
+ */
+const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >*
+TCETargetMachine::customLegalizedOperations() {
+    return &customLegalizedOps_;
 }
 
 TargetPassConfig* 

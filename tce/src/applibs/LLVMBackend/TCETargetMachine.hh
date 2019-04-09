@@ -220,6 +220,10 @@ plugin_(plugin) {
             return plugin_->operationName(opc);
         }
 
+        bool hasOperation(TCEString operationName) const {
+            return plugin_->hasOperation(operationName);
+        }
+
         std::string rfName(unsigned dwarfRegNum) const {
             return plugin_->rfName(dwarfRegNum);
         }
@@ -275,6 +279,10 @@ plugin_(plugin) {
             std::pair<unsigned, 
                       llvm::MVT::SimpleValueType> >* missingOperations();
 
+        const std::set<
+            std::pair<unsigned,
+                      llvm::MVT::SimpleValueType> >* customLegalizedOperations();
+
     private:
         /* more or less llvm naming convention to make it easier to track llvm changes */
         
@@ -282,6 +290,7 @@ plugin_(plugin) {
         PluginTools* pluginTool_;
         /// llvm::ISD opcode list of operations that have to be expanded.
         std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> > missingOps_;
+        std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> > customLegalizedOps_;
     };
 }
 

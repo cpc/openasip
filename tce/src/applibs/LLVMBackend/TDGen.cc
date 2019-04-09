@@ -1259,6 +1259,7 @@ TDGen::writeInstrInfo(std::ostream& os) {
     }
 
     createSelectPatterns(os);
+    createConstShiftPatterns(os);
 }
 
 /**
@@ -1397,6 +1398,9 @@ TDGen::writeBackendCode(std::ostream& o) {
     bool hasSXHW = false;
     bool hasSXQW = false;
     bool hasSQRTF = false;
+    bool hasSHR = false;
+    bool hasSHRU = false;
+    bool hasSHL = false;
    
     const TTAMachine::Machine::FunctionUnitNavigator fuNav =
         mach_.functionUnitNavigator();
@@ -1416,6 +1420,10 @@ TDGen::writeBackendCode(std::ostream& o) {
             if (opName == "rotr") hasROTR = true;
             if (opName == "sxhw") hasSXHW = true;
             if (opName == "sxqw") hasSXQW = true;
+            if (opName == "shr") hasSHR = true;
+            if (opName == "shru") hasSHRU = true;
+            if (opName == "shl") hasSHL = true;
+
 	    if (opName == "sqrtf") hasSQRTF = true;
         }
     }
@@ -1440,6 +1448,13 @@ TDGen::writeBackendCode(std::ostream& o) {
       << hasSXQW << "; }" << std::endl
       << "bool GeneratedTCEPlugin::hasSQRTF() const { return "
       << hasSQRTF << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasSHR() const { return "
+      << hasSHR << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasSHL() const { return "
+      << hasSHL << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasSHRU() const { return "
+      << hasSHRU << ";}" << std::endl
+
       << "int GeneratedTCEPlugin::maxVectorSize() const { return "
       << maxVectorSize_ << "; }" << std::endl;
 
@@ -3739,4 +3754,27 @@ void TDGen::writeCallSeqStart(std::ostream& os) {
      << std::endl << std::endl;
 
 #endif
+}
+
+
+
+void TDGen::writeConstShiftPat(std::ostream& os,
+                               const TCEString& nodeName,
+                               const TCEString& opNameBase, int i) {
+
+    TCEString opName = opNameBase; opName << i << "_32rr";
+    if (opNames_.find(opName) != opNames_.end()) {
+        os << "def : Pat<(i32 (" << nodeName
+           << " R32IRegs:$val, (i32 " << i << "))), ("
+           << opName << " R32IRegs:$val)>;" << std::endl;
+    }
+}
+
+
+void TDGen::createConstShiftPatterns(std::ostream& os) {
+    for (int i = 1; i < 32; i++) {
+        writeConstShiftPat(os, "TCESRAConst", "SHR", i);
+        writeConstShiftPat(os, "TCESRLConst", "SHRU", i);
+        writeConstShiftPat(os, "TCESHLConst", "SHL", i);
+    }
 }

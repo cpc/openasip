@@ -349,6 +349,66 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>SHL1_32</name>
+    <description>Left logical shift by 1. Input 1 is value to be shifted and Output 2 is result from operation.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shl, IO(1), 1, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHL2_32</name>
+    <description>Left logical shift by 2. Input 1 is value to be shifted and Output 2 is result from operation.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shl, IO(1), 2, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHL4_32</name>
+    <description>Left logical shift by 4. Input 1 is value to be shifted and Output 2 is result from operation.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shl, IO(1), 4, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHL8_32</name>
+    <description>Left logical shift by 8. Input 1 is value to be shifted and Output 2 is result from operation.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shl, IO(1), 8, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHL16_32</name>
+    <description>Left logical shift by 16. Input 1 is value to be shifted and Output 2 is result from operation.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shl, IO(1), 16, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>SHR</name>
     <description>Arithmetic shift right (sign bit duplicated). Input 1 is value to be shifted and input 2 is shift amount. Output 3 is result from operation.</description>
     <inputs>2</inputs>
@@ -362,6 +422,66 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>SHR1_32</name>
+    <description>Arithmetic shift right by one bit.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shr, IO(1), 1, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHR2_32</name>
+    <description>Arithmetic shift right by two bits.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shr, IO(1), 2, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHR4_32</name>
+    <description>Arithmetic shift right by four bits</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shr, IO(1), 4, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHR8_32</name>
+    <description>Arithmetic shift right by eight bits.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shr, IO(1), 8, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHR16_32</name>
+    <description>Arithmetic shift right by 16 bits.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shr, IO(1), 16, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>SHRU</name>
     <description>Logical shift right (most siginificant bits zeroed). Input 1 is value to be shifted and input 2 is shift amount. Output 3 is result from operation.</description>
     <inputs>2</inputs>
@@ -369,6 +489,66 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
     <in element-count="1" element-width="32" id="2" type="UIntWord"/>
     <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>SHRU1_32</name>
+    <description>Logical shift right by one bit.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shru, IO(1), 1, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHRU2_32</name>
+    <description>Logical shift right by two bits</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shru, IO(1), 2, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHRU4_32</name>
+    <description>Logical shift right by four bits</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shru, IO(1), 4, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHRU8_32</name>
+    <description>Logical shift right by eight bits</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shru, IO(1), 8, IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHRU16_32</name>
+    <description>Logical shift right by 16 bits</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shru, IO(1), 16, IO(2));
+    </trigger-semantics>
   </operation>
 
   <operation>

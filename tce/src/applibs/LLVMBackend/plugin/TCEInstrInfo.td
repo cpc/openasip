@@ -25,6 +25,10 @@ def MEMri : Operand<i32> {
   let MIOperandInfo = (ops R32IRegs, i32imm);
 }
 
+def TCESRAConst : SDNode<"TCEISD::SRA_Const", SDTIntBinOp, []>;
+def TCESRLConst : SDNode<"TCEISD::SRL_Const", SDTIntBinOp, []>;
+def TCESHLConst : SDNode<"TCEISD::SHL_Const", SDTIntBinOp, []>;
+
 // Branch targets have OtherVT type.
 def brtarget : Operand<OtherVT>;
 def calltarget : Operand<i32>;

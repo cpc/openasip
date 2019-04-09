@@ -41,6 +41,9 @@
 #include "TCEPlugin.hh"
 #include "TCESubtarget.hh"
 #include "tce_config.h"
+#include "TCEString.hh"
+#include <map>
+#include <iostream>
 
 namespace TCEISD {
     enum {
@@ -65,7 +68,10 @@ namespace TCEISD {
 
         CALL,        // A call instruction.
         RET_FLAG ,    // Return with a flag operand.
-        RET_FLAG_old
+        RET_FLAG_old,
+        SRA_Const,
+        SRL_Const,
+        SHL_Const
    };
 }
 
@@ -128,6 +134,9 @@ namespace llvm {
         SDValue LowerTRAP(SDValue Op, SelectionDAG &DAG) const;
         SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG) const;
         SDValue LowerBlockAddress(SDValue Op, SelectionDAG &DAG) const;
+        SDValue LowerShift(SDValue op, SelectionDAG& dag) const;
+
+        std::pair<int, TCEString> getConstShiftNodeAndTCEOP(SDValue op) const;
 
         virtual SDValue
         LowerCall(TargetLowering::CallLoweringInfo &CLI,

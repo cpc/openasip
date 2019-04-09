@@ -1,0 +1,8 @@
+shl2_32 2
+shl2_32 5
+shl2_32 0
+shl2_32 -1
+!output hex
+shl2_32 0xff
+
+

@@ -791,6 +791,15 @@ TCETargetLowering::TCETargetLowering(
     if (Application::verboseLevel() > 0) {
         std::cerr << std::endl;
     }
+
+    auto customLegalizedOps = tm_.customLegalizedOperations();
+    for (auto i : *customLegalizedOps) {
+        unsigned nodetype = i.first;
+        llvm::MVT::SimpleValueType valuetype = i.second;
+        llvm::EVT evt(valuetype);
+        setOperationAction(nodetype, valuetype, Custom);
+    }
+
 #ifdef LLVM_OLDER_THAN_3_7
     computeRegisterProperties();
 #else
@@ -973,6 +982,67 @@ TCETargetLowering::getSetCCResultType(
     return VT.changeVectorElementTypeToInteger();
 }
 
+std::pair<int, TCEString> TCETargetLowering::getConstShiftNodeAndTCEOP(SDValue op) const {
+    switch(op.getOpcode()) {
+    case ISD::SRA:
+        return std::make_pair(TCEISD::SRA_Const, TCEString("SHR"));
+    case ISD::SRL:
+        return std::make_pair(TCEISD::SRL_Const, TCEString("SHRU"));
+    case ISD::SHL:
+        return std::make_pair(TCEISD::SHL_Const, TCEString("SHL"));
+    default:
+        return std::make_pair(0, TCEString("unknown op"));
+    }
+}
+
+SDValue
+TCETargetLowering::LowerShift(SDValue op, SelectionDAG& dag) const {
+
+    auto shiftOpcodes = getConstShiftNodeAndTCEOP(op);
+    int shiftOpcode = shiftOpcodes.first;
+    assert(shiftOpcode && "Shift opcide not supported, should not be here");
+
+    SDValue R = op.getOperand(0);
+    SDValue Amt = op.getOperand(1);
+    const DebugLoc& dl = op.getDebugLoc();
+    std::set<unsigned long> supportedShifts;
+
+
+    for (int i = 1; i < 32; i++) {
+        TCEString opName = shiftOpcodes.second; opName << i << "_32";
+        if (tm_.hasOperation(opName)) {
+            supportedShifts.insert(i);
+        }
+    }
+
+    if (Amt.getOpcode() == ISD::Constant) {
+        unsigned long amount = op.getConstantOperandVal(1);
+        // if has no correct-width shift, need to break down into multiple.
+        if (supportedShifts.find(amount) == supportedShifts.end()) {
+            // find the biggest suitable shift.
+            for (auto i = supportedShifts.rbegin();
+                 i != supportedShifts.rend(); i++) {
+                if (amount > *i) {
+                    auto shiftVal =
+                        dag.getConstant(*i, op, Amt.getValueType());
+                    auto remVal =
+                        dag.getConstant(amount - *i, op, Amt.getValueType());
+                    SDValue remaining = dag.getNode(
+                        op.getOpcode(), op, op.getValueType(), R, remVal);
+                    SDValue lowered = LowerShift(remaining, dag);
+                    SDValue shift = dag.getNode(
+                        shiftOpcode, op, op.getValueType(), lowered, shiftVal);
+                    return shift;
+                }
+            }
+        }
+        return op;
+
+    }
+    std::cerr << "Warning: Shift amount not constant. Lowering of dynamic shifts not yet supported" << std::endl;
+    return op;
+}
+
 /**
  * Handles custom operation lowerings.
  */
@@ -984,6 +1054,9 @@ TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) const {
     case ISD::BlockAddress: return LowerBlockAddress(op, dag);
     case ISD::VASTART: return LowerVASTART(op, dag);
     case ISD::ConstantPool: return LowerCONSTANTPOOL(op, dag);    
+    case ISD::SHL:
+    case ISD::SRA:
+    case ISD::SRL: return LowerShift(op, dag);
     case ISD::DYNAMIC_STACKALLOC: {
         assert(false && "Dynamic stack allocation not yet implemented.");
     }

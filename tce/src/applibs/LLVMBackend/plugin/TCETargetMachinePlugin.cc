@@ -103,16 +103,20 @@ public:
     unsigned int raPortDRegNum();
     std::string dataASName();
 
-    virtual bool hasSDIV() const;
-    virtual bool hasUDIV() const;
-    virtual bool hasSREM() const;
-    virtual bool hasUREM() const;
-    virtual bool hasMUL() const;
-    virtual bool hasROTL() const;
-    virtual bool hasROTR() const;
-    virtual bool hasSXHW() const;
-    virtual bool hasSXQW() const;
-    virtual bool hasSQRTF() const;
+    virtual bool hasSDIV() const override;
+    virtual bool hasUDIV() const override;
+    virtual bool hasSREM() const override;
+    virtual bool hasUREM() const override;
+    virtual bool hasMUL() const override;
+    virtual bool hasROTL() const override;
+    virtual bool hasROTR() const override;
+    virtual bool hasSXHW() const override;
+    virtual bool hasSXQW() const override;
+    virtual bool hasSQRTF() const override;
+    virtual bool hasSHR() const override;
+    virtual bool hasSHL() const override;
+    virtual bool hasSHRU() const override;
+
     virtual int maxVectorSize() const;
 
     virtual void registerTargetMachine(TCETargetMachine &tm);
