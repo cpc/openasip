@@ -115,7 +115,8 @@ BlockImplementationDialog::BlockImplementationDialog(
         std::set<std::string>::iterator iter = hdbs_.begin();
         bool defaultHDBFound = false;
         for (; iter != hdbs_.end(); iter++) {
-            hdbChoice_->Append(WxConversion::toWxString(*iter));
+            std::string shortPath = Environment::shortHDBPath(*iter);
+            hdbChoice_->Append(WxConversion::toWxString(shortPath));
             if (!defaultHDBFound && StringTools::endsWith(*iter, defaultHDB_)) {
                 selection_ = hdbChoice_->GetCount() - 1;
                 defaultHDBFound = true;
@@ -147,10 +148,12 @@ BlockImplementationDialog::onBrowse(wxCommandEvent&) {
         (wxOPEN | wxFILE_MUST_EXIST));
 
     if (dialog.ShowModal() == wxID_OK) {
-        wxString hdb = dialog.GetPath();
-        int item = hdbChoice_->FindString(hdb);
+        std::string hdb = std::string(dialog.GetPath().mb_str());
+        hdb = Environment::shortHDBPath(hdb);
+        auto wxHDB = WxConversion::toWxString(hdb);
+        int item = hdbChoice_->FindString(wxHDB);
         if (item == wxNOT_FOUND) {
-            item = hdbChoice_->Append(hdb);
+            item = hdbChoice_->Append(wxHDB);
         }
         hdbChoice_->Select(item);
         wxListEvent dummy;
@@ -175,6 +178,7 @@ BlockImplementationDialog::onHDBSelection(wxCommandEvent&) {
 
     std::string path = WxConversion::toString(
         hdbChoice_->GetStringSelection());
+    path = Environment::longHDBPath(path);
 
     list_->DeleteAllItems();
 
@@ -326,7 +330,10 @@ BlockImplementationDialog::onHDBSelection(wxCommandEvent&) {
  */
 void 
 BlockImplementationDialog::doOK() {
-    impl_.setHDBFile(WxConversion::toString(hdbChoice_->GetStringSelection()));
+    std::string HDBpath = WxConversion::toString(
+                              hdbChoice_->GetStringSelection());
+    HDBpath = Environment::longHDBPath(HDBpath);
+    impl_.setHDBFile(HDBpath);
     int id = Conversion::toInt(WidgetTools::lcStringSelection(list_, 1));
     impl_.setID(id);
     EndModal(wxID_OK);

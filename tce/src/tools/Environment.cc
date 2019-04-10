@@ -704,6 +704,10 @@ Environment::hdbPaths(bool libraryPathsOnly) {
     return paths;
 }
 
+/**
+ * Shortens the given HDB path by replacing source tree, install directory or
+ * current working directory paths with human-readable aliases.
+ */
 TCEString
 Environment::shortHDBPath(const TCEString& hdbPath) {
     string sourceRoot = string(TCE_SRC_ROOT) + DS;
@@ -717,12 +721,37 @@ Environment::shortHDBPath(const TCEString& hdbPath) {
     } else if (hdbPath.startsWith(installRoot)) {
         int installDirLength = installRoot.length();
         shortPath = "<install directory>" + DS +
-	  hdbPath.substr(installDirLength);
+                    hdbPath.substr(installDirLength);
     } else if (hdbPath.startsWith(cwd)) {
         int cwdLength = cwd.length();
         shortPath = "." + DS + hdbPath.substr(cwdLength);
     }
     return shortPath;
+}
+
+/**
+ * Undoes the shortening done by shortHDBPath
+ */
+TCEString
+Environment::longHDBPath(const TCEString& hdbPath) {
+    string sourceRoot = string("<source tree>") + DS;
+    string installRoot = string("<install directory>") + DS;
+    string cwd = string(".") + DS;
+
+    TCEString longPath = hdbPath;
+    if (hdbPath.startsWith(sourceRoot)) {
+        int rootPathLength = sourceRoot.length();
+        longPath = string(TCE_SRC_ROOT) + DS + hdbPath.substr(rootPathLength);
+    } else if (hdbPath.startsWith(installRoot)) {
+        int installDirLength = installRoot.length();
+        longPath = Application::installationDir() + DS +
+                    hdbPath.substr(installDirLength);
+    } else if (hdbPath.startsWith(cwd)) {
+        int cwdLength = cwd.length();
+        longPath = FileSystem::currentWorkingDir() + DS +
+                    hdbPath.substr(cwdLength);
+    }
+    return longPath;
 }
 
 /**

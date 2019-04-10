@@ -78,6 +78,7 @@ public:
     static std::vector<std::string> hdbPaths(
             bool libraryPathsOnly = false);
     static TCEString shortHDBPath(const TCEString& hdbPath);
+    static TCEString longHDBPath(const TCEString& hdbPath);
     static std::vector<std::string> vhdlPaths(const std::string& hdbPath);
     static std::vector<std::string> decompressorPaths(
             bool libraryPathsOnly = false);
