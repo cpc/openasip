@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2012 Tampere University.
+    Copyright (c) 2012-2019 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -25,16 +25,21 @@
  * @file InstructionPatternAnalyzer.hh
  *
  * Pass that analyzes the selection DAG going to be instruction selected.
- * Helps to find common instruction chains for conversion to custom 
+ * Helps to find common instruction chains for conversion to custom
  * operations.
  *
- * @author Pekka Jääskeläinen 2012
+ * @author Pekka Jääskeläinen 2012,2019
  */
 
 #ifndef TCE_INSTRUCTION_PATTERN_ANALYZER_HH
 #define TCE_INSTRUCTION_PATTERN_ANALYZER_HH
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include "llvm/CodeGen/MachineFunctionPass.h"
+
+POP_COMPILER_DIAGS
 
 struct InstructionPatternAnalyzer : public llvm::MachineFunctionPass {
     static char ID;
