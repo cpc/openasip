@@ -32,7 +32,7 @@
 \title{TTA-based Co-design Environment v1.19-pre}
 \ver{32}
 \firstday{2006-10-25}
-\lastday{2018-03-09}
+\lastday{2018-05-12}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -3365,6 +3365,9 @@ which use the same interface to memory. Specifically for Xilinx 7 Series
 devices, xilinx\_series7.hdb has implentations for a basic ALU and register files
 optimized for these devices.
 
+Additionally, the external debugger needs to be enabled by setting the
+IC/Decoder parameter \textit{debugger} to \textit{external} in the IDF.
+
 \subsection{Generate the Processor}
 
 The commands to generate a processor core with an AlmaIF wrapper are as follows:
@@ -4956,7 +4959,7 @@ block RAM.
 
 Because the control interface for AlmaIF is implemented through the external
 debugger interface, this must be enabled from the Implementation-dialog's
-IC / Decoder Plugin tab by setting the bustrace plugin parameter as 'external'.
+IC / Decoder Plugin tab by setting the debugger plugin parameter as 'external'.
 
 \textbf{Usage example:} \\
 There's a processor with AlmaIF LSU and external debugger interface, and the
