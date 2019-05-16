@@ -137,6 +137,8 @@ public:
 
     TCEString hash() const;
 
+    bool hasOperation(const TCEString& opName) const;
+
     /**
      * A template class which contains machine components.
      */

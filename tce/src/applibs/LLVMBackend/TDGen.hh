@@ -263,6 +263,8 @@ protected:
                             const TCEString& nodeName,
                             const TCEString& opNameBase, int i);
 
+    void createBoolAndHalfLoadPatterns(std::ostream& os);
+
     void writeCallSeqStart(std::ostream& os);
 
     const TTAMachine::Machine& mach_;
