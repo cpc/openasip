@@ -72,12 +72,13 @@ PIGCmdLineOptions::PIGCmdLineOptions() : CmdLineOptions("") {
     StringCmdLineOptionParser* piOutputMode = new StringCmdLineOptionParser(
         PI_FORMAT_PARAM_NAME,
         "The output format of program image(s) ('ascii', 'array', 'mif', "
-        "'coe', 'vhdl', 'hex' or 'binary'). Default is 'ascii'.", "f");
+        "'coe', 'vhdl', 'hex', 'binary' or 'bin2n'). Default is 'ascii'.",
+        "f");
     addOption(piOutputMode);
 
     StringCmdLineOptionParser* diOutputMode = new StringCmdLineOptionParser(
         DI_FORMAT_PARAM_NAME, "The output format of data image(s) "
-        "('ascii', 'array', 'mif', 'coe', 'vhdl', 'hex' or 'binary'). Default "
+        "('ascii', 'array', 'mif', 'coe', 'vhdl', 'hex', 'bin2n' or 'binary'). Default "
         "is 'ascii'.", "o");
     addOption(diOutputMode);
 

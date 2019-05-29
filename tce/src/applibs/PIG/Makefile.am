@@ -1,8 +1,8 @@
 noinst_LTLIBRARIES = libpig.la
 libpig_la_SOURCES = AsciiImageWriter.cc \
-	BitVector.cc CodeCompressorPlugin.cc \
+	BitVector.cc Bin2nImageWriter.cc CodeCompressorPlugin.cc \
 	InstructionBitVector.cc PIGTextGenerator.cc \
-	ProgramImageGenerator.cc RawImageWriter.cc \
+	ProgramImageGenerator.cc Bin2nProgramImageWriter.cc RawImageWriter.cc \
 	AsciiProgramImageWriter.cc ArrayProgramImageWriter.cc \
 	ArrayImageWriter.cc MifImageWriter.cc VhdlProgramImageWriter.cc \
 	VhdlImageWriter.cc CoeImageWriter.cc HexImageWriter.cc \
@@ -38,14 +38,25 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libpig_la_SOURCES += \
-	ArrayProgramImageWriter.hh ProgramImageGenerator.hh \
-	AsciiImageWriter.hh DefaultCompressor.hh \
-	AsciiProgramImageWriter.hh VhdlProgramImageWriter.hh \
-	ArrayImageWriter.hh RawImageWriter.hh \
-	BitVector.hh PIGTextGenerator.hh \
-	VhdlImageWriter.hh CodeCompressorPlugin.hh \
-	BitImageWriter.hh CoeImageWriter.hh \
-	CodeCompressor.hh MifImageWriter.hh \
+	ArrayImageWriter.hh \
+	ArrayProgramImageWriter.hh \
+	AsciiImageWriter.hh \
+	AsciiProgramImageWriter.hh \
+	BitImageWriter.hh \
+	BitVector.hh \
+	Bin2nImageWriter.hh \
+	Bin2nProgramImageWriter.hh \
+	CodeCompressor.hh \
+	CodeCompressorPlugin.hh \
+	CoeImageWriter.hh \
+	DefaultCompressor.hh \
 	HexImageWriter.hh \
-	InstructionBitVector.hh IndexBound.hh
+	IndexBound.hh \
+	InstructionBitVector.hh \
+	MifImageWriter.hh \
+	PIGTextGenerator.hh \
+	ProgramImageGenerator.hh \
+	RawImageWriter.hh \
+	VhdlImageWriter.hh  \
+	VhdlProgramImageWriter.hh
 ## headers end

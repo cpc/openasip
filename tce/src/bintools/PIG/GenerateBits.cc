@@ -373,10 +373,10 @@ int main(int argc, char* argv[]) {
     if (adfFile == "" || 
         (piFormat != "" && piFormat != "binary" && piFormat != "ascii" &&
          piFormat != "array" && piFormat != "mif" && piFormat != "vhdl" &&
-         piFormat != "coe" && piFormat != "hex") ||
+         piFormat != "coe" && piFormat != "hex" && piFormat != "bin2n") ||
         (diFormat != "" && diFormat != "binary" &&
          diFormat != "ascii" && diFormat != "array" && diFormat != "mif" &&
-         diFormat != "vhdl" && diFormat != "coe" && diFormat != "hex")) {
+         diFormat != "vhdl" && diFormat != "coe" && diFormat != "hex" && diFormat != "bin2n")) {
         options->printHelp();
         return EXIT_FAILURE;
     }
@@ -456,6 +456,10 @@ int main(int argc, char* argv[]) {
                 imageGenerator.generateProgramImage(
                     tpefFile, piStream, ProgramImageGenerator::HEX,
                     imemMAUsPerLine);
+	    } else if (piFormat == "bin2n") {
+                imageGenerator.generateProgramImage(
+                    tpefFile, piStream, ProgramImageGenerator::BIN2N,
+                    imemMAUsPerLine);
             } else {
                 assert(piFormat == "ascii" || piFormat == "");
                 imageGenerator.generateProgramImage(
@@ -506,6 +510,11 @@ int main(int argc, char* argv[]) {
                             imageGenerator.generateDataImage(
                                 tpefFile, *program, as->name(), stream,
                                 ProgramImageGenerator::HEX,
+                                dmemMAUsPerLine, true);
+                        } else if (diFormat == "bin2n") {
+                            imageGenerator.generateDataImage(
+                                tpefFile, *program, as->name(), stream,
+                                ProgramImageGenerator::BIN2N,
                                 dmemMAUsPerLine, true);
                         } else {
                             assert(diFormat == "ascii" || diFormat == "");

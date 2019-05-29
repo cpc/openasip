@@ -27,6 +27,9 @@ Notable changes and features
     hardcoded to a zero value and thus can be utilized as the zero immediate
     value.
 - RTL generation generation code has been unified.
+- Program Image Generation supports Bin2n-format, which is a binary format
+  where each word has been zero-padded to the next power-of-two. Used for
+  AlmaIF instruction memory region.
 
 Notable bugfixes
 ----------------------------

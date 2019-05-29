@@ -47,6 +47,8 @@
 #include "VhdlProgramImageWriter.hh"
 #include "CoeImageWriter.hh"
 #include "HexImageWriter.hh"
+#include "Bin2nImageWriter.hh"
+#include "Bin2nProgramImageWriter.hh"
 #include "InstructionBitVector.hh"
 #include "CodeCompressorPlugin.hh"
 #include "DefaultCompressor.hh"
@@ -366,6 +368,8 @@ ProgramImageGenerator::generateProgramImage(
         writer = new CoeImageWriter(*programBits, mau);
     } else if (format == HEX) {
         writer = new HexImageWriter(*programBits, mau);
+    } else if (format == BIN2N) {
+        writer = new Bin2nProgramImageWriter(*programBits);
     } else {
         assert(false);
     }
@@ -492,6 +496,8 @@ ProgramImageGenerator::generateDataImage(
         writer = new CoeImageWriter(dataBits, as->width() * mausPerLine);
     } else if (format == HEX) {
         writer = new HexImageWriter(dataBits, as->width() * mausPerLine);
+    } else if (format == BIN2N) {
+        writer = new Bin2nImageWriter(dataBits, as->width() * mausPerLine);
     } else {
         assert(false);
     }
