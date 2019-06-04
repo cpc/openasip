@@ -26,5 +26,7 @@ git diff master -U0 --no-color >$PATCHY
 $SCRIPTDIR/clang-format-diff.py \
  -regex '(.*(\.hh$|\.cc$|\.c$|\.h$))' \
  -i -p1 -style \
- "{BasedOnStyle: Google, IndentWidth: 4}" \
+ "{BasedOnStyle: Google, IndentWidth: 4, \
+ AlwaysBreakAfterReturnType: AllDefinitions, AccessModifierOffset: -4, \
+ AlignAfterOpenBracket: AlwaysBreak}" \
  -v <$PATCHY
