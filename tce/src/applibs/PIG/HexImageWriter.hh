@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2018 Tampere University of Technology
+    Copyright (c) 2002-2018 Tampere University
     and Alexander Kobler.
 
     This file is part of TTA-Based Codesign Environment (TCE).

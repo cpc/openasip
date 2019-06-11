@@ -3,7 +3,7 @@ _TCE_ROOT="../../../../../tce"
 EXPLORE_BIN="${_TCE_ROOT}/src/codesign/Explorer/explore"
 COMPILER_BIN="${_TCE_ROOT}/src/bintools/Compiler/tcecc"
 TTASIM_BIN="${_TCE_ROOT}/src/codesign/ttasim/ttasim"
-MINIMAL_ADF_PATH="${_TCE_ROOT}/data/mach/minimal.adf"
+MINIMAL_ADF_PATH="${_TCE_ROOT}/data/mach/minimal_be.adf"
 
 # TODO: fu/rf/bus count check
 SUPERIORITY=5      # superiority percentage

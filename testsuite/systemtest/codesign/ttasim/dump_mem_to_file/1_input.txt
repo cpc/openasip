@@ -1,4 +1,4 @@
-mach ../../../../tce/data/mach/minimal.adf
+mach ../../../../tce/data/mach/minimal_be.adf
 prog data/mem_dump_test.tpf
 x /n 21 /f /tmp/testing_ttasim_dump.bin _foobar
 exec cat /tmp/testing_ttasim_dump.bin

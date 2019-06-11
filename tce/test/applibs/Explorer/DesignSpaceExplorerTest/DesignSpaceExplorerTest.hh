@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -112,7 +112,7 @@ DesignSpaceExplorerTest::testEvaluate() {
     // path to minimal adf under project root
     TTAMachine::Machine* adf =
         TTAMachine::Machine::loadFromADF(
-            "../../../../data/mach/minimal.adf");
+            "../../../../data/mach/minimal_be.adf");
     DSDBManager::MachineConfiguration conf;
     conf.architectureID = dsdb->addArchitecture(*adf);
     //conf.implementationID = dsdb->addImplementation(*idf, 0, 0);

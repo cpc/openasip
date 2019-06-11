@@ -6,7 +6,7 @@
     <xs:documentation xml:lang="en">
 
         Architecture Definition File Schema for the TCE
-        (TTA Codesign Environment) project at Tampere University of Technology.
+        (TTA Codesign Environment) project at Tampere University.
 
     </xs:documentation>
 </xs:annotation>

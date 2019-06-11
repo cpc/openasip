@@ -16,7 +16,7 @@ CBEM=../../../../../tce/src/bintools/BEMGenerator/createbem
 
 SRC="data/crc.c data/main.c"
 INC="-Idata/"
-ORIG=../../../../../tce/data/mach/minimal.adf
+ORIG=../../../../../tce/data/mach/minimal_be.adf
 ADF=minimal.adf
 IDF=data/minimal.idf
 BEM=minimal.bem

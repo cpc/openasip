@@ -6,6 +6,10 @@ Debian-based distributions like Debian and Ubuntu should have
 most of the required libraries included, but other distributions
 should work fine too.
 
+See INSTALL.Debian for package list in other versions of Debian-based
+distributions such as Debian and Ubuntu, and INSTALL.RedHat for more information
+on installing TCE on Red Hat based distros.
+
 MacOS support is experimental.
 
 Library and tools version prerequisites for TCE
@@ -50,10 +54,6 @@ This installs the required packages for an Red Hat 6 (and CentOS):
   sudo yum install -y bzr wxGTK-devel boost-devel tcl-devel libedit-devel sqlite-devel \
 xerces-c-devel gcc-c++ make autoconf automake libtool
 
-See INSTALL.Debian for package list in other versions of Debian-based
-distributions such as Debian and Ubuntu, and INSTALL.RedHat for more information
-on installing TCE on Red Hat based distros.
-
 Editline
 --------
 
@@ -76,26 +76,26 @@ The development files of the following Boost libraries are required by TCE:
 . graph,
 . tuple
 
-Some distributions, like Fedora Core, include all Boost libraries in a 
-single package, but some, like Debian, have separated them in several 
-packages. 
+Some distributions, like Fedora Core, include all Boost libraries in a
+single package, but some, like Debian, have separated them in several
+packages.
 
 LLVM and Clang
 --------------
 
-In order to compile programs from C/C++ with TCE, you need to install 
-LLVM and Clang with some patches and correct LLVM build switches to fix 
+In order to compile programs from C/C++ with TCE, you need to install
+LLVM and Clang with some patches and correct LLVM build switches to fix
 issues affecting TCE use.
 
-You can do this most easily by executing 
- 
-   tools/scripts/install_llvm_6.0.sh DEST_PATH
+You can do this most easily by executing
+
+   tools/scripts/install_llvm_8.0.sh DEST_PATH
 
 where DEST_PATH is the absolute directory where you want the LLVM
 to be installed. This script installs some required patches
 to LLVM without which TCE refuses to build.
 
-After successfull installation add information about installed libraries to the
+After successful installation add information about installed libraries to the
 search path. For example if the DEST_PATH was $HOME/local/
 
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/local/lib
@@ -106,7 +106,7 @@ search path. For example if the DEST_PATH was $HOME/local/
 Building and installing TCE
 ===========================
 
-After the required libraries have been installed, the following 
+After the required libraries have been installed, the following
 steps show how to build and install the TCE toolset.
 
 Creating the build scripts
