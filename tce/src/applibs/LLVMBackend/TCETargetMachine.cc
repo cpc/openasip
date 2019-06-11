@@ -233,6 +233,10 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     dataLayoutStr += "-v256:256:256";
     dataLayoutStr += "-v512:512:512";
     dataLayoutStr += "-v1024:1024:1024";
+#if LLVM_HAS_CUSTOM_VECTOR_EXTENSION == 2
+    dataLayoutStr += "-v2048:2048:2048";
+    dataLayoutStr += "-v4096:4096:4096";
+#endif
 
     DataLayout* dl = plugin_->getDataLayout();
     dl->reset(dataLayoutStr.c_str());

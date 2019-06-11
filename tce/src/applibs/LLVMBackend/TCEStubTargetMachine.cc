@@ -103,10 +103,18 @@ StringRef DescriptionStringBE = "E-p:32:32:32-i1:8:8-i8:8:32-"
     "f32:32:32-f64:32:32-v64:32:32-"
     "v128:32:32-v256:32:32-v512:32:32-v1024:32:32-a0:0:32-n32";
 
+#if LLVM_HAS_CUSTOM_VECTOR_EXTENSION == 2
+StringRef DescriptionStringLE = "e-p:32:32:32-i1:8:8-i8:8:32-"
+    "i16:16:32-i32:32:32-i64:32:32-"
+    "f32:32:32-f64:32:32-v64:64:64-"
+    "v128:128:128-v256:256:256-v512:512:512-v1024:1024:1024-"
+    "v2048:2048:2048-v4096:4096:4096-a0:0:32-n32";
+#else
 StringRef DescriptionStringLE = "e-p:32:32:32-i1:8:8-i8:8:32-"
     "i16:16:32-i32:32:32-i64:32:32-"
     "f32:32:32-f64:32:32-v64:64:64-"
     "v128:128:128-v256:256:256-v512:512:512-v1024:1024:1024-a0:0:32-n32";
+#endif
 
 StringRef getTargetDesc(const Triple &TT) {
     if (TT.getArchName().equals("tce"))
