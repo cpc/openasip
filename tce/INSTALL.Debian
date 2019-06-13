@@ -11,11 +11,12 @@ This needs root/admin privileges.
 
   sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
     tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
-    libffi-dev autoconf automake libtool subversion bzr
+    libffi-dev autoconf automake libtool subversion git
 
   ## Ubuntu 14.04 LTS:
   ## You need to enable the universe and multiverse repositories first:
   ## https://help.ubuntu.com/community/Repositories/Ubuntu#Adding_Repositories_in_Ubuntu
+
   sudo apt-get install libwxgtk2.8-dev libboost-all-dev \
     tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
     libffi-dev autoconf automake libtool subversion git cmake
@@ -23,6 +24,7 @@ This needs root/admin privileges.
   ## Ubuntu 16.04 LTS:
   ## You need to enable the universe and multiverse repositories first:
   ## https://help.ubuntu.com/community/Repositories/Ubuntu#Adding_Repositories_in_Ubuntu
+
   sudo apt-get install libwxgtk3.0-dev libboost-all-dev \
     tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make latex2html \
     libffi-dev autoconf automake libtool subversion git cmake
@@ -35,29 +37,29 @@ This needs root/admin privileges.
 
   cd tce-devel/tce
   sudo apt-get install subversion cmake
-  sudo tools/scripts/install_llvm_6.0.sh $HOME/local
+  sudo tools/scripts/install_llvm_8.0.sh $HOME/local
 
-* Now you need to set the libraries and the binaries location in your home dir
-  to search paths:
+* Now you need to set the LLVM libraries and binaries locations in your home
+  dir to search paths:
 
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/local/lib
   export PATH=$PATH:$HOME/local/bin
   export LDFLAGS=-L$HOME/local/lib
 
-You better put the above environment variable modification commands to 
-your ~/.bashrc or similar so they are taken in effect automatically whenever 
-you start a new shell. Otherwise you need to remember to enter them 
+You might want to put the above environment variable modification commands to
+your ~/.bashrc or similar so they are taken in effect automatically whenever
+you start a new shell. Otherwise you need to remember to enter them
 before attempting to use TCE.
 
 * Build and install TCE.
 
-  ./autogen.sh && ./configure --prefix=$HOME/local && make -s all install
+  ./autogen.sh && ./configure --prefix=$HOME/local && make && make install
 
 Now TCE commands such as 'ttasim' should work. Check this with:
 
   ttasim --version
 
-You can now try to run the smoke test script to see if it finds any problems with 
+You can now try to run the smoke test script to see if it finds any problems with
 your installation:
 
   # You might need to add your TCE to the dynamic lib search paths:
@@ -81,5 +83,6 @@ committed in the version control system, you can do the following steps:
 
 * Build and install the updated TCE:
 
-  make -s all install
+  make && make install
+
 

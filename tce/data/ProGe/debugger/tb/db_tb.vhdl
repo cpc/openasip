@@ -1,4 +1,4 @@
--- Copyright (c) 2016 Tampere University of Technology
+-- Copyright (c) 2016 Tampere University
 -- 
 -- Permission is hereby granted, free of charge, to any person obtaining a
 -- copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 -------------------------------------------------------------------------------
 -- File       : db_tb.vhdl
 -- Author     : Aleksi Tervo <aleksi.tervo@tut.fi>
--- Company    : Tampere University of Technology
+-- Company    : Tampere University
 -- Created    : 2016-07-07
 -- Last update: 2016-07-07
 -- Platform   :

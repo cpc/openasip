@@ -1,7 +1,0 @@
-<?php
-// short test description
-$test_description="ADFCombiner Explorer plugin test case.";
-
-// the binary being tested
-$test_bin="./run_adfcombiner.sh";
-?>
