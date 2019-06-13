@@ -87,9 +87,7 @@ ValueReplacer::~ValueReplacer() {
  * @exception WritePastEOF If replacer tried to write past end of file.
  */
 void
-ValueReplacer::resolve()
-    throw (UnreachableStream, WritePastEOF) {
-
+ValueReplacer::resolve() {
     if(!tryToReplace()) {
         addReplacement(clone());
     }
@@ -126,9 +124,7 @@ ValueReplacer::initialize(BinaryStream& stream) {
  * @exception WritePastEOF If replacer tried to write past end of file.
  */
 void
-ValueReplacer::finalize()
-    throw (MissingKeys, UnreachableStream, WritePastEOF) {
-
+ValueReplacer::finalize() {
     while (!replacements_.empty()) {
         ValueReplacer* replacer = *(replacements_.begin());
 

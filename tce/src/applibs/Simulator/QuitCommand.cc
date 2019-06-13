@@ -67,9 +67,8 @@ QuitCommand::~QuitCommand() {
  * @exception NumberFormatException Is never thrown by this command.
  *
  */
-bool 
-QuitCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
+bool
+QuitCommand::execute(const std::vector<DataObject>& arguments) {
     const int argumentCount = arguments.size() - 1;
     if (!checkArgumentCount(argumentCount, 0, 0)) {
         return false;

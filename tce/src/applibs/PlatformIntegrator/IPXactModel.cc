@@ -112,15 +112,16 @@ IPXactModel::IPXactModel():
     addressSpaces_(),  hdlFiles_(), otherFiles_() {
 }
 
-
 IPXactModel::IPXactModel(const ObjectState* state)
-    throw (ObjectStateLoadingException): 
-    vlnv_("","","",""), signals_(), parameters_(), busInterfaces_(), 
-    addressSpaces_(), hdlFiles_(), otherFiles_() {
-
+    : vlnv_("", "", "", ""),
+      signals_(),
+      parameters_(),
+      busInterfaces_(),
+      addressSpaces_(),
+      hdlFiles_(),
+      otherFiles_() {
     loadState(state);
 }
-
 
 IPXactModel::~IPXactModel() {
 

@@ -48,18 +48,15 @@ class Procedure;
  */
 class CodeLabel : public Label {
 public:
-    CodeLabel(const InstructionReference& ins, std::string name)
-        throw (IllegalRegistration);
-    CodeLabel(const Procedure& proc)
-        throw (IllegalRegistration);
+    CodeLabel(const InstructionReference& ins, std::string name);
+    CodeLabel(const Procedure& proc);
 
     virtual ~CodeLabel();
 
     virtual Address address() const;
 
-    const InstructionReference instructionReference() const
-        throw (IllegalRegistration);
-    const Procedure& procedure() const throw (IllegalRegistration);
+    const InstructionReference instructionReference() const;
+    const Procedure& procedure() const;
 
 private:
     /// Reference to instruction corresponding to this label.

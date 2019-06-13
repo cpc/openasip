@@ -224,10 +224,8 @@ SimulatorFrontend::loadProgram(const Program& program) {
  *
  * @param program The machine to be loaded.
  */
-void 
-SimulatorFrontend::loadMachine(const Machine& machine)
-    throw (SimulationStillRunning, IllegalProgram) {
-
+void
+SimulatorFrontend::loadMachine(const Machine& machine) {
     if (currentMachine_ != NULL && machineOwnedByFrontend_) {
         delete currentMachine_;
         currentMachine_ = NULL;
@@ -529,10 +527,8 @@ SimulatorFrontend::initializeDataMemories(
  * @exception IllegalMachine If the ADF was erroneus.
  *
  */
-void 
-SimulatorFrontend::loadMachine(const std::string& fileName)
-    throw (FileNotFound, IOException, SimulationStillRunning, IllegalMachine) {
-
+void
+SimulatorFrontend::loadMachine(const std::string& fileName) {
     SimulatorTextGenerator& textGen = SimulatorToolbox::textGenerator();
 
     if (!FileSystem::fileExists(fileName)) {
@@ -598,10 +594,8 @@ SimulatorFrontend::loadMachine(const std::string& fileName)
  * @exception IllegalMachine If the ADF was erroneus.
  *
  */
-void 
-SimulatorFrontend::loadProcessorConfiguration(const std::string& fileName)
-    throw (FileNotFound, IOException, SimulationStillRunning, IllegalMachine) {
-
+void
+SimulatorFrontend::loadProcessorConfiguration(const std::string& fileName) {
     SimulatorTextGenerator& textGen = SimulatorToolbox::textGenerator();
 
     if (!FileSystem::fileExists(fileName)) {
@@ -629,7 +623,6 @@ SimulatorFrontend::loadProcessorConfiguration(const std::string& fileName)
     
     loadMachine(adfName);
 }
-
 
 /* Because memory models are initialized before the controller,
  * and RemoteMemory accesses its physical memory via the controller, 
@@ -709,9 +702,7 @@ SimulatorFrontend::initializeSimulation() {
  * @exception InstanceNotFound If bool register cannot be found.
  */
 StateData&
-SimulatorFrontend::findBooleanRegister() 
-    throw (InstanceNotFound) {
-
+SimulatorFrontend::findBooleanRegister() {
     assert(currentMachine_ != NULL);
 
     Machine::RegisterFileNavigator navigator = 
@@ -787,10 +778,7 @@ SimulatorFrontend::FUPortValue(
  * @exception InstanceNotFound If the register cannot be found.
  */
 StateData&
-SimulatorFrontend::findRegister(
-    const std::string& rfName, int registerIndex) 
-    throw (InstanceNotFound) {
-
+SimulatorFrontend::findRegister(const std::string& rfName, int registerIndex) {
     assert(currentMachine_ != NULL);
 
     Machine::RegisterFileNavigator navigator = 
@@ -825,9 +813,7 @@ SimulatorFrontend::findRegister(
  */
 StateData&
 SimulatorFrontend::findPort(
-    const std::string& fuName, const std::string& portName)
-    throw (InstanceNotFound) {
-
+    const std::string& fuName, const std::string& portName) {
     assert(currentMachine_ != NULL);
 
     const std::string exceptionMessage =
@@ -871,7 +857,6 @@ SimulatorFrontend::findPort(
         __FILE__, __LINE__, __func__, exceptionMessage);
 }
 
-
 /**
  * Tries to locate a readable machine state part using a search string.
  *
@@ -884,9 +869,8 @@ SimulatorFrontend::findPort(
  * @exception InstanceNotFound In case state couldn't be found using the
  *            search string.
  */
-const SimValue& 
-SimulatorFrontend::stateValue(std::string searchString) 
-    throw (InstanceNotFound) {
+const SimValue&
+SimulatorFrontend::stateValue(std::string searchString) {
     return state(searchString).value();
 }
 
@@ -902,9 +886,7 @@ SimulatorFrontend::stateValue(std::string searchString)
  *
  */
 StateData&
-SimulatorFrontend::state(std::string searchString) 
-    throw (InstanceNotFound) {
-
+SimulatorFrontend::state(std::string searchString) {
     if (machineState_ == NULL || currentMachine_ == NULL) 
         throw InstanceNotFound(
             __FILE__, __LINE__, __func__, "State not found.");
@@ -1007,9 +989,7 @@ timeoutThread(unsigned int timeout, SimulatorFrontend* simFE) {
  * @todo Throw exception if simulation is not initialized.
  */
 void
-SimulatorFrontend::run() 
-    throw (SimulationExecutionError) {
- 
+SimulatorFrontend::run() {
     startTimer();
     boost::thread timeout(
         boost::bind(timeoutThread, simulationTimeout_, this));
@@ -1027,10 +1007,8 @@ SimulatorFrontend::run()
  *                                     the simulated program.
  * @todo Throw exception if simulation is not initialized.
  */
-void 
-SimulatorFrontend::runUntil(UIntWord address) 
-    throw (SimulationExecutionError) {
-
+void
+SimulatorFrontend::runUntil(UIntWord address) {
     startTimer();
     boost::thread timeout(boost::bind(timeoutThread, 
         simulationTimeout_, this));
@@ -1040,7 +1018,6 @@ SimulatorFrontend::runUntil(UIntWord address)
     delete utilizationStats_;
     utilizationStats_ = NULL;
 }
-
 
 /**
  * Advance simulation by a given amout of cycles.
@@ -1052,9 +1029,7 @@ SimulatorFrontend::runUntil(UIntWord address)
  * @todo Throw exception if simulation is not initialized.
  */
 void
-SimulatorFrontend::step(double count) 
-    throw (SimulationExecutionError) {
-
+SimulatorFrontend::step(double count) {
     assert(simCon_ != NULL);
 
     simCon_->step(count);
@@ -1073,9 +1048,7 @@ SimulatorFrontend::step(double count)
  * @todo Throw exception if simulation is not initialized.
  */
 void
-SimulatorFrontend::next(int count) 
-    throw (SimulationExecutionError) {
-
+SimulatorFrontend::next(int count) {
     assert(simCon_ != NULL);
 
     startTimer();
@@ -1380,9 +1353,8 @@ SimulatorFrontend::stopReasonCount() const {
  * @return The stop reason at the given index.
  * @exception OutOfRange If the given index is out of range.
  */
-StopReason 
-SimulatorFrontend::stopReason(unsigned int index) const 
-    throw (OutOfRange) {
+StopReason
+SimulatorFrontend::stopReason(unsigned int index) const {
     assert(simCon_ != NULL);
     return simCon_->stopReason(index);
 }
@@ -1440,9 +1412,7 @@ SimulatorFrontend::stoppedByUser() const {
  * @exception IOException In case trace database file could not be accessed.
  */
 void
-SimulatorFrontend::initializeTracing() 
-    throw (IOException) {
-
+SimulatorFrontend::initializeTracing() {
     if (executionTracing_ || rfAccessTracing_ || 
         procedureTransferTracing_ || saveProfileData_ || 
         saveUtilizationData_) {
@@ -1841,9 +1811,8 @@ SimulatorFrontend::staticCompilation() const {
  * @return The register file access tracker.
  * @exception InstanceNotFound If RF access tracking is not enabled.
  */
-const RFAccessTracker& 
-SimulatorFrontend::rfAccessTracker() const
-    throw (InstanceNotFound) {
+const RFAccessTracker&
+SimulatorFrontend::rfAccessTracker() const {
     if (rfAccessTracker_ == NULL) {
         throw InstanceNotFound(
             __FILE__, __LINE__, __func__, "RF access tracing is disabled.");

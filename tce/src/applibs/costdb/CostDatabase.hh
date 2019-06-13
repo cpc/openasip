@@ -63,31 +63,25 @@ class CostDatabaseRegistry;
  */
 class CostDatabase {
 public:
-
-    static CostDatabase& instance(const HDB::HDBManager& hdb)
-        throw (Exception);
+    static CostDatabase& instance(const HDB::HDBManager& hdb);
     virtual ~CostDatabase();
 
-    void buildDefaultCostDatabase()
-        throw (Exception);
-    void buildRegisterFiles(const std::string& rfEstimatorPluginName)
-        throw (Exception);
-    void buildFunctionUnits(const std::string& fuEstimatorPluginName)
-        throw (Exception);
-    void buildBuses(const std::string& busEstimatorPluginName)
-        throw (Exception);
-    void buildSockets(const std::string& socketEstimatorPluginName)
-        throw (Exception);
+    void buildDefaultCostDatabase();
+    void buildRegisterFiles(const std::string& rfEstimatorPluginName);
+    void buildFunctionUnits(const std::string& fuEstimatorPluginName);
+    void buildBuses(const std::string& busEstimatorPluginName);
+    void buildSockets(const std::string& socketEstimatorPluginName);
     bool isRegisterFilesBuilt();
     bool isFunctionUnitsBuilt();
     bool isBusesBuilt();
     bool isSocketsBuilt();
 
-    void insertEntry(CostDBEntry* entry) throw (ObjectAlreadyExists);
+    void insertEntry(CostDBEntry* entry);
     void setSearchStrategy(SearchStrategy* strategy);
     CostDBTypes::EntryTable search(
         const CostDBEntryKey& searchKey,
-        const CostDBTypes::MatchTypeTable& match) const throw (KeyNotFound);
+        const CostDBTypes::MatchTypeTable& match) const;
+
 private:
     /// CostDatabase must be created with instance() method.
     CostDatabase(const HDB::HDBManager& hdb);

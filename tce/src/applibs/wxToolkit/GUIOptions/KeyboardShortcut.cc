@@ -265,9 +265,7 @@ KeyboardShortcut::equals(const KeyboardShortcut& sc) const {
  *                                        is invalid.
  */
 void
-KeyboardShortcut::loadState(const ObjectState* state) 
-    throw (ObjectStateLoadingException) {
-
+KeyboardShortcut::loadState(const ObjectState* state) {
     const string procName = "KeyboardShortcut::loadState";
 
     if (state->name() != OSNAME_KEYBOARD_SHORTCUT) {
@@ -302,7 +300,6 @@ KeyboardShortcut::loadState(const ObjectState* state)
         throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Creates an ObjectState object and saves the state of the object into it.

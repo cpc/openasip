@@ -53,8 +53,7 @@ public:
     virtual ~MachineCheckSuite();
 
     int checkCount() const;
-    const MachineCheck& check(int index)
-        throw (OutOfRange);
+    const MachineCheck& check(int index);
 
     bool run(
         const TTAMachine::Machine& machine,

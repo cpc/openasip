@@ -54,15 +54,12 @@ public:
 
     virtual std::string name() const;
     virtual bool definesBehavior() const;
-    virtual std::string behaviorModule() const
-        throw (FileNotFound);
+    virtual std::string behaviorModule() const;
     virtual std::string propertiesModule() const;
     virtual bool hasBehaviorSource() const;
-    virtual std::string behaviorSourceModule() const
-        throw (FileNotFound);
+    virtual std::string behaviorSourceModule() const;
 
 private:
-
     std::string propertyFileName() const;
     std::string behaviorFileName() const;
     std::string behaviorSourceFileName() const;
@@ -97,15 +94,12 @@ public:
 
     virtual std::string name() const;
     virtual bool definesBehavior() const;
-    virtual std::string behaviorModule() const
-        throw (FileNotFound);
+    virtual std::string behaviorModule() const;
     virtual std::string propertiesModule() const;
     virtual bool hasBehaviorSource() const;
-    virtual std::string behaviorSourceModule() const
-	throw (FileNotFound);
+    virtual std::string behaviorSourceModule() const;
 
 private:
-
     NullOperationModule();
     NullOperationModule(const NullOperationModule& om);
     NullOperationModule& operator=(const NullOperationModule& om);

@@ -76,7 +76,7 @@ NullProcedure::instance() {
  * @exception IllegalRegistration never.
  */
 Program&
-NullProcedure::parent() const throw (IllegalRegistration) {
+NullProcedure::parent() const {
     abortWithError("parent()");
     return NullProgram::instance();
 }
@@ -119,9 +119,7 @@ NullProcedure::alignment() const {
  * @exception IllegalRegistration never.
  */
 Address
-NullProcedure::address(const Instruction&) const
-    throw (IllegalRegistration) {
-
+NullProcedure::address(const Instruction&) const {
     abortWithError("address()");
     return NullAddress::instance();
 }
@@ -168,7 +166,7 @@ NullProcedure::instructionCount() const {
 }
 
 Instruction&
-NullProcedure::firstInstruction() const throw (InstanceNotFound) {
+NullProcedure::firstInstruction() const {
     abortWithError("firstInstruction()");
     return NullInstruction::instance();
 }
@@ -180,9 +178,7 @@ NullProcedure::firstInstruction() const throw (InstanceNotFound) {
  * @exception KeyNotFound never.
  */
 Instruction&
-NullProcedure::instructionAt(UIntWord) const
-    throw (KeyNotFound) {
-
+NullProcedure::instructionAt(UIntWord) const {
     abortWithError("instructionAt()");
     return NullInstruction::instance();
 }
@@ -194,8 +190,7 @@ NullProcedure::instructionAt(UIntWord) const
  * @exception IllegalRegistration never.
  */
 bool
-NullProcedure::hasNextInstruction(const Instruction&) const
-    throw (IllegalRegistration) {
+NullProcedure::hasNextInstruction(const Instruction&) const {
     abortWithError("hasNextInstruction()");
     return false;
 }
@@ -207,9 +202,7 @@ NullProcedure::hasNextInstruction(const Instruction&) const
  * @exception IllegalRegistration never.
  */
 Instruction&
-NullProcedure::nextInstruction(const Instruction&) const
-    throw (IllegalRegistration) {
-
+NullProcedure::nextInstruction(const Instruction&) const {
     abortWithError("nextInstruction()");
     return NullInstruction::instance();
 }
@@ -221,9 +214,7 @@ NullProcedure::nextInstruction(const Instruction&) const
  * @exception IllegalRegistration never.
  */
 Instruction&
-NullProcedure::previousInstruction(const Instruction&) const
-    throw (IllegalRegistration) {
-
+NullProcedure::previousInstruction(const Instruction&) const {
     abortWithError("previousInstruction()");
     return NullInstruction::instance();
 }
@@ -235,7 +226,7 @@ NullProcedure::previousInstruction(const Instruction&) const
  * @exception IllegalRegistration never.
  */
 Instruction&
-NullProcedure::lastInstruction() const throw (IllegalRegistration) {
+NullProcedure::lastInstruction() const {
     abortWithError("lastInstruction()");
     return NullInstruction::instance();
 }
@@ -246,7 +237,7 @@ NullProcedure::lastInstruction() const throw (IllegalRegistration) {
  * @exception IllegalRegistration never.
  */
 void
-NullProcedure::addInstruction(Instruction&) throw (IllegalRegistration) {
+NullProcedure::addInstruction(Instruction&) {
     abortWithError("addInstruction()");
 }
 
@@ -256,10 +247,7 @@ NullProcedure::addInstruction(Instruction&) throw (IllegalRegistration) {
  * @exception IllegalRegistration never.
  */
 void
-NullProcedure::insertInstructionAfter(
-    const Instruction&, Instruction*) throw (IllegalRegistration) {
-
+NullProcedure::insertInstructionAfter(const Instruction&, Instruction*) {
     abortWithError("insertInstructionAfter()");
 }
-
 }

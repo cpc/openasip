@@ -59,7 +59,7 @@ public:
 
     virtual ElementType type() const;
 
-    virtual Byte byte(Word index) const throw (OutOfRange);
+    virtual Byte byte(Word index) const;
     virtual Word length() const;
 
     Byte stabType() const;

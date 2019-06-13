@@ -54,8 +54,7 @@ public:
     TestCmd();
     virtual ~TestCmd();
 
-    virtual bool execute(const vector<DataObject>& arguments)
-        throw (NumberFormatException);
+    virtual bool execute(const vector<DataObject>& arguments);
     virtual string helpText() const;
 };
 
@@ -78,9 +77,7 @@ TestCmd::~TestCmd() {
  * @exception NumberFormatException Can not throw.
  */
 bool
-TestCmd::execute(const vector<DataObject>&) 
-    throw (NumberFormatException) {
-    
+TestCmd::execute(const vector<DataObject>&) {
     ScriptInterpreter* interp = interpreter();
     LineReader* reader = interp->lineReader();
     DataObject* obj = new DataObject();

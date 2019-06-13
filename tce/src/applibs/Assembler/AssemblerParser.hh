@@ -916,8 +916,7 @@ struct AssemblerParser : public grammar<AssemblerParser>
 public:
     bool compile(std::string& asmCode) const;
 
-    void finalize(bool littleEndian) const
-        throw (CompileError);
+    void finalize(bool littleEndian) const;
 
     void cleanup();
 

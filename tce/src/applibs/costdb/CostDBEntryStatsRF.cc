@@ -102,9 +102,7 @@ CostDBEntryStatsRF::createStats() const {
  * @exception KeyNotFound Never thown by this function.
  */
 double
-CostDBEntryStatsRF::energyActive() const
-    throw (WrongSubclass, KeyNotFound) {
-    
+CostDBEntryStatsRF::energyActive() const {
     throw WrongSubclass(__FILE__, __LINE__, 
 			"CostDBEntryStatsRF::energyActive");
     return 0.0; // stupid return statement to make compiler quiet
@@ -118,9 +116,7 @@ CostDBEntryStatsRF::energyActive() const
  * @exception KeyNotFound Throws if read energy is not set.
  */
 double
-CostDBEntryStatsRF::energyRead() const
-    throw (WrongSubclass, KeyNotFound) {
-
+CostDBEntryStatsRF::energyRead() const {
     return findEnergy(ENERGY_READ);
 }
 
@@ -132,9 +128,7 @@ CostDBEntryStatsRF::energyRead() const
  * @exception KeyNotFound Throws if write energy is not set.
  */
 double
-CostDBEntryStatsRF::energyWrite() const
-    throw (WrongSubclass, KeyNotFound) {
-    
+CostDBEntryStatsRF::energyWrite() const {
     return findEnergy(ENERGY_WRITE);
 }
 
@@ -148,9 +142,7 @@ CostDBEntryStatsRF::energyWrite() const
  * @exception KeyNotFound Throws if the requested energy is not found.
  */
 double
-CostDBEntryStatsRF::energyReadWrite(int reads, int writes) const
-    throw (WrongSubclass, KeyNotFound) {
-    
+CostDBEntryStatsRF::energyReadWrite(int reads, int writes) const {
     return findEnergy(generateReadWriteString(reads, writes));
 }
 
@@ -165,9 +157,7 @@ CostDBEntryStatsRF::energyReadWrite(int reads, int writes) const
  * instance.
  */
 void
-CostDBEntryStatsRF::setEnergyActive(double)
-    throw (WrongSubclass) {
-   
+CostDBEntryStatsRF::setEnergyActive(double) {
     throw WrongSubclass(__FILE__, __LINE__,
 			"CostDBEntryStatsRF::setEnergyActive");
 }
@@ -179,9 +169,7 @@ CostDBEntryStatsRF::setEnergyActive(double)
  * @exception WrongSubclass An illegal function was called for this instance.
  */
 void
-CostDBEntryStatsRF::setEnergyRead(double energy)
-    throw (WrongSubclass) {
-
+CostDBEntryStatsRF::setEnergyRead(double energy) {
     addEnergy(ENERGY_READ, energy);
 }
 
@@ -192,9 +180,7 @@ CostDBEntryStatsRF::setEnergyRead(double energy)
  * @exception WrongSubclass Never thrown by this function.
  */
 void
-CostDBEntryStatsRF::setEnergyWrite(double energy)
-    throw (WrongSubclass) {
-   
+CostDBEntryStatsRF::setEnergyWrite(double energy) {
     addEnergy(ENERGY_WRITE, energy);
 }
 
@@ -207,12 +193,9 @@ CostDBEntryStatsRF::setEnergyWrite(double energy)
  * @exception WrongSubclass Never thrown by this function.
  */
 void
-CostDBEntryStatsRF::setEnergyReadWrite(int reads, int writes, double energy)
-    throw (WrongSubclass) {
-
+CostDBEntryStatsRF::setEnergyReadWrite(int reads, int writes, double energy) {
     addEnergy(generateReadWriteString(reads, writes), energy);
 }
-
 
 /**
  * Returns a string corresponding to given (read,write) combination in

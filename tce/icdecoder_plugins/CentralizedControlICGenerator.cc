@@ -61,10 +61,7 @@ CentralizedControlICGenerator::~CentralizedControlICGenerator() {
  * @exception InstanceNotFound If the port was not created.
  */
 ProGe::NetlistPort&
-CentralizedControlICGenerator::simmDataPort(
-    const std::string& busName) const
-    throw (InstanceNotFound) {
-
+CentralizedControlICGenerator::simmDataPort(const std::string& busName) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(
             simmDataPortMap_, busName);
@@ -72,7 +69,6 @@ CentralizedControlICGenerator::simmDataPort(
         throw InstanceNotFound(__FILE__, __LINE__, __func__);
     }
 }
-
 
 /**
  * Returns the short immediate control port for the given bus.
@@ -82,10 +78,7 @@ CentralizedControlICGenerator::simmDataPort(
  * @exception InstanceNotFound If the port was not created.
  */
 ProGe::NetlistPort&
-CentralizedControlICGenerator::simmCntrlPort(
-    const std::string& busName) const 
-    throw (InstanceNotFound) {
-
+CentralizedControlICGenerator::simmCntrlPort(const std::string& busName) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(
             simmCntrlPortMap_, busName);
@@ -93,7 +86,6 @@ CentralizedControlICGenerator::simmCntrlPort(
         throw InstanceNotFound(__FILE__, __LINE__, __func__);
     }
 }
-
 
 /**
  * Returns the bus control port of the given socket in the IC block.
@@ -104,16 +96,13 @@ CentralizedControlICGenerator::simmCntrlPort(
  */
 ProGe::NetlistPort&
 CentralizedControlICGenerator::busCntrlPortOfSocket(
-    const std::string& socketName) const 
-    throw (InstanceNotFound) {
-
+    const std::string& socketName) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(busCntrlPortMap_, socketName);
     } catch (const Exception&) {
         throw InstanceNotFound(__FILE__, __LINE__, __func__);
     }
 }
-
 
 /**
  * Returns the data control port of the given socket in the IC block.
@@ -124,16 +113,13 @@ CentralizedControlICGenerator::busCntrlPortOfSocket(
  */
 ProGe::NetlistPort&
 CentralizedControlICGenerator::dataCntrlPortOfSocket(
-    const std::string& socketName) const
-    throw (InstanceNotFound) {
-
+    const std::string& socketName) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(dataCntrlPortMap_, socketName);
     } catch (const Exception&) {
         throw InstanceNotFound(__FILE__, __LINE__, __func__);
     }
 }
-
 
 /**
  * Returns true if IC has glock port.
@@ -150,8 +136,7 @@ CentralizedControlICGenerator::hasGlockPort() const {
  * @exception InstanceNotFound If IC does not have glock port.
  */
 ProGe::NetlistPort&
-CentralizedControlICGenerator::glockPort() const
-    throw (InstanceNotFound) {
+CentralizedControlICGenerator::glockPort() const {
     if (!hasGlockPort()) {
         throw InstanceNotFound(__FILE__, __LINE__, __func__,
             "IC does not have glock port.");
@@ -159,7 +144,6 @@ CentralizedControlICGenerator::glockPort() const
         return *glockPort_;
     }
 }
-
 
 /**
  * Maps the given netlist port as the short immediate data port of the 

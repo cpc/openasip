@@ -60,27 +60,24 @@ namespace HDB {
  * @exception OutOfRange If some of the arguments is out of range.
  */
 RFArchitecture::RFArchitecture(
-    int readPorts,
-    int writePorts,
-    int bidirPorts,
-    int maxReads,
-    int maxWrites,
-    int latency,
-    bool guardSupport,
-    int guardLatency)
-    throw (OutOfRange) :
-    readPorts_(readPorts), writePorts_(writePorts), bidirPorts_(bidirPorts),
-    maxReads_(maxReads), maxWrites_(maxWrites), latency_(latency), 
-    guardSupport_(guardSupport), width_(0), size_(0),
-    guardLatency_(guardLatency) {
-
+    int readPorts, int writePorts, int bidirPorts, int maxReads, int maxWrites,
+    int latency, bool guardSupport, int guardLatency)
+    : readPorts_(readPorts),
+      writePorts_(writePorts),
+      bidirPorts_(bidirPorts),
+      maxReads_(maxReads),
+      maxWrites_(maxWrites),
+      latency_(latency),
+      guardSupport_(guardSupport),
+      width_(0),
+      size_(0),
+      guardLatency_(guardLatency) {
     if (readPorts < 0 || writePorts < 0 || bidirPorts < 0 || maxReads < 0 ||
         maxWrites < 0 || latency < 1 || guardLatency < 0) {
         const string procName = "RFArchitecture::RFArchitecture";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Builds RFArchitecture from RegisterFile*.
@@ -291,9 +288,7 @@ RFArchitecture::hasParameterizedSize() const {
  * @exception OutOfRange If the width is less than 1.
  */
 void
-RFArchitecture::setWidth(int width)
-    throw (OutOfRange) {
-
+RFArchitecture::setWidth(int width) {
     if (width < 1) {
         const string procName = "RFArchitecture::setWidth";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -302,7 +297,6 @@ RFArchitecture::setWidth(int width)
     }
 }
 
-
 /**
  * Sets the size of the register file.
  *
@@ -310,9 +304,7 @@ RFArchitecture::setWidth(int width)
  * @exception OutOfRange If the size is less than 1.
  */
 void
-RFArchitecture::setSize(int size)
-    throw (OutOfRange) {
-
+RFArchitecture::setSize(int size) {
     if (size < 1) {
         const string procName = "RFArchitecture::setSize";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -321,7 +313,6 @@ RFArchitecture::setSize(int size)
     }
 }
 
-
 /**
  * Returns the size of the register file.
  *
@@ -329,9 +320,7 @@ RFArchitecture::setSize(int size)
  * @exception NotAvailable If the size is parameterized.
  */
 int
-RFArchitecture::size() const
-    throw (NotAvailable) {
-
+RFArchitecture::size() const {
     if (hasParameterizedSize()) {
         const string procName = "RFArchitecture::size";
         throw NotAvailable(__FILE__, __LINE__, procName);
@@ -339,7 +328,6 @@ RFArchitecture::size() const
         return size_;
     }
 }
-
 
 /**
  * Returns the width of the register file.
@@ -349,9 +337,7 @@ RFArchitecture::size() const
  *                         parameterized.
  */
 int
-RFArchitecture::width() const
-    throw (NotAvailable) {
-
+RFArchitecture::width() const {
     if (hasParameterizedWidth()) {
         const string procName = "RFArchitecture::width";
         throw NotAvailable(__FILE__, __LINE__, procName);
@@ -360,7 +346,6 @@ RFArchitecture::width() const
     }
 }
 
-
 /**
  * Sets the number of read ports.
  *
@@ -368,15 +353,12 @@ RFArchitecture::width() const
  * @exception OutOfRange If the given port count is negative.
  */
 void
-RFArchitecture::setReadPortCount(int portCount) 
-    throw (OutOfRange) {
-
+RFArchitecture::setReadPortCount(int portCount) {
     if (portCount < 0) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
     readPorts_ = portCount;
 }
-
 
 /**
  * Returns the number of read ports.
@@ -396,15 +378,12 @@ RFArchitecture::readPortCount() const {
  * @exception OutOfRange If the given port count is smaller than 1.
  */
 void
-RFArchitecture::setWritePortCount(int portCount) 
-    throw (OutOfRange) {
-
+RFArchitecture::setWritePortCount(int portCount) {
     if (portCount < 0) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
     writePorts_ = portCount;
 }
-
 
 /**
  * Returns the number of write ports.
@@ -424,15 +403,12 @@ RFArchitecture::writePortCount() const {
  * @exception OutOfRange If the given port count is negative.
  */
 void
-RFArchitecture::setBidirPortCount(int portCount) 
-    throw (OutOfRange)  {
-
+RFArchitecture::setBidirPortCount(int portCount) {
     if (portCount < 0) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
     bidirPorts_ = portCount;
 }
-
 
 /**
  * Returns the number of bidirectional ports.
@@ -452,15 +428,12 @@ RFArchitecture::bidirPortCount() const {
  * @exception OutOfRange If the given value is negative.
  */
 void
-RFArchitecture::setMaxReads(int maxReads) 
-    throw (OutOfRange) {
-
+RFArchitecture::setMaxReads(int maxReads) {
     if (maxReads < 0) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
     maxReads_ = maxReads;
 }
-
 
 /**
  * Returns the maximum number of simultaneous reads.
@@ -480,15 +453,12 @@ RFArchitecture::maxReads() const {
  * @exception OutOfRange If the given value is negative.
  */
 void
-RFArchitecture::setMaxWrites(int maxWrites) 
-    throw (OutOfRange) {
-
+RFArchitecture::setMaxWrites(int maxWrites) {
     if (maxWrites < 0) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
     maxWrites_ = maxWrites;
 }
-
 
 /**
  * Returns the maximum number of simultaneous writes.
@@ -508,15 +478,12 @@ RFArchitecture::maxWrites() const {
  * @exception OutOfRange If the given latency is smaller than 1.
  */
 void
-RFArchitecture::setLatency(int latency) 
-    throw (OutOfRange) {
-
+RFArchitecture::setLatency(int latency) {
     if (latency < 1) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
     latency_ = latency;
 }
-
 
 /**
  * Returns the latency of the register file.

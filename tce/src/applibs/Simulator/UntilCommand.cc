@@ -72,10 +72,8 @@ UntilCommand::~UntilCommand() {
  * @return True in case simulation is initialized and arguments are ok.
  * @exception NumberFormatException Is never thrown by this command.
  */
-bool 
-UntilCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-    
+bool
+UntilCommand::execute(const std::vector<DataObject>& arguments) {
     boost::timer time;
     
     const int argumentCount = arguments.size() - 1;

@@ -65,10 +65,8 @@ MachCommand::~MachCommand() {
  * @exception NumberFormatException Is never thrown by this command.
  *
  */
-bool 
-MachCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+MachCommand::execute(const std::vector<DataObject>& arguments) {
     assert(interpreter() != NULL);
 
     SimulatorTextGenerator& textGen = SimulatorToolbox::textGenerator();    

@@ -127,10 +127,7 @@ SectionWriter::finalizeBinary(
  */
 const SectionWriter*
 SectionWriter::findSectionWriter(
-    const Section::SectionType type,
-    const BinaryWriter* bWriter)
-    throw (InstanceNotFound) {
-
+    const Section::SectionType type, const BinaryWriter* bWriter) {
     MapKey key(type, bWriter);
 
     if (prototypes_ == NULL ||

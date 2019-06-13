@@ -97,9 +97,7 @@ AnnotatedInstructionElement::setAnnotation(
  */
 ProgramAnnotation
 AnnotatedInstructionElement::annotation(
-    int index, ProgramAnnotation::Id id) const
-    throw (OutOfRange) {
-    
+    int index, ProgramAnnotation::Id id) const {
     std::pair<AnnotationIndex::const_iterator, 
         AnnotationIndex::const_iterator> range(
         annotations_.end(), annotations_.end());

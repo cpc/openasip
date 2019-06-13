@@ -216,9 +216,7 @@ InputPSocketBroker::isApplicable(const MoveNode& node) const {
  * mapping).
  */
 void
-InputPSocketBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
-    throw (Exception) {
-
+InputPSocketBroker::assign(int cycle, MoveNode& node, SchedulingResource& res) {
     if (!isApplicable(node)) {
         string msg = "Broker not capable of assigning resources to node!";
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);

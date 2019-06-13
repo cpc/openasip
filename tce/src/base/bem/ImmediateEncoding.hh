@@ -44,13 +44,9 @@ class ObjectState;
 class ImmediateEncoding : public Encoding {
 public:
     ImmediateEncoding(
-        unsigned int encoding,
-        unsigned int extraBits,
-        int immediateWidth,
-        SourceField& parent)
-        throw (OutOfRange, ObjectAlreadyExists);
-    ImmediateEncoding(const ObjectState* state, SourceField& parent)
-        throw (ObjectAlreadyExists, ObjectStateLoadingException);
+        unsigned int encoding, unsigned int extraBits, int immediateWidth,
+        SourceField& parent);
+    ImmediateEncoding(const ObjectState* state, SourceField& parent);
     virtual ~ImmediateEncoding();
 
     SourceField* parent() const;

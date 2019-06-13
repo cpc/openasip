@@ -538,9 +538,7 @@ MachineCanvas::clearHighlights() {
  * @param target Target port of the move.
  */
 void
-MachineCanvas::addMove(const Bus* bus, const Port* source, const Port* target)
-                throw (InstanceNotFound) {
-
+MachineCanvas::addMove(const Bus* bus, const Port* source, const Port* target) {
     std::string procName = "MachineCanvas::addMove";
     EditPart* busEditPart = findEditPart(bus);
 

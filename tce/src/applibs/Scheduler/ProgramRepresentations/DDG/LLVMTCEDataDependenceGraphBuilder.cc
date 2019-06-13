@@ -52,8 +52,7 @@ LLVMTCEDataDependenceGraphBuilder::buildFromCFG(
 
 DataDependenceGraph*
 LLVMTCEDataDependenceGraphBuilder::buildFromBB(
-    TTAProgram::BasicBlock& bb, const UniversalMachine*) 
-    throw (IllegalProgram) {
+    TTAProgram::BasicBlock& bb, const UniversalMachine*) {
     currentDDG_ = new DataDependenceGraph(allParamRegs_);
     buildLocalDDG(bb);
     return currentDDG_;

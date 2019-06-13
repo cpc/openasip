@@ -64,10 +64,8 @@ MemWriteCommand::~MemWriteCommand() {
  * @return True in case simulation is initialized and arguments are ok.
  * @exception NumberFormatException Is never thrown by this command.
  */
-bool 
-MemWriteCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+MemWriteCommand::execute(const std::vector<DataObject>& arguments) {
     const int argumentCount = arguments.size() - 1;
     if (!checkArgumentCount(argumentCount, 2, 5)) {
         return false;
@@ -130,7 +128,6 @@ MemWriteCommand::execute(const std::vector<DataObject>& arguments)
 
     return true;
 }
-
 
 std::string 
 MemWriteCommand::helpText() const {

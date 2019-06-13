@@ -61,22 +61,17 @@ public:
         FILE* out = stdout, 
         FILE* err = stderr) = 0;
 
-    virtual std::string readLine(std::string prompt = "")
-        throw (ObjectNotInitialized, EndOfFile) = 0;
+    virtual std::string readLine(std::string prompt = "") = 0;
 
     virtual std::ostream& outputStream();
 
     virtual char charQuestion(
-        std::string question, 
-        std::string allowedChars,
-        bool caseSensitive = false,
-        char defaultAnswer = '\0') throw (ObjectNotInitialized) = 0;
+        std::string question, std::string allowedChars,
+        bool caseSensitive = false, char defaultAnswer = '\0') = 0;
 
     bool confirmation(
-        std::string question, 
-        char defaultAnswer = 'n', 
-        char yesChar = 'y',
-        char noChar = 'n') throw (ObjectNotInitialized);
+        std::string question, char defaultAnswer = 'n', char yesChar = 'y',
+        char noChar = 'n');
 
     virtual void setSaveInputHistoryToFile(bool flag);
     virtual bool saveInputHistoryToFile() const;

@@ -51,23 +51,15 @@ public:
         const CostDBEntryStatsRF& stats2,
         double coefficient);
 
-    virtual double energyActive() const
-        throw (WrongSubclass, KeyNotFound);
-    virtual double energyRead() const
-        throw (WrongSubclass, KeyNotFound);
-    virtual double energyWrite() const
-        throw (WrongSubclass, KeyNotFound);
-    virtual double energyReadWrite(int reads, int writes) const
-        throw (WrongSubclass, KeyNotFound);
+    virtual double energyActive() const;
+    virtual double energyRead() const;
+    virtual double energyWrite() const;
+    virtual double energyReadWrite(int reads, int writes) const;
 
-    virtual void setEnergyActive(double energy)
-        throw (WrongSubclass);
-    virtual void setEnergyRead(double energy)
-        throw (WrongSubclass);
-    virtual void setEnergyWrite(double energy)
-        throw (WrongSubclass);
-    virtual void setEnergyReadWrite(int reads, int writes, double energy)
-        throw (WrongSubclass);
+    virtual void setEnergyActive(double energy);
+    virtual void setEnergyRead(double energy);
+    virtual void setEnergyWrite(double energy);
+    virtual void setEnergyReadWrite(int reads, int writes, double energy);
 
 protected:
     virtual CostDBEntryStats* createStats() const;

@@ -59,14 +59,11 @@ using namespace TTAMachine;
  *                                        the state of Machine instance.
  */
 static Machine*
-loadMachine(const std::string& adfFile) 
-    throw (SerializerException, ObjectStateLoadingException) {
-
+loadMachine(const std::string& adfFile) {
     ADFSerializer serializer;
     serializer.setSourceFile(adfFile);
     return serializer.readMachine();
 }
-
 
 /**
  * Generates the name of the output file from the given ADF file name.

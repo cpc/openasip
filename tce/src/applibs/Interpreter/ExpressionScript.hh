@@ -49,8 +49,7 @@ public:
         std::vector<std::string>& script);
     virtual ~ExpressionScript();
 
-    bool resultChanged() 
-        throw (ScriptExecutionFailure, NumberFormatException);
+    bool resultChanged();
 };
 
 #endif

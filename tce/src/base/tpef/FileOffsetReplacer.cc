@@ -66,9 +66,7 @@ FileOffsetReplacer::~FileOffsetReplacer() {
  * @return True if replacement were done.
  */
 bool
-FileOffsetReplacer::tryToReplace()
-    throw (UnreachableStream, WritePastEOF) {
-
+FileOffsetReplacer::tryToReplace() {
     try {
         FileOffsetKey key =
             SafePointer::fileOffsetKeyFor(reference());

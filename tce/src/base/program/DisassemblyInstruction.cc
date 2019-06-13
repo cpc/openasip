@@ -79,9 +79,7 @@ DisassemblyInstruction::moveCount() const {
  * @exception OutOfRange If the give index is out of range.
  */
 DisassemblyInstructionSlot&
-DisassemblyInstruction::move(Word index) const
-    throw (OutOfRange) {
-
+DisassemblyInstruction::move(Word index) const {
     if (index >= moveCount()) {
 	std::string procName = "DisassemblyInstruction::move";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -121,15 +119,12 @@ DisassemblyInstruction::longImmediateCount() const {
  * @exception OutOfRange If the give index is out of range.
  */
 DisassemblyImmediateAssignment&
-DisassemblyInstruction::longImmediate(Word index) const
-    throw (OutOfRange) {
-
+DisassemblyInstruction::longImmediate(Word index) const {
     if (index >= longImmediateCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
     return *longImmediates_[index];
 }
-
 
 /**
  * Returns disassembly of the instruction.

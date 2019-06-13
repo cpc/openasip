@@ -59,17 +59,14 @@ namespace TTAProgram {
  * @param dst Destination register.
  */
 
-//Immediate::Immediate(
+// Immediate::Immediate(
 //    SimValue value, Terminal* dst)
-//    throw (IllegalParameters) :
+//     :
 //    value_(value), dst_(dst) {
 //}
 
-Immediate::Immediate(
-    TerminalImmediate* value, Terminal* dst)
-    throw (IllegalParameters) :
-    value_(value), dst_(dst) {
-}
+Immediate::Immediate(TerminalImmediate* value, Terminal* dst)
+    : value_(value), dst_(dst) {}
 
 /**
  * The destructor.

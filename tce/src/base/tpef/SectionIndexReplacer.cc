@@ -68,8 +68,7 @@ SectionIndexReplacer::~SectionIndexReplacer() {
  * @return True if replacement were done.
  */
 bool
-SectionIndexReplacer::tryToReplace()
-    throw (UnreachableStream, WritePastEOF) {
+SectionIndexReplacer::tryToReplace() {
     try {
         SectionIndexKey key =
             SafePointer::sectionIndexKeyFor(reference());

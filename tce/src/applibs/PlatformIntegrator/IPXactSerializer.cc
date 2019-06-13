@@ -46,11 +46,8 @@ IPXactSerializer::IPXactSerializer(): XMLSerializer() {
 IPXactSerializer::~IPXactSerializer() {
 }
 
-
 void
-IPXactSerializer::writeState(const ObjectState* ipXactState) 
-    throw (SerializerException){
-    
+IPXactSerializer::writeState(const ObjectState* ipXactState) {
     XMLSerializer::setXMLNamespace(SPIRIT_NS_URI);
     XMLSerializer::writeState(ipXactState);
 }
@@ -63,9 +60,7 @@ IPXactSerializer::writeIPXactModel(const IPXactModel& model) {
     delete omState;
 }
 
-
 ObjectState*
-IPXactSerializer::readState() throw (SerializerException) {
-    
+IPXactSerializer::readState() {
     return NULL;
 }

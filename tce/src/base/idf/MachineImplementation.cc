@@ -95,10 +95,11 @@ MachineImplementation::MachineImplementation():
  *                                        invalid.
  */
 MachineImplementation::MachineImplementation(const ObjectState* state)
-    throw (ObjectStateLoadingException) : 
-    icDecoderPluginName_(""), icDecoderPluginFile_(""), icDecoderHDB_(""),
-    decompressorFile_(""), sourceIDF_("") {
-
+    : icDecoderPluginName_(""),
+      icDecoderPluginFile_(""),
+      icDecoderHDB_(""),
+      decompressorFile_(""),
+      sourceIDF_("") {
     loadState(state);
 }
 
@@ -147,10 +148,8 @@ MachineImplementation::hasICDecoderPluginName() const {
  * @return The absolute path to the IC/decoder plugin file.
  * @exception FileNotFound If the file is not found in search paths.
  */
-std::string 
-MachineImplementation::icDecoderPluginFile() const 
-    throw (FileNotFound) {
-
+std::string
+MachineImplementation::icDecoderPluginFile() const {
     vector<string> paths = Environment::icDecoderPluginPaths();
     paths.insert(paths.begin(), FileSystem::directoryOfPath(sourceIDF_));
     TCEString expandedPath(icDecoderPluginFile_);
@@ -175,10 +174,8 @@ MachineImplementation::hasICDecoderPluginFile() const {
  * @return the absolute path to the IC/decoder HDB file.
  * @exception FileNotFound If the file is not found in search paths.
  */
-std::string 
-MachineImplementation::icDecoderHDB() const 
-    throw (FileNotFound) {
-    
+std::string
+MachineImplementation::icDecoderHDB() const {
     vector<string> paths = Environment::hdbPaths();
     paths.insert(paths.begin(), FileSystem::directoryOfPath(sourceIDF_));
     TCEString expandedPath(icDecoderHDB_);
@@ -204,16 +201,13 @@ MachineImplementation::hasICDecoderHDB() const {
  * @exception FileNotFound If the file is not found in search paths.
  */
 std::string
-MachineImplementation::decompressorFile() const 
-    throw (FileNotFound) {
-
+MachineImplementation::decompressorFile() const {
     vector<string> paths = Environment::decompressorPaths();
     paths.insert(paths.begin(), FileSystem::directoryOfPath(sourceIDF_));
     TCEString expandedPath(decompressorFile_);
     expandedPath.replaceString("tce:", "");
     return FileSystem::findFileInSearchPaths(paths, expandedPath);
 }
-
 
 /**
  * Tells whether the decompressor definition file is given in IDF.
@@ -357,9 +351,7 @@ MachineImplementation::socketImplementationCount() const {
  *                             the given FU.
  */
 UnitImplementationLocation&
-MachineImplementation::fuImplementation(const std::string& fu) const
-    throw (InstanceNotFound) {
-
+MachineImplementation::fuImplementation(const std::string& fu) const {
     UnitImplementationLocation* impl = findImplementation(
         fuImplementations_, fu);
     if (impl == NULL) {
@@ -371,7 +363,6 @@ MachineImplementation::fuImplementation(const std::string& fu) const
         return *impl;
     }
 }
-  
 
 /**
  * Returns the implementation data of the given RF.
@@ -382,9 +373,7 @@ MachineImplementation::fuImplementation(const std::string& fu) const
  *                             the given RF.
  */
 UnitImplementationLocation&
-MachineImplementation::rfImplementation(const std::string& rf) const
-    throw (InstanceNotFound) {
-
+MachineImplementation::rfImplementation(const std::string& rf) const {
     UnitImplementationLocation* impl = findImplementation(
         rfImplementations_, rf);
     if (impl == NULL) {
@@ -397,7 +386,6 @@ MachineImplementation::rfImplementation(const std::string& rf) const
     }
 }
 
-
 /**
  * Returns the implementation data of the given IU.
  *
@@ -407,9 +395,7 @@ MachineImplementation::rfImplementation(const std::string& rf) const
  *                             the given IU.
  */
 UnitImplementationLocation&
-MachineImplementation::iuImplementation(const std::string& iu) const
-    throw (InstanceNotFound) {
-
+MachineImplementation::iuImplementation(const std::string& iu) const {
     UnitImplementationLocation* impl = findImplementation(
         iuImplementations_, iu);
     if (impl == NULL) {
@@ -430,9 +416,7 @@ MachineImplementation::iuImplementation(const std::string& iu) const
  *                             the given bus.
  */
 UnitImplementationLocation&
-MachineImplementation::busImplementation(const std::string& bus) const
-    throw (InstanceNotFound) {
-
+MachineImplementation::busImplementation(const std::string& bus) const {
     UnitImplementationLocation* impl = findImplementation(
         busImplementations_, bus);
     if (impl == NULL) {
@@ -453,9 +437,7 @@ MachineImplementation::busImplementation(const std::string& bus) const
  *                             the given socket.
  */
 UnitImplementationLocation&
-MachineImplementation::socketImplementation(const std::string& socket) const
-    throw (InstanceNotFound) {
-
+MachineImplementation::socketImplementation(const std::string& socket) const {
     UnitImplementationLocation* impl = findImplementation(
         socketImplementations_, socket);
     if (impl == NULL) {
@@ -467,7 +449,6 @@ MachineImplementation::socketImplementation(const std::string& socket) const
     }
 }
 
-
 /**
  * Returns the FU implementation at the given position.
  *
@@ -477,13 +458,10 @@ MachineImplementation::socketImplementation(const std::string& socket) const
  *                       the number of FU implementations.
  */
 UnitImplementationLocation&
-MachineImplementation::fuImplementation(int index) const
-    throw (OutOfRange) {
-
+MachineImplementation::fuImplementation(int index) const {
     ensureIndexValidity(index, fuImplementations_);
     return *fuImplementations_[index];
 }
-
 
 /**
  * Returns the RF implementation at the given position.
@@ -494,13 +472,10 @@ MachineImplementation::fuImplementation(int index) const
  *                       the number of RF implementations.
  */
 UnitImplementationLocation&
-MachineImplementation::rfImplementation(int index) const
-    throw (OutOfRange) {
-
+MachineImplementation::rfImplementation(int index) const {
     ensureIndexValidity(index, rfImplementations_);
     return *rfImplementations_[index];
 }
-
 
 /**
  * Returns the IU implementation at the given position.
@@ -511,9 +486,7 @@ MachineImplementation::rfImplementation(int index) const
  *                       the number of IU implementations.
  */
 UnitImplementationLocation&
-MachineImplementation::iuImplementation(int index) const
-    throw (OutOfRange) {
-
+MachineImplementation::iuImplementation(int index) const {
     ensureIndexValidity(index, iuImplementations_);
     return *iuImplementations_[index];
 }
@@ -527,9 +500,7 @@ MachineImplementation::iuImplementation(int index) const
  *                       the number of bus implementations.
  */
 UnitImplementationLocation&
-MachineImplementation::busImplementation(int index) const
-    throw (OutOfRange) {
-
+MachineImplementation::busImplementation(int index) const {
     ensureIndexValidity(index, busImplementations_);
     return *busImplementations_[index];
 }
@@ -543,13 +514,10 @@ MachineImplementation::busImplementation(int index) const
  *                       the number of socket implementations.
  */
 UnitImplementationLocation&
-MachineImplementation::socketImplementation(int index) const
-    throw (OutOfRange) {
-
+MachineImplementation::socketImplementation(int index) const {
     ensureIndexValidity(index, socketImplementations_);
     return *socketImplementations_[index];
 }
-
 
 /**
  * Adds the given FU implementation.
@@ -562,9 +530,7 @@ MachineImplementation::socketImplementation(int index) const
  */
 void
 MachineImplementation::addFUImplementation(
-    UnitImplementationLocation* implementation)
-    throw (ObjectAlreadyExists, InvalidData) {
-
+    UnitImplementationLocation* implementation) {
     if (hasFUImplementation(implementation->unitName())) {
         const string procName = "MachineImplementation::addFUImplementation";
         throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
@@ -573,7 +539,6 @@ MachineImplementation::addFUImplementation(
         implementation->setParent(*this);
     }
 }
-
 
 /**
  * Adds the given RF implementation.
@@ -586,9 +551,7 @@ MachineImplementation::addFUImplementation(
  */
 void
 MachineImplementation::addRFImplementation(
-    UnitImplementationLocation* implementation)
-    throw (ObjectAlreadyExists, InvalidData) {
-
+    UnitImplementationLocation* implementation) {
     if (hasRFImplementation(implementation->unitName())) {
         const string procName = "MachineImplementation::addRFImplementation";
         throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
@@ -597,7 +560,6 @@ MachineImplementation::addRFImplementation(
         implementation->setParent(*this);
     }
 }
-
 
 /**
  * Adds the given IU implementation.
@@ -610,9 +572,7 @@ MachineImplementation::addRFImplementation(
  */
 void
 MachineImplementation::addIUImplementation(
-    UnitImplementationLocation* implementation)
-    throw (ObjectAlreadyExists, InvalidData) {
-
+    UnitImplementationLocation* implementation) {
     if (hasIUImplementation(implementation->unitName())) {
         const string procName = "MachineImplementation::addRFImplementation";
         throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
@@ -633,9 +593,7 @@ MachineImplementation::addIUImplementation(
  */
 void
 MachineImplementation::addBusImplementation(
-    UnitImplementationLocation* implementation)
-    throw (ObjectAlreadyExists, InvalidData) {
-
+    UnitImplementationLocation* implementation) {
     if (hasBusImplementation(implementation->unitName())) {
         throw ObjectAlreadyExists(__FILE__, __LINE__, __func__);
     } else {
@@ -643,7 +601,6 @@ MachineImplementation::addBusImplementation(
         implementation->setParent(*this);
     }
 }
-
 
 /**
  * Adds the given socket implementation.
@@ -656,9 +613,7 @@ MachineImplementation::addBusImplementation(
  */
 void
 MachineImplementation::addSocketImplementation(
-    UnitImplementationLocation* implementation)
-    throw (ObjectAlreadyExists, InvalidData) {
-
+    UnitImplementationLocation* implementation) {
     if (hasSocketImplementation(implementation->unitName())) {
         throw ObjectAlreadyExists(__FILE__, __LINE__, __func__);
     } else {
@@ -675,9 +630,7 @@ MachineImplementation::addSocketImplementation(
  *                             the given FU.
  */
 void
-MachineImplementation::removeFUImplementation(const std::string& unitName)
-    throw (InstanceNotFound) {
-
+MachineImplementation::removeFUImplementation(const std::string& unitName) {
     bool removed = false;
     for (ImplementationTable::iterator iter = fuImplementations_.begin(); 
          iter != fuImplementations_.end(); iter++) {
@@ -702,9 +655,7 @@ MachineImplementation::removeFUImplementation(const std::string& unitName)
  *                             the given RF.
  */
 void
-MachineImplementation::removeRFImplementation(const std::string& unitName)
-    throw (InstanceNotFound) {
-
+MachineImplementation::removeRFImplementation(const std::string& unitName) {
     bool removed = false;
     for (ImplementationTable::iterator iter = rfImplementations_.begin(); 
          iter != rfImplementations_.end(); iter++) {
@@ -729,9 +680,7 @@ MachineImplementation::removeRFImplementation(const std::string& unitName)
  *                             the given IU.
  */
 void
-MachineImplementation::removeIUImplementation(const std::string& unitName)
-    throw (InstanceNotFound) {
-
+MachineImplementation::removeIUImplementation(const std::string& unitName) {
     bool removed = false;
     for (ImplementationTable::iterator iter = iuImplementations_.begin(); 
          iter != iuImplementations_.end(); iter++) {
@@ -756,9 +705,7 @@ MachineImplementation::removeIUImplementation(const std::string& unitName)
  *                             the given bus.
  */
 void
-MachineImplementation::removeBusImplementation(const std::string& unitName)
-    throw (InstanceNotFound) {
-
+MachineImplementation::removeBusImplementation(const std::string& unitName) {
     bool removed = false;
     for (
         ImplementationTable::iterator iter = busImplementations_.begin(); 
@@ -784,9 +731,7 @@ MachineImplementation::removeBusImplementation(const std::string& unitName)
  *                             the given socket.
  */
 void
-MachineImplementation::removeSocketImplementation(const std::string& unitName)
-    throw (InstanceNotFound) {
-
+MachineImplementation::removeSocketImplementation(const std::string& unitName) {
     bool removed = false;
     for (
         ImplementationTable::iterator iter = 
@@ -813,9 +758,7 @@ MachineImplementation::removeSocketImplementation(const std::string& unitName)
  *                                        invalid.
  */
 void
-MachineImplementation::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+MachineImplementation::loadState(const ObjectState* state) {
     const string procName = "MachineImplementation::loadState";
 
     if (state->name() != OSNAME_MACHINE_IMPLEMENTATION) {
@@ -897,7 +840,6 @@ MachineImplementation::loadState(const ObjectState* state)
             __FILE__, __LINE__, procName, exception.errorMessage());
     }
 }
-
 
 /**
  * Saves the state of the object to an ObjectState tree.
@@ -1363,16 +1305,12 @@ MachineImplementation::findImplementation(
  */
 void
 MachineImplementation::ensureIndexValidity(
-    int index,
-    const ImplementationTable& table) const
-    throw (OutOfRange) {
-
+    int index, const ImplementationTable& table) const {
     if (index < 0 || static_cast<size_t>(index) >= table.size()) {
         const string procName = "MachineImplementation::ensureIndexValidity";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Clears the state of the object.
@@ -1407,9 +1345,7 @@ MachineImplementation::icDecoderParameterCount() const {
  * @return Name of the parameter.
  */
 std::string
-MachineImplementation::icDecoderParameterName(unsigned param) const
-    throw (OutOfRange) {
-
+MachineImplementation::icDecoderParameterName(unsigned param) const {
     if (param >= icDecoderParameters_.size()) {
         const string procName =
             "MachineImplementation::icDecoderParameterName";
@@ -1419,7 +1355,6 @@ MachineImplementation::icDecoderParameterName(unsigned param) const
     return icDecoderParameters_[param].name;
 }
 
-
 /**
  * Returns value of the ic/decoder parameter with the given index.
  *
@@ -1427,9 +1362,7 @@ MachineImplementation::icDecoderParameterName(unsigned param) const
  * @return Value of the parameter.
  */
 std::string
-MachineImplementation::icDecoderParameterValue(unsigned param) const
-    throw (OutOfRange) {
-
+MachineImplementation::icDecoderParameterValue(unsigned param) const {
     if (param >= icDecoderParameters_.size()) {
         const string procName = "MachineImplementation::icDecoderParamterName";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -1504,9 +1437,7 @@ MachineImplementation::setICDecoderPluginName(const std::string& name) {
  * @param file Full path of the ic/decoder plugin file.
  */
 void
-MachineImplementation::setICDecoderPluginFile(const std::string& file)
-    throw (FileNotFound) {
-
+MachineImplementation::setICDecoderPluginFile(const std::string& file) {
     vector<string> paths = Environment::icDecoderPluginPaths();
     paths.insert(paths.begin(), FileSystem::directoryOfPath(sourceIDF_));
     string expandedPath = FileSystem::expandTilde(file);
@@ -1520,9 +1451,7 @@ MachineImplementation::setICDecoderPluginFile(const std::string& file)
  * @param file Full path of the ic/decoder HDB file.
  */
 void
-MachineImplementation::setICDecoderHDB(const std::string& file)
-    throw (FileNotFound) {
-
+MachineImplementation::setICDecoderHDB(const std::string& file) {
     vector<string> paths = Environment::hdbPaths();
     paths.insert(paths.begin(), FileSystem::directoryOfPath(sourceIDF_));
     string expandedPath = FileSystem::expandTilde(file);
@@ -1536,9 +1465,7 @@ MachineImplementation::setICDecoderHDB(const std::string& file)
  * @param file Full path to the decompressor block file.
  */
 void
-MachineImplementation::setDecompressorFile(const std::string& file)
-    throw (FileNotFound) {
-
+MachineImplementation::setDecompressorFile(const std::string& file) {
     vector<string> paths = Environment::decompressorPaths();
     paths.insert(paths.begin(), FileSystem::directoryOfPath(sourceIDF_));
     decompressorFile_ = FileSystem::findFileInSearchPaths(paths, file);
@@ -1560,15 +1487,12 @@ MachineImplementation::clearICDecoderParameters() {
  * @exception Exception In case some error occured.
  */
 MachineImplementation*
-MachineImplementation::loadFromIDF(const std::string& idfFileName)
-    throw (Exception) {
-
+MachineImplementation::loadFromIDF(const std::string& idfFileName) {
     IDFSerializer serializer;
     serializer.setSourceFile(idfFileName);
 
     return serializer.readMachineImplementation();
 }
-
 
 /**
  * Returns true if the given file is a library file of TCE.

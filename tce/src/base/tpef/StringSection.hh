@@ -51,8 +51,7 @@ public:
 
     virtual SectionType type() const;
 
-    std::string chunk2String(const Chunk* chunk) const
-        throw (UnexpectedValue);
+    std::string chunk2String(const Chunk* chunk) const;
 
     Chunk* string2Chunk(const std::string &str);
 

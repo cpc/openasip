@@ -48,20 +48,13 @@ class TemplateSlot;
 
 class InstructionTemplate : public Component {
 public:
-    InstructionTemplate(const std::string& name, Machine& owner)
-        throw (ComponentAlreadyExists, InvalidName);
-    InstructionTemplate(const ObjectState* state, Machine& owner)
-        throw (ObjectStateLoadingException);
+    InstructionTemplate(const std::string& name, Machine& owner);
+    InstructionTemplate(const ObjectState* state, Machine& owner);
     virtual ~InstructionTemplate();
 
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
+    virtual void setName(const std::string& name);
     virtual void addSlot(
-        const std::string& slotName,
-        int width,
-        ImmediateUnit& dstUnit)
-        throw (InstanceNotFound, IllegalRegistration, ComponentAlreadyExists,
-               OutOfRange);
+        const std::string& slotName, int width, ImmediateUnit& dstUnit);
     virtual void removeSlot(const std::string& slotName);
     virtual void removeSlots(const ImmediateUnit& dstUnit);
 
@@ -71,19 +64,14 @@ public:
 
     virtual bool usesSlot(const std::string& slotName) const;
     virtual bool destinationUsesSlot(
-        const std::string& slotName,
-        const ImmediateUnit& dstUnit) const;
+        const std::string& slotName, const ImmediateUnit& dstUnit) const;
     virtual int numberOfDestinations() const;
     virtual bool isOneOfDestinations(const ImmediateUnit& dstUnit) const;
-    virtual ImmediateUnit* destinationOfSlot(
-        const std::string& slotName) const
-        throw (InstanceNotFound);
+    virtual ImmediateUnit* destinationOfSlot(const std::string& slotName) const;
 
     virtual int numberOfSlots(const ImmediateUnit& dstUnit) const;
     virtual std::string slotOfDestination(
-        const ImmediateUnit& dstUnit,
-        int index) const
-        throw (OutOfRange);
+        const ImmediateUnit& dstUnit, int index) const;
 
     virtual int supportedWidth() const;
     virtual int supportedWidth(const ImmediateUnit& dstUnit) const;
@@ -91,18 +79,14 @@ public:
 
     virtual bool isEmpty() const;
 
-    virtual void setMachine(Machine& machine)
-        throw (ComponentAlreadyExists);
+    virtual void setMachine(Machine& machine);
     virtual void unsetMachine();
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for instruction template.
     static const std::string OSNAME_INSTRUCTION_TEMPLATE;
-
-  
 
 private:
     /// Container for TemplateSlots.

@@ -45,24 +45,20 @@ public:
     static NullRegisterFile& instance();
 
     virtual Machine* machine() const;
-    virtual void ensureRegistration(const Component& component) const
-        throw (IllegalRegistration);
+    virtual void ensureRegistration(const Component& component) const;
     virtual bool isRegistered() const;
 
     virtual bool hasPort(const std::string& name) const;
     virtual int portCount() const;
 
-    virtual void setMachine(Machine& mach)
-        throw (ComponentAlreadyExists);
+    virtual void setMachine(Machine& mach);
     virtual void unsetMachine();
 
     virtual int numberOfRegisters() const;
     virtual int width() const;
 
-    virtual void setNumberOfRegisters(int registers)
-        throw (OutOfRange);
-    virtual void setWidth(int width)
-        throw (OutOfRange);
+    virtual void setNumberOfRegisters(int registers);
+    virtual void setWidth(int width);
 
     virtual int maxReads() const;
     virtual int maxWrites() const;
@@ -73,21 +69,16 @@ public:
     virtual bool isReserved() const;
 
     virtual std::string name() const;
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
-    virtual void setMaxReads(int reads)
-        throw (OutOfRange);
-    virtual void setMaxWrites(int maxWrites)
-        throw (OutOfRange);
+    virtual void setName(const std::string& name);
+    virtual void setMaxReads(int reads);
+    virtual void setMaxWrites(int maxWrites);
     virtual void setType(RegisterFile::Type type);
 
     virtual int guardLatency() const;
-    virtual void setGuardLatency(int latency)
-        throw (OutOfRange);
+    virtual void setGuardLatency(int latency);
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
 private:
     NullRegisterFile();

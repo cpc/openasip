@@ -77,10 +77,8 @@ NextiCommand::~NextiCommand() {
  * @return True in case simulation is initialized and arguments are ok.
  * @exception NumberFormatException Is never thrown by this command.
  */
-bool 
-NextiCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-    
+bool
+NextiCommand::execute(const std::vector<DataObject>& arguments) {
     boost::timer time;    
 
     const int argumentCount = arguments.size() - 1;

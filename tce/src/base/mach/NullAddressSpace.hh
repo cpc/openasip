@@ -51,25 +51,19 @@ public:
     virtual unsigned int end() const;
 
     virtual std::string name() const;
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
-    virtual void setWidth(int width)
-        throw (OutOfRange);
-    virtual void setAddressBounds(unsigned int start, unsigned int end)
-        throw (OutOfRange);
+    virtual void setName(const std::string& name);
+    virtual void setWidth(int width);
+    virtual void setAddressBounds(unsigned int start, unsigned int end);
 
-    virtual void setMachine(Machine& mach)
-        throw (ComponentAlreadyExists);
+    virtual void setMachine(Machine& mach);
     virtual void unsetMachine();
     virtual Machine* machine() const;
 
-    virtual void ensureRegistration(const Component& component) const
-        throw (IllegalRegistration);
+    virtual void ensureRegistration(const Component& component) const;
     virtual bool isRegistered() const;
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
 private:
     NullAddressSpace();

@@ -833,9 +833,7 @@ DataDependenceGraphBuilder::clearUnneededBookkeeping(
  */
 void
 DataDependenceGraphBuilder::processTriggerPO(
-    MoveNode& moveNode, Operation &dop) 
-    throw (IllegalProgram) {
-
+    MoveNode& moveNode, Operation& dop) {
     if (currentData_->destPending_ != NULL) {
         ProgramOperationPtr po = currentData_->destPending_;
         

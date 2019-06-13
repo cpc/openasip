@@ -110,8 +110,7 @@ private:
     CostDBTypes::EntryTable findFromCache(
         const CostDBEntryKey& searchKey,
         const CostDBTypes::MatchTypeTable& match);
-    MatcherTable createMatchers(const CostDBTypes::MatchTypeTable& match)
-	throw (TypeMismatch);
+    MatcherTable createMatchers(const CostDBTypes::MatchTypeTable& match);
 
     /// Results of the previous queries.
     CacheTable entryCache_;

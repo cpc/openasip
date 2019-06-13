@@ -90,11 +90,7 @@ TPEFLineNumSectionReader::type() const {
  */
 void
 TPEFLineNumSectionReader::readData(
-    BinaryStream& stream,
-    Section* section) const
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-           OutOfRange, WrongSubclass, UnexpectedValue) {
-
+    BinaryStream& stream, Section* section) const {
     // base classes implementation must be called with these.
     TPEFSectionReader::readData(stream, section);
 

@@ -79,10 +79,8 @@ DisassembleCommand::~DisassembleCommand() {
  * @param arguments The range of instruction memory to disassemble.
  * @return Always true if arguments are valid.
  */
-bool 
-DisassembleCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+DisassembleCommand::execute(const std::vector<DataObject>& arguments) {
     assert(interpreter() != NULL);
 
     if (!checkArgumentCount(arguments.size() - 1, 0, 2)) {

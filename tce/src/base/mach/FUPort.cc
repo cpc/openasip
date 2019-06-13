@@ -74,17 +74,12 @@ const string FUPort::OSKEY_NO_REGISTER = "no_register";
  * @exception InvalidName If the given name is not a valid component name.
  */
 FUPort::FUPort(
-    const std::string& name,
-    int width,
-    FunctionUnit& parent,
-    bool triggers,
-    bool setsOpcode,
-    bool noRegister)
-    throw (ComponentAlreadyExists, OutOfRange, IllegalParameters,
-           InvalidName) :
-    BaseFUPort(name, width, parent), triggers_(triggers),
-    setsOpcode_(setsOpcode), noRegister_(noRegister) {
-
+    const std::string& name, int width, FunctionUnit& parent, bool triggers,
+    bool setsOpcode, bool noRegister)
+    : BaseFUPort(name, width, parent),
+      triggers_(triggers),
+      setsOpcode_(setsOpcode),
+      noRegister_(noRegister) {
     const std::string procName = "FUPort::FUPort";
 
     if (setsOpcode && !triggers) {
@@ -103,7 +98,6 @@ FUPort::FUPort(
         }
     }
 }
-
 
 /**
  * Constructor.
@@ -131,25 +125,18 @@ FUPort::FUPort(
  * @exception InvalidName If the given name is not a valid component name.
  */
 FUPort::FUPort(
-    const std::string& name,
-    int width,
-    FunctionUnit& parent,
-    bool triggers,
-    bool setsOpcode,               
-    bool noRegister,               
-    bool /*dummy*/)
-    throw (ComponentAlreadyExists, OutOfRange, IllegalParameters,
-           InvalidName) :
-    BaseFUPort(name, width, parent), triggers_(triggers),
-    setsOpcode_(setsOpcode), noRegister_(noRegister) {
-
+    const std::string& name, int width, FunctionUnit& parent, bool triggers,
+    bool setsOpcode, bool noRegister, bool /*dummy*/)
+    : BaseFUPort(name, width, parent),
+      triggers_(triggers),
+      setsOpcode_(setsOpcode),
+      noRegister_(noRegister) {
     if (setsOpcode != triggers) {
         const std::string procName = "FUPort::FUPort";
         const std::string error = "Port must trigger iff sets opcode.";
         throw IllegalParameters(__FILE__, __LINE__, procName, error);
     }
 }
-
 
 /**
  * Constructor.
@@ -164,9 +151,7 @@ FUPort::FUPort(
  *                                        is invalid.
  */
 FUPort::FUPort(const ObjectState* state, Unit& parent)
-    throw (ObjectStateLoadingException) :
-    BaseFUPort(state, parent), triggers_(false), setsOpcode_(false) {
-
+    : BaseFUPort(state, parent), triggers_(false), setsOpcode_(false) {
     loadStateWithoutReferences(state);
 
     if (setsOpcode_ != triggers_) {
@@ -176,7 +161,6 @@ FUPort::FUPort(const ObjectState* state, Unit& parent)
                 error);
     }
 }
-
 
 /**
  * Destructor.
@@ -270,9 +254,7 @@ FUPort::saveState() const {
  *                                        the state.
  */
 void
-FUPort::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+FUPort::loadState(const ObjectState* state) {
     const string procName = "FUPort::loadState";
 
     if (state->name() != OSNAME_FUPORT) {
@@ -431,9 +413,7 @@ FUPort::cleanupOperandBindings() const {
  *                                        is invalid.
  */
 void
-FUPort::loadStateWithoutReferences(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+FUPort::loadStateWithoutReferences(const ObjectState* state) {
     const string procName = "FUPort::loadStateWithoutReferences";
 
     try {

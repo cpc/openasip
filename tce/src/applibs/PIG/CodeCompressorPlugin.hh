@@ -100,10 +100,8 @@ public:
     void setMachine(const TTAMachine::Machine& machine);
     void setBEM(const BinaryEncoding& bem);
 
-    const BinaryEncoding& binaryEncoding() const
-        throw (NotAvailable);
-    const TTAMachine::Machine& machine() const
-        throw (NotAvailable);
+    const BinaryEncoding& binaryEncoding() const;
+    const TTAMachine::Machine& machine() const;
 
     /**
      * Generates bit image of the program.
@@ -111,8 +109,7 @@ public:
      * @return The bit image.
      * @exception InvalidData If the BEM is erroneous.
      */
-    virtual InstructionBitVector* compress(const std::string& program)
-        throw (InvalidData) = 0;
+    virtual InstructionBitVector* compress(const std::string& program) = 0;
 
     /**
      * Generates the HDL code of the decompressor block.
@@ -126,14 +123,12 @@ public:
      * Prints description of the plugin to the given stream.
      */
     virtual void printDescription(std::ostream& stream) = 0;
-    
+
     unsigned int memoryAddress(
-        const TTAProgram::Instruction& instruction) const
-        throw (InstanceNotFound);
-    
-    TTAProgram::Program& currentProgram() const
-        throw (NotAvailable);
-    
+        const TTAProgram::Instruction& instruction) const;
+
+    TTAProgram::Program& currentProgram() const;
+
     int imemMauWidth() const;
 
 protected:
@@ -142,32 +137,25 @@ protected:
 
     CodeCompressorPlugin();
 
-    InstructionBitVector* bemBits(const TTAProgram::Program& program)
-        throw (InvalidData);
-    
+    InstructionBitVector* bemBits(const TTAProgram::Program& program);
+
     int moveSlotCount() const;
 
     int moveSlotWidth(int index) const;
 
     int firstMoveSlotIndex() const;
-    
-    void startNewProgram(const std::string& programName)
-        throw (InvalidData);
+
+    void startNewProgram(const std::string& programName);
     void addInstruction(
-        const TTAProgram::Instruction& instruction, 
-        InstructionBitVector* bits)
-        throw (InvalidData, OutOfRange);
+        const TTAProgram::Instruction& instruction, InstructionBitVector* bits);
     void setInstructionToStartAtBeginningOfMAU(
         const TTAProgram::Instruction& instruction);
     void setAllInstructionsToStartAtBeginningOfMAU();
-    InstructionBitVector* bemInstructionBits(
-        const TTAProgram::Instruction&)
-        throw (InvalidData);
+    InstructionBitVector* bemInstructionBits(const TTAProgram::Instruction&);
     InstructionBitVector* programBits() const;
 
     bool hasParameter(const std::string& paramName) const;
-    std::string parameterValue(const std::string& paramName) const
-        throw (NotAvailable);
+    std::string parameterValue(const std::string& paramName) const;
 
     void setImemWidth(int mau, int widthInMaus = 1);
 
@@ -198,42 +186,27 @@ private:
 
     void addBitsForICField(
         const ImmediateControlField& icField,
-        const TTAProgram::Instruction& instruction,
-        BitVector& bitVector) const
-        throw (InvalidData);
+        const TTAProgram::Instruction& instruction, BitVector& bitVector) const;
     void addBitsForMoveSlot(
-        const MoveSlot& slot,
-        const TTAProgram::Instruction& instruction,
-        InstructionBitVector& bitVector)
-        throw (InvalidData);
+        const MoveSlot& slot, const TTAProgram::Instruction& instruction,
+        InstructionBitVector& bitVector);
     void addBitsForSourceField(
-        const SourceField& srcField,
-        const TTAProgram::Move& move,
-        InstructionBitVector& bitVector) const
-        throw (InvalidData);
+        const SourceField& srcField, const TTAProgram::Move& move,
+        InstructionBitVector& bitVector) const;
     static void addBitsForDestinationField(
-        const DestinationField& dstField,
-        const TTAProgram::Move& move,
-        BitVector& bitVector)
-        throw (InvalidData);
+        const DestinationField& dstField, const TTAProgram::Move& move,
+        BitVector& bitVector);
     static void addBitsForGuardField(
-        const GuardField& guardField,
-        const TTAProgram::Move& move,
-        BitVector& bitVector)
-        throw (InvalidData);
+        const GuardField& guardField, const TTAProgram::Move& move,
+        BitVector& bitVector);
     void addBitsForImmediateSlot(
         const ImmediateSlotField& immSlot,
-        const TTAProgram::Instruction& instruction,
-        BitVector& bitVector)
-        throw (InvalidData);
+        const TTAProgram::Instruction& instruction, BitVector& bitVector);
     void addBitsForDstRegisterField(
         const LImmDstRegisterField& field,
-        const TTAProgram::Instruction& instruction,
-        BitVector& bitVector)
-        throw (InvalidData);
+        const TTAProgram::Instruction& instruction, BitVector& bitVector);
     std::string instructionTemplate(
-        const TTAProgram::Instruction& instruction) const
-        throw (InstanceNotFound);
+        const TTAProgram::Instruction& instruction) const;
     bool startsAtBeginningOfMAU(
         const TTAProgram::Instruction& instruction) const;
     unsigned int nextAddressablePositionFrom(unsigned int position) const;
@@ -243,32 +216,21 @@ private:
         const TTAProgram::Instruction& instruction, 
         BitVector& bitVector);
     void encodeMove(
-        const MoveSlot& slot,
-        const TTAProgram::Instruction& instruction,
-        InstructionBitVector& bitVector) const
-        throw (InvalidData);
-    static void encodeNOP(const MoveSlot& slot, BitVector& bitVector)
-        throw (InvalidData);
+        const MoveSlot& slot, const TTAProgram::Instruction& instruction,
+        InstructionBitVector& bitVector) const;
+    static void encodeNOP(const MoveSlot& slot, BitVector& bitVector);
     static void encodeIUTerminal(
-        const SlotField& field, 
-        const TTAProgram::Terminal& terminal, 
-        BitVector& bitVector)
-        throw (InvalidData);
+        const SlotField& field, const TTAProgram::Terminal& terminal,
+        BitVector& bitVector);
     static void encodeRFTerminal(
-        const SlotField& field,
-        const TTAProgram::Terminal& terminal,
-        BitVector& bitVector)
-        throw (InvalidData);
+        const SlotField& field, const TTAProgram::Terminal& terminal,
+        BitVector& bitVector);
     static void encodeFUTerminal(
-        const SlotField& field,
-        const TTAProgram::Terminal& terminal,
-        BitVector& bitVector)
-        throw (InvalidData);
+        const SlotField& field, const TTAProgram::Terminal& terminal,
+        BitVector& bitVector);
     void encodeImmediateTerminal(
-        const SourceField& field,
-        const TTAProgram::Terminal& terminal,
-        InstructionBitVector& bitVector) const
-        throw (InvalidData);
+        const SourceField& field, const TTAProgram::Terminal& terminal,
+        InstructionBitVector& bitVector) const;
     static void encodeSlotField(
         const SlotField& field,
         const BitVector& componentIDBits,

@@ -51,13 +51,11 @@ public:
 
     virtual bool hasImplementation() const;
     void setImplementation(RFImplementation* implementation);
-    RFImplementation& implementation() const
-        throw (NotAvailable);
+    RFImplementation& implementation() const;
 
     virtual bool hasArchitecture() const;
     void setArchitecture(RFArchitecture* architecture);
-    RFArchitecture& architecture() const
-        throw (NotAvailable);
+    RFArchitecture& architecture() const;
 
 private:
     /// Architecture of the entry.

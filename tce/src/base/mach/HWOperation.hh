@@ -51,36 +51,28 @@ class FUPort;
  */
 class HWOperation : public SubComponent {
 public:
-    HWOperation(const std::string& name, FunctionUnit& parent)
-        throw (ComponentAlreadyExists, InvalidName);
-    HWOperation(const ObjectState* state, FunctionUnit& parent)
-        throw (ObjectStateLoadingException);
+    HWOperation(const std::string& name, FunctionUnit& parent);
+    HWOperation(const ObjectState* state, FunctionUnit& parent);
     ~HWOperation();
 
     const std::string& name() const;
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
+    virtual void setName(const std::string& name);
 
     FunctionUnit* parentUnit() const;
     ExecutionPipeline* pipeline() const;
 
     int latency() const;
-    int latency(int output) const
-        throw (IllegalParameters);
-    int slack(int input) const
-        throw (IllegalParameters);
+    int latency(int output) const;
+    int slack(int input) const;
 
-    virtual void bindPort(int operand, const FUPort& port)
-        throw (IllegalRegistration, ComponentAlreadyExists, OutOfRange);
+    virtual void bindPort(int operand, const FUPort& port);
     virtual void unbindPort(const FUPort& port);
     virtual FUPort* port(int operand) const;
     bool isBound(const FUPort& port) const;
-    int io(const FUPort& port) const
-        throw (InstanceNotFound);
+    int io(const FUPort& port) const;
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for HWOperation.
     static const std::string OSNAME_OPERATION;

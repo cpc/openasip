@@ -83,12 +83,9 @@ NullInstructionTemplate::name() const {
  * @exception InvalidName Never thrown.
  */
 void
-NullInstructionTemplate::setName(const std::string&)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+NullInstructionTemplate::setName(const std::string&) {
     abortWithError("setName()");
 }
-
 
 /**
  * Aborts the program with error message.
@@ -98,12 +95,9 @@ NullInstructionTemplate::setName(const std::string&)
  * @exception OutOfRange Never thrown.
  */
 void
-NullInstructionTemplate::addSlot(const std::string&, int, ImmediateUnit&)
-    throw (InstanceNotFound, ComponentAlreadyExists, OutOfRange) {
-
+NullInstructionTemplate::addSlot(const std::string&, int, ImmediateUnit&) {
     abortWithError("addSlot()");
 }
-
 
 /**
  * Aborts the program with error message.
@@ -204,13 +198,10 @@ NullInstructionTemplate::isOneOfDestinations(const ImmediateUnit&) const {
  * @return Never returns.
  */
 ImmediateUnit*
-NullInstructionTemplate::destinationOfSlot(const std::string&) const
-    throw (InstanceNotFound) {
-
+NullInstructionTemplate::destinationOfSlot(const std::string&) const {
     abortWithError("destinationOfSlot()");
     return NULL;
 }
-
 
 /**
  * Aborts the program with error message.
@@ -230,13 +221,10 @@ NullInstructionTemplate::numberOfSlots(const ImmediateUnit&) const {
  * @return Never returns.
  */
 std::string
-NullInstructionTemplate::slotOfDestination(const ImmediateUnit&, int) const
-    throw (OutOfRange) {
-
+NullInstructionTemplate::slotOfDestination(const ImmediateUnit&, int) const {
     abortWithError("slotOfDestination()");
     return NULL;
 }
-
 
 /**
  * Aborts the program with error message.
@@ -292,12 +280,9 @@ NullInstructionTemplate::isEmpty() const {
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-NullInstructionTemplate::setMachine(Machine&)
-    throw (ComponentAlreadyExists) {
-
+NullInstructionTemplate::setMachine(Machine&) {
     abortWithError("setMachine()");
 }
-
 
 /**
  * Aborts the program with error message.
@@ -326,12 +311,9 @@ NullInstructionTemplate::machine() const {
  * @exception IllegalRegistration Never thrown.
  */
 void
-NullInstructionTemplate::ensureRegistration(const Component&) const
-    throw (IllegalRegistration) {
-
+NullInstructionTemplate::ensureRegistration(const Component&) const {
     abortWithError("ensureRegistration()");
 }
-
 
 /**
  * Aborts the program with error message.
@@ -362,10 +344,7 @@ NullInstructionTemplate::saveState() const {
  * @exception ObjectStateLoadingException Never thrown.
  */
 void
-NullInstructionTemplate::loadState(const ObjectState*)
-    throw (ObjectStateLoadingException) {
-
+NullInstructionTemplate::loadState(const ObjectState*) {
     abortWithError("loadState()");
 }
-
 }

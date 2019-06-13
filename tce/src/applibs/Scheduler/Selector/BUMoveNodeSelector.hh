@@ -74,8 +74,7 @@ public:
         TTAProgram::BasicBlock& bb, const TTAMachine::Machine& machine);
     BUMoveNodeSelector(
         DataDependenceGraph& bigDDG, TTAProgram::BasicBlock& bb,
-        const TTAMachine::Machine &machine)
-        throw (ModuleRunTimeError);
+        const TTAMachine::Machine& machine);
     BUMoveNodeSelector(
         DataDependenceGraph& ddg, const TTAMachine::Machine &machine);
     virtual ~BUMoveNodeSelector();

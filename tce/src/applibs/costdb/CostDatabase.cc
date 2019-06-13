@@ -163,9 +163,7 @@ CostDatabase::~CostDatabase() {
  * CostDatabase.
  */
 CostDatabase&
-CostDatabase::instance(const HDB::HDBManager& hdb) 
-    throw (Exception) {
-
+CostDatabase::instance(const HDB::HDBManager& hdb) {
     CostDatabaseRegistry* registry = &CostDatabaseRegistry::instance();
     if (!registry->hasCostDatabase(hdb)) {
         registry->addCostDatabase(new CostDatabase(hdb), hdb);
@@ -179,9 +177,7 @@ CostDatabase::instance(const HDB::HDBManager& hdb)
  * @exception Exception if an error occured during the cost database building.
  */
 void
-CostDatabase::buildDefaultCostDatabase() 
-    throw (Exception) {
-
+CostDatabase::buildDefaultCostDatabase() {
     if (!isRegisterFilesBuilt()) {
         buildRegisterFiles("StrictMatchRFEstimator");
     }
@@ -205,9 +201,7 @@ CostDatabase::buildDefaultCostDatabase()
  * @exception Exception if an error occured during the cost database building.
  */
 void
-CostDatabase::buildRegisterFiles(const std::string& rfEstimatorPluginName) 
-    throw (Exception) {
-
+CostDatabase::buildRegisterFiles(const std::string& rfEstimatorPluginName) {
     // find out the register file estimator plugin id
     std::set<RowID> pluginIDs = hdb_.costFunctionPluginIDs();
     RowID rfEstimatorPluginID = 0;
@@ -444,9 +438,7 @@ CostDatabase::buildRegisterFiles(const std::string& rfEstimatorPluginName)
  * @exception Exception if an error occured during the cost database building.
  */
 void
-CostDatabase::buildFunctionUnits(const std::string& fuEstimatorPluginName) 
-    throw (Exception) {
-
+CostDatabase::buildFunctionUnits(const std::string& fuEstimatorPluginName) {
     // find out the function unit estimator plugin id
     std::set<RowID> pluginIDs = hdb_.costFunctionPluginIDs();    
     RowID fuEstimatorPluginID = 0;
@@ -647,9 +639,7 @@ CostDatabase::buildFunctionUnits(const std::string& fuEstimatorPluginName)
  * @exception Exception if an error occured during the cost database building.
  */
 void
-CostDatabase::buildBuses(const std::string& busEstimatorPluginName) 
-    throw (Exception) {
-    
+CostDatabase::buildBuses(const std::string& busEstimatorPluginName) {
     // find out the plugin id that estimates buses
     std::set<RowID> pluginIDs = hdb_.costFunctionPluginIDs();    
     RowID busEstimatorPluginID = 0;
@@ -765,9 +755,7 @@ CostDatabase::buildBuses(const std::string& busEstimatorPluginName)
  * @exception Exception if an error occured during the cost database building.
  */
 void
-CostDatabase::buildSockets(const std::string& socketEstimatorPluginName) 
-    throw (Exception) {
-
+CostDatabase::buildSockets(const std::string& socketEstimatorPluginName) {
     // find out the plugin id that estimates sockets
     std::set<RowID> pluginIDs = hdb_.costFunctionPluginIDs();    
     RowID socketEstimatorPluginID = 0;
@@ -899,9 +887,7 @@ CostDatabase::buildSockets(const std::string& socketEstimatorPluginName)
 CostDBTypes::EntryTable
 CostDatabase::search(
     const CostDBEntryKey& searchKey,
-    const CostDBTypes::MatchTypeTable& match) const
-    throw (KeyNotFound) {
-    
+    const CostDBTypes::MatchTypeTable& match) const {
     EntryMap::const_iterator i = entries_.find(searchKey.type());
     
     // entries of searched type are in the list
@@ -919,8 +905,7 @@ CostDatabase::search(
  * @exception ObjectAlreadyExists If inserted entry is already inserted.
  */
 void
-CostDatabase::insertEntry(CostDBEntry* entry) throw (ObjectAlreadyExists) {
-
+CostDatabase::insertEntry(CostDBEntry* entry) {
     EntryMap::iterator i = entries_.find(entry->type());
 
     if (i == entries_.end()) {

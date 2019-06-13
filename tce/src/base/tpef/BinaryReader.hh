@@ -54,22 +54,18 @@ public:
 
     virtual ~BinaryReader();
 
-    static Binary* readBinary(BinaryStream& stream)
-        throw (Exception);
+    static Binary* readBinary(BinaryStream& stream);
+
 protected:
     BinaryReader();
 
     static void registerBinaryReader(BinaryReader* reader);
 
     /// Does actual reading and constructing part.
-    virtual Binary* readData(BinaryStream& stream) const
-        throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists,
-               EndOfFile, OutOfRange, WrongSubclass, UnexpectedValue) = 0;
+    virtual Binary* readData(BinaryStream& stream) const = 0;
 
     /// Checks if given stream can be read with this BinaryReader class.
-    virtual bool isMyStreamType(BinaryStream& stream) const
-        throw (UnreachableStream) = 0;
-
+    virtual bool isMyStreamType(BinaryStream& stream) const = 0;
 
 private:
     BinaryReader(const BinaryReader&);

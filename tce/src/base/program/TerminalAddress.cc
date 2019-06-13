@@ -74,7 +74,7 @@ TerminalAddress::isAddress() const {
  * @exception WrongSubclass never.
  */
 Address
-TerminalAddress::address() const throw (WrongSubclass) {
+TerminalAddress::address() const {
     return Address(value_.unsignedValue(), space_);
 }
 

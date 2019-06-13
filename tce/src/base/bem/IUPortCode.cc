@@ -58,19 +58,13 @@ const std::string IUPortCode::OSNAME_IU_PORT_CODE = "iu_port_code";
  * @exception OutOfRange If some of the given values is out of range.
  */
 IUPortCode::IUPortCode(
-    const std::string& immediateUnit,
-    unsigned int encoding,
-    unsigned int extraBits,
-    int indexWidth,
-    SocketCodeTable& parent)
-    throw (ObjectAlreadyExists, OutOfRange) :
-    PortCode(immediateUnit, encoding, extraBits, indexWidth) {
-
+    const std::string& immediateUnit, unsigned int encoding,
+    unsigned int extraBits, int indexWidth, SocketCodeTable& parent)
+    : PortCode(immediateUnit, encoding, extraBits, indexWidth) {
     setParent(NULL);
     parent.addIUPortCode(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -90,17 +84,12 @@ IUPortCode::IUPortCode(
  * @exception OutOfRange If some of the given values is out of range.
  */
 IUPortCode::IUPortCode(
-    const std::string& immediateUnit,
-    int indexWidth,
-    SocketCodeTable& parent)
-    throw (ObjectAlreadyExists, OutOfRange) :
-    PortCode(immediateUnit, indexWidth) {
-
+    const std::string& immediateUnit, int indexWidth, SocketCodeTable& parent)
+    : PortCode(immediateUnit, indexWidth) {
     setParent(NULL);
     parent.addIUPortCode(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -117,9 +106,7 @@ IUPortCode::IUPortCode(
  *                                encoding in the same socket code table.
  */
 IUPortCode::IUPortCode(const ObjectState* state, SocketCodeTable& parent)
-    throw (ObjectStateLoadingException, ObjectAlreadyExists) :
-    PortCode(state) {
-
+    : PortCode(state) {
     if (state->name() != OSNAME_IU_PORT_CODE) {
 	const string procName = "IUPortCode::IUPortCode";
 	throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
@@ -129,7 +116,6 @@ IUPortCode::IUPortCode(const ObjectState* state, SocketCodeTable& parent)
     parent.addIUPortCode(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.

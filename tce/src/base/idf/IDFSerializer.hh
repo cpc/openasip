@@ -47,16 +47,12 @@ public:
     IDFSerializer();
     virtual ~IDFSerializer();
 
-    virtual ObjectState* readState()
-        throw (SerializerException);
-    virtual void writeState(const ObjectState* state)
-        throw (SerializerException);
+    virtual ObjectState* readState();
+    virtual void writeState(const ObjectState* state);
 
-    MachineImplementation* readMachineImplementation()
-        throw (SerializerException, ObjectStateLoadingException);
+    MachineImplementation* readMachineImplementation();
     void writeMachineImplementation(
-        const MachineImplementation& implementation)
-        throw (SerializerException);
+        const MachineImplementation& implementation);
 
 private:
     static ObjectState* convertToOMFormat(const ObjectState* fileState);

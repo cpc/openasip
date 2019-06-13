@@ -58,17 +58,12 @@ const std::string BridgeEncoding::OSKEY_BRIDGE_NAME = "bridge_name";
  *                                is ambiguous with some other encoding.
  */
 BridgeEncoding::BridgeEncoding(
-    const std::string& name,
-    unsigned int encoding,
-    unsigned int extraBits,
+    const std::string& name, unsigned int encoding, unsigned int extraBits,
     SourceField& parent)
-    throw (ObjectAlreadyExists) :
-    Encoding(encoding, extraBits, NULL), bridge_(name) {
-
+    : Encoding(encoding, extraBits, NULL), bridge_(name) {
     parent.addBridgeEncoding(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -84,9 +79,7 @@ BridgeEncoding::BridgeEncoding(
  *                                is ambiguous with some other encoding.
  */
 BridgeEncoding::BridgeEncoding(const ObjectState* state, SourceField& parent)
-    throw (ObjectStateLoadingException, ObjectAlreadyExists) :
-    Encoding(state, NULL), bridge_("") {
-
+    : Encoding(state, NULL), bridge_("") {
     const string procName = "BridgeEncoding::BridgeEncoding";
 
     if (state->name() != OSNAME_BRIDGE_ENCODING) {
@@ -103,7 +96,6 @@ BridgeEncoding::BridgeEncoding(const ObjectState* state, SourceField& parent)
     parent.addBridgeEncoding(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.

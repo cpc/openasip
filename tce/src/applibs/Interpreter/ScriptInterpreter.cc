@@ -188,9 +188,7 @@ ScriptInterpreter::setResult(double result) {
  * @exception NumberFormatException If converting result to string fails.
  */
 string
-ScriptInterpreter::result()
-    throw (NumberFormatException) {
-    
+ScriptInterpreter::result() {
     if (result_ != NULL) {
         return result_->stringValue();
     } else {
@@ -272,9 +270,8 @@ ScriptInterpreter::setVariable(
  * @exception NumberFormatException If converting variable to string fails.
  */
 string
-ScriptInterpreter::variableStringValue(const std::string& interpreterVariableName) 
-    throw (NumberFormatException) {
-    
+ScriptInterpreter::variableStringValue(
+    const std::string& interpreterVariableName) {
     DataObject var = variable(interpreterVariableName);
     string value = var.stringValue();
     return value;
@@ -288,9 +285,8 @@ ScriptInterpreter::variableStringValue(const std::string& interpreterVariableNam
  * @exception NumberFormatException If converting variable to integer fails.
  */
 int
-ScriptInterpreter::variableIntegerValue(const std::string& interpreterVariableName) 
-    throw (NumberFormatException) {
-
+ScriptInterpreter::variableIntegerValue(
+    const std::string& interpreterVariableName) {
     DataObject var = variable(interpreterVariableName);
     int value = var.integerValue();
     return value;
@@ -304,9 +300,7 @@ ScriptInterpreter::variableIntegerValue(const std::string& interpreterVariableNa
  * @exception UnreachableStream If file cannot be opened.
  */
 bool
-ScriptInterpreter::processScriptFile(const std::string& scriptFileName) 
-    throw (UnreachableStream) {
-    
+ScriptInterpreter::processScriptFile(const std::string& scriptFileName) {
     ifstream fileStream(scriptFileName.c_str());
     
     if (fileStream.bad()) {

@@ -55,14 +55,10 @@ public:
     virtual ~ProgramPass();
 
     virtual void handleProgram(
-        TTAProgram::Program& program,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        TTAProgram::Program& program, const TTAMachine::Machine& targetMachine);
 
     static void executeProcedurePass(
-        TTAProgram::Program& program,
-        const TTAMachine::Machine& targetMachine,
-        ProcedurePass& procedurePass)
-        throw (Exception);
+        TTAProgram::Program& program, const TTAMachine::Machine& targetMachine,
+        ProcedurePass& procedurePass);
 };
 #endif

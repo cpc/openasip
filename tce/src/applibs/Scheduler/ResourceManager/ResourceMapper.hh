@@ -53,12 +53,10 @@ public:
     ResourceMapper();
     virtual ~ResourceMapper();
 
-    void addResourceMap(const ResourceBroker& broker)
-        throw (ObjectAlreadyExists);
+    void addResourceMap(const ResourceBroker& broker);
     int resourceCount(const TTAMachine::MachinePart& mp) const;
     SchedulingResource& resourceOf(
-        const TTAMachine::MachinePart& mp,
-        int index = 0) const throw (KeyNotFound);
+        const TTAMachine::MachinePart& mp, int index = 0) const;
 
 private:
     /// Resource brokers.

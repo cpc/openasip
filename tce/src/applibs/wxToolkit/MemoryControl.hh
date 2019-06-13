@@ -65,11 +65,9 @@ public:
     void setMemory(Memory* memory);
 
     void clearHighlights();
-    void highlight(Word address, unsigned count, const wxColour& colour)
-        throw (OutOfRange);
+    void highlight(Word address, unsigned count, const wxColour& colour);
 
 private:
-
     /// Copying not allowed.
     MemoryControl(const MemoryControl&);
     /// Assignment not allowed.

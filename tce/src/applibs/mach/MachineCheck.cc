@@ -89,8 +89,6 @@ MachineCheck::canFix(const TTAMachine::Machine&) const {
  * @throw InvalidData If the machine can't be fixed automatically.
  */
 std::string
-MachineCheck::fix(TTAMachine::Machine&) const
-    throw (InvalidData) {
-
+MachineCheck::fix(TTAMachine::Machine&) const {
     throw InvalidData(__FILE__, __LINE__, __func__);
 }

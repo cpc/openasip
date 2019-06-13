@@ -173,9 +173,7 @@ Terminal::value() const {
  * @return A reference to the instruction to which the immediate points.
  */
 const InstructionReference&
-Terminal::instructionReference() const
-    throw (WrongSubclass) {
-
+Terminal::instructionReference() const {
     throw WrongSubclass(__FILE__, __LINE__);
 }
 
@@ -185,9 +183,7 @@ Terminal::instructionReference() const
  * @return A reference to the instruction to which the immediate points.
  */
 InstructionReference&
-Terminal::instructionReference()
-    throw (WrongSubclass) {
-
+Terminal::instructionReference() {
     throw WrongSubclass(__FILE__, __LINE__);
 }
 
@@ -199,10 +195,9 @@ Terminal::instructionReference()
  *     TerminalAddress.
  */
 Address
-Terminal::address() const throw (WrongSubclass) {
+Terminal::address() const {
     throw WrongSubclass(__FILE__, __LINE__);
 }
-
 
 /**
  * Returns the register file of the general-purpose register.
@@ -215,7 +210,7 @@ Terminal::address() const throw (WrongSubclass) {
  *            of RegisterFile.
  */
 const RegisterFile&
-Terminal::registerFile() const throw (WrongSubclass) {
+Terminal::registerFile() const {
     throw WrongSubclass(__FILE__, __LINE__);
 }
 
@@ -230,7 +225,7 @@ Terminal::registerFile() const throw (WrongSubclass) {
  *            of ImmediateUnit.
  */
 const ImmediateUnit&
-Terminal::immediateUnit() const throw (WrongSubclass) {
+Terminal::immediateUnit() const {
     throw WrongSubclass(__FILE__, __LINE__);
 }
 
@@ -241,7 +236,7 @@ Terminal::immediateUnit() const throw (WrongSubclass) {
  *            TerminalFUPort.
  */
 const FunctionUnit&
-Terminal::functionUnit() const throw (WrongSubclass) {
+Terminal::functionUnit() const {
     throw WrongSubclass(__FILE__, __LINE__);
 }
 
@@ -251,9 +246,7 @@ Terminal::functionUnit() const throw (WrongSubclass) {
  * @return A reference to the basic block to which the immediate points.
  */
 const BasicBlock&
-Terminal::basicBlock() const
-    throw (WrongSubclass) {
-
+Terminal::basicBlock() const {
     throw WrongSubclass(__FILE__, __LINE__);
 }
 
@@ -266,7 +259,7 @@ Terminal::basicBlock() const
  *            TerminalRegister.
  */
 int
-Terminal::index() const throw (WrongSubclass) {
+Terminal::index() const {
     throw WrongSubclass(__FILE__, __LINE__);
 }
 
@@ -277,8 +270,7 @@ Terminal::index() const throw (WrongSubclass) {
  * @exception WrongSubclass always.
 */
 bool
-Terminal::isOpcodeSetting() const 
-    throw (WrongSubclass) {
+Terminal::isOpcodeSetting() const {
     throw WrongSubclass(
         __FILE__, __LINE__, __func__,
         "Terminal must be TerminalFUPort for this method.");
@@ -291,8 +283,7 @@ Terminal::isOpcodeSetting() const
  * @exception WrongSubclass always.
 */
 bool
-Terminal::isTriggering() const 
-    throw (WrongSubclass) {
+Terminal::isTriggering() const {
     throw WrongSubclass(
         __FILE__, __LINE__, __func__,
         "Terminal must be TerminalFUPort for this method.");
@@ -313,12 +304,10 @@ Terminal::isTriggering() const
  * @return The operation carried by this terminal.
  */
 Operation&
-Terminal::operation() const 
-    throw (WrongSubclass, InvalidData) {
+Terminal::operation() const {
     throw WrongSubclass(
         __FILE__, __LINE__, __func__,
         "Terminal must be TerminalFUPort for this method.");
-
 }
 
 /**
@@ -337,8 +326,7 @@ Terminal::operation() const
  * not really useful, we should make sure the operation of the move is known.
  */
 Operation&
-Terminal::hintOperation() const 
-    throw (WrongSubclass, InvalidData) {
+Terminal::hintOperation() const {
     throw WrongSubclass(
         __FILE__, __LINE__, __func__,
         "Terminal must be TerminalFUPort for this method.");
@@ -361,12 +349,11 @@ Terminal::hintOperation() const
  *     not have any operation-related information.
  */
 int
-Terminal::operationIndex() const throw (WrongSubclass, InvalidData) {
+Terminal::operationIndex() const {
     throw WrongSubclass(
         __FILE__, __LINE__, __func__,
         "Terminal must be TerminalFUPort for this method.");
 }
-
 
 /**
  * Return the port accessed by this terminal.
@@ -376,7 +363,7 @@ Terminal::operationIndex() const throw (WrongSubclass, InvalidData) {
  *            TerminalFUPort or TerminalRegister.
  */
 const Port&
-Terminal::port() const throw (WrongSubclass) {
+Terminal::port() const {
     throw WrongSubclass(__FILE__, __LINE__);
 }
 
@@ -390,7 +377,7 @@ Terminal::port() const throw (WrongSubclass) {
  *            TerminalRegister.
  */
 void
-Terminal::setIndex(int) throw (WrongSubclass, OutOfRange) {
+Terminal::setIndex(int) {
     throw WrongSubclass(__FILE__, __LINE__);
 }
 
@@ -402,8 +389,7 @@ Terminal::setIndex(int) throw (WrongSubclass, OutOfRange) {
  *            TerminalInstructionAddress
  */
 void
-Terminal::setInstructionReference(InstructionReference)
-    throw(WrongSubclass) {
+Terminal::setInstructionReference(InstructionReference) {
     throw WrongSubclass(__FILE__, __LINE__);
 }
 

@@ -226,11 +226,7 @@ OutputPSocketBroker::isAnyResourceAvailable(int cycle, const MoveNode& node)
  */
 void
 OutputPSocketBroker::assign(
-    int cycle,
-    MoveNode& node,
-    SchedulingResource& res)
-    throw (Exception) {
-
+    int cycle, MoveNode& node, SchedulingResource& res) {
     cycle = instructionIndex(cycle);
     if (!isApplicable(node)) {
         string msg = "Broker not capable of assigning resources to node!";

@@ -104,10 +104,8 @@ ResourceBroker::isAnyResourceAvailable(int cycle, const MoveNode& node)
  * @exception InstanceNotFound If no available resource is found.
  */
 SchedulingResource&
-ResourceBroker::availableResource(int cycle, const MoveNode& node) const
-    throw (InstanceNotFound) {
-
-//    cycle = instructionIndex(cycle);
+ResourceBroker::availableResource(int cycle, const MoveNode& node) const {
+    //    cycle = instructionIndex(cycle);
     for (ResourceMap::const_iterator resIter = resMap_.begin();
          resIter != resMap_.end(); resIter++) {
 
@@ -156,8 +154,7 @@ bool ResourceBroker::isAvailable(
  * r is not one of the primary resources of this broker.
  */
 const TTAMachine::MachinePart&
-ResourceBroker::machinePartOf(const SchedulingResource& r) const
-    throw (WrongSubclass, KeyNotFound) {
+ResourceBroker::machinePartOf(const SchedulingResource& r) const {
     const TTAMachine::MachinePart* machinePart = NULL;
     try {
         machinePart = MapTools::keyForValue<const MachinePart*>(resMap_, &r);

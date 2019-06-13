@@ -100,9 +100,7 @@ IDFSerializer::~IDFSerializer() {
  * @exception SerializerException If an error occurs while reading the file.
  */
 ObjectState*
-IDFSerializer::readState()
-    throw (SerializerException) {
-
+IDFSerializer::readState() {
     ObjectState* fileState = XMLSerializer::readState();
     ObjectState* omState = convertToOMFormat(fileState);
 
@@ -113,7 +111,6 @@ IDFSerializer::readState()
     return omState;
 }
 
-
 /**
  * Writes the given ObjectState tree created by 
  * MachineImplementation::saveState to an IDF file.
@@ -123,14 +120,11 @@ IDFSerializer::readState()
  * @exception SerializerException If an error occurs while writing the file.
  */
 void
-IDFSerializer::writeState(const ObjectState* state)
-    throw (SerializerException) {
-
+IDFSerializer::writeState(const ObjectState* state) {
     ObjectState* fileState = convertToFileFormat(state);
     XMLSerializer::writeState(fileState);
     delete fileState;
 }
-
 
 /**
  * Reads the source IDF file that is set and creates a MachineImplementation
@@ -143,16 +137,13 @@ IDFSerializer::writeState(const ObjectState* state)
  *                                        instance.
  */
 MachineImplementation*
-IDFSerializer::readMachineImplementation()
-    throw (SerializerException, ObjectStateLoadingException) {
-
+IDFSerializer::readMachineImplementation() {
     ObjectState* omState = readState();
     MachineImplementation* implementation = new MachineImplementation(
         omState);
     delete omState;
     return implementation;
 }
-
 
 /**
  * Writes the given machine implementation to the destination IDF file.
@@ -162,14 +153,11 @@ IDFSerializer::readMachineImplementation()
  */
 void
 IDFSerializer::writeMachineImplementation(
-    const MachineImplementation& implementation)
-    throw (SerializerException) {
-
+    const MachineImplementation& implementation) {
     ObjectState* omState = implementation.saveState();
     writeState(omState);
     delete omState;
 }
-
 
 /**
  * Converts the given ObjectState tree that represents an IDF file to format

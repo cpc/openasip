@@ -96,9 +96,7 @@ LongImmediateUnitState::clear() {
  * @exception OutOfRange If index is out of range.
  */
 SimValue&
-LongImmediateUnitState::registerValue(int index)
-    throw (OutOfRange) {
-
+LongImmediateUnitState::registerValue(int index) {
     if (index < 0 || index > static_cast<int>(values_.size()) - 1) {
         string msg = "Index out of range.";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);
@@ -114,9 +112,7 @@ LongImmediateUnitState::registerValue(int index)
  * @exception OutOfRange If index is out of range.
  */
 void
-LongImmediateUnitState::setRegisterValue(int index, const SimValue& value)
-    throw (OutOfRange) {
-
+LongImmediateUnitState::setRegisterValue(int index, const SimValue& value) {
     if (index < 0 || index > static_cast<int>(values_.size()) - 1) {
         string msg = "Index out of range.";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);
@@ -167,9 +163,7 @@ LongImmediateUnitState::advanceClock() {
  * @exception OutOfRange If index is out of range.
  */
 LongImmediateRegisterState&
-LongImmediateUnitState::immediateRegister(int i)
-    throw (OutOfRange) {
-
+LongImmediateUnitState::immediateRegister(int i) {
     if (i < 0 || i > static_cast<int>(registers_.size()) - 1) {
 	string msg = "Index out of range.";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);
@@ -227,9 +221,7 @@ NullLongImmediateUnitState::~NullLongImmediateUnitState() {
  * @exception OutOfRange Never throws.
  */
 SimValue&
-NullLongImmediateUnitState::registerValue(int)
-    throw (OutOfRange) {
-
+NullLongImmediateUnitState::registerValue(int) {
     Application::abortWithError("registerValue()");
     return NullSimValue::instance();
 }
@@ -240,9 +232,7 @@ NullLongImmediateUnitState::registerValue(int)
  * @exception OutOfRange Never throws.
  */
 void
-NullLongImmediateUnitState::setRegisterValue(int, const SimValue&)
-    throw (OutOfRange) {
-
+NullLongImmediateUnitState::setRegisterValue(int, const SimValue&) {
     Application::abortWithError("setRegisterValue()");
 }
 
@@ -268,8 +258,7 @@ NullLongImmediateUnitState::advanceClock() {
  * @return Never returns.
  */
 LongImmediateRegisterState&
-NullLongImmediateUnitState::immediateRegister(int)
-    throw (OutOfRange) {
+NullLongImmediateUnitState::immediateRegister(int) {
     Application::abortWithError("immediateRegister()");
     return *(new LongImmediateRegisterState(NULL, 0, 0, false));
 }

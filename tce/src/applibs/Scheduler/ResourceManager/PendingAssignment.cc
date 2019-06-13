@@ -102,9 +102,7 @@ PendingAssignment::isAssignmentPossible() {
  * possible assignments.
  */
 void
-PendingAssignment::tryNext()
-    throw (ModuleRunTimeError) {
-
+PendingAssignment::tryNext() {
     lastTriedAssignment_ += 1;
 
     if (availableResources_.count() == 0 ||

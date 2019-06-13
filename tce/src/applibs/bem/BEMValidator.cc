@@ -156,9 +156,7 @@ BEMValidator::errorCount() const {
  *                       than the number of errors.
  */
 std::string
-BEMValidator::errorMessage(int index) const
-    throw (OutOfRange) {
-
+BEMValidator::errorMessage(int index) const {
     if (index < 0 || index >= errorCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     } else {

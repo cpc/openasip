@@ -82,12 +82,7 @@ SectionReader::~SectionReader() {
  */
 void
 SectionReader::readSection(
-    BinaryStream& stream,
-    Section* section,
-    BinaryReader* reader)
-    throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists,
-           EndOfFile, OutOfRange, WrongSubclass, UnexpectedValue) {
-
+    BinaryStream& stream, Section* section, BinaryReader* reader) {
     const SectionReader* sectionReader =
         findSectionReader(section->type(), reader);
 
@@ -129,10 +124,7 @@ SectionReader::finalizeBinary(Binary* bin, BinaryReader* reader) {
 */
 const SectionReader*
 SectionReader::findSectionReader(
-    const Section::SectionType type,
-    const BinaryReader* reader)
-    throw (InstanceNotFound) {
-
+    const Section::SectionType type, const BinaryReader* reader) {
     MapKey key(type, reader);
 
     if (prototypes_ == NULL ||

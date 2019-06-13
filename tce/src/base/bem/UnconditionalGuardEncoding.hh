@@ -47,12 +47,8 @@
 class UnconditionalGuardEncoding : public GuardEncoding {
 public:
     UnconditionalGuardEncoding(
-        bool inverted,
-        unsigned int encoding,
-        GuardField& parent)
-        throw (ObjectAlreadyExists);
-    UnconditionalGuardEncoding(const ObjectState* state, GuardField& parent)
-        throw (ObjectStateLoadingException, ObjectAlreadyExists);
+        bool inverted, unsigned int encoding, GuardField& parent);
+    UnconditionalGuardEncoding(const ObjectState* state, GuardField& parent);
     virtual ~UnconditionalGuardEncoding();
 
     virtual ObjectState* saveState() const;

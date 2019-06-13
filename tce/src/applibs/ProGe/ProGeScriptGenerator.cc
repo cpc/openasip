@@ -127,9 +127,7 @@ ProGeScriptGenerator::~ProGeScriptGenerator() {
  * @exception IOException 
  */
 void
-ProGeScriptGenerator::generateAll()
-    throw (IOException) {
-
+ProGeScriptGenerator::generateAll() {
     generateModsimCompile();
     
     if(language_==VHDL)
@@ -142,9 +140,8 @@ ProGeScriptGenerator::generateAll()
     if(language_==VHDL)
         generateGhdlSimulate();
     else
-        generateIverilogSimulate();        
+        generateIverilogSimulate();
 }
-
 
 /** 
  * Generates a script for compilation using modelsim.
@@ -152,9 +149,7 @@ ProGeScriptGenerator::generateAll()
  * @exception IOException 
  */
 void
-ProGeScriptGenerator::generateModsimCompile()
-    throw (IOException) {
-
+ProGeScriptGenerator::generateModsimCompile() {
     string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
         modsimCompileScriptName_;
 
@@ -181,16 +176,13 @@ ProGeScriptGenerator::generateModsimCompile()
     stream.close();
 }
 
-
 /** 
  * Generates a script for compilation using ghdl.
  *
  * @exception IOException 
  */
 void
-ProGeScriptGenerator::generateGhdlCompile()
-    throw (IOException) {
-
+ProGeScriptGenerator::generateGhdlCompile() {
     string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
         ghdlCompileScriptName_;
 
@@ -228,9 +220,7 @@ ProGeScriptGenerator::generateGhdlCompile()
  * @exception IOException 
  */
 void
-ProGeScriptGenerator::generateIverilogCompile()
-    throw (IOException) {
-
+ProGeScriptGenerator::generateIverilogCompile() {
     string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
         iverilogCompileScriptName_;
 
@@ -256,9 +246,7 @@ ProGeScriptGenerator::generateIverilogCompile()
  * Generates a script for simulating using modelsims vsim. 
  */
 void
-ProGeScriptGenerator::generateModsimSimulate()
-    throw (IOException) {
-
+ProGeScriptGenerator::generateModsimSimulate() {
     string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
         modsimSimulateScriptName_;
 
@@ -273,16 +261,13 @@ ProGeScriptGenerator::generateModsimSimulate()
     stream.close();
 }
 
-
 /** 
  * Generates a script for simulating using ghdl.
  *
  * @exception IOException 
  */
 void
-ProGeScriptGenerator::generateGhdlSimulate()
-    throw (IOException) {
-
+ProGeScriptGenerator::generateGhdlSimulate() {
     string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
         ghdlSimulateScriptName_;
 
@@ -312,9 +297,7 @@ ProGeScriptGenerator::generateGhdlSimulate()
  * @exception IOException 
  */
 void
-ProGeScriptGenerator::generateIverilogSimulate()
-    throw (IOException) {
-
+ProGeScriptGenerator::generateIverilogSimulate() {
     string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
         iverilogSimulateScriptName_;
 
@@ -338,9 +321,7 @@ ProGeScriptGenerator::generateIverilogSimulate()
  * @exception IOException
  */
 void
-ProGeScriptGenerator::createExecutableFile(const std::string& fileName)
-    throw (IOException) {
-
+ProGeScriptGenerator::createExecutableFile(const std::string& fileName) {
     FileSystem::removeFileOrDirectory(fileName);
     bool isCreated = FileSystem::createFile(fileName);
     if (!isCreated) {
@@ -349,7 +330,6 @@ ProGeScriptGenerator::createExecutableFile(const std::string& fileName)
     }
     FileSystem::setFileExecutable(fileName);
 }
-
 
 /** 
  * Generates the start of the shell script.

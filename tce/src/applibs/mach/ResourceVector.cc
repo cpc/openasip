@@ -98,9 +98,8 @@ ResourceVector::~ResourceVector() {
  * @return The set of resources.
  * @exception OutOfRange If the cycle is out of range.
  */
-const ResourceVector::ResourceSet& 
-ResourceVector::resourcesUsedAtCycle(unsigned cycle) const
-    throw (OutOfRange) {
+const ResourceVector::ResourceSet&
+ResourceVector::resourcesUsedAtCycle(unsigned cycle) const {
     if (cycle > resources_.size())
         throw OutOfRange(__FILE__, __LINE__, __func__);
     return resources_.at(cycle);

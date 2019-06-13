@@ -198,7 +198,7 @@ void
 SafePointer::genericAddObjectReference(
     const KeyType& key,
     MapType& keyMap,
-    const SafePointable* obj) throw (KeyAlreadyExists) {
+    const SafePointable* obj)  {
 
     assert(obj != NULL);
 
@@ -282,7 +282,7 @@ SafePointer::genericAddObjectReference(
 template <typename KeyType, typename MapType>
 KeyType
 SafePointer::genericKeyFor(const SafePointable* obj, MapType& sourceMap)
-    throw (KeyNotFound) {
+     {
 
     if (!MapTools::containsKey(*referenceMap_, obj)) {
         throw KeyNotFound(__FILE__, __LINE__,

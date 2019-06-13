@@ -83,12 +83,7 @@ TPEFSectionReader::parent() const {
  * @exception UnexpectedValue If there was unexpected value when reading.
  */
 void
-TPEFSectionReader::readData(
-    BinaryStream& stream,
-    Section* section) const
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-           OutOfRange, WrongSubclass, UnexpectedValue) {
-
+TPEFSectionReader::readData(BinaryStream& stream, Section* section) const {
     TPEFReader* tpefReader = dynamic_cast<TPEFReader*>(parent());
 
     FileOffset startOffset = stream.readPosition();

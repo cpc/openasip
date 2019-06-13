@@ -49,40 +49,27 @@ public:
     SQLiteConnection(sqlite3* connection);
     virtual ~SQLiteConnection();
 
-    virtual int updateQuery(const std::string& queryString)
-	throw (RelationalDBException);
-    virtual void DDLQuery(const std::string& queryString)
-	throw (RelationalDBException);
+    virtual int updateQuery(const std::string& queryString);
+    virtual void DDLQuery(const std::string& queryString);
     virtual RelationalDBQueryResult* query(
-        const std::string& queryString, 
-        bool init = true) 
-        throw (RelationalDBException);
+        const std::string& queryString, bool init = true);
 
-    virtual void beginTransaction()
-	throw (RelationalDBException);
-    virtual void rollback()
-	throw (RelationalDBException);
-    virtual void commit()
-	throw (RelationalDBException);
+    virtual void beginTransaction();
+    virtual void rollback();
+    virtual void commit();
 
     virtual RowID lastInsertRowID();
 
-    virtual bool tableExistsInDB(const std::string& tableName)
-    throw (RelationalDBException);
+    virtual bool tableExistsInDB(const std::string& tableName);
 
-    virtual int rowCountInTable(const std::string& tableName)
-    throw (RelationalDBException);
+    virtual int rowCountInTable(const std::string& tableName);
 
-    void throwIfSQLiteError(int result)
-	throw (RelationalDBException);
+    void throwIfSQLiteError(int result);
 
-    void finalizeQuery(sqlite3_stmt* statement)
-	throw (RelationalDBException);
+    void finalizeQuery(sqlite3_stmt* statement);
 
 private:
-
-    sqlite3_stmt* compileQuery(const std::string& queryString)
-	throw (RelationalDBException);
+    sqlite3_stmt* compileQuery(const std::string& queryString);
 
     /// SQLite connection handle is saved to this
     sqlite3* connection_;

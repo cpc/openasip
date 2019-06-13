@@ -74,8 +74,7 @@ public:
     virtual std::string stateName(FSAStateIndex state) const;
 
     virtual FSAStateTransitionIndex transitionIndex(
-        const std::string& transitionName) const 
-        throw (KeyNotFound);
+        const std::string& transitionName) const;
 
     virtual FSAStateIndex destinationState(
         FSAStateIndex source, 

@@ -68,12 +68,9 @@ BinaryEncoding::BinaryEncoding() :
  *                                        the state.
  */
 BinaryEncoding::BinaryEncoding(const ObjectState* state)
-    throw (ObjectStateLoadingException) :
-    InstructionField(NULL), immediateField_(NULL) {
-
+    : InstructionField(NULL), immediateField_(NULL) {
     loadState(state);
 }
-
 
 /**
  * The destructor.
@@ -112,9 +109,7 @@ BinaryEncoding::moveSlotCount() const {
  *                       number of move slots of the TTA instruction word.
  */
 MoveSlot&
-BinaryEncoding::moveSlot(int index) const
-    throw (OutOfRange) {
-
+BinaryEncoding::moveSlot(int index) const {
     if (index < 0 || index >= moveSlotCount()) {
 	const string procName = "BinaryEncoding::moveSlot";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -122,7 +117,6 @@ BinaryEncoding::moveSlot(int index) const
 
     return *moveSlots_[index];
 }
-
 
 /**
  * Tells whether the encoding map contains a move slot with the given (bus)
@@ -156,9 +150,7 @@ BinaryEncoding::hasMoveSlot(const std::string& name) const {
  *                             slot with the given name.
  */
 MoveSlot&
-BinaryEncoding::moveSlot(const std::string& name) const
-    throw (InstanceNotFound) {
-
+BinaryEncoding::moveSlot(const std::string& name) const {
     for (MoveSlotContainer::const_iterator iter = moveSlots_.begin();
 	 iter != moveSlots_.end(); iter++) {
 
@@ -172,7 +164,6 @@ BinaryEncoding::moveSlot(const std::string& name) const
     throw InstanceNotFound(__FILE__, __LINE__, procName);
 }
 
-
 /**
  * Adds the given move slot to the encoding map.
  *
@@ -183,9 +174,7 @@ BinaryEncoding::moveSlot(const std::string& name) const
  *                                the same name already.
  */
 void
-BinaryEncoding::addMoveSlot(MoveSlot& slot)
-    throw (ObjectAlreadyExists) {
-
+BinaryEncoding::addMoveSlot(MoveSlot& slot) {
     // verify that this is called from MoveSlot constructor
     assert(slot.parent() == NULL);
 
@@ -196,7 +185,6 @@ BinaryEncoding::addMoveSlot(MoveSlot& slot)
 
     moveSlots_.push_back(&slot);
 }
-
 
 /**
  * Removes the given move slot from the encoding map.
@@ -237,9 +225,7 @@ BinaryEncoding::immediateSlotCount() const {
  *                       word.
  */
 ImmediateSlotField&
-BinaryEncoding::immediateSlot(int index) const
-    throw (OutOfRange) {
-
+BinaryEncoding::immediateSlot(int index) const {
     if (index < 0 || index >= immediateSlotCount()) {
 	const string procName = "BinaryEncoding::immediateSlot";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -247,7 +233,6 @@ BinaryEncoding::immediateSlot(int index) const
 
     return *immediateSlots_[index];
 }
-
 
 /**
  * Tells whether the encoding map contains an immediate slot with the given
@@ -283,9 +268,7 @@ BinaryEncoding::hasImmediateSlot(const std::string& name) const {
  *                             immediate slot with the given name.
  */
 ImmediateSlotField&
-BinaryEncoding::immediateSlot(const std::string& name) const
-    throw (InstanceNotFound) {
-
+BinaryEncoding::immediateSlot(const std::string& name) const {
     for (ImmediateSlotContainer::const_iterator iter = 
              immediateSlots_.begin(); iter != immediateSlots_.end(); 
          iter++) {
@@ -300,7 +283,6 @@ BinaryEncoding::immediateSlot(const std::string& name) const
     throw InstanceNotFound(__FILE__, __LINE__, procName);
 }
 
-
 /**
  * Adds the given immediate slot to the encoding map.
  *
@@ -311,9 +293,7 @@ BinaryEncoding::immediateSlot(const std::string& name) const
  *                                slot with the same name already.
  */
 void
-BinaryEncoding::addImmediateSlot(ImmediateSlotField& slot)
-    throw (ObjectAlreadyExists) {
-
+BinaryEncoding::addImmediateSlot(ImmediateSlotField& slot) {
     // verify that this is called from MoveSlot constructor
     assert(slot.parent() == NULL);
 
@@ -324,7 +304,6 @@ BinaryEncoding::addImmediateSlot(ImmediateSlotField& slot)
 
     immediateSlots_.push_back(&slot);
 }
-
 
 /**
  * Removes the given immediate slot from the encoding map.
@@ -381,9 +360,7 @@ BinaryEncoding::immediateControlField() const {
  *                                immediate control field.
  */
 void
-BinaryEncoding::setImmediateControlField(ImmediateControlField& field)
-    throw (ObjectAlreadyExists) {
-
+BinaryEncoding::setImmediateControlField(ImmediateControlField& field) {
     // verify that this is called from ImmediateControlField constructor
     assert(field.parent() == NULL);
 
@@ -394,7 +371,6 @@ BinaryEncoding::setImmediateControlField(ImmediateControlField& field)
 
     immediateField_ = &field;
 }
-
 
 /**
  * Removes the immediate control field.
@@ -432,16 +408,13 @@ BinaryEncoding::longImmDstRegisterFieldCount() const {
  *                       fields.
  */
 LImmDstRegisterField&
-BinaryEncoding::longImmDstRegisterField(int index) const
-    throw (OutOfRange) {
-
+BinaryEncoding::longImmDstRegisterField(int index) const {
     if (index < 0 || index >= longImmDstRegisterFieldCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
 
     return *longImmDstRegFields_[index];
 }
-
 
 /**
  * Returns the long immediate destination register field that gives the
@@ -455,10 +428,7 @@ BinaryEncoding::longImmDstRegisterField(int index) const
  */
 LImmDstRegisterField&
 BinaryEncoding::longImmDstRegisterField(
-    const std::string& iTemp,
-    const std::string& dstUnit) const
-    throw (InstanceNotFound) {
-
+    const std::string& iTemp, const std::string& dstUnit) const {
     int fields = longImmDstRegisterFieldCount();
     for (int i = 0; i < fields; i++) {
         LImmDstRegisterField& field = longImmDstRegisterField(i);
@@ -471,7 +441,6 @@ BinaryEncoding::longImmDstRegisterField(
 
     throw InstanceNotFound(__FILE__, __LINE__, __func__);
 }
-
 
 /**
  * Adds the given long immediate destination register field to the
@@ -526,9 +495,7 @@ BinaryEncoding::socketCodeTableCount() const {
  *                       map.
  */
 SocketCodeTable&
-BinaryEncoding::socketCodeTable(int index) const
-    throw (OutOfRange) {
-
+BinaryEncoding::socketCodeTable(int index) const {
     if (index < 0 || index >= socketCodeTableCount()) {
 	const string procName = "BinaryEncoding::socketCodeTable";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -536,7 +503,6 @@ BinaryEncoding::socketCodeTable(int index) const
 
     return *socketCodes_[index];
 }
-
 
 /**
  * Returns the socket code table which has the given name.
@@ -571,9 +537,7 @@ BinaryEncoding::socketCodeTable(const std::string& name) const {
  *                                the given table.
  */
 void
-BinaryEncoding::addSocketCodeTable(SocketCodeTable& table)
-    throw (ObjectAlreadyExists) {
-
+BinaryEncoding::addSocketCodeTable(SocketCodeTable& table) {
     // verify that this is called from SocketCodeTable constructor
     assert(table.parent() == NULL);
 
@@ -584,7 +548,6 @@ BinaryEncoding::addSocketCodeTable(SocketCodeTable& table)
 
     socketCodes_.push_back(&table);
 }
-
 
 /**
  * Removes the given socket code table from the encoding map.
@@ -630,9 +593,7 @@ BinaryEncoding::childFieldCount() const {
  *                       than the number of child fields.
  */
 InstructionField&
-BinaryEncoding::childField(int position) const
-    throw (OutOfRange) {
-
+BinaryEncoding::childField(int position) const {
     if (position < 0 || position >= childFieldCount()) {
 	const string procName = "BinaryEncoding::childField";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -669,7 +630,6 @@ BinaryEncoding::childField(int position) const
 
     return NullInstructionField::instance();
 }
-
 
 /**
  * Returns the bit width of the instruction word defined by this encoding
@@ -718,9 +678,7 @@ BinaryEncoding::width() const {
  *                                        the state.
  */
 void
-BinaryEncoding::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+BinaryEncoding::loadState(const ObjectState* state) {
     if (state->name() != OSNAME_BEM) {
 	const string procName = "BinaryEncoding::loadState";
 	throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
@@ -755,7 +713,6 @@ BinaryEncoding::loadState(const ObjectState* state)
     }
     delete newState;
 }
-
 
 /**
  * Saves the state of the binary encoding map to an ObjectState tree.

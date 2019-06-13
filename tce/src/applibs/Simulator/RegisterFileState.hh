@@ -51,8 +51,7 @@ public:
     explicit RegisterFileState(int size, int width);
     virtual ~RegisterFileState();
 
-    virtual RegisterState& registerState(int index)
-        throw (OutOfRange);
+    virtual RegisterState& registerState(int index);
 
     virtual std::size_t registerCount() const;
 
@@ -79,8 +78,7 @@ public:
 
     virtual ~NullRegisterFileState();
 
-    virtual RegisterState& registerState(int index)
-        throw (OutOfRange);
+    virtual RegisterState& registerState(int index);
 
 private:
     NullRegisterFileState();

@@ -80,50 +80,32 @@ public:
 
     Netlist* generate(
         int imemWidthInMAUs, TCEString entityNameStr,
-        std::ostream& warningStream)
-        throw (IOException, InvalidData, OutOfRange, InstanceNotFound);
+        std::ostream& warningStream);
 
-    NetlistPort& netlistPort(const TTAMachine::Port& port) const
-        throw (InstanceNotFound);
-    NetlistPort& loadPort(const NetlistPort& port) const
-        throw (InstanceNotFound);
+    NetlistPort& netlistPort(const TTAMachine::Port& port) const;
+    NetlistPort& loadPort(const NetlistPort& port) const;
     bool hasOpcodePort(const NetlistPort& port) const;
-    NetlistPort& rfOpcodePort(const NetlistPort& port) const
-        throw (InstanceNotFound);
-    NetlistPort& rfGuardPort(const NetlistBlock& rfBlock) const
-        throw (InstanceNotFound);
-    NetlistPort& fuOpcodePort(const NetlistBlock& fuBlock) const
-        throw (InstanceNotFound);
-    NetlistPort& fuGuardPort(const NetlistPort& fuPort) const
-        throw (InstanceNotFound);
-    NetlistPort& clkPort(const NetlistBlock& block) const
-        throw (InstanceNotFound);
-    NetlistPort& rstPort(const NetlistBlock& block) const
-        throw (InstanceNotFound);
+    NetlistPort& rfOpcodePort(const NetlistPort& port) const;
+    NetlistPort& rfGuardPort(const NetlistBlock& rfBlock) const;
+    NetlistPort& fuOpcodePort(const NetlistBlock& fuBlock) const;
+    NetlistPort& fuGuardPort(const NetlistPort& fuPort) const;
+    NetlistPort& clkPort(const NetlistBlock& block) const;
+    NetlistPort& rstPort(const NetlistBlock& block) const;
     bool hasGlockPort(const NetlistBlock& block) const;
-    NetlistPort& glockPort(const NetlistBlock& block) const
-        throw (InstanceNotFound);
+    NetlistPort& glockPort(const NetlistBlock& block) const;
     bool hasGlockReqPort(const NetlistBlock& block) const;
-    NetlistPort& glockReqPort(const NetlistBlock& block) const
-        throw (InstanceNotFound);
+    NetlistPort& glockReqPort(const NetlistBlock& block) const;
 
     NetlistPort& immediateUnitWritePort(
-        const TTAMachine::ImmediateUnit& iu) const
-        throw (InstanceNotFound);
-    NetlistPort& gcuReturnAddressInPort() const
-        throw (InstanceNotFound);
-    NetlistPort& gcuReturnAddressOutPort() const
-        throw (InstanceNotFound);
+        const TTAMachine::ImmediateUnit& iu) const;
+    NetlistPort& gcuReturnAddressInPort() const;
+    NetlistPort& gcuReturnAddressOutPort() const;
 
-    NetlistBlock& instructionDecoder() const
-        throw (InstanceNotFound);
-    NetlistBlock& instructionFetch() const
-        throw (InstanceNotFound);
+    NetlistBlock& instructionDecoder() const;
+    NetlistBlock& instructionFetch() const;
 
-    HDB::FUEntry& fuEntry(const std::string& fuName) const
-        throw (InstanceNotFound);
-    HDB::RFEntry& rfEntry(const std::string& rfName) const
-            throw (InstanceNotFound);
+    HDB::FUEntry& fuEntry(const std::string& fuName) const;
+    HDB::RFEntry& rfEntry(const std::string& rfName) const;
 
     /// Instruction word port name in instruction decoder.
     static const std::string DECODER_INSTR_WORD_PORT;
@@ -161,23 +143,16 @@ private:
 
     void addGCUToNetlist(NetlistBlock& toplevelBlock, int imemWidthInMAUs);
     void addFUToNetlist(
-        const IDF::FUImplementationLocation& location,
-        Netlist& netlist, std::ostream& warningStream)
-        throw (IOException, InvalidData);
+        const IDF::FUImplementationLocation& location, Netlist& netlist,
+        std::ostream& warningStream);
     void addRFToNetlist(
-        const IDF::RFImplementationLocation& location,
-        Netlist& netlist)
-        throw (IOException, InvalidData);
+        const IDF::RFImplementationLocation& location, Netlist& netlist);
     void addIUToNetlist(
-        const IDF::RFImplementationLocation& location,
-        Netlist& netlist)
-        throw (IOException, InvalidData);
+        const IDF::RFImplementationLocation& location, Netlist& netlist);
     void addBaseRFToNetlist(
         const TTAMachine::BaseRegisterFile& regFile,
-        const IDF::RFImplementationLocation& location,
-        Netlist& netlist,
-        const std::string& blockNamePrefix)
-        throw (IOException, InvalidData);
+        const IDF::RFImplementationLocation& location, Netlist& netlist,
+        const std::string& blockNamePrefix);
 
     void mapNetlistPort(
         const TTAMachine::Port& adfPort,
@@ -210,22 +185,15 @@ private:
     bool isLSU(const TTAMachine::FunctionUnit& fu) const;
 
     static int opcodePortWidth(
-        const HDB::FUEntry& fu, std::ostream& warningStream)
-        throw (InvalidData);
+        const HDB::FUEntry& fu, std::ostream& warningStream);
     static TTAMachine::FUPort& findCorrespondingPort(
         const TTAMachine::FunctionUnit& fuToSearch,
-        const TTAMachine::FunctionUnit& origFU,
-        const std::string& portName)
-        throw (InstanceNotFound);
+        const TTAMachine::FunctionUnit& origFU, const std::string& portName);
     static int instructionMemoryAddressWidth(
-        const TTAMachine::Machine& machine)
-        throw (IllegalMachine);
-    static int instructionMemoryWidth(
-        const TTAMachine::Machine& machine)
-        throw (IllegalMachine);
+        const TTAMachine::Machine& machine);
+    static int instructionMemoryWidth(const TTAMachine::Machine& machine);
     static TTAMachine::AddressSpace& instructionMemory(
-        const TTAMachine::Machine& machine)
-        throw (IllegalMachine);
+        const TTAMachine::Machine& machine);
 
     /// The machine.
     const TTAMachine::Machine& machine_;

@@ -67,10 +67,8 @@ TBPCommand::~TBPCommand() {
  * @return True in case simulation is initialized and arguments are ok.
  * @exception NumberFormatException Is never thrown by this command.
  */
-bool 
-TBPCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+TBPCommand::execute(const std::vector<DataObject>& arguments) {
     Breakpoint breakpoint(simulatorFrontend(), 0);
     if (!parseBreakpoint(arguments, breakpoint)) {
         return false;

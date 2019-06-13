@@ -80,10 +80,9 @@ using namespace TTAMachine;
  * @param delaySlots number of delay slots in the machine.
  * @param fillFallThru fill from Fall-thru of jump BB?
  */
-void CopyingDelaySlotFiller::fillDelaySlots(
-    BasicBlockNode &jumpingBB, int delaySlots, bool fillFallThru)
-    throw (Exception) {
-
+void
+CopyingDelaySlotFiller::fillDelaySlots(
+    BasicBlockNode& jumpingBB, int delaySlots, bool fillFallThru) {
     // do not try to fill loop scheduled, also skip epilog and prolog.
     if (jumpingBB.isLoopScheduled()) {
         bbnStatus_[&jumpingBB] = BBN_BOTH_FILLED;
@@ -333,9 +332,7 @@ CopyingDelaySlotFiller::CopyingDelaySlotFiller() {
 void
 CopyingDelaySlotFiller::fillDelaySlots(
     ControlFlowGraph& cfg, DataDependenceGraph& ddg,
-    const TTAMachine::Machine& machine) 
-    throw (Exception) {
-
+    const TTAMachine::Machine& machine) {
     um_ = &UniversalMachine::instance();
     int delaySlots = machine.controlUnit()->delaySlots();
 
@@ -601,8 +598,7 @@ CopyingDelaySlotFiller::addResourceManager(
  */
 std::pair<TTAProgram::Move*, TTAProgram::Immediate*>
 CopyingDelaySlotFiller::findJumpImmediate(
-    int jumpIndex, Move& jumpMove, InstructionReferenceManager& irm) 
-    throw (Exception) {
+    int jumpIndex, Move& jumpMove, InstructionReferenceManager& irm) {
     BasicBlock& bb = static_cast<BasicBlock&>(jumpMove.parent().parent());
     Move* irMove = &jumpMove;
     int irIndex = jumpIndex;
@@ -710,11 +706,9 @@ bool CopyingDelaySlotFiller::writesRegister(
  */
 bool
 CopyingDelaySlotFiller::tryToFillSlots(
-    BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBNode,
-    bool fallThru, Move* jumpMove, int slotsToFill, int removeGuards,
-    int grIndex, RegisterFile* grFile, Move*& skippedJump, int delaySlots)
-    throw (Exception) {
-
+    BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBNode, bool fallThru,
+    Move* jumpMove, int slotsToFill, int removeGuards, int grIndex,
+    RegisterFile* grFile, Move*& skippedJump, int delaySlots) {
     skippedJump = NULL;
     BasicBlock& blockToFill = blockToFillNode.basicBlock();
     SimpleResourceManager& rm = *resourceManagers_[&blockToFill];

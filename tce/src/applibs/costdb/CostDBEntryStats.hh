@@ -49,52 +49,36 @@ public:
     virtual ~CostDBEntryStats();
     CostDBEntryStats(
         const CostDBEntryStats& stats1, const CostDBEntryStats& stats2,
-        double coefficient)
-        throw (KeyNotFound);
+        double coefficient);
     virtual CostDBEntryStats* copy() const;
 
     virtual double area() const;
     virtual double delay() const;
-    virtual double delayPort(const std::string& port) const
-        throw (WrongSubclass, KeyNotFound);
+    virtual double delayPort(const std::string& port) const;
 
-    virtual void setDelay(const std::string& port, double delay)
-        throw (WrongSubclass);
+    virtual void setDelay(const std::string& port, double delay);
 
-    virtual double energyActive() const
-        throw (WrongSubclass, KeyNotFound);
-    virtual double energyIdle() const
-        throw (WrongSubclass, KeyNotFound);
-    virtual double energyOperation(const std::string& name) const
-        throw (WrongSubclass, KeyNotFound);
-    virtual bool hasEnergyOperation(const std::string& name) const
-        throw (WrongSubclass);
-    virtual double energyRead() const 
-        throw (WrongSubclass, KeyNotFound);
-    virtual double energyWrite() const 
-        throw (WrongSubclass, KeyNotFound);
-    virtual double energyReadWrite(int reads, int writes) const
-        throw (WrongSubclass, KeyNotFound);
+    virtual double energyActive() const;
+    virtual double energyIdle() const;
+    virtual double energyOperation(const std::string& name) const;
+    virtual bool hasEnergyOperation(const std::string& name) const;
+    virtual double energyRead() const;
+    virtual double energyWrite() const;
+    virtual double energyReadWrite(int reads, int writes) const;
 
-    virtual void setEnergyActive(double energy)
-        throw (WrongSubclass);
-    virtual void setEnergyIdle(double energy)
-        throw (WrongSubclass);
-    virtual void setEnergyOperation(const std::string& name, double energy)
-        throw (WrongSubclass);
-    virtual void setEnergyRead(double energy)
-        throw (WrongSubclass);
-    virtual void setEnergyWrite(double energy)
-        throw (WrongSubclass);
-    virtual void setEnergyReadWrite(int reads, int writes, double energy)
-        throw (WrongSubclass);
+    virtual void setEnergyActive(double energy);
+    virtual void setEnergyIdle(double energy);
+    virtual void setEnergyOperation(const std::string& name, double energy);
+    virtual void setEnergyRead(double energy);
+    virtual void setEnergyWrite(double energy);
+    virtual void setEnergyReadWrite(int reads, int writes, double energy);
 
 protected:
     virtual bool hasEnergy(const std::string& key) const;
-    virtual double findEnergy(const std::string& key) const throw (KeyNotFound);
+    virtual double findEnergy(const std::string& key) const;
     virtual void addEnergy(const std::string& name, double energy);
     virtual bool hasDelay(const std::string& key) const;
-    virtual double findDelay(const std::string& key) const throw (KeyNotFound);
+    virtual double findDelay(const std::string& key) const;
     virtual void addDelay(const std::string& name, double delay);
     virtual CostDBEntryStats* createStats() const;
 

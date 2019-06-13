@@ -108,12 +108,8 @@ BBSchedulerController::~BBSchedulerController() {
  */
 void
 BBSchedulerController::handleBasicBlock(
-    TTAProgram::BasicBlock& bb,
-    const TTAMachine::Machine& targetMachine,
-    TTAProgram::InstructionReferenceManager& irm,
-    BasicBlockNode* bbn)
-    throw (Exception) {
-
+    TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
+    TTAProgram::InstructionReferenceManager& irm, BasicBlockNode* bbn) {
     // TODO: define them somewhere in one place.
     static const TCEString SP_DATUM = "STACK_POINTER";
     static const TCEString FP_DATUM = "FRAME_POINTER";
@@ -204,9 +200,7 @@ static int graphCount = 0;
 void
 BBSchedulerController::handleProcedure(
     TTAProgram::Procedure& procedure,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
+    const TTAMachine::Machine& targetMachine) {
     ControlFlowGraph cfg(procedure, BasicBlockPass::interPassData());
 
     if (Application::verboseLevel() > 0) {
@@ -300,10 +294,7 @@ BBSchedulerController::handleProcedure(
  */
 void
 BBSchedulerController::handleControlFlowGraph(
-    ControlFlowGraph& cfg,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
+    ControlFlowGraph& cfg, const TTAMachine::Machine& targetMachine) {
     return handleCFGDDG(cfg, *bigDDG_, targetMachine);
 }
 
@@ -319,10 +310,7 @@ BBSchedulerController::handleControlFlowGraph(
  */
 void
 BBSchedulerController::handleProgram(
-    TTAProgram::Program& program,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
+    TTAProgram::Program& program, const TTAMachine::Machine& targetMachine) {
     ProgramPass::executeProcedurePass(program, targetMachine, *this);
 #ifdef SW_BYPASSING_STATISTICS
     if (softwareBypasser != NULL) {
@@ -382,14 +370,10 @@ DataDependenceGraph*
 /**
  * Creates a DDG from the given basic block and executes a DDG pass for that.
  */
-void
-BBSchedulerController::executeDDGPass(
-    TTAProgram::BasicBlock& bb,
-    const TTAMachine::Machine& targetMachine, 
-    TTAProgram::InstructionReferenceManager& irm, 
-    std::vector<DDGPass*> ddgPasses, BasicBlockNode*)
-    throw (Exception) {
-
+void BBSchedulerController::executeDDGPass(
+    TTAProgram::BasicBlock & bb, const TTAMachine::Machine& targetMachine,
+    TTAProgram::InstructionReferenceManager& irm,
+    std::vector<DDGPass*> ddgPasses, BasicBlockNode*) {
     static int bbNumber = 0;
     DataDependenceGraph* ddg = createDDGFromBB(bb, targetMachine);
     SimpleResourceManager* rm = SimpleResourceManager::createRM(targetMachine);

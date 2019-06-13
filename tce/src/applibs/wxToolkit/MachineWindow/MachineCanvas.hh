@@ -93,9 +93,8 @@ public:
     void refreshToolFigure();
 
     void addMove(
-        const TTAMachine::Bus* bus,
-        const TTAMachine::Port* source,
-        const TTAMachine::Port* target) throw (InstanceNotFound);
+        const TTAMachine::Bus* bus, const TTAMachine::Port* source,
+        const TTAMachine::Port* target);
     void clearMoves();
 
 #if wxCHECK_VERSION(3, 0, 0)

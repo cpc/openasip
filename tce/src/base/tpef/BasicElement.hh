@@ -55,8 +55,7 @@ public:
 
     void addByte(const Byte& data);
 
-    Byte byte(Word index) const
-        throw (OutOfRange);
+    Byte byte(Word index) const;
 
     Word length() const;
 

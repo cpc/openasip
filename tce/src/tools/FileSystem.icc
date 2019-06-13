@@ -164,7 +164,7 @@ FileSystem::findFromDirectory(
     const std::string& regex,
     const std::string& directory,
     STLCONT& found) 
-    throw (FileNotFound) {
+     {
     
     static const boost::regex re(regex, 
          boost::regex::perl|boost::regex::icase);

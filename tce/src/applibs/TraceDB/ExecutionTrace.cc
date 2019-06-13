@@ -135,9 +135,7 @@ const int DB_VERSION = 1;
  *                        file cannot be created.
  */
 ExecutionTrace*
-ExecutionTrace::open(const std::string& fileName) 
-    throw (IOException) {
-    
+ExecutionTrace::open(const std::string& fileName) {
     ExecutionTrace* traceDB = 
         new ExecutionTrace(
             fileName, FileSystem::fileExists(fileName) && 
@@ -168,8 +166,7 @@ ExecutionTrace::open(const std::string& fileName)
  * reduce I/O to the minimum.
  */
 void
-ExecutionTrace::open() 
-    throw (RelationalDBException) {
+ExecutionTrace::open() {
     dbConnection_ = &db_->connect(fileName_);
     dbConnection_->beginTransaction();
 }
@@ -242,9 +239,8 @@ ExecutionTrace::~ExecutionTrace() {
  *
  * @exception IOException If an I/O error occured.
  */
-void 
-ExecutionTrace::initialize() throw (IOException) {
-
+void
+ExecutionTrace::initialize() {
     assert(dbConnection_ != NULL);
     
     try {
@@ -281,10 +277,7 @@ ExecutionTrace::initialize() throw (IOException) {
  */
 void
 ExecutionTrace::addInstructionExecution(
-    ClockCycleCount cycle, 
-    InstructionAddress address) 
-    throw (IOException) {
-    
+    ClockCycleCount cycle, InstructionAddress address) {
     const std::string query =
       (boost::format(
         "INSERT INTO instruction_execution(cycle, address) VALUES(" 
@@ -309,10 +302,7 @@ ExecutionTrace::addInstructionExecution(
  */
 void
 ExecutionTrace::addInstructionExecutionCount(
-    InstructionAddress address,
-    ClockCycleCount count) 
-    throw (IOException) {
-    
+    InstructionAddress address, ClockCycleCount count) {
     instructionProfile_ << address << "\t" << count << std::endl;
 #if 0
     const std::string query =
@@ -343,11 +333,8 @@ ExecutionTrace::addInstructionExecutionCount(
  */
 void
 ExecutionTrace::addProcedureAddressRange(
-    InstructionAddress firstAddress,
-    InstructionAddress lastAddress,
-    const std::string& procedureName)
-    throw (IOException) {
-    
+    InstructionAddress firstAddress, InstructionAddress lastAddress,
+    const std::string& procedureName) {
     const std::string query =
         "INSERT INTO procedure_address_range(first_address, last_address, "
         "procedure_name) VALUES(" + 
@@ -364,8 +351,6 @@ ExecutionTrace::addProcedureAddressRange(
     }
 }
 
-
-
 /**
  * Queries database for instruction execution entries. 
  *
@@ -375,8 +360,7 @@ ExecutionTrace::addProcedureAddressRange(
  * @exception IOException If an I/O error occurs.
  */
 InstructionExecution&
-ExecutionTrace::instructionExecutions() throw (IOException) {
-
+ExecutionTrace::instructionExecutions() {
     if (instructionExecution_ != NULL) {
         delete instructionExecution_;
         instructionExecution_ = NULL;
@@ -403,15 +387,10 @@ ExecutionTrace::instructionExecutions() throw (IOException) {
  * @param data The data transferred.
  * @exception IOException In case an error in adding the data happened.
  */
-void 
+void
 ExecutionTrace::addBusActivity(
-    ClockCycleCount cycle, 
-    const BusID& busId,
-    const SegmentID& segmentId,
-    bool squash,
-    const SimValue& data) 
-    throw (IOException) {
-    
+    ClockCycleCount cycle, const BusID& busId, const SegmentID& segmentId,
+    bool squash, const SimValue& data) {
     std::string query = 
         "INSERT INTO bus_activity(cycle, bus, segment, squash, "
         "data_as_int, data_as_double) VALUES(" + 
@@ -457,14 +436,10 @@ ExecutionTrace::addBusActivity(
  * @param count The count of this type of accesses.
  * @exception IOException In case an error in adding the data happened.
  */
-void 
+void
 ExecutionTrace::addConcurrentRegisterFileAccessCount(
-    RegisterFileID registerFile,    
-    RegisterAccessCount reads,
-    RegisterAccessCount writes,
-    ClockCycleCount count)
-    throw (IOException) {
-
+    RegisterFileID registerFile, RegisterAccessCount reads,
+    RegisterAccessCount writes, ClockCycleCount count) {
     const std::string query =
         std::string("") +
         "INSERT INTO concurrent_register_file_access("
@@ -496,14 +471,10 @@ ExecutionTrace::addConcurrentRegisterFileAccessCount(
  * @param writes Count of writes.
  * @exception IOException In case an error in adding the data happened.
  */
-void 
+void
 ExecutionTrace::addRegisterAccessCount(
-    RegisterFileID registerFile,
-    RegisterID registerIndex,
-    ClockCycleCount reads,
-    ClockCycleCount writes)
-    throw (IOException) {
-    
+    RegisterFileID registerFile, RegisterID registerIndex,
+    ClockCycleCount reads, ClockCycleCount writes) {
     const std::string query =
         (boost::format(
             "INSERT INTO register_access("
@@ -521,7 +492,6 @@ ExecutionTrace::addRegisterAccessCount(
     }
 }
 
-
 /**
  * Returns the list of different concurrent register file access combinations
  * and counts how many times those were encountered while simulating the
@@ -531,10 +501,8 @@ ExecutionTrace::addRegisterAccessCount(
  * @return A list of accesses. Must be deleted by the client after use.
  * @exception IOException If an I/O error occurs.
  */
-ExecutionTrace::ConcurrentRFAccessCountList* 
-ExecutionTrace::registerFileAccessCounts(RegisterFileID registerFile) const
-    throw (IOException) {
-
+ExecutionTrace::ConcurrentRFAccessCountList*
+ExecutionTrace::registerFileAccessCounts(RegisterFileID registerFile) const {
     ConcurrentRFAccessCountList* accesses = NULL;
     try {
         assert(dbConnection_ != NULL);
@@ -558,9 +526,9 @@ ExecutionTrace::registerFileAccessCounts(RegisterFileID registerFile) const
     } catch (const Exception& e) {
         delete accesses;
         throw IOException(__FILE__, __LINE__, __func__, e.errorMessage());
-    } 
+    }
 
-    return accesses;    
+    return accesses;
 }
 
 /**
@@ -574,13 +542,10 @@ ExecutionTrace::registerFileAccessCounts(RegisterFileID registerFile) const
  * @param count The count of executions.
  * @exception IOException In case an error in adding the data happened.
  */
-void 
+void
 ExecutionTrace::addFunctionUnitOperationTriggerCount(
-    FunctionUnitID functionUnit,
-    OperationID operation,
-    OperationTriggerCount count)
-    throw (IOException) {
-
+    FunctionUnitID functionUnit, OperationID operation,
+    OperationTriggerCount count) {
     const std::string query =
         std::string("") +
         "INSERT INTO fu_operation_triggers("
@@ -606,14 +571,10 @@ ExecutionTrace::addFunctionUnitOperationTriggerCount(
  * @param callAddress The address of the call.
  * @param type Type of the transfer.
  */
-void 
+void
 ExecutionTrace::addProcedureTransfer(
-    ClockCycleCount cycle,
-    InstructionAddress address,
-    InstructionAddress sourceAddress,
-    ProcedureEntryType type)
-    throw (IOException) {
-
+    ClockCycleCount cycle, InstructionAddress address,
+    InstructionAddress sourceAddress, ProcedureEntryType type) {
     callTrace_ 
         << cycle << "\t" << address << "\t" << sourceAddress << "\t" 
         << type << std::endl;
@@ -626,11 +587,9 @@ ExecutionTrace::addProcedureTransfer(
  * @return A list of access counts. Must be deleted by the client after use.
  * @exception IOException If an I/O error occurs.
  */
-ExecutionTrace::FUOperationTriggerCountList* 
+ExecutionTrace::FUOperationTriggerCountList*
 ExecutionTrace::functionUnitOperationTriggerCounts(
-    FunctionUnitID functionUnit) const
-    throw (IOException) {
-
+    FunctionUnitID functionUnit) const {
     FUOperationTriggerCountList* accesses = NULL;
     try {
         assert(dbConnection_ != NULL);
@@ -653,9 +612,9 @@ ExecutionTrace::functionUnitOperationTriggerCounts(
     } catch (const Exception& e) {
         delete accesses;
         throw IOException(__FILE__, __LINE__, __func__, e.errorMessage());
-    } 
+    }
 
-    return accesses;    
+    return accesses;
 }
 
 /**
@@ -669,9 +628,7 @@ ExecutionTrace::functionUnitOperationTriggerCounts(
  * @exception IOException In case an error in adding the data happened.
  */
 void
-ExecutionTrace::addSocketWriteCount(SocketID socket, ClockCycleCount count)
-    throw (IOException) {
-
+ExecutionTrace::addSocketWriteCount(SocketID socket, ClockCycleCount count) {
     const std::string query =
         std::string("") +
         "INSERT INTO socket_write_counts(socket, writes) "
@@ -685,7 +642,6 @@ ExecutionTrace::addSocketWriteCount(SocketID socket, ClockCycleCount count)
         debugLog(query + " failed!");
         throw IOException(__FILE__, __LINE__, __func__, e.errorMessage());
     }
-
 }
 
 /**
@@ -729,9 +685,7 @@ ExecutionTrace::socketWriteCount(SocketID socket) const {
  * @exception IOException In case an error in adding the data happened.
  */
 void
-ExecutionTrace::addBusWriteCount(BusID bus, ClockCycleCount count)
-    throw (IOException) {
-
+ExecutionTrace::addBusWriteCount(BusID bus, ClockCycleCount count) {
     const std::string query =
         std::string("") +
         "INSERT INTO bus_write_counts(bus, writes) "
@@ -745,7 +699,6 @@ ExecutionTrace::addBusWriteCount(BusID bus, ClockCycleCount count)
         debugLog(query + " failed!");
         throw IOException(__FILE__, __LINE__, __func__, e.errorMessage());
     }
-
 }
 
 /**
@@ -785,9 +738,7 @@ ExecutionTrace::busWriteCount(BusID bus) const {
  * @exception IOException In case an error in adding the data happened.
  */
 void
-ExecutionTrace::setSimulatedCycleCount(ClockCycleCount count)
-    throw (IOException) {
-
+ExecutionTrace::setSimulatedCycleCount(ClockCycleCount count) {
     const std::string query =
         std::string("") +
         "INSERT INTO totals(value_name, integer_value) "
@@ -810,9 +761,7 @@ ExecutionTrace::setSimulatedCycleCount(ClockCycleCount count)
  * @exception IOException In case an error in getting the data happened.
  */
 ClockCycleCount
-ExecutionTrace::simulatedCycleCount() const
-    throw (IOException) {
-
+ExecutionTrace::simulatedCycleCount() const {
     RelationalDBQueryResult* result = NULL;
     try {
         result = dbConnection_->query(
@@ -834,6 +783,5 @@ ExecutionTrace::simulatedCycleCount() const
         delete result;
         result = NULL;
         throw IOException(__FILE__, __LINE__, __func__, e.errorMessage());
-    } 
+    }
 }
-

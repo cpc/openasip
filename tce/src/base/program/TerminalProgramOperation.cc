@@ -79,8 +79,7 @@ TerminalProgramOperation::~TerminalProgramOperation() {
  * is not known.
  */
 Address
-TerminalProgramOperation::address() const 
-    throw (WrongSubclass) {
+TerminalProgramOperation::address() const {
     assert(isAddressKnown());
     return po_->triggeringMove()->move().parent().address();
 }

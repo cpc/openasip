@@ -53,28 +53,22 @@ public:
     virtual ~Unit();
 
     virtual bool hasPort(const std::string& name) const;
-    virtual Port* port(const std::string& name) const
-        throw (InstanceNotFound);
-    virtual Port* port(int index) const
-        throw (OutOfRange);
+    virtual Port* port(const std::string& name) const;
+    virtual Port* port(int index) const;
     virtual int portCount() const;
 
-    virtual void setMachine(Machine& mach)
-        throw (ComponentAlreadyExists);
+    virtual void setMachine(Machine& mach);
     virtual void unsetMachine();
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for Unit.
     static const std::string OSNAME_UNIT;
 
 protected:
-    Unit(const std::string& name)
-        throw (InvalidName);
-    Unit(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    Unit(const std::string& name);
+    Unit(const ObjectState* state);
 
     virtual void removePort(Port& port);
 
@@ -89,14 +83,11 @@ private:
     /// Assingment forbidden.
     Unit& operator=(const Unit&);
 
-    void addPort(Port& port)
-        throw (ComponentAlreadyExists);
+    void addPort(Port& port);
     void deleteAllPorts();
     void deleteOtherPorts(const NameSet& portsToLeave);
-    static NameSet portNames(const ObjectState* state)
-        throw (KeyNotFound);
-    void loadStateWithoutReferences(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    static NameSet portNames(const ObjectState* state);
+    void loadStateWithoutReferences(const ObjectState* state);
 
     /// Contains all the ports of the unit.
     PortTable ports_;

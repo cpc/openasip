@@ -47,25 +47,16 @@ class UniversalFunctionUnit;
 class UniversalFUPort : public TTAMachine::FUPort {
 public:
     UniversalFUPort(
-        const std::string& name,
-        int width,
-        UniversalFunctionUnit& parent,
-        bool isTriggering,
-        bool setsOpcode)
-        throw (ComponentAlreadyExists, OutOfRange, IllegalParameters,
-               InvalidName);
+        const std::string& name, int width, UniversalFunctionUnit& parent,
+        bool isTriggering, bool setsOpcode);
     virtual ~UniversalFUPort();
 
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
-    virtual void setWidth(int width)
-        throw (OutOfRange);
+    virtual void setName(const std::string& name);
+    virtual void setWidth(int width);
     virtual void setTriggering(bool triggers);
-    virtual void setOpcodeSetting(bool setsOpcode)
-        throw (ComponentAlreadyExists);
+    virtual void setOpcodeSetting(bool setsOpcode);
 
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 };
 
 #endif

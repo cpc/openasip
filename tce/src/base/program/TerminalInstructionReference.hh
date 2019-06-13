@@ -50,14 +50,10 @@ public:
     TerminalInstructionReference(InstructionReference ref);
     virtual ~TerminalInstructionReference();
 
-    virtual Address address() const 
-        throw (WrongSubclass);
-    virtual const InstructionReference& instructionReference() const
-        throw (WrongSubclass);
-    virtual InstructionReference& instructionReference() 
-        throw (WrongSubclass);
-    virtual void setInstructionReference(InstructionReference ref) 
-        throw (WrongSubclass);
+    virtual Address address() const;
+    virtual const InstructionReference& instructionReference() const;
+    virtual InstructionReference& instructionReference();
+    virtual void setInstructionReference(InstructionReference ref);
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
 

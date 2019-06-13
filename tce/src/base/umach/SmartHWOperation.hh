@@ -46,24 +46,18 @@ class UniversalFunctionUnit;
  */
 class SmartHWOperation : public TTAMachine::HWOperation {
 public:
-    SmartHWOperation(
-        const Operation& operation,
-        UniversalFunctionUnit& parent)
-        throw (ComponentAlreadyExists, InvalidName);
+    SmartHWOperation(const Operation& operation, UniversalFunctionUnit& parent);
     virtual ~SmartHWOperation();
 
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
+    virtual void setName(const std::string& name);
     TTAMachine::FUPort* port(int operand) const;
 
     UniversalFunctionUnit* parentUnit() const;
 
-    virtual void bindPort(int operand, const TTAMachine::FUPort& port)
-        throw (IllegalRegistration, ComponentAlreadyExists, OutOfRange);
+    virtual void bindPort(int operand, const TTAMachine::FUPort& port);
     virtual void unbindPort(const TTAMachine::FUPort& port);
 
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
 private:
     bool otherMandatoryInputsBound(int operand) const;

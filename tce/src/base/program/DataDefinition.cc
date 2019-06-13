@@ -51,12 +51,11 @@ namespace TTAProgram {
 
 DataDefinition::DataDefinition(
     Address start, int size, bool littleEndian,
-    MinimumAddressableUnit *initData,
-    bool allZeros)
-    throw (OutOfRange) :
-    start_(start), size_(size), allZeros_(allZeros),
-    littleEndian_(littleEndian) {
-    
+    MinimumAddressableUnit* initData, bool allZeros)
+    : start_(start),
+      size_(size),
+      allZeros_(allZeros),
+      littleEndian_(littleEndian) {
     if (initData != NULL) {
         data_ = new std::vector<MinimumAddressableUnit>(size);
         for (int i = 0 ; i < size; i++) {
@@ -89,10 +88,8 @@ DataDefinition::DataDefinition(
  */
 DataDefinition::DataDefinition(
     Address start, const std::vector<MinimumAddressableUnit>& initData,
-    bool littleEndian) 
-    throw (OutOfRange) :
-    start_(start), allZeros_(false), littleEndian_(littleEndian) {    
-
+    bool littleEndian)
+    : start_(start), allZeros_(false), littleEndian_(littleEndian) {
     // check that the MAUs are not too large for the address space
     for (std::size_t i = 0 ; i < initData.size(); i++) {
         const int mauBits = start.space().width();

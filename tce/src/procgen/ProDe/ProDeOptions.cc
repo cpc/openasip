@@ -63,12 +63,9 @@ ProDeOptions::ProDeOptions() :
  *            invalid.
  */
 ProDeOptions::ProDeOptions(const ObjectState* state)
-    throw (ObjectStateLoadingException) :
-    GUIOptions(CONFIGURATION_NAME) {
-
+    : GUIOptions(CONFIGURATION_NAME) {
     loadState(state);
 }
-
 
 /**
  * Copy constructor.
@@ -119,9 +116,7 @@ ProDeOptions::setUndoStackSize(int size) {
  *                                        is invalid.
  */
 void
-ProDeOptions::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+ProDeOptions::loadState(const ObjectState* state) {
     deleteAllKeyboardShortcuts();
     deleteAllToolbarButtons();
 
@@ -137,7 +132,6 @@ ProDeOptions::loadState(const ObjectState* state)
         throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Creates an ObjectState object and saves the state of the object into it.

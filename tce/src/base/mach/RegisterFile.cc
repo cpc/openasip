@@ -72,22 +72,18 @@ const string RegisterFile::OSKEY_GUARD_LATENCY = "g_latency";
  * @exception InvalidName If the given name is not a valid component name.
  */
 RegisterFile::RegisterFile(
-    const std::string& name,
-    unsigned int size,
-    unsigned int width,
-    unsigned int maxReads,
-    unsigned int maxWrites,
-    unsigned int guardLatency,
+    const std::string& name, unsigned int size, unsigned int width,
+    unsigned int maxReads, unsigned int maxWrites, unsigned int guardLatency,
     Type type)
-    throw (OutOfRange, InvalidName) :
-    BaseRegisterFile(name, size, width), maxReads_(0), maxWrites_(0), 
-    guardLatency_(0), type_(type) {
-
+    : BaseRegisterFile(name, size, width),
+      maxReads_(0),
+      maxWrites_(0),
+      guardLatency_(0),
+      type_(type) {
     setMaxReads(maxReads);
     setMaxWrites(maxWrites);
     setGuardLatency(guardLatency);
 }
-
 
 /**
  * Constructor.
@@ -100,13 +96,13 @@ RegisterFile::RegisterFile(
  *                                        invalid.
  */
 RegisterFile::RegisterFile(const ObjectState* state)
-    throw (ObjectStateLoadingException) :
-    BaseRegisterFile(state), maxReads_(0), maxWrites_(0), guardLatency_(0),
-    type_(NORMAL) {
-
+    : BaseRegisterFile(state),
+      maxReads_(0),
+      maxWrites_(0),
+      guardLatency_(0),
+      type_(NORMAL) {
     loadStateWithoutReferences(state);
 }
-
 
 /**
  * Destructor.
@@ -197,9 +193,7 @@ RegisterFile::isReserved() const {
  * @exception InvalidName If the given name is not a valid component name.
  */
 void
-RegisterFile::setName(const std::string& name)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+RegisterFile::setName(const std::string& name) {
     if (name == this->name()) {
         return;
     }
@@ -216,7 +210,6 @@ RegisterFile::setName(const std::string& name)
     }
 }
 
-
 /**
  * Sets the maximum number of ports that can read a register all in the same
  * cycle. Note that this function is only needed if all of the ports are
@@ -229,16 +222,13 @@ RegisterFile::setName(const std::string& name)
  *                       range.
  */
 void
-RegisterFile::setMaxReads(int reads)
-    throw (OutOfRange) {
-
+RegisterFile::setMaxReads(int reads) {
     if (reads < 0) {
         std::string procName = "RegisterFile::setMaxReads";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
     maxReads_ = reads;
 }
-
 
 /**
  * Sets the maximum number of ports that can write a register all in the same
@@ -252,16 +242,13 @@ RegisterFile::setMaxReads(int reads)
  *                       range.
  */
 void
-RegisterFile::setMaxWrites(int maxWrites)
-    throw (OutOfRange) {
-
+RegisterFile::setMaxWrites(int maxWrites) {
     if (maxWrites < 0) {
         std::string procName = "RegisterFile::setMaxWrites";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
     maxWrites_ = maxWrites;
 }
-
 
 /**
  * Updates RFs max reads/writes according in/output ports.
@@ -274,9 +261,7 @@ RegisterFile::setMaxWrites(int maxWrites)
  *            exception.
  */
 bool
-RegisterFile::updateMaxReadsAndWrites() const
-    throw (OutOfRange) {
-
+RegisterFile::updateMaxReadsAndWrites() const {
     int reads = 0;
     int writes = 0;
     bool changed = false;
@@ -308,7 +293,6 @@ RegisterFile::updateMaxReadsAndWrites() const
     return changed;
 }
 
-
 /**
  * Sets the type of the register file.
  *
@@ -331,15 +315,12 @@ RegisterFile::setType(RegisterFile::Type type) {
  *                       to zero.
  */
 void
-RegisterFile::setNumberOfRegisters(int registers)
-    throw (OutOfRange) {
-
+RegisterFile::setNumberOfRegisters(int registers) {
     if (registers < numberOfRegisters()) {
         deleteGuards(registers);
     }
     BaseRegisterFile::setNumberOfRegisters(registers);
 }
-
 
 /**
  * Returns the guard latency.
@@ -360,9 +341,7 @@ RegisterFile::guardLatency() const {
  *                       guard latency would be zero.
  */
 void
-RegisterFile::setGuardLatency(int latency)
-    throw (OutOfRange) {
-
+RegisterFile::setGuardLatency(int latency) {
     if (latency < 0) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -386,7 +365,6 @@ RegisterFile::setGuardLatency(int latency)
 
     guardLatency_ = latency;
 }
-   
 
 /**
  * Removes the register file from machine.
@@ -445,15 +423,12 @@ RegisterFile::saveState() const {
  *                                        is invalid.
  */
 void
-RegisterFile::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+RegisterFile::loadState(const ObjectState* state) {
     const string procName = "RegisterFile::loadState";
     loadStateWithoutReferences(state);
     BaseRegisterFile::loadState(state);
     MOMTextGenerator textGenerator;
 }
-
 
 /**
  * Loads the state of the register file without references to other
@@ -464,9 +439,7 @@ RegisterFile::loadState(const ObjectState* state)
  *                                        is invalid.
  */
 void
-RegisterFile::loadStateWithoutReferences(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+RegisterFile::loadStateWithoutReferences(const ObjectState* state) {
     const string procName = "RegisterFile::loadStateWithoutReferences";
 
     if (! (state->name() == OSNAME_REGISTER_FILE || 
@@ -498,7 +471,6 @@ RegisterFile::loadStateWithoutReferences(const ObjectState* state)
             __FILE__, __LINE__, procName, e.errorMessage());
     }
 }
-
 
 /**
  * Deletes the guards that refer to registers would not exist if there were

@@ -69,9 +69,7 @@ SectionSizeReplacer::~SectionSizeReplacer() {
  * @return True if replacement were done.
  */
 bool
-SectionSizeReplacer::tryToReplace()
-    throw (UnreachableStream, WritePastEOF) {
-
+SectionSizeReplacer::tryToReplace() {
     if(MapTools::containsKey(sizeMap, reference())) {
         stream().setWritePosition(streamPosition());
         stream().writeWord(sizeMap[reference()]);

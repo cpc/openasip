@@ -91,143 +91,112 @@ public:
 
     AreaInGates totalArea(
         const TTAMachine::Machine& machine,
-        const IDF::MachineImplementation& machineImplementation)
-        throw (CannotEstimateCost);
+        const IDF::MachineImplementation& machineImplementation);
 
     AreaInGates totalAreaOfFunctionUnits(
         const TTAMachine::Machine& machine,
-        const IDF::MachineImplementation& machineImplementation)
-        throw (CannotEstimateCost);
+        const IDF::MachineImplementation& machineImplementation);
 
     AreaInGates totalAreaOfRegisterFiles(
         const TTAMachine::Machine& machine,
-        const IDF::MachineImplementation& machineImplementation)
-        throw (CannotEstimateCost);
+        const IDF::MachineImplementation& machineImplementation);
 
     AreaInGates icArea(
         const TTAMachine::Machine& machine,
-        const IDF::MachineImplementation& machineImplementation)
-        throw (CannotEstimateCost);
+        const IDF::MachineImplementation& machineImplementation);
 
     AreaInGates functionUnitArea(
         const TTAMachine::FunctionUnit& architecture,
-        const IDF::FUImplementationLocation& implementationEntry) 
-        throw (CannotEstimateCost);
+        const IDF::FUImplementationLocation& implementationEntry);
 
     AreaInGates registerFileArea(
         const TTAMachine::BaseRegisterFile& architecture,
-        const IDF::RFImplementationLocation& implementationEntry) 
-        throw (CannotEstimateCost);
+        const IDF::RFImplementationLocation& implementationEntry);
 
     /// energy estimation functions
 
     EnergyInMilliJoules totalEnergy(
         const TTAMachine::Machine& machine,
         const IDF::MachineImplementation& machineImplementation,
-        const TTAProgram::Program& program,
-        const ExecutionTrace& traceDB)
-        throw (CannotEstimateCost);
+        const TTAProgram::Program& program, const ExecutionTrace& traceDB);
 
     EnergyInMilliJoules icEnergy(
         const TTAMachine::Machine& machine,
         const IDF::MachineImplementation& machineImplementation,
-        const TTAProgram::Program& program,
-        const ExecutionTrace& traceDB)
-        throw (CannotEstimateCost);
+        const TTAProgram::Program& program, const ExecutionTrace& traceDB);
 
     EnergyInMilliJoules functionUnitEnergy(
         const TTAMachine::FunctionUnit& architecture,
         const IDF::FUImplementationLocation& implementationEntry,
-        const TTAProgram::Program& program,
-        const ExecutionTrace& traceDB)
-        throw (CannotEstimateCost);
+        const TTAProgram::Program& program, const ExecutionTrace& traceDB);
 
     EnergyInMilliJoules registerFileEnergy(
         const TTAMachine::BaseRegisterFile& architecture,
         const IDF::RFImplementationLocation& implementationEntry,
-        const TTAProgram::Program& program,
-        const ExecutionTrace& traceDB)
-        throw (CannotEstimateCost);
+        const TTAProgram::Program& program, const ExecutionTrace& traceDB);
 
     EnergyInMilliJoules totalEnergyOfFunctionUnits(
         const TTAMachine::Machine& machine,
         const IDF::MachineImplementation& machineImplementation,
-        const TTAProgram::Program& program,
-        const ExecutionTrace& traceDB)
-        throw (CannotEstimateCost);
+        const TTAProgram::Program& program, const ExecutionTrace& traceDB);
 
     EnergyInMilliJoules totalEnergyOfRegisterFiles(
         const TTAMachine::Machine& machine,
         const IDF::MachineImplementation& machineImplementation,
-        const TTAProgram::Program& program,
-        const ExecutionTrace& traceDB)
-        throw (CannotEstimateCost);
+        const TTAProgram::Program& program, const ExecutionTrace& traceDB);
 
     /// delay estimation functions
 
     DelayInNanoSeconds longestPath(
         const TTAMachine::Machine& machine,
-        const IDF::MachineImplementation& machineImplementation)
-        throw (CannotEstimateCost, Exception);
+        const IDF::MachineImplementation& machineImplementation);
 
     DelayInNanoSeconds decompressorDelay(
         const TTAMachine::Machine& machine,
-        const IDF::MachineImplementation& machineImplementation)
-        throw (CannotEstimateCost);    
+        const IDF::MachineImplementation& machineImplementation);
 
     DelayInNanoSeconds functionUnitPortWriteDelay(
         const TTAMachine::FUPort& port,
-        const IDF::FUImplementationLocation& implementationEntry) 
-        throw (CannotEstimateCost);
+        const IDF::FUImplementationLocation& implementationEntry);
 
     DelayInNanoSeconds functionUnitPortReadDelay(
         const TTAMachine::FUPort& port,
-        const IDF::FUImplementationLocation& implementationEntry) 
-        throw (CannotEstimateCost);
+        const IDF::FUImplementationLocation& implementationEntry);
 
     DelayInNanoSeconds functionUnitMaximumComputationDelay(
         const TTAMachine::FunctionUnit& architecture,
-        const IDF::FUImplementationLocation& implementation) 
-        throw (CannotEstimateCost);
+        const IDF::FUImplementationLocation& implementation);
 
     DelayInNanoSeconds registerFileMaximumComputationDelay(
         const TTAMachine::BaseRegisterFile& architecture,
-        const IDF::RFImplementationLocation& implementationEntry) 
-        throw (CannotEstimateCost);
+        const IDF::RFImplementationLocation& implementationEntry);
 
     DelayInNanoSeconds registerFilePortWriteDelay(
         const TTAMachine::RFPort& port,
-        const IDF::RFImplementationLocation& implementationEntry) 
-        throw (CannotEstimateCost);
+        const IDF::RFImplementationLocation& implementationEntry);
 
     DelayInNanoSeconds registerFilePortReadDelay(
         const TTAMachine::RFPort& port,
-        const IDF::RFImplementationLocation& implementationEntry) 
-        throw (CannotEstimateCost);
+        const IDF::RFImplementationLocation& implementationEntry);
 
 private:
     static TransportPathList* findAllICPaths(
-        const TTAMachine::Machine& machine)
-        throw (IllegalMachine);
+        const TTAMachine::Machine& machine);
 
     DelayInNanoSeconds estimateSocketToSocketDelayOfPath(
-        const std::string pluginPath,
-        const std::string pluginName,
+        const std::string pluginPath, const std::string pluginName,
         const TransportPath& path,
         const IDF::MachineImplementation& machineImplementation,
         const IDF::SocketImplementationLocation& sourceSocketImplementation,
         const IDF::BusImplementationLocation& busImplementation,
-        const IDF::SocketImplementationLocation& 
-            destinationSocketImplementation)
-        throw (CannotEstimateCost);
+        const IDF::SocketImplementationLocation&
+            destinationSocketImplementation);
 
     FUCostEstimationPlugin& fuCostFunctionPluginOfImplementation(
-        const IDF::FUImplementationLocation& implementation)
-        throw (Exception);
+        const IDF::FUImplementationLocation& implementation);
 
     RFCostEstimationPlugin& rfCostFunctionPluginOfImplementation(
-        const IDF::RFImplementationLocation& implementation)
-        throw (Exception);
+        const IDF::RFImplementationLocation& implementation);
 
     /// all accessed FU estimation plugins are stored in this registry
     FUCostEstimationPluginRegistry fuEstimatorPluginRegistry_;

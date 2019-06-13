@@ -60,8 +60,7 @@ public:
 
     void addDataLine(const DataLine& origLine);
 
-    void finalize(TPEF::Binary& tpef, LabelManager& labels, bool littleEndian)
-        throw (CompileError);
+    void finalize(TPEF::Binary& tpef, LabelManager& labels, bool littleEndian);
 
     void cleanup();
 
@@ -89,13 +88,11 @@ private:
 
     void resolveDataAreaSizesAndLabelAddresses(
         std::map<std::string, UValue>& addressSpaceUsedMAUs,
-        std::vector<std::string>& addedLabels,
-        LabelManager &labels) throw (CompileError);
+        std::vector<std::string>& addedLabels, LabelManager& labels);
 
     UValue writeDataLineToTPEF(
-        DataLine* line, TPEF::DataSection* dataSection,
-        LabelManager& labels, UValue currentMAUIndex)
-        throw (CompileError);
+        DataLine* line, TPEF::DataSection* dataSection, LabelManager& labels,
+        UValue currentMAUIndex);
 
     int sizeInWords(UValue value, int MAUWidth, bool isSigned) const;
 

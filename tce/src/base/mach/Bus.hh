@@ -52,62 +52,46 @@ class Segment;
  */
 class Bus : public Component {
 public:
-    Bus(
-        const std::string& name,
-        int width,
-        int immWidth,
-        Machine::Extension extensionMode)
-        throw (OutOfRange, InvalidName);
-    Bus(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    Bus(const std::string& name, int width, int immWidth,
+        Machine::Extension extensionMode);
+    Bus(const ObjectState* state);
     virtual ~Bus();
     virtual Bus* copy() const;
     virtual void copyGuardsTo(Bus& other) const;
 
-    virtual int position() const
-        throw (NotAvailable);
+    virtual int position() const;
 
     int width() const;
     int immediateWidth() const;
     bool signExtends() const;
     bool zeroExtends() const;
 
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
-    virtual void setWidth(int width)
-        throw (OutOfRange);
-    virtual void setImmediateWidth(int width)
-        throw (OutOfRange);
+    virtual void setName(const std::string& name);
+    virtual void setWidth(int width);
+    virtual void setImmediateWidth(int width);
     virtual void setZeroExtends();
     virtual void setSignExtends();
     virtual void setExtensionMode(const Machine::Extension extension);
 
-    virtual void addSegment(Segment& segment)
-        throw (ComponentAlreadyExists);
+    virtual void addSegment(Segment& segment);
     virtual void removeSegment(Segment& segment);
     virtual bool hasSegment(const std::string& name) const;
-    virtual Segment* segment(int index) const
-        throw (OutOfRange);
-    virtual Segment* segment(const std::string& name) const
-        throw (InstanceNotFound);
+    virtual Segment* segment(int index) const;
+    virtual Segment* segment(const std::string& name) const;
     virtual int segmentCount() const;
 
     virtual bool isConnectedTo(const Socket& socket) const;
 
     bool hasGuard(Guard& guard) const;
-    void addGuard(Guard& guard)
-        throw (ComponentAlreadyExists);
+    void addGuard(Guard& guard);
     virtual void removeGuard(Guard& guard);
     int guardCount() const;
-    Guard* guard(int index) const
-        throw (OutOfRange);
+    Guard* guard(int index) const;
 
     virtual bool hasNextBus() const;
     virtual bool hasPreviousBus() const;
-    virtual Bus* nextBus() const
-        throw (InstanceNotFound);
-    virtual Bus* previousBus() const
-        throw (InstanceNotFound);
+    virtual Bus* nextBus() const;
+    virtual Bus* previousBus() const;
 
     virtual bool canRead(const Bus& bus) const;
     virtual bool canWrite(const Bus& bus) const;
@@ -118,13 +102,11 @@ public:
     virtual void clearSourceBridge(Bridge& bridge);
     virtual void clearDestinationBridge(Bridge& bridge);
 
-    virtual void setMachine(Machine& mach)
-        throw (ComponentAlreadyExists);
+    virtual void setMachine(Machine& mach);
     virtual void unsetMachine();
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     virtual bool isArchitectureEqual(const Bus& bus) const;
 
@@ -151,16 +133,14 @@ private:
 
     /// Assingment forbidden.
     Bus& operator=(const Bus&);
-    void loadStateWithoutReferences(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadStateWithoutReferences(const ObjectState* state);
     void deleteAllSegments();
     void deleteAllGuards();
     Bridge* previousBridge() const;
     Bridge* nextBridge() const;
     Bridge* previousBridge(const BridgeTable& bridges) const;
     Bridge* nextBridge(const BridgeTable& bridges) const;
-    void adjustSegmentChain(const ObjectState* busState)
-        throw (ObjectStateLoadingException);
+    void adjustSegmentChain(const ObjectState* busState);
 
     /// Bit width of the bus.
     int width_;

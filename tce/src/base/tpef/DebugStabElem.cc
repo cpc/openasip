@@ -89,7 +89,7 @@ DebugStabElem::~DebugStabElem() {
  * @param index Which data byte is wanted.
  */
 Byte
-DebugStabElem::byte(Word index) const throw (OutOfRange) {
+DebugStabElem::byte(Word index) const {
     switch (index) {
     case 0:
         return stabType_;
@@ -112,7 +112,6 @@ DebugStabElem::byte(Word index) const throw (OutOfRange) {
                          "Stab element contains less data that requested.");
     }
 }
-
 
 /**
  * Returns additional data length of TPEF debug element.

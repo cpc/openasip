@@ -63,11 +63,9 @@ class SimProgramBuilder {
 public:
     SimProgramBuilder();
     virtual ~SimProgramBuilder();
-    
+
     InstructionMemory* build(
-        const TTAProgram::Program& prog, 
-        MachineState& state)
-        throw (IllegalProgram);
+        const TTAProgram::Program& prog, MachineState& state);
 
 private:
     /// Copying not allowed.
@@ -76,26 +74,19 @@ private:
     SimProgramBuilder& operator=(const SimProgramBuilder&);
 
     StateData* processBidirTerminal(
-        const TTAProgram::Terminal& theTerminal, 
-        MachineState& state) throw (IllegalProgram);
+        const TTAProgram::Terminal& theTerminal, MachineState& state);
 
     const ReadableState& findGuardModel(
-        const TTAMachine::Guard& guard, MachineState& state) 
-        throw (IllegalProgram);
-    
+        const TTAMachine::Guard& guard, MachineState& state);
+
     StateData* processSourceTerminal(
-        const TTAProgram::Terminal& theTerminal, 
-        MachineState& state) throw (IllegalProgram);
+        const TTAProgram::Terminal& theTerminal, MachineState& state);
 
     ExecutableInstruction* processInstruction(
-        const TTAProgram::Instruction& instruction, 
-        MachineState& state) 
-        throw (IllegalProgram);
+        const TTAProgram::Instruction& instruction, MachineState& state);
 
     ExecutableMove* processMove(
-        const TTAProgram::Move& move, 
-        MachineState& state) 
-        throw (IllegalProgram);
+        const TTAProgram::Move& move, MachineState& state);
 
     // is the source program a sequential program
     bool sequentialProgram_;

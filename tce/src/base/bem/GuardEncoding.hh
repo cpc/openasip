@@ -61,8 +61,7 @@ public:
 
 protected:
     GuardEncoding(bool inverted, unsigned int encoding);
-    GuardEncoding(const ObjectState* state)
-	throw (ObjectStateLoadingException);
+    GuardEncoding(const ObjectState* state);
     void setParent(GuardField* parent);
 
 private:

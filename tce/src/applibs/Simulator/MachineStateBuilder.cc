@@ -100,11 +100,7 @@ MachineStateBuilder::~MachineStateBuilder() {
  * @exception IllegalMachine If machine state building fails.
  */
 MachineState*
-MachineStateBuilder::build(
-    const Machine& machine, 
-    MemorySystem& memSys) 
-    throw (IllegalMachine) {
-
+MachineStateBuilder::build(const Machine& machine, MemorySystem& memSys) {
     StateLocator locator;
     detectors_ = NULL;
     return buildMachineState(machine, memSys, locator);
@@ -126,12 +122,8 @@ MachineStateBuilder::build(
  */
 MachineState*
 MachineStateBuilder::build(
-    const Machine& machine, 
-    MemorySystem& memSys,
-    FUConflictDetectorIndex& detectors,
-    bool throwWhenConflict) 
-    throw (IllegalMachine) {
-
+    const Machine& machine, MemorySystem& memSys,
+    FUConflictDetectorIndex& detectors, bool throwWhenConflict) {
     StateLocator locator;
     detectors_ = &detectors;
     throwWhenConflict_ = throwWhenConflict;
@@ -149,10 +141,7 @@ MachineStateBuilder::build(
  */
 MachineState*
 MachineStateBuilder::build(
-    const Machine& machine,
-    MemorySystem& memSys,
-    StateLocator& locator) 
-    throw (IllegalMachine) {
+    const Machine& machine, MemorySystem& memSys, StateLocator& locator) {
     detectors_ = NULL;
     return buildMachineState(machine, memSys, locator);
 }
@@ -168,11 +157,7 @@ MachineStateBuilder::build(
  */
 MachineState*
 MachineStateBuilder::buildMachineState(
-    const Machine& machine, 
-    MemorySystem& memSys,
-    StateLocator& locator)
-    throw (IllegalMachine) {
-    
+    const Machine& machine, MemorySystem& memSys, StateLocator& locator) {
     MachineState* machineState = new MachineState();
 
     int controlUnitGuardLatency = 0;
@@ -354,10 +339,7 @@ MachineStateBuilder::buildMachineState(
  */
 void
 MachineStateBuilder::addVirtualOpcodeSettingPortsToFU(
-    MachineState& machineState,
-    FUState& state,
-    FunctionUnit& unit) 
-    throw (IllegalMachine) {
+    MachineState& machineState, FUState& state, FunctionUnit& unit) {
     for (int i = 0; i < unit.portCount(); i++) {
         BaseFUPort& port = *unit.port(i);
 
@@ -654,12 +636,8 @@ MachineStateBuilder::addPortToFU(
  */
 void
 MachineStateBuilder::bindPortsToOperands(
-    OperationExecutor& executor,
-    HWOperation& hwOperation,
-    MachineState& machineState,
-    FUState&,
-    FunctionUnit& unit) throw (IllegalMachine) {
-    
+    OperationExecutor& executor, HWOperation& hwOperation,
+    MachineState& machineState, FUState&, FunctionUnit& unit) {
     OperationPool& pool = SimulatorToolbox::operationPool();
     Operation& op = pool.operation(hwOperation.name().c_str());
 

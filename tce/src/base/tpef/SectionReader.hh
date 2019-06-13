@@ -60,11 +60,7 @@ public:
     virtual ~SectionReader();
 
     static void readSection(
-        BinaryStream &stream,
-        Section* section,
-        BinaryReader* reader)
-        throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists,
-               EndOfFile, OutOfRange, WrongSubclass, UnexpectedValue);
+        BinaryStream& stream, Section* section, BinaryReader* reader);
 
     static void finalizeBinary(
         Binary *binaryToFinalize,
@@ -74,11 +70,7 @@ protected:
     SectionReader();
 
     /// Does actual reading part for constructing section.
-    virtual void readData(
-        BinaryStream &stream,
-        Section* section) const
-        throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-               OutOfRange, WrongSubclass, UnexpectedValue) = 0;
+    virtual void readData(BinaryStream& stream, Section* section) const = 0;
 
     /// Returns binary reader whose sections actual section reader reads.
     virtual BinaryReader* parent() const = 0;
@@ -89,9 +81,7 @@ protected:
     virtual void finalize(Section* section) const;
 
     static const SectionReader* findSectionReader(
-        const Section::SectionType type,
-        const BinaryReader* bReader)
-        throw (InstanceNotFound);
+        const Section::SectionType type, const BinaryReader* bReader);
 
     static void registerSectionReader(const SectionReader* sReader);
 

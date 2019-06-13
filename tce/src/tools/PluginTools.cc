@@ -92,9 +92,7 @@ PluginTools::~PluginTools() {
  * @exception FileNotFound If path doesn't exist.
  */
 void
-PluginTools::addSearchPath(const std::string& searchPath)
-    throw (FileNotFound) {
-
+PluginTools::addSearchPath(const std::string& searchPath) {
     if (!(FileSystem::fileExists(searchPath))) {
         string method = "PluginTools::addSearchPath()";
         string message = "Path doesn't exist";
@@ -102,7 +100,6 @@ PluginTools::addSearchPath(const std::string& searchPath)
     }
     searchPaths_.push_back(searchPath);
 }
-
 
 /**
  * Removes search path from search path list if it is found.
@@ -138,9 +135,7 @@ PluginTools::clearSearchPaths() {
  * @exception DynamicLibraryException if dlopen() fails.
  */
 void
-PluginTools::registerModule(const std::string& module)
-    throw (FileNotFound, DynamicLibraryException) {
-
+PluginTools::registerModule(const std::string& module) {
     if (module.empty()) {
         string method = "PluginTools::registerModule()";
         string message = "Empty module file name.";
@@ -200,7 +195,6 @@ PluginTools::registerModule(const std::string& module)
     }
 }
 
-
 /**
  * A module is closed using dlclose() and it is removed from registry.
  *
@@ -210,9 +204,7 @@ PluginTools::registerModule(const std::string& module)
  * @exception MultipleInstancesFound If multiple modules are found.
  */
 void
-PluginTools::unregisterModule(const std::string& module)
-    throw (FileNotFound, DynamicLibraryException, MultipleInstancesFound) {
-
+PluginTools::unregisterModule(const std::string& module) {
     string method = "PluginTools::unregisterModule()";
     string path = module;
     if (!FileSystem::isAbsolutePath(module)) {
@@ -233,7 +225,6 @@ PluginTools::unregisterModule(const std::string& module)
     }
 }
 
-
 /**
  * Unregisters all modules.
  *
@@ -242,9 +233,7 @@ PluginTools::unregisterModule(const std::string& module)
  * @exception DynamicLibraryException If dlclose() fails.
  */
 void
-PluginTools::unregisterAllModules()
-    throw (DynamicLibraryException) {
-
+PluginTools::unregisterAllModules() {
     MapIter mt;
     for (mt = modules_.begin(); mt != modules_.end(); mt++) {
         void* handle = (*mt).second;
@@ -261,7 +250,6 @@ PluginTools::unregisterAllModules()
     }
     modules_.clear();
 }
-
 
 /**
  * Loads symbol from module.
@@ -280,10 +268,7 @@ PluginTools::unregisterAllModules()
  * @exception SymbolNotFound If symbol to be loaded is not found.
  */
 void*
-PluginTools::loadSym(const std::string& symbolName, const std::string& module)
-    throw (MultipleInstancesFound, DynamicLibraryException, FileNotFound,
-           SymbolNotFound) {
-
+PluginTools::loadSym(const std::string& symbolName, const std::string& module) {
     string path = module;
     if (module != "") {
 
@@ -349,7 +334,6 @@ PluginTools::loadSym(const std::string& symbolName, const std::string& module)
     return NULL;
 }
 
-
 /**
  * Looks for the path for the module and returns it if it is found.
  *
@@ -359,9 +343,7 @@ PluginTools::loadSym(const std::string& symbolName, const std::string& module)
  * @exception FileNotFOund If module is not found at all.
  */
 string
-PluginTools::findModule(const std::string& module)
-    throw (MultipleInstancesFound, FileNotFound) {
-
+PluginTools::findModule(const std::string& module) {
     string path = "";
     bool moduleFound = false;
     for (MapIter mt = modules_.begin(); mt != modules_.end(); mt++) {

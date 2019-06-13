@@ -63,32 +63,24 @@ public:
         const ProGe::HDL language);
     virtual ~BlockSourceCopier();
 
-    void copyShared(const std::string& dstDirectory)
-        throw (IOException);
+    void copyShared(const std::string& dstDirectory);
 
-    void copyProcessorSpecific(const std::string& dstDirectory)
-        throw (IOException);
+    void copyProcessorSpecific(const std::string& dstDirectory);
 
-    void instantiateHDLTemplate(const std::string& srcFile,
-             const std::string& dstDirectory,
-             std::string newName = "0")
-    throw (IOException);
+    void instantiateHDLTemplate(
+        const std::string& srcFile, const std::string& dstDirectory,
+        std::string newName = "0");
 
 private:
     void copyBaseRFFiles(
         const IDF::RFImplementationLocation& implementation,
-        const std::string& dstDirectory)
-        throw (IOException);
+        const std::string& dstDirectory);
     void copyFiles(
         const HDB::HWBlockImplementation& implementation,
-        const std::string& hdbFile,
-        const std::string& dstDirectory)
-        throw (UnreachableStream, FileNotFound);
+        const std::string& hdbFile, const std::string& dstDirectory);
 
     void copyFromTemplate(
-        const std::string& templateFile,
-        const std::string& dstDirectory)
-        throw (UnreachableStream, FileNotFound);
+        const std::string& templateFile, const std::string& dstDirectory);
 
     void setCopied(const std::string& file);
     bool isCopied(const std::string& file) const;

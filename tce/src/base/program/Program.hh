@@ -84,71 +84,58 @@ public:
     Address entryAddress() const;
     void setEntryAddress(Address address);
 
-    void addProcedure(Procedure* proc) throw (IllegalRegistration);
-    void addInstruction(Instruction* ins) throw (IllegalRegistration);
+    void addProcedure(Procedure* proc);
+    void addInstruction(Instruction* ins);
 
     void moveProcedure(Procedure& proc, int howMuch);
 
-    Procedure& firstProcedure() const throw (InstanceNotFound);
-    Procedure& lastProcedure() const throw (InstanceNotFound);
-    Procedure& nextProcedure(const Procedure& proc) const
-        throw (IllegalRegistration);
+    Procedure& firstProcedure() const;
+    Procedure& lastProcedure() const;
+    Procedure& nextProcedure(const Procedure& proc) const;
     int procedureCount() const;
-    Procedure& procedure(int index) const throw (OutOfRange);
+    Procedure& procedure(int index) const;
     Procedure& operator[](size_t index);
-    Procedure& procedure(const std::string& name) const
-        throw (KeyNotFound);
+    Procedure& procedure(const std::string& name) const;
     bool hasProcedure(const std::string& name) const;
 
-    Instruction& firstInstruction() const throw (InstanceNotFound);
-    Instruction& instructionAt(InstructionAddress address) const
-        throw (KeyNotFound);
+    Instruction& firstInstruction() const;
+    Instruction& instructionAt(InstructionAddress address) const;
     int instructionCount() const;
-    
-    const Move& moveAt(int number) const throw (KeyNotFound);
+
+    const Move& moveAt(int number) const;
     int moveCount() const;
 
     const Procedure& procedureAtIndex(int index) const;
 
-    Instruction& nextInstruction(const Instruction&) const
-        throw (IllegalRegistration);
-    Instruction& lastInstruction() const throw (InstanceNotFound);
+    Instruction& nextInstruction(const Instruction&) const;
+    Instruction& lastInstruction() const;
 
     InstructionReferenceManager& instructionReferenceManager() const;
 
     Program& operator=(const Program& old);
     Program* copy() const;
 
-    void removeProcedure(Procedure& proc) throw (IllegalRegistration);
+    void removeProcedure(Procedure& proc);
 
     int dataMemoryCount() const;
-    DataMemory& dataMemory(int index) const throw (OutOfRange);
-    DataMemory& dataMemory(const std::string& aSpaceName) const 
-        throw (KeyNotFound);
-    void addDataMemory(DataMemory* dataMem) throw (IllegalRegistration);
+    DataMemory& dataMemory(int index) const;
+    DataMemory& dataMemory(const std::string& aSpaceName) const;
+    void addDataMemory(DataMemory* dataMem);
 
     void replaceUniversalAddressSpaces(const TTAMachine::AddressSpace& space);
 
-    InstructionVector instructionVector() const; 
+    InstructionVector instructionVector() const;
 
     static Program* loadFromUnscheduledTPEF(
-        const std::string& tpefFileName,
-        const TTAMachine::Machine& theMachine)
-        throw (Exception);
+        const std::string& tpefFileName, const TTAMachine::Machine& theMachine);
 
     static Program* loadFromTPEF(
-        const std::string& tpefFileName,
-        const TTAMachine::Machine& theMachine)
-        throw (Exception);
-    
-    static Program* loadFromUnscheduledTPEF(
-        const std::string& tpefFileName)
-        throw (Exception);
+        const std::string& tpefFileName, const TTAMachine::Machine& theMachine);
+
+    static Program* loadFromUnscheduledTPEF(const std::string& tpefFileName);
 
     static void writeToTPEF(
-        const TTAProgram::Program& program,
-        const std::string& tpefFileName)
-        throw (Exception);
+        const TTAProgram::Program& program, const std::string& tpefFileName);
 
     void convertSymbolRefsToInsRefs();
 private:

@@ -97,9 +97,7 @@ CostDBEntryStatsFU::createStats() const {
  * @exception KeyNotFound Never thrown by this function.
  */
 double
-CostDBEntryStatsFU::energyActive() const 
-    throw (WrongSubclass, KeyNotFound) {
-   
+CostDBEntryStatsFU::energyActive() const {
     throw WrongSubclass(__FILE__, __LINE__, 
 			"CostDBEntryStatsFU::energyActive");
     return 0.0; // stupid return statement to make compiler quiet
@@ -114,9 +112,7 @@ CostDBEntryStatsFU::energyActive() const
  * @exception KeyNotFound No energy matching the string found.
  */
 double
-CostDBEntryStatsFU::energyOperation(const std::string& name) const 
-    throw (WrongSubclass, KeyNotFound) {
-
+CostDBEntryStatsFU::energyOperation(const std::string& name) const {
     return findEnergy(name);
 }
 
@@ -128,9 +124,7 @@ CostDBEntryStatsFU::energyOperation(const std::string& name) const
  * @exception WrongSubclass Never thrown by this function.
  */
 bool
-CostDBEntryStatsFU::hasEnergyOperation(const std::string& name) const 
-    throw (WrongSubclass) {
-
+CostDBEntryStatsFU::hasEnergyOperation(const std::string& name) const {
     return hasEnergy(name);
 }
 
@@ -145,9 +139,7 @@ CostDBEntryStatsFU::hasEnergyOperation(const std::string& name) const
  * instance.
  */
 void
-CostDBEntryStatsFU::setEnergyActive(double)
-    throw (WrongSubclass) {
-    
+CostDBEntryStatsFU::setEnergyActive(double) {
     throw WrongSubclass(__FILE__, __LINE__,
 			"CostDBEntryStatsFU::setEnergyActive");
 }
@@ -160,8 +152,6 @@ CostDBEntryStatsFU::setEnergyActive(double)
  * @exception WrongSubclass Never thrown by this function.
  */
 void
-CostDBEntryStatsFU::setEnergyOperation(const std::string& name, double energy) 
-    throw (WrongSubclass) {
-    
+CostDBEntryStatsFU::setEnergyOperation(const std::string& name, double energy) {
     addEnergy(name, energy);
 }

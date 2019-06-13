@@ -64,14 +64,9 @@ protected:
 
     virtual void finalize(Section* section) const;
 
-    virtual void readData(
-        BinaryStream& stream,
-        Section* section) const
-        throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-               OutOfRange, WrongSubclass, UnexpectedValue);
+    virtual void readData(BinaryStream& stream, Section* section) const;
 
 private:
-
     /**
      * All the information of read a.out stab.
      */
@@ -96,10 +91,8 @@ private:
     };
 
     SymbolElement* initializeSymbol(
-        BinaryStream& stream,
-        SectionOffset sectionOffset,
-        AOutReader* reader) const
-        throw (KeyAlreadyExists, UnreachableStream, OutOfRange);
+        BinaryStream& stream, SectionOffset sectionOffset,
+        AOutReader* reader) const;
 
     /// Copying not allowed.
     AOutSymbolSectionReader(const AOutSymbolSectionReader&);

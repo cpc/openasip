@@ -72,8 +72,7 @@ protected:
         unsigned int encoding,
         unsigned int extraBits,
         InstructionField* parent);
-    Encoding(const ObjectState* state, InstructionField* parent)
-        throw (ObjectStateLoadingException);
+    Encoding(const ObjectState* state, InstructionField* parent);
     void setParent(InstructionField* parent);
 
 private:

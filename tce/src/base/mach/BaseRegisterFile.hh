@@ -53,19 +53,14 @@ public:
     virtual int width() const;
     virtual int size() const;
 
-    virtual void setNumberOfRegisters(int registers)
-        throw (OutOfRange);
-    virtual void setWidth(int width)
-        throw (OutOfRange);
+    virtual void setNumberOfRegisters(int registers);
+    virtual void setWidth(int width);
 
-    virtual RFPort* port(const std::string& name) const
-        throw (InstanceNotFound);
-    virtual RFPort* port(int index) const
-        throw (OutOfRange);
+    virtual RFPort* port(const std::string& name) const;
+    virtual RFPort* port(int index) const;
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for BaseRegisterFile.
     static const std::string OSNAME_BASE_REGISTER_FILE;
@@ -75,14 +70,11 @@ public:
     static const std::string OSKEY_WIDTH;
 
 protected:
-    BaseRegisterFile(const std::string& name, int size, int width)
-        throw (OutOfRange, InvalidName);
-    BaseRegisterFile(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    BaseRegisterFile(const std::string& name, int size, int width);
+    BaseRegisterFile(const ObjectState* state);
 
 private:
-    void loadStateWithoutReferences(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadStateWithoutReferences(const ObjectState* state);
 
     /// Number of registers in the register file.
     int size_;

@@ -44,16 +44,14 @@
 class ProDeOptions : public GUIOptions {
 public:
     ProDeOptions();
-    ProDeOptions(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    ProDeOptions(const ObjectState* state);
     ProDeOptions(const ProDeOptions& old);
     virtual ~ProDeOptions();
 
     int undoStackSize() const;
     void setUndoStackSize(int size);
 
-    void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadState(const ObjectState* state);
 
     ObjectState* saveState() const;
 

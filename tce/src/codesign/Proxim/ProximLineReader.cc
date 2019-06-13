@@ -95,9 +95,7 @@ ProximLineReader::initialize(
  * @param prompt Prompt used for requesting the user input.
  */
 std::string
-ProximLineReader::readLine(std::string prompt)
-    throw (ObjectNotInitialized, EndOfFile) {
-
+ProximLineReader::readLine(std::string prompt) {
     if (!initialized()) {
         std::string method = "ProximLineReader::readLine";
         throw ObjectNotInitialized(__FILE__, __LINE__, method);
@@ -121,7 +119,6 @@ ProximLineReader::readLine(std::string prompt)
     putInInputHistory(input);
     return input;
 }
-
 
 /**
  * This function is called by the GUI thread to set the user input.
@@ -149,11 +146,8 @@ ProximLineReader::input(std::string input) {
  */
 char
 ProximLineReader::charQuestion(
-    std::string question,
-    std::string allowedChars,
-    bool /* (case sensitive)  UNUSED */,
-    char /* (default answer) UNUSED */) throw (ObjectNotInitialized) {
-
+    std::string question, std::string allowedChars,
+    bool /* (case sensitive)  UNUSED */, char /* (default answer) UNUSED */) {
     if (!initialized()) {
         throw ObjectNotInitialized(__FILE__, __LINE__);
     }
@@ -179,7 +173,6 @@ ProximLineReader::charQuestion(
 
     return answer[0];
 }
-
 
 /**
  * Returns an outputstream, which the worker thread can use to write text
@@ -303,12 +296,10 @@ ProximLROutputBuffer::flushBuffer() {
  * @param hisoryFileName Name of the input history log file.
  */
 void
-ProximLineReader::setInputHistoryLog(const std::string& historyFileName)
-    throw (IOException) {
+ProximLineReader::setInputHistoryLog(const std::string& historyFileName) {
     historyFile_ = historyFileName;
     LineReader::setInputHistoryLog(historyFileName);
 }
-
 
 /**
  * Returns input history log file name.

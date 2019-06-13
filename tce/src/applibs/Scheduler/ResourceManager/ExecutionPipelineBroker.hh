@@ -55,8 +55,7 @@ public:
     ExecutionPipelineBroker(std::string, unsigned int initiationInterval = 0);
     virtual ~ExecutionPipelineBroker();
 
-    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res)
-        throw (Exception);
+    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res);
     virtual void unassign(MoveNode& node);
 
     virtual int earliestCycle(int cycle, const MoveNode& node) const;

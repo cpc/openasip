@@ -665,15 +665,11 @@ private:
      * @param newEstimates Estimates that are calculated during evaluation.
      * @return true if evaluation succeed, if not, return false.
      */
-    inline bool evalNewConfigWithoutImplementation(
-        DesignSpaceExplorer& explorer,
-        const TTAMachine::Machine& mach,
-        DSDBManager& dsdb, 
-        DSDBManager::MachineConfiguration& newConfiguration,
-        RowID& confID,
-        CostEstimates &newEstimates) 
-        throw (RelationalDBException, KeyNotFound) {
-
+    inline bool
+    evalNewConfigWithoutImplementation(
+        DesignSpaceExplorer& explorer, const TTAMachine::Machine& mach,
+        DSDBManager& dsdb, DSDBManager::MachineConfiguration& newConfiguration,
+        RowID& confID, CostEstimates& newEstimates) {
         try {
             newConfiguration.architectureID = dsdb.addArchitecture(mach);
         } catch (const RelationalDBException& e) {
@@ -691,7 +687,6 @@ private:
 
 	return explorer.evaluate(newConfiguration, newEstimates, false);
     }
-
 
     /**
      * Checks that max cycle counts are not exceeded.

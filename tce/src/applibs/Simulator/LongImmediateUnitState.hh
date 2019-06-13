@@ -61,13 +61,10 @@ public:
         bool signExtend);
     virtual ~LongImmediateUnitState();
 
-    virtual SimValue& registerValue(int index)
-        throw (OutOfRange);
-    virtual void setRegisterValue(int index, const SimValue& value)
-        throw (OutOfRange);
+    virtual SimValue& registerValue(int index);
+    virtual void setRegisterValue(int index, const SimValue& value);
 
-    virtual LongImmediateRegisterState& immediateRegister(int i) 
-        throw (OutOfRange);
+    virtual LongImmediateRegisterState& immediateRegister(int i);
     virtual int immediateRegisterCount() const;
 
     virtual void endClock();
@@ -127,13 +124,10 @@ public:
 
     virtual ~NullLongImmediateUnitState();
 
-    virtual SimValue& registerValue(int index)
-        throw (OutOfRange);
-    virtual void setRegisterValue(int index, const SimValue& value)
-        throw (OutOfRange);
+    virtual SimValue& registerValue(int index);
+    virtual void setRegisterValue(int index, const SimValue& value);
 
-    virtual LongImmediateRegisterState& immediateRegister(int i) 
-	throw (OutOfRange);
+    virtual LongImmediateRegisterState& immediateRegister(int i);
     virtual int immediateRegisterCount() const;
 
     virtual void endClock();

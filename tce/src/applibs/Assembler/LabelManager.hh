@@ -69,26 +69,17 @@ public:
 
     ~LabelManager();
 
-    UValue value(std::string& name) 
-        throw (SymbolNotFound);
+    UValue value(std::string& name);
 
-    TPEF::ASpaceElement& aSpaceElement(std::string& labelName) 
-        throw (SymbolNotFound);
+    TPEF::ASpaceElement& aSpaceElement(std::string& labelName);
 
-    std::string aSpaceName(std::string& labelName)
-        throw (SymbolNotFound);
+    std::string aSpaceName(std::string& labelName);
 
-    void addLabel(
-        TPEF::ASpaceElement& aSpace,
-        std::string& name, UValue value) 
-        throw (ObjectAlreadyExists);
+    void addLabel(TPEF::ASpaceElement& aSpace, std::string& name, UValue value);
 
-    void removeLabel(std::string& name)
-        throw (SymbolNotFound);
+    void removeLabel(std::string& name);
 
-    void addProcedure(
-        std::string& name, UValue value) 
-        throw (ObjectAlreadyExists);
+    void addProcedure(std::string& name, UValue value);
 
     void setGlobal(std::string& labelName);
 
@@ -103,14 +94,12 @@ public:
 
     void commitLastRelocations();
 
-    void finalize()
-        throw (CompileError);
+    void finalize();
 
     void cleanup();
 
     UValue resolveExpressionValue(
-        UValue asmLineNumber, LiteralOrExpression& litOrExpr)
-        throw (CompileError);
+        UValue asmLineNumber, LiteralOrExpression& litOrExpr);
 
 private:
     /**
@@ -147,9 +136,8 @@ private:
         InternalLabel *currLabel, TPEF::Section* ownerSection);
 
     void writeProcedureSymbols(
-        TPEF::CodeSection* codeSect,
-        TPEF::SymbolSection* symbolSect,
-        TPEF::StringSection* strings) throw (CompileError);
+        TPEF::CodeSection* codeSect, TPEF::SymbolSection* symbolSect,
+        TPEF::StringSection* strings);
 
     TPEF::RelocSection* findOrCreateRelocationSection(
         InternalRelocation* currReloc, TPEF::SymbolSection* symbolSect);

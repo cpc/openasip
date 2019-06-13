@@ -60,10 +60,8 @@ public:
         const int cycle,
         const MoveNode& node,
         const TTAMachine::Port& resultPort) const;
-    virtual void assign(const int cycle, MoveNode& node)
-        throw (Exception);
-    virtual void unassign(const int cycle, MoveNode& node)
-        throw (Exception);
+    virtual void assign(const int cycle, MoveNode& node);
+    virtual void unassign(const int cycle, MoveNode& node);
     virtual bool isOutputFUResource() const;
 
 protected:

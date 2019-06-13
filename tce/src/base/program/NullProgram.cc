@@ -137,7 +137,7 @@ NullProgram::setEntryAddress(Address) {
  * @exception IllegalRegistration never.
  */
 void
-NullProgram::addProcedure(Procedure&) throw (IllegalRegistration) {
+NullProgram::addProcedure(Procedure&) {
     abortWithError("addProcedure()");
 }
 
@@ -147,8 +147,7 @@ NullProgram::addProcedure(Procedure&) throw (IllegalRegistration) {
  * @exception IllegalRegistration never.
  */
 void
-NullProgram::addInstruction(Instruction&)
-    throw (IllegalRegistration) {
+NullProgram::addInstruction(Instruction&) {
     abortWithError("addInstruction()");
 }
 
@@ -167,7 +166,7 @@ NullProgram::relocate(const Procedure&, UIntWord) {
  * @return Nothing.
  */
 Procedure&
-NullProgram::firstProcedure() const throw (InstanceNotFound) {
+NullProgram::firstProcedure() const {
     abortWithError("firstProcedure()");
     return NullProcedure::instance();
 }
@@ -179,7 +178,7 @@ NullProgram::firstProcedure() const throw (InstanceNotFound) {
  * @return Nothing.
  */
 Procedure&
-NullProgram::lastProcedure() const throw (InstanceNotFound) {
+NullProgram::lastProcedure() const {
     abortWithError("lastProcedure()");
     return NullProcedure::instance();
 }
@@ -190,9 +189,7 @@ NullProgram::lastProcedure() const throw (InstanceNotFound) {
  * @return Nothing.
  */
 Procedure&
-NullProgram::nextProcedure(const Procedure&) const
-    throw (IllegalRegistration) {
-
+NullProgram::nextProcedure(const Procedure&) const {
     abortWithError("nextProcedure()");
     return NullProcedure::instance();
 }
@@ -215,7 +212,7 @@ NullProgram::procedureCount() const {
  * @exception OutOfRange never.
  */
 Procedure&
-NullProgram::procedure(int) const throw (OutOfRange) {
+NullProgram::procedure(int) const {
     abortWithError("addInstruction()");
     return NullProcedure::instance();
 }
@@ -227,7 +224,7 @@ NullProgram::procedure(int) const throw (OutOfRange) {
  * @return Nothing.
  */
 Procedure&
-NullProgram::procedure(const std::string&) const throw (KeyNotFound) {
+NullProgram::procedure(const std::string&) const {
     abortWithError("procedure()");
     return NullProcedure::instance();
 }
@@ -239,7 +236,7 @@ NullProgram::procedure(const std::string&) const throw (KeyNotFound) {
  * @return Nothing.
  */
 Instruction&
-NullProgram::firstInstruction() const throw (InstanceNotFound) {
+NullProgram::firstInstruction() const {
     abortWithError("firstInstruction()");
     return NullInstruction::instance();
 }
@@ -251,7 +248,7 @@ NullProgram::firstInstruction() const throw (InstanceNotFound) {
  * @exception KeyNotFound never.
  */
 const Instruction&
-NullProgram::instructionAt(UIntWord) const throw (KeyNotFound) {
+NullProgram::instructionAt(UIntWord) const {
     abortWithError("instructionAt()");
     return NullInstruction::instance();
 }
@@ -262,9 +259,7 @@ NullProgram::instructionAt(UIntWord) const throw (KeyNotFound) {
  * @return A null instruction.
  */
 const Instruction&
-NullProgram::nextInstruction(const Instruction&) const
-    throw (IllegalRegistration) {
-
+NullProgram::nextInstruction(const Instruction&) const {
     abortWithError("nextInstruction()");
     return NullInstruction::instance();
 }
@@ -276,7 +271,7 @@ NullProgram::nextInstruction(const Instruction&) const
  * @return Nothing.
  */
 Instruction&
-NullProgram::lastInstruction() const throw (InstanceNotFound) {
+NullProgram::lastInstruction() const {
     abortWithError("lastInstruction()");
     return NullInstruction::instance();
 }

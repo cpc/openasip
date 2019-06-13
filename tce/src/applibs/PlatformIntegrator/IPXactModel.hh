@@ -59,8 +59,7 @@ public:
 
     IPXactModel();
 
-    IPXactModel(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    IPXactModel(const ObjectState* state);
 
     virtual ~IPXactModel();
 

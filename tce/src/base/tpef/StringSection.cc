@@ -69,9 +69,7 @@ StringSection::~StringSection() {
  * @exception UnexpectedValue If no terminating zero is found.
  */
 string
-StringSection::chunk2String(const Chunk* chunk) const
-    throw (UnexpectedValue) {
-
+StringSection::chunk2String(const Chunk* chunk) const {
     unsigned int offset = chunk->offset();
     assert(offset <= length());
 

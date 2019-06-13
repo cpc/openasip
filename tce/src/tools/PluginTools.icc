@@ -55,8 +55,7 @@ PluginTools::importSymbol(
     const std::string& symbolName,
     T*& target,
     const std::string& module)
-    throw (MultipleInstancesFound, FileNotFound, DynamicLibraryException,
-           SymbolNotFound) {
+     {
 
     /* This produces warnings with newer gcc's, but it seems it's 
        a known problem with dlsym():
@@ -90,8 +89,7 @@ PluginTools::importSymbol(
 template <typename T>
 void
 PluginTools::importSymbol(const std::string& symbolName, T*& target)
-    throw (MultipleInstancesFound, FileNotFound, DynamicLibraryException,
-           SymbolNotFound) {
+     {
 
     target = (T*)(intptr_t)loadSym(symbolName);
 }

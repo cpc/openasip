@@ -71,9 +71,7 @@ RegisterFileState::~RegisterFileState() {
  * @exception OutOfRange If index is out of range.
  */
 RegisterState&
-RegisterFileState::registerState(int index)
-    throw (OutOfRange) {
-
+RegisterFileState::registerState(int index) {
     if (index < 0 || index > static_cast<int>(registerStates_.size()) - 1) {
         string msg = "Register index out of range";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);
@@ -129,9 +127,7 @@ NullRegisterFileState::~NullRegisterFileState() {
  * @exception OutOfRange Never throws.
  */
 RegisterState&
-NullRegisterFileState::registerState(int)
-    throw (OutOfRange) {
-
+NullRegisterFileState::registerState(int) {
     Application::abortWithError("registerState()");
     return NullRegisterState::instance();
 }

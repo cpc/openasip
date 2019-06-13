@@ -68,14 +68,12 @@ public:
     virtual bool isAnyResourceAvailable(int cycle, const MoveNode& node)
         const;
     virtual SchedulingResource& availableResource(
-        int cycle,
-        const MoveNode& node) const throw (InstanceNotFound);
+        int cycle, const MoveNode& node) const;
     virtual SchedulingResourceSet allAvailableResources(
         int cycle, const MoveNode& node) const;
     virtual bool isAvailable(
         SchedulingResource& des, const MoveNode& node, int cycle) const;
-    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res)
-        throw (Exception);
+    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res);
     virtual void unassign(MoveNode& node);
 
     virtual int earliestCycle(int cycle, const MoveNode& node) const;

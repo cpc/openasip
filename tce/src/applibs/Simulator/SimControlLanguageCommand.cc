@@ -376,9 +376,7 @@ SimControlLanguageCommand::outputStream() {
  */
 InstructionAddress
 SimControlLanguageCommand::parseInstructionAddressExpression(
-    const std::string& expression)         
-    throw (IllegalParameters) {
-
+    const std::string& expression) {
     std::string expr = StringTools::trim(expression);
     const std::string errorMessage = "Illegal argument.";
 
@@ -471,9 +469,7 @@ SimControlLanguageCommand::parseInstructionAddressExpression(
  */
 TTAProgram::Address
 SimControlLanguageCommand::parseDataAddressExpression(
-    const std::string& expression)         
-    throw (IllegalParameters) {
-
+    const std::string& expression) {
     std::string expr = StringTools::trim(expression);
     const std::string errorMessage = "Illegal argument.";
 

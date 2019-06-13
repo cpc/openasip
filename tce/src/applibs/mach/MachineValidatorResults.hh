@@ -51,8 +51,7 @@ public:
     virtual ~MachineValidatorResults();
 
     int errorCount() const;
-    Error error(int index) const
-        throw (OutOfRange);
+    Error error(int index) const;
 
     void addError(
         MachineValidator::ErrorCode code,

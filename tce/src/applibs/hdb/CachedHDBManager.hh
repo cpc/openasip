@@ -62,29 +62,24 @@ namespace HDB {
  */
 class CachedHDBManager : public HDBManager {
 public:
-    static CachedHDBManager& instance(const std::string& hdbFile) 
-        throw (IOException);
+    static CachedHDBManager& instance(const std::string& hdbFile);
 
     virtual ~CachedHDBManager();
 
-    static CachedHDBManager& createNew(const std::string& fileName)
-        throw (UnreachableStream);
+    static CachedHDBManager& createNew(const std::string& fileName);
 
     // Functions invalidating cached objects.
-    virtual void removeFUArchitecture(RowID archID) const
-        throw (InvalidData);
+    virtual void removeFUArchitecture(RowID archID) const;
 
     virtual void removeFUImplementation(RowID id) const;
 
-    virtual void removeRFArchitecture(RowID archID) const
-        throw (InvalidData);
+    virtual void removeRFArchitecture(RowID archID) const;
 
     virtual void removeRFImplementation(RowID archID) const;
-    
+
     // Functions below may invalidate cost estimation values
     virtual void modifyCostFunctionPlugin(
-        RowID id, const CostFunctionPlugin& plugin) 
-        throw (InvalidData, KeyNotFound);
+        RowID id, const CostFunctionPlugin& plugin);
 
     virtual void removeCostFunctionPlugin(RowID pluginID) const;
 
@@ -98,21 +93,17 @@ public:
 
     virtual void removeCostEstimationData(RowID id) const;
 
-    virtual void modifyCostEstimationData(RowID id, const CostEstimationData& data)
-        throw (InvalidData, KeyNotFound);
+    virtual void modifyCostEstimationData(
+        RowID id, const CostEstimationData& data);
 
     // Queries using cache.
-    virtual FUArchitecture* fuArchitectureByID(RowID id) const
-        throw (KeyNotFound);
+    virtual FUArchitecture* fuArchitectureByID(RowID id) const;
 
-    virtual RFArchitecture* rfArchitectureByID(RowID id) const
-        throw (KeyNotFound);
+    virtual RFArchitecture* rfArchitectureByID(RowID id) const;
 
     virtual DataObject costEstimationDataValue(
-        const std::string& valueName,
-        const std::string& pluginName) const
-        throw (KeyNotFound);
-    
+        const std::string& valueName, const std::string& pluginName) const;
+
     const FUArchitecture& fuArchitectureByIDConst(RowID id) const;
     const RFArchitecture& rfArchitectureByIDConst(RowID id) const;
 
@@ -121,15 +112,11 @@ public:
 
     // Queries using query cache
     virtual std::set<RowID> costEstimationDataIDs(
-        const CostEstimationData& match, 
-        bool useCompiledQueries = false,
+        const CostEstimationData& match, bool useCompiledQueries = false,
         RelationalDBQueryResult* compiledQuery = NULL) const;
 
-
 private:
-
-    CachedHDBManager(const std::string& hdbFile)
-        throw (IOException);
+    CachedHDBManager(const std::string& hdbFile);
 
     // Private queries using cache.
     virtual RFImplementation* createImplementationOfRF(RowID id) const;
@@ -148,18 +135,17 @@ private:
     /// RF Implementation cache.
     mutable std::map<RowID, RFImplementation*> rfImplCache_;
     /// Cost estimation plugin value cache (pluginName/valueName)
-    mutable std::map<std::string, std::map<std::string, DataObject> > 
+    mutable std::map<std::string, std::map<std::string, DataObject> >
         costEstimationPluginValueCache_;
-    
+
     /// map of cached (compiled) queries for costEstimatioDataIDs function
-    mutable std::map<short int, RelationalDBQueryResult*> 
+    mutable std::map<short int, RelationalDBQueryResult*>
         costEstimationDataIDsQueries_;
 
     /// used to detect modifications to the HDB file (which invalidates cache)
     mutable std::time_t lastModificationTime_;
     /// used to detect modifications to the HDB file (which invalidates cache)
     mutable uintmax_t lastSizeInBytes_;
-    
 };
 
 } // End namespace HDB.

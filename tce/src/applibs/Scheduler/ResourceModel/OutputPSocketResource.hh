@@ -56,10 +56,8 @@ public:
 
     virtual bool isAvailable(const int cycle) const;
     virtual bool isOutputPSocketResource() const;
-    virtual void assign(const int cycle, MoveNode& node)
-    throw(Exception);
-    virtual void unassign(const int cycle, MoveNode& node)
-    throw(Exception);
+    virtual void assign(const int cycle, MoveNode& node);
+    virtual void unassign(const int cycle, MoveNode& node);
     virtual bool canAssign(const int cycle, const MoveNode& node) const;
 
     virtual bool operator < (const SchedulingResource& other) const;

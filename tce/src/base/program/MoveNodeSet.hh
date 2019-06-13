@@ -43,9 +43,9 @@ public:
     MoveNodeSet();
 
     int count() const;
-    MoveNode& at(int index) throw(OutOfRange);
+    MoveNode& at(int index);
     void addMoveNode(MoveNode&);
-    void removeMoveNode(MoveNode&) throw (IllegalRegistration);
+    void removeMoveNode(MoveNode&);
 
     std::string toString() const;
 

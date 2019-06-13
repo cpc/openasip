@@ -91,9 +91,7 @@ public:
      * Creates the compressed code and returns the bit vector of it.
      */
     virtual InstructionBitVector*
-    compress(const std::string& programName) 
-        throw (InvalidData) {
-
+    compress(const std::string& programName) {
         try {
             if (hasParameter(ENSURE_PROGRAMMABILITY) &&
                 parameterValue(ENSURE_PROGRAMMABILITY) == YES && 
@@ -131,7 +129,6 @@ public:
         return programBits();
     }
 
-    
     /**
      * Generates the decompressor in VHDL.
      *

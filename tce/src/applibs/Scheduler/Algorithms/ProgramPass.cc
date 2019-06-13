@@ -65,11 +65,8 @@ ProgramPass::~ProgramPass() {
  */
 void
 ProgramPass::executeProcedurePass(
-    TTAProgram::Program& program,
-    const TTAMachine::Machine& targetMachine,
-    ProcedurePass& procedurePass)
-    throw (Exception) {
-
+    TTAProgram::Program& program, const TTAMachine::Machine& targetMachine,
+    ProcedurePass& procedurePass) {
     for (int procIndex = 0; procIndex < program.procedureCount(); 
          ++procIndex) {
         TTAProgram::Procedure& proc = program.procedure(procIndex);
@@ -77,11 +74,9 @@ ProgramPass::executeProcedurePass(
     }
 }
 
-void ProgramPass::handleProgram(
-    TTAProgram::Program& program,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
+void
+ProgramPass::handleProgram(
+    TTAProgram::Program& program, const TTAMachine::Machine& targetMachine) {
     ProcedurePass* procPass = dynamic_cast<ProcedurePass*>(this);
     if (procPass != NULL) {
         executeProcedurePass(program, targetMachine, *procPass);

@@ -119,38 +119,29 @@ NullAddressSpace::name() const {
  * @exception InvalidName Never thrown.
  */
 void
-NullAddressSpace::setName(const std::string&)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+NullAddressSpace::setName(const std::string&) {
     abortWithError("setName()");
 }
 
-
 /**
  * Aborts the program with error message.
  *
  * @exception OutOfRange Never thrown.
  */
 void
-NullAddressSpace::setWidth(int)
-    throw (OutOfRange) {
-
+NullAddressSpace::setWidth(int) {
     abortWithError("setWidth()");
 }
 
-
 /**
  * Aborts the program with error message.
  *
  * @exception OutOfRange Never thrown.
  */
 void
-NullAddressSpace::setAddressBounds(unsigned int, unsigned int)
-    throw (OutOfRange) {
-
+NullAddressSpace::setAddressBounds(unsigned int, unsigned int) {
     abortWithError("setAddressBounds()");
 }
-
 
 /**
  * Aborts the program with error message.
@@ -158,9 +149,7 @@ NullAddressSpace::setAddressBounds(unsigned int, unsigned int)
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-NullAddressSpace::setMachine(Machine&)
-    throw (ComponentAlreadyExists) {
-
+NullAddressSpace::setMachine(Machine&) {
     abortWithError("setMachine()");
 }
 
@@ -191,12 +180,9 @@ NullAddressSpace::machine() const {
  * @exception IllegalRegistration Never thrown.
  */
 void
-NullAddressSpace::ensureRegistration(const Component&) const
-    throw (IllegalRegistration) {
-
+NullAddressSpace::ensureRegistration(const Component&) const {
     abortWithError("ensureRegistration()");
 }
-
 
 /**
  * Aborts the program with error message.
@@ -228,10 +214,7 @@ NullAddressSpace::saveState() const {
  * @exception ObjectStateLoadingException Never thrown.
  */
 void
-NullAddressSpace::loadState(const ObjectState*)
-    throw (ObjectStateLoadingException) {
-
+NullAddressSpace::loadState(const ObjectState*) {
     abortWithError("loadState()");
 }
-
 }

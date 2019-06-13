@@ -55,27 +55,20 @@ public:
     CmdLineParser(std::string description);
     virtual ~CmdLineParser();
 
-    virtual void parse(char* argv[], int argc)
-	throw (IllegalCommandLine, ParserStopRequest);
-    virtual void parse(std::vector<std::string> options)
-	throw (IllegalCommandLine, ParserStopRequest);
+    virtual void parse(char* argv[], int argc);
+    virtual void parse(std::vector<std::string> options);
     virtual void storeOptions(Options& options);
 
     virtual int numberOfArguments() const;
-    virtual std::string argument(int index) const
-        throw (OutOfRange);
+    virtual std::string argument(int index) const;
 
 protected:
     void addOption(CmdLineOptionParser* opt);
-    CmdLineOptionParser* findOption(std::string name) const
-        throw (IllegalCommandLine);
+    CmdLineOptionParser* findOption(std::string name) const;
 
     bool parseOption(
-        std::string option,
-        std::string& name,
-        std::string& arguments,
-        std::string& prefix,
-        bool& hasArgument) const throw (IllegalCommandLine);
+        std::string option, std::string& name, std::string& arguments,
+        std::string& prefix, bool& hasArgument) const;
     bool readPrefix(
         std::string& option,
         std::string& prefix,
@@ -108,7 +101,7 @@ private:
     /// Assignment not allowed.
     CmdLineParser& operator=(const CmdLineParser&);
 
-    void parseAll() throw (IllegalCommandLine);
+    void parseAll();
 
     /// The name of the program.
     std::string progName_;

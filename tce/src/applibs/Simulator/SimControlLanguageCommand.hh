@@ -82,12 +82,10 @@ public:
     bool checkMachineLoaded();
 
     InstructionAddress parseInstructionAddressExpression(
-        const std::string& expression)
-        throw (IllegalParameters);    
+        const std::string& expression);
 
     TTAProgram::Address parseDataAddressExpression(
-        const std::string& expression)
-        throw (IllegalParameters);    
+        const std::string& expression);
 
     bool parseBreakpoint(
         const std::vector<DataObject>& arguments, 

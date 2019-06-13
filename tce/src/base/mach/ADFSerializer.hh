@@ -51,14 +51,10 @@ public:
     ADFSerializer();
     virtual ~ADFSerializer();
 
-    void writeState(const ObjectState* machineState)
-        throw (SerializerException);
-    ObjectState* readState()
-        throw (SerializerException);
-    void writeMachine(const TTAMachine::Machine& machine)
-        throw (SerializerException);
-    TTAMachine::Machine* readMachine()
-        throw (SerializerException, ObjectStateLoadingException);
+    void writeState(const ObjectState* machineState);
+    ObjectState* readState();
+    void writeMachine(const TTAMachine::Machine& machine);
+    TTAMachine::Machine* readMachine();
 
 protected:
     /// Copying forbidden.
@@ -82,8 +78,7 @@ private:
     static ObjectState* immediateSlotToMDF(const ObjectState* isState);
 
     // MDF format to machine format conversion functions
-    static ObjectState* convertToMachineFormat(const ObjectState* mdfState)
-        throw (SerializerException);
+    static ObjectState* convertToMachineFormat(const ObjectState* mdfState);
     static ObjectState* busToMachine(const ObjectState* busState);
     static ObjectState* socketToMachine(const ObjectState* socketState);
     static ObjectState* bridgeToMachine(const ObjectState* bridgeState);
@@ -94,9 +89,7 @@ private:
     static ObjectState* addressSpaceToMachine(const ObjectState* asState);
     static ObjectState* controlUnitToMachine(const ObjectState* cuState);
     static ObjectState* immediateUnitToMachine(
-        const ObjectState* iuState,
-        ObjectState* machineState)
-        throw (SerializerException);
+        const ObjectState* iuState, ObjectState* machineState);
     static ObjectState* immediateSlotToMachine(const ObjectState* isState);
 
     // small helper functions
@@ -119,10 +112,8 @@ private:
         const ObjectState* momITState,
         ObjectState* mdfIUState);
     static void instructionTemplateToMachine(
-        const ObjectState* mdfITState,
-        ObjectState* momMachineState,
-        const std::string& iuName)
-        throw (SerializerException);
+        const ObjectState* mdfITState, ObjectState* momMachineState,
+        const std::string& iuName);
     static ObjectState* momTemplateSlot(
         const ObjectState* momITState,
         const std::string& busName);

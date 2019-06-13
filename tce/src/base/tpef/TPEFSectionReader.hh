@@ -52,11 +52,7 @@ public:
 protected:
     TPEFSectionReader();
 
-    virtual void readData(
-        BinaryStream& stream,
-        Section* section) const
-        throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-               OutOfRange, WrongSubclass, UnexpectedValue);
+    virtual void readData(BinaryStream& stream, Section* section) const;
 
     virtual BinaryReader* parent() const;
 

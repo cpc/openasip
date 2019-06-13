@@ -50,8 +50,7 @@ public:
     InfoCommand(bool isCompiledSimulation = false);
     virtual ~InfoCommand();
 
-    virtual bool execute(const std::vector<DataObject>& arguments)
-        throw (NumberFormatException);
+    virtual bool execute(const std::vector<DataObject>& arguments);
     virtual std::string helpText() const;
 protected:
     /// container type for subcommands indexed by name

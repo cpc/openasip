@@ -52,8 +52,7 @@ public:
     virtual ~MachineCheckResults();
 
     int errorCount() const;
-    Error error(int index) const
-        throw (OutOfRange);
+    Error error(int index) const;
 
     void addError(
         const MachineCheck& check,

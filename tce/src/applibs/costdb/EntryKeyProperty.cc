@@ -101,9 +101,7 @@ EntryKeyProperty::createFieldProperty(string field) {
  * @exception KeyNotFound Requested field was not found.
  */
 EntryKeyFieldProperty*
-EntryKeyProperty::fieldProperty(string field) const 
-    throw (KeyNotFound) {
-    
+EntryKeyProperty::fieldProperty(string field) const {
     for (FieldPropertyTable::const_iterator i = entryFields_.begin();
          i != entryFields_.end(); i++) {
         
@@ -149,9 +147,7 @@ EntryKeyProperty::create(string type) {
  * @exception KeyNotFound Requested field was not found.
  */
 EntryKeyProperty*
-EntryKeyProperty::find(string type) 
-    throw (KeyNotFound) {
-    
+EntryKeyProperty::find(string type) {
     for (EntryPropertyTable::const_iterator i = entryTypes_.begin();
          i != entryTypes_.end(); i++) {
 

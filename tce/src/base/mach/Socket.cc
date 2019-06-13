@@ -67,10 +67,7 @@ const string Socket::OSVALUE_UNKNOWN = "unknown";
  * @exception InvalidName If the given name is not valid for a component.
  */
 Socket::Socket(const std::string& name)
-    throw (InvalidName) :
-    Component(name), direction_(UNKNOWN), dataPortWidth_() {
-}
-
+    : Component(name), direction_(UNKNOWN), dataPortWidth_() {}
 
 /**
  * Constructor.
@@ -83,10 +80,7 @@ Socket::Socket(const std::string& name)
  *                                        is invalid.
  */
 Socket::Socket(const ObjectState* state)
-    throw (ObjectStateLoadingException) :
-    Component(state), direction_(UNKNOWN), dataPortWidth_() {
-}
-
+    : Component(state), direction_(UNKNOWN), dataPortWidth_() {}
 
 /**
  * Destructor.
@@ -106,9 +100,7 @@ Socket::~Socket() {
  * @exception InvalidName If the given name is not valid for a component.
  */
 void
-Socket::setName(const std::string& name)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+Socket::setName(const std::string& name) {
     if (name == this->name()) {
         return;
     }
@@ -125,7 +117,6 @@ Socket::setName(const std::string& name)
     }
 }
 
-
 /**
  * Sets the direction of the socket.
  *
@@ -136,9 +127,7 @@ Socket::setName(const std::string& name)
  *                                changed.
  */
 void
-Socket::setDirection(Direction direction)
-    throw (IllegalConnectivity) {
-
+Socket::setDirection(Direction direction) {
     const string procName = "Socket::setDirection";
 
     if (!isRegistered()) {
@@ -159,7 +148,6 @@ Socket::setDirection(Direction direction)
     }
 }
 
-
 /**
  * Attaches a bus to the socket.
  *
@@ -175,9 +163,7 @@ Socket::setDirection(Direction direction)
  *                                input or output.
  */
 void
-Socket::attachBus(Segment& bus)
-    throw (IllegalRegistration, IllegalConnectivity) {
-
+Socket::attachBus(Segment& bus) {
     const string procName = "Socket::attachBus";
 
     ensureRegistration(*bus.parentBus());
@@ -211,7 +197,6 @@ Socket::attachBus(Segment& bus)
     }
 }
 
-
 /**
  * Detaches the given segment of a bus from the socket.
  *
@@ -225,9 +210,7 @@ Socket::attachBus(Segment& bus)
  *                             socket.
  */
 void
-Socket::detachBus(Segment& bus)
-    throw (InstanceNotFound) {
-
+Socket::detachBus(Segment& bus) {
     if (!isConnectedTo(bus)) {
         string procName = "Socket::detachBus";
         throw InstanceNotFound(__FILE__, __LINE__, procName);
@@ -246,7 +229,6 @@ Socket::detachBus(Segment& bus)
         direction_ = UNKNOWN;
     }
 }
-
 
 /**
  * Detaches all the segments of the given bus from the socket.
@@ -281,16 +263,13 @@ Socket::detachBus(Bus& bus) {
  * @exception OutOfRange If the given index is out of range.
  */
 Port*
-Socket::port(int index) const
-    throw (OutOfRange) {
-
+Socket::port(int index) const {
     if (index < 0 || index >= portCount()) {
         string procName = "Socket::port";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
     return ports_[index];
 }
-
 
 /**
  * Detaches all ports from the socket.
@@ -394,9 +373,7 @@ Socket::isConnectedTo(const Segment& bus) const {
  * @exception OutOfRange If the given index is out of range.
  */
 Segment*
-Socket::segment(int index) const
-    throw (OutOfRange) {
-
+Socket::segment(int index) const {
     if (index < 0 || index >= segmentCount()) {
         string procName = "Socket::segment";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -427,13 +404,10 @@ Socket::setDataPortWidth(const string& width) {
  *                                   the same name in the machine.
  */
 void
-Socket::setMachine(Machine& mach)
-    throw (ComponentAlreadyExists) {
-
+Socket::setMachine(Machine& mach) {
     internalSetMachine(mach);
     mach.addSocket(*this);
 }
-
 
 /**
  * Removes the socket from the machine it is registered to.
@@ -500,9 +474,7 @@ Socket::saveState() const {
  *                                        given ObjectState tree is invalid.
  */
 void
-Socket::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+Socket::loadState(const ObjectState* state) {
     string procName = "Socket::loadState";
     MOMTextGenerator textGenerator;
 
@@ -598,7 +570,6 @@ Socket::loadState(const ObjectState* state)
             __FILE__, __LINE__, procName, exception.errorMessage());
     }
 }
-
 
 /**
  * Removes a connection from the connection table.

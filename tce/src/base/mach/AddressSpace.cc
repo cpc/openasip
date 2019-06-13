@@ -71,14 +71,9 @@ const string AddressSpace::OSKEY_NUMERICAL_ID = "numerical-id";
  * @exception InvalidName If the given name is not valid for a component.
  */
 AddressSpace::AddressSpace(
-    const string& name,
-    int width,
-    unsigned int minAddress,
-    unsigned int maxAddress,
-    Machine& owner)
-    throw (ComponentAlreadyExists, OutOfRange, InvalidName) :
-    Component(name) {
-
+    const string& name, int width, unsigned int minAddress,
+    unsigned int maxAddress, Machine& owner)
+    : Component(name) {
     if (width <= 0 || minAddress >= maxAddress) {
         string procName = "AddressSpace::AddressSpace";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -90,7 +85,6 @@ AddressSpace::AddressSpace(
 
     setMachine(owner);
 }
-
 
 /**
  * Constructor.
@@ -106,10 +100,11 @@ AddressSpace::AddressSpace(
  *                                        invalid.
  */
 AddressSpace::AddressSpace(const ObjectState* state, Machine& owner)
-    throw (ObjectStateLoadingException) :
-    Component(state), width_(0), minAddress_(0), maxAddress_(0), 
-    shared_(true) {
-
+    : Component(state),
+      width_(0),
+      minAddress_(0),
+      maxAddress_(0),
+      shared_(true) {
     loadState(state);
 
     for (IDSet::const_iterator i = numericalIds_.begin(); 
@@ -141,7 +136,6 @@ AddressSpace::AddressSpace(const ObjectState* state, Machine& owner)
                                           errorMsg.str());
     }
 }
-
 
 /**
  * Destructor.
@@ -193,9 +187,7 @@ AddressSpace::end() const {
  * @exception InvalidName If the given name is not valid for a component.
  */
 void
-AddressSpace::setName(const string& name)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+AddressSpace::setName(const string& name) {
     if (name == this->name()) {
         return;
     }
@@ -212,7 +204,6 @@ AddressSpace::setName(const string& name)
     }
 }
 
-
 /**
  * Sets the bit width of the minimum addressable word.
  *
@@ -220,9 +211,7 @@ AddressSpace::setName(const string& name)
  * @exception OutOfRange If the given width is illegal (<=0).
  */
 void
-AddressSpace::setWidth(int width)
-    throw (OutOfRange) {
-
+AddressSpace::setWidth(int width) {
     if (width <= 0) {
         string procName = "AddressSpace::setWidth";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -230,7 +219,6 @@ AddressSpace::setWidth(int width)
 
     width_ = width;
 }
-
 
 /**
  * Sets the memory address bounds of the address space.
@@ -240,9 +228,7 @@ AddressSpace::setWidth(int width)
  * @exception OutOfRange If the given start and end addresses are illegal.
  */
 void
-AddressSpace::setAddressBounds(unsigned int start, unsigned int end)
-    throw (OutOfRange) {
-
+AddressSpace::setAddressBounds(unsigned int start, unsigned int end) {
     if (start >= end) {
         string procName = "AddressSpace::setAddressBounds";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -252,7 +238,6 @@ AddressSpace::setAddressBounds(unsigned int start, unsigned int end)
     maxAddress_ = end;
 }
 
-
 /**
  * Registers the address space to a machine. Do not use this method.
  *
@@ -261,14 +246,11 @@ AddressSpace::setAddressBounds(unsigned int start, unsigned int end)
  *                                   same name in the given machine.
  */
 void
-AddressSpace::setMachine(TTAMachine::Machine& mach)
-    throw (ComponentAlreadyExists) {
-
+AddressSpace::setMachine(TTAMachine::Machine& mach) {
     assert(!isRegistered());
     mach.addAddressSpace(*this);
     internalSetMachine(mach);
 }
-
 
 /**
  * Removes registration of the address space from its current machine. The
@@ -348,9 +330,7 @@ AddressSpace::saveState() const {
  *                                        of this address space.
  */
 void
-AddressSpace::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+AddressSpace::loadState(const ObjectState* state) {
     const string procName = "AddressSpace::loadState";
 
     if (state->name() != OSNAME_ADDRESS_SPACE) {

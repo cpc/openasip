@@ -45,10 +45,8 @@ public:
     ~VertexList();
     void addVertex(int x, int y);
     size_t size() const;
-    int vertexX(size_t index) const
-        throw (OutOfRange);
-    int vertexY(size_t index) const
-        throw (OutOfRange);
+    int vertexX(size_t index) const;
+    int vertexY(size_t index) const;
     void clear();
 
 private:

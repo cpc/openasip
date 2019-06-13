@@ -73,9 +73,7 @@ const string EXPLORER_DEFAULT_HDB = "asic_130nm_1.5V.hdb";
  * @return DSDBManager of the DSDB file.
  */
 DSDBManager*
-loadDSDB(const std::string& dsdbFile) 
-    throw (IOException) {
-
+loadDSDB(const std::string& dsdbFile) {
     if (FileSystem::fileExists(dsdbFile)) {
         return new DSDBManager(dsdbFile);
     } else {
@@ -94,11 +92,7 @@ loadDSDB(const std::string& dsdbFile)
  */
 void
 parseParameter(
-    const std::string& param,
-    std::string& paramName,
-    std::string& paramValue)
-    throw (InvalidData) {
-
+    const std::string& param, std::string& paramName, std::string& paramValue) {
     string::size_type separatorPos = param.find("=", 0);
     if (separatorPos == string::npos) {
         string errorMsg = 

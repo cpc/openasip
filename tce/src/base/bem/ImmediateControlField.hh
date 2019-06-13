@@ -55,35 +55,28 @@ class MoveSlot;
  */
 class ImmediateControlField : public InstructionField {
 public:
-    ImmediateControlField(BinaryEncoding& parent)
-	throw (ObjectAlreadyExists);
-    ImmediateControlField(const ObjectState* state, BinaryEncoding& parent)
-	throw (ObjectStateLoadingException, ObjectAlreadyExists);
+    ImmediateControlField(BinaryEncoding& parent);
+    ImmediateControlField(const ObjectState* state, BinaryEncoding& parent);
     virtual ~ImmediateControlField();
 
     BinaryEncoding* parent() const;
 
     int templateCount() const;
-    std::string instructionTemplate(int index) const
-	throw (OutOfRange);
+    std::string instructionTemplate(int index) const;
 
     bool hasTemplateEncoding(const std::string& name) const;
-    unsigned int templateEncoding(const std::string& name) const
-	throw (InstanceNotFound);
+    unsigned int templateEncoding(const std::string& name) const;
 
-    void addTemplateEncoding(const std::string& name, unsigned int encoding)
-	throw (ObjectAlreadyExists);
+    void addTemplateEncoding(const std::string& name, unsigned int encoding);
     void removeTemplateEncoding(const std::string& name);
 
     // virtual methods derived from InstructionField
     virtual int width() const;
     virtual int childFieldCount() const;
-    virtual InstructionField& childField(int) const
-	throw (OutOfRange);
+    virtual InstructionField& childField(int) const;
 
     // methods inherited from Serializable interface
-    virtual void loadState(const ObjectState* state)
-	throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
     virtual ObjectState* saveState() const;
 
     /// ObjectState name for immediate control field.

@@ -51,7 +51,7 @@ public:
     virtual ~TerminalAddress();
 
     virtual bool isAddress() const;
-    virtual Address address() const throw (WrongSubclass);
+    virtual Address address() const;
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
 private:

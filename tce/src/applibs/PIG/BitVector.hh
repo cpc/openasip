@@ -44,10 +44,8 @@ class BitVector : public std::vector<bool> {
 public:
     BitVector();
     BitVector(
-        const BitVector& vector,
-        unsigned int firstIndex,
-        unsigned int lastIndex)
-        throw (OutOfRange);
+        const BitVector& vector, unsigned int firstIndex,
+        unsigned int lastIndex);
     virtual ~BitVector();
 
     void pushBack(long long unsigned int integer, int size);

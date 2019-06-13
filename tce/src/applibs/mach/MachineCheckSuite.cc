@@ -59,9 +59,7 @@ MachineCheckSuite::checkCount() const {
 }
 
 const MachineCheck&
-MachineCheckSuite::check(int index)
-    throw (OutOfRange) {
-
+MachineCheckSuite::check(int index) {
     if (index < 0 || index > checkCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }

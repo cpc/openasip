@@ -45,8 +45,7 @@ public:
 
     std::string bemFile() const;    
     int tpefFileCount() const;
-    std::string tpefFile(int index) const
-        throw (OutOfRange);
+    std::string tpefFile(int index) const;
     std::string programImageOutputFormat() const;
     std::string dataImageOutputFormat() const;
     std::string compressorPlugin() const;
@@ -54,8 +53,7 @@ public:
     bool generateDataImages() const;
     bool generateDecompressor() const;
     int compressorParameterCount() const;
-    std::string compressorParameter(int index) const
-        throw (OutOfRange);
+    std::string compressorParameter(int index) const;
     bool showCompressors() const;
     std::string progeOutputDirectory() const;
     std::string entityName() const;

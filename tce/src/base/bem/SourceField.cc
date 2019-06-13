@@ -63,11 +63,8 @@ const std::string SourceField::OSNAME_SOURCE_FIELD = "source_field";
  *                              encoding map.
  */
 SourceField::SourceField(
-    BinaryEncoding::Position componentIDPos,
-    MoveSlot& parent)
-    throw (ObjectAlreadyExists, IllegalParameters) :
-    SlotField(componentIDPos, parent), immEncoding_(NULL) {
-
+    BinaryEncoding::Position componentIDPos, MoveSlot& parent)
+    : SlotField(componentIDPos, parent), immEncoding_(NULL) {
     BinaryEncoding* bem = parent.parent();
     for (int i = 0; i < bem->moveSlotCount(); i++) {
 	MoveSlot& slot = bem->moveSlot(i);
@@ -85,7 +82,6 @@ SourceField::SourceField(
     setParent(&parent);
 }
 
-
 /**
  * The constructor.
  *
@@ -99,15 +95,12 @@ SourceField::SourceField(
  *                                field.
  */
 SourceField::SourceField(const ObjectState* state, MoveSlot& parent)
-    throw (ObjectStateLoadingException, ObjectAlreadyExists) :
-    SlotField(state, parent), immEncoding_(NULL) {
-
+    : SlotField(state, parent), immEncoding_(NULL) {
     loadState(state);
     setParent(NULL);
     parent.setSourceField(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.
@@ -134,9 +127,7 @@ SourceField::~SourceField() {
  *                                already.
  */
 void
-SourceField::addBridgeEncoding(BridgeEncoding& encoding)
-    throw (ObjectAlreadyExists) {
-
+SourceField::addBridgeEncoding(BridgeEncoding& encoding) {
     assert(encoding.parent() == NULL);
     string bridge = encoding.bridgeName();
 
@@ -151,7 +142,6 @@ SourceField::addBridgeEncoding(BridgeEncoding& encoding)
 
     bridgeEncodings_.push_back(&encoding);
 }
-
 
 /**
  * Removes the given bridge encoding from the source field.
@@ -229,9 +219,7 @@ SourceField::bridgeEncodingCount() const {
  *                       the number of bridge encodings.
  */
 BridgeEncoding&
-SourceField::bridgeEncoding(int index) const
-    throw (OutOfRange) {
-
+SourceField::bridgeEncoding(int index) const {
     if (index < 0 || index >= bridgeEncodingCount()) {
 	const string procName = "SourceField::bridgeEncoding";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -239,7 +227,6 @@ SourceField::bridgeEncoding(int index) const
 
     return *bridgeEncodings_[index];
 }
-
 
 /**
  * Sets the given encoding for inline immediates.
@@ -253,9 +240,7 @@ SourceField::bridgeEncoding(int index) const
  *                                encoding.
  */
 void
-SourceField::setImmediateEncoding(ImmediateEncoding& encoding)
-    throw (ObjectAlreadyExists) {
-
+SourceField::setImmediateEncoding(ImmediateEncoding& encoding) {
     assert(encoding.parent() == NULL);
     
     if (hasImmediateEncoding() ||
@@ -270,7 +255,6 @@ SourceField::setImmediateEncoding(ImmediateEncoding& encoding)
 
     immEncoding_ = &encoding;
 }
-
 
 /**
  * Unsets the immediate encoding.
@@ -349,9 +333,7 @@ SourceField::width() const {
  *                                        the state.
  */
 void
-SourceField::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+SourceField::loadState(const ObjectState* state) {
     const string procName = "SourceField::loadState";
 
     if (state->name() != OSNAME_SOURCE_FIELD) {
@@ -380,7 +362,6 @@ SourceField::loadState(const ObjectState* state)
     // TODO: check that the positions of the encodings match with the
     // ones given in the ObjectState instances
 }
-
 
 /**
  * Saves the state of the object to an ObjectState tree.

@@ -55,8 +55,7 @@ public:
     void addNode(MoveNode& node);
     
     int earliestCycle() const;
-    int latestCycle() const 
-        throw (NotAvailable);
+    int latestCycle() const;
 
     int maxSinkDistance() const;
     int maxSourceDistance() const;

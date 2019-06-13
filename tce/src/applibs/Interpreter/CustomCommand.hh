@@ -66,8 +66,7 @@ public:
     void setInterpreter(ScriptInterpreter* si);
     ScriptInterpreter* interpreter() const;
 
-    virtual bool execute(const std::vector<DataObject>& arguments)
-        throw (NumberFormatException) = 0;
+    virtual bool execute(const std::vector<DataObject>& arguments) = 0;
     virtual std::string helpText() const = 0;
 
     bool checkArgumentCount(int argumentCount, int minimum, int maximum);

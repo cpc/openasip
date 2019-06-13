@@ -104,10 +104,7 @@ TclInterpreter::initialize(
  */
 void
 TclInterpreter::setVariableToInterpreter(
-    const std::string& name, 
-    const DataObject& value) 
-    throw (NumberFormatException) {
-    
+    const std::string& name, const DataObject& value) {
     char* cName = StringTools::stringToCharPtr(name);
     char* cValue = StringTools::stringToCharPtr(value.stringValue());
     Tcl_SetVar(interpreter_, cName, cValue, TCL_GLOBAL_ONLY);
@@ -181,9 +178,7 @@ TclInterpreter::interpret(const std::string& commandLine) {
  * @exception NumberFormatException If conversion to Tcl_Obj fails.
  */
 void
-TclInterpreter::setResultToInterpreter(const DataObject& value) 
-    throw (NumberFormatException) {
-
+TclInterpreter::setResultToInterpreter(const DataObject& value) {
     Tcl_Obj* object = dataObjectToTclObj(value);
     Tcl_SetObjResult(interpreter_, object);
 }
@@ -236,10 +231,8 @@ TclInterpreter::tclObjToDataObject(Tcl_Obj* object) {
  * @return Tcl_Obj converted from DataObject.
  * @exception NumberFormatException If conversion fails.
  */
-Tcl_Obj* 
-TclInterpreter::dataObjectToTclObj(const DataObject& object) 
-    throw (NumberFormatException) {
-    
+Tcl_Obj*
+TclInterpreter::dataObjectToTclObj(const DataObject& object) {
     char* cName = StringTools::stringToCharPtr(object.stringValue());
     Tcl_Obj* obj = Tcl_NewStringObj(cName, -1);
     delete[] cName;
@@ -254,9 +247,7 @@ TclInterpreter::dataObjectToTclObj(const DataObject& object)
  * @exception UnreachableStream Don't throw it.
  */
 bool
-TclInterpreter::processScriptFile(const std::string& scriptFileName)
-    throw (UnreachableStream) {
-    
+TclInterpreter::processScriptFile(const std::string& scriptFileName) {
     string command = "source " + scriptFileName;
     if (!interpret(command)) {
         return false;

@@ -76,9 +76,7 @@ OSEdOptions::setEditor(const std::string& editor) {
  * @param state The to be loaded.
  */
 void
-OSEdOptions::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-	
+OSEdOptions::loadState(const ObjectState* state) {
     try {
         for (int i = 0; i < state->childCount(); i++) {
             ObjectState* child = state->child(i);

@@ -303,9 +303,7 @@ SafePointer::isReferenced(const SafePointable* object) {
  * @exception KeyAlreadyExists If entry with given key already exists.
  */
 void
-SafePointer::addObjectReference(SectionIndexKey key, const SafePointable* obj)
-    throw (KeyAlreadyExists) {
-
+SafePointer::addObjectReference(SectionIndexKey key, const SafePointable* obj) {
     genericAddObjectReference(key, *sectionIndexMap_, obj);
 }
 
@@ -321,9 +319,7 @@ SafePointer::addObjectReference(SectionIndexKey key, const SafePointable* obj)
  */
 void
 SafePointer::addObjectReference(
-    SectionOffsetKey key, const SafePointable* obj)
-    throw (KeyAlreadyExists) {
-
+    SectionOffsetKey key, const SafePointable* obj) {
     genericAddObjectReference(key, *sectionOffsetMap_, obj);
 }
 
@@ -338,9 +334,7 @@ SafePointer::addObjectReference(
  * @exception KeyAlreadyExists If entry with given key already exists.
  */
 void
-SafePointer::addObjectReference(FileOffsetKey key, const SafePointable* obj)
-    throw (KeyAlreadyExists) {
-
+SafePointer::addObjectReference(FileOffsetKey key, const SafePointable* obj) {
     genericAddObjectReference(key, *fileOffsetMap_, obj);
 }
 
@@ -355,9 +349,7 @@ SafePointer::addObjectReference(FileOffsetKey key, const SafePointable* obj)
  * @exception KeyAlreadyExists If entry with given key already exists.
  */
 void
-SafePointer::addObjectReference(SectionKey key, const SafePointable* obj)
-    throw (KeyAlreadyExists) {
-
+SafePointer::addObjectReference(SectionKey key, const SafePointable* obj) {
     genericAddObjectReference(key, *sectionMap_, obj);
 }
 
@@ -371,9 +363,7 @@ SafePointer::addObjectReference(SectionKey key, const SafePointable* obj)
  *
  */
 SectionIndexKey
-SafePointer::sectionIndexKeyFor(const SafePointable* obj)
-    throw (KeyNotFound) {
-
+SafePointer::sectionIndexKeyFor(const SafePointable* obj) {
     return genericKeyFor<SectionIndexKey>(obj, *sectionIndexMap_);
 }
 
@@ -387,9 +377,7 @@ SafePointer::sectionIndexKeyFor(const SafePointable* obj)
  *
  */
 SectionOffsetKey
-SafePointer::sectionOffsetKeyFor(const SafePointable* obj)
-    throw (KeyNotFound) {
-
+SafePointer::sectionOffsetKeyFor(const SafePointable* obj) {
     return genericKeyFor<SectionOffsetKey>(obj, *sectionOffsetMap_);
 }
 
@@ -403,9 +391,7 @@ SafePointer::sectionOffsetKeyFor(const SafePointable* obj)
  *
  */
 FileOffsetKey
-SafePointer::fileOffsetKeyFor(const SafePointable* obj)
-    throw (KeyNotFound) {
-
+SafePointer::fileOffsetKeyFor(const SafePointable* obj) {
     return genericKeyFor<FileOffsetKey>(obj, *fileOffsetMap_);
 }
 
@@ -419,9 +405,7 @@ SafePointer::fileOffsetKeyFor(const SafePointable* obj)
  *
  */
 SectionKey
-SafePointer::sectionKeyFor(const SafePointable* obj)
-    throw (KeyNotFound) {
-
+SafePointer::sectionKeyFor(const SafePointable* obj) {
     return genericKeyFor<SectionKey>(obj, *sectionMap_);
 }
 
@@ -493,9 +477,7 @@ SafePointer::notifyDeleted(SafePointer* safePointer) {
  * @exception UnresolvedReference If unresolvable references are found.
  */
 void
-SafePointer::resolve()
-    throw (UnresolvedReference) {
-
+SafePointer::resolve() {
     // try to resolve references in sectionOffsetMap
     for (SectionOffsetMap::iterator i = sectionOffsetMap_->begin();
          i != sectionOffsetMap_->end(); i++) {

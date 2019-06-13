@@ -78,8 +78,7 @@ public:
         FSAStateIndex source,
         FSAStateTransitionIndex transition);
 
-    virtual std::string stateName(FSAStateIndex state)
-        const throw (OutOfRange);
+    virtual std::string stateName(FSAStateIndex state) const;
 
     /// Inline functions for fast access in the compiled simulator.
     bool conflictsWith(OperationID operation) const;

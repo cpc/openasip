@@ -271,9 +271,7 @@ FUFiniteStateAutomaton::joinState(FSAStateIndexSet) {
  * @return The name of the state.
  */
 std::string
-FUFiniteStateAutomaton::stateName(FSAStateIndex state) const
-    throw (OutOfRange) {
-
+FUFiniteStateAutomaton::stateName(FSAStateIndex state) const {
     StateCollisionMatrixIndex::const_iterator i = 
         stateCollisionMatrices_.find(state);
 
@@ -283,4 +281,3 @@ FUFiniteStateAutomaton::stateName(FSAStateIndex state) const
 
     return (*i).second->toDotString();
 }
-

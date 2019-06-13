@@ -224,15 +224,12 @@ RFImplementation::addExternalPort(RFExternalPort* extPort) {
  *                             implementation.
  */
 void
-RFImplementation::deletePort(RFPortImplementation* port)
-    throw (InstanceNotFound) {
-
+RFImplementation::deletePort(RFPortImplementation* port) {
     bool deleted = ContainerTools::deleteValueIfExists(ports_, port);
     if (!deleted) {
         throw InstanceNotFound(__FILE__, __LINE__, __func__);
     }
 }
-
 
 /**
  * Deletes the given external port.
@@ -242,15 +239,12 @@ RFImplementation::deletePort(RFPortImplementation* port)
  *                             implementation.
  */
 void
-RFImplementation::deleteExternalPort(RFExternalPort* port)
-    throw (InstanceNotFound) {
-
+RFImplementation::deleteExternalPort(RFExternalPort* port) {
     bool removed = ContainerTools::deleteValueIfExists(externalPorts_, port);
     if (!removed) {
         throw InstanceNotFound(__FILE__, __LINE__, __func__);
     }
 }
-
 
 /**
  * Returns the number of ports.
@@ -284,9 +278,7 @@ RFImplementation::externalPortCount() const {
  *                       number of ports.
  */
 RFPortImplementation&
-RFImplementation::port(int index) const
-    throw (OutOfRange) {
-
+RFImplementation::port(int index) const {
     if (index < 0 || index >= portCount()) {
         const string procName = "RFImplementation::port";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -294,7 +286,6 @@ RFImplementation::port(int index) const
 
     return *ports_[index];
 }
-
 
 /**
  * Returns the external port at the given position.
@@ -305,9 +296,7 @@ RFImplementation::port(int index) const
  *                       number of external ports.
  */
 RFExternalPort&
-RFImplementation::externalPort(int index) const
-    throw (OutOfRange) {
-
+RFImplementation::externalPort(int index) const {
     if (index < 0 || index >= externalPortCount()) {
         const string procName = "RFImplementation::externalPort";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -327,11 +316,8 @@ RFImplementation::externalPort(int index) const
  */
 void
 RFImplementation::addParameter(
-    const std::string& name,
-    const std::string& type,
-    const std::string& value)
-    throw (IllegalParameters) {
-
+    const std::string& name, const std::string& type,
+    const std::string& value) {
     if (hasParameter(name)) {
         throw IllegalParameters(__FILE__, __LINE__, __func__);
     } else {
@@ -339,7 +325,6 @@ RFImplementation::addParameter(
         parameters_.push_back(param);
     }
 }
-
 
 /**
  * Removes the parameter of the given name.
@@ -378,9 +363,7 @@ RFImplementation::parameterCount() const {
  *                       number of parameters.
  */
 RFImplementation::Parameter
-RFImplementation::parameter(int index) const
-    throw (OutOfRange) {
-
+RFImplementation::parameter(int index) const {
     if (index < 0 || index >= parameterCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }

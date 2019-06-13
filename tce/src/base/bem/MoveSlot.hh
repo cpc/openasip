@@ -55,45 +55,37 @@ class BinaryEncoding;
  */
 class MoveSlot : public InstructionField {
 public:
-    MoveSlot(const std::string& busName, BinaryEncoding& parent)
-	throw (ObjectAlreadyExists);
-    MoveSlot(const ObjectState* state, BinaryEncoding& parent)
-	throw (ObjectStateLoadingException);
+    MoveSlot(const std::string& busName, BinaryEncoding& parent);
+    MoveSlot(const ObjectState* state, BinaryEncoding& parent);
     virtual ~MoveSlot();
 
     BinaryEncoding* parent() const;
 
     std::string name() const;
-    void setName(const std::string& name)
-	throw (ObjectAlreadyExists);
+    void setName(const std::string& name);
 
-    void setGuardField(GuardField& field)
-	throw (ObjectAlreadyExists);
+    void setGuardField(GuardField& field);
     void unsetGuardField();
     bool hasGuardField() const;
     GuardField& guardField() const;
 
-    void setSourceField(SourceField& field)
-	throw (ObjectAlreadyExists);
+    void setSourceField(SourceField& field);
     void unsetSourceField();
     bool hasSourceField() const;
     SourceField& sourceField() const;
 
-    void setDestinationField(DestinationField& field)
-	throw (ObjectAlreadyExists);
+    void setDestinationField(DestinationField& field);
     void unsetDestinationField();
     bool hasDestinationField() const;
     DestinationField& destinationField() const;
 
     // virtual methods derived from InstructionField
     virtual int childFieldCount() const;
-    virtual InstructionField& childField(int position) const
-	throw (OutOfRange);
+    virtual InstructionField& childField(int position) const;
     virtual int width() const;
 
     // methods inherited from Serializable interface
-    virtual void loadState(const ObjectState* state)
-	throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
     virtual ObjectState* saveState() const;
 
     /// ObjectState name for move slot.

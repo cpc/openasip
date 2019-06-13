@@ -66,9 +66,7 @@ ConfCommand::~ConfCommand() {}
  *
  */
 bool
-ConfCommand::execute(const std::vector<DataObject>& arguments)
-    throw(NumberFormatException) {
-
+ConfCommand::execute(const std::vector<DataObject>& arguments) {
     assert(interpreter() != NULL);
 
     SimulatorTextGenerator& textGen = SimulatorToolbox::textGenerator();

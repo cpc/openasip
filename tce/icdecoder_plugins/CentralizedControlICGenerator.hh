@@ -54,34 +54,26 @@ public:
     CentralizedControlICGenerator();
     virtual ~CentralizedControlICGenerator();
 
-    ProGe::NetlistPort& simmDataPort(const std::string& busName) const
-        throw (InstanceNotFound);
-    ProGe::NetlistPort& simmCntrlPort(const std::string& busName) const
-        throw (InstanceNotFound);
+    ProGe::NetlistPort& simmDataPort(const std::string& busName) const;
+    ProGe::NetlistPort& simmCntrlPort(const std::string& busName) const;
     ProGe::NetlistPort& busCntrlPortOfSocket(
-        const std::string& socketName) const
-        throw (InstanceNotFound);
+        const std::string& socketName) const;
     ProGe::NetlistPort& dataCntrlPortOfSocket(
-        const std::string& socketName) const
-        throw (InstanceNotFound);
+        const std::string& socketName) const;
     bool hasGlockPort() const;
-    ProGe::NetlistPort& glockPort() const
-        throw (InstanceNotFound);
+    ProGe::NetlistPort& glockPort() const;
 
     virtual int outputSocketCntrlPinForSegment(
         const TTAMachine::Socket& socket,
-        const TTAMachine::Segment& segment) const
-        throw (NotAvailable) = 0;
+        const TTAMachine::Segment& segment) const = 0;
 
     virtual int outputSocketDataControlValue(
         const TTAMachine::Socket& socket,
-        const TTAMachine::Port& port) const
-        throw (NotAvailable) = 0;
-    
+        const TTAMachine::Port& port) const = 0;
+
     virtual int inputSocketControlValue(
         const TTAMachine::Socket& socket,
-        const TTAMachine::Segment& segment) const
-        throw (NotAvailable) = 0;
+        const TTAMachine::Segment& segment) const = 0;
 
 protected:
     void mapSImmDataPort(const std::string& busName, ProGe::NetlistPort& port);

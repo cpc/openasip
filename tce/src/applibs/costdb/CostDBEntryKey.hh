@@ -56,19 +56,14 @@ public:
     CostDBEntryKey* copy() const;
 
     const EntryKeyProperty* type() const;
-    EntryKeyField keyFieldOfType(
-        const EntryKeyFieldProperty& fieldType) const 
-        throw (KeyNotFound);
+    EntryKeyField keyFieldOfType(const EntryKeyFieldProperty& fieldType) const;
     EntryKeyField keyFieldOfType(std::string fieldType) const;
     bool isEqual(const CostDBEntryKey& entryKey) const;
 
-    void addField(EntryKeyField* field) 
-        throw (ObjectAlreadyExists);
-    void replaceField(EntryKeyField* newField) 
-        throw (KeyNotFound);
+    void addField(EntryKeyField* field);
+    void replaceField(EntryKeyField* newField);
     int fieldCount() const;
-    const EntryKeyField& field(int index) const 
-        throw (OutOfRange);
+    const EntryKeyField& field(int index) const;
 
 private:
     /// Table of entry fields.

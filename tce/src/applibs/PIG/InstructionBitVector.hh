@@ -53,8 +53,7 @@ public:
     InstructionBitVector(const InstructionBitVector& toCopy);
     virtual ~InstructionBitVector();
 
-    void pushBack(const InstructionBitVector& bits)
-        throw (OutOfRange);
+    void pushBack(const InstructionBitVector& bits);
     void pushBack(const BitVector& bits);
     InstructionBitVector* subVector(
         unsigned int firstIndex, unsigned int lastIndex) const;
@@ -64,15 +63,12 @@ public:
     void addIndexBoundsForReference(IndexBound bounds);
 
     void fixInstructionAddress(
-        const TTAProgram::Instruction& instruction,
-        unsigned int address)
-        throw (OutOfRange);
+        const TTAProgram::Instruction& instruction, unsigned int address);
 
     void markInstructionStartingPoint(unsigned int position);
     unsigned int instructionCount() const;
-    unsigned int instructionStartingPoint(unsigned int index) const
-        throw (OutOfRange);
-    
+    unsigned int instructionStartingPoint(unsigned int index) const;
+
 private:
     /// A vector type that stores index bounds.
     typedef std::vector<IndexBound> IndexBoundTable;
@@ -90,8 +86,7 @@ private:
     IndexBoundSet& indexBounds(
         const TTAProgram::Instruction& instruction);
     void addIndexBoundTables(const IndexBoundSet& from, IndexBoundSet& to);
-    void fixBits(const IndexBoundTable& indexes, unsigned int value)
-        throw (OutOfRange);
+    void fixBits(const IndexBoundTable& indexes, unsigned int value);
     static unsigned int availableSize(const IndexBoundTable& indexes);
 
     /// Contains information of the parts of the bit vector that refer to

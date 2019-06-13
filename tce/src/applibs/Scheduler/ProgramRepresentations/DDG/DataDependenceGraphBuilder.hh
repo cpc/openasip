@@ -219,10 +219,7 @@ protected:
         MoveNodeUse mnd, 
         const TCEString& category);
 
-    void processTriggerPO(
-        class MoveNode& moveNode, 
-        Operation &dop)
-        throw (IllegalProgram);
+    void processTriggerPO(class MoveNode& moveNode, Operation& dop);
     void processTriggerRegistersAndOperations(
         MoveNode& moveNode, 
         Operation &dop);

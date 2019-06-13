@@ -67,28 +67,23 @@ class Procedure : public CodeSnippet {
 
     int alignment() const;
 
-    Address address(const Instruction& ins) const
-        throw (IllegalRegistration);
+    Address address(const Instruction& ins) const;
 
-    void addFront(Instruction*) 
-        throw (IllegalRegistration) {
+    void
+    addFront(Instruction*) {
         abortWithError("Not Implemented yet.");
     }
 
-    void add(Instruction* ins) 
-        throw (IllegalRegistration);
-    void insertAfter(const Instruction& pos, Instruction* ins)
-        throw (IllegalRegistration);
-    void insertBefore(const Instruction& pos, Instruction* ins)
-        throw (IllegalRegistration);
+    void add(Instruction* ins);
+    void insertAfter(const Instruction& pos, Instruction* ins);
+    void insertBefore(const Instruction& pos, Instruction* ins);
 
     void clear();
 
     using CodeSnippet::insertAfter;
     using CodeSnippet::insertBefore;
-    
-    void remove(Instruction& ins) 
-        throw (IllegalRegistration);
+
+    void remove(Instruction& ins);
 
     CodeSnippet* copy() const;
 

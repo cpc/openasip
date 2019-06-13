@@ -86,14 +86,10 @@ const string TB_DMEM_FILE = "dmem_init.img";
  * @exception UnexpectedValue If there was unexpected value when reading.
  */
 static Binary*
-loadTPEF(const std::string& tpefFile)
-    throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists, EndOfFile,
-           OutOfRange, WrongSubclass, UnexpectedValue) {
-
+loadTPEF(const std::string& tpefFile) {
     BinaryStream stream(tpefFile);
     return BinaryReader::readBinary(stream);
 }
-
 
 /**
  * Loads the given BEM file and creates a BinaryEncoding instance from it.
@@ -107,14 +103,11 @@ loadTPEF(const std::string& tpefFile)
  *                                        instance.
  */
 static BinaryEncoding*
-loadBEM(const std::string& bemFile) 
-    throw (SerializerException, ObjectStateLoadingException) {
-
+loadBEM(const std::string& bemFile) {
     BEMSerializer serializer;
     serializer.setSourceFile(bemFile);
     return serializer.readBinaryEncoding();
 }
-
 
 /**
  * Loads the given ADF file and creates a Machine instance from it.
@@ -126,14 +119,11 @@ loadBEM(const std::string& bemFile)
  *                                        the state of Machine instance.
  */
 static Machine*
-loadMachine(const std::string& adfFile) 
-    throw (SerializerException, ObjectStateLoadingException) {
-
+loadMachine(const std::string& adfFile) {
     ADFSerializer serializer;
     serializer.setSourceFile(adfFile);
     return serializer.readMachine();
 }
-
 
 /**
  * Tells whether the given address space is instruction memory.
@@ -215,11 +205,7 @@ programDataImageFile(
  */
 void
 parseParameter(
-    const std::string& param,
-    std::string& paramName,
-    std::string& paramValue)
-    throw (InvalidData) {
-
+    const std::string& param, std::string& paramName, std::string& paramValue) {
     string::size_type separatorPos = param.find("=", 0);
     if (separatorPos == string::npos) {
         string errorMsg = 
@@ -231,7 +217,6 @@ parseParameter(
     paramName = param.substr(0, separatorPos);
     paramValue = param.substr(separatorPos+1, param.length());
 }
-
 
 void 
 createMauPkg(int language,

@@ -99,12 +99,8 @@ SequentialScheduler::~SequentialScheduler() {
  */
 void
 SequentialScheduler::handleBasicBlock(
-    TTAProgram::BasicBlock& bb,
-    const TTAMachine::Machine& targetMachine,
-    TTAProgram::InstructionReferenceManager& irm,
-    BasicBlockNode*)
-    throw (Exception) {
-
+    TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
+    TTAProgram::InstructionReferenceManager& irm, BasicBlockNode*) {
     if (bb.instructionCount() == 0)
         return;
 
@@ -164,9 +160,8 @@ static int graphCount = 0;
  * @return returns the last cycle of the operation.
  */
 int
-SequentialScheduler::scheduleOperation(MoveNodeGroup& moves, int earliestCycle)
-    throw (Exception) {
-
+SequentialScheduler::scheduleOperation(
+    MoveNodeGroup& moves, int earliestCycle) {
     ProgramOperation& po =
         (moves.node(0).isSourceOperation())?
         (moves.node(0).sourceOperation()):
@@ -227,9 +222,7 @@ SequentialScheduler::scheduleOperation(MoveNodeGroup& moves, int earliestCycle)
 int
 SequentialScheduler::scheduleOperandWrites(
     int cycle, MoveNodeGroup& moves,
-    RegisterCopyAdder::AddedRegisterCopies& regCopies)
-    throw (Exception) {
-
+    RegisterCopyAdder::AddedRegisterCopies& regCopies) {
     // Counts operands that are not scheduled at beginning.
     int scheduledMoves = 0;
     MoveNode* trigger = NULL;
@@ -285,9 +278,7 @@ SequentialScheduler::scheduleOperandWrites(
 int
 SequentialScheduler::scheduleResultReads(
     int cycle, MoveNodeGroup& moves,
-    RegisterCopyAdder::AddedRegisterCopies& regCopies)
-    throw (Exception) {
-
+    RegisterCopyAdder::AddedRegisterCopies& regCopies) {
     for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
         MoveNode& node = moves.node(moveIndex);
 
@@ -322,9 +313,7 @@ SequentialScheduler::scheduleResultReads(
  * @return Last cycle where the moves got scheduled.
  */
 int
-SequentialScheduler::scheduleRRMove(int cycle, MoveNode& moveNode)
-    throw (Exception) {
-
+SequentialScheduler::scheduleRRMove(int cycle, MoveNode& moveNode) {
     RegisterCopyAdder regCopyAdder(
         BasicBlockPass::interPassData(), *rm_);
 
@@ -351,11 +340,7 @@ SequentialScheduler::scheduleRRMove(int cycle, MoveNode& moveNode)
  * @return cycle where the move got scheduled.
  */
 int
-SequentialScheduler::scheduleMove(
-    int earliestCycle,
-    MoveNode& moveNode)
-    throw (Exception) {
-
+SequentialScheduler::scheduleMove(int earliestCycle, MoveNode& moveNode) {
     if (moveNode.isScheduled()) {
         throw InvalidData(
             __FILE__, __LINE__, __func__,
@@ -463,10 +448,8 @@ SequentialScheduler::scheduleMove(
  */
 int
 SequentialScheduler::scheduleRRTempMoves(
-    int cycle, MoveNode& regToRegMove, 
-    RegisterCopyAdder::AddedRegisterCopies& regCopies)
-    throw (Exception) {
-
+    int cycle, MoveNode& regToRegMove,
+    RegisterCopyAdder::AddedRegisterCopies& regCopies) {
     if (regCopies.count_ > 0) {
         if (MapTools::containsKey(regCopies.operandCopies_,&regToRegMove)) {
             DataDependenceGraph::NodeSet tempMoves = 
@@ -494,10 +477,8 @@ SequentialScheduler::scheduleRRTempMoves(
  */
 int
 SequentialScheduler::scheduleInputOperandTempMoves(
-    int cycle, MoveNode& operandMove, 
-    RegisterCopyAdder::AddedRegisterCopies& regCopies)
-    throw (Exception) {
-
+    int cycle, MoveNode& operandMove,
+    RegisterCopyAdder::AddedRegisterCopies& regCopies) {
     if (regCopies.count_ > 0) {
         if (MapTools::containsKey(regCopies.operandCopies_,&operandMove)) {
             DataDependenceGraph::NodeSet tempMoves = 
@@ -554,9 +535,7 @@ SequentialScheduler::unscheduleInputOperandTempMoves(
 int
 SequentialScheduler::scheduleResultTempMoves(
     int cycle, MoveNode& resultMove,
-    RegisterCopyAdder::AddedRegisterCopies& regCopies)
-    throw (Exception) {
-
+    RegisterCopyAdder::AddedRegisterCopies& regCopies) {
     if (regCopies.count_ > 0) {
         if (MapTools::containsKey(regCopies.resultCopies_,&resultMove)) {
             DataDependenceGraph::NodeSet tempMoves = 
@@ -618,9 +597,7 @@ SequentialScheduler::unschedule(MoveNode& moveNode) {
 void
 SequentialScheduler::handleProcedure(
     TTAProgram::Procedure& procedure,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
+    const TTAMachine::Machine& targetMachine) {
     std::vector<TTAProgram::BasicBlock*> basicBlocks;
     std::vector<int> bbAddresses;
     createBasicBlocks(procedure, basicBlocks, bbAddresses);

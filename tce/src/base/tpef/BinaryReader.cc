@@ -85,9 +85,7 @@ BinaryReader::~BinaryReader() {
  * reading.
  */
 Binary*
-BinaryReader::readBinary(BinaryStream& stream)
-    throw (Exception) {
-
+BinaryReader::readBinary(BinaryStream& stream) {
     if (prototypes_ != NULL) {
 
         unsigned long startPos = stream.readPosition();

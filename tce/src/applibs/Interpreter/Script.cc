@@ -79,9 +79,7 @@ Script::~Script() {
  * @exception NumberFormatException If DataObject operation fails.
  */
 DataObject
-Script::execute() 
-    throw (ScriptExecutionFailure, NumberFormatException) {
-
+Script::execute() {
     Application::initialize();
     
     for (unsigned int i = 0; i < scriptLines_.size(); i++) {

@@ -78,8 +78,7 @@ public:
 
     void fillDelaySlots(
         ControlFlowGraph& cfg, DataDependenceGraph& ddg,
-        const TTAMachine::Machine& machine) 
-        throw (Exception);
+        const TTAMachine::Machine& machine);
     void addResourceManager(TTAProgram::BasicBlock& bbn, SimpleResourceManager& rm);
 
     void bbnScheduled(BasicBlockNode& bbn);
@@ -88,17 +87,14 @@ public:
     static std::pair<int, TTAProgram::Move*> findJump(
         TTAProgram::BasicBlock& bb);
 
-    static std::pair <TTAProgram::Move*, TTAProgram::Immediate*> findJumpImmediate(
-        int jumpIndex, 
-        TTAProgram::Move& jumpMove,
-        TTAProgram::InstructionReferenceManager& irm)
-        throw (Exception);
+    static std::pair<TTAProgram::Move*, TTAProgram::Immediate*>
+    findJumpImmediate(
+        int jumpIndex, TTAProgram::Move& jumpMove,
+        TTAProgram::InstructionReferenceManager& irm);
 
 protected:
     void fillDelaySlots(
-        BasicBlockNode& jumpingBB, int delaySlots, bool fillFallThru)
-        throw (Exception);
-
+        BasicBlockNode& jumpingBB, int delaySlots, bool fillFallThru);
 
 private:
     typedef std::vector <std::list<MoveNode*> > MoveNodeListVector;
@@ -118,14 +114,11 @@ private:
         TTAProgram::Move& move, TTAMachine::RegisterFile* rf,
         unsigned int registerIndex);
 
-    bool
-    tryToFillSlots(
+    bool tryToFillSlots(
         BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBNode,
         bool fallThru, TTAProgram::Move* jumpMove, int slotsToFill,
-        int removeGuards,
-        int grIndex, TTAMachine::RegisterFile* grFile,
-        TTAProgram::Move *& skippedJump, int delaySlots) 
-        throw (Exception);
+        int removeGuards, int grIndex, TTAMachine::RegisterFile* grFile,
+        TTAProgram::Move*& skippedJump, int delaySlots);
 
     void updateJumpsAndCfg(
         BasicBlockNode& jumpBBN, 

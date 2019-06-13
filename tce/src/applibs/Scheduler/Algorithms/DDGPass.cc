@@ -61,11 +61,8 @@ DDGPass::~DDGPass() {
  */
 void
 DDGPass::handleDDG(
-    DataDependenceGraph& ddg,
-    SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
+    DataDependenceGraph& ddg, SimpleResourceManager& rm,
+    const TTAMachine::Machine& targetMachine) {
     // just to avoid warnings -- need to keep the argument names for
     // Doxygen comments ;)
     ddg.nodeCount();

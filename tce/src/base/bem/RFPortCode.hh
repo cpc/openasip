@@ -44,19 +44,11 @@
 class RFPortCode : public PortCode {
 public:
     RFPortCode(
-	const std::string& regFile,
-	unsigned int encoding,
-	unsigned int extraBits,
-	int indexWidth,
-	SocketCodeTable& parent)
-	throw (ObjectAlreadyExists, OutOfRange);
+        const std::string& regFile, unsigned int encoding,
+        unsigned int extraBits, int indexWidth, SocketCodeTable& parent);
     RFPortCode(
-	const std::string& regFile,
-	int indexWidth,
-	SocketCodeTable& parent)
-	throw (ObjectAlreadyExists, OutOfRange);
-    RFPortCode(const ObjectState* state, SocketCodeTable& parent)
-	throw (ObjectStateLoadingException, ObjectAlreadyExists);
+        const std::string& regFile, int indexWidth, SocketCodeTable& parent);
+    RFPortCode(const ObjectState* state, SocketCodeTable& parent);
     virtual ~RFPortCode();
 
     virtual ObjectState* saveState() const;

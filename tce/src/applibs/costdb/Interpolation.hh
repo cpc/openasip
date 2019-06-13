@@ -53,9 +53,7 @@ public:
     
     void quickFilter(const CostDBEntryKey&, CostDBTypes::EntryTable&);
     void filter(
-        const CostDBEntryKey& searchKey,
-        CostDBTypes::EntryTable& components)
-        throw (TypeMismatch, KeyNotFound);
+        const CostDBEntryKey& searchKey, CostDBTypes::EntryTable& components);
 
 private:
     /**

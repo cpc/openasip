@@ -60,18 +60,12 @@ const std::string FUPortCode::OSKEY_OPERATION_NAME = "operation";
  * @exception OutOfRange If some of the given values is out of range.
  */
 FUPortCode::FUPortCode(
-    const std::string& fu,
-    const std::string& port,
-    unsigned int encoding,
-    unsigned int extraBits,
-    SocketCodeTable& parent)
-    throw (ObjectAlreadyExists, OutOfRange) :
-    PortCode(fu, encoding, extraBits, 0), port_(port), opName_("") {
-
+    const std::string& fu, const std::string& port, unsigned int encoding,
+    unsigned int extraBits, SocketCodeTable& parent)
+    : PortCode(fu, encoding, extraBits, 0), port_(port), opName_("") {
     parent.addFUPortCode(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -94,19 +88,13 @@ FUPortCode::FUPortCode(
  * @exception OutOfRange If some of the given values is out of range.
  */
 FUPortCode::FUPortCode(
-    const std::string& fu,
-    const std::string& port,
-    const std::string& operation,
-    unsigned int encoding,
-    unsigned int extraBits,
+    const std::string& fu, const std::string& port,
+    const std::string& operation, unsigned int encoding, unsigned int extraBits,
     SocketCodeTable& parent)
-    throw (ObjectAlreadyExists, OutOfRange) :
-    PortCode(fu, encoding, extraBits, 0), port_(port), opName_(operation) {
-
+    : PortCode(fu, encoding, extraBits, 0), port_(port), opName_(operation) {
     parent.addFUPortCode(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -124,9 +112,7 @@ FUPortCode::FUPortCode(
  *                                code table.
  */
 FUPortCode::FUPortCode(const ObjectState* state, SocketCodeTable& parent)
-    throw (ObjectStateLoadingException, ObjectAlreadyExists) :
-    PortCode(state), port_(""), opName_("") {
-
+    : PortCode(state), port_(""), opName_("") {
     const string procName = "FUPortCode::FUPortCode";
 
     if (state->name() != OSNAME_FU_PORT_CODE) {
@@ -141,7 +127,6 @@ FUPortCode::FUPortCode(const ObjectState* state, SocketCodeTable& parent)
     parent.addFUPortCode(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.
@@ -172,9 +157,7 @@ FUPortCode::portName() const {
  *                             port without operation.
  */
 std::string
-FUPortCode::operationName() const
-    throw (InstanceNotFound) {
-
+FUPortCode::operationName() const {
     if (opName_ == "") {
 	const string procName = "FUPortCode::operationName";
 	throw InstanceNotFound(__FILE__, __LINE__, procName);
@@ -182,7 +165,6 @@ FUPortCode::operationName() const
 
     return opName_;
 }
-
 
 /**
  * Tells whether this control code identifies also one of the operations

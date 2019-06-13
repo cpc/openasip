@@ -60,12 +60,10 @@ public:
 
     std::string name() const;
     EntryKeyFieldProperty* createFieldProperty(std::string field);
-    EntryKeyFieldProperty* fieldProperty(std::string field) const
-        throw (KeyNotFound);
+    EntryKeyFieldProperty* fieldProperty(std::string field) const;
 
     static EntryKeyProperty* create(std::string type);
-    static EntryKeyProperty* find(std::string type) 
-        throw (KeyNotFound);
+    static EntryKeyProperty* find(std::string type);
     static void destroy();
 
 protected:

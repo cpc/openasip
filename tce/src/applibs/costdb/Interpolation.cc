@@ -90,10 +90,7 @@ Interpolation::quickFilter(const CostDBEntryKey&, CostDBTypes::EntryTable&) {
  */
 void
 Interpolation::filter(
-    const CostDBEntryKey& searchKey,
-    CostDBTypes::EntryTable& components) 
-    throw (TypeMismatch, KeyNotFound) {
-
+    const CostDBEntryKey& searchKey, CostDBTypes::EntryTable& components) {
     vector<Pair> entries;
     EntryKeyField searchField = searchKey.keyFieldOfType(*fieldType());
     for (CostDBTypes::EntryTable::iterator i = components.begin();

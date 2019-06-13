@@ -52,14 +52,11 @@ class Options {
 public:
     Options();
     virtual ~Options();
-    void addOptionValue(const string& name, OptionValue* option)
-	throw (TypeMismatch);
+    void addOptionValue(const string& name, OptionValue* option);
 
     // index for lists of options
-    OptionValue& optionValue(const string& name, int index = 0)
-	throw (OutOfRange, KeyNotFound);
-    int valueCount(const string& name)
-	throw (KeyNotFound);
+    OptionValue& optionValue(const string& name, int index = 0);
+    int valueCount(const string& name);
 
 private:
     map<string, vector<OptionValue*> > options_;

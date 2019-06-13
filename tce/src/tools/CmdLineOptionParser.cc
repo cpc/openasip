@@ -78,21 +78,16 @@ CmdLineOptionParser::~CmdLineOptionParser() {
  * @exception WrongSubclass Called for a wrong subclass.
  */
 int
-CmdLineOptionParser::integer(int) const
-    throw (WrongSubclass) {
-
+CmdLineOptionParser::integer(int) const {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
     return 0;
 }
 
 unsigned
-CmdLineOptionParser::unsignedInteger(int) const
-    throw (WrongSubclass) {
-
+CmdLineOptionParser::unsignedInteger(int) const {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
     return 0;
 }
-
 
 /**
  * This implementation should be never called.
@@ -101,13 +96,10 @@ CmdLineOptionParser::unsignedInteger(int) const
  * @exception WrongSubclass Called for a wrong subclass.
  */
 std::string
-CmdLineOptionParser::String(int) const
-    throw (WrongSubclass) {
-
+CmdLineOptionParser::String(int) const {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
     return "";
 }
-
 
 /**
  * This implementation should never be called.
@@ -116,9 +108,7 @@ CmdLineOptionParser::String(int) const
  * @exception WrongSubclass Called for a wrong subclass.
  */
 double
-CmdLineOptionParser::real() const
-    throw (WrongSubclass) {
-
+CmdLineOptionParser::real() const {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
     return 0;
 }
@@ -130,9 +120,7 @@ CmdLineOptionParser::real() const
  * @exception WrongSubclass Called for a wrong subclass.
  */
 bool
-CmdLineOptionParser::isFlagOn() const
-    throw (WrongSubclass) {
-
+CmdLineOptionParser::isFlagOn() const {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
     return false;
 }
@@ -144,9 +132,7 @@ CmdLineOptionParser::isFlagOn() const
  * @exception WrongSubclass Called for a wrong subclass.
  */
 bool
-CmdLineOptionParser::isFlagOff() const
-    throw (WrongSubclass) {
-
+CmdLineOptionParser::isFlagOff() const {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
     return false;
 }
@@ -158,9 +144,7 @@ CmdLineOptionParser::isFlagOff() const
  * @exception WrongSubclass Called for a wrong subclass.
  */
 int
-CmdLineOptionParser::listSize() const
-    throw (WrongSubclass) {
-
+CmdLineOptionParser::listSize() const {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
     return 0;
 }
@@ -230,10 +214,7 @@ IntegerCmdLineOptionParser::copy() const {
  */
 bool
 IntegerCmdLineOptionParser::parseValue(
-    std::string arguments,
-    std::string prefix)
-    throw (IllegalCommandLine) {
-
+    std::string arguments, std::string prefix) {
     if (prefix != "") {
         string msg = "Illegal prefix for integer option";
         string method = "IntegerCmdLineOptionParser::parseValue()";
@@ -266,9 +247,7 @@ IntegerCmdLineOptionParser::parseValue(
  * @exception WrongSubclass Is never thrown by this function.
  */
 int
-IntegerCmdLineOptionParser::integer(int index) const
-    throw (WrongSubclass) {
-
+IntegerCmdLineOptionParser::integer(int index) const {
     assert(index == 0);
     return value_;
 }
@@ -313,10 +292,7 @@ UnsignedIntegerCmdLineOptionParser::copy() const {
  */
 bool
 UnsignedIntegerCmdLineOptionParser::parseValue(
-    std::string arguments,
-    std::string prefix)
-    throw (IllegalCommandLine) {
-
+    std::string arguments, std::string prefix) {
     if (prefix != "") {
         string msg = "Illegal prefix for unsigned integer option";
         string method = "UnsignedIntegerCmdLineOptionParser::parseValue()";
@@ -349,13 +325,10 @@ UnsignedIntegerCmdLineOptionParser::parseValue(
  * @exception WrongSubclass Is never thrown by this function.
  */
 unsigned
-UnsignedIntegerCmdLineOptionParser::unsignedInteger(int index) const
-    throw (WrongSubclass) {
-
+UnsignedIntegerCmdLineOptionParser::unsignedInteger(int index) const {
     assert(index == 0);
     return value_;
 }
-
 
 //////////////////////////////////////////////////////////////////////////////
 // StringCmdLineOptionParser
@@ -404,10 +377,7 @@ StringCmdLineOptionParser::copy() const {
  */
 bool
 StringCmdLineOptionParser::parseValue(
-    std::string arguments,
-    std::string prefix)
-    throw (IllegalCommandLine) {
-
+    std::string arguments, std::string prefix) {
     if (prefix != "") {
         string msg = "Illegal prefix for string option";
         string method = "StringCmdLineOptionParser::parseValue()";
@@ -427,9 +397,7 @@ StringCmdLineOptionParser::parseValue(
 }
 
 string
-StringCmdLineOptionParser::String(int index) const
-    throw (WrongSubclass) {
-
+StringCmdLineOptionParser::String(int index) const {
     assert(index == 0);
     return value_;
 }
@@ -481,9 +449,7 @@ RealCmdLineOptionParser::copy() const {
  * @exception IllegalCommandLine If the argument is erronous.
  */
 bool
-RealCmdLineOptionParser::parseValue(std::string arguments, std::string prefix)
-    throw (IllegalCommandLine) {
-
+RealCmdLineOptionParser::parseValue(std::string arguments, std::string prefix) {
     if (prefix != "") {
         string msg = "Illegal prefix for real option";
         string method = "RealCmdLineOptionParser::parseValue()";
@@ -516,9 +482,7 @@ RealCmdLineOptionParser::parseValue(std::string arguments, std::string prefix)
  * @exception WrongSubclass Is never thrown by this function.
  */
 double
-RealCmdLineOptionParser::real() const
-    throw (WrongSubclass) {
-
+RealCmdLineOptionParser::real() const {
     return value_;
 }
 
@@ -569,9 +533,7 @@ BoolCmdLineOptionParser::copy() const {
  * @exception IllegalCommandLine If the prefix or arguments are invalid.
  */
 bool
-BoolCmdLineOptionParser::parseValue(std::string arguments, std::string prefix)
-    throw (IllegalCommandLine) {
-
+BoolCmdLineOptionParser::parseValue(std::string arguments, std::string prefix) {
     if (prefix == "no-") {
         value_ = false;
     } else if (prefix == "") {
@@ -598,9 +560,7 @@ BoolCmdLineOptionParser::parseValue(std::string arguments, std::string prefix)
  * @exception WrongSubclass Is never thrown by this function.
  */
 bool
-BoolCmdLineOptionParser::isFlagOn() const
-    throw (WrongSubclass) {
-
+BoolCmdLineOptionParser::isFlagOn() const {
     return value_;
 }
 
@@ -611,9 +571,7 @@ BoolCmdLineOptionParser::isFlagOn() const
  * @exception WrongSubclass Is never thrown by this function.
  */
 bool
-BoolCmdLineOptionParser::isFlagOff() const
-    throw (WrongSubclass) {
-
+BoolCmdLineOptionParser::isFlagOff() const {
     return !value_;
 }
 
@@ -667,10 +625,7 @@ IntegerListCmdLineOptionParser::copy() const {
  */
 bool
 IntegerListCmdLineOptionParser::parseValue(
-    std::string arguments,
-    std::string prefix)
-    throw (IllegalCommandLine) {
-
+    std::string arguments, std::string prefix) {
     if (prefix != "") {
         string msg = "Illegal prefix for integer list option";
         string method = "IntegerListCmdLineOptionParser::parseValue()";
@@ -722,9 +677,7 @@ IntegerListCmdLineOptionParser::parseValue(
  * @exception WrongSubclass Is never thrown by this function.
  */
 int
-IntegerListCmdLineOptionParser::integer(int index) const
-    throw (WrongSubclass) {
-
+IntegerListCmdLineOptionParser::integer(int index) const {
     assert(index > 0 && static_cast<unsigned>(index) <= values_.size());
     return values_[index - 1];
 }
@@ -736,13 +689,9 @@ IntegerListCmdLineOptionParser::integer(int index) const
  * @exception WrongSubclass Is never thrown by this function.
  */
 int
-IntegerListCmdLineOptionParser::listSize() const
-    throw (WrongSubclass) {
-
+IntegerListCmdLineOptionParser::listSize() const {
     return values_.size();
 }
-
-
 
 //////////////////////////////////////////////////////////////////////////////
 // StringListCmdLineOptionParser
@@ -794,10 +743,7 @@ StringListCmdLineOptionParser::copy() const {
  */
 bool
 StringListCmdLineOptionParser::parseValue(
-    std::string arguments,
-    std::string prefix)
-    throw (IllegalCommandLine) {
-
+    std::string arguments, std::string prefix) {
     if (prefix != "") {
         string msg = "Illegal prefix for string list option";
         throw IllegalCommandLine(__FILE__, __LINE__, __func__, msg);
@@ -836,9 +782,7 @@ StringListCmdLineOptionParser::parseValue(
  * @exception WrongSubclass Is never thrown by this function.
  */
 std::string
-StringListCmdLineOptionParser::String(int index) const
-    throw (WrongSubclass) {
-
+StringListCmdLineOptionParser::String(int index) const {
     assert(index > 0 && static_cast<unsigned>(index) <= values_.size());
     return values_[index - 1];
 }
@@ -850,8 +794,6 @@ StringListCmdLineOptionParser::String(int index) const
  * @exception WrongSubclass Is never thrown by this function.
  */
 int
-StringListCmdLineOptionParser::listSize() const
-    throw (WrongSubclass) {
-
+StringListCmdLineOptionParser::listSize() const {
     return values_.size();
 }

@@ -53,7 +53,7 @@ BasicElement::addByte(const Byte& data) {
  */
 inline Byte
 BasicElement::byte(Word index) const
-    throw (OutOfRange) {
+     {
 
     if (index >= length()) {
         throw OutOfRange(

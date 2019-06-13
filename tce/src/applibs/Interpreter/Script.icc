@@ -37,7 +37,7 @@
  */
 inline DataObject
 Script::lastResult() 
-    throw (InvalidData) {
+     {
   
     if (!executeCalled_) {
         std::string method = "Script::lastResult()";

@@ -58,8 +58,7 @@ public:
         const TTAMachine::Machine& mach, MachineCheckResults& results) const;
 
     virtual bool canFix(const TTAMachine::Machine& mach) const;
-    virtual std::string fix(TTAMachine::Machine& mach) const
-        throw (InvalidData);
+    virtual std::string fix(TTAMachine::Machine& mach) const;
 
     void connectFUPort(TTAMachine::FUPort& port) const;
 protected:

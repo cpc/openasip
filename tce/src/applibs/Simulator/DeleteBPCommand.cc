@@ -70,10 +70,8 @@ DeleteBPCommand::~DeleteBPCommand() {
  * @exception NumberFormatException Is never thrown by this command.
  * @todo Use the count for the step.
  */
-bool 
-DeleteBPCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+DeleteBPCommand::execute(const std::vector<DataObject>& arguments) {
     if (!checkSimulationStopped()) {
         if (!checkSimulationInitialized()) {
             return false;

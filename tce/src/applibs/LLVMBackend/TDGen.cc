@@ -83,8 +83,7 @@ TDGen::TDGen(const TTAMachine::Machine& mach) :
  * (excluding static plugin code included from include/llvm/TCE/).
  */
 void
-TDGen::generateBackend(std::string& path) throw (Exception) {    
-
+TDGen::generateBackend(std::string& path) {
     std::ofstream regTD;
     regTD.open((path + "/GenRegisterInfo.td").c_str());
     writeRegisterInfo(regTD);
@@ -113,7 +112,6 @@ TDGen::generateBackend(std::string& path) throw (Exception) {
     writeTopLevelTD(topLevelTD);
     topLevelTD.close();
 }
-
 
 /**
  * Writes .td definition of a single register to the output stream.
@@ -176,9 +174,7 @@ TDGen::writeRegisterDef(
  * @return True, if the definitions were succesfully generated.
  */
 bool
-TDGen::writeRegisterInfo(std::ostream& o) 
-    throw (Exception) {
-
+TDGen::writeRegisterInfo(std::ostream& o) {
     analyzeRegisterFileClasses();
 
     analyzeRegisters();
@@ -236,7 +232,6 @@ TDGen::writeRegisterInfo(std::ostream& o)
 
     return true;
 }
-
 
 void
 TDGen::writeRegisterClasses(std::ostream& o) {
@@ -1022,9 +1017,7 @@ TDGen::writeRARegisterInfo(std::ostream& o) {
  * @return True if required registers were found, false if not.
  */
 bool
-TDGen::checkRequiredRegisters() 
-    throw (Exception) {
-
+TDGen::checkRequiredRegisters() {
     if (regs32bit_.size() < REQUIRED_I32_REGS) {
         std::string msg =
             (boost::format(
@@ -1047,7 +1040,6 @@ TDGen::checkRequiredRegisters()
 
     return true;
 }
-
 
 /**
  * Writes instruction .td definitions to the outputstream.
@@ -2564,13 +2556,8 @@ TDGen::subPattern(
  */
 std::string
 TDGen::dagNodeToString(
-    const Operation& op,
-    const OperationDAG& dag,
-    const OperationDAGNode& node,
-    bool emulationPattern, 
-    const std::string& operandTypes)
-    throw (InvalidData) {
-
+    const Operation& op, const OperationDAG& dag, const OperationDAGNode& node,
+    bool emulationPattern, const std::string& operandTypes) {
     const OperationNode* oNode = dynamic_cast<const OperationNode*>(&node);
     if (oNode != NULL) {
         assert(
@@ -2779,12 +2766,8 @@ TDGen::constantNodeString(
  */
 std::string
 TDGen::emulatingOpNodeLLVMName(
-    const Operation& op,
-    const OperationDAG& dag, 
-    const OperationNode& node,
-    const std::string& operandTypes)
-    throw (InvalidData) {
-    
+    const Operation& op, const OperationDAG& dag, const OperationNode& node,
+    const std::string& operandTypes) {
     const Operation& operation = node.referencedOperation();
     std::string operationName = StringTools::stringToUpper(operation.name());
 
@@ -2883,13 +2866,8 @@ TDGen::emulatingOpNodeLLVMName(
  */
 std::string
 TDGen::operationNodeToString(
-    const Operation& op,
-    const OperationDAG& dag,
-    const OperationNode& node,
-    bool emulationPattern,
-    const std::string& operandTypes)
-    throw (InvalidData) {
-
+    const Operation& op, const OperationDAG& dag, const OperationNode& node,
+    bool emulationPattern, const std::string& operandTypes) {
     const Operation& operation = node.referencedOperation();
 
     std::string operationPat;
@@ -2993,7 +2971,7 @@ TDGen::operandToString(
             std::string msg = 
                 "invalid operation type for mem operand:";
             msg += operandType;
-            throw (InvalidData(__FILE__, __LINE__, __func__, msg));
+            throw InvalidData(__FILE__, __LINE__, __func__, msg);
         }
     } else if (operand.type() == Operand::SINT_WORD ||
                operand.type() == Operand::UINT_WORD ||
@@ -3036,7 +3014,7 @@ TDGen::operandToString(
             std::string msg = 
                 "invalid operation type for integer operand:";
             msg += operandType;
-            throw (InvalidData(__FILE__, __LINE__, __func__, msg));
+            throw InvalidData(__FILE__, __LINE__, __func__, msg);
         }
     } else if (operand.type() == Operand::FLOAT_WORD ) {
 
@@ -3062,7 +3040,7 @@ TDGen::operandToString(
             std::string msg = 
                 "invalid operation type for float operand:";
             msg += operandType;
-            throw (InvalidData(__FILE__, __LINE__, __func__, msg));
+            throw InvalidData(__FILE__, __LINE__, __func__, msg);
         }
     } else if (operand.type() == Operand::HALF_FLOAT_WORD) {
 
@@ -3089,7 +3067,7 @@ TDGen::operandToString(
             std::string msg = 
                 "invalid operation type for half operand:";
             msg += operandType;
-            throw (InvalidData(__FILE__, __LINE__, __func__, msg));
+            throw InvalidData(__FILE__, __LINE__, __func__, msg);
         }
     } else if (operand.type() == Operand::DOUBLE_WORD) {
         // TODO: immediate check??

@@ -244,9 +244,7 @@ OutputFUBroker::allAvailableResources(
  * given node or no corresponding machine part is found.
  */
 void
-OutputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
-    throw (Exception) {
-
+OutputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res) {
     // TODO: this breaks execpipeline
 //    cycle = instructionIndex(cycle);
     if (!isApplicable(node)) {

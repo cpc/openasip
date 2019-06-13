@@ -47,14 +47,9 @@
 class FUGuardEncoding : public GuardEncoding {
 public:
     FUGuardEncoding(
-	const std::string& fu,
-	const std::string& port,
-	bool inverted,
-	unsigned int encoding,
-	GuardField& parent)
-	throw (ObjectAlreadyExists);
-    FUGuardEncoding(const ObjectState* state, GuardField& parent)
-	throw (ObjectStateLoadingException, ObjectAlreadyExists);
+        const std::string& fu, const std::string& port, bool inverted,
+        unsigned int encoding, GuardField& parent);
+    FUGuardEncoding(const ObjectState* state, GuardField& parent);
     virtual ~FUGuardEncoding();
 
     std::string functionUnit() const;

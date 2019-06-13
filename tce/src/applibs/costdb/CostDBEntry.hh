@@ -70,7 +70,7 @@ public:
 
     void addStatistics(CostDBEntryStats* newStats);
     int statisticsCount() const;
-    const CostDBEntryStats& statistics(int index) const throw (OutOfRange);
+    const CostDBEntryStats& statistics(int index) const;
 
 private:
     /// Type definition for a table of statistics.

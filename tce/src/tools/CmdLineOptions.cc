@@ -97,9 +97,7 @@ CmdLineOptions::~CmdLineOptions() {
  * @exception ParserStopRequest If help or version option is found.
  */
 void
-CmdLineOptions::parse(char* argv[], int argc)
-    throw (IllegalCommandLine, ParserStopRequest) {
-
+CmdLineOptions::parse(char* argv[], int argc) {
     // command line is emptied
     commandLine_.clear();
     progName_ = string(argv[0]);
@@ -120,9 +118,7 @@ CmdLineOptions::parse(char* argv[], int argc)
  * @exception ParserStopRequest If help or version option is found.
  */
 void
-CmdLineOptions::parse(string argv[], int argc)
-    throw (IllegalCommandLine, ParserStopRequest) {
-
+CmdLineOptions::parse(string argv[], int argc) {
     // command line is emptied
     commandLine_.clear();
     progName_ = argv[0];
@@ -141,9 +137,7 @@ CmdLineOptions::parse(string argv[], int argc)
  * @exception ParserStopRequest If help or version option is found.
  */
 void
-CmdLineOptions::parse(std::vector<string> argv)
-    throw (IllegalCommandLine, ParserStopRequest) {
-
+CmdLineOptions::parse(std::vector<string> argv) {
     // command line is emptied
     commandLine_.clear();
     progName_ = argv.at(0);
@@ -161,9 +155,7 @@ CmdLineOptions::parse(std::vector<string> argv)
  * @exception ParserStopRequest The client should not proceed.
  */
 void
-CmdLineOptions::parseAll()
-    throw (IllegalCommandLine, ParserStopRequest) {
-
+CmdLineOptions::parseAll() {
     // finished is set to true when options are parsed and the rest are
     // command line arguments
     bool finished = false;

@@ -79,31 +79,26 @@ CustomDBGController::writeIMem(
     abortWithError("Unimplemented.");
 }
 
-
 void
-CustomDBGController::step(double /*count = 1*/)
-   throw (SimulationExecutionError) {
+CustomDBGController::step(double /*count = 1*/) {
     _WHERE();
     abortWithError("Unimplemented.");
 }
 
 void
-CustomDBGController::next(int /*count = 1*/)
-    throw (SimulationExecutionError) {
+CustomDBGController::next(int /*count = 1*/) {
     _WHERE();
     abortWithError("Unimplemented.");
 }
 
 void
-CustomDBGController::run()
-    throw (SimulationExecutionError) {
+CustomDBGController::run() {
     _WHERE();
     abortWithError("Unimplemented.");
 }
 
 void
-CustomDBGController::runUntil(UIntWord /*address*/)
-    throw (SimulationExecutionError) {
+CustomDBGController::runUntil(UIntWord /*address*/) {
     _WHERE();
     abortWithError("Unimplemented.");
 }

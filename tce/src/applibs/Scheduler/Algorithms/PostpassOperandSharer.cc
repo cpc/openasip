@@ -57,12 +57,10 @@ using TTAMachine::RegisterFile;
 // statistics
 #define GET_BETTER_STATISTICS
 
-void PostpassOperandSharer::handleBasicBlock(
-    TTAProgram::BasicBlock& basicBlock,
-    const TTAMachine::Machine&,
-    TTAProgram::InstructionReferenceManager&, 
-    BasicBlockNode*)
-    throw (Exception) {
+void
+PostpassOperandSharer::handleBasicBlock(
+    TTAProgram::BasicBlock& basicBlock, const TTAMachine::Machine&,
+    TTAProgram::InstructionReferenceManager&, BasicBlockNode*) {
     for (int i = basicBlock.instructionCount()-1; i >= 0; i--) {
         Instruction& ins = basicBlock.instructionAtIndex(i);
         for (int j = 0; j < ins.moveCount(); j++) {

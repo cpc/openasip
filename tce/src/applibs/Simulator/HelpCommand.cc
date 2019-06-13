@@ -64,10 +64,7 @@ HelpCommand::~HelpCommand() {
  * @exception NumberFormatException If conversion of DataObject fails.
  */
 bool
-HelpCommand::execute(const std::vector<DataObject>& arguments) 
-    throw (NumberFormatException) {
-
-
+HelpCommand::execute(const std::vector<DataObject>& arguments) {
     if (!checkArgumentCount(arguments.size() - 1, 0, 1)) {
         return false;
     } 

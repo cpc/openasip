@@ -440,9 +440,8 @@ InputFUBroker::isApplicable(const MoveNode& node) const {
  * given node or no corresponding machine part is found.
  */
 void
-InputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
-    throw (Exception) {
-//    cycle = instructionIndex(cycle);
+InputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res) {
+    //    cycle = instructionIndex(cycle);
     if (!isApplicable(node)) {
         string msg = "Broker not capable of assigning resources to node!";
         throw WrongSubclass(__FILE__, __LINE__, __func__, msg);

@@ -64,9 +64,8 @@ public:
     void setGuardSupport(const std::string& port);
 
     TTAMachine::FunctionUnit& architecture() const;
-    HDB::Direction portDirection(const std::string& port) const
-        throw (InstanceNotFound, InvalidData);
-    
+    HDB::Direction portDirection(const std::string& port) const;
+
     bool operator==(const FUArchitecture& rightHand) const;
 private:
     /// Struct PipelineElementUsage

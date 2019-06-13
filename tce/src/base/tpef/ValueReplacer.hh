@@ -70,13 +70,11 @@ namespace TPEF {
  */
 class ValueReplacer {
 public:
-    static void finalize()
-        throw (MissingKeys, UnreachableStream, WritePastEOF);
+    static void finalize();
 
     static void initialize(BinaryStream& stream);
 
-    void resolve()
-        throw (UnreachableStream, WritePastEOF);
+    void resolve();
 
 protected:
     ValueReplacer(const SafePointable* obj);
@@ -86,8 +84,7 @@ protected:
     virtual ~ValueReplacer();
 
     /// Does replacement if can. If can't returns false.
-    virtual bool tryToReplace()
-        throw (UnreachableStream, WritePastEOF) = 0;
+    virtual bool tryToReplace() = 0;
 
     /// Creates dynamically allocated clone of object.
     virtual ValueReplacer* clone() = 0;

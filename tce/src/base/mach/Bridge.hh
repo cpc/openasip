@@ -50,30 +50,21 @@ class Bus;
  */
 class Bridge : public Component {
 public:
-    Bridge(
-        const std::string& name,
-        Bus& sourceBus,
-        Bus& destinationBus)
-        throw (IllegalRegistration, ComponentAlreadyExists,
-               IllegalConnectivity, IllegalParameters, InvalidName);
-    Bridge(const ObjectState* state, Machine& mach)
-        throw (ObjectStateLoadingException);
+    Bridge(const std::string& name, Bus& sourceBus, Bus& destinationBus);
+    Bridge(const ObjectState* state, Machine& mach);
     virtual ~Bridge();
 
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
+    virtual void setName(const std::string& name);
     Bus* sourceBus() const;
     Bus* destinationBus() const;
     Bus* previousBus() const;
     Bus* nextBus() const;
 
-    virtual void setMachine(Machine& mach)
-        throw (ComponentAlreadyExists);
+    virtual void setMachine(Machine& mach);
     virtual void unsetMachine();
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for bridge.
     static const std::string OSNAME_BRIDGE;

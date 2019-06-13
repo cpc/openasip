@@ -51,8 +51,7 @@ public:
     std::string editor() const;
     void setEditor(const std::string& editor);
 
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
     ObjectState* saveState() const;
 private:
     /// Copying not allowed.

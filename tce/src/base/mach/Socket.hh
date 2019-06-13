@@ -61,25 +61,18 @@ public:
         UNKNOWN ///< Unknown direction.
     };
 
-    Socket(const std::string& name)
-        throw (InvalidName);
-    Socket(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    Socket(const std::string& name);
+    Socket(const ObjectState* state);
     virtual ~Socket();
 
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
-    void setDirection(Direction direction)
-        throw (IllegalConnectivity);
+    virtual void setName(const std::string& name);
+    void setDirection(Direction direction);
     Direction direction() const;
-    void attachBus(Segment& bus)
-        throw (IllegalRegistration, IllegalConnectivity);
-    void detachBus(Segment& bus)
-        throw (InstanceNotFound);
+    void attachBus(Segment& bus);
+    void detachBus(Segment& bus);
     void detachBus(Bus& bus);
     int portCount() const;
-    Port* port(int index) const
-        throw (OutOfRange);
+    Port* port(int index) const;
 
     void detachAllPorts();
     const Connection& connection(const Segment& bus) const;
@@ -87,8 +80,7 @@ public:
     bool isConnectedTo(const Segment& bus) const;
 
     int segmentCount() const;
-    Segment* segment(int index) const
-        throw (OutOfRange);
+    Segment* segment(int index) const;
 
     bool hasDataPortWidth() const;
 
@@ -96,13 +88,11 @@ public:
 
     void setDataPortWidth(const std::string& width);
 
-    virtual void setMachine(Machine& mach)
-        throw (ComponentAlreadyExists);
+    virtual void setMachine(Machine& mach);
     virtual void unsetMachine();
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for socket.
     static const std::string OSNAME_SOCKET;

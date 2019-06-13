@@ -57,8 +57,7 @@ public:
         const = 0;
 
     virtual bool canFix(const TTAMachine::Machine& mach) const;
-    virtual std::string fix(TTAMachine::Machine& mach) const
-        throw (InvalidData);
+    virtual std::string fix(TTAMachine::Machine& mach) const;
 
     virtual ~MachineCheck();
 

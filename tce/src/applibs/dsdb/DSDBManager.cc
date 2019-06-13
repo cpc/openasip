@@ -106,10 +106,7 @@ const string CREATE_ENERGY_ESTIMATE_TABLE =
  * @throw IOException if the DSDB file couldn't be succesfully loaded.
  */
 DSDBManager::DSDBManager(const std::string& file)
-    throw (IOException):
-    db_(new SQLite()), dbConnection_(NULL), file_(file) {
-
-   
+    : db_(new SQLite()), dbConnection_(NULL), file_(file) {
     if (!FileSystem::fileExists(file)) {
         string msg = "File '" + file + "' doesn't exist.";
         throw FileNotFound(__FILE__, __LINE__, __func__, msg);
@@ -121,7 +118,6 @@ DSDBManager::DSDBManager(const std::string& file)
         throw IOException(
             __FILE__, __LINE__, __func__, exception.errorMessage());
     }
-
 }
 
 /**
@@ -142,9 +138,7 @@ DSDBManager::~DSDBManager() {
  * @throw IOException if the DSDB file creation was not succesful.
  */
 DSDBManager*
-DSDBManager::createNew(const std::string& file)
-    throw (IOException) {
-
+DSDBManager::createNew(const std::string& file) {
     if (!FileSystem::fileIsCreatable(file)) {
         const string procName = "DSDBManager::createNew";
         throw IOException(__FILE__, __LINE__, procName);
@@ -194,9 +188,7 @@ DSDBManager::dsdbFile() const {
  * @return RowID of the added architecture.
  */
 RowID
-DSDBManager::addArchitecture(const TTAMachine::Machine& mom) 
-    throw (RelationalDBException) {
-
+DSDBManager::addArchitecture(const TTAMachine::Machine& mom) {
     RowID existing = architectureId(mom);
     if (existing != ILLEGAL_ROW_ID) {
         return existing;
@@ -258,11 +250,8 @@ DSDBManager::addArchitecture(const TTAMachine::Machine& mom)
  */
 RowID
 DSDBManager::addImplementation(
-    const IDF::MachineImplementation& impl,
-    double longestPathDelay,
-    AreaInGates area)
-    throw (KeyNotFound) {
-
+    const IDF::MachineImplementation& impl, double longestPathDelay,
+    AreaInGates area) {
     RowID id = -1;
     try {
         dbConnection_->beginTransaction();
@@ -307,9 +296,7 @@ DSDBManager::addImplementation(
  * @throw KeyNotFound if the configuration contained unknown IDs.
  */
 RowID
-DSDBManager::addConfiguration(const MachineConfiguration& conf)
-    throw (KeyNotFound) {
-
+DSDBManager::addConfiguration(const MachineConfiguration& conf) {
     RowID existing = configurationId(conf);
     if (existing != ILLEGAL_ROW_ID) {
         return existing;
@@ -371,9 +358,7 @@ DSDBManager::addConfiguration(const MachineConfiguration& conf)
  * @throw KeyNotFound If a configuration with the given ID was not found.
  */
 DSDBManager::MachineConfiguration
-DSDBManager::configuration(RowID id) const
-    throw (KeyNotFound) {
-
+DSDBManager::configuration(RowID id) const {
     if (!hasConfiguration(id)) {
         const std::string error = (boost::format(
             "DSDP file '%s' has no configuration with id '%d'.") 
@@ -421,9 +406,7 @@ DSDBManager::configuration(RowID id) const
  * @throw KeyNotFound If a configuration ID was not found in the database.
  */
 void
-DSDBManager::removeConfiguration(RowID id)
-    throw (KeyNotFound) {
-
+DSDBManager::removeConfiguration(RowID id) {
     if (!hasConfiguration(id)) {
         const std::string error = (boost::format(
             "DSDP file '%s' has no configuration with id '%d'.") 
@@ -446,8 +429,6 @@ DSDBManager::removeConfiguration(RowID id)
     }
 }
 
-
-   
 /**
  * Adds a new application to the database.
  *
@@ -494,9 +475,7 @@ DSDBManager::addApplication(const std::string& path) {
  */
 void
 DSDBManager::addEnergyEstimate(
-    RowID application, RowID implementation, double energyEstimate)
-    throw (KeyNotFound) {
-
+    RowID application, RowID implementation, double energyEstimate) {
     if (!hasApplication(application)) {
         const std::string error = (boost::format(
             "DSDP file '%s' has no application with id '%d'."
@@ -533,10 +512,7 @@ DSDBManager::addEnergyEstimate(
  * @param architecture RowID of the machine architecture.
  */
 void
-DSDBManager::setUnschedulable(
-    RowID application, RowID architecture)
-    throw (KeyNotFound) {
-
+DSDBManager::setUnschedulable(RowID application, RowID architecture) {
     if (!hasApplication(application)) {
         const std::string error = (boost::format(
             "DSDB file '%s' has no application with id '%d'."
@@ -605,9 +581,7 @@ DSDBManager::isUnschedulable(
  */
 void
 DSDBManager::addCycleCount(
-    RowID application, RowID architecture, ClockCycleCount count)
-    throw (KeyNotFound) {
-
+    RowID application, RowID architecture, ClockCycleCount count) {
     if (!hasApplication(application)) {
         const std::string error = (boost::format(
             "DSDB file '%s' has no application with id '%d'."
@@ -640,10 +614,7 @@ DSDBManager::addCycleCount(
  * @param delay Longest path delay estimate of implementation in nanoseconds.
  */
 void
-DSDBManager::setLongestPathDelayEstimate(
-    RowID implementation, double delay)
-    throw (KeyNotFound) {
-
+DSDBManager::setLongestPathDelayEstimate(RowID implementation, double delay) {
     if (!hasImplementation(implementation)) {
         const std::string error = (boost::format(
             "DSDP file '%s' has no implementation with id '%d'.") 
@@ -667,10 +638,7 @@ DSDBManager::setLongestPathDelayEstimate(
  * @param area Implementation area estimate in gates.
  */
 void
-DSDBManager::setAreaEstimate(
-    RowID implementation, AreaInGates areaEstimate)
-    throw (KeyNotFound) {
-
+DSDBManager::setAreaEstimate(RowID implementation, AreaInGates areaEstimate) {
     if (!hasImplementation(implementation)) {
         const std::string error = (boost::format(
             "DSDP file '%s' has no implementation with id '%d'.") 
@@ -694,9 +662,7 @@ DSDBManager::setAreaEstimate(
  * @return The architecture as string.
  */
 std::string
-DSDBManager::architectureString(RowID id) const
-    throw (KeyNotFound) {
-
+DSDBManager::architectureString(RowID id) const {
     if (!hasArchitecture(id)) {
         const std::string error = (boost::format(
             "DSDP file '%s' has no architecture with id '%d'.") 
@@ -838,9 +804,7 @@ DSDBManager::configurationId(const MachineConfiguration& conf) const {
  * @return Machine object model of the architecture.
  */
 TTAMachine::Machine*
-DSDBManager::architecture(RowID id) const
-    throw (KeyNotFound) {
-
+DSDBManager::architecture(RowID id) const {
     const std::string adf = architectureString(id);
     ADFSerializer serializer;
     serializer.setSourceString(adf);
@@ -859,9 +823,7 @@ DSDBManager::architecture(RowID id) const
  * @param path File path where the ADF file is written.
  */
 void
-DSDBManager::writeArchitectureToFile(RowID id, const std::string& path) const
-    throw (KeyNotFound, IOException) {
-
+DSDBManager::writeArchitectureToFile(RowID id, const std::string& path) const {
     const std::string adf = architectureString(id);
     ADFSerializer serializer;
     serializer.setSourceString(adf);
@@ -872,7 +834,7 @@ DSDBManager::writeArchitectureToFile(RowID id, const std::string& path) const
     } catch (const SerializerException& exception) {
         throw IOException(
             __FILE__, __LINE__, __func__, exception.errorMessage());
-    } 
+    }
 }
 
 /**
@@ -882,9 +844,7 @@ DSDBManager::writeArchitectureToFile(RowID id, const std::string& path) const
  * @return The implementation as string.
  */
 std::string
-DSDBManager::implementationString(RowID id) const
-    throw (KeyNotFound) {
-
+DSDBManager::implementationString(RowID id) const {
     if (!hasImplementation(id)) {
         const std::string error = (boost::format(
             "DSDP file '%s' has no implementation with id '%d'.") 
@@ -924,9 +884,7 @@ DSDBManager::implementationString(RowID id) const
  * @return MachineImplementation object containing the implementation.
  */
 IDF::MachineImplementation*
-DSDBManager::implementation(RowID id) const
-    throw (KeyNotFound) {
-
+DSDBManager::implementation(RowID id) const {
     const std::string idf = implementationString(id);
     IDF::IDFSerializer serializer;
     serializer.setSourceString(idf);
@@ -945,9 +903,8 @@ DSDBManager::implementation(RowID id) const
  * @param path File path where the IDF file is written.
  */
 void
-DSDBManager::writeImplementationToFile(RowID id, const std::string& path) const
-    throw (KeyNotFound, IOException) {
-    
+DSDBManager::writeImplementationToFile(
+    RowID id, const std::string& path) const {
     const std::string idf = implementationString(id);
     IDF::IDFSerializer serializer;
     serializer.setSourceString(idf);
@@ -958,9 +915,9 @@ DSDBManager::writeImplementationToFile(RowID id, const std::string& path) const
     } catch (const SerializerException& exception) {
         throw IOException(
             __FILE__, __LINE__, __func__, exception.errorMessage());
-    }        
+    }
 }
-    
+
 /**
  * Writes the machine configuration to files path.{idf,adf}.
  *
@@ -968,12 +925,9 @@ DSDBManager::writeImplementationToFile(RowID id, const std::string& path) const
  * @param path Path where the ADF and possibly the IDF of the configuration
  *             will be written.
  */
-void 
+void
 DSDBManager::writeConfigurationToFile(
-    const MachineConfiguration& conf, 
-    const std::string& path)
-    throw (KeyNotFound, IOException) {
-
+    const MachineConfiguration& conf, const std::string& path) {
     const std::string adfFile = path + ".adf";
     const std::string idfFile = path + ".idf";
 
@@ -990,9 +944,7 @@ DSDBManager::writeConfigurationToFile(
  * @return Path of the application test case.
  */
 std::string
-DSDBManager::applicationPath(RowID id) const
-    throw (KeyNotFound) {
-
+DSDBManager::applicationPath(RowID id) const {
     if (!hasApplication(id)) {
         const std::string error = (boost::format(
             "DSDP file '%s' has no application with id '%d'.") 
@@ -1018,7 +970,6 @@ DSDBManager::applicationPath(RowID id) const
     delete result;
     return path;
 }
-
 
 /**
  * Checks if energy estimate exists for an application and implementation
@@ -1117,9 +1068,7 @@ DSDBManager::hasApplication(const std::string& applicationPath) const {
  * @exception KeyNotFound If the application ID was not found in the database.
  */
 void
-DSDBManager::removeApplication(RowID id)
-    throw (KeyNotFound) {
-
+DSDBManager::removeApplication(RowID id) {
     if (!hasApplication(id)) {
         const std::string error = (boost::format(
             "DSDP file '%s' has no application with id '%d'.") 
@@ -1235,9 +1184,7 @@ DSDBManager::hasImplementation(RowID id) const {
  * @exception KeyNotFound If an energy estimate was not found.
  */
 double
-DSDBManager::energyEstimate(RowID application, RowID implementation) const
-    throw (KeyNotFound) {
-
+DSDBManager::energyEstimate(RowID application, RowID implementation) const {
     if (!hasEnergyEstimate(application, implementation)) {
         const std::string error = (boost::format(
             "DSDP file '%s' has no energy estimate with an application id "
@@ -1268,7 +1215,6 @@ DSDBManager::energyEstimate(RowID application, RowID implementation) const
     delete result;
     return energyEstimate;
 }
-
 
 /**
  * Checks if cycle count exists for an application and architecture
@@ -1311,10 +1257,8 @@ DSDBManager::hasCycleCount(RowID application, RowID architecture) const {
  * @return Cycle count in cycles.
  * @exception KeyNotFound If cycle count was not found in DB.
  */
-ClockCycleCount 
-DSDBManager::cycleCount(RowID application, RowID architecture) const
-    throw (KeyNotFound) {
-    
+ClockCycleCount
+DSDBManager::cycleCount(RowID application, RowID architecture) const {
     if (!hasCycleCount(application, architecture)) {
         const std::string error = (boost::format(
             "No cycle count found for application in DSDB file '%s'") 
@@ -1356,9 +1300,7 @@ DSDBManager::cycleCount(RowID application, RowID architecture) const
  * @exception KeyNotFound If the implmentation was not found in DB.
  */
 double
-DSDBManager::longestPathDelayEstimate(RowID implementation) const
-    throw (KeyNotFound) {
-    
+DSDBManager::longestPathDelayEstimate(RowID implementation) const {
     if (!hasImplementation(implementation)) {
         const std::string error = (boost::format(
             "DSDP file '%s' has no implementation with id '%d'.") 
@@ -1398,9 +1340,7 @@ DSDBManager::longestPathDelayEstimate(RowID implementation) const
  * @exception KeyNotFound If the implementation was not found in DB.
  */
 AreaInGates
-DSDBManager::areaEstimate(RowID implementation) const
-    throw (KeyNotFound) {
-    
+DSDBManager::areaEstimate(RowID implementation) const {
     if (!hasImplementation(implementation)) {
         const std::string error = (boost::format(
             "DSDP file '%s' has no implementation with id '%d'.") 
@@ -1544,9 +1484,7 @@ DSDBManager::configurationIDs() const {
  * @return Configuration IDs of a machine architecture.
  */
 std::set<RowID>
-DSDBManager::archConfigurationIDs(RowID architectureID) const
-    throw (KeyNotFound) {
-
+DSDBManager::archConfigurationIDs(RowID architectureID) const {
     // make the SQL query to obtain IDs.
     RelationalDBQueryResult* queryResult = NULL;
     try {
@@ -1574,7 +1512,6 @@ DSDBManager::archConfigurationIDs(RowID architectureID) const
     delete queryResult;
     return ids;
 }
-
 
 /**
  * Returs set of ConfigurationCosts ordered by the given ordering.

@@ -55,10 +55,7 @@ namespace TTAMachine {
 class DCMFUResourceConflictDetector : 
     public FUResourceConflictDetector {
 public:
-
-    DCMFUResourceConflictDetector(
-        const TTAMachine::FunctionUnit& fu)
-        throw (InvalidData);
+    DCMFUResourceConflictDetector(const TTAMachine::FunctionUnit& fu);
     virtual ~DCMFUResourceConflictDetector();
 
     virtual bool issueOperation(OperationID id);

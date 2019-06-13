@@ -87,9 +87,8 @@ MemorySystem::~MemorySystem() {
  *                                target machine.
  */
 void
-MemorySystem::addAddressSpace(const AddressSpace& as, MemoryPtr mem, bool shared)
-    throw (IllegalRegistration) {
-
+MemorySystem::addAddressSpace(
+    const AddressSpace& as, MemoryPtr mem, bool shared) {
     Machine::AddressSpaceNavigator nav = machine_->addressSpaceNavigator();
     if (!nav.hasItem(as.name())) {
         string msg = "Address space doesn't belong to the target machine";
@@ -168,9 +167,7 @@ MemorySystem::shareMemoriesWith(MemorySystem& other) {
  *                             AddressSpace.
  */
 MemorySystem::MemoryPtr
-MemorySystem::memory(const AddressSpace& as) 
-    throw (InstanceNotFound) {
-
+MemorySystem::memory(const AddressSpace& as) {
     return memory(as.name());
 }
 
@@ -184,9 +181,7 @@ MemorySystem::memory(const AddressSpace& as)
  * @exception InstanceNotFound If no memory is found with the name.
  */
 MemorySystem::MemoryPtr
-MemorySystem::memory(const std::string& addressSpaceName)
-    throw (InstanceNotFound) {
-
+MemorySystem::memory(const std::string& addressSpaceName) {
     MemoryMap::const_iterator iter = memories_.begin();
     while (iter != memories_.end()) {
         const AddressSpace& space = *((*iter).first);
@@ -213,9 +208,7 @@ MemorySystem::memory(const std::string& addressSpaceName)
  *       not with AS pointer!
  */
 const MemorySystem::MemoryPtr
-MemorySystem::memoryConst(const AddressSpace& as) const
-    throw (InstanceNotFound) {
-
+MemorySystem::memoryConst(const AddressSpace& as) const {
     MemoryMap::const_iterator iter = memories_.find(&as);
     if (iter == memories_.end()) {
         string msg = "No memory found for address space " + as.name();
@@ -241,9 +234,7 @@ MemorySystem::memoryCount() const {
  * @exception OutOfRange if i is out of bounds.
  */
 MemorySystem::MemoryPtr
-MemorySystem::memory(unsigned int i) 
-    throw (OutOfRange) {
-
+MemorySystem::memory(unsigned int i) {
     if (i > memories_.size() - 1) {
         const string msg = 
 	    "Index out of bounds. Count of memories is " + 
@@ -267,9 +258,7 @@ MemorySystem::memory(unsigned int i)
  * @exception OutOfRange if i is out of bounds.
  */
 const AddressSpace&
-MemorySystem::addressSpace(unsigned int i)
-    throw (OutOfRange) {
-
+MemorySystem::addressSpace(unsigned int i) {
     if (i > memories_.size() - 1) {
         const string msg = 
 	    "Index out of bounds. Count of memories is " + 
@@ -294,9 +283,7 @@ MemorySystem::addressSpace(unsigned int i)
  * @exception InstanceNotFound if the address space is not found.
  */
 const AddressSpace&
-MemorySystem::addressSpace(const std::string& name)
-    throw (InstanceNotFound) {
-
+MemorySystem::addressSpace(const std::string& name) {
     MemoryMap::const_iterator iter = memories_.begin();
     while (iter != memories_.end()) {
         if ((*iter).first->name() == name)

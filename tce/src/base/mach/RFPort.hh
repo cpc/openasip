@@ -44,18 +44,15 @@ class BaseRegisterFile;
  */
 class RFPort : public Port {
 public:
-    RFPort(const std::string& name, BaseRegisterFile& parent)
-        throw (InvalidName, ComponentAlreadyExists);
-    RFPort(const ObjectState* state, Unit& parent)
-        throw (ObjectStateLoadingException);
+    RFPort(const std::string& name, BaseRegisterFile& parent);
+    RFPort(const ObjectState* state, Unit& parent);
     virtual ~RFPort();
 
     virtual int width() const;
     BaseRegisterFile* parentUnit() const;
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for register file port.
     static const std::string OSNAME_RFPORT;

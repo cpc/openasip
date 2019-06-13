@@ -85,8 +85,7 @@ public:
 
     bool equals(const KeyboardShortcut& sc) const;
 
-    void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadState(const ObjectState* state);
     ObjectState* saveState() const;
 
 private:

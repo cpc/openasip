@@ -73,8 +73,7 @@ public:
     TCETools::CIStringSet minimalOpSet() const;
 
     virtual bool canFix(const TTAMachine::Machine& mach) const;
-    virtual std::string fix(TTAMachine::Machine& machine) const
-        throw (InvalidData);
+    virtual std::string fix(TTAMachine::Machine& machine) const;
 
 private:
     // minimal opset

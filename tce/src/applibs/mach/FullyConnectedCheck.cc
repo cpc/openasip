@@ -264,9 +264,7 @@ FullyConnectedCheck::check(
  * @exception InvalidData Thows if the machine cannot be fixed.
  */
 std::string
-FullyConnectedCheck::fix(TTAMachine::Machine& mach) const
-    throw (InvalidData) {
-
+FullyConnectedCheck::fix(TTAMachine::Machine& mach) const {
     if (!canFix(mach)) {
         throw InvalidData(
             __FILE__, __LINE__, __func__,

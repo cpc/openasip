@@ -197,9 +197,7 @@ TPEFProgramFactory::stringOfChunk(
  * @exception Exception if the TPEF or program in it is somehow broken.
  */
 Program*
-TPEFProgramFactory::build() 
-    throw (NotAvailable, Exception) {
-
+TPEFProgramFactory::build() {
     assert(machine_ != NULL || universalMachine_ != NULL);
 
     if (binary_->sectionCount(Section::ST_CODE) == 0) {

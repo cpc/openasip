@@ -67,40 +67,24 @@ public:
     TTAMachine::AddressSpace& dataAddressSpace() const;
     TTAMachine::Bus& universalBus() const;
 
-    virtual void addBus(TTAMachine::Bus& bus)
-        throw (ComponentAlreadyExists);
-    virtual void addSocket(TTAMachine::Socket& socket)
-        throw (ComponentAlreadyExists);
-    virtual void addFunctionUnit(TTAMachine::FunctionUnit& unit)
-        throw (ComponentAlreadyExists);
-    virtual void addImmediateUnit(TTAMachine::ImmediateUnit& unit)
-        throw (ComponentAlreadyExists);
-    virtual void addRegisterFile(TTAMachine::RegisterFile& unit)
-        throw (ComponentAlreadyExists);
-    virtual void addAddressSpace(TTAMachine::AddressSpace& as)
-        throw (ComponentAlreadyExists);
-    virtual void addBridge(TTAMachine::Bridge& bridge)
-        throw (ComponentAlreadyExists);
-    virtual void addInstructionTemplate(
-        TTAMachine::InstructionTemplate& iTemp)
-        throw (ComponentAlreadyExists);
-    virtual void setGlobalControl(TTAMachine::ControlUnit& unit)
-        throw (ComponentAlreadyExists);
+    virtual void addBus(TTAMachine::Bus& bus);
+    virtual void addSocket(TTAMachine::Socket& socket);
+    virtual void addFunctionUnit(TTAMachine::FunctionUnit& unit);
+    virtual void addImmediateUnit(TTAMachine::ImmediateUnit& unit);
+    virtual void addRegisterFile(TTAMachine::RegisterFile& unit);
+    virtual void addAddressSpace(TTAMachine::AddressSpace& as);
+    virtual void addBridge(TTAMachine::Bridge& bridge);
+    virtual void addInstructionTemplate(TTAMachine::InstructionTemplate& iTemp);
+    virtual void setGlobalControl(TTAMachine::ControlUnit& unit);
 
-    virtual void removeBus(TTAMachine::Bus& bus)
-        throw (InstanceNotFound);
-    virtual void removeSocket(TTAMachine::Socket& socket)
-        throw (InstanceNotFound);
-    virtual void removeFunctionUnit(TTAMachine::FunctionUnit& unit)
-        throw (InstanceNotFound);
-    virtual void removeRegisterFile(TTAMachine::RegisterFile& unit)
-        throw (InstanceNotFound);
-    virtual void deleteAddressSpace(TTAMachine::AddressSpace& as)
-        throw (InstanceNotFound);
+    virtual void removeBus(TTAMachine::Bus& bus);
+    virtual void removeSocket(TTAMachine::Socket& socket);
+    virtual void removeFunctionUnit(TTAMachine::FunctionUnit& unit);
+    virtual void removeRegisterFile(TTAMachine::RegisterFile& unit);
+    virtual void deleteAddressSpace(TTAMachine::AddressSpace& as);
     virtual void unsetGlobalControl();
 
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     static UniversalMachine& instance();
 

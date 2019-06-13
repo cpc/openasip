@@ -56,11 +56,7 @@ const string Unit::OSNAME_UNIT = "unit";
  * @param name The name of the unit.
  * @exception InvalidName If the given name is not a valid component name.
  */
-Unit::Unit(const std::string& name)
-    throw (InvalidName) :
-    Component(name) {
-}
-
+Unit::Unit(const std::string& name) : Component(name) {}
 
 /**
  * Constructor.
@@ -72,10 +68,7 @@ Unit::Unit(const std::string& name)
  * @exception ObjectStateLoadingException If the given ObjectState instance
  *                                        is invalid.
  */
-Unit::Unit(const ObjectState* state)
-    throw (ObjectStateLoadingException) :
-    Component(state) {
-
+Unit::Unit(const ObjectState* state) : Component(state) {
     try {
         loadStateWithoutReferences(state);
     } catch (const Exception&) {
@@ -84,7 +77,6 @@ Unit::Unit(const ObjectState* state)
         throw;
     }
 }
-
 
 /**
  * Destructor.
@@ -121,9 +113,7 @@ Unit::hasPort(const std::string& name) const {
  * @exception InstanceNotFound If a port is not found by the given name.
  */
 Port*
-Unit::port(const std::string& name) const
-    throw (InstanceNotFound) {
-
+Unit::port(const std::string& name) const {
     PortTable::const_iterator iter = ports_.begin();
     while (iter != ports_.end()) {
         if ((*iter)->name() == name) {
@@ -135,7 +125,6 @@ Unit::port(const std::string& name) const
     string procName = "Unit::port";
     throw InstanceNotFound(__FILE__, __LINE__, procName);
 }
-
 
 /**
  * Returns the number of ports in the unit.
@@ -159,16 +148,13 @@ Unit::portCount() const {
  * @exception OutOfRange If the given index is out of range.
  */
 Port*
-Unit::port(int index) const
-    throw (OutOfRange) {
-
+Unit::port(int index) const {
     if (index < 0 || index >= portCount()) {
         string procName = "Unit::port";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
     return ports_[index];
 }
-
 
 /**
  * Adds a port to the unit.
@@ -180,9 +166,7 @@ Unit::port(int index) const
  *                                   exists.
  */
 void
-Unit::addPort(Port& port)
-    throw (ComponentAlreadyExists) {
-
+Unit::addPort(Port& port) {
     // check that this method is called from Port constructor only
     assert(port.parentUnit() == NULL);
 
@@ -195,7 +179,6 @@ Unit::addPort(Port& port)
     string procName = "Unit::addPort";
     throw ComponentAlreadyExists(__FILE__, __LINE__, procName);
 }
-
 
 /**
  * Removes the given port.
@@ -223,13 +206,10 @@ Unit::removePort(Port& port) {
  *                                   name and type in the machine.
  */
 void
-Unit::setMachine(Machine& mach)
-    throw (ComponentAlreadyExists) {
-
+Unit::setMachine(Machine& mach) {
     internalSetMachine(mach);
     mach.addUnit(*this);
 }
-
 
 /**
  * Removes registration of the unit from its current machine.
@@ -282,9 +262,7 @@ Unit::saveState() const {
  *                                        sockets cannot be made.
  */
 void
-Unit::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+Unit::loadState(const ObjectState* state) {
     loadStateWithoutReferences(state);
 
     // create port-socket connections
@@ -300,7 +278,6 @@ Unit::loadState(const ObjectState* state)
     }
 }
 
-
 /**
  * Loads its state from the given ObjectState instance without references to
  * other components.
@@ -310,9 +287,7 @@ Unit::loadState(const ObjectState* state)
  *                                        is invalid.
  */
 void
-Unit::loadStateWithoutReferences(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+Unit::loadStateWithoutReferences(const ObjectState* state) {
     const string procName = "Unit::loadStateWithoutReferences";
 
     // load ports
@@ -346,7 +321,6 @@ Unit::loadStateWithoutReferences(const ObjectState* state)
             __FILE__, __LINE__, procName, exception.errorMessage());
     }
 }
-
 
 /**
  * Deletes all the ports from the unit.
@@ -388,9 +362,7 @@ Unit::deleteOtherPorts(const NameSet& portsToLeave) {
  * @exception KeyNotFound If the given ObjectState instance is invalid.
  */
 Unit::NameSet
-Unit::portNames(const ObjectState* state)
-    throw (KeyNotFound) {
-
+Unit::portNames(const ObjectState* state) {
     NameSet names;
     for (int i = 0; i < state->childCount(); i++) {
         ObjectState* child = state->child(i);
@@ -399,5 +371,4 @@ Unit::portNames(const ObjectState* state)
 
     return names;
 }
-
 }

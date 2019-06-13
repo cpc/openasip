@@ -86,12 +86,7 @@ TPEFDataSectionReader::type() const {
  * @exception UnexpectedValue If there was unexpected value when reading.
  */
 void
-TPEFDataSectionReader::readData(
-    BinaryStream& stream,
-    Section* section) const
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-           OutOfRange, WrongSubclass, UnexpectedValue) {
-
+TPEFDataSectionReader::readData(BinaryStream& stream, Section* section) const {
     // base classes implementation must be called with these.
     TPEFSectionReader::readData(stream, section);
 
@@ -111,5 +106,4 @@ TPEFDataSectionReader::readData(
             parent())->addSectionSize(section, header().bodyLength);
     }
 }
-
 }

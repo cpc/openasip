@@ -561,11 +561,9 @@ MemoryControl::clearHighlights() {
 }
 
 void
-MemoryControl::highlight(Word address, unsigned count, const wxColour& colour)
-    throw (OutOfRange) {
-
+MemoryControl::highlight(Word address, unsigned count, const wxColour& colour) {
     if (count < 1 || address < start_ || address + count > end_) {
-        throw (OutOfRange(__FILE__, __LINE__, __func__));
+        throw OutOfRange(__FILE__, __LINE__, __func__);
     }
 
     int cols = table_->GetNumberCols();

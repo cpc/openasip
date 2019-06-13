@@ -48,8 +48,7 @@ public:
      * @param state Root of the ObjectState tree.
      * @exception SerializerException If an error occurs while serializing.
      */
-    virtual void writeState(const ObjectState* state)
-        throw (SerializerException) = 0;
+    virtual void writeState(const ObjectState* state) = 0;
 
     /**
      * Creates an ObjectState tree according to the input.
@@ -57,8 +56,7 @@ public:
      * @return The created ObjectState tree.
      * @exception SerializerException If an error occurs while reading input.
      */
-    virtual ObjectState* readState()
-        throw (SerializerException) = 0;
+    virtual ObjectState* readState() = 0;
 
     virtual ~Serializer() {}
 };

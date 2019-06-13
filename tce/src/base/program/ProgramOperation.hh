@@ -69,12 +69,12 @@ public:
     ProgramOperation();
     ~ProgramOperation();
 
-    void addNode(MoveNode& node) throw (IllegalParameters);
-    void addInputNode(MoveNode& node) throw (IllegalParameters);
-    void addOutputNode(MoveNode& node) throw (IllegalParameters);
+    void addNode(MoveNode& node);
+    void addInputNode(MoveNode& node);
+    void addOutputNode(MoveNode& node);
 
-    void removeOutputNode(MoveNode& node) throw (IllegalRegistration);
-    void removeInputNode(MoveNode& node) throw (IllegalRegistration);
+    void removeOutputNode(MoveNode& node);
+    void removeInputNode(MoveNode& node);
 
     bool isComplete();
     bool isReady();
@@ -86,9 +86,9 @@ public:
     bool areInputsAssigned();
     bool areOutputsAssigned();
 
-    MoveNode& opcodeSettingNode() throw (InvalidData);
-    MoveNodeSet& inputNode(int in) const throw (OutOfRange, KeyNotFound);
-    MoveNodeSet& outputNode(int out) const throw (OutOfRange, KeyNotFound);
+    MoveNode& opcodeSettingNode();
+    MoveNodeSet& inputNode(int in) const;
+    MoveNodeSet& outputNode(int out) const;
 
     bool hasOutputNode(int out) const;
     bool hasInputNode(int in) const;

@@ -57,11 +57,7 @@ protected:
 
     virtual void finalize(Section* section) const;
 
-    virtual void readData(
-        BinaryStream& stream,
-        Section* section) const
-        throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-               OutOfRange, WrongSubclass, UnexpectedValue);
+    virtual void readData(BinaryStream& stream, Section* section) const;
 
     virtual Section::SectionType type() const;
 
@@ -77,11 +73,8 @@ private:
     };
 
     void initializeRelocElement(
-        BinaryStream& stream,
-        RelocElement* elem,
-        SectionId refSectionID,
-        AOutReader* reader) const
-        throw (UnexpectedValue, UnreachableStream, OutOfRange);
+        BinaryStream& stream, RelocElement* elem, SectionId refSectionID,
+        AOutReader* reader) const;
 
     bool checkIfExtern(Word word) const;
 

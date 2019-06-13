@@ -48,11 +48,7 @@ protected:
     TPEFDebugSectionReader();
     virtual ~TPEFDebugSectionReader();
 
-    virtual void readData(
-        BinaryStream& stream,
-        Section* section) const
-        throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-               OutOfRange, WrongSubclass, UnexpectedValue);
+    virtual void readData(BinaryStream& stream, Section* section) const;
 
     virtual Section::SectionType type() const;
 

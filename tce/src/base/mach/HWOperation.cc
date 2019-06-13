@@ -65,9 +65,7 @@ const string HWOperation::OSKEY_PORT = "port";
  * @exception InvalidName If the given name is not valid for a component.
  */
 HWOperation::HWOperation(const string& name, FunctionUnit& parent)
-    throw (ComponentAlreadyExists, InvalidName) :
-    SubComponent(), name_(name), pipeline_(NULL), parent_(NULL) {
-
+    : SubComponent(), name_(name), pipeline_(NULL), parent_(NULL) {
     name_ = StringTools::stringToLower(name);
 
     if (!MachineTester::isValidComponentName(name_)) {
@@ -83,7 +81,6 @@ HWOperation::HWOperation(const string& name, FunctionUnit& parent)
     pipeline_ = new ExecutionPipeline(*this);
 }
 
-
 /**
  * Constructor.
  *
@@ -95,9 +92,7 @@ HWOperation::HWOperation(const string& name, FunctionUnit& parent)
  *                                        the state.
  */
 HWOperation::HWOperation(const ObjectState* state, FunctionUnit& parent)
-    throw (ObjectStateLoadingException) :
-    SubComponent(), name_(""), pipeline_(NULL), parent_(&parent) {
-
+    : SubComponent(), name_(""), pipeline_(NULL), parent_(&parent) {
     const string procName = "HWOperation::HWOperation";
 
     // set name
@@ -123,7 +118,6 @@ HWOperation::HWOperation(const ObjectState* state, FunctionUnit& parent)
         throw;
     }
 }
-
 
 /**
  * Destructor.
@@ -156,9 +150,7 @@ HWOperation::name() const {
  * @exception InvalidName If the given name is not valid.
  */
 void
-HWOperation::setName(const std::string& name)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+HWOperation::setName(const std::string& name) {
     string lowerName = StringTools::stringToLower(name);
 
     if (lowerName == this->name()) {
@@ -185,7 +177,6 @@ HWOperation::setName(const std::string& name)
 
     name_ = lowerName;
 }
-
 
 /**
  * Returns the parent unit of the operation.
@@ -233,12 +224,9 @@ HWOperation::latency() const {
  *                              pipeline.
  */
 int
-HWOperation::latency(int output) const 
-    throw (IllegalParameters) {
-
+HWOperation::latency(int output) const {
     return pipeline_->latency(output);
 }
-
 
 /**
  * Returns the slack of the given input.
@@ -253,12 +241,9 @@ HWOperation::latency(int output) const
  *                              pipeline.
  */
 int
-HWOperation::slack(int input) const 
-    throw (IllegalParameters) {
-
+HWOperation::slack(int input) const {
     return pipeline_->slack(input);
 }
-
 
 /**
  * Binds the given operand of the operation to the given port of the
@@ -276,9 +261,7 @@ HWOperation::slack(int input) const
  * @exception OutOfRange If the given operand is less than 1.
  */
 void
-HWOperation::bindPort(int operand, const FUPort& port)
-    throw (IllegalRegistration, ComponentAlreadyExists, OutOfRange) {
-
+HWOperation::bindPort(int operand, const FUPort& port) {
     const string procName = "HWOperation::bindPort";
 
     if (operand < 1) {
@@ -297,7 +280,6 @@ HWOperation::bindPort(int operand, const FUPort& port)
     operandBinding_[operand] = &port;
     port.updateBindingString();
 }
-
 
 /**
  * Unbinds the operand bound to the given port.
@@ -351,9 +333,7 @@ HWOperation::isBound(const FUPort& port) const {
  * @exception InstanceNotFound If no io is bound to the given port.
  */
 int
-HWOperation::io(const FUPort& port) const
-    throw (InstanceNotFound) {
-
+HWOperation::io(const FUPort& port) const {
     if (!isBound(port)) {
         const string procName = "HWOperation::operand";
         throw InstanceNotFound(__FILE__, __LINE__, procName);
@@ -361,7 +341,6 @@ HWOperation::io(const FUPort& port) const
 
     return MapTools::keyForValue<int>(operandBinding_, &port);
 }
-
 
 /**
  * Saves the contents to an ObjectState tree.
@@ -399,9 +378,7 @@ HWOperation::saveState() const {
  *                                        the state.
  */
 void
-HWOperation::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+HWOperation::loadState(const ObjectState* state) {
     const string procName = "HWOperation::loadState";
 
     if (state->name() != OSNAME_OPERATION) {
@@ -470,5 +447,4 @@ HWOperation::loadState(const ObjectState* state)
             __FILE__, __LINE__, procName, e.errorMessage());
     }
 }
-
 }

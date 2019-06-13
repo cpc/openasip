@@ -76,9 +76,7 @@ HWBlockArchitecture::setID(RowID id) {
  * @return ID of the entry.
  */
 RowID
-HWBlockArchitecture::id() const 
-    throw (NotAvailable) {
-
+HWBlockArchitecture::id() const {
     if (!hasID()) {
         throw NotAvailable(__FILE__, __LINE__, __func__);
     } else {

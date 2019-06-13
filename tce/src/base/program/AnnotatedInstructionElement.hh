@@ -56,8 +56,8 @@ public:
     void addAnnotation(const ProgramAnnotation& annotation);
     void setAnnotation(const ProgramAnnotation& annotation);
     ProgramAnnotation annotation(
-        int index, ProgramAnnotation::Id id = ProgramAnnotation::ANN_UNDEF_ID)
-        const throw (OutOfRange);
+        int index,
+        ProgramAnnotation::Id id = ProgramAnnotation::ANN_UNDEF_ID) const;
     int annotationCount(
         ProgramAnnotation::Id id = ProgramAnnotation::ANN_UNDEF_ID) const;
     void removeAnnotations(

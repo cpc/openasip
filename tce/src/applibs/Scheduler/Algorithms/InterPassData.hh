@@ -50,8 +50,7 @@ public:
     InterPassData();
     virtual ~InterPassData();
 
-    InterPassDatum& datum(const std::string& key)
-        throw (KeyNotFound);
+    InterPassDatum& datum(const std::string& key);
     bool hasDatum(const std::string& key) const;
     void setDatum(const std::string& key, InterPassDatum* datum);
     void removeDatum(const std::string& key);

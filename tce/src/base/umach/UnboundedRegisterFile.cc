@@ -48,13 +48,8 @@ using std::string;
  * @exception OutOfRange If the bit width is out of range.
  */
 UnboundedRegisterFile::UnboundedRegisterFile(
-    const std::string& name,
-    int width,
-    RegisterFile::Type type)
-    throw (InvalidName, OutOfRange) :
-    RegisterFile(name, INT_MAX, width, 1, 1, 0, type) {
-}
-
+    const std::string& name, int width, RegisterFile::Type type)
+    : RegisterFile(name, INT_MAX, width, 1, 1, 0, type) {}
 
 /**
  * The destructor.
@@ -84,16 +79,13 @@ UnboundedRegisterFile::numberOfRegisters() const {
  * @exception OutOfRange Never thrown.
  */
 void
-UnboundedRegisterFile::setMaxReads(int)
-    throw (OutOfRange) {
-
+UnboundedRegisterFile::setMaxReads(int) {
     const string procName = "UnboundedRegisterFile::setMaxReads";
     const string errorMsg =
         "Tried to set max reads of UnboundedRegisterFile!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to call this method of
@@ -103,15 +95,12 @@ UnboundedRegisterFile::setMaxReads(int)
  * @exception OutOfRange Never thrown.
  */
 void
-UnboundedRegisterFile::setMaxWrites(int)
-    throw (OutOfRange) {
-
+UnboundedRegisterFile::setMaxWrites(int) {
     const string procName = "UnboundedRegisterFile::setMaxWrites";
     const string errorMsg = "Tries to set maxWrites of UnboundedRegisterFile!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to set the number of
@@ -122,16 +111,13 @@ UnboundedRegisterFile::setMaxWrites(int)
  * @exception OutOfRange Never thrown.
  */
 void
-UnboundedRegisterFile::setNumberOfRegisters(int)
-    throw (OutOfRange) {
-
+UnboundedRegisterFile::setNumberOfRegisters(int) {
     const string procName = "UnboundedRegisterFile::setNumberOfRegisters";
     const string errorMsg =
         "Tried to set the number of registers of UnboundedRegisterFile!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to set the bit width of
@@ -142,16 +128,13 @@ UnboundedRegisterFile::setNumberOfRegisters(int)
  * @exception OutOfRange Never thrown.
  */
 void
-UnboundedRegisterFile::setWidth(int)
-    throw (OutOfRange) {
-
+UnboundedRegisterFile::setWidth(int) {
     const string procName = "UnboundedRegisterFile::setWidth";
     const string errorMsg =
         "Tried to set the bit width of UnboundedRegisterFile!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to change the name of
@@ -163,16 +146,13 @@ UnboundedRegisterFile::setWidth(int)
  * @exception InvalidName Never thrown.
  */
 void
-UnboundedRegisterFile::setName(const std::string&)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+UnboundedRegisterFile::setName(const std::string&) {
     const string procName = "UnboundedRegisterFile::setName";
     const string errorMsg =
         "Tried to set the name of UnboundedRegisterFile!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to set the type of
@@ -198,9 +178,7 @@ UnboundedRegisterFile::setType(RegisterFile::Type) {
  * @exception ObjectStateLoadingException Never thrown.
  */
 void
-UnboundedRegisterFile::loadState(const ObjectState*)
-    throw (ObjectStateLoadingException) {
-
+UnboundedRegisterFile::loadState(const ObjectState*) {
     const string procName = "UnboundedRegisterFile::loadState";
     const string errorMsg =
         "Tried to load state of UnboundedRegisterFile from an ObjectState"

@@ -71,8 +71,8 @@ InstructionExecution::~InstructionExecution() {
  * @return The cycle count.
  * @exception NotAvailable If the current record is empty.
  */
-ClockCycleCount 
-InstructionExecution::cycle() const throw (NotAvailable) {
+ClockCycleCount
+InstructionExecution::cycle() const {
     if (&result_->data(cycleColumnIndex_) == &NullDataObject::instance()) {
         const std::string errorMsg =
             "Tried to fetch data from an empty result set.";
@@ -88,7 +88,7 @@ InstructionExecution::cycle() const throw (NotAvailable) {
  * @exception NotAvailable If the current record is empty.
  */
 InstructionAddress
-InstructionExecution::address() const throw (NotAvailable) {
+InstructionExecution::address() const {
     if (&result_->data(addressColumnIndex_) == &NullDataObject::instance()) {
         const std::string errorMsg =
             "Tried to fetch data from an empty result set.";
@@ -103,12 +103,11 @@ InstructionExecution::address() const throw (NotAvailable) {
  * @exception NotAvailable if there is no more results in the set.
  */
 void
-InstructionExecution::next() throw (NotAvailable) {
+InstructionExecution::next() {
     if (!result_->hasNext()) {
         throw NotAvailable(__FILE__, __LINE__, __func__, "No more results.");
     }
     result_->next();
-    
 }
 
 /**

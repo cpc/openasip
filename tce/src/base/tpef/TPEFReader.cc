@@ -90,10 +90,7 @@ TPEFReader::~TPEFReader() {
  * @exception UnexpectedValue If there was unexpected value when reading.
  */
 Binary*
-TPEFReader::readData(BinaryStream& stream) const
-    throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists,
-           EndOfFile, OutOfRange, WrongSubclass, UnexpectedValue) {
-
+TPEFReader::readData(BinaryStream& stream) const {
     binary_ = new Binary();
     sectionSizes_.clear();
 
@@ -217,9 +214,7 @@ TPEFReader::readData(BinaryStream& stream) const
  * @exception UnreachableStream If there occurs an exception with stream.
  */
 bool
-TPEFReader::isMyStreamType(BinaryStream& stream) const
-    throw (UnreachableStream) {
-
+TPEFReader::isMyStreamType(BinaryStream& stream) const {
     unsigned long startPos = stream.readPosition();
 
     try {

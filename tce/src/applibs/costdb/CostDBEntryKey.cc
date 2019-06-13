@@ -85,8 +85,7 @@ CostDBEntryKey::copy() const {
  * @exception ObjectAlreadyExists Equal field already exists.
  */
 void
-CostDBEntryKey::addField(EntryKeyField* field) throw (ObjectAlreadyExists) {
-
+CostDBEntryKey::addField(EntryKeyField* field) {
     for (FieldTable::iterator i = fields_.begin(); i != fields_.end(); i++) {
         if ((*i)->type() == field->type()) {
             throw ObjectAlreadyExists(
@@ -103,9 +102,7 @@ CostDBEntryKey::addField(EntryKeyField* field) throw (ObjectAlreadyExists) {
  * @exception KeyNotFound Equal field was not found.
  */
 void
-CostDBEntryKey::replaceField(EntryKeyField* newField)
-    throw (KeyNotFound) {
-    
+CostDBEntryKey::replaceField(EntryKeyField* newField) {
     for (FieldTable::iterator i = fields_.begin(); i != fields_.end(); i++) {
         if ((*i)->type() == newField->type()) {
             delete *i;
@@ -123,9 +120,7 @@ CostDBEntryKey::replaceField(EntryKeyField* newField)
  * @exception KeyNotFound Requested field type was not found.
  */
 EntryKeyField
-CostDBEntryKey::keyFieldOfType(const EntryKeyFieldProperty& fieldType) const
-    throw (KeyNotFound) {
-
+CostDBEntryKey::keyFieldOfType(const EntryKeyFieldProperty& fieldType) const {
     for (FieldTable::const_iterator i = fields_.begin();
          i != fields_.end(); i++) {
         if ((*i)->type() == &fieldType) {
@@ -183,9 +178,7 @@ CostDBEntryKey::isEqual(const CostDBEntryKey& entryKey) const {
  * @exception OutOfRange Index was out of range.
  */
 const EntryKeyField&
-CostDBEntryKey::field(int index) const
-    throw (OutOfRange) {
-    
+CostDBEntryKey::field(int index) const {
     if (index >= fieldCount() || index < 0) {
         throw OutOfRange(__FILE__, __LINE__, "CostDBEntryKey::field");
     }

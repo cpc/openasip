@@ -73,8 +73,7 @@ public:
         TTAProgram::BasicBlock& bb, const TTAMachine::Machine& machine);
     CriticalPathBBMoveNodeSelector(
         DataDependenceGraph& bigDDG, TTAProgram::BasicBlock& bb,
-        const TTAMachine::Machine &machine)
-        throw (ModuleRunTimeError);
+        const TTAMachine::Machine& machine);
     CriticalPathBBMoveNodeSelector(
         DataDependenceGraph& ddg, const TTAMachine::Machine &machine);
 

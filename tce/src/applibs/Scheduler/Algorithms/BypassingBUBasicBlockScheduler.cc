@@ -139,11 +139,8 @@ BypassingBUBasicBlockScheduler::~BypassingBUBasicBlockScheduler() {
  */
 void
 BypassingBUBasicBlockScheduler::handleDDG(
-    DataDependenceGraph& ddg,
-    SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
+    DataDependenceGraph& ddg, SimpleResourceManager& rm,
+    const TTAMachine::Machine& targetMachine) {
     if (!BasicBlockPass::interPassData().hasDatum("SCRATCH_REGISTERS")) {
         RegisterCopyAdder::findTempRegisters(
             targetMachine, BasicBlockPass::interPassData());

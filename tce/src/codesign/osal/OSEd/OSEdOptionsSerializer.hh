@@ -46,10 +46,8 @@ public:
     OSEdOptionsSerializer();
     virtual ~OSEdOptionsSerializer();
 
-    virtual void writeState(const ObjectState* state)
-        throw (SerializerException);
-    virtual ObjectState* readState()
-        throw (SerializerException);
+    virtual void writeState(const ObjectState* state);
+    virtual ObjectState* readState();
 
     void setSourceFile(const std::string& fileName);
     void setDestinationFile(const std::string& fileName);

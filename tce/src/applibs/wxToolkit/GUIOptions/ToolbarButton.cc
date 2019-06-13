@@ -111,9 +111,7 @@ ToolbarButton::slot() const {
  *                                        is invalid.
  */
 void
-ToolbarButton::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+ToolbarButton::loadState(const ObjectState* state) {
     string procName = "ToolbarButton::loadState";
         
     if (state->name() != OSNAME_TOOLBAR_BUTTON) {
@@ -127,7 +125,6 @@ ToolbarButton::loadState(const ObjectState* state)
         throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Creates an ObjectState object and saves the state of the object into it.

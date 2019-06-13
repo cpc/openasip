@@ -58,17 +58,14 @@ const string ControlUnit::OSKEY_RA_PORT = "ra_port";
  * @exception InvalidName If the given name is not a valid component name.
  */
 ControlUnit::ControlUnit(
-    const string& name,
-    int delaySlots,
-    int globalGuardLatency)
-    throw (OutOfRange, InvalidName):
-    FunctionUnit(name), delaySlots_(delaySlots),
-    globalGuardLatency_(0), raPort_(NULL) {
-
+    const string& name, int delaySlots, int globalGuardLatency)
+    : FunctionUnit(name),
+      delaySlots_(delaySlots),
+      globalGuardLatency_(0),
+      raPort_(NULL) {
     setDelaySlots(delaySlots);
     setGlobalGuardLatency(globalGuardLatency);
 }
-
 
 /**
  * Constructor.
@@ -81,13 +78,12 @@ ControlUnit::ControlUnit(
  *                                        is invalid.
  */
 ControlUnit::ControlUnit(const ObjectState* state)
-    throw (ObjectStateLoadingException) :
-    FunctionUnit(state), delaySlots_(0), globalGuardLatency_(0), 
-    raPort_(NULL) {
-        
+    : FunctionUnit(state),
+      delaySlots_(0),
+      globalGuardLatency_(0),
+      raPort_(NULL) {
     loadStateWithoutReferences(state);
 }
-
 
 /**
  * Destructor.
@@ -119,9 +115,7 @@ ControlUnit::copy() const {
  *                                   global control unit.
  */
 void
-ControlUnit::setMachine(Machine& mach)
-    throw (ComponentAlreadyExists) {
-
+ControlUnit::setMachine(Machine& mach) {
     // if global guard latency is zero, there cannot be a register guard
     // that reads a register of local guard latency zero
     if (globalGuardLatency() == 0 && hasLocalGuardLatencyOfZero(mach)) {
@@ -131,7 +125,6 @@ ControlUnit::setMachine(Machine& mach)
     internalSetMachine(mach);
     mach.setGlobalControl(*this);
 }
-
 
 /**
  * Detaches the control unit from machine.
@@ -157,15 +150,12 @@ ControlUnit::unsetMachine() {
  * @exception OutOfRange If the given delay slots is negative
  */
 void
-ControlUnit::setDelaySlots(int delaySlots)
-    throw (OutOfRange) {
-
+ControlUnit::setDelaySlots(int delaySlots) {
     if (delaySlots < 0) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
     delaySlots_ = delaySlots;
 }
-
 
 /**
  * Sets the global guard latency.
@@ -174,9 +164,7 @@ ControlUnit::setDelaySlots(int delaySlots)
  * @exception OutOfRange If the given latency is negative.
  */
 void
-ControlUnit::setGlobalGuardLatency(int latency)
-    throw (OutOfRange) {
-
+ControlUnit::setGlobalGuardLatency(int latency) {
     if (latency < 0) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -195,7 +183,6 @@ ControlUnit::setGlobalGuardLatency(int latency)
 
     globalGuardLatency_ = latency;
 }
-
 
 /**
  * Returns the number of special register ports in the control unit.
@@ -229,9 +216,7 @@ ControlUnit::hasSpecialRegisterPort(const std::string& name) const {
  *                       equal to the number of special register ports.
  */
 SpecialRegisterPort*
-ControlUnit::specialRegisterPort(int index) const
-    throw (OutOfRange) {
-
+ControlUnit::specialRegisterPort(int index) const {
     const string procName = "ControlUnit::specialRegisterPort";
 
     if (index < 0) {
@@ -256,7 +241,6 @@ ControlUnit::specialRegisterPort(int index) const
     throw OutOfRange(__FILE__, __LINE__, procName);
 }
 
-
 /**
  * Returns a special register port by the given name.
  *
@@ -266,9 +250,7 @@ ControlUnit::specialRegisterPort(int index) const
  *                             the given name.
  */
 SpecialRegisterPort*
-ControlUnit::specialRegisterPort(const std::string& name) const
-    throw (InstanceNotFound) {
-
+ControlUnit::specialRegisterPort(const std::string& name) const {
     const string procName = "ControlUnit::specialRegisterPort";
 
     if (!hasPort(name)) {
@@ -283,7 +265,6 @@ ControlUnit::specialRegisterPort(const std::string& name) const
     return srPort;
 }
 
-
 /**
  * Binds the given port to return address port.
  *
@@ -294,9 +275,7 @@ ControlUnit::specialRegisterPort(const std::string& name) const
  *                                control unit.
  */
 void
-ControlUnit::setReturnAddressPort(const SpecialRegisterPort& port)
-    throw (IllegalRegistration) {
-
+ControlUnit::setReturnAddressPort(const SpecialRegisterPort& port) {
     if (port.parentUnit() != this) {
         const string procName = "ControlUnit::setReturnAddressPort";
         throw IllegalRegistration(__FILE__, __LINE__, procName);
@@ -304,7 +283,6 @@ ControlUnit::setReturnAddressPort(const SpecialRegisterPort& port)
 
     raPort_ = const_cast<SpecialRegisterPort*>(&port);
 }
-
 
 /**
  * Unbinds the return address port if one exists.
@@ -333,9 +311,7 @@ ControlUnit::hasReturnAddressPort() const {
  * @exception InstanceNotFound If there is no return address port.
  */
 SpecialRegisterPort*
-ControlUnit::returnAddressPort() const
-    throw (InstanceNotFound) {
-
+ControlUnit::returnAddressPort() const {
     if (raPort_ != NULL) {
         return raPort_;
     } else {
@@ -343,7 +319,6 @@ ControlUnit::returnAddressPort() const
         throw InstanceNotFound(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Saves the contents to an ObjectState tree.
@@ -380,13 +355,10 @@ ControlUnit::saveState() const {
  *                                        machine parts cannot be made.
  */
 void
-ControlUnit::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+ControlUnit::loadState(const ObjectState* state) {
     FunctionUnit::loadState(state);
     loadStateWithoutReferences(state);
 }
-
 
 /**
  * Removes the given port from the control unit and unsets the binding of
@@ -412,9 +384,7 @@ ControlUnit::removePort(Port& port) {
  *                                        the state.
  */
 void
-ControlUnit::loadStateWithoutReferences(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+ControlUnit::loadStateWithoutReferences(const ObjectState* state) {
     const string procName = "ControlUnit::loadStateWithoutReferences";
 
     if (state->name() != OSNAME_CONTROL_UNIT) {
@@ -436,7 +406,6 @@ ControlUnit::loadStateWithoutReferences(const ObjectState* state)
                                           e.errorMessage());
     }
 }
-
 
 /**
  * Tells whether the given machine has a guard that reads a register with

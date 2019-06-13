@@ -63,8 +63,7 @@ public:
     virtual ~ProximMainFrame();
 
     void addSubWindow(ProximSimulatorWindow* window);
-    void removeSubWindow(ProximSimulatorWindow* window)
-        throw (InstanceNotFound);
+    void removeSubWindow(ProximSimulatorWindow* window);
     void createToolbar();
     void createMenubar();
     void reset();

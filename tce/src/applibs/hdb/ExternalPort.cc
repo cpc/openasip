@@ -200,9 +200,7 @@ ExternalPort::parameterDependencyCount() const {
  *                       number of parameters the port is dependent on.
  */
 std::string
-ExternalPort::parameterDependency(int index) const
-    throw (OutOfRange) {
-
+ExternalPort::parameterDependency(int index) const {
     if (index < 0 || index >= parameterDependencyCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }

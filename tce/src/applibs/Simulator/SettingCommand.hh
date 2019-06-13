@@ -53,8 +53,7 @@ public:
     SettingCommand();
     virtual ~SettingCommand();
 
-    virtual bool execute(const std::vector<DataObject>& arguments)
-        throw (NumberFormatException);
+    virtual bool execute(const std::vector<DataObject>& arguments);
     virtual std::string helpText() const;
 
     /**

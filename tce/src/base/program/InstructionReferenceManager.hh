@@ -85,8 +85,7 @@ public:
     virtual ~InstructionReferenceManager();
 
     InstructionReference createReference(Instruction& ins);
-    void replace(Instruction& insA, Instruction& insB)
-        throw (InstanceNotFound);
+    void replace(Instruction& insA, Instruction& insB);
     void clearReferences();
     bool hasReference(Instruction& ins) const;
     unsigned int referenceCount(Instruction& ins) const;

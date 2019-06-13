@@ -45,14 +45,10 @@ public:
     BEMSerializer();
     virtual ~BEMSerializer();
 
-    virtual ObjectState* readState()
-	throw (SerializerException);
-    virtual void writeState(const ObjectState* state)
-	throw (SerializerException);
-    BinaryEncoding* readBinaryEncoding()
-	throw (SerializerException, ObjectStateLoadingException);
-    void writeBinaryEncoding(const BinaryEncoding& bem)
-	throw (SerializerException);
+    virtual ObjectState* readState();
+    virtual void writeState(const ObjectState* state);
+    BinaryEncoding* readBinaryEncoding();
+    void writeBinaryEncoding(const BinaryEncoding& bem);
 
 private:
     static ObjectState* convertToOMFormat(const ObjectState* fileState);

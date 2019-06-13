@@ -74,8 +74,7 @@ public:
     std::string name() const;
     std::string widthFormula() const;
     bool realWidthAvailable() const;
-    int realWidth() const
-        throw (NotAvailable);
+    int realWidth() const;
     DataType dataType() const;
     HDB::Direction direction() const;
 

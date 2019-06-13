@@ -71,12 +71,9 @@ protected:
     TPEFReader();
     virtual ~TPEFReader();
 
-    virtual Binary* readData(BinaryStream& stream) const
-        throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists,
-               EndOfFile, OutOfRange, WrongSubclass, UnexpectedValue);
+    virtual Binary* readData(BinaryStream& stream) const;
 
-    virtual bool isMyStreamType(BinaryStream& stream) const
-        throw (UnreachableStream);
+    virtual bool isMyStreamType(BinaryStream& stream) const;
 
 private:
     Section* readSection(

@@ -43,11 +43,9 @@
  * @exception InvalidData If the model could not be built from the given FU.
  */
 ReservationTableFUResourceConflictDetector::
-ReservationTableFUResourceConflictDetector(
-    const TTAMachine::FunctionUnit& fu) 
-    throw (InvalidData) :
-    reservationTables_(fu), globalReservationTable_(fu), fu_(fu) {
-}
+    ReservationTableFUResourceConflictDetector(
+        const TTAMachine::FunctionUnit& fu)
+    : reservationTables_(fu), globalReservationTable_(fu), fu_(fu) {}
 
 /**
  * Destructor.

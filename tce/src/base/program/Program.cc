@@ -190,7 +190,7 @@ Program::targetProcessor() const {
  * @exception InstanceNotFound if there are no procedures.
  */
 Procedure&
-Program::firstProcedure() const throw (InstanceNotFound) {
+Program::firstProcedure() const {
     if (procedureCount() > 0) {
         return *procedures_.at(0);
     } else {
@@ -207,8 +207,7 @@ Program::firstProcedure() const throw (InstanceNotFound) {
  * @exception InstanceNotFound if there are no procedures.
  */
 Procedure&
-Program::lastProcedure() const 
-    throw (InstanceNotFound) {
+Program::lastProcedure() const {
     if (procedureCount() > 0) {
         return *procedures_.at(procedureCount() - 1);
     } else {
@@ -228,9 +227,7 @@ Program::lastProcedure() const
  *            to this program.
  */
 Procedure&
-Program::nextProcedure(const Procedure& proc) const
-    throw (IllegalRegistration) {
-
+Program::nextProcedure(const Procedure& proc) const {
     if (!proc.isInProgram() || &proc.parent() != this) {
         throw IllegalRegistration(
             __FILE__, __LINE__, __func__,
@@ -333,8 +330,7 @@ Program::setEntryAddress(Address address) {
  * @exception InstanceNotFound There is no instructions in program.
  */
 Instruction&
-Program::firstInstruction() const 
-    throw (InstanceNotFound) {
+Program::firstInstruction() const {
     if (!procedures_.empty()) {
         return firstProcedure().firstInstruction();
     } else {
@@ -355,9 +351,7 @@ Program::firstInstruction() const
  * @return The instruction at the given address.
  */
 Instruction&
-Program::instructionAt(InstructionAddress address) const 
-    throw (KeyNotFound) {
-
+Program::instructionAt(InstructionAddress address) const {
     for(ProcIter iter = procedures_.begin(); iter != procedures_.end();
         iter++) {
 
@@ -386,9 +380,7 @@ Program::instructionAt(InstructionAddress address) const
  *       whole program!
  */
 Instruction&
-Program::nextInstruction(const Instruction& ins) const
-    throw (IllegalRegistration) {
-
+Program::nextInstruction(const Instruction& ins) const {
     if (!ins.isInProcedure() || !ins.parent().isInProgram() ||
         &ins.parent().parent() != this) {
 
@@ -442,7 +434,7 @@ Program::nextInstruction(const Instruction& ins) const
  * @exception InstanceNotFound There is no instructions in the program.
  */
 Instruction&
-Program::lastInstruction() const throw (InstanceNotFound) {
+Program::lastInstruction() const {
     if (!procedures_.empty()) {
         return lastProcedure().lastInstruction();
     } else {
@@ -458,8 +450,8 @@ Program::lastInstruction() const throw (InstanceNotFound) {
  * @return a reference to the found move
  * @exception KeyNotFound if the move wasn't found at the given location
  */
-const TTAProgram::Move& 
-Program::moveAt(int number) const throw (KeyNotFound) {
+const TTAProgram::Move&
+Program::moveAt(int number) const {
     if (number < 0 || number >= static_cast<int>(moves_.size())) {
         throw KeyNotFound(__FILE__, __LINE__, __FUNCTION__,
             "Move not found at location: " + Conversion::toString(number));
@@ -503,8 +495,7 @@ Program::procedureAtIndex(int index) const {
  *                                program.
  */
 void
-Program::addProcedure(Procedure* proc) throw (IllegalRegistration) {
-
+Program::addProcedure(Procedure* proc) {
     if (proc->isInProgram()) {
         throw IllegalRegistration(
             __FILE__, __LINE__, __func__,
@@ -534,8 +525,7 @@ Program::addProcedure(Procedure* proc) throw (IllegalRegistration) {
  *            procedure or there are no procedures in the program.
  */
 void
-Program::addInstruction(Instruction* ins) throw (IllegalRegistration) {
-
+Program::addInstruction(Instruction* ins) {
     if (procedures_.empty()) {
         throw IllegalRegistration(
             __FILE__, __LINE__, __func__,
@@ -603,7 +593,7 @@ Program::procedureCount() const {
  * @exception OutOfRange if the index is out of range.
  */
 Procedure&
-Program::procedure(int index) const throw (OutOfRange) {
+Program::procedure(int index) const {
     if (index >= 0 &&
         static_cast<unsigned int>(index) < procedures_.size()) {
         return *procedures_.at(index);
@@ -614,7 +604,7 @@ Program::procedure(int index) const throw (OutOfRange) {
             Conversion::toString(index));
     }
 }
-    
+
 /**
  * Returns the procedure at the given index.
  *
@@ -635,8 +625,7 @@ Program::operator[](size_t index) {
  * @exception KeyNotFound if the procedure cannot be found.
  */
 Procedure&
-Program::procedure(const std::string& name) const
-    throw (KeyNotFound) {
+Program::procedure(const std::string& name) const {
     ProcList::const_iterator i = procedures_.begin();
     while (i != procedures_.end()) {
         if ((*i)->name() == name) {
@@ -861,9 +850,7 @@ Program::copyDataMemoriesFrom(const Program& srcProg) {
  *            program.
  */
 void
-Program::removeProcedure(Procedure& proc) 
-    throw (IllegalRegistration) {
-
+Program::removeProcedure(Procedure& proc) {
     if (&proc.parent() != this) {
         throw IllegalRegistration(
             __FILE__, __LINE__, __func__, 
@@ -916,8 +903,7 @@ Program::dataMemoryCount() const {
  *                                found from the program.
  */
 void
-Program::addDataMemory(DataMemory* dataMem) 
-    throw (IllegalRegistration) {
+Program::addDataMemory(DataMemory* dataMem) {
     // TODO: check that there is no another data mem with same address space...
     dataMems_.push_back(dataMem);
 }
@@ -930,8 +916,7 @@ Program::addDataMemory(DataMemory* dataMem)
  * @exception OutOfRange the index is out of range.
  */
 DataMemory&
-Program::dataMemory(int index) const 
-    throw (OutOfRange) {
+Program::dataMemory(int index) const {
     if (index >= 0 &&
         static_cast<unsigned int>(index) < dataMems_.size()) {
         return *dataMems_.at(index);
@@ -951,9 +936,7 @@ Program::dataMemory(int index) const
  * @exception KeyNotFound if the data memory cannot be found.
  */
 DataMemory&
-Program::dataMemory(const std::string& aSpaceName) const
-    throw (KeyNotFound) {
-    
+Program::dataMemory(const std::string& aSpaceName) const {
     for (int i = 0; i < dataMemoryCount(); i++) {
         if (dataMemory(i).addressSpace().name() == aSpaceName) {
             return dataMemory(i);
@@ -1050,10 +1033,7 @@ Program::replaceUniversalAddressSpaces(const TTAMachine::AddressSpace& space) {
  */
 Program*
 Program::loadFromUnscheduledTPEF(
-    const std::string& tpefFileName,
-    const TTAMachine::Machine& theMachine) 
-    throw (Exception) {
-
+    const std::string& tpefFileName, const TTAMachine::Machine& theMachine) {
     TPEF::BinaryStream binaryStream(tpefFileName);
 
     // read to TPEF Handler Module
@@ -1082,10 +1062,7 @@ Program::loadFromUnscheduledTPEF(
  */
 Program*
 Program::loadFromTPEF(
-    const std::string& tpefFileName,
-    const TTAMachine::Machine& theMachine)
-    throw (Exception) {
-
+    const std::string& tpefFileName, const TTAMachine::Machine& theMachine) {
     TPEF::BinaryStream binaryStream(tpefFileName);
 
     // read to TPEF Handler Module
@@ -1104,7 +1081,6 @@ Program::loadFromTPEF(
     return prog;
 }
 
-
 /**
  * A shortcut for loading a sequential program (from the old gcc 2.7.0
  * frontend) from a TPEF file.
@@ -1115,9 +1091,7 @@ Program::loadFromTPEF(
  * @exception Exception if the TPEF or program in it is somehow broken.
  */
 Program*
-Program::loadFromUnscheduledTPEF(const std::string& tpefFileName) 
-    throw (Exception) {
-
+Program::loadFromUnscheduledTPEF(const std::string& tpefFileName) {
     TPEF::BinaryStream binaryStream(tpefFileName);
 
     // read to TPEF Handler Module
@@ -1145,10 +1119,7 @@ Program::loadFromUnscheduledTPEF(const std::string& tpefFileName)
  */
 void
 Program::writeToTPEF(
-    const TTAProgram::Program& program,
-    const std::string& tpefFileName) 
-    throw (Exception) {
-
+    const TTAProgram::Program& program, const std::string& tpefFileName) {
     std::ofstream outputFile(
         tpefFileName.c_str(),
         std::ios_base::out|std::ios_base::trunc|std::ios_base::binary);

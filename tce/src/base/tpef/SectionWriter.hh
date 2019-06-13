@@ -109,9 +109,7 @@ private:
     SectionWriter(const SectionWriter&);
 
     static const SectionWriter* findSectionWriter(
-        const Section::SectionType type,
-        const BinaryWriter* bWriter)
-        throw (InstanceNotFound);
+        const Section::SectionType type, const BinaryWriter* bWriter);
 
     /// Contains section writers for all kinds of sections and all kinds of
     /// binrary fromats that are supported.

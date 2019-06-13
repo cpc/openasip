@@ -675,15 +675,12 @@ ProximMainFrame::addSubWindow(ProximSimulatorWindow* window) {
  * @param window Window to be removed.
  */
 void
-ProximMainFrame::removeSubWindow(ProximSimulatorWindow* window)
-    throw (InstanceNotFound) {
-
+ProximMainFrame::removeSubWindow(ProximSimulatorWindow* window) {
     if (!ContainerTools::removeValueIfExists(subwindows, window)) {
         std::string procName = "ProximMainFrame::removeSubWindow";
-        throw (InstanceNotFound(__FILE__, __LINE__, procName));
+        throw InstanceNotFound(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Event handler for View menu check items.

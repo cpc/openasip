@@ -73,9 +73,7 @@ ConditionScript::~ConditionScript() {
  * @exception ScriptExecutionFailure If script execution fails.
  */
 bool
-ConditionScript::conditionOk() 
-    throw (NumberFormatException, ScriptExecutionFailure) {
-    
+ConditionScript::conditionOk() {
     vector<string> scripts = script();
     if (scripts.size() == 1 && scripts[0] == "") {
         return true;

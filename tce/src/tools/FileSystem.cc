@@ -516,8 +516,7 @@ FileSystem::removeFileOrDirectory(const std::string& path) {
  * @exception IOException in case the copying failed.
  */
 void
-FileSystem::copy(const std::string& source, const std::string& target) 
-    throw (IOException) {
+FileSystem::copy(const std::string& source, const std::string& target) {
     namespace fs = boost::filesystem;
     Path sourcePath(source);
     Path targetPath(target);
@@ -552,10 +551,7 @@ FileSystem::copy(const std::string& source, const std::string& target)
  */
 std::string
 FileSystem::findFileInSearchPaths(
-    const std::vector<std::string>& searchPaths,
-    const std::string& file)
-    throw (FileNotFound) {
-
+    const std::vector<std::string>& searchPaths, const std::string& file) {
     string DS = FileSystem::DIRECTORY_SEPARATOR;
 
     if (isAbsolutePath(file)) {
@@ -589,10 +585,7 @@ FileSystem::findFileInSearchPaths(
  */
 std::vector<std::string>
 FileSystem::directoryContents(
-    const std::string& directory,
-    const bool absolutePaths) 
-    throw (FileNotFound) {
-
+    const std::string& directory, const bool absolutePaths) {
     try {
         std::vector<std::string> contents;
         // default construction yields past the end
@@ -637,10 +630,8 @@ FileSystem::directoryContents(
  * @note This function will not search the directories containing "." !
  * @exception FileNotFound If the given directory does not exist.
  */
-std::vector<std::string> 
-FileSystem::directorySubTrees(const std::string& directory)
-    throw (FileNotFound) {
-    
+std::vector<std::string>
+FileSystem::directorySubTrees(const std::string& directory) {
     std::vector<std::string> subTrees;
     
     try {    

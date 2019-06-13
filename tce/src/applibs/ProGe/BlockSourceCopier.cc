@@ -91,9 +91,7 @@ BlockSourceCopier::~BlockSourceCopier() {
  *                        opened.
  */
 void
-BlockSourceCopier::copyShared(const std::string& dstDirectory)
-    throw (IOException) {
-
+BlockSourceCopier::copyShared(const std::string& dstDirectory) {
     // copy FU files
     for (int i = 0; i < implementation_.fuImplementationCount(); i++) {
         FUImplementationLocation& fuImpl =
@@ -142,9 +140,7 @@ BlockSourceCopier::copyShared(const std::string& dstDirectory)
  *                        opened.
  */
 void
-BlockSourceCopier::copyProcessorSpecific(const std::string& dstDirectory)
-    throw (IOException) {
-
+BlockSourceCopier::copyProcessorSpecific(const std::string& dstDirectory) {
     // copy decompressor file
     const string DS = FileSystem::DIRECTORY_SEPARATOR;
     string decompressorTargetDir = dstDirectory + DS + "gcu_ic";
@@ -208,11 +204,8 @@ BlockSourceCopier::copyProcessorSpecific(const std::string& dstDirectory)
  */
 void
 BlockSourceCopier::instantiateHDLTemplate(
-    const std::string& srcFile,
-    const std::string& dstDirectory,
-    std::string newName)
-    throw (IOException) {
-
+    const std::string& srcFile, const std::string& dstDirectory,
+    std::string newName) {
     const string DS = FileSystem::DIRECTORY_SEPARATOR;
 
     if (!FileSystem::fileExists(srcFile)) {
@@ -254,9 +247,7 @@ BlockSourceCopier::instantiateHDLTemplate(
 void
 BlockSourceCopier::copyBaseRFFiles(
     const IDF::RFImplementationLocation& implementation,
-    const std::string& dstDirectory)
-    throw (IOException) {
-
+    const std::string& dstDirectory) {
     string hdbFile = implementation.hdbFile();
     int id = implementation.id();
     HDBManager& manager = HDBRegistry::instance().hdb(hdbFile);
@@ -266,7 +257,6 @@ BlockSourceCopier::copyBaseRFFiles(
     copyFiles(impl, hdbFile, dstDirectory);
     delete entry;
 }
-
 
 /**
  * Copies the block definition files of the given HW block implementation to
@@ -282,10 +272,7 @@ BlockSourceCopier::copyBaseRFFiles(
 void
 BlockSourceCopier::copyFiles(
     const HDB::HWBlockImplementation& implementation,
-    const std::string& hdbFile,
-    const std::string& dstDirectory)
-    throw (UnreachableStream, FileNotFound) {
-
+    const std::string& hdbFile, const std::string& dstDirectory) {
     for (int i = 0; i < implementation.implementationFileCount(); i++) {
         BlockImplementationFile& file = implementation.file(i);
         vector<string> modulePaths = Environment::vhdlPaths(hdbFile);
@@ -339,7 +326,6 @@ BlockSourceCopier::copyFiles(
         }
     }
 }
-
 
 /**
  * Marks the file as copied.

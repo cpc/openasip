@@ -56,8 +56,8 @@ public:
     void addState(
         const TTAMachine::MachinePart& momComponent, 
         StateData& state);
-    StateData& state(const TTAMachine::MachinePart& momComponent) const
-        throw (IllegalParameters);
+    StateData& state(const TTAMachine::MachinePart& momComponent) const;
+
 private:
     /// Copying not allowed.
     StateLocator(const StateLocator&);

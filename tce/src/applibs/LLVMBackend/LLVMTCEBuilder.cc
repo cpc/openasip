@@ -3550,8 +3550,7 @@ LLVMTCEBuilder::createMove(
  * @throw NotAvailable If program is not ready.
  */
 TTAProgram::Program*
-LLVMTCEBuilder::result() throw (NotAvailable) {
-
+LLVMTCEBuilder::result() {
     return prog_;
 }
 

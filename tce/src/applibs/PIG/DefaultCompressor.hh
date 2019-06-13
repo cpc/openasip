@@ -43,9 +43,7 @@ public:
     DEFAULT_Compressor() : CodeCompressorPlugin() {}
 
     virtual InstructionBitVector*
-    compress(const std::string& programName)
-        throw (InvalidData) {
-
+    compress(const std::string& programName) {
         try {
             startNewProgram(programName);
             setAllInstructionsToStartAtBeginningOfMAU();

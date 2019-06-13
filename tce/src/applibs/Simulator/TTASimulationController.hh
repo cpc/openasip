@@ -85,17 +85,13 @@ public:
 
     virtual ~TTASimulationController();
 
-    virtual void step(double count = 1)
-        throw (SimulationExecutionError) = 0;
+    virtual void step(double count = 1) = 0;
 
-    virtual void next(int count = 1)
-        throw (SimulationExecutionError) = 0;
+    virtual void next(int count = 1) = 0;
 
-    virtual void run()
-        throw (SimulationExecutionError) = 0;
+    virtual void run() = 0;
 
-    virtual void runUntil(UIntWord address)
-        throw (SimulationExecutionError) = 0;
+    virtual void runUntil(UIntWord address) = 0;
 
     virtual void reset() = 0;
     
@@ -113,8 +109,7 @@ public:
     
     virtual void prepareToStop(StopReason reason);
     virtual unsigned int stopReasonCount() const;
-    virtual StopReason stopReason(unsigned int index) const
-        throw (OutOfRange);
+    virtual StopReason stopReason(unsigned int index) const;
     virtual SimulationStatus state() const;
     virtual InstructionAddress programCounter() const = 0;
     virtual InstructionAddress lastExecutedInstruction() const;

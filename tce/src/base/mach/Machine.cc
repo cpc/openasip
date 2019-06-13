@@ -134,9 +134,7 @@ Machine::isUniversalMachine() const {
  *                                   name already exists in the machine.
  */
 void
-Machine::addBus(Bus& bus)
-    throw (ComponentAlreadyExists) {
-
+Machine::addBus(Bus& bus) {
     // check that the name is unique among immediate slots
     if (immediateSlotNavigator().hasItem(bus.name())) {
         const string procName = "Machine::addBus";
@@ -154,9 +152,7 @@ Machine::addBus(Bus& bus)
  *                                   exists in the machine.
  */
 void
-Machine::addSocket(Socket& socket)
-    throw (ComponentAlreadyExists) {
-
+Machine::addSocket(Socket& socket) {
     addComponent(sockets_, socket);
 }
 
@@ -174,9 +170,7 @@ Machine::addSocket(Socket& socket)
  *                              method.
  */
 void
-Machine::addUnit(Unit& unit)
-    throw (ComponentAlreadyExists, IllegalParameters) {
-
+Machine::addUnit(Unit& unit) {
     FunctionUnit* fu = dynamic_cast<FunctionUnit*>(&unit);
     ImmediateUnit* iu = dynamic_cast<ImmediateUnit*>(&unit);
     RegisterFile* rf = dynamic_cast<RegisterFile*>(&unit);
@@ -193,7 +187,6 @@ Machine::addUnit(Unit& unit)
     }
 }
 
-
 /**
  * Adds the given function unit to the machine.
  *
@@ -204,9 +197,7 @@ Machine::addUnit(Unit& unit)
  *                              method.
  */
 void
-Machine::addFunctionUnit(FunctionUnit& unit)
-    throw (ComponentAlreadyExists, IllegalParameters) {
-
+Machine::addFunctionUnit(FunctionUnit& unit) {
     const string procName = "Machine::addFunctionUnit";
 
     if (dynamic_cast<ControlUnit*>(&unit) != NULL) {
@@ -220,7 +211,6 @@ Machine::addFunctionUnit(FunctionUnit& unit)
     addComponent(functionUnits_, unit);
 }
 
-
 /**
  * Adds the given immediate unit to the machine.
  *
@@ -229,12 +219,9 @@ Machine::addFunctionUnit(FunctionUnit& unit)
  *                                   name exists already.
  */
 void
-Machine::addImmediateUnit(ImmediateUnit& unit)
-    throw (ComponentAlreadyExists) {
-
+Machine::addImmediateUnit(ImmediateUnit& unit) {
     addComponent(immediateUnits_, unit);
 }
-
 
 /**
  * Adds the given register file to the machine.
@@ -244,12 +231,9 @@ Machine::addImmediateUnit(ImmediateUnit& unit)
  *                                   exists already.
  */
 void
-Machine::addRegisterFile(RegisterFile& unit)
-    throw (ComponentAlreadyExists) {
-
+Machine::addRegisterFile(RegisterFile& unit) {
     addComponent(registerFiles_, unit);
 }
-
 
 /**
  * Adds an address space into the machine.
@@ -259,12 +243,9 @@ Machine::addRegisterFile(RegisterFile& unit)
  *                                   already exists in the machine.
  */
 void
-Machine::addAddressSpace(AddressSpace& as)
-    throw (ComponentAlreadyExists) {
-
+Machine::addAddressSpace(AddressSpace& as) {
     addRegisteredComponent(addressSpaces_, as);
 }
-
 
 /**
  * Adds a bridge into the machine.
@@ -277,12 +258,9 @@ Machine::addAddressSpace(AddressSpace& as)
  *                                   exists in the machine.
  */
 void
-Machine::addBridge(Bridge& bridge)
-    throw (ComponentAlreadyExists) {
-
+Machine::addBridge(Bridge& bridge) {
     addRegisteredComponent(bridges_, bridge);
 }
-
 
 /**
  * Adds an instruction template for the machine.
@@ -292,12 +270,9 @@ Machine::addBridge(Bridge& bridge)
  *                                   name already exists in the machine.
  */
 void
-Machine::addInstructionTemplate(InstructionTemplate& instrTempl)
-    throw (ComponentAlreadyExists) {
-
+Machine::addInstructionTemplate(InstructionTemplate& instrTempl) {
     addRegisteredComponent(instructionTemplates_, instrTempl);
 }
-
 
 /**
  * Adds an immediate slot to (instruction of) the machine.
@@ -307,9 +282,7 @@ Machine::addInstructionTemplate(InstructionTemplate& instrTempl)
  *                                   name already exists in the machine.
  */
 void
-Machine::addImmediateSlot(ImmediateSlot& slot)
-    throw (ComponentAlreadyExists) {
-
+Machine::addImmediateSlot(ImmediateSlot& slot) {
     // check that the name is unique among buses
     if (busNavigator().hasItem(slot.name())) {
         const string procName = "Machine::addImmediateSlot";
@@ -317,8 +290,7 @@ Machine::addImmediateSlot(ImmediateSlot& slot)
     }
 
     addRegisteredComponent(immediateSlots_, slot);
-}   
-
+}
 
 /**
  * Sets the global control unit for the machine.
@@ -328,9 +300,7 @@ Machine::addImmediateSlot(ImmediateSlot& slot)
  *                                   machine.
  */
 void
-Machine::setGlobalControl(ControlUnit& unit)
-    throw (ComponentAlreadyExists) {
-
+Machine::setGlobalControl(ControlUnit& unit) {
     const string procName = "Machine::setGlobalControl";
 
     if (controlUnit_ != NULL) {
@@ -349,7 +319,6 @@ Machine::setGlobalControl(ControlUnit& unit)
         controlUnit_ = &unit;
     }
 }
-
 
 /**
  * Returns the control unit of the machine.
@@ -481,12 +450,9 @@ Machine::immediateSlotNavigator() const {
  * @exception InstanceNotFound If the machine does not have the given bus.
  */
 void
-Machine::removeBus(Bus& bus)
-    throw (InstanceNotFound) {
-
+Machine::removeBus(Bus& bus) {
     removeComponent(busses_, bus);
 }
-
 
 /**
  * Removes socket from the machine.
@@ -497,12 +463,9 @@ Machine::removeBus(Bus& bus)
  * @exception InstanceNotFound If the machine does not have the given socket.
  */
 void
-Machine::removeSocket(Socket& socket)
-    throw (InstanceNotFound) {
-
+Machine::removeSocket(Socket& socket) {
     removeComponent(sockets_, socket);
 }
-
 
 /**
  * Removes unit from the machine.
@@ -515,9 +478,7 @@ Machine::removeSocket(Socket& socket)
  * @exception IllegalParameters If ControlUnit is tried to remove.
  */
 void
-Machine::removeUnit(Unit& unit)
-    throw (InstanceNotFound, IllegalParameters) {
-
+Machine::removeUnit(Unit& unit) {
     FunctionUnit* fu = dynamic_cast<FunctionUnit*>(&unit);
     ImmediateUnit* iu = dynamic_cast<ImmediateUnit*>(&unit);
     RegisterFile* rf = dynamic_cast<RegisterFile*>(&unit);
@@ -534,7 +495,6 @@ Machine::removeUnit(Unit& unit)
     }
 }
 
-
 /**
  * Removes the given function unit from the machine.
  *
@@ -543,12 +503,9 @@ Machine::removeUnit(Unit& unit)
  *                             the machine.
  */
 void
-Machine::removeFunctionUnit(FunctionUnit& unit)
-    throw (InstanceNotFound) {
-
+Machine::removeFunctionUnit(FunctionUnit& unit) {
     removeComponent(functionUnits_, unit);
 }
-
 
 /**
  * Removes the given immediate unit from the machine.
@@ -558,12 +515,9 @@ Machine::removeFunctionUnit(FunctionUnit& unit)
  *                             the machine.
  */
 void
-Machine::removeImmediateUnit(ImmediateUnit& unit)
-    throw (InstanceNotFound) {
-
+Machine::removeImmediateUnit(ImmediateUnit& unit) {
     removeComponent(immediateUnits_, unit);
 }
-
 
 /**
  * Removes the given register file from the machine.
@@ -573,12 +527,9 @@ Machine::removeImmediateUnit(ImmediateUnit& unit)
  *                             the machine.
  */
 void
-Machine::removeRegisterFile(RegisterFile& unit)
-    throw (InstanceNotFound) {
-
+Machine::removeRegisterFile(RegisterFile& unit) {
     removeComponent(registerFiles_, unit);
 }
-
 
 /**
  * Removes the global control unit from the machine.
@@ -609,12 +560,9 @@ Machine::unsetGlobalControl() {
  * @exception InstanceNotFound If the machine does not have the given bridge.
  */
 void
-Machine::deleteBridge(Bridge& bridge)
-    throw (InstanceNotFound) {
-
+Machine::deleteBridge(Bridge& bridge) {
     deleteComponent(bridges_, bridge);
 }
-
 
 /**
  * Deletes the given instruction template.
@@ -624,12 +572,9 @@ Machine::deleteBridge(Bridge& bridge)
  *                             instruction template.
  */
 void
-Machine::deleteInstructionTemplate(InstructionTemplate& instrTempl)
-    throw (InstanceNotFound) {
-
+Machine::deleteInstructionTemplate(InstructionTemplate& instrTempl) {
     deleteComponent(instructionTemplates_, instrTempl);
 }
-
 
 /**
  * Deletes the given address space.
@@ -639,12 +584,9 @@ Machine::deleteInstructionTemplate(InstructionTemplate& instrTempl)
  *                             space.
  */
 void
-Machine::deleteAddressSpace(AddressSpace& as)
-    throw (InstanceNotFound) {
-
+Machine::deleteAddressSpace(AddressSpace& as) {
     deleteComponent(addressSpaces_, as);
 }
-
 
 /**
  * Deletes the given immediate slot.
@@ -654,12 +596,9 @@ Machine::deleteAddressSpace(AddressSpace& as)
  *                             immediate slot.
  */
 void
-Machine::deleteImmediateSlot(ImmediateSlot& slot)
-    throw (InstanceNotFound) {
-
+Machine::deleteImmediateSlot(ImmediateSlot& slot) {
     deleteComponent(immediateSlots_, slot);
 }
-
 
 /**
  * Sets new position for the given bus.
@@ -673,9 +612,7 @@ Machine::deleteImmediateSlot(ImmediateSlot& slot)
  *                       than the number of buses in the machine.
  */
 void
-Machine::setBusPosition(const Bus& bus, int newPosition)
-    throw (IllegalRegistration, OutOfRange) {
-
+Machine::setBusPosition(const Bus& bus, int newPosition) {
     const string procName = "Machine::setBusPosition";
 
     if (bus.machine() != this) {
@@ -688,7 +625,6 @@ Machine::setBusPosition(const Bus& bus, int newPosition)
 
     busses_.moveToPosition(&bus, newPosition);
 }
-
 
 /**
  * Returns the machine tester for the machine.
@@ -750,9 +686,7 @@ Machine::saveState() const {
  *                                        invalid.
  */
 void
-Machine::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+Machine::loadState(const ObjectState* state) {
     string procName = "Machine::loadState";
 
     if (state->name() != OSNAME_MACHINE) {
@@ -897,7 +831,6 @@ Machine::loadState(const ObjectState* state)
     }
 }
 
-
 /**
  * Copies state from one machine to this machine.
  * (used for object copying).
@@ -921,20 +854,15 @@ Machine::copyFromMachine(Machine& machine) {
  * @exception Exception In case some error occured.
  */
 TTAMachine::Machine*
-Machine::loadFromADF(const std::string& adfFileName)
-    throw (Exception) {
-
+Machine::loadFromADF(const std::string& adfFileName) {
     ADFSerializer serializer;
     serializer.setSourceFile(adfFileName);
 
-    return serializer.readMachine();	
+    return serializer.readMachine();
 }
 
-
 void
-Machine::writeToADF(const std::string& adfFileName) const
-    throw (Exception) {
-
+Machine::writeToADF(const std::string& adfFileName) const {
     ADFSerializer serializer;
     serializer.setDestinationFile(adfFileName);
     serializer.writeMachine(*this);

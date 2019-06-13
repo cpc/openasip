@@ -52,34 +52,28 @@ public:
     virtual ~NullProcedure();
     static NullProcedure& instance();
 
-    Program& parent() const throw (IllegalRegistration);
+    Program& parent() const;
     void setParent(Program& prog);
     bool isInProgram() const;
     std::string name() const;
     int alignment() const;
 
-    Address address(const Instruction& ins) const
-        throw (IllegalRegistration);
+    Address address(const Instruction& ins) const;
 
     Address startAddress() const;
     void setStartAddress(Address start);
     Address endAddress() const;
 
     int instructionCount() const;
-    Instruction& firstInstruction() const throw (InstanceNotFound);
-    Instruction& instructionAt(UIntWord address) const
-        throw (KeyNotFound);
-    bool hasNextInstruction(const Instruction& ins) const
-        throw (IllegalRegistration);
-    Instruction& nextInstruction(const Instruction& ins) const
-        throw (IllegalRegistration);
-    Instruction& previousInstruction(const Instruction& ins) const
-        throw (IllegalRegistration);
-    Instruction& lastInstruction() const throw (IllegalRegistration);
+    Instruction& firstInstruction() const;
+    Instruction& instructionAt(UIntWord address) const;
+    bool hasNextInstruction(const Instruction& ins) const;
+    Instruction& nextInstruction(const Instruction& ins) const;
+    Instruction& previousInstruction(const Instruction& ins) const;
+    Instruction& lastInstruction() const;
 
-    void addInstruction(Instruction& ins) throw (IllegalRegistration);
-    void insertInstructionAfter(const Instruction& pos, Instruction* ins)
-        throw (IllegalRegistration);
+    void addInstruction(Instruction& ins);
+    void insertInstructionAfter(const Instruction& pos, Instruction* ins);
 
 protected:
     NullProcedure();

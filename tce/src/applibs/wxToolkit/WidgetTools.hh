@@ -45,13 +45,12 @@ class wxListCtrl;
  */
 class WidgetTools {
 public:
-    static void setWidgetLabel(wxWindow* widget, std::string text)
-        throw(WrongSubclass);
+    static void setWidgetLabel(wxWindow* widget, std::string text);
 
     static void setWidgetLabel(wxStaticBoxSizer* widget, std::string text);
 
-    static void setLabel(Texts::TextGenerator* generator, wxWindow* widget,
-                         int textID);
+    static void setLabel(
+        Texts::TextGenerator* generator, wxWindow* widget, int textID);
 
     static std::string lcStringSelection(wxListCtrl* list, int column);
 };

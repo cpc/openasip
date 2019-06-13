@@ -98,10 +98,9 @@ public:
     
     virtual ~TPEFProgramFactory();
 
-    Program* build() throw (NotAvailable, Exception);
-    
+    Program* build();
+
 protected:
-   
     typedef std::map<HalfWord, SimValue*> InlineValues;    
     typedef std::pair<Word, Word> ImmediateKey;
     typedef std::map<ImmediateKey, TPEF::ImmediateElement*> ImmediateMap;

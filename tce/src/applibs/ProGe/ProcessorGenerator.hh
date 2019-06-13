@@ -67,18 +67,12 @@ public:
     virtual ~ProcessorGenerator();
 
     void generateProcessor(
-        HDL language,
-        const TTAMachine::Machine& machine,
+        HDL language, const TTAMachine::Machine& machine,
         const IDF::MachineImplementation& implementation,
-        ICDecoderGeneratorPlugin& plugin,
-        int imemWidthInMAUs,
-        const std::string& dstDirectory,
-        const std::string& sharedDstDirectory,
-        const std::string& entityString,
-        std::ostream& errorStream,
-        std::ostream& warningStream)
-        throw (IOException, InvalidData, IllegalMachine, OutOfRange,
-               InstanceNotFound);
+        ICDecoderGeneratorPlugin& plugin, int imemWidthInMAUs,
+        const std::string& dstDirectory, const std::string& sharedDstDirectory,
+        const std::string& entityString, std::ostream& errorStream,
+        std::ostream& warningStream);
 
     static int iMemAddressWidth(const TTAMachine::Machine& mach);
     static int iMemWidth(
@@ -94,22 +88,16 @@ public:
 
 private:
     void validateMachine(
-        const TTAMachine::Machine& machine,
-        std::ostream& errorStream,
-        std::ostream& warningStream)
-        throw (IllegalMachine);
+        const TTAMachine::Machine& machine, std::ostream& errorStream,
+        std::ostream& warningStream);
     void checkIULatencies(
         const TTAMachine::Machine& machine,
         const IDF::MachineImplementation& implementation,
-        const ICDecoderGeneratorPlugin& plugin)
-        throw (Exception);
+        const ICDecoderGeneratorPlugin& plugin);
     void generateGlobalsPackage(
-        HDL language,
-        const TTAMachine::Machine& machine,
-        const BinaryEncoding& bem,
-        int imemWidthInMAUs,
-        const std::string& dstDirectory)
-        throw (IOException);
+        HDL language, const TTAMachine::Machine& machine,
+        const BinaryEncoding& bem, int imemWidthInMAUs,
+        const std::string& dstDirectory);
 
     Netlist* netlist_;
     TCEString entityStr_;

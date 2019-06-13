@@ -53,34 +53,26 @@ class Socket;
  */
 class Segment : public SubComponent {
 public:
-    Segment(const std::string& name, Bus& parent)
-        throw (ComponentAlreadyExists, InvalidName);
-    Segment(const ObjectState* state, Bus& parent)
-        throw (ComponentAlreadyExists, ObjectStateLoadingException);
+    Segment(const std::string& name, Bus& parent);
+    Segment(const ObjectState* state, Bus& parent);
     ~Segment();
 
-    void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
+    void setName(const std::string& name);
     std::string name() const;
 
-    void attachSocket(Socket& socket)
-        throw (IllegalRegistration, IllegalConnectivity);
-    void detachSocket(Socket& socket)
-        throw (InstanceNotFound);
+    void attachSocket(Socket& socket);
+    void detachSocket(Socket& socket);
     void detachAllSockets();
 
     bool isConnectedTo(const Socket& socket) const;
     const Connection& connection(const Socket& socket) const;
-    Socket* connection(int index) const
-        throw (OutOfRange);
+    Socket* connection(int index) const;
     int connectionCount() const;
 
     Bus* parentBus() const;
 
-    void moveBefore(Segment& segment)
-        throw (IllegalRegistration);
-    void moveAfter(Segment& segment)
-        throw (IllegalRegistration);
+    void moveBefore(Segment& segment);
+    void moveAfter(Segment& segment);
 
     bool hasSourceSegment() const;
     bool hasDestinationSegment() const;
@@ -89,8 +81,7 @@ public:
     Segment* destinationSegment() const;
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for Segment.
     static const std::string OSNAME_SEGMENT;
@@ -103,8 +94,7 @@ private:
     /// Vector of Connection pointers.
     typedef std::vector<const Connection*> ConnectionTable;
 
-    void loadStateWithoutReferences(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadStateWithoutReferences(const ObjectState* state);
     void removeConnection(const Connection* connection);
 
     /// Name of the segment.

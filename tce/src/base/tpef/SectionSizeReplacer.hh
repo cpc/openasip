@@ -56,8 +56,7 @@ public:
     static void clear();
 
 protected:
-    virtual bool tryToReplace()
-        throw (UnreachableStream, WritePastEOF);
+    virtual bool tryToReplace();
 
     virtual ValueReplacer* clone();
 

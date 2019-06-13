@@ -47,14 +47,9 @@
 class GPRGuardEncoding : public GuardEncoding {
 public:
     GPRGuardEncoding(
-	const std::string& regFile,
-	int index,
-	bool inverted,
-	unsigned int encoding,
-	GuardField& parent)
-	throw (ObjectAlreadyExists);
-    GPRGuardEncoding(const ObjectState* state, GuardField& parent)
-	throw (ObjectStateLoadingException, ObjectAlreadyExists);
+        const std::string& regFile, int index, bool inverted,
+        unsigned int encoding, GuardField& parent);
+    GPRGuardEncoding(const ObjectState* state, GuardField& parent);
     virtual ~GPRGuardEncoding();
 
     std::string registerFile() const;

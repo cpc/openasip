@@ -72,9 +72,7 @@ ExpressionScript::~ExpressionScript() {
  * @exception NumberFormatException If DataObject operation fails.
  */
 bool
-ExpressionScript::resultChanged() 
-    throw (ScriptExecutionFailure, NumberFormatException) {
-
+ExpressionScript::resultChanged() {
     DataObject obj;
     try {
         obj = lastResult();

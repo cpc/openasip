@@ -65,28 +65,19 @@ public:
     std::string description() const;
 
     /// Pure virtual function that parses the value of option.
-    virtual bool parseValue(std::string arguments, std::string prefix)
-        throw (IllegalCommandLine) = 0;
+    virtual bool parseValue(std::string arguments, std::string prefix) = 0;
 
     bool isDefined();
 
-    virtual int integer(int index = 0) const
-        throw (WrongSubclass);
-    virtual unsigned unsignedInteger(int index = 0) const
-        throw (WrongSubclass);
-    virtual std::string String(int index = 0) const
-        throw (WrongSubclass);
-    virtual double real() const
-	throw (WrongSubclass);
-    virtual bool isFlagOn() const
-	throw (WrongSubclass);
-    virtual bool isFlagOff() const
-	throw (WrongSubclass);
-    virtual int listSize() const
-	throw (WrongSubclass);
+    virtual int integer(int index = 0) const;
+    virtual unsigned unsignedInteger(int index = 0) const;
+    virtual std::string String(int index = 0) const;
+    virtual double real() const;
+    virtual bool isFlagOn() const;
+    virtual bool isFlagOff() const;
+    virtual int listSize() const;
 
 protected:
-
     void setDefined();
 
 private:
@@ -125,10 +116,8 @@ public:
 
     virtual OptionValue* copy() const;
 
-    virtual bool parseValue(std::string arguments, std::string prefix)
-        throw (IllegalCommandLine);
-    virtual int integer(int index = 0) const
-        throw (WrongSubclass);
+    virtual bool parseValue(std::string arguments, std::string prefix);
+    virtual int integer(int index = 0) const;
 
 private:
     /// Copying not allowed.
@@ -157,10 +146,8 @@ public:
 
     virtual OptionValue* copy() const;
 
-    virtual bool parseValue(std::string arguments, std::string prefix)
-        throw (IllegalCommandLine);
-    virtual unsigned unsignedInteger(int index = 0) const
-        throw (WrongSubclass);
+    virtual bool parseValue(std::string arguments, std::string prefix);
+    virtual unsigned unsignedInteger(int index = 0) const;
 
 private:
     /// Copying not allowed.
@@ -192,10 +179,8 @@ public:
 
     virtual OptionValue* copy() const;
 
-    virtual bool parseValue(std::string arguments, std::string prefix)
-        throw (IllegalCommandLine);
-    virtual std::string String(int index = 0) const
-        throw (WrongSubclass);
+    virtual bool parseValue(std::string arguments, std::string prefix);
+    virtual std::string String(int index = 0) const;
 
 private:
     /// Copying not allowed.
@@ -224,10 +209,8 @@ public:
 
     virtual OptionValue* copy() const;
 
-    virtual bool parseValue(std::string arguments, std::string prefix)
-        throw (IllegalCommandLine);
-    virtual double real() const
-        throw (WrongSubclass);
+    virtual bool parseValue(std::string arguments, std::string prefix);
+    virtual double real() const;
 
 private:
     /// Copying not allowed.
@@ -258,12 +241,9 @@ public:
 
     virtual OptionValue* copy() const;
 
-    virtual bool parseValue(std::string arguments, std::string prefix)
-        throw (IllegalCommandLine);
-    virtual bool isFlagOn() const
-        throw (WrongSubclass);
-    virtual bool isFlagOff() const
-        throw (WrongSubclass);
+    virtual bool parseValue(std::string arguments, std::string prefix);
+    virtual bool isFlagOn() const;
+    virtual bool isFlagOff() const;
 
 private:
     /// Copying not allowed.
@@ -292,14 +272,10 @@ public:
 
     virtual OptionValue* copy() const;
 
-    virtual bool parseValue(std::string arguments, std::string prefix)
-        throw (IllegalCommandLine);
+    virtual bool parseValue(std::string arguments, std::string prefix);
 
-    virtual int integer(int index = 0) const
-        throw (WrongSubclass);
-    virtual int listSize() const
-        throw (WrongSubclass);
-
+    virtual int integer(int index = 0) const;
+    virtual int listSize() const;
 
 private:
     /// Copying not allowed.
@@ -330,14 +306,10 @@ public:
 
     virtual OptionValue* copy() const;
 
-    virtual bool parseValue(std::string arguments, std::string prefix)
-        throw (IllegalCommandLine);
+    virtual bool parseValue(std::string arguments, std::string prefix);
 
-    virtual std::string String(int index = 0) const
-        throw (WrongSubclass);
-    virtual int listSize() const
-        throw (WrongSubclass);
-
+    virtual std::string String(int index = 0) const;
+    virtual int listSize() const;
 
 private:
     /// Copying not allowed.

@@ -52,13 +52,11 @@ public:
     virtual ~FUEntry();
 
     virtual bool hasImplementation() const;
-    FUImplementation& implementation() const
-        throw (NotAvailable);
+    FUImplementation& implementation() const;
     void setImplementation(FUImplementation* implementation);
     
     virtual bool hasArchitecture() const;
-    FUArchitecture& architecture() const
-        throw (NotAvailable);
+    FUArchitecture& architecture() const;
     void setArchitecture(FUArchitecture* architecture);
 
 private:

@@ -58,8 +58,7 @@ public:
 
     bool validate();
     int errorCount() const;
-    std::string errorMessage(int index) const
-        throw (OutOfRange);
+    std::string errorMessage(int index) const;
 
     static void removeUnknownImplementations(
         IDF::MachineImplementation& idf,

@@ -53,7 +53,7 @@ public:
     ResourceBuildDirector();
     virtual ~ResourceBuildDirector();
 
-    void addBroker(ResourceBroker& broker) throw (ObjectAlreadyExists);
+    void addBroker(ResourceBroker& broker);
     void build(const TTAMachine::Machine& machine);
 
     void print(std::ostream& target_, unsigned int cycles) const;

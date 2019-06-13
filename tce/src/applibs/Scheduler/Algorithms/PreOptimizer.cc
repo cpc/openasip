@@ -69,11 +69,9 @@ PreOptimizer::PreOptimizer(InterPassData& data) : ProcedurePass(data),
  * @param program the program.
  * @param targetMachine targetmachine. Not used at all.
  */
-void 
+void
 PreOptimizer::handleProgram(
-    TTAProgram::Program& program,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
+    TTAProgram::Program& program, const TTAMachine::Machine& targetMachine) {
     ProgramPass::executeProcedurePass(program, targetMachine, *this);
 }
 
@@ -395,10 +393,7 @@ bool PreOptimizer::inverseGuardsOfHeads(
  */
 void
 PreOptimizer::handleProcedure(
-    TTAProgram::Procedure& procedure,
-    const TTAMachine::Machine& mach)
-    throw (Exception) {
-
+    TTAProgram::Procedure& procedure, const TTAMachine::Machine& mach) {
     // If procedure has too many instructions, may run out of memory.
     // so check the lowmem mode. in lowmem mode this optimiziation 
     // is disabled, so returns.
@@ -459,13 +454,9 @@ PreOptimizer::handleCFGDDG(
     }
 }
 
-
 void
 PreOptimizer::handleControlFlowGraph(
-    ControlFlowGraph& cfg,
-    const TTAMachine::Machine& mach)
-    throw (Exception) {
-
+    ControlFlowGraph& cfg, const TTAMachine::Machine& mach) {
     DataDependenceGraphBuilder ddgBuilder(ProcedurePass::interPassData());
     // only RAW register edges and operation edges. no mem edges, 
     // no anti-edges.

@@ -48,12 +48,10 @@ class NullUnitImplementationLocation : public UnitImplementationLocation  {
 public:
     static NullUnitImplementationLocation& instance();
 
-    virtual std::string hdbFile() const
-        throw (FileNotFound);
+    virtual std::string hdbFile() const;
     virtual int id() const;
     virtual std::string unitName() const;
-    virtual void setParent(MachineImplementation& parent)
-        throw (InvalidData);
+    virtual void setParent(MachineImplementation& parent);
 
 protected:
     NullUnitImplementationLocation();

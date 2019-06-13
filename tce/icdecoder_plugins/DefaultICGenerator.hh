@@ -68,10 +68,8 @@ public:
     void addICToNetlist(
         const ProGe::NetlistGenerator& generator,
         ProGe::Netlist& netlist);
-    void generateInterconnectionNetwork(const std::string& dstDirectory)
-        throw (IOException);
-    void verifyCompatibility() const
-        throw (InvalidData);
+    void generateInterconnectionNetwork(const std::string& dstDirectory);
+    void verifyCompatibility() const;
 
     void setGenerateBusTrace(bool generate);
     void setGenerateDebugger(bool generate);
@@ -79,18 +77,14 @@ public:
 
     virtual int outputSocketCntrlPinForSegment(
         const TTAMachine::Socket& socket,
-        const TTAMachine::Segment& segment) const
-        throw (NotAvailable);
+        const TTAMachine::Segment& segment) const;
 
     virtual int outputSocketDataControlValue(
-        const TTAMachine::Socket& socket,
-        const TTAMachine::Port& port) const
-        throw (NotAvailable);
+        const TTAMachine::Socket& socket, const TTAMachine::Port& port) const;
 
     virtual int inputSocketControlValue(
         const TTAMachine::Socket& socket,
-        const TTAMachine::Segment& segment) const
-        throw (NotAvailable);
+        const TTAMachine::Segment& segment) const;
 
 private:
     typedef std::map<const TTAMachine::Socket*, int> SocketSignalMap;
@@ -99,17 +93,13 @@ private:
 
     void writeInterconnectionNetwork(std::ostream& stream);
 
-    void generateSockets(const std::string& dstDirectory) const
-        throw (IOException);
+    void generateSockets(const std::string& dstDirectory) const;
 
     bool isGcuPort(const TTAMachine::Port* port) const;
 
     void generateSocket(
-        TTAMachine::Socket::Direction direction,
-        int portConns,
-        int segmentConns,
-        const std::string& dstDirectory) const
-        throw (IOException);
+        TTAMachine::Socket::Direction direction, int portConns,
+        int segmentConns, const std::string& dstDirectory) const;
     void generateInputSocket(
         int segmentConns,
         std::ofstream& stream) const;

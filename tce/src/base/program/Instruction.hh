@@ -76,23 +76,23 @@ public:
 #endif
     ~Instruction();
 
-    CodeSnippet& parent() const throw (IllegalRegistration);
+    CodeSnippet& parent() const;
     void setParent(CodeSnippet& proc);
     bool isInProcedure() const;
 
-    void addMove(Move* move) throw (ObjectAlreadyExists);
+    void addMove(Move* move);
     int moveCount() const;
-    Move& move(int i) const throw (OutOfRange);
-    void removeMove(Move& move) throw (IllegalRegistration);
+    Move& move(int i) const;
+    void removeMove(Move& move);
 
     bool isNOP() const { return moveCount() == 0 && immediateCount() == 0; }
 
-    void addImmediate(Immediate* imm) throw (ObjectAlreadyExists);
+    void addImmediate(Immediate* imm);
     int immediateCount() const;
-    Immediate& immediate(int i) const throw (OutOfRange);
-    void removeImmediate(Immediate& imm) throw (IllegalRegistration);
+    Immediate& immediate(int i) const;
+    void removeImmediate(Immediate& imm);
 
-    Address address() const throw (IllegalRegistration);
+    Address address() const;
 
     int size() const;
 

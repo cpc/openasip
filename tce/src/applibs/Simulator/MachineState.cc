@@ -145,9 +145,7 @@ MachineState::fuState(const std::string& name) {
  * @exception OutOfRange If index is out of range.
  */
 FUState&
-MachineState::fuState(int index)
-    throw (OutOfRange) {
-
+MachineState::fuState(int index) {
     const int count = FUStateCount();
     if (index < 0 || (index > count - 1)) {
         string msg = "FUState index out of range";

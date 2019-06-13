@@ -49,9 +49,7 @@ using boost::format;
  * @exception WrongSubclass If the widget was not a wxControl.
  */
 void
-WidgetTools::setWidgetLabel(
-    wxWindow* widget, string text) throw(WrongSubclass) {
-
+WidgetTools::setWidgetLabel(wxWindow* widget, string text) {
     // wxControls
     if (widget->IsKindOf(CLASSINFO(wxControl))) {
         wxControl* control = dynamic_cast<wxControl*>(widget);
@@ -67,7 +65,6 @@ WidgetTools::setWidgetLabel(
     message += "unable to set the widget label.";
     throw WrongSubclass(__FILE__, __LINE__, method, message);
 }
-
 
 /**
  * Sets a boxsizer label text.

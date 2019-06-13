@@ -67,16 +67,13 @@ ProgrammabilityValidatorResults::errorCount() const {
  *                       the number of errors.
  */
 ProgrammabilityValidatorResults::Error
-ProgrammabilityValidatorResults::error(int index) const
-    throw (OutOfRange) {
-
+ProgrammabilityValidatorResults::error(int index) const {
     if (index < 0 || index >= errorCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
 
     return errors_[index];
 }
-
 
 /**
  * Adds an error to the results.

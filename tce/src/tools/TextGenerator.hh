@@ -82,8 +82,7 @@ namespace Texts {
         TextGenerator();
         virtual ~TextGenerator();
 
-        virtual boost::format text(int textId)
-            throw (KeyNotFound);
+        virtual boost::format text(int textId);
         virtual void addText(int textId, const std::string& templateString);
         virtual void replaceText(int textId, const std::string& newString);
 

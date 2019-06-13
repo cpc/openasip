@@ -60,8 +60,7 @@ public:
     virtual void addByte(Byte aByte);
 
     virtual MinimumAddressableUnit MAU(Word index) const;
-    virtual void addMAU(MinimumAddressableUnit aMAU)
-        throw (OutOfRange);
+    virtual void addMAU(MinimumAddressableUnit aMAU);
 
     virtual void writeValue(Word index, Word numOfMAUs, unsigned long value);
     virtual void writeValue(Word index, Word numOfMAUs, signed long value);

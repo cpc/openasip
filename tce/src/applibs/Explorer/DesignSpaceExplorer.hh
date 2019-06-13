@@ -80,9 +80,8 @@ public:
 
     virtual DSDBManager& db();
     static DesignSpaceExplorerPlugin* loadExplorerPlugin(
-        const std::string& pluginName, DSDBManager* dsdb = NULL)
-        throw (FileNotFound, DynamicLibraryException);
-    
+        const std::string& pluginName, DSDBManager* dsdb = NULL);
+
     std::vector<DesignSpaceExplorerPlugin*> getPlugins();
 
     RowID createImplementationAndStore(
@@ -118,16 +117,12 @@ protected:
     TTAProgram::Program* schedule(
         const std::string applicationFile,
         TTAMachine::Machine& machine);
-    
+
     const ExecutionTrace* simulate(
-        const TTAProgram::Program& program,
-        const TTAMachine::Machine& machine,
+        const TTAProgram::Program& program, const TTAMachine::Machine& machine,
         const TestApplication& testApplication,
-        const ClockCycleCount& maxCycles,
-        ClockCycleCount& runnedCycles,
-        const bool tracing,
-        const bool useCompiledSimulation = false)
-        throw (Exception);
+        const ClockCycleCount& maxCycles, ClockCycleCount& runnedCycles,
+        const bool tracing, const bool useCompiledSimulation = false);
 
 private:
     /// Design space database where results are stored.

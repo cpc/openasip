@@ -58,23 +58,18 @@ public:
     static XMLCh* toXMLCh(const std::string& string);
 
     template <typename T>
-    static int toInt(const T& source)
-        throw (NumberFormatException);
+    static int toInt(const T& source);
 
-    static int toInt(const double& source)
-        throw (NumberFormatException);
+    static int toInt(const double& source);
 
     template <typename T>
-    static unsigned int toUnsignedInt(const T& source)
-        throw (NumberFormatException);
+    static unsigned int toUnsignedInt(const T& source);
 
     template <typename T>
-    static double toDouble(const T& source)
-        throw (NumberFormatException);
+    static double toDouble(const T& source);
 
     template <typename T>
-    static float toFloat(const T& source)
-        throw (NumberFormatException);
+    static float toFloat(const T& source);
 
     static std::string toBinString(int source);
     static std::string toBinString(double source);
@@ -89,14 +84,10 @@ public:
         const std::string& hexSource, unsigned char* target);
 
 private:
-
     template <typename SourceType, typename DestType, bool destIsNumeric>
-    static void convert(const SourceType& source, DestType& dest)
-        throw (NumberFormatException);
+    static void convert(const SourceType& source, DestType& dest);
 
     static bool restWhiteSpace(std::istream& str);
-
-
 };
 #include "Conversion.icc"
 

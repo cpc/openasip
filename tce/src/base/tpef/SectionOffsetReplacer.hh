@@ -50,8 +50,7 @@ public:
     virtual ~SectionOffsetReplacer();
 
 protected:
-    virtual bool tryToReplace()
-        throw (UnreachableStream, WritePastEOF);
+    virtual bool tryToReplace();
 
     virtual ValueReplacer* clone();
 

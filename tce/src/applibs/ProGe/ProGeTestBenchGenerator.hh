@@ -57,34 +57,24 @@ public:
     virtual ~ProGeTestBenchGenerator();
 
     void generate(
-        const ProGe::HDL language,
-        const TTAMachine::Machine& mach,
+        const ProGe::HDL language, const TTAMachine::Machine& mach,
         const IDF::MachineImplementation& implementation,
-        const std::string& dstDirectory,
-        const std::string& progeOutDir,
-        const std::string& entityStr="tta0")
-        throw (IOException, OutOfRange, InvalidName, InvalidData);
+        const std::string& dstDirectory, const std::string& progeOutDir,
+        const std::string& entityStr = "tta0");
 
 private:
     void copyTestBenchFiles(const std::string& dstDirectory);
-    void createFile(const std::string& fileName)
-        throw (IOException);
+    void createFile(const std::string& fileName);
     std::string getSignalMapping(
-        const std::string& fuName,
-        const std::string& epName,
-        bool widthIsOne,
-        const std::string& memoryName,
-        const std::string& memoryLine)
-        throw (InvalidName);
+        const std::string& fuName, const std::string& epName, bool widthIsOne,
+        const std::string& memoryName, const std::string& memoryLine);
     void createTBConstFile(
         std::string dstDirectory,
         const std::string dataWidth = "",
         const std::string addrWidth = "");
     void createProcArchVhdl(
-        const std::string& dstDirectory,
-        const std::string& topLevelVhdl,
-        const std::string& signalMappings)
-        throw (IOException);
+        const std::string& dstDirectory, const std::string& topLevelVhdl,
+        const std::string& signalMappings);
 
     TCEString entityStr_;
     ProGe::HDL language_;

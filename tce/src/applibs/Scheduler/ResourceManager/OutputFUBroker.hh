@@ -54,8 +54,7 @@ public:
 
     virtual SchedulingResourceSet allAvailableResources(
         int cycle, const MoveNode& node) const;
-    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res)
-        throw (Exception);
+    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res);
     virtual void unassign(MoveNode& node);
 
     virtual int earliestCycle(int cycle, const MoveNode& node) const;

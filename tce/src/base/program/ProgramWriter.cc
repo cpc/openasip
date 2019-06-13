@@ -696,9 +696,7 @@ ProgramWriter::ProgramWriter(
  * @return TPEF binary of a program.
  */
 Binary*
-ProgramWriter::createBinary() const
-    throw (Exception) {
-    
+ProgramWriter::createBinary() const {
     Binary* newBin = new Binary();
         
     // create and initialize sections
@@ -931,9 +929,7 @@ ProgramWriter::createBinary() const
     newBin->setType(resolveFileType(*resources));
 
     return newBin;
-
 }
-
 
 /**
  * Creates code section.
@@ -1551,9 +1547,7 @@ ProgramWriter::createASpaceElement(
  * @exception NotAvailable Can't find needed resource.
  */
 void
-ProgramWriter::createRelocSections(TPEF::Binary* bin) const
-    throw (NotAvailable) {
-
+ProgramWriter::createRelocSections(TPEF::Binary* bin) const {
     StringSection* strings = dynamic_cast<StringSection*>(
         bin->section(Section::ST_STRTAB,0));
 

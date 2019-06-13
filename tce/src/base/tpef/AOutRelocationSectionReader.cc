@@ -100,11 +100,7 @@ AOutRelocationSectionReader::type() const {
  */
 void
 AOutRelocationSectionReader::readData(
-    BinaryStream& stream,
-    Section* section) const
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-           OutOfRange, WrongSubclass, UnexpectedValue) {
-
+    BinaryStream& stream, Section* section) const {
     FileOffset offset = stream.readPosition();
 
     AOutReader* aOutReader = dynamic_cast<AOutReader*>(parent());
@@ -160,12 +156,8 @@ AOutRelocationSectionReader::readData(
  */
 void
 AOutRelocationSectionReader::initializeRelocElement(
-    BinaryStream& stream,
-    RelocElement* elem,
-    SectionId refSectionID,
-    AOutReader* reader) const
-    throw (UnexpectedValue, UnreachableStream, OutOfRange) {
-
+    BinaryStream& stream, RelocElement* elem, SectionId refSectionID,
+    AOutReader* reader) const {
     Word r_address = stream.readWord();
 
     // if referenced section is text section fix r_address to point

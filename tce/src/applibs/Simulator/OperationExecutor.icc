@@ -55,7 +55,7 @@ OperationExecutor::parent() const {
  */
 inline PortState&
 OperationExecutor::binding(int io) const 
-    throw (OutOfRange) {
+     {
 
     if (io < 1 || io > static_cast<int>(bindings_.size())) {
         std::string msg = "Operand index out of range";

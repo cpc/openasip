@@ -53,10 +53,8 @@ public:
     DDGPass(InterPassData& data);
     virtual ~DDGPass();
     virtual void handleDDG(
-        DataDependenceGraph& ddg,
-        SimpleResourceManager& rm,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        DataDependenceGraph& ddg, SimpleResourceManager& rm,
+        const TTAMachine::Machine& targetMachine);
 };
 
 #endif

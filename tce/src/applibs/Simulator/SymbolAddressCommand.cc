@@ -71,10 +71,8 @@ SymbolAddressCommand::~SymbolAddressCommand() {
  * @return True in case simulation is initialized and arguments are ok.
  * @exception NumberFormatException Is never thrown by this command.
  */
-bool 
-SymbolAddressCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+SymbolAddressCommand::execute(const std::vector<DataObject>& arguments) {
     const int argumentCount = arguments.size() - 1;
     if (!checkArgumentCount(argumentCount, 1, 1)) {
         return false;

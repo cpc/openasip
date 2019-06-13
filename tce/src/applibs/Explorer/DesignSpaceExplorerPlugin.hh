@@ -73,10 +73,8 @@ public:
             ExplorerPluginParameter>::const_iterator PMCIt;
 
     virtual void giveParameter(
-        const std::string& name, 
-        const std::string& value) 
-        throw (InstanceNotFound);
-    
+        const std::string& name, const std::string& value);
+
     virtual inline std::string description() const;
     virtual std::string name() const;
     virtual void setPluginName(const std::string& pluginName);
@@ -97,24 +95,20 @@ public:
         TCEString description = "");
 
     template <typename T>
-    void readCompulsoryParameter(const std::string paramName, T& param) const
-        throw (NotAvailable, IllegalParameters);
+    void readCompulsoryParameter(const std::string paramName, T& param) const;
 
     template <typename T>
-    void readOptionalParameter(const std::string paramName, T& param) const
-        throw (NotAvailable, IllegalParameters);
+    void readOptionalParameter(const std::string paramName, T& param) const;
 
     template <typename RT>
-    RT parameterValue(const std::string& paramName) const
-        throw (NotAvailable, IllegalParameters);
+    RT parameterValue(const std::string& paramName) const;
 
-    virtual bool booleanValue(const std::string& parameter) const
-        throw (IllegalParameters);
+    virtual bool booleanValue(const std::string& parameter) const;
 
 protected:
     DesignSpaceExplorerPlugin();
 
-    void checkParameters() const throw(IllegalParameters);
+    void checkParameters() const;
 
     /// the name of the explorer plugin
     std::string pluginName_;

@@ -99,9 +99,7 @@ RFEntry::setImplementation(RFImplementation* implementation) {
  * @exception NotAvailable If there is no implementation.
  */
 RFImplementation&
-RFEntry::implementation() const
-    throw (NotAvailable) {
-
+RFEntry::implementation() const {
     if (!hasImplementation()) {
         const string procName = "RFEntry::implementation";
         throw NotAvailable(__FILE__, __LINE__, procName);
@@ -109,7 +107,6 @@ RFEntry::implementation() const
 
     return *implementation_;
 }
-
 
 /**
  * Tells whether the RF entry has an architecture.
@@ -145,9 +142,7 @@ RFEntry::setArchitecture(RFArchitecture* architecture) {
  * @exception NotAvailable If the entry doesn't have an architecture.
  */
 RFArchitecture&
-RFEntry::architecture() const 
-    throw (NotAvailable) {
-
+RFEntry::architecture() const {
     if (!hasArchitecture()) {
         const string procName = "RFEntry::architecture";
         throw NotAvailable(__FILE__, __LINE__, procName);

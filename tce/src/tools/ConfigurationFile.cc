@@ -111,9 +111,7 @@ ConfigurationFile::hasKey(const std::string& key) {
  * @exception OutOfRange If index is out of range.
  */
 std::string
-ConfigurationFile::value(const std::string& key, int index)
-    throw (KeyNotFound, OutOfRange) {
-
+ConfigurationFile::value(const std::string& key, int index) {
     return valueOfKey(key, index);
 }
 
@@ -125,9 +123,7 @@ ConfigurationFile::value(const std::string& key, int index)
  * @exception KeyNotFound If key is not found.
  */
 int
-ConfigurationFile::itemCount(const std::string& key)
-    throw (KeyNotFound) {
-
+ConfigurationFile::itemCount(const std::string& key) {
     ValueContainer::iterator iter = values_.find(key);
     if (iter == values_.end()) {
         string msg = "Key " + key + " not found";
@@ -147,9 +143,7 @@ ConfigurationFile::itemCount(const std::string& key)
  * @exception InvalidData If data is wrong type.
  */
 int
-ConfigurationFile::intValue(const std::string& key, int index)
-    throw (KeyNotFound, OutOfRange, InvalidData) {
-
+ConfigurationFile::intValue(const std::string& key, int index) {
     string value = valueOfKey(key, index);
     try {
         return Conversion::toInt(value);
@@ -170,9 +164,7 @@ ConfigurationFile::intValue(const std::string& key, int index)
  * @exception InvalidData If data is wrong type.
  */
 float
-ConfigurationFile::floatValue(const std::string& key, int index)
-    throw (KeyNotFound, OutOfRange, InvalidData) {
-
+ConfigurationFile::floatValue(const std::string& key, int index) {
     string value = valueOfKey(key, index);
     try {
         return Conversion::toFloat(value);
@@ -192,9 +184,7 @@ ConfigurationFile::floatValue(const std::string& key, int index)
  * @exception OutOfRange If index is out of range.
  */
 string
-ConfigurationFile::stringValue(const std::string& key, int index)
-    throw (KeyNotFound, OutOfRange) {
-
+ConfigurationFile::stringValue(const std::string& key, int index) {
     return valueOfKey(key, index);
 }
 
@@ -209,9 +199,7 @@ ConfigurationFile::stringValue(const std::string& key, int index)
  * @exception InvalidData If value type is wrong.
  */
 bool
-ConfigurationFile::booleanValue(const std::string& key, int index)
-    throw (KeyNotFound, OutOfRange, InvalidData) {
-
+ConfigurationFile::booleanValue(const std::string& key, int index) {
     string value = valueOfKey(key, index);
     value = StringTools::stringToLower(value);
     if (value == "true" || value == "yes" || value == "on" ||
@@ -237,9 +225,7 @@ ConfigurationFile::booleanValue(const std::string& key, int index)
  * @exception KeyNotFound If key is not found.
  */
 unsigned int
-ConfigurationFile::timeStampValue(const std::string& key)
-    throw (KeyNotFound) {
-
+ConfigurationFile::timeStampValue(const std::string& key) {
     ValueContainer::iterator iter = values_.find(key);
     if (iter == values_.end()) {
         string msg = "Key " + key + " not found";
@@ -516,9 +502,7 @@ ConfigurationFile::legalTime(const std::string& line) {
  * @exception OutOfRange If index is out of range.
  */
 string
-ConfigurationFile::valueOfKey(const std::string& key, int index)
-    throw (KeyNotFound, OutOfRange) {
-
+ConfigurationFile::valueOfKey(const std::string& key, int index) {
     ValueContainer::iterator iter = values_.find(key);
     if (iter == values_.end()) {
         string msg = "Key " + key + " not found";

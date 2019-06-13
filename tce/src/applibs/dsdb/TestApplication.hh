@@ -48,9 +48,7 @@ public:
     typedef double Runtime;
     typedef int ClockCycles;
 
-
-    TestApplication(const std::string& testApplicationPath)
-        throw (IOException);
+    TestApplication(const std::string& testApplicationPath);
     virtual ~TestApplication();
 
     std::vector<std::string> description() const;

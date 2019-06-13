@@ -94,9 +94,7 @@ public:
      * Creates compressed code of the program and returns it in bit vector
      */
     virtual InstructionBitVector*
-    compress(const string& programName)
-        throw (InvalidData) {
-
+    compress(const string& programName) {
         if (!dictionaryCreated_) {
             createDictionary();
             // fix imem width (mau == instruction width)

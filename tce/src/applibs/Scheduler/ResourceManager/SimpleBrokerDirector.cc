@@ -211,8 +211,7 @@ SimpleBrokerDirector::canAssign(int cycle, MoveNode& node) const {
  * cycle different from given cycle.
  */
 void
-SimpleBrokerDirector::assign(int cycle, MoveNode& node)
-    throw (Exception) {
+SimpleBrokerDirector::assign(int cycle, MoveNode& node) {
     if (cycle < 0) {
         throw InvalidData(__FILE__, __LINE__, __func__, 
                           "Negative cycles not supported by RM");
@@ -298,9 +297,7 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node)
  * resource manager.
  */
 void
-SimpleBrokerDirector::unassign(MoveNode& node)
-    throw (Exception) {
-
+SimpleBrokerDirector::unassign(MoveNode& node) {
     if (!node.isPlaced()) {
         string msg = "Node " + node.toString();
         msg += " is not placed in any cycle.";
@@ -404,8 +401,7 @@ SimpleBrokerDirector::unassign(MoveNode& node)
  * is not possible starting from given cycle.
  */
 int
-SimpleBrokerDirector::earliestCycle(MoveNode& move) const
-    throw (Exception) {
+SimpleBrokerDirector::earliestCycle(MoveNode& move) const {
     return earliestCycle(0, move);
 }
 
@@ -424,9 +420,7 @@ SimpleBrokerDirector::earliestCycle(MoveNode& move) const
  * is not possible starting from given cycle.
  */
 int
-SimpleBrokerDirector::earliestCycle(int cycle, MoveNode& node) const
-    throw (Exception) {
-
+SimpleBrokerDirector::earliestCycle(int cycle, MoveNode& node) const {
     // limit the scheduling window.
     // makes code for minimal.adf schedule in reasonable time
     if (cycle < knownMaxCycle_ - schedulingWindow_) {
@@ -579,7 +573,7 @@ SimpleBrokerDirector::canTransportImmediate(const MoveNode& node) const {
  * @exception InstanceNotFound If immediate unit broker is not found.
  */
 IUBroker&
-SimpleBrokerDirector::immediateUnitBroker() const throw (InstanceNotFound) {
+SimpleBrokerDirector::immediateUnitBroker() const {
     ResourceBroker* broker = NULL;
     for (int i = 0; i < plan_->brokerCount(); i++) {
         broker = &plan_->broker(i);
@@ -598,9 +592,7 @@ SimpleBrokerDirector::immediateUnitBroker() const throw (InstanceNotFound) {
  * @exception InstanceNotFound If instruction template broker is not found.
  */
 ITemplateBroker&
-SimpleBrokerDirector::instructionTemplateBroker() const
-    throw (InstanceNotFound) {
-
+SimpleBrokerDirector::instructionTemplateBroker() const {
     ResourceBroker* broker = NULL;
     for (int i = 0; i < plan_->brokerCount(); i++) {
         broker = &plan_->broker(i);
@@ -619,7 +611,7 @@ SimpleBrokerDirector::instructionTemplateBroker() const
  * @exception InstanceNotFound If bus broker is not found.
  */
 BusBroker&
-SimpleBrokerDirector::busBroker() const throw (InstanceNotFound) {
+SimpleBrokerDirector::busBroker() const {
     ResourceBroker* broker = NULL;
     for (int i = 0; i < plan_->brokerCount(); i++) {
         broker = &plan_->broker(i);
@@ -638,8 +630,7 @@ SimpleBrokerDirector::busBroker() const throw (InstanceNotFound) {
  * @exception InstanceNotFound If execution pipeline broker is not found.
  */
 ExecutionPipelineBroker&
-SimpleBrokerDirector::executionPipelineBroker() const
-    throw (InstanceNotFound) {
+SimpleBrokerDirector::executionPipelineBroker() const {
     ResourceBroker* broker = NULL;
     for (int i = 0; i < plan_->brokerCount(); i++) {
         broker = &plan_->broker(i);

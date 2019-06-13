@@ -109,11 +109,8 @@ BUBasicBlockScheduler::~BUBasicBlockScheduler() {
  */
 void
 BUBasicBlockScheduler::handleDDG(
-    DataDependenceGraph& ddg,
-    SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
+    DataDependenceGraph& ddg, SimpleResourceManager& rm,
+    const TTAMachine::Machine& targetMachine) {
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
 
@@ -233,7 +230,6 @@ BUBasicBlockScheduler::handleDDG(
             " end cycle: " << endCycle_ << std::endl;
         abortWithError("Should not happen!");
     }
-    
 }
 
 #ifdef DEBUG_REG_COPY_ADDER
@@ -251,9 +247,7 @@ static int graphCount = 0;
  */
 void
 BUBasicBlockScheduler::scheduleOperation(
-    MoveNodeGroup& moves, BUMoveNodeSelector& selector)
-    throw (Exception) {
-
+    MoveNodeGroup& moves, BUMoveNodeSelector& selector) {
     ProgramOperation& po =
         (moves.node(0).isSourceOperation())?
         (moves.node(0).sourceOperation()):
@@ -409,11 +403,7 @@ BUBasicBlockScheduler::scheduleOperation(
  * @return True if all operands got scheduled
  */
 bool
-BUBasicBlockScheduler::scheduleOperandWrites(
-    MoveNodeGroup& moves,
-    int cycle)
-    throw (Exception) {
-
+BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves, int cycle) {
     ProgramOperation& po =
         (moves.node(0).isSourceOperation())?
         (moves.node(0).sourceOperation()):
@@ -544,9 +534,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(
  */
 int
 BUBasicBlockScheduler::scheduleResultReads(
-    MoveNodeGroup& moves, int cycle, bool bypass, bool bypassLate)
-    throw (Exception) {
-
+    MoveNodeGroup& moves, int cycle, bool bypass, bool bypassLate) {
     int maxResultCycle = cycle;
     int tempRegLimitCycle = cycle;
     int localMaximum = 0;
@@ -652,9 +640,7 @@ BUBasicBlockScheduler::scheduleResultReads(
  * @param moveNode R-R Move to schedule.
  */
 void
-BUBasicBlockScheduler::scheduleRRMove(MoveNode& moveNode)
-    throw (Exception) {
-
+BUBasicBlockScheduler::scheduleRRMove(MoveNode& moveNode) {
 #ifdef DEBUG_REG_COPY_ADDER
     ddg_->setCycleGrouping(true);
     ddg_->writeToDotFile(
@@ -701,11 +687,7 @@ BUBasicBlockScheduler::scheduleRRMove(MoveNode& moveNode)
  * @param earliestCycle The earliest cycle to try.
  */
 void
-BUBasicBlockScheduler::scheduleMove(
-    MoveNode& moveNode,
-    int latestCycle)
-    throw (Exception) {
-
+BUBasicBlockScheduler::scheduleMove(MoveNode& moveNode, int latestCycle) {
     if (moveNode.isScheduled()) {
         ddg_->writeToDotFile("already_sched.dot");
         abort();
@@ -930,11 +912,7 @@ BUBasicBlockScheduler::longDescription() const {
  */
 void
 BUBasicBlockScheduler::scheduleResultReadTempMoves(
-    MoveNode& resultMove,
-    MoveNode& resultRead,
-    int firstWriteCycle)
-    throw (Exception) {
-
+    MoveNode& resultMove, MoveNode& resultRead, int firstWriteCycle) {
     /* Because temporary register moves do not have WaR/WaW dependency edges
        between the other possible uses of the same temp register in
        the same operation, we have to limit the scheduling of the new
@@ -968,7 +946,6 @@ BUBasicBlockScheduler::scheduleResultReadTempMoves(
     scheduleMove(*tempMove1, firstWriteCycle);
     assert(tempMove1->isScheduled());
     scheduledTempMoves_[&resultRead].insert(tempMove1);
-
 }
 
 /**
@@ -983,9 +960,7 @@ BUBasicBlockScheduler::scheduleResultReadTempMoves(
  */
 void
 BUBasicBlockScheduler::scheduleInputOperandTempMoves(
-    MoveNode& operandMove, MoveNode& operandWrite)
-    throw (Exception) {
-
+    MoveNode& operandMove, MoveNode& operandWrite) {
     /* Because temporary register moves do not have WaR dependency edges
        between the other possible uses of the same temp register in
        the same operation, we have to limit the scheduling of the new
@@ -1061,9 +1036,7 @@ BUBasicBlockScheduler::scheduleInputOperandTempMoves(
  */
 void
 BUBasicBlockScheduler::scheduleRRTempMoves(
-    MoveNode& regToRegMove, MoveNode& firstMove, int lastUse)
-    throw (Exception) {
-
+    MoveNode& regToRegMove, MoveNode& firstMove, int lastUse) {
     /* Because temporary register moves do not have WaR/WaW dependency edges
        between the other possible uses of the same temp register in
        the same operation, we have to limit the scheduling of the new

@@ -65,7 +65,7 @@ public:
         TPEF::BinaryStream& assemblerFile,
         TTAMachine::Machine& assemblerMachine);
 
-    TPEF::Binary* compile() throw (CompileError);
+    TPEF::Binary* compile();
 
     UValue warningCount() const;
 

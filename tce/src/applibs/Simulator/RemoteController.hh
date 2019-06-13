@@ -93,17 +93,13 @@ public:
     virtual void writeIMem(const char *data, int size) = 0;
 
     // virtual members from TTASimulationController
-    virtual void step(double count = 1)
-        throw (SimulationExecutionError) = 0;
+    virtual void step(double count = 1) = 0;
 
-    virtual void next(int count = 1)
-        throw (SimulationExecutionError) = 0;
+    virtual void next(int count = 1) = 0;
 
-    virtual void run()
-        throw (SimulationExecutionError) = 0;
+    virtual void run() = 0;
 
-    virtual void runUntil(UIntWord address)
-        throw (SimulationExecutionError) = 0;
+    virtual void runUntil(UIntWord address) = 0;
 
     virtual void reset() = 0;
     

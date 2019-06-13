@@ -62,8 +62,7 @@ public:
     std::string action() const;
     int slot() const;
 
-    void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadState(const ObjectState* state);
     ObjectState* saveState() const;
 
 private:

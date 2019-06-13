@@ -68,47 +68,35 @@ public:
     virtual void removeLastInstruction();
     virtual int instructionCount() const;
 
-    virtual Program& parent() const throw (IllegalRegistration);
+    virtual Program& parent() const;
     virtual void setParent(Program& prog);
     virtual bool isInProgram() const;
 
-    virtual Address address(const Instruction& ins) const
-        throw (IllegalRegistration);
+    virtual Address address(const Instruction& ins) const;
 
     virtual Address startAddress() const;
     virtual void setStartAddress(Address start);
     virtual Address endAddress() const;
 
-    virtual Instruction& firstInstruction() const throw (InstanceNotFound);
-    virtual Instruction& instructionAt(UIntWord address) const
-        throw (KeyNotFound);
+    virtual Instruction& firstInstruction() const;
+    virtual Instruction& instructionAt(UIntWord address) const;
 
     virtual Instruction& instructionAtIndex(int index) const;
     virtual Instruction& operator[](size_t index) const;
 
-    virtual bool hasNextInstruction(const Instruction& ins) const
-        throw (IllegalRegistration);
-    virtual Instruction& nextInstruction(const Instruction& ins) const
-        throw (IllegalRegistration);
-    virtual Instruction& previousInstruction(const Instruction& ins) const
-        throw (IllegalRegistration);
-    virtual Instruction& lastInstruction() const 
-        throw (IllegalRegistration);
+    virtual bool hasNextInstruction(const Instruction& ins) const;
+    virtual Instruction& nextInstruction(const Instruction& ins) const;
+    virtual Instruction& previousInstruction(const Instruction& ins) const;
+    virtual Instruction& lastInstruction() const;
 
-    virtual void addFront(Instruction* ins) 
-        throw (IllegalRegistration);
-    virtual void add(Instruction* ins) 
-        throw (IllegalRegistration);
-    virtual void insertAfter(const Instruction& pos, Instruction* ins)
-        throw (IllegalRegistration);
-    virtual void insertBefore(const Instruction& pos, Instruction* ins)
-        throw (IllegalRegistration);
+    virtual void addFront(Instruction* ins);
+    virtual void add(Instruction* ins);
+    virtual void insertAfter(const Instruction& pos, Instruction* ins);
+    virtual void insertBefore(const Instruction& pos, Instruction* ins);
 
-    virtual void remove(Instruction& ins) 
-        throw (IllegalRegistration);
+    virtual void remove(Instruction& ins);
 
-    virtual void deleteInstructionAt(InstructionAddress address)
-        throw (KeyNotFound);
+    virtual void deleteInstructionAt(InstructionAddress address);
 
     virtual CodeSnippet* copy() const;
 

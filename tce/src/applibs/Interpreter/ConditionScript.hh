@@ -50,8 +50,7 @@ public:
         std::vector<std::string>& script);
     virtual ~ConditionScript();
 
-    virtual bool conditionOk() 
-        throw (NumberFormatException, ScriptExecutionFailure);
+    virtual bool conditionOk();
 
     virtual ConditionScript* copy() const;
 };

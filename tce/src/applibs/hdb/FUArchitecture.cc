@@ -142,9 +142,7 @@ FUArchitecture::architecture() const {
  * @exception InvalidData If the given port is not used by any pipeline.
  */
 HDB::Direction
-FUArchitecture::portDirection(const std::string& portName) const
-    throw (InstanceNotFound, InvalidData) {
-
+FUArchitecture::portDirection(const std::string& portName) const {
     FunctionUnit& fu = architecture();
     if (!fu.hasOperationPort(portName)) {
         throw InstanceNotFound(__FILE__, __LINE__, __func__);
@@ -184,9 +182,8 @@ FUArchitecture::portDirection(const std::string& portName) const
         return HDB::OUT;
     } else {
         throw InvalidData(__FILE__, __LINE__, __func__);
-    }           
+    }
 }
-
 
 /**
  * Checks whether the given FU has a mathing architecture with the given FU 

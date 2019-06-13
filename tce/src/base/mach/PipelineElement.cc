@@ -52,11 +52,8 @@ namespace TTAMachine {
  * @exception InvalidName If the given name is not a valid component name.
  */
 PipelineElement::PipelineElement(
-    const std::string& name,
-    FunctionUnit& parentUnit)
-    throw (ComponentAlreadyExists, InvalidName) :
-    name_(""), parent_(&parentUnit) {
-
+    const std::string& name, FunctionUnit& parentUnit)
+    : name_(""), parent_(&parentUnit) {
     setName(name);
 
     // clear parent pointer to pass the assert in addPipelineElement
@@ -65,7 +62,6 @@ PipelineElement::PipelineElement(
     parentUnit.addPipelineElement(*this);
     parent_ = &parentUnit;
 }
-
 
 /**
  * Destructor.
@@ -94,9 +90,7 @@ PipelineElement::~PipelineElement() {
  * @exception InvalidName If the given name is not a valid component name.
  */
 void
-PipelineElement::setName(const std::string& name)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+PipelineElement::setName(const std::string& name) {
     const string procName = "PipelineElement::setName";
 
     if (!MachineTester::isValidComponentName(name)) {

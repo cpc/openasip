@@ -110,11 +110,7 @@ ExecutionPipeline::parentOperation() const {
  */
 void
 ExecutionPipeline::addResourceUse(
-    const std::string& name,
-    int start,
-    int duration)
-    throw (OutOfRange, InvalidName, StartTooLate, NotAvailable) {
-
+    const std::string& name, int start, int duration) {
     const string procName = "ExecutionPipeline::addResourceUse";
 
     checkStartCycle(start);
@@ -124,7 +120,6 @@ ExecutionPipeline::addResourceUse(
 
     internalAddResourceUse(name, start, duration);
 }
-
 
 /**
  * Adds read usage of an operand.
@@ -143,12 +138,7 @@ ExecutionPipeline::addResourceUse(
  *                         the given time interval.
  */
 void
-ExecutionPipeline::addPortRead(
-    int operand,
-    int start,
-    int duration)
-    throw (OutOfRange, WrongOperandType, StartTooLate, NotAvailable) {
-
+ExecutionPipeline::addPortRead(int operand, int start, int duration) {
     const string procName = "ExecutionPipeline::addPortRead";
 
     checkStartCycle(start);
@@ -158,7 +148,6 @@ ExecutionPipeline::addPortRead(
 
     internalAddPortUse(operand, start, duration, opReads_);
 }
-
 
 /**
  * Adds write usage of an operand.
@@ -175,12 +164,7 @@ ExecutionPipeline::addPortRead(
  *                         in the given time interval.
  */
 void
-ExecutionPipeline::addPortWrite(
-    int operand,
-    int start,
-    int duration)
-    throw (OutOfRange, WrongOperandType, NotAvailable) {
-
+ExecutionPipeline::addPortWrite(int operand, int start, int duration) {
     const string procName = "ExecutionPipeline::addPortWrite";
 
     if (start < 0) {
@@ -194,7 +178,6 @@ ExecutionPipeline::addPortWrite(
     internalAddPortUse(operand, start, duration, opWrites_);
 }
 
-
 /**
  * Removes any usage of given pipeline element in the pipeline.
  *
@@ -203,9 +186,7 @@ ExecutionPipeline::addPortWrite(
  *                         or operand read at cycle 0 or 1.
  */
 void
-ExecutionPipeline::removeResourceUse(const std::string& name)
-    throw (StartTooLate) {
-
+ExecutionPipeline::removeResourceUse(const std::string& name) {
     const string procName = "ExecutionPipeline::removeResourceUse";
 
     FunctionUnit* fu = parent_->parentUnit();
@@ -220,7 +201,6 @@ ExecutionPipeline::removeResourceUse(const std::string& name)
     internalRemoveResourceUse(name, 0, latency());
 }
 
-
 /**
  * Removes any usage of given pipeline element in given cycle from the
  * pipeline.
@@ -232,9 +212,7 @@ ExecutionPipeline::removeResourceUse(const std::string& name)
  *                         or operand read at cycle 0 or 1.
  */
 void
-ExecutionPipeline::removeResourceUse(const std::string& name, int cycle)
-    throw (OutOfRange, StartTooLate) {
-
+ExecutionPipeline::removeResourceUse(const std::string& name, int cycle) {
     const string procName = "ExecutionPipeline::removeResourceUse";
 
     if (pipelineElement(name) == NULL) {
@@ -257,7 +235,6 @@ ExecutionPipeline::removeResourceUse(const std::string& name, int cycle)
 
     internalRemoveResourceUse(name, cycle, 1);
 }
-
 
 /**
  * Removes the all the usages of resources.
@@ -292,9 +269,7 @@ ExecutionPipeline::removeAllResourceUses() {
  *                         or operand read at cycle 0 or 1.
  */
 void
-ExecutionPipeline::removeOperandUse(int operand, int cycle)
-    throw (OutOfRange, StartTooLate) {
-
+ExecutionPipeline::removeOperandUse(int operand, int cycle) {
     const string procName = "ExecutionPipeline::removeOperandUse";
 
     if (cycle < 0 || operand < 1) {
@@ -312,7 +287,6 @@ ExecutionPipeline::removeOperandUse(int operand, int cycle)
     internalRemoveOperandUse(operand, cycle, 1);
 }
 
-
 /**
  * Tells whether a given pipeline element is used in the given cycle by this
  * pipeline.
@@ -323,9 +297,7 @@ ExecutionPipeline::removeOperandUse(int operand, int cycle)
  * @exception OutOfRange If the given cycle is negative.
  */
 bool
-ExecutionPipeline::isResourceUsed(const std::string& name, int cycle) const
-    throw (OutOfRange) {
-
+ExecutionPipeline::isResourceUsed(const std::string& name, int cycle) const {
     if (cycle < 0) {
         const string procName = "ExecutionPipeline::isResourceUsed";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -352,9 +324,7 @@ ExecutionPipeline::isResourceUsed(const std::string& name, int cycle) const
  * @exception OutOfRange If the given cycle is negative.
  */
 ExecutionPipeline::ResourceSet
-ExecutionPipeline::resourceUsages(int cycle) const
-    throw (OutOfRange) {
-
+ExecutionPipeline::resourceUsages(int cycle) const {
     if (cycle < 0) {
         const string procName = "ExecutionPipeline::isResourceUsed";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -376,12 +346,9 @@ ExecutionPipeline::resourceUsages(int cycle) const
  * @exception OutOfRange If the given cycle is negative.
  */
 bool
-ExecutionPipeline::isPortUsed(const FUPort& port, int cycle) const
-    throw (OutOfRange) {
-
+ExecutionPipeline::isPortUsed(const FUPort& port, int cycle) const {
     return isPortRead(port, cycle) || isPortWritten(port, cycle);
 }
-
 
 /**
  * Checks whether the given port is read at the given cycle by the pipeline.
@@ -392,9 +359,7 @@ ExecutionPipeline::isPortUsed(const FUPort& port, int cycle) const
  * @exception OutOfRange If the given cycle is negative.
  */
 bool
-ExecutionPipeline::isPortRead(const FUPort& port, int cycle) const
-    throw (OutOfRange) {
-
+ExecutionPipeline::isPortRead(const FUPort& port, int cycle) const {
     if (cycle < 0) {
         const string procName = "ExecutionPipeline::isPortRead";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -408,7 +373,6 @@ ExecutionPipeline::isPortRead(const FUPort& port, int cycle) const
     return (isOperandBound(port, readOperands));
 }
 
-
 /**
  * Checks whether the given port is written at the given cycle by the
  * pipeline.
@@ -419,9 +383,7 @@ ExecutionPipeline::isPortRead(const FUPort& port, int cycle) const
  * @exception OutOfRange If the given cycle is negative.
  */
 bool
-ExecutionPipeline::isPortWritten(const FUPort& port, int cycle) const
-    throw (OutOfRange) {
-
+ExecutionPipeline::isPortWritten(const FUPort& port, int cycle) const {
     if (cycle < 0) {
         const string procName = "ExecutionPipeline::isPortRead";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -435,7 +397,6 @@ ExecutionPipeline::isPortWritten(const FUPort& port, int cycle) const
     return (isOperandBound(port, writtenOperands));
 }
 
-
 /**
  * Returns the operands that are read at the given cycle.
  *
@@ -444,9 +405,7 @@ ExecutionPipeline::isPortWritten(const FUPort& port, int cycle) const
  * @exception OutOfRange If the cycle is smaller than 0.
  */
 ExecutionPipeline::OperandSet
-ExecutionPipeline::readOperands(int cycle) const
-    throw (OutOfRange) {
-
+ExecutionPipeline::readOperands(int cycle) const {
     if (cycle < 0) {
         const string procName = "ExecutionPipeline::readOperands";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -459,7 +418,6 @@ ExecutionPipeline::readOperands(int cycle) const
     return opReads_[cycle];
 }
 
-
 /**
  * Returns the operands that are written at the given cycle.
  *
@@ -468,9 +426,7 @@ ExecutionPipeline::readOperands(int cycle) const
  * @exception OutOfRange If the given cycle is smaller than 0.
  */
 ExecutionPipeline::OperandSet
-ExecutionPipeline::writtenOperands(int cycle) const
-    throw (OutOfRange) {
-
+ExecutionPipeline::writtenOperands(int cycle) const {
     if (cycle < 0) {
         const string procName = "ExecutionPipeline::readOperands";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -482,7 +438,6 @@ ExecutionPipeline::writtenOperands(int cycle) const
 
     return opWrites_[cycle];
 }
-
 
 /**
  * Returns a set of operands that are read by this pipeline.
@@ -540,9 +495,7 @@ ExecutionPipeline::latency() const {
  *                              pipeline.
  */
 int
-ExecutionPipeline::latency(int output) const
-    throw (IllegalParameters) {
-
+ExecutionPipeline::latency(int output) const {
     int cycle = latency();
     for (IOUsage::const_reverse_iterator iter = opWrites_.rbegin(); 
          iter != opWrites_.rend(); iter++) {
@@ -559,7 +512,6 @@ ExecutionPipeline::latency(int output) const
     throw IllegalParameters(__FILE__, __LINE__, __func__, msg);
 }
 
-
 /**
  * Returns the slack of the given input.
  *
@@ -573,9 +525,7 @@ ExecutionPipeline::latency(int output) const
  *                              pipeline.
  */
 int
-ExecutionPipeline::slack(int input) const
-    throw (IllegalParameters) {
-
+ExecutionPipeline::slack(int input) const {
     int slack(0);
     for (IOUsage::const_iterator iter = opReads_.begin();
          iter != opReads_.end(); iter++) {
@@ -591,7 +541,6 @@ ExecutionPipeline::slack(int input) const
     const string procName = "ExecutionPipeline::slack";
     throw IllegalParameters(__FILE__, __LINE__, procName, errMessage);
 }
-   
 
 /**
  * Saves the pipeline to ObjectState tree.
@@ -659,9 +608,7 @@ ExecutionPipeline::saveState() const {
  *                                        state.
  */
 void
-ExecutionPipeline::loadState(const ObjectState* pipelineState)
-    throw (ObjectStateLoadingException) {
-
+ExecutionPipeline::loadState(const ObjectState* pipelineState) {
     const string procName = "ExecutionPipeline::loadState";
 
     if (pipelineState->name() != OSNAME_PIPELINE) {
@@ -736,7 +683,6 @@ ExecutionPipeline::loadState(const ObjectState* pipelineState)
     }
 }
 
-
 /**
  * Compares two ExecutionPipeline architectures.
  *
@@ -774,9 +720,7 @@ ExecutionPipeline::isArchitectureEqual(
  * @exception StartTooLate If the pipeline would start too late.
  */
 void
-ExecutionPipeline::checkStartCycle(int startCycle) const
-    throw (OutOfRange, StartTooLate) {
-
+ExecutionPipeline::checkStartCycle(int startCycle) const {
     const string procName = "ExecutionPipeline::checkStartCycle";
 
     if (startCycle < 0) {
@@ -797,7 +741,6 @@ ExecutionPipeline::checkStartCycle(int startCycle) const
     }
 }
 
-
 /**
  * Checks whether the given value is valid for duration of resource usage.
  *
@@ -805,15 +748,12 @@ ExecutionPipeline::checkStartCycle(int startCycle) const
  * @exception OutOfRange If the value is not in a valid range.
  */
 void
-ExecutionPipeline::checkDuration(int duration)
-    throw (OutOfRange) {
-
+ExecutionPipeline::checkDuration(int duration) {
     if (duration < 1) {
         const string procName = "ExecutionPipeline::checkDuration";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Checks whether the given name is valid for pipeline resource.
@@ -822,15 +762,12 @@ ExecutionPipeline::checkDuration(int duration)
  * @exception InvalidName If the name is not valid for pipeline resource.
  */
 void
-ExecutionPipeline::checkResourceName(const std::string& name)
-    throw (InvalidName) {
-
+ExecutionPipeline::checkResourceName(const std::string& name) {
     if (!MachineTester::isValidComponentName(name)) {
         const string procName = "ExecutionPipeline::checkResourceName";
         throw InvalidName(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Checks whether the given operand is an input operand.
@@ -842,9 +779,7 @@ ExecutionPipeline::checkResourceName(const std::string& name)
  * @exception WrongOperandType If the operand is written by the pipeline.
  */
 void
-ExecutionPipeline::checkInputOperand(int operand) const
-    throw (OutOfRange, WrongOperandType) {
-
+ExecutionPipeline::checkInputOperand(int operand) const {
     const string procName = "ExecutionPipeline::checkInputOperand";
 
     if (operand < 1) {
@@ -856,7 +791,6 @@ ExecutionPipeline::checkInputOperand(int operand) const
     }
 }
 
-
 /**
  * Checks whether the given operand is an output operand.
  *
@@ -867,9 +801,7 @@ ExecutionPipeline::checkInputOperand(int operand) const
  * @exception WrongOperandType If the operand is read by the pipeline.
  */
 void
-ExecutionPipeline::checkOutputOperand(int operand) const
-    throw (OutOfRange, WrongOperandType) {
-
+ExecutionPipeline::checkOutputOperand(int operand) const {
     const string procName = "ExecutionPipeline::checkOutputOperand";
 
     if (operand < 1) {
@@ -880,7 +812,6 @@ ExecutionPipeline::checkOutputOperand(int operand) const
         throw WrongOperandType(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Checks whether the given resource is available all the time of the given
@@ -893,11 +824,7 @@ ExecutionPipeline::checkOutputOperand(int operand) const
  */
 void
 ExecutionPipeline::checkResourceAvailability(
-    const std::string& resource,
-    int start,
-    int duration) const
-    throw (NotAvailable) {
-
+    const std::string& resource, int start, int duration) const {
     PipelineElement* element = pipelineElement(resource);
     if (element == NULL) {
         return;
@@ -917,7 +844,6 @@ ExecutionPipeline::checkResourceAvailability(
     }
 }
 
-
 /**
  * Checks whether the given operand is not read or written at the given time
  * interval.
@@ -930,11 +856,7 @@ ExecutionPipeline::checkResourceAvailability(
  */
 void
 ExecutionPipeline::checkOperandAvailability(
-    int operand,
-    int start,
-    int duration) const
-    throw (NotAvailable) {
-
+    int operand, int start, int duration) const {
     int end = start + duration - 1;
     if (end >= latency()) {
         end = latency() - 1;
@@ -949,7 +871,6 @@ ExecutionPipeline::checkOperandAvailability(
         }
     }
 }
-
 
 /**
  * Internally adds the resource usage of the given resource at the given
@@ -1454,10 +1375,7 @@ ExecutionPipeline::saveOperandUse(
  *                                        is invalid.
  */
 ExecutionPipeline::ObjectStateTable
-ExecutionPipeline::sortResourceUsages(
-    const ObjectState* pipelineState) const
-    throw (ObjectStateLoadingException) {
-
+ExecutionPipeline::sortResourceUsages(const ObjectState* pipelineState) const {
     ObjectStateTable usages;
     for (int i = 0; i < pipelineState->childCount(); i++) {
         ObjectState* usageState = pipelineState->child(i);
@@ -1466,7 +1384,6 @@ ExecutionPipeline::sortResourceUsages(
 
     return usages;
 }
-
 
 /**
  * Adds the given ObjectState instance representing a resource usage to the
@@ -1482,10 +1399,7 @@ ExecutionPipeline::sortResourceUsages(
  */
 void
 ExecutionPipeline::addResourceUsage(
-    ObjectStateTable& usages,
-    const ObjectState* usageState) const
-    throw (ObjectStateLoadingException) {
-
+    ObjectStateTable& usages, const ObjectState* usageState) const {
     try {
         int startCycle = usageState->intAttribute(OSKEY_START_CYCLE);
         for (ObjectStateTable::iterator iter = usages.begin();
@@ -1505,5 +1419,4 @@ ExecutionPipeline::addResourceUsage(
 
     usages.push_back(usageState);
 }
-
 }

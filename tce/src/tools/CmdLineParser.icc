@@ -71,7 +71,7 @@ CmdLineParser::numberOfArguments() const {
  */
 inline std::string
 CmdLineParser::argument(int index) const
-    throw (OutOfRange) {
+     {
 
     if (index < 1 || (unsigned)index > arguments_.size()) {
         std::string message = "Argument index out of range.";

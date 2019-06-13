@@ -204,9 +204,7 @@ FUImplementation::opcodeCount() const {
  *                       the number of opcodes.
  */
 std::string
-FUImplementation::opcodeOperation(int index) const
-    throw (OutOfRange) {
-
+FUImplementation::opcodeOperation(int index) const {
     if (index < 0 || index >= opcodeCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -218,7 +216,6 @@ FUImplementation::opcodeOperation(int index) const
 
     return iter->first;
 }
-
 
 /**
  * Tells whether there is an opcode defined for the given operation.
@@ -242,9 +239,7 @@ FUImplementation::hasOpcode(const std::string& operation) const {
  *                             operation.
  */
 int
-FUImplementation::opcode(const std::string& operation) const 
-    throw (KeyNotFound) {
-
+FUImplementation::opcode(const std::string& operation) const {
     string opName = StringTools::stringToUpper(operation);
     return MapTools::valueForKey<int>(opcodes_, opName);
 }
@@ -289,15 +284,12 @@ FUImplementation::addArchitecturePort(FUPortImplementation* port) {
  *                             implementation.
  */
 void
-FUImplementation::deleteArchitecturePort(FUPortImplementation* port) 
-    throw (InstanceNotFound) {
-
+FUImplementation::deleteArchitecturePort(FUPortImplementation* port) {
     bool removed = ContainerTools::deleteValueIfExists(ports_, port);
     if (!removed) {
         throw InstanceNotFound(__FILE__, __LINE__, __func__);
     }
 }
-
 
 /**
  * Adds the given external port.
@@ -318,15 +310,12 @@ FUImplementation::addExternalPort(FUExternalPort* port) {
  *                             implementation.
  */
 void
-FUImplementation::deleteExternalPort(FUExternalPort* port)
-    throw (InstanceNotFound) {
-
+FUImplementation::deleteExternalPort(FUExternalPort* port) {
     bool removed = ContainerTools::deleteValueIfExists(externalPorts_, port);
     if (!removed) {
         throw InstanceNotFound(__FILE__, __LINE__, __func__);
     }
 }
-
 
 /**
  * Returns the number of architectural ports.
@@ -359,9 +348,7 @@ FUImplementation::externalPortCount() const {
  *                       number of architectural ports.
  */
 FUPortImplementation&
-FUImplementation::architecturePort(int index) const
-    throw (OutOfRange) {
-
+FUImplementation::architecturePort(int index) const {
     if (index < 0 || index >= architecturePortCount()) {
         const string procName = "FUImplementation::architecturePort";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -379,10 +366,9 @@ FUImplementation::architecturePort(int index) const
  * @exception InstanceNotFound If no port with the given architecture name
  *                             is found.
  */
-FUPortImplementation& 
+FUPortImplementation&
 FUImplementation::portImplementationByArchitectureName(
-    const std::string& architectureName) const
-    throw (InstanceNotFound) {
+    const std::string& architectureName) const {
     for (int i = 0; i < architecturePortCount(); ++i) {
         if (ports_[i]->architecturePort() == architectureName)
             return *ports_[i];
@@ -391,7 +377,6 @@ FUImplementation::portImplementationByArchitectureName(
         __FILE__, __LINE__, __func__, 
         "No port implementation with the given architecture name found.");
 }
-
 
 /**
  * Returns the external port at the given position.
@@ -402,9 +387,7 @@ FUImplementation::portImplementationByArchitectureName(
  *                       number of external ports.
  */
 FUExternalPort&
-FUImplementation::externalPort(int index) const
-    throw (OutOfRange) {
-
+FUImplementation::externalPort(int index) const {
     if (index < 0 || index >= externalPortCount()) {
         const string procName = "FUImplementation::externalPort";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -412,7 +395,6 @@ FUImplementation::externalPort(int index) const
 
     return *externalPorts_[index];
 }
-
 
 /**
  * Adds the given parameter for the implementation.
@@ -425,11 +407,8 @@ FUImplementation::externalPort(int index) const
  */
 void
 FUImplementation::addParameter(
-    const std::string& name,
-    const std::string& type,
-    const std::string& value) 
-    throw (IllegalParameters) {
-
+    const std::string& name, const std::string& type,
+    const std::string& value) {
     if (hasParameter(name)) {
         throw IllegalParameters(__FILE__, __LINE__, __func__);
     } else {
@@ -437,7 +416,6 @@ FUImplementation::addParameter(
         parameters_.push_back(param);
     }
 }
-
 
 /**
  * Removes the parameter of the given name.
@@ -476,16 +454,13 @@ FUImplementation::parameterCount() const {
  *                       number of parameters.
  */
 FUImplementation::Parameter
-FUImplementation::parameter(int index) const
-    throw (OutOfRange) {
-    
+FUImplementation::parameter(int index) const {
     if (index < 0 || index >= parameterCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
 
     return parameters_[index];
 }
-
 
 /**
  * Tells whether the implementation has the given parameter.

@@ -174,11 +174,8 @@ NetlistGenerator::~NetlistGenerator() {
  */
 Netlist*
 NetlistGenerator::generate(
-    int imemWidthInMAUs, 
-    TCEString entityNameStr=TOPLEVEL_BLOCK_DEFAULT_NAME,
-    std::ostream& warningStream=std::cerr) 
-    throw (IOException, InvalidData, OutOfRange, InstanceNotFound) {
-
+    int imemWidthInMAUs, TCEString entityNameStr = TOPLEVEL_BLOCK_DEFAULT_NAME,
+    std::ostream& warningStream = std::cerr) {
     entityNameStr_ = entityNameStr;
 
     if (imemWidthInMAUs < 1) {
@@ -221,7 +218,6 @@ NetlistGenerator::generate(
     return netlist;
 }
 
-
 /**
  * Returns the netlist port which is corresponding to the given port in the
  * machine object model.
@@ -231,9 +227,7 @@ NetlistGenerator::generate(
  * @exception InstanceNotFound If the netlist does not contain the port.
  */
 NetlistPort&
-NetlistGenerator::netlistPort(const TTAMachine::Port& port) const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::netlistPort(const TTAMachine::Port& port) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(
             portCorrespondenceMap_, &port);
@@ -246,7 +240,6 @@ NetlistGenerator::netlistPort(const TTAMachine::Port& port) const
     }
 }
 
-
 /**
  * Returns the load enable port of the given port in the netlist.
  *
@@ -255,9 +248,7 @@ NetlistGenerator::netlistPort(const TTAMachine::Port& port) const
  * @exception InstanceNotFound If the netlist does not contain the port.
  */
 NetlistPort&
-NetlistGenerator::loadPort(const NetlistPort& port) const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::loadPort(const NetlistPort& port) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(
             loadPortMap_, &port);
@@ -272,7 +263,6 @@ NetlistGenerator::loadPort(const NetlistPort& port) const
              port.parentBlock()->moduleName()).str());
     }
 }
-
 
 /**
  * Returns true if the given RF port has opcode port. Otherwise, returns false.
@@ -291,9 +281,7 @@ NetlistGenerator::hasOpcodePort(const NetlistPort& port) const {
  * @exception InstanceNotFound If the netlist does not contain the port.
  */
 NetlistPort&
-NetlistGenerator::rfOpcodePort(const NetlistPort& port) const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::rfOpcodePort(const NetlistPort& port) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(
             rfOpcodePortMap_, &port);
@@ -308,7 +296,6 @@ NetlistGenerator::rfOpcodePort(const NetlistPort& port) const
     }
 }
 
-
 /**
  * Returns the guard port of the given RF block in the netlist.
  *
@@ -317,9 +304,7 @@ NetlistGenerator::rfOpcodePort(const NetlistPort& port) const
  * @exception InstanceNotFound If the netlist does not contain the port.
  */
 NetlistPort&
-NetlistGenerator::rfGuardPort(const NetlistBlock& rfBlock) const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::rfGuardPort(const NetlistBlock& rfBlock) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(rfGuardPorts_, &rfBlock);
     } catch (const Exception&) {
@@ -332,7 +317,6 @@ NetlistGenerator::rfGuardPort(const NetlistBlock& rfBlock) const
     }
 }
 
-
 /**
  * Returns the opcode port of the given FU.
  *
@@ -341,9 +325,7 @@ NetlistGenerator::rfGuardPort(const NetlistBlock& rfBlock) const
  * @exception InstanceNotFound If the given FU does not have an opcode port.
  */
 NetlistPort&
-NetlistGenerator::fuOpcodePort(const NetlistBlock& fuBlock) const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::fuOpcodePort(const NetlistBlock& fuBlock) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(fuOpcodePorts_, &fuBlock);
     } catch (const Exception&) {
@@ -355,7 +337,6 @@ NetlistGenerator::fuOpcodePort(const NetlistBlock& fuBlock) const
     }
 }
 
-
 /**
  * Returns the guard port of the given FU data port.
  *
@@ -364,9 +345,7 @@ NetlistGenerator::fuOpcodePort(const NetlistBlock& fuBlock) const
  * @exception InstanceNotFound If the netlist does not contain the port.
  */
 NetlistPort&
-NetlistGenerator::fuGuardPort(const NetlistPort& fuPort) const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::fuGuardPort(const NetlistPort& fuPort) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(fuGuardPortMap_, &fuPort);
     } catch (const Exception&) {
@@ -380,7 +359,6 @@ NetlistGenerator::fuGuardPort(const NetlistPort& fuPort) const
     }
 }
 
-
 /**
  * Returns the clock port of the given block in the netlist.
  *
@@ -389,9 +367,7 @@ NetlistGenerator::fuGuardPort(const NetlistPort& fuPort) const
  * @exception InstanceNotFound If the netlist does not contain the port.
  */
 NetlistPort&
-NetlistGenerator::clkPort(const NetlistBlock& block) const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::clkPort(const NetlistBlock& block) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(clkPorts_, &block);
     } catch (const Exception&) {
@@ -403,7 +379,6 @@ NetlistGenerator::clkPort(const NetlistBlock& block) const
     }
 }
 
-
 /**
  * Returns the reset port of the given block in the netlist.
  *
@@ -412,9 +387,7 @@ NetlistGenerator::clkPort(const NetlistBlock& block) const
  * @exception InstanceNotFound If the netlist does not contain the port.
  */
 NetlistPort&
-NetlistGenerator::rstPort(const NetlistBlock& block) const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::rstPort(const NetlistBlock& block) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(rstPorts_, &block);
     } catch (const Exception&) {
@@ -425,7 +398,6 @@ NetlistGenerator::rstPort(const NetlistBlock& block) const
              block.instanceName() % block.moduleName()).str());
     }
 }
-
 
 /**
  * Tells whether the given netlist block has a global lock port.
@@ -447,9 +419,7 @@ NetlistGenerator::hasGlockPort(const NetlistBlock& block) const {
  * @exception InstanceNotFound If the netlist does not contain the port.
  */
 NetlistPort&
-NetlistGenerator::glockPort(const NetlistBlock& block) const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::glockPort(const NetlistBlock& block) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(glockPorts_, &block);
     } catch (const Exception&) {
@@ -460,7 +430,6 @@ NetlistGenerator::glockPort(const NetlistBlock& block) const
              block.instanceName() % block.moduleName()).str());
     }
 }
-
 
 /**
  * Tells whether the given netlist block has global lock request port.
@@ -482,9 +451,7 @@ NetlistGenerator::hasGlockReqPort(const NetlistBlock& block) const {
  * @exception InstanceNotFound If the netlist does not contain the port.
  */
 NetlistPort&
-NetlistGenerator::glockReqPort(const NetlistBlock& block) const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::glockReqPort(const NetlistBlock& block) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(glockReqPorts_, &block);
     } catch (const Exception&) {
@@ -496,7 +463,6 @@ NetlistGenerator::glockReqPort(const NetlistBlock& block) const
     }
 }
 
-
 /**
  * Returns a netlist port that is the write port of the given immediate unit.
  *
@@ -506,9 +472,7 @@ NetlistGenerator::glockReqPort(const NetlistBlock& block) const
  */
 NetlistPort&
 NetlistGenerator::immediateUnitWritePort(
-    const TTAMachine::ImmediateUnit& iu) const 
-    throw (InstanceNotFound) {
-
+    const TTAMachine::ImmediateUnit& iu) const {
     try {
         return *MapTools::valueForKey<NetlistPort*>(iuPortMap_, &iu);
     } catch (const Exception&) {
@@ -519,7 +483,6 @@ NetlistGenerator::immediateUnitWritePort(
     }
 }
 
-
 /**
  * Returns the return address in port of GCU.
  *
@@ -527,9 +490,7 @@ NetlistGenerator::immediateUnitWritePort(
  * @exception InstanceNotFound If GCU does not have the port.
  */
 NetlistPort&
-NetlistGenerator::gcuReturnAddressInPort() const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::gcuReturnAddressInPort() const {
     if (raInPort_ != NULL) {
         return *raInPort_;
     } else {
@@ -538,7 +499,6 @@ NetlistGenerator::gcuReturnAddressInPort() const
     }
 }
 
-
 /**
  * Returns the return address out port of GCU.
  *
@@ -546,9 +506,7 @@ NetlistGenerator::gcuReturnAddressInPort() const
  * @exception InstanceNotFound If GCU does not have the port.
  */
 NetlistPort&
-NetlistGenerator::gcuReturnAddressOutPort() const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::gcuReturnAddressOutPort() const {
     if (raOutPort_ != NULL) {
         return *raOutPort_;
     } else {
@@ -556,7 +514,6 @@ NetlistGenerator::gcuReturnAddressOutPort() const
             "Cannot find return address of out port of GCU");
     }
 }
-
 
 /**
  * Returns the instruction decoder block in the netlist.
@@ -566,9 +523,7 @@ NetlistGenerator::gcuReturnAddressOutPort() const
  *                             netlist.
  */
 NetlistBlock&
-NetlistGenerator::instructionDecoder() const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::instructionDecoder() const {
     if (instructionDecoder_ == NULL) {
         throw InstanceNotFound(__FILE__, __LINE__, __func__,
             "Cannot find instruction decoder block from the netlist.");
@@ -585,8 +540,7 @@ NetlistGenerator::instructionDecoder() const
  *                             netlist.
  */
 NetlistBlock&
-NetlistGenerator::instructionFetch() const
-        throw (InstanceNotFound) {
+NetlistGenerator::instructionFetch() const {
     if (instructionFetch_ == NULL) {
         throw InstanceNotFound(__FILE__, __LINE__, __func__,
             "Cannot find instruction fetch block from the netlist.");
@@ -604,9 +558,7 @@ NetlistGenerator::instructionFetch() const
  *                             no FU entry for the given FU.
  */
 HDB::FUEntry&
-NetlistGenerator::fuEntry(const std::string& fuName) const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::fuEntry(const std::string& fuName) const {
     try {
         return *MapTools::valueForKey<FUEntry*>(fuEntryMap_, fuName);
     } catch (const Exception&) {
@@ -624,9 +576,7 @@ NetlistGenerator::fuEntry(const std::string& fuName) const
  *                             was no RF entry for the given RF.
  */
 HDB::RFEntry&
-NetlistGenerator::rfEntry(const std::string& rfName) const
-    throw (InstanceNotFound) {
-
+NetlistGenerator::rfEntry(const std::string& rfName) const {
     try {
         return *MapTools::valueForKey<RFEntry*>(rfEntryMap_, rfName);
     } catch (const Exception&) {
@@ -813,10 +763,8 @@ NetlistGenerator::addGCUToNetlist(
  */
 void
 NetlistGenerator::addFUToNetlist(
-    const FUImplementationLocation& location,
-    Netlist& netlist, std::ostream& warningStream)
-    throw (IOException, InvalidData) {
-
+    const FUImplementationLocation& location, Netlist& netlist,
+    std::ostream& warningStream) {
     string hdbFile = location.hdbFile();
     int id = location.id();
     FUEntry* entry = NULL;
@@ -1059,7 +1007,6 @@ NetlistGenerator::addFUToNetlist(
     }
 }
 
-
 /**
  * Adds the RF identified by the given RFImplementationLocation
  * instance to the netlist.
@@ -1073,10 +1020,7 @@ NetlistGenerator::addFUToNetlist(
  */
 void
 NetlistGenerator::addRFToNetlist(
-    const RFImplementationLocation& location,
-    Netlist& netlist)
-    throw (IOException, InvalidData) {
-
+    const RFImplementationLocation& location, Netlist& netlist) {
     if (!machine_.registerFileNavigator().hasItem(location.unitName())) {
         string errorMsg = "ADF does not contain register file '" +
             location.unitName() + "' referred to in IDF.";
@@ -1086,7 +1030,6 @@ NetlistGenerator::addRFToNetlist(
         location.unitName());
     addBaseRFToNetlist(*rf, location, netlist, RF_NAME_PREFIX);
 }
-
 
 /**
  * Adds the IU identified by the given RFImplementationLocation
@@ -1101,10 +1044,7 @@ NetlistGenerator::addRFToNetlist(
  */
 void
 NetlistGenerator::addIUToNetlist(
-    const RFImplementationLocation& location,
-    Netlist& netlist)
-    throw (IOException, InvalidData) {
-
+    const RFImplementationLocation& location, Netlist& netlist) {
     if (!machine_.immediateUnitNavigator().hasItem(location.unitName())) {
         string errorMsg = "ADF does not contain immediate unit '" +
             location.unitName() + "' referred to in IDF.";
@@ -1114,7 +1054,6 @@ NetlistGenerator::addIUToNetlist(
         location.unitName());
     addBaseRFToNetlist(*iu, location, netlist, IU_NAME_PREFIX);
 }
-
 
 /**
  * Adds the RF or IU identified by the given RFImplementationLocation
@@ -1134,11 +1073,8 @@ NetlistGenerator::addIUToNetlist(
 void
 NetlistGenerator::addBaseRFToNetlist(
     const TTAMachine::BaseRegisterFile& regFile,
-    const RFImplementationLocation& location,
-    Netlist& netlist,
-    const std::string& blockNamePrefix)
-    throw (IOException, InvalidData) {
-
+    const RFImplementationLocation& location, Netlist& netlist,
+    const std::string& blockNamePrefix) {
     RFEntry* entry = NULL;
     try {
         HDBManager& manager = HDBRegistry::instance().hdb(location.hdbFile());
@@ -1369,7 +1305,6 @@ NetlistGenerator::addBaseRFToNetlist(
         mapGlobalLockPort(*block, *glockPort);
     }
 }
-
 
 /**
  * Maps the given ADF port to the given netlist port.
@@ -1621,9 +1556,7 @@ NetlistGenerator::calculateAddressWidth(
  */
 int
 NetlistGenerator::opcodePortWidth(
-    const HDB::FUEntry& fu, std::ostream& warningStream)
-    throw (InvalidData) {
-
+    const HDB::FUEntry& fu, std::ostream& warningStream) {
     assert(fu.hasImplementation());
     assert(fu.hasArchitecture());
     FUImplementation& implementation = fu.implementation();
@@ -1664,7 +1597,6 @@ NetlistGenerator::opcodePortWidth(
     return portWidth;
 }
 
-
 /**
  * Finds the corresponding ports from the given function units.
  *
@@ -1677,10 +1609,7 @@ NetlistGenerator::opcodePortWidth(
 TTAMachine::FUPort&
 NetlistGenerator::findCorrespondingPort(
     const TTAMachine::FunctionUnit& fuToSearch,
-    const TTAMachine::FunctionUnit& origFU,
-    const std::string& portName)
-    throw (InstanceNotFound) {
-
+    const TTAMachine::FunctionUnit& origFU, const std::string& portName) {
     FUPort* correspondingPort = NULL;
     assert(origFU.hasOperationPort(portName));
     const FUPort* origPort = origFU.operationPort(portName);
@@ -1713,7 +1642,6 @@ NetlistGenerator::findCorrespondingPort(
     return *correspondingPort;
 }
 
-
 /**
  * Explores the given machine for the width of the instruction memory
  * address.
@@ -1724,13 +1652,10 @@ NetlistGenerator::findCorrespondingPort(
  */
 int
 NetlistGenerator::instructionMemoryAddressWidth(
-    const TTAMachine::Machine& machine)
-    throw (IllegalMachine) {
-
+    const TTAMachine::Machine& machine) {
     AddressSpace& iMem = instructionMemory(machine);
     return MathTools::requiredBits(iMem.end());
 }
-
 
 /**
  * Explores the given machine for the width of the instruction memory.
@@ -1740,14 +1665,10 @@ NetlistGenerator::instructionMemoryAddressWidth(
  * @exception IllegalMachine If the machine is erroneous.
  */
 int
-NetlistGenerator::instructionMemoryWidth(
-    const TTAMachine::Machine& machine)
-    throw (IllegalMachine) {
-
+NetlistGenerator::instructionMemoryWidth(const TTAMachine::Machine& machine) {
     AddressSpace& iMem = instructionMemory(machine);
     return iMem.width();
 }
-
 
 /**
  * Returns the address space that represents the instruction memory of the
@@ -1759,9 +1680,7 @@ NetlistGenerator::instructionMemoryWidth(
  *                           memory address space.
  */
 TTAMachine::AddressSpace&
-NetlistGenerator::instructionMemory(const TTAMachine::Machine& machine)
-    throw (IllegalMachine) {
-
+NetlistGenerator::instructionMemory(const TTAMachine::Machine& machine) {
     ControlUnit* cu = machine.controlUnit();
     if (cu == NULL) {
         string errorMsg = "The machine does not have a control unit.";

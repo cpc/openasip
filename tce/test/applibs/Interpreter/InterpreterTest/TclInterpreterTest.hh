@@ -60,8 +60,7 @@ public:
     ArithCmd();
     virtual ~ArithCmd();
 
-    virtual bool execute(const vector<DataObject>& arguments)
-        throw (NumberFormatException);
+    virtual bool execute(const vector<DataObject>& arguments);
     virtual string helpText() const;
 };
 
@@ -85,9 +84,7 @@ ArithCmd::~ArithCmd() {
  * @exception NumberFormatException If conversion of DataObject fails. 
  */
 bool
-ArithCmd::execute(const vector<DataObject>& arguments) 
-    throw (NumberFormatException) {
-    
+ArithCmd::execute(const vector<DataObject>& arguments) {
     ScriptInterpreter* interp = interpreter();
 
     DataObject* obj = new DataObject();
@@ -123,8 +120,7 @@ public:
     ListCmd();
     virtual ~ListCmd();
 
-    virtual bool execute(const vector<DataObject>& arguments)
-        throw (NumberFormatException);
+    virtual bool execute(const vector<DataObject>& arguments);
     virtual string helpText() const;
 };
 
@@ -148,9 +144,7 @@ ListCmd::~ListCmd() {
  * @exception NumberFormatException If conversion of DataObject fails.
  */
 bool
-ListCmd::execute(const vector<DataObject>& arguments) 
-    throw (NumberFormatException) {
-
+ListCmd::execute(const vector<DataObject>& arguments) {
     ScriptInterpreter* interp = interpreter();
 
     string result = "";

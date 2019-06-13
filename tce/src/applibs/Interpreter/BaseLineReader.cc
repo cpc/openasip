@@ -93,9 +93,7 @@ BaseLineReader::setPromptPrinting(bool flag) {
  * @todo Implement detection of end-of-file.
  */
 std::string
-BaseLineReader::readLine(std::string prompt) 
-    throw (ObjectNotInitialized, EndOfFile) {
-    
+BaseLineReader::readLine(std::string prompt) {
     if (!initialized()) {
         std::string msg = "LineReader not initialized.";
         throw ObjectNotInitialized(__FILE__, __LINE__, __func__, msg);
@@ -132,11 +130,8 @@ BaseLineReader::readLine(std::string prompt)
  */
 char
 BaseLineReader::charQuestion(
-    std::string question,
-    std::string allowedChars,
-    bool caseSensitive,
-    char defaultAnswer) throw (ObjectNotInitialized) {
-
+    std::string question, std::string allowedChars, bool caseSensitive,
+    char defaultAnswer) {
     if (!initialized()) {
         std::string method = "BaseLineReader::charQuestion()";
         std::string msg = "LineReader not initialized.";

@@ -57,8 +57,8 @@ public:
         ControlFlowGraph& cGraph, const UniversalMachine* um = NULL);
 
     virtual DataDependenceGraph* buildFromBB(
-        TTAProgram::BasicBlock& bb, const UniversalMachine* um = NULL) 
-        throw (IllegalProgram);
+        TTAProgram::BasicBlock& bb, const UniversalMachine* um = NULL);
+
 private:
     void buildLocalDDG(TTAProgram::BasicBlock& bb);
 };

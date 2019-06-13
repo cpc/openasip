@@ -45,8 +45,7 @@ public:
 
     bool hasID() const;
     void setID(RowID id);
-    RowID id() const
-        throw (NotAvailable);
+    RowID id() const;
 
 protected:
     HWBlockArchitecture();

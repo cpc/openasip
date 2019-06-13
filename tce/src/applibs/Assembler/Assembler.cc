@@ -64,9 +64,7 @@ Assembler::Assembler(
  * @exception CompileError If there was any problems during the compilation.
  */
 Binary*
-Assembler::compile()
-    throw (CompileError) {
-
+Assembler::compile() {
     // clear old warnings from previous compilation
     warnings_.clear();
 

@@ -44,27 +44,20 @@ class BinaryEncoding;
 class ImmediateSlotField : public InstructionField {
 public:
     ImmediateSlotField(
-        const std::string& name,
-        int width,
-        BinaryEncoding& parent)
-        throw (OutOfRange, ObjectAlreadyExists);
-    ImmediateSlotField(const ObjectState* state, BinaryEncoding& parent)
-        throw (ObjectStateLoadingException);
+        const std::string& name, int width, BinaryEncoding& parent);
+    ImmediateSlotField(const ObjectState* state, BinaryEncoding& parent);
     virtual ~ImmediateSlotField();
 
     BinaryEncoding* parent() const;
     std::string name() const;
-    void setName(const std::string& name)
-        throw (ObjectAlreadyExists);
+    void setName(const std::string& name);
 
     virtual int childFieldCount() const;
     virtual int width() const;
-    void setWidth(int width)
-        throw (OutOfRange);
+    void setWidth(int width);
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for immediate slot field.
     static const std::string OSNAME_IMMEDIATE_SLOT_FIELD;

@@ -78,8 +78,7 @@ MoveNodeGroup::addNode(MoveNode& node) {
  * @return The earliest possible cycle
  */
 int
-MoveNodeGroup::latestCycle() const
-    throw (NotAvailable) {
+MoveNodeGroup::latestCycle() const {
     abortWithError("Not yet implemented");
     return 0;
 }

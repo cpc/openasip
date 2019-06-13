@@ -87,9 +87,7 @@ DesignSpaceExplorerPlugin::name() const {
  */
 void
 DesignSpaceExplorerPlugin::giveParameter(
-    const std::string& name, 
-    const std::string& value) throw (InstanceNotFound) {
-
+    const std::string& name, const std::string& value) {
     PMIt it = parameters_.find(name);
     if (it == parameters_.end()) {
         std::string msg = "Plugin has no parameter named: " + name;
@@ -97,7 +95,6 @@ DesignSpaceExplorerPlugin::giveParameter(
     }
     it->second.setValue(value);
 }
-
 
 /**
  * Tells whether the plugin has the given parameter defined.
@@ -132,9 +129,7 @@ DesignSpaceExplorerPlugin::parameters() const {
  * boolean value
  */
 bool
-DesignSpaceExplorerPlugin::booleanValue(const std::string& parameter) const
-    throw (IllegalParameters) {
-    
+DesignSpaceExplorerPlugin::booleanValue(const std::string& parameter) const {
     std::string lowCase = StringTools::stringToLower(parameter);
     if (lowCase == "true" || lowCase == "1") {
         return true;
@@ -145,13 +140,11 @@ DesignSpaceExplorerPlugin::booleanValue(const std::string& parameter) const
     }
 }
 
-
 /**
  * Checks that all compulsory parameters are set for the plugin.
  */
-void 
-DesignSpaceExplorerPlugin::checkParameters() const throw(IllegalParameters) {
-   
+void
+DesignSpaceExplorerPlugin::checkParameters() const {
     for (PMCIt it = parameters_.begin(); it != parameters_.end(); it++) {
         if (it->second.isCompulsory() && !it->second.isSet()) {
             std::string msg = it->second.name() + " parameter is needed.";
@@ -159,7 +152,6 @@ DesignSpaceExplorerPlugin::checkParameters() const throw(IllegalParameters) {
         }
     }
 }
-
 
 /**
  * Explores the design space from the starting point machine and returns

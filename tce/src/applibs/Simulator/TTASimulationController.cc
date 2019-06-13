@@ -113,9 +113,8 @@ TTASimulationController::stopReasonCount() const {
  * @return The stop reason at the given index.
  * @exception OutOfRange If the given index is out of range.
  */
-StopReason 
-TTASimulationController::stopReason(unsigned int index) const 
-    throw (OutOfRange) {
+StopReason
+TTASimulationController::stopReason(unsigned int index) const {
     if (index >= stopReasonCount()) {
         throw OutOfRange(
             __FILE__, __LINE__, __func__, "Stop reason index out of range.");

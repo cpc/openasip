@@ -114,8 +114,7 @@ Move::~Move() {
  * @exception IllegalRegistration if the move is independent.
  */
 Instruction&
-Move::parent() const 
-    throw (IllegalRegistration) {
+Move::parent() const {
     if (parent_ != NULL && parent_ != &NullInstruction::instance()) {
         return *parent_;
     } else {
@@ -328,7 +327,8 @@ Move::setDestination(Terminal* dst) {
  * @return the Boolean expression that guards this move.
  * @exception InvalidData if the move is not predicated.
  */
-MoveGuard& Move::guard() const throw (InvalidData) {
+MoveGuard&
+Move::guard() const {
     if (guard_ != NULL) {
         return *guard_;
     } else {
@@ -376,8 +376,7 @@ Move::destinationSocket() const {
 }
 
 Socket&
-Move::sourceSocket() const 
-    throw (WrongSubclass) {
+Move::sourceSocket() const {
     if (src_->isImmediate()) {
         throw WrongSubclass(
             __FILE__, __LINE__, "Move::sourceSocket()",

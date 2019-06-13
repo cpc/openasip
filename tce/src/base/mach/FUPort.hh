@@ -46,16 +46,9 @@ namespace TTAMachine {
 class FUPort : public BaseFUPort {
 public:
     FUPort(
-        const std::string& name,
-        int width,
-        FunctionUnit& parent,
-        bool triggers,
-        bool setsOpcode,
-        bool noRegister=false)
-        throw (ComponentAlreadyExists, OutOfRange, IllegalParameters,
-               InvalidName);
-    FUPort(const ObjectState* state, Unit& parent)
-        throw (ObjectStateLoadingException);
+        const std::string& name, int width, FunctionUnit& parent, bool triggers,
+        bool setsOpcode, bool noRegister = false);
+    FUPort(const ObjectState* state, Unit& parent);
     virtual ~FUPort();
 
     virtual bool isTriggering() const;
@@ -64,14 +57,13 @@ public:
     void setTriggering(bool triggers);
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     std::string bindingString() const;
     void updateBindingString() const;
 
     bool isArchitectureEqual(FUPort* port);
-   
+
     bool noRegister() const;
     void setNoRegister(bool noRegister);
 
@@ -87,21 +79,13 @@ public:
 protected:
     // this is for UniversalFUPort class
     FUPort(
-        const std::string& name,
-        int width,
-        FunctionUnit& parent,
-        bool triggers,
-        bool setsOpcode,
-        bool noRegister,
-        bool dummy)
-        throw (ComponentAlreadyExists, OutOfRange, IllegalParameters,
-               InvalidName);
+        const std::string& name, int width, FunctionUnit& parent, bool triggers,
+        bool setsOpcode, bool noRegister, bool dummy);
 
 private:
     void cleanupGuards() const;
     void cleanupOperandBindings() const;
-    void loadStateWithoutReferences(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadStateWithoutReferences(const ObjectState* state);
 
     /// Specifies whether this is a triggering port.
     bool triggers_;

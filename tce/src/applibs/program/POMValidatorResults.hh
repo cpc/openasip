@@ -50,8 +50,7 @@ public:
     virtual ~POMValidatorResults();
 
     int errorCount() const;
-    Error error(int index) const
-        throw (OutOfRange);
+    Error error(int index) const;
 
     void addError(POMValidator::ErrorCode code, const std::string& errorMsg);
 

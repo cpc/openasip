@@ -48,17 +48,12 @@ public:
     virtual ~SQLite();
 
     virtual RelationalDBConnection& connect(
-	const std::string& database,
-	const std::string& login = "",
-	const std::string& password = "",
-	bool readOnly = false)
-	throw (RelationalDBException);
+        const std::string& database, const std::string& login = "",
+        const std::string& password = "", bool readOnly = false);
 
-    virtual void close(const RelationalDBConnection& connection)
-	throw (RelationalDBException);
+    virtual void close(const RelationalDBConnection& connection);
 
 private:
-
     /// Only one simultaneous active connection per SQLite instance allowed
     /// currently.
     SQLiteConnection* activeConnection_;

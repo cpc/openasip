@@ -50,17 +50,12 @@ public:
         const CostDBEntryStatsFU& stats2,
         double coefficient);
 
-    virtual double energyActive() const
-        throw (WrongSubclass, KeyNotFound);
-    virtual double energyOperation(const std::string& name) const 
-        throw (WrongSubclass, KeyNotFound);
-    virtual bool hasEnergyOperation(const std::string& name) const
-        throw (WrongSubclass);
+    virtual double energyActive() const;
+    virtual double energyOperation(const std::string& name) const;
+    virtual bool hasEnergyOperation(const std::string& name) const;
 
-    virtual void setEnergyActive(double energy)
-        throw (WrongSubclass);
-    virtual void setEnergyOperation(const std::string& name, double energy)
-        throw (WrongSubclass);
+    virtual void setEnergyActive(double energy);
+    virtual void setEnergyOperation(const std::string& name, double energy);
 
 protected:
     virtual CostDBEntryStats* createStats() const;

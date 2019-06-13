@@ -50,11 +50,9 @@ public:
     virtual ~InstructionMemory();
     
     void addExecutableInstruction(ExecutableInstruction* instruction);
-    ExecutableInstruction& instructionAt(InstructionAddress address) 
-        throw (OutOfRange);
+    ExecutableInstruction& instructionAt(InstructionAddress address);
     const ExecutableInstruction& instructionAtConst(
-        InstructionAddress address) const
-        throw (OutOfRange);
+        InstructionAddress address) const;
 
     void resetExecutionCounts();
 

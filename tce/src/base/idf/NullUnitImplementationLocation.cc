@@ -73,13 +73,10 @@ NullUnitImplementationLocation::instance() {
  * @return Never returns.
  */
 std::string
-NullUnitImplementationLocation::hdbFile() const 
-    throw (FileNotFound) {
-
+NullUnitImplementationLocation::hdbFile() const {
     abortWithError("NullUnitImplementationLocation::hdbFile");
     return "";
 }
-
 
 /**
  * Aborts the program with error message.
@@ -111,9 +108,7 @@ NullUnitImplementationLocation::unitName() const {
  * @return Never returns.
  */
 void
-NullUnitImplementationLocation::setParent(MachineImplementation&)
-    throw (InvalidData) {
-
+NullUnitImplementationLocation::setParent(MachineImplementation&) {
     abortWithError("NullUnitImplementationLocation::setParent");
 }
 }

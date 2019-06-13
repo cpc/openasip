@@ -50,8 +50,7 @@ namespace TTAMachine {
 class Model {
 public:
     Model();
-    Model(const std::string& fileName)
-        throw (SerializerException, ObjectStateLoadingException);
+    Model(const std::string& fileName);
     ~Model();
 
     TTAMachine::Machine* getMachine();

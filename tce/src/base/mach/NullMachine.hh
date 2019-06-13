@@ -44,48 +44,29 @@ class NullMachine : public Machine {
 public:
     static NullMachine& instance();
 
-    virtual void addBus(Bus& bus)
-        throw (ComponentAlreadyExists);
-    virtual void addSocket(Socket& socket)
-        throw (ComponentAlreadyExists);
-    void addUnit(Unit& unit)
-        throw (ComponentAlreadyExists, IllegalParameters);
-    virtual void addFunctionUnit(FunctionUnit& unit)
-        throw (ComponentAlreadyExists, IllegalParameters);
-    virtual void addImmediateUnit(ImmediateUnit& unit)
-        throw (ComponentAlreadyExists);
-    virtual void addRegisterFile(RegisterFile& unit)
-        throw (ComponentAlreadyExists);
-    virtual void addAddressSpace(AddressSpace& as)
-        throw (ComponentAlreadyExists);
-    virtual void addBridge(Bridge& bridge)
-        throw (ComponentAlreadyExists);
-    virtual void addInstructionTemplate(InstructionTemplate& instrTempl)
-        throw (ComponentAlreadyExists);
-    virtual void setGlobalControl(ControlUnit& unit)
-        throw (ComponentAlreadyExists);
+    virtual void addBus(Bus& bus);
+    virtual void addSocket(Socket& socket);
+    void addUnit(Unit& unit);
+    virtual void addFunctionUnit(FunctionUnit& unit);
+    virtual void addImmediateUnit(ImmediateUnit& unit);
+    virtual void addRegisterFile(RegisterFile& unit);
+    virtual void addAddressSpace(AddressSpace& as);
+    virtual void addBridge(Bridge& bridge);
+    virtual void addInstructionTemplate(InstructionTemplate& instrTempl);
+    virtual void setGlobalControl(ControlUnit& unit);
     virtual void unsetGlobalControl();
 
     virtual ControlUnit* controlUnit() const;
 
-    virtual void removeBus(Bus& bus)
-        throw (InstanceNotFound);
-    virtual void removeSocket(Socket& socket)
-        throw (InstanceNotFound);
-    virtual void removeUnit(Unit& unit)
-        throw (InstanceNotFound, IllegalParameters);
-    virtual void removeFunctionUnit(FunctionUnit& unit)
-        throw (InstanceNotFound);
-    virtual void removeImmediateUnit(ImmediateUnit& unit)
-        throw (InstanceNotFound);
-    virtual void removeRegisterFile(RegisterFile& unit)
-        throw (InstanceNotFound);
-    virtual void deleteBridge(Bridge& bridge)
-        throw (InstanceNotFound);
-    virtual void deleteInstructionTemplate(InstructionTemplate& instrTempl)
-        throw (InstanceNotFound);
-    virtual void deleteAddressSpace(AddressSpace& as)
-        throw (InstanceNotFound);
+    virtual void removeBus(Bus& bus);
+    virtual void removeSocket(Socket& socket);
+    virtual void removeUnit(Unit& unit);
+    virtual void removeFunctionUnit(FunctionUnit& unit);
+    virtual void removeImmediateUnit(ImmediateUnit& unit);
+    virtual void removeRegisterFile(RegisterFile& unit);
+    virtual void deleteBridge(Bridge& bridge);
+    virtual void deleteInstructionTemplate(InstructionTemplate& instrTempl);
+    virtual void deleteAddressSpace(AddressSpace& as);
 
     virtual BusNavigator busNavigator() const;
     virtual SocketNavigator socketNavigator() const;
@@ -98,8 +79,7 @@ public:
     virtual RegisterFileNavigator registerFileNavigator() const;
 
     // functions inherited from Serializable interface
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
     virtual ObjectState* saveState() const;
 
 private:

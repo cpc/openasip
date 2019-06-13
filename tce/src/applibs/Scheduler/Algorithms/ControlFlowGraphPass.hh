@@ -53,14 +53,10 @@ public:
     virtual ~ControlFlowGraphPass();
 
     virtual void handleControlFlowGraph(
-        ControlFlowGraph& cfg,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        ControlFlowGraph& cfg, const TTAMachine::Machine& targetMachine);
 
     void executeBasicBlockPass(
-        ControlFlowGraph& cfg,
-        const TTAMachine::Machine& targetMachine,
-        BasicBlockPass& bbPass)
-        throw (Exception);
+        ControlFlowGraph& cfg, const TTAMachine::Machine& targetMachine,
+        BasicBlockPass& bbPass);
 };
 #endif

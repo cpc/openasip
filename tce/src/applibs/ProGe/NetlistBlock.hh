@@ -71,30 +71,24 @@ public:
     void setParameter(const Netlist::Parameter& param);
 
     bool hasParameter(const std::string& name) const;
-    Netlist::Parameter parameter(const std::string& name) const
-        throw (NotAvailable);
+    Netlist::Parameter parameter(const std::string& name) const;
     int parameterCount() const;
-    Netlist::Parameter parameter(int index) const
-        throw (OutOfRange);
+    Netlist::Parameter parameter(int index) const;
 
     void addPort(NetlistPort* port);
     void removePort(NetlistPort& port);
     int portCount() const;
-    NetlistPort& port(int index) const
-        throw (OutOfRange);
+    NetlistPort& port(int index) const;
 
     NetlistPort* portByName(const std::string& name) const;
 
-    void addSubBlock(NetlistBlock* block)
-        throw (IllegalRegistration);
+    void addSubBlock(NetlistBlock* block);
     int subBlockCount() const;
-    NetlistBlock& subBlock(int index) const
-        throw (OutOfRange);
+    NetlistBlock& subBlock(int index) const;
     bool isSubBlock(const NetlistBlock& block) const;
 
     bool hasParentBlock() const;
-    NetlistBlock& parentBlock() const
-        throw (InstanceNotFound);
+    NetlistBlock& parentBlock() const;
 
     Netlist& netlist() const;
 

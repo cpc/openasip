@@ -53,20 +53,18 @@ const std::string PortCode::OSKEY_INDEX_WIDTH = "index_width";
  * @exception OutOfRange If the some of the given values is negative.
  */
 PortCode::PortCode(
-    const std::string& unitName, 
-    unsigned int encoding,
-    unsigned int extraBits,
+    const std::string& unitName, unsigned int encoding, unsigned int extraBits,
     int indexWidth)
-    throw (OutOfRange) :
-    unitName_(unitName), encoding_(encoding),
-    extraBits_(extraBits), indexWidth_(indexWidth), hasEncoding_(true),
-    parent_(NULL) {
-
+    : unitName_(unitName),
+      encoding_(encoding),
+      extraBits_(extraBits),
+      indexWidth_(indexWidth),
+      hasEncoding_(true),
+      parent_(NULL) {
     if (indexWidth_ < 0) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
 }
-
 
 /**
  * The constructor.
@@ -77,18 +75,17 @@ PortCode::PortCode(
  * @param indexWidth The width of the register index.
  * @exception OutOfRange If the some of the given values is negative.
  */
-PortCode::PortCode(
-    const std::string& unitName, 
-    int indexWidth)
-    throw (OutOfRange) :
-    unitName_(unitName), encoding_(0), extraBits_(0),
-    indexWidth_(indexWidth), hasEncoding_(false), parent_(NULL) {
-
+PortCode::PortCode(const std::string& unitName, int indexWidth)
+    : unitName_(unitName),
+      encoding_(0),
+      extraBits_(0),
+      indexWidth_(indexWidth),
+      hasEncoding_(false),
+      parent_(NULL) {
     if (indexWidth_ < 0) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
 }
-
 
 /**
  * The constructor.
@@ -100,10 +97,12 @@ PortCode::PortCode(
  *                                        is erroneous.
  */
 PortCode::PortCode(const ObjectState* state)
-    throw (ObjectStateLoadingException) : 
-    unitName_(""), encoding_(0), extraBits_(0), indexWidth_(0), 
-    hasEncoding_(false), parent_(NULL) {        
-
+    : unitName_(""),
+      encoding_(0),
+      extraBits_(0),
+      indexWidth_(0),
+      hasEncoding_(false),
+      parent_(NULL) {
     try {
         unitName_ = state->stringAttribute(OSKEY_UNIT_NAME);
         if (state->hasAttribute(OSKEY_ENCODING)) {
@@ -118,7 +117,6 @@ PortCode::PortCode(const ObjectState* state)
         throw ObjectStateLoadingException(__FILE__, __LINE__, __func__);
     }
 }
-
 
 /**
  * The destructor.
@@ -157,15 +155,12 @@ PortCode::hasEncoding() const {
  *                         (port ID).
  */
 unsigned int
-PortCode::encoding() const 
-    throw (NotAvailable) {
-
+PortCode::encoding() const {
     if (!hasEncoding()) {
         throw NotAvailable(__FILE__, __LINE__, __func__);
     }
     return encoding_;
 }
-
 
 /**
  * Returns the number of extra bits in the encoding.

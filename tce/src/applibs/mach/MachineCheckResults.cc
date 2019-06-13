@@ -67,16 +67,13 @@ MachineCheckResults::errorCount() const {
  *                       the number of errors.
  */
 MachineCheckResults::Error
-MachineCheckResults::error(int index) const
-    throw (OutOfRange) {
-
+MachineCheckResults::error(int index) const {
     if (index < 0 || index >= errorCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
 
     return errors_[index];
 }
-
 
 /**
  * Adds an error to the results.

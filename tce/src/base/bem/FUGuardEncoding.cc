@@ -60,18 +60,12 @@ const std::string FUGuardEncoding::OSKEY_PORT_NAME = "port_name";
  *                                expression.
  */
 FUGuardEncoding::FUGuardEncoding(
-    const std::string& fu,
-    const std::string& port,
-    bool inverted,
-    unsigned int encoding,
-    GuardField& parent)
-    throw (ObjectAlreadyExists) :
-    GuardEncoding(inverted, encoding), functionUnit_(fu), port_(port) {
-
+    const std::string& fu, const std::string& port, bool inverted,
+    unsigned int encoding, GuardField& parent)
+    : GuardEncoding(inverted, encoding), functionUnit_(fu), port_(port) {
     parent.addGuardEncoding(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -88,9 +82,7 @@ FUGuardEncoding::FUGuardEncoding(
  *                                expression.
  */
 FUGuardEncoding::FUGuardEncoding(const ObjectState* state, GuardField& parent)
-    throw (ObjectStateLoadingException, ObjectAlreadyExists) :
-    GuardEncoding(state), functionUnit_(""), port_("") {
-
+    : GuardEncoding(state), functionUnit_(""), port_("") {
     const string procName = "FUGuardEncoding::FUGuardEncoding";
 
     if (state->name() != OSNAME_FU_GUARD_ENCODING) {
@@ -108,7 +100,6 @@ FUGuardEncoding::FUGuardEncoding(const ObjectState* state, GuardField& parent)
     parent.addGuardEncoding(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.

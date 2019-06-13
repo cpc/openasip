@@ -66,10 +66,8 @@ ProgCommand::~ProgCommand() {
  * @exception NumberFormatException Is never thrown by this command.
  *
  */
-bool 
-ProgCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+ProgCommand::execute(const std::vector<DataObject>& arguments) {
     assert(interpreter() != NULL);
 
     SimulatorTextGenerator& textGen = SimulatorToolbox::textGenerator();    

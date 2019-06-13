@@ -64,17 +64,12 @@ const std::string SocketEncoding::OSKEY_SC_TABLE = "sc_table";
  *                                encoding in the parent slot field.
  */
 SocketEncoding::SocketEncoding(
-    const std::string& name,
-    unsigned int encoding,
-    unsigned int extraBits,
+    const std::string& name, unsigned int encoding, unsigned int extraBits,
     SlotField& parent)
-    throw (ObjectAlreadyExists) :
-    Encoding(encoding, extraBits, NULL), name_(name), socketCodes_(NULL) {
-
+    : Encoding(encoding, extraBits, NULL), name_(name), socketCodes_(NULL) {
     parent.addSocketEncoding(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -91,9 +86,7 @@ SocketEncoding::SocketEncoding(
  *                                encoding in the parent slot field.
  */
 SocketEncoding::SocketEncoding(const ObjectState* state, SlotField& parent)
-    throw (ObjectStateLoadingException, ObjectAlreadyExists) :
-    Encoding(state, &parent), name_(""), socketCodes_(NULL) {
-
+    : Encoding(state, &parent), name_(""), socketCodes_(NULL) {
     const string procName = "SocketEncoding::SocketEncoding";
 
     try {
@@ -119,7 +112,6 @@ SocketEncoding::SocketEncoding(const ObjectState* state, SlotField& parent)
     parent.addSocketEncoding(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.

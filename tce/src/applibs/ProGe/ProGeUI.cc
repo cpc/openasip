@@ -122,14 +122,11 @@ ProGeUI::~ProGeUI() {
  *                                        constructed.
  */
 void
-ProGeUI::loadMachine(const std::string& adfFile)
-    throw (SerializerException, ObjectStateLoadingException) {
-
+ProGeUI::loadMachine(const std::string& adfFile) {
     ADFSerializer serializer;
     serializer.setSourceFile(adfFile);
     machine_ = serializer.readMachine();
 }
-
 
 /**
  * Loads the binary encoding from the given BEM file.
@@ -140,14 +137,11 @@ ProGeUI::loadMachine(const std::string& adfFile)
  *                                        constructed.
  */
 void
-ProGeUI::loadBinaryEncoding(const std::string& bemFile)
-    throw (SerializerException, ObjectStateLoadingException) {
-
+ProGeUI::loadBinaryEncoding(const std::string& bemFile) {
     BEMSerializer serializer;
     serializer.setSourceFile(bemFile);
     bem_ = serializer.readBinaryEncoding();
 }
-
 
 /**
  * Loads the machine implementation from the given IDF file.
@@ -158,14 +152,11 @@ ProGeUI::loadBinaryEncoding(const std::string& bemFile)
  *                                        constructed.
  */
 void
-ProGeUI::loadMachineImplementation(const std::string& idfFile)
-    throw (SerializerException, ObjectStateLoadingException) {
-
+ProGeUI::loadMachineImplementation(const std::string& idfFile) {
     IDFSerializer serializer;
     serializer.setSourceFile(idfFile);
     idf_ = serializer.readMachineImplementation();
 }
-
 
 /**
  * Loads the given processor configuration.
@@ -178,10 +169,7 @@ ProGeUI::loadMachineImplementation(const std::string& idfFile)
  *                                        be constructed.
  */
 void
-ProGeUI::loadProcessorConfiguration(const std::string& configurationFile)
-    throw (UnreachableStream, SerializerException,
-           ObjectStateLoadingException) {
-
+ProGeUI::loadProcessorConfiguration(const std::string& configurationFile) {
     std::ifstream fileStream(configurationFile.c_str());
     if (!fileStream.good()) {
         string errorMsg = "Unable to read the PCF from '" +
@@ -220,7 +208,6 @@ ProGeUI::loadProcessorConfiguration(const std::string& configurationFile)
     }
 }
 
-
 /**
  * Loads the given IC/decoder generator plugin.
  *
@@ -232,10 +219,7 @@ ProGeUI::loadProcessorConfiguration(const std::string& configurationFile)
  */
 void
 ProGeUI::loadICDecoderGeneratorPlugin(
-    const std::string& pluginFile,
-    const std::string& pluginName)
-    throw (FileNotFound, DynamicLibraryException, InvalidData) {
-
+    const std::string& pluginFile, const std::string& pluginName) {
     pluginFile_ = pluginFile;
 
     checkIfNull(machine_, "ADF not loaded");
@@ -294,16 +278,11 @@ ProGeUI::loadICDecoderGeneratorPlugin(
  */
 void
 ProGeUI::generateProcessor(
-    int imemWidthInMAUs,
-    HDL language,
-    TCEString dstDirectory,
+    int imemWidthInMAUs, HDL language, TCEString dstDirectory,
     TCEString sharedDstDirectory = "",
     TCEString entityString = ProGeUI::DEFAULT_ENTITY_STR,
     std::ostream& errorStream = std::cerr,
-    std::ostream& warningStream = std::cerr)
-    throw (InvalidData, DynamicLibraryException, IOException,
-           IllegalMachine, OutOfRange, InstanceNotFound) {
-
+    std::ostream& warningStream = std::cerr) {
     if (sharedDstDirectory == "")
         sharedDstDirectory = dstDirectory;
 
@@ -365,7 +344,6 @@ ProGeUI::generateProcessor(
         warningStream);
 }
 
-
 /** 
  * Generates a test bench for simulating.
  *
@@ -419,9 +397,7 @@ ProGeUI::generateScripts(
  * @param errorMsg Error message for the InvalidData exception.
  */
 void
-ProGeUI::checkIfNull(void * nullPointer, const std::string& errorMsg)
-    throw (InvalidData) {
-
+ProGeUI::checkIfNull(void* nullPointer, const std::string& errorMsg) {
     if (nullPointer == NULL) {
         throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }

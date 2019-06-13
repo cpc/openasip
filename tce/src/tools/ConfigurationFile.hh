@@ -55,26 +55,18 @@ public:
     void load(std::istream& inputStream);
 
     bool hasKey(const std::string& key);
-    std::string value(const std::string& key, int index = 0)
-        throw (KeyNotFound, OutOfRange);
+    std::string value(const std::string& key, int index = 0);
 
-    int itemCount(const std::string& key)
-        throw (KeyNotFound);
+    int itemCount(const std::string& key);
 
-    int intValue(const std::string& key, int index = 0)
-        throw (KeyNotFound, OutOfRange, InvalidData);
-    float floatValue(const std::string& key, int index = 0)
-        throw (KeyNotFound, OutOfRange, InvalidData);
-    std::string stringValue(const std::string& key, int index = 0)
-        throw (KeyNotFound, OutOfRange);
-    bool booleanValue(const std::string& key, int index = 0)
-        throw (KeyNotFound, OutOfRange, InvalidData);
+    int intValue(const std::string& key, int index = 0);
+    float floatValue(const std::string& key, int index = 0);
+    std::string stringValue(const std::string& key, int index = 0);
+    bool booleanValue(const std::string& key, int index = 0);
 
-    unsigned int timeStampValue(const std::string& key)
-        throw (KeyNotFound);
+    unsigned int timeStampValue(const std::string& key);
 
 protected:
-
     /**
      * Different value types.
      */
@@ -122,8 +114,7 @@ private:
         const std::string& line);
     bool isComment(const std::string& line);
     bool legalTime(const std::string& line);
-    std::string valueOfKey(const std::string& key, int index)
-        throw (KeyNotFound, OutOfRange);
+    std::string valueOfKey(const std::string& key, int index);
 
     /**
      * Key.

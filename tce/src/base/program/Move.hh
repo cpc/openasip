@@ -62,7 +62,7 @@ public:
         Terminal* src, Terminal* dst, TTAMachine::Bus& bus);
     ~Move();
 
-    Instruction& parent() const throw (IllegalRegistration);
+    Instruction& parent() const;
     void setParent(Instruction& ins);
     bool isInInstruction() const;
     bool isUnconditional() const;
@@ -78,12 +78,12 @@ public:
     void setSource(Terminal* src);
     Terminal& destination() const;
     void setDestination(Terminal* dst);
-    MoveGuard& guard() const throw (InvalidData);
+    MoveGuard& guard() const;
     void setGuard(MoveGuard* guard);
     TTAMachine::Bus& bus() const;
     void setBus(TTAMachine::Bus& bus);
     TTAMachine::Socket& destinationSocket() const;
-    TTAMachine::Socket& sourceSocket() const throw (WrongSubclass);
+    TTAMachine::Socket& sourceSocket() const;
     int guardLatency() const;
     Move* copy() const;
 

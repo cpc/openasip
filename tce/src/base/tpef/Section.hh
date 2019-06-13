@@ -96,13 +96,11 @@ public:
 
     virtual ~Section();
 
-    static Section* createSection(SectionType type)
-        throw (InstanceNotFound);
+    static Section* createSection(SectionType type);
 
     virtual bool isChunkable() const;
 
-    virtual Chunk* chunk(SectionOffset offset) const
-        throw (NotChunkable);
+    virtual Chunk* chunk(SectionOffset offset) const;
 
     bool isProgramSection() const;
     static bool isProgramSection(SectionType type);
@@ -197,9 +195,7 @@ class RawSection : public Section {
 public:
     virtual bool isChunkable() const;
 
-    virtual Chunk* chunk(
-        SectionOffset offset) const
-        throw (NotChunkable);
+    virtual Chunk* chunk(SectionOffset offset) const;
 
     virtual void assureInSection(
         SectionOffset offset) const;

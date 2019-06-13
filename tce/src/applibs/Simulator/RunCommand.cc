@@ -65,10 +65,8 @@ RunCommand::~RunCommand() {
  * @exception NumberFormatException Is never thrown by this command.
  *
  */
-bool 
-RunCommand::execute(const std::vector<DataObject>&)
-    throw (NumberFormatException) {
-        
+bool
+RunCommand::execute(const std::vector<DataObject>&) {
     if (!checkSimulationNotAlreadyRunning() ||
         !checkSimulationInitialized()) {
         

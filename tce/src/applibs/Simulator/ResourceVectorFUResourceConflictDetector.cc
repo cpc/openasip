@@ -44,10 +44,8 @@
  * @exception InvalidData If the model could not be built from the given FU.
  */
 ResourceVectorFUResourceConflictDetector::
-ResourceVectorFUResourceConflictDetector(
-    const TTAMachine::FunctionUnit& fu) throw (InvalidData) :
-    vectors_(fu) {
-}
+    ResourceVectorFUResourceConflictDetector(const TTAMachine::FunctionUnit& fu)
+    : vectors_(fu) {}
 
 /**
  * Destructor.

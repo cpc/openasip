@@ -66,8 +66,7 @@ SectionOffsetReplacer::~SectionOffsetReplacer() {
  * @return True if replacement were done.
  */
 bool
-SectionOffsetReplacer::tryToReplace()
-    throw (UnreachableStream, WritePastEOF) {
+SectionOffsetReplacer::tryToReplace() {
     try {
         SectionOffsetKey key =
             SafePointer::sectionOffsetKeyFor(reference());

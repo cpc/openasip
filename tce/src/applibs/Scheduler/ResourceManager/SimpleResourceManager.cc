@@ -200,8 +200,7 @@ SimpleResourceManager::canAssign(int cycle, MoveNode& node) const {
  * cycle different from given cycle.
  */
 void
-SimpleResourceManager::assign(int cycle, MoveNode& node)
-    throw (Exception) {
+SimpleResourceManager::assign(int cycle, MoveNode& node) {
 #ifdef DEBUG_RM
     Application::logStream() << "\tAssign: " << cycle << " " << 
         node.toString() << std::endl;
@@ -225,8 +224,7 @@ SimpleResourceManager::assign(int cycle, MoveNode& node)
  * resource manager.
  */
 void
-SimpleResourceManager::unassign(MoveNode& node)
-    throw (Exception) {
+SimpleResourceManager::unassign(MoveNode& node) {
 #ifdef DEBUG_RM
     Application::logStream() << "\tUnAssign: " << node.toString() << std::endl;
 #endif
@@ -247,8 +245,7 @@ SimpleResourceManager::unassign(MoveNode& node)
  *
  */
 int
-SimpleResourceManager::earliestCycle(MoveNode& node) const
-    throw (Exception) {
+SimpleResourceManager::earliestCycle(MoveNode& node) const {
     int ec =  director_->earliestCycle(node);
 #ifdef DEBUG_RM
     Application::logStream() << "\tEC:" << node.toString() << std::endl;
@@ -272,8 +269,7 @@ SimpleResourceManager::earliestCycle(MoveNode& node) const
  * is not possible.
  */
 int
-SimpleResourceManager::earliestCycle(int cycle, MoveNode& node) const
-    throw (Exception) {
+SimpleResourceManager::earliestCycle(int cycle, MoveNode& node) const {
     int ec = director_->earliestCycle(cycle, node);   
 #ifdef DEBUG_RM
     Application::logStream() << "\tEC: " << cycle << " " << node.toString()

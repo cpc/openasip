@@ -45,19 +45,18 @@ class FunctionUnit;
  */
 class PipelineElement {
 public:
-    PipelineElement(const std::string& name, FunctionUnit& parentUnit)
-        throw (ComponentAlreadyExists, InvalidName);
+    PipelineElement(const std::string& name, FunctionUnit& parentUnit);
     virtual ~PipelineElement();
 
     const std::string& name() const;
-    void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
+    void setName(const std::string& name);
     FunctionUnit* parentUnit() const;
 
     struct Comparator {
         bool operator()(
             const PipelineElement* pe1, const PipelineElement* pe2) const;
     };
+
 private:
     /// Name of the pipeline element.
     std::string name_;

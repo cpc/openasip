@@ -49,45 +49,33 @@ class SpecialRegisterPort;
 class ControlUnit : public FunctionUnit {
 public:
     ControlUnit(
-        const std::string& name,
-        int delaySlots,
-        int globalGuardLatency)
-        throw (OutOfRange, InvalidName);
-    ControlUnit(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+        const std::string& name, int delaySlots, int globalGuardLatency);
+    ControlUnit(const ObjectState* state);
     virtual ~ControlUnit();
 
     virtual ControlUnit* copy() const;
 
-    virtual void setMachine(Machine& mach)
-        throw (ComponentAlreadyExists);
+    virtual void setMachine(Machine& mach);
     virtual void unsetMachine();
 
     int delaySlots() const;
-    void setDelaySlots(int delaySlots)
-        throw (OutOfRange);
+    void setDelaySlots(int delaySlots);
 
     int globalGuardLatency() const;
-    void setGlobalGuardLatency(int latency)
-        throw (OutOfRange);
+    void setGlobalGuardLatency(int latency);
 
     int specialRegisterPortCount() const;
     bool hasSpecialRegisterPort(const std::string& name) const;
-    SpecialRegisterPort* specialRegisterPort(int index) const
-        throw (OutOfRange);
-    SpecialRegisterPort* specialRegisterPort(const std::string& name) const
-        throw (InstanceNotFound);
+    SpecialRegisterPort* specialRegisterPort(int index) const;
+    SpecialRegisterPort* specialRegisterPort(const std::string& name) const;
 
-    void setReturnAddressPort(const SpecialRegisterPort& port)
-        throw (IllegalRegistration);
+    void setReturnAddressPort(const SpecialRegisterPort& port);
     void unsetReturnAddressPort();
     bool hasReturnAddressPort() const;
-    SpecialRegisterPort* returnAddressPort() const
-        throw (InstanceNotFound);
+    SpecialRegisterPort* returnAddressPort() const;
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for ControlUnit.
     static const std::string OSNAME_CONTROL_UNIT;
@@ -102,13 +90,12 @@ protected:
     virtual void removePort(Port& port);
 
 private:
-    void loadStateWithoutReferences(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadStateWithoutReferences(const ObjectState* state);
     static bool hasLocalGuardLatencyOfZero(const Machine& machine);
 
     /// Number of delay instruction slots on the transport pipeline.
     int delaySlots_;
-    
+
     /// The global guard latency.
     int globalGuardLatency_;
     /// The return address port.

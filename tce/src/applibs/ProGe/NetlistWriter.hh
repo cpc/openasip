@@ -48,8 +48,7 @@ public:
     NetlistWriter(const Netlist& netlist);
     virtual ~NetlistWriter();
 
-    virtual void write(const std::string& dstDirectory)
-        throw (IOException, InvalidData) = 0;
+    virtual void write(const std::string& dstDirectory) = 0;
 
 protected:
     const Netlist& netlist() const;

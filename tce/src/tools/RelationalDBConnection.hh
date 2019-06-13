@@ -49,28 +49,19 @@ class RelationalDBConnection {
 public:
     virtual ~RelationalDBConnection();
 
-    virtual int updateQuery(const std::string& queryString)
-	throw (RelationalDBException) = 0;
-    virtual void DDLQuery(const std::string& queryString)
-	throw (RelationalDBException) = 0;
+    virtual int updateQuery(const std::string& queryString) = 0;
+    virtual void DDLQuery(const std::string& queryString) = 0;
     virtual RelationalDBQueryResult* query(
-        const std::string& queryString, 
-        bool init = true)
-        throw (RelationalDBException) = 0;
+        const std::string& queryString, bool init = true) = 0;
 
-    virtual void beginTransaction()
-	throw (RelationalDBException) = 0;
-    virtual void rollback()
-	throw (RelationalDBException) = 0;
-    virtual void commit()
-	throw (RelationalDBException) = 0;
+    virtual void beginTransaction() = 0;
+    virtual void rollback() = 0;
+    virtual void commit() = 0;
 
     virtual RowID lastInsertRowID() = 0;
 
-    virtual bool tableExistsInDB(const std::string& tableName)
-    throw (RelationalDBException) = 0;
-    virtual int rowCountInTable(const std::string& tableName)
-    throw (RelationalDBException) = 0;
+    virtual bool tableExistsInDB(const std::string& tableName) = 0;
+    virtual int rowCountInTable(const std::string& tableName) = 0;
 };
 
 #endif

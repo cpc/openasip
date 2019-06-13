@@ -53,23 +53,19 @@ public:
 
     int globalCodeLabelCount(Address address) const;
 
-    const CodeLabel& globalCodeLabel(Address address, int index) const
-        throw (KeyNotFound);
+    const CodeLabel& globalCodeLabel(Address address, int index) const;
 
     int globalCodeLabelCount() const;
 
-    const CodeLabel& globalCodeLabel(int index) const
-        throw (KeyNotFound);
+    const CodeLabel& globalCodeLabel(int index) const;
 
     int globalDataLabelCount(Address address) const;
 
-    const DataLabel& globalDataLabel(Address address, int index) const
-        throw (KeyNotFound);
+    const DataLabel& globalDataLabel(Address address, int index) const;
 
     int globalDataLabelCount() const;
 
-    const DataLabel& globalDataLabel(int index) const
-        throw (KeyNotFound);
+    const DataLabel& globalDataLabel(int index) const;
 
     virtual void removeCodeLabels(InstructionAddress address);
 

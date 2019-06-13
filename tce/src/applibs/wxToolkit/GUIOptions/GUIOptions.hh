@@ -69,8 +69,7 @@ public:
 
     GUIOptions(std::string name);
     GUIOptions(const GUIOptions& old);
-    GUIOptions(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    GUIOptions(const ObjectState* state);
 
     virtual ~GUIOptions();
 
@@ -78,11 +77,9 @@ public:
     std::string fileName() const;
     void setFileName(const std::string& fileName);
 
-    virtual void validate() const
-        throw (InvalidData);
- 
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void validate() const;
+
+    virtual void loadState(const ObjectState* state);
     virtual ObjectState* saveState() const;
 
 

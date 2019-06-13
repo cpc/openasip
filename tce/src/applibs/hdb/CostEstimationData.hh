@@ -46,38 +46,31 @@ public:
 
     void setName(const std::string& name);
     bool hasName() const;
-    std::string name() const
-        throw (NotAvailable);
+    std::string name() const;
 
     void setValue(const DataObject& value);
     bool hasValue() const;
-    DataObject value() const
-        throw (NotAvailable);
+    DataObject value() const;
 
     void setFUReference(RowID fuEntryID);
     bool hasFUReference() const;
-    RowID fuReference() const
-        throw (NotAvailable);
+    RowID fuReference() const;
 
     void setRFReference(RowID rfEntryID);
     bool hasRFReference() const;
-    RowID rfReference() const
-        throw (NotAvailable);
+    RowID rfReference() const;
 
     void setBusReference(RowID busEntryID);
     bool hasBusReference() const;
-    RowID busReference() const
-        throw (NotAvailable);
+    RowID busReference() const;
 
     void setSocketReference(RowID socketEntryID);
     bool hasSocketReference() const;
-    RowID socketReference() const
-        throw (NotAvailable);
+    RowID socketReference() const;
 
     void setPluginID(RowID pluginID);
     bool hasPluginID() const;
-    RowID pluginID() const
-        throw (NotAvailable);
+    RowID pluginID() const;
 
 private:
     /// Is the data name set?

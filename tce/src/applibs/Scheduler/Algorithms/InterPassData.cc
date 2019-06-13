@@ -58,10 +58,8 @@ InterPassData::~InterPassData() {
  * @returns The datum.
  * @exception KeyNotFound thrown if the key is not found.
  */
-InterPassDatum& 
-InterPassData::datum(const std::string& key) 
-    throw (KeyNotFound) {
-
+InterPassDatum&
+InterPassData::datum(const std::string& key) {
     if (!MapTools::containsKey(data_, key))
         throw KeyNotFound(__FILE__, __LINE__, __func__);
 

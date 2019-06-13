@@ -271,9 +271,7 @@ DefaultICGenerator::addICToNetlist(
  */
 void
 DefaultICGenerator::generateInterconnectionNetwork(
-    const std::string& dstDirectory)
-    throw (IOException) {
-
+    const std::string& dstDirectory) {
     generateSockets(dstDirectory);
     
     // generate interconnection network
@@ -289,16 +287,13 @@ DefaultICGenerator::generateInterconnectionNetwork(
     icStream.close();
 }
 
-
 /**
  * Verifies that the IC generator is compatible with the machine.
  *
  * @exception InvalidData If the generator is incompatible.
  */
 void
-DefaultICGenerator::verifyCompatibility() const
-    throw (InvalidData) {
-
+DefaultICGenerator::verifyCompatibility() const {
     // check that the machine does not use segments or bridges
     Machine::BusNavigator busNav = machine_.busNavigator();
     for (int i = 0; i < busNav.count(); i++) {
@@ -363,9 +358,7 @@ DefaultICGenerator::setBusTraceStartingCycle(unsigned int cycle) {
 int
 DefaultICGenerator::outputSocketCntrlPinForSegment(
     const TTAMachine::Socket& socket,
-    const TTAMachine::Segment& segment) const
-    throw (NotAvailable) {
-
+    const TTAMachine::Segment& segment) const {
     if (socket.direction() != Socket::OUTPUT) {
         throw NotAvailable(__FILE__, __LINE__, __func__);
     }
@@ -380,7 +373,6 @@ DefaultICGenerator::outputSocketCntrlPinForSegment(
     throw NotAvailable(__FILE__, __LINE__, __func__);
 }
 
-
 /**
  * Generates sockets needed in the machine to the given directory.
  *
@@ -388,9 +380,7 @@ DefaultICGenerator::outputSocketCntrlPinForSegment(
  * @exception IOException If an IO error occurs.
  */
 void
-DefaultICGenerator::generateSockets(const std::string& dstDirectory) const 
-    throw (IOException) {
-
+DefaultICGenerator::generateSockets(const std::string& dstDirectory) const {
     bool needSimmSocket = true;
     std::set<Socket*> generatedSockets;
     Machine::SocketNavigator socketNav = machine_.socketNavigator();
@@ -419,7 +409,7 @@ DefaultICGenerator::generateSockets(const std::string& dstDirectory) const
                 generateSocket(Socket::OUTPUT, 1, 1, dstDirectory);
             }
         }
-    }   
+    }
 }
 
 /**
@@ -450,12 +440,8 @@ DefaultICGenerator::isGcuPort(const Port* port) const {
  */
 void
 DefaultICGenerator::generateSocket(
-    TTAMachine::Socket::Direction direction,
-    int portConns,
-    int segmentConns,
-    const std::string& dstDirectory) const
-    throw (IOException) {
-    
+    TTAMachine::Socket::Direction direction, int portConns, int segmentConns,
+    const std::string& dstDirectory) const {
     string fileName = socketFileName(language_,
             direction, portConns, segmentConns);
     string pathToFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
@@ -1994,10 +1980,7 @@ DefaultICGenerator::containsSimilarSocket(
  */
 int
 DefaultICGenerator::outputSocketDataControlValue(
-    const TTAMachine::Socket& socket,
-    const TTAMachine::Port& port) const 
-    throw (NotAvailable) {
-    
+    const TTAMachine::Socket& socket, const TTAMachine::Port& port) const {
     if (socket.direction() != Socket::OUTPUT) {
         throw NotAvailable(__FILE__, __LINE__, __func__);
     }
@@ -2010,7 +1993,6 @@ DefaultICGenerator::outputSocketDataControlValue(
     
     throw NotAvailable(__FILE__, __LINE__, __func__);
 }
-
 
 /**
  * Returns the control value that selects the given segment if the given input
@@ -2025,9 +2007,7 @@ DefaultICGenerator::outputSocketDataControlValue(
 int
 DefaultICGenerator::inputSocketControlValue(
     const TTAMachine::Socket& socket,
-    const TTAMachine::Segment& segment) const
-    throw (NotAvailable) {
-
+    const TTAMachine::Segment& segment) const {
     if (busControlWidth(socket.direction(), socket.segmentCount()) < 1) {
         throw NotAvailable(__FILE__, __LINE__, __func__);
     }
@@ -2041,7 +2021,6 @@ DefaultICGenerator::inputSocketControlValue(
 
     throw NotAvailable(__FILE__, __LINE__, __func__);
 }
-
 
 /**
  * Calculates the width of the data port of the given input socket.

@@ -57,14 +57,14 @@ public:
     virtual ~OSEdTreeView();
     
     Operation* selectedOperation();
-    wxTreeItemId selectedOperationId() throw (NotAvailable);
+    wxTreeItemId selectedOperationId();
     std::string moduleOfOperation(wxTreeItemId id);
     wxTreeItemId moduleIdOfOperation(wxTreeItemId id);
     std::string pathOfModule(wxTreeItemId id);
     wxTreeItemId pathIdOfModule(wxTreeItemId id);
     std::string selectedPath();
-    wxTreeItemId selectedPathId() throw (NotAvailable);
-    wxTreeItemId selectedModuleId() throw (NotAvailable);
+    wxTreeItemId selectedPathId();
+    wxTreeItemId selectedModuleId();
     std::string selectedModule();
     OSEdInfoView* infoView() const;
     std::vector<std::string> constructTree();

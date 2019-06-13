@@ -46,10 +46,10 @@
  */
 class FrequencySweep {
 public:
-    FrequencySweep(int startMHz, int endMHz, int stepMHz)
-        throw (IllegalParameters);
+    FrequencySweep(int startMHz, int endMHz, int stepMHz);
     virtual ~FrequencySweep();
     int nextFrequency();
+
 private:
     /// Next frequency to be returned.
     int nextFrequency_;

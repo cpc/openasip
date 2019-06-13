@@ -50,9 +50,8 @@ public:
     Script(ScriptInterpreter* interpreter, std::vector<std::string>& script);
     virtual ~Script();
 
-    virtual DataObject execute() 
-        throw (ScriptExecutionFailure, NumberFormatException);
-    DataObject lastResult() throw (InvalidData);
+    virtual DataObject execute();
+    DataObject lastResult();
     virtual std::vector<std::string> script() const;
 protected:
     /// Interpreter executing the commands.

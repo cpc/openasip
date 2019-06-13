@@ -1431,10 +1431,8 @@ InfoCommand::~InfoCommand() {
  * @param arguments Subcommand and possible arguments to the subcommand.
  * @return Always true if arguments are valid.
  */
-bool 
-InfoCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+InfoCommand::execute(const std::vector<DataObject>& arguments) {
     assert(interpreter() != NULL);
 
     // "info" as such does not do anything, a subcommand is required.

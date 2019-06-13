@@ -95,9 +95,7 @@ BinaryStream::~BinaryStream() {
  * @exception EndOfFile If end of file were reached.
  */
 Byte
-BinaryStream::readByte()
-    throw (UnreachableStream, EndOfFile) {
-
+BinaryStream::readByte() {
     Byte value;
 
     try {
@@ -119,7 +117,6 @@ BinaryStream::readByte()
     return value;
 }
 
-
 /**
  * Reads one HalfWord from the binary stream.
  *
@@ -128,9 +125,7 @@ BinaryStream::readByte()
  * @exception EndOfFile If end of file were reached.
  */
 HalfWord
-BinaryStream::readHalfWord()
-        throw (UnreachableStream, EndOfFile) {
-
+BinaryStream::readHalfWord() {
     union {
         Byte buffer[sizeof(HalfWord)];
         HalfWord result;
@@ -159,7 +154,6 @@ BinaryStream::readHalfWord()
     return U.result;
 }
 
-
 /**
  * Reads one Word from the binary stream.
  *
@@ -168,9 +162,7 @@ BinaryStream::readHalfWord()
  * @exception EndOfFile If end of file were reached.
  */
 Word
-BinaryStream::readWord()
-    throw (UnreachableStream, EndOfFile) {
-
+BinaryStream::readWord() {
     union {
         Byte buffer[sizeof(Word)];
         Word result;
@@ -199,7 +191,6 @@ BinaryStream::readWord()
     return U.result;
 }
 
-
 /**
  * Reads a block of Bytes from the binary stream.
  *
@@ -209,9 +200,7 @@ BinaryStream::readWord()
  * @exception EndOfFile If end of file were reached.
  */
 void
-BinaryStream::readByteBlock(Byte* buffer, unsigned int howmany)
-    throw (UnreachableStream, EndOfFile) {
-
+BinaryStream::readByteBlock(Byte* buffer, unsigned int howmany) {
     try {
         for (unsigned int i = 0; i < howmany; i++) {
             buffer[i] = getByte();
@@ -231,7 +220,6 @@ BinaryStream::readByteBlock(Byte* buffer, unsigned int howmany)
     }
 }
 
-
 /**
  * Reads a block of HalfWords from the binary stream.
  *
@@ -241,9 +229,7 @@ BinaryStream::readByteBlock(Byte* buffer, unsigned int howmany)
  * @exception EndOfFile If end of file were reached.
  */
 void
-BinaryStream::readHalfWordBlock(HalfWord* buffer, unsigned int howmany)
-    throw (UnreachableStream, EndOfFile) {
-
+BinaryStream::readHalfWordBlock(HalfWord* buffer, unsigned int howmany) {
     try {
         for (unsigned int i = 0; i < howmany; i++) {
             buffer[i] = readHalfWord();
@@ -263,7 +249,6 @@ BinaryStream::readHalfWordBlock(HalfWord* buffer, unsigned int howmany)
     }
 }
 
-
 /**
  * Reads a block of Words from the binary stream.
  *
@@ -273,9 +258,7 @@ BinaryStream::readHalfWordBlock(HalfWord* buffer, unsigned int howmany)
  * @exception EndOfFile If end of file were reached.
  */
 void
-BinaryStream::readWordBlock(Word* buffer, unsigned int howmany)
-    throw (UnreachableStream, EndOfFile) {
-
+BinaryStream::readWordBlock(Word* buffer, unsigned int howmany) {
     try {
         for (unsigned int i = 0; i < howmany; i++) {
             buffer[i] = readWord();
@@ -294,7 +277,6 @@ BinaryStream::readWordBlock(Word* buffer, unsigned int howmany)
     }
 }
 
-
 /**
  * Writes one Byte to the binary stream.
  *
@@ -303,9 +285,7 @@ BinaryStream::readWordBlock(Word* buffer, unsigned int howmany)
  * @exception WritePastEOF If tried to write past end of file.
  */
 void
-BinaryStream::writeByte(Byte byte)
-    throw (UnreachableStream, WritePastEOF) {
-
+BinaryStream::writeByte(Byte byte) {
     try {
         putByte(byte);
 
@@ -323,7 +303,6 @@ BinaryStream::writeByte(Byte byte)
     }
 }
 
-
 /**
  * Writes one HalfWord to the binary stream.
  *
@@ -332,9 +311,7 @@ BinaryStream::writeByte(Byte byte)
  * @exception WritePastEOF If tried to write past end of file.
  */
 void
-BinaryStream::writeHalfWord(HalfWord halfword)
-    throw (UnreachableStream, WritePastEOF) {
-
+BinaryStream::writeHalfWord(HalfWord halfword) {
     Byte buffer[sizeof(HalfWord)];
 
     // convert HalfWord to the target byte order.
@@ -358,7 +335,6 @@ BinaryStream::writeHalfWord(HalfWord halfword)
     }
 }
 
-
 /**
  * Writes one Word to the binary stream.
  *
@@ -367,9 +343,7 @@ BinaryStream::writeHalfWord(HalfWord halfword)
  * @exception WritePastEOF If tried to write past end of file.
  */
 void
-BinaryStream::writeWord(Word word)
-    throw (UnreachableStream, WritePastEOF) {
-
+BinaryStream::writeWord(Word word) {
     Byte buffer[sizeof(Word)];
 
     // convert Word to the target byte order.
@@ -393,7 +367,6 @@ BinaryStream::writeWord(Word word)
     }
 }
 
-
 /**
  * Writes a block of Bytes to the binary stream.
  *
@@ -403,9 +376,7 @@ BinaryStream::writeWord(Word word)
  * @exception WritePastEOF If tried to write past end of file.
  */
 void
-BinaryStream::writeByteBlock(Byte* bytes, unsigned int howmany)
-    throw (UnreachableStream, WritePastEOF) {
-
+BinaryStream::writeByteBlock(Byte* bytes, unsigned int howmany) {
     try {
         for (unsigned int i = 0; i < howmany; i++) {
             putByte(bytes[i]);
@@ -424,7 +395,6 @@ BinaryStream::writeByteBlock(Byte* bytes, unsigned int howmany)
     }
 }
 
-
 /**
  * Writes a block of HalfWords to the binary stream.
  *
@@ -434,9 +404,7 @@ BinaryStream::writeByteBlock(Byte* bytes, unsigned int howmany)
  * @exception WritePastEOF If tried to write past end of file.
  */
 void
-BinaryStream::writeHalfWordBlock(HalfWord* halfwords, unsigned int howmany)
-    throw (UnreachableStream, WritePastEOF) {
-
+BinaryStream::writeHalfWordBlock(HalfWord* halfwords, unsigned int howmany) {
     try {
         for (unsigned int i = 0; i < howmany; i++) {
             writeHalfWord(halfwords[i]);
@@ -455,7 +423,6 @@ BinaryStream::writeHalfWordBlock(HalfWord* halfwords, unsigned int howmany)
     }
 }
 
-
 /**
  * Writes a block of Words to the binary stream.
  *
@@ -465,9 +432,7 @@ BinaryStream::writeHalfWordBlock(HalfWord* halfwords, unsigned int howmany)
  * @exception WritePastEOF If tried to write past end of file.
  */
 void
-BinaryStream::writeWordBlock(Word* words, unsigned int howmany)
-    throw (UnreachableStream, WritePastEOF) {
-
+BinaryStream::writeWordBlock(Word* words, unsigned int howmany) {
     try {
         for (unsigned int i = 0; i < howmany; i++) {
             writeWord(words[i]);
@@ -486,7 +451,6 @@ BinaryStream::writeWordBlock(Word* words, unsigned int howmany)
     }
 }
 
-
 /**
  * Opens the binary file for input.
  *
@@ -495,9 +459,7 @@ BinaryStream::writeWordBlock(Word* words, unsigned int howmany)
  * @note The initial read position is 0.
  */
 void
-BinaryStream::openInput(std::string name)
-    throw (UnreachableStream) {
-
+BinaryStream::openInput(std::string name) {
     if (extOStream_ != NULL) {
         throw UnreachableStream(
             __FILE__, __LINE__, __func__, "External stream is write-only.");
@@ -517,7 +479,6 @@ BinaryStream::openInput(std::string name)
     iStream_.tie(&oStream_);
 }
 
-
 /**
  * Opens the binary file for output.
  *
@@ -528,9 +489,7 @@ BinaryStream::openInput(std::string name)
  * @note The initial write position is 0.
  */
 void
-BinaryStream::openOutput(std::string name)
-    throw (UnreachableStream) {
-    
+BinaryStream::openOutput(std::string name) {
     if (extOStream_ != NULL) {
         throw UnreachableStream(
             __FILE__, __LINE__, __func__, 
@@ -556,7 +515,6 @@ BinaryStream::openOutput(std::string name)
     }
 }
 
-
 /**
  * Closes the stream.
  */
@@ -578,9 +536,7 @@ BinaryStream::close() {
  *            unreachable.
  */
 unsigned int
-BinaryStream::readPosition()
-    throw (UnreachableStream) {
-    
+BinaryStream::readPosition() {
     if (extOStream_ != NULL) {
         throw UnreachableStream(
             __FILE__, __LINE__, __func__, "External stream is write-only.");
@@ -604,7 +560,6 @@ BinaryStream::readPosition()
     return iStream_.tellg();
 }
 
-
 /**
  * Returns the current position of the write cursor.
  *
@@ -612,9 +567,7 @@ BinaryStream::readPosition()
  *            unreachable.
  */
 unsigned int
-BinaryStream::writePosition()
-    throw (UnreachableStream) {
-
+BinaryStream::writePosition() {
     if (extOStream_ != NULL) {
         return extOStream_->tellp();
     }
@@ -638,7 +591,6 @@ BinaryStream::writePosition()
     return oStream_.tellp();
 }
 
-
 /**
  * Sets the read cursor position in the stream.
  *
@@ -652,9 +604,7 @@ BinaryStream::writePosition()
  *            unreachable.
  */
 void
-BinaryStream::setReadPosition(unsigned int position)
-    throw (UnreachableStream) {
-
+BinaryStream::setReadPosition(unsigned int position) {
     if (extOStream_ != NULL) {
         throw UnreachableStream(
             __FILE__, __LINE__, __func__, "External stream is write-only.");
@@ -701,7 +651,6 @@ BinaryStream::setReadPosition(unsigned int position)
     }
 }
 
-
 /**
  * Sets the write cursor position in the stream.
  *
@@ -715,9 +664,7 @@ BinaryStream::setReadPosition(unsigned int position)
  *            unreachable.
  */
 void
-BinaryStream::setWritePosition(unsigned int position)
-    throw (UnreachableStream) {
-
+BinaryStream::setWritePosition(unsigned int position) {
     if (extOStream_ != NULL) {
         extOStream_->seekp(position);    
         return;
@@ -743,7 +690,6 @@ BinaryStream::setWritePosition(unsigned int position)
     oStream_.seekp(position);
 }
 
-
 /**
  * Returns true if read position is at the end of file.
  *
@@ -751,9 +697,7 @@ BinaryStream::setWritePosition(unsigned int position)
  *            unreachable.
  */
 bool
-BinaryStream::endOfFile()
-    throw (UnreachableStream) {
-
+BinaryStream::endOfFile() {
     if (extOStream_ != NULL) {
         throw UnreachableStream(
             __FILE__, __LINE__, __func__, "External stream is write-only.");
@@ -779,7 +723,6 @@ BinaryStream::endOfFile()
     return iStream_.eof();
 }
 
-
 /**
  * Checks the size of the file being handled.
  *
@@ -796,9 +739,7 @@ BinaryStream::endOfFile()
  * @return The size of the file.
  */
 unsigned int
-BinaryStream::sizeOfFile()
-    throw (UnreachableStream) {
-    
+BinaryStream::sizeOfFile() {
     if (extOStream_ != NULL) {
         unsigned int currentPos =  extOStream_->tellp();
         extOStream_->seekp(0, ios::end);
@@ -837,5 +778,4 @@ BinaryStream::sizeOfFile()
     setReadPosition(currentPos);
     return fileSize;
 }
-
 }

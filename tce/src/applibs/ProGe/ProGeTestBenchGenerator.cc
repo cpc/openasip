@@ -117,14 +117,10 @@ ProGeTestBenchGenerator::~ProGeTestBenchGenerator() {
  */
 void
 ProGeTestBenchGenerator::generate(
-    const ProGe::HDL language,
-    const TTAMachine::Machine& mach,
+    const ProGe::HDL language, const TTAMachine::Machine& mach,
     const IDF::MachineImplementation& implementation,
-    const std::string& dstDirectory,
-    const std::string& progeOutDir,
-    const std::string& entityStr)
-    throw (IOException, OutOfRange, InvalidName, InvalidData) {
-     
+    const std::string& dstDirectory, const std::string& progeOutDir,
+    const std::string& entityStr) {
     entityStr_ = entityStr;
     language_  = language;
     // map to store FUs that use address spaces
@@ -344,11 +340,8 @@ ProGeTestBenchGenerator::generate(
  */
 void
 ProGeTestBenchGenerator::createProcArchVhdl(
-    const std::string& dstDirectory,
-    const std::string& topLevelVhdl,
-    const std::string& signalMappings) 
-    throw (IOException) {
-
+    const std::string& dstDirectory, const std::string& topLevelVhdl,
+    const std::string& signalMappings) {
     if (!FileSystem::fileIsReadable(topLevelVhdl)) {
         string eMsg = "File was not readable: " + topLevelVhdl;
         IOException error(__FILE__, __LINE__, __func__, eMsg);
@@ -442,13 +435,8 @@ ProGeTestBenchGenerator::createProcArchVhdl(
  */
 std::string
 ProGeTestBenchGenerator::getSignalMapping(
-        const std::string& fuName,
-        const std::string& epName,
-        bool widthIsOne,
-        const std::string& memoryName,
-        const std::string& memoryLine)
-        throw (InvalidName) {
-
+    const std::string& fuName, const std::string& epName, bool widthIsOne,
+    const std::string& memoryName, const std::string& memoryLine) {
     const string sep = "_"; // separator between signal name elements
     
     // create fu signal name 
@@ -613,9 +601,7 @@ ProGeTestBenchGenerator::copyTestBenchFiles(const std::string& dstDirectory) {
  * @exception IOException Couldn't create the file.
  */
 void
-ProGeTestBenchGenerator::createFile(const std::string& fileName)
-    throw (IOException) {
-
+ProGeTestBenchGenerator::createFile(const std::string& fileName) {
     FileSystem::removeFileOrDirectory(fileName);
     bool isCreated = FileSystem::createFile(fileName);
     if (!isCreated) {
@@ -623,4 +609,3 @@ ProGeTestBenchGenerator::createFile(const std::string& fileName)
         throw IOException(__FILE__, __LINE__, __func__, errorMsg);
     }
 }
-

@@ -64,8 +64,7 @@ public:
     virtual bool isAnyResourceAvailable(int cycle, const MoveNode& node)
         const;
     virtual SchedulingResource& availableResource(
-        int cycle,
-        const MoveNode& node) const throw (InstanceNotFound);
+        int cycle, const MoveNode& node) const;
     virtual SchedulingResourceSet allAvailableResources(
         int cycle, const MoveNode& node) const;
     virtual bool isAvailable(
@@ -79,16 +78,14 @@ public:
     virtual bool isAlreadyAssigned(int cycle, const MoveNode& node)
         const = 0;
     virtual bool isApplicable(const MoveNode& node) const = 0;
-    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res)
-        throw (Exception) = 0;
+    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res) = 0;
     virtual void unassign(MoveNode& node) = 0;
 
     virtual void buildResources(const TTAMachine::Machine& target) = 0;
     virtual void setupResourceLinks(const ResourceMapper& mapper) = 0;
     inline SchedulingResource* resourceOf(const TTAMachine::MachinePart& mp) const;
     virtual const TTAMachine::MachinePart& machinePartOf(
-        const SchedulingResource& r)
-        const throw (WrongSubclass, KeyNotFound);
+        const SchedulingResource& r) const;
     bool hasResourceOf(const TTAMachine::MachinePart& mp) const;
     bool hasResource(const SchedulingResource& r) const;
     int resourceCount() const;

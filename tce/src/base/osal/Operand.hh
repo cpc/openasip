@@ -117,8 +117,7 @@ public:
     virtual bool canSwap(const Operand& op) const;
     virtual const std::set<int>& swap() const;
 
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
     virtual ObjectState* saveState() const;
 
     virtual bool isNull() const { return false; }

@@ -65,19 +65,14 @@ public:
     PreOptimizer(InterPassData& data);
 
     void handleProgram(
-        TTAProgram::Program& program,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
-    
+        TTAProgram::Program& program, const TTAMachine::Machine& targetMachine);
+
     void handleProcedure(
         TTAProgram::Procedure& procedure,
-        const TTAMachine::Machine& targetMachine)        
-        throw (Exception);
-    
+        const TTAMachine::Machine& targetMachine);
+
     void handleControlFlowGraph(
-        ControlFlowGraph& cfg,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        ControlFlowGraph& cfg, const TTAMachine::Machine& targetMachine);
 
     void handleCFGDDG(
         ControlFlowGraph& cfg,

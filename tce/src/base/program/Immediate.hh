@@ -50,9 +50,7 @@ class TerminalImmediate;
  */
 class Immediate {
 public:
-    Immediate(
-        TerminalImmediate* value, Terminal* dst)
-        throw (IllegalParameters);
+    Immediate(TerminalImmediate* value, Terminal* dst);
 
     virtual ~Immediate();
 

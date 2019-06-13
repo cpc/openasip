@@ -43,8 +43,7 @@ public:
     static NullInstructionField& instance();
 
     virtual int childFieldCount() const;
-    virtual InstructionField& childField(int position) const
-	throw (OutOfRange);
+    virtual InstructionField& childField(int position) const;
     virtual int width() const;
 
 private:

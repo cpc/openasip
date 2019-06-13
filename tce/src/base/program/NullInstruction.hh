@@ -47,19 +47,19 @@ public:
     virtual ~NullInstruction();
     static NullInstruction& instance();
 
-    Procedure& parent() const throw (IllegalRegistration);
+    Procedure& parent() const;
     void setParent(const Procedure& proc);
     bool isInProcedure() const;
 
-    void addMove(Move& move) throw (ObjectAlreadyExists);
+    void addMove(Move& move);
     int moveCount();
-    const Move& move(int i) const throw (OutOfRange);
+    const Move& move(int i) const;
 
-    void addImmediate(Immediate& imm) throw (ObjectAlreadyExists);
+    void addImmediate(Immediate& imm);
     int immediateCount();
-    Immediate& immediate(int i) throw (OutOfRange);
+    Immediate& immediate(int i);
 
-    Address& address() const throw (IllegalRegistration);
+    Address& address() const;
 
     int size() const;
 

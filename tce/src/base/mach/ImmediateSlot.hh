@@ -43,23 +43,18 @@ namespace TTAMachine {
  */
 class ImmediateSlot : public Component {
 public:
-    ImmediateSlot(const std::string& name, Machine& parent)
-        throw (InvalidName, ComponentAlreadyExists);
-    ImmediateSlot(const ObjectState* state, Machine& parent)
-        throw (ObjectStateLoadingException, ComponentAlreadyExists);
+    ImmediateSlot(const std::string& name, Machine& parent);
+    ImmediateSlot(const ObjectState* state, Machine& parent);
     virtual ~ImmediateSlot();
 
     int width() const;
 
-    virtual void setMachine(Machine& machine)
-        throw (ComponentAlreadyExists);
+    virtual void setMachine(Machine& machine);
     virtual void unsetMachine();
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
+    virtual void setName(const std::string& name);
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for ImmediateSlot.
     static const std::string OSNAME_IMMEDIATE_SLOT;

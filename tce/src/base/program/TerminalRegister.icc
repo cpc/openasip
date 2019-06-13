@@ -58,6 +58,6 @@ TerminalRegister::isGPR() const {
  * @exception WrongSubclass never.
  */
 inline int
-TerminalRegister::index() const throw (WrongSubclass) {
+TerminalRegister::index() const  {
     return index_;
 }

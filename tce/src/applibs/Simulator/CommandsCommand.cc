@@ -71,10 +71,8 @@ CommandsCommand::~CommandsCommand() {
  * @exception NumberFormatException Is never thrown by this command.
  * @todo Use the count for the step.
  */
-bool 
-CommandsCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+CommandsCommand::execute(const std::vector<DataObject>& arguments) {
     if (!checkArgumentCount(arguments.size() - 1, 0, 1)) {
         return false;
     } 

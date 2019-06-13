@@ -98,9 +98,7 @@ ExecutionPipelineBroker::~ExecutionPipelineBroker(){
  * @note The execution pipeline broker is used only to construct resources.
  */
 void
-ExecutionPipelineBroker::assign(int, MoveNode&, SchedulingResource&)
-    throw (Exception) {
-
+ExecutionPipelineBroker::assign(int, MoveNode&, SchedulingResource&) {
     abortWithError("Not implemented.");
 }
 

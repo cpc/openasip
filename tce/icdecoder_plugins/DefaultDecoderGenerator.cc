@@ -519,9 +519,7 @@ DefaultDecoderGenerator::glockRequestWidth() const {
 void
 DefaultDecoderGenerator::generateInstructionDecoder(
     const ProGe::NetlistGenerator& nlGenerator,
-    const std::string& dstDirectory)
-    throw (IOException) {
-
+    const std::string& dstDirectory) {
     nlGenerator_ = &nlGenerator;
     
     string iDecoderFile = dstDirectory
@@ -537,7 +535,6 @@ DefaultDecoderGenerator::generateInstructionDecoder(
     writeInstructionDecoder(decoderStream);
     decoderStream.close();
 }
-
 
 /**
  * Returns the required latency of the hardware implementation of the given
@@ -561,9 +558,7 @@ DefaultDecoderGenerator::requiredRFLatency(
  * @exception InvalidData If the decoder generator is incompatible.
  */
 void
-DefaultDecoderGenerator::verifyCompatibility() const
-    throw (InvalidData) {
-
+DefaultDecoderGenerator::verifyCompatibility() const {
     // check that the GCU does not have other operations than JUMP and CALL.
     ControlUnit* gcu = machine_.controlUnit();
     assert(gcu != NULL);

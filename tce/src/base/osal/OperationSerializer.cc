@@ -93,9 +93,7 @@ OperationSerializer::~OperationSerializer() {
  * @exception SerializerException If error occurs.
  */
 void
-OperationSerializer::writeState(const ObjectState* state)
-    throw (SerializerException) {
-
+OperationSerializer::writeState(const ObjectState* state) {
     try {
         ObjectState* converted = convertToXMLFormat(state);
         serializer_.writeState(converted);
@@ -117,9 +115,7 @@ OperationSerializer::writeState(const ObjectState* state)
  * @return The read ObjectState tree.
  */
 ObjectState*
-OperationSerializer::readState()
-    throw (SerializerException) {
-
+OperationSerializer::readState() {
     ObjectState* operationState = NULL;
     try {
         ObjectState* xmlState = serializer_.readState();
@@ -147,10 +143,8 @@ OperationSerializer::readState()
  * @exception ObjectStateLoadingException If ObjectState conversion fails.
  * @return The converted ObjectState tree.
  */
-ObjectState* 
-OperationSerializer::convertToXMLFormat(const ObjectState* state) 
-    throw (ObjectStateLoadingException) {
-	
+ObjectState*
+OperationSerializer::convertToXMLFormat(const ObjectState* state) {
     ObjectState* operation = new ObjectState(OPSER_OSAL);
     operation->setAttribute(OPSER_VERSION, VERSION_NUMBER);
     for (int i = 0; i < state->childCount(); i++) {
@@ -168,9 +162,7 @@ OperationSerializer::convertToXMLFormat(const ObjectState* state)
  * @return The converted ObjectState tree.
  */
 ObjectState*
-OperationSerializer::toXMLFormat(const ObjectState* state) 
-    throw (ObjectStateLoadingException) {
-
+OperationSerializer::toXMLFormat(const ObjectState* state) {
     ObjectState* oper = new ObjectState(Operation::OPRN_OPERATION);
     try {
         ObjectState* nameChild = new ObjectState(Operation::OPRN_NAME);
@@ -315,9 +307,7 @@ OperationSerializer::toXMLFormat(const ObjectState* state)
  * @return The converted ObjectState tree.
  */
 ObjectState*
-OperationSerializer::convertToOperationFormat(const ObjectState* state) 
-    throw (ObjectStateLoadingException) {
-    
+OperationSerializer::convertToOperationFormat(const ObjectState* state) {
     ObjectState* operation = new ObjectState(OPSER_OSAL);
     for (int i = 0; i < state->childCount(); i++) {
         ObjectState* child = state->child(i);
@@ -334,9 +324,7 @@ OperationSerializer::convertToOperationFormat(const ObjectState* state)
  * @return The converted ObjectState tree.
  */
 ObjectState*
-OperationSerializer::toOperation(const ObjectState* state) 
-    throw (ObjectStateLoadingException) {
-
+OperationSerializer::toOperation(const ObjectState* state) {
     ObjectState* root = new ObjectState(Operation::OPRN_OPERATION);
     
     try {

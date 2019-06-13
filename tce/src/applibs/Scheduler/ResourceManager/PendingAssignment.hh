@@ -48,7 +48,7 @@ public:
     ResourceBroker& broker();
     void setRequest(int cycle, MoveNode& node);
     bool isAssignmentPossible();
-    void tryNext() throw (ModuleRunTimeError);
+    void tryNext();
     void undoAssignment();
     void forget();
     void clear();

@@ -49,15 +49,10 @@ public:
     virtual ~RelationalDB();
 
     virtual RelationalDBConnection& connect(
-	const std::string& database,
-	const std::string& login = "",
-	const std::string& password = "",
-	bool readOnly = false)
-	throw (RelationalDBException) = 0;
+        const std::string& database, const std::string& login = "",
+        const std::string& password = "", bool readOnly = false) = 0;
 
-    virtual void close(const RelationalDBConnection& connection)
-	throw (RelationalDBException) = 0;
-
+    virtual void close(const RelationalDBConnection& connection) = 0;
 };
 
 #endif

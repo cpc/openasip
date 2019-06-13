@@ -111,8 +111,7 @@ IUBroker::isAnyResourceAvailable(int useCycle,const MoveNode& node) const {
  * use cycles.
  */
 SchedulingResource&
-IUBroker::availableResource(int useCycle, const MoveNode& node)
-    const throw (InstanceNotFound){
+IUBroker::availableResource(int useCycle, const MoveNode& node) const {
     try {
         return allAvailableResources(useCycle, node).resource(0);
     } catch (const KeyNotFound& e) {
@@ -180,9 +179,7 @@ IUBroker::allAvailableResources(int useCycle, const MoveNode& node) const {
  * given node or no corresponding machine part is found.
  */
 void
-IUBroker::assign(int useCycle, MoveNode& node, SchedulingResource& res)
-    throw (Exception) {
-
+IUBroker::assign(int useCycle, MoveNode& node, SchedulingResource& res) {
     int defCycle = (useCycle > 0) ? useCycle : 1;
 
     IUResource& iuRes = dynamic_cast<IUResource&>(res);

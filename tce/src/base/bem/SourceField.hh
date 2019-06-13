@@ -47,23 +47,18 @@ class BridgeEncoding;
  */
 class SourceField : public SlotField {
 public:
-    SourceField(BinaryEncoding::Position componentIDPos, MoveSlot& parent)
-	throw (ObjectAlreadyExists, IllegalParameters);
-    SourceField(const ObjectState* state, MoveSlot& parent)
-	throw (ObjectStateLoadingException, ObjectAlreadyExists);
+    SourceField(BinaryEncoding::Position componentIDPos, MoveSlot& parent);
+    SourceField(const ObjectState* state, MoveSlot& parent);
     virtual ~SourceField();
 
-    void addBridgeEncoding(BridgeEncoding& encoding)
-	throw (ObjectAlreadyExists);
+    void addBridgeEncoding(BridgeEncoding& encoding);
     void removeBridgeEncoding(BridgeEncoding& encoding);
     bool hasBridgeEncoding(const std::string& bridge) const;
     BridgeEncoding& bridgeEncoding(const std::string& bridge) const;
     int bridgeEncodingCount() const;
-    BridgeEncoding& bridgeEncoding(int index) const
-	throw (OutOfRange);
+    BridgeEncoding& bridgeEncoding(int index) const;
 
-    void setImmediateEncoding(ImmediateEncoding& encoding)
-        throw (ObjectAlreadyExists);
+    void setImmediateEncoding(ImmediateEncoding& encoding);
     void unsetImmediateEncoding();
     bool hasImmediateEncoding() const;
     ImmediateEncoding& immediateEncoding() const;
@@ -72,8 +67,7 @@ public:
     virtual int width() const;
 
     // methods inherited from Serializable interface
-    virtual void loadState(const ObjectState* state)
-	throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
     virtual ObjectState* saveState() const;
 
     /// ObjectState name for source field.

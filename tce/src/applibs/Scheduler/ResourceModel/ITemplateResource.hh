@@ -53,14 +53,10 @@ public:
     virtual bool isAvailable(const int cycle) const;
     virtual bool canAssign(const int cycle, const MoveNode& node) const;
     virtual bool canAssign(const int cycle) const;
-    virtual void assign(const int cycle, MoveNode& node)
-        throw (Exception);
-    virtual void assign(const int cycle)
-        throw (Exception);
-    virtual void unassign(const int cycle, MoveNode& node)
-        throw (Exception);
-    virtual void unassign(const int cycle)
-        throw (Exception);
+    virtual void assign(const int cycle, MoveNode& node);
+    virtual void assign(const int cycle);
+    virtual void unassign(const int cycle, MoveNode& node);
+    virtual void unassign(const int cycle);
     virtual bool isITemplateResource() const;
     void clear();
 

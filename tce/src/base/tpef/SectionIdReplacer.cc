@@ -66,9 +66,7 @@ SectionIdReplacer::~SectionIdReplacer() {
  * @return True if replacement were done.
  */
 bool
-SectionIdReplacer::tryToReplace()
-    throw (UnreachableStream, WritePastEOF) {
-
+SectionIdReplacer::tryToReplace() {
     try {
         SectionKey key =
             SafePointer::sectionKeyFor(reference());

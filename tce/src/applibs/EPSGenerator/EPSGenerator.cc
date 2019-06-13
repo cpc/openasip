@@ -472,9 +472,7 @@ EPSGenerator::setFont(unsigned size, std::string fontName) {
  * @param b Blue component scaled between 0 and 1.
  */
 void
-EPSGenerator::setLineColour(double r, double g, double b)
-    throw (OutOfRange) {
-
+EPSGenerator::setLineColour(double r, double g, double b) {
     if (r < 0 || g < 0 || b < 0 || r > 1 || g > 1 || b > 1) {
         std::string error =
             "Colour component values must be between 0 and 1.";
@@ -498,9 +496,7 @@ EPSGenerator::setLineColour(double r, double g, double b)
  * @param b Blue component scaled between 0 and 1.
  */
 void
-EPSGenerator::setFillColour(double r, double g, double b)
-    throw (OutOfRange) {
-
+EPSGenerator::setFillColour(double r, double g, double b) {
     if (r < 0 || g < 0 || b < 0 || r > 1 || g > 1 || b > 1) {
         std::string error =
             "Colour component values must be between 0 and 1.";
@@ -513,7 +509,6 @@ EPSGenerator::setFillColour(double r, double g, double b)
     fillColour_.g = g;
     fillColour_.b = b;
 }
-
 
 /**
  * Clears the eps code buffer.
@@ -578,9 +573,7 @@ EPSGenerator::writeEPS(std::ostream& ostream) {
  * @param scale Scaling factor.
  */
 void
-EPSGenerator::setScale(double scale)
-    throw (OutOfRange) {
-
+EPSGenerator::setScale(double scale) {
     if (scale < 0) {
         std::string error = "Scaling factor must be greater than zero.";
         std::string proc = "EPSGenerator::setScale";
@@ -590,7 +583,6 @@ EPSGenerator::setScale(double scale)
 
     scale_ = scale;
 }
-
 
 /**
  * Sets the eps margins.

@@ -59,14 +59,11 @@ public:
         MachineResourceManager &resourceManager,
         Assembler* parent);
 
-    void newSection(UValue startAddress)
-        throw (OutOfRange);
+    void newSection(UValue startAddress);
 
-    void addMove(const ParserMove &move)
-        throw (CompileError);
+    void addMove(const ParserMove& move);
 
-    void finalize(TPEF::Binary &tpef, LabelManager &labels)
-        throw (CompileError);
+    void finalize(TPEF::Binary& tpef, LabelManager& labels);
 
     void cleanup();
 

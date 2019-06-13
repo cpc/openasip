@@ -52,9 +52,7 @@ OSEdOptionsSerializer::~OSEdOptionsSerializer() {
  * @param state State to be written.
  */
 void
-OSEdOptionsSerializer::writeState(const ObjectState* state)
-    throw (SerializerException) {
-	
+OSEdOptionsSerializer::writeState(const ObjectState* state) {
     try {
         serializer_.writeState(state);
     } catch (const Exception& e) {
@@ -62,7 +60,6 @@ OSEdOptionsSerializer::writeState(const ObjectState* state)
         string msg = "Problems writing the state: " + e.errorMessage();
         throw SerializerException(__FILE__, __LINE__, method, msg);
     }
-
 }
 
 /**
@@ -71,9 +68,7 @@ OSEdOptionsSerializer::writeState(const ObjectState* state)
  * @return The read ObjectState tree.
  */
 ObjectState*
-OSEdOptionsSerializer::readState()
-    throw (SerializerException) {
-
+OSEdOptionsSerializer::readState() {
     ObjectState* root = NULL;
     try {
         root = serializer_.readState();

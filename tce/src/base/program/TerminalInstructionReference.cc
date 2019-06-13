@@ -62,8 +62,7 @@ TerminalInstructionReference::~TerminalInstructionReference() {
  * @return The value of the immediate (instruction address).
  */
 Address
-TerminalInstructionReference::address() const 
-    throw (WrongSubclass) {
+TerminalInstructionReference::address() const {
     return ref_.instruction().address();
 }
 
@@ -74,8 +73,7 @@ TerminalInstructionReference::address() const
  * @exception WrongSubclass never.
  */
 const InstructionReference&
-TerminalInstructionReference::instructionReference() const
-    throw (WrongSubclass) {
+TerminalInstructionReference::instructionReference() const {
     return ref_;
 }
 
@@ -86,8 +84,7 @@ TerminalInstructionReference::instructionReference() const
  * @exception WrongSubclass never.
  */
 InstructionReference&
-TerminalInstructionReference::instructionReference()
-    throw (WrongSubclass) {
+TerminalInstructionReference::instructionReference() {
     return ref_;
 }
 
@@ -99,8 +96,7 @@ TerminalInstructionReference::instructionReference()
  */
 void
 TerminalInstructionReference::setInstructionReference(
-    InstructionReference ref) 
-    throw (WrongSubclass) {
+    InstructionReference ref) {
     ref_ = ref;
 }
 

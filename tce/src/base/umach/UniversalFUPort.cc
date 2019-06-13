@@ -54,16 +54,9 @@ using std::string;
  * @exception InvalidName If the given name is not a valid component name.
  */
 UniversalFUPort::UniversalFUPort(
-    const std::string& name,
-    int width,
-    UniversalFunctionUnit& parent,
-    bool isTriggering,
-    bool setsOpcode)
-    throw (ComponentAlreadyExists, OutOfRange, IllegalParameters,
-           InvalidName) :
-    FUPort(name, width, parent, isTriggering, setsOpcode, true, true) {
-}
-
+    const std::string& name, int width, UniversalFunctionUnit& parent,
+    bool isTriggering, bool setsOpcode)
+    : FUPort(name, width, parent, isTriggering, setsOpcode, true, true) {}
 
 /**
  * The destructor.
@@ -81,15 +74,12 @@ UniversalFUPort::~UniversalFUPort() {
  * @exception InvalidName Never thrown.
  */
 void
-UniversalFUPort::setName(const std::string&)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+UniversalFUPort::setName(const std::string&) {
     const string procName = "UniversalFUPort::setName";
     const string errorMsg = "Tried to set the name of UniversalFUPort!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to set the width of UniversalFUPort.
@@ -99,15 +89,12 @@ UniversalFUPort::setName(const std::string&)
  * @exception OutOfRange Never thrown.
  */
 void
-UniversalFUPort::setWidth(int)
-    throw (OutOfRange) {
-
+UniversalFUPort::setWidth(int) {
     const string procName = "UniversalFUPort::setWidth";
     const string errorMsg = "Tried to set width of UniversalFUPort!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to modify UniversalFUPort. DO NOT
@@ -133,16 +120,13 @@ UniversalFUPort::setTriggering(bool) {
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-UniversalFUPort::setOpcodeSetting(bool)
-    throw (ComponentAlreadyExists) {
-
+UniversalFUPort::setOpcodeSetting(bool) {
     const string procName = "UniversalFUPort::setOpcodeSetting";
     const string errorMsg = "Tried to set the operation code setting "
         "property of UniversalFUPort!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to load the state of UniversalFUPort
@@ -152,9 +136,7 @@ UniversalFUPort::setOpcodeSetting(bool)
  * @exception ObjectStateLoadingException Never thrown.
  */
 void
-UniversalFUPort::loadState(const ObjectState*)
-    throw (ObjectStateLoadingException) {
-
+UniversalFUPort::loadState(const ObjectState*) {
     const string procName = "UniversalFUPort::loadState";
     const string errorMsg =
         "Tried to load state of UniversalFUPort from an ObjectState tree!";

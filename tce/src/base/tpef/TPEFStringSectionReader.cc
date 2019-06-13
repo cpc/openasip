@@ -86,11 +86,7 @@ TPEFStringSectionReader::type() const {
  */
 void
 TPEFStringSectionReader::readData(
-    BinaryStream& stream,
-    Section* section) const
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-           OutOfRange, WrongSubclass, UnexpectedValue) {
-
+    BinaryStream& stream, Section* section) const {
     // base classes implementation must be called
     TPEFSectionReader::readData(stream, section);
 
@@ -117,5 +113,4 @@ TPEFStringSectionReader::readData(
         stringSection->addByte(0);
     }
 }
-
 }

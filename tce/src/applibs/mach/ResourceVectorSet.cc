@@ -51,9 +51,8 @@
  * resource vectors for (e.g., missing operand-port bindings).
  */
 ResourceVectorSet::ResourceVectorSet(
-    const TTAMachine::FunctionUnit& functionUnit) 
-    throw (InvalidData) : width_(0) {
-
+    const TTAMachine::FunctionUnit& functionUnit)
+    : width_(0) {
     try {
         // add the port usages of each operation and resource usages
         for (int i = 0; i < functionUnit.operationCount(); ++i) {
@@ -86,10 +85,8 @@ ResourceVectorSet::~ResourceVectorSet() {
  * @return The resource vector.
  * @exception KeyNotFound If the operation is not found.
  */
-const ResourceVector& 
-ResourceVectorSet::resourceVector(const std::string& operationName) const
-    throw (KeyNotFound) {
-
+const ResourceVector&
+ResourceVectorSet::resourceVector(const std::string& operationName) const {
     const std::string opName = StringTools::stringToUpper(operationName);
     if (!AssocTools::containsKey(vectors_, opName)) {
         std::string message = "No resource vector found for operation " +
@@ -158,9 +155,7 @@ ResourceVectorSet::operationName(std::size_t index) const {
  * @exception KeyNotFound If the operation is not found.
  */
 std::size_t
-ResourceVectorSet::operationIndex(const std::string& operationName) const
-    throw (KeyNotFound) {
-
+ResourceVectorSet::operationIndex(const std::string& operationName) const {
     int counter = 0;
     for (ResourceVectorIndex::const_iterator i = vectors_.begin(); 
          i != vectors_.end(); ++i) {
@@ -170,7 +165,6 @@ ResourceVectorSet::operationIndex(const std::string& operationName) const
     }
     throw KeyNotFound(__FILE__, __LINE__, __func__, "Operation not found.");
 }
-
 
 /**
  * Returns the width of the longest resource vector in the resource vector set.

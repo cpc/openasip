@@ -53,27 +53,22 @@ public:
     std::string explorerPlugin() const;
     std::string pluginInfo() const;
     int testApplicationDirectoryCount() const;
-    std::string testApplicationDirectory(int index) const
-        throw (OutOfRange);
+    std::string testApplicationDirectory(int index) const;
     int explorerPluginParameterCount() const;
-    std::string explorerPluginParameter(int index) const
-        throw (OutOfRange);
+    std::string explorerPluginParameter(int index) const;
     bool numberOfConfigurations() const;
     bool printSummary() const;
     std::string summaryOrdering() const;
     bool writeOutConfiguration() const;
     int numberOfConfigurationsToWrite() const;
-    RowID configurationToWrite(int index) const
-        throw (OutOfRange);
+    RowID configurationToWrite(int index) const;
     bool printApplications() const;
     bool printPlugins() const;
     int applicationIDToRemoveCount() const;
-    RowID applicationIDToRemove(int index) const
-        throw (OutOfRange);
+    RowID applicationIDToRemove(int index) const;
     bool hdbFileNames() const;
     int hdbFileNameCount() const;
-    std::string hdbFileName(int index) const
-        throw (OutOfRange);
+    std::string hdbFileName(int index) const;
     RowID startConfiguration() const;
     int verboseLevel() const;
     bool adfFile() const;

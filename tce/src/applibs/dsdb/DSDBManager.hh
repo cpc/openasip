@@ -163,108 +163,77 @@ public:
         ORDER_BY_APPLICATION
     };
 
-    DSDBManager(const std::string& file)
-        throw (IOException);
+    DSDBManager(const std::string& file);
 
     virtual ~DSDBManager();
 
-    static DSDBManager* createNew(const std::string& file)
-        throw (IOException);
+    static DSDBManager* createNew(const std::string& file);
 
     std::string dsdbFile() const;
 
-    RowID addArchitecture(const TTAMachine::Machine& mom) 
-        throw (RelationalDBException);
+    RowID addArchitecture(const TTAMachine::Machine& mom);
     RowID addImplementation(
-        const IDF::MachineImplementation& impl,
-        double longestPathDelay,
-        CostEstimator::AreaInGates area)
-        throw (KeyNotFound);
+        const IDF::MachineImplementation& impl, double longestPathDelay,
+        CostEstimator::AreaInGates area);
 
-    RowID addConfiguration(const MachineConfiguration& conf)
-        throw (KeyNotFound);
+    RowID addConfiguration(const MachineConfiguration& conf);
 
     RowID addApplication(const std::string& path);
 
     void addEnergyEstimate(
-        RowID application, RowID implementation, double energyEstimate)
-        throw (KeyNotFound);
+        RowID application, RowID implementation, double energyEstimate);
 
     void addCycleCount(
-        RowID application, RowID architecture, ClockCycleCount count)
-        throw (KeyNotFound);
+        RowID application, RowID architecture, ClockCycleCount count);
 
-    void setLongestPathDelayEstimate(
-        RowID implementation, double delay)
-        throw (KeyNotFound);
+    void setLongestPathDelayEstimate(RowID implementation, double delay);
 
-    void setAreaEstimate(
-        RowID implementation, CostEstimator::AreaInGates area)
-        throw (KeyNotFound);
+    void setAreaEstimate(RowID implementation, CostEstimator::AreaInGates area);
 
     bool hasApplication(RowID id) const;
     bool hasApplication(const std::string& applicationPath) const;
-    void removeApplication(RowID id)
-        throw (KeyNotFound);
+    void removeApplication(RowID id);
 
-    std::string applicationPath(RowID id) const
-        throw (KeyNotFound);
+    std::string applicationPath(RowID id) const;
 
     bool hasArchitecture(RowID id) const;
-    TTAMachine::Machine* architecture(RowID id) const
-        throw (KeyNotFound);
+    TTAMachine::Machine* architecture(RowID id) const;
 
     RowID architectureId(const TTAMachine::Machine& mach) const;
 
     bool hasImplementation(RowID id) const;
-    IDF::MachineImplementation* implementation(RowID id) const
-        throw (KeyNotFound);
+    IDF::MachineImplementation* implementation(RowID id) const;
 
     bool hasConfiguration(RowID id) const;
-    MachineConfiguration configuration(RowID id) const
-        throw (KeyNotFound);
+    MachineConfiguration configuration(RowID id) const;
     RowID configurationId(const MachineConfiguration& conf) const;
 
-    void removeConfiguration(RowID id)
-        throw (KeyNotFound);
+    void removeConfiguration(RowID id);
 
     bool hasEnergyEstimate(RowID application, RowID implementation) const;
-    double energyEstimate(RowID application, RowID implementation) const
-        throw (KeyNotFound);
+    double energyEstimate(RowID application, RowID implementation) const;
 
     bool hasCycleCount(RowID application, RowID architecture) const;
-    ClockCycleCount cycleCount(RowID application, RowID architecture) const
-        throw (KeyNotFound);
+    ClockCycleCount cycleCount(RowID application, RowID architecture) const;
     std::vector<ClockCycleCount> 
     cycleCounts(const MachineConfiguration& conf) const;
     bool
     isUnschedulable(
         RowID application, RowID architecture) const;
-    void
-    setUnschedulable(
-        RowID application, RowID architecture)
-        throw (KeyNotFound);
+    void setUnschedulable(RowID application, RowID architecture);
 
-    double
-    longestPathDelayEstimate(RowID implementation) const
-        throw (KeyNotFound);
-    CostEstimator::AreaInGates areaEstimate(RowID implementation) const
-        throw (KeyNotFound);
+    double longestPathDelayEstimate(RowID implementation) const;
+    CostEstimator::AreaInGates areaEstimate(RowID implementation) const;
 
     std::set<RowID> applicationIDs() const;
     std::set<RowID> architectureIDs() const;
     std::set<RowID> configurationIDs() const;
-    std::set<RowID> archConfigurationIDs(RowID architectureID) const
-        throw (KeyNotFound);
+    std::set<RowID> archConfigurationIDs(RowID architectureID) const;
 
-    void writeArchitectureToFile(RowID id, const std::string& path) const
-        throw (KeyNotFound, IOException);
-    void writeImplementationToFile(RowID id, const std::string& path) const
-        throw (KeyNotFound, IOException);
+    void writeArchitectureToFile(RowID id, const std::string& path) const;
+    void writeImplementationToFile(RowID id, const std::string& path) const;
     void writeConfigurationToFile(
-        const MachineConfiguration& conf, 
-        const std::string& path)
-        throw (KeyNotFound, IOException);
+        const MachineConfiguration& conf, const std::string& path);
 
     std::vector<ConfigurationCosts> applicationCostEstimatesByConf(
         Order ordering = ORDER_BY_CONFIGURATION) const;
@@ -274,17 +243,15 @@ public:
 
     int applicationCount() const;
 private:
-    std::string architectureString(RowID id) const
-        throw (KeyNotFound);
-    std::string implementationString(RowID id) const
-        throw (KeyNotFound);
-    
+    std::string architectureString(RowID id) const;
+    std::string implementationString(RowID id) const;
+
     /// Handle to the database.
     SQLite* db_;
     /// Handle to the database connection.
     RelationalDBConnection* dbConnection_;
     /// The DSDB file containing the current database.
-    std::string file_;    
+    std::string file_;
 };
 
 #endif

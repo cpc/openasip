@@ -55,30 +55,20 @@ public:
     PluginTools(bool lazyResolution = true, bool local = false);
     virtual ~PluginTools();
 
-    void addSearchPath(const std::string& searchPath)
-        throw (FileNotFound);
+    void addSearchPath(const std::string& searchPath);
     void removeSearchPath(const std::string& searchPath);
     void clearSearchPaths();
 
-    void registerModule(const std::string& module)
-        throw (FileNotFound, DynamicLibraryException);
-    void unregisterModule(const std::string& module)
-        throw (FileNotFound, DynamicLibraryException, MultipleInstancesFound);
-    void unregisterAllModules()
-        throw (DynamicLibraryException);
+    void registerModule(const std::string& module);
+    void unregisterModule(const std::string& module);
+    void unregisterAllModules();
 
     template <typename T>
     void importSymbol(
-        const std::string& symbolName,
-        T*& target,
-        const std::string& module)
-        throw (MultipleInstancesFound, FileNotFound, DynamicLibraryException,
-               SymbolNotFound);
+        const std::string& symbolName, T*& target, const std::string& module);
 
     template <typename T>
-    void importSymbol(const std::string& symbolName, T*& target)
-        throw (MultipleInstancesFound, FileNotFound, DynamicLibraryException,
-               SymbolNotFound);
+    void importSymbol(const std::string& symbolName, T*& target);
 
 private:
     typedef std::vector<std::string>::iterator VecIter;
@@ -86,13 +76,9 @@ private:
     typedef std::map<std::string, void*>::value_type ValType;
 
     void* loadSym(
-        const std::string& symbolName,
-        const std::string& module = "")
-        throw (MultipleInstancesFound, DynamicLibraryException, FileNotFound,
-               SymbolNotFound);
+        const std::string& symbolName, const std::string& module = "");
 
-    std::string findModule(const std::string& module)
-        throw (MultipleInstancesFound, FileNotFound);
+    std::string findModule(const std::string& module);
 
     /// Copying not allowed.
     PluginTools(const PluginTools&);

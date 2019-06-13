@@ -127,8 +127,7 @@ AsciiImageWriter::rowLength() const {
  */
 void
 AsciiImageWriter::writeSequence(
-    std::ostream& stream, int length, bool padEnd) const
-    throw (OutOfRange) {
+    std::ostream& stream, int length, bool padEnd) const {
     unsigned int lastIndex = nextBitIndex_ + length - 1;
 
     if (lastIndex >= bits_.size() && !padEnd) {
@@ -146,7 +145,6 @@ AsciiImageWriter::writeSequence(
     nextBitIndex_ = lastIndex + 1;
 }
 
-
 /**
  * Writes a sequence of bits in hex format to the given stream.
  *
@@ -160,8 +158,7 @@ AsciiImageWriter::writeSequence(
  */
 void
 AsciiImageWriter::writeHexSequence(
-        std::ostream& stream, int length,
-        bool padEnd) const throw (OutOfRange) {
+    std::ostream& stream, int length, bool padEnd) const {
     unsigned int lastIndex = nextBitIndex_ + length - 1;
 
     if (lastIndex >= bits_.size() && !padEnd) {
@@ -200,4 +197,3 @@ AsciiImageWriter::writeHexSequence(
 
     nextBitIndex_ += length;
 }
-

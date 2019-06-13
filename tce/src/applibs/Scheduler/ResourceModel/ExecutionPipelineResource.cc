@@ -112,9 +112,7 @@ ExecutionPipelineResource::canAssign(const int, const MoveNode&) const {
  * then the number of resources the FU has.
  */
 bool
-ExecutionPipelineResource::isInUse(const int cycle) const
-    throw (Exception) {
-
+ExecutionPipelineResource::isInUse(const int cycle) const {
     // check if any operand port is used
     int modCycle = instructionIndex(cycle);
     for (OperandWriteMap::const_iterator i = operandsWriten_.begin();
@@ -388,8 +386,7 @@ ExecutionPipelineResource::unsetOperandsUsed(
 }
 
 void
-ExecutionPipelineResource::assign(const int, MoveNode&)
-    throw (Exception) {
+ExecutionPipelineResource::assign(const int, MoveNode&) {
     abortWithError("Execution Pipeline Resource needs 3 arguments assign");
 }
 
@@ -578,8 +575,7 @@ ExecutionPipelineResource::assignDestination(
 }
 
 void
-ExecutionPipelineResource::unassign(const int, MoveNode&)
-    throw (Exception) {
+ExecutionPipelineResource::unassign(const int, MoveNode&) {
     abortWithError("Execution Pipeline Resource needs 3 arguments unassign");
 }
 

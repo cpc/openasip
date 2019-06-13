@@ -61,9 +61,7 @@ CmdHelp::~CmdHelp() {
  * @exception NumberFormatException If conversion of DataObject fails.
  */
 bool
-CmdHelp::execute(const std::vector<DataObject>& arguments) 
-    throw (NumberFormatException) {
-    
+CmdHelp::execute(const std::vector<DataObject>& arguments) {
     ScriptInterpreter* interp = interpreter();
     assert(interp != NULL);
     DataObject* obj = new DataObject();
@@ -97,7 +95,6 @@ CmdHelp::execute(const std::vector<DataObject>& arguments)
         return true;
     }
 }
-
 
 /**
  * Returns help text.

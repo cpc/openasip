@@ -55,10 +55,8 @@ namespace TTAMachine {
 class ReservationTableFUResourceConflictDetector : 
     public FUResourceConflictDetector {
 public:
-
     ReservationTableFUResourceConflictDetector(
-        const TTAMachine::FunctionUnit& fu)
-        throw (InvalidData);
+        const TTAMachine::FunctionUnit& fu);
     virtual ~ReservationTableFUResourceConflictDetector();
 
     virtual bool issueOperation(OperationID id);

@@ -73,15 +73,11 @@ public:
     virtual bool canAssign(int cycle, MoveNode& node) const;
     virtual bool canTransportImmediate(const MoveNode& node) const;
 
-    virtual void assign(int cycle, MoveNode& node)
-        throw (Exception);
-    virtual void unassign(MoveNode& node)
-        throw (Exception);
-    virtual int earliestCycle(MoveNode& node) const
-        throw (Exception);
-    virtual int earliestCycle(int cycle, MoveNode& node) const
-        throw (Exception);
-        virtual int latestCycle(MoveNode& node) const;
+    virtual void assign(int cycle, MoveNode& node);
+    virtual void unassign(MoveNode& node);
+    virtual int earliestCycle(MoveNode& node) const;
+    virtual int earliestCycle(int cycle, MoveNode& node) const;
+    virtual int latestCycle(MoveNode& node) const;
     virtual int latestCycle(int cycle, MoveNode& node) const;
 
     virtual bool hasConnection(MoveNodeSet& nodes);
@@ -115,14 +111,10 @@ private:
         TTAProgram::MoveGuard* guard_;
         bool isGuarded_;
     };
-    IUBroker& immediateUnitBroker() const
-        throw (InstanceNotFound);
-    ITemplateBroker& instructionTemplateBroker() const
-        throw (InstanceNotFound);
-    BusBroker& busBroker() const
-        throw (InstanceNotFound);
-    ExecutionPipelineBroker& executionPipelineBroker() const
-        throw (InstanceNotFound);
+    IUBroker& immediateUnitBroker() const;
+    ITemplateBroker& instructionTemplateBroker() const;
+    BusBroker& busBroker() const;
+    ExecutionPipelineBroker& executionPipelineBroker() const;
 
     std::map<const MoveNode*, OriginalResources*, MoveNode::Comparator> 
         origResMap_;

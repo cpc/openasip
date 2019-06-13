@@ -56,9 +56,7 @@ public:
     explicit OperationBehaviorLoader(OperationIndex& index);
     virtual ~OperationBehaviorLoader();
 
-    OperationBehavior& importBehavior(const Operation& parent)
-        throw (DynamicLibraryException, InstanceNotFound, FileNotFound,
-               SymbolNotFound);
+    OperationBehavior& importBehavior(const Operation& parent);
 
     void freeBehavior();
 

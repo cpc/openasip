@@ -58,19 +58,13 @@ const std::string RFPortCode::OSNAME_RF_PORT_CODE = "rf_port_code";
  * @exception OutOfRange If some of the given values is out of range.
  */
 RFPortCode::RFPortCode(
-    const std::string& regFile,
-    unsigned int encoding,
-    unsigned int extraBits,
-    int indexWidth,
-    SocketCodeTable& parent)
-    throw (ObjectAlreadyExists, OutOfRange) :
-    PortCode(regFile, encoding, extraBits, indexWidth) {
-
+    const std::string& regFile, unsigned int encoding, unsigned int extraBits,
+    int indexWidth, SocketCodeTable& parent)
+    : PortCode(regFile, encoding, extraBits, indexWidth) {
     setParent(NULL);
     parent.addRFPortCode(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -90,17 +84,12 @@ RFPortCode::RFPortCode(
  * @exception OutOfRange If the given index width is negative.
  */
 RFPortCode::RFPortCode(
-    const std::string& regFile,
-    int indexWidth,
-    SocketCodeTable& parent)
-    throw (ObjectAlreadyExists, OutOfRange) :
-    PortCode(regFile, indexWidth) {
-
+    const std::string& regFile, int indexWidth, SocketCodeTable& parent)
+    : PortCode(regFile, indexWidth) {
     setParent(NULL);
     parent.addRFPortCode(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -117,9 +106,7 @@ RFPortCode::RFPortCode(
  *                                encoding in the same socket code table.
  */
 RFPortCode::RFPortCode(const ObjectState* state, SocketCodeTable& parent)
-    throw (ObjectStateLoadingException, ObjectAlreadyExists) :
-    PortCode(state) {
-
+    : PortCode(state) {
     if (state->name() != OSNAME_RF_PORT_CODE) {
 	const string procName = "RFPortCode::RFPortCode";
 	throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
@@ -129,7 +116,6 @@ RFPortCode::RFPortCode(const ObjectState* state, SocketCodeTable& parent)
     parent.addRFPortCode(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.

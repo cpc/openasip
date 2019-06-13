@@ -135,9 +135,7 @@ CostEstimates::energies() const {
  * equal to the number of energies.
  */
 double
-CostEstimates::energy(int index) const
-    throw (OutOfRange) {
-
+CostEstimates::energy(int index) const {
     if (index < 0 || index >= energies()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -157,10 +155,8 @@ CostEstimates::energy(int index) const
  * @return The energy of the Program.
  * @exception KeyNotFound Is thrown if program has no energy set.
  */
-double 
-CostEstimates::energy(const TTAProgram::Program& program) const
-    throw (KeyNotFound) {
-
+double
+CostEstimates::energy(const TTAProgram::Program& program) const {
     map<const TTAProgram::Program*, double>::const_iterator iter = 
         energyMap_.find(&program);
     if (iter == energyMap_.end()) {
@@ -168,4 +164,3 @@ CostEstimates::energy(const TTAProgram::Program& program) const
     }
     return (*iter).second;
 }
-

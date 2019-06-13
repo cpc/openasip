@@ -368,7 +368,7 @@ AssignmentPlan::resetAssignments() {
  * @exception InvalidData If node is not placed on a cycle.
  */
 void
-AssignmentPlan::resetAssignments(MoveNode& node) throw (InvalidData) {
+AssignmentPlan::resetAssignments(MoveNode& node) {
     if (!node.isPlaced()) {
         string msg = "Node is not placed in a cycle.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
@@ -399,7 +399,7 @@ AssignmentPlan::brokerCount() const {
  * @exception OutOfRange if index is out of bounds.
  */
 ResourceBroker&
-AssignmentPlan::broker(int index) const throw (OutOfRange) {
+AssignmentPlan::broker(int index) const {
     if (index < 0 || index >= static_cast<int>(brokers_.size())) {
         string msg = "Broker index out of range.";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);

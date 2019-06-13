@@ -64,54 +64,32 @@ public:
 
     const HWOperation* parentOperation() const;
 
-    void addResourceUse(const std::string& name, int start, int duration)
-        throw (OutOfRange, InvalidName, StartTooLate, NotAvailable);
-    void addPortRead(
-        int operand,
-        int start,
-        int duration)
-        throw (OutOfRange, WrongOperandType, StartTooLate, NotAvailable);
-    void addPortWrite(
-        int operand,
-        int start,
-        int duration)
-        throw (OutOfRange, WrongOperandType, NotAvailable);
-    void removeResourceUse(const std::string& name)
-        throw (StartTooLate);
-    void removeResourceUse(const std::string& name, int cycle)
-        throw (OutOfRange, StartTooLate);
+    void addResourceUse(const std::string& name, int start, int duration);
+    void addPortRead(int operand, int start, int duration);
+    void addPortWrite(int operand, int start, int duration);
+    void removeResourceUse(const std::string& name);
+    void removeResourceUse(const std::string& name, int cycle);
     void removeAllResourceUses();
-    void removeOperandUse(int operand, int cycle)
-        throw (OutOfRange, StartTooLate);
-    bool isResourceUsed(const std::string& name, int cycle) const
-        throw (OutOfRange);
+    void removeOperandUse(int operand, int cycle);
+    bool isResourceUsed(const std::string& name, int cycle) const;
 
-    ResourceSet resourceUsages(int cycle) const
-        throw (OutOfRange);
+    ResourceSet resourceUsages(int cycle) const;
 
-    bool isPortUsed(const FUPort& port, int cycle) const
-        throw (OutOfRange);
-    bool isPortRead(const FUPort& port, int cycle) const
-        throw (OutOfRange);
-    bool isPortWritten(const FUPort& port, int cycle) const
-        throw (OutOfRange);
+    bool isPortUsed(const FUPort& port, int cycle) const;
+    bool isPortRead(const FUPort& port, int cycle) const;
+    bool isPortWritten(const FUPort& port, int cycle) const;
 
-    OperandSet readOperands(int cycle) const
-        throw (OutOfRange);
-    OperandSet writtenOperands(int cycle) const
-        throw (OutOfRange);
+    OperandSet readOperands(int cycle) const;
+    OperandSet writtenOperands(int cycle) const;
     OperandSet readOperands() const;
     OperandSet writtenOperands() const;
 
     int latency() const;
-    int latency(int output) const
-        throw (IllegalParameters);
-    int slack(int input) const
-        throw (IllegalParameters);
+    int latency(int output) const;
+    int slack(int input) const;
 
     ObjectState* saveState() const;
-    void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadState(const ObjectState* state);
 
     bool isArchitectureEqual(const ExecutionPipeline* pipeline) const;
 
@@ -141,26 +119,14 @@ private:
     /// Vector for operand sets.
     typedef std::vector<OperandSet> IOUsage;
 
-    void checkStartCycle(int startCycle) const
-        throw (OutOfRange, StartTooLate);
-    static void checkDuration(int duration)
-        throw (OutOfRange);
-    static void checkResourceName(const std::string& name)
-        throw (InvalidName);
-    void checkInputOperand(int operand) const
-        throw (OutOfRange, WrongOperandType);
-    void checkOutputOperand(int operand) const
-        throw (OutOfRange, WrongOperandType);
+    void checkStartCycle(int startCycle) const;
+    static void checkDuration(int duration);
+    static void checkResourceName(const std::string& name);
+    void checkInputOperand(int operand) const;
+    void checkOutputOperand(int operand) const;
     void checkResourceAvailability(
-        const std::string& resource,
-        int start,
-        int duration) const
-        throw (NotAvailable);
-    void checkOperandAvailability(
-        int operand,
-        int start,
-        int duration) const
-        throw (NotAvailable);
+        const std::string& resource, int start, int duration) const;
+    void checkOperandAvailability(int operand, int start, int duration) const;
 
     void internalAddResourceUse(
         const std::string& name,
@@ -200,13 +166,9 @@ private:
         int cycleToSave,
         ObjectState* pipelineState,
         const std::string& osName);
-    ObjectStateTable sortResourceUsages(
-        const ObjectState* pipelineState) const
-        throw (ObjectStateLoadingException);
+    ObjectStateTable sortResourceUsages(const ObjectState* pipelineState) const;
     void addResourceUsage(
-        ObjectStateTable& usages,
-        const ObjectState* usageState) const
-        throw (ObjectStateLoadingException);
+        ObjectStateTable& usages, const ObjectState* usageState) const;
 
     /// Resource usage.
     ResourceUsage resourceUsage_;

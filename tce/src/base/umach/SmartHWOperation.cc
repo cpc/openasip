@@ -52,11 +52,8 @@ using namespace TTAMachine;
  * @exception InvalidName If the given operation does not have a valid name.
  */
 SmartHWOperation::SmartHWOperation(
-    const Operation& operation,
-    UniversalFunctionUnit& parent)
-    throw (ComponentAlreadyExists, InvalidName) :
-    HWOperation(operation.name(), parent), operation_(operation) {
-
+    const Operation& operation, UniversalFunctionUnit& parent)
+    : HWOperation(operation.name(), parent), operation_(operation) {
     is32BitOperation_ =
         UniversalFunctionUnit::is32BitOperation(operation.name());
 
@@ -72,7 +69,6 @@ SmartHWOperation::SmartHWOperation(
         pLine->addPortWrite(operand, 0, 1);
     }
 }
-
 
 /**
  * The destructor.
@@ -90,15 +86,12 @@ SmartHWOperation::~SmartHWOperation() {
  * @exception InvalidName Never thrown.
  */
 void
-SmartHWOperation::setName(const std::string&)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+SmartHWOperation::setName(const std::string&) {
     const string procName = "SmartHWOperation::setName";
     const string errorMsg = "Tried to set name of SmartHWOperation!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Returns the port bound to the given operand. If the given operand is not
@@ -209,16 +202,13 @@ SmartHWOperation::parentUnit() const {
  * @exception OutOfRange Never thrown.
  */
 void
-SmartHWOperation::bindPort(int, const FUPort&)
-    throw (IllegalRegistration, ComponentAlreadyExists, OutOfRange) {
-
+SmartHWOperation::bindPort(int, const FUPort&) {
     const string procName = "SmartHWOperation::bindPort";
     const string errorMsg =
         "Tried to bind port of SmartHWOperation manually!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to unbind ports manually. DO NOT
@@ -244,16 +234,13 @@ SmartHWOperation::unbindPort(const FUPort&) {
  * @exception ObjectStateLoadingException Never thrown.
  */
 void
-SmartHWOperation::loadState(const ObjectState*)
-    throw (ObjectStateLoadingException) {
-
+SmartHWOperation::loadState(const ObjectState*) {
     const string procName = "SmartHWOperation::loadState";
     const string errorMsg =
         "Tried load state of SmartHWOperation from an ObjectState tree!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Tells whether other input operands except the given one are bound to some

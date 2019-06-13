@@ -43,10 +43,8 @@
  */
 class DestinationField : public SlotField {
 public:
-    DestinationField(BinaryEncoding::Position socketIDPos, MoveSlot& parent)
-	throw (ObjectAlreadyExists, IllegalParameters);
-    DestinationField(const ObjectState* state, MoveSlot& parent)
-	throw (ObjectStateLoadingException, ObjectAlreadyExists);
+    DestinationField(BinaryEncoding::Position socketIDPos, MoveSlot& parent);
+    DestinationField(const ObjectState* state, MoveSlot& parent);
     virtual ~DestinationField();
 
     // methods inherited from Serializable interface

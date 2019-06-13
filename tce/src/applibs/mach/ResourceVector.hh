@@ -58,8 +58,7 @@ public:
     ResourceVector(const TTAMachine::ExecutionPipeline& pipeline);
     virtual ~ResourceVector();
 
-    const ResourceSet& resourcesUsedAtCycle(unsigned cycle) const
-        throw (OutOfRange);
+    const ResourceSet& resourcesUsedAtCycle(unsigned cycle) const;
 
     std::size_t width() const;
 

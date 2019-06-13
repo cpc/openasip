@@ -91,9 +91,7 @@ InstructionReferenceManager::createReference(Instruction& ins) {
  *            found.
  */
 void
-InstructionReferenceManager::replace(Instruction& insA, Instruction& insB)
-    throw (InstanceNotFound) {
-
+InstructionReferenceManager::replace(Instruction& insA, Instruction& insB) {
     RefMap::iterator itera = references_.find(&insA);
     if (itera == references_.end()) {
         throw InstanceNotFound(

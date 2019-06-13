@@ -75,12 +75,12 @@ public:
 
     long mode() const;
 
-    void setBinMode() throw (NotAvailable);
-    void setHexMode() throw (NotAvailable);
-    void setIntMode() throw (NotAvailable);
-    void setUnsignedMode() throw (NotAvailable);
-    void setFloatMode() throw (NotAvailable);
-    void setDoubleMode() throw (NotAvailable);
+    void setBinMode();
+    void setHexMode();
+    void setIntMode();
+    void setUnsignedMode();
+    void setFloatMode();
+    void setDoubleMode();
 
     void setValue(const unsigned int value);
     void setValue(const int value);

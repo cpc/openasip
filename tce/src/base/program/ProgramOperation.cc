@@ -105,8 +105,7 @@ ProgramOperation::~ProgramOperation() {
  * @param node MoveNode to add to operation
  */
 void
-ProgramOperation::addNode(MoveNode& node)
-    throw (IllegalParameters) {
+ProgramOperation::addNode(MoveNode& node) {
     if (node.move().source().isFUPort()) {
         if (node.move().source().hintOperation().name() ==
             operation().name()) {
@@ -131,9 +130,7 @@ ProgramOperation::addNode(MoveNode& node)
  * @param node MoveNode to add to operation
  */
 void
-ProgramOperation::addInputNode(MoveNode& node)
-    throw (IllegalParameters) {
-
+ProgramOperation::addInputNode(MoveNode& node) {
     int inputIndex = node.move().destination().operationIndex();
     if (MapTools::containsKey(inputMoves_, inputIndex)) {
         MoveNodeSet* nodeSet =
@@ -155,9 +152,7 @@ ProgramOperation::addInputNode(MoveNode& node)
  * @param node MoveNode to add to operation
  */
 void
-ProgramOperation::addOutputNode(MoveNode& node)
-    throw (IllegalParameters) {
-
+ProgramOperation::addOutputNode(MoveNode& node) {
     int outputIndex = node.move().source().operationIndex();
     if (MapTools::containsKey(outputMoves_, outputIndex)) {
         MoveNodeSet* nodeSet =
@@ -178,8 +173,7 @@ ProgramOperation::addOutputNode(MoveNode& node)
  * @param node MoveNode being removed from this program operation
  */
 void
-ProgramOperation::removeOutputNode(MoveNode& node)
-    throw (IllegalRegistration) {
+ProgramOperation::removeOutputNode(MoveNode& node) {
     int outputIndex = node.move().source().operationIndex();
     if (MapTools::containsKey(outputMoves_,outputIndex)) {
         MoveNodeSet* nodeSet =
@@ -198,15 +192,13 @@ ProgramOperation::removeOutputNode(MoveNode& node)
     }
 }
 
-
 /**
  * Removes output node from set of nodes that belong to this program operation.
  *
  * @param node MoveNode being removed from this program operation
  */
 void
-ProgramOperation::removeInputNode(MoveNode& node)
-    throw (IllegalRegistration) {
+ProgramOperation::removeInputNode(MoveNode& node) {
     int inputIndex = node.move().destination().operationIndex();
     if (MapTools::containsKey(inputMoves_,inputIndex)) {
         MoveNodeSet* nodeSet =
@@ -404,8 +396,7 @@ ProgramOperation::areOutputsAssigned() {
  * operation
  */
 MoveNode&
-ProgramOperation::opcodeSettingNode()
-    throw (InvalidData) {
+ProgramOperation::opcodeSettingNode() {
     std::map<int,MoveNodeSet*>::iterator moveIt = inputMoves_.begin();
     while (moveIt != inputMoves_.end()) {
         if ((*moveIt).second->at(0).move().destination().isOpcodeSetting()) {
@@ -431,8 +422,7 @@ ProgramOperation::opcodeSettingNode()
  * inputs
  */
 MoveNodeSet&
-ProgramOperation::inputNode(int index) const
-    throw (OutOfRange,KeyNotFound) {
+ProgramOperation::inputNode(int index) const {
     if (index < 1 || index > operation_.numberOfInputs()) {
         std::string msg = "InputNode index out of range.";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);
@@ -454,8 +444,7 @@ ProgramOperation::inputNode(int index) const
  * @throw OutOfRange If index is not found
  */
 MoveNodeSet&
-ProgramOperation::outputNode(int index) const
-    throw (OutOfRange,KeyNotFound) {
+ProgramOperation::outputNode(int index) const {
     if (index <= operation_.numberOfInputs() ||
         index > operation_.numberOfInputs()+
         operation_.numberOfOutputs()) {

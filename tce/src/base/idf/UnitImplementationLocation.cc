@@ -74,17 +74,13 @@ UnitImplementationLocation::UnitImplementationLocation(
  * @exception ObjectStateLoadingException If the given ObjectState instance
  *                                        is invalid.
  */
-UnitImplementationLocation::UnitImplementationLocation(
-    const ObjectState* state)
-    throw (ObjectStateLoadingException) :
-    hdbFile_(""), id_(0), unitName_(""), parent_(NULL) {
-
+UnitImplementationLocation::UnitImplementationLocation(const ObjectState* state)
+    : hdbFile_(""), id_(0), unitName_(""), parent_(NULL) {
     /// this is used by NullFUImplementationLocation
     if (state == NULL)
         return;
     loadState(state);
 }
-
 
 /**
  * The destructor.
@@ -100,9 +96,7 @@ UnitImplementationLocation::~UnitImplementationLocation() {
  * @exception FileNotFound If the HDB file is not found in the search paths.
  */
 std::string
-UnitImplementationLocation::hdbFile() const 
-    throw (FileNotFound) {
-
+UnitImplementationLocation::hdbFile() const {
     assert(parent_ != NULL);
     vector<string> paths = Environment::hdbPaths();
     paths.insert(
@@ -152,9 +146,7 @@ UnitImplementationLocation::unitName() const {
  * @exception InvalidData If the parent is already set.
  */
 void
-UnitImplementationLocation::setParent(MachineImplementation& parent)
-    throw (InvalidData) {
-    
+UnitImplementationLocation::setParent(MachineImplementation& parent) {
     if (parent_ != NULL) {
         throw InvalidData(__FILE__, __LINE__, __func__);
     }
@@ -162,16 +154,13 @@ UnitImplementationLocation::setParent(MachineImplementation& parent)
     parent_ = &parent;
 }
 
-
 /**
  * Loads the state of the object from the given ObjectState instance.
  *
  * @exception ObjectStateLoadingException If the given ObjectState instance.
  */
 void
-UnitImplementationLocation::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+UnitImplementationLocation::loadState(const ObjectState* state) {
     const string procName = "UnitImplementationLocation::loadState";
 
     if (state->name() != OSNAME_UNIT_IMPLEMENTATION) {
@@ -187,7 +176,6 @@ UnitImplementationLocation::loadState(const ObjectState* state)
             __FILE__, __LINE__, procName, exception.errorMessage());
     }
 }
-
 
 /**
  * Saves the state of the object to an ObjectState instance.

@@ -70,8 +70,7 @@ public:
     FUState& fuState(const std::string& name);
     
     int FUStateCount() const;
-    FUState& fuState(int index)
-        throw (OutOfRange);
+    FUState& fuState(int index);
     void advanceClockOfAllFUStates();
     void endClockOfAllFUStates();
     void advanceClockOfAllGuardStates();

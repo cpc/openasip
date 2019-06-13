@@ -331,10 +331,8 @@ Operand::canSwap(const Operand& op) const {
  * @exception ObjectStateLoadingException If loading fails for some reason.
  */
 void
-Operand::loadState(const ObjectState* state) 
-    throw (ObjectStateLoadingException) {
-
-	clear();
+Operand::loadState(const ObjectState* state) {
+    clear();
 
     string method = "Operand::loadState()";
     

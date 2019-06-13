@@ -71,10 +71,8 @@ DisableBPCommand::~DisableBPCommand() {
  * @exception NumberFormatException Is never thrown by this command.
  * @todo Use the count for the step.
  */
-bool 
-DisableBPCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+DisableBPCommand::execute(const std::vector<DataObject>& arguments) {
     if (!checkArgumentCount(arguments.size() - 1, 1, INT_MAX)) {
         return false;
     } 

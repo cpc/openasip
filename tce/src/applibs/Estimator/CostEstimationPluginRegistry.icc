@@ -83,8 +83,7 @@ T&
 CostEstimationPluginRegistry<T>::plugin(
     const std::string& pluginFileName,
     const std::string& pluginName)
-    throw (IOException, FileNotFound, DynamicLibraryException, 
-           WrongSubclass) {
+     {
 
     T* pluginInstance = NULL;
 

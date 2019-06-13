@@ -49,8 +49,7 @@ public:
     std::string unitName() const;
 
     bool hasEncoding() const;
-    unsigned int encoding() const
-        throw (NotAvailable);
+    unsigned int encoding() const;
     unsigned int extraBits() const;
     int width() const;
     int encodingWidth() const;
@@ -73,17 +72,10 @@ public:
 
 protected:
     PortCode(
-        const std::string& unitName,
-        unsigned int encoding,
-        unsigned int extraBits,
-        int indexWidth)
-        throw (OutOfRange);
-    PortCode(
-        const std::string& unitName,
-        int indexWidth)
-        throw (OutOfRange);
-    PortCode(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+        const std::string& unitName, unsigned int encoding,
+        unsigned int extraBits, int indexWidth);
+    PortCode(const std::string& unitName, int indexWidth);
+    PortCode(const ObjectState* state);
     void setParent(SocketCodeTable* parent);
 
 private:

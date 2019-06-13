@@ -80,8 +80,7 @@ OutputPSocketResource::isOutputPSocketResource() const {
  * @param node MoveNode to assign
  */
 void
-OutputPSocketResource::assign(const int cycle, MoveNode& node)
-    throw (Exception) {
+OutputPSocketResource::assign(const int cycle, MoveNode& node) {
     PSocketResource::assign(cycle, node);
     if (!MapTools::containsKey(storedPorts_, instructionIndex(cycle))) {
         const TTAMachine::Port* newPort = &node.move().source().port();
@@ -97,8 +96,7 @@ OutputPSocketResource::assign(const int cycle, MoveNode& node)
  * @param node MoveNode to remove assignment from
  */
 void
-OutputPSocketResource::unassign(const int cycle, MoveNode& node)
-    throw (Exception) {
+OutputPSocketResource::unassign(const int cycle, MoveNode& node) {
     PSocketResource::unassign(cycle, node);
     if (MapTools::containsKey(storedPorts_, instructionIndex(cycle))) {
         storedPorts_.erase(instructionIndex(cycle));

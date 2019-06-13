@@ -233,7 +233,7 @@ CostDBEntry::statisticsCount() const {
  * @throw OutOfRange Index is out of bounds.
  */
 const CostDBEntryStats&
-CostDBEntry::statistics(int index) const throw (OutOfRange) {
+CostDBEntry::statistics(int index) const {
     if (index < 0 || index >= statisticsCount()) {
 	throw OutOfRange(__FILE__, __LINE__, "CostDBEntry::statistics");
     }

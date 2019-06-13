@@ -74,16 +74,12 @@ Model::~Model() {
  *
  * @param fileName The file name of the machine description to open.
  */
-Model::Model(const std::string& fileName)
-    throw (SerializerException, ObjectStateLoadingException) :
-    undone_(NULL), modified_(false) {
-
+Model::Model(const std::string& fileName) : undone_(NULL), modified_(false) {
     // read Machine from fileName and set it to machine_
     ADFSerializer reader;
     reader.setSourceFile(fileName);
     machine_ = reader.readMachine();
 }
-
 
 /**
  * Returns the Machine.

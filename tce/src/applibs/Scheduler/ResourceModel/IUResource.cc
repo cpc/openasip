@@ -157,8 +157,7 @@ IUResource::isAvailable(const int cycle) const {
  */
 
 void
-IUResource::assign(const int, MoveNode&)
-    throw (Exception) {
+IUResource::assign(const int, MoveNode&) {
     std::string msg = "IUResource: called assign with \'cycle\'";
     msg += " and \'node\'. Use assign with \'defCycle\',";
     msg += " \'useCycle\', \'node\' and \'index\' reference!";
@@ -176,9 +175,7 @@ IUResource::assign(const int, MoveNode&)
  */
 void
 IUResource::assign(
-    const int defCycle, const int useCycle, MoveNode& node, int& index)
-    throw (Exception) {
-
+    const int defCycle, const int useCycle, MoveNode& node, int& index) {
     if (defCycle > useCycle) {
         std::string msg =
             "Long immediate definition cycle later than use cycle: ";
@@ -216,8 +213,7 @@ IUResource::assign(
  * @param node MoveNode to remove assignment from
  */
 void
-IUResource::unassign(const int, MoveNode& node)
-    throw (Exception) {
+IUResource::unassign(const int, MoveNode& node) {
     if (!node.move().source().isImmediateRegister()) {
         std::string msg = "Trying to unassign move that is not immediate\
             register read!";
@@ -365,9 +361,7 @@ IUResource::registerCount() const {
  * @return Long immediate constant that is expected to be in register
  */
 TTAProgram::Terminal*
-IUResource::immediateValue(const MoveNode& node) const
-    throw (KeyNotFound) {
-
+IUResource::immediateValue(const MoveNode& node) const {
     MoveNode& testNode = const_cast<MoveNode&>(node);
     if (!testNode.move().source().isImmediateRegister()) {
         std::string msg = "Immediate register was not assigned!";
@@ -393,9 +387,7 @@ IUResource::immediateValue(const MoveNode& node) const
  * @return cycle in which register is written
  */
 int
-IUResource::immediateWriteCycle(const MoveNode& node) const
-    throw (KeyNotFound){
-
+IUResource::immediateWriteCycle(const MoveNode& node) const {
     MoveNode& testNode = const_cast<MoveNode&>(node);
     if (!testNode.move().source().isImmediateRegister()) {
         std::string msg = "Immediate register was not assigned!";

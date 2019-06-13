@@ -51,24 +51,20 @@ public:
         const std::string& hdbFile,
         int id,
         const std::string& unitName);
-    UnitImplementationLocation(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    UnitImplementationLocation(const ObjectState* state);
     virtual ~UnitImplementationLocation();
 
-    virtual std::string hdbFile() const
-        throw (FileNotFound);
+    virtual std::string hdbFile() const;
     std::string hdbFileOriginal() const;
     virtual int id() const;
     virtual std::string unitName() const;
-    virtual void setParent(MachineImplementation& parent)
-        throw (InvalidData);
+    virtual void setParent(MachineImplementation& parent);
 
     virtual void setID(int id);
     virtual void setHDBFile(std::string file);
 
     // methods from Serializable interface
-    void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadState(const ObjectState* state);
     ObjectState* saveState() const;
 
     /// ObjectState name for unit implementation.

@@ -59,34 +59,26 @@ public:
         const TTAMachine::FUPort& opcodeSettingPort, 
         const TTAMachine::HWOperation& opcode);
 
-    TerminalFUPort(const TTAMachine::BaseFUPort& port)
-        throw (IllegalParameters);
-    TerminalFUPort(const TTAMachine::HWOperation& operation, int opIndex)
-        throw (IllegalParameters);
+    TerminalFUPort(const TTAMachine::BaseFUPort& port);
+    TerminalFUPort(const TTAMachine::HWOperation& operation, int opIndex);
     virtual ~TerminalFUPort();
 
-    virtual bool isOpcodeSetting() const 
-        throw (WrongSubclass);
+    virtual bool isOpcodeSetting() const;
 
-    virtual bool isTriggering() const 
-        throw (WrongSubclass);
+    virtual bool isTriggering() const;
 
     virtual bool isFUPort() const;
     virtual bool isRA() const;
 
-    virtual const TTAMachine::FunctionUnit& functionUnit() const
-        throw (WrongSubclass);
-    virtual Operation& operation() const 
-        throw (WrongSubclass, InvalidData);
-    virtual Operation& hintOperation() const
-        throw (WrongSubclass, InvalidData);
+    virtual const TTAMachine::FunctionUnit& functionUnit() const;
+    virtual Operation& operation() const;
+    virtual Operation& hintOperation() const;
     // sets the "hint operation" for moves which are not opcode setting
     // but are known to be part of an operation execution
     virtual void setOperation(const TTAMachine::HWOperation& hwOp);
-    virtual int operationIndex() const 
-        throw (WrongSubclass, InvalidData);
+    virtual int operationIndex() const;
     virtual void setOperationIndex(int index) { opIndex_ = index; }
-    virtual const TTAMachine::Port& port() const throw (WrongSubclass);
+    virtual const TTAMachine::Port& port() const;
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
     

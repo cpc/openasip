@@ -47,10 +47,10 @@ public:
     InstructionExecution(RelationalDBQueryResult* result);
     virtual ~InstructionExecution();
 
-    ClockCycleCount cycle() const throw (NotAvailable);
-    InstructionAddress address() const throw (NotAvailable);
+    ClockCycleCount cycle() const;
+    InstructionAddress address() const;
 
-    void next() throw (NotAvailable);
+    void next();
     bool hasNext() const;
 
 private:

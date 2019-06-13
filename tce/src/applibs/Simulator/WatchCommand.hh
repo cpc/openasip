@@ -49,8 +49,7 @@ public:
     WatchCommand();
     virtual ~WatchCommand();
 
-    virtual bool execute(const std::vector<DataObject>& arguments)
-        throw (NumberFormatException);
+    virtual bool execute(const std::vector<DataObject>& arguments);
     virtual std::string helpText() const;
 };
 #endif

@@ -87,10 +87,8 @@ public:
     virtual ~BypassingBUBasicBlockScheduler();
 
     virtual void handleDDG(
-        DataDependenceGraph& ddg,
-        SimpleResourceManager& rm,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        DataDependenceGraph& ddg, SimpleResourceManager& rm,
+        const TTAMachine::Machine& targetMachine);
 
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;

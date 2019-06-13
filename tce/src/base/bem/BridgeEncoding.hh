@@ -47,13 +47,9 @@ class ObjectState;
 class BridgeEncoding : public Encoding {
 public:
     BridgeEncoding(
-	const std::string& name,
-	unsigned int encoding,
-	unsigned int extraBits,
-	SourceField& parent)
-	throw (ObjectAlreadyExists);
-    BridgeEncoding(const ObjectState* state, SourceField& parent)
-	throw (ObjectStateLoadingException, ObjectAlreadyExists);
+        const std::string& name, unsigned int encoding, unsigned int extraBits,
+        SourceField& parent);
+    BridgeEncoding(const ObjectState* state, SourceField& parent);
     virtual ~BridgeEncoding();
 
     SourceField* parent() const;

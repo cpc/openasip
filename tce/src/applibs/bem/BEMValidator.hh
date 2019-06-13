@@ -63,8 +63,7 @@ public:
 
     bool validate();
     int errorCount() const;
-    std::string errorMessage(int index) const
-        throw (OutOfRange);
+    std::string errorMessage(int index) const;
     int warningCount() const;
     std::string warningMessage(int index) const;
 

@@ -116,8 +116,7 @@ public:
     DataDependenceEdge* onlyRegisterEdgeOut(MoveNode& mn) const;
 
     // should not be called by the user, only by a DataDependenceGraphBuilder
-    void addNode(MoveNode& moveNode) 
-        throw (ObjectAlreadyExists);
+    void addNode(MoveNode& moveNode);
     void addNode(MoveNode& moveNode, MoveNode& relatedNode);
     void addNode(MoveNode& moveNode, BasicBlockNode& bblock);
     void addProgramOperation(ProgramOperationPtr po);
@@ -193,8 +192,7 @@ public:
     int firstRegisterCycle(
         const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
 
-    void sanityCheck() const
-        throw (Exception);
+    void sanityCheck() const;
 
     /// Dot printing related methods
     virtual TCEString dotString() const;
@@ -209,8 +207,8 @@ public:
     void unMerge(MoveNode& resultNode, MoveNode& mergedNode);
 
     bool resultUsed(MoveNode& resultNode);
-    
-    void removeNode(MoveNode& node) throw (InstanceNotFound);
+
+    void removeNode(MoveNode& node);
     void deleteNode(MoveNode& node);
 
     void setEdgeWeightHeuristics(EdgeWeightHeuristics ewh) {
@@ -248,18 +246,15 @@ public:
     DataDependenceGraph* criticalPathGraph();
     DataDependenceGraph* memoryDependenceGraph();
 
-    MoveNode& nodeOfMove(TTAProgram::Move& move) throw (InstanceNotFound);
+    MoveNode& nodeOfMove(TTAProgram::Move& move);
 
     void dropBackEdges();
 
-    void fixInterBBAntiEdges(BasicBlockNode& bbn1, 
-                             BasicBlockNode& bbn2,
-                             bool loopEdges)
-        throw (Exception);
+    void fixInterBBAntiEdges(
+        BasicBlockNode& bbn1, BasicBlockNode& bbn2, bool loopEdges);
 
     // Duplicates all in- and outgoing edges in dst to src
-    void copyDependencies(MoveNode& src, MoveNode& dst) 
-        throw (InstanceNotFound); 
+    void copyDependencies(MoveNode& src, MoveNode& dst);
 
     void copyIncomingGuardEdges(const MoveNode& src, MoveNode& dst);
     void copyOutgoingGuardWarEdges(const MoveNode& src, MoveNode& dst);

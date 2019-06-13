@@ -53,11 +53,7 @@ public:
 protected:
     AOutDataSectionReader();
 
-    virtual void readData(
-        BinaryStream& stream,
-        Section* section) const
-        throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-               OutOfRange, WrongSubclass, UnexpectedValue);
+    virtual void readData(BinaryStream& stream, Section* section) const;
 
     virtual Section::SectionType type() const;
 

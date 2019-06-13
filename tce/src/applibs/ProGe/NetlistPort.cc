@@ -163,15 +163,12 @@ NetlistPort::realWidthAvailable() const {
  * @exception NotAvailable If the actual width is not known.
  */
 int
-NetlistPort::realWidth() const
-    throw (NotAvailable) {
-
+NetlistPort::realWidth() const {
     if (!realWidthAvailable()) {
         throw NotAvailable(__FILE__, __LINE__, __func__);
     }
     return realWidth_;
 }
-
 
 /**
  * Returns the data type of the port.

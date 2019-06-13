@@ -50,17 +50,17 @@ public:
 
     void setPCFDirectory(const std::string& path);
 
-    std::string architectureName() throw (KeyNotFound);
-    unsigned int architectureSize() throw (KeyNotFound);
-    unsigned int architectureModified() throw (KeyNotFound);
+    std::string architectureName();
+    unsigned int architectureSize();
+    unsigned int architectureModified();
 
-    std::string implementationName() throw (KeyNotFound);
-    unsigned int implementationSize() throw (KeyNotFound);
-    unsigned int implementationModified() throw (KeyNotFound);
+    std::string implementationName();
+    unsigned int implementationSize();
+    unsigned int implementationModified();
 
-    std::string encodingMapName() throw (KeyNotFound);
-    unsigned int encodingMapSize() throw (KeyNotFound);
-    unsigned int encodingMapModified() throw (KeyNotFound);
+    std::string encodingMapName();
+    unsigned int encodingMapSize();
+    unsigned int encodingMapModified();
 
     int errorCount();
     std::string errorString(int index);

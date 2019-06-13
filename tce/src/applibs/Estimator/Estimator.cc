@@ -80,12 +80,10 @@ Estimator::~Estimator() {
  * @exception CannotEstimateCost In case cost cannot be estimated for some 
  *                               reason. Reason is given in error message.
  */
-AreaInGates 
+AreaInGates
 Estimator::totalArea(
     const TTAMachine::Machine& machine,
-    const IDF::MachineImplementation& machineImplementation)
-    throw (CannotEstimateCost) {
-    
+    const IDF::MachineImplementation& machineImplementation) {
     return totalAreaOfFunctionUnits(machine, machineImplementation) +
         totalAreaOfRegisterFiles(machine, machineImplementation) +
         icArea(machine, machineImplementation);
@@ -101,12 +99,10 @@ Estimator::totalArea(
  * @exception CannotEstimateCost In case cost cannot be estimated for some 
  *                               reason. Reason is given in error message.
  */
-AreaInGates 
+AreaInGates
 Estimator::totalAreaOfFunctionUnits(
     const TTAMachine::Machine& machine,
-    const IDF::MachineImplementation& machineImplementation)
-    throw (CannotEstimateCost) {
-    
+    const IDF::MachineImplementation& machineImplementation) {
     AreaInGates total = 0.0;
     TTAMachine::Machine::FunctionUnitNavigator nav = 
         machine.functionUnitNavigator();
@@ -162,12 +158,10 @@ Estimator::totalAreaOfFunctionUnits(
  * @exception CannotEstimateCost In case cost cannot be estimated for some 
  *                               reason. Reason is given in error message.
  */
-AreaInGates 
+AreaInGates
 Estimator::totalAreaOfRegisterFiles(
     const TTAMachine::Machine& machine,
-    const IDF::MachineImplementation& machineImplementation)
-    throw (CannotEstimateCost) {
-
+    const IDF::MachineImplementation& machineImplementation) {
     AreaInGates total = 0.0;
     TTAMachine::Machine::RegisterFileNavigator nav = 
         machine.registerFileNavigator();
@@ -208,12 +202,10 @@ Estimator::totalAreaOfRegisterFiles(
  * @exception CannotEstimateCost In case cost cannot be estimated for some 
  *                               reason. Reason is given in error message.
  */
-AreaInGates 
+AreaInGates
 Estimator::icArea(
     const TTAMachine::Machine& machine,
-    const IDF::MachineImplementation& machineImplementation)
-    throw (CannotEstimateCost) {
-
+    const IDF::MachineImplementation& machineImplementation) {
     if (!machineImplementation.hasICDecoderPluginName() ||
         !machineImplementation.hasICDecoderPluginFile() ||
         !machineImplementation.hasICDecoderHDB()) {
@@ -264,11 +256,9 @@ Estimator::icArea(
  * @exception Exception In case the plugin was not found or could not be
  *                      loaded.
  */
-FUCostEstimationPlugin& 
+FUCostEstimationPlugin&
 Estimator::fuCostFunctionPluginOfImplementation(
-    const IDF::FUImplementationLocation& implementationEntry)
-    throw (Exception) {
- 
+    const IDF::FUImplementationLocation& implementationEntry) {
     std::string pluginFileName = "";
     std::string pluginName = "";
     HDB::HDBManager* theHDB = NULL;
@@ -307,7 +297,7 @@ Estimator::fuCostFunctionPluginOfImplementation(
             __FILE__, __LINE__, __func__, e.errorMessage());
     }
     // avoid warnings with some compilers
-    throw 1; 
+    throw 1;
 }
 
 /**
@@ -318,11 +308,9 @@ Estimator::fuCostFunctionPluginOfImplementation(
  * @exception Exception In case the plugin was not found or could not be
  *                      loaded.
  */
-RFCostEstimationPlugin& 
+RFCostEstimationPlugin&
 Estimator::rfCostFunctionPluginOfImplementation(
-    const IDF::RFImplementationLocation& implementationEntry)
-    throw (Exception) {
- 
+    const IDF::RFImplementationLocation& implementationEntry) {
     std::string pluginFileName = "";
     std::string pluginName = "";
     HDB::HDBManager* theHDB = NULL;
@@ -360,7 +348,7 @@ Estimator::rfCostFunctionPluginOfImplementation(
             __FILE__, __LINE__, __func__, e.errorMessage());
     }
     // avoid warnings with some compilers
-    throw 1; 
+    throw 1;
 }
 
 /**
@@ -372,12 +360,10 @@ Estimator::rfCostFunctionPluginOfImplementation(
  * @exception CannotEstimateCost In case the area could not be estimated. 
  * @return Estimate of area.
  */
-AreaInGates 
+AreaInGates
 Estimator::functionUnitArea(
     const TTAMachine::FunctionUnit& architecture,
-    const IDF::FUImplementationLocation& implementationEntry) 
-    throw (CannotEstimateCost) {
-
+    const IDF::FUImplementationLocation& implementationEntry) {
     try {
         AreaInGates area = 0.0;
         HDB::HDBManager& hdb = HDBRegistry::instance().hdb(
@@ -408,12 +394,10 @@ Estimator::functionUnitArea(
  * @exception CannotEstimateCost In case the area could not be estimated. 
  * @return Estimate of area.
  */
-AreaInGates 
+AreaInGates
 Estimator::registerFileArea(
     const TTAMachine::BaseRegisterFile& architecture,
-    const IDF::RFImplementationLocation& implementationEntry) 
-    throw (CannotEstimateCost) {
-
+    const IDF::RFImplementationLocation& implementationEntry) {
     try {
         AreaInGates area = 0.0;
         HDB::HDBManager& hdb = HDBRegistry::instance().hdb(
@@ -445,14 +429,11 @@ Estimator::registerFileArea(
  * @return Energy in milli joules.
  * @exception CannotEstimateCost If the energy could not be estimated.
  */
-EnergyInMilliJoules 
+EnergyInMilliJoules
 Estimator::totalEnergy(
     const TTAMachine::Machine& machine,
     const IDF::MachineImplementation& machineImplementation,
-    const TTAProgram::Program& program,
-    const ExecutionTrace& traceDB)
-    throw (CannotEstimateCost) {
-
+    const TTAProgram::Program& program, const ExecutionTrace& traceDB) {
     return totalEnergyOfFunctionUnits(
         machine, machineImplementation, program, traceDB) +
         totalEnergyOfRegisterFiles(
@@ -471,14 +452,11 @@ Estimator::totalEnergy(
  * @return Energy in milli joules.
  * @exception CannotEstimateCost If the energy could not be estimated.
  */
-EnergyInMilliJoules 
+EnergyInMilliJoules
 Estimator::icEnergy(
     const TTAMachine::Machine& machine,
     const IDF::MachineImplementation& machineImplementation,
-    const TTAProgram::Program& program,
-    const ExecutionTrace& traceDB)
-    throw (CannotEstimateCost) {
-
+    const TTAProgram::Program& program, const ExecutionTrace& traceDB) {
     if (!machineImplementation.hasICDecoderPluginName() ||
         !machineImplementation.hasICDecoderPluginFile() ||
         !machineImplementation.hasICDecoderHDB()) {
@@ -528,14 +506,11 @@ Estimator::icEnergy(
  * @return Estimate of consumed energy.
  * @exception CannotEstimateCost In case the energy could not be estimated. 
  */
-EnergyInMilliJoules 
+EnergyInMilliJoules
 Estimator::functionUnitEnergy(
     const TTAMachine::FunctionUnit& architecture,
     const IDF::FUImplementationLocation& implementationEntry,
-    const TTAProgram::Program& program,
-    const ExecutionTrace& traceDB)
-    throw (CannotEstimateCost) {  
-
+    const TTAProgram::Program& program, const ExecutionTrace& traceDB) {
     try {
         AreaInGates area = 0.0;
         HDB::HDBManager& hdb = HDBRegistry::instance().hdb(
@@ -572,14 +547,11 @@ Estimator::functionUnitEnergy(
  * @return Estimate of consumed energy.
  * @exception CannotEstimateCost In case the energy could not be estimated. 
  */
-EnergyInMilliJoules 
+EnergyInMilliJoules
 Estimator::registerFileEnergy(
     const TTAMachine::BaseRegisterFile& architecture,
     const IDF::RFImplementationLocation& implementationEntry,
-    const TTAProgram::Program& program,
-    const ExecutionTrace& traceDB)
-    throw (CannotEstimateCost) {
-
+    const TTAProgram::Program& program, const ExecutionTrace& traceDB) {
     try {
         AreaInGates area = 0.0;
         HDB::HDBManager& hdb = HDBRegistry::instance().hdb(
@@ -616,14 +588,11 @@ Estimator::registerFileEnergy(
  * @exception CannotEstimateCost In case cost cannot be estimated for some 
  *                               reason. Reason is given in error message.
  */
-EnergyInMilliJoules 
+EnergyInMilliJoules
 Estimator::totalEnergyOfFunctionUnits(
     const TTAMachine::Machine& machine,
     const IDF::MachineImplementation& machineImplementation,
-    const TTAProgram::Program& program,
-    const ExecutionTrace& traceDB)
-    throw (CannotEstimateCost) {
-
+    const TTAProgram::Program& program, const ExecutionTrace& traceDB) {
     EnergyInMilliJoules total = 0.0;
     TTAMachine::Machine::FunctionUnitNavigator nav = 
         machine.functionUnitNavigator();
@@ -672,14 +641,11 @@ Estimator::totalEnergyOfFunctionUnits(
  * @exception CannotEstimateCost In case cost cannot be estimated for some 
  *                               reason. Reason is given in error message.
  */
-EnergyInMilliJoules 
+EnergyInMilliJoules
 Estimator::totalEnergyOfRegisterFiles(
     const TTAMachine::Machine& machine,
     const IDF::MachineImplementation& machineImplementation,
-    const TTAProgram::Program& program,
-    const ExecutionTrace& traceDB)
-    throw (CannotEstimateCost) {
-
+    const TTAProgram::Program& program, const ExecutionTrace& traceDB) {
     EnergyInMilliJoules total = 0.0;
     TTAMachine::Machine::RegisterFileNavigator nav = 
         machine.registerFileNavigator();
@@ -709,12 +675,10 @@ Estimator::totalEnergyOfRegisterFiles(
  *                               estimated. 
  * @return Estimate of input delay of the given FU port.
  */
-DelayInNanoSeconds 
+DelayInNanoSeconds
 Estimator::functionUnitPortWriteDelay(
     const TTAMachine::FUPort& port,
-    const IDF::FUImplementationLocation& implementationEntry) 
-    throw (CannotEstimateCost) {
-
+    const IDF::FUImplementationLocation& implementationEntry) {
     try {
         DelayInNanoSeconds delay = 0.0;
         HDB::HDBManager& hdb = HDBRegistry::instance().hdb(
@@ -750,12 +714,10 @@ Estimator::functionUnitPortWriteDelay(
  * estimated. 
  * @return Estimate of output delay of the given FU port.
  */
-DelayInNanoSeconds 
+DelayInNanoSeconds
 Estimator::functionUnitPortReadDelay(
     const TTAMachine::FUPort& port,
-    const IDF::FUImplementationLocation& implementationEntry) 
-    throw (CannotEstimateCost) {
-
+    const IDF::FUImplementationLocation& implementationEntry) {
     try {
         DelayInNanoSeconds delay = 0.0;
         HDB::HDBManager& hdb = HDBRegistry::instance().hdb(
@@ -790,12 +752,10 @@ Estimator::functionUnitPortReadDelay(
  *                               estimated. 
  * @return Estimate of input delay of the given RF port.
  */
-DelayInNanoSeconds 
+DelayInNanoSeconds
 Estimator::registerFilePortWriteDelay(
     const TTAMachine::RFPort& port,
-    const IDF::RFImplementationLocation& implementationEntry) 
-    throw (CannotEstimateCost) {
-
+    const IDF::RFImplementationLocation& implementationEntry) {
     try {
         DelayInNanoSeconds delay = 0.0;
         HDB::HDBManager& hdb = HDBRegistry::instance().hdb(
@@ -829,12 +789,10 @@ Estimator::registerFilePortWriteDelay(
  *                               estimated. 
  * @return Estimate of output delay of the given RF.
  */
-DelayInNanoSeconds 
+DelayInNanoSeconds
 Estimator::registerFilePortReadDelay(
     const TTAMachine::RFPort& port,
-    const IDF::RFImplementationLocation& implementationEntry) 
-    throw (CannotEstimateCost) {
-
+    const IDF::RFImplementationLocation& implementationEntry) {
     try {
         DelayInNanoSeconds delay = 0.0;
         HDB::HDBManager& hdb = HDBRegistry::instance().hdb(
@@ -872,12 +830,10 @@ Estimator::registerFilePortReadDelay(
  *                               estimated. 
  * @return Estimate of computation delay of the given FU.
  */
-DelayInNanoSeconds 
+DelayInNanoSeconds
 Estimator::functionUnitMaximumComputationDelay(
     const TTAMachine::FunctionUnit& architecture,
-    const IDF::FUImplementationLocation& implementationEntry) 
-    throw (CannotEstimateCost) {
-
+    const IDF::FUImplementationLocation& implementationEntry) {
     try {
         DelayInNanoSeconds delay = 0.0;
         HDB::HDBManager& hdb = HDBRegistry::instance().hdb(
@@ -916,12 +872,10 @@ Estimator::functionUnitMaximumComputationDelay(
  *                               estimated. 
  * @return Estimate of computation delay of the given RF.
  */
-DelayInNanoSeconds 
+DelayInNanoSeconds
 Estimator::registerFileMaximumComputationDelay(
     const TTAMachine::BaseRegisterFile& architecture,
-    const IDF::RFImplementationLocation& implementationEntry) 
-    throw (CannotEstimateCost) {
-
+    const IDF::RFImplementationLocation& implementationEntry) {
     try {
         DelayInNanoSeconds delay = 0.0;
         HDB::HDBManager& hdb = HDBRegistry::instance().hdb(
@@ -947,7 +901,6 @@ Estimator::registerFileMaximumComputationDelay(
     return 0.0;
 }
 
-
 /**
  * Calculates the longest path of the machine.
  *
@@ -958,13 +911,11 @@ Estimator::registerFileMaximumComputationDelay(
  * @param machineImplementation Implementation identifier for the machine.
  * @return The delay of the longest path.
  */
-DelayInNanoSeconds 
+DelayInNanoSeconds
 Estimator::longestPath(
     const TTAMachine::Machine& machine,
-    const IDF::MachineImplementation& machineImplementation)
-    throw (CannotEstimateCost, Exception) {
-
-//#define LONGEST_PATH_DEBUGGING 
+    const IDF::MachineImplementation& machineImplementation) {
+    //#define LONGEST_PATH_DEBUGGING
 
     DelayInNanoSeconds maximumICDelay = 0.0;
 
@@ -1274,9 +1225,7 @@ Estimator::longestPath(
  *                           has features that are not supported yet.
  */
 TransportPathList*
-Estimator::findAllICPaths(const TTAMachine::Machine& machine) 
-    throw (IllegalMachine) {
-
+Estimator::findAllICPaths(const TTAMachine::Machine& machine) {
     TransportPathList* paths = new TransportPathList();
 
     TTAMachine::Machine::BusNavigator busNav = machine.busNavigator();
@@ -1363,18 +1312,14 @@ Estimator::findAllICPaths(const TTAMachine::Machine& machine)
  *        destination socket.
 
  */
-DelayInNanoSeconds 
+DelayInNanoSeconds
 Estimator::estimateSocketToSocketDelayOfPath(
-    const std::string pluginPath,
-    const std::string pluginName,
+    const std::string pluginPath, const std::string pluginName,
     const TransportPath& path,
     const IDF::MachineImplementation& machineImplementation,
     const IDF::SocketImplementationLocation& sourceSocketImplementation,
     const IDF::BusImplementationLocation& busImplementation,
-    const IDF::SocketImplementationLocation& 
-        destinationSocketImplementation)
-    throw (CannotEstimateCost) {
-
+    const IDF::SocketImplementationLocation& destinationSocketImplementation) {
     DelayInNanoSeconds delay = 0.0;
     try {
 
@@ -1400,6 +1345,5 @@ Estimator::estimateSocketToSocketDelayOfPath(
     }
     return delay;
 }
-
 }
 

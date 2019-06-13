@@ -91,16 +91,14 @@ public:
     virtual ~Component();
 
     virtual std::string name() const;
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
+    virtual void setName(const std::string& name);
 
     /**
      * Registers component into given Machine.
      *
      * @param machine A Machine.
      */
-    virtual void setMachine(Machine& machine)
-        throw (ComponentAlreadyExists) = 0;
+    virtual void setMachine(Machine& machine) = 0;
 
     /**
      * Removes component from its current Machine.
@@ -108,14 +106,12 @@ public:
     virtual void unsetMachine() = 0;
 
     virtual Machine* machine() const;
-    virtual void ensureRegistration(const Component& component) const
-        throw (IllegalRegistration);
+    virtual void ensureRegistration(const Component& component) const;
     virtual bool isRegistered() const;
 
     // methods inherited from Serializable interface
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /**
      * Compares 2 Component's names lexicographically (dictionary order).
@@ -140,10 +136,8 @@ public:
     static const std::string OSKEY_NAME;
 
 protected:
-    Component(const std::string& name)
-        throw (InvalidName);
-    Component(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    Component(const std::string& name);
+    Component(const ObjectState* state);
 
     void internalSetMachine(Machine& machine);
     void internalUnsetMachine();

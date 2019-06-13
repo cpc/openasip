@@ -51,8 +51,7 @@ RelationalDBConnection::~RelationalDBConnection() {
  * @exception RelationalDBException In case a database error occured.
  */
 int
-RelationalDBConnection::updateQuery(const std::string&)
-    throw (RelationalDBException) {
+RelationalDBConnection::updateQuery(const std::string&) {
     return 0;
 }
 
@@ -67,9 +66,7 @@ RelationalDBConnection::updateQuery(const std::string&)
  * @exception RelationalDBException In case a database error occured.
  */
 void
-RelationalDBConnection::DDLQuery(const std::string&)
-    throw (RelationalDBException) {
-}
+RelationalDBConnection::DDLQuery(const std::string&) {}
 
 /**
  * Performs a data retrieval query (SELECT).
@@ -80,8 +77,7 @@ RelationalDBConnection::DDLQuery(const std::string&)
  * @exception RelationalDBException In case a database error occured.
  */
 RelationalDBQueryResult*
-RelationalDBConnection::query(const std::string&, bool /*init*/)
-    throw (RelationalDBException) {
+RelationalDBConnection::query(const std::string&, bool /*init*/) {
     return NULL;
 }
 
@@ -93,9 +89,7 @@ RelationalDBConnection::query(const std::string&, bool /*init*/)
  * @exception RelationalDBException In case a database error occured.
  */
 void
-RelationalDBConnection::beginTransaction()
-    throw (RelationalDBException) {
-}
+RelationalDBConnection::beginTransaction() {}
 
 /**
  * Ends the current database transaction unsuccessfully and rollbacks all
@@ -104,9 +98,7 @@ RelationalDBConnection::beginTransaction()
  * @exception RelationalDBException In case a database error occured.
  */
 void
-RelationalDBConnection::rollback()
-    throw (RelationalDBException) {
-}
+RelationalDBConnection::rollback() {}
 
 /**
  * Ends the current database transaction successfully and commits all
@@ -115,9 +107,7 @@ RelationalDBConnection::rollback()
  * @exception RelationalDBException In case a database error occured.
  */
 void
-RelationalDBConnection::commit()
-    throw (RelationalDBException) {
-}
+RelationalDBConnection::commit() {}
 
 /**
  * Checks if database has given table by name.
@@ -129,8 +119,7 @@ RelationalDBConnection::commit()
  *                                  transaction.
  */
 bool
-RelationalDBConnection::tableExistsInDB(const std::string&)
-    throw (RelationalDBException) {
+RelationalDBConnection::tableExistsInDB(const std::string&) {
     return false;
 }
 
@@ -144,9 +133,6 @@ RelationalDBConnection::tableExistsInDB(const std::string&)
  * exists.
  */
 int
-RelationalDBConnection::rowCountInTable(const std::string&)
-    throw (RelationalDBException) {
+RelationalDBConnection::rowCountInTable(const std::string&) {
     return false;
 }
-
-
