@@ -1,0 +1,1492 @@
+#!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2002-2014 Tampere University.
+#
+# This file is part of TTA-Based Codesign Environment (TCE).
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+#
+# @author 2006-2009 Veli-Pekka Jääskeläinen
+# @author 2006-2014 Pekka Jääskeläinen
+#
+# High-level language compiler driver for TCE.
+#
+
+import os, sys, commands, optparse, shutil, glob, signal
+import os.path
+import re
+
+from tempfile import mkdtemp, mkstemp
+from optparse import OptionParser
+from shutil import rmtree
+from subprocess import Popen, PIPE
+
+def runCommandBuffered(command, echoOutput, applyStdErr = True, stripOutput = True):
+    """Runs a command and prints everything if requested."""
+
+    if echoOutput:
+        print command
+
+    proc = Popen(command, shell=True, stdout = PIPE, stderr = PIPE)
+    output, errs = proc.communicate()
+
+    if echoOutput:
+        print output
+
+    if echoOutput and applyStdErr:
+        print errs
+
+    if applyStdErr:
+        if stripOutput:
+            return (proc.returncode, (output + errs).strip())
+        else:
+            return (proc.returncode, output + errs)
+    else:
+        if stripOutput:
+            return (proc.returncode, output.strip())
+        else:
+            return (proc.returncode, output)
+
+
+# global variables...
+debugMode = False
+options = None
+newlib_libdir = ""
+newlib_includes = ""
+lowerintrinsicsplugin=""
+
+def handler(signum, frame):
+    cleanup(tempDir)
+    sys.exit(2)
+
+def cleanup(tmpDir):
+    """Removes temporary files created during build."""
+    if not options.leave_dirty and not options.temp_dir:
+        rmtree(tmpDir, ignore_errors=True)
+    else:
+        sys.stdout.write("Intermediate files left in build dir " +\
+                         tmpDir + "\n")
+
+def tryRemove(filename):
+    """Tries to remove a file."""
+    try:
+        os.remove(filename)
+    except:
+        pass
+
+def runCommand(command, echoOutput=True, echoStderr=False, stdoutFD=None):
+    """Runs the given shell command and returns its exit code.
+
+    If echoOutput is False, stdout and stderr are redirected to /dev/null."""
+
+    if echoOutput:
+        print command
+        stderrFD = None
+    else:
+        if stdoutFD is None:
+            stdoutRedir = open('/dev/null', 'w')
+            stdoutFD = stdoutRedir.fileno()
+        if not echoStderr:
+            stderrRedir = open('/dev/null', 'w')
+            stderrFD = stderrRedir.fileno()
+        else:
+            stderrFD = None
+
+    process = \
+       Popen(command, shell=True, stdin=PIPE, stdout=stdoutFD,
+             stderr=stderrFD, close_fds=False)
+    return process.wait()
+
+poclInstalled = None
+poclVersion = None
+def isOpenCLEnabled():
+    global poclInstalled
+    if poclInstalled is not None: return poclInstalled
+    (exitCode, output) = runCommandBuffered("pkg-config pocl --modversion", False)
+    if exitCode != 0:
+        poclInstalled = False
+    else:
+        poclInstalled = True
+        poclVersion = output
+    return poclInstalled
+
+def loadTextData(file_name):
+    """Loads the given data file and returns it as a string."""
+
+    return open(os.path.join(dataDir, file_name), 'r').read()
+
+# TODO: add support for ll and check if file is .bc object from magic number...
+def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
+    """ Compiles input files to .bc files and returns list
+    cotaining all the files to link together.
+    """
+    if tceopsDir is None: tceopsDir = tmpDir
+
+    tripleOption = " -target "
+
+    compileFlags = newlibIncludes(options) + " " + bclib_includes + " "
+
+    if options.compile_only and not options.use_clang:
+        compileFlags += "-c "
+
+    if options.g_cc_switch:
+        compileFlags += "-g "
+
+    for i in options.defines:
+        compileFlags += "-D" + i + " "
+
+    for i in options.include_dirs:
+        compileFlags += "-I" + i + " "
+
+    compileFlags += "-include " + tceopsDir + "/tceops.h "
+
+    if tceopsDir != tmpDir:
+        compileFlags += "-I " + tceopsDir + " "
+
+    for w in options.warnings:
+        # Types of warnings supported by the compiler:
+        white_list = []
+        if options.use_clang:
+            white_list = ['no-empty-body',
+                          'no-dangling-else',
+                          'no-unknown-warning-option',
+                          'no-bad-literal',
+                          'no-literal-range',
+                          'no-pointer-sign',
+                          'no-return-type',
+                          'no-unused-value',
+                          'no-ignored-qualifiers',
+                          'no-incompatible-pointer-types-discards-qualifiers',
+                          'no-implicit-function-declaration']
+        if w in white_list:
+            compileFlags += "-W" + w + " "
+
+    if not options.use_clang: # Clang 1.0 does not support -B
+        for i in options.B_cc_switches:
+            compileFlags += "-B" + i + " "
+
+    for i in options.f_cc_switches:
+        if options.use_clang:
+            # Some of the gcc -f flags not supported by clang,
+            # just skip them silently for now for gcc compatibility.
+            if i == "short-enums": continue
+        compileFlags += "-f" + i + " "
+
+    for i in options.isystem_cc_switches:
+        compileFlags += "-isystem" + i + " "
+
+    compileFlags += "-Qunused-arguments "
+    # list of valid suffixes
+    knownSuffices = [".cpp", ".cc", ".c", ".ll", ".bc", ".o", ".a"]
+    if isOpenCLEnabled():
+        knownSuffices.append(".cl")
+
+    linkList = []
+    if isLittleEndianBuild(options):
+        triple = "tcele-tut-llvm"
+    else:
+        triple = "tce-tut-llvm"
+
+    # Compile input files if needed
+    if len(inFiles) == 0:
+        exitWithError(
+            1,
+            "There must be at least one .bc, .c, .cc or .cpp file given.\n")
+    else:
+        for fName in inFiles:
+            # check file type based on knownSuffices
+            baseName = ""
+            suffix = ""
+            temp_file = None
+            # The OpenCL C device specific header file that is
+            # generated from the ADF.
+            device_header = None
+            for i in range(len(knownSuffices)):
+                testSuffix = knownSuffices[i]
+                suffixStart = fName.rfind(testSuffix)
+
+                if suffixStart != -1:
+                    suffix = fName[suffixStart:len(fName)]
+                    baseName = fName[0:suffixStart]
+
+                    if suffix == testSuffix:
+                        break
+                    else:
+                        baseName = ""
+                        suffix = ""
+
+            if baseName != "" and suffix != "":
+                # gen command for compiling, for files that need to
+                # be compiled first
+                command = ""
+
+                extra_opts = ""
+                if options.language != "":
+                    extra_opts += "-x %s " % options.language
+
+                # Disable generation of fmuladd intrinsics automatically in
+                # case soft float is used. This causes problems because the
+                # intrinsics is lowered later after emulated instructions are
+                # figured after which it's too late to try to lower it
+                # to fmul + fadd or fmac (which need to be emulated).
+                # This is not the best possible fix, but soft float should
+                # not be used for performance critical FP code anyways.
+
+                if options.soft_float:
+                    extra_opts += " -ffp-contract=off"
+
+                if "8" >= "3.4" and (options.soft_float or not options.autovectorize):
+                    extra_opts += " -fno-vectorize -fno-slp-vectorize"
+
+                outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
+                if suffix == ".c":
+                    command =  ("clang -D__TCE__ -O%d %s %s -emit-llvm -c "\
+                                    "-I" + tmpDir +\
+                                    " " + compileFlags + " " + extra_opts + " " + baseName + suffix + " -o " +\
+                                    outFileName + ".tobelowered;" ) % \
+                                    (options.frontend_optlevel, \
+                                         tripleOption, triple)
+
+                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
+
+                elif suffix == ".cl":
+
+                    if options.adf_file == "":
+                        exitWithError(1, "ADF file required when compiling OpenCL kernels.")
+
+                    extra_flags = ""
+                    if options.soft_float:
+                        extra_flags += " POCL_VECTORIZE_NO_FP=1 "
+                        print "You are compiling OpenCL code with software floating point emulation!"
+                        print "Expect abysmal peformance!"
+
+                    if not options.vector_backend:
+                        extra_flags += " POCL_VECTORIZE_WORK_GROUPS=0 "
+
+                    input_file = baseName + suffix
+                    oclextgen = os.path.join(tceOclExtGenDir, "tceoclextgen") + " "  + options.adf_file
+
+                    # Generate the ADF specific header file with extension
+                    # functions for (custom) operations etc.
+                    device_header = mkstemp("_oclext.h", dir=tempDir)
+
+                    exitCode = runCommand(oclextgen, options.verbose, echoStderr=True,
+                                          stdoutFD=device_header[0])
+
+                    if exitCode != 0:
+                        os.unlink(device_header[1])
+                        exitWithError(
+                            1,
+                            "Error while generating the OpenCL C device header.\n")
+
+                    # Generate the parallelized bitcode, the trampoline and the kernel
+                    # registration object.
+                    cpp_trampoline = mkstemp("_ocl_launcher.cpp", dir=tempDir)[1]
+                    kernel_bc = mkstemp("_kernel.o", dir=tempDir)[1]
+
+                    runCommand(('EXTRA_CLANG_FLAGS="-D__TCE_DEVICE__ %s %s -fasm -include %s" ' % \
+                                (tripleOption, triple, device_header[1])) + \
+                               "%s pocl-standalone -t tce -h %s -o %s %s" % \
+                               (extra_flags, cpp_trampoline, kernel_bc, input_file),
+                               options.verbose, echoStderr=True)
+                    if exitCode != 0:
+                        exitWithError(
+                            1, "Error while compiling the OpenCL C file %s.\n" % input_file)
+
+                    def compile(input, output):
+                        extra_opts = ""
+                        if options.soft_float:
+                            extra_opts += "-ffp-contract=off"
+
+                        command = ("clang %s %s " + \
+                                       "-emit-llvm -O3 "\
+                                       "-c -I" + tmpDir +\
+                                       " " + input + " " + extra_opts + \
+                                       " %s `pkg-config pocl --cflags`" + \
+                                       " -o " + output) % \
+                                       (tripleOption, triple,  \
+                                       "-I " + tceSAOpenCLIncDir + " "  + newlibIncludes(options))
+                        exitCode = runCommand(command, options.verbose, echoStderr=True)
+                        if exitCode != 0:
+                            exitWithError(1, "Error while compiling %s." % input)
+
+                    # append the trampoline functions and the registration object
+                    # after the kernel information macros generated by the
+                    # pocl-standalone script
+
+                    class OpenCLKernelInfo(object):
+                        def __init__(self, name, arg_count):
+                            self.name = name
+                            self.arg_count = int(arg_count)
+
+                    kernels = []
+                    # figure out the kernel names from the generated header file
+                    tfr = open(cpp_trampoline, 'r')
+                    for line in tfr.readlines():
+                        m = re.search(r'#define\s_(\S+)_NUM_ARGS\s(\d+)', line)
+                        if m is not None:
+                            kernels.append(OpenCLKernelInfo(m.group(1), m.group(2)))
+                    tfr.close()
+
+                    tf = open(cpp_trampoline, 'a')
+                    tf.write(loadTextData("oclc_launcher_header.c"))
+
+                    trampoline_func_template = loadTextData("oclc_launcher_single.c")
+                    # Generate the argument lists for the kernel workgroup
+                    # function declaration and invocation.
+                    for kernel in kernels:
+                        count = 0
+                        converted_name = "_" + kernel.name + "_workgroup"
+
+
+                        # Add a class that registers the kernel to host API's kernel
+                        # registry at program startup
+                        initializer_object = loadTextData("oclc_initializer_object.cc") % \
+                            {'kernel_name' : kernel.name}
+
+                        trampoline_func = trampoline_func_template % {\
+                                  'kernel_name' : kernel.name,
+                                  'converted_name' : converted_name} + \
+                                  initializer_object
+
+                        tf.write(trampoline_func + "\n")
+
+                    tf.close()
+
+                    trampoline_bc = cpp_trampoline + ".o"
+                    compile(cpp_trampoline, trampoline_bc)
+
+                    # Link the trampoline (+registration object) and the kernel together.
+                    command = "llvm-link %s %s -o %s.tobelowered;" % \
+                               (kernel_bc, trampoline_bc, outFileName)
+
+                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
+
+                elif suffix == ".cpp" or suffix == ".cc":
+                    input_file = baseName + suffix
+
+                    if options.soft_float:
+                        extra_opts += " -ffp-contract=off"
+
+                    command = ("clang %s %s %s -emit-llvm " +\
+                                    "-O%d "\
+                                    "-c -I" + tmpDir + \
+                                    " " + compileFlags + " " + input_file + " -o " +\
+                                    outFileName + ".tobelowered1;") % \
+                                    (tripleOption, triple, extra_opts, options.frontend_optlevel)
+
+                    # For some reason C++ code does not get mallocs lowered to
+                    # calls by the frontend, do it manually here with the -lowerallocs
+                    # pass.
+                    # lowerallocs removed in 2.7?
+                    #command += "opt -lowerallocs %s -o %s;" % \
+#                        (outFileName + ".tobelowered1", outFileName + ".tobelowered")
+
+                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered1", outFileName)
+
+                elif suffix == ".ll":
+                    command = ("llvm-as " + baseName + suffix + " -o " + outFileName + ".tobelowered;")
+
+                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
+
+                elif suffix == ".o" or (suffix == ".bc" and options.force_link):
+                    outFileName = fName + ".bc"
+                    command += lowerMemIntrinsicCommand(fName, outFileName)
+
+                elif suffix == ".bc":
+                    # Nothing to be done for the fully linked bitcode files.
+                    outFileName = fName
+
+                elif suffix == ".a":
+                    outFileName = fName
+
+                # add all files to list for linkage
+                linkList += [outFileName]
+
+                if command != "":
+                    exitCode = runCommand(command, options.verbose, echoStderr=True)
+                    if exitCode != 0:
+                        exitWithError(
+                            1,
+                            "Error while compiling file: " +\
+                            baseName + suffix + "\n")
+            else:
+                exitWithError(
+                    1,
+                    "Unknown input file type: " +\
+                    fName + ". Supported file types " +\
+                    str(knownSuffices) + "\n")
+    return linkList
+
+def exitWithError(status, errorMessage=None):
+    if errorMessage is not None:
+        print >>sys.stderr, errorMessage
+    cleanup(tempDir)
+    sys.exit(status)
+
+def lowerMemIntrinsicCommand(srcFile, dstFile):
+    optSwitches = ""
+
+    if "8" >= "3.4":
+        optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
+
+    commandp = "opt -f -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
+    command = commandp + " -o " + dstFile + " " + srcFile + " " + optSwitches
+    return command
+
+###
+# Links bytecode files and returns name of the linked file.
+##
+def linkBytecode(linkFiles, fileNamePrefix, verbose):
+
+    # format of llvm-nm has been changed in llvm 3.7
+    nmidx = 0
+    if "8" >= "3.7":
+        nmidx = 1
+
+    startFiles = [os.path.join(newlib_libdir, "crt0.o ")]
+
+    libNoSys = os.path.join(newlib_libdir, "libnosys.a")
+    if not os.path.exists(libNoSys):
+        libNoSys = ""
+
+    # libm must be linked first to make sure that necessary parts of libc will be linkend in (e.g. errno)
+    endFiles = [os.path.join(newlib_libdir,"libm.a"),
+                os.path.join(newlib_libdir,"libc.a"),
+                libNoSys,
+               os.path.join(newlib_libdir,"crtend.o")]
+
+    endFiles.remove("")
+
+    linkFiles = linkFiles + endFiles
+
+    linkedFileName = fileNamePrefix + "_linked"
+    #### Link all binary code together
+
+    libFiles = []
+
+    for name in linkFiles:
+        if name.endswith('.a'):
+            libFiles.append(name);
+
+
+    linkFiles = [x for x in linkFiles if not x.endswith('.a')]
+
+    libDirName = os.path.abspath(fileNamePrefix + "_libs")
+
+    if not os.path.exists(libDirName):
+        # We might have already expanded the library archive if we are using
+        # a previous compilation temp dir (--temp-dir=).
+        runCommand("mkdir " + libDirName, options.verbose, echoStderr=True)
+
+        for name in libFiles:
+            runCommand("cp " + name + " " + libDirName, options.verbose, echoStderr=True)
+
+        for name in os.listdir(libDirName):
+            runCommand("sh -c 'cd " + libDirName + ";ar x " + libDirName + "/" + name + "'", options.verbose, echoStderr=True)
+            runCommand("rm " + libDirName + "/" + name, options.verbose, echoStderr=True)
+
+    defSyms=['llvm.dbg.declare']
+    undefSyms=[]
+
+    # Kludge to support DENBench. Link crt0.o only if _start is undefined.
+
+    for name in linkFiles:
+        (exitCode, output) = runCommandBuffered("llvm-nm " + name, echoOutput=False, applyStdErr=False)
+        for line in output.splitlines():
+            split = line.split()
+            if split[0]=='U':
+                if not split[1] in undefSyms:
+                    undefSyms.append(split[1])
+            elif split[nmidx] in 'CDT':
+                if not split[nmidx+1] in defSyms:
+                    defSyms.append(split[nmidx+1])
+
+    if not '_start' in defSyms:
+	linkFiles = startFiles + linkFiles
+
+    defSyms=['llvm.dbg.declare']
+    undefSyms=[]
+
+    for name in linkFiles:
+        (exitCode, output) = runCommandBuffered("llvm-nm " + name, echoOutput=False, applyStdErr=False)
+        for line in output.splitlines():
+            split = line.split()
+            if split[0]=='U':
+                if not split[1] in undefSyms:
+                    undefSyms.append(split[1])
+            elif split[nmidx] in 'CDT':
+                if not split[nmidx+1] in defSyms:
+                    defSyms.append(split[nmidx+1])
+
+    for sym in defSyms:
+        if sym in undefSyms:
+            undefSyms.remove(sym)
+
+    # Recursively resolve undefined symbols by linking in .o files extracted from libraries
+    # which define those symbols.
+
+    if len(undefSyms) != 0:
+
+        # First cache all symbol data from all extracted libraries.
+        # (It takes much less time to run llvm-nm * once than to run on each file separately.)
+
+        defsymToLib={}
+        libToDefsyms={}
+        libToUndefsyms={}
+        (exitCode, output) = runCommandBuffered("llvm-nm " + libDirName + "/*", echoOutput=False, applyStdErr=False)
+
+        file=""
+        tempDefsyms=[]
+        tempUndefsyms=[]
+        for line in output.splitlines():
+            if line=="":
+                continue
+            if line[-1]==':': #filename
+                file = line[:-1]
+                tempDefsyms=[]
+                tempUndefsyms=[]
+                libToDefsyms[file]=tempDefsyms
+                libToUndefsyms[file]=tempUndefsyms
+            else:
+                split = line.split();
+                if split[0]=='U':
+                    if not split[1] in undefSyms:
+                        tempUndefsyms.append(split[1])
+                elif split[nmidx] in 'CDT':
+                    if not split[nmidx+1] in defSyms:
+                        tempDefsyms.append(split[nmidx+1])
+                        defsymToLib[ line.split()[nmidx+1] ] = file
+
+        # Now recursively resolve symbols.
+
+        while len(undefSyms) != 0:
+            sym = undefSyms[0]
+            if not sym in defsymToLib:
+                undefSyms.remove(sym)
+                continue
+            lib = defsymToLib[sym]
+            if lib in linkFiles:
+                undefSyms.remove(sym)
+                continue
+            libDefsyms = libToDefsyms[lib]
+            libUndefsyms = libToUndefsyms[lib]
+            linkFiles.append(lib)
+            for sym in libDefsyms:
+                if not sym in defSyms:
+                    defSyms.append(sym)
+                if sym in undefSyms:
+                    undefSyms.remove(sym)
+            for sym in libUndefsyms:
+                if not sym in defSyms:
+                    undefSyms.append(sym)
+
+    command = "llvm-link -o " + linkedFileName + ".bc "
+
+    for name in linkFiles:
+        command += " " + name
+
+    exitCode = runCommand(command, options.verbose, echoStderr=True)
+    if exitCode != 0:
+        if options.verbose:
+            exitWithError(exitCode, "Error while linking bytecode: " + command + "\n")
+        else:
+            sys.exit(exitCode)
+
+    # remove annoying autogenerated script.
+    if not options.leave_dirty:
+        tryRemove(linkedFileName)
+
+
+    return linkedFileName + ".bc"
+
+####
+# Optimizes linked bc. Returns name of the optimized file.
+#
+# You can check default switches with command:
+# opt -O3 -debug-pass=Arguments systemtest/bintools/Scheduler/tests/QuickTests/HelloWorld/program.bc
+###
+def optimizeBytecode(inFile, fileNamePrefix):
+
+    verbose = options.verbose
+
+    # lets trust llvm team that they know which is the best
+    # optimization set for overall performance... since when separately
+    # adding own set we just end up tuning denbench / fft optimed switches
+    # (its practically impossible to know how switches effect on any other case)
+
+    # disable-simplify-libcalls needed to prevent memset/memset loop detection in
+    # LoopIdiomRecognize pass, which breaks things due to memset contents being
+    # converted to memset calls which causes infinite recursion. This has to be done
+    # because we always do full program linkage and optimization for TTA targets.
+    default_opts = " -O3 --disable-simplify-libcalls "
+
+    # no inline
+    default_opts += options.noinline and "-disable-inlining " or "-inline-threshold=%d " % options.inline_threshold
+
+    # no need to run this, since intrinsics are lowered in isel...
+
+    # hower if it's run before some optimizations is might be still
+    # possible before isel in that case later optimization passes
+    # must be selected very carefully in TCETargetMachine::addPreISel()
+
+    #lowerIntrinsicsPass = " -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
+    #default_opts += lowerIntrinsicsPass
+
+    # unroll swithes and disabling (threshold 0 should work as disable in opt)
+    default_opts += "-unroll-allow-partial -unroll-threshold=%d " % options.unroll_threshold
+
+    # -O0 optimization doesn't exist in opt
+    optSwitches = ""
+
+    if options.optimization_level == 1:
+        # disable-internalize missing in llvm 3.6
+        if "8" > "3.5":
+            optSwitches = (default_opts)
+        else:
+            optSwitches = (default_opts + "-disable-internalize ")
+    elif options.optimization_level > 1:
+        optSwitches = (" -internalize "+ default_opts)
+
+    if options.extra_llvm_opts != "":
+        extra_opts = options.extra_llvm_opts.split(',')
+        optSwitches += ' -' + ' -'.join(extra_opts)
+
+    internalize_api_list = " -internalize-public-api-list=_start,_pthread_start"
+    if options.keep_symbols != "":
+        internalize_api_list += "," + options.keep_symbols
+
+    optSwitches += internalize_api_list
+
+    outputName = fileNamePrefix + "_optimized.bc"
+
+    if options.soft_float:
+        optSwitches += " -fp-contract=off "
+
+    # vectorizing breaks floating point emulation.
+    # phase ordering: vectorizer, fp emu, isel(including devectorizer)
+    # fp emu does not detect vectorized fp ops and cannot emulate them
+
+    if "8" >= "3.4":
+        optSwitches += " -disable-slp-vectorization "
+        optSwitches += "-disable-loop-vectorization "
+
+    command = "opt -f " + inFile + " -o " + outputName + " " + optSwitches
+
+    exitCode = runCommand(command, verbose)
+
+    if exitCode != 0:
+        exitWithError(1, "Error while optimizing bytecode: " + command + "\n")
+
+    return outputName
+
+####
+# Link emulation function bytecode to program.
+###
+def linkEmulationFuncs(inFile, fileNamePrefix):
+
+    verbose = options.verbose
+
+    optSwitches = ""
+
+    if options.soft_float and "8" >= "3.4":
+        optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
+
+    # if software floatingpoint should be lowered, link the emulation functions in
+    emulationLib = os.path.join(newlib_libdir, "float_emulation.o") + " "
+    linkedName = fileNamePrefix + "_libemul.bc"
+
+    command = ("llvm-link -f " + inFile + " " + emulationLib + " -o " + linkedName)
+
+    (exitCode, output) = runCommandBuffered(command, verbose, stripOutput=False)
+
+    if exitCode != 0:
+        exitWithError(1, "Error while linking emulation lib: " + command + "\n")
+
+    outputName = fileNamePrefix + "_emul_internalized.bc"
+
+    internalize_api_list = " -internalize-public-api-list=_start"
+    if options.keep_symbols != "":
+        internalize_api_list += "," + options.keep_symbols
+
+    no_inline = ""
+    if options.noinline:
+        no_inline = " -disable-inlining"
+
+    command = ("opt " + linkedName + no_inline +
+               " -f -internalize " + internalize_api_list + " -o " + outputName +
+                " " + optSwitches)
+
+    (exitCode, output) = runCommandBuffered(command, verbose, stripOutput=False)
+
+    if exitCode != 0:
+        sys.stderr.write("Error while internalizing emulation functions: " + command + "\n")
+        exitWithError(1, output)
+
+    return outputName
+
+class SourceDescription(object):
+
+    def __init__(self, relpath, full_path=None, compiler_options=None):
+        self.symbols_provided = []
+        self.symbols_required = []
+        self.relpath = relpath
+        self.options = compiler_options
+        self.fullPath = full_path or self._findSource(relpath)
+
+    def _findSource(self, relpath):
+        """Finds the given source from the search paths for source library
+        source code files."""
+        for searchPath in sourceLibSearchPaths:
+            fullPath = os.path.join(searchPath, relpath)
+            if os.path.exists(fullPath):
+                return fullPath
+        raise Exception("Could not find full path for a .sa source file %s." % relpath)
+
+class SourceLib(object):
+    def __init__(self, libname, fn=None):
+        self.libname = libname
+        self.sources = []
+        # For now, assume all sources are compiled with the same switches.
+        self.compiler_options = [""]
+        if fn is not None:
+            f = open(fn, 'r')
+            self._parse(f)
+
+    def _parse(self, f):
+        """Parses a source library descriptor (.sa)."""
+        for line in f.readlines():
+            line = line.strip()
+            if line.startswith(".files "):
+                for relpath in line.split(' ')[1:]:
+                    self.sources.append(SourceDescription(relpath,
+                                        compiler_options=self.compiler_options))
+            elif line.startswith(".switches "):
+                self.compiler_options = line.split(" ")[1:]
+
+    def build(self, targetPath):
+        """Builds the source lib to a set of bitcode objects."""
+        dirName = os.path.join(targetPath, "sourcelib" + self.libname)
+        # We might have already expanded the library archive if we are using
+        # a previous compilation temp dir (--temp-dir=).
+        if not os.path.exists(dirName):
+            os.makedirs(dirName)
+
+        sourceFiles = [x.fullPath for x in self.sources]
+
+        #print self.compiler_options
+        compilerOptions, inFiles = optionParser.parse_args(self.compiler_options)
+        compilerOptions.compile_only = True
+        compilerOptions.frontend_optlevel = 1
+
+        return processInputFiles(sourceFiles, dirName, compilerOptions, targetPath)
+
+
+
+#############################################
+# Main program
+#############################################
+
+# Options..
+usage = "usage: %prog [options] source-or-bc-file1 source-or-bc-file2 ..."
+
+p = optparse.OptionParser(usage)
+optionParser = p
+
+p.add_option('-a', '--adf-file',
+             type="string", action="store", metavar='file',
+             dest="adf_file", default="",
+             help="Architecture which for program is scheduled after "
+             "the compilation. Note that 'schedule' must be installed.")
+
+p.add_option('-O', '--optimization-level',
+             type="int", action="store", metavar='level',
+             dest='optimization_level', default=3,
+             help="Optimization level. 0=no optimizations, "
+             "1=preserve program API, 2=don't respect original API, "
+             "3 = same that 2. NOTE: For optimal floating point performance,"
+             "this switch must be given also when compiling bc files to tpef.")
+
+p.add_option('-k', '--keep-symbols',
+             type="string", action="store",
+             metavar='sym1,sym2,sym3', dest='keep_symbols', default="",
+             help="List of symbols whose optimization away is prevented. "
+             "If you are using this, remember to define "
+             "at least 'main' symbol.")
+
+p.add_option('-o', '--output-name',
+             type="string", action="store", metavar='file',
+             dest="output_name", default="",
+             help="File name for output binary.")
+
+p.add_option('-d', '--leave-dirty', action="store_true",
+             dest='leave_dirty', default=False,
+             help="Do not delete files from each compilation phase.")
+
+p.add_option('-c', '--compile-only', action="store_true",
+             dest='compile_only', default=False,
+             help="Compile only do not link or optimize.")
+
+p.add_option('-v', '--verbose', action="store_true",
+             dest='verbose', default=False,
+             help="Print out commands and outputs for each phase.")
+
+p.add_option('-D', '--preprocessor-define',
+             type="string", action="append", metavar='string',
+             dest="defines", default=[],
+             help="Passed to gcc.")
+
+p.add_option('-I', '--include-directory',
+             type="string", action="append", metavar='directory',
+             dest="include_dirs", default=[],
+             help="Passed to gcc.")
+
+p.add_option('-L', '--library-directory',
+             type="string", action="append", metavar='directory',
+             dest="lib_dirs", default=[],
+             help="Passed to gcc.")
+
+p.add_option('-l', '--library-link',
+             type="string", action="append", metavar='libname',
+             dest="libs", default=[],
+             help="Converted to static link command. i.e. -lpthread  => /llvm-install/tce-llvm/lib/libpthread.a")
+
+p.add_option('-W', '--warning',
+             type="string", action="append", metavar='type',
+             dest="warnings", default=[],
+             help="Ignored.")
+
+p.add_option('--plugin-cache-dir',
+             type="string", action="store", metavar='directory',
+             dest="plugin_cache_dir",
+             default=os.path.expanduser("~/.cache/tce/tcecc"),
+             help="Directory for cached llvm target plugins.")
+
+p.add_option('--no-plugin-cache', action="store_false",
+             dest="cache_backend_plugin", default=True,
+             help="Do not cache generated llvm target plugins.")
+
+p.add_option('--no-schedule', action="store_true",
+             dest="no_schedule", default=False,
+             help="Do not call scheduler.")
+
+p.add_option('--no-link', action="store_true",
+             dest="no_link", default=False,
+             help="Do not call linker. Assume the input file is a fully linked file (default for .bc).")
+
+p.add_option('--force-link', action="store_true",
+             dest="force_link", default=False,
+             help="Call bitcode linker in any case even if it has suffix .bc.")
+
+p.add_option('--disable-llvmaa', action="store_true",
+             dest="disable_llvmaa", default=False,
+             help="Disable use of LLVM Alias Analysis.")
+
+p.add_option('--clear-plugin-cache', action="store_true",
+             dest="clear_cache", default=False,
+             help="Clear plugin cache completely.")
+
+p.add_option('--disable-inlining', action="store_true",
+             dest="noinline", default=False,
+             help="Disable function inlining.")
+
+p.add_option('--swfp', action="store_true",
+             dest="soft_float", default=False,
+             help="Link in software floating point emulation libraries.")
+
+p.add_option('--conservative-pre-ra-scheduler', action="store_true",
+             dest="conservative_pre_ra_scheduler", default=False,
+             help="Use pre-regalloc-scheduler which tries to minimize"
+             + " register usage instead of maximizing ILP."
+             + " Should improve performance with machines with"
+             + " low amount of registers, decrease peformance with machines"
+             + " which have big number of registers.")
+
+p.add_option('--unroll-threshold',
+             type="int", action="store", metavar='LLVM_INSTRUCTION_COUNT',
+             dest='unroll_threshold', default=100,
+             help="Unroll loops in case the unrolled loop body size will be less " + \
+             "than the given number of LLVM instructions. Use 0 to disable " + \
+             "loop unrolling.")
+
+p.add_option('--inline-threshold',
+             type="int", action="store",
+             dest='inline_threshold', default=200,
+             help="Control the amount of inlining.")
+
+p.add_option('--bypass-distance',
+             type="int", action="store", dest='bypass_distance', default=-1,
+             help="From how far to bypass results, if dead result elimination "\
+                 "can be applied.");
+
+p.add_option('--bypass-distance-nodre',
+             type="int", action="store", dest='bypass_distance_nodre',
+             default=-1,
+             help="From how far to bypass results, if the results cannot be "\
+                 "eliminated.")
+
+p.add_option('--sequential-schedule', action="store_true",
+             dest="sequential_schedule", default=False,
+             help="Runs sequential scheduler for compiled code.")
+
+p.add_option('--debug', action="store_true",
+             dest="debug", default=False,
+             help="Print LLVM debug data.")
+
+p.add_option('--isystem',
+             type="string", action="append", metavar='directory',
+             dest="isystem_cc_switches", default=[],
+             help="Passed to gcc as -system switch. Also -isystem is supported.")
+
+p.add_option('-B',
+             type="string", action="append", metavar='directory',
+             dest="B_cc_switches", default=[],
+             help="Passed to gcc.")
+
+p.add_option('-f',
+             type="string", action="append", metavar='opt_var',
+             dest="f_cc_switches", default=[],
+             help="Passed to gcc.")
+
+p.add_option('-g',
+             action="store_true",
+             dest="g_cc_switch", default=False,
+             help="Passed to gcc.")
+
+p.add_option('--extra-llvm-opts',
+             type="string", action="store",
+             metavar='opt1,opt2,opt3', dest='extra_llvm_opts', default="",
+             help="List of additional LLVM passes to run after the regular ones.")
+
+p.add_option('--frontend-optlevel',
+             type="int", action="store", dest="frontend_optlevel",
+             default=None,
+             help=\
+"""The level of optimization done by the frontend compiler,
+if applicable. The -O switch controls the optimizations applied to the
+whole linked program.""")
+
+if True:
+    p.add_option('--llvm-gcc', action='store_false', dest='use_clang', default=True,
+                 help=\
+"Use llvm-gcc for C compilation instead of Clang.")
+else:
+    p.add_option('--clang', action='store_true', dest='use_clang', default=False,
+                 help=\
+"Use Clang for C compilation instead of llvm-gcc.")
+
+p.add_option('--autovectorize', action='store_true', dest='autovectorize', default=False,
+             help=\
+"""Use the LLVM autovectorizers. Disabled by default as it causes some miscompilations at the moment.""")
+
+p.add_option('-x', type='string', action='store', metavar='language',
+             dest="language", default='', help=\
+"""Bypass language detection and use the given language for compilation.""")
+
+p.add_option('--supported-languages', action='store_true',
+             dest="list_langs", default=False, help=\
+"""List the supported languages and exit.""")
+
+p.add_option('--version', action='store_true',
+             dest='print_version', default=False, help=\
+"""Print the tcecc version info and exit.""")
+
+p.add_option('--dump-ddgs-dot', action='store_true', dest='dump_ddgs_dot', default=False,
+             help=\
+"""Dumps DDGs in dot format before and after scheduling.""")
+
+p.add_option('--dump-ddgs-xml', action='store_true', dest='dump_ddgs_xml', default=False,
+             help=\
+"""Dumps DDGs in XML format before and after scheduling.""")
+
+p.add_option('--dump-ddgs', action='store_true', dest='dump_ddgs', default=False,
+             help=\
+"""Equivalent to --dump-ddgs-dot --dump-ddgs-xml.""")
+
+p.add_option('--no-kill-dead-results', action='store_false',
+             dest='kill_dead_results', default=True, help=\
+"""Disable dead result elimination during bypassing.""");
+
+p.add_option('--no-rename-registers', action='store_false', dest='rename_registers', default=True,
+             help=\
+"""Disable register renaming, which renames registers during scheduling, after the actual register allocation.""")
+
+p.add_option('--disable-dsf', action="store_true",
+             dest='disable_dsf', default=False,
+             help=\
+"""Disable the post-pass delay slot filler optimizer.""")
+
+p.add_option('--vector-backend', action='store_true', dest='vector_backend', default=False,
+             help=\
+"""Enable vector registes support by cobining multiple RF's into one vector RF.""")
+
+p.add_option('--analyze-instruction-patterns', action='store_true', dest='analyze_ipatterns', default=False,
+             help=\
+"""Analyzes the instruction patterns seen by the instruction selector.""")
+
+p.add_option('--print-resource-constraints', action='store_true',
+             dest='print_resource_constraints', default=False,
+             help=\
+             "Print (to stderr) the resources that potentially constraint " +
+             "the schedule.")
+
+p.add_option('--emit-llvm', action='store_true', dest='emit_llvm', default=False,
+             help=\
+"Output LLVM bitcode. Does not pass the linked bitcode to the "\
+"code generator to produce target specific TTA code.")
+
+if isOpenCLEnabled():
+    p.add_option('--opencl-max-parallel-wi-count',
+             type="int", action="store",
+             dest='opencl_max_parallel_wi_count', default=8,
+             help=\
+   """The maximum number of work items that are compiled (unrolled) to
+be executed in parallel.""")
+
+p.add_option('--bottom-up-scheduler', action='store_true', dest='bu_scheduler',
+             default=False,
+             help=\
+"Use the bottom-up scheduler (experimental).")
+
+p.add_option('--recursive-scheduler', action='store_true',
+             dest='recursive_scheduler',
+             default=False,
+             help=\
+"Use the recursive bypassing bottom-up scheduler (experimental).")
+
+p.add_option('--use-old-backend-src',
+             action="store_true", default=False,
+             dest="use_old_backend_src",
+             help="Use the backend sources from the given temp directory instead of "
+             "regenerating them.")
+
+p.add_option('--temp-dir',
+             type="string", action="store", metavar='temp-dir',
+             dest="temp_dir", default=None,
+             help="Use the given directory for temporary files.")
+
+p.add_option('--init-sp',
+             type="long", action="store", metavar='value',
+             dest='init_sp', default=None,
+             help="Set the initial stack pointer of the program to the given value.")
+
+p.add_option('--little-endian',
+             action="store_true", dest='little_endian', default=False,
+             help="Compile using the little-endian TCE target.")
+
+# Commandline argument parsing
+
+# fix gcc switches, which cannot be represented in OptionParser format by adding extra "-" before switch
+args = []
+for opt in sys.argv[1:]:
+    if opt.startswith("-isystem") or opt.startswith("-emit-llvm"): opt = "-" + opt
+    args.append(opt)
+
+# parse valid args
+options, inFiles = p.parse_args(args)
+
+if options.no_link and options.force_link:
+    options.no_link = False
+
+if options.frontend_optlevel is None:
+    options.frontend_optlevel = options.optimization_level
+
+if options.temp_dir:
+    tempDir = options.temp_dir
+else:
+    tempDir = mkdtemp("","tcecc-")
+
+# assign signal handlers to exit cleanly
+try:
+    signal.signal(signal.SIGHUP, handler)
+    signal.signal(signal.SIGTSTP, handler)
+except:
+    # The signals do not work in MinGW/Windows
+    pass
+
+# clear plugin cache and do nothing else if the --clear-plugin-cache
+# option is given
+if options.clear_cache:
+    pluginFiles = glob.glob(options.plugin_cache_dir + '/*.so')
+    for fName in pluginFiles:
+        tryRemove(fName)
+
+    sys.stdout.write("Cleared plugin cache.\n")
+    cleanup(tempDir)
+    sys.exit(0)
+
+if options.list_langs:
+    supported_languages = ["ISO C99 (c)", "C++ (c++)"]
+    if isOpenCLEnabled():
+        supported_languages.append("OpenCL C (cl)")
+    print "\n".join(supported_languages)
+    sys.exit(0)
+
+if options.print_version:
+    print "tcecc - TCE retargetable compiler %s" % "1.20-pre"
+    sys.exit(0)
+
+if len(inFiles) == 0:
+    p.print_help()
+    cleanup(tempDir)
+    sys.exit(1)
+
+if options.output_name == "":
+    # configure checks sometimes check if a.out is created by default..
+    # (pth lib at least)
+    outputName = "a.out"
+else:
+    outputName = options.output_name
+
+### llvm-gcc install prefix
+(exitCode1, output) = runCommandBuffered("dirname `which tce-llvm-gcc`", False)
+(exitCode2, output) = runCommandBuffered("dirname `which clang`", False)
+if exitCode1 != 0 and exitCode2 != 0:
+    sys.stderr.write("Could not find 'tce-llvm-gcc' nor 'clang'. Have you installed one of them in PATH?\n")
+    exitWithError(1, output)
+
+### tce install prefix
+tceInstalled = True
+if 'TCE_INSTALL_DIR' in os.environ.keys():
+    tceprefix = os.environ['TCE_INSTALL_DIR']
+else:
+    (exitCode, output) = runCommandBuffered("tce-config --prefix", False)
+    if exitCode != 0:
+        tceInstalled = False
+    else:
+        tceprefix = output
+
+## check if we are running from the TCE source tree in which case use only
+## source tree libraries and binaries
+scriptDir = os.path.abspath(os.path.dirname(sys.argv[0]))
+runningInstalled = 'src/bintools/Compiler' not in scriptDir or not \
+     os.path.exists(os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce",
+                                 "src/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so"))
+
+# Cache the endianness mode as we know that we are always building
+# for at most one ADF at once and the automatic endianness detection
+# from ADF requires loading and scanning the ADF file.
+littleEndianBuild = None
+def isLittleEndianBuild(options):
+    global littleEndianBuild
+    if littleEndianBuild is not None:
+        return littleEndianBuild
+    machineLittleEndian = False
+    if options.adf_file != "":
+        machineLittleEndian = "<little-endian/>" in open(options.adf_file).read()
+
+    if options.little_endian or machineLittleEndian:
+        if options.adf_file != "" and not machineLittleEndian:
+            exitWithError(1, \
+              "error: Trying to compile in little endian mode with a big endian machine.")
+        littleEndianBuild = True
+        return littleEndianBuild
+    else:
+        if options.adf_file != "" and machineLittleEndian:
+            exitWithError(1, \
+              "error: Trying to compile in big endian mode with a little endian machine.")
+        littleEndianBuild = False
+        return littleEndianBuild
+
+def newlibLibdir(options):
+    if runningInstalled:
+        if isLittleEndianBuild(options):
+            return os.path.join(tceprefix, "tcele-llvm/lib")
+        else:
+            return os.path.join(tceprefix, "tce-llvm/lib")
+    else:
+        if isLittleEndianBuild(options):
+            return os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce", "newlib-1.17.0/tcele-llvm/tcele-llvm/newlib")
+        else:
+            return os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce", "newlib-1.17.0/tce-llvm/tce-llvm/newlib")
+
+def newlibIncludes(options):
+    if runningInstalled:
+        if isLittleEndianBuild(options):
+            return "-I " + os.path.join(tceprefix, "tcele-llvm/include")
+        else:
+            return "-I " + os.path.join(tceprefix, "tce-llvm/include")
+    else:
+        if isLittleEndianBuild(options):
+            return ("-I " + os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce","newlib-1.17.0/tcele-llvm/tcele-llvm/newlib/targ-include") +
+                    " -I " + os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce","newlib-1.17.0/newlib/libc/include") +
+                    " -I " + os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce","newlib-1.17.0/newlib/libm/include") + " ")
+        else:
+            return ("-I " + os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce","newlib-1.17.0/tce-llvm/tce-llvm/newlib/targ-include") +
+                    " -I " + os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce","newlib-1.17.0/newlib/libc/include") +
+                    " -I " + os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce","newlib-1.17.0/newlib/libm/include") + " ")
+
+assert not runningInstalled or (tceInstalled and tceprefix != ""), \
+        "Could not find TCE prefix. Is TCE installed in PATH?"
+
+if runningInstalled:
+    lowerintrinsicsplugin = os.path.join(tceprefix,"lib/tce/LowerIntrinsics.so")
+    newlib_libdir = newlibLibdir(options)
+    newlib_includes = newlibIncludes(options)
+    bclib_includes = "-I "  + os.path.join(tceprefix,"share/tce/srclibs/include") + " "
+    opencl_includes = "" # same as newlib_includes
+    srcRoot = None
+    tceSAOpenCLBinDir = tceprefix + "/bin"
+    tceSAOpenCLIncDir = os.path.join(tceprefix, "tce-llvm", "include")
+    tceOclExtGenDir = os.path.join(tceprefix, "bin")
+    tceOclBitcodeLibDir = os.path.join(tceprefix, "lib/llvmopencl")
+    sourceLibSearchPaths = [os.path.join(tceprefix, "share/tce/srclibs/"),]
+    dataDir = os.path.join(tceprefix, "share/tce/data/tcecc")
+
+    # All bclibs should be in the same newlib_libdir.
+    # The source libs are located in separate dirs which
+    # are priorized over bclibs.
+    bclib_libdirs = sourceLibSearchPaths + [newlib_libdir]
+
+else:
+    srcRoot = "/home/alex/Downloads/TCE/tce_alekob/tce"
+    lowerintrinsicsplugin = os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce", "src/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so")
+    bclib_includes = ("-I " + os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce", "bclib/include"))
+    lwpr_libdir = os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce", "bclib/lwpr")
+    cpp_libdir = os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce", "bclib/cpp")
+    newlib_libdir = newlibLibdir(options)
+
+    # The standalone OpenCL paths.
+    tceSAOpenCLDir = os.path.join(srcRoot, "bclib/saocl")
+    tceSAOpenCLBitcodeLibDir = os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce", "bclib/saocl")
+    tceSAOpenCLIncDir = os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce", "bclib/include")
+    tceOclExtGenDir = os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce", "src/bintools/Compiler/tceopgen")
+
+    bclib_libdirs = [newlib_libdir, lwpr_libdir, tceSAOpenCLBitcodeLibDir, cpp_libdir]
+
+    # The search paths for source files defined in source libraries (.sa files).
+    sourceLibSearchPaths = (os.path.join("/home/alex/Downloads/TCE/tce_alekob/tce", "bclib"),)
+
+    dataDir = os.path.join(srcRoot, "data/tcecc")
+
+if options.verbose:
+    if runningInstalled:
+        print "Running installed TCE from PATH."
+    else:
+        print "Running from a TCE build tree rooted at '%s'." % "/home/alex/Downloads/TCE/tce_alekob/tce"
+
+namePrefix = tempDir + "/" + os.path.basename(outputName)
+
+if not options.compile_only and not options.adf_file and not options.emit_llvm:
+    sys.stdout.write("At least one of the following should be specified: -a, -c or --emit-llvm\n")
+    cleanup(tempDir)
+    sys.exit(1)
+
+
+if options.compile_only and options.output_name != "" and len(inFiles) > 1:
+    sys.stdout.write("Cannot specify -o with -c and multiple input files.\n")
+    cleanup(tempDir)
+    sys.exit(1)
+
+elif len(inFiles) == 1 and not options.force_link and (options.no_link or inFiles[0][-3:] == ".bc"):
+    # Only one .bc inputfile given. No need to compile, link or optimize anything.
+    # Note: Already linked bytecode can't be linked or optimized
+    # with -lowermissing again anyway!
+    optimizedFileName = processInputFiles(inFiles, tempDir, options)[0]
+else:
+    # Compile, link and optimize input files.
+
+    # generate tceops.h
+    if runningInstalled:
+        tceopgen = "tceopgen"
+    else:
+        tceopgen = "/home/alex/Downloads/TCE/tce_alekob/tce" + "/src/bintools/Compiler/tceopgen/tceopgen"
+
+    (exitCode, output) = runCommandBuffered(
+        tceopgen + " -o " + tempDir + "/tceops.h" , options.verbose)
+
+    if exitCode != 0:
+        sys.stderr.write("Error while generating custom operation macros:\n")
+        exitWithError(1, output)
+
+    linkList = processInputFiles(inFiles, tempDir, options)
+
+    # if only compiling
+    if options.compile_only:
+        if options.output_name != "":
+            (exitCode, output) = runCommandBuffered(
+                "mv " + linkList[0] + " " + options.output_name,
+                options.verbose)
+
+        else:
+            cmd = "mv "
+            for fName in linkList:
+                cmd += fName + " "
+            cmd += "."
+            (exitCode, output) = runCommandBuffered(cmd, options.verbose, stripOutput=False)
+
+        cleanup(tempDir)
+        sys.exit(0)
+
+    # convert -l switches to direct references to static library files
+    library_search_paths = bclib_libdirs
+
+    for i in options.lib_dirs:
+        library_search_paths.append(i)
+
+    for i in options.libs:
+        lib_found = False
+        for path in library_search_paths:
+            lib_path = os.path.join(path, "lib%s.a" % i)
+            src_lib_path = os.path.join(path, "lib%s.sa" % i)
+
+            if os.path.exists(src_lib_path):
+                # Prefer source libraries as they work for both LE and BE,
+                # and can take in account the target specifics.
+                if options.verbose:
+                    print "note: Using source library for", i
+                slib = SourceLib(i, src_lib_path)
+                linkList += slib.build(tempDir)
+                lib_found = True
+                break
+            elif os.path.exists(lib_path):
+                linkList.append(lib_path)
+                lib_found = True
+                break
+        if not lib_found:
+            exitWithError(1, "Could not find lib%s.a in library search paths %s" % \
+                              (i, library_search_paths))
+
+    linkedFileName = linkBytecode(linkList, namePrefix, options.verbose)
+
+    # optimize the fully linked program also
+    optimizedFileName = optimizeBytecode(linkedFileName, namePrefix)
+
+    if options.adf_file == "" or options.emit_llvm:
+        (exitCode, output) = runCommandBuffered(
+            "mv " +  optimizedFileName + " " + outputName,
+            options.verbose)
+        cleanup(tempDir)
+        sys.exit(0)
+
+
+#### Schedule compiled sequential code for machines
+if options.adf_file != "":
+
+    outFile = outputName
+    seqFile = tempDir + "/" + os.path.basename(outFile) + ".seq"
+
+    # optimize and lower floatingpoint
+    if options.soft_float:
+        emulationLinkedFileName = linkEmulationFuncs(optimizedFileName, namePrefix)
+    else:
+        emulationLinkedFileName = optimizedFileName
+
+    toCodeGenFname = tempDir + "/" + os.path.basename(emulationLinkedFileName) + ".intrinsics_lowered"
+
+    runCommand(lowerMemIntrinsicCommand(emulationLinkedFileName, toCodeGenFname),
+               options.verbose, True)
+
+    #### Compile to unscheduled mixed code for the target architecture
+    if not runningInstalled:
+        command = "/home/alex/Downloads/TCE/tce_alekob/tce" + "/src/bintools/Compiler/llvm-tce/llvm-tce"
+    else:
+        command = "llvm-tce"
+
+    command += " --temp-dir=%s " % tempDir
+
+    if options.init_sp:
+        command += " --init-sp=%d" % options.init_sp
+
+    command += " --backend-cache-dir=%s " % options.plugin_cache_dir
+
+    if options.use_old_backend_src and options.temp_dir:
+        command += " --use-old-backend-src"
+
+    if options.verbose:
+        command += " -v"
+
+    if options.debug:
+        command += " --debug"
+
+    if options.conservative_pre_ra_scheduler:
+        command += " --conservative-pre-ra-scheduler"
+
+    if options.print_resource_constraints:
+        command += " --print-resource-constraints"
+
+    if options.disable_llvmaa:
+        command += " --disable-llvmaa"
+
+    if not options.cache_backend_plugin:
+        command += " --no-save-backend-plugin "
+
+    if options.dump_ddgs:
+        command += " --dump-ddgs-dot --dump-ddgs-xml"
+    else:
+        if options.dump_ddgs_dot:
+            command += " --dump-ddgs-dot"
+
+        if options.dump_ddgs_xml:
+            command += " --dump-ddgs-xml"
+
+    if options.rename_registers:
+        command += " --rename-registers"
+    else:
+        command += " --no-rename-registers"
+
+    if options.disable_dsf:
+        command += " --disable-dsf"
+
+    if options.vector_backend:
+        command += " --vector-backend"
+
+    if options.analyze_ipatterns:
+        command += " --analyze-instruction-patterns"
+
+    if options.kill_dead_results:
+        command += " --kill-dead-results"
+    else:
+        command += " --no-kill-dead-results"
+
+    if options.bu_scheduler:
+        command += " --bottom-up-scheduler"
+    elif options.recursive_scheduler:
+        command += " --recursive-scheduler"
+
+    stdEmulationLib = os.path.join(newlib_libdir, "standard_emulation.o ")
+
+    command += " --bypass-distance=%d" % options.bypass_distance
+    command += " --bypass-distance-nodre=%d" % options.bypass_distance_nodre
+    if poclInstalled:
+        (exitCode, output) = runCommandBuffered("pkg-config pocl --variable=libdir", False)
+        if exitCode == 0:
+            command += " --wi-aa-filename=" + output + "/pocl/llvmopencl.so"
+
+    if options.sequential_schedule:
+        command += " -O0"
+    else:
+        command += " -O" + str(options.optimization_level)
+
+    command += (" -a " + options.adf_file +
+                " -o " + outFile +
+                " -e" + stdEmulationLib +
+                " " + toCodeGenFname)
+
+    exitCode = runCommand(command, options.verbose, True)
+    if exitCode != 0:
+        if options.verbose:
+            exitWithError(exitCode, "Error while compiling " + command + "\n")
+        else:
+            cleanup(tempDir)
+            sys.exit(exitCode)
+
+#### Cleanup trashes
+cleanup(tempDir)
