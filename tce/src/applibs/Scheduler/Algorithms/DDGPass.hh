@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -53,10 +53,8 @@ public:
     DDGPass(InterPassData& data);
     virtual ~DDGPass();
     virtual void handleDDG(
-        DataDependenceGraph& ddg,
-        SimpleResourceManager& rm,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        DataDependenceGraph& ddg, SimpleResourceManager& rm,
+        const TTAMachine::Machine& targetMachine);
 };
 
 #endif

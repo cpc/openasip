@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -75,9 +75,7 @@ Options::~Options() {
  * @exception TypeMismatch If new value's type differ the old ones.
  */
 void
-Options::addOptionValue(const string& name, OptionValue* option)
-    throw (TypeMismatch) {
-
+Options::addOptionValue(const string& name, OptionValue* option) {
     try {
         vector<OptionValue*> values;
         values = MapTools::valueForKey<vector<OptionValue*> >(options_, name);
@@ -114,9 +112,7 @@ Options::addOptionValue(const string& name, OptionValue* option)
  * @exception KeyNotFound No option with given name.
  */
 OptionValue&
-Options::optionValue(const std::string& name, int index)
-    throw (OutOfRange, KeyNotFound) {
-
+Options::optionValue(const std::string& name, int index) {
     if (index < 0 || index > valueCount(name) - 1) {
 	string procName = "OptionValue::optionValue";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -134,9 +130,8 @@ Options::optionValue(const std::string& name, int index)
  * @return Number of values for the option.
  * @exception KeyNotFound No option with given name.
  */
-int Options::valueCount(const std::string& name)
-    throw (KeyNotFound) {
-
+int
+Options::valueCount(const std::string& name) {
     vector<OptionValue*> values;
     try {
     values = MapTools::valueForKey<vector<OptionValue*> >(options_,name);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2014 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -84,51 +84,40 @@ public:
 
     typedef std::list<DataObject> DataObjectList;
     virtual ~HDBManager();
-    static void createNew(const std::string& file)
-        throw (UnreachableStream);
+    static void createNew(const std::string& file);
 
     std::string fileName() const;
 
-    RowID addCostFunctionPlugin(const CostFunctionPlugin& plugin) const
-        throw (Exception);
+    RowID addCostFunctionPlugin(const CostFunctionPlugin& plugin) const;
     virtual void removeCostFunctionPlugin(RowID pluginID) const;
 
-    RowID addFUArchitecture(const FUArchitecture& architecture) const
-        throw (InvalidData);
+    RowID addFUArchitecture(const FUArchitecture& architecture) const;
     bool canRemoveFUArchitecture(RowID archID) const;
-    virtual void removeFUArchitecture(RowID archID) const
-        throw (InvalidData);
+    virtual void removeFUArchitecture(RowID archID) const;
 
     RowID addFUEntry() const;
     virtual void removeFUEntry(RowID id) const;
 
-    RowID addFUImplementation(const FUEntry& entry) const
-        throw (InvalidData);
+    RowID addFUImplementation(const FUEntry& entry) const;
 
     virtual void removeFUImplementation(RowID implementationID) const;
 
-    void setArchitectureForFU(RowID fuID, RowID archID) const
-        throw (InvalidData);
-    void unsetArchitectureForFU(RowID fuID) const
-        throw (InvalidData);
+    void setArchitectureForFU(RowID fuID, RowID archID) const;
+    void unsetArchitectureForFU(RowID fuID) const;
 
     RowID addRFArchitecture(const RFArchitecture& architecture) const;
     bool canRemoveRFArchitecture(RowID archID) const;
-    virtual void removeRFArchitecture(RowID archID) const
-        throw (InvalidData);
+    virtual void removeRFArchitecture(RowID archID) const;
 
     RowID addRFEntry() const;
     virtual void removeRFEntry(RowID id) const;
 
     RowID addRFImplementation(
-        const RFImplementation& implementation,
-        RowID rfEntryID)
-        throw (InvalidData);
+        const RFImplementation& implementation, RowID rfEntryID);
 
     virtual void removeRFImplementation(RowID implID) const;
 
-    void setArchitectureForRF(RowID rfID, RowID archID) const
-        throw (InvalidData);
+    void setArchitectureForRF(RowID rfID, RowID archID) const;
 
     void unsetArchitectureForRF(RowID rfID) const;
 
@@ -147,23 +136,17 @@ public:
         const std::set<std::string>& operationNames) const;
     std::set<RowID> rfArchitectureIDs() const;
 
-    RowID fuEntryIDOfImplementation(RowID implID) const
-        throw (KeyNotFound);
+    RowID fuEntryIDOfImplementation(RowID implID) const;
 
-    RowID rfEntryIDOfImplementation(RowID implID) const
-        throw (KeyNotFound);
+    RowID rfEntryIDOfImplementation(RowID implID) const;
 
-    FUEntry* fuByEntryID(RowID id) const
-        throw (KeyNotFound);
+    FUEntry* fuByEntryID(RowID id) const;
 
-    RFEntry* rfByEntryID(RowID id) const
-        throw (KeyNotFound);
+    RFEntry* rfByEntryID(RowID id) const;
 
-    virtual FUArchitecture* fuArchitectureByID(RowID id) const
-        throw (KeyNotFound);
+    virtual FUArchitecture* fuArchitectureByID(RowID id) const;
 
-    virtual RFArchitecture* rfArchitectureByID(RowID id) const
-        throw (KeyNotFound);
+    virtual RFArchitecture* rfArchitectureByID(RowID id) const;
 
     std::set<RowID> fuEntriesByArchitecture(
         const TTAMachine::FunctionUnit& fu) const;
@@ -181,12 +164,9 @@ public:
         int size = 0) const;
 
     virtual DataObject costEstimationDataValue(
-        const std::string& valueName,
-        const std::string& pluginName) const
-        throw (KeyNotFound);
+        const std::string& valueName, const std::string& pluginName) const;
 
-    DataObject costEstimationDataValue(RowID entryId) const
-        throw (KeyNotFound);
+    DataObject costEstimationDataValue(RowID entryId) const;
 
     RowID addFUCostEstimationData(
         RowID fuID,
@@ -199,19 +179,14 @@ public:
         const std::string& valueName,
         const std::string& value,
         RowID pluginID) const;
-    
 
     DataObject fuCostEstimationData(
-        const std::string& valueName,
-        RowID implementationId,
-        const std::string& pluginName) const
-        throw (KeyNotFound);
+        const std::string& valueName, RowID implementationId,
+        const std::string& pluginName) const;
 
     DataObject rfCostEstimationData(
-        const std::string& valueName,
-        RowID implementationId,
-        const std::string& pluginName) const
-        throw (KeyNotFound);
+        const std::string& valueName, RowID implementationId,
+        const std::string& pluginName) const;
 
     RowID addBusEntry() const;
     virtual void removeBusEntry(RowID id) const;
@@ -223,16 +198,12 @@ public:
         RowID pluginID) const;
 
     DataObject busCostEstimationData(
-        const std::string& valueName,
-        RowID busID,
-        const std::string& pluginName) const
-        throw (KeyNotFound);
+        const std::string& valueName, RowID busID,
+        const std::string& pluginName) const;
 
     DataObjectList* busCostEstimationDataList(
-        const std::string& valueName,
-        RowID implementationId,
-        const std::string& pluginName) const
-        throw (KeyNotFound);
+        const std::string& valueName, RowID implementationId,
+        const std::string& pluginName) const;
 
     RowID addSocketEntry() const;
     virtual void removeSocketEntry(RowID id) const;
@@ -244,16 +215,12 @@ public:
         RowID pluginID) const;
 
     DataObject socketCostEstimationData(
-        const std::string& valueName,
-        RowID socketID,
-        const std::string& pluginName) const
-        throw (KeyNotFound);
+        const std::string& valueName, RowID socketID,
+        const std::string& pluginName) const;
 
     DataObjectList* socketCostEstimationDataList(
-        const std::string& valueName,
-        RowID implementationID,
-        const std::string& pluginName) const
-        throw (KeyNotFound);
+        const std::string& valueName, RowID implementationID,
+        const std::string& pluginName) const;
 
     std::set<RowID> fuCostEstimationDataIDs(RowID fuImplID) const;
 
@@ -261,30 +228,26 @@ public:
     std::set<RowID> busCostEstimationDataIDs(RowID busID) const;
     std::set<RowID> socketCostEstimationDataIDs(RowID socketID) const;
 
-    CostEstimationData costEstimationData(RowID id) const
-        throw (KeyNotFound);
+    CostEstimationData costEstimationData(RowID id) const;
 
     std::set<RowID> costFunctionPluginIDs() const;
     std::set<RowID> costFunctionPluginDataIDs(RowID pluginID) const;
-    CostFunctionPlugin* costFunctionPluginByID(RowID pluginID) const
-        throw (Exception);
+    CostFunctionPlugin* costFunctionPluginByID(RowID pluginID) const;
 
     virtual std::set<RowID> costEstimationDataIDs(
         const CostEstimationData& match,
         bool useCompiledQueries = false,
         RelationalDBQueryResult* compiledQuery = NULL) const;
 
-    RowID addCostEstimationData(const CostEstimationData& data) const
-        throw (InvalidData, KeyNotFound);
+    RowID addCostEstimationData(const CostEstimationData& data) const;
 
     virtual void removeCostEstimationData(RowID id) const;
 
-    virtual void modifyCostEstimationData(RowID id, const CostEstimationData& data)
-        throw (InvalidData, KeyNotFound);
+    virtual void modifyCostEstimationData(
+        RowID id, const CostEstimationData& data);
 
-    virtual void modifyCostFunctionPlugin(RowID id, 
-        const CostFunctionPlugin& plugin)
-        throw (InvalidData, KeyNotFound);
+    virtual void modifyCostFunctionPlugin(
+        RowID id, const CostFunctionPlugin& plugin);
 
     virtual void deleteCostEstimationDataIDsQueries() const = 0;
 
@@ -301,14 +264,11 @@ protected:
         RelationalDBQueryResult* compiledQuery = NULL,
         short int* queryHash = NULL,
         bool createBindableQuery = false) const;
-    RelationalDBConnection* getDBConnection() const; 
+    RelationalDBConnection* getDBConnection() const;
 
-    HDBManager(const std::string& hdbFile) 
-        throw (IOException);
-    
+    HDBManager(const std::string& hdbFile);
 
 private:
-    
     // Struct PipelineElementUsage
     struct PipelineElementUsage {
         std::set<const TTAMachine::PipelineElement*> usage1;
@@ -324,18 +284,14 @@ private:
     bool hasSocketEntry(RowID id) const;
     bool hasCostEstimationDataByID(RowID id) const;
     bool hasCostFunctionPluginByID(RowID id) const;
-    bool fuEntryHasArchitecture(RowID id) const
-        throw (KeyNotFound);
-    bool rfEntryHasArchitecture(RowID id) const
-        throw (KeyNotFound);
+    bool fuEntryHasArchitecture(RowID id) const;
+    bool rfEntryHasArchitecture(RowID id) const;
     bool containsOperation(const std::string& opName) const;
     bool containsImplementationFile(const std::string& pathToFile) const;
     bool containsFUArchitecture(RowID id) const;
     bool containsRFArchitecture(RowID id) const;
-    RowID fuArchitectureID(RowID fuEntryID) const
-        throw (NotAvailable);
-    RowID rfArchitectureID(RowID rfEntryID) const
-        throw (NotAvailable);
+    RowID fuArchitectureID(RowID fuEntryID) const;
+    RowID rfArchitectureID(RowID rfEntryID) const;
     bool hasColumn(
         const std::string& table, const std::string& columnName) const;
     int addBooleanColumn(
@@ -383,8 +339,7 @@ private:
         RFImplementation& implementation,
         RowID entryID) const;
     void addBlockImplementationFileToHDB(
-        const BlockImplementationFile& file) const
-        throw (RelationalDBException);
+        const BlockImplementationFile& file) const;
     void createCostEstimatioDataIdsQuery(
         const CostEstimationData& match, 
         std::string& query) const;

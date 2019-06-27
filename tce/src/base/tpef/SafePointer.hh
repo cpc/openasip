@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -195,29 +195,22 @@ public:
     static bool isAlive(SafePointer* pointerToCheck);
     static bool isReferenced(const SafePointable* object);
 
-    static void addObjectReference(SectionIndexKey key, const SafePointable* obj)
-        throw (KeyAlreadyExists);
-    static void addObjectReference(SectionOffsetKey key, const SafePointable* obj)
-        throw (KeyAlreadyExists);
-    static void addObjectReference(FileOffsetKey key, const SafePointable* obj)
-        throw (KeyAlreadyExists);
-    static void addObjectReference(SectionKey key, const SafePointable* obj)
-        throw (KeyAlreadyExists);
+    static void addObjectReference(
+        SectionIndexKey key, const SafePointable* obj);
+    static void addObjectReference(
+        SectionOffsetKey key, const SafePointable* obj);
+    static void addObjectReference(FileOffsetKey key, const SafePointable* obj);
+    static void addObjectReference(SectionKey key, const SafePointable* obj);
 
-    static SectionIndexKey sectionIndexKeyFor(const SafePointable* obj)
-        throw (KeyNotFound);
-    static SectionOffsetKey sectionOffsetKeyFor(const SafePointable* obj)
-        throw (KeyNotFound);
-    static FileOffsetKey fileOffsetKeyFor(const SafePointable* obj)
-        throw (KeyNotFound);
-    static SectionKey sectionKeyFor(const SafePointable* obj)
-        throw (KeyNotFound);
+    static SectionIndexKey sectionIndexKeyFor(const SafePointable* obj);
+    static SectionOffsetKey sectionOffsetKeyFor(const SafePointable* obj);
+    static FileOffsetKey fileOffsetKeyFor(const SafePointable* obj);
+    static SectionKey sectionKeyFor(const SafePointable* obj);
 
     static void notifyDeleted(const SafePointable* obj);
     static void notifyDeleted(SafePointer* safePointer);
 
-    static void resolve()
-        throw (UnresolvedReference);
+    static void resolve();
 
     static void cleanupKeyTables();
     static void cleanup();
@@ -303,14 +296,10 @@ protected:
 
     template <typename KeyType, typename MapType>
     static void genericAddObjectReference(
-        const KeyType& key,
-        MapType& destinationMap,
-        const SafePointable* obj)
-        throw (KeyAlreadyExists);
+        const KeyType& key, MapType& destinationMap, const SafePointable* obj);
 
     template <typename KeyType, typename MapType>
-    static KeyType genericKeyFor(const SafePointable* obj, MapType& sourceMap)
-        throw (KeyNotFound);
+    static KeyType genericKeyFor(const SafePointable* obj, MapType& sourceMap);
 
     template <typename MapType>
     static void safelyCleanupKeyTable(

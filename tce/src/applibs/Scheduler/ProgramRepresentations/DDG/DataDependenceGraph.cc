@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2012 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -138,13 +138,12 @@ DataDependenceGraph::setNodeBB(
  * @param moveNode moveNode being added.
  */
 void
-DataDependenceGraph::addNode(MoveNode& moveNode) throw (ObjectAlreadyExists) {
+DataDependenceGraph::addNode(MoveNode& moveNode) {
     BoostGraph<MoveNode, DataDependenceEdge>::addNode(moveNode);
     if (moveNode.isMove()) {
         nodesOfMoves_[&moveNode.move()] = &moveNode;
     }
 }
-
 
 /**
  * Adds a node into the graph.
@@ -1227,9 +1226,7 @@ DataDependenceGraph::scheduledMoves() const {
  *            the reason.
  */
 void
-DataDependenceGraph::sanityCheck() const 
-    throw (Exception) {
-    
+DataDependenceGraph::sanityCheck() const {
     for (int i = 0; i < edgeCount(); ++i) {
         DataDependenceEdge& e = edge(i);
         MoveNode& tail = tailNode(e);
@@ -2425,8 +2422,7 @@ DataDependenceGraph::combineNodes(
  * @param node MoveNode being removed.
  */
 void
-DataDependenceGraph::removeNode(MoveNode& node) throw (InstanceNotFound) {
-
+DataDependenceGraph::removeNode(MoveNode& node) {
     // remove move -> movenode mapping.
     if (node.isMove()) {
         TTAProgram::Move* move = &node.move();
@@ -3009,10 +3005,8 @@ DataDependenceGraph::createSubgraph(
  * @param move move.
  * @return MoveNode of the given move
  */
-MoveNode& 
-DataDependenceGraph::nodeOfMove(TTAProgram::Move& move) 
-    throw (InstanceNotFound) {
-
+MoveNode&
+DataDependenceGraph::nodeOfMove(TTAProgram::Move& move) {
     std::map<TTAProgram::Move*, MoveNode*>::iterator i = 
         nodesOfMoves_.find(&move);
     if (i != nodesOfMoves_.end()) {
@@ -3023,7 +3017,6 @@ DataDependenceGraph::nodeOfMove(TTAProgram::Move& move)
         Conversion::toString(reinterpret_cast<long>(&move)) + " " + 
         POMDisassembler::disassemble(move);
     throw InstanceNotFound(__FILE__,__LINE__,__func__, msg);
-
 }
 
 /**
@@ -3103,9 +3096,7 @@ DataDependenceGraph::isRootGraphProcedureDDG() {
  */
 void
 DataDependenceGraph::fixInterBBAntiEdges(
-    BasicBlockNode& bbn1, BasicBlockNode& bbn2, bool loopEdges) 
-    throw (Exception) {
-
+    BasicBlockNode& bbn1, BasicBlockNode& bbn2, bool loopEdges) {
     std::map<TCEString, TTAProgram::Move*> firstWrites2;
     std::map<TCEString, TTAProgram::Move*> lastReads1;
     std::map<TCEString, TTAProgram::Move*> lastWrites1;
@@ -3230,10 +3221,8 @@ DataDependenceGraph::fixInterBBAntiEdges(
  * @param dst movenode to copy dependencies to
  * @todo should this method be in base class?  would require graphedge.clone()
  */
-void 
-DataDependenceGraph::copyDependencies(
-    MoveNode& src, MoveNode& dst) throw (InstanceNotFound) {
-
+void
+DataDependenceGraph::copyDependencies(MoveNode& src, MoveNode& dst) {
     // performance optimization 
     NodeDescriptor nd = descriptor(src);
 

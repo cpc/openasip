@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -82,13 +82,10 @@ NullInstructionField::childFieldCount() const {
  * @exception OutOfRange Always thrown.
  */
 InstructionField&
-NullInstructionField::childField(int) const
-    throw (OutOfRange) {
-
+NullInstructionField::childField(int) const {
     const string procName = "NullInstructionField::childField";
     throw OutOfRange(__FILE__, __LINE__, procName);
 }
-
 
 /**
  * Always returns 0.

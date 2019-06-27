@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -109,15 +109,12 @@ ProgramImageGenerator::~ProgramImageGenerator() {
  *                                    opened.
  */
 void
-ProgramImageGenerator::loadCompressorPlugin(const std::string& fileName) 
-    throw (FileNotFound, DynamicLibraryException) {
-
+ProgramImageGenerator::loadCompressorPlugin(const std::string& fileName) {
     CodeCompressorPlugin* newCompressor = createCompressor(
         fileName, pluginTool_);
     delete compressor_;
     compressor_ = newCompressor;
 }
-
 
 /**
  * Loads the given code compressor plugin parameters to the plugin.
@@ -401,15 +398,9 @@ ProgramImageGenerator::generateProgramImage(
  */
 void
 ProgramImageGenerator::generateDataImage(
-    const std::string& programName,
-    TPEF::Binary& program,
-    const std::string& addressSpace,
-    std::ostream& stream,
-    OutputFormat format,
-    int mausPerLine,
-    bool usePregeneratedImage) 
-    throw (InvalidData, OutOfRange) {
-
+    const std::string& programName, TPEF::Binary& program,
+    const std::string& addressSpace, std::ostream& stream, OutputFormat format,
+    int mausPerLine, bool usePregeneratedImage) {
     if (mausPerLine < 1) {
         string errorMsg = "Data memory width in MAUs must be positive.";
         throw OutOfRange(__FILE__, __LINE__, __func__, errorMsg);
@@ -634,17 +625,13 @@ ProgramImageGenerator::availableCompressors() {
  */
 void
 ProgramImageGenerator::printCompressorDescription(
-    const std::string& fileName,
-    std::ostream& stream) 
-    throw (FileNotFound, DynamicLibraryException) {
-
+    const std::string& fileName, std::ostream& stream) {
     PluginTools pluginTool;
     CodeCompressorPlugin* compressor = createCompressor(
         fileName, pluginTool);
     compressor->printDescription(stream);
     delete compressor;
 }
-    
 
 /**
  * Creates the code compressor from the given dynamic module.
@@ -659,9 +646,7 @@ ProgramImageGenerator::printCompressorDescription(
  */
 CodeCompressorPlugin*
 ProgramImageGenerator::createCompressor(
-    const std::string& fileName, PluginTools& pluginTool)
-    throw (FileNotFound, DynamicLibraryException) {
-
+    const std::string& fileName, PluginTools& pluginTool) {
     vector<string> searchPaths = Environment::codeCompressorPaths();
     for (vector<string>::const_iterator iter = searchPaths.begin();
          iter != searchPaths.end(); iter++) {
@@ -677,7 +662,6 @@ ProgramImageGenerator::createCompressor(
 
     return pluginCreator();
 }
-    
 
 /**
  * Returns an InstructionElement that is relocation target of the data in

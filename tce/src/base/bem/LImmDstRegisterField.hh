@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -46,26 +46,21 @@ class BinaryEncoding;
  */
 class LImmDstRegisterField : public InstructionField {
 public:
-    LImmDstRegisterField(int width, BinaryEncoding& parent)
-        throw (OutOfRange);
-    LImmDstRegisterField(const ObjectState* state, BinaryEncoding& parent)
-        throw (ObjectStateLoadingException);
+    LImmDstRegisterField(int width, BinaryEncoding& parent);
+    LImmDstRegisterField(const ObjectState* state, BinaryEncoding& parent);
     virtual ~LImmDstRegisterField();
 
     BinaryEncoding* parent() const;
 
     void addDestination(
         const std::string& instructionTemplate,
-        const std::string& immediateUnit)
-        throw (NotAvailable);
+        const std::string& immediateUnit);
 
     int instructionTemplateCount() const;
-    std::string instructionTemplate(int index) const
-        throw (OutOfRange);
+    std::string instructionTemplate(int index) const;
     bool usedByInstructionTemplate(
         const std::string& instructionTemplate) const;
-    std::string immediateUnit(const std::string& instructionTemplate) const
-        throw (NotAvailable);
+    std::string immediateUnit(const std::string& instructionTemplate) const;
 
     virtual int width() const;
     virtual int childFieldCount() const;
@@ -86,8 +81,7 @@ private:
     /// Map type for strings.
     typedef std::map<std::string, std::string> StringMap;
 
-    void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadState(const ObjectState* state);
 
     /// Width of the field.
     int width_;

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -47,14 +47,9 @@
 class GPRGuardEncoding : public GuardEncoding {
 public:
     GPRGuardEncoding(
-	const std::string& regFile,
-	int index,
-	bool inverted,
-	unsigned int encoding,
-	GuardField& parent)
-	throw (ObjectAlreadyExists);
-    GPRGuardEncoding(const ObjectState* state, GuardField& parent)
-	throw (ObjectStateLoadingException, ObjectAlreadyExists);
+        const std::string& regFile, int index, bool inverted,
+        unsigned int encoding, GuardField& parent);
+    GPRGuardEncoding(const ObjectState* state, GuardField& parent);
     virtual ~GPRGuardEncoding();
 
     std::string registerFile() const;

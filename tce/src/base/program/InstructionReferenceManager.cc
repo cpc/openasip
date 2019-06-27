@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -91,9 +91,7 @@ InstructionReferenceManager::createReference(Instruction& ins) {
  *            found.
  */
 void
-InstructionReferenceManager::replace(Instruction& insA, Instruction& insB)
-    throw (InstanceNotFound) {
-
+InstructionReferenceManager::replace(Instruction& insA, Instruction& insB) {
     RefMap::iterator itera = references_.find(&insA);
     if (itera == references_.end()) {
         throw InstanceNotFound(

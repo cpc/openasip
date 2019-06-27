@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -40,10 +40,8 @@
  * @param stepMHz Stepping frequency in MHz.
  * @exception IllegalParameters Throws if the frequencies are smaller than one.
  */
-FrequencySweep::FrequencySweep(int startMHz, int endMHz, int stepMHz) 
-    throw (IllegalParameters):
-    hasNext_(true), endMHz_(endMHz), stepMHz_(stepMHz) {
-
+FrequencySweep::FrequencySweep(int startMHz, int endMHz, int stepMHz)
+    : hasNext_(true), endMHz_(endMHz), stepMHz_(stepMHz) {
     // Sweep is always done from the lowest frequency towards the highest
     // frequency.
     if (startMHz > endMHz) {

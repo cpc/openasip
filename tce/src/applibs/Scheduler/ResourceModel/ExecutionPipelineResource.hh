@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -67,8 +67,7 @@ public:
         const unsigned int ii = 0);
     virtual ~ExecutionPipelineResource();
 
-    virtual bool isInUse(const int cycle) const
-        throw (Exception);
+    virtual bool isInUse(const int cycle) const;
     virtual bool isAvailable(const int cycle) const;
     virtual bool canAssign(const int cycle, const MoveNode& node) const;
     virtual bool canAssignSource(
@@ -79,14 +78,12 @@ public:
         const int cycle,
         const MoveNode& node,
         const bool triggering = false) const;
-    virtual void assign(const int cycle, MoveNode& node)
-        throw (Exception);
+    virtual void assign(const int cycle, MoveNode& node);
     virtual void assignSource(
         const int cycle, MoveNode& node);
     virtual void assignDestination(
         const int cycle, MoveNode& node);
-    virtual void unassign(const int cycle, MoveNode& node)
-        throw (Exception);
+    virtual void unassign(const int cycle, MoveNode& node);
     virtual void unassignSource(
         const int cycle, MoveNode& node);
     virtual void unassignDestination(const int cycle, MoveNode& node);

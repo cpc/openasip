@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -69,8 +69,7 @@ public:
     virtual void copyTo(Bus& parentBus) const = 0;
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for guard.
     static const std::string OSNAME_GUARD;
@@ -79,8 +78,7 @@ public:
 
 protected:
     Guard(bool inverted, Bus& parentBus);
-    Guard(const ObjectState* state, Bus& parentBus)
-        throw (ObjectStateLoadingException);
+    Guard(const ObjectState* state, Bus& parentBus);
 
 private:
     /// Indicated whether the condition term is inverted.
@@ -100,13 +98,8 @@ private:
  */
 class PortGuard : public Guard {
 public:
-    PortGuard(
-        bool inverted, 
-        FUPort& port, 
-        Bus& parentBus)
-        throw (IllegalRegistration, ComponentAlreadyExists);
-    PortGuard(const ObjectState* state, Bus& parentBus)
-        throw (ObjectStateLoadingException);
+    PortGuard(bool inverted, FUPort& port, Bus& parentBus);
+    PortGuard(const ObjectState* state, Bus& parentBus);
     virtual ~PortGuard();
 
     bool isEqual(const Guard& guard) const;
@@ -114,13 +107,11 @@ public:
 
     FUPort* port() const;
     virtual void copyTo(Bus& parentBus) const {
-        new PortGuard(
-            isInverted(), *port_, parentBus);
+        new PortGuard(isInverted(), *port_, parentBus);
     }
 
     ObjectState* saveState() const;
-    void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadState(const ObjectState* state);
 
     /// ObjectState name for PortGuard ObjectState.
     static const std::string OSNAME_PORT_GUARD;
@@ -146,14 +137,9 @@ private:
 class RegisterGuard : public Guard {
 public:
     RegisterGuard(
-        bool inverted,
-        RegisterFile& regFile,
-        int registerIndex,
-        Bus& parentBus)
-        throw (IllegalRegistration, ComponentAlreadyExists, OutOfRange,
-               InvalidData);
-    RegisterGuard(const ObjectState* state, Bus& parentBus)
-        throw (ObjectStateLoadingException);
+        bool inverted, RegisterFile& regFile, int registerIndex,
+        Bus& parentBus);
+    RegisterGuard(const ObjectState* state, Bus& parentBus);
     virtual ~RegisterGuard();
 
     bool isOpposite(const Guard& guard) const;
@@ -161,14 +147,11 @@ public:
     RegisterFile* registerFile() const;
     int registerIndex() const;
     virtual void copyTo(Bus& parentBus) const {
-        new RegisterGuard(
-            isInverted(), *regFile_, registerIndex_,
-            parentBus);
+        new RegisterGuard(isInverted(), *regFile_, registerIndex_, parentBus);
     }
 
     ObjectState* saveState() const;
-    void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadState(const ObjectState* state);
 
     /// ObjectState name for RegisterGuard.
     static const std::string OSNAME_REGISTER_GUARD;
@@ -194,17 +177,14 @@ private:
  */
 class UnconditionalGuard : public Guard {
 public:
-    UnconditionalGuard(bool inverted, Bus& parentBus)
-        throw (ComponentAlreadyExists);
-    UnconditionalGuard(const ObjectState* state, Bus& parentBus)
-        throw (ObjectStateLoadingException);
+    UnconditionalGuard(bool inverted, Bus& parentBus);
+    UnconditionalGuard(const ObjectState* state, Bus& parentBus);
     virtual ~UnconditionalGuard();
 
     bool isOpposite(const Guard& /*guard*/) const { return false; }
     bool isEqual(const Guard& guard) const;
     ObjectState* saveState() const;
-    void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadState(const ObjectState* state);
     virtual void copyTo(Bus& parentBus) const {
         new UnconditionalGuard(isInverted(), parentBus);
     }

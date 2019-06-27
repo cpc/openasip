@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -54,14 +54,10 @@ public:
     GUIOptionsSerializer(std::string configurationName);
     virtual ~GUIOptionsSerializer();
 
-    void writeState(const ObjectState* optionsState)
-        throw (SerializerException);
-    ObjectState* readState()
-        throw (SerializerException);
-    void writeOptions(const GUIOptions& options)
-        throw (SerializerException);
-    GUIOptions* readOptions()
-        throw (SerializerException, ObjectStateLoadingException);
+    void writeState(const ObjectState* optionsState);
+    ObjectState* readState();
+    void writeOptions(const GUIOptions& options);
+    GUIOptions* readOptions();
 
 protected:
     virtual ObjectState* convertToConfigFileFormat(

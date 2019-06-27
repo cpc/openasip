@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -130,10 +130,7 @@ AOutReader::~AOutReader() {
  * @exception UnexpectedValue If there was unexpected value when reading.
  */
 Binary*
-AOutReader::readData(BinaryStream& stream) const
-    throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists,
-           EndOfFile, OutOfRange, WrongSubclass, UnexpectedValue) {
-
+AOutReader::readData(BinaryStream& stream) const {
     Binary* newBin = NULL;
     newBin = new Binary();
 
@@ -324,7 +321,6 @@ AOutReader::readData(BinaryStream& stream) const
     return newBin;
 }
 
-
 /**
  * Checks whether AOutReader can read from the given stream.
  *
@@ -341,9 +337,7 @@ AOutReader::readData(BinaryStream& stream) const
  * @exception UnreachableStream If there occurs an exception with stream.
  */
 bool
-AOutReader::isMyStreamType(BinaryStream& stream) const
-    throw (UnreachableStream) {
-
+AOutReader::isMyStreamType(BinaryStream& stream) const {
     unsigned long startPos = stream.readPosition();
 
     try {
@@ -368,7 +362,6 @@ AOutReader::isMyStreamType(BinaryStream& stream) const
     }
 }
 
-
 /**
  * Reads file header from the stream and stores it to a specific object.
  *
@@ -377,9 +370,7 @@ AOutReader::isMyStreamType(BinaryStream& stream) const
  * @exception EndOfFile If end of file were reached where it shouldn't.
  */
 void
-AOutReader::readHeader(BinaryStream& stream) const
-    throw (UnreachableStream, EndOfFile) {
-
+AOutReader::readHeader(BinaryStream& stream) const {
     // test magic number again just in case...
     stream.readHalfWord();
     assert(stream.readHalfWord() == OMAGIC);
@@ -406,7 +397,6 @@ AOutReader::readHeader(BinaryStream& stream) const
     header_.setSectionSizeString(stream.sizeOfFile() -
                                  beginOfStrTable);
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 /// Header class

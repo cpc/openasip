@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -52,21 +52,18 @@ namespace TTAProgram {
 class DataDefinition {
 public:
     DataDefinition(
-        Address start, 
-        int size, bool littleEndian, MinimumAddressableUnit *initData = NULL,
-        bool allZeros = false)
-        throw (OutOfRange);
+        Address start, int size, bool littleEndian,
+        MinimumAddressableUnit* initData = NULL, bool allZeros = false);
 
     DataDefinition(
-        Address start, 
-        const std::vector<MinimumAddressableUnit>& initData, bool littleEndian)
-        throw (OutOfRange);
+        Address start, const std::vector<MinimumAddressableUnit>& initData,
+        bool littleEndian);
 
     virtual ~DataDefinition();
 
     virtual Address startAddress() const;
     virtual void setStartAddress(Address start);
-    
+
     virtual bool isInitialized() const;
     virtual MinimumAddressableUnit MAU(int index) const;
     virtual int size() const;
@@ -75,10 +72,11 @@ public:
     virtual bool isInstructionAddress() const;
     virtual Address destinationAddress() const;
     virtual void setDestinationAddress(Address dest);
-    
+
     virtual DataDefinition* copy() const;
 
     bool isLittleEndian() const { return littleEndian_; }
+
 private:
     /// Start address of definition.
     Address start_;

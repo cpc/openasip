@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -74,7 +74,7 @@ NullInstruction::instance() {
  * @exception IllegalRegistration never.
  */
 Procedure&
-NullInstruction::parent() const throw (IllegalRegistration) {
+NullInstruction::parent() const {
     abortWithError("parent()");
     return NullProcedure::instance();
 }
@@ -102,9 +102,7 @@ NullInstruction::isInProcedure() const {
  * Aborts program with error log message.
  */
 void
-NullInstruction::addMove(Move&)
-    throw (ObjectAlreadyExists) {
-
+NullInstruction::addMove(Move&) {
     abortWithError("addMove()");
 }
 
@@ -124,7 +122,7 @@ int NullInstruction::moveCount() {
  * @return A null move.
  */
 const Move&
-NullInstruction::move(int) const throw (OutOfRange) {
+NullInstruction::move(int) const {
     abortWithError("addMove()");
     throw OutOfRange(__FILE__,__LINE__,__func__, "Null intruction is empty.");
 }
@@ -133,8 +131,7 @@ NullInstruction::move(int) const throw (OutOfRange) {
  * Aborts program with error log message.
  */
 void
-NullInstruction::addImmediate(Immediate&)
-    throw (ObjectAlreadyExists) {
+NullInstruction::addImmediate(Immediate&) {
     abortWithError("addMove()");
 }
 
@@ -154,7 +151,7 @@ int NullInstruction::immediateCount() {
  * @return A null immediate.
  */
 Immediate&
-NullInstruction::immediate(int) throw (OutOfRange) {
+NullInstruction::immediate(int) {
     abortWithError("addMove()");
     // to avoid warning:
     throw new OutOfRange(__FILE__,__LINE__,__func__,"");
@@ -166,7 +163,7 @@ NullInstruction::immediate(int) throw (OutOfRange) {
  * @return A null address.
  */
 Address&
-NullInstruction::address() const throw (IllegalRegistration) {
+NullInstruction::address() const {
     abortWithError("address()");
     return NullAddress::instance();
 }

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -71,10 +71,8 @@ ConditionCommand::~ConditionCommand() {
  * @exception NumberFormatException Is never thrown by this command.
  * @todo Use the count for the step.
  */
-bool 
-ConditionCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+ConditionCommand::execute(const std::vector<DataObject>& arguments) {
     if (!checkArgumentCount(arguments.size() - 1, 1, 1)) {
         return false;
     } 

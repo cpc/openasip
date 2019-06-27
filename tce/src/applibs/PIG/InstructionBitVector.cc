@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -99,9 +99,7 @@ InstructionBitVector::~InstructionBitVector() {
  *                       fixed due to insufficient bit width.
  */
 void
-InstructionBitVector::pushBack(const InstructionBitVector& bits) 
-    throw (OutOfRange) {
-
+InstructionBitVector::pushBack(const InstructionBitVector& bits) {
     for (ReferenceMap::const_iterator iter = bits.references_.begin();
          iter != bits.references_.end(); iter++) {
         const Instruction* instruction = (*iter).first;
@@ -141,7 +139,6 @@ InstructionBitVector::pushBack(const InstructionBitVector& bits)
          
     insert(end(), bitsCopy.begin(), bitsCopy.end());
 }
-
 
 /**
  * Concatenates the given bit vector to this vector.
@@ -200,10 +197,7 @@ InstructionBitVector::addIndexBoundsForReference(IndexBound bounds) {
  */
 void
 InstructionBitVector::fixInstructionAddress(
-    const TTAProgram::Instruction& instruction,
-    unsigned int address)
-    throw (OutOfRange) {
-
+    const TTAProgram::Instruction& instruction, unsigned int address) {
     instructionAddresses_.insert(
         std::pair<const Instruction*, unsigned int>(&instruction, address));
     if (!MapTools::containsKey(references_, &instruction)) {
@@ -217,7 +211,6 @@ InstructionBitVector::fixInstructionAddress(
         }
     }
 }
-
 
 /**
  * Marks the instruction starting point.
@@ -273,9 +266,7 @@ InstructionBitVector::instructionCount() const {
  * @exception OutOfRange If the given index is too large.
  */
 unsigned int
-InstructionBitVector::instructionStartingPoint(unsigned int index) const 
-    throw (OutOfRange) {
-
+InstructionBitVector::instructionStartingPoint(unsigned int index) const {
     if (index >= instructionBoundaries_.size()) {
         const string procName = "InstructionBitVector::instructionBoundary";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -283,7 +274,6 @@ InstructionBitVector::instructionStartingPoint(unsigned int index) const
         return instructionBoundaries_[index];
     }
 }
-   
 
 /**
  * Returns the set of index bounds that refer to the given instruction.
@@ -346,10 +336,7 @@ InstructionBitVector::addIndexBoundTables(
  */
 void
 InstructionBitVector::fixBits(
-    const IndexBoundTable& indexes, 
-    unsigned int value) 
-    throw (OutOfRange) {
-    
+    const IndexBoundTable& indexes, unsigned int value) {
     int requiredSize = MathTools::requiredBits(value);
     int availableSize = this->availableSize(indexes);
     if (requiredSize > availableSize) {
@@ -389,7 +376,6 @@ InstructionBitVector::fixBits(
         }
     }
 }
-
 
 /**
  * Returns the number of bits available in the given IndexBoundTable.

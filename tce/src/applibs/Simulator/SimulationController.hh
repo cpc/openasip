@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -53,17 +53,13 @@ public:
 
     virtual ~SimulationController();
 
-    virtual void step(double count = 1)
-        throw (SimulationExecutionError);
+    virtual void step(double count = 1);
 
-    virtual void next(int count = 1)
-        throw (SimulationExecutionError);
+    virtual void next(int count = 1);
 
-    virtual void run()
-        throw (SimulationExecutionError);
+    virtual void run();
 
-    virtual void runUntil(UIntWord address)
-        throw (SimulationExecutionError);
+    virtual void runUntil(UIntWord address);
 
     virtual void reset();
 

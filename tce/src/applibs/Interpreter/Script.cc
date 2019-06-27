@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -79,9 +79,7 @@ Script::~Script() {
  * @exception NumberFormatException If DataObject operation fails.
  */
 DataObject
-Script::execute() 
-    throw (ScriptExecutionFailure, NumberFormatException) {
-
+Script::execute() {
     Application::initialize();
     
     for (unsigned int i = 0; i < scriptLines_.size(); i++) {

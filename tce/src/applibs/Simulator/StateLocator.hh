@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -56,8 +56,8 @@ public:
     void addState(
         const TTAMachine::MachinePart& momComponent, 
         StateData& state);
-    StateData& state(const TTAMachine::MachinePart& momComponent) const
-        throw (IllegalParameters);
+    StateData& state(const TTAMachine::MachinePart& momComponent) const;
+
 private:
     /// Copying not allowed.
     StateLocator(const StateLocator&);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -66,23 +66,15 @@ public:
         const int defCycle,
         const int useCycle,
         const MoveNode& node) const;
-    virtual void assign(const int cycle, MoveNode& node)
-        throw (Exception);
+    virtual void assign(const int cycle, MoveNode& node);
     virtual void assign(
-        const int defCycle,
-        const int useCycle,
-        MoveNode& node,
-        int& index)
-        throw (Exception);
-    virtual void unassign(const int cycle, MoveNode& node)
-        throw (Exception);
+        const int defCycle, const int useCycle, MoveNode& node, int& index);
+    virtual void unassign(const int cycle, MoveNode& node);
     virtual bool isIUResource() const;
 
     int registerCount() const;
-    TTAProgram::Terminal* immediateValue(const MoveNode& node) const
-        throw (KeyNotFound);
-    int immediateWriteCycle(const MoveNode& node) const
-        throw (KeyNotFound);    
+    TTAProgram::Terminal* immediateValue(const MoveNode& node) const;
+    int immediateWriteCycle(const MoveNode& node) const;
     int width() const;
 
     void clearOldResources();

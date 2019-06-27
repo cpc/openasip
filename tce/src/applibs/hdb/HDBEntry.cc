@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -82,16 +82,13 @@ HDBEntry::setID(RowID id) {
  * @return ID of the entry.
  */
 RowID
-HDBEntry::id() const 
-    throw (NotAvailable) {
-
+HDBEntry::id() const {
     if (!hasID()) {
         throw NotAvailable(__FILE__, __LINE__, __func__);
     } else {
         return id_;
     }
 }
-
 
 /**
  * Tells whether the entry contains a cost function.
@@ -111,16 +108,13 @@ HDBEntry::hasCostFunction() const {
  * @exception NotAvailable If the entry doesn't have a cost function.
  */
 CostFunctionPlugin&
-HDBEntry::costFunction() const 
-    throw (NotAvailable) {
-
+HDBEntry::costFunction() const {
     if (!hasCostFunction()) {
         throw NotAvailable(__FILE__, __LINE__, __func__);
     }
 
     return *costFunction_;
 }
-
 
 /**
  * Sets cost function for the entry.

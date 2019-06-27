@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -376,9 +376,7 @@ OSEdTreeView::selectedOperation() {
  * @return The id of selected operation.
  */
 wxTreeItemId
-OSEdTreeView::selectedOperationId()
-    throw (NotAvailable) {
-    
+OSEdTreeView::selectedOperationId() {
     Iter it = operations_.begin();
     // first look from the tree view
     while (it != operations_.end()) {
@@ -479,9 +477,7 @@ OSEdTreeView::selectedPath() {
  * @return Id of selected path.
  */
 wxTreeItemId
-OSEdTreeView::selectedPathId()
-    throw (NotAvailable) {
-    
+OSEdTreeView::selectedPathId() {
     Iter it = paths_.begin();
     
     // first look from the tree view
@@ -538,9 +534,7 @@ OSEdTreeView::selectedModule() {
  * @return The id of selected module.
  */
 wxTreeItemId
-OSEdTreeView::selectedModuleId()
-    throw (NotAvailable) {
-
+OSEdTreeView::selectedModuleId() {
     if (MapTools::containsValue(modules_, GetSelection())) {
         return GetSelection();
     }

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -76,10 +76,8 @@ HDBRegistry::instance() {
  * @return The HDB associated with the file name.
  * @exception Exception In case there was a problem while opening the HDB.
  */
-CachedHDBManager& 
-HDBRegistry::hdb(const std::string fileName)
-    throw (Exception) {
-
+CachedHDBManager&
+HDBRegistry::hdb(const std::string fileName) {
     if (AssocTools::containsKey(
             registry_, FileSystem::absolutePathOf(fileName))) {
         return *registry_[FileSystem::absolutePathOf(fileName)];
@@ -90,7 +88,6 @@ HDBRegistry::hdb(const std::string fileName)
     registry_[FileSystem::absolutePathOf(fileName)] = manager;
     return *manager;
 }
-
 
 /**
  * Adds HDBManager in to the registry.
@@ -192,9 +189,7 @@ HDBRegistry::loadFromSearchPaths() {
  * @exception OutOfRange Is thrown if index is bigger than the HDB count.
  */
 CachedHDBManager&
-HDBRegistry::hdb(unsigned int index) 
-    throw (OutOfRange) {
-
+HDBRegistry::hdb(unsigned int index) {
     if (index > (registry_.size() - 1)) {
         throw OutOfRange(__FILE__, __LINE__,
                          "HDBRegistry::hdb(unsigned int)");
@@ -219,9 +214,7 @@ HDBRegistry::hdb(unsigned int index)
  * @exception OutOfRange Is thrown if index is out of range.
  */
 std::string
-HDBRegistry::hdbPath(unsigned index) 
-    throw (OutOfRange) {
-
+HDBRegistry::hdbPath(unsigned index) {
     if (index > (registry_.size() - 1)) {
         throw OutOfRange(__FILE__, __LINE__,
                          "HDBRegistry::hdb(unsigned int)");
@@ -255,15 +248,13 @@ HDBRegistry::hdbErrorCount() {
  * error count.
  */
 std::string
-HDBRegistry::hdbErrorMessage(unsigned int index)
-    throw (OutOfRange) {
-
+HDBRegistry::hdbErrorMessage(unsigned int index) {
     if (index > (errorMessages_.size() - 1)) {
         throw OutOfRange(__FILE__, __LINE__,
                          "HDBRegistry::hdbErrorMessage(unsigned int)");
     }
     return errorMessages_[index];
-}    
+}
 
 /**
  * Removes nonexistent HDB files from registry.

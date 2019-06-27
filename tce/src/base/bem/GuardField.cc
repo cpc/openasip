@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -58,9 +58,7 @@ const std::string GuardField::OSNAME_GUARD_FIELD = "guard_field";
  *                                already.
  */
 GuardField::GuardField(MoveSlot& parent)
-    throw (ObjectAlreadyExists) : 
-    InstructionField(&parent), alwaysTrue_(NULL), alwaysFalse_(NULL) {
-
+    : InstructionField(&parent), alwaysTrue_(NULL), alwaysFalse_(NULL) {
     setParent(NULL);
     parent.setGuardField(*this);
     setParent(&parent);
@@ -76,7 +74,6 @@ GuardField::GuardField(MoveSlot& parent)
     InstructionField::setRelativePosition(position);
 }
 
-
 /**
  * The constructor.
  *
@@ -90,15 +87,12 @@ GuardField::GuardField(MoveSlot& parent)
  *                                already.
  */
 GuardField::GuardField(const ObjectState* state, MoveSlot& parent)
-    throw (ObjectStateLoadingException, ObjectAlreadyExists) :
-    InstructionField(state, &parent), alwaysTrue_(NULL), alwaysFalse_(NULL) {
-
+    : InstructionField(state, &parent), alwaysTrue_(NULL), alwaysFalse_(NULL) {
     loadState(state);
     setParent(NULL);
     parent.setGuardField(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.
@@ -144,9 +138,7 @@ GuardField::parent() const {
  *                                if the given encoding is already assigned.
  */
 void
-GuardField::addGuardEncoding(GPRGuardEncoding& encoding)
-    throw (ObjectAlreadyExists) {
-
+GuardField::addGuardEncoding(GPRGuardEncoding& encoding) {
     // verify that this is called from GPRGuardEncoding constructor
     assert(encoding.parent() == NULL);
 
@@ -159,7 +151,6 @@ GuardField::addGuardEncoding(GPRGuardEncoding& encoding)
 
     gprGuards_.push_back(&encoding);
 }
-
 
 /**
  * Removes the given guard encoding.
@@ -189,9 +180,7 @@ GuardField::removeGuardEncoding(GPRGuardEncoding& encoding) {
  *                                another guard expression.
  */
 void
-GuardField::addGuardEncoding(FUGuardEncoding& encoding)
-    throw (ObjectAlreadyExists) {
-
+GuardField::addGuardEncoding(FUGuardEncoding& encoding) {
     // verify that this is called from GPRGuardEncoding constructor
     assert(encoding.parent() == NULL);
 
@@ -204,7 +193,6 @@ GuardField::addGuardEncoding(FUGuardEncoding& encoding)
 
     fuGuards_.push_back(&encoding);
 }
-
 
 /**
  * Removes the given guard encoding.
@@ -235,9 +223,7 @@ GuardField::removeGuardEncoding(FUGuardEncoding& encoding) {
  *                                assigned to another guard expression.
  */
 void
-GuardField::addGuardEncoding(UnconditionalGuardEncoding& encoding)
-    throw (ObjectAlreadyExists) {
-
+GuardField::addGuardEncoding(UnconditionalGuardEncoding& encoding) {
     // verify that this is called from UnconditionalGuardEncoding constructor
     assert(encoding.parent() == NULL);
     
@@ -253,7 +239,6 @@ GuardField::addGuardEncoding(UnconditionalGuardEncoding& encoding)
         alwaysTrue_ = &encoding;
     }
 }
-
 
 /**
  * Removes the encoding for unconditional guard.
@@ -302,9 +287,7 @@ GuardField::gprGuardEncodingCount() const {
  *                       the number of GPR guard encodings.
  */
 GPRGuardEncoding&
-GuardField::gprGuardEncoding(int index) const
-    throw (OutOfRange) {
-
+GuardField::gprGuardEncoding(int index) const {
     if (index < 0 || index >= gprGuardEncodingCount()) {
 	const string procName = "GuardField::gprGuardEncoding";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -312,7 +295,6 @@ GuardField::gprGuardEncoding(int index) const
 
     return *gprGuards_[index];
 }
-
 
 /**
  * Tells whether the guard field has an encoding for the given guard
@@ -402,9 +384,7 @@ GuardField::fuGuardEncodingCount() const {
  *                       the number of FU guard encodings.
  */
 FUGuardEncoding&
-GuardField::fuGuardEncoding(int index) const
-    throw (OutOfRange) {
-
+GuardField::fuGuardEncoding(int index) const {
     if (index < 0 || index >= fuGuardEncodingCount()) {
 	const string procName = "GuardField::fuGuardEncoding";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -412,7 +392,6 @@ GuardField::fuGuardEncoding(int index) const
 
     return *fuGuards_[index];
 }
-
 
 /**
  * Tells whether the guard field has an encoding for the given guard
@@ -540,13 +519,10 @@ GuardField::childFieldCount() const {
  * @exception OutOfRange Always thrown.
  */
 InstructionField&
-GuardField::childField(int) const
-    throw (OutOfRange) {
-
+GuardField::childField(int) const {
     const string procName = "GuardField::childField";
     throw OutOfRange(__FILE__, __LINE__, procName);
 }
-
 
 /**
  * Returns the bit width of the guard field.
@@ -606,9 +582,7 @@ GuardField::width() const {
  *                                        the state.
  */
 void
-GuardField::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+GuardField::loadState(const ObjectState* state) {
     const string procName = "GuardField::loadState";
 
     if (state->name() != OSNAME_GUARD_FIELD) {
@@ -638,7 +612,6 @@ GuardField::loadState(const ObjectState* state)
 	    __FILE__, __LINE__, procName, exception.errorMessage());
     }
 }
-
 
 /**
  * Saves the state of the guard field to an ObjectState tree.

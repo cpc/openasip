@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2002-2009 Tampere University of Technology.
+ Copyright (c) 2002-2009 Tampere University.
 
  This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -538,9 +538,7 @@ MachineCanvas::clearHighlights() {
  * @param target Target port of the move.
  */
 void
-MachineCanvas::addMove(const Bus* bus, const Port* source, const Port* target)
-                throw (InstanceNotFound) {
-
+MachineCanvas::addMove(const Bus* bus, const Port* source, const Port* target) {
     std::string procName = "MachineCanvas::addMove";
     EditPart* busEditPart = findEditPart(bus);
 

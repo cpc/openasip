@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -55,10 +55,8 @@ public:
     FUState& parent() const;
     void setParent(FUState& parent) { parent_ = &parent; }
 
-    void addBinding(int io, PortState& port)
-        throw (IllegalRegistration);
-    PortState& binding(int io) const
-        throw (OutOfRange);
+    void addBinding(int io, PortState& port);
+    PortState& binding(int io) const;
 
     virtual void startOperation(Operation& op) = 0;
     bool hasPendingOperations() const;

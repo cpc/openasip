@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -69,10 +69,8 @@ KillCommand::~KillCommand() {
  * @exception NumberFormatException Is never thrown by this command.
  *
  */
-bool 
-KillCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+KillCommand::execute(const std::vector<DataObject>& arguments) {
     const int argumentCount = arguments.size() - 1;
     if (!checkArgumentCount(argumentCount, 0, 0)) {
         return false;

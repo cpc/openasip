@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2012 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -48,9 +48,7 @@ public:
     typedef double Runtime;
     typedef int ClockCycles;
 
-
-    TestApplication(const std::string& testApplicationPath)
-        throw (IOException);
+    TestApplication(const std::string& testApplicationPath);
     virtual ~TestApplication();
 
     std::vector<std::string> description() const;

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -54,10 +54,8 @@ namespace TTAProgram {
  *
  * @param port The port of the terminal.
  */
-TerminalFUPort::TerminalFUPort(
-    const TTAMachine::BaseFUPort& port) throw (IllegalParameters) :
-    port_(port), operation_(NULL), opcode_(NULL) {
-
+TerminalFUPort::TerminalFUPort(const TTAMachine::BaseFUPort& port)
+    : port_(port), operation_(NULL), opcode_(NULL) {
     if (port_.isOpcodeSetting()) {
         std::string msg = 
             "Opcode setting port terminals must have opcode set!";
@@ -103,11 +101,10 @@ TerminalFUPort::TerminalFUPort(
  * @param operation Operation of terminal.
  * @param opIndex Operation index.
  */
-TerminalFUPort::TerminalFUPort(const HWOperation &operation, int opIndex)
-    throw (IllegalParameters) :
-    port_(*operation.port(opIndex)), operation_(&operation), 
-    opIndex_(opIndex) {
-
+TerminalFUPort::TerminalFUPort(const HWOperation& operation, int opIndex)
+    : port_(*operation.port(opIndex)),
+      operation_(&operation),
+      opIndex_(opIndex) {
     /* In case the operand cannot be resolved to a legal port, it's an
        error in the loaded input program. Thus, we cannot abort the program but
        we'll throw an exception instead. */
@@ -180,8 +177,7 @@ TerminalFUPort::isRA() const {
  * @exception WrongSubclass never.
 */
 bool
-TerminalFUPort::isOpcodeSetting() const 
-    throw (WrongSubclass) {
+TerminalFUPort::isOpcodeSetting() const {
     return port_.isOpcodeSetting();
 }
 
@@ -192,11 +188,9 @@ TerminalFUPort::isOpcodeSetting() const
  * @exception WrongSubclass never.
 */
 bool
-TerminalFUPort::isTriggering() const 
-    throw (WrongSubclass) {
+TerminalFUPort::isTriggering() const {
     return port_.isTriggering();
 }
-
 
 /**
  * Returns the function unit of the port.
@@ -205,8 +199,7 @@ TerminalFUPort::isTriggering() const
  * @exception WrongSubclass never.
  */
 const FunctionUnit&
-TerminalFUPort::functionUnit() const 
-    throw (WrongSubclass) {
+TerminalFUPort::functionUnit() const {
     return *port_.parentUnit();
 }
 
@@ -217,9 +210,7 @@ TerminalFUPort::functionUnit() const
  * @exception InvalidData If terminal does not set opcode for FU.
  */
 Operation&
-TerminalFUPort::operation() const 
-    throw (WrongSubclass, InvalidData) {
-
+TerminalFUPort::operation() const {
     if (port_.isOpcodeSetting() && opcode_ != NULL) {
         return *opcode_;
     } else {
@@ -244,9 +235,7 @@ TerminalFUPort::operation() const
  * @todo Rename to operandIndex()?
  */
 int
-TerminalFUPort::operationIndex() const 
-    throw (WrongSubclass, InvalidData) {
-
+TerminalFUPort::operationIndex() const {
     if (operation_ != NULL) {
         return opIndex_;
     } else {
@@ -270,9 +259,7 @@ TerminalFUPort::operationIndex() const
  *         Null operation if terminal does not contain operation code.
  */
 Operation&
-TerminalFUPort::hintOperation() const 
-    throw (WrongSubclass, InvalidData) {
-
+TerminalFUPort::hintOperation() const {
     if (opcode_ != NULL) {
         return *opcode_;
     } else {
@@ -294,8 +281,7 @@ TerminalFUPort::setOperation(const TTAMachine::HWOperation& hwOp) {
  * @exception WrongSubclass never.
  */
 const Port&
-TerminalFUPort::port() const 
-    throw (WrongSubclass) {
+TerminalFUPort::port() const {
     return port_;
 }
 

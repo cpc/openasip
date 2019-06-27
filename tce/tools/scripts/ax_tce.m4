@@ -1,4 +1,4 @@
-# Copyright 2002-2008 Tampere University of Technology.  All Rights Reserved.
+# Copyright 2002-2008 Tampere University.  All Rights Reserved.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 #

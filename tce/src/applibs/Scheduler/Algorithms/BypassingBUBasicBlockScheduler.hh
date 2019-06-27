@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -87,10 +87,8 @@ public:
     virtual ~BypassingBUBasicBlockScheduler();
 
     virtual void handleDDG(
-        DataDependenceGraph& ddg,
-        SimpleResourceManager& rm,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        DataDependenceGraph& ddg, SimpleResourceManager& rm,
+        const TTAMachine::Machine& targetMachine);
 
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;

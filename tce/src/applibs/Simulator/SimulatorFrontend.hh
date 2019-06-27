@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -109,45 +109,32 @@ public:
 
     virtual void loadProgram(const std::string& fileName);
 
-    virtual void loadMachine(const std::string& fileName)
-        throw (FileNotFound, IOException, SimulationStillRunning, 
-               IllegalMachine);
+    virtual void loadMachine(const std::string& fileName);
 
     void loadProgram(const TTAProgram::Program& program);
 
-    void loadMachine(const TTAMachine::Machine& machine)
-        throw (SimulationStillRunning, IllegalProgram);
+    void loadMachine(const TTAMachine::Machine& machine);
 
-    void loadProcessorConfiguration(const std::string& fileName)
-        throw (FileNotFound, IOException, SimulationStillRunning, 
-               IllegalMachine);
+    void loadProcessorConfiguration(const std::string& fileName);
 
     const TTAMachine::Machine& machine() const;
     const TTAProgram::Program& program() const;
 
-    const SimValue& stateValue(std::string searchString) 
-        throw (InstanceNotFound);
-    
-    StateData& state(std::string searchString) 
-        throw (InstanceNotFound);
+    const SimValue& stateValue(std::string searchString);
+
+    StateData& state(std::string searchString);
 
     MachineState& machineState();
 
-    virtual void next(int count = 1)
-        throw (SimulationExecutionError);
-    virtual void step(double count = 1)
-        throw (SimulationExecutionError);
-    virtual void run()
-        throw (SimulationExecutionError);
+    virtual void next(int count = 1);
+    virtual void step(double count = 1);
+    virtual void run();
 
-    virtual void runUntil(UIntWord address)
-        throw (SimulationExecutionError);        
-
+    virtual void runUntil(UIntWord address);
 
     void prepareToStop(StopReason reason);
     unsigned int stopReasonCount() const;
-    StopReason stopReason(unsigned int index) const 
-        throw (OutOfRange);
+    StopReason stopReason(unsigned int index) const;
     bool stoppedByUser() const;
     virtual void killSimulation();
 
@@ -176,8 +163,7 @@ public:
     bool utilizationDataSaving() const;
     bool staticCompilation() const;
 
-    const RFAccessTracker& rfAccessTracker() const
-        throw (InstanceNotFound);
+    const RFAccessTracker& rfAccessTracker() const;
 
     void setCompiledSimulation(bool value);
     void setExecutionTracing(bool value);
@@ -213,18 +199,11 @@ public:
         const std::string& fuName, 
         const std::string& portName);
 
-    StateData& findRegister(
-        const std::string& rfName, 
-        int registerIndex) 
-        throw (InstanceNotFound);
+    StateData& findRegister(const std::string& rfName, int registerIndex);
 
-    StateData& findBooleanRegister() 
-        throw (InstanceNotFound);
+    StateData& findBooleanRegister();
 
-    StateData& findPort(
-        const std::string& fuName, 
-        const std::string& portName) 
-        throw (InstanceNotFound);
+    StateData& findPort(const std::string& fuName, const std::string& portName);
 
     const UtilizationStats& utilizationStatistics();
     const ExecutableInstruction& lastExecInstruction() const;
@@ -277,8 +256,7 @@ public:
 protected:
     virtual void initializeSimulation();
 
-    void initializeTracing() 
-        throw (IOException);
+    void initializeTracing();
     void initializeDisassembler() const;
     void initializeMemorySystem();
     void setControllerForMemories(RemoteController* con);

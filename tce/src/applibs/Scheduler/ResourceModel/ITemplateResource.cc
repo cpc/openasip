@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -80,8 +80,7 @@ ITemplateResource::isAvailable(const int cycle) const {
  * The overridden method should be used instead.
  */
 void
-ITemplateResource::assign(const int, MoveNode&)
-    throw (Exception) {
+ITemplateResource::assign(const int, MoveNode&) {
     abortWithError("Not implemented!");
 }
 
@@ -91,8 +90,7 @@ ITemplateResource::assign(const int, MoveNode&)
  * @param cycle Cycle to assign.
  */
 void
-ITemplateResource::assign(const int cycle)
-    throw (Exception) {
+ITemplateResource::assign(const int cycle) {
     if (canAssign(cycle)) {
         if (MapTools::containsKey(resourceRecord_, cycle)){
             resourceRecord_[instructionIndex(cycle)]++;
@@ -106,8 +104,7 @@ ITemplateResource::assign(const int cycle)
  * The overridden method should be used instead.
  */
 void
-ITemplateResource::unassign(const int, MoveNode&)
-    throw (Exception) {
+ITemplateResource::unassign(const int, MoveNode&) {
     abortWithError("Not implemented!");
 }
 
@@ -117,8 +114,7 @@ ITemplateResource::unassign(const int, MoveNode&)
  * @param cycle Cycle to remove assignment from.
  */
 void
-ITemplateResource::unassign(const int cycle)
-    throw (Exception) {
+ITemplateResource::unassign(const int cycle) {
     if (isInUse(cycle)) {
         resourceRecord_[instructionIndex(cycle)]--;
     }

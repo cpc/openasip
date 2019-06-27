@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -52,10 +52,7 @@ const string RFPort::OSNAME_RFPORT = "rf_port";
  *                                   name in the parent unit.
  */
 RFPort::RFPort(const std::string& name, BaseRegisterFile& parent)
-    throw (InvalidName, ComponentAlreadyExists) :
-    Port(name, parent) {
-}
-
+    : Port(name, parent) {}
 
 /**
  * The constuctor.
@@ -67,10 +64,7 @@ RFPort::RFPort(const std::string& name, BaseRegisterFile& parent)
  * @exception ObjectStateLoadingException If an error occurs while loading
  *                                        the state.
  */
-RFPort::RFPort(const ObjectState* state, Unit& parent)
-    throw (ObjectStateLoadingException) : Port(state, parent) {
-}
-
+RFPort::RFPort(const ObjectState* state, Unit& parent) : Port(state, parent) {}
 
 /**
  * The destructor.
@@ -122,9 +116,7 @@ RFPort::saveState() const {
  *                                        is invalid.
  */
 void
-RFPort::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+RFPort::loadState(const ObjectState* state) {
     if (state->name() != OSNAME_RFPORT) {
         const string procName = "RFPort::loadState";
         throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
@@ -132,5 +124,4 @@ RFPort::loadState(const ObjectState* state)
 
     Port::loadState(state);
 }
-
 }

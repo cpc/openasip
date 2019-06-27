@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -73,10 +73,8 @@ public:
     virtual ~BasicBlockScheduler();
 
     virtual void handleDDG(
-        DataDependenceGraph& ddg,
-        SimpleResourceManager& rm,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        DataDependenceGraph& ddg, SimpleResourceManager& rm,
+        const TTAMachine::Machine& targetMachine);
 
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;
@@ -90,47 +88,36 @@ public:
     using BasicBlockPass::ddgBuilder;
 
 protected:
-    void scheduleRRMove(MoveNode& moveNode)
-        throw (Exception);
+    void scheduleRRMove(MoveNode& moveNode);
 
-    void scheduleOperation(MoveNodeGroup& moves)
-        throw (Exception);
+    void scheduleOperation(MoveNodeGroup& moves);
 
-    int scheduleOperandWrites(int& cycle, MoveNodeGroup& moves)
-        throw (Exception);
+    int scheduleOperandWrites(int& cycle, MoveNodeGroup& moves);
 
-    bool scheduleResultReads(MoveNodeGroup& moves)
-        throw (Exception);
+    bool scheduleResultReads(MoveNodeGroup& moves);
 
-    void scheduleMove(MoveNode& move, int earliestCycle)
-        throw (Exception);
+    void scheduleMove(MoveNode& move, int earliestCycle);
 
     void scheduleRRTempMoves(
-        MoveNode& regToRegMove, MoveNode& firstMove, int lastUse)
-        throw (Exception);
+        MoveNode& regToRegMove, MoveNode& firstMove, int lastUse);
 
     void scheduleInputOperandTempMoves(
-        MoveNode& operandMove, MoveNode& operandWrite)
-        throw (Exception);
+        MoveNode& operandMove, MoveNode& operandWrite);
 
     void unschedule(MoveNode& moveNode);
 
     void unscheduleInputOperandTempMoves(MoveNode& operandMove);
 
     void scheduleResultReadTempMoves(
-        MoveNode& resultMove, MoveNode& resultRead, int lastUse)
-        throw (Exception);
+        MoveNode& resultMove, MoveNode& resultRead, int lastUse);
 
     void unscheduleResultReadTempMoves(MoveNode& resultMove);
 
-    void notifyScheduled(
-        MoveNodeGroup& moves, MoveNodeSelector& selector);
+    void notifyScheduled(MoveNodeGroup& moves, MoveNodeSelector& selector);
 
     void ddgSnapshot(
-        DataDependenceGraph& ddg, 
-        const std::string& name,
-        DataDependenceGraph::DumpFileFormat format,
-        bool final,
+        DataDependenceGraph& ddg, const std::string& name,
+        DataDependenceGraph::DumpFileFormat format, bool final,
         bool resetCounter = false) const;
 
     MoveNode* succeedingTempMove(MoveNode& current);
@@ -139,12 +126,11 @@ protected:
         const Operation& operation, const TTAMachine::Machine& machine);
 
     bool tryToSwitchInputs(ProgramOperation& op);
-        
+
     MoveNode* findTrigger(ProgramOperation& po);
-        
-    MoveNode* findTriggerFromUnit(
-        ProgramOperation& po, TTAMachine::Unit& unit);
-    
+
+    MoveNode* findTriggerFromUnit(ProgramOperation& po, TTAMachine::Unit& unit);
+
     /// The target machine we are scheduling the program against.
     const TTAMachine::Machine* targetMachine_;
     /// DDG of the currently scheduled BB.
@@ -153,8 +139,7 @@ protected:
     SimpleResourceManager* rm_;
     /// Stores the MoveNodes that were scheduled as temp moves during
     /// scheduling of the operand move.
-    std::map<const MoveNode*, DataDependenceGraph::NodeSet > 
-    scheduledTempMoves_;
+    std::map<const MoveNode*, DataDependenceGraph::NodeSet> scheduledTempMoves_;
     /// The software bypasser to use to bypass registers when possible.
     SoftwareBypasser* softwareBypasser_;
 

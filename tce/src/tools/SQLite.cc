@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -67,12 +67,7 @@ SQLite::~SQLite() {
  */
 RelationalDBConnection&
 SQLite::connect(
-    const std::string& database,
-    const std::string&,
-    const std::string&,
-    bool)
-    throw (RelationalDBException) {
-
+    const std::string& database, const std::string&, const std::string&, bool) {
     if (activeConnection_ != NULL) {
         close(*activeConnection_);
         activeConnection_ = NULL;
@@ -102,9 +97,7 @@ SQLite::connect(
  * @exception RelationalDBException Thrown if closing the connection failed.
  */
 void
-SQLite::close(const RelationalDBConnection&)
-    throw (RelationalDBException) {
-
+SQLite::close(const RelationalDBConnection&) {
     if (activeConnection_ == NULL) {
         return;
     }

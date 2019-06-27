@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -56,7 +56,7 @@ using namespace HDB;
  * @throw IOException if an error occured opening the HDB file.
  */
 CachedHDBManager::CachedHDBManager(const std::string& hdbFile)
-    throw (IOException): HDBManager(hdbFile) {   
+    : HDBManager(hdbFile) {
     lastModificationTime_ = FileSystem::lastModificationTime(hdbFile);
     lastSizeInBytes_ = FileSystem::sizeInBytes(hdbFile);
 }
@@ -86,16 +86,13 @@ CachedHDBManager::~CachedHDBManager() {
  * @exception IOException If connection to the DB cannot be established.
  */
 CachedHDBManager&
-CachedHDBManager::instance(const std::string& hdbFile) 
-    throw (IOException) {
-
+CachedHDBManager::instance(const std::string& hdbFile) {
     HDBRegistry* registry = &HDBRegistry::instance();
     if (!registry->hasHDB(hdbFile)) {
         registry->addHDB(new CachedHDBManager(hdbFile));
     }
     return registry->hdb(hdbFile);
 }
-
 
 /**
  * Creates a new HDB and returns CachedHDBManager instance for accessing it.
@@ -105,13 +102,10 @@ CachedHDBManager::instance(const std::string& hdbFile)
  * @throw UnreachableStream If the HDB creation was not succesful.
  */
 CachedHDBManager&
-CachedHDBManager::createNew(const std::string& file)
-    throw (UnreachableStream) {
-
+CachedHDBManager::createNew(const std::string& file) {
     HDBManager::createNew(file);
     return instance(file);
 }
-
 
 /**
  * Removes FU architecture from the HDB.
@@ -122,9 +116,7 @@ CachedHDBManager::createNew(const std::string& file)
  * @param archID ID of the FU architecture to remove.
  */
 void
-CachedHDBManager::removeFUArchitecture(RowID archID) const
-    throw (InvalidData) {
-
+CachedHDBManager::removeFUArchitecture(RowID archID) const {
     // Remove architecture from the cache.
     std::map<RowID, FUArchitecture*>::iterator iter =
         fuArchCache_.find(archID);
@@ -172,9 +164,7 @@ CachedHDBManager::removeFUImplementation(RowID id) const {
  * @param archID ID of the RF architecture to remove.
  */
 void
-CachedHDBManager::removeRFArchitecture(RowID archID) const
-    throw (InvalidData) {
-
+CachedHDBManager::removeRFArchitecture(RowID archID) const {
     // Remove architecture from the cache.
     std::map<RowID, RFArchitecture*>::iterator iter =
         rfArchCache_.find(archID);
@@ -225,9 +215,7 @@ CachedHDBManager::removeRFImplementation(RowID id) const {
  * @throw KeyNotFound if an architecture with the given id was not found.
  */
 FUArchitecture*
-CachedHDBManager::fuArchitectureByID(RowID id) const
-    throw (KeyNotFound) {
-
+CachedHDBManager::fuArchitectureByID(RowID id) const {
     validateCache();
 
     std::map<RowID, FUArchitecture*>::iterator iter = fuArchCache_.find(id);
@@ -253,9 +241,7 @@ CachedHDBManager::fuArchitectureByID(RowID id) const
  * @throw KeyNotFound if an architecture with the given id was not found.
  */
 RFArchitecture*
-CachedHDBManager::rfArchitectureByID(RowID id) const
-    throw (KeyNotFound) {
-
+CachedHDBManager::rfArchitectureByID(RowID id) const {
     validateCache();
 
     std::map<RowID, RFArchitecture*>::iterator iter = rfArchCache_.find(id);
@@ -281,12 +267,9 @@ CachedHDBManager::rfArchitectureByID(RowID id) const
  * @exception KeyNotFound If the HDB does not contain cost estimation 
  *                        data with the given arguments.
  */
-DataObject 
+DataObject
 CachedHDBManager::costEstimationDataValue(
-    const std::string& valueName,
-    const std::string& pluginName) const
-    throw (KeyNotFound) {
-
+    const std::string& valueName, const std::string& pluginName) const {
     validateCache();
 
     std::map<std::string, std::map<std::string, DataObject> >::iterator iter =
@@ -320,10 +303,9 @@ CachedHDBManager::costEstimationDataValue(
  * @exception InvalidData
  * @exception KeyNotFound
  */
-void 
-CachedHDBManager::modifyCostFunctionPlugin(RowID id, const CostFunctionPlugin& plugin)
-    throw (InvalidData, KeyNotFound) {
-    
+void
+CachedHDBManager::modifyCostFunctionPlugin(
+    RowID id, const CostFunctionPlugin& plugin) {
     // can't say by rowid what plugin is modified
     costEstimationPluginValueCache_.clear();     
 
@@ -420,9 +402,8 @@ CachedHDBManager::removeCostEstimationData(RowID id) const {
  * @exception KeyNotFound
  */
 void
-CachedHDBManager::modifyCostEstimationData(RowID id, const CostEstimationData& data)
-    throw (InvalidData, KeyNotFound) {
-
+CachedHDBManager::modifyCostEstimationData(
+    RowID id, const CostEstimationData& data) {
     costEstimationPluginValueCache_.clear();     
     HDBManager::modifyCostEstimationData(id, data);
 }

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -86,9 +86,7 @@ VHDLNetlistWriter::~VHDLNetlistWriter() {
  * @exception InvalidData If the netlist is invalid.
  */
 void
-VHDLNetlistWriter::write(const std::string& dstDirectory)
-    throw (IOException, InvalidData) {
-
+VHDLNetlistWriter::write(const std::string& dstDirectory) {
     const Netlist& netlist = this->netlist();
     if (netlist.isEmpty()) {
         string errorMsg = "Empty input netlist.";
@@ -99,7 +97,6 @@ VHDLNetlistWriter::write(const std::string& dstDirectory)
     NetlistBlock& topLevelBlock = netlist.topLevelBlock();
     writeBlock(topLevelBlock, dstDirectory);
 }
-
 
 /**
  * Writes the package that defines parameters of the netlist.
@@ -146,10 +143,7 @@ VHDLNetlistWriter::netlistParameterPkgName() const {
  */
 void
 VHDLNetlistWriter::writeBlock(
-    const NetlistBlock& block,
-    const std::string& dstDirectory)
-    throw (IOException) {
-
+    const NetlistBlock& block, const std::string& dstDirectory) {
     string fileName = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         block.moduleName() + ".vhdl";
     if (!FileSystem::fileIsCreatable(fileName) && 
@@ -215,7 +209,6 @@ VHDLNetlistWriter::writeBlock(
     outFile << "end " + architectureName + ";" << endl;
     outFile.close();
 }
-
 
 /**
  * Writes the generic declarations of the given netlist block.

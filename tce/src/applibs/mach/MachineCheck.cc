@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -89,8 +89,6 @@ MachineCheck::canFix(const TTAMachine::Machine&) const {
  * @throw InvalidData If the machine can't be fixed automatically.
  */
 std::string
-MachineCheck::fix(TTAMachine::Machine&) const
-    throw (InvalidData) {
-
+MachineCheck::fix(TTAMachine::Machine&) const {
     throw InvalidData(__FILE__, __LINE__, __func__);
 }

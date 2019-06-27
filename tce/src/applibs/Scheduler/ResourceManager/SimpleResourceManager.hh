@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -60,14 +60,10 @@ public:
 
     virtual bool canAssign(int cycle, MoveNode& node) const;
     virtual bool canTransportImmediate(const MoveNode& node) const;
-    virtual void assign(int cycle, MoveNode& node)
-        throw (Exception);
-    virtual void unassign(MoveNode& node)
-        throw (Exception);
-    virtual int earliestCycle(MoveNode& node) const
-        throw (Exception);
-    virtual int earliestCycle(int cycle, MoveNode& node) const
-        throw (Exception);
+    virtual void assign(int cycle, MoveNode& node);
+    virtual void unassign(MoveNode& node);
+    virtual int earliestCycle(MoveNode& node) const;
+    virtual int earliestCycle(int cycle, MoveNode& node) const;
     virtual int latestCycle(MoveNode& node) const;
     virtual int latestCycle(int cycle, MoveNode& node) const;
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -244,9 +244,7 @@ OutputFUBroker::allAvailableResources(
  * given node or no corresponding machine part is found.
  */
 void
-OutputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
-    throw (Exception) {
-
+OutputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res) {
     // TODO: this breaks execpipeline
 //    cycle = instructionIndex(cycle);
     if (!isApplicable(node)) {

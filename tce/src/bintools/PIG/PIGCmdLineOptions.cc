@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -168,9 +168,7 @@ PIGCmdLineOptions::tpefFileCount() const {
  * @return The name of the TPEF file.
  */
 std::string
-PIGCmdLineOptions::tpefFile(int index) const
-    throw (OutOfRange) {
-
+PIGCmdLineOptions::tpefFile(int index) const {
     CmdLineOptionParser* option = findOption(TPEF_PARAM_NAME);
     if (index < 0 || index >= tpefFileCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
@@ -178,7 +176,6 @@ PIGCmdLineOptions::tpefFile(int index) const
 
     return option->String(index + 1);
 }
-
 
 /**
  * Returns the program image output format given as command line parameter.
@@ -267,16 +264,13 @@ PIGCmdLineOptions::compressorParameterCount() const {
  *                       the number of parameters given to compressor.
  */
 std::string
-PIGCmdLineOptions::compressorParameter(int index) const
-    throw (OutOfRange) {
-
+PIGCmdLineOptions::compressorParameter(int index) const {
     if (index < 0 || index >= compressorParameterCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
 
     return findOption(COMPRESSOR_PARAMS_PARAM_NAME)->String(index + 1);
 }
-
 
 /**
  * Tells whether to show code compressor descriptions or not.

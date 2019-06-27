@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2012 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -69,38 +69,23 @@ public:
 
     TTAProgram::Program* compile(
         const std::string& bytecodeFile,
-        const std::string& emulationBytecodeFile,
-        TTAMachine::Machine& target,
-        int optLevel,
-        bool debug = false,
-        InterPassData* ipData = NULL)
-        throw (Exception);
+        const std::string& emulationBytecodeFile, TTAMachine::Machine& target,
+        int optLevel, bool debug = false, InterPassData* ipData = NULL);
 
     TTAProgram::Program* compile(
-        llvm::Module& module,
-        llvm::Module* emulationModule,
-        llvm::TCETargetMachinePlugin& plugin,
-        TTAMachine::Machine& target,
-        int optLevel,
-        bool debug = false,
-        InterPassData* ipData = NULL)
-        throw (Exception);
+        llvm::Module& module, llvm::Module* emulationModule,
+        llvm::TCETargetMachinePlugin& plugin, TTAMachine::Machine& target,
+        int optLevel, bool debug = false, InterPassData* ipData = NULL);
 
     TTAProgram::Program* schedule(
         const std::string& bytecodeFile,
-        const std::string& emulationBytecodeFile,
-        TTAMachine::Machine& target,
-        int optLevel = 2,
-        bool debug = false,
-        SchedulingPlan* plan = NULL)
-        throw (Exception);
+        const std::string& emulationBytecodeFile, TTAMachine::Machine& target,
+        int optLevel = 2, bool debug = false, SchedulingPlan* plan = NULL);
 
     llvm::TCETargetMachinePlugin* createPlugin(
-        const TTAMachine::Machine& target)
-        throw (Exception);
+        const TTAMachine::Machine& target);
 
 private:
-
     std::string pluginFilename(const TTAMachine::Machine& target);
 
     /// Assume we are running an installed TCE version.

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -44,16 +44,14 @@
 class ProDeOptions : public GUIOptions {
 public:
     ProDeOptions();
-    ProDeOptions(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    ProDeOptions(const ObjectState* state);
     ProDeOptions(const ProDeOptions& old);
     virtual ~ProDeOptions();
 
     int undoStackSize() const;
     void setUndoStackSize(int size);
 
-    void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadState(const ObjectState* state);
 
     ObjectState* saveState() const;
 

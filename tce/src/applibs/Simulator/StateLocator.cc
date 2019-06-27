@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -75,9 +75,7 @@ StateLocator::addState(const MachinePart& momComponent, StateData& state) {
  * @exception IllegalParameters If state is not found.
  */
 StateData&
-StateLocator::state(const MachinePart& momComponent) const
-    throw (IllegalParameters) {
-
+StateLocator::state(const MachinePart& momComponent) const {
     StateContainer::const_iterator iter = states_.find(&momComponent);
     if (iter == states_.end()) {
         string msg = "State corresponding to component not found";

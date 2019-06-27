@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -54,11 +54,8 @@ const std::string DestinationField::OSNAME_DESTINATION_FIELD = "dest_field";
  *                              with other destination fields.
  */
 DestinationField::DestinationField(
-    BinaryEncoding::Position socketIDPos,
-    MoveSlot& parent)
-throw (ObjectAlreadyExists, IllegalParameters) :
-SlotField(socketIDPos, parent) {
-
+    BinaryEncoding::Position socketIDPos, MoveSlot& parent)
+    : SlotField(socketIDPos, parent) {
     BinaryEncoding* bem = parent.parent();
     for (int i = 0; i < bem->moveSlotCount(); i++) {
 	MoveSlot& slot = bem->moveSlot(i);
@@ -76,7 +73,6 @@ SlotField(socketIDPos, parent) {
     setParent(&parent);
 }
 
-
 /**
  * The constructor.
  *
@@ -90,9 +86,7 @@ SlotField(socketIDPos, parent) {
  *                                destination field.
  */
 DestinationField::DestinationField(const ObjectState* state, MoveSlot& parent)
-throw (ObjectStateLoadingException, ObjectAlreadyExists) :
-SlotField(state, parent) {
-
+    : SlotField(state, parent) {
     if (state->name() != OSNAME_DESTINATION_FIELD) {
 	const string procName = "DestinationField::DestinationField";
 	throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
@@ -102,7 +96,6 @@ SlotField(state, parent) {
     parent.setDestinationField(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.

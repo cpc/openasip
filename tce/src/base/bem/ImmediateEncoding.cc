@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -58,13 +58,9 @@ const std::string ImmediateEncoding::OSKEY_IMM_WIDTH = "imm_width";
  * @exception OutOfRange If the given immediate width is negative.
  */
 ImmediateEncoding::ImmediateEncoding(
-    unsigned int encoding,
-    unsigned int extraBits,
-    int immediateWidth,
+    unsigned int encoding, unsigned int extraBits, int immediateWidth,
     SourceField& parent)
-    throw (ObjectAlreadyExists, OutOfRange) :
-    Encoding(encoding, extraBits, NULL), immediateWidth_(immediateWidth) {
-
+    : Encoding(encoding, extraBits, NULL), immediateWidth_(immediateWidth) {
     if (immediateWidth < 0) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -72,7 +68,6 @@ ImmediateEncoding::ImmediateEncoding(
     parent.setImmediateEncoding(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -89,11 +84,8 @@ ImmediateEncoding::ImmediateEncoding(
  *                                        is erroneous.
  */
 ImmediateEncoding::ImmediateEncoding(
-    const ObjectState* state,
-    SourceField& parent)
-    throw (ObjectAlreadyExists, ObjectStateLoadingException) :
-    Encoding(state, NULL) {
-
+    const ObjectState* state, SourceField& parent)
+    : Encoding(state, NULL) {
     const string procName = "ImmediateEncoding::ImmediateEncoding";
 
     if (state->name() != OSNAME_IMM_ENCODING) {
@@ -113,7 +105,6 @@ ImmediateEncoding::ImmediateEncoding(
     parent.setImmediateEncoding(*this);    
     setParent(&parent);
 }
-
 
 /**
  * The destructor.

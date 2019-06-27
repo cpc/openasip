@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -54,9 +54,7 @@ public:
     virtual ~OperationPropertyLoader();
 
     void loadOperationProperties(
-        Operation& operation, 
-        const OperationModule& module)
-        throw (InstanceNotFound);
+        Operation& operation, const OperationModule& module);
 
 private:
     /// Container containing already read ObjectState trees.
@@ -72,8 +70,7 @@ private:
     /// Assignment not allowed.
     OperationPropertyLoader& operator=(const OperationPropertyLoader&);
 
-    void loadModule(const OperationModule& module) 
-        throw (InstanceNotFound);
+    void loadModule(const OperationModule& module);
 
     /// Serializer instance.
     OperationSerializer serializer_;

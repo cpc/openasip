@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -74,10 +74,7 @@ OperationPropertyLoader::~OperationPropertyLoader() {
  */
 void
 OperationPropertyLoader::loadOperationProperties(
-    Operation& operation, 
-    const OperationModule& module)
-    throw (InstanceNotFound) {
-
+    Operation& operation, const OperationModule& module) {
     MapIter it = operations_.find(module.propertiesModule());
     if (it == operations_.end()) {
         // properties are not yet read, let's do it first
@@ -120,9 +117,7 @@ OperationPropertyLoader::loadOperationProperties(
  * @exception InstanceNotFound If loading the module fails.
  */
 void
-OperationPropertyLoader::loadModule(const OperationModule& module) 
-    throw (InstanceNotFound) {
-    
+OperationPropertyLoader::loadModule(const OperationModule& module) {
     serializer_.setSourceFile(module.propertiesModule());
     ObjectState* root = NULL;
     try {

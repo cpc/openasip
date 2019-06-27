@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -139,11 +139,8 @@ BypassingBUBasicBlockScheduler::~BypassingBUBasicBlockScheduler() {
  */
 void
 BypassingBUBasicBlockScheduler::handleDDG(
-    DataDependenceGraph& ddg,
-    SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
+    DataDependenceGraph& ddg, SimpleResourceManager& rm,
+    const TTAMachine::Machine& targetMachine) {
     if (!BasicBlockPass::interPassData().hasDatum("SCRATCH_REGISTERS")) {
         RegisterCopyAdder::findTempRegisters(
             targetMachine, BasicBlockPass::interPassData());

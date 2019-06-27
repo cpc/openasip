@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -55,9 +55,7 @@ CostEstimationData::~CostEstimationData() {
  * @return Cost data name.
  */
 std::string
-CostEstimationData::name() const
-    throw (NotAvailable) {
-
+CostEstimationData::name() const {
     if (!hasName_) {
         throw NotAvailable(
             __FILE__, __LINE__, __func__, "Attribute value not set.");
@@ -72,9 +70,7 @@ CostEstimationData::name() const
  * @return Cost data value.
  */
 DataObject
-CostEstimationData::value() const
-    throw (NotAvailable) {
-
+CostEstimationData::value() const {
     if (!hasValue_) {
         throw NotAvailable(
             __FILE__, __LINE__, __func__, "Attribute value not set.");
@@ -89,9 +85,7 @@ CostEstimationData::value() const
  * @return Cost function plugin ID.
  */
 RowID
-CostEstimationData::pluginID() const
-    throw (NotAvailable) {
-
+CostEstimationData::pluginID() const {
     if (!hasPluginID_) {
         throw NotAvailable(
             __FILE__, __LINE__, __func__, "Attribute value not set.");
@@ -106,9 +100,7 @@ CostEstimationData::pluginID() const
  * @return Function unit entry reference.
  */
 RowID
-CostEstimationData::fuReference() const
-    throw (NotAvailable) {
-
+CostEstimationData::fuReference() const {
     if (!hasFUReference_) {
         throw NotAvailable(
             __FILE__, __LINE__, __func__, "Attribute value not set.");
@@ -123,9 +115,7 @@ CostEstimationData::fuReference() const
  * @return Register file entry reference.
  */
 RowID
-CostEstimationData::rfReference() const
-    throw (NotAvailable) {
-
+CostEstimationData::rfReference() const {
     if (!hasRFReference_) {
         throw NotAvailable(
             __FILE__, __LINE__, __func__, "Attribute value not set.");
@@ -140,9 +130,7 @@ CostEstimationData::rfReference() const
  * @return Register file entry reference.
  */
 RowID
-CostEstimationData::busReference() const
-    throw (NotAvailable) {
-
+CostEstimationData::busReference() const {
     if (!hasBusReference_) {
         throw NotAvailable(
             __FILE__, __LINE__, __func__, "Attribute value not set.");
@@ -157,9 +145,7 @@ CostEstimationData::busReference() const
  * @return Register file entry reference.
  */
 RowID
-CostEstimationData::socketReference() const
-    throw (NotAvailable) {
-
+CostEstimationData::socketReference() const {
     if (!hasSocketReference_) {
         throw NotAvailable(
             __FILE__, __LINE__, __func__, "Attribute value not set.");

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -57,17 +57,11 @@ const string BaseRegisterFile::OSKEY_WIDTH = "width";
  * @exception OutOfRange If the given size or width is out of range.
  * @exception InvalidName If the given name is not a valid component name.
  */
-BaseRegisterFile::BaseRegisterFile(
-    const std::string& name,
-    int size,
-    int width)
-    throw (OutOfRange, InvalidName) :
-    Unit(name), size_(size), width_(width) {
-
+BaseRegisterFile::BaseRegisterFile(const std::string& name, int size, int width)
+    : Unit(name), size_(size), width_(width) {
     setNumberOfRegisters(size);
     setWidth(width);
 }
-
 
 /**
  * Constructor.
@@ -80,12 +74,9 @@ BaseRegisterFile::BaseRegisterFile(
  *                                        is invalid.
  */
 BaseRegisterFile::BaseRegisterFile(const ObjectState* state)
-    throw (ObjectStateLoadingException) :
-    Unit(state), size_(0), width_(0) {
-
+    : Unit(state), size_(0), width_(0) {
     loadStateWithoutReferences(state);
 }
-
 
 /**
  * Destructor.
@@ -102,9 +93,7 @@ BaseRegisterFile::~BaseRegisterFile() {
  *                       to zero.
  */
 void
-BaseRegisterFile::setNumberOfRegisters(int registers)
-    throw (OutOfRange) {
-
+BaseRegisterFile::setNumberOfRegisters(int registers) {
     if (registers <= 0) {
         string procName = "BaseRegisterFile::setNumberOfRegisters";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -113,7 +102,6 @@ BaseRegisterFile::setNumberOfRegisters(int registers)
     size_ = registers;
 }
 
-
 /**
  * Sets the bit width of the registers.
  *
@@ -121,9 +109,7 @@ BaseRegisterFile::setNumberOfRegisters(int registers)
  * @exception OutOfRange If the given width is less or equal to zero.
  */
 void
-BaseRegisterFile::setWidth(int width)
-    throw (OutOfRange) {
-
+BaseRegisterFile::setWidth(int width) {
     if (width <= 0) {
         string procName = "BaseRegisterFile::setWidth";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -131,7 +117,6 @@ BaseRegisterFile::setWidth(int width)
 
     width_ = width;
 }
-
 
 /**
  * Returns the requested port.
@@ -141,15 +126,12 @@ BaseRegisterFile::setWidth(int width)
  * @exception InstanceNotFound If a port is not found by the given name.
  */
 RFPort*
-BaseRegisterFile::port(const std::string& name) const
-    throw (InstanceNotFound) {
-
+BaseRegisterFile::port(const std::string& name) const {
     Port* port = Unit::port(name);
     RFPort* rfPort = dynamic_cast<RFPort*>(port);
     assert(rfPort != NULL);
     return rfPort;
 }
-
 
 /**
  * Returns a port by the given index.
@@ -162,15 +144,12 @@ BaseRegisterFile::port(const std::string& name) const
  * @exception OutOfRange If the given index is out of range.
  */
 RFPort*
-BaseRegisterFile::port(int index) const
-    throw (OutOfRange) {
-
+BaseRegisterFile::port(int index) const {
     Port* port = Unit::port(index);
     RFPort* rfPort = dynamic_cast<RFPort*>(port);
     assert(rfPort != NULL);
     return rfPort;
 }
-
 
 /**
  * Saves the state of the object into an ObjectState tree.
@@ -195,13 +174,10 @@ BaseRegisterFile::saveState() const {
  *                                        is invalid.
  */
 void
-BaseRegisterFile::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+BaseRegisterFile::loadState(const ObjectState* state) {
     loadStateWithoutReferences(state);
     Unit::loadState(state);
 }
-
 
 /**
  * Loads its state from the given ObjectState instance without references
@@ -212,9 +188,7 @@ BaseRegisterFile::loadState(const ObjectState* state)
  *                                        is invalid.
  */
 void
-BaseRegisterFile::loadStateWithoutReferences(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+BaseRegisterFile::loadStateWithoutReferences(const ObjectState* state) {
     try {
         setNumberOfRegisters(state->intAttribute(OSKEY_SIZE));
         setWidth(state->intAttribute(OSKEY_WIDTH));
@@ -223,5 +197,4 @@ BaseRegisterFile::loadStateWithoutReferences(const ObjectState* state)
         throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
     }
 }
-
 }

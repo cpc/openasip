@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -68,26 +68,20 @@ NullMachine::instance() {
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-NullMachine::addBus(Bus&)
-    throw (ComponentAlreadyExists) {
-
+NullMachine::addBus(Bus&) {
     abortWithError("NullMachine::addBus");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-NullMachine::addSocket(Socket&)
-    throw (ComponentAlreadyExists) {
-
+NullMachine::addSocket(Socket&) {
     abortWithError("NullMachine::addSocket");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
@@ -95,13 +89,10 @@ NullMachine::addSocket(Socket&)
  * @exception IllegalParameters Never thrown.
  */
 void
-NullMachine::addUnit(Unit&)
-    throw (ComponentAlreadyExists, IllegalParameters) {
-
+NullMachine::addUnit(Unit&) {
     abortWithError("NullMachine::addUnit");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
@@ -109,90 +100,69 @@ NullMachine::addUnit(Unit&)
  * @exception IllegalParameters Never thrown.
  */
 void
-NullMachine::addFunctionUnit(FunctionUnit&)
-    throw (ComponentAlreadyExists, IllegalParameters) {
-
+NullMachine::addFunctionUnit(FunctionUnit&) {
     abortWithError("NullMachine::addFunctionUnit");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-NullMachine::addImmediateUnit(ImmediateUnit&)
-    throw (ComponentAlreadyExists) {
-
+NullMachine::addImmediateUnit(ImmediateUnit&) {
     abortWithError("NullMachine::addImmediateUnit");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-NullMachine::addRegisterFile(RegisterFile&)
-    throw (ComponentAlreadyExists) {
-
+NullMachine::addRegisterFile(RegisterFile&) {
     abortWithError("NullMachine::addRegisterFile");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-NullMachine::addAddressSpace(AddressSpace&)
-    throw (ComponentAlreadyExists) {
-
+NullMachine::addAddressSpace(AddressSpace&) {
     abortWithError("NullMachine::addAddressSpace");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-NullMachine::addBridge(Bridge&)
-    throw (ComponentAlreadyExists) {
-
+NullMachine::addBridge(Bridge&) {
     abortWithError("NullMachine::addBridge");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-NullMachine::addInstructionTemplate(InstructionTemplate&)
-    throw (ComponentAlreadyExists) {
-
+NullMachine::addInstructionTemplate(InstructionTemplate&) {
     abortWithError("NullMachine::addInstructionTemplate");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-NullMachine::setGlobalControl(ControlUnit&)
-    throw (ComponentAlreadyExists) {
-
+NullMachine::setGlobalControl(ControlUnit&) {
     abortWithError("NullMachine::setGlobalControl");
 }
-
 
 /**
  * Aborts the program with an error message.
@@ -221,12 +191,9 @@ NullMachine::controlUnit() const {
  * @exception InstanceNotFound Never thrown.
  */
 void
-NullMachine::removeBus(Bus&)
-    throw (InstanceNotFound) {
-
+NullMachine::removeBus(Bus&) {
     abortWithError("NullMachine::removeBus");
 }
-
 
 /**
  * Aborts the program with an error message.
@@ -234,12 +201,9 @@ NullMachine::removeBus(Bus&)
  * @exception InstanceNotFound Never thrown.
  */
 void
-NullMachine::removeSocket(Socket&)
-    throw (InstanceNotFound) {
-
+NullMachine::removeSocket(Socket&) {
     abortWithError("NullMachine::removeSocket");
 }
-
 
 /**
  * Aborts the program with an error message.
@@ -248,90 +212,69 @@ NullMachine::removeSocket(Socket&)
  * @exception IllegalParameters Never thrown.
  */
 void
-NullMachine::removeUnit(Unit&)
-    throw (InstanceNotFound, IllegalParameters) {
-
+NullMachine::removeUnit(Unit&) {
     abortWithError("NullMachine::removeUnit");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
  * @exception InstanceNotFound Never thrown.
  */
 void
-NullMachine::removeFunctionUnit(FunctionUnit&)
-    throw (InstanceNotFound) {
-
+NullMachine::removeFunctionUnit(FunctionUnit&) {
     abortWithError("NullMachine::removeFunctionUnit");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
  * @exception InstanceNotFound Never thrown.
  */
 void
-NullMachine::removeImmediateUnit(ImmediateUnit&)
-    throw (InstanceNotFound) {
-
+NullMachine::removeImmediateUnit(ImmediateUnit&) {
     abortWithError("NullMachine::removeImmediateUnit");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
  * @exception InstanceNotFound Never thrown.
  */
 void
-NullMachine::removeRegisterFile(RegisterFile&)
-    throw (InstanceNotFound) {
-
+NullMachine::removeRegisterFile(RegisterFile&) {
     abortWithError("NullMachine::removeRegisterFile");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
  * @exception InstanceNotFound Never thrown.
  */
 void
-NullMachine::deleteBridge(Bridge&)
-    throw (InstanceNotFound) {
-
+NullMachine::deleteBridge(Bridge&) {
     abortWithError("NullMachine::deleteBridge");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
  * @exception InstanceNotFound Never thrown.
  */
 void
-NullMachine::deleteInstructionTemplate(InstructionTemplate&)
-    throw (InstanceNotFound) {
-
+NullMachine::deleteInstructionTemplate(InstructionTemplate&) {
     abortWithError("NullMachine::deleteInstructionTemplate");
 }
 
-
 /**
  * Aborts the program with an error message.
  *
  * @exception InstanceNotFound Never thrown.
  */
 void
-NullMachine::deleteAddressSpace(AddressSpace&)
-    throw (InstanceNotFound) {
-
+NullMachine::deleteAddressSpace(AddressSpace&) {
     abortWithError("NullMachine::deleteAddressSpace");
 }
-
 
 /**
  * Aborts the program with an error message.
@@ -435,12 +378,9 @@ NullMachine::registerFileNavigator() const {
  * @exception ObjectStateLoadingException Never thrown.
  */
 void
-NullMachine::loadState(const ObjectState*)
-    throw (ObjectStateLoadingException) {
-
+NullMachine::loadState(const ObjectState*) {
     abortWithError("NullMachine::loadState");
 }
-
 
 /**
  * Aborts the program with an error message.

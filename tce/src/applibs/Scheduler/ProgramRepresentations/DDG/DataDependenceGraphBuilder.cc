@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -833,9 +833,7 @@ DataDependenceGraphBuilder::clearUnneededBookkeeping(
  */
 void
 DataDependenceGraphBuilder::processTriggerPO(
-    MoveNode& moveNode, Operation &dop) 
-    throw (IllegalProgram) {
-
+    MoveNode& moveNode, Operation& dop) {
     if (currentData_->destPending_ != NULL) {
         ProgramOperationPtr po = currentData_->destPending_;
         

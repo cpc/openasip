@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -91,9 +91,7 @@ Texts::TextGenerator::~TextGenerator() {
  * @exception KeyNotFound If textId doesn't identify any template string.
  */
 format
-Texts::TextGenerator::text(int textId)
-    throw (KeyNotFound) {
-
+Texts::TextGenerator::text(int textId) {
     if (!MapTools::containsKey(dataBase_, textId)) {
         string method = "TextGenerator::text()";
         string message("Requested message (code ");
@@ -106,7 +104,6 @@ Texts::TextGenerator::text(int textId)
 
     return format(templateString);
 }
-
 
 /**
  * Records a new template string that can be used to generate text messages.

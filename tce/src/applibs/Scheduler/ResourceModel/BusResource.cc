@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -115,10 +115,8 @@ BusResource::isAvailable(
  * @throw In case assignment can not be done
  */
 void
-BusResource::assign(const int cycle, MoveNode& node)
-    throw (Exception) {
-
-   if (canAssign(cycle, node)) {
+BusResource::assign(const int cycle, MoveNode& node) {
+    if (canAssign(cycle, node)) {
         resourceRecord_[instructionIndex(cycle)] = 1;
         increaseUseCount();
         return;
@@ -133,8 +131,7 @@ BusResource::assign(const int cycle, MoveNode& node)
  * @throw In case bus was not assigned
  */
 void
-BusResource::unassign(const int cycle, MoveNode&)
-    throw (Exception) {
+BusResource::unassign(const int cycle, MoveNode&) {
     if (isInUse(cycle)) {
         resourceRecord_[instructionIndex(cycle)] = 0;
         return;

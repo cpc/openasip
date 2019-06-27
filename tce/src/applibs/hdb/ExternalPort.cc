@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2014 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -200,9 +200,7 @@ ExternalPort::parameterDependencyCount() const {
  *                       number of parameters the port is dependent on.
  */
 std::string
-ExternalPort::parameterDependency(int index) const
-    throw (OutOfRange) {
-
+ExternalPort::parameterDependency(int index) const {
     if (index < 0 || index >= parameterDependencyCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }

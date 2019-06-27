@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -66,10 +66,8 @@ public:
     double area() const;
     double longestPathDelay() const;
     int energies() const;
-    double energy(int index) const
-        throw (OutOfRange);
-    double energy(const TTAProgram::Program& program) const 
-        throw (KeyNotFound);
+    double energy(int index) const;
+    double energy(const TTAProgram::Program& program) const;
 
 private:
     /// Map containing programs and energies consumed in running the programs.

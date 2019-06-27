@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -52,10 +52,7 @@ namespace TTAProgram {
  */
 class TerminalRegister : public Terminal{
 public:
-    TerminalRegister(
-        const TTAMachine::Port& port,
-        int index)
-        throw (InvalidData);
+    TerminalRegister(const TTAMachine::Port& port, int index);
 
     /// Copying is allowed.
     //  TerminalRegister(const TerminalRegister&);
@@ -65,13 +62,11 @@ public:
     virtual bool isImmediateRegister() const;
     virtual bool isGPR() const;
 
-    virtual const TTAMachine::RegisterFile& registerFile() const
-        throw (WrongSubclass);
-    virtual const TTAMachine::ImmediateUnit& immediateUnit() const
-        throw (WrongSubclass);
-    virtual int index() const throw (WrongSubclass);
-    virtual const TTAMachine::Port& port() const throw (WrongSubclass);
-    virtual void setIndex(int index) throw (OutOfRange);
+    virtual const TTAMachine::RegisterFile& registerFile() const;
+    virtual const TTAMachine::ImmediateUnit& immediateUnit() const;
+    virtual int index() const;
+    virtual const TTAMachine::Port& port() const;
+    virtual void setIndex(int index);
 
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;

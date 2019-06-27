@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -69,9 +69,7 @@ Encoding::Encoding(
  *                                        the state.
  */
 Encoding::Encoding(const ObjectState* state, InstructionField* parent)
-    throw (ObjectStateLoadingException) :
-    encoding_(0), extraBits_(0), parent_(parent) {
-
+    : encoding_(0), extraBits_(0), parent_(parent) {
     const string procName = "Encoding::Encoding";
 
     try {
@@ -82,7 +80,6 @@ Encoding::Encoding(const ObjectState* state, InstructionField* parent)
             __FILE__, __LINE__, procName, exception.errorMessage());
     }
 }
-
 
 /**
  * The destructor.

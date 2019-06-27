@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -53,11 +53,8 @@ public:
     CostEstimationPluginRegistry();
     virtual ~CostEstimationPluginRegistry();
 
-    T& plugin(
-        const std::string& pluginFileName,
-        const std::string& pluginName)
-        throw (IOException, FileNotFound, DynamicLibraryException, 
-               WrongSubclass);
+    T& plugin(const std::string& pluginFileName, const std::string& pluginName);
+
 private:
     /// type of the index of accessible plugins, maps the plugin file path 
     /// to the plugin

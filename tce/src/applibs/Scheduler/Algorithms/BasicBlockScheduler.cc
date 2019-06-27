@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -110,11 +110,8 @@ BasicBlockScheduler::~BasicBlockScheduler() {
  */
 void
 BasicBlockScheduler::handleDDG(
-    DataDependenceGraph& ddg,
-    SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
+    DataDependenceGraph& ddg, SimpleResourceManager& rm,
+    const TTAMachine::Machine& targetMachine) {
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
 
@@ -244,9 +241,7 @@ static int graphCount = 0;
  * @param moves Moves of the operation execution.
  */
 void
-BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
-    throw (Exception) {
-
+BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves) {
     ProgramOperation& po =
         (moves.node(0).isSourceOperation())?
         (moves.node(0).sourceOperation()):
@@ -449,9 +444,7 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
  * @return The cycle the earliest of the operands got scheduled 
  */
 int
-BasicBlockScheduler::scheduleOperandWrites(int& cycle, MoveNodeGroup& moves)
-    throw (Exception) {
-
+BasicBlockScheduler::scheduleOperandWrites(int& cycle, MoveNodeGroup& moves) {
     const int EARLY_OPERAND_DIFFERENCE = 15;
     
     int lastOperandCycle = 0;
@@ -650,8 +643,7 @@ BasicBlockScheduler::scheduleOperandWrites(int& cycle, MoveNodeGroup& moves)
  * @param moves Moves of the operation execution.
  */
 bool
-BasicBlockScheduler::scheduleResultReads(MoveNodeGroup& moves) 
-    throw (Exception) {
+BasicBlockScheduler::scheduleResultReads(MoveNodeGroup& moves) {
     int tempRegLimitCycle = 0;
 
     for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
@@ -705,9 +697,7 @@ BasicBlockScheduler::scheduleResultReads(MoveNodeGroup& moves)
  * @param moveNode R-R Move to schedule.
  */
 void
-BasicBlockScheduler::scheduleRRMove(MoveNode& moveNode)
-    throw (Exception) {
-    
+BasicBlockScheduler::scheduleRRMove(MoveNode& moveNode) {
 #ifdef DEBUG_REG_COPY_ADDER
     ddg_->setCycleGrouping(true);
     ddg_->writeToDotFile(
@@ -735,7 +725,6 @@ BasicBlockScheduler::scheduleRRMove(MoveNode& moveNode)
 
     scheduleMove(moveNode, 0);
     scheduleRRTempMoves(moveNode, moveNode, 0); //Fabio: 0 or more?!?
-
 }
 
 /**
@@ -751,11 +740,7 @@ BasicBlockScheduler::scheduleRRMove(MoveNode& moveNode)
  * @param earliestCycle The earliest cycle to try.
  */
 void
-BasicBlockScheduler::scheduleMove(
-    MoveNode& moveNode,
-    int earliestCycle)
-    throw (Exception) {
-
+BasicBlockScheduler::scheduleMove(MoveNode& moveNode, int earliestCycle) {
     if (moveNode.isScheduled()) {
         throw InvalidData(
             __FILE__, __LINE__, __func__,
@@ -947,9 +932,7 @@ BasicBlockScheduler::scheduleMove(
  */
 void
 BasicBlockScheduler::scheduleRRTempMoves(
-    MoveNode& regToRegMove, MoveNode& firstMove, int lastUse)
-    throw (Exception) {
-
+    MoveNode& regToRegMove, MoveNode& firstMove, int lastUse) {
     /* Because temporary register moves do not have WaR/WaW dependency edges
        between the other possible uses of the same temp register in
        the same operation, we have to limit the scheduling of the new
@@ -982,7 +965,6 @@ BasicBlockScheduler::scheduleRRTempMoves(
     // succeeding additional reg to reg copy (in case of two temp reg copies),
     // schedule it also if found
     scheduleResultReadTempMoves(*tempMove1, firstMove, lastUse+1);
-
 }
 
 /**
@@ -996,9 +978,8 @@ BasicBlockScheduler::scheduleRRTempMoves(
  * @param operandWrite The original move of which temp moves to schedule.
  */
 void
-BasicBlockScheduler::scheduleInputOperandTempMoves(MoveNode& operandMove, MoveNode& operandWrite)
-    throw (Exception) {
-
+BasicBlockScheduler::scheduleInputOperandTempMoves(
+    MoveNode& operandMove, MoveNode& operandWrite) {
     /* Because temporary register moves do not have WaR dependency edges
        between the other possible uses of the same temp register in
        the same operation, we have to limit the scheduling of the new
@@ -1141,11 +1122,7 @@ BasicBlockScheduler::succeedingTempMove(MoveNode& current) {
  */
 void
 BasicBlockScheduler::scheduleResultReadTempMoves(
-    MoveNode& resultMove, 
-    MoveNode& resultRead,
-    int lastUse)
-    throw (Exception) {
-
+    MoveNode& resultMove, MoveNode& resultRead, int lastUse) {
     /* Because temporary register moves do not have WaR/WaW dependency edges
        between the other possible uses of the same temp register in
        the same operation, we have to limit the scheduling of the new
@@ -1179,7 +1156,6 @@ BasicBlockScheduler::scheduleResultReadTempMoves(
     // succeeding additional reg to reg copy (in case of two temp reg copies),
     // schedule it also if found
     scheduleResultReadTempMoves(*tempMove1, resultRead, lastUse+1);
-
 }
 
 /**

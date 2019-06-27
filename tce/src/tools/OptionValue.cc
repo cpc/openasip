@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -63,9 +63,7 @@ OptionValue::~OptionValue() {
  * @exception WrongSubclass Called for a wrong subclass.
  */
 void
-OptionValue::setStringValue(const std::string&)
-    throw (WrongSubclass) {
-
+OptionValue::setStringValue(const std::string&) {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
 }
 
@@ -75,9 +73,7 @@ OptionValue::setStringValue(const std::string&)
  * @exception WrongSubclass Called for a wrong subclass.
  */
 void
-OptionValue::setIntegerValue(int)
-    throw (WrongSubclass) {
-
+OptionValue::setIntegerValue(int) {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
 }
 
@@ -87,9 +83,7 @@ OptionValue::setIntegerValue(int)
  * @exception WrongSubclass Called for a wrong subclass.
  */
 void
-OptionValue::setUnsignedIntegerValue(unsigned)
-    throw (WrongSubclass) {
-
+OptionValue::setUnsignedIntegerValue(unsigned) {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
 }
 
@@ -99,9 +93,7 @@ OptionValue::setUnsignedIntegerValue(unsigned)
  * @exception WrongSubclass Called for a wrong subclass.
  */
 void
-OptionValue::setRealValue(double)
-    throw (WrongSubclass) {
-
+OptionValue::setRealValue(double) {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
 }
 
@@ -111,9 +103,7 @@ OptionValue::setRealValue(double)
  * @exception WrongSubclass Called for a wrong subclass.
  */
 void
-OptionValue::setBoolValue(bool)
-    throw (WrongSubclass) {
-
+OptionValue::setBoolValue(bool) {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
 }
 
@@ -124,9 +114,7 @@ OptionValue::setBoolValue(bool)
  * @exception WrongSubclass Called for a wrong subclass.
  */
 void
-OptionValue::setIntegerListValue(std::vector<int>)
-    throw (WrongSubclass) {
-
+OptionValue::setIntegerListValue(std::vector<int>) {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
 }
 
@@ -138,9 +126,7 @@ OptionValue::setIntegerListValue(std::vector<int>)
  * @exception OutOfRange Never thrown by this function.
  */
 int
-OptionValue::integerValue(int) const
-    throw (WrongSubclass, OutOfRange) {
-
+OptionValue::integerValue(int) const {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
     return 0;
 }
@@ -153,9 +139,7 @@ OptionValue::integerValue(int) const
  * @exception OutOfRange Never thrown by this function.
  */
 std::string
-OptionValue::stringValue(int) const
-    throw (WrongSubclass, OutOfRange) {
-
+OptionValue::stringValue(int) const {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
     return "";
 }
@@ -167,9 +151,7 @@ OptionValue::stringValue(int) const
  * @exception WrongSubclass Called for a wrong subclass.
  */
 double
-OptionValue::realValue() const
-    throw (WrongSubclass) {
-
+OptionValue::realValue() const {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
     return 0;
 }
@@ -181,9 +163,7 @@ OptionValue::realValue() const
  * @exception WrongSubclass Called for a wrong subclass.
  */
 bool
-OptionValue::isFlagOn() const
-    throw (WrongSubclass) {
-
+OptionValue::isFlagOn() const {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
     return false;
 }
@@ -195,9 +175,7 @@ OptionValue::isFlagOn() const
  * @exception WrongSubclass Called for a wrong subclass.
  */
 bool
-OptionValue::isFlagOff() const
-    throw (WrongSubclass) {
-
+OptionValue::isFlagOff() const {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
     return false;
 }
@@ -209,9 +187,7 @@ OptionValue::isFlagOff() const
  * @exception WrongSubclass Called for a wrong subclass.
  */
 int
-OptionValue::listSize() const
-    throw (WrongSubclass) {
-
+OptionValue::listSize() const {
     throw WrongSubclass(__FILE__, __LINE__, __func__);
     return 0;
 }
@@ -242,9 +218,7 @@ IntegerOptionValue::~IntegerOptionValue() {
  * @exception WrongSubclass Is never thrown by this function.
  */
 void
-IntegerOptionValue::setIntegerValue(int value)
-    throw (WrongSubclass) {
-
+IntegerOptionValue::setIntegerValue(int value) {
     value_ = value;
 }
 
@@ -256,9 +230,7 @@ IntegerOptionValue::setIntegerValue(int value)
  * @exception OutOfRange Never thrown by this function.
  */
 int
-IntegerOptionValue::integerValue(int) const
-    throw (WrongSubclass, OutOfRange) {
-
+IntegerOptionValue::integerValue(int) const {
     return value_;
 }
 
@@ -274,19 +246,14 @@ UnsignedIntegerOptionValue::~UnsignedIntegerOptionValue() {
 }
 
 void
-UnsignedIntegerOptionValue::setUnsignedIntegerValue(unsigned value)
-    throw (WrongSubclass) {
-
+UnsignedIntegerOptionValue::setUnsignedIntegerValue(unsigned value) {
     value_ = value;
 }
 
 unsigned
-UnsignedIntegerOptionValue::unsignedIntegerValue(int) const
-    throw (WrongSubclass, OutOfRange) {
-
+UnsignedIntegerOptionValue::unsignedIntegerValue(int) const {
     return value_;
 }
-
 
 //////////////////////////////////////////////////////////////////////////////
 // StringOptionValue
@@ -314,9 +281,7 @@ StringOptionValue::~StringOptionValue() {
  * @exception WrongSubclass Is never thrown by this function.
  */
 void
-StringOptionValue::setStringValue(const std::string& value)
-    throw (WrongSubclass) {
-
+StringOptionValue::setStringValue(const std::string& value) {
     value_ = value;
 }
 
@@ -328,9 +293,7 @@ StringOptionValue::setStringValue(const std::string& value)
  * @exception OutOfRange Never thrown by this function.
  */
 string
-StringOptionValue::stringValue(int) const
-    throw (WrongSubclass, OutOfRange) {
-
+StringOptionValue::stringValue(int) const {
     return value_;
 }
 
@@ -360,9 +323,7 @@ RealOptionValue::~RealOptionValue() {
  * @exception WrongSubclass Is never thrown by this function.
  */
 void
-RealOptionValue::setRealValue(double value)
-    throw (WrongSubclass) {
-
+RealOptionValue::setRealValue(double value) {
     value_ = value;
 }
 
@@ -373,9 +334,7 @@ RealOptionValue::setRealValue(double value)
  * @exception WrongSubclass Is never thrown by this function.
  */
 double
-RealOptionValue::realValue() const
-    throw (WrongSubclass) {
-
+RealOptionValue::realValue() const {
     return value_;
 }
 
@@ -405,9 +364,7 @@ BoolOptionValue::~BoolOptionValue() {
  * @exception WrongSubclass Is never thrown by this function.
  */
 void
-BoolOptionValue::setBoolValue(bool value)
-    throw (WrongSubclass) {
-
+BoolOptionValue::setBoolValue(bool value) {
     value_ = value;
 }
 
@@ -418,9 +375,7 @@ BoolOptionValue::setBoolValue(bool value)
  * @exception WrongSubclass Is never thrown by this function.
  */
 bool
-BoolOptionValue::isFlagOn() const
-    throw (WrongSubclass) {
-
+BoolOptionValue::isFlagOn() const {
     return value_;
 }
 
@@ -431,9 +386,7 @@ BoolOptionValue::isFlagOn() const
  * @exception WrongSubclass Is never thrown by this function.
  */
 bool
-BoolOptionValue::isFlagOff() const
-    throw (WrongSubclass) {
-
+BoolOptionValue::isFlagOff() const {
     return !value_;
 }
 
@@ -463,9 +416,7 @@ IntegerListOptionValue::~IntegerListOptionValue() {
  * @exception WrongSubclass Is never thrown by this function.
  */
 void
-IntegerListOptionValue::setIntegerListValue(std::vector<int> values)
-    throw (WrongSubclass) {
-
+IntegerListOptionValue::setIntegerListValue(std::vector<int> values) {
     values_ = values;
 }
 
@@ -479,9 +430,7 @@ IntegerListOptionValue::setIntegerListValue(std::vector<int> values)
  * @exception OutOfRange If the index is out of the range.
  */
 int
-IntegerListOptionValue::integerValue(int index) const
-    throw (WrongSubclass, OutOfRange) {
-
+IntegerListOptionValue::integerValue(int index) const {
     if (index < 0 || static_cast<unsigned>(index) > values_.size() - 1) {
 	string procName = "IntegerListOptionValue::integerValue";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -494,12 +443,10 @@ IntegerListOptionValue::integerValue(int index) const
  *
  * @return Size of hte list.
  */
-int IntegerListOptionValue::listSize() const
-    throw (WrongSubclass) {
-
+int
+IntegerListOptionValue::listSize() const {
     return values_.size();
 }
-
 
 //////////////////////////////////////////////////////////////////////////////
 // StringListOptionValue
@@ -527,9 +474,7 @@ StringListOptionValue::~StringListOptionValue() {
  * @exception WrongSubclass Is never thrown by this function.
  */
 void
-StringListOptionValue::setStringListValue(std::vector<string> values)
-    throw (WrongSubclass) {
-
+StringListOptionValue::setStringListValue(std::vector<string> values) {
     values_ = values;
 }
 
@@ -543,9 +488,7 @@ StringListOptionValue::setStringListValue(std::vector<string> values)
  * @exception OutOfRange If the index is out of the range.
  */
 std::string
-StringListOptionValue::stringValue(int index) const
-    throw (WrongSubclass, OutOfRange) {
-
+StringListOptionValue::stringValue(int index) const {
     if (index < 0 || static_cast<unsigned>(index) > values_.size() - 1) {
         string procName = "StringListOptionValue::stringValue";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -558,8 +501,7 @@ StringListOptionValue::stringValue(int index) const
  *
  * @return Size of hte list.
  */
-int StringListOptionValue::listSize() const
-    throw (WrongSubclass) {
-
+int
+StringListOptionValue::listSize() const {
     return values_.size();
 }

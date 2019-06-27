@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -59,13 +59,11 @@ const std::string ImmediateControlField::OSKEY_ENCODING = "encoding";
  *                                control field already.
  */
 ImmediateControlField::ImmediateControlField(BinaryEncoding& parent)
-    throw (ObjectAlreadyExists) : InstructionField(&parent) {
-
+    : InstructionField(&parent) {
     setParent(NULL);
     parent.setImmediateControlField(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -80,17 +78,13 @@ ImmediateControlField::ImmediateControlField(BinaryEncoding& parent)
  *                                control field already.
  */
 ImmediateControlField::ImmediateControlField(
-    const ObjectState* state,
-    BinaryEncoding& parent)
-    throw (ObjectStateLoadingException, ObjectAlreadyExists) :
-    InstructionField(state, &parent) {
-
+    const ObjectState* state, BinaryEncoding& parent)
+    : InstructionField(state, &parent) {
     loadState(state);
     setParent(NULL);
     parent.setImmediateControlField(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.
@@ -141,9 +135,7 @@ ImmediateControlField::templateCount() const {
  *                       number of encodings of instruction templates.
  */
 std::string
-ImmediateControlField::instructionTemplate(int index) const
-    throw (OutOfRange) {
-
+ImmediateControlField::instructionTemplate(int index) const {
     if (index < 0 || index >= templateCount()) {
 	const string procName = "ImmediateControlField::instructionTemplate";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -163,7 +155,6 @@ ImmediateControlField::instructionTemplate(int index) const
     assert(false);
     return "";
 }
-
 
 /**
  * Tells whether the instruction template with the given name has has a binary
@@ -188,9 +179,7 @@ ImmediateControlField::hasTemplateEncoding(const std::string& name) const {
  *                             a binary encoding in this field.
  */
 unsigned int
-ImmediateControlField::templateEncoding(const std::string& name) const
-    throw (InstanceNotFound) {
-
+ImmediateControlField::templateEncoding(const std::string& name) const {
     if (!hasTemplateEncoding(name)) {
 	const string procName = "ImmediateControlField::templateEncoding";
 	throw InstanceNotFound(__FILE__, __LINE__, procName);
@@ -200,7 +189,6 @@ ImmediateControlField::templateEncoding(const std::string& name) const
     assert(iter != templates_.end());
     return iter->second;
 }
-
 
 /**
  * Assings the given code to the instruction template identified by the given
@@ -216,10 +204,7 @@ ImmediateControlField::templateEncoding(const std::string& name) const
  */
 void
 ImmediateControlField::addTemplateEncoding(
-    const std::string& name,
-    unsigned int encoding)
-    throw (ObjectAlreadyExists) {
-
+    const std::string& name, unsigned int encoding) {
     if (MapTools::containsValue(templates_, encoding) &&
 	MapTools::keyForValue<string>(templates_, encoding) != name) {
 	const string procName = "ImmediateControlField::addTemplateEncoding";
@@ -237,7 +222,6 @@ ImmediateControlField::addTemplateEncoding(
 	iter->second = encoding;
     }
 }
-
 
 /**
  * Removes the code of the instruction template with the given name.
@@ -289,13 +273,10 @@ ImmediateControlField::childFieldCount() const {
  * @exception OutOfRange Always thrown.
  */
 InstructionField&
-ImmediateControlField::childField(int) const
-    throw (OutOfRange) {
-
+ImmediateControlField::childField(int) const {
     const string procName = "ImmediateControlField::childField";
     throw OutOfRange(__FILE__, __LINE__, procName);
 }
-
 
 /**
  * Loads the state of the immediate control field from the given ObjectState
@@ -306,9 +287,7 @@ ImmediateControlField::childField(int) const
  *                                        the state.
  */
 void
-ImmediateControlField::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+ImmediateControlField::loadState(const ObjectState* state) {
     clearTemplateEncodings();
     InstructionField::loadState(state);
     const string procName = "ImmediateControlField::loadState";
@@ -334,7 +313,6 @@ ImmediateControlField::loadState(const ObjectState* state)
 	    __FILE__, __LINE__, procName, exception.errorMessage());
     }
 }
-
 
 /**
  * Saves the state of the immediate control field to an ObjectState tree.

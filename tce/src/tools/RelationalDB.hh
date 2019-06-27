@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -49,15 +49,10 @@ public:
     virtual ~RelationalDB();
 
     virtual RelationalDBConnection& connect(
-	const std::string& database,
-	const std::string& login = "",
-	const std::string& password = "",
-	bool readOnly = false)
-	throw (RelationalDBException) = 0;
+        const std::string& database, const std::string& login = "",
+        const std::string& password = "", bool readOnly = false) = 0;
 
-    virtual void close(const RelationalDBConnection& connection)
-	throw (RelationalDBException) = 0;
-
+    virtual void close(const RelationalDBConnection& connection) = 0;
 };
 
 #endif

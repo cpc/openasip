@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -103,7 +103,7 @@ Instruction::~Instruction() {
  *                                anywhere.
  */
 CodeSnippet&
-Instruction::parent() const throw (IllegalRegistration) {
+Instruction::parent() const {
     if (parent_ != NULL) {
         return *parent_;
     } else {
@@ -141,7 +141,7 @@ Instruction::isInProcedure() const {
  * @param move The move to add.
  */
 void
-Instruction::addMove(Move* move) throw (ObjectAlreadyExists) {
+Instruction::addMove(Move* move) {
     if (ContainerTools::containsValue(moves_, move)) {
         throw ObjectAlreadyExists(__FILE__, __LINE__, __func__,
 				  "Move is already added.");
@@ -179,7 +179,7 @@ Instruction::moveCount() const {
  *                       the number of moves in the instruction.
  */
 Move&
-Instruction::move(int i) const throw (OutOfRange) {
+Instruction::move(int i) const {
     if (i < 0 || static_cast<unsigned int>(i) >= moves_.size()) {
         throw OutOfRange(__FILE__, __LINE__, __func__,
 			 "No move in instruction for given index: " +
@@ -197,9 +197,7 @@ Instruction::move(int i) const throw (OutOfRange) {
  * @param imm The immediate to add.
  */
 void
-Instruction::addImmediate(Immediate* imm)
-    throw (ObjectAlreadyExists){
-
+Instruction::addImmediate(Immediate* imm) {
     if (ContainerTools::containsValue(immediates_, imm)) {
         throw ObjectAlreadyExists(__FILE__, __LINE__, __func__,
 				  "Immediate is already added.");
@@ -234,7 +232,7 @@ Instruction::immediateCount() const {
  *                       number of immediates in the instruction.
  */
 Immediate&
-Instruction::immediate(int i) const throw (OutOfRange) {
+Instruction::immediate(int i) const {
     if (i < 0 || static_cast<unsigned int>(i) >= immediates_.size()) {
         throw OutOfRange(__FILE__, __LINE__, __func__,
 			 "No immediate in instruction with index: " +
@@ -252,8 +250,7 @@ Instruction::immediate(int i) const throw (OutOfRange) {
  * to a procedure.
  */
 Address
-Instruction::address() const 
-    throw (IllegalRegistration) {
+Instruction::address() const {
     if (!isInProcedure()) {
         TCEString msg = "Instruction is not registered in a procedure: ";
         msg += POMDisassembler::disassemble(*this);
@@ -431,8 +428,7 @@ Instruction::instructionTemplate() const {
  * @exception IllegalRegistration If move doesn't belong to instruction.
  */
 void
-Instruction::removeMove(Move& move) throw (IllegalRegistration) {
-
+Instruction::removeMove(Move& move) {
     if (&move.parent() != this) {
         throw IllegalRegistration(__FILE__, __LINE__);
     }
@@ -456,7 +452,7 @@ Instruction::removeMove(Move& move) throw (IllegalRegistration) {
  * @exception IllegalRegistration If immediate doesn't belong to instruction.
  */
 void
-Instruction::removeImmediate(Immediate& imm) throw (IllegalRegistration) {
+Instruction::removeImmediate(Immediate& imm) {
     for (ImmList::iterator iter = immediates_.begin();
          iter != immediates_.end(); iter++) {
         if ((*iter) == &imm) {

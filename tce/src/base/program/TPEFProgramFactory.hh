@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -98,10 +98,9 @@ public:
     
     virtual ~TPEFProgramFactory();
 
-    Program* build() throw (NotAvailable, Exception);
-    
+    Program* build();
+
 protected:
-   
     typedef std::map<HalfWord, SimValue*> InlineValues;    
     typedef std::pair<Word, Word> ImmediateKey;
     typedef std::map<ImmediateKey, TPEF::ImmediateElement*> ImmediateMap;

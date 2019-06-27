@@ -1,4 +1,4 @@
--- Copyright (c) 2018 Tampere University of Technology.
+-- Copyright (c) 2018 Tampere University.
 -- 
 -- This file is part of TTA-Based Codesign Environment (TCE).
 -- 
@@ -25,7 +25,7 @@
 -------------------------------------------------------------------------------
 -- File       : xilinx_basic_alu.vhd
 -- Author     : Aleksi Tervo
--- Company    : Tampere University of Technology
+-- Company    : Tampere University
 -- Created    : 2018-06-18
 -- Last update: 2018-06-18
 -------------------------------------------------------------------------------

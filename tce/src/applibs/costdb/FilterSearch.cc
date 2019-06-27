@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -176,9 +176,7 @@ FilterSearch::findFromCache(
  * @exception TypeMismatch Requested type is unknown.
  */
 FilterSearch::MatcherTable
-FilterSearch::createMatchers(const CostDBTypes::MatchTypeTable& match)
-    throw (TypeMismatch) {
-    
+FilterSearch::createMatchers(const CostDBTypes::MatchTypeTable& match) {
     MatcherTable matcher;
     for (CostDBTypes::MatchTypeTable::const_iterator i = match.begin();
          i != match.end(); i++) {
@@ -205,7 +203,6 @@ FilterSearch::createMatchers(const CostDBTypes::MatchTypeTable& match)
     }
     return matcher;
 }
-
 
 //////////////////////////////////////////////////
 // FilterSearch::Cache

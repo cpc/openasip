@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -57,10 +57,8 @@ public:
         const SchedulingResource& inputPSocket,
         const SchedulingResource& outputPSocket) const;
     virtual bool canAssign(const int cycle, const MoveNode& node) const;
-    virtual void assign(const int cycle, MoveNode& node)
-        throw (Exception);
-    virtual void unassign(const int cycle, MoveNode& node)
-        throw (Exception);
+    virtual void assign(const int cycle, MoveNode& node);
+    virtual void unassign(const int cycle, MoveNode& node);
     virtual bool canAssign(
         const int cycle,
         const MoveNode& node,

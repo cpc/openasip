@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -53,33 +53,25 @@ class FunctionUnit;
  */
 class Port : public SubComponent {
 public:
-    Port(const std::string& name, Unit& parentUnit)
-        throw (ComponentAlreadyExists, InvalidName);
-    Port(const ObjectState* state, Unit& parentUnit)
-        throw (ObjectStateLoadingException);
+    Port(const std::string& name, Unit& parentUnit);
+    Port(const ObjectState* state, Unit& parentUnit);
     virtual ~Port();
 
     virtual std::string name() const;
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
+    virtual void setName(const std::string& name);
     virtual int width() const = 0;
-    virtual void attachSocket(Socket& socket)
-        throw (IllegalRegistration, ComponentAlreadyExists,
-               IllegalConnectivity);
-    virtual void detachSocket(Socket& socket)
-        throw (InstanceNotFound);
+    virtual void attachSocket(Socket& socket);
+    virtual void detachSocket(Socket& socket);
     virtual void detachAllSockets();
     Unit* parentUnit() const;
     virtual Socket* inputSocket() const;
     virtual Socket* outputSocket() const;
-    virtual Socket* unconnectedSocket(int index) const
-        throw (OutOfRange);
+    virtual Socket* unconnectedSocket(int index) const;
     virtual int socketCount() const;
     virtual bool isConnectedTo(const Socket& socket) const;
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     virtual bool isOutput() const;
     virtual bool isInput() const;
@@ -95,14 +87,12 @@ public:
 
     struct PairComparator {
         bool operator()(
-            const std::pair<const Port*, const Port*>& pp1, 
-            const std::pair<const Port*, const Port*>& pp2)
-            const;
+            const std::pair<const Port*, const Port*>& pp1,
+            const std::pair<const Port*, const Port*>& pp2) const;
     };
 
 protected:
-    Port(const std::string& name, FunctionUnit& parentUnit)
-        throw (ComponentAlreadyExists, InvalidName);
+    Port(const std::string& name, FunctionUnit& parentUnit);
 
 private:
     /// Copying forbidden.
@@ -110,11 +100,8 @@ private:
     /// Assingment forbidden.
     Port& operator=(const Port&);
 
-    void loadStateWithoutReferences(const ObjectState* state)
-        throw (ObjectStateLoadingException);
-    void attachSocket(const std::string& socketName)
-        throw (InstanceNotFound, IllegalRegistration,
-               ComponentAlreadyExists, IllegalConnectivity);
+    void loadStateWithoutReferences(const ObjectState* state);
+    void attachSocket(const std::string& socketName);
 
     /// Name of the port.
     std::string name_;

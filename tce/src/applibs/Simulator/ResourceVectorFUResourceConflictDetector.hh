@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -53,10 +53,8 @@ class Operation;
 class ResourceVectorFUResourceConflictDetector : 
     public FUResourceConflictDetector {
 public:
-
     ResourceVectorFUResourceConflictDetector(
-        const TTAMachine::FunctionUnit& fu)
-        throw (InvalidData);
+        const TTAMachine::FunctionUnit& fu);
     virtual ~ResourceVectorFUResourceConflictDetector();
 
     virtual bool issueOperation(OperationID id);

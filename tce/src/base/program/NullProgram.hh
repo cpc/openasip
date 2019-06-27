@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -56,26 +56,22 @@ public:
     Address entryAddress() const;
     void setEntryAddress(Address address);
 
-    void addProcedure(Procedure& proc) throw (IllegalRegistration);
-    void addInstruction(Instruction& ins) throw (IllegalRegistration);
+    void addProcedure(Procedure& proc);
+    void addInstruction(Instruction& ins);
 
     void relocate(const Procedure& proc, UIntWord howMuch);
 
-    Procedure& firstProcedure() const throw (InstanceNotFound);
-    Procedure& lastProcedure() const throw (InstanceNotFound);
-    Procedure& nextProcedure(const Procedure& proc) const
-        throw (IllegalRegistration);
+    Procedure& firstProcedure() const;
+    Procedure& lastProcedure() const;
+    Procedure& nextProcedure(const Procedure& proc) const;
     int procedureCount() const;
-    Procedure& procedure(int index) const throw (OutOfRange);
-    Procedure& procedure(const std::string& name) const
-        throw (KeyNotFound);
+    Procedure& procedure(int index) const;
+    Procedure& procedure(const std::string& name) const;
 
-    Instruction& firstInstruction() const throw (InstanceNotFound);
-    const Instruction& instructionAt(UIntWord address) const
-        throw (KeyNotFound);
-    const Instruction& nextInstruction(const Instruction&) const
-        throw (IllegalRegistration);
-    Instruction& lastInstruction() const throw (InstanceNotFound);
+    Instruction& firstInstruction() const;
+    const Instruction& instructionAt(UIntWord address) const;
+    const Instruction& nextInstruction(const Instruction&) const;
+    Instruction& lastInstruction() const;
 
     InstructionReferenceManager& instructionReferenceManager();
 

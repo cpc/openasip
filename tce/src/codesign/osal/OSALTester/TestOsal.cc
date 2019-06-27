@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -87,9 +87,7 @@ CmdTrigger::~CmdTrigger() {
  * @exception NumberFormatException If data object conversion fails.
  */
 bool
-CmdTrigger::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+CmdTrigger::execute(const std::vector<DataObject>& arguments) {
     ScriptInterpreter* scriptInterp = interpreter();
     OsalInterpreter* interp = dynamic_cast<OsalInterpreter*>(scriptInterp);
     assert(interp != NULL);
@@ -209,9 +207,7 @@ CmdReset::~CmdReset() {
  * @return True if the command is executed succesfully, otherwise false.
  */
 bool
-CmdReset::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+CmdReset::execute(const std::vector<DataObject>& arguments) {
     ScriptInterpreter* scriptInterp = interpreter();
     OsalInterpreter* interp = dynamic_cast<OsalInterpreter*>(scriptInterp);
     assert(interp != NULL);
@@ -293,9 +289,7 @@ CmdOutput::~CmdOutput() {
  * @return True if the command is executed succesfully, otherwise false.
  */
 bool
-CmdOutput::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+CmdOutput::execute(const std::vector<DataObject>& arguments) {
     ScriptInterpreter* scriptInterp = interpreter();
     OsalInterpreter* interp = dynamic_cast<OsalInterpreter*>(scriptInterp);
     assert(interp != NULL);
@@ -571,9 +565,7 @@ CmdQuit::~CmdQuit() {
  * @return True if execution is successful, false otherwise.
  */
 bool
-CmdQuit::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+CmdQuit::execute(const std::vector<DataObject>& arguments) {
     ScriptInterpreter* scriptInterp = interpreter();
     OsalInterpreter* interp = dynamic_cast<OsalInterpreter*>(scriptInterp);
     DataObject* result = new DataObject();
@@ -640,9 +632,7 @@ CmdRegister::~CmdRegister() {
  * @exception NumberFormatException If DataObject conversion fails.
  */
 bool
-CmdRegister::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+CmdRegister::execute(const std::vector<DataObject>& arguments) {
     ScriptInterpreter* scriptInterp = interpreter();
     OsalInterpreter* interp = dynamic_cast<OsalInterpreter*>(scriptInterp);
     assert(interp != NULL);
@@ -734,9 +724,7 @@ CmdMem::~CmdMem() {
  * @exception NumberFormatException If DataObject conversion fails.
  */
 bool
-CmdMem::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+CmdMem::execute(const std::vector<DataObject>& arguments) {
     ScriptInterpreter* scriptInterp = interpreter();
     OsalInterpreter* interp = dynamic_cast<OsalInterpreter*>(scriptInterp);
     assert(interp != NULL);
@@ -868,9 +856,7 @@ CmdAdvanceClock::~CmdAdvanceClock() {
  * @exception NumberFormatException If DataObject conversion fails.
  */
 bool
-CmdAdvanceClock::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+CmdAdvanceClock::execute(const std::vector<DataObject>& arguments) {
     ScriptInterpreter* scriptInterp = interpreter();
     OsalInterpreter* interp = dynamic_cast<OsalInterpreter*>(scriptInterp);
     assert(interp != NULL);

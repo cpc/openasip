@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -54,16 +54,10 @@ public:
     };
 
     RegisterFile(
-        const std::string& name,
-        unsigned int size,
-        unsigned int width,
-        unsigned int maxReads,
-        unsigned int maxwrites,
-        unsigned int guardLatency,
-        Type type)
-        throw (OutOfRange, InvalidName);
-    explicit RegisterFile(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+        const std::string& name, unsigned int size, unsigned int width,
+        unsigned int maxReads, unsigned int maxwrites,
+        unsigned int guardLatency, Type type);
+    explicit RegisterFile(const ObjectState* state);
     virtual ~RegisterFile();
     virtual RegisterFile* copy() const;
 
@@ -75,25 +69,19 @@ public:
     virtual bool isVolatile() const;
     virtual bool isReserved() const;
 
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
-    virtual void setMaxReads(int maxReads)
-        throw (OutOfRange);
-    virtual void setMaxWrites(int maxWrites)
-        throw (OutOfRange);
+    virtual void setName(const std::string& name);
+    virtual void setMaxReads(int maxReads);
+    virtual void setMaxWrites(int maxWrites);
     virtual void setType(RegisterFile::Type type);
-    virtual void setNumberOfRegisters(int registers)
-        throw (OutOfRange);
+    virtual void setNumberOfRegisters(int registers);
 
     virtual int guardLatency() const;
-    virtual void setGuardLatency(int latency)
-        throw (OutOfRange);
+    virtual void setGuardLatency(int latency);
 
     virtual void unsetMachine();
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     virtual bool isArchitectureEqual(const RegisterFile& rf) const;
 
@@ -122,15 +110,13 @@ public:
 protected:
 
 private:
-    bool updateMaxReadsAndWrites() const
-        throw (OutOfRange);
+    bool updateMaxReadsAndWrites() const;
     /// Copying forbidden, use the copy() method.
     RegisterFile(const RegisterFile&);
     /// Assingment forbidden.
     RegisterFile& operator=(const RegisterFile&);
 
-    void loadStateWithoutReferences(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadStateWithoutReferences(const ObjectState* state);
     void deleteGuards(int registers) const;
 
     /// Max number of ports that can read a register all in the same cycle.

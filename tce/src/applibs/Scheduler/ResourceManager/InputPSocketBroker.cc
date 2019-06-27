@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -216,9 +216,7 @@ InputPSocketBroker::isApplicable(const MoveNode& node) const {
  * mapping).
  */
 void
-InputPSocketBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
-    throw (Exception) {
-
+InputPSocketBroker::assign(int cycle, MoveNode& node, SchedulingResource& res) {
     if (!isApplicable(node)) {
         string msg = "Broker not capable of assigning resources to node!";
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);

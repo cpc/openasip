@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -198,9 +198,7 @@ CodeCompressorPlugin::setBEM(const BinaryEncoding& bem) {
  * @exception InvalidData If the BEM is erroneous.
  */
 InstructionBitVector*
-CodeCompressorPlugin::bemBits(const TTAProgram::Program& program) 
-    throw (InvalidData) {
-
+CodeCompressorPlugin::bemBits(const TTAProgram::Program& program) {
     relocMap_.clear();
     indexTable_.clear();
 
@@ -258,9 +256,7 @@ int CodeCompressorPlugin::firstMoveSlotIndex() const {
  */
 unsigned int
 CodeCompressorPlugin::memoryAddress(
-    const TTAProgram::Instruction& instruction) const 
-    throw (InstanceNotFound) {
-
+    const TTAProgram::Instruction& instruction) const {
     if (!MapTools::containsKey(instructionAddresses_, &instruction)) {
         const string procName = "CodeCompressorPlugin::memoryAddress";
         throw InstanceNotFound(__FILE__, __LINE__, procName);
@@ -269,7 +265,6 @@ CodeCompressorPlugin::memoryAddress(
             instructionAddresses_, &instruction);
     }
 }
-   
 
 /**
  * Returns the binary encoding map.
@@ -278,16 +273,13 @@ CodeCompressorPlugin::memoryAddress(
  * @exception NotAvailable If the BEM is not set.
  */
 const BinaryEncoding&
-CodeCompressorPlugin::binaryEncoding() const 
-    throw (NotAvailable) {
-
+CodeCompressorPlugin::binaryEncoding() const {
     if (bem_ == NULL) {
         throw NotAvailable(__FILE__, __LINE__, __func__);
     }
 
     return *bem_;
 }
-
 
 /**
  * Returns the program (POM) being processed currently.
@@ -296,16 +288,13 @@ CodeCompressorPlugin::binaryEncoding() const
  * @exception NotAvailable If there is no program being processed.
  */
 TTAProgram::Program&
-CodeCompressorPlugin::currentProgram() const
-    throw (NotAvailable) {
-
+CodeCompressorPlugin::currentProgram() const {
     if (currentPOM_ == NULL) {
         throw NotAvailable(__FILE__, __LINE__, __func__);
     }
 
     return *currentPOM_;
 }
-
 
 /**
  * Returns the machine.
@@ -314,16 +303,13 @@ CodeCompressorPlugin::currentProgram() const
  * @exception NotAvailable If the machine is not set.
  */
 const Machine&
-CodeCompressorPlugin::machine() const 
-    throw (NotAvailable) {
-
+CodeCompressorPlugin::machine() const {
     if (machine_ == NULL) {
         throw NotAvailable(__FILE__, __LINE__, __func__);
     }
 
     return *machine_;
 }
-
 
 /**
  * Starts generating new program image.
@@ -335,9 +321,7 @@ CodeCompressorPlugin::machine() const
  * @exception InvalidData If the program object model cannot be created.
  */
 void
-CodeCompressorPlugin::startNewProgram(const string& programName) 
-    throw (InvalidData) {
-
+CodeCompressorPlugin::startNewProgram(const string& programName) {
     if (programBits_ != NULL) {
         delete programBits_;
         programBits_ = NULL;
@@ -382,7 +366,6 @@ CodeCompressorPlugin::startNewProgram(const string& programName)
     initializeRelocations();
 }
 
-
 /**
  * Adds the given instruction to the program.
  *
@@ -395,10 +378,7 @@ CodeCompressorPlugin::startNewProgram(const string& programName)
  */
 void
 CodeCompressorPlugin::addInstruction(
-    const Instruction& instruction,
-    InstructionBitVector* bits) 
-    throw (InvalidData, OutOfRange) {
-
+    const Instruction& instruction, InstructionBitVector* bits) {
     if (programBits_ == NULL) {
         throw InvalidData(__FILE__, __LINE__, __func__);
     }
@@ -428,8 +408,7 @@ CodeCompressorPlugin::addInstruction(
     instructionAddresses_.insert(
         std::pair<const Instruction*, unsigned int>(
             &instruction, memoryAddress));
-}   
-
+}
 
 /**
  * Sets the given instruction to start at the beginning of MAU.
@@ -469,9 +448,7 @@ CodeCompressorPlugin::setAllInstructionsToStartAtBeginningOfMAU() {
  */
 InstructionBitVector*
 CodeCompressorPlugin::bemInstructionBits(
-    const TTAProgram::Instruction& instruction) 
-    throw (InvalidData) {
-
+    const TTAProgram::Instruction& instruction) {
     if (bem_ == NULL) {
         throw InvalidData(__FILE__, __LINE__, __func__);
     }
@@ -538,7 +515,6 @@ CodeCompressorPlugin::bemInstructionBits(
     return instructionBits;
 }
 
-
 /**
  * Returns the bits of the program constructed by calling addInstruction 
  * method several times.
@@ -595,9 +571,7 @@ CodeCompressorPlugin::hasParameter(const std::string& paramName) const {
  * @exception NotAvailable If the given parameter is not defined.
  */
 std::string
-CodeCompressorPlugin::parameterValue(const std::string& paramName) const
-    throw (NotAvailable) {
-
+CodeCompressorPlugin::parameterValue(const std::string& paramName) const {
     for (ParameterTable::const_iterator iter = parameters_.begin();
          iter != parameters_.end(); iter++) {
         Parameter param = *iter;
@@ -690,10 +664,7 @@ CodeCompressorPlugin::indentation(int level) {
 void
 CodeCompressorPlugin::addBitsForICField(
     const ImmediateControlField& icField,
-    const TTAProgram::Instruction& instruction,
-    BitVector& bitVector) const
-    throw (InvalidData) {
-
+    const TTAProgram::Instruction& instruction, BitVector& bitVector) const {
     string instructionTemplate("");
 
     // find the instruction template of the instruction
@@ -722,7 +693,6 @@ CodeCompressorPlugin::addBitsForICField(
     bitVector.pushBack(encoding, icField.width());
 }
 
-
 /**
  * Adds bits for a move slot to the given bit vector.
  *
@@ -733,11 +703,8 @@ CodeCompressorPlugin::addBitsForICField(
  */
 void
 CodeCompressorPlugin::addBitsForMoveSlot(
-    const MoveSlot& slot,
-    const TTAProgram::Instruction& instruction,
-    InstructionBitVector& bitVector) 
-    throw (InvalidData) {
-
+    const MoveSlot& slot, const TTAProgram::Instruction& instruction,
+    InstructionBitVector& bitVector) {
     // find the correct bus from the machine
     string busName = slot.name();
     Machine::BusNavigator busNav = machine().busNavigator();
@@ -787,7 +754,6 @@ CodeCompressorPlugin::addBitsForMoveSlot(
     }
 }
 
-
 /**
  * Adds bits for a source field to the given bit vector.
  *
@@ -798,11 +764,8 @@ CodeCompressorPlugin::addBitsForMoveSlot(
  */
 void
 CodeCompressorPlugin::addBitsForSourceField(
-    const SourceField& srcField,
-    const TTAProgram::Move& move,
-    InstructionBitVector& bitVector) const
-    throw (InvalidData) {
-
+    const SourceField& srcField, const TTAProgram::Move& move,
+    InstructionBitVector& bitVector) const {
     unsigned int oldSize = bitVector.size();
     assert(move.bus().name() == srcField.parent()->name());
     Terminal& source = move.source();
@@ -819,8 +782,7 @@ CodeCompressorPlugin::addBitsForSourceField(
 
     assert(
         bitVector.size() - oldSize == static_cast<size_t>(srcField.width()));
-}              
-
+}
 
 /**
  * Adds bits for a destination field to the given bit vector.
@@ -832,11 +794,8 @@ CodeCompressorPlugin::addBitsForSourceField(
  */
 void
 CodeCompressorPlugin::addBitsForDestinationField(
-    const DestinationField& dstField,
-    const TTAProgram::Move& move,
-    BitVector& bitVector) 
-    throw (InvalidData) {
-
+    const DestinationField& dstField, const TTAProgram::Move& move,
+    BitVector& bitVector) {
     assert(move.bus().name() == dstField.parent()->name());
     Terminal& destination = move.destination();
 
@@ -849,7 +808,6 @@ CodeCompressorPlugin::addBitsForDestinationField(
     }
 }
 
-
 /**
  * Adds bits for a guard field to the given bit vector.
  *
@@ -860,11 +818,8 @@ CodeCompressorPlugin::addBitsForDestinationField(
  */
 void
 CodeCompressorPlugin::addBitsForGuardField(
-    const GuardField& guardField,
-    const TTAProgram::Move& move,
-    BitVector& bitVector)
-    throw (InvalidData) {
-
+    const GuardField& guardField, const TTAProgram::Move& move,
+    BitVector& bitVector) {
     unsigned int encodingValue(0);
     const string procName = "CodeCompressorPlugin::addBitsForGuardField";
     string busName = guardField.parent()->name();
@@ -939,7 +894,6 @@ CodeCompressorPlugin::addBitsForGuardField(
         static_cast<size_t>(guardField.width()));
 }
 
-
 /**
  * Adds the immediate bits of the given immediate slot to the bit vector.
  *
@@ -951,10 +905,7 @@ CodeCompressorPlugin::addBitsForGuardField(
 void
 CodeCompressorPlugin::addBitsForImmediateSlot(
     const ImmediateSlotField& immSlot,
-    const TTAProgram::Instruction& instruction,
-    BitVector& bitVector)
-    throw (InvalidData) {
-
+    const TTAProgram::Instruction& instruction, BitVector& bitVector) {
     // get the correct instruction template
     string instructionTemplate = "";
     try {
@@ -992,7 +943,6 @@ CodeCompressorPlugin::addBitsForImmediateSlot(
     }
 }
 
-
 /**
  * Adds the bits of the given destination register field to the bit vector.
  *
@@ -1004,10 +954,7 @@ CodeCompressorPlugin::addBitsForImmediateSlot(
 void
 CodeCompressorPlugin::addBitsForDstRegisterField(
     const LImmDstRegisterField& field,
-    const TTAProgram::Instruction& instruction,
-    BitVector& bitVector)
-    throw (InvalidData) {
-
+    const TTAProgram::Instruction& instruction, BitVector& bitVector) {
     for (int i = 0; i < instruction.immediateCount(); i++) {
         TTAProgram::Immediate& immediate = instruction.immediate(i);
         const TTAProgram::Terminal& dstTerminal = immediate.destination();
@@ -1033,7 +980,6 @@ CodeCompressorPlugin::addBitsForDstRegisterField(
     // the field is not used by this instruction template
     bitVector.pushBack(0, field.width());
 }
-   
 
 /**
  * Returns the name of the instruction template of the given instruction.
@@ -1044,9 +990,7 @@ CodeCompressorPlugin::addBitsForDstRegisterField(
  */
 std::string
 CodeCompressorPlugin::instructionTemplate(
-    const TTAProgram::Instruction& instruction) const
-    throw (InstanceNotFound) {
-
+    const TTAProgram::Instruction& instruction) const {
     if (instruction.immediateCount() == 0) {
         Machine::InstructionTemplateNavigator itNav = 
             machine().instructionTemplateNavigator();
@@ -1064,7 +1008,6 @@ CodeCompressorPlugin::instructionTemplate(
         return instruction.instructionTemplate().name();
     }
 }
-
 
 /**
  * Tells whether the given instruction starts at the beginning of MAU.
@@ -1201,11 +1144,8 @@ CodeCompressorPlugin::encodeLongImmediate(
  */
 void
 CodeCompressorPlugin::encodeMove(
-    const MoveSlot& slot,
-    const TTAProgram::Instruction& instruction,
-    InstructionBitVector& bitVector) const
-    throw (InvalidData) {
-
+    const MoveSlot& slot, const TTAProgram::Instruction& instruction,
+    InstructionBitVector& bitVector) const {
     string busName = slot.name();
     Machine::BusNavigator busNav = machine().busNavigator();
     Bus* bus = busNav.item(busName);
@@ -1248,7 +1188,6 @@ CodeCompressorPlugin::encodeMove(
     assert(bitVector.size() - oldSize == static_cast<size_t>(slot.width()));
 }
 
-
 /**
  * Encodes a NOP to the given bitVector.
  *
@@ -1257,9 +1196,7 @@ CodeCompressorPlugin::encodeMove(
  * @exception InvalidData If the BEM does not define encoding for NOP.
  */
 void
-CodeCompressorPlugin::encodeNOP(const MoveSlot& slot, BitVector& bitVector) 
-    throw (InvalidData) {
-
+CodeCompressorPlugin::encodeNOP(const MoveSlot& slot, BitVector& bitVector) {
     for (int i = slot.childFieldCount() - 1; i >= 0; i--) {
         InstructionField& childField = slot.childField(i);
         GuardField& guardField = slot.guardField();
@@ -1334,7 +1271,6 @@ CodeCompressorPlugin::encodeNOP(const MoveSlot& slot, BitVector& bitVector)
     }
 }
 
-
 /**
  * Encodes the immediate unit register terminal to the given bit vector.
  *
@@ -1345,11 +1281,8 @@ CodeCompressorPlugin::encodeNOP(const MoveSlot& slot, BitVector& bitVector)
  */
 void
 CodeCompressorPlugin::encodeIUTerminal(
-    const SlotField& field,
-    const TTAProgram::Terminal& terminal,
-    BitVector& bitVector) 
-    throw (InvalidData) {
-
+    const SlotField& field, const TTAProgram::Terminal& terminal,
+    BitVector& bitVector) {
     const string procName = "CodeCompressorPlugin::encodeIUTerminal";
     assert(terminal.isImmediateRegister());
     string iuName = terminal.immediateUnit().name();
@@ -1404,7 +1337,6 @@ CodeCompressorPlugin::encodeIUTerminal(
     encodeSlotField(field, socketIDBits, socketCodeBits, bitVector);
 }
 
-
 /**
  * Encodes the given register file terminal to the given bit vector.
  *
@@ -1415,11 +1347,8 @@ CodeCompressorPlugin::encodeIUTerminal(
  */
 void
 CodeCompressorPlugin::encodeRFTerminal(
-    const SlotField& field,
-    const TTAProgram::Terminal& terminal,
-    BitVector& bitVector) 
-    throw (InvalidData) {
-
+    const SlotField& field, const TTAProgram::Terminal& terminal,
+    BitVector& bitVector) {
     const string procName = "CodeCompressorPlugin::encodeRFTerminal";
     assert(terminal.isGPR());
     string rfName = terminal.registerFile().name();
@@ -1472,7 +1401,6 @@ CodeCompressorPlugin::encodeRFTerminal(
     encodeSlotField(field, socketIDBits, socketCodeBits, bitVector);
 }
 
-
 /**
  * Encodes the given function unit terminal to the given bit vector.
  *
@@ -1483,11 +1411,8 @@ CodeCompressorPlugin::encodeRFTerminal(
  */
 void
 CodeCompressorPlugin::encodeFUTerminal(
-    const SlotField& field,
-    const TTAProgram::Terminal& terminal,
-    BitVector& bitVector) 
-    throw (InvalidData) {
-
+    const SlotField& field, const TTAProgram::Terminal& terminal,
+    BitVector& bitVector) {
     const string procName = "CodeCompressorPlugin::encodeFUTerminal";
     assert(terminal.isFUPort());
     string fuName = terminal.functionUnit().name();
@@ -1561,7 +1486,6 @@ CodeCompressorPlugin::encodeFUTerminal(
     encodeSlotField(field, socketIDBits, socketCodeBits, bitVector);
 }
 
-
 /**
  * Encodes the given immediate terminal to the given bit vector.
  *
@@ -1572,11 +1496,8 @@ CodeCompressorPlugin::encodeFUTerminal(
  */
 void
 CodeCompressorPlugin::encodeImmediateTerminal(
-    const SourceField& field,
-    const TTAProgram::Terminal& terminal,
-    InstructionBitVector& bitVector) const
-    throw (InvalidData) {
-
+    const SourceField& field, const TTAProgram::Terminal& terminal,
+    InstructionBitVector& bitVector) const {
     assert(terminal.isImmediate());
     unsigned int immValue = terminal.value().uIntWordValue();
     ImmediateEncoding& encoding = field.immediateEncoding();
@@ -1616,7 +1537,6 @@ CodeCompressorPlugin::encodeImmediateTerminal(
     }
     assert(bitVector.size() - oldSize == static_cast<size_t>(field.width()));
 }
-
 
 /**
  * Encodes the given source or destination field with the given bit vectors.

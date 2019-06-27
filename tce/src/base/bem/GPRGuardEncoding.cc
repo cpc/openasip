@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -61,18 +61,12 @@ const std::string GPRGuardEncoding::OSKEY_REGISTER_INDEX = "reg_index";
  *                                expression.
  */
 GPRGuardEncoding::GPRGuardEncoding(
-    const std::string& regFile,
-    int index,
-    bool inverted,
-    unsigned int encoding,
+    const std::string& regFile, int index, bool inverted, unsigned int encoding,
     GuardField& parent)
-    throw (ObjectAlreadyExists) :
-    GuardEncoding(inverted, encoding), regFile_(regFile), index_(index) {
-
+    : GuardEncoding(inverted, encoding), regFile_(regFile), index_(index) {
     parent.addGuardEncoding(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -88,12 +82,8 @@ GPRGuardEncoding::GPRGuardEncoding(
  *                                code is already assigned to another guard
  *                                expression.
  */
-GPRGuardEncoding::GPRGuardEncoding(
-    const ObjectState* state,
-    GuardField& parent)
-    throw (ObjectStateLoadingException, ObjectAlreadyExists) :
-    GuardEncoding(state), regFile_(""), index_(0) {
-
+GPRGuardEncoding::GPRGuardEncoding(const ObjectState* state, GuardField& parent)
+    : GuardEncoding(state), regFile_(""), index_(0) {
     const string procName = "GPRGuardEncoding::GPRGuardEncoding";
 
     if (state->name() != OSNAME_GPR_GUARD_ENCODING) {
@@ -111,7 +101,6 @@ GPRGuardEncoding::GPRGuardEncoding(
     parent.addGuardEncoding(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.

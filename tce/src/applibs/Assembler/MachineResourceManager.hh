@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -114,11 +114,9 @@ public:
 
     TPEF::ResourceSection* resourceSection();
 
-    TPEF::ASpaceElement* findDataAddressSpace(std::string name)
-        throw (IllegalMachine, InvalidData);
+    TPEF::ASpaceElement *findDataAddressSpace(std::string name);
 
-    UValue findBusWidth(UValue slotNumber)
-        throw (OutOfRange);
+    UValue findBusWidth(UValue slotNumber);
 
     TPEF::ASpaceElement* undefinedAddressSpace();
 
@@ -126,13 +124,11 @@ public:
 
     TPEF::Chunk* stringToChunk(const std::string aStr);
 
-    ResourceID& resourceID(
-        UValue currentLine, const RegisterTerm &term,
-        UValue slotNumber, RequestType type)
-        throw (IllegalMachine);
+    ResourceID &resourceID(
+        UValue currentLine, const RegisterTerm &term, UValue slotNumber,
+        RequestType type);
 
 private:
-
     /**
      * Cache element to see if same kind of resource reading has been
      * resolved earlier during the compilation
@@ -184,26 +180,20 @@ private:
 
     std::string requestTypeString(RequestType type) const;
 
-    ResourceID functionUnitPortResource(const RegisterTerm &term)
-        throw (IllegalMachine);
+    ResourceID functionUnitPortResource(const RegisterTerm &term);
 
     ResourceID indexResource(
-        UValue currentLine, const RegisterTerm &term,
-        UValue slotNumber, RequestType type, std::string& resourceKeyString)
-        throw (IllegalMachine);
+        UValue currentLine, const RegisterTerm &term, UValue slotNumber,
+        RequestType type, std::string &resourceKeyString);
 
-    ResourceID  rFPortOrFUIndexReference(
-        TTAMachine::FunctionUnit *fu,
-        TTAMachine::BaseRegisterFile *rf,
-        UValue currentLine, const RegisterTerm &term,
-        UValue slotNumber, RequestType type, std::string& resourceKeyString)
-        throw (IllegalMachine);
+    ResourceID rFPortOrFUIndexReference(
+        TTAMachine::FunctionUnit *fu, TTAMachine::BaseRegisterFile *rf,
+        UValue currentLine, const RegisterTerm &term, UValue slotNumber,
+        RequestType type, std::string &resourceKeyString);
 
     ResourceID registerFileIndexReference(
-        TTAMachine::BaseRegisterFile *rf,
-        const RegisterTerm &term,
-        UValue slotNumber, RequestType type, std::string& resourceKeyString)
-        throw (IllegalMachine);
+        TTAMachine::BaseRegisterFile *rf, const RegisterTerm &term,
+        UValue slotNumber, RequestType type, std::string &resourceKeyString);
 
     /// Binary where all used resources are added.
     TPEF::Binary  &tpef_;

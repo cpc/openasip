@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -55,17 +55,14 @@ public:
 
     void addByte(Byte aByte);
 
-    Byte byte(unsigned int index) const
-        throw (OutOfRange);
+    Byte byte(unsigned int index) const;
 
-    void setByte(unsigned int index, Byte aValue)
-        throw (OutOfRange);
+    void setByte(unsigned int index, Byte aValue);
 
     void setWord(Word aValue);
     void setSignedWord(SignedWord aValue);
 
-    Word word() const
-        throw (OutOfRange);
+    Word word() const;
 
     SignedWord signedWord() const;
 

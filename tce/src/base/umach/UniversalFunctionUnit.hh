@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -49,22 +49,16 @@ namespace TTAMachine {
  */
 class UniversalFunctionUnit : public TTAMachine::FunctionUnit {
 public:
-    UniversalFunctionUnit(const std::string& name, OperationPool& opPool)
-        throw (InvalidName);
+    UniversalFunctionUnit(const std::string& name, OperationPool& opPool);
     virtual ~UniversalFunctionUnit();
 
     virtual bool hasOperation(const std::string& name) const;
-    virtual TTAMachine::HWOperation* operation(const std::string& name) const
-        throw (InstanceNotFound);
-    virtual void addPipelineElement(TTAMachine::PipelineElement& element)
-        throw (ComponentAlreadyExists);
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual TTAMachine::HWOperation* operation(const std::string& name) const;
+    virtual void addPipelineElement(TTAMachine::PipelineElement& element);
+    virtual void loadState(const ObjectState* state);
 
-    int portCountWithWidth(int width) const
-        throw (OutOfRange);
-    TTAMachine::FUPort& portWithWidth(int index, int width) const
-        throw (OutOfRange);
+    int portCountWithWidth(int width) const;
+    TTAMachine::FUPort& portWithWidth(int index, int width) const;
 
     static bool is32BitOperation(const std::string& opName);
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -50,9 +50,8 @@ public:
     Script(ScriptInterpreter* interpreter, std::vector<std::string>& script);
     virtual ~Script();
 
-    virtual DataObject execute() 
-        throw (ScriptExecutionFailure, NumberFormatException);
-    DataObject lastResult() throw (InvalidData);
+    virtual DataObject execute();
+    DataObject lastResult();
     virtual std::vector<std::string> script() const;
 protected:
     /// Interpreter executing the commands.

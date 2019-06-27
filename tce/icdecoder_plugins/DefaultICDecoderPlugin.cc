@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -506,11 +506,8 @@ private:
     /**
      * Finds out the delay of the given socket.
      */
-    DelayInNanoSeconds delayOfSocket(
-        HDB::HDBManager& hdb,
-        const TTAMachine::Socket& socket)
-        throw (Exception) {
-
+    DelayInNanoSeconds
+    delayOfSocket(HDB::HDBManager& hdb, const TTAMachine::Socket& socket) {
         DelayInNanoSeconds delay = 0;
         std::string socketName = "";
         try {
@@ -570,11 +567,8 @@ private:
     /**
      * Finds out the delay of the given bus.
      */
-    DelayInNanoSeconds delayOfBus(
-        HDB::HDBManager& hdb,
-        const TTAMachine::Bus& bus)
-        throw (Exception) {
-
+    DelayInNanoSeconds
+    delayOfBus(HDB::HDBManager& hdb, const TTAMachine::Bus& bus) {
         DelayInNanoSeconds delay = 0;
         std::string busName = "";
         try {
@@ -622,11 +616,10 @@ private:
      *
      * Not used with current implementation.
      */
-    DelayInNanoSeconds delayOfSocket(
+    DelayInNanoSeconds
+    delayOfSocket(
         HDB::HDBRegistry& hdbRegistry,
-        const IDF::SocketImplementationLocation& implementation) 
-        throw (Exception) {
-
+        const IDF::SocketImplementationLocation& implementation) {
         // First fetch the id of the 'delay_subsocket_reference' of the
         // socket. The id is used to fetch the subsocket data which carries
         // the delay data.
@@ -651,17 +644,16 @@ private:
                 __FILE__, __LINE__, __func__, 
                 std::string("Cannot fetch socket delay data '") +
                 entry + "'." + e.errorMessage());
-        }        
+        }
     }
 
     /**
      * Finds out the delay of the given bus.
      */
-    DelayInNanoSeconds delayOfBus(
+    DelayInNanoSeconds
+    delayOfBus(
         HDB::HDBRegistry& hdbRegistry,
-        const IDF::BusImplementationLocation& implementation) 
-        throw (Exception) {
-
+        const IDF::BusImplementationLocation& implementation) {
         // First fetch the id of the 'delay_subbus_reference' of the
         // socket. The id is used to fetch the subbus data which carries
         // the delay data.
@@ -693,10 +685,9 @@ private:
      * @exception KeyNotFound In case the key was not found in the string.
      *
      */
-    DataObject valueFromKeyValuePairString(
-        const std::string& keyName, const std::string& keyValuePairString) 
-        throw (KeyNotFound) {
-
+    DataObject
+    valueFromKeyValuePairString(
+        const std::string& keyName, const std::string& keyValuePairString) {
         boost::smatch parsed;
         boost::regex regexp(
             (boost::format("(.*)(%s)=([^\\s]*)(.*)") % keyName).str());
@@ -1093,13 +1084,12 @@ public:
      * @param dstDirectory The destination directory.
      * @param generator The netlist generator that generated the netlist.
      */
-    virtual void generate(
-        HDL language,
-        const std::string& dstDirectory, 
+    virtual void
+    generate(
+        HDL language, const std::string& dstDirectory,
         const NetlistGenerator& generator,
         const IDF::MachineImplementation& implementation,
-        const std::string& entityString) 
-        throw (Exception) {
+        const std::string& entityString) {
         const string DS = FileSystem::DIRECTORY_SEPARATOR;
         const string templateDir = Environment::dataDirPath("ProGe");
         
@@ -1154,7 +1144,6 @@ public:
         }
     }
 
-
     /**
      * Returns the required latency of the hardware implementation of the
      * given immediate unit.
@@ -1173,13 +1162,12 @@ public:
      * @exception InvalidData If the plugin is not compatible with the
      *                        machine.
      */
-    virtual void verifyCompatibility() const
-        throw (InvalidData) {
-        
+    virtual void
+    verifyCompatibility() const {
         icGenerator_->verifyCompatibility();
         decoderGenerator_->verifyCompatibility();
     }
-        
+
 private:
 
     /**

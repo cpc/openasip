@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -80,10 +80,7 @@ SimpleScriptInterpreter::initialize(
  */
 void
 SimpleScriptInterpreter::setVariableToInterpreter(
-    const std::string& name,
-    const DataObject& value) 
-    throw (NumberFormatException) {
-
+    const std::string& name, const DataObject& value) {
     VariableMap::iterator iter = variables_.find(name);
     
     if (iter == variables_.end()) {
@@ -177,9 +174,7 @@ SimpleScriptInterpreter::interpret(const std::string& commandLine) {
  * @exception Cannot throw.
  */
 void
-SimpleScriptInterpreter::setResultToInterpreter(const DataObject&) 
-    throw (NumberFormatException) {
-}
+SimpleScriptInterpreter::setResultToInterpreter(const DataObject&) {}
 
 /**
  * Returns an instance of InterpreteContext.

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -54,8 +54,7 @@ public:
     TestCmd();
     virtual ~TestCmd();
 
-    virtual bool execute(const vector<DataObject>& arguments)
-        throw (NumberFormatException);
+    virtual bool execute(const vector<DataObject>& arguments);
     virtual string helpText() const;
 };
 
@@ -78,9 +77,7 @@ TestCmd::~TestCmd() {
  * @exception NumberFormatException Can not throw.
  */
 bool
-TestCmd::execute(const vector<DataObject>&) 
-    throw (NumberFormatException) {
-    
+TestCmd::execute(const vector<DataObject>&) {
     ScriptInterpreter* interp = interpreter();
     LineReader* reader = interp->lineReader();
     DataObject* obj = new DataObject();

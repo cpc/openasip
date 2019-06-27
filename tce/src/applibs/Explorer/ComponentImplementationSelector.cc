@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -80,9 +80,7 @@ ComponentImplementationSelector::~ComponentImplementationSelector() {
  * @exception Exception in case there was a problem while opening the HDB.
  */
 void
-ComponentImplementationSelector::addHDB(const HDBManager& hdb) 
-    throw (Exception) {
-
+ComponentImplementationSelector::addHDB(const HDBManager& hdb) {
     usedHDBs_.insert(hdb.fileName());
 }
 
@@ -605,16 +603,12 @@ ComponentImplementationSelector::iuImplementations(
  * @param frequency The minimum frequency of the implementations.
  * @param maxArea The maximum area of the implementations.
  */
-void 
+void
 ComponentImplementationSelector::selectComponentsToConf(
-    DSDBManager::MachineConfiguration& conf, 
-    DSDBManager& dsdb, 
-    TTAMachine::Machine* mach,
-    const std::string& icDecoder, 
-    const std::string& icDecoderHDB,
-    const double& frequency,
-    const double& maxArea) throw(Exception) {
-
+    DSDBManager::MachineConfiguration& conf, DSDBManager& dsdb,
+    TTAMachine::Machine* mach, const std::string& icDecoder,
+    const std::string& icDecoderHDB, const double& frequency,
+    const double& maxArea) {
     if (mach == NULL) {
         try {
             mach = dsdb.architecture(conf.architectureID);
@@ -643,7 +637,6 @@ ComponentImplementationSelector::selectComponentsToConf(
     conf.hasImplementation = true;
 }
 
-
 /**
  * Selects the implementations for the machine configuration.
  *
@@ -656,13 +649,9 @@ ComponentImplementationSelector::selectComponentsToConf(
  */
 IDF::MachineImplementation*
 ComponentImplementationSelector::selectComponents(
-    const TTAMachine::Machine* mach,
-    const std::string& icDecoder, 
-    const std::string& icDecoderHDB,
-    const double& frequency,
-    const double& maxArea) throw(Exception) {
-
-
+    const TTAMachine::Machine* mach, const std::string& icDecoder,
+    const std::string& icDecoderHDB, const double& frequency,
+    const double& maxArea) {
     HDBRegistry& hdbRegistry = HDBRegistry::instance();
     for (int i = 0; i < hdbRegistry.hdbCount(); i++) {
         addHDB(hdbRegistry.hdb(i));
@@ -698,7 +687,6 @@ ComponentImplementationSelector::selectComponents(
     return idf;
 }
 
-
 /**
  * Selects the implementations for FUs in the machine configuration.
  *
@@ -707,12 +695,9 @@ ComponentImplementationSelector::selectComponents(
  */
 void
 ComponentImplementationSelector::selectFUs(
-        const TTAMachine::Machine* mach,
-        IDF::MachineImplementation* idf,
-        const double& frequency,
-        const double& maxArea,
-        const bool& filterLongestPathDelay) throw (Exception) {
-
+    const TTAMachine::Machine* mach, IDF::MachineImplementation* idf,
+    const double& frequency, const double& maxArea,
+    const bool& filterLongestPathDelay) {
     Machine::FunctionUnitNavigator fuNav = mach->functionUnitNavigator();
 
     // select implementations for funtion units
@@ -794,7 +779,6 @@ ComponentImplementationSelector::selectFUs(
     }
 }
 
-
 /**
  * Selects the implementations for RFs in the machine configuration.
  * 
@@ -803,11 +787,8 @@ ComponentImplementationSelector::selectFUs(
  */
 void
 ComponentImplementationSelector::selectRFs(
-        const TTAMachine::Machine* mach,
-        IDF::MachineImplementation* idf,
-        const double& frequency,
-        const double& maxArea) throw (Exception) {
-
+    const TTAMachine::Machine* mach, IDF::MachineImplementation* idf,
+    const double& frequency, const double& maxArea) {
     Machine::RegisterFileNavigator rfNav = mach->registerFileNavigator();
     
     // selects the register that has biggest longest path delay
@@ -884,18 +865,14 @@ ComponentImplementationSelector::selectRFs(
     }
 }
 
-
 /**
  * Selects the implementations for IUs in the machine configuration.
  *
  */
 void
 ComponentImplementationSelector::selectIUs(
-        const TTAMachine::Machine* mach,
-        IDF::MachineImplementation* idf,
-        const double& frequency,
-        const double& maxArea) throw (Exception) {
-
+    const TTAMachine::Machine* mach, IDF::MachineImplementation* idf,
+    const double& frequency, const double& maxArea) {
     Machine::ImmediateUnitNavigator iuNav = mach->immediateUnitNavigator();
     
     // select implementations for immediate units
@@ -964,4 +941,3 @@ ComponentImplementationSelector::selectIUs(
         }
     }
 }
-

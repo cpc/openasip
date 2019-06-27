@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -191,14 +191,11 @@ public:
 
     static BinaryReader* instance();
 
-    SectionOffset sectionOffsetOfAddress(AddressImage address) const
-        throw (OutOfRange);
+    SectionOffset sectionOffsetOfAddress(AddressImage address) const;
 
-    AddressImage addressOfElement(SectionElement *elem) const
-        throw (OutOfRange);
+    AddressImage addressOfElement(SectionElement* elem) const;
 
-    ASpaceElement* aSpaceOfElement(SectionElement *elem) const
-        throw (OutOfRange);
+    ASpaceElement* aSpaceOfElement(SectionElement* elem) const;
 
     ResourceSection* resourceTable() const;
 
@@ -216,24 +213,16 @@ protected:
     AOutReader();
     virtual ~AOutReader();
 
-    virtual Binary* readData(BinaryStream& stream) const
-        throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists,
-               EndOfFile, OutOfRange, WrongSubclass, UnexpectedValue);
+    virtual Binary* readData(BinaryStream& stream) const;
 
-    virtual bool isMyStreamType(BinaryStream& stream) const
-        throw (UnreachableStream);
+    virtual bool isMyStreamType(BinaryStream& stream) const;
 
 private:
-    void readHeader(BinaryStream& stream) const
-        throw (UnreachableStream, EndOfFile);
+    void readHeader(BinaryStream& stream) const;
 
     void readSection(
-        BinaryStream& stream,
-        FileOffset startPosition,
-        Section* section,
-        Length length) const
-        throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists,
-               EndOfFile, OutOfRange, WrongSubclass, UnexpectedValue);
+        BinaryStream& stream, FileOffset startPosition, Section* section,
+        Length length) const;
 
     void addOrDeleteSection(Section* section, Binary* binary) const;
 

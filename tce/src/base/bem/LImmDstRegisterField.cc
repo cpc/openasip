@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -56,11 +56,8 @@ const std::string LImmDstRegisterField::OSKEY_DST_IU = "iu";
  * @param parent The parent BinaryEncoding instance.
  * @exception OutOfRange If the given width is 0 or smaller.
  */
-LImmDstRegisterField::LImmDstRegisterField(
-    int width,
-    BinaryEncoding& parent)
-    throw (OutOfRange) : InstructionField(&parent), width_(width) {
-
+LImmDstRegisterField::LImmDstRegisterField(int width, BinaryEncoding& parent)
+    : InstructionField(&parent), width_(width) {
     if (width < 1) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -69,7 +66,6 @@ LImmDstRegisterField::LImmDstRegisterField(
     parent.addLongImmDstRegisterField(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -83,17 +79,13 @@ LImmDstRegisterField::LImmDstRegisterField(
  *                                        is erroneous.
  */
 LImmDstRegisterField::LImmDstRegisterField(
-    const ObjectState* state,
-    BinaryEncoding& parent)
-    throw (ObjectStateLoadingException) :
-    InstructionField(state, &parent), width_(0) {
-
+    const ObjectState* state, BinaryEncoding& parent)
+    : InstructionField(state, &parent), width_(0) {
     loadState(state);
     setParent(NULL);
     parent.addLongImmDstRegisterField(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.
@@ -135,10 +127,7 @@ LImmDstRegisterField::parent() const {
  */
 void
 LImmDstRegisterField::addDestination(
-    const std::string& instructionTemplate,
-    const std::string& immediateUnit)
-    throw (NotAvailable) {
-
+    const std::string& instructionTemplate, const std::string& immediateUnit) {
     if (MapTools::containsKey(destinationMap_, instructionTemplate) &&
         MapTools::valueForKey<string>(destinationMap_, instructionTemplate)
         != immediateUnit) {
@@ -148,7 +137,6 @@ LImmDstRegisterField::addDestination(
             std::pair<string, string>(instructionTemplate, immediateUnit));
     }
 }
-
 
 /**
  * Returns the number of instruction templates that use this destination 
@@ -171,9 +159,7 @@ LImmDstRegisterField::instructionTemplateCount() const {
  *                       number of instruction templates.
  */
 std::string
-LImmDstRegisterField::instructionTemplate(int index) const
-    throw (OutOfRange) {
-
+LImmDstRegisterField::instructionTemplate(int index) const {
     if (index < 0 || index >= instructionTemplateCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -185,7 +171,6 @@ LImmDstRegisterField::instructionTemplate(int index) const
 
     return iter->first;
 }
-
 
 /**
  * Tells whether the field is used by the given instruction template.
@@ -210,9 +195,7 @@ LImmDstRegisterField::usedByInstructionTemplate(
  */
 std::string
 LImmDstRegisterField::immediateUnit(
-    const std::string& instructionTemplate) const
-    throw (NotAvailable) {
-
+    const std::string& instructionTemplate) const {
     try {
         return MapTools::valueForKey<string>(
             destinationMap_, instructionTemplate);
@@ -220,7 +203,6 @@ LImmDstRegisterField::immediateUnit(
         throw NotAvailable(__FILE__, __LINE__, __func__);
     }
 }
-
 
 /**
  * Returns the width of the field.
@@ -275,9 +257,7 @@ LImmDstRegisterField::saveState() const {
  * @param state The ObjectState instance.
  */
 void
-LImmDstRegisterField::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+LImmDstRegisterField::loadState(const ObjectState* state) {
     if (state->name() != OSNAME_LIMM_DST_REGISTER_FIELD) {
         throw ObjectStateLoadingException(__FILE__, __LINE__, __func__);
     }
@@ -301,4 +281,3 @@ LImmDstRegisterField::loadState(const ObjectState* state)
             __FILE__, __LINE__, __func__, e.errorMessage());
     }
 }
-            

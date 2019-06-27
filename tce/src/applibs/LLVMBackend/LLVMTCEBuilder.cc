@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -606,7 +606,8 @@ LLVMTCEBuilder::createDataDefinition(
             }
         }
     } else {
-        cv->dump();
+        // LLVM does not include dump() when built in non-debug mode.
+        // cv->dump();
         abortWithError("Unknown cv type.");
     }
     return paddedAddr;
@@ -2053,7 +2054,8 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
         return createProgramOperationReference(mo);
     } else {
         std::cerr << "Unknown src operand type!" << std::endl;
-        mo.getParent()->dump();
+        // LLVM does not include dump() when built in non-debug mode.
+        // mo.getParent()->dump();
         assert(false);
     }
     abortWithError("Should not get here!");
@@ -3550,8 +3552,7 @@ LLVMTCEBuilder::createMove(
  * @throw NotAvailable If program is not ready.
  */
 TTAProgram::Program*
-LLVMTCEBuilder::result() throw (NotAvailable) {
-
+LLVMTCEBuilder::result() {
     return prog_;
 }
 

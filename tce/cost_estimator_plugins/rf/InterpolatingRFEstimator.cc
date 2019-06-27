@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -441,9 +441,7 @@ initializeEstimator(const HDBManager& hdb) {
  * @return Returns entries that matched the register file.
  */
 CostDBTypes::EntryTable
-createSearch(const BaseRegisterFile& rf) const 
-    throw (Exception) {
-
+createSearch(const BaseRegisterFile& rf) const {
     CostDBTypes::EntryTable results;
     
     RFArchitecture rfArch(&rf);
@@ -510,7 +508,7 @@ createSearch(const BaseRegisterFile& rf) const
     searchKey = 0;
     return results;
 }
-    
+
 /**
  * Creates types of matches used for searching cost database
  * entries.

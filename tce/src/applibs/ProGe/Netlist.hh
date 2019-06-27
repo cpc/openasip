@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -87,8 +87,7 @@ public:
     bool isPortConnected(const NetlistPort& port) const;
 
     bool isEmpty() const;
-    NetlistBlock& topLevelBlock() const
-        throw (InstanceNotFound);
+    NetlistBlock& topLevelBlock() const;
 
     void setCoreEntityName(TCEString coreEntityName);
     TCEString coreEntityName() const;
@@ -102,8 +101,7 @@ public:
     void removeParameter(const std::string& name);
     bool hasParameter(const std::string& name) const;
     int parameterCount() const;
-    Parameter parameter(int index) const
-        throw (OutOfRange);
+    Parameter parameter(int index) const;
 
 private:
     /// Map type for vertex descriptors

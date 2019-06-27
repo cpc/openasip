@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -118,8 +118,7 @@ BusBroker::isAnyResourceAvailable(int cycle, const MoveNode& node) const {
  * @exception InstanceNotFound If no available resource is found.
  */
 SchedulingResource&
-BusBroker::availableResource(int cycle, const MoveNode& node) const
-    throw (InstanceNotFound) {
+BusBroker::availableResource(int cycle, const MoveNode& node) const {
     cycle = instructionIndex(cycle);
     SchedulingResourceSet allAvailableBuses =
         allAvailableResources(cycle, node);
@@ -421,9 +420,7 @@ BusBroker::isAvailable(
  * given node or no corresponding machine part is found.
  */
 void
-BusBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
-    throw (Exception) {
-
+BusBroker::assign(int cycle, MoveNode& node, SchedulingResource& res) {
     cycle = instructionIndex(cycle);
     BusResource& busRes = static_cast<BusResource&>(res);
     Move& move = const_cast<MoveNode&>(node).move();

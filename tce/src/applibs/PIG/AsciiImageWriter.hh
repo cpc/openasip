@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -53,13 +53,11 @@ public:
 protected:
     const BitVector& bits() const;
     int rowLength() const;
-    void
-    writeSequence(std::ostream& stream, int length, bool padEnd = false) const
-        throw (OutOfRange);
+    void writeSequence(
+        std::ostream& stream, int length, bool padEnd = false) const;
 
-    void
-    writeHexSequence(std::ostream& stream, int length, bool padEnd = false)
-        const throw (OutOfRange);
+    void writeHexSequence(
+        std::ostream& stream, int length, bool padEnd = false) const;
 
 private:
     /// The bits to be written.

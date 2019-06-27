@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -102,9 +102,7 @@ OperationModule::definesBehavior() const {
  * @exception FileNotFound If behavior module is not found.
  */
 string
-OperationModule::behaviorModule() const
-    throw (FileNotFound) {
-    
+OperationModule::behaviorModule() const {
     if (!definesBehavior()) {
         std::string method = "OperationModule::behaviorModule()";
         std::string msg = "Behavior file not found: " + behaviorFileName();
@@ -143,9 +141,7 @@ OperationModule::hasBehaviorSource() const {
  * @exception FileNotFound If behavior source file not found.
  */
 string
-OperationModule::behaviorSourceModule() const
-    throw (FileNotFound) {
-
+OperationModule::behaviorSourceModule() const {
     if (!hasBehaviorSource()) {
         std::string method = "OperationModule::behaviorSourceModule()";
         std::string msg = "Behavior source file not found.";
@@ -242,9 +238,7 @@ NullOperationModule::definesBehavior() const {
  * @exception FileNotFound If behavior module is not found.
  */
 string
-NullOperationModule::behaviorModule() const
-    throw (FileNotFound) {
-    
+NullOperationModule::behaviorModule() const {
     Application::abortWithError("behaviorModule()");
     return "";
 }
@@ -279,9 +273,7 @@ NullOperationModule::hasBehaviorSource() const {
  * @exception FileNotFound Doesn't throw.
  */
 string
-NullOperationModule::behaviorSourceModule() const
-    throw (FileNotFound) {
-    
+NullOperationModule::behaviorSourceModule() const {
     Application::abortWithError("behaviorSourceModule()");
     return "";
 }

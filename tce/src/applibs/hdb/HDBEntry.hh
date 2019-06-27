@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -49,15 +49,13 @@ public:
 
     bool hasID() const;
     void setID(RowID id);
-    RowID id() const
-        throw (NotAvailable);
+    RowID id() const;
 
     virtual bool hasArchitecture() const = 0;
     virtual bool hasImplementation() const = 0;
 
     bool hasCostFunction() const;
-    CostFunctionPlugin& costFunction() const
-        throw (NotAvailable);
+    CostFunctionPlugin& costFunction() const;
     void setCostFunction(CostFunctionPlugin* costFunction);
 
     std::string hdbFile() const;

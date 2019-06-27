@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -362,9 +362,7 @@ MoveNode::isScheduled() const {
  * @exception InvalidData if the node is not placed.
  */
 int
-MoveNode::cycle() const
-    throw(InvalidData){
-
+MoveNode::cycle() const {
     if (!isPlaced()){
         std::string msg = "MoveNode was not placed yet: ";
         if (isMove()) {
@@ -377,7 +375,6 @@ MoveNode::cycle() const
         return cycle_;
     }
 }
-
 
 /**
  * Returns the enclosing scheduling scope of the node.
@@ -402,14 +399,12 @@ MoveNode::scope(){
  *     output.
  */
 ProgramOperation&
-MoveNode::sourceOperation() const
-    throw(InvalidData){
+MoveNode::sourceOperation() const {
     return *sourceOperationPtr().get();
 }
 
 ProgramOperationPtr
-MoveNode::sourceOperationPtr() const
-    throw(InvalidData){
+MoveNode::sourceOperationPtr() const {
     if (!isSourceOperation()){
         std::string msg =
             (boost::format(
@@ -421,7 +416,6 @@ MoveNode::sourceOperationPtr() const
     }
 }
 
-
 /**
  * Set cycle for a node, also sets placed_
  * @param newcycle Cycle to which node is placed_
@@ -429,9 +423,7 @@ MoveNode::sourceOperationPtr() const
  *                      newcycle
  */
 void
-MoveNode::setCycle( const int newcycle)
-    throw(InvalidData){
-
+MoveNode::setCycle(const int newcycle) {
     if (placed_ == true && cycle_ != newcycle) {
         std::string msg = "MoveNode is already placed in cycle ";
         msg += cycle_;
@@ -447,9 +439,7 @@ MoveNode::setCycle( const int newcycle)
  * @throw InvalidData If node is not placed
  */
 void
-MoveNode::unsetCycle()
-    throw(InvalidData){
-
+MoveNode::unsetCycle() {
     if (placed_ == false ) {
         std::string msg = "MoveNode is not placed.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);

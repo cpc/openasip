@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -90,11 +90,7 @@ TPEFResourceSectionReader::type() const {
  */
 void
 TPEFResourceSectionReader::readData(
-    BinaryStream& stream,
-    Section* section) const
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-           OutOfRange, WrongSubclass, UnexpectedValue) {
-
+    BinaryStream& stream, Section* section) const {
     // base classes implementation must be called with these
     TPEFSectionReader::readData(stream, section);
 
@@ -137,5 +133,4 @@ TPEFResourceSectionReader::readData(
         }
     }
 }
-
 }

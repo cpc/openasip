@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -48,20 +48,15 @@ class ControlUnit;
 class SpecialRegisterPort : public BaseFUPort {
 public:
     SpecialRegisterPort(
-        const std::string& name,
-        int width,
-        ControlUnit& parent)
-        throw (InvalidName, OutOfRange, ComponentAlreadyExists);
-    SpecialRegisterPort(const ObjectState* state, Unit& parent)
-        throw (ObjectStateLoadingException);
+        const std::string& name, int width, ControlUnit& parent);
+    SpecialRegisterPort(const ObjectState* state, Unit& parent);
     virtual ~SpecialRegisterPort();
 
     virtual bool isTriggering() const;
     virtual bool isOpcodeSetting() const;
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for special register port.
     static const std::string OSNAME_SPECIAL_REG_PORT;

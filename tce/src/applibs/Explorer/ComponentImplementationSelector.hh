@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -76,8 +76,7 @@ public:
     ComponentImplementationSelector();
     virtual ~ComponentImplementationSelector();
 
-    void addHDB(const HDB::HDBManager& hdb)
-        throw(Exception);
+    void addHDB(const HDB::HDBManager& hdb);
     void addCase(
         const TTAProgram::Program& program, const ExecutionTrace& traceDB);
 
@@ -100,39 +99,30 @@ public:
         double maxArea = 0);
 
     void selectComponentsToConf(
-        DSDBManager::MachineConfiguration& conf, 
-        DSDBManager& dsdb, 
+        DSDBManager::MachineConfiguration& conf, DSDBManager& dsdb,
         TTAMachine::Machine* mach = NULL,
         const std::string& icDecoder = "ic_hdb",
-        const std::string& icDecoderHDB = "asic_130nm_1.5V.hdb", 
-        const double& frequency = 0,
-        const double& maxArea = 0) throw(Exception);
+        const std::string& icDecoderHDB = "asic_130nm_1.5V.hdb",
+        const double& frequency = 0, const double& maxArea = 0);
 
     IDF::MachineImplementation* selectComponents(
         const TTAMachine::Machine* mach,
         const std::string& icDecoder = "ic_hdb",
-        const std::string& icDecoderHDB = "asic_130nm_1.5V.hdb", 
-        const double& frequency = 0,
-        const double& maxArea = 0) throw(Exception);
+        const std::string& icDecoderHDB = "asic_130nm_1.5V.hdb",
+        const double& frequency = 0, const double& maxArea = 0);
 
     void selectFUs(
-        const TTAMachine::Machine* mach,
-        IDF::MachineImplementation* idf,
-        const double& frequency = 0,
-        const double& maxArea = 0,
-        const bool& filterLongestPathDelay = true) throw (Exception);
+        const TTAMachine::Machine* mach, IDF::MachineImplementation* idf,
+        const double& frequency = 0, const double& maxArea = 0,
+        const bool& filterLongestPathDelay = true);
 
     void selectRFs(
-        const TTAMachine::Machine* mach,
-        IDF::MachineImplementation* idf,
-        const double& frequency = 0,
-        const double& maxArea = 0) throw (Exception);
-    
+        const TTAMachine::Machine* mach, IDF::MachineImplementation* idf,
+        const double& frequency = 0, const double& maxArea = 0);
+
     void selectIUs(
-        const TTAMachine::Machine* mach,
-        IDF::MachineImplementation* idf,
-        const double& frequency = 0,
-        const double& maxArea = 0) throw (Exception);
+        const TTAMachine::Machine* mach, IDF::MachineImplementation* idf,
+        const double& frequency = 0, const double& maxArea = 0);
 
 private:
     /// HDBs from which implementations are serched are stored in this set

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -82,12 +82,10 @@ public:
     bool checkMachineLoaded();
 
     InstructionAddress parseInstructionAddressExpression(
-        const std::string& expression)
-        throw (IllegalParameters);    
+        const std::string& expression);
 
     TTAProgram::Address parseDataAddressExpression(
-        const std::string& expression)
-        throw (IllegalParameters);    
+        const std::string& expression);
 
     bool parseBreakpoint(
         const std::vector<DataObject>& arguments, 

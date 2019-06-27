@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -61,7 +61,7 @@ namespace TTAMachine {
 template <typename ContainerType, typename ComponentType>
 void
 Machine::addComponent(ContainerType& container, ComponentType& toAdd)
-    throw (ComponentAlreadyExists) {
+     {
 
     if (container.item(toAdd.name()) != NULL) {
         const std::string procName = "Machine::addComponent";
@@ -94,7 +94,7 @@ void
 Machine::addRegisteredComponent(
     ContainerType& container,
     ComponentType& toAdd)
-    throw (ComponentAlreadyExists) {
+     {
 
     if (container.item(toAdd.name()) != NULL) {
         const std::string procName = "Machine::addRegisteredComponent";
@@ -123,7 +123,7 @@ void
 Machine::removeComponent(
     ContainerType& container,
     ComponentType& toRemove)
-    throw (InstanceNotFound) {
+     {
 
     if (container.item(toRemove.name()) != &toRemove) {
         std::string procName = "Machine::removeComponent";
@@ -152,7 +152,7 @@ template <typename ContainerType, typename ComponentType>
 void Machine::deleteComponent(
     ContainerType& container,
     ComponentType& toDelete)
-    throw (InstanceNotFound) {
+     {
 
     std::string componentName = toDelete.name();
     if (container.item(componentName) != &toDelete) {
@@ -230,7 +230,7 @@ Machine::Navigator<ComponentType>::operator=(const Navigator& old) {
 template <typename ComponentType>
 ComponentType*
 Machine::Navigator<ComponentType>::item(int index) const
-    throw (OutOfRange) {
+     {
 
     if (index < 0 || index >= count()) {
         const std::string procName = "Machine::Navigator::item";
@@ -250,7 +250,7 @@ Machine::Navigator<ComponentType>::item(int index) const
 template <typename ComponentType>
 ComponentType*
 Machine::Navigator<ComponentType>::item(const std::string& name) const
-    throw (InstanceNotFound) {
+     {
 
     ComponentType* component = container_->item(name);
     if (component != NULL) {
@@ -434,7 +434,7 @@ void
 Machine::ComponentContainer<ComponentType>::moveToPosition(
     const ComponentType* component,
     int position)
-    throw (InstanceNotFound, OutOfRange) {
+     {
 
     const std::string procName = 
         "Machine::ComponentContainer::moveToPosition";

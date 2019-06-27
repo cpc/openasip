@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -53,8 +53,7 @@ class MachineImplementation : public Serializable {
 public:
     MachineImplementation();
 
-    MachineImplementation(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    MachineImplementation(const ObjectState* state);
 
     virtual ~MachineImplementation();
 
@@ -62,31 +61,23 @@ public:
 
     std::string icDecoderPluginName() const;
     bool hasICDecoderPluginName() const;
-    std::string icDecoderPluginFile() const
-        throw (FileNotFound);
+    std::string icDecoderPluginFile() const;
 
     bool hasICDecoderPluginFile() const;
-    std::string icDecoderHDB() const
-        throw (FileNotFound);
+    std::string icDecoderHDB() const;
     bool hasICDecoderHDB() const;
-    std::string decompressorFile() const
-        throw (FileNotFound);
+    std::string decompressorFile() const;
     bool hasDecompressorFile() const;
 
     void setICDecoderPluginName(const std::string& name);
-    void setICDecoderPluginFile(const std::string& file)
-        throw (FileNotFound);
-    void setICDecoderHDB(const std::string& file)
-        throw (FileNotFound);
-    void setDecompressorFile(const std::string& file)
-        throw (FileNotFound);
- 
+    void setICDecoderPluginFile(const std::string& file);
+    void setICDecoderHDB(const std::string& file);
+    void setDecompressorFile(const std::string& file);
+
     unsigned icDecoderParameterCount() const;
-    std::string icDecoderParameterName(unsigned param) const
-        throw (OutOfRange);
+    std::string icDecoderParameterName(unsigned param) const;
     std::string icDecoderParameterValue(const std::string& name) const;
-    std::string icDecoderParameterValue(unsigned param) const
-        throw (OutOfRange);
+    std::string icDecoderParameterValue(unsigned param) const;
     void clearICDecoderParameters();
 
     void setICDecoderParameter(
@@ -104,59 +95,36 @@ public:
     int busImplementationCount() const;
     int socketImplementationCount() const;
 
-    FUImplementationLocation& fuImplementation(const std::string& fu) const
-        throw (InstanceNotFound);
-    RFImplementationLocation& rfImplementation(const std::string& rf) const
-        throw (InstanceNotFound);
-    RFImplementationLocation& iuImplementation(const std::string& iu) const
-        throw (InstanceNotFound);
-    BusImplementationLocation& busImplementation(const std::string& bus) const
-        throw (InstanceNotFound);
+    FUImplementationLocation& fuImplementation(const std::string& fu) const;
+    RFImplementationLocation& rfImplementation(const std::string& rf) const;
+    RFImplementationLocation& iuImplementation(const std::string& iu) const;
+    BusImplementationLocation& busImplementation(const std::string& bus) const;
     SocketImplementationLocation& socketImplementation(
-        const std::string& socket) const
-        throw (InstanceNotFound);
-    
-    FUImplementationLocation& fuImplementation(int index) const
-        throw (OutOfRange);
-    RFImplementationLocation& rfImplementation(int index) const
-        throw (OutOfRange);
-    RFImplementationLocation& iuImplementation(int index) const
-        throw (OutOfRange);
-    BusImplementationLocation& busImplementation(int index) const
-        throw (OutOfRange);
-    SocketImplementationLocation& socketImplementation(int index) const
-        throw (OutOfRange);
+        const std::string& socket) const;
 
-    void addFUImplementation(FUImplementationLocation* implementation)
-        throw (ObjectAlreadyExists, InvalidData);
-    void addRFImplementation(RFImplementationLocation* implementation)
-        throw (ObjectAlreadyExists, InvalidData);
-    void addIUImplementation(RFImplementationLocation* implementation)
-        throw (ObjectAlreadyExists, InvalidData);
-    void addBusImplementation(BusImplementationLocation* implementation)
-        throw (ObjectAlreadyExists, InvalidData);
-    void addSocketImplementation(SocketImplementationLocation* implementation)
-        throw (ObjectAlreadyExists, InvalidData);
+    FUImplementationLocation& fuImplementation(int index) const;
+    RFImplementationLocation& rfImplementation(int index) const;
+    RFImplementationLocation& iuImplementation(int index) const;
+    BusImplementationLocation& busImplementation(int index) const;
+    SocketImplementationLocation& socketImplementation(int index) const;
 
-    void removeFUImplementation(const std::string& unitName)
-        throw (InstanceNotFound);
-    void removeRFImplementation(const std::string& unitName)
-        throw (InstanceNotFound);
-    void removeIUImplementation(const std::string& unitName)
-        throw (InstanceNotFound);
-    void removeBusImplementation(const std::string& unitName)
-        throw (InstanceNotFound);
-    void removeSocketImplementation(const std::string& unitName)
-        throw (InstanceNotFound);
+    void addFUImplementation(FUImplementationLocation* implementation);
+    void addRFImplementation(RFImplementationLocation* implementation);
+    void addIUImplementation(RFImplementationLocation* implementation);
+    void addBusImplementation(BusImplementationLocation* implementation);
+    void addSocketImplementation(SocketImplementationLocation* implementation);
+
+    void removeFUImplementation(const std::string& unitName);
+    void removeRFImplementation(const std::string& unitName);
+    void removeIUImplementation(const std::string& unitName);
+    void removeBusImplementation(const std::string& unitName);
+    void removeSocketImplementation(const std::string& unitName);
 
     // methods from Serializable interface
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
     virtual ObjectState* saveState() const;
 
-    static MachineImplementation*
-    loadFromIDF(const std::string& idfFileName)
-        throw (Exception);
+    static MachineImplementation* loadFromIDF(const std::string& idfFileName);
 
     void makeImplFilesRelative(const std::vector<std::string>& sPaths);    
     bool checkImplFiles(
@@ -218,10 +186,7 @@ private:
     UnitImplementationLocation* findImplementation(
         const ImplementationTable& table,
         const std::string& unitName) const;
-    void ensureIndexValidity(
-        int index, 
-        const ImplementationTable& table) const
-        throw (OutOfRange);
+    void ensureIndexValidity(int index, const ImplementationTable& table) const;
     void clearState();
 
     /// FU implementations.

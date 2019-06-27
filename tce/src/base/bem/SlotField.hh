@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -61,18 +61,15 @@ public:
 
     MoveSlot* parent() const;
 
-    void addSocketEncoding(SocketEncoding& encoding)
-	throw (ObjectAlreadyExists);
+    void addSocketEncoding(SocketEncoding& encoding);
     void removeSocketEncoding(SocketEncoding& encoding);
 
     int socketEncodingCount() const;
-    SocketEncoding& socketEncoding(int index) const
-	throw (OutOfRange);
+    SocketEncoding& socketEncoding(int index) const;
     bool hasSocketEncoding(const std::string& socket) const;
     SocketEncoding& socketEncoding(const std::string& socket) const;
 
-    void setNoOperationEncoding(NOPEncoding& encoding)
-        throw (ObjectAlreadyExists);
+    void setNoOperationEncoding(NOPEncoding& encoding);
     void unsetNoOperationEncoding();
     bool hasNoOperationEncoding() const;
     NOPEncoding& noOperationEncoding() const;
@@ -82,12 +79,10 @@ public:
     // methods inherited from InstructionField
     virtual int width() const;
     virtual int childFieldCount() const;
-    virtual InstructionField& childField(int position) const
-	throw (OutOfRange);
+    virtual InstructionField& childField(int position) const;
 
     // methods inherited from Serializable interface
-    virtual void loadState(const ObjectState* state)
-	throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
     virtual ObjectState* saveState() const;
 
     /// ObjectState name for slot field.
@@ -97,8 +92,7 @@ public:
 
 protected:
     SlotField(BinaryEncoding::Position componentIDPos, MoveSlot& parent);
-    SlotField(const ObjectState* state, MoveSlot& parent)
-	throw (ObjectStateLoadingException);
+    SlotField(const ObjectState* state, MoveSlot& parent);
 
 private:
     /// A container type for socket encodings.

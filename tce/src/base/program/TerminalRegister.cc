@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -46,10 +46,8 @@ namespace TTAProgram {
  * @param port The port of the register file.
  * @param index Register identifier.
  */
-TerminalRegister::TerminalRegister(
-    const Port& port, int index) throw (InvalidData):
-    unit_(*port.parentUnit()), port_(port), index_(index), isImmUnit_(false) {
-
+TerminalRegister::TerminalRegister(const Port& port, int index)
+    : unit_(*port.parentUnit()), port_(port), index_(index), isImmUnit_(false) {
     if (dynamic_cast<const ImmediateUnit*>(&unit_) != NULL) {
         isImmUnit_ = true;
     } else if (dynamic_cast<const RegisterFile*>(&unit_) == NULL) {
@@ -76,8 +74,7 @@ TerminalRegister::~TerminalRegister() {
  *            of RegisterFile.
  */
 const RegisterFile&
-TerminalRegister::registerFile() const throw (WrongSubclass) {
-
+TerminalRegister::registerFile() const {
     if (isImmUnit_ == false) {
         return static_cast<const RegisterFile&>(unit_);
     } else {
@@ -98,8 +95,7 @@ TerminalRegister::registerFile() const throw (WrongSubclass) {
  *            of ImmediateUnit.
  */
 const ImmediateUnit&
-TerminalRegister::immediateUnit() const throw (WrongSubclass) {
-
+TerminalRegister::immediateUnit() const {
     if (isImmUnit_ == true) {
         return static_cast<const ImmediateUnit&>(unit_);
     } else {
@@ -116,7 +112,7 @@ TerminalRegister::immediateUnit() const throw (WrongSubclass) {
  * @exception WrongSubclass never.
  */
 const Port&
-TerminalRegister::port() const throw (WrongSubclass) {
+TerminalRegister::port() const {
     return port_;
 }
 
@@ -128,9 +124,7 @@ TerminalRegister::port() const throw (WrongSubclass) {
  *            register file or immediate unit it belongs to.
  */
 void
-TerminalRegister::setIndex(int index)
-    throw (OutOfRange) {
-
+TerminalRegister::setIndex(int index) {
     const BaseRegisterFile& reg =
         dynamic_cast<const BaseRegisterFile&>(unit_);
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -65,7 +65,7 @@ public:
     virtual void setResult(const std::string& result);
     virtual void setResult(int result);
     virtual void setResult(double result);
-    virtual std::string result() throw (NumberFormatException);
+    virtual std::string result();
 
     virtual void setError(bool state);
     virtual void setError(std::string errorMessage);
@@ -77,16 +77,13 @@ public:
     virtual void setVariable(
         const std::string& interpreterVariableName, 
         int value);
-    
+
     virtual std::string variableStringValue(
-        const std::string& interpreterVariableName) 
-        throw (NumberFormatException);
+        const std::string& interpreterVariableName);
     virtual int variableIntegerValue(
-        const std::string& interpreterVariableName)
-        throw (NumberFormatException);
-    
-    virtual bool processScriptFile(const std::string& scriptFileName)
-        throw (UnreachableStream);
+        const std::string& interpreterVariableName);
+
+    virtual bool processScriptFile(const std::string& scriptFileName);
 
     virtual void finalize();
 
@@ -102,13 +99,10 @@ public:
         LineReader* reader) = 0;
 
     virtual void setVariableToInterpreter(
-        const std::string& name, 
-        const DataObject& value) 
-        throw (NumberFormatException) = 0;
+        const std::string& name, const DataObject& value) = 0;
     virtual DataObject variable(const std::string& name) = 0;
     virtual bool interpret(const std::string& commandLine) = 0;
-    virtual void setResultToInterpreter(const DataObject& value) 
-        throw (NumberFormatException) = 0;
+    virtual void setResultToInterpreter(const DataObject& value) = 0;
 
     virtual InterpreterContext& context() const = 0;
    

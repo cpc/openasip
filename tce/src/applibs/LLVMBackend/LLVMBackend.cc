@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -288,14 +288,9 @@ LLVMBackend::~LLVMBackend() {
  */
 TTAProgram::Program*
 LLVMBackend::compile(
-    const std::string& bytecodeFile,
-    const std::string& emulationBytecodeFile,
-    TTAMachine::Machine& target,
-    int optLevel,
-    bool debug,
-    InterPassData* ipData) 
-    throw (Exception) {
-
+    const std::string& bytecodeFile, const std::string& emulationBytecodeFile,
+    TTAMachine::Machine& target, int optLevel, bool debug,
+    InterPassData* ipData) {
     // Check target machine
     MachineValidator validator(target);
     std::set<MachineValidator::ErrorCode> checks;
@@ -478,15 +473,9 @@ static void printAndVerify(PassManagerBase &PM,
  */
 TTAProgram::Program*
 LLVMBackend::compile(
-    llvm::Module& module,
-    llvm::Module* emulationModule,
-    TCETargetMachinePlugin& plugin,
-    TTAMachine::Machine& target,
-    int optLevel,
-    bool /*debug*/,
-    InterPassData* ipData)
-    throw (Exception) {
-
+    llvm::Module& module, llvm::Module* emulationModule,
+    TCETargetMachinePlugin& plugin, TTAMachine::Machine& target, int optLevel,
+    bool /*debug*/, InterPassData* ipData) {
     ipData_ = ipData;
     std::string targetStr = target.isLittleEndian()?"tcele-llvm":"tce-llvm";
     std::string errorStr;
@@ -704,9 +693,7 @@ LLVMBackend::compile(
  * @param target Target machine to build plugin for.
  */
 TCETargetMachinePlugin*
-LLVMBackend::createPlugin(const TTAMachine::Machine& target)
-    throw (Exception) {
-
+LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
     std::string pluginFile = pluginFilename(target);
     std::string pluginFileName = "";
 

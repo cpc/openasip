@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -69,9 +69,7 @@ StringSection::~StringSection() {
  * @exception UnexpectedValue If no terminating zero is found.
  */
 string
-StringSection::chunk2String(const Chunk* chunk) const
-    throw (UnexpectedValue) {
-
+StringSection::chunk2String(const Chunk* chunk) const {
     unsigned int offset = chunk->offset();
     assert(offset <= length());
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -78,10 +78,8 @@ CostDatabaseRegistry::instance() {
  * @exception Exception In case there was a problem while creating the
  * CostDatabase.
  */
-CostDatabase& 
-CostDatabaseRegistry::costDatabase(const HDB::HDBManager& hdb)
-    throw (Exception) {
-    
+CostDatabase&
+CostDatabaseRegistry::costDatabase(const HDB::HDBManager& hdb) {
     if (AssocTools::containsKey(registry_, &hdb)) {
         return *registry_[&hdb];
     }
@@ -145,9 +143,7 @@ CostDatabaseRegistry::costDatabaseCount() {
  * count.
  */
 CostDatabase&
-CostDatabaseRegistry::costDatabase(unsigned int index) 
-    throw (OutOfRange) {
-
+CostDatabaseRegistry::costDatabase(unsigned int index) {
     if (index > (registry_.size() - 1)) {
         throw OutOfRange(__FILE__, __LINE__,
                          "CostDatabaseRegistry::costDatavase(unsigned int)");
@@ -171,9 +167,7 @@ CostDatabaseRegistry::costDatabase(unsigned int index)
  * @exception OutOfRange Is thrown if index is out of range.
  */
 std::string
-CostDatabaseRegistry::hdbPath(unsigned index) 
-    throw (OutOfRange) {
-
+CostDatabaseRegistry::hdbPath(unsigned index) {
     if (index > (registry_.size() - 1)) {
         throw OutOfRange(__FILE__, __LINE__,
                          "CostDatabaseRegistry::hdbPath(unsigned int)");

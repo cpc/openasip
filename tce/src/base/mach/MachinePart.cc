@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -80,9 +80,7 @@ const string Component::OSKEY_NAME = "name";
  *                        component.
  */
 Component::Component(const std::string& name)
-    throw (InvalidName) :
-    MachinePart(), name_(name), machine_(NULL) {
-
+    : MachinePart(), name_(name), machine_(NULL) {
     if (!MachineTester::isValidComponentName(name)) {
         const string procName = "Component::Component";
         MOMTextGenerator textGen;
@@ -91,7 +89,6 @@ Component::Component(const std::string& name)
         throw InvalidName(__FILE__, __LINE__, procName, errorMsg.str());
     }
 }
-
 
 /**
  * Constructor.
@@ -102,10 +99,7 @@ Component::Component(const std::string& name)
  * @exception ObjectStateLoadingException If the given ObjectState instance
  *                                        is invalid.
  */
-Component::Component(const ObjectState* state)
-    throw (ObjectStateLoadingException) :
-    MachinePart(), machine_(NULL) {
-
+Component::Component(const ObjectState* state) : MachinePart(), machine_(NULL) {
     try {
         setName(state->stringAttribute(OSKEY_NAME));
     } catch (const Exception& e) {
@@ -145,9 +139,7 @@ Component::name() const {
  *                        a component.
  */
 void
-Component::setName(const std::string& name)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+Component::setName(const std::string& name) {
     if (!MachineTester::isValidComponentName(name)) {
         const string procName = "Component::setName";
         MOMTextGenerator textGen;
@@ -168,15 +160,12 @@ Component::setName(const std::string& name)
  *                                same machine.
  */
 void
-Component::ensureRegistration(const Component& component) const
-    throw (IllegalRegistration) {
-
+Component::ensureRegistration(const Component& component) const {
     if (machine() == NULL || machine() != component.machine()) {
         const string procName = "Component::ensureRegistration";
         throw IllegalRegistration(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Returns true if the component is registered to a machine, otherwise false.
@@ -213,9 +202,7 @@ Component::saveState() const {
  *                                        same name.
  */
 void
-Component::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+Component::loadState(const ObjectState* state) {
     const string procName = "Component::loadState";
 
     try {
@@ -239,7 +226,6 @@ Component::loadState(const ObjectState* state)
             __FILE__, __LINE__, procName, text.str());
     }
 }
-
 
 /////////////////////////////////////////////////////////////////////////////
 // SubComponent

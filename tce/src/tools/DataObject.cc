@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -177,9 +177,7 @@ DataObject::setNull() {
  *            not initialized.
  */
 int
-DataObject::integerValue() const
-    throw (NumberFormatException) {
-
+DataObject::integerValue() const {
     if (intFresh_) {
         return intValue_;
     } else {
@@ -248,9 +246,7 @@ DataObject::integerValue() const
  *            not initialized.
  */
 string
-DataObject::stringValue() const
-    throw (NumberFormatException) {
-
+DataObject::stringValue() const {
     if (stringFresh_) {
         return stringValue_;
     } else {
@@ -292,9 +288,7 @@ DataObject::stringValue() const
  *            not initialized.
  */
 double
-DataObject::doubleValue() const
-    throw (NumberFormatException) {
-
+DataObject::doubleValue() const {
     if (doubleFresh_) {
         return doubleValue_;
     } else {
@@ -336,9 +330,7 @@ DataObject::doubleValue() const
  *            not initialized.
  */
 float
-DataObject::floatValue() const
-    throw (NumberFormatException) {
-
+DataObject::floatValue() const {
     if (floatFresh_) {
         return floatValue_;
     } else {
@@ -367,7 +359,6 @@ DataObject::floatValue() const
         floatFresh_ = true;
         return floatValue_;
     }
-
 }
 
 /**
@@ -381,9 +372,7 @@ DataObject::floatValue() const
  *                                  not initialized.
  */
 bool
-DataObject::boolValue() const
-    throw (NumberFormatException) {
-
+DataObject::boolValue() const {
     if (type_ == TYPE_STRING) {
         std::string strValue = StringTools::stringToLower(stringValue());
         if (strValue == "true") {
@@ -404,11 +393,9 @@ DataObject::boolValue() const
  * @return True in case the object's value is NULL.
  */
 bool
-DataObject::isNull() const 
-    throw (NumberFormatException) {
+DataObject::isNull() const {
     return type_ == TYPE_NULL;
 }
-
 
 /**
  * Tests the inequality of two DataObjects.
@@ -418,9 +405,7 @@ DataObject::isNull() const
  * @exception NumberFormatException If conversion fails.
  */
 bool
-DataObject::operator!=(const DataObject& object) const
-    throw (NumberFormatException) {
-
+DataObject::operator!=(const DataObject& object) const {
     if (object.type_ != type_)
         return true;
 
@@ -497,36 +482,31 @@ NullDataObject::setNull() {
 }
 
 int
-NullDataObject::integerValue() const
-    throw (NumberFormatException) {
+NullDataObject::integerValue() const {
     abortWithError("integerValue()");
     return 0;
 }
 
 string
-NullDataObject::stringValue() const
-    throw (NumberFormatException) {
+NullDataObject::stringValue() const {
     abortWithError("stringValue()");
     return "";
 }
 
 double
-NullDataObject::doubleValue() const
-    throw (NumberFormatException) {
+NullDataObject::doubleValue() const {
     abortWithError("doubleValue()");
     return 0.0;
 }
 
 float
-NullDataObject::floatValue() const
-    throw (NumberFormatException) {
+NullDataObject::floatValue() const {
     abortWithError("floatValue()");
     return 0.0;
 }
 
 bool
-NullDataObject::isNull() const 
-    throw (NumberFormatException) {
+NullDataObject::isNull() const {
     abortWithError("isNull()");
     return false;
 }

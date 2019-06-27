@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -65,15 +65,10 @@ const string InstructionTemplate::OSNAME_INSTRUCTION_TEMPLATE = "i_template";
  *                                   name.
  * @exception InvalidName If the given name is not a valid component name.
  */
-InstructionTemplate::InstructionTemplate(
-    const string& name,
-    Machine& owner)
-    throw (ComponentAlreadyExists, InvalidName) :
-    Component(name) {
-
+InstructionTemplate::InstructionTemplate(const string& name, Machine& owner)
+    : Component(name) {
     setMachine(owner);
 }
-
 
 /**
  * Constructor.
@@ -92,11 +87,8 @@ InstructionTemplate::InstructionTemplate(
  *                                        components cannot be resolved.
  */
 InstructionTemplate::InstructionTemplate(
-    const ObjectState* state,
-    Machine& owner)
-    throw (ObjectStateLoadingException) :
-    Component(state) {
-
+    const ObjectState* state, Machine& owner)
+    : Component(state) {
     const string procName = "InstructionTemplate::InstructionTemplate";
 
     try {
@@ -118,7 +110,6 @@ InstructionTemplate::InstructionTemplate(
     }
 }
 
-
 /**
  * Destructor.
  *
@@ -139,9 +130,7 @@ InstructionTemplate::~InstructionTemplate() {
  * @exception InvalidName If the given name is not a valid component name.
  */
 void
-InstructionTemplate::setName(const string& name)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+InstructionTemplate::setName(const string& name) {
     if (name == this->name()) {
         return;
     }
@@ -157,7 +146,6 @@ InstructionTemplate::setName(const string& name)
         Component::setName(name);
     }
 }
-
 
 /**
  * Adds a template slot.
@@ -178,12 +166,7 @@ InstructionTemplate::setName(const string& name)
  */
 void
 InstructionTemplate::addSlot(
-    const std::string& slotName,
-    int width,
-    ImmediateUnit& dstUnit)
-    throw (InstanceNotFound, IllegalRegistration, ComponentAlreadyExists, 
-           OutOfRange) {
-
+    const std::string& slotName, int width, ImmediateUnit& dstUnit) {
     const string procName = "InstructionTemplate::addSlot";
 
     ensureRegistration(dstUnit);
@@ -207,7 +190,6 @@ InstructionTemplate::addSlot(
         throw InstanceNotFound(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Removes the template slot which uses the given slot.
@@ -360,9 +342,7 @@ InstructionTemplate::isOneOfDestinations(
  *                             the given slot to encode long immediate.
  */
 ImmediateUnit*
-InstructionTemplate::destinationOfSlot(const std::string& slotName) const
-    throw (InstanceNotFound) {
-
+InstructionTemplate::destinationOfSlot(const std::string& slotName) const {
     for (SlotTable::const_iterator iter = slots_.begin(); 
          iter != slots_.end(); iter++) {
         TemplateSlot* slot = *iter;
@@ -374,7 +354,6 @@ InstructionTemplate::destinationOfSlot(const std::string& slotName) const
     const string procName = "InstructionTemplate::destinationOfSlot";
     throw InstanceNotFound(__FILE__, __LINE__, procName);
 }
-
 
 /**
  * Tells the number of slots that are used to encode the long immediate
@@ -413,10 +392,7 @@ InstructionTemplate::numberOfSlots(const ImmediateUnit& dstUnit) const {
  */
 std::string
 InstructionTemplate::slotOfDestination(
-    const ImmediateUnit& dstUnit,
-    int index) const
-    throw (OutOfRange) {
-    
+    const ImmediateUnit& dstUnit, int index) const {
     if (index < 0 || index >= numberOfSlots(dstUnit)) {
         const string procName = "InstructionTemplate::slotOfDestination";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -439,7 +415,6 @@ InstructionTemplate::slotOfDestination(
     assert(false);
     return NULL;
 }
-
 
 /**
  * Returns the bit width of the widest long immediate that can be encoded by
@@ -530,13 +505,10 @@ InstructionTemplate::isEmpty() const {
  *                                   machine.
  */
 void
-InstructionTemplate::setMachine(Machine& machine)
-    throw (ComponentAlreadyExists) {
-
+InstructionTemplate::setMachine(Machine& machine) {
     machine.addInstructionTemplate(*this);
     internalSetMachine(machine);
 }
-
 
 /**
  * Removes the instruction template from its machine.
@@ -582,9 +554,7 @@ InstructionTemplate::saveState() const {
  *                                        invalid.
  */
 void
-InstructionTemplate::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+InstructionTemplate::loadState(const ObjectState* state) {
     const string procName = "InstructionTemplate::loadState";
 
     if (state->name() != OSNAME_INSTRUCTION_TEMPLATE) {
@@ -635,7 +605,6 @@ InstructionTemplate::loadState(const ObjectState* state)
             __FILE__, __LINE__, procName, exception.errorMessage());
     }
 }
-
 
 /**
  * Deletes all the template slots.

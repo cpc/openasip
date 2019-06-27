@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -98,9 +98,7 @@ ExecutionPipelineBroker::~ExecutionPipelineBroker(){
  * @note The execution pipeline broker is used only to construct resources.
  */
 void
-ExecutionPipelineBroker::assign(int, MoveNode&, SchedulingResource&)
-    throw (Exception) {
-
+ExecutionPipelineBroker::assign(int, MoveNode&, SchedulingResource&) {
     abortWithError("Not implemented.");
 }
 

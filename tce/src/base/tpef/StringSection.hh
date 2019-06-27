@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -51,8 +51,7 @@ public:
 
     virtual SectionType type() const;
 
-    std::string chunk2String(const Chunk* chunk) const
-        throw (UnexpectedValue);
+    std::string chunk2String(const Chunk* chunk) const;
 
     Chunk* string2Chunk(const std::string &str);
 

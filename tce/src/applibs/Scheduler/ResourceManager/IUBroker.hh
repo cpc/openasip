@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -62,14 +62,11 @@ public:
 
     bool isAnyResourceAvailable(int useCycle, const MoveNode& node) const;
     virtual SchedulingResource& availableResource(
-        int cycle,
-        const MoveNode& node) const
-        throw (InstanceNotFound);
+        int cycle, const MoveNode& node) const;
     virtual SchedulingResourceSet allAvailableResources(
         int,
         const MoveNode&) const;
-    virtual void assign(int, MoveNode&, SchedulingResource&)
-        throw (Exception);
+    virtual void assign(int, MoveNode&, SchedulingResource&);
     virtual void unassign(MoveNode& node);
 
     virtual int earliestCycle(int cycle, const MoveNode& node) const;

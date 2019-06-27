@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -66,12 +66,10 @@ class TDGen {
 public:
     TDGen(const TTAMachine::Machine& mach);
     virtual ~TDGen() {}
-    virtual void generateBackend(std::string& path) 
-        throw (Exception);
+    virtual void generateBackend(std::string& path);
 
 protected:
-    virtual bool writeRegisterInfo(std::ostream& o) 
-        throw (Exception);
+    virtual bool writeRegisterInfo(std::ostream& o);
     virtual void writeInstrInfo(std::ostream& o);
     virtual void writeBackendCode(std::ostream& o);
     virtual void writeTopLevelTD(std::ostream& o);
@@ -113,7 +111,7 @@ protected:
 	ONLY_LANES,
 	ONLY_NORMAL
     };
-    bool checkRequiredRegisters() throw (Exception);
+    bool checkRequiredRegisters();
     void analyzeRegisters();
     void analyzeRegisterFileClasses();
     void analyzeRegisters(RegsToProcess regsToProcess);
@@ -146,11 +144,8 @@ protected:
         std::string backendPrefix = "");
 
     std::string emulatingOpNodeLLVMName(
-        const Operation& op,
-        const OperationDAG& dag, 
-        const OperationNode& node,
-        const std::string& operandTypes)
-        throw (InvalidData);
+        const Operation& op, const OperationDAG& dag, const OperationNode& node,
+        const std::string& operandTypes);
 
     void writeEmulationPattern(
         std::ostream& o,
@@ -181,12 +176,8 @@ protected:
         char operandType);
 
     std::string operationNodeToString(
-        const Operation& op,
-        const OperationDAG& dag,
-        const OperationNode& node,
-        bool emulationPattern,
-        const std::string& operandTypes)
-throw (InvalidData);
+        const Operation& op, const OperationDAG& dag, const OperationNode& node,
+        bool emulationPattern, const std::string& operandTypes);
 
     std::string constantNodeString(
         const Operation& op, 
@@ -195,12 +186,9 @@ throw (InvalidData);
         const std::string& operandTypes);
 
     std::string dagNodeToString(
-        const Operation& op,
-        const OperationDAG& dag,
-        const OperationDAGNode& node,
-        bool emulationPattern, 
-        const std::string& operandTypes)
-throw (InvalidData);
+        const Operation& op, const OperationDAG& dag,
+        const OperationDAGNode& node, bool emulationPattern,
+        const std::string& operandTypes);
 
     std::string operationPattern(
         const Operation& op,

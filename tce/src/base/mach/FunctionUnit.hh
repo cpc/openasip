@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -54,62 +54,47 @@ class PipelineElement;
  */
 class FunctionUnit : public Unit {
 public:
-    FunctionUnit(const std::string& name)
-        throw (InvalidName);
-    FunctionUnit(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    FunctionUnit(const std::string& name);
+    FunctionUnit(const ObjectState* state);
     virtual ~FunctionUnit();
 
     virtual FunctionUnit* copy() const;
 
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
+    virtual void setName(const std::string& name);
 
-    virtual BaseFUPort* port(const std::string& name) const
-        throw (InstanceNotFound);
-    virtual BaseFUPort* port(int index) const
-        throw (OutOfRange);
+    virtual BaseFUPort* port(const std::string& name) const;
+    virtual BaseFUPort* port(int index) const;
     virtual int operationPortCount() const;
     virtual bool hasOperationPort(const std::string& name) const;
-    virtual FUPort* operationPort(const std::string& name) const
-        throw (InstanceNotFound);
-    virtual FUPort* operationPort(int index) const
-        throw (OutOfRange);
+    virtual FUPort* operationPort(const std::string& name) const;
+    virtual FUPort* operationPort(int index) const;
 
-    virtual void addOperation(HWOperation& operation)
-        throw (ComponentAlreadyExists);
-    virtual void deleteOperation(HWOperation& operation)
-        throw (InstanceNotFound);
+    virtual void addOperation(HWOperation& operation);
+    virtual void deleteOperation(HWOperation& operation);
 
     virtual bool hasOperation(const std::string& name) const;
     virtual bool hasOperationLowercase(const std::string& name) const;
 
-    virtual HWOperation* operation(const std::string& name) const
-        throw (InstanceNotFound);
-    virtual HWOperation* operationLowercase(const std::string& name) const
-        throw (InstanceNotFound);
+    virtual HWOperation* operation(const std::string& name) const;
+    virtual HWOperation* operationLowercase(const std::string& name) const;
 
-    virtual HWOperation* operation(int index) const
-        throw (OutOfRange);
+    virtual HWOperation* operation(int index) const;
     virtual int operationCount() const;
 
     virtual void operationNames(TCETools::CIStringSet& opNames) const;
 
     virtual int maxLatency() const;
 
-    virtual void addPipelineElement(PipelineElement& element)
-        throw (ComponentAlreadyExists);
+    virtual void addPipelineElement(PipelineElement& element);
     virtual void deletePipelineElement(PipelineElement& element);
 
     virtual int pipelineElementCount() const;
-    virtual PipelineElement* pipelineElement(int index) const
-        throw (OutOfRange);
+    virtual PipelineElement* pipelineElement(int index) const;
     virtual bool hasPipelineElement(const std::string& name) const;
     virtual PipelineElement* pipelineElement(const std::string& name) const;
 
     virtual AddressSpace* addressSpace() const;
-    virtual void setAddressSpace(AddressSpace* as)
-        throw (IllegalRegistration);
+    virtual void setAddressSpace(AddressSpace* as);
     virtual bool hasAddressSpace() const;
 
     virtual void cleanup(const std::string& resource);
@@ -117,14 +102,13 @@ public:
     virtual void unsetMachine();
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     virtual bool isArchitectureEqual(
         const FunctionUnit* fu, const bool checkPortWidths = true) const;
 
     bool needsConflictDetection() const;
-    
+
     virtual int orderNumber() const;
     virtual void setOrderNumber(int);
 
@@ -147,8 +131,7 @@ private:
     typedef std::vector<PipelineElement*> PipelineElementTable;
 
     void cleanupGuards() const;
-    void loadStateWithoutReferences(const ObjectState* fuState)
-        throw (ObjectStateLoadingException);
+    void loadStateWithoutReferences(const ObjectState* fuState);
     void deleteAllOperations();
 
     /// Contains all the operations of the function unit.

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -89,12 +89,7 @@ TPEFDebugSectionReader::type() const {
  * @exception UnexpectedValue If there was unexpected value when reading.
  */
 void
-TPEFDebugSectionReader::readData(
-    BinaryStream& stream,
-    Section* section) const
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-           OutOfRange, WrongSubclass, UnexpectedValue) {
-
+TPEFDebugSectionReader::readData(BinaryStream& stream, Section* section) const {
     // size taken by fields common to any type of debug section element
     const std::size_t BASE_ELEM_SIZE = 10;
 

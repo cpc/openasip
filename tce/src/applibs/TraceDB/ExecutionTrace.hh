@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -116,20 +116,14 @@ public:
     typedef std::list<FUOperationTriggerCount> FUOperationTriggerCountList;
 
     void addInstructionExecution(
-        ClockCycleCount cycle, 
-        InstructionAddress address) 
-        throw (IOException);
+        ClockCycleCount cycle, InstructionAddress address);
 
     void addInstructionExecutionCount(
-        InstructionAddress address,
-        ClockCycleCount count)
-        throw (IOException);
+        InstructionAddress address, ClockCycleCount count);
 
     void addProcedureAddressRange(
-        InstructionAddress firstAddress,
-        InstructionAddress lastAddress,
-        const std::string& procedureName)
-        throw (IOException);
+        InstructionAddress firstAddress, InstructionAddress lastAddress,
+        const std::string& procedureName);
 
     void addLockedCycle(ClockCycleCount cycle);
 
@@ -146,83 +140,59 @@ public:
     void addProcedureEntry(ClockCycleCount cycle, InstructionAddress address);
     
     void addProcedureExit(ClockCycleCount cycle, InstructionAddress address);
-    
+
     void addBusActivity(
-        ClockCycleCount cycle, 
-        const BusID& busId,
-        const SegmentID& segmentId,
-        bool squash,
-        const SimValue& data = NullSimValue::instance())
-        throw (IOException);
+        ClockCycleCount cycle, const BusID& busId, const SegmentID& segmentId,
+        bool squash, const SimValue& data = NullSimValue::instance());
 
     void addConcurrentRegisterFileAccessCount(
-        RegisterFileID registerFile,
-        RegisterAccessCount reads,
-        RegisterAccessCount writes,
-        ClockCycleCount count)
-        throw (IOException);
+        RegisterFileID registerFile, RegisterAccessCount reads,
+        RegisterAccessCount writes, ClockCycleCount count);
 
     void addRegisterAccessCount(
-        RegisterFileID registerFile,
-        RegisterID registerIndex,
-        ClockCycleCount reads,
-        ClockCycleCount writes)
-        throw (IOException);
+        RegisterFileID registerFile, RegisterID registerIndex,
+        ClockCycleCount reads, ClockCycleCount writes);
 
     ConcurrentRFAccessCountList* registerFileAccessCounts(
-        RegisterFileID registerFile) const
-        throw (IOException);
-    
+        RegisterFileID registerFile) const;
+
     void addFunctionUnitOperationTriggerCount(
-        FunctionUnitID functionUnit,
-        OperationID operation,
-        OperationTriggerCount count)
-        throw (IOException);
+        FunctionUnitID functionUnit, OperationID operation,
+        OperationTriggerCount count);
 
     void addProcedureTransfer(
-        ClockCycleCount cycle,
-        InstructionAddress address,
-        InstructionAddress sourceAddress,
-        ProcedureEntryType type)
-        throw (IOException);        
+        ClockCycleCount cycle, InstructionAddress address,
+        InstructionAddress sourceAddress, ProcedureEntryType type);
 
     FUOperationTriggerCountList* functionUnitOperationTriggerCounts(
-        FunctionUnitID functionUnit) const
-        throw (IOException);
+        FunctionUnitID functionUnit) const;
 
-    void addSocketWriteCount(SocketID socket, ClockCycleCount)
-        throw (IOException);
+    void addSocketWriteCount(SocketID socket, ClockCycleCount);
 
     ClockCycleCount socketWriteCount(SocketID socket) const;
 
-    void addBusWriteCount(BusID socket, ClockCycleCount count)
-        throw (IOException);
+    void addBusWriteCount(BusID socket, ClockCycleCount count);
 
     ClockCycleCount busWriteCount(BusID bus) const;
-    
-    void setSimulatedCycleCount(ClockCycleCount count)
-        throw (IOException);
 
-    ClockCycleCount simulatedCycleCount() const
-        throw (IOException);
- 
-    InstructionExecution& instructionExecutions()
-        throw (IOException);
+    void setSimulatedCycleCount(ClockCycleCount count);
 
-    static ExecutionTrace* open(const std::string& fileName) 
-        throw (IOException);    
-    
+    ClockCycleCount simulatedCycleCount() const;
+
+    InstructionExecution& instructionExecutions();
+
+    static ExecutionTrace* open(const std::string& fileName);
+
     virtual ~ExecutionTrace();
     
 protected:
 
     ExecutionTrace(const std::string& fileName, bool readOnly);
-    void open() throw (RelationalDBException);
+    void open();
 
 private:
-    
-    void initialize() throw (IOException);
-    
+    void initialize();
+
     /// Filename of the trace database (sqlite file).
     const std::string& fileName_;
     /// The call trace file.

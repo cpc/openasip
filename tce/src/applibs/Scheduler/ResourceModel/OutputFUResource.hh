@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -60,10 +60,8 @@ public:
         const int cycle,
         const MoveNode& node,
         const TTAMachine::Port& resultPort) const;
-    virtual void assign(const int cycle, MoveNode& node)
-        throw (Exception);
-    virtual void unassign(const int cycle, MoveNode& node)
-        throw (Exception);
+    virtual void assign(const int cycle, MoveNode& node);
+    virtual void unassign(const int cycle, MoveNode& node);
     virtual bool isOutputFUResource() const;
 
 protected:

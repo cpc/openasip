@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -50,9 +50,7 @@ class TerminalImmediate;
  */
 class Immediate {
 public:
-    Immediate(
-        TerminalImmediate* value, Terminal* dst)
-        throw (IllegalParameters);
+    Immediate(TerminalImmediate* value, Terminal* dst);
 
     virtual ~Immediate();
 

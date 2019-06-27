@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -68,22 +68,18 @@ public:
 	FILE* out = stdout,
 	FILE* err = stderr);
 
-    virtual std::string readLine(std::string prompt = "")
-	throw (ObjectNotInitialized, EndOfFile);
+    virtual std::string readLine(std::string prompt = "");
 
     virtual char charQuestion(
-	std::string question,
-	std::string allowedChars,
-	bool caseSensitive = false,
-	char defaultAnswer = '\0') throw (ObjectNotInitialized);
+        std::string question, std::string allowedChars,
+        bool caseSensitive = false, char defaultAnswer = '\0');
 
     void input(std::string command);
 
     virtual std::ostream& outputStream();
     void output(std::string text);
 
-    virtual void setInputHistoryLog(const std::string& historyFilename)
-        throw (IOException);
+    virtual void setInputHistoryLog(const std::string& historyFilename);
 
     std::string inputHistoryFilename() const;
 

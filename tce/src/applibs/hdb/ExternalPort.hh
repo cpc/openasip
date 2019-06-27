@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2014 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -66,8 +66,7 @@ public:
     bool setParameterDependency(const std::string& parameter);
     bool unsetParameterDependency(const std::string& parameter);
     int parameterDependencyCount() const;
-    std::string parameterDependency(int index) const
-        throw (OutOfRange);
+    std::string parameterDependency(int index) const;
 
 private:
     /// Typedef for string vector.

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -61,8 +61,7 @@ public:
 
 protected:
     GuardEncoding(bool inverted, unsigned int encoding);
-    GuardEncoding(const ObjectState* state)
-	throw (ObjectStateLoadingException);
+    GuardEncoding(const ObjectState* state);
     void setParent(GuardField* parent);
 
 private:

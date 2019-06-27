@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -60,32 +60,24 @@ public:
 
     virtual ~ProGeScriptGenerator();
 
-    void generateAll()
-        throw (IOException);
+    void generateAll();
 
-    void generateModsimCompile()
-        throw (IOException);
+    void generateModsimCompile();
 
-    void generateGhdlCompile()
-        throw (IOException);
+    void generateGhdlCompile();
 
-    void generateIverilogCompile()
-        throw (IOException);
-        
-    void generateModsimSimulate()
-        throw (IOException);
+    void generateIverilogCompile();
 
-    void generateGhdlSimulate()
-        throw (IOException);
-        
-    void generateIverilogSimulate()
-        throw (IOException);
+    void generateModsimSimulate();
+
+    void generateGhdlSimulate();
+
+    void generateIverilogSimulate();
 
 private:
     void generateStart(
         std::ostream& stream);
-    void createExecutableFile(const std::string& fileName)
-        throw (IOException);
+    void createExecutableFile(const std::string& fileName);
     void outputScriptCommands(
         std::ostream& stream,
         const std::list<std::string>& files,

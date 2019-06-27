@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -54,7 +54,7 @@ MoveNodeSet::count() const {
  * @return MoveNode identified by index
  */
 MoveNode&
-MoveNodeSet::at(const int index) throw(OutOfRange) {
+MoveNodeSet::at(const int index) {
     if (index >= count()) {
         std::string msg = "MoveNodeSet at() index too high.";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);
@@ -86,8 +86,8 @@ MoveNodeSet::addMoveNode(MoveNode& newMove){
     moveNodes_.push_back(&newMove);
 }
 
-void MoveNodeSet::removeMoveNode(MoveNode& node) 
-    throw (IllegalRegistration) {
+void
+MoveNodeSet::removeMoveNode(MoveNode& node) {
     for (std::vector<MoveNode*>::iterator i = moveNodes_.begin();
          i != moveNodes_.end(); i++) {
         if (*i == &node) {

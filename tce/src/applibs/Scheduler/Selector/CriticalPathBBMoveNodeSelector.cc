@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -73,9 +73,9 @@ CriticalPathBBMoveNodeSelector::initializeReadylist() {
  * @param bb basic block for this selector.
  */
 CriticalPathBBMoveNodeSelector::CriticalPathBBMoveNodeSelector(
-    DataDependenceGraph& bigDDG, TTAProgram::BasicBlock& bb, 
+    DataDependenceGraph& bigDDG, TTAProgram::BasicBlock& bb,
     const TTAMachine::Machine& machine)
-    throw (ModuleRunTimeError) : ddgOwned_(true) {
+    : ddgOwned_(true) {
     try {
         ddg_ = bigDDG.createSubgraph(bb);
         ddg_->setMachine(machine);

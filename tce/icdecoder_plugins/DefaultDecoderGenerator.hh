@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -96,11 +96,9 @@ public:
         ProGe::Netlist& netlist);
     void generateInstructionDecoder(
         const ProGe::NetlistGenerator& nlGenerator,
-        const std::string& dstDirectory)
-        throw (IOException);
+        const std::string& dstDirectory);
     int requiredRFLatency(const TTAMachine::ImmediateUnit& iu) const;
-    void verifyCompatibility() const
-        throw (InvalidData);
+    void verifyCompatibility() const;
     int glockRequestWidth() const;
 
     void setGenerateLockTrace(bool generate);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -48,16 +48,14 @@ public:
     static bool containsKey(const MapType& aMap, const KeyType& aKey);
 
     template <typename KeyType, typename MapType, typename ValueType>
-    static KeyType keyForValue(const MapType& aMap, const ValueType& aValue)
-        throw (KeyNotFound);
+    static KeyType keyForValue(const MapType& aMap, const ValueType& aValue);
 
     template <typename ValueType, typename MapType, typename KeyType>
-    static ValueType valueForKey(const MapType& aMap, const KeyType& aKey)
-        throw (KeyNotFound);
+    static ValueType valueForKey(const MapType& aMap, const KeyType& aKey);
 
     template <typename ValueType, typename MapType, typename KeyType>
-    static const ValueType valueForKeyNoThrow(const MapType& aMap, const KeyType& aKey)
-        throw (KeyNotFound);
+    static const ValueType valueForKeyNoThrow(
+        const MapType& aMap, const KeyType& aKey);
 
     template <typename MapType>
     static void deleteAllValues(MapType& aMap);

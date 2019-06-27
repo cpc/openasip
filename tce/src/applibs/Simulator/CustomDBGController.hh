@@ -45,17 +45,13 @@ public:
     virtual MAU readMem(Word address, const AddressSpace&);
     virtual void writeIMem(const char *data, int size);
 
-    virtual void step(double count = 1)
-        throw (SimulationExecutionError);
+    virtual void step(double count = 1);
 
-    virtual void next(int count = 1)
-        throw (SimulationExecutionError);
+    virtual void next(int count = 1);
 
-    virtual void run()
-        throw (SimulationExecutionError);
+    virtual void run();
 
-    virtual void runUntil(UIntWord address)
-        throw (SimulationExecutionError);
+    virtual void runUntil(UIntWord address);
 
     virtual void reset();
     

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -51,13 +51,11 @@ public:
 
     virtual bool hasImplementation() const;
     void setImplementation(RFImplementation* implementation);
-    RFImplementation& implementation() const
-        throw (NotAvailable);
+    RFImplementation& implementation() const;
 
     virtual bool hasArchitecture() const;
     void setArchitecture(RFArchitecture* architecture);
-    RFArchitecture& architecture() const
-        throw (NotAvailable);
+    RFArchitecture& architecture() const;
 
 private:
     /// Architecture of the entry.

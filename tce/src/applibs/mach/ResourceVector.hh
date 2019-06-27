@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -58,8 +58,7 @@ public:
     ResourceVector(const TTAMachine::ExecutionPipeline& pipeline);
     virtual ~ResourceVector();
 
-    const ResourceSet& resourcesUsedAtCycle(unsigned cycle) const
-        throw (OutOfRange);
+    const ResourceSet& resourcesUsedAtCycle(unsigned cycle) const;
 
     std::size_t width() const;
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -187,9 +187,8 @@ DataSectionCreator::cleanup() {
  * @exception CompileError If there is any errors during compiling.
  */
 void
-DataSectionCreator::finalize(Binary& tpef, LabelManager &labels, bool littleEndian)
-    throw (CompileError) {
-
+DataSectionCreator::finalize(
+    Binary& tpef, LabelManager& labels, bool littleEndian) {
     // completed tpef data sections.
     std::vector<TPEF::Section*> completed;
 
@@ -324,9 +323,7 @@ DataSectionCreator::finalize(Binary& tpef, LabelManager &labels, bool littleEndi
 void
 DataSectionCreator::resolveDataAreaSizesAndLabelAddresses(
     std::map<std::string, UValue>& addressSpaceUsedMAUs,
-    std::vector<std::string>& addedLabels,
-    LabelManager &labels) throw (CompileError) {
-
+    std::vector<std::string>& addedLabels, LabelManager& labels) {
     // calculate sizes and addresses for each data section and
     // add values for labels
 
@@ -428,7 +425,6 @@ DataSectionCreator::resolveDataAreaSizesAndLabelAddresses(
     }
 }
 
-
 /**
  * Write one data line definition to TPEF data section.
  *
@@ -441,10 +437,8 @@ DataSectionCreator::resolveDataAreaSizesAndLabelAddresses(
  */
 UValue
 DataSectionCreator::writeDataLineToTPEF(
-    DataLine* line, DataSection* dataSection,
-    LabelManager& labels, UValue currentMAUIndex)
-    throw (CompileError) {
-
+    DataLine* line, DataSection* dataSection, LabelManager& labels,
+    UValue currentMAUIndex) {
     UValue writtenMAUs = 0;
 
     // read maus from init data until inited data of line ends
@@ -536,7 +530,6 @@ DataSectionCreator::writeDataLineToTPEF(
     // increase index to data section
     return line->width;
 }
-
 
 /**
  * Compute the minimum number of words of given bit width that are necessary

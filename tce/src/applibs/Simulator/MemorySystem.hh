@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -60,26 +60,17 @@ public:
     virtual ~MemorySystem();
 
     void addAddressSpace(
-        const TTAMachine::AddressSpace& as, 
-        MemoryPtr mem,
-        bool shared=true)
-        throw (IllegalRegistration);
+        const TTAMachine::AddressSpace& as, MemoryPtr mem, bool shared = true);
 
-    MemoryPtr memory(const TTAMachine::AddressSpace& as)
-        throw (InstanceNotFound);
-    const MemoryPtr memoryConst(const TTAMachine::AddressSpace& as) const
-        throw (InstanceNotFound);
+    MemoryPtr memory(const TTAMachine::AddressSpace& as);
+    const MemoryPtr memoryConst(const TTAMachine::AddressSpace& as) const;
 
-    MemoryPtr memory(const std::string& addressSpaceName)
-        throw (InstanceNotFound);
+    MemoryPtr memory(const std::string& addressSpaceName);
 
     unsigned int memoryCount() const;
-    MemoryPtr memory(unsigned int i)
-        throw (OutOfRange);
-    const TTAMachine::AddressSpace& addressSpace(unsigned int i)        
-        throw (OutOfRange);
-    const TTAMachine::AddressSpace& addressSpace(const std::string& name)
-        throw (InstanceNotFound);
+    MemoryPtr memory(unsigned int i);
+    const TTAMachine::AddressSpace& addressSpace(unsigned int i);
+    const TTAMachine::AddressSpace& addressSpace(const std::string& name);
 
     void shareMemoriesWith(MemorySystem& other);
 

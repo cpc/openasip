@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -51,13 +51,9 @@ class SlotField;
 class SocketEncoding : public Encoding {
 public:
     SocketEncoding(
-	const std::string& name,
-	unsigned int encoding,
-	unsigned int extraBits,
-	SlotField& parent)
-	throw (ObjectAlreadyExists);
-    SocketEncoding(const ObjectState* state, SlotField& parent)
-	throw (ObjectStateLoadingException, ObjectAlreadyExists);
+        const std::string& name, unsigned int encoding, unsigned int extraBits,
+        SlotField& parent);
+    SocketEncoding(const ObjectState* state, SlotField& parent);
     virtual ~SocketEncoding();
 
     SlotField* parent() const;

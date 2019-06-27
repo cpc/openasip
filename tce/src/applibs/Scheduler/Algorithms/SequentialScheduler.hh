@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -66,63 +66,53 @@ public:
 
     void handleProcedure(
         TTAProgram::Procedure& procedure,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        const TTAMachine::Machine& targetMachine);
 
     virtual void handleBasicBlock(
         TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
         TTAProgram::InstructionReferenceManager& irm,
-        BasicBlockNode* bbn = NULL)
-        throw (Exception);
+        BasicBlockNode* bbn = NULL);
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;
 
 private:
-    int scheduleOperation(MoveNodeGroup& moves, int earliestCycle)
-        throw (Exception);
+    int scheduleOperation(MoveNodeGroup& moves, int earliestCycle);
 
     int scheduleOperandWrites(
         int cycle, MoveNodeGroup& moves,
-        RegisterCopyAdder::AddedRegisterCopies& regCopies)
-        throw (Exception);
+        RegisterCopyAdder::AddedRegisterCopies& regCopies);
 
     int scheduleResultReads(
         int triggerCycle, MoveNodeGroup& moves,
-        RegisterCopyAdder::AddedRegisterCopies& regCopies)
-        throw (Exception);
+        RegisterCopyAdder::AddedRegisterCopies& regCopies);
 
-    int scheduleRRMove(int cycle, MoveNode& moveNode)
-        throw (Exception);
+    int scheduleRRMove(int cycle, MoveNode& moveNode);
 
     int scheduleRRTempMoves(
-        int cycle, MoveNode& regToRegMove, 
-        RegisterCopyAdder::AddedRegisterCopies& regCopies)
-        throw (Exception);
+        int cycle, MoveNode& regToRegMove,
+        RegisterCopyAdder::AddedRegisterCopies& regCopies);
 
-    int scheduleMove(int earliestCycle, MoveNode& move)
-        throw (Exception);
+    int scheduleMove(int earliestCycle, MoveNode& move);
 
     int scheduleInputOperandTempMoves(
-        int cycle, MoveNode& operandMove, 
-        RegisterCopyAdder::AddedRegisterCopies& regCopies)
-        throw (Exception);
+        int cycle, MoveNode& operandMove,
+        RegisterCopyAdder::AddedRegisterCopies& regCopies);
 
     void unscheduleInputOperandTempMoves(
-        MoveNode& operandMove, 
+        MoveNode& operandMove,
         RegisterCopyAdder::AddedRegisterCopies& regCopies);
 
     int scheduleResultTempMoves(
-        int cycle, MoveNode& resultMove, 
-        RegisterCopyAdder::AddedRegisterCopies& regCopies)
-        throw (Exception);
-        
+        int cycle, MoveNode& resultMove,
+        RegisterCopyAdder::AddedRegisterCopies& regCopies);
+
     void createBasicBlocks(
-        TTAProgram::Procedure& cs, 
+        TTAProgram::Procedure& cs,
         std::vector<TTAProgram::BasicBlock*>& basicBlocks,
         std::vector<int>& bbAddresses);
 
     void copyBasicBlocksToProcedure(
-        TTAProgram::Procedure& cs, 
+        TTAProgram::Procedure& cs,
         std::vector<TTAProgram::BasicBlock*>& basicBlocks,
         std::vector<int>& bbAddresses);
 

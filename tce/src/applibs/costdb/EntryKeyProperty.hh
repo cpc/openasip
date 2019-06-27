@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -60,12 +60,10 @@ public:
 
     std::string name() const;
     EntryKeyFieldProperty* createFieldProperty(std::string field);
-    EntryKeyFieldProperty* fieldProperty(std::string field) const
-        throw (KeyNotFound);
+    EntryKeyFieldProperty* fieldProperty(std::string field) const;
 
     static EntryKeyProperty* create(std::string type);
-    static EntryKeyProperty* find(std::string type) 
-        throw (KeyNotFound);
+    static EntryKeyProperty* find(std::string type);
     static void destroy();
 
 protected:

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2017 Tampere University of Technology.
+    Copyright (c) 2002-2017 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -1431,10 +1431,8 @@ InfoCommand::~InfoCommand() {
  * @param arguments Subcommand and possible arguments to the subcommand.
  * @return Always true if arguments are valid.
  */
-bool 
-InfoCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+InfoCommand::execute(const std::vector<DataObject>& arguments) {
     assert(interpreter() != NULL);
 
     // "info" as such does not do anything, a subcommand is required.

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -56,12 +56,9 @@ public:
     CmdLineOptions(std::string description, std::string version = "");
     virtual ~CmdLineOptions();
 
-    void parse(char* argv[], int argc)
-        throw (IllegalCommandLine, ParserStopRequest);
-    void parse(std::string argv[], int argc)
-        throw (IllegalCommandLine, ParserStopRequest);
-    void parse(std::vector<std::string> argv)
-        throw (IllegalCommandLine, ParserStopRequest);        
+    void parse(char* argv[], int argc);
+    void parse(std::string argv[], int argc);
+    void parse(std::vector<std::string> argv);
     virtual void printHelp() const;
     virtual void printVersion() const = 0;
     
@@ -83,7 +80,7 @@ private:
     /// Assignment not allowed.
     CmdLineOptions& operator=(const CmdLineOptions&);
 
-    void parseAll() throw (IllegalCommandLine, ParserStopRequest);
+    void parseAll();
 
     /// The name of the program.
     std::string progName_;

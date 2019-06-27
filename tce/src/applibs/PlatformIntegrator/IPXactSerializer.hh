@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -43,9 +43,7 @@ public:
     IPXactSerializer();
     virtual ~IPXactSerializer();
 
-    
-    virtual void writeState(const ObjectState* ipXactState)
-        throw (SerializerException);
+    virtual void writeState(const ObjectState* ipXactState);
 
     void writeIPXactModel(const IPXactModel& model);
 
@@ -56,8 +54,7 @@ private:
     IPXactSerializer& operator=(const IPXactSerializer&);
 
     /// Reading is not (yet) implemented
-    ObjectState* readState()
-        throw (SerializerException);
+    ObjectState* readState();
 
     static const TCEString SPIRIT_NS_URI;
 

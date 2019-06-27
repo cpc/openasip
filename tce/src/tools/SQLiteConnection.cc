@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2014 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -66,9 +66,7 @@ SQLiteConnection::~SQLiteConnection() {
  * @exception RelationalDBException In case a database error occured.
  */
 int
-SQLiteConnection::updateQuery(const std::string& queryString)
-    throw (RelationalDBException) {
-
+SQLiteConnection::updateQuery(const std::string& queryString) {
     if (connection_ == NULL) {
         throw RelationalDBException(
             __FILE__, __LINE__, "SQLiteConnection::updateQuery()",
@@ -97,8 +95,7 @@ SQLiteConnection::updateQuery(const std::string& queryString)
  * @exception RelationalDBException In case a database error occured.
  */
 void
-SQLiteConnection::DDLQuery(const std::string& queryString)
-    throw (RelationalDBException) {
+SQLiteConnection::DDLQuery(const std::string& queryString) {
     updateQuery(queryString);
 }
 
@@ -110,9 +107,7 @@ SQLiteConnection::DDLQuery(const std::string& queryString)
  * @exception RelationalDBException In case a database error occured.
  */
 RelationalDBQueryResult*
-SQLiteConnection::query(const std::string& queryString, bool init)
-    throw (RelationalDBException) {
-
+SQLiteConnection::query(const std::string& queryString, bool init) {
     sqlite3_stmt* stmt = compileQuery(queryString);
     SQLiteQueryResult* result = new SQLiteQueryResult(stmt, this, init);
     return result;
@@ -126,8 +121,7 @@ SQLiteConnection::query(const std::string& queryString, bool init)
  * @exception RelationalDBException In case a database error occured.
  */
 void
-SQLiteConnection::beginTransaction()
-    throw (RelationalDBException) {
+SQLiteConnection::beginTransaction() {
     if (transactionActive_) {
         commit();
     }
@@ -142,8 +136,7 @@ SQLiteConnection::beginTransaction()
  * @exception RelationalDBException In case a database error occured.
  */
 void
-SQLiteConnection::rollback()
-    throw (RelationalDBException) {
+SQLiteConnection::rollback() {
     updateQuery("ROLLBACK;");
     transactionActive_ = false;
 }
@@ -155,12 +148,10 @@ SQLiteConnection::rollback()
  * @exception RelationalDBException In case a database error occured.
  */
 void
-SQLiteConnection::commit()
-    throw (RelationalDBException) {
+SQLiteConnection::commit() {
     updateQuery("COMMIT;");
     transactionActive_ = false;
 }
-
 
 /**
  * Returns the row ID of the most recent insert in the database.
@@ -183,9 +174,7 @@ SQLiteConnection::lastInsertRowID() {
  *                                  transaction.
  */
 bool
-SQLiteConnection::tableExistsInDB(const std::string& tableName)
-    throw (RelationalDBException) {
-
+SQLiteConnection::tableExistsInDB(const std::string& tableName) {
     if (transactionActive_) {
         throw RelationalDBException(__FILE__, __LINE__,
             "SQLiteConnection::tableExistsInDB()",
@@ -212,9 +201,7 @@ SQLiteConnection::tableExistsInDB(const std::string& tableName)
             "Exception from DataObject: " + e.errorMessage());
     }
     return intBoolValue;
-
 }
-
 
 /**
  * Return number of entries in the given table.
@@ -226,9 +213,7 @@ SQLiteConnection::tableExistsInDB(const std::string& tableName)
  * exists.
  */
 int
-SQLiteConnection::rowCountInTable(const std::string& tableName)
-    throw (RelationalDBException) {
-
+SQLiteConnection::rowCountInTable(const std::string& tableName) {
     if (!tableExistsInDB(tableName)) {
         throw RelationalDBException(__FILE__, __LINE__,
             "SQLiteConnection::rowCountInTable()",
@@ -254,7 +239,6 @@ SQLiteConnection::rowCountInTable(const std::string& tableName)
     return countAsInt;
 }
 
-
 /**
  * Throws a RelationalDBException if result value indicates an SQLite error.
  *
@@ -262,8 +246,7 @@ SQLiteConnection::rowCountInTable(const std::string& tableName)
  * @exception RelationalDBException Thrown if result is not SQLITE_OK.
  */
 void
-SQLiteConnection::throwIfSQLiteError(int result)
-    throw (RelationalDBException) {
+SQLiteConnection::throwIfSQLiteError(int result) {
     if (result != SQLITE_OK && result != SQLITE_ROW &&
         result != SQLITE_DONE) {
 
@@ -271,7 +254,6 @@ SQLiteConnection::throwIfSQLiteError(int result)
         throw RelationalDBException(__FILE__, __LINE__, "", error);
     }
 }
-
 
 /**
  * Compiles a SQLite query.
@@ -281,9 +263,7 @@ SQLiteConnection::throwIfSQLiteError(int result)
  * @exception RelationalDBException In case a database error occured.
  */
 sqlite3_stmt*
-SQLiteConnection::compileQuery(const std::string& queryString)
-    throw (RelationalDBException) {
-
+SQLiteConnection::compileQuery(const std::string& queryString) {
     // "virtual machine" used by SQLite to execute the statements
     sqlite3_stmt* stmt = NULL;
     const char* dummy = NULL;
@@ -293,7 +273,6 @@ SQLiteConnection::compileQuery(const std::string& queryString)
         &stmt, &dummy));
     return stmt;
 }
-
 
 /**
  * Finalizes a SQLite query, frees the virtual machine.
@@ -305,9 +284,7 @@ SQLiteConnection::compileQuery(const std::string& queryString)
  * cumulated from a previous sqlite3_step() call).
  */
 void
-SQLiteConnection::finalizeQuery(sqlite3_stmt* statement)
-    throw (RelationalDBException) {
-
+SQLiteConnection::finalizeQuery(sqlite3_stmt* statement) {
     if (statement == NULL) {
         return;
     }

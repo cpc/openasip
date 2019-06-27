@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -88,9 +88,7 @@ Section::~Section() {
  * @exception InstanceNotFound If there is no registered instance for type.
  */
 Section*
-Section::createSection(SectionType type)
-    throw (InstanceNotFound) {
-
+Section::createSection(SectionType type) {
     if (prototypes_ == NULL ||
         !MapTools::containsKey(*prototypes_,type)) {
 
@@ -168,9 +166,7 @@ Section::isChunkable() const {
  * @exception NotChunkable If Section is not derived from RawSection.
  */
 Chunk*
-Section::chunk(SectionOffset /*offset*/) const
-    throw (NotChunkable) {
-
+Section::chunk(SectionOffset /*offset*/) const {
     throw NotChunkable(__FILE__, __LINE__, "Section::chunk");
 }
 
@@ -213,9 +209,7 @@ RawSection::isChunkable() const {
  * @exception NotChunkable If called on a section that is not RawSection.
  */
 Chunk*
-RawSection::chunk(SectionOffset offset) const
-    throw (NotChunkable) {
-
+RawSection::chunk(SectionOffset offset) const {
     Chunk* newChunk = NULL;
 
     try {

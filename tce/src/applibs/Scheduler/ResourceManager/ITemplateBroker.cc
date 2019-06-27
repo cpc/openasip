@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -159,8 +159,7 @@ ITemplateBroker::allAvailableResources(
  * inside the broker.
  */
 void
-ITemplateBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
-    throw (Exception) {
+ITemplateBroker::assign(int cycle, MoveNode& node, SchedulingResource& res) {
     cycle = instructionIndex(cycle);
 
     if (node.isSourceImmediateRegister()) {
@@ -230,7 +229,6 @@ ITemplateBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
         string msg = "Broker does not contain given resource.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
-
 }
 
 /**
@@ -245,10 +243,7 @@ ITemplateBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
  * given node or no corresponding machine part is found.
  */
 void
-ITemplateBroker::assignImmediate(
-    int cycle,
-    Immediate& immediate)
-    throw (Exception) {
+ITemplateBroker::assignImmediate(int cycle, Immediate& immediate) {
     cycle = instructionIndex(cycle);
 
     try {

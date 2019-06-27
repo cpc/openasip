@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -57,9 +57,7 @@ ResourceMapper::~ResourceMapper(){
  * @param broker Broker to register.
  */
 void
-ResourceMapper::addResourceMap(const ResourceBroker& broker)
-    throw (ObjectAlreadyExists) {
-
+ResourceMapper::addResourceMap(const ResourceBroker& broker) {
     if (ContainerTools::containsValue(brokers_, &broker)) {
         string msg = "Broker already exists in resource map!";
         throw ObjectAlreadyExists(__FILE__, __LINE__, __func__, msg);
@@ -95,9 +93,7 @@ ResourceMapper::resourceCount(const TTAMachine::MachinePart& mp) const {
  * index.
  */
 SchedulingResource&
-ResourceMapper::resourceOf(const TTAMachine::MachinePart& mp, int index)
-    const throw (KeyNotFound) {
-
+ResourceMapper::resourceOf(const TTAMachine::MachinePart& mp, int index) const {
     const unsigned int brokerSize = brokers_.size();
     for (unsigned int i = 0; i < brokerSize; i++) {
         SchedulingResource* res = brokers_[i]->resourceOf(mp);

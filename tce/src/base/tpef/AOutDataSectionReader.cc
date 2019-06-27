@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -87,12 +87,7 @@ AOutDataSectionReader::type() const {
  * @exception UnexpectedValue If there was unexpected value when reading.
  */
 void
-AOutDataSectionReader::readData(
-    BinaryStream& stream,
-    Section* section) const
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-           OutOfRange, WrongSubclass, UnexpectedValue) {
-
+AOutDataSectionReader::readData(BinaryStream& stream, Section* section) const {
     AOutReader* bReader = dynamic_cast<AOutReader*>(parent());
     assert(bReader != NULL);
 
@@ -104,5 +99,4 @@ AOutDataSectionReader::readData(
         theDataSection->addByte(stream.readByte());
     }
 }
-
 }

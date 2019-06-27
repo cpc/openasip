@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -69,12 +69,10 @@ ProcedurePass::~ProcedurePass() {
  * @exception In case handling is unsuccesful for any reason (procedure might 
  * still get modified).
  */
-void 
+void
 ProcedurePass::handleProcedure(
     TTAProgram::Procedure& procedure,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-    
+    const TTAMachine::Machine& targetMachine) {
     ControlFlowGraphPass* cfgPass = dynamic_cast<ControlFlowGraphPass*>(this);
     if (cfgPass != NULL) {
         executeControlFlowGraphPass(procedure, targetMachine, *cfgPass);
@@ -86,9 +84,7 @@ ProcedurePass::handleProcedure(
 
 void
 ProcedurePass::copyCfgToProcedure(
-    TTAProgram::Procedure& procedure,
-    ControlFlowGraph& cfg) throw (Exception) {
-
+    TTAProgram::Procedure& procedure, ControlFlowGraph& cfg) {
     TTAProgram::InstructionReferenceManager& irm = 
         procedure.parent().instructionReferenceManager();
     
@@ -257,12 +253,10 @@ ProcedurePass::copyCfgToProcedure(
     }
 }
 
-void 
+void
 ProcedurePass::executeControlFlowGraphPass(
-        TTAProgram::Procedure& procedure,
-        const TTAMachine::Machine& targetMachine,
-        ControlFlowGraphPass& cfgp) throw (Exception) {
-
+    TTAProgram::Procedure& procedure, const TTAMachine::Machine& targetMachine,
+    ControlFlowGraphPass& cfgp) {
     ControlFlowGraph cfg(procedure);
     cfgp.handleControlFlowGraph(cfg, targetMachine);
     copyCfgToProcedure(procedure, cfg);

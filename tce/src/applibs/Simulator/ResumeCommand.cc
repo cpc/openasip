@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -69,10 +69,8 @@ ResumeCommand::~ResumeCommand() {
  * @exception NumberFormatException Is never thrown by this command.
  *
  */
-bool 
-ResumeCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+ResumeCommand::execute(const std::vector<DataObject>& arguments) {
     // how many times breakpoints should be ignored?
     int repeatCount = 0;
     if (!checkArgumentCount(arguments.size() - 1, 0, 1)) {

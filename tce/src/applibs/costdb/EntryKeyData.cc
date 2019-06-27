@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -110,9 +110,7 @@ EntryKeyDataInt::copy() const {
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataInt::isEqual(const EntryKeyData* fieldData) const 
-    throw (WrongSubclass) {
-    
+EntryKeyDataInt::isEqual(const EntryKeyData* fieldData) const {
     EntryKeyDataInt* integer = dynamic_cast<EntryKeyDataInt*>(
 	                       const_cast<EntryKeyData*>(fieldData));
     if (integer == NULL) {
@@ -133,8 +131,7 @@ EntryKeyDataInt::isEqual(const EntryKeyData* fieldData) const
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataInt::isGreater(const EntryKeyData* fieldData) const 
-    throw (WrongSubclass) {
+EntryKeyDataInt::isGreater(const EntryKeyData* fieldData) const {
     EntryKeyDataInt* integer = dynamic_cast<EntryKeyDataInt*>(
 	                       const_cast<EntryKeyData*>(fieldData));
     if (integer == NULL) {
@@ -155,8 +152,7 @@ EntryKeyDataInt::isGreater(const EntryKeyData* fieldData) const
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataInt::isSmaller(const EntryKeyData* fieldData) const 
-    throw (WrongSubclass) {
+EntryKeyDataInt::isSmaller(const EntryKeyData* fieldData) const {
     EntryKeyDataInt* integer = dynamic_cast<EntryKeyDataInt*>(
 	                       const_cast<EntryKeyData*>(fieldData));
     if (integer == NULL) {
@@ -181,9 +177,7 @@ EntryKeyDataInt::isSmaller(const EntryKeyData* fieldData) const
  */
 double
 EntryKeyDataInt::coefficient(
-    const EntryKeyData* data1,
-    const EntryKeyData* data2) const 
-    throw (WrongSubclass) {
+    const EntryKeyData* data1, const EntryKeyData* data2) const {
     EntryKeyDataInt* int1 = dynamic_cast<EntryKeyDataInt*>(
 	                    const_cast<EntryKeyData*>(data1));
     EntryKeyDataInt* int2 = dynamic_cast<EntryKeyDataInt*>(
@@ -259,9 +253,7 @@ EntryKeyDataDouble::copy() const {
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataDouble::isEqual(const EntryKeyData* fieldData) const 
-    throw (WrongSubclass) {
-    
+EntryKeyDataDouble::isEqual(const EntryKeyData* fieldData) const {
     EntryKeyDataDouble* data = dynamic_cast<EntryKeyDataDouble*>(
         const_cast<EntryKeyData*>(fieldData));
     if (data == NULL) {
@@ -282,9 +274,7 @@ EntryKeyDataDouble::isEqual(const EntryKeyData* fieldData) const
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataDouble::isGreater(const EntryKeyData* fieldData) const 
-    throw (WrongSubclass) {
-
+EntryKeyDataDouble::isGreater(const EntryKeyData* fieldData) const {
     EntryKeyDataDouble* data = dynamic_cast<EntryKeyDataDouble*>(
         const_cast<EntryKeyData*>(fieldData));
     if (data == NULL) {
@@ -305,9 +295,7 @@ EntryKeyDataDouble::isGreater(const EntryKeyData* fieldData) const
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataDouble::isSmaller(const EntryKeyData* fieldData) const 
-    throw (WrongSubclass) {
-
+EntryKeyDataDouble::isSmaller(const EntryKeyData* fieldData) const {
     EntryKeyDataDouble* data = dynamic_cast<EntryKeyDataDouble*>(
         const_cast<EntryKeyData*>(fieldData));
     if (data == NULL) {
@@ -332,10 +320,7 @@ EntryKeyDataDouble::isSmaller(const EntryKeyData* fieldData) const
  */
 double
 EntryKeyDataDouble::coefficient(
-    const EntryKeyData* data1,
-    const EntryKeyData* data2) const
-    throw (WrongSubclass) {
-    
+    const EntryKeyData* data1, const EntryKeyData* data2) const {
     EntryKeyDataDouble* double1 = dynamic_cast<EntryKeyDataDouble*>(
         const_cast<EntryKeyData*>(data1));
     EntryKeyDataDouble* double2 = dynamic_cast<EntryKeyDataDouble*>(
@@ -410,9 +395,7 @@ EntryKeyDataOperationSet::copy() const {
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataOperationSet::isEqual(const EntryKeyData* fieldData) const 
-    throw (WrongSubclass) {
-    
+EntryKeyDataOperationSet::isEqual(const EntryKeyData* fieldData) const {
     EntryKeyDataOperationSet* data = dynamic_cast<EntryKeyDataOperationSet*>(
         const_cast<EntryKeyData*>(fieldData));
     if (data == NULL) {
@@ -433,9 +416,7 @@ EntryKeyDataOperationSet::isEqual(const EntryKeyData* fieldData) const
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataOperationSet::isGreater(const EntryKeyData*) const 
-    throw (WrongSubclass) {
-
+EntryKeyDataOperationSet::isGreater(const EntryKeyData*) const {
     return false;
 }
 
@@ -450,9 +431,7 @@ EntryKeyDataOperationSet::isGreater(const EntryKeyData*) const
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataOperationSet::isSmaller(const EntryKeyData*) const 
-    throw (WrongSubclass) {
-
+EntryKeyDataOperationSet::isSmaller(const EntryKeyData*) const {
     return true;
 }
 
@@ -468,10 +447,7 @@ EntryKeyDataOperationSet::isSmaller(const EntryKeyData*) const
  */
 double
 EntryKeyDataOperationSet::coefficient(
-    const EntryKeyData*,
-    const EntryKeyData*) const
-    throw (WrongSubclass) {
- 
+    const EntryKeyData*, const EntryKeyData*) const {
     throw WrongSubclass(__FILE__, __LINE__,
                         "EntryKeyDataOperationSet::coefficient");
     return 0.0; // stupid return statement to keep compiler quiet
@@ -542,9 +518,7 @@ EntryKeyDataBool::copy() const {
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataBool::isEqual(const EntryKeyData* fieldData) const 
-    throw (WrongSubclass) {
-    
+EntryKeyDataBool::isEqual(const EntryKeyData* fieldData) const {
     EntryKeyDataBool* data = dynamic_cast<EntryKeyDataBool*>(
         const_cast<EntryKeyData*>(fieldData));
     if (data == NULL) {
@@ -565,9 +539,7 @@ EntryKeyDataBool::isEqual(const EntryKeyData* fieldData) const
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataBool::isGreater(const EntryKeyData*) const 
-    throw (WrongSubclass) {
-
+EntryKeyDataBool::isGreater(const EntryKeyData*) const {
     return false;
 }
 
@@ -582,9 +554,7 @@ EntryKeyDataBool::isGreater(const EntryKeyData*) const
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataBool::isSmaller(const EntryKeyData*) const 
-    throw (WrongSubclass) {
-
+EntryKeyDataBool::isSmaller(const EntryKeyData*) const {
     return true;
 }
 
@@ -600,11 +570,7 @@ EntryKeyDataBool::isSmaller(const EntryKeyData*) const
  * @exception WrongSubclass Given data type was illegal.
  */
 double
-EntryKeyDataBool::coefficient(
-    const EntryKeyData*,
-    const EntryKeyData*) const
-    throw (WrongSubclass) {
- 
+EntryKeyDataBool::coefficient(const EntryKeyData*, const EntryKeyData*) const {
     throw WrongSubclass(__FILE__, __LINE__,
                         "EntryKeyDataBool::coefficient");
     return 0.0; // stupid return statement to keep compiler quiet
@@ -674,9 +640,7 @@ EntryKeyDataFunctionUnit::copy() const {
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataFunctionUnit::isEqual(const EntryKeyData* fieldData) const 
-    throw (WrongSubclass) {
-    
+EntryKeyDataFunctionUnit::isEqual(const EntryKeyData* fieldData) const {
     EntryKeyDataFunctionUnit* data = dynamic_cast<EntryKeyDataFunctionUnit*>(
         const_cast<EntryKeyData*>(fieldData));
     if (data == NULL) {
@@ -698,9 +662,7 @@ EntryKeyDataFunctionUnit::isEqual(const EntryKeyData* fieldData) const
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataFunctionUnit::isGreater(const EntryKeyData*) const 
-    throw (WrongSubclass) {
-
+EntryKeyDataFunctionUnit::isGreater(const EntryKeyData*) const {
     return false;
 }
 
@@ -715,9 +677,7 @@ EntryKeyDataFunctionUnit::isGreater(const EntryKeyData*) const
  * @exception WrongSubclass Given data type was illegal.
  */
 bool
-EntryKeyDataFunctionUnit::isSmaller(const EntryKeyData*) const 
-    throw (WrongSubclass) {
-
+EntryKeyDataFunctionUnit::isSmaller(const EntryKeyData*) const {
     return true;
 }
 
@@ -734,10 +694,7 @@ EntryKeyDataFunctionUnit::isSmaller(const EntryKeyData*) const
  */
 double
 EntryKeyDataFunctionUnit::coefficient(
-    const EntryKeyData*,
-    const EntryKeyData*) const
-    throw (WrongSubclass) {
- 
+    const EntryKeyData*, const EntryKeyData*) const {
     throw WrongSubclass(__FILE__, __LINE__,
                         "EntryKeyDataFunctionUnit::coefficient");
     return 0.0; // stupid return statement to keep compiler quiet

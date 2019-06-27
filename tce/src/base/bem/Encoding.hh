@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -72,8 +72,7 @@ protected:
         unsigned int encoding,
         unsigned int extraBits,
         InstructionField* parent);
-    Encoding(const ObjectState* state, InstructionField* parent)
-        throw (ObjectStateLoadingException);
+    Encoding(const ObjectState* state, InstructionField* parent);
     void setParent(InstructionField* parent);
 
 private:

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -56,35 +56,24 @@ protected:
     AOutTextSectionReader();
     virtual Section::SectionType type() const;
 
-    virtual void readData(
-        BinaryStream& stream,
-        Section* section) const
-        throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-               OutOfRange, WrongSubclass, UnexpectedValue);
+    virtual void readData(BinaryStream& stream, Section* section) const;
 
 private:
     void initializeImmediateMove(
-        BinaryStream& stream,
-        MoveElement* move,
-        ImmediateElement* immediate) const
-        throw (OutOfRange, UnreachableStream);
+        BinaryStream& stream, MoveElement* move,
+        ImmediateElement* immediate) const;
 
-    void initializeMove(BinaryStream& stream, MoveElement* move) const
-        throw (OutOfRange, UnreachableStream);
+    void initializeMove(BinaryStream& stream, MoveElement* move) const;
 
-    void updateMoveDestination(MoveElement* move, const HalfWord dest) const
-        throw (OutOfRange);
+    void updateMoveDestination(MoveElement* move, const HalfWord dest) const;
 
-    void updateMoveSource(MoveElement* move, const Word src) const
-        throw (OutOfRange);
+    void updateMoveSource(MoveElement* move, const Word src) const;
 
     Word convertAOutIndexToTPEF(const Word reg) const;
 
     void setReference(
-        InstructionElement* elem,
-        SectionOffset sectionOffset,
-        SectionId sectionID) const
-        throw (KeyAlreadyExists);
+        InstructionElement* elem, SectionOffset sectionOffset,
+        SectionId sectionID) const;
 
     /// Copying not allowed.
     AOutTextSectionReader(const AOutTextSectionReader&);

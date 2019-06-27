@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -207,9 +207,7 @@ ObjectState::hasAttribute(const std::string& name) const {
  * @exception OutOfRange If the given index is out of range.
  */
 ObjectState::Attribute*
-ObjectState::attribute(int index) const
-    throw (OutOfRange) {
-
+ObjectState::attribute(int index) const {
     if (index < 0 || index >= attributeCount()) {
         const string procName = "ObjectState::attribute";
         string errorMsg = commonErrorMessage();
@@ -222,7 +220,6 @@ ObjectState::attribute(int index) const
     }
 }
 
-
 /**
  * Returns the value of the requested attribute.
  *
@@ -231,9 +228,7 @@ ObjectState::attribute(int index) const
  * @exception KeyNotFound If no attribute called the given name is found.
  */
 std::string
-ObjectState::stringAttribute(const std::string& name) const
-    throw (KeyNotFound) {
-
+ObjectState::stringAttribute(const std::string& name) const {
     AttributeTable::const_iterator iter = attributes_.begin();
     while (iter != attributes_.end()) {
         if ((*iter).name == name) {
@@ -250,7 +245,6 @@ ObjectState::stringAttribute(const std::string& name) const
     throw KeyNotFound(__FILE__, __LINE__, procName, errorMsg);
 }
 
-
 /**
  * Returns the value of the requested attribute.
  *
@@ -261,13 +255,10 @@ ObjectState::stringAttribute(const std::string& name) const
  *                                  can't be converted to int.
  */
 int
-ObjectState::intAttribute(const std::string& name) const
-    throw (KeyNotFound, NumberFormatException) {
-
+ObjectState::intAttribute(const std::string& name) const {
     string value = stringAttribute(name);
     return Conversion::toInt(value);
 }
-
 
 /**
  * Returns the value of the requested attribute.
@@ -279,13 +270,10 @@ ObjectState::intAttribute(const std::string& name) const
  *                                  can't be converted to unsigned int.
  */
 unsigned int
-ObjectState::unsignedIntAttribute(const std::string& name) const
-    throw (KeyNotFound, NumberFormatException) {
-
+ObjectState::unsignedIntAttribute(const std::string& name) const {
     string value = stringAttribute(name);
     return Conversion::toUnsignedInt(value);
 }
-
 
 /**
  * Returns the value of the requested attribute.
@@ -297,13 +285,10 @@ ObjectState::unsignedIntAttribute(const std::string& name) const
  *                                  can't be converted to double.
  */
 double
-ObjectState::doubleAttribute(const std::string& name) const
-    throw (KeyNotFound, NumberFormatException) {
-
+ObjectState::doubleAttribute(const std::string& name) const {
     string value = stringAttribute(name);
     return Conversion::toDouble(value);
 }
-
 
 /**
  * Returns the value of the requested attribute.
@@ -315,9 +300,7 @@ ObjectState::doubleAttribute(const std::string& name) const
  *                         converted to bool.
  */
 bool
-ObjectState::boolAttribute(const std::string& name) const
-    throw (KeyNotFound, TypeMismatch) {
-
+ObjectState::boolAttribute(const std::string& name) const {
     string value = stringAttribute(name);
 
     int intValue;
@@ -330,7 +313,6 @@ ObjectState::boolAttribute(const std::string& name) const
 
     return intValue;
 }
-
 
 /**
  * Returns true if there is a child element called the given name.
@@ -369,9 +351,7 @@ ObjectState::addChild(ObjectState* child) {
  *                             object.
  */
 void
-ObjectState::removeChild(ObjectState* child)
-    throw (InstanceNotFound) {
-
+ObjectState::removeChild(ObjectState* child) {
     bool removed = ContainerTools::removeValueIfExists(children_, child);
     if (removed) {
         child->parent_ = NULL;
@@ -380,7 +360,6 @@ ObjectState::removeChild(ObjectState* child)
         throw InstanceNotFound(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Replaces a child with a new child.
@@ -391,9 +370,7 @@ ObjectState::removeChild(ObjectState* child)
  *                          object.
  */
 void
-ObjectState::replaceChild(ObjectState* old, ObjectState* newChild)
-    throw (InvalidData) {
-
+ObjectState::replaceChild(ObjectState* old, ObjectState* newChild) {
     if (newChild->parent() != NULL) {
         const string procName = "ObjectState::replaceChild";
         throw InvalidData(__FILE__, __LINE__, procName);
@@ -428,9 +405,7 @@ ObjectState::replaceChild(ObjectState* old, ObjectState* newChild)
  * @exception InstanceNotFound If the requested child is not found.
  */
 ObjectState*
-ObjectState::childByName(const std::string& name) const
-    throw (InstanceNotFound) {
-
+ObjectState::childByName(const std::string& name) const {
     ChildTable::const_iterator iter = children_.begin();
     while (iter != children_.end()) {
         if ((*iter)->name() == name) {
@@ -447,7 +422,6 @@ ObjectState::childByName(const std::string& name) const
     throw InstanceNotFound(__FILE__, __LINE__, procName, errorMsg);
 }
 
-
 /**
  * Returns a child by the given index.
  *
@@ -459,9 +433,7 @@ ObjectState::childByName(const std::string& name) const
  * @exception OutOfRange If the given index is out of range.
  */
 ObjectState*
-ObjectState::child(int index) const
-    throw (OutOfRange) {
-
+ObjectState::child(int index) const {
     if (index < 0 || index >= childCount()) {
         const string procName = "ObjectState::child";
         string errorMsg = commonErrorMessage();
@@ -473,7 +445,6 @@ ObjectState::child(int index) const
         return children_[index];
     }
 }
-
 
 /**
  * Inequality comparison operator.

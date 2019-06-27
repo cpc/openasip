@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -50,11 +50,9 @@ public:
     virtual ~InstructionMemory();
     
     void addExecutableInstruction(ExecutableInstruction* instruction);
-    ExecutableInstruction& instructionAt(InstructionAddress address) 
-        throw (OutOfRange);
+    ExecutableInstruction& instructionAt(InstructionAddress address);
     const ExecutableInstruction& instructionAtConst(
-        InstructionAddress address) const
-        throw (OutOfRange);
+        InstructionAddress address) const;
 
     void resetExecutionCounts();
 

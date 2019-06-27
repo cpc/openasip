@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -55,39 +55,28 @@ public:
 
     virtual ~StopPointManager();
     unsigned int add(const StopPoint& stopPoint);
-    void deleteStopPoint(unsigned int handle)
-        throw (InstanceNotFound);
+    void deleteStopPoint(unsigned int handle);
     void deleteAll();
 
-    void enable(unsigned int handle)
-        throw (InstanceNotFound);
+    void enable(unsigned int handle);
     void enableAll();
 
-    void enableOnceAndDelete(unsigned int handle)
-        throw (InstanceNotFound);
-    void enableOnceAndDisable(unsigned int handle)
-        throw (InstanceNotFound);
+    void enableOnceAndDelete(unsigned int handle);
+    void enableOnceAndDisable(unsigned int handle);
 
-    void disable(unsigned int handle)
-        throw (InstanceNotFound);
+    void disable(unsigned int handle);
     void disableAll();
 
-    const StopPoint& stopPointWithHandleConst(unsigned int handle) const
-        throw (InstanceNotFound);
+    const StopPoint& stopPointWithHandleConst(unsigned int handle) const;
 
-    unsigned int stopPointHandle(unsigned int index)
-        throw (OutOfRange);
+    unsigned int stopPointHandle(unsigned int index);
     unsigned int stopPointCount();
 
-    void setIgnore(unsigned int handle, unsigned int count)
-        throw (InstanceNotFound);
-    void setCondition(unsigned int handle, const ConditionScript& condition)
-        throw (InstanceNotFound);
-    void removeCondition(unsigned int handle)
-        throw (InstanceNotFound);
+    void setIgnore(unsigned int handle, unsigned int count);
+    void setCondition(unsigned int handle, const ConditionScript& condition);
+    void removeCondition(unsigned int handle);
 
-    unsigned int stopCausingStopPoint(unsigned int index) const
-        throw (OutOfRange);
+    unsigned int stopCausingStopPoint(unsigned int index) const;
     unsigned int stopCausingStopPointCount() const;
 
     void handleEvent();
@@ -98,8 +87,7 @@ private:
     /// The handle storage.
     typedef std::vector<unsigned int> HandleContainer;
 
-    StopPoint* findStopPoint(unsigned int handle)
-        throw (InstanceNotFound);
+    StopPoint* findStopPoint(unsigned int handle);
 
     /// The stop points.
     StopPointIndex stopPoints_;

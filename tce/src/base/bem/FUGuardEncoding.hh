@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -47,14 +47,9 @@
 class FUGuardEncoding : public GuardEncoding {
 public:
     FUGuardEncoding(
-	const std::string& fu,
-	const std::string& port,
-	bool inverted,
-	unsigned int encoding,
-	GuardField& parent)
-	throw (ObjectAlreadyExists);
-    FUGuardEncoding(const ObjectState* state, GuardField& parent)
-	throw (ObjectStateLoadingException, ObjectAlreadyExists);
+        const std::string& fu, const std::string& port, bool inverted,
+        unsigned int encoding, GuardField& parent);
+    FUGuardEncoding(const ObjectState* state, GuardField& parent);
     virtual ~FUGuardEncoding();
 
     std::string functionUnit() const;

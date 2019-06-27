@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -71,32 +71,24 @@ public:
 
     virtual void handleBasicBlock(
         TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
-        TTAProgram::InstructionReferenceManager& irm, 
-        BasicBlockNode* bbn = NULL)
-        throw (Exception);
+        TTAProgram::InstructionReferenceManager& irm,
+        BasicBlockNode* bbn = NULL);
 
     virtual void handleControlFlowGraph(
-        ControlFlowGraph& cfg,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        ControlFlowGraph& cfg, const TTAMachine::Machine& targetMachine);
 
     virtual void handleProcedure(
         TTAProgram::Procedure& procedure,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        const TTAMachine::Machine& targetMachine);
 
     // is needed only for some sw bypass statistics
     virtual void handleProgram(
-        TTAProgram::Program& program,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        TTAProgram::Program& program, const TTAMachine::Machine& targetMachine);
 
     virtual void executeDDGPass(
-        TTAProgram::BasicBlock& bb,
-        const TTAMachine::Machine& targetMachine, 
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
         TTAProgram::InstructionReferenceManager& irm,
-        std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn = NULL)
-        throw (Exception);
+        std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn = NULL);
 
     virtual void handleCFGDDG(
         ControlFlowGraph& cfg,

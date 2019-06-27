@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -69,8 +69,7 @@ public:
     virtual Word instructionCount() const;
 
     int labelCount(Word address) const;
-    std::string label(Word address, int index) const
-        throw (OutOfRange);
+    std::string label(Word address, int index) const;
 
     static std::string disassemble(const TTAProgram::Move& move);
     static std::string disassemble(
@@ -78,11 +77,9 @@ public:
         bool indices=false,
         int addr = -1);
     static std::string disassemble(
-        const TTAProgram::Procedure& proc, bool indices=false)
-        throw (Exception);    
+        const TTAProgram::Procedure& proc, bool indices = false);
     static std::string disassemble(
-        const TTAProgram::Program& program, bool indices=false)
-        throw (Exception);
+        const TTAProgram::Program& program, bool indices = false);
 
     static DisassemblyImmediate* createInlineImmediate(
         const TTAProgram::Terminal& terminal, bool signExtend);
@@ -90,8 +87,7 @@ public:
 private:
     static int labelCount(const TTAProgram::Program& program, Word address);
     static std::string label(
-        const TTAProgram::Program&, Word address, int index)
-        throw (OutOfRange);
+        const TTAProgram::Program&, Word address, int index);
 
     static DisassemblyInstruction* createInstruction(
         const TTAProgram::Program& program,
@@ -102,12 +98,11 @@ private:
     static DisassemblyGuard* createGuard(
         const TTAProgram::MoveGuard& guard);
     static DisassemblyElement* createTerminal(
-        const TTAProgram::Terminal& terminal) 
-        throw(WrongSubclass, InstanceNotFound);
+        const TTAProgram::Terminal& terminal);
     static DisassemblyElement* createFUPort(
-        const TTAProgram::Terminal& terminal) throw(InstanceNotFound);
+        const TTAProgram::Terminal& terminal);
     static DisassemblyElement* createRegister(
-        const TTAProgram::Terminal& terminal) throw(WrongSubclass);
+        const TTAProgram::Terminal& terminal);
     static DisassemblyImmediateRegister* createImmediateRegister(
         const TTAProgram::Terminal& terminal);
 

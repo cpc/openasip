@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -55,11 +55,9 @@ const std::string ImmediateSlot::OSNAME_IMMEDIATE_SLOT = "immediate_slot";
  *                                   name.
  */
 ImmediateSlot::ImmediateSlot(const std::string& name, Machine& parent)
-    throw (InvalidName, ComponentAlreadyExists) : Component(name) {
-        
+    : Component(name) {
     setMachine(parent);
 }
-
 
 /**
  * The constructor.
@@ -75,9 +73,7 @@ ImmediateSlot::ImmediateSlot(const std::string& name, Machine& parent)
  *                                   name.
  */
 ImmediateSlot::ImmediateSlot(const ObjectState* state, Machine& parent)
-    throw (ObjectStateLoadingException, ComponentAlreadyExists) :
-    Component(state) {
-
+    : Component(state) {
     const string procName = "ImmediateSlot::ImmediateSlot";
 
     if (parent.busNavigator().hasItem(name())) {
@@ -100,7 +96,6 @@ ImmediateSlot::ImmediateSlot(const ObjectState* state, Machine& parent)
     setMachine(parent);
     loadState(state);
 }
-
 
 /**
  * The destructor.
@@ -144,13 +139,10 @@ ImmediateSlot::width() const {
  *                                   immediate slot or bus by the same name.
  */
 void
-ImmediateSlot::setMachine(Machine& machine)
-    throw (ComponentAlreadyExists) {
-
+ImmediateSlot::setMachine(Machine& machine) {
     machine.addImmediateSlot(*this);
     internalSetMachine(machine);
 }
-
 
 /**
  * Removes registration of the immediate slot from its current machine.
@@ -183,9 +175,7 @@ ImmediateSlot::unsetMachine() {
  * @exception InvalidName If the given name is not a valid component name.
  */
 void
-ImmediateSlot::setName(const std::string& name)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+ImmediateSlot::setName(const std::string& name) {
     if (name == this->name()) {
         return;
     }
@@ -199,7 +189,6 @@ ImmediateSlot::setName(const std::string& name)
         Component::setName(name);
     }
 }
-
 
 /**
  * Saves the state of the object to an ObjectState instance.
@@ -222,9 +211,7 @@ ImmediateSlot::saveState() const {
  *                                        the state.
  */
 void
-ImmediateSlot::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+ImmediateSlot::loadState(const ObjectState* state) {
     if (state->name() != OSNAME_IMMEDIATE_SLOT) {
         const string procName = "ImmediateSlot::loadState";
         throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
@@ -232,5 +219,4 @@ ImmediateSlot::loadState(const ObjectState* state)
 
     Component::loadState(state);
 }
-
 }

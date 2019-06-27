@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -110,8 +110,7 @@ private:
     CostDBTypes::EntryTable findFromCache(
         const CostDBEntryKey& searchKey,
         const CostDBTypes::MatchTypeTable& match);
-    MatcherTable createMatchers(const CostDBTypes::MatchTypeTable& match)
-	throw (TypeMismatch);
+    MatcherTable createMatchers(const CostDBTypes::MatchTypeTable& match);
 
     /// Results of the previous queries.
     CacheTable entryCache_;

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -92,9 +92,7 @@ ICDecoderGeneratorPlugin::recognizedParameterCount() const {
  *                       the number of recognized parameters.
  */
 std::string
-ICDecoderGeneratorPlugin::recognizedParameter(int index) const
-    throw (OutOfRange) {
-
+ICDecoderGeneratorPlugin::recognizedParameter(int index) const {
     if (index < 0 || index >= recognizedParameterCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -112,7 +110,6 @@ ICDecoderGeneratorPlugin::recognizedParameter(int index) const
     return "";
 }
 
-
 /**
  * Returns the description of the given parameter.
  *
@@ -122,9 +119,7 @@ ICDecoderGeneratorPlugin::recognizedParameter(int index) const
  */
 std::string
 ICDecoderGeneratorPlugin::parameterDescription(
-    const std::string& paramName) const 
-    throw (IllegalParameters) {
-
+    const std::string& paramName) const {
     try {
         return MapTools::valueForKey<string>(
             parameterDescriptions_, paramName);
@@ -143,10 +138,7 @@ ICDecoderGeneratorPlugin::parameterDescription(
  */
 void
 ICDecoderGeneratorPlugin::setParameter(
-    const std::string& name,
-    const std::string& value) 
-    throw (IllegalParameters) {
-
+    const std::string& name, const std::string& value) {
     if (!MapTools::containsKey(parameterDescriptions_, name)) {
         string errorMsg = "Unrecognized IC/decoder plugin parameter: " + 
             name;
@@ -156,7 +148,6 @@ ICDecoderGeneratorPlugin::setParameter(
     parameterValues_.erase(name);
     parameterValues_.insert(std::pair<string, string>(name, value));
 }
-
 
 /**
  * Adds the given parameter to the set of recognized parameters.
@@ -195,16 +186,13 @@ ICDecoderGeneratorPlugin::hasParameterSet(const std::string& name) const {
  * @exception KeyNotFound If the given parameter is not set.
  */
 std::string
-ICDecoderGeneratorPlugin::parameterValue(const std::string& name) const
-    throw (KeyNotFound) {
-
+ICDecoderGeneratorPlugin::parameterValue(const std::string& name) const {
     if (!hasParameterSet(name)) {
         throw KeyNotFound(__FILE__, __LINE__, __func__);
     }
 
     return MapTools::valueForKey<string>(parameterValues_, name);
 }
-
 
 /**
  * Returns the machine.

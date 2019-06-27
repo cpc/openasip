@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -88,19 +88,19 @@ public:
     bool isPlaced() const;
     bool isAssigned() const;
     bool isScheduled() const;
-    void setCycle(const int newcycle) throw(InvalidData);
-    void unsetCycle() throw(InvalidData);
-    int cycle() const throw(InvalidData);
+    void setCycle(const int newcycle);
+    void unsetCycle();
+    int cycle() const;
 
     int earliestResultReadCycle() const;
     int latestTriggerWriteCycle() const;
     int guardLatency() const;
 
     Scope& scope();
-    ProgramOperation& sourceOperation() const throw (InvalidData);
-    ProgramOperation& destinationOperation(unsigned int index=0) const throw (InvalidData);
-    ProgramOperationPtr sourceOperationPtr() const throw (InvalidData);
-    ProgramOperationPtr destinationOperationPtr(unsigned int index = 0) const throw (InvalidData);
+    ProgramOperation& sourceOperation() const;
+    ProgramOperation& destinationOperation(unsigned int index = 0) const;
+    ProgramOperationPtr sourceOperationPtr() const;
+    ProgramOperationPtr destinationOperationPtr(unsigned int index = 0) const;
 
     TTAProgram::Move& move();
     const TTAProgram::Move& move() const;

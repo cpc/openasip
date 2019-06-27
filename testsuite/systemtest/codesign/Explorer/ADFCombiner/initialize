@@ -1,4 +1,0 @@
-#!/bin/bash
-CURDIR=$(pwd)
-rm -rf test.dsdb
-rm -rf ?.adf

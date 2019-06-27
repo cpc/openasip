@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -160,9 +160,7 @@ NetlistBlock::hasParameter(const std::string& name) const {
  * @exception NotAvailable If the block does not have the given parameter.
  */
 Netlist::Parameter
-NetlistBlock::parameter(const std::string& name) const
-    throw (NotAvailable) {
-
+NetlistBlock::parameter(const std::string& name) const {
     for (ParameterTable::const_iterator iter = parameters_.begin();
          iter != parameters_.end(); iter++) {
         if (iter->name == name) {
@@ -172,7 +170,6 @@ NetlistBlock::parameter(const std::string& name) const
 
     throw NotAvailable(__FILE__, __LINE__, __func__);
 }
-
 
 /**
  * Returns the number of parameters.
@@ -194,16 +191,13 @@ NetlistBlock::parameterCount() const {
  *                       number of parameters.
  */
 Netlist::Parameter
-NetlistBlock::parameter(int index) const
-    throw (OutOfRange) {
-
+NetlistBlock::parameter(int index) const {
     if (index < 0 || index >= parameterCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
 
     return parameters_[index];
 }
-
 
 /**
  * Adds the given port to the block.
@@ -255,16 +249,13 @@ NetlistBlock::portCount() const {
  *                       number of ports.
  */
 NetlistPort&
-NetlistBlock::port(int index) const
-    throw (OutOfRange) {
-
+NetlistBlock::port(int index) const {
     if (index < 0 || index >= portCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
 
     return *ports_[index];
 }
-
 
 /**
  * Returns a port that matches (partially) the given name.
@@ -294,9 +285,7 @@ NetlistBlock::portByName(const std::string& name) const {
  *                                if it belongs to another netlist.
  */
 void
-NetlistBlock::addSubBlock(NetlistBlock* block)
-    throw (IllegalRegistration) {
-
+NetlistBlock::addSubBlock(NetlistBlock* block) {
     if (block->hasParentBlock() || &block->netlist() != &netlist()) {
         const string procName = "NetlistBlock::addSubBlock";
         throw IllegalRegistration(__FILE__, __LINE__, procName);
@@ -304,7 +293,6 @@ NetlistBlock::addSubBlock(NetlistBlock* block)
 
     childBlocks_.push_back(block);
 }
-
 
 /**
  * Returns the number of sub blocks.
@@ -326,16 +314,13 @@ NetlistBlock::subBlockCount() const {
  *                       the number of sub blocks.
  */
 NetlistBlock&
-NetlistBlock::subBlock(int index) const
-    throw (OutOfRange) {
-
+NetlistBlock::subBlock(int index) const {
     if (index < 0 || index >= subBlockCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
 
     return *childBlocks_[index];
 }
-
 
 /**
  * Tells whether the given block is an immediate sub block of this block.
@@ -368,9 +353,7 @@ NetlistBlock::hasParentBlock() const {
  * @exception InstanceNotFound If the block does not have a parent block.
  */
 NetlistBlock&
-NetlistBlock::parentBlock() const
-    throw (InstanceNotFound) {
-
+NetlistBlock::parentBlock() const {
     if (!hasParentBlock()) {
         const string procName = "NetlistBlock::parentBlock";
         throw InstanceNotFound(__FILE__, __LINE__, procName);
@@ -378,7 +361,6 @@ NetlistBlock::parentBlock() const
 
     return *parentBlock_;
 }
-
 
 /**
  * Returns the netlist which the block belongs to.

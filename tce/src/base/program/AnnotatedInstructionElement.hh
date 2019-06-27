@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -56,8 +56,8 @@ public:
     void addAnnotation(const ProgramAnnotation& annotation);
     void setAnnotation(const ProgramAnnotation& annotation);
     ProgramAnnotation annotation(
-        int index, ProgramAnnotation::Id id = ProgramAnnotation::ANN_UNDEF_ID)
-        const throw (OutOfRange);
+        int index,
+        ProgramAnnotation::Id id = ProgramAnnotation::ANN_UNDEF_ID) const;
     int annotationCount(
         ProgramAnnotation::Id id = ProgramAnnotation::ANN_UNDEF_ID) const;
     void removeAnnotations(

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -294,10 +294,8 @@ MinimalOpSetCheck::minimalOpSet() const {
  * are inserted so that minimal opset is fulfilled.
  * @return A short description what was done.
  */
-std::string 
-MinimalOpSetCheck::fix(TTAMachine::Machine& mach) const
-    throw (InvalidData) {
-    
+std::string
+MinimalOpSetCheck::fix(TTAMachine::Machine& mach) const {
     std::vector<std::string> missingOps;
     missingOperations(mach, missingOps);
 
@@ -337,7 +335,6 @@ MinimalOpSetCheck::fix(TTAMachine::Machine& mach) const
     delete minMach;
     return "Operations were added to fulfill minimal opset requirements.";
 }
-
 
 /**
  * Returns true if the checker can automatically fix the machine to pass

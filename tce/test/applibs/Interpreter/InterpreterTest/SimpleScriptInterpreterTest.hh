@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -57,8 +57,7 @@ public:
     MulCmd();
     virtual ~MulCmd();
 
-    virtual bool execute(const vector<DataObject>& arguments)
-        throw (NumberFormatException);
+    virtual bool execute(const vector<DataObject>& arguments);
     virtual string helpText() const;
 };
 
@@ -82,9 +81,7 @@ MulCmd::~MulCmd() {
  * @exception NumberFormatException If data object conversion fails.
  */
 bool
-MulCmd::execute(const vector<DataObject>& arguments) 
-    throw (NumberFormatException) {
-
+MulCmd::execute(const vector<DataObject>& arguments) {
     ScriptInterpreter* interp = interpreter();
     DataObject* result = new DataObject();
     if (arguments.size() != 3) {
