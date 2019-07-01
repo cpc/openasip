@@ -385,6 +385,9 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                     if options.soft_float:
                         extra_opts += " -ffp-contract=off"
 
+                    if options.cxxstd:
+                        extra_opts += " --std=%s" % options.cxxstd
+			
                     command = ("clang %s %s %s -emit-llvm " +\
                                     "-O%d "\
                                     "-c -I" + tmpDir + \
@@ -1086,6 +1089,11 @@ p.add_option('--init-sp',
              type="long", action="store", metavar='value',
              dest='init_sp', default=None,
              help="Set the initial stack pointer of the program to the given value.")
+
+p.add_option('--std',
+             type="string", action="store", metavar='std',
+	     dest='cxxstd', default='c++11',
+	     help="C++ language standard to compile for.")
 
 p.add_option('--little-endian',
              action="store_true", dest='little_endian', default=False,
