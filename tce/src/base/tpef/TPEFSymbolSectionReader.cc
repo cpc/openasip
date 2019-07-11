@@ -26,7 +26,7 @@
  *
  * Definition of TPEFSymbolSectionReader class.
  *
- * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 2003 (tmlepist-no.spam-cs.tut.fi)
  *
  * @note rating: yellow
  */
@@ -217,7 +217,6 @@ TPEFSymbolSectionReader::createSymbol(
 
     case SymbolElement::STT_PROCEDURE:
         elem = new ProcedSymElement();
-        //Tell compiler that fallthrough is to be expected(suppresses a warning)
         /* fall through */
 
     case SymbolElement::STT_CODE:
