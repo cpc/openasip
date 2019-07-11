@@ -32,6 +32,7 @@
 #include "CompilerWarnings.hh"
 
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
+IGNORE_COMPILER_WARNING("-Wcomment")
 
 #include "llvm/CodeGen/Passes.h"
 #include "tce_config.h"

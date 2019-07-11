@@ -34,6 +34,7 @@
 
 #include "CompilerWarnings.hh"
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
+IGNORE_COMPILER_WARNING("-Wcomment")
 
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Analysis/LoopPass.h>
