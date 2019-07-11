@@ -343,7 +343,6 @@ TDGen::analyzeRegisterFileClasses() {
                 if (lane < 8 && lane > highestLaneBool_) {
                     highestLaneBool_ = lane;
                 }
-                //suppress fallthrough warning
                 /* fall through */
             case 32:
                 if (lane < 8 && lane > highestLaneInt_) {
@@ -3008,13 +3007,11 @@ TDGen::operandToString(
             if (operand.type() == Operand::RAW_DATA) {
                 return "R32FPRegs:$op" + Conversion::toString(idx);
             }
-            //Fall through to default
             /* fall through */
         case 'h':
             if (operand.type() == Operand::RAW_DATA) {
                 return "R32HFPRegs:$op" + Conversion::toString(idx);
             }
-            //Fall through to default
             /* fall through */
         default:
             std::string msg = 
