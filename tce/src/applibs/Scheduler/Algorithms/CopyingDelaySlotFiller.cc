@@ -73,6 +73,8 @@ using std::vector;
 using namespace TTAProgram;
 using namespace TTAMachine;
 
+IGNORE_COMPILER_WARNING("-Wstrict-overflow")
+
 /**
  * Fill delay slots of given BB.
  *

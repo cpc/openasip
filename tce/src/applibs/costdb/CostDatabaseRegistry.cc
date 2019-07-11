@@ -48,10 +48,7 @@ CostDatabaseRegistry::CostDatabaseRegistry() {
  */
 CostDatabaseRegistry::~CostDatabaseRegistry() {
     AssocTools::deleteAllValues(registry_);
-    if (instance_ != NULL) {
-        delete instance_;
-        instance_ = NULL;
-    }
+    instance_ = NULL;
 }
 
 /**

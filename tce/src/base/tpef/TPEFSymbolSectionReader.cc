@@ -217,6 +217,8 @@ TPEFSymbolSectionReader::createSymbol(
 
     case SymbolElement::STT_PROCEDURE:
         elem = new ProcedSymElement();
+        //Tell compiler that fallthrough is to be expected(suppresses a warning)
+        /* fall through */
 
     case SymbolElement::STT_CODE:
         if (elem == NULL) {

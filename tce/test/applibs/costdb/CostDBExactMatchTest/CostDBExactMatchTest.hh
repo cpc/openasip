@@ -119,6 +119,7 @@ CostDBExactMatchTest::setUp() {
  */
 void CostDBExactMatchTest::tearDown() {
     mbus_property->destroy();
+    delete costDatabaseRegistry_;
 }
 
 
