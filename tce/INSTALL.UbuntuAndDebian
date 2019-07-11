@@ -15,8 +15,10 @@ This needs root/admin privileges.
     tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make latex2html \
     libffi-dev autoconf automake libtool subversion git cmake
 
-  ## Note! For KUbuntu 18.04 LTS, you might need a workaround that is
-  ## documented in this issue https://github.com/cpc/tce/issues/91
+  ## Note! Since Ubuntu 18.04 might install libllvm8, it can cause
+  ## a problem with TCE patched LLVM at build time. You might need a
+  ## workaround that is documented in this issue
+  ## https://github.com/cpc/tce/issues/91
 
   ## Ubuntu 14.04 LTS:
   ## You need to enable the universe and multiverse repositories first:
