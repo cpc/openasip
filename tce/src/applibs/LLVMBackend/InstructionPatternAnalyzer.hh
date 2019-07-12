@@ -28,13 +28,18 @@
  * Helps to find common instruction chains for conversion to custom 
  * operations.
  *
- * @author Pekka Jääskeläinen 2012
+ * @author Pekka Jääskeläinen 2012,2019
  */
 
 #ifndef TCE_INSTRUCTION_PATTERN_ANALYZER_HH
 #define TCE_INSTRUCTION_PATTERN_ANALYZER_HH
 
-#include "llvm/CodeGen/MachineFunctionPass.h"
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+IGNORE_COMPILER_WARNING("-Wcomment")
+
+#include <llvm/CodeGen/MachineFunctionPass.h>
 
 struct InstructionPatternAnalyzer : public llvm::MachineFunctionPass {
     static char ID;
