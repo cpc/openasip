@@ -74,6 +74,9 @@ private:
     /// Static variable for the hdb choicer selection.
     static int selection_;
 
+    // Default HDB file to set in the beginning
+    static const std::string defaultHDB_;
+
     enum {
         ID_HDB_CHOICE,
         ID_BROWSE,

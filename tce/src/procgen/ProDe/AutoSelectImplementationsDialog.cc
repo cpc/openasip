@@ -56,6 +56,8 @@ BEGIN_EVENT_TABLE(AutoSelectImplementationsDialog, wxDialog)
     EVT_BUTTON(ID_CLOSE, AutoSelectImplementationsDialog::onClose)
 END_EVENT_TABLE()
 
+const std::string AutoSelectImplementationsDialog::defaultHDB_
+    ("asic_130nm_1.5V.hdb");
 
 /**
  * The Constructor.
@@ -92,10 +94,17 @@ AutoSelectImplementationsDialog::AutoSelectImplementationsDialog(
     }
     if (!hdbs_.empty()) {
         std::set<TCEString>::iterator iter = hdbs_.begin();
+        bool defaultHDBFound = false;
+        int selection = 0;
         for (; iter != hdbs_.end(); iter++) {
-            hdbChoice_->Append(WxConversion::toWxString(*iter));
+            std::string shortPath = Environment::shortHDBPath(*iter);
+            hdbChoice_->Append(WxConversion::toWxString(shortPath));
+            if (!defaultHDBFound && StringTools::endsWith(*iter, defaultHDB_)) {
+                selection = hdbChoice_->GetCount() - 1;
+                defaultHDBFound = true;
+            }
         }
-        hdbChoice_->SetSelection(0);
+        hdbChoice_->SetSelection(selection);
     }
 }
 
@@ -117,10 +126,12 @@ AutoSelectImplementationsDialog::onBrowse(wxCommandEvent&) {
         (wxOPEN | wxFILE_MUST_EXIST));
 
     if (dialog.ShowModal() == wxID_OK) {
-        wxString hdb = dialog.GetPath();
-        int item = hdbChoice_->FindString(hdb);
+        std::string hdb = std::string(dialog.GetPath().mb_str());
+        hdb = Environment::shortHDBPath(hdb);
+        auto wxHDB = WxConversion::toWxString(hdb);
+        int item = hdbChoice_->FindString(wxHDB);
         if (item == wxNOT_FOUND) {
-            item = hdbChoice_->Append(hdb);
+            item = hdbChoice_->Append(wxHDB);
         }
         hdbChoice_->Select(item);
     }
@@ -131,7 +142,6 @@ AutoSelectImplementationsDialog::onBrowse(wxCommandEvent&) {
  */
 void
 AutoSelectImplementationsDialog::onClose(wxCommandEvent&) {
-    
     Close();
 }
 
@@ -156,6 +166,7 @@ AutoSelectImplementationsDialog::onFind(wxCommandEvent&) {
 
     // extract path of the HDB file that user has chosen
     TCEString path = WxConversion::toString(hdbChoice_->GetStringSelection());
+    path = Environment::longHDBPath(path);
     // make sure the file exists
     if (!FileSystem::fileExists(path)) {
         wxString message = _T("Error: path ");

@@ -689,7 +689,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
    ;;
-     7*)
+     7.0*)
      AC_DEFINE([LLVM_7_0], [], "Using LLVM 7")
      AC_MSG_CHECKING([whether the used LLVM 7 has the custom vector extension patch])
      if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
@@ -705,6 +705,16 @@ case "$LLVM_VERSION" in
      LLVM_VERSION=7
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+     LLVM_OLDER_THAN_8=1
+   ;;
+     7.1*)
+     # There should not be difference in TCE-related functionality to
+     # LLVM 7.0, so we can use the same macro for now.
+     AC_DEFINE([LLVM_7_0], [], "Using LLVM 7.1.0")
+     LLVM_VERSION=7
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-7.1$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-7.1
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
      LLVM_OLDER_THAN_8=1
    ;;

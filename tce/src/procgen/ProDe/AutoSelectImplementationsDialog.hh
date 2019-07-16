@@ -92,7 +92,10 @@ private:
  
     /// Set for hdb paths.
     std::set<TCEString> hdbs_;
-    
+
+    // Default HDB file to set in the beginning
+    static const std::string defaultHDB_;
+
     // HDB & ID pair for units without implementation
     struct HdbIdPair {
         TCEString hdbFile;
