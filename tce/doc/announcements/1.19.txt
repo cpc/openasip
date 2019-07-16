@@ -2,10 +2,10 @@ TTA-based Co-Design Environment (TCE) v1.19 released
 ----------------------------------------------------
 
 TTA-based Co-Design Environment (TCE) is an open application-specific
-instruction-set processor (ASIP) toolset for design and
-programming of customized co-processors (typically programmable
-accelerators). It is based on the energy efficient Transport Triggered
-Architecture (TTA) processor template.
+instruction-set processor (ASIP) toolset for design and programming of
+customized co-processors (typically programmable accelerators). It is
+based on the energy efficient Transport Triggered Architecture (TTA)
+processor template.
 
 The toolset provides a complete retargetable co-design flow from high-level
 language programs down to FPGA/ASIC synthesizable processor RTL (VHDL and
@@ -15,8 +15,7 @@ Processor customization points include the register files, function units,
 supported operations, and the interconnection network.
 
 This release adds support for LLVM 8 and improves the usability of the
-Processor Designer tool: its connection tool now tries to more intelligently
-figure out the direction of a previously unconnected socket, when connecting it.
+Processor Designer tool.
 
 Download
 ========

@@ -1,7 +1,8 @@
+
 1.20       unreleased
 =====================
 
-1.19       March 2019
+1.19       April 2019
 =====================
 
 Notable changes and features
@@ -13,6 +14,8 @@ Usability features
 - ProDe connection tool now tries to more intelligently figure out the
   direction of a previously unconnected socket based on the connected
   FU port or RF port, from the bound FU operands or the RF port name.
+- ProDe implementation selector dialog now shortens the HDB paths for
+  easier readability.
 
 1.18   September 2018
 =====================
