@@ -1,4 +1,4 @@
--- Copyright (c) 2002-2009 Tampere University.
+-- Copyright (c) 2002-2019 Tampere University.
 --
 -- This file is part of TTA-Based Codesign Environment (TCE).
 -- 
@@ -35,6 +35,7 @@
 -- Revisions  :
 -- Date        Version  Author   Description
 -- 11/22/05      1.0     tpitkane   Created
+-- 07/17/19      1.1     katte      Simplified guard evaluation to LSB only
 -------------------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
@@ -135,32 +136,14 @@ BEGIN
    -----------------------------------------------------------------
 
    r1data <= reg(conv_integer(unsigned(r1opcode)));
-  
+
    -----------------------------------------------------------------
    guard_out : PROCESS (reg)
    -----------------------------------------------------------------
-
-   -- Process declarations
-   variable guard_var : std_logic_vector(0 downto 0);
-
-
    BEGIN
-
-         for i in rf_size-1 downto 0 loop
-           if dataw > 1 then
-             guard_var := 
-               reg(i)(dataw-1 downto dataw-1) 
-               or reg(i)(dataw-2 downto dataw-2);
-             for j in dataw-2 downto 0 loop
-               guard_var := reg(i)(j downto j) 
-                            or guard_var;
-             end loop;
-           else
-             guard_var(0 downto 0) := reg(i)(0 downto 0);
-           end if;
-
-           guard(i downto i) <= guard_var(0 downto 0);
-         end loop;
-   END PROCESS guard_out;   
+      for i in rf_size-1 downto 0 loop
+        guard(i) <= reg(i)(0);
+      end loop;
+   END PROCESS guard_out;
 
 END rtl;

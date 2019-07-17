@@ -1,4 +1,4 @@
--- Copyright (c) 2002-2009 Tampere University.
+-- Copyright (c) 2002-2019 Tampere University.
 --
 -- This file is part of TTA-Based Codesign Environment (TCE).
 -- 
@@ -35,6 +35,7 @@
 -- Revisions  :
 -- Date        Version  Author   Description
 -- 11/22/05      1.0     tpitkane   Created
+-- 07/17/19      1.1     katte      Simplified guard evaluation to LSB only
 -------------------------------------------------------------------------------
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
@@ -135,60 +136,14 @@ BEGIN
    -----------------------------------------------------------------
    guard_out : PROCESS (reg,t1load,t1opcode,t1data)
    -----------------------------------------------------------------
-
-   -- Process declarations
-   variable guard_var : std_logic_vector(0 downto 0);
-
-
    BEGIN
-
      for i in rf_size-1 downto 0 loop
-       if dataw > 1 then
-         if t1load = '1' then
-           if i = conv_integer(unsigned(t1opcode)) then
-             guard_var := 
-               t1data(dataw-1 downto dataw-1) 
-               or t1data(dataw-2 downto dataw-2);
-             for j in dataw-2 downto 0 loop
-               guard_var := t1data(j downto j) 
-                            or guard_var;
-             end loop;      
-           else    
-             guard_var := 
-               reg(i)(dataw-1 downto dataw-1) 
-               or reg(i)(dataw-2 downto dataw-2);
-             for j in dataw-2 downto 0 loop
-               guard_var := reg(i)(j downto j) 
-                            or guard_var;
-             end loop;
-           end if;
-         else             
-           guard_var := 
-             reg(i)(dataw-1 downto dataw-1) 
-             or reg(i)(dataw-2 downto dataw-2);
-           for j in dataw-2 downto 0 loop
-             guard_var := reg(i)(j downto j) 
-                          or guard_var;
-           end loop;
-         end if;
-         --  temp <= reg(i)(1 downto 1) 
-         --      or reg(i)(0 downto 0);
-       else
-         if t1load = '1' then
-           if i = conv_integer(unsigned(t1opcode)) then
-             guard_var(0 downto 0) := t1data(0 downto 0);
-           else    
-             guard_var(0 downto 0) := reg(i)(0 downto 0);
-           end if;
-         else
-           guard_var(0 downto 0) := reg(i)(0 downto 0);
-         end if;
-       end if;
-       --temp <= reg(i)(1 downto 1) 
-       --    or reg(i)(0 downto 0);   
-       guard(i downto i) <= guard_var(0 downto 0);
+        if t1load = '1' and i = conv_integer(unsigned(t1opcode)) then
+          guard(i) <= t1data(0);
+        else
+          guard(i) <= reg(i)(0);
+        end if;
      end loop;
-
    END PROCESS guard_out;
-   
+
 END rtl;

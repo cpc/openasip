@@ -77,9 +77,9 @@ module rf_1wr_1rd_always_1_guarded_0
     always@(*)
     for(i=0;i<rf_size;i=i+1)
         if(t1load && i == t1opcode)
-            guard_var[i] <= |t1data;
-        else    
-            guard_var[i]<= |register[i];
-            
+            guard_var[i] <= t1data[0];
+        else
+            guard_var[i] <= register[i][0];
+
     assign guard = guard_var;
 endmodule

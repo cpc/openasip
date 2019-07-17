@@ -150,8 +150,9 @@ void
 ExecutableMove::evaluateGuard() {
     if (guarded_) {
         const SimValue& regValue = guardReg_->value();
-        squashed_ = !((!negated_ && regValue.sIntWordValue() != 0) ||
-                      (negated_ && regValue.sIntWordValue() == 0));
+        const bool guardTerm = (regValue.sIntWordValue() & 1) == 1;
+        squashed_ = !((!negated_ &&  guardTerm) ||
+                      ( negated_ && !guardTerm));
         bus_->setSquashed(squashed_);
     } else {
         bus_->setSquashed(false);

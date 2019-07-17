@@ -125,7 +125,7 @@ BuslessExecutableMove::executeRead() {
 /**
  * Writes the value from source to the destination.
  *
- * If the move is guarded, the value is written to destination only if guard 
+ * If the move is guarded, the value is written to destination only if guard
  * expression is true.
  */
 void
@@ -133,8 +133,9 @@ BuslessExecutableMove::executeWrite() {
 
     if (guarded_) {
         const SimValue& regValue = guardReg_->value();
-        if (!((regValue.uIntWordValue() != 0 && !negated_) ||
-              (regValue.uIntWordValue() == 0 && negated_))) {
+        const bool guardTerm = (regValue.sIntWordValue() & 1) == 1;
+        if (!(( guardTerm && !negated_) ||
+              (!guardTerm &&  negated_))) {
             // guard expression evaluated to false
             squashed_ = true;
             return; 

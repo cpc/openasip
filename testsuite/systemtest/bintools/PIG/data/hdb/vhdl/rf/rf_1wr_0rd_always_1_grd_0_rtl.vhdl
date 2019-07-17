@@ -65,7 +65,6 @@ ARCHITECTURE rtl OF rf_1wr_0rd_always_1 IS
    subtype rf_index is integer range 0 to rf_size-1;
    signal reg    : reg_type (rf_size-1 downto 0);
 
-   signal t1data_orred : std_logic_vector(0 downto 0);
 BEGIN
 
    -----------------------------------------------------------------
@@ -94,21 +93,9 @@ BEGIN
       END IF;
    END PROCESS input;
 
-   OR_t1data: process (t1data)
-     variable orred_t1data : std_logic_vector(0 downto 0);
-   begin  -- process OR_t1data
-     orred_t1data := "0";
-     for i in t1data'range loop
-       orred_t1data := t1data(i downto i) or (orred_t1data);
-     end loop;
-     t1data_orred <= orred_t1data;
-       
-   end process OR_t1data;
 
-     
-   guard_process: process (t1load,t1opcode,t1data_orred,rstx)
+   guard_process: process (t1load,t1opcode,t1data,rstx)
      variable opc : integer;
-     
    begin  -- process guard
      if rstx = '0' then
        guard <= (others => '0');
@@ -116,10 +103,9 @@ BEGIN
        if glock = '0' then
          if t1load = '1' then
            opc := conv_integer(unsigned(t1opcode));
-           guard(opc downto opc) <= t1data_orred; 
+           guard(opc) <= t1data(0);
          end if;
        end if;
      end if;
-     
    end process guard_process;
 END rtl;

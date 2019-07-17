@@ -6159,12 +6159,12 @@ expressed as follows:
 \begin{enumerate}
 \item %
   Single-character token `!': the result of the guard expression evaluates
-  to zero if the source value is nonzero, and evaluates to one if the source
-  value is equal to zero.
+  to false if the least significant bit of source value is one, and evaluates
+  to true if the least significant bit is zero.
 \item %
   Single-character token `?': the result of the guard expression evaluates
-  to zero if the source value is zero, and evaluates to one if the source
-  value is not zero.
+  to false if the least significant bit of the source value is zero, and
+  evaluates to true if the least significant bit is one.
 \end{enumerate}
 
 The move source specifier can be either a register and port specifier or an
