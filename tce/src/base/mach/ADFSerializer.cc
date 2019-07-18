@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2014 Tampere University.
+    Copyright (c) 2002-2019 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -61,12 +61,8 @@ using namespace TTAMachine;
 // declaration of constant strings used in MDF file
 const string MDF = "adf";
 const string MDF_VERSION = "version";
-// writes files according to ADF specs version 1.7.x
-const string MDF_VERSION_NUMBER = "1.8";
-
-// 1.8:
-// - adf: little-endian
-
+// writes files according to ADF specs version 1.9.x
+const string MDF_VERSION_NUMBER = "1.9";
 
 const string TRIGGER_INVALIDATES_OLD_RESULTS = "trigger-invalidates-old-results";
 const string LITTLE_ENDIAN_MACHINE = "little-endian";
