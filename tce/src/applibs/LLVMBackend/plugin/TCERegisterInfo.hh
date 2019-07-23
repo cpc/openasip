@@ -79,7 +79,11 @@ namespace llvm {
 
         unsigned getRARegister() const;
 
+#ifdef LLVM_OLDER_THAN_9
         unsigned getFrameRegister(const MachineFunction& mf) const override;
+#else
+        Register getFrameRegister(const MachineFunction& mf) const override;
+#endif
 
         int getDwarfRegNum(unsigned regNum, bool isEH) const;
         int getLLVMRegNum(unsigned int, bool) const;

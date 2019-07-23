@@ -445,7 +445,10 @@ def lowerMemIntrinsicCommand(srcFile, dstFile):
     optSwitches = ""
 
     if "@LLVM_VERSION@" >= "3.4":
-        optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
+        if "@LLVM_VERSION@" < "9":
+            optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
+        else:
+                        optSwitches += "-disable-slp-vectorization"
 
     commandp = "opt -f -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
     command = commandp + " -o " + dstFile + " " + srcFile + " " + optSwitches
@@ -686,7 +689,8 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     if "@LLVM_VERSION@" >= "3.4":
         optSwitches += " -disable-slp-vectorization "
-        optSwitches += "-disable-loop-vectorization "
+        if "@LLVM_VERSION@" < "9":
+            optSwitches += "-disable-loop-vectorization "
 
     command = "opt -f " + inFile + " -o " + outputName + " " + optSwitches
 
@@ -707,7 +711,10 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     optSwitches = ""
 
     if options.soft_float and "@LLVM_VERSION@" >= "3.4":
-        optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
+        if "@LLVM_VERSION@" < "9":
+            optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
+        else:
+            optSwitches += "-disable-slp-vectorization"
 
     # if software floatingpoint should be lowered, link the emulation functions in
     emulationLib = os.path.join(newlib_libdir, "float_emulation.o") + " "

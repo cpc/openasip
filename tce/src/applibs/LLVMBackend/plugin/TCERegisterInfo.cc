@@ -179,7 +179,11 @@ TCERegisterInfo::getRARegister() const {
     return TCE::RA;
 }
 
+#ifdef LLVM_OLDER_THAN_9
 unsigned
+#else
+Register
+#endif
 TCERegisterInfo::getFrameRegister(const MachineFunction& mf) const {
     if (hasFP(mf)) {
         return TCE::FP;

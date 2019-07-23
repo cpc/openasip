@@ -117,9 +117,9 @@ LowerIntrinsics::doInitialization(Module &M) {
     assert(iLowering_ == NULL && td_ == NULL);
     td_ = new TargetData(&M);
     iLowering_ = new IntrinsicLowering(*td_);
-    
+#ifdef LLVM_OLDER_THAN_9
     iLowering_->AddPrototypes(M);
-    
+#endif
     return true;
 }
 

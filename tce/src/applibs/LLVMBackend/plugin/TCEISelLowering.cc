@@ -1083,6 +1083,7 @@ TCETargetLowering::allowsUnalignedMemoryAccesses(EVT, unsigned, bool*) const {
 
 #else
 
+#ifdef LLVM_OLDER_THAN_9
 bool
 TCETargetLowering::allowsMisalignedMemoryAccesses(EVT, unsigned, unsigned, bool*) const {
     /// @todo This commented area and the whole function is probably not
@@ -1094,4 +1095,14 @@ TCETargetLowering::allowsMisalignedMemoryAccesses(EVT, unsigned, unsigned, bool*
     return false;
 }
 
+#else
+
+bool
+    TCETargetLowering::allowsMisalignedMemoryAccesses(EVT, unsigned, unsigned, MachineMemOperand::Flags, bool*) const {
+    /// @todo This commented area and the whole function is probably not
+    /// needed anymore. The base class version returns false as default.
+    return false;
+}
+
+#endif
 #endif
