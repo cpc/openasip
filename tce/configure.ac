@@ -854,6 +854,11 @@ then
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_8, 1, [LLVM version is older than 8])
 fi
 
+if  test "x$LLVM_OLDER_THAN_9" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_9, 1, [LLVM version is older than 9])
+fi
+
 if test ! -e $LLVM_SHARED_LIB_FILE;
 then
   # Try the alternative location where llvm.org/apt packages install it.
