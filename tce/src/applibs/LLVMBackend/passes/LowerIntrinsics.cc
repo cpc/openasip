@@ -110,6 +110,10 @@ LowerIntrinsics::doInitialization(Module &M) {
    
     // Initialize list of intrinsics to lower.
     replace_.insert(Intrinsic::flt_rounds);
+    replace_.insert(Intrinsic::ceil);
+    replace_.insert(Intrinsic::floor);
+    replace_.insert(Intrinsic::round);
+    replace_.insert(Intrinsic::exp2);
     replace_.insert(Intrinsic::memcpy);
     replace_.insert(Intrinsic::memset);
     replace_.insert(Intrinsic::memmove);
