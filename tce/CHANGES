@@ -9,6 +9,11 @@ Notable changes and features
   significant bit stored in the register is 1.
 - Support for LLVM 9
 
+Notable bugfixes
+----------------
+- Fixed broken software floating point conversion from unsigned int to
+  float.
+
 1.19       April 2019
 =====================
 
