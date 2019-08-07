@@ -117,35 +117,7 @@
     </reads-from>
   </socket>
 
-  <socket name="shifter_i2">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
   <socket name="shifter_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
-  <socket name="rotator_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="rotator_i2">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="rotator_o1">
     <writes-to>
       <bus>B1</bus>
       <segment>seg1</segment>
@@ -549,127 +521,50 @@
       <triggers/>
       <sets-opcode/>
     </port>
-    <port name="in2">
-      <connects-to>shifter_i2</connects-to>
-      <width>5</width>
-    </port>
     <port name="out1">
       <connects-to>shifter_o1</connects-to>
       <width>32</width>
     </port>
     <operation>
-      <name>shl</name>
+      <name>shl1_32</name>
       <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
+      <bind name="2">out1</bind>
       <pipeline>
         <reads name="1">
           <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
+        <writes name="2">
           <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </writes>
       </pipeline>
     </operation>
     <operation>
-      <name>shr</name>
+      <name>shr1_32</name>
       <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
+      <bind name="2">out1</bind>
       <pipeline>
         <reads name="1">
           <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
+        <writes name="2">
           <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </writes>
       </pipeline>
     </operation>
     <operation>
-      <name>shru</name>
+      <name>shru1_32</name>
       <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
+      <bind name="2">out1</bind>
       <pipeline>
         <reads name="1">
           <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="rotator">
-    <port name="in1t">
-      <connects-to>rotator_i1</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="in2">
-      <connects-to>rotator_i2</connects-to>
-      <width>32</width>
-    </port>
-    <port name="out1">
-      <connects-to>rotator_o1</connects-to>
-      <width>32</width>
-    </port>
-    <operation>
-      <name>rotl</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>rotr</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
+        <writes name="2">
           <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </writes>

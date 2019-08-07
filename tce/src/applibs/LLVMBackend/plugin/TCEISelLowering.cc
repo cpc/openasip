@@ -1038,8 +1038,19 @@ TCETargetLowering::LowerShift(SDValue op, SelectionDAG& dag) const {
         }
         return op;
 
+    } else {
+        unsigned Opc = op.getOpcode();
+        switch(Opc) {
+        case ISD::SRA:
+            return ExpandLibCall(RTLIB::SRA_I32, op.getNode(), true, dag);
+        case ISD::SRL:
+            return ExpandLibCall(RTLIB::SRL_I32, op.getNode(), false, dag);
+        case ISD::SHL:
+            return ExpandLibCall(RTLIB::SHL_I32, op.getNode(), false, dag);
+        default:
+            std::cerr << "Invalid dynamic shift opcode" << std::endl;
+        }
     }
-    std::cerr << "Warning: Shift amount not constant. Lowering of dynamic shifts not yet supported" << std::endl;
     return op;
 }
 
@@ -1179,3 +1190,63 @@ bool
 
 #endif
 #endif
+
+// TODO: This is copypaste from legalizeDAG. Because the
+// routine in legalizeDAG is not public
+SDValue
+    TCETargetLowering::ExpandLibCall(RTLIB::Libcall LC, SDNode *Node,
+                                     bool isSigned, SelectionDAG &DAG) const {
+
+  TargetLowering::ArgListTy Args;
+  TargetLowering::ArgListEntry Entry;
+  for (const SDValue &Op : Node->op_values()) {
+    EVT ArgVT = Op.getValueType();
+    Type *ArgTy = ArgVT.getTypeForEVT(*DAG.getContext());
+    Entry.Node = Op;
+    Entry.Ty = ArgTy;
+    Entry.IsSExt = shouldSignExtendTypeInLibCall(ArgVT, isSigned);
+    Entry.IsZExt = !shouldSignExtendTypeInLibCall(ArgVT, isSigned);
+    Args.push_back(Entry);
+  }
+  SDValue Callee = DAG.getExternalSymbol(getLibcallName(LC),
+                                         getPointerTy(DAG.getDataLayout(),0));
+
+  EVT RetVT = Node->getValueType(0);
+  Type *RetTy = RetVT.getTypeForEVT(*DAG.getContext());
+
+  // By default, the input chain to this libcall is the entry node of the
+  // function. If the libcall is going to be emitted as a tail call then
+  // TLI.isUsedByReturnOnly will change it to the right chain if the return
+  // node which is being folded has a non-entry input chain.
+  SDValue InChain = DAG.getEntryNode();
+
+  // isTailCall may be true since the callee does not reference caller stack
+  // frame. Check if it's in the right position and that the return types match.
+  SDValue TCChain = InChain;
+  const Function &F = DAG.getMachineFunction().getFunction();
+  bool isTailCall =
+      isInTailCallPosition(DAG, Node, TCChain) &&
+      (RetTy == F.getReturnType() || F.getReturnType()->isVoidTy());
+  if (isTailCall)
+    InChain = TCChain;
+
+  TargetLowering::CallLoweringInfo CLI(DAG);
+  bool signExtend = shouldSignExtendTypeInLibCall(RetVT, isSigned);
+  CLI.setDebugLoc(SDLoc(Node))
+      .setChain(InChain)
+      .setLibCallee(getLibcallCallingConv(LC), RetTy, Callee,
+                    std::move(Args))
+      .setTailCall(isTailCall)
+      .setSExtResult(signExtend)
+      .setZExtResult(!signExtend)
+      .setIsPostTypeLegalization(true);
+
+  std::pair<SDValue, SDValue> CallInfo = LowerCallTo(CLI);
+
+  if (!CallInfo.second.getNode()) {
+    // It's a tailcall, return the chain (which is the DAG root).
+    return DAG.getRoot();
+  }
+
+  return CallInfo.first;
+}

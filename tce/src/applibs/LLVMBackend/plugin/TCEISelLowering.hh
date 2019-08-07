@@ -198,6 +198,10 @@ namespace llvm {
             return false;
         }
 #endif
+
+    SDValue ExpandLibCall(
+        RTLIB::Libcall LC, SDNode *Node, bool isSigned, SelectionDAG &DAG)
+        const;
     };
 }
 
