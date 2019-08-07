@@ -317,7 +317,7 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
 
                         command = ("clang %s %s " + \
                                        "-emit-llvm -O3 "\
-                                       "-fno-inline -c -I" + tmpDir +\
+                                       "-c -I" + tmpDir +\
                                        " " + input + " " + extra_opts + \
                                        " %s `pkg-config pocl --cflags`" + \
                                        " -o " + output) % \
@@ -387,7 +387,7 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
 
                     command = ("clang %s %s %s -emit-llvm " +\
                                     "-O%d "\
-                                    "-fno-inline -c -I" + tmpDir + \
+                                    "-c -I" + tmpDir + \
                                     " " + compileFlags + " " + input_file + " -o " +\
                                     outFileName + ".tobelowered1;") % \
                                     (tripleOption, triple, extra_opts, options.frontend_optlevel)
