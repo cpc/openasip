@@ -197,8 +197,3 @@ AsciiImageWriter::writeHexSequence(
 
     nextBitIndex_ += length;
 }
-    }
-
-    nextBitIndex_ += length;
-}
-

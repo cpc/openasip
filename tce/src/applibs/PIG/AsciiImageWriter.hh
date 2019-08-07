@@ -59,8 +59,6 @@ protected:
     void writeHexSequence(
         std::ostream& stream, int length, bool padEnd = false) const;
 
-    void
-
 private:
     /// The bits to be written.
     const BitVector& bits_;
