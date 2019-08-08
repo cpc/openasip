@@ -1223,7 +1223,11 @@ SDValue
   // isTailCall may be true since the callee does not reference caller stack
   // frame. Check if it's in the right position and that the return types match.
   SDValue TCChain = InChain;
+#ifdef LLVM_OLDER_THAN_6_0
+  const Function &F = *DAG.getMachineFunction().getFunction();
+#else
   const Function &F = DAG.getMachineFunction().getFunction();
+#endif
   bool isTailCall =
       isInTailCallPosition(DAG, Node, TCChain) &&
       (RetTy == F.getReturnType() || F.getReturnType()->isVoidTy());
