@@ -7,6 +7,12 @@ Notable changes and features
 - Modified guard evaluation in simulation model and the guarded register file
   implementations. Guard now evaluates as true if and only if the least
   significant bit stored in the register is 1.
+- Added new 1-bit shift instructions (shl1_32, shr1_32 and shru1_32) and
+  compiler support to use sequences of these for all shifts. This allows
+  compiling any C code to architecture without barrel shifter.
+  For static shift amounts, also sequences of shift instructions that
+  shift by multiple bits can be supported, if they are named like
+  shlN_32 where N is the number of bits shifted and have the DAG set.
 - Support for LLVM 9
 
 Notable bugfixes
