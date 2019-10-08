@@ -279,6 +279,10 @@ def: Pat <(i32 (zext R1Regs:$src)), (ANDext R1Regs:$src, 1)>;
 
 include "GenInstrInfo.td"
 
+def: Pat <(i32 (shl R32IRegs:$val, (i32 1))), (ADDrrr R32Regs:$val, R32Regs:$val)>;
+def: Pat <(i32 (TCESHLConst R32IRegs:$val, (i32 1))), (ADDrrr R32IRegs:$val, R32IRegs:$val)>;
+
+
 // ----- Global addresses, constant pool entries ------
 def TCEGlobalAddr : SDNode<"TCEISD::GLOBAL_ADDR", SDTIntUnaryOp>;
 def TCEConstPool : SDNode<"TCEISD::CONST_POOL", SDTIntUnaryOp>;

@@ -1008,11 +1008,18 @@ TCETargetLowering::LowerShift(SDValue op, SelectionDAG& dag) const {
     std::set<unsigned long> supportedShifts;
 
 
+    // find all the constant shifts
     for (int i = 1; i < 32; i++) {
         TCEString opName = shiftOpcodes.second; opName << i << "_32";
         if (tm_.hasOperation(opName)) {
             supportedShifts.insert(i);
         }
+    }
+
+    // add also 1-bit shift for add
+    // we should ALWAYS have an add but - lets check to be sure ;)
+    if (tm_.hasOperation("ADD")) {
+        supportedShifts.insert(1);
     }
 
     if (Amt.getOpcode() == ISD::Constant) {

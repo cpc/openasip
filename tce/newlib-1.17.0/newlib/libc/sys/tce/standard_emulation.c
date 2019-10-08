@@ -666,7 +666,14 @@ int64_t _emulate_i64_mul_i64_i64(int64_t p1, int64_t p2) {
 #endif
 
 // emulation routines for shifts.
-int32 __ashrsi3(int32_t val, int32_t shifter) {
+int32 __ashrsi3(int32_t val, uint32_t shifter) {
+    if (shifter > 31) {
+        if (val < 0) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
     while (shifter) {
         val >>= 1;
         shifter--;
@@ -674,7 +681,11 @@ int32 __ashrsi3(int32_t val, int32_t shifter) {
     return val;
 }
 
-uint32 __lshrsi3(uint32_t val, int32_t shifter) {
+uint32 __lshrsi3(uint32_t val, uint32_t shifter) {
+    if (shifter > 31) {
+        return 0;
+    }
+
     while (shifter) {
         val >>= 1;
         shifter--;
@@ -682,7 +693,11 @@ uint32 __lshrsi3(uint32_t val, int32_t shifter) {
     return val;
 }
 
-int32 __ashlsi3(int32_t val, int32_t shifter) {
+int32 __ashlsi3(int32_t val, uint32_t shifter) {
+    if (shifter > 31) {
+        return 0;
+    }
+
     while (shifter) {
         val <<= 1;
         shifter--;
