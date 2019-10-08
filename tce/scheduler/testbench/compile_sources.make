@@ -22,7 +22,8 @@ TESTBENCH_INCLUDE_DIR=$(dir $(SCHEDULER_BENCHMARK_TEST_MAKEFILE_DEFS))
 all: host llvm
 
 llvm:
-	$(GCCLLVM) -I$(TESTBENCH_INCLUDE_DIR) $(EXTRA_FLAGS) $(EXTRA_TCECC_FLAGS) -o generated_program.bc --emit-llvm $(SCHEDULER_TESTER_FLAGS) $(SOURCE_FILES)
+	$(GCCLLVM) -I$(TESTBENCH_INCLUDE_DIR) $(EXTRA_FLAGS) $(EXTRA_TCECC_FLAGS) -o generated_program.be.bc --emit-llvm $(SCHEDULER_TESTER_FLAGS) $(SOURCE_FILES)
+	$(GCCLLVM) -I$(TESTBENCH_INCLUDE_DIR) $(EXTRA_FLAGS) $(EXTRA_TCECC_FLAGS) -o generated_program.le.bc --little-endian --emit-llvm $(SCHEDULER_TESTER_FLAGS) $(SOURCE_FILES)
 
 schedule: llvm
 	echo "There must be link to tce/scheduler/testbench/ADF directory in src dir."

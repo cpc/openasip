@@ -540,8 +540,11 @@ class TestCase:
         tryRemove("cyclecount")
         tryRemove("generated_seq_program")
         tryRemove("src/generated_seq_program")
-        tryRemove("generated_program.bc")
-        tryRemove("src/generated_program.bc")
+        tryRemove("generated_program.be.bc")
+        tryRemove("generated_program.le.bc")
+        tryRemove("src/generated_program.le.bc")
+        tryRemove("src/generated_program.be.bc")
+
 
     def cleanupTestDirectory(self):
         global saveParallelPrograms, deleteOSALLink, leaveDirty
@@ -553,8 +556,10 @@ class TestCase:
         tryRemove("ttasim.out")
         tryRemove("generated_seq_program")
         tryRemove("src/generated_seq_program")
-        tryRemove("generated_program.bc")
-        tryRemove("src/generated_program.bc")
+        tryRemove("generated_program.be.bc")
+        tryRemove("generated_program.le.bc")
+        tryRemove("src/generated_program.be.bc")
+        tryRemove("src/generated_program.le.bc")
         tryRemove("operations_executed")
         tryRemove("registers_read")
         tryRemove("registers_written")
@@ -760,7 +765,7 @@ close $cycle_file
         self.stats[archFilename] = self.lastStats
         return True
 
-    def runWithArchitecture(self, architecture, seqProgFile):
+    def runWithArchitecture(self, architecture, seqProgFileBase):
         """Runs the test case with given architecture definition file.
 
         Returns true in case test passed.
@@ -775,7 +780,17 @@ close $cycle_file
         if not access(archFilename, R_OK):
             print "Cannot find ",archFilename
             sys.exit(2)
-            
+
+        machineLittleEndian = "<little-endian/>" in __builtin__.open(archFilename).read()
+        if machineLittleEndian:
+            seqProgFile = seqProgFileBase + ".le.bc";
+            if verboseOutput:
+                print "Machine is little endian. using LE bc file."
+        else:
+            seqProgFile = seqProgFileBase + ".be.bc";
+            if verboseOutput:
+                print "Machine is big endian. using BE bc file."
+
         if csvFormat:
             sys.stdout.write(self.title + "," + architecture + ",")
             sys.stdout.flush()
@@ -863,15 +878,17 @@ close $cycle_file
         # don't run generate if there is not Makefile for test
         if access("src/Makefile", R_OK):
 
-            seqProgramName = "generated_program.bc"
+            seqProgramNameBe = "generated_program.be.bc"
+            seqProgramNameLe = "generated_program.le.bc"
             compileRule = "llvm"
             
             command = ("cd src;" +
                        makeCommand + ' clean;' +
                        'SCHEDULER_TESTER_FLAGS="'  + extraFlags + '" ' +                       
                        makeCommand + " GCCLLVM=" + tceccExe + " " + compileRule)
-            
-            command += ";cp " + seqProgramName + " .."
+
+            command += ";cp " + seqProgramNameBe + " .."
+            command += ";cp " + seqProgramNameLe + " .."
 
             # copy generated_program.bc to program.bc to be able to run the
             # tests with the latest compiled binary
@@ -890,9 +907,13 @@ close $cycle_file
                 return False
 
             errorMessage = stdoutContents + stderrContents 
-            
-            if not access(seqProgramName, R_OK):
-                print "Error while compiling program\n" + errorMessage
+
+            if not access(seqProgramNameBe, R_OK):
+                print "Error while compiling be program\n" + errorMessage
+                return False
+
+            if not access(seqProgramNameLe, R_OK):
+                print "Error while compiling le program\n" + errorMessage
                 return False
 
         else:
@@ -919,7 +940,7 @@ close $cycle_file
         allPassed = True
 
         # LLVM bytecode from LLVM/TCE
-        seqProgFile = "program.bc"
+        seqProgFileBase = "program"
 
         # Recompile and set names for test programs.
         if recompile:
@@ -931,11 +952,11 @@ close $cycle_file
                 os.chdir(self.oldDir)
                 return False
             else:
-                seqProgFile = "generated_program.bc"
+                seqProgFileBase = "generated_program"
         
 #        if configFileDefined:
         for arch in self.architectures:
-            allPassed = self.runWithArchitecture(arch, seqProgFile) and allPassed
+            allPassed = self.runWithArchitecture(arch, seqProgFileBase) and allPassed
             if stopTestingAfterFailingTest and not allPassed:
                 os.chdir(self.oldDir)
                 return False

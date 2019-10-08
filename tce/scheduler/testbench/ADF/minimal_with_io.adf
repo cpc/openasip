@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<adf version="1.7">
+<adf version="1.8">
+
+  <little-endian/>
 
   <bus name="B1">
     <width>32</width>
@@ -161,7 +163,7 @@
       <width>32</width>
     </port>
     <operation>
-      <name>ldw</name>
+      <name>ld32</name>
       <bind name="1">in1t</bind>
       <bind name="2">out1</bind>
       <pipeline>
@@ -176,7 +178,7 @@
       </pipeline>
     </operation>
     <operation>
-      <name>ldq</name>
+      <name>ld8</name>
       <bind name="1">in1t</bind>
       <bind name="2">out1</bind>
       <pipeline>
@@ -191,7 +193,7 @@
       </pipeline>
     </operation>
     <operation>
-      <name>ldh</name>
+      <name>ld16</name>
       <bind name="1">in1t</bind>
       <bind name="2">out1</bind>
       <pipeline>
@@ -206,7 +208,7 @@
       </pipeline>
     </operation>
     <operation>
-      <name>stw</name>
+      <name>st32</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
       <pipeline>
@@ -221,7 +223,7 @@
       </pipeline>
     </operation>
     <operation>
-      <name>stq</name>
+      <name>st8</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
       <pipeline>
@@ -236,7 +238,7 @@
       </pipeline>
     </operation>
     <operation>
-      <name>sth</name>
+      <name>st16</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
       <pipeline>
@@ -251,7 +253,7 @@
       </pipeline>
     </operation>
     <operation>
-      <name>ldqu</name>
+      <name>ldu8</name>
       <bind name="1">in1t</bind>
       <bind name="2">out1</bind>
       <pipeline>
@@ -266,7 +268,7 @@
       </pipeline>
     </operation>
     <operation>
-      <name>ldhu</name>
+      <name>ldu16</name>
       <bind name="1">in1t</bind>
       <bind name="2">out1</bind>
       <pipeline>

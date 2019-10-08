@@ -91,48 +91,6 @@
     </writes-to>
   </socket>
 
-  <socket name="logic_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="logic_i2">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="logic_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
-  <socket name="shifter_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="shifter_i2">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="shifter_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
   <socket name="RF_i1">
     <reads-from>
       <bus>B1</bus>
@@ -320,7 +278,7 @@
     <address-space>data</address-space>
   </function-unit>
 
-  <function-unit name="arith">
+  <function-unit name="alu">
     <port name="in1t">
       <connects-to>alu_comp_i1</connects-to>
       <width>32</width>
@@ -435,24 +393,6 @@
         </writes>
       </pipeline>
     </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="logic">
-    <port name="in1t">
-      <connects-to>logic_i1</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="in2">
-      <connects-to>logic_i2</connects-to>
-      <width>32</width>
-    </port>
-    <port name="out1">
-      <connects-to>logic_o1</connects-to>
-      <width>32</width>
-    </port>
     <operation>
       <name>and</name>
       <bind name="1">in1t</bind>
@@ -513,79 +453,31 @@
         </writes>
       </pipeline>
     </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="shifter">
-    <port name="in1t">
-      <connects-to>shifter_i2</connects-to>
-      <width>5</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="in2">
-      <connects-to>shifter_i1</connects-to>
-      <width>32</width>
-    </port>
-    <port name="out1">
-      <connects-to>shifter_o1</connects-to>
-      <width>32</width>
-    </port>
     <operation>
-      <name>shl</name>
-      <bind name="1">in2</bind>
-      <bind name="2">in1t</bind>
-      <bind name="3">out1</bind>
+      <name>shr1_32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
       <pipeline>
         <reads name="1">
           <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
+        <writes name="2">
           <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </writes>
       </pipeline>
     </operation>
     <operation>
-      <name>shr</name>
-      <bind name="1">in2</bind>
-      <bind name="2">in1t</bind>
-      <bind name="3">out1</bind>
+      <name>shru1_32</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
       <pipeline>
         <reads name="1">
           <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>shru</name>
-      <bind name="1">in2</bind>
-      <bind name="2">in1t</bind>
-      <bind name="3">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
+        <writes name="2">
           <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </writes>
