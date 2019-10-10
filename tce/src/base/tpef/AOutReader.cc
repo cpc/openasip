@@ -110,8 +110,9 @@ AOutReader::AOutReader() : BinaryReader(),
 AOutReader::~AOutReader() {
 
     if (proto_ != NULL) {
-        delete proto_;
+        auto proto = proto_;
         proto_ = NULL;
+        delete proto;
     }
 }
 

@@ -72,8 +72,9 @@ TPEFReader::TPEFReader() : BinaryReader(), aSpaceId_(0), strTableId_(0) {
  */
 TPEFReader::~TPEFReader() {
     if (proto_ != NULL) {
-        delete proto_;
+        auto proto = proto_;
         proto_ = NULL;
+        delete proto;
     }
 }
 
