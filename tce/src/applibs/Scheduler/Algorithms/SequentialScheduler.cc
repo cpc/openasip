@@ -685,12 +685,14 @@ SequentialScheduler::createBasicBlocks(
         }
     }
 
-    // at end, add last BB if non-empty
-    if (currentBB->instructionCount() != 0) {
-        basicBlocks.push_back(currentBB);
-        bbAddresses.push_back(lastStartAddress);
-    } else {
-        delete currentBB;
+    if (currentBB != nullptr) {
+        // at end, add last BB if non-empty
+        if (currentBB->instructionCount() != 0) {
+            basicBlocks.push_back(currentBB);
+            bbAddresses.push_back(lastStartAddress);
+        } else {
+            delete currentBB;
+        }
     }
 }
 
