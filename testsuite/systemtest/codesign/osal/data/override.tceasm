@@ -6,6 +6,6 @@
 
 CODE ;
     # Should not print anything. Behavior loaded from TCE's base.opp.
-    1 -> arith.in1t.sub;
-    1 -> arith.in1t.add; # Should print, overridden in override.{opp,cc}
+    1 -> alu.in1t.sub;
+    1 -> alu.in1t.add; # Should print, overridden in override.{opp,cc}
     1 -> out.t.stdout; # Should print.
