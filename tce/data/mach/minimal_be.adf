@@ -428,7 +428,7 @@
     </operation>
     <operation>
       <name>shru1_32</name>
-      <bind name="1">in2</bind>
+      <bind name="1">in1t</bind>
       <bind name="2">out1</bind>
       <pipeline>
         <reads name="1">
