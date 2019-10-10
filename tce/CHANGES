@@ -13,12 +13,14 @@ Notable changes and features
   For static shift amounts, also sequences of shift instructions that
   shift by multiple bits can be supported, if they are named like
   shlN_32 where N is the number of bits shifted and have the DAG set.
+  Also left shift is now optional, can use multiple additions to achive
+  left shifting.
 - Support for LLVM 9
 
 Notable bugfixes
 ----------------
-- Fixed broken software floating point conversion from unsigned int to
-  float.
+- Fixed broken software floating point conversion from unsigned int to float.
+- Fixed instruction scheduler testbench to also work with little-endian ADFs.
 
 1.19       April 2019
 =====================
