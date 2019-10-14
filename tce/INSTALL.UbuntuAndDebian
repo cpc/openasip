@@ -42,7 +42,7 @@ This needs root/admin privileges.
 
   cd tce-devel/tce
   sudo apt-get install subversion cmake
-  sudo tools/scripts/install_llvm_8.0.sh $HOME/local
+  tools/scripts/install_llvm_9.sh $HOME/local
 
 * Now you need to set the LLVM libraries and binaries locations in your home
   dir to search paths:
@@ -58,7 +58,7 @@ before attempting to use TCE.
 
 * Build and install TCE.
 
-  ./autogen.sh && ./configure --prefix=$HOME/local && make && make install
+  ./autogen.sh && ./configure --prefix=$HOME/local && make -j8 && make install
 
 Now TCE commands such as 'ttasim' should work. Check this with:
 
@@ -70,7 +70,7 @@ your installation:
   # You might need to add your TCE to the dynamic lib search paths:
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/usr/local/lib/tce
   # If this prints version correctly the dynlib is found correcty:
-  ttasim -v
+  ttasim --version
   # Then run the smoke test:
   tce-selftest -v
 
