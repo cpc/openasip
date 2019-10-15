@@ -17,27 +17,34 @@ This step needs root/admin privileges.
 For Ubuntus, you need to enable the universe and multiverse repositories first:
 https://help.ubuntu.com/community/Repositories/Ubuntu#Adding_Repositories_in_Ubuntu
 
-  sudo apt-get install libwxgtk3.0-dev libboost-all-dev \
-    tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make \
-    latex2html libffi-dev autoconf automake libtool subversion git cmake
+Ubuntu 16.04 and 18.04
+----------------------
 
 Note! Since Ubuntu 18.04 might install libllvm8, it can cause a problem with
 TCE patched LLVM at build time. You might need a workaround that is documented
 in this issue https://github.com/cpc/tce/issues/91
 
-Ubuntu 14.04 LTS:
+  sudo apt-get install libwxgtk3.0-dev libboost-all-dev \
+    tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make \
+    latex2html libffi-dev autoconf automake libtool subversion git cmake
+
+
+Ubuntu 14.04 LTS
+----------------
 
   sudo apt-get install libwxgtk2.8-dev libboost-all-dev \
     tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
     libffi-dev autoconf automake libtool subversion git cmake
 
-In Debian 7:
+Debian 7
+--------
 
   sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
     tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
     libffi-dev autoconf automake libtool subversion git cmake
 
-In CentOS 6.5+
+CentOS 6.5
+----------
 
   sudo yum install -y bzr wxGTK-devel boost-devel tcl-devel libedit-devel \
   sqlite-devel xerces-c-devel gcc-c++ make autoconf automake libtool svn
@@ -61,7 +68,7 @@ issues affecting TCE use.
 You can do this easiest by executing
 
    cd tce-devel/tce
-   tools/scripts/install_llvm_9.0.sh $HOME/local
+   tools/scripts/install_llvm_9.sh $HOME/local
 
 After successful installation, add information about installed libraries to the
 search path. We assume TCE will be installed to the same location later.
