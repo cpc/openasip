@@ -1,24 +1,32 @@
+1.21       unreleased
+=====================
 
-1.20       unreleased
+
+1.20     October 2019
 =====================
 
 Notable changes and features
 ----------------------------
-- Modified guard evaluation in simulation model and the guarded register file
-  implementations. Guard now evaluates as true if and only if the least
+- Modified guard evaluation in the simulation model and the guarded register
+  file implementations. Guard now evaluates as true if and only if the least
   significant bit stored in the register is 1.
+- Support for LLVM 9
 - Added new 1-bit shift instructions (shl1_32, shr1_32 and shru1_32) and
   compiler support to use sequences of these for all shifts. This allows
-  compiling any C code to architecture without barrel shifter.
-  For static shift amounts, also sequences of shift instructions that
-  shift by multiple bits can be supported, if they are named like
-  shlN_32 where N is the number of bits shifted and have the DAG set.
-- Support for LLVM 9
+  compiling any C code to architectures without a barrel shifter. For static
+  shift amounts, also sequences of shift instructions that shift by multiple
+  bits are supported if the machine has one or more of operations named
+  shlN_32 where N is the number of bits shifted, and have the OperationDAG set
+  correctly.
 
 Notable bugfixes
 ----------------
 - Fixed broken software floating point conversion from unsigned int to
   float.
+
+Cleanups
+--------
+- Remove deprecated dynamic exception specifications.
 
 1.19       April 2019
 =====================

@@ -1,27 +1,126 @@
-Operating system
-================
+Supported Operating Systems
+===========================
 
-TCE requires a Unix-style operating system such as Linux.
-Debian-based distributions like Debian and Ubuntu should have
-most of the required libraries included, but other distributions
-should work fine too.
+TCE requires a Unix-style operating system such as Linux. Debian-based
+distributions like Debian and Ubuntu should have most of the required
+libraries included, but other recent distribution versions should work
+fine too. MacOS support is experimental.
 
-See INSTALL.Debian for package list in other versions of Debian-based
-distributions such as Debian and Ubuntu, and INSTALL.RedHat for more information
-on installing TCE on Red Hat based distros.
+The following installation steps install prerequisities, the TCE-patched
+LLVM and TCE to in $HOME/local.
 
-MacOS support is experimental.
+Installing Prerequisities
+=========================
 
-Library and tools version prerequisites for TCE
-===============================================
+This step needs root/admin privileges.
+
+For Ubuntus, you need to enable the universe and multiverse repositories first:
+https://help.ubuntu.com/community/Repositories/Ubuntu#Adding_Repositories_in_Ubuntu
+
+  sudo apt-get install libwxgtk3.0-dev libboost-all-dev \
+    tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make \
+    latex2html libffi-dev autoconf automake libtool subversion git cmake
+
+Note! Since Ubuntu 18.04 might install libllvm8, it can cause a problem with
+TCE patched LLVM at build time. You might need a workaround that is documented
+in this issue https://github.com/cpc/tce/issues/91
+
+Ubuntu 14.04 LTS:
+
+  sudo apt-get install libwxgtk2.8-dev libboost-all-dev \
+    tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
+    libffi-dev autoconf automake libtool subversion git cmake
+
+In Debian 7:
+
+  sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
+    tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
+    libffi-dev autoconf automake libtool subversion git cmake
+
+In CentOS 6.5+
+
+  sudo yum install -y bzr wxGTK-devel boost-devel tcl-devel libedit-devel \
+  sqlite-devel xerces-c-devel gcc-c++ make autoconf automake libtool svn
+
+Get the Latest TCE Source Code
+==============================
+
+  git clone https://github.com/cpc/tce.git tce-devel
+
+Alternatively you can get one of the release branches, e.g.:
+
+  git clone -b release-1.20 https://github.com/cpc/tce.git tce-1.20
+
+LLVM and Clang
+==============
+
+In order to compile programs from C/C++ with TCE, you need to install
+LLVM and Clang with some patches and correct LLVM build switches to fix
+issues affecting TCE use.
+
+You can do this easiest by executing
+
+   cd tce-devel/tce
+   tools/scripts/install_llvm_9.0.sh $HOME/local
+
+After successful installation, add information about installed libraries to the
+search path. We assume TCE will be installed to the same location later.
+
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/local/lib
+  export PATH=$PATH:$HOME/local/bin
+  export LDFLAGS=-L$HOME/local/lib
+
+You might want to put the above environment variable modification commands to
+your ~/.bashrc or similar so they are taken in effect automatically whenever
+you start a new shell. Otherwise you need to remember to enter them
+before attempting to use LLVM or TCE.
+
+Building and Installing TCE
+===========================
+
+In the root of TCE sources (e.g. tce-devel/tce), run:
+
+  ./autogen.sh && ./configure --prefix=$HOME/local && make -j8 && make install
+
+Now TCE commands such as 'ttasim' should work. Check this with:
+
+  ttasim --version
+
+Now try to run the smoke test script to see if it finds any problems with
+your installation:
+
+Then run the smoke test script:
+
+  tce-selftest -v
+
+If this finished correctly, you are all set! For learning to use TCE, a good
+way is to start with the TCE user manual's tutorials, e.g., the "TCE tour".
+
+Upgrading TCE
+=============
+
+Later on, if you want to update your TCE installation with the latest changes
+committed in the version control system, you can do the following steps:
+
+Update the source code modifications:
+
+  cd tce-devel/tce
+  git pull
+
+uild and install the updated TCE:
+
+  make && make install
+
+Further information of library and tools prerequisite versions
+==============================================================
 
 These are the current prerequisites for libraries and tools required to
 build TCE:
 
 Compiler              supported versions
 -----------------     ------------------
-GCC                   4.7+
-Clang                 3.5+
+GCC                   8.0+
+Clang                 8.0+
 
 Library               supported versions                   library license
 -----------------     ------------------                   ---------------
@@ -34,25 +133,9 @@ LLVM                  4.0-5.0                              LLVM Release License
 Editline              2.9                                  BSD-style
 Python                2.4-2.8                              PSF license
 
-Remarks concerning all libraries
---------------------------------
-
 Remember to install the '-dev' versions of the packages in order to get
 the library headers which are need to compile client code against them.
 You also need a version of "GNU Make" to build TCE.
-
-For example, to install the required libraries and tools for Ubuntu 16.04 LTS
-using its package manager 'apt-get', you need to execute the following
-command:
-
-  sudo apt-get install libwxgtk3.0-dev libboost-all-dev \
-    tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make latex2html \
-    libffi-dev autoconf automake libtool subversion git cmake
-
-This installs the required packages for an Red Hat 6 (and CentOS):
-
-  sudo yum install -y bzr wxGTK-devel boost-devel tcl-devel libedit-devel sqlite-devel \
-xerces-c-devel gcc-c++ make autoconf automake libtool
 
 Editline
 --------
@@ -79,93 +162,3 @@ The development files of the following Boost libraries are required by TCE:
 Some distributions, like Fedora Core, include all Boost libraries in a
 single package, but some, like Debian, have separated them in several
 packages.
-
-LLVM and Clang
---------------
-
-In order to compile programs from C/C++ with TCE, you need to install
-LLVM and Clang with some patches and correct LLVM build switches to fix
-issues affecting TCE use.
-
-You can do this most easily by executing
-
-   tools/scripts/install_llvm_8.0.sh DEST_PATH
-
-where DEST_PATH is the absolute directory where you want the LLVM
-to be installed. This script installs some required patches
-to LLVM without which TCE refuses to build.
-
-After successful installation add information about installed libraries to the
-search path. For example if the DEST_PATH was $HOME/local/
-
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/local/lib
-  export PATH=$PATH:$HOME/local/bin
-  export LDFLAGS=-L$HOME/local/lib
-
-
-Building and installing TCE
-===========================
-
-After the required libraries have been installed, the following
-steps show how to build and install the TCE toolset.
-
-Creating the build scripts
---------------------------
-
-The scripts can be generated by running './autogen.sh' in the 
-TCE root directory (where configure.ac is in). autogen.sh 
-requires the autotools. I.e., you need 'libtool', 'automake' and 
-'autoconf' installed in your system.
-
-Setting compiler options
-------------------------
-Be sure to set CXXFLAGS environment variable to include aggressive 
-optimization flags (e.g., "export CXXFLAGS=-O3") before running 
-the 'configure' script. This results in a much more efficient TCE toolset.
-Most notably the architecture simulator can be more than 10x faster when 
-compiled with aggressive compilation flags.
-
-Configuring TCE
----------------
-First, to create Makefiles you have to run configure as follows:
-
-    ./configure --prefix=INSTALLATION_DIRECTORY
-
-If you don't give a prefix, TCE will be installed under /usr/local/.
-In that case you have to install TCE as the root user.
-
-Running 'make'
---------------
-
-After running configure, it should be enough to just type
-
-      make && make install
-
-Note: you need to run 'make' before 'make install' due to a newlib's
-build system issue.
-
-After installing TCE to somewhere in PATH, you can run a "smoke test" suite
-for the most important tools in the TCE installation by running the command
-'tce-selftest -v'. This might take a couple of hours, depending on your
-computer's speed.
-
-OpenCL support
-==============
-
-There is experimental and incomplete support for OpenCL. It's currently 
-not usable for day-to-day OpenCL programming but is a work in progress. 
-If you want to compile the support, for example, to help in implementing 
-the missing features, read on.
-
-The OpenCL support uses the pocl project. In order to use TCE with the 
-OpenCL support, install pocl so it can be found in your PATH and
-PKG_CONFIG_PATH. You can get it from http://launchpad.net/pocl.
-The tcecc compiler driver detects at runtime if you have pocl installed and
-enables the OpenCL C compilation feature. You can verify this by 
-running 'tcecc --supported-languages' which should list 'OpenCL C'.
-
-See the TCE User Manual for more information on using the OpenCL in
-"offline mode". The another option is to use the 'ttasim' driver of
-pocl to simulate a host-device setup where the device is a TTA core
-(simulated using the ttasim engine). Refer to the pocl documentation on
-how to use it.
