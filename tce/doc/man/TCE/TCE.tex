@@ -584,8 +584,8 @@ file:
   cp $(tce-config --prefix)/share/tce/data/mach/minimal.adf start.adf
 \end{verbatim}
 
-The file describes a minimalistic architecture containing just enough
-resources that the TCE compiler can still compile programs for it.
+The file describes a minimalistic TTA processor containing just enough
+resources that the TCE compiler can still compile C programs for it.
 We use this {\em minimal architecture} as the starting point.
 Function units in \file{minimal.adf} are selected from the hardware
 database (HDB, Section~\ref{section:hdb}) so we are able to generate a VHDL
@@ -602,8 +602,9 @@ You can view the architecture using the graphical Processor Designer
 \end{verbatim}
 
 Fig.~\ref{fig:prode} shows how Prode should look like. There is 1 bus
-and 5 units: global control unit (GCU), 2 register files, 1 ALU, and
-1 LSU.
+and 5 units: global control unit (GCU), 2 register files, 1 arithmetic-logic
+unit (ALU), and 1 load-store unit (LSU).
+
 \begin{figure}
   \begin{center}
     \includegraphics[width=10cm]{eps/prode_scrshot}
@@ -638,10 +639,11 @@ definition \file{start.adf}. It will produce a parallel program called
 $-k$ $result$ and $-k$ $test$ tell the compiler to keep the \textit{result} and
 \textit{test} symbols (variables on lines 29 and 30 of main.c) in the program.
 \textit{Result} is needed for us to access the variable contents by name in the
-simulator later on. Since the input is known \textit{test} has to be kept in 
-this example program to prevent the compiler from aggresively optimizing the 
-program and calculate the CRC itself and output a program that just stores a 
-constant in the \textit{result} variable.
+simulator later on.
+
+Since the input data stored in \textit{test} is known at compile time, without $-k$ $test$ the compiler would aggresively optimize the whole program and
+calculate the CRC value at compile-time and produce a program that just stores
+a constant in the \textit{result} variable.
 
 Successful compilation does not print anything and we can now simulate
 the program. Let's use graphical user interface version of the
@@ -651,12 +653,13 @@ simulator called Proxim (Section~\ref{section:proxim}):
 
 The simulator will load the architecture definition and the program
 and wait for commands. Proxim shows one line per instruction. Minimal
-TTA has only bus and hence there is only instruction slot
-(column). The total number of instructions is about $1~200$.
+TTA has only bus and hence there is only \textit{move slot}
+(column in the simulator's disassembly window). The total number of instructions is about $1~200$.
 
 Execute the program by clicking ``Run'' and Proxim should look like
-Fig.~\ref{fig:proxim}.  Write down this cycle count in the bottom bar
-of the simulator, you can use Table~\ref{tab:cyclecounts}. for future comparison.
+Fig.~\ref{fig:proxim}.  Write down the final cycle count you can see in the bottom bar of the simulator for later reference.
+You can use Table~\ref{tab:cyclecounts} for this.
+
 \begin{figure}
   \begin{center}
     \includegraphics[width=10cm]{eps/proxim_scrshot.eps}
@@ -671,8 +674,7 @@ command to the command line at the bottom of the simulator:
 
 \shellcmd{x /u w result}
 
-The command specifies the data width (4 bytes) and the \textit{result} symbol we
-told the compiler to preserve before. The correct checksum result is
+The command specifies the data width (4 bytes) and the \textit{result} variable we told the compiler to preserve before. The correct checksum result is
 \textbf{0x62488e82}.
 
 Processor resource utilization data can be viewed with command:
@@ -718,11 +720,11 @@ line tools and syntax, you may use the
 
 command.
 
-Proxim can also show othes various pieces of information about the
-program's execution and its processor resource utilization. For
-example to check the utilization of the resources of our architecture,
-select \textit{View>Machine Window} from the top menu. The parts of
-the processor that are utilized the most are visualized with darker
+Proxim can also show various other pieces of information about the
+program's execution and the resulting processor resource utilization. For
+example, to inspect visually the utilization of the resources of our
+architecture, select \textit{View>Machine Window} from the top menu.
+The parts of the processor that are utilized the most are visualized with darker
 red color.
 
 % Next, check the profiling data to see which instructions were executed the
@@ -764,13 +766,13 @@ red color.
 
 
 
-There are 3 basic ways to accelerate computation in TTAs:
+There are 3 usual ways to accelerate computation with TTA co-designs:
+
 \begin{enumerate}
 \item Modify the algorithm itself. Beyond the scope of this tutorial.
-\item Add more basic resources (FUs, RFs, buses) to TTA
-\item Add custom operation(s) to TTA
+\item Add more basic resources (FUs, registers, buses) to the design.
+\item Utilize custom operation(s), also known as special instructions.
 \end{enumerate}
-
 
 \subsection{Increasing performance by adding resources}
 \label{ssec:large}
