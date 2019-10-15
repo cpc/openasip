@@ -2064,7 +2064,7 @@ Discrete Cosine Transform (DCT\_8x8).
 First take a look at the C code of DCT\_8x8
 \file{dct\_8x8\_16\_bit\_with\_sfus.c}.  
 The code is written to support fixed point datatype with sign plus 15 fragment
-bits, which means coverage from $-1\ to\ 1-2^{15}$. The fixed point
+bits, which means coverage from $-1\ to\ 1-\frac{1}{2^{15}}$. The fixed point
 multiplier, function \textit{mul\_16\_fix}, and fixed point adder, function
 \textit{add\_16\_fix},  used in the code scale inputs automatically to prevent
 overflow. Function \textit{cos16} takes $x(2i+1)$ as input and returns
@@ -5791,9 +5791,9 @@ memory area terminates when the header of another memory area or the end of
 the assembly file is encountered.
 
 The memory area header has one of the following formats:
-\begin{verbatim}\tt
-  CODE [\parm{start}] ;\\
-  DATA \parm{name} [\parm{start}] ;
+\begin{verbatim}
+  CODE [<start>] ;
+  DATA <name> [<start>] ;
 \end{verbatim}
 
 A code area begins the declaration of TTA instructions that occupy a segment
@@ -5905,7 +5905,7 @@ A string literal consists of a string of characters. The the numeric values
 stored in the memory chunk initialised by a string literal depend on the
 character encoding of the host machine.
 %
-\note{EXTENSION: charset directive}
+%\note{EXTENSION: charset directive}
 %
 The use of string literals makes the assembly program less portable.
 
@@ -5980,8 +5980,8 @@ to.
 
 A label declaration consists of a name string followed by a colon:
 
-\begin{verbatim}\tt
-  \parm{label-name}:
+\begin{verbatim}
+    <label-name>:
 \end{verbatim}
 
 Only a restricted set of characters can appear in label names. See
@@ -6012,8 +6012,8 @@ A data line consists of a directive that reserves a chunk of memory
 (expressed as an integer number of minimum addressable units) for a data
 structure used by the TTA program:
 
-\begin{verbatim}\tt
-  DA \parm{size} [\parm{init-chunk-1} \parm{init-chunk-2} \ldots] ;
+\begin{verbatim}
+  DA <size> [<init-chunk-1> <init-chunk-2> ...] ;
 \end{verbatim}
 
 The keyword `DA' (Data Area) introduces the declaration of a memory chunk.
@@ -6152,8 +6152,8 @@ empty instruction:
 When a move slot encodes part of a long immediate, its declaration is
 surrounded by square brackets and has the following format:
 
-\begin{verbatim}\tt
-  \parm{destination}=\parm{value}
+\begin{verbatim}
+  <destination>=<value>
 \end{verbatim}
 
 where \emph{destination} is a valid register specifier and \emph{value} is a
@@ -6231,15 +6231,13 @@ There are different types of register port specifiers:
 \end{enumerate}
 
 GPR's are specified with a string of the following format:
-
-\begin{verbatim}\tt
-  \parm{reg-file}[.\parm{port}].\parm{index}
+\begin{verbatim}
+<reg-file>[.<port>].<index>
 \end{verbatim}
 
 where \emph{reg-file} is the name of the register file,
-%
-\note{DISCUSS: pending \ref{ch:pending:rf-iu-names}}
-%
+%\note{DISCUSS: pending \ref{ch:pending:rf-iu-names}}
+
 \emph{port}, which can be omitted, is the name of the port through which the
 register is accessed, and \emph{index} is the address of the register within
 its register file.
@@ -6247,8 +6245,8 @@ its register file.
 Function unit input and output ports are specified with a string of the
 following format:
 
-\begin{verbatim}\tt
-  \parm{function-unit}.\parm{port}.[\parm{operation}]
+\begin{verbatim}
+  <function-unit>.<port>.[<operation>]
 \end{verbatim}
 
 where \emph{function-unit} is the name of the function unit, \emph{port} is
@@ -6261,12 +6259,12 @@ set the opcode.  Although it does not represent any real information encoded
 in the TTA program, this could improve the readability of the program.
 
 Immediate registers are specified with a string if the following format:
-\begin{verbatim}\tt
-  \parm{imm-unit}[.\parm{port}].\parm{index}
+\begin{verbatim}
+  <imm-unit>[.<port>].<index>
 \end{verbatim}
 where \emph{imm-unit} is the name of the immediate unit,
 %
-\note{DISCUSS: pending \ref{ch:pending:rf-iu-names}}
+%\note{DISCUSS: pending \ref{ch:pending:rf-iu-names}}
 %
 \emph{port}, which can be omitted, is the name of the port through which the
 register is accessed, and \emph{index} is the address of the register within
@@ -6285,7 +6283,9 @@ adjacent to the bus slot that contains the moves that reads the bridge
 register.
 
 \emph{Example: possible register and port specifiers.}
-\begin{verbatim}
+
+
+%\begin{verbatim}
 \begin{tabular}{lp{0.75\textwidth}}
 \texttt{IA.0}    & immediate unit `IA', register with index 0\\
 \texttt{RFA.5}   & register file `RFA', register with index 5\\
@@ -6296,14 +6296,14 @@ the
                    bus programmed by the previous bus slot in previous
 cycle\\
 \end{tabular}
-\end{verbatim}
+%\end{verbatim}
 
 \paragraph{Alternative syntax of function unit sources and destinations.}
 Most clients, especially user interfaces, may find direct references to
 function unit ports inconvenient. For this reason, an alternative syntax is
 supported for input and output ports of function units:
-\begin{verbatim}\tt
-  \parm{function-unit}.\parm{operation}.\parm{index}
+\begin{verbatim}
+  <function-unit>.<operation>.<index>
 \end{verbatim}
 where \emph{function-unit} is the name of the function unit,
 \emph{operation} identifies the operation performed as a side effect of the
@@ -6715,8 +6715,8 @@ interpretations.  Ambiguity can only occur only if:
   One of the RF ports has a name identical to one of the operations
   supported by the FU that has the same name of the RF.
 %
-  \note{PENDING: disambiguation of unscheduled TTA
-    code~\ref{ch:pending:disambiguation}}
+%  \note{PENDING: disambiguation of unscheduled TTA
+%    code~\ref{ch:pending:disambiguation}}
 \end{enumerate}
 
 Ambiguity is resolved in favour of the GPR interpretation. No condition
@@ -6745,8 +6745,8 @@ special RF names `r', `f' and `b' are reserved, respectively, to integer,
 floating-point and Boolean register files of the universal machine. The
 assembler does not allow any operation to have one of these names.
 %
-\note{PENDING: disambiguation of mixed TTA
-  code~\ref{ch:pending:disambiguation}}
+%\note{PENDING: disambiguation of mixed TTA
+%  code~\ref{ch:pending:disambiguation}}
 
 \emph{Example. Unambiguous move term accessing a variable.} The following
 move is interpreted as ``copy constant 55 to variable with index 2 of
