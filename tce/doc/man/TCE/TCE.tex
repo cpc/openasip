@@ -774,16 +774,22 @@ There are 3 usual ways to accelerate computation with TTA co-designs:
 \item Utilize custom operation(s), also known as special instructions.
 \end{enumerate}
 
-\subsection{Increasing performance by adding resources}
+\subsection{Increasing performance by adding basic resources}
 \label{ssec:large}
-As the current architecture is minimalistic we can increase the performance
-even further by adding resources to the processor.
 
-\paragraph{Transport buses.} 
-The architecture has only one transport bus, thus the compiler can't exploit 
-any instruction level parallelism. Let's start the architecture customization by 
-adding another transport bus. After this there can be 2 moves per clock cycle. 
-First copy the current architecture:
+As the current architecture is really minimalistic we can increase the
+performance easily by adding basic resources to the processor.
+
+\paragraph{Transport buses.}
+
+The architecture has only one transport bus, thus the compiler can't exploit
+any instruction level parallelism. In fact, it can usually execute less than
+one operation per cycle since it can transfer only one operand per cycle.
+
+Let's do our first architecture customization by adding more transport buses.
+%After this the architecture supports 2 simultaneous data moves per clock cycle.
+
+First copy the current architecture to a new one:
 
 \shellcmd{cp start.adf large.adf}
 
@@ -799,7 +805,8 @@ Save the architecture, recompile the source code for the new architecture:
 
 \shellcmd{tcecc -O3 -a large.adf -o crc.tpef -k result -k test crc.c main.c}
 
-This time simulate the program using the command line instruction set simulator:
+This time let's simulate the program using the command line interface of the
+instruction set simulator:
 
 \shellcmd{ttasim -a large.adf -p crc.tpef}
 
@@ -807,16 +814,15 @@ The command will load the architecture and program and execute
 it. Once the simulation is finished, you should see the ttasim command prompt:
 
 \begin{verbatim}
-> ttasim -a large.adf -p crc.tpef
 
 (ttasim) 
 \end{verbatim}
 
-Now when you check the cycle count from the simulator:
+Now when you check the cycle count from the simulator using command
 
 \shellcmd{info proc cycles}
 
-You might see a significant drop in cycles. 
+yuo should see a significant drop in cycles.
 % approx 50% reduction to 2383 cycles
 Also check the processor utilization statistics from the simulator
 with command:
@@ -827,39 +833,49 @@ with command:
 
 From the previous simulator statistics you can see from ``operations'' table
 that there are a lot of load and store operations being executed. As the
-architecture has only 5 general purpose registers this tells us that there
-are a lot of register spilling to memory. Let's try how the amount of registers affect
-the cycle count. There are two options how we can add registers. We can either
-increase the number of registers in a register file or add a new register file.
+architecture has only 5 general purpose registers, it is likely that there
+are a lot of variables being spilled to memory instead of keeping them in
+the fast register file, which causes the large number of memory operations.
 
-Let's try the latter option because this way we increase the number of registers
-that can be accessed simultaneously on one clock cycle. This can be done by
-selecting the RF and using copy and paste. Then connect it to the IC.
-Simulation statistics should indicate performance increase. As expected, the
-number of load and store operations decreased. But notice also that the number
-of add operations decreased quite a lot. The reason is simple: addition is used
-to calculate stack memory addresses for the spilled registers.
+Let's try how the amount of registers affect the cycle count. There are two
+options how we can add registers. We can either increase the number of
+registers in a register file or add a second register file.
+
+Let's try the latter option because this way we also increase the number of registers
+that can be accessed in parallel without increasing the number of read ports per
+register file.
+
+This can be done by selecting the RF and using the copy (ctrl-c) and paste (ctrl-v) method as
+we did with the transport buses previously. Then just connect the new RF to the interconnection
+network.
+
+After recompiling and simulating, you should see significant performance increase.
+As expected, the number of load and store operations decreased. But notice also that the number
+of add operations decreased quite a lot. The reason is simple: additions were used
+to calculate stack memory offsets for the spilled registers.
 % over 50% further reduction to 935 cycles
 
 \paragraph{Function units.}
 Next subject for the bottleneck is the ALU as now all the basic operations
 are performed in a single function unit. From the simulator statistics you can
-see that one bit shift instruction \textit{SHRU1\_32} is heavily utilized. 
-Longer shifts are emulated by excuting this one bit shift multiple times. So 
+see that the shift-by-one-bit operation \textit{SHRU1\_32} is heavily utilized.
+Longer shifts are emulated by excuting this operation multiple times. So,
 let's add a shifter that is capable of shifting by multiple bits. These shift
-instructions are named \textit{SHRU}, \textit{SHR} and \textit{SHL}.
-Select ``Edit->Add From HDB->Function Unit...''. Find a FU which has just 
-these three operations and click ``Add''. 
+operations are named \textit{SHRU}, \textit{SHR} and \textit{SHL}.
+
+Let's add a suitable FU from a hardware database:
+Select ``Edit->Add From HDB->Function Unit...''. Find a FU which has just
+these three operations and click ``Add''.
 
 Also logical operations and addition are used quite often. Instead
 of duplicating the ALU let's add more specific FUs from the Hardware Database.
-Select a FU which has operations and(1), ior(1), xor(1) and click ``Add''. Close the dialog, 
-connect the function units and save the architecture. Recompile and simulate 
+Select a FU which has operations and(1), ior(1), xor(1) and click ``Add''. Close the dialog,
+connect the function units and save the architecture. Recompile and simulate
 to see the effect on cycle count.
 % about 20 further reduction to 778 cycles
 
-The architecture could be still modified even further to drop the cycle count
-but let's settle for this now and move on to custom operations. 
+The architecture could be still modified even further to drop the cycle count,
+but let's settle for this now and move on to custom operations.
 
 
 \subsection{Analyzing the Potential Custom Operations}
