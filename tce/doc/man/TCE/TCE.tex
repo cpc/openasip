@@ -878,41 +878,45 @@ The architecture could be still modified even further to drop the cycle count,
 but let's settle for this now and move on to custom operations.
 
 
-\subsection{Analyzing the Potential Custom Operations}
+\subsection{Considering custom operations}
 \label{ssec:anal_custom}
 %\subsection{Accelerating the CRC Algorithm}
-Custom operations implement application specific functionality in TTA
-processors. This part of the tutorial teaches how to accelerate the
-CRC computation by adding a custom operation to the starting point
-processor design.
+
+Custom operations (also known as special instructions) can be used to accelerate
+application-specific functionality. This part of the tutorial teaches how to
+accelerate the CRC application using CRC-specific operations.
 
 %\subsubsection{Evaluating Custom Operation Candidates}
 
 First of all, it is quite simple and efficient to implement CRC
-calculation entirely on hardware. Naturally, using the whole CRC
+calculation entirely on hardware. However, implementing the whole CRC
 function as a custom operation would be quite pointless and the
-benefits of using a processor based implementation would get
-smaller. Instead, we will concentrate on trying to accelerate
-smaller parts of the algorithm, which is the most useful way for most
-algorithms.
+flexibility benefits of using a processor-based implementation would diminish.
+Instead, we will concentrate on applying a ``fine grained'' custom
+operation which accelerates a smaller part of the algorithm, while
+keeping the architecture useful also for other applications.
 
- The steps needed for custom opeation are:
+The steps in creating a processor design which has custom operations
+are typically as follows:
+
 \begin{enumerate}
-\item Analyze the code for bottlenecks
+\item Analyze the code for bottlenecks.
 
-\item Speculatively add a new module and operation to operation
-  database with OSEd. Define the behavior of the new operation
-  (copy-paste from original code and add few macros). Optionally, you
-  can also simulate the operation behavior. Bind the new operation to
-  a new function unit in ProDe
+\item After a potential custom operation is found, add a new module and
+  operation to operation database with OSEd. This includes basic
+  properties of the operation and a definition of the simulator behavior
+  of the new operation, which often can be done with copy-paste from
+  original C code with a few macros added.
 
-\item Modify your source code so that it utilizes the new operation
+\item Add the new operation to a function unit using ProDe.
+
+\item Modify your source code so that it utilizes the new operation,
   and simulate. Go back to step 2 if you wish to explore other
-  operations
+  custom operation options.
 
-\item Create VHDL for the operation and add it to HDB.
- 
-\item Finally, generate HDL implementation of the TTA with ProGe.
+\item Create VHDL implementation of the operation and add it to HDB.
+
+\item Finally, generate HDL implementation of the whole TTA processor with ProGe.
 \end{enumerate}
 %\subsubsection{Finding the Bottlenecks}
 
@@ -931,8 +935,8 @@ Finding the operation to be optimized is quite obvious in this case if
 you look at function crcFast(). It consists of a for-loop in which the
 function reflect() is called through the macro REFLECT\_DATA. If you
 look at the actual function (shown also in Fig.~\ref{fig:reflect} you
-can see that it is quite simple to implement on hardware, but requires
-many instructions if done with basic operations in software. The
+can see that it is quite simple to implement on hardware (just wiring),
+but requires many instructions if done with basic operations in software: The
 function ``reflects'' the bit pattern around the middle point like a
 mirror. For example, the bit pattern \textbf{1101 0010} becomes
 \textbf{0100 1011}. The main complexity of the function is that the bit 
@@ -946,29 +950,32 @@ macros you can spot that function reflect() is only called with 8 and
 A great advantage of TCE is that the operation semantics, processor
 architecture, and implementation are separate abstractions. This
 simplifies designing custom operations since you can simulate your
-design by simply defining the simulation behaviour of the operation
-and setting the latency of the operation to the processor architecture
-definition. This is nice as you do not need an actual hardware
+design by simply defining the simulation behaviour of the operation (in C/C++)
+and setting the latency (cycle count) of the operation to the processor architecture
+definition. This is convenient as you do not need an actual hardware
 implementation of the operation at this point of the design, but can
 evaluate different custom operation possibilities at the architectural
-level. However, this brings up an awkward question: how to determine
-the latency of the operation? Unrealistic or too pessimistic latency
-estimates can produce inaccurate performance results and bias the
+level. However, this brings up an awkward question: How to determine
+the latency of the operation at this stage? Unrealistic or too pessimistic
+latency estimates can produce inaccurate performance results and bias the
 analysis.
 
-One approach to the problem is to take an educated guess and simulate
-some test cases with different custom operation latencies. This way
-you can determine a latency range in which the custom operation would
+If there is unclarity of what the realistic cycle count could be,
+a good approach is to take an educated guess and simulate the
+test cases of interest with different latency candidates. This way
+one can determine a latency range in which the custom operation would
 accelerate your application to the satisfactory level. For example,
-custom operation with 1 cycle delay might give $3x$ speedup but $10$
-cycles gives just 3\%.  After this you can sketch how the operation
-could be implemented in hardware, or consult someone knowledgeable in
-hardware design to figure out whether the custom operation can be
-reasonably implemented within the latency constraint.
+a custom operation with 1 cycle latency might give $3x$ speedup \textit{in
+terms of number of cycles}, but $10$ cycles would give just 3\%.
+
+After this you can sketch how the operation could be implemented in
+hardware, or consult someone knowledgeable in digital design to figure
+out whether the custom operation can be reasonably implemented within
+the latency constraint and the targeted clock frequency.
 
 \begin{figure}
   \begin{center} \includegraphics[width=0.8\textwidth]{eps/reflect}
-  \caption{Reflect function of CRC} 
+  \caption{Reflect function of CRC.}
   \label{fig:reflect} \end{center}
 \end{figure}
 
@@ -982,31 +989,29 @@ always case-specific, especially when area taken by memories is
 accounted. Accurate size estimation requires the actual HW
 implementation and synthesis.
 
-Let us consider the reflect function. If we had fixed width we could
-implement the reflect by hard wiring (and registering the output)
+Let us consider the reflect function HW implementation a bit: If it had
+only a single fixed width, we could implement the reflect by hard
+wiring (and registering the output)
 because the operation only moves bits to other locations in the
-word. This could be done easily in one clock cycle, as in right side
-of Fig.~\ref{fig:reflect}. But we need two different bit widths so it
-is somewhat more complicated. We could design the HW in such way that
+word. This definitely could be done easily in one clock cycle even with
+high clock frequency targets, as in the right side
+of Fig.~\ref{fig:reflect}. But since we need to support two different bit widths,
+it is somewhat more complicated. We could design the HW in such way that
 it has two operations: one for 8-bit data and another for 32-bit
 data. One way to implement this is to have 32-bit wide crosswiring and
 register the output. The 8-bit value would be reflected to the 8 MSB
 bits of the 32-bit wiring. Then we need to move the 8 MSB bits to the
 LSB end and set rest to zero. This moving can be implemented using
-multiplexers. So concerning the latency this can all be done easily
+multiplexers. So, concerning the latency, this can all be done easily
 within one clock cycle as there is not much logic needed.
 
 
-
-
-\subsection{Creating the Custom Operation}
+\subsection{Creating the custom operation}
 \label{section:customOperations}
 % includes adding a FU that implements the custom operation to HDB and
 % adding the operation to OSAL
 
-Now we have decided the operation to be accelerated and its
-latency.
-
+Now we have decided the operation to be accelerated and its latency.
 
 Next we will create a function unit implementing the
 operation and add it to our processor design. First, a description of
@@ -1017,24 +1022,25 @@ the operation, which includes the simulation behavior, operand count
 etc., but not the latency. OSAL definitions can be added by using the
 OSAL GUI, \emph{OSEd} (Section~\ref{sec:osed}).
 
-Synthesis or simulation at the VHDL level requires that at least one
+Synthesis or simulation at RTL level requires that at least one
 function unit implementing the operation must be added to the Hardware
-Database (Section~\ref{section:hdb}).  In this tutorial we add the FU
-implementation for our custom operation so the processor
-implementation can be generated, but omit the cost data required for
-the cost estimation. In general case, cost data should be added to
-cost database as well.
+Database (Section~\ref{section:hdb}).
+
+%In this tutorial we add the FU
+%implementation for our custom operation so the processor
+%implementation can be generated, but omit the cost data required for
+%the cost estimation. In general case, cost data should be added to
+%cost database as well.
 
 \paragraph{Using Operation Set Editor (OSEd) to add the operation data.}
 
-OSEd is started with the command 
+OSEd is started with the command
 
 \shellcmd{osed \&}
 
-Create a new operation module, which is a container for a set of
-operations.  You can add a new module in any of the predefined search
-paths, provided that you have sufficient file system access
-permissions.
+Create a new operation module, which is a container for a set of operations.
+You can add a new module in any of the predefined search paths, provided
+that you have sufficient file system access permissions.
 
 For example, choose directory
 \file{/home/\emph{user}/.tce/opset/custom}, where \emph{user} is the
@@ -1095,7 +1101,8 @@ processor simulator. Open again the operation property dialog by
 right-clicking REFLECT8, then choosing \emph{Modify properties}. Now
 press the \emph{Open} button at the bottom to open an empty behavior
 source file for the module. Copy-paste (or type if you have the time!) 
-the following code in the editor window:
+the following code in the editor window. This code is also in \file{custom\_operation\_behavior.cc}
+in the handout directory for your convenicence.
 
 \begin{verbatim}
 #include "OSAL.hh"
@@ -1162,19 +1169,23 @@ OPERATION(REFLECT32)
  END_OPERATION(REFLECT32)
 \end{verbatim}
 
-This code has the behaviours for the both operations. These behavior
+This code has the behaviour definitions for both of the operations. behavior
 definitions reflect the input operand integer (id 1, assigned to
 variable 'data') and writes the result to the ''output operand`` (id
 2, assigned from variable 'reflection') which is the first output and
 signals the simulator that all results are computed successfully.
 
-Open file \file{crc.c} in your preferred editor. Compare the behaviour
-definition of reflect operations and the original
-reflect-function. The function is mostly similar except for parameter
-passing and adding few macros added, such as OPERATION(), TRIGGER,
-IO(2) etc. Custom hardware operation behavior reads data from the
-function unit's input ports and writes to output ports. The value of
-nBits is determined from the operation code (REFLECT8 or REFLECT32).
+To understand how the behavior related to the accelerated software,
+open again the file \file{crc.c} in your preferred editor. Compare the behaviour
+definition of reflect operations and the original \textit{reflect}-function.
+The function is mostly similar except for parameter passing and adding
+few macros, such as OPERATION(), TRIGGER, IO(2) etc. Custom hardware
+operation behavior reads data from the function unit's input ports and
+writes to output ports. The value of nBits is determined from the
+operation code (REFLECT8 or REFLECT32). Since the original software and
+the simulation behavior are both defined in C/C++, it is often easy
+to copy-paste the TCE simulation behavior definition from the part
+we plan to convert to a custom operation, like was done here.
 
 Save the code and close the editor. REFLECT8 and REFLECT32 operations
 now have TCE simulator behaviour models.
@@ -1196,10 +1207,12 @@ module that the simulator can call.
   help of the diagnostic information displayed in the build dialog.
 \end{enumerate}
 
-After the operation simulation model has been added and compiled the operation
-can be simulated. But for the sake of speed up we will skip the operation
-simulation here. Interested readers are referred to Section~\ref{sec:osed}
-You can close osed now.
+After the operation simulation model has been added and compiled, the operation
+can be simulated separately to test that the definition is correct. But for the
+sake of shortcut we will skip the operation simulation here. If you are interested,
+check Section~\ref{sec:osed} for information.
+
+You can close OSEd now.
 
 %  Simulation section removed
 % \begin{enumerate}
@@ -1230,13 +1243,13 @@ You can close osed now.
 %   the behavior definition works, close the dialog by clicking on the \emph{OK} button.
 % \end{enumerate}
 
-\paragraph{Adding a Customized Function Unit to the Architecture.}
+\paragraph{Adding a special function unit to the architecture.}
 
 Now the operation definitions of the custom operations have been added to the
 Operation Set Abstraction Layer (OSAL) database. Next we need to add at
-least one functional unit (FU) which implements these operations so that they
-can be used in the processor design. Note the separation between ''operation`` and
-an ''function unit`` that implements the operation(s) which allows using the
+least one function unit (FU) which implements these operations so that they
+can be used in the processor design. Take note of the separation between ``operation'' and
+an ``function unit'' that implements the operation(s), which allows using the
 same OSAL operation definitions in multiple FUs with different latencies.
 
 First, add the architecture of the FU that implements the custom operations
@@ -1252,7 +1265,7 @@ Open the copy in ProDe:
 
 \begin{figure}
   \begin{center} \includegraphics[width=0.8\textwidth]{eps/reflecter}
-  \caption{Adding operation REFLECT8 to a new function unit in ProDe} 
+  \caption{Adding operation REFLECT8 to a new function unit in ProDe.} 
   \label{fig:reflecter} \end{center}
 \end{figure}
 
@@ -1280,13 +1293,13 @@ Then:
 \item%
   Now an FU that supports the custom operations has been added to the
   architecture. Next, connect the FU to the rest of the
-  architecture. This can be most easliy done by selecting
+  architecture. This can be most easily done by selecting
   \textit{Tools->Fully Connect IC} which connects all FUs to all the
   buses. Save the architecture description by clicking Save.
 \end{enumerate}
 
 
-\subsection{Use the custom operation in C code.}
+\subsection{Calling the custom operation from the C code}
 
 To get some benefits from the added custom hardware, we must use it
 from the C code. This is done by replacing a C statement with a custom
@@ -1299,49 +1312,50 @@ Let us first backup the original C code.
 Then open \file{crc\_with\_custom\_op.c} in your preferred text editor.
 
 \begin{enumerate}
-\item%
-Add \#include ``tceops.h'' to the top of the file. This includes 
-automatically generated macros which allow us to use specific 
-operations from C code without getting our hands dirty with
-inline assembly.
+\item
+%--- tceops.h is included automatically by tcecc since a long time ago.
+%Add \#include ``tceops.h'' to the top of the file. This includes
+%automatically generated macros which allow us to use specific
+%operations from C code without getting our hands dirty with
+%inline assembly.
 
-Usage of these macros is as follows:
+Usage of TCE custom operation macros/intrinsics is as follows:
 
 \begin{verbatim}
  _TCE_<opName>(input1, ... , inputN, output1, ... , outputN);
 \end{verbatim}
 
-where <opName> is the name of the operation in OSAL. Number of input and 
-output operands depends on the operation. Input operands are given first 
-and they are followed by output operands if any. 
+where <opName> is the name of the operation in OSAL. Number of input and
+output operands depends on the operation. Input operands are listed first
+and they are followed by output operands, if any.
 
-In our case we need to write operands into the reflecter and read the
-result from it. We named the operations ``REFLECT8'' and ``REFLECT32'', thus
-the macros we are going to use are as follows:
+In our case we need to write a single word into the reflecter and read the
+reflected result from it. We named the operations ``REFLECT8'' and ``REFLECT32'',
+thus the intrinsics calls we need are as follows:
 
 \begin{verbatim}
  _TCE_REFLECT8(input1, output);
  _TCE_REFLECT32(input1, output);
 \end{verbatim}
 
-Now we will modify the crcFast function to use the custom op.
-First declare 2 new variables at the beginning of the function:
+Let's modify the crcFast function to use the custom op. First declare 2 new
+variables at the beginning of the function:
 
 \begin{verbatim}
  crc input;
  crc output;
 \end{verbatim}
 
-These will help in using the reflect FU macro.
+These will help when calling the reflect custom operations.
 
 Take a look at the REFLECT\_DATA and REFLECT\_REMAINDER macros. The first one
-has got a magic number 8 and ``variable'' X is the data. This is used in the
+has a magic number 8 and ``variable'' X is the data. This is used in the
 for-loop of crcFast().
 
-The input data of reflect function is read from array message[] in the for-loop the.
+The input data of reflect function is read from array message[] in the for-loop.
 Let us modify this so that at the beginning of the loop the input data is
 read to the input variable. Then we will use the \_TCE\_REFLECT8 macro to run
-the custom operations, and finally replace the REFLECT\_DATA macro with the
+the custom operation, and finally replace the REFLECT\_DATA macro with the
 output variable. After these modifications the body of the for-loop should
 look like this:
 
@@ -1352,7 +1366,7 @@ look like this:
  remainder = crcTable[data] ^ (remainder << 8);
 \end{verbatim}
 
-Next we will modify the return statement. Originally it uses
+Next we will modify the return statement. Originally it uses a
 REFLECT\_REMAINDER macro where nBits is defined as WIDTH and data is
 remainder. Simply use \_TCE\_REFLECT32 macro before return statement and
 replace the original macro with the variable output:
@@ -1365,8 +1379,8 @@ replace the original macro with the variable output:
 And now we are ready. Remember to save the file.
 
 \item%
-Compile the custom operation using C code to a parallel TTA program using the new 
-architecture which includes a FU with the custom operation:
+Compile the C code that now uses custom operations for the architecture that includes
+the special function units:
 
 \shellcmd{tcecc -O3 -a custom.adf -o crc\_with\_custom\_op.tpef -k result }\verb#\#\\
 \shellcmd{\ \ -k test crc\_with\_custom\_op.c main.c}
@@ -1420,8 +1434,9 @@ instead of creating it yourself.
 Start HDBEditor (see Section~\ref{sec:hdbedit}): \\
 \shellcmd{hdbeditor \&}
 
-TCE needs some data of the FU implementation in order to be able to 
-automatically generate processors that include the FU. \\
+TCE needs some data of the FU implementation in order to be able to
+generate processors that include the FU. \\
+
 \begin{enumerate}
  \item% 
  Create a new hdb and name it tour.hdb. Add the ''reflecter``
@@ -1434,18 +1449,18 @@ automatically generate processors that include the FU. \\
 \item%
 Open file \file{tour\_vhdl/reflect.vhdl} that was provided in the tutorial
 package with the editor  you prefer, and take a look. This is an example
-implementation of  a TTA function unit performing the custom 'reflect8'
+implementation of a TTA function unit performing the custom 'reflect8'
 and 'reflect32' operations.
 
 %!!! VHDL needs comments and a header !!!
 \begin{figure}
   \begin{center} \includegraphics[width=0.8\textwidth]{eps/hdbeditor_scrshot}
-  \caption{Adding the implementation of custom operations to HW database} 
+  \caption{Adding the implementation of custom operations to HW database}
   \label{fig:hdbed} \end{center}
 \end{figure}
 
 \item%
-The HDB implementation dialog needs the following information from the VHDL:\\
+The HDB implementation dialog needs the following information of the VHDL:\\
 
 \textbf{1. Name of the entity and the naming of the FU interface ports.}
 
@@ -1479,23 +1494,23 @@ Parameter dialog.
 \textbf{4. Architecture ports.}
 
 These settings define the connection between the ports in the
-architectural description of the FU and the VHDL implementation.
+architectural description (ADF) of the FU and the VHDL implementation.
 Each input data port in the FU is accompanied with a load port that
 controls the updating of the FU input port registers.
 
 Choose a port in the Architecture ports dialog and click edit.  Name
 of the architecture port p1 is t1data (as in VHDL) and associated load
-port is t1load.  Width formula is the parameter busw. No guard port is
+signal is t1load.  Width formula is the parameter busw. No guard port is
 needed in this case.
 
 Name the output port (p2) to r1data and the width formula is now busw
 because the output port writes to the bus.
-The output port does not have a load port.
+The output port does not have a load signal.
 
 \textbf{5. Add VHDL source file.}
 
 Add the VHDL source file into the Source code dialog. Notice that the HDL
-files must be added in the compilation order (see section \ref{sec:hdbedit}).
+files must be added in the compilation order (see Section~\ref{sec:hdbedit}).
 But now we have only one source file so we can simply add it without
 considering the compilation order (Add -> Browse -> tour\_vhdl/reflect.vhdl).
 
@@ -1507,9 +1522,11 @@ Now you are done with adding the FU implementation, see Fig.~\ref{fig:hdbed}. Cl
 \label{ssec:tcetour_final_products}
 
 In this step we generate the VHDL implementation of the processor, and the
-bit image of the parallel program.
+bit image of the parallel program. The RTL can be then synthesized to the
+targeted implementation technology (FPGA or an ASIC tech.) using its proprietary
+tool flows and the program bitimage uploaded to its instruction memory.
 
-\paragraph{Select Function Unit Implementations}
+\paragraph{Select function unit implementations}
 
 % Then create an encoding for the instructions in the architecture:
 % 
@@ -1530,33 +1547,33 @@ bit image of the parallel program.
 % be reduced with instruction compression and smaller immediate width, 
 % which is skipped in the tutorial.
 
-You can either use the given \file{custom\_operations.idf} included in the
-tutorial files or select the implementations yourself. If you use the given
-file replace \file{custom.idf} with \file{custom\_operations.idf} in the
-following commands.
-
 Next, we must select implementations for all components in the architecture.
 Each architecture component can be implemented in multiple ways, so we must
 choose one implementation for each component to be able to generate the
-implementation for the processor.
+implementation for the processor. For helping in this this we have an automated
+tool in ProDe:
 
-This can be done in the ProDe tool:
+%You can also accelerate this step by using the given \file{custom\_operations.idf}
+%included in the tutorial files or select the implementations yourself. If you use the given
+%file replace \file{custom.idf} with \file{custom\_operations.idf} in the
+%following commands.
+
+%This can be done in the ProDe tool:
 
 \shellcmd{prode custom.adf}
 
 Then we'll select implementations for the FUs which can be done in
-\textit{Tools>Processor Implementation...}. Note that the selection window
-is not currently very informative about the different implementations, so a
-safe bet is to select an implementation with parametrizable width/size.
+\textit{Tools>Processor Implementation...}. 
 
 \begin{enumerate}
 \item%
 Selecting implementations for register files, immediate units and function
-units can be done two different ways.
+units can be done in two different ways.
 
 \begin{enumerate}
 \item%
-Manual selection - user chooses the implementations from HDB files.
+Manual selection: The user chooses the implementations from HDB files one
+by one as follows.
 
 \begin{enumerate}
 \item%
@@ -1564,6 +1581,10 @@ Select implementation for RF: Click the RF name, 'Select Implementation',
 find the TCE's default HDB file (PREFIX/share/tce/hdb/asic\_130nm\_1.5V.hdb) 
 from your tce installation path and select an implementation for the RF from 
 there.
+
+Note that the selection window is not currently very informative about the
+different implementations, so a safe bet is to select an implementation with
+a parametrizable width/size.
 
 \item%
 Next select implementation for the boolean RF like above. But this time
@@ -1603,24 +1624,26 @@ function units should have implementations.
 
 \end{enumerate}
 
-\item%
-Next select the IC/Decoder generator plugin used to generate the
-decoder in the control unit and interconnection network:
-\textit{Browse... (installation\_path)/share/tce/icdecoder\_plugins/base/
-DefaultICDecoderPlugin.so>OK}. This should be selected by default.
+% --- this is selected by default, let's shorten the tutorial text.
+%\item%
+%Next select the IC/Decoder generator plugin used to generate the
+%decoder in the control unit and interconnection network:
+%\textit{Browse... (installation\_path)/share/tce/icdecoder\_plugins/base/
+%DefaultICDecoderPlugin.so>OK}. This should be selected by default.
 
 \item%
 Enable bus tracing from the Implementation-dialog's IC / Decoder Plugin tab.
 Set the bustrace plugin parameter to ``yes'' and the bustracestartingcycle to
-``5''. The IC will now have a component which writes the bus value from every
-cycle to a text file. Notice that this option cannot be used if the processor
-is synthesized.
+``5''. The generated processor will now get a component which writes the bus
+value from every cycle to a text file for verification purposes. Notice that
+this option should not be used if the processor will be synthesized.
 
-You do not have to care about the HDB file text box because we are not going 
+You do not have to care about the HDB file text box because we are not going
 to use cost estimation data.
 
 \item%
-Click ``Save IDF...''
+  Click ``Save IDF...'' and save the implementation decisions to a file called
+  \file{custom.idf}.
 \end{enumerate}
 
 
@@ -1647,20 +1670,19 @@ Click ``Generate Processor''. For Binary Encoding Map: Select the
 ``Generate new'', see Fig.~\ref{fig:proge} 
 
 In the target directory click ``Browse'' and create a new
-directory \file{proge-output} and select it. Then click OK to create the
-processor.
+directory \file{proge-output} and select it. Then click OK to generate the
+processor RTL.
 
 \begin{figure}
   \begin{center} \includegraphics[width=0.8\textwidth]{eps/proge_scrshot}
-  \caption{Generating TTA VHDL with ProGe} 
+  \caption{Generating the VHDL for the processor.}
   \label{fig:proge} \end{center}
 \end{figure}
 
 
-Or alternatively execute ProGe from command line:
+Or alternatively, if you prefer command line:
 
-\shellcmd{generateprocessor -t -i custom.idf -o proge-output
-custom.adf}
+\shellcmd{generateprocessor -t -i custom.idf -o proge-output custom.adf}
 
 Flag $-t$ generates a testbench, $-i$ defines the implementation file,
 and $-o$ the output directory.  Now directory \file{proge-output}
@@ -1677,7 +1699,8 @@ and GHDL.
 \paragraph{Generate instruction memory bit image using Program Image Generator.}
 
 Finally, to get our shiny new processor some bits to chew on,
-we use generatebits to create instruction memory and data memory images:
+we use the \textit{generatebits} tool to create instruction memory and data
+memory images:
 
 \shellcmd{generatebits -d -w 4 -p crc\_with\_custom\_op.tpef -x proge-output custom.adf} 
 
@@ -1751,9 +1774,8 @@ verification. This can be done with command:
 \shellcmd{head -n <number of cycles> bus.dump > sim.dump}
 
 where the <number of cycles> is the number of cycles in the previous
-ttasim execution (same as line ocunt in
-crc\_with\_custom\_op.tpef.bustrace). Then compare the trace dumps
-from the VHDL simulation and the architecture simulation:
+ttasim execution (same as line count in \file{crc\_with\_custom\_op.tpef.bustrace}).
+Then compare the trace dumps from the VHDL simulation and the architecture simulation:
 
 \shellcmd{diff -u sim.dump ../crc\_with\_custom\_op.tpef.bustrace}
 
@@ -6728,7 +6750,7 @@ Normally, the names of units, ports and operation rule out one of the two
 interpretations.  Ambiguity can only occur only if:
 \begin{enumerate}
 \item%
-  The target architecture contains a RF and a FU with identical name.
+  The target architecture contains a RF and an FU with identical name.
 \item%
   One of the RF ports has a name identical to one of the operations
   supported by the FU that has the same name of the RF.
