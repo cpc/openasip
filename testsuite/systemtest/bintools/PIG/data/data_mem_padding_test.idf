@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>tce:DefaultICDecoderPlugin.so</file>
+    <parameter name="bustrace">
+      <value>yes</value>
+    </parameter>
+    <parameter name="bustracestartingcycle">
+      <value>5</value>
+    </parameter>
+  </ic-decoder-plugin>
+
+  <fu name="lsu">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>399</fu-id>
+  </fu>
+
+  <fu name="alu_comp">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>261</fu-id>
+  </fu>
+
+  <fu name="logic">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>167</fu-id>
+  </fu>
+
+  <rf name="bool">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>104</rf-id>
+  </rf>
+
+  <rf name="RF">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>177</rf-id>
+  </rf>
+
+</adf-implementation>
