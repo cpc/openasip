@@ -420,6 +420,7 @@ ProgramImageGenerator::generateDataImage(
         throw InstanceNotFound(__FILE__, __LINE__, procName);
     }
     AddressSpace* as = navigator.item(addressSpace);
+    int memWidth = mausPerLine * as->width();
 
     if (!usePregeneratedImage) {
         InstructionBitVector* programBits = compressor_->compress(programName);
@@ -447,11 +448,14 @@ ProgramImageGenerator::generateDataImage(
         // Have to convert LE data into nasty mixed endian for
         // initialization with those tools.
         while (lineOffset < dataBits.size()) {
-            // Pad to full line width
-            if (lineOffset + ((mausPerLine-1)*as->width()) > dataBits.size()) {
+            // Pad to full line width.
+            // if need padding (size not divisible by mem width)
+            // and we are at last iter of the loop, add pad.
+            if ((dataBits.size() % memWidth &&
+                 lineOffset > (dataBits.size() - memWidth))) {
                 unsigned int preferredSize =
-                    ((dataBits.size() / (mausPerLine*as->width()))+1) *
-                    (mausPerLine*as->width());
+                    ((dataBits.size() / (memWidth))+1) *
+                    (memWidth);
                 while (dataBits.size() < preferredSize) {
                     dataBits.push_back(0);
                 }
@@ -468,7 +472,7 @@ ProgramImageGenerator::generateDataImage(
                     dataBits[lineOffset+bitOffset1+j] = bit0;
                 }
             }
-            lineOffset += (mausPerLine*as->width());
+            lineOffset += memWidth;
         }
     }
 

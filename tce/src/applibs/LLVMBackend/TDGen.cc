@@ -1074,8 +1074,6 @@ TDGen::writeInstrInfo(std::ostream& os) {
         opNames_["ST32fr"] = "ST32";
         opNames_["ST32fi"] = "ST32";
         
-        opNames_["LD16hr"] = "LDU16";
-        opNames_["LD16hi"] = "LDU16";
         opNames_["ST16hr"] = "ST16";
         opNames_["ST16hi"] = "ST16";
 
@@ -1085,8 +1083,6 @@ TDGen::writeInstrInfo(std::ostream& os) {
         opNames_["STWfr"] = "STW";
         opNames_["STWfi"] = "STW";
         
-        opNames_["LDHhr"] = "LDHU";
-        opNames_["LDHhi"] = "LDHU";
         opNames_["STHhr"] = "STH";
         opNames_["STHhi"] = "STH";
     }
@@ -1234,32 +1230,11 @@ TDGen::writeInstrInfo(std::ostream& os) {
             writeEmulationPattern(os, op, emulationDAGs.smallestNodeCount());
         }
     }
-
-    if ((opNames.find("LDQ") != opNames.end() && !littleEndian_) ||
-        (opNames.find("LD8") != opNames.end() && littleEndian_ )) {
-        createByteExtLoadPatterns(os);
-    } else {
-        os << "//No LDQ/LD8 op found! No byte ext load patterns either!"
-                  << std::endl;
-
-        std::cerr << "No LDQ/LD8 op found! No byte ext load patterns either!"
-                  << std::endl;
-    }
-
-    if ((opNames.find("LDH") != opNames.end() && !littleEndian_) ||
-        (opNames.find("LD16") != opNames.end() && littleEndian_)) {
-        createShortExtLoadPatterns(os);
-    } else {
-        os << "//No LDH/LD16 op found! No short ext load patterns either!"
-                  << std::endl;
-
-
-        std::cerr << "No LDH/LD16 op found! No short ext load patterns either!"
-                  << std::endl;
-    }
-
+    createByteExtLoadPatterns(os);
+    createShortExtLoadPatterns(os);
     createSelectPatterns(os);
     createConstShiftPatterns(os);
+    createBoolAndHalfLoadPatterns(os);
 }
 
 /**
@@ -3242,9 +3217,22 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
                << rcpf << ") return TCE::" <<intStore << "rr;" << std::endl;    
     }
     
-    TCEString boolLoad = littleEndian_ ? "LD8Br;" : "LDQBr;";
+    TCEString boolLoad = littleEndian_ ? "LD8" : "LDQ";
+    if (!mach_.hasOperation(boolLoad)) {
+        boolLoad = littleEndian_ ? "LDU8" : "LDQU";
+        if (!mach_.hasOperation(boolLoad)) {
+            boolLoad="";
+        }
+    }
+
     TCEString intLoad = littleEndian_ ? "LD32" : "LDW";
     TCEString halfLoad = littleEndian_ ? "LD16" : "LDH";
+    if (!mach_.hasOperation(halfLoad)) {
+        halfLoad = littleEndian_ ? "LDU16;" : "LDHU";
+        if (!mach_.hasOperation(halfLoad)) {
+            halfLoad="";
+        }
+    }
 
     if (!littleEndian_) {
         if (opNames_.find("STW2vr") != opNames_.end()) {
@@ -3333,9 +3321,9 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
 
     for (RegClassMap::iterator ri = regsInClasses_.begin(); 
          ri != regsInClasses_.end(); ri++) {
-        if (ri->first.find("R1") == 0) {
+        if (ri->first.find("R1") == 0 && boolLoad != "") {
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
-               << rcpf <<") return TCE::" << boolLoad << std::endl;
+               << rcpf <<") return TCE::" << boolLoad << "Br;" << std::endl;
         }
         if (ri->first.find("R32") == 0) {
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
@@ -3347,8 +3335,10 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
                << "FP" << rcpf << ") return TCE::" << intLoad << "fr;" << std::endl;
             
-            os << "\tif (rc == " << prefix << "TCE::" << ri->first
-               << "HFP" << rcpf << ") return TCE::" << halfLoad << "hr;" << std::endl;
+            if (halfLoad != "") {
+                os << "\tif (rc == " << prefix << "TCE::" << ri->first
+                   << "HFP" << rcpf << ") return TCE::" << halfLoad << "hr;" << std::endl;
+            }
         }
     }
 
@@ -3487,38 +3477,106 @@ void TDGen::createEndiannesQuery(std::ostream& os) {
 
 void TDGen::createByteExtLoadPatterns(std::ostream& os) {
     TCEString load = littleEndian_ ? "LD8" : "LDQ";
-    os << "def : Pat<(i32 (zextloadi1 ADDRrr:$addr)), "
-          "(ANDrrr (" << load << "rr ADDRrr:$addr), (MOVI32ri 1))>;"
+    TCEString uload = littleEndian_ ? "LDU8" : "LDQU";
+
+    if (mach_.hasOperation(load)) {
+        if (!mach_.hasOperation(uload)) {
+
+            // emulate zero ext with sing-ext and and
+            os << "def : Pat<(i32 (zextloadi8 ADDRrr:$addr)), "
+               << "(ANDrri (" << load << "rr ADDRrr:$addr), 255)>;"
+               << std::endl;
+            os << "def : Pat<(i32 (zextloadi8 ADDRri:$addr)), "
+               << "(ANDrri (" << load << "ri ADDRri:$addr), 255)>;"
+               << std::endl;
+        }
+    } else {
+        // if no sign ext load, try zero ext load
+        if (!mach_.hasOperation(uload)) {
+            std::cerr << "Warning: The architecture is missing any 8-bit loads."
+                      << " All code may not compile!"
+                      << std::endl;
+            return;
+        }
+        load = uload;
+
+        if (mach_.hasOperation("SXQW")) {
+            // use zextload + sext for sextload
+            os << "def : Pat<(i32 (sextloadi8 ADDRrr:$addr)), "
+               << "(SXQWrr (" << load << "rr ADDRrr:$addr))>;" << std::endl;
+            os << "def : Pat<(i32 (sextloadi8 ADDRri:$addr)), "
+               << "(SXQWrr (" << load << "ri ADDRri:$addr))>;" << std::endl;
+
+        } else {
+            std::cerr << "Warning: no sign-extending 8-bit loads or"
+                      << " 8-bit sign extension instruction!"
+                      << " in the processor. All code may not compile!"
+                      << std::endl;
+        }
+    }
+
+    os << "def : Pat<(i32 (zextloadi1 ADDRrr:$addr)), ("
+       << load << "rr ADDRrr:$addr)>;"
        << std::endl
-       << "def : Pat<(i32 (zextloadi1 ADDRri:$addr)), "
-          "(ANDrrr (" << load << "ri ADDRri:$addr), (MOVI32ri 1))>;"
-       << std::endl
-       << "def : Pat<(i32 (sextloadi1 ADDRrr:$addr)), "
-          "(SUBrrr (MOVI32ri 0), "
-              "(ANDrrr (" << load << "rr ADDRrr:$addr), (MOVI32ri 1)))>;"
-       << std::endl
-       << "def : Pat<(i32 (sextloadi1 ADDRrr:$addr)), "
-          "(SUBrrr (MOVI32ri 0), "
-              "(ANDrrr (" << load << "rr ADDRrr:$addr), (MOVI32ri 1)))>;"
+       << "def : Pat<(i32 (zextloadi1 ADDRri:$addr)), ("
+       << load << "ri ADDRri:$addr)>;"
+       << std::endl;
+
+    os << "def : Pat<(i32 (sextloadi1 ADDRrr:$addr)), "
+       << "(SUBrir 0, "
+       << "(ANDrrr (" << load << "rr ADDRrr:$addr), 1))>;"
        << std::endl
        << "def : Pat<(i32 (sextloadi1 ADDRri:$addr)), "
-          "(SUBrrr (MOVI32ri 0), "
-              "(ANDrrr (" << load << "ri ADDRri:$addr), (MOVI32ri 1)))>;"
+       << "(SUBrir 0, "
+       <<  "(ANDrrr (" << load << "ri ADDRri:$addr), 1))>;"
        << std::endl
-        << "// anyextloads -> sextloads" << std::endl
-         
-       << "def : Pat<(i32 (extloadi1 ADDRrr:$src)), (" << load << "rr ADDRrr:$src)>;" << std::endl
+       << "// anyextloads" << std::endl;
+
+    os << "def : Pat<(i32 (extloadi1 ADDRrr:$src)), (" << load << "rr ADDRrr:$src)>;" << std::endl
        << "def : Pat<(i32 (extloadi1 ADDRri:$src)), (" << load << "ri ADDRri:$src)>;" << std::endl
        << "def : Pat<(i32 (extloadi8 ADDRrr:$src)), (" << load << "rr ADDRrr:$src)>;" << std::endl
        << "def : Pat<(i32 (extloadi8 ADDRri:$src)), (" << load << "ri ADDRri:$src)>;" << std::endl
-           << std::endl;
+       << std::endl;
 }
 
 void TDGen::createShortExtLoadPatterns(std::ostream& os) {
     TCEString load = littleEndian_ ? "LD16" : "LDH";
-    os     << "def : Pat<(i32 (extloadi16 ADDRrr:$src)), (" << load << "rr ADDRrr:$src)>;" << std::endl
-           << "def : Pat<(i32 (extloadi16 ADDRri:$src)), (" << load << "ri ADDRri:$src)>;" << std::endl;
+    TCEString uload = littleEndian_ ? "LDU16" : "LDHU";
 
+    if (mach_.hasOperation(load)) {
+        if (!mach_.hasOperation(uload)) {
+            // emulate zero ext with sing-ext and and
+            os << "def : Pat<(i32 (zextloadi16 ADDRrr:$addr)), "
+               << "(ANDrri (" << load << "rr ADDRrr:$addr), 65535)>;" << std::endl;
+            os << "def : Pat<(i32 (zextloadi16 ADDRri:$addr)), "
+               << "(ANDrri (" << load << "ri ADDRri:$addr), 65535)>;" << std::endl;
+        }
+    } else {
+        if (!mach_.hasOperation(uload)) {
+            std::cerr << "Warning: The architecture is missing any 16-bit loads."
+                      << std::endl;
+            return;
+        }
+        load = uload;
+
+        if (mach_.hasOperation("SXHW")) {
+            // use zextload + sext for sextload
+            os << "def : Pat<(i32 (sextloadi16 ADDRrr:$addr)), "
+               << "(SXHWrr (" << load << "rr ADDRrr:$addr))>;" << std::endl;
+            os << "def : Pat<(i32 (sextloadi16 ADDRri:$addr)), "
+               << "(SXHWrr (" << load << "ri ADDRri:$addr))>;" << std::endl;
+        } else {
+            std::cerr << "Warning: no sign-extending 16-bit loads or"
+                      << " 16-bit sign extension instruction!"
+                      << " in the processor. All code may not compile!" << std::endl;
+        }
+
+    }
+    // anyext.
+    os << "def : Pat<(i32 (extloadi16 ADDRrr:$src)), ("
+       << load << "rr ADDRrr:$src)>;" << std::endl
+       << "def : Pat<(i32 (extloadi16 ADDRri:$src)), ("
+       << load << "ri ADDRri:$src)>;" << std::endl;
 }
 
 void
@@ -3777,4 +3835,67 @@ void TDGen::createConstShiftPatterns(std::ostream& os) {
         writeConstShiftPat(os, "TCESRLConst", "SHRU", i);
         writeConstShiftPat(os, "TCESHLConst", "SHL", i);
     }
+}
+
+void TDGen::createBoolAndHalfLoadPatterns(std::ostream& os) {
+
+    // TODO: what about true/false versions of these ops?
+
+    TCEString load = littleEndian_ ? "LD8" : "LDQ";
+    TCEString uload = littleEndian_ ? "LDU8" : "LDQU";
+    if (mach_.hasOperation(load)) {
+        os << "def " << load
+           << "Br : InstTCE<(outs R1Regs:$op2), (ins MEMrr:$op1), \"\", "
+           << "[(set R1Regs:$op2, (sextloadi1 ADDRrr:$op1))]>;" << std::endl
+           << "def " << load
+           << "Bi : InstTCE<(outs R1Regs:$op2), (ins MEMri:$op1), \"\", "
+           << "[(set R1Regs:$op2, (sextloadi1 ADDRri:$op1))]>; " << std::endl;
+
+        opNames_[load + "Br"] = load;
+        opNames_[load + "Bi"] = load;
+
+    }
+    if (mach_.hasOperation(uload)) {
+    os << "def " << uload
+       << "Br : InstTCE<(outs R1Regs:$op2), (ins MEMrr:$op1), \"\", "
+       << "[(set R1Regs:$op2, (zextloadi1 ADDRrr:$op1))]>;" << std::endl
+       << "def " << uload
+       << "Bi : InstTCE<(outs R1Regs:$op2), (ins MEMri:$op1), \"\", "
+       << "[(set R1Regs:$op2, (zextloadi1 ADDRri:$op1))]>;" << std::endl;
+        opNames_[uload + "Br"] = uload;
+        opNames_[uload + "Bi"] = uload;
+
+        os << "def : Pat<(i1 (load ADDRrr:$addr)), ("
+           << uload << "Br ADDRrr:$addr)>;" << std::endl;
+        os << "def : Pat<(i1 (load ADDRri:$addr)), ("
+           << uload << "Bi ADDRri:$addr)>;" << std::endl;
+    } else {
+        if (mach_.hasOperation(load)) {
+            os << "def : Pat<(i1 (load ADDRrr:$addr)), ("
+               << load << "Br ADDRrr:$addr)>;" << std::endl;
+            os << "def : Pat<(i1 (load ADDRri:$addr)), ("
+               << load << "Bi ADDRri:$addr)>;" << std::endl;
+        }
+    }
+
+    TCEString halfLoad = littleEndian_ ? "LD16" : "LDH";
+    if (!mach_.hasOperation(halfLoad)) {
+        TCEString halfULoad = littleEndian_ ? "LDU16" : "LDHU";
+        if (mach_.hasOperation(halfULoad)) {
+            halfLoad = halfULoad;
+        } else {
+            return;
+        }
+    }
+
+    os << "def " << halfLoad << "hr : InstTCE<(outs R32HFPRegs:$op2), "
+       << "(ins MEMrr:$op1), \"\", [(set R32HFPRegs:$op2, "
+       << "(load ADDRrr:$op1))]>;" << std::endl;
+
+    os << "def " << halfLoad << "hi : InstTCE<(outs R32HFPRegs:$op2), "
+       << "(ins MEMri:$op1), \"\", [(set R32HFPRegs:$op2, "
+       << "(load ADDRri:$op1))]>;" << std::endl;
+
+    opNames_[halfLoad + "hr"] = halfLoad;
+    opNames_[halfLoad + "hi"] = halfLoad;
 }

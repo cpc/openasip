@@ -973,5 +973,23 @@ Machine::saveComponentStates(ContainerType& container, ObjectState* parent) {
     }
 }
 
-
+/**
+ * Tells whether any FU in the machine has given operation or not
+ *
+ * @param opName name of the operation.
+ */
+bool
+Machine::hasOperation(const TCEString& opName) const {
+    FunctionUnitNavigator fuNav = functionUnitNavigator();
+    for (int i = 0; i < fuNav.count(); i++) {
+        FunctionUnit* fu = fuNav.item(i);
+        if (fu->hasOperation(opName)) {
+            return true;
+        }
+    }
+    if (controlUnit()->hasOperation(opName)) {
+        return true;
+    }
+    return false;
+}
 }

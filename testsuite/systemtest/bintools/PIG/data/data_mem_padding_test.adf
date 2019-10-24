@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<adf version="1.8">
+<adf version="1.9">
 
   <little-endian/>
 
@@ -70,21 +70,42 @@
     </reads-from>
   </socket>
 
-  <socket name="alu_i1">
+  <socket name="alu_comp_i1">
     <reads-from>
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="alu_i2">
+  <socket name="alu_comp_i2">
     <reads-from>
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="alu_o1">
+  <socket name="alu_comp_o1">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="logic_i1">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="logic_i2">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="logic_o1">
     <writes-to>
       <bus>B1</bus>
       <segment>seg1</segment>
@@ -138,13 +159,6 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </writes-to>
-  </socket>
-
-  <socket name="io_in">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
   </socket>
 
   <function-unit name="lsu">
@@ -252,22 +266,52 @@
         </reads>
       </pipeline>
     </operation>
+    <operation>
+      <name>ldu8</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>ldu16</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
     <address-space>data</address-space>
   </function-unit>
 
-  <function-unit name="ALU">
+  <function-unit name="alu_comp">
     <port name="in1t">
-      <connects-to>alu_i1</connects-to>
+      <connects-to>alu_comp_i1</connects-to>
       <width>32</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <port name="in2">
-      <connects-to>alu_i2</connects-to>
+      <connects-to>alu_comp_i2</connects-to>
       <width>32</width>
     </port>
     <port name="out1">
-      <connects-to>alu_o1</connects-to>
+      <connects-to>alu_comp_o1</connects-to>
       <width>32</width>
     </port>
     <operation>
@@ -370,6 +414,24 @@
         </writes>
       </pipeline>
     </operation>
+    <address-space/>
+  </function-unit>
+
+  <function-unit name="logic">
+    <port name="in1t">
+      <connects-to>logic_i1</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="in2">
+      <connects-to>logic_i2</connects-to>
+      <width>32</width>
+    </port>
+    <port name="out1">
+      <connects-to>logic_o1</connects-to>
+      <width>32</width>
+    </port>
     <operation>
       <name>and</name>
       <bind name="1">in1t</bind>
@@ -430,76 +492,6 @@
         </writes>
       </pipeline>
     </operation>
-    <operation>
-      <name>shr1_32</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>shru1_32</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="io">
-    <port name="P1">
-      <connects-to>io_in</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <operation>
-      <name>print_int</name>
-      <bind name="1">P1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>outputdata</name>
-      <bind name="1">P1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>stdout</name>
-      <bind name="1">P1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-      </pipeline>
-    </operation>
     <address-space/>
   </function-unit>
 
@@ -534,13 +526,13 @@
   <address-space name="data">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>16777215</max-address>
+    <max-address>65535</max-address>
   </address-space>
 
   <address-space name="instructions">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>1048576</max-address>
+    <max-address>65535</max-address>
   </address-space>
 
   <global-control-unit name="gcu">

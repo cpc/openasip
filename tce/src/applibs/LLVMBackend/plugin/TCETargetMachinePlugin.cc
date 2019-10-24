@@ -341,21 +341,10 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     if (opc == TCE::STQBrj) return "stq";
     if (opc == TCE::STQBij) return "stq";
 
-    if (opc == TCE::LDQBr) return "ldq";
-    if (opc == TCE::LDQBi) return "ldq";
-    if (opc == TCE::LDQUBr) return "ldqu";
-    if (opc == TCE::LDQUBi) return "ldqu";
-
     if (opc == TCE::ST8Brb) return "st8";
     if (opc == TCE::ST8Bib) return "st8";
     if (opc == TCE::ST8Brj) return "st8";
     if (opc == TCE::ST8Bij) return "st8";
-
-    if (opc == TCE::LD8Br) return "ld8";
-    if (opc == TCE::LD8Bi) return "ld8";
-    if (opc == TCE::LDU8Br) return "ldu8";
-    if (opc == TCE::LDU8Bi) return "ldu8";
-
 
     // temporary RA register store/loads
     if (opc == TCE::STWRArr) return "stw";
