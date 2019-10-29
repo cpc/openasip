@@ -507,13 +507,13 @@ TDGen::write1bitRegisterInfo(std::ostream& o) {
         if (ri->first.find("R1") == 0) {
 
             o << std::endl
-              << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i1], 8, (add ";
+              << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i1], 32, (add ";
             o << ri->second[0];
             for (unsigned i = 1; i < ri->second.size(); i++) {
                 o << " , " << ri->second[i];
             }
             o << ")> {" << std::endl
-              << " let Size=8;" << std::endl
+              << " let Size=32;" << std::endl
               << "}" << std::endl;
         }
     }
@@ -1376,7 +1376,9 @@ TDGen::writeBackendCode(std::ostream& o) {
     bool hasSHR = false;
     bool hasSHRU = false;
     bool hasSHL = false;
-   
+    bool has8bitLoads = false;
+    bool has16bitLoads = false;
+
     const TTAMachine::Machine::FunctionUnitNavigator fuNav =
         mach_.functionUnitNavigator();
 
@@ -1398,8 +1400,22 @@ TDGen::writeBackendCode(std::ostream& o) {
             if (opName == "shr") hasSHR = true;
             if (opName == "shru") hasSHRU = true;
             if (opName == "shl") hasSHL = true;
+            if (opName == "sqrtf") hasSQRTF = true;
 
-	    if (opName == "sqrtf") hasSQRTF = true;
+            if (littleEndian_) {
+                if (opName == "ld16" || opName == "ldu16") {
+                    has16bitLoads = true;
+                } else if(opName == "ld8" || opName == "ldu8") {
+                    has8bitLoads = true;
+                }
+            } else {
+                if (opName == "ldh" || opName == "ldhu") {
+                    has16bitLoads = true;
+                } else if (opName == "ldq" || opName == "ldqu") {
+                    has8bitLoads = true;
+                }
+           }
+
         }
     }
 
@@ -1429,6 +1445,10 @@ TDGen::writeBackendCode(std::ostream& o) {
       << hasSHL << "; }" << std::endl
       << "bool GeneratedTCEPlugin::hasSHRU() const { return "
       << hasSHRU << ";}" << std::endl
+      << "bool GeneratedTCEPlugin::has8bitLoads() const { return "
+      << has8bitLoads << ";}" << std::endl
+      << "bool GeneratedTCEPlugin::has16bitLoads() const { return "
+      << has16bitLoads << ";}" << std::endl
 
       << "int GeneratedTCEPlugin::maxVectorSize() const { return "
       << maxVectorSize_ << "; }" << std::endl;
@@ -3321,9 +3341,14 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
 
     for (RegClassMap::iterator ri = regsInClasses_.begin(); 
          ri != regsInClasses_.end(); ri++) {
-        if (ri->first.find("R1") == 0 && boolLoad != "") {
-            os << "\tif (rc == " << prefix << "TCE::" << ri->first
-               << rcpf <<") return TCE::" << boolLoad << "Br;" << std::endl;
+        if (ri->first.find("R1") == 0) {
+            if (boolLoad != "") {
+                os << "\tif (rc == " << prefix << "TCE::" << ri->first
+                   << rcpf <<") return TCE::" << boolLoad << "Br;" << std::endl;
+            } else {
+                os << "\tif (rc == " << prefix << "TCE::" << ri->first
+                   << rcpf <<") return TCE::" << intLoad << "Br;" << std::endl;
+            }
         }
         if (ri->first.find("R32") == 0) {
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
@@ -3843,6 +3868,7 @@ void TDGen::createBoolAndHalfLoadPatterns(std::ostream& os) {
 
     TCEString load = littleEndian_ ? "LD8" : "LDQ";
     TCEString uload = littleEndian_ ? "LDU8" : "LDQU";
+    TCEString wload = littleEndian_ ? "LD32" : "LDW";
     if (mach_.hasOperation(load)) {
         os << "def " << load
            << "Br : InstTCE<(outs R1Regs:$op2), (ins MEMrr:$op1), \"\", "
@@ -3856,12 +3882,12 @@ void TDGen::createBoolAndHalfLoadPatterns(std::ostream& os) {
 
     }
     if (mach_.hasOperation(uload)) {
-    os << "def " << uload
-       << "Br : InstTCE<(outs R1Regs:$op2), (ins MEMrr:$op1), \"\", "
-       << "[(set R1Regs:$op2, (zextloadi1 ADDRrr:$op1))]>;" << std::endl
-       << "def " << uload
-       << "Bi : InstTCE<(outs R1Regs:$op2), (ins MEMri:$op1), \"\", "
-       << "[(set R1Regs:$op2, (zextloadi1 ADDRri:$op1))]>;" << std::endl;
+        os << "def " << uload
+           << "Br : InstTCE<(outs R1Regs:$op2), (ins MEMrr:$op1), \"\", "
+           << "[(set R1Regs:$op2, (zextloadi1 ADDRrr:$op1))]>;" << std::endl
+           << "def " << uload
+           << "Bi : InstTCE<(outs R1Regs:$op2), (ins MEMri:$op1), \"\", "
+           << "[(set R1Regs:$op2, (zextloadi1 ADDRri:$op1))]>;" << std::endl;
         opNames_[uload + "Br"] = uload;
         opNames_[uload + "Bi"] = uload;
 
@@ -3876,6 +3902,23 @@ void TDGen::createBoolAndHalfLoadPatterns(std::ostream& os) {
             os << "def : Pat<(i1 (load ADDRri:$addr)), ("
                << load << "Bi ADDRri:$addr)>;" << std::endl;
         }
+    }
+
+    // if no 8-bit loads, create 32-bit loads for stack access but
+    // no patterns for isel as only the stack is 32-bit aligned.
+    // 1- and 8-bit loads on isel will be handled by lowering.
+    if (!mach_.hasOperation(load) &&
+        !mach_.hasOperation(uload) &&
+        mach_.hasOperation(wload)) {
+        os << "def " << wload
+           << "Br : InstTCE<(outs R1Regs:$op2), (ins MEMrr:$op1), \"\", "
+           << "[]>;" << std::endl
+        << "def " << wload
+        << "Bi : InstTCE<(outs R1Regs:$op2), (ins MEMri:$op1), \"\", "
+        << "[]>;" << std::endl;
+
+        opNames_[wload + "Br"] = wload;
+        opNames_[wload + "Bi"] = wload;
     }
 
     TCEString halfLoad = littleEndian_ ? "LD16" : "LDH";

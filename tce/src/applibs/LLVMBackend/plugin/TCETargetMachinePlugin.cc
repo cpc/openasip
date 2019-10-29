@@ -116,6 +116,8 @@ public:
     virtual bool hasSHR() const override;
     virtual bool hasSHL() const override;
     virtual bool hasSHRU() const override;
+    virtual bool has8bitLoads() const override;
+    virtual bool has16bitLoads() const override;
 
     virtual int maxVectorSize() const;
 

@@ -135,6 +135,7 @@ namespace llvm {
         SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG) const;
         SDValue LowerBlockAddress(SDValue Op, SelectionDAG &DAG) const;
         SDValue LowerShift(SDValue op, SelectionDAG& dag) const;
+        SDValue lowerExtOrBoolLoad(SDValue op, SelectionDAG& DAG) const;
 
         std::pair<int, TCEString> getConstShiftNodeAndTCEOP(SDValue op) const;
 
@@ -202,6 +203,11 @@ namespace llvm {
     SDValue ExpandLibCall(
         RTLIB::Libcall LC, SDNode *Node, bool isSigned, SelectionDAG &DAG)
         const;
+
+        void ReplaceNodeResults(SDNode * node,
+                                SmallVectorImpl< SDValue > &,
+                                SelectionDAG &) const override;
+
     };
 }
 

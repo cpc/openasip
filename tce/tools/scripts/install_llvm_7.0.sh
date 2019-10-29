@@ -71,6 +71,7 @@ function try_patch {
 
 function apply_patches {
     cd $llvm_co_dir
+    try_patch $patch_dir/llvm-8-fix-load-lowering.patch
     try_patch $patch_dir/llvm-7.0-custom-vector-extension.patch
     try_patch $patch_dir/llvm-7.0-vect-datalayout.patch
     try_patch $patch_dir/llvm-6.0-SPIR-address-space-numbers.patch

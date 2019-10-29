@@ -275,6 +275,14 @@ plugin_(plugin) {
             return plugin_->getMaxMemoryAlignment();
         }
 
+        bool has8bitLoads() const {
+            return plugin_->has8bitLoads();
+        }
+
+        bool has16bitLoads() const {
+            return plugin_->has16bitLoads();
+        }
+
         const std::set<
             std::pair<unsigned, 
                       llvm::MVT::SimpleValueType> >* missingOperations();

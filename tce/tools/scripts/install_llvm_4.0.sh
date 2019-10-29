@@ -70,6 +70,7 @@ function try_patch {
 
 function apply_patches {
     cd $llvm_co_dir
+    try_patch $patch_dir/llvm-8-fix-load-lowering.patch
     try_patch $patch_dir/llvm-4.0-custom-vector-extension.patch
     try_patch $patch_dir/llvm-4.0-vect-datalayout.patch
     cd ..

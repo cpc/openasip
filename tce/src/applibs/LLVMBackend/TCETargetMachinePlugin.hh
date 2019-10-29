@@ -156,6 +156,9 @@ namespace llvm {
        virtual bool hasSHL() const = 0;
        virtual bool hasSHRU() const = 0;
 
+       virtual bool has8bitLoads() const = 0;
+       virtual bool has16bitLoads() const = 0;
+
        virtual int maxVectorSize() const = 0;
        /// Plugin needs target machine for TragetLowering generation
        virtual void registerTargetMachine(TCETargetMachine &tm) = 0;
