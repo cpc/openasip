@@ -74,6 +74,7 @@ include_HEADERS = \
  plugin/TCEFrameInfo.hh \
  plugin/TCEFrameInfo.cc \
  plugin/TCETargetMachinePlugin.cc \
+ plugin/PluginCompileWrapper.cc \
  TCETargetMachine.hh \
  TCETargetMachinePlugin.hh \
  plugin/TCESubtarget.hh \
