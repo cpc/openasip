@@ -28,5 +28,5 @@ $SCRIPTDIR/clang-format-diff.py \
  -i -p1 -style \
  "{BasedOnStyle: Google, IndentWidth: 4, \
  AlwaysBreakAfterReturnType: AllDefinitions, AccessModifierOffset: -4, \
- AlignAfterOpenBracket: AlwaysBreak}" \
+ AlignAfterOpenBracket: AlwaysBreak, ColumnLimit: 78}" \
  -v <$PATCHY
