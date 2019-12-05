@@ -10,9 +10,10 @@ Notable changes and features
   Can also emulate 16-bit aligned loads, but emulation of 16-bit unaligned
   loads not supported, so all code will not compile of 16-bit loads are
   left out.
-- Plugin compilation speedup by 50-60% by creating a pluginwrapperfile that
-  includes multiple sourcefiles such that commonly included files are linked
-  and compiled only once for all the sourcefiles in the wrapper.
+- Compiler backend compilation speedup by 50-60% by creating a
+  pluginwrapperfile that includes multiple sourcefiles such that commonly
+  included files are linked and compiled only once for all the sourcefiles
+  in the wrapper.
 
 1.20     October 2019
 =====================

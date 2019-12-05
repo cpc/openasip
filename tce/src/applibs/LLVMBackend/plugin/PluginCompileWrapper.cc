@@ -27,9 +27,9 @@
  * TCE plugin compilation wrapper to make plugin compilation faster:
  *
  * By including these .cc files into one .cc file, all #includes are only
- * included and compiled once. Without this wrapper all files that are included
- * in multiple .cc files are being compiled multiple times, wasting compilation
- * time.
+ * included and compiled once. Without this wrapper all files that are
+ * included in multiple .cc files are being compiled multiple times, wasting
+ * compilation time.
  *
  * @author Sander Ruben 2019 (sander.ruben-no-spam-tuni.fi)
  * @note rating: red
