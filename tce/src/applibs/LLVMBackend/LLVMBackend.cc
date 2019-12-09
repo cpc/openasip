@@ -884,9 +884,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
     }
 
     // NOTE: this could be get from Makefile.am
-    TCEString pluginSources = srcsPath + "PluginCompileWrapper.cc " +
-                              srcsPath + "TCEFrameInfo.cc " + srcsPath +
-                              "TCETargetMachinePlugin.cc ";
+    TCEString pluginSources =
+	srcsPath + "PluginCompileWrapper.cc " + srcsPath +
+	"TCEFrameInfo.cc " + srcsPath + "TCETargetMachinePlugin.cc ";
 
     TCEString endianOption = target.isLittleEndian() ?
         "-DLITTLE_ENDIAN_TARGET" : "";
