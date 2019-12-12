@@ -529,7 +529,8 @@ SequentialScheduler::unscheduleInputOperandTempMoves(
  * connectivity) succeeding the given result move.
  *
  * @param operandMove The move of which temp moves to schedule.
- * @return cycle next available cycle
+ * @param cycle of the last actual result move
+ * @return cycle cycle of last scheduled temp move
  *
  */
 int
@@ -546,7 +547,7 @@ SequentialScheduler::scheduleResultTempMoves(
             DataDependenceGraph::NodeSet::iterator i = tempMoves.end();
             while (i != tempMoves.begin()) {
                 --i;
-                cycle = scheduleMove(cycle, **i) + 1;
+                cycle = scheduleMove(cycle + 1, **i);
             }
         }
     }
