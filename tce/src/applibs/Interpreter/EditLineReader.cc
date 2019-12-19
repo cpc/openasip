@@ -205,7 +205,14 @@ EditLineReader::charQuestion(
     } else {
         const char* answer = nullptr;
         int count;
+        assert(editLine_ != nullptr);
         answer = el_gets(editLine_, &count);
+        if (answer == nullptr) {
+            updateHistory("");
+            delete[] prompt_;
+            prompt_ = oldPrompt;
+            return defaultAnswer;
+        }
         if (strlen(answer) != 1 && 
             !StringTools::
             containsChar(allowedChars, answer[0], caseSensitive)) {
