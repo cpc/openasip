@@ -45,6 +45,7 @@ function fetch_llvm {
     else
 	# Discard all differences with release/9.x branch
 	cd $llvm_co_dir;
+	git pull || eexit "error doing a git pull"
         git checkout release/9.x ||
 		eexit "checking out git branch failed"
 	git reset --hard HEAD ||
