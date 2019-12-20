@@ -40,17 +40,15 @@ function fetch_llvm {
 
     if ! test -d $llvm_co_dir;
     then
-	git clone --branch release/9.x https://github.com/llvm/llvm-project.git $llvm_co_dir\
+        git clone --branch release/9.x https://github.com/llvm/llvm-project.git $llvm_co_dir\
 	    || eexit "Git clone $REV_TOFETCH from llvm failed"
     else
-	# Discard all differences with release/9.x branch
-	cd $llvm_co_dir;
-	git pull || eexit "error doing a git pull"
-        git checkout release/9.x ||
-		eexit "checking out git branch failed"
-	git reset --hard HEAD ||
-		eexit "resetting --hard HEAD failed"
-	cd ..;
+	      # Discard all differences with release/9.x branch
+	      cd $llvm_co_dir;
+        git checkout release/9.x ||	eexit "checking out git branch failed"
+	      git pull || eexit "error doing a git pull"
+	      git reset --hard HEAD || eexit "resetting --hard HEAD failed"
+	      cd ..;
     fi
 }
 
