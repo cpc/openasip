@@ -222,9 +222,16 @@ TCETargetLowering::LowerFormalArguments(
                 } else {
                     ISD::LoadExtType LoadOp = ISD::SEXTLOAD;
                     
+                    // TODO: WHAT IS THIS??
+                    // TCE IS NO LONGER ALWAYS BIG-ENDIAN!
                     // TCE is big endian, add an offset based on the ObjectVT.
+#ifdef LLVM_OLDER_THAN_10
                     unsigned Offset = 4 - std::max(
                         1U, ObjectVT.getSizeInBits()/8);
+#else
+                    unsigned Offset = 4 - std::max(
+                        1UL, ObjectVT.getSizeInBits().getFixedSize()/8);
+#endif
 #ifdef LLVM_OLDER_THAN_3_7
                     FIPtr = DAG.getNode(
                         ISD::ADD, dl, MVT::i32, FIPtr, 

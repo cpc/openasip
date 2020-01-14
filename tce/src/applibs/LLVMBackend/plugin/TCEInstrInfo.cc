@@ -253,7 +253,11 @@ void TCEInstrInfo::copyPhysReg(
 #else
     const DebugLoc& DL,
 #endif
-    unsigned destReg, unsigned srcReg,
+#ifdef LLVM_OLDER_THAN_10
+        unsigned destReg, unsigned srcReg,
+#else
+        MCRegister destReg, MCRegister srcReg,
+#endif
     bool killSrc) const
 {
     DebugLoc dl;

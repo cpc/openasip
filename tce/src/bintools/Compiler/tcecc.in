@@ -252,7 +252,7 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                 if options.soft_float:
                     extra_opts += " -ffp-contract=off"
 
-                if "@LLVM_VERSION@" >= "3.4" and (options.soft_float or not options.autovectorize):
+                if @LLVM_VERSION@ >= 3.4 and (options.soft_float or not options.autovectorize):
                     extra_opts += " -fno-vectorize -fno-slp-vectorize"
 
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
@@ -447,8 +447,8 @@ def exitWithError(status, errorMessage=None):
 def lowerMemIntrinsicCommand(srcFile, dstFile):
     optSwitches = ""
 
-    if "@LLVM_VERSION@" >= "3.4":
-        if "@LLVM_VERSION@" < "9":
+    if @LLVM_VERSION@ >= 3.4:
+        if @LLVM_VERSION@ < 9:
             optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
         else:
                         optSwitches += "-disable-slp-vectorization"
@@ -464,7 +464,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
     # format of llvm-nm has been changed in llvm 3.7
     nmidx = 0
-    if "@LLVM_VERSION@" >= "3.7":
+    if @LLVM_VERSION@ >= 3.7:
         nmidx = 1
 
     startFiles = [os.path.join(newlib_libdir, "crt0.o ")]
@@ -664,7 +664,7 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     if options.optimization_level == 1:
         # disable-internalize missing in llvm 3.6
-        if "@LLVM_VERSION@" > "3.5":
+        if @LLVM_VERSION@ > 3.5:
             optSwitches = (default_opts)
         else:
             optSwitches = (default_opts + "-disable-internalize ")
@@ -690,9 +690,9 @@ def optimizeBytecode(inFile, fileNamePrefix):
     # phase ordering: vectorizer, fp emu, isel(including devectorizer)
     # fp emu does not detect vectorized fp ops and cannot emulate them
 
-    if "@LLVM_VERSION@" >= "3.4":
+    if @LLVM_VERSION@ >= 3.4:
         optSwitches += " -disable-slp-vectorization "
-        if "@LLVM_VERSION@" < "9":
+        if @LLVM_VERSION@ < 9:
             optSwitches += "-disable-loop-vectorization "
 
     command = "opt -f " + inFile + " -o " + outputName + " " + optSwitches
@@ -713,8 +713,8 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
 
     optSwitches = ""
 
-    if options.soft_float and "@LLVM_VERSION@" >= "3.4":
-        if "@LLVM_VERSION@" < "9":
+    if options.soft_float and @LLVM_VERSION@ >= 3.4:
+        if @LLVM_VERSION@ < 9:
             optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
         else:
             optSwitches += "-disable-slp-vectorization"

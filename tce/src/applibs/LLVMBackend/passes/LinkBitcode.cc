@@ -52,7 +52,11 @@ using namespace llvm;
 #include <map>
 
 namespace {
+#ifdef LLVM_OLDER_THAN_10
     class LinkBitcode : public BasicBlockPass {
+#else
+    class LinkBitcode : public FunctionPass {
+#endif
     public:
         static char ID; // Pass ID, replacement for typeid       
         LinkBitcode(Module& input);
@@ -63,10 +67,15 @@ namespace {
         bool doFinalization (Module &M);
 
         // to suppress Clang warnings
+#ifdef LLVM_OLDER_THAN_10
         using llvm::BasicBlockPass::doInitialization;
         using llvm::BasicBlockPass::doFinalization;
-
+#else
+        using llvm::FunctionPass::doInitialization;
+        using llvm::FunctionPass::doFinalization;
+#endif
         bool runOnBasicBlock(BasicBlock &BB);
+        bool runOnFunction(Function &F);
 
     private:
         Module& inputModule_;
@@ -83,7 +92,11 @@ namespace {
  * Constructor
  */
 LinkBitcode::LinkBitcode(Module& input) :
+#ifdef LLVM_OLDER_THAN_10
     BasicBlockPass(ID), 
+#else
+    FunctionPass(ID),
+#endif
     inputModule_(input) {
 }
 
@@ -129,5 +142,10 @@ LinkBitcode::doInitialization(Module& M) {
 
 bool
 LinkBitcode::runOnBasicBlock(BasicBlock& /*BB*/) {
+    return true;
+}
+
+bool
+LinkBitcode::runOnFunction(Function&) {
     return true;
 }

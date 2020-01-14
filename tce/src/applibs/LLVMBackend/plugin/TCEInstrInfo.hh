@@ -142,7 +142,11 @@ namespace llvm {
 #else
         const DebugLoc& DL,
 #endif
+#ifdef LLVM_OLDER_THAN_10
         unsigned destReg, unsigned srcReg,
+#else
+        MCRegister destReg, MCRegister srcReg,
+#endif
         bool KillSrc) const override;
 
 #if LLVM_OLDER_THAN_4_0

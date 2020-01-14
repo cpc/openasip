@@ -10,6 +10,10 @@ Notable changes and features
   Can also emulate 16-bit aligned loads, but emulation of 16-bit unaligned
   loads not supported, so all code will not compile of 16-bit loads are
   left out.
+- Both sign-extending and zero-extending loads are no longer needed,
+  can use either ones to emulate the other ones (with performance penalty)
+- Support for LLVM10.
+  The LLVM install script also updated to get llvm from git instead of svn.
 
 1.20     October 2019
 =====================

@@ -534,6 +534,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
      LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      3.6*)
      AC_DEFINE([LLVM_3_6], [], "Using LLVM 3.6")
@@ -558,6 +559,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
      LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      3.7*)
      AC_DEFINE([LLVM_3_7], [], "Using LLVM 3.7")
@@ -582,6 +584,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
      LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      3.8*)
      AC_DEFINE([LLVM_3_8], [], "Using LLVM 3.8")
@@ -604,6 +607,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
      LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      3.9*)
      AC_DEFINE([LLVM_3_9], [], "Using LLVM 3.9")
@@ -625,6 +629,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
      LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      4.0*)
      AC_DEFINE([LLVM_4_0], [], "Using LLVM 4.0")
@@ -644,6 +649,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
      LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      5.0.0svn*)
      AC_DEFINE([LLVM_5_0], [], "Using LLVM 5.0svn")
@@ -655,6 +661,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
      LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      5.0*)
      AC_DEFINE([LLVM_5_0], [], "Using LLVM 5.0")
@@ -677,6 +684,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
      LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      6.0*)
      AC_DEFINE([LLVM_6_0], [], "Using LLVM 6.0")
@@ -698,6 +706,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
      LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      7.0*)
      AC_DEFINE([LLVM_7_0], [], "Using LLVM 7")
@@ -718,6 +727,7 @@ case "$LLVM_VERSION" in
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
      LLVM_OLDER_THAN_8=1
      LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      7.1*)
      # There should not be difference in TCE-related functionality to
@@ -729,6 +739,7 @@ case "$LLVM_VERSION" in
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
      LLVM_OLDER_THAN_8=1
      LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      8.0.0svn)
      AC_DEFINE([LLVM_8], [], "Using LLVM 8-svn")
@@ -747,6 +758,7 @@ case "$LLVM_VERSION" in
      AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["1"])
      fi
      LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
    ;;
      8*)
@@ -774,6 +786,7 @@ case "$LLVM_VERSION" in
      fi
      fi
      LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      9*)
      AC_DEFINE([LLVM_9], [], "Using LLVM 9")
@@ -789,8 +802,28 @@ case "$LLVM_VERSION" in
      AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
      fi
      LLVM_VERSION=9
+     LLVM_OLDER_THAN_10=1
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+   ;;
+     10*)
+     AC_DEFINE([LLVM_10], [], "Using LLVM 10")
+     AC_MSG_CHECKING([whether the used LLVM 10 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 10 does not have the custom vector extension patch. Use tools/scripts/install_llvm_10.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
+     fi
+     LLVM_VERSION=10
+     LLVM_LIBRARYVERSION=10git
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_LIBRARYVERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
    ;;
 
@@ -858,6 +891,11 @@ fi
 if  test "x$LLVM_OLDER_THAN_9" == "x1";
 then
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_9, 1, [LLVM version is older than 9])
+fi
+
+if  test "x$LLVM_OLDER_THAN_10" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_10, 1, [LLVM version is older than 10])
 fi
 
 if test ! -e $LLVM_SHARED_LIB_FILE;
@@ -1508,7 +1546,11 @@ if test x"$define_cxx0x" = xtrue; then
    CXXFLAGS="$CXXFLAGS -std=c++0x"
 else
    AC_DEFINE(HAVE_CXX11, [], [Using C++11 language standard switch.])
-   CXXFLAGS="$CXXFLAGS -std=c++11"
+   if test x"$LLVM_OLDER_THAN_10"= x1; then
+       CXXFLAGS="$CXXFLAGS -std=c++11"
+   else
+       CXXFLAGS="$CXXFLAGS -std=c++14"
+   fi
 fi
 
 

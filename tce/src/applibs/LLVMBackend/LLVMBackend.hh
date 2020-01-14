@@ -107,6 +107,7 @@ private:
     static const std::string PLUGIN_SUFFIX;
     static const TCEString CXX0X_FLAG;
     static const TCEString CXX11_FLAG;
+    static const TCEString CXX14_FLAG;
 };
 
 #endif
