@@ -200,6 +200,7 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
    return true;
 }
 
+#ifndef LLVM_OLDER_THAN_10
 bool
 LowerIntrinsics::runOnFunction(Function &F) {
 
@@ -209,3 +210,4 @@ LowerIntrinsics::runOnFunction(Function &F) {
 
     return true;
 }
+#endif

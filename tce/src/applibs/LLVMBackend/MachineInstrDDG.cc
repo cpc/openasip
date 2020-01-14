@@ -53,10 +53,6 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #endif
 #endif
 
-#ifdef LLVM_OLDER_THAN_10
-#include <llvm/MC/Register.h>
-#endif
-
 #include "MachineInstrDDG.hh"
 
 #include "AssocTools.hh"
