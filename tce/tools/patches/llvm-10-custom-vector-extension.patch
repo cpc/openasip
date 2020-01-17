@@ -366,6 +366,30 @@ Index: llvm/include/llvm/Support/MachineValueType.h
        case v64i32:
        case v64f32: return 64;
        case v32i1:
+@@ -736,8 +784,11 @@
+       case v64i16:
+       case v32i32:
+       case v16i64:
++      case v64f16:
+       case v32f32: return TypeSize::Fixed(1024);
+       case nxv32i32:
+       case nxv16i64: return TypeSize::Scalable(1024);
++      case v2048i1:
++      case v128f16:
+       case v256i8:
+       case v128i16:
+@@ -743,7 +795,11 @@
+       case v64i32:
+       case v64f32: return TypeSize::Fixed(2048);
+       case nxv32i64: return TypeSize::Scalable(2048);
++      case v4096i1:
++      case v512i8:
++      case v256i16:
++      case v256f16:
+       case v128i32:
+       case v128f32:  return TypeSize::Fixed(4096);
+       case v256i32:
+       case v256f32:  return TypeSize::Fixed(8192);
 @@ -910,6 +940,8 @@
          if (NumElements == 256)  return MVT::v256i1;
          if (NumElements == 512)  return MVT::v512i1;
