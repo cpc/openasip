@@ -222,6 +222,14 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 
   BuildMI(MBB, I, DL, get(plugin_->getStore(RC))).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
+
+  LLVMContext& context = MBB.getParent()->getFunction().getContext();
+  llvm::Metadata* md = llvm::MDString::get(context, "AA_CATEGORY_STACK_SLOT");
+  MDNode* mdNode =
+      MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
+  MachineOperand metaDataOperand = MachineOperand::CreateMetadata(mdNode);
+  I--; // buildmi moves the iterator to next ins, point to the created one.
+  I->addOperand(metaDataOperand);
 }
 
 void TCEInstrInfo::
@@ -234,6 +242,14 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 
   BuildMI(MBB, I, DL, get(plugin_->getLoad(RC)), DestReg).addFrameIndex(FI)
       .addImm(0);
+
+  LLVMContext& context = MBB.getParent()->getFunction().getContext();
+  llvm::Metadata* md = llvm::MDString::get(context, "AA_CATEGORY_STACK_SLOT");
+  MDNode* mdNode =
+      MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
+  MachineOperand metaDataOperand = MachineOperand::CreateMetadata(mdNode);
+  I--; // buildmi moves the iterator to next ins, point to the created one.
+  I->addOperand(metaDataOperand);
 }
 
 /**

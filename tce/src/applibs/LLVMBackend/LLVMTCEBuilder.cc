@@ -1246,6 +1246,9 @@ TTAProgram::Instruction*
 LLVMTCEBuilder::emitInstruction(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
+    bool isSpill = false;
+    bool isRaSlot = false;
+    bool isFpSlot = false;
     const llvm::MCInstrDesc* opDesc = &mi->getDesc();
     unsigned opc = mi->getDesc().getOpcode();
 
@@ -1418,8 +1421,25 @@ LLVMTCEBuilder::emitInstruction(
                 if (mo.isUse() || operation.numberOfOutputs() == 0) {
                     ++inputOperand;
                     // something messed up?
-                    if (inputOperand > operation.numberOfInputs()) 
+                    if (inputOperand > operation.numberOfInputs()) {
+                        if (mo.isMetadata()) {
+                            const MDNode* mdNode = mo.getMetadata();
+                            for (int i = 0; i < mdNode->getNumOperands(); i++) {
+                                const MDOperand & oper = mdNode->getOperand(i);
+                                if (llvm::MDString* mds = dyn_cast<llvm::MDString>(oper)) {
+                                    TCEString s = mds->getString().str();
+                                    if (s == "AA_CATEGORY_STACK_SLOT") {
+                                        isSpill = true;
+                                    } else if (s == "AA_CATEGORY_RA_SAVE_SLOT") {
+                                        isRaSlot = true;
+                                    } else if (s == "AA_CATEGORY_FP_SAVE_SLOT") {
+                                        isFpSlot = true;
+                                    }
+                                }
+                            }
+                        }
                         continue;
+                    }
 		    
                     TTAProgram::Terminal* dst = 
                         new TTAProgram::TerminalFUPort(op, inputOperand);
@@ -1592,12 +1612,43 @@ LLVMTCEBuilder::emitInstruction(
     for (unsigned i = 0; i < operandMoves.size(); i++) {
         TTAProgram::Instruction* instr = operandMoves[i];
         TTAProgram::Move& m = instr->move(0);
+
+        // create the memory category annotations
+        if (isSpill) {
+            m.addAnnotation(
+                TTAProgram::ProgramAnnotation(
+                    TTAProgram::ProgramAnnotation::ANN_STACKUSE_SPILL));
+        } else if (isRaSlot) {
+            m.addAnnotation(
+               TTAProgram::ProgramAnnotation(
+                    TTAProgram::ProgramAnnotation::ANN_STACKUSE_RA_SAVE));
+        } else if (isFpSlot) {
+            m.addAnnotation(
+                TTAProgram::ProgramAnnotation(
+                    TTAProgram::ProgramAnnotation::ANN_STACKUSE_FP_SAVE));
+        }
+
         proc->add(instr);
         createMoveNode(po, m, true);
     }
     for (unsigned i = 0; i < resultMoves.size(); i++) {
         TTAProgram::Instruction* instr = resultMoves[i];
         TTAProgram::Move& m = instr->move(0);
+        // create the memory category annotations
+        if (isSpill) {
+            m.addAnnotation(
+                TTAProgram::ProgramAnnotation(
+                    TTAProgram::ProgramAnnotation::ANN_STACKUSE_SPILL));
+        } else if (isRaSlot) {
+            m.addAnnotation(
+               TTAProgram::ProgramAnnotation(
+                    TTAProgram::ProgramAnnotation::ANN_STACKUSE_RA_SAVE));
+        } else if (isFpSlot) {
+            m.addAnnotation(
+                TTAProgram::ProgramAnnotation(
+                    TTAProgram::ProgramAnnotation::ANN_STACKUSE_FP_SAVE));
+        }
+
         proc->add(instr);
         createMoveNode(po, m, false);
     }

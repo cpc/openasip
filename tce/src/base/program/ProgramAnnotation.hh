@@ -88,6 +88,7 @@ public:
         ANN_STACKUSE_SAVED_FPR          = 0x00012015,///<saved FPR
         ANN_STACKUSE_SPILL              = 0x00012016,///<spilled variable
         ANN_STACKUSE_RA_SAVE            = 0x00012017,///<ra, new frontend
+        ANN_STACKUSE_FP_SAVE            = 0x00012018,///<frame ptr save/load
         ANN_STACKUSE_END                = 0x00012FFF,
         
         ANN_REGISTER_BEGIN              = 0x00020000,

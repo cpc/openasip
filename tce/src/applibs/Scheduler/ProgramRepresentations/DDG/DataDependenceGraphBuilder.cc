@@ -1848,6 +1848,10 @@ DataDependenceGraphBuilder::memoryCategory(const MoveNodeUse& mnd) {
             TTAProgram::ProgramAnnotation::ANN_STACKUSE_RA_SAVE) {
             return "_RA";
         }
+        if (anno.id() ==
+            TTAProgram::ProgramAnnotation::ANN_STACKUSE_FP_SAVE) {
+            return "_FP";
+        }
     }
     if (!mnd.mn()->isDestinationOperation()) {
         PRINT_VAR(mnd.mn()->toString());
