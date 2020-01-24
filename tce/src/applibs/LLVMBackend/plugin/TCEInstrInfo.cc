@@ -492,6 +492,24 @@ TCEInstrInfo::isPredicable(const MachineInstr& mi_ref) const {
         return false;
     }
 
+// LLVM 10 has too aggressive if converter which breaks things
+// by converting code which writes to the predicate register used
+// for the if convertion. Prevent this.
+#ifndef LLVM_OLDER_THAN_10
+    // May not if-covert if writes to boolean register.
+    for (int oper = mi->getNumOperands() - 1; oper >= 0; --oper) {
+        MachineOperand mo = mi->getOperand(oper);
+
+        if ((mo.isReg() && !mo.isUse() && !mo.isImplicit())) {
+            auto reg = mo.getReg();
+            // Should check that does not write the actual guard reg used by the branch
+            // not just any. THis is slow byt safe, forbids too many if-conversions.
+            if (TCE::RARegRegClass.contains(reg)) {
+                return false;
+            }
+        }
+    }
+#endif
     return true;
 }
 
