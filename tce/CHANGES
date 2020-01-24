@@ -3,17 +3,22 @@
 
 Notable changes and features
 ----------------------------
+- Bring back alias the analysis which knows that spills of variables
+  into stack cannot alias with other memory operations.
+  This was working on some old tce versions with ancient llvm versions,
+  but has not been supported with recent llvm versions.
 - 8-bit loads no longer needed, they can be emulated with 32-bit loads
   with masking and shifting. However, this is typically very slow,
   so those should only be left out from the achitecture if those are used in
   any performance-critical parts of the code.
   Can also emulate 16-bit aligned loads, but emulation of 16-bit unaligned
-  loads not supported, so all code will not compile of 16-bit loads are
+  loads not supported, so all code will not compile if 16-bit loads are
   left out.
 - Both sign-extending and zero-extending loads are no longer needed,
   can use either ones to emulate the other ones (with performance penalty)
 - Support for LLVM10.
-  The LLVM install script also updated to get llvm from git instead of svn.
+  The LLVM install scripts for LLVM9 and LLVM10 also updated to use git
+  instead of svn to download the llvm sources.
 
 1.20     October 2019
 =====================
