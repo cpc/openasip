@@ -96,7 +96,7 @@ osalInputIndex(
         const MachineOperand& mo = instr.getOperand(operandI);
         if (hasGuard && operandI == 0) continue;
         // Output or metadata.
-        if (mo.isReg() && (mo.isDef() || mo.isImplicit()) || mo.isMetadata())
+        if ((mo.isReg() && (mo.isDef() || mo.isImplicit())) || mo.isMetadata())
             continue;
         ++osalIndex;
         if (operandI == operandId) return osalIndex;

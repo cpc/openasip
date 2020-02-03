@@ -1424,7 +1424,7 @@ LLVMTCEBuilder::emitInstruction(
                     if (inputOperand > operation.numberOfInputs()) {
                         if (mo.isMetadata()) {
                             const MDNode* mdNode = mo.getMetadata();
-                            for (int i = 0; i < mdNode->getNumOperands(); i++) {
+                            for (unsigned int i = 0; i < mdNode->getNumOperands(); i++) {
                                 const MDOperand & oper = mdNode->getOperand(i);
                                 if (llvm::MDString* mds = dyn_cast<llvm::MDString>(oper)) {
                                     TCEString s = mds->getString().str();
