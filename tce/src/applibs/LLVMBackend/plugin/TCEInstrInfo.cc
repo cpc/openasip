@@ -223,7 +223,7 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   BuildMI(MBB, I, DL, get(plugin_->getStore(RC))).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
 
-#ifdef LLVM_OLDER_THAN_6
+#ifdef LLVM_OLDER_THAN_6_0
   LLVMContext& context = MBB.getParent()->getFunction()->getContext();
 #else
   LLVMContext& context = MBB.getParent()->getFunction().getContext();
@@ -247,7 +247,7 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   BuildMI(MBB, I, DL, get(plugin_->getLoad(RC)), DestReg).addFrameIndex(FI)
       .addImm(0);
 
-#ifdef LLVM_OLDER_THAN_6
+#ifdef LLVM_OLDER_THAN_6_0
   LLVMContext& context = MBB.getParent()->getFunction()->getContext();
 #else
   LLVMContext& context = MBB.getParent()->getFunction().getContext();
