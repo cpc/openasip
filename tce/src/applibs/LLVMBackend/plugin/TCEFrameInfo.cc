@@ -215,8 +215,11 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
 
         // Create metadata which says that this is an RA save
         MachineBasicBlock::iterator raStore = ii; raStore--;
+#ifdef LLVM_OLDER_THAN_6_0
+        LLVMContext& context = mbb.getParent()->getFunction()->getContext();
+#else
         LLVMContext& context = mbb.getParent()->getFunction().getContext();
-
+#endif
         llvm::Metadata* md =
             llvm::MDString::get(context, "AA_CATEGORY_RA_SAVE_SLOT");
         MDNode* mdNode =
@@ -253,8 +256,11 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
             numBytes += stackAlignment_;
             // Create metadata which says that this is an FP save
             MachineBasicBlock::iterator fpStore = ii; fpStore--;
+#ifdef LLVM_OLDER_THAN_6_0
+            LLVMContext& context = mbb.getParent()->getFunction()->getContext();
+#else
             LLVMContext& context = mbb.getParent()->getFunction().getContext();
-
+#endif
             llvm::Metadata* md =
                 llvm::MDString::get(context, "AA_CATEGORY_FP_SAVE_SLOT");
             MDNode* mdNode =
@@ -338,8 +344,13 @@ TCEFrameInfo::emitEpilogue(
         // Create metadata which says that this is an FP load
         MachineBasicBlock::iterator fpLoad = mbbi; fpLoad--;
 
+#ifdef LLVM_OLDER_THAN_6_0
+        LLVMContext& context =
+            mbb.getParent()->getFunction()->getContext();
+#else
         LLVMContext& context =
             mbb.getParent()->getFunction().getContext();
+#endif
 
         llvm::Metadata* md = llvm::MDString::get(context, "AA_CATEGORY_FP_SAVE_SLOT");
         MDNode* mdNode = MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
@@ -377,8 +388,14 @@ TCEFrameInfo::emitEpilogue(
         // Create metadata which says that this is an RA load
         MachineBasicBlock::iterator raLoad = mbbi; raLoad--;
 
+
+#ifdef LLVM_OLDER_THAN_6_0
+        LLVMContext& context =
+            mbb.getParent()->getFunction()->getContext();
+#else
         LLVMContext& context =
             mbb.getParent()->getFunction().getContext();
+#endif
 
         llvm::Metadata* md = llvm::MDString::get(context, "AA_CATEGORY_RA_SAVE_SLOT");
         MDNode* mdNode = MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
