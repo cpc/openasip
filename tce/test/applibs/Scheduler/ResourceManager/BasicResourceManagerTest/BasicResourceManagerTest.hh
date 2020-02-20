@@ -397,7 +397,7 @@ BasicResourceManagerTest::testRestorationOfResources() {
 
     TTAProgram::Terminal* source = NULL;
     TTAProgram::Terminal* destination = NULL;
-    TTAMachine::Bus* bus = NULL;
+    const TTAMachine::Bus* bus = NULL;
 
     moves = selector.candidates();
     // Tries assign and unassign on several nodes,
