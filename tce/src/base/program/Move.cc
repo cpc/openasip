@@ -395,14 +395,14 @@ Move::sourceSocket() const {
  *
  * @return A copy of the move.
  */
-Move*
+std::shared_ptr<Move>
 Move::copy() const {
 
-    Move* newMove = NULL;
+    std::shared_ptr<Move> newMove = NULL;
     if (isUnconditional()) {
-        newMove = new Move(src_->copy(), dst_->copy(), *bus_);
+        newMove = std::make_shared<Move>(src_->copy(), dst_->copy(), *bus_);
     } else {
-        newMove = new Move(
+        newMove = std::make_shared<Move>(
             src_->copy(), dst_->copy(), *bus_, guard_->copy());
     }
 

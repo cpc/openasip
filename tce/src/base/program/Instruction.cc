@@ -84,10 +84,6 @@ Instruction::Instruction(
  * The destructor.
  */
 Instruction::~Instruction() {
-    for (unsigned int i = 0; i < moves_.size(); i++) {
-        delete moves_.at(i);
-    }
-    moves_.clear();
 
     for (unsigned int i = 0; i < immediates_.size(); i++) {
         delete immediates_.at(i);
@@ -141,7 +137,7 @@ Instruction::isInProcedure() const {
  * @param move The move to add.
  */
 void
-Instruction::addMove(Move* move) {
+Instruction::addMove(std::shared_ptr<Move> move) {
     if (ContainerTools::containsValue(moves_, move)) {
         throw ObjectAlreadyExists(__FILE__, __LINE__, __func__,
 				  "Move is already added.");
@@ -186,6 +182,29 @@ Instruction::move(int i) const {
 			 Conversion::toString(i));
     } else {
         return *moves_.at(i);
+    }
+}
+
+/**
+ * Return the move at the given index in this instruction.
+ *
+ * The order of moves is arbitrary, no assumption should be made by
+ * clients. Anyways, order of moves in instruction does not change between
+ * calls to this method.
+ *
+ * @param i The index of the move.
+ * @return The move at the given index in this instruction.
+ * @exception OutOfRange if the given index is negative or greater than
+ *                       the number of moves in the instruction.
+ */
+std::shared_ptr<Move>
+Instruction::movePtr(int i) const {
+    if (i < 0 || static_cast<unsigned int>(i) >= moves_.size()) {
+        throw OutOfRange(__FILE__, __LINE__, __func__,
+			 "No move in instruction for given index: " +
+			 Conversion::toString(i));
+    } else {
+        return moves_.at(i);
     }
 }
 
@@ -435,7 +454,7 @@ Instruction::removeMove(Move& move) {
 
     for (MoveList::iterator iter = moves_.begin();
          iter != moves_.end(); iter++) {
-        if ((*iter) == &move) {
+        if ((iter->get()) == &move) {
             moves_.erase(iter);
             break;
         }

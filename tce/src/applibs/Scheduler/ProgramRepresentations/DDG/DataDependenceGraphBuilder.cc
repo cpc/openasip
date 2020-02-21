@@ -544,7 +544,8 @@ DataDependenceGraphBuilder::constructIndividualBB(
     for (int ia = 0; ia < currentBB_->basicBlock().instructionCount(); ia++) {
         Instruction& ins = currentBB_->basicBlock().instructionAtIndex(ia);
         for (int i = 0; i < ins.moveCount(); i++) {
-            Move& move = ins.move(i);
+            auto movePtr = ins.movePtr(i);
+            auto& move = *movePtr;
 
             MoveNode* moveNode = NULL;
 
@@ -565,7 +566,7 @@ DataDependenceGraphBuilder::constructIndividualBB(
                         moveNode = &po->moveNode(move);
                     } else {
                         // the po might be corrupted and point to an old POM's Moves
-                        moveNode = new MoveNode(move);
+                        moveNode = new MoveNode(movePtr);
                     }
                 } else if (move.source().isFUPort() && 
                            dynamic_cast<TerminalFUPort&>(move.source()).
@@ -577,10 +578,10 @@ DataDependenceGraphBuilder::constructIndividualBB(
                         moveNode = &po->moveNode(move);
                     } else {
                         // the po might be corrupted and point to an old POM's Moves
-                        moveNode = new MoveNode(move);
+                        moveNode = new MoveNode(movePtr);
                     }
                 } else {
-                    moveNode = new MoveNode(move);
+                    moveNode = new MoveNode(movePtr);
                 }
                 currentDDG_->addNode(*moveNode, *currentBB_);
 

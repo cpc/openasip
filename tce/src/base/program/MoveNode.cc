@@ -64,24 +64,11 @@ using namespace TTAMachine;
 /**
  * Constructor.
  *
- * Creates a new node with a reference to the given Move. The ownership of the
- * move is NOT transferred to the MoveNode.
- *
- * @param newmove the Move this node refers to.
- */
-MoveNode::MoveNode(TTAProgram::Move& newmove) :
-    move_(&newmove), cycle_(0), moveOwned_(false), placed_(false) {
-}
-
-/**
- * Constructor.
- *
- * Creates a new node with Move. The ownership of the move is transferred
- * to the MoveNode.
+ * Creates a new node with Move.
  *
  * @param newmove the Move this node contains.
  */
-MoveNode::MoveNode(TTAProgram::Move* newmove) :
+MoveNode::MoveNode(std::shared_ptr<TTAProgram::Move> newmove) :
     move_(newmove), cycle_(0), moveOwned_(true), placed_(false) {
 }
 
@@ -111,11 +98,6 @@ MoveNode::~MoveNode() {
     if (isDestinationOperation()) {
         destinationOperation().removeInputNode(*this);
     }
-
-    if (moveOwned_) {
-        delete move_;
-    }
-    move_ = NULL;
 }
 
 /**

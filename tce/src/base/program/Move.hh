@@ -33,6 +33,8 @@
 #ifndef TTA_MOVE_HH
 #define TTA_MOVE_HH
 
+#include <memory>
+
 #include "Exception.hh"
 #include "AnnotatedInstructionElement.hh"
 
@@ -85,7 +87,7 @@ public:
     TTAMachine::Socket& destinationSocket() const;
     TTAMachine::Socket& sourceSocket() const;
     int guardLatency() const;
-    Move* copy() const;
+    std::shared_ptr<Move> copy() const;
 
     std::string toString() const;
 

@@ -287,7 +287,7 @@ TPEFProgramFactory::build() {
     // fix TerminalAddresses pointing to instructions to be
     // TerminalInstructionAddresses.
     while (!instructionImmediates_.empty()) {
-        Move* move = *instructionImmediates_.begin();
+        std::shared_ptr<Move> move = *instructionImmediates_.begin();
         instructionImmediates_.erase(instructionImmediates_.begin());
 
         Terminal &addressTerm = move->source();
@@ -526,7 +526,7 @@ TPEFProgramFactory::createInstruction(
 
         // NOTE: we just ignore empty moves
         if (!move->isEmpty()) {
-            Move* newMove = NULL;
+            std::shared_ptr<Move> newMove = NULL;
             Terminal* source = NULL;
             Terminal* destination = NULL;
             Terminal* guardRegister = NULL;
@@ -594,9 +594,9 @@ TPEFProgramFactory::createInstruction(
             }
 
             if (guard != NULL) {
-                newMove = new Move(source, destination, bus, guard);
+                newMove = std::make_shared<Move>(source, destination, bus, guard);
             } else {
-                newMove = new Move(source, destination, bus);
+                newMove = std::make_shared<Move>(source, destination, bus);
             }
             assert(newMove != NULL);
 
@@ -1600,7 +1600,7 @@ TPEFProgramFactory::canSourceBeAssigned(
         // test against all allocations.
         for (unsigned int i = 0; i < socketAllocs.size(); i++) {
             // TODO: check against all users.
-            Move * oldMove = socketAllocs[i]->move;
+            std::shared_ptr<Move> oldMove = socketAllocs[i]->move;
             Terminal* oldTerminal = &(oldMove->source());
 
             // allowed for same register of opposite guard.
@@ -1643,7 +1643,7 @@ TPEFProgramFactory::canDestinationBeAssigned(
         // test against all allocations.
         for (unsigned int i = 0; i < socketAllocs.size(); i++) {
             // TODO: check against all users.
-            Move * oldMove = socketAllocs[i]->move;
+            std::shared_ptr<Move> oldMove = socketAllocs[i]->move;
             if (alloc.move->isUnconditional() || oldMove->isUnconditional() ||
                 !alloc.move->guard().guard().isOpposite(
                     oldMove->guard().guard())) {

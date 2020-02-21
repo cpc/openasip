@@ -220,7 +220,7 @@ ITemplateBroker::assign(int cycle, MoveNode& node, SchedulingResource& res) {
         if (node.isMoveOwned()) {
             node.unsetMoveOwned();
         }
-        ins->addMove(&node.move());
+        ins->addMove(node.movePtr());
 
     } catch (const std::bad_cast& e) {
         string msg = "Resource is not of an instruction template resource.";
@@ -330,7 +330,7 @@ ITemplateBroker::unassign(MoveNode& node) {
             MapTools::valueForKey<TTAProgram::Instruction*>(
                 oldParentInstruction_, &node);
         if (oldParent != NULL) {
-            oldParent->addMove(&node.move());
+            oldParent->addMove(node.movePtr());
         } else {
             node.setMoveOwned();
         }

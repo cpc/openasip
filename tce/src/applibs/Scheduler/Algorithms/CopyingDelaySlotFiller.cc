@@ -1279,8 +1279,8 @@ CopyingDelaySlotFiller::getMoveNode(
     if (AssocTools::containsKey(moveNodes_,&old)) {
         return *moveNodes_[&old];
     } else {
-        Move& move = getMove(old.move());
-        MoveNode *newMN = new MoveNode(&move);
+        auto movePtr = getMove(old.move());
+        MoveNode *newMN = new MoveNode(movePtr);
         ddg_->addNode(*newMN, bbn);
         ddg_->copyDependencies(old,*newMN);
 
@@ -1344,14 +1344,14 @@ CopyingDelaySlotFiller::getProgramOperationPtr(
  * @param old Move in jump target BB.
  * @return new Move for this BB.
  */
-Move&
+std::shared_ptr<Move>
 CopyingDelaySlotFiller::getMove(Move& old) {
     if (AssocTools::containsKey(moves_,&old)) {
-        return *moves_[&old];
+        return moves_[&old];
     } else {
         MoveNode& oldMN = ddg_->nodeOfMove(old);
 
-        Move* newMove = old.copy();
+        auto newMove = old.copy();
         newMove->setBus(um_->universalBus());
 
         Terminal& source = newMove->source();
@@ -1409,7 +1409,7 @@ CopyingDelaySlotFiller::getMove(Move& old) {
             TTAProgram::MoveGuard* g = old.guard().copy();
             newMove->setGuard(g);
         }
-        return *newMove;
+        return newMove;
     }
 }
 
@@ -1596,7 +1596,6 @@ CopyingDelaySlotFiller::updateJumpsAndCfg(
                 if (jumpAddressMove != NULL && jumpAddressMove != jumpMove) {
                     jumpAddressMove->parent().removeMove(
                         *jumpAddressMove);
-                    delete jumpAddressMove;
                 } else {
                     // get rid of the insructionreference by setting
                     // value of the imm to 0.
@@ -1639,7 +1638,6 @@ CopyingDelaySlotFiller::updateJumpsAndCfg(
                     ddg_->removeNode(mn);
                     delete &mn;
                     ins.removeMove(move);
-                    delete &move;
                 }
                 while (ins.immediateCount()) {
                     Immediate& imm = ins.immediate(0);

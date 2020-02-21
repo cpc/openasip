@@ -657,11 +657,11 @@ ProgrammabilityValidator::addConnectionToProgram(
                     RegisterGuard* guard;
                     findRegisterGuard(segment, guard);
                     MoveGuard* moveGuard = new MoveGuard(*guard);
-                    Move* move = new Move(source,
+                    auto movePtr = std::make_shared<Move>(source,
                                           destination,
                                           *segment->parentBus(),
                                           moveGuard);
-                    instruction->addMove(move);
+                    instruction->addMove(movePtr);
                     procedure_->add(instruction);
                 }
 
@@ -679,11 +679,11 @@ ProgrammabilityValidator::addConnectionToProgram(
                 RegisterGuard* guard;
                 findRegisterGuard(segment, guard);
                 MoveGuard* moveGuard = new MoveGuard(*guard);
-                Move* move = new Move(source,
+                auto movePtr = std::make_shared<Move>(source,
                                       destination,
                                       *segment->parentBus(),
                                       moveGuard);
-                instruction->addMove(move);
+                instruction->addMove(movePtr);
                 procedure_->add(instruction);
             }
         }
@@ -697,11 +697,11 @@ ProgrammabilityValidator::addConnectionToProgram(
                 RegisterGuard* guard;
                 findRegisterGuard(segment, guard);
                 MoveGuard* moveGuard = new MoveGuard(*guard);
-                Move* move = new Move(source,
+                auto movePtr = std::make_shared<Move>(source,
                                       destination,
                                       *segment->parentBus(),
                                       moveGuard);
-                instruction->addMove(move);
+                instruction->addMove(movePtr);
                 procedure_->add(instruction);
                 counter++;
             }
@@ -731,11 +731,11 @@ ProgrammabilityValidator::addConnectionToProgram(
                         RegisterGuard* guard;
                         findRegisterGuard(segment, guard);
                         MoveGuard* moveGuard = new MoveGuard(*guard);
-                        Move* move = new Move(source,
+                        auto movePtr = std::make_shared<Move>(source,
                                               destination,
                                               *segment->parentBus(),
                                               moveGuard);
-                        instruction->addMove(move);
+                        instruction->addMove(movePtr);
                         procedure_->add(instruction);
                     }                
                 }
@@ -752,11 +752,11 @@ ProgrammabilityValidator::addConnectionToProgram(
                     RegisterGuard* guard;
                     findRegisterGuard(segment, guard);
                     MoveGuard* moveGuard = new MoveGuard(*guard);
-                    Move* move = new Move(source,
+                    auto movePtr = std::make_shared<Move>(source,
                                           destination,
                                           *segment->parentBus(),
                                           moveGuard);
-                    instruction->addMove(move);
+                    instruction->addMove(movePtr);
                     procedure_->add(instruction);
                 }
             }
@@ -773,11 +773,11 @@ ProgrammabilityValidator::addConnectionToProgram(
                     RegisterGuard* guard;
                     findRegisterGuard(segment, guard);
                     MoveGuard* moveGuard = new MoveGuard(*guard);
-                    Move* move = new Move(source,
+                    auto movePtr = std::make_shared<Move>(source,
                                           destination,
                                           *segment->parentBus(),
                                           moveGuard);
-                    instruction->addMove(move);
+                    instruction->addMove(movePtr);
                     procedure_->add(instruction);
                 }
             }

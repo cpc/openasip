@@ -114,8 +114,8 @@ InstructionTest::testInstruction() {
 
     Bus moveBus("Bus1", 32, 32, Machine::ZERO);
 
-    Move* move1 = new Move(src_reg, dst_reg, moveBus);
-    Move* move2 = new Move(src_reg2, dst_reg2, moveBus);
+    auto move1 = std::make_shared<Move>(src_reg, dst_reg, moveBus);
+    auto move2 = std::make_shared<Move>(src_reg2, dst_reg2, moveBus);
 
     TS_ASSERT_THROWS_NOTHING(ins.addMove(move1));
     TS_ASSERT_THROWS(ins.addMove(move1), ObjectAlreadyExists);
@@ -125,7 +125,7 @@ InstructionTest::testInstruction() {
     TS_ASSERT_THROWS(ins.move(ins.moveCount()), OutOfRange);
     TS_ASSERT_THROWS(ins.move(-1), OutOfRange);
     TS_ASSERT_THROWS_NOTHING(ins.move(ins.moveCount()-1));
-    TS_ASSERT_EQUALS(&ins.move(0), move1);
+    TS_ASSERT_EQUALS(ins.movePtr(0), move1);
 
     Machine dummy_mach;
     InstructionTemplate ins_template("dummy", dummy_mach);

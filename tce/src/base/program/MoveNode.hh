@@ -64,8 +64,7 @@ namespace TTAProgram{
 class MoveNode : public GraphNode {
 public:
 
-    explicit MoveNode(TTAProgram::Move& newmove);
-    explicit MoveNode(TTAProgram::Move* newmove);
+    explicit MoveNode(std::shared_ptr<TTAProgram::Move> newmove);
     virtual ~MoveNode();
 
     MoveNode* copy();
@@ -102,6 +101,9 @@ public:
     ProgramOperationPtr sourceOperationPtr() const;
     ProgramOperationPtr destinationOperationPtr(unsigned int index = 0) const;
 
+    std::shared_ptr<TTAProgram::Move> movePtr();
+    std::shared_ptr<const TTAProgram::Move> movePtr() const;
+
     TTAProgram::Move& move();
     const TTAProgram::Move& move() const;
 
@@ -133,7 +135,7 @@ private:
     MoveNode& operator=(const MoveNode&);
 
     /// Pointer to Move this node represents, Node itself do not change move
-    const TTAProgram::Move* move_;
+    const std::shared_ptr<TTAProgram::Move> move_;
 
     std::vector<ProgramOperationPtr> dstOps_;
 

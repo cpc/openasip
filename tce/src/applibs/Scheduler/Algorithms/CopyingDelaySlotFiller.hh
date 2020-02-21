@@ -164,7 +164,7 @@ private:
         MoveNode& old, BasicBlockNode& bbn);
     ProgramOperationPtr getProgramOperationPtr(
         ProgramOperationPtr old, BasicBlockNode& bbn);
-    TTAProgram::Move& getMove(TTAProgram::Move& old);
+    std::shared_ptr<TTAProgram::Move> getMove(TTAProgram::Move& old);
 
     bool poMoved(
         ProgramOperationPtr po,  MoveNodeListVector& movesToCopy, 
@@ -185,7 +185,7 @@ private:
     oldProgramOperations_;
     std::map<MoveNode*,MoveNode*,MoveNode::Comparator> moveNodes_;
     std::map<MoveNode*,MoveNode*,MoveNode::Comparator> oldMoveNodes_;
-    std::map<TTAProgram::Move*,TTAProgram::Move*> moves_;
+    std::map<TTAProgram::Move*,std::shared_ptr<TTAProgram::Move> > moves_;
 
     std::map<BasicBlockNode*, DataDependenceGraph::NodeSet> tempResultNodes_;
     std::map<BasicBlockNode*, std::set<

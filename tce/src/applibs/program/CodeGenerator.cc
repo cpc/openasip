@@ -52,7 +52,7 @@ CodeGenerator::addMoveToProcedure(
             TTAMachine::NullInstructionTemplate::instance());
 
     newInstr->addMove(
-        new TTAProgram::Move(
+        std::make_shared<TTAProgram::Move>(
             srcTerminal, dstTerminal, uMach_->universalBus()));
 
     dstProcedure.add(newInstr);
@@ -68,11 +68,11 @@ CodeGenerator::addAnnotatedMoveToProcedure(
     TTAProgram::Instruction* newInstr =
         new TTAProgram::Instruction(
             TTAMachine::NullInstructionTemplate::instance());
-    TTAProgram::Move* move = new TTAProgram::Move(
+    auto movePtr = std::make_shared<TTAProgram::Move>(
         srcTerminal, dstTerminal, uMach_->universalBus());
 
-    move->addAnnotation(annotation);
-    newInstr->addMove(move);
+    movePtr->addAnnotation(annotation);
+    newInstr->addMove(movePtr);
 
     dstProcedure.add(newInstr);
 }

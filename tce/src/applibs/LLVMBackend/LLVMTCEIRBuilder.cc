@@ -1012,7 +1012,7 @@ LLVMTCEIRBuilder::fixJumpTableDestinations(
 void
 LLVMTCEIRBuilder::createMoveNode(
     ProgramOperationPtr& po,
-    TTAProgram::Move& m,
+    std::shared_ptr<TTAProgram::Move> m,
     bool isDestination) {
 
     MoveNode* mn = new MoveNode(m);
@@ -1021,13 +1021,13 @@ LLVMTCEIRBuilder::createMoveNode(
         po->addInputNode(*mn);
         mn->addDestinationOperationPtr(po);
         TTAProgram::TerminalFUPort& term =
-            dynamic_cast<TTAProgram::TerminalFUPort&>(m.destination());
+            dynamic_cast<TTAProgram::TerminalFUPort&>(m->destination());
         term.setProgramOperation(po);
     } else {
         po->addOutputNode(*mn);
         mn->setSourceOperationPtr(po);
         TTAProgram::TerminalFUPort& term =
-            dynamic_cast<TTAProgram::TerminalFUPort&>(m.source());
+            dynamic_cast<TTAProgram::TerminalFUPort&>(m->source());
         term.setProgramOperation(po);
     }
 }

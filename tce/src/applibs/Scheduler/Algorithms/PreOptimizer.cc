@@ -272,14 +272,14 @@ PreOptimizer::tryToRemoveGuardInversingOp(
     TTAProgram::Terminal& src1 = operand1.move().source();
     TTAProgram::Terminal& dst = resultMove.destination();
     if (!src1.equals(dst)) {
-        TTAProgram::Move* newMove = new TTAProgram::Move(
+        auto newMove = std::make_shared<TTAProgram::Move>(
             src1.copy(), dst.copy(), operand1.move().bus());
         
         TTAProgram::Instruction* newIns = new TTAProgram::Instruction;
         newIns->addMove(newMove);
         resultMove.parent().parent().insertAfter(
             resultMove.parent(), newIns);
-        MoveNode* newMN = new MoveNode(*newMove);
+        MoveNode* newMN = new MoveNode(newMove);
         ddg.addNode(*newMN, operand1);
         ddg.combineNodes(operand1, result, *newMN);
 

@@ -112,8 +112,9 @@ MoveNodeGroupBuilder::build(TTAProgram::BasicBlock& bb) {
         TTAProgram::Instruction& ins = bb.instructionAtIndex(i);
         for (int j = 0; j < ins.moveCount(); j++) {
             // handle one move
-            TTAProgram::Move& move = ins.move(j);
-            MoveNode* moveNode = new MoveNode(move);
+            auto movePtr = ins.movePtr(j);
+            TTAProgram::Move& move = *movePtr;
+            MoveNode* moveNode = new MoveNode(movePtr);
             TTAProgram::Terminal& source = move.source();
             TTAProgram::Terminal& dest = move.destination();
             

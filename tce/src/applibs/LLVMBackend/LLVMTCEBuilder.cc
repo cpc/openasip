@@ -1443,12 +1443,12 @@ LLVMTCEBuilder::emitInstruction(
 		    
                     TTAProgram::Terminal* dst = 
                         new TTAProgram::TerminalFUPort(op, inputOperand);
-                    TTAProgram::Move* move = createMove(tr, dst, bus);
+                    auto move = createMove(tr, dst, bus);
                     TTAProgram::Instruction* ins = 
                         new TTAProgram::Instruction();
                     ins->addMove(move);
                     operandMoves.push_back(ins);
-                    debugDataToAnnotations(mi, move);
+                    debugDataToAnnotations(mi, *move);
                 } else {
                     // output
                     ++outputOperand;
@@ -1463,12 +1463,12 @@ LLVMTCEBuilder::emitInstruction(
                     TTAProgram::Terminal* src = 
                         new TTAProgram::TerminalFUPort(op, outputOperand);
 		    
-                    TTAProgram::Move* move = createMove(src, tr, bus);
+                    auto move = createMove(src, tr, bus);
                     TTAProgram::Instruction* ins = 
                         new TTAProgram::Instruction();
                     ins->addMove(move);
                     resultMoves.push_back(ins);
-                    debugDataToAnnotations(mi, move);
+                    debugDataToAnnotations(mi, *move);
                 }
             }
             continue;
@@ -1497,14 +1497,14 @@ LLVMTCEBuilder::emitInstruction(
                 TTAProgram::MoveGuard* guardCopy = 
                     guard == NULL ? NULL : guard->copy();
 		
-                TTAProgram::Move* move = createMove(src, dst, bus, guardCopy);
+                auto move = createMove(src, dst, bus, guardCopy);
                 TTAProgram::Instruction* instr = new TTAProgram::Instruction();
                 instr->addMove(move);
             
                 operandMoves.push_back(instr);
 
-                debugDataToAnnotations(mi, move);
-                addPointerAnnotations(mi, move);
+                debugDataToAnnotations(mi, *move);
+                addPointerAnnotations(mi, *move);
                 o += 1;                  
                 const MachineOperand& offset = mi->getOperand(o);
                 if (isBaseOffsetMemOperation(operation)) {
@@ -1521,9 +1521,9 @@ LLVMTCEBuilder::emitInstruction(
                     
                     move = createMove(src, dst, bus, guardCopy);
                     instr = new TTAProgram::Instruction();
-                    instr->addMove(move);           
+                    instr->addMove(move);
                     operandMoves.push_back(instr);
-                    debugDataToAnnotations(mi, move);
+                    debugDataToAnnotations(mi, *move);
                 } else {
                     assert(offset.getImm() == 0);
                 }
@@ -1533,7 +1533,7 @@ LLVMTCEBuilder::emitInstruction(
                 TTAProgram::MoveGuard* guardCopy = 
                     guard == NULL ? NULL : guard->copy();
 
-                TTAProgram::Move* move = createMove(src, dst, bus, guardCopy);
+                auto move = createMove(src, dst, bus, guardCopy);
                 TTAProgram::Instruction* instr = new TTAProgram::Instruction();
                 instr->addMove(move);
 #ifdef DEBUG_LLVMTCEBUILDER
@@ -1541,7 +1541,7 @@ LLVMTCEBuilder::emitInstruction(
                     << "adding " << move->toString() << std::endl;
 #endif
                 operandMoves.push_back(instr);
-                debugDataToAnnotations(mi, move);
+                debugDataToAnnotations(mi, *move);
             }
         } else {
             ++outputOperand;
@@ -1558,7 +1558,7 @@ LLVMTCEBuilder::emitInstruction(
             TTAProgram::MoveGuard* guardCopy = 
                 guard == NULL ? NULL : guard->copy();
 
-            TTAProgram::Move* move = createMove(src, dst, bus, guardCopy);
+            auto move = createMove(src, dst, bus, guardCopy);
             TTAProgram::Instruction* instr = new TTAProgram::Instruction();
             instr->addMove(move);
 #ifdef DEBUG_LLVMTCEBUILDER
@@ -1566,7 +1566,7 @@ LLVMTCEBuilder::emitInstruction(
                 << "adding " << move->toString() << std::endl;
 #endif
             resultMoves.push_back(instr);
-            debugDataToAnnotations(mi, move);
+            debugDataToAnnotations(mi, *move);
         }
     }
 
@@ -1596,13 +1596,13 @@ LLVMTCEBuilder::emitInstruction(
         int width = 32; // FIXME
         SimValue val(0, width);
                     
-        TTAProgram::Move* move = createMove(
+        auto move = createMove(
         	new TTAProgram::TerminalImmediate(val), dst, bus);
         TTAProgram::Instruction* instr = new TTAProgram::Instruction();
         instr->addMove(move);
         operandMoves.push_back(instr);
         first = instr;
-        debugDataToAnnotations(mi, move);
+        debugDataToAnnotations(mi, *move);
     } else {
         assert(false && "No moves?");
     }
@@ -1611,19 +1611,19 @@ LLVMTCEBuilder::emitInstruction(
 
     for (unsigned i = 0; i < operandMoves.size(); i++) {
         TTAProgram::Instruction* instr = operandMoves[i];
-        TTAProgram::Move& m = instr->move(0);
+        auto m = instr->movePtr(0);
 
         // create the memory category annotations
         if (isSpill) {
-            m.addAnnotation(
+            m->addAnnotation(
                 TTAProgram::ProgramAnnotation(
                     TTAProgram::ProgramAnnotation::ANN_STACKUSE_SPILL));
         } else if (isRaSlot) {
-            m.addAnnotation(
+            m->addAnnotation(
                TTAProgram::ProgramAnnotation(
                     TTAProgram::ProgramAnnotation::ANN_STACKUSE_RA_SAVE));
         } else if (isFpSlot) {
-            m.addAnnotation(
+            m->addAnnotation(
                 TTAProgram::ProgramAnnotation(
                     TTAProgram::ProgramAnnotation::ANN_STACKUSE_FP_SAVE));
         }
@@ -1633,18 +1633,18 @@ LLVMTCEBuilder::emitInstruction(
     }
     for (unsigned i = 0; i < resultMoves.size(); i++) {
         TTAProgram::Instruction* instr = resultMoves[i];
-        TTAProgram::Move& m = instr->move(0);
+        auto m = instr->movePtr(0);
         // create the memory category annotations
         if (isSpill) {
-            m.addAnnotation(
+            m->addAnnotation(
                 TTAProgram::ProgramAnnotation(
                     TTAProgram::ProgramAnnotation::ANN_STACKUSE_SPILL));
         } else if (isRaSlot) {
-            m.addAnnotation(
+            m->addAnnotation(
                TTAProgram::ProgramAnnotation(
                     TTAProgram::ProgramAnnotation::ANN_STACKUSE_RA_SAVE));
         } else if (isFpSlot) {
-            m.addAnnotation(
+            m->addAnnotation(
                 TTAProgram::ProgramAnnotation(
                     TTAProgram::ProgramAnnotation::ANN_STACKUSE_FP_SAVE));
         }
@@ -1699,7 +1699,7 @@ LLVMTCEBuilder::isBaseOffsetMemOperation(const Operation& operation) const {
  */
 void
 LLVMTCEBuilder::addPointerAnnotations(
-    const llvm::MachineInstr* mi, TTAProgram::Move* move) {
+    const llvm::MachineInstr* mi, TTAProgram::Move& move) {
      
     // copy some pointer data to Move annotations
 #if 0
@@ -1718,8 +1718,8 @@ LLVMTCEBuilder::addPointerAnnotations(
         
         // annotate only RF -> {ld,st}.1 moves
         // @todo make this more foolproof
-        if (!(move->source().isGPR() && 
-              move->destination().operationIndex() == 1))
+        if (!(move.source().isGPR() &&
+              move.destination().operationIndex() == 1))
             continue;
             
         const llvm::Value* memOpValue = (*i)->getValue();
@@ -1750,7 +1750,7 @@ LLVMTCEBuilder::addPointerAnnotations(
                 TTAProgram::ProgramAnnotation progAnnotation(
                     TTAProgram::ProgramAnnotation::ANN_POINTER_OFFSET, 
                     offset);
-                move->addAnnotation(progAnnotation); 
+                move.addAnnotation(progAnnotation);
             }
 
             // try to find the origin for the pointer which can be
@@ -1787,7 +1787,7 @@ LLVMTCEBuilder::addPointerAnnotations(
                     TTAProgram::ProgramAnnotation progAnnotation(
                         TTAProgram::ProgramAnnotation::
                         ANN_OPENCL_WORK_ITEM_ID, id);
-                    move->addAnnotation(progAnnotation); 
+                    move.addAnnotation(progAnnotation);
                     // In case the memory operand is BitCastInst, we may be
                     // looking at the vector memory access.
                     // Find the type of the accessed element and if it is 
@@ -1811,7 +1811,7 @@ LLVMTCEBuilder::addPointerAnnotations(
                                 TTAProgram::ProgramAnnotation progAnnotation(
                                     TTAProgram::ProgramAnnotation::
                                     ANN_OPENCL_WORK_ITEM_ID_LAST, idLast);
-                                move->addAnnotation(progAnnotation);    
+                                move.addAnnotation(progAnnotation);
                             }
                         }
                     }                                                
@@ -1822,7 +1822,7 @@ LLVMTCEBuilder::addPointerAnnotations(
                     TTAProgram::ProgramAnnotation progAnnotation(
                         TTAProgram::ProgramAnnotation::
                         ANN_POINTER_NOALIAS, 1);
-                    move->addAnnotation(progAnnotation); 
+                    move.addAnnotation(progAnnotation);
                     noAliasFound_ = true;
 
 
@@ -1864,7 +1864,7 @@ LLVMTCEBuilder::addPointerAnnotations(
                 TTAProgram::ProgramAnnotation pointerAnn(
                     TTAProgram::ProgramAnnotation::ANN_POINTER_NAME, 
                     pointerName);
-                move->addAnnotation(pointerAnn); 
+                move.addAnnotation(pointerAnn);
             }
 
             addrSpaceId =
@@ -1879,7 +1879,7 @@ LLVMTCEBuilder::addPointerAnnotations(
                 TTAProgram::ProgramAnnotation progAnnotation(
                     TTAProgram::ProgramAnnotation::ANN_POINTER_ADDR_SPACE, 
                     addressSpace);
-                move->addAnnotation(progAnnotation); 
+                move.addAnnotation(progAnnotation);
                 multiAddrSpacesFound_ = true;
             }                
         }
@@ -1900,13 +1900,13 @@ LLVMTCEBuilder::addPointerAnnotations(
  */
 void
 LLVMTCEBuilder::debugDataToAnnotations(
-    const llvm::MachineInstr* mi, TTAProgram::Move* move) {
+    const llvm::MachineInstr* mi, TTAProgram::Move& move) {
 
     // annotate the moves generated from known ra saves.
     if (mi->getFlag(MachineInstr::FrameSetup)) {
             TTAProgram::ProgramAnnotation progAnnotation(
                 TTAProgram::ProgramAnnotation::ANN_STACKUSE_RA_SAVE);
-            move->setAnnotation(progAnnotation); 
+            move.setAnnotation(progAnnotation);
     }
 
     DebugLoc dl = mi->getDebugLoc();
@@ -1921,7 +1921,7 @@ LLVMTCEBuilder::debugDataToAnnotations(
     if (dl.getLine() == 0xFFFFFFF0) {
         TTAProgram::ProgramAnnotation progAnnotation(
             TTAProgram::ProgramAnnotation::ANN_STACKUSE_SPILL);
-        move->setAnnotation(progAnnotation); 
+        move.setAnnotation(progAnnotation);
         ++spillMoveCount_;
     } else {
         // handle file+line number debug info
@@ -1962,14 +1962,14 @@ LLVMTCEBuilder::debugDataToAnnotations(
             TTAProgram::ProgramAnnotation progAnnotation(
                 TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_LINE, 
                 sourceLineNumber);
-            move->addAnnotation(progAnnotation); 
+            move.addAnnotation(progAnnotation);
                        
             if (sourceFileName != "") {
                 TTAProgram::ProgramAnnotation progAnnotation(
                     TTAProgram::ProgramAnnotation::
                     ANN_DEBUG_SOURCE_CODE_PATH, 
                     sourceFileName);
-                move->addAnnotation(progAnnotation); 
+                move.addAnnotation(progAnnotation);
             }
         }
     }
@@ -2218,7 +2218,7 @@ LLVMTCEBuilder::emitConstantPool(const MachineConstantPool& mcp) {
  * @param dst The dst operand.
  * @return POM Move.
  */
-TTAProgram::Move*
+std::shared_ptr<TTAProgram::Move>
 LLVMTCEBuilder::createMove(
     const MachineOperand& src, const MachineOperand& dst, 
     TTAProgram::MoveGuard* guard) {
@@ -2232,7 +2232,7 @@ LLVMTCEBuilder::createMove(
 
     Bus& bus = UniversalMachine::instance().universalBus();
     TTAProgram::Terminal* dstTerm = createTerminal(dst);
-    TTAProgram::Move* move = createMove(
+    auto move = createMove(
         createTerminal(src, dstTerm->port().width()), dstTerm, bus, guard);
 
     return move;
@@ -2271,7 +2271,7 @@ LLVMTCEBuilder::emitMove(
         // inv guards not yet supported
         guard = createGuard(t, trueGuard);
     }
-    TTAProgram::Move* move = createMove(src, dst, guard);
+    auto move = createMove(src, dst, guard);
 
     if (move == NULL) {
         return NULL;
@@ -2306,7 +2306,7 @@ LLVMTCEBuilder::emitReturn(
     const Operation& operation = pool.operation("jump");    
 
     TTAProgram::TerminalFUPort* dst = new TTAProgram::TerminalFUPort(jump, 1);
-    TTAProgram::Move* move = createMove(src, dst, bus);
+    auto move = createMove(src, dst, bus);
     TTAProgram::Instruction* instr = new TTAProgram::Instruction();
     instr->addMove(move);
     proc->add(instr);
@@ -2314,7 +2314,7 @@ LLVMTCEBuilder::emitReturn(
     // to do that.
     boost::shared_ptr<ProgramOperation> po(
         new ProgramOperation(operation, mi));    
-    createMoveNode(po, *move, true);
+    createMoveNode(po, move, true);
     return instr;
 }
 
@@ -2354,7 +2354,7 @@ LLVMTCEBuilder::emitSelect(
     } else {
         TTAProgram::MoveGuard* trueGuard = createGuard(guardTerminal, true);
         assert(trueGuard != NULL);
-        TTAProgram::Move* trueMove = createMove(srcT, dstT, bus, trueGuard);
+        auto trueMove = createMove(srcT, dstT, bus, trueGuard);
         TTAProgram::Instruction *trueIns = new TTAProgram::Instruction;
         trueIns->addMove(trueMove);
         proc->add(trueIns);
@@ -2368,7 +2368,7 @@ LLVMTCEBuilder::emitSelect(
     } else {
         TTAProgram::MoveGuard* falseGuard = createGuard(guardTerminal, false);
         assert(falseGuard != NULL);
-        TTAProgram::Move* falseMove = createMove(srcF, dstF, bus, falseGuard);
+        auto falseMove = createMove(srcF, dstF, bus, falseGuard);
         TTAProgram::Instruction *falseIns = new TTAProgram::Instruction;
         falseIns->addMove(falseMove);
         proc->add(falseIns);
@@ -2475,7 +2475,7 @@ LLVMTCEBuilder::emitSPInitialization(TTAProgram::CodeSnippet& target) {
         new TTAProgram::TerminalImmediate(val);
 
     Bus& bus = UniversalMachine::instance().universalBus();
-    TTAProgram::Move* move = createMove(src, dst, bus);
+    auto move = createMove(src, dst, bus);
     TTAProgram::Instruction* spInit = new TTAProgram::Instruction();
     spInit->addMove(move);
     
@@ -2683,7 +2683,7 @@ LLVMTCEBuilder::emitInlineAsm(
 
         }
 
-        TTAProgram::Move* move = createMove(src, dst, bus);
+        auto move = createMove(src, dst, bus);
         TTAProgram::Instruction* instr = new TTAProgram::Instruction();
         instr->addMove(move);
 
@@ -2692,8 +2692,8 @@ LLVMTCEBuilder::emitInlineAsm(
 
             // Custom memory accessing operation? Assume absolute addr for now.
             if (operation.operand(inputOperand).isAddress()) {
-                debugDataToAnnotations(mi, move);
-                addPointerAnnotations(mi, move);
+                debugDataToAnnotations(mi, *move);
+                addPointerAnnotations(mi, *move);
             }
         } else {
             resultMoves.push_back(instr);
@@ -3080,8 +3080,8 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
 
                     CodeGenerator codeGenerator(*mach_); 
 
-                    TTAProgram::Move* ctrCall =
-                        new TTAProgram::Move(
+                    auto ctrCall =
+                        std::make_shared<TTAProgram::Move>(
                             xtorRef, codeGenerator.createTerminalFUPort("call", 1),
                             UniversalMachine::instance().universalBus());
 
@@ -3091,7 +3091,7 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
                     // to do that.
                     boost::shared_ptr<ProgramOperation> po(
                         new ProgramOperation(opPool.operation("call")));
-                    createMoveNode(po, *ctrCall, true);
+                    createMoveNode(po, ctrCall, true);
 
                     TTAProgram::Instruction* newInstr =
                         new TTAProgram::Instruction(
@@ -3215,7 +3215,7 @@ LLVMTCEBuilder::emitVectorBuild(
 
 	TTAProgram::Terminal* dst = createTerminalRegister(rfName, idx);
 	TTAProgram::Terminal* src = createTerminal(mi->getOperand(i+1));
-	TTAProgram::Move* move = createMove(src, dst, bus);
+	auto move = createMove(src, dst, bus);
 
 	TTAProgram::Instruction* instr = new TTAProgram::Instruction();
 	if (first == NULL) {
@@ -3265,7 +3265,7 @@ LLVMTCEBuilder::emitVectorMov(
 
 	TTAProgram::Terminal* dst = createTerminalRegister(dstRfName, dIdx);
 	TTAProgram::Terminal* src = createTerminalRegister(srcRfName, sIdx);
-	TTAProgram::Move* move = createMove(src, dst, bus);
+	auto move = createMove(src, dst, bus);
 
 	TTAProgram::Instruction* instr = new TTAProgram::Instruction();
 	if (first == NULL) {
@@ -3313,7 +3313,7 @@ LLVMTCEBuilder::emitVectorExtract(
     TTAProgram::Terminal* dst = createTerminal(dstMO);
     Bus& bus = UniversalMachine::instance().universalBus();
 
-    TTAProgram::Move* move = createMove(src, dst, bus);
+    auto move = createMove(src, dst, bus);
     
     TTAProgram::Instruction* instr = new TTAProgram::Instruction();
     instr->addMove(move);
@@ -3361,7 +3361,7 @@ LLVMTCEBuilder::emitVectorInsert(
     TTAProgram::Terminal* dst = createTerminalRegister(dstRfName, dstIdx);
     Bus& bus = UniversalMachine::instance().universalBus();
 
-    TTAProgram::Move* move = createMove(src, dst, bus);
+    auto move = createMove(src, dst, bus);
     
     TTAProgram::Instruction* instr = new TTAProgram::Instruction();
     instr->addMove(move);
@@ -3394,7 +3394,7 @@ LLVMTCEBuilder::emitVectorInsert(
 		TTAProgram::Terminal* dst = 
 		    createTerminalRegister(dstRfName, dstIdx);
 		Bus& bus = UniversalMachine::instance().universalBus();
-		TTAProgram::Move* move = createMove(src, dst, bus);
+		auto move = createMove(src, dst, bus);
 		
 		TTAProgram::Instruction* instr = new TTAProgram::Instruction();
 		instr->addMove(move);
@@ -3471,7 +3471,7 @@ LLVMTCEBuilder::emitVectorInstruction(
 
 		TTAProgram::Terminal* dst = 
 		    new TTAProgram::TerminalFUPort(hwop, inputOperand);
-		TTAProgram::Move* move = createMove(tr, dst, bus);
+		auto move = createMove(tr, dst, bus);
 		TTAProgram::Instruction* ins = new TTAProgram::Instruction();
 		if (firstIns == NULL) {
 		    firstIns = ins;
@@ -3492,7 +3492,7 @@ LLVMTCEBuilder::emitVectorInstruction(
 		TTAProgram::Terminal* src = 
 		    new TTAProgram::TerminalFUPort(hwop, outputOperand);
 		
-		TTAProgram::Move* move = createMove(src, tr, bus);
+		auto move = createMove(src, tr, bus);
 		TTAProgram::Instruction* ins = new TTAProgram::Instruction();
 		ins->addMove(move);
 		resultMoves.push_back(ins);
@@ -3507,13 +3507,13 @@ LLVMTCEBuilder::emitVectorInstruction(
 	
 	for (unsigned i = 0; i < operandMoves.size(); i++) {
 	    TTAProgram::Instruction* instr = operandMoves[i];
-	    TTAProgram::Move& m = instr->move(0);
+	    auto m = instr->movePtr(0);
 	    proc->add(instr);
 	    createMoveNode(po, m, true);
 	}
 	for (unsigned i = 0; i < resultMoves.size(); i++) {
 	    TTAProgram::Instruction* instr = resultMoves[i];
-	    TTAProgram::Move& m = instr->move(0);
+	    auto m = instr->movePtr(0);
 	    proc->add(instr);
 	    createMoveNode(po, m, false);
 	}
@@ -3563,14 +3563,14 @@ int LLVMTCEBuilder::vectorOperandSize(const MachineOperand& mo) {
  *              guarded.
  * @return Created move.
  */
-TTAProgram::Move*
+std::shared_ptr<TTAProgram::Move>
 LLVMTCEBuilder::createMove(
     TTAProgram::Terminal* src,
     TTAProgram::Terminal* dst,
     const TTAMachine::Bus& bus,
     TTAProgram::MoveGuard* guard) {
 
-    TTAProgram::Move* move = NULL;
+    std::shared_ptr<TTAProgram::Move> move = NULL;
 
     bool endRef = false;
 
@@ -3583,9 +3583,9 @@ LLVMTCEBuilder::createMove(
     }
 
     if (guard == NULL) {
-        move = new TTAProgram::Move(src, dst, bus);
+        move = std::make_shared<TTAProgram::Move>(src, dst, bus);
     } else {
-        move = new TTAProgram::Move(src, dst, bus, guard);
+        move = std::make_shared<TTAProgram::Move>(src, dst, bus, guard);
     }
 
     if (endRef) {
@@ -3700,7 +3700,7 @@ LLVMTCEBuilder::dataMemoryForAddressSpace(TTAMachine::AddressSpace& aSpace) {
  */
 void 
 LLVMTCEBuilder::addCandidateLSUAnnotations(
-    unsigned asNum, TTAProgram::Move* move) {
+    unsigned asNum, TTAProgram::Move& move) {
 
     bool foundLSU = false;
     const TTAMachine::Machine::FunctionUnitNavigator fuNav =
@@ -3712,7 +3712,7 @@ LLVMTCEBuilder::addCandidateLSUAnnotations(
                 TTAProgram::ProgramAnnotation progAnnotation(
                     TTAProgram::ProgramAnnotation::
                     ANN_ALLOWED_UNIT_DST, fu.name());
-                move->addAnnotation(progAnnotation);
+                move.addAnnotation(progAnnotation);
                 foundLSU = true;
             }
         }

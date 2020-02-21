@@ -120,8 +120,8 @@ namespace llvm {
 
         virtual void createMoveNode(
             ProgramOperationPtr& po,
-            TTAProgram::Move& m,
-            bool isDestination);
+            std::shared_ptr<TTAProgram::Move> m,
+            bool isDestination) override;
 
     private:
 

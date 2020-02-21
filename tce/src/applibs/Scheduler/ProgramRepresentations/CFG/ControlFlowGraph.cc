@@ -2347,7 +2347,6 @@ ControlFlowGraph::removeJumpToTarget(
                             }
 
                             ins.removeMove(move);
-                            delete &move;
                             return JUMP_REMOVED;
                         } else {
                             // two conditional jumps? nasty. no can do
@@ -2365,7 +2364,6 @@ ControlFlowGraph::removeJumpToTarget(
                         }
 
                         ins.removeMove(move);
-                        delete &move;
                         // check if there are moves/immeds left.
                         // if not, update refs.
                         for (; idx < cs.instructionCount(); idx++) {

@@ -206,7 +206,7 @@ ProgramWriterTest::testCreateSequential() {
     TerminalRegister* dstTerminal =
         new TerminalRegister(*uMach->integerRegisterFile().port(1), 13);
             
-    instr->addMove(new Move(srcTerminal, dstTerminal, uMach->universalBus()));
+    instr->addMove(std::make_shared<Move>(srcTerminal, dstTerminal, uMach->universalBus()));
 
     Procedure* procedure = 
         new Procedure("main", uMach->instructionAddressSpace());
@@ -296,7 +296,7 @@ ProgramWriterTest::testCreateSequential2() {
 
 
     loadInst->addMove(
-        new TTAProgram::Move(
+        std::make_shared<TTAProgram::Move>(
             termAddr, dstTerminal, universalMachine.universalBus()));
 
 
@@ -383,7 +383,7 @@ ProgramWriterTest::testAnnotationReadingAndWriting() {
         new TTAProgram::TerminalRegister(
             *universalMachine->integerRegisterFile().port(1), 12);
 
-    TTAProgram::Move* aMove = new TTAProgram::Move(
+    auto aMove = std::make_shared<TTAProgram::Move>(
         termAddr, dstTerminal, universalMachine->universalBus());
 
     // test the move annotation support
