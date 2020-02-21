@@ -1642,7 +1642,6 @@ CopyingDelaySlotFiller::updateJumpsAndCfg(
                 while (ins.immediateCount()) {
                     Immediate& imm = ins.immediate(0);
                     ins.removeImmediate(imm);
-                    delete &imm;
                 }
                     
             }

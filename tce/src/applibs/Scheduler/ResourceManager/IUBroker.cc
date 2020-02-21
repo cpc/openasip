@@ -149,11 +149,10 @@ IUBroker::allAvailableResources(int useCycle, const MoveNode& node) const {
                     dynamic_cast<const ImmediateUnit&>(machinePartOf(*iuRes));
                 RFPort* port = iu.port(0);
                 TerminalRegister* newSrc = new TerminalRegister(*port, 0);
-                Immediate* imm = new Immediate(tempImm, newSrc);
+                auto imm = std::make_shared<Immediate>(tempImm, newSrc);
                 if (rm_->isTemplateAvailable(defCycle, imm)) {
                     tmpResult.push_back(iuRes);
                 }
-                delete imm;
             }
             resIter++;
         }
@@ -202,12 +201,9 @@ IUBroker::assign(int useCycle, MoveNode& node, SchedulingResource& res) {
                     dynamic_cast<const ImmediateUnit&>(machinePartOf(iuRes));
                 RFPort* port = iu.port(0);
                 TerminalRegister* newSrc = new TerminalRegister(*port, 0);
-                Immediate* imm = new Immediate(tempImm, newSrc);
+                auto imm = std::make_shared<Immediate>(tempImm, newSrc);
                 if (rm_->isTemplateAvailable(defCycle, imm)) {
-                    delete imm;
                     break;
-                } else {
-                    delete imm;
                 }
             }
         }

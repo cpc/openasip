@@ -170,13 +170,14 @@ ITemplateBroker::assign(int cycle, MoveNode& node, SchedulingResource& res) {
         int defCycle = instructionIndex(rm_->immediateWriteCycle(node));
         TerminalRegister* tmpReg =
             dynamic_cast<TerminalRegister*>(node.move().source().copy());
-        Immediate* imm = new Immediate(tempImm, tmpReg);
+        auto imm = std::make_shared<Immediate>(tempImm, tmpReg);
         if (!isImmediateInTemplate(defCycle,imm)) {
-            assignImmediate(defCycle, *imm);
+            assignImmediate(defCycle, imm);
             immediateCycles_.insert(
                 std::pair<const MoveNode*, int>(&node,defCycle));
             immediateValues_.insert(
-                std::pair<const MoveNode*, TTAProgram::Immediate*>(
+                std::pair<const MoveNode*,
+                std::shared_ptr<TTAProgram::Immediate> >(
                     &node,imm));
         } else {
             abortWithError("Failed to assign immediate write");
@@ -243,14 +244,15 @@ ITemplateBroker::assign(int cycle, MoveNode& node, SchedulingResource& res) {
  * given node or no corresponding machine part is found.
  */
 void
-ITemplateBroker::assignImmediate(int cycle, Immediate& immediate) {
+ITemplateBroker::assignImmediate(
+    int cycle, std::shared_ptr<TTAProgram::Immediate> immediate) {
     cycle = instructionIndex(cycle);
 
     try {
         // Find a template for definition cycle
         Moves moves;
         Immediates immediates;
-        immediates.push_back(&immediate);
+        immediates.push_back(immediate);
 
         ITemplateResource& templateRes = static_cast<ITemplateResource&>(
             findITemplates(cycle, moves, immediates).resource(0));
@@ -276,30 +278,30 @@ ITemplateBroker::assignImmediate(int cycle, Immediate& immediate) {
 
         // Define new immediate, depending on supported bit width of
         // template for given immediate unit
-        const ImmediateUnit&  iu = immediate.destination().immediateUnit();
+        const ImmediateUnit&  iu = immediate->destination().immediateUnit();
         int neededBitWidth = iTemplate.supportedWidth(iu);
         if (neededBitWidth <= INT_WORD_SIZE &&
-            (!immediate.value().isInstructionAddress() &&
-             !immediate.value().isBasicBlockReference() &&
-             !immediate.value().isCodeSymbolReference())) {
+            (!immediate->value().isInstructionAddress() &&
+             !immediate->value().isBasicBlockReference() &&
+             !immediate->value().isCodeSymbolReference())) {
             // If it is not floating point or instruction address
             // we recreate SimValue with proper bit width based on destination
             if (iu.extensionMode() == Machine::ZERO) {
                 SimValue sim(
-                    immediate.value().value().unsignedValue(), neededBitWidth);
+                    immediate->value().value().unsignedValue(), neededBitWidth);
                 TerminalImmediate* ti = new TerminalImmediate(sim);
-                immediate.setValue(ti);                
+                immediate->setValue(ti);
             }
             if (iu.extensionMode() == Machine::SIGN) {
                 SimValue sim(
-                    immediate.value().value().intValue(), neededBitWidth);
+                    immediate->value().value().intValue(), neededBitWidth);
                 TerminalImmediate* ti = new TerminalImmediate(sim);
-                immediate.setValue(ti);                
+                immediate->setValue(ti);
             }
         }
         templateRes.assign(cycle);
         ins->setInstructionTemplate(iTemplate);        
-        ins->addImmediate(&immediate);
+        ins->addImmediate(immediate);
 
     } catch (const std::bad_cast& e) {
         string msg = "Resource is not of an instruction template resource.";
@@ -339,13 +341,12 @@ ITemplateBroker::unassign(MoveNode& node) {
     if (node.isSourceConstant() &&
         MapTools::containsKey(immediateCycles_, &node)) {
         int defCycle = MapTools::valueForKey<int>(immediateCycles_, &node);
-        Immediate* imm =
-            MapTools::valueForKey<TTAProgram::Immediate*>(
+        auto imm =
+            MapTools::valueForKey<std::shared_ptr<TTAProgram::Immediate> >(
                 immediateValues_, &node);
 
         if (isImmediateInTemplate(defCycle, imm)) {
             unassignImmediate(defCycle, imm->destination().immediateUnit());
-            delete imm;
         } else {
             abortWithError("Failed to remove Immediate from instruction");
         }
@@ -658,7 +659,7 @@ ITemplateBroker::findITemplates(
             moves.push_back(&ins->move(i));
         }
         for (int i = 0; i < ins->immediateCount(); i++) {
-            immediates.push_back(&ins->immediate(i));
+            immediates.push_back(ins->immediatePtr(i));
         }
     }
     for (ResourceMap::const_iterator resIter = resMap_.begin();
@@ -811,7 +812,7 @@ ITemplateBroker::loseInstructionOwnership(int cycle) {
 bool
 ITemplateBroker::isImmediateInTemplate(
     int defCycle,
-    const Immediate* imm) const {
+    std::shared_ptr<const Immediate> imm) const {
 
     if (!MapTools::containsKey(instructions_, defCycle)) {
         return false;
@@ -839,7 +840,7 @@ ITemplateBroker::isImmediateInTemplate(
 bool
 ITemplateBroker::isTemplateAvailable(
     int defCycle,
-    Immediate* immediate) const {
+    std::shared_ptr<Immediate> immediate) const {
 
     Immediates immediates;
     Moves moves;

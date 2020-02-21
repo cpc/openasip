@@ -84,17 +84,19 @@ public:
     virtual bool isITemplateBroker() const;
     virtual TTAProgram::Instruction* instruction(int cycle);
     virtual void loseInstructionOwnership(int cycle);
-    virtual bool isTemplateAvailable(int, TTAProgram::Immediate*) const;
+    virtual bool isTemplateAvailable(
+        int, std::shared_ptr<TTAProgram::Immediate>) const;
     void clearOldResources();
     void clear();
 private:
     typedef std::vector<TTAProgram::Move*> Moves;
-    typedef std::vector<TTAProgram::Immediate*> Immediates;
+    typedef std::vector<std::shared_ptr<TTAProgram::Immediate> > Immediates;
 
     SchedulingResourceSet findITemplates(int, Moves, Immediates) const;
-    void assignImmediate(int, TTAProgram::Immediate&);
+    void assignImmediate(int, std::shared_ptr<TTAProgram::Immediate>);
     void unassignImmediate(int,const TTAMachine::ImmediateUnit&);
-    bool isImmediateInTemplate(int, const TTAProgram::Immediate*) const;
+    bool isImmediateInTemplate(
+        int, std::shared_ptr<const TTAProgram::Immediate>) const;
     
     /// Move/immediate slots.
     std::vector<TTAMachine::Bus*> slots_;
@@ -109,7 +111,7 @@ private:
     /// so we need to explicitely find the Immediate to remove it from
     /// template
     std::map<const MoveNode*, int, GraphNode::Comparator> immediateCycles_;
-    std::map<const MoveNode*, TTAProgram::Immediate*, 
+    std::map<const MoveNode*, std::shared_ptr<TTAProgram::Immediate>,
              GraphNode::Comparator> immediateValues_;
     
     std::map<int, bool> instructionsNotOwned_;

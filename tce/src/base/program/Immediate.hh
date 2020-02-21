@@ -33,6 +33,8 @@
 #ifndef TTA_IMMEDIATE_HH
 #define TTA_IMMEDIATE_HH
 
+#include <memory>
+
 #include "Exception.hh"
 
 namespace TTAMachine {
@@ -59,7 +61,7 @@ public:
     TerminalImmediate& value() const;
     void setValue(TerminalImmediate* value);
 
-    Immediate* copy() const;
+    std::shared_ptr<Immediate> copy() const;
 
 private:
     /// Copying not allowed.

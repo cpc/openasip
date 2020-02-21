@@ -89,7 +89,8 @@ public:
     virtual void loseInstructionOwnership(int cycle);
     virtual TTAProgram::Terminal* immediateValue(const MoveNode&);
     virtual int immediateWriteCycle(const MoveNode&) const;
-    virtual bool isTemplateAvailable(int, TTAProgram::Immediate*) const;
+    virtual bool isTemplateAvailable(
+        int, std::shared_ptr<TTAProgram::Immediate>) const;
     void setMaxCycle(unsigned int cycle);
     void clearOldResources();
     void clear();

@@ -309,7 +309,7 @@ TPEFProgramFactory::build() {
 
     // and same for long immediates which refers to instruction addresses
     while (!longInstructionImmediates_.empty()) {
-        Immediate* immediate = *longInstructionImmediates_.begin();
+        auto immediate = *longInstructionImmediates_.begin();
         longInstructionImmediates_.erase(longInstructionImmediates_.begin());
 
         TerminalImmediate &addressTerm = immediate->value();
@@ -708,7 +708,7 @@ TPEFProgramFactory::createInstruction(
             immTerm = new TerminalImmediate(simVal);
         }
 
-        Immediate* newImmediate = new Immediate(immTerm, destination);
+        auto newImmediate = std::make_shared<Immediate>(immTerm, destination);
 
         newInstruction->addImmediate(newImmediate);
 

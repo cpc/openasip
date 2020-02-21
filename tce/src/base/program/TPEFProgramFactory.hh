@@ -289,7 +289,7 @@ private:
     mutable std::list<std::shared_ptr<Move> > instructionImmediates_;
     
     /// Long immediates whose value terminals refers to instructions.
-    mutable std::list<Immediate*> longInstructionImmediates_;
+    mutable std::list<std::shared_ptr<Immediate> > longInstructionImmediates_;
     
     /// Cache map of terminals that are returned by different search 
     /// parameters.

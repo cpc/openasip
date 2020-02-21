@@ -36,6 +36,7 @@
 
 #include <list>
 #include <map>
+#include <memory>
 
 #include "ResourceManager.hh"
 #include "AssignmentPlan.hh"
@@ -76,7 +77,8 @@ public:
     virtual void loseInstructionOwnership(int cycle);
     virtual TTAProgram::Terminal* immediateValue(const MoveNode&);
     virtual int immediateWriteCycle(const MoveNode&) const;
-    virtual bool isTemplateAvailable(int, TTAProgram::Immediate*) const;
+    virtual bool isTemplateAvailable(
+        int, std::shared_ptr<TTAProgram::Immediate>) const;
 
     virtual unsigned int resourceCount() const;
     virtual void print(std::ostream& target) const;

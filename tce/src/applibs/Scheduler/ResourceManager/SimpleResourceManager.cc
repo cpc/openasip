@@ -485,7 +485,7 @@ SimpleResourceManager::instructionIndex(unsigned int cycle) const {
 bool 
 SimpleResourceManager::isTemplateAvailable(
     int defCycle, 
-    TTAProgram::Immediate* immediate) const {
+    std::shared_ptr<TTAProgram::Immediate> immediate) const {
     
     return director_->isTemplateAvailable(defCycle, immediate);
 }

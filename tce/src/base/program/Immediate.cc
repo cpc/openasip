@@ -127,9 +127,9 @@ Immediate::setValue(TerminalImmediate* value) {
  *
  * @return A copy of the immediate.
  */
-Immediate*
+std::shared_ptr<Immediate>
 Immediate::copy() const {
-    return new Immediate(
+    return std::make_shared<Immediate>(
         dynamic_cast<TerminalImmediate*>(value_->copy()), dst_->copy());
 }
 

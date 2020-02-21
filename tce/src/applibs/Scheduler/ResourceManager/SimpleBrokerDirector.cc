@@ -811,7 +811,7 @@ SimpleBrokerDirector::immediateWriteCycle(const MoveNode& node) const {
 bool
 SimpleBrokerDirector::isTemplateAvailable(
     int defCycle,
-    TTAProgram::Immediate* immediate) const {
+    std::shared_ptr<TTAProgram::Immediate> immediate) const {
 
     return instructionTemplateBroker().isTemplateAvailable(
         defCycle, immediate);

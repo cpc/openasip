@@ -89,9 +89,10 @@ public:
 
     bool isNOP() const { return moveCount() == 0 && immediateCount() == 0; }
 
-    void addImmediate(Immediate* imm);
+    void addImmediate(std::shared_ptr<Immediate> imm);
     int immediateCount() const;
     Immediate& immediate(int i) const;
+    std::shared_ptr<Immediate> immediatePtr(int i) const;
     void removeImmediate(Immediate& imm);
 
     Address address() const;
@@ -117,7 +118,7 @@ private:
     /// List for moves.
     typedef std::vector<std::shared_ptr<Move> > MoveList;
     /// List for immediates.
-    typedef std::vector<Immediate*> ImmList;
+    typedef std::vector<std::shared_ptr<Immediate> > ImmList;
 
     /// Copying not allowed.
     Instruction(const Instruction&);
