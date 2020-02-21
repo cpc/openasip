@@ -69,7 +69,7 @@ using namespace TTAMachine;
  * @param newmove the Move this node contains.
  */
 MoveNode::MoveNode(std::shared_ptr<TTAProgram::Move> newmove) :
-    move_(newmove), cycle_(0), moveOwned_(true), placed_(false) {
+    move_(newmove), cycle_(0),  placed_(false) {
 }
 
 
@@ -81,13 +81,12 @@ MoveNode::MoveNode(std::shared_ptr<TTAProgram::Move> newmove) :
  */
 
 MoveNode::MoveNode() :
-    move_(NULL), cycle_(0), moveOwned_(false), placed_(false) {
+    move_(NULL), cycle_(0), placed_(false) {
 }
 
 /**
  * Destructor.
  *
- * Deletes the owned Move instance.
  * Does not unregister this movenode from ProgramOperations.
  */
 MoveNode::~MoveNode() {
@@ -636,37 +635,6 @@ MoveNode::removeDestinationOperation(const ProgramOperation* ptr) {
 void
 MoveNode::unsetSourceOperation() {
     srcOp_ = ProgramOperationPtr();
-}
-
-/**
- * Test if Move is owned by MoveNode.
- *
- * @return True if Move is owned by MoveNode and will be destroyed by it.
- */
-bool
-MoveNode::isMoveOwned() const {
-    return moveOwned_;
-}
-
-/**
- * Sets flag to notify MoveNode that it owns it's Move and has to destroy
- * it in destructor. Happens when Move is removed from Instruction by
- * unassigning in RM.
- *
- */
-void
-MoveNode::setMoveOwned() {
-    moveOwned_ = true;
-}
-
-/**
- * Unsets flag to notify MoveNode that it does not own it's Move. Ownership
- * was passed to Instruction object most likely during assignment by RM.
- *
- */
-void
-MoveNode::unsetMoveOwned() {
-    moveOwned_ = false;
 }
 
 /**

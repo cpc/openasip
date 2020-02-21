@@ -218,9 +218,6 @@ ITemplateBroker::assign(int cycle, MoveNode& node, SchedulingResource& res) {
             ins->setInstructionTemplate(iTemplate);
             templateRes.assign(cycle);
         }
-        if (node.isMoveOwned()) {
-            node.unsetMoveOwned();
-        }
         ins->addMove(node.movePtr());
 
     } catch (const std::bad_cast& e) {
@@ -333,8 +330,6 @@ ITemplateBroker::unassign(MoveNode& node) {
                 oldParentInstruction_, &node);
         if (oldParent != NULL) {
             oldParent->addMove(node.movePtr());
-        } else {
-            node.setMoveOwned();
         }
         oldParentInstruction_.erase(&node);
     }

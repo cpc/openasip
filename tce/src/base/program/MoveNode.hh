@@ -109,14 +109,11 @@ public:
 
     void addDestinationOperationPtr(ProgramOperationPtr po);
     void setSourceOperationPtr(ProgramOperationPtr po);
-    void setMoveOwned();
 
     void clearDestinationOperation();
     void removeDestinationOperation(const ProgramOperation* po);
     void unsetSourceOperation();
-    void unsetMoveOwned();
 
-    bool isMoveOwned() const;
     // to allow printing of graph
     int type();
     std::string toString() const;
@@ -144,11 +141,6 @@ private:
     /// Cycle in which the node is placed. Each cycle uniquely identifies an
     /// instruction slot within the current scheduling scope.
     int cycle_;
-
-    /// True in case the Move is owned by the MoveNode.
-    /// Ownership changes during scheduling when Move is placed into
-    /// Instruction
-    bool moveOwned_;
 
     /// True when the node placed (is given a cycle in program).
     bool placed_;
