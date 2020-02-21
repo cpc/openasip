@@ -9,7 +9,7 @@ DDGPass.cc CopyingDelaySlotFiller.cc \
 RegisterRenamer.cc \
 SequentialScheduler.cc PreBypassBasicBlockScheduler.cc \
 BBSchedulerController.cc PreOptimizer.cc ResourceConstraintAnalyzer.cc \
-BUBasicBlockScheduler.cc BypassingBUBasicBlockScheduler.cc \
+BUBasicBlockScheduler.cc \
 PostpassOperandSharer.cc
 
 
@@ -62,7 +62,7 @@ libscheduleralgorithms_la_SOURCES += \
 	ResourceConstraintAnalyzer.hh BUBasicBlockScheduler.hh \
 	RegisterCopyAdder.hh BasicBlockPass.hh \
 	SoftwareBypasser.hh BasicBlockScheduler.hh \
-	BypassingBUBasicBlockScheduler.hh PreBypassBasicBlockScheduler.hh \
+	PreBypassBasicBlockScheduler.hh \
 	ProgramPass.hh CopyingDelaySlotFiller.hh \
 	PreOptimizer.hh InterPassData.hh \
 	BBSchedulerController.hh ProcedurePass.hh \

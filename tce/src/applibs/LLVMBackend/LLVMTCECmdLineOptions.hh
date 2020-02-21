@@ -70,8 +70,6 @@ public:
     
     bool useBUScheduler() const;
 
-    bool useRecursiveBUScheduler() const;
-
     bool useOldBackendSources() const;
     
     bool disableDelaySlotFiller() const;
@@ -120,7 +118,6 @@ private:
     static const std::string SWL_DUMP_DDGS_XML;
     static const std::string SWL_SAVE_BACKEND_PLUGIN;
     static const std::string SWL_BU_SCHEDULER;
-    static const std::string SWL_RECURSIVE_BU_SCHEDULER;
     static const std::string SWL_USE_OLD_BACKEND_SOURCES;
     static const std::string SWL_TEMP_DIR;
     static const std::string SWL_ENABLE_VECTOR_BACKEND;

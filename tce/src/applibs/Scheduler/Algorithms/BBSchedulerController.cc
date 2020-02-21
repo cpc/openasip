@@ -60,7 +60,6 @@
 #include "BasicBlockScheduler.hh"
 #include "RegisterRenamer.hh"
 #include "BUBasicBlockScheduler.hh"
-#include "BypassingBUBasicBlockScheduler.hh"
 
 namespace TTAMachine {
     class UniversalMachine;
@@ -140,11 +139,7 @@ BBSchedulerController::handleBasicBlock(
 
     std::vector<DDGPass*> bbSchedulers;
 
-    if (options_ != NULL && options_->useRecursiveBUScheduler()) {
-        bbSchedulers.push_back(
-            new BypassingBUBasicBlockScheduler(
-                BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr));
-    } else if (options_ != NULL && options_->useBUScheduler()) {
+    if (options_ != NULL && options_->useBUScheduler()) {
        bbSchedulers.push_back(
            new BUBasicBlockScheduler(
                BasicBlockPass::interPassData(), softwareBypasser_, NULL, rr));
