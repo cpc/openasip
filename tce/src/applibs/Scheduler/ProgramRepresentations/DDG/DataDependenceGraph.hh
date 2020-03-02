@@ -143,6 +143,7 @@ public:
     NodeSet scheduledMoves() const;
     NodeSet movesAtCycle(int cycle) const;
 
+    MoveNode* onlyGuardDefOfMove(MoveNode& moveNode);
     MoveNode* lastGuardDefMove(MoveNode& moveNode);
     NodeSet guardDefMoves(const MoveNode& moveNode);
 
@@ -334,6 +335,8 @@ public:
     }
 
     bool isNotAvoidable(const DataDependenceEdge& edge) const;
+
+    bool isLoopInvariant(const MoveNode& mn) const;
 
 private:
     bool rWawRawEdgesOutUncond(MoveNode& mn);

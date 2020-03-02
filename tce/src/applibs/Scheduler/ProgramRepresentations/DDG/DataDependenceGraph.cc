@@ -3867,7 +3867,19 @@ bool DataDependenceGraph::guardsAllowBypass(
     return defNode.move().guard().guard().isEqual(
         useNode.move().guard().guard());
 }
-    
+
+/**
+ * Finds (only) node which writes the guard value of a move.
+ * If none or multiple, return NULL
+ */
+MoveNode* DataDependenceGraph::onlyGuardDefOfMove(MoveNode& moveNode) {
+    NodeSet guardDefs = guardDefMoves(moveNode);
+    if (guardDefs.size() != 1) {
+        return NULL;
+    }
+    return *guardDefs.begin();
+}
+
 /**
  * Finds the move which writes the loop limit comparison value into
  * the loop comparison operation.
@@ -4609,4 +4621,17 @@ DataDependenceGraph::isNotAvoidable(const DataDependenceEdge& edge) const {
     
         
     return false;
+}
+
+bool DataDependenceGraph::isLoopInvariant(const MoveNode& mn) const {
+    EdgeSet iEdges = inEdges(mn);
+    for (EdgeSet::iterator i = iEdges.begin(); i != iEdges.end(); i++) {
+        DataDependenceEdge& e = **i;
+        if (e.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+            e.dependenceType() == DataDependenceEdge::DEP_RAW &&
+            !e.guardUse()) {
+            return false;
+        }
+    }
+    return true;
 }
