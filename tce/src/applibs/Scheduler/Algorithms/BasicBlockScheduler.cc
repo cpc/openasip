@@ -1285,7 +1285,8 @@ void BasicBlockScheduler::notifyScheduled(
 
 // find which movenode is the trigger of an operation.
 MoveNode*
-BasicBlockScheduler::findTrigger(ProgramOperation& po) {
+BasicBlockScheduler::findTrigger(
+    const ProgramOperation& po, const TTAMachine::Machine& mach) {
     for (int i = 0; i < po.inputMoveCount(); i++) {
         MoveNode& mn = po.inputMove(i);
         if (mn.isScheduled()) {
@@ -1308,7 +1309,7 @@ BasicBlockScheduler::findTrigger(ProgramOperation& po) {
     // no scheduled moves. getting harder.
     
     TTAMachine::Machine::FunctionUnitNavigator nav = 
-    targetMachine_->functionUnitNavigator();
+    mach.functionUnitNavigator();
     MoveNode* candidate = NULL;
     for (int i = 0; i < nav.count(); i++) {
         TTAMachine::FunctionUnit* fu = nav.item(i);
@@ -1325,8 +1326,8 @@ BasicBlockScheduler::findTrigger(ProgramOperation& po) {
         }
     }
     
-    if (targetMachine_->controlUnit()->hasOperation(po.operation().name())) {
-        return findTriggerFromUnit(po, *targetMachine_->controlUnit());
+    if (mach.controlUnit()->hasOperation(po.operation().name())) {
+        return findTriggerFromUnit(po, *mach.controlUnit());
     }
     return candidate;
     
@@ -1334,9 +1335,9 @@ BasicBlockScheduler::findTrigger(ProgramOperation& po) {
 
 MoveNode* 
 BasicBlockScheduler::findTriggerFromUnit(
-    ProgramOperation& po, TTAMachine::Unit& unit) {
-    TTAMachine::FunctionUnit* fu = 
-    dynamic_cast<TTAMachine::FunctionUnit*>(&unit);
+    const ProgramOperation& po, const TTAMachine::Unit& unit) {
+    const TTAMachine::FunctionUnit* fu =
+    dynamic_cast<const TTAMachine::FunctionUnit*>(&unit);
     int ioIndex = -1;
     for (int i = 0; i < fu->operationPortCount(); i++) {
         TTAMachine::FUPort* port = fu->operationPort(i);

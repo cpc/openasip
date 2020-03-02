@@ -434,7 +434,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves, int cycle) {
         // Try to schedule trigger first, otherwise the operand
         // may get scheduled in cycle where trigger does not fit and
         // later cycle will not be possible for trigger.
-        trigger = findTrigger(po);
+        trigger = findTrigger(po, *targetMachine_);
         if (trigger != NULL && !trigger->isScheduled()) {
             if (scheduleOperand(*trigger, cycle) == false) {
                 cycle--;
