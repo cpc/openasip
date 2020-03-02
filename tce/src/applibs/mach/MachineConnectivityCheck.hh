@@ -189,11 +189,9 @@ public:
         PortSet& ports,
         const MoveNode& dest);
 
-    static PortSet findWritePorts(
-        TTAMachine::Unit& rf);
+    static PortSet findWritePorts(const TTAMachine::Unit& rf);
 
-    static PortSet findReadPorts(
-        TTAMachine::Unit& rf);
+    static PortSet findReadPorts(const TTAMachine::Unit& rf);
 
     static bool hasConditionalMoves(const TTAMachine::Machine& mach);
 
