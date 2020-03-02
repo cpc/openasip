@@ -124,6 +124,7 @@ public:
     void setTriggerInvalidatesResults(bool);
     void setFUOrdered(bool);
     
+    int maximumLatency() const;
 
     // functions inherited from Serializable interface
     virtual void loadState(const ObjectState* state);
