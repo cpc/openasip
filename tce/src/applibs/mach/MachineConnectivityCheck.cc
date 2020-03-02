@@ -83,14 +83,14 @@ MachineConnectivityCheck::MachineConnectivityCheck(
 
 bool
 MachineConnectivityCheck::isConnected(
-    std::set<const TTAMachine::Port*> sourcePorts,
-    std::set<const TTAMachine::Port*> destinationPorts,
+    PortSet sourcePorts,
+    PortSet destinationPorts,
     const Guard* guard) {
-    for (std::set<const TTAMachine::Port*>::iterator i =
+    for (PortSet::iterator i =
              sourcePorts.begin();
          i != sourcePorts.end(); i++) {
         const TTAMachine::Port& sport = **i;
-        for (std::set<const TTAMachine::Port*>::iterator j =
+        for (PortSet::iterator j =
                  destinationPorts.begin();
              j != destinationPorts.end(); j++) {
             if (isConnected(sport, **j, guard)) {
@@ -231,10 +231,10 @@ MachineConnectivityCheck::canTransportImmediate(
 bool 
 MachineConnectivityCheck::canTransportImmediate(
     const TTAProgram::TerminalImmediate& immediate,
-    std::set<const TTAMachine::Port*> destinationPorts,
+    PortSet destinationPorts,
     Guard* guard) {
 
-    for (std::set<const TTAMachine::Port*>::iterator i =
+    for (PortSet::iterator i =
              destinationPorts.begin();
          i != destinationPorts.end(); i++) {
         if (canTransportImmediate(immediate, **i, guard)) {
@@ -1032,10 +1032,10 @@ MachineConnectivityCheck::totalConnectionCount(
 }
 
 
-std::set<const TTAMachine::Port*> 
+MachineConnectivityCheck::PortSet
 MachineConnectivityCheck::findPossibleDestinationPorts(
 const TTAMachine::Machine& mach, const MoveNode& node) {
-    std::set<const TTAMachine::Port*> res;
+    PortSet res;
     if (node.isScheduled()) {
         res.insert(&node.move().destination().port());
         return res;
@@ -1133,9 +1133,9 @@ const TTAMachine::Machine& mach, const MoveNode& node) {
         *node.move().destination().port().parentUnit());
 }
 
-std::set<const TTAMachine::Port*> 
+MachineConnectivityCheck::PortSet
 MachineConnectivityCheck::findWritePorts(TTAMachine::Unit& rf) {
-    std::set<const TTAMachine::Port*> res;
+    PortSet res;
     for (int i = 0; i < rf.portCount(); i++) {
         TTAMachine::Port* port = rf.port(i);
         if (port->isInput()) {
@@ -1145,9 +1145,9 @@ MachineConnectivityCheck::findWritePorts(TTAMachine::Unit& rf) {
     return res;
 }
 
-std::set<const TTAMachine::Port*> 
+MachineConnectivityCheck::PortSet
 MachineConnectivityCheck::findReadPorts(TTAMachine::Unit& rf) {
-    std::set<const TTAMachine::Port*> res;
+    PortSet res;
     for (int i = 0; i < rf.portCount(); i++) {
         TTAMachine::Port* port = rf.port(i);
         if (port->isOutput()) {
@@ -1157,10 +1157,10 @@ MachineConnectivityCheck::findReadPorts(TTAMachine::Unit& rf) {
     return res;
 }
 
-std::set<const TTAMachine::Port*> 
+MachineConnectivityCheck::PortSet
 MachineConnectivityCheck::findPossibleSourcePorts(
     const TTAMachine::Machine& mach, const MoveNode& node) {
-    std::set<const TTAMachine::Port*> res;
+    PortSet res;
     if (node.isScheduled() && !node.isSourceConstant()) {
         res.insert(&node.move().source().port());
         return res;
@@ -1240,7 +1240,7 @@ MachineConnectivityCheck::findPossibleSourcePorts(
  * -1 = can write through limm
  */
 int MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
-    const MoveNode& src, std::set<const TTAMachine::Port*>& destinationPorts) {
+    const MoveNode& src, PortSet& destinationPorts) {
 
     int trueVal = 1;
     if (destinationPorts.empty()) {
@@ -1259,8 +1259,7 @@ int MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
         }
     }
 
-    std::set<const TTAMachine::Port*>
-        sourcePorts = findPossibleSourcePorts(
+    PortSet sourcePorts = findPossibleSourcePorts(
             *(*destinationPorts.begin())->parentUnit()->machine(), src);
 
     // TODO: Why cannot move.guard return pointer which is NULL if unconditional?
@@ -1276,15 +1275,13 @@ int MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
 
 bool
 MachineConnectivityCheck::canAnyPortWriteToDestination(
-    std::set<const TTAMachine::Port*>& sourcePorts, 
-    const MoveNode& dest) {
+    PortSet& sourcePorts, const MoveNode& dest) {
 
     if (sourcePorts.empty()) {
         return false;
     }
 
-    std::set<const TTAMachine::Port*>
-        destPorts = findPossibleDestinationPorts(
+    PortSet destPorts = findPossibleDestinationPorts(
             *(*sourcePorts.begin())->parentUnit()->machine(), dest);
     return MachineConnectivityCheck::isConnected(sourcePorts, destPorts);
 }
@@ -1292,8 +1289,7 @@ MachineConnectivityCheck::canAnyPortWriteToDestination(
 bool 
 MachineConnectivityCheck::canTransportMove(
     MoveNode& moveNode, const TTAMachine::Machine& machine) {
-    std::set<const TTAMachine::Port*>
-        destinationPorts = 
+    PortSet destinationPorts =
         MachineConnectivityCheck::findPossibleDestinationPorts(
             machine,moveNode);
 

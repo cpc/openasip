@@ -39,6 +39,7 @@
 
 #include "MachineCheck.hh"
 #include "ProgramAnnotation.hh"
+#include "MachinePart.hh"
 
 class TCEString;
 class MoveNode;
@@ -66,6 +67,9 @@ namespace TTAProgram {
  */
 class MachineConnectivityCheck : MachineCheck {
 public:
+    typedef std::set<const TTAMachine::Port*,
+                     const TTAMachine::MachinePart::Comparator> PortSet;
+
     static bool isConnected(
         const TTAMachine::Port& sourcePort,
         const TTAMachine::Port& destinationPort,
@@ -94,8 +98,8 @@ public:
         const TTAMachine::FunctionUnit& destFU);
 
     static bool isConnected(
-        std::set<const TTAMachine::Port*> sourcePorts,
-        std::set<const TTAMachine::Port*> destinationPorts,
+        PortSet sourcePorts,
+        PortSet destinationPorts,
         const TTAMachine::Guard* guard = NULL);
 
     static bool canWriteAllImmediates(TTAMachine::Port& destPort);
@@ -112,7 +116,7 @@ public:
 
     static bool canTransportImmediate(
         const TTAProgram::TerminalImmediate& immediate,
-        std::set<const TTAMachine::Port*> destinationPorts,
+        PortSet destinationPorts,
         TTAMachine::Guard* guard = NULL);
     
     static bool canTransportMove(
@@ -171,24 +175,24 @@ public:
 
     static int totalConnectionCount(const TTAMachine::Machine& mach);
     
-    static std::set<const TTAMachine::Port*> findPossibleDestinationPorts(
+    static PortSet findPossibleDestinationPorts(
         const TTAMachine::Machine& mach, const MoveNode& node);
 
-    static std::set<const TTAMachine::Port*> findPossibleSourcePorts(
+    static PortSet findPossibleSourcePorts(
         const TTAMachine::Machine& mach, const MoveNode& node);
 
     static int canSourceWriteToAnyDestinationPort(
         const MoveNode& src, 
-        std::set<const TTAMachine::Port*>& ports);
+        PortSet& ports);
 
     static bool canAnyPortWriteToDestination(
-        std::set<const TTAMachine::Port*>& ports,
+        PortSet& ports,
         const MoveNode& dest);
 
-    static std::set<const TTAMachine::Port*> findWritePorts(
+    static PortSet findWritePorts(
         TTAMachine::Unit& rf);
 
-    static std::set<const TTAMachine::Port*> findReadPorts(
+    static PortSet findReadPorts(
         TTAMachine::Unit& rf);
 
     static bool hasConditionalMoves(const TTAMachine::Machine& mach);

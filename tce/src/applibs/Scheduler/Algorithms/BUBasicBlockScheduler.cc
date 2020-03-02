@@ -1167,7 +1167,7 @@ BUBasicBlockScheduler::findBypassDestinations(
                 // using inverse guard of guarded source.
                 continue;
             }
-            std::set<const TTAMachine::Port*> destinationPorts;            
+            MachineConnectivityCheck::PortSet destinationPorts;
             destinationPorts.insert(&n->move().destination().port());
             
             if (MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(

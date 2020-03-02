@@ -985,8 +985,7 @@ RegisterRenamer::findConnectedRFs(LiveRange& lr, bool allowLimm) {
         if (rf->width() != bitwidth) {
             continue;
         }
-        std::set<const TTAMachine::Port*> writePorts = 
-            MachineConnectivityCheck::findWritePorts(*rf);
+        auto writePorts = MachineConnectivityCheck::findWritePorts(*rf);
         bool connected = true;
         
         for (DataDependenceGraph::NodeSet::iterator j = lr.writes.begin();
@@ -1007,8 +1006,7 @@ RegisterRenamer::findConnectedRFs(LiveRange& lr, bool allowLimm) {
             continue;
         }
         
-        std::set<const TTAMachine::Port*> readPorts = 
-            MachineConnectivityCheck::findReadPorts(*rf);
+        auto readPorts = MachineConnectivityCheck::findReadPorts(*rf);
         
         for (DataDependenceGraph::NodeSet::iterator j = lr.reads.begin();
              j != lr.reads.end() && connected; j++) {
