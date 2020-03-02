@@ -236,6 +236,8 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
 
     std::set<TCEString> candidateFUs;
     std::set<TCEString> allowedFUs;
+    std::set<TCEString> rejectedFUs;
+
     // not all nodes have dest operation info set as the RM can be called
     // for single moves 
     if (node.isDestinationOperation()) {
@@ -250,6 +252,9 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
             MachineConnectivityCheck::addAnnotatedFUs(
                 allowedFUs, n.move(),
                 TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST);
+            MachineConnectivityCheck::addAnnotatedFUs(
+                rejectedFUs, n.move(),
+                TTAProgram::ProgramAnnotation::ANN_REJECTED_UNIT_DST);
         }
     }
     
@@ -289,6 +294,14 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
             debugLogRM(
                 TCEString("skipped ") << unit->name() << " because it was not "
                 " in the allowed set.");
+            ++resIter;
+            continue;
+        }
+
+        if (AssocTools::containsKey(rejectedFUs, unit->name())) {
+            debugLogRM(
+                TCEString("skipped ") << unit->name() << " because it was"
+                " in the rejected set.");
             ++resIter;
             continue;
         }

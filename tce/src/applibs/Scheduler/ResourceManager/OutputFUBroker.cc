@@ -179,6 +179,7 @@ OutputFUBroker::allAvailableResources(
     // choice of FU for the node
     std::set<TCEString> candidateFUs;
     std::set<TCEString> allowedFUs;
+    std::set<TCEString> rejectedFUs;
 
     // TODO: why is this in loop for operands but not in loop for results?
     // do multiple return values break or work?
@@ -188,6 +189,9 @@ OutputFUBroker::allAvailableResources(
     MachineConnectivityCheck::addAnnotatedFUs(
         allowedFUs, node.move(),
         TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC);
+    MachineConnectivityCheck::addAnnotatedFUs(
+        rejectedFUs, node.move(),
+        TTAProgram::ProgramAnnotation::ANN_REJECTED_UNIT_SRC);
 
     // find units that support operation and are available at given cycle
     while (resIter != resMap_.end()) {
@@ -203,6 +207,14 @@ OutputFUBroker::allAvailableResources(
         }
         if (allowedFUs.size() > 0 &&
             !AssocTools::containsKey(allowedFUs, unit->name())) {
+            ++resIter;
+            continue;
+        }
+
+        if (AssocTools::containsKey(rejectedFUs, unit->name())) {
+            debugLogRM(
+                TCEString("skipped ") << unit->name() << " because it was"
+                " in the rejected set.");
             ++resIter;
             continue;
         }
