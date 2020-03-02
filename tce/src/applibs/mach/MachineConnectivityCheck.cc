@@ -1134,7 +1134,7 @@ const TTAMachine::Machine& mach, const MoveNode& node) {
 }
 
 MachineConnectivityCheck::PortSet
-MachineConnectivityCheck::findWritePorts(TTAMachine::Unit& rf) {
+MachineConnectivityCheck::findWritePorts(const TTAMachine::Unit& rf) {
     PortSet res;
     for (int i = 0; i < rf.portCount(); i++) {
         TTAMachine::Port* port = rf.port(i);
@@ -1146,7 +1146,7 @@ MachineConnectivityCheck::findWritePorts(TTAMachine::Unit& rf) {
 }
 
 MachineConnectivityCheck::PortSet
-MachineConnectivityCheck::findReadPorts(TTAMachine::Unit& rf) {
+MachineConnectivityCheck::findReadPorts(const TTAMachine::Unit& rf) {
     PortSet res;
     for (int i = 0; i < rf.portCount(); i++) {
         TTAMachine::Port* port = rf.port(i);
