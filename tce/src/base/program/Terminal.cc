@@ -156,6 +156,18 @@ Terminal::isCodeSymbolReference() const {
 }
 
 /**
+ * Tells whether the terminal is a reg in UniversalMachine
+ *
+ * @return True if the terminal is a register in universalmachine,
+ * ie. not in any real machine. This practically means the
+ * register is unallocated and meant to be bypassed.
+ */
+bool
+Terminal::isUniversalMachineRegister() const {
+    return false;
+}
+
+/**
  * Returns the value of the inline immediate.
  *
  * @return The value of the inline immediate.

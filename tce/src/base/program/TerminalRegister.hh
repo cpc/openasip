@@ -61,6 +61,7 @@ public:
 
     virtual bool isImmediateRegister() const;
     virtual bool isGPR() const;
+    virtual bool isUniversalMachineRegister() const;
 
     virtual const TTAMachine::RegisterFile& registerFile() const;
     virtual const TTAMachine::ImmediateUnit& immediateUnit() const;
