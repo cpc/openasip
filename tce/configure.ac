@@ -807,8 +807,8 @@ case "$LLVM_VERSION" in
      LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
    ;;
-     10*)
-     AC_DEFINE([LLVM_10], [], "Using LLVM 10")
+     10git)
+     AC_DEFINE([LLVM_10], [], "Using LLVM 10git(Trunk)")
      AC_MSG_CHECKING([whether the used LLVM 10 has the custom vector extension patch])
      if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
      then
@@ -826,6 +826,25 @@ case "$LLVM_VERSION" in
      LLVM_SHARED_LIB=-lLLVM-$LLVM_LIBRARYVERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
    ;;
+     10*)
+     AC_DEFINE([LLVM_10], [], "Using LLVM 10(Release)")
+     AC_MSG_CHECKING([whether the used LLVM 10 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 10 does not have the custom vector extension patch. Use tools/scripts/install_llvm_10.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
+     fi
+     LLVM_VERSION=10
+     LLVM_LIBRARYVERSION=10
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_LIBRARYVERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+;;
 
      *)
    AC_MSG_NOTICE(
