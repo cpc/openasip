@@ -3505,9 +3505,10 @@ DataDependenceGraph::onlyRegisterRawSource(const MoveNode& mn) const {
  * @return only move reading reg this writes or NULL if no or multiple.
  */
 
-MoveNodeSet 
-DataDependenceGraph::onlyRegisterRawDestinations(const MoveNode& mn) const {
-    MoveNodeSet destination;
+DataDependenceGraph::NodeSet
+DataDependenceGraph::onlyRegisterRawDestinations(
+    const MoveNode& mn, bool allowGuardEdges, bool allowBackEdges) const {
+    NodeSet destination;
     NodeDescriptor nd = descriptor(mn);
     
     // use the internal data structures to make this fast.
@@ -3521,10 +3522,12 @@ DataDependenceGraph::onlyRegisterRawDestinations(const MoveNode& mn) const {
         DataDependenceEdge* edge = graph_[ed];
         if (edge->dependenceType() == DataDependenceEdge::DEP_RAW &&
             edge->edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
-            !edge->guardUse() && !edge->tailPseudo()) {
-            if (!edge->headPseudo()) {
-                destination.addMoveNode(*graph_[boost::target(ed, graph_)]);
+            (allowGuardEdges || !edge->guardUse())
+            && !edge->tailPseudo()) {
+            if (!edge->headPseudo() && (allowBackEdges || !edge->isBackEdge())) {
+                destination.insert(graph_[boost::target(ed, graph_)]);
             } else {
+                destination.clear();
                 break;
             }
         }

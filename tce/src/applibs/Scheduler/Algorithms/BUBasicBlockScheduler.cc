@@ -1154,12 +1154,11 @@ BUBasicBlockScheduler::findBypassDestinations(
     // TODO: Fix when DDG could handle multiple destinations
     maxHopCount = 1;
     for (int i = 0; i < maxHopCount; i++) {
-        MoveNodeSet rrDestinations = ddg_->onlyRegisterRawDestinations(*n);
-        if (rrDestinations.count() == 0) {
+        auto rrDestinations = ddg_->onlyRegisterRawDestinations(*n);
+        if (rrDestinations.empty()) {
             break;
         }
-        for (int j = 0; j < rrDestinations.count(); j++) {
-            n = &rrDestinations.at(j);
+        for (auto n: rrDestinations) {
             if (ddg_->onlyRegisterEdgeIn(*n) == NULL) {
                 // No bypassing of moves with multiple register definition
                 // sources.

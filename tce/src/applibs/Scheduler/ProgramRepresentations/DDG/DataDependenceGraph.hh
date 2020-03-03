@@ -264,8 +264,12 @@ public:
 
     DataDependenceEdge* onlyIncomingGuard(const MoveNode& mn) const;
     MoveNode* onlyRegisterRawSource(const MoveNode& mn) const;
-    MoveNodeSet onlyRegisterRawDestinations(const MoveNode& mn) const;
     
+    NodeSet onlyRegisterRawDestinations(
+        const MoveNode& mn,
+        bool allowGuardEdges = false,
+        bool allowBackEdges = false) const;
+
     NodeSet regWarSuccessors(const MoveNode& node) const;
     NodeSet regRawSuccessors(const MoveNode& node) const;
     NodeSet regWawSuccessors(const MoveNode& node) const;
