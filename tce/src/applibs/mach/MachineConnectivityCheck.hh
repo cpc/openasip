@@ -107,17 +107,17 @@ public:
     static bool canTransportImmediate(
         const TTAProgram::TerminalImmediate& immediate,
         const TTAMachine::BaseRegisterFile& destRF,
-        TTAMachine::Guard* guard = NULL);
+        const TTAMachine::Guard* guard = NULL);
 
     static bool canTransportImmediate(
         const TTAProgram::TerminalImmediate& immediate,
         const TTAMachine::Port& destinationPort,
-        TTAMachine::Guard* guard = NULL);
+        const TTAMachine::Guard* guard = NULL);
 
     static bool canTransportImmediate(
         const TTAProgram::TerminalImmediate& immediate,
         PortSet destinationPorts,
-        TTAMachine::Guard* guard = NULL);
+        const TTAMachine::Guard* guard = NULL);
     
     static bool canTransportMove(
         MoveNode& moveNode, const TTAMachine::Machine& machine);

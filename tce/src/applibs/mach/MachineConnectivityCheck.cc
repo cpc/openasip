@@ -165,7 +165,7 @@ bool
 MachineConnectivityCheck::canTransportImmediate(
     const TTAProgram::TerminalImmediate& immediate,
     const TTAMachine::BaseRegisterFile& destRF,
-    Guard* guard) {
+    const Guard* guard) {
 
     std::set<const TTAMachine::Bus*> buses;
     MachineConnectivityCheck::appendConnectedSourceBuses(destRF, buses);
@@ -201,7 +201,7 @@ bool
 MachineConnectivityCheck::canTransportImmediate(
     const TTAProgram::TerminalImmediate& immediate,
     const TTAMachine::Port& destinationPort,
-    Guard* guard) {
+    const Guard* guard) {
 
     std::set<const TTAMachine::Bus*> buses;
     MachineConnectivityCheck::appendConnectedSourceBuses(
@@ -232,7 +232,7 @@ bool
 MachineConnectivityCheck::canTransportImmediate(
     const TTAProgram::TerminalImmediate& immediate,
     PortSet destinationPorts,
-    Guard* guard) {
+    const Guard* guard) {
 
     for (PortSet::iterator i =
              destinationPorts.begin();
