@@ -288,6 +288,26 @@ Machine::Navigator<ComponentType>::count() const {
     return container_->count();
 }
 
+/**
+ * Returns an iterator at the beginning of the container.
+ *
+ */
+template <typename ComponentType>
+typename Machine::Navigator<ComponentType>::const_iterator
+Machine::Navigator<ComponentType>::begin() const noexcept {
+    return container_->begin();
+}
+
+/**
+ * Returns an iterator to the end of the container.
+ *
+ */
+template <typename ComponentType>
+typename Machine::Navigator<ComponentType>::const_iterator
+Machine::Navigator<ComponentType>::end() const noexcept {
+    return container_->end();
+}
+
 
 /////////////////////////////////////////////////////////////////////////////
 // Machine::ComponentContainer
@@ -460,5 +480,25 @@ Machine::ComponentContainer<ComponentType>::moveToPosition(
     typename ComponentTable::iterator addIter = components_.begin();
     addIter += position;
     components_.insert(addIter, const_cast<ComponentType*>(component));
+}
+
+/**
+ * Returns an iterator at the beginning of the container.
+ *
+ */
+template <typename ComponentType>
+typename Machine::ComponentContainer<ComponentType>::const_iterator
+Machine::ComponentContainer<ComponentType>::begin() const noexcept {
+    return components_.cbegin();
+}
+
+/**
+ * Returns an iterator to the end of the container.
+ *
+ */
+template <typename ComponentType>
+typename Machine::ComponentContainer<ComponentType>::const_iterator
+Machine::ComponentContainer<ComponentType>::end() const noexcept {
+    return components_.cend();
 }
 }

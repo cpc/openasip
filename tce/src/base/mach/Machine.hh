@@ -157,10 +157,15 @@ public:
         int count() const;
         void moveToPosition(const ComponentType* component, int position);
 
-    private:
         /// Table of ComponentType pointers.
         typedef std::vector<ComponentType*> ComponentTable;
 
+        typedef typename ComponentTable::const_iterator const_iterator;
+
+        const_iterator begin() const noexcept;
+        const_iterator end() const noexcept;
+
+    private:
         /// Contains all the components of the container.
         ComponentTable components_;
     };
@@ -185,6 +190,13 @@ public:
         ComponentType* item(const std::string& name) const;
         bool hasItem(const std::string& name) const;
         int count() const;
+
+        typedef typename
+        Machine::ComponentContainer<ComponentType>::const_iterator
+        const_iterator;
+
+        const_iterator begin() const noexcept;
+        const_iterator end() const noexcept;
 
     private:
         /// The container which this navigator handles.
