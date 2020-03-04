@@ -1288,7 +1288,7 @@ MachineConnectivityCheck::canAnyPortWriteToDestination(
 
 bool 
 MachineConnectivityCheck::canTransportMove(
-    MoveNode& moveNode, const TTAMachine::Machine& machine) {
+    const MoveNode& moveNode, const TTAMachine::Machine& machine) {
     PortSet destinationPorts =
         MachineConnectivityCheck::findPossibleDestinationPorts(
             machine,moveNode);
@@ -1440,4 +1440,27 @@ std::pair<bool,bool> MachineConnectivityCheck::hasBothGuards(
         }
     }
     return std::pair<bool, bool>(trueOK, falseOK);
+}
+
+int MachineConnectivityCheck::maxLIMMCount(
+    const TTAMachine::Machine& targetMachine) {
+    auto iuNav = targetMachine.immediateUnitNavigator();
+    int limmCount = 0;
+    for (auto iu : iuNav) {
+        limmCount += iu->maxReads();
+    }
+    return limmCount;
+}
+
+int MachineConnectivityCheck::maxSIMMCount(
+    const TTAMachine::Machine& targetMachine) {
+
+    auto busNav = targetMachine.busNavigator();
+    int simmCount = 0;
+    for (auto bus : busNav) {
+        if (bus->immediateWidth() > 0) {
+            simmCount++;
+        }
+    }
+    return simmCount;
 }
