@@ -64,6 +64,7 @@ function apply_patches {
     try_patch $patch_dir/llvm-10-custom-vector-extension.patch
     try_patch $patch_dir/llvm-9-vect-datalayout.patch
     try_patch $patch_dir/llvm-9-SPIR-address-space-numbers.patch
+    try_patch $patch_dir/llvm-10-SWP.patch
     cd ..
 }
 fetch_llvm
