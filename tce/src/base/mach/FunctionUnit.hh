@@ -68,6 +68,7 @@ public:
     virtual bool hasOperationPort(const std::string& name) const;
     virtual FUPort* operationPort(const std::string& name) const;
     virtual FUPort* operationPort(int index) const;
+    virtual BaseFUPort* triggerPort() const;
 
     virtual void addOperation(HWOperation& operation);
     virtual void deleteOperation(HWOperation& operation);

@@ -261,6 +261,20 @@ FunctionUnit::operationPort(int index) const {
 }
 
 /**
+ * Returns triggering port if found. Otherwise returns NULL.
+ */
+BaseFUPort*
+FunctionUnit::triggerPort() const {
+    int portc = portCount();
+    for (int i = 0; i < portc; i++) {
+        if (port(i)->isTriggering()) {
+            return port(i);
+        }
+    }
+    return NULL;
+}
+
+/**
  * Adds an operation into the function unit. This method is called from
  * HWOperation constructor. Do not use this method.
  *
