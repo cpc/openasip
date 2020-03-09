@@ -807,7 +807,7 @@ case "$LLVM_VERSION" in
      LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
    ;;
-     10git)
+     10.*git)
      AC_DEFINE([LLVM_10], [], "Using LLVM 10git(Trunk)")
      AC_MSG_CHECKING([whether the used LLVM 10 has the custom vector extension patch])
      if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
