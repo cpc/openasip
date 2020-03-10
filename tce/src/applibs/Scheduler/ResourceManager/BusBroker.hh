@@ -65,27 +65,68 @@ public:
         unsigned int initiationInterval = 0);
     virtual ~BusBroker();
 
-    virtual bool isAnyResourceAvailable(int cycle, const MoveNode& node)
-        const;
+    virtual bool isAnyResourceAvailable(int cycle, const MoveNode& node,
+                                        const TTAMachine::Bus* bus,
+                                        const TTAMachine::FunctionUnit* srcFU,
+                                        const TTAMachine::FunctionUnit* dstFU,
+                                        int immWriteCycle,
+                                        const TTAMachine::ImmediateUnit* immu,
+                                        int immRegIndex)
+        const override;
     virtual SchedulingResource& availableResource(
-        int cycle, const MoveNode& node) const;
+        int cycle,
+        const MoveNode& node, const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcFU,
+        const TTAMachine::FunctionUnit* dstFU,
+        int immWriteCycle,
+        const TTAMachine::ImmediateUnit* immu,
+        int immRegIndex) const override;
     virtual SchedulingResourceSet allAvailableResources(
-        int cycle, const MoveNode& node) const;
+        int cycle, const MoveNode& node, const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcFU,
+        const TTAMachine::FunctionUnit* dstFU,
+        int immWriteCycle,
+        const TTAMachine::ImmediateUnit* immu,
+        int immRegIndex) const override;
     virtual bool isAvailable(
-        SchedulingResource& des, const MoveNode& node, int cycle) const;
-    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res);
+        SchedulingResource& des, const MoveNode& node, int cycle,
+        const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcFU,
+        const TTAMachine::FunctionUnit* dstFU,
+        int immWriteCycle,
+	const TTAMachine::ImmediateUnit* immu,
+	int immRegIndex) const override;
+    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res,
+                        int immWriteCycle,
+                        int immRegIndex) override;
     virtual void unassign(MoveNode& node);
 
-    virtual int earliestCycle(int cycle, const MoveNode& node) const;
-    virtual int latestCycle(int cycle, const MoveNode& node) const;
-    virtual bool isAlreadyAssigned(int cycle, const MoveNode& node) const;
-    virtual bool isApplicable(const MoveNode& node) const;
+    virtual int earliestCycle(int cycle, const MoveNode& node,
+                              const TTAMachine::Bus* bus,
+                              const TTAMachine::FunctionUnit* srcFU,
+                              const TTAMachine::FunctionUnit* dstFU,
+                              int immWriteCycle,
+                              const TTAMachine::ImmediateUnit* immu,
+                              int immRegIndex) const override;
+    virtual int latestCycle(int cycle, const MoveNode& node,
+                            const TTAMachine::Bus* bus,
+                            const TTAMachine::FunctionUnit* srcFU,
+                            const TTAMachine::FunctionUnit* dstFU,
+                            int immWriteCycle,
+                            const TTAMachine::ImmediateUnit* immu,
+                            int immRegIndex) const override;
+    virtual bool isAlreadyAssigned(
+        int cycle, const MoveNode& node,
+        const TTAMachine::Bus* preassignedBus) const override;
+    virtual bool isApplicable(
+        const MoveNode& node, const TTAMachine::Bus*) const override;
     virtual void buildResources(const TTAMachine::Machine& target);
     virtual void setupResourceLinks(const ResourceMapper& mapper);
 
     virtual bool isBusBroker() const;
 
-    virtual bool canTransportImmediate(const MoveNode& node) const;
+    virtual bool canTransportImmediate(
+        const MoveNode& node, const TTAMachine::Bus* preAssigndBus) const;
     virtual bool isInUse(int cycle, const MoveNode& node) const;
     virtual bool hasGuard(const MoveNode& node) const;
     void clear();
@@ -96,6 +137,7 @@ private:
     virtual ShortImmPSocketResource& findImmResource(
         BusResource& busRes) const;
     std::list<SchedulingResource*> shortImmPSocketResources_;
+    std::map<const MoveNode*, bool> busPreassigned_;
     ResourceBroker& inputPSocketBroker_;
     ResourceBroker& outputPSocketBroker_;
     bool hasLimm_;

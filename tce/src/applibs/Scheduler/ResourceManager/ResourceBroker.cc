@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2009 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -72,13 +72,17 @@ ResourceBroker::~ResourceBroker() {
  * to it in given cycle.
  */
 bool
-ResourceBroker::isAnyResourceAvailable(int cycle, const MoveNode& node)
-    const {
+ResourceBroker::isAnyResourceAvailable(int cycle, const MoveNode& node,
+                                       const TTAMachine::Bus*,
+                                       const TTAMachine::FunctionUnit*,
+                                       const TTAMachine::FunctionUnit*, int,
+                                       const TTAMachine::ImmediateUnit*,
+                                       int) const {
 
-//    cycle = instructionIndex(cycle);
     for (ResourceMap::const_iterator resIter = resMap_.begin();
          resIter != resMap_.end(); resIter++) {
 
+        // IUBroker overrides this so no need for immu check
         const SchedulingResource* res = (*resIter).second;
         if (res->isAvailable(cycle) && res->canAssign(cycle, node)) {
             return true;
@@ -104,13 +108,19 @@ ResourceBroker::isAnyResourceAvailable(int cycle, const MoveNode& node)
  * @exception InstanceNotFound If no available resource is found.
  */
 SchedulingResource&
-ResourceBroker::availableResource(int cycle, const MoveNode& node) const {
-    //    cycle = instructionIndex(cycle);
+ResourceBroker::availableResource(int cycle, const MoveNode& node,
+                                  const TTAMachine::Bus*,
+                                  const TTAMachine::FunctionUnit*,
+                                  const TTAMachine::FunctionUnit*, int,
+                                  const TTAMachine::ImmediateUnit*, int)
+    const {
+
     for (ResourceMap::const_iterator resIter = resMap_.begin();
          resIter != resMap_.end(); resIter++) {
 
         SchedulingResource* res = (*resIter).second;
-        if (res->isAvailable(cycle) && res->canAssign(cycle, node)) {
+        if (res->isAvailable(cycle)
+	    && res->canAssign(cycle, node)) {
             return *res;
         }
     }
@@ -130,7 +140,13 @@ ResourceBroker::availableResource(int cycle, const MoveNode& node) const {
  * @note This default implementation always returns an empty set.
  */
 SchedulingResourceSet
-ResourceBroker::allAvailableResources(int, const MoveNode&) const {
+ResourceBroker::allAvailableResources(int, const MoveNode&,
+                                      const TTAMachine::Bus*,
+                                      const TTAMachine::FunctionUnit*,
+                                      const TTAMachine::FunctionUnit*,
+                                      int,
+                                      const TTAMachine::ImmediateUnit*,
+                                      int) const {
     SchedulingResourceSet resourceSet;
     return resourceSet;
 }
@@ -140,8 +156,16 @@ ResourceBroker::allAvailableResources(int, const MoveNode&) const {
  * given cycle.
  */
 bool ResourceBroker::isAvailable(
-    SchedulingResource& res, const MoveNode& node, int cycle) const {
-    SchedulingResourceSet resources = allAvailableResources(cycle, node);
+    SchedulingResource& res, const MoveNode& node, int cycle,
+    const TTAMachine::Bus* bus,
+    const TTAMachine::FunctionUnit* srcFU,
+    const TTAMachine::FunctionUnit* dstFU,
+    int immWriteCycle,
+    const TTAMachine::ImmediateUnit* immu,
+    int immRegIndex) const {
+    SchedulingResourceSet resources =
+      allAvailableResources(cycle, node, bus, srcFU, dstFU,
+			    immWriteCycle, immu, immRegIndex);
     return resources.hasResource(res);
 }
 
@@ -154,7 +178,8 @@ bool ResourceBroker::isAvailable(
  * r is not one of the primary resources of this broker.
  */
 const TTAMachine::MachinePart&
-ResourceBroker::machinePartOf(const SchedulingResource& r) const {
+ResourceBroker::machinePartOf(const SchedulingResource& r) const
+    throw (WrongSubclass, KeyNotFound) {
     const TTAMachine::MachinePart* machinePart = NULL;
     try {
         machinePart = MapTools::keyForValue<const MachinePart*>(resMap_, &r);

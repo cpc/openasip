@@ -49,6 +49,10 @@
 #include "BaseFUPort.hh"
 #include "FunctionUnit.hh"
 #include "TCEString.hh"
+#include "FUPort.hh"
+#include "HWOperation.hh"
+#include "Guard.hh"
+#include "MoveGuard.hh"
 
 namespace TTAProgram{
     class NullOperation;
@@ -567,6 +571,35 @@ ProgramOperation::triggeringMove() const {
     return NULL;
 }
 
+MoveNode*
+ProgramOperation::findTriggerFromUnit(
+    const TTAMachine::Unit& unit) const {
+    const TTAMachine::FunctionUnit* fu =
+    dynamic_cast<const TTAMachine::FunctionUnit*>(&unit);
+    int ioIndex = -1;
+    assert(fu);
+
+    int portC = fu->portCount();
+    for (int i = 0; i < portC; i++) {
+        auto p = fu->port(i);
+        const TTAMachine::FUPort* port = dynamic_cast<const TTAMachine::FUPort*>(p);
+        if (port != nullptr && port->isTriggering()) {
+            const TTAMachine::HWOperation* hwop =
+            fu->operation(operation().name());
+            ioIndex = hwop->io(*port);
+            auto ngi = inputMoves_.find(ioIndex);
+            if (ngi == inputMoves_.end()) {
+                return NULL;
+            }
+            auto mng = *ngi->second;
+            if (mng.count() < 1)
+                return NULL;
+            return &mng.at(0);
+        }
+    }
+    return NULL;
+}
+
 MoveNode&
 ProgramOperation::moveNode(const TTAProgram::Move& move) const {
 
@@ -702,3 +735,70 @@ ProgramOperation::hasConstantOperand() const {
 }
 
 unsigned int ProgramOperation::idCounter = 0;
+
+const TTAMachine::FunctionUnit*
+ProgramOperation::scheduledFU() const {
+
+    for (int i = 0; i < inputMoveCount(); i++ ) {
+        MoveNode& inputNode = inputMove(i);
+        if (inputNode.isAssigned()) {
+            return static_cast<const TTAMachine::FunctionUnit*>(
+                inputNode.move().destination().port().parentUnit());
+        }
+    }
+    for (int i = 0; i < outputMoveCount(); i++ ) {
+        MoveNode& outputNode = outputMove(i);
+        if (outputNode.isAssigned()) {
+            auto& source = outputNode.move().source();
+            assert(source.isFUPort());
+            return &source.functionUnit();
+        }
+    }
+    return nullptr;
+}
+
+const TTAMachine::HWOperation* ProgramOperation::hwopFromOutMove(
+    const MoveNode& outputNode) const {
+    if (outputNode.isSourceOperation() &&
+        &outputNode.sourceOperation() == this) {
+        return outputNode.move().source().functionUnit().operation(
+            operation().name());
+    } else {
+        const TTAMachine::Guard& guard =
+            outputNode.move().guard().guard();
+        const TTAMachine::PortGuard* pg =
+            dynamic_cast<const TTAMachine::PortGuard*>(&guard);
+        assert(pg); // todo: throw?
+        const TTAMachine::Port* p = pg->port();
+        const TTAMachine::Unit* u = p->parentUnit();
+        const TTAMachine::FunctionUnit* fu =
+            static_cast<const TTAMachine::FunctionUnit*>(u);
+        return fu->operation(operation().name());
+    }
+}
+
+bool ProgramOperation::isLegalFU(const TTAMachine::FunctionUnit& fu) const {
+
+    if (!fu.hasOperation(operation_.name())) {
+        return false;
+    }
+    for (int i = 0; i < inputMoveCount(); i++) {
+        MoveNode& mn = inputMove(i);
+        TTAProgram::Move& move = mn.move();
+        if (move.hasAnnotation(
+                TTAProgram::ProgramAnnotation::ANN_REJECTED_UNIT_DST,
+                fu.name())) {
+            return false;
+        }
+    }
+    for (int i = 0; i < outputMoveCount(); i++) {
+        MoveNode& mn = outputMove(i);
+        TTAProgram::Move& move = mn.move();
+        if (move.hasAnnotation(
+                TTAProgram::ProgramAnnotation::ANN_REJECTED_UNIT_SRC,
+                fu.name())) {
+            return false;
+        }
+    }
+    return true;
+}

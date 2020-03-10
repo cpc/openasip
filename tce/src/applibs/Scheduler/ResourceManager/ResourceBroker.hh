@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2009 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -47,6 +47,9 @@
 namespace TTAMachine {
     class Machine;
     class MachinePart;
+    class Bus;
+    class FunctionUnit;
+    class ImmediateUnit;
 }
 
 
@@ -61,31 +64,74 @@ public:
     virtual ~ResourceBroker();
 
     typedef std::set<SchedulingResource*> ResourceSet;
-    virtual bool isAnyResourceAvailable(int cycle, const MoveNode& node)
-        const;
+    virtual bool isAnyResourceAvailable(
+        int cycle, const MoveNode& node,
+        const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcFU,
+        const TTAMachine::FunctionUnit* dstFU,
+        int immWriteCycle,
+        const TTAMachine::ImmediateUnit* immu,
+        int immRegIndex)
+      const;
     virtual SchedulingResource& availableResource(
-        int cycle, const MoveNode& node) const;
+        int cycle,
+        const MoveNode& node,
+        const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcFU,
+        const TTAMachine::FunctionUnit* dstFU,
+        int immWriteCycle,
+	const TTAMachine::ImmediateUnit* immu,
+	int immRegIndex) const;
     virtual SchedulingResourceSet allAvailableResources(
-        int cycle, const MoveNode& node) const;
+        int cycle, const MoveNode& node,
+        const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcFU,
+        const TTAMachine::FunctionUnit* dstFU,
+        int immWriteCycle,
+	const TTAMachine::ImmediateUnit* immu,
+	int immRegIndex) const;
     virtual bool isAvailable(
-        SchedulingResource& des, const MoveNode& node, int cycle) const;
-    virtual int earliestCycle(int cycle, const MoveNode& node) const = 0;
-//     virtual ResourceCyclePairList earliestCyclesOfAllResources(
-//         int cycle, const MoveNode& node) const = 0;
-    virtual int latestCycle(int cycle, const MoveNode& node) const = 0;
-//     virtual ResourceCyclePairList latestCyclesOfAllResources(
-//         int cycle, const MoveNode& node) const = 0;
-    virtual bool isAlreadyAssigned(int cycle, const MoveNode& node)
+        SchedulingResource& des, const MoveNode& node, int cycle,
+        const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcFU,
+        const TTAMachine::FunctionUnit* dstFU,
+        int immWriteCycle,
+	const TTAMachine::ImmediateUnit* immu,
+	int immRegIndex) const;
+    virtual int earliestCycle(
+        int cycle, const MoveNode& node,
+        const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcFU,
+        const TTAMachine::FunctionUnit* dstFU,
+        int immWriteCycle,
+        const TTAMachine::ImmediateUnit* immu,
+        int immRegIndex) const = 0;
+    virtual int latestCycle(
+        int cycle, const MoveNode& node,
+        const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcFU,
+        const TTAMachine::FunctionUnit* dstFU,
+        int immWriteCycle,
+        const TTAMachine::ImmediateUnit* immu,
+        int immRegIndex) const = 0;
+    virtual bool isAlreadyAssigned(
+        int cycle, const MoveNode& node,const TTAMachine::Bus* preassignedBus)
         const = 0;
-    virtual bool isApplicable(const MoveNode& node) const = 0;
-    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res) = 0;
+    virtual bool isApplicable(
+        const MoveNode& node, const TTAMachine::Bus* preassignedBus) const = 0;
+    virtual void assign(
+        int cycle, MoveNode& node, SchedulingResource& res, int immWriteCycle,
+	int immRegIndex) = 0;
+
     virtual void unassign(MoveNode& node) = 0;
 
     virtual void buildResources(const TTAMachine::Machine& target) = 0;
     virtual void setupResourceLinks(const ResourceMapper& mapper) = 0;
-    inline SchedulingResource* resourceOf(const TTAMachine::MachinePart& mp) const;
+    inline SchedulingResource* resourceOf(
+        const TTAMachine::MachinePart& mp) const;
     virtual const TTAMachine::MachinePart& machinePartOf(
-        const SchedulingResource& r) const;
+        const SchedulingResource& r)
+        const throw (WrongSubclass, KeyNotFound);
     bool hasResourceOf(const TTAMachine::MachinePart& mp) const;
     bool hasResource(const SchedulingResource& r) const;
     int resourceCount() const;

@@ -67,17 +67,47 @@ public:
     ITemplateBroker(std::string, BusBroker& busBroker, SimpleResourceManager*, unsigned int initiationInterval = 0);
     virtual ~ITemplateBroker();
 
-    virtual bool isAnyResourceAvailable(int, const MoveNode&) const;
+    virtual bool isAnyResourceAvailable(int, const MoveNode&,
+                                        const TTAMachine::Bus* bus,
+                                        const TTAMachine::FunctionUnit* srcFU,
+                                        const TTAMachine::FunctionUnit* dstFU,
+                                        int immWriteCycle,
+                                        const TTAMachine::ImmediateUnit* immu,
+                                        int immRegIndex) const override;
     virtual SchedulingResourceSet allAvailableResources(
         int,
-        const MoveNode&) const;
-    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res);
+        const MoveNode&,
+        const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcUnit,
+        const TTAMachine::FunctionUnit* dstUnit,
+        int immWriteCycle,
+        const TTAMachine::ImmediateUnit* immu,
+        int immRegIndex) const override;
+    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res,
+                        int immWriteCycle,
+                        int immRegIndex) override;
+
     virtual void unassign(MoveNode& node);
 
-    virtual int earliestCycle(int cycle, const MoveNode& node) const;
-    virtual int latestCycle(int cycle, const MoveNode& node) const;
-    virtual bool isAlreadyAssigned(int cycle, const MoveNode& node) const;
-    virtual bool isApplicable(const MoveNode& node) const;
+    virtual int earliestCycle(int cycle, const MoveNode& node,
+                              const TTAMachine::Bus* bus,
+                              const TTAMachine::FunctionUnit* srcUnit,
+                              const TTAMachine::FunctionUnit* dstUnit,
+                              int immWriteCycle,
+                              const TTAMachine::ImmediateUnit* immu,
+                              int immRegIndex) const override;
+    virtual int latestCycle(int cycle, const MoveNode& node,
+                            const TTAMachine::Bus* bus,
+                            const TTAMachine::FunctionUnit* srcUnit,
+                            const TTAMachine::FunctionUnit* dstUnit,
+                            int immWriteCycle,
+                            const TTAMachine::ImmediateUnit* immu,
+                            int immRegIndex) const override;
+    virtual bool isAlreadyAssigned(
+        int cycle, const MoveNode& node,
+        const TTAMachine::Bus* preassignedBus) const override;
+    virtual bool isApplicable(
+        const MoveNode& node, const TTAMachine::Bus*) const override;
     virtual void buildResources(const TTAMachine::Machine& target);
     virtual void setupResourceLinks(const ResourceMapper& mapper);
 
@@ -89,7 +119,7 @@ public:
     void clearOldResources();
     void clear();
 private:
-    typedef std::vector<TTAProgram::Move*> Moves;
+    typedef std::vector<std::shared_ptr<TTAProgram::Move> > Moves;
     typedef std::vector<std::shared_ptr<TTAProgram::Immediate> > Immediates;
 
     SchedulingResourceSet findITemplates(int, Moves, Immediates) const;
