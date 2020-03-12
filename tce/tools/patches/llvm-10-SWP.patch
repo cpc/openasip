@@ -1,7 +1,7 @@
-diff --git a/llvm/lib/CodeGen/MachinePipeliner.cpp b/llvm/lib/CodeGen/MachinePipeliner.cpp
+diff --git llvm/lib/CodeGen/MachinePipeliner.cpp llvm/lib/CodeGen/MachinePipeliner.cpp
 index ef22caa877c..83e1e587584 100644
---- a/llvm/lib/CodeGen/MachinePipeliner.cpp
-+++ b/llvm/lib/CodeGen/MachinePipeliner.cpp
+--- llvm/lib/CodeGen/MachinePipeliner.cpp
++++ llvm/lib/CodeGen/MachinePipeliner.cpp
 @@ -1385,11 +1385,11 @@ void SwingSchedulerDAG::computeNodeFunctions(NodeSetType &NodeSets) {
                                      EP = SU->Preds.end();
           IP != EP; ++IP) {
@@ -39,10 +39,10 @@ index ef22caa877c..83e1e587584 100644
      }
  
      ScheduleInfo[*I].ALAP = alap;
-diff --git a/llvm/lib/CodeGen/ModuloSchedule.cpp b/llvm/lib/CodeGen/ModuloSchedule.cpp
+diff --git llvm/lib/CodeGen/ModuloSchedule.cpp llvm/lib/CodeGen/ModuloSchedule.cpp
 index 163e52d9199..df7e4206cdb 100644
---- a/llvm/lib/CodeGen/ModuloSchedule.cpp
-+++ b/llvm/lib/CodeGen/ModuloSchedule.cpp
+--- llvm/lib/CodeGen/ModuloSchedule.cpp
++++ llvm/lib/CodeGen/ModuloSchedule.cpp
 @@ -320,7 +320,11 @@ void ModuloScheduleExpander::generateEpilog(unsigned LastStage,
    // Create a branch to the new epilog from the kernel.
    // Remove the original branch and add a new branch to the epilog.
