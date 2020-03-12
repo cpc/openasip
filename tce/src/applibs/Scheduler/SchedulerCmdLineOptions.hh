@@ -57,6 +57,7 @@ public:
 
     virtual int bypassDistance() const;
     virtual int noDreBypassDistance() const;
+    virtual int operandShareDistance() const;
     virtual bool killDeadResults() const;
 private:
     /// Copying forbidden.
@@ -77,6 +78,7 @@ private:
     static const std::string SWL_KILL_DEAD_RESULTS;
     static const std::string SWL_NO_DRE_BYPASS_DISTANCE;
     static const std::string SWL_BYPASS_DISTANCE;
+    static const std::string SWL_OPERAND_SHARE_DISTANCE;
 };
 
 #endif

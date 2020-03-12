@@ -39,6 +39,8 @@
 #include "MoveNode.hh"
 #include "MathTools.hh"
 #include "TerminalImmediate.hh"
+#include "Machine.hh"
+#include "MachineConnectivityCheck.hh"
 
 /**
  * Constructor defining resource name, register count and register width
@@ -50,6 +52,7 @@
  * @param signExtension Indicates if IU is using Zero or Sign extend
  */
 IUResource::IUResource(
+    const TTAMachine::Machine& mach,
     const std::string& name,
     const int registers,
     const int width,
@@ -57,8 +60,8 @@ IUResource::IUResource(
     const bool signExtension,
     unsigned int initiationInterval)
     : SchedulingResource(name, initiationInterval),
-    registerCount_(registers), width_(width),
-    latency_(latency) , signExtension_(signExtension){
+      registerCount_(registers), width_(width),
+      latency_(latency) , signExtension_(signExtension), machine_(mach) {
     for (int i = 0; i < registerCount(); i++) {
         ResourceRecordVectorType vt;
         resourceRecord_.push_back(vt);
@@ -302,6 +305,12 @@ IUResource::canAssign(
     TTAProgram::TerminalImmediate* iTerm =
         static_cast<TTAProgram::TerminalImmediate*>(&mNode.move().source());
     if (findAvailable(defCycle, useCycle, immRegIndex) != -1) {
+        int reqWidth = MachineConnectivityCheck::requiredImmediateWidth(
+            signExtension_, *iTerm, machine_);
+        if (reqWidth > width_) {
+            return false;
+        }
+/*
         // FIXME: hack to check if terminal is floating point value
         if ((iTerm->value().width() > INT_WORD_SIZE) && 
             (iTerm->value().width() > width_)) {
@@ -315,6 +324,7 @@ IUResource::canAssign(
             width_) {
             return false;
         }
+*/
         for (int i = 0; i < relatedResourceGroupCount(); i++) {
             for (int j = 0, count = relatedResourceCount(i); j < count; j++) {
                 SchedulingResource& relRes = relatedResource(i,j);

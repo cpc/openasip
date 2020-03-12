@@ -457,6 +457,7 @@ IUBroker::buildResources(const TTAMachine::Machine& target) {
         }
         IUResource* iuResource =
             new IUResource(
+                target,
                 iu->name(), iu->numberOfRegisters(), iu->width(),
                 iu->latency(), extension, initiationInterval_);
         ResourceBroker::addResource(*iu, iuResource);

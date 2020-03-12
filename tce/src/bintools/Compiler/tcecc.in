@@ -1075,6 +1075,11 @@ p.add_option('--bottom-up-scheduler', action='store_true', dest='bu_scheduler',
              help=\
 "Use the bottom-up scheduler (experimental).")
 
+p.add_option('--td-scheduler', action='store_true', dest='td_scheduler',
+             default=False,
+             help=\
+             "Use the old top-down instruction scheduler.")
+
 p.add_option('--use-old-backend-src',
              action="store_true", default=False,
              dest="use_old_backend_src",
@@ -1467,6 +1472,8 @@ if options.adf_file != "":
 
     if options.bu_scheduler:
         command += " --bottom-up-scheduler"
+    elif options.td_scheduler:
+        command += " --td-scheduler"
 
     stdEmulationLib = os.path.join(newlib_libdir, "standard_emulation.o ")
 

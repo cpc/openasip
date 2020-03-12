@@ -161,9 +161,9 @@ private:
         DataDependenceGraph::NodeSet& tempAssigns, SimpleResourceManager& rm);
 
     MoveNode& getMoveNode(
-        MoveNode& old, BasicBlockNode& bbn);
+        MoveNode& old, BasicBlockNode& bbn, bool fillOverBackEdge);
     ProgramOperationPtr getProgramOperationPtr(
-        ProgramOperationPtr old, BasicBlockNode& bbn);
+        ProgramOperationPtr old, BasicBlockNode& bbn, bool fillOverBackEdge);
     std::shared_ptr<TTAProgram::Move> getMove(TTAProgram::Move& old);
 
     bool poMoved(

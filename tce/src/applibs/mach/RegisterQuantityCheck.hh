@@ -68,7 +68,7 @@ public:
     bool canFixIntRegs(const TTAMachine::Machine& mach) const;
     bool fixIntRegs(TTAMachine::Machine& mach) const;
 private:
-    typedef std::pair<TTAMachine::RegisterFile*, int> Register;
+    typedef std::pair<const TTAMachine::RegisterFile*, int> Register;
     void findGuardRegisters(
         const TTAMachine::Machine& mach, 
         std::set<Register>& registers,

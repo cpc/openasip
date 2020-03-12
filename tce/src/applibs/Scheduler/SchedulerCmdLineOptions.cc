@@ -45,6 +45,7 @@ const std::string SchedulerCmdLineOptions::SWL_RENAME_REGISTERS = "rename-regist
 const std::string SchedulerCmdLineOptions::SWL_KILL_DEAD_RESULTS = "kill-dead-results";
 const std::string SchedulerCmdLineOptions::SWL_BYPASS_DISTANCE = "bypass-distance";
 const std::string SchedulerCmdLineOptions::SWL_NO_DRE_BYPASS_DISTANCE = "bypass-distance-nodre";
+const std::string SchedulerCmdLineOptions::SWL_OPERAND_SHARE_DISTANCE = "operand-share-distance";
 
 
 const std::string SchedulerCmdLineOptions::USAGE =
@@ -93,6 +94,11 @@ SchedulerCmdLineOptions::SchedulerCmdLineOptions(): CmdLineOptions(USAGE) {
         new IntegerCmdLineOptionParser(
             SWL_NO_DRE_BYPASS_DISTANCE,
             "Bypass distance when dead result elimination cannot be used"));
+
+    addOption(
+        new IntegerCmdLineOptionParser(
+            SWL_OPERAND_SHARE_DISTANCE,
+            "Operand sharing max distance"));
 }
 
 /**
@@ -195,6 +201,18 @@ SchedulerCmdLineOptions::bypassDistance() const {
     }
 }
 
+/**
+ * Returns the distance how far from operands can be shared,
+ * set by --operand-share-distance parameter.
+ */
+int
+SchedulerCmdLineOptions::operandShareDistance() const {
+    if (!findOption(SWL_OPERAND_SHARE_DISTANCE)->isDefined()) {
+        return -1;
+    } else {
+        return findOption(SWL_OPERAND_SHARE_DISTANCE)->integer();
+    }
+}
 
 /**
  * Returns the bypass limit when dead result elimination cannot be used.

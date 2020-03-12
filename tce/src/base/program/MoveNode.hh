@@ -77,6 +77,7 @@ public:
 
     bool isSourceVariable() const;
     bool isSourceConstant() const;
+    bool isSourceRA() const;
     bool isSourceImmediateRegister() const;
     bool isDestinationVariable() const;
     bool isBypass() const;
@@ -114,6 +115,13 @@ public:
     void removeDestinationOperation(const ProgramOperation* po);
     void unsetSourceOperation();
 
+    void finalize();
+    bool isFinalized() const;
+
+    void setIsInFrontier(bool inFrontier = true);
+    bool isInFrontier() const;
+    bool isLastUnscheduledMoveOfDstOp() const;
+
     // to allow printing of graph
     int type();
     std::string toString() const;
@@ -144,6 +152,12 @@ private:
 
     /// True when the node placed (is given a cycle in program).
     bool placed_;
+
+    /// The movenode cannot be unscheduled anymore, fixed in place.
+    bool finalized_;
+
+    /// This is in scheduling frontier(used in Bubblefish scheduler)
+    bool isInFrontier_;
 };
 
 #include "MoveNode.icc"

@@ -135,6 +135,8 @@ public:
     virtual void clearOldResources();
     void setDDG(const DataDependenceGraph* ddg);
     void setMaxCycle(unsigned int maxCycle);
+
+    unsigned int instructionIndex(unsigned int) const;
 private:
     SimpleResourceManager(
         const TTAMachine::Machine& machine, unsigned int ii = 0);
@@ -154,8 +156,6 @@ private:
     ResourceBuildDirector buildDirector_;
 
     unsigned int initiationInterval_;
-
-    unsigned int instructionIndex(unsigned int) const;
 
     unsigned int resources;
     

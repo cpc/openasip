@@ -108,10 +108,11 @@ BasicBlockScheduler::~BasicBlockScheduler() {
  * @exception Exception several TCE exceptions can be thrown in case of
  *            a scheduling error.
  */
-void
+int
 BasicBlockScheduler::handleDDG(
     DataDependenceGraph& ddg, SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine) {
+    const TTAMachine::Machine& targetMachine, bool testOnly) {
+    assert(!testOnly);
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
 
@@ -134,7 +135,7 @@ BasicBlockScheduler::handleDDG(
     // empty need not to be scheduled
     if (ddg.nodeCount() == 0 || 
         (ddg.nodeCount() == 1 && !ddg.node(0).isMove())) {
-        return;
+        return 0;
     }
 
     CriticalPathBBMoveNodeSelector selector(ddg, targetMachine);
@@ -225,6 +226,8 @@ BasicBlockScheduler::handleDDG(
         ddgSnapshot(
             ddg, std::string("0"), DataDependenceGraph::DUMP_XML, true);
     }
+    int size = rm.largestCycle();
+    return size;
 }
 
 #ifdef DEBUG_REG_COPY_ADDER

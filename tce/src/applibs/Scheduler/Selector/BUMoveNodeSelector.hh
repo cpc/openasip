@@ -52,8 +52,7 @@
 
 #include "MoveNodeSelector.hh"
 #include "ReadyMoveNodeGroupList.hh"
-
-class DataDependenceGraph;
+#include "DataDependenceGraph.hh"
 
 namespace TTAProgram {
     class BasicBlock;
@@ -83,11 +82,18 @@ public:
     virtual void notifyScheduled(MoveNode& node);
     virtual void mightBeReady(MoveNode& node);
     virtual DataDependenceGraph& dataDependenceGraph();
+
+    /// Initializes ready list from nodes that are ready.
+    virtual void initializeReadylist();
+
+    static void queueOperation(
+        ProgramOperation& po,
+        const DataDependenceGraph::NodeSet& nodes,
+        DataDependenceGraph::NodeSet& queue);
+
 private:
     virtual bool isReadyToBeScheduled(MoveNode& node) const;
     virtual bool isReadyToBeScheduled(MoveNodeGroup& nodes) const;
-    /// Initializes ready list from nodes that are ready.
-    virtual void initializeReadylist();
     /// The data dependence graph built from the basic block.
     DataDependenceGraph* ddg_;    
     /// The prioritized ready list.

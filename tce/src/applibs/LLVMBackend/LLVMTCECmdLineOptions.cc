@@ -55,6 +55,7 @@ const std::string LLVMTCECmdLineOptions::SWL_SAVE_BACKEND_PLUGIN =
     "save-backend-plugin";
 const std::string LLVMTCECmdLineOptions::SWL_BU_SCHEDULER = 
     "bottom-up-scheduler";
+const std::string LLVMTCECmdLineOptions::SWL_TD_SCHEDULER = "td-scheduler";
 const std::string LLVMTCECmdLineOptions::SWL_USE_OLD_BACKEND_SOURCES = 
     "use-old-backend-src";
 
@@ -142,6 +143,11 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
         new BoolCmdLineOptionParser(
             SWL_BU_SCHEDULER, 
             "Use an experiment Bottom Up scheduler."));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_TD_SCHEDULER,
+            "Use the old top-down instruction scheduler(previous default)."));
 
     addOption(
         new BoolCmdLineOptionParser(
@@ -322,6 +328,11 @@ LLVMTCECmdLineOptions::saveBackendPlugin() const {
 bool
 LLVMTCECmdLineOptions::useBUScheduler() const {
     return findOption(SWL_BU_SCHEDULER)->isDefined();
+}
+
+bool
+LLVMTCECmdLineOptions::useTDScheduler() const {
+    return findOption(SWL_TD_SCHEDULER)->isDefined();
 }
 
 bool

@@ -89,7 +89,7 @@ public:
     static bool isConnectedWithBothGuards(
         const TTAMachine::BaseRegisterFile& sourceRF,
         const TTAMachine::BaseRegisterFile& destRF,
-        std::pair<TTAMachine::RegisterFile*,int> guardReg);
+        std::pair<const TTAMachine::RegisterFile*,int> guardReg);
 
     static bool isConnected(
         const TTAMachine::Port& sourcePort,
@@ -122,7 +122,14 @@ public:
         const TTAMachine::Guard* guard = NULL);
     
     static bool canTransportMove(
-        const MoveNode& moveNode, const TTAMachine::Machine& machine);
+        const MoveNode& moveNode,
+        const TTAMachine::Machine& machine,
+        bool ignoreGuard = false);
+
+    static bool canBypass(
+        const MoveNode& src,
+        const MoveNode& user,
+        const TTAMachine::Machine& targetMachine);
 
     static bool rfConnected(
         const TTAMachine::RegisterFile& rf);
@@ -184,8 +191,9 @@ public:
         const TTAMachine::Machine& mach, const MoveNode& node);
 
     static int canSourceWriteToAnyDestinationPort(
-        const MoveNode& src, 
-        PortSet& ports);
+        const MoveNode& src,
+        PortSet& ports,
+        bool ignoreGuard = false);
 
     static bool canAnyPortWriteToDestination(
         PortSet& ports,
@@ -205,7 +213,7 @@ public:
 
     static std::pair<bool,bool> hasBothGuards(
         const TTAMachine::Bus* bus, 
-        std::pair<TTAMachine::RegisterFile*,int> guardReg);
+        std::pair<const TTAMachine::RegisterFile*,int> guardReg);
 
     static int maxLIMMCount(const TTAMachine::Machine& targetMachine);
     static int maxSIMMCount(const TTAMachine::Machine& targetMachine);

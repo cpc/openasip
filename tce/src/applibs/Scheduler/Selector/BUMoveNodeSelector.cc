@@ -292,6 +292,35 @@ BUMoveNodeSelector::mightBeReady(MoveNode& node) {
 }
 
 /**
+ * Queues all nodes of PO into queue, if they are not already in another set.
+ *
+ * @param po ProgramOperation whose nodes to add
+ * @param nodes nodes where the final result is. if node is here, do not add
+ *        to queue
+ * @param queue quque where to add the nodes.
+ */
+void BUMoveNodeSelector::queueOperation(
+    ProgramOperation& po,
+    const DataDependenceGraph::NodeSet& nodes,
+    DataDependenceGraph::NodeSet& queue) {
+    for (int j = 0; j < po.inputMoveCount(); j++) {
+        MoveNode& inputMove = po.inputMove(j);
+        // only add if not already added
+        if (nodes.find(&inputMove) == nodes.end()) {
+            queue.insert(&inputMove);
+        }
+    }
+
+    for (int j = 0; j < po.outputMoveCount(); j++) {
+        MoveNode& outputMove = po.outputMove(j);
+        // only add if not already added
+        if (nodes.find(&outputMove) == nodes.end()) {
+            queue.insert(&outputMove);
+        }
+    }
+}
+
+/**
  * Returns true in case the move is "data ready", that is, all its 
  * successors have been scheduled.
  *

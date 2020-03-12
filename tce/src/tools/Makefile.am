@@ -11,7 +11,7 @@ libtcetools_la_SOURCES = Exception.cc CmdLineOptions.cc CmdLineOptionParser.cc \
 	PluginTools.cc Conversion.cc StringTools.cc DataObject.cc SimValue.cc \
 	ConfigurationFile.cc ProcessorConfigurationFile.cc Listener.cc \
 	Informer.cc Options.cc OptionValue.cc CmdLineParser.cc MathTools.cc \
-	BitMatrix.cc TCEString.cc HalfFloatWord.cc
+	BitMatrix.cc TCEString.cc HalfFloatWord.cc Reversible.cc
 
 if HAVE_SQLITE
   libtcetools_la_SOURCES += SQLiteConnection.cc RelationalDBQueryResult.cc \

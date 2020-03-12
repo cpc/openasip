@@ -788,6 +788,8 @@ CopyingDelaySlotFiller::collectMoves(
     Move*& skippedJump, int delaySlots) {
     PendingImmediateMap pendingImmediateMap;
 
+    ControlFlowEdge* connectingEdge =
+        *cfg_->connectingEdges(blockToFillNode, nextBBN).begin();
     BasicBlock& bb = blockToFillNode.basicBlock();
     BasicBlock& nextBB = nextBBN.basicBlock();
     SimpleResourceManager& rm = *resourceManagers_[&bb];
@@ -899,7 +901,8 @@ CopyingDelaySlotFiller::collectMoves(
             }
 
             // also copies move
-            MoveNode& mn = getMoveNode(mnOld, blockToFillNode);
+            MoveNode& mn = getMoveNode(
+                mnOld, blockToFillNode, connectingEdge->isBackEdge());
             Move& newMove = mn.move();
 
             // reads immediate?
@@ -1275,27 +1278,29 @@ CopyingDelaySlotFiller::tryToAssignOtherMovesOfOp(
 
 MoveNode&
 CopyingDelaySlotFiller::getMoveNode(
-    MoveNode& old, BasicBlockNode& bbn) {
+    MoveNode& old, BasicBlockNode& bbn, bool fillOverBackEdge) {
     if (AssocTools::containsKey(moveNodes_,&old)) {
         return *moveNodes_[&old];
     } else {
         auto movePtr = getMove(old.move());
         MoveNode *newMN = new MoveNode(movePtr);
         ddg_->addNode(*newMN, bbn);
-        ddg_->copyDependencies(old,*newMN);
+        ddg_->copyDependencies(old,*newMN, fillOverBackEdge);
 
         moveNodes_[&old] = newMN;
         oldMoveNodes_[newMN] = &old;
         mnOwned_[newMN] = true;
         if (old.isSourceOperation()) {
             newMN->setSourceOperationPtr(
-                getProgramOperationPtr(old.sourceOperationPtr(), bbn));
+                getProgramOperationPtr(
+                    old.sourceOperationPtr(), bbn, fillOverBackEdge));
             assert(newMN->isSourceOperation());
         }
         if (old.isDestinationOperation()) {
             for (unsigned int i = 0; i < old.destinationOperationCount(); i++) {
                 newMN->addDestinationOperationPtr(
-                    getProgramOperationPtr(old.destinationOperationPtr(i), bbn));
+                    getProgramOperationPtr(
+                        old.destinationOperationPtr(i), bbn, fillOverBackEdge));
             }
             assert(newMN->isDestinationOperation());
         }
@@ -1313,7 +1318,7 @@ CopyingDelaySlotFiller::getMoveNode(
  */
 ProgramOperationPtr
 CopyingDelaySlotFiller::getProgramOperationPtr(
-    ProgramOperationPtr old, BasicBlockNode& bbn) {
+    ProgramOperationPtr old, BasicBlockNode& bbn, bool fillOverBackEdge) {
     if (AssocTools::containsKey(programOperations_, old.get())) {
         return programOperations_[old.get()];
     } else {
@@ -1325,12 +1330,12 @@ CopyingDelaySlotFiller::getProgramOperationPtr(
         for (int i = 0; i < old->inputMoveCount();i++) {
             MoveNode& mn = old->inputMove(i);
             assert(mn.isDestinationOperation());
-            po->addInputNode(getMoveNode(mn, bbn));
+            po->addInputNode(getMoveNode(mn, bbn, fillOverBackEdge));
         }
         for (int j = 0; j < old->outputMoveCount();j++) {
             MoveNode& mn = old->outputMove(j);
             assert(mn.isSourceOperation());
-            po->addOutputNode(getMoveNode(mn,bbn));
+            po->addOutputNode(getMoveNode(mn,bbn, fillOverBackEdge));
         }
         return po;
     }

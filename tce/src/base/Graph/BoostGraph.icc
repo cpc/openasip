@@ -482,6 +482,23 @@ BoostGraph<GraphNode, GraphEdge>::rootGraphInEdge(
     }
 }
 
+/**
+ * Returns the outgoing edge of a node in the root graph of the subgraph tree.
+ *
+ * @param node A node of the graph.
+ * @param index index of edge.
+ * @return the edge.
+ */
+template <typename GraphNode, typename GraphEdge>
+typename BoostGraph<GraphNode, GraphEdge>::Edge&
+BoostGraph<GraphNode, GraphEdge>::rootGraphOutEdge(
+    const GraphNode& node, const int index) const {
+    if (parentGraph_ == NULL) {
+        return outEdge(node, index);
+    } else {
+        return parentGraph_->rootGraphOutEdge(node, index);
+    }
+}
 
 /**
  * Returns the output degree of a node, that is, the number of outgoing edges
@@ -647,6 +664,49 @@ BoostGraph<GraphNode, GraphEdge>::connectNodes(
     const GraphNode& nTail, const GraphNode& nHead, GraphEdge& e)
      {
     connectNodes(nTail, nHead, e, NULL);
+}
+
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::calculatePathLengthsOnConnect(
+    const GraphNode& nTail, const GraphNode& nHead, GraphEdge& e) {
+
+    if (height_ == -1) {
+        return;
+    }
+    int eWeight = edgeWeight(e, nHead);
+    auto loopingHeadIter = loopingSinkDistances_.find(&nHead);
+    auto loopingTailIter = loopingSourceDistances_.find(&nTail);
+    auto headIter = sinkDistances_.find(&nHead);
+    auto tailIter = sourceDistances_.find(&nTail);
+
+    if (loopingHeadIter != loopingSinkDistances_.end() &&
+        !e.isBackEdge()) {
+        calculateSinkDistance(
+            nTail, loopingHeadIter->second + eWeight, true);
+    }
+
+    if (headIter == sinkDistances_.end()) {
+        sinkDistances_[&nHead] = 0;
+        calculateSinkDistance(nTail, eWeight, e.isBackEdge());
+    } else {
+        calculateSinkDistance(
+            nTail, headIter->second + eWeight, e.isBackEdge());
+    }
+
+    if (loopingTailIter != loopingSourceDistances_.end() &&
+        !e.isBackEdge()) {
+        calculateSourceDistances(
+            &nHead, loopingTailIter->second + eWeight, true);
+    }
+
+    if (tailIter == sourceDistances_.end()) {
+        sourceDistances_[&nTail] = 0;
+        calculateSourceDistances(&nHead, eWeight, e.isBackEdge());
+    } else {
+        calculateSourceDistances(
+                    &nHead, tailIter->second + eWeight, e.isBackEdge());
+    }
 }
 
 /**
@@ -1467,6 +1527,50 @@ BoostGraph<GraphNode, GraphEdge>::constructSubGraph(
     subGraph.parentGraph_ = this;
     childGraphs_.push_back(&subGraph);
     subGraph.name_ = name() + "_" + Conversion::toString(++sgCounter_);
+}
+
+/**
+ * When a node has been dropped from a subgraph, this restores it,
+ * based on the edges on the parent graph
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::restoreNodeFromParent(
+    GraphNode& n) {
+    assert(parentGraph_ != NULL);
+
+    BoostGraph<GraphNode, GraphEdge>* parent = parentGraph_;
+    parentGraph_ = NULL;
+
+    addNode(n);
+    NodeDescriptor ndp = parent->descriptor(n);
+
+    std::pair<OutEdgeIter, OutEdgeIter> oEdges =
+        boost::out_edges(ndp, parent->graph_);
+
+    for (OutEdgeIter j = oEdges.first; j != oEdges.second; j++) {
+        NodeDescriptor hd = boost::target(*j, parent->graph_);
+        GraphNode* head = parent->graph_[hd];
+        if (hasNode(*head)) {
+            Edge& e = *graph_[*j];
+            connectNodes(n, *head, e, NULL, true);
+            calculatePathLengthsOnConnect(n, *head, e);
+        }
+    }
+
+    std::pair<InEdgeIter, InEdgeIter> iEdges =
+        boost::in_edges(ndp, parent->graph_);
+
+    for (InEdgeIter j = iEdges.first; j != iEdges.second; j++) {
+        NodeDescriptor tl = boost::source(*j, parent->graph_);
+        GraphNode* tail = parent->graph_[tl];
+        if (hasNode(*tail) && tail != &n) {
+            Edge& e = *graph_[*j];
+            connectNodes(*tail, n, e, NULL, true);
+            calculatePathLengthsOnConnect(*tail, n, e);
+        }
+    }
+    parentGraph_ = parent;
 }
 
 /*

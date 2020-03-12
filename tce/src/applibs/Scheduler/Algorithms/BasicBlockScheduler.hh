@@ -72,9 +72,9 @@ public:
         RegisterRenamer* registerRenamer = NULL);
     virtual ~BasicBlockScheduler();
 
-    virtual void handleDDG(
+    virtual int handleDDG(
         DataDependenceGraph& ddg, SimpleResourceManager& rm,
-        const TTAMachine::Machine& targetMachine);
+        const TTAMachine::Machine& targetMachine, bool testOnly) override;
 
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;

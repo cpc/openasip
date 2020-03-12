@@ -1240,7 +1240,7 @@ MachineConnectivityCheck::findPossibleSourcePorts(
  * -1 = can write through limm
  */
 int MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
-    const MoveNode& src, PortSet& destinationPorts) {
+    const MoveNode& src, PortSet& destinationPorts, bool ignoreGuard) {
 
     int trueVal = 1;
     if (destinationPorts.empty()) {
@@ -1265,8 +1265,48 @@ int MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
     // TODO: Why cannot move.guard return pointer which is NULL if unconditional?
     const TTAProgram::Move& move = src.move();
     if (MachineConnectivityCheck::isConnected(
-            sourcePorts, destinationPorts, 
-            move.isUnconditional() ? NULL : &move.guard().guard())) {
+            sourcePorts, destinationPorts,
+            (ignoreGuard || move.isUnconditional()) ?
+            NULL : &move.guard().guard())) {
+        return trueVal;
+    }
+
+    return false;
+}
+
+bool MachineConnectivityCheck::canBypass(
+    const MoveNode& src, const MoveNode& user,
+    const TTAMachine::Machine& targetMachine) {
+
+    MachineConnectivityCheck::PortSet destinationPorts =
+        MachineConnectivityCheck::findPossibleDestinationPorts(
+            targetMachine, user);
+
+    int trueVal = 1;
+    if (destinationPorts.empty()) {
+        return false;
+    }
+
+    if (src.isSourceConstant()) {
+        TTAProgram::TerminalImmediate* imm =
+            static_cast<TTAProgram::TerminalImmediate*>(
+                &src.move().source());
+        if (MachineConnectivityCheck::canTransportImmediate(
+                *imm, destinationPorts)) {
+            return true; // can transfer via short imm.
+        } else {
+            trueVal = -1; // mayby through LIMM?
+        }
+    }
+
+    PortSet sourcePorts = findPossibleSourcePorts(targetMachine, src);
+
+    // TODO: Why cannot move.guard return pointer which is NULL if
+    // unconditional?
+    const TTAProgram::Move& userMove = user.move();
+    if (MachineConnectivityCheck::isConnected(
+            sourcePorts, destinationPorts,
+            userMove.isUnconditional() ? NULL : &userMove.guard().guard())) {
         return trueVal;
     }
 
@@ -1288,13 +1328,15 @@ MachineConnectivityCheck::canAnyPortWriteToDestination(
 
 bool 
 MachineConnectivityCheck::canTransportMove(
-    const MoveNode& moveNode, const TTAMachine::Machine& machine) {
+    const MoveNode& moveNode,
+    const TTAMachine::Machine& machine,
+    bool ignoreGuard) {
     PortSet destinationPorts =
         MachineConnectivityCheck::findPossibleDestinationPorts(
             machine,moveNode);
 
     return MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
-        moveNode, destinationPorts);
+        moveNode, destinationPorts, ignoreGuard);
 }
 
 void
@@ -1382,7 +1424,7 @@ bool
 MachineConnectivityCheck::isConnectedWithBothGuards(
     const TTAMachine::BaseRegisterFile& sourceRF,
     const TTAMachine::BaseRegisterFile& destRF,
-    std::pair<RegisterFile*,int> guardReg) {
+    std::pair<const RegisterFile*,int> guardReg) {
     
     RfRfBoolMap::const_iterator
         i = rfRfCache_.find(RfRfPair(&sourceRF, &destRF));
@@ -1417,7 +1459,7 @@ MachineConnectivityCheck::isConnectedWithBothGuards(
 }
 
 std::pair<bool,bool> MachineConnectivityCheck::hasBothGuards(
-    const TTAMachine::Bus* bus, std::pair<RegisterFile*,int> guardReg) {
+    const TTAMachine::Bus* bus, std::pair<const RegisterFile*,int> guardReg) {
     bool trueOK = false;
     bool falseOK = false;
 

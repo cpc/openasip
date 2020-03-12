@@ -69,7 +69,8 @@ using namespace TTAMachine;
  * @param newmove the Move this node contains.
  */
 MoveNode::MoveNode(std::shared_ptr<TTAProgram::Move> newmove) :
-    move_(newmove), cycle_(0),  placed_(false) {
+    move_(newmove), cycle_(0),  placed_(false), finalized_(false),
+    isInFrontier_(false) {
 }
 
 
@@ -81,7 +82,8 @@ MoveNode::MoveNode(std::shared_ptr<TTAProgram::Move> newmove) :
  */
 
 MoveNode::MoveNode() :
-    move_(NULL), cycle_(0), placed_(false) {
+    move_(NULL), cycle_(0), placed_(false), finalized_(false),
+    isInFrontier_(false) {
 }
 
 /**
@@ -95,7 +97,9 @@ MoveNode::~MoveNode() {
         sourceOperation().removeOutputNode(*this);
     }
     if (isDestinationOperation()) {
-        destinationOperation().removeInputNode(*this);
+        for (unsigned int i = 0; i < destinationOperationCount(); i++) {
+            destinationOperation(i).removeInputNode(*this);
+        }
     }
 }
 
@@ -156,6 +160,21 @@ MoveNode::isSourceVariable() const {
     }
     return move_->source().isGPR();
 }
+
+/**
+ * Tells whether the node (move) reads the return address port.
+ * GPR.
+ *
+ * @return True if the source of the node is the return address port.
+ */
+bool
+MoveNode::isSourceRA() const {
+    if (move_ == NULL) {
+        return false;
+    }
+    return move_->source().isRA();
+}
+
 /**
  * Tells whether the node (move) reads a Immediate Register
  *
@@ -435,8 +454,6 @@ MoveNode::unsetCycle() {
  * @param po Program operation that is destination of MoveNode
  */
 void MoveNode::addDestinationOperationPtr(ProgramOperationPtr po) {
-    // just to find problems from old code
-    assert (dstOps_.size() == 0);
     dstOps_.push_back(po);
 }
 /**
@@ -677,4 +694,25 @@ MoveNode::isSourceReg(const std::string& reg) const {
     }
 
     return atoi(reg.c_str()+dotPlace+1) == move().source().index();
+}
+
+bool MoveNode::isLastUnscheduledMoveOfDstOp() const {
+    for (unsigned int i = 0; i < destinationOperationCount(); i++) {
+        const ProgramOperation& po = destinationOperation(i);
+        // ignore ops with just one input
+        if (po.inputMoveCount() == 1) {
+            continue;
+        }
+        bool fail = false;
+        for (int j = 0; j < po.inputMoveCount(); j++) {
+            MoveNode& inputNode = po.inputMove(j);
+            if (&inputNode != this && !inputNode.isScheduled()) {
+                fail = true;
+                break;
+            }
+        }
+        if (!fail)
+            return true;
+    }
+    return false;
 }

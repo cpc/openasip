@@ -107,10 +107,11 @@ BUBasicBlockScheduler::~BUBasicBlockScheduler() {
  * @exception Exception several TCE exceptions can be thrown in case of
  *            a scheduling error.
  */
-void
+int
 BUBasicBlockScheduler::handleDDG(
     DataDependenceGraph& ddg, SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine) {
+    const TTAMachine::Machine& targetMachine, bool testOnly) {
+    assert(!testOnly);
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
 
@@ -143,7 +144,7 @@ BUBasicBlockScheduler::handleDDG(
     // empty need not to be scheduled
     if (ddg.nodeCount() == 0 ||
         (ddg.nodeCount() == 1 && !ddg.node(0).isMove())) {
-        return;
+        return 0;
     }
 
     // INT_MAX/2 won't work on trunk due to multithreading injecting empty
@@ -230,6 +231,8 @@ BUBasicBlockScheduler::handleDDG(
             " end cycle: " << endCycle_ << std::endl;
         abortWithError("Should not happen!");
     }
+    int size = rm_->largestCycle() - rm_->smallestCycle();
+    return size;
 }
 
 #ifdef DEBUG_REG_COPY_ADDER

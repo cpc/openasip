@@ -45,6 +45,10 @@ namespace TTAProgram {
     class TerminalImmediate;
 }
 
+namespace TTAMachine {
+    class Machine;
+}
+
 /**
  * An interface for scheduling resources of Resource Model
  * The derived class IUResource
@@ -54,6 +58,7 @@ class IUResource : public SchedulingResource {
 public:
     virtual ~IUResource();
     IUResource(
+        const TTAMachine::Machine& mach,
         const std::string& name,
         const int registers,
         const int width,
@@ -118,5 +123,7 @@ private:
     int latency_;
     //Extention of IU, true == sign extends, false == zero extends
     bool signExtension_;
+
+    const TTAMachine::Machine& machine_;
 };
 #endif

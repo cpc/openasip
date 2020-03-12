@@ -159,3 +159,22 @@ MoveNode::destinationOperationPtr(unsigned int index) const
     }
 }
 
+inline bool
+MoveNode::isFinalized() const {
+    return finalized_;
+}
+
+inline void
+MoveNode::finalize() {
+    finalized_ = true;
+}
+
+inline bool
+MoveNode::isInFrontier() const {
+    return isInFrontier_;
+}
+
+inline void
+MoveNode::setIsInFrontier(bool isInFrontier) {
+    isInFrontier_ = isInFrontier;
+}
