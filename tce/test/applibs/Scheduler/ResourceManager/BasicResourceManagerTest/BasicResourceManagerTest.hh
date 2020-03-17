@@ -194,7 +194,6 @@ BasicResourceManagerTest::testMissingConnection() {
         for (int i = 0; i < moves.nodeCount(); i++) {
             tempSet.addMoveNode(moves.node(i));
         }
-        TS_ASSERT(rm->hasConnection(tempSet) == false);
         TS_ASSERT_EQUALS(rm->earliestCycle(moves.node(2)), -1);
         SimpleResourceManager::disposeRM(rm, false);
         }
