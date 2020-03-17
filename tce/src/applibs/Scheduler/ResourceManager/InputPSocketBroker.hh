@@ -85,13 +85,12 @@ public:
                             const TTAMachine::ImmediateUnit* immu,
                             int immRegIndex) const override;
     virtual bool isAlreadyAssigned(
-        int cycle, const MoveNode& node, const TTAMachine::Bus*)
-        const override;
+	int cycle, const MoveNode& node, const TTAMachine::Bus*) const override;
     virtual bool isApplicable(
         const MoveNode& node,
         const TTAMachine::Bus* preassignedBus = NULL) const override;
-    virtual void buildResources(const TTAMachine::Machine& target);
-    virtual void setupResourceLinks(const ResourceMapper& mapper);
+    virtual void buildResources(const TTAMachine::Machine& target) override;
+    virtual void setupResourceLinks(const ResourceMapper& mapper) override;
     
     void setBusBroker(ResourceBroker& sb);
 private:

@@ -6,7 +6,7 @@ BasicBlockPass.cc RegisterCopyAdder.cc \
 SchedulerPass.cc ControlFlowGraphPass.cc ProgramPass.cc ProcedurePass.cc \
 InterPassData.cc SoftwareBypasser.cc CycleLookBackSoftwareBypasser.cc \
 DDGPass.cc CopyingDelaySlotFiller.cc \
-RegisterRenamer.cc \
+RegisterRenamer.cc LoopPrologAndEpilogBuilder.cc \
 SequentialScheduler.cc PreBypassBasicBlockScheduler.cc \
 BBSchedulerController.cc PreOptimizer.cc ResourceConstraintAnalyzer.cc \
 BUBasicBlockScheduler.cc \

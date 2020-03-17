@@ -692,8 +692,8 @@ ITemplateBroker::instruction(int cycle) {
 SchedulingResourceSet
 ITemplateBroker::findITemplates(
     int cycle,
-    Moves moves,
-    Immediates immediates) const {
+    Moves& moves,
+    Immediates& immediates) const {
 
     cycle = instructionIndex(cycle);
     SchedulingResourceSet result;

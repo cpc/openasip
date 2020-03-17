@@ -89,6 +89,7 @@ SimpleResourceManager::createRM(
  */
 void SimpleResourceManager::disposeRM(
     SimpleResourceManager* rm, bool allowReuse) {
+    if (rm == NULL) return;
     if (allowReuse) {
         std::map<int, std::list< SimpleResourceManager*> >& pool =
             rmPool_[&rm->machine()];
@@ -411,23 +412,6 @@ SimpleResourceManager::canTransportImmediate(
 }
 
 /**
- * Tests if for given node set machine has possible connection from
- * sources to destinations.
- *
- * Considers all possible sources and destinations.
- * Tests all moveNodes of Program Operation at once, or single moveNode in set
- * if it is not part of any Program Operation.
- *
- * @param nodes MoveNodeSet to test
- * @return true if MoveNodeSet can be scheduled on present machine.
- */
-bool
-SimpleResourceManager::hasConnection(MoveNodeSet& nodes) {
-    return director_->hasConnection(nodes);
-}
-
-
-/**
  * Tests if any of a buses of machine supports guard needed
  * by a node. Should always return true! Otherwise, scheduler generated
  * code for different machine.
@@ -634,6 +618,7 @@ void SimpleResourceManager::clear() {
     director_->clearOldResources();
     buildDirector_.clear();
     director_->clear();
+    setDDG(NULL);
 }
 
 void

@@ -917,6 +917,10 @@ p.add_option('--disable-inlining', action="store_true",
              dest="noinline", default=False,
              help="Disable function inlining.")
 
+p.add_option('--enable-loop-scheduler', action="store_true",
+             dest="enable_loop_scheduler", default=False,
+             help="Enable tce-side loop scheduler (experimental).")
+
 p.add_option('--swfp', action="store_true",
              dest="soft_float", default=False,
              help="Link in software floating point emulation libraries.")
@@ -1432,6 +1436,9 @@ if options.adf_file != "":
 
     if options.conservative_pre_ra_scheduler:
         command += " --conservative-pre-ra-scheduler"
+
+    if options.enable_loop_scheduler:
+        command += " --loop"
 
     if options.print_resource_constraints:
         command += " --print-resource-constraints"

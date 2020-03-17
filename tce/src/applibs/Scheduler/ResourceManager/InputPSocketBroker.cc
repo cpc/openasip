@@ -139,7 +139,8 @@ InputPSocketBroker::earliestCycle(int, const MoveNode&,
                                   const TTAMachine::Bus*,
                                   const TTAMachine::FunctionUnit*,
                                   const TTAMachine::FunctionUnit*, int,
-                                  const TTAMachine::ImmediateUnit*, int) const {
+                                  const TTAMachine::ImmediateUnit*,
+                                  int) const {
     abortWithError("Not implemented.");
     return -1;
 }

@@ -9,6 +9,10 @@ Notable changes and features
   small number of register ports.
   The old instruction scheduler can still be used by giving --td-scheduler
   parameter to tcecc.
+- Experimental loop scheduling mode for the new instruction scheduler,
+  with command line parameter --enable-loop-schduler to tcecc.
+  Makes compilation MUCH slower. Also, not so well tested as the normal
+  basic block scheduling mode, so there may be more bugs.
 - Bring back alias the analysis which knows that spills of variables
   into stack cannot alias with other memory operations.
   This was working on some old tce versions with ancient llvm versions,

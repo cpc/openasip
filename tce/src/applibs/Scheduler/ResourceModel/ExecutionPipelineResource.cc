@@ -408,7 +408,7 @@ ExecutionPipelineResource::assignSource(
     cachedSize_ = INT_MIN;
 
     unsigned int ii = initiationInterval_;
-    if (isLoopBypass(node)) {
+    if (initiationInterval_ && isLoopBypass(node)) {
         cycle += ii;
     }
 

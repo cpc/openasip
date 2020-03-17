@@ -62,7 +62,7 @@ public:
   virtual void assign(int cycle, MoveNode& node, SchedulingResource& res,
 		      int immWriteCycle, int immRegIndex) override;
 
-    virtual void unassign(MoveNode& node);
+    virtual void unassign(MoveNode& node) override;
 
     virtual int earliestCycle(int cycle, const MoveNode& node,
                               const TTAMachine::Bus* bus,
@@ -83,8 +83,8 @@ public:
         const TTAMachine::Bus* preassignedBus) const override;
     virtual bool isApplicable(
         const MoveNode& node, const TTAMachine::Bus* b = 0) const override;
-    virtual void buildResources(const TTAMachine::Machine& target);
-    virtual void setupResourceLinks(const ResourceMapper& mapper);
+    virtual void buildResources(const TTAMachine::Machine& target) override;
+    virtual void setupResourceLinks(const ResourceMapper& mapper) override;
 };
 
 #endif

@@ -112,10 +112,10 @@ ResourceMapper::resourceOf(const TTAMachine::MachinePart& mp, int index) const {
     const TTAMachine::SubComponent * subcomp = 
         dynamic_cast<const TTAMachine::SubComponent*>(&mp);
 
-    if ( comp != NULL) {
+    if (comp != NULL) {
         errMsg += ": " + comp->name();
     }
-    if ( subcomp != NULL) {
+    if (subcomp != NULL) {
         errMsg += ", some subcomponent";
     }
 

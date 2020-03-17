@@ -87,7 +87,7 @@ public:
                         int immWriteCycle,
                         int immRegIndex) override;
 
-    virtual void unassign(MoveNode& node);
+    virtual void unassign(MoveNode& node) override;
 
     virtual int earliestCycle(int cycle, const MoveNode& node,
                               const TTAMachine::Bus* bus,
@@ -108,21 +108,21 @@ public:
         const TTAMachine::Bus* preassignedBus) const override;
     virtual bool isApplicable(
         const MoveNode& node, const TTAMachine::Bus*) const override;
-    virtual void buildResources(const TTAMachine::Machine& target);
-    virtual void setupResourceLinks(const ResourceMapper& mapper);
+    virtual void buildResources(const TTAMachine::Machine& target) override;
+    virtual void setupResourceLinks(const ResourceMapper& mapper) override;
 
-    virtual bool isITemplateBroker() const;
+    virtual bool isITemplateBroker() const override;
     virtual TTAProgram::Instruction* instruction(int cycle);
     virtual void loseInstructionOwnership(int cycle);
     virtual bool isTemplateAvailable(
         int, std::shared_ptr<TTAProgram::Immediate>) const;
     void clearOldResources();
-    void clear();
+    void clear() override;
 private:
-    typedef std::vector<std::shared_ptr<TTAProgram::Move> > Moves;
-    typedef std::vector<std::shared_ptr<TTAProgram::Immediate> > Immediates;
+    typedef std::vector<std::shared_ptr<const TTAProgram::Move> > Moves;
+    typedef std::vector<std::shared_ptr<const TTAProgram::Immediate> > Immediates;
 
-    SchedulingResourceSet findITemplates(int, Moves, Immediates) const;
+    SchedulingResourceSet findITemplates(int, Moves&, Immediates&) const;
     void assignImmediate(int, std::shared_ptr<TTAProgram::Immediate>);
     void unassignImmediate(int,const TTAMachine::ImmediateUnit&);
     bool isImmediateInTemplate(

@@ -41,6 +41,7 @@ using std::endl;
 const std::string SchedulerCmdLineOptions::ADF_PARAM_NAME = "adf";
 const std::string SchedulerCmdLineOptions::OUTPUT_PARAM_NAME = "output";
 const std::string SchedulerCmdLineOptions::VERBOSE_SWITCH = "verbose";
+const std::string SchedulerCmdLineOptions::SWL_LOOP_FLAG = "loop";
 const std::string SchedulerCmdLineOptions::SWL_RENAME_REGISTERS = "rename-registers";
 const std::string SchedulerCmdLineOptions::SWL_KILL_DEAD_RESULTS = "kill-dead-results";
 const std::string SchedulerCmdLineOptions::SWL_BYPASS_DISTANCE = "bypass-distance";
@@ -74,6 +75,10 @@ SchedulerCmdLineOptions::SchedulerCmdLineOptions(): CmdLineOptions(USAGE) {
             SWL_RESOURCE_CONSTRAINT_PRINTING,
             "Print out the resource constraints that potentially limit the "
             "basic block's schedule."));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_LOOP_FLAG, "Use loop scheduler."));
 
     addOption(
         new BoolCmdLineOptionParser(
@@ -157,6 +162,16 @@ SchedulerCmdLineOptions::isOutputFileDefined() const {
 std::string
 SchedulerCmdLineOptions::outputFile() const {
     return findOption(OUTPUT_PARAM_NAME)->String();
+}
+
+/**
+ * Return true if the loop opt switch was defined in the command line.
+ *
+ * @return True if the loop opt switch was defined in the command line.
+ */
+bool
+SchedulerCmdLineOptions::isLoopOptDefined() const {
+    return findOption(SWL_LOOP_FLAG)->isDefined();
 }
 
 bool

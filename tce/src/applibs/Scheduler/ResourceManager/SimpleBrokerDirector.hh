@@ -42,8 +42,8 @@
 
 namespace TTAProgram {
     class Instruction;
-    class Terminal;
     class TerminalImmediate;
+    class Terminal;
     class Immediate;
     class MoveGuard;
 }
@@ -91,7 +91,7 @@ public:
         int immWriteCycle = -1,
         const TTAMachine::ImmediateUnit* immu = nullptr,
         int immRegIndex = -1) override;
-    virtual void unassign(MoveNode& node);
+    virtual void unassign(MoveNode& node) override;
     virtual int earliestCycle(
         MoveNode& node,
         const TTAMachine::Bus* bus = nullptr,
@@ -125,12 +125,11 @@ public:
         const TTAMachine::ImmediateUnit* immu = nullptr,
         int immRegIndex = -1) const override;
 
-    virtual bool hasConnection(MoveNodeSet& nodes);
     virtual bool hasGuard(const MoveNode& node) const;
-    virtual TTAProgram::Instruction* instruction(int cycle) const;
-    virtual bool supportsExternalAssignments() const;
-    virtual int largestCycle() const;
-    virtual int smallestCycle() const;    
+    virtual TTAProgram::Instruction* instruction(int cycle) const override;
+    virtual bool supportsExternalAssignments() const override;
+    virtual int largestCycle() const override;
+    virtual int smallestCycle() const override;
     virtual void loseInstructionOwnership(int cycle);
     virtual std::shared_ptr<TTAProgram::TerminalImmediate>
     immediateValue(const MoveNode&);

@@ -663,10 +663,19 @@ void
 LLVMTCEIRBuilder::compileOptimized(
     ControlFlowGraph& cfg, 
     llvm::AliasAnalysis* llvmAA) {
+
+    SchedulerCmdLineOptions* options =
+        dynamic_cast<SchedulerCmdLineOptions*>(
+            Application::cmdLineOptions());
+
+
     // TODO: on trunk single bb loop(swp), last param true(rr, threading)
     DataDependenceGraph* ddg = ddgBuilder_.build(
-        cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, 
-        *mach_, NULL, true, true, llvmAA);
+        cfg,
+        (options->isLoopOptDefined()) ?
+        DataDependenceGraph::SINGLE_BB_LOOP_ANTIDEPS :
+        DataDependenceGraph::INTRA_BB_ANTIDEPS, *mach_,
+        NULL, true, true, llvmAA);
 
     TCEString fnName = cfg.name();
 #ifdef WRITE_DDG_DOTS

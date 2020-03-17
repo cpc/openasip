@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -396,25 +396,21 @@ ExecutionPipelineBroker::setInitiationInterval(unsigned int ii)
     }
 }
 
-
 bool ExecutionPipelineBroker::isLoopBypass(const MoveNode& node) const {
 
-    if (ddg_ == NULL) {
+    if (ddg_ == NULL || !ddg_->hasNode(node)) {
         return false;
     }
-    if (!ddg_->hasNode(node)) {
-        return false;
-    }
-    auto inEdges = ddg_->inEdges(node);
-    for (auto i = inEdges.begin(); i != inEdges.end(); i++) {
-        DataDependenceEdge& e = **i;
-        if (e.edgeReason() == DataDependenceEdge::EDGE_OPERATION
-            && e.isBackEdge()) {
+
+    auto inEdges = ddg_->operationInEdges(node);
+    for (auto e : inEdges) {
+        if (e->isBackEdge()) {
             return true;
         }
     }
     return false;
 }
+
 
 /**
  * Returns latest cycle, starting from given parameter and going towards
@@ -500,7 +496,7 @@ ExecutionPipelineBroker::latestFromSource(
     if (lastOperandNode != NULL) {
         fu = &lastOperandNode->move().destination().functionUnit();
     } else {
-        assert (lastResultNode->isSourceOperation());
+        assert(lastResultNode->isSourceOperation());
         fu = &lastResultNode->move().source().functionUnit();
     }
 

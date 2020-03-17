@@ -5095,3 +5095,20 @@ void DataDependenceGraph::undo(UndoData& undoData) {
         removeEdge(*i);
     }
 }
+
+DataDependenceGraph::EdgeSet
+DataDependenceGraph::operationInEdges(const MoveNode& node) const {
+    std::pair<InEdgeIter, InEdgeIter> edges = boost::in_edges(
+        descriptor(node), graph_);
+
+    EdgeSet result;
+
+    for (InEdgeIter ei = edges.first; ei != edges.second; ++ei) {
+        DataDependenceEdge* edge = graph_[(*ei)];
+        if (edge->edgeReason() == DataDependenceEdge::EDGE_OPERATION) {
+            edgeDescriptors_[edge] = *ei;
+            result.insert(edge);
+        }
+    }
+    return result;
+}

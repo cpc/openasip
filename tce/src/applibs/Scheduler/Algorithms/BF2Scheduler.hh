@@ -95,7 +95,7 @@ public:
     virtual int handleLoopDDG(
         DataDependenceGraph&, SimpleResourceManager&,
         const TTAMachine::Machine&, int tripCount,
-        SimpleResourceManager*, bool) override;
+        SimpleResourceManager*, bool testOnly) override;
 
     DataDependenceGraph& ddg() { return *ddg_; }
     const DataDependenceGraph& ddg() const { return *ddg_; }

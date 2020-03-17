@@ -55,6 +55,7 @@ public:
     bool printResourceConstraints() const;
     bool renameRegisters() const;
 
+    virtual bool isLoopOptDefined() const;
     virtual int bypassDistance() const;
     virtual int noDreBypassDistance() const;
     virtual int operandShareDistance() const;
@@ -75,6 +76,8 @@ private:
     static const std::string VERBOSE_SWITCH;
     /// Rename register duing scheduling after register allocation.
     static const std::string SWL_RENAME_REGISTERS;
+    // Use the instruction scheduler in loop mode.
+    static const std::string SWL_LOOP_FLAG;
     static const std::string SWL_KILL_DEAD_RESULTS;
     static const std::string SWL_NO_DRE_BYPASS_DISTANCE;
     static const std::string SWL_BYPASS_DISTANCE;

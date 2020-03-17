@@ -772,44 +772,7 @@ SimpleBrokerDirector::OriginalResources::~OriginalResources() {
         delete guard_;
     }
 }
-/**
- * Test if the MoveSet can be schedule with machine connectivity.
- *
- * @param nodes The MoveNodeSet to test.
- * @return true if MoveNodeSet can be scheduled on this machine.
- * @todo Only tries to assign nodes in same order as they are in MoveNodeSet,
- * does not try to backtrack in case it is not possible.
- */
-bool
-SimpleBrokerDirector::hasConnection(MoveNodeSet& nodes) {
-    
-    int lastCycleToTest = -1;
-    lastCycleToTest = largestCycle();
-    int testedCycle = lastCycleToTest + 1;
-    int notAssigned = nodes.count();
-    int i = 0;
-    bool success = true;
-    while (notAssigned > 0) {
-        if (canAssign(testedCycle, nodes.at(i))) {
-            assign(testedCycle, nodes.at(i));
-            notAssigned--;
-            i++;
-        } else {
-            testedCycle++;
-        }
-        if (testedCycle > lastCycleToTest + 20){
-            success = false;
-            break;
-        }
-    }
-    
-    for (int i = 0; i < nodes.count(); i++) {
-        if (nodes.at(i).isScheduled()) {
-            unassign(nodes.at(i));
-        }
-    }
-    return success;
-}
+
 /**
  * Tests if any of a buses of machine supports guard needed
  * by a node. Should always return true! Otherwise, scheduler generated

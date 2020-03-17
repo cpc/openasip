@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -433,7 +433,7 @@ AssignmentPlan::brokerCount() const {
  * @exception OutOfRange if index is out of bounds.
  */
 ResourceBroker&
-AssignmentPlan::broker(int index) const throw (OutOfRange) {
+AssignmentPlan::broker(int index) const {
     if (index < 0 || index >= static_cast<int>(brokers_.size())) {
         string msg = "Broker index out of range.";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);

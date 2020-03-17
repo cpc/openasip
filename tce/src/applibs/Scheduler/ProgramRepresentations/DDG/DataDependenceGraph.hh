@@ -375,6 +375,7 @@ public:
 
     void undo(UndoData& undoData);
 
+    EdgeSet operationInEdges(const MoveNode& node) const;
 private:
 
     bool queueRawPredecessors(
