@@ -45,7 +45,6 @@
 #include "SimpleResourceManager.hh"
 #include "Port.hh"
 #include "SchedulerCmdLineOptions.hh"
-#include "BFLateBypassGuard.hh"
 #include "Machine.hh"
 
 #include <map>

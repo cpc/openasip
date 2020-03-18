@@ -45,7 +45,6 @@
 #include "TerminalImmediate.hh"
 #include "BF2Scheduler.hh"
 #include "BFScheduleBU.hh"
-#include "BFEarlyGuardBypass.hh"
 #include "MoveGuard.hh"
 #include "Guard.hh"
 

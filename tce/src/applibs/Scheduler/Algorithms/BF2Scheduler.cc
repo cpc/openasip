@@ -70,8 +70,6 @@
 #include "BFSwapOperands.hh"
 #include "BFShareOperand.hh"
 #include "BFSchedulePreLoopShared.hh"
-#include "BFRemoveLoopChecks.hh"
-#include "LoopAnalyzer.hh"
 #include "BFPostpassBypasser.hh"
 
 //#define DEBUG_PRE_SHARE
@@ -97,7 +95,6 @@ BF2Scheduler::BF2Scheduler(
     renamer_(renamer),
     killDeadResults_(true),
     jumpNode_(NULL),
-    llResult_(NULL),
     duplicator_(NULL) {
     options_ =
         dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
@@ -115,7 +112,6 @@ BF2Scheduler::BF2Scheduler(
     renamer_(renamer),
     killDeadResults_(killDeadResults),
     jumpNode_(NULL),
-    llResult_(NULL),
     duplicator_(NULL) {
     options_ =
         dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
@@ -314,25 +310,14 @@ int BF2Scheduler::handleLoopDDG(
 #ifndef DEBUG_BUBBLEFISH_SCHEDULER
             if (options_ != NULL && options_->dumpDDGsDot()) {
 #endif
-                if (loopLimitNode() == NULL) {
-                    ddg_->writeToDotFile(
-                        std::string("ii_fail_") +
-                        Conversion::toString(rm_->initiationInterval()) +
-                        "icount_" +
-                        Conversion::toString(tripCount_) +
-                        std::string("ops_") +
-                        Conversion::toString(allowPreLoopOpshare) +
-                        std::string("_dag.dot"));
-                } else {
-                    ddg_->writeToDotFile(
-                        std::string("ii_fail_") +
-                        Conversion::toString(rm_->initiationInterval()) +
-                        "llNode" +
-                        Conversion::toString(loopLimitNode()->nodeID()) +
-                        std::string("ops_") +
-                        Conversion::toString(allowPreLoopOpshare) +
-                        std::string("_dag.dot"));
-                }
+                ddg_->writeToDotFile(
+                    std::string("ii_fail_") +
+                    Conversion::toString(rm_->initiationInterval()) +
+                    "icount_" +
+                    Conversion::toString(tripCount_) +
+                    std::string("ops_") +
+                    Conversion::toString(allowPreLoopOpshare) +
+                    std::string("_dag.dot"));
 #ifndef DEBUG_BUBBLEFISH_SCHEDULER
             }
 #endif
@@ -603,7 +588,7 @@ BF2Scheduler::handleLoopDDG(
         return overlapCount;
     }
 
-    if (loopLimitNode() == NULL && tripCount && overlapCount >= tripCount) {
+    if (tripCount && overlapCount >= tripCount) {
 #ifndef DEBUG_BUBBLEFISH_SCHEDULER
         if (options_ != NULL && options_->dumpDDGsDot()) {
 #endif

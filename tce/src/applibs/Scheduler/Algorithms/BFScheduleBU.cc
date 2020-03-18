@@ -57,7 +57,6 @@
 #include "Terminal.hh"
 #include "BFRescheduleResultsClose.hh"
 #include "BFTryRemoveGuard.hh"
-#include "BFCopyRegWithOp.hh"
 #include "BFRenameSource.hh"
 
 //#define DEBUG_BUBBLEFISH_SCHEDULER

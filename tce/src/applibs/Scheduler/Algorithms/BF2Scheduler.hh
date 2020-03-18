@@ -45,7 +45,6 @@
 #include "MachinePart.hh"
 
 #include "LiveRangeData.hh"
-#include "LoopAnalyzer.hh"
 
 class ResourceManager;
 class SimpleResourceManager;
@@ -232,18 +231,6 @@ public:
     MoveNode* guardWriteNode() { return jumpGuardWrite_; }
     MoveNode* jumpNode() { return jumpNode_; }
 
-    MoveNode* loopLimitNode() {
-        return llResult_ == 0 ? NULL : llResult_->counterValueNode;
-    }
-
-    LoopAnalyzer::LoopAnalysisResult* getLoopAnalysis() {
-        return llResult_;
-    }
-
-    void setLoopLimits(LoopAnalyzer::LoopAnalysisResult* llResult) {
-        llResult_ = llResult;
-    }
-
     bool guardPrologMoves() const {
         return (loopSchedulingMode_ & USE_PREDICATION_FOR_PROLOG_MOVES);
     }
@@ -381,7 +368,6 @@ private:
     int tripCount_;
     MoveNode* jumpNode_;
     MoveNode* jumpGuardWrite_;
-    LoopAnalyzer::LoopAnalysisResult* llResult_;
 
     MoveNodeDuplicator* duplicator_;
 
