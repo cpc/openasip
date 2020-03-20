@@ -60,6 +60,7 @@ function try_patch {
 
 function apply_patches {
     cd $llvm_co_dir
+    try_patch $patch_dir/llvm-10-tcele64.patch
     try_patch $patch_dir/llvm-9-fix-load-lowering.patch
     try_patch $patch_dir/llvm-10-custom-vector-extension.patch
     try_patch $patch_dir/llvm-9-vect-datalayout.patch
