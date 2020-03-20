@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -78,12 +78,9 @@ NullRegisterFile::machine() const {
  * @exception IllegalRegistration Never thrown.
  */
 void
-NullRegisterFile::ensureRegistration(const Component&) const
-    throw (IllegalRegistration) {
-
+NullRegisterFile::ensureRegistration(const Component&) const {
     abortWithError("ensureRegistration()");
 }
-
 
 /**
  * Aborts the program with error message.
@@ -127,12 +124,9 @@ NullRegisterFile::portCount() const {
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-NullRegisterFile::setMachine(Machine&)
-    throw (ComponentAlreadyExists) {
-
+NullRegisterFile::setMachine(Machine&) {
     abortWithError("setMachine");
 }
-
 
 /**
  * Aborts the program with error message.
@@ -173,12 +167,9 @@ NullRegisterFile::width() const {
  * @exception OutOfRange Never thrown.
  */
 void
-NullRegisterFile::setNumberOfRegisters(int)
-    throw (OutOfRange) {
-
+NullRegisterFile::setNumberOfRegisters(int) {
     abortWithError("setNumberOfRegisters()");
 }
-
 
 /**
  * Aborts the program with error message.
@@ -186,12 +177,9 @@ NullRegisterFile::setNumberOfRegisters(int)
  * @exception OutOfRange Never thrown.
  */
 void
-NullRegisterFile::setWidth(int)
-    throw (OutOfRange) {
-
+NullRegisterFile::setWidth(int) {
     abortWithError("setWidth()");
 }
-
 
 /**
  * Aborts the program with error message.
@@ -284,38 +272,29 @@ NullRegisterFile::name() const {
  * @exception InvalidName Never thrown.
  */
 void
-NullRegisterFile::setName(const std::string&)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+NullRegisterFile::setName(const std::string&) {
     abortWithError("setName()");
 }
 
-
 /**
  * Aborts the program with error message.
  *
  * @exception OutOfRange Never thrown.
  */
 void
-NullRegisterFile::setMaxReads(int)
-    throw (OutOfRange) {
-
+NullRegisterFile::setMaxReads(int) {
     abortWithError("setMaxReads()");
 }
 
-
 /**
  * Aborts the program with error message.
  *
  * @exception OutOfRange Never thrown.
  */
 void
-NullRegisterFile::setMaxWrites(int)
-    throw (OutOfRange) {
-
+NullRegisterFile::setMaxWrites(int) {
     abortWithError("setMaxWrites()");
 }
-
 
 /**
  * Aborts the program with error message.
@@ -344,12 +323,9 @@ NullRegisterFile::guardLatency() const {
  * @exception OutOfRange Never thrown.
  */
 void
-NullRegisterFile::setGuardLatency(int)
-    throw (OutOfRange) {
-
+NullRegisterFile::setGuardLatency(int) {
     abortWithError("setGuardLatency()");
 }
-
 
 /**
  * Aborts the program with error message.
@@ -369,9 +345,7 @@ NullRegisterFile::saveState() const {
  * @exception ObjectStateLoadingException Never thrown.
  */
 void
-NullRegisterFile::loadState(const ObjectState*)
-    throw (ObjectStateLoadingException) {
-
+NullRegisterFile::loadState(const ObjectState*) {
     abortWithError("loadState()");
 }
 }

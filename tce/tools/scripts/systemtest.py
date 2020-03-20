@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -!- coding: utf-8 -!-
 """
-    Copyright (c) 2011-2015 Pekka Jääskeläinen / Tampere University of Technology.
+    Copyright (c) 2011-2015 Pekka Jääskeläinen / Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -670,13 +670,6 @@ def run_all_tests_in_parallel(test_dirs):
 
 def setup_exec_env():
     """Sets up the execution environment variables."""
-    # Use the thread-caching malloc to boost TCE execution speed, 
-    # if found.
-    tcm_libs = sorted(glob.glob("/usr/lib/libtcmalloc_minimal.*"), cmp=lambda x, y: len(x) - len(y))
-    if len(tcm_libs):
-        #print "Using", tcm_libs[0]
-        os.environ['LD_PRELOAD'] = tcm_libs[0]
-
     # Setup the PATH to point to the TCE binaries to test.
     # Find the tce/src from the dir parents.    
     bld_root = os.getcwd()

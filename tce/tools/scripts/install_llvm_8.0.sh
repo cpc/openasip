@@ -76,6 +76,7 @@ function try_patch {
 function apply_patches {
     cd $llvm_co_dir
     try_patch $patch_dir/llvm-8.0-tcele64.patch
+    try_patch $patch_dir/llvm-8-fix-load-lowering.patch
     try_patch $patch_dir/llvm-7.0-custom-vector-extension.patch
     try_patch $patch_dir/llvm-7.0-vect-datalayout.patch
     try_patch $patch_dir/llvm-6.0-SPIR-address-space-numbers.patch
@@ -90,11 +91,17 @@ cd $llvm_co_dir
 mkdir -p build
 cd build
 
+# -DLLVM_ENABLE_Z3_SOLVER=OFF due to the issue described in
+# https://reviews.llvm.org/D54978#1390652
+# You might also need to delete libz3-dev.
+# This appears at least with Ubuntu 18.04.
+
 cmake -G "Unix Makefiles" \
     $LLVM_BUILD_MODE\
     -DCMAKE_INSTALL_PREFIX=$TARGET_DIR \
     -DLLVM_LINK_LLVM_DYLIB=TRUE \
     -DLLVM_ENABLE_RTTI=TRUE \
+    -DLLVM_ENABLE_Z3_SOLVER=OFF \
     .. \
     || eexit "Configuring LLVM/Clang failed."
 make -j8 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 \

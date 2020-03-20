@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -84,15 +84,6 @@ Instruction::Instruction(
  * The destructor.
  */
 Instruction::~Instruction() {
-    for (unsigned int i = 0; i < moves_.size(); i++) {
-        delete moves_.at(i);
-    }
-    moves_.clear();
-
-    for (unsigned int i = 0; i < immediates_.size(); i++) {
-        delete immediates_.at(i);
-    }
-    immediates_.clear();
 }
 
 /**
@@ -103,7 +94,7 @@ Instruction::~Instruction() {
  *                                anywhere.
  */
 CodeSnippet&
-Instruction::parent() const throw (IllegalRegistration) {
+Instruction::parent() const {
     if (parent_ != NULL) {
         return *parent_;
     } else {
@@ -141,7 +132,7 @@ Instruction::isInProcedure() const {
  * @param move The move to add.
  */
 void
-Instruction::addMove(Move* move) throw (ObjectAlreadyExists) {
+Instruction::addMove(std::shared_ptr<Move> move) {
     if (ContainerTools::containsValue(moves_, move)) {
         throw ObjectAlreadyExists(__FILE__, __LINE__, __func__,
 				  "Move is already added.");
@@ -179,13 +170,36 @@ Instruction::moveCount() const {
  *                       the number of moves in the instruction.
  */
 Move&
-Instruction::move(int i) const throw (OutOfRange) {
+Instruction::move(int i) const {
     if (i < 0 || static_cast<unsigned int>(i) >= moves_.size()) {
         throw OutOfRange(__FILE__, __LINE__, __func__,
 			 "No move in instruction for given index: " +
 			 Conversion::toString(i));
     } else {
         return *moves_.at(i);
+    }
+}
+
+/**
+ * Return the move at the given index in this instruction.
+ *
+ * The order of moves is arbitrary, no assumption should be made by
+ * clients. Anyways, order of moves in instruction does not change between
+ * calls to this method.
+ *
+ * @param i The index of the move.
+ * @return The move at the given index in this instruction.
+ * @exception OutOfRange if the given index is negative or greater than
+ *                       the number of moves in the instruction.
+ */
+std::shared_ptr<Move>
+Instruction::movePtr(int i) const {
+    if (i < 0 || static_cast<unsigned int>(i) >= moves_.size()) {
+        throw OutOfRange(__FILE__, __LINE__, __func__,
+			 "No move in instruction for given index: " +
+			 Conversion::toString(i));
+    } else {
+        return moves_.at(i);
     }
 }
 
@@ -197,9 +211,7 @@ Instruction::move(int i) const throw (OutOfRange) {
  * @param imm The immediate to add.
  */
 void
-Instruction::addImmediate(Immediate* imm)
-    throw (ObjectAlreadyExists){
-
+Instruction::addImmediate(std::shared_ptr<Immediate> imm) {
     if (ContainerTools::containsValue(immediates_, imm)) {
         throw ObjectAlreadyExists(__FILE__, __LINE__, __func__,
 				  "Immediate is already added.");
@@ -234,13 +246,37 @@ Instruction::immediateCount() const {
  *                       number of immediates in the instruction.
  */
 Immediate&
-Instruction::immediate(int i) const throw (OutOfRange) {
+Instruction::immediate(int i) const {
     if (i < 0 || static_cast<unsigned int>(i) >= immediates_.size()) {
         throw OutOfRange(__FILE__, __LINE__, __func__,
 			 "No immediate in instruction with index: " +
 			 Conversion::toString(i));
     } else {
         return *immediates_.at(i);
+    }
+}
+
+/**
+ * Return the immediate write action at the given index in this
+ * instruction.
+ *
+ * The order of immediates is arbitrary, no assumption should be made
+ * by clients.
+ *
+ * @param i The index of the immediate.
+ * @return The immediate write action at the given index in this
+ *         instruction.
+ * @exception OutOfRange if the index is negative or greater than the
+ *                       number of immediates in the instruction.
+ */
+std::shared_ptr<Immediate>
+Instruction::immediatePtr(int i) const {
+    if (i < 0 || static_cast<unsigned int>(i) >= immediates_.size()) {
+        throw OutOfRange(__FILE__, __LINE__, __func__,
+			 "No immediate in instruction with index: " +
+			 Conversion::toString(i));
+    } else {
+        return immediates_[i];
     }
 }
 
@@ -252,8 +288,7 @@ Instruction::immediate(int i) const throw (OutOfRange) {
  * to a procedure.
  */
 Address
-Instruction::address() const 
-    throw (IllegalRegistration) {
+Instruction::address() const {
     if (!isInProcedure()) {
         TCEString msg = "Instruction is not registered in a procedure: ";
         msg += POMDisassembler::disassemble(*this);
@@ -431,15 +466,14 @@ Instruction::instructionTemplate() const {
  * @exception IllegalRegistration If move doesn't belong to instruction.
  */
 void
-Instruction::removeMove(Move& move) throw (IllegalRegistration) {
-
+Instruction::removeMove(Move& move) {
     if (&move.parent() != this) {
         throw IllegalRegistration(__FILE__, __LINE__);
     }
 
     for (MoveList::iterator iter = moves_.begin();
          iter != moves_.end(); iter++) {
-        if ((*iter) == &move) {
+        if ((iter->get()) == &move) {
             moves_.erase(iter);
             break;
         }
@@ -456,10 +490,10 @@ Instruction::removeMove(Move& move) throw (IllegalRegistration) {
  * @exception IllegalRegistration If immediate doesn't belong to instruction.
  */
 void
-Instruction::removeImmediate(Immediate& imm) throw (IllegalRegistration) {
+Instruction::removeImmediate(Immediate& imm) {
     for (ImmList::iterator iter = immediates_.begin();
          iter != immediates_.end(); iter++) {
-        if ((*iter) == &imm) {
+        if ((iter->get()) == &imm) {
             immediates_.erase(iter);
             return;
         }

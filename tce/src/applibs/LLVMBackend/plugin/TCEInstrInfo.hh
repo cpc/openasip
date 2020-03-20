@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -142,7 +142,11 @@ namespace llvm {
 #else
         const DebugLoc& DL,
 #endif
+#ifdef LLVM_OLDER_THAN_10
         unsigned destReg, unsigned srcReg,
+#else
+        MCRegister destReg, MCRegister srcReg,
+#endif
         bool KillSrc) const override;
 
 #if LLVM_OLDER_THAN_4_0

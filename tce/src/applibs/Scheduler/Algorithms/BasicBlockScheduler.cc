@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -108,13 +108,11 @@ BasicBlockScheduler::~BasicBlockScheduler() {
  * @exception Exception several TCE exceptions can be thrown in case of
  *            a scheduling error.
  */
-void
+int
 BasicBlockScheduler::handleDDG(
-    DataDependenceGraph& ddg,
-    SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
+    DataDependenceGraph& ddg, SimpleResourceManager& rm,
+    const TTAMachine::Machine& targetMachine, bool testOnly) {
+    assert(!testOnly);
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
 
@@ -137,7 +135,7 @@ BasicBlockScheduler::handleDDG(
     // empty need not to be scheduled
     if (ddg.nodeCount() == 0 || 
         (ddg.nodeCount() == 1 && !ddg.node(0).isMove())) {
-        return;
+        return 0;
     }
 
     CriticalPathBBMoveNodeSelector selector(ddg, targetMachine);
@@ -228,6 +226,8 @@ BasicBlockScheduler::handleDDG(
         ddgSnapshot(
             ddg, std::string("0"), DataDependenceGraph::DUMP_XML, true);
     }
+    int size = rm.largestCycle();
+    return size;
 }
 
 #ifdef DEBUG_REG_COPY_ADDER
@@ -244,9 +244,7 @@ static int graphCount = 0;
  * @param moves Moves of the operation execution.
  */
 void
-BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
-    throw (Exception) {
-
+BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves) {
     ProgramOperation& po =
         (moves.node(0).isSourceOperation())?
         (moves.node(0).sourceOperation()):
@@ -449,9 +447,7 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
  * @return The cycle the earliest of the operands got scheduled 
  */
 int
-BasicBlockScheduler::scheduleOperandWrites(int& cycle, MoveNodeGroup& moves)
-    throw (Exception) {
-
+BasicBlockScheduler::scheduleOperandWrites(int& cycle, MoveNodeGroup& moves) {
     const int EARLY_OPERAND_DIFFERENCE = 15;
     
     int lastOperandCycle = 0;
@@ -650,8 +646,7 @@ BasicBlockScheduler::scheduleOperandWrites(int& cycle, MoveNodeGroup& moves)
  * @param moves Moves of the operation execution.
  */
 bool
-BasicBlockScheduler::scheduleResultReads(MoveNodeGroup& moves) 
-    throw (Exception) {
+BasicBlockScheduler::scheduleResultReads(MoveNodeGroup& moves) {
     int tempRegLimitCycle = 0;
 
     for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
@@ -705,9 +700,7 @@ BasicBlockScheduler::scheduleResultReads(MoveNodeGroup& moves)
  * @param moveNode R-R Move to schedule.
  */
 void
-BasicBlockScheduler::scheduleRRMove(MoveNode& moveNode)
-    throw (Exception) {
-    
+BasicBlockScheduler::scheduleRRMove(MoveNode& moveNode) {
 #ifdef DEBUG_REG_COPY_ADDER
     ddg_->setCycleGrouping(true);
     ddg_->writeToDotFile(
@@ -735,7 +728,6 @@ BasicBlockScheduler::scheduleRRMove(MoveNode& moveNode)
 
     scheduleMove(moveNode, 0);
     scheduleRRTempMoves(moveNode, moveNode, 0); //Fabio: 0 or more?!?
-
 }
 
 /**
@@ -751,11 +743,7 @@ BasicBlockScheduler::scheduleRRMove(MoveNode& moveNode)
  * @param earliestCycle The earliest cycle to try.
  */
 void
-BasicBlockScheduler::scheduleMove(
-    MoveNode& moveNode,
-    int earliestCycle)
-    throw (Exception) {
-
+BasicBlockScheduler::scheduleMove(MoveNode& moveNode, int earliestCycle) {
     if (moveNode.isScheduled()) {
         throw InvalidData(
             __FILE__, __LINE__, __func__,
@@ -947,9 +935,7 @@ BasicBlockScheduler::scheduleMove(
  */
 void
 BasicBlockScheduler::scheduleRRTempMoves(
-    MoveNode& regToRegMove, MoveNode& firstMove, int lastUse)
-    throw (Exception) {
-
+    MoveNode& regToRegMove, MoveNode& firstMove, int lastUse) {
     /* Because temporary register moves do not have WaR/WaW dependency edges
        between the other possible uses of the same temp register in
        the same operation, we have to limit the scheduling of the new
@@ -982,7 +968,6 @@ BasicBlockScheduler::scheduleRRTempMoves(
     // succeeding additional reg to reg copy (in case of two temp reg copies),
     // schedule it also if found
     scheduleResultReadTempMoves(*tempMove1, firstMove, lastUse+1);
-
 }
 
 /**
@@ -996,9 +981,8 @@ BasicBlockScheduler::scheduleRRTempMoves(
  * @param operandWrite The original move of which temp moves to schedule.
  */
 void
-BasicBlockScheduler::scheduleInputOperandTempMoves(MoveNode& operandMove, MoveNode& operandWrite)
-    throw (Exception) {
-
+BasicBlockScheduler::scheduleInputOperandTempMoves(
+    MoveNode& operandMove, MoveNode& operandWrite) {
     /* Because temporary register moves do not have WaR dependency edges
        between the other possible uses of the same temp register in
        the same operation, we have to limit the scheduling of the new
@@ -1141,11 +1125,7 @@ BasicBlockScheduler::succeedingTempMove(MoveNode& current) {
  */
 void
 BasicBlockScheduler::scheduleResultReadTempMoves(
-    MoveNode& resultMove, 
-    MoveNode& resultRead,
-    int lastUse)
-    throw (Exception) {
-
+    MoveNode& resultMove, MoveNode& resultRead, int lastUse) {
     /* Because temporary register moves do not have WaR/WaW dependency edges
        between the other possible uses of the same temp register in
        the same operation, we have to limit the scheduling of the new
@@ -1179,7 +1159,6 @@ BasicBlockScheduler::scheduleResultReadTempMoves(
     // succeeding additional reg to reg copy (in case of two temp reg copies),
     // schedule it also if found
     scheduleResultReadTempMoves(*tempMove1, resultRead, lastUse+1);
-
 }
 
 /**
@@ -1309,7 +1288,8 @@ void BasicBlockScheduler::notifyScheduled(
 
 // find which movenode is the trigger of an operation.
 MoveNode*
-BasicBlockScheduler::findTrigger(ProgramOperation& po) {
+BasicBlockScheduler::findTrigger(
+    const ProgramOperation& po, const TTAMachine::Machine& mach) {
     for (int i = 0; i < po.inputMoveCount(); i++) {
         MoveNode& mn = po.inputMove(i);
         if (mn.isScheduled()) {
@@ -1332,7 +1312,7 @@ BasicBlockScheduler::findTrigger(ProgramOperation& po) {
     // no scheduled moves. getting harder.
     
     TTAMachine::Machine::FunctionUnitNavigator nav = 
-    targetMachine_->functionUnitNavigator();
+    mach.functionUnitNavigator();
     MoveNode* candidate = NULL;
     for (int i = 0; i < nav.count(); i++) {
         TTAMachine::FunctionUnit* fu = nav.item(i);
@@ -1349,8 +1329,8 @@ BasicBlockScheduler::findTrigger(ProgramOperation& po) {
         }
     }
     
-    if (targetMachine_->controlUnit()->hasOperation(po.operation().name())) {
-        return findTriggerFromUnit(po, *targetMachine_->controlUnit());
+    if (mach.controlUnit()->hasOperation(po.operation().name())) {
+        return findTriggerFromUnit(po, *mach.controlUnit());
     }
     return candidate;
     
@@ -1358,9 +1338,9 @@ BasicBlockScheduler::findTrigger(ProgramOperation& po) {
 
 MoveNode* 
 BasicBlockScheduler::findTriggerFromUnit(
-    ProgramOperation& po, TTAMachine::Unit& unit) {
-    TTAMachine::FunctionUnit* fu = 
-    dynamic_cast<TTAMachine::FunctionUnit*>(&unit);
+    const ProgramOperation& po, const TTAMachine::Unit& unit) {
+    const TTAMachine::FunctionUnit* fu =
+    dynamic_cast<const TTAMachine::FunctionUnit*>(&unit);
     int ioIndex = -1;
     for (int i = 0; i < fu->operationPortCount(); i++) {
         TTAMachine::FUPort* port = fu->operationPort(i);

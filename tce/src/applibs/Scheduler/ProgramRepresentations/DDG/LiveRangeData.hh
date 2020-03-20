@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -34,6 +34,9 @@
  * @author Heikki Kultala 2011 (hkultala@cs.tut.fi)
  * @note rating: red
  */
+
+#ifndef TTA_LIVERANGE_DATA_HH
+#define TTA_LIVERANGE_DATA_HH
 
 #include "MoveNodeUse.hh"
 #include "TCEString.hh"
@@ -117,3 +120,5 @@ struct LiveRangeData {
     std::set<TCEString> registersUsedAfter_;
     std::set<TCEString> registersUsedInOrAfter_;
 };
+
+#endif

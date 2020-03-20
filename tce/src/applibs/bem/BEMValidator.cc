@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -156,9 +156,7 @@ BEMValidator::errorCount() const {
  *                       than the number of errors.
  */
 std::string
-BEMValidator::errorMessage(int index) const
-    throw (OutOfRange) {
-
+BEMValidator::errorMessage(int index) const {
     if (index < 0 || index >= errorCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     } else {

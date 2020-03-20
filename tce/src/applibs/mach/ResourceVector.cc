@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -98,9 +98,8 @@ ResourceVector::~ResourceVector() {
  * @return The set of resources.
  * @exception OutOfRange If the cycle is out of range.
  */
-const ResourceVector::ResourceSet& 
-ResourceVector::resourcesUsedAtCycle(unsigned cycle) const
-    throw (OutOfRange) {
+const ResourceVector::ResourceSet&
+ResourceVector::resourcesUsedAtCycle(unsigned cycle) const {
     if (cycle > resources_.size())
         throw OutOfRange(__FILE__, __LINE__, __func__);
     return resources_.at(cycle);

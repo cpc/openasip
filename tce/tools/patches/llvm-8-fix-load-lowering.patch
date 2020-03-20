@@ -1,0 +1,53 @@
+Index: lib/CodeGen/SelectionDAG/LegalizeDAG.cpp
+===================================================================
+--- lib/CodeGen/SelectionDAG/LegalizeDAG.cpp	(revision 374548)
++++ lib/CodeGen/SelectionDAG/LegalizeDAG.cpp	(working copy)
+@@ -189,6 +189,8 @@
+   void ConvertNodeToLibcall(SDNode *Node);
+   void PromoteNode(SDNode *Node);
+ 
++    SDValue findChain(SDValue val);
++
+ public:
+   // Node replacement helpers
+ 
+@@ -645,6 +647,21 @@
+   }
+ }
+ 
++SDValue SelectionDAGLegalize::findChain(SDValue val) {
++    SDNode* n = val.getNode();
++    if (n->getNumValues() > 1) {
++        return SDValue(n,1);
++    }
++    for (unsigned int i = 0; i < n->getNumOperands(); i++) {
++        SDValue operand = n->getOperand(i);
++        SDValue res = findChain(operand);
++        if (res.getNode() != nullptr) {
++            return res;
++        }
++    }
++    return SDValue(nullptr,0);
++}
++
+ void SelectionDAGLegalize::LegalizeLoadOps(SDNode *Node) {
+   LoadSDNode *LD = cast<LoadSDNode>(Node);
+   SDValue Chain = LD->getChain();  // The chain.
+@@ -676,7 +693,7 @@
+     case TargetLowering::Custom:
+       if (SDValue Res = TLI.LowerOperation(RVal, DAG)) {
+         RVal = Res;
+-        RChain = Res.getValue(1);
++        RChain = findChain(Res);
+       }
+       break;
+ 
+@@ -847,7 +864,7 @@
+       if (isCustom) {
+         if (SDValue Res = TLI.LowerOperation(SDValue(Node, 0), DAG)) {
+           Value = Res;
+-          Chain = Res.getValue(1);
++          Chain = findChain(Res);
+         }
+       } else {
+         // If this is an unaligned load and the target doesn't support it,

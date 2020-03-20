@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -79,26 +79,19 @@ public:
 
     void addPort(RFPortImplementation* port);
     void addExternalPort(RFExternalPort* extPort);
-    void deletePort(RFPortImplementation* port)
-        throw (InstanceNotFound);
-    void deleteExternalPort(RFExternalPort* port)
-        throw (InstanceNotFound);
+    void deletePort(RFPortImplementation* port);
+    void deleteExternalPort(RFExternalPort* port);
     int portCount() const;
     int externalPortCount() const;
-    RFPortImplementation& port(int index) const
-        throw (OutOfRange);
-    RFExternalPort& externalPort(int index) const
-        throw (OutOfRange);
+    RFPortImplementation& port(int index) const;
+    RFExternalPort& externalPort(int index) const;
 
     void addParameter(
-            const std::string& name,
-            const std::string& type,
-            const std::string& value)
-            throw (IllegalParameters);
+        const std::string& name, const std::string& type,
+        const std::string& value);
     void removeParameter(const std::string& name);
     int parameterCount() const;
-    Parameter parameter(int index) const
-        throw (OutOfRange);
+    Parameter parameter(int index) const;
     bool hasParameter(const std::string& name) const;
 
 private:

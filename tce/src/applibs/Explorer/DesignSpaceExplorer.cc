@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -408,15 +408,10 @@ DesignSpaceExplorer::schedule(
  */
 const ExecutionTrace*
 DesignSpaceExplorer::simulate(
-    const TTAProgram::Program& program, 
-    const TTAMachine::Machine& machine,
-    const TestApplication& testApplication, 
-    const ClockCycleCount&,
-    ClockCycleCount& runnedCycles, 
-    const bool tracing, 
-    const bool useCompiledSimulation)
-    throw (Exception) {
-
+    const TTAProgram::Program& program, const TTAMachine::Machine& machine,
+    const TestApplication& testApplication, const ClockCycleCount&,
+    ClockCycleCount& runnedCycles, const bool tracing,
+    const bool useCompiledSimulation) {
     // initialize the simulator
     SimulatorFrontend simulator(
         useCompiledSimulation ? 
@@ -551,9 +546,7 @@ DesignSpaceExplorer::simulate(
  */
 DesignSpaceExplorerPlugin*
 DesignSpaceExplorer::loadExplorerPlugin(
-    const std::string& pluginName, DSDBManager* dsdb)
-    throw (FileNotFound, DynamicLibraryException) {
-
+    const std::string& pluginName, DSDBManager* dsdb) {
     string pluginFileName = pluginName + ".so";
     vector<string> searchPaths = Environment::explorerPluginPaths();
     for (vector<string>::const_iterator iter = searchPaths.begin();

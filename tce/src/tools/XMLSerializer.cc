@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -197,9 +197,7 @@ XMLSerializer::setXMLNamespace(std::string nsUri) {
  * Only the last file/string set will be read.
  */
 ObjectState*
-XMLSerializer::readState()
-    throw (SerializerException) {
-
+XMLSerializer::readState() {
     if (sourceFile_ != "") {
         return readFile(sourceFile_);
     } else if (sourceString_ != NULL) {
@@ -218,9 +216,7 @@ XMLSerializer::readState()
  * setDestinationString(). Only the last file/string set will be written.
  */
 void
-XMLSerializer::writeState(const ObjectState* state)
-    throw (SerializerException) {
-
+XMLSerializer::writeState(const ObjectState* state) {
     if (destinationFile_ != "") {
         writeFile(destinationFile_, state);
     } else if (destinationString_ != NULL) {
@@ -230,7 +226,6 @@ XMLSerializer::writeState(const ObjectState* state)
         throw SerializerException(__FILE__, __LINE__, __func__, errorMsg);
     }
 }
-
 
 /**
  * Initializes the XML parser.
@@ -303,9 +298,7 @@ XMLSerializer::initializeParser() {
  * @exception SerializerException If an error occurs while reading.
  */
 ObjectState*
-XMLSerializer::readString(const std::string& source)
-    throw (SerializerException) {
-
+XMLSerializer::readString(const std::string& source) {
     initializeParser();
     DOMDocument* dom = NULL;
     DOMBuilderErrorHandler* errHandler = new DOMBuilderErrorHandler();
@@ -361,7 +354,6 @@ XMLSerializer::readString(const std::string& source)
     return rootState;
 }
 
-
 /**
  * Reads current XML file set and creates an ObjectState tree according to
  * it.
@@ -373,9 +365,7 @@ XMLSerializer::readString(const std::string& source)
  * @exception SerializerException If an error occurs while reading.
  */
 ObjectState*
-XMLSerializer::readFile(const std::string& sourceFile)
-    throw (SerializerException) {
-
+XMLSerializer::readFile(const std::string& sourceFile) {
     initializeParser();
     DOMDocument* dom = NULL;
 
@@ -435,7 +425,6 @@ XMLSerializer::readFile(const std::string& sourceFile)
     return rootState;
 }
 
-
 /**
  * Writes the given ObjectState tree into the current XML file set.
  *
@@ -444,9 +433,7 @@ XMLSerializer::readFile(const std::string& sourceFile)
  */
 void
 XMLSerializer::writeFile(
-    const std::string& destinationFile, const ObjectState* rootState)
-    throw (SerializerException) {
-    
+    const std::string& destinationFile, const ObjectState* rootState) {
 #if XERCES_VERSION_MAJOR >= 3
     DOMLSSerializer* domWriter = domImplementation_->createLSSerializer();
     domWriter->getDomConfig()->setParameter(
@@ -489,10 +476,7 @@ XMLSerializer::writeFile(
  * @exception SerializerException If the destination file cannot be written.
  */
 void
-XMLSerializer::writeString(
-    std::string& target, const ObjectState* rootState)
-    throw (SerializerException) {
-    
+XMLSerializer::writeString(std::string& target, const ObjectState* rootState) {
 #if XERCES_VERSION_MAJOR >= 3
     DOMLSSerializer* domWriter = domImplementation_->createLSSerializer();
     domWriter->getDomConfig()->setParameter(
@@ -594,9 +578,7 @@ XMLSerializer::createDOMDocument(const ObjectState* state) const {
  * @exception UnreachableStream If the given file cannot be read.
  */
 void
-XMLSerializer::ensureValidStream(const std::string& fileName) const
-    throw (UnreachableStream) {
-
+XMLSerializer::ensureValidStream(const std::string& fileName) const {
     ifstream filestream;
     filestream.open(fileName.c_str());
     if(!filestream.is_open() || !filestream.good()) {
@@ -609,7 +591,6 @@ XMLSerializer::ensureValidStream(const std::string& fileName) const
     }
     filestream.close();
 }
-
 
 /**
  * Creates DOM tree from the given ObjectState tree.

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -43,10 +43,8 @@
  */
 class DestinationField : public SlotField {
 public:
-    DestinationField(BinaryEncoding::Position socketIDPos, MoveSlot& parent)
-	throw (ObjectAlreadyExists, IllegalParameters);
-    DestinationField(const ObjectState* state, MoveSlot& parent)
-	throw (ObjectStateLoadingException, ObjectAlreadyExists);
+    DestinationField(BinaryEncoding::Position socketIDPos, MoveSlot& parent);
+    DestinationField(const ObjectState* state, MoveSlot& parent);
     virtual ~DestinationField();
 
     // methods inherited from Serializable interface

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -120,8 +120,8 @@ namespace llvm {
 
         virtual void createMoveNode(
             ProgramOperationPtr& po,
-            TTAProgram::Move& m,
-            bool isDestination);
+            std::shared_ptr<TTAProgram::Move> m,
+            bool isDestination) override;
 
     private:
 

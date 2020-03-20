@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -107,11 +107,9 @@ SimProgramBuilder::~SimProgramBuilder() {
  * @exception IllegalProgram When the terminal is referring to illegal
  *                           machine state or the terminal itself is illegal.
  */
-StateData* 
+StateData*
 SimProgramBuilder::processBidirTerminal(
-    const Terminal& theTerminal, 
-    MachineState& state) throw (IllegalProgram) {
-
+    const Terminal& theTerminal, MachineState& state) {
     try {
         if (theTerminal.isGPR()) {
             
@@ -192,12 +190,9 @@ SimProgramBuilder::processBidirTerminal(
  * @exception IllegalProgram When the terminal is referring to illegal
  *                           machine state or the terminal itself is illegal.
  */
-StateData* 
+StateData*
 SimProgramBuilder::processSourceTerminal(
-    const Terminal& theTerminal, 
-    MachineState& state)
-    throw (IllegalProgram) {
-
+    const Terminal& theTerminal, MachineState& state) {
     try {
         if (theTerminal.isImmediateRegister()) {
             
@@ -232,12 +227,9 @@ SimProgramBuilder::processSourceTerminal(
  * @exception IllegalProgram In case a state model for given guard cannot be
  *            found.
  */
-const ReadableState& 
+const ReadableState&
 SimProgramBuilder::findGuardModel(
-    const TTAMachine::Guard& guard, 
-    MachineState& state) 
-    throw (IllegalProgram) {
-    
+    const TTAMachine::Guard& guard, MachineState& state) {
     try {
         GuardState& guardModel = state.guardState(guard);
         if (&guardModel != &NullGuardState::instance()) 
@@ -262,11 +254,7 @@ SimProgramBuilder::findGuardModel(
  * @exception IllegalProgram If the input move was illegal.
  */
 ExecutableMove*
-SimProgramBuilder::processMove(
-    const Move& move, 
-    MachineState& state) 
-    throw (IllegalProgram) {
-
+SimProgramBuilder::processMove(const Move& move, MachineState& state) {
     ReadableState* source = NULL;
     InlineImmediateValue* immediateSource = NULL;
 
@@ -402,10 +390,7 @@ SimProgramBuilder::processMove(
  */
 ExecutableInstruction*
 SimProgramBuilder::processInstruction(
-    const Instruction& instruction, 
-    MachineState& state) 
-    throw (IllegalProgram) {
-    
+    const Instruction& instruction, MachineState& state) {
     ExecutableInstruction* processedInstruction = new ExecutableInstruction();
 
     // process long immediates
@@ -474,11 +459,7 @@ SimProgramBuilder::processInstruction(
  *                           SimulatorTextGenerator.
  */
 InstructionMemory*
-SimProgramBuilder::build(
-    const Program& prog, 
-    MachineState& state) 
-    throw (IllegalProgram) {
-
+SimProgramBuilder::build(const Program& prog, MachineState& state) {
     sequentialProgram_ = 
         (dynamic_cast<const UniversalMachine*>(
             &prog.targetProcessor()) != NULL);

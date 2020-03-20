@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -42,6 +42,7 @@
 
 namespace TTAProgram {
     class Instruction;
+    class TerminalImmediate;
     class Terminal;
     class Immediate;
     class MoveGuard;
@@ -70,30 +71,71 @@ public:
 
     virtual ~SimpleBrokerDirector();
 
-    virtual bool canAssign(int cycle, MoveNode& node) const;
-    virtual bool canTransportImmediate(const MoveNode& node) const;
+    virtual bool canAssign(
+        int cycle, MoveNode& node,
+        const TTAMachine::Bus* bus = nullptr,
+        const TTAMachine::FunctionUnit* srcFU = nullptr,
+        const TTAMachine::FunctionUnit* dstFU = nullptr,
+        int immWriteCycle = -1,
+        const TTAMachine::ImmediateUnit* immu = nullptr,
+        int immRegIndex = -1) const override;
 
-    virtual void assign(int cycle, MoveNode& node)
-        throw (Exception);
-    virtual void unassign(MoveNode& node)
-        throw (Exception);
-    virtual int earliestCycle(MoveNode& node) const
-        throw (Exception);
-    virtual int earliestCycle(int cycle, MoveNode& node) const
-        throw (Exception);
-        virtual int latestCycle(MoveNode& node) const;
-    virtual int latestCycle(int cycle, MoveNode& node) const;
+    virtual bool canTransportImmediate(
+        const MoveNode& node, const TTAMachine::Bus* preAssignedBus) const;
 
-    virtual bool hasConnection(MoveNodeSet& nodes);
+    virtual void assign(
+        int cycle, MoveNode& node,
+        const TTAMachine::Bus* bus = nullptr,
+        const TTAMachine::FunctionUnit* srcFU = nullptr,
+        const TTAMachine::FunctionUnit* dstFU = nullptr,
+        int immWriteCycle = -1,
+        const TTAMachine::ImmediateUnit* immu = nullptr,
+        int immRegIndex = -1) override;
+    virtual void unassign(MoveNode& node) override;
+    virtual int earliestCycle(
+        MoveNode& node,
+        const TTAMachine::Bus* bus = nullptr,
+        const TTAMachine::FunctionUnit* srcFU = nullptr,
+        const TTAMachine::FunctionUnit* dstFU = nullptr,
+        int immWriteCycle = -1,
+        const TTAMachine::ImmediateUnit* immu = nullptr,
+        int immRegIndex = -1) const override;
+    virtual int earliestCycle(
+        int cycle, MoveNode& node,
+        const TTAMachine::Bus* bus = nullptr,
+        const TTAMachine::FunctionUnit* srcFU = nullptr,
+        const TTAMachine::FunctionUnit* dstFU = nullptr,
+        int immWriteCycle = -1,
+        const TTAMachine::ImmediateUnit* immu = nullptr,
+        int immRegIndex = -1) const override;
+    virtual int latestCycle(
+        MoveNode& node,
+        const TTAMachine::Bus* bus = nullptr,
+        const TTAMachine::FunctionUnit* srcFU = nullptr,
+        const TTAMachine::FunctionUnit* dstFU = nullptr,
+        int immWriteCycle = -1,
+        const TTAMachine::ImmediateUnit* immu = nullptr,
+        int immRegIndex = -1) const override;
+    virtual int latestCycle(
+        int cycle, MoveNode& node,
+        const TTAMachine::Bus* bus = nullptr,
+        const TTAMachine::FunctionUnit* srcFU = nullptr,
+        const TTAMachine::FunctionUnit* dstFU = nullptr,
+        int immWriteCycle = -1,
+        const TTAMachine::ImmediateUnit* immu = nullptr,
+        int immRegIndex = -1) const override;
+
     virtual bool hasGuard(const MoveNode& node) const;
-    virtual TTAProgram::Instruction* instruction(int cycle) const;
-    virtual bool supportsExternalAssignments() const;
-    virtual int largestCycle() const;
-    virtual int smallestCycle() const;    
+    virtual TTAProgram::Instruction* instruction(int cycle) const override;
+    virtual bool supportsExternalAssignments() const override;
+    virtual int largestCycle() const override;
+    virtual int smallestCycle() const override;
     virtual void loseInstructionOwnership(int cycle);
-    virtual TTAProgram::Terminal* immediateValue(const MoveNode&);
+    virtual std::shared_ptr<TTAProgram::TerminalImmediate>
+    immediateValue(const MoveNode&);
     virtual int immediateWriteCycle(const MoveNode&) const;
-    virtual bool isTemplateAvailable(int, TTAProgram::Immediate*) const;
+    virtual bool isTemplateAvailable(
+        int, std::shared_ptr<TTAProgram::Immediate>) const;
     void setMaxCycle(unsigned int cycle);
     void clearOldResources();
     void clear();
@@ -104,25 +146,21 @@ private:
         OriginalResources(
             TTAProgram::Terminal*,
             TTAProgram::Terminal*,
-            TTAMachine::Bus*,
+            const TTAMachine::Bus*,
             TTAProgram::MoveGuard*,
             bool);
         ~OriginalResources();
 
         TTAProgram::Terminal* src_;
         TTAProgram::Terminal* dst_;
-        TTAMachine::Bus*    bus_;
+        const TTAMachine::Bus* bus_;
         TTAProgram::MoveGuard* guard_;
         bool isGuarded_;
     };
-    IUBroker& immediateUnitBroker() const
-        throw (InstanceNotFound);
-    ITemplateBroker& instructionTemplateBroker() const
-        throw (InstanceNotFound);
-    BusBroker& busBroker() const
-        throw (InstanceNotFound);
-    ExecutionPipelineBroker& executionPipelineBroker() const
-        throw (InstanceNotFound);
+    IUBroker& immediateUnitBroker() const;
+    ITemplateBroker& instructionTemplateBroker() const;
+    BusBroker& busBroker() const;
+    ExecutionPipelineBroker& executionPipelineBroker() const;
 
     std::map<const MoveNode*, OriginalResources*, MoveNode::Comparator> 
         origResMap_;

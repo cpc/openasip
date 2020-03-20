@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -34,6 +34,7 @@
 #define TTA_INSTRUCTION_HH
 
 #include <vector>
+#include <memory>
 
 #include "Address.hh"
 #include "Exception.hh"
@@ -76,23 +77,25 @@ public:
 #endif
     ~Instruction();
 
-    CodeSnippet& parent() const throw (IllegalRegistration);
+    CodeSnippet& parent() const;
     void setParent(CodeSnippet& proc);
     bool isInProcedure() const;
 
-    void addMove(Move* move) throw (ObjectAlreadyExists);
+    void addMove(std::shared_ptr<Move> move);
     int moveCount() const;
-    Move& move(int i) const throw (OutOfRange);
-    void removeMove(Move& move) throw (IllegalRegistration);
+    Move& move(int i) const;
+    std::shared_ptr<Move> movePtr(int i) const;
+    void removeMove(Move& move);
 
     bool isNOP() const { return moveCount() == 0 && immediateCount() == 0; }
 
-    void addImmediate(Immediate* imm) throw (ObjectAlreadyExists);
+    void addImmediate(std::shared_ptr<Immediate> imm);
     int immediateCount() const;
-    Immediate& immediate(int i) const throw (OutOfRange);
-    void removeImmediate(Immediate& imm) throw (IllegalRegistration);
+    Immediate& immediate(int i) const;
+    std::shared_ptr<Immediate> immediatePtr(int i) const;
+    void removeImmediate(Immediate& imm);
 
-    Address address() const throw (IllegalRegistration);
+    Address address() const;
 
     int size() const;
 
@@ -113,9 +116,9 @@ public:
 
 private:
     /// List for moves.
-    typedef std::vector<Move*> MoveList;
+    typedef std::vector<std::shared_ptr<Move> > MoveList;
     /// List for immediates.
-    typedef std::vector<Immediate*> ImmList;
+    typedef std::vector<std::shared_ptr<Immediate> > ImmList;
 
     /// Copying not allowed.
     Instruction(const Instruction&);

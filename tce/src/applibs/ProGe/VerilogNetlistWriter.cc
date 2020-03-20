@@ -82,9 +82,7 @@ VerilogNetlistWriter::~VerilogNetlistWriter() {
  * @exception InvalidData If the netlist is invalid.
  */
 void
-VerilogNetlistWriter::write(const std::string& dstDirectory)
-    throw (IOException, InvalidData) {
-
+VerilogNetlistWriter::write(const std::string& dstDirectory) {
     const Netlist& netlist = this->netlist();
     if (netlist.isEmpty()) {
         string errorMsg = "Empty input netlist.";
@@ -95,7 +93,6 @@ VerilogNetlistWriter::write(const std::string& dstDirectory)
     NetlistBlock& topLevelBlock = netlist.topLevelBlock();
     writeBlock(topLevelBlock, dstDirectory);
 }
-
 
 /**
  * Writes the package(include files for verilog) that defines parameters of the netlist.
@@ -138,10 +135,7 @@ VerilogNetlistWriter::netlistParameterPkgName() const {
  */
 void
 VerilogNetlistWriter::writeBlock(
-    const NetlistBlock& block,
-    const std::string& dstDirectory)
-    throw (IOException) {
-
+    const NetlistBlock& block, const std::string& dstDirectory) {
     string fileName = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         block.moduleName() + ".v";
     if (!FileSystem::fileIsCreatable(fileName) && 

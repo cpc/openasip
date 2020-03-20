@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -50,8 +50,7 @@ namespace TTAMachine {
 class Model {
 public:
     Model();
-    Model(const std::string& fileName)
-        throw (SerializerException, ObjectStateLoadingException);
+    Model(const std::string& fileName);
     ~Model();
 
     TTAMachine::Machine* getMachine();

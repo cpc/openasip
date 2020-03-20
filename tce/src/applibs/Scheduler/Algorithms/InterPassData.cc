@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -58,10 +58,8 @@ InterPassData::~InterPassData() {
  * @returns The datum.
  * @exception KeyNotFound thrown if the key is not found.
  */
-InterPassDatum& 
-InterPassData::datum(const std::string& key) 
-    throw (KeyNotFound) {
-
+InterPassDatum&
+InterPassData::datum(const std::string& key) {
     if (!MapTools::containsKey(data_, key))
         throw KeyNotFound(__FILE__, __LINE__, __func__);
 

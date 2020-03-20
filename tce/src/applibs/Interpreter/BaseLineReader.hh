@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -58,14 +58,11 @@ public:
 
     virtual void setPromptPrinting(bool flag);
 
-    virtual std::string readLine(std::string prompt = "")
-        throw (ObjectNotInitialized, EndOfFile);
+    virtual std::string readLine(std::string prompt = "");
 
     virtual char charQuestion(
-        std::string question, 
-        std::string allowedChars,
-        bool caseSensitive = false,
-        char defaultAnswer = '\0') throw (ObjectNotInitialized);
+        std::string question, std::string allowedChars,
+        bool caseSensitive = false, char defaultAnswer = '\0');
 
 private:
     /// Copying not allowed.

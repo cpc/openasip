@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -189,7 +189,7 @@ private:
         std::vector<MoveNode*> intMoves,
         MoveNode* lastMove,
         const TTAMachine::RegisterFile* firstRF,
-	std::vector<TTAMachine::RegisterFile*> intRF, 
+	std::vector<const TTAMachine::RegisterFile*> intRF,
         const TTAMachine::RegisterFile* lastRF,
         int firstRegisterIndex,
 	std::vector<int> intRegisterIndex,

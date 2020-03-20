@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -34,6 +34,7 @@
 
 #include "CompilerWarnings.hh"
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
+IGNORE_COMPILER_WARNING("-Wcomment")
 
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Analysis/LoopPass.h>
@@ -93,6 +94,10 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include <llvm/Support/TargetRegistry.h>
 
+#ifndef LLVM_OLDER_THAN_10
+#include <llvm/InitializePasses.h>
+#endif
+
 // cheat llvm's multi-include-protection
 #define CONFIG_H
 
@@ -142,6 +147,7 @@ const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
 const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
 const TCEString LLVMBackend::CXX0X_FLAG = "-std=c++0x";
 const TCEString LLVMBackend::CXX11_FLAG = "-std=c++11";
+const TCEString LLVMBackend::CXX14_FLAG = "-std=c++14";
 
 /**
  * Returns minimum opset that is required by llvm.
@@ -299,6 +305,7 @@ LLVMBackend::LLVMBackend(bool useInstalledVersion, TCEString tempDir) :
         cachePath_ = options_->backendCacheDir();
 
     PassRegistry &Registry = *llvm::PassRegistry::getPassRegistry();
+#ifdef LLVM_OLDER_THAN_10
     initializeCore(Registry);
     initializeScalarOpts(Registry);
     initializeIPO(Registry);
@@ -309,6 +316,15 @@ LLVMBackend::LLVMBackend(bool useInstalledVersion, TCEString tempDir) :
     initializeTransformUtils(Registry);
     initializeInstCombine(Registry);
     initializeTarget(Registry);
+#else
+    llvm::initializeCore(Registry);
+    llvm::initializeScalarOpts(Registry);
+    llvm::initializeIPO(Registry);
+    llvm::initializeAnalysis(Registry);
+    llvm::initializeTransformUtils(Registry);
+    llvm::initializeInstCombine(Registry);
+    llvm::initializeTarget(Registry);
+#endif
 }
 
 /**
@@ -327,14 +343,9 @@ LLVMBackend::~LLVMBackend() {
  */
 TTAProgram::Program*
 LLVMBackend::compile(
-    const std::string& bytecodeFile,
-    const std::string& emulationBytecodeFile,
-    TTAMachine::Machine& target,
-    int optLevel,
-    bool debug,
-    InterPassData* ipData) 
-    throw (Exception) {
-
+    const std::string& bytecodeFile, const std::string& emulationBytecodeFile,
+    TTAMachine::Machine& target, int optLevel, bool debug,
+    InterPassData* ipData) {
     // Check target machine
     MachineValidator validator(target);
     std::set<MachineValidator::ErrorCode> checks;
@@ -517,15 +528,9 @@ static void printAndVerify(PassManagerBase &PM,
  */
 TTAProgram::Program*
 LLVMBackend::compile(
-    llvm::Module& module,
-    llvm::Module* emulationModule,
-    TCETargetMachinePlugin& plugin,
-    TTAMachine::Machine& target,
-    int optLevel,
-    bool /*debug*/,
-    InterPassData* ipData)
-    throw (Exception) {
-
+    llvm::Module& module, llvm::Module* emulationModule,
+    TCETargetMachinePlugin& plugin, TTAMachine::Machine& target, int optLevel,
+    bool /*debug*/, InterPassData* ipData) {
     ipData_ = ipData;
     // TODO: fixme
     std::string targetStr = "tce-llvm";
@@ -659,8 +664,13 @@ LLVMBackend::compile(
     targetMachine->addPassesToEmitFile(
         Passes, sos, TargetMachine::CGFT_AssemblyFile, OptLevel);
 #else
+#ifdef LLVM_OLDER_THAN_10
     targetMachine->addPassesToEmitFile(
         Passes, sos, nullptr, TargetMachine::CGFT_AssemblyFile, OptLevel);
+#else
+    targetMachine->addPassesToEmitFile(
+        Passes, sos, nullptr, CGFT_AssemblyFile);
+#endif
 #endif
 #endif
 
@@ -752,9 +762,7 @@ LLVMBackend::compile(
  * @param target Target machine to build plugin for.
  */
 TCETargetMachinePlugin*
-LLVMBackend::createPlugin(const TTAMachine::Machine& target)
-    throw (Exception) {
-
+LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
     std::string pluginFile = pluginFilename(target);
     std::string pluginFileName = "";
 
@@ -965,10 +973,14 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         pluginIncludeFlags +
         " " + SHARED_CXX_FLAGS +
         " " + LLVM_CPPFLAGS +
+#ifdef LLVM_OLDER_THAN_10
 #if defined(HAVE_CXX0X)
         " " + CXX0X_FLAG +
 #elif defined(HAVE_CXX11)
         " " + CXX11_FLAG +
+#endif
+#else
+        " " + CXX14_FLAG +
 #endif
         " " + endianOption +
         " " + bitnessOption +

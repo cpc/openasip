@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -57,10 +57,8 @@ const int TestApplication::MAX_LINE_LENGTH_ = 512;
  *
  * @param testApplicationPath Path of the test application directory.
  */
-TestApplication::TestApplication(const string& testApplicationPath) 
-    throw (IOException) :
-    testApplicationPath_(testApplicationPath), maxRuntime_(0) {
-
+TestApplication::TestApplication(const string& testApplicationPath)
+    : testApplicationPath_(testApplicationPath), maxRuntime_(0) {
     string maxRuntimeFile = testApplicationPath_ 
         + FileSystem::DIRECTORY_SEPARATOR
         + MAX_RUNTIME_;
@@ -79,8 +77,6 @@ TestApplication::TestApplication(const string& testApplicationPath)
         fclose(file);
     }
 }
-
-
 
 /**
  * Destructor.

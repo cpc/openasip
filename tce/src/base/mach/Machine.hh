@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -87,57 +87,33 @@ public:
 
     virtual bool isUniversalMachine() const;
 
-    virtual void addBus(Bus& bus)
-        throw (ComponentAlreadyExists);
-    virtual void addSocket(Socket& socket)
-        throw (ComponentAlreadyExists);
-    void addUnit(Unit& unit)
-        throw (ComponentAlreadyExists, IllegalParameters);
-    virtual void addFunctionUnit(FunctionUnit& unit)
-        throw (ComponentAlreadyExists, IllegalParameters);
-    virtual void addImmediateUnit(ImmediateUnit& unit)
-        throw (ComponentAlreadyExists);
-    virtual void addRegisterFile(RegisterFile& unit)
-        throw (ComponentAlreadyExists);
-    virtual void addAddressSpace(AddressSpace& as)
-        throw (ComponentAlreadyExists);
-    virtual void addBridge(Bridge& bridge)
-        throw (ComponentAlreadyExists);
-    virtual void addInstructionTemplate(
-        InstructionTemplate& instrTempl)
-        throw (ComponentAlreadyExists);
-    virtual void addImmediateSlot(ImmediateSlot& slot)
-        throw (ComponentAlreadyExists);
-    virtual void setGlobalControl(ControlUnit& unit)
-        throw (ComponentAlreadyExists);
+    virtual void addBus(Bus& bus);
+    virtual void addSocket(Socket& socket);
+    void addUnit(Unit& unit);
+    virtual void addFunctionUnit(FunctionUnit& unit);
+    virtual void addImmediateUnit(ImmediateUnit& unit);
+    virtual void addRegisterFile(RegisterFile& unit);
+    virtual void addAddressSpace(AddressSpace& as);
+    virtual void addBridge(Bridge& bridge);
+    virtual void addInstructionTemplate(InstructionTemplate& instrTempl);
+    virtual void addImmediateSlot(ImmediateSlot& slot);
+    virtual void setGlobalControl(ControlUnit& unit);
     virtual void unsetGlobalControl();
 
     virtual ControlUnit* controlUnit() const;
 
-    virtual void removeBus(Bus& bus)
-        throw (InstanceNotFound);
-    virtual void removeSocket(Socket& socket)
-        throw (InstanceNotFound);
-    virtual void removeUnit(Unit& unit)
-        throw (InstanceNotFound, IllegalParameters);
-    virtual void removeFunctionUnit(FunctionUnit& unit)
-        throw (InstanceNotFound);
-    virtual void removeImmediateUnit(ImmediateUnit& unit)
-        throw (InstanceNotFound);
-    virtual void removeRegisterFile(RegisterFile& unit)
-        throw (InstanceNotFound);
-    virtual void deleteBridge(Bridge& bridge)
-        throw (InstanceNotFound);
-    virtual void deleteInstructionTemplate(
-        InstructionTemplate& instrTempl)
-        throw (InstanceNotFound);
-    virtual void deleteImmediateSlot(ImmediateSlot& slot)
-        throw (InstanceNotFound);
-    virtual void deleteAddressSpace(AddressSpace& as)
-        throw (InstanceNotFound);
+    virtual void removeBus(Bus& bus);
+    virtual void removeSocket(Socket& socket);
+    virtual void removeUnit(Unit& unit);
+    virtual void removeFunctionUnit(FunctionUnit& unit);
+    virtual void removeImmediateUnit(ImmediateUnit& unit);
+    virtual void removeRegisterFile(RegisterFile& unit);
+    virtual void deleteBridge(Bridge& bridge);
+    virtual void deleteInstructionTemplate(InstructionTemplate& instrTempl);
+    virtual void deleteImmediateSlot(ImmediateSlot& slot);
+    virtual void deleteAddressSpace(AddressSpace& as);
 
-    void setBusPosition(const Bus& bus, int newPosition)
-        throw (IllegalRegistration, OutOfRange);
+    void setBusPosition(const Bus& bus, int newPosition);
 
     MachineTester& machineTester() const;
 
@@ -148,21 +124,21 @@ public:
     void setTriggerInvalidatesResults(bool);
     void setFUOrdered(bool);
     
+    int maximumLatency() const;
 
     // functions inherited from Serializable interface
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
     virtual ObjectState* saveState() const;
     
     virtual void copyFromMachine(Machine& machine);
 
-    static Machine* loadFromADF(const std::string& adfFileName)
-        throw (Exception);
+    static Machine* loadFromADF(const std::string& adfFileName);
 
-    void writeToADF(const std::string& adfFileName) const
-        throw (Exception);
+    void writeToADF(const std::string& adfFileName) const;
 
     TCEString hash() const;
+
+    bool hasOperation(const TCEString& opName) const;
 
     /**
      * A template class which contains machine components.
@@ -179,13 +155,17 @@ public:
         ComponentType* item(int index) const;
         ComponentType* item(const std::string& name) const;
         int count() const;
-        void moveToPosition(const ComponentType* component, int position)
-            throw (InstanceNotFound, OutOfRange);
+        void moveToPosition(const ComponentType* component, int position);
 
-    private:
         /// Table of ComponentType pointers.
         typedef std::vector<ComponentType*> ComponentTable;
 
+        typedef typename ComponentTable::const_iterator const_iterator;
+
+        const_iterator begin() const noexcept;
+        const_iterator end() const noexcept;
+
+    private:
         /// Contains all the components of the container.
         ComponentTable components_;
     };
@@ -206,12 +186,17 @@ public:
         Navigator(const Navigator& old);
         Navigator& operator=(const Navigator& old);
 
-        ComponentType* item(int index) const
-            throw (OutOfRange);
-        ComponentType* item(const std::string& name) const
-            throw (InstanceNotFound);
+        ComponentType* item(int index) const;
+        ComponentType* item(const std::string& name) const;
         bool hasItem(const std::string& name) const;
         int count() const;
+
+        typedef typename
+        Machine::ComponentContainer<ComponentType>::const_iterator
+        const_iterator;
+
+        const_iterator begin() const noexcept;
+        const_iterator end() const noexcept;
 
     private:
         /// The container which this navigator handles.
@@ -267,22 +252,16 @@ private:
     Machine& operator=(const Machine&);
 
     template <typename ContainerType, typename ComponentType>
-    void addComponent(ContainerType& container, ComponentType& toAdd)
-        throw (ComponentAlreadyExists);
+    void addComponent(ContainerType& container, ComponentType& toAdd);
 
     template <typename ContainerType, typename ComponentType>
-    void addRegisteredComponent(
-        ContainerType& container,
-        ComponentType& toAdd)
-        throw (ComponentAlreadyExists);
+    void addRegisteredComponent(ContainerType& container, ComponentType& toAdd);
 
     template <typename ContainerType, typename ComponentType>
-    void removeComponent(ContainerType& container, ComponentType& toRemove)
-        throw (InstanceNotFound);
+    void removeComponent(ContainerType& container, ComponentType& toRemove);
 
     template <typename ContainerType, typename ComponentType>
-    void deleteComponent(ContainerType& container, ComponentType& toDelete)
-        throw (InstanceNotFound);
+    void deleteComponent(ContainerType& container, ComponentType& toDelete);
 
     template <typename ContainerType>
     static void saveComponentStates(

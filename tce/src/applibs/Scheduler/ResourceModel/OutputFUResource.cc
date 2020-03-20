@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -74,9 +74,7 @@ OutputFUResource::canAssign(const int, const MoveNode&) const {
  * @param node MoveNode assigned
  */
 void
-OutputFUResource::assign(const int cycle, MoveNode& node)
-    throw (Exception) {
-
+OutputFUResource::assign(const int cycle, MoveNode& node) {
     for (int i = 0; i < dependentResourceGroupCount(); i++) {
         for (int j = 0, count = dependentResourceCount(i); j < count; j++) {
             if (dependentResource(i, j).isExecutionPipelineResource()) {
@@ -99,10 +97,7 @@ OutputFUResource::assign(const int cycle, MoveNode& node)
 * @param node MoveNode to remove assignment from
 */
 void
-OutputFUResource::unassign(
-    const int cycle,
-    MoveNode& node)
-    throw (Exception) {
+OutputFUResource::unassign(const int cycle, MoveNode& node) {
     for (int i = 0; i < dependentResourceGroupCount(); i++) {
         for (int j = 0, count = dependentResourceCount(i); j < count; j++) {
             if (dependentResource(i, j).isExecutionPipelineResource()) {

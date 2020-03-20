@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -55,12 +55,8 @@ const std::string ImmediateSlotField::OSKEY_WIDTH = "width";
  *                                an immediate slot with the given name.
  */
 ImmediateSlotField::ImmediateSlotField(
-    const std::string& name,
-    int width,
-    BinaryEncoding& parent)
-    throw (OutOfRange, ObjectAlreadyExists) :
-    InstructionField(&parent), name_(name), width_(width) {
-
+    const std::string& name, int width, BinaryEncoding& parent)
+    : InstructionField(&parent), name_(name), width_(width) {
     if (width < 1) {
         const string procName = "ImmediateSlotField::ImmediateSlotField";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -70,7 +66,6 @@ ImmediateSlotField::ImmediateSlotField(
     parent.addImmediateSlot(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -82,17 +77,13 @@ ImmediateSlotField::ImmediateSlotField(
  *                                        the state.
  */
 ImmediateSlotField::ImmediateSlotField(
-    const ObjectState* state,
-    BinaryEncoding& parent)
-    throw (ObjectStateLoadingException) :
-    InstructionField(state, &parent), name_(""), width_(0) {
-
+    const ObjectState* state, BinaryEncoding& parent)
+    : InstructionField(state, &parent), name_(""), width_(0) {
     loadState(state);
     setParent(NULL);
     parent.addImmediateSlot(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.
@@ -143,9 +134,7 @@ ImmediateSlotField::name() const {
  *                                immediate slot already.
  */
 void
-ImmediateSlotField::setName(const std::string& name)
-    throw (ObjectAlreadyExists) {
-
+ImmediateSlotField::setName(const std::string& name) {
     if (name == this->name()) {
         return;
     }
@@ -157,7 +146,6 @@ ImmediateSlotField::setName(const std::string& name)
         name_ = name;
     }
 }
-    
 
 /**
  * Returns 0 always since immediate slot does not have any child fields.
@@ -188,16 +176,13 @@ ImmediateSlotField::width() const {
  * @exception OutOfRange If the given width is smaller than 1.
  */
 void
-ImmediateSlotField::setWidth(int width)
-    throw (OutOfRange) {
-
+ImmediateSlotField::setWidth(int width) {
     if (width < 1) {
         const string procName = "ImmediateSlotField::setWidth";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
     width_ = width;
 }
-
 
 /**
  * Saves the state of the object to an ObjectState instance.
@@ -222,9 +207,7 @@ ImmediateSlotField::saveState() const {
  *                                        the state.
  */
 void
-ImmediateSlotField::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+ImmediateSlotField::loadState(const ObjectState* state) {
     const string procName = "ImmediateSlotField::loadState";
 
     if (state->name() != OSNAME_IMMEDIATE_SLOT_FIELD) {

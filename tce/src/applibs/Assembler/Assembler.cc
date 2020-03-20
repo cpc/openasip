@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -64,9 +64,7 @@ Assembler::Assembler(
  * @exception CompileError If there was any problems during the compilation.
  */
 Binary*
-Assembler::compile()
-    throw (CompileError) {
-
+Assembler::compile() {
     // clear old warnings from previous compilation
     warnings_.clear();
 

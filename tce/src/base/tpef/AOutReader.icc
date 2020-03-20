@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -124,7 +124,7 @@ AOutReader::textSection() const {
  */
 inline ASpaceElement*
 AOutReader::aSpaceOfElement(SectionElement *elem) const
-    throw (OutOfRange) {
+     {
 
     if (elem == NULL) {
         return undefASpace_;
@@ -162,7 +162,7 @@ AOutReader::aSpaceOfElement(SectionElement *elem) const
  */
 inline AddressImage
 AOutReader::addressOfElement(SectionElement *elem) const
-    throw (OutOfRange) {
+     {
 
     // Section offset and identification code of destination element to find
     ReferenceManager::SectionOffsetKey elemSectionOffsetKey =
@@ -204,7 +204,7 @@ AOutReader::addressOfElement(SectionElement *elem) const
 inline SectionOffset
 AOutReader::sectionOffsetOfAddress(
     AddressImage address) const
-    throw (OutOfRange) {
+     {
 
     SectionOffset endOfText = header_.sectionSizeText();
     SectionOffset endOfData = endOfText + header_.sectionSizeData();
@@ -257,8 +257,7 @@ AOutReader::readSection(
     FileOffset startPosition,
     Section* section,
     Length length) const
-    throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists,
-           EndOfFile, OutOfRange, WrongSubclass, UnexpectedValue) {
+     {
 
     stream.setReadPosition(startPosition);
 

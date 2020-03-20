@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -47,14 +47,10 @@ public:
     static NullInstructionTemplate& instance();
 
     virtual std::string name() const;
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
+    virtual void setName(const std::string& name);
 
     virtual void addSlot(
-        const std::string& slotName,
-        int width,
-        ImmediateUnit& dstUnit)
-        throw (InstanceNotFound, ComponentAlreadyExists, OutOfRange);
+        const std::string& slotName, int width, ImmediateUnit& dstUnit);
     virtual void removeSlot(const std::string& slotName);
     virtual void removeSlots(const ImmediateUnit& dstUnit);
 
@@ -67,15 +63,11 @@ public:
         const ImmediateUnit& dstUnit) const;
     virtual int numberOfDestinations() const;
     virtual bool isOneOfDestinations(const ImmediateUnit& dstUnit) const;
-    virtual ImmediateUnit* destinationOfSlot(
-        const std::string& slotName) const
-        throw (InstanceNotFound);
+    virtual ImmediateUnit* destinationOfSlot(const std::string& slotName) const;
 
     virtual int numberOfSlots(const ImmediateUnit& dstUnit) const;
     virtual std::string slotOfDestination(
-        const ImmediateUnit& dstUnit, 
-        int index) const
-        throw (OutOfRange);
+        const ImmediateUnit& dstUnit, int index) const;
 
     virtual int supportedWidth() const;
     virtual int supportedWidth(const ImmediateUnit& dstUnit) const;
@@ -83,18 +75,15 @@ public:
 
     virtual bool isEmpty() const;
 
-    virtual void setMachine(Machine& machine)
-        throw (ComponentAlreadyExists);
+    virtual void setMachine(Machine& machine);
     virtual void unsetMachine();
     virtual Machine* machine() const;
 
-    virtual void ensureRegistration(const Component& component) const
-        throw (IllegalRegistration);
+    virtual void ensureRegistration(const Component& component) const;
     virtual bool isRegistered() const;
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
 private:
     NullInstructionTemplate();

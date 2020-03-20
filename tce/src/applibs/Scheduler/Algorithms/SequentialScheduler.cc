@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -99,12 +99,8 @@ SequentialScheduler::~SequentialScheduler() {
  */
 void
 SequentialScheduler::handleBasicBlock(
-    TTAProgram::BasicBlock& bb,
-    const TTAMachine::Machine& targetMachine,
-    TTAProgram::InstructionReferenceManager& irm,
-    BasicBlockNode*)
-    throw (Exception) {
-
+    TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
+    TTAProgram::InstructionReferenceManager& irm, BasicBlockNode*) {
     if (bb.instructionCount() == 0)
         return;
 
@@ -164,9 +160,8 @@ static int graphCount = 0;
  * @return returns the last cycle of the operation.
  */
 int
-SequentialScheduler::scheduleOperation(MoveNodeGroup& moves, int earliestCycle)
-    throw (Exception) {
-
+SequentialScheduler::scheduleOperation(
+    MoveNodeGroup& moves, int earliestCycle) {
     ProgramOperation& po =
         (moves.node(0).isSourceOperation())?
         (moves.node(0).sourceOperation()):
@@ -227,9 +222,7 @@ SequentialScheduler::scheduleOperation(MoveNodeGroup& moves, int earliestCycle)
 int
 SequentialScheduler::scheduleOperandWrites(
     int cycle, MoveNodeGroup& moves,
-    RegisterCopyAdder::AddedRegisterCopies& regCopies)
-    throw (Exception) {
-
+    RegisterCopyAdder::AddedRegisterCopies& regCopies) {
     // Counts operands that are not scheduled at beginning.
     int scheduledMoves = 0;
     MoveNode* trigger = NULL;
@@ -285,9 +278,7 @@ SequentialScheduler::scheduleOperandWrites(
 int
 SequentialScheduler::scheduleResultReads(
     int cycle, MoveNodeGroup& moves,
-    RegisterCopyAdder::AddedRegisterCopies& regCopies)
-    throw (Exception) {
-
+    RegisterCopyAdder::AddedRegisterCopies& regCopies) {
     for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
         MoveNode& node = moves.node(moveIndex);
 
@@ -322,9 +313,7 @@ SequentialScheduler::scheduleResultReads(
  * @return Last cycle where the moves got scheduled.
  */
 int
-SequentialScheduler::scheduleRRMove(int cycle, MoveNode& moveNode)
-    throw (Exception) {
-
+SequentialScheduler::scheduleRRMove(int cycle, MoveNode& moveNode) {
     RegisterCopyAdder regCopyAdder(
         BasicBlockPass::interPassData(), *rm_);
 
@@ -351,11 +340,7 @@ SequentialScheduler::scheduleRRMove(int cycle, MoveNode& moveNode)
  * @return cycle where the move got scheduled.
  */
 int
-SequentialScheduler::scheduleMove(
-    int earliestCycle,
-    MoveNode& moveNode)
-    throw (Exception) {
-
+SequentialScheduler::scheduleMove(int earliestCycle, MoveNode& moveNode) {
     if (moveNode.isScheduled()) {
         throw InvalidData(
             __FILE__, __LINE__, __func__,
@@ -369,9 +354,9 @@ SequentialScheduler::scheduleMove(
         int guardLatency =
             targetMachine_->controlUnit()->globalGuardLatency();
 
-        TTAMachine::Guard& guard = moveNode.move().guard().guard();
-        TTAMachine::RegisterGuard* rg =
-            dynamic_cast<TTAMachine::RegisterGuard*>(&guard);
+        const TTAMachine::Guard& guard = moveNode.move().guard().guard();
+        const TTAMachine::RegisterGuard* rg =
+            dynamic_cast<const TTAMachine::RegisterGuard*>(&guard);
         if (rg != NULL) {
             guardLatency += rg->registerFile()->guardLatency();
         }
@@ -463,10 +448,8 @@ SequentialScheduler::scheduleMove(
  */
 int
 SequentialScheduler::scheduleRRTempMoves(
-    int cycle, MoveNode& regToRegMove, 
-    RegisterCopyAdder::AddedRegisterCopies& regCopies)
-    throw (Exception) {
-
+    int cycle, MoveNode& regToRegMove,
+    RegisterCopyAdder::AddedRegisterCopies& regCopies) {
     if (regCopies.count_ > 0) {
         if (MapTools::containsKey(regCopies.operandCopies_,&regToRegMove)) {
             DataDependenceGraph::NodeSet tempMoves = 
@@ -494,10 +477,8 @@ SequentialScheduler::scheduleRRTempMoves(
  */
 int
 SequentialScheduler::scheduleInputOperandTempMoves(
-    int cycle, MoveNode& operandMove, 
-    RegisterCopyAdder::AddedRegisterCopies& regCopies)
-    throw (Exception) {
-
+    int cycle, MoveNode& operandMove,
+    RegisterCopyAdder::AddedRegisterCopies& regCopies) {
     if (regCopies.count_ > 0) {
         if (MapTools::containsKey(regCopies.operandCopies_,&operandMove)) {
             DataDependenceGraph::NodeSet tempMoves = 
@@ -548,15 +529,14 @@ SequentialScheduler::unscheduleInputOperandTempMoves(
  * connectivity) succeeding the given result move.
  *
  * @param operandMove The move of which temp moves to schedule.
- * @return cycle next available cycle
+ * @param cycle of the last actual result move
+ * @return cycle cycle of last scheduled temp move
  *
  */
 int
 SequentialScheduler::scheduleResultTempMoves(
     int cycle, MoveNode& resultMove,
-    RegisterCopyAdder::AddedRegisterCopies& regCopies)
-    throw (Exception) {
-
+    RegisterCopyAdder::AddedRegisterCopies& regCopies) {
     if (regCopies.count_ > 0) {
         if (MapTools::containsKey(regCopies.resultCopies_,&resultMove)) {
             DataDependenceGraph::NodeSet tempMoves = 
@@ -567,7 +547,7 @@ SequentialScheduler::scheduleResultTempMoves(
             DataDependenceGraph::NodeSet::iterator i = tempMoves.end();
             while (i != tempMoves.begin()) {
                 --i;
-                cycle = scheduleMove(cycle, **i) + 1;
+                cycle = scheduleMove(cycle + 1, **i);
             }
         }
     }
@@ -618,9 +598,7 @@ SequentialScheduler::unschedule(MoveNode& moveNode) {
 void
 SequentialScheduler::handleProcedure(
     TTAProgram::Procedure& procedure,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
+    const TTAMachine::Machine& targetMachine) {
     std::vector<TTAProgram::BasicBlock*> basicBlocks;
     std::vector<int> bbAddresses;
     createBasicBlocks(procedure, basicBlocks, bbAddresses);
@@ -708,12 +686,14 @@ SequentialScheduler::createBasicBlocks(
         }
     }
 
-    // at end, add last BB if non-empty
-    if (currentBB->instructionCount() != 0) {
-        basicBlocks.push_back(currentBB);
-        bbAddresses.push_back(lastStartAddress);
-    } else {
-        delete currentBB;
+    if (currentBB != nullptr) {
+        // at end, add last BB if non-empty
+        if (currentBB->instructionCount() != 0) {
+            basicBlocks.push_back(currentBB);
+            bbAddresses.push_back(lastStartAddress);
+        } else {
+            delete currentBB;
+        }
     }
 }
 

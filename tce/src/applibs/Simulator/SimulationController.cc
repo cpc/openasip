@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -221,9 +221,7 @@ SimulationController::simulateCycle() {
  *                                     the simulated program.
  */
 void
-SimulationController::step(double count) 
-    throw (SimulationExecutionError) {
-
+SimulationController::step(double count) {
     assert(state_ == STA_STOPPED || state_ == STA_INITIALIZED);
     stopReasons_.clear();
     state_ = STA_RUNNING;
@@ -246,7 +244,6 @@ SimulationController::step(double count)
         SimulationEventHandler::SE_SIMULATION_STOPPED);
 }
 
-
 /**
  * Advance simulation by a given amout of steps and skip procedure
  * calls.
@@ -256,9 +253,7 @@ SimulationController::step(double count)
  *                                     the simulated program.
  */
 void
-SimulationController::next(int count)
-    throw (SimulationExecutionError) {
- 
+SimulationController::next(int count) {
     stopRequested_ = false;
     stopReasons_.clear();
     state_ = STA_RUNNING;
@@ -300,7 +295,6 @@ SimulationController::next(int count)
         SimulationEventHandler::SE_SIMULATION_STOPPED);
 }
 
-
 /**
  * Advance simulation until a condition for stopping is enabled.
  *
@@ -308,9 +302,7 @@ SimulationController::next(int count)
  *                                     the simulated program.
  */
 void
-SimulationController::run() 
-    throw (SimulationExecutionError) {
-
+SimulationController::run() {
     stopRequested_ = false;
     stopReasons_.clear();
     state_ = STA_RUNNING;
@@ -333,9 +325,7 @@ SimulationController::run()
  *                                     the simulated program.
  */
 void
-SimulationController::runUntil(UIntWord address) 
-    throw (SimulationExecutionError) {
-
+SimulationController::runUntil(UIntWord address) {
     stopRequested_ = false;
     stopReasons_.clear();
     state_ = STA_RUNNING;

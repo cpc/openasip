@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -150,8 +150,9 @@ void
 ExecutableMove::evaluateGuard() {
     if (guarded_) {
         const SimValue& regValue = guardReg_->value();
-        squashed_ = !((!negated_ && regValue.sIntWordValue() != 0) ||
-                      (negated_ && regValue.sIntWordValue() == 0));
+        const bool guardTerm = (regValue.sIntWordValue() & 1) == 1;
+        squashed_ = !((!negated_ &&  guardTerm) ||
+                      ( negated_ && !guardTerm));
         bus_->setSquashed(squashed_);
     } else {
         bus_->setSquashed(false);

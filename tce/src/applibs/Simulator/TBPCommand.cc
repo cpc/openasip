@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -67,10 +67,8 @@ TBPCommand::~TBPCommand() {
  * @return True in case simulation is initialized and arguments are ok.
  * @exception NumberFormatException Is never thrown by this command.
  */
-bool 
-TBPCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+TBPCommand::execute(const std::vector<DataObject>& arguments) {
     Breakpoint breakpoint(simulatorFrontend(), 0);
     if (!parseBreakpoint(arguments, breakpoint)) {
         return false;

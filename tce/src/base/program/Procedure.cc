@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -98,9 +98,7 @@ Procedure::alignment() const {
  *            this procedure.
  */
 Address
-Procedure::address(const Instruction& ins) const
-    throw (IllegalRegistration) {
-
+Procedure::address(const Instruction& ins) const {
     unsigned int i = 0;
 
     /* this loop is executed very ofter so 
@@ -150,9 +148,7 @@ Procedure::copy() const {
  *                                in another procedure.
  */
 void
-Procedure::add(Instruction* ins) 
-    throw (IllegalRegistration) {
-
+Procedure::add(Instruction* ins) {
     if (!ins->isInProcedure()) {
 
         if (instructions_.size() == instructions_.capacity()) {
@@ -185,9 +181,7 @@ Procedure::add(Instruction* ins)
  *            or ins already belongs to a procedure.
  */
 void
-Procedure::insertAfter(const Instruction& pos, Instruction* ins)
-    throw (IllegalRegistration) {
-
+Procedure::insertAfter(const Instruction& pos, Instruction* ins) {
     if (!ins->isInProcedure()) {
         for (InsList::iterator iter = instructions_.begin();
              iter != instructions_.end(); iter++) {
@@ -222,7 +216,6 @@ Procedure::insertAfter(const Instruction& pos, Instruction* ins)
     }
 }
 
-
 /**
  * Insert the given instruction before the given position.
  *
@@ -237,9 +230,7 @@ Procedure::insertAfter(const Instruction& pos, Instruction* ins)
  *            or ins already belongs to a procedure.
  */
 void
-Procedure::insertBefore(const Instruction& pos, Instruction* ins)
-    throw (IllegalRegistration) {
-
+Procedure::insertBefore(const Instruction& pos, Instruction* ins) {
     if (!ins->isInProcedure()) {
 
         InsList::iterator iter = instructions_.begin();
@@ -277,7 +268,6 @@ Procedure::insertBefore(const Instruction& pos, Instruction* ins)
     }
 }
 
-
 /**
  * Remove instruction from the procedure.
  *
@@ -295,8 +285,7 @@ Procedure::insertBefore(const Instruction& pos, Instruction* ins)
  *                                procedure.
  */
 void
-Procedure::remove(Instruction& ins) throw (IllegalRegistration) {
-
+Procedure::remove(Instruction& ins) {
     bool first = false;
     bool refs = false;
 

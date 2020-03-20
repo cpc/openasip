@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -53,12 +53,10 @@ public:
     ResourceMapper();
     virtual ~ResourceMapper();
 
-    void addResourceMap(const ResourceBroker& broker)
-        throw (ObjectAlreadyExists);
+    void addResourceMap(const ResourceBroker& broker);
     int resourceCount(const TTAMachine::MachinePart& mp) const;
     SchedulingResource& resourceOf(
-        const TTAMachine::MachinePart& mp,
-        int index = 0) const throw (KeyNotFound);
+        const TTAMachine::MachinePart& mp, int index = 0) const;
 
 private:
     /// Resource brokers.

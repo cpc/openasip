@@ -3199,11 +3199,13 @@ float32 uint32_to_float32( uint32 a )
     if ( a == 0 ) return 0;
     
     flag zSign = 0;
-    int32 zExp = 0x9D;
+    int32 zExp = 0x9C;
     uint32 zSig = a>>1;
-    int8 shiftCount = countLeadingZeros32(zSig) - 1;
-
-    return roundAndPackFloat32( zSign, zExp - shiftCount, zSig<<shiftCount );
+    int8 shiftCount = countLeadingZeros32(zSig) - 2;
+    if (shiftCount >=0)
+        return roundAndPackFloat32( zSign, zExp - shiftCount, a << shiftCount);
+    else
+        return roundAndPackFloat32( zSign, zExp - shiftCount, a >> -shiftCount);
 }
 
 float __emulate_CIFU_1_1_i32_f32(uint32 a) {

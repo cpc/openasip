@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2016 Tampere University of Technology.
+    Copyright (c) 2002-2016 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -63,8 +63,7 @@ public:
     virtual ~ProximMainFrame();
 
     void addSubWindow(ProximSimulatorWindow* window);
-    void removeSubWindow(ProximSimulatorWindow* window)
-        throw (InstanceNotFound);
+    void removeSubWindow(ProximSimulatorWindow* window);
     void createToolbar();
     void createMenubar();
     void reset();

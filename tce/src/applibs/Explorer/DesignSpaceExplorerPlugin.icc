@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -74,7 +74,7 @@ template <typename T>
 void 
 DesignSpaceExplorerPlugin::readCompulsoryParameter(
     const std::string paramName, T& param) const
-    throw (NotAvailable, IllegalParameters) {
+     {
 
     param = parameterValue<T>(paramName);
 }
@@ -90,7 +90,7 @@ template <typename T>
 void 
 DesignSpaceExplorerPlugin::readOptionalParameter(
     const std::string paramName, T& param) const
-    throw (NotAvailable, IllegalParameters) {
+     {
 
     // optional parameters
     if (hasParameter(paramName)) {
@@ -107,7 +107,7 @@ DesignSpaceExplorerPlugin::readOptionalParameter(
 template <typename RT>
 RT
 DesignSpaceExplorerPlugin::parameterValue(const std::string& paramName) const
-    throw (NotAvailable, IllegalParameters) {
+     {
 
     using boost::lexical_cast;
     using boost::bad_lexical_cast;

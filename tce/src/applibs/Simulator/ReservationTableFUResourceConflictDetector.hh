@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -55,10 +55,8 @@ namespace TTAMachine {
 class ReservationTableFUResourceConflictDetector : 
     public FUResourceConflictDetector {
 public:
-
     ReservationTableFUResourceConflictDetector(
-        const TTAMachine::FunctionUnit& fu)
-        throw (InvalidData);
+        const TTAMachine::FunctionUnit& fu);
     virtual ~ReservationTableFUResourceConflictDetector();
 
     virtual bool issueOperation(OperationID id);

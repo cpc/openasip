@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -117,10 +117,7 @@ FiniteStateAutomaton::stateName(FSAStateIndex state) const {
  * @exception KeyNotFound In case no transition with given is found.
  */
 FiniteStateAutomaton::FSAStateTransitionIndex
-FiniteStateAutomaton::transitionIndex(
-    const std::string& transitionName) const
-    throw (KeyNotFound) {
-
+FiniteStateAutomaton::transitionIndex(const std::string& transitionName) const {
     TransitionNameIndex::const_iterator i = 
         transitionIndices_.find(transitionName);
 

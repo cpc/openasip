@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -106,9 +106,7 @@ CmdLineParser::storeOptions(Options& options) {
  * @exception ParserStopRequest If help or version option is found.
  */
 void
-CmdLineParser::parse(char* argv[], int argc)
-    throw (IllegalCommandLine, ParserStopRequest) {
-
+CmdLineParser::parse(char* argv[], int argc) {
     // command line is emptied
     commandLine_.clear();
     progName_ = string(argv[0]);
@@ -128,9 +126,7 @@ CmdLineParser::parse(char* argv[], int argc)
  * @exception ParserStopRequest If help or version option is found.
  */
 void
-CmdLineParser::parse(std::vector<std::string> options)
-    throw (IllegalCommandLine, ParserStopRequest) {
-
+CmdLineParser::parse(std::vector<std::string> options) {
     // command line is emptied
     commandLine_.clear();
 
@@ -161,9 +157,7 @@ CmdLineParser::parse(std::vector<std::string> options)
  * @exception IllegalCommandLine If option is not found.
  */
 CmdLineOptionParser*
-CmdLineParser::findOption(std::string name) const
-    throw (IllegalCommandLine) {
-
+CmdLineParser::findOption(std::string name) const {
     constMapIter i = optionLongNames_.find(name);
     if (i != optionLongNames_.end()) {
         return (*i).second;
@@ -177,7 +171,6 @@ CmdLineParser::findOption(std::string name) const
     string msg = "Unknown option: " + name;
     string method = "CmdLineParser::findOption()";
     throw IllegalCommandLine(__FILE__, __LINE__, method, msg);
-
 }
 
 /**
@@ -186,9 +179,7 @@ CmdLineParser::findOption(std::string name) const
  * @exception IllegalCommandLine If parsing fails.
  */
 void
-CmdLineParser::parseAll()
-    throw (IllegalCommandLine) {
-
+CmdLineParser::parseAll() {
     // finished is set to true when options are parsed and the rest are
     // command line arguments
     bool finished = false;
@@ -284,12 +275,8 @@ CmdLineParser::parseAll()
  */
 bool
 CmdLineParser::parseOption(
-    std::string option,
-    std::string& name,
-    std::string& arguments,
-    std::string& prefix,
-    bool& hasArgument) const throw (IllegalCommandLine) {
-
+    std::string option, std::string& name, std::string& arguments,
+    std::string& prefix, bool& hasArgument) const {
     // first there is either '-' or '--'
     bool longOption = false;
     if (!readPrefix(option, prefix, longOption)) {

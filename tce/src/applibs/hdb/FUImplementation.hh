@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -79,40 +79,30 @@ public:
     void setOpcode(const std::string& operation, int opcode);
     void unsetOpcode(const std::string& operation);
     int opcodeCount() const;
-    std::string opcodeOperation(int index) const
-        throw (OutOfRange);
+    std::string opcodeOperation(int index) const;
     bool hasOpcode(const std::string& operation) const;
-    int opcode(const std::string& operation) const
-        throw (KeyNotFound);
+    int opcode(const std::string& operation) const;
     int maxOpcodeWidth() const;
 
     void addArchitecturePort(FUPortImplementation* port);
-    void deleteArchitecturePort(FUPortImplementation* port)
-        throw (InstanceNotFound);
+    void deleteArchitecturePort(FUPortImplementation* port);
     void addExternalPort(FUExternalPort* port);
-    void deleteExternalPort(FUExternalPort* port)
-        throw (InstanceNotFound);
+    void deleteExternalPort(FUExternalPort* port);
 
     int architecturePortCount() const;
     int externalPortCount() const;
-    
-    FUPortImplementation& architecturePort(int index) const
-        throw (OutOfRange);
+
+    FUPortImplementation& architecturePort(int index) const;
     FUPortImplementation& portImplementationByArchitectureName(
-        const std::string& architectureName) const
-        throw (InstanceNotFound);
-    FUExternalPort& externalPort(int index) const
-        throw (OutOfRange);
+        const std::string& architectureName) const;
+    FUExternalPort& externalPort(int index) const;
 
     void addParameter(
-        const std::string& name,
-        const std::string& type,
-        const std::string& value)
-        throw (IllegalParameters);
+        const std::string& name, const std::string& type,
+        const std::string& value);
     void removeParameter(const std::string& name);
     int parameterCount() const;
-    Parameter parameter(int index) const
-        throw (OutOfRange);
+    Parameter parameter(int index) const;
     bool hasParameter(const std::string& name) const;
 
 private:

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -75,10 +75,8 @@ using namespace TTAProgram;
  * @param machine The machine that will be profiled.
  * @param procedure ProgrammabilityValidator generates procedure.
  */
-ProgrammabilityValidator::ProgrammabilityValidator(const Machine& machine) 
-    throw (IllegalMachine) : machine_(machine), 
-    minimalOpSetCheck_(new MinimalOpSetCheck()) {
-
+ProgrammabilityValidator::ProgrammabilityValidator(const Machine& machine)
+    : machine_(machine), minimalOpSetCheck_(new MinimalOpSetCheck()) {
     directCounter = 0;
     gcrCounter = 0;
     booleanRegister_ = NULL;
@@ -113,7 +111,6 @@ ProgrammabilityValidator::ProgrammabilityValidator(const Machine& machine)
     RFConnections.clear();
     IMMConnections.clear();
 }
-
 
 /**
  * The destructor.
@@ -269,9 +266,7 @@ ProgrammabilityValidator::validate(const std::set<ErrorCode>& errorsToCheck) {
  * @exception InvalidData Thrown if the binary can't be created.
  */
 TPEF::Binary*
-ProgrammabilityValidator::profile(ProgrammabilityValidatorResults& results)
-    throw (NotAvailable, InvalidData) {
-    
+ProgrammabilityValidator::profile(ProgrammabilityValidatorResults& results) {
     checkPrimitiveSet(results);
     
     if (!checkBooleanRegister(results)) {
@@ -330,7 +325,6 @@ ProgrammabilityValidator::profile(ProgrammabilityValidatorResults& results)
         throw e;
     }
 }
-
 
 /**
  * Checks the machine which primitive operations are missing.
@@ -663,11 +657,11 @@ ProgrammabilityValidator::addConnectionToProgram(
                     RegisterGuard* guard;
                     findRegisterGuard(segment, guard);
                     MoveGuard* moveGuard = new MoveGuard(*guard);
-                    Move* move = new Move(source,
+                    auto movePtr = std::make_shared<Move>(source,
                                           destination,
                                           *segment->parentBus(),
                                           moveGuard);
-                    instruction->addMove(move);
+                    instruction->addMove(movePtr);
                     procedure_->add(instruction);
                 }
 
@@ -685,11 +679,11 @@ ProgrammabilityValidator::addConnectionToProgram(
                 RegisterGuard* guard;
                 findRegisterGuard(segment, guard);
                 MoveGuard* moveGuard = new MoveGuard(*guard);
-                Move* move = new Move(source,
+                auto movePtr = std::make_shared<Move>(source,
                                       destination,
                                       *segment->parentBus(),
                                       moveGuard);
-                instruction->addMove(move);
+                instruction->addMove(movePtr);
                 procedure_->add(instruction);
             }
         }
@@ -703,11 +697,11 @@ ProgrammabilityValidator::addConnectionToProgram(
                 RegisterGuard* guard;
                 findRegisterGuard(segment, guard);
                 MoveGuard* moveGuard = new MoveGuard(*guard);
-                Move* move = new Move(source,
+                auto movePtr = std::make_shared<Move>(source,
                                       destination,
                                       *segment->parentBus(),
                                       moveGuard);
-                instruction->addMove(move);
+                instruction->addMove(movePtr);
                 procedure_->add(instruction);
                 counter++;
             }
@@ -737,11 +731,11 @@ ProgrammabilityValidator::addConnectionToProgram(
                         RegisterGuard* guard;
                         findRegisterGuard(segment, guard);
                         MoveGuard* moveGuard = new MoveGuard(*guard);
-                        Move* move = new Move(source,
+                        auto movePtr = std::make_shared<Move>(source,
                                               destination,
                                               *segment->parentBus(),
                                               moveGuard);
-                        instruction->addMove(move);
+                        instruction->addMove(movePtr);
                         procedure_->add(instruction);
                     }                
                 }
@@ -758,11 +752,11 @@ ProgrammabilityValidator::addConnectionToProgram(
                     RegisterGuard* guard;
                     findRegisterGuard(segment, guard);
                     MoveGuard* moveGuard = new MoveGuard(*guard);
-                    Move* move = new Move(source,
+                    auto movePtr = std::make_shared<Move>(source,
                                           destination,
                                           *segment->parentBus(),
                                           moveGuard);
-                    instruction->addMove(move);
+                    instruction->addMove(movePtr);
                     procedure_->add(instruction);
                 }
             }
@@ -779,11 +773,11 @@ ProgrammabilityValidator::addConnectionToProgram(
                     RegisterGuard* guard;
                     findRegisterGuard(segment, guard);
                     MoveGuard* moveGuard = new MoveGuard(*guard);
-                    Move* move = new Move(source,
+                    auto movePtr = std::make_shared<Move>(source,
                                           destination,
                                           *segment->parentBus(),
                                           moveGuard);
-                    instruction->addMove(move);
+                    instruction->addMove(movePtr);
                     procedure_->add(instruction);
                 }
             }

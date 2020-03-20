@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -59,17 +59,14 @@ namespace TTAProgram {
  * @param dst Destination register.
  */
 
-//Immediate::Immediate(
+// Immediate::Immediate(
 //    SimValue value, Terminal* dst)
-//    throw (IllegalParameters) :
+//     :
 //    value_(value), dst_(dst) {
 //}
 
-Immediate::Immediate(
-    TerminalImmediate* value, Terminal* dst)
-    throw (IllegalParameters) :
-    value_(value), dst_(dst) {
-}
+Immediate::Immediate(TerminalImmediate* value, Terminal* dst)
+    : value_(value), dst_(dst) {}
 
 /**
  * The destructor.
@@ -130,9 +127,9 @@ Immediate::setValue(TerminalImmediate* value) {
  *
  * @return A copy of the immediate.
  */
-Immediate*
+std::shared_ptr<Immediate>
 Immediate::copy() const {
-    return new Immediate(
+    return std::make_shared<Immediate>(
         dynamic_cast<TerminalImmediate*>(value_->copy()), dst_->copy());
 }
 

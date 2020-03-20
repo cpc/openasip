@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -48,6 +48,7 @@
 #include "Conversion.hh"
 #include "UnitImplementationLocation.hh"
 #include "WidgetTools.hh"
+#include "StringTools.hh"
 #include "InformationDialog.hh"
 #include "ImmediateUnit.hh"
 
@@ -74,7 +75,7 @@ using namespace HDB;
 
 std::set<std::string> BlockImplementationDialog::hdbs_;
 int BlockImplementationDialog::selection_ = 0;
-
+const std::string BlockImplementationDialog::defaultHDB_("asic_130nm_1.5V.hdb");
 /**
  * The Constructor.
  *
@@ -112,8 +113,14 @@ BlockImplementationDialog::BlockImplementationDialog(
     }
     if (!hdbs_.empty()) {
         std::set<std::string>::iterator iter = hdbs_.begin();
+        bool defaultHDBFound = false;
         for (; iter != hdbs_.end(); iter++) {
-            hdbChoice_->Append(WxConversion::toWxString(*iter));
+            std::string shortPath = Environment::shortHDBPath(*iter);
+            hdbChoice_->Append(WxConversion::toWxString(shortPath));
+            if (!defaultHDBFound && StringTools::endsWith(*iter, defaultHDB_)) {
+                selection_ = hdbChoice_->GetCount() - 1;
+                defaultHDBFound = true;
+            }
         }
         hdbChoice_->SetSelection(selection_);
         wxCommandEvent dummy;
@@ -141,10 +148,12 @@ BlockImplementationDialog::onBrowse(wxCommandEvent&) {
         (wxOPEN | wxFILE_MUST_EXIST));
 
     if (dialog.ShowModal() == wxID_OK) {
-        wxString hdb = dialog.GetPath();
-        int item = hdbChoice_->FindString(hdb);
+        std::string hdb = std::string(dialog.GetPath().mb_str());
+        hdb = Environment::shortHDBPath(hdb);
+        auto wxHDB = WxConversion::toWxString(hdb);
+        int item = hdbChoice_->FindString(wxHDB);
         if (item == wxNOT_FOUND) {
-            item = hdbChoice_->Append(hdb);
+            item = hdbChoice_->Append(wxHDB);
         }
         hdbChoice_->Select(item);
         wxListEvent dummy;
@@ -169,6 +178,7 @@ BlockImplementationDialog::onHDBSelection(wxCommandEvent&) {
 
     std::string path = WxConversion::toString(
         hdbChoice_->GetStringSelection());
+    path = Environment::longHDBPath(path);
 
     list_->DeleteAllItems();
 
@@ -320,7 +330,10 @@ BlockImplementationDialog::onHDBSelection(wxCommandEvent&) {
  */
 void 
 BlockImplementationDialog::doOK() {
-    impl_.setHDBFile(WxConversion::toString(hdbChoice_->GetStringSelection()));
+    std::string HDBpath = WxConversion::toString(
+                              hdbChoice_->GetStringSelection());
+    HDBpath = Environment::longHDBPath(HDBpath);
+    impl_.setHDBFile(HDBpath);
     int id = Conversion::toInt(WidgetTools::lcStringSelection(list_, 1));
     impl_.setID(id);
     EndModal(wxID_OK);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -34,6 +34,7 @@
 
 #include "AnnotatedInstructionElement.hh"
 #include "MapTools.hh"
+#include "TCEString.hh"
 
 namespace TTAProgram {
 
@@ -97,9 +98,7 @@ AnnotatedInstructionElement::setAnnotation(
  */
 ProgramAnnotation
 AnnotatedInstructionElement::annotation(
-    int index, ProgramAnnotation::Id id) const
-    throw (OutOfRange) {
-    
+    int index, ProgramAnnotation::Id id) const {
     std::pair<AnnotationIndex::const_iterator, 
         AnnotationIndex::const_iterator> range(
         annotations_.end(), annotations_.end());
@@ -166,6 +165,24 @@ bool
 AnnotatedInstructionElement::hasAnnotations(ProgramAnnotation::Id id) const {
     return annotationCount(id) > 0;
 }
+
+/**
+ * Returns true in case there's at least one annotation with the given id
+ * and the given data.
+ */
+bool
+AnnotatedInstructionElement::hasAnnotation(
+    ProgramAnnotation::Id id, const TCEString& data) const {
+
+    auto range = annotations_.equal_range(id);
+    for (auto i = range.first; i != range.second; i++) {
+        if (i->second.stringValue() == data) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 /**
  * Copies annotations from another annotated element.

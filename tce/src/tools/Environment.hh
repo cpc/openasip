@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2019 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -77,6 +77,8 @@ public:
     static std::vector<std::string> hwModulePaths();
     static std::vector<std::string> hdbPaths(
             bool libraryPathsOnly = false);
+    static TCEString shortHDBPath(const TCEString& hdbPath);
+    static TCEString longHDBPath(const TCEString& hdbPath);
     static std::vector<std::string> vhdlPaths(const std::string& hdbPath);
     static std::vector<std::string> decompressorPaths(
             bool libraryPathsOnly = false);

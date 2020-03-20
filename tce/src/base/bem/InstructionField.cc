@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -73,18 +73,14 @@ InstructionField::InstructionField(InstructionField* parent) :
  *                                        the state.
  */
 InstructionField::InstructionField(
-    const ObjectState* state,
-    InstructionField* parent)
-    throw (ObjectStateLoadingException) :
-    relativePos_(0), extraBits_(0), parent_(parent) {
-
+    const ObjectState* state, InstructionField* parent)
+    : relativePos_(0), extraBits_(0), parent_(parent) {
     if (parent != NULL) {
         relativePos_ = parent->childFieldCount();
     }
 
     loadState(state);
 }
-
 
 /**
  * The destructor.
@@ -118,9 +114,7 @@ InstructionField::parent() const {
  *                       the number of child fields.
  */
 InstructionField&
-InstructionField::childField(int position) const
-    throw (OutOfRange) {
-
+InstructionField::childField(int position) const {
     if (position < 0 || position >= childFieldCount()) {
         const string procName = "InstructionField::childField";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -128,7 +122,6 @@ InstructionField::childField(int position) const
 
     return NullInstructionField::instance();
 }
-
 
 /**
  * Returns the bit-accurate position of the field within its parent field.
@@ -176,9 +169,7 @@ InstructionField::relativePosition() const {
  * @exception OutOfRange If the given position is negative.
  */
 void
-InstructionField::setRelativePosition(int position)
-    throw (OutOfRange) {
-
+InstructionField::setRelativePosition(int position) {
     if (position < 0 || position >= parent()->childFieldCount()) {
         const string procName = "InstructionField::setRelativePosition";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -209,7 +200,6 @@ InstructionField::setRelativePosition(int position)
     }
 }
 
-
 /**
  * Sets the number of extra (zero) bits to the field.
  *
@@ -221,9 +211,7 @@ InstructionField::setRelativePosition(int position)
  * @exception OutOfRange If the given number is negative.
  */
 void
-InstructionField::setExtraBits(int bits)
-    throw (OutOfRange) {
-
+InstructionField::setExtraBits(int bits) {
     if (bits < 0) {
         const string procName = "InstructionField::setExtraBits";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -231,7 +219,6 @@ InstructionField::setExtraBits(int bits)
 
     extraBits_ = bits;
 }
-
 
 /**
  * Returns the number of extra bits in the field.
@@ -252,9 +239,7 @@ InstructionField::extraBits() const {
  *                                        the state.
  */
 void
-InstructionField::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+InstructionField::loadState(const ObjectState* state) {
     const string procName = "InstructionField::loadState";
 
     try {
@@ -273,7 +258,6 @@ InstructionField::loadState(const ObjectState* state)
             __FILE__, __LINE__, procName, exception.errorMessage());
     }
 }
-
 
 /**
  * Saves the state of the object to an ObjectState tree.

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -48,16 +48,13 @@ public:
     static CostDatabaseRegistry& instance();
     virtual ~CostDatabaseRegistry();
 
-    CostDatabase& costDatabase(const HDB::HDBManager& hdb)
-        throw (Exception);
+    CostDatabase& costDatabase(const HDB::HDBManager& hdb);
     void addCostDatabase(
         CostDatabase* costDatabase, const HDB::HDBManager& hdb);
     bool hasCostDatabase(const HDB::HDBManager& hdb);
     int costDatabaseCount();
-    CostDatabase& costDatabase(unsigned int index)
-        throw (OutOfRange);
-    std::string hdbPath(unsigned int index)
-        throw (OutOfRange);
+    CostDatabase& costDatabase(unsigned int index);
+    std::string hdbPath(unsigned int index);
 
 private:
     /// CostDatabase registry must be created with instance() method.

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -80,13 +80,9 @@ Guard::Guard(bool inverted, Bus& parentBus) :
  * @exception ObjectStateLoadingException If the given ObjectState instance
  *                                        is invalid.
  */
-Guard::Guard(const ObjectState* state, Bus& parentBus)
-    throw (ObjectStateLoadingException) :
-    parent_(&parentBus) {
-
+Guard::Guard(const ObjectState* state, Bus& parentBus) : parent_(&parentBus) {
     loadState(state);
 }
-
 
 /**
  * Destructor.
@@ -163,9 +159,7 @@ Guard::saveState() const {
  *                                        invalid.
  */
 void
-Guard::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+Guard::loadState(const ObjectState* state) {
     try {
         inverted_ = state->intAttribute(OSKEY_INVERTED);
     } catch (Exception& e) {
@@ -175,7 +169,6 @@ Guard::loadState(const ObjectState* state)
             e.errorMessage());
     }
 }
-
 
 /////////////////////////////////////////////////////////////////////////////
 // PortGuard
@@ -199,14 +192,11 @@ const string PortGuard::OSKEY_PORT = "port";
  *                                   guard.
  */
 PortGuard::PortGuard(bool inverted, FUPort& port, Bus& parentBus)
-    throw (IllegalRegistration, ComponentAlreadyExists) :
-    Guard(inverted, parentBus), port_(&port) {
-
+    : Guard(inverted, parentBus), port_(&port) {
     FunctionUnit* unit = port.parentUnit();
     parentBus.ensureRegistration(*unit);
     parentBus.addGuard(*this);
 }
-
 
 /**
  * Constructor.
@@ -221,9 +211,7 @@ PortGuard::PortGuard(bool inverted, FUPort& port, Bus& parentBus)
  *                                        invalid.
  */
 PortGuard::PortGuard(const ObjectState* state, Bus& parentBus)
-    throw (ObjectStateLoadingException) :
-    Guard(state, parentBus) {
-
+    : Guard(state, parentBus) {
     loadState(state);
     try {
         parentBus.addGuard(*this);
@@ -238,7 +226,6 @@ PortGuard::PortGuard(const ObjectState* state, Bus& parentBus)
             __FILE__, __LINE__, procName, errorMsg.str());
     }
 }
-
 
 /**
  * Destructor.
@@ -313,9 +300,7 @@ PortGuard::saveState() const {
  *                                        resolved.
  */
 void
-PortGuard::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+PortGuard::loadState(const ObjectState* state) {
     string procName = "PortGuard::loadState";
     MOMTextGenerator textGenerator;
 
@@ -370,7 +355,6 @@ PortGuard::loadState(const ObjectState* state)
     }
 }
 
-
 /////////////////////////////////////////////////////////////////////////////
 // RegisterGuard
 /////////////////////////////////////////////////////////////////////////////
@@ -398,15 +382,10 @@ const string RegisterGuard::OSKEY_INDEX = "index";
  * @exception InvalidData If local + global guard latency would be zero.
  */
 RegisterGuard::RegisterGuard(
-    bool inverted,
-    RegisterFile& regFile,
-    int registerIndex,
-    Bus& parentBus)
-    throw (IllegalRegistration, ComponentAlreadyExists, OutOfRange,
-           InvalidData):
-    Guard(inverted, parentBus), regFile_(&regFile),
-    registerIndex_(registerIndex) {
-
+    bool inverted, RegisterFile& regFile, int registerIndex, Bus& parentBus)
+    : Guard(inverted, parentBus),
+      regFile_(&regFile),
+      registerIndex_(registerIndex) {
     parentBus.ensureRegistration(regFile);
     if (registerIndex < 0 || regFile.numberOfRegisters() <= registerIndex) {
         string procName = "RegisterGuard::RegisterGuard";
@@ -427,7 +406,6 @@ RegisterGuard::RegisterGuard(
     parentBus.addGuard(*this);
 }
 
-
 /**
  * Constructor.
  *
@@ -443,9 +421,7 @@ RegisterGuard::RegisterGuard(
  *                                        the register cannot be resolved.
  */
 RegisterGuard::RegisterGuard(const ObjectState* state, Bus& parentBus)
-    throw (ObjectStateLoadingException) :
-    Guard(state, parentBus) {
-
+    : Guard(state, parentBus) {
     loadState(state);
     try {
         parentBus.addGuard(*this);
@@ -460,7 +436,6 @@ RegisterGuard::RegisterGuard(const ObjectState* state, Bus& parentBus)
             __FILE__, __LINE__, procName, errorMsg.str());
     }
 }
-
 
 /**
  * Destructor.
@@ -537,9 +512,7 @@ RegisterGuard::saveState() const {
  *                                        resolved.
  */
 void
-RegisterGuard::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+RegisterGuard::loadState(const ObjectState* state) {
     string procName = "RegisterGuard::loadState";
     MOMTextGenerator textGenerator;
 
@@ -602,7 +575,6 @@ RegisterGuard::loadState(const ObjectState* state)
     }
 }
 
-
 /////////////////////////////////////////////////////////////////////////////
 // UnconditionalGuard
 /////////////////////////////////////////////////////////////////////////////
@@ -621,12 +593,9 @@ UnconditionalGuard::OSNAME_UNCONDITIONAL_GUARD = "unconditional";
  *                                   guard.
  */
 UnconditionalGuard::UnconditionalGuard(bool inverted, Bus& parentBus)
-    throw (ComponentAlreadyExists) :
-    Guard(inverted, parentBus) {
-
+    : Guard(inverted, parentBus) {
     parentBus.addGuard(*this);
 }
-
 
 /**
  * Constructor.
@@ -638,12 +607,8 @@ UnconditionalGuard::UnconditionalGuard(bool inverted, Bus& parentBus)
  * @exception ObjectStateLoadingException If the given ObjectState instance
  *                                        is invalid.
  */
-UnconditionalGuard::UnconditionalGuard(
-    const ObjectState* state,
-    Bus& parentBus)
-    throw (ObjectStateLoadingException) :
-    Guard(state, parentBus) {
-
+UnconditionalGuard::UnconditionalGuard(const ObjectState* state, Bus& parentBus)
+    : Guard(state, parentBus) {
     loadState(state);
     try {
         parentBus.addGuard(*this);
@@ -657,7 +622,6 @@ UnconditionalGuard::UnconditionalGuard(
             __FILE__,  __LINE__, procName, errorMsg.str());
     }
 }
-
 
 /**
  * Destructor.
@@ -709,9 +673,7 @@ UnconditionalGuard::saveState() const {
  *                                         is invalid.
  */
 void
-UnconditionalGuard::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+UnconditionalGuard::loadState(const ObjectState* state) {
     string procName = "UnconditionalGuard::loadState";
 
     if (state->name() != OSNAME_UNCONDITIONAL_GUARD) {
@@ -720,5 +682,4 @@ UnconditionalGuard::loadState(const ObjectState* state)
 
     Guard::loadState(state);
 }
-
 }

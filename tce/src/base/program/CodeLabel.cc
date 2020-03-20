@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -59,9 +59,9 @@ namespace TTAProgram {
  *            program.
  */
 CodeLabel::CodeLabel(const InstructionReference& ins, std::string name)
-    throw (IllegalRegistration) :
+    :
 
-    ins_(ins) {
+      ins_(ins) {
     proc_ = NULL;
     setName(name);
     setAddress(ins.instruction().address());
@@ -76,8 +76,8 @@ CodeLabel::CodeLabel(const InstructionReference& ins, std::string name)
  * @exception IllegalRegistration if the given procedure does not belong
  *            to a program.
  */
-CodeLabel::CodeLabel(const Procedure& proc) throw (IllegalRegistration):
-    ins_(InstructionReference(NULL)), proc_(&proc) {
+CodeLabel::CodeLabel(const Procedure& proc)
+    : ins_(InstructionReference(NULL)), proc_(&proc) {
     setName(proc.name());
     setAddress(proc.startAddress());
     // scope is the global scope for now
@@ -114,7 +114,7 @@ CodeLabel::address() const {
  *            has no instructions.
  */
 const InstructionReference
-CodeLabel::instructionReference() const throw (IllegalRegistration) {
+CodeLabel::instructionReference() const {
     if (&ins_.instruction() != &NullInstruction::instance()) {
         return ins_;
     } else if (proc_->instructionCount() == 0) {
@@ -133,7 +133,7 @@ CodeLabel::instructionReference() const throw (IllegalRegistration) {
  *                                procedure.
  */
 const Procedure&
-CodeLabel::procedure() const throw (IllegalRegistration) {
+CodeLabel::procedure() const {
     if (proc_ == NULL) {
         const Procedure* proc = dynamic_cast<const Procedure*>(
             &(ins_.instruction().parent()));
@@ -143,5 +143,4 @@ CodeLabel::procedure() const throw (IllegalRegistration) {
         return *proc_;
     }
 }
-
 }

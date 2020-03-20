@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -51,11 +51,9 @@ public:
     OperationSerializer();
     virtual ~OperationSerializer();
 
-    virtual void writeState(const ObjectState* state)
-        throw (SerializerException);
-    virtual ObjectState* readState()
-        throw (SerializerException);
-   
+    virtual void writeState(const ObjectState* state);
+    virtual ObjectState* readState();
+
     void setSourceFile(const std::string& filename);
     void setDestinationFile(const std::string& filename);
     void setSchemaFile(const std::string& filename);
@@ -67,15 +65,11 @@ private:
     /// Assignment not allowed.
     OperationSerializer& operator=(const OperationSerializer&);
 
-    ObjectState* convertToXMLFormat(const ObjectState* state)
-        throw (ObjectStateLoadingException);
-    ObjectState* convertToOperationFormat(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    ObjectState* convertToXMLFormat(const ObjectState* state);
+    ObjectState* convertToOperationFormat(const ObjectState* state);
 
-    ObjectState* toOperation(const ObjectState* state)
-        throw (ObjectStateLoadingException);
-    ObjectState* toXMLFormat(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    ObjectState* toOperation(const ObjectState* state);
+    ObjectState* toXMLFormat(const ObjectState* state);
 
     void setOperandProperties(ObjectState* operand, ObjectState* source);
 

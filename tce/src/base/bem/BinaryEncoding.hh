@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -61,63 +61,48 @@ public:
     };
 
     BinaryEncoding();
-    BinaryEncoding(const ObjectState* state)
-	throw (ObjectStateLoadingException);
+    BinaryEncoding(const ObjectState* state);
     virtual ~BinaryEncoding();
 
     int moveSlotCount() const;
-    MoveSlot& moveSlot(int index) const
-	throw (OutOfRange);
+    MoveSlot& moveSlot(int index) const;
     bool hasMoveSlot(const std::string& name) const;
-    MoveSlot& moveSlot(const std::string& name) const
-	throw (InstanceNotFound);
-    void addMoveSlot(MoveSlot& slot)
-	throw (ObjectAlreadyExists);
+    MoveSlot& moveSlot(const std::string& name) const;
+    void addMoveSlot(MoveSlot& slot);
     void removeMoveSlot(MoveSlot& slot);
 
     int immediateSlotCount() const;
-    ImmediateSlotField& immediateSlot(int index) const
-        throw (OutOfRange);
+    ImmediateSlotField& immediateSlot(int index) const;
     bool hasImmediateSlot(const std::string& name) const;
-    ImmediateSlotField& immediateSlot(const std::string& name) const
-        throw (InstanceNotFound);
-    void addImmediateSlot(ImmediateSlotField& slot)
-        throw (ObjectAlreadyExists);
+    ImmediateSlotField& immediateSlot(const std::string& name) const;
+    void addImmediateSlot(ImmediateSlotField& slot);
     void removeImmediateSlot(ImmediateSlotField& slot);
 
     bool hasImmediateControlField() const;
     ImmediateControlField& immediateControlField() const;
-    void setImmediateControlField(ImmediateControlField& field)
-	throw (ObjectAlreadyExists);
+    void setImmediateControlField(ImmediateControlField& field);
     void unsetImmediateControlField();
 
     int longImmDstRegisterFieldCount() const;
-    LImmDstRegisterField& longImmDstRegisterField(int index) const
-        throw (OutOfRange);
+    LImmDstRegisterField& longImmDstRegisterField(int index) const;
     LImmDstRegisterField& longImmDstRegisterField(
-        const std::string& iTemp,
-        const std::string& dstUnit) const
-        throw (InstanceNotFound);
+        const std::string& iTemp, const std::string& dstUnit) const;
     void addLongImmDstRegisterField(LImmDstRegisterField& field);
     void removeLongImmDstRegisterField(LImmDstRegisterField& field);
 
     int socketCodeTableCount() const;
-    SocketCodeTable& socketCodeTable(int index) const
-	throw (OutOfRange);
+    SocketCodeTable& socketCodeTable(int index) const;
     SocketCodeTable& socketCodeTable(const std::string& name) const;
-    void addSocketCodeTable(SocketCodeTable& table)
-	throw (ObjectAlreadyExists);
+    void addSocketCodeTable(SocketCodeTable& table);
     void removeSocketCodeTable(SocketCodeTable& table);
 
     // methods inherited from InstructionField
     virtual int childFieldCount() const;
-    virtual InstructionField& childField(int position) const
-	throw (OutOfRange);
+    virtual InstructionField& childField(int position) const;
     virtual int width() const;
 
     // methods inherited from Serializable interface
-    virtual void loadState(const ObjectState* state)
-	throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
     virtual ObjectState* saveState() const;
 
     /// ObjectState name for binary encoding.

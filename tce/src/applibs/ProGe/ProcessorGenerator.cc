@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -109,19 +109,12 @@ ProcessorGenerator::~ProcessorGenerator() {
  */
 void
 ProcessorGenerator::generateProcessor(
-    HDL language,
-    const TTAMachine::Machine& machine,
+    HDL language, const TTAMachine::Machine& machine,
     const IDF::MachineImplementation& implementation,
-    ICDecoderGeneratorPlugin& plugin,
-    int imemWidthInMAUs,
-    const std::string& dstDirectory,
-    const std::string& sharedDstDirectory,
-    const std::string& entityString,
-    std::ostream& errorStream,
-    std::ostream& warningStream)
-    throw (IOException, InvalidData, IllegalMachine, OutOfRange,
-           InstanceNotFound) {
-
+    ICDecoderGeneratorPlugin& plugin, int imemWidthInMAUs,
+    const std::string& dstDirectory, const std::string& sharedDstDirectory,
+    const std::string& entityString, std::ostream& errorStream,
+    std::ostream& warningStream) {
     if (entityString.empty()) {
         entityStr_ = DEFAULT_ENTITY_STR;
     } else {
@@ -207,13 +200,8 @@ ProcessorGenerator::generateProcessor(
  */
 void
 ProcessorGenerator::generateGlobalsPackage(
-    HDL language,
-    const TTAMachine::Machine& machine,
-    const BinaryEncoding& bem,
-    int imemWidthInMAUs,
-    const std::string& dstDirectory)
-    throw (IOException) {
-
+    HDL language, const TTAMachine::Machine& machine, const BinaryEncoding& bem,
+    int imemWidthInMAUs, const std::string& dstDirectory) {
     string dstFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR
         + entityName()+"_globals_pkg."+
         ((language==ProGe::VHDL)?"vhdl":"vh");
@@ -263,7 +251,6 @@ ProcessorGenerator::generateGlobalsPackage(
     stream.close();
 }
 
-
 /**
  * Validates the machine for compatibility with the given block
  * implementations.
@@ -281,11 +268,8 @@ ProcessorGenerator::generateGlobalsPackage(
  */
 void
 ProcessorGenerator::validateMachine(
-    const TTAMachine::Machine& machine,
-    std::ostream& errorStream,
-    std::ostream& warningStream)
-    throw (IllegalMachine) {
-
+    const TTAMachine::Machine& machine, std::ostream& errorStream,
+    std::ostream& warningStream) {
     MachineValidator validator(machine);
     set<MachineValidator::ErrorCode> errorsToCheck;
     errorsToCheck.insert(MachineValidator::GCU_MISSING);
@@ -321,7 +305,6 @@ ProcessorGenerator::validateMachine(
     delete results;
 }
 
-
 /**
  * Checks that the latencies of the HW implementations of the immediate
  * units are compatible with the given IC/GCU generator plugin.
@@ -335,9 +318,7 @@ void
 ProcessorGenerator::checkIULatencies(
     const TTAMachine::Machine& machine,
     const IDF::MachineImplementation& implementation,
-    const ICDecoderGeneratorPlugin& plugin)
-    throw (Exception) {
-
+    const ICDecoderGeneratorPlugin& plugin) {
     Machine::ImmediateUnitNavigator iuNav = machine.immediateUnitNavigator();
     for (int i = 0; i < iuNav.count(); i++) {
         ImmediateUnit* iu = iuNav.item(i);
@@ -375,8 +356,7 @@ ProcessorGenerator::checkIULatencies(
             throw InvalidData(__FILE__, __LINE__, __func__, errorMsg.str());
         }
     }
-}                
-                
+}
 
 /**
  * Returns the width of the memory address of instruction memory of the

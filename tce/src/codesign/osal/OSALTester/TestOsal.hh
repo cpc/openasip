@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -61,8 +61,7 @@ public:
     explicit CmdTrigger(const CmdTrigger& cmd);
     virtual ~CmdTrigger();
 
-    virtual bool execute(const std::vector<DataObject>& arguments)
-        throw (NumberFormatException);
+    virtual bool execute(const std::vector<DataObject>& arguments);
     virtual std::string helpText() const;
 };
 
@@ -81,8 +80,7 @@ public:
     explicit CmdReset(const CmdReset& cmd);
     virtual ~CmdReset();
 
-    virtual bool execute(const std::vector<DataObject>& arguments)
-	throw (NumberFormatException);
+    virtual bool execute(const std::vector<DataObject>& arguments);
     virtual std::string helpText() const;
 };
 
@@ -99,8 +97,7 @@ public:
     explicit CmdQuit(const CmdQuit& cmd);
     virtual ~CmdQuit();
 
-    virtual bool execute(const std::vector<DataObject>& arguments)
-	throw (NumberFormatException);
+    virtual bool execute(const std::vector<DataObject>& arguments);
     virtual std::string helpText() const;
 };
 
@@ -131,8 +128,7 @@ public:
     explicit CmdOutput(const CmdOutput& cmd);
     virtual ~CmdOutput();
 
-    virtual bool execute(const std::vector<DataObject>& arguments)
-        throw (NumberFormatException);
+    virtual bool execute(const std::vector<DataObject>& arguments);
     virtual std::string helpText() const;
 };
 
@@ -156,8 +152,7 @@ public:
     explicit CmdRegister(const CmdRegister& cmd);
     virtual ~CmdRegister();
 
-    virtual bool execute(const std::vector<DataObject>& arguments)
-        throw (NumberFormatException);
+    virtual bool execute(const std::vector<DataObject>& arguments);
     virtual std::string helpText() const;
 };
 
@@ -186,8 +181,7 @@ public:
     explicit CmdMem(const CmdMem& cmd);
     virtual ~CmdMem();
 
-    virtual bool execute(const std::vector<DataObject>& arguments)
-        throw (NumberFormatException);
+    virtual bool execute(const std::vector<DataObject>& arguments);
     virtual std::string helpText() const;
 };
 
@@ -204,8 +198,7 @@ public:
     explicit CmdAdvanceClock(const CmdAdvanceClock& cmd);
     virtual ~CmdAdvanceClock();
 
-    virtual bool execute(const std::vector<DataObject>& arguments)
-        throw (NumberFormatException);
+    virtual bool execute(const std::vector<DataObject>& arguments);
     virtual std::string helpText() const;
 };
 

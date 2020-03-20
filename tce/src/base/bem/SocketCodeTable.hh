@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -66,64 +66,50 @@ class SlotField;
  */
 class SocketCodeTable : public Serializable {
 public:
-    SocketCodeTable(const std::string& name, BinaryEncoding& parent)
-	throw (ObjectAlreadyExists);
-    SocketCodeTable(const ObjectState* state, BinaryEncoding& parent)
-	throw (ObjectStateLoadingException);
+    SocketCodeTable(const std::string& name, BinaryEncoding& parent);
+    SocketCodeTable(const ObjectState* state, BinaryEncoding& parent);
     virtual ~SocketCodeTable();
 
     BinaryEncoding* parent() const;
 
     std::string name() const;
-    void setName(const std::string& name)
-	throw (ObjectAlreadyExists);
+    void setName(const std::string& name);
 
-    void setExtraBits(int bits)
-	throw (OutOfRange);
+    void setExtraBits(int bits);
     int extraBits() const;
     int width() const;
 
-    void addFUPortCode(FUPortCode& code)
-	throw (ObjectAlreadyExists);
+    void addFUPortCode(FUPortCode& code);
     void removeFUPortCode(FUPortCode& code);
     int fuPortCodeCount() const;
-    FUPortCode& fuPortCode(int index) const
-	throw (OutOfRange);
+    FUPortCode& fuPortCode(int index) const;
 
     bool hasFUPortCode(const std::string& fu, const std::string& port) const;
     bool hasFUPortCode(
-	const std::string& fu,
-	const std::string& port,
-	const std::string& operation) const;
+        const std::string& fu, const std::string& port,
+        const std::string& operation) const;
     FUPortCode& fuPortCode(
-	const std::string& fu,
-	const std::string& port) const;
+        const std::string& fu, const std::string& port) const;
     FUPortCode& fuPortCode(
-	const std::string& fu,
-	const std::string& port,
-	const std::string& operation) const;
+        const std::string& fu, const std::string& port,
+        const std::string& operation) const;
 
-    void addRFPortCode(RFPortCode& code)
-	throw (ObjectAlreadyExists);
+    void addRFPortCode(RFPortCode& code);
     void removeRFPortCode(RFPortCode& code);
     int rfPortCodeCount() const;
-    RFPortCode& rfPortCode(int index) const
-	throw (OutOfRange);
+    RFPortCode& rfPortCode(int index) const;
     bool hasRFPortCode(const std::string& regFile) const;
     RFPortCode& rfPortCode(const std::string& regFile) const;
 
-    void addIUPortCode(IUPortCode& code)
-	throw (ObjectAlreadyExists);
+    void addIUPortCode(IUPortCode& code);
     void removeIUPortCode(IUPortCode& code);
     int iuPortCodeCount() const;
-    IUPortCode& iuPortCode(int index) const
-	throw (OutOfRange);
+    IUPortCode& iuPortCode(int index) const;
     bool hasIUPortCode(const std::string& immediateUnit) const;
     IUPortCode& iuPortCode(const std::string& immediateUnit) const;
 
     // methods inherited from Serializable interface
-    virtual void loadState(const ObjectState* state)
-	throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
     virtual ObjectState* saveState() const;
 
     /// ObjectState name for socket code table.

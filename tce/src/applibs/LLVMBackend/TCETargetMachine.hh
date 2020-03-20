@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -220,6 +220,10 @@ plugin_(plugin) {
             return plugin_->operationName(opc);
         }
 
+        bool hasOperation(TCEString operationName) const {
+            return plugin_->hasOperation(operationName);
+        }
+
         std::string rfName(unsigned dwarfRegNum) const {
             return plugin_->rfName(dwarfRegNum);
         }
@@ -271,9 +275,21 @@ plugin_(plugin) {
             return plugin_->getMaxMemoryAlignment();
         }
 
+        bool has8bitLoads() const {
+            return plugin_->has8bitLoads();
+        }
+
+        bool has16bitLoads() const {
+            return plugin_->has16bitLoads();
+        }
+
         const std::set<
             std::pair<unsigned, 
                       llvm::MVT::SimpleValueType> >* missingOperations();
+
+        const std::set<
+            std::pair<unsigned,
+                      llvm::MVT::SimpleValueType> >* customLegalizedOperations();
 
     private:
         /* more or less llvm naming convention to make it easier to track llvm changes */
@@ -282,6 +298,7 @@ plugin_(plugin) {
         PluginTools* pluginTool_;
         /// llvm::ISD opcode list of operations that have to be expanded.
         std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> > missingOps_;
+        std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> > customLegalizedOps_;
     };
 }
 

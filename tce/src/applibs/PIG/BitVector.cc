@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -58,11 +58,7 @@ BitVector::BitVector() {
  * @exception OutOfRange If the given indexes are too big or too small.
  */
 BitVector::BitVector(
-    const BitVector& vector,
-    unsigned int firstIndex,
-    unsigned int lastIndex)
-    throw (OutOfRange) {
-
+    const BitVector& vector, unsigned int firstIndex, unsigned int lastIndex) {
     if (lastIndex < firstIndex || lastIndex >= vector.size()) {
         const string procName = "BitVector::BitVector";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -75,7 +71,6 @@ BitVector::BitVector(
     insert(begin(), firstIter, lastIter);
     assert(size() == lastIndex - firstIndex + 1);
 }
-
 
 /**
  * The destructor.

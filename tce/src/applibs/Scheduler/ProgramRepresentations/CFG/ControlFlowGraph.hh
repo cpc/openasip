@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -139,7 +139,7 @@ public:
     }
 
     BasicBlockNode* jumpSuccessor(BasicBlockNode& bbn);
-    BasicBlockNode* fallThruSuccessor(BasicBlockNode& bbn);
+    BasicBlockNode* fallThruSuccessor(const BasicBlockNode& bbn);
 
     void addExitFromSinkNodes(BasicBlockNode* exitNode);
     void detectBackEdges();
@@ -246,7 +246,7 @@ private:
     void addEntryExitEdge();
     void removeEntryExitEdge();
 
-    bool hasFallThruPredecessor(BasicBlockNode& bbn);
+    bool hasFallThruPredecessor(const BasicBlockNode& bbn);
 
     NodeSet findReachableNodes();
     NodeSet findUnreachableNodes(const NodeSet& reachableNodes);

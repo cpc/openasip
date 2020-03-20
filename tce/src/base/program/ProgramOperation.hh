@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -44,6 +44,7 @@
 class MoveNode;
 class MoveNodeSet;
 class Operation;
+class ProgramOperation;
 
 namespace llvm {
     class MachineInstr;
@@ -51,6 +52,17 @@ namespace llvm {
 namespace TTAProgram {
     class Move;
 }
+
+namespace TTAMachine {
+    class Unit;
+    class FunctionUnit;
+    class HWOperation;
+}
+
+// use this smart_ptr type to point to POs to allow more safe sharing of
+// POs between POM and DDG, etc.
+typedef boost::shared_ptr<ProgramOperation> ProgramOperationPtr;
+
 
 /**
  * Represents a single execution of an operation in a program.
@@ -63,12 +75,17 @@ public:
     ProgramOperation();
     ~ProgramOperation();
 
-    void addNode(MoveNode& node) throw (IllegalParameters);
-    void addInputNode(MoveNode& node) throw (IllegalParameters);
-    void addOutputNode(MoveNode& node) throw (IllegalParameters);
+    void addNode(MoveNode& node);
+    void addInputNode(MoveNode& node);
+    void addOutputNode(MoveNode& node);
 
-    void removeOutputNode(MoveNode& node) throw (IllegalRegistration);
-    void removeInputNode(MoveNode& node) throw (IllegalRegistration);
+    const TTAMachine::FunctionUnit* scheduledFU() const;
+
+    const TTAMachine::HWOperation* hwopFromOutMove(
+        const MoveNode& outputNode) const;
+
+    void removeOutputNode(MoveNode& node);
+    void removeInputNode(MoveNode& node);
 
     bool isComplete();
     bool isReady();
@@ -80,9 +97,9 @@ public:
     bool areInputsAssigned();
     bool areOutputsAssigned();
 
-    MoveNode& opcodeSettingNode() throw (InvalidData);
-    MoveNodeSet& inputNode(int in) const throw (OutOfRange, KeyNotFound);
-    MoveNodeSet& outputNode(int out) const throw (OutOfRange, KeyNotFound);
+    MoveNode& opcodeSettingNode();
+    MoveNodeSet& inputNode(int in) const;
+    MoveNodeSet& outputNode(int out) const;
 
     bool hasOutputNode(int out) const;
     bool hasInputNode(int in) const;
@@ -99,6 +116,9 @@ public:
 
     MoveNode* triggeringMove() const;
     
+    MoveNode* findTriggerFromUnit(const TTAMachine::Unit& unit) const;
+    bool isLegalFU(const TTAMachine::FunctionUnit& fu) const;
+
     const llvm::MachineInstr* machineInstr() const { return mInstr_; }
 
     void switchInputs(int idx1 = 1, int idx2 = 2);
@@ -113,6 +133,9 @@ public:
     public:
         bool operator()(
             const ProgramOperation* po1, const ProgramOperation* po2) const;
+        bool operator()(
+            const ProgramOperationPtr &po1, const ProgramOperationPtr &po2) const;
+
     };
 
 private:
@@ -136,10 +159,6 @@ private:
     // Reference to original LLVM MachineInstruction
     const llvm::MachineInstr* mInstr_;
 };
-
-// use this smart_ptr type to point to POs to allow more safe sharing of
-// POs between POM and DDG, etc.
-typedef boost::shared_ptr<ProgramOperation> ProgramOperationPtr;
 
 class ProgramOperationPtrComparator {
 public:

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -78,7 +78,7 @@ TCEInstrInfo:: ~TCEInstrInfo() {
  *
  * If the MBB already has an unconditional branch at end, does nothing.
  * 
- * @param mbb where to inser the branch instructions.
+ * @param mbb where to insert the branch instructions.
  * @param tbb jump target basic block
  * @param fbb false condition jump target, if insertin 2 branches
  *
@@ -222,6 +222,18 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 
   BuildMI(MBB, I, DL, get(plugin_->getStore(RC))).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
+
+#ifdef LLVM_OLDER_THAN_6_0
+  LLVMContext& context = MBB.getParent()->getFunction()->getContext();
+#else
+  LLVMContext& context = MBB.getParent()->getFunction().getContext();
+#endif
+  llvm::Metadata* md = llvm::MDString::get(context, "AA_CATEGORY_STACK_SLOT");
+  MDNode* mdNode =
+      MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
+  MachineOperand metaDataOperand = MachineOperand::CreateMetadata(mdNode);
+  I--; // buildmi moves the iterator to next ins, point to the created one.
+  I->addOperand(metaDataOperand);
 }
 
 void TCEInstrInfo::
@@ -234,6 +246,18 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 
   BuildMI(MBB, I, DL, get(plugin_->getLoad(RC)), DestReg).addFrameIndex(FI)
       .addImm(0);
+
+#ifdef LLVM_OLDER_THAN_6_0
+  LLVMContext& context = MBB.getParent()->getFunction()->getContext();
+#else
+  LLVMContext& context = MBB.getParent()->getFunction().getContext();
+#endif
+  llvm::Metadata* md = llvm::MDString::get(context, "AA_CATEGORY_STACK_SLOT");
+  MDNode* mdNode =
+      MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
+  MachineOperand metaDataOperand = MachineOperand::CreateMetadata(mdNode);
+  I--; // buildmi moves the iterator to next ins, point to the created one.
+  I->addOperand(metaDataOperand);
 }
 
 /**
@@ -253,7 +277,11 @@ void TCEInstrInfo::copyPhysReg(
 #else
     const DebugLoc& DL,
 #endif
-    unsigned destReg, unsigned srcReg,
+#ifdef LLVM_OLDER_THAN_10
+        unsigned destReg, unsigned srcReg,
+#else
+        MCRegister destReg, MCRegister srcReg,
+#endif
     bool killSrc) const
 {
     DebugLoc dl;

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -66,8 +66,7 @@ public:
     void setInterpreter(ScriptInterpreter* si);
     ScriptInterpreter* interpreter() const;
 
-    virtual bool execute(const std::vector<DataObject>& arguments)
-        throw (NumberFormatException) = 0;
+    virtual bool execute(const std::vector<DataObject>& arguments) = 0;
     virtual std::string helpText() const = 0;
 
     bool checkArgumentCount(int argumentCount, int minimum, int maximum);

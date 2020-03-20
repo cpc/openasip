@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -47,27 +47,17 @@ class SocketCodeTable;
 class FUPortCode : public PortCode {
 public:
     FUPortCode(
-	const std::string& fu,
-	const std::string& port,
-	unsigned int encoding,
-	unsigned int extraBits,
-	SocketCodeTable& parent)
-	throw (ObjectAlreadyExists, OutOfRange);
+        const std::string& fu, const std::string& port, unsigned int encoding,
+        unsigned int extraBits, SocketCodeTable& parent);
     FUPortCode(
-	const std::string& fu,
-	const std::string& port,
-	const std::string& operation,
-	unsigned int encoding,
-	unsigned int extraBits,
-	SocketCodeTable& parent)
-	throw (ObjectAlreadyExists, OutOfRange);
-    FUPortCode(const ObjectState* state, SocketCodeTable& parent)
-	throw (ObjectStateLoadingException, ObjectAlreadyExists);
+        const std::string& fu, const std::string& port,
+        const std::string& operation, unsigned int encoding,
+        unsigned int extraBits, SocketCodeTable& parent);
+    FUPortCode(const ObjectState* state, SocketCodeTable& parent);
     virtual ~FUPortCode();
 
     std::string portName() const;
-    std::string operationName() const
-	throw (InstanceNotFound);
+    std::string operationName() const;
     bool hasOperation() const;
 
     virtual ObjectState* saveState() const;

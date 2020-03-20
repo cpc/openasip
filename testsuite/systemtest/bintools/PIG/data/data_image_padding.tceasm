@@ -1,0 +1,62 @@
+##########################################################
+#
+# TTA data memory padding test file.
+#
+# Initialize memory so, that memory has to be padded.
+# Load bytes from memory, so that possible differences
+# can be seen in diff between ttasim and RTL sim traces.
+#
+##########################################################
+
+CODE;
+
+:global main;
+
+main:
+    1        ->  lsu.in1t.ldu8;
+    ... ;
+    ...;
+    ...;
+    lsu.out1 ->  RF.0;
+    2        ->  lsu.in1t.ldu8;
+    ...;
+    ...;
+    ...;
+    lsu.out1 ->  RF.0;
+    3        ->  lsu.in1t.ldu8;
+    ...;
+    ...;
+    ...;
+    lsu.out1 ->  RF.0;
+    4        ->  lsu.in1t.ldu8;
+    ...;
+    ...;
+    ...;
+    lsu.out1 ->  RF.0;
+    5        ->  lsu.in1t.ldu8;
+    ...;
+    ...;
+    ...;
+    lsu.out1 ->  RF.0;
+    6        ->  lsu.in1t.ldu8;
+    ...;
+    ...;
+    ...;
+    lsu.out1 ->  RF.0;
+    7        ->  lsu.in1t.ldu8;
+    ...;
+    ...;
+    ...;
+    lsu.out1 ->  RF.0;
+
+
+DATA data 0;
+
+DA 7
+1:0x1
+1:0x2
+1:0x3
+1:0x4
+1:0x5
+1:0x6
+1:0x7;

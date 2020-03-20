@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -62,12 +62,8 @@ const string UniversalFunctionUnit::OPERATIONS_OF_32_BITS[] = {
  * @exception InvalidName If the given name is not a valid component name.
  */
 UniversalFunctionUnit::UniversalFunctionUnit(
-    const std::string& name,
-    OperationPool& opPool)
-    throw (InvalidName) :
-    FunctionUnit(name), opPool_(opPool) {
-}
-
+    const std::string& name, OperationPool& opPool)
+    : FunctionUnit(name), opPool_(opPool) {}
 
 /**
  * The destructor.
@@ -103,9 +99,7 @@ UniversalFunctionUnit::hasOperation(const std::string& name) const {
  * @return The operation.
  */
 TTAMachine::HWOperation*
-UniversalFunctionUnit::operation(const std::string& name) const
-    throw (InstanceNotFound) {
-
+UniversalFunctionUnit::operation(const std::string& name) const {
     const string procName = "UniversalFunctionUnit::operation";
 
     if (FunctionUnit::hasOperation(name)) {
@@ -126,7 +120,6 @@ UniversalFunctionUnit::operation(const std::string& name) const
     }
 }
 
-
 /**
  * Aborts the program. It should not be needed to add pipeline
  * elements to universal function unit.
@@ -135,16 +128,13 @@ UniversalFunctionUnit::operation(const std::string& name) const
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-UniversalFunctionUnit::addPipelineElement(PipelineElement&)
-    throw (ComponentAlreadyExists) {
-
+UniversalFunctionUnit::addPipelineElement(PipelineElement&) {
     const string procName = "UniversalFunctionUnit::addPipelineElement";
     const string errorMsg =
         "Tried to add pipeline element to UniversalFunctionUnit!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to load UniversalFunctionUnit from
@@ -154,9 +144,7 @@ UniversalFunctionUnit::addPipelineElement(PipelineElement&)
  * @exception ObjectStateLoadingException Never thrown.
  */
 void
-UniversalFunctionUnit::loadState(const ObjectState*)
-    throw (ObjectStateLoadingException) {
-
+UniversalFunctionUnit::loadState(const ObjectState*) {
     const string procName = "UniversalFunctionUnit::loadState";
     const string errorMsg =
         "Tried to load state of UniversalFunctionUnit from an ObjectState "
@@ -164,7 +152,6 @@ UniversalFunctionUnit::loadState(const ObjectState*)
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Returns the number of ports of the given bit width.
@@ -174,9 +161,7 @@ UniversalFunctionUnit::loadState(const ObjectState*)
  * @exception OutOfRange If the given bit width is out of range.
  */
 int
-UniversalFunctionUnit::portCountWithWidth(int width) const
-    throw (OutOfRange) {
-
+UniversalFunctionUnit::portCountWithWidth(int width) const {
     if (width < 1) {
         const string procName = "UniversalFunctionUnit::portCount";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -193,7 +178,6 @@ UniversalFunctionUnit::portCountWithWidth(int width) const
     return count;
 }
 
-
 /**
  * By the given index, returns a port which has the given bit width.
  *
@@ -203,9 +187,7 @@ UniversalFunctionUnit::portCountWithWidth(int width) const
  * @exception OutOfRange If the given bit width or index is out of range.
  */
 FUPort&
-UniversalFunctionUnit::portWithWidth(int index, int width) const
-    throw (OutOfRange) {
-
+UniversalFunctionUnit::portWithWidth(int index, int width) const {
     if (width < 1 || index >= portCountWithWidth(width)) {
         const string procName = "UniversalFunctionUnit::port";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -229,7 +211,6 @@ UniversalFunctionUnit::portWithWidth(int index, int width) const
     FUPort* port = NULL;
     return *port;
 }
-
 
 /**
  * Adds the given operation to the function unit.

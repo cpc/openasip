@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -47,18 +47,14 @@ namespace TTAMachine {
  */
 class ResourceVectorSet {
 public:
-    ResourceVectorSet(const TTAMachine::FunctionUnit& functionUnit) 
-        throw (InvalidData);
+    ResourceVectorSet(const TTAMachine::FunctionUnit& functionUnit);
 
     virtual ~ResourceVectorSet();
 
     const ResourceVector& resourceVector(
-        const std::string& operationName) const
-        throw (KeyNotFound);
+        const std::string& operationName) const;
 
-    std::size_t operationIndex(
-        const std::string& operationName) const
-        throw (KeyNotFound);
+    std::size_t operationIndex(const std::string& operationName) const;
 
     std::size_t resourceVectorCount() const;
 
@@ -67,7 +63,7 @@ public:
     std::string operationName(std::size_t index) const;
 
     std::size_t width() const;
-    
+
     bool operator==(const ResourceVectorSet& rightHand) const;
 
 private:

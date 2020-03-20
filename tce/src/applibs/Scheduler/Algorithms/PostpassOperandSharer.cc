@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -57,12 +57,10 @@ using TTAMachine::RegisterFile;
 // statistics
 #define GET_BETTER_STATISTICS
 
-void PostpassOperandSharer::handleBasicBlock(
-    TTAProgram::BasicBlock& basicBlock,
-    const TTAMachine::Machine&,
-    TTAProgram::InstructionReferenceManager&, 
-    BasicBlockNode*)
-    throw (Exception) {
+void
+PostpassOperandSharer::handleBasicBlock(
+    TTAProgram::BasicBlock& basicBlock, const TTAMachine::Machine&,
+    TTAProgram::InstructionReferenceManager&, BasicBlockNode*) {
     for (int i = basicBlock.instructionCount()-1; i >= 0; i--) {
         Instruction& ins = basicBlock.instructionAtIndex(i);
         for (int j = 0; j < ins.moveCount(); j++) {
@@ -118,8 +116,8 @@ bool PostpassOperandSharer::tryRemoveOperandWrite(
     TTAMachine::RegisterFile* guardRF = NULL;
     int guardIndex = -1;
     if (!move.isUnconditional()) {
-        TTAMachine::Guard& guard = move.guard().guard();
-        RegisterGuard* rg = dynamic_cast<TTAMachine::RegisterGuard*>(&guard);
+        const TTAMachine::Guard& guard = move.guard().guard();
+        const RegisterGuard* rg = dynamic_cast<const TTAMachine::RegisterGuard*>(&guard);
         if (rg) {
             guardRF = rg->registerFile();
             guardIndex = rg->registerIndex();

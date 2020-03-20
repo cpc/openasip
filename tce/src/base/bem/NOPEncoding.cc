@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -53,16 +53,11 @@ const std::string NOPEncoding::OSNAME_NOP_ENCODING = "nop_encoding";
  *                                parent field.
  */
 NOPEncoding::NOPEncoding(
-    unsigned int encoding,
-    unsigned int extraBits,
-    SlotField& parent)
-    throw (ObjectAlreadyExists) :
-    Encoding(encoding, extraBits, NULL) {
-
+    unsigned int encoding, unsigned int extraBits, SlotField& parent)
+    : Encoding(encoding, extraBits, NULL) {
     parent.setNoOperationEncoding(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -78,12 +73,8 @@ NOPEncoding::NOPEncoding(
  * @exception ObjectStateLoadingException If the given ObjectState instance
  *                                        is erroneous.
  */
-NOPEncoding::NOPEncoding(
-    const ObjectState* state,
-    SlotField& parent)
-    throw (ObjectAlreadyExists, ObjectStateLoadingException) :
-    Encoding(state, NULL) {
-
+NOPEncoding::NOPEncoding(const ObjectState* state, SlotField& parent)
+    : Encoding(state, NULL) {
     const string procName = "NOPEncoding::NOPEncoding";
 
     if (state->name() != OSNAME_NOP_ENCODING) {
@@ -93,7 +84,6 @@ NOPEncoding::NOPEncoding(
     parent.setNoOperationEncoding(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.

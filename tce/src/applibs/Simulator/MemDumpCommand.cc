@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2016 Tampere University of Technology.
+    Copyright (c) 2002-2016 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -71,10 +71,8 @@ MemDumpCommand::~MemDumpCommand() {
  * @return True in case simulation is initialized and arguments are ok.
  * @exception NumberFormatException Is never thrown by this command.
  */
-bool 
-MemDumpCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+MemDumpCommand::execute(const std::vector<DataObject>& arguments) {
     static size_t displayedCount = 1;
     static size_t lastDisplayedAddress = 0;
     static size_t MAUsToDisplay = 1;

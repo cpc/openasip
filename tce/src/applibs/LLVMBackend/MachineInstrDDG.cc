@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2012 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -122,8 +122,14 @@ MachineInstrDDG::MachineInstrDDG(
                     continue;
                 }                    
 
+#ifdef LLVM_OLDER_THAN_10
                 if (llvm::TargetRegisterInfo::isPhysicalRegister(
                         operand.getReg())) {
+#else
+                if (llvm::Register::isPhysicalRegister(
+                        operand.getReg())) {
+#endif
+
                     // only physical reg at this point should be the stack pointer,
                     // which is a global reg we can ignore
 #ifdef DEBUG_MI_DDG

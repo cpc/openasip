@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -73,6 +73,9 @@ private:
     static std::set<std::string> hdbs_;
     /// Static variable for the hdb choicer selection.
     static int selection_;
+
+    // Default HDB file to set in the beginning
+    static const std::string defaultHDB_;
 
     enum {
         ID_HDB_CHOICE,

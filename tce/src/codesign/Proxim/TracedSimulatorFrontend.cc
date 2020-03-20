@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -54,15 +54,12 @@ TracedSimulatorFrontend::~TracedSimulatorFrontend() {
  * @param machine Machine file name passed to the baseclass.
  */
 void
-TracedSimulatorFrontend::loadMachine(const std::string& machine)
-    throw (IllegalMachine, SimulationStillRunning, IOException, FileNotFound) {
-
+TracedSimulatorFrontend::loadMachine(const std::string& machine) {
     handleEvent(SIMULATOR_RESET);
     handleEvent(SIMULATOR_LOADING_MACHINE);
     SimulatorFrontend::loadMachine(machine);
     handleEvent(SIMULATOR_MACHINE_LOADED);
 }
-
 
 /**
  * Informs listeners when a new program is loaded to the simulator.
@@ -83,9 +80,7 @@ TracedSimulatorFrontend::loadProgram(const std::string& program) {
  * Informs listeners when the simulation starts and stops.
  */
 void
-TracedSimulatorFrontend::run()
-    throw (SimulationExecutionError) {
-
+TracedSimulatorFrontend::run() {
     handleEvent(SIMULATOR_START);
     handleEvent(SIMULATOR_RUN);
     SimulatorFrontend::run();
@@ -107,15 +102,12 @@ TracedSimulatorFrontend::killSimulation() {
  * @param address Address passed to the baseclass.
  */
 void
-TracedSimulatorFrontend::runUntil(UIntWord address)
-    throw (SimulationExecutionError) {
-
+TracedSimulatorFrontend::runUntil(UIntWord address) {
     handleEvent(SIMULATOR_START);
     handleEvent(SIMULATOR_RUN);
     SimulatorFrontend::runUntil(address);
     handleEvent(SIMULATOR_STOP);
 }
-
 
 /**
  * Informs listeners when the simulation starts and stops.
@@ -123,9 +115,7 @@ TracedSimulatorFrontend::runUntil(UIntWord address)
  * @param count Number of nexts passed to the baseclass.
  */
 void
-TracedSimulatorFrontend::next(int count)
-    throw (SimulationExecutionError) {
-
+TracedSimulatorFrontend::next(int count) {
     handleEvent(SIMULATOR_START);
     handleEvent(SIMULATOR_RUN);
     SimulatorFrontend::next(count);
@@ -138,9 +128,7 @@ TracedSimulatorFrontend::next(int count)
  * @param count Number of steps passed to the baseclass.
  */
 void
-TracedSimulatorFrontend::step(double count)
-    throw (SimulationExecutionError) {
-
+TracedSimulatorFrontend::step(double count) {
     if (!isSimulationRunning()) {
 	handleEvent(SIMULATOR_START);
     }

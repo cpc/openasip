@@ -1,4 +1,4 @@
--- Copyright (c) 2017 Tampere University of Technology.
+-- Copyright (c) 2017 Tampere University.
 --
 -- This file is part of TTA-Based Codesign Environment (TCE).
 --
@@ -25,7 +25,7 @@
 -------------------------------------------------------------------------------
 -- File       : s7_rf_1wr_3rd.vhdl
 -- Author     : Lasse Lehtonen <lasse.lehtonen@phnet.fi>
--- Company    : Tampere University of Technology
+-- Company    : Tampere University
 -- Created    : 2017
 -- Last update: 2018-06-09
 -- Platform   : Xilinx Series 7

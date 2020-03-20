@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -53,8 +53,7 @@ public:
     virtual ~MachineCheckSuite();
 
     int checkCount() const;
-    const MachineCheck& check(int index)
-        throw (OutOfRange);
+    const MachineCheck& check(int index);
 
     bool run(
         const TTAMachine::Machine& machine,

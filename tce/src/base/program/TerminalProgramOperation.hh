@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -70,8 +70,7 @@ public:
     bool isProgramOperationReference() const { return true; }
     bool isAddressKnown() const;
 
-    virtual Address address() const 
-        throw (WrongSubclass);
+    virtual Address address() const;
 
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;

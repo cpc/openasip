@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -72,41 +72,29 @@ public:
     virtual bool isBasicBlockReference() const;
     virtual bool isProgramOperationReference() const;
     virtual bool isCodeSymbolReference() const;
+    virtual bool isUniversalMachineRegister() const;
     virtual SimValue value() const;
-    virtual Address address() const throw (WrongSubclass);
-    virtual const InstructionReference& instructionReference() const
-        throw (WrongSubclass);
-    virtual InstructionReference& instructionReference()
-        throw (WrongSubclass);
-    virtual const TTAMachine::RegisterFile& registerFile() const
-        throw (WrongSubclass);
-    virtual const TTAMachine::ImmediateUnit& immediateUnit() const
-        throw (WrongSubclass);
-    virtual const TTAMachine::FunctionUnit& functionUnit() const
-        throw (WrongSubclass);
-    virtual const BasicBlock& basicBlock() const
-        throw (WrongSubclass);
-    virtual int index() const 
-        throw (WrongSubclass);
+    virtual Address address() const;
+    virtual const InstructionReference& instructionReference() const;
+    virtual InstructionReference& instructionReference();
+    virtual const TTAMachine::RegisterFile& registerFile() const;
+    virtual const TTAMachine::ImmediateUnit& immediateUnit() const;
+    virtual const TTAMachine::FunctionUnit& functionUnit() const;
+    virtual const BasicBlock& basicBlock() const;
+    virtual int index() const;
 
-    virtual bool isOpcodeSetting() const 
-        throw (WrongSubclass);
+    virtual bool isOpcodeSetting() const;
 
-    virtual bool isTriggering() const 
-        throw (WrongSubclass);
+    virtual bool isTriggering() const;
 
-    virtual Operation& operation() const 
-        throw (WrongSubclass, InvalidData);
+    virtual Operation& operation() const;
 
-    virtual Operation& hintOperation() const 
-        throw (WrongSubclass, InvalidData);
+    virtual Operation& hintOperation() const;
 
-    virtual int operationIndex() const 
-        throw (WrongSubclass, InvalidData);
-    virtual const TTAMachine::Port& port() const throw (WrongSubclass);
-    virtual void setIndex(int index) throw (WrongSubclass, OutOfRange);
-    virtual void setInstructionReference(InstructionReference ref)
-        throw(WrongSubclass);
+    virtual int operationIndex() const;
+    virtual const TTAMachine::Port& port() const;
+    virtual void setIndex(int index);
+    virtual void setInstructionReference(InstructionReference ref);
 
     virtual Terminal* copy() const = 0;
     

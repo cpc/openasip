@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -68,10 +68,10 @@ const string Segment::OSKEY_DESTINATION = "destination";
  * @exception InvalidName If the given name is not a valid component name.
  */
 Segment::Segment(const string& name, Bus& parent)
-    throw (ComponentAlreadyExists, InvalidName) :
-    name_(name), parent_(NULL), sourceSegment_(NULL),
-    destinationSegment_(NULL) {
-
+    : name_(name),
+      parent_(NULL),
+      sourceSegment_(NULL),
+      destinationSegment_(NULL) {
     if (!MachineTester::isValidComponentName(name)) {
         const string procName = "Segment::Segment";
         throw InvalidName(__FILE__, __LINE__, procName);
@@ -90,7 +90,6 @@ Segment::Segment(const string& name, Bus& parent)
     }
 }
 
-
 /**
  * Constructor.
  *
@@ -105,15 +104,14 @@ Segment::Segment(const string& name, Bus& parent)
  *                                        the state.
  */
 Segment::Segment(const ObjectState* state, Bus& parent)
-    throw (ComponentAlreadyExists, ObjectStateLoadingException) :
-    name_(""), parent_(NULL), sourceSegment_(NULL),
-    destinationSegment_(NULL) {
-
+    : name_(""),
+      parent_(NULL),
+      sourceSegment_(NULL),
+      destinationSegment_(NULL) {
     loadStateWithoutReferences(state);
     parent.addSegment(*this);
     parent_ = &parent;
 }
-
 
 /**
  * Destructor.
@@ -147,9 +145,7 @@ Segment::~Segment() {
  * @exception InvalidName If the given name is not a valid component name.
  */
 void
-Segment::setName(const string& name)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+Segment::setName(const string& name) {
     if (name == this->name()) {
         return;
     }
@@ -171,7 +167,6 @@ Segment::setName(const string& name)
     name_ = name;
 }
 
-
 /**
  * Connects a socket to the segment.
  *
@@ -182,9 +177,7 @@ Segment::setName(const string& name)
  *                                connectivity constraint.
  */
 void
-Segment::attachSocket(Socket& socket)
-    throw (IllegalRegistration, IllegalConnectivity) {
-
+Segment::attachSocket(Socket& socket) {
     parentBus()->ensureRegistration(socket);
 
     if (socket.isConnectedTo(*this)) {
@@ -206,7 +199,6 @@ Segment::attachSocket(Socket& socket)
     }
 }
 
-
 /**
  * Detaches socket from the segment.
  *
@@ -215,9 +207,7 @@ Segment::attachSocket(Socket& socket)
  *                             socket.
  */
 void
-Segment::detachSocket(Socket& socket)
-    throw (InstanceNotFound) {
-
+Segment::detachSocket(Socket& socket) {
     if (!isConnectedTo(socket)) {
         string procName = "Segment::detachSocket";
         throw InstanceNotFound(__FILE__, __LINE__, procName);
@@ -231,7 +221,6 @@ Segment::detachSocket(Socket& socket)
         delete &conn;
     }
 }
-
 
 /**
  * Detaches all the sockets attached to the segment.
@@ -308,16 +297,13 @@ Segment::isConnectedTo(const Socket& socket) const {
  * @exception OutOfRange If the given index is out of range.
  */
 Socket*
-Segment::connection(int index) const
-    throw (OutOfRange) {
-
+Segment::connection(int index) const {
     if (index < 0 || index >= connectionCount()) {
         string procName = "Segment::connection";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
     return connections_[index]->socket();
 }
-
 
 /**
  * Moves the segment to the front of the given segment in the segment chain.
@@ -331,9 +317,7 @@ Segment::connection(int index) const
  *                                than this segment.
  */
 void
-Segment::moveBefore(Segment& segment)
-    throw (IllegalRegistration) {
-
+Segment::moveBefore(Segment& segment) {
     if (parentBus() != segment.parentBus()) {
         string procName = "Segment::moveBefore";
         throw IllegalRegistration(__FILE__, __LINE__, procName);
@@ -358,7 +342,6 @@ Segment::moveBefore(Segment& segment)
     segment.sourceSegment_ = this;
 }
 
-
 /**
  * Moves the segment behind the given segment in the segment chain.
  *
@@ -371,9 +354,7 @@ Segment::moveBefore(Segment& segment)
  *                                than this segment.
  */
 void
-Segment::moveAfter(Segment& segment)
-    throw (IllegalRegistration) {
-
+Segment::moveAfter(Segment& segment) {
     if (parentBus() != segment.parentBus()) {
         string procName = "Segment::moveAfter";
         throw IllegalRegistration(__FILE__, __LINE__, procName);
@@ -397,7 +378,6 @@ Segment::moveAfter(Segment& segment)
 
     segment.destinationSegment_ = this;
 }
-
 
 /**
  * Returns true if the segment has a source segment, otherwise false.
@@ -465,9 +445,7 @@ Segment::saveState() const {
  *                                        ObjectState tree is invalid.
  */
 void
-Segment::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+Segment::loadState(const ObjectState* state) {
     string procName = "Segment::loadState";
     MOMTextGenerator textGenerator;
 
@@ -479,7 +457,6 @@ Segment::loadState(const ObjectState* state)
     loadStateWithoutReferences(state);
 }
 
-
 /**
  * Loads the state of the object from the given ObjectState instance without
  * references to other machine parts.
@@ -489,9 +466,7 @@ Segment::loadState(const ObjectState* state)
  *                                        is invalid.
  */
 void
-Segment::loadStateWithoutReferences(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+Segment::loadStateWithoutReferences(const ObjectState* state) {
     const string procName = "Segment::loadStateWithoutReferences";
 
     if (state->name() != OSNAME_SEGMENT) {
@@ -513,5 +488,4 @@ Segment::loadStateWithoutReferences(const ObjectState* state)
             __FILE__, __LINE__, procName, exception.errorMessage());
     }
 }
-
 }

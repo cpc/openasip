@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -105,9 +105,7 @@ StopPointManager::add(const StopPoint& stopPoint) {
  * @param handle The handle of the stop point to be removed.
  */
 void
-StopPointManager::deleteStopPoint(unsigned int handle)
-    throw (InstanceNotFound) {
-
+StopPointManager::deleteStopPoint(unsigned int handle) {
     StopPoint* stopPoint = findStopPoint(handle);
 
     StopPointIndex::iterator findResult = stopPoints_.find(handle);
@@ -131,7 +129,6 @@ StopPointManager::deleteStopPoint(unsigned int handle)
     }
 }
 
-
 /**
  * Removes all stop points.
  */
@@ -149,11 +146,9 @@ StopPointManager::deleteAll() {
  * @param handle The handle to identify the stop point.
  */
 void
-StopPointManager::enable(unsigned int handle)
-    throw (InstanceNotFound) {
+StopPointManager::enable(unsigned int handle) {
     findStopPoint(handle)->setEnabled(true);
 }
-
 
 /**
  * Enables all stop points.
@@ -174,15 +169,12 @@ StopPointManager::enableAll() {
  * @throw InstanceNotFound if the given handle cannot be found.
  */
 void
-StopPointManager::enableOnceAndDelete(unsigned int handle)
-    throw (InstanceNotFound) {
-
+StopPointManager::enableOnceAndDelete(unsigned int handle) {
     StopPoint* stopPoint = findStopPoint(handle);
 
     stopPoint->setEnabled(true);
     stopPoint->setDeletedAfterTriggered(true);
 }
-
 
 /**
  * Enables the stop point by the given handle and sets it to be disabled
@@ -192,15 +184,12 @@ StopPointManager::enableOnceAndDelete(unsigned int handle)
  * @throw InstanceNotFound if the given handle cannot be found.
  */
 void
-StopPointManager::enableOnceAndDisable(unsigned int handle)
-    throw (InstanceNotFound) {
-
+StopPointManager::enableOnceAndDisable(unsigned int handle) {
     StopPoint* stopPoint = findStopPoint(handle);
 
     stopPoint->setEnabled(true);
     stopPoint->setDisabledAfterTriggered(true);
 }
-
 
 /**
  * Disables the stop point by the given handle.
@@ -208,11 +197,9 @@ StopPointManager::enableOnceAndDisable(unsigned int handle)
  * @param handle The handle for the stop point.
  */
 void
-StopPointManager::disable(unsigned int handle) 
-    throw (InstanceNotFound) {
+StopPointManager::disable(unsigned int handle) {
     findStopPoint(handle)->setEnabled(false);
 }
-
 
 /**
  * Disables all stop oints.
@@ -241,9 +228,7 @@ StopPointManager::disableAll() {
  * @throw OutOfRange If there is no stop point by the given index.
  */
 unsigned int
-StopPointManager::stopPointHandle(unsigned int index)
-    throw (OutOfRange) {
-
+StopPointManager::stopPointHandle(unsigned int index) {
     if (index < stopPointCount()) {
         return handles_.at(index);
     } else {
@@ -260,9 +245,7 @@ StopPointManager::stopPointHandle(unsigned int index)
  * @throw InstanceNotFound If there is no stop point with the given handle.
  */
 const StopPoint&
-StopPointManager::stopPointWithHandleConst(unsigned int handle) const
-    throw (InstanceNotFound) {
-
+StopPointManager::stopPointWithHandleConst(unsigned int handle) const {
     StopPointIndex::const_iterator containerEnd = stopPoints_.end();
     StopPointIndex::const_iterator findResult = stopPoints_.find(handle);
 
@@ -274,7 +257,6 @@ StopPointManager::stopPointWithHandleConst(unsigned int handle) const
         return *findResult->second;
     }
 }
-
 
 /**
  * Returns the current number of stop points in the manager.
@@ -298,11 +280,9 @@ StopPointManager::stopPointCount() {
  * @exception InstanceNotFound If no stop point with given handle is found.
  */
 void
-StopPointManager::setIgnore(unsigned int handle, unsigned int count)
-    throw (InstanceNotFound) {
+StopPointManager::setIgnore(unsigned int handle, unsigned int count) {
     findStopPoint(handle)->setIgnoreCount(count);
 }
-
 
 /**
  * Sets the condition of triggering for the stop point by the given handle.
@@ -314,9 +294,7 @@ StopPointManager::setIgnore(unsigned int handle, unsigned int count)
  */
 void
 StopPointManager::setCondition(
-    unsigned int handle,
-    const ConditionScript& condition)
-    throw (InstanceNotFound) {
+    unsigned int handle, const ConditionScript& condition) {
     findStopPoint(handle)->setCondition(condition);
 }
 
@@ -327,8 +305,7 @@ StopPointManager::setCondition(
  * @exception InstanceNotFound If no stop point with given handle is found.
  */
 void
-StopPointManager::removeCondition(unsigned int handle)
-    throw (InstanceNotFound) {
+StopPointManager::removeCondition(unsigned int handle) {
     findStopPoint(handle)->removeCondition();
 }
 
@@ -340,9 +317,7 @@ StopPointManager::removeCondition(unsigned int handle)
  * @exception InstanceNotFound If no stop point with given handle is found.
  */
 StopPoint*
-StopPointManager::findStopPoint(unsigned int handle)
-    throw (InstanceNotFound) {
-
+StopPointManager::findStopPoint(unsigned int handle) {
     StopPointIndex::iterator containerEnd = stopPoints_.end();
     StopPointIndex::iterator findResult = stopPoints_.find(handle);
 
@@ -366,10 +341,8 @@ StopPointManager::findStopPoint(unsigned int handle)
  * @return the handle of the stop point.
  * @exception OutOfRange
  */
-unsigned int 
-StopPointManager::stopCausingStopPoint(unsigned int index) const 
-    throw (OutOfRange) {
-
+unsigned int
+StopPointManager::stopCausingStopPoint(unsigned int index) const {
     unsigned int count = 0;
     for (StopPointIndex::const_iterator i = stopPoints_.begin(); 
          i != stopPoints_.end(); ++i) {

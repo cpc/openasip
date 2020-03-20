@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -339,10 +339,8 @@ Operand::canSwap(const Operand& op) const {
  * @exception ObjectStateLoadingException If loading fails for some reason.
  */
 void
-Operand::loadState(const ObjectState* state) 
-    throw (ObjectStateLoadingException) {
-
-	clear();
+Operand::loadState(const ObjectState* state) {
+    clear();
 
     string method = "Operand::loadState()";
     

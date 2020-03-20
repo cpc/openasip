@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -43,9 +43,7 @@ public:
     DEFAULT_Compressor() : CodeCompressorPlugin() {}
 
     virtual InstructionBitVector*
-    compress(const std::string& programName)
-        throw (InvalidData) {
-
+    compress(const std::string& programName) {
         try {
             startNewProgram(programName);
             setAllInstructionsToStartAtBeginningOfMAU();

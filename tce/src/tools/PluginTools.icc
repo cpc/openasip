@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -55,8 +55,7 @@ PluginTools::importSymbol(
     const std::string& symbolName,
     T*& target,
     const std::string& module)
-    throw (MultipleInstancesFound, FileNotFound, DynamicLibraryException,
-           SymbolNotFound) {
+     {
 
     /* This produces warnings with newer gcc's, but it seems it's 
        a known problem with dlsym():
@@ -90,8 +89,7 @@ PluginTools::importSymbol(
 template <typename T>
 void
 PluginTools::importSymbol(const std::string& symbolName, T*& target)
-    throw (MultipleInstancesFound, FileNotFound, DynamicLibraryException,
-           SymbolNotFound) {
+     {
 
     target = (T*)(intptr_t)loadSym(symbolName);
 }

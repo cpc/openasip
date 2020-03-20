@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -51,8 +51,7 @@ public:
     explicit RegisterFileState(int size, int width);
     virtual ~RegisterFileState();
 
-    virtual RegisterState& registerState(int index)
-        throw (OutOfRange);
+    virtual RegisterState& registerState(int index);
 
     virtual std::size_t registerCount() const;
 
@@ -79,8 +78,7 @@ public:
 
     virtual ~NullRegisterFileState();
 
-    virtual RegisterState& registerState(int index)
-        throw (OutOfRange);
+    virtual RegisterState& registerState(int index);
 
 private:
     NullRegisterFileState();

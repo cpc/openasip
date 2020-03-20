@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -64,10 +64,7 @@ const string FunctionUnit::OSKEY_ORDER_NUMBER = "order_no";
  * @exception InvalidName If the given name is not a valid component name.
  */
 FunctionUnit::FunctionUnit(const string& name)
-    throw (InvalidName) :
-    Unit(name), addressSpace_(NULL), orderNumber_(0) {
-}
-
+    : Unit(name), addressSpace_(NULL), orderNumber_(0) {}
 
 /**
  * Constructor.
@@ -80,12 +77,9 @@ FunctionUnit::FunctionUnit(const string& name)
  *                                        is invalid.
  */
 FunctionUnit::FunctionUnit(const ObjectState* state)
-    throw (ObjectStateLoadingException) :
-    Unit(state), addressSpace_(NULL), orderNumber_(0) {
-
+    : Unit(state), addressSpace_(NULL), orderNumber_(0) {
     loadStateWithoutReferences(state);
 }
-
 
 /**
  * Destructor.
@@ -121,9 +115,7 @@ FunctionUnit::copy() const {
  * @exception InvalidName If the given name is not a valid component name.
  */
 void
-FunctionUnit::setName(const string& name)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+FunctionUnit::setName(const string& name) {
     if (name == this->name()) {
         return;
     }
@@ -142,7 +134,6 @@ FunctionUnit::setName(const string& name)
     }
 }
 
-
 /**
  * Returns the requested port.
  *
@@ -151,9 +142,7 @@ FunctionUnit::setName(const string& name)
  * @exception InstanceNotFound If there is no port by the given name.
  */
 BaseFUPort*
-FunctionUnit::port(const std::string& name) const
-    throw (InstanceNotFound) {
-
+FunctionUnit::port(const std::string& name) const {
     if (!hasPort(name)) {
         string procName = "FunctionUnit::port";
         throw InstanceNotFound(__FILE__, __LINE__, procName);
@@ -165,7 +154,6 @@ FunctionUnit::port(const std::string& name) const
     return fuPort;
 }
 
-
 /**
  * Returns port by the given index.
  *
@@ -176,13 +164,11 @@ FunctionUnit::port(const std::string& name) const
  * @exception OutOfRange If the given index is out of range.
  */
 BaseFUPort*
-FunctionUnit::port(int index) const
-    throw (OutOfRange) {
+FunctionUnit::port(int index) const {
     // the out of range test is already done in Unit::Port,
     // no need to do it here also.
     return static_cast<BaseFUPort*>(Unit::port(index));
 }
-
 
 /**
  * Returns the number of port used for inputs and outputs of operations.
@@ -235,9 +221,7 @@ FunctionUnit::hasOperationPort(const std::string& name) const {
  * @exception InstanceNotFound If the requested port does not exist.
  */
 FUPort*
-FunctionUnit::operationPort(const std::string& name) const
-    throw (InstanceNotFound) {
-
+FunctionUnit::operationPort(const std::string& name) const {
     Port* port = Unit::port(name);
     FUPort* fuPort = dynamic_cast<FUPort*>(port);
     if (fuPort == NULL) {
@@ -246,7 +230,6 @@ FunctionUnit::operationPort(const std::string& name) const
     }
     return fuPort;
 }
-
 
 /**
  * Returns an operation port by the given index.
@@ -259,9 +242,7 @@ FunctionUnit::operationPort(const std::string& name) const
  *                       equal to the number of operation ports.
  */
 FUPort*
-FunctionUnit::operationPort(int index) const
-    throw (OutOfRange) {
-
+FunctionUnit::operationPort(int index) const {
     int portCount = this->portCount();
     int current(-1);
 
@@ -279,6 +260,19 @@ FunctionUnit::operationPort(int index) const
     throw OutOfRange(__FILE__, __LINE__, procName);
 }
 
+/**
+ * Returns triggering port if found. Otherwise returns NULL.
+ */
+BaseFUPort*
+FunctionUnit::triggerPort() const {
+    int portc = portCount();
+    for (int i = 0; i < portc; i++) {
+        if (port(i)->isTriggering()) {
+            return port(i);
+        }
+    }
+    return NULL;
+}
 
 /**
  * Adds an operation into the function unit. This method is called from
@@ -289,9 +283,7 @@ FunctionUnit::operationPort(int index) const
  *                                   same name as the given operation.
  */
 void
-FunctionUnit::addOperation(HWOperation& operation)
-    throw (ComponentAlreadyExists) {
-
+FunctionUnit::addOperation(HWOperation& operation) {
     // run time check that this method is called from HWOperation constructor
     // only.
     assert(operation.parentUnit() == NULL);
@@ -304,7 +296,6 @@ FunctionUnit::addOperation(HWOperation& operation)
     }
 }
 
-
 /**
  * Deletes an operation from the function unit.
  *
@@ -315,9 +306,7 @@ FunctionUnit::addOperation(HWOperation& operation)
  *                             function unit.
  */
 void
-FunctionUnit::deleteOperation(HWOperation& operation)
-    throw (InstanceNotFound) {
-
+FunctionUnit::deleteOperation(HWOperation& operation) {
     if (operation.parentUnit() == NULL) {
         bool removed = ContainerTools::removeValueIfExists(operations_,
                                                            &operation);
@@ -330,8 +319,6 @@ FunctionUnit::deleteOperation(HWOperation& operation)
         delete &operation;
     }
 }
-
-
 
 /**
  * Returns true if the requested operation exists in the function unit.
@@ -373,8 +360,7 @@ FunctionUnit::hasOperationLowercase(const std::string& name) const {
  *                             name.
  */
 HWOperation*
-FunctionUnit::operation(const string& name) const
-    throw (InstanceNotFound) {
+FunctionUnit::operation(const string& name) const {
     return operationLowercase(StringTools::stringToLower(name));
 }
 
@@ -389,8 +375,7 @@ FunctionUnit::operation(const string& name) const
  *                             name.
  */
 HWOperation*
-FunctionUnit::operationLowercase(const string& name) const
-    throw (InstanceNotFound) {
+FunctionUnit::operationLowercase(const string& name) const {
     OperationTable::const_iterator iter = operations_.begin();
     while (iter != operations_.end()) {
         if ((*iter)->name() == name) {
@@ -403,7 +388,6 @@ FunctionUnit::operationLowercase(const string& name) const
     throw InstanceNotFound(
         __FILE__, __LINE__, procName,"Operation not found:" + name );
 }
-
 
 /**
  * Returns operation by the given index.
@@ -418,16 +402,13 @@ FunctionUnit::operationLowercase(const string& name) const
  *                       unit.
  */
 HWOperation*
-FunctionUnit::operation(int index) const
-    throw (OutOfRange) {
-
+FunctionUnit::operation(int index) const {
     if (index < 0 || index >= operationCount()) {
         string procName = "FunctionUnit::operation";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
     return operations_[index];
 }
-
 
 /**
  * Returns the number of operations in the function unit.
@@ -482,9 +463,7 @@ FunctionUnit::maxLatency() const {
  *                                   by the given name.
  */
 void
-FunctionUnit::addPipelineElement(PipelineElement& element)
-    throw (ComponentAlreadyExists) {
-
+FunctionUnit::addPipelineElement(PipelineElement& element) {
     // sanity check to verify that this is called from PipelineElement's
     // constructor
     assert(element.parentUnit() == NULL);
@@ -497,7 +476,6 @@ FunctionUnit::addPipelineElement(PipelineElement& element)
         pipelineElements_.push_back(&element);
     }
 }
-
 
 /**
  * Deletes the given pipeline element from function unit.
@@ -542,9 +520,7 @@ FunctionUnit::pipelineElementCount() const {
  * @exception OutOfRange If the given index is out of range.
  */
 PipelineElement*
-FunctionUnit::pipelineElement(int index) const
-    throw (OutOfRange) {
-
+FunctionUnit::pipelineElement(int index) const {
     if (index < 0 || index >= pipelineElementCount()) {
         string procName = "FunctionUnit::pipelineElement";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -552,7 +528,6 @@ FunctionUnit::pipelineElement(int index) const
 
     return pipelineElements_[index];
 }
-
 
 /**
  * Returns true if the function unit has a pipeline element by the given
@@ -616,16 +591,13 @@ FunctionUnit::addressSpace() const {
  *                                machine.
  */
 void
-FunctionUnit::setAddressSpace(AddressSpace* as)
-    throw (IllegalRegistration) {
-
+FunctionUnit::setAddressSpace(AddressSpace* as) {
     if (as != NULL) {
         ensureRegistration(*as);
     }
 
     addressSpace_ = as;
 }
-
 
 /**
  * Returns true if the address space is set.
@@ -731,9 +703,7 @@ FunctionUnit::saveState() const {
  *                                        other machine parts cannot be made.
  */
 void
-FunctionUnit::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+FunctionUnit::loadState(const ObjectState* state) {
     const string procName = "FunctionUnit::loadState";
 
     Unit::loadState(state);
@@ -762,7 +732,6 @@ FunctionUnit::loadState(const ObjectState* state)
             __FILE__, __LINE__, procName, e.errorMessage());
     }
 }
-
 
 /**
  * Compares two FunctionUnit architectures.
@@ -900,9 +869,7 @@ FunctionUnit::cleanupGuards() const {
  *                                        the state.
  */
 void
-FunctionUnit::loadStateWithoutReferences(const ObjectState* fuState)
-    throw (ObjectStateLoadingException) {
-
+FunctionUnit::loadStateWithoutReferences(const ObjectState* fuState) {
     deleteAllOperations();
     addressSpace_ = NULL;
 
@@ -924,7 +891,6 @@ FunctionUnit::loadStateWithoutReferences(const ObjectState* fuState)
             __FILE__, __LINE__, procName, e.errorMessage());
     }
 }
-
 
 /**
  * Deletes all the operations of the function unit.

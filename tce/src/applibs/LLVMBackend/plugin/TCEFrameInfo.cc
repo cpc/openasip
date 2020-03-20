@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -69,11 +69,18 @@ using namespace llvm;
 #else
 #define ADDIMM TCE::ADDrri
 #define SUBIMM TCE::SUBrri
+#define MOVREG TCE::MOVI32rr
+#ifdef LITTLE_ENDIAN_TARGET
 #define STREG  TCE::ST32rr
 #define LDREG  TCE::LD32rr
 #define LDRA   TCE::LD32RAr
 #define STRA   TCE::ST32RArr
-#define MOVREG TCE::MOVI32rr
+#else // big-endian
+#define STREG  TCE::STWrr
+#define LDREG  TCE::LDWrr
+#define LDRA   TCE::LDWRAr
+#define STRA   TCE::STWRArr
+#endif
 #endif
 
 
@@ -217,20 +224,27 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
             .addImm(stackAlignment_);
 
         // Save RA to stack.
-#ifdef LITTLE_ENDIAN_TARGET
         BuildMI(mbb, ii, dl, tii_.get(STRA))
             .addReg(TCE::SP)
             .addImm(0)
             .addReg(TCE::RA)
             .setMIFlag(MachineInstr::FrameSetup);
-#else
-        BuildMI(mbb, ii, dl, tii_.get(TCE::STWRArr))
-            .addReg(TCE::SP)
-            .addImm(0)
-            .addReg(TCE::RA)
-            .setMIFlag(MachineInstr::FrameSetup);
-#endif
         numBytes += stackAlignment_;
+
+        // Create metadata which says that this is an RA save
+        MachineBasicBlock::iterator raStore = ii; raStore--;
+#ifdef LLVM_OLDER_THAN_6_0
+        LLVMContext& context = mbb.getParent()->getFunction()->getContext();
+#else
+        LLVMContext& context = mbb.getParent()->getFunction().getContext();
+#endif
+        llvm::Metadata* md =
+            llvm::MDString::get(context, "AA_CATEGORY_RA_SAVE_SLOT");
+        MDNode* mdNode =
+            MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
+
+        MachineOperand metaDataOperand = MachineOperand::CreateMetadata(mdNode);
+        raStore->addOperand(metaDataOperand);
     }
 
     if (hasFP(mf)) {
@@ -244,20 +258,27 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
                 .addReg(TCE::SP)
                 .addImm(stackAlignment_);
 
-#ifdef LITTLE_ENDIAN_TARGET
             BuildMI(mbb, ii, dl, tii_.get(STREG))
                 .addReg(TCE::SP)
                 .addImm(0)
                 .addReg(TCE::FP)
                 .setMIFlag(MachineInstr::FrameSetup);
-#else
-            BuildMI(mbb, ii, dl, tii_.get(TCE::STWrr))
-                .addReg(TCE::SP)
-                .addImm(0)
-                .addReg(TCE::FP)
-                .setMIFlag(MachineInstr::FrameSetup);
-#endif
+
             numBytes += stackAlignment_;
+            // Create metadata which says that this is an FP save
+            MachineBasicBlock::iterator fpStore = ii; fpStore--;
+#ifdef LLVM_OLDER_THAN_6_0
+            LLVMContext& context = mbb.getParent()->getFunction()->getContext();
+#else
+            LLVMContext& context = mbb.getParent()->getFunction().getContext();
+#endif
+            llvm::Metadata* md =
+                llvm::MDString::get(context, "AA_CATEGORY_FP_SAVE_SLOT");
+            MDNode* mdNode =
+                MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
+
+            MachineOperand metaDataOperand = MachineOperand::CreateMetadata(mdNode);
+            fpStore->addOperand(metaDataOperand);
         }
         // if FP used by this function, move SP to FP
         BuildMI(mbb, ii, dl, tii_.get(MOVREG), TCE::FP).addReg(TCE::SP)
@@ -319,17 +340,29 @@ TCEFrameInfo::emitEpilogue(
             .setMIFlag(MachineInstr::FrameSetup);
 
         // restore old FP from stack
-#ifdef LITTLE_ENDIAN_TARGET
         BuildMI(mbb, mbbi, dl, tii_.get(LDREG), TCE::FP)
             .addReg(TCE::FP)
             .addImm(0)
             .setMIFlag(MachineInstr::FrameSetup);
+
+        // Create metadata which says that this is an FP load
+        MachineBasicBlock::iterator fpLoad = mbbi; fpLoad--;
+
+#ifdef LLVM_OLDER_THAN_6_0
+        LLVMContext& context =
+            mbb.getParent()->getFunction()->getContext();
 #else
-        BuildMI(mbb, mbbi, dl, tii_.get(TCE::LDWrr), TCE::FP)
-            .addReg(TCE::FP)
-            .addImm(0)
-            .setMIFlag(MachineInstr::FrameSetup);
+        LLVMContext& context =
+            mbb.getParent()->getFunction().getContext();
 #endif
+
+        llvm::Metadata* md = llvm::MDString::get(context, "AA_CATEGORY_FP_SAVE_SLOT");
+        MDNode* mdNode = MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
+
+        MachineOperand metaDataOperand = MachineOperand::CreateMetadata(mdNode);
+        fpLoad->addOperand(metaDataOperand);
+
+        // then the SP adjust
         BuildMI(mbb, mbbi, dl, tii_.get(ADDIMM), TCE::SP)
             .addReg(TCE::SP)
             .addImm(stackAlignment_);
@@ -344,17 +377,29 @@ TCEFrameInfo::emitEpilogue(
 
     if (hasCalls) {
         // Restore RA from stack.
-#ifdef LITTLE_ENDIAN_TARGET
         BuildMI(mbb, mbbi, dl, tii_.get(LDRA), TCE::RA)
             .addReg(TCE::SP)
             .addImm(0)
             .setMIFlag(MachineInstr::FrameSetup);
+        // Create metadata which says that this is an RA load
+        MachineBasicBlock::iterator raLoad = mbbi; raLoad--;
+
+
+#ifdef LLVM_OLDER_THAN_6_0
+        LLVMContext& context =
+            mbb.getParent()->getFunction()->getContext();
 #else
-        BuildMI(mbb, mbbi, dl, tii_.get(TCE::LDWRAr), TCE::RA)
-            .addReg(TCE::SP)
-            .addImm(0)
-            .setMIFlag(MachineInstr::FrameSetup);
+        LLVMContext& context =
+            mbb.getParent()->getFunction().getContext();
 #endif
+
+        llvm::Metadata* md = llvm::MDString::get(context, "AA_CATEGORY_RA_SAVE_SLOT");
+        MDNode* mdNode = MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
+
+        MachineOperand metaDataOperand = MachineOperand::CreateMetadata(mdNode);
+        raLoad->addOperand(metaDataOperand);
+
+        // then the SP adjust
         BuildMI(mbb, mbbi, dl, tii_.get(ADDIMM), TCE::SP)
             .addReg(TCE::SP)
             .addImm(stackAlignment_);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Definition of TPEFSymbolSectionReader class.
  *
- * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 2003 (tmlepist-no.spam-cs.tut.fi)
  *
  * @note rating: yellow
  */
@@ -101,11 +101,7 @@ TPEFSymbolSectionReader::type() const {
  */
 void
 TPEFSymbolSectionReader::readData(
-    BinaryStream& stream,
-    Section* section) const
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-           OutOfRange, WrongSubclass, UnexpectedValue) {
-
+    BinaryStream& stream, Section* section) const {
     // base classes implementation must be called with these.
     TPEFSectionReader::readData(stream, section);
 
@@ -221,6 +217,7 @@ TPEFSymbolSectionReader::createSymbol(
 
     case SymbolElement::STT_PROCEDURE:
         elem = new ProcedSymElement();
+        /* fall through */
 
     case SymbolElement::STT_CODE:
         if (elem == NULL) {

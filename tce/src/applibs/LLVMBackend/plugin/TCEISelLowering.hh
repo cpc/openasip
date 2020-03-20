@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -41,6 +41,9 @@
 #include "TCEPlugin.hh"
 #include "TCESubtarget.hh"
 #include "tce_config.h"
+#include "TCEString.hh"
+#include <map>
+#include <iostream>
 
 namespace TCEISD {
     enum {
@@ -65,7 +68,10 @@ namespace TCEISD {
 
         CALL,        // A call instruction.
         RET_FLAG ,    // Return with a flag operand.
-        RET_FLAG_old
+        RET_FLAG_old,
+        SRA_Const,
+        SRL_Const,
+        SHL_Const
    };
 }
 
@@ -128,6 +134,10 @@ namespace llvm {
         SDValue LowerTRAP(SDValue Op, SelectionDAG &DAG) const;
         SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG) const;
         SDValue LowerBlockAddress(SDValue Op, SelectionDAG &DAG) const;
+        SDValue LowerShift(SDValue op, SelectionDAG& dag) const;
+        SDValue lowerExtOrBoolLoad(SDValue op, SelectionDAG& DAG) const;
+
+        std::pair<int, TCEString> getConstShiftNodeAndTCEOP(SDValue op) const;
 
         virtual SDValue
         LowerCall(TargetLowering::CallLoweringInfo &CLI,
@@ -145,7 +155,11 @@ namespace llvm {
                                                    unsigned,
                                                    bool*) const override;
 #else // LLVM 3.6+
+#ifdef LLVM_OLDER_THAN_9
         virtual bool allowsMisalignedMemoryAccesses(EVT VT, unsigned as, unsigned align, bool* ) const override;
+#else // LLVM 9+
+        virtual bool allowsMisalignedMemoryAccesses(EVT VT, unsigned as, unsigned align, MachineMemOperand::Flags flags, bool* ) const override;
+#endif
 #endif
         // We can ignore the bitwidth differences between the pointers
         // for now. It's the programmer's responsibility to ensure they
@@ -167,14 +181,33 @@ namespace llvm {
 #else
         virtual llvm::EVT getSetCCResultType(const DataLayout &DL, LLVMContext &Context,
                                        EVT VT) const override;
-
 #endif
+
+#ifdef LLVM_OLDER_THAN_9
         virtual bool isFPImmLegal(const APFloat& apf, EVT VT) const override {
             if (VT==MVT::f32 || VT==MVT::f16) {
                 return true;
             }
             return false;
         }
+#else
+        virtual bool isFPImmLegal(
+            const APFloat& apf, EVT VT, bool forCodeSize) const override {
+            if (VT==MVT::f32 || VT==MVT::f16) {
+                return true;
+            }
+            return false;
+        }
+#endif
+
+    SDValue ExpandLibCall(
+        RTLIB::Libcall LC, SDNode *Node, bool isSigned, SelectionDAG &DAG)
+        const;
+
+        void ReplaceNodeResults(SDNode * node,
+                                SmallVectorImpl< SDValue > &,
+                                SelectionDAG &) const override;
+
     };
 }
 

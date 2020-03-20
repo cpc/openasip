@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -79,10 +79,8 @@ DisassembleCommand::~DisassembleCommand() {
  * @param arguments The range of instruction memory to disassemble.
  * @return Always true if arguments are valid.
  */
-bool 
-DisassembleCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+DisassembleCommand::execute(const std::vector<DataObject>& arguments) {
     assert(interpreter() != NULL);
 
     if (!checkArgumentCount(arguments.size() - 1, 0, 2)) {

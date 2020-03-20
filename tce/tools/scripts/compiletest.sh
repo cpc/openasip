@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) 2002-2014 Tampere University of Technology.
+# Copyright (c) 2002-2014 Tampere University.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 # 
@@ -510,11 +510,17 @@ function change_compiler_env {
 }
 
 # Reconfigures the source base by running "./configure" at the current dir.
+# Reuses configuration switches from the last configuration.
 function reconfigure {
     push_dir
 
-    ./autogen.sh > /dev/null 2>&1 && ./configure $CONFIGURE_SWITCHES \
-        $TCE_CONFIGURE_SWITCHES 1> /dev/null 2> $TEMP_FILE
+    if [ -f config.log ]; then
+        LAST_CONFIGURE_SWITCHES=$(grep -x '[ ]*$ ./configure .*' config.log | sed 's/.*configure //')
+    fi
+
+    ./autogen.sh > /dev/null 2>&1 && ./configure $LAST_CONFIGURE_SWITCHES \
+        $CONFIGURE_SWITCHES \
+        $TCE_CONFIGURE_SWITCHES | grep -vEx $WARNING_FILTERS 1> /dev/null 2> $TEMP_FILE
 
     if [ "x$cleanupBeforeCompile" = "xyes" ]; then
         make clean 1> /dev/null 2>> $TEMP_FILE

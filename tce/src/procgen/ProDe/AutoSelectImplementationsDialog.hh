@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -92,7 +92,10 @@ private:
  
     /// Set for hdb paths.
     std::set<TCEString> hdbs_;
-    
+
+    // Default HDB file to set in the beginning
+    static const std::string defaultHDB_;
+
     // HDB & ID pair for units without implementation
     struct HdbIdPair {
         TCEString hdbFile;

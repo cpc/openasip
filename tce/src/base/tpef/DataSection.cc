@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -146,10 +146,8 @@ DataSection::MAU(Word index) const {
  * defined by the address space's MAU width (when interpreted as unsigned or
  * signed integer).
  */
-void 
-DataSection::addMAU(MinimumAddressableUnit aMAU) 
-    throw (OutOfRange) {
-
+void
+DataSection::addMAU(MinimumAddressableUnit aMAU) {
     int mauBits = aSpace()->MAU();
     
     if (MathTools::requiredBits(aMAU) > mauBits) {
@@ -179,7 +177,6 @@ DataSection::addMAU(MinimumAddressableUnit aMAU)
         addByte(static_cast<Byte>(aMAU >> mauBits));
     }
 }
-
 
 /**
  * Returns byte from byte offset.

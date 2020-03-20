@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -75,23 +75,22 @@ public:
 
     virtual SLongWord longValue() const;
 
-    virtual std::string stringValue() const throw (NumberFormatException);
+    virtual std::string stringValue() const;
     virtual void setString(std::string value);
 
-    virtual double doubleValue() const throw (NumberFormatException);
+    virtual double doubleValue() const;
     virtual void setDouble(double value);
 
-    virtual float floatValue() const throw (NumberFormatException);
+    virtual float floatValue() const;
     virtual void setFloat(float value);
 
-    virtual bool boolValue() const throw (NumberFormatException);
+    virtual bool boolValue() const;
     virtual void setBool(bool value);
 
-    virtual bool isNull() const throw (NumberFormatException);
+    virtual bool isNull() const;
     virtual void setNull();
 
-    virtual bool operator!=(const DataObject& object) 
-        const throw (NumberFormatException);
+    virtual bool operator!=(const DataObject& object) const;
 
 protected:
     OrigType type() const;
@@ -129,24 +128,24 @@ private:
 class NullDataObject : public DataObject {
 public:
     static NullDataObject& instance();
+
     virtual int integerValue() const override;
     virtual SLongWord longValue() const override;
 
     virtual void setInteger(int value) override;
     virtual void setLong(SLongWord value) override;
 
-    virtual std::string stringValue() const throw (NumberFormatException);
+    virtual std::string stringValue() const;
     virtual void setString(std::string value) override;
 
-    virtual double doubleValue() const throw (NumberFormatException);
+    virtual double doubleValue() const;
     virtual void setDouble(double value) override;
 
-    virtual float floatValue() const throw (NumberFormatException);
+    virtual float floatValue() const;
     virtual void setFloat(float value) override;
 
-    virtual bool isNull() const throw (NumberFormatException);
+    virtual bool isNull() const;
     virtual void setNull() override;
-
 private:
 
     NullDataObject();

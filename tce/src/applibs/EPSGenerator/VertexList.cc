@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -77,9 +77,7 @@ VertexList::size() const {
  * @exception OutOfRange If the index is out of range.
  */
 int
-VertexList::vertexX(size_t index) const
-    throw (OutOfRange) {
-
+VertexList::vertexX(size_t index) const {
     if (index > size()) {
         std::string error = "Vertex index out of range";
         std::string proc = "VertexList::vertexX";
@@ -100,9 +98,7 @@ VertexList::vertexX(size_t index) const
  * @exception OutOfRange If the index is out of range.
  */
 int
-VertexList::vertexY(size_t index) const
-    throw (OutOfRange) {
-
+VertexList::vertexY(size_t index) const {
     if (index > size()) {
         std::string error = "Vertex index out of range";
         std::string proc = "VertexList::vertexY";

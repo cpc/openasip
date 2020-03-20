@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -76,11 +76,9 @@ public:
 
     void setXMLNamespace(std::string nsUri);
 
-    virtual ObjectState* readState()
-        throw (SerializerException);
+    virtual ObjectState* readState();
 
-    virtual void writeState(const ObjectState* rootState)
-        throw (SerializerException);
+    virtual void writeState(const ObjectState* rootState);
 
 protected:
     std::string sourceFile() const;
@@ -93,23 +91,17 @@ private:
 
     void initializeParser();
 
-    virtual ObjectState* readFile(const std::string& fileName)
-        throw (SerializerException);
+    virtual ObjectState* readFile(const std::string& fileName);
 
-    virtual ObjectState* readString(const std::string& source)
-        throw (SerializerException);
+    virtual ObjectState* readString(const std::string& source);
 
     virtual void writeFile(
-        const std::string& fileName, const ObjectState* rootState)
-        throw (SerializerException);
+        const std::string& fileName, const ObjectState* rootState);
 
-    virtual void writeString(
-        std::string& target, const ObjectState* rootState)
-        throw (SerializerException);
+    virtual void writeString(std::string& target, const ObjectState* rootState);
 
     DOMDocument* createDOMDocument(const ObjectState* state) const;
-    void ensureValidStream(const std::string& fileName) const
-        throw (UnreachableStream);
+    void ensureValidStream(const std::string& fileName) const;
 
     DOMElement* createDOM(
         ObjectState* state,

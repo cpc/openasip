@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2014 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -346,9 +346,7 @@ HDBManager* HDBManager::instance_ = NULL;
  * @exception IOException If connection to the DB cannot be established.
  */
 HDBManager::HDBManager(const std::string& hdbFile)
-    throw (IOException) : 
-    db_(new SQLite()), dbConnection_(NULL), hdbFile_(hdbFile) {
-
+    : db_(new SQLite()), dbConnection_(NULL), hdbFile_(hdbFile) {
     if (!FileSystem::fileExists(hdbFile)) {
         string errorMsg = "File '" + hdbFile + "' doesn't exist.";
         throw FileNotFound(__FILE__, __LINE__, __func__, errorMsg);
@@ -367,7 +365,6 @@ HDBManager::HDBManager(const std::string& hdbFile)
     }
 }
 
-
 /**
  * The destructor.
  */
@@ -385,9 +382,7 @@ HDBManager::~HDBManager() {
  *                              created for another reason.
  */
 void
-HDBManager::createNew(const std::string& file) 
-    throw (UnreachableStream) {
-
+HDBManager::createNew(const std::string& file) {
     if (!FileSystem::fileIsCreatable(file)) {
         const string procName = "HDBManager::createNew";
         throw UnreachableStream(__FILE__, __LINE__, procName);
@@ -445,7 +440,6 @@ HDBManager::createNew(const std::string& file)
     }
 }
 
-
 /**
  * Returns the file name of the HDB managed by this HDBManager.
  *
@@ -466,9 +460,7 @@ HDBManager::fileName() const {
  * is unknown.
  */
 RowID
-HDBManager::addCostFunctionPlugin(const CostFunctionPlugin& plugin) const 
-    throw (Exception) {
-
+HDBManager::addCostFunctionPlugin(const CostFunctionPlugin& plugin) const {
     RowID pluginID;
     try {
         dbConnection_->beginTransaction();
@@ -517,9 +509,8 @@ HDBManager::addCostFunctionPlugin(const CostFunctionPlugin& plugin) const
         debugLog(e.errorMessage());
         assert(false);
     }
-    return pluginID;    
+    return pluginID;
 }
-
 
 /**
  * Removes the CostFunctionPlugin that has the given ID.
@@ -560,9 +551,7 @@ HDBManager::removeCostFunctionPlugin(RowID pluginID) const {
  * @exception InvalidData If the FU architecture is invalid.
  */
 RowID
-HDBManager::addFUArchitecture(const FUArchitecture& arch) const 
-    throw (InvalidData) {
-    
+HDBManager::addFUArchitecture(const FUArchitecture& arch) const {
     // check the operand bindings of the FU
     FunctionUnit& fu = arch.architecture();
     MachineValidatorResults results;
@@ -741,7 +730,6 @@ HDBManager::addFUArchitecture(const FUArchitecture& arch) const
     return archID;
 }
 
-
 /**
  * Tells whether the FU architecture that has the given ID can be removed
  * from the database. It can be removed only if no FU entry uses it.
@@ -787,9 +775,7 @@ HDBManager::canRemoveFUArchitecture(RowID archID) const {
  *                          is used by some FU entry.
  */
 void
-HDBManager::removeFUArchitecture(RowID archID) const 
-    throw (InvalidData) {
-
+HDBManager::removeFUArchitecture(RowID archID) const {
     if (!canRemoveFUArchitecture(archID)) {
         throw InvalidData(__FILE__, __LINE__, __func__);
     }
@@ -854,7 +840,6 @@ HDBManager::removeFUArchitecture(RowID archID) const
         assert(false);
     }
 }
-
 
 /**
  * Adds an empty FU entry to the database.
@@ -961,9 +946,7 @@ HDBManager::removeFUEntry(RowID id) const {
  *                          implementation already.
  */
 RowID
-HDBManager::addFUImplementation(const FUEntry& entry) const 
-    throw (InvalidData) {
-
+HDBManager::addFUImplementation(const FUEntry& entry) const {
     if (!entry.hasID() || !entry.hasImplementation() ||
         !entry.hasArchitecture() || !hasFUEntry(entry.id())) {
         throw InvalidData(__FILE__, __LINE__, __func__);
@@ -1170,7 +1153,6 @@ HDBManager::addFUImplementation(const FUEntry& entry) const
     return implID;
 }
 
-
 /**
  * Removes the given FU implementation from the database.
  *
@@ -1253,9 +1235,7 @@ HDBManager::removeFUImplementation(RowID implID) const {
  *            if the HDB does not have FU or architecture by the given ID.
  */
 void
-HDBManager::setArchitectureForFU(RowID fuID, RowID archID) const
-    throw (InvalidData) {
-    
+HDBManager::setArchitectureForFU(RowID fuID, RowID archID) const {
     if (!hasFUEntry(fuID) || !containsFUArchitecture(archID)) {
         throw InvalidData(__FILE__, __LINE__, __func__);
     }
@@ -1278,7 +1258,6 @@ HDBManager::setArchitectureForFU(RowID fuID, RowID archID) const
     }
 }
 
-
 /**
  * Unsets the architecture of the given FU entry.
  *
@@ -1287,9 +1266,7 @@ HDBManager::setArchitectureForFU(RowID fuID, RowID archID) const
  *                          or if the FU entry has an implementation.
  */
 void
-HDBManager::unsetArchitectureForFU(RowID fuID) const
-    throw (InvalidData) {
-
+HDBManager::unsetArchitectureForFU(RowID fuID) const {
     if (!hasFUEntry(fuID)) {
         throw InvalidData(__FILE__, __LINE__, __func__);
     }
@@ -1309,8 +1286,7 @@ HDBManager::unsetArchitectureForFU(RowID fuID) const
         debugLog(e.errorMessage());
         assert(false);
     }
-}   
-
+}
 
 /**
  * Adds the given RF architecture to the HDB.
@@ -1392,9 +1368,7 @@ HDBManager::canRemoveRFArchitecture(RowID archID) const {
  * @exception InvalidData If the RF architecture cannot be removed.
  */
 void
-HDBManager::removeRFArchitecture(RowID archID) const
-    throw (InvalidData) {
-
+HDBManager::removeRFArchitecture(RowID archID) const {
     if (!canRemoveRFArchitecture(archID)) {
         throw InvalidData(__FILE__, __LINE__, __func__);
     }
@@ -1409,7 +1383,6 @@ HDBManager::removeRFArchitecture(RowID archID) const
         assert(false);
     }
 }
-
 
 /**
  * Adds an empty RF entry to the database.
@@ -1501,10 +1474,7 @@ HDBManager::removeRFEntry(RowID id) const {
  */
 RowID
 HDBManager::addRFImplementation(
-    const RFImplementation& implementation,
-    RowID rfEntryID)
-    throw (InvalidData) {
-
+    const RFImplementation& implementation, RowID rfEntryID) {
     if (!hasRFEntry(rfEntryID)) {
         throw InvalidData(__FILE__, __LINE__, __func__);
     }
@@ -1665,7 +1635,6 @@ HDBManager::addRFImplementation(
     return 0;
 }
 
-
 /**
  * Removes the RF implementation that has the given ID.
  *
@@ -1759,9 +1728,7 @@ HDBManager::removeRFImplementation(RowID implID) const {
  *                          if the RF entry has an architecture already.
  */
 void
-HDBManager::setArchitectureForRF(RowID rfID, RowID archID) const
-    throw (InvalidData) {
-
+HDBManager::setArchitectureForRF(RowID rfID, RowID archID) const {
     if (!hasRFEntry(rfID)) {
         throw InvalidData(__FILE__, __LINE__, __func__);
     }
@@ -1789,7 +1756,6 @@ HDBManager::setArchitectureForRF(RowID rfID, RowID archID) const
         assert(false);
     }
 }
-
 
 /**
  * Unsets architecture of the given RF entry.
@@ -2134,9 +2100,7 @@ HDBManager::rfArchitectureIDs() const {
  * @exception KeyNotFound If there is no implementation by the given ID.
  */
 RowID
-HDBManager::fuEntryIDOfImplementation(RowID implID) const
-    throw (KeyNotFound) {
-
+HDBManager::fuEntryIDOfImplementation(RowID implID) const {
     RelationalDBQueryResult* result = NULL;
     try {
         result =  dbConnection_->query(
@@ -2159,7 +2123,6 @@ HDBManager::fuEntryIDOfImplementation(RowID implID) const
     }
 }
 
-
 /**
  * Returns the ID of the RF entry that has the given implementation ID.
  *
@@ -2168,9 +2131,7 @@ HDBManager::fuEntryIDOfImplementation(RowID implID) const
  * @exception KeyNotFound If there is no implementation by the given ID.
  */
 RowID
-HDBManager::rfEntryIDOfImplementation(RowID implID) const
-    throw (KeyNotFound) {
-
+HDBManager::rfEntryIDOfImplementation(RowID implID) const {
     RelationalDBQueryResult* result = NULL;
     try {
         result =  dbConnection_->query(
@@ -2193,7 +2154,6 @@ HDBManager::rfEntryIDOfImplementation(RowID implID) const
     }
 }
 
-   
 /**
  * Returns the FU entry that has the given ID.
  *
@@ -2203,9 +2163,7 @@ HDBManager::rfEntryIDOfImplementation(RowID implID) const
  *                        given ID.
  */
 FUEntry*
-HDBManager::fuByEntryID(RowID id) const
-    throw (KeyNotFound) {    
-
+HDBManager::fuByEntryID(RowID id) const {
     std::string query = "SELECT architecture FROM fu WHERE id=";
     query += Conversion::toString(id) + ";";
 
@@ -2253,7 +2211,6 @@ HDBManager::fuByEntryID(RowID id) const
     return entry;
 }
 
-
 /**
  * Returns the RF entry that has the given ID.
  *
@@ -2263,9 +2220,7 @@ HDBManager::fuByEntryID(RowID id) const
  *                        given ID.
  */
 RFEntry*
-HDBManager::rfByEntryID(RowID id) const
-    throw (KeyNotFound) {
-
+HDBManager::rfByEntryID(RowID id) const {
     std::string query = "SELECT architecture FROM rf WHERE id=";
     query += Conversion::toString(id) + ";";
 
@@ -2310,7 +2265,6 @@ HDBManager::rfByEntryID(RowID id) const
     return entry;
 }
 
-
 /**
  * Creates an FUArchitecture instance of the FU architecture that has the
  * given ID.
@@ -2321,9 +2275,7 @@ HDBManager::rfByEntryID(RowID id) const
  *                        given ID.
  */
 FUArchitecture*
-HDBManager::fuArchitectureByID(RowID id) const 
-    throw (KeyNotFound) {
-
+HDBManager::fuArchitectureByID(RowID id) const {
     if (!containsFUArchitecture(id)) {
         throw KeyNotFound(__FILE__, __LINE__, __func__);
     }
@@ -2336,7 +2288,6 @@ HDBManager::fuArchitectureByID(RowID id) const
     return architecture;
 }
 
-
 /**
  * Creates an RFArchitecture instance of the RF architecture that has the
  * given ID.
@@ -2347,9 +2298,7 @@ HDBManager::fuArchitectureByID(RowID id) const
  *                        given ID.
  */
 RFArchitecture*
-HDBManager::rfArchitectureByID(RowID id) const 
-    throw (KeyNotFound) {
-
+HDBManager::rfArchitectureByID(RowID id) const {
     if (!containsRFArchitecture(id)) {
         throw KeyNotFound(__FILE__, __LINE__, __func__);
     }
@@ -2410,7 +2359,6 @@ HDBManager::rfArchitectureByID(RowID id) const
     delete architectureData;
     return architecture;
 }
-
 
 /**
  * Returns a set of FU entry IDs that have a corresponding architecture
@@ -2489,7 +2437,7 @@ HDBManager::fuEntriesByArchitecture(
 
     } catch (const Exception& e) {
         debugLog(e.errorMessage());
-        throw(e);
+        ;
     }
 
     return entryIDs;
@@ -2562,7 +2510,7 @@ HDBManager::rfEntriesByArchitecture(
         result = dbConnection_->query(query);
     } catch (const Exception& e) {
         debugLog(e.errorMessage());
-        throw(e);
+        ;
     }
 
     std::set<RowID> entryIDs;
@@ -2663,13 +2611,10 @@ HDBManager::addRFCostEstimationData(
  * @exception KeyNotFound If the HDB does not contain FU cost estimation data
  *                        with the given arguments.
  */
-DataObject 
+DataObject
 HDBManager::fuCostEstimationData(
-    const std::string& valueName,
-    RowID implementationId,
-    const std::string& pluginName) const
-    throw (KeyNotFound) {
-
+    const std::string& valueName, RowID implementationId,
+    const std::string& pluginName) const {
     // make the SQL query to obtain implementation data
     RelationalDBQueryResult* queryResult = NULL;
     try {
@@ -2722,13 +2667,10 @@ HDBManager::fuCostEstimationData(
  * @exception KeyNotFound If the HDB does not contain RF cost estimation data
  *                        with the given arguments.
  */
-DataObject 
+DataObject
 HDBManager::rfCostEstimationData(
-    const std::string& valueName,
-    RowID implementationId,
-    const std::string& pluginName) const
-    throw (KeyNotFound) {
-
+    const std::string& valueName, RowID implementationId,
+    const std::string& pluginName) const {
     // make the SQL query to obtain implementation data
     RelationalDBQueryResult* queryResult = NULL;
     try {
@@ -2766,7 +2708,6 @@ HDBManager::rfCostEstimationData(
     // silence compiler warning
     throw 1;
 }
-
 
 /**
  * Adds an empty Bus entry to the database.
@@ -2887,13 +2828,10 @@ HDBManager::addBusCostEstimationData(
  * @exception KeyNotFound If the HDB does not contain bus cost estimation data
  *                        with the given arguments.
  */
-DataObject 
+DataObject
 HDBManager::busCostEstimationData(
-    const std::string& valueName,
-    RowID busID,
-    const std::string& pluginName) const
-    throw (KeyNotFound) {
-
+    const std::string& valueName, RowID busID,
+    const std::string& pluginName) const {
     RelationalDBQueryResult* queryResult = NULL;
     try {
         queryResult = dbConnection_->query(            
@@ -2940,13 +2878,10 @@ HDBManager::busCostEstimationData(
  * @exception KeyNotFound If the HDB does not contain bus cost estimation data
  *                        with the given arguments.
  */
-HDBManager::DataObjectList* 
+HDBManager::DataObjectList*
 HDBManager::busCostEstimationDataList(
-    const std::string& valueName,
-    RowID busID,
-    const std::string& pluginName) const
-    throw (KeyNotFound) {
-
+    const std::string& valueName, RowID busID,
+    const std::string& pluginName) const {
     RelationalDBQueryResult* queryResult = NULL;
     try {
         queryResult = dbConnection_->query(            
@@ -2986,7 +2921,6 @@ HDBManager::busCostEstimationDataList(
     // silence compiler warning
     throw 1;
 }
-
 
 /**
  * Adds an empty Socket entry to the database.
@@ -3106,13 +3040,10 @@ HDBManager::addSocketCostEstimationData(
  * @exception KeyNotFound If the HDB does not contain socket cost estimation 
  *                        data with the given arguments.
  */
-DataObject 
+DataObject
 HDBManager::socketCostEstimationData(
-    const std::string& valueName,
-    RowID socketID,
-    const std::string& pluginName) const
-    throw (KeyNotFound) {
-
+    const std::string& valueName, RowID socketID,
+    const std::string& pluginName) const {
     // make the SQL query to obtain implementation data
     RelationalDBQueryResult* queryResult = NULL;
     try {
@@ -3163,13 +3094,10 @@ HDBManager::socketCostEstimationData(
  * @exception KeyNotFound If the HDB does not contain socket cost estimation 
  *                        data with the given arguments.
  */
-HDBManager::DataObjectList* 
+HDBManager::DataObjectList*
 HDBManager::socketCostEstimationDataList(
-    const std::string& valueName,
-    RowID socketID,
-    const std::string& pluginName) const
-    throw (KeyNotFound) {
-
+    const std::string& valueName, RowID socketID,
+    const std::string& pluginName) const {
     RelationalDBQueryResult* queryResult = NULL;
     try {
         queryResult = dbConnection_->query(            
@@ -3225,12 +3153,9 @@ HDBManager::socketCostEstimationDataList(
  * @exception KeyNotFound If the HDB does not contain cost estimation 
  *                        data with the given arguments.
  */
-DataObject 
+DataObject
 HDBManager::costEstimationDataValue(
-    const std::string& valueName,
-    const std::string& pluginName) const
-    throw (KeyNotFound) {
-
+    const std::string& valueName, const std::string& pluginName) const {
     // make the SQL query to obtain implementation data
     RelationalDBQueryResult* queryResult = NULL;
     try {
@@ -3279,10 +3204,8 @@ HDBManager::costEstimationDataValue(
  * @exception KeyNotFound If the HDB does not contain cost estimation 
  *                        data with the given arguments.
  */
-DataObject 
-HDBManager::costEstimationDataValue(RowID entryId) const
-    throw (KeyNotFound) {
-
+DataObject
+HDBManager::costEstimationDataValue(RowID entryId) const {
     // make the SQL query to obtain implementation data
     RelationalDBQueryResult* queryResult = NULL;
     try {
@@ -3497,9 +3420,7 @@ HDBManager::hasCostFunctionPluginByID(RowID id) const {
  *                        ID.
  */
 bool
-HDBManager::fuEntryHasArchitecture(RowID id) const 
-    throw (KeyNotFound) {
-
+HDBManager::fuEntryHasArchitecture(RowID id) const {
     RelationalDBQueryResult* result;
     try {
         result = dbConnection_->query(
@@ -3522,7 +3443,6 @@ HDBManager::fuEntryHasArchitecture(RowID id) const
     }
 }
 
-
 /**
  * Tells whether the RF entry that has the given ID has an architecture.
  *
@@ -3532,9 +3452,7 @@ HDBManager::fuEntryHasArchitecture(RowID id) const
  *                        given ID.
  */
 bool
-HDBManager::rfEntryHasArchitecture(RowID id) const
-    throw (KeyNotFound) {
-
+HDBManager::rfEntryHasArchitecture(RowID id) const {
     RelationalDBQueryResult* result;
     try {
         result = dbConnection_->query(
@@ -3556,7 +3474,6 @@ HDBManager::rfEntryHasArchitecture(RowID id) const
         throw KeyNotFound(__FILE__, __LINE__, __func__);
     }
 }
-
 
 /**
  * Tells whether the HDB contains the given operation in operation table.
@@ -3674,9 +3591,7 @@ HDBManager::containsRFArchitecture(RowID id) const {
  * @exception NotAvailable If the FU entry does not have an architecture.
  */
 RowID
-HDBManager::fuArchitectureID(RowID fuEntryID) const
-    throw (NotAvailable) {
-
+HDBManager::fuArchitectureID(RowID fuEntryID) const {
     RelationalDBQueryResult* result;
     try {
         result = dbConnection_->query(
@@ -3705,7 +3620,6 @@ HDBManager::fuArchitectureID(RowID fuEntryID) const
     }
 }
 
-
 /**
  * Returns the ID of the architecture of the given RF entry.
  *
@@ -3714,9 +3628,7 @@ HDBManager::fuArchitectureID(RowID fuEntryID) const
  * @exception NotAvailable If the RF entry does not have an architecture.
  */
 RowID
-HDBManager::rfArchitectureID(RowID rfEntryID) const
-    throw (NotAvailable) {
-
+HDBManager::rfArchitectureID(RowID rfEntryID) const {
     RelationalDBQueryResult* result;
     try {
         result = dbConnection_->query(
@@ -4910,9 +4822,7 @@ HDBManager::removeCostEstimationData(RowID id) const {
  */
 void
 HDBManager::addBlockImplementationFileToHDB(
-    const BlockImplementationFile& file) const
-    throw (RelationalDBException) {
-   
+    const BlockImplementationFile& file) const {
     if (!containsImplementationFile(file.pathToFile())) {
         dbConnection_->updateQuery(
             std::string(
@@ -4922,7 +4832,6 @@ HDBManager::addBlockImplementationFileToHDB(
                 formatString(file.format()) + "\"));"));
     }
 }
-
 
 /**
  * Checks whether the given FU has a mathing architecture with the given FU 
@@ -5732,9 +5641,7 @@ HDBManager::rfSourceFilesByIDQuery(RowID id) {
  *                        data with the given arguments.
  */
 CostEstimationData
-HDBManager::costEstimationData(RowID entryId) const
-    throw (KeyNotFound) {
-
+HDBManager::costEstimationData(RowID entryId) const {
     // make the SQL query to obtain implementation data
     RelationalDBQueryResult* queryResult = NULL;
     try {
@@ -6042,9 +5949,7 @@ HDBManager::costFunctionPluginDataIDs(RowID pluginID) const {
  * illegal cost_function_plugin row found.
  */
 CostFunctionPlugin*
-HDBManager::costFunctionPluginByID(RowID pluginID) const
-    throw (Exception) {
-    
+HDBManager::costFunctionPluginByID(RowID pluginID) const {
     RelationalDBQueryResult* pluginData;
 
     std::string pluginDataQuery =
@@ -6107,9 +6012,7 @@ HDBManager::costFunctionPluginByID(RowID pluginID) const
  * @return Row ID of the added cost data.
  */
 RowID
-HDBManager::addCostEstimationData(const CostEstimationData& data) const
-    throw (InvalidData, KeyNotFound) {
-
+HDBManager::addCostEstimationData(const CostEstimationData& data) const {
     if (!data.hasName() || !data.hasValue() || !data.hasPluginID()) {
         throw InvalidData(__FILE__, __LINE__, __func__);
     }
@@ -6414,9 +6317,7 @@ HDBManager::getDBConnection() const {
  * @param data Updated data.
  */
 void
-HDBManager::modifyCostEstimationData(RowID id, const CostEstimationData& data)
-    throw (InvalidData, KeyNotFound) {
-
+HDBManager::modifyCostEstimationData(RowID id, const CostEstimationData& data) {
     if (!data.hasName() || !data.hasValue() || !data.hasPluginID()) {
         throw InvalidData(__FILE__, __LINE__, __func__);
     }
@@ -6498,9 +6399,7 @@ HDBManager::modifyCostEstimationData(RowID id, const CostEstimationData& data)
  */
 void
 HDBManager::modifyCostFunctionPlugin(
-    RowID id, const CostFunctionPlugin& plugin) 
-    throw (InvalidData, KeyNotFound) {
-
+    RowID id, const CostFunctionPlugin& plugin) {
     if (plugin.name() == "") {
         throw InvalidData(__FILE__, __LINE__, __func__);
     }
@@ -6549,7 +6448,6 @@ HDBManager::modifyCostFunctionPlugin(
         debugLog(e.errorMessage());
         assert(false);
     }
-
 }
 
 /** 

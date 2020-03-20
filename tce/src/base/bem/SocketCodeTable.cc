@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -66,14 +66,11 @@ const std::string SocketCodeTable::OSKEY_EXTRA_BITS = "extra_bits";
  *                                a socket code table with the same name.
  */
 SocketCodeTable::SocketCodeTable(
-    const std::string& name,
-    BinaryEncoding& parent)
-    throw (ObjectAlreadyExists) : parent_(NULL), name_(name), extraBits_(0) {
-
+    const std::string& name, BinaryEncoding& parent)
+    : parent_(NULL), name_(name), extraBits_(0) {
     parent.addSocketCodeTable(*this);
     parent_ = &parent;
 }
-
 
 /**
  * The constructor.
@@ -86,17 +83,13 @@ SocketCodeTable::SocketCodeTable(
  *                                        the state.
  */
 SocketCodeTable::SocketCodeTable(
-    const ObjectState* state,
-    BinaryEncoding& parent)
-    throw (ObjectStateLoadingException) :
-    parent_(&parent), name_(""), extraBits_(0) {
-
+    const ObjectState* state, BinaryEncoding& parent)
+    : parent_(&parent), name_(""), extraBits_(0) {
     loadState(state);
     parent_ = NULL;
     parent.addSocketCodeTable(*this);
     parent_ = &parent;
 }
-
 
 /**
  * The destructor.
@@ -153,9 +146,7 @@ SocketCodeTable::name() const {
  *                                has a socket code table with the same name.
  */
 void
-SocketCodeTable::setName(const std::string& name)
-    throw (ObjectAlreadyExists) {
-
+SocketCodeTable::setName(const std::string& name) {
     if (name == this->name()) {
 	return ;
     }
@@ -168,7 +159,6 @@ SocketCodeTable::setName(const std::string& name)
     name_ = name;
 }
 
-
 /**
  * Sets the number of extra zero bits for the table.
  *
@@ -180,9 +170,7 @@ SocketCodeTable::setName(const std::string& name)
  * @exception OutOfRange If the given number is negative.
  */
 void
-SocketCodeTable::setExtraBits(int bits)
-    throw (OutOfRange) {
-
+SocketCodeTable::setExtraBits(int bits) {
     if (bits < 0) {
 	const string procName = "SocketCodeTable::setExtraBits";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -190,7 +178,6 @@ SocketCodeTable::setExtraBits(int bits)
 
     extraBits_ = bits;
 }
-
 
 /**
  * Returns the number of extra bits.
@@ -249,9 +236,7 @@ SocketCodeTable::width() const {
  *                                other encodings in the socket code table.
  */
 void
-SocketCodeTable::addFUPortCode(FUPortCode& code)
-    throw (ObjectAlreadyExists) {
-
+SocketCodeTable::addFUPortCode(FUPortCode& code) {
     const string procName = "SocketCodeTable::addFUPortCode";
 
     if (hasRFOrIUPortCodeWithoutEncoding()) {
@@ -276,7 +261,6 @@ SocketCodeTable::addFUPortCode(FUPortCode& code)
 
     fuPortCodes_.push_back(&code);
 }
-
 
 /**
  * Removes the given FU port code from the socket code table.
@@ -311,9 +295,7 @@ SocketCodeTable::fuPortCodeCount() const {
  *                       number of FU port codes in the table.
  */
 FUPortCode&
-SocketCodeTable::fuPortCode(int index) const
-    throw (OutOfRange) {
-
+SocketCodeTable::fuPortCode(int index) const {
     if (index < 0 || index >= fuPortCodeCount()) {
 	const string procName = "SocketCodeTable::fuPortCode";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -321,7 +303,6 @@ SocketCodeTable::fuPortCode(int index) const
 
     return *fuPortCodes_[index];
 }
-
 
 /**
  * Tells whether the table has a control code for the port of the function
@@ -434,9 +415,7 @@ SocketCodeTable::fuPortCode(
  *                                table.
  */
 void
-SocketCodeTable::addRFPortCode(RFPortCode& code)
-    throw (ObjectAlreadyExists) {
-
+SocketCodeTable::addRFPortCode(RFPortCode& code) {
     assert(code.parent() == NULL);
     const string procName = "SocketCodeTable::addRFPortCode";
 
@@ -457,7 +436,6 @@ SocketCodeTable::addRFPortCode(RFPortCode& code)
 
     rfPortCodes_.push_back(&code);
 }
-
 
 /**
  * Removes the given RF port code.
@@ -493,9 +471,7 @@ SocketCodeTable::rfPortCodeCount() const {
  *                       number of RF codes in this table.
  */
 RFPortCode&
-SocketCodeTable::rfPortCode(int index) const
-    throw (OutOfRange) {
-
+SocketCodeTable::rfPortCode(int index) const {
     if (index < 0 || index >= rfPortCodeCount()) {
 	const string procName = "SocketCodeTable::rfPortCode";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -503,7 +479,6 @@ SocketCodeTable::rfPortCode(int index) const
 
     return *rfPortCodes_[index];
 }
-
 
 /**
  * Tells whether the socket code table contains a control code for the given
@@ -556,9 +531,7 @@ SocketCodeTable::rfPortCode(const std::string& regFile) const {
  *                                table.
  */
 void
-SocketCodeTable::addIUPortCode(IUPortCode& code)
-    throw (ObjectAlreadyExists) {
-
+SocketCodeTable::addIUPortCode(IUPortCode& code) {
     assert(code.parent() == NULL);
     const string procName = "SocketCodeTable::addIUPortCode";
 
@@ -579,7 +552,6 @@ SocketCodeTable::addIUPortCode(IUPortCode& code)
 
     iuPortCodes_.push_back(&code);
 }
-
 
 /**
  * Removes the given IU port code.
@@ -615,9 +587,7 @@ SocketCodeTable::iuPortCodeCount() const {
  *                       number of IU codes in this table.
  */
 IUPortCode&
-SocketCodeTable::iuPortCode(int index) const
-    throw (OutOfRange) {
-
+SocketCodeTable::iuPortCode(int index) const {
     if (index < 0 || index >= iuPortCodeCount()) {
 	const string procName = "SocketCodeTable::iuPortCode";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -625,7 +595,6 @@ SocketCodeTable::iuPortCode(int index) const
 
     return *iuPortCodes_[index];
 }
-
 
 /**
  * Tells whether the socket code table contains a control code for the given
@@ -672,9 +641,7 @@ SocketCodeTable::iuPortCode(const std::string& immediateUnit) const {
  *                                        the state.
  */
 void
-SocketCodeTable::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+SocketCodeTable::loadState(const ObjectState* state) {
     deleteFUPortCodes();
     deleteRFPortCodes();
     deleteIUPortCodes();
@@ -698,7 +665,6 @@ SocketCodeTable::loadState(const ObjectState* state)
 	throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Saves the state of the socket code table to an ObjectState tree.

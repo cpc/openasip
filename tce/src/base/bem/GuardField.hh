@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -54,64 +54,45 @@ class MoveSlot;
  */
 class GuardField : public InstructionField {
 public:
-    GuardField(MoveSlot& parent)
-	throw (ObjectAlreadyExists);
-    GuardField(const ObjectState* state, MoveSlot& parent)
-	throw (ObjectStateLoadingException, ObjectAlreadyExists);
+    GuardField(MoveSlot& parent);
+    GuardField(const ObjectState* state, MoveSlot& parent);
     virtual ~GuardField();
 
     MoveSlot* parent() const;
 
-    void addGuardEncoding(GPRGuardEncoding& encoding)
-	throw (ObjectAlreadyExists);
+    void addGuardEncoding(GPRGuardEncoding& encoding);
     void removeGuardEncoding(GPRGuardEncoding& encoding);
 
-    void addGuardEncoding(FUGuardEncoding& encoding)
-	throw (ObjectAlreadyExists);
+    void addGuardEncoding(FUGuardEncoding& encoding);
     void removeGuardEncoding(FUGuardEncoding& encoding);
 
-    void addGuardEncoding(UnconditionalGuardEncoding& encoding)
-        throw (ObjectAlreadyExists);
-    void removeUnconditionalGuardEncoding(
-        UnconditionalGuardEncoding& encoding);
+    void addGuardEncoding(UnconditionalGuardEncoding& encoding);
+    void removeUnconditionalGuardEncoding(UnconditionalGuardEncoding& encoding);
 
     int gprGuardEncodingCount() const;
-    GPRGuardEncoding& gprGuardEncoding(int index) const
-	throw (OutOfRange);
+    GPRGuardEncoding& gprGuardEncoding(int index) const;
     bool hasGPRGuardEncoding(
-	const std::string& regFile,
-	int index,
-	bool inverted) const;
+        const std::string& regFile, int index, bool inverted) const;
     GPRGuardEncoding& gprGuardEncoding(
-	const std::string& regFile,
-	int index,
-	bool inverted) const;
+        const std::string& regFile, int index, bool inverted) const;
 
     int fuGuardEncodingCount() const;
-    FUGuardEncoding& fuGuardEncoding(int index) const
-	throw (OutOfRange);
+    FUGuardEncoding& fuGuardEncoding(int index) const;
     bool hasFUGuardEncoding(
-	const std::string& fu,
-	const std::string& port,
-	bool inverted) const;
+        const std::string& fu, const std::string& port, bool inverted) const;
     FUGuardEncoding& fuGuardEncoding(
-	const std::string& fu,
-	const std::string& port,
-	bool inverted) const;
+        const std::string& fu, const std::string& port, bool inverted) const;
 
     bool hasUnconditionalGuardEncoding(bool inverted) const;
-    UnconditionalGuardEncoding& unconditionalGuardEncoding(bool inverted) 
-        const;
+    UnconditionalGuardEncoding& unconditionalGuardEncoding(bool inverted) const;
 
     // methods inherited from InstructionField class
     virtual int childFieldCount() const;
-    virtual InstructionField& childField(int) const
-	throw (OutOfRange);
+    virtual InstructionField& childField(int) const;
     virtual int width() const;
 
     // methods inherited from Serializable interface
-    virtual void loadState(const ObjectState* state)
-	throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
     virtual ObjectState* saveState() const;
 
     /// ObjectState name for guard field.

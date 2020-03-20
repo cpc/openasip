@@ -3,11 +3,9 @@
 # The overridden operations should print out messages to simulator's
 # console while those that should not be overridden are silent.
 ####################################################################
-	
-CODE ; 
-     
-    # Should not print anything. Behavior loaded from TCE's base.opp.
-    1 -> ALU.in1t.sub;    
-    1 -> ALU.in1t.add; # Should print, overridden in override.{opp,cc}
-    1 -> IO.T.stdout; # Should print.
 
+CODE ;
+    # Should not print anything. Behavior loaded from TCE's base.opp.
+    1 -> alu.in1t.sub;
+    1 -> alu.in1t.add; # Should print, overridden in override.{opp,cc}
+    1 -> out.t.stdout; # Should print.

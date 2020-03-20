@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -123,7 +123,7 @@ LLVMTCEPOMBuilder::emitMove(
         createTerminal(mi->getOperand(mi->getNumOperands() - 1));
 
     TTAMachine::Bus& bus = result()->universalMachine().universalBus();
-    TTAProgram::Move* move = createMove(src, dst, bus);
+    auto move = createMove(src, dst, bus);
 
     TTAProgram::Instruction* instr = new TTAProgram::Instruction();
 

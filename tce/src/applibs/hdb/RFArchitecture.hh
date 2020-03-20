@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -50,15 +50,8 @@ namespace HDB {
 class RFArchitecture : public HWBlockArchitecture {
 public:
     RFArchitecture(
-        int readPorts,
-        int writePorts,
-        int bidirPorts,
-        int maxReads,
-        int maxWrites,
-        int latency,
-        bool guardSupport,
-        int guardLatency = 0)
-        throw (OutOfRange);
+        int readPorts, int writePorts, int bidirPorts, int maxReads,
+        int maxWrites, int latency, bool guardSupport, int guardLatency = 0);
     RFArchitecture(const TTAMachine::RegisterFile* rf);
     RFArchitecture(const TTAMachine::BaseRegisterFile* rf);
     RFArchitecture(const TTAMachine::ImmediateUnit* rf);
@@ -67,38 +60,28 @@ public:
     bool hasParameterizedWidth() const;
     bool hasParameterizedSize() const;
 
-    void setWidth(int width)
-        throw (OutOfRange);
-    void setSize(int size)
-        throw (OutOfRange);
+    void setWidth(int width);
+    void setSize(int size);
 
-    int size() const
-        throw (NotAvailable);
-    int width() const
-        throw (NotAvailable);
-    
-    void setReadPortCount(int portCount)
-        throw (OutOfRange);
+    int size() const;
+    int width() const;
+
+    void setReadPortCount(int portCount);
     int readPortCount() const;
 
-    void setWritePortCount(int portCount)
-        throw (OutOfRange);
+    void setWritePortCount(int portCount);
     int writePortCount() const;
 
-    void setBidirPortCount(int portCount)
-        throw (OutOfRange);
+    void setBidirPortCount(int portCount);
     int bidirPortCount() const;
 
-    void setMaxReads(int maxReads)
-        throw (OutOfRange);
+    void setMaxReads(int maxReads);
     int maxReads() const;
 
-    void setMaxWrites(int maxWrites)
-        throw (OutOfRange);
+    void setMaxWrites(int maxWrites);
     int maxWrites() const;
 
-    void setLatency(int latency)
-        throw (OutOfRange);
+    void setLatency(int latency);
     int latency() const;
 
     void setGuardSupport(bool supported);
@@ -107,7 +90,7 @@ public:
     int guardLatency() const;
 
     bool operator==(const RFArchitecture& rightHand) const;
-    
+
 private:
     /// Number of read ports.
     int readPorts_;

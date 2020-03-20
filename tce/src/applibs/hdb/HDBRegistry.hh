@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -48,17 +48,15 @@ public:
     static HDBRegistry& instance();
     virtual ~HDBRegistry();
 
-    CachedHDBManager& hdb(const std::string fileName)
-        throw (Exception);
+    CachedHDBManager& hdb(const std::string fileName);
     void loadFromSearchPaths();
     void addHDB(CachedHDBManager* hdbManager);
     bool hasHDB(const std::string& hdbFile);
     int hdbCount();
-    CachedHDBManager& hdb(unsigned int index) throw (OutOfRange);
-    std::string hdbPath(unsigned int index) throw (OutOfRange);
+    CachedHDBManager& hdb(unsigned int index);
+    std::string hdbPath(unsigned int index);
     int hdbErrorCount();
-    std::string hdbErrorMessage(unsigned int index) throw (OutOfRange);
-    
+    std::string hdbErrorMessage(unsigned int index);
 
 private:
     /// HDB registry must be created with instance() method.

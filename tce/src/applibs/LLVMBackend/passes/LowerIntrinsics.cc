@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -61,7 +61,11 @@ using namespace llvm;
 #include <set>
 
 namespace {
+#ifdef LLVM_OLDER_THAN_10
     class LowerIntrinsics : public BasicBlockPass {        
+#else
+    class LowerIntrinsics : public FunctionPass {
+#endif
     public:
         static char ID; // Pass ID, replacement for typeid       
         LowerIntrinsics();
@@ -72,10 +76,20 @@ namespace {
         bool doFinalization (Module &M);
 
         // to suppress Clang warnings
+#ifdef LLVM_OLDER_THAN_10
         using llvm::BasicBlockPass::doInitialization;
         using llvm::BasicBlockPass::doFinalization;
+#else
+        using llvm::FunctionPass::doInitialization;
+        using llvm::FunctionPass::doFinalization;
+#endif
 
+#ifdef LLVM_OLDER_THAN_10
+        bool runOnBasicBlock(BasicBlock &BB) override;
+#else
         bool runOnBasicBlock(BasicBlock &BB);
+        bool runOnFunction(Function &F) override;
+#endif
        
      private:
         /// List of intrinsics to replace.
@@ -94,7 +108,11 @@ namespace {
  * Constructor
  */
 LowerIntrinsics::LowerIntrinsics() :
+#ifdef LLVM_OLDER_THAN_10
     BasicBlockPass(ID), 
+#else
+    FunctionPass(ID),
+#endif
     iLowering_(NULL), td_(NULL) {
 }
 
@@ -110,6 +128,10 @@ LowerIntrinsics::doInitialization(Module &M) {
    
     // Initialize list of intrinsics to lower.
     replace_.insert(Intrinsic::flt_rounds);
+    replace_.insert(Intrinsic::ceil);
+    replace_.insert(Intrinsic::floor);
+    replace_.insert(Intrinsic::round);
+    replace_.insert(Intrinsic::exp2);
     replace_.insert(Intrinsic::memcpy);
     replace_.insert(Intrinsic::memset);
     replace_.insert(Intrinsic::memmove);
@@ -117,9 +139,9 @@ LowerIntrinsics::doInitialization(Module &M) {
     assert(iLowering_ == NULL && td_ == NULL);
     td_ = new TargetData(&M);
     iLowering_ = new IntrinsicLowering(*td_);
-    
+#ifdef LLVM_OLDER_THAN_9
     iLowering_->AddPrototypes(M);
-    
+#endif
     return true;
 }
 
@@ -154,25 +176,38 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
                        // Replace FLT_ROUNDS intrinsic with the actual
                        // constant value to avoid stupid  "if (1 == 0)"
                        // code even with full optimizations.
+#ifdef LLVM_OLDER_THAN_3_9
                        I->replaceAllUsesWith(
                            ConstantInt::get(
-#ifdef LLVM_OLDER_THAN_3_9
                                Type::getInt32Ty(getGlobalContext()), 0, true));
 #else
+                       I->replaceAllUsesWith(
+                           ConstantInt::get(
                                Type::getInt32Ty(BB.getContext()), 0, true));
 #endif
                        I->eraseFromParent();
                        changed = true;
                        break;
-                   } else {		       
+                   } else {
                        iLowering_->LowerIntrinsicCall(ci);
                        changed = true;
                        break;
                    }
-                   
                }
            }
        }
    }
    return true;
 }
+
+#ifndef LLVM_OLDER_THAN_10
+bool
+LowerIntrinsics::runOnFunction(Function &F) {
+
+    for (BasicBlock &BB : F) {
+        runOnBasicBlock(BB);
+    }
+
+    return true;
+}
+#endif

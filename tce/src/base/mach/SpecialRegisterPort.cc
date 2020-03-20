@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -55,13 +55,8 @@ const std::string SpecialRegisterPort::OSNAME_SPECIAL_REG_PORT = "sr_port";
  *                                   that sets operation code.
  */
 SpecialRegisterPort::SpecialRegisterPort(
-    const std::string& name,
-    int width,
-    ControlUnit& parent)
-    throw (InvalidName, OutOfRange, ComponentAlreadyExists) :
-    BaseFUPort(name, width, parent) {
-}
-
+    const std::string& name, int width, ControlUnit& parent)
+    : BaseFUPort(name, width, parent) {}
 
 /**
  * The constructor.
@@ -73,13 +68,8 @@ SpecialRegisterPort::SpecialRegisterPort(
  * @exception ObjectStateLoadingException If an error occurs while loading
  *                                        the state.
  */
-SpecialRegisterPort::SpecialRegisterPort(
-    const ObjectState* state,
-    Unit& parent)
-    throw (ObjectStateLoadingException) :
-    BaseFUPort(state, parent) {
-}
-
+SpecialRegisterPort::SpecialRegisterPort(const ObjectState* state, Unit& parent)
+    : BaseFUPort(state, parent) {}
 
 /**
  * The destructor.
@@ -133,9 +123,7 @@ SpecialRegisterPort::saveState() const {
  *                                        is invalid.
  */
 void
-SpecialRegisterPort::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+SpecialRegisterPort::loadState(const ObjectState* state) {
     if (state->name() != OSNAME_SPECIAL_REG_PORT) {
         const string procName = "SpecialRegisterPort::loadState";
         throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
@@ -143,5 +131,4 @@ SpecialRegisterPort::loadState(const ObjectState* state)
 
     BaseFUPort::loadState(state);
 }
-
 }

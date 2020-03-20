@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2012 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -83,8 +83,7 @@ TDGen::TDGen(const TTAMachine::Machine& mach) :
  * (excluding static plugin code included from include/llvm/TCE/).
  */
 void
-TDGen::generateBackend(std::string& path) throw (Exception) {    
-
+TDGen::generateBackend(std::string& path) {
     std::ofstream regTD;
     regTD.open((path + "/GenRegisterInfo.td").c_str());
     writeRegisterInfo(regTD);
@@ -118,7 +117,6 @@ TDGen::generateBackend(std::string& path) throw (Exception) {
     writeTopLevelTD(topLevelTD);
     topLevelTD.close();
 }
-
 
 /**
  * Writes .td definition of a single register to the output stream.
@@ -181,9 +179,7 @@ TDGen::writeRegisterDef(
  * @return True, if the definitions were succesfully generated.
  */
 bool
-TDGen::writeRegisterInfo(std::ostream& o) 
-    throw (Exception) {
-
+TDGen::writeRegisterInfo(std::ostream& o) {
     analyzeRegisterFileClasses();
 
     analyzeRegisters();
@@ -246,7 +242,6 @@ TDGen::writeRegisterInfo(std::ostream& o)
 
     return true;
 }
-
 
 void
 TDGen::writeRegisterClasses(std::ostream& o) {
@@ -362,6 +357,7 @@ TDGen::analyzeRegisterFileClasses() {
                 if (lane < 8 && lane > highestLaneBool_) {
                     highestLaneBool_ = lane;
                 }
+                /* fall through */
             case 32:
                 if (lane < 8 && lane > highestLaneInt_) {
                     highestLaneInt_ = lane;
@@ -519,19 +515,21 @@ TDGen::write1bitRegisterInfo(std::ostream& o) {
         }
     }
 
+    int stackSize = mach_.is64bit() ? 64 : 32;
     for (RegClassMap::iterator ri = regsInClasses_.begin(); 
          ri != regsInClasses_.end(); ri++) {
         // go through all 1-bit RF classes
         if (ri->first.find("R1") == 0) {
 
             o << std::endl
-              << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i1], 8, (add ";
+              << "def " << ri->first << "Regs : RegisterClass<\"TCE\", [i1]"
+              << ", " << stackSize << ", (add ";
             o << ri->second[0];
             for (unsigned i = 1; i < ri->second.size(); i++) {
                 o << " , " << ri->second[i];
             }
             o << ")> {" << std::endl
-              << " let Size=8;" << std::endl
+              << " let Size=" << stackSize << ";" << std::endl
               << "}" << std::endl;
         }
     }
@@ -1060,9 +1058,7 @@ TDGen::writeRARegisterInfo(std::ostream& o) {
  * @return True if required registers were found, false if not.
  */
 bool
-TDGen::checkRequiredRegisters() 
-    throw (Exception) {
-
+TDGen::checkRequiredRegisters() {
     if (!mach_.is64bit() && regs32bit_.size() < REQUIRED_FULL_WIDTH_REGS) {
         std::string msg =
             (boost::format(
@@ -1106,7 +1102,6 @@ TDGen::checkRequiredRegisters()
     return true;
 }
 
-
 /**
  * Writes instruction .td definitions to the outputstream.
  */
@@ -1139,8 +1134,6 @@ TDGen::writeInstrInfo(std::ostream& os) {
         opNames_["ST32fr"] = "ST32";
         opNames_["ST32fi"] = "ST32";
         
-        opNames_["LD16hr"] = "LDU16";
-        opNames_["LD16hi"] = "LDU16";
         opNames_["ST16hr"] = "ST16";
         opNames_["ST16hi"] = "ST16";
 
@@ -1150,8 +1143,6 @@ TDGen::writeInstrInfo(std::ostream& os) {
         opNames_["STWfr"] = "STW";
         opNames_["STWfi"] = "STW";
         
-        opNames_["LDHhr"] = "LDHU";
-        opNames_["LDHhi"] = "LDHU";
         opNames_["STHhr"] = "STH";
         opNames_["STHhi"] = "STH";
     }
@@ -1305,32 +1296,12 @@ TDGen::writeInstrInfo(std::ostream& os) {
             writeEmulationPattern(os, op, emulationDAGs.smallestNodeCount());
         }
     }
-
-    if ((opNames.find("LDQ") != opNames.end() && !littleEndian_) ||
-        (opNames.find("LD8") != opNames.end() && littleEndian_ )) {
-        createByteExtLoadPatterns(os);
-    } else {
-        os << "//No LDQ/LD8 op found! No byte ext load patterns either!"
-                  << std::endl;
-
-        std::cerr << "No LDQ/LD8 op found! No byte ext load patterns either!"
-                  << std::endl;
-    }
-
-    if ((opNames.find("LDH") != opNames.end() && !littleEndian_) ||
-        (opNames.find("LD16") != opNames.end() && littleEndian_)) {
-        createShortExtLoadPatterns(os);
-    } else {
-        os << "//No LDH/LD16 op found! No short ext load patterns either!"
-                  << std::endl;
-
-
-        std::cerr << "No LDH/LD16 op found! No short ext load patterns either!"
-                  << std::endl;
-    }
-
+    createByteExtLoadPatterns(os);
+    createShortExtLoadPatterns(os);
     createSelectPatterns(os);
     writeMiscPatterns(os);
+    createConstShiftPatterns(os);
+    createBoolAndHalfLoadPatterns(os);
 }
 
 /**
@@ -1469,7 +1440,13 @@ TDGen::writeBackendCode(std::ostream& o) {
     bool hasSXHW = false;
     bool hasSXQW = false;
     bool hasSQRTF = false;
-   
+    bool hasSHR = false;
+    bool hasSHRU = false;
+    bool hasSHL = false;
+    bool has8bitLoads = false;
+    bool has16bitLoads = false;
+//    bool has32bitLoads = false; // used only for 64-bit system
+
     const TTAMachine::Machine::FunctionUnitNavigator fuNav =
         mach_.functionUnitNavigator();
 
@@ -1489,6 +1466,9 @@ TDGen::writeBackendCode(std::ostream& o) {
                 if (opName == "rotr64") hasROTR = true;
                 if (opName == "sxh64") hasSXHW = true;
                 if (opName == "sxq64") hasSXQW = true;
+                if (opName == "shr64") hasSHR = true;
+                if (opName == "shru64") hasSHRU = true;
+                if (opName == "shl64") hasSHL = true;
             } else {
                 if (opName == "div") hasSDIV = true;
                 if (opName == "divu") hasUDIV = true;
@@ -1499,9 +1479,29 @@ TDGen::writeBackendCode(std::ostream& o) {
                 if (opName == "rotr") hasROTR = true;
                 if (opName == "sxhw") hasSXHW = true;
                 if (opName == "sxqw") hasSXQW = true;
+                if (opName == "shr") hasSHR = true;
+                if (opName == "shru") hasSHRU = true;
+                if (opName == "shl") hasSHL = true;
             }
-                if (opName == "sqrtf") hasSQRTF = true;
+            if (opName == "sqrtf") hasSQRTF = true;
 
+            if (littleEndian_) {
+                if (opName == "ld16" || opName == "ldu16") {
+                    has16bitLoads = true;
+                } else if(opName == "ld8" || opName == "ldu8") {
+                    has8bitLoads = true;
+//                } else if (opName == "ld32" || opName == "ldu32") {
+//                    has32bitLoads = true;
+                }
+            } else {
+                if (opName == "ldh" || opName == "ldhu") {
+                    has16bitLoads = true;
+                } else if (opName == "ldq" || opName == "ldqu") {
+                    has8bitLoads = true;
+//                } else if (opName == "ldw") {
+//                    has32bitLoads = true;
+                }
+           }
         }
     }
 
@@ -1525,6 +1525,19 @@ TDGen::writeBackendCode(std::ostream& o) {
       << hasSXQW << "; }" << std::endl
       << "bool GeneratedTCEPlugin::hasSQRTF() const { return "
       << hasSQRTF << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasSHR() const { return "
+      << hasSHR << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasSHL() const { return "
+      << hasSHL << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasSHRU() const { return "
+      << hasSHRU << ";}" << std::endl
+      << "bool GeneratedTCEPlugin::has8bitLoads() const { return "
+      << has8bitLoads << ";}" << std::endl
+      << "bool GeneratedTCEPlugin::has16bitLoads() const { return "
+      << has16bitLoads << ";}" << std::endl
+//      << "bool GeneratedTCEPlugin::has32bitLoads() const { return "
+//      << has32bitLoads << ";}" << std::endl
+
       << "int GeneratedTCEPlugin::maxVectorSize() const { return "
       << maxVectorSize_ << "; }" << std::endl;
 
@@ -2755,13 +2768,8 @@ TDGen::subPattern(
  */
 std::string
 TDGen::dagNodeToString(
-    const Operation& op,
-    const OperationDAG& dag,
-    const OperationDAGNode& node,
-    bool emulationPattern, 
-    const std::string& operandTypes)
-    throw (InvalidData) {
-
+    const Operation& op, const OperationDAG& dag, const OperationDAGNode& node,
+    bool emulationPattern, const std::string& operandTypes) {
     const OperationNode* oNode = dynamic_cast<const OperationNode*>(&node);
     if (oNode != NULL) {
         assert(
@@ -2977,12 +2985,8 @@ TDGen::constantNodeString(
  */
 std::string
 TDGen::emulatingOpNodeLLVMName(
-    const Operation& op,
-    const OperationDAG& dag, 
-    const OperationNode& node,
-    const std::string& operandTypes)
-    throw (InvalidData) {
-    
+    const Operation& op, const OperationDAG& dag, const OperationNode& node,
+    const std::string& operandTypes) {
     const Operation& operation = node.referencedOperation();
     std::string operationName = StringTools::stringToUpper(operation.name());
 
@@ -3089,13 +3093,8 @@ TDGen::emulatingOpNodeLLVMName(
  */
 std::string
 TDGen::operationNodeToString(
-    const Operation& op,
-    const OperationDAG& dag,
-    const OperationNode& node,
-    bool emulationPattern,
-    const std::string& operandTypes)
-    throw (InvalidData) {
-
+    const Operation& op, const OperationDAG& dag, const OperationNode& node,
+    bool emulationPattern, const std::string& operandTypes) {
     const Operation& operation = node.referencedOperation();
 
     std::string operationPat;
@@ -3201,7 +3200,7 @@ TDGen::operandToString(
             std::string msg = 
                 "invalid operation type for mem operand:";
             msg += operandType;
-            throw (InvalidData(__FILE__, __LINE__, __func__, msg));
+            throw InvalidData(__FILE__, __LINE__, __func__, msg);
         }
     } else if (operand.type() == Operand::SINT_WORD ||
                operand.type() == Operand::UINT_WORD ||
@@ -3250,15 +3249,17 @@ TDGen::operandToString(
             if (operand.type() == Operand::RAW_DATA) {
                 return "R32FPRegs:$op" + Conversion::toString(idx);
             }
+            /* fall through */
         case 'h':
             if (operand.type() == Operand::RAW_DATA) {
                 return "R32HFPRegs:$op" + Conversion::toString(idx);
             }
+            /* fall through */
         default:
             std::string msg = 
                 "invalid operation type for integer operand:";
             msg += operandType;
-            throw (InvalidData(__FILE__, __LINE__, __func__, msg));
+            throw InvalidData(__FILE__, __LINE__, __func__, msg);
         }
     } else if (operand.type() == Operand::FLOAT_WORD ) {
 
@@ -3284,7 +3285,7 @@ TDGen::operandToString(
             std::string msg = 
                 "invalid operation type for float operand:";
             msg += operandType;
-            throw (InvalidData(__FILE__, __LINE__, __func__, msg));
+            throw InvalidData(__FILE__, __LINE__, __func__, msg);
         }
     } else if (operand.type() == Operand::HALF_FLOAT_WORD) {
 
@@ -3311,7 +3312,7 @@ TDGen::operandToString(
             std::string msg = 
                 "invalid operation type for half operand:";
             msg += operandType;
-            throw (InvalidData(__FILE__, __LINE__, __func__, msg));
+            throw InvalidData(__FILE__, __LINE__, __func__, msg);
         }
     } else if (operand.type() == Operand::DOUBLE_WORD) {
         // TODO: immediate check??
@@ -3498,10 +3499,23 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
                << rcpf << ") return TCE::" <<intStore << "rr;" << std::endl;    
     }
     
-    TCEString boolLoad = littleEndian_ ? "LD8Br;" : "LDQBr;";
+    TCEString boolLoad = littleEndian_ ? "LD8" : "LDQ";
+    if (!mach_.hasOperation(boolLoad)) {
+        boolLoad = littleEndian_ ? "LDU8" : "LDQU";
+        if (!mach_.hasOperation(boolLoad)) {
+            boolLoad="";
+        }
+    }
+
     TCEString intLoad = littleEndian_ ? "LD32" : "LDW";
     TCEString halfLoad = littleEndian_ ? "LD16" : "LDH";
     TCEString longLoad = "LD64";
+    if (!mach_.hasOperation(halfLoad)) {
+        halfLoad = littleEndian_ ? "LDU16;" : "LDHU";
+        if (!mach_.hasOperation(halfLoad)) {
+            halfLoad="";
+        }
+    }
 
     if (!littleEndian_) {
         if (opNames_.find("STW2vr") != opNames_.end()) {
@@ -3591,8 +3605,13 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
     for (RegClassMap::iterator ri = regsInClasses_.begin(); 
          ri != regsInClasses_.end(); ri++) {
         if (ri->first.find("R1") == 0) {
-            os << "\tif (rc == " << prefix << "TCE::" << ri->first
-               << rcpf <<") return TCE::" << boolLoad << std::endl;
+            if (boolLoad != "") {
+                os << "\tif (rc == " << prefix << "TCE::" << ri->first
+                   << rcpf <<") return TCE::" << boolLoad << "Br;" << std::endl;
+            } else {
+                os << "\tif (rc == " << prefix << "TCE::" << ri->first
+                   << rcpf <<") return TCE::" << intLoad << "Br;" << std::endl;
+            }
         }
         if (ri->first.find("R32") == 0) {
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
@@ -3604,8 +3623,10 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
             os << "\tif (rc == " << prefix << "TCE::" << ri->first
                << "FP" << rcpf << ") return TCE::" << intLoad << "fr;" << std::endl;
             
-            os << "\tif (rc == " << prefix << "TCE::" << ri->first
-               << "HFP" << rcpf << ") return TCE::" << halfLoad << "hr;" << std::endl;
+            if (halfLoad != "") {
+                os << "\tif (rc == " << prefix << "TCE::" << ri->first
+                   << "HFP" << rcpf << ") return TCE::" << halfLoad << "hr;" << std::endl;
+            }
         }
 
         if (mach_.is64bit()) {
@@ -3785,56 +3806,130 @@ void TDGen::createEndiannesQuery(std::ostream& os) {
 
 void TDGen::createByteExtLoadPatterns(std::ostream& os) {
     TCEString load = littleEndian_ ? "LD8" : "LDQ";
-    TCEString destSize;
-    if (!mach_.is64bit()) {
-        destSize = "32";
-        os << "def : Pat<(i32 (zextloadi1 ADDRrr:$addr)), "
-           << "(ANDrri (" << load << "rr ADDRrr:$addr), 1)>;"
-           << std::endl
-           << "def : Pat<(i32 (zextloadi1 ADDRri:$addr)), "
-            "(ANDrri (" << load << "ri ADDRri:$addr), 1)>;"
-           << std::endl
-           << "def : Pat<(i32 (sextloadi1 ADDRrr:$addr)), "
-            "(SUBrir 0, "
-            "(ANDrri (" << load << "rr ADDRrr:$addr), 1))>;"
-           << std::endl
-           << "def : Pat<(i32 (sextloadi1 ADDRri:$addr)), "
-            "(SUBrir 0, "
-            "(ANDrri (" << load << "ri ADDRri:$addr), 1))>;"
-           << std::endl
-           << "// anyextloads -> sextloads" << std::endl;
+    TCEString uload = littleEndian_ ? "LDU8" : "LDQU";
+    TCEString destSize = mach_.is64bit() ? "64" : "32";
+    TCEString ANDOP = mach_.is64bit() ? "AND64ssa" : "ANDrri";
+    TCEString SUBIMM = mach_.is64bit() ? "SUB64sas" : "SUBrir";
+    TCEString EXTOP = "SXQW"; // TODO: fixme on 64-bit
+
+    if (mach_.hasOperation(load)) {
+        if (!mach_.hasOperation(uload)) {
+
+            // emulate zero ext with sing-ext and and
+            os << "def : Pat<(i" << destSize << " (zextloadi8 ADDRrr:$addr)), "
+               << "(" << ANDOP << " (" << load << "rr ADDRrr:$addr), 255)>;"
+               << std::endl;
+            os << "def : Pat<(i" << destSize << " (zextloadi8 ADDRri:$addr)), "
+               << "(" << ANDOP << " (" << load << "ri ADDRri:$addr), 255)>;"
+               << std::endl;
+        }
     } else {
-        destSize = "64";
-        os << "def : Pat<(i64 (zextloadi1 ADDRrr:$addr)), "
-           << "(AND64ssa (" << load << "rr ADDRrr:$addr), 1)>;"
-           << std::endl
-           << "def : Pat<(i64 (zextloadi1 ADDRri:$addr)), "
-            "(AND64ssa (" << load << "ri ADDRri:$addr), 1)>;"
-           << std::endl
-           << "def : Pat<(i64 (sextloadi1 ADDRrr:$addr)), "
-            "(SUB64sas 0, "
-            "(AND64ssa (" << load << "rr ADDRrr:$addr), 1))>;"
-           << std::endl
-           << "def : Pat<(i64 (sextloadi1 ADDRri:$addr)), "
-            "(SUB64sas 0, "
-            "(AND64ssa (" << load << "ri ADDRri:$addr), 1))>;"
-           << std::endl
-           << "// anyextloads -> sextloads" << std::endl;
-    } 
-    
-    os << "def : Pat<(i" << destSize << " (extloadi1 ADDRrr:$src)), (" << load << "rr ADDRrr:$src)>;" << std::endl
-       << "def : Pat<(i" << destSize << " (extloadi1 ADDRri:$src)), (" << load << "ri ADDRri:$src)>;" << std::endl
-       << "def : Pat<(i" << destSize << " (extloadi8 ADDRrr:$src)), (" << load << "rr ADDRrr:$src)>;" << std::endl
-       << "def : Pat<(i" << destSize << " (extloadi8 ADDRri:$src)), (" << load << "ri ADDRri:$src)>;" << std::endl
-           << std::endl;
+        // if no sign ext load, try zero ext load
+        if (!mach_.hasOperation(uload)) {
+            std::cerr << "Warning: The architecture is missing any 8-bit loads."
+                      << " All code may not compile!"
+                      << std::endl;
+            return;
+        }
+        load = uload;
+
+        if (mach_.hasOperation("EXTOP")) {
+            // use zextload + sext for sextload
+            os << "def : Pat<(i" << destSize
+               << " (sextloadi8 ADDRrr:$addr)), "
+               << "(" << EXTOP << " ("
+               << load << "rr ADDRrr:$addr))>;" << std::endl;
+            os << "def : Pat<(i" << destSize
+               << " (sextloadi8 ADDRri:$addr)), "
+               << "(" << EXTOP << " ("
+               << load << "ri ADDRri:$addr))>;" << std::endl;
+
+        } else {
+            std::cerr << "Warning: no sign-extending 8-bit loads or"
+                      << " 8-bit sign extension instruction!"
+                      << " in the processor. All code may not compile!"
+                      << std::endl;
+        }
+    }
+
+    os << "def : Pat<(i" << destSize << " (zextloadi1 ADDRrr:$addr)), ("
+       << load << "rr ADDRrr:$addr)>;"
+       << std::endl
+       << "def : Pat<(i" << destSize << " (zextloadi1 ADDRri:$addr)), ("
+       << load << "ri ADDRri:$addr)>;"
+       << std::endl;
+
+    os << "def : Pat<(i" << destSize << " (sextloadi1 ADDRrr:$addr)), "
+       << "(" << SUBIMM << " 0, "
+       << "(" << ANDOP << " (" << load << "rr ADDRrr:$addr), 1))>;"
+       << std::endl
+       << "def : Pat<(i" << destSize << " (sextloadi1 ADDRri:$addr)), "
+       << "(" << SUBIMM << " 0, "
+       <<  "(" << ANDOP << " (" << load << "ri ADDRri:$addr), 1))>;"
+       << std::endl
+       << "// anyextloads" << std::endl;
+
+    os << "def : Pat<(i" << destSize << " (extloadi1 ADDRrr:$src)), ("
+       << load << "rr ADDRrr:$src)>;" << std::endl
+       << "def : Pat<(i" << destSize << " (extloadi1 ADDRri:$src)), ("
+       << load << "ri ADDRri:$src)>;" << std::endl
+       << "def : Pat<(i" << destSize << " (extloadi8 ADDRrr:$src)), ("
+       << load << "rr ADDRrr:$src)>;" << std::endl
+       << "def : Pat<(i" << destSize << " (extloadi8 ADDRri:$src)), ("
+       << load << "ri ADDRri:$src)>;" << std::endl
+       << std::endl;
 }
 
 void TDGen::createShortExtLoadPatterns(std::ostream& os) {
     TCEString load = littleEndian_ ? "LD16" : "LDH";
     TCEString destSize = mach_.is64bit() ? "64" : "32";
-    os     << "def : Pat<(i" << destSize << " (extloadi16 ADDRrr:$src)), (" << load << "rr ADDRrr:$src)>;" << std::endl
-           << "def : Pat<(i" << destSize << " (extloadi16 ADDRri:$src)), (" << load << "ri ADDRri:$src)>;" << std::endl;
+    TCEString ANDOP = mach_.is64bit() ? "AND64ssa" : "ANDrri";
+    TCEString uload = littleEndian_ ? "LDU16" : "LDHU";
+    TCEString EXTOP = "SXHW"; // TODO: fixme on 64-bit
 
+    if (mach_.hasOperation(load)) {
+        if (!mach_.hasOperation(uload)) {
+            // emulate zero ext with sing-ext and and
+            os << "def : Pat<(i" << destSize
+               << " (zextloadi16 ADDRrr:$addr)), "
+               << "(" << ANDOP << " (" << load
+               << "rr ADDRrr:$addr), 65535)>;" << std::endl;
+            os << "def : Pat<(i32 (zextloadi16 ADDRri:$addr)), "
+               << "(" << ANDOP << " ("
+               << load << "ri ADDRri:$addr), 65535)>;" << std::endl;
+        }
+    } else {
+        if (!mach_.hasOperation(uload)) {
+            std::cerr << "Warning: The architecture is missing any 16-bit loads."
+                      << std::endl;
+            return;
+        }
+        load = uload;
+
+        if (mach_.hasOperation(EXTOP)) {
+            // use zextload + sext for sextload
+            os << "def : Pat<(i" << destSize
+               << " (sextloadi16 ADDRrr:$addr)), "
+               << "(" << EXTOP << " (" << load
+               << "rr ADDRrr:$addr))>;" << std::endl;
+            os << "def : Pat<(i" << destSize
+               << " (sextloadi16 ADDRri:$addr)), "
+               << "(" << EXTOP << " ("
+               << load << "ri ADDRri:$addr))>;" << std::endl;
+        } else {
+            std::cerr << "Warning: no sign-extending 16-bit loads or"
+                      << " 16-bit sign extension instruction!"
+                      << " in the processor. All code may not compile!"
+                      << std::endl;
+        }
+    }
+    // anyext.
+    os << "def : Pat<(i" << destSize << " (extloadi16 ADDRrr:$src)), ("
+       << load << "rr ADDRrr:$src)>;" << std::endl
+       << "def : Pat<(i" << destSize << " (extloadi16 ADDRri:$src)), ("
+       << load << "ri ADDRri:$src)>;" << std::endl;
+
+    // TODO: what is this here?
     if (mach_.is64bit()) {
     os     << "def : Pat<(i64 (extloadi32 ADDRrr:$src)), (LD32sr ADDRrr:$src)>;" << std::endl
            << "def : Pat<(i64 (extloadi32 ADDRri:$src)), (LD32si ADDRri:$src)>;" << std::endl;
@@ -4350,6 +4445,12 @@ void TDGen::writeMiscPatterns(std::ostream& o) {
           << "def: Pat <(i32 (sext R1Regs:$src)), (SUBrir 0,(ANDext R1Regs:$src, 1))>;"
           << std::endl;
 
+        o << "// ------ Shift (emulation) patterns. " << std::endl
+          << "def: Pat <(i32 (shl R32IRegs:$val, (i32 1))),"
+          << " (ADDrrr R32Regs:$val, R32Regs:$val)>;" << std::endl
+          << "def: Pat <(i32 (TCESHLConst R32IRegs:$val, (i32 1))),"
+          << " (ADDrrr R32IRegs:$val, R32IRegs:$val)>;" << std::endl;
+
         o << "// ----- Global addresses, constant pool entries ------" << std::endl
           << "def TCEGlobalAddr : SDNode<\"TCEISD::GLOBAL_ADDR\", SDTIntUnaryOp>;" << std::endl
           << "def TCEConstPool : SDNode<\"TCEISD::CONST_POOL\", SDTIntUnaryOp>;" << std::endl
@@ -4399,6 +4500,12 @@ void TDGen::writeMiscPatterns(std::ostream& o) {
           << "def: Pat <(i64 (sext R1Regs:$src)), (SUB64sas 0,(ANDext R1Regs:$src, 1))>;"
           << std::endl;
 
+        o << "// ------ Shift (emulation) patterns. " << std::endl
+          << "def: Pat <(i64 (shl R64IRegs:$val, (i64 1))),"
+          << " (ADD64sss R64Regs:$val, R64Regs:$val)>;" << std::endl
+          << "def: Pat <(i64 (TCESHLConst R64IRegs:$val, (i64 1))),"
+          << " (ADD64sss R64IRegs:$val, R64IRegs:$val)>;" << std::endl;
+
         o << "// ----- Global addresses, constant pool entries ------" << std::endl
           << "def TCEGlobalAddr : SDNode<\"TCEISD::GLOBAL_ADDR\", SDTIntUnaryOp>;" << std::endl
           << "def TCEConstPool : SDNode<\"TCEISD::CONST_POOL\", SDTIntUnaryOp>;" << std::endl
@@ -4422,4 +4529,119 @@ void TDGen::writeMiscPatterns(std::ostream& o) {
         o << "def TCEBlockAddress : SDNode<\"TCEISD::BLOCK_ADDR\", SDTIntUnaryOp>;" << std::endl
           << "def : Pat<(TCEBlockAddress tblockaddress:$src1), (MOVI64sa tblockaddress:$src1)>;" << std::endl;
     }
+}
+
+void TDGen::writeConstShiftPat(std::ostream& os,
+                               const TCEString& nodeName,
+                               const TCEString& opNameBase, int i) {
+
+    if (!mach_.is64bit()) {
+        TCEString opName = opNameBase; opName << i << "_32rr";
+        if (opNames_.find(opName) != opNames_.end()) {
+            os << "def : Pat<(i32 (" << nodeName
+               << " R32IRegs:$val, (i32 " << i << "))), ("
+               << opName << " R32IRegs:$val)>;" << std::endl;
+        }
+    } else {
+        TCEString opName = opNameBase; opName << i << "_64rr";
+        if (opNames_.find(opName) != opNames_.end()) {
+            os << "def : Pat<(i64 (" << nodeName
+               << " R64IRegs:$val, (i64 " << i << "))), ("
+               << opName << " R64IRegs:$val)>;" << std::endl;
+        }
+    }
+}
+
+
+void TDGen::createConstShiftPatterns(std::ostream& os) {
+    int bits = mach_.is64bit() ? 64: 32;
+    for (int i = 1; i < bits; i++) {
+        writeConstShiftPat(os, "TCESRAConst", "SHR", i);
+        writeConstShiftPat(os, "TCESRLConst", "SHRU", i);
+        writeConstShiftPat(os, "TCESHLConst", "SHL", i);
+    }
+}
+
+void TDGen::createBoolAndHalfLoadPatterns(std::ostream& os) {
+
+    // TODO: what about true/false versions of these ops?
+
+    TCEString load = littleEndian_ ? "LD8" : "LDQ";
+    TCEString uload = littleEndian_ ? "LDU8" : "LDQU";
+    TCEString wload = littleEndian_ ?
+        (mach_.is64bit() ? "LD64" : "LD32") : "LDW";
+    if (mach_.hasOperation(load)) {
+        os << "def " << load
+           << "Br : InstTCE<(outs R1Regs:$op2), (ins MEMrr:$op1), \"\", "
+           << "[(set R1Regs:$op2, (sextloadi1 ADDRrr:$op1))]>;" << std::endl
+           << "def " << load
+           << "Bi : InstTCE<(outs R1Regs:$op2), (ins MEMri:$op1), \"\", "
+           << "[(set R1Regs:$op2, (sextloadi1 ADDRri:$op1))]>; " << std::endl;
+
+        opNames_[load + "Br"] = load;
+        opNames_[load + "Bi"] = load;
+
+    }
+    if (mach_.hasOperation(uload)) {
+        os << "def " << uload
+           << "Br : InstTCE<(outs R1Regs:$op2), (ins MEMrr:$op1), \"\", "
+           << "[(set R1Regs:$op2, (zextloadi1 ADDRrr:$op1))]>;" << std::endl
+           << "def " << uload
+           << "Bi : InstTCE<(outs R1Regs:$op2), (ins MEMri:$op1), \"\", "
+           << "[(set R1Regs:$op2, (zextloadi1 ADDRri:$op1))]>;" << std::endl;
+        opNames_[uload + "Br"] = uload;
+        opNames_[uload + "Bi"] = uload;
+
+        os << "def : Pat<(i1 (load ADDRrr:$addr)), ("
+           << uload << "Br ADDRrr:$addr)>;" << std::endl;
+        os << "def : Pat<(i1 (load ADDRri:$addr)), ("
+           << uload << "Bi ADDRri:$addr)>;" << std::endl;
+    } else {
+        if (mach_.hasOperation(load)) {
+            os << "def : Pat<(i1 (load ADDRrr:$addr)), ("
+               << load << "Br ADDRrr:$addr)>;" << std::endl;
+            os << "def : Pat<(i1 (load ADDRri:$addr)), ("
+               << load << "Bi ADDRri:$addr)>;" << std::endl;
+        }
+    }
+
+    // if no 8-bit loads, create 32/64-bit loads for stack access but
+    // no patterns for isel as only the stack is 32/64-bit aligned.
+    // 1- and 8-bit loads on isel will be handled by lowering.
+    if (!mach_.hasOperation(load) &&
+        !mach_.hasOperation(uload) &&
+        mach_.hasOperation(wload)) {
+        os << "def " << wload
+           << "Br : InstTCE<(outs R1Regs:$op2), (ins MEMrr:$op1), \"\", "
+           << "[]>;" << std::endl
+        << "def " << wload
+        << "Bi : InstTCE<(outs R1Regs:$op2), (ins MEMri:$op1), \"\", "
+        << "[]>;" << std::endl;
+
+        opNames_[wload + "Br"] = wload;
+        opNames_[wload + "Bi"] = wload;
+    }
+
+    TCEString halfLoad = littleEndian_ ? "LD16" : "LDH";
+    if (!mach_.hasOperation(halfLoad)) {
+        TCEString halfULoad = littleEndian_ ? "LDU16" : "LDHU";
+        if (mach_.hasOperation(halfULoad)) {
+            halfLoad = halfULoad;
+        } else {
+            return;
+        }
+    }
+
+    os << "def " << halfLoad << "hr : InstTCE<(outs R32HFPRegs:$op2), "
+       << "(ins MEMrr:$op1), \"\", [(set R32HFPRegs:$op2, "
+       << "(load ADDRrr:$op1))]>;" << std::endl;
+
+    os << "def " << halfLoad << "hi : InstTCE<(outs R32HFPRegs:$op2), "
+       << "(ins MEMri:$op1), \"\", [(set R32HFPRegs:$op2, "
+       << "(load ADDRri:$op1))]>;" << std::endl;
+
+    opNames_[halfLoad + "hr"] = halfLoad;
+    opNames_[halfLoad + "hi"] = halfLoad;
+
+    // TODO: what about 32-bit?
 }

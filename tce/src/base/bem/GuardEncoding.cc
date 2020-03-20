@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -63,9 +63,7 @@ GuardEncoding::GuardEncoding(bool inverted, unsigned int encoding) :
  *                                        state.
  */
 GuardEncoding::GuardEncoding(const ObjectState* state)
-    throw (ObjectStateLoadingException) :
-    inverted_(false), encoding_(0), parent_(NULL) {
-
+    : inverted_(false), encoding_(0), parent_(NULL) {
     try {
 	inverted_ = state->boolAttribute(OSKEY_INVERTED);
 	encoding_ = state->intAttribute(OSKEY_ENCODING);
@@ -75,7 +73,6 @@ GuardEncoding::GuardEncoding(const ObjectState* state)
 	    __FILE__, __LINE__, procName, exception.errorMessage());
     }
 }
-
 
 /**
  * The destructor

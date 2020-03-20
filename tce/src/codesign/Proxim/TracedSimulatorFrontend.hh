@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -50,24 +50,18 @@ class TracedSimulatorFrontend : public SimulatorFrontend, public Informer {
 public:
     TracedSimulatorFrontend();
     virtual ~TracedSimulatorFrontend();
-      
-    virtual void loadMachine(const std::string& fileName)
-	throw (FileNotFound, IOException, SimulationStillRunning,
-               IllegalMachine);
+
+    virtual void loadMachine(const std::string& fileName);
 
     virtual void loadProgram(const std::string& fileName);
 
-    virtual void run()
-	throw (SimulationExecutionError);
+    virtual void run();
 
-    virtual void runUntil(UIntWord address)
-	throw (SimulationExecutionError);
+    virtual void runUntil(UIntWord address);
 
-    virtual void step(double count = 1)
-	throw (SimulationExecutionError);
+    virtual void step(double count = 1);
 
-    virtual void next(int count = 1)
-	throw (SimulationExecutionError);
+    virtual void next(int count = 1);
 
     virtual void killSimulation();
 

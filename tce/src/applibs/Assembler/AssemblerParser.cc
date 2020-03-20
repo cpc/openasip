@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -273,9 +273,7 @@ AssemblerParser::errorLine() {
  * After calling this successfully parser should contain valid tpef.
  */
 void
-AssemblerParser::finalize(bool littleEndian) const
-    throw (CompileError) {
-
+AssemblerParser::finalize(bool littleEndian) const {
     bin_.setArch(Binary::FA_TTA_TUT);
     bin_.setType(Binary::FT_PARALLEL);
 

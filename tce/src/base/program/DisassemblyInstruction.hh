@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -50,11 +50,11 @@ public:
 
     Word moveCount() const;
     void addMove(DisassemblyInstructionSlot* move);
-    DisassemblyInstructionSlot& move(Word index) const throw (OutOfRange);
+    DisassemblyInstructionSlot& move(Word index) const;
 
     Word longImmediateCount() const;
     void addLongImmediate(DisassemblyImmediateAssignment* longImm);
-    DisassemblyImmediateAssignment& longImmediate(Word index) const throw (OutOfRange);
+    DisassemblyImmediateAssignment& longImmediate(Word index) const;
 
     std::string toString() const;
 

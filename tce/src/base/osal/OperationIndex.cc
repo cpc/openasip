@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -148,9 +148,7 @@ OperationIndex::addPath(const std::string& path) {
  * @exception PathNotFound If path is not found.
  */
 OperationModule&
-OperationIndex::module(int i, const std::string& path) 
-    throw (OutOfRange, PathNotFound) {
-
+OperationIndex::module(int i, const std::string& path) {
     ModuleTable::iterator it = modulesInPath_.find(path);
     if (it == modulesInPath_.end()) {
         string msg = "Path for the module not found.";
@@ -174,9 +172,7 @@ OperationIndex::module(int i, const std::string& path)
  * @exception PathNotFound If path is not found.
  */
 int
-OperationIndex::moduleCount(const std::string& path) const 
-    throw (PathNotFound) {
-    
+OperationIndex::moduleCount(const std::string& path) const {
     ModuleTable::const_iterator it = 
         modulesInPath_.find(path);
     if (it == modulesInPath_.end()) {
@@ -194,9 +190,7 @@ OperationIndex::moduleCount(const std::string& path) const
  * @exception PathNotFound If path is not found.
  */
 void
-OperationIndex::addModule(OperationModule* module, const std::string& path) 
-    throw (PathNotFound) {
-	
+OperationIndex::addModule(OperationModule* module, const std::string& path) {
     ModuleTable::iterator it = modulesInPath_.find(path);
     if (it == modulesInPath_.end()) {
         string method = "OperationIndex::addModule()";
@@ -216,10 +210,7 @@ OperationIndex::addModule(OperationModule* module, const std::string& path)
  */
 void
 OperationIndex::removeModule(
-    const std::string& path, 
-    const std::string& modName) 
-    throw (PathNotFound, InstanceNotFound) {
-
+    const std::string& path, const std::string& modName) {
     ModuleTable::iterator iter = modulesInPath_.find(path);
     if (iter == modulesInPath_.end()) {
         string msg = "Paths of the module not found.";
@@ -279,10 +270,7 @@ OperationIndex::removeModule(
  */
 void
 OperationIndex::refreshModule(
-    const std::string& path, 
-    const std::string& modName) 
-    throw (PathNotFound, InstanceNotFound) {
-    
+    const std::string& path, const std::string& modName) {
     ModuleTable::iterator modIter = modulesInPath_.find(path);
     if (modIter == modulesInPath_.end()) {
         string msg = "Path for the module not found.";
@@ -346,9 +334,7 @@ OperationIndex::moduleOf(const std::string& name) {
  * @exception BadOperationModule When module is invalid.
  */
 string
-OperationIndex::operationName(int i, const OperationModule& om) 
-    throw (OutOfRange, BadOperationModule) {
-    
+OperationIndex::operationName(int i, const OperationModule& om) {
     DefinitionTable::iterator it = opDefinitions_.find(om.propertiesModule());
     if (it == opDefinitions_.end()) {
         try {
@@ -373,9 +359,7 @@ OperationIndex::operationName(int i, const OperationModule& om)
  * @exception BadOperationModule When module is invalid.
  */
 int
-OperationIndex::operationCount(const OperationModule& om) 
-    throw (BadOperationModule) {
-    
+OperationIndex::operationCount(const OperationModule& om) {
     DefinitionTable::iterator it = opDefinitions_.find(om.propertiesModule());
     if (it == opDefinitions_.end()) {
         try {
@@ -397,9 +381,7 @@ OperationIndex::operationCount(const OperationModule& om)
  * @exception SerializerException If reading fails.
  */
 void
-OperationIndex::readOperations(const OperationModule& module) 
-    throw (SerializerException) {
-    
+OperationIndex::readOperations(const OperationModule& module) {
     serializer_.setSourceFile(module.propertiesModule());
     ObjectState* tree = serializer_.readState();
     opDefinitions_[module.propertiesModule()] = tree;

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -111,7 +111,7 @@ Scope::isLocal() const {
  *            or a scope with the same name already exists.
  */
 void
-Scope::addChild(const Scope& scope) throw (ObjectAlreadyExists) {
+Scope::addChild(const Scope& scope) {
     if (!ContainerTools::containsValue(children_, &scope)) {
         children_.push_back(&scope);
     } else {
@@ -129,9 +129,7 @@ Scope::addChild(const Scope& scope) throw (ObjectAlreadyExists) {
  *                                is not the global scope.
  */
 Scope&
-Scope::parent() const
-    throw (WrongSubclass, IllegalRegistration) {
-
+Scope::parent() const {
     if (isGlobal()) {
         throw WrongSubclass(
             __FILE__, __LINE__, "Scope::parent()",
@@ -151,9 +149,7 @@ Scope::parent() const
  * @exception WrongSubclass if the scope is the global scope.
  */
 void
-Scope::setParent(Scope& scope)
-    throw (WrongSubclass) {
-
+Scope::setParent(Scope& scope) {
     if (!isGlobal()) {
         parent_ = &scope;
     } else {
@@ -185,9 +181,7 @@ Scope::childCount() const {
  *                       this scope.
  */
 const Scope&
-Scope::child(int index) const
-    throw (OutOfRange) {
-
+Scope::child(int index) const {
     if (index >= 0 && static_cast<unsigned int>(index) < children_.size()) {
         return *children_.at(index);
     } else {
@@ -236,7 +230,7 @@ Scope::containsDataLabel(const std::string& name) const {
  * @return The code label with the given name.
  */
 const CodeLabel&
-Scope::codeLabel(const std::string& name) const throw (KeyNotFound) {
+Scope::codeLabel(const std::string& name) const {
     for (unsigned int i = 0; i < codeLabels_.size(); i++) {
         if (name == codeLabels_.at(i)->name()) {
             return *codeLabels_.at(i);
@@ -254,7 +248,7 @@ Scope::codeLabel(const std::string& name) const throw (KeyNotFound) {
  * @return The data label with the given name.
  */
 const DataLabel&
-Scope::dataLabel(const std::string& name) const throw (KeyNotFound) {
+Scope::dataLabel(const std::string& name) const {
     for (unsigned int i = 0; i < dataLabels_.size(); i++) {
         if (name == dataLabels_.at(i)->name()) {
             return *dataLabels_.at(i);
@@ -292,9 +286,7 @@ Scope::codeLabelCount(Address address) const {
  * @return A code label visible in this scope in the given address and index.
  */
 const CodeLabel&
-Scope::codeLabel(Address address, int index) const
-    throw (OutOfRange, KeyNotFound) {
-
+Scope::codeLabel(Address address, int index) const {
     if (index < codeLabelCount(address)) {
 
         int found = -1;
@@ -348,9 +340,7 @@ Scope::dataLabelCount(Address address) const {
  * @return A data label visible in this scope in the given address and index.
  */
 const DataLabel&
-Scope::dataLabel(Address address, int index) const
-    throw (OutOfRange, KeyNotFound) {
-
+Scope::dataLabel(Address address, int index) const {
     if (index < dataLabelCount(address)) {
 
         int found = -1;
@@ -383,8 +373,7 @@ Scope::dataLabel(Address address, int index) const
  *            exists.
  */
 void
-Scope::addCodeLabel(const CodeLabel* codeLabel) throw (KeyAlreadyExists) {
-
+Scope::addCodeLabel(const CodeLabel* codeLabel) {
     if (containsCodeLabel(codeLabel->name())) {
         throw KeyAlreadyExists(
             __FILE__, __LINE__, "Scope::addCodeLabel()",
@@ -423,7 +412,7 @@ Scope::addCodeLabel(const CodeLabel* codeLabel) throw (KeyAlreadyExists) {
  *            exists.
  */
 void
-Scope::addDataLabel(const DataLabel* dataLabel) throw (KeyAlreadyExists) {
+Scope::addDataLabel(const DataLabel* dataLabel) {
     if (containsDataLabel(dataLabel->name())) {
         throw KeyAlreadyExists(
             __FILE__, __LINE__, "Scope::addDataLabel()",

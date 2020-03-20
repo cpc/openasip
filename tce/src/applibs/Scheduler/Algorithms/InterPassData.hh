@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -50,8 +50,7 @@ public:
     InterPassData();
     virtual ~InterPassData();
 
-    InterPassDatum& datum(const std::string& key)
-        throw (KeyNotFound);
+    InterPassDatum& datum(const std::string& key);
     bool hasDatum(const std::string& key) const;
     void setDatum(const std::string& key, InterPassDatum* datum);
     void removeDatum(const std::string& key);

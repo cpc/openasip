@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -98,62 +98,43 @@ public:
 
     int nodeCount() const;
     int edgeCount() const;
-    Node& node(const int index) const
-        throw (OutOfRange);
-    Node& node(const int index, bool cacheResult) const
-        throw (OutOfRange);
-    virtual Edge& edge(const int index) const
-        throw (OutOfRange);
+    Node& node(const int index) const;
+    Node& node(const int index, bool cacheResult) const;
+    virtual Edge& edge(const int index) const;
 
-    virtual void addNode(Node& node)
-        throw (ObjectAlreadyExists);
+    virtual void addNode(Node& node);
 
-    virtual Edge& outEdge(const Node& node, const int index) const
-        throw (OutOfRange, InstanceNotFound);
+    virtual Edge& outEdge(const Node& node, const int index) const;
 
-    virtual Edge& inEdge(const Node& node, const int index) const
-        throw (OutOfRange, InstanceNotFound);
+    virtual Edge& inEdge(const Node& node, const int index) const;
 
-    virtual EdgeSet outEdges(const Node& node) const
-        throw (InstanceNotFound);
-    virtual EdgeSet inEdges(const Node& node) const
-        throw (InstanceNotFound);
+    virtual EdgeSet outEdges(const Node& node) const;
+    virtual EdgeSet inEdges(const Node& node) const;
 
-    virtual EdgeSet rootGraphOutEdges(const Node& node) const
-        throw (InstanceNotFound);
+    virtual EdgeSet rootGraphOutEdges(const Node& node) const;
 
-    virtual EdgeSet rootGraphInEdges(const Node& node) const
-        throw (InstanceNotFound);
+    virtual EdgeSet rootGraphInEdges(const Node& node) const;
 
-    virtual Edge& rootGraphInEdge(const Node& node, const int index) const
-        throw (InstanceNotFound);
+    virtual Edge& rootGraphInEdge(const Node& node, const int index) const;
 
-    virtual int rootGraphInDegree(const Node& node) const
-        throw (InstanceNotFound);
+    virtual Edge& rootGraphOutEdge(const Node& node, const int index) const;
 
-    virtual int rootGraphOutDegree(const Node& node) const
-        throw (InstanceNotFound);
+    virtual int rootGraphInDegree(const Node& node) const;
 
-    virtual int outDegree(const Node& node) const
-        throw (InstanceNotFound);
-    virtual int inDegree(const Node& node) const
-        throw (InstanceNotFound);
+    virtual int rootGraphOutDegree(const Node& node) const;
 
-    virtual Node& tailNode(const Edge& edge) const
-        throw (InstanceNotFound);
-    virtual Node& headNode(const Edge& edge) const
-        throw (InstanceNotFound);
+    virtual int outDegree(const Node& node) const;
+    virtual int inDegree(const Node& node) const;
 
-    virtual void connectNodes(
-        const Node& nTail, const Node& nHead, Edge& e)
-        throw (ObjectAlreadyExists);
+    virtual Node& tailNode(const Edge& edge) const;
+    virtual Node& headNode(const Edge& edge) const;
+
+    virtual void connectNodes(const Node& nTail, const Node& nHead, Edge& e);
 
     virtual void disconnectNodes(const Node& nTail, const Node& nHead);
 
-    virtual void moveInEdges(const Node& source, const Node& destination)
-        throw (NotAvailable);
-    virtual void moveOutEdges(const Node& source, const Node& destination)
-        throw (NotAvailable);
+    virtual void moveInEdges(const Node& source, const Node& destination);
+    virtual void moveOutEdges(const Node& source, const Node& destination);
 
     virtual void moveInEdge(const Node& source, const Node& destination,
                             Edge& edge, 
@@ -169,17 +150,12 @@ public:
     virtual void copyOutEdge(const Node& destination, Edge& edge, 
                              const Node* head = NULL);
 
+    virtual void removeNode(Node& node);
+    virtual void removeEdge(Edge& e);
 
-    virtual void removeNode(Node& node)
-        throw (InstanceNotFound);
-    virtual void removeEdge(Edge& e)
-        throw (InstanceNotFound);
+    virtual void dropNode(Node& node);
 
-    virtual void dropNode(Node& node)
-        throw (InstanceNotFound);
-
-    virtual void dropEdge(Edge& edge)
-        throw (InstanceNotFound);
+    virtual void dropEdge(Edge& edge);
 
     virtual bool hasEdge(
         const Node& nTail,
@@ -219,7 +195,11 @@ public:
 
     bool hasPath(GraphNode& src, const GraphNode& dest) const;
 
+    void restoreNodeFromParent(GraphNode& node);
     bool detectIllegalCycles() const;
+
+    EdgeSet connectingEdges(
+        const Node& nTail, const Node& nHead) const;
 
 private:
     /// Assignment forbidden.
@@ -239,6 +219,20 @@ protected:
         }
     };
 
+    struct RemovedEdgeDatum {
+        GraphNode& nTail;
+        GraphNode& nHead;
+        GraphEdge& edge;
+
+        RemovedEdgeDatum(GraphNode& tail, GraphNode& head, GraphEdge& e) :
+            nTail(tail), nHead(head), edge(e) {}
+
+        bool operator< (const RemovedEdgeDatum& other) const {
+            return edge.edgeID() < other.edge.edgeID();
+        }
+    };
+
+    typedef std::set<RemovedEdgeDatum> RemovedEdgeMap;
 
     /// Internal graph type, providing actual graph-like operations.
     /// This type definition relies on bundled properties of boost library,
@@ -287,16 +281,11 @@ protected:
     EdgeDescriptor connectingEdge(
         const Node& nTail,
         const Node& nHead) const;
-    
-    EdgeSet connectingEdges(
-        const Node& nTail, const Node& nHead) const;
-    
+
     // optimized but uglier versions
-    Node& tailNode(const Edge& edge, const NodeDescriptor& headNode) const
-        throw (InstanceNotFound);
-    Node& headNode(const Edge& edge, const NodeDescriptor& tailNode) const
-        throw (InstanceNotFound);
-    
+    Node& tailNode(const Edge& edge, const NodeDescriptor& headNode) const;
+    Node& headNode(const Edge& edge, const NodeDescriptor& tailNode) const;
+
     // fast node removal
     void replaceNodeWithLastNode(GraphNode& dest);
 
@@ -311,7 +300,10 @@ protected:
     void calculateSourceDistances(
         const GraphNode* startNode = NULL, int startingLength = 0,
         bool looping = false) const;
-    
+
+    void calculatePathLengthsOnConnect(
+        const GraphNode& nTail, const GraphNode& nHead, GraphEdge& e);
+
     virtual int edgeWeight( GraphEdge& e, const GraphNode& n) const;
     
     // Calculated path lengths
@@ -345,25 +337,20 @@ protected:
 
     // graph editing functions which tell the changes to parents and childs
 
-    virtual void removeNode(Node& node, BoostGraph* modifierGraph)
-        throw (InstanceNotFound);
+    virtual void removeNode(Node& node, BoostGraph* modifierGraph);
     virtual void removeEdge(
-        Edge& e, const GraphNode* tailNode, 
-        const GraphNode* headNode, BoostGraph* modifierGraph = NULL)
-        throw (InstanceNotFound);    
+        Edge& e, const GraphNode* tailNode, const GraphNode* headNode,
+        BoostGraph* modifierGraph = NULL);
 
     virtual void connectNodes(
         const Node& nTail, const Node& nHead, Edge& e,
-        GraphBase<GraphNode, GraphEdge>* modifier, bool creatingSG=false)
-        throw (ObjectAlreadyExists);
+        GraphBase<GraphNode, GraphEdge>* modifier, bool creatingSG = false);
 
     void moveInEdges(
-        const Node& source, const Node& destination, BoostGraph* modifierGraph)
-        throw (NotAvailable);
+        const Node& source, const Node& destination, BoostGraph* modifierGraph);
 
     virtual void moveOutEdges(
-        const Node& source, const Node& destination, BoostGraph* modifierGraph)
-        throw (NotAvailable);
+        const Node& source, const Node& destination, BoostGraph* modifierGraph);
     void constructSubGraph(BoostGraph& subGraph, NodeSet& nodes);
 
     /**

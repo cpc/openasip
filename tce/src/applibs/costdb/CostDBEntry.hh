@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -70,7 +70,7 @@ public:
 
     void addStatistics(CostDBEntryStats* newStats);
     int statisticsCount() const;
-    const CostDBEntryStats& statistics(int index) const throw (OutOfRange);
+    const CostDBEntryStats& statistics(int index) const;
 
 private:
     /// Type definition for a table of statistics.

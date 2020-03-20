@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -105,9 +105,7 @@ LabelManager::~LabelManager() {
  * @exception SymbolNotFound If there is not symbol for requested name.
  */
 UValue
-LabelManager::value(std::string &name)
-    throw (SymbolNotFound) {
-
+LabelManager::value(std::string& name) {
     if(!MapTools::containsKey(labels_, name)) {
 
         throw SymbolNotFound(
@@ -126,9 +124,7 @@ LabelManager::value(std::string &name)
  * @exception SymbolNotFound If there is not symbol for requested name.
  */
 ASpaceElement&
-LabelManager::aSpaceElement(std::string& labelName)
-    throw (SymbolNotFound) {
-
+LabelManager::aSpaceElement(std::string& labelName) {
     if(!MapTools::containsKey(labels_, labelName)) {
         throw SymbolNotFound(
             __FILE__, __LINE__, __func__,
@@ -146,11 +142,9 @@ LabelManager::aSpaceElement(std::string& labelName)
  * @exception SymbolNotFound If there is not symbol for requested name.
  */
 std::string
-LabelManager::aSpaceName(std::string& labelName)
-    throw (SymbolNotFound) {
+LabelManager::aSpaceName(std::string& labelName) {
     return TPEFTools::addressSpaceName(bin_, aSpaceElement(labelName));
 }
-
 
 /**
  * Adds a label to manager.
@@ -161,10 +155,7 @@ LabelManager::aSpaceName(std::string& labelName)
  * @exception ObjectAlreadyExists Label by the same name already exists.
  */
 void
-LabelManager::addLabel(
-    ASpaceElement &aSpace, std::string &name, UValue value)
-    throw (ObjectAlreadyExists) {
-
+LabelManager::addLabel(ASpaceElement& aSpace, std::string& name, UValue value) {
     if(MapTools::containsKey(labels_, name)) {
         throw ObjectAlreadyExists(
             __FILE__, __LINE__, __func__,
@@ -187,9 +178,7 @@ LabelManager::addLabel(
  * @exception SymbolNotFound Label is not found.
  */
 void
-LabelManager::removeLabel(std::string &name)
-    throw (SymbolNotFound) {
-
+LabelManager::removeLabel(std::string& name) {
     if(!MapTools::containsKey(labels_, name)) {
         throw SymbolNotFound(
             __FILE__, __LINE__, __func__,
@@ -207,10 +196,7 @@ LabelManager::removeLabel(std::string &name)
  * @exception ObjectAlreadyExists Procedure with a same name is already added.
  */
 void
-LabelManager::addProcedure(
-    std::string &name, UValue address)
-    throw (ObjectAlreadyExists) {
-
+LabelManager::addProcedure(std::string& name, UValue address) {
     if(MapTools::containsKey(procedures_, name)) {
         throw ObjectAlreadyExists(
             __FILE__, __LINE__, __func__,
@@ -310,8 +296,7 @@ LabelManager::commitLastRelocations() {
  * @exception CompileError There was problems during the resolving.
  */
 void
-LabelManager::finalize() throw (CompileError) {
-
+LabelManager::finalize() {
     SymbolSection* symbolSect = NULL;
 
     // write labels
@@ -559,9 +544,7 @@ LabelManager::createSymbolWithReference(
  */
 void
 LabelManager::writeProcedureSymbols(
-    CodeSection* codeSect, SymbolSection* symbolSect, StringSection* strings)
-    throw (CompileError) {
-
+    CodeSection* codeSect, SymbolSection* symbolSect, StringSection* strings) {
     for (std::map<std::string, UValue>::iterator
              iter = procedures_.begin();
          iter != procedures_.end(); iter++) {
@@ -691,10 +674,7 @@ LabelManager::findRelocationDstSection(InternalRelocation* currReloc) {
  */
 UValue
 LabelManager::resolveExpressionValue(
-    UValue asmLineNumber,
-    LiteralOrExpression& litOrExpr)
-    throw (CompileError) {
-
+    UValue asmLineNumber, LiteralOrExpression& litOrExpr) {
     UValue retVal = 0;
 
     try {

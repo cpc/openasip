@@ -3,7 +3,7 @@
 
 # Mandatory macro. Set the name of the package and the version number.
 # Email address is for bug reporting.
-AC_INIT([tce],[1.19-pre],[tce-users@cs.tut.fi])
+AC_INIT([tce],[1.21-pre],[tce@lists.tuni.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
@@ -31,8 +31,10 @@ AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 # TCE 1.17 = 17:0:0
 # TCE 1.18 = 18:0:0
 # TCE 1.19 = 19:0:0
+# TCE 1.20 = 20:0:0
+# TCE 1.21 = 21:0:0
 
-AC_SUBST([LIB_VERSION], ["19:0:0"])
+AC_SUBST([LIB_VERSION], ["21:0:0"])
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
@@ -521,9 +523,23 @@ if test x"$LLVM_INCLUDEDIR" == x/usr/include/llvm; then
 LLVM_INCLUDEDIR=/usr/include
 fi
 
+LLVM_OLDER_THAN_3_6=0
 case "$LLVM_VERSION" in
      3.5*)
+     AC_DEFINE([LLVM_SVN], [], "Using LLVM 3.5")
      AC_DEFINE([LLVM_3_5], [], "Using LLVM 3.5")
+
+     AC_MSG_CHECKING([whether the used LLVM 3.5 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 3.5 does not have the custom vector extension patch. Use tools/scripts/install_llvm_3.5.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["1"])
+     fi
      LLVM_OLDER_THAN_3_6=1
      LLVM_OLDER_THAN_3_7=1
      LLVM_OLDER_THAN_3_8=1
@@ -533,9 +549,23 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_6_0=1
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
+     LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      3.6*)
      AC_DEFINE([LLVM_3_6], [], "Using LLVM 3.6")
+
+     AC_MSG_CHECKING([whether the used LLVM 3.6 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 3.6 does not have the custom vector extension patch. Use tools/scripts/install_llvm_3.6.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["1"])
+     fi
      LLVM_OLDER_THAN_3_7=1
      LLVM_OLDER_THAN_3_8=1
      LLVM_OLDER_THAN_3_9=1
@@ -544,9 +574,24 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_6_0=1
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
+     LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      3.7*)
      AC_DEFINE([LLVM_3_7], [], "Using LLVM 3.7")
+
+     AC_MSG_CHECKING([whether the used LLVM 3.7 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 3.7 does not have the custom vector extension patch. Use tools/scripts/install_llvm_3.7.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["1"])
+     fi
+
      LLVM_OLDER_THAN_3_8=1
      LLVM_OLDER_THAN_3_9=1
      LLVM_OLDER_THAN_4_0=1
@@ -554,30 +599,73 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_6_0=1
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
+     LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      3.8*)
      AC_DEFINE([LLVM_3_8], [], "Using LLVM 3.8")
+
+     AC_MSG_CHECKING([whether the used LLVM 3.8 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 3.8 does not have the custom vector extension patch. Use tools/scripts/install_llvm_3.8.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [1], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["1"])
+     fi
      LLVM_OLDER_THAN_3_9=1
      LLVM_OLDER_THAN_4_0=1
      LLVM_OLDER_THAN_5_0=1
      LLVM_OLDER_THAN_6_0=1
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
+     LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      3.9*)
      AC_DEFINE([LLVM_3_9], [], "Using LLVM 3.9")
+
+     AC_MSG_CHECKING([whether the used LLVM 3.9 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 3.9 does not have the custom vector extension patch. Use tools/scripts/install_llvm_3.9.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [1], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["1"])
+     fi
      LLVM_OLDER_THAN_4_0=1
      LLVM_OLDER_THAN_5_0=1
      LLVM_OLDER_THAN_6_0=1
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
+     LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      4.0*)
      AC_DEFINE([LLVM_4_0], [], "Using LLVM 4.0")
+     AC_MSG_CHECKING([whether the used LLVM 4.0 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 4.0 does not have the custom vector extension patch. Use tools/scripts/install_llvm_4.0.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [1], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["1"])
+     fi
      LLVM_OLDER_THAN_5_0=1
      LLVM_OLDER_THAN_6_0=1
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
+     LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      5.0.0svn*)
      AC_DEFINE([LLVM_5_0], [], "Using LLVM 5.0svn")
@@ -588,35 +676,105 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_6_0=1
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
+     LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      5.0*)
      AC_DEFINE([LLVM_5_0], [], "Using LLVM 5.0")
+     AC_MSG_CHECKING([whether the used LLVM 5.0 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 5.0 does not have the custom vector extension patch. Use tools/scripts/install_llvm_5.0.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [1], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["1"])
+     fi
+     LLVM_VERSION=5.0
      LLVM_OLDER_THAN_6_0=1
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
+     LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      6.0*)
      AC_DEFINE([LLVM_6_0], [], "Using LLVM 6.0")
+     AC_MSG_CHECKING([whether the used LLVM 6.0 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 6.0 does not have the custom vector extension patch. Use tools/scripts/install_llvm_6.0.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [1], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["1"])
+     fi
      LLVM_VERSION=6.0
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
      LLVM_OLDER_THAN_7=1
      LLVM_OLDER_THAN_8=1
+     LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
-     7*)
+     7.0*)
      AC_DEFINE([LLVM_7_0], [], "Using LLVM 7")
+     AC_MSG_CHECKING([whether the used LLVM 7 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 7 does not have the custom vector extension patch. Use tools/scripts/install_llvm_7.0.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [1], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["1"])
+     fi
      LLVM_VERSION=7
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
      LLVM_OLDER_THAN_8=1
+     LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
+   ;;
+     7.1*)
+     # There should not be difference in TCE-related functionality to
+     # LLVM 7.0, so we can use the same macro for now.
+     AC_DEFINE([LLVM_7_0], [], "Using LLVM 7.1.0")
+     LLVM_VERSION=7
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-7.1$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-7.1
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+     LLVM_OLDER_THAN_8=1
+     LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
      8.0.0svn)
      AC_DEFINE([LLVM_8], [], "Using LLVM 8-svn")
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
      LLVM_VERSION=8
+     AC_MSG_CHECKING([whether the used LLVM 8 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 8 does not have the custom vector extension patch. Use tools/scripts/install_llvm_8.0.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [1], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["1"])
+     fi
+     LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
    ;;
      8*)
@@ -625,7 +783,85 @@ case "$LLVM_VERSION" in
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+     AC_MSG_CHECKING([whether the used LLVM 8 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 8 does not have the custom vector extension patch. Use tools/scripts/install_llvm_8.0.sh.])
+     else
+     if echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension-wide";
+     then
+     AC_MSG_RESULT([yes, wide])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the wide custom vector extension patch(wide)")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [1], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["1"])
+     fi
+     fi
+     LLVM_OLDER_THAN_9=1
+     LLVM_OLDER_THAN_10=1
    ;;
+     9*)
+     AC_DEFINE([LLVM_9], [], "Using LLVM 9")
+     AC_MSG_CHECKING([whether the used LLVM 9 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 9 does not have the custom vector extension patch. Use tools/scripts/install_llvm_9.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
+     fi
+     LLVM_VERSION=9
+     LLVM_OLDER_THAN_10=1
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_VERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+   ;;
+     10.*git)
+     AC_DEFINE([LLVM_10], [], "Using LLVM 10git(Trunk)")
+     AC_MSG_CHECKING([whether the used LLVM 10 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 10 does not have the custom vector extension patch. Use tools/scripts/install_llvm_10.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
+     fi
+     LLVM_VERSION=10
+     LLVM_LIBRARYVERSION=10git
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_LIBRARYVERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+   ;;
+     10*)
+     AC_DEFINE([LLVM_10], [], "Using LLVM 10(Release)")
+     AC_MSG_CHECKING([whether the used LLVM 10 has the custom vector extension patch])
+     if ! echo $LLVM_TCE_PATCHES | grep -q "custom-vector-extension";
+     then
+     AC_MSG_RESULT([no])
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["0"])
+     AC_MSG_WARN([Your LLVM 10 does not have the custom vector extension patch. Use tools/scripts/install_llvm_10.sh.])
+     else
+     AC_MSG_RESULT([yes])
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the custom vector extension patch")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
+     fi
+     LLVM_VERSION=10
+     LLVM_LIBRARYVERSION=10
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-$LLVM_LIBRARYVERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+;;
+
      *)
    AC_MSG_NOTICE(
    [
@@ -640,6 +876,7 @@ esac
 AC_MSG_NOTICE([
   You have to install LLVM to be able to compile from C.])
 ])
+
 
 if test "x$LLVM_OLDER_THAN_3_6" == "x1";
 then
@@ -684,6 +921,16 @@ fi
 if  test "x$LLVM_OLDER_THAN_8" == "x1";
 then
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_8, 1, [LLVM version is older than 8])
+fi
+
+if  test "x$LLVM_OLDER_THAN_9" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_9, 1, [LLVM version is older than 9])
+fi
+
+if  test "x$LLVM_OLDER_THAN_10" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_10, 1, [LLVM version is older than 10])
 fi
 
 if test ! -e $LLVM_SHARED_LIB_FILE;
@@ -1336,7 +1583,11 @@ if test x"$define_cxx0x" = xtrue; then
    CXXFLAGS="$CXXFLAGS -std=c++0x"
 else
    AC_DEFINE(HAVE_CXX11, [], [Using C++11 language standard switch.])
-   CXXFLAGS="$CXXFLAGS -std=c++11"
+   if test x"$LLVM_OLDER_THAN_10" = x1; then
+       CXXFLAGS="$CXXFLAGS -std=c++11"
+   else
+       CXXFLAGS="$CXXFLAGS -std=c++14"
+   fi
 fi
 
 

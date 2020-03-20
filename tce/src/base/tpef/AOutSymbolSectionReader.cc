@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -110,11 +110,7 @@ AOutSymbolSectionReader::type() const {
  */
 void
 AOutSymbolSectionReader::readData(
-    BinaryStream& stream,
-    Section* section) const
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-           OutOfRange, WrongSubclass, UnexpectedValue) {
-    
+    BinaryStream& stream, Section* section) const {
     StringSection* stringSection =
         dynamic_cast<AOutReader*>(parent())->stringSection();
 
@@ -263,12 +259,8 @@ AOutSymbolSectionReader::readData(
  */
 SymbolElement*
 AOutSymbolSectionReader::initializeSymbol(
-    BinaryStream& stream,
-    SectionOffset sectionOffset,
-    AOutReader* reader) const
-    throw (KeyAlreadyExists, UnreachableStream,
-           OutOfRange) {
-
+    BinaryStream& stream, SectionOffset sectionOffset,
+    AOutReader* reader) const {
     StringSection* stringSection =
         dynamic_cast<AOutReader*>(parent())->stringSection();
 

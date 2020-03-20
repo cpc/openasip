@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -81,9 +81,8 @@ public:
 
     ProgramImageGenerator();
     virtual ~ProgramImageGenerator();
-        
-    void loadCompressorPlugin(const std::string& fileName)
-        throw (FileNotFound, DynamicLibraryException);
+
+    void loadCompressorPlugin(const std::string& fileName);
     void loadCompressorParameters(
         CodeCompressorPlugin::ParameterTable parameters);
     void loadPrograms(TPEFMap programs);
@@ -96,14 +95,9 @@ public:
         OutputFormat format,
         int mausPerLine = 0);
     void generateDataImage(
-        const std::string& programName,
-        TPEF::Binary& program,
-        const std::string& addressSpace, 
-        std::ostream& stream, 
-        OutputFormat format,
-        int mausPerLine,
-        bool usePregeneratedImage)
-        throw (InvalidData, OutOfRange);
+        const std::string& programName, TPEF::Binary& program,
+        const std::string& addressSpace, std::ostream& stream,
+        OutputFormat format, int mausPerLine, bool usePregeneratedImage);
     void generateDecompressor(std::ostream& stream, TCEString entityStr);
 
     int imemMauWidth() const;
@@ -113,9 +107,7 @@ public:
 
     static std::vector<std::string> availableCompressors();
     static void printCompressorDescription(
-        const std::string& fileName,
-        std::ostream& stream)
-        throw (FileNotFound, DynamicLibraryException);
+        const std::string& fileName, std::ostream& stream);
 
     void writeDataSection(TPEF::Binary& program,
                           BitVector& bitVector,
@@ -127,9 +119,7 @@ private:
     typedef std::set<TPEF::Binary*> ProgramSet;
 
     static CodeCompressorPlugin* createCompressor(
-        const std::string& fileName,
-        PluginTools& pluginTool)
-        throw (FileNotFound, DynamicLibraryException);
+        const std::string& fileName, PluginTools& pluginTool);
     TPEF::InstructionElement* relocTarget(
         const TPEF::Binary& program,
         const TPEF::DataSection& dataSection,

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2014 Tampere University of Technology.
+    Copyright (c) 2002-2019 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -61,14 +61,13 @@ using namespace TTAMachine;
 // declaration of constant strings used in MDF file
 const string MDF = "adf";
 const string MDF_VERSION = "version";
-// writes files according to ADF specs version 1.7.x
-const string MDF_VERSION_NUMBER = "1.9";
-
+// writes files according to ADF specs version 1.10.x
+const string MDF_VERSION_NUMBER = "1.10";
 // 1.8:
 // - adf: little-endian
-// 1.9:
+// 1.9 ??
+// 1.10:
 // - adf: bitness64
-
 
 const string TRIGGER_INVALIDATES_OLD_RESULTS = "trigger-invalidates-old-results";
 const string LITTLE_ENDIAN_MACHINE = "little-endian";
@@ -214,14 +213,11 @@ ADFSerializer::~ADFSerializer() {
  * @exception SerializerException If an error occurs while serializing.
  */
 void
-ADFSerializer::writeState(const ObjectState* machineState)
-    throw (SerializerException) {
-
+ADFSerializer::writeState(const ObjectState* machineState) {
     ObjectState* converted = convertToMDFFormat(machineState);
     XMLSerializer::writeState(converted);
     delete converted;
 }
-
 
 /**
  * Reads the current MDF file set and creates an ObjectState tree which can
@@ -231,9 +227,7 @@ ADFSerializer::writeState(const ObjectState* machineState)
  * @exception SerializerException If an error occurs while reading.
  */
 ObjectState*
-ADFSerializer::readState()
-    throw (SerializerException) {
-
+ADFSerializer::readState() {
     ObjectState* mdfState = XMLSerializer::readState();
     ObjectState* machineState;
     try {
@@ -247,7 +241,6 @@ ADFSerializer::readState()
     return machineState;
 }
 
-
 /**
  * Serializes the given machine to mdf file.
  *
@@ -255,14 +248,11 @@ ADFSerializer::readState()
  * @exception SerializerException If an error occurs while serializing.
  */
 void
-ADFSerializer::writeMachine(const Machine& machine)
-    throw (SerializerException) {
-
+ADFSerializer::writeMachine(const Machine& machine) {
     ObjectState* machineState = machine.saveState();
     writeState(machineState);
     delete machineState;
 }
-
 
 /**
  * Reads the current MDF file set and creates a Machine according to it.
@@ -274,16 +264,13 @@ ADFSerializer::writeMachine(const Machine& machine)
  *                                        Machine.
  */
 Machine*
-ADFSerializer::readMachine()
-    throw (SerializerException, ObjectStateLoadingException) {
-
+ADFSerializer::readMachine() {
     ObjectState* machineState = readState();
     Machine* mach = new Machine();
     mach->loadState(machineState);
     delete machineState;
     return mach;
 }
-
 
 /**
  * Converts the given ObjectState tree created by Machine to correspond
@@ -980,9 +967,7 @@ ADFSerializer::immediateSlotToMDF(const ObjectState* isState) {
  * @exception SerializerException If an error occurs while converting.
  */
 ObjectState*
-ADFSerializer::convertToMachineFormat(const ObjectState* mdfState)
-    throw (SerializerException) {
-
+ADFSerializer::convertToMachineFormat(const ObjectState* mdfState) {
     ObjectState* machine = new ObjectState(Machine::OSNAME_MACHINE);
     
     // Will count the number of function units and give sequential number
@@ -1033,7 +1018,6 @@ ADFSerializer::convertToMachineFormat(const ObjectState* mdfState)
 
     return machine;
 }
-
 
 /**
  * Creates a new ObjectState tree which can be read by Bus::loadState and
@@ -1492,10 +1476,7 @@ ADFSerializer::controlUnitToMachine(const ObjectState* cuState) {
  */
 ObjectState*
 ADFSerializer::immediateUnitToMachine(
-    const ObjectState* iuState,
-    ObjectState* machineState)
-    throw (SerializerException) {
-
+    const ObjectState* iuState, ObjectState* machineState) {
     ObjectState* iu = new ObjectState(ImmediateUnit::OSNAME_IMMEDIATE_UNIT);
 
     // set name
@@ -1592,7 +1573,6 @@ ADFSerializer::immediateUnitToMachine(
 
     return iu;
 }
-
 
 /**
  * Creates an ObjectState instance that can be loaded by ImmediateSlot 
@@ -2190,11 +2170,8 @@ ADFSerializer::instructionTemplateToMDF(
  */
 void
 ADFSerializer::instructionTemplateToMachine(
-    const ObjectState* mdfITState,
-    ObjectState* momMachineState,
-    const std::string& iuName)
-    throw (SerializerException) {
-
+    const ObjectState* mdfITState, ObjectState* momMachineState,
+    const std::string& iuName) {
     const string procName = "ADFSerializer::instructionTemplateToMachine";
 
     string templateName = mdfITState->stringAttribute(IU_TEMPLATE_NAME);
@@ -2268,7 +2245,6 @@ ADFSerializer::instructionTemplateToMachine(
         }
     }
 }
-
 
 /**
  * Looks for an ObjectState instance which represents a template slot in

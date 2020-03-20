@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -56,12 +56,9 @@ class MIReader : public BinaryReader {
 protected:
     MIReader();
 
-    virtual Binary* readData(BinaryStream& stream) const 
-	throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists, 
-	       EndOfFile, OutOfRange, WrongSubclass, UnexpectedValue);
+    virtual Binary* readData(BinaryStream& stream) const;
 
-    virtual bool isMyStreamType(BinaryStream& stream) const
-	throw (UnreachableStream);
+    virtual bool isMyStreamType(BinaryStream& stream) const;
 
 private:
     /// Prototype of reader.
@@ -84,12 +81,9 @@ class MIKULIReader : public BinaryReader {
 protected:
     MIKULIReader();
 
-    virtual Binary* readData(BinaryStream& stream) const 
-	throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists, 
-	       EndOfFile, OutOfRange, WrongSubclass, UnexpectedValue);
+    virtual Binary* readData(BinaryStream& stream) const;
 
-    virtual bool isMyStreamType(BinaryStream& stream) const
-	throw (UnreachableStream);
+    virtual bool isMyStreamType(BinaryStream& stream) const;
 
 private:
     /// Prototype of reader.
@@ -134,11 +128,8 @@ MIReader::MIReader() {
  * @param stream Stream that should be readed.
  * @return Non existing Binary* that is used as an id in test. 
  */
-Binary* 
-MIReader::readData(BinaryStream& /*stream*/) const 
-    throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists, 
-	   EndOfFile, OutOfRange, WrongSubclass, UnexpectedValue) {
-     
+Binary*
+MIReader::readData(BinaryStream& /*stream*/) const {
     static Binary* bin = new Binary();
     MIBinary = bin;
     return bin;
@@ -150,10 +141,8 @@ MIReader::readData(BinaryStream& /*stream*/) const
  * @param stream Stream that should be readed.
  * @return True if object is able to read stream.
  */
-bool 
-MIReader::isMyStreamType(BinaryStream& stream) const
-    throw (UnreachableStream) {
-
+bool
+MIReader::isMyStreamType(BinaryStream& stream) const {
     unsigned long streamStart = 0;
 
     try {
@@ -193,11 +182,8 @@ MIKULIReader::MIKULIReader() {
  * @param stream Stream that should be readed.
  * @return Non existing Binary* that is used as an id in test. 
  */
-Binary* 
-MIKULIReader::readData(BinaryStream& /*stream*/) const 
-    throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists, 
-	   EndOfFile, OutOfRange, WrongSubclass, UnexpectedValue) {
-    
+Binary*
+MIKULIReader::readData(BinaryStream& /*stream*/) const {
     static Binary* bin = new Binary();
     MIKULIBinary = bin;
     return bin;
@@ -209,10 +195,8 @@ MIKULIReader::readData(BinaryStream& /*stream*/) const
  * @param stream Stream that should be readed.
  * @return True if object is able to read stream.
  */
-bool 
-MIKULIReader::isMyStreamType(BinaryStream& stream) const
-    throw (UnreachableStream) {
-
+bool
+MIKULIReader::isMyStreamType(BinaryStream& stream) const {
     unsigned long streamStart = 0;
     
     try {

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2014 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -39,7 +39,7 @@
 #include "HalfFloatWord.hh"
 #include <string.h>
 
-#define SIMD_WORD_WIDTH 1024
+#define SIMD_WORD_WIDTH 4096
 #define SIMVALUE_MAX_BYTE_SIZE (SIMD_WORD_WIDTH / BYTE_BITWIDTH)
 
 class TCEString;

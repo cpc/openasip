@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -112,7 +112,7 @@ CodeSnippet::removeLastInstruction() {
  *                                anywhere.
  */
 Program&
-CodeSnippet::parent() const throw (IllegalRegistration) {
+CodeSnippet::parent() const {
     if (parent_ != NULL) {
         return *parent_;
     } else {
@@ -157,9 +157,7 @@ CodeSnippet::isInProgram() const {
  *            this code snippet.
  */
 Address
-CodeSnippet::address(const Instruction& ins) const
-    throw (IllegalRegistration) {
-
+CodeSnippet::address(const Instruction& ins) const {
     unsigned int i = 0;
 
     /* this loop is executed very ofter so 
@@ -204,8 +202,7 @@ CodeSnippet::instructionCount() const {
  * @exception InstanceNotFound if there are no instructions in the code snippet.
  */
 Instruction&
-CodeSnippet::firstInstruction() const 
-    throw (InstanceNotFound) {
+CodeSnippet::firstInstruction() const {
     if (!instructions_.empty()) {
         return *instructions_.at(0);
     } else {
@@ -226,9 +223,7 @@ CodeSnippet::firstInstruction() const
  * Instruction::move().
  */
 Instruction&
-CodeSnippet::instructionAt(UIntWord address) const
-    throw (KeyNotFound) {
-
+CodeSnippet::instructionAt(UIntWord address) const {
     int index = (address - start_.location());
     if (index >= 0
         && static_cast<unsigned int>(index) < instructions_.size()) {
@@ -278,9 +273,7 @@ CodeSnippet::operator[](size_t index) const {
  *         the code snippet, false otherwise.
  */
 bool
-CodeSnippet::hasNextInstruction(const Instruction& ins) const
-    throw (IllegalRegistration) {
-
+CodeSnippet::hasNextInstruction(const Instruction& ins) const {
     return (&nextInstruction(ins) != &NullInstruction::instance());
 }
 
@@ -295,9 +288,7 @@ CodeSnippet::hasNextInstruction(const Instruction& ins) const
  * to the code snippet.
  */
 Instruction&
-CodeSnippet::nextInstruction(const Instruction& ins) const
-    throw (IllegalRegistration) {
-
+CodeSnippet::nextInstruction(const Instruction& ins) const {
     if (&ins.parent() == this) {
 
         int insAddress = ins.address().location();
@@ -326,9 +317,7 @@ CodeSnippet::nextInstruction(const Instruction& ins) const
  * to the code snippet.
  */
 Instruction&
-CodeSnippet::previousInstruction(const Instruction& ins) const
-    throw (IllegalRegistration) {
-
+CodeSnippet::previousInstruction(const Instruction& ins) const {
     if (&ins.parent() == this) {
         int insAddress = (ins.address().location() - start_.location()) - 1;
         while (insAddress >= 0) {
@@ -353,7 +342,7 @@ CodeSnippet::previousInstruction(const Instruction& ins) const
  *            code snippet.
  */
 Instruction&
-CodeSnippet::lastInstruction() const throw (IllegalRegistration) {
+CodeSnippet::lastInstruction() const {
     if (!instructions_.empty()) {
         return *instructions_.back();
     } else {
@@ -372,9 +361,7 @@ CodeSnippet::lastInstruction() const throw (IllegalRegistration) {
  *                                in another code snippet.
  */
 void
-CodeSnippet::addFront(Instruction* ins) 
-    throw (IllegalRegistration) {
-
+CodeSnippet::addFront(Instruction* ins) {
     if (!ins->isInProcedure()) {
 
         if (instructions_.size() == instructions_.capacity()) {
@@ -400,9 +387,7 @@ CodeSnippet::addFront(Instruction* ins)
  *                                in another code snippet.
  */
 void
-CodeSnippet::add(Instruction* ins) 
-    throw (IllegalRegistration) {
-
+CodeSnippet::add(Instruction* ins) {
     if (!ins->isInProcedure()) {
 
         if (instructions_.size() == instructions_.capacity()) {
@@ -432,9 +417,7 @@ CodeSnippet::add(Instruction* ins)
  *            or ins already belongs to a code snippet.
  */
 void
-CodeSnippet::insertAfter(const Instruction& pos, Instruction* ins)
-    throw (IllegalRegistration) {
-
+CodeSnippet::insertAfter(const Instruction& pos, Instruction* ins) {
     if (!ins->isInProcedure()) {
 
         if (hasNextInstruction(pos)) {
@@ -486,9 +469,7 @@ CodeSnippet::insertAfter(const Instruction& pos, Instruction* ins)
  *            or ins already belongs to a code snippet.
  */
 void
-CodeSnippet::insertBefore(const Instruction& pos, Instruction* ins)
-    throw (IllegalRegistration) {
-
+CodeSnippet::insertBefore(const Instruction& pos, Instruction* ins) {
     if (!ins->isInProcedure()) {
 
         InsList::iterator iter = instructions_.begin();
@@ -532,8 +513,7 @@ CodeSnippet::insertBefore(const Instruction& pos, Instruction* ins)
  *                                code snippet.
  */
 void
-CodeSnippet::remove(Instruction& ins) throw (IllegalRegistration) {
-
+CodeSnippet::remove(Instruction& ins) {
     if (!ins.isInProcedure() || !(&ins.parent() == this)) {
         string msg = "Instruction doesn't belong to the procedure.";
         throw IllegalRegistration(__FILE__, __LINE__, __func__, msg);
@@ -568,8 +548,7 @@ CodeSnippet::remove(Instruction& ins) throw (IllegalRegistration) {
  *            code snippet.
  */
 void
-CodeSnippet::deleteInstructionAt(InstructionAddress address) 
-    throw (KeyNotFound) {
+CodeSnippet::deleteInstructionAt(InstructionAddress address) {
     Instruction& instr = instructionAt(address);
     remove(instr);
     delete &instr;

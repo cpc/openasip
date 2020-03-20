@@ -1,0 +1,19 @@
+At least Ubuntu 18.04's libtoolize generates wrapper
+scripts which _prepend_ the system path to the LD_LIBRARY_PATH,
+causing the system's libllvm to be found before the user's
+own installed LLVM (overridden using LB_LIBRARY_PATH).
+
+This patches it such that the path is appended to the path
+instead.
+
+--- ltmain.sh.orig	2019-07-13 12:06:11.050523601 +0300
++++ ltmain.sh	2019-07-13 12:06:46.427026644 +0300
+@@ -5479,7 +5479,7 @@
+ 	if test yes = "$shlibpath_overrides_runpath" && test -n "$shlibpath_var" && test -n "$temp_rpath"; then
+ 	  $ECHO "\
+     # Add our own library path to $shlibpath_var
+-    $shlibpath_var=\"$temp_rpath\$$shlibpath_var\"
++    $shlibpath_var=\"\$$shlibpath_var:$temp_rpath\"
+ 
+     # Some systems cannot cope with colon-terminated $shlibpath_var
+     # The second colon is a workaround for a bug in BeOS R4 sed

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -72,20 +72,17 @@ namespace TTAMachine {
                           component.
  */
 ImmediateUnit::ImmediateUnit(
-    const string& name,
-    unsigned int size,
-    unsigned int width,
-    unsigned int maxReads,
-    unsigned int guardLatency,
+    const string& name, unsigned int size, unsigned int width,
+    unsigned int maxReads, unsigned int guardLatency,
     Machine::Extension extension)
-    throw (OutOfRange, InvalidName) :
-    RegisterFile(name, size, width, maxReads, MAX_WRITES, guardLatency,
-    RegisterFile::NORMAL), extension_(extension), latency_(LATENCY) {
-
+    : RegisterFile(
+          name, size, width, maxReads, MAX_WRITES, guardLatency,
+          RegisterFile::NORMAL),
+      extension_(extension),
+      latency_(LATENCY) {
     RegisterFile::setNumberOfRegisters(size);
     setWidth(width);
 }
-
 
 /**
  * Constructor.
@@ -98,13 +95,9 @@ ImmediateUnit::ImmediateUnit(
  *                                        is invalid or if connections to
  *                                        other machine parts cannot be made.
  */
-ImmediateUnit::ImmediateUnit(const ObjectState* state)
-    throw (ObjectStateLoadingException) :
-    RegisterFile(state) {
-
+ImmediateUnit::ImmediateUnit(const ObjectState* state) : RegisterFile(state) {
     loadStateWithoutReferences(state);
 }
-
 
 /**
  * Destructor.
@@ -124,9 +117,7 @@ ImmediateUnit::~ImmediateUnit() {
  *                        component.
  */
 void
-ImmediateUnit::setName(const string& name)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+ImmediateUnit::setName(const string& name) {
     if (name == this->name()) {
         return;
     }
@@ -142,7 +133,6 @@ ImmediateUnit::setName(const string& name)
         Component::setName(name);
     }
 }
-
 
 /**
  * Returns the extension mode of the immediate unit.
@@ -178,16 +168,13 @@ ImmediateUnit::latency() const {
  *                       range.
  */
 void
-ImmediateUnit::setMaxWrites(int maxWrites)
-    throw (OutOfRange) {
-
+ImmediateUnit::setMaxWrites(int maxWrites) {
     if (maxWrites != MAX_WRITES) {
         std::string procName = "ImmediateUnit::setMaxWrites";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
     RegisterFile::setMaxWrites(maxWrites);
 }
-
 
 /**
  * Sets the extension mode for the immediate unit.
@@ -207,16 +194,13 @@ ImmediateUnit::setExtensionMode(Machine::Extension mode) {
  * @exception OutOfRange If the given latency is less than zero.
  */
 void
-ImmediateUnit::setLatency(int latency)
-    throw (OutOfRange) {
-
+ImmediateUnit::setLatency(int latency) {
     if (latency != LATENCY) {
         string procName = "ImmediateUnit::setLatency";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
     latency_ = latency;
 }
-
 
 /**
  * Removes the immediate unit from machine.
@@ -272,13 +256,10 @@ ImmediateUnit::saveState() const {
  *                                        made.
  */
 void
-ImmediateUnit::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+ImmediateUnit::loadState(const ObjectState* state) {
     loadStateWithoutReferences(state);
     RegisterFile::loadState(state);
 }
-
 
 /**
  * Loads the state of the immediate unit without references to other
@@ -289,9 +270,7 @@ ImmediateUnit::loadState(const ObjectState* state)
  *                                        the state.
  */
 void
-ImmediateUnit::loadStateWithoutReferences(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+ImmediateUnit::loadStateWithoutReferences(const ObjectState* state) {
     const string procName = "ImmediateUnit::loadStateWithoutReferences";
 
     if (state->name() != OSNAME_IMMEDIATE_UNIT) {
@@ -314,5 +293,4 @@ ImmediateUnit::loadStateWithoutReferences(const ObjectState* state)
             __FILE__, __LINE__, procName, e.errorMessage());
     }
 }
-
 }

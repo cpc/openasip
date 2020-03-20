@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -79,12 +79,9 @@ public:
     void setValue(UIntWord value);
 
     std::string stringValue() const;
-    int intValue() const
-        throw (NumberFormatException);
-    double doubleValue() const
-        throw (NumberFormatException);
-    bool boolValue() const
-        throw (TypeMismatch);
+    int intValue() const;
+    double doubleValue() const;
+    bool boolValue() const;
     int UIntWordValue() const;
 
     void setAttribute(const std::string& name, const std::string& value);
@@ -95,36 +92,25 @@ public:
     void setAttribute(const std::string& name, ULongWord value);
 
     int attributeCount() const;
-    Attribute* attribute(int index) const
-        throw (OutOfRange);
+    Attribute* attribute(int index) const;
 
     bool hasAttribute(const std::string& name) const;
-    std::string stringAttribute(const std::string& name) const
-        throw (KeyNotFound);
-    int intAttribute(const std::string& name) const
-        throw (KeyNotFound, NumberFormatException);
-    unsigned int unsignedIntAttribute(const std::string& name) const
-        throw (KeyNotFound, NumberFormatException);
-    double doubleAttribute(const std::string& name) const
-        throw (KeyNotFound, NumberFormatException);
-    bool boolAttribute(const std::string& name) const
-        throw (KeyNotFound, TypeMismatch);
+    std::string stringAttribute(const std::string& name) const;
+    int intAttribute(const std::string& name) const;
+    unsigned int unsignedIntAttribute(const std::string& name) const;
+    double doubleAttribute(const std::string& name) const;
+    bool boolAttribute(const std::string& name) const;
     UIntWord UIntWordAttribute(const std::string& name) const;
     ULongWord uLongAttribute(const std::string& name) const;
 
-
     bool hasChild(const std::string& name) const;
     void addChild(ObjectState* child);
-    void removeChild(ObjectState* child)
-        throw (InstanceNotFound);
-    void replaceChild(ObjectState* old, ObjectState* newChild)
-        throw (InvalidData);
+    void removeChild(ObjectState* child);
+    void replaceChild(ObjectState* old, ObjectState* newChild);
 
     int childCount() const;
-    ObjectState* childByName(const std::string& name) const
-        throw (InstanceNotFound);
-    ObjectState* child(int index) const
-        throw (OutOfRange);
+    ObjectState* childByName(const std::string& name) const;
+    ObjectState* child(int index) const;
 
     bool operator!=(const ObjectState& object);
 

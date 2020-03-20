@@ -1,0 +1,9 @@
+!output bin
+shru4_32 111111111111111111111111111111b
+shru4_32 101010101b
+!output signed
+shru4_32 8
+shru4_32 200200
+shru4_32 -1
+shru4_32 15
+!quit

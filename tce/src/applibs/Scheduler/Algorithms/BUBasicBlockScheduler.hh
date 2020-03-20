@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -66,11 +66,9 @@ public:
         RegisterRenamer* registerRenamer = NULL);
     virtual ~BUBasicBlockScheduler();
 
-    virtual void handleDDG(
-        DataDependenceGraph& ddg,
-        SimpleResourceManager& rm,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+    virtual int handleDDG(
+        DataDependenceGraph& ddg, SimpleResourceManager& rm,
+        const TTAMachine::Machine& targetMachine, bool testOnly) override;
 
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;
@@ -93,35 +91,26 @@ protected:
     
     typedef std::set<MoveNode*, ltstr> OrderedSet;
 
+    void scheduleRRMove(MoveNode& moveNode);
 
-    void scheduleRRMove(MoveNode& moveNode)
-        throw (Exception);
+    void scheduleOperation(MoveNodeGroup& moves, BUMoveNodeSelector& selector);
 
-    void scheduleOperation(MoveNodeGroup& moves, BUMoveNodeSelector& selector)
-        throw (Exception);
-
-    bool scheduleOperandWrites(MoveNodeGroup& moves, int cycle)
-        throw (Exception);
+    bool scheduleOperandWrites(MoveNodeGroup& moves, int cycle);
 
     int scheduleResultReads(
-        MoveNodeGroup& moves, int cycle, bool bypass = false, 
-        bool bypassLate = false)
-        throw (Exception);
+        MoveNodeGroup& moves, int cycle, bool bypass = false,
+        bool bypassLate = false);
 
-    void scheduleMove(MoveNode& move, int cycle)
-        throw (Exception);
+    void scheduleMove(MoveNode& move, int cycle);
 
     void scheduleResultReadTempMoves(
-        MoveNode& resultMove, MoveNode& resultRead, int lastUse)
-        throw (Exception);
+        MoveNode& resultMove, MoveNode& resultRead, int lastUse);
 
     void scheduleInputOperandTempMoves(
-        MoveNode& resultMove, MoveNode& resultRead)
-        throw (Exception);
+        MoveNode& resultMove, MoveNode& resultRead);
 
     void scheduleRRTempMoves(
-        MoveNode& regToRegMove, MoveNode& firstMove, int lastUse)
-        throw (Exception);
+        MoveNode& regToRegMove, MoveNode& firstMove, int lastUse);
 
     bool scheduleOperand(MoveNode&, int cycle);
 

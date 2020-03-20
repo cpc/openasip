@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -65,23 +65,18 @@ public:
     virtual void handleBasicBlock(
         TTAProgram::BasicBlock& basicBlock,
         const TTAMachine::Machine& targetMachine,
-        TTAProgram::InstructionReferenceManager& irm, 
-        BasicBlockNode* bbn = NULL)
-        throw (Exception);
+        TTAProgram::InstructionReferenceManager& irm,
+        BasicBlockNode* bbn = NULL);
 
     virtual void executeDDGPass(
-        TTAProgram::BasicBlock& bb,
-        const TTAMachine::Machine& targetMachine, 
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
         TTAProgram::InstructionReferenceManager& irm,
-        std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn = NULL)
-        throw (Exception);
+        std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn = NULL);
 
     virtual bool executeLoopPass(
-        TTAProgram::BasicBlock& bb,
-        const TTAMachine::Machine& targetMachine, 
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
         TTAProgram::InstructionReferenceManager& irm,
-        std::vector<DDGPass*> ddgPasses, BasicBlockNode*bbn = NULL)
-        throw (Exception);
+        std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn = NULL);
 
     static void copyRMToBB(
         SimpleResourceManager& rm, TTAProgram::BasicBlock& bb, 

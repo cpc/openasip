@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -48,31 +48,23 @@ public:
     FunctionUnit* parentUnit() const;
 
     virtual int width() const;
-    void setWidth(int width)
-        throw (OutOfRange);
+    void setWidth(int width);
 
     virtual bool isTriggering() const = 0;
     virtual bool isOpcodeSetting() const = 0;
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState attribute key for bit width of the port.
     static const std::string OSKEY_WIDTH;
 
 protected:
-    BaseFUPort(
-        const std::string& name,
-        int width,
-        FunctionUnit& parent)
-        throw (InvalidName, ComponentAlreadyExists, OutOfRange);
-    BaseFUPort(const ObjectState* state, Unit& parent)
-        throw (ObjectStateLoadingException);
+    BaseFUPort(const std::string& name, int width, FunctionUnit& parent);
+    BaseFUPort(const ObjectState* state, Unit& parent);
 
 private:
-    void loadStateWithoutReferences(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    void loadStateWithoutReferences(const ObjectState* state);
 
     /// Bit width of the port.
     int width_;

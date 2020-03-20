@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -51,7 +51,7 @@ public:
     virtual ~TerminalAddress();
 
     virtual bool isAddress() const;
-    virtual Address address() const throw (WrongSubclass);
+    virtual Address address() const;
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
 private:

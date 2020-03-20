@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -83,9 +83,7 @@ FUEntry::hasImplementation() const {
  * @exception NotAvailable If there is no implementation of the entry.
  */
 FUImplementation&
-FUEntry::implementation() const
-    throw (NotAvailable) {
-
+FUEntry::implementation() const {
     if (!hasImplementation()) {
         const string procName = "FUEntry::implementation";
         throw NotAvailable(__FILE__, __LINE__, procName);
@@ -93,7 +91,6 @@ FUEntry::implementation() const
 
     return *implementation_;
 }
-
 
 /**
  * Sets the given implementation for the entry.
@@ -129,9 +126,7 @@ FUEntry::hasArchitecture() const {
  * @exception NotAvailable If the entry doesn't have architecture.
  */
 FUArchitecture&
-FUEntry::architecture() const 
-    throw (NotAvailable) {
-
+FUEntry::architecture() const {
     if (!hasArchitecture()) {
         const string procName = "FUEntry::architecture";
         throw NotAvailable(__FILE__, __LINE__, procName);
@@ -139,7 +134,6 @@ FUEntry::architecture() const
 
     return *architecture_;
 }
-
 
 /**
  * Sets architecture of the entry.

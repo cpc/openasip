@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -245,9 +245,7 @@ POMDisassembler::createImmediateAssignment(const Immediate& immediate) {
  * @exception WrongSubclass The terminal type was unknown.
  */
 DisassemblyElement*
-POMDisassembler::createTerminal(const Terminal& terminal)
-    throw(WrongSubclass, InstanceNotFound) {
-
+POMDisassembler::createTerminal(const Terminal& terminal) {
     assert (
         !terminal.isImmediate() &&
         "Should handle immediate as a special case due to depending on "
@@ -269,7 +267,6 @@ POMDisassembler::createTerminal(const Terminal& terminal)
     throw WrongSubclass(__FILE__, __LINE__, __func__,
                         "Unknown terminal type.");
 }
-
 
 /**
  * Creates disassembly of an immediate value.
@@ -303,9 +300,7 @@ POMDisassembler::createInlineImmediate(
  * @return Disassembly of the function unit terminal.
  */
 DisassemblyElement*
-POMDisassembler::createFUPort(const Terminal& terminal) 
-    throw (InstanceNotFound) {
-
+POMDisassembler::createFUPort(const Terminal& terminal) {
     const FunctionUnit* fu = &terminal.functionUnit();
 
     const TTAProgram::TerminalFUPort& fuTerm =
@@ -347,7 +342,6 @@ POMDisassembler::createFUPort(const Terminal& terminal)
     return new DisassemblyFUPort(fu->name(), terminal.port().name());
 }
 
-
 /**
  * Creates disassembly of a register.
  *
@@ -356,9 +350,7 @@ POMDisassembler::createFUPort(const Terminal& terminal)
  * @exception WrongSubclass The terminal was not register.
  */
 DisassemblyElement*
-POMDisassembler::createRegister(const Terminal& terminal)
-    throw(WrongSubclass) {
-
+POMDisassembler::createRegister(const Terminal& terminal) {
     const RegisterFile* rf = &terminal.registerFile();
 
     if (rf == NULL) {
@@ -401,7 +393,6 @@ POMDisassembler::createRegister(const Terminal& terminal)
     return new DisassemblyRegister(rf->name(), terminal.index());
 }
 
-
 /**
  * Creates disassembly of an immediate register.
  *
@@ -425,12 +416,12 @@ POMDisassembler::createImmediateRegister(const Terminal& terminal) {
 DisassemblyGuard*
 POMDisassembler::createGuard(const MoveGuard& moveGuard) {
 
-    Guard* guard = &moveGuard.guard();
+    const Guard* guard = &moveGuard.guard();
 
     DisassemblyElement* guarded = NULL;
 
     // Check if the guarded element is a fu port.
-    PortGuard* portGuard = dynamic_cast<PortGuard*>(guard);
+    const PortGuard* portGuard = dynamic_cast<const PortGuard*>(guard);
     if (portGuard != NULL) {
         string fuName = portGuard->port()->parentUnit()->name();
         string portName = portGuard->port()->name();
@@ -438,7 +429,8 @@ POMDisassembler::createGuard(const MoveGuard& moveGuard) {
     }
 
     // Check if the guarded element is a register.
-    RegisterGuard* registerGuard = dynamic_cast<RegisterGuard*>(guard);
+    const RegisterGuard* registerGuard =
+        dynamic_cast<const RegisterGuard*>(guard);
     if (registerGuard != NULL) {
 
         // Check if the register file is bool rf of a universal machine.
@@ -538,9 +530,7 @@ POMDisassembler::labelCount(const TTAProgram::Program& program, Word address) {
  * @exception OutOfRange The address or index is out of range.
  */
 std::string
-POMDisassembler::label(Word address, int index) const
-    throw (OutOfRange) {
-
+POMDisassembler::label(Word address, int index) const {
     return label(program_, address, index);
 }
 
@@ -554,9 +544,7 @@ POMDisassembler::label(Word address, int index) const
  */
 std::string
 POMDisassembler::label(
-    const TTAProgram::Program& program, Word address, int index)
-    throw (OutOfRange) {
-
+    const TTAProgram::Program& program, Word address, int index) {
     if (index == 0 && labelCount(program, address) == 1) {
         for (int i = 0; i < program.procedureCount(); i++) {
             if (program.procedure(i).startAddress().location() == address) {
@@ -684,7 +672,7 @@ POMDisassembler::disassemble(
         for (int i = 0; i < instruction.moveCount(); i++) {
 
             const Move& move = instruction.move(i);
-            Bus* bus = &move.bus();
+            const Bus* bus = &move.bus();
             string busName = move.bus().name();
             bool isUsed = false;
 
@@ -805,10 +793,8 @@ POMDisassembler::disassemble(
  * @exception Exception Can leak exceptions if the traversed program is
  * malformed, etc.
  */
-std::string 
-POMDisassembler::disassemble(const TTAProgram::Program& program, bool indices) 
-    throw (Exception) {
-    
+std::string
+POMDisassembler::disassemble(const TTAProgram::Program& program, bool indices) {
     std::stringstream stringStream;
 
     for (int procIndex = 0; procIndex < program.procedureCount(); 
@@ -828,10 +814,8 @@ POMDisassembler::disassemble(const TTAProgram::Program& program, bool indices)
  * @exception Exception Can leak exceptions if the traversed program is
  * malformed, etc.
  */
-std::string 
-POMDisassembler::disassemble(const TTAProgram::Procedure& proc, bool indices)
-    throw (Exception) {
-
+std::string
+POMDisassembler::disassemble(const TTAProgram::Procedure& proc, bool indices) {
     std::stringstream stringStream;
 
     const TTAProgram::Instruction* currentInstruction = NULL;

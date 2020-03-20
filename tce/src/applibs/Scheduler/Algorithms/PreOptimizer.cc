@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -69,11 +69,9 @@ PreOptimizer::PreOptimizer(InterPassData& data) : ProcedurePass(data),
  * @param program the program.
  * @param targetMachine targetmachine. Not used at all.
  */
-void 
+void
 PreOptimizer::handleProgram(
-    TTAProgram::Program& program,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
+    TTAProgram::Program& program, const TTAMachine::Machine& targetMachine) {
     ProgramPass::executeProcedurePass(program, targetMachine, *this);
 }
 
@@ -274,14 +272,14 @@ PreOptimizer::tryToRemoveGuardInversingOp(
     TTAProgram::Terminal& src1 = operand1.move().source();
     TTAProgram::Terminal& dst = resultMove.destination();
     if (!src1.equals(dst)) {
-        TTAProgram::Move* newMove = new TTAProgram::Move(
+        auto newMove = std::make_shared<TTAProgram::Move>(
             src1.copy(), dst.copy(), operand1.move().bus());
         
         TTAProgram::Instruction* newIns = new TTAProgram::Instruction;
         newIns->addMove(newMove);
         resultMove.parent().parent().insertAfter(
             resultMove.parent(), newIns);
-        MoveNode* newMN = new MoveNode(*newMove);
+        MoveNode* newMN = new MoveNode(newMove);
         ddg.addNode(*newMN, operand1);
         ddg.combineNodes(operand1, result, *newMN);
 
@@ -395,10 +393,7 @@ bool PreOptimizer::inverseGuardsOfHeads(
  */
 void
 PreOptimizer::handleProcedure(
-    TTAProgram::Procedure& procedure,
-    const TTAMachine::Machine& mach)
-    throw (Exception) {
-
+    TTAProgram::Procedure& procedure, const TTAMachine::Machine& mach) {
     // If procedure has too many instructions, may run out of memory.
     // so check the lowmem mode. in lowmem mode this optimiziation 
     // is disabled, so returns.
@@ -460,13 +455,9 @@ PreOptimizer::handleCFGDDG(
     }
 }
 
-
 void
 PreOptimizer::handleControlFlowGraph(
-    ControlFlowGraph& cfg,
-    const TTAMachine::Machine& mach)
-    throw (Exception) {
-
+    ControlFlowGraph& cfg, const TTAMachine::Machine& mach) {
     DataDependenceGraphBuilder ddgBuilder(ProcedurePass::interPassData());
     // only RAW register edges and operation edges. no mem edges, 
     // no anti-edges.

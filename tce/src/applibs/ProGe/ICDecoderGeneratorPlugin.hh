@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -108,17 +108,13 @@ public:
      * @exception InvalidData If the plugin is not compatible with the 
      *                        machine.
      */
-    virtual void verifyCompatibility() const
-        throw (InvalidData) = 0;
+    virtual void verifyCompatibility() const = 0;
 
     std::string pluginDescription() const;
     int recognizedParameterCount() const;
-    std::string recognizedParameter(int index) const
-        throw (OutOfRange);
-    std::string parameterDescription(const std::string& paramName) const
-        throw (IllegalParameters);
-    void setParameter(const std::string& name, const std::string& value)
-        throw (IllegalParameters);
+    std::string recognizedParameter(int index) const;
+    std::string parameterDescription(const std::string& paramName) const;
+    void setParameter(const std::string& name, const std::string& value);
 
     const TTAMachine::Machine& machine() const;
     const BinaryEncoding& bem() const;
@@ -130,8 +126,7 @@ protected:
         const std::string& name,
         const std::string& description);
     bool hasParameterSet(const std::string& name) const;
-    std::string parameterValue(const std::string& name) const
-        throw (KeyNotFound);
+    std::string parameterValue(const std::string& name) const;
 
 private:
     /// Map type for strings.

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -127,23 +127,17 @@ public:
     static bool createFile(const std::string& file);
     static bool removeFileOrDirectory(const std::string& path);
 
-    static void copy(const std::string& source, const std::string& target)
-        throw (IOException);
+    static void copy(const std::string& source, const std::string& target);
 
     static std::string findFileInSearchPaths(
-        const std::vector<std::string>& searchPaths,
-        const std::string& file)
-        throw (FileNotFound);
+        const std::vector<std::string>& searchPaths, const std::string& file);
 
     static std::vector<std::string> directoryContents(
-        const std::string& directory,
-        const bool absolutePaths = true)
-        throw (FileNotFound);
-        
+        const std::string& directory, const bool absolutePaths = true);
+
     static std::vector<std::string> directorySubTrees(
-        const std::string& directory)
-        throw (FileNotFound);
-        
+        const std::string& directory);
+
     static bool findFileInDirectoryTree(
         const Path& startDirectory,
         const std::string& fileName,
@@ -151,10 +145,7 @@ public:
 
     template <typename STLCONT>
     static bool findFromDirectory(
-        const std::string& regex,
-        const std::string& directory,
-        STLCONT& found)
-        throw (FileNotFound); 
+        const std::string& regex, const std::string& directory, STLCONT& found);
 
     template <typename STLCONT>
     static bool findFromDirectoryRecursive(

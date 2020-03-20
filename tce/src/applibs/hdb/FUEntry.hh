@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -52,13 +52,11 @@ public:
     virtual ~FUEntry();
 
     virtual bool hasImplementation() const;
-    FUImplementation& implementation() const
-        throw (NotAvailable);
+    FUImplementation& implementation() const;
     void setImplementation(FUImplementation* implementation);
     
     virtual bool hasArchitecture() const;
-    FUArchitecture& architecture() const
-        throw (NotAvailable);
+    FUArchitecture& architecture() const;
     void setArchitecture(FUArchitecture* architecture);
 
 private:

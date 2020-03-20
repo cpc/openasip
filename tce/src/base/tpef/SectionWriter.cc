@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -127,10 +127,7 @@ SectionWriter::finalizeBinary(
  */
 const SectionWriter*
 SectionWriter::findSectionWriter(
-    const Section::SectionType type,
-    const BinaryWriter* bWriter)
-    throw (InstanceNotFound) {
-
+    const Section::SectionType type, const BinaryWriter* bWriter) {
     MapKey key(type, bWriter);
 
     if (prototypes_ == NULL ||

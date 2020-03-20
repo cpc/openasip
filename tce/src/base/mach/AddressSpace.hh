@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -51,26 +51,18 @@ class Machine;
 class AddressSpace : public Component {
 public:
     AddressSpace(
-        const std::string& name,
-        int width,
-        ULongWord minAddress,
-        ULongWord maxAddress,
-        Machine& owner)
-        throw (ComponentAlreadyExists, OutOfRange, InvalidName);
-    AddressSpace(const ObjectState* state, Machine& owner)
-        throw (ObjectStateLoadingException);
+        const std::string& name, int width, ULongWord minAddress,
+        ULongWord maxAddress, Machine& owner);
+    AddressSpace(const ObjectState* state, Machine& owner);
     virtual ~AddressSpace();
 
     virtual int width() const;
     virtual ULongWord start() const;
     virtual ULongWord end() const;
 
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
-    virtual void setWidth(int width)
-        throw (OutOfRange);
-    virtual void setAddressBounds(ULongWord start, ULongWord end)
-        throw (OutOfRange);
+    virtual void setName(const std::string& name);
+    virtual void setWidth(int width);
+    virtual void setAddressBounds(ULongWord start, ULongWord end);
 
     virtual void addNumericalId(unsigned id);
     virtual bool hasNumericalId(unsigned id) const;
@@ -79,13 +71,11 @@ public:
     virtual void setShared(bool shared) { shared_ = shared; }
     virtual bool isShared() const { return shared_; }
 
-    virtual void setMachine(Machine& mach)
-        throw (ComponentAlreadyExists);
+    virtual void setMachine(Machine& mach);
     virtual void unsetMachine();
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for AddressSpace.
     static const std::string OSNAME_ADDRESS_SPACE;

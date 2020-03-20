@@ -22,7 +22,7 @@ echo "### LLVM build mode: "$LLVM_BUILD_MODE
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 patch_dir=$script_dir/../patches
-llvm_co_dir=llvm-trunk
+llvm_co_dir=trunk
 
 mkdir -p $build_dir
 cd $build_dir
@@ -40,27 +40,15 @@ function fetch_llvm {
 
     if ! test -d $llvm_co_dir;
     then
-        svn -q $REV_TO_FETCH co http://llvm.org/svn/llvm-project/llvm/trunk $llvm_co_dir \
-            || eexit "SVN co $REV_TO_FETCH from LLVM failed"
+        git clone https://github.com/llvm/llvm-project.git $llvm_co_dir\
+	    || eexit "Git clone $REV_TOFETCH from llvm failed"
     else
-        svn up $REV_TO_FETCH $llvm_co_dir \
-            || eexit "SVN update $REV_TO_FETCH of LLVM failed."
-        # Wipe out possible previously applied patches.
-        svn revert -R $llvm_co_dir
+	      # Discard all differences with release/9.x branch
+	      cd $llvm_co_dir;
+          git reset --hard HEAD || eexit "reseting previous changes failed"
+	      git pull || eexit "error doing a git pull"
+	      cd ..;
     fi
-}
-
-function fetch_clang {
-    cd $llvm_co_dir/tools
-    if ! test -d clang;
-    then
-        svn -q co http://llvm.org/svn/llvm-project/cfe/trunk clang \
-            || eexit "SVN co from Clang failed"
-    else
-        svn up clang || eexit "SVN update of Clang failed."
-        svn revert -R clang
-    fi
-    cd ../..
 }
 
 function try_patch {
@@ -71,26 +59,31 @@ function try_patch {
 
 function apply_patches {
     cd $llvm_co_dir
-    try_patch $patch_dir/llvm-7.0-custom-vector-extension.patch
+    try_patch $patch_dir/llvm-9-fix-load-lowering.patch
+    try_patch $patch_dir/llvm-10-custom-vector-extension.patch
+    try_patch $patch_dir/llvm-9-vect-datalayout.patch
+    try_patch $patch_dir/llvm-9-SPIR-address-space-numbers.patch
     cd ..
 }
-
 fetch_llvm
-fetch_clang
 apply_patches
 
 cd $llvm_co_dir
 mkdir -p build
 cd build
 
-cmake -G "Unix Makefiles" \
+# -DLLVM_ENABLE_Z3_SOLVER=OFF due to the issue described in
+# https://reviews.llvm.org/D54978#1390652
+# You might also need to delete libz3-dev.
+# This appears at least with Ubuntu 18.04.
+cmake ../llvm/ -DLLVM_ENABLE_PROJECTS=clang \
+    -G "Unix Makefiles" \
     $LLVM_BUILD_MODE\
     -DCMAKE_INSTALL_PREFIX=$TARGET_DIR \
     -DLLVM_LINK_LLVM_DYLIB=TRUE \
     -DLLVM_ENABLE_RTTI=TRUE \
-    .. \
+    -DLLVM_ENABLE_Z3_SOLVER=OFF \
     || eexit "Configuring LLVM/Clang failed."
-make -j12 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 \
+make -j12 CXXFLAGS="-std=c++14" REQUIRES_RTTI=1 \
     || eexit "Building LLVM/Clang failed."
 make install || eexit "Installation of LLVM/Clang failed."
-

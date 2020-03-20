@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -181,9 +181,7 @@ Netlist::isEmpty() const {
  * @exception InstanceNotFound If the netlist is empty.
  */
 NetlistBlock&
-Netlist::topLevelBlock() const
-    throw (InstanceNotFound) {
-
+Netlist::topLevelBlock() const {
     if (isEmpty()) {
         throw InstanceNotFound(__FILE__, __LINE__, __func__);
     }
@@ -199,7 +197,6 @@ Netlist::topLevelBlock() const
 
     return *block;
 }
-
 
 /**
  * Maps the given descriptor for the given port.
@@ -309,9 +306,7 @@ Netlist::parameterCount() const {
  *                       the number of parameters.
  */
 Netlist::Parameter
-Netlist::parameter(int index) const
-    throw (OutOfRange) {
-
+Netlist::parameter(int index) const {
     if (index < 0 || index >= parameterCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }

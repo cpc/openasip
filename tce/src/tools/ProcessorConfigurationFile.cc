@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -104,12 +104,9 @@ ProcessorConfigurationFile::setPCFDirectory(const std::string& directory) {
  * @exception KeyNotFound If architecture is not found.
  */
 string
-ProcessorConfigurationFile::architectureName()
-    throw (KeyNotFound) {
-
+ProcessorConfigurationFile::architectureName() {
     return realPath(value(ARCHITECTURE));
 }
-
 
 /**
  * Returns the size of the architecture.
@@ -118,9 +115,7 @@ ProcessorConfigurationFile::architectureName()
  * @exception KeyNotFound If architecture size is not found.
  */
 unsigned int
-ProcessorConfigurationFile::architectureSize()
-    throw (KeyNotFound) {
-
+ProcessorConfigurationFile::architectureSize() {
     return intValue(ARCHITECTURE_SIZE);
 }
 
@@ -131,9 +126,7 @@ ProcessorConfigurationFile::architectureSize()
  * @exception KeyNotFound If architecture modified time is not found.
  */
 unsigned int
-ProcessorConfigurationFile::architectureModified()
-    throw (KeyNotFound) {
-
+ProcessorConfigurationFile::architectureModified() {
     return timeStampValue(ARCHITECTURE_MODIFIED);
 }
 
@@ -144,9 +137,7 @@ ProcessorConfigurationFile::architectureModified()
  * @exception KeyNotFound If implementation is not found.
  */
 string
-ProcessorConfigurationFile::implementationName()
-    throw (KeyNotFound) {
-
+ProcessorConfigurationFile::implementationName() {
     return realPath(value(IMPLEMENTATION));
 }
 
@@ -157,9 +148,7 @@ ProcessorConfigurationFile::implementationName()
  * @exception KeyNotFound If implementation size is not found.
  */
 unsigned int
-ProcessorConfigurationFile::implementationSize()
-    throw (KeyNotFound) {
-
+ProcessorConfigurationFile::implementationSize() {
     return intValue(IMPLEMENTATION_SIZE);
 }
 
@@ -170,9 +159,7 @@ ProcessorConfigurationFile::implementationSize()
  * @exception KeyNotFound If implementation modified timestamp is not found.
  */
 unsigned int
-ProcessorConfigurationFile::implementationModified()
-    throw (KeyNotFound) {
-
+ProcessorConfigurationFile::implementationModified() {
     return timeStampValue(IMPLEMENTATION_MODIFIED);
 }
 
@@ -183,9 +170,7 @@ ProcessorConfigurationFile::implementationModified()
  * @exception KeyNotFound If encoding map is not found.
  */
 string
-ProcessorConfigurationFile::encodingMapName()
-    throw (KeyNotFound) {
-
+ProcessorConfigurationFile::encodingMapName() {
     return realPath(value(ENCODING_MAP));
 }
 
@@ -196,9 +181,7 @@ ProcessorConfigurationFile::encodingMapName()
  * @exception KeyNotFound If encoding map size is not found.
  */
 unsigned int
-ProcessorConfigurationFile::encodingMapSize()
-    throw (KeyNotFound) {
-
+ProcessorConfigurationFile::encodingMapSize() {
     return intValue(ENCODING_MAP_SIZE);
 }
 
@@ -209,9 +192,7 @@ ProcessorConfigurationFile::encodingMapSize()
  * @exception KeyNotFound If timestamp is not found.
  */
 unsigned int
-ProcessorConfigurationFile::encodingMapModified()
-    throw (KeyNotFound) {
-
+ProcessorConfigurationFile::encodingMapModified() {
     return timeStampValue(ENCODING_MAP_MODIFIED);
 }
 

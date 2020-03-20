@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -916,8 +916,7 @@ struct AssemblerParser : public grammar<AssemblerParser>
 public:
     bool compile(std::string& asmCode) const;
 
-    void finalize(bool littleEndian) const
-        throw (CompileError);
+    void finalize(bool littleEndian) const;
 
     void cleanup();
 

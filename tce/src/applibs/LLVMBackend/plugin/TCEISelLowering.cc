@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2013 Tampere University of Technology.
+    Copyright (c) 2002-2013 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -82,6 +82,7 @@
 #define DEFAULT_SIZE 4
 #define DEFAULT_REG_CLASS TCE::R32IRegsRegClass
 #endif
+
 
 
 using namespace llvm;
@@ -239,9 +240,16 @@ TCETargetLowering::LowerFormalArguments(
                 } else {
                     ISD::LoadExtType LoadOp = ISD::SEXTLOAD;
                     
+                    // TODO: WHAT IS THIS??
+                    // TCE IS NO LONGER ALWAYS BIG-ENDIAN!
                     // TCE is big endian, add an offset based on the ObjectVT.
+#ifdef LLVM_OLDER_THAN_10
                     unsigned Offset = DEFAULT_SIZE - std::max(
                         1U, ObjectVT.getSizeInBits()/8);
+#else
+                    unsigned Offset = DEFAULT_SIZE - std::max(
+                        1UL, ObjectVT.getSizeInBits().getFixedSize()/8);
+#endif
 #ifdef LLVM_OLDER_THAN_3_7
                     FIPtr = DAG.getNode(
                         ISD::ADD, dl, DEFAULT_TYPE, FIPtr,
@@ -764,6 +772,37 @@ TCETargetLowering::TCETargetLowering(
 #endif
 #endif
 
+    if (!tm_.has8bitLoads()) {
+        if (Application::verboseLevel() > 0) {
+            std::cout << "No 8-bit loads in the processor. "
+                      << "Emulating 8-bit loads with wider loads. "
+                      << "This may be very slow if the program performs "
+                      << "lots of 8-bit loads." << std::endl;
+        }
+        setLoadExtAction(ISD::EXTLOAD, MVT::i32, MVT::i8, Custom);
+        setLoadExtAction(ISD::SEXTLOAD, MVT::i32, MVT::i8, Custom);
+        setLoadExtAction(ISD::ZEXTLOAD, MVT::i32, MVT::i8, Custom);
+        setOperationAction(ISD::LOAD, MVT::i8, Custom);
+        setOperationAction(ISD::LOAD, MVT::i1, Custom);
+
+        setLoadExtAction(ISD::EXTLOAD, MVT::i32, MVT::i1, Custom);
+        setLoadExtAction(ISD::SEXTLOAD, MVT::i32, MVT::i1, Custom);
+        setLoadExtAction(ISD::ZEXTLOAD, MVT::i32, MVT::i1, Custom);
+    }
+
+    if (!tm_.has16bitLoads()) {
+        if (Application::verboseLevel() > 0) {
+            std::cout << "No 16-bit loads in the processor. "
+                      << "Emulating 16-bit loads with wider loads. "
+                      << "This may be very slow if the program performs "
+                      << "lots of 16-bit loads." << std::endl;
+        }
+        setLoadExtAction(ISD::EXTLOAD, MVT::i32, MVT::i16, Custom);
+        setLoadExtAction(ISD::SEXTLOAD, MVT::i32, MVT::i16, Custom);
+        setLoadExtAction(ISD::ZEXTLOAD, MVT::i32, MVT::i16, Custom);
+        setOperationAction(ISD::LOAD, MVT::i16, Custom);
+    }
+
     setOperationAction(ISD::ADDE, MVT::i32, Expand);
     setOperationAction(ISD::ADDC, MVT::i32, Expand);
     setOperationAction(ISD::ADDE, MVT::i16, Expand);
@@ -812,6 +851,15 @@ TCETargetLowering::TCETargetLowering(
     if (Application::verboseLevel() > 0) {
         std::cerr << std::endl;
     }
+
+    auto customLegalizedOps = tm_.customLegalizedOperations();
+    for (auto i : *customLegalizedOps) {
+        unsigned nodetype = i.first;
+        llvm::MVT::SimpleValueType valuetype = i.second;
+        llvm::EVT evt(valuetype);
+        setOperationAction(nodetype, valuetype, Custom);
+    }
+
 #ifdef LLVM_OLDER_THAN_3_7
     computeRegisterProperties();
 #else
@@ -996,6 +1044,85 @@ TCETargetLowering::getSetCCResultType(
     return VT.changeVectorElementTypeToInteger();
 }
 
+std::pair<int, TCEString> TCETargetLowering::getConstShiftNodeAndTCEOP(SDValue op) const {
+    switch(op.getOpcode()) {
+    case ISD::SRA:
+        return std::make_pair(TCEISD::SRA_Const, TCEString("SHR"));
+    case ISD::SRL:
+        return std::make_pair(TCEISD::SRL_Const, TCEString("SHRU"));
+    case ISD::SHL:
+        return std::make_pair(TCEISD::SHL_Const, TCEString("SHL"));
+    default:
+        return std::make_pair(0, TCEString("unknown op"));
+    }
+}
+
+SDValue
+TCETargetLowering::LowerShift(SDValue op, SelectionDAG& dag) const {
+
+    auto shiftOpcodes = getConstShiftNodeAndTCEOP(op);
+    int shiftOpcode = shiftOpcodes.first;
+    assert(shiftOpcode && "Shift opcide not supported, should not be here");
+
+    SDValue R = op.getOperand(0);
+    SDValue Amt = op.getOperand(1);
+    const DebugLoc& dl = op.getDebugLoc();
+    std::set<unsigned long> supportedShifts;
+
+
+    // find all the constant shifts
+    for (int i = 1; i < 32; i++) {
+        TCEString opName = shiftOpcodes.second; opName << i << "_32";
+        if (tm_.hasOperation(opName)) {
+            supportedShifts.insert(i);
+        }
+    }
+
+    // add also 1-bit shift for add
+    // we should ALWAYS have an add but - lets check to be sure ;)
+    if (tm_.hasOperation("ADD")) {
+        supportedShifts.insert(1);
+    }
+
+    if (Amt.getOpcode() == ISD::Constant) {
+        unsigned long amount = op.getConstantOperandVal(1);
+        // if has no correct-width shift, need to break down into multiple.
+        if (supportedShifts.find(amount) == supportedShifts.end()) {
+            // find the biggest suitable shift.
+            for (auto i = supportedShifts.rbegin();
+                 i != supportedShifts.rend(); i++) {
+                if (amount > *i) {
+                    auto shiftVal =
+                        dag.getConstant(*i, op, Amt.getValueType());
+                    auto remVal =
+                        dag.getConstant(amount - *i, op, Amt.getValueType());
+                    SDValue remaining = dag.getNode(
+                        op.getOpcode(), op, op.getValueType(), R, remVal);
+                    SDValue lowered = LowerShift(remaining, dag);
+                    SDValue shift = dag.getNode(
+                        shiftOpcode, op, op.getValueType(), lowered, shiftVal);
+                    return shift;
+                }
+            }
+        }
+        return op;
+
+    } else {
+        unsigned Opc = op.getOpcode();
+        switch(Opc) {
+        case ISD::SRA:
+            return ExpandLibCall(RTLIB::SRA_I32, op.getNode(), true, dag);
+        case ISD::SRL:
+            return ExpandLibCall(RTLIB::SRL_I32, op.getNode(), false, dag);
+        case ISD::SHL:
+            return ExpandLibCall(RTLIB::SHL_I32, op.getNode(), false, dag);
+        default:
+            std::cerr << "Invalid dynamic shift opcode" << std::endl;
+        }
+    }
+    return op;
+}
+
 /**
  * Handles custom operation lowerings.
  */
@@ -1007,6 +1134,10 @@ TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) const {
     case ISD::BlockAddress: return LowerBlockAddress(op, dag);
     case ISD::VASTART: return LowerVASTART(op, dag);
     case ISD::ConstantPool: return LowerCONSTANTPOOL(op, dag);    
+    case ISD::SHL:
+    case ISD::SRA:
+    case ISD::SRL: return LowerShift(op, dag);
+    case ISD::LOAD: return lowerExtOrBoolLoad(op, dag);
     case ISD::DYNAMIC_STACKALLOC: {
         assert(false && "Dynamic stack allocation not yet implemented.");
     }
@@ -1108,6 +1239,7 @@ TCETargetLowering::allowsUnalignedMemoryAccesses(EVT, unsigned, bool*) const {
 
 #else
 
+#ifdef LLVM_OLDER_THAN_9
 bool
 TCETargetLowering::allowsMisalignedMemoryAccesses(EVT, unsigned, unsigned, bool*) const {
     /// @todo This commented area and the whole function is probably not
@@ -1119,4 +1251,345 @@ TCETargetLowering::allowsMisalignedMemoryAccesses(EVT, unsigned, unsigned, bool*
     return false;
 }
 
+#else
+
+bool
+    TCETargetLowering::allowsMisalignedMemoryAccesses(EVT, unsigned, unsigned, MachineMemOperand::Flags, bool*) const {
+    /// @todo This commented area and the whole function is probably not
+    /// needed anymore. The base class version returns false as default.
+    return false;
+}
+
 #endif
+#endif
+
+// TODO: This is copypaste from legalizeDAG. Because the
+// routine in legalizeDAG is not public
+SDValue
+    TCETargetLowering::ExpandLibCall(RTLIB::Libcall LC, SDNode *Node,
+                                     bool isSigned, SelectionDAG &DAG) const {
+
+  TargetLowering::ArgListTy Args;
+  TargetLowering::ArgListEntry Entry;
+  for (const SDValue &Op : Node->op_values()) {
+    EVT ArgVT = Op.getValueType();
+    Type *ArgTy = ArgVT.getTypeForEVT(*DAG.getContext());
+    Entry.Node = Op;
+    Entry.Ty = ArgTy;
+    Entry.IsSExt = shouldSignExtendTypeInLibCall(ArgVT, isSigned);
+    Entry.IsZExt = !shouldSignExtendTypeInLibCall(ArgVT, isSigned);
+    Args.push_back(Entry);
+  }
+  SDValue Callee = DAG.getExternalSymbol(getLibcallName(LC),
+                                         getPointerTy(DAG.getDataLayout(),0));
+
+  EVT RetVT = Node->getValueType(0);
+  Type *RetTy = RetVT.getTypeForEVT(*DAG.getContext());
+
+  // By default, the input chain to this libcall is the entry node of the
+  // function. If the libcall is going to be emitted as a tail call then
+  // TLI.isUsedByReturnOnly will change it to the right chain if the return
+  // node which is being folded has a non-entry input chain.
+  SDValue InChain = DAG.getEntryNode();
+
+  // isTailCall may be true since the callee does not reference caller stack
+  // frame. Check if it's in the right position and that the return types match.
+  SDValue TCChain = InChain;
+#ifdef LLVM_OLDER_THAN_6_0
+  const Function &F = *DAG.getMachineFunction().getFunction();
+#else
+  const Function &F = DAG.getMachineFunction().getFunction();
+#endif
+  bool isTailCall =
+      isInTailCallPosition(DAG, Node, TCChain) &&
+      (RetTy == F.getReturnType() || F.getReturnType()->isVoidTy());
+  if (isTailCall)
+    InChain = TCChain;
+
+  TargetLowering::CallLoweringInfo CLI(DAG);
+  bool signExtend = shouldSignExtendTypeInLibCall(RetVT, isSigned);
+  CLI.setDebugLoc(SDLoc(Node))
+      .setChain(InChain)
+      .setLibCallee(getLibcallCallingConv(LC), RetTy, Callee,
+                    std::move(Args))
+      .setTailCall(isTailCall)
+      .setSExtResult(signExtend)
+      .setZExtResult(!signExtend)
+      .setIsPostTypeLegalization(true);
+
+  std::pair<SDValue, SDValue> CallInfo = LowerCallTo(CLI);
+
+  if (!CallInfo.second.getNode()) {
+    // It's a tailcall, return the chain (which is the DAG root).
+    return DAG.getRoot();
+  }
+
+  return CallInfo.first;
+}
+
+void TCETargetLowering::ReplaceNodeResults(
+    SDNode* node, SmallVectorImpl<SDValue>& Results,
+    SelectionDAG& DAG) const {
+    auto fnName = DAG.getMachineFunction().getName().str();
+
+    SDValue shiftedVal;
+    SDValue truncAnd;
+    if (node->getOpcode() == ISD::LOAD) {
+        auto lsdn = dyn_cast<LoadSDNode>(node);
+        if (lsdn == nullptr) {
+            std::cerr << "Error: null loadsdnde!" << std::endl;
+            return;
+        }
+
+        if (lsdn->getAlignment() < 2 &&
+            lsdn->getMemoryVT() != MVT::i8 && lsdn->getMemoryVT() != MVT::i1) {
+            assert(0 && "Cannot lower 16-bit memory op with only one byte alignment");
+        }
+
+        auto chain = node->getOperand(0);
+
+        SDValue load;
+        SDValue lowBits;
+        if (lsdn->getAlignment() >= 4) {
+#ifdef LLVM_OLDER_THAN_3_9
+            load = DAG.getLoad(
+                MVT::i32, node, chain, lsdn->getBasePtr(),
+                MachinePointerInfo(),
+                false, false, false, 0);
+#else
+            load = DAG.getLoad(
+            MVT::i32, node, chain, lsdn->getBasePtr(), MachinePointerInfo());
+#endif
+        } else {
+            auto alignedAddr =
+                DAG.getNode(
+                    ISD::AND, node, MVT::i32, lsdn->getBasePtr(),
+                    DAG.getConstant(-4l, node, MVT::i32));
+
+            auto lowBytes = DAG.getNode(
+                ISD::AND, node, MVT::i32, lsdn->getBasePtr(),
+                DAG.getConstant(3l, node, MVT::i32));
+
+            lowBits = DAG.getNode(
+                ISD::SHL, node, MVT::i32, lowBytes,
+                DAG.getConstant(3l, node, MVT::i32));
+
+#ifdef LLVM_OLDER_THAN_3_9
+            load = DAG.getLoad(
+                MVT::i32, node, chain, alignedAddr, MachinePointerInfo(),
+                false, false, false, 0);
+#else
+            load = DAG.getLoad(
+                MVT::i32, node, chain, alignedAddr, MachinePointerInfo());
+#endif
+        }
+
+        // TODO: breaks with 64 bits!
+        // TODO: also breaks with 16-bit floats?
+        MVT vt = node->getSimpleValueType(0);
+        if (vt == MVT::i32) {
+            assert(0 && "Result i32? this should be extload?");
+            Results.push_back(SDValue(load));
+            Results.push_back(SDValue(load.getNode(),1));
+            return;
+        }
+
+        SDValue finalVal;
+        if (lsdn->getExtensionType() == ISD::ZEXTLOAD) {
+            shiftedVal = lsdn->getAlignment() < 4 ?
+                DAG.getNode(ISD::SRA, node, MVT::i32, load, lowBits):
+                load;
+
+            if (lsdn->getMemoryVT() == MVT::i1) {
+                finalVal = DAG.getNode(
+                    ISD::AND, node, MVT::i32, shiftedVal,
+                    DAG.getConstant(1l, node, MVT::i32));
+            } else if (lsdn->getMemoryVT() == MVT::i8) {
+                finalVal = DAG.getNode(
+                    ISD::AND, node, MVT::i32, shiftedVal,
+                    DAG.getConstant(255l, node, MVT::i32));
+            } else {
+                // TODO: 64-bit port needs to add option for 32-bit here.
+                assert(0 && "Wrong memory vt in zextload!");
+            }
+        } else if (lsdn->getExtensionType() == ISD::SEXTLOAD) {
+            if (lsdn->getMemoryVT() == MVT::i1) {
+                auto shiftsLeft =
+                    DAG.getNode(ISD::SUB, node, MVT::i32,
+                                DAG.getConstant(31l, node, MVT::i32),lowBits);
+                auto shiftUp = DAG.getNode(
+                    ISD::SHL, node, MVT::i32, load, shiftsLeft);
+                finalVal = DAG.getNode(
+                    ISD::SRA, node, MVT::i32, shiftUp,
+                    DAG.getConstant(31l, node, MVT::i32));
+            } else if (lsdn->getMemoryVT() == MVT::i8) {
+                auto shiftsLeft =
+                    DAG.getNode(ISD::SUB, node, MVT::i32,
+                                DAG.getConstant(24l, node, MVT::i32),lowBits);
+                auto shiftUp = DAG.getNode(
+                    ISD::SHL, node, MVT::i32, load, shiftsLeft);
+                finalVal = DAG.getNode(
+                    ISD::SRA, node, MVT::i32, shiftUp,
+                    DAG.getConstant(24l, node, MVT::i32));
+            } else {
+                // TODO: 64-bit port needs to add option for 32-bit here.
+                assert(0 && "Wrong memory vt in sextload!");
+            }
+        } else { // anyext/noext.
+            finalVal = lsdn->getAlignment() < 4 ?
+                DAG.getNode(ISD::SRA, node, MVT::i32, load, lowBits):
+                load;
+        }
+
+        SDValue rv;
+        if (vt == MVT::i16) {
+            rv = DAG.getAnyExtOrTrunc(finalVal, node, MVT::i16);
+        } else if (vt == MVT::i8) {
+            rv = DAG.getAnyExtOrTrunc(finalVal, node, MVT::i8);
+        } else if (vt == MVT::i1) {
+            rv = DAG.getAnyExtOrTrunc(finalVal, node, MVT::i1);
+        } else {
+            assert(0 && "Wrong vt in load lowering!");
+        }
+
+        Results.push_back(rv);
+        Results.push_back(SDValue(load.getNode(),1));
+    } else {
+        assert(false && "ReplaceNodeResults not load!");
+    }
+}
+
+/**
+ * Lowers extension load of 8- or 16-bit load to 32-bit little-endian load.
+ */
+SDValue TCETargetLowering::lowerExtOrBoolLoad(
+    SDValue op,
+    SelectionDAG& DAG) const {
+
+    auto lsdn = dyn_cast<LoadSDNode>(op.getNode());
+    if (lsdn == nullptr) {
+        assert(false && "Not a lodsdnode on LowerExtLoad!");
+    }
+
+    auto chain = op.getOperand(0);
+    SDValue alignedAddr;
+    SDValue lowBits;
+
+    if (lsdn->getAlignment() >= 4) {
+        alignedAddr = lsdn->getBasePtr();
+        lowBits = DAG.getConstant(0l, op, MVT::i32);
+    } else {
+        alignedAddr = DAG.getNode(
+            ISD::AND, op, MVT::i32, lsdn->getBasePtr(),
+            DAG.getConstant(-4l, op, MVT::i32));
+
+        auto lowBytes = DAG.getNode(
+            ISD::AND, op, MVT::i32, lsdn->getBasePtr(),
+            DAG.getConstant(3l, op, MVT::i32));
+
+        lowBits = DAG.getNode(
+            ISD::SHL, op, MVT::i32, lowBytes,
+            DAG.getConstant(3l, op, MVT::i32));
+    }
+
+#ifdef LLVM_OLDER_THAN_3_9
+    auto load = DAG.getLoad(
+        MVT::i32, op, chain, alignedAddr, MachinePointerInfo(),
+        false, false, false, 0);
+#else
+    auto load = DAG.getLoad(
+        MVT::i32, op, chain, alignedAddr, MachinePointerInfo());
+#endif
+
+    // this is little-endian code. big endian needs different.
+    if (lsdn->getExtensionType() == ISD::ZEXTLOAD) {
+        auto shiftedValue = lsdn->getAlignment() < 4 ?
+            DAG.getNode(ISD::SRA, op, MVT::i32, load, lowBits) :
+            load;
+        if (lsdn->getMemoryVT() == MVT::i16) {
+            assert(lsdn->getAlignment() >= 2 &&
+                   "Cannot (yet?) emulate a 16-bit load which has 1-byte alignment. "
+                   " 16-bit memory operations needed to compile this code." );
+            std::cerr << "\t\tSource is 16 bits." << std::endl;
+            auto zext = DAG.getNode(
+                ISD::AND, op, MVT::i32, shiftedValue,
+                DAG.getConstant(65535l, op, MVT::i32));
+            return zext;
+        } else if (lsdn->getMemoryVT() == MVT::i8) {
+            auto zext = DAG.getNode(
+                ISD::AND, op, MVT::i32, shiftedValue,
+                DAG.getConstant(255l, op, MVT::i32));
+            return zext;
+        } else if (lsdn->getMemoryVT() == MVT::i1) {
+            auto zext = DAG.getNode(
+                ISD::AND, op, MVT::i32, shiftedValue,
+                DAG.getConstant(1l, op, MVT::i32));
+            return zext;
+        } else {
+            assert(false && "Unknown data type on LowerSExtLoad!");
+        }
+    }
+    if (lsdn->getExtensionType() == ISD::SEXTLOAD) {
+
+        // shift left to get it to upper bits, then arithmetic right.
+        if (lsdn->getMemoryVT() == MVT::i16) {
+            auto shiftsLeft = lsdn->getAlignment() < 4 ?
+                DAG.getNode(ISD::SUB, op, MVT::i32,
+                            DAG.getConstant(16l, op, MVT::i32),
+                            lowBits) :
+                DAG.getConstant(16l, op, MVT::i32);
+            auto shiftUp = DAG.getNode(
+                ISD::SHL, op, MVT::i32, load, shiftsLeft);
+            auto shiftDown = DAG.getNode(
+                ISD::SRA, op, MVT::i32, shiftUp,
+                DAG.getConstant(16l, op, MVT::i32));
+            return shiftDown;
+        } else if (lsdn->getMemoryVT() == MVT::i8) {
+            auto shiftsLeft = lsdn->getAlignment() < 4 ?
+                DAG.getNode(ISD::SUB, op, MVT::i32,
+                            DAG.getConstant(24l, op, MVT::i32),
+                            lowBits) :
+                DAG.getConstant(24l, op, MVT::i32);
+            auto shiftUp =
+                DAG.getNode(ISD::SHL, op, MVT::i32, load, shiftsLeft);
+            auto shiftDown = DAG.getNode(
+                ISD::SRA, op, MVT::i32, shiftUp,
+                DAG.getConstant(24l, op, MVT::i32));
+            return shiftDown;
+        } else if (lsdn->getMemoryVT() == MVT::i1) {
+            auto shiftsLeft = lsdn->getAlignment() < 4 ?
+                DAG.getNode(ISD::SUB, op, MVT::i32,
+                            DAG.getConstant(31l, op, MVT::i32),
+                            lowBits) :
+                DAG.getConstant(31l, op, MVT::i32);
+
+            auto shiftUp =
+                DAG.getNode(ISD::SHL, op, MVT::i32, load, shiftsLeft);
+            auto shiftDown = DAG.getNode(
+                ISD::SRA, op, MVT::i32, shiftUp,
+                DAG.getConstant(31l, op, MVT::i32));
+            return shiftDown;
+        } else {
+            assert(false && "Unknown data type on Lower(Z)ExtLoad!");
+        }
+    }
+
+    // anyext?
+    if (lsdn->getExtensionType() == ISD::EXTLOAD) {
+        auto shiftedValue = lsdn->getAlignment() < 4 ?
+            DAG.getNode(ISD::SRA, op, MVT::i32, load, lowBits) :
+            load;
+        auto shiftDown = DAG.getNode(ISD::SRA, op, MVT::i32, load, lowBits);
+        return shiftDown;
+    } else {
+        // normal, not-extload.
+        MVT vt = op->getSimpleValueType(0);
+        if  (vt == MVT::i1 && lsdn->getMemoryVT() == MVT::i1) {
+            SDValue trunc = DAG.getAnyExtOrTrunc(load, op, MVT::i1);
+            return trunc;
+        }
+
+        assert(false && "Should not be here, non-ext-load");
+    }
+    return SDValue();
+}

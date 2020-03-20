@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -68,7 +68,7 @@ public:
     bool canFixIntRegs(const TTAMachine::Machine& mach) const;
     bool fixIntRegs(TTAMachine::Machine& mach) const;
 private:
-    typedef std::pair<TTAMachine::RegisterFile*, int> Register;
+    typedef std::pair<const TTAMachine::RegisterFile*, int> Register;
     void findGuardRegisters(
         const TTAMachine::Machine& mach, 
         std::set<Register>& registers,

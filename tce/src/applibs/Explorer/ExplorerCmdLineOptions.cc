@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -292,9 +292,7 @@ ExplorerCmdLineOptions::testApplicationDirectoryCount() const {
  *                       the number of test directories given as parameter.
  */
 std::string
-ExplorerCmdLineOptions::testApplicationDirectory(int index) const
-    throw (OutOfRange) {
-
+ExplorerCmdLineOptions::testApplicationDirectory(int index) const {
     if (index < 0 || index >= testApplicationDirectoryCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -320,10 +318,8 @@ ExplorerCmdLineOptions::explorerPluginParameterCount() const {
  * @exception OutOfRange If the given index is negative or greater than
  *                       the number of parameters given to the explorer plugin.
  */
-std::string 
-ExplorerCmdLineOptions::explorerPluginParameter(int index) const
-    throw (OutOfRange) {
-
+std::string
+ExplorerCmdLineOptions::explorerPluginParameter(int index) const {
     if (index < 0 || index >= explorerPluginParameterCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -404,9 +400,7 @@ ExplorerCmdLineOptions::numberOfConfigurationsToWrite() const {
  *                       the number configurations.
  */
 RowID
-ExplorerCmdLineOptions::configurationToWrite(int index) const
-    throw (OutOfRange) {
-
+ExplorerCmdLineOptions::configurationToWrite(int index) const {
     if (index < 0 || index >= numberOfConfigurationsToWrite()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -454,9 +448,7 @@ ExplorerCmdLineOptions::applicationIDToRemoveCount() const {
  *                       the number of expendable applications.
  */
 RowID
-ExplorerCmdLineOptions::applicationIDToRemove(int index) const
-    throw (OutOfRange) {
-
+ExplorerCmdLineOptions::applicationIDToRemove(int index) const {
     if (index < 0 || index >= applicationIDToRemoveCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -493,9 +485,7 @@ ExplorerCmdLineOptions::hdbFileNameCount() const {
  *                       the number given HDB files.
  */
 std::string
-ExplorerCmdLineOptions::hdbFileName(int index) const
-    throw (OutOfRange) {
-
+ExplorerCmdLineOptions::hdbFileName(int index) const {
     if (index < 0 || index >= hdbFileNameCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }

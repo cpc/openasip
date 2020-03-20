@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -45,8 +45,7 @@ public:
 
     bool hasID() const;
     void setID(RowID id);
-    RowID id() const
-        throw (NotAvailable);
+    RowID id() const;
 
 protected:
     HWBlockArchitecture();

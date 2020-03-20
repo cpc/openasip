@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -76,9 +76,7 @@ HWBlockArchitecture::setID(RowID id) {
  * @return ID of the entry.
  */
 RowID
-HWBlockArchitecture::id() const 
-    throw (NotAvailable) {
-
+HWBlockArchitecture::id() const {
     if (!hasID()) {
         throw NotAvailable(__FILE__, __LINE__, __func__);
     } else {

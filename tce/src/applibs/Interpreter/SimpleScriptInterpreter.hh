@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -58,14 +58,11 @@ public:
         LineReader* reader);
 
     virtual void setVariableToInterpreter(
-        const std::string& name,
-        const DataObject& value
-        ) throw (NumberFormatException);
+        const std::string& name, const DataObject& value);
 
     virtual DataObject variable(const std::string& name);
     virtual bool interpret(const std::string& commandLine);
-    virtual void setResultToInterpreter(const DataObject& value)
-        throw (NumberFormatException);
+    virtual void setResultToInterpreter(const DataObject& value);
 
     virtual InterpreterContext& context() const;
 

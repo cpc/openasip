@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -43,11 +43,9 @@
  * @exception InvalidData If the model could not be built from the given FU.
  */
 ReservationTableFUResourceConflictDetector::
-ReservationTableFUResourceConflictDetector(
-    const TTAMachine::FunctionUnit& fu) 
-    throw (InvalidData) :
-    reservationTables_(fu), globalReservationTable_(fu), fu_(fu) {
-}
+    ReservationTableFUResourceConflictDetector(
+        const TTAMachine::FunctionUnit& fu)
+    : reservationTables_(fu), globalReservationTable_(fu), fu_(fu) {}
 
 /**
  * Destructor.

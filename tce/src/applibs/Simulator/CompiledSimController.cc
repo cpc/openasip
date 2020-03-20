@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -100,9 +100,7 @@ CompiledSimController::~CompiledSimController() {
  * @Note The accuracy of this function is one basic block!
  */
 void
-CompiledSimController::step(double count)
-    throw (SimulationExecutionError) {
-    
+CompiledSimController::step(double count) {
     assert(state_ == STA_STOPPED || state_ == STA_INITIALIZED);
     stopReasons_.clear();
     state_ = STA_RUNNING;
@@ -135,10 +133,8 @@ CompiledSimController::step(double count)
  * 
  * @Note The accuracy of this function is one basic block!
  */
-void 
-CompiledSimController::next(int count)
-    throw (SimulationExecutionError) {
-    
+void
+CompiledSimController::next(int count) {
     assert(state_ == STA_STOPPED || state_ == STA_INITIALIZED);
     stopReasons_.clear();
     state_ = STA_RUNNING;
@@ -173,8 +169,7 @@ CompiledSimController::next(int count)
  *                                     the simulated program.
  */
 void
-CompiledSimController::run() throw (SimulationExecutionError) {
-    
+CompiledSimController::run() {
     stopRequested_ = false;
     stopReasons_.clear();
     state_ = STA_RUNNING;
@@ -210,9 +205,7 @@ CompiledSimController::run() throw (SimulationExecutionError) {
  *                                     the simulated program.
  */
 void
-CompiledSimController::runUntil(UIntWord address)
-    throw (SimulationExecutionError) {
-    
+CompiledSimController::runUntil(UIntWord address) {
     stopRequested_ = false;
     stopReasons_.clear();
     state_ = STA_RUNNING;

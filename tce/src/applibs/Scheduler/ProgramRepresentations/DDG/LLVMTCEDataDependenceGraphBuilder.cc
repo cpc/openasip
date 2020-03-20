@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -52,8 +52,7 @@ LLVMTCEDataDependenceGraphBuilder::buildFromCFG(
 
 DataDependenceGraph*
 LLVMTCEDataDependenceGraphBuilder::buildFromBB(
-    TTAProgram::BasicBlock& bb, const UniversalMachine*) 
-    throw (IllegalProgram) {
+    TTAProgram::BasicBlock& bb, const UniversalMachine*) {
     currentDDG_ = new DataDependenceGraph(allParamRegs_);
     buildLocalDDG(bb);
     return currentDDG_;

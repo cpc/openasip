@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -61,12 +61,9 @@ ControlFlowGraphPass::~ControlFlowGraphPass() {
  * @exception In case handling is unsuccesful for any reason (cfg might 
  * still get modified).
  */
-void 
+void
 ControlFlowGraphPass::handleControlFlowGraph(
-    ControlFlowGraph& cfg,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-    
+    ControlFlowGraph& cfg, const TTAMachine::Machine& targetMachine) {
     BasicBlockPass* bbPass = dynamic_cast<BasicBlockPass*>(this);
     if (bbPass != NULL) {
         executeBasicBlockPass(cfg, targetMachine, *bbPass);
@@ -91,11 +88,8 @@ ControlFlowGraphPass::handleControlFlowGraph(
  */
 void
 ControlFlowGraphPass::executeBasicBlockPass(
-    ControlFlowGraph& cfg,
-    const TTAMachine::Machine& targetMachine,
-    BasicBlockPass& bbPass)
-    throw (Exception) {
-
+    ControlFlowGraph& cfg, const TTAMachine::Machine& targetMachine,
+    BasicBlockPass& bbPass) {
     int nodeCount = cfg.nodeCount();
     for (int bbIndex = 0; bbIndex < nodeCount; ++bbIndex) {
         BasicBlockNode& bb = dynamic_cast<BasicBlockNode&>(cfg.node(bbIndex));

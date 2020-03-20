@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -59,17 +59,21 @@ DDGPass::~DDGPass() {
  * @exception In case handling is unsuccesful for any reason (basicBlock
  * might still get modified).
  */
-void
+int
 DDGPass::handleDDG(
-    DataDependenceGraph& ddg,
-    SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
+    DataDependenceGraph& ddg, SimpleResourceManager& rm,
+    const TTAMachine::Machine& targetMachine, bool /* testOnly*/) {
     // just to avoid warnings -- need to keep the argument names for
     // Doxygen comments ;)
     ddg.nodeCount();
     rm.largestCycle();
     targetMachine.machineTester();
     abortWithError("Should never call this.");
+}
+
+int
+DDGPass::handleLoopDDG(
+    DataDependenceGraph&, SimpleResourceManager&, const TTAMachine::Machine&,
+    int, SimpleResourceManager*, bool) {
+    return -1;
 }

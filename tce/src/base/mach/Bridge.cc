@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -72,10 +72,7 @@ const string Bridge::OSKEY_DESTINATION_BUS = "destination";
  * @exception InvalidName If the given name is not a valid component name.
  */
 Bridge::Bridge(const string& name, Bus& sourceBus, Bus& destinationBus)
-    throw (IllegalRegistration, ComponentAlreadyExists, IllegalConnectivity,
-           IllegalParameters, InvalidName) :
-    Component(name), sourceBus_(NULL), destinationBus_(NULL) {
-
+    : Component(name), sourceBus_(NULL), destinationBus_(NULL) {
     const string procName = "Bridge::Bridge";
 
     if (&sourceBus == &destinationBus) {
@@ -94,7 +91,6 @@ Bridge::Bridge(const string& name, Bus& sourceBus, Bus& destinationBus)
     setSourceAndDestination(sourceBus, destinationBus);
 }
 
-
 /**
  * Constructor.
  *
@@ -109,9 +105,7 @@ Bridge::Bridge(const string& name, Bus& sourceBus, Bus& destinationBus)
  *                                        ObjectState instance is invalid.
  */
 Bridge::Bridge(const ObjectState* state, Machine& mach)
-    throw (ObjectStateLoadingException) :
-    Component(state), sourceBus_(NULL), destinationBus_(NULL) {
-
+    : Component(state), sourceBus_(NULL), destinationBus_(NULL) {
     Machine::BridgeNavigator bridgeNav = mach.bridgeNavigator();
 
     if (!bridgeNav.hasItem(name())) {
@@ -126,7 +120,6 @@ Bridge::Bridge(const ObjectState* state, Machine& mach)
                                           errorMsg.str());
     }
 }
-
 
 /**
  * Destructor.
@@ -145,9 +138,7 @@ Bridge::~Bridge() {
  * @exception InvalidName If the given name is not a valid component name.
  */
 void
-Bridge::setName(const string& name)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+Bridge::setName(const string& name) {
     if (name == this->name()) {
         return;
     }
@@ -163,7 +154,6 @@ Bridge::setName(const string& name)
         Component::setName(name);
     }
 }
-
 
 /**
  * Returns the previous bus from location point of view.
@@ -203,13 +193,10 @@ Bridge::nextBus() const {
  *                                   bridge by the same name.
  */
 void
-Bridge::setMachine(Machine& mach)
-    throw (ComponentAlreadyExists) {
-
+Bridge::setMachine(Machine& mach) {
     mach.addBridge(*this);
     internalSetMachine(mach);
 }
-
 
 /**
  * Removes registration of the bridge from its current machine.
@@ -274,9 +261,7 @@ Bridge::saveState() const {
  *                                        ObjectState instance is invalid.
  */
 void
-Bridge::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+Bridge::loadState(const ObjectState* state) {
     const string procName = "Bridge::loadState";
 
     if (state->name() != OSNAME_BRIDGE) {
@@ -323,7 +308,6 @@ Bridge::loadState(const ObjectState* state)
                                           e.errorMessage());
     }
 }
-
 
 /**
  * Adjusts the direction of the bus chain (next/previous).

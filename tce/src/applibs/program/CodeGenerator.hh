@@ -180,7 +180,7 @@ public:
         const RegisterSet& saveRegs);
 
     static TTAProgram::MoveGuard* createInverseGuard(
-        TTAProgram::MoveGuard &mg, TTAMachine::Bus* bus = NULL);
+        const TTAProgram::MoveGuard &mg, const TTAMachine::Bus* bus = NULL);
 
 
 private:

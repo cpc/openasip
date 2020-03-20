@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -50,26 +50,19 @@ public:
     virtual ULongWord start() const;
     virtual ULongWord end() const;
 
-    virtual std::string name() const;
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
-    virtual void setWidth(int width)
-        throw (OutOfRange);
-    virtual void setAddressBounds(ULongWord start, ULongWord end)
-        throw (OutOfRange);
-
-    virtual void setMachine(Machine& mach)
-        throw (ComponentAlreadyExists);
+    virtual std::string name() const override;
+    virtual void setName(const std::string& name) override;
+    virtual void setWidth(int width) override;
+    virtual void setAddressBounds(ULongWord start, ULongWord end) override;
+    virtual void setMachine(Machine& mach) override;
     virtual void unsetMachine();
     virtual Machine* machine() const;
 
-    virtual void ensureRegistration(const Component& component) const
-        throw (IllegalRegistration);
+    virtual void ensureRegistration(const Component& component) const;
     virtual bool isRegistered() const;
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
 private:
     NullAddressSpace();

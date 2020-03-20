@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -74,8 +74,7 @@ public:
     std::string name() const;
     std::string widthFormula() const;
     bool realWidthAvailable() const;
-    int realWidth() const
-        throw (NotAvailable);
+    int realWidth() const;
     DataType dataType() const;
     HDB::Direction direction() const;
 

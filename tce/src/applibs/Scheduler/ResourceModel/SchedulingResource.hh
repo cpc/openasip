@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -57,10 +57,8 @@ public:
     virtual bool isInUse(const int cycle) const = 0;
     virtual bool isAvailable(const int cycle) const = 0;
     virtual bool canAssign(const int cycle, const MoveNode& node) const = 0;
-    virtual void assign(const int cycle, MoveNode& node)
-        throw (Exception) = 0;
-    virtual void unassign(const int cycle, MoveNode& node)
-        throw (Exception) = 0;
+    virtual void assign(const int cycle, MoveNode& node) = 0;
+    virtual void unassign(const int cycle, MoveNode& node) = 0;
 
     virtual int relatedResourceGroupCount() const;
     virtual int dependentResourceGroupCount() const;
@@ -75,13 +73,9 @@ public:
         const int group,
         SchedulingResource& resource);
     virtual SchedulingResource& relatedResource(
-        const int group,
-        const int index) const
-        throw (OutOfRange);
+        const int group, const int index) const;
     virtual SchedulingResource& dependentResource(
-        const int group,
-        const int index) const
-        throw (OutOfRange);
+        const int group, const int index) const;
     virtual bool hasRelatedResource(
         const SchedulingResource& sResource)const;
     virtual bool hasDependentResource(
@@ -166,13 +160,10 @@ class SchedulingResourceSet {
 public:
     SchedulingResourceSet();
     ~SchedulingResourceSet();
-    void insert(SchedulingResource& resource)
-        throw (ObjectAlreadyExists);
+    void insert(SchedulingResource& resource);
     int count() const;
-    SchedulingResource& resource(int index) const
-        throw (OutOfRange);
-    void remove(SchedulingResource& resource)
-        throw (KeyNotFound);
+    SchedulingResource& resource(int index) const;
+    void remove(SchedulingResource& resource);
     SchedulingResourceSet& operator=(const SchedulingResourceSet& newSet);
     void sort();
     void clear();

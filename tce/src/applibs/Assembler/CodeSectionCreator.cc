@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -76,9 +76,7 @@ CodeSectionCreator::CodeSectionCreator(
  * @exception OutOfRange Start address is not in code address space.
  */
 void
-CodeSectionCreator::newSection(UValue startAddress)
-    throw (OutOfRange) {
-
+CodeSectionCreator::newSection(UValue startAddress) {
     // Checks are not needed yet, since we support currently only
     // one code section.
 
@@ -99,9 +97,7 @@ CodeSectionCreator::newSection(UValue startAddress)
  * @exception CompileError If referenced resource is not found from machine.
  */
 void
-CodeSectionCreator::addMove(const ParserMove& move)
-    throw (CompileError) {
-
+CodeSectionCreator::addMove(const ParserMove& move) {
     try {
         if (move.isBegin) {
             startNewInstruction();
@@ -346,9 +342,7 @@ CodeSectionCreator::addMove(const ParserMove& move)
  * @exception CompileError If there is any errors during compiling.
  */
 void
-CodeSectionCreator::finalize(Binary &tpef, LabelManager &labels)
-    throw (CompileError) {
-
+CodeSectionCreator::finalize(Binary& tpef, LabelManager& labels) {
     // we don't have to have emty CodeSection
     if (internalSection_.elements.size() > 0) {
 

@@ -61,26 +61,17 @@ TCEDBGController::writeIMem(
     int /*size*/) {
 }
 
+void
+TCEDBGController::step(double /*count = 1*/) {}
 
 void
-TCEDBGController::step(double /*count = 1*/)
-    throw (SimulationExecutionError) {
-}
+TCEDBGController::next(int /*count = 1*/) {}
 
 void
-TCEDBGController::next(int /*count = 1*/)
-    throw (SimulationExecutionError) {
-}
+TCEDBGController::run() {}
 
 void
-TCEDBGController::run()
-    throw (SimulationExecutionError) {
-}
-
-void
-TCEDBGController::runUntil(UIntWord /*address*/)
-    throw (SimulationExecutionError) {
-}
+TCEDBGController::runUntil(UIntWord /*address*/) {}
 
 void
 TCEDBGController::reset() {

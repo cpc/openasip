@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -81,13 +81,9 @@ GUIOptions::GUIOptions(std::string name) :
  * @exception ObjectStateLoadingException If the given ObjectState tree is
  *            invalid.
  */
-GUIOptions::GUIOptions(const ObjectState* state) 
-    throw (ObjectStateLoadingException) : 
-    modified_(false) {
-
+GUIOptions::GUIOptions(const ObjectState* state) : modified_(false) {
     loadState(state);
 }
-
 
 /**
  * Copy constructor.
@@ -530,9 +526,7 @@ GUIOptions::isModified() const {
  * @exception InvalidData If the options are in invalid state.
  */
 void
-GUIOptions::validate() const
-    throw (InvalidData) {
-
+GUIOptions::validate() const {
     const string procName = "GUIOptions::validate";
     int buttons = toolbarButtons_.size();
     int separators = toolbarSeparators_.size();
@@ -648,9 +642,7 @@ GUIOptions::setFileName(const std::string& fileName) {
  *                                        is invalid.
  */
 void
-GUIOptions::loadState(const ObjectState* state) 
-    throw (ObjectStateLoadingException) {
-
+GUIOptions::loadState(const ObjectState* state) {
     const string procName = "GUIOptions::loadState";
 
     if (state->name() != OSNAME_OPTIONS) {
@@ -698,7 +690,6 @@ GUIOptions::loadState(const ObjectState* state)
         throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Creates an ObjectState object and saves the state of the object into it.

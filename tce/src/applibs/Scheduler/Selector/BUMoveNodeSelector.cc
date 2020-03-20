@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -70,9 +70,9 @@ BUMoveNodeSelector::initializeReadylist() {
  * @param bb basic block for this selector.
  */
 BUMoveNodeSelector::BUMoveNodeSelector(
-    DataDependenceGraph& bigDDG, TTAProgram::BasicBlock& bb, 
+    DataDependenceGraph& bigDDG, TTAProgram::BasicBlock& bb,
     const TTAMachine::Machine& machine)
-    throw (ModuleRunTimeError) : ddgOwned_(true) {
+    : ddgOwned_(true) {
     try {
         ddg_ = bigDDG.createSubgraph(bb);
         ddg_->setMachine(machine);
@@ -289,6 +289,35 @@ BUMoveNodeSelector::mightBeReady(MoveNode& node) {
              POMDisassembler::disassemble(node.move())).str());
     }
 
+}
+
+/**
+ * Queues all nodes of PO into queue, if they are not already in another set.
+ *
+ * @param po ProgramOperation whose nodes to add
+ * @param nodes nodes where the final result is. if node is here, do not add
+ *        to queue
+ * @param queue quque where to add the nodes.
+ */
+void BUMoveNodeSelector::queueOperation(
+    ProgramOperation& po,
+    const DataDependenceGraph::NodeSet& nodes,
+    DataDependenceGraph::NodeSet& queue) {
+    for (int j = 0; j < po.inputMoveCount(); j++) {
+        MoveNode& inputMove = po.inputMove(j);
+        // only add if not already added
+        if (nodes.find(&inputMove) == nodes.end()) {
+            queue.insert(&inputMove);
+        }
+    }
+
+    for (int j = 0; j < po.outputMoveCount(); j++) {
+        MoveNode& outputMove = po.outputMove(j);
+        // only add if not already added
+        if (nodes.find(&outputMove) == nodes.end()) {
+            queue.insert(&outputMove);
+        }
+    }
 }
 
 /**

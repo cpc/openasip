@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -53,8 +53,7 @@ public:
     VHDLNetlistWriter(const Netlist& netlist);
     virtual ~VHDLNetlistWriter();
 
-    virtual void write(const std::string& dstDirectory)
-        throw (IOException, InvalidData);
+    virtual void write(const std::string& dstDirectory);
 
     static void writeGenericDeclaration(
         const NetlistBlock& block,
@@ -77,10 +76,7 @@ private:
 
     void writeNetlistParameterPackage(const std::string& dstDirectory) const;
     std::string netlistParameterPkgName() const;
-    void writeBlock(
-        const NetlistBlock& block,
-        const std::string& dstDirectory)
-        throw (IOException);
+    void writeBlock(const NetlistBlock& block, const std::string& dstDirectory);
     void writeSignalDeclarations(
         const NetlistBlock& block,
         std::ofstream& stream);

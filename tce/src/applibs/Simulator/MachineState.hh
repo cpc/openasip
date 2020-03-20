@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -70,8 +70,7 @@ public:
     FUState& fuState(const std::string& name);
     
     int FUStateCount() const;
-    FUState& fuState(int index)
-        throw (OutOfRange);
+    FUState& fuState(int index);
     void advanceClockOfAllFUStates();
     void endClockOfAllFUStates();
     void advanceClockOfAllGuardStates();

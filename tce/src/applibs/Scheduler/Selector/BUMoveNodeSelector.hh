@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -52,8 +52,7 @@
 
 #include "MoveNodeSelector.hh"
 #include "ReadyMoveNodeGroupList.hh"
-
-class DataDependenceGraph;
+#include "DataDependenceGraph.hh"
 
 namespace TTAProgram {
     class BasicBlock;
@@ -74,8 +73,7 @@ public:
         TTAProgram::BasicBlock& bb, const TTAMachine::Machine& machine);
     BUMoveNodeSelector(
         DataDependenceGraph& bigDDG, TTAProgram::BasicBlock& bb,
-        const TTAMachine::Machine &machine)
-        throw (ModuleRunTimeError);
+        const TTAMachine::Machine& machine);
     BUMoveNodeSelector(
         DataDependenceGraph& ddg, const TTAMachine::Machine &machine);
     virtual ~BUMoveNodeSelector();
@@ -84,11 +82,18 @@ public:
     virtual void notifyScheduled(MoveNode& node);
     virtual void mightBeReady(MoveNode& node);
     virtual DataDependenceGraph& dataDependenceGraph();
+
+    /// Initializes ready list from nodes that are ready.
+    virtual void initializeReadylist();
+
+    static void queueOperation(
+        ProgramOperation& po,
+        const DataDependenceGraph::NodeSet& nodes,
+        DataDependenceGraph::NodeSet& queue);
+
 private:
     virtual bool isReadyToBeScheduled(MoveNode& node) const;
     virtual bool isReadyToBeScheduled(MoveNodeGroup& nodes) const;
-    /// Initializes ready list from nodes that are ready.
-    virtual void initializeReadylist();
     /// The data dependence graph built from the basic block.
     DataDependenceGraph* ddg_;    
     /// The prioritized ready list.

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -58,9 +58,7 @@ ResourceBuildDirector::~ResourceBuildDirector(){
  * @param broker Broker to add.
  */
 void
-ResourceBuildDirector::addBroker(ResourceBroker& broker)
-    throw (ObjectAlreadyExists) {
-
+ResourceBuildDirector::addBroker(ResourceBroker& broker) {
     if (ContainerTools::containsValue(brokers_, &broker)) {
         throw ObjectAlreadyExists(__FILE__, __LINE__, __func__);
     } else {

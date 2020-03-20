@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright (c) 2002-2009 Tampere University of Technology.
+# Copyright (c) 2002-2009 Tampere University.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 # 
@@ -49,7 +49,7 @@ function check_in_path {
 
 function check_minimal_adf {
 
-    src_path=`dirname $0`/../data/mach/minimal.adf
+    src_path=`dirname $0`/../data/mach/minimal_be.adf
     if [ -e "${src_path}" ]; then 
         adf="${src_path}"
         return
@@ -57,13 +57,13 @@ function check_minimal_adf {
 
 
     if which "tce-config" &>/dev/null; then 
-        adf="$(tce-config --prefix)/share/tce/data/mach/minimal.adf"
+        adf="$(tce-config --prefix)/share/tce/data/mach/minimal_be.adf"
         if [ -e "${adf}" ]; then
             return
         fi
     fi
 
-    echo "minimal.adf not found."
+    echo "minimal_be.adf not found."
     exit 1
 }
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -132,14 +132,11 @@ GUIOptionsSerializer::~GUIOptionsSerializer() {
  *                                written.
  */
 void
-GUIOptionsSerializer::writeState(const ObjectState* optionsState)
-    throw (SerializerException) {
-
+GUIOptionsSerializer::writeState(const ObjectState* optionsState) {
     ObjectState* converted = convertToConfigFileFormat(optionsState);
     XMLSerializer::writeState(converted);
     delete converted;
 }
-
 
 /**
  * Reads the options from the current XML file set and creates an
@@ -149,15 +146,12 @@ GUIOptionsSerializer::writeState(const ObjectState* optionsState)
  * @exception SerializerException If an error occurs while reading the file.
  */
 ObjectState*
-GUIOptionsSerializer::readState()
-    throw (SerializerException) {
-
+GUIOptionsSerializer::readState() {
     ObjectState* state = XMLSerializer::readState();
     ObjectState* converted = convertToOptionsObjectFormat(state);
     delete state;
     return converted;
 }
-
 
 /**
  * Serializes the given options to the file set.
@@ -166,14 +160,11 @@ GUIOptionsSerializer::readState()
  * @exception SerializerException If an error occurs while serializing.
  */
 void
-GUIOptionsSerializer::writeOptions(const GUIOptions& options)
-    throw (SerializerException) {
-
+GUIOptionsSerializer::writeOptions(const GUIOptions& options) {
     ObjectState* optionsState = options.saveState();
     writeState(optionsState);
     delete optionsState;
 }
-
 
 /**
  * Reads the current input file and creates GUIOptions according to it.
@@ -184,15 +175,12 @@ GUIOptionsSerializer::writeOptions(const GUIOptions& options)
  *                                        options.
  */
 GUIOptions*
-GUIOptionsSerializer::readOptions()
-    throw (SerializerException, ObjectStateLoadingException) {
-
+GUIOptionsSerializer::readOptions() {
     ObjectState* optionsState = readState();
     GUIOptions* options = new GUIOptions(optionsState);
     delete optionsState;
     return options;
 }
-
 
 /**
  * Converts the given ObjectState tree created by GUIOptions::saveState

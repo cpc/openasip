@@ -3,8 +3,7 @@
 
   <ic-decoder-plugin>
     <name>DefaultICDecoder</name>
-    <file>../../../../../tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
-    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <file>tce:DefaultICDecoderPlugin.so</file>
     <parameter name="bustrace">
       <value>yes</value>
     </parameter>
@@ -14,23 +13,23 @@
   </ic-decoder-plugin>
 
   <fu name="LSU">
-    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
     <fu-id>62</fu-id>
   </fu>
 
   <fu name="ALU">
-    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
-    <fu-id>375</fu-id>
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>401</fu-id>
   </fu>
 
   <rf name="RF">
-    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
-    <rf-id>958</rf-id>
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>179</rf-id>
   </rf>
 
   <rf name="BOOL">
-    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
-    <rf-id>96</rf-id>
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>104</rf-id>
   </rf>
 
 </adf-implementation>

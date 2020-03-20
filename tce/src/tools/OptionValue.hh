@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2014 Tampere University of Technology.
+    Copyright (c) 2002-2014 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -54,33 +54,20 @@ public:
     OptionValue();
     virtual ~OptionValue();
 
-    virtual void setStringValue(const std::string&)
-        throw (WrongSubclass);
-    virtual void setIntegerValue(int)
-        throw (WrongSubclass);
-    virtual void setUnsignedIntegerValue(unsigned)
-        throw (WrongSubclass);
-    virtual void setRealValue(double)
-        throw (WrongSubclass);
-    virtual void setBoolValue(bool)
-	throw (WrongSubclass);
-    virtual void setIntegerListValue(std::vector<int> values)
-        throw (WrongSubclass);
-    virtual std::string stringValue(int index = 0) const
-	throw (WrongSubclass, OutOfRange);
-    virtual int integerValue(int index = 0) const
-        throw (WrongSubclass, OutOfRange);
-    virtual double realValue() const
-        throw (WrongSubclass);
-    virtual bool isFlagOn() const
-        throw (WrongSubclass);
-    virtual bool isFlagOff() const
-        throw (WrongSubclass);
-    virtual int listSize() const
-	throw (WrongSubclass);
+    virtual void setStringValue(const std::string&);
+    virtual void setIntegerValue(int);
+    virtual void setUnsignedIntegerValue(unsigned);
+    virtual void setRealValue(double);
+    virtual void setBoolValue(bool);
+    virtual void setIntegerListValue(std::vector<int> values);
+    virtual std::string stringValue(int index = 0) const;
+    virtual int integerValue(int index = 0) const;
+    virtual double realValue() const;
+    virtual bool isFlagOn() const;
+    virtual bool isFlagOff() const;
+    virtual int listSize() const;
 
 private:
-
     /// Copying not allowed.
     OptionValue(const OptionValue&);
     /// Assignment not allowed.
@@ -99,10 +86,8 @@ class IntegerOptionValue : public OptionValue {
 public:
     IntegerOptionValue(int value);
     virtual ~IntegerOptionValue();
-    virtual int integerValue(int index = 0) const
-        throw (WrongSubclass, OutOfRange);
-    virtual void setIntegerValue(int value)
-        throw (WrongSubclass);
+    virtual int integerValue(int index = 0) const;
+    virtual void setIntegerValue(int value);
 
 private:
     /// Copying not allowed.
@@ -125,10 +110,8 @@ class UnsignedIntegerOptionValue : public OptionValue {
 public:
     UnsignedIntegerOptionValue(unsigned value);
     virtual ~UnsignedIntegerOptionValue();
-    virtual unsigned unsignedIntegerValue(int index = 0) const
-        throw (WrongSubclass, OutOfRange);
-    virtual void setUnsignedIntegerValue(unsigned value)
-        throw (WrongSubclass);
+    virtual unsigned unsignedIntegerValue(int index = 0) const;
+    virtual void setUnsignedIntegerValue(unsigned value);
 
 private:
     /// Copying not allowed.
@@ -151,10 +134,8 @@ class StringOptionValue : public OptionValue {
 public:
     StringOptionValue(const std::string value);
     virtual ~StringOptionValue();
-    virtual std::string stringValue(int index = 0) const
-        throw (WrongSubclass, OutOfRange);
-    virtual void setStringValue(const std::string& value)
-        throw (WrongSubclass);
+    virtual std::string stringValue(int index = 0) const;
+    virtual void setStringValue(const std::string& value);
 
 private:
     /// Copying not allowed.
@@ -178,10 +159,8 @@ public:
     RealOptionValue(double value);
     virtual ~RealOptionValue();
 
-    virtual double realValue() const
-        throw (WrongSubclass);
-    virtual void setRealValue(double value)
-        throw (WrongSubclass);
+    virtual double realValue() const;
+    virtual void setRealValue(double value);
 
 private:
     /// Copying not allowed.
@@ -207,12 +186,9 @@ public:
     BoolOptionValue(bool value);
     virtual ~BoolOptionValue();
 
-    virtual bool isFlagOn() const
-        throw (WrongSubclass);
-    virtual bool isFlagOff() const
-        throw (WrongSubclass);
-    virtual void setBoolValue(bool value)
-        throw (WrongSubclass);
+    virtual bool isFlagOn() const;
+    virtual bool isFlagOff() const;
+    virtual void setBoolValue(bool value);
 
 private:
     /// Copying not allowed.
@@ -236,12 +212,9 @@ public:
     IntegerListOptionValue(std::vector<int> values);
     virtual ~IntegerListOptionValue();
 
-    virtual int integerValue(int index = 0) const
-	throw (WrongSubclass, OutOfRange);
-    virtual int listSize() const
-	throw (WrongSubclass);
-    virtual void setIntegerListValue(std::vector<int> values)
-        throw (WrongSubclass);
+    virtual int integerValue(int index = 0) const;
+    virtual int listSize() const;
+    virtual void setIntegerListValue(std::vector<int> values);
 
 private:
     /// Copying not allowed.
@@ -266,12 +239,9 @@ public:
     StringListOptionValue(std::vector<std::string> values);
     virtual ~StringListOptionValue();
 
-    virtual std::string stringValue(int index = 0) const
-	throw (WrongSubclass, OutOfRange);
-    virtual int listSize() const
-	throw (WrongSubclass);
-    virtual void setStringListValue(std::vector<std::string> values)
-        throw (WrongSubclass);
+    virtual std::string stringValue(int index = 0) const;
+    virtual int listSize() const;
+    virtual void setStringListValue(std::vector<std::string> values);
 
 private:
     /// Copying not allowed.

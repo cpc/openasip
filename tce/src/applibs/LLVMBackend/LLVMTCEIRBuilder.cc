@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -663,10 +663,19 @@ void
 LLVMTCEIRBuilder::compileOptimized(
     ControlFlowGraph& cfg, 
     llvm::AliasAnalysis* llvmAA) {
+
+    SchedulerCmdLineOptions* options =
+        dynamic_cast<SchedulerCmdLineOptions*>(
+            Application::cmdLineOptions());
+
+
     // TODO: on trunk single bb loop(swp), last param true(rr, threading)
     DataDependenceGraph* ddg = ddgBuilder_.build(
-        cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS, 
-        *mach_, NULL, true, true, llvmAA);
+        cfg,
+        (options->isLoopOptDefined()) ?
+        DataDependenceGraph::SINGLE_BB_LOOP_ANTIDEPS :
+        DataDependenceGraph::INTRA_BB_ANTIDEPS, *mach_,
+        NULL, true, true, llvmAA);
 
     TCEString fnName = cfg.name();
 #ifdef WRITE_DDG_DOTS
@@ -1012,7 +1021,7 @@ LLVMTCEIRBuilder::fixJumpTableDestinations(
 void
 LLVMTCEIRBuilder::createMoveNode(
     ProgramOperationPtr& po,
-    TTAProgram::Move& m,
+    std::shared_ptr<TTAProgram::Move> m,
     bool isDestination) {
 
     MoveNode* mn = new MoveNode(m);
@@ -1021,13 +1030,13 @@ LLVMTCEIRBuilder::createMoveNode(
         po->addInputNode(*mn);
         mn->addDestinationOperationPtr(po);
         TTAProgram::TerminalFUPort& term =
-            dynamic_cast<TTAProgram::TerminalFUPort&>(m.destination());
+            dynamic_cast<TTAProgram::TerminalFUPort&>(m->destination());
         term.setProgramOperation(po);
     } else {
         po->addOutputNode(*mn);
         mn->setSourceOperationPtr(po);
         TTAProgram::TerminalFUPort& term =
-            dynamic_cast<TTAProgram::TerminalFUPort&>(m.source());
+            dynamic_cast<TTAProgram::TerminalFUPort&>(m->source());
         term.setProgramOperation(po);
     }
 }

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -68,30 +68,17 @@ public:
 
 protected:
     ProGeUI();
-    void loadMachine(const std::string& adfFile)
-        throw (SerializerException, ObjectStateLoadingException);
-    void loadBinaryEncoding(const std::string& bemFile)
-        throw (SerializerException, ObjectStateLoadingException);
-    void loadMachineImplementation(const std::string& idfFile)
-        throw (SerializerException, ObjectStateLoadingException);
-    void loadProcessorConfiguration(const std::string& configurationFile)
-        throw (UnreachableStream, SerializerException,
-               ObjectStateLoadingException);
+    void loadMachine(const std::string& adfFile);
+    void loadBinaryEncoding(const std::string& bemFile);
+    void loadMachineImplementation(const std::string& idfFile);
+    void loadProcessorConfiguration(const std::string& configurationFile);
     void loadICDecoderGeneratorPlugin(
-        const std::string& pluginFile,
-        const std::string& pluginName)
-        throw (FileNotFound, DynamicLibraryException, InvalidData);
+        const std::string& pluginFile, const std::string& pluginName);
 
     void generateProcessor(
-        int imemWidthInMAUs,
-        HDL language,
-        TCEString dstDirectory,
-        TCEString sharedDstDirectory,
-        TCEString entityString,
-        std::ostream& errorStream,
-        std::ostream& warningStream)
-        throw (InvalidData, DynamicLibraryException, IOException,
-               InvalidData, IllegalMachine, OutOfRange, InstanceNotFound);
+        int imemWidthInMAUs, HDL language, TCEString dstDirectory,
+        TCEString sharedDstDirectory, TCEString entityString,
+        std::ostream& errorStream, std::ostream& warningStream);
     void generateTestBench(
         const ProGe::HDL language,
         const std::string& dstDir, 
@@ -118,8 +105,7 @@ protected:
         int fmax);
 
 private:
-    void checkIfNull(void * nullPointer, const std::string& errorMsg)
-        throw (InvalidData);
+    void checkIfNull(void* nullPointer, const std::string& errorMsg);
 
     void readLSUParameters(MemInfo& dmem) const;
 
@@ -139,7 +125,7 @@ private:
     std::string pluginFile_;
     /// Name of the toplevel entity
     std::string entityName_;
-    
+
     ProcessorGenerator generator_;
 
     static const std::string DEFAULT_ENTITY_STR;

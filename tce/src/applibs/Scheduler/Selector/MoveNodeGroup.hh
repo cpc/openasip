@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -55,8 +55,7 @@ public:
     void addNode(MoveNode& node);
     
     int earliestCycle() const;
-    int latestCycle() const 
-        throw (NotAvailable);
+    int latestCycle() const;
 
     int maxSinkDistance() const;
     int maxSourceDistance() const;

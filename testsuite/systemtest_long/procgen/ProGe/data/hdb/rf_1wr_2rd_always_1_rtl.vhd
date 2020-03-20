@@ -131,27 +131,12 @@ BEGIN
    guard_out : PROCESS (glock, reg, rstx)
    -----------------------------------------------------------------
 
-   -- Process declarations
-   variable guard_var : std_logic_vector(0 downto 0);
-
-
    BEGIN
       IF rstx = '0' THEN
          guard <= (others => '0');
       ELSIF glock = '0' THEN
          for i in rf_size-1 downto 0 loop
-           if dataw > 1 then
-             guard_var := 
-                    reg(i)(dataw-1 downto dataw-1) 
-                 or reg(i)(dataw-2 downto dataw-2);
-             for j in dataw-2 downto 0 loop
-                guard_var := reg(i)(j downto j) 
-                      or guard_var;
-             end loop;
-           else
-             guard_var(0 downto 0) := reg(i)(0 downto 0);
-           end if;  
-           guard(i downto i) <= guard_var(0 downto 0);
+           guard(i) <= reg(i)(0);
          end loop;
       END IF;
    END PROCESS guard_out;

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -459,9 +459,7 @@ NumberControl::doubleValue() const {
  *                         constructor.
  */
 void
-NumberControl::setIntMode()
-    throw (NotAvailable) {
-
+NumberControl::setIntMode() {
     // Check that the int mode is available.
     if ((style_ & MODE_INT) == 0) {
         // Int mode not available.
@@ -485,7 +483,6 @@ NumberControl::setIntMode()
     update();
 }
 
-
 /**
  * Sets the widget to binary mode.
  *
@@ -493,9 +490,7 @@ NumberControl::setIntMode()
  *                         contructor.
  */
 void
-NumberControl::setBinMode()
-    throw (NotAvailable) {
-
+NumberControl::setBinMode() {
     // Check that the binary mode is available.
     if ((style_ & MODE_BINARY) == 0) {
         // Binary mode not available.
@@ -531,7 +526,6 @@ NumberControl::setBinMode()
     update();
 }
 
-
 /**
  * Sets the widget to hexadecimal mode.
  *
@@ -539,9 +533,7 @@ NumberControl::setBinMode()
  *                         constructor.
  */
 void
-NumberControl::setHexMode()
-    throw (NotAvailable) {
-
+NumberControl::setHexMode() {
     // Check that the hexadecimal mode is available.
     if ((style_ & MODE_HEXADECIMAL) == 0) {
         // Hexadecimal mode not available.
@@ -607,9 +599,7 @@ NumberControl::setHexMode()
  *                         constructor.
  */
 void
-NumberControl::setUnsignedMode()
-    throw (NotAvailable) {
-
+NumberControl::setUnsignedMode() {
     // Check that the unsigned mode is available.
     if ((style_ & MODE_UNSIGNED) == 0) {
         // Unsigned mode not available.
@@ -653,7 +643,6 @@ NumberControl::setUnsignedMode()
     update();
 }
 
-
 /**
  * Sets the widget to float mode.
  *
@@ -661,9 +650,7 @@ NumberControl::setUnsignedMode()
  *                         constructor.
  */
 void
-NumberControl::setFloatMode()
-    throw (NotAvailable) {
-
+NumberControl::setFloatMode() {
     // Check that the float mode is available.
     if ((style_ & MODE_FLOAT) == 0) {
         // Float mode not available.
@@ -712,7 +699,6 @@ NumberControl::setFloatMode()
     update();
 }
 
-
 /**
  * Sets the widget to double mode.
  *
@@ -720,9 +706,7 @@ NumberControl::setFloatMode()
  *                         constructor.
  */
 void
-NumberControl::setDoubleMode()
-    throw (NotAvailable) {
-
+NumberControl::setDoubleMode() {
     // Check that the double mode is available.
     if ((style_ & MODE_DOUBLE) == 0) {
         // Double mode not available.
@@ -770,7 +754,6 @@ NumberControl::setDoubleMode()
     }
     update();
 }
-
 
 /**
  * Returns the widget mode style flag.

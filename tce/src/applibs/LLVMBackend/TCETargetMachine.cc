@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -84,9 +84,15 @@ public:
     DummyInstPrinter(
         const llvm::MCAsmInfo& mai, const llvm::MCInstrInfo& mii, 
         const llvm::MCRegisterInfo& mri) : llvm::MCInstPrinter(mai, mii, mri) {}
+#ifdef LLVM_OLDER_THAN_10
     void printInst(
         const MCInst*, raw_ostream&, StringRef,
         const MCSubtargetInfo&) override {}    
+#else
+    void printInst(
+        const MCInst*, uint64_t, StringRef,
+        const MCSubtargetInfo&, raw_ostream&) override {}
+#endif
 };
 
 // In TCE target we don't print the MCInsts from LLVM, but
@@ -200,6 +206,10 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     if (!plugin_->hasROTL()) missingOps_.insert(std::make_pair(llvm::ISD::ROTL, defType));
     if (!plugin_->hasROTR()) missingOps_.insert(std::make_pair(llvm::ISD::ROTR, defType));
 
+    if (!plugin_->hasSHL()) customLegalizedOps_.insert(std::make_pair(llvm::ISD::SHL, MVT::i32));
+    if (!plugin_->hasSHR()) customLegalizedOps_.insert(std::make_pair(llvm::ISD::SRA, MVT::i32));
+    if (!plugin_->hasSHRU()) customLegalizedOps_.insert(std::make_pair(llvm::ISD::SRL, MVT::i32));
+
     if (!plugin_->hasSXHW()) missingOps_.insert(
         std::make_pair(llvm::ISD::SIGN_EXTEND_INREG, MVT::i16));
 
@@ -240,6 +250,10 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     dataLayoutStr += "-v256:256:256";
     dataLayoutStr += "-v512:512:512";
     dataLayoutStr += "-v1024:1024:1024";
+#if LLVM_HAS_CUSTOM_VECTOR_EXTENSION == 2
+    dataLayoutStr += "-v2048:2048:2048";
+    dataLayoutStr += "-v4096:4096:4096";
+#endif
 
     DataLayout* dl = plugin_->getDataLayout();
     dl->reset(dataLayoutStr.c_str());
@@ -328,6 +342,15 @@ TCETargetMachine::createMachine() {
 const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >*
 TCETargetMachine::missingOperations() {
     return &missingOps_;
+}
+
+/**
+ * Returns list of llvm::ISD SelectionDAG opcodes for operations that are not
+ * supported in the target architecture but will be custom-selected.
+ */
+const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >*
+TCETargetMachine::customLegalizedOperations() {
+    return &customLegalizedOps_;
 }
 
 TargetPassConfig* 

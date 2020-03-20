@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -44,10 +44,8 @@ class BitVector : public std::vector<bool> {
 public:
     BitVector();
     BitVector(
-        const BitVector& vector,
-        unsigned int firstIndex,
-        unsigned int lastIndex)
-        throw (OutOfRange);
+        const BitVector& vector, unsigned int firstIndex,
+        unsigned int lastIndex);
     virtual ~BitVector();
 
     void pushBack(long long unsigned int integer, int size);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -79,7 +79,11 @@ namespace llvm {
 
         unsigned getRARegister() const;
 
+#ifdef LLVM_OLDER_THAN_9
         unsigned getFrameRegister(const MachineFunction& mf) const override;
+#else
+        Register getFrameRegister(const MachineFunction& mf) const override;
+#endif
 
         int getDwarfRegNum(unsigned regNum, bool isEH) const;
         int getLLVMRegNum(unsigned int, bool) const;

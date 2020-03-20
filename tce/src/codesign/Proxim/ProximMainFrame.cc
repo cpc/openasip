@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2017 Tampere University of Technology.
+    Copyright (c) 2002-2017 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -675,15 +675,12 @@ ProximMainFrame::addSubWindow(ProximSimulatorWindow* window) {
  * @param window Window to be removed.
  */
 void
-ProximMainFrame::removeSubWindow(ProximSimulatorWindow* window)
-    throw (InstanceNotFound) {
-
+ProximMainFrame::removeSubWindow(ProximSimulatorWindow* window) {
     if (!ContainerTools::removeValueIfExists(subwindows, window)) {
         std::string procName = "ProximMainFrame::removeSubWindow";
-        throw (InstanceNotFound(__FILE__, __LINE__, procName));
+        throw InstanceNotFound(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Event handler for View menu check items.

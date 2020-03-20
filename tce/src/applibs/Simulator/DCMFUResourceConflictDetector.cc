@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -44,14 +44,13 @@
  * @param fu The function unit to detect conflicts for.
  * @exception InvalidData If the model could not be built from the given FU.
  */
-DCMFUResourceConflictDetector::
-DCMFUResourceConflictDetector(
-    const TTAMachine::FunctionUnit& fu) 
-    throw (InvalidData) :
-    collisionMatrices_(fu), globalCollisionMatrix_(
-        collisionMatrices_.at(0).columnCount(),
-        collisionMatrices_.at(0).rowCount(), false), fu_(fu) {
-}
+DCMFUResourceConflictDetector::DCMFUResourceConflictDetector(
+    const TTAMachine::FunctionUnit& fu)
+    : collisionMatrices_(fu),
+      globalCollisionMatrix_(
+          collisionMatrices_.at(0).columnCount(),
+          collisionMatrices_.at(0).rowCount(), false),
+      fu_(fu) {}
 
 /**
  * Destructor.

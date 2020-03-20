@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -97,7 +97,9 @@ osalInputIndex(
     for (unsigned operandI = 0; operandI < instr.getNumOperands(); ++operandI) {
         const MachineOperand& mo = instr.getOperand(operandI);
         if (hasGuard && operandI == 0) continue;
-        if (mo.isReg() && (mo.isDef() || mo.isImplicit())) continue; // Output
+        // Output or metadata.
+        if ((mo.isReg() && (mo.isDef() || mo.isImplicit())) || mo.isMetadata())
+            continue;
         ++osalIndex;
         if (operandI == operandId) return osalIndex;
         // LLVM machineinstructions always present the addresses in the

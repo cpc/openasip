@@ -72,6 +72,7 @@ function try_patch {
 
 function apply_patches {
     cd $llvm_co_dir
+    try_patch $patch_dir/llvm-8-fix-load-lowering.patch
     try_patch $patch_dir/llvm-5.0-custom-vector-extension.patch
     try_patch $patch_dir/llvm-5.0-vect-datalayout.patch
     try_patch $patch_dir/llvm-5.0-SPIR-address-space-numbers.patch
@@ -97,3 +98,9 @@ make -j4 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 \
     || eexit "Building LLVM/Clang failed."
 make install || eexit "Installation of LLVM/Clang failed."
 
+echo "LLVM installation is finished, add following lines to the search path:"
+echo
+echo "  export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:"$TARGET_DIR"/lib"
+echo "  export PATH=\$PATH:"$TARGET_DIR"/bin"
+echo "  export LDFLAGS=-L"$TARGET_DIR"/lib"
+echo

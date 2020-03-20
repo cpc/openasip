@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -64,31 +64,21 @@ public:
     virtual int nodeCount() const = 0;
     virtual int edgeCount() const = 0;
 
-    virtual Node& node(const int index) const 
-        throw (OutOfRange) = 0;
-    virtual Edge& edge(const int index) const 
-        throw (OutOfRange) = 0;
+    virtual Node& node(const int index) const = 0;
+    virtual Edge& edge(const int index) const = 0;
 
-    virtual int outDegree(const Node& node) const
-        throw (InstanceNotFound) = 0;
-    virtual int inDegree(const Node& node) const
-        throw (InstanceNotFound) = 0;
+    virtual int outDegree(const Node& node) const = 0;
+    virtual int inDegree(const Node& node) const = 0;
 
-    virtual Edge& outEdge(const Node& node, const int index) const 
-        throw (OutOfRange, InstanceNotFound) = 0;
+    virtual Edge& outEdge(const Node& node, const int index) const = 0;
 
-    virtual Edge& inEdge(const Node& node, const int index) const 
-        throw (OutOfRange, InstanceNotFound) = 0;
+    virtual Edge& inEdge(const Node& node, const int index) const = 0;
 
-    virtual EdgeSet outEdges(const Node& node) const
-        throw (InstanceNotFound) = 0;
-    virtual EdgeSet inEdges(const Node& node) const
-        throw (InstanceNotFound) = 0;
+    virtual EdgeSet outEdges(const Node& node) const = 0;
+    virtual EdgeSet inEdges(const Node& node) const = 0;
 
-    virtual Node& tailNode(const Edge& edge) const 
-        throw (InstanceNotFound) = 0;
-    virtual Node& headNode(const Edge& edge) const 
-        throw (InstanceNotFound) = 0;
+    virtual Node& tailNode(const Edge& edge) const = 0;
+    virtual Node& headNode(const Edge& edge) const = 0;
 
     virtual bool hasEdge(
         const Node& nTail,
@@ -100,17 +90,14 @@ public:
     virtual TCEString dotString() const;
     virtual void writeToDotFile(const TCEString& fileName) const;
 
-    virtual void addNode(Node& node)
-        throw (ObjectAlreadyExists) = 0;
+    virtual void addNode(Node& node) = 0;
 
-    virtual void removeNode(Node& node)
-        throw (InstanceNotFound) = 0;
+    virtual void removeNode(Node& node) = 0;
 
-    virtual void removeEdge(Edge& e)
-        throw (InstanceNotFound) = 0;
+    virtual void removeEdge(Edge& e) = 0;
 
-    virtual void connectNodes(const Node& nTail, const Node& nHead, Edge& e)
-        throw (ObjectAlreadyExists) = 0;
+    virtual void connectNodes(
+        const Node& nTail, const Node& nHead, Edge& e) = 0;
     virtual void disconnectNodes(const Node& nTail, const Node& nHead) = 0;
     virtual const TCEString& name() const = 0;
 protected:

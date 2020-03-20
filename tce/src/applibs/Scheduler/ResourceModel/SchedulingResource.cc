@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -117,11 +117,7 @@ SchedulingResource::addToDependentGroup(
  * @exception OutOfRange When group or index requested does not exist.
  */
 SchedulingResource&
-SchedulingResource::relatedResource(
-    const int group,
-    const int index) const
-    throw (OutOfRange) {
-
+SchedulingResource::relatedResource(const int group, const int index) const {
     if (group < relatedResourceGroupCount()) {
         if (index < relatedResourceCount(group)) {
             return *relatedResourceGroup_.at(group).at(index);
@@ -156,11 +152,7 @@ SchedulingResource::relatedResource(
  * @exception OutOfRange When group or index requested does not exist.
  */
 SchedulingResource&
-SchedulingResource::dependentResource(
-    const int group,
-    const int index) const
-    throw (OutOfRange) {
-
+SchedulingResource::dependentResource(const int group, const int index) const {
     if (group < dependentResourceGroupCount()) {
         if (index < dependentResourceCount(group)) {
             return *dependentResourceGroup_.at(group).at(index);
@@ -184,7 +176,6 @@ SchedulingResource::dependentResource(
         msg += name();
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);
     }
-
 }
 
 /**
@@ -236,8 +227,7 @@ SchedulingResourceSet::~SchedulingResourceSet() {}
  * @exception ObjectAlreadyExists if the resource is already in the set.
  */
 void
-SchedulingResourceSet::insert(SchedulingResource& resource)
-    throw (ObjectAlreadyExists) {
+SchedulingResourceSet::insert(SchedulingResource& resource) {
     if (ContainerTools::containsValue(resources_, &resource)) {
         throw ObjectAlreadyExists(__FILE__, __LINE__, __func__);
     } else {
@@ -263,8 +253,7 @@ SchedulingResourceSet::count() const {
  * @exception OutOfRange If the given position exceeds number of resources.
  */
 SchedulingResource&
-SchedulingResourceSet::resource(int index) const
-    throw (OutOfRange) {
+SchedulingResourceSet::resource(int index) const {
     if (index < 0 || index >= static_cast<int>(resources_.size())) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     } else {
@@ -279,8 +268,7 @@ SchedulingResourceSet::resource(int index) const
  * @exception KeyNotFound If given resource is not found in the set.
  */
 void
-SchedulingResourceSet::remove(SchedulingResource& resource)
-    throw (KeyNotFound) {
+SchedulingResourceSet::remove(SchedulingResource& resource) {
     ResourceList::iterator iter = resources_.begin();
     while (iter != resources_.end()) {
         if ((*iter) == &resource) {

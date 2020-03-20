@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -544,7 +544,8 @@ DataDependenceGraphBuilder::constructIndividualBB(
     for (int ia = 0; ia < currentBB_->basicBlock().instructionCount(); ia++) {
         Instruction& ins = currentBB_->basicBlock().instructionAtIndex(ia);
         for (int i = 0; i < ins.moveCount(); i++) {
-            Move& move = ins.move(i);
+            auto movePtr = ins.movePtr(i);
+            auto& move = *movePtr;
 
             MoveNode* moveNode = NULL;
 
@@ -565,7 +566,7 @@ DataDependenceGraphBuilder::constructIndividualBB(
                         moveNode = &po->moveNode(move);
                     } else {
                         // the po might be corrupted and point to an old POM's Moves
-                        moveNode = new MoveNode(move);
+                        moveNode = new MoveNode(movePtr);
                     }
                 } else if (move.source().isFUPort() && 
                            dynamic_cast<TerminalFUPort&>(move.source()).
@@ -577,10 +578,10 @@ DataDependenceGraphBuilder::constructIndividualBB(
                         moveNode = &po->moveNode(move);
                     } else {
                         // the po might be corrupted and point to an old POM's Moves
-                        moveNode = new MoveNode(move);
+                        moveNode = new MoveNode(movePtr);
                     }
                 } else {
-                    moveNode = new MoveNode(move);
+                    moveNode = new MoveNode(movePtr);
                 }
                 currentDDG_->addNode(*moveNode, *currentBB_);
 
@@ -651,8 +652,8 @@ void
 DataDependenceGraphBuilder::processGuard(MoveNode& moveNode) {
 
     // new code
-    Guard& g = moveNode.move().guard().guard();
-    RegisterGuard* rg = dynamic_cast<RegisterGuard*>(&g);
+    const Guard& g = moveNode.move().guard().guard();
+    const RegisterGuard* rg = dynamic_cast<const RegisterGuard*>(&g);
     if (rg != NULL) {
         TCEString regName = rg->registerFile()->name() + '.' +
             Conversion::toString(rg->registerIndex());
@@ -833,9 +834,7 @@ DataDependenceGraphBuilder::clearUnneededBookkeeping(
  */
 void
 DataDependenceGraphBuilder::processTriggerPO(
-    MoveNode& moveNode, Operation &dop) 
-    throw (IllegalProgram) {
-
+    MoveNode& moveNode, Operation& dop) {
     if (currentData_->destPending_ != NULL) {
         ProgramOperationPtr po = currentData_->destPending_;
         
@@ -1849,6 +1848,10 @@ DataDependenceGraphBuilder::memoryCategory(const MoveNodeUse& mnd) {
         if (anno.id() ==
             TTAProgram::ProgramAnnotation::ANN_STACKUSE_RA_SAVE) {
             return "_RA";
+        }
+        if (anno.id() ==
+            TTAProgram::ProgramAnnotation::ANN_STACKUSE_FP_SAVE) {
+            return "_FP";
         }
     }
     if (!mnd.mn()->isDestinationOperation()) {

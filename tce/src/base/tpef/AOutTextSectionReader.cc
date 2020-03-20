@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -98,12 +98,7 @@ AOutTextSectionReader::type() const {
  * @exception UnexpectedValue If there was unexpected value when reading.
  */
 void
-AOutTextSectionReader::readData(
-    BinaryStream& stream,
-    Section* section) const
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-           OutOfRange, WrongSubclass, UnexpectedValue) {
-
+AOutTextSectionReader::readData(BinaryStream& stream, Section* section) const {
     AOutReader* aOutReader = dynamic_cast<AOutReader*>(parent());
 
     FileOffset offset = stream.readPosition();
@@ -165,11 +160,8 @@ AOutTextSectionReader::readData(
  */
 void
 AOutTextSectionReader::initializeImmediateMove(
-    BinaryStream& stream,
-    MoveElement* move,
-    ImmediateElement* immediate) const
-    throw (OutOfRange, UnreachableStream) {
-
+    BinaryStream& stream, MoveElement* move,
+    ImmediateElement* immediate) const {
     move->setSourceType(MoveElement::MF_IMM);
 
     // mark every immediate to be inline encoded
@@ -196,10 +188,7 @@ AOutTextSectionReader::initializeImmediateMove(
  */
 void
 AOutTextSectionReader::initializeMove(
-    BinaryStream& stream,
-    MoveElement* move) const
-    throw (OutOfRange, UnreachableStream) {
-
+    BinaryStream& stream, MoveElement* move) const {
     HalfWord dest = stream.readHalfWord();
     updateMoveDestination(move, dest);
 
@@ -259,10 +248,7 @@ AOutTextSectionReader::convertAOutIndexToTPEF(Word reg) const {
  */
 void
 AOutTextSectionReader::updateMoveDestination(
-    MoveElement* move,
-    const HalfWord dest) const
-    throw (OutOfRange){
-
+    MoveElement* move, const HalfWord dest) const {
     if (dest < AOutReader::FIRST_FP_REGISTER) {
         move->setDestinationUnit(ResourceElement::INT_RF);
         move->setDestinationType(MoveElement::MF_RF);
@@ -298,10 +284,7 @@ AOutTextSectionReader::updateMoveDestination(
  */
 void
 AOutTextSectionReader::updateMoveSource(
-    MoveElement* move,
-    const Word src) const
-    throw (OutOfRange) {
-
+    MoveElement* move, const Word src) const {
     if (src < AOutReader::FIRST_FP_REGISTER) {
         move->setSourceUnit(ResourceElement::INT_RF);
         move->setSourceType(MoveElement::MF_RF);
@@ -334,13 +317,9 @@ AOutTextSectionReader::updateMoveSource(
  */
 void
 AOutTextSectionReader::setReference(
-    InstructionElement* elem,
-    SectionOffset sectionOffset,
-    SectionId sectionID) const
-    throw (KeyAlreadyExists) {
-    
+    InstructionElement* elem, SectionOffset sectionOffset,
+    SectionId sectionID) const {
     SectionOffsetKey offKey = SectionOffsetKey(sectionID, sectionOffset);
     SafePointer::addObjectReference(offKey, elem);
 }
-
 }

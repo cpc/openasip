@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -65,11 +65,9 @@ public:
     void setMemory(Memory* memory);
 
     void clearHighlights();
-    void highlight(Word address, unsigned count, const wxColour& colour)
-        throw (OutOfRange);
+    void highlight(Word address, unsigned count, const wxColour& colour);
 
 private:
-
     /// Copying not allowed.
     MemoryControl(const MemoryControl&);
     /// Assignment not allowed.

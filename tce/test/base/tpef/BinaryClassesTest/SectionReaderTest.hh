@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -68,14 +68,9 @@ protected:
 
     Section::SectionType type() const;
 
-    void readData(
-	BinaryStream &stream,
-	Section* section) const 
-	throw (UnreachableStream, KeyAlreadyExists, EndOfFile, 
-	       OutOfRange, WrongSubclass, UnexpectedValue);
+    void readData(BinaryStream& stream, Section* section) const;
 
 private:
-    
     /// Prototype of class.
     static BOutTextReader proto_;
 };
@@ -100,14 +95,9 @@ protected:
     // create real instance of AOutReader class..
     virtual BinaryReader* parent() const;
 
-    void readData(
-	BinaryStream &stream,
-	Section* section) const
-	throw (UnreachableStream, KeyAlreadyExists, EndOfFile, 
-	       OutOfRange, WrongSubclass, UnexpectedValue);
+    void readData(BinaryStream& stream, Section* section) const;
 
 private:
-    
     /// Prototype of class.
     static AOutTextReader proto_;
 };
@@ -214,13 +204,8 @@ BOutTextReader::type() const {
  * @param offset Not used.
  * @param length Not used.
  */
-void 
-BOutTextReader::readData(
-    BinaryStream& /*stream*/,
-    Section* /*section*/) const 
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile, 
-	   OutOfRange, WrongSubclass, UnexpectedValue) {
-
+void
+BOutTextReader::readData(BinaryStream& /*stream*/, Section* /*section*/) const {
     SectionReaderTest::BOutReaderCalled();
 }
 
@@ -270,13 +255,8 @@ AOutTextReader::parent() const {
  * @param offset Not used.
  * @param length Not used.
  */
-void 
-AOutTextReader::readData(
-    BinaryStream &/*stream*/,
-    Section* /*section*/) const 
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile, 
-	   OutOfRange, WrongSubclass, UnexpectedValue) {
-    
+void
+AOutTextReader::readData(BinaryStream& /*stream*/, Section* /*section*/) const {
     SectionReaderTest::AOutReaderCalled();
 }
 

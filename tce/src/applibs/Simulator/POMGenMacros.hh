@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -435,7 +435,7 @@ findBooleanGuard(const TTAMachine::Machine& machine, bool isInverted) {
     PRINTOUT(" "); \
     Bus* bus__ = &findBus(\
         machine__, std::string("bus") + Conversion::toString(moveCounter__));\
-    Move* tempMove = NULL;\
+    std::shared_ptr<Move> tempMove = NULL;                                              \
     CONSTRUCT_MOVE;\
     tempInstruction__->addMove(tempMove);\
 } moveCounter__++;
@@ -443,7 +443,7 @@ findBooleanGuard(const TTAMachine::Machine& machine, bool isInverted) {
 /**
  * Creates a basic move without any guards.
  */
-#define BASIC_MOVE_CONSTRUCTION tempMove = new Move(src__, dst__, *bus__)
+#define BASIC_MOVE_CONSTRUCTION tempMove = std::make_shared<Move>(src__, dst__, *bus__)
 
 /**
  * Creates a basic move and adds it to the instruction this macro is 
@@ -520,7 +520,7 @@ findBooleanGuard(const TTAMachine::Machine& machine, bool isInverted) {
 #define GUARDED_MOVE_CONSTRUCTION(ADFGUARD) \
     TTAMachine::Guard &adfGuard__ = ADFGUARD; \
     MoveGuard* guard__ = new MoveGuard(adfGuard__); \
-    tempMove = new Move(src__, dst__, *bus__, guard__);
+    tempMove = std::make_shared<Move>(src__, dst__, *bus__, guard__);
 
   
 /**

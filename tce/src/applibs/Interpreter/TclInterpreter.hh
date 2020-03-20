@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -61,20 +61,15 @@ public:
         LineReader* reader);
 
     virtual void setVariableToInterpreter(
-        const std::string& name, 
-        const DataObject& value)
-        throw (NumberFormatException);
+        const std::string& name, const DataObject& value);
     virtual DataObject variable(const std::string& name);
     virtual bool interpret(const std::string& commandLine);
-    virtual void setResultToInterpreter(const DataObject& value)
-        throw (NumberFormatException);
-   
-    static DataObject tclObjToDataObject(Tcl_Obj* object);
-    static Tcl_Obj* dataObjectToTclObj(const DataObject& object)
-        throw (NumberFormatException);
+    virtual void setResultToInterpreter(const DataObject& value);
 
-    virtual bool processScriptFile(const std::string& scriptFileName)
-        throw (UnreachableStream);
+    static DataObject tclObjToDataObject(Tcl_Obj* object);
+    static Tcl_Obj* dataObjectToTclObj(const DataObject& object);
+
+    virtual bool processScriptFile(const std::string& scriptFileName);
 
     static int customCommandRedirector(
         ClientData cd,

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -80,9 +80,7 @@ MachineResourceManager::MachineResourceManager(
  * @exception InvalidData Found address space is the code address space.
  */
 ASpaceElement*
-MachineResourceManager::findDataAddressSpace(std::string name)
-    throw (IllegalMachine, InvalidData) {
-
+MachineResourceManager::findDataAddressSpace(std::string name) {
     // check if address space is already created
     if (!MapTools::containsKey(addressSpaces_, name)) {
 
@@ -120,7 +118,6 @@ MachineResourceManager::findDataAddressSpace(std::string name)
     return addressSpaces_[name];
 }
 
-
 /**
  * Returns bitwidth of requested bus.
  *
@@ -129,13 +126,10 @@ MachineResourceManager::findDataAddressSpace(std::string name)
  * @exception OutOfRange If slot number is out of bounds.
  */
 UValue
-MachineResourceManager::findBusWidth(UValue slotNumber)
-    throw (OutOfRange) {
-
+MachineResourceManager::findBusWidth(UValue slotNumber) {
     Bus* bus = adf_.busNavigator().item(slotNumber);
     return bus->width();
 }
-
 
 /**
  * Returns NullSection instance of TPEF.
@@ -289,12 +283,8 @@ MachineResourceManager::stringToChunk(const std::string aStr) {
  */
 MachineResourceManager::ResourceID&
 MachineResourceManager::resourceID(
-    UValue currentLine,
-    const RegisterTerm& term,
-    UValue slotNumber,
-    RequestType type)
-    throw (IllegalMachine) {
-
+    UValue currentLine, const RegisterTerm& term, UValue slotNumber,
+    RequestType type) {
     // create resource key for reference
     ResourceID newResID;
 
@@ -374,7 +364,6 @@ MachineResourceManager::resourceID(
 
     return resourceMap_[resKey];
 }
-
 
 /**
  * Returns the resource section of TPEF.
@@ -585,9 +574,7 @@ MachineResourceManager::requestTypeString(RequestType type) const {
  * @exception IllegalMachine There was problems finding resource from ADF.
  */
 MachineResourceManager::ResourceID
-MachineResourceManager::functionUnitPortResource(const RegisterTerm& term)
-    throw (IllegalMachine) {
-
+MachineResourceManager::functionUnitPortResource(const RegisterTerm& term) {
     ResourceID newResID;
 
     Machine::FunctionUnitNavigator fuNavi =
@@ -681,10 +668,8 @@ MachineResourceManager::functionUnitPortResource(const RegisterTerm& term)
  */
 MachineResourceManager::ResourceID
 MachineResourceManager::indexResource(
-    UValue currentLine, const RegisterTerm& term,
-    UValue slotNumber, RequestType type, std::string& resourceKeyString)
-    throw (IllegalMachine) {
-
+    UValue currentLine, const RegisterTerm& term, UValue slotNumber,
+    RequestType type, std::string& resourceKeyString) {
     ResourceID newResID;
 
     Machine::RegisterFileNavigator rfNavi =
@@ -751,7 +736,6 @@ MachineResourceManager::indexResource(
     return newResID;
 }
 
-
 /**
  * Finds resource for fu.operation.index or rf.port.index term.
  *
@@ -769,15 +753,9 @@ MachineResourceManager::indexResource(
  */
 MachineResourceManager::ResourceID
 MachineResourceManager::rFPortOrFUIndexReference(
-    FunctionUnit* fu,
-    BaseRegisterFile* rf,
-    UValue currentLine,
-    const RegisterTerm& term,
-    UValue slotNumber,
-    RequestType type,
-    std::string& resourceKeyString)
-    throw (IllegalMachine) {
-
+    FunctionUnit* fu, BaseRegisterFile* rf, UValue currentLine,
+    const RegisterTerm& term, UValue slotNumber, RequestType type,
+    std::string& resourceKeyString) {
     ResourceID newResID;
 
     // NOTE: disambiguation rule says that rf.port.index has higher
@@ -988,7 +966,6 @@ MachineResourceManager::rFPortOrFUIndexReference(
     return newResID;
 }
 
-
 /**
  * Finds resource for rf.index term.
  *
@@ -1004,13 +981,8 @@ MachineResourceManager::rFPortOrFUIndexReference(
  */
 MachineResourceManager::ResourceID
 MachineResourceManager::registerFileIndexReference(
-    BaseRegisterFile* rf,
-    const RegisterTerm& term,
-    UValue slotNumber,
-    RequestType type,
-    std::string& resourceKeyString)
-    throw (IllegalMachine) {
-
+    BaseRegisterFile* rf, const RegisterTerm& term, UValue slotNumber,
+    RequestType type, std::string& resourceKeyString) {
     ResourceID newResID;
     // this is normal rf reference unless register is immediate unit...
     newResID.type = MoveElement::MF_RF;

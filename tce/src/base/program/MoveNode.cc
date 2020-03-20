@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -64,25 +64,13 @@ using namespace TTAMachine;
 /**
  * Constructor.
  *
- * Creates a new node with a reference to the given Move. The ownership of the
- * move is NOT transferred to the MoveNode.
- *
- * @param newmove the Move this node refers to.
- */
-MoveNode::MoveNode(TTAProgram::Move& newmove) :
-    move_(&newmove), cycle_(0), moveOwned_(false), placed_(false) {
-}
-
-/**
- * Constructor.
- *
- * Creates a new node with Move. The ownership of the move is transferred
- * to the MoveNode.
+ * Creates a new node with Move.
  *
  * @param newmove the Move this node contains.
  */
-MoveNode::MoveNode(TTAProgram::Move* newmove) :
-    move_(newmove), cycle_(0), moveOwned_(true), placed_(false) {
+MoveNode::MoveNode(std::shared_ptr<TTAProgram::Move> newmove) :
+    move_(newmove), cycle_(0),  placed_(false), finalized_(false),
+    isInFrontier_(false) {
 }
 
 
@@ -94,13 +82,13 @@ MoveNode::MoveNode(TTAProgram::Move* newmove) :
  */
 
 MoveNode::MoveNode() :
-    move_(NULL), cycle_(0), moveOwned_(false), placed_(false) {
+    move_(NULL), cycle_(0), placed_(false), finalized_(false),
+    isInFrontier_(false) {
 }
 
 /**
  * Destructor.
  *
- * Deletes the owned Move instance.
  * Does not unregister this movenode from ProgramOperations.
  */
 MoveNode::~MoveNode() {
@@ -109,13 +97,10 @@ MoveNode::~MoveNode() {
         sourceOperation().removeOutputNode(*this);
     }
     if (isDestinationOperation()) {
-        destinationOperation().removeInputNode(*this);
+        for (unsigned int i = 0; i < destinationOperationCount(); i++) {
+            destinationOperation(i).removeInputNode(*this);
+        }
     }
-
-    if (moveOwned_) {
-        delete move_;
-    }
-    move_ = NULL;
 }
 
 /**
@@ -175,6 +160,21 @@ MoveNode::isSourceVariable() const {
     }
     return move_->source().isGPR();
 }
+
+/**
+ * Tells whether the node (move) reads the return address port.
+ * GPR.
+ *
+ * @return True if the source of the node is the return address port.
+ */
+bool
+MoveNode::isSourceRA() const {
+    if (move_ == NULL) {
+        return false;
+    }
+    return move_->source().isRA();
+}
+
 /**
  * Tells whether the node (move) reads a Immediate Register
  *
@@ -362,9 +362,7 @@ MoveNode::isScheduled() const {
  * @exception InvalidData if the node is not placed.
  */
 int
-MoveNode::cycle() const
-    throw(InvalidData){
-
+MoveNode::cycle() const {
     if (!isPlaced()){
         std::string msg = "MoveNode was not placed yet: ";
         if (isMove()) {
@@ -377,7 +375,6 @@ MoveNode::cycle() const
         return cycle_;
     }
 }
-
 
 /**
  * Returns the enclosing scheduling scope of the node.
@@ -402,14 +399,12 @@ MoveNode::scope(){
  *     output.
  */
 ProgramOperation&
-MoveNode::sourceOperation() const
-    throw(InvalidData){
+MoveNode::sourceOperation() const {
     return *sourceOperationPtr().get();
 }
 
 ProgramOperationPtr
-MoveNode::sourceOperationPtr() const
-    throw(InvalidData){
+MoveNode::sourceOperationPtr() const {
     if (!isSourceOperation()){
         std::string msg =
             (boost::format(
@@ -421,7 +416,6 @@ MoveNode::sourceOperationPtr() const
     }
 }
 
-
 /**
  * Set cycle for a node, also sets placed_
  * @param newcycle Cycle to which node is placed_
@@ -429,9 +423,7 @@ MoveNode::sourceOperationPtr() const
  *                      newcycle
  */
 void
-MoveNode::setCycle( const int newcycle)
-    throw(InvalidData){
-
+MoveNode::setCycle(const int newcycle) {
     if (placed_ == true && cycle_ != newcycle) {
         std::string msg = "MoveNode is already placed in cycle ";
         msg += cycle_;
@@ -447,9 +439,7 @@ MoveNode::setCycle( const int newcycle)
  * @throw InvalidData If node is not placed
  */
 void
-MoveNode::unsetCycle()
-    throw(InvalidData){
-
+MoveNode::unsetCycle() {
     if (placed_ == false ) {
         std::string msg = "MoveNode is not placed.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
@@ -464,8 +454,6 @@ MoveNode::unsetCycle()
  * @param po Program operation that is destination of MoveNode
  */
 void MoveNode::addDestinationOperationPtr(ProgramOperationPtr po) {
-    // just to find problems from old code
-    assert (dstOps_.size() == 0);
     dstOps_.push_back(po);
 }
 /**
@@ -667,37 +655,6 @@ MoveNode::unsetSourceOperation() {
 }
 
 /**
- * Test if Move is owned by MoveNode.
- *
- * @return True if Move is owned by MoveNode and will be destroyed by it.
- */
-bool
-MoveNode::isMoveOwned() const {
-    return moveOwned_;
-}
-
-/**
- * Sets flag to notify MoveNode that it owns it's Move and has to destroy
- * it in destructor. Happens when Move is removed from Instruction by
- * unassigning in RM.
- *
- */
-void
-MoveNode::setMoveOwned() {
-    moveOwned_ = true;
-}
-
-/**
- * Unsets flag to notify MoveNode that it does not own it's Move. Ownership
- * was passed to Instruction object most likely during assignment by RM.
- *
- */
-void
-MoveNode::unsetMoveOwned() {
-    moveOwned_ = false;
-}
-
-/**
  * Returns the total guard latency of the guard of given move,
  * or 0 if the move is unconditional.
  */
@@ -737,4 +694,25 @@ MoveNode::isSourceReg(const std::string& reg) const {
     }
 
     return atoi(reg.c_str()+dotPlace+1) == move().source().index();
+}
+
+bool MoveNode::isLastUnscheduledMoveOfDstOp() const {
+    for (unsigned int i = 0; i < destinationOperationCount(); i++) {
+        const ProgramOperation& po = destinationOperation(i);
+        // ignore ops with just one input
+        if (po.inputMoveCount() == 1) {
+            continue;
+        }
+        bool fail = false;
+        for (int j = 0; j < po.inputMoveCount(); j++) {
+            MoveNode& inputNode = po.inputMove(j);
+            if (&inputNode != this && !inputNode.isScheduled()) {
+                fail = true;
+                break;
+            }
+        }
+        if (!fail)
+            return true;
+    }
+    return false;
 }

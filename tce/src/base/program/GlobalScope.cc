@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -115,9 +115,7 @@ GlobalScope::globalCodeLabelCount(Address address) const {
  * @return The code label in the given address.
  */
 const CodeLabel&
-GlobalScope::globalCodeLabel(Address address, int index) const
-    throw (KeyNotFound) {
-
+GlobalScope::globalCodeLabel(Address address, int index) const {
     int found = 0;
 
     for (unsigned int i = 0; i < allCodeLabels_.size(); i++) {
@@ -161,9 +159,7 @@ GlobalScope::globalCodeLabelCount() const {
  * @return The code label in the given index.
  */
 const CodeLabel&
-GlobalScope::globalCodeLabel(int index) const
-    throw (KeyNotFound) {
-
+GlobalScope::globalCodeLabel(int index) const {
     if (index < globalCodeLabelCount()) {
         return dynamic_cast<const CodeLabel&>(
             allCodeLabels_.at(index)->label());
@@ -221,9 +217,7 @@ GlobalScope::globalDataLabelCount(Address address) const {
  * @return The data label in the given address.
  */
 const DataLabel&
-GlobalScope::globalDataLabel(Address address, int index) const
-    throw (KeyNotFound) {
-
+GlobalScope::globalDataLabel(Address address, int index) const {
     int found = 0;
 
     for (unsigned int i = 0; i < allDataLabels_.size(); i++) {
@@ -267,9 +261,7 @@ GlobalScope::globalDataLabelCount() const {
  * @return The data label of given index.
  */
 const DataLabel&
-GlobalScope::globalDataLabel(int index) const
-    throw (KeyNotFound) {
-
+GlobalScope::globalDataLabel(int index) const {
     if (index < globalDataLabelCount()) {
         return dynamic_cast<const DataLabel&>(
             allDataLabels_.at(index)->label());

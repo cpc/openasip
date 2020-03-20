@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -55,19 +55,13 @@ const string BaseFUPort::OSKEY_WIDTH = "width";
  *                                   that sets operation code.
  * @exception OutOfRange If the given bit width is less or equal to zero.
  */
-BaseFUPort::BaseFUPort(
-    const std::string& name,
-    int width,
-    FunctionUnit& parent)
-    throw (InvalidName, ComponentAlreadyExists, OutOfRange) :
-    Port(name, *static_cast<Unit*>(&parent)), width_(width) {
-
+BaseFUPort::BaseFUPort(const std::string& name, int width, FunctionUnit& parent)
+    : Port(name, *static_cast<Unit*>(&parent)), width_(width) {
     if (width <= 0) {
         string procName = "BaseFUPort::BaseFUPort";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * The constructor.
@@ -80,11 +74,9 @@ BaseFUPort::BaseFUPort(
  *                                        the state.
  */
 BaseFUPort::BaseFUPort(const ObjectState* state, Unit& parent)
-    throw (ObjectStateLoadingException) : Port(state, parent) {
-
+    : Port(state, parent) {
     loadStateWithoutReferences(state);
 }
-
 
 /**
  * The destructor.
@@ -126,9 +118,7 @@ BaseFUPort::width() const {
  * @exception OutOfRange If the given bit width is less or equal to zero.
  */
 void
-BaseFUPort::setWidth(int width)
-    throw (OutOfRange) {
-
+BaseFUPort::setWidth(int width) {
     if (width <= 0) {
         string procName = "FUPort::setWidth";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -136,7 +126,6 @@ BaseFUPort::setWidth(int width)
 
     width_ = width;
 }
-
 
 /**
  * Saves the contents of the function unit port to an ObjectState object.
@@ -161,13 +150,10 @@ BaseFUPort::saveState() const {
  *                                        socket cannot be made.
  */
 void
-BaseFUPort::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+BaseFUPort::loadState(const ObjectState* state) {
     loadStateWithoutReferences(state);
     Port::loadState(state);
 }
-
 
 /**
  * Loads its state from the given ObjectState instance but does not create
@@ -178,9 +164,7 @@ BaseFUPort::loadState(const ObjectState* state)
  *                                        is invalid.
  */
 void
-BaseFUPort::loadStateWithoutReferences(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+BaseFUPort::loadStateWithoutReferences(const ObjectState* state) {
     const string procName = "BaseFUPort::loadStateWithoutReferences";
 
     try {
@@ -190,5 +174,4 @@ BaseFUPort::loadStateWithoutReferences(const ObjectState* state)
             __FILE__, __LINE__, procName, e.errorMessage());
     }
 }
-
 }

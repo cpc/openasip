@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -73,6 +73,8 @@ using std::vector;
 using namespace TTAProgram;
 using namespace TTAMachine;
 
+IGNORE_COMPILER_WARNING("-Wstrict-overflow")
+
 /**
  * Fill delay slots of given BB.
  *
@@ -80,10 +82,9 @@ using namespace TTAMachine;
  * @param delaySlots number of delay slots in the machine.
  * @param fillFallThru fill from Fall-thru of jump BB?
  */
-void CopyingDelaySlotFiller::fillDelaySlots(
-    BasicBlockNode &jumpingBB, int delaySlots, bool fillFallThru)
-    throw (Exception) {
-
+void
+CopyingDelaySlotFiller::fillDelaySlots(
+    BasicBlockNode& jumpingBB, int delaySlots, bool fillFallThru) {
     // do not try to fill loop scheduled, also skip epilog and prolog.
     if (jumpingBB.isLoopScheduled()) {
         bbnStatus_[&jumpingBB] = BBN_BOTH_FILLED;
@@ -168,8 +169,8 @@ void CopyingDelaySlotFiller::fillDelaySlots(
 
     // if we have conditional jump, find the predicate register
     if (jumpMove != NULL && !jumpMove->isUnconditional()) {
-        Guard& g = jumpMove->guard().guard();
-        RegisterGuard* rg = dynamic_cast<RegisterGuard*>(&g);
+        const Guard& g = jumpMove->guard().guard();
+        const RegisterGuard* rg = dynamic_cast<const RegisterGuard*>(&g);
         if (rg != NULL) {
             grFile = rg->registerFile();
             grIndex = rg->registerIndex();
@@ -333,9 +334,7 @@ CopyingDelaySlotFiller::CopyingDelaySlotFiller() {
 void
 CopyingDelaySlotFiller::fillDelaySlots(
     ControlFlowGraph& cfg, DataDependenceGraph& ddg,
-    const TTAMachine::Machine& machine) 
-    throw (Exception) {
-
+    const TTAMachine::Machine& machine) {
     um_ = &UniversalMachine::instance();
     int delaySlots = machine.controlUnit()->delaySlots();
 
@@ -601,8 +600,7 @@ CopyingDelaySlotFiller::addResourceManager(
  */
 std::pair<TTAProgram::Move*, TTAProgram::Immediate*>
 CopyingDelaySlotFiller::findJumpImmediate(
-    int jumpIndex, Move& jumpMove, InstructionReferenceManager& irm) 
-    throw (Exception) {
+    int jumpIndex, Move& jumpMove, InstructionReferenceManager& irm) {
     BasicBlock& bb = static_cast<BasicBlock&>(jumpMove.parent().parent());
     Move* irMove = &jumpMove;
     int irIndex = jumpIndex;
@@ -710,11 +708,9 @@ bool CopyingDelaySlotFiller::writesRegister(
  */
 bool
 CopyingDelaySlotFiller::tryToFillSlots(
-    BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBNode,
-    bool fallThru, Move* jumpMove, int slotsToFill, int removeGuards,
-    int grIndex, RegisterFile* grFile, Move*& skippedJump, int delaySlots)
-    throw (Exception) {
-
+    BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBNode, bool fallThru,
+    Move* jumpMove, int slotsToFill, int removeGuards, int grIndex,
+    RegisterFile* grFile, Move*& skippedJump, int delaySlots) {
     skippedJump = NULL;
     BasicBlock& blockToFill = blockToFillNode.basicBlock();
     SimpleResourceManager& rm = *resourceManagers_[&blockToFill];
@@ -792,6 +788,8 @@ CopyingDelaySlotFiller::collectMoves(
     Move*& skippedJump, int delaySlots) {
     PendingImmediateMap pendingImmediateMap;
 
+    ControlFlowEdge* connectingEdge =
+        *cfg_->connectingEdges(blockToFillNode, nextBBN).begin();
     BasicBlock& bb = blockToFillNode.basicBlock();
     BasicBlock& nextBB = nextBBN.basicBlock();
     SimpleResourceManager& rm = *resourceManagers_[&bb];
@@ -873,6 +871,7 @@ CopyingDelaySlotFiller::collectMoves(
                 if (oldMove.destination().isGPR()) {
                     return false;
                 }
+
                 if (oldMove.isTriggering()) {
                     Operation& o = oldMove.destination().operation();
                     if (o.writesMemory() || o.hasSideEffects() ||
@@ -902,7 +901,8 @@ CopyingDelaySlotFiller::collectMoves(
             }
 
             // also copies move
-            MoveNode& mn = getMoveNode(mnOld, blockToFillNode);
+            MoveNode& mn = getMoveNode(
+                mnOld, blockToFillNode, connectingEdge->isBackEdge());
             Move& newMove = mn.move();
 
             // reads immediate?
@@ -1278,27 +1278,29 @@ CopyingDelaySlotFiller::tryToAssignOtherMovesOfOp(
 
 MoveNode&
 CopyingDelaySlotFiller::getMoveNode(
-    MoveNode& old, BasicBlockNode& bbn) {
+    MoveNode& old, BasicBlockNode& bbn, bool fillOverBackEdge) {
     if (AssocTools::containsKey(moveNodes_,&old)) {
         return *moveNodes_[&old];
     } else {
-        Move& move = getMove(old.move());
-        MoveNode *newMN = new MoveNode(&move);
+        auto movePtr = getMove(old.move());
+        MoveNode *newMN = new MoveNode(movePtr);
         ddg_->addNode(*newMN, bbn);
-        ddg_->copyDependencies(old,*newMN);
+        ddg_->copyDependencies(old,*newMN, fillOverBackEdge);
 
         moveNodes_[&old] = newMN;
         oldMoveNodes_[newMN] = &old;
         mnOwned_[newMN] = true;
         if (old.isSourceOperation()) {
             newMN->setSourceOperationPtr(
-                getProgramOperationPtr(old.sourceOperationPtr(), bbn));
+                getProgramOperationPtr(
+                    old.sourceOperationPtr(), bbn, fillOverBackEdge));
             assert(newMN->isSourceOperation());
         }
         if (old.isDestinationOperation()) {
             for (unsigned int i = 0; i < old.destinationOperationCount(); i++) {
                 newMN->addDestinationOperationPtr(
-                    getProgramOperationPtr(old.destinationOperationPtr(i), bbn));
+                    getProgramOperationPtr(
+                        old.destinationOperationPtr(i), bbn, fillOverBackEdge));
             }
             assert(newMN->isDestinationOperation());
         }
@@ -1316,7 +1318,7 @@ CopyingDelaySlotFiller::getMoveNode(
  */
 ProgramOperationPtr
 CopyingDelaySlotFiller::getProgramOperationPtr(
-    ProgramOperationPtr old, BasicBlockNode& bbn) {
+    ProgramOperationPtr old, BasicBlockNode& bbn, bool fillOverBackEdge) {
     if (AssocTools::containsKey(programOperations_, old.get())) {
         return programOperations_[old.get()];
     } else {
@@ -1328,12 +1330,12 @@ CopyingDelaySlotFiller::getProgramOperationPtr(
         for (int i = 0; i < old->inputMoveCount();i++) {
             MoveNode& mn = old->inputMove(i);
             assert(mn.isDestinationOperation());
-            po->addInputNode(getMoveNode(mn, bbn));
+            po->addInputNode(getMoveNode(mn, bbn, fillOverBackEdge));
         }
         for (int j = 0; j < old->outputMoveCount();j++) {
             MoveNode& mn = old->outputMove(j);
             assert(mn.isSourceOperation());
-            po->addOutputNode(getMoveNode(mn,bbn));
+            po->addOutputNode(getMoveNode(mn,bbn, fillOverBackEdge));
         }
         return po;
     }
@@ -1347,14 +1349,14 @@ CopyingDelaySlotFiller::getProgramOperationPtr(
  * @param old Move in jump target BB.
  * @return new Move for this BB.
  */
-Move&
+std::shared_ptr<Move>
 CopyingDelaySlotFiller::getMove(Move& old) {
     if (AssocTools::containsKey(moves_,&old)) {
-        return *moves_[&old];
+        return moves_[&old];
     } else {
         MoveNode& oldMN = ddg_->nodeOfMove(old);
 
-        Move* newMove = old.copy();
+        auto newMove = old.copy();
         newMove->setBus(um_->universalBus());
 
         Terminal& source = newMove->source();
@@ -1412,7 +1414,7 @@ CopyingDelaySlotFiller::getMove(Move& old) {
             TTAProgram::MoveGuard* g = old.guard().copy();
             newMove->setGuard(g);
         }
-        return *newMove;
+        return newMove;
     }
 }
 
@@ -1599,7 +1601,6 @@ CopyingDelaySlotFiller::updateJumpsAndCfg(
                 if (jumpAddressMove != NULL && jumpAddressMove != jumpMove) {
                     jumpAddressMove->parent().removeMove(
                         *jumpAddressMove);
-                    delete jumpAddressMove;
                 } else {
                     // get rid of the insructionreference by setting
                     // value of the imm to 0.
@@ -1642,12 +1643,10 @@ CopyingDelaySlotFiller::updateJumpsAndCfg(
                     ddg_->removeNode(mn);
                     delete &mn;
                     ins.removeMove(move);
-                    delete &move;
                 }
                 while (ins.immediateCount()) {
                     Immediate& imm = ins.immediate(0);
                     ins.removeImmediate(imm);
-                    delete &imm;
                 }
                     
             }

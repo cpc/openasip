@@ -69,7 +69,6 @@ ARCHITECTURE rtl OF rf_1wr_1rd_always_1 IS
    type   reg_type is array (natural range <>) of std_logic_vector(dataw-1 downto 0 );
    subtype rf_index is integer range 0 to rf_size-1;
    signal reg    : reg_type (rf_size-1 downto 0);
-   signal temp : std_logic_vector(0 downto 0);
 
 BEGIN
 
@@ -121,30 +120,12 @@ BEGIN
    -----------------------------------------------------------------
    guard_out : PROCESS (reg, rstx)
    -----------------------------------------------------------------
-
-   -- Process declarations
-   variable guard_var : std_logic_vector(0 downto 0);
-
-
    BEGIN
       IF rstx = '0' THEN
          guard <= (others => '0');
       ELSE
          for i in rf_size-1 downto 0 loop
-           if dataw > 1 then
-             guard_var := 
-                    reg(i)(dataw-1 downto dataw-1) 
-                 or reg(i)(dataw-2 downto dataw-2);
-             for j in dataw-2 downto 0 loop
-                guard_var := reg(i)(j downto j) 
-                      or guard_var;
-             end loop;
-           else
-             guard_var(0 downto 0) := reg(i)(0 downto 0);
-           end if;
-           temp <= reg(i)(1 downto 1) 
-                 or reg(i)(0 downto 0);   
-           guard(i downto i) <= guard_var(0 downto 0);
+           guard(i) <= reg(i)(0);
          end loop;
       END IF;
    END PROCESS guard_out;

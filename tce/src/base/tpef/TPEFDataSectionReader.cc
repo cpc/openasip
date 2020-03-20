@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -86,12 +86,7 @@ TPEFDataSectionReader::type() const {
  * @exception UnexpectedValue If there was unexpected value when reading.
  */
 void
-TPEFDataSectionReader::readData(
-    BinaryStream& stream,
-    Section* section) const
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-           OutOfRange, WrongSubclass, UnexpectedValue) {
-
+TPEFDataSectionReader::readData(BinaryStream& stream, Section* section) const {
     // base classes implementation must be called with these.
     TPEFSectionReader::readData(stream, section);
 
@@ -111,5 +106,4 @@ TPEFDataSectionReader::readData(
             parent())->addSectionSize(section, header().bodyLength);
     }
 }
-
 }

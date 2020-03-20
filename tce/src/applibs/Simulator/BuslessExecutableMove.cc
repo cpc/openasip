@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -125,7 +125,7 @@ BuslessExecutableMove::executeRead() {
 /**
  * Writes the value from source to the destination.
  *
- * If the move is guarded, the value is written to destination only if guard 
+ * If the move is guarded, the value is written to destination only if guard
  * expression is true.
  */
 void
@@ -133,8 +133,9 @@ BuslessExecutableMove::executeWrite() {
 
     if (guarded_) {
         const SimValue& regValue = guardReg_->value();
-        if (!((regValue.uLongWordValue() != 0 && !negated_) ||
-              (regValue.uLongWordValue() == 0 && negated_))) {
+        const bool guardTerm = (regValue.sLongWordValue() & 1l) == 1;
+        if (!(( guardTerm && !negated_) ||
+              (!guardTerm &&  negated_))) {
             // guard expression evaluated to false
             squashed_ = true;
             return; 

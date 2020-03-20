@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -95,8 +95,7 @@ FUResource::isAvailable(const int cycle) const {
  * @param node MoveNode assigned
  */
 void
-FUResource::assign(const int, MoveNode&)
-    throw (Exception) {
+FUResource::assign(const int, MoveNode&) {
     // Implemented in derived classes
     abortWithError("assign of FUResource called!");
 }
@@ -107,8 +106,7 @@ FUResource::assign(const int, MoveNode&)
  * @param node MoveNode to remove assignment from
  */
 void
-FUResource::unassign(const int, MoveNode&)
-    throw (Exception) {
+FUResource::unassign(const int, MoveNode&) {
     // Implemented in derived classes
     abortWithError("unassign of FUResource called!");
 }

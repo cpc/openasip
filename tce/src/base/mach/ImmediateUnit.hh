@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -50,25 +50,18 @@ class InstructionTemplate;
 class ImmediateUnit : public RegisterFile {
 public:
     ImmediateUnit(
-        const std::string& name,
-        unsigned int size,
-        unsigned int width,
-        unsigned int maxReads,
-        unsigned int guardLatency,
-        Machine::Extension extension)
-        throw (OutOfRange, InvalidName);
-    ImmediateUnit(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+        const std::string& name, unsigned int size, unsigned int width,
+        unsigned int maxReads, unsigned int guardLatency,
+        Machine::Extension extension);
+    ImmediateUnit(const ObjectState* state);
     ~ImmediateUnit();
 
-    virtual void setMaxWrites(int maxWrites)
-        throw (OutOfRange);
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
+    virtual void setMaxWrites(int maxWrites);
+    virtual void setName(const std::string& name);
 
     bool signExtends() const { return extension_ == Machine::SIGN; }
     bool zeroExtends() const { return extension_ == Machine::ZERO; }
-    
+
     virtual Machine::Extension extensionMode() const;
     virtual int latency() const;
     virtual void setExtensionMode(Machine::Extension mode);
@@ -76,8 +69,7 @@ public:
     virtual void unsetMachine();
 
     virtual ObjectState* saveState() const;
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 
     /// ObjectState name for ImmediateUnit.
     static const std::string OSNAME_IMMEDIATE_UNIT;
@@ -91,10 +83,8 @@ public:
     static const std::string OSKEY_LATENCY;
 
 private:
-    virtual void setLatency(int latency)
-        throw (OutOfRange);
-    void loadStateWithoutReferences(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void setLatency(int latency);
+    void loadStateWithoutReferences(const ObjectState* state);
 
     /**
      * Extension mode applied to the long immediate when it is narrower than

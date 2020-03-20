@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -90,10 +90,7 @@ Interpolation::quickFilter(const CostDBEntryKey&, CostDBTypes::EntryTable&) {
  */
 void
 Interpolation::filter(
-    const CostDBEntryKey& searchKey,
-    CostDBTypes::EntryTable& components) 
-    throw (TypeMismatch, KeyNotFound) {
-
+    const CostDBEntryKey& searchKey, CostDBTypes::EntryTable& components) {
     vector<Pair> entries;
     EntryKeyField searchField = searchKey.keyFieldOfType(*fieldType());
     for (CostDBTypes::EntryTable::iterator i = components.begin();

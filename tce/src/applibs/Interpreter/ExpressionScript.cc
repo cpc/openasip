@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -72,9 +72,7 @@ ExpressionScript::~ExpressionScript() {
  * @exception NumberFormatException If DataObject operation fails.
  */
 bool
-ExpressionScript::resultChanged() 
-    throw (ScriptExecutionFailure, NumberFormatException) {
-
+ExpressionScript::resultChanged() {
     DataObject obj;
     try {
         obj = lastResult();

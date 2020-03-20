@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -89,7 +89,7 @@ public:
         MISSING_CONNECTION
     };
 
-    ProgrammabilityValidator(const Machine& machine) throw (IllegalMachine);
+    ProgrammabilityValidator(const Machine& machine);
     ~ProgrammabilityValidator();
 
     ProgrammabilityValidatorResults* validate();
@@ -110,11 +110,9 @@ public:
                                     string> >& fromConnections);
     bool checkBooleanRegister(
         ProgrammabilityValidatorResults& results);
-    TPEF::Binary* profile(ProgrammabilityValidatorResults& results) 
-        throw (NotAvailable, InvalidData);
+    TPEF::Binary* profile(ProgrammabilityValidatorResults& results);
 
 private:
-
     void
     addConnectionToProgram(const Port* sourcePort,
                            const Port* destPort,

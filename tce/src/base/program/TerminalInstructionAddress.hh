@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -49,8 +49,7 @@ public:
 
     bool isInstructionAddress() const { return true; }
     // the value as an instructionAddress()
-    virtual Address address() const 
-        throw (WrongSubclass) = 0;
+    virtual Address address() const = 0;
     SimValue value() const { 
         return SimValue(address().location(), WORD_BITWIDTH); 
     }

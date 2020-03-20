@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -43,8 +43,7 @@ public:
     static NullInstructionField& instance();
 
     virtual int childFieldCount() const;
-    virtual InstructionField& childField(int position) const
-	throw (OutOfRange);
+    virtual InstructionField& childField(int position) const;
     virtual int width() const;
 
 private:

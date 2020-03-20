@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -65,10 +65,11 @@ const string Port::OSKEY_SECOND_SOCKET = "2_socket";
  *                        component.
  */
 Port::Port(const std::string& name, Unit& parentUnit)
-    throw (ComponentAlreadyExists, InvalidName) :
-    SubComponent(), name_(name), parentUnit_(NULL), socket1_(NULL),
-    socket2_(NULL) {
-
+    : SubComponent(),
+      name_(name),
+      parentUnit_(NULL),
+      socket1_(NULL),
+      socket2_(NULL) {
     if (!MachineTester::isValidComponentName(name)) {
         const string procName = "Port::Port";
         throw InvalidName(__FILE__, __LINE__, procName);
@@ -77,7 +78,6 @@ Port::Port(const std::string& name, Unit& parentUnit)
     parentUnit.addPort(*this);
     parentUnit_ = &parentUnit;
 }
-
 
 /**
  * Constructor.
@@ -91,10 +91,11 @@ Port::Port(const std::string& name, Unit& parentUnit)
  *                                        is invalid.
  */
 Port::Port(const ObjectState* state, Unit& parentUnit)
-    throw (ObjectStateLoadingException) :
-    SubComponent(), name_(""), parentUnit_(NULL), socket1_(NULL),
-    socket2_(NULL) {
-
+    : SubComponent(),
+      name_(""),
+      parentUnit_(NULL),
+      socket1_(NULL),
+      socket2_(NULL) {
     loadStateWithoutReferences(state);
     try {
         parentUnit.addPort(*this);
@@ -109,7 +110,6 @@ Port::Port(const ObjectState* state, Unit& parentUnit)
     }
     parentUnit_ = &parentUnit;
 }
-
 
 /**
  * Destructor.
@@ -152,9 +152,7 @@ Port::name() const {
  * @exception InvalidName If the given name is not a valid component name.
  */
 void
-Port::setName(const std::string& name)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+Port::setName(const std::string& name) {
     if (name == this->name()) {
         return;
     }
@@ -176,7 +174,6 @@ Port::setName(const std::string& name)
     name_ = name;
 }
 
-
 /**
  * Attaches a socket to this port.
  *
@@ -191,10 +188,7 @@ Port::setName(const std::string& name)
  *                                of connectivity reasons.
  */
 void
-Port::attachSocket(Socket& socket)
-    throw (IllegalRegistration, ComponentAlreadyExists,
-           IllegalConnectivity) {
-
+Port::attachSocket(Socket& socket) {
     parentUnit()->ensureRegistration(socket);
     string procName = "Port::attachSocket";
 
@@ -229,7 +223,6 @@ Port::attachSocket(Socket& socket)
     }
 }
 
-
 /**
  * Detaches a socket from this port.
  *
@@ -241,9 +234,7 @@ Port::attachSocket(Socket& socket)
  *                             port.
  */
 void
-Port::detachSocket(Socket& socket)
-    throw (InstanceNotFound) {
-
+Port::detachSocket(Socket& socket) {
     if (socket1_ == &socket) {
         socket1_ = NULL;
     } else if (socket2_ == &socket) {
@@ -257,7 +248,6 @@ Port::detachSocket(Socket& socket)
     // reserved solely to Port class!
     socket.detachPort(*this);
 }
-
 
 /**
  * Returns the input socket of the port.
@@ -330,9 +320,7 @@ Port::isOutput() const {
  * @exception OutOfRange If the given index is not 0 or 1.
  */
 Socket*
-Port::unconnectedSocket(int index) const
-    throw (OutOfRange) {
-
+Port::unconnectedSocket(int index) const {
     const string procName = "Port::unconnectedSocket";
 
     if (index < 0 || index > 1) {
@@ -377,7 +365,6 @@ Port::unconnectedSocket(int index) const
         return NULL;
     }
 }
-
 
 /**
  * Returns the number of sockets attached to the port.
@@ -444,9 +431,7 @@ Port::saveState() const {
  *                                        is invalid.
  */
 void
-Port::loadStateWithoutReferences(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+Port::loadStateWithoutReferences(const ObjectState* state) {
     const string procName = "Port::loadStateWithoutReferences";
 
     try {
@@ -461,7 +446,6 @@ Port::loadStateWithoutReferences(const ObjectState* state)
     }
 }
 
-
 /**
  * Loads its state from the given ObjectState instance.
  *
@@ -472,9 +456,7 @@ Port::loadStateWithoutReferences(const ObjectState* state)
  *                                        references to sockets fails.
  */
 void
-Port::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+Port::loadState(const ObjectState* state) {
     const string procName = "Port::loadState";
     detachAllSockets();
     loadStateWithoutReferences(state);
@@ -514,7 +496,6 @@ Port::loadState(const ObjectState* state)
     }
 }
 
-
 /**
  * Attaches the socket by the given name to the port.
  *
@@ -532,10 +513,7 @@ Port::loadState(const ObjectState* state)
  *                                of connectivity reasons.
  */
 void
-Port::attachSocket(const std::string& socketName)
-    throw (InstanceNotFound, IllegalRegistration, ComponentAlreadyExists,
-           IllegalConnectivity) {
-
+Port::attachSocket(const std::string& socketName) {
     const string procName = "Socket::attachSocket";
 
     Machine* mach = parentUnit()->machine();
@@ -547,7 +525,6 @@ Port::attachSocket(const std::string& socketName)
     Socket* socket = socketNav.item(socketName);
     attachSocket(*socket);
 }
-
 
 /**
  * Detaches all the sockets connected to the port.

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -41,19 +41,12 @@
 class IUPortCode : public PortCode {
 public:
     IUPortCode(
-	const std::string& immediateUnit,
-	unsigned int encoding,
-	unsigned int extraBits,
-	int indexWidth,
-	SocketCodeTable& parent)
-	throw (ObjectAlreadyExists, OutOfRange);
+        const std::string& immediateUnit, unsigned int encoding,
+        unsigned int extraBits, int indexWidth, SocketCodeTable& parent);
     IUPortCode(
-	const std::string& immediateUnit,
-	int indexWidth,
-	SocketCodeTable& parent)
-	throw (ObjectAlreadyExists, OutOfRange);
-    IUPortCode(const ObjectState* state, SocketCodeTable& parent)
-	throw (ObjectStateLoadingException, ObjectAlreadyExists);
+        const std::string& immediateUnit, int indexWidth,
+        SocketCodeTable& parent);
+    IUPortCode(const ObjectState* state, SocketCodeTable& parent);
     virtual ~IUPortCode();
 
     virtual ObjectState* saveState() const;

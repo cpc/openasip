@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -90,11 +90,7 @@ AOutStringSectionReader::type() const {
  */
 void
 AOutStringSectionReader::readData(
-    BinaryStream& stream,
-    Section* section) const
-    throw (UnreachableStream, KeyAlreadyExists, EndOfFile,
-           OutOfRange, WrongSubclass, UnexpectedValue) {
-
+    BinaryStream& stream, Section* section) const {
     AOutReader* aOutReader = dynamic_cast<AOutReader*>(parent());
 
     StringSection* strSect = dynamic_cast<StringSection*>(section);
@@ -113,5 +109,4 @@ AOutStringSectionReader::readData(
     // section must start with zero.
     assert(strSect->byte(strSect->chunk(0)) == 0);
 }
-
 }

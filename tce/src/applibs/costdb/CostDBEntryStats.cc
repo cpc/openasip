@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -75,9 +75,7 @@ CostDBEntryStats::CostDBEntryStats(double areaData, double internalDelayData) :
  */
 CostDBEntryStats::CostDBEntryStats(
     const CostDBEntryStats& stats1, const CostDBEntryStats& stats2,
-    double coefficient) 
-    throw (KeyNotFound) {
-
+    double coefficient) {
     area_  = stats1.area() + coefficient * (stats2.area()  - stats1.area());
     delay_ = stats1.delay() + coefficient * (stats2.delay() - stats1.delay());
 
@@ -140,7 +138,6 @@ CostDBEntryStats::CostDBEntryStats(
     }
 }
 
-
 /**
  * Destructor.
  */
@@ -190,9 +187,7 @@ CostDBEntryStats::createStats() const {
  * @exception KeyNotFound Thrown if active energy is not set.
  */
 double
-CostDBEntryStats::energyActive() const 
-    throw (WrongSubclass, KeyNotFound) {
-
+CostDBEntryStats::energyActive() const {
     return findEnergy(ENERGY_ACTIVE);
 }
 
@@ -204,12 +199,9 @@ CostDBEntryStats::energyActive() const
  * @exception KeyNotFound Thrown if idle enrgy is not set.
  */
 double
-CostDBEntryStats::energyIdle() const
-    throw (WrongSubclass, KeyNotFound) {
-
+CostDBEntryStats::energyIdle() const {
     return findEnergy(ENERGY_IDLE);
 }
-
 
 /**
  * Returns the energy of an entry when given operation is executed.
@@ -224,9 +216,7 @@ CostDBEntryStats::energyIdle() const
  * @exception KeyNotFound No energy matching the string found.
  */
 double
-CostDBEntryStats::energyOperation(const std::string&) const
-    throw (WrongSubclass, KeyNotFound) {
-
+CostDBEntryStats::energyOperation(const std::string&) const {
     throw WrongSubclass(__FILE__, __LINE__,
                         "CostDBEntryStats::energyOperation");
     return 0.0; // stupid return statement to make compiler quiet
@@ -241,9 +231,7 @@ CostDBEntryStats::energyOperation(const std::string&) const
  * instance.
  */
 bool
-CostDBEntryStats::hasEnergyOperation(const std::string&) const
-    throw (WrongSubclass) {
-
+CostDBEntryStats::hasEnergyOperation(const std::string&) const {
     throw WrongSubclass(__FILE__, __LINE__,
                         "CostDBEntryStats::hasEnergyOperation");
     return false; // stupid return statement to make compiler quiet
@@ -258,9 +246,7 @@ CostDBEntryStats::hasEnergyOperation(const std::string&) const
  * @exception KeyNotFound Never thrown by this function.
  */
 double
-CostDBEntryStats::energyRead() const 
-    throw (WrongSubclass, KeyNotFound) {
-    
+CostDBEntryStats::energyRead() const {
     throw WrongSubclass(__FILE__, __LINE__,
                         "CostDBEntryStats::energyRead");
     return 0.0; // stupid return statement to make compiler quiet
@@ -275,9 +261,7 @@ CostDBEntryStats::energyRead() const
  * @exception KeyNotFound Never thrown by this function.
  */
 double
-CostDBEntryStats::energyWrite() const 
-    throw (WrongSubclass, KeyNotFound) {
-    
+CostDBEntryStats::energyWrite() const {
     throw WrongSubclass(__FILE__, __LINE__,
                         "CostDBEntryStats::energyRead");
     return 0.0; // stupid return statement to make compiler quiet
@@ -294,9 +278,7 @@ CostDBEntryStats::energyWrite() const
  * @exception KeyNotFound Never thrown by this function.
  */
 double
-CostDBEntryStats::energyReadWrite(int, int) const 
-    throw (WrongSubclass, KeyNotFound) {
-
+CostDBEntryStats::energyReadWrite(int, int) const {
     throw WrongSubclass(__FILE__, __LINE__,
                         "CostDBEntryStats::energyReadsWrites");
     return 0.0; // stupid return statement to make compiler quiet
@@ -323,9 +305,7 @@ CostDBEntryStats::hasEnergy(const std::string& key) const {
  * @exception KeyNotFound Requested key was not found.
  */
 double
-CostDBEntryStats::findEnergy(const std::string& key) const 
-    throw (KeyNotFound) {
-
+CostDBEntryStats::findEnergy(const std::string& key) const {
     EnergyMap::const_iterator i = energies_.find(key);
     if (i == energies_.end()) {
         throw KeyNotFound(__FILE__, __LINE__, "CostDBEntryStats::findEnergy");
@@ -340,9 +320,7 @@ CostDBEntryStats::findEnergy(const std::string& key) const
  * @exception WrongSubclass Never thrown by this function.
  */
 void
-CostDBEntryStats::setEnergyActive(double energy) 
-    throw (WrongSubclass) {
-
+CostDBEntryStats::setEnergyActive(double energy) {
     EnergyMap::iterator iter = energies_.find(ENERGY_ACTIVE);
     if (iter != energies_.end()) {
         energies_.erase(iter);
@@ -357,9 +335,7 @@ CostDBEntryStats::setEnergyActive(double energy)
  * @exception WrongSubclass Never thrown by this function.
  */
 void
-CostDBEntryStats::setEnergyIdle(double energy) 
-    throw (WrongSubclass) {
-
+CostDBEntryStats::setEnergyIdle(double energy) {
     EnergyMap::iterator iter = energies_.find(ENERGY_IDLE);
     if (iter != energies_.end()) {
         energies_.erase(iter);
@@ -379,9 +355,7 @@ CostDBEntryStats::setEnergyIdle(double energy)
  * instance.
  */
 void
-CostDBEntryStats::setEnergyOperation(const std::string&, double)
-    throw (WrongSubclass) {
-
+CostDBEntryStats::setEnergyOperation(const std::string&, double) {
     throw WrongSubclass(__FILE__, __LINE__, 
                         "CostDBEntryStats::setEnergyOperation");
 }
@@ -394,9 +368,7 @@ CostDBEntryStats::setEnergyOperation(const std::string&, double)
  * instance.
  */
 void
-CostDBEntryStats::setEnergyRead(double) 
-    throw (WrongSubclass) {
-
+CostDBEntryStats::setEnergyRead(double) {
     throw WrongSubclass(__FILE__, __LINE__,
                         "CostDBEntryStats::setEnergyRead");
 }
@@ -409,9 +381,7 @@ CostDBEntryStats::setEnergyRead(double)
  * instance.
  */
 void
-CostDBEntryStats::setEnergyWrite(double) 
-    throw (WrongSubclass) {
-
+CostDBEntryStats::setEnergyWrite(double) {
     throw WrongSubclass(__FILE__, __LINE__,
                         "CostDBEntryStats::setEnergyWrite");
 }
@@ -426,9 +396,7 @@ CostDBEntryStats::setEnergyWrite(double)
  * instance.
  */
 void
-CostDBEntryStats::setEnergyReadWrite(int, int, double) 
-    throw (WrongSubclass) {
-    
+CostDBEntryStats::setEnergyReadWrite(int, int, double) {
     throw WrongSubclass(__FILE__, __LINE__,
                         "CostDBEntryStats::setEnergyReadsWrites");
 }
@@ -463,9 +431,7 @@ CostDBEntryStats::addEnergy(const std::string& key, double energy) {
  * @exception KeyNotFound Thrown if delay for given port is not set.
  */
 double
-CostDBEntryStats::delayPort(const std::string& port) const 
-    throw (WrongSubclass, KeyNotFound) {
- 
+CostDBEntryStats::delayPort(const std::string& port) const {
     return findDelay(port);
 }
 
@@ -477,9 +443,7 @@ CostDBEntryStats::delayPort(const std::string& port) const
  * @exception WrongSubclass Never thrown by this function.
  */
 void
-CostDBEntryStats::setDelay(const std::string& port, double delay) 
-    throw (WrongSubclass) {
-
+CostDBEntryStats::setDelay(const std::string& port, double delay) {
     addDelay(port, delay);
 }
 
@@ -492,9 +456,7 @@ CostDBEntryStats::setDelay(const std::string& port, double delay)
  * @exception KeyNotFound Requested key was not found.
  */
 double
-CostDBEntryStats::findDelay(const std::string& key) const 
-    throw (KeyNotFound) {
-
+CostDBEntryStats::findDelay(const std::string& key) const {
     DelayMap::const_iterator i = delays_.find(key);
 
     if (i == delays_.end()) {

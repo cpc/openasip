@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -43,28 +43,19 @@
 class UnboundedRegisterFile : public TTAMachine::RegisterFile {
 public:
     UnboundedRegisterFile(
-        const std::string& name,
-        int width,
-        RegisterFile::Type type)
-        throw (InvalidName, OutOfRange);
+        const std::string& name, int width, RegisterFile::Type type);
     virtual ~UnboundedRegisterFile();
 
     virtual int numberOfRegisters() const;
 
-    virtual void setMaxReads(int reads)
-        throw (OutOfRange);
-    virtual void setMaxWrites(int maxWrites)
-        throw (OutOfRange);
-    virtual void setNumberOfRegisters(int registers)
-        throw (OutOfRange);
-    virtual void setWidth(int width)
-        throw (OutOfRange);
-    virtual void setName(const std::string& name)
-        throw (ComponentAlreadyExists, InvalidName);
+    virtual void setMaxReads(int reads);
+    virtual void setMaxWrites(int maxWrites);
+    virtual void setNumberOfRegisters(int registers);
+    virtual void setWidth(int width);
+    virtual void setName(const std::string& name);
     virtual void setType(RegisterFile::Type type);
 
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -767,10 +767,8 @@ SettingCommand::~SettingCommand() {
  * @exception NumberFormatException Is never thrown by this command.
  * @todo Use the count for the step.
  */
-bool 
-SettingCommand::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
+bool
+SettingCommand::execute(const std::vector<DataObject>& arguments) {
     const int argumentCount = arguments.size() -1;
 
     if (!checkArgumentCount(argumentCount, 0, 2)) {

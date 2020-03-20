@@ -1,0 +1,42 @@
+CODE ;
+
+# In the guarded portions, 43 is the expected value (ascii +)
+
+0 -> RF.0 , ... ;
+? RF.0 45 -> OUT.in1t.stdout, ! RF.0 43 -> OUT.in1t.stdout;
+1 -> RF.0 , ... ;
+? RF.0 43 -> OUT.in1t.stdout, ! RF.0 45 -> OUT.in1t.stdout;
+2 -> RF.0 , ... ;
+? RF.0 45 -> OUT.in1t.stdout, ! RF.0 43 -> OUT.in1t.stdout;
+100 -> RF.0 , ... ;
+? RF.0 45 -> OUT.in1t.stdout, ! RF.0 43 -> OUT.in1t.stdout;
+255 -> RF.0 , ... ;
+? RF.0 43 -> OUT.in1t.stdout, ! RF.0 45 -> OUT.in1t.stdout;
+4294967294 -> RF.0 , ... ;
+? RF.0 45 -> OUT.in1t.stdout, ! RF.0 43 -> OUT.in1t.stdout;
+4294967295 -> RF.0 , ... ;
+? RF.0 43 -> OUT.in1t.stdout, ! RF.0 45 -> OUT.in1t.stdout;
+2147483647 -> RF.0 , ... ;
+? RF.0 43 -> OUT.in1t.stdout, ! RF.0 45 -> OUT.in1t.stdout;
+
+253318061 -> RF.0 , ... ;
+? RF.0 43 -> OUT.in1t.stdout, ! RF.0 45 -> OUT.in1t.stdout;
+3889362098 -> RF.0 , ... ;
+? RF.0 45 -> OUT.in1t.stdout, ! RF.0 43 -> OUT.in1t.stdout;
+253318061 -> RF.0 , ... ;
+? RF.0 43 -> OUT.in1t.stdout, ! RF.0 45 -> OUT.in1t.stdout;
+4230438351 -> RF.0 , ... ;
+? RF.0 43 -> OUT.in1t.stdout, ! RF.0 45 -> OUT.in1t.stdout;
+4294585118 -> RF.0 , ... ;
+? RF.0 45 -> OUT.in1t.stdout, ! RF.0 43 -> OUT.in1t.stdout;
+801734128 -> RF.0 , ... ;
+? RF.0 45 -> OUT.in1t.stdout, ! RF.0 43 -> OUT.in1t.stdout;
+3788500553 -> RF.0 , ... ;
+? RF.0 43 -> OUT.in1t.stdout, ! RF.0 45 -> OUT.in1t.stdout;
+60569743 -> RF.0 , ... ;
+? RF.0 43 -> OUT.in1t.stdout, ! RF.0 45 -> OUT.in1t.stdout;
+627972306 -> RF.0 , ... ;
+? RF.0 45 -> OUT.in1t.stdout, ! RF.0 43 -> OUT.in1t.stdout;
+3742127378 -> RF.0 , ... ;
+? RF.0 45 -> OUT.in1t.stdout, ! RF.0 43 -> OUT.in1t.stdout;
+

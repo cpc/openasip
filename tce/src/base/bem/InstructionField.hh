@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -52,8 +52,7 @@ public:
      */
     virtual int childFieldCount() const = 0;
 
-    virtual InstructionField& childField(int position) const
-	throw (OutOfRange);
+    virtual InstructionField& childField(int position) const;
 
     /**
      * Returns the bit width of the field.
@@ -62,15 +61,12 @@ public:
 
     int bitPosition() const;
     int relativePosition() const;
-    virtual void setRelativePosition(int position)
-	throw (OutOfRange);
-    void setExtraBits(int bits)
-	throw (OutOfRange);
+    virtual void setRelativePosition(int position);
+    void setExtraBits(int bits);
     int extraBits() const;
 
     // methods inherited from Serializable interface
-    virtual void loadState(const ObjectState* state)
-	throw (ObjectStateLoadingException);
+    virtual void loadState(const ObjectState* state);
     virtual ObjectState* saveState() const;
 
     /// ObjectState name for instruction field.
@@ -82,8 +78,7 @@ public:
 
 protected:
     InstructionField(InstructionField* parent);
-    InstructionField(const ObjectState* state, InstructionField* parent)
-	throw (ObjectStateLoadingException);
+    InstructionField(const ObjectState* state, InstructionField* parent);
 
     void setParent(InstructionField* parent);
     static void reorderSubfields(ObjectState* state);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2012 Tampere University of Technology.
+    Copyright (c) 2002-2012 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -107,13 +107,11 @@ BUBasicBlockScheduler::~BUBasicBlockScheduler() {
  * @exception Exception several TCE exceptions can be thrown in case of
  *            a scheduling error.
  */
-void
+int
 BUBasicBlockScheduler::handleDDG(
-    DataDependenceGraph& ddg,
-    SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
+    DataDependenceGraph& ddg, SimpleResourceManager& rm,
+    const TTAMachine::Machine& targetMachine, bool testOnly) {
+    assert(!testOnly);
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
 
@@ -146,7 +144,7 @@ BUBasicBlockScheduler::handleDDG(
     // empty need not to be scheduled
     if (ddg.nodeCount() == 0 ||
         (ddg.nodeCount() == 1 && !ddg.node(0).isMove())) {
-        return;
+        return 0;
     }
 
     // INT_MAX/2 won't work on trunk due to multithreading injecting empty
@@ -233,7 +231,8 @@ BUBasicBlockScheduler::handleDDG(
             " end cycle: " << endCycle_ << std::endl;
         abortWithError("Should not happen!");
     }
-    
+    int size = rm_->largestCycle() - rm_->smallestCycle();
+    return size;
 }
 
 #ifdef DEBUG_REG_COPY_ADDER
@@ -251,9 +250,7 @@ static int graphCount = 0;
  */
 void
 BUBasicBlockScheduler::scheduleOperation(
-    MoveNodeGroup& moves, BUMoveNodeSelector& selector)
-    throw (Exception) {
-
+    MoveNodeGroup& moves, BUMoveNodeSelector& selector) {
     ProgramOperation& po =
         (moves.node(0).isSourceOperation())?
         (moves.node(0).sourceOperation()):
@@ -409,11 +406,7 @@ BUBasicBlockScheduler::scheduleOperation(
  * @return True if all operands got scheduled
  */
 bool
-BUBasicBlockScheduler::scheduleOperandWrites(
-    MoveNodeGroup& moves,
-    int cycle)
-    throw (Exception) {
-
+BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves, int cycle) {
     ProgramOperation& po =
         (moves.node(0).isSourceOperation())?
         (moves.node(0).sourceOperation()):
@@ -444,7 +437,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(
         // Try to schedule trigger first, otherwise the operand
         // may get scheduled in cycle where trigger does not fit and
         // later cycle will not be possible for trigger.
-        trigger = findTrigger(po);
+        trigger = findTrigger(po, *targetMachine_);
         if (trigger != NULL && !trigger->isScheduled()) {
             if (scheduleOperand(*trigger, cycle) == false) {
                 cycle--;
@@ -544,9 +537,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(
  */
 int
 BUBasicBlockScheduler::scheduleResultReads(
-    MoveNodeGroup& moves, int cycle, bool bypass, bool bypassLate)
-    throw (Exception) {
-
+    MoveNodeGroup& moves, int cycle, bool bypass, bool bypassLate) {
     int maxResultCycle = cycle;
     int tempRegLimitCycle = cycle;
     int localMaximum = 0;
@@ -652,9 +643,7 @@ BUBasicBlockScheduler::scheduleResultReads(
  * @param moveNode R-R Move to schedule.
  */
 void
-BUBasicBlockScheduler::scheduleRRMove(MoveNode& moveNode)
-    throw (Exception) {
-
+BUBasicBlockScheduler::scheduleRRMove(MoveNode& moveNode) {
 #ifdef DEBUG_REG_COPY_ADDER
     ddg_->setCycleGrouping(true);
     ddg_->writeToDotFile(
@@ -701,11 +690,7 @@ BUBasicBlockScheduler::scheduleRRMove(MoveNode& moveNode)
  * @param earliestCycle The earliest cycle to try.
  */
 void
-BUBasicBlockScheduler::scheduleMove(
-    MoveNode& moveNode,
-    int latestCycle)
-    throw (Exception) {
-
+BUBasicBlockScheduler::scheduleMove(MoveNode& moveNode, int latestCycle) {
     if (moveNode.isScheduled()) {
         ddg_->writeToDotFile("already_sched.dot");
         abort();
@@ -930,11 +915,7 @@ BUBasicBlockScheduler::longDescription() const {
  */
 void
 BUBasicBlockScheduler::scheduleResultReadTempMoves(
-    MoveNode& resultMove,
-    MoveNode& resultRead,
-    int firstWriteCycle)
-    throw (Exception) {
-
+    MoveNode& resultMove, MoveNode& resultRead, int firstWriteCycle) {
     /* Because temporary register moves do not have WaR/WaW dependency edges
        between the other possible uses of the same temp register in
        the same operation, we have to limit the scheduling of the new
@@ -968,7 +949,6 @@ BUBasicBlockScheduler::scheduleResultReadTempMoves(
     scheduleMove(*tempMove1, firstWriteCycle);
     assert(tempMove1->isScheduled());
     scheduledTempMoves_[&resultRead].insert(tempMove1);
-
 }
 
 /**
@@ -983,9 +963,7 @@ BUBasicBlockScheduler::scheduleResultReadTempMoves(
  */
 void
 BUBasicBlockScheduler::scheduleInputOperandTempMoves(
-    MoveNode& operandMove, MoveNode& operandWrite)
-    throw (Exception) {
-
+    MoveNode& operandMove, MoveNode& operandWrite) {
     /* Because temporary register moves do not have WaR dependency edges
        between the other possible uses of the same temp register in
        the same operation, we have to limit the scheduling of the new
@@ -1061,9 +1039,7 @@ BUBasicBlockScheduler::scheduleInputOperandTempMoves(
  */
 void
 BUBasicBlockScheduler::scheduleRRTempMoves(
-    MoveNode& regToRegMove, MoveNode& firstMove, int lastUse)
-    throw (Exception) {
-
+    MoveNode& regToRegMove, MoveNode& firstMove, int lastUse) {
     /* Because temporary register moves do not have WaR/WaW dependency edges
        between the other possible uses of the same temp register in
        the same operation, we have to limit the scheduling of the new
@@ -1181,12 +1157,11 @@ BUBasicBlockScheduler::findBypassDestinations(
     // TODO: Fix when DDG could handle multiple destinations
     maxHopCount = 1;
     for (int i = 0; i < maxHopCount; i++) {
-        MoveNodeSet rrDestinations = ddg_->onlyRegisterRawDestinations(*n);
-        if (rrDestinations.count() == 0) {
+        auto rrDestinations = ddg_->onlyRegisterRawDestinations(*n);
+        if (rrDestinations.empty()) {
             break;
         }
-        for (int j = 0; j < rrDestinations.count(); j++) {
-            n = &rrDestinations.at(j);
+        for (auto n: rrDestinations) {
             if (ddg_->onlyRegisterEdgeIn(*n) == NULL) {
                 // No bypassing of moves with multiple register definition
                 // sources.
@@ -1194,7 +1169,7 @@ BUBasicBlockScheduler::findBypassDestinations(
                 // using inverse guard of guarded source.
                 continue;
             }
-            std::set<const TTAMachine::Port*> destinationPorts;            
+            MachineConnectivityCheck::PortSet destinationPorts;
             destinationPorts.insert(&n->move().destination().port());
             
             if (MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(

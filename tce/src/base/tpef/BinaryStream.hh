@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -61,38 +61,30 @@ public:
     BinaryStream(std::string name, bool littleEndian=false);
     virtual ~BinaryStream();
 
-    Byte readByte() throw (UnreachableStream, EndOfFile);
-    HalfWord readHalfWord() throw (UnreachableStream, EndOfFile);
-    Word readWord() throw (UnreachableStream, EndOfFile);
+    Byte readByte();
+    HalfWord readHalfWord();
+    Word readWord();
 
-    void readByteBlock(Byte* buffer, unsigned int howmany)
-        throw (UnreachableStream, EndOfFile);
-    void readHalfWordBlock(HalfWord* buffer, unsigned int howmany)
-        throw (UnreachableStream, EndOfFile);
-    void readWordBlock(Word* buffer, unsigned int howmany)
-        throw (UnreachableStream, EndOfFile);
+    void readByteBlock(Byte* buffer, unsigned int howmany);
+    void readHalfWordBlock(HalfWord* buffer, unsigned int howmany);
+    void readWordBlock(Word* buffer, unsigned int howmany);
 
-    void writeByte(Byte byte) throw (UnreachableStream, WritePastEOF);
-    void writeHalfWord(HalfWord halfword)
-        throw (UnreachableStream, WritePastEOF);
-    void writeWord(Word word) throw (UnreachableStream, WritePastEOF);
+    void writeByte(Byte byte);
+    void writeHalfWord(HalfWord halfword);
+    void writeWord(Word word);
 
-    void writeByteBlock(Byte* bytes, unsigned int howmany)
-        throw (UnreachableStream, WritePastEOF);
-    void writeHalfWordBlock(HalfWord* hwords, unsigned int howmany)
-        throw (UnreachableStream, WritePastEOF);
-    void writeWordBlock(Word* words, unsigned int howmany)
-        throw (UnreachableStream, WritePastEOF);
+    void writeByteBlock(Byte* bytes, unsigned int howmany);
+    void writeHalfWordBlock(HalfWord* hwords, unsigned int howmany);
+    void writeWordBlock(Word* words, unsigned int howmany);
 
-    unsigned int readPosition() throw (UnreachableStream);
-    unsigned int writePosition() throw (UnreachableStream);
-    void setReadPosition(unsigned int position) throw (UnreachableStream);
-    void setWritePosition(unsigned int position) throw (UnreachableStream);
-    bool endOfFile() throw (UnreachableStream);
-    unsigned int sizeOfFile() throw (UnreachableStream);
+    unsigned int readPosition();
+    unsigned int writePosition();
+    void setReadPosition(unsigned int position);
+    void setWritePosition(unsigned int position);
+    bool endOfFile();
+    unsigned int sizeOfFile();
 
 private:
-    
     /// The input stream.
     std::ifstream iStream_;
     /// The output stream.
@@ -112,11 +104,11 @@ private:
     /// Copying not allowed.
     BinaryStream(BinaryStream& old);
 
-    void openInput(std::string name) throw (UnreachableStream);
-    void openOutput(std::string name) throw (UnreachableStream);
+    void openInput(std::string name);
+    void openOutput(std::string name);
     void close();
-    Byte getByte() throw (UnreachableStream, EndOfFile);
-    void putByte(Byte byte) throw (UnreachableStream, WritePastEOF);
+    Byte getByte();
+    void putByte(Byte byte);
 
     bool needsSwap() const;
 };

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -75,14 +75,11 @@ BasicBlockPass::~BasicBlockPass() {
  * @exception In case handling is unsuccesful for any reason (basicBlock
  * might still get modified).
  */
-void 
+void
 BasicBlockPass::handleBasicBlock(
     TTAProgram::BasicBlock& basicBlock,
     const TTAMachine::Machine& targetMachine,
-    TTAProgram::InstructionReferenceManager& irm,
-    BasicBlockNode* bbn)
-    throw (Exception) {
-
+    TTAProgram::InstructionReferenceManager& irm, BasicBlockNode* bbn) {
     if (basicBlock.instructionCount() == 0)
         return;
 
@@ -102,12 +99,9 @@ BasicBlockPass::handleBasicBlock(
  */
 void
 BasicBlockPass::executeDDGPass(
-    TTAProgram::BasicBlock& bb,
-    const TTAMachine::Machine& targetMachine, 
-    TTAProgram::InstructionReferenceManager& irm, 
-    std::vector<DDGPass*> ddgPasses, BasicBlockNode*)
-    throw (Exception) {
-
+    TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
+    TTAProgram::InstructionReferenceManager& irm,
+    std::vector<DDGPass*> ddgPasses, BasicBlockNode*) {
     std::cerr << "Calling bbpass::executedgpass." << std::endl;
 
     DataDependenceGraph* ddg = createDDGFromBB(bb, targetMachine);
@@ -136,12 +130,9 @@ BasicBlockPass::executeDDGPass(
  */
 bool
 BasicBlockPass::executeLoopPass(
-    TTAProgram::BasicBlock&,
-    const TTAMachine::Machine&, 
-    TTAProgram::InstructionReferenceManager&,
-    std::vector<DDGPass*>, BasicBlockNode*)
-    throw (Exception) {
-
+    TTAProgram::BasicBlock&, const TTAMachine::Machine&,
+    TTAProgram::InstructionReferenceManager&, std::vector<DDGPass*>,
+    BasicBlockNode*) {
     // not implemented
     assert(0 && "should not be here?");
     return false;

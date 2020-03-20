@@ -539,6 +539,28 @@ enum {
     TININESS_AFTER_ROUNDING,
     NUM_TININESSMODES
 };
+
+volatile unsigned int i;
+
+float __emulate_CIFU_1_1_i32_f32(uint32 a);
+
+void test_cifu_emulation() {
+    i = 1;
+    float f = __emulate_CIFU_1_1_i32_f32(i);
+    printf("%f\n", f);
+    i = 3; f = __emulate_CIFU_1_1_i32_f32(i);
+    printf("%f\n", f);
+    i = 5; f = __emulate_CIFU_1_1_i32_f32(i);
+    printf("%f\n", f);
+    i = 16777213; f = __emulate_CIFU_1_1_i32_f32(i);
+    printf("%f\n", f);
+    i = 16777215; f = __emulate_CIFU_1_1_i32_f32(i);
+    printf("%f\n", f);
+    i = 16777217; f = __emulate_CIFU_1_1_i32_f32(i);
+    printf("%f\n", f);
+    i = 16777219; f = __emulate_CIFU_1_1_i32_f32(i);
+    printf("%f\n", f);
+}
    
 int main( )
 {
@@ -614,6 +636,8 @@ int main( )
     time_ab_float64_z_flag( float64_le_quiet );
     functionName = "float64_lt_quiet";
     time_ab_float64_z_flag( float64_lt_quiet );
+
+    test_cifu_emulation();
     return EXIT_SUCCESS;
 }
 

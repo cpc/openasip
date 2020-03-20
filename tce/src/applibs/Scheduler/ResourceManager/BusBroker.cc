@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -89,16 +89,27 @@ BusBroker::~BusBroker(){
  *
  * @param cycle Cycle.
  * @param node Node.
+ * @param bus if not null, bus that has to be used.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  * @return True if one of the resources managed by this broker is
  * suitable for the request contained in the node and can be assigned
  * to it in given cycle.
  */
 bool
-BusBroker::isAnyResourceAvailable(int cycle, const MoveNode& node) const {
+BusBroker::isAnyResourceAvailable(int cycle, const MoveNode& node,
+                                  const TTAMachine::Bus* bus,
+                                  const TTAMachine::FunctionUnit* srcFU,
+                                  const TTAMachine::FunctionUnit* dstFU,
+                                  int immWriteCycle,
+                                  const TTAMachine::ImmediateUnit* immu,
+                                  int immRegIndex) const {
 
     cycle = instructionIndex(cycle);
     SchedulingResourceSet allAvailableBuses =
-        allAvailableResources(cycle, node);
+        allAvailableResources(
+	    cycle, node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
     return allAvailableBuses.count() > 0;
 }
 
@@ -113,20 +124,34 @@ BusBroker::isAnyResourceAvailable(int cycle, const MoveNode& node) const {
  *
  * @param cycle Cycle.
  * @param node Node.
+ * @param bus if not null, bus that has to be used.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  * @return One (any) resource managed by this broker that can be
  * assigned to the given node in the given cycle.
  * @exception InstanceNotFound If no available resource is found.
  */
 SchedulingResource&
-BusBroker::availableResource(int cycle, const MoveNode& node) const
-    throw (InstanceNotFound) {
+BusBroker::availableResource(int cycle, const MoveNode& node,
+                             const TTAMachine::Bus* bus,
+                             const TTAMachine::FunctionUnit* srcFU,
+                             const TTAMachine::FunctionUnit* dstFU,
+                             int immWriteCycle,
+                             const TTAMachine::ImmediateUnit* immu,
+                             int immRegIndex) const {
+
     cycle = instructionIndex(cycle);
     SchedulingResourceSet allAvailableBuses =
-        allAvailableResources(cycle, node);
+        allAvailableResources(cycle, node, bus, srcFU, dstFU, immWriteCycle,
+			      immu, immRegIndex);
     if (allAvailableBuses.count() == 0) {
         string msg = "No available resource found.";
         throw InstanceNotFound(__FILE__, __LINE__, __func__, msg);
     } else {
+        if (bus != NULL) {
+            assert(allAvailableBuses.count() == 1);
+        }
         return allAvailableBuses.resource(0);
     }
 }
@@ -137,13 +162,21 @@ BusBroker::availableResource(int cycle, const MoveNode& node) const
  *
  * @param cycle Cycle.
  * @param node Node.
+ * @param bus if not null, bus that has to be used.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  * @return All resources managed by this broker that can be assigned to
  * the given node in the given cycle.
  */
 SchedulingResourceSet
 BusBroker::allAvailableResources(
     int cycle,
-    const MoveNode& node) const {
+    const MoveNode& node,
+    const TTAMachine::Bus* bus,
+    const TTAMachine::FunctionUnit*,
+    const TTAMachine::FunctionUnit*, int,
+    const TTAMachine::ImmediateUnit*, int) const {
 
     cycle = instructionIndex(cycle);
     SchedulingResourceSet candidates;
@@ -157,6 +190,9 @@ BusBroker::allAvailableResources(
     BusResource* preassignedBus = NULL;
     if (&move.bus() != &um.universalBus()) {
         preassignedBus = dynamic_cast<BusResource*>(resourceOf(move.bus()));
+    }
+    if (bus != NULL) {
+        preassignedBus = dynamic_cast<BusResource*>(resourceOf(*bus));
     }
 
     if (inputSocket == NULL) {
@@ -202,11 +238,11 @@ BusBroker::allAvailableResources(
             }
 
             ShortImmPSocketResource& immRes = findImmResource(*busRes);
-            if (canTransportImmediate(node, immRes) &&
-                busRes->canAssign(cycle, node, immRes, *iPSocket)) {
-                if (preassignedBus == NULL ||
-                    busRes == preassignedBus)
+            if (preassignedBus == NULL || busRes == preassignedBus) {
+                if (canTransportImmediate(node, immRes) &&
+                    busRes->canAssign(cycle, node, immRes, *iPSocket)) {
                     candidates.insert(*busRes);
+                }
             }
             resIter++;
         }
@@ -243,10 +279,11 @@ BusBroker::allAvailableResources(
         while (resIter != resMap_.end()) {
             BusResource* busRes =
                 static_cast<BusResource*>((*resIter).second);
-            if (busRes->canAssign(cycle, node, *oPSocket, *iPSocket)) {
-                if (preassignedBus == NULL ||
-                    busRes == preassignedBus)
+            if (preassignedBus == NULL ||
+                busRes == preassignedBus) {
+                if (busRes->canAssign(cycle, node, *oPSocket, *iPSocket)) {
                     candidates.insert(*busRes);
+                }
             }
             resIter++;
         }
@@ -288,8 +325,16 @@ BusBroker::allAvailableResources(
  */
 bool
 BusBroker::isAvailable(
-    SchedulingResource& res, const MoveNode& node, int cycle) const {
+    SchedulingResource& res, const MoveNode& node, int cycle,
+    const TTAMachine::Bus* bus,
+    const TTAMachine::FunctionUnit*,
+    const TTAMachine::FunctionUnit*,
+    int,
+    const TTAMachine::ImmediateUnit*, int) const {
 
+    if  (bus != NULL && resourceOf(*bus) != &res) {
+        return false;
+    }
     cycle = instructionIndex(cycle);
 
     Move& move = const_cast<MoveNode&>(node).move();
@@ -421,8 +466,8 @@ BusBroker::isAvailable(
  * given node or no corresponding machine part is found.
  */
 void
-BusBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
-    throw (Exception) {
+BusBroker::assign(
+    int cycle, MoveNode& node, SchedulingResource& res, int, int) {
 
     cycle = instructionIndex(cycle);
     BusResource& busRes = static_cast<BusResource&>(res);
@@ -430,7 +475,16 @@ BusBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
     if (hasResource(res)) {
         Bus& bus =
             const_cast<Bus&>(static_cast<const Bus&>(machinePartOf(res)));
-        move.setBus(bus);
+
+        UniversalMachine& um = UniversalMachine::instance();
+        if (&move.bus() != &um.universalBus()) {
+            busPreassigned_[&node] = true;
+            assert(&bus == &move.bus() &&
+                   "preassigned bus which is different than selected bus?");
+        } else {
+            move.setBus(bus);
+            busPreassigned_[&node] = false;
+        }
         if (!move.isUnconditional()) {
             for (int j = 0; j < bus.guardCount(); j++) {
                 Guard* busGuard = bus.guard(j);
@@ -464,11 +518,15 @@ BusBroker::unassign(MoveNode& node) {
 
     if (MapTools::containsKey(assignedResources_, &node)) {
         Move& move = const_cast<MoveNode&>(node).move();
-        Bus& bus = move.bus();
+        const Bus& bus = move.bus();
         SchedulingResource* res = resourceOf(bus);
         BusResource& busRes = static_cast<BusResource&>(*res);
         busRes.unassign(node.cycle(),node);
         assignedResources_.erase(&node);
+        if (!busPreassigned_[&node]) {
+            UniversalMachine& um = UniversalMachine::instance();
+            move.setBus(um.universalBus());
+        }
     }
 }
 
@@ -484,7 +542,11 @@ BusBroker::unassign(MoveNode& node) {
  * given node.
  */
 int
-BusBroker::earliestCycle(int, const MoveNode&) const {
+BusBroker::earliestCycle(int, const MoveNode&, const TTAMachine::Bus*,
+                         const TTAMachine::FunctionUnit*,
+                         const TTAMachine::FunctionUnit*, int,
+                         const TTAMachine::ImmediateUnit*,
+                         int) const {
     abortWithError("Not implemented.");
     return -1;
 }
@@ -501,7 +563,11 @@ BusBroker::earliestCycle(int, const MoveNode&) const {
  * given node.
  */
 int
-BusBroker::latestCycle(int, const MoveNode&) const {
+BusBroker::latestCycle(int, const MoveNode&, const TTAMachine::Bus*,
+                       const TTAMachine::FunctionUnit*,
+                       const TTAMachine::FunctionUnit*, int,
+                       const TTAMachine::ImmediateUnit*,
+                       int) const {
     abortWithError("Not implemented.");
     return -1;
 }
@@ -520,7 +586,8 @@ BusBroker::latestCycle(int, const MoveNode&) const {
  * cycle).
  */
 bool
-BusBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
+BusBroker::isAlreadyAssigned(
+    int cycle, const MoveNode& node, const TTAMachine::Bus*) const {
     if (!MapTools::containsKey(assignedResources_, &node)) {
         return false;
     }
@@ -539,7 +606,7 @@ BusBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
 bool
 BusBroker::isInUse(int cycle, const MoveNode& node) const {
     cycle = instructionIndex(cycle);
-    Bus& bus = const_cast<MoveNode&>(node).move().bus();
+    const Bus& bus = const_cast<MoveNode&>(node).move().bus();
     if (!hasResourceOf(bus)) {
         return false;
     }
@@ -557,8 +624,8 @@ BusBroker::isInUse(int cycle, const MoveNode& node) const {
  * by this broker, false otherwise.
  */
 bool
-BusBroker::isApplicable(const MoveNode&) const {
-    return true;
+BusBroker::isApplicable(const MoveNode& mn, const TTAMachine::Bus*) const {
+    return mn.isMove();
 }
 
 /**
@@ -679,14 +746,19 @@ BusBroker::isBusBroker() const {
  * in broker.
  */
 bool
-BusBroker::canTransportImmediate(const MoveNode& node) const {
+BusBroker::canTransportImmediate(
+    const MoveNode& node, const TTAMachine::Bus* preassignedBus) const {
     ResourceMap::const_iterator resIter = resMap_.begin();
     while (resIter != resMap_.end()) {
         BusResource* busRes = static_cast<BusResource*>((*resIter).second);
         ShortImmPSocketResource* immRes = &findImmResource(*busRes);
+        const Bus* aBus = static_cast<const Bus*>(resIter->first);
+        if (preassignedBus != NULL && aBus != preassignedBus) {
+            resIter++;
+            continue;
+        }
         if (canTransportImmediate(node, *immRes)) {
             bool guardOK = false;
-            const Bus* aBus = static_cast<const Bus*>(resIter->first);
             if (node.move().isUnconditional()) {
                 guardOK = true;
             } else {
@@ -810,5 +882,6 @@ BusBroker::clear() {
          i != shortImmPSocketResources_.end(); i++) {
         (*i)->clear();
     }
+    busPreassigned_.clear();
 }
          

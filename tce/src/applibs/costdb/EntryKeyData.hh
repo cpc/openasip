@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -58,17 +58,14 @@ public:
     virtual EntryKeyData* copy() const = 0;
 
     /// Checks if two data are equal.
-    virtual bool isEqual(const EntryKeyData*) const 
-        throw (WrongSubclass) = 0;
+    virtual bool isEqual(const EntryKeyData*) const = 0;
     /// Checks if this data is greater than another data.
-    virtual bool isGreater(const EntryKeyData*) const
-        throw (WrongSubclass) = 0;
+    virtual bool isGreater(const EntryKeyData*) const = 0;
     /// Checks if this data is smaller than another data.
-    virtual bool isSmaller(const EntryKeyData*) const 
-        throw (WrongSubclass) = 0;
+    virtual bool isSmaller(const EntryKeyData*) const = 0;
     /// Returns the relative position between two data.
-    virtual double coefficient(const EntryKeyData*, const EntryKeyData*) const 
-        throw (WrongSubclass) = 0;
+    virtual double coefficient(
+        const EntryKeyData*, const EntryKeyData*) const = 0;
     /// Converts the data into a string.
     virtual std::string toString() const = 0;
     
@@ -90,15 +87,11 @@ public:
     virtual ~EntryKeyDataInt();
     EntryKeyData* copy() const;
 
-    bool isEqual(const EntryKeyData* fieldData) const 
-        throw (WrongSubclass);
-    bool isGreater(const EntryKeyData* fieldData) const
-        throw (WrongSubclass);
-    bool isSmaller(const EntryKeyData* fieldData) const
-        throw (WrongSubclass);
-    double coefficient(const EntryKeyData* data1,
-                       const EntryKeyData* data2) const
-        throw (WrongSubclass);
+    bool isEqual(const EntryKeyData* fieldData) const;
+    bool isGreater(const EntryKeyData* fieldData) const;
+    bool isSmaller(const EntryKeyData* fieldData) const;
+    double coefficient(
+        const EntryKeyData* data1, const EntryKeyData* data2) const;
     std::string toString() const;
 
 private:
@@ -122,15 +115,11 @@ public:
     virtual ~EntryKeyDataDouble();
     EntryKeyData* copy() const;
 
-    bool isEqual(const EntryKeyData* fieldData) const
-        throw (WrongSubclass);
-    bool isGreater(const EntryKeyData* fieldData) const
-        throw (WrongSubclass);
-    bool isSmaller(const EntryKeyData* fieldData) const
-        throw (WrongSubclass);
-    double coefficient(const EntryKeyData* data1,
-                       const EntryKeyData* data2) const
-        throw (WrongSubclass);
+    bool isEqual(const EntryKeyData* fieldData) const;
+    bool isGreater(const EntryKeyData* fieldData) const;
+    bool isSmaller(const EntryKeyData* fieldData) const;
+    double coefficient(
+        const EntryKeyData* data1, const EntryKeyData* data2) const;
     std::string toString() const;
 
 private:
@@ -154,15 +143,11 @@ public:
     virtual ~EntryKeyDataOperationSet();
     EntryKeyData* copy() const;
 
-    bool isEqual(const EntryKeyData* fieldData) const
-        throw (WrongSubclass);
-    bool isGreater(const EntryKeyData* fieldData) const
-        throw (WrongSubclass);
-    bool isSmaller(const EntryKeyData* fieldData) const
-        throw (WrongSubclass);
-    double coefficient(const EntryKeyData* data1,
-                       const EntryKeyData* data2) const
-        throw (WrongSubclass);
+    bool isEqual(const EntryKeyData* fieldData) const;
+    bool isGreater(const EntryKeyData* fieldData) const;
+    bool isSmaller(const EntryKeyData* fieldData) const;
+    double coefficient(
+        const EntryKeyData* data1, const EntryKeyData* data2) const;
     std::string toString() const;
 
 private:
@@ -185,15 +170,11 @@ public:
     virtual ~EntryKeyDataBool();
     EntryKeyData* copy() const;
 
-    bool isEqual(const EntryKeyData* fieldData) const
-        throw (WrongSubclass);
-    bool isGreater(const EntryKeyData* fieldData) const
-        throw (WrongSubclass);
-    bool isSmaller(const EntryKeyData* fieldData) const
-        throw (WrongSubclass);
-    double coefficient(const EntryKeyData* data1,
-                       const EntryKeyData* data2) const
-        throw (WrongSubclass);
+    bool isEqual(const EntryKeyData* fieldData) const;
+    bool isGreater(const EntryKeyData* fieldData) const;
+    bool isSmaller(const EntryKeyData* fieldData) const;
+    double coefficient(
+        const EntryKeyData* data1, const EntryKeyData* data2) const;
     std::string toString() const;
 
 private:
@@ -216,15 +197,11 @@ public:
     virtual ~EntryKeyDataFunctionUnit();
     EntryKeyData* copy() const;
 
-    bool isEqual(const EntryKeyData* fieldData) const
-        throw (WrongSubclass);
-    bool isGreater(const EntryKeyData* fieldData) const
-        throw (WrongSubclass);
-    bool isSmaller(const EntryKeyData* fieldData) const
-        throw (WrongSubclass);
-    double coefficient(const EntryKeyData* data1,
-                       const EntryKeyData* data2) const
-        throw (WrongSubclass);
+    bool isEqual(const EntryKeyData* fieldData) const;
+    bool isGreater(const EntryKeyData* fieldData) const;
+    bool isSmaller(const EntryKeyData* fieldData) const;
+    double coefficient(
+        const EntryKeyData* data1, const EntryKeyData* data2) const;
     std::string toString() const;
 
 private:

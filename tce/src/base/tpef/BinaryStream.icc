@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -47,7 +47,7 @@ namespace TPEF {
  * @exception EndOfFile If end of file was reached unexpectedly.
  */
 inline Byte
-BinaryStream::getByte() throw (UnreachableStream, EndOfFile) {
+BinaryStream::getByte()  {
     if (!iStream_.is_open()) {
         openInput(fileName_);
     }
@@ -83,7 +83,7 @@ BinaryStream::getByte() throw (UnreachableStream, EndOfFile) {
  *            file and writing is attempted.
  */
 inline void
-BinaryStream::putByte(Byte byte) throw (UnreachableStream, WritePastEOF){
+BinaryStream::putByte(Byte byte) {
 
     if (extOStream_ != NULL) {
         extOStream_->put(byte);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -63,27 +63,20 @@ public:
     virtual ~OperationIndex();
 
     void addPath(const std::string& path);
-    std::string path(int i) const throw (OutOfRange);
+    std::string path(int i) const;
     int pathCount() const;
 
-    OperationModule& module(int i) throw (OutOfRange);
+    OperationModule& module(int i);
     int moduleCount() const;
-    OperationModule& module(int i, const std::string& path)
-        throw (OutOfRange, PathNotFound);
-    int moduleCount(const std::string& path) const
-        throw (PathNotFound);
-    void addModule(OperationModule* module, const std::string& path)
-        throw (PathNotFound);
-    void removeModule(const std::string& path, const std::string& modName) 
-        throw (PathNotFound, InstanceNotFound);
-    void refreshModule(const std::string& path, const std::string& modName) 
-        throw (PathNotFound, InstanceNotFound);
+    OperationModule& module(int i, const std::string& path);
+    int moduleCount(const std::string& path) const;
+    void addModule(OperationModule* module, const std::string& path);
+    void removeModule(const std::string& path, const std::string& modName);
+    void refreshModule(const std::string& path, const std::string& modName);
 
     OperationModule& moduleOf(const std::string& name);
-    std::string operationName(int i, const OperationModule& om)
-        throw (OutOfRange, BadOperationModule);
-    int operationCount(const OperationModule& om)
-        throw (BadOperationModule);
+    std::string operationName(int i, const OperationModule& om);
+    int operationCount(const OperationModule& om);
 
     Operation* effectiveOperation(const TCEString& name);
 
@@ -100,9 +93,8 @@ private:
     /// Assignment not allowed.
     OperationIndex& operator=(const OperationIndex&);
 
-    void readOperations(const OperationModule& module)
-        throw (SerializerException);
-    
+    void readOperations(const OperationModule& module);
+
     OperationModule& moduleOf(
         const std::string& path, 
         const std::string& operName);

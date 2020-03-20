@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -66,9 +66,7 @@ SectionIdReplacer::~SectionIdReplacer() {
  * @return True if replacement were done.
  */
 bool
-SectionIdReplacer::tryToReplace()
-    throw (UnreachableStream, WritePastEOF) {
-
+SectionIdReplacer::tryToReplace() {
     try {
         SectionKey key =
             SafePointer::sectionKeyFor(reference());

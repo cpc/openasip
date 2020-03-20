@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -72,20 +72,17 @@ const string Bus::OSVALUE_ZERO = "zero";
  * @exception InvalidName If the given name is not a valid component name.
  */
 Bus::Bus(
-    const std::string& name,
-    int width,
-    int immWidth,
+    const std::string& name, int width, int immWidth,
     Machine::Extension extensionMode)
-    throw (OutOfRange, InvalidName) :
-    Component(name), width_(width), immWidth_(immWidth),
-    extensionMode_(extensionMode) {
-
+    : Component(name),
+      width_(width),
+      immWidth_(immWidth),
+      extensionMode_(extensionMode) {
     if (width <= 0 || immWidth < 0 || immWidth > width) {
         string procName = "Bus::Bus";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Constructor.
@@ -98,10 +95,7 @@ Bus::Bus(
  * @exception ObjectStateLoadingException If the given ObjectState instance
  *                                        is invalid.
  */
-Bus::Bus(const ObjectState* state)
-    throw (ObjectStateLoadingException) :
-    Component(state) {
-
+Bus::Bus(const ObjectState* state) : Component(state) {
     try {
         loadStateWithoutReferences(state);
     } catch (Exception&) {
@@ -110,7 +104,6 @@ Bus::Bus(const ObjectState* state)
         throw;
     }
 }
-
 
 /**
  * Destructor.
@@ -131,9 +124,7 @@ Bus::~Bus() {
  * @exception NotAvailable If the bus is not registered to a machine.
  */
 int
-Bus::position() const
-    throw (NotAvailable) {
-
+Bus::position() const {
     if (!isRegistered()) {
         throw NotAvailable(__FILE__, __LINE__, __func__);
     }
@@ -148,7 +139,6 @@ Bus::position() const
     assert(false);
     return 0;
 }
-
 
 /**
  * Returns the bit width of the bus.
@@ -203,9 +193,7 @@ Bus::zeroExtends() const {
  * @exception InvalidName If the given name is not a valid component name.
  */
 void
-Bus::setName(const std::string& name)
-    throw (ComponentAlreadyExists, InvalidName) {
-
+Bus::setName(const std::string& name) {
     if (name == this->name()) {
         return;
     }
@@ -223,7 +211,6 @@ Bus::setName(const std::string& name)
     }
 }
 
-
 /**
  * Sets the bit width of the bus.
  *
@@ -233,9 +220,7 @@ Bus::setName(const std::string& name)
  *                       bit width for this slot.
  */
 void
-Bus::setWidth(int width)
-    throw (OutOfRange) {
-
+Bus::setWidth(int width) {
     const string procName = "Bus::setWidth";
 
     if (width <= 0) {
@@ -245,7 +230,6 @@ Bus::setWidth(int width)
     width_ = width;
 }
 
-
 /**
  * Sets the number of bits of inline immediates.
  *
@@ -254,16 +238,13 @@ Bus::setWidth(int width)
                          greater than the bit width of the bus.
  */
 void
-Bus::setImmediateWidth(int width)
-    throw (OutOfRange) {
-
+Bus::setImmediateWidth(int width) {
     if (width < 0 || width > this->width()) {
         string procName = "Bus::setImmediateWidth";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
     immWidth_ = width;
 }
-
 
 /**
  * Sets the zero extension mode.
@@ -345,9 +326,7 @@ Bus::isConnectedTo(const Socket& socket) const {
  * @exception OutOfRange If the given index is out of range.
  */
 Segment*
-Bus::segment(int index) const
-    throw (OutOfRange) {
-
+Bus::segment(int index) const {
     if (index < 0 || index >= segmentCount()) {
         string procName = "Bus::segment";
         throw OutOfRange(__FILE__, __LINE__, procName);
@@ -374,7 +353,6 @@ Bus::segment(int index) const
     return nextSegment;
 }
 
-
 /**
  * Returns the segment which has the given name.
  *
@@ -384,9 +362,7 @@ Bus::segment(int index) const
  *                             given name.
  */
 Segment*
-Bus::segment(const std::string& name) const
-    throw (InstanceNotFound) {
-
+Bus::segment(const std::string& name) const {
     SegmentTable::const_iterator iter = segments_.begin();
     while (iter != segments_.end()) {
         if ((*iter)->name() == name) {
@@ -399,7 +375,6 @@ Bus::segment(const std::string& name) const
     string procName = "Bus::segment";
     throw InstanceNotFound(__FILE__, __LINE__, procName);
 }
-
 
 /**
  * Returns the number of segments in this bus.
@@ -415,7 +390,7 @@ Bus::segmentCount() const {
  * Checks whether the bus has the given guard.
  */
 bool 
-Bus::hasGuard(Guard& guard) const {
+Bus::hasGuard(const Guard& guard) const {
     for (GuardTable::const_iterator iter = guards_.begin();
          iter != guards_.end(); iter++) {
         if ((*iter)->isEqual(guard)) {
@@ -432,8 +407,7 @@ Bus::hasGuard(Guard& guard) const {
  * @exception ComponentAlreadyExists If there is an equal guard already.
  */
 void
-Bus::addGuard(Guard& guard)
-    throw (ComponentAlreadyExists) {
+Bus::addGuard(Guard& guard) {
     if (hasGuard(guard)) {
         string procName = "Bus::addGuard";
         throw ComponentAlreadyExists(__FILE__, __LINE__, __func__,
@@ -442,7 +416,6 @@ Bus::addGuard(Guard& guard)
 
     guards_.push_back(&guard);
 }
-
 
 /**
  * Removes the given guard from the bus.
@@ -480,16 +453,13 @@ Bus::guardCount() const {
  * @exception OutOfRange If the given index is out of range.
  */
 Guard*
-Bus::guard(int index) const
-    throw (OutOfRange) {
-
+Bus::guard(int index) const {
     if (index < 0 || static_cast<size_t>(index) >= guards_.size()) {
         string procName = "Bus::guard";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
     return guards_[index];
 }
-
 
 /**
  * Checks if the bus has previous bus.
@@ -528,9 +498,7 @@ Bus::hasNextBus() const {
  * @exception InstanceNotFound If the bus is the last in the chain.
  */
 Bus*
-Bus::nextBus() const
-    throw (InstanceNotFound) {
-
+Bus::nextBus() const {
     Bridge* nextBridge = this->nextBridge();
     if (nextBridge != NULL) {
         return nextBridge->nextBus();
@@ -540,7 +508,6 @@ Bus::nextBus() const
     }
 }
 
-
 /**
  * Returns the previous bus from the location point of view.
  *
@@ -548,9 +515,7 @@ Bus::nextBus() const
  * @exception InstanceNotFound If the bus is the first in the chain.
  */
 Bus*
-Bus::previousBus() const
-    throw (InstanceNotFound) {
-
+Bus::previousBus() const {
     Bridge* prevBridge = previousBridge();
     if (prevBridge != NULL) {
         return prevBridge->previousBus();
@@ -559,7 +524,6 @@ Bus::previousBus() const
         throw InstanceNotFound(__FILE__, __LINE__, procName);
     }
 }
-
 
 /**
  * Checks if the bus can read from the given bus.
@@ -704,13 +668,10 @@ Bus::clearDestinationBridge(Bridge& bridge) {
  *                                   bus by the same name.
  */
 void
-Bus::setMachine(Machine& mach)
-    throw (ComponentAlreadyExists) {
-
+Bus::setMachine(Machine& mach) {
     internalSetMachine(mach);
     mach.addBus(*this);
 }
-
 
 /**
  * Removes registration of the bus from its current machine.
@@ -773,9 +734,7 @@ Bus::unsetMachine() {
  *                                   in this bus.
  */
 void
-Bus::addSegment(Segment& segment)
-    throw (ComponentAlreadyExists) {
-
+Bus::addSegment(Segment& segment) {
     // run time check: can be called from Segment constructor only
     assert(segment.parentBus() == NULL);
 
@@ -786,7 +745,6 @@ Bus::addSegment(Segment& segment)
         segments_.push_back(&segment);
     }
 }
-
 
 /**
  * Removes the given segment from the bus.
@@ -855,9 +813,7 @@ Bus::saveState() const {
  *                                        not succeed.
  */
 void
-Bus::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+Bus::loadState(const ObjectState* state) {
     deleteAllSegments();
     deleteAllGuards();
 
@@ -893,7 +849,6 @@ Bus::loadState(const ObjectState* state)
     }
 }
 
-
 /**
  * Loads the state of the object from the given ObjectState tree without
  * references to other components/subcomponents.
@@ -905,9 +860,7 @@ Bus::loadState(const ObjectState* state)
  *                                        tree is invalid.
  */
 void
-Bus::loadStateWithoutReferences(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+Bus::loadStateWithoutReferences(const ObjectState* state) {
     const string procName = "Bus::loadStateWithoutReferences";
 
     if (state->name() != OSNAME_BUS) {
@@ -955,7 +908,6 @@ Bus::loadStateWithoutReferences(const ObjectState* state)
 
     adjustSegmentChain(state);
 }
-
 
 /**
  * Deletes all the segments.
@@ -1070,9 +1022,7 @@ Bus::nextBridge(const BridgeTable& bridges) const {
  *                                        the given ObjectState tree.
  */
 void
-Bus::adjustSegmentChain(const ObjectState* busState)
-    throw (ObjectStateLoadingException) {
-
+Bus::adjustSegmentChain(const ObjectState* busState) {
     const string procName = "Bus::adjustSegmentChain";
 
     if (segmentCount() == 0) {

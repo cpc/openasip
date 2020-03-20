@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -63,23 +63,17 @@ public:
     bool containsCodeLabel(const std::string& name) const;
     bool containsDataLabel(const std::string& name) const;
 
-    const CodeLabel& codeLabel(const std::string& name) const
-        throw (KeyNotFound);
-    const DataLabel& dataLabel(const std::string& name) const
-        throw (KeyNotFound);
+    const CodeLabel& codeLabel(const std::string& name) const;
+    const DataLabel& dataLabel(const std::string& name) const;
 
     int codeLabelCount(Address address) const;
-    const CodeLabel& codeLabel(Address address, int index) const
-        throw (OutOfRange, KeyNotFound);
+    const CodeLabel& codeLabel(Address address, int index) const;
 
     int dataLabelCount(Address address) const;
-    const DataLabel& dataLabel(Address address, int index) const
-        throw (OutOfRange, KeyNotFound);
+    const DataLabel& dataLabel(Address address, int index) const;
 
-    virtual void addCodeLabel(const CodeLabel* codeLabel)
-        throw (KeyAlreadyExists);
-    virtual void addDataLabel(const DataLabel* dataLabel)
-        throw (KeyAlreadyExists);
+    virtual void addCodeLabel(const CodeLabel* codeLabel);
+    virtual void addDataLabel(const DataLabel* dataLabel);
     virtual void removeCodeLabels(InstructionAddress address);
 
     virtual Scope* copy() const = 0;
@@ -114,12 +108,12 @@ protected:
     virtual void addGlobalDataLabel(
         const DataLabel& dataLabel, const Scope& owner) = 0;
 
-    Scope& parent() const throw (WrongSubclass, IllegalRegistration);
-    void setParent(Scope& scope) throw (WrongSubclass);
+    Scope& parent() const;
+    void setParent(Scope& scope);
 
     int childCount() const;
-    void addChild(const Scope& scope) throw (ObjectAlreadyExists);
-    const Scope& child(int index) const throw (OutOfRange);
+    void addChild(const Scope& scope);
+    const Scope& child(int index) const;
 
 private:
     /// Copying not allowed.

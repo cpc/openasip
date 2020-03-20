@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -73,9 +73,7 @@ ConditionScript::~ConditionScript() {
  * @exception ScriptExecutionFailure If script execution fails.
  */
 bool
-ConditionScript::conditionOk() 
-    throw (NumberFormatException, ScriptExecutionFailure) {
-    
+ConditionScript::conditionOk() {
     vector<string> scripts = script();
     if (scripts.size() == 1 && scripts[0] == "") {
         return true;

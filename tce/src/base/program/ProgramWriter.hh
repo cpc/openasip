@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -142,8 +142,7 @@ class ProgramWriter {
 public:
     ProgramWriter(const Program& prog);
 
-    TPEF::Binary* createBinary() const
-        throw (Exception);
+    TPEF::Binary* createBinary() const;
 
 private:
     /**
@@ -182,8 +181,7 @@ private:
 
     void createDataSections(TPEF::Binary* bin, bool littleEndian) const;
 
-    void createRelocSections(TPEF::Binary* bin) const
-        throw (NotAvailable);
+    void createRelocSections(TPEF::Binary* bin) const;
 
     TPEF::Section& findSection(TPEF::Binary& bin, Address address) const;
 

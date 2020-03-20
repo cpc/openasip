@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -60,15 +60,15 @@ const std::string MoveSlot::OSKEY_BUS_NAME = "bus_name";
  *                                slot with the same bus name already.
  */
 MoveSlot::MoveSlot(const std::string& busName, BinaryEncoding& parent)
-    throw (ObjectAlreadyExists) :
-    InstructionField(&parent), name_(busName), guardField_(NULL),
-    sourceField_(NULL), destinationField_(NULL) {
-
+    : InstructionField(&parent),
+      name_(busName),
+      guardField_(NULL),
+      sourceField_(NULL),
+      destinationField_(NULL) {
     setParent(NULL);
     parent.addMoveSlot(*this);
     setParent(&parent);
 }
-
 
 /**
  * The constructor.
@@ -81,16 +81,16 @@ MoveSlot::MoveSlot(const std::string& busName, BinaryEncoding& parent)
  *                                        the state.
  */
 MoveSlot::MoveSlot(const ObjectState* state, BinaryEncoding& parent)
-    throw (ObjectStateLoadingException) :
-    InstructionField(state, &parent), name_(""), guardField_(NULL),
-    sourceField_(NULL), destinationField_(NULL) {
-
+    : InstructionField(state, &parent),
+      name_(""),
+      guardField_(NULL),
+      sourceField_(NULL),
+      destinationField_(NULL) {
     loadState(state);
     setParent(NULL);
     parent.addMoveSlot(*this);
     setParent(&parent);
 }
-
 
 /**
  * The destructor.
@@ -144,9 +144,7 @@ MoveSlot::name() const {
  *                                given bus already.
  */
 void
-MoveSlot::setName(const std::string& name)
-    throw (ObjectAlreadyExists) {
-
+MoveSlot::setName(const std::string& name) {
     if (name == this->name()) {
 	return;
     }
@@ -159,7 +157,6 @@ MoveSlot::setName(const std::string& name)
     name_ = name;
 }
 
-
 /**
  * Adds the given guard field to the move slot.
  *
@@ -169,9 +166,7 @@ MoveSlot::setName(const std::string& name)
  * @exception ObjectAlreadyExists If the move slot has a guard field already.
  */
 void
-MoveSlot::setGuardField(GuardField& field)
-    throw (ObjectAlreadyExists) {
-
+MoveSlot::setGuardField(GuardField& field) {
     // verify that this is called from GuardField constructor
     assert(field.parent() == NULL);
 
@@ -182,7 +177,6 @@ MoveSlot::setGuardField(GuardField& field)
 
     guardField_ = &field;
 }
-
 
 /**
  * Removes the guard field from the move slot.
@@ -235,9 +229,7 @@ MoveSlot::guardField() const {
  *                                already.
  */
 void
-MoveSlot::setSourceField(SourceField& field)
-    throw (ObjectAlreadyExists) {
-
+MoveSlot::setSourceField(SourceField& field) {
     // verify that this is called from SourceField constructor
     assert(field.parent() == NULL);
 
@@ -248,7 +240,6 @@ MoveSlot::setSourceField(SourceField& field)
 
     sourceField_ = &field;
 }
-
 
 /**
  * Removes the source field from the move slot.
@@ -301,9 +292,7 @@ MoveSlot::sourceField() const {
  *                                already.
  */
 void
-MoveSlot::setDestinationField(DestinationField& field)
-    throw (ObjectAlreadyExists) {
-
+MoveSlot::setDestinationField(DestinationField& field) {
     // verify that this is called from DestinationField constructor
     assert(field.parent() == NULL);
 
@@ -314,7 +303,6 @@ MoveSlot::setDestinationField(DestinationField& field)
 
     destinationField_ = &field;
 }
-
 
 /**
  * Removes the destination field from the move slot.
@@ -388,9 +376,7 @@ MoveSlot::childFieldCount() const {
  *                       number of child fields.
  */
 InstructionField&
-MoveSlot::childField(int position) const
-    throw (OutOfRange) {
-
+MoveSlot::childField(int position) const {
     InstructionField::childField(position);
 
     if (hasGuardField() && guardField().relativePosition() == position) {
@@ -409,7 +395,6 @@ MoveSlot::childField(int position) const
     assert(false);
     return NullInstructionField::instance();
 }
-
 
 /**
  * Returns the bit width of the move slot.
@@ -443,9 +428,7 @@ MoveSlot::width() const {
  *                                        the state.
  */
 void
-MoveSlot::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+MoveSlot::loadState(const ObjectState* state) {
     deleteGuardField();
     deleteSourceField();
     deleteDestinationField();
@@ -475,7 +458,6 @@ MoveSlot::loadState(const ObjectState* state)
 
     delete newState;
 }
-
 
 /**
  * Saves the state of the move slot to an ObjectState tree.

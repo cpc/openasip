@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -130,7 +130,7 @@ Conversion::toXMLCh(const std::string& theString) {
 template <typename SourceType, typename DestType, bool destIsNumeric>
 void
 Conversion::convert(const SourceType& source, DestType& dest)
-    throw (NumberFormatException) {
+     {
 
     /// @todo: Figure out if the source type is larger than destination type
     /// and throw. Conversion double -> float should be an error.
@@ -200,7 +200,7 @@ Conversion::convert(const SourceType& source, DestType& dest)
 template <typename T>
 int
 Conversion::toInt(const T& source)
-    throw (NumberFormatException) {
+     {
 
     int theInt = 0;
     try {
@@ -361,7 +361,7 @@ Conversion::toLong(const T& source) {
  */
 inline int
 Conversion::toInt(const double& source)
-    throw (NumberFormatException) {
+     {
     return static_cast<int>(source);
 }
 
@@ -397,7 +397,7 @@ Conversion::toLong(const double& source) {
 template <typename T>
 unsigned int
 Conversion::toUnsignedInt(const T& source)
-    throw (NumberFormatException) {
+     {
 
     const std::string procName = "Conversion::toUnsignedInt";
 
@@ -481,8 +481,7 @@ Conversion::toUnsignedInt(const T& source)
  */
 template <typename T>
 ULongWord
-Conversion::toUnsignedLong(const T& source)
-    throw (NumberFormatException) {
+Conversion::toUnsignedLong(const T& source) {
 
     ULongWord theUnsignedLong = 0;
     try {
@@ -562,7 +561,7 @@ Conversion::toUnsignedLong(const T& source)
 template <typename T>
 double
 Conversion::toDouble(const T& source)
-    throw (NumberFormatException) {
+     {
 
     double theDouble = 0.0;
     convert<T, double, true>(source, theDouble);
@@ -583,7 +582,7 @@ Conversion::toDouble(const T& source)
 template <typename T>
 float
 Conversion::toFloat(const T& source)
-    throw (NumberFormatException) {
+     {
 
     float theFloat = 0.0;
     convert<T, float, true>(source, theFloat);

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -85,8 +85,7 @@ public:
     virtual ~InstructionReferenceManager();
 
     InstructionReference createReference(Instruction& ins);
-    void replace(Instruction& insA, Instruction& insB)
-        throw (InstanceNotFound);
+    void replace(Instruction& insA, Instruction& insB);
     void clearReferences();
     bool hasReference(Instruction& ins) const;
     unsigned int referenceCount(Instruction& ins) const;

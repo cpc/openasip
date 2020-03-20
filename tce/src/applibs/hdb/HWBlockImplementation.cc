@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -125,16 +125,13 @@ HWBlockImplementation::setID(RowID id) {
  * @return ID of the implementation.
  */
 RowID
-HWBlockImplementation::id() const 
-    throw (NotAvailable) {
-
+HWBlockImplementation::id() const {
     if (!hasID()) {
         throw NotAvailable(__FILE__, __LINE__, __func__);
     } else {
         return id_;
     }
 }
-
 
 /**
  * Sets the module name.
@@ -267,9 +264,7 @@ HWBlockImplementation::implementationFileCount() const {
  *                       number of files.
  */
 BlockImplementationFile&
-HWBlockImplementation::file(int index) const
-    throw (OutOfRange) {
-    
+HWBlockImplementation::file(int index) const {
     if (index < 0 || index >= implementationFileCount()) {
         const string procName = "HWBlockImplementation::file";
         throw OutOfRange(__FILE__, __LINE__, procName);

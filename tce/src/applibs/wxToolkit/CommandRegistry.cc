@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -152,9 +152,7 @@ CommandRegistry::commandId(const std::string name) const {
  * @return Icon for the GUICommand.
  */
 std::string
-CommandRegistry::commandIcon(const std::string name) const
-    throw (InstanceNotFound) {
-
+CommandRegistry::commandIcon(const std::string name) const {
     vector<GUICommand*>::const_iterator i = commands_.begin();
     for (; i != commands_.end(); i++) {
 	if ((*i)->name() == name) {
@@ -172,9 +170,7 @@ CommandRegistry::commandIcon(const std::string name) const
  * @return Command name.
  */
 std::string
-CommandRegistry::commandName(int id) const
-    throw(InstanceNotFound) {
-
+CommandRegistry::commandName(int id) const {
     vector<GUICommand*>::const_iterator i = commands_.begin();
     for (; i != commands_.end(); i++) {
 	if ((*i)->id() == id) {
@@ -192,9 +188,7 @@ CommandRegistry::commandName(int id) const
  * @return Short version of the command name.
  */
 std::string
-CommandRegistry::commandShortName(const std::string name) const
-    throw(InstanceNotFound) {
-
+CommandRegistry::commandShortName(const std::string name) const {
     vector<GUICommand*>::const_iterator i = commands_.begin();
     for (; i != commands_.end(); i++) {
 	if ((*i)->name() == name) {
@@ -205,7 +199,6 @@ CommandRegistry::commandShortName(const std::string name) const
     return "";
 }
 
-
 /**
  * Returns true, if command is executable and should be enabled,
  * false if not.
@@ -214,9 +207,7 @@ CommandRegistry::commandShortName(const std::string name) const
  * @return true, if the command is executable.
  */
 bool
-CommandRegistry::isEnabled(const std::string command)
-throw(InstanceNotFound) {
-
+CommandRegistry::isEnabled(const std::string command) {
     vector<GUICommand*>::iterator i = commands_.begin();
     for (; i != commands_.end(); i++) {
 	if ((*i)->name() == command) {

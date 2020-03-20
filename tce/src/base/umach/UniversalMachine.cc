@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -318,9 +318,7 @@ UniversalMachine::universalBus() const {
  *                                   in the machine.
  */
 void
-UniversalMachine::addBus(Bus& bus)
-    throw (ComponentAlreadyExists) {
-
+UniversalMachine::addBus(Bus& bus) {
     if (!isBuilt_) {
         Machine::addBus(bus);
     } else {
@@ -330,7 +328,6 @@ UniversalMachine::addBus(Bus& bus)
         Application::abortProgram();
     }
 }
-
 
 /**
  * Adds a socket to the machine. 
@@ -343,9 +340,7 @@ UniversalMachine::addBus(Bus& bus)
  *                                   exists in the machine.
  */
 void
-UniversalMachine::addSocket(Socket& socket)
-    throw (ComponentAlreadyExists) {
-
+UniversalMachine::addSocket(Socket& socket) {
     if (!isBuilt_) {
         Machine::addSocket(socket);
     } else {
@@ -355,7 +350,6 @@ UniversalMachine::addSocket(Socket& socket)
         Application::abortProgram();
     }
 }
-
 
 /**
  * Adds a function unit to the machine. Aborts the program if tried to
@@ -367,9 +361,7 @@ UniversalMachine::addSocket(Socket& socket)
  *                                   already exists in the machine.
  */
 void
-UniversalMachine::addFunctionUnit(FunctionUnit& unit)
-    throw (ComponentAlreadyExists) {
-
+UniversalMachine::addFunctionUnit(FunctionUnit& unit) {
     if (!isBuilt_) {
         Machine::addFunctionUnit(unit);
     } else {
@@ -381,7 +373,6 @@ UniversalMachine::addFunctionUnit(FunctionUnit& unit)
     }
 }
 
-
 /**
  * Aborts the program. It is not allowed to add immediate units to
  * UniversalMachine. DO NOT CALL THIS METHOD.
@@ -390,16 +381,13 @@ UniversalMachine::addFunctionUnit(FunctionUnit& unit)
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-UniversalMachine::addImmediateUnit(ImmediateUnit&)
-    throw (ComponentAlreadyExists) {
-
+UniversalMachine::addImmediateUnit(ImmediateUnit&) {
     const string procName = "UniversalMachine::addImmediateUnit";
     const string errorMsg =
         "Tried to add an immediate unit to UniversalMachine!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Adds a register file to the machine. Aborts the program if tried to
@@ -411,9 +399,7 @@ UniversalMachine::addImmediateUnit(ImmediateUnit&)
  *                                   already exists in the machine.
  */
 void
-UniversalMachine::addRegisterFile(RegisterFile& unit)
-    throw (ComponentAlreadyExists) {
-
+UniversalMachine::addRegisterFile(RegisterFile& unit) {
     if (!isBuilt_) {
         Machine::addRegisterFile(unit);
     } else {
@@ -425,7 +411,6 @@ UniversalMachine::addRegisterFile(RegisterFile& unit)
     }
 }
 
-
 /**
  * Adds an address space to the machine. Aborts the program if tried
  * to add an address space after the UniversalMachine is
@@ -436,9 +421,7 @@ UniversalMachine::addRegisterFile(RegisterFile& unit)
  *                                   already exists in the machine.
  */
 void
-UniversalMachine::addAddressSpace(AddressSpace& as)
-    throw (ComponentAlreadyExists) {
-
+UniversalMachine::addAddressSpace(AddressSpace& as) {
     if (!isBuilt_) {
         Machine::addAddressSpace(as);
     } else {
@@ -450,7 +433,6 @@ UniversalMachine::addAddressSpace(AddressSpace& as)
     }
 }
 
-
 /**
  * Aborts the program. UniversalMachine can not contain bridges. DO NOT CALL
  * THIS METHOD.
@@ -459,15 +441,12 @@ UniversalMachine::addAddressSpace(AddressSpace& as)
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-UniversalMachine::addBridge(Bridge&)
-    throw (ComponentAlreadyExists) {
-
+UniversalMachine::addBridge(Bridge&) {
     const string procName = "UniversalMachine::addBridge";
     const string errorMsg = "Tried to add a bridge to UniversalMachine!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. UniversalMachine can not contain instruction
@@ -477,16 +456,13 @@ UniversalMachine::addBridge(Bridge&)
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-UniversalMachine::addInstructionTemplate(InstructionTemplate&)
-    throw (ComponentAlreadyExists) {
-
+UniversalMachine::addInstructionTemplate(InstructionTemplate&) {
     const string procName = "UniversalMachine::addInstructionTemplate";
     const string errorMsg =
         "Tried to add an instruction template to UniversalMachine!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Sets the control unit of the machine. Aborts the program if tried to set
@@ -497,9 +473,7 @@ UniversalMachine::addInstructionTemplate(InstructionTemplate&)
  * @exception ComponentAlreadyExists Never thrown.
  */
 void
-UniversalMachine::setGlobalControl(ControlUnit& unit)
-    throw (ComponentAlreadyExists) {
-
+UniversalMachine::setGlobalControl(ControlUnit& unit) {
     if (!isBuilt_) {
         Machine::setGlobalControl(unit);
     } else {
@@ -511,7 +485,6 @@ UniversalMachine::setGlobalControl(ControlUnit& unit)
     }
 }
 
-
 /**
  * Aborts the program. It is not allowed to remove buses from
  * UniversalMachine. DO NOT CALL THIS METHOD!
@@ -520,15 +493,12 @@ UniversalMachine::setGlobalControl(ControlUnit& unit)
  * @exception InstanceNotFound Never thrown.
  */
 void
-UniversalMachine::removeBus(Bus&)
-    throw (InstanceNotFound) {
-
+UniversalMachine::removeBus(Bus&) {
     const string procName = "UniversalMachine::removeBus";
     const string errorMsg = "Tried to remove bus from UniversalMachine!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to remove sockets from
@@ -538,15 +508,12 @@ UniversalMachine::removeBus(Bus&)
  * @exception InstanceNotFound Never thrown.
  */
 void
-UniversalMachine::removeSocket(Socket&)
-    throw (InstanceNotFound) {
-
+UniversalMachine::removeSocket(Socket&) {
     const string procName = "UniversalMachine::removeSocket";
     const string errorMsg = "Tried to remove socket from UniversalMachine!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to remove function units from
@@ -556,16 +523,13 @@ UniversalMachine::removeSocket(Socket&)
  * @exception InstanceNotFound Never thrown.
  */
 void
-UniversalMachine::removeFunctionUnit(FunctionUnit&)
-    throw (InstanceNotFound) {
-
+UniversalMachine::removeFunctionUnit(FunctionUnit&) {
     const string procName = "UniversalMachine::removeFunctionUnit";
     const string errorMsg =
         "Tried to remove function unit from UniversalMachine!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to remove register files from
@@ -575,16 +539,13 @@ UniversalMachine::removeFunctionUnit(FunctionUnit&)
  * @exception InstanceNotFound Never thrown.
  */
 void
-UniversalMachine::removeRegisterFile(RegisterFile&)
-    throw (InstanceNotFound) {
-
+UniversalMachine::removeRegisterFile(RegisterFile&) {
     const string procName = "UniversalMachine::removeRegisterFile";
     const string errorMsg =
         "Tried to remove register file from UniversalMachine!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to delete address spaces from
@@ -594,16 +555,13 @@ UniversalMachine::removeRegisterFile(RegisterFile&)
  * @exception InstanceNotFound Never thrown.
  */
 void
-UniversalMachine::deleteAddressSpace(AddressSpace&)
-    throw (InstanceNotFound) {
-
+UniversalMachine::deleteAddressSpace(AddressSpace&) {
     const string procName = "UniversalMachine::deleteAddressSpace";
     const string errorMsg =
         "Tried to delete address space from UniversalMachine!";
     Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
     Application::abortProgram();
 }
-
 
 /**
  * Aborts the program. It is not allowed to unset global control unit from
@@ -629,9 +587,7 @@ UniversalMachine::unsetGlobalControl() {
  * @exception ObjectStateLoadingException Never thrown.
  */
 void
-UniversalMachine::loadState(const ObjectState*)
-    throw (ObjectStateLoadingException) {
-
+UniversalMachine::loadState(const ObjectState*) {
     const string procName = "UniversalMachine::loadState";
     const string errorMsg =
         "Tried to load UniversalMachine from an ObjectState tree!";

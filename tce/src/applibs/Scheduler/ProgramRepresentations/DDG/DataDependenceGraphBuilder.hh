@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University of Technology.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -219,10 +219,7 @@ protected:
         MoveNodeUse mnd, 
         const TCEString& category);
 
-    void processTriggerPO(
-        class MoveNode& moveNode, 
-        Operation &dop)
-        throw (IllegalProgram);
+    void processTriggerPO(class MoveNode& moveNode, Operation& dop);
     void processTriggerRegistersAndOperations(
         MoveNode& moveNode, 
         Operation &dop);

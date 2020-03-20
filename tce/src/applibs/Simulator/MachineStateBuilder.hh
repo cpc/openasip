@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -65,22 +65,15 @@ public:
     virtual ~MachineStateBuilder();
 
     MachineState* build(
-        const TTAMachine::Machine& machine, 
-        MemorySystem& memSys)
-        throw (IllegalMachine);
+        const TTAMachine::Machine& machine, MemorySystem& memSys);
 
     MachineState* build(
-        const TTAMachine::Machine& machine, 
-        MemorySystem& memSys,
-        FUConflictDetectorIndex& detectors,
-        bool throwWhenConflict=true)
-        throw (IllegalMachine);
+        const TTAMachine::Machine& machine, MemorySystem& memSys,
+        FUConflictDetectorIndex& detectors, bool throwWhenConflict = true);
 
     MachineState* build(
-        const TTAMachine::Machine& machine,
-        MemorySystem& memSys,
-        StateLocator& locator) 
-    throw (IllegalMachine);
+        const TTAMachine::Machine& machine, MemorySystem& memSys,
+        StateLocator& locator);
 
 private:
     /// Copying not allowed.
@@ -89,10 +82,8 @@ private:
     MachineStateBuilder& operator=(const MachineStateBuilder&);
 
     MachineState* buildMachineState(
-        const TTAMachine::Machine& machine,
-        MemorySystem& memSys,
-        StateLocator& locator)
-        throw (IllegalMachine);
+        const TTAMachine::Machine& machine, MemorySystem& memSys,
+        StateLocator& locator);
 
     void addPortToFU(
         MachineState* machineState, 
@@ -110,18 +101,13 @@ private:
         SimValue& sharedRegister);
 
     void bindPortsToOperands(
-        OperationExecutor& executor,
-        TTAMachine::HWOperation& hwOperation,
-        MachineState& machineState,
-        FUState& state,
-        TTAMachine::FunctionUnit& unit) 
-        throw (IllegalMachine);
+        OperationExecutor& executor, TTAMachine::HWOperation& hwOperation,
+        MachineState& machineState, FUState& state,
+        TTAMachine::FunctionUnit& unit);
 
     void addVirtualOpcodeSettingPortsToFU(
-        MachineState& machineState,
-        FUState& state,
-        TTAMachine::FunctionUnit& unit)
-        throw (IllegalMachine);
+        MachineState& machineState, FUState& state,
+        TTAMachine::FunctionUnit& unit);
 
     /// The FU resource conflict detectors. They are needed while building
     /// the machine state model.

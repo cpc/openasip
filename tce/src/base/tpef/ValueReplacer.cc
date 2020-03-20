@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -87,9 +87,7 @@ ValueReplacer::~ValueReplacer() {
  * @exception WritePastEOF If replacer tried to write past end of file.
  */
 void
-ValueReplacer::resolve()
-    throw (UnreachableStream, WritePastEOF) {
-
+ValueReplacer::resolve() {
     if(!tryToReplace()) {
         addReplacement(clone());
     }
@@ -126,9 +124,7 @@ ValueReplacer::initialize(BinaryStream& stream) {
  * @exception WritePastEOF If replacer tried to write past end of file.
  */
 void
-ValueReplacer::finalize()
-    throw (MissingKeys, UnreachableStream, WritePastEOF) {
-
+ValueReplacer::finalize() {
     while (!replacements_.empty()) {
         ValueReplacer* replacer = *(replacements_.begin());
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -53,9 +53,7 @@ public:
     
     void quickFilter(const CostDBEntryKey&, CostDBTypes::EntryTable&);
     void filter(
-        const CostDBEntryKey& searchKey,
-        CostDBTypes::EntryTable& components)
-        throw (TypeMismatch, KeyNotFound);
+        const CostDBEntryKey& searchKey, CostDBTypes::EntryTable& components);
 
 private:
     /**

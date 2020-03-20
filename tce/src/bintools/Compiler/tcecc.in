@@ -1,7 +1,7 @@
 #!/usr/bin/env @PYTHON_BIN@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2002-2014 Tampere University of Technology.
+# Copyright (c) 2002-2014 Tampere University.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 #
@@ -255,7 +255,7 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                 if options.soft_float:
                     extra_opts += " -ffp-contract=off"
 
-                if "@LLVM_VERSION@" >= "3.4" and (options.soft_float or not options.autovectorize):
+                if @LLVM_VERSION@ >= 3.4 and (options.soft_float or not options.autovectorize):
                     extra_opts += " -fno-vectorize -fno-slp-vectorize"
 
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
@@ -320,7 +320,7 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
 
                         command = ("clang %s %s " + \
                                        "-emit-llvm -O3 "\
-                                       "-fno-inline -c -I" + tmpDir +\
+                                       "-c -I" + tmpDir +\
                                        " " + input + " " + extra_opts + \
                                        " %s `pkg-config pocl --cflags`" + \
                                        " -o " + output) % \
@@ -388,9 +388,12 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                     if options.soft_float:
                         extra_opts += " -ffp-contract=off"
 
+                    if options.std:
+                        extra_opts += " --std=%s" % options.std
+
                     command = ("clang %s %s %s -emit-llvm " +\
                                     "-O%d "\
-                                    "-fno-inline -c -I" + tmpDir + \
+                                    "-c -I" + tmpDir + \
                                     " " + compileFlags + " " + input_file + " -o " +\
                                     outFileName + ".tobelowered1;") % \
                                     (tripleOption, triple, extra_opts, options.frontend_optlevel)
@@ -447,8 +450,11 @@ def exitWithError(status, errorMessage=None):
 def lowerMemIntrinsicCommand(srcFile, dstFile):
     optSwitches = ""
 
-    if "@LLVM_VERSION@" >= "3.4":
-        optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
+    if @LLVM_VERSION@ >= 3.4:
+        if @LLVM_VERSION@ < 9:
+            optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
+        else:
+                        optSwitches += "-disable-slp-vectorization"
 
     commandp = "opt -f -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
     command = commandp + " -o " + dstFile + " " + srcFile + " " + optSwitches
@@ -461,7 +467,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
     # format of llvm-nm has been changed in llvm 3.7
     nmidx = 0
-    if "@LLVM_VERSION@" >= "3.7":
+    if @LLVM_VERSION@ >= 3.7:
         nmidx = 1
 
     startFiles = [os.path.join(newlib_libdir, "crt0.o ")]
@@ -661,7 +667,7 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     if options.optimization_level == 1:
         # disable-internalize missing in llvm 3.6
-        if "@LLVM_VERSION@" > "3.5":
+        if @LLVM_VERSION@ > 3.5:
             optSwitches = (default_opts)
         else:
             optSwitches = (default_opts + "-disable-internalize ")
@@ -687,9 +693,10 @@ def optimizeBytecode(inFile, fileNamePrefix):
     # phase ordering: vectorizer, fp emu, isel(including devectorizer)
     # fp emu does not detect vectorized fp ops and cannot emulate them
 
-    if "@LLVM_VERSION@" >= "3.4":
+    if @LLVM_VERSION@ >= 3.4:
         optSwitches += " -disable-slp-vectorization "
-        optSwitches += "-disable-loop-vectorization "
+        if @LLVM_VERSION@ < 9:
+            optSwitches += "-disable-loop-vectorization "
 
     command = "opt -f " + inFile + " -o " + outputName + " " + optSwitches
 
@@ -709,8 +716,11 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
 
     optSwitches = ""
 
-    if options.soft_float and "@LLVM_VERSION@" >= "3.4":
-        optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
+    if options.soft_float and @LLVM_VERSION@ >= 3.4:
+        if @LLVM_VERSION@ < 9:
+            optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
+        else:
+            optSwitches += "-disable-slp-vectorization"
 
     # if software floatingpoint should be lowered, link the emulation functions in
     emulationLib = os.path.join(newlib_libdir, "float_emulation.o") + " "
@@ -910,6 +920,10 @@ p.add_option('--disable-inlining', action="store_true",
              dest="noinline", default=False,
              help="Disable function inlining.")
 
+p.add_option('--enable-loop-scheduler', action="store_true",
+             dest="enable_loop_scheduler", default=False,
+             help="Enable tce-side loop scheduler (experimental).")
+
 p.add_option('--swfp', action="store_true",
              dest="soft_float", default=False,
              help="Link in software floating point emulation libraries.")
@@ -1068,11 +1082,10 @@ p.add_option('--bottom-up-scheduler', action='store_true', dest='bu_scheduler',
              help=\
 "Use the bottom-up scheduler (experimental).")
 
-p.add_option('--recursive-scheduler', action='store_true',
-             dest='recursive_scheduler',
+p.add_option('--td-scheduler', action='store_true', dest='td_scheduler',
              default=False,
              help=\
-"Use the recursive bypassing bottom-up scheduler (experimental).")
+             "Use the old top-down instruction scheduler.")
 
 p.add_option('--use-old-backend-src',
              action="store_true", default=False,
@@ -1089,6 +1102,11 @@ p.add_option('--init-sp',
              type="long", action="store", metavar='value',
              dest='init_sp', default=None,
              help="Set the initial stack pointer of the program to the given value.")
+
+p.add_option('--std',
+             type="string", action="store", metavar='value',
+             dest='std', default=None,
+             help="Language standard to compile for.")
 
 p.add_option('--little-endian',
              action="store_true", dest='little_endian', default=False,
@@ -1455,6 +1473,9 @@ if options.adf_file != "":
     if options.conservative_pre_ra_scheduler:
         command += " --conservative-pre-ra-scheduler"
 
+    if options.enable_loop_scheduler:
+        command += " --loop"
+
     if options.print_resource_constraints:
         command += " --print-resource-constraints"
 
@@ -1494,8 +1515,8 @@ if options.adf_file != "":
 
     if options.bu_scheduler:
         command += " --bottom-up-scheduler"
-    elif options.recursive_scheduler:
-        command += " --recursive-scheduler"
+    elif options.td_scheduler:
+        command += " --td-scheduler"
 
     stdEmulationLib = os.path.join(newlib_libdir, "standard_emulation.o ")
 

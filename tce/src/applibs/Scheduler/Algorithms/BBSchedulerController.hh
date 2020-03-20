@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University of Technology.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -71,49 +71,54 @@ public:
 
     virtual void handleBasicBlock(
         TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
-        TTAProgram::InstructionReferenceManager& irm, 
-        BasicBlockNode* bbn = NULL)
-        throw (Exception);
+        TTAProgram::InstructionReferenceManager& irm,
+        BasicBlockNode* bbn = NULL) override;
 
     virtual void handleControlFlowGraph(
         ControlFlowGraph& cfg,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        const TTAMachine::Machine& targetMachine) override;
 
     virtual void handleProcedure(
         TTAProgram::Procedure& procedure,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        const TTAMachine::Machine& targetMachine) override;
 
     // is needed only for some sw bypass statistics
     virtual void handleProgram(
         TTAProgram::Program& program,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
+        const TTAMachine::Machine& targetMachine) override;
 
     virtual void executeDDGPass(
-        TTAProgram::BasicBlock& bb,
-        const TTAMachine::Machine& targetMachine, 
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
         TTAProgram::InstructionReferenceManager& irm,
-        std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn = NULL)
-        throw (Exception);
+        std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn = NULL) override;
+
+    bool executeLoopPass(
+        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
+        TTAProgram::InstructionReferenceManager& irm,
+        std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn = NULL) override;
 
     virtual void handleCFGDDG(
         ControlFlowGraph& cfg,
         DataDependenceGraph& ddg,
         const TTAMachine::Machine& targetMachine);
 
-    virtual std::string shortDescription() const;
-    virtual std::string longDescription() const;
+    virtual std::string shortDescription() const override;
+    virtual std::string longDescription() const override;
 
 protected:
     virtual DataDependenceGraph* createDDGFromBB(
         TTAProgram::BasicBlock& bb, const TTAMachine::Machine& mach);
 
+    std::pair<unsigned int, unsigned int> calculateII(
+        const BasicBlockNode& bbn,  const TTAMachine::Machine& targetMachine);
+
 private:
     
     /// The currently scheduled procedure.
     TTAProgram::Procedure* scheduledProcedure_;
+
+    /// Control flow graph of the procedure.
+    ControlFlowGraph* cfg_;
 
     /// whole-procedure DDG.
     DataDependenceGraph* bigDDG_;

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -94,9 +94,7 @@ public:
      * Creates compressed code of the program and returns it in bit vector
      */
     virtual InstructionBitVector*
-    compress(const string& programName)
-        throw (InvalidData) {
-
+    compress(const string& programName) {
         if (!dictionaryCreated_) {
             createDictionary();
             // fix imem width (mau == instruction width)

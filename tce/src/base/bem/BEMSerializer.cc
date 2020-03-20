@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -178,9 +178,7 @@ BEMSerializer::~BEMSerializer() {
  *                                file.
  */
 ObjectState*
-BEMSerializer::readState()
-    throw (SerializerException) {
-
+BEMSerializer::readState() {
     ObjectState* fileState = XMLSerializer::readState();
 
     double version = fileState->doubleAttribute(ADF_VERSION);
@@ -228,14 +226,11 @@ void BEMSerializer::convertZeroEncExtraBits(ObjectState* os) {
  * @exception SerializerException If the destination file cannot be written.
  */
 void
-BEMSerializer::writeState(const ObjectState* state)
-    throw (SerializerException) {
-
+BEMSerializer::writeState(const ObjectState* state) {
     ObjectState* fileState = convertToFileFormat(state);
     XMLSerializer::writeState(fileState);
     delete fileState;
 }
-
 
 /**
  * Reads the BEM file and creates a BinaryEncoding instance from it.
@@ -243,15 +238,12 @@ BEMSerializer::writeState(const ObjectState* state)
  * @return The newly created BinaryEncoding instance.
  */
 BinaryEncoding*
-BEMSerializer::readBinaryEncoding()
-    throw (SerializerException, ObjectStateLoadingException) {
-
+BEMSerializer::readBinaryEncoding() {
     ObjectState* omState = readState();
     BinaryEncoding* bem = new BinaryEncoding(omState);
     delete omState;
     return bem;
 }
-
 
 /**
  * Writes the given binary encoding to a BEM file.
@@ -260,14 +252,11 @@ BEMSerializer::readBinaryEncoding()
  * @exception SerializerException If the destination file cannot be written.
  */
 void
-BEMSerializer::writeBinaryEncoding(const BinaryEncoding& bem)
-    throw (SerializerException) {
-
+BEMSerializer::writeBinaryEncoding(const BinaryEncoding& bem) {
     ObjectState* omState = bem.saveState();
     writeState(omState);
     delete omState;
 }
-
 
 /**
  * Converts the given ObjectState tree that represents a BEM file to an

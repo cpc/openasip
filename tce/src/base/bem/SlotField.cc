@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -76,13 +76,11 @@ SlotField::SlotField(
  *                                        the state.
  */
 SlotField::SlotField(const ObjectState* state, MoveSlot& parent)
-    throw (ObjectStateLoadingException) :
-    InstructionField(state, &parent), nopEncoding_(NULL), 
-    componentIDPos_(BinaryEncoding::LEFT) {
-
+    : InstructionField(state, &parent),
+      nopEncoding_(NULL),
+      componentIDPos_(BinaryEncoding::LEFT) {
     loadState(state);
 }
-
 
 /**
  * The destructor.
@@ -120,9 +118,7 @@ SlotField::parent() const {
  *                                already assigned to another socket.
  */
 void
-SlotField::addSocketEncoding(SocketEncoding& encoding)
-    throw (ObjectAlreadyExists) {
-
+SlotField::addSocketEncoding(SocketEncoding& encoding) {
     // verify that this is called from SocketEncoding constructor
     assert(encoding.parent() == NULL);
 
@@ -135,7 +131,6 @@ SlotField::addSocketEncoding(SocketEncoding& encoding)
 
     encodings_.push_back(&encoding);
 }
-
 
 /**
  * Removes the given socket encoding.
@@ -172,9 +167,7 @@ SlotField::socketEncodingCount() const {
  *                       the number of sockets encoded in the field.
  */
 SocketEncoding&
-SlotField::socketEncoding(int index) const
-    throw (OutOfRange) {
-
+SlotField::socketEncoding(int index) const {
     if (index < 0 || index >= socketEncodingCount()) {
 	const string procName = "SlotField::socketEncoding";
 	throw OutOfRange(__FILE__, __LINE__, procName);
@@ -182,7 +175,6 @@ SlotField::socketEncoding(int index) const
 
     return *encodings_[index];
 }
-
 
 /**
  * Tells whether the slot field has an encoding for the socket with the given
@@ -239,9 +231,7 @@ SlotField::socketEncoding(const std::string& socket) const {
  *                                is ambiguous with some other encoding.
  */
 void
-SlotField::setNoOperationEncoding(NOPEncoding& encoding)
-    throw (ObjectAlreadyExists) {
-
+SlotField::setNoOperationEncoding(NOPEncoding& encoding) {
     assert(encoding.parent() == NULL);
 
     if (hasNoOperationEncoding() ||
@@ -253,7 +243,6 @@ SlotField::setNoOperationEncoding(NOPEncoding& encoding)
 
     nopEncoding_ = &encoding;
 }
-
 
 /**
  * Unsets the NOP encoding.
@@ -353,13 +342,10 @@ SlotField::childFieldCount() const {
  * @exception OutOfRange Always throws.
  */
 InstructionField&
-SlotField::childField(int) const
-    throw (OutOfRange) {
-
+SlotField::childField(int) const {
     const string procName = "SlotField::childField";
     throw OutOfRange(__FILE__, __LINE__, procName);
 }
-
 
 /**
  * Loads the state of the object from the given ObjectState tree.
@@ -369,9 +355,7 @@ SlotField::childField(int) const
  *                                        the state.
  */
 void
-SlotField::loadState(const ObjectState* state)
-    throw (ObjectStateLoadingException) {
-
+SlotField::loadState(const ObjectState* state) {
     clearSocketEncodings();
     clearNoOperationEncoding();
     InstructionField::loadState(state);
@@ -394,7 +378,6 @@ SlotField::loadState(const ObjectState* state)
 	    __FILE__, __LINE__, procName, exception.errorMessage());
     }
 }
-
 
 /**
  * Saves the state of the object to an ObjectState tree.

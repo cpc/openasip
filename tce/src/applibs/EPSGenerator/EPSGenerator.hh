@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -61,12 +61,10 @@ public:
 
     void setLineWidth(unsigned width);
     void setFont(unsigned size, std::string fontName = "Courier-Bold");
-    void setLineColour(double r, double g, double b)
-        throw (OutOfRange);
-    void setFillColour(double r, double g, double b)
-        throw (OutOfRange);
+    void setLineColour(double r, double g, double b);
+    void setFillColour(double r, double g, double b);
 
-    void setScale(double scale) throw (OutOfRange);
+    void setScale(double scale);
     void setMargins(unsigned x, unsigned y);
 
     void drawRectangle(int x, int y, unsigned width, unsigned height);
