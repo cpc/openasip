@@ -503,6 +503,19 @@ TCEInstrInfo::isPredicable(const MachineInstr& mi_ref) const {
         return false;
     }
 
+    for (int oper = mi->getNumOperands() - 1; oper >= 0; --oper) {
+        MachineOperand mo = mi->getOperand(oper);
+
+        if ((mo.isReg() && !mo.isUse() && !mo.isImplicit())) {
+            continue;
+        }
+
+        // TODO: support operand changing for fp imms etc.!
+        if (!mo.isReg() && !mo.isImm()) {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -567,6 +580,7 @@ bool TCEInstrInfo::PredicateInstruction(
             llvm_unreachable("Unexpected operand type");
             mi->getOperand(oper+1).ChangeToImmediate(mo.getImm());
         } else {
+            mi->dump();
             llvm_unreachable("Unexpected operand type");
         }
     }
