@@ -683,9 +683,15 @@ TCETargetLowering::TCETargetLowering(
 
 // TODO: define TCE instruction for leading/trailing zero count
 #ifndef LLVM_OLDER_THAN_7
+#ifdef TARGET64BIT
+    setOperationAction(ISD::CTLZ, MVT::i64, Expand);
+    setOperationAction(ISD::CTTZ, MVT::i64, Expand);
+    setOperationAction(ISD::CTPOP, MVT::i64, Expand);
+#else
     setOperationAction(ISD::CTLZ, MVT::i32, Expand);
     setOperationAction(ISD::CTTZ, MVT::i32, Expand);
     setOperationAction(ISD::CTPOP, MVT::i32, Expand);
+#endif
 #endif
     // Using 'old way' MVT::Other to cover all value types is illegal now.
     setOperationAction(ISD::SELECT_CC, MVT::f16, Expand);
