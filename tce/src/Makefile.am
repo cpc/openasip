@@ -1,3 +1,5 @@
+AUTOMAKE_OPTIONS = subdir-objects
+
 SUBDIRS = base tools applibs . bintools procgen codesign 
 
 lib_LTLIBRARIES = libtce.la
