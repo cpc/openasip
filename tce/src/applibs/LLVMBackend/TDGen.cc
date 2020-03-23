@@ -2290,16 +2290,16 @@ TDGen::llvmOperationPattern(const Operation& op, char operandType) {
 
 #if LLVM_OLDER_THAN_4_0
     if (opName == "cfh") return "fround %1%";
-    if (opName == "chf") return "fextend %1%";
+    if (opName == "chf") return "f32 (fextend %1%)";
 #else
     if (opName == "cfh") return "fpround %1%";
-    if (opName == "chf") return "fpextend %1%";
+    if (opName == "chf") return "f32 (fpextend %1%)";
 #endif
 
     if (opName == "cih") return "sint_to_fp %1%";
-    if (opName == "chi") return "fp_to_sint %1%";
+    if (opName == "chi") return "i32 (fp_to_sint %1%)";
     if (opName == "cihu") return "uint_to_fp %1%";
-    if (opName == "chiu") return "fp_to_uint %1%";
+    if (opName == "chiu") return "i32 (fp_to_uint %1%)";
 
     if (opName == "neuh") return "setune %1%, %2%";
     if (opName == "eqh") return "setoeq %1%, %2%";
