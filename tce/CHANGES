@@ -3,6 +3,9 @@
 
 Notable changes and features
 ----------------------------
+- Support for LLVM10.
+  The LLVM install scripts for LLVM9 and LLVM10 also updated to use git
+  instead of svn to download the llvm sources.
 - Bring back alias the analysis which knows that spills of variables
   into stack cannot alias with other memory operations.
   This was working on some old tce versions with ancient llvm versions,
@@ -16,9 +19,6 @@ Notable changes and features
   left out.
 - Both sign-extending and zero-extending loads are no longer needed,
   can use either ones to emulate the other ones (with performance penalty)
-- Support for LLVM10.
-  The LLVM install scripts for LLVM9 and LLVM10 also updated to use git
-  instead of svn to download the llvm sources.
 
 1.20     October 2019
 =====================
