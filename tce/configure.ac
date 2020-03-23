@@ -3,7 +3,7 @@
 
 # Mandatory macro. Set the name of the package and the version number.
 # Email address is for bug reporting.
-AC_INIT([tce],[1.21-pre],[tce@lists.tuni.fi])
+AC_INIT([tce],[1.22-pre],[tce@lists.tuni.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
@@ -33,8 +33,9 @@ AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 # TCE 1.19 = 19:0:0
 # TCE 1.20 = 20:0:0
 # TCE 1.21 = 21:0:0
+# TCE 1.22 = 22:0:0
 
-AC_SUBST([LIB_VERSION], ["21:0:0"])
+AC_SUBST([LIB_VERSION], ["22:0:0"])
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
