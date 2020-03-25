@@ -2135,7 +2135,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <inputs>1</inputs>
     <outputs>0</outputs>
     <side-effects/>
-    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="8" id="1" type="RawData"/>
     <trigger-semantics>
       EXEC_OPERATION(stdout, IO(1));
     </trigger-semantics>
