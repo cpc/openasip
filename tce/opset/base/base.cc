@@ -883,7 +883,7 @@ END_OPERATION(NOT)
 OPERATION(NOT64)
 
 TRIGGER
-    SLongWord in1 = static_cast<SLongWord>(UINT(1));
+    SLongWord in1 = static_cast<SLongWord>(ULONG(1));
     in1 = ~in1;
     IO(2) = static_cast<SLongWord>(in1);
 END_TRIGGER;
