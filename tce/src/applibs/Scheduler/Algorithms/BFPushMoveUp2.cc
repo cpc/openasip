@@ -179,10 +179,9 @@ BFPushMoveUp2::operator()() {
 }
 
 bool BFPushMoveUp2::isLoopBypass(MoveNode&mn) {
-    auto inEdges = ddg().inEdges(mn);
+    auto inEdges = ddg().operationInEdges(mn);
     for (auto e: inEdges) {
-        if (e->edgeReason() == DataDependenceEdge::EDGE_OPERATION
-            && e->isBackEdge()) {
+        if (e->isBackEdge()) {
             return true;
         }
     }
