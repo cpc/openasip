@@ -1163,7 +1163,7 @@ SimValue::hexValue(bool noHexIdentifier) const {
             return Conversion::toHexString(
                 uIntWordValue(), hexNumbers).substr(2);
         } else {
-            return Conversion::toHexString(uIntWordValue(), hexNumbers);
+            return Conversion::toHexString(uLongWordValue(), hexNumbers);
         }
     }
 
