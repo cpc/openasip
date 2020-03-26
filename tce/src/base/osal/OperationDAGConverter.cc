@@ -490,6 +490,10 @@ OperationDAGConverter::castedVar(
         return var + ".halfFloatWordValue()";
     case Operand::DOUBLE_WORD:
         return var + ".doubleWordValue()";
+    case Operand::ULONG_WORD:
+        return var + ".uLongWordValue()";
+    case Operand::SLONG_WORD:
+        return var + ".sLongWordValue()";
     default:
         return var;
     }
@@ -566,6 +570,35 @@ OperationDAGConverter::createSimulationCode(
     opReplacements["MOD"] = "%";
     opReplacements["MODU"] = "%";
     opReplacements["MULH"] = "*";
+
+    opReplacements["ADD64"] = "+";
+    opReplacements["SUB64"] = "-";
+    opReplacements["MUL64"] = "*";
+    opReplacements["DIV64"] = "/";
+    opReplacements["DIVU64"] = "/";
+    opReplacements["EQ64"] = "==";
+    opReplacements["GT64"] = ">";
+    opReplacements["GTU64"] = ">";
+    opReplacements["SHL64"] = "<<";
+    opReplacements["SHR64"] = ">>";
+    opReplacements["SHRU64"] = ">>";
+    opReplacements["AND64"] = "&";
+    opReplacements["IOR64"] = "|";
+    opReplacements["XOR64"] = "^";
+    opReplacements["NEG64"] = "-";
+    opReplacements["NEGF64"] = "-";
+    opReplacements["ADDF64"] = "+";
+    opReplacements["SUBF64"] = "-";
+    opReplacements["MULF64"] = "*";
+    opReplacements["DIVF64"] = "/";
+    opReplacements["EQF64"] = "==";
+    opReplacements["GTF64"] = ">";
+    opReplacements["CFI64"] = "(UIntWord)";
+    opReplacements["CIF64"] = "(FloatWord)";
+    opReplacements["CFD64"] = "(DoubleWord)";
+    opReplacements["CDF64"] = "(FloatWord)";
+    opReplacements["MOD64"] = "%";
+    opReplacements["MODU64"] = "%";
 
     // Writes recursively all the DAG from node(0)
     // But this recursion does not work so added the loop
