@@ -244,10 +244,11 @@ SimulatorFrontend::loadMachine(const Machine& machine) {
     delete memorySystem_;
     memorySystem_ = NULL;
 
-    // compiled sim does not handle long guard latencies nor LE  correctly.
+    // compiled sim does not handle long guard latencies nor 64 bits  correctly.
     // remove when fixed.
     if (isCompiledSimulation() && 
-        machine.controlUnit()->globalGuardLatency() > 1) {
+        (machine.controlUnit()->globalGuardLatency() > 1 ||
+         machine.is64bit())) {
         setCompiledSimulation(false);
         // TODO: warn about this, when the warning can be ignored
         // by tests.
