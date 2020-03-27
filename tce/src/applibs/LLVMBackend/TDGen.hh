@@ -261,6 +261,8 @@ protected:
 
     void createByteExtLoadPatterns(std::ostream& os);
     void createShortExtLoadPatterns(std::ostream& os);
+    void create32BitExtLoadPatterns(std::ostream& os);
+
     void createEndiannesQuery(std::ostream& os);
     void createConstShiftPatterns(std::ostream& os);
 
