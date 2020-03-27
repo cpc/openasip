@@ -1298,6 +1298,9 @@ TDGen::writeInstrInfo(std::ostream& os) {
     }
     createByteExtLoadPatterns(os);
     createShortExtLoadPatterns(os);
+    if (mach_.is64bit()) {
+        create32BitExtLoadPatterns(os);
+    }
     createSelectPatterns(os);
     writeMiscPatterns(os);
     createConstShiftPatterns(os);
@@ -2058,9 +2061,8 @@ TDGen::operandChar(Operand& operand) {
     } else if (operand.type() == Operand::HALF_FLOAT_WORD) {
         return 'h';
     } else if (operand.type() == Operand::ULONG_WORD ||
-               operand.type() == Operand::SLONG_WORD) {
-        return 's';
-    } else if (operand.type() == Operand::RAW_DATA) {
+               operand.type() == Operand::SLONG_WORD ||
+               operand.type() == Operand::RAW_DATA) {
         return mach_.is64bit() ? 's' : 'r';
     } else if (operand.type() != Operand::UINT_WORD &&
                operand.type() != Operand::SINT_WORD) {
@@ -3810,17 +3812,25 @@ void TDGen::createByteExtLoadPatterns(std::ostream& os) {
     TCEString destSize = mach_.is64bit() ? "64" : "32";
     TCEString ANDOP = mach_.is64bit() ? "AND64ssa" : "ANDrri";
     TCEString SUBIMM = mach_.is64bit() ? "SUB64sas" : "SUBrir";
-    TCEString EXTOP = "SXQW"; // TODO: fixme on 64-bit
+    TCEString EXTOP = mach_.is64bit() ? "SXQ64" : "SXQW";
+    TCEString EXTOPC = mach_.is64bit() ? "SXQ64sr" : "SXQWrr";
+    TCEString dstTypeChar = mach_.is64bit() ? 's' : 'r';
+    TCEString regSrcChar = mach_.is64bit() ? 's' : 'r';
+    TCEString immSrcChar = mach_.is64bit() ? 'a' : 'i';
+    TCEString loadOpcReg = load + dstTypeChar + regSrcChar;
+    TCEString loadOpcImm = load + dstTypeChar + immSrcChar;
 
     if (mach_.hasOperation(load)) {
         if (!mach_.hasOperation(uload)) {
 
             // emulate zero ext with sing-ext and and
             os << "def : Pat<(i" << destSize << " (zextloadi8 ADDRrr:$addr)), "
-               << "(" << ANDOP << " (" << load << "rr ADDRrr:$addr), 255)>;"
+               << "(" << ANDOP << " ("
+               << loadOpcReg << " ADDRrr:$addr), 255)>;"
                << std::endl;
             os << "def : Pat<(i" << destSize << " (zextloadi8 ADDRri:$addr)), "
-               << "(" << ANDOP << " (" << load << "ri ADDRri:$addr), 255)>;"
+               << "(" << ANDOP << " ("
+               << loadOpcImm << " ADDRri:$addr), 255)>;"
                << std::endl;
         }
     } else {
@@ -3831,18 +3841,19 @@ void TDGen::createByteExtLoadPatterns(std::ostream& os) {
                       << std::endl;
             return;
         }
-        load = uload;
+        loadOpcReg = uload + dstTypeChar + regSrcChar;
+        loadOpcImm = uload + dstTypeChar + immSrcChar;
 
-        if (mach_.hasOperation("EXTOP")) {
+        if (mach_.hasOperation(EXTOP)) {
             // use zextload + sext for sextload
             os << "def : Pat<(i" << destSize
                << " (sextloadi8 ADDRrr:$addr)), "
-               << "(" << EXTOP << " ("
-               << load << "rr ADDRrr:$addr))>;" << std::endl;
+               << "(" << EXTOPC << " ("
+               << loadOpcReg << " ADDRrr:$addr))>;" << std::endl;
             os << "def : Pat<(i" << destSize
                << " (sextloadi8 ADDRri:$addr)), "
-               << "(" << EXTOP << " ("
-               << load << "ri ADDRri:$addr))>;" << std::endl;
+               << "(" << EXTOPC << " ("
+               << loadOpcImm << " ADDRri:$addr))>;" << std::endl;
 
         } else {
             std::cerr << "Warning: no sign-extending 8-bit loads or"
@@ -3853,50 +3864,107 @@ void TDGen::createByteExtLoadPatterns(std::ostream& os) {
     }
 
     os << "def : Pat<(i" << destSize << " (zextloadi1 ADDRrr:$addr)), ("
-       << load << "rr ADDRrr:$addr)>;"
+       << loadOpcReg << " ADDRrr:$addr)>;"
        << std::endl
        << "def : Pat<(i" << destSize << " (zextloadi1 ADDRri:$addr)), ("
-       << load << "ri ADDRri:$addr)>;"
+       << loadOpcImm << " ADDRri:$addr)>;"
        << std::endl;
 
     os << "def : Pat<(i" << destSize << " (sextloadi1 ADDRrr:$addr)), "
        << "(" << SUBIMM << " 0, "
-       << "(" << ANDOP << " (" << load << "rr ADDRrr:$addr), 1))>;"
+       << "(" << ANDOP << " ("
+       << loadOpcReg << " ADDRrr:$addr), 1))>;"
        << std::endl
        << "def : Pat<(i" << destSize << " (sextloadi1 ADDRri:$addr)), "
        << "(" << SUBIMM << " 0, "
-       <<  "(" << ANDOP << " (" << load << "ri ADDRri:$addr), 1))>;"
+       <<  "(" << ANDOP << " ("
+       << loadOpcImm << " ADDRri:$addr), 1))>;"
        << std::endl
        << "// anyextloads" << std::endl;
 
     os << "def : Pat<(i" << destSize << " (extloadi1 ADDRrr:$src)), ("
-       << load << "rr ADDRrr:$src)>;" << std::endl
+       << loadOpcReg << " ADDRrr:$src)>;" << std::endl
        << "def : Pat<(i" << destSize << " (extloadi1 ADDRri:$src)), ("
-       << load << "ri ADDRri:$src)>;" << std::endl
+       << loadOpcImm << " ADDRri:$src)>;" << std::endl
        << "def : Pat<(i" << destSize << " (extloadi8 ADDRrr:$src)), ("
-       << load << "rr ADDRrr:$src)>;" << std::endl
+       << loadOpcReg << " ADDRrr:$src)>;" << std::endl
        << "def : Pat<(i" << destSize << " (extloadi8 ADDRri:$src)), ("
-       << load << "ri ADDRri:$src)>;" << std::endl
+       << loadOpcImm << " ADDRri:$src)>;" << std::endl
        << std::endl;
 }
 
 void TDGen::createShortExtLoadPatterns(std::ostream& os) {
     TCEString load = littleEndian_ ? "LD16" : "LDH";
     TCEString destSize = mach_.is64bit() ? "64" : "32";
-    TCEString ANDOP = mach_.is64bit() ? "AND64ssa" : "ANDrri";
+    TCEString ANDOPC = mach_.is64bit() ? "AND64ssa" : "ANDrri";
     TCEString uload = littleEndian_ ? "LDU16" : "LDHU";
-    TCEString EXTOP = "SXHW"; // TODO: fixme on 64-bit
+    TCEString EXTOP = mach_.is64bit() ? "SXH64" : "SXHW";
+    TCEString EXTOPC = mach_.is64bit() ? "SXH64sr" : "SXHWrr";
+    TCEString dstTypeChar = mach_.is64bit() ? 's' : 'r';
+    TCEString regSrcChar = mach_.is64bit() ? 's' : 'r';
+    TCEString immSrcChar = mach_.is64bit() ? 'a' : 'i';
+    TCEString loadOpcReg = load + dstTypeChar + regSrcChar;
+    TCEString loadOpcImm = load + dstTypeChar + immSrcChar;
 
     if (mach_.hasOperation(load)) {
         if (!mach_.hasOperation(uload)) {
             // emulate zero ext with sing-ext and and
             os << "def : Pat<(i" << destSize
                << " (zextloadi16 ADDRrr:$addr)), "
-               << "(" << ANDOP << " (" << load
-               << "rr ADDRrr:$addr), 65535)>;" << std::endl;
-            os << "def : Pat<(i32 (zextloadi16 ADDRri:$addr)), "
-               << "(" << ANDOP << " ("
-               << load << "ri ADDRri:$addr), 65535)>;" << std::endl;
+               << "(" << ANDOPC << " (" << loadOpcReg
+               << " ADDRrr:$addr), 65535)>;" << std::endl;
+            os << "def : Pat<(i" << destSize
+               << " (zextloadi16 ADDRri:$addr)), "
+               << "(" << ANDOPC << " ("
+               << loadOpcImm << " ADDRri:$addr), 65535)>;" << std::endl;
+        }
+    } else {
+        if (!mach_.hasOperation(uload)) {
+            std::cerr << "Warning: The architecture is missing any 16-bit loads."
+                      << std::endl;
+            return;
+        }
+        loadOpcReg = uload + dstTypeChar + regSrcChar;
+        loadOpcImm = uload + dstTypeChar + immSrcChar;
+
+        if (mach_.hasOperation(EXTOP)) {
+            // use zextload + sext for sextload
+            os << "def : Pat<(i" << destSize
+               << " (sextloadi16 ADDRrr:$addr)), "
+               << "(" << EXTOPC
+               << " (" << loadOpcReg << " ADDRrr:$addr))>;" << std::endl;
+            os << "def : Pat<(i" << destSize
+               << " (sextloadi16 ADDRri:$addr)), "
+               << "(" << EXTOPC
+               << " (" << loadOpcImm << " ADDRri:$addr))>;" << std::endl;
+        } else {
+            std::cerr << "Warning: no sign-extending 16-bit loads or"
+                      << " 16-bit sign extension instruction!"
+                      << " in the processor. All code may not compile!"
+                      << std::endl;
+        }
+    }
+    // anyext
+    os << "def : Pat<(i" << destSize << " (extloadi16 ADDRrr:$src)), ("
+       << loadOpcReg << " ADDRrr:$src)>;" << std::endl
+       << "def : Pat<(i" << destSize << " (extloadi16 ADDRri:$src)), ("
+       << loadOpcImm << " ADDRri:$src)>;" << std::endl;
+}
+
+void TDGen::create32BitExtLoadPatterns(std::ostream& os) {
+    TCEString load = "LD32";
+    const TCEString uload = "LDU32";
+
+    if (mach_.hasOperation(load)) {
+        if (!mach_.hasOperation(uload)) {
+            // emulate zero ext with sing-ext and and
+            os << "def : Pat<(i64 (zextloadi32 ADDRrr:$addr)), "
+               << "(AND64ssa (LD32sr ADDRrr:$addr),"
+               << "0xffffffff)>;" << std::endl;
+
+            os << "def : Pat<(i64 (zextloadi32 ADDRri:$addr)), "
+               << "(AND64ssa (LD32si ADDRri:$addr),"
+               << "0xffffffff)>;" << std::endl;
         }
     } else {
         if (!mach_.hasOperation(uload)) {
@@ -3906,35 +3974,26 @@ void TDGen::createShortExtLoadPatterns(std::ostream& os) {
         }
         load = uload;
 
-        if (mach_.hasOperation(EXTOP)) {
+        if (mach_.hasOperation("SXW64")) {
             // use zextload + sext for sextload
-            os << "def : Pat<(i" << destSize
-               << " (sextloadi16 ADDRrr:$addr)), "
-               << "(" << EXTOP << " (" << load
-               << "rr ADDRrr:$addr))>;" << std::endl;
-            os << "def : Pat<(i" << destSize
-               << " (sextloadi16 ADDRri:$addr)), "
-               << "(" << EXTOP << " ("
-               << load << "ri ADDRri:$addr))>;" << std::endl;
+            os << "def : Pat<(i64 (sextloadi32 ADDRrr:$addr)), "
+               << "(SXW64sr (LDU32ss ADDRrr:$addr))>;" << std::endl;
+
+            os << "def : Pat<(i64 (sextloadi32 ADDRri:$addr)), "
+               << "(SXW64sr (LDU32sa ADDRri:$addr))>;" << std::endl;
         } else {
-            std::cerr << "Warning: no sign-extending 16-bit loads or"
-                      << " 16-bit sign extension instruction!"
+            std::cerr << "Warning: no sign-extending 32-bit loads or"
+                      << " 32-bit sign extension instruction!"
                       << " in the processor. All code may not compile!"
                       << std::endl;
         }
     }
     // anyext.
-    os << "def : Pat<(i" << destSize << " (extloadi16 ADDRrr:$src)), ("
-       << load << "rr ADDRrr:$src)>;" << std::endl
-       << "def : Pat<(i" << destSize << " (extloadi16 ADDRri:$src)), ("
-       << load << "ri ADDRri:$src)>;" << std::endl;
+    os << "def : Pat<(i64 (extloadi32 ADDRrr:$src)), "
+       << "(" << load << "ss ADDRrr:$src)>;" << std::endl
 
-    // TODO: what is this here?
-    if (mach_.is64bit()) {
-    os     << "def : Pat<(i64 (extloadi32 ADDRrr:$src)), (LD32sr ADDRrr:$src)>;" << std::endl
-           << "def : Pat<(i64 (extloadi32 ADDRri:$src)), (LD32si ADDRri:$src)>;" << std::endl;
-    }
-
+       << "def : Pat<(i64 (extloadi32 ADDRri:$src)), "
+       << "(" << load << "sa ADDRrr:$src)>;" << std::endl;
 }
 
 void
