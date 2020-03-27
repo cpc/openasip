@@ -1,0 +1,48 @@
+TTA-based Co-Design Environment (TCE) v1.21 Released
+----------------------------------------------------
+
+TTA-based Co-Design Environment (TCE) is an open application-specific
+instruction-set processor (ASIP) toolset for design and programming of
+customized co-processors (compiler-programmable accelerators). It is
+based on the energy efficient Transport Triggered Architecture (TTA)
+processor template.
+
+The toolset provides a complete retargetable co-design flow from high-level
+language programs down to FPGA/ASIC synthesizable processor RTL (VHDL and
+Verilog generation supported) and parallel program binaries.
+
+The size and quantity of register files, function units, supported operations,
+and the interconnection network can be freely customized to create new
+co-processors ranging from small single-application specific cores with
+special operations to static multi-issue domain-specific processors.
+
+Notable Changes
+===============
+
+This release adds support for LLVM 10, brings back an alias analyzer
+for spill code, removes the need for 8b loads in a minimal machine,
+and now allows having only one type of extension mode in loads.
+
+Download
+========
+
+Get the release via git by cloning the release branch:
+
+  git clone -b release-1.21 https://github.com/cpc/tce.git tce-1.21
+
+Acknowledgements
+================
+
+The Customized Parallel Computing research group of Tampere University, Finland
+did most of their work to this release as part of the FitOptiVis project funded
+by ECSEL Joint Undertaking under grant number H2020-ECSEL-2017-2-783162. Further
+support was received from HSA Foundation. The financial support is very much
+appreciated!
+
+Links
+=====
+
+TCE download page:  http://openasip.org/download.html
+This announcement:  http://openasip.org/downloads/ANNOUNCEMENT
+Change log:         http://openasip.org/downloads/CHANGES
+Install info:       http://openasip.org/downloads/INSTALL
