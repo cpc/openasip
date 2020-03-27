@@ -20,8 +20,8 @@ https://help.ubuntu.com/community/Repositories/Ubuntu#Adding_Repositories_in_Ubu
 Ubuntu 16.04 and 18.04
 ----------------------
 
-Note! Since Ubuntu 18.04 might install libllvm8, it can cause a problem with
-TCE patched LLVM at build time. You might need a workaround that is documented
+Note! Since Ubuntu might install its own libllvm, it can cause a problem with
+the TCE-patched LLVM at build time. You might need a workaround that is documented
 in this issue https://github.com/cpc/tce/issues/91
 
   sudo apt-get install libwxgtk3.0-dev libboost-all-dev \
@@ -56,7 +56,7 @@ Get the Latest TCE Source Code
 
 Alternatively you can get one of the release branches, e.g.:
 
-  git clone -b release-1.20 https://github.com/cpc/tce.git tce-1.20
+  git clone -b release-1.21 https://github.com/cpc/tce.git tce-1.21
 
 LLVM and Clang
 ==============
@@ -68,7 +68,7 @@ issues affecting TCE use.
 You can do this easiest by executing
 
    cd tce-devel/tce
-   tools/scripts/install_llvm_9.sh $HOME/local
+   tools/scripts/install_llvm_10.sh $HOME/local
 
 After successful installation, add information about installed libraries to the
 search path. We assume TCE will be installed to the same location later.
@@ -114,7 +114,7 @@ Update the source code modifications:
   cd tce-devel/tce
   git pull
 
-uild and install the updated TCE:
+Build and install the updated TCE:
 
   make && make install
 
@@ -126,8 +126,8 @@ build TCE:
 
 Compiler              supported versions
 -----------------     ------------------
-GCC                   8.0+
-Clang                 8.0+
+GCC                   9.0+
+Clang                 9.0+
 
 Library               supported versions                   library license
 -----------------     ------------------                   ---------------
@@ -136,11 +136,11 @@ wxWidgets             2.8+                                 wxWidgets
 Tcl                   8.0-8.4                              BSD-style
 Boost                 1.48.0-1.53.0                        very permissive
 sqlite3               3.2.0+                               public domain
-LLVM                  4.0-5.0                              LLVM Release License
+LLVM                  9.0-10.0                             LLVM Release License
 Editline              2.9                                  BSD-style
 Python                2.4-2.8                              PSF license
 
-Remember to install the '-dev' versions of the packages in order to get
+Please remember to install the '-dev' versions of the packages in order to get
 the library headers which are need to compile client code against them.
 You also need a version of "GNU Make" to build TCE.
 
