@@ -582,10 +582,12 @@ LLVMBackend::compile(
      * This is quite straight copy how llc actually creates passes for target.
      */       
 
+#ifdef LLVM_OLDER_THAN_10
     // if opt level is less than 2 we will not run extra optimization passes
     // after linking emulation function code
     CodeGenOpt::Level OptLevel = 
         (optLevel < 2) ? (CodeGenOpt::None) : (CodeGenOpt::Aggressive);
+#endif
 
 #ifdef LLVM_OLDER_THAN_3_7
     llvm::PassManager Passes;

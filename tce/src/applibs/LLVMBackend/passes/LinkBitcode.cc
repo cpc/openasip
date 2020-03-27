@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2020 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -70,11 +70,11 @@ namespace {
 #ifdef LLVM_OLDER_THAN_10
         using llvm::BasicBlockPass::doInitialization;
         using llvm::BasicBlockPass::doFinalization;
+        bool runOnBasicBlock(BasicBlock &BB);
 #else
         using llvm::FunctionPass::doInitialization;
         using llvm::FunctionPass::doFinalization;
 #endif
-        bool runOnBasicBlock(BasicBlock &BB);
         bool runOnFunction(Function &F);
 
     private:
@@ -140,10 +140,12 @@ LinkBitcode::doInitialization(Module& M) {
     return true;
 }
 
+#ifdef LLVM_OLDER_THAN_10
 bool
 LinkBitcode::runOnBasicBlock(BasicBlock& /*BB*/) {
     return true;
 }
+#endif
 
 bool
 LinkBitcode::runOnFunction(Function&) {
