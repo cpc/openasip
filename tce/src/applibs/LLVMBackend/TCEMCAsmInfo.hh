@@ -32,7 +32,12 @@ namespace llvm {
 #ifdef LLVM_OLDER_THAN_3_7
     explicit TCEMCAsmInfo(const StringRef &);
 #else
+#ifdef LLVM_OLDER_THAN_10
     explicit TCEMCAsmInfo(const llvm::Triple &);
+#else
+    explicit TCEMCAsmInfo(
+        const llvm::Triple&, const llvm::MCTargetOptions&);
+#endif
 #endif
   };
 

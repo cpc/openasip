@@ -72,9 +72,9 @@ public:
         RegisterRenamer* registerRenamer = NULL);
     virtual ~BasicBlockScheduler();
 
-    virtual void handleDDG(
+    virtual int handleDDG(
         DataDependenceGraph& ddg, SimpleResourceManager& rm,
-        const TTAMachine::Machine& targetMachine);
+        const TTAMachine::Machine& targetMachine, bool testOnly) override;
 
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;
@@ -84,8 +84,11 @@ public:
         return new CriticalPathBBMoveNodeSelector(bb, machine);
     }
 
-
     using BasicBlockPass::ddgBuilder;
+
+    static MoveNode* findTrigger(
+        const ProgramOperation& po,
+        const TTAMachine::Machine& mach);
 
 protected:
     void scheduleRRMove(MoveNode& moveNode);
@@ -127,9 +130,8 @@ protected:
 
     bool tryToSwitchInputs(ProgramOperation& op);
 
-    MoveNode* findTrigger(ProgramOperation& po);
-
-    MoveNode* findTriggerFromUnit(ProgramOperation& po, TTAMachine::Unit& unit);
+    static MoveNode* findTriggerFromUnit(
+        const ProgramOperation& po, const TTAMachine::Unit& unit);
 
     /// The target machine we are scheduling the program against.
     const TTAMachine::Machine* targetMachine_;

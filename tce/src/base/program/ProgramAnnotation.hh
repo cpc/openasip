@@ -88,6 +88,7 @@ public:
         ANN_STACKUSE_SAVED_FPR          = 0x00012015,///<saved FPR
         ANN_STACKUSE_SPILL              = 0x00012016,///<spilled variable
         ANN_STACKUSE_RA_SAVE            = 0x00012017,///<ra, new frontend
+        ANN_STACKUSE_FP_SAVE            = 0x00012018,///<frame ptr save/load
         ANN_STACKUSE_END                = 0x00012FFF,
         
         ANN_REGISTER_BEGIN              = 0x00020000,
@@ -111,8 +112,11 @@ public:
         ANN_ALLOWED_UNIT_SRC          = 0x00030000,///<Src. unit candidate
         ANN_ALLOWED_UNIT_DST          = 0x00030001,///<Dst. unit candidate
 
-        ANN_CONN_CANDIDATE_UNIT_SRC          = 0x00030004,///<Src. unit candidate
-        ANN_CONN_CANDIDATE_UNIT_DST          = 0x00030005,///<Dst. unit candidate
+        ANN_CONN_CANDIDATE_UNIT_SRC          = 0x00030005,///<Src. unit candidate
+        ANN_CONN_CANDIDATE_UNIT_DST          = 0x00030006,///<Dst. unit candidate
+
+        ANN_REJECTED_UNIT_SRC          = 0x00030007,///<Src. unit rejected
+        ANN_REJECTED_UNIT_DST          = 0x00030008,///<Dst. unit rejected
 
         /// A reg to reg move that was added because of missing connectivity 
         /// between the original target and destination (a temp move).

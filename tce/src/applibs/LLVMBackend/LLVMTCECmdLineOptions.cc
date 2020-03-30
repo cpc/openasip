@@ -55,8 +55,7 @@ const std::string LLVMTCECmdLineOptions::SWL_SAVE_BACKEND_PLUGIN =
     "save-backend-plugin";
 const std::string LLVMTCECmdLineOptions::SWL_BU_SCHEDULER = 
     "bottom-up-scheduler";
-const std::string LLVMTCECmdLineOptions::SWL_RECURSIVE_BU_SCHEDULER = 
-    "recursive-scheduler";
+const std::string LLVMTCECmdLineOptions::SWL_TD_SCHEDULER = "td-scheduler";
 const std::string LLVMTCECmdLineOptions::SWL_USE_OLD_BACKEND_SOURCES = 
     "use-old-backend-src";
 
@@ -147,8 +146,8 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
 
     addOption(
         new BoolCmdLineOptionParser(
-            SWL_RECURSIVE_BU_SCHEDULER, 
-            "Use an experimental Bypassign Recursive Bottom Up scheduler."));
+            SWL_TD_SCHEDULER,
+            "Use the old top-down instruction scheduler(previous default)."));
 
     addOption(
         new BoolCmdLineOptionParser(
@@ -332,8 +331,8 @@ LLVMTCECmdLineOptions::useBUScheduler() const {
 }
 
 bool
-LLVMTCECmdLineOptions::useRecursiveBUScheduler() const {
-    return findOption(SWL_RECURSIVE_BU_SCHEDULER)->isDefined();
+LLVMTCECmdLineOptions::useTDScheduler() const {
+    return findOption(SWL_TD_SCHEDULER)->isDefined();
 }
 
 bool

@@ -51,6 +51,7 @@
 #include "ProgramOperation.hh"
 #include "Operation.hh"
 #include "Move.hh"
+#include "DataDependenceGraph.hh"
 
 using namespace TTAMachine;
 using std::pair;
@@ -60,7 +61,7 @@ using std::pair;
  */
 ExecutionPipelineBroker::ExecutionPipelineBroker(std::string name,
         unsigned int initiationInterval): 
-    ResourceBroker(name, initiationInterval), longestLatency_(0) {
+    ResourceBroker(name, initiationInterval), longestLatency_(0), ddg_(NULL) {
         
     // change ii for broker's resources also
     for (FUPipelineMap::iterator i = fuPipelineMap_.begin();
@@ -98,7 +99,8 @@ ExecutionPipelineBroker::~ExecutionPipelineBroker(){
  * @note The execution pipeline broker is used only to construct resources.
  */
 void
-ExecutionPipelineBroker::assign(int, MoveNode&, SchedulingResource&) {
+ExecutionPipelineBroker::assign(int, MoveNode&, SchedulingResource&, int, int)
+{
     abortWithError("Not implemented.");
 }
 
@@ -127,17 +129,26 @@ ExecutionPipelineBroker::unassign(MoveNode&) {
  *
  * @param cycle Cycle.
  * @param node Node.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  */
 int
-ExecutionPipelineBroker::earliestCycle(int cycle, const MoveNode& node)
+ExecutionPipelineBroker::earliestCycle(int cycle, const MoveNode& node,
+                                       const TTAMachine::Bus*,
+                                       const TTAMachine::FunctionUnit* srcFU,
+                                       const TTAMachine::FunctionUnit* dstFU,
+                                       int,
+                                       const TTAMachine::ImmediateUnit*,
+                                       int)
     const {
     
-    int efs = earliestFromSource(cycle, node);
+    int efs = earliestFromSource(cycle, node, srcFU);
     if (efs == -1 || efs == INT_MAX) {
         debugLogRM("returning -1");
         return -1;
     }
-    int efd = earliestFromDestination(efs, node);
+    int efd = earliestFromDestination(efs, node, dstFU);
     if (efd == -1 || efd == INT_MAX) {
         debugLogRM("returning -1");
         return -1;
@@ -146,7 +157,7 @@ ExecutionPipelineBroker::earliestCycle(int cycle, const MoveNode& node)
     // Loop as long as we find cycle which work for both source and 
     // destination.
     while (efd != efs) {
-        efs = earliestFromSource(efd, node);
+        efs = earliestFromSource(efd, node, srcFU);
         if (efs == -1 || efs == INT_MAX) {
             debugLogRM("returning -1");
             return -1;
@@ -154,7 +165,7 @@ ExecutionPipelineBroker::earliestCycle(int cycle, const MoveNode& node)
         if (efs == efd) {
             return efd;
         }
-        efd = earliestFromDestination(efs, node);
+        efd = earliestFromDestination(efs, node, dstFU);
         if (efd == -1 || efd == INT_MAX) {
             debugLogRM("returning -1");
             return -1;
@@ -170,18 +181,27 @@ ExecutionPipelineBroker::earliestCycle(int cycle, const MoveNode& node)
  *
  * @param cycle Cycle.
  * @param node Node.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  * @return The latest cycle, starting from given cycle backwards, where a
  * resource of the type managed by this broker can be assigned to the
  * given node. Considers source and destination terminals independently
  * and compares the results. Returns -1 if no assignment is possible.
  */
 int
-ExecutionPipelineBroker::latestCycle(int cycle, const MoveNode& node) const {
-    int src = latestFromSource(cycle,node);
+ExecutionPipelineBroker::latestCycle(int cycle, const MoveNode& node,
+                                     const TTAMachine::Bus*,
+                                     const TTAMachine::FunctionUnit* srcFU,
+                                     const TTAMachine::FunctionUnit* dstFU,
+                                     int,
+                                     const TTAMachine::ImmediateUnit*,
+                                     int) const {
+    int src = latestFromSource(cycle,node, srcFU);
     if (src == -1) {
         return -1;
     }
-    int dst = latestFromDestination(src, node);
+    int dst = latestFromDestination(src, node, dstFU);
     return dst;
 }
 
@@ -199,7 +219,8 @@ ExecutionPipelineBroker::latestCycle(int cycle, const MoveNode& node) const {
  * cycle).
  */
 bool
-ExecutionPipelineBroker::isAlreadyAssigned(int, const MoveNode&) const {
+ExecutionPipelineBroker::isAlreadyAssigned(
+    int, const MoveNode&, const TTAMachine::Bus*) const {
     abortWithError("Not implemented.");
     return false;
 }
@@ -216,7 +237,8 @@ ExecutionPipelineBroker::isAlreadyAssigned(int, const MoveNode&) const {
  * InputFuResource.
  */
 bool
-ExecutionPipelineBroker::isApplicable(const MoveNode&) const {
+ExecutionPipelineBroker::isApplicable(
+    const MoveNode&, const TTAMachine::Bus*) const {
     return false;
 }
 
@@ -374,6 +396,22 @@ ExecutionPipelineBroker::setInitiationInterval(unsigned int ii)
     }
 }
 
+bool ExecutionPipelineBroker::isLoopBypass(const MoveNode& node) const {
+
+    if (ddg_ == NULL || !ddg_->hasNode(node)) {
+        return false;
+    }
+
+    auto inEdges = ddg_->operationInEdges(node);
+    for (auto e : inEdges) {
+        if (e->isBackEdge()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
 /**
  * Returns latest cycle, starting from given parameter and going towards
  * zero, in which the node can be scheduled. Taking into account source
@@ -385,13 +423,18 @@ ExecutionPipelineBroker::setInitiationInterval(unsigned int ii)
  * scheduling is not possible, 'cycle' if source is not FUPort
  */
 int
-ExecutionPipelineBroker::latestFromSource(int cycle, const MoveNode& node)
+ExecutionPipelineBroker::latestFromSource(
+    int cycle, const MoveNode& node, const TTAMachine::FunctionUnit* srcFU)
     const{
 
     if (!node.isSourceOperation()) {
         return cycle;
     }
+    // kludge for looop bypass.
     ProgramOperation& sourceOp = node.sourceOperation();
+    if (isLoopBypass(node)) {
+        cycle+=initiationInterval_;
+    }
     const MoveNode* triggerNode = NULL;
     const MoveNode* lastOperandNode = NULL;
     const MoveNode* lastResultNode = NULL;    
@@ -411,7 +454,11 @@ ExecutionPipelineBroker::latestFromSource(int cycle, const MoveNode& node)
     for (int i = 0; i < sourceOp.outputMoveCount(); i++) {
         const MoveNode* tempNode = &sourceOp.outputMove(i);
         if (tempNode->isScheduled() && tempNode != &node) {
-            minCycle = std::max(tempNode->cycle(), minCycle);
+            int tempCycle = tempNode->cycle();
+            if (isLoopBypass(*tempNode)) {
+                tempCycle += initiationInterval_;
+            }
+            minCycle = std::max(tempCycle, minCycle);
             lastResultNode = tempNode;
         }
     }
@@ -445,13 +492,21 @@ ExecutionPipelineBroker::latestFromSource(int cycle, const MoveNode& node)
     // minCycle has latest of operand writes or earliest result read cycle
     // find next read of same FU with different PO
     assert(lastOperandNode != NULL || lastResultNode != NULL);
-    const FunctionUnit& fu = 
-        (lastOperandNode != NULL) 
-            ? lastOperandNode->move().destination().functionUnit()
-            : lastResultNode->move().source().functionUnit();
-    HWOperation& hwop = *fu.operation(sourceOp.operation().name());
-    const TTAMachine::Port& port = *hwop.port(node.move().source().operationIndex());
-    SchedulingResource& res = *resourceOf(fu);
+    const TTAMachine::FunctionUnit* fu;
+    if (lastOperandNode != NULL) {
+        fu = &lastOperandNode->move().destination().functionUnit();
+    } else {
+        assert(lastResultNode->isSourceOperation());
+        fu = &lastResultNode->move().source().functionUnit();
+    }
+
+    if (srcFU != NULL && fu != srcFU) {
+        return -1;
+    }
+    HWOperation& hwop = *fu->operation(sourceOp.operation().name());
+    const TTAMachine::Port& port =
+        *hwop.port(node.move().source().operationIndex());
+    SchedulingResource& res = *resourceOf(*fu);
     ExecutionPipelineResource* ep =
         static_cast<ExecutionPipelineResource*>(&res);
     int triggerCycle = triggerNode != NULL && triggerNode->isScheduled() ? 
@@ -479,7 +534,7 @@ ExecutionPipelineBroker::latestFromSource(int cycle, const MoveNode& node)
 int
 ExecutionPipelineBroker::latestFromDestination(
     int cycle,
-    const MoveNode& node) const{
+    const MoveNode& node, const TTAMachine::FunctionUnit* dstUnit) const {
 
     // TODO: this not do full reuslt overwrite another tests.
     // It is however handled in canassign(). 
@@ -499,13 +554,24 @@ ExecutionPipelineBroker::latestFromDestination(
         for (int i = 0; i < destOp.outputMoveCount(); i++) {
             const MoveNode* tempNode = &destOp.outputMove(i);
             if (tempNode->isScheduled() && tempNode != &node) {
+                const TTAMachine::FunctionUnit* fu =
+                    &node.move().destination().functionUnit();
+                if (dstUnit != NULL && dstUnit != fu) {
+                    return -1;
+                }
                 const TTAMachine::HWOperation& hwop =
-                    *node.move().destination().functionUnit().operation(
+                    *fu->operation(
                         destOp.operation().name());
                 const int outputIndex =
                     tempNode->move().source().operationIndex();
+
+                int tempCycle = tempNode->cycle();
+                if (isLoopBypass(*tempNode)) {
+                    tempCycle += initiationInterval_;
+                }
+
                 latest = std::min(latest,
-                                  tempNode->cycle() - hwop.latency(outputIndex));
+                                  tempCycle - hwop.latency(outputIndex));
             }
         }
     }
@@ -524,7 +590,8 @@ ExecutionPipelineBroker::latestFromDestination(
  * source is not FUPort
  */
 int
-ExecutionPipelineBroker::earliestFromSource(int cycle, const MoveNode& node)
+ExecutionPipelineBroker::earliestFromSource(
+    int cycle, const MoveNode& node, const TTAMachine::FunctionUnit* srcFU)
     const {
     
     if (!node.isSourceOperation()) {
@@ -546,6 +613,9 @@ ExecutionPipelineBroker::earliestFromSource(int cycle, const MoveNode& node)
         const MoveNode* tempNode = &sourceOp.inputMove(i);
         if (tempNode->isScheduled() && tempNode != &node) {
             fu = &tempNode->move().destination().functionUnit();
+            if (srcFU != NULL&& fu != srcFU) {
+                return -1;
+            }
             minCycle = std::max(tempNode->cycle()+1, minCycle);
             if (tempNode->move().isTriggering()) {
                 triggerNode = tempNode;
@@ -606,6 +676,17 @@ bool ExecutionPipelineBroker::isMoveTrigger(const MoveNode& node) const{
                         return true;
                     }
                 }
+                auto fu = &tempNode->move().destination().functionUnit();
+                auto triggeringPort = fu->triggerPort();
+                auto hwop = fu->operation(
+                    node.destinationOperation().operation().name());
+                auto port = hwop->port(
+                    node.move().destination().operationIndex());
+                if (port == triggeringPort) {
+                    return true;
+                } else {
+                    return false;
+                }
             }
         }
     }
@@ -630,7 +711,7 @@ bool ExecutionPipelineBroker::isMoveTrigger(const MoveNode& node) const{
 int
 ExecutionPipelineBroker::earliestFromDestination(
     int cycle,
-    const MoveNode& node) const {
+    const MoveNode& node, const TTAMachine::FunctionUnit* dstFU) const {
 
     if (!node.isDestinationOperation()) {
         return cycle;
@@ -652,7 +733,10 @@ ExecutionPipelineBroker::earliestFromDestination(
             if (tempNode->isScheduled() && tempNode != &node) {
                 fu = &tempNode->move().destination().functionUnit();
                 hwop = fu->operation(destOp.operation().name());
-    
+                if (dstFU != NULL && fu != dstFU) {
+                    return -1;
+                }
+
                 if (triggers) {
                     // TODO: operand slack
                     minCycle = std::max(tempNode->cycle(), minCycle);
@@ -679,6 +763,11 @@ ExecutionPipelineBroker::earliestFromDestination(
                     fu = &tempNode->move().source().functionUnit();
                     hwop = fu->operation(destOp.operation().name());
                 }
+
+                if (dstFU != NULL && fu != dstFU) {
+                    return -1;
+                }
+
                 const int outputIndex =
                     tempNode->move().source().operationIndex();
 
@@ -711,6 +800,6 @@ ExecutionPipelineBroker::setDDG(const DataDependenceGraph* ddg) {
     for (ResourceMap::iterator i = resMap_.begin(); i != resMap_.end(); i++) {
         (static_cast<ExecutionPipelineResource*>(i->second))->setDDG(ddg);
     }
-
+    ddg_ = ddg;
 }
 

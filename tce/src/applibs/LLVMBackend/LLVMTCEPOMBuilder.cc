@@ -123,7 +123,7 @@ LLVMTCEPOMBuilder::emitMove(
         createTerminal(mi->getOperand(mi->getNumOperands() - 1));
 
     TTAMachine::Bus& bus = result()->universalMachine().universalBus();
-    TTAProgram::Move* move = createMove(src, dst, bus);
+    auto move = createMove(src, dst, bus);
 
     TTAProgram::Instruction* instr = new TTAProgram::Instruction();
 

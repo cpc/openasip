@@ -838,9 +838,10 @@ CodeCompressorPlugin::addBitsForGuardField(
         encodingValue = encoding.encoding();
 
     } else {
-        Guard& guard = move.guard().guard();
-	PortGuard* portGuard = dynamic_cast<PortGuard*>(&guard);
-	RegisterGuard* registerGuard = dynamic_cast<RegisterGuard*>(&guard);
+        const Guard& guard = move.guard().guard();
+        const PortGuard* portGuard = dynamic_cast<const PortGuard*>(&guard);
+        const RegisterGuard* registerGuard =
+            dynamic_cast<const RegisterGuard*>(&guard);
 	
         if (portGuard != NULL) {
             const Port& port = *portGuard->port();

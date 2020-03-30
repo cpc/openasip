@@ -55,36 +55,60 @@ public:
     ExecutionPipelineBroker(std::string, unsigned int initiationInterval = 0);
     virtual ~ExecutionPipelineBroker();
 
-    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res);
-    virtual void unassign(MoveNode& node);
+    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res,
+                        int immWriteCycle,
+			int immRegIndex) override;
 
-    virtual int earliestCycle(int cycle, const MoveNode& node) const;
-    virtual int latestCycle(int cycle, const MoveNode& node) const;
-    virtual bool isAlreadyAssigned(int cycle, const MoveNode& node) const;
-    virtual bool isApplicable(const MoveNode& node) const;
-    virtual void buildResources(const TTAMachine::Machine& target);
-    virtual void setupResourceLinks(const ResourceMapper& mapper);
+    virtual void unassign(MoveNode& node) override;
+
+    virtual int earliestCycle(int cycle, const MoveNode& node,
+                              const TTAMachine::Bus* bus,
+                              const TTAMachine::FunctionUnit* srcFU,
+                              const TTAMachine::FunctionUnit* dstFU,
+                              int immWriteCycle,
+                              const TTAMachine::ImmediateUnit* immu,
+                              int immRegIndex) const override;
+    virtual int latestCycle(int cycle, const MoveNode& node,
+                            const TTAMachine::Bus* bus,
+                            const TTAMachine::FunctionUnit* srcFU,
+                            const TTAMachine::FunctionUnit* dstFU,
+                            int immWriteCycle,
+                            const TTAMachine::ImmediateUnit* immu,
+                            int immRegIndex) const override;
+    virtual bool isAlreadyAssigned(
+        int cycle, const MoveNode& node,
+        const TTAMachine::Bus* preassignedBus) const override;
+    virtual bool isApplicable(
+        const MoveNode& node, const TTAMachine::Bus*) const override;
+    virtual void buildResources(const TTAMachine::Machine& target) override;
+    virtual void setupResourceLinks(const ResourceMapper& mapper) override;
     virtual int highestKnownCycle() const;
-    virtual bool isExecutionPipelineBroker() const;
-    virtual void setInitiationInterval(unsigned int cycles);
+    virtual bool isExecutionPipelineBroker() const override;
+    virtual void setInitiationInterval(unsigned int cycles) override;
     virtual int longestLatency() const { return longestLatency_; }
-    virtual void setMaxCycle(unsigned int maxCycle);
+    virtual void setMaxCycle(unsigned int maxCycle) override;
     void setDDG(const DataDependenceGraph* ddg);
 private:
     bool isMoveTrigger(const MoveNode& node) const;
+    bool isLoopBypass(const MoveNode& node) const;
 
     /// Map to link FU's and pipelines.
     typedef std::map<SchedulingResource*, const TTAMachine::FunctionUnit*>
         FUPipelineMap;
-    int latestFromSource(int, const MoveNode&) const;
-    int latestFromDestination(int, const MoveNode&) const;
-    int earliestFromSource(int, const MoveNode&) const;
-    int earliestFromDestination(int, const MoveNode&) const;
+    int latestFromSource(
+        int, const MoveNode&, const TTAMachine::FunctionUnit* srcFU) const;
+    int latestFromDestination(
+        int, const MoveNode&, const TTAMachine::FunctionUnit* dstFU) const;
+    int earliestFromSource(
+        int, const MoveNode&, const TTAMachine::FunctionUnit* srcFU) const;
+    int earliestFromDestination(
+        int, const MoveNode&, const TTAMachine::FunctionUnit* dstFU) const;
 
     /// FU's and their corresponding pipeline resources.
     FUPipelineMap fuPipelineMap_;
     /// Longest latency of all operations of all the FUs
     int longestLatency_;
+    const DataDependenceGraph* ddg_;
 };
 
 #endif

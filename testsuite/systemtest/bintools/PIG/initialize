@@ -6,5 +6,6 @@ if [ "x${ghdl_bin}" != "x" ]; then
     make -s > /dev/null
 else
     touch function_pointer.testdesc.disabled
+    touch tcetest_data_image_padding.sh.disabled
 fi
 

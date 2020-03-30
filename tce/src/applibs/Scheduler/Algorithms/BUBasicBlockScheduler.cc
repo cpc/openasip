@@ -107,10 +107,11 @@ BUBasicBlockScheduler::~BUBasicBlockScheduler() {
  * @exception Exception several TCE exceptions can be thrown in case of
  *            a scheduling error.
  */
-void
+int
 BUBasicBlockScheduler::handleDDG(
     DataDependenceGraph& ddg, SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine) {
+    const TTAMachine::Machine& targetMachine, bool testOnly) {
+    assert(!testOnly);
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
 
@@ -143,7 +144,7 @@ BUBasicBlockScheduler::handleDDG(
     // empty need not to be scheduled
     if (ddg.nodeCount() == 0 ||
         (ddg.nodeCount() == 1 && !ddg.node(0).isMove())) {
-        return;
+        return 0;
     }
 
     // INT_MAX/2 won't work on trunk due to multithreading injecting empty
@@ -230,6 +231,8 @@ BUBasicBlockScheduler::handleDDG(
             " end cycle: " << endCycle_ << std::endl;
         abortWithError("Should not happen!");
     }
+    int size = rm_->largestCycle() - rm_->smallestCycle();
+    return size;
 }
 
 #ifdef DEBUG_REG_COPY_ADDER
@@ -434,7 +437,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves, int cycle) {
         // Try to schedule trigger first, otherwise the operand
         // may get scheduled in cycle where trigger does not fit and
         // later cycle will not be possible for trigger.
-        trigger = findTrigger(po);
+        trigger = findTrigger(po, *targetMachine_);
         if (trigger != NULL && !trigger->isScheduled()) {
             if (scheduleOperand(*trigger, cycle) == false) {
                 cycle--;
@@ -1154,12 +1157,11 @@ BUBasicBlockScheduler::findBypassDestinations(
     // TODO: Fix when DDG could handle multiple destinations
     maxHopCount = 1;
     for (int i = 0; i < maxHopCount; i++) {
-        MoveNodeSet rrDestinations = ddg_->onlyRegisterRawDestinations(*n);
-        if (rrDestinations.count() == 0) {
+        auto rrDestinations = ddg_->onlyRegisterRawDestinations(*n);
+        if (rrDestinations.empty()) {
             break;
         }
-        for (int j = 0; j < rrDestinations.count(); j++) {
-            n = &rrDestinations.at(j);
+        for (auto n: rrDestinations) {
             if (ddg_->onlyRegisterEdgeIn(*n) == NULL) {
                 // No bypassing of moves with multiple register definition
                 // sources.
@@ -1167,7 +1169,7 @@ BUBasicBlockScheduler::findBypassDestinations(
                 // using inverse guard of guarded source.
                 continue;
             }
-            std::set<const TTAMachine::Port*> destinationPorts;            
+            MachineConnectivityCheck::PortSet destinationPorts;
             destinationPorts.insert(&n->move().destination().port());
             
             if (MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(

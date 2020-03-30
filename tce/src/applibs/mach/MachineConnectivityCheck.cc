@@ -83,14 +83,14 @@ MachineConnectivityCheck::MachineConnectivityCheck(
 
 bool
 MachineConnectivityCheck::isConnected(
-    std::set<const TTAMachine::Port*> sourcePorts,
-    std::set<const TTAMachine::Port*> destinationPorts,
-    Guard* guard) {
-    for (std::set<const TTAMachine::Port*>::iterator i =
+    PortSet sourcePorts,
+    PortSet destinationPorts,
+    const Guard* guard) {
+    for (PortSet::iterator i =
              sourcePorts.begin();
          i != sourcePorts.end(); i++) {
         const TTAMachine::Port& sport = **i;
-        for (std::set<const TTAMachine::Port*>::iterator j =
+        for (PortSet::iterator j =
                  destinationPorts.begin();
              j != destinationPorts.end(); j++) {
             if (isConnected(sport, **j, guard)) {
@@ -112,7 +112,7 @@ bool
 MachineConnectivityCheck::isConnected(
     const TTAMachine::Port& sourcePort,
     const TTAMachine::Port& destinationPort,
-    Guard* guard) {
+    const Guard* guard) {
 
     // TODO: replace this cache's second value(bool) with set of buses.
     PortPortBoolMap::const_iterator
@@ -122,15 +122,15 @@ MachineConnectivityCheck::isConnected(
             return i->second;
         }
     }
-    std::set<TTAMachine::Bus*> sourceBuses;
+    std::set<const TTAMachine::Bus*> sourceBuses;
     MachineConnectivityCheck::appendConnectedDestinationBuses(
         sourcePort, sourceBuses);
 
-    std::set<TTAMachine::Bus*> destinationBuses;
+    std::set<const TTAMachine::Bus*> destinationBuses;
     MachineConnectivityCheck::appendConnectedSourceBuses(
         destinationPort, destinationBuses);
 
-    std::set<TTAMachine::Bus*> sharedBuses;
+    std::set<const TTAMachine::Bus*> sharedBuses;
     SetTools::intersection(sourceBuses, destinationBuses, sharedBuses);
     if (sharedBuses.size() > 0) {
         portPortCache_[PortPortPair(&sourcePort,&destinationPort)] = true;
@@ -139,7 +139,7 @@ MachineConnectivityCheck::isConnected(
             return true;
         }
 
-        for (std::set<TTAMachine::Bus*>::iterator i = sharedBuses.begin();
+        for (std::set<const TTAMachine::Bus*>::iterator i = sharedBuses.begin();
              i != sharedBuses.end(); i++) {
             if ((*i)->hasGuard(*guard)) {
                 return true;
@@ -165,26 +165,23 @@ bool
 MachineConnectivityCheck::canTransportImmediate(
     const TTAProgram::TerminalImmediate& immediate,
     const TTAMachine::BaseRegisterFile& destRF,
-    Guard* guard) {
+    const Guard* guard) {
 
-    std::set<TTAMachine::Bus*> buses;
+    std::set<const TTAMachine::Bus*> buses;
     MachineConnectivityCheck::appendConnectedSourceBuses(destRF, buses);
 
-    for (std::set<TTAMachine::Bus*>::const_iterator i = buses.begin(); 
-         i != buses.end(); ++i) {
-        TTAMachine::Bus& bus = **i;
-
+    for (auto bus : buses) {
         int requiredBits = 
             MachineConnectivityCheck::requiredImmediateWidth(
-                bus.signExtends(), immediate, *destRF.machine());
-        if (bus.immediateWidth() < requiredBits) {
+                bus->signExtends(), immediate, *destRF.machine());
+        if (bus->immediateWidth() < requiredBits) {
             continue;
         }
         
         if (guard == NULL) {
             return true;
         } else {
-            if (bus.hasGuard(*guard)) {
+            if (bus->hasGuard(*guard)) {
                 return true;
             }
         }
@@ -204,15 +201,14 @@ bool
 MachineConnectivityCheck::canTransportImmediate(
     const TTAProgram::TerminalImmediate& immediate,
     const TTAMachine::Port& destinationPort,
-    Guard* guard) {
+    const Guard* guard) {
 
-    std::set<TTAMachine::Bus*> buses;
+    std::set<const TTAMachine::Bus*> buses;
     MachineConnectivityCheck::appendConnectedSourceBuses(
         destinationPort, buses);
 
-    for (std::set<TTAMachine::Bus*>::const_iterator i = buses.begin(); 
-         i != buses.end(); ++i) {
-        TTAMachine::Bus& bus = **i;
+    for (auto i = buses.begin(); i != buses.end(); ++i) {
+        const TTAMachine::Bus& bus = **i;
 
         int requiredBits = 
             MachineConnectivityCheck::requiredImmediateWidth(
@@ -235,10 +231,10 @@ MachineConnectivityCheck::canTransportImmediate(
 bool 
 MachineConnectivityCheck::canTransportImmediate(
     const TTAProgram::TerminalImmediate& immediate,
-    std::set<const TTAMachine::Port*> destinationPorts,
-    Guard* guard) {
+    PortSet destinationPorts,
+    const Guard* guard) {
 
-    for (std::set<const TTAMachine::Port*>::iterator i =
+    for (PortSet::iterator i =
              destinationPorts.begin();
          i != destinationPorts.end(); i++) {
         if (canTransportImmediate(immediate, **i, guard)) {
@@ -267,8 +263,8 @@ MachineConnectivityCheck::isConnected(
     if (i != rfPortCache_.end()) {
         return i->second;
     }    
-    std::set<TTAMachine::Bus*> destBuses = connectedSourceBuses(destPort);
-    std::set<TTAMachine::Bus*> srcBuses;
+    std::set<const TTAMachine::Bus*> destBuses = connectedSourceBuses(destPort);
+    std::set<const TTAMachine::Bus*> srcBuses;
 
     for (int i = 0; i < sourceRF.portCount(); i++) {
         const TTAMachine::Port& port = *sourceRF.port(i);
@@ -277,7 +273,7 @@ MachineConnectivityCheck::isConnected(
         }
     }
 
-    std::set<TTAMachine::Bus*> sharedBuses;
+    std::set<const TTAMachine::Bus*> sharedBuses;
     SetTools::intersection(
         srcBuses, destBuses, sharedBuses);
     if (sharedBuses.size() > 0) {
@@ -303,7 +299,7 @@ bool
 MachineConnectivityCheck::isConnected(
     const TTAMachine::BaseRegisterFile& sourceRF,
     const TTAMachine::BaseRegisterFile& destRF,
-    TTAMachine::Guard* guard) {
+    const TTAMachine::Guard* guard) {
     
     RfRfBoolMap::const_iterator
         i = rfRfCache_.find(RfRfPair(&sourceRF, &destRF));
@@ -312,13 +308,13 @@ MachineConnectivityCheck::isConnected(
             return i->second;
         }
     }
-    std::set<TTAMachine::Bus*> srcBuses;
+    std::set<const TTAMachine::Bus*> srcBuses;
     appendConnectedDestinationBuses(sourceRF, srcBuses);
 
-    std::set<TTAMachine::Bus*> dstBuses;
+    std::set<const TTAMachine::Bus*> dstBuses;
     appendConnectedSourceBuses(destRF, dstBuses);
 
-    std::set<TTAMachine::Bus*> sharedBuses;
+    std::set<const TTAMachine::Bus*> sharedBuses;
     SetTools::intersection(srcBuses, dstBuses, sharedBuses);
     if (sharedBuses.size() > 0) {
         rfRfCache_[RfRfPair(&sourceRF,&destRF)] = true;
@@ -326,7 +322,7 @@ MachineConnectivityCheck::isConnected(
             return true;
         }
 
-        for (std::set<TTAMachine::Bus*>::iterator i = sharedBuses.begin();
+        for (std::set<const TTAMachine::Bus*>::iterator i = sharedBuses.begin();
              i != sharedBuses.end(); i++) {
             if ((*i)->hasGuard(*guard)) {
                 return true;
@@ -354,13 +350,13 @@ MachineConnectivityCheck::isConnected(
     const TTAMachine::BaseRegisterFile& sourceRF,
     const TTAMachine::FunctionUnit& destFU) {
     
-    std::set<TTAMachine::Bus*> srcBuses;
+    std::set<const TTAMachine::Bus*> srcBuses;
     appendConnectedDestinationBuses(sourceRF, srcBuses);
 
-    std::set<TTAMachine::Bus*> dstBuses;
+    std::set<const TTAMachine::Bus*> dstBuses;
     appendConnectedSourceBuses(destFU, dstBuses);
 
-    std::set<TTAMachine::Bus*> sharedBuses;
+    std::set<const TTAMachine::Bus*> sharedBuses;
     SetTools::intersection(srcBuses, dstBuses, sharedBuses);
     return (sharedBuses.size() > 0);
 }
@@ -386,9 +382,9 @@ MachineConnectivityCheck::isConnected(
         return i->second;
     }
 
-    std::set<TTAMachine::Bus*> sourceBuses = 
+    std::set<const TTAMachine::Bus*> sourceBuses =
         connectedDestinationBuses(sourcePort);
-    std::set<TTAMachine::Bus*> destBuses;
+    std::set<const TTAMachine::Bus*> destBuses;
 
     for (int i = 0; i < destRF.portCount(); i++) {
         const TTAMachine::Port& port = *destRF.port(i);
@@ -397,7 +393,7 @@ MachineConnectivityCheck::isConnected(
         }
     }
     
-    std::set<TTAMachine::Bus*> sharedBuses;
+    std::set<const TTAMachine::Bus*> sharedBuses;
     SetTools::intersection(sourceBuses, destBuses, sharedBuses);
 
     if (sharedBuses.size() > 0) {
@@ -429,7 +425,7 @@ MachineConnectivityCheck::fromRfConnected(
         mach.functionUnitNavigator();
     
 
-    std::set<TTAMachine::Bus*> rfBuses;
+    std::set<const TTAMachine::Bus*> rfBuses;
 
     for (int i = 0; i < brf.portCount(); i++) {
         const TTAMachine::Port& port = *brf.port(i);
@@ -445,7 +441,7 @@ MachineConnectivityCheck::fromRfConnected(
             Port& port = *fu.port(j);
             // connections from RF to FU's
             if (port.inputSocket() != NULL) {
-                std::set<TTAMachine::Bus*> sharedBuses;
+                std::set<const TTAMachine::Bus*> sharedBuses;
                 SetTools::intersection(
                     rfBuses, connectedSourceBuses(port), sharedBuses);
                 if (sharedBuses.size() == 0) {
@@ -462,7 +458,7 @@ MachineConnectivityCheck::fromRfConnected(
 
         // connections from RF to CU
         if (port.inputSocket() != NULL) {
-            std::set<TTAMachine::Bus*> sharedBuses;
+            std::set<const TTAMachine::Bus*> sharedBuses;
             SetTools::intersection(
                 rfBuses, connectedSourceBuses(port), sharedBuses);
             if (sharedBuses.size() == 0) {
@@ -512,7 +508,7 @@ MachineConnectivityCheck::toRfConnected(
     TTAMachine::Machine::ImmediateUnitNavigator iuNav = 
         mach.immediateUnitNavigator();
 
-    std::set<TTAMachine::Bus*> rfBuses;
+    std::set<const TTAMachine::Bus*> rfBuses;
 
     for (int i = 0; i < rf.portCount(); i++) {
         const TTAMachine::Port& port = *rf.port(i);
@@ -528,7 +524,7 @@ MachineConnectivityCheck::toRfConnected(
             Port& port = *fu.port(j);
             // connections from FU to RF
             if (port.outputSocket() != NULL) {
-                std::set<TTAMachine::Bus*> sharedBuses;
+                std::set<const TTAMachine::Bus*> sharedBuses;
                 SetTools::intersection(
                     rfBuses, connectedDestinationBuses(port), sharedBuses);
                 if (sharedBuses.size() == 0) {
@@ -545,7 +541,7 @@ MachineConnectivityCheck::toRfConnected(
         for (int j = 0; j < iu.portCount(); j++ ) {
             Port& port = *iu.port(j);
             if (port.outputSocket() != NULL) {
-                std::set<TTAMachine::Bus*> sharedBuses;
+                std::set<const TTAMachine::Bus*> sharedBuses;
                 SetTools::intersection(
                     rfBuses, connectedDestinationBuses(port),sharedBuses);
                 if (sharedBuses.size() != 0) {
@@ -566,7 +562,7 @@ MachineConnectivityCheck::toRfConnected(
 
         // connections from CU to RF
         if (port.outputSocket() != NULL) {
-            std::set<TTAMachine::Bus*> sharedBuses;
+            std::set<const TTAMachine::Bus*> sharedBuses;
             SetTools::intersection(
                 rfBuses, connectedDestinationBuses(port), sharedBuses);
             if (sharedBuses.size() == 0) {
@@ -583,11 +579,11 @@ MachineConnectivityCheck::toRfConnected(
  * @param port The port to check.
  * @return The set of buses connected to the port.
  */
-std::set<TTAMachine::Bus*> 
+std::set<const TTAMachine::Bus*>
 MachineConnectivityCheck::connectedSourceBuses(
     const TTAMachine::Port& port) {
 
-    std::set<TTAMachine::Bus*> buses;
+    std::set<const TTAMachine::Bus*> buses;
     appendConnectedSourceBuses(port,buses);
     return buses;
 }
@@ -598,11 +594,11 @@ MachineConnectivityCheck::connectedSourceBuses(
  * @param port The port to check.
  * @return The set of buses connected to the port.
  */
-std::set<TTAMachine::Bus*> 
+std::set<const TTAMachine::Bus*>
 MachineConnectivityCheck::connectedDestinationBuses(
     const TTAMachine::Port& port) {
 
-    std::set<TTAMachine::Bus*> buses;
+    std::set<const TTAMachine::Bus*> buses;
     appendConnectedDestinationBuses(port,buses);
     return buses;
 }
@@ -615,7 +611,7 @@ MachineConnectivityCheck::connectedDestinationBuses(
  */
 void
 MachineConnectivityCheck::appendConnectedSourceBuses(
-    const TTAMachine::Port& port, std::set<TTAMachine::Bus*>& buses) {
+    const TTAMachine::Port& port, std::set<const TTAMachine::Bus*>& buses) {
 
     const TTAMachine::Socket* inputS = port.inputSocket();
 
@@ -634,7 +630,7 @@ MachineConnectivityCheck::appendConnectedSourceBuses(
  */
 void
 MachineConnectivityCheck::appendConnectedDestinationBuses(
-    const TTAMachine::Port& port, std::set<TTAMachine::Bus*>& buses) {
+    const TTAMachine::Port& port, std::set<const TTAMachine::Bus*>& buses) {
 
     const TTAMachine::Socket* outputS = port.outputSocket();
 
@@ -655,7 +651,7 @@ MachineConnectivityCheck::appendConnectedDestinationBuses(
  */
 void
 MachineConnectivityCheck::appendConnectedSourceBuses(
-    const TTAMachine::Unit& unit, std::set<TTAMachine::Bus*>& buses) {
+    const TTAMachine::Unit& unit, std::set<const TTAMachine::Bus*>& buses) {
 
     for (int p = 0; p < unit.portCount(); ++p) {
         const TTAMachine::Port& port = *unit.port(p);
@@ -673,7 +669,7 @@ MachineConnectivityCheck::appendConnectedSourceBuses(
  */
 void
 MachineConnectivityCheck::appendConnectedDestinationBuses(
-    const TTAMachine::Unit& unit, std::set<TTAMachine::Bus*>& buses) {
+    const TTAMachine::Unit& unit, std::set<const TTAMachine::Bus*>& buses) {
 
     for (int p = 0; p < unit.portCount(); ++p) {
         appendConnectedDestinationBuses(*unit.port(p), buses);
@@ -1036,10 +1032,10 @@ MachineConnectivityCheck::totalConnectionCount(
 }
 
 
-std::set<const TTAMachine::Port*> 
+MachineConnectivityCheck::PortSet
 MachineConnectivityCheck::findPossibleDestinationPorts(
 const TTAMachine::Machine& mach, const MoveNode& node) {
-    std::set<const TTAMachine::Port*> res;
+    PortSet res;
     if (node.isScheduled()) {
         res.insert(&node.move().destination().port());
         return res;
@@ -1063,6 +1059,7 @@ const TTAMachine::Machine& mach, const MoveNode& node) {
             for (int i = 0; i < po.outputMoveCount(); i++) {
                 MoveNode& mn = po.outputMove(i);
                 if (mn.isScheduled()) {
+
                     allowedFUNames.insert(
                         mn.move().source().port().parentUnit()->name());
                 }
@@ -1136,9 +1133,9 @@ const TTAMachine::Machine& mach, const MoveNode& node) {
         *node.move().destination().port().parentUnit());
 }
 
-std::set<const TTAMachine::Port*> 
-MachineConnectivityCheck::findWritePorts(TTAMachine::Unit& rf) {
-    std::set<const TTAMachine::Port*> res;
+MachineConnectivityCheck::PortSet
+MachineConnectivityCheck::findWritePorts(const TTAMachine::Unit& rf) {
+    PortSet res;
     for (int i = 0; i < rf.portCount(); i++) {
         TTAMachine::Port* port = rf.port(i);
         if (port->isInput()) {
@@ -1148,9 +1145,9 @@ MachineConnectivityCheck::findWritePorts(TTAMachine::Unit& rf) {
     return res;
 }
 
-std::set<const TTAMachine::Port*> 
-MachineConnectivityCheck::findReadPorts(TTAMachine::Unit& rf) {
-    std::set<const TTAMachine::Port*> res;
+MachineConnectivityCheck::PortSet
+MachineConnectivityCheck::findReadPorts(const TTAMachine::Unit& rf) {
+    PortSet res;
     for (int i = 0; i < rf.portCount(); i++) {
         TTAMachine::Port* port = rf.port(i);
         if (port->isOutput()) {
@@ -1160,10 +1157,10 @@ MachineConnectivityCheck::findReadPorts(TTAMachine::Unit& rf) {
     return res;
 }
 
-std::set<const TTAMachine::Port*> 
+MachineConnectivityCheck::PortSet
 MachineConnectivityCheck::findPossibleSourcePorts(
     const TTAMachine::Machine& mach, const MoveNode& node) {
-    std::set<const TTAMachine::Port*> res;
+    PortSet res;
     if (node.isScheduled() && !node.isSourceConstant()) {
         res.insert(&node.move().source().port());
         return res;
@@ -1243,7 +1240,7 @@ MachineConnectivityCheck::findPossibleSourcePorts(
  * -1 = can write through limm
  */
 int MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
-    const MoveNode& src, std::set<const TTAMachine::Port*>& destinationPorts) {
+    const MoveNode& src, PortSet& destinationPorts, bool ignoreGuard) {
 
     int trueVal = 1;
     if (destinationPorts.empty()) {
@@ -1262,15 +1259,54 @@ int MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
         }
     }
 
-    std::set<const TTAMachine::Port*>
-        sourcePorts = findPossibleSourcePorts(
+    PortSet sourcePorts = findPossibleSourcePorts(
             *(*destinationPorts.begin())->parentUnit()->machine(), src);
 
     // TODO: Why cannot move.guard return pointer which is NULL if unconditional?
     const TTAProgram::Move& move = src.move();
     if (MachineConnectivityCheck::isConnected(
-            sourcePorts, destinationPorts, 
-            move.isUnconditional() ? NULL : &move.guard().guard())) {
+            sourcePorts, destinationPorts,
+            (ignoreGuard || move.isUnconditional()) ?
+            NULL : &move.guard().guard())) {
+        return trueVal;
+    }
+
+    return false;
+}
+
+bool MachineConnectivityCheck::canBypass(
+    const MoveNode& src, const MoveNode& user,
+    const TTAMachine::Machine& targetMachine) {
+
+    MachineConnectivityCheck::PortSet destinationPorts =
+        MachineConnectivityCheck::findPossibleDestinationPorts(
+            targetMachine, user);
+
+    int trueVal = 1;
+    if (destinationPorts.empty()) {
+        return false;
+    }
+
+    if (src.isSourceConstant()) {
+        TTAProgram::TerminalImmediate* imm =
+            static_cast<TTAProgram::TerminalImmediate*>(
+                &src.move().source());
+        if (MachineConnectivityCheck::canTransportImmediate(
+                *imm, destinationPorts)) {
+            return true; // can transfer via short imm.
+        } else {
+            trueVal = -1; // mayby through LIMM?
+        }
+    }
+
+    PortSet sourcePorts = findPossibleSourcePorts(targetMachine, src);
+
+    // TODO: Why cannot move.guard return pointer which is NULL if
+    // unconditional?
+    const TTAProgram::Move& userMove = user.move();
+    if (MachineConnectivityCheck::isConnected(
+            sourcePorts, destinationPorts,
+            userMove.isUnconditional() ? NULL : &userMove.guard().guard())) {
         return trueVal;
     }
 
@@ -1279,29 +1315,28 @@ int MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
 
 bool
 MachineConnectivityCheck::canAnyPortWriteToDestination(
-    std::set<const TTAMachine::Port*>& sourcePorts, 
-    const MoveNode& dest) {
+    PortSet& sourcePorts, const MoveNode& dest) {
 
     if (sourcePorts.empty()) {
         return false;
     }
 
-    std::set<const TTAMachine::Port*>
-        destPorts = findPossibleDestinationPorts(
+    PortSet destPorts = findPossibleDestinationPorts(
             *(*sourcePorts.begin())->parentUnit()->machine(), dest);
     return MachineConnectivityCheck::isConnected(sourcePorts, destPorts);
 }
 
 bool 
 MachineConnectivityCheck::canTransportMove(
-    MoveNode& moveNode, const TTAMachine::Machine& machine) {
-    std::set<const TTAMachine::Port*>
-        destinationPorts = 
+    const MoveNode& moveNode,
+    const TTAMachine::Machine& machine,
+    bool ignoreGuard) {
+    PortSet destinationPorts =
         MachineConnectivityCheck::findPossibleDestinationPorts(
             machine,moveNode);
 
     return MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
-        moveNode, destinationPorts);
+        moveNode, destinationPorts, ignoreGuard);
 }
 
 void
@@ -1340,9 +1375,9 @@ MachineConnectivityCheck::hasConditionalMoves(
     for (int bi = 0; bi < busNav.count(); ++bi) {
         Bus* bus = busNav.item(bi);
         for (int gi = 0; gi < bus->guardCount(); gi++) {
-            Guard* guard = bus->guard(gi);
-            TTAMachine::RegisterGuard* rg = 
-                dynamic_cast<RegisterGuard*>(guard);
+            const Guard* guard = bus->guard(gi);
+            const TTAMachine::RegisterGuard* rg =
+                dynamic_cast<const RegisterGuard*>(guard);
             if (rg != NULL) {
                 allGuardRegs.insert(
                     std::pair<RegisterFile*,int>(rg->registerFile(),
@@ -1389,7 +1424,7 @@ bool
 MachineConnectivityCheck::isConnectedWithBothGuards(
     const TTAMachine::BaseRegisterFile& sourceRF,
     const TTAMachine::BaseRegisterFile& destRF,
-    std::pair<RegisterFile*,int> guardReg) {
+    std::pair<const RegisterFile*,int> guardReg) {
     
     RfRfBoolMap::const_iterator
         i = rfRfCache_.find(RfRfPair(&sourceRF, &destRF));
@@ -1398,22 +1433,20 @@ MachineConnectivityCheck::isConnectedWithBothGuards(
             return false;
         }
     }
-    std::set<TTAMachine::Bus*> srcBuses;
+    std::set<const TTAMachine::Bus*> srcBuses;
     appendConnectedDestinationBuses(sourceRF, srcBuses);
 
-    std::set<TTAMachine::Bus*> dstBuses;
+    std::set<const TTAMachine::Bus*> dstBuses;
     appendConnectedSourceBuses(destRF, dstBuses);
 
-    std::set<TTAMachine::Bus*> sharedBuses;
+    std::set<const TTAMachine::Bus*> sharedBuses;
     SetTools::intersection(srcBuses, dstBuses, sharedBuses);
 
     bool trueOK = false;
     bool falseOK = false;
     if (sharedBuses.size() > 0) {
         rfRfCache_[RfRfPair(&sourceRF,&destRF)] = true;
-        for (std::set<TTAMachine::Bus*>::iterator i = sharedBuses.begin();
-             i != sharedBuses.end(); i++) {
-            Bus* bus = *i;
+        for (auto bus: sharedBuses) {
             std::pair<bool, bool> guardsOK = hasBothGuards(bus, guardReg);
             trueOK |= guardsOK.first;
             falseOK |= guardsOK.second;
@@ -1426,14 +1459,14 @@ MachineConnectivityCheck::isConnectedWithBothGuards(
 }
 
 std::pair<bool,bool> MachineConnectivityCheck::hasBothGuards(
-    const TTAMachine::Bus* bus, std::pair<RegisterFile*,int> guardReg) {
+    const TTAMachine::Bus* bus, std::pair<const RegisterFile*,int> guardReg) {
     bool trueOK = false;
     bool falseOK = false;
 
     for (int gi = 0; gi < bus->guardCount(); gi++) {
-        TTAMachine::Guard* guard = bus->guard(gi);
-        TTAMachine::RegisterGuard* rg =
-            dynamic_cast<TTAMachine::RegisterGuard*>(guard);
+        const TTAMachine::Guard* guard = bus->guard(gi);
+        const TTAMachine::RegisterGuard* rg =
+            dynamic_cast<const TTAMachine::RegisterGuard*>(guard);
         if (rg != NULL) {
             if (rg->registerFile() == guardReg.first &&
                 rg->registerIndex() == guardReg.second) {
@@ -1449,4 +1482,27 @@ std::pair<bool,bool> MachineConnectivityCheck::hasBothGuards(
         }
     }
     return std::pair<bool, bool>(trueOK, falseOK);
+}
+
+int MachineConnectivityCheck::maxLIMMCount(
+    const TTAMachine::Machine& targetMachine) {
+    auto iuNav = targetMachine.immediateUnitNavigator();
+    int limmCount = 0;
+    for (auto iu : iuNav) {
+        limmCount += iu->maxReads();
+    }
+    return limmCount;
+}
+
+int MachineConnectivityCheck::maxSIMMCount(
+    const TTAMachine::Machine& targetMachine) {
+
+    auto busNav = targetMachine.busNavigator();
+    int simmCount = 0;
+    for (auto bus : busNav) {
+        if (bus->immediateWidth() > 0) {
+            simmCount++;
+        }
+    }
+    return simmCount;
 }

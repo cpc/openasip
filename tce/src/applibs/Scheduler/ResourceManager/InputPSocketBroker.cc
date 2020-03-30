@@ -78,7 +78,11 @@ InputPSocketBroker::~InputPSocketBroker(){
 SchedulingResourceSet
 InputPSocketBroker::allAvailableResources(
     int cycle,
-    const MoveNode& node) const {
+    const MoveNode& node, const TTAMachine::Bus*,
+    const TTAMachine::FunctionUnit*,
+    const TTAMachine::FunctionUnit*,
+    int,
+    const TTAMachine::ImmediateUnit*, int) const {
 
     cycle = instructionIndex(cycle);
     if (!isApplicable(node)) {
@@ -131,7 +135,12 @@ InputPSocketBroker::allAvailableResources(
  * given node.
  */
 int
-InputPSocketBroker::earliestCycle(int, const MoveNode&) const {
+InputPSocketBroker::earliestCycle(int, const MoveNode&,
+                                  const TTAMachine::Bus*,
+                                  const TTAMachine::FunctionUnit*,
+                                  const TTAMachine::FunctionUnit*, int,
+                                  const TTAMachine::ImmediateUnit*,
+                                  int) const {
     abortWithError("Not implemented.");
     return -1;
 }
@@ -148,7 +157,11 @@ InputPSocketBroker::earliestCycle(int, const MoveNode&) const {
  * given node.
  */
 int
-InputPSocketBroker::latestCycle(int, const MoveNode&) const {
+InputPSocketBroker::latestCycle(int, const MoveNode&,
+                                const TTAMachine::Bus*,
+                                const TTAMachine::FunctionUnit*,
+                                const TTAMachine::FunctionUnit*, int,
+                                const TTAMachine::ImmediateUnit*, int) const {
     abortWithError("Not implemented.");
     return -1;
 }
@@ -167,7 +180,8 @@ InputPSocketBroker::latestCycle(int, const MoveNode&) const {
  * cycle).
  */
 bool
-InputPSocketBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const{
+InputPSocketBroker::isAlreadyAssigned(
+    int cycle, const MoveNode& node, const TTAMachine::Bus*) const{
     cycle = instructionIndex(cycle);
     Terminal& dst = const_cast<MoveNode&>(node).move().destination();
     const Port& port = dst.port();
@@ -193,7 +207,8 @@ InputPSocketBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const{
  * by this broker, false otherwise.
  */
 bool
-InputPSocketBroker::isApplicable(const MoveNode& node) const {
+InputPSocketBroker::isApplicable(
+    const MoveNode& node, const TTAMachine::Bus*) const {
     Move& move = const_cast<MoveNode&>(node).move();
     return (move.destination().isFUPort() || move.destination().isGPR());
 }
@@ -216,7 +231,8 @@ InputPSocketBroker::isApplicable(const MoveNode& node) const {
  * mapping).
  */
 void
-InputPSocketBroker::assign(int cycle, MoveNode& node, SchedulingResource& res) {
+InputPSocketBroker::assign(
+    int cycle, MoveNode& node, SchedulingResource& res, int, int) {
     if (!isApplicable(node)) {
         string msg = "Broker not capable of assigning resources to node!";
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);

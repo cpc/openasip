@@ -52,9 +52,18 @@ class DDGPass : public SchedulerPass {
 public:
     DDGPass(InterPassData& data);
     virtual ~DDGPass();
-    virtual void handleDDG(
+    virtual int handleDDG(
         DataDependenceGraph& ddg, SimpleResourceManager& rm,
-        const TTAMachine::Machine& targetMachine);
+        const TTAMachine::Machine& targetMachine, bool testOnly = false);
+
+    /**
+     * For BasicBlockPass to be able to call this method...
+     */
+    virtual int handleLoopDDG(
+        DataDependenceGraph&, SimpleResourceManager&,
+        const TTAMachine::Machine&, int tripCount,
+        SimpleResourceManager* prologRM = NULL,
+        bool testOnly = false);
 };
 
 #endif

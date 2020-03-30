@@ -594,7 +594,7 @@ RegisterFile::copy() const {
 }
 
 Port*
-RegisterFile::firstReadPort() {
+RegisterFile::firstReadPort() const {
     for (int i = 0; i < portCount(); i++) {
         Port* p = port(i);
         if (p->outputSocket() != NULL) {
@@ -605,7 +605,7 @@ RegisterFile::firstReadPort() {
 }
 
 Port*
-RegisterFile::firstWritePort() {
+RegisterFile::firstWritePort() const {
     for (int i = 0; i < portCount(); i++) {
         Port* p = port(i);
         if (p->inputSocket() != NULL) {

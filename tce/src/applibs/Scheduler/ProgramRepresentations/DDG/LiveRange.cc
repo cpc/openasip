@@ -100,3 +100,10 @@ LiveRange::lastCycle() const {
     }
     return fc;
 }
+
+void
+LiveRange::clear() {
+    writes.clear();
+    reads.clear();
+    guards.clear();
+}

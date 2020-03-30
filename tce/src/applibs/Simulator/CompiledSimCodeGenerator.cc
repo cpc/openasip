@@ -1038,7 +1038,7 @@ CompiledSimCodeGenerator::generateGuardRead(
     std::stringstream ss;
     string guardSymbolName;
     
-    TTAMachine::Guard& guard = move.guard().guard();
+    const TTAMachine::Guard& guard = move.guard().guard();
     
     const TTAMachine::RegisterGuard* rg = 
         dynamic_cast<const RegisterGuard*>(&guard);
@@ -1092,7 +1092,7 @@ CompiledSimCodeGenerator::generateGuardCondition(
     std::stringstream ss;
     string guardSymbolName;
     
-    TTAMachine::Guard& guard = move.guard().guard();
+    const TTAMachine::Guard& guard = move.guard().guard();
     
     // Find out the guard type
     if (dynamic_cast<const RegisterGuard*>(&guard) != NULL) {

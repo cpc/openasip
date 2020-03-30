@@ -84,15 +84,6 @@ Instruction::Instruction(
  * The destructor.
  */
 Instruction::~Instruction() {
-    for (unsigned int i = 0; i < moves_.size(); i++) {
-        delete moves_.at(i);
-    }
-    moves_.clear();
-
-    for (unsigned int i = 0; i < immediates_.size(); i++) {
-        delete immediates_.at(i);
-    }
-    immediates_.clear();
 }
 
 /**
@@ -141,7 +132,7 @@ Instruction::isInProcedure() const {
  * @param move The move to add.
  */
 void
-Instruction::addMove(Move* move) {
+Instruction::addMove(std::shared_ptr<Move> move) {
     if (ContainerTools::containsValue(moves_, move)) {
         throw ObjectAlreadyExists(__FILE__, __LINE__, __func__,
 				  "Move is already added.");
@@ -190,6 +181,29 @@ Instruction::move(int i) const {
 }
 
 /**
+ * Return the move at the given index in this instruction.
+ *
+ * The order of moves is arbitrary, no assumption should be made by
+ * clients. Anyways, order of moves in instruction does not change between
+ * calls to this method.
+ *
+ * @param i The index of the move.
+ * @return The move at the given index in this instruction.
+ * @exception OutOfRange if the given index is negative or greater than
+ *                       the number of moves in the instruction.
+ */
+std::shared_ptr<Move>
+Instruction::movePtr(int i) const {
+    if (i < 0 || static_cast<unsigned int>(i) >= moves_.size()) {
+        throw OutOfRange(__FILE__, __LINE__, __func__,
+			 "No move in instruction for given index: " +
+			 Conversion::toString(i));
+    } else {
+        return moves_.at(i);
+    }
+}
+
+/**
  * Adds an immediate to the instruction.
  *
  * The ownership of the immediate will be passed to the instruction.
@@ -197,7 +211,7 @@ Instruction::move(int i) const {
  * @param imm The immediate to add.
  */
 void
-Instruction::addImmediate(Immediate* imm) {
+Instruction::addImmediate(std::shared_ptr<Immediate> imm) {
     if (ContainerTools::containsValue(immediates_, imm)) {
         throw ObjectAlreadyExists(__FILE__, __LINE__, __func__,
 				  "Immediate is already added.");
@@ -239,6 +253,30 @@ Instruction::immediate(int i) const {
 			 Conversion::toString(i));
     } else {
         return *immediates_.at(i);
+    }
+}
+
+/**
+ * Return the immediate write action at the given index in this
+ * instruction.
+ *
+ * The order of immediates is arbitrary, no assumption should be made
+ * by clients.
+ *
+ * @param i The index of the immediate.
+ * @return The immediate write action at the given index in this
+ *         instruction.
+ * @exception OutOfRange if the index is negative or greater than the
+ *                       number of immediates in the instruction.
+ */
+std::shared_ptr<Immediate>
+Instruction::immediatePtr(int i) const {
+    if (i < 0 || static_cast<unsigned int>(i) >= immediates_.size()) {
+        throw OutOfRange(__FILE__, __LINE__, __func__,
+			 "No immediate in instruction with index: " +
+			 Conversion::toString(i));
+    } else {
+        return immediates_[i];
     }
 }
 
@@ -435,7 +473,7 @@ Instruction::removeMove(Move& move) {
 
     for (MoveList::iterator iter = moves_.begin();
          iter != moves_.end(); iter++) {
-        if ((*iter) == &move) {
+        if ((iter->get()) == &move) {
             moves_.erase(iter);
             break;
         }
@@ -455,7 +493,7 @@ void
 Instruction::removeImmediate(Immediate& imm) {
     for (ImmList::iterator iter = immediates_.begin();
          iter != immediates_.end(); iter++) {
-        if ((*iter) == &imm) {
+        if ((iter->get()) == &imm) {
             immediates_.erase(iter);
             return;
         }

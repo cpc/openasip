@@ -91,6 +91,34 @@ MoveNode::move() const {
 }
 
 /**
+ * Access Move inside MoveNode, casting constantness away
+ *
+ * @return reference to Move inside MoveNode
+ */
+inline std::shared_ptr<TTAProgram::Move>
+MoveNode::movePtr(){
+    if (move_ == NULL) {
+        throw NotAvailable(__FILE__,__LINE__,__func__,
+            "Move of MoveNode is NULL");
+    }
+    return move_;
+}
+
+/**
+ * Access Move inside MoveNode, const version.
+ *
+ * @return reference to Move inside MoveNode
+ */
+inline std::shared_ptr<const TTAProgram::Move>
+MoveNode::movePtr() const {
+    if (move_ == NULL) {
+        throw NotAvailable(__FILE__,__LINE__,__func__,
+            "Move of MoveNode is NULL");
+    }
+    return move_;
+}
+
+/**
  * Returns true if it's a real move, not a pseudo move such as entry node.
  */
 inline bool
@@ -131,3 +159,22 @@ MoveNode::destinationOperationPtr(unsigned int index) const
     }
 }
 
+inline bool
+MoveNode::isFinalized() const {
+    return finalized_;
+}
+
+inline void
+MoveNode::finalize() {
+    finalized_ = true;
+}
+
+inline bool
+MoveNode::isInFrontier() const {
+    return isInFrontier_;
+}
+
+inline void
+MoveNode::setIsInFrontier(bool isInFrontier) {
+    isInFrontier_ = isInFrontier;
+}

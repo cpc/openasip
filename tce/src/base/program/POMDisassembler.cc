@@ -416,12 +416,12 @@ POMDisassembler::createImmediateRegister(const Terminal& terminal) {
 DisassemblyGuard*
 POMDisassembler::createGuard(const MoveGuard& moveGuard) {
 
-    Guard* guard = &moveGuard.guard();
+    const Guard* guard = &moveGuard.guard();
 
     DisassemblyElement* guarded = NULL;
 
     // Check if the guarded element is a fu port.
-    PortGuard* portGuard = dynamic_cast<PortGuard*>(guard);
+    const PortGuard* portGuard = dynamic_cast<const PortGuard*>(guard);
     if (portGuard != NULL) {
         string fuName = portGuard->port()->parentUnit()->name();
         string portName = portGuard->port()->name();
@@ -429,7 +429,8 @@ POMDisassembler::createGuard(const MoveGuard& moveGuard) {
     }
 
     // Check if the guarded element is a register.
-    RegisterGuard* registerGuard = dynamic_cast<RegisterGuard*>(guard);
+    const RegisterGuard* registerGuard =
+        dynamic_cast<const RegisterGuard*>(guard);
     if (registerGuard != NULL) {
 
         // Check if the register file is bool rf of a universal machine.
@@ -671,7 +672,7 @@ POMDisassembler::disassemble(
         for (int i = 0; i < instruction.moveCount(); i++) {
 
             const Move& move = instruction.move(i);
-            Bus* bus = &move.bus();
+            const Bus* bus = &move.bus();
             string busName = move.bus().name();
             bool isUsed = false;
 

@@ -252,7 +252,7 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                 if options.soft_float:
                     extra_opts += " -ffp-contract=off"
 
-                if "@LLVM_VERSION@" >= "3.4" and (options.soft_float or not options.autovectorize):
+                if @LLVM_VERSION@ >= 3.4 and (options.soft_float or not options.autovectorize):
                     extra_opts += " -fno-vectorize -fno-slp-vectorize"
 
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
@@ -447,8 +447,8 @@ def exitWithError(status, errorMessage=None):
 def lowerMemIntrinsicCommand(srcFile, dstFile):
     optSwitches = ""
 
-    if "@LLVM_VERSION@" >= "3.4":
-        if "@LLVM_VERSION@" < "9":
+    if @LLVM_VERSION@ >= 3.4:
+        if @LLVM_VERSION@ < 9:
             optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
         else:
                         optSwitches += "-disable-slp-vectorization"
@@ -464,7 +464,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
     # format of llvm-nm has been changed in llvm 3.7
     nmidx = 0
-    if "@LLVM_VERSION@" >= "3.7":
+    if @LLVM_VERSION@ >= 3.7:
         nmidx = 1
 
     startFiles = [os.path.join(newlib_libdir, "crt0.o ")]
@@ -664,7 +664,7 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     if options.optimization_level == 1:
         # disable-internalize missing in llvm 3.6
-        if "@LLVM_VERSION@" > "3.5":
+        if @LLVM_VERSION@ > 3.5:
             optSwitches = (default_opts)
         else:
             optSwitches = (default_opts + "-disable-internalize ")
@@ -690,9 +690,9 @@ def optimizeBytecode(inFile, fileNamePrefix):
     # phase ordering: vectorizer, fp emu, isel(including devectorizer)
     # fp emu does not detect vectorized fp ops and cannot emulate them
 
-    if "@LLVM_VERSION@" >= "3.4":
+    if @LLVM_VERSION@ >= 3.4:
         optSwitches += " -disable-slp-vectorization "
-        if "@LLVM_VERSION@" < "9":
+        if @LLVM_VERSION@ < 9:
             optSwitches += "-disable-loop-vectorization "
 
     command = "opt -f " + inFile + " -o " + outputName + " " + optSwitches
@@ -713,8 +713,8 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
 
     optSwitches = ""
 
-    if options.soft_float and "@LLVM_VERSION@" >= "3.4":
-        if "@LLVM_VERSION@" < "9":
+    if options.soft_float and @LLVM_VERSION@ >= 3.4:
+        if @LLVM_VERSION@ < 9:
             optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
         else:
             optSwitches += "-disable-slp-vectorization"
@@ -917,6 +917,10 @@ p.add_option('--disable-inlining', action="store_true",
              dest="noinline", default=False,
              help="Disable function inlining.")
 
+p.add_option('--enable-loop-scheduler', action="store_true",
+             dest="enable_loop_scheduler", default=False,
+             help="Enable tce-side loop scheduler (experimental).")
+
 p.add_option('--swfp', action="store_true",
              dest="soft_float", default=False,
              help="Link in software floating point emulation libraries.")
@@ -1075,11 +1079,10 @@ p.add_option('--bottom-up-scheduler', action='store_true', dest='bu_scheduler',
              help=\
 "Use the bottom-up scheduler (experimental).")
 
-p.add_option('--recursive-scheduler', action='store_true',
-             dest='recursive_scheduler',
+p.add_option('--td-scheduler', action='store_true', dest='td_scheduler',
              default=False,
              help=\
-"Use the recursive bypassing bottom-up scheduler (experimental).")
+             "Use the old top-down instruction scheduler.")
 
 p.add_option('--use-old-backend-src',
              action="store_true", default=False,
@@ -1434,6 +1437,9 @@ if options.adf_file != "":
     if options.conservative_pre_ra_scheduler:
         command += " --conservative-pre-ra-scheduler"
 
+    if options.enable_loop_scheduler:
+        command += " --loop"
+
     if options.print_resource_constraints:
         command += " --print-resource-constraints"
 
@@ -1473,8 +1479,8 @@ if options.adf_file != "":
 
     if options.bu_scheduler:
         command += " --bottom-up-scheduler"
-    elif options.recursive_scheduler:
-        command += " --recursive-scheduler"
+    elif options.td_scheduler:
+        command += " --td-scheduler"
 
     stdEmulationLib = os.path.join(newlib_libdir, "standard_emulation.o ")
 

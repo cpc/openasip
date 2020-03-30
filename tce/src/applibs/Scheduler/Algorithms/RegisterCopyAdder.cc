@@ -338,7 +338,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
         return 0;
 
     typedef SimpleInterPassDatum<
-    std::vector<std::pair<TTAMachine::RegisterFile*, int> > > 
+    std::vector<std::pair<const TTAMachine::RegisterFile*, int> > >
         TempRegData;
 
     std::string srDatumName = "SCRATCH_REGISTERS";
@@ -648,7 +648,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
 
     // add the intermediate moves
     std::vector<MoveNode*> intMoves(regsRequired - 1);      
-    std::vector<TTAMachine::RegisterFile*> intRF(regsRequired - 1);
+    std::vector<const TTAMachine::RegisterFile*> intRF(regsRequired - 1);
     std::vector<int> intRegisterIndex(regsRequired - 1);
 
 
@@ -771,7 +771,7 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
     assert(originalMove.isSourceConstant());
 
     typedef SimpleInterPassDatum<
-    std::vector<std::pair<TTAMachine::RegisterFile*, int> > > 
+    std::vector<std::pair<const TTAMachine::RegisterFile*, int> > >
         TempRegData;
     
     if (!interPassData_.hasDatum("SCRATCH_REGISTERS") ||
@@ -1165,8 +1165,8 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
     MoveNode* firstMove,
     std::vector<MoveNode*> intMoves,
     MoveNode* lastMove,
-    const TTAMachine::RegisterFile* firstRF, 
-    std::vector<TTAMachine::RegisterFile*> intRF, 
+    const TTAMachine::RegisterFile* firstRF,
+    std::vector<const TTAMachine::RegisterFile*> intRF,
     const TTAMachine::RegisterFile* lastRF, 
     int firstRegisterIndex,
     std::vector<int> intRegisterIndex,
@@ -2071,9 +2071,10 @@ RegisterCopyAdder::findTempRegisters(
         MachineConnectivityCheck::tempRegisterFiles(mach);
 
     typedef SimpleInterPassDatum<
-    std::vector<std::pair<TTAMachine::RegisterFile*,int> > > TempRegData;
+    std::vector<std::pair<const TTAMachine::RegisterFile*,int> > >
+        TempRegData;
 
-    typedef std::pair<TTAMachine::RegisterFile*, int> Register;
+    typedef std::pair<const TTAMachine::RegisterFile*, int> Register;
 
     std::set<Register> guardRegs;
     TempRegData* tempRegData = new TempRegData;
@@ -2081,10 +2082,10 @@ RegisterCopyAdder::findTempRegisters(
     // find all registers that can be used for guards
     TTAMachine::Machine::BusNavigator busNav = mach.busNavigator();
     for (int i = 0; i < busNav.count(); i++) {
-        TTAMachine::Bus* bus = busNav.item(i);
+        const TTAMachine::Bus* bus = busNav.item(i);
         for (int j = 0; j < bus->guardCount(); j++) {
-            TTAMachine::RegisterGuard* regGuard = 
-                dynamic_cast<TTAMachine::RegisterGuard*>(bus->guard(j));
+            const TTAMachine::RegisterGuard* regGuard =
+                dynamic_cast<const TTAMachine::RegisterGuard*>(bus->guard(j));
             if (regGuard != NULL) {
                 guardRegs.insert(
                     Register(
@@ -2096,13 +2097,13 @@ RegisterCopyAdder::findTempRegisters(
     // then mark last (non-guard) register of all gotten reg files
     // as tempregcopy reg. 
     for (unsigned int i = 0; i < tempRegRFs.size(); i++) {
-        TTAMachine::RegisterFile* rf = tempRegRFs.at(i);
+        const TTAMachine::RegisterFile* rf = tempRegRFs.at(i);
         for (int j = rf->size()-1; j >= 0; j--) {
             // if does not have a guard, only then used.
             // if has guard, try next.
             if (!AssocTools::containsKey(guardRegs, Register(rf,j))) {
                 tempRegData->push_back(
-                    std::pair<TTAMachine::RegisterFile*,int>(rf, j));
+                    std::pair<const TTAMachine::RegisterFile*,int>(rf, j));
                 break; // goto next rf
             }
         }       

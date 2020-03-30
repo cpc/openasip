@@ -223,8 +223,7 @@ RegisterRenamer::initializeFreeRegisters() {
 
 std::set<TCEString> 
 RegisterRenamer::findFreeRegistersInRF(
-    std::set<const TTAMachine::RegisterFile*, 
-    TTAMachine::MachinePart::Comparator>& rfs) const {
+    const RegisterRenamer::RegisterFileSet& rfs) const {
 
     std::set<TCEString> allowedGprs = registersOfRFs(rfs);
     std::set<TCEString> regs;
@@ -234,8 +233,7 @@ RegisterRenamer::findFreeRegistersInRF(
 
 std::set<TCEString> 
 RegisterRenamer::registersOfRFs(
-    std::set<const TTAMachine::RegisterFile*,
-    TTAMachine::MachinePart::Comparator>& rfs) const {
+    const RegisterFileSet & rfs) const {
 
     std::set<TCEString> gprs;
     for (std::set<const TTAMachine::RegisterFile*,
@@ -300,9 +298,7 @@ RegisterRenamer::findPartiallyUsedRegistersInRFBeforeCycle(
  */ 
 std::set<TCEString> 
 RegisterRenamer::findPartiallyUsedRegistersInRFAfterCycle(
-    std::set<const TTAMachine::RegisterFile*,
-    TTAMachine::MachinePart::Comparator>& rfs, 
-    int latestCycle) const {
+    const RegisterRenamer::RegisterFileSet& rfs, int latestCycle) const {
 
     std::set<TCEString> availableRegs;
     // nothing can be scheduled earlier than cycle 0.
@@ -428,11 +424,8 @@ RegisterRenamer::renameDestinationRegister(
     // first find used fully scheduled ones!
     bool reused = true;
     
-#if (!defined(HAVE_CXX11) && !defined(HAVE_CXX0X))
-    std::auto_ptr<LiveRange> liveRange(ddg_->findLiveRange(node));
-#else
-    std::unique_ptr<LiveRange> liveRange(ddg_->findLiveRange(node));
-#endif
+    std::unique_ptr<LiveRange> liveRange(
+        ddg_->findLiveRange(node, true, false));
 
     if (liveRange->writes.empty()) {
         return false;
@@ -537,11 +530,8 @@ RegisterRenamer::renameSourceRegister(
     // first find used fully scheduled ones!
     bool reused = true;
 
-#if (!defined(HAVE_CXX11) && !defined(HAVE_CXX0X))
-    std::auto_ptr<LiveRange> liveRange(ddg_->findLiveRange(node, false));
-#else
-    std::unique_ptr<LiveRange> liveRange(ddg_->findLiveRange(node, false));
-#endif
+    std::unique_ptr<LiveRange> liveRange(
+        ddg_->findLiveRange(node, false, false));
 
     if (liveRange->writes.empty()) {
         return false;
@@ -882,13 +872,29 @@ RegisterRenamer::renameLiveRange(
 
     }
 
+    renamedToRegister(newReg);
+    return true;
+}
+
+void RegisterRenamer::renamedToRegister(const TCEString& newReg) {
+
     freeGPRs_.erase(newReg);
+
     onlyBeginPartiallyUsedRegs_.erase(newReg);
     onlyEndPartiallyUsedRegs_.erase(newReg);
     onlyMidPartiallyUsedRegs_.erase(newReg);
 
     usedGPRs_.insert(newReg);
-    return true;
+
+}
+
+void RegisterRenamer::revertedRenameToRegister(const TCEString& reg) {
+    if (bb_.liveRangeData_->regFirstUses_[reg].empty() &&
+        bb_.liveRangeData_->regLastUses_[reg].empty() &&
+        bb_.liveRangeData_->regDefines_[reg].empty() &&
+        bb_.liveRangeData_->regFirstDefines_[reg].empty()) {
+        freeGPRs_.insert(reg);
+    }
 }
 
 /**
@@ -964,8 +970,7 @@ RegisterRenamer::updateAntiEdgesFromLRTo(
     }
 }
 
-std::set<const TTAMachine::RegisterFile*,
-         TTAMachine::MachinePart::Comparator>
+RegisterRenamer::RegisterFileSet
 RegisterRenamer::findConnectedRFs(LiveRange& lr, bool allowLimm) {
 
     assert(!lr.writes.empty());
@@ -985,8 +990,7 @@ RegisterRenamer::findConnectedRFs(LiveRange& lr, bool allowLimm) {
         if (rf->width() != bitwidth) {
             continue;
         }
-        std::set<const TTAMachine::Port*> writePorts = 
-            MachineConnectivityCheck::findWritePorts(*rf);
+        auto writePorts = MachineConnectivityCheck::findWritePorts(*rf);
         bool connected = true;
         
         for (DataDependenceGraph::NodeSet::iterator j = lr.writes.begin();
@@ -1007,8 +1011,7 @@ RegisterRenamer::findConnectedRFs(LiveRange& lr, bool allowLimm) {
             continue;
         }
         
-        std::set<const TTAMachine::Port*> readPorts = 
-            MachineConnectivityCheck::findReadPorts(*rf);
+        auto readPorts = MachineConnectivityCheck::findReadPorts(*rf);
         
         for (DataDependenceGraph::NodeSet::iterator j = lr.reads.begin();
              j != lr.reads.end() && connected; j++) {

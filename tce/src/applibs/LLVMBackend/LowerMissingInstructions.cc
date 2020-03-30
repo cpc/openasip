@@ -94,7 +94,11 @@ STATISTIC(NumLowered, "Number of instructions lowered");
 #define TYPE_CONST
 
 namespace {
+#ifdef LLVM_OLDER_THAN_10
     class LowerMissingInstructions : public BasicBlockPass {
+#else
+    class LowerMissingInstructions : public FunctionPass {
+#endif
         std::map< std::string, Constant*> replaceFunctions;        
         const TTAMachine::Machine* mach_;
         Module* dstModule_;
@@ -109,10 +113,16 @@ namespace {
         bool doFinalization (Module &M) override;
 
         // to suppress Clang warnings
+#ifdef LLVM_OLDER_THAN_10
         using llvm::BasicBlockPass::doInitialization;
         using llvm::BasicBlockPass::doFinalization;
+#else
+        using llvm::FunctionPass::doInitialization;
+        using llvm::FunctionPass::doFinalization;
+#endif
 
-        bool runOnBasicBlock(BasicBlock &BB) override;
+        bool runOnBasicBlock(BasicBlock &BB);
+        bool runOnFunction(Function &F);
 
 #if LLVM_OLDER_THAN_4_0
     virtual const char *getPassName() const override {
@@ -157,7 +167,11 @@ Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach) {
 
 LowerMissingInstructions::LowerMissingInstructions(
     const TTAMachine::Machine& mach) : 
+#ifdef LLVM_OLDER_THAN_10
     BasicBlockPass(ID), 
+#else
+    FunctionPass(ID),
+#endif
     mach_(&mach) {
 }
 
@@ -696,3 +710,10 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
     return Changed;
 }
 
+bool
+LowerMissingInstructions::runOnFunction(Function &F) {
+    for (BasicBlock &BB : F) {
+        runOnBasicBlock(BB);
+    }
+    return true;
+}

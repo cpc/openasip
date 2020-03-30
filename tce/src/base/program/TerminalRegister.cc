@@ -34,6 +34,7 @@
 #include "TerminalRegister.hh"
 #include "ImmediateUnit.hh"
 #include "DisassemblyRegister.hh"
+#include "UnboundedRegisterFile.hh"
 
 using namespace TTAMachine;
 
@@ -178,6 +179,18 @@ TCEString
 TerminalRegister::toString() const {
     DisassemblyRegister disasm(registerFile().name(), index());
     return disasm.toString();
+}
+
+/**
+ * Tells whether the terminal is a reg in UniversalMachine
+ *
+ * @return True if the terminal is a register in universalmachine,
+ * ie. not in any real machine. This practically means the
+ * register is unallocated and meant to be bypassed.
+ */
+bool
+TerminalRegister::isUniversalMachineRegister() const {
+    return (dynamic_cast<const UnboundedRegisterFile*>(&unit_) != NULL);
 }
 
 }

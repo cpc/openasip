@@ -53,6 +53,7 @@ class ProgramOperation;
 namespace TTAMachine {
     class FunctionUnit;
     class Port;
+    class HWOperation;
 }
 
 /**
@@ -67,49 +68,60 @@ public:
         const unsigned int ii = 0);
     virtual ~ExecutionPipelineResource();
 
-    virtual bool isInUse(const int cycle) const;
-    virtual bool isAvailable(const int cycle) const;
-    virtual bool canAssign(const int cycle, const MoveNode& node) const;
+    virtual bool isInUse(const int cycle) const override;
+    virtual bool isAvailable(const int cycle) const override;
+    virtual bool canAssign(const int cycle, const MoveNode& node) const override;
     virtual bool canAssignSource(
-        const int cycle,
+        int cycle,
         const MoveNode& node,
         const TTAMachine::Port& resultPort) const;
     virtual bool canAssignDestination(
         const int cycle,
         const MoveNode& node,
         const bool triggering = false) const;
-    virtual void assign(const int cycle, MoveNode& node);
+    virtual void assign(const int cycle, MoveNode& node) override;
     virtual void assignSource(
-        const int cycle, MoveNode& node);
+        int cycle, MoveNode& node);
     virtual void assignDestination(
         const int cycle, MoveNode& node);
-    virtual void unassign(const int cycle, MoveNode& node);
+    virtual void unassign(const int cycle, MoveNode& node) override;
     virtual void unassignSource(
         const int cycle, MoveNode& node);
     virtual void unassignDestination(const int cycle, MoveNode& node);
-    virtual bool isExecutionPipelineResource() const;
+    virtual bool isExecutionPipelineResource() const override;
     int highestKnownCycle() const;
     int nextResultCycle(
         const TTAMachine::Port& port,
         int cycle, const MoveNode& node, const MoveNode* trigger = NULL,
         int triggerCycle=INT_MAX) const;
 
+    bool otherTriggerBeforeMyTrigger(const TTAMachine::Port& port, const MoveNode& node, int cycle) const;
+
     bool resultNotOverWritten(
         int resultReadCycle, int resultReadyCycle,
         const MoveNode& node, const TTAMachine::Port& port,
         const MoveNode* trigger, int triggerCycle) const;
 
+    bool
+    hasConflictingResultsOnCycle(
+        const ProgramOperation& po,
+        const TTAMachine::Port&
+        port, int cycle) const;
+
     bool operandsOverwritten(
         int triggerCycle, const MoveNode& trigger) const;
 
-    void clear();
+    void clear() override;
     void setDDG(const DataDependenceGraph* ddg);
-    virtual void setMaxCycle(unsigned int maxCycle) { maxCycle_ = maxCycle;  }
+    virtual void setMaxCycle(unsigned int maxCycle) override { maxCycle_ = maxCycle;  }
 protected:
-    virtual bool validateDependentGroups();
-    virtual bool validateRelatedGroups();
+    virtual bool validateDependentGroups() override;
+    virtual bool validateRelatedGroups() override;
     unsigned int size() const;
 private:
+
+    bool isLoopBypass(const MoveNode& node) const;
+
     struct ResultHelper {
         unsigned int realCycle;
         const ProgramOperation* po;
@@ -210,10 +222,13 @@ private:
     const TTAMachine::Port& operandPort(const MoveNode& mn) const;
 
     bool operandOverwritten(
-        int operandWriteCycle, int triggerCycle, const ProgramOperation& po, const MoveNode& operand, const MoveNode& trigger) const;
+        int operandWriteCycle,
+        int triggerCycle,
+        const ProgramOperation& po,
+        const MoveNode& operand,
+        const MoveNode& trigger) const;
 
     bool operandOverwritten(const MoveNode& mn, int cycle) const;
-
 
     bool testTriggerResult(const MoveNode& trigger, int cycle) const;
     bool resultAllowedAtCycle(
@@ -223,24 +238,52 @@ private:
 
     bool resourcesAllowTrigger(int cycle, const MoveNode& move) const;
 
+    bool operandPossibleAtCycle(
+        const TTAMachine::Port& port, const MoveNode& mn, int cycle) const;
+
     bool operandAllowedAtCycle(
         const TTAMachine::Port& port, const MoveNode& mn, int cycle) const;
 
     bool checkOperandAllowed(
+        const  MoveNode& currentMn,
         const TTAMachine::Port& port, 
         int operandWriteCycle, 
         const OperandUseHelper &operandUse,
-        unsigned int operandUseModCycle) const;
+        int operandUseModCycle, ProgramOperation& currOp) const;
 
     bool triggerTooEarly(const MoveNode& trigger, int cycle) const;
 
     bool operandTooLate(const MoveNode& node, int cycle) const;
     
+    bool triggerAllowedAtCycle(
+        int inputCount,
+        const TTAMachine::HWOperation& hwop,
+        const MoveNode& node,
+        int cycle) const;
+
+    bool operandSharePreventsTriggerForScheduledResult(
+        const TTAMachine::Port& port, const MoveNode& mn, int cycle) const;
+
+    bool resultCausesTriggerBetweenOperandSharing(
+        const MoveNode& mn, int cycle) const;
+
+    const MoveNode* nodeOfInputPort(
+        const ProgramOperation& po, TTAMachine::Port& port);
+
+
+    bool poConflictsWithInputPort(
+        const TTAMachine::Port& port,
+        const ProgramOperation& po,
+        const MoveNode& mn) const;
 
     const TTAMachine::Port& resultPort(const MoveNode& mn) const;
 
     bool exclusiveMoves(
         const MoveNode* mn1, const MoveNode* mn2, int cycle=INT_MAX) const;
+
+    int latestTriggerWriteCycle(const MoveNode& mn) const;
+
+    bool isDestOpOfMN(const MoveNode& mn, const ProgramOperation& po) const;
 
     const ExecutionPipelineResourceTable* resources;
 
@@ -282,6 +325,8 @@ private:
     
     // TODO: is this needed or not?
     const TTAMachine::Port* triggerPort_;
+
+    int operandShareCount_;
 };
 
 #endif

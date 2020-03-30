@@ -72,6 +72,7 @@ public:
     virtual bool isBasicBlockReference() const;
     virtual bool isProgramOperationReference() const;
     virtual bool isCodeSymbolReference() const;
+    virtual bool isUniversalMachineRegister() const;
     virtual SimValue value() const;
     virtual Address address() const;
     virtual const InstructionReference& instructionReference() const;

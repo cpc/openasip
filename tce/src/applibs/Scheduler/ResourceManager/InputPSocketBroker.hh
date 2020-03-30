@@ -57,16 +57,40 @@ public:
     virtual ~InputPSocketBroker();
 
     virtual SchedulingResourceSet allAvailableResources(
-        int cycle, const MoveNode& node) const;
-    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res);
-    virtual void unassign(MoveNode& node);
+        int cycle, const MoveNode& node, const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcFU,
+        const TTAMachine::FunctionUnit* dstFU,
+        int immWriteCycle,
+        const TTAMachine::ImmediateUnit* immu,
+        int immRegIndex) const override;
 
-    virtual int earliestCycle(int cycle, const MoveNode& node) const;
-    virtual int latestCycle(int cycle, const MoveNode& node) const;
-    virtual bool isAlreadyAssigned(int cycle, const MoveNode& node) const;
-    virtual bool isApplicable(const MoveNode& node) const;
-    virtual void buildResources(const TTAMachine::Machine& target);
-    virtual void setupResourceLinks(const ResourceMapper& mapper);
+    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res,
+                        int immWriteCycle,
+                        int immRegIndex) override;
+
+    virtual void unassign(MoveNode& node) override;
+
+    virtual int earliestCycle(int cycle, const MoveNode& node,
+                              const TTAMachine::Bus* bus,
+                              const TTAMachine::FunctionUnit* srcFU,
+                              const TTAMachine::FunctionUnit* dstFU,
+                              int immWriteCycle,
+                              const TTAMachine::ImmediateUnit* immu,
+                              int immRegIndex) const override;
+    virtual int latestCycle(int cycle, const MoveNode& node,
+                            const TTAMachine::Bus* bus,
+                            const TTAMachine::FunctionUnit* srcFU,
+                            const TTAMachine::FunctionUnit* dstFU,
+                            int immWriteCycle,
+                            const TTAMachine::ImmediateUnit* immu,
+                            int immRegIndex) const override;
+    virtual bool isAlreadyAssigned(
+	int cycle, const MoveNode& node, const TTAMachine::Bus*) const override;
+    virtual bool isApplicable(
+        const MoveNode& node,
+        const TTAMachine::Bus* preassignedBus = NULL) const override;
+    virtual void buildResources(const TTAMachine::Machine& target) override;
+    virtual void setupResourceLinks(const ResourceMapper& mapper) override;
     
     void setBusBroker(ResourceBroker& sb);
 private:

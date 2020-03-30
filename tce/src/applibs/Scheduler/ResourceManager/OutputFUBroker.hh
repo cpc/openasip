@@ -33,7 +33,7 @@
 #ifndef TTA_OUTPUT_FU_BROKER_HH
 #define TTA_OUTPUT_FU_BROKER_HH
 
-#include "ResourceBroker.hh"
+#include "FUBroker.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -47,22 +47,44 @@ class SchedulingResource;
 /**
  * Output function unit broker.
  */
-class OutputFUBroker : public ResourceBroker {
+class OutputFUBroker : public FUBroker {
 public:
     OutputFUBroker(std::string, unsigned int initiationInterval = 0);
     virtual ~OutputFUBroker();
 
     virtual SchedulingResourceSet allAvailableResources(
-        int cycle, const MoveNode& node) const;
-    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res);
-    virtual void unassign(MoveNode& node);
+        int cycle, const MoveNode& node, const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcFU,
+        const TTAMachine::FunctionUnit* dstFU,
+        int immWriteCycle,
+        const TTAMachine::ImmediateUnit* immu,
+        int immRegIndex) const override;
+  virtual void assign(int cycle, MoveNode& node, SchedulingResource& res,
+		      int immWriteCycle, int immRegIndex) override;
 
-    virtual int earliestCycle(int cycle, const MoveNode& node) const;
-    virtual int latestCycle(int cycle, const MoveNode& node) const;
-    virtual bool isAlreadyAssigned(int cycle, const MoveNode& node) const;
-    virtual bool isApplicable(const MoveNode& node) const;
-    virtual void buildResources(const TTAMachine::Machine& target);
-    virtual void setupResourceLinks(const ResourceMapper& mapper);
+    virtual void unassign(MoveNode& node) override;
+
+    virtual int earliestCycle(int cycle, const MoveNode& node,
+                              const TTAMachine::Bus* bus,
+                              const TTAMachine::FunctionUnit* srcFU,
+                              const TTAMachine::FunctionUnit* dstFU,
+                              int immWriteCycle,
+                              const TTAMachine::ImmediateUnit* immu,
+                              int immRegIndex) const override;
+    virtual int latestCycle(int cycle, const MoveNode& node,
+                            const TTAMachine::Bus* bus,
+                            const TTAMachine::FunctionUnit* srcFU,
+                            const TTAMachine::FunctionUnit* dstFU,
+                            int immWriteCycle,
+                            const TTAMachine::ImmediateUnit* immu,
+                            int immRegIndex) const override;
+    virtual bool isAlreadyAssigned(
+        int cycle, const MoveNode& node,
+        const TTAMachine::Bus* preassignedBus) const override;
+    virtual bool isApplicable(
+        const MoveNode& node, const TTAMachine::Bus* b = 0) const override;
+    virtual void buildResources(const TTAMachine::Machine& target) override;
+    virtual void setupResourceLinks(const ResourceMapper& mapper) override;
 };
 
 #endif

@@ -122,8 +122,14 @@ MachineInstrDDG::MachineInstrDDG(
                     continue;
                 }                    
 
+#ifdef LLVM_OLDER_THAN_10
                 if (llvm::TargetRegisterInfo::isPhysicalRegister(
                         operand.getReg())) {
+#else
+                if (llvm::Register::isPhysicalRegister(
+                        operand.getReg())) {
+#endif
+
                     // only physical reg at this point should be the stack pointer,
                     // which is a global reg we can ignore
 #ifdef DEBUG_MI_DDG

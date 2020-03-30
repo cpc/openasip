@@ -117,6 +117,8 @@ public:
 
     virtual Edge& rootGraphInEdge(const Node& node, const int index) const;
 
+    virtual Edge& rootGraphOutEdge(const Node& node, const int index) const;
+
     virtual int rootGraphInDegree(const Node& node) const;
 
     virtual int rootGraphOutDegree(const Node& node) const;
@@ -193,7 +195,11 @@ public:
 
     bool hasPath(GraphNode& src, const GraphNode& dest) const;
 
+    void restoreNodeFromParent(GraphNode& node);
     bool detectIllegalCycles() const;
+
+    EdgeSet connectingEdges(
+        const Node& nTail, const Node& nHead) const;
 
 private:
     /// Assignment forbidden.
@@ -213,6 +219,20 @@ protected:
         }
     };
 
+    struct RemovedEdgeDatum {
+        GraphNode& nTail;
+        GraphNode& nHead;
+        GraphEdge& edge;
+
+        RemovedEdgeDatum(GraphNode& tail, GraphNode& head, GraphEdge& e) :
+            nTail(tail), nHead(head), edge(e) {}
+
+        bool operator< (const RemovedEdgeDatum& other) const {
+            return edge.edgeID() < other.edge.edgeID();
+        }
+    };
+
+    typedef std::set<RemovedEdgeDatum> RemovedEdgeMap;
 
     /// Internal graph type, providing actual graph-like operations.
     /// This type definition relies on bundled properties of boost library,
@@ -261,10 +281,7 @@ protected:
     EdgeDescriptor connectingEdge(
         const Node& nTail,
         const Node& nHead) const;
-    
-    EdgeSet connectingEdges(
-        const Node& nTail, const Node& nHead) const;
-    
+
     // optimized but uglier versions
     Node& tailNode(const Edge& edge, const NodeDescriptor& headNode) const;
     Node& headNode(const Edge& edge, const NodeDescriptor& tailNode) const;
@@ -283,7 +300,10 @@ protected:
     void calculateSourceDistances(
         const GraphNode* startNode = NULL, int startingLength = 0,
         bool looping = false) const;
-    
+
+    void calculatePathLengthsOnConnect(
+        const GraphNode& nTail, const GraphNode& nHead, GraphEdge& e);
+
     virtual int edgeWeight( GraphEdge& e, const GraphNode& n) const;
     
     // Calculated path lengths

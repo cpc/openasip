@@ -38,7 +38,7 @@ COMPILE_FLAGS = -I${TOP_SRCDIR} -I ${TOOLS} \
 -I ${TRACEDB} -I ${SIMULATOR} -I ${HDB} -I ${COSTDB} \
 -I ${EXPLORER} -I ${DSDB} -I ${SCHEDULER_APPLIBS} -I ${OSAL} \
 -I ${UMACH} -I ${INTERPRETER} -I ${MEMORY} -I ${MACH_APPLIBS} \
--I ${PROGRAM_APPLIBS} ${CPPFLAGS}
+-I ${PROGRAM_APPLIBS} ${CPPFLAGS} $(CXXFLAGS)
 
 # 'dynamic_modules' rule compiles the dynamic modules representing Explorer
 # plugins

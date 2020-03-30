@@ -34,6 +34,7 @@
 #define TTA_INSTRUCTION_HH
 
 #include <vector>
+#include <memory>
 
 #include "Address.hh"
 #include "Exception.hh"
@@ -80,16 +81,18 @@ public:
     void setParent(CodeSnippet& proc);
     bool isInProcedure() const;
 
-    void addMove(Move* move);
+    void addMove(std::shared_ptr<Move> move);
     int moveCount() const;
     Move& move(int i) const;
+    std::shared_ptr<Move> movePtr(int i) const;
     void removeMove(Move& move);
 
     bool isNOP() const { return moveCount() == 0 && immediateCount() == 0; }
 
-    void addImmediate(Immediate* imm);
+    void addImmediate(std::shared_ptr<Immediate> imm);
     int immediateCount() const;
     Immediate& immediate(int i) const;
+    std::shared_ptr<Immediate> immediatePtr(int i) const;
     void removeImmediate(Immediate& imm);
 
     Address address() const;
@@ -113,9 +116,9 @@ public:
 
 private:
     /// List for moves.
-    typedef std::vector<Move*> MoveList;
+    typedef std::vector<std::shared_ptr<Move> > MoveList;
     /// List for immediates.
-    typedef std::vector<Immediate*> ImmList;
+    typedef std::vector<std::shared_ptr<Immediate> > ImmList;
 
     /// Copying not allowed.
     Instruction(const Instruction&);

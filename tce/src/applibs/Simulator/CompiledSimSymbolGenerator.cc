@@ -235,7 +235,7 @@ CompiledSimSymbolGenerator::moveOperandSymbol(
         return immediateRegisterSymbol(terminal);
     } else if (terminal.isImmediate()) {
         int value = terminal.value().unsignedValue();
-        Bus& bus = move.bus();
+        const Bus& bus = move.bus();
         if (bus.signExtends()) {
             value = MathTools::signExtendTo(value, bus.immediateWidth());
         }

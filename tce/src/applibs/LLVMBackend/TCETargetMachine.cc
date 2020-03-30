@@ -84,9 +84,15 @@ public:
     DummyInstPrinter(
         const llvm::MCAsmInfo& mai, const llvm::MCInstrInfo& mii, 
         const llvm::MCRegisterInfo& mri) : llvm::MCInstPrinter(mai, mii, mri) {}
+#ifdef LLVM_OLDER_THAN_10
     void printInst(
         const MCInst*, raw_ostream&, StringRef,
         const MCSubtargetInfo&) override {}    
+#else
+    void printInst(
+        const MCInst*, uint64_t, StringRef,
+        const MCSubtargetInfo&, raw_ostream&) override {}
+#endif
 };
 
 // In TCE target we don't print the MCInsts from LLVM, but

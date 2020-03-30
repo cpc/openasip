@@ -146,7 +146,7 @@ namespace llvm {
         virtual bool writeMachineFunction(MachineFunction &MF);
         void initDataSections();
 
-        TTAProgram::Move* createMove(
+        std::shared_ptr<TTAProgram::Move> createMove(
             const MachineOperand& src, const MachineOperand& dst,
             TTAProgram::MoveGuard* guard);
 
@@ -179,10 +179,10 @@ namespace llvm {
         TTAProgram::Terminal* createTerminal(
             const MachineOperand& mo, int bitLimit = 32);
 
-        TTAProgram::Move* createMove(
+        std::shared_ptr<TTAProgram::Move> createMove(
             TTAProgram::Terminal* src,
             TTAProgram::Terminal* dst,
-            TTAMachine::Bus &bus,
+            const TTAMachine::Bus &bus,
             TTAProgram::MoveGuard *guard = NULL);
 
         void emitConstantPool(const llvm::MachineConstantPool& cp);
@@ -353,16 +353,16 @@ namespace llvm {
             const TTAProgram::Terminal* guardReg, bool trueOrFalse);
 
         void debugDataToAnnotations(
-            const llvm::MachineInstr* mi, TTAProgram::Move* move);
+            const llvm::MachineInstr* mi, TTAProgram::Move& move);
         void addPointerAnnotations(
-            const llvm::MachineInstr* mi, TTAProgram::Move* move);
+            const llvm::MachineInstr* mi, TTAProgram::Move& move);
         
         bool isBaseOffsetMemOperation(const Operation& operation) const;
 
         // Create MoveNodes before calling DDGBuilder.
         virtual void createMoveNode(
             ProgramOperationPtr&,
-            TTAProgram::Move&,
+            std::shared_ptr<TTAProgram::Move>,
             bool /*isDestination*/) {}
 
         unsigned addressSpaceId(TTAMachine::AddressSpace& aSpace) const;
@@ -370,7 +370,7 @@ namespace llvm {
         unsigned& dataEnd(TTAMachine::AddressSpace& aSpace);
 
         void addCandidateLSUAnnotations(
-            unsigned asNum, TTAProgram::Move* move);
+            unsigned asNum, TTAProgram::Move& move);
 
         TTAProgram::DataMemory&
         dataMemoryForAddressSpace(TTAMachine::AddressSpace& aSpace);
@@ -427,7 +427,7 @@ namespace llvm {
             mbbReferences_;
 
         /// Dummy references to the _end symbol.
-        std::vector<TTAProgram::Move*> endReferences_;
+        std::vector<std::shared_ptr<TTAProgram::Move> > endReferences_;
         
         std::map<unsigned, unsigned> currentFnCP_;
 

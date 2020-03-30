@@ -1,3 +1,4 @@
+#pragma GCC diagnostic ignored "-Wunused-value"
 
 #ifndef HAVE_LONGLONG_H
 #define HAVE_LONGLONG_H

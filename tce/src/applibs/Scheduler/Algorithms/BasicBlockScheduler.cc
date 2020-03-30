@@ -108,10 +108,11 @@ BasicBlockScheduler::~BasicBlockScheduler() {
  * @exception Exception several TCE exceptions can be thrown in case of
  *            a scheduling error.
  */
-void
+int
 BasicBlockScheduler::handleDDG(
     DataDependenceGraph& ddg, SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine) {
+    const TTAMachine::Machine& targetMachine, bool testOnly) {
+    assert(!testOnly);
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
 
@@ -134,7 +135,7 @@ BasicBlockScheduler::handleDDG(
     // empty need not to be scheduled
     if (ddg.nodeCount() == 0 || 
         (ddg.nodeCount() == 1 && !ddg.node(0).isMove())) {
-        return;
+        return 0;
     }
 
     CriticalPathBBMoveNodeSelector selector(ddg, targetMachine);
@@ -225,6 +226,8 @@ BasicBlockScheduler::handleDDG(
         ddgSnapshot(
             ddg, std::string("0"), DataDependenceGraph::DUMP_XML, true);
     }
+    int size = rm.largestCycle();
+    return size;
 }
 
 #ifdef DEBUG_REG_COPY_ADDER
@@ -1285,7 +1288,8 @@ void BasicBlockScheduler::notifyScheduled(
 
 // find which movenode is the trigger of an operation.
 MoveNode*
-BasicBlockScheduler::findTrigger(ProgramOperation& po) {
+BasicBlockScheduler::findTrigger(
+    const ProgramOperation& po, const TTAMachine::Machine& mach) {
     for (int i = 0; i < po.inputMoveCount(); i++) {
         MoveNode& mn = po.inputMove(i);
         if (mn.isScheduled()) {
@@ -1308,7 +1312,7 @@ BasicBlockScheduler::findTrigger(ProgramOperation& po) {
     // no scheduled moves. getting harder.
     
     TTAMachine::Machine::FunctionUnitNavigator nav = 
-    targetMachine_->functionUnitNavigator();
+    mach.functionUnitNavigator();
     MoveNode* candidate = NULL;
     for (int i = 0; i < nav.count(); i++) {
         TTAMachine::FunctionUnit* fu = nav.item(i);
@@ -1325,8 +1329,8 @@ BasicBlockScheduler::findTrigger(ProgramOperation& po) {
         }
     }
     
-    if (targetMachine_->controlUnit()->hasOperation(po.operation().name())) {
-        return findTriggerFromUnit(po, *targetMachine_->controlUnit());
+    if (mach.controlUnit()->hasOperation(po.operation().name())) {
+        return findTriggerFromUnit(po, *mach.controlUnit());
     }
     return candidate;
     
@@ -1334,9 +1338,9 @@ BasicBlockScheduler::findTrigger(ProgramOperation& po) {
 
 MoveNode* 
 BasicBlockScheduler::findTriggerFromUnit(
-    ProgramOperation& po, TTAMachine::Unit& unit) {
-    TTAMachine::FunctionUnit* fu = 
-    dynamic_cast<TTAMachine::FunctionUnit*>(&unit);
+    const ProgramOperation& po, const TTAMachine::Unit& unit) {
+    const TTAMachine::FunctionUnit* fu =
+    dynamic_cast<const TTAMachine::FunctionUnit*>(&unit);
     int ioIndex = -1;
     for (int i = 0; i < fu->operationPortCount(); i++) {
         TTAMachine::FUPort* port = fu->operationPort(i);

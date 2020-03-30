@@ -32,6 +32,7 @@
 
 #include <string>
 
+#include "TCEString.hh"
 #include "Application.hh"
 #include "AssignmentPlan.hh"
 #include "PendingAssignment.hh"
@@ -39,6 +40,7 @@
 #include "ResourceBroker.hh"
 #include "MoveNode.hh"
 #include "ResourceManager.hh"
+#include "Move.hh"
 
 using std::string;
 
@@ -76,12 +78,26 @@ AssignmentPlan::insertBroker(ResourceBroker& broker) {
  * @param cycle The cycle in which the node should be placed.
  */
 void
-AssignmentPlan::setRequest(int cycle, MoveNode& node) {
+AssignmentPlan::setRequest(int cycle, MoveNode& node,
+                           const TTAMachine::Bus* bus,
+                           const TTAMachine::FunctionUnit* srcFU,
+                           const TTAMachine::FunctionUnit* dstFU,
+                           int immWriteCycle,
+                           const TTAMachine::ImmediateUnit* immu,
+                           int immRegIndex) {
 
     if (node.isPlaced() && node.cycle() != cycle) {
-        string msg = "Node already placed on different cycle!";
+        TCEString msg = "Node: " + node.toString();
+        msg << "already placed on different cycle, cur cycle: " << cycle;
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
     }
+
+    bus_ = bus;
+    srcFU_ = srcFU;
+    dstFU_ = dstFU;
+    immWriteCycle_ = immWriteCycle;
+    immu_ = immu;
+    immRegIndex_ = immRegIndex;
 
     currentBroker_ = 0;
     node.setCycle(cycle);
@@ -92,8 +108,10 @@ AssignmentPlan::setRequest(int cycle, MoveNode& node) {
     // optimise broker sequence by disabling not applicable brokers
     applicableAssignments_.clear();
     for (unsigned int i = 0; i < assignments_.size(); i++) {
-        if (assignments_[i]->broker().isApplicable(node)) {
-            assignments_[i]->setRequest(cycle, node);
+        if (assignments_[i]->broker().isApplicable(node, bus)) {
+            assignments_[i]->setRequest(
+		cycle, node, bus_, srcFU_, dstFU_, immWriteCycle_, immu_,
+		immRegIndex_);
             applicableAssignments_.push_back(assignments_[i]);
         }
     }
@@ -194,7 +212,7 @@ AssignmentPlan::backtrack() {
     // forget assignment history and assignments for current broker
     PendingAssignment* assignment = applicableAssignments_[currentBroker_];
     assignment->forget();
-    if (assignment->broker().isAlreadyAssigned(cycle_, *node_)) {
+    if (assignment->broker().isAlreadyAssigned(cycle_, *node_, bus_)) {
         assignment->undoAssignment();
     }
     currentBroker_--;
@@ -204,7 +222,7 @@ AssignmentPlan::backtrack() {
     } else {
         // undo possible assignments for broker we backtracked to
         assignment = applicableAssignments_[currentBroker_];
-        if (assignment->broker().isAlreadyAssigned(cycle_, *node_)) {
+        if (assignment->broker().isAlreadyAssigned(cycle_, *node_, bus_)) {
             assignment->undoAssignment();
         }
     }
@@ -218,7 +236,7 @@ AssignmentPlan::backtrack() {
 void
 AssignmentPlan::tryNextAssignment() {
     PendingAssignment* assignment = applicableAssignments_[currentBroker_];
-    if (assignment->broker().isAlreadyAssigned(cycle_, *node_)) {
+    if (assignment->broker().isAlreadyAssigned(cycle_, *node_, bus_)) {
         assignment->undoAssignment();
     }
     assignment->tryNext();
@@ -289,10 +307,21 @@ AssignmentPlan::isTestedAssignmentPossible() {
  * If succeeds, the node is assigned.
  */
 bool
-AssignmentPlan::tryCachedAssignment(MoveNode& node, int cycle) {
+AssignmentPlan::tryCachedAssignment(MoveNode& node, int cycle,
+                                    const TTAMachine::Bus* bus,
+                                    const TTAMachine::FunctionUnit* srcFU,
+                                    const TTAMachine::FunctionUnit* dstFU,
+                                    int immWriteCycle,
+                                    const TTAMachine::ImmediateUnit* immu,
+                                    int immRegIndex) {
     // is the cache valid for this node?
     if (lastTriedNode_ != &node || 
         lastTriedCycle_ != cycle ||
+        immRegIndex_ != immRegIndex ||
+        immu != immu_ ||
+        immWriteCycle_ != immWriteCycle ||
+        srcFU_ != srcFU ||
+        dstFU_ != dstFU ||
         lastTestedWorkingAssignment_.empty()) {
         clearCache();
         return false;
@@ -302,7 +331,7 @@ AssignmentPlan::tryCachedAssignment(MoveNode& node, int cycle) {
     // may change in case of bypassing.
     for (size_t j = 0, i = 0; j < brokers_.size(); j++) {
         ResourceBroker* broker = brokers_[j];
-        if (broker->isApplicable(node)) {
+        if (broker->isApplicable(node, bus)) {
             if (i >= lastTestedWorkingAssignment_.size() || 
                 lastTestedWorkingAssignment_[i].first != broker) {
                 clearCache();
@@ -323,7 +352,9 @@ AssignmentPlan::tryCachedAssignment(MoveNode& node, int cycle) {
     for (int i = 0; i < (int)lastTestedWorkingAssignment_.size(); i++) {
         std::pair<ResourceBroker*, SchedulingResource*>& ca =
             lastTestedWorkingAssignment_[i];
-        if (!ca.first->isAvailable(*ca.second, node, cycle)) {
+        if (!ca.first->isAvailable(
+                *ca.second, node, cycle, bus, srcFU, dstFU, immWriteCycle,
+		immu, immRegIndex)) {
             // failed. backtrack all previous brokers.
             // unassign, clear cache and return false.
             for (i--; i >= 0; i--) {
@@ -336,7 +367,7 @@ AssignmentPlan::tryCachedAssignment(MoveNode& node, int cycle) {
             return false;
         } else {
             // can assign. do the assign.
-            ca.first->assign(cycle, node, *ca.second);
+            ca.first->assign(cycle, node, *ca.second, immWriteCycle, immRegIndex);
         }
     }
     // everything succeeded. clear cache(state of rm changed) and return true.
@@ -356,6 +387,7 @@ AssignmentPlan::resetAssignments() {
     }
     currentBroker_ = 0;
     node_->unsetCycle();
+    bus_ = NULL;
 }
 
 /**
@@ -373,12 +405,14 @@ AssignmentPlan::resetAssignments(MoveNode& node) {
         string msg = "Node is not placed in a cycle.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
+    bus_ = &node.move().bus();
     for (unsigned int i = 0; i < brokers_.size(); i++) {
-        if (brokers_[i]->isApplicable(node)) {
+        if (brokers_[i]->isApplicable(node, bus_)) {
             brokers_[i]->unassign(node);
         }
     }
     node.unsetCycle();
+    bus_ = NULL;
 }
 
 /**
@@ -417,9 +451,14 @@ AssignmentPlan::clear() {
     for (size_t i = 0; i < assignments_.size(); i++) {
         assignments_[i]->clear();
     }
+    bus_ = NULL;
+    srcFU_ = NULL;
+    dstFU_ = NULL;
+    immWriteCycle_ = -1;
+    immu_ = NULL;
+    immRegIndex_ = -1;
     clearCache();
     applicableAssignments_.clear();
-    
 }
 
 void AssignmentPlan::clearCache() {

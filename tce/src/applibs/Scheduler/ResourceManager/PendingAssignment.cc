@@ -42,7 +42,7 @@ using std::string;
  * Constructor.
  */
 PendingAssignment::PendingAssignment(ResourceBroker& broker):
-    broker_(broker), cycle_(0), node_(NULL), assignmentTried_(false),
+    broker_(broker), cycle_(-1), node_(NULL), assignmentTried_(false),
     lastTriedAssignment_(-1) {
 }
 
@@ -70,9 +70,21 @@ PendingAssignment::broker() {
  * @param node Node.
  */
 void
-PendingAssignment::setRequest(int cycle, MoveNode& node) {
+PendingAssignment::setRequest(int cycle, MoveNode& node,
+                              const TTAMachine::Bus* bus,
+                              const TTAMachine::FunctionUnit* srcFU,
+                              const TTAMachine::FunctionUnit* dstFU,
+                              int immWriteCycle,
+                              const TTAMachine::ImmediateUnit* immu,
+                              int immRegIndex) {
     cycle_ = cycle;
     node_ = &node;
+    bus_ = bus;
+    srcFU_ = srcFU;
+    dstFU_ = dstFU;
+    immWriteCycle_ = immWriteCycle;
+    immu_ = immu;
+    immRegIndex_ = immRegIndex;
     lastTriedAssignment_ = -1;
 }
 
@@ -86,7 +98,9 @@ PendingAssignment::setRequest(int cycle, MoveNode& node) {
 bool
 PendingAssignment::isAssignmentPossible() {
     if (lastTriedAssignment_ == -1) {
-        availableResources_ = broker_.allAvailableResources(cycle_, *node_);
+        availableResources_ = broker_.allAvailableResources(
+	    cycle_, *node_, bus_, srcFU_, dstFU_, immWriteCycle_, immu_,
+	    immRegIndex_);
         // Sorts candidate set of resources by their use count or name if
         // the use counts are identical
         availableResources_.sort();
@@ -103,6 +117,7 @@ PendingAssignment::isAssignmentPossible() {
  */
 void
 PendingAssignment::tryNext() {
+
     lastTriedAssignment_ += 1;
 
     if (availableResources_.count() == 0 ||
@@ -112,7 +127,8 @@ PendingAssignment::tryNext() {
     }
 
     broker_.assign(
-        cycle_, *node_, availableResources_.resource(lastTriedAssignment_));
+        cycle_, *node_, availableResources_.resource(lastTriedAssignment_),
+        immWriteCycle_, immRegIndex_);
     assignmentTried_ = true;
 }
 
@@ -128,7 +144,7 @@ PendingAssignment::tryNext() {
  */
 void
 PendingAssignment::undoAssignment() {
-    if (broker_.isAlreadyAssigned(cycle_, *node_)) {
+    if (broker_.isAlreadyAssigned(cycle_, *node_, bus_)) {
         broker_.unassign(*node_);
     } else {
         string msg = "No resource in the set of resources of this pending"
@@ -146,7 +162,7 @@ PendingAssignment::undoAssignment() {
  */
 void
 PendingAssignment::forget() {
-    if (broker_.isAlreadyAssigned(cycle_, *node_)) {
+    if (broker_.isAlreadyAssigned(cycle_, *node_, bus_)) {
         broker_.unassign(*node_);
     }
     lastTriedAssignment_ = -1;
@@ -159,9 +175,14 @@ PendingAssignment::forget() {
  */
 void
 PendingAssignment::clear() {
-    cycle_ = 0;
+    cycle_ = -1;
     node_ = NULL;
+    immu_ = NULL;
+    immWriteCycle_ = -1;
+    immRegIndex_ = -1;
+
     assignmentTried_ = false;
     lastTriedAssignment_ = -1;
     availableResources_.clear();
+    bus_ = NULL;
 }

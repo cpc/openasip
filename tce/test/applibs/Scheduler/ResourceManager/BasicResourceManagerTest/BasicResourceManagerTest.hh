@@ -194,7 +194,6 @@ BasicResourceManagerTest::testMissingConnection() {
         for (int i = 0; i < moves.nodeCount(); i++) {
             tempSet.addMoveNode(moves.node(i));
         }
-        TS_ASSERT(rm->hasConnection(tempSet) == false);
         TS_ASSERT_EQUALS(rm->earliestCycle(moves.node(2)), -1);
         SimpleResourceManager::disposeRM(rm, false);
         }
@@ -397,7 +396,7 @@ BasicResourceManagerTest::testRestorationOfResources() {
 
     TTAProgram::Terminal* source = NULL;
     TTAProgram::Terminal* destination = NULL;
-    TTAMachine::Bus* bus = NULL;
+    const TTAMachine::Bus* bus = NULL;
 
     moves = selector.candidates();
     // Tries assign and unassign on several nodes,
@@ -640,11 +639,11 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         SimpleResourceManager* rm = 
             SimpleResourceManager::createRM(*targetMachine);
         MoveNode* node1 =
-            new MoveNode(cfg->node(0).basicBlock().instructionAt(0).move(0));
+            new MoveNode(cfg->node(0).basicBlock().instructionAt(0).movePtr(0));
         MoveNode* node2 =
-            new MoveNode(cfg->node(0).basicBlock().instructionAt(1).move(0));
+            new MoveNode(cfg->node(0).basicBlock().instructionAt(1).movePtr(0));
         MoveNode* node3 =
-            new MoveNode(cfg->node(0).basicBlock().instructionAt(2).move(0));
+            new MoveNode(cfg->node(0).basicBlock().instructionAt(2).movePtr(0));
         ProgramOperationPtr po1 = 
             ProgramOperationPtr(
                 new ProgramOperation(
@@ -655,16 +654,13 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         node2->addDestinationOperationPtr(po1);
         po1->addOutputNode(*node3);
         node3->setSourceOperationPtr(po1);
-        TS_ASSERT_EQUALS(node1->isMoveOwned(), false);
-        TS_ASSERT_EQUALS(node2->isMoveOwned(), false);
-        TS_ASSERT_EQUALS(node3->isMoveOwned(), false);
 
         MoveNode* node5 =
-            new MoveNode(cfg->node(0).basicBlock().instructionAt(5).move(0));
+            new MoveNode(cfg->node(0).basicBlock().instructionAt(5).movePtr(0));
         MoveNode* node6 =
-            new MoveNode(cfg->node(0).basicBlock().instructionAt(6).move(0));
+            new MoveNode(cfg->node(0).basicBlock().instructionAt(6).movePtr(0));
         MoveNode* node7 =
-            new MoveNode(cfg->node(0).basicBlock().instructionAt(7).move(0));
+            new MoveNode(cfg->node(0).basicBlock().instructionAt(7).movePtr(0));
         ProgramOperationPtr po2 = 
             ProgramOperationPtr(
                 new ProgramOperation(
@@ -675,7 +671,7 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         node6->addDestinationOperationPtr(po2);
         po2->addOutputNode(*node7);
         node7->setSourceOperationPtr(po2);
-        TTAProgram::Move* newMove = new TTAProgram::Move(
+        auto newMove = std::make_shared<TTAProgram::Move>(
             node3->move().source().copy(),
             node6->move().destination().copy(),
             node6->move().bus());
@@ -684,15 +680,12 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
                 node3->move().destination().port(),
                 node3->move().destination().index()+1);
 
-        TTAProgram::Move* modifyMove = new TTAProgram::Move(
+        auto modifyMove = std::make_shared<TTAProgram::Move>(
             node3->move().source().copy(), newDst, node3->move().bus());
 
         MoveNode* bypassed = new MoveNode(newMove);
         MoveNode* duplicate = new MoveNode(node3->move().copy());
         MoveNode* otherTarget = new MoveNode(modifyMove);
-        TS_ASSERT_EQUALS(bypassed->isMoveOwned(), true);
-        TS_ASSERT_EQUALS(duplicate->isMoveOwned(), true);
-        TS_ASSERT_EQUALS(otherTarget->isMoveOwned(), true);
 
         bypassed->setSourceOperationPtr(po1);
         bypassed->addDestinationOperationPtr(po2);
@@ -803,7 +796,6 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         TS_ASSERT_EQUALS(rm->earliestCycle(*node1), 0);
         TS_ASSERT_EQUALS(rm->latestCycle(*node1), 5);
         TS_ASSERT_THROWS_NOTHING(rm->assign(7,*node3));
-        TS_ASSERT_EQUALS(node3->isMoveOwned(), false);
         TS_ASSERT_THROWS_NOTHING(rm->assign(rm->latestCycle(
             *node1),*node1));
         TS_ASSERT_EQUALS(node1->isScheduled(), true);
@@ -813,7 +805,6 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         TS_ASSERT_THROWS_NOTHING(rm->assign(5,*node5));
         TS_ASSERT_THROWS_NOTHING(
             rm->assign(rm->earliestCycle(*bypassed),*bypassed));
-        TS_ASSERT_EQUALS(bypassed->isMoveOwned(), false);
 
         TS_ASSERT_EQUALS(rm->earliestCycle(3,*node7), 8);
         TS_ASSERT_EQUALS(rm->earliestCycle(11,*node7), 11);
@@ -842,9 +833,7 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         TS_ASSERT_EQUALS(otherTarget->isScheduled(), true);
         TS_ASSERT_THROWS_NOTHING(
             rm->assign(rm->earliestCycle(*duplicate),*duplicate));
-        TS_ASSERT_EQUALS(duplicate->isMoveOwned(), false);
         TS_ASSERT_THROWS_NOTHING(rm->unassign(*duplicate));
-        TS_ASSERT_EQUALS(duplicate->isMoveOwned(), true);
         TS_ASSERT_THROWS_NOTHING(
             rm->assign(rm->earliestCycle(*duplicate),*duplicate));
 
@@ -914,9 +903,9 @@ BasicResourceManagerTest::testMULConflict() {
     SimpleResourceManager* rm = 
         SimpleResourceManager::createRM(*targetMachine);
     //std::cerr << POMDisassembler::disassemble(procedure,1);
-    MoveNode* node1 = new MoveNode(procedure.instructionAt(44).move(0));
-    MoveNode* node2 = new MoveNode(procedure.instructionAt(45).move(0));
-    MoveNode* node3 = new MoveNode(procedure.instructionAt(46).move(0));
+    MoveNode* node1 = new MoveNode(procedure.instructionAt(44).movePtr(0));
+    MoveNode* node2 = new MoveNode(procedure.instructionAt(45).movePtr(0));
+    MoveNode* node3 = new MoveNode(procedure.instructionAt(46).movePtr(0));
     ProgramOperationPtr po1 = 
         ProgramOperationPtr(
             new ProgramOperation(
@@ -1004,9 +993,9 @@ BasicResourceManagerTest::testLIMMPSocketReads() {
         SimpleResourceManager::createRM(*targetMachine);
 
     //std::cerr << POMDisassembler::disassemble(procedure,1);
-    MoveNode* node1 = new MoveNode(procedure.instructionAt(0).move(0));
-    MoveNode* node2 = new MoveNode(procedure.instructionAt(1).move(0));
-    MoveNode* node3 = new MoveNode(procedure.instructionAt(2).move(0));
+    MoveNode* node1 = new MoveNode(procedure.instructionAt(0).movePtr(0));
+    MoveNode* node2 = new MoveNode(procedure.instructionAt(1).movePtr(0));
+    MoveNode* node3 = new MoveNode(procedure.instructionAt(2).movePtr(0));
     ProgramOperationPtr po1 = 
         ProgramOperationPtr(
             new ProgramOperation(
@@ -1054,9 +1043,9 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
         SimpleResourceManager::createRM(*targetMachine);
     //Application::logStream() << 
     //    POMDisassembler::disassemble(procedure,1);
-    MoveNode* node1 = new MoveNode(procedure.instructionAt(0).move(0));
-    MoveNode* node2 = new MoveNode(procedure.instructionAt(1).move(0));
-    MoveNode* node3 = new MoveNode(procedure.instructionAt(2).move(0));
+    MoveNode* node1 = new MoveNode(procedure.instructionAt(0).movePtr(0));
+    MoveNode* node2 = new MoveNode(procedure.instructionAt(1).movePtr(0));
+    MoveNode* node3 = new MoveNode(procedure.instructionAt(2).movePtr(0));
     ProgramOperationPtr po1 = 
         ProgramOperationPtr(
             new ProgramOperation(node2->move().destination().operation()));
@@ -1083,9 +1072,9 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
 	rm->assign(rm->earliestCycle(*node3), *node3));
 
     // second operation add on second added in same cycles
-    MoveNode* node4 = new MoveNode(procedure.instructionAt(5).move(0));
-    MoveNode* node5 = new MoveNode(procedure.instructionAt(6).move(0));
-    MoveNode* node6 = new MoveNode(procedure.instructionAt(7).move(0));
+    MoveNode* node4 = new MoveNode(procedure.instructionAt(5).movePtr(0));
+    MoveNode* node5 = new MoveNode(procedure.instructionAt(6).movePtr(0));
+    MoveNode* node6 = new MoveNode(procedure.instructionAt(7).movePtr(0));
     ProgramOperationPtr po2 = 
         ProgramOperationPtr(new ProgramOperation(node5->move().destination().operation()));
     po2->addNode(*node4);
@@ -1111,9 +1100,9 @@ BasicResourceManagerTest::testNoRegisterTriggerInvalidates() {
     // Both adders are busy and write same result register.
     // in different cycles. Lets try to squeze 3rd add with same
     // result register and check trigger-invalidates-results
-    MoveNode* node7 = new MoveNode(procedure.instructionAt(9).move(0));
-    MoveNode* node8 = new MoveNode(procedure.instructionAt(10).move(0));
-    MoveNode* node9 = new MoveNode(procedure.instructionAt(11).move(0));
+    MoveNode* node7 = new MoveNode(procedure.instructionAt(9).movePtr(0));
+    MoveNode* node8 = new MoveNode(procedure.instructionAt(10).movePtr(0));
+    MoveNode* node9 = new MoveNode(procedure.instructionAt(11).movePtr(0));
     ProgramOperationPtr po3 = 
         ProgramOperationPtr(
             new ProgramOperation(node8->move().destination().operation()));

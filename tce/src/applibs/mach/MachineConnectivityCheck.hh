@@ -39,6 +39,7 @@
 
 #include "MachineCheck.hh"
 #include "ProgramAnnotation.hh"
+#include "MachinePart.hh"
 
 class TCEString;
 class MoveNode;
@@ -66,10 +67,15 @@ namespace TTAProgram {
  */
 class MachineConnectivityCheck : MachineCheck {
 public:
+    typedef std::set<const TTAMachine::Port*,
+                     const TTAMachine::MachinePart::Comparator> PortSet;
+    typedef std::set<const TTAMachine::FunctionUnit*,
+                     const TTAMachine::MachinePart::Comparator> FUSet;
+
     static bool isConnected(
         const TTAMachine::Port& sourcePort,
         const TTAMachine::Port& destinationPort,
-        TTAMachine::Guard* guard = NULL);
+        const TTAMachine::Guard* guard = NULL);
 
     static bool isConnected(
         const TTAMachine::BaseRegisterFile& sourceRF,
@@ -78,12 +84,12 @@ public:
     static bool isConnected(
         const TTAMachine::BaseRegisterFile& sourceRF,
         const TTAMachine::BaseRegisterFile& destRF,
-        TTAMachine::Guard* guard = NULL);
+        const TTAMachine::Guard* guard = NULL);
 
     static bool isConnectedWithBothGuards(
         const TTAMachine::BaseRegisterFile& sourceRF,
         const TTAMachine::BaseRegisterFile& destRF,
-        std::pair<TTAMachine::RegisterFile*,int> guardReg);
+        std::pair<const TTAMachine::RegisterFile*,int> guardReg);
 
     static bool isConnected(
         const TTAMachine::Port& sourcePort,
@@ -94,29 +100,36 @@ public:
         const TTAMachine::FunctionUnit& destFU);
 
     static bool isConnected(
-        std::set<const TTAMachine::Port*> sourcePorts,
-        std::set<const TTAMachine::Port*> destinationPorts,
-        TTAMachine::Guard* guard = NULL);
+        PortSet sourcePorts,
+        PortSet destinationPorts,
+        const TTAMachine::Guard* guard = NULL);
 
     static bool canWriteAllImmediates(TTAMachine::Port& destPort);
 
     static bool canTransportImmediate(
         const TTAProgram::TerminalImmediate& immediate,
         const TTAMachine::BaseRegisterFile& destRF,
-        TTAMachine::Guard* guard = NULL);
+        const TTAMachine::Guard* guard = NULL);
 
     static bool canTransportImmediate(
         const TTAProgram::TerminalImmediate& immediate,
         const TTAMachine::Port& destinationPort,
-        TTAMachine::Guard* guard = NULL);
+        const TTAMachine::Guard* guard = NULL);
 
     static bool canTransportImmediate(
         const TTAProgram::TerminalImmediate& immediate,
-        std::set<const TTAMachine::Port*> destinationPorts,
-        TTAMachine::Guard* guard = NULL);
+        PortSet destinationPorts,
+        const TTAMachine::Guard* guard = NULL);
     
     static bool canTransportMove(
-        MoveNode& moveNode, const TTAMachine::Machine& machine);
+        const MoveNode& moveNode,
+        const TTAMachine::Machine& machine,
+        bool ignoreGuard = false);
+
+    static bool canBypass(
+        const MoveNode& src,
+        const MoveNode& user,
+        const TTAMachine::Machine& targetMachine);
 
     static bool rfConnected(
         const TTAMachine::RegisterFile& rf);
@@ -127,23 +140,23 @@ public:
     static bool toRfConnected(
         const TTAMachine::RegisterFile& brf);
 
-    static std::set<TTAMachine::Bus*> connectedSourceBuses(
+    static std::set<const TTAMachine::Bus*> connectedSourceBuses(
         const TTAMachine::Port& port);
 
-    static std::set<TTAMachine::Bus*> connectedDestinationBuses(
+    static std::set<const TTAMachine::Bus*> connectedDestinationBuses(
         const TTAMachine::Port& port);
 
     static void appendConnectedSourceBuses(
-        const TTAMachine::Port& port, std::set<TTAMachine::Bus*>& buses);
+        const TTAMachine::Port& port, std::set<const TTAMachine::Bus*>& buses);
 
     static void appendConnectedDestinationBuses(
-        const TTAMachine::Port& port, std::set<TTAMachine::Bus*>& buses);
+        const TTAMachine::Port& port, std::set<const TTAMachine::Bus*>& buses);
 
     static void appendConnectedSourceBuses(
-        const TTAMachine::Unit& unit, std::set<TTAMachine::Bus*>& buses);
+        const TTAMachine::Unit& unit, std::set<const TTAMachine::Bus*>& buses);
 
     static void appendConnectedDestinationBuses(
-        const TTAMachine::Unit& unit, std::set<TTAMachine::Bus*>& buses);
+        const TTAMachine::Unit& unit, std::set<const TTAMachine::Bus*>& buses);
 
     static std::vector<TTAMachine::RegisterFile*> tempRegisterFiles(
         const TTAMachine::Machine& machine);
@@ -171,25 +184,24 @@ public:
 
     static int totalConnectionCount(const TTAMachine::Machine& mach);
     
-    static std::set<const TTAMachine::Port*> findPossibleDestinationPorts(
+    static PortSet findPossibleDestinationPorts(
         const TTAMachine::Machine& mach, const MoveNode& node);
 
-    static std::set<const TTAMachine::Port*> findPossibleSourcePorts(
+    static PortSet findPossibleSourcePorts(
         const TTAMachine::Machine& mach, const MoveNode& node);
 
     static int canSourceWriteToAnyDestinationPort(
-        const MoveNode& src, 
-        std::set<const TTAMachine::Port*>& ports);
+        const MoveNode& src,
+        PortSet& ports,
+        bool ignoreGuard = false);
 
     static bool canAnyPortWriteToDestination(
-        std::set<const TTAMachine::Port*>& ports,
+        PortSet& ports,
         const MoveNode& dest);
 
-    static std::set<const TTAMachine::Port*> findWritePorts(
-        TTAMachine::Unit& rf);
+    static PortSet findWritePorts(const TTAMachine::Unit& rf);
 
-    static std::set<const TTAMachine::Port*> findReadPorts(
-        TTAMachine::Unit& rf);
+    static PortSet findReadPorts(const TTAMachine::Unit& rf);
 
     static bool hasConditionalMoves(const TTAMachine::Machine& mach);
 
@@ -201,7 +213,10 @@ public:
 
     static std::pair<bool,bool> hasBothGuards(
         const TTAMachine::Bus* bus, 
-        std::pair<TTAMachine::RegisterFile*,int> guardReg);
+        std::pair<const TTAMachine::RegisterFile*,int> guardReg);
+
+    static int maxLIMMCount(const TTAMachine::Machine& targetMachine);
+    static int maxSIMMCount(const TTAMachine::Machine& targetMachine);
 
 protected:
     MachineConnectivityCheck(const std::string& shortDesc_);

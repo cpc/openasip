@@ -46,12 +46,12 @@ namespace TTAProgram {
  */
 class MoveGuard {
 public:
-    MoveGuard(TTAMachine::Guard& guard);
+    MoveGuard(const TTAMachine::Guard& guard);
     ~MoveGuard();
 
     bool isUnconditional() const;
     bool isInverted() const;
-    TTAMachine::Guard& guard() const;
+    const TTAMachine::Guard& guard() const;
 
     MoveGuard* copy() const;
 
@@ -62,7 +62,7 @@ private:
     MoveGuard& operator=(const MoveGuard&);
 
     /// The guard object.
-    TTAMachine::Guard* guard_;
+    const TTAMachine::Guard* guard_;
 };
 
 }

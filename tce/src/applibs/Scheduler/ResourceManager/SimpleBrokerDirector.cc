@@ -118,7 +118,23 @@ SimpleBrokerDirector::~SimpleBrokerDirector(){
  * conflicts in given cycle, false otherwise.
  */
 bool
-SimpleBrokerDirector::canAssign(int cycle, MoveNode& node) const {
+SimpleBrokerDirector::canAssign(
+    int cycle, MoveNode& node,
+    const TTAMachine::Bus* bus,
+    const TTAMachine::FunctionUnit* srcFU,
+    const TTAMachine::FunctionUnit* dstFU,
+    int immWriteCycle,
+    const TTAMachine::ImmediateUnit* immu,
+    int immRegIndex) const {
+
+#ifdef DEBUG_RM
+    std::cerr << "testing canassign, cycle: " << cycle <<
+        " node: " << node.toString() << std::endl;
+#endif
+
+    if (initiationInterval_ != 0 && cycle >= (int)(initiationInterval_ * 2)) {
+        return false;
+    }
 
     if (node.isScheduled()) {
         debugLogRM("isScheduled == true");
@@ -133,24 +149,28 @@ SimpleBrokerDirector::canAssign(int cycle, MoveNode& node) const {
         return false;
     }
 
-    // Store original resources of node
-    OriginalResources oldRes(
-        node.move().source().copy(),
-        node.move().destination().copy(),
-        &node.move().bus(),
-        NULL,
-        false);
-    if (node.move().isUnconditional()) {
-        oldRes.isGuarded_ = false;
-    } else {
-        oldRes.isGuarded_ = true;
-        oldRes.guard_ = node.move().guard().copy();
+    OriginalResources* oldRes = NULL;
+    if (node.isMove()) {
+        // Store original resources of node
+        oldRes = new OriginalResources(
+            node.move().source().copy(),
+            node.move().destination().copy(),
+            &node.move().bus(),
+            NULL,
+            false);
+        if (node.move().isUnconditional()) {
+            oldRes->isGuarded_ = false;
+        } else {
+            oldRes->isGuarded_ = true;
+            oldRes->guard_ = node.move().guard().copy();
+        }
     }
     int placedInCycle = -1;
     if (node.isPlaced()) {
         placedInCycle = node.cycle();
     }
-    plan_->setRequest(cycle, node);
+    plan_->setRequest(
+	cycle, node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
 
     bool success = false;
     while (!success) {
@@ -178,16 +198,19 @@ SimpleBrokerDirector::canAssign(int cycle, MoveNode& node) const {
             plan_->advance();
         }
     }
-    // restore original resources of node
-    node.move().setSource(oldRes.src_);
-    oldRes.src_ = NULL;
+    if (node.isMove()) {
+        // restore original resources of node
+        node.move().setSource(oldRes->src_);
+        oldRes->src_ = NULL;
 
-    node.move().setDestination(oldRes.dst_);
-    oldRes.dst_ = NULL;
-    node.move().setBus(*oldRes.bus_);
-    if (oldRes.isGuarded_) {
-        node.move().setGuard(oldRes.guard_);
-        oldRes.guard_ = NULL;
+        node.move().setDestination(oldRes->dst_);
+        oldRes->dst_ = NULL;
+        node.move().setBus(*oldRes->bus_);
+        if (oldRes->isGuarded_) {
+            node.move().setGuard(oldRes->guard_);
+            oldRes->guard_ = NULL;
+        }
+        delete oldRes;
     }
     if (placedInCycle != -1) {
         node.setCycle(placedInCycle);
@@ -211,7 +234,13 @@ SimpleBrokerDirector::canAssign(int cycle, MoveNode& node) const {
  * cycle different from given cycle.
  */
 void
-SimpleBrokerDirector::assign(int cycle, MoveNode& node) {
+SimpleBrokerDirector::assign(int cycle, MoveNode& node,
+                             const TTAMachine::Bus* bus,
+                             const TTAMachine::FunctionUnit* srcFU,
+                             const TTAMachine::FunctionUnit* dstFU,
+                             int immWriteCycle,
+                             const TTAMachine::ImmediateUnit* immu,
+                             int immRegIndex) {
     if (cycle < 0) {
         throw InvalidData(__FILE__, __LINE__, __func__, 
                           "Negative cycles not supported by RM");
@@ -226,25 +255,28 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node) {
             "Node is already placed in a cycle different from given cycle.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
-    OriginalResources* oldRes = new OriginalResources(
-        node.move().source().copy(),
-        node.move().destination().copy(),
-        &node.move().bus(),
-        NULL,
-        false);
-    if (node.move().isUnconditional()) {
-        oldRes->isGuarded_ = false;
-    } else {
-        oldRes->isGuarded_ = true;
-        oldRes->guard_ = node.move().guard().copy();
+
+    if (node.isMove()) {
+        OriginalResources* oldRes = new OriginalResources(
+            node.move().source().copy(),
+            node.move().destination().copy(),
+            &node.move().bus(),
+            NULL,
+            false);
+        if (node.move().isUnconditional()) {
+            oldRes->isGuarded_ = false;
+        } else {
+            oldRes->isGuarded_ = true;
+            oldRes->guard_ = node.move().guard().copy();
+        }
+        origResMap_.insert(
+            std::pair<const MoveNode*, OriginalResources*>(&node, oldRes));
     }
 
-    origResMap_.insert(
-        std::pair<const MoveNode*, OriginalResources*>(&node, oldRes));
+    bool success = plan_->tryCachedAssignment(
+        node, cycle, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
 
-    bool success = plan_->tryCachedAssignment(node, cycle);
-
-    plan_->setRequest(cycle, node);
+    plan_->setRequest(cycle, node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
     assert( cycle != -1 );
 
     while (!success) {
@@ -274,15 +306,18 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node) {
     }
     int guardSlack = std::max(0, node.guardLatency() -1);
     if (knownMinCycle_ > cycle - guardSlack) {
-        knownMinCycle_ = cycle - guardSlack ;
-        assert(knownMinCycle_ >= 0);
+        knownMinCycle_ = std::max(cycle - guardSlack,0);
+            assert(knownMinCycle_ >= 0);
     }
-    if (node.isSourceImmediateRegister() &&
-         knownMinCycle_ > immediateWriteCycle(node)) {
-        knownMinCycle_ = immediateWriteCycle(node);
-        assert(knownMinCycle_ >= 0);
+    if (node.isMove()) {
+        int iwc = immediateWriteCycle(node);
+        if (node.isSourceImmediateRegister() &&
+            knownMinCycle_ > iwc && iwc >= 0) {
+            knownMinCycle_ = iwc;
+            assert(knownMinCycle_ >= 0);
+        }
+        moveCounts_[instructionIndex(cycle)]++;
     }
-    moveCounts_[instructionIndex(cycle)]++;
 }
 
 /**
@@ -304,47 +339,49 @@ SimpleBrokerDirector::unassign(MoveNode& node) {
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
 
-    bool minCycleImmSrc = false;
-    if (node.isSourceImmediateRegister() &&
-         knownMinCycle_ == immediateWriteCycle(node)) {
-        minCycleImmSrc = true;
-    }
-
     int nodeCycle = node.cycle();
+
+    bool minCycleImmSrc = false;
+    if (node.isMove()) {
+        if (node.isSourceImmediateRegister() &&
+            knownMinCycle_ == immediateWriteCycle(node)) {
+            minCycleImmSrc = true;
+        }
+    }
 
     moveCounts_[instructionIndex(nodeCycle)]--;
 
     plan_->clearCache();
     plan_->resetAssignments(node);
 
-    if (!MapTools::containsKey(origResMap_, &node)) {
-        abortWithError("Original resources lost!");
-    }
-    OriginalResources* oldRes = MapTools::valueForKey<OriginalResources*>(
-        origResMap_, &node);
+    if (node.isMove()) {
+        if (!MapTools::containsKey(origResMap_, &node)) {
+            abortWithError("Original resources lost!");
+        }
+        OriginalResources* oldRes = MapTools::valueForKey<OriginalResources*>(
+            origResMap_, &node);
     
-    // restore original resources of node
-    if (!node.move().source().isGPR()) {
-        node.move().setSource(oldRes->src_);
-    } else {
-        delete oldRes->src_;
+        // restore original resources of node
+        if (!node.move().source().isGPR()) {
+            node.move().setSource(oldRes->src_);
+        } else {
+            delete oldRes->src_;
+        }
+        oldRes->src_ = NULL;
+        if (!node.move().destination().isGPR()) {
+            node.move().setDestination(oldRes->dst_);
+        } else {
+            delete oldRes->dst_;
+        }
+        oldRes->dst_ = NULL;
+        node.move().setBus(*oldRes->bus_);
+        if (oldRes->isGuarded_) {
+            node.move().setGuard(oldRes->guard_);
+            oldRes->guard_ = NULL;
+        }
+        delete oldRes;
+        origResMap_.erase(&node);
     }
-    oldRes->src_ = NULL;
-    if (!node.move().destination().isGPR()) {
-        node.move().setDestination(oldRes->dst_);
-    } else {
-        delete oldRes->dst_;
-    }
-    oldRes->dst_ = NULL;
-
-    node.move().setBus(*oldRes->bus_);
-    if (oldRes->isGuarded_) {
-        node.move().setGuard(oldRes->guard_);
-        oldRes->guard_ = NULL;
-    }
-    delete oldRes;
-    origResMap_.erase(&node);
-
     // if unassigned move was known to be in highest cycle assigned so far
     // tries to decrease highest cycle checking for assigned moves and
     // immediates
@@ -359,6 +396,10 @@ SimpleBrokerDirector::unassign(MoveNode& node) {
             } else {
                 break;
             }
+        }
+        if (knownMaxCycle_ < knownMinCycle_) {
+            knownMinCycle_ = INT_MAX;
+            knownMaxCycle_ = -1;
         }
     }
     // if unassigned move was known to be in smallest cycle assigned so far
@@ -376,9 +417,8 @@ SimpleBrokerDirector::unassign(MoveNode& node) {
             } else {
                 for (int i = 0; i < tempIns->moveCount(); i++) {
                     int guardSlack = std::max(0, tempIns->move(i).guardLatency() -1);
-                    if(cycleCounter - guardSlack < knownMinCycle_) {
-                        knownMinCycle_ = 
-                            cycleCounter - guardSlack;                   
+                    if (cycleCounter - guardSlack < knownMinCycle_) {
+                        knownMinCycle_ = cycleCounter - guardSlack;
                     }
                 }
                 break;
@@ -396,13 +436,24 @@ SimpleBrokerDirector::unassign(MoveNode& node) {
  * constraints to resource allocation.
  *
  * @param move The move.
+ * @param bus if not null, bus that has to be used.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  * @return The earliest cycle in the scope where all required resources
  * can be assigned to the given node. Returns -1 if assignment
  * is not possible starting from given cycle.
  */
 int
-SimpleBrokerDirector::earliestCycle(MoveNode& move) const {
-    return earliestCycle(0, move);
+SimpleBrokerDirector::earliestCycle(MoveNode& move,
+                                    const TTAMachine::Bus* bus,
+                                    const TTAMachine::FunctionUnit* srcFU,
+                                    const TTAMachine::FunctionUnit* dstFU,
+                                    int immWriteCycle,
+                                    const TTAMachine::ImmediateUnit* immu,
+                                    int immRegIndex) const {
+    return earliestCycle(
+	0, move, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
 }
 
 /**
@@ -415,12 +466,23 @@ SimpleBrokerDirector::earliestCycle(MoveNode& move) const {
  *
  * @param cycle Cycle to start from.
  * @param node MoveNode.
+ * @param bus if not null, bus that has to be used.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  * @return The earliest cycle starting from the given cycle in which
  * required resources can be assigned to given node. Returns -1 if assignment
  * is not possible starting from given cycle.
  */
 int
-SimpleBrokerDirector::earliestCycle(int cycle, MoveNode& node) const {
+SimpleBrokerDirector::earliestCycle(int cycle, MoveNode& node,
+                                    const TTAMachine::Bus* bus,
+                                    const TTAMachine::FunctionUnit* srcFU,
+                                    const TTAMachine::FunctionUnit* dstFU,
+                                    int immWriteCycle,
+                                    const TTAMachine::ImmediateUnit* immu,
+                                    int immRegIndex) const {
+
     // limit the scheduling window.
     // makes code for minimal.adf schedule in reasonable time
     if (cycle < knownMaxCycle_ - schedulingWindow_) {
@@ -428,7 +490,8 @@ SimpleBrokerDirector::earliestCycle(int cycle, MoveNode& node) const {
     }
     // TODO: is there need for similar test for knownMinCycle as well?
 
-    int minCycle = executionPipelineBroker().earliestCycle(cycle, node);
+    int minCycle = executionPipelineBroker().earliestCycle(
+        cycle, node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
 
     if (minCycle == -1) {
         // No assignment possible
@@ -444,7 +507,8 @@ SimpleBrokerDirector::earliestCycle(int cycle, MoveNode& node) const {
         lastCycleToTest = largestCycle();
     }
 
-    while (!canAssign(minCycle, node)) {
+    while (!canAssign(minCycle, node, bus, srcFU, dstFU, immWriteCycle, immu,
+		      immRegIndex)) {
         if (minCycle > lastCycleToTest + 1) {
             // Even on empty instruction it is not possible to assign
             debugLogRM(
@@ -454,7 +518,9 @@ SimpleBrokerDirector::earliestCycle(int cycle, MoveNode& node) const {
         }
         // find next cycle where exec pipeline could be free,
         // do not test every cycle with canassign.
-        minCycle = executionPipelineBroker().earliestCycle(minCycle + 1, node);
+        minCycle = executionPipelineBroker().earliestCycle(
+            minCycle + 1, node, bus, srcFU, dstFU, immWriteCycle, immu,
+	    immRegIndex);
         if (minCycle == -1) {
             debugLogRM("No assignment possible due to executionPipelineBroker.");
             return -1;
@@ -472,14 +538,25 @@ SimpleBrokerDirector::earliestCycle(int cycle, MoveNode& node) const {
  * constraints to resource allocation.
  *
  * @param node Node.
+ * @param bus if not null, bus that has to be used.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  * @return The latest cycle in the scope where all required resources
  * can be assigned to the given node. In case assignment is
  * not possible for given arguments returns -1. Returns INT_MAX if
  * there is no upper boundary for assignment.
  */
 int
-SimpleBrokerDirector::latestCycle(MoveNode& node) const {
-    return latestCycle(INT_MAX, node);
+SimpleBrokerDirector::latestCycle(MoveNode& node,
+                                  const TTAMachine::Bus* bus,
+                                  const TTAMachine::FunctionUnit* srcFU,
+                                  const TTAMachine::FunctionUnit* dstFU,
+                                  int immWriteCycle,
+                                  const TTAMachine::ImmediateUnit* immu,
+                                  int immRegIndex) const {
+    return latestCycle(
+	INT_MAX, node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
 }
 
 /**
@@ -492,15 +569,26 @@ SimpleBrokerDirector::latestCycle(MoveNode& node) const {
  *
  * @param cycle Cycle to start from.
  * @param node Node.
+ * @param bus if not null, bus that has to be used.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  * @return The latest cycle starting from the given cycle in which
  * required resources can be assigned to given node. In case assignment is
  * not possible for given arguments returns -1. Returns INT_MAX if
  * there is no upper boundary for assignment.
  */
 int
-SimpleBrokerDirector::latestCycle(int cycle, MoveNode& node) const {
+SimpleBrokerDirector::latestCycle(int cycle, MoveNode& node,
+                                  const TTAMachine::Bus* bus,
+                                  const TTAMachine::FunctionUnit* srcFU,
+                                  const TTAMachine::FunctionUnit* dstFU,
+                                  int immWriteCycle,
+                                  const TTAMachine::ImmediateUnit* immu,
+                                  int immRegIndex) const {
 
-    int maxCycle = executionPipelineBroker().latestCycle(cycle, node);
+    int maxCycle = executionPipelineBroker().latestCycle(
+	cycle, node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
     if (maxCycle == -1) {
         // Assignment not possible at all
         return maxCycle;
@@ -519,25 +607,35 @@ SimpleBrokerDirector::latestCycle(int cycle, MoveNode& node) const {
     lastCycleToTest =
         std::max(knownMaxCycle_,
             executionPipelineBroker().highestKnownCycle());
+    if (lastCycleToTest == 0) {
+        lastCycleToTest = cycle;
+    }
     // Define earliest cycle where to finish testing. If the move can not
     // be scheduled after this cycle, it can not be scheduled at all.            
-    int earliestCycleLimit = 
-        (knownMinCycle_ > executionPipelineBroker().longestLatency() + 1) ? 
-        knownMinCycle_ - executionPipelineBroker().longestLatency() : 0;
+
+    int knownMinCycle = knownMinCycle_ == INT_MAX ? cycle :
+        std::min(cycle,knownMinCycle_);
+    int earliestCycleLimit =
+        (knownMinCycle > executionPipelineBroker().longestLatency() + 1) ?
+        knownMinCycle - executionPipelineBroker().longestLatency() : 0;
+
     if (maxCycle <= lastCycleToTest) {
         for (int i = maxCycle; i >= earliestCycleLimit; i--) {
-            if (canAssign(i, node)) {
+            if (canAssign(i, node, bus, srcFU, dstFU, immWriteCycle, immu,
+			  immRegIndex)) {
                 return i;
             }
         }
     } else {
         if (maxCycle > lastCycleToTest) {
-            if (canAssign(maxCycle, node)) {
+            if (canAssign(maxCycle, node, bus, srcFU, dstFU, immWriteCycle,
+			  immu, immRegIndex)) {
                 return maxCycle;
             }
         }        
         for (int i = lastCycleToTest; i >= earliestCycleLimit; i--) {
-            if (canAssign(i, node)) {
+            if (canAssign(i, node, bus, srcFU, dstFU, immWriteCycle, immu,
+			  immRegIndex)) {
                 return i;
             }
         }
@@ -556,10 +654,11 @@ SimpleBrokerDirector::latestCycle(int cycle, MoveNode& node) const {
  * in assignment plan.
  */
 bool
-SimpleBrokerDirector::canTransportImmediate(const MoveNode& node) const {
+SimpleBrokerDirector::canTransportImmediate(
+    const MoveNode& node, const TTAMachine::Bus* preAssignedBus) const {
     try {
         BusBroker& broker = busBroker();
-        return broker.canTransportImmediate(node);
+        return broker.canTransportImmediate(node, preAssignedBus);
     } catch (const InstanceNotFound& e) {
         throw ModuleRunTimeError(
             __FILE__, __LINE__, __func__, e.errorMessage());
@@ -648,7 +747,7 @@ SimpleBrokerDirector::executionPipelineBroker() const {
 SimpleBrokerDirector::OriginalResources::OriginalResources(
     TTAProgram::Terminal* src,
     TTAProgram::Terminal* dst,
-    TTAMachine::Bus*    bus,
+    const TTAMachine::Bus* bus,
     TTAProgram::MoveGuard* guard,
     bool isGuarded) {
 
@@ -673,44 +772,7 @@ SimpleBrokerDirector::OriginalResources::~OriginalResources() {
         delete guard_;
     }
 }
-/**
- * Test if the MoveSet can be schedule with machine connectivity.
- *
- * @param nodes The MoveNodeSet to test.
- * @return true if MoveNodeSet can be scheduled on this machine.
- * @todo Only tries to assign nodes in same order as they are in MoveNodeSet,
- * does not try to backtrack in case it is not possible.
- */
-bool
-SimpleBrokerDirector::hasConnection(MoveNodeSet& nodes) {
-    
-    int lastCycleToTest = -1;
-    lastCycleToTest = largestCycle();
-    int testedCycle = lastCycleToTest + 1;
-    int notAssigned = nodes.count();
-    int i = 0;
-    bool success = true;
-    while (notAssigned > 0) {
-        if (canAssign(testedCycle, nodes.at(i))) {
-            assign(testedCycle, nodes.at(i));
-            notAssigned--;
-            i++;
-        } else {
-            testedCycle++;
-        }
-        if (testedCycle > lastCycleToTest + 20){
-            success = false;
-            break;
-        }
-    }
-    
-    for (int i = 0; i < nodes.count(); i++) {
-        if (nodes.at(i).isScheduled()) {
-            unassign(nodes.at(i));
-        }
-    }
-    return success;
-}
+
 /**
  * Tests if any of a buses of machine supports guard needed
  * by a node. Should always return true! Otherwise, scheduler generated
@@ -792,7 +854,7 @@ SimpleBrokerDirector::loseInstructionOwnership(int cycle) {
  * @param node node with immediate register source
  * @return terminal with immediate value
  */
-TTAProgram::Terminal*
+std::shared_ptr<TTAProgram::TerminalImmediate>
 SimpleBrokerDirector::immediateValue(const MoveNode& node) {
     return immediateUnitBroker().immediateValue(node);
 }
@@ -811,7 +873,7 @@ SimpleBrokerDirector::immediateWriteCycle(const MoveNode& node) const {
 bool
 SimpleBrokerDirector::isTemplateAvailable(
     int defCycle,
-    TTAProgram::Immediate* immediate) const {
+    std::shared_ptr<TTAProgram::Immediate> immediate) const {
 
     return instructionTemplateBroker().isTemplateAvailable(
         defCycle, immediate);

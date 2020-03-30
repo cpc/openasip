@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2009 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -94,8 +94,16 @@ IUBroker::~IUBroker(){
  * to it in given cycle.
  */
 bool
-IUBroker::isAnyResourceAvailable(int useCycle,const MoveNode& node) const {
-    int resultCount = allAvailableResources(useCycle, node).count();
+IUBroker::isAnyResourceAvailable(int useCycle,const MoveNode& node,
+                                 const TTAMachine::Bus* bus,
+                                 const TTAMachine::FunctionUnit* srcFU,
+                                 const TTAMachine::FunctionUnit* dstFU,
+                                 int immWriteCycle,
+                                 const TTAMachine::ImmediateUnit* immu,
+                                 int immRegIndex) const {
+    int resultCount = allAvailableResources(
+        useCycle, node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex).
+	count();
     return (resultCount > 0);
 }
 
@@ -111,9 +119,18 @@ IUBroker::isAnyResourceAvailable(int useCycle,const MoveNode& node) const {
  * use cycles.
  */
 SchedulingResource&
-IUBroker::availableResource(int useCycle, const MoveNode& node) const {
+IUBroker::availableResource(int useCycle, const MoveNode& node,
+                            const TTAMachine::Bus* bus,
+                            const TTAMachine::FunctionUnit* srcFU,
+                            const TTAMachine::FunctionUnit* dstFU,
+                            int immWriteCycle,
+                            const TTAMachine::ImmediateUnit* immu,
+                            int immRegIndex)
+    const {
     try {
-        return allAvailableResources(useCycle, node).resource(0);
+        return allAvailableResources(
+            useCycle, node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex).
+	    resource(0);
     } catch (const KeyNotFound& e) {
         std::string message = "No immediate register resource available.";
         throw InstanceNotFound(__FILE__, __LINE__, __func__, message);
@@ -129,31 +146,52 @@ IUBroker::availableResource(int useCycle, const MoveNode& node) const {
  * the given node in the given cycle.
  */
 SchedulingResourceSet
-IUBroker::allAvailableResources(int useCycle, const MoveNode& node) const {
+IUBroker::allAvailableResources(int useCycle, const MoveNode& node,
+                                const TTAMachine::Bus*,
+                                const TTAMachine::FunctionUnit*,
+                                const TTAMachine::FunctionUnit*,
+                                int immWriteCycle,
+                                const TTAMachine::ImmediateUnit* immu,
+                                int immRegIndex) const {
 
-    int defCycle = (useCycle > 0) ? useCycle : 1;
+    int defCycle = useCycle;
+    if (immWriteCycle != -1) {
+        defCycle = immWriteCycle;
+    }
 
     SchedulingResourceSet results;
+
+    // pre-split LIMM
+//    assert (!node.move().source().isImmediateRegister());
+
     std::vector<IUResource*> tmpResult;
-    while (defCycle > 0 && (useCycle - defCycle) < MAX_LIMM_DISTANCE &&
+
+    // RM breaks if LIMM write and use are in same instruction.
+    int maxLimmDistance = MAX_LIMM_DISTANCE;
+    if (initiationInterval_) {
+        maxLimmDistance = std::min(maxLimmDistance, (int)initiationInterval_);
+    }
+    while (defCycle >= 0 && (useCycle - defCycle) < maxLimmDistance &&
            tmpResult.empty()) {
-        defCycle--;
         ResourceMap::const_iterator resIter = resMap_.begin();
         while (resIter != resMap_.end()) {
+            // TODO: why is this dynamic, not static cast?
             IUResource* iuRes = dynamic_cast<IUResource*>((*resIter).second);
-            if (iuRes->canAssign(defCycle, useCycle, node)) {
-                TerminalImmediate* tempImm =
-                    dynamic_cast<TerminalImmediate*>(
-                        node.move().source().copy());
-                const ImmediateUnit& iu =
-                    dynamic_cast<const ImmediateUnit&>(machinePartOf(*iuRes));
-                RFPort* port = iu.port(0);
-                TerminalRegister* newSrc = new TerminalRegister(*port, 0);
-                Immediate* imm = new Immediate(tempImm, newSrc);
-                if (rm_->isTemplateAvailable(defCycle, imm)) {
-                    tmpResult.push_back(iuRes);
+            if (immu == NULL || resourceOf(*immu) == (*resIter).second) {
+                if (iuRes->canAssign(defCycle, useCycle, node, immRegIndex)) {
+                    TerminalImmediate* tempImm =
+                        dynamic_cast<TerminalImmediate*>(
+                            node.move().source().copy());
+                    const ImmediateUnit& iu =
+                        dynamic_cast<const ImmediateUnit&>(
+                            machinePartOf(*iuRes));
+                    RFPort* port = iu.port(0);
+                    TerminalRegister* newSrc = new TerminalRegister(*port, 0);
+                    auto imm = std::make_shared<Immediate>(tempImm, newSrc);
+                    if (rm_->isTemplateAvailable(defCycle, imm)) {
+                        tmpResult.push_back(iuRes);
+                    }
                 }
-                delete imm;
             }
             resIter++;
         }
@@ -163,6 +201,10 @@ IUBroker::allAvailableResources(int useCycle, const MoveNode& node) const {
             results.insert(*(*tmpItr));
             tmpItr++;
         }
+        if (immWriteCycle != -1) {
+            break;
+        }
+        defCycle--;
     }
     return results;
 }
@@ -173,14 +215,21 @@ IUBroker::allAvailableResources(int useCycle, const MoveNode& node) const {
  * @param useCycle Cycle in which immediate register is read by Node
  * @param node MoveNode that reads a register
  * @param res Long immediate register file resource
+ * @param immWriteCycle forced def cycle for the immediate. Not forced if -1
  * @exception WrongSubclass If this broker does not recognise the given
  * type of resource.
  * @exception InvalidParameters If he given resource cannot be assigned to
  * given node or no corresponding machine part is found.
  */
 void
-IUBroker::assign(int useCycle, MoveNode& node, SchedulingResource& res) {
-    int defCycle = (useCycle > 0) ? useCycle : 1;
+IUBroker::assign(
+    int useCycle, MoveNode& node, SchedulingResource& res, int immWriteCycle,
+    int immRegIndex) {
+
+    int defCycle = useCycle;
+    if (immWriteCycle != -1) {
+        defCycle = immWriteCycle;
+    }
 
     IUResource& iuRes = dynamic_cast<IUResource&>(res);
     Move& move = const_cast<MoveNode&>(node).move();
@@ -189,38 +238,59 @@ IUBroker::assign(int useCycle, MoveNode& node, SchedulingResource& res) {
         ImmediateUnit& iu =
             const_cast<ImmediateUnit&>(
                 dynamic_cast<const ImmediateUnit&>(machinePartOf(res)));
-        // IURes assign method will set index to the register
-        // in IU that was assigned for immediate read
-        int index = 0;
-        while (defCycle > 0 && (useCycle - defCycle) < MAX_LIMM_DISTANCE) {
-            defCycle--;
-            if (iuRes.canAssign(defCycle, useCycle, node)) {
-                TerminalImmediate* tempImm =
-                    dynamic_cast<TerminalImmediate*>(
-                        node.move().source().copy());
-                const ImmediateUnit& iu =
-                    dynamic_cast<const ImmediateUnit&>(machinePartOf(iuRes));
-                RFPort* port = iu.port(0);
-                TerminalRegister* newSrc = new TerminalRegister(*port, 0);
-                Immediate* imm = new Immediate(tempImm, newSrc);
-                if (rm_->isTemplateAvailable(defCycle, imm)) {
-                    delete imm;
-                    break;
-                } else {
-                    delete imm;
-                }
-            }
-        }
-        iuRes.assign(defCycle, useCycle, node, index);
 
-        // temporary, source() has to know some port of IU to
-        // be able to identify which IU Move uses.
-        // OutputPSocket broker will assign a free port later
-        RFPort* port = iu.port(0);
-        assignedResources_.insert(
-            std::pair<const MoveNode*, SchedulingResource*>(&node, &iuRes));
-        TerminalRegister* newSrc = new TerminalRegister(*port, index);
-        move.setSource(newSrc);
+        // pre-split LIMM
+        if (node.move().source().isImmediateRegister()) {
+            const ImmediateUnit& iuSrc =
+                node.move().source().immediateUnit();
+            assert(&iu == &iuSrc);
+            IUResource* iuRes = static_cast<IUResource*>(resourceOf(iu));
+            iuRes->assign(useCycle, node);
+            assignedResources_.insert(
+                std::pair<const MoveNode*, SchedulingResource*>(&node, iuRes));
+
+        } else {
+            int index = -1;
+            // IURes assign method will set index to the register
+            // in IU that was assigned for immediate read
+
+            while (defCycle >= 0 && (useCycle - defCycle) < MAX_LIMM_DISTANCE) {
+                if (iuRes.canAssign(defCycle, useCycle, node, immRegIndex)) {
+                    TerminalImmediate* tempImm =
+                        dynamic_cast<TerminalImmediate*>(
+                            node.move().source().copy());
+                    const ImmediateUnit& iu =
+                        dynamic_cast<const ImmediateUnit&>(machinePartOf(iuRes));
+                    RFPort* port = iu.port(0);
+                    TerminalRegister* newSrc = new TerminalRegister(*port, 0);
+                    auto imm = std::make_shared<Immediate>(tempImm, newSrc);
+                    if (rm_->isTemplateAvailable(defCycle, imm)) {
+                        break;
+                    }
+                }
+                if (immWriteCycle != -1) {
+                    std::cerr << "Use cycle: " << useCycle << " imm cycle: "
+                              << immWriteCycle << " node: " << node.toString()
+                              << std::endl;
+                    assert(NULL && "Can't assign forced imm write at cycle");
+                }
+                defCycle--;
+            }
+	    // is index forced?
+	    if (immRegIndex != -1)
+		index = immRegIndex;
+            iuRes.assign(defCycle, useCycle, node, index);
+
+
+            // temporary, source() has to know some port of IU to
+            // be able to identify which IU Move uses.
+            // OutputPSocket broker will assign a free port later
+            RFPort* port = iu.port(0);
+            assignedResources_.insert(
+                std::pair<const MoveNode*, SchedulingResource*>(&node, &iuRes));
+            TerminalRegister* newSrc = new TerminalRegister(*port, index);
+            move.setSource(newSrc);
+        }
     } else {
         string msg = "Broker does not contain given resource.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
@@ -266,7 +336,13 @@ IUBroker::unassign(MoveNode& node) {
  * given node.
  */
 int
-IUBroker::earliestCycle(int, const MoveNode&) const {
+IUBroker::earliestCycle(
+    int, const MoveNode&,
+    const TTAMachine::Bus*,
+    const TTAMachine::FunctionUnit*,
+    const TTAMachine::FunctionUnit*, int,
+    const TTAMachine::ImmediateUnit*,
+    int) const {
     abortWithError("Not implemented.");
     return -1;
 }
@@ -283,7 +359,12 @@ IUBroker::earliestCycle(int, const MoveNode&) const {
  * given node.
  */
 int
-IUBroker::latestCycle(int, const MoveNode&) const {
+IUBroker::latestCycle(int, const MoveNode&,
+                      const TTAMachine::Bus*,
+                      const TTAMachine::FunctionUnit*,
+                      const TTAMachine::FunctionUnit*, int,
+                      const TTAMachine::ImmediateUnit*,
+                      int) const {
     abortWithError("Not implemented.");
     return -1;
 }
@@ -302,7 +383,8 @@ IUBroker::latestCycle(int, const MoveNode&) const {
  * cycle).
  */
 bool
-IUBroker::isAlreadyAssigned(int, const MoveNode& node) const {
+IUBroker::isAlreadyAssigned(
+    int, const MoveNode& node, const TTAMachine::Bus*) const {
     if (!MapTools::containsKey(assignedResources_, &node)) {
         return false;
     }
@@ -329,7 +411,11 @@ IUBroker::isAlreadyAssigned(int, const MoveNode& node) const {
  * as well as by resetAssignments to remove the IU assignment
  */
 bool
-IUBroker::isApplicable(const MoveNode& node) const {
+IUBroker::isApplicable(
+    const MoveNode& node, const TTAMachine::Bus* preassignedBus) const {
+    if (!node.isMove()) {
+        return false;
+    }
     if (node.isSourceImmediateRegister()) {
         return true;
     }
@@ -339,7 +425,8 @@ IUBroker::isApplicable(const MoveNode& node) const {
             TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM)) {
         return true;
     }
-    if (node.isSourceConstant() && !rm_->canTransportImmediate(node)) {
+    if (node.isSourceConstant() &&
+        !rm_->canTransportImmediate(node, preassignedBus)) {
         return true;
     }
     return false;
@@ -370,6 +457,7 @@ IUBroker::buildResources(const TTAMachine::Machine& target) {
         }
         IUResource* iuResource =
             new IUResource(
+                target,
                 iu->name(), iu->numberOfRegisters(), iu->width(),
                 iu->latency(), extension, initiationInterval_);
         ResourceBroker::addResource(*iu, iuResource);
@@ -455,7 +543,7 @@ IUBroker::isIUBroker() const {
  * read
  * @return Terminal representing original source of Move
  */
-TTAProgram::Terminal*
+std::shared_ptr<TTAProgram::TerminalImmediate>
 IUBroker::immediateValue(const MoveNode& node) const {
     if (!node.isSourceImmediateRegister()) {
         return NULL;

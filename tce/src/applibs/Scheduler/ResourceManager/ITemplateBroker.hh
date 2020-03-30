@@ -67,34 +67,66 @@ public:
     ITemplateBroker(std::string, BusBroker& busBroker, SimpleResourceManager*, unsigned int initiationInterval = 0);
     virtual ~ITemplateBroker();
 
-    virtual bool isAnyResourceAvailable(int, const MoveNode&) const;
+    virtual bool isAnyResourceAvailable(int, const MoveNode&,
+                                        const TTAMachine::Bus* bus,
+                                        const TTAMachine::FunctionUnit* srcFU,
+                                        const TTAMachine::FunctionUnit* dstFU,
+                                        int immWriteCycle,
+                                        const TTAMachine::ImmediateUnit* immu,
+                                        int immRegIndex) const override;
     virtual SchedulingResourceSet allAvailableResources(
         int,
-        const MoveNode&) const;
-    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res);
-    virtual void unassign(MoveNode& node);
+        const MoveNode&,
+        const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcUnit,
+        const TTAMachine::FunctionUnit* dstUnit,
+        int immWriteCycle,
+        const TTAMachine::ImmediateUnit* immu,
+        int immRegIndex) const override;
+    virtual void assign(int cycle, MoveNode& node, SchedulingResource& res,
+                        int immWriteCycle,
+                        int immRegIndex) override;
 
-    virtual int earliestCycle(int cycle, const MoveNode& node) const;
-    virtual int latestCycle(int cycle, const MoveNode& node) const;
-    virtual bool isAlreadyAssigned(int cycle, const MoveNode& node) const;
-    virtual bool isApplicable(const MoveNode& node) const;
-    virtual void buildResources(const TTAMachine::Machine& target);
-    virtual void setupResourceLinks(const ResourceMapper& mapper);
+    virtual void unassign(MoveNode& node) override;
 
-    virtual bool isITemplateBroker() const;
+    virtual int earliestCycle(int cycle, const MoveNode& node,
+                              const TTAMachine::Bus* bus,
+                              const TTAMachine::FunctionUnit* srcUnit,
+                              const TTAMachine::FunctionUnit* dstUnit,
+                              int immWriteCycle,
+                              const TTAMachine::ImmediateUnit* immu,
+                              int immRegIndex) const override;
+    virtual int latestCycle(int cycle, const MoveNode& node,
+                            const TTAMachine::Bus* bus,
+                            const TTAMachine::FunctionUnit* srcUnit,
+                            const TTAMachine::FunctionUnit* dstUnit,
+                            int immWriteCycle,
+                            const TTAMachine::ImmediateUnit* immu,
+                            int immRegIndex) const override;
+    virtual bool isAlreadyAssigned(
+        int cycle, const MoveNode& node,
+        const TTAMachine::Bus* preassignedBus) const override;
+    virtual bool isApplicable(
+        const MoveNode& node, const TTAMachine::Bus*) const override;
+    virtual void buildResources(const TTAMachine::Machine& target) override;
+    virtual void setupResourceLinks(const ResourceMapper& mapper) override;
+
+    virtual bool isITemplateBroker() const override;
     virtual TTAProgram::Instruction* instruction(int cycle);
     virtual void loseInstructionOwnership(int cycle);
-    virtual bool isTemplateAvailable(int, TTAProgram::Immediate*) const;
+    virtual bool isTemplateAvailable(
+        int, std::shared_ptr<TTAProgram::Immediate>) const;
     void clearOldResources();
-    void clear();
+    void clear() override;
 private:
-    typedef std::vector<TTAProgram::Move*> Moves;
-    typedef std::vector<TTAProgram::Immediate*> Immediates;
+    typedef std::vector<std::shared_ptr<const TTAProgram::Move> > Moves;
+    typedef std::vector<std::shared_ptr<const TTAProgram::Immediate> > Immediates;
 
-    SchedulingResourceSet findITemplates(int, Moves, Immediates) const;
-    void assignImmediate(int, TTAProgram::Immediate&);
+    SchedulingResourceSet findITemplates(int, Moves&, Immediates&) const;
+    void assignImmediate(int, std::shared_ptr<TTAProgram::Immediate>);
     void unassignImmediate(int,const TTAMachine::ImmediateUnit&);
-    bool isImmediateInTemplate(int, const TTAProgram::Immediate*) const;
+    bool isImmediateInTemplate(
+        int, std::shared_ptr<const TTAProgram::Immediate>) const;
     
     /// Move/immediate slots.
     std::vector<TTAMachine::Bus*> slots_;
@@ -109,7 +141,7 @@ private:
     /// so we need to explicitely find the Immediate to remove it from
     /// template
     std::map<const MoveNode*, int, GraphNode::Comparator> immediateCycles_;
-    std::map<const MoveNode*, TTAProgram::Immediate*, 
+    std::map<const MoveNode*, std::shared_ptr<TTAProgram::Immediate>,
              GraphNode::Comparator> immediateValues_;
     
     std::map<int, bool> instructionsNotOwned_;

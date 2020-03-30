@@ -35,6 +35,9 @@
  * @note rating: red
  */
 
+#ifndef TTA_LIVERANGE_DATA_HH
+#define TTA_LIVERANGE_DATA_HH
+
 #include "MoveNodeUse.hh"
 #include "TCEString.hh"
 #include <set>
@@ -117,3 +120,5 @@ struct LiveRangeData {
     std::set<TCEString> registersUsedAfter_;
     std::set<TCEString> registersUsedInOrAfter_;
 };
+
+#endif

@@ -56,6 +56,9 @@ class MoveNodeSelector;
 
 class RegisterRenamer {
 public:
+    typedef std::set<const TTAMachine::RegisterFile*,
+                     TTAMachine::MachinePart::Comparator> RegisterFileSet;
+
     RegisterRenamer(
         const TTAMachine::Machine& machine, TTAProgram::BasicBlock& bb);
     unsigned int freeGPRCount() const { return freeGPRs_.size(); }
@@ -81,31 +84,28 @@ public:
         LiveRange& liveRange, const TCEString& newReg, bool usedBefore,
         bool usedAfter, bool loopScheduling);
 
-private:
-
-    std::set<TCEString> registersOfRFs(
-        std::set<const TTAMachine::RegisterFile*, 
-        TTAMachine::MachinePart::Comparator>& rfs) const;
-
-    std::set<const TTAMachine::RegisterFile*,
-             TTAMachine::MachinePart::Comparator>
-    findConnectedRFs(LiveRange& lr, bool allowLimm);
-
-    void initializeFreeRegisters();
+    std::set<TCEString> findPartiallyUsedRegistersInRFAfterCycle(
+        const RegisterFileSet& rfs, int latestCycle) const;
 
     std::set<TCEString> findFreeRegistersInRF(
-        std::set<const TTAMachine::RegisterFile*,
-        TTAMachine::MachinePart::Comparator>& rfs) const;
+        const RegisterFileSet& rfs) const;
+
+    RegisterFileSet findConnectedRFs(LiveRange& lr, bool allowLimm);
+
+    TTAProgram::BasicBlock& bb() { return bb_; }
+
+    void renamedToRegister(const TCEString& newReg);
+    void revertedRenameToRegister(const TCEString& reg);
+private:
+
+    std::set<TCEString> registersOfRFs(const RegisterFileSet& rfs) const;
+
+    void initializeFreeRegisters();
 
     std::set<TCEString> findPartiallyUsedRegistersInRFBeforeCycle(
         std::set<const TTAMachine::RegisterFile*,
         TTAMachine::MachinePart::Comparator>& rfs,
         int earliestCycle) const;
-
-    std::set<TCEString> findPartiallyUsedRegistersInRFAfterCycle(
-        std::set<const TTAMachine::RegisterFile*,
-        TTAMachine::MachinePart::Comparator>& rfs,
-        int latestCycle) const;
     
     std::set<TCEString> findPartiallyUsedRegistersBeforeCycle(
         int bitWidth, int earliestCycle) const;

@@ -52,7 +52,7 @@ CodeGenerator::addMoveToProcedure(
             TTAMachine::NullInstructionTemplate::instance());
 
     newInstr->addMove(
-        new TTAProgram::Move(
+        std::make_shared<TTAProgram::Move>(
             srcTerminal, dstTerminal, uMach_->universalBus()));
 
     dstProcedure.add(newInstr);
@@ -68,11 +68,11 @@ CodeGenerator::addAnnotatedMoveToProcedure(
     TTAProgram::Instruction* newInstr =
         new TTAProgram::Instruction(
             TTAMachine::NullInstructionTemplate::instance());
-    TTAProgram::Move* move = new TTAProgram::Move(
+    auto movePtr = std::make_shared<TTAProgram::Move>(
         srcTerminal, dstTerminal, uMach_->universalBus());
 
-    move->addAnnotation(annotation);
-    newInstr->addMove(move);
+    movePtr->addAnnotation(annotation);
+    newInstr->addMove(movePtr);
 
     dstProcedure.add(newInstr);
 }
@@ -731,12 +731,12 @@ CodeGenerator::createSchedYieldProcedure(
  */
 TTAProgram::MoveGuard*
 CodeGenerator::createInverseGuard(
-    TTAProgram::MoveGuard &mg, TTAMachine::Bus* bus) {
+    const TTAProgram::MoveGuard &mg, const TTAMachine::Bus* bus) {
 
-    TTAMachine::Guard& g = mg.guard();
+    const TTAMachine::Guard& g = mg.guard();
     bool inv = g.isInverted();
-    TTAMachine::RegisterGuard* rg =
-        dynamic_cast<TTAMachine::RegisterGuard*>(&g);
+    const TTAMachine::RegisterGuard* rg =
+        dynamic_cast<const TTAMachine::RegisterGuard*>(&g);
     if (rg != NULL) {
         TTAMachine::RegisterFile* rf = rg->registerFile();
         int regIndex = rg->registerIndex();
@@ -747,9 +747,9 @@ CodeGenerator::createInverseGuard(
 
         // find guard
         for (int i = 0 ; i < bus->guardCount(); i++) {
-            TTAMachine::Guard *g2 = bus->guard(i);
-            TTAMachine::RegisterGuard* rg2 =
-                dynamic_cast<TTAMachine::RegisterGuard*>(g2);
+            const TTAMachine::Guard *g2 = bus->guard(i);
+            const TTAMachine::RegisterGuard* rg2 =
+                dynamic_cast<const TTAMachine::RegisterGuard*>(g2);
             if (rg2) {
                 if( rg2->registerFile() == rf &&
                     rg2->registerIndex() == regIndex &&

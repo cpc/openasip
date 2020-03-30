@@ -60,7 +60,7 @@ using namespace TTAProgram;
  * Constructor.
  */
 OutputFUBroker::OutputFUBroker(std::string name, unsigned int initiationInterval) :
-    ResourceBroker(name, initiationInterval) {
+    FUBroker(name, initiationInterval) {
 }
 
 /**
@@ -81,7 +81,12 @@ OutputFUBroker::~OutputFUBroker(){
 SchedulingResourceSet
 OutputFUBroker::allAvailableResources(
     int cycle,
-    const MoveNode& node) const {
+    const MoveNode& node,
+    const TTAMachine::Bus*,
+    const TTAMachine::FunctionUnit* srcFU,
+    const TTAMachine::FunctionUnit*, int,
+    const TTAMachine::ImmediateUnit*,
+    int) const {
 
     int modCycle = instructionIndex(cycle);
     if (!isApplicable(node)) {
@@ -90,12 +95,16 @@ OutputFUBroker::allAvailableResources(
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
     }
 
-    Move& move = const_cast<MoveNode&>(node).move();
-    TerminalFUPort& src = static_cast<TerminalFUPort&>(move.source());
-
+    const TTAMachine::FunctionUnit* foundFU = srcFU;
+    int opIndex = -1;
+    ProgramOperation* PO = nullptr;
     SchedulingResourceSet resourceSet;
     ResourceMap::const_iterator resIter = resMap_.begin();
 
+    const Operation* op = nullptr;
+
+    assert (node.move().source().isFUPort());
+    TerminalFUPort& src = static_cast<TerminalFUPort&>(node.move().source());
     if (dynamic_cast<const SpecialRegisterPort*>(&src.port()) != NULL) {
         // only gcu applies
         while (resIter != resMap_.end()) {
@@ -112,73 +121,44 @@ OutputFUBroker::allAvailableResources(
         abortWithError("No GCU found!");
     }
 
-    Operation& op = src.hintOperation();
-    int opIndex = src.operationIndex();
+    op = &src.hintOperation();
+    opIndex = src.operationIndex();
+
     // check if a unit has already been assigned to some node
     // of the same operation and use it.
     if (node.isSourceOperation()) {
-        ProgramOperation& PO = node.sourceOperation();
-        if (PO.isComplete()) {
-            for (int i = 1; PO.hasInputNode(i); i++) {
-                MoveNodeSet nodeSet = PO.inputNode(i);
-                for (int j = 0; j < nodeSet.count(); j++) {
-                    Move& move = nodeSet.at(j).move();
-                    Terminal& dst = move.destination();
-                    if (!dst.isFUPort()) {
-                    throw InvalidData(__FILE__, __LINE__, __func__, 
-                        "Operand move does not write FU!");
-                    }                    
-                    const FunctionUnit& fu = dst.functionUnit();
-                    if (hasResourceOf(fu)) {
-                        
-                        OutputFUResource& fuRes =
-                            static_cast<OutputFUResource&>(*resourceOf(fu));
-                        debugLogRM(TCEString(" has resource of ") + fuRes.name());
-                    // Find what is the port on a new FU for given
-                    // operation index. Find a socket for testing.
-                        HWOperation* hwOp = fu.operation(op.name());
-                        Port* resultPort = hwOp->port(opIndex);
-                        if (fuRes.canAssign(cycle, node, *resultPort)) {
-                            resourceSet.insert(fuRes);
-                        }
-                        return resourceSet;
-                    }
-                }
-            }
-            // Output nodes indexing starts after input nodes            
-            for (int i = 1 + PO.inputMoveCount(); PO.hasOutputNode(i); i++) {            
-                MoveNodeSet nodeSet = PO.outputNode(i);
-                for (int j = 0; j < nodeSet.count(); j++) {
-                    Move& move = nodeSet.at(j).move();
-                    Terminal& src = move.source();
-                    if (!src.isFUPort()) {
-                        throw InvalidData(__FILE__, __LINE__, __func__, 
-                            "Result move does not read FU!");
-                    }                                        
-                    
-                    const FunctionUnit& fu = src.functionUnit();
-                    if (hasResourceOf(fu)) {
-                        OutputFUResource& fuRes =
-                            static_cast<OutputFUResource&>(*resourceOf(fu));
-                    // Find what is the port on a new FU for given
-                    // operation index. Find a socket for testing.
-                        HWOperation* hwOp = fu.operation(op.name());
-                        Port* resultPort = hwOp->port(opIndex);
-                        if (fuRes.canAssign(cycle, node, *resultPort)) {
-                            resourceSet.insert(fuRes);
-                        }
-                        return resourceSet;
-                    }
-                }
-            }
+        PO = &node.sourceOperation();
+    } else {
+        assert(false);
+    }
 
+    auto a = findFUOfPO(*PO, foundFU);
+    if (a.first) {
+        foundFU = a.second;
+    } else { // conflicting FUs, cannot schedule
+        return SchedulingResourceSet();
+    }
+
+    if (foundFU) {
+        OutputFUResource& fuRes =
+            static_cast<OutputFUResource&>(*resourceOf(*foundFU));
+        // Find what is the port on a new FU for given
+        // operation index. Find a socket for testing.
+        HWOperation* hwOp = foundFU->operation(op->name());
+        assert(hwOp != nullptr);
+        Port* resultPort = hwOp->port(opIndex);
+        assert (resultPort != nullptr);
+        if (fuRes.canAssign(cycle, node, *resultPort)) {
+            resourceSet.insert(fuRes);
         }
+        return resourceSet;
     }
 
     // check if the move has a candidate FU set which limits the
     // choice of FU for the node
     std::set<TCEString> candidateFUs;
     std::set<TCEString> allowedFUs;
+    std::set<TCEString> rejectedFUs;
 
     // TODO: why is this in loop for operands but not in loop for results?
     // do multiple return values break or work?
@@ -188,11 +168,21 @@ OutputFUBroker::allAvailableResources(
     MachineConnectivityCheck::addAnnotatedFUs(
         allowedFUs, node.move(),
         TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC);
+    MachineConnectivityCheck::addAnnotatedFUs(
+        rejectedFUs, node.move(),
+        TTAProgram::ProgramAnnotation::ANN_REJECTED_UNIT_SRC);
 
     // find units that support operation and are available at given cycle
     while (resIter != resMap_.end()) {
         const FunctionUnit* unit =
             static_cast<const FunctionUnit*>((*resIter).first);
+        if (srcFU != NULL && unit != srcFU) {
+            debugLogRM(TCEString("Skipping unit") << unit->name()
+                       << " because it's not the pre-set one: "
+                       << srcFU->name());
+            resIter++;
+            continue;
+        }
         // in case the unit is limited by a candidate set, skip FUs that are
         // not in it
         debugLogRM(TCEString("checking ") << unit->name());        
@@ -203,25 +193,38 @@ OutputFUBroker::allAvailableResources(
         }
         if (allowedFUs.size() > 0 &&
             !AssocTools::containsKey(allowedFUs, unit->name())) {
+            debugLogRM(
+                TCEString("skipped ") << unit->name() << " because it was not"
+                " in the allowed set. The set contents: ");
+            for (auto allowedUnit : allowedFUs)
+                debugLogRM(allowedUnit + "\n");
             ++resIter;
             continue;
         }
 
-        if (unit->hasOperation(op.name())) {
+        if (AssocTools::containsKey(rejectedFUs, unit->name())) {
+            debugLogRM(
+                TCEString("skipped ") << unit->name() << " because it was"
+                " in the rejected set.");
+            ++resIter;
+            continue;
+        }
+
+        if (unit->hasOperation(op->name())) {
             OutputFUResource& fuRes =
                 static_cast<OutputFUResource&>(*resourceOf(*unit));
                 // Find what is the port on a new FU for given
                 // operation index. Find a socket for testing.
-            HWOperation* hwOp = unit->operation(op.name());
+            HWOperation* hwOp = unit->operation(op->name());
             Port* resultPort = hwOp->port(opIndex);
             if (fuRes.canAssign(cycle, node, *resultPort)) {
-                debugLogRM("testing " + op.name());
+                debugLogRM("testing " + op->name());
                 resourceSet.insert(*(*resIter).second);
             } else {
                 debugLogRM("could not assign the fuRes to it.");
             }
         } else {
-            debugLogRM(TCEString("does not have operation ") + op.name());
+            debugLogRM(TCEString("does not have operation ") + op->name());
         }
         resIter++;
     }
@@ -244,7 +247,8 @@ OutputFUBroker::allAvailableResources(
  * given node or no corresponding machine part is found.
  */
 void
-OutputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res) {
+OutputFUBroker::assign(
+    int cycle, MoveNode& node, SchedulingResource& res, int, int) {
     // TODO: this breaks execpipeline
 //    cycle = instructionIndex(cycle);
     if (!isApplicable(node)) {
@@ -342,7 +346,12 @@ OutputFUBroker::unassign(MoveNode& node) {
  * given node.
  */
 int
-OutputFUBroker::earliestCycle(int, const MoveNode&) const {
+OutputFUBroker::earliestCycle(int, const MoveNode&,
+                              const TTAMachine::Bus*,
+                              const TTAMachine::FunctionUnit*,
+                              const TTAMachine::FunctionUnit*, int,
+                              const TTAMachine::ImmediateUnit*,
+                              int) const {
     abortWithError("Not implemented.");
     return -1;
 }
@@ -359,7 +368,11 @@ OutputFUBroker::earliestCycle(int, const MoveNode&) const {
  * given node.
  */
 int
-OutputFUBroker::latestCycle(int, const MoveNode&) const {
+OutputFUBroker::latestCycle(int, const MoveNode&, const TTAMachine::Bus*,
+                            const TTAMachine::FunctionUnit*,
+                            const TTAMachine::FunctionUnit*,int,
+                            const TTAMachine::ImmediateUnit*,
+                            int) const {
     abortWithError("Not implemented.");
     return -1;
 }
@@ -378,7 +391,8 @@ OutputFUBroker::latestCycle(int, const MoveNode&) const {
  * cycle).
  */
 bool
-OutputFUBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
+OutputFUBroker::isAlreadyAssigned(
+    int cycle, const MoveNode& node, const TTAMachine::Bus*) const {
     cycle = instructionIndex(cycle);
     Terminal& src = const_cast<MoveNode&>(node).move().source();
     if (src.isFUPort()) {
@@ -401,7 +415,8 @@ OutputFUBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
  * by this broker, false otherwise.
  */
 bool
-OutputFUBroker::isApplicable(const MoveNode& node) const {
+OutputFUBroker::isApplicable(
+    const MoveNode& node, const TTAMachine::Bus*) const {
     Move& move = const_cast<MoveNode&>(node).move();
     return move.source().isFUPort();
 }

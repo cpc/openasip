@@ -82,7 +82,7 @@ public:
 
     virtual bool isConnectedTo(const Socket& socket) const;
 
-    bool hasGuard(Guard& guard) const;
+    bool hasGuard(const Guard& guard) const;
     void addGuard(Guard& guard);
     virtual void removeGuard(Guard& guard);
     int guardCount() const;

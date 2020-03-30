@@ -39,6 +39,8 @@
 #include "MoveNode.hh"
 #include "MathTools.hh"
 #include "TerminalImmediate.hh"
+#include "Machine.hh"
+#include "MachineConnectivityCheck.hh"
 
 /**
  * Constructor defining resource name, register count and register width
@@ -50,6 +52,7 @@
  * @param signExtension Indicates if IU is using Zero or Sign extend
  */
 IUResource::IUResource(
+    const TTAMachine::Machine& mach,
     const std::string& name,
     const int registers,
     const int width,
@@ -57,8 +60,8 @@ IUResource::IUResource(
     const bool signExtension,
     unsigned int initiationInterval)
     : SchedulingResource(name, initiationInterval),
-    registerCount_(registers), width_(width),
-    latency_(latency) , signExtension_(signExtension){
+      registerCount_(registers), width_(width),
+      latency_(latency) , signExtension_(signExtension), machine_(mach) {
     for (int i = 0; i < registerCount(); i++) {
         ResourceRecordVectorType vt;
         resourceRecord_.push_back(vt);
@@ -115,19 +118,31 @@ IUResource::isInUse(const int cycle) const {
  */
 bool
 IUResource::isAvailable(const int cycle) const {
+    return isAvailable(cycle, -1);
+}
+
+/**
+ * Test if resource IUResource is available
+ * @param cycle Cycle which to test
+ * @param register to test. If -1, any reg ok.
+ * @return False if all registers in IU are used in cycle
+ */
+bool
+IUResource::isAvailable(const int cycle, int immRegIndex) const {
     int modCycle = instructionIndex(cycle);
     for (int i = 0; i < registerCount(); i++) {
+	if (immRegIndex != -1 && i != immRegIndex) continue;
         bool marker = false;
         for (int j = 0 ;
             j < static_cast<int>(resourceRecord_.at(i).size());
             j++) {
             int otherDef = resourceRecord_.at(i).at(j)->definition_;
-            int modOtherDef = instructionIndex(otherDef);
+            int modOtherDef = instructionIndex(otherDef + latency_);
             int otherUse = resourceRecord_.at(i).at(j)->use_;
             int modOtherUse = instructionIndex(otherUse);
 
             // no overlap in old.
-            if (modOtherUse > modOtherDef) {
+            if (modOtherUse >= modOtherDef) {
                 // ordinary comparison, use between old def and use?
                 if (modCycle > modOtherDef && modCycle < modOtherUse) {
                     marker = true;
@@ -135,7 +150,7 @@ IUResource::isAvailable(const int cycle) const {
                 }
             } else { 
                 // before use before use, or after def of other
-                if (modCycle > modOtherDef || modCycle <= modOtherUse) {
+                if (modCycle >= modOtherDef || modCycle <= modOtherUse) {
                     marker = true;
                     break;
                 }
@@ -191,14 +206,13 @@ IUResource::assign(
         msg += name() + " has latency of " + Conversion::toString(latency_);
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
     }
-    int i = findAvailable(defCycle, useCycle);
+    int i = findAvailable(defCycle, useCycle, index);
     if (i != -1) {
         index = i;
-        ResourceRecordType* rc = new ResourceRecordType;
-        rc->definition_ = defCycle;
-        rc->use_ = useCycle;
-        rc->immediateValue_ =
-            node.move().source().copy();
+        ResourceRecordType* rc =
+            new ResourceRecordType(
+                defCycle,useCycle,static_cast<TTAProgram::TerminalImmediate*>(
+                    node.move().source().copy()));
         resourceRecord_.at(i).push_back(rc);
         return;
     }
@@ -231,11 +245,12 @@ IUResource::unassign(const int, MoveNode& node) {
     // assignment to node and restore node source
     while (itr != resourceRecord_.at(regIndex).end()) {
         if (node.cycle() == (*itr)->use_) {
-            TTAProgram::TerminalImmediate* originalTerminal =
-                dynamic_cast<TTAProgram::TerminalImmediate*>(
-                    (*itr)->immediateValue_);
-            TTAProgram::Terminal* toSet = originalTerminal->copy();
-            node.move().setSource(toSet);
+            std::shared_ptr<TTAProgram::TerminalImmediate> originalTerminal =
+                ((*itr)->immediateValue_);
+            if (originalTerminal) {
+                TTAProgram::Terminal* toSet = originalTerminal->copy();
+                node.move().setSource(toSet);
+            }
             delete *itr;
             resourceRecord_.at(regIndex).erase(itr);
             
@@ -272,7 +287,8 @@ bool
 IUResource::canAssign(
     const int defCycle,
     const int useCycle,
-    const MoveNode& node) const {
+    const MoveNode& node,
+    int immRegIndex) const {
 
     if (defCycle > useCycle) {
         return false;
@@ -288,7 +304,13 @@ IUResource::canAssign(
 
     TTAProgram::TerminalImmediate* iTerm =
         static_cast<TTAProgram::TerminalImmediate*>(&mNode.move().source());
-    if (findAvailable(defCycle, useCycle) != -1) {
+    if (findAvailable(defCycle, useCycle, immRegIndex) != -1) {
+        int reqWidth = MachineConnectivityCheck::requiredImmediateWidth(
+            signExtension_, *iTerm, machine_);
+        if (reqWidth > width_) {
+            return false;
+        }
+/*
         // FIXME: hack to check if terminal is floating point value
         if ((iTerm->value().width() > INT_WORD_SIZE) && 
             (iTerm->value().width() > width_)) {
@@ -302,6 +324,7 @@ IUResource::canAssign(
             width_) {
             return false;
         }
+*/
         for (int i = 0; i < relatedResourceGroupCount(); i++) {
             for (int j = 0, count = relatedResourceCount(i); j < count; j++) {
                 SchedulingResource& relRes = relatedResource(i,j);
@@ -360,7 +383,7 @@ IUResource::registerCount() const {
  * @param node MoveNode which is reading the register
  * @return Long immediate constant that is expected to be in register
  */
-TTAProgram::Terminal*
+std::shared_ptr<TTAProgram::TerminalImmediate>
 IUResource::immediateValue(const MoveNode& node) const {
     MoveNode& testNode = const_cast<MoveNode&>(node);
     if (!testNode.move().source().isImmediateRegister()) {
@@ -442,10 +465,12 @@ IUResource::validateRelatedGroups() {
  * definition and use cycles.
  */
 int
-IUResource::findAvailable(const int defCycle, const int useCycle) const {
+IUResource::findAvailable(
+    const int defCycle, const int useCycle, int immRegIndex) const {
     int modDef = instructionIndex(defCycle);
     int modUse = instructionIndex(useCycle);
     for (int i = 0; i < registerCount(); i++) {
+        if (immRegIndex != -1 && i != immRegIndex) continue;
         bool marker = false;
         const ResourceRecordVectorType& resVec = resourceRecord_.at(i);
         int size = resVec.size();
@@ -514,29 +539,9 @@ IUResource::clearOldResources() {
         for (int j = 0; 
              j < static_cast<int>(resourceRecord_.at(i).size()); j++) {
             ResourceRecordType* rec = resourceRecord_.at(i).at(j);
-            delete rec->immediateValue_;
             rec->immediateValue_ = NULL;
         }
     }
-}
-
-
-
-/**
- * Destructor for internal storage for assignment records.
- * Deletes a backup copy of original terminal when the node is unassigned.
- */
-IUResource::ResourceRecordType::~ResourceRecordType(){
-    if (immediateValue_ != NULL)
-        delete immediateValue_;
-}
-
-/**
- * Constructor for internal storage for assignment records.
- * Assigns all values to default value.
- */
-IUResource::ResourceRecordType::ResourceRecordType() :
-    definition_(-1), use_(-1), immediateValue_(NULL){
 }
 
 /**
@@ -562,3 +567,7 @@ IUResource::clear() {
         SequenceTools::deleteAllItems(resourceRecord_.at(i));
     }
 }
+
+IUResource::ResourceRecordType::ResourceRecordType(
+    int definition, int use, TTAProgram::TerminalImmediate* val) :
+    definition_(definition), use_(use), immediateValue_(val) {}

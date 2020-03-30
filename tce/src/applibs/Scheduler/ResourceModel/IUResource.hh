@@ -36,11 +36,17 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "SchedulingResource.hh"
 
 namespace TTAProgram {
     class Terminal;
+    class TerminalImmediate;
+}
+
+namespace TTAMachine {
+    class Machine;
 }
 
 /**
@@ -52,6 +58,7 @@ class IUResource : public SchedulingResource {
 public:
     virtual ~IUResource();
     IUResource(
+        const TTAMachine::Machine& mach,
         const std::string& name,
         const int registers,
         const int width,
@@ -59,21 +66,24 @@ public:
         const bool signExtension,
         unsigned int initiationInterval = 0);
 
-    virtual bool isInUse(const int cycle) const;
-    virtual bool isAvailable(const int cycle) const;
-    virtual bool canAssign(const int, const MoveNode&)const;
+    virtual bool isInUse(const int cycle) const override;
+    virtual bool isAvailable(const int cycle, int immRegIndex) const;
+    virtual bool isAvailable(const int cycle) const override;
+    virtual bool canAssign(const int, const MoveNode&)const override;
     virtual bool canAssign(
         const int defCycle,
         const int useCycle,
-        const MoveNode& node) const;
-    virtual void assign(const int cycle, MoveNode& node);
+        const MoveNode& node,
+	int immRegIndex) const;
+    virtual void assign(const int cycle, MoveNode& node) override;
     virtual void assign(
         const int defCycle, const int useCycle, MoveNode& node, int& index);
     virtual void unassign(const int cycle, MoveNode& node);
     virtual bool isIUResource() const;
 
     int registerCount() const;
-    TTAProgram::Terminal* immediateValue(const MoveNode& node) const;
+    std::shared_ptr<TTAProgram::TerminalImmediate>
+    immediateValue(const MoveNode& node) const;
     int immediateWriteCycle(const MoveNode& node) const;
     int width() const;
 
@@ -89,11 +99,10 @@ private:
     // Stores first and last cycle register is marked for use
     // also the actual value of constant to be stored in register
     struct ResourceRecordType{
-        ResourceRecordType();
-        ~ResourceRecordType();
+        ResourceRecordType(int definition, int use, TTAProgram::TerminalImmediate* val);
         int         definition_;
         int         use_;
-        TTAProgram::Terminal*    immediateValue_;
+        std::shared_ptr<TTAProgram::TerminalImmediate> immediateValue_;
     };
     // For each register, there are several def-use combinations
     // non overlapping
@@ -102,7 +111,8 @@ private:
     IUResource(const IUResource&);
     // Assignment forbidden
     IUResource& operator=(const IUResource&);
-    int findAvailable(const int defCycle, const int useCycle) const;
+    int findAvailable(
+        const int defCycle, const int useCycle, int immRegIndex) const;
 
     std::vector<ResourceRecordVectorType> resourceRecord_;
     // Number of registers in given IU
@@ -113,5 +123,7 @@ private:
     int latency_;
     //Extention of IU, true == sign extends, false == zero extends
     bool signExtension_;
+
+    const TTAMachine::Machine& machine_;
 };
 #endif

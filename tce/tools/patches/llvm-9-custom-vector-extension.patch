@@ -1,7 +1,7 @@
-Index: include/llvm/Support/MachineValueType.h
+Index: llvm/include/llvm/Support/MachineValueType.h
 ===================================================================
---- include/llvm/Support/MachineValueType.h	(revision 309105)
-+++ include/llvm/Support/MachineValueType.h	(working copy)
+--- llvm/include/llvm/Support/MachineValueType.h	(revision 309105)
++++ llvm/include/llvm/Support/MachineValueType.h	(working copy)
 @@ -67,88 +67,93 @@
        v16i1          =  18,   //   16 x i1
        v32i1          =  19,   //   32 x i1
@@ -472,10 +472,10 @@ Index: include/llvm/Support/MachineValueType.h
          break;
        case MVT::f32:
          if (NumElements == 1)  return MVT::v1f32;
-Index: include/llvm/CodeGen/ValueTypes.td
+Index: llvm/include/llvm/CodeGen/ValueTypes.td
 ===================================================================
---- include/llvm/CodeGen/ValueTypes.td	(revision 309105)
-+++ include/llvm/CodeGen/ValueTypes.td	(working copy)
+--- llvm/include/llvm/CodeGen/ValueTypes.td	(revision 309105)
++++ llvm/include/llvm/CodeGen/ValueTypes.td	(working copy)
 @@ -39,129+39,139 @@
  def v16i1  : ValueType<16,  18>;   //  16 x i1 vector value
  def v32i1  : ValueType<32 , 19>;   //  32 x i1 vector value
@@ -724,10 +724,10 @@ Index: include/llvm/CodeGen/ValueTypes.td
  def MetadataVT: ValueType<0, 249>;  // Metadata
  
  // Pseudo valuetype mapped to the current pointer size to any address space.
-Index: include/llvm/IR/Intrinsics.td
+Index: llvm/include/llvm/IR/Intrinsics.td
 ===================================================================
---- include/llvm/IR/Intrinsics.td	(revision 309105)
-+++ include/llvm/IR/Intrinsics.td	(working copy)
+--- llvm/include/llvm/IR/Intrinsics.td	(revision 309105)
++++ llvm/include/llvm/IR/Intrinsics.td	(working copy)
 @@ -194,8 +194,15 @@
  def llvm_v16i1_ty      : LLVMType<v16i1>;    //  16 x i1
  def llvm_v32i1_ty      : LLVMType<v32i1>;    //  32 x i1
@@ -764,10 +764,10 @@ Index: include/llvm/IR/Intrinsics.td
  def llvm_v1f64_ty      : LLVMType<v1f64>;    //  1 x double
  def llvm_v2f64_ty      : LLVMType<v2f64>;    //  2 x double
  def llvm_v4f64_ty      : LLVMType<v4f64>;    //  4 x double
-Index: lib/IR/ValueTypes.cpp
+Index: llvm/lib/IR/ValueTypes.cpp
 ===================================================================
---- lib/CodeGen/ValueTypes.cpp	(revision 309105)
-+++ lib/CodeGen/ValueTypes.cpp	(working copy)
+--- llvm/lib/CodeGen/ValueTypes.cpp	(revision 309105)
++++ llvm/lib/CodeGen/ValueTypes.cpp	(working copy)
 @@ -149,9 +149,13 @@
    case MVT::v16i1:   return "v16i1";
    case MVT::v32i1:   return "v32i1";
@@ -823,10 +823,10 @@ Index: lib/IR/ValueTypes.cpp
    case MVT::v1f32:   return VectorType::get(Type::getFloatTy(Context), 1);
    case MVT::v2f32:   return VectorType::get(Type::getFloatTy(Context), 2);
    case MVT::v3f32:   return VectorType::get(Type::getFloatTy(Context), 3);
-Index: tools/llvm-config/llvm-config.cpp
+Index: llvm/tools/llvm-config/llvm-config.cpp
 ===================================================================
---- tools/llvm-config/llvm-config.cpp	(revision 309105)
-+++ tools/llvm-config/llvm-config.cpp	(working copy)
+--- llvm/tools/llvm-config/llvm-config.cpp	(revision 309105)
++++ llvm/tools/llvm-config/llvm-config.cpp	(working copy)
 @@ -216,6 +216,7 @@
    --shared-mode     Print how the provided components can be collectively linked (`shared` or `static`).\n\
    --link-shared     Link the components as shared libraries.\n\
@@ -847,10 +847,10 @@ Index: tools/llvm-config/llvm-config.cpp
        } else {
          usage();
        }
-Index: utils/TableGen/CodeGenTarget.cpp
+Index: llvm/utils/TableGen/CodeGenTarget.cpp
 ===================================================================
---- utils/TableGen/CodeGenTarget.cpp	(revision 309105)
-+++ utils/TableGen/CodeGenTarget.cpp	(working copy)
+--- llvm/utils/TableGen/CodeGenTarget.cpp	(revision 309105)
++++ llvm/utils/TableGen/CodeGenTarget.cpp	(working copy)
 @@ -82,9 +82,12 @@
    case MVT::v16i1:    return "MVT::v16i1";
    case MVT::v32i1:    return "MVT::v32i1";
@@ -883,10 +883,10 @@ Index: utils/TableGen/CodeGenTarget.cpp
    case MVT::v1f32:    return "MVT::v1f32";
    case MVT::v2f32:    return "MVT::v2f32";
    case MVT::v3f32:    return "MVT::v3f32";
-Index: utils/TableGen/IntrinsicEmitter.cpp
+Index: llvm/utils/TableGen/IntrinsicEmitter.cpp
 ===================================================================
---- utils/TableGen/IntrinsicEmitter.cpp	(revision 360279)
-+++ utils/TableGen/IntrinsicEmitter.cpp	(working copy)
+--- llvm/utils/TableGen/IntrinsicEmitter.cpp	(revision 360279)
++++ llvm/utils/TableGen/IntrinsicEmitter.cpp	(working copy)
 @@ -215,13 +215,17 @@
    IIT_PTR_TO_ELT = 33,
    IIT_VEC_OF_ANYPTRS_TO_ELT = 34,
@@ -925,10 +925,10 @@ Index: utils/TableGen/IntrinsicEmitter.cpp
      }
  
      return EncodeFixedValueType(VVT.getVectorElementType().SimpleTy, Sig);
-Index: lib/IR/Function.cpp
+Index: llvm/lib/IR/Function.cpp
 ===================================================================
---- lib/IR/Function.cpp	(revision 360279)
-+++ lib/IR/Function.cpp	(working copy)
+--- llvm/lib/IR/Function.cpp	(revision 360279)
++++ llvm/lib/IR/Function.cpp	(working copy)
 @@ -683,13 +683,17 @@
    IIT_PTR_TO_ELT = 33,
    IIT_VEC_OF_ANYPTRS_TO_ELT = 34,

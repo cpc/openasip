@@ -39,6 +39,8 @@
 #include "ProgramAnnotation.hh"
 #include "Exception.hh"
 
+class TCEString;
+
 namespace TTAProgram {
 
 /**
@@ -64,6 +66,7 @@ public:
         ProgramAnnotation::Id id = ProgramAnnotation::ANN_UNDEF_ID);
     bool hasAnnotations(
         ProgramAnnotation::Id id = ProgramAnnotation::ANN_UNDEF_ID) const;
+    bool hasAnnotation(ProgramAnnotation::Id id, const TCEString& data) const;
 
     void copyAnnotationsFrom(const AnnotatedInstructionElement& other);
 

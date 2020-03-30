@@ -161,10 +161,10 @@ private:
         DataDependenceGraph::NodeSet& tempAssigns, SimpleResourceManager& rm);
 
     MoveNode& getMoveNode(
-        MoveNode& old, BasicBlockNode& bbn);
+        MoveNode& old, BasicBlockNode& bbn, bool fillOverBackEdge);
     ProgramOperationPtr getProgramOperationPtr(
-        ProgramOperationPtr old, BasicBlockNode& bbn);
-    TTAProgram::Move& getMove(TTAProgram::Move& old);
+        ProgramOperationPtr old, BasicBlockNode& bbn, bool fillOverBackEdge);
+    std::shared_ptr<TTAProgram::Move> getMove(TTAProgram::Move& old);
 
     bool poMoved(
         ProgramOperationPtr po,  MoveNodeListVector& movesToCopy, 
@@ -185,7 +185,7 @@ private:
     oldProgramOperations_;
     std::map<MoveNode*,MoveNode*,MoveNode::Comparator> moveNodes_;
     std::map<MoveNode*,MoveNode*,MoveNode::Comparator> oldMoveNodes_;
-    std::map<TTAProgram::Move*,TTAProgram::Move*> moves_;
+    std::map<TTAProgram::Move*,std::shared_ptr<TTAProgram::Move> > moves_;
 
     std::map<BasicBlockNode*, DataDependenceGraph::NodeSet> tempResultNodes_;
     std::map<BasicBlockNode*, std::set<

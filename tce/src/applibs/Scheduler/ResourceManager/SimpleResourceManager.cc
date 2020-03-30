@@ -89,6 +89,7 @@ SimpleResourceManager::createRM(
  */
 void SimpleResourceManager::disposeRM(
     SimpleResourceManager* rm, bool allowReuse) {
+    if (rm == NULL) return;
     if (allowReuse) {
         std::map<int, std::list< SimpleResourceManager*> >& pool =
             rmPool_[&rm->machine()];
@@ -172,16 +173,27 @@ SimpleResourceManager::~SimpleResourceManager(){
  *
  * @param cycle Cycle.
  * @param node Node.
+ * @param bus if not null, bus that has to be used.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  * @return True if given node can be assigned without resource
  * conflicts in given cycle, false otherwise.
  */
 bool
-SimpleResourceManager::canAssign(int cycle, MoveNode& node) const {
+SimpleResourceManager::canAssign(int cycle, MoveNode& node,
+                                 const TTAMachine::Bus* bus,
+                                 const TTAMachine::FunctionUnit* srcFU,
+                                 const TTAMachine::FunctionUnit* dstFU,
+                                 int immWriteCycle,
+                                 const TTAMachine::ImmediateUnit* immu,
+                                 int immRegIndex) const {
 #ifdef DEBUG_RM
     Application::logStream() << "\tCanAssign: " << cycle << " " << 
         node.toString() << std::endl;
 #endif
-    return director_->canAssign(cycle, node);
+    return director_->canAssign(
+	cycle, node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
 }
 
 /**
@@ -196,16 +208,27 @@ SimpleResourceManager::canAssign(int cycle, MoveNode& node) const {
  *
  * @param cycle Cycle.
  * @param node Node.
+ * @param bus if not null, bus that has to be used.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  * @exception InvalidData exception if given node is already placed in a
  * cycle different from given cycle.
  */
 void
-SimpleResourceManager::assign(int cycle, MoveNode& node) {
+SimpleResourceManager::assign(int cycle, MoveNode& node,
+                              const TTAMachine::Bus* bus,
+                              const TTAMachine::FunctionUnit* srcFU,
+                              const TTAMachine::FunctionUnit* dstFU,
+                              int immWriteCycle,
+                              const TTAMachine::ImmediateUnit* immu,
+                              int immRegIndex) {
 #ifdef DEBUG_RM
     Application::logStream() << "\tAssign: " << cycle << " " << 
         node.toString() << std::endl;
 #endif
-    director_->assign(cycle, node);
+    director_->assign(
+	cycle, node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
 #ifdef DEBUG_RM
     Application::logStream() << "\tAssign: " << cycle << " " << 
         node.toString() << " OK!" << std::endl;
@@ -224,7 +247,8 @@ SimpleResourceManager::assign(int cycle, MoveNode& node) {
  * resource manager.
  */
 void
-SimpleResourceManager::unassign(MoveNode& node) {
+SimpleResourceManager::unassign(MoveNode& node)
+{
 #ifdef DEBUG_RM
     Application::logStream() << "\tUnAssign: " << node.toString() << std::endl;
 #endif
@@ -240,13 +264,24 @@ SimpleResourceManager::unassign(MoveNode& node) {
  * constraints to resource allocation.
  *
  * @param node Node.
+ * @param bus if not null, bus that has to be used.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  * @return The earliest cycle in the scope where all required resources
  * can be assigned to the given node. -1 if assignment is not possible
  *
  */
 int
-SimpleResourceManager::earliestCycle(MoveNode& node) const {
-    int ec =  director_->earliestCycle(node);
+SimpleResourceManager::earliestCycle(MoveNode& node,
+                                     const TTAMachine::Bus* bus,
+                                     const TTAMachine::FunctionUnit* srcFU,
+                                     const TTAMachine::FunctionUnit* dstFU,
+                                     int immWriteCycle,
+                                     const TTAMachine::ImmediateUnit* immu,
+                                     int immRegIndex) const {
+    int ec =  director_->earliestCycle(
+        node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
 #ifdef DEBUG_RM
     Application::logStream() << "\tEC:" << node.toString() << std::endl;
     Application::logStream() << "\t\tEC result is: " << ec << std::endl;
@@ -264,13 +299,25 @@ SimpleResourceManager::earliestCycle(MoveNode& node) const {
  *
  * @param cycle Cycle to start from.
  * @param node Node.
+ * @param bus if not null, bus that has to be used.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  * @return The earliest cycle starting from the given cycle in which
  * required resources can be assigned to given node. Returns -1 if assignment
  * is not possible.
  */
 int
-SimpleResourceManager::earliestCycle(int cycle, MoveNode& node) const {
-    int ec = director_->earliestCycle(cycle, node);   
+SimpleResourceManager::earliestCycle(int cycle, MoveNode& node,
+                                     const TTAMachine::Bus* bus,
+                                     const TTAMachine::FunctionUnit* srcFU,
+                                     const TTAMachine::FunctionUnit* dstFU,
+                                     int immWriteCycle,
+                                     const TTAMachine::ImmediateUnit* immu,
+                                     int immRegIndex) const {
+
+    int ec = director_->earliestCycle(
+        cycle, node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
 #ifdef DEBUG_RM
     Application::logStream() << "\tEC: " << cycle << " " << node.toString()
                              << std::endl;
@@ -288,13 +335,24 @@ SimpleResourceManager::earliestCycle(int cycle, MoveNode& node) const {
  * constraints to resource allocation.
  *
  * @param node Node.
+ * @param bus if not null, bus that has to be used.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  * @return The latest cycle in the scope where all required resources
  * can be assigned to the given node. -1 if assignment is not possible.
  * INT_MAX if there is no upper boundary for assignment.
  */
 int
-SimpleResourceManager::latestCycle(MoveNode& node) const {
-    int lc = director_->latestCycle(node);
+SimpleResourceManager::latestCycle(MoveNode& node,
+                                   const TTAMachine::Bus* bus,
+                                   const TTAMachine::FunctionUnit* srcFU,
+                                   const TTAMachine::FunctionUnit* dstFU,
+                                   int immWriteCycle,
+                                   const TTAMachine::ImmediateUnit* immu,
+                                   int immRegIndex) const {
+    int lc = director_->latestCycle(
+        node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
 #ifdef DEBUG_RM
     Application::logStream() << "\tLC: " << node.toString() << std::endl;
     Application::logStream() << "\t\tLC result is: " << lc << std::endl;                             
@@ -312,13 +370,24 @@ SimpleResourceManager::latestCycle(MoveNode& node) const {
  *
  * @param cycle Cycle to start from.
  * @param node Node.
+ * @param bus if not null, bus that has to be used.
+ * @param srcFU if not null, srcFu that has to be used.
+ * @param dstFU if not null, dstFU that has to be used.
+ * @param immWriteCycle if not -1 and src is imm, write cycle of limm.
  * @return The latest cycle starting from the given cycle in which
  * required resources can be assigned to given node. -1 if assignment is not
  * possible.
  */
 int
-SimpleResourceManager::latestCycle(int cycle, MoveNode& node) const {
-    int lc = director_->latestCycle(cycle, node);
+SimpleResourceManager::latestCycle(int cycle, MoveNode& node,
+                                   const TTAMachine::Bus* bus,
+                                   const TTAMachine::FunctionUnit* srcFU,
+                                   const TTAMachine::FunctionUnit* dstFU,
+                                   int immWriteCycle,
+                                   const TTAMachine::ImmediateUnit* immu,
+                                   int immRegIndex) const {
+    int lc = director_->latestCycle(
+        cycle, node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
 #ifdef DEBUG_RM
     Application::logStream() << "\tLC: " << cycle << " " << node.toString()
         << std::endl;
@@ -332,29 +401,15 @@ SimpleResourceManager::latestCycle(int cycle, MoveNode& node) const {
  * buses of present machine.
  *
  * @param node MoveNode that contains immediate that we test
+ * @param bus if non-null, only check immediate from that bus
  * @return true if the immediate in node can be transported by
  * some bus
  */
 bool
-SimpleResourceManager::canTransportImmediate(const MoveNode& node) const {
-    return director_->canTransportImmediate(node);
+SimpleResourceManager::canTransportImmediate(
+    const MoveNode& node, const TTAMachine::Bus* preassignedBus) const {
+    return director_->canTransportImmediate(node, preassignedBus);
 }
-/**
- * Tests if for given node set machine has possible connection from
- * sources to destinations.
- *
- * Considers all possible sources and destinations.
- * Tests all moveNodes of Program Operation at once, or single moveNode in set
- * if it is not part of any Program Operation.
- *
- * @param nodes MoveNodeSet to test
- * @return true if MoveNodeSet can be scheduled on present machine.
- */
-bool
-SimpleResourceManager::hasConnection(MoveNodeSet& nodes) {
-    return director_->hasConnection(nodes);
-}
-
 
 /**
  * Tests if any of a buses of machine supports guard needed
@@ -448,7 +503,7 @@ SimpleResourceManager::loseInstructionOwnership(int cycle) {
  * @param node node with immediate register source
  * @return terminal with immediate value
  */
-TTAProgram::Terminal*
+std::shared_ptr<TTAProgram::TerminalImmediate>
 SimpleResourceManager::immediateValue(const MoveNode& node) {
     return director_->immediateValue(node);
 }
@@ -485,7 +540,7 @@ SimpleResourceManager::instructionIndex(unsigned int cycle) const {
 bool 
 SimpleResourceManager::isTemplateAvailable(
     int defCycle, 
-    TTAProgram::Immediate* immediate) const {
+    std::shared_ptr<TTAProgram::Immediate> immediate) const {
     
     return director_->isTemplateAvailable(defCycle, immediate);
 }
@@ -563,6 +618,7 @@ void SimpleResourceManager::clear() {
     director_->clearOldResources();
     buildDirector_.clear();
     director_->clear();
+    setDDG(NULL);
 }
 
 void

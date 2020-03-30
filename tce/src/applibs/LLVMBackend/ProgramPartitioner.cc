@@ -154,10 +154,17 @@ ProgramPartitioner::runOnMachineFunction(llvm::MachineFunction& MF) {
              j != i->end(); j++) {
             const llvm::MachineInstr& mi = *j; 
 
+#ifdef LLVM_OLDER_THAN_10
             if (mi.getNumOperands() == 0 || !mi.getOperand(0).isReg() || 
                 !mi.getOperand(0).isDef() || 
                 llvm::TargetRegisterInfo::isPhysicalRegister(
                     mi.getOperand(0).getReg())) 
+#else
+            if (mi.getNumOperands() == 0 || !mi.getOperand(0).isReg() ||
+                !mi.getOperand(0).isDef() ||
+                Register::isPhysicalRegister(
+                    mi.getOperand(0).getReg()))
+#endif
                 continue;
             
             if (partitions.find(&mi) != partitions.end())
@@ -328,8 +335,14 @@ ProgramPartitioner::findNodeIndex(
             mi.getOperand(i).isDef()) {
             
             const llvm::MachineOperand& result = mi.getOperand(i);
+#ifdef LLVM_OLDER_THAN_10
             if (llvm::TargetRegisterInfo::isPhysicalRegister(
                     mi.getOperand(i).getReg())) continue;
+#else
+            if (Register::isPhysicalRegister(
+                    mi.getOperand(i).getReg())) continue;
+#endif
+
             const llvm::TargetRegisterClass* nodeRegClass = 
                 tmPlugin.nodeRegClass(nodeIndex, MRI.getRegClass(result.getReg()));
 #ifdef DEBUG_PROGRAM_PARTITIONER

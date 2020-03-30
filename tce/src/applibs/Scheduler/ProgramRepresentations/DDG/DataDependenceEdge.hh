@@ -122,6 +122,19 @@ public:
         return loopEdge_;
     }
 
+    bool isRegisterOrRA() const {
+        return edgeReason() == EDGE_REGISTER ||
+            edgeReason() == EDGE_RA;
+    }
+
+    bool isWAW() const {
+        return dependenceType_ == DEP_WAW;
+    }
+
+    bool isRAW() const {
+        return dependenceType_ == DEP_RAW;
+    }
+
     const TCEString data() const { 
         if (data_ == NULL) {
             return TCEString("");

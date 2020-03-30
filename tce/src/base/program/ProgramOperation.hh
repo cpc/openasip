@@ -53,6 +53,12 @@ namespace TTAProgram {
     class Move;
 }
 
+namespace TTAMachine {
+    class Unit;
+    class FunctionUnit;
+    class HWOperation;
+}
+
 // use this smart_ptr type to point to POs to allow more safe sharing of
 // POs between POM and DDG, etc.
 typedef boost::shared_ptr<ProgramOperation> ProgramOperationPtr;
@@ -72,6 +78,11 @@ public:
     void addNode(MoveNode& node);
     void addInputNode(MoveNode& node);
     void addOutputNode(MoveNode& node);
+
+    const TTAMachine::FunctionUnit* scheduledFU() const;
+
+    const TTAMachine::HWOperation* hwopFromOutMove(
+        const MoveNode& outputNode) const;
 
     void removeOutputNode(MoveNode& node);
     void removeInputNode(MoveNode& node);
@@ -105,6 +116,9 @@ public:
 
     MoveNode* triggeringMove() const;
     
+    MoveNode* findTriggerFromUnit(const TTAMachine::Unit& unit) const;
+    bool isLegalFU(const TTAMachine::FunctionUnit& fu) const;
+
     const llvm::MachineInstr* machineInstr() const { return mInstr_; }
 
     void switchInputs(int idx1 = 1, int idx2 = 2);

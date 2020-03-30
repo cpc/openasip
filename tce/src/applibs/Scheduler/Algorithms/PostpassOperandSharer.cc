@@ -116,8 +116,8 @@ bool PostpassOperandSharer::tryRemoveOperandWrite(
     TTAMachine::RegisterFile* guardRF = NULL;
     int guardIndex = -1;
     if (!move.isUnconditional()) {
-        TTAMachine::Guard& guard = move.guard().guard();
-        RegisterGuard* rg = dynamic_cast<TTAMachine::RegisterGuard*>(&guard);
+        const TTAMachine::Guard& guard = move.guard().guard();
+        const RegisterGuard* rg = dynamic_cast<const TTAMachine::RegisterGuard*>(&guard);
         if (rg) {
             guardRF = rg->registerFile();
             guardIndex = rg->registerIndex();

@@ -60,24 +60,65 @@ public:
     IUBroker(std::string, SimpleResourceManager*, unsigned int initiationInterval = 0);
     virtual ~IUBroker();
 
-    bool isAnyResourceAvailable(int useCycle, const MoveNode& node) const;
+    bool isAnyResourceAvailable(int useCycle, const MoveNode& node,
+                                const TTAMachine::Bus* bus,
+                                const TTAMachine::FunctionUnit* srcFU,
+                                const TTAMachine::FunctionUnit* dstFU,
+                                int immWriteCycle,
+                                const TTAMachine::ImmediateUnit* immu,
+                                int immRegIndex) const override;
     virtual SchedulingResource& availableResource(
-        int cycle, const MoveNode& node) const;
+        int cycle,
+        const MoveNode& node,
+        const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcFU,
+        const TTAMachine::FunctionUnit* dstFU,
+        int immWriteCycle,
+        const TTAMachine::ImmediateUnit* immu,
+        int immRegIndex) const override;
+
     virtual SchedulingResourceSet allAvailableResources(
         int,
-        const MoveNode&) const;
-    virtual void assign(int, MoveNode&, SchedulingResource&);
-    virtual void unassign(MoveNode& node);
+        const MoveNode&,
+        const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcFU,
+        const TTAMachine::FunctionUnit* dstFU,
+        int immWriteCycle,
+        const TTAMachine::ImmediateUnit* immu,
+        int immRegIndex) const override;
 
-    virtual int earliestCycle(int cycle, const MoveNode& node) const;
-    virtual int latestCycle(int cycle, const MoveNode& node) const;
-    virtual bool isAlreadyAssigned(int cycle, const MoveNode& node) const;
-    virtual bool isApplicable(const MoveNode& node) const;
-    virtual void buildResources(const TTAMachine::Machine& target);
-    virtual void setupResourceLinks(const ResourceMapper& mapper);
+    virtual void assign(int, MoveNode&, SchedulingResource&,
+			int immWriteCycle,
+			int immRegIndex) override;
 
-    virtual bool isIUBroker() const;
-    virtual TTAProgram::Terminal* immediateValue(const MoveNode& node) const;
+    virtual void unassign(MoveNode& node) override;
+
+    virtual int earliestCycle(int cycle, const MoveNode& node,
+                              const TTAMachine::Bus* bus,
+                              const TTAMachine::FunctionUnit* srcFU,
+                              const TTAMachine::FunctionUnit* dstFU,
+                              int immWriteCycle,
+                              const TTAMachine::ImmediateUnit* immu,
+                              int immRegIndex) const override;
+    virtual int latestCycle(int cycle, const MoveNode& node,
+                            const TTAMachine::Bus* bus,
+                            const TTAMachine::FunctionUnit* srcFU,
+                            const TTAMachine::FunctionUnit* dstFU,
+                            int immWriteCycle,
+                            const TTAMachine::ImmediateUnit* immu,
+                            int immRegIndex) const override;
+    virtual bool isAlreadyAssigned(
+        int cycle, const MoveNode& node,
+        const TTAMachine::Bus* preassignedBus) const override;
+    virtual bool isApplicable(
+        const MoveNode& node, const TTAMachine::Bus* preassignedBus)
+        const override;
+    virtual void buildResources(const TTAMachine::Machine& target) override;
+    virtual void setupResourceLinks(const ResourceMapper& mapper) override;
+
+    virtual bool isIUBroker() const override;
+    virtual std::shared_ptr<TTAProgram::TerminalImmediate>
+    immediateValue(const MoveNode& node) const;
     virtual int immediateWriteCycle(const MoveNode& node) const;
     
     void clearOldResources();

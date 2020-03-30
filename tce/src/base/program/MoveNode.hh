@@ -64,8 +64,7 @@ namespace TTAProgram{
 class MoveNode : public GraphNode {
 public:
 
-    explicit MoveNode(TTAProgram::Move& newmove);
-    explicit MoveNode(TTAProgram::Move* newmove);
+    explicit MoveNode(std::shared_ptr<TTAProgram::Move> newmove);
     virtual ~MoveNode();
 
     MoveNode* copy();
@@ -78,6 +77,7 @@ public:
 
     bool isSourceVariable() const;
     bool isSourceConstant() const;
+    bool isSourceRA() const;
     bool isSourceImmediateRegister() const;
     bool isDestinationVariable() const;
     bool isBypass() const;
@@ -102,19 +102,26 @@ public:
     ProgramOperationPtr sourceOperationPtr() const;
     ProgramOperationPtr destinationOperationPtr(unsigned int index = 0) const;
 
+    std::shared_ptr<TTAProgram::Move> movePtr();
+    std::shared_ptr<const TTAProgram::Move> movePtr() const;
+
     TTAProgram::Move& move();
     const TTAProgram::Move& move() const;
 
     void addDestinationOperationPtr(ProgramOperationPtr po);
     void setSourceOperationPtr(ProgramOperationPtr po);
-    void setMoveOwned();
 
     void clearDestinationOperation();
     void removeDestinationOperation(const ProgramOperation* po);
     void unsetSourceOperation();
-    void unsetMoveOwned();
 
-    bool isMoveOwned() const;
+    void finalize();
+    bool isFinalized() const;
+
+    void setIsInFrontier(bool inFrontier = true);
+    bool isInFrontier() const;
+    bool isLastUnscheduledMoveOfDstOp() const;
+
     // to allow printing of graph
     int type();
     std::string toString() const;
@@ -133,7 +140,7 @@ private:
     MoveNode& operator=(const MoveNode&);
 
     /// Pointer to Move this node represents, Node itself do not change move
-    const TTAProgram::Move* move_;
+    const std::shared_ptr<TTAProgram::Move> move_;
 
     std::vector<ProgramOperationPtr> dstOps_;
 
@@ -143,13 +150,14 @@ private:
     /// instruction slot within the current scheduling scope.
     int cycle_;
 
-    /// True in case the Move is owned by the MoveNode.
-    /// Ownership changes during scheduling when Move is placed into
-    /// Instruction
-    bool moveOwned_;
-
     /// True when the node placed (is given a cycle in program).
     bool placed_;
+
+    /// The movenode cannot be unscheduled anymore, fixed in place.
+    bool finalized_;
+
+    /// This is in scheduling frontier(used in Bubblefish scheduler)
+    bool isInFrontier_;
 };
 
 #include "MoveNode.icc"

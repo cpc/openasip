@@ -189,7 +189,7 @@ private:
         std::vector<MoveNode*> intMoves,
         MoveNode* lastMove,
         const TTAMachine::RegisterFile* firstRF,
-	std::vector<TTAMachine::RegisterFile*> intRF, 
+	std::vector<const TTAMachine::RegisterFile*> intRF,
         const TTAMachine::RegisterFile* lastRF,
         int firstRegisterIndex,
 	std::vector<int> intRegisterIndex,

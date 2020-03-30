@@ -6,11 +6,35 @@ BasicBlockPass.cc RegisterCopyAdder.cc \
 SchedulerPass.cc ControlFlowGraphPass.cc ProgramPass.cc ProcedurePass.cc \
 InterPassData.cc SoftwareBypasser.cc CycleLookBackSoftwareBypasser.cc \
 DDGPass.cc CopyingDelaySlotFiller.cc \
-RegisterRenamer.cc \
+RegisterRenamer.cc LoopPrologAndEpilogBuilder.cc \
 SequentialScheduler.cc PreBypassBasicBlockScheduler.cc \
 BBSchedulerController.cc PreOptimizer.cc ResourceConstraintAnalyzer.cc \
-BUBasicBlockScheduler.cc BypassingBUBasicBlockScheduler.cc \
-PostpassOperandSharer.cc
+BUBasicBlockScheduler.cc \
+PostpassOperandSharer.cc \
+BF2Scheduler.cc BFOptimization.cc BFScheduleTD.cc BFScheduleBU.cc \
+BFScheduleExact.cc BFRegCopyAfter.cc BFRegCopyBefore.cc BFRegCopy.cc \
+BFLateBypasses.cc BFLateBypass.cc BFEarlyBypass.cc \
+BFDRELate.cc BFDREEarly.cc BF2ScheduleFront.cc \
+BFPushAntidepsDown.cc BFPushAntidepDown.cc \
+BFShareOperand.cc BFShareOperandsLate.cc BFShareOperandLate.cc \
+BFSwapOperands.cc BFShareOperands.cc BFShareOperandWithScheduled.cc \
+MoveNodeDuplicator.cc BFKillNode.cc \
+BFSchedulePreLoopShared.cc BFDropPreShared.cc \
+BFPushDepsUp.cc \
+BFPushMoveUp.cc BFRescheduleMove.cc BFUnscheduleMove.cc \
+BFScheduleMove.cc BFLoopBypass.cc BFEarlyBypasser.cc  \
+BFRemoveGuardFromSucc.cc BFRemoveGuardsFromSuccs.cc \
+BFRescheduleResultsClose.cc BFRescheduleResultClose.cc \
+BFRescheduleSuccessorsClose.cc BFDRELoop.cc \
+BFPushMoveUp2.cc \
+BFPostpassDRE.cc \
+BFPostpassBypass.cc BFPostpassBypasser.cc  \
+BFPostpassLoopDRE.cc BFUnscheduleFromBody.cc BFAssignToBody.cc \
+BFRemoveGuard.cc BFTryRemoveGuard.cc \
+BFRemoveEdge.cc BFRenameSource.cc BFRenameLiveRange.cc \
+BFMergeAndKeepUser.cc BFConnectNodes.cc BFUpdateMoveOnBypass.cc \
+BFInsertLiveRangeUse.cc BFClearLiveRangeUse.cc
+
 
 
 libscheduleralgorithms_la_LIBADD = 
@@ -62,7 +86,7 @@ libscheduleralgorithms_la_SOURCES += \
 	ResourceConstraintAnalyzer.hh BUBasicBlockScheduler.hh \
 	RegisterCopyAdder.hh BasicBlockPass.hh \
 	SoftwareBypasser.hh BasicBlockScheduler.hh \
-	BypassingBUBasicBlockScheduler.hh PreBypassBasicBlockScheduler.hh \
+	PreBypassBasicBlockScheduler.hh \
 	ProgramPass.hh CopyingDelaySlotFiller.hh \
 	PreOptimizer.hh InterPassData.hh \
 	BBSchedulerController.hh ProcedurePass.hh \

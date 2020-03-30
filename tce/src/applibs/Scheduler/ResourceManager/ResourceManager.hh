@@ -35,6 +35,9 @@
 
 namespace TTAMachine {
     class Machine;
+    class FunctionUnit;
+    class Bus;
+    class ImmediateUnit;
 }
 
 namespace TTAProgram {
@@ -52,14 +55,55 @@ public:
     ResourceManager(const TTAMachine::Machine& machine);
     virtual ~ResourceManager();
 
-    virtual bool canAssign(int cycle, MoveNode& node) const = 0;
-    virtual void assign(int cycle, MoveNode& node) = 0;
+    virtual bool canAssign(
+        int cycle, MoveNode& node,
+        const TTAMachine::Bus* bus = nullptr,
+        const TTAMachine::FunctionUnit* srcFU = nullptr,
+        const TTAMachine::FunctionUnit* dstFU = nullptr,
+        int immWriteCycle = -1,
+        const TTAMachine::ImmediateUnit* immu = nullptr,
+        int immRegIndex = -1) const = 0;
+    virtual void assign(
+        int cycle, MoveNode& node,
+        const TTAMachine::Bus* bus = nullptr,
+        const TTAMachine::FunctionUnit* srcFU = nullptr,
+        const TTAMachine::FunctionUnit* dstFU = nullptr,
+        int immWriteCycle = -1,
+        const TTAMachine::ImmediateUnit* immu = nullptr,
+        int immRegIndex = -1) = 0;
     virtual void unassign(MoveNode& node) = 0;
-    virtual int earliestCycle(MoveNode& node) const = 0;
-    virtual int earliestCycle(int cycle, MoveNode& node) const = 0;
-    virtual int latestCycle(MoveNode& node) const = 0;
-    virtual int latestCycle(int cycle, MoveNode& node) const = 0;
-    virtual bool hasConnection(MoveNodeSet& nodes) = 0;
+    virtual int earliestCycle(
+        MoveNode& node,
+        const TTAMachine::Bus* bus = nullptr,
+        const TTAMachine::FunctionUnit* srcFU = nullptr,
+        const TTAMachine::FunctionUnit* dstFU = nullptr,
+        int immWriteCycle = -1,
+        const TTAMachine::ImmediateUnit* immu = nullptr,
+        int immRegIndex = -1) const = 0;
+    virtual int earliestCycle(
+        int cycle, MoveNode& node,
+        const TTAMachine::Bus* bus = nullptr,
+        const TTAMachine::FunctionUnit* srcFU = nullptr,
+        const TTAMachine::FunctionUnit* dstFU = nullptr,
+        int immWriteCycle = -1,
+        const TTAMachine::ImmediateUnit* immu = nullptr,
+        int immRegIndex = -1) const = 0;
+    virtual int latestCycle(
+        MoveNode& node,
+        const TTAMachine::Bus* bus = nullptr,
+        const TTAMachine::FunctionUnit* srcFU = nullptr,
+        const TTAMachine::FunctionUnit* dstFU = nullptr,
+        int immWriteCycle = -1,
+        const TTAMachine::ImmediateUnit* immu = nullptr,
+        int immRegIndex = -1) const = 0;
+    virtual int latestCycle(
+        int cycle, MoveNode& node,
+        const TTAMachine::Bus* bus = nullptr,
+        const TTAMachine::FunctionUnit* srcFU = nullptr,
+        const TTAMachine::FunctionUnit* dstFU = nullptr,
+        int immWriteCycle = -1,
+        const TTAMachine::ImmediateUnit* immu = nullptr,
+        int immRegIndex = -1) const = 0;
     virtual bool supportsExternalAssignments() const = 0;
     virtual int largestCycle() const = 0;
     virtual int smallestCycle() const = 0;

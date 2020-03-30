@@ -36,6 +36,7 @@
 
 #include <map>
 #include <list>
+#include <memory>
 
 #include "Binary.hh"
 #include "MoveElement.hh"
@@ -236,11 +237,11 @@ private:
      * references is implemented in TPEF.
      */
     struct SocketAllocation {
-        SocketAllocation(Move* m, unsigned int anIndex) :
+        SocketAllocation(std::shared_ptr<Move> m, unsigned int anIndex) :
             index(anIndex) ,move(m), src(0), dst(0) { };
 
         unsigned int index;
-        Move* move;
+        std::shared_ptr<Move> move;
         std::vector<TTAMachine::Socket*> srcSocks;
         std::vector<TTAMachine::Socket*> dstSocks;
         unsigned int src;
@@ -285,10 +286,10 @@ private:
              class FunctionStart*> functionStartPositions_;
     
     /// Moves whose source terminals are addresses referring to instructions.
-    mutable std::list<Move*> instructionImmediates_;
+    mutable std::list<std::shared_ptr<Move> > instructionImmediates_;
     
     /// Long immediates whose value terminals refers to instructions.
-    mutable std::list<Immediate*> longInstructionImmediates_;
+    mutable std::list<std::shared_ptr<Immediate> > longInstructionImmediates_;
     
     /// Cache map of terminals that are returned by different search 
     /// parameters.

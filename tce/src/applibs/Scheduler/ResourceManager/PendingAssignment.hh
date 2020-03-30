@@ -38,6 +38,11 @@
 class ResourceBroker;
 class MoveNode;
 
+namespace TTAMachine {
+    class Bus;
+    class FunctionUnit;
+}
+
 /**
  */
 class PendingAssignment {
@@ -46,7 +51,13 @@ public:
     virtual ~PendingAssignment();
 
     ResourceBroker& broker();
-    void setRequest(int cycle, MoveNode& node);
+    void setRequest(int cycle, MoveNode& node,
+                    const TTAMachine::Bus* bus,
+                    const TTAMachine::FunctionUnit* srcFU,
+                    const TTAMachine::FunctionUnit* dstFU,
+                    int immWriteCycle,
+                    const TTAMachine::ImmediateUnit* immu,
+                    int immRegIndex);
     bool isAssignmentPossible();
     void tryNext();
     void undoAssignment();
@@ -60,9 +71,15 @@ private:
     ResourceBroker& broker_;
     int cycle_;
     MoveNode* node_;
+    const TTAMachine::Bus* bus_;
+    const TTAMachine::FunctionUnit* srcFU_;
+    const TTAMachine::FunctionUnit* dstFU_;
+    int immWriteCycle_;
     bool assignmentTried_;
     SchedulingResourceSet availableResources_;
     int lastTriedAssignment_;
+    const TTAMachine::ImmediateUnit* immu_;
+    int immRegIndex_;
 };
 
 #endif

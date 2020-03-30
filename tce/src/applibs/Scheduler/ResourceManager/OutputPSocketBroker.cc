@@ -81,10 +81,15 @@ OutputPSocketBroker::~OutputPSocketBroker(){
 SchedulingResourceSet
 OutputPSocketBroker::allAvailableResources(
     int cycle,
-    const MoveNode& node) const {
+    const MoveNode& node,
+    const TTAMachine::Bus* preassignedBus,
+    const TTAMachine::FunctionUnit*,
+    const TTAMachine::FunctionUnit*,
+    int,
+    const TTAMachine::ImmediateUnit*, int) const {
 
     cycle = instructionIndex(cycle);
-    if (!isApplicable(node)) {
+    if (!isApplicable(node, preassignedBus)) {
         string msg = "Broker not capable of assigning resources to node!";
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
     }
@@ -147,11 +152,15 @@ OutputPSocketBroker::allAvailableResources(
  * to it in given cycle.
  */
 bool
-OutputPSocketBroker::isAnyResourceAvailable(int cycle, const MoveNode& node)
-    const {
+OutputPSocketBroker::isAnyResourceAvailable(
+    int cycle, const MoveNode& node,
+    const TTAMachine::Bus* preassignedBus,
+    const TTAMachine::FunctionUnit*,
+    const TTAMachine::FunctionUnit*, int,
+    const TTAMachine::ImmediateUnit*, int) const {
 
     cycle = instructionIndex(cycle);
-    if (!isApplicable(node)) {
+    if (!isApplicable(node, preassignedBus)) {
         string msg = "Broker not capable of assigning resources to node!";
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
     }
@@ -226,12 +235,12 @@ OutputPSocketBroker::isAnyResourceAvailable(int cycle, const MoveNode& node)
  */
 void
 OutputPSocketBroker::assign(
-    int cycle, MoveNode& node, SchedulingResource& res) {
+    int cycle,
+    MoveNode& node,
+    SchedulingResource& res,
+    int, int) {
+
     cycle = instructionIndex(cycle);
-    if (!isApplicable(node)) {
-        string msg = "Broker not capable of assigning resources to node!";
-        throw WrongSubclass(__FILE__, __LINE__, __func__, msg);
-    }
     if (!hasResource(res)) {
         string msg = "Broker does not contain given resource.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
@@ -283,10 +292,6 @@ OutputPSocketBroker::assign(
  */
 void
 OutputPSocketBroker::unassign(MoveNode& node) {
-    if (!isApplicable(node)) {
-        string msg = "Broker not capable of unassigning resources from node!";
-        throw WrongSubclass(__FILE__, __LINE__, __func__, msg);
-    }
     if (MapTools::containsKey(assignedResources_, &node)) {
         SchedulingResource* res = 
             MapTools::valueForKey<SchedulingResource*>(
@@ -308,7 +313,12 @@ OutputPSocketBroker::unassign(MoveNode& node) {
  * given node.
  */
 int
-OutputPSocketBroker::earliestCycle(int, const MoveNode&) const {
+OutputPSocketBroker::earliestCycle(int, const MoveNode&,
+                                   const TTAMachine::Bus*,
+                                   const TTAMachine::FunctionUnit*,
+                                   const TTAMachine::FunctionUnit*,
+                                   int, const TTAMachine::ImmediateUnit*,
+                                   int) const {
     abortWithError("Not implemented.");
     return -1;
 }
@@ -325,7 +335,12 @@ OutputPSocketBroker::earliestCycle(int, const MoveNode&) const {
  * given node.
  */
 int
-OutputPSocketBroker::latestCycle(int, const MoveNode&) const {
+OutputPSocketBroker::latestCycle(int, const MoveNode&,
+                                 const TTAMachine::Bus*,
+                                 const TTAMachine::FunctionUnit*,
+                                 const TTAMachine::FunctionUnit*, int,
+                                 const TTAMachine::ImmediateUnit*,
+                                 int) const {
     abortWithError("Not implemented.");
     return -1;
 }
@@ -346,14 +361,15 @@ OutputPSocketBroker::latestCycle(int, const MoveNode&) const {
 bool
 OutputPSocketBroker::isAlreadyAssigned(
     int cycle,
-    const MoveNode& node) const {
+    const MoveNode& node, const TTAMachine::Bus* preassignedBus) const {
     cycle = instructionIndex(cycle);
     if (node.isSourceConstant() && 
         node.move().hasAnnotations(
             TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM)) {
         return true;
     }    
-    if (node.isSourceConstant() && rm_ && !rm_->canTransportImmediate(node)) {
+    if (node.isSourceConstant() && rm_ &&
+        !rm_->canTransportImmediate(node, preassignedBus)) {
         return true;
     }
     Terminal& src = const_cast<MoveNode&>(node).move().source();
@@ -379,7 +395,11 @@ OutputPSocketBroker::isAlreadyAssigned(
  * by this broker, false otherwise.
  */
 bool
-OutputPSocketBroker::isApplicable(const MoveNode& node) const {   
+OutputPSocketBroker::isApplicable(
+    const MoveNode& node, const TTAMachine::Bus* preassignedBus) const {
+    if (!node.isMove()) {
+        return false;
+    }
     Move& move = const_cast<MoveNode&>(node).move();
     // If node is annotated, it will be converted to LIMM
     // and so we will need to assign output PScoket
@@ -387,7 +407,8 @@ OutputPSocketBroker::isApplicable(const MoveNode& node) const {
             TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM)) {
         return true;
     }    
-    if (node.isSourceConstant() && rm_ && !rm_->canTransportImmediate(node)) {
+    if (node.isSourceConstant() &&
+        rm_ && !rm_->canTransportImmediate(node, preassignedBus)) {
         return true;
     }
     return (move.source().isFUPort() ||

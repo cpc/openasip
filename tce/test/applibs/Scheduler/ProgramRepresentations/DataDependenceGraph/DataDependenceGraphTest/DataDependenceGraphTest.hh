@@ -186,11 +186,11 @@ DataDependenceGraphTest::testProcedureDDG() {
 
                 // try to add some nodes to SG2
 
-                Move* move0 = 
+                auto move0 =
                     bbn.basicBlock().instructionAtIndex(0).move(0).copy();
-                Move* move1 = 
+                auto move1 =
                     bbn.basicBlock().instructionAtIndex(0).move(0).copy();
-                Move* move2 = 
+                auto move2 =
                     bbn.basicBlock().instructionAtIndex(0).move(0).copy();
 
                 MoveNode* mn0 = new MoveNode(move0);
@@ -595,11 +595,11 @@ DataDependenceGraphTest::testPathCalculation() {
 
             BasicBlockNode& bb = cfg0.node(i);
             if (bb.isNormalBB()) {
-                Move* move0 = 
+                auto move0 =
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
-                Move* move1 = 
+                auto move1 =
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
-                Move* move2 = 
+                auto move2 =
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
 
                 ddg = builder.build(
@@ -617,9 +617,9 @@ DataDependenceGraphTest::testPathCalculation() {
                         
 //                        TS_ASSERT_EQUALS(ddg->outDegree(node), 0);
                         
-                        MoveNode *mn0 = new MoveNode(*move0);
-                        MoveNode *mn1 = new MoveNode(*move1);
-                        MoveNode *mn2 = new MoveNode(*move2);
+                        MoveNode *mn0 = new MoveNode(move0);
+                        MoveNode *mn1 = new MoveNode(move1);
+                        MoveNode *mn2 = new MoveNode(move2);
                         ddg->addNode(*mn0,bb);
                         ddg->addNode(*mn1,bb);
                         ddg->addNode(*mn2,bb);
@@ -669,16 +669,15 @@ DataDependenceGraphTest::testPathCalculation() {
                                  longestPathLengths0M[i]+2);
 
                 delete ddg; ddg = NULL;
-                delete move0; delete move1; delete move2;
             }
         }
 
         for (int i = 0; i < cfg1.nodeCount(); i++) {
             BasicBlockNode& bb = cfg1.node(i);
             if (bb.isNormalBB()) {
-                Move* move0 = bb.basicBlock().instructionAtIndex(0).move(0).copy();
-                Move* move1 = bb.basicBlock().instructionAtIndex(0).move(0).copy();
-                Move* move2 = bb.basicBlock().instructionAtIndex(0).move(0).copy();
+                auto move0 = bb.basicBlock().instructionAtIndex(0).move(0).copy();
+                auto move1 = bb.basicBlock().instructionAtIndex(0).move(0).copy();
+                auto move2 = bb.basicBlock().instructionAtIndex(0).move(0).copy();
                 ddg = builder.build(
                     bb.basicBlock(),
                     DataDependenceGraph::ALL_ANTIDEPS,
@@ -695,9 +694,9 @@ DataDependenceGraphTest::testPathCalculation() {
                         
                         TS_ASSERT_EQUALS(ddg->outDegree(node), 0);
                         
-                        MoveNode *mn0 = new MoveNode(*move0);
-                        MoveNode *mn1 = new MoveNode(*move1);
-                        MoveNode *mn2 = new MoveNode(*move2);
+                        MoveNode *mn0 = new MoveNode(move0);
+                        MoveNode *mn1 = new MoveNode(move1);
+                        MoveNode *mn2 = new MoveNode(move2);
                         ddg->addNode(*mn0,bb);
                         ddg->addNode(*mn1,bb);
                         ddg->addNode(*mn2,bb);
@@ -747,18 +746,17 @@ DataDependenceGraphTest::testPathCalculation() {
                                  longestPathLengths1M[i]+2);
 
                 delete ddg; ddg = NULL;
-                delete move0; delete move1; delete move2;
             }
         }
         
         for (int i = 0; i < cfg2.nodeCount(); i++) {
             BasicBlockNode& bb = cfg2.node(i);
             if (bb.isNormalBB()) {
-                Move* move0 = 
+                auto move0 =
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
-                Move* move1 = 
+                auto move1 =
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
-                Move* move2 = 
+                auto move2 =
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
                 ddg = builder.build(
                     bb.basicBlock(),
@@ -775,9 +773,9 @@ DataDependenceGraphTest::testPathCalculation() {
                         
 //                        TS_ASSERT_EQUALS(ddg->outDegree(node), 0);
                         
-                        MoveNode *mn0 = new MoveNode(*move0);
-                        MoveNode *mn1 = new MoveNode(*move1);
-                        MoveNode *mn2 = new MoveNode(*move2);
+                        MoveNode *mn0 = new MoveNode(move0);
+                        MoveNode *mn1 = new MoveNode(move1);
+                        MoveNode *mn2 = new MoveNode(move2);
 
                         ddg->addNode(*mn0, bb);
                         ddg->addNode(*mn1, bb);
@@ -829,7 +827,6 @@ DataDependenceGraphTest::testPathCalculation() {
                                  longestPathLengths2M[i]+2);
 
                 delete ddg; ddg = NULL;
-                delete move0; delete move1; delete move2;
             }
         }
 

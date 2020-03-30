@@ -111,7 +111,7 @@ private:
     
     // cycles and buses of source nodes so that they can be reassigned.
     std::map<MoveNode*, int> sourceCycles_;
-    std::map<MoveNode*, TTAMachine::Bus*> sourceBuses_;
+    std::map<MoveNode*, const TTAMachine::Bus*> sourceBuses_;
 
     std::map<MoveNode*, MoveNode*, MoveNode::Comparator> removedStoredSources_;
 

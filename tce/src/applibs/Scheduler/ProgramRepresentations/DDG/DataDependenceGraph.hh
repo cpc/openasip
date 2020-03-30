@@ -68,6 +68,13 @@ class DataDependenceGraph :
     public BoostGraph<MoveNode, DataDependenceEdge> {
 public:
 
+    struct UndoData {
+        EdgeSet newEdges;
+        RemovedEdgeMap removedEdges;
+        std::map<DataDependenceEdge*,
+                 TCEString, DataDependenceEdge::Comparator> changedDataEdges;
+    };
+
     enum AntidependenceLevel {
         NO_ANTIDEPS,
         INTRA_BB_ANTIDEPS,
@@ -123,6 +130,9 @@ public:
 
     using BoostGraph<MoveNode, DataDependenceEdge>::addNode;
 
+    int edgeLatency(const DataDependenceEdge& edge, int ii,
+                    const MoveNode* tail, const MoveNode* head) const;
+
     int earliestCycle(
         const MoveNode& moveNode, unsigned int ii = UINT_MAX, 
         bool ignoreRegWaRs = false, 
@@ -133,7 +143,10 @@ public:
     int latestCycle(
         const MoveNode& moveNode, unsigned int ii = UINT_MAX,
         bool ignoreRegAntideps = false, 
-        bool ignoreUnscheduledSuccessors = true) const;
+        bool ignoreUnscheduledSuccessors = true,
+        bool ignoreGuards = false,
+        bool ignoreFUDeps = false,
+        bool ignoreSameOperationEdges = false) const;
     
     int smallestCycle() const;
     int largestCycle() const;
@@ -143,6 +156,7 @@ public:
     NodeSet scheduledMoves() const;
     NodeSet movesAtCycle(int cycle) const;
 
+    MoveNode* onlyGuardDefOfMove(MoveNode& moveNode);
     MoveNode* lastGuardDefMove(MoveNode& moveNode);
     NodeSet guardDefMoves(const MoveNode& moveNode);
 
@@ -203,6 +217,9 @@ public:
     // XML dumping
     void writeToXMLFile(std::string fileName) const;
 
+    bool mergeAndKeepAllowed(MoveNode& sourceNode, MoveNode& userNode);
+    bool isLoopBypass(MoveNode& sourceNode, MoveNode& userNode);
+
     bool mergeAndKeep(MoveNode& resultNode, MoveNode& userNode);
     void unMerge(MoveNode& resultNode, MoveNode& mergedNode);
 
@@ -246,7 +263,7 @@ public:
     DataDependenceGraph* criticalPathGraph();
     DataDependenceGraph* memoryDependenceGraph();
 
-    MoveNode& nodeOfMove(TTAProgram::Move& move);
+    MoveNode& nodeOfMove(const TTAProgram::Move& move);
 
     void dropBackEdges();
 
@@ -254,7 +271,9 @@ public:
         BasicBlockNode& bbn1, BasicBlockNode& bbn2, bool loopEdges);
 
     // Duplicates all in- and outgoing edges in dst to src
-    void copyDependencies(MoveNode& src, MoveNode& dst);
+    void copyDependencies(
+        const MoveNode& src, MoveNode& dst, bool ignoreSameBBBackedges,
+        bool moveOverLoopEdge = true);
 
     void copyIncomingGuardEdges(const MoveNode& src, MoveNode& dst);
     void copyOutgoingGuardWarEdges(const MoveNode& src, MoveNode& dst);
@@ -262,12 +281,22 @@ public:
     NodeSet guardRawPredecessors(const MoveNode& node) const;
 
     DataDependenceEdge* onlyIncomingGuard(const MoveNode& mn) const;
-    MoveNode* onlyRegisterRawSource(const MoveNode& mn) const;
-    MoveNodeSet onlyRegisterRawDestinations(const MoveNode& mn) const;
+    MoveNode* onlyRegisterRawSource(
+        const MoveNode& mn, int allowGuardEdges = 2, int backEdges = 0) const;
     
+    NodeSet onlyRegisterRawDestinations(
+        const MoveNode& mn,
+        bool allowGuardEdges = false,
+        bool allowBackEdges = false) const;
+
+    std::map<DataDependenceEdge*, MoveNode*, DataDependenceEdge::Comparator>
+    onlyRegisterRawDestinationsWithEdges(
+        const MoveNode& mn, bool allowBackEdges) const;
+
     NodeSet regWarSuccessors(const MoveNode& node) const;
     NodeSet regRawSuccessors(const MoveNode& node) const;
     NodeSet regWawSuccessors(const MoveNode& node) const;
+    NodeSet regDepSiblings(const MoveNode& mn) const;
 
     void createRegisterAntiDependenciesBetweenNodes(NodeSet& nodes);
 
@@ -277,12 +306,14 @@ public:
     int rWarEdgesOut(MoveNode& mn);
     int regRawSuccessorCount(const MoveNode& mn, bool onlyScheduled);
 
-    bool guardsAllowBypass(const MoveNode& defNode, const MoveNode& useNode);
+    bool guardsAllowBypass(const MoveNode& defNode,
+                           const MoveNode& useNode,
+                           bool loopBypass = false);
 
     const MoveNode* onlyRegisterRawAncestor(
         const MoveNode& node, const std::string& sp) const;
 
-    void copyDepsOver(MoveNode& node, bool anti, bool raw);
+    EdgeSet copyDepsOver(MoveNode& node, bool anti, bool raw);
 
     void copyDepsOver(MoveNode& node1, MoveNode& node2, bool anti, bool raw);
 
@@ -291,16 +322,19 @@ public:
 
     TTAProgram::Move* findLoopLimit(MoveNode& jumpMove);
 
+    bool writesJumpGuard(const MoveNode& moveNode);
+
     void moveFUDependenciesToTrigger(MoveNode& trigger);
 
     LiveRange* findLiveRange(
-        MoveNode& lrNode, bool writingNode=true) const;
+        MoveNode& lrNode, bool writingNode, bool guardUseNode) const;
 
     MoveNode* findLimitingAntidependenceSource(MoveNode& mn);
     MoveNode* findLimitingAntidependenceDestination(MoveNode& mn);
 
-    void sourceRenamed(MoveNode& mn);
-    void destRenamed(MoveNode& mn);
+    DataDependenceGraph::UndoData sourceRenamed(MoveNode& mn);
+    DataDependenceGraph::UndoData guardRenamed(MoveNode& mn);
+    DataDependenceGraph::UndoData destRenamed(MoveNode& mn);
 
     void renamedSimpleLiveRange(
         MoveNode& src, MoveNode& dest, MoveNode& antidepPoint,
@@ -335,7 +369,19 @@ public:
 
     bool isNotAvoidable(const DataDependenceEdge& edge) const;
 
+    bool isLoopInvariant(const MoveNode& mn) const;
+
+    bool hasOtherRegWawSources(const MoveNode& mn) const;
+
+    void undo(UndoData& undoData);
+
+    EdgeSet operationInEdges(const MoveNode& node) const;
 private:
+
+    bool queueRawPredecessors(
+        NodeSet& queue, NodeSet& finalDest, NodeSet& predQueue,
+        NodeSet& predFinalDest, bool guard) const;
+
     bool rWawRawEdgesOutUncond(MoveNode& mn);
     int rAntiEdgesIn(MoveNode& mn);
 
@@ -354,7 +400,7 @@ private:
 
     // cache to make things faster
     // may not be used with iterator.
-    std::map<TTAProgram::Move*, MoveNode*> nodesOfMoves_;
+    std::map<const TTAProgram::Move*, MoveNode*> nodesOfMoves_;
 
     // own all the programoperations
     POList programOperations_;

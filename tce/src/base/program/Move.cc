@@ -72,7 +72,7 @@ namespace TTAProgram {
  */
 Move::Move(
     Terminal* src, Terminal* dst,
-    Bus& bus, MoveGuard* guard):
+    const Bus& bus, MoveGuard* guard):
     parent_(NULL), src_(src), dst_(dst), bus_(&bus), guard_(guard) {
 }
 
@@ -86,7 +86,7 @@ Move::Move(
  * @param bus The bus on which the transport is carried.
  */
 Move::Move(
-    Terminal* src, Terminal* dst, Bus& bus):
+    Terminal* src, Terminal* dst, const Bus& bus):
     parent_(NULL), src_(src), dst_(dst), bus_(&bus),
     guard_(NULL) {
 }
@@ -355,7 +355,7 @@ Move::setGuard(MoveGuard* guard) {
  *
  * @return the bus on which the move is carried.
  */
-Bus&
+const Bus&
 Move::bus() const {
     return *bus_;
 }
@@ -366,7 +366,7 @@ Move::bus() const {
  * @param bus The new bus.
  */
 void
-Move::setBus(TTAMachine::Bus& bus) {
+Move::setBus(const TTAMachine::Bus& bus) {
     bus_ = &bus;
 }
 
@@ -395,14 +395,14 @@ Move::sourceSocket() const {
  *
  * @return A copy of the move.
  */
-Move*
+std::shared_ptr<Move>
 Move::copy() const {
 
-    Move* newMove = NULL;
+    std::shared_ptr<Move> newMove = NULL;
     if (isUnconditional()) {
-        newMove = new Move(src_->copy(), dst_->copy(), *bus_);
+        newMove = std::make_shared<Move>(src_->copy(), dst_->copy(), *bus_);
     } else {
-        newMove = new Move(
+        newMove = std::make_shared<Move>(
             src_->copy(), dst_->copy(), *bus_, guard_->copy());
     }
 

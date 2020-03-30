@@ -41,6 +41,12 @@ class PendingAssignment;
 class MoveNode;
 class SchedulingResource;
 
+namespace TTAMachine {
+    class Bus;
+    class FunctionUnit;
+    class ImmediateUnit;
+}
+
 /**
  * Keeps the order in which single resource-specific brokers are
  * invoked to perform their bit of the allocation or assignment. Also
@@ -53,7 +59,13 @@ public:
     virtual ~AssignmentPlan();
 
     void insertBroker(ResourceBroker& broker);
-    void setRequest(int cycle, MoveNode& node);
+    void setRequest(
+        int cycle, MoveNode& node, const TTAMachine::Bus* bus,
+        const TTAMachine::FunctionUnit* srcFU,
+        const TTAMachine::FunctionUnit* dstFU,
+        int immWriteCycle,
+        const TTAMachine::ImmediateUnit* immu,
+        int immRegIndex);
     ResourceBroker& firstBroker();
     ResourceBroker& nextBroker(ResourceBroker& pos);
     ResourceBroker& lastBroker();
@@ -69,9 +81,23 @@ public:
     ResourceBroker& broker(int index) const;
     void clear();
 
-    bool tryCachedAssignment(MoveNode& node, int cycle);
+    bool tryCachedAssignment(MoveNode& node, int cycle,
+                             const TTAMachine::Bus* bus,
+                             const TTAMachine::FunctionUnit* srcFU,
+                             const TTAMachine::FunctionUnit* dstFU,
+                             int immWriteCycle,
+                             const TTAMachine::ImmediateUnit* immu,
+                             int immRegIndex);
     void clearCache();
 private:
+
+    const TTAMachine::Bus* bus_;
+    const TTAMachine::FunctionUnit* srcFU_;
+    const TTAMachine::FunctionUnit* dstFU_;
+    int immWriteCycle_;
+    const TTAMachine::ImmediateUnit* immu_;
+    int immRegIndex_;
+
     /// Sequence of pending assignments.
     std::vector<PendingAssignment*> assignments_;
     /// Sequence of applicable pending assignments.
