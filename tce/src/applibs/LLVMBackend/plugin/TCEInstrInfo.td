@@ -16,27 +16,9 @@ def LE32 : Predicate<"(!subtarget_.is64bit() && subtarget_.isLittleEndian())">;
 
 include "GenInstrInfo0.td"
 
-// Addressing modes.
-//def ADDRrr : ComplexPattern<i32, 2, "SelectADDRrr", [], []>;
-//def ADDRri : ComplexPattern<i32, 2, "SelectADDRri", [frameindex], []>;
-
-// Address operands
-//def MEMrr : Operand<i32> {
-//  let PrintMethod = "printMemOperand";
-//  let MIOperandInfo = (ops R32IRegs, R32IRegs);
-//}
-//def MEMri : Operand<i32> {
-//  let PrintMethod = "printMemOperand";
-//  let MIOperandInfo = (ops R32IRegs, i32imm);
-//}
-
 def TCESRAConst : SDNode<"TCEISD::SRA_Const", SDTIntBinOp, []>;
 def TCESRLConst : SDNode<"TCEISD::SRL_Const", SDTIntBinOp, []>;
 def TCESHLConst : SDNode<"TCEISD::SHL_Const", SDTIntBinOp, []>;
-
-// Branch targets have OtherVT type.
-//def brtarget : Operand<OtherVT>;
-//def calltarget : Operand<i32>;
 
 // Operand for printing out a condition code.
 let PrintMethod = "printCCOperand" in
@@ -326,8 +308,7 @@ let isTerminator = 1, isBranch = 1 in {
 
     let isIndirectBranch = 1 in {
         def TCEBRIND : InstTCE<(outs), (ins R32Regs:$dst), "$dst -> jump.1;", []>;
-   }     
-
+   }
 }
 
 
@@ -411,7 +392,7 @@ def PRED_FALSE_STQBij : InstTCE<(outs), (ins R1Regs:$pred, MEMri:$op1,i1imm:$op2
 def : Pat<(store R1Regs:$src, ADDRrr:$addr), (STQBrb ADDRrr:$addr, R1Regs:$src)>, Requires<[BigEndian]>;
 def : Pat<(store R1Regs:$src, ADDRri:$addr), (STQBib ADDRri:$addr, R1Regs:$src)>, Requires<[BigEndian]>;
 
-// boolean store - litte-endain
+// boolean store - litte-endian
 def ST8Brb : InstTCE<(outs), (ins MEMrr:$op1,R1Regs:$op2), "",
     [(truncstorei8 R1Regs:$op2, ADDRrr:$op1)]>, Requires<[LittleEndian]>;
 
