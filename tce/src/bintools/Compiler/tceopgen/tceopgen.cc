@@ -231,20 +231,21 @@ writeCustomOpMacros(std::ostream& os) {
     for (int m = 0; m < index.moduleCount(); m++) {
         OperationModule& mod = index.module(m);
         try {
-            for (int o = 0; o < index.operationCount(mod); o++) {
+            int opCount = index.operationCount(mod);
+            for (int o = 0; o < opCount; o++) {
 
                 std::string opName = index.operationName(o, mod);
-                const Operation& op = pool.operation(opName.c_str());
                 if (operations.count(opName) > 0) {
                     continue;
                 }
+                const Operation& op = pool.operation(opName.c_str());
                 operations.insert(opName);
 
                 writeCustomOpMacro(os, opName, op, NORMAL);
                 writeCustomOpMacro(os, opName, op, FU_ADDRESSABLE);
-		if (op.usesMemory()) {
-		    writeCustomOpMacro(os, opName, op, ADDRESSPACE);
-		}
+                if (op.usesMemory()) {
+                    writeCustomOpMacro(os, opName, op, ADDRESSPACE);
+                }
             }
         } catch (const Exception& e) {
             Application::errorStream()
