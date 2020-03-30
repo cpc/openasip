@@ -3,7 +3,6 @@
 
 Notable changes and features
 ----------------------------
-
 - New instruction scheduler which is much more aggressive at
   performing software bypasses, which reduecs register pressure.
   Creates considerably faster code with processor architectures with
@@ -14,6 +13,10 @@ Notable changes and features
   with command line parameter --enable-loop-schduler to tcecc.
   Makes compilation MUCH slower. Also, not so well tested as the normal
   basic block scheduling mode, so there may be more bugs.
+- Compiler backend compilation speedup by 50-60% by creating a
+  pluginwrapperfile that includes multiple sourcefiles such that commonly
+  included files are linked and compiled only once for all the sourcefiles
+  in the wrapper.
 
 1.21       March 2020
 =====================
