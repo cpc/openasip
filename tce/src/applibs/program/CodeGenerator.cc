@@ -148,15 +148,14 @@ CodeGenerator::loadTerminal(
     TTAProgram::Terminal* srcTerminal,
     TTAProgram::Terminal* dstTerminal) {
 
+    TCEString loadOp = mach_->isLittleEndian() ? "LD32" : "LDW";
+
     // create terminal references
     TTAProgram::TerminalFUPort* ldw1Terminal =
-        createTerminalFUPort("ldw", 1);
+        createTerminalFUPort(loadOp, 1);
 
     TTAProgram::TerminalFUPort* ldw2Terminal =
-        createTerminalFUPort("ldw", 2);
-
-    // dstProcedure->add(
-    //      new CodeSnippet("reg -> ldw.1; ldw.2 -> dstReg; "));
+        createTerminalFUPort(loadOp, 2);
 
     addMoveToProcedure(dstProcedure, srcTerminal, ldw1Terminal);
     addMoveToProcedure(dstProcedure, ldw2Terminal, dstTerminal);
@@ -175,11 +174,13 @@ CodeGenerator::storeTerminal(
     TTAProgram::Terminal* dstTerminal,
     TTAProgram::Terminal* srcTerminal) {
 
+    TCEString storeOp = mach_->isLittleEndian() ? "ST32" : "STW";
+
     TTAProgram::TerminalFUPort* stw1Terminal =
-        createTerminalFUPort("stw", 1);
+        createTerminalFUPort(storeOp, 1);
 
     TTAProgram::TerminalFUPort* stw2Terminal =
-        createTerminalFUPort("stw", 2);
+        createTerminalFUPort(storeOp, 2);
 
     addMoveToProcedure(dstProcedure, dstTerminal, stw1Terminal);
     addMoveToProcedure(dstProcedure, srcTerminal, stw2Terminal);
