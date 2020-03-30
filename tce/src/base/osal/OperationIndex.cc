@@ -341,6 +341,7 @@ OperationIndex::operationName(int i, const OperationModule& om) {
             readOperations(om);
             it = opDefinitions_.find(om.propertiesModule());
         } catch (const SerializerException& s) {
+            brokenModules_.insert(&om);
             string msg = "Error when reading module: " + s.errorMessage();
             throw BadOperationModule(__FILE__, __LINE__, __func__, msg);
         }
@@ -366,6 +367,7 @@ OperationIndex::operationCount(const OperationModule& om) {
             readOperations(om);
             it = opDefinitions_.find(om.propertiesModule());
         } catch (const SerializerException& s) {
+            brokenModules_.insert(&om);
             string msg = "Error when reading module: " + s.errorMessage();
             throw BadOperationModule(__FILE__, __LINE__, __func__, msg);
         }
@@ -411,7 +413,9 @@ OperationIndex::moduleOf(
     
     // let's iterate through all modules in this path
     for (unsigned int j = 0; j < mods.size(); j++) {
-        
+
+        if (brokenModules_.count(mods[j]))
+            continue;
         DefinitionTable::const_iterator dt = 
             opDefinitions_.find(mods[j]->propertiesModule());
         if (dt == opDefinitions_.end()) {
@@ -422,6 +426,7 @@ OperationIndex::moduleOf(
                 readOperations(*mods[j]);
                 dt = opDefinitions_.find(mods[j]->propertiesModule());
             } catch (const SerializerException& s) {
+                brokenModules_.insert(mods[j]);
                 // error occurred in reading, let's keep searching
                 continue;
             }
