@@ -1,3 +1,5 @@
+AUTOMAKE_OPTIONS = subdir-objects
+
 SUBDIRS = passes
 
 noinst_LTLIBRARIES = libtcellvmbackend.la 
