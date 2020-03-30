@@ -1,0 +1,7 @@
+<?php
+// short test description
+$test_description="Compiling short test cases with the new instruction scheduler";
+$test_bin = "../../../../tce/scheduler/testbench/scheduler_tester.py";
+$bin_args = "-vr -g \"-O3\" -e tests ".
+    "-a lotta_lite_le_noextload.adf";
+?>
