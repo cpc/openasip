@@ -46,8 +46,8 @@ function fetch_llvm {
 	      # Discard all differences with release/9.x branch
 	      cd $llvm_co_dir;
         git checkout release/10.x ||	eexit "checking out git branch failed"
-	      git pull || eexit "error doing a git pull"
 	      git reset --hard HEAD || eexit "resetting --hard HEAD failed"
+	      git pull || eexit "error doing a git pull"
 	      cd ..;
     fi
 }
@@ -65,6 +65,7 @@ function apply_patches {
     try_patch $patch_dir/llvm-10-custom-vector-extension.patch
     try_patch $patch_dir/llvm-9-vect-datalayout.patch
     try_patch $patch_dir/llvm-9-SPIR-address-space-numbers.patch
+    try_patch $patch_dir/llvm-10-SWP.patch
     cd ..
 }
 fetch_llvm

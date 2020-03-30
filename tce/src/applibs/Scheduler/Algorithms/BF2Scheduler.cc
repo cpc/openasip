@@ -1628,12 +1628,12 @@ void BF2Scheduler::unreservePreallocatedFUs() {
                 TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_SRC) ||
             m.hasAnnotations(
                 TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST)) {
-        }
-        m.removeAnnotations(
-            TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_SRC);
-        m.removeAnnotations(
-            TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST);
 
+            m.removeAnnotations(
+                TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_SRC);
+            m.removeAnnotations(
+                TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST);
+        }
         m.removeAnnotations(
             TTAProgram::ProgramAnnotation::ANN_REJECTED_UNIT_SRC);
         m.removeAnnotations(

@@ -1,0 +1,58 @@
+diff --git llvm/lib/CodeGen/MachinePipeliner.cpp llvm/lib/CodeGen/MachinePipeliner.cpp
+index ef22caa877c..83e1e587584 100644
+--- llvm/lib/CodeGen/MachinePipeliner.cpp
++++ llvm/lib/CodeGen/MachinePipeliner.cpp
+@@ -1385,11 +1385,11 @@ void SwingSchedulerDAG::computeNodeFunctions(NodeSetType &NodeSets) {
+                                     EP = SU->Preds.end();
+          IP != EP; ++IP) {
+       SUnit *pred = IP->getSUnit();
++      if (ignoreDependence(*IP, true))
++        continue;
+       if (IP->getLatency() == 0)
+         zeroLatencyDepth =
+             std::max(zeroLatencyDepth, getZeroLatencyDepth(pred) + 1);
+-      if (ignoreDependence(*IP, true))
+-        continue;
+       asap = std::max(asap, (int)(getASAP(pred) + IP->getLatency() -
+                                   getDistance(pred, SU, *IP) * MII));
+     }
+@@ -1409,13 +1409,16 @@ void SwingSchedulerDAG::computeNodeFunctions(NodeSetType &NodeSets) {
+                                     ES = SU->Succs.end();
+          IS != ES; ++IS) {
+       SUnit *succ = IS->getSUnit();
+-      if (IS->getLatency() == 0)
+-        zeroLatencyHeight =
+-            std::max(zeroLatencyHeight, getZeroLatencyHeight(succ) + 1);
+       if (ignoreDependence(*IS, true))
+-        continue;
+-      alap = std::min(alap, (int)(getALAP(succ) - IS->getLatency() +
+-                                  getDistance(SU, succ, *IS) * MII));
++          continue;
++      if (IS->getLatency() == 0) {
++	if(!(succ->NodeNum >= SUnits.size())) {
++	  zeroLatencyHeight =
++            std::max(zeroLatencyHeight, getZeroLatencyHeight(succ) + 1);
++          alap = std::min(alap, (int)(getALAP(succ) - IS->getLatency() +
++                                    getDistance(SU, succ, *IS) * MII));
++	}
++      }
+     }
+ 
+     ScheduleInfo[*I].ALAP = alap;
+diff --git llvm/lib/CodeGen/ModuloSchedule.cpp llvm/lib/CodeGen/ModuloSchedule.cpp
+index 163e52d9199..df7e4206cdb 100644
+--- llvm/lib/CodeGen/ModuloSchedule.cpp
++++ llvm/lib/CodeGen/ModuloSchedule.cpp
+@@ -320,7 +320,11 @@ void ModuloScheduleExpander::generateEpilog(unsigned LastStage,
+   // Create a branch to the new epilog from the kernel.
+   // Remove the original branch and add a new branch to the epilog.
+   TII->removeBranch(*KernelBB);
+-  TII->insertBranch(*KernelBB, KernelBB, EpilogStart, Cond, DebugLoc());
++  if(LoopExitBB == TBB) {
++    TII->insertBranch(*KernelBB, EpilogStart, KernelBB, Cond, DebugLoc());
++  } else {
++    TII->insertBranch(*KernelBB, KernelBB, EpilogStart, Cond, DebugLoc());
++  }
+   // Add a branch to the loop exit.
+   if (EpilogBBs.size() > 0) {
+     MachineBasicBlock *LastEpilogBB = EpilogBBs.back();

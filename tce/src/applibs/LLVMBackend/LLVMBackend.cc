@@ -630,10 +630,12 @@ LLVMBackend::compile(
      * This is quite straight copy how llc actually creates passes for target.
      */       
 
+#ifdef LLVM_OLDER_THAN_10
     // if opt level is less than 2 we will not run extra optimization passes
     // after linking emulation function code
     CodeGenOpt::Level OptLevel = 
         (optLevel < 2) ? (CodeGenOpt::None) : (CodeGenOpt::Aggressive);
+#endif
 
 #ifdef LLVM_OLDER_THAN_3_7
     llvm::PassManager Passes;
@@ -952,15 +954,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
     }
 
     // NOTE: this could be get from Makefile.am
-    std::string pluginSources =
-        srcsPath + "TCERegisterInfo.cc " +
-        srcsPath + "TCEInstrInfo.cc " +
-        srcsPath + "TCEISelLowering.cc " +
-        srcsPath + "TCEDAGToDAGISel.cc " +
-        srcsPath + "TCETargetObjectFile.cc " +
-        srcsPath + "TCEFrameInfo.cc " +
-        srcsPath + "TCETargetMachinePlugin.cc " +
-        srcsPath + "TCESubtarget.cc ";
+    TCEString pluginSources =
+	srcsPath + "PluginCompileWrapper.cc " + srcsPath +
+	"TCEFrameInfo.cc " + srcsPath + "TCETargetMachinePlugin.cc ";
 
     TCEString endianOption = target.isLittleEndian() ?
         "-DLITTLE_ENDIAN_TARGET" : "";
