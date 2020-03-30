@@ -69,15 +69,15 @@ function check_minimal_adf {
 
 # ----------------- process parameters ------------------------------------ #
 
-[ "${1}x" == "-ex" ] && { shift; EVALUATE="true"; }
+#[ "${1}x" == "-ex" ] && { shift; EVALUATE="true"; }
 
 [ "${1}x" == "x" ] && { echo "Code file in c should be given as a parameter."; exit 1; }
 
 if [ "${1}x" == "--helpx" -o "${1}x" == "-hx" ]; then
     echo "Usage: c2vhdl [options] c_source_file"
     echo ""
-    echo "Options:"
-    echo "-e    Evaluate and generate estimation data."
+#    echo "Options:"
+#    echo "-e    Evaluate and generate estimation data."
     exit
 fi
 
@@ -112,9 +112,9 @@ new_conf="$(explore -e ImplementationSelector -s 1 ${tmp_name}.dsdb \
 [ "${new_conf}x" == "x" ] && pexit 1 "Explorer failed to create a new config."
 
 # get estimation data if it was asked
-if [ "${EVALUATE}x" == "truex" ]; then
-    { explore -e Evaluate -s ${new_conf} -u print="true" ${tmp_name}.dsdb || pexit 1; } | grep -v 'No new configurations'
-fi
+#if [ "${EVALUATE}x" == "truex" ]; then
+#    { explore -e Evaluate -s ${new_conf} -u print="true" ${tmp_name}.dsdb || pexit 1; } | grep -v 'No new configurations'
+#fi
 
 explore -w ${new_conf} ${tmp_name}.dsdb 1>/dev/null || pexit 1
 mv ${new_conf}.adf ${name}.adf; mv ${new_conf}.idf ${name}.idf

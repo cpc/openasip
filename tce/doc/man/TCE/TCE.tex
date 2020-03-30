@@ -1846,38 +1846,39 @@ which is a lot more complex then what we use it for in the end, because after
 the custom reflection operation was introduced only a 24 bit rightshift and an 
 8 bit leftshift remain in our program.
 
-\section{From C to VHDL as Quickly as Possible}
-\label{section:fromCtoVHDL}
+% NOTE: This section is disabled, until better estimation is implemented.
+%\section{From C to VHDL as Quickly as Possible}
+%\label{section:fromCtoVHDL}
 % NOTE: when updating this update also c2vhdl systemtest if needed.
 % TODO: Also add compilation and simulation of VHDL code using GHDL
  
-This tutorial introduces a fast way to generate a processor VHDL model
-from C source code using the Design Space Explorer.
- 
-If you haven't already downloaded the tutorial file package, you can get it 
-from:\\
-\url{http://openasip.org/tutorial_files/tce_tutorials.tar.gz} \\
-Unpack it to a working directory and then cd to tce\_tutorials/c2vhdl/
-
-A script named c2vhdl should generate all the needed files from the C source
-code. The script is a bash script using various TCE command line tools, and
-can be inspected for detailed instructions to generate the VHDL and other
-files manually.
-
-\shellcmd{c2vhdl application1/complex\_multiply.c}
-
-Now directory called ``proge-output'' should include the VHDL implementation
-of the processor.
-The current working directory should also contain the instruction memory bit
-image file and the instruction encoding (bem) file along with the processor
-architecture definition and implementation definition files.
-
-Passing "-e" as the first parameter to c2vhdl script tells it to print
-estimation data, like area and energy requirements for the processor it
-generates.
-
-Tutorial is now finished and you can simulate the generated VHDL
-implementation of the processor with a VHDL simulator and synthesize it.
+%This tutorial introduces a fast way to generate a processor VHDL model
+%from C source code using the Design Space Explorer.
+% 
+%If you haven't already downloaded the tutorial file package, you can get it 
+%from:\\
+%\url{http://openasip.org/tutorial_files/tce_tutorials.tar.gz} \\
+%Unpack it to a working directory and then cd to tce\_tutorials/c2vhdl/
+%
+%A script named c2vhdl should generate all the needed files from the C source
+%code. The script is a bash script using various TCE command line tools, and
+%can be inspected for detailed instructions to generate the VHDL and other
+%files manually.
+%
+%\shellcmd{c2vhdl application1/complex\_multiply.c}
+%
+%Now directory called ``proge-output'' should include the VHDL implementation
+%of the processor.
+%The current working directory should also contain the instruction memory bit
+%image file and the instruction encoding (bem) file along with the processor
+%architecture definition and implementation definition files.
+%
+%Passing "-e" as the first parameter to c2vhdl script tells it to print
+%estimation data, like area and energy requirements for the processor it
+%generates.
+%
+%Tutorial is now finished and you can simulate the generated VHDL
+%implementation of the processor with a VHDL simulator and synthesize it.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
