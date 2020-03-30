@@ -78,7 +78,7 @@
 #define DEFAULT_REG_CLASS TCE::R64IRegsRegClass
 #else
 #define DEFAULT_TYPE MVT::i32
-#define DEFALUT_IMM_INSTR TCE::MOVI32ri
+#define DEFAULT_IMM_INSTR TCE::MOVI32ri
 #define DEFAULT_SIZE 4
 #define DEFAULT_REG_CLASS TCE::R32IRegsRegClass
 #endif
@@ -447,13 +447,8 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 #endif
     }
 
-#ifndef TARGET64BIT
-        // Keep stack frames 4-byte aligned.
-        ArgsSize = (ArgsSize+3) & ~3;
-#else
-        // Keep stack frames 8-byte aligned.
-        ArgsSize = (ArgsSize+7) & ~7;
-#endif
+    ArgsSize = (ArgsSize+DEFAULT_SIZE-1) & ~(DEFAULT_SIZE-1);
+
 #ifdef LLVM_OLDER_THAN_3_7
     Chain = 
         DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize, true), dl);
@@ -683,15 +678,9 @@ TCETargetLowering::TCETargetLowering(
 
 // TODO: define TCE instruction for leading/trailing zero count
 #ifndef LLVM_OLDER_THAN_7
-#ifdef TARGET64BIT
-    setOperationAction(ISD::CTLZ, MVT::i64, Expand);
-    setOperationAction(ISD::CTTZ, MVT::i64, Expand);
-    setOperationAction(ISD::CTPOP, MVT::i64, Expand);
-#else
-    setOperationAction(ISD::CTLZ, MVT::i32, Expand);
-    setOperationAction(ISD::CTTZ, MVT::i32, Expand);
-    setOperationAction(ISD::CTPOP, MVT::i32, Expand);
-#endif
+    setOperationAction(ISD::CTLZ, DEFAULT_TYPE, Expand);
+    setOperationAction(ISD::CTTZ, DEFAULT_TYPE, Expand);
+    setOperationAction(ISD::CTPOP, DEFAULT_TYPE, Expand);
 #endif
     // Using 'old way' MVT::Other to cover all value types is illegal now.
     setOperationAction(ISD::SELECT_CC, MVT::f16, Expand);
@@ -754,11 +743,7 @@ TCETargetLowering::TCETargetLowering(
     setOperationAction(ISD::SMUL_LOHI, MVT::i64, Expand);
     setOperationAction(ISD::UMUL_LOHI, MVT::i64, Expand);
 
-#ifdef TARGET64BIT
-    setOperationAction(ISD::BSWAP, MVT::i64, Expand);
-#else
-    setOperationAction(ISD::BSWAP, MVT::i32, Expand);
-#endif
+    setOperationAction(ISD::BSWAP, DEFAULT_TYPE, Expand);
 
     setOperationAction(ISD::SDIVREM, MVT::i32, Expand);
     setOperationAction(ISD::UDIVREM, MVT::i32, Expand);

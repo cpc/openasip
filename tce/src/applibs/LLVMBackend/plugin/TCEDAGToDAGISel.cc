@@ -43,10 +43,10 @@
 
 #ifdef TARGET64BIT
 #define DEFAULT_TYPE MVT::i64
-#define DEFAULT_IMM_INSTR TCE::MOVI32ri
+#define MOVE_IMM TCE::MOVI64sa
 #else
 #define DEFAULT_TYPE MVT::i32
-#define DEFALUT_IMM_INSTR TCE::MOVI64ri
+#define MOVE_IMM TCE::MOVI32ri
 #endif
 
 using namespace llvm;
@@ -174,46 +174,23 @@ TCEDAGToDAGISel::Select(SDNode* n) {
     } else if (n->getOpcode() == ISD::FrameIndex) {
         int fi = cast<FrameIndexSDNode>(n)->getIndex();
 
-#ifndef TARGET64BIT
         if (n->hasOneUse()) {
             SELECT_NODE_AND_RETURN(
-                n, TCE::MOVI32ri, MVT::i32,
-                CurDAG->getTargetFrameIndex(fi, MVT::i32));
+                n, MOVE_IMM, DEFAULT_TYPE,
+                CurDAG->getTargetFrameIndex(fi, DEFAULT_TYPE));
         } else {
 #ifdef LLVM_OLDER_THAN_3_9
             return CurDAG->getMachineNode(
-                TCE::MOVI32ri, dl, MVT::i32,
-                CurDAG->getTargetFrameIndex(fi, MVT::i32));
+                MOVE_IMM, dl, DEFAULT_TYPE,
+                CurDAG->getTargetFrameIndex(fi, DEFAULT_TYPE));
 #else
             auto fiN = CurDAG->getMachineNode(
-                TCE::MOVI32ri, dl, MVT::i32,
-                CurDAG->getTargetFrameIndex(fi, MVT::i32));
+                MOVE_IMM, dl, DEFAULT_TYPE,
+                CurDAG->getTargetFrameIndex(fi, DEFAULT_TYPE));
             ReplaceNode(n, fiN);
             return;
 #endif
         }
-#else // 64-bit
-
-        if (n->hasOneUse()) {
-            SELECT_NODE_AND_RETURN(
-                n, TCE::MOVI64sa, MVT::i64,
-                CurDAG->getTargetFrameIndex(fi, MVT::i64));
-        } else {
-#ifdef LLVM_OLDER_THAN_3_9
-            return CurDAG->getMachineNode(
-                TCE::MOVI64sa, dl, MVT::i64,
-                CurDAG->getTargetFrameIndex(fi, MVT::i64));
-#else
-            auto fiN = CurDAG->getMachineNode(
-                TCE::MOVI64sa, dl, MVT::i64,
-                CurDAG->getTargetFrameIndex(fi, MVT::i64));
-            ReplaceNode(n, fiN);
-            return;
-#endif
-        }
-
-#endif
-
     } else if (n->getOpcode() == ISD::SELECT) {
         SDValue cond = n->getOperand(0);
         if (cond.getValueType() == MVT::i1) {
@@ -293,13 +270,12 @@ bool
 TCEDAGToDAGISel::SelectADDRri(
     SDValue addr, SDValue& base, SDValue& offset) {
 
-#ifndef TARGET64BIT
     if (FrameIndexSDNode* fin = dyn_cast<FrameIndexSDNode>(addr)) {
-        base = CurDAG->getTargetFrameIndex(fin->getIndex(), MVT::i32);
+        base = CurDAG->getTargetFrameIndex(fin->getIndex(), DEFAULT_TYPE);
 #ifdef LLVM_OLDER_THAN_3_7
-        offset = CurDAG->getTargetConstant(0, MVT::i32);
+        offset = CurDAG->getTargetConstant(0, DEFAULT_TYPE);
 #else
-        offset = CurDAG->getTargetConstant(0, SDLoc(), MVT::i32);
+        offset = CurDAG->getTargetConstant(0, SDLoc(), DEFAULT_TYPE);
 #endif
         return true;
     } else if (addr.getOpcode() == ISD::TargetExternalSymbol ||
@@ -309,31 +285,9 @@ TCEDAGToDAGISel::SelectADDRri(
     }
     base = addr;
 #ifdef LLVM_OLDER_THAN_3_7
-    offset = CurDAG->getTargetConstant(0, MVT::i32);
+    offset = CurDAG->getTargetConstant(0, DEFAULT_TYPE);
 #else
-    offset = CurDAG->getTargetConstant(0, SDLoc(), MVT::i32);
-#endif
-
-#else // 64-bit
-    if (FrameIndexSDNode* fin = dyn_cast<FrameIndexSDNode>(addr)) {
-        base = CurDAG->getTargetFrameIndex(fin->getIndex(), MVT::i64);
-#ifdef LLVM_OLDER_THAN_3_7
-        offset = CurDAG->getTargetConstant(0, MVT::i64);
-#else
-        offset = CurDAG->getTargetConstant(0, SDLoc(), MVT::i64);
-#endif
-        return true;
-    } else if (addr.getOpcode() == ISD::TargetExternalSymbol ||
-               addr.getOpcode() == ISD::TargetGlobalAddress) {
-
-        return false;  // direct calls.
-    }
-    base = addr;
-#ifdef LLVM_OLDER_THAN_3_7
-    offset = CurDAG->getTargetConstant(0, MVT::i64);
-#else
-    offset = CurDAG->getTargetConstant(0, SDLoc(), MVT::i64);
-#endif
+    offset = CurDAG->getTargetConstant(0, SDLoc(), DEFAULT_TYPE);
 #endif
     return true;
 }
@@ -358,18 +312,10 @@ TCEDAGToDAGISel::SelectADDRrr(
 
     r1 = addr;
 
-#ifndef TARGET64BIT
 #ifdef LLVM_OLDER_THAN_3_7
-    r2 = CurDAG->getTargetConstant(0, MVT::i32);
+    r2 = CurDAG->getTargetConstant(0, DEFAULT_TYPE);
 #else
-    r2 = CurDAG->getTargetConstant(0, SDLoc(), MVT::i32);
-#endif
-#else
-#ifdef LLVM_OLDER_THAN_3_7
-    r2 = CurDAG->getTargetConstant(0, MVT::i64);
-#else
-    r2 = CurDAG->getTargetConstant(0, SDLoc(), MVT::i64);
-#endif
+    r2 = CurDAG->getTargetConstant(0, SDLoc(), DEFAULT_TYPE);
 #endif
     return true;
 }
