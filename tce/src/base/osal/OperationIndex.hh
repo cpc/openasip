@@ -37,6 +37,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <set>
 
 #include "OperationSerializer.hh"
 #include "OperationBehaviorLoader.hh"
@@ -113,7 +114,7 @@ private:
     OperationSerializer serializer_;
     OperationBehaviorLoader loader_;
     std::vector<OperationBehaviorProxy*> proxies_;
-
+    std::set<const OperationModule*> brokenModules_;
 };
 
 #include "OperationIndex.icc"
