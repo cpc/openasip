@@ -148,7 +148,8 @@ CodeGenerator::loadTerminal(
     TTAProgram::Terminal* srcTerminal,
     TTAProgram::Terminal* dstTerminal) {
 
-    TCEString loadOp = mach_->isLittleEndian() ? "LD32" : "LDW";
+    TCEString loadOp = mach_->isLittleEndian() ?
+        (mach_->is64bit() ? "LD64" : "LD32") : "LDW";
 
     // create terminal references
     TTAProgram::TerminalFUPort* ldw1Terminal =
@@ -174,7 +175,8 @@ CodeGenerator::storeTerminal(
     TTAProgram::Terminal* dstTerminal,
     TTAProgram::Terminal* srcTerminal) {
 
-    TCEString storeOp = mach_->isLittleEndian() ? "ST32" : "STW";
+    TCEString storeOp = mach_->isLittleEndian() ?
+        (mach_->is64bit() ? "ST64" : "ST32") : "STW";
 
     TTAProgram::TerminalFUPort* stw1Terminal =
         createTerminalFUPort(storeOp, 1);
