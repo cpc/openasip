@@ -126,8 +126,7 @@ public:
     virtual bool has8bitLoads() const override;
     virtual bool has16bitLoads() const override;
 
-    virtual int maxVectorSize() const;
-
+    virtual int maxVectorSize() const override { return 1; }
     virtual void registerTargetMachine(TCETargetMachine &tm);
 
     virtual int getLoad(const TargetRegisterClass *rc) const;
@@ -391,20 +390,6 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     if (opc == TCE::CALL) return "call";
     if (opc == TCE::CALL_MEMrr) return "call";
     if (opc == TCE::CALL_MEMri) return "call";
-
-    if (opc == TCE::BUILDV2vii) return "_BUILD_2";
-    if (opc == TCE::BUILDV2mkk) return "_BUILD_2";
-    if (opc == TCE::BUILDV4wiiii) return "_BUILD_4";
-    if (opc == TCE::BUILDV4nkkkk) return "_BUILD_4";
-    if (opc == TCE::BUILDV8xiiiiiiii) return "_BUILD_8";
-    if (opc == TCE::BUILDV8okkkkkkkk) return "_BUILD_8";
-
-    if (opc == TCE::MOV2vv) return "_VECTOR_MOV_2";
-    if (opc == TCE::MOV2mm) return "_VECTOR_MOV_2";
-    if (opc == TCE::MOV4ww) return "_VECTOR_MOV_4";
-    if (opc == TCE::MOV4nn) return "_VECTOR_MOV_4";
-    if (opc == TCE::MOV8xx) return "_VECTOR_MOV_8";
-    if (opc == TCE::MOV8oo) return "_VECTOR_MOV_8";
 
     std::map<unsigned int, TCEString>::const_iterator i = opNames_.find(opc);
     if (i == opNames_.end()) {

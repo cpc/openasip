@@ -438,37 +438,3 @@ def : Pat<(i1 (seteq (i1 -1), R1Regs:$op1)), (MOVI1rr R1Regs:$op1)>;
 
 //def : Pat<(i1 (setne (trunc R32IRegs:$op1), R1Regs:$op2)), (XORrb R1Regs:$op1, R1Regs:$op2)>, Requires<[Bitness32]>;
 //def : Pat<(i1 (seteq (trunc R1Regs:$op1), R1Regs:$op2)), (XORbj (XORrb R32IRegs:$op1, R1Regs:$op2), 1)>, Requires<[Bitness32]>;
-
-
-
-
-
-def BUILDV2vii : InstTCE<(outs V2R32IRegs:$res), (ins i32imm:$e1, i32imm:$e2),"",
-[(set V2R32IRegs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2)))]>;
-
-def BUILDV2mkk : InstTCE<(outs V2R32FPRegs:$res), (ins f32imm:$e1, f32imm:$e2),"",
-[(set V2R32FPRegs:$res, (build_vector (f32 fpimm:$e1), (f32 fpimm:$e2)))]>;
-
-
-
-
-def MOV2vv : InstTCE<(outs V2R32IRegs:$res), (ins V2R32IRegs:$src), "", []>;
-def MOV2mm : InstTCE<(outs V2R32FPRegs:$res), (ins V2R32FPRegs:$src), "", []>;
-def MOV4ww : InstTCE<(outs V4R32IRegs:$res), (ins V4R32IRegs:$src), "", []>;
-def MOV4nn : InstTCE<(outs V4R32FPRegs:$res), (ins V4R32FPRegs:$src), "", []>;
-def MOV8xx : InstTCE<(outs V8R32IRegs:$res), (ins V8R32IRegs:$src), "", []>;
-def MOV8oo : InstTCE<(outs V8R32FPRegs:$res), (ins V8R32FPRegs:$src), "", []>;
-
-def BUILDV4wiiii : InstTCE<(outs V4R32IRegs:$res), (ins i32imm:$e1, i32imm:$e2, i32imm:$e3, i32imm:$e4),"",
-[(set V4R32IRegs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2), (i32 imm:$e3), (i32 imm:$e4)))]>;
-
-def BUILDV4nkkkk : InstTCE<(outs V4R32FPRegs:$res), (ins f32imm:$e1, f32imm:$e2, f32imm:$e3, f32imm:$e4),"",
-[(set V4R32FPRegs:$res, (build_vector (f32 fpimm:$e1), (f32 fpimm:$e2), (f32 fpimm:$e3), (f32 fpimm:$e4)))]>;
-
-
-def BUILDV8xiiiiiiii : InstTCE<(outs V8R32IRegs:$res), (ins i32imm:$e1, i32imm:$e2, i32imm:$e3, i32imm:$e4, i32imm:$e5, i32imm:$e6, i32imm:$e7, i32imm:$e8),"",
-[(set V8R32IRegs:$res, (build_vector (i32 imm:$e1), (i32 imm:$e2), (i32 imm:$e3), (i32 imm:$e4), (i32 imm:$e5), (i32 imm:$e6), (i32 imm:$e7), (i32 imm:$e8)))]>;
-
-def BUILDV8okkkkkkkk : InstTCE<(outs V8R32FPRegs:$res), (ins f32imm:$e1, f32imm:$e2, f32imm:$e3, f32imm:$e4, f32imm:$e5, f32imm:$e6, f32imm:$e7, f32imm:$e8),"",
-[(set V8R32FPRegs:$res, (build_vector (f32 fpimm:$e1), (f32 fpimm:$e2), (f32 fpimm:$e3), (f32 fpimm:$e4), (f32 fpimm:$e5), (f32 fpimm:$e6), (f32 fpimm:$e7), (f32 fpimm:$e8)))]>;
-
