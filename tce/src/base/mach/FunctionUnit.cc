@@ -753,7 +753,7 @@ FunctionUnit::isArchitectureEqual(
     }
     for (int i = 0; i < fuPipelineElementCount; i++) {
         string element = pipelineElement(i)->name();
-        if (fu->hasPipelineElement(element)) {
+        if (!fu->hasPipelineElement(element)) {
             return false;
         }
     }
