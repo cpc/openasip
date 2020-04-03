@@ -470,32 +470,31 @@ BBSchedulerController::executeLoopPass(
 
     unsigned int iiMax = iiMinMax.second;
     unsigned int iiMin = iiMinMax.first;
+    unsigned int smallestSuccess = INT_MAX;
     int tryCount = 0;
-    bool hasSuccess = false;
-    unsigned int ii= (iiMin + iiMax)/2+1;
+    unsigned int ii;
 
     if (Application::verboseLevel() > 0) {
         Application::logStream() << "LoopScheduler with MinII="
                                  << iiMin << " MaxII=" << iiMax << std::endl;
     }
 
-    unsigned int prevII = iiMax;
-
     // search ii which is to be used by binary search.
-    while (iiMin < iiMax || ii != prevII) {
+    while (iiMin <= iiMax) {
 
-        prevII = ii;
         // split the search range by half.
-        ii = (iiMin + iiMax)/2;
+        ii = (iiMin*2 + iiMax)/3;
 
         // Do not binary search with a max that is not working schedule.
-        // Try the max on second round instead.
-        if (tryCount && !hasSuccess) {
+        // Try the max on second round instead to fail quickly
+        // when there is no solution.
+        if (tryCount && smallestSuccess == INT_MAX) {
             ii = iiMax;
         }
 
-        if (ii == prevII) {
-            std::cerr << "New II is prev II: " << ii << " , breaking." << std::endl;
+        // Have we already tested this and found that it works?
+        // Don't test again!
+        if (ii == smallestSuccess) {
             break;
         }
 
@@ -524,15 +523,15 @@ BBSchedulerController::executeLoopPass(
 
             // loop scheduler was slower than ordinary scheduler?
             if (loopScheduled == 0) {
-                hasSuccess = true;
                 iiMax = ii -1;
+                smallestSuccess = ii;
             } else {
                 // failed.
                 if (loopScheduled < 0) {
                     iiMin = ii+1;
                 } else { // ok.
-                    hasSuccess = true;
                     iiMax = ii;
+                    smallestSuccess = ii;
                 }
             }
             SimpleResourceManager::disposeRM(rm);
