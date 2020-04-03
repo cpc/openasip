@@ -840,8 +840,8 @@ LLVMTCEIRBuilder::isRealInstruction(const MachineInstr& instr) {
 
     std::string opName = operationName(instr);
 
-    // Pseudo instructions don't require any actual instructions.
-    if (opName == "PSEUDO") {
+    // Pseudo instructions or debug labels don't require any actual instructions.
+    if (opName == "PSEUDO" || opName == "DEBUG_LABEL") {
         return false;
     }
 
