@@ -49,6 +49,7 @@
 #include "BasicBlockPass.hh"
 #include "ImmediateUnit.hh"
 #include "BF2Scheduler.hh"
+#include "ControlFlowEdge.hh"
 
 #include <set>
 
@@ -61,11 +62,13 @@ LoopPrologAndEpilogBuilder::~LoopPrologAndEpilogBuilder() {
 void
 LoopPrologAndEpilogBuilder::moveJumpDestination(
     TTAProgram::InstructionReferenceManager& irm,
-    BasicBlockNode& tail, BasicBlockNode& /*src*/, BasicBlockNode& dst) {
+    BasicBlockNode& tail, BasicBlockNode& dst,
+    ControlFlowEdge& jumpEdge) {
     TTAProgram::BasicBlock& tailBB = tail.basicBlock();
 
+    auto predicate = jumpEdge.edgePredicate();
     std::pair<int, TTAProgram::Move*> jumpData =
-        CopyingDelaySlotFiller::findJump(tailBB);
+        CopyingDelaySlotFiller::findJump(tailBB, &predicate);
 
     std::pair<TTAProgram::Move*, TTAProgram::Immediate*> jumpAddressData;
 
@@ -135,7 +138,7 @@ LoopPrologAndEpilogBuilder::addPrologIntoCfg(
                               << std::endl;
                 }
                 moveJumpDestination(cfg.instructionReferenceManager(),
-                                    tail, loopBBN, prologBBN);
+                                    tail, loopBBN, prologBBN, e);
             }
         }
     }

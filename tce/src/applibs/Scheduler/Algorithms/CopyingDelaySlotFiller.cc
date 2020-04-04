@@ -1522,14 +1522,28 @@ CopyingDelaySlotFiller::poMoved(
  */
 
 std::pair<int, TTAProgram::Move*>
-CopyingDelaySlotFiller::findJump(TTAProgram::BasicBlock& bb) {
+CopyingDelaySlotFiller::findJump(
+    TTAProgram::BasicBlock& bb, ControlFlowEdge::CFGEdgePredicate* pred) {
 
     for (int i = bb.instructionCount()-1; i >= 0; i--) {
         Instruction& ins = bb.instructionAtIndex(i);
         for (int j = 0; j < ins.moveCount(); j++ ) {
             Move& move = ins.move(j);
             if (move.isJump()) {
-                return std::pair<int, TTAProgram::Move*>(i, &move);
+                if (pred == nullptr) {
+                    return std::pair<int, TTAProgram::Move*>(i, &move);
+                }
+                if (move.isUnconditional()) {
+                    if (*pred == ControlFlowEdge::CFLOW_EDGE_NORMAL) {
+                        return std::pair<int, TTAProgram::Move*>(i, &move);
+                    }
+                } else {
+                    auto& guard = move.guard().guard();
+                    if ((*pred == ControlFlowEdge::CFLOW_EDGE_FALSE)
+                        == (guard.isInverted())) {
+                        return std::pair<int, TTAProgram::Move*>(i, &move);
+                    }
+                }
             }
         }
         //cal not handled

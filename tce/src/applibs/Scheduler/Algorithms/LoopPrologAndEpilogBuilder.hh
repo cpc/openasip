@@ -38,6 +38,7 @@ class DataDependenceGraph;
 class SimpleResourceManager;
 class BasicBlockNode;
 class ControlFlowGraph;
+class ControlFlowEdge;
 
 namespace TTAProgram {
     class Move;
@@ -70,7 +71,9 @@ public:
 private:
 
 void moveJumpDestination(
-    TTAProgram::InstructionReferenceManager& irm, BasicBlockNode& tail, BasicBlockNode& src, BasicBlockNode& dst);
+    TTAProgram::InstructionReferenceManager& irm,
+    BasicBlockNode& tail, BasicBlockNode& src,
+    BasicBlockNode& dst, ControlFlowEdge& jumpEdge);
 
     void addPrologIntoCfg(
         ControlFlowGraph& cfg, BasicBlockNode& prologBBN,

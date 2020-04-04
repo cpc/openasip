@@ -40,6 +40,7 @@
 #include "ProgramOperation.hh"
 #include "ControlFlowGraph.hh"
 #include "DataDependenceGraph.hh"
+#include "ControlFlowEdge.hh"
 
 class BasicBlockNode;
 class ControlFlowGraph;
@@ -85,7 +86,8 @@ public:
     void finalizeProcedure();
 
     static std::pair<int, TTAProgram::Move*> findJump(
-        TTAProgram::BasicBlock& bb);
+        TTAProgram::BasicBlock& bb,
+        ControlFlowEdge::CFGEdgePredicate* pred = nullptr);
 
     static std::pair<TTAProgram::Move*, TTAProgram::Immediate*>
     findJumpImmediate(
