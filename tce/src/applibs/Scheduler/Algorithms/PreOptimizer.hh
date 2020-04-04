@@ -42,6 +42,7 @@
 #include "ProgramPass.hh"
 #include "ControlFlowGraphPass.hh"
 #include "DataDependenceGraph.hh"
+#include "ControlFlowGraph.hh"
 
 namespace TTAProgram {
     class CodeSnippet;
@@ -82,7 +83,7 @@ public:
         return "optimizes away guard nagation operations, "
             "uses opposite guards instead"; };
 private:
-    bool inverseGuardsOfHeads(
+    ControlFlowGraph::NodeSet inverseGuardsOfHeads(
         DataDependenceGraph& ddg,
         DataDependenceGraph::EdgeSet& oEdges);
 
@@ -93,17 +94,20 @@ private:
     bool tryToOptimizeAddressReg(
         DataDependenceGraph& ddg, ProgramOperation&po);
 
-    TTAProgram::CodeSnippet* tryToRemoveXor(
+    ControlFlowGraph::NodeSet
+    tryToRemoveXor(
         DataDependenceGraph& ddg, ProgramOperation& po,
         TTAProgram::InstructionReferenceManager* irm,
         ControlFlowGraph& cfg);
 
-    TTAProgram::CodeSnippet* tryToRemoveEq(
+    ControlFlowGraph::NodeSet
+    tryToRemoveEq(
         DataDependenceGraph& ddg, ProgramOperation& po,
         TTAProgram::InstructionReferenceManager* irm,
         ControlFlowGraph& cfg);
     
-    TTAProgram::CodeSnippet* tryToRemoveGuardInversingOp(
+    ControlFlowGraph::NodeSet
+    tryToRemoveGuardInversingOp(
         DataDependenceGraph& ddg, ProgramOperation& po,
         TTAProgram::InstructionReferenceManager* irm,
         ControlFlowGraph& cfg);
