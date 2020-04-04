@@ -138,7 +138,7 @@ LoopPrologAndEpilogBuilder::addPrologIntoCfg(
                               << std::endl;
                 }
                 moveJumpDestination(cfg.instructionReferenceManager(),
-                                    tail, loopBBN, prologBBN, e);
+                                    tail, prologBBN, e);
             }
         }
     }

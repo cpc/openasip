@@ -72,7 +72,7 @@ private:
 
 void moveJumpDestination(
     TTAProgram::InstructionReferenceManager& irm,
-    BasicBlockNode& tail, BasicBlockNode& src,
+    BasicBlockNode& tail,
     BasicBlockNode& dst, ControlFlowEdge& jumpEdge);
 
     void addPrologIntoCfg(
