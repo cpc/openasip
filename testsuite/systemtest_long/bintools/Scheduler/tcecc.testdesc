@@ -2,7 +2,7 @@
 // short test description
 $test_description="Compiling long test cases with tcecc";
 $test_bin = "../../../../tce/scheduler/testbench/scheduler_tester.py ";
-$bin_args = "-e tests -vrq -w 6.7 -g \"-O3 -k_Output\" ".
+$bin_args = "-e tests -vrq -w 6.7 -g \"-O3 -k_Output --td-scheduler\" ".
     "-a 3_bus_short_immediate_fields_and_reduced_connectivity.adf ".
-    "-a lotta_lite.adf";
+    "-a lotta_lite_le_noextload.adf";
 ?>
