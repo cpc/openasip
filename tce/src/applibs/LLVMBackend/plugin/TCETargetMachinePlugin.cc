@@ -307,8 +307,9 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     else if (opc == TCE::ADJCALLSTACKDOWN) return PSEUDO;
     else if (opc == TCE::ADJCALLSTACKUP) return PSEUDO;
     else if (opc == TCE::NOP) return NOP;
+#ifndef LLVM_OLDER_THAN_7
     else if (opc == TCE::DBG_LABEL) return DEBUG_LABEL;
-
+#endif
     // Moves
     if (opc == TCE::COPY) return MOVE;
     if (opc == TCE::MOVI1rr) return MOVE;
