@@ -1,0 +1,7 @@
+<?php
+// short test description
+$test_description="Compiling long test cases with tcecc";
+$test_bin = "../../../../tce/scheduler/testbench/scheduler_tester.py ";
+$bin_args = "-e tests -vrq -g \"-O3 -k_Output --enable-loop-scheduler\" ".
+    "-a huge.adf";
+?>

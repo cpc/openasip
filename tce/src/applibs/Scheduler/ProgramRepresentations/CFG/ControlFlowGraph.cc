@@ -2234,24 +2234,24 @@ ControlFlowGraph::updateReferencesFromProcToCfg() {
 
 
 /**
- * Tells whether a node has incoming fall-thru edge.
+ * Return an incoming fall-thru edge to a node.
  * Jump and entry is also considered fall-thru
  *
  * @param bbn the node
- * @return whether control flow can fall thru to this node
+ * @return the edge or null, if none found.
  */
-bool
-ControlFlowGraph::hasIncomingFallThru(const BasicBlockNode& bbn) const {
-    ControlFlowGraph::EdgeSet iEdges = inEdges(bbn);
-    
-    for (ControlFlowGraph::EdgeSet::const_iterator i = iEdges.begin();
-         i != iEdges.end(); i++) {
-        const ControlFlowEdge& e = **i;
-        if (!e.isJumpEdge()) {
-            return true;
+ControlFlowEdge*
+ControlFlowGraph::incomingFTEdge(const BasicBlockNode& bbn) const {
+
+    auto edges = boost::in_edges(descriptor(bbn), graph_);
+    for (auto i = edges.first; i != edges.second; ++i) {
+        auto edge = graph_[(*i)];
+        if (!edge->isJumpEdge()) {
+            edgeDescriptors_[edge] = *i;
+            return edge;
         }
     }
-    return false;
+    return nullptr;
 }
 
 /**
@@ -2262,16 +2262,29 @@ ControlFlowGraph::hasIncomingFallThru(const BasicBlockNode& bbn) const {
  */
 bool
 ControlFlowGraph::hasIncomingExternalJumps(const BasicBlockNode& bbn) const {
-    ControlFlowGraph::EdgeSet iEdges = inEdges(bbn);
+    ControlFlowGraph::EdgeSet jumpEdges = incomingJumpEdges(bbn);
     
-    for (ControlFlowGraph::EdgeSet::const_iterator i = iEdges.begin();
-         i != iEdges.end(); i++) {
-        const ControlFlowEdge& e = **i;
-        if (e.isJumpEdge() && &tailNode(e) != &bbn) {
+    for (auto e: jumpEdges) {
+        if (&tailNode(*e) != &bbn) {
             return true;
         }
     }
     return false;
+}
+
+ControlFlowGraph::EdgeSet
+    ControlFlowGraph::incomingJumpEdges(const BasicBlockNode& bbn) const {
+
+    auto edges = boost::in_edges(descriptor(bbn), graph_);
+    EdgeSet result;
+    for (auto i = edges.first; i != edges.second; ++i) {
+        auto edge = graph_[(*i)];
+        if (edge->isJumpEdge()) {
+            edgeDescriptors_[edge] = *i;
+            result.insert(edge);
+        }
+    }
+    return result;
 }
 
 /**

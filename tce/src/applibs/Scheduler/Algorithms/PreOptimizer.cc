@@ -184,18 +184,18 @@ PreOptimizer::tryToOptimizeAddressReg(
  * reversed of cfg or NULL if no need to change cfg.
  */
 
-TTAProgram::CodeSnippet*
+ControlFlowGraph::NodeSet
 PreOptimizer::tryToRemoveXor(
     DataDependenceGraph& ddg, ProgramOperation& po,
     TTAProgram::InstructionReferenceManager* irm, ControlFlowGraph& cfg) {
     if (po.outputMoveCount() != 1 || po.inputMoveCount() != 2) {
-        return NULL;
+        return ControlFlowGraph::NodeSet();
     }
     // check that it's or by 1.
     MoveNode& operand2 = po.inputMove(1);
     TTAProgram::Terminal& src2 = operand2.move().source();
     if (!src2.isImmediate() || src2.value().intValue() != 1) {
-        return NULL;
+        return ControlFlowGraph::NodeSet();
     }
     // now we have a xor op which is a truth value reversal.
     // find where the result is used.
@@ -204,24 +204,23 @@ PreOptimizer::tryToRemoveXor(
 }
 
 
-
-TTAProgram::CodeSnippet*
+ControlFlowGraph::NodeSet
 PreOptimizer::tryToRemoveEq(
     DataDependenceGraph& ddg, ProgramOperation& po,
     TTAProgram::InstructionReferenceManager* irm, ControlFlowGraph& cfg) {
     if (po.outputMoveCount() != 1 || po.inputMoveCount() != 2) {
-        return NULL;
+        return ControlFlowGraph::NodeSet();
     }
     // check that it's or by 0.
     MoveNode& operand1 = po.inputMove(0);
     MoveNode& operand2 = po.inputMove(1);
     TTAProgram::Terminal& src2 = operand2.move().source();
     if (!src2.isImmediate() || src2.value().intValue() != 0) {
-        return NULL;
+        return ControlFlowGraph::NodeSet();
     }
     MoveNode* src = ddg.onlyRegisterRawSource(operand1);
     if (src == NULL || !src->isSourceOperation()) {
-        return NULL;
+        return ControlFlowGraph::NodeSet();
     }
     ProgramOperation& srcOp = src->sourceOperation();
     if (srcOp.operation().operand(
@@ -230,11 +229,11 @@ PreOptimizer::tryToRemoveEq(
         // find where the result is used.
         return tryToRemoveGuardInversingOp(ddg, po, irm, cfg);
     }
-    return NULL;
+    return ControlFlowGraph::NodeSet();
 }
 
 
-TTAProgram::CodeSnippet*
+ControlFlowGraph::NodeSet
 PreOptimizer::tryToRemoveGuardInversingOp(
     DataDependenceGraph& ddg, ProgramOperation& po,
     TTAProgram::InstructionReferenceManager* irm,
@@ -249,7 +248,7 @@ PreOptimizer::tryToRemoveGuardInversingOp(
     // some more complex things done with the guard.
     // converting those not yet supported.
     if (!checkGuardReversalAllowed(ddg, oEdges)) {
-        return NULL;
+        return ControlFlowGraph::NodeSet();
     }
     
     TTAProgram::Instruction& operand1Ins = operand1.move().parent();
@@ -261,13 +260,20 @@ PreOptimizer::tryToRemoveGuardInversingOp(
     if (irm != NULL && 
         (irm->hasReference(operand1Ins) || irm->hasReference(operand2Ins) ||
          irm->hasReference(resultIns))) {
-        return NULL;
+        return ControlFlowGraph::NodeSet();
     }
     
-    bool reversesJump = inverseGuardsOfHeads(ddg, oEdges);
-    if (reversesJump && !cfgAllowsJumpReversal(operand1Ins, cfg)) {
-        return NULL;
+    auto reverseJumpBBs = inverseGuardsOfHeads(ddg, oEdges);
+
+    // If cannot reverse jumps, have to undo and abort.
+    bool allowReverse = true;
+    for (auto n: reverseJumpBBs) {
+        if (!cfgAllowsJumpReversal(operand1Ins, cfg)) {
+            inverseGuardsOfHeads(ddg, oEdges);
+            return ControlFlowGraph::NodeSet();
+        }
     }
+
     // need some copy from one predicate to another?
     TTAProgram::Terminal& src1 = operand1.move().source();
     TTAProgram::Terminal& dst = resultMove.destination();
@@ -307,11 +313,7 @@ PreOptimizer::tryToRemoveGuardInversingOp(
     parent.remove(resultIns);
     delete &resultIns;
 
-    if (reversesJump) {
-        return &parent;
-    } else {
-        return NULL;
-    }
+    return reverseJumpBBs;
 }
 
 
@@ -357,11 +359,11 @@ bool PreOptimizer::checkGuardReversalAllowed(
     return true;
 }
 
-
-bool PreOptimizer::inverseGuardsOfHeads(
+ControlFlowGraph::NodeSet
+PreOptimizer::inverseGuardsOfHeads(
     DataDependenceGraph& ddg,
     DataDependenceGraph::EdgeSet& oEdges) {
-    bool reversesJump = false;
+    ControlFlowGraph::NodeSet guardReverseBBs;
     for (DataDependenceGraph::EdgeSet::iterator i = oEdges.begin();
          i != oEdges.end(); i++) {
         DataDependenceEdge& edge = **i;
@@ -376,13 +378,14 @@ bool PreOptimizer::inverseGuardsOfHeads(
                 TTAProgram::CodeGenerator::createInverseGuard(
                     guardUseMove.guard()));
             if (guardUseMove.isJump()) {
-                reversesJump = true;
+                BasicBlockNode& jumpBBN = ddg.getBasicBlockNode(head);
+                guardReverseBBs.insert(&jumpBBN);
             }
         } else {
             head.destinationOperation().switchInputs(1,2);
         }
     }
-    return reversesJump;
+    return guardReverseBBs;
 }
 
 /**
@@ -425,28 +428,16 @@ PreOptimizer::handleCFGDDG(
     // Loop over all programoperations. find XOR's by 1.
     for (int i = ddg.programOperationCount()-1; i>=0; i--) {
         ProgramOperation& po = ddg.programOperation(i);
-        TTAProgram::CodeSnippet* parent = NULL;
+        ControlFlowGraph::NodeSet jumpNodes;
         if (po.operation().name() == "XOR" ||
             po.operation().name() == "XOR64") {
-            parent = tryToRemoveXor(ddg,po,irm,cfg);
+            jumpNodes = tryToRemoveXor(ddg,po,irm,cfg);
         }
         if (po.operation().name() == "EQ") {
-            parent = tryToRemoveEq(ddg,po,irm,cfg);
+            jumpNodes = tryToRemoveEq(ddg,po,irm,cfg);
         }
-        if (parent) {
-            bool found = false;
-            for (int j = 0; j < cfg.nodeCount(); j++) {
-                BasicBlockNode& bbn = cfg.node(j);
-                if (&bbn.basicBlock() == parent) {
-                    cfg.reverseGuardOnOutEdges(bbn);
-                    found = true;
-                    break;
-                }
-            }
-            if (found == true) {
-                continue;
-            }
-            assert(false && "invalid parent on removed xor inst.");
+        for (auto bbn : jumpNodes) {
+            cfg.reverseGuardOnOutEdges(*bbn);
         }
         if (po.operation().readsMemory()) {
             tryToOptimizeAddressReg(ddg, po);

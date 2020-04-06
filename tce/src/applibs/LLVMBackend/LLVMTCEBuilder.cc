@@ -1278,7 +1278,7 @@ LLVMTCEBuilder::emitInstruction(
         opName = operationName(*mi);
         
         // Pseudo instructions don't require any actual instructions.
-        if (opName == "PSEUDO") {
+        if (opName == "PSEUDO" || opName == "DEBUG_LABEL") {
             return NULL;
         }
         

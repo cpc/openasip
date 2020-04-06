@@ -312,12 +312,15 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     const std::string PSEUDO = "PSEUDO";
     const std::string NOP = "NOP";
     const std::string INLINEASM = "INLINEASM";
+    const std::string DEBUG_LABEL = "DEBUG_LABEL";
 
     if (opc == TCE::IMPLICIT_DEF) return PSEUDO;
     else if (opc == TCE::ADJCALLSTACKDOWN) return PSEUDO;
     else if (opc == TCE::ADJCALLSTACKUP) return PSEUDO;
     else if (opc == TCE::NOP) return NOP;
-
+#ifndef LLVM_OLDER_THAN_7
+    else if (opc == TCE::DBG_LABEL) return DEBUG_LABEL;
+#endif
     // Moves
     if (opc == TCE::COPY) return MOVE;
     if (opc == TCE::MOVI1rr) return MOVE;

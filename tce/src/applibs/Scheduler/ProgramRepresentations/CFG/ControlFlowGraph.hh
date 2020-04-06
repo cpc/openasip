@@ -126,8 +126,8 @@ public:
     void updateReferencesFromProcToCfg();
     void convertBBRefsToInstRefs();
 
-    bool hasIncomingFallThru(const BasicBlockNode& bbn) const;
-
+    ControlFlowEdge* incomingFTEdge(const BasicBlockNode& bbn) const;
+    EdgeSet incomingJumpEdges(const BasicBlockNode& bbn) const;
     bool hasIncomingExternalJumps(const BasicBlockNode& bbn) const;
 
     void deleteNodeAndRefs(BasicBlockNode& node);
