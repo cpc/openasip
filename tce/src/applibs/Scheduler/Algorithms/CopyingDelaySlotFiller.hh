@@ -95,7 +95,7 @@ public:
         TTAProgram::InstructionReferenceManager& irm);
 
 protected:
-    void fillDelaySlots(
+    bool fillDelaySlots(
         BasicBlockNode& jumpingBB, int delaySlots, bool fillFallThru);
 
 private:
@@ -110,7 +110,7 @@ private:
 
     void bbFilled(BasicBlockNode& bbn);
 
-    void mightFillIncomingTo(BasicBlockNode& bbn);
+    bool mightFillIncomingTo(BasicBlockNode& bbn);
 
     bool writesRegister(
         TTAProgram::Move& move, TTAMachine::RegisterFile* rf,
@@ -122,7 +122,7 @@ private:
         int removeGuards, int grIndex, TTAMachine::RegisterFile* grFile,
         TTAProgram::Move*& skippedJump, int delaySlots);
 
-    void updateJumpsAndCfg(
+    bool updateJumpsAndCfg(
         BasicBlockNode& jumpBBN, 
         BasicBlockNode& fillingBBN,
         ControlFlowEdge& fillEdge,
@@ -131,6 +131,10 @@ private:
         TTAProgram::Move* jumpMove,
         int slotsFilled,
         TTAProgram::Move* skippedJump);
+
+    bool updateFTBBAndCfg(
+        BasicBlockNode& jumpingBB, BasicBlockNode& nextBBN,
+        ControlFlowEdge& edge, int slotsFilled);
 
     void loseCopies(DataDependenceGraph::NodeSet* keptTempNodes);
 
