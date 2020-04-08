@@ -55,7 +55,7 @@ these four paragraphs for those parts of this code that are retained.
 /*----------------------------------------------------------------------------
 | Floating-point rounding mode and exception flags.
 *----------------------------------------------------------------------------*/
-int8 float_rounding_mode = float_round_nearest_even;
+static int8 float_rounding_mode = float_round_nearest_even;
 int8 float_exception_flags = 0;
 
 /*----------------------------------------------------------------------------
@@ -673,7 +673,7 @@ INLINE flag ne64( bits32 a0, bits32 a1, bits32 b0, bits32 b1 )
 | Underflow tininess-detection mode, statically initialized to default value.
 | (The declaration in `softfloat.h' must match the `int8' type here.)
 *----------------------------------------------------------------------------*/
-int8 float_detect_tininess = float_tininess_after_rounding;
+static int8 float_detect_tininess = float_tininess_after_rounding;
 
 /*----------------------------------------------------------------------------
 | Raises the exceptions specified by `flags'.  Floating-point traps can be
