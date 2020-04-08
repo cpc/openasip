@@ -1277,7 +1277,7 @@ TDGen::writeOperationDefs(
     }
 
     if (op.name() == "SXW64" || op.name() == "ZXW64") {
-        writeOperationDef(o, op, "sr", attrs, skipPattern);
+        writeOperationDef(o, op, "ss", attrs, skipPattern);
         return;
     }
 
@@ -3239,19 +3239,19 @@ void TDGen::create32BitExtLoadPatterns(std::ostream& os) {
             if (!mach_.hasOperation(ZXOP)) {
                 // emulate zero ext with sing-ext and and
                 os << "def : Pat<(i64 (zextloadi32 ADDRrr:$addr)), "
-                   << "(AND64ssa (LD32sr ADDRrr:$addr),"
+                   << "(AND64ssa (LD32ss ADDRrr:$addr),"
                    << "0xffffffff)>;" << std::endl;
 
                 os << "def : Pat<(i64 (zextloadi32 ADDRri:$addr)), "
-                   << "(AND64ssa (LD32si ADDRri:$addr),"
+                   << "(AND64ssa (LD32sa ADDRri:$addr),"
                    << "0xffffffff)>;" << std::endl;
             } else {
                 // use zxw64 instr for zext
                 os << "def : Pat<(i64 (zextloadi32 ADDRrr:$addr)), "
-                   << "(" << ZXOPC << " (LD32sr ADDRrr:$addr))>;" <<std::endl;
+                   << "(" << ZXOPC << " (LD32ss ADDRrr:$addr))>;" <<std::endl;
 
                 os << "def : Pat<(i64 (zextloadi32 ADDRri:$addr)), "
-                   << "(" << ZXOPC << " (LD32sr ADDRri:$addr))>;" <<std::endl;
+                   << "(" << ZXOPC << " (LD32sa ADDRri:$addr))>;" <<std::endl;
             }
         }
     } else {
@@ -3265,10 +3265,10 @@ void TDGen::create32BitExtLoadPatterns(std::ostream& os) {
         if (mach_.hasOperation("SXW64")) {
             // use zextload + sext for sextload
             os << "def : Pat<(i64 (sextloadi32 ADDRrr:$addr)), "
-               << "(SXW64sr (LDU32ss ADDRrr:$addr))>;" << std::endl;
+               << "(SXW64ss (LDU32ss ADDRrr:$addr))>;" << std::endl;
 
             os << "def : Pat<(i64 (sextloadi32 ADDRri:$addr)), "
-               << "(SXW64sr (LDU32sa ADDRri:$addr))>;" << std::endl;
+               << "(SXW64ss (LDU32sa ADDRri:$addr))>;" << std::endl;
         } else {
             std::cerr << "Warning: no sign-extending 32-bit loads or"
                       << " 32-bit sign extension instruction!"
