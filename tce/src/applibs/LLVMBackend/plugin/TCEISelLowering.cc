@@ -239,7 +239,9 @@ TCETargetLowering::LowerFormalArguments(
 #endif
                 } else {
                     ISD::LoadExtType LoadOp = ISD::SEXTLOAD;
-                    
+
+#ifndef LITTLE_ENDIAN_TARGET // big endian extload hack starts
+
                     // TODO: WHAT IS THIS??
                     // TCE IS NO LONGER ALWAYS BIG-ENDIAN!
                     // TCE is big endian, add an offset based on the ObjectVT.
@@ -259,6 +261,9 @@ TCETargetLowering::LowerFormalArguments(
                         ISD::ADD, dl, DEFAULT_TYPE, FIPtr,
                         DAG.getConstant(Offset, dl, DEFAULT_TYPE));
 #endif
+
+#endif // big endian hack ends
+
 #ifdef LLVM_3_5
                     Load = DAG.getExtLoad(
                         LoadOp, dl, DEFAULT_TYPE, Chain, FIPtr,
@@ -279,9 +284,17 @@ TCETargetLowering::LowerFormalArguments(
             
             ArgOffset += DEFAULT_SIZE;
         } else if (sType == MVT::f16) {
-        std::cerr << "\tf16" << std::endl;
             if (!Ins[i].Used) {                  // Argument is dead.
+                if (CurArgReg < ArgRegEnd) {
+                    ++CurArgReg;
+                }
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
+            } else if (CurArgReg < ArgRegEnd && !isVarArg) {
+                unsigned VReg = RegInfo.createVirtualRegister(
+                    &TCE::HFPRegsRegClass);
+                MF.getRegInfo().addLiveIn(*CurArgReg++, VReg);
+                SDValue Arg = DAG.getCopyFromReg(Chain, dl, VReg, MVT::f16);
+                InVals.push_back(Arg);
             } else {
                 int FrameIdx = frameInfo.CreateFixedObject(
                     DEFAULT_SIZE, ArgOffset, /*immutable=*/true);
@@ -299,10 +312,19 @@ TCETargetLowering::LowerFormalArguments(
             ArgOffset += DEFAULT_SIZE;
         } else if (sType == MVT::f32) {
             if (!Ins[i].Used) {                  // Argument is dead.
+                if (CurArgReg < ArgRegEnd) {
+                    ++CurArgReg;
+                }
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
+            } else if (CurArgReg < ArgRegEnd && !isVarArg) {
+                unsigned VReg = RegInfo.createVirtualRegister(
+                    &TCE::FPRegsRegClass);
+                MF.getRegInfo().addLiveIn(*CurArgReg++, VReg);
+                SDValue Arg = DAG.getCopyFromReg(Chain, dl, VReg, MVT::f32);
+                InVals.push_back(Arg);
             } else {
                 int FrameIdx = frameInfo.CreateFixedObject(
-                    4, ArgOffset, /*immutable=*/true);
+                    DEFAULT_SIZE, ArgOffset, /*immutable=*/true);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, DEFAULT_TYPE);
 #ifdef LLVM_OLDER_THAN_3_9
                 SDValue Load = DAG.getLoad(
@@ -314,50 +336,7 @@ TCETargetLowering::LowerFormalArguments(
 #endif
                 InVals.push_back(Load);
             }
-            ArgOffset += 4;
-#if 0 // old crappy i64 code
-
- else if (sType == MVT::i64 || sType == MVT::f64) {
-            if (!Ins[i].Used) {                // Argument is dead.
-                InVals.push_back(DAG.getUNDEF(ObjectVT));
-            } else {
-                SDValue HiVal;
-                int FrameIdx = frameInfo.CreateFixedObject(
-                    DEFAULT_SIZE, ArgOffset, /*immutable=*/true);
-                SDValue FIPtr = DAG.getFrameIndex(FrameIdx, DEFAULT_TYPE);
-#ifdef LLVM_OLDER_THAN_3_9
-                HiVal = DAG.getLoad(
-                    DEFAULT_SIZE, dl, Chain, FIPtr, MachinePointerInfo(),
-                    false, false, false, 0);
-#else
-                HiVal = DAG.getLoad(
-                    DEFAULT_TYPE, dl, Chain, FIPtr, MachinePointerInfo());
-#endif
-                SDValue LoVal;
-                FrameIdx = frameInfo.CreateFixedObject(
-                    DEFAULT_SIZE, ArgOffset+DEFAULT_SIZE, /*immutable=*/true);
-                FIPtr = DAG.getFrameIndex(FrameIdx, DEFAULT_TYPE);
-#ifdef LLVM_OLDER_THAN_3_9
-                LoVal = DAG.getLoad(
-                    DEFAULT_TYPE, dl, Chain, FIPtr, MachinePointerInfo(),
-                    false, false, false, 0);
-#else
-                LoVal = DAG.getLoad(
-                    DEFAULT_TYPE, dl, Chain, FIPtr, MachinePointerInfo());
-#endif
-                // Compose the two halves together into an i64 unit.
-                SDValue WholeValue =
-                    DAG.getNode(ISD::BUILD_PAIR, dl, MVT::i64, LoVal, HiVal);
-                
-                // If we want a double, do a bit convert.
-                if (ObjectVT == MVT::f64) {
-                    WholeValue = 
-                        DAG.getNode(ISD::BITCAST, dl, MVT::f64, WholeValue);
-                }
-                InVals.push_back(WholeValue);
-            }
-            ArgOffset += 8;
-#endif
+            ArgOffset += DEFAULT_SIZE;
         } else {
             std::cerr << "Unhandled argument type: " 
                       << ObjectVT.getEVTString() << std::endl;
@@ -409,16 +388,11 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
         MVT sType = Outs[i].VT.SimpleTy;
 #ifndef TARGET64BIT
         if (sType == MVT::i1 || sType == MVT::i8 || sType == MVT::i16 ||
-            sType == MVT::i32) {
+            sType == MVT::i32 || sType == MVT::f16 || sType == MVT::f32) {
             ArgsSize += 4;
             if (regParams < argRegCount) {
                 regParams++;
             } 
-            } else if (sType == MVT::f16 || sType == MVT::f32) {
-            ArgsSize += 4;
-            if (regParams < argRegCount) {
-                regParams++;
-            }
         } else if (sType == MVT::i64 || sType == MVT::f64) {
             ArgsSize += 8;
         } else {
@@ -430,11 +404,6 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
         if (sType == MVT::i1 || sType == MVT::i8 || sType == MVT::i16 ||
             sType == MVT::i32 || sType == MVT::i64 || sType == MVT::f16 ||
             sType == MVT::f32 || sType == MVT::f64) {
-            if (sType == MVT::f64) {
-                std::cerr << "\tf64 argument." << std::endl;
-            } else {
-                std::cerr << "\tother argument." << std::endl;
-            }
             ArgsSize += 8;
             if (regParams < argRegCount) {
                 regParams++;
@@ -475,21 +444,15 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 
 #ifndef TARGET64BIT
     if (sType == MVT::i1 || sType == MVT::i8 || sType == MVT::i16 ||
-        sType == MVT::i32) {
+        sType == MVT::i32 || sType == MVT::f32 || sType == MVT::f16) {
         ObjSize = 4;
         if (RegsToPass.size() >= argRegCount || isVarArg) {
             ValToStore = Val;
-        } 
+        }
         if (RegsToPass.size() < argRegCount) {
             RegsToPass.push_back(
                 std::make_pair(ArgRegs[RegsToPass.size()], Val));
         }
-    } else if (sType == MVT::f16 || sType == MVT::f32) {
-        ObjSize = 4;
-        ValToStore = Val;
-    } else if (sType == MVT::i64 || sType == MVT::f64) {
-        ObjSize = 8;
-        ValToStore = Val;    // Whole thing is passed in memory.
     } else {
         std::cerr << "Unknown argument type: " 
                   << ObjectVT.getEVTString() << std::endl;
@@ -497,7 +460,8 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     }
 #else
     if (sType == MVT::i1 || sType == MVT::i8 || sType == MVT::i16 ||
-        sType == MVT::i32 || sType == MVT::i64) {
+        sType == MVT::i32 || sType == MVT::i64 || sType == MVT::f32 ||
+        sType == MVT::f32) {
         ObjSize = 8;
         if (RegsToPass.size() >= argRegCount || isVarArg) {
             ValToStore = Val;
@@ -506,9 +470,6 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
             RegsToPass.push_back(
                 std::make_pair(ArgRegs[RegsToPass.size()], Val));
         }
-    } else if (sType == MVT::f16 || sType == MVT::f32 || sType == MVT::f64) {
-        ObjSize = 8;
-        ValToStore = Val;
     } else {
         std::cerr << "Unknown argument type: "
                       << ObjectVT.getEVTString() << std::endl;
@@ -647,12 +608,12 @@ TCETargetLowering::TCETargetLowering(
     addRegisterClass(MVT::i1, &TCE::R1RegsRegClass);
 #ifdef TARGET64BIT
         addRegisterClass(MVT::i64, &TCE::R64IRegsRegClass);
-        addRegisterClass(MVT::f64, &TCE::R64FPRegsRegClass);
+//        addRegisterClass(MVT::f64, &TCE::R64DFPRegsRegClass);
 #else
     addRegisterClass(MVT::i32, &TCE::R32IRegsRegClass);
 #endif
-    addRegisterClass(MVT::f32, &TCE::R32FPRegsRegClass);
-    addRegisterClass(MVT::f16, &TCE::R32HFPRegsRegClass);
+    addRegisterClass(MVT::f32, &TCE::FPRegsRegClass);
+    addRegisterClass(MVT::f16, &TCE::HFPRegsRegClass);
 
     setOperationAction(ISD::UINT_TO_FP, MVT::i1   , Promote);
     setOperationAction(ISD::UINT_TO_FP, MVT::i8   , Promote);
@@ -1180,7 +1141,7 @@ TCETargetLowering::getRegForInlineAsmConstraint(
         return std::make_pair(0U, &TCE::R64RegsRegClass);
     case 'f':
         if (VT == MVT::f32) {
-            return std::make_pair(0U, &TCE::R32FPRegsRegClass);
+            return std::make_pair(0U, &TCE::FPRegsRegClass);
         }
     }
   }

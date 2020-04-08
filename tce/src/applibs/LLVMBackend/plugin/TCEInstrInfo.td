@@ -132,20 +132,20 @@ def PRED_FALSE_MOVI32ri : InstTCE<(outs R32IRegs:$dst),
     		       (ins R1Regs:$pred, i32imm:$src),
 	           	   "$src -> $dst;", []>;
 
-def MOVF32fk : InstTCE<(outs R32FPRegs:$dst), (ins f32imm:$val),
+def MOVfk : InstTCE<(outs FPRegs:$dst), (ins f32imm:$val),
 	           "$val -> $dst;",
-                   [(set R32FPRegs:$dst, (f32 fpimm:$val))]>;
-def MOVF16hk : InstTCE<(outs R32HFPRegs:$dst), (ins f16imm:$val),
+                   [(set FPRegs:$dst, (f32 fpimm:$val))]>;
+def MOVhk : InstTCE<(outs HFPRegs:$dst), (ins f16imm:$val),
 	           "$src -> $dst;",
-                   [(set R32HFPRegs:$dst, (f16 fpimm:$val))]>;
+                   [(set HFPRegs:$dst, (f16 fpimm:$val))]>;
 }
 
 // TODO: are these really ever used for anything? propably not?
 let isReMaterializable = 1, isMoveImm = 1 in {
-def MOVF32fi : InstTCE<(outs R32FPRegs:$dst), (ins i32imm:$src),
+def MOVfi : InstTCE<(outs FPRegs:$dst), (ins i32imm:$src),
 	           "$src -> $dst;",
                    []>;
-def MOVF16hi : InstTCE<(outs R32HFPRegs:$dst), (ins i32imm:$src),
+def MOVhi : InstTCE<(outs HFPRegs:$dst), (ins i32imm:$src),
 	           "$src -> $dst;",
                    []>;
 }
@@ -215,7 +215,7 @@ def MOVIF32fr : InstTCE<(outs R32FPRegs:$dst), (ins R32IRegs:$src),
 	           "$src -> $dst;",
                    [(set R32FPRegs:$dst, (bitconvert R32IRegs:$src))]>;
 
-def MOVF32ff : InstTCE<(outs R32FPRegs:$dst), (ins R32FPRegs:$src),
+def MOVff : InstTCE<(outs FPRegs:$dst), (ins FPRegs:$src),
 	           "$src -> $dst;",
                    []>;
 
@@ -232,17 +232,17 @@ def MOVF64ff : InstTCE<(outs R64FPRegs:$dst), (ins R64FPRegs:$src),
                    []>, Requires<[Bitness64]>;
 
 
-def MOVF16hh : InstTCE<(outs R32HFPRegs:$dst), (ins R32HFPRegs:$src),
+def MOVhh : InstTCE<(outs HFPRegs:$dst), (ins HFPRegs:$src),
 	           "$src -> $dst;",
                    []>;
 
-def MOVFI16rh : InstTCE<(outs R32IRegs:$dst), (ins R32HFPRegs:$src),
+def MOVrh : InstTCE<(outs R32IRegs:$dst), (ins HFPRegs:$src),
 	           "$src -> $dst;",
-                   [(set R32IRegs:$dst, (bitconvert R32HFPRegs:$src))]>;
+                   [(set R32IRegs:$dst, (bitconvert HFPRegs:$src))]>;
 
-def MOVIF16hr : InstTCE<(outs R32HFPRegs:$dst), (ins R32IRegs:$src),
+def MOVhr : InstTCE<(outs HFPRegs:$dst), (ins R32IRegs:$src),
 	           "$src -> $dst;",
-                   [(set R32HFPRegs:$dst, (bitconvert R32IRegs:$src))]>;
+                   [(set HFPRegs:$dst, (bitconvert R32IRegs:$src))]>;
 }
 
 
@@ -337,38 +337,83 @@ def: Pat<(brind (i32 R32Regs:$dst)),
     def STHhi : InstTCE<(outs), (ins MEMri:$op1, R32HFPRegs:$op2), "",
         [(store R32HFPRegs:$op2, ADDRri:$op1)]>, Requires<[BigEndian]>;
 
-    def LD32fr : InstTCE<(outs R32FPRegs:$op2),
-        (ins MEMrr:$op1), "", [(set R32FPRegs:$op2,
+    def LD32fr : InstTCE<(outs FPRegs:$op2),
+        (ins MEMrr:$op1), "", [(set FPRegs:$op2,
         (load ADDRrr:$op1))]>, Requires<[LittleEndian]>;
 
-    def LD32fi : InstTCE<(outs R32FPRegs:$op2),
-        (ins MEMri:$op1), "", [(set R32FPRegs:$op2,
+    def LD32fi : InstTCE<(outs FPRegs:$op2),
+        (ins MEMri:$op1), "", [(set FPRegs:$op2,
         (load ADDRri:$op1))]>, Requires<[LittleEndian]>;
 
-    def LD64fr : InstTCE<(outs R64FPRegs:$op2),
+    def LD64fs : InstTCE<(outs R64FPRegs:$op2),
         (ins MEMrr:$op1), "", [(set R64FPRegs:$op2,
         (load ADDRrr:$op1))]>, Requires<[Bitness64]>;
 
-    def LD64fi : InstTCE<(outs R64FPRegs:$op2),
+    def LD64fa : InstTCE<(outs R64FPRegs:$op2),
         (ins MEMri:$op1), "", [(set R64FPRegs:$op2,
         (load ADDRri:$op1))]>, Requires<[Bitness64]>;
 
-    def ST32fr : InstTCE<(outs), (ins MEMrr:$op1, R32FPRegs:$op2), "",
-        [(store R32FPRegs:$op2, ADDRrr:$op1)]>, Requires<[LittleEndian]>;
-    def ST32fi : InstTCE<(outs), (ins MEMri:$op1, R32FPRegs:$op2), "",
-        [(store R32FPRegs:$op2, ADDRri:$op1)]>, Requires<[LittleEndian]>;
+    def ST32fr : InstTCE<(outs), (ins MEMrr:$op1, FPRegs:$op2), "",
+        [(store FPRegs:$op2, ADDRrr:$op1)]>, Requires<[LittleEndian]>;
 
-    def ST64fr : InstTCE<(outs), (ins MEMrr:$op1, R64FPRegs:$op2), "",
-        [(store R64FPRegs:$op2, ADDRrr:$op1)]>, Requires<[Bitness64]>;
+    def ST32fi : InstTCE<(outs), (ins MEMri:$op1, FPRegs:$op2), "",
+        [(store FPRegs:$op2, ADDRri:$op1)]>, Requires<[LittleEndian]>;
 
-    def ST64fi : InstTCE<(outs), (ins MEMri:$op1, R64FPRegs:$op2), "",
-        [(store R64FPRegs:$op2, ADDRri:$op1)]>, Requires<[Bitness64]>;
+    def ST64ds : InstTCE<(outs), (ins MEMrr:$op1, R64DFPRegs:$op2), "",
+        [(store R64DFPRegs:$op2, ADDRrr:$op1)]>, Requires<[Bitness64]>;
 
-    def ST16hr : InstTCE<(outs), (ins MEMrr:$op1, R32HFPRegs:$op2), "",
-        [(store R32HFPRegs:$op2, ADDRrr:$op1)]>, Requires<[LittleEndian]>;
+    def ST64da : InstTCE<(outs), (ins MEMri:$op1, R64DFPRegs:$op2), "",
+        [(store R64DFPRegs:$op2, ADDRri:$op1)]>, Requires<[Bitness64]>;
 
-    def ST16hi : InstTCE<(outs), (ins MEMri:$op1, R32HFPRegs:$op2), "",
-        [(store R32HFPRegs:$op2, ADDRri:$op1)]>, Requires<[LittleEndian]>;
+    def ST16hr : InstTCE<(outs), (ins MEMrr:$op1, HFPRegs:$op2), "",
+        [(store HFPRegs:$op2, ADDRrr:$op1)]>, Requires<[LittleEndian]>;
+
+    def ST16hi : InstTCE<(outs), (ins MEMri:$op1, HFPRegs:$op2), "",
+        [(store HFPRegs:$op2, ADDRri:$op1)]>, Requires<[LittleEndian]>;
+
+        // The following ones used only for spills?
+    def ST64hs : InstTCE<(outs), (ins MEMrr:$op1, R64HFPRegs:$op2), "",
+        []>, Requires<[Bitness64]>;
+
+    def ST64ha : InstTCE<(outs), (ins MEMri:$op1, R64HFPRegs:$op2), "",
+        []>, Requires<[Bitness64]>;
+
+    def ST64fs : InstTCE<(outs), (ins MEMrr:$op1, R64FPRegs:$op2), "",
+        []>, Requires<[Bitness64]>;
+
+    def ST64fa : InstTCE<(outs), (ins MEMri:$op1, R64FPRegs:$op2), "",
+        []>, Requires<[Bitness64]>;
+
+        // The following ones used only for spills?
+    def ST32hr : InstTCE<(outs), (ins MEMrr:$op1, R32HFPRegs:$op2), "",
+        []>, Requires<[LittleEndian]>;
+
+    def ST32hi : InstTCE<(outs), (ins MEMri:$op1, R32HFPRegs:$op2), "",
+        []>, Requires<[LittleEndian]>;
+
+    def STWhr : InstTCE<(outs), (ins MEMrr:$op1, R32HFPRegs:$op2), "",
+        []>, Requires<[BigEndian]>;
+
+    def STWhi : InstTCE<(outs), (ins MEMri:$op1, R32HFPRegs:$op2), "",
+        []>, Requires<[BigEndian]>;
+
+    def LD64hs : InstTCE<(outs R64HFPRegs:$op2),(ins MEMrr:$op1), "",
+        []>, Requires<[Bitness64]>;
+
+    def LD64ha : InstTCE<(outs R64HFPRegs:$op2), (ins MEMri:$op1), "",
+        []>,Requires<[Bitness64]>;
+
+    def LD32hr : InstTCE<(outs R32HFPRegs:$op2),(ins MEMrr:$op1), "",
+        []>, Requires<[LittleEndian]>;
+
+    def LD32hi : InstTCE<(outs R64HFPRegs:$op2), (ins MEMri:$op1), "",
+        []>,Requires<[LittleEndian]>;
+
+    def LDWhr : InstTCE<(outs R32HFPRegs:$op2),(ins MEMrr:$op1), "",
+        []>, Requires<[BigEndian]>;
+
+    def LDWhi : InstTCE<(outs R64HFPRegs:$op2), (ins MEMri:$op1), "",
+        []>,Requires<[BigEndian]>;
 
 
 

@@ -344,17 +344,17 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     if (opc == TCE::MOVI64I1ss) return MOVE;
 
     // TODO: why no predicated version of this?
-    if (opc == TCE::MOVF32ff) return MOVE;
-    if (opc == TCE::MOVF32fi) return MOVE;
-    if (opc == TCE::MOVF32fk) return MOVE;
+    if (opc == TCE::MOVff) return MOVE;
+    if (opc == TCE::MOVfi) return MOVE;
+    if (opc == TCE::MOVfk) return MOVE;
     if (opc == TCE::MOVI32I1rr) return MOVE;
     if (opc == TCE::MOVFI32rf) return MOVE;
     if (opc == TCE::MOVIF32fr) return MOVE;
-    if (opc == TCE::MOVF16hh) return MOVE;
-    if (opc == TCE::MOVF16hk) return MOVE;
-    if (opc == TCE::MOVFI16rh) return MOVE;
-    if (opc == TCE::MOVIF16hr) return MOVE;
-    if (opc == TCE::MOVF16hi) return MOVE;
+    if (opc == TCE::MOVhh) return MOVE;
+    if (opc == TCE::MOVhk) return MOVE;
+    if (opc == TCE::MOVrh) return MOVE;
+    if (opc == TCE::MOVhr) return MOVE;
+    if (opc == TCE::MOVhi) return MOVE;
 
     if (opc == TCE::INLINEASM) return INLINEASM;
 #ifdef TARGET64BIT

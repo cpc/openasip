@@ -321,6 +321,8 @@ protected:
     RegClassMap regsInClasses_;
     // Registers grouped by corresponding RFs
     RegClassMap regsInRFClasses_;
+
+    bool use64bitForFP_;
 };
 
 #endif

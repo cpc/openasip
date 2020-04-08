@@ -69,10 +69,10 @@ unsigned const TDGen::REQUIRED_FULL_WIDTH_REGS = 5;
  * @param mach Machine to generate plugin for.
  */
 TDGen::TDGen(const TTAMachine::Machine& mach) :
-  mach_(mach), dregNum_(0),
+    mach_(mach), dregNum_(0),
     highestLaneInt_(-1), highestLaneBool_(-1),
     hasExBoolRegs_(false), hasExIntRegs_(false), hasSelect_(false),
-    littleEndian_(mach.isLittleEndian()) {
+    littleEndian_(mach.isLittleEndian()), use64bitForFP_(false) {
     tempRegFiles_ = MachineConnectivityCheck::tempRegisterFiles(mach);
     hasConditionalMoves_ =  
         MachineConnectivityCheck::hasConditionalMoves(mach_);
@@ -403,6 +403,9 @@ TDGen::write1bitRegisterInfo(std::ostream& o) {
 void
 TDGen::write32bitRegisterInfo(std::ostream& o) {
 
+    std::string i32regs;
+    int firstFree32bitReg = 0;
+
     if (!mach_.is64bit()) {
         // --- Hardcoded reserved registers. ---
         writeRegisterDef(o, regs32bit_[0], "SP", "R32", "", RESERVED);
@@ -410,6 +413,10 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
         writeRegisterDef(o, regs32bit_[2], "FP", "R32", "", RESERVED);
         writeRegisterDef(
             o, regs32bit_[3], "KLUDGE_REGISTER", "R32", "", RESERVED);
+
+        i32regs = "SP, IRES0, FP, KLUDGE_REGISTER";
+        firstFree32bitReg = 4;
+
     }
 
     if (regs32bit_.size() < 1) {
@@ -428,15 +435,16 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
 
     // -------------------------------------
     
-    for (unsigned i = 4; i < regs32bit_.size(); i++) {
+    for (unsigned i = firstFree32bitReg; i < regs32bit_.size(); i++) {
         std::string regName = "I" + Conversion::toString(i);
         writeRegisterDef(o, regs32bit_[i], regName, "R32", "", GPR);
         
-        if (regsInRFClasses_.find(regs32bit_[i].rf) == regsInRFClasses_.end()) {
+        if (!regsInRFClasses_.count(regs32bit_[i].rf)) {
             regsInRFClasses_[regs32bit_[i].rf] = std::vector<std::string>();
         }
-        
-         regsInRFClasses_[regs32bit_[i].rf].push_back(regName);
+        i32regs += ", ";
+        i32regs += regName;
+        regsInRFClasses_[regs32bit_[i].rf].push_back(regName);
     }
 
     o << std::endl;
@@ -522,8 +530,20 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
             o << ")>;" << std::endl;
         }
     }
-    
 
+//        if (regs32bit_.size() <3) {
+    if (mach_.is64bit()) { // for now. later try to use 32-b it regs for float.
+        use64bitForFP_ = true;
+    }
+
+    if (!use64bitForFP_) {
+
+        o  << "def FPRegs : RegisterClass<\"TCE\", [f32], 32, (add "
+           << i32regs << ")>;" << std::endl;
+
+        o  << "def HFPRegs : RegisterClass<\"TCE\", [f16], 32, (add "
+           << i32regs << ")>;" << std::endl;
+    }
     o << std::endl;
 }
 
@@ -645,9 +665,24 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
       << std::endl;
 
     o << std::endl
-      << "def R64FPRegs : RegisterClass<\"TCE\", [f64], 64, (add "
+      << "def R64FPRegs : RegisterClass<\"TCE\", [f32], 64, (add "
       << i64regs << ")>;" << std::endl;
 
+    o << std::endl
+      << "def R64HFPRegs : RegisterClass<\"TCE\", [f16], 64, (add "
+      << i64regs << ")>;" << std::endl;
+
+    o << std::endl
+      << "def R64DFPRegs : RegisterClass<\"TCE\", [f64], 64, (add "
+      << i64regs << ")>;" << std::endl << std::endl;
+
+    if (use64bitForFP_) {
+        o  << "def FPRegs : RegisterClass<\"TCE\", [f32], 64, (add "
+           << i64regs << ")>;" << std::endl << std::endl;
+
+        o  << "def HFPRegs : RegisterClass<\"TCE\", [f16], 64, (add "
+           << i64regs << ")>;" << std::endl << std::endl;
+    }
 }
 
 /**
@@ -748,20 +783,48 @@ TDGen::writeInstrInfo(std::ostream& os) {
     }
 
     if (littleEndian_) {
-        opNames_["LD32fr"] = "LD32";
-        opNames_["LD32fi"] = "LD32";
+        if (mach_.is64bit()) {
+            opNames_["ST64fa"] = "ST64";
+            opNames_["ST64fs"] = "ST64";
+            opNames_["ST64ha"] = "ST64";
+            opNames_["ST64hs"] = "ST64";
+
+            opNames_["LD64fa"] = "LD64";
+            opNames_["LD64fs"] = "LD64";
+            opNames_["LD64ha"] = "LD64";
+            opNames_["LD64hs"] = "LD64";
+        }
+
+        if (mach_.hasOperation("LD32")) {
+            opNames_["LD32fr"] = "LD32";
+            opNames_["LD32fi"] = "LD32";
+
+            opNames_["LD32hr"] = "LD32";
+            opNames_["LD32hi"] = "LD32";
+
+        } else if (mach_.hasOperation("LDU32")) {
+            opNames_["LD32fr"] = "LDU32";
+            opNames_["LD32fi"] = "LDU32";
+
+            opNames_["LD32hr"] = "LDU32";
+            opNames_["LD32hi"] = "LDU32";
+        }
         opNames_["ST32fr"] = "ST32";
         opNames_["ST32fi"] = "ST32";
         
         opNames_["ST16hr"] = "ST16";
         opNames_["ST16hi"] = "ST16";
-
     } else {
         opNames_["LDWfr"] = "LDW";
         opNames_["LDWfi"] = "LDW";
+        opNames_["LDWhr"] = "LDW";
+        opNames_["LDWhi"] = "LDW";
+
         opNames_["STWfr"] = "STW";
         opNames_["STWfi"] = "STW";
         
+        opNames_["STWhr"] = "STW";
+        opNames_["STWhi"] = "STW";
         opNames_["STHhr"] = "STH";
         opNames_["STHhi"] = "STH";
     }
@@ -2536,12 +2599,12 @@ TDGen::operandToString(
             return "R1Regs:$op" + Conversion::toString(idx);
         case 'f':
             if (operand.type() == Operand::RAW_DATA) {
-                return "R32FPRegs:$op" + Conversion::toString(idx);
+                return "FPRegs:$op" + Conversion::toString(idx);
             }
             /* fall through */
         case 'h':
             if (operand.type() == Operand::RAW_DATA) {
-                return "R32HFPRegs:$op" + Conversion::toString(idx);
+                return "HFPRegs:$op" + Conversion::toString(idx);
             }
             /* fall through */
         default:
@@ -2562,7 +2625,7 @@ TDGen::operandToString(
             }
         case 'r':
         case 'f':
-            return "R32FPRegs:$op" + Conversion::toString(idx);
+            return "FPRegs:$op" + Conversion::toString(idx);
 
         default:
             std::string msg = 
@@ -2583,7 +2646,7 @@ TDGen::operandToString(
             }
         case 'r':
         case 'h':
-            return "R32HFPRegs:$op" + Conversion::toString(idx);
+            return "HFPRegs:$op" + Conversion::toString(idx);
         default:
             std::string msg = 
                 "invalid operation type for half operand:";
@@ -2765,9 +2828,33 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
                 os << "\tif (rc == " << prefix << "TCE::" << ri->first
                    << "I" << rcpf << ") return TCE::" << longStore <<  "ss;" << std::endl;
             }
+
+            if (ri->first.find("R64") == 0) {
+                os << "\tif (rc == &TCE::" << ri->first << "FP" << rcpf
+                   << ") return TCE::" << longStore <<  "fs;" << std::endl;
+            }
+
+            if (ri->first.find("R64") == 0) {
+                os << "\tif (rc == &TCE::" << ri->first << "HFP" << rcpf
+                   << ") return TCE::" << longStore <<  "hs;" << std::endl;
+            }
         }
     }
-    
+
+    if (use64bitForFP_) {
+        os << "\tif (rc == &TCE::FPRegsRegClass) return TCE::ST64fs;"
+           << std::endl;
+
+        os << "\tif (rc == &TCE::HFPRegsRegClass) return TCE::ST64hs;"
+           << std::endl;
+    } else {
+        os << "\tif (rc == &TCE::FPRegsRegClass) return TCE::"
+           << intStore << "fr;" << std::endl;
+
+        os << "\tif (rc == &TCE::HFPRegsRegClass) return TCE::"
+           << intStore << "hr;" << std::endl;
+    }
+
     for (RegClassMap::iterator ri = regsInRFClasses_.begin(); 
          ri != regsInRFClasses_.end(); ri++) {
             os << "\tif (rc == " 
@@ -2820,6 +2907,10 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
     os << "\tif (rc == " << prefix << rapf << ") return TCE::" << intLoad << "RAr;"
        << std::endl;
 
+    if (!mach_.hasOperation(intLoad) && mach_.hasOperation("LDU32")) {
+        intLoad = "LDU32";
+    }
+
     for (RegClassMap::iterator ri = regsInClasses_.begin(); 
          ri != regsInClasses_.end(); ri++) {
         if (ri->first.find("R1") == 0) {
@@ -2854,6 +2945,12 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
 
                 os << "\tif (rc == " << prefix << "TCE::" << ri->first
                    << "I" << rcpf << ") return TCE::" << longLoad << "ss;" << std::endl;
+
+                os << "\tif (rc == &TCE::" << ri->first << "FP" << rcpf
+                   << ") return TCE::" << longLoad << "fs;" << std::endl;
+
+                os << "\tif (rc == &TCE::" << ri->first << "HFP" << rcpf
+                   << ") return TCE::" << longLoad << "hs;" << std::endl;
             }
         }
         // TODO: double load!
@@ -2868,7 +2965,21 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
                << rcpf << ") return TCE::" << intLoad << "rr;" << std::endl;
             
     }
-    
+
+    if (use64bitForFP_) {
+        os << "\tif (rc == &TCE::FPRegsRegClass) return TCE::LD64fs;"
+           << std::endl;
+
+        os << "\tif (rc == &TCE::HFPRegsRegClass) return TCE::LD64hs;"
+           << std::endl;
+    } else {
+        os << "\tif (rc == &TCE::FPRegsRegClass) return TCE::" << intLoad << "fr;"
+           << std::endl;
+
+        os << "\tif (rc == &TCE::HFPRegsRegClass) return TCE::" << intLoad << "hr;"
+           << std::endl;
+    }
+
 #ifdef LLVM_3_5
     os  << "\tprintf(\"regclass: %s\\n\", rc->getName());" << std::endl
 #else
@@ -3173,7 +3284,7 @@ TDGen::writeCallingConv(std::ostream& os) {
         os << "  CCIfType<[i1,i8,i16], CCPromoteToType<i32>>," << std::endl
            << "  CCIfType<[i32], CCAssignToReg<[IRES0]>>," << std::endl;
         os << "  CCIfType<[f32], CCAssignToReg<[IRES0]>>," << std::endl
-           << "  CCIfType<[f32], CCAssignToReg<[IRES0]>>," << std::endl
+           << "  CCIfType<[f16], CCAssignToReg<[IRES0]>>," << std::endl
            << "  CCAssignToStack<4, 4>" << std::endl;
     }
 
@@ -3183,11 +3294,11 @@ TDGen::writeCallingConv(std::ostream& os) {
     os << 
         "def CC_TCE : CallingConv<[" << std::endl;
     if (mach_.is64bit()) {
-        os << "  CCIfType<[i1, i8, i16, i32], CCPromoteToType<i64>>," << std::endl <<
-            "  CCIfType<[i64], CCAssignToReg<[IRES0]>>," << std::endl;
+        os << "  CCIfType<[i1, i8, i16, i32], CCPromoteToType<i64>>," << std::endl
+           << "  CCIfType<[i64, f16, f32], CCAssignToReg<[IRES0]>>," << std::endl;
     } else {
         os << "  CCIfType<[i1, i8, i16], CCPromoteToType<i32>>," << std::endl <<
-            "  CCIfType<[i32], CCAssignToReg<[IRES0]>>," << std::endl;
+            "  CCIfType<[i32,f32,f16], CCAssignToReg<[IRES0]>>," << std::endl;
     }
 
     if (!mach_.is64bit()) {
@@ -3195,24 +3306,18 @@ TDGen::writeCallingConv(std::ostream& os) {
             "  // Integer values get stored in stack slots that are 4 bytes in "
            << std::endl <<
             "  // size and 4-byte aligned." << std::endl <<
-            "  CCIfType<[i32, f32], CCAssignToStack<4, 4>>," << std::endl <<
+            "  CCIfType<[i32, f32, f16], CCAssignToStack<4, 4>>," << std::endl <<
             "  // Integer values get stored in stack slots that are 8 bytes in"
            << std::endl <<
             "  // size and 8-byte aligned." << std::endl <<
-            "  CCIfType<[f64], CCAssignToStack<8, 8>>" << std::endl <<
-            "]>;" << std::endl;
+            "  CCIfType<[f64], CCAssignToStack<8, 8>>" << std::endl;
     } else {
-        os << "  // Integer values get stored in stack slots that are 8 bytes in "
+        os << "  // All values get stored in stack slots that are 8 bytes in "
            << std::endl <<
             "  // size and 8-byte aligned." << std::endl <<
-            "  CCIfType<[i64, f64], CCAssignToStack<8, 8>>," << std::endl <<
-            "  // f32 values get stored in stack slots that are 8 bytes in"
-           << std::endl <<
-            "  // size and 8-byte aligned." << std::endl <<
-            "  CCIfType<[f32], CCAssignToStack<8, 8>>" << std::endl <<
-            "]>;" << std::endl;
-
+            "  CCIfType<[i64, f64, f32, f16], CCAssignToStack<8, 8>>" << std::endl;
     }
+    os << "]>;" << std::endl;
 }
 
 void
@@ -3350,14 +3455,14 @@ void TDGen::createSelectPatterns(std::ostream& os) {
                << "(XORbbj R1Regs:$c, 1))>;"
                << std::endl << std::endl;
             
-            os << "def : Pat<(f32 (select R1Regs:$c, R32FPRegs:$t,R32FPRegs:$f)),"
-               << "(IORfff (ANDfff R32FPRegs:$t, (SUBfir 0, (ANDext R1Regs:$c, 1))),"
-               << "(ANDfff R32FPRegs:$f, (SUBfri (ANDext R1Regs:$c,1),1)))>;"
+            os << "def : Pat<(f32 (select R1Regs:$c, FPRegs:$t,FPRegs:$f)),"
+               << "(IORfff (ANDfff FPRegs:$t, (SUBfir 0, (ANDext R1Regs:$c, 1))),"
+               << "(ANDfff FPRegs:$f, (SUBfri (ANDext R1Regs:$c,1),1)))>;"
                << std::endl << std::endl
                 
-               << "def : Pat<(f16 (select R1Regs:$c,R32HFPRegs:$t,R32HFPRegs:$f)),"
-               << "(IORhhh (ANDhhh R32HFPRegs:$t, (SUBhir 0, (ANDext R1Regs:$c, 1))),"
-               << "(ANDhhh R32HFPRegs:$f, (SUBhri (ANDext R1Regs:$c,1),1)))>;"
+               << "def : Pat<(f16 (select R1Regs:$c,HFPRegs:$t,HFPRegs:$f)),"
+               << "(IORhhh (ANDhhh HFPRegs:$t, (SUBhir 0, (ANDext R1Regs:$c, 1))),"
+               << "(ANDhhh HFPRegs:$f, (SUBhri (ANDext R1Regs:$c,1),1)))>;"
                << std::endl << std::endl;
             }
         } else {
@@ -3481,18 +3586,18 @@ void TDGen::createSelectPatterns(std::ostream& os) {
                << "(select R32IRegs:$c, (i32 imm:$T), (i32 imm:$F)))]>;"
                << std::endl << std::endl
                 
-               << "def SELECT_F32 : InstTCE<(outs R32FPRegs:$dst),"
-               << "(ins R1Regs:$c, R32FPRegs:$T, R32FPRegs:$F),"
+               << "def SELECT_F32 : InstTCE<(outs FPRegs:$dst),"
+               << "(ins R1Regs:$c, FPRegs:$T, FPRegs:$F),"
                << "\"# SELECT_F32 PSEUDO!\","
-               << "[(set R32FPRegs:$dst,"
-               << "(select R1Regs:$c, R32FPRegs:$T, R32FPRegs:$F))]>;"
+               << "[(set FPRegs:$dst,"
+               << "(select R1Regs:$c, FPRegs:$T, FPRegs:$F))]>;"
                << std::endl << std::endl
                 
-               << "def SELECT_F16 : InstTCE<(outs R32HFPRegs:$dst),"
-               << "(ins R1Regs:$c, R32HFPRegs:$T, R32HFPRegs:$F),"
+               << "def SELECT_F16 : InstTCE<(outs HFPRegs:$dst),"
+               << "(ins R1Regs:$c, HFPRegs:$T, HFPRegs:$F),"
                << "\"# SELECT_F16 PSEUDO!\","
-               << "[(set R32HFPRegs:$dst, "
-               << "(select R1Regs:$c, R32HFPRegs:$T, R32HFPRegs:$F))]>;"
+               << "[(set HFPRegs:$dst, "
+               << "(select R1Regs:$c, HFPRegs:$T, HFPRegs:$F))]>;"
                << std::endl << std::endl;
         }            
     } else {
@@ -3852,12 +3957,12 @@ void TDGen::createBoolAndHalfLoadPatterns(std::ostream& os) {
         }
     }
 
-    os << "def " << halfLoad << "hr : InstTCE<(outs R32HFPRegs:$op2), "
-       << "(ins MEMrr:$op1), \"\", [(set R32HFPRegs:$op2, "
+    os << "def " << halfLoad << "hr : InstTCE<(outs HFPRegs:$op2), "
+       << "(ins MEMrr:$op1), \"\", [(set HFPRegs:$op2, "
        << "(load ADDRrr:$op1))]>;" << std::endl;
 
-    os << "def " << halfLoad << "hi : InstTCE<(outs R32HFPRegs:$op2), "
-       << "(ins MEMri:$op1), \"\", [(set R32HFPRegs:$op2, "
+    os << "def " << halfLoad << "hi : InstTCE<(outs HFPRegs:$op2), "
+       << "(ins MEMri:$op1), \"\", [(set HFPRegs:$op2, "
        << "(load ADDRri:$op1))]>;" << std::endl;
 
     opNames_[halfLoad + "hr"] = halfLoad;
