@@ -56,7 +56,7 @@ public:
     virtual std::string toString() const;
 
 private:
-    int value_;
+    long value_;
 };
 
 #endif

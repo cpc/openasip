@@ -78,7 +78,7 @@ private:
     VariableBinding& getBinding(const TokenizerData::TokenTreeNode* var);
     VariableBinding& getBinding(std::string varName);
     VariableBinding& getBinding(unsigned int operandIndex);
-    VariableBinding& getConstantBinding(int value);
+    VariableBinding& getConstantBinding(long value);
 
     unsigned int getIOOperand(const TokenizerData::TokenTreeNode* var);
 
@@ -95,7 +95,7 @@ private:
     std::map<std::string, VariableBinding> variableBindings_;
 
     /// Node representing constant value. 
-    std::map<int, VariableBinding> constantBindings_;
+    std::map<long, VariableBinding> constantBindings_;
     
     /// IO(x) variables and corresponding TerminalNodes and operand indices.
     std::map<std::string, TerminalBinding> ioVariables_;

@@ -407,7 +407,7 @@ OperationDAGBuilder::getBinding(std::string varName) {
  * @exception IllegalParameters Variable is not declared.
  */
 OperationDAGBuilder::VariableBinding& 
-OperationDAGBuilder::getConstantBinding(int value) {
+OperationDAGBuilder::getConstantBinding(long value) {
     if (constantBindings_.find(value) ==  constantBindings_.end()) {
         ConstantNode* newNode = new ConstantNode(value);
         constantBindings_[value] = VariableBinding(newNode, 1);

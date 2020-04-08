@@ -330,12 +330,12 @@ public:
         bool isTildeOperator() const {return isTildeOperator_;}
         bool isBangOperator() const {return isBangOperator_;}
         
-        int intValue() const {
+        long intValue() const {
             if (!isIntegerLiteral()) {
                 // TODO: throw exception
                 assert(false && "Node is not integer literal.");
             }
-            return Conversion::toInt(strValue_);
+            return Conversion::toLong(strValue_);
         }
         
         std::string stringValue() const {
@@ -457,13 +457,13 @@ public:
             return false;
         }
         
-        int intValue() const {
+        long intValue() const {
             if (!isInteger()) {
                 // TODO: throw exception
                 assert(false && "Node is not integer.");
             }                        
 
-            int retVal = 0;
+            long retVal = 0;
 
             if (leafCount() == 2) {
                 retVal = leaf(1).token().intValue();
