@@ -575,7 +575,8 @@ SimulatorFrontend::loadMachine(const std::string& fileName) {
     // compiled sim does not handle long guard latencies correctly.
     // remove when fixed.
     if (isCompiledSimulation() && 
-        currentMachine_->controlUnit()->globalGuardLatency() > 1) {
+        (currentMachine_->controlUnit()->globalGuardLatency() > 1 ||
+         currentMachine_->is64bit())) {
         setCompiledSimulation(false);
         // TODO: warn about this, when the warning can be ignored
         // by tests.
