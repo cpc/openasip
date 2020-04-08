@@ -1704,6 +1704,21 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>ZXW64</name>
+    <description>Zero- extend from 32 bits of of the input 1 to 32 bits into output 2.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <out element-count="1" element-width="64" id="2" type="ULongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(and64, IO(1), 4294967295, IO(2));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(zxw64, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>TRUNCWH</name>
     <description>truncate 32 bit int to 16 bit int</description>
     <inputs>1</inputs>

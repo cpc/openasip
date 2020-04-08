@@ -1276,6 +1276,11 @@ TDGen::writeOperationDefs(
         return;
     }
 
+    if (op.name() == "SXW64" || op.name() == "ZXW64") {
+        writeOperationDef(o, op, "sr", attrs, skipPattern);
+        return;
+    }
+
     // these can have 1-bit inputs
     if (op.name() == "XOR" || op.name() == "IOR" || op.name() == "AND" ||
         op.name() == "ANDN" || op.name() == "ADD" || op.name() == "SUB" ||
@@ -3226,17 +3231,28 @@ void TDGen::createShortExtLoadPatterns(std::ostream& os) {
 void TDGen::create32BitExtLoadPatterns(std::ostream& os) {
     TCEString load = "LD32";
     const TCEString uload = "LDU32";
+    TCEString ZXOP = "ZXW64";
+    TCEString ZXOPC = "ZXW64ss";
 
     if (mach_.hasOperation(load)) {
         if (!mach_.hasOperation(uload)) {
-            // emulate zero ext with sing-ext and and
-            os << "def : Pat<(i64 (zextloadi32 ADDRrr:$addr)), "
-               << "(AND64ssa (LD32sr ADDRrr:$addr),"
-               << "0xffffffff)>;" << std::endl;
+            if (!mach_.hasOperation(ZXOP)) {
+                // emulate zero ext with sing-ext and and
+                os << "def : Pat<(i64 (zextloadi32 ADDRrr:$addr)), "
+                   << "(AND64ssa (LD32sr ADDRrr:$addr),"
+                   << "0xffffffff)>;" << std::endl;
 
-            os << "def : Pat<(i64 (zextloadi32 ADDRri:$addr)), "
-               << "(AND64ssa (LD32si ADDRri:$addr),"
-               << "0xffffffff)>;" << std::endl;
+                os << "def : Pat<(i64 (zextloadi32 ADDRri:$addr)), "
+                   << "(AND64ssa (LD32si ADDRri:$addr),"
+                   << "0xffffffff)>;" << std::endl;
+            } else {
+                // use zxw64 instr for zext
+                os << "def : Pat<(i64 (zextloadi32 ADDRrr:$addr)), "
+                   << "(" << ZXOPC << " (LD32sr ADDRrr:$addr))>;" <<std::endl;
+
+                os << "def : Pat<(i64 (zextloadi32 ADDRri:$addr)), "
+                   << "(" << ZXOPC << " (LD32sr ADDRri:$addr))>;" <<std::endl;
+            }
         }
     } else {
         if (!mach_.hasOperation(uload)) {
