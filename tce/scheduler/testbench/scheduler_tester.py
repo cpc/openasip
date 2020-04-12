@@ -932,6 +932,10 @@ close $cycle_file
                 print "Compiler error message over\n."
                 return False
 
+            if not access(seqProgramName64, R_OK):
+                print "Error while compiling 64 bit program\n" + errorMessage
+                print "Compiler error message over\n."
+                return False
         else:
             print "src dir does not contain Makefile. Cannot build from src."
             return False
