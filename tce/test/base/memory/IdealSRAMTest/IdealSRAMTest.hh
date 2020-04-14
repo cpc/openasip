@@ -91,7 +91,7 @@ IdealSRAMTest::testBasicInterface() {
     
     IdealSRAM memory(START, END, MAUSIZE, false);
 
-    UIntWord result;
+    ULongWord result;
 
     memory.read(200, 1, result);
 

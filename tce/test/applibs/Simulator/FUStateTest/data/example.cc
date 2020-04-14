@@ -69,7 +69,7 @@ END_OPERATION(TESTSTORE)
 OPERATION(TESTLOAD)
 
 TRIGGER
-  UIntWord data;
+  ULongWord data;
   MEMORY.read(INT(1), 4, data);
   IO(2) = data;
 END_TRIGGER;
