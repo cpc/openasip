@@ -424,7 +424,7 @@ Operand::loadState(const ObjectState* state) {
     } catch (Exception& e) {
         string message = 
             "Error while loading operation operand settings. "
-            "An error in the operation format?";
+            "An error in the operation format?" + e.errorMessageStack();
         ObjectStateLoadingException newe(
             __FILE__, __LINE__, __func__, message);
         newe.setCause(e);
