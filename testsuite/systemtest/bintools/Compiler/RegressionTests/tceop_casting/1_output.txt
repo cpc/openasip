@@ -46,4 +46,8 @@
 #define _TCE_STW8(i1, i2, i3, i4, i5, i6, i7, i8, i9) do { asm volatile ("STW8"::"ir"((unsigned)(i1)), "ir"(i2), "ir"(i3), "ir"(i4), "ir"(i5), "ir"(i6), "ir"(i7), "ir"(i8), "ir"(i9)); } while(0) 
 #define _TCEFU_STW8(FU, i1, i2, i3, i4, i5, i6, i7, i8, i9) do { asm volatile (FU".STW8"::"ir"((unsigned)(i1)), "ir"(i2), "ir"(i3), "ir"(i4), "ir"(i5), "ir"(i6), "ir"(i7), "ir"(i8), "ir"(i9)); } while(0) 
 #define _TCEAS_STW8(AS, i1, i2, i3, i4, i5, i6, i7, i8, i9) do { asm volatile ("_AS." AS".STW8"::"ir"((unsigned)(i1)), "ir"(i2), "ir"(i3), "ir"(i4), "ir"(i5), "ir"(i6), "ir"(i7), "ir"(i8), "ir"(i9)); } while(0) 
+#define _TCE_ADDD(i1, i2, o1) do { double __tce_op_output_1 = (double)0; asm ("ADDD":"=r"( __tce_op_output_1):"ir"((double)(i1)), "ir"((double)(i2))); o1 = __tce_op_output_1;} while(0) 
+#define _TCEFU_ADDD(FU, i1, i2, o1) do { double __tce_op_output_1 = (double)0; asm (FU".ADDD":"=r"( __tce_op_output_1):"ir"((double)(i1)), "ir"((double)(i2))); o1 = __tce_op_output_1;} while(0) 
+#define _TCE_MULD(i1, i2, o1) do { double __tce_op_output_1 = (double)0; asm ("MULD":"=r"( __tce_op_output_1):"ir"((double)(i1)), "ir"((double)(i2))); o1 = __tce_op_output_1;} while(0) 
+#define _TCEFU_MULD(FU, i1, i2, o1) do { double __tce_op_output_1 = (double)0; asm (FU".MULD":"=r"( __tce_op_output_1):"ir"((double)(i1)), "ir"((double)(i2))); o1 = __tce_op_output_1;} while(0) 
 0x00000114
