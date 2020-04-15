@@ -43,11 +43,7 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 #include <llvm/IR/Dominators.h>
 
 #include <llvm/Analysis/AliasAnalysis.h>
-#ifdef LLVM_OLDER_THAN_3_7
-#include <llvm/PassManager.h>
-#else
 #include <llvm/IR/LegacyPassManager.h>
-#endif
 #include <llvm/Pass.h>
 //#include <llvm/ModuleProvider.h>
 
@@ -422,11 +418,7 @@ LLVMBackend::compile(
 
     // todo: what are these buffers..
     std::unique_ptr<MemoryBuffer> buffer = std::move(bufferPtr.get());
-#ifdef LLVM_3_5
-    ErrorOr<Module*> module = parseBitcodeFile(buffer.get(), context);
-#elif defined(LLVM_OLDER_THAN_3_7)
-    ErrorOr<Module*> module = parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
-#elif defined(LLVM_OLDER_THAN_4_0)
+#if defined(LLVM_OLDER_THAN_4_0)
     ErrorOr<std::unique_ptr<llvm::Module> > module =
         parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
 #else
@@ -438,13 +430,9 @@ LLVMBackend::compile(
     }
 #endif
 
-#ifdef LLVM_OLDER_THAN_3_7
-    m.reset(module.get());
-#else
     // TODO: why does this work? it should not?
 //    m.reset(module.get().get());
     m = std::move(module.get());
-#endif
 
     if (m.get() == 0) {
         std::string msg = "Error parsing bytecode file: " + bytecodeFile +
@@ -467,12 +455,7 @@ LLVMBackend::compile(
 
         std::unique_ptr<MemoryBuffer> emuBuffer = 
             std::move(emuBufferPtr.get());
-#ifdef LLVM_3_5
-        ErrorOr<Module*> module = parseBitcodeFile(emuBuffer.get(), context);
-#elif (defined LLVM_OLDER_THAN_3_7)
-        ErrorOr<Module*> module = 
-            parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
-#elif defined(LLVM_OLDER_THAN_4_0)
+#if defined(LLVM_OLDER_THAN_4_0)
         ErrorOr<std::unique_ptr<Module> > module =
             parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
 #else
@@ -485,11 +468,7 @@ LLVMBackend::compile(
         }
 #endif
 
-#ifdef LLVM_OLDER_THAN_3_7
-        emuM.reset(module.get());
-#else
         emuM = std::move(module.get());
-#endif       
         if (emuM.get() == 0) {
             std::string msg = "Error parsing bytecode file: " + 
                 emulationBytecodeFile + " of emulation library \n" 
@@ -601,14 +580,6 @@ LLVMBackend::compile(
     
     if (!tceTarget) {
         errs() << errorStr << "\n";
-#ifdef LLVM_OLDER_THAN_3_7
-        errs() << "Available targets:\n";
-        for (TargetRegistry::iterator i = TargetRegistry::begin(); 
-             i != TargetRegistry::end(); i++) {
-            errs() << i->getName() << " : " 
-                   << i->getShortDescription() << "\n";
-        }
-#endif
         return NULL;
     }
     
@@ -621,10 +592,6 @@ LLVMBackend::compile(
     // TODO: has this been removed or replaced with something else?
 #endif
     Options.PrintMachineCode = false; //PrintCode;
-#ifdef LLVM_OLDER_THAN_3_7
-    Options.NoFramePointerElim = false; // DisableFPElim;
-    Options.UseSoftFloat = false; //GenerateSoftFloatCalls; 
-#endif
     Options.UnsafeFPMath = false; //EnableUnsafeFPMath;
     Options.NoInfsFPMath = false; //EnableNoInfsFPMath;
     Options.NoNaNsFPMath = false; //EnableNoNaNsFPMath;
@@ -647,15 +614,6 @@ LLVMBackend::compile(
         return NULL;
     }
 
-#ifndef LLVM_OLDER_THAN_3_7
-    const llvm::DataLayout& moduleDL = module.getDataLayout();
-    const llvm::DataLayout& targetDL = targetMachine->createDataLayout();
-    if (moduleDL != targetDL) {
-      errs() << "DataLayout mismatch with module: " << module.getName() << "\n"
-             << "Module: " << moduleDL.getStringRepresentation() << "\n"
-             << "Target: " << targetDL.getStringRepresentation() << "\n";
-    }
-#endif
     // This hack must be cleaned up before adding TCE target to llvm upstream
     // these are needed by TCETargetMachine::addInstSelector passes
     targetMachine->setTargetMachinePlugin(plugin);
@@ -673,30 +631,9 @@ LLVMBackend::compile(
         (optLevel < 2) ? (CodeGenOpt::None) : (CodeGenOpt::Aggressive);
 #endif
 
-#ifdef LLVM_OLDER_THAN_3_7
-    llvm::PassManager Passes;
-#define addPass(P) Passes.add(P)    
-#else
     llvm::legacy::PassManager Passes;
 #define addPass(P) Passes.add(P)    
-#endif
     
-    /// @todo DataLayout.h states that DataLayoutPass should never be used.
-    /// However, some tests will fail if it isn't added to Passes.
-#ifdef LLVM_3_5
-    const DataLayout *DL = targetMachine->getDataLayout();
-    assert(DL != NULL);
-    addPass(new DataLayoutPass(*DL));
-#elif (defined LLVM_OLDER_THAN_3_7)
-    addPass(new DataLayoutPass());
-#else
-    // LLVM 3.7 and newer don't require DataLayoutPass.
-#endif
-
-#ifdef LLVM_OLDER_THAN_3_7
-    targetMachine->addPassesToEmitFile(
-        Passes, fouts(), TargetMachine::CGFT_AssemblyFile, OptLevel);
-#else
     llvm::raw_fd_ostream sos(STDOUT_FILENO, false);
 #ifdef LLVM_OLDER_THAN_7
     targetMachine->addPassesToEmitFile(
@@ -708,7 +645,6 @@ LLVMBackend::compile(
 #else
     targetMachine->addPassesToEmitFile(
         Passes, sos, nullptr, CGFT_AssemblyFile);
-#endif
 #endif
 #endif
 
@@ -990,9 +926,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
     }
 
     // NOTE: this could be get from Makefile.am
-    TCEString pluginSources =
-	srcsPath + "PluginCompileWrapper.cc " + srcsPath +
-	"TCEFrameInfo.cc " + srcsPath + "TCETargetMachinePlugin.cc ";
+    TCEString pluginSources = srcsPath + "PluginCompileWrapper.cc ";
 
     TCEString endianOption = target.isLittleEndian() ?
         "-DLITTLE_ENDIAN_TARGET" : "";

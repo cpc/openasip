@@ -5,7 +5,7 @@ Notable changes and features
 ----------------------------
 - Experimental support for 64-bit little-endian TTA processors.
 - New instruction scheduler which is much more aggressive at
-  performing software bypasses, which reduecs register pressure.
+  performing software bypasses, which reduces register pressure.
   Creates considerably faster code with processor architectures with
   small number of register ports.
   The old instruction scheduler can still be used by giving --td-scheduler
@@ -14,10 +14,19 @@ Notable changes and features
   with command line parameter --enable-loop-schduler to tcecc.
   Makes compilation MUCH slower. Also, not so well tested as the normal
   basic block scheduling mode, so there may be more bugs.
-- Compiler backend compilation speedup by 50-60% by creating a
+- Compiler backend plugin compilation speedup by over 3x by creating a
   pluginwrapperfile that includes multiple sourcefiles such that commonly
   included files are linked and compiled only once for all the sourcefiles
   in the wrapper.
+
+Notable bugfixes
+----------------
+- The stack spill alias analysis that was advertised for 1.21 was actually
+  broken in 1.21 and now should finally work.
+
+Removed features
+-----------------
+- Dropped support for LLVM 3.5, LLVm 3.6 and LLVM 3.7.
 
 1.21       March 2020
 =====================

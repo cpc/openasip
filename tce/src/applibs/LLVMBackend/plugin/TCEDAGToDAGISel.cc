@@ -84,19 +84,11 @@ private:
 /**
  * Constructor.
  */
-#ifdef LLVM_OLDER_THAN_3_7
-TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
-    SelectionDAGISel(tm), 
-    lowering_(*static_cast<TCETargetLowering*>(tm.getTargetLowering())),
-    subtarget_(tm.getSubtarget<TCESubtarget>()), tm_(&tm) {
-}
-#else
 TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
     SelectionDAGISel(tm), 
     lowering_(*static_cast<TCETargetLowering*>(tm.getTargetLowering())), 
     subtarget_(*tm.getSubtargetImpl()), tm_(&tm) {
 }
-#endif
 
 /**
  * Destructor.
@@ -272,11 +264,7 @@ TCEDAGToDAGISel::SelectADDRri(
 
     if (FrameIndexSDNode* fin = dyn_cast<FrameIndexSDNode>(addr)) {
         base = CurDAG->getTargetFrameIndex(fin->getIndex(), DEFAULT_TYPE);
-#ifdef LLVM_OLDER_THAN_3_7
-        offset = CurDAG->getTargetConstant(0, DEFAULT_TYPE);
-#else
         offset = CurDAG->getTargetConstant(0, SDLoc(), DEFAULT_TYPE);
-#endif
         return true;
     } else if (addr.getOpcode() == ISD::TargetExternalSymbol ||
                addr.getOpcode() == ISD::TargetGlobalAddress) {
@@ -284,11 +272,7 @@ TCEDAGToDAGISel::SelectADDRri(
         return false;  // direct calls.
     }
     base = addr;
-#ifdef LLVM_OLDER_THAN_3_7
-    offset = CurDAG->getTargetConstant(0, DEFAULT_TYPE);
-#else
     offset = CurDAG->getTargetConstant(0, SDLoc(), DEFAULT_TYPE);
-#endif
     return true;
 }
 
@@ -312,11 +296,7 @@ TCEDAGToDAGISel::SelectADDRrr(
 
     r1 = addr;
 
-#ifdef LLVM_OLDER_THAN_3_7
-    r2 = CurDAG->getTargetConstant(0, DEFAULT_TYPE);
-#else
     r2 = CurDAG->getTargetConstant(0, SDLoc(), DEFAULT_TYPE);
-#endif
     return true;
 }
 

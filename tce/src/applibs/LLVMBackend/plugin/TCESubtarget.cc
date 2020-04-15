@@ -47,6 +47,10 @@
 
 #undef DEBUG_TYPE
 
+#undef GET_SUBTARGETINFO_CTOR
+#undef GET_SUBTARGETINFO_MC_DESC
+#undef GET_SUBTARGETINFO_TARGET_DESC
+
 using namespace llvm;
 
 // Add plugin file name option.
@@ -61,16 +65,9 @@ BackendPluginFile(
  * The Constructor.
  */
 TCESubtarget::TCESubtarget(TCETargetMachinePlugin* plugin) :
-#ifdef LLVM_OLDER_THAN_3_7
-    TCEGenSubtargetInfo(
-        std::string("tce-tut-llvm"), std::string(""), 
-        std::string("")),
-#else
-    
     TCEGenSubtargetInfo(
         Triple("tce-tut-llvm"),
         std::string(""), std::string("")),
-#endif
     pluginFile_(BackendPluginFile), plugin_(plugin) {
 }
 
@@ -86,8 +83,6 @@ TCESubtarget::pluginFileName() {
 }
 
 
-#if (!(defined(LLVM_3_5)))
-
 const TargetInstrInfo* TCESubtarget::getInstrInfo() const {
     return plugin_->getInstrInfo();
 }
@@ -95,12 +90,6 @@ const TargetInstrInfo* TCESubtarget::getInstrInfo() const {
 const TargetRegisterInfo* TCESubtarget::getRegisterInfo() const {
     return plugin_->getRegisterInfo();
 }
-
-#ifdef LLVM_OLDER_THAN_3_7
-const DataLayout* TCESubtarget::getDataLayout() const { 
-    return plugin_->getDataLayout();
-}
-#endif
 
 const TargetFrameLowering* TCESubtarget::getFrameLowering() const {
     return plugin_->getFrameLowering();
@@ -118,4 +107,3 @@ const SelectionDAGTargetInfo* TCESubtarget::getSelectionDAGInfo() const {
     return plugin_->getSelectionDAGInfo();
 }
 
-#endif

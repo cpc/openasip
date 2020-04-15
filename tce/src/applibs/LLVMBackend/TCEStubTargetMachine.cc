@@ -48,9 +48,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "tce_config.h"
 #include "TCEStubTargetMachine.hh"
-#ifndef LLVM_OLDER_THAN_3_7
 #include "TCEStubTargetTransformInfo.hh"
-#endif
 #include "TCEStubSubTarget.hh"
 #ifndef LLVM_6_0
 // LLVM, COULD YOU PLEASE TRY TO DECIDE WHERE TO PUT THIS FILE?
@@ -94,14 +92,12 @@ extern "C" void LLVMInitializeTCETargetInfo() {
 #endif
 }
 
-#ifndef LLVM_OLDER_THAN_3_7
 extern "C" void LLVMInitializeTCEStubTarget() {
     // Register the targetmachine impl.
     RegisterTargetMachine<TCEStubTargetMachine> X(TheTCETarget);
     RegisterTargetMachine<TCEStubTargetMachine> Y(TheTCELETarget);
     RegisterTargetMachine<TCEStubTargetMachine> Z(TheTCELE64Target);
 }
-#endif
 
 extern "C" void LLVMInitializeTCEStubTargetMC() {}
 
@@ -141,15 +137,6 @@ StringRef getTargetDesc(const Triple &TT) {
 }
 
 /* Base class constructor */
-#ifdef LLVM_OLDER_THAN_3_7
-TCEBaseTargetMachine::TCEBaseTargetMachine(
-    const Target &T, const std::string& TT, const std::string& CPU,
-    const std::string &FS, const TargetOptions &Options,
-    Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL) :
-    LLVMTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
-    ttaMach_(NULL) {
-}
-#else
 TCEBaseTargetMachine::TCEBaseTargetMachine(
     const Target &T, const Triple& TT, const std::string& CPU, 
     const std::string &FS, const TargetOptions &Options,
@@ -157,9 +144,7 @@ TCEBaseTargetMachine::TCEBaseTargetMachine(
     LLVMTargetMachine(T, getTargetDesc(TT), TT, CPU, FS, Options, RM, CM, OL),
     ttaMach_(NULL) {
 }
-#endif
 
-#ifndef LLVM_OLDER_THAN_3_7
 #ifdef LLVM_OLDER_THAN_3_9
 TCEStubTargetMachine::TCEStubTargetMachine(
     const Target &T, const Triple &TT, const std::string& CPU, 
@@ -231,4 +216,3 @@ namespace {
 
     };
 } // end namespace
-#endif

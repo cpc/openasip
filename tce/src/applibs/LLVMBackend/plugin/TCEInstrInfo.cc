@@ -54,6 +54,8 @@
 #define GET_INSTRINFO_CTOR_DTOR
 #define GET_INSTRINFO_MC_DESC
 #include "TCEGenInstrInfo.inc"
+#undef GET_INSTRINFO_CTOR_DTOR
+#undef GET_INSTRINFO_MC_DESC
 
 
 using namespace llvm;
@@ -93,11 +95,7 @@ TCEInstrInfo::insertBranch(
     MachineBasicBlock& mbb,
     MachineBasicBlock* tbb,
     MachineBasicBlock* fbb,
-#ifdef LLVM_OLDER_THAN_3_7
-    const llvm::SmallVectorImpl<llvm::MachineOperand>& cond,
-#else
     ArrayRef<MachineOperand> cond,
-#endif
 #ifdef LLVM_OLDER_THAN_3_9
     DebugLoc dl
 #else
@@ -509,11 +507,7 @@ bool TCEInstrInfo::PredicateInstruction(
 #else
     MachineInstr& mi_ref,
 #endif
-#ifdef LLVM_OLDER_THAN_3_7
-    const SmallVectorImpl<MachineOperand> &cond
-#else
     ArrayRef<MachineOperand> cond
-#endif
 ) const {
 
 #ifndef LLVM_OLDER_THAN_3_9
@@ -553,10 +547,8 @@ bool TCEInstrInfo::PredicateInstruction(
 						    mo.isDebug());
         } else if (mo.isImm()) {
             mi->getOperand(oper+1).ChangeToImmediate(mo.getImm());
-#ifndef LLVM_OLDER_THAN_3_6
         } else if (mo.isFPImm()) {
             mi->getOperand(oper+1).ChangeToFPImmediate(mo.getFPImm());
-#endif
         } else if (mo.isGlobal()) {
             // TODO: what to do here? 
             llvm_unreachable("Unexpected operand type");

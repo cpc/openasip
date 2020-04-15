@@ -42,15 +42,10 @@
 
 #include "tce_config.h"
 
-#ifndef LLVM_OLDER_THAN_3_7
-// LLVM 3.7 tdgen expects the name class TCEFrameLowering
-#define TCEFrameInfo TCEFrameLowering 
-#endif
-
 namespace llvm {
     class TargetInstrInfo;
     class Type;
-    class TCEFrameInfo;
+    class TCEFrameLowering;
 
     /**
      * Class which handles registers in the TCE backend.
@@ -60,11 +55,7 @@ namespace llvm {
         TCERegisterInfo(const TargetInstrInfo& tii);
         virtual ~TCERegisterInfo() {};
 
-#ifdef LLVM_3_5
-        const uint16_t *getCalleeSavedRegs(const MachineFunction *MF = 0) const override;
-#else
         const MCPhysReg* getCalleeSavedRegs(const MachineFunction *MF = 0) const override;
-#endif
 
         // TODO: These are in TCEFrameInfo now, but those delegate here
         // TODO: Moved them there some day.
@@ -89,10 +80,10 @@ namespace llvm {
         int getLLVMRegNum(unsigned int, bool) const;
         // TODO: call TCEFrameInfo::hasFP(MF)
         bool hasFP(const MachineFunction &MF) const;
-        void setTFI(const TCEFrameInfo* tfi) { tfi_ = tfi; };
+        void setTFI(const TCEFrameLowering* tfi) { tfi_ = tfi; };
     private:
         const TargetInstrInfo& tii_;
-        const TCEFrameInfo* tfi_;
+        const TCEFrameLowering* tfi_;
     };
 }
 

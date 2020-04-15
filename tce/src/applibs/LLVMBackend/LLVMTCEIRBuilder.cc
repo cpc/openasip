@@ -138,13 +138,7 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
         initDataSections();
         emitConstantPool(*mf.getConstantPool());    
     } else {
-#if defined(LLVM_3_5)
-        mang_ = new llvm::Mangler(tm_->getDataLayout());
-#elif defined(LLVM_OLDER_THAN_3_7)
-        mang_ = new llvm::Mangler(tm_->getSubtargetImpl()->getDataLayout());
-#else
         mang_ = new llvm::Mangler();
-#endif
     }
 
     // omit empty functions..
@@ -892,12 +886,7 @@ LLVMTCEIRBuilder::operationName(const MachineInstr& mi) const {
         return dynamic_cast<const TCETargetMachine&>(targetMachine())
             .operationName(mi.getDesc().getOpcode());
     } else {
-#ifdef LLVM_3_5
-        return targetMachine().getInstrInfo()->getName(mi.getOpcode());
-#elif (defined LLVM_OLDER_THAN_3_7)
-        return targetMachine().getSubtargetImpl()->getInstrInfo()->getName(
-            mi.getOpcode());
-#elif (defined LLVM_OLDER_THAN_4_0)
+#if (defined LLVM_OLDER_THAN_4_0)
         return targetMachine().getSubtargetImpl(
             *mi.getParent()->getParent()->getFunction())->getInstrInfo()->
             getName(mi.getOpcode());

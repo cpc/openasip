@@ -98,11 +98,7 @@ TTAProgram::Instruction*
 LLVMTCEPOMBuilder::emitMove(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc,
     bool, bool) {
-#ifdef LLVM_3_5
-    TCEString opName(targetMachine().getInstrInfo()->getName(mi->getOpcode()));
-#elif (defined(LLVM_OLDER_THAN_3_7))
-    TCEString opName(targetMachine().getSubtargetImpl()->getInstrInfo()->getName(mi->getOpcode()));
-#elif LLVM_OLDER_THAN_6_0
+#if LLVM_OLDER_THAN_6_0
     TCEString opName(targetMachine().getSubtargetImpl(
                          *mi->getParent()->getParent()->getFunction())->
                      getInstrInfo()->getName(mi->getOpcode()));
@@ -140,14 +136,7 @@ LLVMTCEPOMBuilder::operationName(const MachineInstr&) const {
 
 TTAProgram::Terminal*
 LLVMTCEPOMBuilder::createFUTerminal(const MachineOperand& mo) const {
-#ifdef LLVM_3_5
-    TCEString regName(
-        targetMachine().getRegisterInfo()->getName(mo.getReg()));
-#elif (defined(LLVM_OLDER_THAN_3_7))
-    TCEString regName(
-        targetMachine().getSubtargetImpl()->
-        getRegisterInfo()->getName(mo.getReg()));
-#elif LLVM_OLDER_THAN_6_0
+#if LLVM_OLDER_THAN_6_0
     TCEString regName(
         targetMachine().getSubtargetImpl(
             *mo.getParent()->getParent()->getParent()->getFunction())->

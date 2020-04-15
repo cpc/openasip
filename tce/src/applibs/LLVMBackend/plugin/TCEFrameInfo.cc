@@ -24,7 +24,7 @@
 /**
  * @file TCEFrameInfo.cpp
  *
- * Implementation of TCEFrameInfo class.
+ * Implementation of TCEFrameLowering class.
  *
  * @author Heikki Kultala 2010-2016 (hkultala-no.spam-cs.tut.fi)
  */
@@ -36,11 +36,7 @@
 
 #include <iostream> // DEBUG
 
-#define GET_INSTRINFO_ENUM
-#include "TCEGenInstrInfo.inc"
-
-#define GET_REGINFO_ENUM
-#include "TCEGenRegisterInfo.inc"
+#include "TCEPlugin.hh" // this includes the .inc files
 
 using namespace llvm;
 
@@ -94,7 +90,7 @@ void
 #else
 MachineBasicBlock::iterator
 #endif
-TCEFrameInfo::eliminateCallFramePseudoInstr(
+TCEFrameLowering::eliminateCallFramePseudoInstr(
     MachineFunction &MF, MachineBasicBlock &MBB,
     MachineBasicBlock::iterator I) const {
     if (hasFP(MF)) {
@@ -151,7 +147,7 @@ TCEFrameInfo::eliminateCallFramePseudoInstr(
 }
 #undef ERASE_INSTR_AND_RETURN
 
-bool TCEFrameInfo::hasFP(const MachineFunction &MF) const {
+bool TCEFrameLowering::hasFP(const MachineFunction &MF) const {
 #if LLVM_OLDER_THAN_4_0
     if (MF.getFrameInfo()->hasVarSizedObjects()) {
 #else
@@ -163,7 +159,7 @@ bool TCEFrameInfo::hasFP(const MachineFunction &MF) const {
 }
 
 bool
-TCEFrameInfo::containsCall(MachineFunction& mf) const {
+TCEFrameLowering::containsCall(MachineFunction& mf) const {
     for (MachineFunction::iterator i = mf.begin(); i != mf.end(); i++) {
         const MachineBasicBlock& mbb = *i;
         for (MachineBasicBlock::const_iterator j = mbb.begin();
@@ -183,11 +179,7 @@ TCEFrameInfo::containsCall(MachineFunction& mf) const {
  * Emits machine function prologue to machine functions.
  */
 void
-#ifdef LLVM_OLDER_THAN_3_7
-TCEFrameInfo::emitPrologue(MachineFunction& mf)
-#else
-TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
-#endif
+TCEFrameLowering::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
  const {
     MachineBasicBlock& mbb = mf.front();
 #if LLVM_OLDER_THAN_4_0
@@ -299,7 +291,7 @@ TCEFrameInfo::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
  * Emits machine function epilogue to machine functions.
  */
 void
-TCEFrameInfo::emitEpilogue(
+TCEFrameLowering::emitEpilogue(
     MachineFunction& mf, MachineBasicBlock& mbb) const {
 
 #if LLVM_OLDER_THAN_4_0
