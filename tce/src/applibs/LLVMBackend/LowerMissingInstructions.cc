@@ -267,6 +267,13 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
         footprints["DIVF.i32"].push_back("f32.fdiv.f32.f32");
         footprints["SQRTF.i32"].push_back("f32.sqrt.f32");
 
+        footprints["ADDD.i64"].push_back("f64.fadd.f64.f64");
+        footprints["SUBD.i64"].push_back("f64.fsub.f64.f64");
+        footprints["NEGD.i64"].push_back("f64.fneg.f64");
+        footprints["MULD.i64"].push_back("f64.fmul.f64.f64");
+        footprints["DIVD.i64"].push_back("f64.fdiv.f64.f64");
+        footprints["SQRTD.i64"].push_back("f64.sqrt.f64");
+
         footprints["CFI.i32"].push_back("i32.fptosi.f32");
         footprints["CFIU.i32"].push_back("i32.fptoui.f32");
         footprints["CIF.i32"].push_back("f32.sitofp.i32");
@@ -281,6 +288,26 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
         footprints["CFIU.i8"].push_back("i8.fptoui.f32");
         footprints["CIF.i8"].push_back("f32.sitofp.i8");
         footprints["CIFU.i8"].push_back("f32.uitofp.i8");
+
+        footprints["CDL.i64"].push_back("i64.fptosi.f64");
+        footprints["CDLU.i64"].push_back("i64.fptoui.f64");
+        footprints["CLD.i64"].push_back("f64.sitofp.i64");
+        footprints["CLDU.i64"].push_back("f64.uitofp.i64");
+
+        footprints["CDL.i32"].push_back("i32.fptosi.f64");
+        footprints["CDLU.i32"].push_back("i32.fptoui.f64");
+        footprints["CLD.i32"].push_back("f64.sitofp.i32");
+        footprints["CLDU.i32"].push_back("f64.uitofp.i32");
+
+        footprints["CDL.i16"].push_back("i16.fptosi.f64");
+        footprints["CDLU.i16"].push_back("i16.fptoui.f64");
+        footprints["CLD.i16"].push_back("f64.sitofp.i16");
+        footprints["CLDU.i16"].push_back("f64.uitofp.i16");
+
+        footprints["CDL.i8"].push_back("i8.fptosi.f64");
+        footprints["CDLU.i8"].push_back("i8.fptoui.f64");
+        footprints["CLD.i8"].push_back("f64.sitofp.i8");
+        footprints["CLDU.i8"].push_back("f64.uitofp.i8");
 
         footprints["EQF.i1"].push_back("i1.fcmp.oeq.f32.f32");
         footprints["NEF.i1"].push_back("i1.fcmp.one.f32.f32");
@@ -314,6 +341,41 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
         footprints["ORDF.i32"].push_back("i32.fcmp.ord.f32.f32");
         footprints["UORDF.i1"].push_back("i1.fcmp.uno.f32.f32");
         footprints["UORDF.i32"].push_back("i32.fcmp.uno.f32.f32");
+
+        footprints["CFD.i64"].push_back("f64.fpext.f32");
+
+        footprints["EQD.i1"].push_back("i1.fcmp.oeq.f64.f64");
+        footprints["NED.i1"].push_back("i1.fcmp.one.f64.f64");
+        footprints["LTD.i1"].push_back("i1.fcmp.olt.f64.f64");
+        footprints["GED.i1"].push_back("i1.fcmp.oge.f64.f64");
+        footprints["LED.i1"].push_back("i1.fcmp.ole.f64.f64");
+        footprints["GTD.i1"].push_back("i1.fcmp.ogt.f64.f64");
+
+        footprints["EQD.i64"].push_back("i64.fcmp.oeq.f64.f64");
+        footprints["NED.i64"].push_back("i64.fcmp.one.f64.f64");
+        footprints["LTD.i64"].push_back("i64.fcmp.olt.f64.f64");
+        footprints["GED.i64"].push_back("i64.fcmp.oge.f64.f64");
+        footprints["LED.i64"].push_back("i64.fcmp.ole.f64.f64");
+        footprints["GTD.i64"].push_back("i64.fcmp.ogt.f64.f64");
+
+        footprints["EQUD.i1"].push_back("i1.fcmp.ueq.f64.f64");
+        footprints["NEUD.i1"].push_back("i1.fcmp.une.f64.f64");
+        footprints["GEUD.i1"].push_back("i1.fcmp.uge.f64.f64");
+        footprints["LEUD.i1"].push_back("i1.fcmp.ule.f64.f64");
+        footprints["LTUD.i1"].push_back("i1.fcmp.ult.f64.f64");
+        footprints["GTUD.i1"].push_back("i1.fcmp.ugt.f64.f64");
+
+        footprints["EQUD.i64"].push_back("i64.fcmp.ueq.f64.f64");
+        footprints["NEUD.i64"].push_back("i64.fcmp.une.f64.f64");
+        footprints["LEUD.i64"].push_back("i64.fcmp.ule.f64.f64");
+        footprints["GEUD.i64"].push_back("i64.fcmp.uge.f64.f64");
+        footprints["LTUD.i64"].push_back("i64.fcmp.ult.f64.f64");
+        footprints["GTUD.i64"].push_back("i64.fcmp.ugt.f64.f64");
+
+        footprints["ORDD.i1"].push_back("i1.fcmp.ord.f64.f64");
+        footprints["ORDD.i64"].push_back("i64.fcmp.ord.f64.f64");
+        footprints["UORDD.i1"].push_back("i1.fcmp.uno.f64.f64");
+        footprints["UORDD.i64"].push_back("i64.fcmp.uno.f64.f64");
 
         init = false;                
     }
@@ -482,6 +544,9 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
             // 
             // If there is also 
             // IntWord or UIntWord parameters all vectors are filled.
+            std::vector<ARGLIST_CONST Type*> argList_i64;
+            TYPE_CONST Type* retVal_i64 = NULL;
+
             std::vector<ARGLIST_CONST Type*> argList_i32;
             TYPE_CONST Type* retVal_i32 = NULL;
 
@@ -493,53 +558,97 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
 
             std::vector<ARGLIST_CONST Type*> argList_i1;
             TYPE_CONST Type* retVal_i1 = NULL;
+
+            TYPE_CONST Type* defaultIntegerType =
+                mach_->is64bit() ?
+                Type::getInt64Ty(getGlobalContext()) :
+                Type::getInt32Ty(getGlobalContext());
+
+            std::vector<ARGLIST_CONST Type*>& argList_default =
+                mach_->is64bit() ? argList_i64 : argList_i32;
+
+            TYPE_CONST Type*& retVal_default =
+                mach_->is64bit() ? retVal_i64 : retVal_i32;
+
+            const char* defaultIntegerSuffix =
+                mach_->is64bit() ? ".i64" : ".i32";
             
             bool useInt = false;
             for (int j = 1; j <= op.numberOfInputs(); j++) { 
-                Operand& operand = op.operand(j);                
+                Operand& operand = op.operand(j);
                 ARGLIST_CONST Type* llvmOp = getLLVMType(
-            operand.type(), Type::getInt32Ty(getGlobalContext()));
-                argList_i32.push_back(llvmOp);
-                if (llvmOp == Type::getInt32Ty(getGlobalContext())) {
+                    operand.type(), //Type::getInt32Ty(getGlobalContext()));
+                    defaultIntegerType);
+
+                argList_default.push_back(llvmOp);
+
+                if (llvmOp == defaultIntegerType) {
                     useInt = true;
                 }               
             }
             
             Operand& outputOperand = op.operand(op.numberOfInputs() + 1);
-            retVal_i32 = getLLVMType(outputOperand.type(), Type::getInt32Ty(getGlobalContext()));
+            retVal_default = getLLVMType(outputOperand.type(), defaultIntegerType);
 
-            if (retVal_i32 == Type::getInt32Ty(getGlobalContext())) {
+            // TODO: should also create smaller bit widths for long type operands??
+            if (retVal_default == defaultIntegerType) { //Type::getInt32Ty(getGlobalContext())) {
                 useInt = true;
             }
-                       
-            FunctionType* fType_i32 = 
-                FunctionType::get(retVal_i32, argList_i32, false);
-             
-            addFunctionForFootprints(M, fType_i32, op, ".i32");
-            
+
+            FunctionType* fType_default =
+                FunctionType::get(retVal_default, argList_default, false);
+
+            if (retVal_default == Type::getInt32Ty(getGlobalContext()) ||
+                retVal_default == Type::getFloatTy(getGlobalContext())) {
+
+                FunctionType* fType_i32 =
+                    FunctionType::get(Type::getInt32Ty(getGlobalContext()), argList_i32, false);
+                addFunctionForFootprints(M, fType_i32, op, ".i32"); //".i32");
+            } else {
+                addFunctionForFootprints(M, fType_default, op, defaultIntegerSuffix); //".i32");
+            }
+
             // create other function protos for other integer bitwidths
             if (useInt) {
-                if (retVal_i32 == Type::getInt32Ty(getGlobalContext())) {
+                if (retVal_default == defaultIntegerType) {
+                    if (mach_->is64bit()) {
+                        retVal_i32 = Type::getInt32Ty(getGlobalContext());
+                    }
                     retVal_i16 = Type::getInt16Ty(getGlobalContext());
                     retVal_i8 = Type::getInt8Ty(getGlobalContext());
                     retVal_i1 = Type::getInt1Ty(getGlobalContext());
                 } else {
-                    retVal_i16 = retVal_i32;
-                    retVal_i8 = retVal_i32;
-                    retVal_i1 = retVal_i32;
+                    if (mach_->is64bit()) {
+                        retVal_i32 = retVal_default;
+                    }
+                    retVal_i16 = retVal_default;
+                    retVal_i8 = retVal_default;
+                    retVal_i1 = retVal_default;
                 }
 
-                for (unsigned int j = 0; j < argList_i32.size(); j++) {
-                    ARGLIST_CONST Type* currArg = argList_i32[j];
-                    if (currArg == Type::getInt32Ty(getGlobalContext())) {
+                for (unsigned int j = 0; j < argList_default.size(); j++) {
+                    ARGLIST_CONST Type* currArg = argList_default[j];
+                    if (currArg == defaultIntegerType) {
+                        if (mach_->is64bit()) {
+                            argList_i32.push_back(Type::getInt32Ty(getGlobalContext()));
+                        }
                         argList_i16.push_back(Type::getInt16Ty(getGlobalContext()));
                         argList_i8.push_back(Type::getInt8Ty(getGlobalContext()));
                         argList_i1.push_back(Type::getInt1Ty(getGlobalContext()));
                     } else {
+                        if (mach_->is64bit()) {
+                            argList_i16.push_back(currArg);
+                        }
                         argList_i16.push_back(currArg);
                         argList_i8.push_back(currArg);
                         argList_i1.push_back(currArg);
                     }
+                }
+
+                if (mach_->is64bit()) {
+                    FunctionType* fType_i32 =
+                        FunctionType::get(retVal_i32, argList_i32, false);
+                    addFunctionForFootprints(M, fType_i32, op, ".i32");
                 }
 
                 FunctionType* fType_i16 = 
@@ -597,7 +706,7 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                 // this should leak down to llvm-tce
                 std::cerr
                     << (boost::format(
-                            "ERROR: emulation function "
+                            "ERROR: emulation function for footprint"
                             "'%s' wasn't found. Floating point"
                             " emulation required but --swfp was not given?") % 
                         footPrint).str() << std::endl;
@@ -617,7 +726,9 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
             for (unsigned j = 0; j < I->getNumOperands(); j++) {
 
                 if (I->getOperand(j)->getType() == Type::getInt16Ty(getGlobalContext()) ||
-                    I->getOperand(j)->getType() == Type::getInt8Ty(getGlobalContext())) {
+                    I->getOperand(j)->getType() == Type::getInt8Ty(getGlobalContext()) ||
+                    (I->getOperand(j)->getType() == Type::getInt32Ty(getGlobalContext()) &&
+                     mach_->is64bit())) {
 
                     // Emulated operations with i1/i8/i16 operands need
                     // their operands extended to 32 bits. However, there's
@@ -631,12 +742,12 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
 #ifdef LLVM_OLDER_THAN_3_8
                         args.push_back(
                             llvm::CastInst::CreateIntegerCast(
-                                I->getOperand(j), 
+                                I->getOperand(j),
                                 Type::getInt32Ty(getGlobalContext()), true, "", I));
 #else
-            args.push_back(
+                        args.push_back(
                             llvm::CastInst::CreateIntegerCast(
-                                I->getOperand(j), 
+                                I->getOperand(j),
                                 Type::getInt32Ty(getGlobalContext()), 
                                 true, "", &(*I)));
 #endif
@@ -651,14 +762,26 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
 #else
                         args.push_back(
                             llvm::CastInst::CreateIntegerCast(
-                                I->getOperand(j), 
+                                I->getOperand(j),
                                 Type::getInt32Ty(getGlobalContext()),
                                 false, "", &(*I)));
 #endif
+                    } else if (footPrint == "f64.sitofp.i32" && mach_->is64bit()) {
+                        args.push_back(
+                                llvm::CastInst::CreateIntegerCast(
+                                    I->getOperand(j),
+                                    Type::getInt64Ty(getGlobalContext()),
+                                    true, "", &(*I)));
+
+                    } else if (footPrint == "f64.uitofp.i32" && mach_->is64bit()) {
+                        args.push_back(
+                            llvm::CastInst::CreateIntegerCast(
+                                I->getOperand(j),
+                                Type::getInt64Ty(getGlobalContext()),
+                                false, "", &(*I)));
                     } else {
-                        // unknown extension needed
-                        assert(false && "Unknown operation footprint "
-                               "requiring operand extension.");
+                        // might not need ext after all.
+                        args.push_back(I->getOperand(j));
                     }
                 } else if (I->getOpcode() == llvm::Instruction::Call
                            && j == 0) {

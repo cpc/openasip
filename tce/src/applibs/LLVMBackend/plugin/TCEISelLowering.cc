@@ -310,29 +310,31 @@ TCETargetLowering::LowerFormalArguments(
                 InVals.push_back(Load);
             }
             ArgOffset += DEFAULT_SIZE;
-        } else if (sType == MVT::f32) {
+        } else if (sType == MVT::f32 || sType == MVT::f64) {
             if (!Ins[i].Used) {                  // Argument is dead.
                 if (CurArgReg < ArgRegEnd) {
                     ++CurArgReg;
                 }
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
-            } else if (CurArgReg < ArgRegEnd && !isVarArg) {
-                unsigned VReg = RegInfo.createVirtualRegister(
-                    &TCE::FPRegsRegClass);
+            } else if (CurArgReg < ArgRegEnd && !isVarArg) { // reg argument
+                auto regClass = sType == MVT::f32 ?
+                    &TCE::FPRegsRegClass:
+                    &TCE::R64DFPRegsRegClass;
+                unsigned VReg = RegInfo.createVirtualRegister(regClass);
                 MF.getRegInfo().addLiveIn(*CurArgReg++, VReg);
-                SDValue Arg = DAG.getCopyFromReg(Chain, dl, VReg, MVT::f32);
+                SDValue Arg = DAG.getCopyFromReg(Chain, dl, VReg, sType);
                 InVals.push_back(Arg);
-            } else {
+            } else { // argument in stack.
                 int FrameIdx = frameInfo.CreateFixedObject(
                     DEFAULT_SIZE, ArgOffset, /*immutable=*/true);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, DEFAULT_TYPE);
 #ifdef LLVM_OLDER_THAN_3_9
                 SDValue Load = DAG.getLoad(
-                    MVT::f32, dl, Chain, FIPtr, MachinePointerInfo(),
+                    sType, dl, Chain, FIPtr, MachinePointerInfo(),
                     false, false, false, 0);
 #else
                 SDValue Load = DAG.getLoad(
-                    MVT::f32, dl, Chain, FIPtr, MachinePointerInfo());
+                    sType, dl, Chain, FIPtr, MachinePointerInfo());
 #endif
                 InVals.push_back(Load);
             }
@@ -461,7 +463,7 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
 #else
     if (sType == MVT::i1 || sType == MVT::i8 || sType == MVT::i16 ||
         sType == MVT::i32 || sType == MVT::i64 || sType == MVT::f32 ||
-        sType == MVT::f32) {
+        sType == MVT::f64) {
         ObjSize = 8;
         if (RegsToPass.size() >= argRegCount || isVarArg) {
             ValToStore = Val;
@@ -608,7 +610,7 @@ TCETargetLowering::TCETargetLowering(
     addRegisterClass(MVT::i1, &TCE::R1RegsRegClass);
 #ifdef TARGET64BIT
         addRegisterClass(MVT::i64, &TCE::R64IRegsRegClass);
-//        addRegisterClass(MVT::f64, &TCE::R64DFPRegsRegClass);
+        addRegisterClass(MVT::f64, &TCE::R64DFPRegsRegClass);
 #else
     addRegisterClass(MVT::i32, &TCE::R32IRegsRegClass);
 #endif
@@ -712,6 +714,7 @@ TCETargetLowering::TCETargetLowering(
 #ifdef TARGET64BIT
     setOperationAction(ISD::SDIVREM, MVT::i64, Expand);
     setOperationAction(ISD::UDIVREM, MVT::i64, Expand);
+    setTruncStoreAction(MVT::f64, MVT::f32, Expand);
 #endif
 
     setTruncStoreAction(MVT::f32, MVT::f16, Expand);
@@ -1143,6 +1146,10 @@ TCETargetLowering::getRegForInlineAsmConstraint(
         if (VT == MVT::f32) {
             return std::make_pair(0U, &TCE::FPRegsRegClass);
         }
+#ifdef TARGET64BIT
+    case 'd':
+        return std::make_pair(0U, &TCE::R64DFPRegsRegClass);
+#endif
     }
   }
 #ifdef LLVM_OLDER_THAN_3_7

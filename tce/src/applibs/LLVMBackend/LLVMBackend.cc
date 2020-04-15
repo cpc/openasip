@@ -211,10 +211,47 @@ LLVMBackend::llvmRequiredOpset(bool includeFloatOps, bool littleEndian, bool bit
         // Ordered/unordered operations
         requiredOps.insert("ORDF");
         requiredOps.insert("UORDF");
+
+        if (bits64) {
+            requiredOps.insert("ADDD");
+            requiredOps.insert("SUBD");
+            requiredOps.insert("MULD");
+            requiredOps.insert("DIVD");
+            requiredOps.insert("NEGD");
+            requiredOps.insert("SQRTD");
+
+            requiredOps.insert("CDL");
+            requiredOps.insert("CDLU");
+            requiredOps.insert("CLD");
+            requiredOps.insert("CLDU");
+
+            requiredOps.insert("CFD");
+            requiredOps.insert("CDF");
+
+            // Ordered FP comparison operations
+            requiredOps.insert("EQD");
+            requiredOps.insert("NED");
+            requiredOps.insert("LTD");
+            requiredOps.insert("LED");
+            requiredOps.insert("GTD");
+            requiredOps.insert("GED");
+
+            // Unordered FP comparison operations
+            requiredOps.insert("EQUD");
+            requiredOps.insert("NEUD");
+            requiredOps.insert("LTUD");
+            requiredOps.insert("LEUD");
+            requiredOps.insert("GTUD");
+            requiredOps.insert("GEUD");
+
+            // Ordered/unordered operations
+            requiredOps.insert("ORDD");
+            requiredOps.insert("UORDD");
+        }
     }
 
     if (bits64) {
-        requiredOps.insert("LDU32");
+        requiredOps.insert("LDU32"); // TODO not really needed?
         requiredOps.insert("LD64");
         requiredOps.insert("ST64");
 
@@ -250,39 +287,38 @@ LLVMBackend::llvmRequiredOpset(bool includeFloatOps, bool littleEndian, bool bit
         requiredOps.insert("GEU64");
 
         return requiredOps;
+    } else {
+        requiredOps.insert("ADD");
+        requiredOps.insert("SUB");
+        requiredOps.insert("MUL");
+        requiredOps.insert("DIV");
+        requiredOps.insert("DIVU");
+        requiredOps.insert("DIV");
+        requiredOps.insert("MOD");
+        requiredOps.insert("MODU");
+
+        requiredOps.insert("SXHW");
+        requiredOps.insert("SXQW");
+
+        requiredOps.insert("AND");
+        requiredOps.insert("XOR");
+        requiredOps.insert("IOR");
+
+        requiredOps.insert("SHL");
+        requiredOps.insert("SHR");
+        requiredOps.insert("SHRU");
+
+        requiredOps.insert("EQ");
+        requiredOps.insert("NE");
+        requiredOps.insert("LT");
+        requiredOps.insert("LTU");
+        requiredOps.insert("LE");
+        requiredOps.insert("LEU");
+        requiredOps.insert("GT");
+        requiredOps.insert("GTU");
+        requiredOps.insert("GE");
+        requiredOps.insert("GEU");
     }
-
-    requiredOps.insert("ADD");
-    requiredOps.insert("SUB");
-    requiredOps.insert("MUL");
-    requiredOps.insert("DIV");
-    requiredOps.insert("DIVU");
-    requiredOps.insert("DIV");
-    requiredOps.insert("MOD");
-    requiredOps.insert("MODU");
-
-    requiredOps.insert("SXHW");
-    requiredOps.insert("SXQW");
-
-    requiredOps.insert("AND");
-    requiredOps.insert("XOR");
-    requiredOps.insert("IOR");
-
-    requiredOps.insert("SHL");
-    requiredOps.insert("SHR");
-    requiredOps.insert("SHRU");
-
-    requiredOps.insert("EQ");
-    requiredOps.insert("NE");
-    requiredOps.insert("LT");
-    requiredOps.insert("LTU");
-    requiredOps.insert("LE");
-    requiredOps.insert("LEU");
-    requiredOps.insert("GT");
-    requiredOps.insert("GTU");
-    requiredOps.insert("GE");
-    requiredOps.insert("GEU");
-
     return requiredOps;
 }
 /**

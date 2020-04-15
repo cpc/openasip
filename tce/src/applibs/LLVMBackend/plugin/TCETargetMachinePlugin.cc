@@ -355,6 +355,8 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     if (opc == TCE::MOVrh) return MOVE;
     if (opc == TCE::MOVhr) return MOVE;
     if (opc == TCE::MOVhi) return MOVE;
+    if (opc == TCE::MOVsd) return MOVE;
+    if (opc == TCE::MOVds) return MOVE;
 
     if (opc == TCE::INLINEASM) return INLINEASM;
 #ifdef TARGET64BIT

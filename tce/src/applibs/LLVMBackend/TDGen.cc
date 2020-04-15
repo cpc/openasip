@@ -654,9 +654,13 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
         writeRegisterDef(o, regs64bit_[i], intRegName, "R64", "", GPR);
     }
 
+    TCEString dataTypes64 = use64bitForFP_ ?
+        "[i64,f64,f32,f16]" :
+        "[i64,f64]";
+
     o << std::endl
-      << "def R64Regs : RegisterClass<\"TCE\", [i64,f64], 64, (add "
-      << i64regs << ")> ;"
+      << "def R64Regs : RegisterClass<\"TCE\", " << dataTypes64
+      << ", 64, (add " << i64regs << ")> ;"
       << std::endl;
 
     o << std::endl
@@ -788,11 +792,15 @@ TDGen::writeInstrInfo(std::ostream& os) {
             opNames_["ST64fs"] = "ST64";
             opNames_["ST64ha"] = "ST64";
             opNames_["ST64hs"] = "ST64";
+            opNames_["ST64da"] = "ST64";
+            opNames_["ST64ds"] = "ST64";
 
             opNames_["LD64fa"] = "LD64";
             opNames_["LD64fs"] = "LD64";
             opNames_["LD64ha"] = "LD64";
             opNames_["LD64hs"] = "LD64";
+            opNames_["LD64da"] = "LD64";
+            opNames_["LD64ds"] = "LD64";
         }
 
         if (mach_.hasOperation("LD32")) {
@@ -1263,7 +1271,29 @@ TDGen::writeOperationDefs(
         writeOperationDef(o, op, "rf", attrs, skipPattern);
         return;
     }
-        
+
+    if (op.name() == "CDL" || op.name() == "CDLU") {
+        writeOperationDef(o, op, "sd", attrs, skipPattern);
+        return;
+    }
+
+    if (op.name() == "CLD" || op.name() == "CLDU") {
+        writeOperationDef(o, op, "ds", attrs, skipPattern);
+        return;
+    }
+
+        // no bool outs for some operatios
+    if (op.name() == "CFD") {
+        writeOperationDef(o, op, "df", attrs, skipPattern);
+        return;
+    }
+
+    // no bool outs for some operatios
+    if (op.name() == "CDF") {
+        writeOperationDef(o, op, "fd", attrs, skipPattern);
+        return;
+    }
+
     // rotations are allways n x n -> n bits.
     if (op.name() == "ROTL" || op.name() == "ROTR" ||
         op.name() == "SHL" || op.name() == "SHR" || op.name() == "SHRU") {
@@ -1617,6 +1647,16 @@ TDGen::writeEmulationPattern(
                 op.name() == "LEF" || op.name() == "LEUF" ||
                 op.name() == "GTF" || op.name() == "GTUF" ||
                 op.name() == "NEF" || op.name() == "NEUF" ||
+                op.name() == "ORDF" || op.name() == "UORDF" ||
+
+                op.name() == "LTD" || op.name() == "LTUD" ||
+                op.name() == "EQD" || op.name() == "EQUD" ||
+                op.name() == "GED" || op.name() == "GEUD" ||
+                op.name() == "LED" || op.name() == "LEUD" ||
+                op.name() == "GTD" || op.name() == "GTUD" ||
+                op.name() == "NED" || op.name() == "NEUD" ||
+                op.name() == "ORDD" || op.name() == "UORDD" ||
+
                 op.name() == "EQ" || op.name() == "NE" ||
                 op.name() == "EQ64" || op.name() == "NE64" ||
                 op.name() == "GE" ||op.name() == "GEU" ||
@@ -1626,8 +1666,7 @@ TDGen::writeEmulationPattern(
                 op.name() == "LE" || op.name() == "LEU" ||
                 op.name() == "LE64" || op.name() == "LEU64" ||
                 op.name() == "LT" || op.name() == "LTU" ||
-                op.name() == "LT64" || op.name() == "LTU64" ||
-                op.name() == "ORDF" || op.name() == "UORDF") {
+                op.name() == "LT64" || op.name() == "LTU64") {
                 std::string boolOperandTypes = operandTypes;
                 boolOperandTypes[0] = 'b';
                 o << "def : Pat<(" << match1.str() << "), "
@@ -1709,42 +1748,49 @@ TDGen::llvmOperationPattern(const Operation& op, char operandType) {
     if (opName == "geu") return "setuge %1%, %2%";
     if (opName == "geu64") return "setuge %1%, %2%";
 
-    if (opName == "eqf") return "setoeq %1%, %2%";
-    if (opName == "nef") return "setone %1%, %2%";
-    if (opName == "ltf") return "setolt %1%, %2%";
-    if (opName == "lef") return "setole %1%, %2%";
-    if (opName == "gtf") return "setogt %1%, %2%";
-    if (opName == "gef") return "setoge %1%, %2%";
+    if (opName == "eqf" || opName == "eqd") return "setoeq %1%, %2%";
+    if (opName == "nef" || opName == "ned") return "setone %1%, %2%";
+    if (opName == "ltf" || opName == "ltd") return "setolt %1%, %2%";
+    if (opName == "lef" || opName == "led") return "setole %1%, %2%";
+    if (opName == "gtf" || opName == "gtd") return "setogt %1%, %2%";
+    if (opName == "gef" || opName == "ged") return "setoge %1%, %2%";
 
-    if (opName == "equf") return "setueq %1%, %2%";
-    if (opName == "neuf") return "setune %1%, %2%";
-    if (opName == "ltuf") return "setult %1%, %2%";
-    if (opName == "leuf") return "setule %1%, %2%";
-    if (opName == "gtuf") return "setugt %1%, %2%";
-    if (opName == "geuf") return "setuge %1%, %2%";
+    if (opName == "equf" || opName == "equd") return "setueq %1%, %2%";
+    if (opName == "neuf" || opName == "neud") return "setune %1%, %2%";
+    if (opName == "ltuf" || opName == "ltud") return "setult %1%, %2%";
+    if (opName == "leuf" || opName == "leud") return "setule %1%, %2%";
+    if (opName == "gtuf" || opName == "gtud") return "setugt %1%, %2%";
+    if (opName == "geuf" || opName == "geud") return "setuge %1%, %2%";
 
-    if (opName == "ordf") return "seto %1%, %2%";
-    if (opName == "uordf") return "setuo %1%, %2%";
+    if (opName == "ordf" || opName == "ordd") return "seto %1%, %2%";
+    if (opName == "uordf"|| opName == "uordd")return "setuo %1%, %2%";
 
-    if (opName == "addf") return "fadd %1%, %2%";
-    if (opName == "subf") return "fsub %1%, %2%";
-    if (opName == "mulf") return "fmul %1%, %2%";
-    if (opName == "divf") return "fdiv %1%, %2%";
-    if (opName == "absf") return "fabs %1%";
-    if (opName == "negf") return "fneg %1%";
-    if (opName == "sqrtf") return "fsqrt %1%";
+    if (opName == "addf" || opName == "addd") return "fadd %1%, %2%";
+    if (opName == "subf" || opName == "subd") return "fsub %1%, %2%";
+    if (opName == "mulf" || opName == "muld") return "fmul %1%, %2%";
+    if (opName == "divf" || opName == "divd") return "fdiv %1%, %2%";
+    if (opName == "absf" || opName == "absd") return "fabs %1%";
+    if (opName == "negf" || opName == "negd") return "fneg %1%";
+    if (opName == "sqrtf"|| opName == "sqrtd")return "fsqrt %1%";
 
     if (opName == "cif") return "sint_to_fp %1%";
     if (opName == "cfi") return "fp_to_sint %1%";
     if (opName == "cifu") return "uint_to_fp %1%";
     if (opName == "cfiu") return "fp_to_uint %1%";
 
+    if (opName == "cld") return "sint_to_fp %1%";
+    if (opName == "cdl") return "fp_to_sint %1%";
+    if (opName == "cldu") return "uint_to_fp %1%";
+    if (opName == "cdlu") return "fp_to_uint %1%";
+
 #if LLVM_OLDER_THAN_4_0
-    if (opName == "cfh") return "fround %1%";
+    if (opName == "cfh" || opName == "cdf") return "fround %1%";
     if (opName == "chf") return "f32 (fextend %1%)";
+    if (opName == "cfd") return "f64 (fextend %1%)";
 #else
-    if (opName == "cfh") return "fpround %1%";
+    if (opName == "cfh" || opName == "cdf") return "fpround %1%";
     if (opName == "chf") return "f32 (fpextend %1%)";
+    if (opName == "cfd") return "f64 (fpextend %1%)";
 #endif
 
     if (opName == "cih") return "sint_to_fp %1%";
@@ -1919,22 +1965,22 @@ TDGen::llvmOperationName(const Operation& op) {
     if (opName == "geu") return "setuge";
     if (opName == "geu64") return "setuge";
 
-    if (opName == "eqf") return "setoeq";
-    if (opName == "nef") return "setone";
-    if (opName == "ltf") return "setolt";
-    if (opName == "lef") return "setole";
-    if (opName == "gtf") return "setogt";
-    if (opName == "gef") return "setoge";
+    if (opName == "eqf" || opName == "eqd") return "setoeq";
+    if (opName == "nef" || opName == "ned") return "setone";
+    if (opName == "ltf" || opName == "ltd") return "setolt";
+    if (opName == "lef" || opName == "led") return "setole";
+    if (opName == "gtf" || opName == "gtd") return "setogt";
+    if (opName == "gef" || opName == "ged") return "setoge";
 
-    if (opName == "equf") return "setueq";
-    if (opName == "neuf") return "setune";
-    if (opName == "ltuf") return "setult";
-    if (opName == "leuf") return "setule";
-    if (opName == "gtuf") return "setugt";
-    if (opName == "geuf") return "setuge";
+    if (opName == "equf" || opName == "equd") return "setueq";
+    if (opName == "neuf" || opName == "neud") return "setune";
+    if (opName == "ltuf" || opName == "ltud") return "setult";
+    if (opName == "leuf" || opName == "leud") return "setule";
+    if (opName == "gtuf" || opName == "gtud") return "setugt";
+    if (opName == "geuf" || opName == "geud") return "setuge";
 
-    if (opName == "ordf") return "seto";
-    if (opName == "uordf") return "setuo";
+    if (opName == "ordf" || opName =="ordd") return "seto";
+    if (opName == "uordf" || opName == "uordd") return "setuo";
 
     if (opName == "addf") return "fadd";
     if (opName == "subf") return "fsub";
@@ -2414,11 +2460,10 @@ TDGen::emulatingOpNodeLLVMName(
                         if (operand.type() == Operand::SINT_WORD ||
                             operand.type() == Operand::UINT_WORD) {
                             operationName += 'i';
-                        } else if (operand.type() == Operand::RAW_DATA) {
-                            operationName += mach_.is64bit() ? 'a' : 'i';
-                        } else if (operand.type() == Operand::SLONG_WORD ||
+                        } else if (operand.type() == Operand::RAW_DATA ||
+                                   operand.type() == Operand::SLONG_WORD ||
                                    operand.type() == Operand::ULONG_WORD) {
-                            operationName += 'a';
+                            operationName += mach_.is64bit() ? 'a' : 'i';
                         }
                     } else {
                         TerminalNode* t = 
@@ -2660,8 +2705,9 @@ TDGen::operandToString(
         }
     } else if (operand.type() == Operand::DOUBLE_WORD) {
         // TODO: immediate check??
-        return "I64Regs:$op" + Conversion::toString(idx);
-    } else if (operand.type() == Operand::SLONG_WORD || operand.type() == Operand::ULONG_WORD) {
+        return "R64DFPRegs:$op" + Conversion::toString(idx);
+    } else if (operand.type() == Operand::SLONG_WORD ||
+               operand.type() == Operand::ULONG_WORD) {
         if (operandType == 'b') {
             return "R1Regs:$op" + Conversion::toString(idx);
         }
@@ -2677,7 +2723,9 @@ TDGen::operandToString(
                 "i64imm:$op" + Conversion::toString(idx) :
                 "(i64 imm:$op" + Conversion::toString(idx) + ")";
         }
-        return "R64IRegs:$op" + Conversion::toString(idx);
+        return mach_.is64bit() ?
+            "R64IRegs:$op" + Conversion::toString(idx):
+            "R32IRegs:$op" + Conversion::toString(idx);
     } else {
         std::cerr << "Unknown operand type: " << operandType << std::endl;
         assert(false && "Unknown operand type.");
@@ -2843,6 +2891,12 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
                 os << "\tif (rc == &TCE::" << ri->first << "HFP" << rcpf
                    << ") return TCE::" << longStore <<  "hs;" << std::endl;
             }
+
+            if (ri->first.find("R64") == 0) {
+                os << "\tif (rc == &TCE::" << ri->first << "DFP" << rcpf
+                   << ") return TCE::" << longStore <<  "ds;" << std::endl;
+            }
+
         }
     }
 
@@ -2956,6 +3010,9 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
 
                 os << "\tif (rc == &TCE::" << ri->first << "HFP" << rcpf
                    << ") return TCE::" << longLoad << "hs;" << std::endl;
+
+                os << "\tif (rc == &TCE::" << ri->first << "DFP" << rcpf
+                   << ") return TCE::" << longLoad << "ds;" << std::endl;
             }
         }
         // TODO: double load!
@@ -3532,11 +3589,11 @@ void TDGen::createSelectPatterns(std::ostream& os) {
                     << "(select R64IRegs:$c, (i64 imm:$T), (i64 imm:$F)))]>;"
                     << std::endl << std::endl
 
-                    << "def SELECT_F64 : InstTCE<(outs R64FPRegs:$dst),"
-                    << "(ins R1Regs:$c, R64FPRegs:$T, R64FPRegs:$F),"
+                    << "def SELECT_F64 : InstTCE<(outs R64DFPRegs:$dst),"
+                    << "(ins R1Regs:$c, R64DFPRegs:$T, R64DFPRegs:$F),"
                     << "\"# SELECT_F64 PSEUDO!\","
-                    << "[(set R64FPRegs:$dst,"
-                    << "(select R1Regs:$c, R64FPRegs:$T, R64FPRegs:$F))]>;"
+                    << "[(set R64DFPRegs:$dst,"
+                    << "(select R1Regs:$c, R64DFPRegs:$T, R64DFPRegs:$F))]>;"
                     << std::endl << std::endl;
             }
 

@@ -227,9 +227,23 @@ def MOVIF64fr : InstTCE<(outs R64FPRegs:$dst), (ins R64IRegs:$src),
 	           "$src -> $dst;",
                    [(set R64FPRegs:$dst, (bitconvert R64IRegs:$src))]>, Requires<[Bitness64]>;
 
+def MOVsd : InstTCE<(outs R64IRegs:$dst), (ins R64DFPRegs:$src),
+	           "$src -> $dst;",
+                   [(set R64IRegs:$dst, (bitconvert R64DFPRegs:$src))]>, Requires<[Bitness64]>;
+
+def MOVds : InstTCE<(outs R64DFPRegs:$dst), (ins R64IRegs:$src),
+	           "$src -> $dst;",
+                   [(set R64DFPRegs:$dst, (bitconvert R64IRegs:$src))]>, Requires<[Bitness64]>;
+
+
 def MOVF64ff : InstTCE<(outs R64FPRegs:$dst), (ins R64FPRegs:$src),
 	           "$src -> $dst;",
                    []>, Requires<[Bitness64]>;
+
+def MOVF64dd : InstTCE<(outs R64DFPRegs:$dst), (ins R64DFPRegs:$src),
+	           "$src -> $dst;",
+                   []>, Requires<[Bitness64]>;
+
 
 
 def MOVhh : InstTCE<(outs HFPRegs:$dst), (ins HFPRegs:$src),
@@ -318,6 +332,7 @@ def: Pat<(brind (i32 R32Regs:$dst)),
 
 // FP stores/loads
 
+let mayLoad = 1 in {
     def LDWfr : InstTCE<(outs R32FPRegs:$op2),
         (ins MEMrr:$op1), "", [(set R32FPRegs:$op2,
         (load ADDRrr:$op1))]>, Requires<[BigEndian]>;
@@ -326,6 +341,48 @@ def: Pat<(brind (i32 R32Regs:$dst)),
         (ins MEMri:$op1), "", [(set R32FPRegs:$op2,
         (load ADDRri:$op1))]>, Requires<[BigEndian]>;
 
+    def LD32fr : InstTCE<(outs FPRegs:$op2),
+        (ins MEMrr:$op1), "", [(set FPRegs:$op2,
+        (load ADDRrr:$op1))]>, Requires<[LittleEndian]>;
+
+    def LD32fi : InstTCE<(outs FPRegs:$op2),
+        (ins MEMri:$op1), "", [(set FPRegs:$op2,
+        (load ADDRri:$op1))]>, Requires<[LittleEndian]>;
+
+    def LD64ds : InstTCE<(outs R64DFPRegs:$op2),
+        (ins MEMrr:$op1), "", [(set R64DFPRegs:$op2,
+        (load ADDRrr:$op1))]>, Requires<[Bitness64]>;
+
+    def LD64da : InstTCE<(outs R64DFPRegs:$op2),
+        (ins MEMri:$op1), "", [(set R64DFPRegs:$op2,
+        (load ADDRri:$op1))]>, Requires<[Bitness64]>;
+
+    def LD64fs : InstTCE<(outs R64FPRegs:$op2),
+        (ins MEMrr:$op1), "", []>, Requires<[Bitness64]>;
+
+    def LD64fa : InstTCE<(outs R64FPRegs:$op2),
+        (ins MEMri:$op1), "", []>, Requires<[Bitness64]>;
+
+    def LD64hs : InstTCE<(outs R64HFPRegs:$op2),(ins MEMrr:$op1), "",
+        []>, Requires<[Bitness64]>;
+
+    def LD64ha : InstTCE<(outs R64HFPRegs:$op2), (ins MEMri:$op1), "",
+        []>,Requires<[Bitness64]>;
+
+    def LD32hr : InstTCE<(outs R32HFPRegs:$op2),(ins MEMrr:$op1), "",
+        []>, Requires<[LittleEndian]>;
+
+    def LD32hi : InstTCE<(outs R64HFPRegs:$op2), (ins MEMri:$op1), "",
+        []>,Requires<[LittleEndian]>;
+
+    def LDWhr : InstTCE<(outs R32HFPRegs:$op2),(ins MEMrr:$op1), "",
+        []>, Requires<[BigEndian]>;
+
+    def LDWhi : InstTCE<(outs R64HFPRegs:$op2), (ins MEMri:$op1), "",
+        []>,Requires<[BigEndian]>;
+}
+
+let mayStore = 1 in {
     def STWfr : InstTCE<(outs), (ins MEMrr:$op1, R32FPRegs:$op2), "",
         [(store R32FPRegs:$op2, ADDRrr:$op1)]>, Requires<[BigEndian]>;
     def STWfi : InstTCE<(outs), (ins MEMri:$op1, R32FPRegs:$op2), "",
@@ -336,22 +393,6 @@ def: Pat<(brind (i32 R32Regs:$dst)),
 
     def STHhi : InstTCE<(outs), (ins MEMri:$op1, R32HFPRegs:$op2), "",
         [(store R32HFPRegs:$op2, ADDRri:$op1)]>, Requires<[BigEndian]>;
-
-    def LD32fr : InstTCE<(outs FPRegs:$op2),
-        (ins MEMrr:$op1), "", [(set FPRegs:$op2,
-        (load ADDRrr:$op1))]>, Requires<[LittleEndian]>;
-
-    def LD32fi : InstTCE<(outs FPRegs:$op2),
-        (ins MEMri:$op1), "", [(set FPRegs:$op2,
-        (load ADDRri:$op1))]>, Requires<[LittleEndian]>;
-
-    def LD64fs : InstTCE<(outs R64FPRegs:$op2),
-        (ins MEMrr:$op1), "", [(set R64FPRegs:$op2,
-        (load ADDRrr:$op1))]>, Requires<[Bitness64]>;
-
-    def LD64fa : InstTCE<(outs R64FPRegs:$op2),
-        (ins MEMri:$op1), "", [(set R64FPRegs:$op2,
-        (load ADDRri:$op1))]>, Requires<[Bitness64]>;
 
     def ST32fr : InstTCE<(outs), (ins MEMrr:$op1, FPRegs:$op2), "",
         [(store FPRegs:$op2, ADDRrr:$op1)]>, Requires<[LittleEndian]>;
@@ -396,26 +437,7 @@ def: Pat<(brind (i32 R32Regs:$dst)),
 
     def STWhi : InstTCE<(outs), (ins MEMri:$op1, R32HFPRegs:$op2), "",
         []>, Requires<[BigEndian]>;
-
-    def LD64hs : InstTCE<(outs R64HFPRegs:$op2),(ins MEMrr:$op1), "",
-        []>, Requires<[Bitness64]>;
-
-    def LD64ha : InstTCE<(outs R64HFPRegs:$op2), (ins MEMri:$op1), "",
-        []>,Requires<[Bitness64]>;
-
-    def LD32hr : InstTCE<(outs R32HFPRegs:$op2),(ins MEMrr:$op1), "",
-        []>, Requires<[LittleEndian]>;
-
-    def LD32hi : InstTCE<(outs R64HFPRegs:$op2), (ins MEMri:$op1), "",
-        []>,Requires<[LittleEndian]>;
-
-    def LDWhr : InstTCE<(outs R32HFPRegs:$op2),(ins MEMrr:$op1), "",
-        []>, Requires<[BigEndian]>;
-
-    def LDWhi : InstTCE<(outs R64HFPRegs:$op2), (ins MEMri:$op1), "",
-        []>,Requires<[BigEndian]>;
-
-
+}
 
 // boolean store - big endian
 def STQBrb : InstTCE<(outs), (ins MEMrr:$op1,R1Regs:$op2), "",
