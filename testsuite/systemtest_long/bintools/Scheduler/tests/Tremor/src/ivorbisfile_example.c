@@ -63,10 +63,16 @@ int putchar(int ch) {
 
 #ifdef STANDARD_IO
 
+
+#if (defined(__TCE__) && !(defined(__TCE64__)))
 #undef long
+#endif
 #include <stdio.h>
 #include <stdlib.h>
+
+#if (defined(__TCE__) && !(defined(__TCE64__)))
 #define long int
+#endif
 
 #endif
 

@@ -23,10 +23,14 @@ extern "C"
 {
 #endif /* __cplusplus */
 
+#if (defined(__TCE__) && !(defined(__TCE64__)))
 #undef long
+#endif
 #include <stdio.h>
 
+#if (defined(__TCE__) && !(defined(__TCE64__)))
 #define long int
+#endif
 #include "ivorbiscodec.h"
 
 #define CHUNKSIZE 8192

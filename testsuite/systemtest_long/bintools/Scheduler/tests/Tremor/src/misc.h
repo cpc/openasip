@@ -15,14 +15,20 @@
 
  ********************************************************************/
 
+
 #ifndef _V_RANDOM_H_
 #define _V_RANDOM_H_
 #include "ivorbiscodec.h"
 #include "os_types.h"
+
+#if (defined(__TCE__) && !(defined(__TCE64__)))
 #undef long
+#endif
 #include <stdio.h>
 #include <stdlib.h>
+#if (defined(__TCE__) && !(defined(__TCE64__)))
 #define long int
+#endif
 
 extern void *_vorbis_block_alloc(vorbis_block *vb,long bytes);
 extern void _vorbis_block_ripcord(vorbis_block *vb);
@@ -34,10 +40,20 @@ extern void _analysis_output(char *base,int i,ogg_int32_t *v,int point,
 #ifndef _V_WIDE_MATH
 #define _V_WIDE_MATH
 
+
 #ifndef LONGLONGEMUL
 
+#if (!(defined (__LITTLE_ENDIAN__)) && !(defined(__BIG_ENDIAN__)))
 #include <endian.h>
-
+#else
+#ifdef __LITTLE_ENDIAN__
+#define BYTE_ORDER __LITTLE_ENDIAN__
+#define LITTLE_ENDIAN __LITTLE_ENDIAN__
+#else
+#define BYTE_ORDER __BIG_ENDIAN__
+#define BIG_ENDIAN __BIG_ENDIAN__
+#endif
+#endif
 #if BYTE_ORDER==LITTLE_ENDIAN
 union magic {
   struct {

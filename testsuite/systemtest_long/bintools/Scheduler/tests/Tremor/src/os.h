@@ -16,11 +16,15 @@
  function: #ifdef jail to whip a few platforms into the UNIX ideal.
 
  ********************************************************************/
-#undef long
 
+#if (defined(__TCE__) && !(defined(__TCE64__)))
+#undef long
+#endif
 #include <math.h>
 
+#if (defined(__TCE__) && !(defined(__TCE64__)))
 #define long int
+#endif
 #include "os_types.h"
 
 #ifndef _V_IFDEFJAIL_H_

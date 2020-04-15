@@ -10,10 +10,10 @@ EXTRA_TCECC_FLAGS=\
 	-DTCE \
 	-DUSE_TCE_MALLOC \
 	-DMEMORY_IO \
-	-DLONGLONGEMUL \
 	-DDUMP_MEM_BUFFER_TO_SPECIAL_OPERATION \
 	-I .
 
+#	-DLONGLONGEMUL \
 #	-DDUMP_MEM_BUFFER_TO_STDOUT \
 
 # if OBJECT_FILES variable is not defined, list of object files are 

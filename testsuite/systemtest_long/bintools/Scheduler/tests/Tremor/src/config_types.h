@@ -23,8 +23,17 @@ typedef int ogg_int32_t;
 typedef unsigned int ogg_uint32_t;
 typedef short ogg_int16_t;
 
+
+#if (defined(__TCE__) && !(defined(__TCE64__)))
+#define LONGLONGEMUL
+
 #include "longlong.h"
 
 typedef longlongemul_t ogg_int64_t;
+#else
+typedef long long ogg_int64_t;
 
+#include "longlong.h"
+
+#endif
 #endif

@@ -23,7 +23,9 @@ extern "C" {
 
 #include "os_types.h"
 
+#if (defined(__TCE__) && !(defined(__TCE64__)))
 #define long int
+#endif
 
 typedef struct {
   long endbyte;

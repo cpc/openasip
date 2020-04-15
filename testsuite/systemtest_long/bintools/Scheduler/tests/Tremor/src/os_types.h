@@ -82,11 +82,19 @@
 
 #else
 
+#if (defined(__TCE__) && !(defined(__TCE64__)))
+#define LONGLONGEMUL
+
 #undef long
 #  include <sys/types.h>
 #define long int
 #  include "config_types.h"
 
-#endif
+#else // tce 32-> 64-bit?
+
+#include "config_types.h"
+
+#endif // tce 64-bit
+#endif // unknown os
 
 #endif  /* _OS_TYPES_H */
