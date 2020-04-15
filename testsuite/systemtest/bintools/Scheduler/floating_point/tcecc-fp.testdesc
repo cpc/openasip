@@ -3,5 +3,5 @@
 $test_description="Software floating point test cases with tcecc";
 $test_bin = "../../../../../tce/scheduler/testbench/scheduler_tester.py";
 $bin_args = "-vr -g \"-O3 -k_Output --swfp\" -e tests_fp ".
-    "-a ti64x_subset.adf -a 64b_with_fpu.adf -a 64b2.adf";
+    "-a ti64x_subset.adf -a 64b.adf -a 64b2.adf";
 ?>

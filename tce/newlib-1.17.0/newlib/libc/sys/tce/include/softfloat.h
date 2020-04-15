@@ -238,3 +238,15 @@ flag float64_eq_signaling( float64, float64 );
 flag float64_le_quiet( float64, float64 );
 flag float64_lt_quiet( float64, float64 );
 flag float64_is_signaling_nan( float64 );
+
+float __emulate_CIF_1_1_i32_f32(int32 a);
+float __emulate_CIFU_1_1_i32_f32(uint32 a);
+int32 __emulate_CFI_1_1_f32_i32(float a);
+uint32 __emulate_CFIU_1_1_f32_i32(float a);
+
+#ifdef __TCELE64__
+double __emulate_CLD_1_1_i64_f64(int64_t a);
+double __emulate_CLDU_1_1_i64_f64(uint64_t a);
+int64_t __emulate_CDL_1_1_f64_i64(double a);
+uint64_t __emulate_CDLU_1_1_f64_i64(double a);
+#endif

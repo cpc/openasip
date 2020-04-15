@@ -3135,7 +3135,7 @@ float __emulate_NEGF_1_1_f32_f32(float a) {
     return *((float*)&retVal);
 }
 
-uint32 __emulate_CFI_1_1_f32_i32(float a) {
+int32 __emulate_CFI_1_1_f32_i32(float a) {
     return float32_to_int32_round_to_zero(*((float32*)&a));
 }
 
@@ -3174,7 +3174,7 @@ int32 float32_to_uint32( float32 a )
     if ( (bits32) ( aSig<<( shiftCount & 31 ) ) ) {
         float_exception_flags |= float_flag_inexact;
     }
-    if ( aSign ) z = - z;
+    if ( aSign ) z = - z; // TODO: this is wrong?
     return z;
 }
 
@@ -3184,11 +3184,233 @@ int32 float32_to_uint32( float32 a )
  *************************************************/
 
 
+#ifdef __TCE64__
+
+/* modified from somt int32 routine */
+
+INLINE uint64_t extractFloat64Frac(float64 a) {
+    return (uint64_t)a.low | (((uint64_t)(a.high & 0x000FFFFF)) << 32);
+}
+
+
+/*----------------------------------------------------------------------------
+| Returns the result of converting the double-precision floating-point value
+| `a' to the 32-bit two's complement integer format.  The conversion is
+| performed according to the IEC/IEEE Standard for Binary Floating-Point
+| Arithmetic, except that the conversion is always rounded toward zero.
+| If `a' is a NaN, the largest positive integer is returned.  Otherwise, if
+| the conversion overflows, the largest integer with the same sign as `a' is
+| returned.
+*----------------------------------------------------------------------------*/
+
+int64_t float64_to_int64_round_to_zero( float64 a )
+{
+    flag aSign;
+    int16 aExp, shiftCount;
+    uint64_t aSig, absZ;
+    int64_t z;
+
+    aSig = extractFloat64Frac( a );
+    aExp = extractFloat64Exp( a );
+    aSign = extractFloat64Sign( a );
+    shiftCount = aExp - 0x433;
+
+    if ( 0 <= shiftCount ) {
+        if ( 0x61E < aExp ) { // add 0x20 == 32 here?
+            if ( ( aExp == 0x7FF ) && ( aSig ) ) aSign = 0; // NaN
+            goto invalid;
+        }
+        aSig = aSig | 0x0010000000000000lu;
+        absZ = aSig << shiftCount;
+    }
+    else {
+        if ( aExp < 0x3FF ) { // TODO: is this correct?
+            if ( aExp | aSig ) {
+                // very small number which rounds to 0
+                float_exception_flags |= float_flag_inexact;
+            }
+            return 0;
+        }
+        aSig |= 0x0010000000000000; // ylabitteihin tama.
+        absZ = aSig >> (-shiftCount);
+    }
+    z = aSign ? - absZ : absZ;
+    if ( ( aSign ^ ( z < 0 ) ) && z ) {
+ invalid:
+        float_raise( float_flag_invalid );
+        return aSign ? (uint64_t) 0x8000000000000000 : 0x7FFFFFFFFFFFFFFF;
+    }
+    // TODO: this is now not catched. Should check when shifting down..
+//    if ( aSigExtra ) float_exception_flags |= float_flag_inexact;
+    return z;
+}
+
+
+uint64_t float64_to_uint64( float64 a )
+{
+    flag aSign;
+    int16 aExp, shiftCount;
+    uint64_t aSig, absZ;
+    int64_t z;
+
+    aSig = extractFloat64Frac( a );
+    aExp = extractFloat64Exp( a );
+    aSign = extractFloat64Sign( a );
+    shiftCount = aExp - 0x433;
+
+    // TODO: does this make sense?
+    if (aSig) {
+        return 0;
+    }
+    if ( 0 <= shiftCount ) {
+        // 0riginally 0x41E - 33 bits more with unsigned and 64-bit?
+        if ( 0x61F < aExp ) { // add 0x20 == 32 here?
+            if ( ( aExp == 0x7FF ) && ( aSig ) ) aSign = 0; // NaN
+            goto invalid;
+        }
+        aSig = aSig | 0x0010000000000000lu;
+        absZ = aSig << shiftCount;
+    }
+    else {
+        if ( aExp < 0x3FF ) { // TODO: is this correct?
+            if ( aExp | aSig ) {
+                // very small number which rounds to 0
+                float_exception_flags |= float_flag_inexact;
+            }
+            return 0;
+        }
+        aSig |= 0x0010000000000000; // ylabitteihin tama.
+        absZ = aSig >> (-shiftCount);
+    }
+    z = aSign ? - absZ : absZ;
+    if ( ( aSign ^ ( z < 0 ) ) && z ) {
+ invalid:
+        float_raise( float_flag_invalid );
+        return aSign ? (uint64_t) 0x8000000000000000 : 0x7FFFFFFFFFFFFFFF;
+    }
+    // TODO: this is now not catched. Should check when shifting down..
+//    if ( aSigExtra ) float_exception_flags |= float_flag_inexact;
+    return z;
+}
+
+
+
+/*----------------------------------------------------------------------------
+| Returns the number of leading 0 bits before the most-significant 1 bit of
+| `a'.  If `a' is zero, 32 is returned.
+*----------------------------------------------------------------------------*/
+
+static int8 countLeadingZeros64( uint64_t a )
+{
+    static const int8 countLeadingZerosHigh[] = {
+        8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
+        3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    };
+    int8 shiftCount;
+
+    shiftCount = 0;
+    if ( a < 0x100000000ul ) {
+        shiftCount += 32;
+        a <<= 32;
+    }
+
+    if ( a < 0x1000000000000ul ) {
+        shiftCount += 16;
+        a <<= 16;
+    }
+
+    if ( a < 0x100000000000000ul ) {
+        shiftCount += 8;
+        a <<= 8;
+    }
+    shiftCount += countLeadingZerosHigh[ a>>56 ];
+    return shiftCount;
+
+}
+
+
+
+/*----------------------------------------------------------------------------
+| Returns the result of converting the 32-bit two's complement integer `a' to
+| the double-precision floating-point format.  The conversion is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*/
+
+float64 int64_to_float64( int64_t a )
+{
+    flag zSign;
+    uint64_t absA;
+    int8 shiftCount;
+    uint64_t zSig;
+    bits32 zSig0, zSig1;
+
+    if ( a == 0 ) return packFloat64( 0, 0, 0, 0 );
+    zSign = ( a < 0 );
+    absA = zSign ? - a : a;
+    shiftCount = countLeadingZeros64( absA ) - 11;
+    if ( 0 <= shiftCount ) {
+        zSig = absA << shiftCount;
+    }
+    else {
+        zSig = absA >> (-shiftCount);
+    }
+    zSig0 = (zSig >> 32);
+    zSig1 = (zSig & 0xFFFFFFFF);
+
+    return packFloat64( zSign, 0x432 - shiftCount, zSig0, zSig1 );
+
+}
+
+
+/*----------------------------------------------------------------------------
+| Returns the result of converting the 32-bit two's complement integer `a' to
+| the double-precision floating-point format.  The conversion is performed
+| according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
+*----------------------------------------------------------------------------*/
+
+float64 uint64_to_float64( uint64_t absA )
+{
+    flag zSign = 0;
+    int8 shiftCount;
+    uint64_t zSig;
+    bits32 zSig0, zSig1;
+
+    if ( absA == 0 ) return packFloat64( 0, 0, 0, 0 );
+    shiftCount = countLeadingZeros64( absA ) - 11;
+    if ( 0 <= shiftCount ) {
+        zSig = absA << shiftCount;
+    }
+    else {
+        zSig = absA >> (-shiftCount);
+    }
+    zSig0 = (zSig >> 32);
+    zSig1 = (zSig & 0xFFFFFFFF);
+    return packFloat64( zSign, 0x432 - shiftCount, zSig0, zSig1 );
+
+}
+
+#endif
+
+
 uint32 __emulate_CFIU_1_1_f32_i32(float a) {
     return float32_to_uint32(*((float32*)&a));
 }
 
-float __emulate_CIF_1_1_i32_f32(uint32 a) {
+float __emulate_CIF_1_1_i32_f32(int32 a) {
     float32 retVal = int32_to_float32(a);
     return *((float*)&retVal);
 }
@@ -3285,3 +3507,125 @@ uint32 __emulate_ORDF_2_1_f32_f32_i32(float a, float b) {
 uint32 __emulate_UORDF_2_1_f32_f32_i32(float a, float b) {
     return (float32_is_nan(*((float32*)&a)) || float32_is_nan(*((float32*)&b)));
 }
+
+#ifdef __TCE64__
+double __emulate_CFD_1_1_f32_f64(float a) {
+    float64 tmp = float32_to_float64(*((float32*)&a));
+    return *(double*)(&tmp);
+}
+
+uint64_t __emulate_GEUD_2_1_f64_f64_i64(double a, double b) {
+    return float64_is_nan(*((float64*)&a)) ||
+        float64_is_nan(*((float64*)&b)) ||
+        !float64_lt(*((float64*)&a), *((float64*)&b));
+}
+
+uint64_t __emulate_LEUD_2_1_f64_f64_i64(double a, double b) {
+    return float64_is_nan(*((float64*)&a)) ||
+        float64_is_nan(*((float64*)&b)) ||
+        float64_le(*((float64*)&a), *((float64*)&b));
+}
+
+uint64_t __emulate_EQUD_2_1_f64_f64_i64(double a, double b) {
+    return float64_is_nan(*((float64*)&a)) ||
+        float64_is_nan(*((float64*)&b)) ||
+        float64_eq(*((float64*)&a), *((float64*)&b));
+}
+
+uint64_t __emulate_NEUD_2_1_f64_f64_i64(double a, double b) {
+    return float64_is_nan(*((float64*)&a)) ||
+        float64_is_nan(*((float64*)&b)) ||
+        !float64_eq(*((float64*)&a), *((float64*)&b));
+}
+
+uint64_t __emulate_LTUD_2_1_f64_f64_i64(double a, double b) {
+    return float64_is_nan(*((float64*)&a)) ||
+        float64_is_nan(*((float64*)&b)) ||
+        float64_lt(*((float64*)&a), *((float64*)&b));
+}
+
+uint64_t __emulate_GTUD_2_1_f64_f64_i64(double a, double b) {
+    return float64_is_nan(*((float64*)&a)) ||
+        float64_is_nan(*((float64*)&b)) ||
+        !float64_le(*((float64*)&a), *((float64*)&b));
+}
+
+
+
+uint64_t __emulate_GED_2_1_f64_f64_i64(double a, double b) {
+    return !float64_lt(*((float64*)&a), *((float64*)&b));
+}
+
+uint64_t __emulate_LED_2_1_f64_f64_i64(double a, double b) {
+    return float64_le(*((float64*)&a), *((float64*)&b));
+}
+
+uint64_t __emulate_LTD_2_1_f64_f64_i64(double a, double b) {
+    return float64_lt(*((float64*)&a), *((float64*)&b));
+}
+
+uint64_t __emulate_GTD_2_1_f64_f64_i64(double a, double b) {
+    return !float64_le(*((float64*)&a), *((float64*)&b));
+}
+
+uint64_t __emulate_NED_2_1_f64_f64_i64(double a, double b) {
+    return !float64_eq(*((float64*)&a), *((float64*)&b));
+}
+
+uint64_t __emulate_EQD_2_1_f64_f64_i64(double a, double b) {
+    return float64_eq(*((float64*)&a), *((float64*)&b));
+}
+
+
+uint64_t __emulate_ORDD_2_1_f64_f64_i64(double a, double b) {
+    return (!float64_is_nan(*((float64*)&a)) && !float64_is_nan(*((float64*)&b)));
+}
+
+uint64_t __emulate_UORDD_2_1_f64_f64_i64(double a, double b) {
+    return (float64_is_nan(*((float64*)&a)) || float64_is_nan(*((float64*)&b)));
+}
+
+double __emulate_NEGD_1_1_f64_f64(double a) {
+    uint64_t zero = 0;
+    float64 retVal = float64_sub(*((float64*)&zero), *((float64*)&a));
+    return *((double*)&retVal);
+}
+
+double __emulate_ADDD_2_1_f64_f64_f64(double a, double b) {
+    float64 retVal = float64_add(*((float64*)&a),*((float64*)&b));
+    return *((double*)&retVal);
+}
+
+double __emulate_SUBD_2_1_f64_f64_f64(double a, double b) {
+    float64 retVal = float64_sub(*((float64*)&a),*((float64*)&b));
+    return *((double*)&retVal);
+}
+
+double __emulate_MULD_2_1_f64_f64_f64(double a, double b) {
+    float64 retVal = float64_mul(*((float64*)&a), *((float64*)&b));
+    return *((double*)&retVal);
+}
+
+double __emulate_DIVD_2_1_f64_f64_f64(double a, double b) {
+    float64 retVal = float64_div(*((float64*)&a),*((float64*)&b));
+    return *((double*)&retVal);
+}
+
+
+int64_t __emulate_CDL_1_1_f64_i64(double a) {
+    return float64_to_int64_round_to_zero(*((float64*)&a));
+}
+
+double __emulate_CLD_1_1_i64_f64(int64_t a) {
+    float64 retVal = int64_to_float64(a);
+    return *((double*)&retVal);
+}
+
+double __emulate_CLDU_1_1_i64_f64(uint64_t a) {
+    float64 retVal = uint64_to_float64(a);
+    return *((double*)&retVal);
+}
+
+
+
+#endif

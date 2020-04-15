@@ -123,10 +123,11 @@ StringRef DescriptionStringLE = "e-p:32:32:32-i1:8:8-i8:8:32-"
     "v128:128:128-v256:256:256-v512:512:512-v1024:1024:1024-a0:0:32-n32";
 #endif
 
-StringRef DescriptionStringLE64 = "e-p:64:64:64-i1:8:8-i8:8:64-"
+StringRef DescriptionStringLE64 = "e-p:64:64:64-i1:8:64-i8:8:64-"
     "i16:16:64-i32:32:64-i64:64:64-"
     "f32:32:64-f64:64:64-v64:64:64-"
-    "v128:128:128-v256:256:256-v512:512:512-v1024:1024:1024-a0:0:64-n64";
+    "v128:128:128-v256:256:256-v512:512:512-v1024:1024:1024-"
+    "v2048:2048:2048-v4096:4096:4096-a0:0:64-n64";
 
 StringRef getTargetDesc(const Triple &TT) {
     if (TT.getArchName().equals("tce"))

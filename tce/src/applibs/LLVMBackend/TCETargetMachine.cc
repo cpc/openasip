@@ -236,13 +236,23 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
         dataLayoutStr += "E-p:32:32:32";
     }
     dataLayoutStr += "-a0:0:" + Conversion::toString(alignBits);
-    dataLayoutStr += "-i1:8:8";
-    dataLayoutStr += "-i8:8:32";
-    dataLayoutStr += "-i16:16:32";
-    dataLayoutStr += "-i32:32:32";
-    dataLayoutStr += "-i64:64:64";
-    dataLayoutStr += "-f16:16:16";
-    dataLayoutStr += "-f32:32:32";
+    if (is64bit) {
+        dataLayoutStr += "-i1:8:64";
+        dataLayoutStr += "-i8:8:64";
+        dataLayoutStr += "-i16:16:64";
+        dataLayoutStr += "-i32:32:64";
+        dataLayoutStr += "-i64:64:64";
+        dataLayoutStr += "-f16:16:64";
+        dataLayoutStr += "-f32:32:64";
+    } else {
+        dataLayoutStr += "-i1:8:8";
+        dataLayoutStr += "-i8:8:32";
+        dataLayoutStr += "-i16:16:32";
+        dataLayoutStr += "-i32:32:32";
+        dataLayoutStr += "-i64:64:64";
+        dataLayoutStr += "-f16:16:16";
+        dataLayoutStr += "-f32:32:32";
+    }
     dataLayoutStr += "-f64:64:64";
     dataLayoutStr += "-v64:64:64";
     dataLayoutStr += "-v128:128:128";

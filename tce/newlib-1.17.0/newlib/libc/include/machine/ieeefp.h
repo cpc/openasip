@@ -328,7 +328,9 @@
 #else
 #define __IEEE_LITTLE_ENDIAN
 #endif
+#ifndef __TCE64__
 #define _DOUBLE_IS_32BITS
+#endif
 /* 
    This define is used but never defined anywhere.. maybe it's not needed at all
    #define NO_LONG_DOUBLE 
