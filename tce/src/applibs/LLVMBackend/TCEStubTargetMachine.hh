@@ -82,21 +82,12 @@ namespace llvm {
      */
     class TCEBaseTargetMachine : public LLVMTargetMachine {
     public:
-#ifdef LLVM_OLDER_THAN_3_7
-        TCEBaseTargetMachine(
-            const Target &T, const std::string &TT,
-            const std::string& CPU, const std::string &FS,
-            const TargetOptions &Options,
-            Reloc::Model RM, CodeModel::Model CM,
-            CodeGenOpt::Level OL);
-#else
         TCEBaseTargetMachine(
             const Target &T, const Triple& TT,
             const std::string& CPU, const std::string &FS,
             const TargetOptions &Options,
             Reloc::Model RM, CodeModel::Model CM,
             CodeGenOpt::Level OL);
-#endif
         const TTAMachine::Machine* ttaMach_;
         virtual void setTTAMach(
             const TTAMachine::Machine* mach) {
@@ -104,7 +95,6 @@ namespace llvm {
         }
     };
 
-#ifndef LLVM_OLDER_THAN_3_7
     /**
      * TargetStub for middle end optimizations. (for loopvectorizer initially)
      */
@@ -152,6 +142,5 @@ namespace llvm {
             return ST;
         }
     };
-#endif
 } //end namespace llvm
 #endif

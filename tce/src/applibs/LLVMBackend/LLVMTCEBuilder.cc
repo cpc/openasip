@@ -153,11 +153,7 @@ LLVMTCEBuilder::LLVMTCEBuilder(
     tm_ = &tm;
     mach_ = mach;
     functionAtATime_ = functionAtATime;
-#ifdef LLVM_3_5
-    dl_ = tm_->getDataLayout();
-#elif (defined(LLVM_OLDER_THAN_3_7))
-    dl_ = tm_->getSubtargetImpl()->getDataLayout();
-#elif (defined(LLVM_OLDER_THAN_3_8))
+#if (defined(LLVM_OLDER_THAN_3_8))
     // The required type size info is the same for both BE and LE targets,
     // no need to ask for the sub target as it requires llvm::Function in
     // LLVM 3.7 for some reason. If the endianness is needed, ask for it
@@ -281,11 +277,7 @@ LLVMTCEBuilder::initDataSections() {
     }
 
     prog_ = new TTAProgram::Program(*instrAddressSpace_);
-#if defined(LLVM_OLDER_THAN_3_7)
-    mang_ = new Mangler(dl_);
-#else
     mang_ = new Mangler();
-#endif
 
     const TCETargetMachine* tm = dynamic_cast<const TCETargetMachine*>(tm_);
     assert(tm != NULL);
@@ -1768,11 +1760,6 @@ LLVMTCEBuilder::addPointerAnnotations(
                         cast<Instruction>(originMemOpValue)->getMetadata("wi");
                     const MDNode* XYZ = dyn_cast<MDNode>(md->getOperand(2));
                     assert(XYZ->getNumOperands() == 4);                
-#ifdef LLVM_OLDER_THAN_3_6
-                    ConstantInt *CX = dyn_cast<ConstantInt>(XYZ->getOperand(1));
-                    ConstantInt *CY = dyn_cast<ConstantInt>(XYZ->getOperand(2));
-                    ConstantInt *CZ = dyn_cast<ConstantInt>(XYZ->getOperand(3));
-#else
                     ConstantInt *CX = dyn_cast<ConstantInt>(
                         dyn_cast<llvm::ConstantAsMetadata>(XYZ->getOperand(1))->getValue());
                     ConstantInt *CY = dyn_cast<ConstantInt>(
@@ -1780,7 +1767,6 @@ LLVMTCEBuilder::addPointerAnnotations(
                     ConstantInt *CZ = dyn_cast<ConstantInt>(
                         dyn_cast<llvm::ConstantAsMetadata>(XYZ->getOperand(3))->getValue());
 
-#endif
                     int id = (CZ->getZExtValue() & 0x0FF)
                             | ((CY->getZExtValue() & 0x0FF) << 8)
                             | ((CX->getZExtValue() & 0x0FF) << 16);
@@ -1910,10 +1896,8 @@ LLVMTCEBuilder::debugDataToAnnotations(
     }
 
     DebugLoc dl = mi->getDebugLoc();
-#ifndef LLVM_OLDER_THAN_3_7
     if (!dl)
         return;
-#endif
 
     // TODO: nobody currently generates these
     // spill line number kludges, this is deprecated.
@@ -1927,30 +1911,18 @@ LLVMTCEBuilder::debugDataToAnnotations(
         // handle file+line number debug info
 
         bool hasDebugInfo = false;
-#ifdef LLVM_OLDER_THAN_3_7
-        hasDebugInfo = !dl.isUnknown();
-#else
         hasDebugInfo = dl.getScope() != NULL;
-#endif
         if (hasDebugInfo) {
             
             int sourceLineNumber = -1;
             TCEString sourceFileName = "";
                 
             // inspired from lib/codegen/MachineInstr.cpp
-#ifdef LLVM_OLDER_THAN_3_7
-            const LLVMContext &Ctx = 
-                mi->getParent()->getParent()->getFunction()->getContext();
-#endif
             sourceLineNumber = dl.getLine();
-#ifdef LLVM_OLDER_THAN_3_7
-            DIScope discope(dl.getScope(Ctx));
-            sourceFileName = static_cast<TCEString>(discope.getFilename());
-#else
             sourceFileName = 
                 static_cast<TCEString>(
                     cast<DIScope>(dl.getScope())->getFilename());
-#endif
+
             if (sourceFileName.size() >
                 TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES) {
                 sourceFileName = 

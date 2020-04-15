@@ -58,11 +58,6 @@ using namespace llvm;
 #define GET_REGINFO_TARGET_DESC
 
 #include "TCEFrameInfo.hh"
-
-#ifndef LLVM_OLDER_THAN_3_7
-#define TCEFrameLowering TCEFrameInfo
-#endif
-
 #include "TCEGenRegisterInfo.inc"
 
 /**
@@ -80,11 +75,7 @@ TCERegisterInfo::TCERegisterInfo(
 /**
  * Returns list of callee saved registers.
  */
-#ifdef LLVM_3_5
-const uint16_t*
-#else
 const MCPhysReg*
-#endif
 TCERegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
     static const uint16_t calleeSavedRegs[] = { TCE::FP, 0 };
     if (hasFP(*MF)) {

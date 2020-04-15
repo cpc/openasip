@@ -44,6 +44,7 @@
 
 #define GET_SUBTARGETINFO_HEADER
 #include "TCEGenSubTargetInfo.inc"
+#undef GET_SUBTARGETINFO_HEADER
 
 #ifndef LLVM_OLDER_THAN_3_9
 #include "llvm/CodeGen/SelectionDAGTargetInfo.h"
@@ -64,7 +65,6 @@ namespace llvm {
         std::string pluginFileName();
         virtual bool isLittleEndian() const { return false; };
 
-#if (!(defined(LLVM_3_5)))
         virtual const TargetInstrInfo* getInstrInfo() const override;
         virtual const TargetFrameLowering* getFrameLowering() const override;
         virtual const TargetLowering* getTargetLowering() const override;
@@ -74,11 +74,7 @@ namespace llvm {
        virtual const SelectionDAGTargetInfo* getSelectionDAGInfo() const override;
 #endif
 
-#ifdef LLVM_OLDER_THAN_3_7
-        virtual const DataLayout* getDataLayout() const override;
-#endif
         virtual const TargetRegisterInfo* getRegisterInfo() const override;
-#endif
 
     protected:
         void ParseSubtargetFeatures(llvm::StringRef, llvm::StringRef);

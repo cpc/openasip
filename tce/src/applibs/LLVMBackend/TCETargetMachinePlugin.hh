@@ -87,16 +87,7 @@ namespace llvm {
    class TCETargetMachinePlugin {
     public:
        TCETargetMachinePlugin() : lowering_(NULL), tm_(NULL),
-                                  dl_(TCEBEDLString)
-#ifdef LLVM_OLDER_THAN_3_7
-           ,tsInfo_(&dl_)
-#else
-           // In 3.7, the TargetSelectionDAGInfo constructor doesn't
-           // take arguments.
-#endif
-
-                             // this is overwritten anyway later
- {};
+                                  dl_(TCEBEDLString) {};
        virtual ~TCETargetMachinePlugin() {};
 
        virtual const TargetInstrInfo* getInstrInfo() const = 0;

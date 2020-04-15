@@ -24,7 +24,7 @@
 /**
  * @file TCEFrameInfo.hh
  *
- * Declaration of TCEFrameInfo class.
+ * Declaration of TCEFrameLowering class.
  *
  * @author Heikki Kultala 2010 (hkultala-no.spam-cs.tut.fi)
  */
@@ -59,12 +59,8 @@ namespace llvm {
 // Grows down, alignment at least 4 bytes.
 //
 
-#ifndef LLVM_OLDER_THAN_3_7
-// LLVM 3.7 tdgen expects the name class TCEFrameLowering
-#define TCEFrameInfo TCEFrameLowering 
-#endif
 
-    class TCEFrameInfo : public TargetFrameLowering {
+    class TCEFrameLowering : public TargetFrameLowering {
     public:
 
     /** !! Important !! *************
@@ -73,7 +69,10 @@ namespace llvm {
      * having a bigger alignment than the stack's own alignment, will be 
      * reduced to have the stack's alignment.
      */
-        TCEFrameInfo(TCERegisterInfo* tri, const TCEInstrInfo* tii, int stackAlignment) :
+        TCEFrameLowering(
+            TCERegisterInfo* tri,
+            const TCEInstrInfo* tii,
+            int stackAlignment) :
 #ifdef LLVM_OLDER_THAN_10
         TargetFrameLowering(
             TargetFrameLowering::StackGrowsDown, 
@@ -101,11 +100,7 @@ namespace llvm {
             MachineBasicBlock &MBB,
             MachineBasicBlock::iterator I) const override;
 
-#ifdef LLVM_OLDER_THAN_3_7
-	void emitPrologue(MachineFunction &mf) const override;
-#else
     void emitPrologue(MachineFunction &mf, MachineBasicBlock &MBB) const override;
-#endif
         void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const override;
         bool hasFP(const MachineFunction &MF) const override;
         int stackAlignment() const { return stackAlignment_; }

@@ -41,3 +41,5 @@
 #include "TCERegisterInfo.cc"
 #include "TCESubtarget.cc"
 #include "TCETargetObjectFile.cc"
+#include "TCETargetMachinePlugin.cc"
+#include "TCEFrameInfo.cc"

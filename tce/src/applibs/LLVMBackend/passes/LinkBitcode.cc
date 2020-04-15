@@ -120,13 +120,7 @@ LinkBitcode::doFinalization(Module& /*M*/) {
 
 bool
 LinkBitcode::doInitialization(Module& M) {
-#ifdef LLVM_3_5
-    std::string errors;
-    if (Linker::LinkModules(
-	    &M, &inputModule_, Linker::DestroySource, &errors)) {
-        errs() << "Error during linking in LinkBitcodePass: " << errors << "\n";
-    } 
-#elif defined(LLVM_OLDER_THAN_3_8)
+#if defined(LLVM_OLDER_THAN_3_8)
     // TODO: what about the destroysource thing?
     // TODO: DiagnosticHandledFunction
     if (Linker::LinkModules(&M, &inputModule_)) {

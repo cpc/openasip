@@ -173,7 +173,7 @@ GeneratedTCEPlugin::GeneratedTCEPlugin() :
          const_cast<TCERegisterInfo*>(
              static_cast<const TCERegisterInfo*>(getRegisterInfo()));
 
-     frameInfo_ = new TCEFrameInfo(ri, tii, stackAlignment);
+     frameInfo_ = new TCEFrameLowering(ri, tii, stackAlignment);
      subTarget_ = new TCESubtarget(this);
 }
 
@@ -201,11 +201,7 @@ GeneratedTCEPlugin::registerTargetMachine(
     }
 
     if (lowering_ == NULL) {
-#ifdef LLVM_OLDER_THAN_3_7
-        lowering_ = new TCETargetLowering(*tm_);
-#else
         lowering_ = new TCETargetLowering(*tm_, *subTarget_);
-#endif
     }
 }
 

@@ -45,12 +45,10 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/CodeGen/TargetRegisterInfo.h"
 #endif
 #include "llvm/IR/Function.h"
-#ifndef LLVM_3_5
 #ifdef LLVM_OLDER_THAN_6_0
 #include <llvm/Target/TargetSubtargetInfo.h>
 #else
 #include <llvm/CodeGen/TargetSubtargetInfo.h>
-#endif
 #endif
 
 #include "MachineInstrDDG.hh"
@@ -83,11 +81,7 @@ MachineInstrDDG::MachineInstrDDG(
         std::string(mf.getFunction().getName().str()) + "_middg", true),
 #endif
     onlyTrueDeps_(onlyTrueDeps), mf_(mf), 
-#ifdef LLVM_3_5
-    regInfo_(mf_.getTarget().getRegisterInfo()) 
-#elif (defined LLVM_OLDER_THAN_3_7)
-    regInfo_(mf_.getTarget().getSubtargetImpl()->getRegisterInfo()) 
-#elif LLVM_OLDER_THAN_6_0
+#if LLVM_OLDER_THAN_6_0
     regInfo_(mf_.getTarget().getSubtargetImpl(
                  *mf_.getFunction())->getRegisterInfo()) 
 #else
@@ -569,14 +563,7 @@ MachineInstrDDG::assignPhysReg(Register vreg, Register physReg) {
  */
 TCEString
 MIDDGNode::osalOperationName() const {
-#ifdef LLVM_3_5
-    const llvm::TargetInstrInfo *TII = 
-        machineInstr()->getParent()->getParent()->getTarget().getInstrInfo();
-#elif defined LLVM_OLDER_THAN_3_7
-    const llvm::TargetInstrInfo *TII = 
-        machineInstr()->getParent()->getParent()->getTarget().
-        getSubtargetImpl()->getInstrInfo();
-#elif LLVM_OLDER_THAN_6_0
+#ifdef LLVM_OLDER_THAN_6_0
     const llvm::TargetInstrInfo *TII = 
         machineInstr()->getParent()->getParent()->getTarget().
         getSubtargetImpl(
