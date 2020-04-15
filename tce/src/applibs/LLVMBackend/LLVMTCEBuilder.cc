@@ -1468,8 +1468,26 @@ LLVMTCEBuilder::emitInstruction(
 
         if (!mo.isReg() || mo.isUse() || operation.numberOfOutputs() == 0) {
             ++inputOperand;
-            if (inputOperand > operation.numberOfInputs())
+            if (inputOperand > operation.numberOfInputs()) {
+
+                if (mo.isMetadata()) {
+                    const MDNode* mdNode = mo.getMetadata();
+                    for (unsigned int i = 0; i < mdNode->getNumOperands(); i++) {
+                        const MDOperand & oper = mdNode->getOperand(i);
+                        if (llvm::MDString* mds = dyn_cast<llvm::MDString>(oper)) {
+                            TCEString s = mds->getString().str();
+                            if (s == "AA_CATEGORY_STACK_SLOT") {
+                                isSpill = true;
+                            } else if (s == "AA_CATEGORY_RA_SAVE_SLOT") {
+                                isRaSlot = true;
+                            } else if (s == "AA_CATEGORY_FP_SAVE_SLOT") {
+                                isFpSlot = true;
+                            }
+                        }
+                    }
+                }
                 continue;
+            }
 
             assert(operation.operand(inputOperand).isInput() &&
                    "Operand mismatch.");
