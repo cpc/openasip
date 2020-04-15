@@ -92,7 +92,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>3</width>
+      <width>23</width>
     </short-immediate>
   </bus>
 
@@ -367,6 +367,42 @@
   <socket name="MUL_IN1_1">
     <reads-from>
       <bus>LSU_MUL_TRIG</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="FPU_o1">
+    <writes-to>
+      <bus>ALU_GCU_TRIG</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>PARAM</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>LSU_MUL_TRIG</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="FPU_t">
+    <reads-from>
+      <bus>PARAM</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="MUL_IN1_1_1">
+    <reads-from>
+      <bus>LSU_MUL_TRIG</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="ALU_i1_1">
+    <reads-from>
+      <bus>ALU_GCU_TRIG</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -1110,6 +1146,138 @@
         </reads>
         <writes name="3">
           <start-cycle>6</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+  <function-unit name="fpu">
+    <port name="in1">
+      <connects-to>MUL_IN1_1_1</connects-to>
+      <width>32</width>
+    </port>
+    <port name="in2t">
+      <connects-to>FPU_t</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="in3">
+      <connects-to>ALU_i1_1</connects-to>
+      <width>32</width>
+    </port>
+    <port name="out1">
+      <connects-to>FPU_o1</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>macf</name>
+      <bind name="1">in1</bind>
+      <bind name="2">in2t</bind>
+      <bind name="3">in3</bind>
+      <bind name="4">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="4">
+          <start-cycle>3</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>msuf</name>
+      <bind name="1">in1</bind>
+      <bind name="2">in2t</bind>
+      <bind name="3">in3</bind>
+      <bind name="4">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="4">
+          <start-cycle>3</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>addf</name>
+      <bind name="1">in1</bind>
+      <bind name="2">in2t</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>3</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>subf</name>
+      <bind name="1">in1</bind>
+      <bind name="2">in2t</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>3</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>mulf</name>
+      <bind name="1">in2t</bind>
+      <bind name="2">in3</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>3</start-cycle>
           <cycles>1</cycles>
         </writes>
       </pipeline>
