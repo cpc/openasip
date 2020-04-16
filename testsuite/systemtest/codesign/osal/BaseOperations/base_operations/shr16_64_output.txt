@@ -1,0 +1,12 @@
+0
+-1
+0
+-1
+15
+-16
+-1
+152
+0x000000000000ffff
+0xffffffffffffffff
+0x00007fffffffffff
+0xffffefffffffffff

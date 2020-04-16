@@ -1,0 +1,12 @@
+0
+-1
+0
+-1
+3906
+-3907
+-1
+39062
+0x0000000000ffffff
+0xffffffffffffffff
+0x007fffffffffffff
+0xffefffffffffffff

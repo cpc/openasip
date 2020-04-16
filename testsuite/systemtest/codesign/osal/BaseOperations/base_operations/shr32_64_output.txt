@@ -1,0 +1,14 @@
+0
+-1
+0
+-1
+0
+-1
+-1
+0
+3
+-4
+0x0000000000000000
+0xffffffffffffffff
+0x000000007fff6fff
+0xffffffffefffffff

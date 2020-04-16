@@ -1,0 +1,14 @@
+shr16_64 100
+shr16_64 -100
+shr16_64 2
+shr16_64 -7
+shr16_64 1000001
+shr16_64 -1000000
+shr16_64 -1
+shr16_64 10000000
+!output hex
+shr16_64 0x00000000ffffffff
+shr16_64 0xffffffffffffffff
+shr16_64 0x7fffffffffffffff
+shr16_64 0xefffffffffffffff
+!quit

@@ -1,0 +1,13 @@
+neud 1934.34 1934.33
+neud 123.123 -123.123
+neud 234.234 234.234
+neud 0xfff00000 0xfff00000
+neud 1.0 0xfff00000
+neud 0xfff00000 1.0
+neud 1.0 0x3ff0000000000000
+neud 0x3ff0000000000000 1.0
+neud 0x3ff0000001000000 1.0
+neud 0xffffffffffffffff 0xffffffffffffffff
+neud 0xffffffffffffffff 0x1234567890abcdef
+neud 0x1234567890123456 0x1234567890123456
+!quit

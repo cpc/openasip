@@ -1,0 +1,12 @@
+6
+-7
+0
+-1
+62500
+-62500
+-1
+625000
+0x000000000fffffff
+0xffffffffffffffff
+0x07ffffffffffffff
+0xfeffffffffffffff

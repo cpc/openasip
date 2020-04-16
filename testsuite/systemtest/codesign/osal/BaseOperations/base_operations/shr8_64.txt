@@ -1,0 +1,14 @@
+shr8_64 100
+shr8_64 -100
+shr8_64 2
+shr8_64 -7
+shr8_64 1000001
+shr8_64 -1000000
+shr8_64 -1
+shr8_64 10000000
+!output hex
+shr8_64 0x00000000ffffffff
+shr8_64 0xffffffffffffffff
+shr8_64 0x7fffffffffffffff
+shr8_64 0xefffffffffffffff
+!quit
