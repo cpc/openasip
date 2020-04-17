@@ -124,8 +124,9 @@ OperationSimulator::initializeSimValue(
     SimValue* sim,
     std::string& result) {
 
-    bool is_int = value.find(".") == string::npos;
-    bool is_float = value.find(".") != string::npos &&
+    bool is_int = value.find(".") == string::npos &&
+        value.find('e') == string::npos;
+    bool is_float = !is_int &&
         (value.find("f") != string::npos ||
         value.find("F") != string::npos);
 
