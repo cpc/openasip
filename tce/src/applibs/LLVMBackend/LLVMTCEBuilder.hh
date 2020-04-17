@@ -187,8 +187,6 @@ namespace llvm {
 
         void emitConstantPool(const llvm::MachineConstantPool& cp);
 
-	int vectorOperandSize(const MachineOperand& mo);
-
         virtual TTAProgram::Terminal* createMBBReference(
             const MachineOperand& mo);
 
@@ -321,31 +319,6 @@ namespace llvm {
 
         TTAProgram::Instruction* handleMemoryCategoryInfo(
             const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
-
-	TTAProgram::Instruction* emitVectorBuild(
-	    int elementCount, 
-            const MachineInstr* mi, 
-	    TTAProgram::CodeSnippet* proc);
-
-	TTAProgram::Instruction* emitVectorMov(
-	    int elementCount, 
-            const MachineInstr* mi, 
-	    TTAProgram::CodeSnippet* proc);
-
-	TTAProgram::Instruction* emitVectorExtract(
-            const MachineInstr* mi, 
-	    TTAProgram::CodeSnippet* proc);
-
-	TTAProgram::Instruction* emitVectorInsert(
-	    int elementCount,
-	    const MachineInstr* mi, 
-	    TTAProgram::CodeSnippet* proc);
-
-	TTAProgram::Instruction* emitVectorInstruction(
-	    const std::string& opName,
-	    int elementCount,
-            const MachineInstr* mi,
-	    TTAProgram::CodeSnippet* proc);
 
         bool isInitialized(const Constant* cv);
 
