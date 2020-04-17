@@ -743,10 +743,10 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <description>Left logical shift by one bit.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
-    <out element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="2" type="ULongWord"/>
     <trigger-semantics>
-      EXEC_OPERATION(shl64, IO(1), 1, IO(3));
+      EXEC_OPERATION(shl64, IO(1), 1, IO(2));
     </trigger-semantics>
   </operation>
 
@@ -755,10 +755,10 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <description>Left logical shift by two bits.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
-    <out element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="2" type="ULongWord"/>
     <trigger-semantics>
-      EXEC_OPERATION(shl64, IO(1), 2, IO(3));
+      EXEC_OPERATION(shl64, IO(1), 2, IO(2));
     </trigger-semantics>
   </operation>
 
@@ -767,10 +767,10 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <description>Left logical shift by four bits.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
-    <out element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="2" type="ULongWord"/>
     <trigger-semantics>
-      EXEC_OPERATION(shl64, IO(1), 4, IO(3));
+      EXEC_OPERATION(shl64, IO(1), 4, IO(2));
     </trigger-semantics>
   </operation>
 
@@ -779,10 +779,10 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <description>Left logical shift by eight bits.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
-    <out element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="2" type="ULongWord"/>
     <trigger-semantics>
-      EXEC_OPERATION(shl64, IO(1), 8, IO(3));
+      EXEC_OPERATION(shl64, IO(1), 8, IO(2));
     </trigger-semantics>
   </operation>
 
@@ -791,10 +791,10 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <description>Left logical shift by 16 bits.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
-    <out element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="2" type="ULongWord"/>
     <trigger-semantics>
-      EXEC_OPERATION(shl64, IO(1), 16, IO(3));
+      EXEC_OPERATION(shl64, IO(1), 16, IO(2));
     </trigger-semantics>
   </operation>
 
@@ -803,10 +803,10 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <description>Left logical shift by 32 bits.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in element-count="1" element-width="64" id="1" type="SLongWord"/>
-    <out element-count="1" element-width="64" id="2" type="SLongWord"/>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="2" type="ULongWord"/>
     <trigger-semantics>
-      EXEC_OPERATION(shl64, IO(1), 32, IO(3));
+      EXEC_OPERATION(shl64, IO(1), 32, IO(2));
     </trigger-semantics>
   </operation>
 

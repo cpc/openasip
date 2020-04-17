@@ -1,0 +1,8 @@
+shl32_64 2
+shl32_64 0
+shl32_64 -1
+!output hex
+shl32_64 0xff
+shl32_64 0xf0f0f0f0f0f0f0f0
+shl32_64 0x7f00f000e000d001
+

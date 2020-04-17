@@ -1,0 +1,8 @@
+shl16_64 2
+shl16_64 0
+shl16_64 -1
+!output hex
+shl16_64 0xff
+shl16_64 0xf0f0f0f0f0f0f0f0
+shl16_64 0x7f00f000e000d001
+
