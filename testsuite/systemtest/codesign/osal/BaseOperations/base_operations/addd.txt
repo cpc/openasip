@@ -1,0 +1,10 @@
+!output double
+addd 1.23 2.34
+addd -143.34 23.45
+addd 245.12 564.3
+addd 2e+38 2e+38
+addd 123.456789 -123.456788
+!output float
+addf 2e+38f 2e+38f
+addf 123.456789f -123.456788f
+!quit

@@ -1,0 +1,11 @@
+!output double
+subd 32.34 12.35
+subd -234.23 45.43
+subd -235.45 -342.34
+subd 456.76 -234.45
+subd 123.456789 123.456788
+subd 3e38 -1e38
+!output float
+subf 123.456789f 123.456788f
+subf 3e38f -1e38f
+!quit

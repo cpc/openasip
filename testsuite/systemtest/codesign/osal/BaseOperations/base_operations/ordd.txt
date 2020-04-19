@@ -1,0 +1,5 @@
+ordd 32.34 12.65
+ordd 0xfffff00000000000 0xfffff00000000000
+ordd 1.0 0xfffff00000000000
+ordd 0xfffff00000000000 1.0
+!quit

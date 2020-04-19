@@ -1,0 +1,8 @@
+!output double
+cldu 1
+cldu 213
+cldu 548924
+cldu 17000000
+cldu 5000000000
+cldu 0x7fffffffffffffff
+!quit

@@ -1,0 +1,6 @@
+!output double
+sqrtd 4.0
+sqrtd 9.0
+sqrtd 9e20
+sqrtd 0.25e-20
+!quit

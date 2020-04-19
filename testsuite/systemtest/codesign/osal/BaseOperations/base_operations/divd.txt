@@ -1,0 +1,10 @@
+!output double
+divd 10.0 5.0
+divd 5.0 2.0
+divd 8247.32 21.9836
+divd 1e30 1e-30
+divd 1e-30 1e30
+!output float
+divf 1e30f 1e-30f
+divf 1e-30f 1e30f
+!quit

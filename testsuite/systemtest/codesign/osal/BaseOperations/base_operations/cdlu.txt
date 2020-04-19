@@ -1,0 +1,8 @@
+cdlu 6.23589234
+cdlu 6.8932
+cdlu 70000.2
+cdlu -1.0
+cdlu 1e12
+cdlu 1e-12
+cdlu -1e12
+!quit

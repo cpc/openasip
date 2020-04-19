@@ -1,0 +1,5 @@
+uordd 32.34 12.65
+uordd 0xfffff00000000000 0xfffff00000000000
+uordd 1.0 0xfffff00000000000
+uordd 0xfffff00000000000 1.0
+!quit

@@ -1,0 +1,8 @@
+cdl 6.23589234
+cdl 6.8932
+cdl 70000.2
+cdl -1.0
+cdl 1e12
+cdl 1e-12
+cdl -1e12
+!quit

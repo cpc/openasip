@@ -1,0 +1,4 @@
+!output double
+msud 10.0 20.0 30.0
+msud 1.5e-38 1e-19 1e-19
+msud 1.5e38 1e19 1e19

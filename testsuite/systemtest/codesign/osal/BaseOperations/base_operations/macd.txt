@@ -1,0 +1,4 @@
+!output double
+macd 10.0 20.0 30.0
+macd 1.5e-38 1e-19 1e-19
+macd 1.5e38 1e19 1e19

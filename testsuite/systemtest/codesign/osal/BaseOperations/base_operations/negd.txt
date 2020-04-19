@@ -1,0 +1,8 @@
+!output double
+negd 1.234
+negd -1.234
+negd 234.345
+negd -234.345
+negd 4.5e38
+negd 4.5e-38
+!quit

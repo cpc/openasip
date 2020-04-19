@@ -1,0 +1,8 @@
+!output double
+cld 1
+cld 213
+cld 548924
+cld 17000000
+cld 5000000000
+cld -25000000000
+!quit

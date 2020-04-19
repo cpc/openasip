@@ -1,0 +1,11 @@
+!output double
+muld 2.5 4.0
+muld 2.5 5.0
+muld 10.12 88.983
+!output float
+mulf 1e30f 1e30f
+mulf 1e-30f 1e-30f
+!output double
+muld 1e30 1e30
+muld 1e-30 1e-30
+!quit

@@ -1,0 +1,5 @@
+!output double
+absd -12.12
+absd 34.34
+absd -4e38
+!quit
