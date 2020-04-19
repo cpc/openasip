@@ -1,16 +1,19 @@
 basedir = ${prefix}/share/tce/opset/base
 avalondir = ${prefix}/share/tce/opset/base
 simple_iodir = ${prefix}/share/tce/opset/base
+doubledir = ${prefix}/share/tce/opset/base
 nobase_base_DATA = base.cc base.opp
 nobase_avalon_DATA = avalon.cc avalon.opp
 nobase_simple_io_DATA = simple_io.cc simple_io.opp
+nobase_double_DATA = double.cc double.opp
 
 pkglibdir = ${prefix}/share/tce/opset/base
-pkglib_LTLIBRARIES = base.la avalon.la simple_io.la
+pkglib_LTLIBRARIES = base.la avalon.la simple_io.la double.la
 
 base_la_SOURCES = base.cc
 avalon_la_SOURCES = avalon.cc
 simple_io_la_SOURCES = simple_io.cc
+double_la_SOURCES = double.cc
 
 # In case libtce.so is loaded using RTLD_LOCAL (e.g. by an icd
 # loader), the dlopen that opens the .opb does not get the missing 
@@ -19,8 +22,9 @@ simple_io_la_SOURCES = simple_io.cc
 base_la_LIBADD = ../../src/libtce.la
 avalon_la_LIBADD = ../../src/libtce.la
 simple_io_la_LIBADD = ../../src/libtce.la
+double_la_LIBADD = ../../src/libtce.la
 
-EXTRA_DIST = ${nobase_base_DATA} ${nobase_avalon_DATA} ${nobase_simple_io_DATA}
+EXTRA_DIST = ${nobase_base_DATA} ${nobase_avalon_DATA} ${nobase_simple_io_DATA} ${nobase_double_DATA}
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
@@ -78,6 +82,7 @@ all-local: ${pkglib_LTLIBRARIES}
 	ln -sf ./.libs/base.so ./base.opb
 	ln -sf ./.libs/avalon.so ./avalon.opb
 	ln -sf ./.libs/simple_io.so ./simple_io.opb
+	ln -sf ./.libs/double.so ./double.opb
 # Ugly hack to ensure we have a proper 'base' OSAL module (opp,opb) in the
 # build dir so a) newlib builds OK b) in case the user does not remove the
 # installation dir, simulation still works.
@@ -85,11 +90,13 @@ all-local: ${pkglib_LTLIBRARIES}
 
 install-exec-hook:
 	cd $(DESTDIR)/${pkglibdir} ; ln -sf base.so base.opb ; \
-ln -sf avalon.so avalon.opb ; ln -sf simple_io.so simple_io.opb
+ln -sf avalon.so avalon.opb ; ln -sf simple_io.so simple_io.opb ; \
+ln -sf double.so double.obp
 
 clean-local:
 	rm -f ./base.opb
 	rm -f ./avalon.opb
 	rm -f ./simple_io.opb
+	rm -f ./double.opb
 
 
