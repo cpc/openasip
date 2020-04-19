@@ -482,18 +482,19 @@ string
 TesterContext::toOutputFormat(SimValue* value) {
     string output = "";
 
-    // If output format is in hex or the value is wider than 32 bits 
-    // (except for DoubleWord), convert the SimValue to hex using the full 
+    // If output format is in hex or the value is wider than 64 bits
+    // convert the SimValue to hex using the full
     // width of the value. This means that leading zeroes are included in 
     // the output result (e.g. 32 bit value 0x15 = 0x00000015).
-    if (outputFormat_ == CmdOutput::OUTPUT_FORMAT_HEX || 
-        (value->width() > 64 &&
-         outputFormat_ != CmdOutput::OUTPUT_FORMAT_DOUBLE)) {
+    if (outputFormat_ == CmdOutput::OUTPUT_FORMAT_HEX ||
+        value->width() > 64) {
         output = value->hexValue();
-    } else if (outputFormat_ == CmdOutput::OUTPUT_FORMAT_INT_SIGNED) {
+    } else if (outputFormat_ == CmdOutput::OUTPUT_FORMAT_INT_SIGNED ||
+               outputFormat_ == CmdOutput::OUTPUT_FORMAT_LONG_SIGNED) {
         output = Conversion::toString(value->sLongWordValue());
 
-    } else if(outputFormat_ == CmdOutput::OUTPUT_FORMAT_INT_UNSIGNED) {
+    } else if(outputFormat_ == CmdOutput::OUTPUT_FORMAT_INT_UNSIGNED ||
+              outputFormat_ == CmdOutput::OUTPUT_FORMAT_LONG_UNSIGNED) {
         output = Conversion::toString(value->uLongWordValue());
 
     } else if(outputFormat_ == CmdOutput::OUTPUT_FORMAT_DOUBLE) {
