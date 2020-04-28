@@ -1660,8 +1660,8 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <description>sign extend from 1 bit to 64 bits</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <out id="2" type="SLongWord"/>
+    <in id="1" element-width="8" type="SIntWord"/>
+    <out id="2" element-width="64" type="SLongWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sxb64, IO(1), IO(2));
     </trigger-semantics>
