@@ -1,0 +1,11 @@
+sxb64 0
+sxb64 1
+sxb64 0x10
+sxb64 0x11
+sxb64 0x5
+!output hex
+sxb64 0
+sxb64 1
+sxb64 0x10
+sxb64 0x11
+sxb64 0x5
