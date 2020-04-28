@@ -217,6 +217,31 @@ __udivdi3 (uint64_t num, uint64_t den)
     return res;
 }
 
+int64_t
+__divdi3 (int64_t numerator, int64_t denominator)
+{
+    int64_t sign;
+    int64_t dividend;
+    int64_t modul;
+    divnorm (numerator, denominator, sign);
+
+    dividend = divmoddi4 (0,  numerator, denominator);
+    exitdiv (sign, dividend);
+}
+
+int64_t
+__muldi3(uint64_t a, uint64_t b) {
+    int64_t res = 0;
+    while (a) {
+        if (a & 1) {
+            res += b;
+        }
+        b <<= 1;
+        a >>=1;
+    }
+    return res;
+}
+
 
 #endif
 
@@ -795,3 +820,47 @@ int32 __ashlsi3(int32_t val, uint32_t shifter) {
     }
     return val;
 }
+
+#ifdef __TCE64__
+
+// emulation routines for shifts.
+int64_t __ashrdi3(int64_t val, uint64_t shifter) {
+    if (shifter > 63) {
+        if (val < 0) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+    while (shifter) {
+        val >>= 1;
+        shifter--;
+    }
+    return val;
+}
+
+uint64_t __lshrdi3(uint64_t val, uint64_t shifter) {
+    if (shifter > 63) {
+        return 0;
+    }
+
+    while (shifter) {
+        val >>= 1;
+        shifter--;
+    }
+    return val;
+}
+
+int64_t __ashldi3(int64_t val, uint64_t shifter) {
+    if (shifter > 63) {
+        return 0;
+    }
+
+    while (shifter) {
+        val <<= 1;
+        shifter--;
+    }
+    return val;
+}
+
+#endif

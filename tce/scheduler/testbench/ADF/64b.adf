@@ -1095,64 +1095,6 @@
     <address-space/>
   </function-unit>
 
-  <function-unit name="div_mod">
-    <port name="in1t">
-      <connects-to>MUL_IN1_1</connects-to>
-      <width>64</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="in2">
-      <connects-to>MUL_IN2_1</connects-to>
-      <width>64</width>
-    </port>
-    <port name="out1">
-      <connects-to>MUL_OUT_1</connects-to>
-      <width>64</width>
-    </port>
-    <operation>
-      <name>div64</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>6</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>mod64</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>6</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
   <function-unit name="fpu">
     <port name="in1">
       <connects-to>MUL_IN1_1_1</connects-to>
