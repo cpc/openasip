@@ -107,7 +107,7 @@ bool BF2ScheduleFront::scheduleFrontFromMove(MoveNode& mn) {
                 " max latency+1: " << targetMachine().maximumLatency()+1
                       << std::endl;
 #endif
-            if (latest <
+            if (latest < 0 || latest <
                 (smallestRMCycle - (targetMachine().maximumLatency()+1))) {
                 if (Application::verboseLevel() > 1 ||
                     rm().initiationInterval() == 0) {
