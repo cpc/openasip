@@ -246,7 +246,7 @@ public:
     bool isLittleEndian() const { return littleEndian_; }
     void setLittleEndian(bool flag) { littleEndian_ = flag; }
     bool is64bit() const { return bitness64_; }
-    bool set64bits(bool flag) { bitness64_ = flag; }
+    void set64bits(bool flag) { bitness64_ = flag; }
 private:
     /// Assignment not allowed.
     Machine& operator=(const Machine&);

@@ -178,8 +178,7 @@ bool ResourceBroker::isAvailable(
  * r is not one of the primary resources of this broker.
  */
 const TTAMachine::MachinePart&
-ResourceBroker::machinePartOf(const SchedulingResource& r) const
-    throw (WrongSubclass, KeyNotFound) {
+ResourceBroker::machinePartOf(const SchedulingResource& r) const {
     const TTAMachine::MachinePart* machinePart = NULL;
     try {
         machinePart = MapTools::keyForValue<const MachinePart*>(resMap_, &r);

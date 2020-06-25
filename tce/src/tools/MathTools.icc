@@ -214,7 +214,7 @@ MathTools::zeroExtendTo(ULongWord value, int width) {
     }
 
     // and with a mask with only the lower 'width' bits '1'
-    value = value & (~0u >> (bitsInInt - width));
+    value = value & (~(ULongWord)0 >> (bitsInInt - width));
 
     return value;
 }
@@ -254,7 +254,7 @@ MathTools::fastZeroExtendTo(ULongWord value, int width) {
     const int bitsInInt = sizeof(value) * BYTE_BITWIDTH;
 
     // and with a mask with only the lower 'width' bits '1'
-    value = value & (~0u >> (bitsInInt - width));
+    value = value & (~(ULongWord)0 >> (bitsInInt - width));
 
     return value;
 }

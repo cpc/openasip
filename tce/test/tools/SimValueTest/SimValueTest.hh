@@ -79,7 +79,7 @@ void
 SimValueTest::testConstructors() {
     // SimValue()
     SimValue simValue1;
-    TS_ASSERT_EQUALS(simValue1.width(), SIMULATOR_MAX_INTWORD_BITWIDTH);
+    TS_ASSERT_EQUALS(simValue1.width(), SIMULATOR_MAX_LONGWORD_BITWIDTH);
     
     // explicit SimValue(int width)
     SimValue simValue2(80);

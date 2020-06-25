@@ -1394,7 +1394,7 @@ char regOperandCharToImmOperandChar(char c) {
         return 'k';
     case 'h':
         return 'l';
-    dafault:
+    default:
         return 0;
     }
 }
@@ -1687,7 +1687,7 @@ TDGen::writeEmulationPattern(
  * @return Boost::format string of the operation node in llvm.
  */
 TCEString
-TDGen::llvmOperationPattern(const Operation& op, char operandType) {
+TDGen::llvmOperationPattern(const Operation& op, char /*operandType*/) {
 
     TCEString opName = StringTools::stringToLower(op.name());
 

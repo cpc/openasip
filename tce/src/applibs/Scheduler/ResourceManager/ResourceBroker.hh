@@ -130,8 +130,7 @@ public:
     inline SchedulingResource* resourceOf(
         const TTAMachine::MachinePart& mp) const;
     virtual const TTAMachine::MachinePart& machinePartOf(
-        const SchedulingResource& r)
-        const throw (WrongSubclass, KeyNotFound);
+        const SchedulingResource& r) const;
     bool hasResourceOf(const TTAMachine::MachinePart& mp) const;
     bool hasResource(const SchedulingResource& r) const;
     int resourceCount() const;
