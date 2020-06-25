@@ -730,6 +730,8 @@ def setup_exec_env():
     os.environ['PATH'] = tce_path_env + os.environ['PATH']
     os.environ['minimal_with_stdout'] = \
         os.path.join(bld_root, 'data', 'mach', 'minimal_with_stdout.adf')
+    os.environ['minimal_64b_with_stdout'] = \
+        os.path.join(bld_root, 'data', 'mach', 'minimal_64b_with_stdout.adf')
 
 if __name__ == "__main__":
     options, args = parse_options()

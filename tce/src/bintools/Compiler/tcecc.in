@@ -1216,8 +1216,6 @@ def is64BitBuild(options):
     machine64Bits = False
     if options.adf_file != "":
         machine64Bits = "<bitness64/>" in open(options.adf_file).read()
-        if (machine64Bits):
-            print "detected 64-bit adf"
     if options.little_endian64 or machine64Bits:
         bitness64 = True
     else:
