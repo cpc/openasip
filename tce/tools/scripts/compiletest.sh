@@ -292,6 +292,7 @@ Differences.found.in.inputs.and.outputs.are.stored.into.*"
 UNIT_TEST_WARNINGS="\
 $WARNINGS|\
 .*failed.*|\
+.*RealDescriptions.h.*|\
 In[[:space:]].*|\
 .*Error[[:space:]].*|\
 .*[[:space:]]Expected[[:space:]].*|\

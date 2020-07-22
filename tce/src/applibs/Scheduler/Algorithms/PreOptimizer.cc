@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2020 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -266,8 +266,7 @@ PreOptimizer::tryToRemoveGuardInversingOp(
     auto reverseJumpBBs = inverseGuardsOfHeads(ddg, oEdges);
 
     // If cannot reverse jumps, have to undo and abort.
-    bool allowReverse = true;
-    for (auto n: reverseJumpBBs) {
+    for ([[maybe_unused]] auto n: reverseJumpBBs) {
         if (!cfgAllowsJumpReversal(operand1Ins, cfg)) {
             inverseGuardsOfHeads(ddg, oEdges);
             return ControlFlowGraph::NodeSet();

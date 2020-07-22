@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University.
+    Copyright (c) 2002-2020 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -611,7 +611,6 @@ BBSchedulerController::executeLoopPass(
     // Create prolog and epilog for the loop
     bbn->setLoopScheduled();
     LoopPrologAndEpilogBuilder peBuilder;
-    int endingCycle = rm->initiationInterval() -1;
     if (prologRM != NULL) {
         // bf2 scheduler does not use epilog, it's
         // intergrated into loop

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2012 Tampere University.
+    Copyright (c) 2012-2020 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -34,6 +34,7 @@
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
 IGNORE_COMPILER_WARNING("-Wcomment")
 
+#include "llvm/Analysis/CFG.h"
 #include "llvm/CodeGen/Passes.h"
 #include "tce_config.h"
 #include "llvm/IR/Module.h"
@@ -45,7 +46,6 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 #include "llvm/Pass.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
-#include "llvm/Analysis/CFG.h"
 
 #include "llvm/Support/Compiler.h"
 #ifdef LLVM_OLDER_THAN_6_0

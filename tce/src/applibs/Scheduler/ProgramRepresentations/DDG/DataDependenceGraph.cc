@@ -4352,8 +4352,6 @@ DataDependenceGraph::queueRawPredecessors(
     NodeSet& queue, NodeSet& finalDest, NodeSet& predQueue,
     NodeSet& predFinalDest, bool guard) const {
 
-    typedef EdgeSet::iterator EdgeIterator;
-
     // check one read.
     while (!queue.empty()) {
         MoveNode& read = **queue.begin();

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2020 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -742,11 +742,11 @@ ExecutionPipelineResource::unassignDestination(
         msg += "\' not supported on FU!";
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
     }
-    
-    // can not trust size() since that one ignores empty pipeline
-    // and here we need to go up to the maximalLatency
-    int fuEpSize = fuExecutionPipeline_.size();
-    if ((instructionIndex(cycle + resources->maximalLatency() - 1)) 
+
+    // Cannot trust size() since that one ignores empty pipeline
+    // and here we need to go up to the maximalLatency.
+    size_t fuEpSize = fuExecutionPipeline_.size();
+    if ((instructionIndex(cycle + resources->maximalLatency() - 1))
         >= fuEpSize) {
         std::string msg = "Unassigning operation longer then scope!";
         msg += " - cycle:";
@@ -2162,21 +2162,23 @@ bool ExecutionPipelineResource::checkOperandAllowed(
                     break;
                 }
                 // fail if the other operand happens eaelier than this (it has later usage).
-                
+
                 // loop scheudling, op overlaps
                 // need to also check that is not written before the use.
-                if (operandUseModCycle <
+                if ((unsigned)operandUseModCycle <
                     instructionIndex(mn.cycle())) {
                     if (instructionIndex(operandWriteCycle) <=
-                        operandUseModCycle ||
+                        (unsigned)operandUseModCycle ||
                         instructionIndex(mn.cycle()) <= instructionIndex(operandWriteCycle)) {
                         if (!exclusiveMoves(&mn, &currentMn, mn.cycle()))
                             return false;
                     }
                 }
                 // not overlapping.
-                if (instructionIndex(mn.cycle()) <= instructionIndex(operandWriteCycle) &&
-                    instructionIndex(operandWriteCycle) <= operandUseModCycle) {
+                if (instructionIndex(mn.cycle()) <=
+                    instructionIndex(operandWriteCycle) &&
+                    instructionIndex(operandWriteCycle) <=
+                    (unsigned)operandUseModCycle) {
                     if (!exclusiveMoves(&mn, &currentMn, mn.cycle()))
                         return false;
                 }

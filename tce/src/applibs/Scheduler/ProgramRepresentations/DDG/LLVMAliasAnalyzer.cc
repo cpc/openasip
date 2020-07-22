@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University.
+    Copyright (c) 2002-2020 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -34,6 +34,10 @@
  */
 
 #include "LLVMAliasAnalyzer.hh"
+
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+IGNORE_COMPILER_WARNING("-Wcomment")
 
 #include <llvm/CodeGen/MachineInstr.h>
 #include "tce_config.h"
