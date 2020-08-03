@@ -702,14 +702,17 @@ TCETargetLowering::TCETargetLowering(
                       << "lots of 8-bit loads." << std::endl;
         }
         setLoadExtAction(ISD::EXTLOAD, MVT::i32, MVT::i8, Custom);
-        setLoadExtAction(ISD::SEXTLOAD, MVT::i32, MVT::i8, Custom);
         setLoadExtAction(ISD::ZEXTLOAD, MVT::i32, MVT::i8, Custom);
         setOperationAction(ISD::LOAD, MVT::i8, Custom);
         setOperationAction(ISD::LOAD, MVT::i1, Custom);
 
         setLoadExtAction(ISD::EXTLOAD, MVT::i32, MVT::i1, Custom);
-        setLoadExtAction(ISD::SEXTLOAD, MVT::i32, MVT::i1, Custom);
         setLoadExtAction(ISD::ZEXTLOAD, MVT::i32, MVT::i1, Custom);
+    }
+    // Expand i8/i1 sextloads if there is no native SELoad in the target
+    if (!tm_.has8bitSELoads()) {
+        setLoadExtAction(ISD::SEXTLOAD, MVT::i32, MVT::i8, Expand);
+        setLoadExtAction(ISD::SEXTLOAD, MVT::i32, MVT::i1, Expand);
     }
 
     if (!tm_.has16bitLoads()) {
@@ -720,9 +723,13 @@ TCETargetLowering::TCETargetLowering(
                       << "lots of 16-bit loads." << std::endl;
         }
         setLoadExtAction(ISD::EXTLOAD, MVT::i32, MVT::i16, Custom);
-        setLoadExtAction(ISD::SEXTLOAD, MVT::i32, MVT::i16, Custom);
         setLoadExtAction(ISD::ZEXTLOAD, MVT::i32, MVT::i16, Custom);
         setOperationAction(ISD::LOAD, MVT::i16, Custom);
+    }
+
+    // Expand i16 sextloads if there is no native SELoad in the target
+    if (!tm_.has16bitSELoads()) {
+        setLoadExtAction(ISD::SEXTLOAD, MVT::i32, MVT::i16, Expand);
     }
 
     setOperationAction(ISD::ADDE, MVT::i32, Expand);

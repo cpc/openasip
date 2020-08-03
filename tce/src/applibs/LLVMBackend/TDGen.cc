@@ -1377,7 +1377,9 @@ TDGen::writeBackendCode(std::ostream& o) {
     bool hasSHRU = false;
     bool hasSHL = false;
     bool has8bitLoads = false;
+    bool has8bitSELoads = false;
     bool has16bitLoads = false;
+    bool has16bitSELoads = false;
 
     const TTAMachine::Machine::FunctionUnitNavigator fuNav =
         mach_.functionUnitNavigator();
@@ -1403,15 +1405,23 @@ TDGen::writeBackendCode(std::ostream& o) {
             if (opName == "sqrtf") hasSQRTF = true;
 
             if (littleEndian_) {
-                if (opName == "ld16" || opName == "ldu16") {
+                if (opName == "ld16") {
+                    has16bitSELoads = true;
+                } else if (opName == "ldu16") {
                     has16bitLoads = true;
-                } else if(opName == "ld8" || opName == "ldu8") {
+                } else if (opName == "ld8") {
+                    has8bitSELoads = true;
+                } else if (opName == "ldu8") {
                     has8bitLoads = true;
                 }
             } else {
-                if (opName == "ldh" || opName == "ldhu") {
+                if (opName == "ldh") {
+                    has16bitSELoads = true;
+                } else if (opName == "ldhu") {
                     has16bitLoads = true;
-                } else if (opName == "ldq" || opName == "ldqu") {
+                } else if (opName == "ldq") {
+                    has8bitSELoads = true;
+                } else if (opName == "ldqu") {
                     has8bitLoads = true;
                 }
            }
@@ -1447,8 +1457,12 @@ TDGen::writeBackendCode(std::ostream& o) {
       << hasSHRU << ";}" << std::endl
       << "bool GeneratedTCEPlugin::has8bitLoads() const { return "
       << has8bitLoads << ";}" << std::endl
+      << "bool GeneratedTCEPlugin::has8bitSELoads() const { return "
+      << has8bitSELoads << ";}" << std::endl
       << "bool GeneratedTCEPlugin::has16bitLoads() const { return "
       << has16bitLoads << ";}" << std::endl
+      << "bool GeneratedTCEPlugin::has16bitSELoads() const { return "
+      << has16bitSELoads << ";}" << std::endl
 
       << "int GeneratedTCEPlugin::maxVectorSize() const { return "
       << maxVectorSize_ << "; }" << std::endl;

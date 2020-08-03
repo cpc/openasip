@@ -148,7 +148,9 @@ namespace llvm {
        virtual bool hasSHRU() const = 0;
 
        virtual bool has8bitLoads() const = 0;
+       virtual bool has8bitSELoads() const = 0;
        virtual bool has16bitLoads() const = 0;
+       virtual bool has16bitSELoads() const = 0;
 
        virtual int maxVectorSize() const = 0;
        /// Plugin needs target machine for TragetLowering generation

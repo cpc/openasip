@@ -249,8 +249,18 @@ plugin_(plugin) {
             return plugin_->has8bitLoads();
         }
 
+        bool
+        has8bitSELoads() const {
+            return plugin_->has8bitSELoads();
+        }
+
         bool has16bitLoads() const {
             return plugin_->has16bitLoads();
+        }
+
+        bool
+        has16bitSELoads() const {
+            return plugin_->has16bitSELoads();
         }
 
         const std::set<
