@@ -3458,9 +3458,10 @@ You should now have a fresh project with the TTA sources included.
 Navigate to \textit{Flow>Create Block Design} and name it \textit{toplevel}.
 Right click on the design, select \textit{Add IP} and add a \textit{ZYNQ7
 Processing System} block. Next, add the TTA cores. Again, right click on the
-design, but this time choose \textit{Add block...}. Since our entity name
-was \textit{tta\_core}, the AlmaIF wrapper was named
-\textit{tta\_core\_toplevel}. Add that, and repeat once.
+design, but this time choose \textit{Add module...} or -- in older versions
+of Vivado -- \textit{Add block...}. Since our entity name was
+\textit{tta\_core}, the AlmaIF wrapper was named \textit{tta\_core\_toplevel}.
+Add that, and repeat once.
 
 You should now have two TTA cores and one \textit{ZYNQ7 Processing System} in
 your block design. We will need to connect these together. Luckily, Vivado
