@@ -91,7 +91,7 @@ all-local: ${pkglib_LTLIBRARIES}
 install-exec-hook:
 	cd $(DESTDIR)/${pkglibdir} ; ln -sf base.so base.opb ; \
 ln -sf avalon.so avalon.opb ; ln -sf simple_io.so simple_io.opb ; \
-ln -sf double.so double.obp
+ln -sf double.so double.opb
 
 clean-local:
 	rm -f ./base.opb
