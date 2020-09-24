@@ -27,6 +27,8 @@ Notable changes and features
     hardcoded to a zero value and thus can be utilized as the zero immediate
     value.
 - RTL generation generation code has been unified.
+- oacc --data-start can be used to redefine the global data
+  starting address in the default address space.
 - Program Image Generation supports Bin2n-format, which is a binary format
   where each word has been zero-padded to the next power-of-two. Used for
   AlmaIF instruction memory region.

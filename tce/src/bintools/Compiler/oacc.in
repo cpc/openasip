@@ -1278,6 +1278,11 @@ p.add_option('--init-sp',
              dest='init_sp', default=None,
              help="Set the initial stack pointer of the program to the given value.")
 
+p.add_option('--data-start',
+             type="long", action="store", metavar='value',
+             dest='data_start', default=None,
+             help="Set the global data start address for the default address space. The default is the first address of the address space.")
+
 p.add_option('--std',
              type="string", action="store", metavar='value',
              dest='std', default=None,
@@ -1719,6 +1724,9 @@ if options.adf_file != "":
 
     if options.init_sp:
         command += " --init-sp=%d" % options.init_sp
+
+    if options.data_start:
+        command += " --data-start=%d" % options.data_start
 
     command += " --backend-cache-dir=%s " % options.plugin_cache_dir
 

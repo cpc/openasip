@@ -3774,7 +3774,10 @@ LLVMTCEBuilder::addressSpaceById(unsigned id) {
 unsigned&
 LLVMTCEBuilder::dataEnd(TTAMachine::AddressSpace& aSpace) {
     if (!MapTools::containsKey(dataEnds_, &aSpace)) {
-        unsigned end = 0;
+        unsigned end =
+            (&aSpace == defaultDataAddressSpace_ && options_ != nullptr &&
+             options_->isDataStartAddressSet()) ?
+             options_->dataStartAddress() : aSpace.start();
         /* Avoid placing data to address 0 as it may break some null pointer
            tests. Waste a valuable word of memory and add a dummy word to
            prevent writing bytes to 1,2,3 addresses and thus then avoid reading

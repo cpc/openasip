@@ -76,6 +76,8 @@ const std::string LLVMTCECmdLineOptions::SWL_PRINT_INLINE_ASM_WARNINGS =
 
 const std::string LLVMTCECmdLineOptions::SWL_INIT_SP = "init-sp";
 
+const std::string LLVMTCECmdLineOptions::SWL_DATA_START = "data-start";
+
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvm-tce [OPTION]... BYTECODE\n"
     "Compile LLVM bytecode for target TCE architecture.\n";
@@ -209,6 +211,11 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
         new UnsignedIntegerCmdLineOptionParser(
             SWL_INIT_SP,
             "Initialize the stack pointer of the program to the given value."));
+    addOption(
+        new UnsignedIntegerCmdLineOptionParser(
+            SWL_DATA_START,
+            "Override the global data start address."));
+
     addOption(
         new BoolCmdLineOptionParser(
             SWL_PRINT_INLINE_ASM_WARNINGS,
@@ -423,6 +430,16 @@ LLVMTCECmdLineOptions::isInitialStackPointerValueSet() const {
 uint64_t
 LLVMTCECmdLineOptions::initialStackPointerValue() const {
     return findOption(SWL_INIT_SP)->unsignedInteger();
+}
+
+bool
+LLVMTCECmdLineOptions::isDataStartAddressSet() const {
+   return findOption(SWL_DATA_START)->isDefined();
+}
+
+uint64_t
+LLVMTCECmdLineOptions::dataStartAddress() const {
+    return findOption(SWL_DATA_START)->unsignedInteger();
 }
 
 bool

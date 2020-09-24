@@ -1,2 +1,2 @@
-24
+20
 i=0 space0 i=1 space1 i=3 space2 

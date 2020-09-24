@@ -95,6 +95,9 @@ public:
     bool isInitialStackPointerValueSet() const;
     uint64_t initialStackPointerValue() const;
 
+    bool isDataStartAddressSet() const;
+    uint64_t dataStartAddress() const;
+
     bool printInlineAsmWarnings() const;
     bool generatePluginOnly() const;
     bool disableAddressSpaceAA() const;
@@ -138,6 +141,7 @@ private:
     static const std::string SWL_ANALYZE_INSTRUCTION_PATTERNS;
     static const std::string SWL_BACKEND_CACHE_DIR;
     static const std::string SWL_INIT_SP;
+    static const std::string SWL_DATA_START;
     static const std::string USAGE;
     static const std::string SWL_PRINT_INLINE_ASM_WARNINGS;
     static const std::string SWL_GEN_PLUGIN_ONLY;

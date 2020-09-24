@@ -37,13 +37,13 @@ void _start(void)
     _exit(retval);
 }
 
-volatile int __dummy__;
 
 /* override normal exit. simulator should stop when _exit() is seen */
 void _exit(int retval) {
+    volatile int __dummy__;
     /* less instructions are generated, when this while exists */
     /* volatile write to workaround LLVM bug #965 */
-    while(1) __dummy__ = 0; 
+    while(1) __dummy__ = 0;
 
 }
 
