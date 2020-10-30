@@ -208,6 +208,7 @@ WARNINGS="\
 WARNING_FILTERS="|\
 /usr/local/.*include/xercesc/.*|\
 .*/usr/local/stow/wx.*|\
+.*RealDescriptions.h.*|\
 .*type.qualifier.is.meaningless.on.cast.type.*|\
 .*boost/type_traits/is.*warning.*|\
 .*boost/regex/v4/instances.hpp:.*warning:.*|\
@@ -292,7 +293,6 @@ Differences.found.in.inputs.and.outputs.are.stored.into.*"
 UNIT_TEST_WARNINGS="\
 $WARNINGS|\
 .*failed.*|\
-.*RealDescriptions.h.*|\
 In[[:space:]].*|\
 .*Error[[:space:]].*|\
 .*[[:space:]]Expected[[:space:]].*|\
