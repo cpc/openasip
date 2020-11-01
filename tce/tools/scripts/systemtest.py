@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -!- coding: utf-8 -!-
 """
-    Copyright (c) 2011-2015 Pekka Jääskeläinen / Tampere University.
+    Copyright (c) 2011-2020 Pekka Jääskeläinen / Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -720,11 +720,11 @@ def setup_exec_env():
     for include in includedirs:
         cpp_flags += "-I" + os.path.join(bld_root, include) + " "
 
-    lib_tce_dir = os.path.join(bld_root, 'src')
+    lib_tce_dir = os.path.join(bld_root, 'src/.libs')
 
     os.environ['TCE_LDFLAGS'] = "-L" + lib_tce_dir
     os.environ['TCE_CPPFLAGS'] = cpp_flags
-    os.environ['TCE_LD_LIBRARY_PATH'] = lib_tce_dir
+    os.environ['LD_LIBRARY_PATH'] = lib_tce_dir + ":" + os.environ.get('LD_LIBRARY_PATH', '')
     os.environ['TCE_BUILD_ROOT'] = bld_root
     os.environ['ORIGINALPATH'] = os.environ['PATH']
     os.environ['PATH'] = tce_path_env + os.environ['PATH']
