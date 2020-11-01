@@ -1552,8 +1552,6 @@ if [ "x$config" = "x" ] ; then
     $VERBOSE_ECHO "Could not locate the configure template (from `pwd`)"
 fi
 
-patch -p0 < ltmain.sh.patch || true
-
 # summarize
 $ECHO "done"
 $ECHO
