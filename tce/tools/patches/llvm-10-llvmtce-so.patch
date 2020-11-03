@@ -1,0 +1,13 @@
+diff --git a/llvm/tools/llvm-shlib/CMakeLists.txt b/llvm/tools/llvm-shlib/CMakeLists.txt
+index 3eb6db33a43..0e3a645be6e 100644
+--- llvm/tools/llvm-shlib/CMakeLists.txt
++++ llvm/tools/llvm-shlib/CMakeLists.txt
+@@ -30,7 +30,7 @@ if(LLVM_BUILD_LLVM_DYLIB)
+   if (LLVM_LINK_LLVM_DYLIB)
+     set(INSTALL_WITH_TOOLCHAIN INSTALL_WITH_TOOLCHAIN)
+   endif()
+-  add_llvm_library(LLVM SHARED DISABLE_LLVM_LINK_LLVM_DYLIB SONAME ${INSTALL_WITH_TOOLCHAIN} ${SOURCES})
++  add_llvm_library(LLVM SHARED DISABLE_LLVM_LINK_LLVM_DYLIB SONAME ${INSTALL_WITH_TOOLCHAIN} OUTPUT_NAME "LLVMTCE" ${SOURCES})
+ 
+   list(REMOVE_DUPLICATES LIB_NAMES)
+   if(("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux") OR (MINGW) OR (HAIKU)
