@@ -146,22 +146,6 @@ SimulatorCmdLineOptions::printHelp() const {
     CmdLineOptions::printHelp();
 }
 
-/**
- * Returns true if there is a value available for given option.
- *
- * @return True if the option is defined.
- */
-bool
-SimulatorCmdLineOptions::optionGiven(std::string key) {
-    try {
-        /// @todo: This returns always true if trying to find added
-        /// CmdLineOption... 
-        return findOption(key)->isDefined();
-    } catch (const IllegalCommandLine&) {
-        return false;
-    }
-    return true;
-}
 
 /**
  * Returns true if Simulator should be started in debugging mode.

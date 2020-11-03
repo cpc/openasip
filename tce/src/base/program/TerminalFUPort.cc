@@ -236,7 +236,7 @@ TerminalFUPort::operation() const {
  */
 int
 TerminalFUPort::operationIndex() const {
-    if (operation_ != NULL) {
+    if (operation_ != NULL || opcode_ != nullptr) {
         return opIndex_;
     } else {
         const string msg = 
@@ -265,6 +265,13 @@ TerminalFUPort::hintOperation() const {
     } else {
         return NullOperation::instance();
     }
+}
+
+void TerminalFUPort::setHintOperation(const char* name) {
+    OperationPool opPool;
+    assert(&opPool.operation(name) != &NullOperation::instance());
+    opcode_ = &opPool.operation(name);
+    operation_ = nullptr;
 }
 
 void

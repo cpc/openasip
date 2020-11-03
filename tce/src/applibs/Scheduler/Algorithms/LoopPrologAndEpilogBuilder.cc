@@ -70,7 +70,8 @@ LoopPrologAndEpilogBuilder::moveJumpDestination(
     std::pair<int, TTAProgram::Move*> jumpData =
         CopyingDelaySlotFiller::findJump(tailBB, &predicate);
 
-    std::pair<TTAProgram::Move*, TTAProgram::Immediate*> jumpAddressData;
+    std::pair<TTAProgram::Move*, std::shared_ptr<TTAProgram::Immediate> >
+        jumpAddressData;
 
     // should be the same
     int jumpIndex = jumpData.first;

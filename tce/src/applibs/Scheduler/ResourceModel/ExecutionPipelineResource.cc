@@ -115,6 +115,7 @@ ExecutionPipelineResource::canAssign(const int, const MoveNode&) const {
  */
 bool
 ExecutionPipelineResource::isInUse(const int cycle) const {
+
     // check if any operand port is used
     int modCycle = instructionIndex(cycle);
     for (OperandWriteMap::const_iterator i = operandsWriten_.begin();
@@ -416,15 +417,16 @@ ExecutionPipelineResource::assignSource(
         ii = INT_MAX;
     }
 
-    assert(node.isSourceOperation());
-
     const TTAMachine::Port& port = resultPort(node);
     ResultVector& resultRead = resultRead_[&port];
 
     /// Assiging result read
     assignedSourceNodes_.insert(std::pair<int, MoveNode*>(cycle, &node));
-    ProgramOperation* pOp = &node.sourceOperation();
-    
+
+    ProgramOperation* pOp = node.isSourceOperation() ?
+        &node.sourceOperation() :
+        &node.guardOperation();
+
     /// Record Program Operation in cycle where the "result read"
     /// is scheduled
     unsigned int readCount = resultRead.size();
@@ -488,7 +490,7 @@ ExecutionPipelineResource::assignDestination(
     cachedSize_ = INT_MIN;
 
 #ifdef DEBUG_RM
-    std::cerr << "\tAssigning destination: " << node.toString() << std::endl;
+    std::cerr << "\t\t\tAssigning destination: " << node.toString() << std::endl;
 #endif
     if (!node.isDestinationOperation()) {
         return;
@@ -608,17 +610,17 @@ ExecutionPipelineResource::unassignSource(
             "Trying to unassign node from different cycle "
             "then it was assigned to!");
     }
-    assert(node.isSourceOperation());
 
     const TTAMachine::Port& port = resultPort(node);
     ResultVector& resultRead = resultRead_[&port];
-    ProgramOperation& po = node.sourceOperation();
+    ProgramOperation& po = node.isSourceOperation() ?
+        node.sourceOperation() :
+        node.guardOperation();
 
     /// Unscheduling result read
     if (MapTools::containsValue(assignedSourceNodes_, &node)) {
         MapTools::removeItemsByValue(assignedSourceNodes_, &node);
 
-        
         if (MapTools::containsKey(storedResultCycles_, &node)) {
             /// Remove record of result beeing written to result register
             /// or decrease count in case there are more results
@@ -746,7 +748,7 @@ ExecutionPipelineResource::unassignDestination(
     // Cannot trust size() since that one ignores empty pipeline
     // and here we need to go up to the maximalLatency.
     size_t fuEpSize = fuExecutionPipeline_.size();
-    if ((instructionIndex(cycle + resources->maximalLatency() - 1))
+    if ((size_t)instructionIndex(cycle + resources->maximalLatency() - 1)
         >= fuEpSize) {
         std::string msg = "Unassigning operation longer then scope!";
         msg += " - cycle:";
@@ -823,12 +825,21 @@ ExecutionPipelineResource::canAssignSource(
         cycle+=initiationInterval_;
     }
 
+#ifdef DEBUG_RM
+    std::cerr << "\t\t\tcanAssignSource called for: " << node.toString() << " on cycle: "
+              << cycle << std::endl;
+#endif
     int outputIndex = -1;
     ProgramOperation* po = nullptr;
 
-    assert(node.isSourceOperation());
-    po = &node.sourceOperation();
-    outputIndex = node.move().source().operationIndex();
+    if (node.isSourceOperation()) {
+        po = &node.sourceOperation();
+        outputIndex = node.move().source().operationIndex();
+    } else {
+        assert(node.isGuardOperation());
+        po = &node.guardOperation();
+        outputIndex = po->outputIndexFromGuardOfMove(node);
+    }
 
     const TTAMachine::HWOperation& hwop =
         *fu_.operation(po->operation().name());
@@ -874,6 +885,9 @@ ExecutionPipelineResource::canAssignSource(
     } else {
         // trigger not yet scheduled, do not know when result ready
         if (hasConflictingResultsOnCycle(*po, resultPort, cycle)) {
+#ifdef DEBUG_RM
+            std::cerr << "Other op writing result at same cycle, this is illgal" << std::endl;
+#endif
             return false;
         }
 
@@ -883,7 +897,7 @@ ExecutionPipelineResource::canAssignSource(
         // ignore this for guard ops due to the thread switch kludge.
         if (hwop.latency(outputIndex) > cycle && node.isSourceOperation()) {
 #ifdef DEBUG_RM
-            std::cerr << "\t\t\t\t\ttrigger needs negative cycle" <<std::endl;
+            std::cerr << "\t\t\t\t\ttrigger needs negative cycle" << std::endl;
 #endif
             return false;
         }
@@ -921,6 +935,10 @@ ExecutionPipelineResource::canAssignSource(
                 }
             }
             if (resultReady != INT_MAX && resultReady < cycle) {
+#ifdef DEBUG_RM
+                std::cerr << "\t\t\t\tChecking if res not overwritten."
+                          << std::endl;
+#endif
                 if (!resultNotOverWritten(
                         cycle, resultReady, node, resultPort, trigger, -1)) {
                     return false;
@@ -940,10 +958,17 @@ ExecutionPipelineResource::canAssignSource(
         // node.earliestResultReadCycle() returns INT_MAX.
         // This allows for comparison of result moves in Bottom-Up schedule
 
+#ifdef DEBUG_RM
+        std::cerr << "\t\t\t\tcheck if result allowed at this cycle?" << std::endl;
+#endif
         if (!resultAllowedAtCycle(
                 cycle, *po, resultPort, *trigger, triggerCycle)) {
             return false;
         }
+
+#ifdef DEBUG_RM
+        std::cerr << "\t\t\t\tcheck if result causes trigger between opshares?" << std::endl;
+#endif
 
         if (resultCausesTriggerBetweenOperandSharing(node, cycle)) {
             return false;
@@ -1023,7 +1048,7 @@ ExecutionPipelineResource::canAssignDestination(
             return false;
         }
 
-        if (operandSharePreventsTriggerForScheduledResult(port, node, cycle)){
+        if (operandSharePreventsTriggerForScheduledResult(port, node, cycle)) {
             return false;
         }
         return true;
@@ -1153,13 +1178,13 @@ bool ExecutionPipelineResource::operandOverwritten(
     const OperandWriteVector& operandWritten = iter->second;
 #ifdef DEBUG_RM 
     
-    std::cerr << "\t\t\tOperandWriteCycle: " << operandWriteCycle << std::endl
-              << "\t\t\tOperandUseCycle: " << operandUseCycle << std::endl;
+    std::cerr << "\t\t\t\tOperandWriteCycle: " << operandWriteCycle << std::endl
+              << "\t\t\t\tOperandUseCycle: " << operandUseCycle << std::endl;
 #endif
 
     for (int j = operandWriteCycle; j <= operandUseCycle; j++) {
 #ifdef DEBUG_RM
-        std::cerr << "\t\t\tTesting if overwritten in cycle: " << j << std::endl;
+        std::cerr << "\t\t\t\tTesting if overwritten in cycle: " << j << std::endl;
 #endif
         unsigned int modCycle = instructionIndex(j);
         OperandWriteVector::const_iterator owi = operandWritten.find(modCycle);
@@ -1169,13 +1194,22 @@ bool ExecutionPipelineResource::operandOverwritten(
         const MoveNodePtrPair& mnpp = owi->second;
         if (mnpp.first != NULL && mnpp.first != &operand &&
             !exclusiveMoves(mnpp.first, &trigger, triggerCycle)) {
+#ifdef DEBUG_RM
+            std::cerr << "\t\t\t\t\tOverwritten by: " << mnpp.first->toString() << std::endl;
+#endif
             return true;
         }
         if (mnpp.second != NULL && mnpp.second != &operand &&
             !exclusiveMoves(mnpp.second, &trigger, triggerCycle)) {
+#ifdef DEBUG_RM
+            std::cerr << "\t\t\t\t\tOverwritten(2) by: " << mnpp.second->toString() << std::endl;
+#endif
             return true;
         }
     }
+#ifdef DEBUG_RM
+    std::cerr << "\t\t\tNot overwritten" << std::endl;
+#endif
     return false;
 }
 
@@ -1578,13 +1612,18 @@ ExecutionPipelineResource::nextResultCycle(
     
     ProgramOperation* sourcePo;
     if (!node.isSourceOperation()) {
-        throw InvalidData(__FILE__, __LINE__, __func__,
-                          "Trying to get next result for move that is not "
-                              "in ProgramOperation");
-    }
-    sourcePo = &node.sourceOperation();
-    if (trigger == NULL) {
-        trigger = sourcePo->triggeringMove();
+        if (node.isGuardOperation()) {
+            sourcePo = &node.guardOperation();
+        } else {
+            throw InvalidData(__FILE__, __LINE__, __func__,
+                              "Trying to get next result for move that is not"
+                              " in ProgramOperation");
+        }
+    } else {
+        sourcePo = &node.sourceOperation();
+        if (trigger == NULL) {
+            trigger = sourcePo->triggeringMove();
+        }
     }
 
     unsigned int ii = initiationInterval_;
@@ -1640,6 +1679,10 @@ int ExecutionPipelineResource::resultReadyCycle(
 
     MoveNode* trigger = po.triggeringMove();
     if (trigger == NULL || !trigger->isPlaced()) {
+#ifdef DEBUG_RM
+        std::cerr << "\t\t\t\tTrigger NULL or not scheduled: "
+                  << po.toString() << std::endl;
+#endif
         return -1;
     }
 
@@ -1652,6 +1695,9 @@ int ExecutionPipelineResource::resultReadyCycle(
             return trigger->cycle() + hwop.latency(outIndex);
         }
     }
+#ifdef DEBUG_RM
+    std::cerr << "\t\t\t\treturning -1 at end of rrcycle() " << std::endl;
+#endif
     return -1;
 }
 
@@ -1765,14 +1811,21 @@ ExecutionPipelineResource::testTriggerResult(
         MoveNode& mn = po.outputMove(i);
         if (mn.isPlaced()) {
             int outIndex = -1;
-            assert (mn.isSourceOperation() && &mn.sourceOperation() == &po);
-            assert(mn.move().source().isFUPort());
-            outIndex = mn.move().source().operationIndex();
+            if (mn.isSourceOperation() && &mn.sourceOperation() == &po) {
+                assert(mn.move().source().isFUPort());
+                outIndex = mn.move().source().operationIndex();
+            } else {
+                assert (mn.isGuardOperation() && &mn.guardOperation() == &po);
+                outIndex = po.outputIndexFromGuardOfMove(mn);
+            }
             const TTAMachine::Port& port = *hwop.port(outIndex);
             int resultCycle = cycle + hwop.latency(outIndex);
             // WAW conflict of result on same op on different iteration?
-            if (initiationInterval_ != 0 && isLoopBypass(mn) &&
-                mn.cycle() >= resultCycle) {
+            if (initiationInterval_ != 0 && isLoopBypass(mn) && mn.cycle() >= resultCycle) {
+#ifdef DEBUG_RM
+                std::cerr << "\t\t\t\tresult move: " << mn.toString()
+                          << " schedule too late: " << resultCycle << std::endl;
+#endif
                 return false;
             }
             if (!resultNotOverWritten(
@@ -1802,6 +1855,15 @@ ExecutionPipelineResource::resultAllowedAtCycle(
     const MoveNode& trigger, int triggerCycle) 
     const {
 
+#ifdef DEBUG_RM
+    if (&trigger != NULL) {
+        std::cerr << "\t\tChecking that result for po: " << po.toString() << " allowed at cycle "
+                  << resultCycle << " , trigger: " << trigger.toString() << " at cycle: " << triggerCycle << std::endl;
+    } else {
+        std::cerr << "\t\tChecking that result for po: " << po.toString() << " allowed at cycle "
+                  << resultCycle << " , trigger: NULL at cycle: " << triggerCycle << std::endl;
+    }
+#endif
     // if none found from the map, this used.
     ResultVector empty;
     ResultMap::const_iterator rri = resultRead_.find(&resultPort);
@@ -1852,10 +1914,20 @@ ExecutionPipelineResource::resultAllowedAtCycle(
                     }
                     int or2Mod = instructionIndex(otherReady);
                     bool orLooped = or2Mod > (int)modi; // FAIL HERE?
-                    // neither looped or both looped.
+
+#ifdef DEBUG_RM
+                    std::cerr << "\t\t\tOther po: " <<  resultReadPair.first.po->toString() << std::endl;
+                    std::cerr << "\t\t\tOther ready: " << otherReady << std::endl;
+                    std::cerr << "\t\t\tRR cycle: " << rrMod << std::endl;
+                    std::cerr << "\t\t\tOther ready mod: " << or2Mod << std::endl;
+#endif
+                    // neither looped or both looped.                       
                     if (modiLooped == orLooped) {
                         if ((or2Mod <= (int)rrMod && or2Mod != -1) &&
                             (triggerCycle == -1 || or2Mod != -1)) {
+#ifdef DEBUG_RM
+                            std::cerr << "\t\t\t\tfail(1)" << std::endl;
+#endif
                             return false;
                         } else {
                             if (otherTrigger != NULL &&
@@ -1865,8 +1937,10 @@ ExecutionPipelineResource::resultAllowedAtCycle(
                         }
                     } else {
                         // either one looped, order has to be reverse.
-                        if (or2Mod >= (int)rrMod &&
-                            (triggerCycle == -1 || or2Mod != -1)) {
+                        if (or2Mod >= (int)rrMod && (triggerCycle == -1 || or2Mod != -1)) {
+#ifdef DEBUG_RM
+                            std::cerr << "\t\t\t\tfail(2)" << std::endl;
+#endif
                             return false;
                         } else {
                             if (otherTrigger != NULL &&
@@ -1896,6 +1970,9 @@ ExecutionPipelineResource::resultAllowedAtCycle(
                     if (modiLooped == orLooped) {
                         if (or2Mod <= (int)rrMod &&
                             (triggerCycle == -1 || or2Mod != -1)) {
+#ifdef DEBUG_RM
+                            std::cerr << "\t\t\t\tfail(3)" << std::endl;
+#endif
                             return false;
                         } else {
                             if (otherTrigger != NULL &&
@@ -1907,6 +1984,9 @@ ExecutionPipelineResource::resultAllowedAtCycle(
                         // either looped, order has to be reverse.
                         if (or2Mod >= (int)rrMod &&
                             (triggerCycle == -1 || or2Mod != -1)) {
+#ifdef DEBUG_RM
+                            std::cerr << "\t\t\t\tfail(4)" << std::endl;
+#endif
                             return false;
                         } else {
                             if (otherTrigger != NULL &&
@@ -1922,16 +2002,22 @@ ExecutionPipelineResource::resultAllowedAtCycle(
     return true;
 }
 
+//#undef DEBUG_RM
 /**
  * Gives the port where from the movenode reads a result.
  */
 const TTAMachine::Port&
 ExecutionPipelineResource::resultPort(const MoveNode& mn) const {
-    assert(mn.isSourceOperation());
-    const ProgramOperation& po = mn.sourceOperation();
-    const TTAMachine::HWOperation& hwop =
-        *fu_.operation(po.operation().name());
-    return *hwop.port(mn.move().source().operationIndex());
+    if (mn.isSourceOperation()) {
+        const ProgramOperation& po = mn.sourceOperation();
+        const TTAMachine::HWOperation& hwop =
+            *fu_.operation(po.operation().name());
+        return *hwop.port(mn.move().source().operationIndex());
+    } else {
+        assert(mn.isGuardOperation());
+        return *(static_cast<const TTAMachine::PortGuard&>(
+                    mn.move().guard().guard())).port();
+    }
 }
 
 /**
@@ -2085,6 +2171,11 @@ bool ExecutionPipelineResource::operandAllowedAtCycle(
             if (operandUse.po != NULL) {
                 const MoveNode* opUseTrigger =
                     operandUse.po->triggeringMove();
+                if (opUseTrigger != NULL) {
+#ifdef DEBUG_RM
+                    std::cerr << "\t\t\t\tFound using trigger: " << opUseTrigger->toString() << std::endl;
+#endif
+                }
                 if (!exclusiveMoves(opUseTrigger, &mn, cycle)) {
                     /* destinationOperation(0) sounds suspicious */
                     if (!checkOperandAllowed(
@@ -2146,10 +2237,16 @@ bool ExecutionPipelineResource::checkOperandAllowed(
     int operandWriteCycle, 
     const OperandUseHelper &operandUse,
     int operandUseModCycle, ProgramOperation& currOp) const {
+#ifdef DEBUG_RM
+    std::cerr << "\t\t\t\tChecking operand allowed for port: " << port.name() << " owc: " << operandWriteCycle << " ouc: " << operandUseModCycle << " po: " << operandUse.po->toString() << std::endl;
+#endif
     for (int i = 0; i < operandUse.po->inputMoveCount(); i++) {
         MoveNode& mn = operandUse.po->inputMove(i);
         if (mn.isPlaced()) {
             if (&mn.move().destination().port() == &port) {
+#ifdef DEBUG_RM
+                std::cerr << "\t\t\t\t\tInput node using same  port: " << mn.toString() << std::endl;
+#endif
                 bool isCurrOp = false;
                 for (unsigned int i = 0; i < mn.destinationOperationCount();
                      i++) {
@@ -2165,10 +2262,10 @@ bool ExecutionPipelineResource::checkOperandAllowed(
 
                 // loop scheudling, op overlaps
                 // need to also check that is not written before the use.
-                if ((unsigned)operandUseModCycle <
+                if (operandUseModCycle <
                     instructionIndex(mn.cycle())) {
                     if (instructionIndex(operandWriteCycle) <=
-                        (unsigned)operandUseModCycle ||
+                        operandUseModCycle ||
                         instructionIndex(mn.cycle()) <= instructionIndex(operandWriteCycle)) {
                         if (!exclusiveMoves(&mn, &currentMn, mn.cycle()))
                             return false;
@@ -2178,7 +2275,7 @@ bool ExecutionPipelineResource::checkOperandAllowed(
                 if (instructionIndex(mn.cycle()) <=
                     instructionIndex(operandWriteCycle) &&
                     instructionIndex(operandWriteCycle) <=
-                    (unsigned)operandUseModCycle) {
+                    operandUseModCycle) {
                     if (!exclusiveMoves(&mn, &currentMn, mn.cycle()))
                         return false;
                 }
@@ -2231,6 +2328,9 @@ bool ExecutionPipelineResource::triggerTooEarly(const MoveNode& trigger, int cyc
     ProgramOperation& po = trigger.destinationOperation(0);
     const Operation& op = po.operation();
     TTAMachine::HWOperation& hwop = *fu_.operation(op.name());
+#ifdef DEBUG_RM
+    std::cerr << "\t\t\t\tTesting if trigger too early for: " << trigger.toString() << "  PO: " << po.toString() << std::endl;
+#endif
     for (int i = 0; i < po.inputMoveCount(); i++) {
         MoveNode& mn = po.inputMove(i);
 #ifdef DEBUG_RM
@@ -2309,14 +2409,13 @@ int ExecutionPipelineResource::latestTriggerWriteCycle(
             result.cycle() + initiationInterval_ :
             result.cycle();
 
-        auto fu = static_cast<const TTAMachine::FunctionUnit*>(
-            result.move().source().port().parentUnit());
+        auto fu = po.fuFromOutMove(result);
         // find the latency of the operation output we are testing
         const TTAMachine::HWOperation& hwop =
             *fu->operation(po.operation().name());
 
         // find the OSAL id of the operand of the output we are testing
-        const int outputIndex = result.move().source().operationIndex();
+        const int outputIndex = po.outputIndexOfMove(result);
         int latency = hwop.latency(outputIndex);
         latestTrigger = std::min(latestTrigger, resultCycle - latency);
     }
@@ -2403,7 +2502,7 @@ bool ExecutionPipelineResource::resultCausesTriggerBetweenOperandSharing(
     if (trigger == nullptr || trigger->isScheduled()) {
         return false;
     }
-    const int outputIndex = mn.move().source().operationIndex();
+    const int outputIndex = po.outputIndexOfMove(mn);
     const TTAMachine::HWOperation& hwop =
         *fu_.operation(po.operation().name());
     const TTAMachine::Port* outPort = hwop.port(outputIndex);
@@ -2453,7 +2552,6 @@ bool ExecutionPipelineResource::resultCausesTriggerBetweenOperandSharing(
         return false;
     }
 
-
     int earliestTriggerCycle = earliestAllowedResReady - latency;
 
     // if overlaps between earliest and last trigger
@@ -2488,6 +2586,9 @@ bool ExecutionPipelineResource::resultCausesTriggerBetweenOperandSharing(
             if (!inPort->isTriggering()) {
                 if (!operandAllowedAtCycle(*inPort, inMove,c)) {
                     fail = true;
+#ifdef DEBUG_RM
+                    std::cerr << "\t\t\t\t\tOperand not allowed at cycle: " << c << std::endl;
+#endif
                     continue;
                 }
             }
@@ -2508,9 +2609,9 @@ bool ExecutionPipelineResource::operandSharePreventsTriggerForScheduledResult(
         return false;
     }
 
-    int modCycle = instructionIndex(cycle);
+    std::map<const TTAMachine::FUPort*, std::set<int> > myActualResultCycles;
 
-    // cycle range these operand shared ops keep the output port reserved.
+    // cycle range these operand shared ops may use the output port.
     std::map<const TTAMachine::FUPort*, std::pair<int, int> > myResultCycles;
 
     // earliest possible cycle of the last trigger of these operand shared ops
@@ -2538,7 +2639,7 @@ bool ExecutionPipelineResource::operandSharePreventsTriggerForScheduledResult(
                 continue;
             }
 
-            const int outputIndex = outMove.move().source().operationIndex();
+            const int outputIndex = po.outputIndexOfMove(outMove);
             const TTAMachine::HWOperation& hwop =
                 *fu_.operation(po.operation().name());
             int latency = hwop.latency(outputIndex);
@@ -2547,7 +2648,7 @@ bool ExecutionPipelineResource::operandSharePreventsTriggerForScheduledResult(
             // [] operator would init to 0 which would break min.
             if (outPortIter == myResultCycles.end()) {
                 // initialize to be free.
-                myResultCycles[outPort] = std::make_pair(INT_MAX, 0);
+                myResultCycles[outPort] = std::make_pair(INT_MAX, -1);
             }
 
             if (outMove.isScheduled()) {
@@ -2561,9 +2662,13 @@ bool ExecutionPipelineResource::operandSharePreventsTriggerForScheduledResult(
                 myResultCycles[outPort].first = std::min(
                     myResultCycles[outPort].first, outMove.cycle());
 
+                // Is really used during this cycle.
+                myActualResultCycles[outPort].insert(
+                    instructionIndex(instructionIndex(outMove.cycle())));
+
                 if (trigger == nullptr || !trigger->isScheduled()) {
-                    int triggerCycle = outMove.cycle() - latency;
-                    if (triggerCycle > lastTriggerCycle) {
+                    int optimalTriggerCycle = outMove.cycle() - latency;
+                    if (optimalTriggerCycle > lastTriggerCycle) {
                         // the trigger cycle was exact,
                         // based on scheduled trigger
                         // now make it inexact.
@@ -2584,30 +2689,42 @@ bool ExecutionPipelineResource::operandSharePreventsTriggerForScheduledResult(
                             prevLatency = latency;
                         }
                     }
+                } else { // trigger is scheduled.
+                    int resultReady = trigger->cycle() + latency;
+                    for (int i = outMove.cycle(); i >= resultReady; i--) {
+                        myActualResultCycles[outPort].insert(
+                            instructionIndex(i));
+                    }
                 }
-            }
 
-            if (trigger != nullptr && trigger->isScheduled()) {
-                myResultCycles[outPort].second = std::max(
-                    myResultCycles[outPort].second, trigger->cycle() +
-                    latency);
+            } else { // out move not scheduled.
+                if (trigger != nullptr && trigger->isScheduled()) {
+                    myActualResultCycles[outPort].insert(
+                        instructionIndex(trigger->cycle() + latency));
 
-                myResultCycles[outPort].first = std::min(
-                    myResultCycles[outPort].first, trigger->cycle() +
-                    latency);
+                    myResultCycles[outPort].second = std::max(
+                        myResultCycles[outPort].second,
+                        trigger->cycle() + latency);
+
+                    myResultCycles[outPort].first = std::min(
+                        myResultCycles[outPort].first,
+                        trigger->cycle() + latency);
+                }
+
             }
         }
     }
 
-    int lastTriggerModCycle = instructionIndex(lastTriggerCycle);
-
     // loop through all result ports used by the operand.
     for (auto p : myResultCycles) {
+
+        auto& myActualResCycles = myActualResultCycles[p.first];
         // result read vector for that port
         auto rri = resultRead_.find(p.first);
         // first and last cycles for that port.
         int myFirstResultCycle = p.second.first;
         int myLastResultCycle = p.second.second;
+
         // modulo versions of these cycles
         int myFirstModResult = instructionIndex(myFirstResultCycle);
         int myLastModResult = instructionIndex(myLastResultCycle);
@@ -2618,59 +2735,54 @@ bool ExecutionPipelineResource::operandSharePreventsTriggerForScheduledResult(
         }
         auto& resVec = rri->second;
 
-        for (auto res : resVec) {
-            int anotherResCycle = res.first; // TODO: is this already modcycle?
+        for (auto& res : resVec) {
+            int anotherResCycle = res.first;
             int anotherResModCycle = instructionIndex(anotherResCycle);
             assert(anotherResCycle == anotherResModCycle);
 
-            // the range overlaps
-            if (myLastModResult < myFirstModResult) {
-                // before first but after overlapped last, ok
-                if (anotherResModCycle < myFirstModResult &&
-                    anotherResModCycle > myLastModResult) {
-                    continue;
-                }
-            } else { // no overlap.
-                // Before first of after last is ok.
-                if (anotherResModCycle < myFirstModResult ||
-                    anotherResModCycle > myLastModResult) {
-                    continue;
+            // IF found fromt he actual result cycles, have to check.
+            if (myActualResCycles.find(anotherResModCycle)
+                == myActualResCycles.end()) {
+                // the range overlaps
+                if (myLastModResult < myFirstModResult) {
+                    // before first but after overlapped last, ok
+                    if (anotherResModCycle < myFirstModResult &&
+                        anotherResModCycle > myLastModResult)
+                        continue;
+                } else { // no overlap.
+                    // Before first of after last is ok.
+                    if (anotherResModCycle < myFirstModResult ||
+                        anotherResModCycle > myLastModResult)
+                        continue;
                 }
             }
             auto& foo = res.second;
-            ResultHelper& rh1 = foo.first;
-            ResultHelper& rh2 = foo.second;
+            const ResultHelper& rh1 = foo.first;
+            const ResultHelper& rh2 = foo.second;
             if (rh1.po != nullptr) {
                 int rc = rh1.realCycle;
                 MoveNode* trigger = rh1.po->triggeringMove();
-                if (poConflictsWithInputPort(port, *rh1.po, mn)) {
+                if (!trigger->isScheduled() &&
+                    poConflictsWithInputPort(port, *rh1.po, mn)) {
                     const TTAMachine::HWOperation& hwop =
                         *fu_.operation(rh1.po->operation().name());
                     int outIndex = hwop.io(*p.first);
                     int latency = hwop.latency(outIndex);
-                    int otherTriggerCycle = rc - latency;
-                    int otherTriggerModCycle =
-                        instructionIndex(otherTriggerCycle);
-
-                    // Check that the triggers actually conflict
-                    // They may no conflict because of longer latency of
-                    // another op
-                    if (!exclusiveMoves(&mn, trigger, cycle)) {
-                        // both interleaved equally much.
-
-                        // no overlap between cycle and last trigger cycle.
-                        if (modCycle <= lastTriggerModCycle) {
-
-                            if (otherTriggerModCycle >= modCycle &&
-                                otherTriggerModCycle < lastTriggerModCycle) {
-                                return true;
-                            }
-                        } else { // overlap.
-                            if (otherTriggerModCycle >= modCycle ||
-                                otherTriggerModCycle < lastTriggerModCycle) {
-                                return true;
-                            }
+                    bool foundWorkingCycle = false;
+                    // try to find a legal cycle for the trigger of other op
+                    for (int i = rc;
+                         myActualResCycles.find(instructionIndex(i)) ==
+                             myActualResCycles.end(); i--) {
+                        int otherTriggerCycle = i - latency;
+                        if (!cyclesConflict(
+                                &mn, trigger, cycle, cycle, lastTriggerCycle,
+                                otherTriggerCycle)) {
+                            foundWorkingCycle = true;
                         }
+                    }
+                    // did not found a legal place for the trigger?
+                    if (!foundWorkingCycle) {
+                        return true;
                     }
                 }
             }
@@ -2678,34 +2790,28 @@ bool ExecutionPipelineResource::operandSharePreventsTriggerForScheduledResult(
             if (rh2.po != nullptr) {
                 int rc = rh2.realCycle;
                 MoveNode* trigger = rh2.po->triggeringMove();
-
-                if (poConflictsWithInputPort(port, *rh2.po, mn)) {
+                if (!trigger->isScheduled() &&
+                    poConflictsWithInputPort(port, *rh2.po, mn)) {
                     const TTAMachine::HWOperation& hwop =
                         *fu_.operation(rh2.po->operation().name());
                     int outIndex = hwop.io(*p.first);
                     int latency = hwop.latency(outIndex);
-                    int otherTriggerCycle = rc - latency;
-                    int otherTriggerModCycle =
-                        instructionIndex(otherTriggerCycle);
-
-                    // Check that the triggers actually conflict
-                    // They may no conflict because of longer latency of
-                    // another op
-                    if (!exclusiveMoves(&mn, trigger, cycle)) {
-
-                        // no overlap between cycle and last trigger cycle.
-                        if (modCycle <= lastTriggerModCycle) {
-
-                            if (otherTriggerModCycle >= modCycle &&
-                                otherTriggerModCycle < lastTriggerModCycle) {
-                                return true;
-                            }
-                        } else { // overlap.
-                            if (otherTriggerModCycle >= modCycle ||
-                                otherTriggerModCycle < lastTriggerModCycle) {
-                                return true;
-                            }
+                    bool foundWorkingCycle = false;
+                    // try to find a legal cycle for the trigger of other op
+                    for (int i = rc;
+                         myActualResCycles.find(i) == myActualResCycles.end();
+                         i--) {
+                        assert (i > myFirstResultCycle);
+                        int otherTriggerCycle = i - latency;
+                        if (!cyclesConflict(
+                                &mn, trigger, cycle, cycle, lastTriggerCycle,
+                                otherTriggerCycle)) {
+                            foundWorkingCycle = true;
                         }
+                    }
+                    // did not found a legal place for the trigger?
+                    if (!foundWorkingCycle) {
+                        return true;
                     }
                 }
             }
@@ -2713,6 +2819,36 @@ bool ExecutionPipelineResource::operandSharePreventsTriggerForScheduledResult(
     }
     return false;
 }
+
+bool ExecutionPipelineResource::cyclesOverlap(
+    int rangeFirst, int rangeLast, int targetCycle) const {
+    int rangeFirstMod = instructionIndex(rangeFirst);
+    int rangeLastMod = instructionIndex(rangeLast);
+    int targetCycleMod = instructionIndex(targetCycle);
+
+    // no overlap for the range
+    if (rangeFirstMod <= rangeLastMod) {
+        return targetCycleMod >= rangeFirstMod &&
+            targetCycleMod <= rangeLastMod;
+    } else { // overlaps.
+        return targetCycleMod >= rangeFirstMod ||
+            targetCycleMod <= rangeLastMod;
+    }
+}
+
+/*
+ * mn1 move osed for exclusive check
+ * mn2 another move used for exclusive check
+ */
+bool ExecutionPipelineResource::cyclesConflict(
+    const MoveNode* mn1, const MoveNode* mn2, int guardCycle,
+    int rangeFirst, int rangeLast, int targetCycle) const {
+    if (exclusiveMoves(mn1, mn2, guardCycle)) {
+        return false;
+    }
+    return cyclesOverlap (rangeFirst, rangeLast, targetCycle);
+}
+
 
 const MoveNode* ExecutionPipelineResource::nodeOfInputPort(
     const ProgramOperation& po, TTAMachine::Port& port) {
@@ -2723,7 +2859,7 @@ const MoveNode* ExecutionPipelineResource::nodeOfInputPort(
         return nullptr;
     }
     int idx = hwop->io(static_cast<TTAMachine::FUPort&>(port));
-    return &po.inputNode(idx).at(0);
+    return *po.inputNode(idx).begin();
 }
 
 

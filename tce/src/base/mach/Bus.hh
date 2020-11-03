@@ -59,6 +59,8 @@ public:
     virtual Bus* copy() const;
     virtual void copyGuardsTo(Bus& other) const;
 
+    operator Segment&() { return *this->segment(0); }
+
     virtual int position() const;
 
     int width() const;

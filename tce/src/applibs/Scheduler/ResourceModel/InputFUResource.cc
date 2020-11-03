@@ -50,8 +50,9 @@ using TTAMachine::Port;
  * @param name Name of resource
  */
 InputFUResource::InputFUResource(
-    const std::string& name, int opCount, unsigned int initiationInterval) :
-    FUResource(name, opCount, initiationInterval) {
+    const std::string& name, int opCount, int nopSlotWeight,
+    unsigned int initiationInterval) :
+    FUResource(name, opCount, nopSlotWeight, initiationInterval) {
 }
 
 /**
@@ -82,7 +83,10 @@ InputFUResource::canAssign(const int, const MoveNode&) const {
  * with canAssing first.
  */
 void
-InputFUResource::assign(const int cycle, MoveNode& node) {
+InputFUResource::assign(
+    const int cycle,
+    MoveNode& node) {
+
     for (int i = 0; i < dependentResourceGroupCount(); i++) {
         for (int j = 0, count = dependentResourceCount(i); j < count; j++) {
             if (dependentResource(i, j).isExecutionPipelineResource()) {
@@ -108,7 +112,10 @@ InputFUResource::assign(const int cycle, MoveNode& node) {
  * @throw In case PSocket is not connected to FU
  */
 void
-InputFUResource::unassign(const int cycle, MoveNode& node) {
+InputFUResource::unassign(
+    const int cycle,
+    MoveNode& node) {
+
     for (int i = 0; i < dependentResourceGroupCount(); i++) {
         for (int j = 0, count = dependentResourceCount(i); j < count; j++) {
             if (dependentResource(i, j).isExecutionPipelineResource()) {
@@ -135,8 +142,11 @@ InputFUResource::unassign(const int cycle, MoveNode& node) {
  */
 bool
 InputFUResource::canAssign(
-    const int cycle, const MoveNode& node, const InputPSocketResource& pSocket,
+    const int cycle,
+    const MoveNode& node,
+    const InputPSocketResource& pSocket,
     const bool triggers) const {
+
     if (!hasDependentResource(pSocket)) {
         std::string msg = "InputPSocket ";
         msg += pSocket.name();

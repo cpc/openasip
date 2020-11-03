@@ -196,10 +196,7 @@ SafePointer::genericRegisterPointer(
 template <typename KeyType, typename MapType>
 void
 SafePointer::genericAddObjectReference(
-    const KeyType& key,
-    MapType& keyMap,
-    const SafePointable* obj)  {
-
+    const KeyType& key, MapType& keyMap, const SafePointable* obj) {
     assert(obj != NULL);
 
     typename MapType::iterator oldKeyListPos = keyMap.find(key);
@@ -281,9 +278,7 @@ SafePointer::genericAddObjectReference(
  */
 template <typename KeyType, typename MapType>
 KeyType
-SafePointer::genericKeyFor(const SafePointable* obj, MapType& sourceMap)
-     {
-
+SafePointer::genericKeyFor(const SafePointable* obj, MapType& sourceMap) {
     if (!MapTools::containsKey(*referenceMap_, obj)) {
         throw KeyNotFound(__FILE__, __LINE__,
                           "SafePointer::genericKeyFor()",
@@ -322,7 +317,6 @@ SafePointer::genericKeyFor(const SafePointable* obj, MapType& sourceMap)
             MapTools::valueForKey<const ReferenceKey*>(*keyForCache_, cacheKey));
 
     return *returnKey;
-
 }
 
 /**

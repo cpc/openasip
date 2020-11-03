@@ -36,8 +36,7 @@
 namespace TTAProgram {
 TerminalSymbolReference::TerminalSymbolReference(
     const TCEString& symbolName) :
-    TerminalImmediate(
-        SimValue(0,WORD_BITWIDTH)),
+    TerminalImmediate(SimValue(0, WORD_BITWIDTH)),
     symbolName_(symbolName) {}
     
 Terminal* 

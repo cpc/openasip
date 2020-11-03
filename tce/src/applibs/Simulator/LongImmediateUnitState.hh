@@ -35,6 +35,7 @@
 #define TTA_LONG_IMMEDIATE_UNIT_STATE_HH
 
 #include <vector>
+#include <queue>
 #include <map>
 #include <string>
 
@@ -85,17 +86,19 @@ private:
         /**
          * Constructor.
          */
-        Item() : timer_(0), value_(64), index_(0) {}
+        Item() : arrival_(0), value_(64), index_(0) {}
+        Item(SimValue value, int index, unsigned arrival)
+            : arrival_(arrival), value_(value), index_(index) {}
       
         /// Timer of the item.
-        int timer_;
+        unsigned arrival_;
         /// Value of the item.
         SimValue value_;
         /// Index of the item.
         int index_;
     };
     
-    typedef std::vector<Item*> ItemQueue;
+    typedef std::queue<Item> ItemQueue;
     typedef std::vector<LongImmediateRegisterState*> RegisterContainer;
     typedef std::vector<SimValue> ValueContainer;
 
@@ -109,6 +112,10 @@ private:
     RegisterContainer registers_;
     /// Contains all values of the registers.
     ValueContainer values_;
+    /// Counter to time arrival of immediate values. Note: value is expected
+    /// to wrap.
+    unsigned timer_ = 0;
+
 };
 
 //////////////////////////////////////////////////////////////////////////////

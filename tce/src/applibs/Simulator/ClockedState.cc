@@ -43,14 +43,3 @@ ClockedState::ClockedState() {
  */
 ClockedState::~ClockedState() {
 }
-
-/**
- * Returns true in case the piece of state is idle, thus do not need to be
- * notified of clock advance events.
- *
- * @return Idleness status, default implementation always returns false.
- */
-bool
-ClockedState::isIdle() {
-    return false;
-}

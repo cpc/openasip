@@ -55,7 +55,10 @@
 #include "StringTools.hh"
 #include "MoveNode.hh"
 #include "MoveGuard.hh"
+#include "TemplateSlot.hh"
 #include "Guard.hh"
+#include "OperationPool.hh"
+#include "Operand.hh"
 
 using namespace TTAMachine;
 /**
@@ -99,6 +102,19 @@ MachineConnectivityCheck::isConnected(
         }
     }
     return false;
+}
+
+/**
+ * Dummy implementation for the pure virtual method MachineCheck::check().
+ *
+ * The implementation is needed for generation of Python bindings, as
+ * Boost.Python cannot create instances of abstract base classes.
+ */
+
+bool
+MachineConnectivityCheck::check(const TTAMachine::Machine&,
+				MachineCheckResults&) const {
+    assert(0);
 }
 
 /**
@@ -210,11 +226,7 @@ MachineConnectivityCheck::canTransportImmediate(
     for (auto i = buses.begin(); i != buses.end(); ++i) {
         const TTAMachine::Bus& bus = **i;
 
-        int requiredBits = 
-            MachineConnectivityCheck::requiredImmediateWidth(
-                bus.signExtends(), immediate, 
-                *destinationPort.parentUnit()->machine());
-        if (bus.immediateWidth() < requiredBits) {
+        if (!canTransportImmediate(immediate, bus)) {
             continue;
         }
         if (guard == NULL) {
@@ -242,6 +254,29 @@ MachineConnectivityCheck::canTransportImmediate(
         }
     }
     return false;
+}
+
+/**
+ * Checks whether an immediate with given width can be transported on the
+ * bus.
+ *
+ * @param immediate The immediate to transport.
+ * @param bus The bus.
+ * @return True if the bus can transport the immediate as inline.
+ */
+bool
+MachineConnectivityCheck::canTransportImmediate(
+    const TTAProgram::TerminalImmediate& immediate,
+    const TTAMachine::Bus& bus) {
+
+    int requiredBits =
+	MachineConnectivityCheck::requiredImmediateWidth(
+	    bus.signExtends(), immediate, *bus.machine());
+    if (bus.immediateWidth() >= requiredBits) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /**
@@ -406,6 +441,53 @@ MachineConnectivityCheck::isConnected(
 }
 
 /**
+ * Checks whether the two RFs are connected to the exact same buses.
+ */
+bool
+MachineConnectivityCheck::isEquallyConnected(
+    const TTAMachine::BaseRegisterFile& RF1,
+    const TTAMachine::BaseRegisterFile& RF2) {
+
+    std::set<const TTAMachine::Bus*> dstBuses1, dstBuses2;
+    appendConnectedDestinationBuses(RF1, dstBuses1);
+    appendConnectedDestinationBuses(RF2, dstBuses2);
+
+    std::set<const TTAMachine::Bus*> srcBuses1, srcBuses2;
+    appendConnectedSourceBuses(RF1, srcBuses1);
+    appendConnectedSourceBuses(RF2, srcBuses2);
+
+    return dstBuses1 == dstBuses2 && srcBuses1 == srcBuses2;
+}
+
+bool
+MachineConnectivityCheck::isPortApplicableToWidths(
+    const TTAMachine::Port& port, std::set<int> widths) {
+    auto fup = dynamic_cast<const FUPort*>(&port);
+    if (fup == nullptr) {
+        return false;
+    }
+    auto fu = dynamic_cast<const FunctionUnit*>(port.parentUnit());
+    if (fu == nullptr) {
+        return false;
+    }
+
+    OperationPool opPool;
+
+    for (int i = 0; i < fu->operationCount(); i++) {
+        auto hwop = fu->operation(i);
+        if (!hwop->isBound(*fup))
+            continue;
+
+        int opIndex = hwop->io(*fup);
+        int oprWidth = operandWidth(*hwop, opIndex);
+        if (AssocTools::containsKey(widths, oprWidth)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Checks whether there is a connection from the given Register file
  * or Immediate unit to all FU's and control unit of the machine.
  *
@@ -420,6 +502,8 @@ bool
 MachineConnectivityCheck::fromRfConnected(
     const TTAMachine::BaseRegisterFile& brf) {
 
+    int width = brf.width();
+    bool isVectorRegs = width > 32;
     TTAMachine::Machine& mach = *brf.machine();
     TTAMachine::Machine::FunctionUnitNavigator fuNav = 
         mach.functionUnitNavigator();
@@ -434,13 +518,26 @@ MachineConnectivityCheck::fromRfConnected(
         }
     }
 
+    std::set<int> widths;
+    widths.insert(brf.width());
+
+    auto widthsExt = widths;
+    if (width == 32) {
+        widthsExt.insert(1);
+        widthsExt.insert(8);
+        widthsExt.insert(16);
+    }
+    if (width == 1) {
+        widthsExt.insert(32);
+    }
+
     // check connections to function units
-    for (int i = 0; i < fuNav.count(); i++) {
-        FunctionUnit& fu = *fuNav.item(i);
-        for (int j = 0; j < fu.portCount(); j++ ) {
-            Port& port = *fu.port(j);
+    for (auto fu: fuNav) {
+        for (int j = 0; j < fu->portCount(); j++ ) {
+            Port& port = *fu->port(j);
             // connections from RF to FU's
-            if (port.inputSocket() != NULL) {
+            if (port.inputSocket() != NULL &&
+                isPortApplicableToWidths(port, widthsExt)) {
                 std::set<const TTAMachine::Bus*> sharedBuses;
                 SetTools::intersection(
                     rfBuses, connectedSourceBuses(port), sharedBuses);
@@ -451,13 +548,19 @@ MachineConnectivityCheck::fromRfConnected(
         }
     } 
 
+    // no need to transfer data from vector regs to control unit.
+    if (isVectorRegs) {
+        return true;
+    }
+
     // check connections to control unit
     TTAMachine::ControlUnit& cu = *mach.controlUnit();
     for (int i = 0; i < cu.portCount(); i++ ) {
         Port& port = *cu.port(i);
 
         // connections from RF to CU
-        if (port.inputSocket() != NULL) {
+        if (port.inputSocket() != NULL &&
+            isPortApplicableToWidths(port, widths)) {
             std::set<const TTAMachine::Bus*> sharedBuses;
             SetTools::intersection(
                 rfBuses, connectedSourceBuses(port), sharedBuses);
@@ -487,6 +590,75 @@ MachineConnectivityCheck::rfConnected(
     return fromRfConnected(rf) && toRfConnected(rf);
 }
 
+std::pair<int, int>
+MachineConnectivityCheck::immBits(
+    const TTAMachine::Machine& mach) {
+    std::pair<int, int> rv;
+    std::set<const TTAMachine::Bus*> buses;
+    for (auto b: mach.busNavigator()) {
+        buses.insert(b);
+    }
+    shortImmBits(buses, rv);
+    return rv;
+}
+
+void
+MachineConnectivityCheck::shortImmBits(
+    std::set<const TTAMachine::Bus*>& buses, std::pair<int, int>& immBits) {
+
+    for (auto b: buses) {
+        int w = b->immediateWidth();
+        if (b->signExtends()) {
+            immBits.first = std::max(immBits.first, w);
+        } else {
+            immBits.second = std::max(immBits.second,w);
+        }
+    }
+}
+
+std::pair<int, int>
+MachineConnectivityCheck::immBits(
+    const TTAMachine::RegisterFile& rf) {
+    auto mach = rf.machine();
+    std::pair<int, int> rv(0,0);
+    std::set<const TTAMachine::Bus*> rfBuses;
+
+    if (mach == nullptr) {
+        return rv;
+    }
+
+    for (int i = 0; i < rf.portCount(); i++) {
+        auto port = rf.port(i);
+        if (port->inputSocket() != NULL) {
+            appendConnectedSourceBuses(*port, rfBuses);
+        }
+    }
+    shortImmBits(rfBuses, rv);
+
+    // then check LIMM connections.
+    for (auto iu: mach->immediateUnitNavigator()) {
+        int w = iu->width();
+        for (int j = 0; j < iu->portCount(); j++ ) {
+            Port& port = *iu->port(j);
+            if (port.outputSocket() == nullptr)
+                continue;
+
+            std::set<const TTAMachine::Bus*> sharedBuses;
+            SetTools::intersection(
+                rfBuses, connectedDestinationBuses(port),sharedBuses);
+            // TODO: check bus widths.
+            if (sharedBuses.size() != 0) {
+                if (iu->signExtends()) {
+                    rv.first = std::max(rv.first, w);
+                } else {
+                    rv.second = std::max(rv.second, w);
+                }
+            }
+        }
+    }
+    return rv;
+}
+
 /**
  * Checks whether there is a connection to the given Register file
  * from all FU's and control unit of the machine.
@@ -502,6 +674,8 @@ bool
 MachineConnectivityCheck::toRfConnected(
     const TTAMachine::RegisterFile& rf) {
 
+    int width = rf.width();
+    bool isVectorRF = width > 32;
     TTAMachine::Machine& mach = *rf.machine();
     TTAMachine::Machine::FunctionUnitNavigator fuNav = 
         mach.functionUnitNavigator();
@@ -509,6 +683,17 @@ MachineConnectivityCheck::toRfConnected(
         mach.immediateUnitNavigator();
 
     std::set<const TTAMachine::Bus*> rfBuses;
+
+    std::set<int> widths;
+    widths.insert(rf.width());
+    if (width == 32) {
+        widths.insert(1);
+        widths.insert(16); // Needed for half-floats?
+
+    }
+    if (width == 1) {
+        widths.insert(32);
+    }
 
     for (int i = 0; i < rf.portCount(); i++) {
         const TTAMachine::Port& port = *rf.port(i);
@@ -518,12 +703,13 @@ MachineConnectivityCheck::toRfConnected(
     }
 
     // check connections from function units
-    for (int i = 0; i < fuNav.count(); i++) {
-        FunctionUnit& fu = *fuNav.item(i);
-        for (int j = 0; j < fu.portCount(); j++ ) {
-            Port& port = *fu.port(j);
+    for (auto fu: fuNav) {
+        for (int j = 0; j < fu->portCount(); j++ ) {
+            Port& port = *fu->port(j);
             // connections from FU to RF
-            if (port.outputSocket() != NULL) {
+            if (port.outputSocket() != NULL &&
+                isPortApplicableToWidths(port, widths) &&
+                port.width() >= width) {
                 std::set<const TTAMachine::Bus*> sharedBuses;
                 SetTools::intersection(
                     rfBuses, connectedDestinationBuses(port), sharedBuses);
@@ -534,25 +720,9 @@ MachineConnectivityCheck::toRfConnected(
         }
     } 
 
-    // check connections from immediate units 
-    for (int i = 0; i < iuNav.count(); i++) {
-        ImmediateUnit& iu = *iuNav.item(i);
-        bool iuConnected = false;
-        for (int j = 0; j < iu.portCount(); j++ ) {
-            Port& port = *iu.port(j);
-            if (port.outputSocket() != NULL) {
-                std::set<const TTAMachine::Bus*> sharedBuses;
-                SetTools::intersection(
-                    rfBuses, connectedDestinationBuses(port),sharedBuses);
-                if (sharedBuses.size() != 0) {
-                    iuConnected = true;
-                    break;
-                }
-            }
-        }
-        if (iuConnected == false) {
-            return false;
-        }
+    // no need to check for imms or cu connections for vector RFs
+    if (isVectorRF) {
+        return true;
     }
 
     // check connections from control unit
@@ -561,14 +731,30 @@ MachineConnectivityCheck::toRfConnected(
         Port& port = *cu.port(i);
 
         // connections from CU to RF
-        if (port.outputSocket() != NULL) {
-            std::set<const TTAMachine::Bus*> sharedBuses;
-            SetTools::intersection(
-                rfBuses, connectedDestinationBuses(port), sharedBuses);
-            if (sharedBuses.size() == 0) {
-                return false;
+        if (port.width() == width) {
+            if (port.outputSocket() != NULL) {
+                std::set<const TTAMachine::Bus*> sharedBuses;
+                SetTools::intersection(
+                    rfBuses, connectedDestinationBuses(port), sharedBuses);
+                if (sharedBuses.size() == 0) {
+                    return false;
+                }
             }
         }
+    }
+
+    // if all immediates can be written to the RF?
+    auto rfImmBits = immBits(rf);
+    if (rfImmBits.first >= width || rfImmBits.second >= width) {
+        return true;
+    }
+
+    // if there are wider imms in the adf, not ok
+    auto allImmBits = immBits(*rf.machine());
+    if (rfImmBits.first < allImmBits.first ||
+        (rfImmBits.second < allImmBits.second &&
+         (rfImmBits.first-1) < allImmBits.second)) {
+        return false;
     }
     return true;
 }
@@ -676,89 +862,316 @@ MachineConnectivityCheck::appendConnectedDestinationBuses(
     }
 }
 
-/** 
+/**
+ * Checks if given RF is connected to differently connected RFs,
+ * to know if we need to reserve temp registers for transfers between
+ * the two RFs.
+ *
+ * TODO: This isn't always needed: there is no need to reserve a register
+ *       from an RF if it is only connected to RFs with a subset of the
+ *       connectivity it offers.
+ */
+bool
+MachineConnectivityCheck::isConnectedToDifferentlyConnectedRFs(
+    const TTAMachine::RegisterFile& rf) {
+    auto regNav = rf.machine()->registerFileNavigator();
+    for (auto rf2: regNav) {
+        if ((rf2 != &rf) &&
+            (isConnected(rf,*rf2) || isConnected(*rf2,rf)) &&
+            !isEquallyConnected(rf, *rf2) &&
+            ((rf.width() <= 32 && rf2->width() <= 32) ||
+             (rf.width() == rf2->width()))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+int MachineConnectivityCheck::operandWidth(
+    const TTAMachine::HWOperation& hwop, int index) {
+    OperationPool opPool;
+    Operation& op = opPool.operation(hwop.name().c_str());
+    if (&op == &NullOperation::instance()) {
+        TCEString msg = "ADF has unknown operation: "; msg << hwop.name();
+        throw Exception(__FILE__, __LINE__, __func__, msg);
+    }
+    Operand& operand = op.operand(index);
+    return operand.width();
+}
+
+
+std::set<const RegisterFile*>
+MachineConnectivityCheck::needRegCopiesDueReadPortConflicts(
+    const TTAMachine::Machine& machine) {
+
+    std::map<int, int> noRegInputCount;
+    auto fuNav = machine.functionUnitNavigator();
+    auto regNav = machine.registerFileNavigator();
+
+    std::set<const RegisterFile*> rv;
+
+    for (auto fu : fuNav) {
+        for (int j = 0; j < fu->operationCount(); j++) {
+            auto hwop = fu->operation(j);
+            std::map<int, int> myNoRegInputCount;
+            for (int k = 1; k <= hwop->operandCount(); k++) {
+                auto p = hwop->port(k);
+                if (p->inputSocket() != NULL &&
+                    (p->noRegister() || p->isTriggering())) {
+                    int w = operandWidth(*hwop, k);
+                    myNoRegInputCount[w]++;
+                    if (w == 1) {
+                        myNoRegInputCount[32]++;
+                    } else if (w == 32) {
+                        myNoRegInputCount[1]++;
+                    }
+                }
+            }
+
+            for(auto mw : myNoRegInputCount) {
+                int w = mw.first;
+                noRegInputCount[w] = std::max(noRegInputCount[w], mw.second);
+            }
+        }
+    }
+    for (auto rf: regNav) {
+        // one read needed for trigger so <= instead of <
+        if (rf->maxReads() < noRegInputCount[rf->width()]) {
+            rv.insert(rf);
+        }
+    }
+    return rv;
+}
+
+bool
+MachineConnectivityCheck::needsRegisterCopiesDueImmediateOperands(
+    const TTAMachine::Machine& mach) {
+
+    std::set<int> scalarWidths = {1,32};
+    for (auto fu: mach.functionUnitNavigator()) {
+        for (int j = 0; j < fu->portCount(); j++ ) {
+            Port& port = *fu->port(j);
+            // connections from RF to FU's
+            if (port.inputSocket() != NULL &&
+                isPortApplicableToWidths(port, scalarWidths)) {
+                if (!canWriteAllImmediates(port)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool MachineConnectivityCheck::raConnected(const TTAMachine::Machine& machine) {
+
+    static bool spammed = false;
+    // check connection from RA to jump for fn return.
+    ControlUnit& cu = *machine.controlUnit();
+    SpecialRegisterPort& ra = *cu.returnAddressPort();
+    if (cu.hasOperation("jump")) {
+        auto jumpOp = cu.operation("jump");
+        auto port = jumpOp->port(1);
+        if (!isConnected(ra, *port)) {
+            if (Application::verboseLevel() > 0 && !spammed) {
+                std::cout << "Reserving registers for temp reg use because "
+                          << "a connection is missing between the RA port "
+                          << "and the address port of jump operation." << std::endl;
+                spammed = true;
+            }
+            return false;
+        }
+    }
+
+    // check that RA can be loaded and stored
+    TCEString ldOp = machine.isLittleEndian() ? "LD32" : "LDW";
+    TCEString stOp = machine.isLittleEndian() ? "ST32" : "STW";
+    bool hasLoad = false;
+    bool hasStore = false;
+    bool raConnectedToLoad = false;
+    bool raConnectedToStore = false;
+    for (auto fu: machine.functionUnitNavigator()) {
+        if (!fu->hasAddressSpace() ||
+            !fu->addressSpace()->hasNumericalId(0)) {
+            continue;
+        }
+        if (fu->hasOperation(ldOp)) {
+            hasLoad = true;
+            auto ldhwop = fu->operation(ldOp);
+            auto port = ldhwop->port(2);
+            if (isConnected(*port, ra)) {
+                raConnectedToLoad = true;
+            }
+        }
+
+        if (fu->hasOperation(stOp)) {
+            hasStore = true;
+            auto sthwop = fu->operation(stOp);
+            auto port = sthwop->port(2);
+            if (isConnected(ra, *port)) {
+                raConnectedToStore = true;
+            }
+        }
+    }
+
+    if ((raConnectedToLoad || !hasLoad) &&
+        (raConnectedToStore || !hasStore)) {
+        return true;
+    } else {
+        if (Application::verboseLevel() > 0 && !spammed) {
+            std::cout << "Reserving registers for temp reg use because "
+                      << "a connection is missing between the RA port "
+                      << "and the LSU." << std::endl;
+            spammed = true;
+        }
+        return false;
+    }
+}
+
+/**
  * Gets all register files needed for limited connectivity temp registers
  *
  * @param machine machine we are checking
  * @return vector of registerfiles whose last register is to be used for 
  */
-std::vector<RegisterFile*>
+std::set<const RegisterFile*, MachinePart::Comparator>
 MachineConnectivityCheck::tempRegisterFiles(
     const TTAMachine::Machine& machine) {
-    std::vector<RegisterFile*> rfs;
+    static bool spammed = false;
 
-    Machine::RegisterFileNavigator regNav =
-        machine.registerFileNavigator();
+    std::set<const RegisterFile*, TTAMachine::MachinePart::Comparator> rfs;
 
-    Machine::ImmediateUnitNavigator iuNav =
-        machine.immediateUnitNavigator();
+    auto regNav = machine.registerFileNavigator();
+    auto iuNav = machine.immediateUnitNavigator();
+    auto fuNav = machine.functionUnitNavigator();
 
-    Machine::FunctionUnitNavigator fuNav =
-        machine.functionUnitNavigator();
+    auto reducedConnRfs = needRegCopiesDueReadPortConflicts(machine);
+    std::set<int> portConflictWidths;
+    for (auto rf: reducedConnRfs) {
+        int w = rf->width();
+        portConflictWidths.insert(w);
+    }
 
-    RegisterFile* connectedRF = NULL;
+    bool portConflicts = !reducedConnRfs.empty();
     bool allConnected = true;
+    if (portConflicts) {
+        if (Application::verboseLevel() > 0 && !spammed) {
+            std::cout << "Reserving registers for temp reg use because " <<
+                "of possible RF port conflicts; There are operations " <<
+                "on registerless FUs with more operations than there are " <<
+                "read ports on some RFs." << std::endl;
+            spammed = true;
+        }
+        allConnected = false;
+    }
     int widestRFWidth = 0;
 
-    for (int i = 0; i < regNav.count(); i++) {
-        if (regNav.item(i)->width() > widestRFWidth) {
-            widestRFWidth = regNav.item(i)->width();
+    std::set<int> lackingConnectivityWidths;
+    std::set<const TTAMachine::RegisterFile*> allConnectedRFs;
+    std::map<int, const RegisterFile*> priorityConnectedRFs;
+    std::map<int, int> regCounts;
+    std::map<int, int> regFileCounts;
+
+    // may need temp reg copies because immediate operands cannto be
+    // transferred to all operations directly.
+    if (allConnected && needsRegisterCopiesDueImmediateOperands(machine)) {
+        lackingConnectivityWidths.insert(32);
+        allConnected = false;
+        if (Application::verboseLevel() > 0 && !spammed) {
+            std::cout << "Reserving registers for temp reg use because " <<
+                "all immediate operands are not possible to transfer " <<
+                "directly. This reduces the number of registers available " <<
+                "for storing usable values." << std::endl;
+            spammed = true;
         }
     }
 
-    for (int i = 0; i < regNav.count(); i++) {
-        if (!rfConnected(*regNav.item(i))) {
+    for (auto rf: regNav) {
+        int w = rf->width();
+        if (w > widestRFWidth) {
+            widestRFWidth = w;
+        }
+        regCounts[w] += rf->size();
+        regFileCounts[w]++;
+    }
+
+    for (auto rf: regNav) {
+        int width = rf->width();
+        if (!rfConnected(*rf)) {
+            reducedConnRfs.insert(rf);
             allConnected = false;
+            lackingConnectivityWidths.insert(width);
+            if (Application::verboseLevel() > 0 && !spammed) {
+                std::cout << "Reserving registers for temp reg use because RF: "
+                          << rf->name() << " has reduced connectivity to FUs or "
+                          << "immediates." << std::endl;
+                spammed = true;
+            }
         } else {
+            allConnectedRFs.insert(rf);
             // we have at least on RF connected to everywhere so use it.
             // but only if it's wide enough (as wide as the widest RF)
-            if (connectedRF == NULL && 
-                regNav.item(i)->width() == widestRFWidth) {
-                connectedRF = regNav.item(i);
+            auto connectedRF = priorityConnectedRFs[width];
+
+            // ra/imm/narrowed connectivity for 32bit
+            if ((width <= 32 || isConnectedToDifferentlyConnectedRFs(*rf)) &&
+                 (connectedRF == nullptr ||
+                rf->maxReads() * rf->maxWrites() >
+                  connectedRF->maxReads() * connectedRF->maxWrites())) {
+                priorityConnectedRFs[width] = rf;
             }
         }
     }
 
-    // register copy also needed if unconnected imm from regs
-    for (int i = 0; i < iuNav.count(); i++) {
-        if (!fromRfConnected(*iuNav.item(i))) {
-            allConnected = false;
-        }
+    if (!raConnected(machine)) {
+        allConnected = false;
+        lackingConnectivityWidths.insert(32);
     }
 
-    // check connection to and from RA, and imm->FU's
-    // just checking load, store and jump might be enough. 
-    // implement that later, lets now be safe and unoptimal
-    ControlUnit& cu = *machine.controlUnit();
-    SpecialRegisterPort& ra = *cu.returnAddressPort();
-
-    for (int i = 0; i < fuNav.count(); i++) {
-        FunctionUnit& fu = *fuNav.item(i);
-        for (int j = 0; j < fu.portCount(); j++ ) {
-            Port& port = *fu.port(j);
-            if (port.outputSocket() != NULL) {
-                if (!isConnected(port, ra)) {
-                    allConnected = false;
-                } 
-            }
-            if (port.inputSocket() != NULL) {
-                if (!isConnected(ra,port)||
-                    !canWriteAllImmediates(port)) {
-                    allConnected = false;
-                } 
-            }
-        }
+    if (allConnected) {
+        return rfs;
     }
 
-    if (!allConnected) {
-        if (connectedRF != NULL) {
-            rfs.push_back(connectedRF);
-            return rfs;
+    bool needNextBigger = false;
+    if (AssocTools::containsKey(lackingConnectivityWidths, 1)) {
+        if (priorityConnectedRFs[1] != nullptr &&
+            regCounts[1] > 2 &&
+            regFileCounts[1] > 1) {
+            rfs.insert(priorityConnectedRFs[1]);
         } else {
-            for (int i = 0; i < regNav.count(); i++) {
-                RegisterFile* rf = regNav.item(i);
-                if (rf->width() != 1) {
-                    rfs.push_back(rf);
+            needNextBigger = true;
+        }
+    }
+    // 32-bit.
+    if (needNextBigger ||
+        AssocTools::containsKey(lackingConnectivityWidths, 32) ||
+        portConflicts) {
+        if (!portConflicts && priorityConnectedRFs[32] != nullptr) {
+            rfs.insert(priorityConnectedRFs[32]);
+        } else {
+            for (auto rf: regNav) {
+                if (rf->width() == 32 &&
+                    (isConnectedToDifferentlyConnectedRFs(*rf) ||
+                     portConflicts)) {
+                    rfs.insert(rf);
+                }
+            }
+        }
+    }
+
+    // vector.
+    for (int w = 64; w <= widestRFWidth; w*=2) {
+        if (AssocTools::containsKey(lackingConnectivityWidths, w) ||
+            portConflicts) {
+            if (!portConflicts && priorityConnectedRFs[w] != nullptr) {
+                rfs.insert(priorityConnectedRFs[w]);
+            } else {
+                for (auto rf: regNav) {
+                    if (rf->width() == w &&
+                        (isConnectedToDifferentlyConnectedRFs(*rf) ||
+                         portConflicts)) {
+                        rfs.insert(rf);
+                    }
                 }
             }
         }
@@ -769,7 +1182,7 @@ MachineConnectivityCheck::tempRegisterFiles(
 
 
 /** 
- * Checks if there is a way to write immediate diretly from bus or from immu
+ * Checks if there is a way to write immediate directly from bus or from immu
  * to the given port
  * 
  * @param port Port where to check immediate write ability.
@@ -778,16 +1191,20 @@ bool
 MachineConnectivityCheck::canWriteAllImmediates(Port& destPort) {
     /** First check if there is a bus that can transfer the immediates */
     int portWidth = destPort.width();
-    int widestConnectedImmediate = -1;
-    int widestImmediate = -1;
+    int sextImm = 0;
+    int zextImm = 0;
+
     Socket& socket = *destPort.inputSocket();
     
     // check immediates from buses
     for (int i = 0; i < socket.segmentCount(); ++i) {
-        const Bus& bus = *socket.segment(i)->parentBus();
-        int immw = bus.immediateWidth();
-        widestConnectedImmediate = 
-            std::max(widestConnectedImmediate, immw);
+        auto bus = socket.segment(i)->parentBus();
+        int immw = bus->immediateWidth();
+        if (bus->signExtends()) {
+            sextImm = std::max(immw, sextImm);
+        } else {
+            zextImm = std::max(immw, zextImm);
+        }
         if (immw >= portWidth) {
             return true;
         }
@@ -802,24 +1219,21 @@ MachineConnectivityCheck::canWriteAllImmediates(Port& destPort) {
         ImmediateUnit& iu = *iuNav.item(i);
         int immw = iu.width();
         if (isConnected(iu, destPort)) {
-	    widestConnectedImmediate = 
-                std::max(widestConnectedImmediate, immw);
-            if (immw >= portWidth) {
-                return true;
+            if (iu.signExtends()) {
+                sextImm = std::max(immw, sextImm);
+            } else {
+                zextImm = std::max(immw, zextImm);
             }
         }
-	widestImmediate = std::max(widestImmediate, immw);
     }
 
-    TTAMachine::Machine::BusNavigator busNav = 
-        mach.busNavigator();
-    
-    for (int i = 0; i < busNav.count(); i++) {
-        Bus& bus = *busNav.item(i);
-        widestImmediate = std::max(widestImmediate, bus.immediateWidth());
-    }    
-    
-    return widestImmediate == widestConnectedImmediate;
+    auto widestImms = immBits(mach);
+    // wide zext imm not needed if has one bit wider sext imm.
+    if (widestImms.first > sextImm ||
+        (widestImms.second > zextImm && (sextImm-1) < widestImms.second)) {
+        return false;
+    }
+    return true;
 }
 
 /**
@@ -834,7 +1248,6 @@ MachineConnectivityCheck::requiredImmediateWidth(
     bool signExtension,
     const TTAProgram::TerminalImmediate& source,
     const TTAMachine::Machine& mach) {
-
 
     if (source.isCodeSymbolReference()) {
         const AddressSpace& instrAS = *mach.controlUnit()->addressSpace();
@@ -887,6 +1300,9 @@ bool MachineConnectivityCheck::busConnectedToPort(
     return false;
 }
 
+/**
+ * Returns true if bus is connected to the RF's any writing port.
+ */
 bool MachineConnectivityCheck::busConnectedToRF(
     const TTAMachine::Bus& bus, const TTAMachine::Unit& destRF) {
     for (int i = 0; i < destRF.portCount(); i++) {
@@ -897,6 +1313,7 @@ bool MachineConnectivityCheck::busConnectedToRF(
     }
     return false;
 }
+
 
 bool
 MachineConnectivityCheck::busConnectedToFU(
@@ -929,8 +1346,9 @@ MachineConnectivityCheck::busConnectedToAnyFU(
         static_cast<TTAProgram::TerminalFUPort*>(&move.destination());
     int opIndex = tfp->operationIndex();
 
-    TTAMachine::Unit* unit = NULL;
     ProgramOperation& po = moveNode.destinationOperation();
+    auto fu = po.scheduledFU();
+/*
     for (int i = 0; i < po.inputMoveCount(); i++ ) {
         MoveNode& inputNode = po.inputMove(i);
         if (inputNode.isAssigned()) {
@@ -942,17 +1360,31 @@ MachineConnectivityCheck::busConnectedToAnyFU(
         for (int i = 0; i < po.outputMoveCount(); i++ ) {
             MoveNode& outputNode = po.outputMove(i);
             if (outputNode.isAssigned()) {
-                unit = outputNode.move().source().port().parentUnit();
-                break;
+                if (outputNode.isSourceOperation() &&
+                    &outputNode.sourceOperation() == &po) {
+                    unit = outputNode.move().source().port().parentUnit();
+                    break;
+                } else {
+                    assert (!outputNode.move().isUnconditional());
+                    assert (&outputNode.guardOperation() == &po);
+                    const TTAMachine::Guard& guard =
+                        outputNode.move().guard().guard();
+                    const TTAMachine::PortGuard* pg =
+                        dynamic_cast<const TTAMachine::PortGuard*>(&guard);
+                    assert(pg); // todo: throw?
+                    unit = pg->port()->parentUnit();
+                    break;
+                }
             }
         }
     }
+*/
 
     Operation& op = move.destination().hintOperation();
     TCEString opName = StringTools::stringToLower(op.name());
 
-    if (unit != NULL) {
-        FunctionUnit* fu = dynamic_cast<FunctionUnit*>(unit);
+    if (fu != NULL) {
+//        const FunctionUnit* fu = dynamic_cast<const FunctionUnit*>(unit);
         assert(fu != NULL);
         return busConnectedToFU(bus, *fu, opName, opIndex);
     }
@@ -962,8 +1394,12 @@ MachineConnectivityCheck::busConnectedToAnyFU(
     std::set<TCEString> candidateFUs;
     std::set<TCEString> allowedFUs;
 
-    addAnnotatedFUs(candidateFUs, move, TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST);
-    addAnnotatedFUs(allowedFUs, move, TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST);
+    addAnnotatedFUs(
+        candidateFUs, move, 
+        TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST);
+    addAnnotatedFUs(
+        allowedFUs, move, 
+        TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST);
 
     TTAMachine::ControlUnit* gcu = bus.machine()->controlUnit();
     if (candidateFUs.empty() || AssocTools::containsKey(
@@ -971,7 +1407,7 @@ MachineConnectivityCheck::busConnectedToAnyFU(
         if (busConnectedToFU(bus, *gcu, opName, opIndex)) {
             return true;
         }
-    }    
+    }
 
 
     const TTAMachine::Machine::FunctionUnitNavigator& fuNav = 
@@ -980,21 +1416,23 @@ MachineConnectivityCheck::busConnectedToAnyFU(
         TTAMachine::FunctionUnit& fu = *fuNav.item(i);
         if (!candidateFUs.empty() && !AssocTools::containsKey(
                 candidateFUs,fu.name())) {
-	    continue;
-	}
+            continue;
+        }
         if (!allowedFUs.empty() && !AssocTools::containsKey(
                 allowedFUs,fu.name())) {
-	    continue;
-	}
+            continue;
+        }
         if (busConnectedToFU(bus, fu, opName, opIndex)) {
-                return true;
+            return true;
         }
     }
     return false;
 }
 
-bool MachineConnectivityCheck::busConnectedToDestination(
-    const TTAMachine::Bus& bus, const MoveNode& moveNode) {
+bool 
+MachineConnectivityCheck::busConnectedToDestination(
+    const TTAMachine::Bus& bus, 
+    const MoveNode& moveNode) {
     const TTAProgram::Move& move = moveNode.move();
     if (move.destination().isGPR()) {
         TTAMachine::Unit& destRF = 
@@ -1032,9 +1470,10 @@ MachineConnectivityCheck::totalConnectionCount(
 }
 
 
-MachineConnectivityCheck::PortSet
+MachineConnectivityCheck::PortSet 
 MachineConnectivityCheck::findPossibleDestinationPorts(
-const TTAMachine::Machine& mach, const MoveNode& node) {
+    const TTAMachine::Machine& mach, 
+    const MoveNode& node) {
     PortSet res;
     if (node.isScheduled()) {
         res.insert(&node.move().destination().port());
@@ -1059,9 +1498,21 @@ const TTAMachine::Machine& mach, const MoveNode& node) {
             for (int i = 0; i < po.outputMoveCount(); i++) {
                 MoveNode& mn = po.outputMove(i);
                 if (mn.isScheduled()) {
-
-                    allowedFUNames.insert(
-                        mn.move().source().port().parentUnit()->name());
+                    if (mn.isSourceOperation() && &mn.sourceOperation() == &po) {
+                        allowedFUNames.insert(
+                            mn.move().source().port().parentUnit()->name());
+                    } else {
+                        if (mn.isGuardOperation() &&
+                            &mn.guardOperation() == &po) {
+                            const TTAMachine::Guard& guard =
+                                mn.move().guard().guard();
+                            const TTAMachine::PortGuard* pg =
+                                dynamic_cast<const TTAMachine::PortGuard*>(&guard);
+                            assert(pg); // todo: throw?
+                            const TTAMachine::Unit* u = pg->port()->parentUnit();
+                            allowedFUNames.insert(u->name());
+                        }
+                    }
                 }
             }
         }
@@ -1069,31 +1520,32 @@ const TTAMachine::Machine& mach, const MoveNode& node) {
         std::set<TCEString> candidateFUs;
         std::set<TCEString> allowedFUs;
 	
-        addAnnotatedFUs(candidateFUs, node.move(), 
-	    TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST);
-        addAnnotatedFUs(allowedFUs, node.move(),
- 	    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST);
+        addAnnotatedFUs(
+            candidateFUs, node.move(), 
+            TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST);
+        addAnnotatedFUs(
+            allowedFUs, node.move(),
+            TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST);
 
-	if (!candidateFUs.empty()) {
-	    if (allowedFUNames.empty()) {
-		allowedFUNames = candidateFUs;
-	    } else {
-		std::set<TCEString> tmp;
-		SetTools::intersection(allowedFUNames, candidateFUs,tmp);
-		allowedFUNames = tmp;
-	    }
+        if (!candidateFUs.empty()) {
+            if (allowedFUNames.empty()) {
+                allowedFUNames = candidateFUs;
+            } else {
+                std::set<TCEString> tmp;
+                SetTools::intersection(allowedFUNames, candidateFUs,tmp);
+                allowedFUNames = tmp;
+            }
 
         }
-
-	if (!allowedFUs.empty()) {
-	    if (allowedFUNames.empty()) {
-		allowedFUNames = allowedFUs;
-	    } else {
-		std::set<TCEString> tmp;
-		SetTools::intersection(allowedFUNames, allowedFUs,tmp);
-		allowedFUNames = tmp;
-	    }
-
+    
+        if (!allowedFUs.empty()) {
+            if (allowedFUNames.empty()) {
+                allowedFUNames = allowedFUs;
+            } else {
+                std::set<TCEString> tmp;
+                SetTools::intersection(allowedFUNames, allowedFUs,tmp);
+                allowedFUNames = tmp;
+            }
         }
         
         for (int i = 0; i <= nav.count(); i++) {
@@ -1137,7 +1589,7 @@ MachineConnectivityCheck::PortSet
 MachineConnectivityCheck::findWritePorts(const TTAMachine::Unit& rf) {
     PortSet res;
     for (int i = 0; i < rf.portCount(); i++) {
-        TTAMachine::Port* port = rf.port(i);
+        const TTAMachine::Port* port = rf.port(i);
         if (port->isInput()) {
             res.insert(port);
         }
@@ -1155,6 +1607,52 @@ MachineConnectivityCheck::findReadPorts(const TTAMachine::Unit& rf) {
         }
     }
     return res;
+}
+
+/**
+ * Returns true if there is connection between the port and the bus.
+ */
+ bool
+ MachineConnectivityCheck::isConnected(
+        const TTAMachine::Bus& bus,
+        const TTAMachine::Port& port) {
+     std::vector<const Socket*> sockets{
+         port.inputSocket(), port.outputSocket()};
+
+     for (const Socket* socket : sockets) {
+         if (socket != nullptr && socket->isConnectedTo(bus)) {
+             return true;
+         }
+     }
+     return false;
+ }
+
+ /**
+  * Returns true if there is connection between the port and the bus.
+  */
+ bool
+ MachineConnectivityCheck::isConnected(
+     const TTAMachine::Port& port,
+     const TTAMachine::Bus& bus) {
+     return isConnected(bus, port);
+ }
+
+/**
+ * Returns busses that connects the given ports.
+ */
+MachineConnectivityCheck::BusSet
+MachineConnectivityCheck::findRoutes(
+    TTAMachine::Port& port1,
+    TTAMachine::Port& port2) {
+
+    MachineConnectivityCheck::BusSet result;
+    const Machine& mach = *port1.parentUnit()->machine();
+    for (Bus* bus : mach.busNavigator()) {
+        if (isConnected(port1, *bus) && isConnected(port2, *bus)) {
+            result.insert(bus);
+        }
+    }
+    return result;
 }
 
 MachineConnectivityCheck::PortSet
@@ -1275,10 +1773,10 @@ int MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
 }
 
 bool MachineConnectivityCheck::canBypass(
-    const MoveNode& src, const MoveNode& user,
+    const MoveNode& src, const MoveNode& user, 
     const TTAMachine::Machine& targetMachine) {
 
-    MachineConnectivityCheck::PortSet destinationPorts =
+    MachineConnectivityCheck::PortSet destinationPorts = 
         MachineConnectivityCheck::findPossibleDestinationPorts(
             targetMachine, user);
 
@@ -1288,7 +1786,7 @@ bool MachineConnectivityCheck::canBypass(
     }
 
     if (src.isSourceConstant()) {
-        TTAProgram::TerminalImmediate* imm =
+        TTAProgram::TerminalImmediate* imm = 
             static_cast<TTAProgram::TerminalImmediate*>(
                 &src.move().source());
         if (MachineConnectivityCheck::canTransportImmediate(
@@ -1305,13 +1803,14 @@ bool MachineConnectivityCheck::canBypass(
     // unconditional?
     const TTAProgram::Move& userMove = user.move();
     if (MachineConnectivityCheck::isConnected(
-            sourcePorts, destinationPorts,
+            sourcePorts, destinationPorts, 
             userMove.isUnconditional() ? NULL : &userMove.guard().guard())) {
         return trueVal;
     }
 
     return false;
 }
+
 
 bool
 MachineConnectivityCheck::canAnyPortWriteToDestination(
@@ -1340,18 +1839,16 @@ MachineConnectivityCheck::canTransportMove(
 }
 
 void
-MachineConnectivityCheck::addAnnotatedFUs(std::set<TCEString>& candidateFUs, 
+MachineConnectivityCheck::addAnnotatedFUs(
+    std::set<TCEString>& candidateFUs, 
 	const TTAProgram::Move& m, 
 	TTAProgram::ProgramAnnotation::Id id) {
-
-     const int annotationCount =
-                    m.annotationCount(id);
-                for (int i = 0; i < annotationCount; ++i) {
-                    std::string candidateFU =
-                        m.annotation(i, id).stringValue();
-                    candidateFUs.insert(candidateFU);
-                }
-
+    
+    const int annotationCount = m.annotationCount(id);
+    for (int i = 0; i < annotationCount; ++i) {
+        std::string candidateFU = m.annotation(i, id).stringValue();
+        candidateFUs.insert(candidateFU);
+    }
 }
 
 /* These are static */
@@ -1363,12 +1860,12 @@ MachineConnectivityCheck::PortRfBoolMap MachineConnectivityCheck::portRfCache_;
 
 bool
 MachineConnectivityCheck::hasConditionalMoves(
-    const TTAMachine::Machine& mach) {
+    const TTAMachine::Machine& mach, const std::set<int>& rfWidths) {
 
     const Machine::RegisterFileNavigator regNav =
         mach.registerFileNavigator();
 
-    std::set<std::pair<RegisterFile*,int> > allGuardRegs;
+    std::set<std::pair<const RegisterFile*,int> > allGuardRegs;
     const Machine::BusNavigator& busNav = mach.busNavigator();
 
     // first just collect all guard registers.
@@ -1380,19 +1877,30 @@ MachineConnectivityCheck::hasConditionalMoves(
                 dynamic_cast<const RegisterGuard*>(guard);
             if (rg != NULL) {
                 allGuardRegs.insert(
-                    std::pair<RegisterFile*,int>(rg->registerFile(),
-                                                 rg->registerIndex()));
+                    std::pair<const RegisterFile*,int>(rg->registerFile(),
+                                                       rg->registerIndex()));
             }
         }
     }
 
+    if (allGuardRegs.empty()) {
+        return false;
+    }
 
     // then check for the connections.
     for (int i = 0; i < regNav.count(); i++) {
-        TTAMachine::RegisterFile* srf = regNav.item(i);
+        const TTAMachine::RegisterFile* srf = regNav.item(i);
         for (int j = 0; j < regNav.count(); j++) {
-            TTAMachine::RegisterFile* drf = regNav.item(i);
-            for (std::set<std::pair<RegisterFile*,int> >::iterator k =
+            const TTAMachine::RegisterFile* drf = regNav.item(i);
+            int width = drf->width();
+
+            // if we do not care about RFs of this size
+            if (!rfWidths.empty() &&
+                !AssocTools::containsKey(rfWidths, width)) {
+                continue;
+            }
+
+            for (std::set<std::pair<const RegisterFile*,int> >::iterator k =
                      allGuardRegs.begin(); k != allGuardRegs.end(); k++) {
                 if (!isConnectedWithBothGuards(*srf, *drf, *k)) {
                     return false;
@@ -1505,4 +2013,74 @@ int MachineConnectivityCheck::maxSIMMCount(
         }
     }
     return simmCount;
+}
+
+/**
+ * Find FU which has copy op that can be used to schedule this move.
+ *
+ * Prioritizes FUs which can schedule the move directly with one
+ * copy op. If none found, then fives FU which has copy op and
+ * can recursively be used with later copy.
+ * If none found at all, returns empty set.
+ */
+MachineConnectivityCheck::FUSet MachineConnectivityCheck::copyOpFUs(
+    const TTAMachine::Machine& mach,
+    const MoveNode& mn) {
+
+    // with these, single copy op is enough
+    FUSet suitableFUs;
+    // with these, have to use multiple copy ops or copy+regcopy
+    FUSet partiallySuitableFUs;
+
+    std::string opName = "COPY";
+    const TTAProgram::Move& move = mn.move();
+    auto destinationPorts = findPossibleDestinationPorts(mach, mn);
+
+    for (auto fu: mach.functionUnitNavigator()) {
+        PortSet copyOutPorts;
+        PortSet copyTriggerPorts;
+        if (fu->hasOperation(opName)) {
+            TTAMachine::HWOperation* hwop = fu->operation(opName);
+            copyOutPorts.insert(hwop->port(2));
+            copyTriggerPorts.insert(hwop->port(1));
+            if (MachineConnectivityCheck::isConnected(
+                    copyOutPorts, destinationPorts,
+                    (move.isUnconditional()) ?
+                    nullptr : &move.guard().guard())) {
+                partiallySuitableFUs.insert(fu);
+                if (canSourceWriteToAnyDestinationPort(
+                        mn, copyTriggerPorts)) {
+                    suitableFUs.insert(fu);
+                }
+            }
+        }
+    }
+    return suitableFUs.empty() ? partiallySuitableFUs : suitableFUs;
+}
+
+bool MachineConnectivityCheck::canBypassOpToDst(
+    const TTAMachine::Machine& mach,
+    const TCEString& opName,
+    int outIndex,
+    const MoveNode& mn) {
+
+    PortSet sourcePorts;
+
+    const TTAMachine::Machine::FunctionUnitNavigator& fuNav =
+        mach.functionUnitNavigator();
+    for (auto fu: fuNav) {
+        if (fu->hasOperation(opName)) {
+            TTAMachine::HWOperation* hwop = fu->operation(opName);
+            sourcePorts.insert(hwop->port(outIndex));
+        }
+    }
+
+    MachineConnectivityCheck::PortSet destinationPorts =
+        MachineConnectivityCheck::findPossibleDestinationPorts(mach, mn);
+
+    const TTAProgram::Move& move = mn.move();
+    return MachineConnectivityCheck::isConnected(
+        sourcePorts, destinationPorts,
+        (move.isUnconditional()) ?
+        nullptr : &move.guard().guard());
 }

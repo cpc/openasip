@@ -37,7 +37,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "Exception.hh"
 
@@ -55,14 +55,14 @@ namespace TTAProgram {
 
 namespace TTAMachine {
     class Unit;
+    class PortGuard;
     class FunctionUnit;
     class HWOperation;
 }
 
 // use this smart_ptr type to point to POs to allow more safe sharing of
 // POs between POM and DDG, etc.
-typedef boost::shared_ptr<ProgramOperation> ProgramOperationPtr;
-
+typedef std::shared_ptr<ProgramOperation> ProgramOperationPtr;
 
 /**
  * Represents a single execution of an operation in a program.
@@ -77,14 +77,27 @@ public:
 
     void addNode(MoveNode& node);
     void addInputNode(MoveNode& node);
+    void addOutputNode(MoveNode& node, int outputIndex);
     void addOutputNode(MoveNode& node);
+    void addGuardOutputNode(MoveNode& node);
 
+    int outputIndexFromGuardOfMove(const MoveNode& node) const;
+    int outputIndexFromGuard(const TTAMachine::PortGuard& pg) const;
+
+    static int outputIndexFromGuard(
+    const TTAMachine::PortGuard& pg, const Operation& op);
+
+    int outputIndexOfMove(const MoveNode& mn) const;
     const TTAMachine::FunctionUnit* scheduledFU() const;
+    const TTAMachine::FunctionUnit* fuFromOutMove(
+        const MoveNode& outputNode) const;
 
     const TTAMachine::HWOperation* hwopFromOutMove(
         const MoveNode& outputNode) const;
 
+    void removeOutputNode(MoveNode& node, int outputIndex);
     void removeOutputNode(MoveNode& node);
+    void removeGuardOutputNode(MoveNode& node);
     void removeInputNode(MoveNode& node);
 
     bool isComplete();
@@ -105,6 +118,7 @@ public:
     bool hasInputNode(int in) const;
 
     const Operation& operation() const;
+    void setOperation(const Operation& op);
 
     int inputMoveCount() const;
     int outputMoveCount() const;
@@ -129,6 +143,8 @@ public:
 
     bool hasConstantOperand() const;
     // Comparator for maps and sets
+
+    bool operator==(const ProgramOperation& po) { return poId() == po.poId(); }
     class Comparator {
     public:
         bool operator()(
@@ -145,7 +161,7 @@ private:
     // assignment forbidden
     ProgramOperation& operator=(const ProgramOperation&);
     // OSAL Operation this program operation is executing.
-    const Operation& operation_;
+    const Operation* operation_;
     // map from operand index to MoveNodeSet
     std::map<int,MoveNodeSet*> inputMoves_;
     // map from operand index to MoveNodeSet
@@ -167,5 +183,6 @@ public:
         return ProgramOperation::Comparator()(po1.get(), po2.get());
     }
 };
+
 
 #endif

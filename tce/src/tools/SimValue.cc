@@ -26,7 +26,7 @@
  *
  * Non-inline definitions of SimValue class.
  *
- * @author Pekka J√§√§skel√§inen 2004,2014-2015 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2004,2014-2015 (pjaaskel-no.spam-cs.tut.fi)
  * @author Mikko Jarvela 2013, 2014 (mikko.jarvela-no.spam-.tut.fi)
  * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
@@ -36,6 +36,7 @@
 #include "MathTools.hh"
 #include "Conversion.hh"
 #include "TCEString.hh"
+#include "Exception.hh"
 
 /**
  * Default constructor.
@@ -72,7 +73,9 @@ SimValue::SimValue(SLongWord value, int width) :
 
     setBitWidth(width);
 
-    const int BYTE_COUNT = (width + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
+    // Don't memcpy more than 8 bytes
+    const int BYTE_COUNT =
+        width < 64 ? (width + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH : 8;
 
 #if HOST_BIGENDIAN == 1
     swapByteOrder(((const Byte*)&value), BYTE_COUNT, rawData_);
@@ -767,7 +770,7 @@ SimValue::operator*(const DoubleWord& rightHand) {
  * operators.
  *
  * @note This compares only the first value as a 32bit uintword, thus
- *       does not work for values that exceed that width.
+ *       does not work for vectors that exceed that width.
  *
  * @param rightHand The right hand side of the comparison.
  * @return Reference to itself.
@@ -886,9 +889,7 @@ SimValue::operator==(const DoubleWord& rightHand) const {
 }
 
 /**
- * Returns SimValue as a sign extended integer.
- *
- * @return Sign extended integer value.
+ * Returns SimValue as a sign extended host integer.
  */
 int
 SimValue::intValue() const {
@@ -912,12 +913,11 @@ SimValue::intValue() const {
 }
 
 /**
- * Returns SimValue as a zero extended unsigned integer.
- *
- * @return Zero extended unsigned integer value.
+ * Returns SimValue as a zero extended unsigned host integer.
  */
 unsigned int
 SimValue::unsignedValue() const {
+
     const size_t BYTE_COUNT = sizeof(unsigned int);
 
     union CastUnion {
@@ -939,8 +939,6 @@ SimValue::unsignedValue() const {
 
 /**
  * Returns the SimValue as SIntWord value.
- *
- * @return SIntWord value.
  */
 SIntWord
 SimValue::sIntWordValue() const {
@@ -968,9 +966,7 @@ SimValue::sIntWordValue() const {
 }
 
 /**
- * Returns the SimValue as UIntWord value.
- *
- * @return UIntWord value.
+ * Returns the SimValue as host endian UIntWord value.
  */
 UIntWord
 SimValue::uIntWordValue() const {
@@ -1023,7 +1019,7 @@ SimValue::sLongWordValue() const {
 }
 
 /**
- * Returns the SimValue as UIntWord value.
+ * Returns the SimValue as an ULongWord.
  *
  * @return UIntWord value.
  */
@@ -1073,9 +1069,7 @@ SimValue::doubleWordValue() const {
 }
 
 /**
- * Returns the SimValue as FloatWord value.
- *
- * @return the SimValue as a host endian FloatWord value.
+ * Returns the SimValue as a host endian FloatWord value.
  */
 FloatWord
 SimValue::floatWordValue() const {
@@ -1098,12 +1092,11 @@ SimValue::floatWordValue() const {
 }
 
 /**
- * Returns the SimValue as HalfFloatWord value.
- *
- * @return the SimValue as a host endian HalfFloatWord value.
+ * Returns the SimValue as a host endian HalfFloatWord value.
  */
 HalfFloatWord
 SimValue::halfFloatWordValue() const {
+
     const size_t BYTE_COUNT = sizeof(uint16_t);
 
     union CastUnion {
@@ -1122,9 +1115,7 @@ SimValue::halfFloatWordValue() const {
 }
 
 /**
- * Returns the value as a binary string.
- *
- * @return the value as a 2's complement (MSB left) binary string in ascii.
+ * Returns the value as a 2's complement (MSB left) binary string in ascii.
  */
 TCEString
 SimValue::binaryValue() const {
@@ -1163,6 +1154,7 @@ SimValue::hexValue(bool noHexIdentifier) const {
             return Conversion::toHexString(
                 uIntWordValue(), hexNumbers).substr(2);
         } else {
+            // TODO: what about SIMD? this only prints one word?
             return Conversion::toHexString(uLongWordValue(), hexNumbers);
         }
     }
@@ -1177,7 +1169,6 @@ SimValue::hexValue(bool noHexIdentifier) const {
     for (int i = BYTE_COUNT - 1; i >= 0; --i) {
         unsigned int value = static_cast<unsigned int>(rawData_[i]);
         if (i == static_cast<int>(BYTE_COUNT - 1)) {
-
             value &= MSB_MASK;
         }
         hexStr += Conversion::toHexString(value, 2).substr(2);
@@ -1189,6 +1180,270 @@ SimValue::hexValue(bool noHexIdentifier) const {
     if (!noHexIdentifier) hexStr.insert(0, "0x");
 
     return hexStr;
+}
+
+template <typename T>
+T 
+SimValue::vectorElement(size_t elementIndex) const {
+    const size_t BYTE_COUNT = sizeof(T);
+    const size_t OFFSET = elementIndex * BYTE_COUNT;
+
+    // Element index must not cross SimValue's bitwidth.
+    assert((elementIndex+1) <= (SIMVALUE_MAX_BYTE_SIZE / BYTE_COUNT));
+
+    union CastUnion {
+        Byte bytes[sizeof(T)];
+        T value;
+    };
+
+    CastUnion cast;
+    
+#if HOST_BIGENDIAN == 1
+    swapByteOrder(rawData_ + OFFSET, BYTE_COUNT, cast.bytes);
+#else
+    memcpy(cast.bytes, rawData_ + OFFSET, BYTE_COUNT);
+#endif
+    return cast.value;
+}
+
+/**
+ * Returns the desired 32-bit word element in host endianness.
+ *
+ * The element ordering of SimValue storage is always the memory order, 
+ * first vector elements in the first locations.
+ *
+ * @param elementIndex Index of the element (from 0 upwards).
+ * @return Word element.
+ */
+Word
+SimValue::wordElement(size_t elementIndex) const {
+    return vectorElement<Word>(elementIndex);
+}
+
+/**
+ * Returns desired element at given index as signed integer.
+ */
+SIntWord
+SimValue::sIntWordElement(size_t elementIndex) const {
+    union CastUnion {
+        Word uWord;
+        SIntWord sWord;
+    } cast;
+    cast.uWord = wordElement(elementIndex);
+    return cast.sWord;
+}
+
+/**
+ * Returns desired element at given index as unsigned integer.
+ */
+UIntWord
+SimValue::uIntWordElement(size_t elementIndex) const {
+    return wordElement(elementIndex);
+}
+
+
+/**
+ * Returns desired 16-bit short integer word element in host endianness.
+ */
+HalfWord 
+SimValue::halfWordElement(size_t elementIndex) const {
+    return vectorElement<HalfWord>(elementIndex);
+}
+
+HalfFloatWord 
+SimValue::halfFloatElement(size_t elementIndex) const {
+    // Uses the same implementation as the integer version as
+    // there is no native 'half' in C/C++.
+    return HalfFloatWord(vectorElement<HalfWord>(elementIndex));
+}
+
+FloatWord 
+SimValue::floatElement(size_t elementIndex) const {
+    return vectorElement<FloatWord>(elementIndex);
+}
+
+SimValue::DoubleFloatWord 
+SimValue::doubleFloatElement(size_t elementIndex) const {
+    return vectorElement<DoubleWord>(elementIndex);
+}
+
+/**
+ * Returns desired 8-bit byte element.
+ */
+Byte 
+SimValue::byteElement(size_t elementIndex) const {
+    const size_t BYTE_COUNT = sizeof(Byte);
+    const size_t OFFSET = elementIndex * BYTE_COUNT;
+
+    // Element index must not cross SimValue's bitwidth.
+    assert((elementIndex+1) <= (SIMVALUE_MAX_BYTE_SIZE / BYTE_COUNT));
+    
+    return rawData_[OFFSET];
+}
+
+/**
+ * Returns desired 1-bit bit element.
+ */
+UIntWord
+SimValue::bitElement(size_t elementIndex) const {
+    // Element index must not cross SimValue's bitwidth.
+    assert((elementIndex+1) <= SIMD_WORD_WIDTH);
+
+    const size_t OFFSET = elementIndex / BYTE_BITWIDTH;
+    const size_t LEFT_SHIFTS = elementIndex % BYTE_BITWIDTH;
+
+    Byte data = rawData_[OFFSET];
+
+    if (data & (1 << LEFT_SHIFTS)) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+/**
+ * Get element function for arbitrary element width.
+ *
+ * Values by width are stored in power of 2 byte boundaries (1, 2  or 4).
+ * elementWidth must be in range of (0, 32].
+ */
+Word
+SimValue::element(size_t elementIndex, size_t elementWidth) const {
+    // TODO: support 64-bit elements!
+
+    assert(elementWidth != 0);
+    assert(elementWidth <= 32);
+
+    if (elementWidth == 1) {
+        return bitElement(elementIndex);
+    } else {
+        const size_t BYTE_COUNT = elementWidth >= 8u ?
+            MathTools::roundUpToPowerTwo((unsigned int)elementWidth)/8 : 1;
+        const size_t OFFSET = elementIndex * BYTE_COUNT;
+        const Word BITMASK =
+            elementWidth < 32 ? ~(~Word(0) << elementWidth) : ~(Word(0));
+        Word tmp;
+
+#if HOST_BIGENDIAN == 1
+        swapByteOrder(rawData_ + OFFSET, BYTE_COUNT, &tmp);
+#else
+        memcpy(&tmp, rawData_ + OFFSET, BYTE_COUNT);
+#endif
+        tmp &= BITMASK;
+        return tmp;
+    }
+}
+
+template <typename T>
+void
+SimValue::setVectorElement(size_t elementIndex, T data) {
+    const size_t BYTE_COUNT = sizeof(T);
+    const size_t OFFSET = elementIndex * BYTE_COUNT;
+
+    // Element index must not cross SimValue's bitwidth.
+    assert((elementIndex+1) <= (SIMVALUE_MAX_BYTE_SIZE / BYTE_COUNT));
+
+#if HOST_BIGENDIAN == 1
+    swapByteOrder((Byte*)&data, BYTE_COUNT, rawData_ + OFFSET);
+#else
+    memcpy(rawData_ + OFFSET, &data, BYTE_COUNT);
+#endif   
+}
+
+void
+SimValue::setWordElement(size_t elementIndex, Word data) {
+    setVectorElement(elementIndex, data);
+}
+
+/**
+ * Sets half word (a.k.a. short 16-bit integer) element at a certain index to 
+ * given value.
+ *
+ * @param elementIndex Half word element index.
+ * @param data Half word element data.
+ */
+void
+SimValue::setHalfWordElement(size_t elementIndex, HalfWord data) {
+    setVectorElement(elementIndex, data);
+}
+
+void
+SimValue::setHalfFloatElement(size_t elementIndex, HalfFloatWord data) {
+    setVectorElement(elementIndex, data);
+}
+
+void
+SimValue::setFloatElement(size_t elementIndex, FloatWord data) {
+    setVectorElement(elementIndex, data);
+}
+
+void
+SimValue::setDoubleFloatElement(size_t elementIndex, DoubleFloatWord data) {
+    setVectorElement(elementIndex, data);
+}
+
+void
+SimValue::setByteElement(size_t elementIndex, Byte data) {
+    setVectorElement(elementIndex, data);
+}
+
+/**
+ * Sets bit element at a certain index to given value.
+ *
+ * @param elementIndex Bit element index.
+ * @param data Bit element data.
+ */
+void
+SimValue::setBitElement(size_t elementIndex, UIntWord data) {
+    // Element index must not cross SimValue's bitwidth.
+    assert((elementIndex+1) <= SIMD_WORD_WIDTH);
+
+    const size_t OFFSET = elementIndex / BYTE_BITWIDTH;
+    const size_t LEFT_SHIFTS = elementIndex % BYTE_BITWIDTH;
+
+    Byte byte = rawData_[OFFSET];
+
+    if (data == 0) {
+        byte = byte & (~(1 << LEFT_SHIFTS));
+    } else {
+        byte = byte | (1 << LEFT_SHIFTS);
+    }
+    
+    rawData_[OFFSET] = byte;
+}
+
+/**
+ * Set element function for arbitrary element width.
+ *
+ * Values by width are stored in power of 2 byte boundaries (1, 2  or 4).
+ * elementWidth must be in range of (0, 32].
+ */
+void
+SimValue::setElement(size_t elementIndex, size_t elementWidth, Word data) {
+    assert(elementWidth != 0);
+    if (elementWidth == 1) {
+        setBitElement(elementIndex, data);
+    } else {
+        const size_t BYTE_COUNT =
+            elementWidth >= 8u ?
+                MathTools::roundUpToPowerTwo((unsigned int)elementWidth)/8 : 1;
+        const size_t OFFSET = elementIndex * BYTE_COUNT;
+
+        // Element index must not cross SimValue's bitwidth.
+        assert((elementIndex+1) <= (SIMVALUE_MAX_BYTE_SIZE / BYTE_COUNT));
+        // Cut excess bits from data
+        Word BITMASK = ~Word(0);
+        if (elementWidth < sizeof(Word)*8) {
+            BITMASK = ~(~Word(0) << elementWidth);
+        }
+
+        Word tmp_data = data & BITMASK;
+#if HOST_BIGENDIAN == 1
+        swapByteOrder((Byte*)&tmp_data, BYTE_COUNT, rawData_ + OFFSET);
+#else
+        memcpy(rawData_ + OFFSET, &tmp_data, BYTE_COUNT);
+#endif
+    }
 }
 
 /**
@@ -1260,6 +1515,75 @@ SimValue::clearToZero(int bitWidth) {
 void
 SimValue::clearToZero() {
     clearToZero(SIMD_WORD_WIDTH);
+}
+
+/**
+ * Overwrites all bits that do not fit in the given bit width with the sign
+ * bit (the bit at position width - 1).
+ *
+ * This operation corresponds to reinterpreting the value as a signed
+ * word of given bit width.
+ *
+ * @param bitWidth Number of meaningful bits in the given integer.
+ * @exception OutOfRange If width > value size
+ */
+void
+SimValue::signExtendTo(int bitWidth) {
+    if (bitWidth > SIMD_WORD_WIDTH) {
+        throw OutOfRange(__FILE__, __LINE__, __func__);
+    }
+
+    if (bitWidth <= 0) {
+        clearToZero();
+        return;
+    }
+
+    const size_t FIRST_BYTE = (bitWidth + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
+    const size_t BYTE_COUNT = (bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
+
+    rawData_[FIRST_BYTE-1] = MathTools::fastSignExtendTo(
+                                        static_cast<int>(rawData_[FIRST_BYTE-1]),
+                                        ((bitWidth-1)%BYTE_BITWIDTH)+1);
+
+    if (BYTE_COUNT > FIRST_BYTE) { // Fill remaining bytes with sign bit
+        if (bitElement(bitWidth-1) == 0) {
+            memset(rawData_+FIRST_BYTE, 0, BYTE_COUNT-FIRST_BYTE);
+        } else {
+            memset(rawData_+FIRST_BYTE, -1, BYTE_COUNT-FIRST_BYTE);
+        }
+    }
+}
+
+/**
+ * Overwrites all bits that do not fit in the given bit width with 0
+ *
+ * This operation corresponds to reinterpreting the value as an unsigned
+ * word of given bit width.
+ *
+ * @param bitWidth Number of meaningful bits in the given integer.
+ * @exception OutOfRange If width > value size
+ */
+void
+SimValue::zeroExtendTo(int bitWidth) {
+    if (bitWidth > SIMD_WORD_WIDTH) {
+        throw OutOfRange(__FILE__, __LINE__, __func__);
+    }
+
+    if (bitWidth <= 0) {
+        clearToZero();
+        return;
+    }
+
+    const size_t FIRST_BYTE = (bitWidth + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
+    const size_t BYTE_COUNT = (bitWidth_ + (BYTE_BITWIDTH - 1)) / BYTE_BITWIDTH;
+
+    rawData_[FIRST_BYTE-1] = MathTools::fastZeroExtendTo(
+                                        static_cast<int>(rawData_[FIRST_BYTE-1]),
+                                        ((bitWidth-1)%BYTE_BITWIDTH)+1);
+
+    if (BYTE_COUNT > FIRST_BYTE) { // Fill remaining bytes with 0
+        memset(rawData_+FIRST_BYTE, 0, BYTE_COUNT-FIRST_BYTE);
+    }
 }
 
 /**

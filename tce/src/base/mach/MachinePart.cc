@@ -121,7 +121,7 @@ Component::~Component() {
  *
  * @return Name of the component.
  */
-std::string
+TCEString
 Component::name() const {
     return name_;
 }

@@ -46,6 +46,9 @@
 inline void
 ExecutableInstruction::execute() {
 
+    for (std::size_t i = 0; i < updateActions_.size(); ++i) {
+        updateActions_[i]->execute();
+    }
     // have to evaluate the guards before either a long immediate
     // or a register transport overwrites it
     for (std::size_t i = 0; i < moves_.size(); ++i) {
@@ -56,12 +59,6 @@ ExecutableInstruction::execute() {
     }
     for (std::size_t i = 0; i < moves_.size(); ++i) {
         moves_[i]->executeWrite();
-    }
-    // long immediate latency is fixed to 1, zero latency is not
-    // supported, thus the updates are not visible to the moves
-    // in the same instruction
-    for (std::size_t i = 0; i < updateActions_.size(); ++i) {
-        updateActions_[i]->execute();
     }
     executionCount_++;
 }

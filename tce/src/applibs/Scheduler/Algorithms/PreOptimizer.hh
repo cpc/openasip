@@ -26,10 +26,14 @@
  *
  * Declaration of PreOptimizer class.
  *
- * This optimizer removes unneeded predicate arithmetic by using
+ * This optimizer does some peephole optimizations before actual scheduling:
+ *
+ * Removes unneeded predicate arithmetic by using
  * opposite guard instead where the guard is used.
  *
- * Also optimizes register usage, changes registers of address calculations.
+ * Changes registers of address calculations to eliminate entideps
+ *
+ * Removes adds of compile-time ocnstants
  *
  * @author Heikki Kultala 2009 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
@@ -115,6 +119,8 @@ private:
     bool cfgAllowsJumpReversal(
         TTAProgram::Instruction& ins, ControlFlowGraph& cfg);
 
+    void tryToPrecalcConstantAdd(
+        DataDependenceGraph& ddg, ProgramOperation& po);
 
 };
 

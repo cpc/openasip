@@ -60,6 +60,8 @@
 #include "Bus.hh"
 #include "Conversion.hh"
 
+//#define DEBUG_RM
+
 #ifdef DEBUG_RM
 #include <typeinfo>
 #endif
@@ -84,15 +86,12 @@ SimpleBrokerDirector::SimpleBrokerDirector(
     knownMaxCycle_ = -1;
     knownMinCycle_ = INT_MAX;
 
-#if 0
-   // Scheduling window is not supported in the devel branch at the moment.
     if (Application::cmdLineOptions() != NULL) {
         SchedulerCmdLineOptions* options =
             dynamic_cast<SchedulerCmdLineOptions*>(
                 Application::cmdLineOptions());
         schedulingWindow_ = options->schedulingWindowSize();
     }
-#endif
 }
 
 /**
@@ -307,6 +306,9 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node,
     int guardSlack = std::max(0, node.guardLatency() -1);
     if (knownMinCycle_ > cycle - guardSlack) {
         knownMinCycle_ = std::max(cycle - guardSlack,0);
+#ifdef DEBUG_RM
+            std::cerr << "Set known min cycle to" << knownMinCycle_ << std::endl;
+#endif
             assert(knownMinCycle_ >= 0);
     }
     if (node.isMove()) {
@@ -314,6 +316,9 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node,
         if (node.isSourceImmediateRegister() &&
             knownMinCycle_ > iwc && iwc >= 0) {
             knownMinCycle_ = iwc;
+#ifdef DEBUG_RM
+            std::cerr << "Set known min cycle(2) to" << knownMinCycle_ << std::endl;
+#endif
             assert(knownMinCycle_ >= 0);
         }
         moveCounts_[instructionIndex(cycle)]++;
@@ -333,6 +338,7 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node,
  */
 void
 SimpleBrokerDirector::unassign(MoveNode& node) {
+
     if (!node.isPlaced()) {
         string msg = "Node " + node.toString();
         msg += " is not placed in any cycle.";
@@ -419,6 +425,9 @@ SimpleBrokerDirector::unassign(MoveNode& node) {
                     int guardSlack = std::max(0, tempIns->move(i).guardLatency() -1);
                     if (cycleCounter - guardSlack < knownMinCycle_) {
                         knownMinCycle_ = cycleCounter - guardSlack;
+#ifdef DEBUG_RM
+                        std::cerr << "Set known min cycle(3) to" << knownMinCycle_ << std::endl;
+#endif
                     }
                 }
                 break;
@@ -587,8 +596,14 @@ SimpleBrokerDirector::latestCycle(int cycle, MoveNode& node,
                                   const TTAMachine::ImmediateUnit* immu,
                                   int immRegIndex) const {
 
+#ifdef DEBUG_RM
+    std::cerr << "\t\t\t\tLatest cycle called with cycle: " << cycle << std::endl;
+#endif
     int maxCycle = executionPipelineBroker().latestCycle(
 	cycle, node, bus, srcFU, dstFU, immWriteCycle, immu, immRegIndex);
+#ifdef DEBUG_RM
+    std::cerr << "\t\t\t\t\tmaxCycle from exec pipeline: " << maxCycle << std::endl;
+#endif
     if (maxCycle == -1) {
         // Assignment not possible at all
         return maxCycle;
@@ -610,14 +625,22 @@ SimpleBrokerDirector::latestCycle(int cycle, MoveNode& node,
     if (lastCycleToTest == 0) {
         lastCycleToTest = cycle;
     }
+#ifdef DEBUG_RM
+    std::cerr << "\t\t\t\t\tLast cycle to test: " << lastCycleToTest << std::endl;
+#endif
     // Define earliest cycle where to finish testing. If the move can not
     // be scheduled after this cycle, it can not be scheduled at all.            
 
     int knownMinCycle = knownMinCycle_ == INT_MAX ? cycle :
         std::min(cycle,knownMinCycle_);
-    int earliestCycleLimit =
+    int earliestCycleLimit = 
         (knownMinCycle > executionPipelineBroker().longestLatency() + 1) ?
         knownMinCycle - executionPipelineBroker().longestLatency() : 0;
+
+#ifdef DEBUG_RM
+    std::cerr << "\tknown min cycle: " << knownMinCycle << std::endl;
+    std::cerr << "\t\t\t\t\tEarlist limit: " << earliestCycleLimit << std::endl;
+#endif
 
     if (maxCycle <= lastCycleToTest) {
         for (int i = maxCycle; i >= earliestCycleLimit; i--) {
@@ -692,6 +715,7 @@ SimpleBrokerDirector::immediateUnitBroker() const {
  */
 ITemplateBroker&
 SimpleBrokerDirector::instructionTemplateBroker() const {
+
     ResourceBroker* broker = NULL;
     for (int i = 0; i < plan_->brokerCount(); i++) {
         broker = &plan_->broker(i);
@@ -729,7 +753,8 @@ SimpleBrokerDirector::busBroker() const {
  * @exception InstanceNotFound If execution pipeline broker is not found.
  */
 ExecutionPipelineBroker&
-SimpleBrokerDirector::executionPipelineBroker() const {
+SimpleBrokerDirector::executionPipelineBroker() const
+{
     ResourceBroker* broker = NULL;
     for (int i = 0; i < plan_->brokerCount(); i++) {
         broker = &plan_->broker(i);
@@ -926,6 +951,16 @@ SimpleBrokerDirector::clear() {
 void
 SimpleBrokerDirector::setDDG(const DataDependenceGraph* ddg) {
     executionPipelineBroker().setDDG(ddg);
+}
+
+void
+SimpleBrokerDirector::setCFG(const ControlFlowGraph* cfg) {
+    busBroker().setCFG(cfg);
+}
+
+void
+SimpleBrokerDirector::setBBN(const BasicBlockNode* bbn) {
+    busBroker().setBBN(bbn);
 }
 
 void

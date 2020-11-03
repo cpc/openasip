@@ -197,7 +197,7 @@ TPEFRelocSectionReader::finalize(Section* section) const {
         AddressImage address = 0;
 
         // should we dig up code or data section
-        if (refSection->type() == Section::ST_CODE) {
+        if (refSection->isCodeSection()) {
 
             // value of immediate element, is an address to that element,
             // which to immediate refers
@@ -300,7 +300,7 @@ TPEFRelocSectionReader::finalize(Section* section) const {
         
          // if code section check instructionsize and encoding from 
         // refSection...
-        if (destSection->type() == Section::ST_CODE) {
+        if (destSection->isCodeSection()) {
             CodeSection *codeSection = 
                 dynamic_cast<CodeSection*>(destSection);
             

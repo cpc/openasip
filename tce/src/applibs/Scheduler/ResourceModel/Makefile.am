@@ -14,14 +14,13 @@ APPLIBS_MACH_DIR = ${SRC_ROOT_DIR}/applibs/mach
 POM_DIR = ${BASE_DIR}/program
 OSAL_DIR = ${BASE_DIR}/osal
 MACH_DIR = ${BASE_DIR}/mach
-UMACH_DIR = ${BASE_DIR}/umach
 GRAPH_DIR = ${BASE_DIR}/Graph
 DISASM_DIR = ${APPLIBS_DIR}/Disassembler
 PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/PDG
 DDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/DDG
 RM_DIR = ${APPLIBS_DIR}/Scheduler/ResourceManager
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${PDG_DIR} -I${POM_DIR} -I${OSAL_DIR} \
--I${MACH_DIR} -I${UMACH_DIR} -I${GRAPH_DIR} -I${DISASM_DIR} -I${DDG_DIR} -I${RM_DIR} \
+-I${MACH_DIR} -I${GRAPH_DIR} -I${DISASM_DIR} -I${DDG_DIR} -I${RM_DIR} \
 -I${APPLIBS_MACH_DIR} ${LLVM_CPPFLAGS}
 
 dist-hook:

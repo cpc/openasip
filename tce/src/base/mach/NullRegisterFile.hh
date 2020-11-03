@@ -68,7 +68,7 @@ public:
     virtual bool isVolatile() const;
     virtual bool isReserved() const;
 
-    virtual std::string name() const;
+    virtual TCEString name() const;
     virtual void setName(const std::string& name);
     virtual void setMaxReads(int reads);
     virtual void setMaxWrites(int maxWrites);

@@ -48,7 +48,8 @@ using std::ios;
 namespace TPEF {
 
 BinaryStream::BinaryStream(std::ostream& stream, bool littleEndian): 
-    fileName_(""), extOStream_(&stream), littleEndianStorage_(littleEndian) {
+    fileName_(""), extOStream_(&stream), littleEndianStorage_(littleEndian),
+    tpefVersion_(TPEFHeaders::TPEF_V2) {
 }
 
 /**
@@ -61,7 +62,8 @@ BinaryStream::BinaryStream(std::ostream& stream, bool littleEndian):
  * @note The initial read and write positions of the stream are 0.
  */
 BinaryStream::BinaryStream(std::string name, bool littleEndian): 
-    fileName_(name), extOStream_(NULL), littleEndianStorage_(littleEndian) {
+    fileName_(name), extOStream_(NULL), littleEndianStorage_(littleEndian),
+    tpefVersion_(TPEFHeaders::TPEF_V1) {
 }
 
 /**
@@ -72,6 +74,26 @@ bool
 BinaryStream::needsSwap() const {
     return (littleEndianStorage_ && (HOST_BIGENDIAN == 1)) ||
         (!littleEndianStorage_ && (HOST_BIGENDIAN == 0));
+}
+
+
+/**
+ * Sets TPEF version to be used.
+ *
+ * @param version TPEF format version.
+ */
+void
+BinaryStream::setTPEFVersion(TPEFHeaders::TPEFVersion version) {
+    tpefVersion_ = version;
+}
+
+/**
+ * Returns TPEF version being used.
+ *
+ */
+TPEFHeaders::TPEFVersion
+BinaryStream::TPEFVersion() const {
+    return tpefVersion_;
 }
 
 /**

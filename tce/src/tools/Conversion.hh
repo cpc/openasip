@@ -53,6 +53,7 @@ class Conversion {
 public:
     template <typename T>
     static std::string toString(const T& source);
+    static std::string toString(double source, unsigned precision);
     static std::string toString(bool source);
 
     static std::string XMLChToString(const XMLCh* source);
@@ -87,7 +88,10 @@ public:
         unsigned int stringWidth = 0);
 
     template <typename T>
-    static std::string toHexString(T source, std::size_t digits = 0);
+    static std::string toHexString(
+        T source, std::size_t digits = 0, bool include0x = true);
+    static std::string floatToHexString(float source, bool include0x = true);
+    static std::string doubleToHexString(double source, bool include0x = true);
 
     static void toRawData(
         const std::string& hexSource, unsigned char* target);

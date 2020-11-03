@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2016 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Inline definitions of InstructionMemory class.
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005,2016 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -40,20 +40,8 @@
  * @exception OutOfRange If the instruction address is out of range.
  */
 inline ExecutableInstruction&
-InstructionMemory::instructionAt(InstructionAddress address) 
-     {
-
-    const std::size_t index = address - startAddress_;
-
-    /// @note This assumes that there are no "holes" in instruction memory.
-    if (index >= instructions_.size()) {
-        throw OutOfRange(
-            __FILE__, __LINE__, __func__, 
-            "Illegal instruction address " + 
-            Conversion::toString(address) + ".");
-    }
-
-    return *instructions_[index];
+InstructionMemory::instructionAt(InstructionAddress address) {
+    return *((*instructionMap_.find(address)).second);
 }
 
 /**
@@ -66,19 +54,7 @@ InstructionMemory::instructionAt(InstructionAddress address)
  * @exception OutOfRange If the instruction address is out of range.
  */
 inline const ExecutableInstruction&
-InstructionMemory::instructionAtConst(InstructionAddress address) const
-     {
-
-    const std::size_t index = address - startAddress_;
-
-    /// @note This assumes that there are no "holes" in instruction memory.
-    if (index >= instructions_.size()) {
-        throw OutOfRange(
-            __FILE__, __LINE__, __func__, 
-            "Illegal instruction address " + 
-            Conversion::toString(address) + ".");
-    }
-
-    return *instructions_[index];
+InstructionMemory::instructionAtConst(InstructionAddress address) const {
+    return *((*instructionMap_.find(address)).second);
 }
 

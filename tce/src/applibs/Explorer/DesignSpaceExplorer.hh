@@ -26,7 +26,7 @@
  *
  * Declaration of DesignSpaceExplorer class.
  *
- * @author Jari Mäntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
+ * @author Jari MÃ¤ntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -116,13 +116,15 @@ public:
 protected:
     TTAProgram::Program* schedule(
         const std::string applicationFile,
-        TTAMachine::Machine& machine);
+        TTAMachine::Machine& machine,
+        TCEString paramOptions = "-O3");
 
     const ExecutionTrace* simulate(
         const TTAProgram::Program& program, const TTAMachine::Machine& machine,
         const TestApplication& testApplication,
         const ClockCycleCount& maxCycles, ClockCycleCount& runnedCycles,
-        const bool tracing, const bool useCompiledSimulation = false);
+        const bool tracing, const bool useCompiledSimulation = false,
+        std::vector<ClockCycleCount>* executionCounts = NULL);
 
 private:
     /// Design space database where results are stored.

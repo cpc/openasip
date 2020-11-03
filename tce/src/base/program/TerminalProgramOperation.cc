@@ -46,7 +46,7 @@ namespace TTAProgram {
  * @param po The ProgramOperation to track.
  */
 TerminalProgramOperation::TerminalProgramOperation(
-    boost::shared_ptr<ProgramOperation> po) :
+    std::shared_ptr<ProgramOperation> po) :
     TerminalInstructionAddress(), po_(po) {
 }
 

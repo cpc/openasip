@@ -44,6 +44,7 @@ namespace TTAMachine {
     class Machine;
     class MachinePart;
     class ImmediateUnit;
+    class FunctionUnit;
 }
 
 namespace TTAProgram {
@@ -125,9 +126,9 @@ private:
     SchedulingResourceSet findITemplates(int, Moves&, Immediates&) const;
     void assignImmediate(int, std::shared_ptr<TTAProgram::Immediate>);
     void unassignImmediate(int,const TTAMachine::ImmediateUnit&);
-    bool isImmediateInTemplate(
-        int, std::shared_ptr<const TTAProgram::Immediate>) const;
+    bool isImmediateInTemplate(int, std::shared_ptr<TTAProgram::Immediate>) const;
     
+    void reselectTemplate(TTAProgram::Instruction& ins, int cycle);
     /// Move/immediate slots.
     std::vector<TTAMachine::Bus*> slots_;
     /// cycle/instruction

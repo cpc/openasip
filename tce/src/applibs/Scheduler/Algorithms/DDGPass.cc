@@ -62,13 +62,15 @@ DDGPass::~DDGPass() {
 int
 DDGPass::handleDDG(
     DataDependenceGraph& ddg, SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine, bool /* testOnly*/) {
+    const TTAMachine::Machine& targetMachine, int minCycle, bool /*testOnly*/) {
     // just to avoid warnings -- need to keep the argument names for
     // Doxygen comments ;)
     ddg.nodeCount();
     rm.largestCycle();
     targetMachine.machineTester();
     abortWithError("Should never call this.");
+    minCycle++;
+    return INT_MAX;
 }
 
 int

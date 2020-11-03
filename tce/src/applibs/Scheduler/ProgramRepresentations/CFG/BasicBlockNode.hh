@@ -103,10 +103,15 @@ public:
 
     // Ordering of basic blocks in a procedure.
     // These are NULL if not set/decided.
+    const BasicBlockNode* successor() const { return successor_; }
+    const BasicBlockNode* predecessor() const { return predecessor_; }
     BasicBlockNode* successor() { return successor_; }
     BasicBlockNode* predecessor() { return predecessor_; }
 
     void link(BasicBlockNode* succ);
+
+    int maximumSize() const;
+    void setMaximumSize(int sz) { maximumSize_ = sz; }
 private:
     /// start address of the original basic block, used for reconstructing
     /// the original program after modifying the CFG and its nodes
@@ -134,6 +139,8 @@ private:
     BasicBlockNode* successor_;
     BasicBlockNode* predecessor_;
 
+    /// Maximum number of instructions this can consume when scheduled.
+    int maximumSize_;
 };
 
 #endif

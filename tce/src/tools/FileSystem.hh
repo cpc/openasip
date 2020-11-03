@@ -40,6 +40,8 @@
 
 #include <boost/version.hpp>
 
+#include "TCEString.hh"
+
 /*
  * Useful to know in case you need to adjust this threshold:
  *
@@ -123,7 +125,9 @@ public:
     static std::string expandTilde(const std::string& stringWithTilde);
 
     static bool createDirectory(const std::string& path);
-    static std::string createTempDirectory(const std::string& path="/tmp");
+    static std::string createTempDirectory(
+        const std::string& path="/tmp",
+        const std::string& tempDirPrefix = "tmp_tce_");
     static bool createFile(const std::string& file);
     static bool removeFileOrDirectory(const std::string& path);
 
@@ -180,6 +184,7 @@ public:
         const std::string& writeToFile,
         const std::string& AREndRE = "",
         const bool discardBlockBorder = "true");
+    static int countLines(const std::string& filepath);
 
     static const std::string DIRECTORY_SEPARATOR;
     static const std::string CURRENT_DIRECTORY;
@@ -191,9 +196,16 @@ public:
  */
 class Path : public boost::filesystem::path {
 public:
-    explicit Path(const std::string& pathName);
+    Path();
+    explicit Path(const boost::filesystem::path& path);
+    Path& operator=(const boost::filesystem::path& pathName);
+    operator std::string() const;
+    operator TCEString() const;
+    const char* c_str() const;
     virtual ~Path();
 };
+
+Path operator/(const Path& path, const std::string& fileOrDir);
 
 #include "FileSystem.icc"
 

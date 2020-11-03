@@ -42,6 +42,7 @@ namespace TTAMachine {
     class RFPort;
     class Unit;
     class SpecialRegisterPort;
+    class ControlUnit;
 }
 
 /**
@@ -61,12 +62,15 @@ public:
     virtual std::string fix(TTAMachine::Machine& mach) const;
 
     void connectFUPort(TTAMachine::FUPort& port) const;
+    void connectSpecialRegisterPort(
+        TTAMachine::SpecialRegisterPort& port) const;
+
+    void connectControlUnit(TTAMachine::ControlUnit& gcu) const;
+
 protected:
     FullyConnectedCheck(const std::string& shortDesc);
 private:
     void connectIUPort(TTAMachine::RFPort& port) const;
-    void connectSpecialRegisterPort(
-        TTAMachine::SpecialRegisterPort& port) const;
     void connectRFPort(TTAMachine::RFPort& port, TTAMachine::Socket::Direction direction) const;
     TTAMachine::Socket* createSocket(
         const TTAMachine::Unit& unit, TTAMachine::Socket::Direction direction)

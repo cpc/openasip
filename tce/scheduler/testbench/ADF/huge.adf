@@ -121,7 +121,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -428,7 +428,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -439,7 +439,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -450,7 +450,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -461,7 +461,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -472,7 +472,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -483,7 +483,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -494,7 +494,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -505,7 +505,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -516,7 +516,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -527,7 +527,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -538,7 +538,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -549,7 +549,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -560,7 +560,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -571,7 +571,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -582,7 +582,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -593,7 +593,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -604,7 +604,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>18</width>
     </short-immediate>
   </bus>
 
@@ -16705,6 +16705,66 @@
         </writes>
       </pipeline>
     </operation>
+    <operation>
+      <name>ne</name>
+      <bind name="1">S1</bind>
+      <bind name="2">S2</bind>
+      <bind name="3">D1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>leu</name>
+      <bind name="1">S1</bind>
+      <bind name="2">S2</bind>
+      <bind name="3">D1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>le</name>
+      <bind name="1">S1</bind>
+      <bind name="2">S2</bind>
+      <bind name="3">D1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
     <address-space/>
   </function-unit>
 
@@ -20656,7 +20716,7 @@
   <address-space name="instructions">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>65535</max-address>
+    <max-address>262143</max-address>
   </address-space>
 
   <global-control-unit name="gcu">

@@ -117,7 +117,10 @@ SchedulingResource::addToDependentGroup(
  * @exception OutOfRange When group or index requested does not exist.
  */
 SchedulingResource&
-SchedulingResource::relatedResource(const int group, const int index) const {
+SchedulingResource::relatedResource(
+    const int group,
+    const int index) const {
+
     if (group < relatedResourceGroupCount()) {
         if (index < relatedResourceCount(group)) {
             return *relatedResourceGroup_.at(group).at(index);
@@ -152,7 +155,10 @@ SchedulingResource::relatedResource(const int group, const int index) const {
  * @exception OutOfRange When group or index requested does not exist.
  */
 SchedulingResource&
-SchedulingResource::dependentResource(const int group, const int index) const {
+SchedulingResource::dependentResource(
+    const int group,
+    const int index) const {
+
     if (group < dependentResourceGroupCount()) {
         if (index < dependentResourceCount(group)) {
             return *dependentResourceGroup_.at(group).at(index);
@@ -228,6 +234,7 @@ SchedulingResourceSet::~SchedulingResourceSet() {}
  */
 void
 SchedulingResourceSet::insert(SchedulingResource& resource) {
+
     if (ContainerTools::containsValue(resources_, &resource)) {
         throw ObjectAlreadyExists(__FILE__, __LINE__, __func__);
     } else {
@@ -254,6 +261,7 @@ SchedulingResourceSet::count() const {
  */
 SchedulingResource&
 SchedulingResourceSet::resource(int index) const {
+
     if (index < 0 || index >= static_cast<int>(resources_.size())) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     } else {
@@ -269,6 +277,7 @@ SchedulingResourceSet::resource(int index) const {
  */
 void
 SchedulingResourceSet::remove(SchedulingResource& resource) {
+
     ResourceList::iterator iter = resources_.begin();
     while (iter != resources_.end()) {
         if ((*iter) == &resource) {
@@ -372,7 +381,7 @@ SchedulingResource::setInitiationInterval(unsigned int ii)
  *
  * @return initiation interval
  */
-unsigned int
+int
 SchedulingResource::initiationInterval() const
 {
     return initiationInterval_;

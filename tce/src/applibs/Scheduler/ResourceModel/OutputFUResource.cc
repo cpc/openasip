@@ -46,8 +46,9 @@ using TTAMachine::Port;
  * Constructor with resource name
  * @param name Name of resource
  */
-OutputFUResource::OutputFUResource(const std::string& name, int opCount) :
-    FUResource(name, opCount) {}
+OutputFUResource::OutputFUResource(const std::string& name, int opCount,
+    int nopSlotWeight) :
+    FUResource(name, opCount, nopSlotWeight) {}
 
 /**
  * Empty destructor
@@ -75,6 +76,7 @@ OutputFUResource::canAssign(const int, const MoveNode&) const {
  */
 void
 OutputFUResource::assign(const int cycle, MoveNode& node) {
+
     for (int i = 0; i < dependentResourceGroupCount(); i++) {
         for (int j = 0, count = dependentResourceCount(i); j < count; j++) {
             if (dependentResource(i, j).isExecutionPipelineResource()) {
@@ -82,6 +84,7 @@ OutputFUResource::assign(const int cycle, MoveNode& node) {
                 ExecutionPipelineResource* epRes =
                     dynamic_cast<ExecutionPipelineResource*>(res);
                 epRes->assignSource(cycle, node);
+                increaseUseCount();
                 return;
             }
         }
@@ -97,7 +100,10 @@ OutputFUResource::assign(const int cycle, MoveNode& node) {
 * @param node MoveNode to remove assignment from
 */
 void
-OutputFUResource::unassign(const int cycle, MoveNode& node) {
+OutputFUResource::unassign(
+    const int cycle,
+    MoveNode& node) {
+
     for (int i = 0; i < dependentResourceGroupCount(); i++) {
         for (int j = 0, count = dependentResourceCount(i); j < count; j++) {
             if (dependentResource(i, j).isExecutionPipelineResource()) {
@@ -105,6 +111,7 @@ OutputFUResource::unassign(const int cycle, MoveNode& node) {
                 ExecutionPipelineResource* epRes =
                     dynamic_cast<ExecutionPipelineResource*>(res);
                 epRes->unassignSource(cycle, node);
+                decreaseUseCount();
                 return;
             }
         }

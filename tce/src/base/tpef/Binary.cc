@@ -51,7 +51,7 @@ using ReferenceManager::SafePointer;
  * Constructor.
  */
 Binary::Binary() :
-    strings_(&SafePointer::null) {
+    strings_(&SafePointer::null), tpefVersion_(TPEFHeaders::TPEF_V2) {
 }
 
 /**

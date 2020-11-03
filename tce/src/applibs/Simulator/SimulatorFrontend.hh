@@ -26,7 +26,7 @@
  *
  * Declaration of SimulatorFrontend class
  *
- * @author Pekka J‰‰skel‰inen 2005-2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005-2010 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -47,6 +47,7 @@
 #include "RemoteController.hh"
 #include "SimulatorConstants.hh"
 #include "BaseType.hh"
+#include "CallPathTracker.hh"
 
 class SimValue;
 class StateData;
@@ -101,7 +102,9 @@ public:
         SIM_NORMAL,   ///< Default, interpreted simulation (debugging engine).
         SIM_COMPILED, ///< Compiled, faster simulation.
         SIM_REMOTE,   ///< Remote debugger, not a simulator at all
-        SIM_CUSTOM    ///< User-implemented remote HW debugger
+        SIM_CUSTOM,   ///< User-implemented remote HW debugger
+        SIM_OTA       ///< Simulation with operation-triggered implicit data
+                      ///  transports.
     } SimulationType;
 
     SimulatorFrontend(SimulationType backend = SIM_NORMAL);
@@ -124,7 +127,7 @@ public:
 
     StateData& state(std::string searchString);
 
-    MachineState& machineState();
+    MachineState& machineState(int core=-1);
 
     virtual void next(int count = 1);
     virtual void step(double count = 1);
@@ -139,7 +142,7 @@ public:
     virtual void killSimulation();
 
     StopPointManager& stopPointManager();
-    MemorySystem& memorySystem();
+    MemorySystem& memorySystem(int coreId=-1);
 
     bool isSimulationInitialized() const;
     bool isSimulationRunning() const;
@@ -172,7 +175,9 @@ public:
     void setProcedureTransferTracing(bool value);
     void setProfileDataSaving(bool value);
     void setUtilizationDataSaving(bool value);
-    void setTraceDBFileName(const std::string& fileName);
+    void forceTraceDBFileName(const std::string& fileName) {
+        forcedTraceDBFileName_ = fileName;
+    }
     void setTimeout(unsigned int value);
     void setStaticCompilation(bool value);
     
@@ -183,7 +188,7 @@ public:
 
     std::string programLocationDescription() const;
     InstructionAddress programCounter() const;
-    virtual InstructionAddress lastExecutedInstruction() const;
+    virtual InstructionAddress lastExecutedInstruction(int coreId=-1) const;
     ClockCycleCount cycleCount() const;
     const TTAProgram::Procedure& currentProcedure() const;
     
@@ -205,7 +210,7 @@ public:
 
     StateData& findPort(const std::string& fuName, const std::string& portName);
 
-    const UtilizationStats& utilizationStatistics();
+    const UtilizationStats& utilizationStatistics(int core=-1);
     const ExecutableInstruction& lastExecInstruction() const;
     const ExecutableInstruction& executableInstructionAt(
         InstructionAddress address) const;
@@ -221,7 +226,7 @@ public:
     void setSimulationTimeStatistics(bool value);
     bool simulationTimeStatistics() const;
 
-    ExecutionTrace* lastTraceDB();
+    ExecutionTrace* lastTraceDB(int core=-1);
  
     void setMemoryAccessTracking(bool value);
     bool memoryAccessTracking() const;
@@ -246,11 +251,22 @@ public:
     std::size_t programErrorReportCount(
         RuntimeErrorSeverity severity);
     void clearProgramErrorReports();
-    
+
     friend void timeoutThread(unsigned int timeout, SimulatorFrontend* simFE);
 
+    int selectedCore() const {
+        return 0;
+    }
+    void selectCore(int core) {
+        if (core != 0) {
+            abortWithError("WiP.");
+        }
+    }
     bool compareState(SimulatorFrontend& other, std::ostream* differences=NULL);
 
+    std::size_t callHistoryLength() const { return callHistoryLength_; }
+    void setCallHistoryLength(std::size_t length);
+    const CallPathTracker& callPathTracker(int core=-1) const;
     void initializeDataMemories(const TTAMachine::AddressSpace* onlyOne=NULL);
 
 protected:
@@ -265,6 +281,8 @@ protected:
     void startTimer();
     void stopTimer();
 
+    void setupCallHistoryTracking();
+
     /// A type for storing a program error description.
     typedef std::pair<RuntimeErrorSeverity, std::string>
     ProgramErrorDescription;
@@ -273,9 +291,6 @@ protected:
     
     /// Machine to run simulation with.
     const TTAMachine::Machine* currentMachine_;
-    /// If simulation is initialized, this contains a pointer to the machine
-    /// state instance fetched from SimulatorController. Just for a shortcut.
-    MachineState* machineState_;
     /// If simulation is initialized, this contains a pointer to the
     /// simulation controller.
     TTASimulationController* simCon_;
@@ -293,8 +308,6 @@ protected:
     /// The disassembler used to print out instructions. This is
     /// initialized on demand.
     mutable POMDisassembler* disassembler_;
-    /// The file name to store the execution trace data to.
-    std::string traceFileName_;
     /// Is execution tracing, i.e., storing the executed instruction
     /// addresses to the trace database, enabled.
     bool executionTracing_;
@@ -310,26 +323,32 @@ protected:
     /// Is saving of utilization data to TraceDB enabled.
     bool saveUtilizationData_;
     /// The database to use for execution trace data.
-    ExecutionTrace* traceDB_;
-    /// Last produced execution trace database.
-    ExecutionTrace* lastTraceDB_;
+    std::vector<ExecutionTrace*> traceDBs_;
+    /// Whether traceDB at index is owned by simulator
+    /// (or taken away by client using lastTraceDB())
+    std::vector<bool> traceDBOwned_;
+    
     /// The simple execution tracker for storing trace of executed 
     /// instructions.
-    ExecutionTracker* executionTracker_;
+    std::vector<ExecutionTracker*> executionTrackers_;
+
     /// The tracker for saving bus trace.
-    BusTracker* busTracker_;
+    std::vector<BusTracker*> busTrackers_;
+
     /// The register file access tracker.
-    RFAccessTracker* rfAccessTracker_;
+    std::vector<RFAccessTracker*> rfAccessTrackers_;
+
     /// The procedure transfer tracker.
-    ProcedureTransferTracker* procedureTransferTracker_;
+    std::vector<ProcedureTransferTracker*> procedureTransferTrackers_;
+
     /// The breakpoint manager to be used to bookkeep breakpoints.
     StopPointManager* stopPointManager_;   
+
     /// Processor utilization statistics.
-    UtilizationStats* utilizationStats_;
+    std::vector<UtilizationStats*> utilizationStats_;
+
     /// The source TPEF file.
     TPEF::Binary* tpef_;
-    /// Bus trace file stream.
-    std::ofstream busTraceStream_;
     /// If this is enabled before initialization, FU resource conflicts are
     /// detected (slows down simulation).
     bool fuResourceConflictDetection_;
@@ -367,8 +386,16 @@ protected:
     /// True in case the compilation simulation should not cleanup at
     /// destruction the engine source files.
     bool leaveCompiledDirty_;
-    /// The simulation models of the memories in the currently loaded machine.
-    MemorySystem* memorySystem_;
+    /// The length of call history to store in memory for the commands that
+    /// need it.
+    std::size_t callHistoryLength_;
+    /// The call path trackers for each core, in case tracking is enabled.
+    std::vector<CallPathTracker*> callPathTrackers_;
+    /// If set, forces the SQLite filename of trace DB to this name.
+    std::string forcedTraceDBFileName_;
+    /// The simulation models of the memories in the currently loaded machine
+    /// for each core.
+    std::vector<MemorySystem*> memorySystems_;
     /// Set to true in case the memories should be set to zero at reset.
     bool zeroFillMemoriesOnReset_;
     /// Set to true in case should build a detailed model which simulates

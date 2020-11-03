@@ -31,6 +31,7 @@
  * @note rating: red
  */
 
+#include <iostream>
 
 #include "ObjectState.hh"
 #include "Conversion.hh"
@@ -44,6 +45,8 @@ using std::string;
  * Constructor.
  *
  * @param name Name of the ObjectState.
+ * @param parent Parent of this object. If non-NULL, this object is 
+ *               added to the parent with addChild().
  */
 ObjectState::ObjectState(const std::string& name, ObjectState* parent) :
     name_(name), value_(""), parent_(parent) {
@@ -529,3 +532,31 @@ ObjectState::commonErrorMessage() const {
     errorMsg += ": ";
     return errorMsg;
 }
+
+/**
+ * Prints object state structure for debug purposes into the stream.
+ */
+void
+ObjectState::dumpObjectState(
+    const ObjectState& state,
+    std::ostream& output,
+    const std::string& identation) {
+
+    using std::cout;
+    using std::endl;
+
+    cout << identation << "Name: "<< state.name() << " ";
+    if (!state.stringValue().empty()) {
+        cout << "Value: " << state.stringValue() << " ";
+    }
+    cout << endl;
+    for (int i = 0; i < state.attributeCount(); i++) {
+        cout << identation << "Attr: " << state.attribute(i)->name << " = "
+             << state.attribute(i)->value << endl;
+    }
+    for (int i = 0; i < state.childCount(); i++) {
+        dumpObjectState(*state.child(i), output, identation + "  ");
+    }
+}
+
+

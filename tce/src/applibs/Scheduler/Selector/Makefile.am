@@ -1,7 +1,8 @@
 noinst_LTLIBRARIES = libselector.la
-libselector_la_SOURCES = MoveNodeGroup.cc MoveNodeSelector.cc \
-	CriticalPathBBMoveNodeSelector.cc SequentialMoveNodeSelector.cc \
-	MoveNodeGroupBuilder.cc BUMoveNodeSelector.cc
+libselector_la_SOURCES = MoveNodeGroup.cc ScopeSelector.cc \
+	SchedulingScope.cc BasicBlockSelector.cc MoveNodeSelector.cc \
+	SequentialMoveNodeSelector.cc MoveNodeGroupBuilder.cc \
+        BUMoveNodeSelector.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
@@ -30,13 +31,10 @@ dist-hook:
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
-
-
-
 ## headers start
 libselector_la_SOURCES += \
 	CriticalPathBBMoveNodeSelector.hh MoveNodeSelector.hh \
 	MoveNodeGroupBuilder.hh MoveNodeGroup.hh \
 	SequentialMoveNodeSelector.hh BUMoveNodeSelector.hh \
-	ReadyMoveNodeGroupList.hh 
+	ReadyMoveNodeGroupList.hh
 ## headers end

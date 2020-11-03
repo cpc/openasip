@@ -177,8 +177,14 @@ TerminalRegister::equals(const Terminal& other) const {
 
 TCEString
 TerminalRegister::toString() const {
-    DisassemblyRegister disasm(registerFile().name(), index());
-    return disasm.toString();
+    if (isImmUnit_ == false) {
+        DisassemblyRegister disasm(registerFile().name(), index());
+        return disasm.toString();
+    } else {
+        TCEString res = unit_.name();
+        res << "." << index_;
+        return res;
+    }
 }
 
 /**

@@ -30,22 +30,29 @@
  *       easier to track and copy paste changes from LLVM.
  *       So please follow LLVM style when adding or fixing things.
  *
- * @author Veli-Pekka J��skel�inen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepist� 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
  * @author Heikki Kultala 2011-2012 (heikki.kultala-no.spam-tut.fi)
  */
 
+#include "TCEInstrInfo.hh"
+
 #include <llvm/ADT/STLExtras.h>
+#ifndef LLVM_OLDER_THAN_10
+#include <llvm/CodeGen/DFAPacketizer.h>
+#endif
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/CodeGen/MachineRegisterInfo.h>
 #include <llvm/Support/ErrorHandling.h>
-#include <llvm/CodeGen/MachineInstrBuilder.h>
 
-#include "TCEInstrInfo.hh"
 #include "TCETargetMachine.hh"
 #include "TCETargetMachinePlugin.hh"
+/*
+#include <llvm/CodeGen/MachineInstrBuilder.h>
+#include <llvm/ADT/SmallVector.h>
 
-#include <iostream>
+#include "TCEInstrInfo.hh"
+*/
 #include "TCEPlugin.hh"
 //#include "tce_config.h"
 
@@ -57,8 +64,12 @@
 #undef GET_INSTRINFO_CTOR_DTOR
 #undef GET_INSTRINFO_MC_DESC
 
-
 using namespace llvm;
+
+#ifndef LLVM_OLDER_THAN_10
+#define GET_INSTRMAP_INFO
+#include "TCEGenDFAPacketizer.inc"
+#endif
 
 /**
  * Constructor.
@@ -106,6 +117,7 @@ TCEInstrInfo::insertBranch(
 #else
     , int *BytesAdded) const {
 #endif
+    assert(cond.size() == 0 || cond.size() == 2 || cond.size() == 3);
 
     if (mbb.size() != 0) {
         // already has a uncond branch, no need for another.
@@ -137,22 +149,34 @@ TCEInstrInfo::insertBranch(
                 BuildMI(&mbb, dl, get(TCE::TCEBRICOND)).
                     addReg(cond[0].getReg()).addMBB(tbb);
                 return 1;
+            } else if (cond.size() == 2 && cond[1].getImm() == true) {
+                BuildMI(&mbb, dl, get(TCE::TCEBRCOND)).addReg(cond[0].getReg())
+                    .addMBB(tbb);
+                return 1;
+            } else {
+                insertCCBranch(mbb, *tbb, cond, dl);
+                return 1;
             }
-            BuildMI(&mbb, dl, get(TCE::TCEBRCOND)).addReg(cond[0].getReg())
-                .addMBB(tbb);
-            return 1;
         }
     }
-    assert(!cond.empty() && "Two jumps need a condition");
+
+    assert(
+        !cond.empty() &&
+        "Two jumps need a condition");  // not allowed to have conditional
+                                        // jump because we have an fbb
 
     if (cond.size() == 2 && cond[1].getImm() == false) {
         BuildMI(&mbb, dl, get(TCE::TCEBRICOND)).
             addReg(cond[0].getReg()).addMBB(tbb);
-    } else {
+    } else if (cond.size() == 1 ||
+               (cond.size() == 2 && cond[1].getImm() == true)) {
         BuildMI(&mbb, dl, get(TCE::TCEBRCOND)).
             addReg(cond[0].getReg()).addMBB(tbb);
+    } else {
+        insertCCBranch(mbb, *tbb, cond, dl);
     }
     BuildMI(&mbb, dl, get(TCE::TCEBR)).addMBB(fbb);
+
     return 2;
 }
 
@@ -169,28 +193,19 @@ TCEInstrInfo::RemoveBranch(MachineBasicBlock &mbb) const {
 TCEInstrInfo::removeBranch(
     MachineBasicBlock &mbb, int *BytesRemoved) const {
 #endif
+    int j = 0;
     MachineBasicBlock::iterator i = mbb.end();
-    if (i == mbb.begin()) return 0;
-    i--;
-    int opc = i->getOpcode();
-    if (opc == TCE::TCEBRCOND || opc == TCE::TCEBRICOND ||
-        opc == TCE::TCEBR || opc == TCE::TCEBRIND) {
-        i->eraseFromParent();
-    } else {
-        return 0;
+    while (i != mbb.begin()) {
+        i--;
+        int opc = i->getOpcode();
+        if (i->getDesc().isBranch()) {
+            i->eraseFromParent();
+            i = mbb.end();  // not optimal, but we will not miss any
+                            // instruction
+            j++;
+        }
     }
-
-    i = mbb.end(); 
-    if (i == mbb.begin()) return 1;
-    i--;
-    if (i->getOpcode() == TCE::TCEBRCOND || 
-        i->getOpcode() == TCE::TCEBRICOND) {
-        i->eraseFromParent();
-        return 2;
-    } else {
-        assert(i->getOpcode() != TCE::TCEBR);
-        return 1;
-    }
+    return j;
 }
 
 /**
@@ -241,7 +256,6 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   DebugLoc DL;
 
   if (I != MBB.end()) DL = I->getDebugLoc();
-
   BuildMI(MBB, I, DL, get(plugin_->getLoad(RC)), DestReg).addFrameIndex(FI)
       .addImm(0);
 
@@ -289,12 +303,16 @@ void TCEInstrInfo::copyPhysReg(
             get(plugin_->getRegCopy(destReg, srcReg)), destReg).
         .addReg(SrcReg, getKillRegState(isKillSrc));
 */
+    if (copyPhysVectorReg(mbb, mbbi, dl, destReg, srcReg, killSrc)) {
+        return;
+    }
+
     if (TCE::R1RegsRegClass.contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOVI1rr), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
+            .addReg(srcReg, getKillRegState(killSrc));
     } else if (TCE::R32IRegsRegClass.contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOVI32rr), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
+            .addReg(srcReg, getKillRegState(killSrc));
     } else if (TCE::R64RegsRegClass.contains(destReg, srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOV64ss), destReg)
 	    .addReg(srcReg, getKillRegState(killSrc));
@@ -307,11 +325,30 @@ void TCEInstrInfo::copyPhysReg(
     } else if (TCE::R1RegsRegClass.contains(destReg) &&
                TCE::R32IRegsRegClass.contains(srcReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOVI32I1rr), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
+            .addReg(srcReg, getKillRegState(killSrc));
     } else if (TCE::R1RegsRegClass.contains(srcReg) &&
                TCE::R32IRegsRegClass.contains(destReg)) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOVI1I32rr), destReg)
-	    .addReg(srcReg, getKillRegState(killSrc));
+            .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::GuardRegsRegClass.contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOVGrr), destReg)
+            .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::GuardRegsRegClass.contains(srcReg) &&
+               TCE::R32IRegsRegClass.contains(destReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOVGI32rr), destReg)
+            .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::R32IRegsRegClass.contains(srcReg) &&
+               TCE::GuardRegsRegClass.contains(destReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOVI32Grr), destReg)
+            .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::GuardRegsRegClass.contains(srcReg) &&
+               TCE::R1RegsRegClass.contains(destReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOVGI1rr), destReg)
+            .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::R1RegsRegClass.contains(srcReg) &&
+               TCE::GuardRegsRegClass.contains(destReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOVI1Grr), destReg)
+            .addReg(srcReg, getKillRegState(killSrc));
     } else {
         assert(
             false && "TCERegisterInfo::copyPhysReg(): Can't copy register");
@@ -333,13 +370,13 @@ TCEInstrInfo::ReverseBranchCondition(
 TCEInstrInfo::reverseBranchCondition(
 #endif
     llvm::SmallVectorImpl<llvm::MachineOperand>& cond) const {
-
     assert(cond.size() != 0);
 
     // from true to false
     if (cond.size() == 1) {
         cond.push_back(MachineOperand::CreateImm(false));
-    } else {
+        return false;
+    } else if (cond.size() == 2) {
         // from false to true
         if (cond[1].getImm() == false) {
             cond[1].setImm(true);
@@ -348,9 +385,95 @@ TCEInstrInfo::reverseBranchCondition(
             assert(cond[1].getImm() == true);
             cond[1].setImm(false);
         }
+        return false;
+    } else if (cond.size() == 3) {
+        switch (cond[2].getImm()) {
+        case 2:
+            // eq -> ne
+            cond[2].setImm(3);
+            return false;
+        case 3:
+            // ne -> eq
+            cond[2].setImm(2);
+            return false;
+        case 4:
+            // gt -> le
+            cond[2].setImm(5);
+            return false;
+        case 5:
+            // le -> gt
+            cond[2].setImm(4);
+            return false;
+        case 6:
+            // ltu -> geu
+            cond[2].setImm(7);
+            return false;
+        case 7:
+            // geu -> ltu
+            cond[2].setImm(6);
+            return false;
+        case 14:
+            // lt -> ge
+            cond[2].setImm(16);
+            return false;
+        case 15:
+            // ltu -> geu
+            cond[2].setImm(17);
+            return false;
+        case 16:
+            // ge -> lt
+            cond[2].setImm(14);
+            return false;
+        case 17:
+            // geu -> ltu
+            cond[2].setImm(15);
+            return false;
+        // case 100+: register-immediate versions of branch ops
+        case 102:
+            // eg -> ne
+            cond[2].setImm(103);
+            return false;
+        case 103:
+            // ne -> eq
+            cond[2].setImm(102);
+            return false;
+        case 104:
+            // gt -> le
+            cond[2].setImm(105);
+            return false;
+        case 105:
+            // le -> gt
+            cond[2].setImm(104);
+            return false;
+        case 106:
+            // ltu -> geu
+            cond[2].setImm(107);
+            return false;
+        case 107:
+            // geu -> ltu
+            cond[2].setImm(106);
+            return false;
+        case 114:
+            // lt -> ge
+            cond[2].setImm(116);
+            return false;
+        case 115:
+            // ltu -> geu
+            cond[2].setImm(117);
+            return false;
+        case 116:
+            // ge -> lt
+            cond[2].setImm(114);
+            return false;
+        case 117:
+            // geu -> ltu
+            cond[2].setImm(115);
+            return false;
+        default:
+            return true;
+        }
     }
-
-    return false;
+    return true;
 }
 
 /**
@@ -372,7 +495,6 @@ bool
     MachineBasicBlock *&fbb, 
     llvm::SmallVectorImpl<llvm::MachineOperand>& cond, bool allowModify)
     const {
-
     if (mbb.empty()) {
         return false;
     }
@@ -384,6 +506,7 @@ bool
     case TCE::TCEBRCOND:
         tbb = lastIns.getOperand(1).getMBB();
         cond.push_back(i->getOperand(0));
+        cond.push_back(MachineOperand::CreateImm(true));
         return false;
     case TCE::TCEBRICOND:
         tbb = lastIns.getOperand(1).getMBB();
@@ -406,6 +529,7 @@ bool
             tbb = i->getOperand(1).getMBB();
             fbb = lastIns.getOperand(0).getMBB();
             cond.push_back(i->getOperand(0));
+            cond.push_back(MachineOperand::CreateImm(true));
             return false;
         }
         if (i->getOpcode() == TCE::TCEBRICOND) {
@@ -418,15 +542,64 @@ bool
         // two uncond branches not allowed
         assert(i->getOpcode() != TCE::TCEBR);
 
-        tbb = lastIns.getOperand(0).getMBB();
-        return false; // uncond jump.
+        if (i->getDesc().isBranch()) {
+            tbb = i->getOperand(2).getMBB();
+            fbb = lastIns.getOperand(0).getMBB();
+            return plugin_->analyzeCCBranch(*i, cond);
+        } else { // only conditional branch.
+            tbb = lastIns.getOperand(0).getMBB();
+            return false;
+        }
     }
     default: 
-        return false; // only fall-thru
+        // if some another branch, it's unknown brach
+        // if not brannch, it's fallthourgh
+        if (lastIns.getDesc().isBranch()) {
+            tbb = lastIns.getOperand(2).getMBB();
+            return plugin_->analyzeCCBranch(lastIns, cond);
+        } else {
+            return false;
+        }
     }
     // should never be here
     return true;
 }
+
+#ifndef LLVM_OLDER_THAN_10
+namespace {
+class TCEPipelinerLoopInfo : public TargetInstrInfo::PipelinerLoopInfo {
+public:
+    TCEPipelinerLoopInfo() {}
+    bool
+    shouldIgnoreForPipelining(const MachineInstr *MI) const override {
+        return false;
+    }
+
+    // If the trip count is statically known to be greater than TC, return
+    // true. If the trip count is statically known to be not greater than TC,
+    // return false. Otherwise return nullopt and fill out Cond with the test
+    // condition.
+
+    Optional<bool>
+    createTripCountGreaterCondition(
+        int TC, MachineBasicBlock &MBB,
+        SmallVectorImpl<MachineOperand> &Cond) override {
+        return true;
+    }
+
+    void setPreheader(MachineBasicBlock *NewPreheader) override{};
+
+    void adjustTripCount(int TripCountAdjust) override{};
+
+    void disposed() override{};
+};
+}  // namespace
+
+std::unique_ptr<TargetInstrInfo::PipelinerLoopInfo>
+TCEInstrInfo::analyzeLoopForPipelining(MachineBasicBlock *LoopBB) const {
+    return std::make_unique<TCEPipelinerLoopInfo>();
+}
+#endif
 
 bool 
 #ifdef LLVM_OLDER_THAN_3_9
@@ -495,7 +668,6 @@ TCEInstrInfo::isPredicable(const MachineInstr& mi_ref) const {
             return false;
         }
     }
-
     return true;
 }
 
@@ -550,6 +722,7 @@ bool TCEInstrInfo::PredicateInstruction(
         } else if (mo.isFPImm()) {
             mi->getOperand(oper+1).ChangeToFPImmediate(mo.getFPImm());
         } else if (mo.isGlobal()) {
+            mi->dump();
             // TODO: what to do here? 
             llvm_unreachable("Unexpected operand type");
             mi->getOperand(oper+1).ChangeToImmediate(mo.getImm());
@@ -591,14 +764,15 @@ TCEInstrInfo::DefinesPredicate(
     MachineInstr *MI = &MI_ref;
 #endif
     for (unsigned oper = 0; oper < MI->getNumOperands(); ++oper) {
-	MachineOperand MO = MI->getOperand(oper);
-	if (MO.isReg() && MO.isDef()) {
-	    const TargetRegisterClass* RC = ri_.getMinimalPhysRegClass(MO.getReg());
-	    if (RC == &TCE::R1RegsRegClass) {
-		Pred.push_back(MO);
-		return true;
-	    }
-	}
+        MachineOperand MO = MI->getOperand(oper);
+        if (MO.isReg() && MO.isDef()) {
+            const TargetRegisterClass* RC = ri_.getMinimalPhysRegClass(
+                MO.getReg());
+            if (RC == &TCE::GuardRegsRegClass || RC == &TCE::R1RegsRegClass) {
+                Pred.push_back(MO);
+                return true;
+            }
+        }
     }
     return false;
 }
@@ -632,3 +806,21 @@ isProfitableToIfCvt(MachineBasicBlock &TMBB,
 #endif
     return true;
 }
+
+
+std::tuple<int, int>
+TCEInstrInfo::getPointerAdjustment(int offset) const {
+    return plugin_->getPointerAdjustment(offset);
+}
+
+#ifndef LLVM_OLDER_THAN_10
+DFAPacketizer *
+TCEInstrInfo::CreateTargetScheduleState(
+    const TargetSubtargetInfo &STI) const {
+    const InstrItineraryData *II = STI.getInstrItineraryData();
+    DFAPacketizer *dfa =
+        static_cast<const TCESubtarget &>(STI).createDFAPacketizer(II);
+    assert(dfa != nullptr);
+    return dfa;
+}
+#endif

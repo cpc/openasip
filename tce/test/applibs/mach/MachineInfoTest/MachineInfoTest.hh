@@ -67,12 +67,11 @@ MachineInfoTest::testGetOpset() {
 
     TTAMachine::Machine* targetMachine = NULL;
     
-    CATCH_ANY(
-        targetMachine = 
+    targetMachine = 
         TTAMachine::Machine::loadFromADF(
-            "data/10_bus_reduced_connectivity.adf"));
+            "data/10_bus_reduced_connectivity.adf");
     
-    OperationDAGSelector::OperationSet opSet = MachineInfo::getOpset(*targetMachine);
+    MachineInfo::OperationSet opSet = MachineInfo::getOpset(*targetMachine);
 
     TS_ASSERT_DIFFERS(opSet.find("ABS"), opSet.end());
     TS_ASSERT_DIFFERS(opSet.find("ABSF"), opSet.end());

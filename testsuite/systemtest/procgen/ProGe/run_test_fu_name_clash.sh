@@ -21,9 +21,9 @@ $PROGE -t -e $TOP -i $IDF -o ${progeOutDir} $ADF
 $PIG -e $TOP -x ${progeOutDir} -d -w 4 -p $TPEF $ADF
 
 # check the reflect FU instance names
-cat ${progeOutDir}/vhdl/${TOP}.vhdl | grep "fu_reflect$"
+cat ${progeOutDir}/vhdl/${TOP}.vhdl | grep "fu_reflect\( is\)\?$"
 # check the RF instance name
-cat ${progeOutDir}/vhdl/${TOP}.vhdl | grep "rf_rf$"
+cat ${progeOutDir}/vhdl/${TOP}.vhdl | grep "rf_rf\( is\)\?$"
 
 GHDL=`which ghdl 2> /dev/null`
 if [ "x$GHDL" != "x" ]

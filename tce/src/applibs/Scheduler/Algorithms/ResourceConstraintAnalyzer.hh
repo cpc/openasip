@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Declaration of ResourceConstraintAlanyzer class.
  *
- * @author Pekka J‰‰skel‰inen 2010
+ * @author Pekka J‰‰skel‰inen 2010,2015
  * @note rating: red
  */
 
@@ -35,6 +35,7 @@
 
 #include <map>
 #include <set>
+#include <list>
 #include "TCEString.hh"
 
 class DataDependenceGraph;
@@ -54,6 +55,7 @@ public:
         origDDG_(ddg), rm_(rm), graphName_(graphName) {}
     virtual ~ResourceConstraintAnalyzer() {}
 
+    void analyzePreSchedule();
     bool analyze();
 
 private:
@@ -66,6 +68,13 @@ private:
 
     void optimalScheduleResourceUsage(
         DataDependenceGraph& ddg, TCEString graphName);
+
+    void memoryBoundScheduleResourceUsage(
+        DataDependenceGraph& ddg, TCEString graphName);
+
+    void dumpGraphWithStats(
+        DataDependenceGraph& ddg, TCEString dotFileName, 
+        const std::map<int, std::list<MoveNode*> >& schedule);
 
     typedef std::map<std::string, int> RFCountMap;
     typedef std::map<std::string, int> OperationCountMap;

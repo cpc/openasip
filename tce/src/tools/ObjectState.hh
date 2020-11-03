@@ -80,6 +80,7 @@ public:
 
     std::string stringValue() const;
     int intValue() const;
+    unsigned int unsignedIntValue() const;
     double doubleValue() const;
     bool boolValue() const;
     int UIntWordValue() const;
@@ -113,6 +114,11 @@ public:
     ObjectState* child(int index) const;
 
     bool operator!=(const ObjectState& object);
+
+    static void dumpObjectState(
+        const ObjectState& state,
+        std::ostream& output,
+        const std::string& identation = "");
 
 private:
     /// Table of child ObjectState.

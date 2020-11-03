@@ -69,7 +69,7 @@ NullInstructionTemplate::instance() {
  *
  * @return Never returns.
  */
-std::string
+TCEString
 NullInstructionTemplate::name() const {
     abortWithError("name()");
     return "";

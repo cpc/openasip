@@ -82,3 +82,8 @@ OperationExecutor::addBinding(int io, PortState& port) {
 
     bindings_[io - 1] = &port;
 }
+
+void
+OperationExecutor::reset() {
+    return;
+}

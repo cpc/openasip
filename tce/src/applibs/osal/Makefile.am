@@ -8,7 +8,8 @@ AM_CPPFLAGS = -I${PROJECT_ROOT} \
 	-I${PROJECT_ROOT}/src/tools \
 	-I${PROJECT_ROOT}/src/base/osal \
 	-I${PROJECT_ROOT}/src/base/Graph \
-	-I${PROJECT_ROOT}/src/base/memory
+	-I${PROJECT_ROOT}/src/base/memory \
+	-I${PROJECT_ROOT}/src/applibs/mach
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 

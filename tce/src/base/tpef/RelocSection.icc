@@ -49,7 +49,7 @@ RelocSection::referencedSection() const {
     Section* refSec = 
         dynamic_cast<Section*>(refSection_->pointer());
     
-    if (refSec->type() == ST_DATA || refSec->type() == ST_CODE || 
+    if (refSec->type() == ST_DATA || refSec->isCodeSection() ||
         refSec->type() == ST_LEDATA) {
         return refSec;
     }
@@ -70,7 +70,7 @@ RelocSection::referencedSection() const {
  */
 inline void
 RelocSection::setReferencedSection(Section* section) {
-    if (section->type() == ST_DATA || section->type() == ST_CODE
+    if (section->type() == ST_DATA || section->isCodeSection()
         || section->type() == ST_LEDATA) {
         refSection_ =
             ReferenceManager::SafePointer::replaceReference(

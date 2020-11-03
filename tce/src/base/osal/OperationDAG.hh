@@ -41,7 +41,7 @@
 class TerminalNode;
 
 class OperationDAG : 
-    public BoostGraph<OperationDAGNode,OperationDAGEdge> {
+    public BoostGraph<OperationDAGNode, OperationDAGEdge> {
 
 public:   
     static OperationDAG null;

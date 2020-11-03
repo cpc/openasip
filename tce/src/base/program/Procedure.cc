@@ -58,7 +58,7 @@ const int Procedure::INSTRUCTION_INDEX_ALIGNMENT = 1;
  */
 Procedure::Procedure(
     const TCEString& name, const AddressSpace& space):
-    CodeSnippet(Address(0, space)) , name_(name) {
+    CodeSnippet(Address(0, space)), name_(name) {
 }
 
 /**
@@ -71,7 +71,7 @@ Procedure::Procedure(
 Procedure::Procedure(
     const TCEString& name, const AddressSpace& space,
     UIntWord startLocation):
-    CodeSnippet(Address(startLocation,space)), name_(name) {
+    CodeSnippet(Address(startLocation, space)), name_(name) {
 }
 
 /**
@@ -99,18 +99,26 @@ Procedure::alignment() const {
  */
 Address
 Procedure::address(const Instruction& ins) const {
+    if (isInProgram() && ins.hasFinalAddress())
+        return ins.address();
+
+    assert (!isInProgram() || parent().isInstructionPerAddress());
+
+    // In case the instruction does not have a fixed final address,
+    // compute it according to its current position in the instruction.
     unsigned int i = 0;
 
-    /* this loop is executed very ofter so 
-       uses pre-computed size and [] for performance reasons */
+    /* This loop is executed very often so
+       uses pre-computed size and [] for performance reasons.
+       TO CLEANUP: std::find() ? */
     const unsigned int size = instructions_.size();
     while (i < size && instructions_[i] != &ins) {
         i++;
     }
 
-    if (i != instructions_.size()) {
+    if (i < instructions_.size()) {
         Address insAddress(
-            start_.location() + i, start_.space());
+            startAddr_.location() + i, startAddr_.space());
         return insAddress;
     } else {
         throw IllegalRegistration(__FILE__, __LINE__);
@@ -129,9 +137,10 @@ CodeSnippet*
 Procedure::copy() const {
 
     Procedure* newProc = new Procedure(
-        name_, start_.space(), start_.location());
+        name_, startAddr_.space(), startAddr_.location());
     for (int i = 0; i < instructionCount(); i++) {
-        newProc->add(instructionAtIndex(i).copy());
+        Instruction* insCopy = instructionAtIndex(i).copy();
+        newProc->add(insCopy);
     }
     return newProc;
 }
@@ -149,7 +158,7 @@ Procedure::copy() const {
  */
 void
 Procedure::add(Instruction* ins) {
-    if (!ins->isInProcedure()) {
+    if (!ins->isInProcedure() || &ins->parent() == this) {
 
         if (instructions_.size() == instructions_.capacity()) {
             instructions_.reserve(instructions_.size() * 2);
@@ -310,7 +319,7 @@ Procedure::remove(Instruction& ins) {
         if ((*iter) == &ins) {
 
             iter = instructions_.erase(iter);
-            const InstructionAddress addr = start_.location() + insIndex;
+            const InstructionAddress addr = startAddr_.location() + insIndex;
 
             // remove code label of first instruction only if empty
             if ((!first && refs) || instructions_.empty()) {

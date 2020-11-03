@@ -83,7 +83,8 @@ GCUState::setProgramCounter(const InstructionAddress& value) {
 inline void
 GCUState::setReturnAddress() {
     returnAddressRegister_ = 
-        programCounter_ + static_cast<SIntWord>(latency_);
+        programCounter_ + static_cast<SIntWord>(latency_)
+            * instructionAddressIncrement_;
 }
 
 /**

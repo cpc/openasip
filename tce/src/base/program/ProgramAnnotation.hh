@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2012 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Declaration of ProgramAnnotation class.
  *
- * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006-2012 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -124,6 +124,9 @@ public:
 
         ANN_REQUIRES_LIMM               = 0x00030003,
 
+        /// The JUMP in the annotated move is a function call and should
+        /// be treated as such in the data dependency analysis.
+        ANN_JUMP_FUNCTION_CALL          = 0x00030004,
         /// debugging info annotations
 
         /// Full path to the program source code file the annotated move
@@ -147,15 +150,15 @@ public:
 
            Thus, the maximum allowed WI "offset" is (255, 255, 255). */
 
-        ANN_OPENCL_WORK_ITEM_ID        =  0x00050000,
+        ANN_OPENCL_WORK_ITEM_ID         = 0x00050000,
         // In case of vector memory access, the work item id from the
         // memory access is for the first of the work items in the vector
         // access. Also the last of the work item ID in the vector access is
         // necessary.
-        ANN_OPENCL_WORK_ITEM_ID_LAST        =  0x00050001,
-        
-        ANN_JUMP_TO_NEXT                = 0x00500002,
+        ANN_OPENCL_WORK_ITEM_ID_LAST    = 0x00050001,
 
+        ANN_JUMP_TO_NEXT                = 0x00500001,
+        
         /// An instruction annotated with this annotation is the first
         /// instruction of a basic block in a loop with the 
         /// trip count stored in the annotation payload.
@@ -164,11 +167,35 @@ public:
         /// instruction of a basic block in an inner loop.
         ANN_LOOP_INNER,
 
+        /// The ID from the _TCEPREGION_START(N) markers.
+        ANN_PARALLEL_REGION_ID          = 0x00070000,
+
         /// information retrieved (from LLVM) about a pointer access
         ANN_POINTER_NAME                = 0x00700000,
         ANN_POINTER_OFFSET              = 0x00700001,
         ANN_POINTER_NOALIAS             = 0x00700002,
         ANN_POINTER_ADDR_SPACE          = 0x00700003,
+
+        /// Vector indentifier for vector operations
+        ANN_VECTOR_ID                   = 0x00800000,
+
+        /// Constant memory access
+        ANN_CONSTANT_MEM                = 0x00900000,
+
+        /// Beginning of a IRF fetch block
+        ANN_IRF_FETCH_BLOCK_BEGIN       = 0x00A00000,
+        ANN_IRF_FETCH_BLOCK_FT          = 0x00A00001,
+        ANN_IRF_FETCH_BLOCK_JUMP        = 0x00A00002,
+        ANN_IRF_FETCH_BLOCK_CALL        = 0x00A00003,
+        ANN_IRF_FETCH_BLOCK_RET         = 0x00A00004,
+        ANN_IRF_LOCAL_JUMP              = 0x00A00005,
+        /// Dummy empty instrution for block header.
+        ANN_IRF_BLOCK_HEADER            = 0x00A00010,
+        ANN_IRF_BLOCK_HEADER_NOCACHE    = 0x00A00011,
+        /// Just to show this starts a non-irf block
+        ANN_IRF_NOCACHE_BEGIN           = 0x00A00020,
+        /// how many stalls may be needed due forward jumps
+        ANN_IRF_BLOCK_FWJUMP_CYCLES     = 0x00A00030,
 
         /// an illegal annotation ID (the id is only 24 bits, this has more
         /// meaningful bits)        

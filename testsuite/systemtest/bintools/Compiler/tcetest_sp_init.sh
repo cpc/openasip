@@ -8,9 +8,9 @@ src=data/stack_test.c
 program=$(mktemp tmpXXXXXX)
 
 tcecc $src -llwpr -O0 -a $mach -o $program
-# By default it should generate the SP initializer to 16777208
-# for the minimal machine.
-tcedisasm -s $mach $program | head -n10 | grep -c 16777208
+# By default it should generate the SP initializer to 16777212
+# for the minimal machine, in which the widest operand is 32 bits.
+tcedisasm -s $mach $program | head -n10 | grep -c 16777212
 
 # Force the initial SP to a lower value.
 tcecc -llwpr $src -O0 -a $mach -o $program --init-sp 0x0000fff8

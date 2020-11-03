@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2016 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of Instruction class.
  *
  * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2016
  * @note rating: red
  */
 
@@ -39,10 +40,14 @@
 #include "Move.hh"
 #include "Immediate.hh"
 #include "Terminal.hh"
+#include "TerminalImmediate.hh"
 #include "NullInstructionTemplate.hh"
 #include "NullProcedure.hh"
 #include "POMDisassembler.hh"
 #include "Conversion.hh"
+#include "Bus.hh"
+
+#include "MathTools.hh"
 
 namespace TTAProgram {
 
@@ -57,8 +62,9 @@ namespace TTAProgram {
  */
 Instruction::Instruction(
     const TTAMachine::InstructionTemplate& instructionTemplate) :
-    parent_(NULL), insTemplate_(&instructionTemplate), 
+    parent_(NULL), insTemplate_(&instructionTemplate),
     positionInProcedure_((InstructionAddress)-1),
+    finalAddress_((InstructionAddress)-1),
     size_(1), hasRegisterAccesses_(false), hasConditionalRegisterAccesses_(false) {
 }
 
@@ -74,8 +80,9 @@ Instruction::Instruction(
     const TTAMachine::InstructionTemplate& instructionTemplate) :
     parent_(NULL), insTemplate_(&instructionTemplate), 
     positionInProcedure_((InstructionAddress)-1),
+    finalAddress_((InstructionAddress)-1),
     size_(size), hasRegisterAccesses_(false), hasConditionalRegisterAccesses_(false) {
-    assert(size == 1 && 
+    assert(size == 1 &&
            "Instructions sizes other than 1 not supported in POM at the "
            "moment.");
 }
@@ -84,6 +91,11 @@ Instruction::Instruction(
  * The destructor.
  */
 Instruction::~Instruction() {
+    for (auto i : moves_) {
+        i->setParent(NullInstruction::instance());
+    }
+    moves_.clear();
+    immediates_.clear();
 }
 
 /**
@@ -145,6 +157,14 @@ Instruction::addMove(std::shared_ptr<Move> move) {
         moves_.push_back(move);
         move->setParent(*this);
     }
+#if 0
+    if (insTemplate_ != &TTAMachine::NullInstructionTemplate::instance()) {
+        if (insTemplate_->usesSlot(move->bus().name())) {
+            assert(false &&
+                "Instruction template already uses the move's slot");
+        }
+    }
+#endif
 }
 
 /**
@@ -217,7 +237,23 @@ Instruction::addImmediate(std::shared_ptr<Immediate> imm) {
 				  "Immediate is already added.");
     } else {
         immediates_.push_back(imm);
+        imm->setParent(this);
     }
+
+#if 0
+    if (insTemplate_ != &TTAMachine::NullInstructionTemplate::instance()) {
+        int requiredWidth = std::min(
+            MathTools::requiredBits(imm->value().value().unsignedValue()),
+            imm->value().value().width());
+
+        if (requiredWidth >
+            insTemplate_->supportedWidth(imm->destination().immediateUnit())) {
+            assert(false &&
+                "The immediate is wider than the instruction template can "
+                "transport.");
+        }
+    }
+#endif
 }
 
 /**
@@ -289,6 +325,11 @@ Instruction::immediatePtr(int i) const {
  */
 Address
 Instruction::address() const {
+    if (finalAddress_ != (InstructionAddress)-1) {
+        Address address(finalAddress_, parent().startAddress().space());
+        return address;
+    }
+
     if (!isInProcedure()) {
         TCEString msg = "Instruction is not registered in a procedure: ";
         msg += POMDisassembler::disassemble(*this);
@@ -298,7 +339,7 @@ Instruction::address() const {
     }
     // speed up by caching the Instruction's position in the Procedure
     if (positionInProcedure_ != (InstructionAddress)-1 &&
-        positionInProcedure_ < 
+        positionInProcedure_ <
         (InstructionAddress)parent().instructionCount() &&
         &parent().instructionAtIndex(positionInProcedure_) == this) {
         // the instruction has not moved in the Procedure, we
@@ -311,7 +352,7 @@ Instruction::address() const {
         return address;
     } else {
         Address address = parent().address(*this);
-        positionInProcedure_ = 
+        positionInProcedure_ =
             address.location() - parent().startAddress().location();
         return address;
     }
@@ -319,10 +360,8 @@ Instruction::address() const {
 
 /**
  * Returns the size of the instruction in MAU's.
- *
- * @return The size of the instruction in MAU's.
  */
-int
+short
 Instruction::size() const {
     return size_;
 }
@@ -355,8 +394,6 @@ Instruction::copy() const {
  * Returns true in case this Instruction contains moves that access registers.
  *
  * This method can be used to optimize register utilization analysis.
- *
- * @return True in case at least one move accesses registers.
  */
 bool
 Instruction::hasRegisterAccesses() const {
@@ -435,6 +472,8 @@ Instruction::hasControlFlowMove() const {
     return hasJump() || hasCall();
 }
 
+
+
 /**
  * Sets instruction template.
  *
@@ -444,6 +483,29 @@ void
 Instruction::setInstructionTemplate(
     const TTAMachine::InstructionTemplate& insTemp) {
     insTemplate_= &insTemp;
+
+#if 0
+    for (int i = 0; i < moveCount(); i++) {
+        if (insTemplate_->usesSlot(move(i).bus().name())) {
+            assert(false && "Instruction template conflicts with the "
+                "instruction's slot layout: Both the new template and a move "
+                "uses same slot.");
+        }
+    }
+
+    for (int i = 0; i < immediateCount(); i++) {
+        int requiredWidth = std::min(
+            MathTools::requiredBits(
+                immediate(i).value().value().unsignedValue()),
+            immediate(i).value().value().width());
+        if (requiredWidth >
+            insTemplate_->supportedWidth(
+                immediate(i).destination().immediateUnit())) {
+            assert(false && "The instruction has an long immediate "
+                "not supported by the new instruction template.");
+        }
+    }
+#endif
 }
 
 
@@ -460,7 +522,7 @@ Instruction::instructionTemplate() const {
 /**
  * Remove move from instruction.
  *
- * Move becomes independent (is not deleted).
+ * Move may become deleted if last smart pointer to it gets removed.
  *
  * @param move Move to remove.
  * @exception IllegalRegistration If move doesn't belong to instruction.
@@ -471,6 +533,7 @@ Instruction::removeMove(Move& move) {
         throw IllegalRegistration(__FILE__, __LINE__);
     }
 
+    move.setParent(NullInstruction::instance());
     for (MoveList::iterator iter = moves_.begin();
          iter != moves_.end(); iter++) {
         if ((iter->get()) == &move) {
@@ -478,13 +541,12 @@ Instruction::removeMove(Move& move) {
             break;
         }
     }
-    move.setParent(NullInstruction::instance());
 }
 
 /**
  * Remove immediate from instruction.
  *
- * Immediate becomes independent (is not deleted).
+ * Immediate may get deleted if use-count of smart pointer goes to zero.
  *
  * @param immediate Immediate to remove.
  * @exception IllegalRegistration If immediate doesn't belong to instruction.
@@ -493,7 +555,8 @@ void
 Instruction::removeImmediate(Immediate& imm) {
     for (ImmList::iterator iter = immediates_.begin();
          iter != immediates_.end(); iter++) {
-        if ((iter->get()) == &imm) {
+        if ((*iter).get() == &imm) {
+            imm.setParent(nullptr);
             immediates_.erase(iter);
             return;
         }

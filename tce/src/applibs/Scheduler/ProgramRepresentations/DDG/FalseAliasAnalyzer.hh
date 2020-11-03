@@ -34,15 +34,25 @@
 #define TTA_FALSE_ALIAS_ANALYZER_HH
 
 #include "MemoryAliasAnalyzer.hh"
+#include "InterPassDatum.hh"
+#include "AssocTools.hh"
 
 class FalseAliasAnalyzer : public MemoryAliasAnalyzer {
+public:
+    FalseAliasAnalyzer(FunctionNameList* enabledFuncs = nullptr) :
+        funcs_(enabledFuncs) {}
+
     virtual bool isAddressTraceable(
-        DataDependenceGraph& ddg, const ProgramOperation& pop);
+        DataDependenceGraph& ddg, const ProgramOperation& pop) override;
     virtual AliasingResult analyze(
         DataDependenceGraph& ddg, const ProgramOperation& pop1, 
-        const ProgramOperation& pop2);
+        const ProgramOperation& pop2, MoveNodeUse::BBRelation bbInfo) override;
     
     ~FalseAliasAnalyzer();
+
+private:
+    bool isEnabled(const DataDependenceGraph& ddg) const;
+    FunctionNameList* funcs_;
 };
 
 #endif

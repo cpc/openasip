@@ -9,39 +9,48 @@
 
 #include "CodeGenerator.hh"
 
+#include <boost/format.hpp>
+
 #include "CodeSnippet.hh"
-#include "Machine.hh"
 #include "ControlUnit.hh"
-#include "InstructionReferenceManager.hh"
+#include "Conversion.hh"
+#include "Guard.hh"
+#include "HWOperation.hh"
+#include "Instruction.hh"
 #include "InstructionReference.hh"
-#include "TerminalRegister.hh"
-#include "TerminalFUPort.hh"
+#include "InstructionReferenceManager.hh"
+#include "Machine.hh"
+#include "MachineInfo.hh"
+#include "MathTools.hh"
 #include "Move.hh"
+#include "MoveGuard.hh"
+#include "MoveNode.hh"
+#include "Operation.hh"
+#include "Procedure.hh"
+#include "Program.hh"
+#include "ProgramAnnotation.hh"
+#include "RFPort.hh"
+#include "SpecialRegisterPort.hh"
+#include "TerminalFUPort.hh"
 #include "TerminalImmediate.hh"
 #include "TerminalInstructionReference.hh"
-#include "RFPort.hh"
-#include "HWOperation.hh"
+#include "TerminalRegister.hh"
+#include "TerminalSymbolReference.hh"
+#include "UnboundedRegisterFile.hh"
 #include "UniversalFunctionUnit.hh"
 #include "UniversalMachine.hh"
-#include "SpecialRegisterPort.hh"
-#include "ProgramAnnotation.hh"
-#include "Operation.hh"
-#include "Guard.hh"
-#include "MoveGuard.hh"
-#include "Program.hh"
-#include "Procedure.hh"
-#include "Instruction.hh"
-#include "Conversion.hh"
 
 namespace TTAProgram {
 
-CodeGenerator::CodeGenerator(
-    const TTAMachine::Machine& mach):
-    mach_(&mach), uMach_(&UniversalMachine::instance()) {}
+CodeGenerator::CodeGenerator(const TTAMachine::Machine& mach)
+    : mach_(&mach), uMach_(&UniversalMachine::instance()) {
+    stackAlignment_ = MachineInfo::maxMemoryAlignment(mach);
+    opset_ = MachineInfo::getOpset(mach);
+}
 
 CodeGenerator::~CodeGenerator() {}
 
-void
+TTAProgram::Instruction*
 CodeGenerator::addMoveToProcedure(
     TTAProgram::CodeSnippet& dstProcedure,
     TTAProgram::Terminal* srcTerminal,
@@ -51,11 +60,11 @@ CodeGenerator::addMoveToProcedure(
         new TTAProgram::Instruction(
             TTAMachine::NullInstructionTemplate::instance());
 
-    newInstr->addMove(
-        std::make_shared<TTAProgram::Move>(
-            srcTerminal, dstTerminal, uMach_->universalBus()));
+    newInstr->addMove(std::make_shared<TTAProgram::Move>(
+                          srcTerminal, dstTerminal, uMach_->universalBus()));
 
     dstProcedure.add(newInstr);
+    return newInstr;
 }
 
 void
@@ -68,6 +77,7 @@ CodeGenerator::addAnnotatedMoveToProcedure(
     TTAProgram::Instruction* newInstr =
         new TTAProgram::Instruction(
             TTAMachine::NullInstructionTemplate::instance());
+
     auto movePtr = std::make_shared<TTAProgram::Move>(
         srcTerminal, dstTerminal, uMach_->universalBus());
 
@@ -102,34 +112,47 @@ CodeGenerator::createTerminalFUPort(const TCEString& opName, int operand = 0) {
 }
 
 TTAProgram::Terminal*
+CodeGenerator::createTerminalRegister(
+    const TTAMachine::RegisterFile& rf, int regNum, bool readPort) const {
+    for (int i = 0; i < rf.portCount(); i++) {
+        if (readPort) {
+            if (rf.port(i)->isOutput()) {
+                return new TTAProgram::TerminalRegister(
+                    *rf.port(i), regNum);
+            }
+        } else {
+            if (rf.port(i)->isInput()) {
+                return new TTAProgram::TerminalRegister(
+                    *rf.port(i), regNum);
+            }
+        }
+    }
+    return NULL;
+}
+
+
+TTAProgram::Terminal*
 CodeGenerator::createTerminalRegister(const TCEString& name, bool readPort) {
 
     if (name == "RA") {
         return createTerminalFUPort("RA");
     } else {
-        int findResult = name.find(".");
-        TCEString rfName = name.substr(0, findResult);
+        const TTAMachine::RegisterFile* rf = NULL;
+        size_t findResult = name.find(".");
+        int regNum;
+        if (findResult == std::string::npos) {
+            rf = &uMach_->integerRegisterFile();
+            regNum = Conversion::toInt(name.substr(1));
 
-        int regNum = Conversion::toInt(
+        }  else {
+            TCEString rfName = name.substr(0, findResult);
+            TTAMachine::Machine::RegisterFileNavigator regNav =
+                mach_->registerFileNavigator();
+            rf = regNav.item(rfName);
+            regNum = Conversion::toInt(
             name.substr(findResult + 1, name.length()-findResult+1));
-
-        TTAMachine::Machine::RegisterFileNavigator regNav =
-            mach_->registerFileNavigator();
-        TTAMachine::RegisterFile* rf = regNav.item(rfName);
-
-        for (int i = 0; i < rf->portCount(); i++) {
-            if (readPort) {
-                if (rf->port(i)->isOutput()) {
-                    return new TTAProgram::TerminalRegister(
-                        *rf->port(i), regNum);
-                }
-            } else {
-                if (rf->port(i)->isInput()) {
-                    return new TTAProgram::TerminalRegister(
-                        *rf->port(i), regNum);
-                }
-            }
         }
+        return createTerminalRegister(*rf, regNum, readPort);
     }
 
     return NULL;
@@ -147,19 +170,36 @@ CodeGenerator::loadTerminal(
     TTAProgram::CodeSnippet& dstProcedure,
     TTAProgram::Terminal* srcTerminal,
     TTAProgram::Terminal* dstTerminal) {
+    TCEString loadOp;
+    int width = 0;
+    if (dstTerminal->isGPR()) {
+        width = dstTerminal->registerFile().width();
+    }
 
-    TCEString loadOp = mach_->isLittleEndian() ?
-        (mach_->is64bit() ? "LD64" : "LD32") : "LDW";
+    int defaultWidth = mach_->is64bit() ? 64 : 32;
+    if (width < defaultWidth) {
+        width = defaultWidth;
+    }
+    if (mach_->isLittleEndian()) {
+        loadOp = (boost::format("ld%d") % width).str();
+    } else {
+        loadOp = "ldw";
+    }
+    if (opset_.count(loadOp) == 0) {
+        abortWithError(
+            (boost::format("Operation %s not found in the machine") % loadOp)
+                .str());
+    }
 
     // create terminal references
-    TTAProgram::TerminalFUPort* ldw1Terminal =
+    TTAProgram::TerminalFUPort* load1Terminal =
         createTerminalFUPort(loadOp, 1);
 
-    TTAProgram::TerminalFUPort* ldw2Terminal =
+    TTAProgram::TerminalFUPort* load2Terminal =
         createTerminalFUPort(loadOp, 2);
 
-    addMoveToProcedure(dstProcedure, srcTerminal, ldw1Terminal);
-    addMoveToProcedure(dstProcedure, ldw2Terminal, dstTerminal);
+    addMoveToProcedure(dstProcedure, srcTerminal, load1Terminal);
+    addMoveToProcedure(dstProcedure, load2Terminal, dstTerminal);
 }
 
 /**
@@ -174,9 +214,26 @@ CodeGenerator::storeTerminal(
     TTAProgram::CodeSnippet& dstProcedure,
     TTAProgram::Terminal* dstTerminal,
     TTAProgram::Terminal* srcTerminal) {
+    TCEString storeOp;
+    int width = 0;
+    if (srcTerminal->isGPR()) {
+        width = srcTerminal->registerFile().width();
+    }
+    int defaultWidth = mach_->is64bit() ? 64 : 32;
+    if (width < defaultWidth) {
+        width = defaultWidth;
+    }
 
-    TCEString storeOp = mach_->isLittleEndian() ?
-        (mach_->is64bit() ? "ST64" : "ST32") : "STW";
+    if (mach_->isLittleEndian()) {
+        storeOp = (boost::format("st%d") % width).str();
+    } else {
+        storeOp = "stw";
+    }
+    if (opset_.count(storeOp) == 0) {
+        abortWithError(
+            (boost::format("Operation %s not found in the machine") % storeOp)
+                .str());
+    }
 
     TTAProgram::TerminalFUPort* stw1Terminal =
         createTerminalFUPort(storeOp, 1);
@@ -268,15 +325,18 @@ CodeGenerator::storeToRegisterAddress(
 }
 
 /**
- * Increment address in a register by 4.
+ * Increment address in a register by value of increment.
  *
  * @param dstProcedure Procedure to add the moves to.
  * @param dstReg Register to increment.
+ * @param increment How much to increment.
  */
 void
 CodeGenerator::incrementRegisterAddress(
-    TTAProgram::CodeSnippet& dstProcedure,
-    const TCEString& dstReg) {
+    TTAProgram::CodeSnippet& dstProcedure, const TCEString& dstReg,
+    int increment) {
+
+    TCEString addOp = mach_->is64bit() ? "add64" : "add";
 
     // create terminal references
     TTAProgram::Terminal* regReadTerminal =
@@ -286,19 +346,19 @@ CodeGenerator::incrementRegisterAddress(
         createTerminalRegister(dstReg, false);
 
     // TODO: immediate creator function which calculates immWidth
-    SimValue immVal(8);
-    immVal = 4;
+    SimValue immVal(MathTools::requiredBitsSigned(increment));
+    immVal = increment;
     TTAProgram::TerminalImmediate* imm4Terminal =
         new TTAProgram::TerminalImmediate(immVal);
 
     TTAProgram::TerminalFUPort* add1Terminal =
-        createTerminalFUPort("add", 1);
+        createTerminalFUPort(addOp, 1);
 
     TTAProgram::TerminalFUPort* add2Terminal =
-        createTerminalFUPort("add", 2);
+        createTerminalFUPort(addOp, 2);
 
     TTAProgram::TerminalFUPort* add3Terminal =
-        createTerminalFUPort("add", 3);
+        createTerminalFUPort(addOp, 3);
 
     // dstProcedure->add(
     //      new CodeSnippet("sp -> ldw.1; ldw.2 -> dstReg; "
@@ -310,15 +370,18 @@ CodeGenerator::incrementRegisterAddress(
 }
 
 /**
- * Decrement address in a register by 4.
+ * Decrement address in a register by value of decrement.
  *
  * @param dstProcedure Procedure to add the moves to.
  * @param dstReg Register to decrement.
+ * @param decrement How much to decrement.
  */
 void
 CodeGenerator::decrementRegisterAddress(
-    TTAProgram::CodeSnippet& dstProcedure,
-    const TCEString& dstReg) {
+    TTAProgram::CodeSnippet& dstProcedure, const TCEString& dstReg,
+    int decrement) {
+
+    TCEString subOp = mach_->is64bit() ? "sub64" : "sub";
 
     // create terminal references
     TTAProgram::Terminal* regReadTerminal =
@@ -328,19 +391,19 @@ CodeGenerator::decrementRegisterAddress(
         createTerminalRegister(dstReg, false);
 
     // TODO: immediate creator function which calculates immWidth
-    SimValue immVal(8);
-    immVal = 4;
+    SimValue immVal(MathTools::requiredBitsSigned(decrement));
+    immVal = decrement;
     TTAProgram::TerminalImmediate* imm4Terminal =
         new TTAProgram::TerminalImmediate(immVal);
 
     TTAProgram::TerminalFUPort* sub1Terminal =
-        createTerminalFUPort("sub", 1);
+        createTerminalFUPort(subOp, 1);
 
     TTAProgram::TerminalFUPort* sub2Terminal =
-        createTerminalFUPort("sub", 2);
+        createTerminalFUPort(subOp, 2);
 
     TTAProgram::TerminalFUPort* sub3Terminal =
-        createTerminalFUPort("sub", 3);
+        createTerminalFUPort(subOp, 3);
 
     // dstProcedure->add(
     //      new CodeSnippet("sp -> sub.1; 4 -> sub.2; sub.3 -> sp;"
@@ -348,6 +411,18 @@ CodeGenerator::decrementRegisterAddress(
     addMoveToProcedure(dstProcedure, regReadTerminal, sub1Terminal);
     addMoveToProcedure(dstProcedure, imm4Terminal, sub2Terminal);
     addMoveToProcedure(dstProcedure, sub3Terminal, regWriteTerminal);
+}
+
+void
+CodeGenerator::incrementStackPointer(
+    TTAProgram::CodeSnippet& dstProcedure, const TCEString& spReg) {
+    incrementRegisterAddress(dstProcedure, spReg, stackAlignment_);
+}
+
+void
+CodeGenerator::decrementStackPointer(
+    TTAProgram::CodeSnippet& dstProcedure, const TCEString& spReg) {
+    decrementRegisterAddress(dstProcedure, spReg, stackAlignment_);
 }
 
 /**
@@ -367,7 +442,7 @@ CodeGenerator::popFromStack(
         createTerminalRegister(stackRegister, true);
     loadTerminal(dstProcedure, stackTerminal, dstTerminal);
 
-    incrementRegisterAddress(dstProcedure, stackRegister);
+    incrementStackPointer(dstProcedure, stackRegister);
 }
 
 /**
@@ -385,7 +460,7 @@ CodeGenerator::popRegisterFromStack(
 
     loadFromRegisterAddress(dstProcedure, stackRegister, dstReg);
 
-    incrementRegisterAddress(dstProcedure, stackRegister);
+    incrementStackPointer(dstProcedure, stackRegister);
 }
 
 /**
@@ -400,8 +475,7 @@ CodeGenerator::pushToStack(
     TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& stackRegister,
     TTAProgram::Terminal* srcTerminal) {
-
-    decrementRegisterAddress(dstProcedure, stackRegister);
+    decrementStackPointer(dstProcedure, stackRegister);
 
     TTAProgram::Terminal* stackTerminal =
         createTerminalRegister(stackRegister, true);
@@ -420,11 +494,29 @@ CodeGenerator::pushRegisterToStack(
     TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& stackRegister,
     const TCEString& srcReg) {
-
-    decrementRegisterAddress(dstProcedure, stackRegister);
+    decrementStackPointer(dstProcedure, stackRegister);
 
     storeToRegisterAddress(dstProcedure, stackRegister, srcReg);
 }
+
+void
+CodeGenerator::pushInstructionReferenceToStack(
+    TTAProgram::CodeSnippet& dstProcedure, const TCEString& stackRegister,
+    TTAProgram::InstructionReference& srcAddr) {
+    // create terminal references
+    TTAProgram::TerminalInstructionReference* srcTerminal =
+        new TTAProgram::TerminalInstructionReference(srcAddr);
+
+    pushToStack(dstProcedure, stackRegister, srcTerminal);
+}
+
+/**
+ * TODO Decide how much the register value should be incremented in
+ * the following buffer operations. Right now it's 4, but maybe it should be
+ * calculated based on the terminal size. These operations aren't currently
+ * used anywhere. For stack buffer operations you should use the above
+ * functions, since they take into account the stack alignment.
+ */
 
 /**
  * Pops value from buffer and stores it in a given terminal.
@@ -438,8 +530,7 @@ CodeGenerator::popFromBuffer(
     TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& indexRegister,
     TTAProgram::Terminal* dstTerminal) {
-
-    decrementRegisterAddress(dstProcedure, indexRegister);
+    decrementRegisterAddress(dstProcedure, indexRegister, 4);
 
     TTAProgram::Terminal* indexTerminal =
         createTerminalRegister(indexRegister, true);
@@ -458,8 +549,7 @@ CodeGenerator::popRegisterFromBuffer(
     TTAProgram::CodeSnippet& dstProcedure,
     const TCEString& indexRegister,
     const TCEString& dstReg) {
-
-    decrementRegisterAddress(dstProcedure, indexRegister);
+    decrementRegisterAddress(dstProcedure, indexRegister, 4);
 
     loadFromRegisterAddress(dstProcedure, indexRegister, dstReg);
 }
@@ -481,7 +571,7 @@ CodeGenerator::pushToBuffer(
         createTerminalRegister(indexRegister, true);
     storeTerminal(dstProcedure, indexTerminal, srcTerminal);
 
-    incrementRegisterAddress(dstProcedure, indexRegister);
+    incrementRegisterAddress(dstProcedure, indexRegister, 4);
 }
 
 /**
@@ -499,20 +589,7 @@ CodeGenerator::pushRegisterToBuffer(
 
     storeToRegisterAddress(dstProcedure, indexRegister, srcReg);
 
-    incrementRegisterAddress(dstProcedure, indexRegister);
-}
-
-void
-CodeGenerator::pushInstructionReferenceToStack(
-    TTAProgram::CodeSnippet& dstProcedure,
-    const TCEString& stackRegister,
-    TTAProgram::InstructionReference& srcAddr) {
-
-    // create terminal references
-    TTAProgram::TerminalInstructionReference* srcTerminal =
-        new TTAProgram::TerminalInstructionReference(srcAddr);
-
-    pushToStack(dstProcedure, stackRegister, srcTerminal);
+    incrementRegisterAddress(dstProcedure, indexRegister, 4);
 }
 
 void
@@ -559,7 +636,7 @@ CodeGenerator::registerJump(
         dstProcedure, jumpDestTerminal, jump1Terminal, annotation);
 }
 
-TTAProgram::Move*
+std::shared_ptr<TTAProgram::Move>
 CodeGenerator::createJump(TTAProgram::InstructionReference& dst) {
 
     TTAProgram::TerminalFUPort* jump1Terminal =
@@ -568,24 +645,42 @@ CodeGenerator::createJump(TTAProgram::InstructionReference& dst) {
     TTAProgram::Terminal* jump0Terminal =
         new TTAProgram::TerminalInstructionReference(dst);
 
-    return new TTAProgram::Move(jump0Terminal, jump1Terminal,
-                                uMach_->universalBus());
+    return std::make_shared<TTAProgram::Move>(jump0Terminal, jump1Terminal,
+                                         uMach_->universalBus());
 }
 
 
 /**
  * Creates a call move.
  */
-TTAProgram::Move*
+std::shared_ptr<TTAProgram::Move>
 CodeGenerator::createCall(TTAProgram::InstructionReference& callDst) {
     TTAProgram::TerminalInstructionReference* srcTerminal =
         new TTAProgram::TerminalInstructionReference(callDst);
 
     TTAProgram::TerminalFUPort* dstTerminal =
         createTerminalFUPort("call", 1);
-    return new TTAProgram::Move(
+    return std::make_shared<TTAProgram::Move>(
         srcTerminal, dstTerminal, uMach_->universalBus());
 }
+
+/**
+ * Creates an external call move.
+ */
+void
+CodeGenerator::createExternalCall(
+    TTAProgram::CodeSnippet& dstProcedure,
+    const TCEString& procedureName) {
+
+    TTAProgram::TerminalSymbolReference* srcTerminal =
+        new TTAProgram::TerminalSymbolReference(procedureName);
+
+    TTAProgram::TerminalFUPort* dstTerminal =
+        createTerminalFUPort("call", 1);
+
+    addMoveToProcedure(dstProcedure, srcTerminal, dstTerminal);
+}
+
 
 /**
  * Creates a call move and adds it to the given procedure.
@@ -644,11 +739,11 @@ CodeGenerator::immediateMove(
  * @param rvReg Return value register name.
  * @param saveRegs Set of registers, which should be saved.
  */
-TTAProgram::CodeSnippet*
+TTAProgram::Procedure*
 CodeGenerator::createSchedYieldProcedure(
     TTAProgram::InstructionReferenceManager& refManager,
     const TCEString& name,
-    TTAProgram::InstructionReference& schedProcedure,
+    const TCEString& schedProcedureName,
     const TCEString& stackReg,
     const TCEString& rvReg,
     const RegisterSet& saveRegs) {
@@ -685,14 +780,14 @@ CodeGenerator::createSchedYieldProcedure(
 #else
     registerMove(*retVal, stackReg, rvReg);
 #endif
-    createCall(*retVal, schedProcedure);
+    createExternalCall(*retVal, schedProcedureName);
 
     // read new sp value from rv register
     registerMove(*retVal, rvReg, stackReg);
 
 #ifdef ALL_STACK_PARAMETERS
     // need to pop the parameter from stack
-    incrementRegisterAddress(*retVal, stackReg);
+    incrementStackPointer(*retVal, stackReg);
 #endif
 
     // read yeld address from stack
@@ -717,6 +812,12 @@ CodeGenerator::createSchedYieldProcedure(
     // jump to yeld point
     registerJump(*retVal, "RA");
 
+    // remove the placeholder instr.
+    refManager.replace(
+        *yeldReturnInstruction, 
+        retVal->nextInstruction(*yeldReturnInstruction));
+
+    retVal->remove(*yeldReturnInstruction);
     // debug print created function
 
     return retVal;
@@ -737,17 +838,23 @@ CodeGenerator::createInverseGuard(
     const TTAProgram::MoveGuard &mg, const TTAMachine::Bus* bus) {
 
     const TTAMachine::Guard& g = mg.guard();
+    if (bus == NULL) {
+        bus = g.parentBus();
+    }
+
     bool inv = g.isInverted();
     const TTAMachine::RegisterGuard* rg =
         dynamic_cast<const TTAMachine::RegisterGuard*>(&g);
     if (rg != NULL) {
-        TTAMachine::RegisterFile* rf = rg->registerFile();
+        const TTAMachine::RegisterFile* rf = rg->registerFile();
         int regIndex = rg->registerIndex();
 
-        if (bus == NULL) {
-            bus = rg->parentBus();
+        // fake guard to be bypassed as port guard?
+        if (bus == nullptr) {
+            return new TTAProgram::MoveGuard(
+                *new TTAMachine::RegisterGuard(
+                    !rg->isInverted(), *rg->registerFile(), rg->registerIndex(), nullptr));
         }
-
         // find guard
         for (int i = 0 ; i < bus->guardCount(); i++) {
             const TTAMachine::Guard *g2 = bus->guard(i);
@@ -762,6 +869,274 @@ CodeGenerator::createInverseGuard(
             }
         }
     }
+    const TTAMachine::PortGuard* pg =
+        dynamic_cast<const TTAMachine::PortGuard*>(&g);
+    if (pg) {
+        auto port = pg->port();
+
+        // find guard
+        for (int i = 0 ; i < bus->guardCount(); i++) {
+            const TTAMachine::Guard *g2 = bus->guard(i);
+            const TTAMachine::PortGuard* pg2 =
+                dynamic_cast<const TTAMachine::PortGuard*>(g2);
+            if (pg2 && pg2->port() == port &&
+                pg2->isInverted() == !inv) {
+                return new TTAProgram::MoveGuard(*pg2);
+            }
+        }
+    }
+
     return NULL;
 }
+/*
+ * Returns the operations in order.
+ * Last is the lbufs op.
+ * It may be preceeded by sub op.
+ * The first may be a shift op.
+ */
+std::vector <ProgramOperationPtr>
+CodeGenerator::createForLoopBufferInit(
+    const MoveNode* dynamicLimitMove, int iterationCount, int loopSize, int divider) {
+
+    std::vector<ProgramOperationPtr> res;
+    // is power-of-2?
+    if (divider & (divider-1)) {
+        return res;
+    }
+
+    const char* opName = "lbufs";
+    const TTAMachine::ControlUnit& cu = *mach_->controlUnit();
+    if (!cu.hasOperation(opName)) {
+        return res;
+    }
+
+    OperationPool pool;
+    const Operation& lbufsOp = pool.operation(opName);
+    SimValue loopSizeSV(MathTools::requiredBitsSigned(loopSize));
+    loopSizeSV = loopSize;
+    TTAProgram::TerminalImmediate* loopSizeSrc =
+        new TTAProgram::TerminalImmediate(loopSizeSV);
+
+    MoveNode* iterCountMN = NULL;
+    ProgramOperationPtr shiftPO;
+    ProgramOperationPtr subPO;
+
+    // TODO: universalmachine is buggy. these should be in control unit,
+    // not universalfunction unit
+    TTAProgram::TerminalFUPort* iterCountDst =
+        new TTAProgram::TerminalFUPort(
+            *uMach_->universalFunctionUnit().operation(opName), 1);
+
+    TTAProgram::TerminalFUPort* loopSizeDst =
+        new TTAProgram::TerminalFUPort(
+            *uMach_->universalFunctionUnit().operation(opName), 2);
+
+    // static iteration count
+    if (dynamicLimitMove == NULL) {
+        SimValue iterCountSV(MathTools::requiredBitsSigned(iterationCount)); 
+        iterCountSV = iterationCount;
+        TTAProgram::Terminal* iterCountSrc = new TTAProgram::TerminalImmediate(iterCountSV);
+        iterCountMN = new MoveNode(createMove(iterCountSrc, iterCountDst));
+    } else {
+        bool decrement = false;
+        bool increment = false;
+        switch (iterationCount) {
+        case -1:
+            decrement = true;
+        case 0:
+            break;
+        default:
+            if (iterationCount > 0)
+                increment = true;
+            else
+                return res;
+        }
+        TTAProgram::Terminal* counterValSrc = NULL;
+        if (dynamicLimitMove->isSourceOperation())
+            counterValSrc = dynamicLimitMove->move().destination().copy();
+        else
+            counterValSrc = dynamicLimitMove->move().source().copy();
+
+        // if divider not 1, need shift of to scale it down.
+        TCEString adjustName = decrement ? "sub" : "add";
+        if (mach_->is64bit()) {
+            adjustName << "64";
+        }
+        if (decrement || increment) {
+            const Operation& subOp = pool.operation(adjustName.c_str());
+            subPO = std::make_shared<ProgramOperation>(subOp);
+
+            // signed 1 is 2 bits.
+            TTAProgram::TerminalImmediate* subAmountSrc =
+                new TTAProgram::TerminalImmediate(
+                    SimValue(abs(iterationCount),
+                             MathTools::requiredBitsSigned(iterationCount)));
+
+            TTAProgram::TerminalFUPort* subAmntDst = createTerminalFUPort(adjustName, 2);
+            TTAProgram::TerminalFUPort* subRes = createTerminalFUPort(adjustName, 3);
+
+            MoveNode* subAmtMN = new MoveNode(createMove(subAmountSrc, subAmntDst));
+            subPO->addInputNode(*subAmtMN);
+            subAmtMN->addDestinationOperationPtr(subPO);
+
+            iterCountMN = new MoveNode(createMove(subRes, iterCountDst));
+            subPO->addOutputNode(*iterCountMN);
+            iterCountMN->setSourceOperationPtr(subPO);
+
+            res.push_back(subPO);
+            // first input not here but later
+        }
+
+        if (divider > 1) {
+            TCEString shiftName = "shr";
+            if (mach_->is64bit()) {
+                shiftName << "64";
+            }
+            const Operation& shiftOp = pool.operation(shiftName.c_str());
+
+            int shiftAmount = MathTools::ceil_log2(divider);
+
+            SimValue shiftAmountSV(MathTools::requiredBitsSigned(shiftAmount));
+            shiftAmountSV = shiftAmount;
+
+            TTAProgram::TerminalImmediate* shiftAmountSrc =
+                new TTAProgram::TerminalImmediate(shiftAmountSV);
+
+            // create terminal references
+            TTAProgram::TerminalFUPort* shiftValDst =
+                createTerminalFUPort(shiftName, 1);
+            TTAProgram::TerminalFUPort* shiftAmntDst =
+                createTerminalFUPort(shiftName, 2);
+            TTAProgram::TerminalFUPort* shiftRes =
+                createTerminalFUPort(shiftName, 3);
+
+            MoveNode* shiftValMN = new MoveNode(createMove(counterValSrc, shiftValDst));
+            MoveNode* shiftAmtMN = new MoveNode(createMove(shiftAmountSrc, shiftAmntDst));
+
+            shiftPO = std::make_shared<ProgramOperation>(shiftOp);
+            shiftPO->addInputNode(*shiftValMN);
+            shiftPO->addInputNode(*shiftAmtMN);
+            shiftValMN->addDestinationOperationPtr(shiftPO);
+            shiftAmtMN->addDestinationOperationPtr(shiftPO);
+
+            // push before the possible sub
+            res.insert(res.begin(),shiftPO);
+            MoveNode* shift2dec = NULL;
+            if (!(decrement||increment)) {
+                iterCountMN = new MoveNode(createMove(shiftRes, iterCountDst));
+                shiftPO->addOutputNode(*iterCountMN);
+                iterCountMN->setSourceOperationPtr(shiftPO);
+            } else {
+                // use dsub operation
+                TTAProgram::TerminalFUPort* subValDst =
+                    createTerminalFUPort(adjustName, 1);
+                shift2dec = new MoveNode(createMove(shiftRes, subValDst));
+                subPO->addInputNode(*shift2dec);
+                shift2dec->addDestinationOperationPtr(subPO);
+
+                shiftPO->addOutputNode(*shift2dec);
+                shift2dec->setSourceOperationPtr(shiftPO);
+            }
+        } else { // no shifting, maybe decrement
+            if (decrement||increment) {
+                // create terminal references
+                TTAProgram::TerminalFUPort* subValDst =
+                    createTerminalFUPort(adjustName, 1);
+                MoveNode* subValMN = new MoveNode(createMove(counterValSrc, subValDst));
+                subPO->addInputNode(*subValMN);
+                subValMN->addDestinationOperationPtr(subPO);
+            } else {
+                iterCountMN = new MoveNode(createMove(counterValSrc, iterCountDst));
+            }
+        }
+    }
+    MoveNode* loopSizeMN = new MoveNode(createMove(loopSizeSrc, loopSizeDst));
+
+    ProgramOperationPtr loopBusInitOp(new ProgramOperation(lbufsOp));
+    loopBusInitOp->addInputNode(*iterCountMN);
+    loopBusInitOp->addInputNode(*loopSizeMN);
+    iterCountMN->addDestinationOperationPtr(loopBusInitOp);
+    loopSizeMN->addDestinationOperationPtr(loopBusInitOp);
+
+    res.push_back(loopBusInitOp);
+    return res;
+}
+
+std::shared_ptr<TTAProgram::Move> CodeGenerator::createMove(
+    TTAProgram::Terminal* src, TTAProgram::Terminal* dst) {
+    return std::make_shared<TTAProgram::Move>(src, dst, uMach_->universalBus());
+}
+
+ProgramOperationPtr CodeGenerator::createBreakOperation(const MoveNode* jump) {
+    // 4ever loop or buggy input?
+    if (jump->move().isUnconditional()) {
+        return nullptr;
+    }
+
+    const TTAMachine::Guard& guard = jump->move().guard().guard();
+    auto rg = dynamic_cast<const TTAMachine::RegisterGuard*>(&guard);
+    if (!rg) {
+        return nullptr;
+    }
+
+    // TODO: change eq->ne or add xor to support non-inverted without
+    // both ops.
+    const char* opName = rg->isInverted() ? "lbufc" : "lbufz";
+    const TTAMachine::ControlUnit& cu = *mach_->controlUnit();
+    if (!cu.hasOperation(opName)) {
+        return nullptr;
+    }
+
+    TTAProgram::TerminalFUPort* dst =
+        new TTAProgram::TerminalFUPort(
+            *uMach_->universalFunctionUnit().operation(opName), 1);
+
+    // create terminal for reading register
+    auto src = createTerminalRegister(
+        *rg->registerFile(), rg->registerIndex(), true);
+
+    MoveNode* loopSizeMN = new MoveNode(createMove(src, dst));
+
+    OperationPool pool;
+    const Operation& op = pool.operation(opName);
+    ProgramOperationPtr po(new ProgramOperation(op));
+    po->addInputNode(*loopSizeMN);
+    loopSizeMN->addDestinationOperationPtr(po);
+    return po;
+}
+
+
+/*
+ * Returns the operations in order.
+ * Last is the lbufs op.
+ * It may be preceeded by sub op.
+ * The first may be a shift op.
+ */
+ProgramOperationPtr
+CodeGenerator::createWhileLoopBufferInit(int loopSize) {
+    const char* opName = "infloop";
+    const TTAMachine::ControlUnit& cu = *mach_->controlUnit();
+    if (!cu.hasOperation(opName)) {
+        return nullptr;
+    }
+
+    TTAProgram::TerminalFUPort* loopSizeDst =
+        new TTAProgram::TerminalFUPort(
+            *uMach_->universalFunctionUnit().operation(opName), 1);
+
+    OperationPool pool;
+    const Operation& lbufsOp = pool.operation(opName);
+    SimValue loopSizeSV(MathTools::requiredBitsSigned(loopSize));
+    loopSizeSV = loopSize;
+    TTAProgram::TerminalImmediate* loopSizeSrc =
+        new TTAProgram::TerminalImmediate(loopSizeSV);
+
+    MoveNode* loopSizeMN = new MoveNode(createMove(loopSizeSrc, loopSizeDst));
+
+    ProgramOperationPtr loopBufInitOp(new ProgramOperation(lbufsOp));
+    loopBufInitOp->addInputNode(*loopSizeMN);
+    loopSizeMN->addDestinationOperationPtr(loopBufInitOp);
+    return loopBufInitOp;
+}
+
 }

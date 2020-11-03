@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Definition of SimulationController class.
  *
  * @author Jussi Nyk‰nen 2005 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005-2009 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005-2015 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -91,27 +91,38 @@ SimulationController::SimulationController(
     bool fuResourceConflictDetection,
     bool detailedSimulation) :
     TTASimulationController(frontend, machine, program),
-    machineState_(NULL), gcu_(NULL) {
-
-    MachineStateBuilder builder(detailedSimulation);
+    tmpExecutedInstructions_(1) {
 
     if (fuResourceConflictDetection)
         buildFUResourceConflictDetectors(machine);
 
-    machineState_ = builder.build(
-        machine, frontend.memorySystem(), fuConflictDetectors_);
-    // set the real time clock source to be the simulation
-    // cycle counter
-    for (int i = 0; i < machineState_->FUStateCount(); ++i) {
-        FUState& fuState = machineState_->fuState(i);
-        fuState.context().setCycleCountVariable(clockCount_);
-    }        
-    assert(machineState_ != NULL);
-    
-    gcu_ = &machineState_->gcuState();
+    for (int i = 0; i < 1; ++i) {
+        frontend_.selectCore(i);
+        MachineStateBuilder builder(detailedSimulation);
+        MachineState* machineState = NULL;
 
+        if (fuResourceConflictDetection) {
+            machineState = builder.build(
+                machine, frontend.memorySystem(i), fuConflictDetectors_.at(i));
+        } else {
+            machineState = builder.build(machine, frontend.memorySystem(i));
+        }
+        // set the real time clock source to be the simulation
+        // cycle counter
+        for (int i = 0; i < machineState->FUStateCount(); ++i) {
+            FUState& fuState = machineState->fuState(i);
+            fuState.context().setCycleCountVariable(clockCount_);
+        }   
+        machineStates_.push_back(machineState);
+    }
+    frontend_.selectCore(0);
+    
     SimProgramBuilder programBuilder;
-    instructionMemory_ = programBuilder.build(program, *machineState_);
+    for (int i = 0; i < 1; ++i) {
+        InstructionMemory* instructionMemory = 
+            programBuilder.build(program, *machineStates_[i]);
+        instructionMemories_.push_back(instructionMemory);
+    }  
 
     findExitPoints(program, machine);
     reset();
@@ -122,25 +133,18 @@ SimulationController::SimulationController(
  */
 SimulationController::~SimulationController() {
 
-    delete machineState_;
-    machineState_ = NULL;
-    delete instructionMemory_;
-    instructionMemory_ = NULL;
-
-
-    AssocTools::deleteAllValues(fuConflictDetectors_);
-    conflictDetectorVector_.clear();
+    SequenceTools::deleteAllItems(machineStates_);
+    SequenceTools::deleteAllItems(instructionMemories_);
+    SequenceTools::deleteAllItems(conflictDetectorVector_);
 }
 
 /**
- * Returns a reference to the machine state model.
- *
- * @return A reference to the machine state model.
+ * Returns a reference to the currently selected machine state model.
  */
 MachineState&
-SimulationController::machineState() {
-    assert(machineState_ != NULL);
-    return *machineState_;
+SimulationController::machineState(int core) {
+    if (core == -1) core = frontend_.selectedCore();
+    return *machineStates_.at(core);
 }
 
 /**
@@ -150,63 +154,100 @@ SimulationController::machineState() {
  * that is, the simulation ended sucessfully, true in case there are
  * more instructions to execute.
  */
-inline bool
+bool
 SimulationController::simulateCycle() {
 
-    const InstructionAddress& pc = gcu_->programCounter();
+    tmpExecutedInstructions_ = lastExecutedInstruction_;
 
-    try {
-        machineState_->clearBuses();
+    // The number of cores that have reached the exit function,
+    // use this to stop automatically after all of them have
+    // called it.
+    unsigned finishedCoreCount = 0;
+    bool finished = false;
+    for (int core = 0; core < 1; ++core) {
+        MachineState* machineState = machineStates_[core];
 
-        ExecutableInstruction& instruction = 
-            instructionMemory_->instructionAt(pc);
-        instruction.execute();
+        if (machineState->isFinished()) {
+            ++finishedCoreCount;
+            continue;
+        }
         
-        lastExecutedInstruction_ = pc;
-        machineState_->endClockOfAllFUStates();
+        GCUState& gcu = machineState->gcuState();
+        const InstructionAddress& pc = gcu.programCounter();
 
-        if (!gcu_->isIdle())
-            gcu_->endClock();
+        MemorySystem* memorySystem = &frontend_.memorySystem(core);
+        try {
+            machineState->clearBuses();
 
-        memorySystem().advanceClockOfLocalMemories();
-        memorySystem().advanceClockOfSharedMemories();
-        machineState_->advanceClockOfAllFUStates();
+            ExecutableInstruction* instruction = 
+                &(instructionMemories_[core]->instructionAt(pc));
 
-        for (std::size_t i = 0; i < conflictDetectorVector_.size(); ++i) {
-            FUResourceConflictDetector& detector = *conflictDetectorVector_[i];
-            if (!detector.isIdle())
-                detector.advanceClock();
-        }
+            instruction->execute();
 
-        ++gcu_->programCounter();
-        if (!gcu_->isIdle())
-            gcu_->advanceClock();
+            tmpExecutedInstructions_[core] = pc;
+        
+            machineState->endClockOfAllFUStates();
 
-        machineState_->advanceClockOfAllGuardStates();
-        machineState_->advanceClockOfAllLongImmediateUnitStates();
+            if (!gcu.isIdle()) {
+                gcu.endClock();
+            }
+            
+            memorySystem->advanceClockOfLocalMemories();
+            machineState->advanceClockOfAllFUStates();
 
-        frontend_.eventHandler().handleEvent(
-            SimulationEventHandler::SE_CYCLE_END);
+            ++gcu.programCounter();
+            if (!gcu.isIdle())
+                gcu.advanceClock();
 
-        ++clockCount_;
+            machineState->advanceClockOfAllGuardStates();
+            machineState->advanceClockOfAllLongImmediateUnitStates();
 
-        // check if the instruction was a return point from the program or
-        // the next executed instruction would be sequentially over the
-        // instruction space (PC+1 would overflow out of the program)
-        if (instruction.isExitPoint() || 
-            gcu_->programCounter() == firstIllegalInstructionIndex_) {
-            state_ = STA_FINISHED;
-            stopRequested_ = true;
+            // check if the instruction was a return point from the program or
+            // the next executed instruction would be sequentially over the
+            // instruction space (PC+1 would overflow out of the program)
+            if (instruction->isExitPoint() || 
+                gcu.programCounter() == firstIllegalInstructionIndex_) {
+                machineState->setFinished();
+                ++finishedCoreCount;
+            } 
+        } catch (const Exception& e) {
+            frontend_.selectCore(core);
+            frontend_.reportSimulatedProgramError(
+                SimulatorFrontend::RES_FATAL,
+                e.errorMessage());
+            prepareToStop(SRE_RUNTIME_ERROR);
             return false;
-        }
+        } 
+    }
+    
+    if (finishedCoreCount == 1)
+        finished = true;
 
-    } catch (const Exception& e) {
-        frontend_.reportSimulatedProgramError(
-            SimulatorFrontend::RES_FATAL,
-            e.errorMessage());
-        prepareToStop(SRE_RUNTIME_ERROR);
+    // assume all cores have identical memory systems, thus it's enough
+    // to advance the simulation clock only once for the first core's
+    // memory system's shared memory instance
+    frontend_.memorySystem(0).advanceClockOfSharedMemories();    
+
+    // detect FU pipeline resource conflicts
+    size_t conflictDetectorVectorSize = conflictDetectorVector_.size();
+    for (std::size_t i = 0; i < conflictDetectorVectorSize; ++i) {
+        FUResourceConflictDetector& detector = 
+            *conflictDetectorVector_[i];
+        if (!detector.isIdle())
+            detector.advanceClock();
+    }
+
+    frontend_.eventHandler().handleEvent(SimulationEventHandler::SE_CYCLE_END);
+
+    lastExecutedInstruction_ = tmpExecutedInstructions_;
+
+    ++clockCount_;
+
+    if (finished) {
+        state_ = STA_FINISHED;
+        stopRequested_ = true;
         return false;
-    } 
+    }
 
     frontend_.eventHandler().handleEvent(
         SimulationEventHandler::SE_NEW_INSTRUCTION);
@@ -336,7 +377,7 @@ SimulationController::runUntil(UIntWord address) {
         if (state_ == STA_FINISHED)
             return;
 
-        if (gcu_->programCounter() == address) {
+        if (selectedMachineState().gcuState().programCounter() == address) {
             prepareToStop(SRE_AFTER_UNTIL);
             state_ = STA_STOPPED;
             frontend_.eventHandler().handleEvent(
@@ -353,39 +394,19 @@ SimulationController::runUntil(UIntWord address) {
         SimulationEventHandler::SE_SIMULATION_STOPPED);
 }
 
-/**
- * Builds the FU resource conflict detectors for each FU in the given machine.
- *
- * Uses the "lazy FSA" detection model.
- *
- * @param machine The machine to build FU conflict detectors for.
- */
 void
-SimulationController::buildFUResourceConflictDetectors(
-    const TTAMachine::Machine& machine) {
-
-    const TTAMachine::Machine::FunctionUnitNavigator nav = 
-        machine.functionUnitNavigator();
-
-    for (int i = 0; i < nav.count(); ++i) {
-        const TTAMachine::FunctionUnit& fu = *nav.item(i);
-        FUResourceConflictDetector* detector = 
-            new FSAFUResourceConflictDetector(fu);
-        fuConflictDetectors_[fu.name()] = detector;
-        conflictDetectorVector_.push_back(detector);
-    }
-}
-
-void 
 SimulationController::findExitPoints(
     const TTAProgram::Program& program,
     const TTAMachine::Machine& machine) {
-    std::set<InstructionAddress> exitPoints_ = findProgramExitPoints(
-        program, machine);
-    
-    for (std::set<InstructionAddress>::iterator it = exitPoints_.begin(); 
+
+    std::set<InstructionAddress> exitPoints_ =
+        findProgramExitPoints(program, machine);
+
+    for (std::set<InstructionAddress>::iterator it = exitPoints_.begin();
          it != exitPoints_.end(); ++it) {
-             instructionMemory_->instructionAt(*it).setExitPoint(true);
+        for (std::size_t i = 0; i < instructionMemories_.size(); ++i) {
+            instructionMemories_[i]->instructionAt(*it).setExitPoint(true);
+        }
     }
 }
 
@@ -402,39 +423,26 @@ SimulationController::reset() {
     state_ = STA_INITIALIZING;
     stopRequested_ = false;
     clockCount_ = 0;
-    gcu_->programCounter() = initialPC_;
-    machineState_->resetAllFUs();
     state_ = STA_INITIALIZED;
-    instructionMemory_->resetExecutionCounts();
 
-    for (FUConflictDetectorIndex::iterator d = fuConflictDetectors_.begin();
-         d != fuConflictDetectors_.end(); ++d) {
-        FUResourceConflictDetector& detector = *(*d).second;
-        detector.reset();
+    for (int core = 0; core < 1; ++core) {
+        machineStates_.at(core)->gcuState().programCounter() = initialPC_;
+        machineStates_.at(core)->setFinished(false);
+        machineStates_.at(core)->resetAllFUs();
+        instructionMemories_.at(core)->resetExecutionCounts();
+    }
+
+    for (std::size_t vec = 0; vec < conflictDetectorVector_.size(); ++vec) {
+        conflictDetectorVector_.at(vec)->reset();
     }
 }
 
 /**
- * Returns the program counter value.
- *
- * @return Program counter value.
+ * Returns the program counter value of the currently selected core.
  */
 InstructionAddress
 SimulationController::programCounter() const {
-    return gcu_->programCounter();
-}
-
-/**
- * Returns the instruction memory instance.
- *
- * This is mainly used by clients to fetch instruction execution counts
- * to calculate simulation statistics.
- *
- * @return The instruction memory instance of the currently simulated program.
- */
-const InstructionMemory& 
-SimulationController::instructionMemory() const {
-    return *instructionMemory_;
+    return machineStates_.at(frontend_.selectedCore())->gcuState().programCounter();
 }
 
 /**
@@ -487,8 +495,8 @@ SimValue
 SimulationController::immediateUnitRegisterValue(
     const std::string& iuName, int index) {
 
-    assert(machineState_ != NULL);
-    return (machineState_->longImmediateUnitState(iuName)).registerValue(index);
+    return (selectedMachineState().longImmediateUnitState(iuName)).
+        registerValue(index);
 }
 
 /**
@@ -502,7 +510,47 @@ SimValue
 SimulationController::FUPortValue(
     const std::string& fuName, const std::string& portName) {
 
-    assert(machineState_ != NULL);
-    return (machineState_->portState(portName, fuName)).value();
+    return (selectedMachineState().portState(portName, fuName)).value();
 }
 
+/**
+ * Builds the FU resource conflict detectors for each FU in the machine.
+ *
+ * Uses the "lazy FSA" detection model.
+ */
+void
+SimulationController::buildFUResourceConflictDetectors(
+    const TTAMachine::Machine& machine) {
+
+
+    for (int core = 0; core < 1; ++core) {
+        const TTAMachine::Machine::FunctionUnitNavigator nav = 
+            machine.functionUnitNavigator();
+
+        fuConflictDetectors_.push_back(FUConflictDetectorIndex());
+
+        for (int i = 0; i < nav.count(); ++i) {
+            const TTAMachine::FunctionUnit& fu = *nav.item(i);
+            FUResourceConflictDetector* detector = 
+                new FSAFUResourceConflictDetector(fu);
+            fuConflictDetectors_[core][fu.name()] = detector;
+            conflictDetectorVector_.push_back(detector);
+        }
+    }
+}
+
+const InstructionMemory&
+SimulationController::instructionMemory(int core) const {
+    if (core == -1) core = frontend_.selectedCore();
+    return *instructionMemories_.at(core);
+}
+
+MachineState&
+SimulationController::selectedMachineState() { 
+    return *machineStates_.at(frontend_.selectedCore());
+}
+
+InstructionMemory&
+SimulationController::selectedInstructionMemory() {
+    return *instructionMemories_.at(frontend_.selectedCore());
+}

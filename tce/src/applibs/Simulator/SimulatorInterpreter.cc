@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Implementation of SimulatorInterpreter class
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005-2010
  * @note rating: red
  */
 
@@ -59,6 +59,7 @@
 #include "WatchCommand.hh"
 #include "CommandsCommand.hh"
 #include "SymbolAddressCommand.hh"
+#include "BackTraceCommand.hh"
 #include "MemWriteCommand.hh"
 
 /**
@@ -109,6 +110,8 @@ SimulatorInterpreter::SimulatorInterpreter(
     addCustomCommand(new CommandsCommand());
     addCustomCommand(new SymbolAddressCommand());
     
+    addCustomCommand(new BackTraceCommand());
+
     context.simulatorFrontend().setOutputStream(lineReader()->outputStream());
 }
 

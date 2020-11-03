@@ -63,6 +63,13 @@ namespace llvm {
         TCEInstrInfo(const TCETargetMachinePlugin* plugin);
         virtual ~TCEInstrInfo();
 
+#ifndef LLVM_OLDER_THAN_10
+        const InstrItineraryData *
+        getInstrItineraryData() const {
+            return &InstrItins;
+        }
+#endif
+
         virtual const TargetRegisterInfo& getRegisterInfo() const { 
             return ri_; 
         }
@@ -85,8 +92,6 @@ namespace llvm {
 #else
         , int *BytesAdded = nullptr) const override;
 #endif
-
-
 #ifdef LLVM_OLDER_THAN_4_0
         unsigned RemoveBranch(MachineBasicBlock &mbb) const override;
 #else
@@ -108,7 +113,11 @@ namespace llvm {
         virtual void storeRegToStackSlot(
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
+#ifdef LLVM_OLDER_THAN_11
             unsigned srcReg, bool isKill, int frameIndex,
+#else
+            Register srcReg, bool isKill, int frameIndex,
+#endif
             const TargetRegisterClass* rc, const TargetRegisterInfo*) const override {
             storeRegToStackSlot(mbb, mbbi, srcReg, isKill, frameIndex, rc);
         }
@@ -125,7 +134,11 @@ namespace llvm {
         virtual void loadRegFromStackSlot(
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
+#ifdef LLVM_OLDER_THAN_11
             unsigned destReg, int frameIndex,
+#else
+            Register destReg, int frameIndex,
+#endif
             const TargetRegisterClass* rc, const TargetRegisterInfo*) const override {
             loadRegFromStackSlot(mbb, mbbi, destReg, frameIndex, rc);
         }
@@ -163,6 +176,14 @@ namespace llvm {
             bool allowModify = false)
             const override;
 
+#ifndef LLVM_OLDER_THAN_10
+        /// Analyze loop L, which must be a single-basic-block loop, and if
+        /// the conditions can be understood enough produce a
+        /// PipelinerLoopInfo object.
+        std::unique_ptr<PipelinerLoopInfo> analyzeLoopForPipelining(
+            MachineBasicBlock *LoopBB) const override;
+#endif
+
 #ifdef LLVM_OLDER_THAN_3_9
     virtual bool isPredicated(const MachineInstr *MI) const override;
     virtual bool isPredicable(MachineInstr *MI) const override;
@@ -199,6 +220,12 @@ namespace llvm {
 	    return false;
 	}
 
+    virtual void insertCCBranch(
+        MachineBasicBlock& mbb,
+        MachineBasicBlock& tbb,
+        ArrayRef<MachineOperand> cond,
+        const DebugLoc& dl) const;
+
 #ifdef LLVM_OLDER_THAN_3_8
     virtual bool isProfitableToIfCvt(MachineBasicBlock &MBB, unsigned NumCycles,
                      unsigned ExtraPredCycles,
@@ -221,11 +248,47 @@ namespace llvm {
                      BranchProbability Probability) const override;
 #endif
 
-    private:
-	int getMatchingCondBranchOpcode(int Opc, bool inverted) const;
+    /**
+     * Return opcode for pointer adjustment and new offset.
+     *
+     * Returns opcode available or suitable for pointer adjustment with
+     * constant offset value.
+     *
+     * @param offset The offset for the pointer.
+     * @return (opcode, new offset) tuple.
+     */
+    std::tuple<int, int> getPointerAdjustment(int offset) const;
+
+#ifndef LLVM_OLDER_THAN_10
+    virtual DFAPacketizer *CreateTargetScheduleState(
+        const TargetSubtargetInfo &) const override;
+#endif
+
+private:
+#ifndef LLVM_OLDER_THAN_10
+    InstrItineraryData InstrItins;
+#endif
+
+    int getMatchingCondBranchOpcode(int Opc, bool inverted) const;
 
         const TCERegisterInfo ri_;
         const TCETargetMachinePlugin* plugin_;
+
+        // implementation generated to Backend.inc from TDGen.cc
+        bool copyPhysVectorReg(
+            MachineBasicBlock& mbb,
+            MachineBasicBlock::iterator mbbi,
+#ifdef LLVM_OLDER_THAN_3_9
+            DebugLoc DL,
+#else
+            const DebugLoc& DL,
+#endif
+#ifdef LLVM_OLDER_THAN_10
+            unsigned destReg, unsigned srcReg,
+#else
+            MCRegister destReg, MCRegister srcReg,
+#endif
+            bool killSrc) const;
     };
 }
 

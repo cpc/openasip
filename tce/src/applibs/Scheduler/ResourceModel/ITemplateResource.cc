@@ -33,14 +33,18 @@
 #include "ITemplateResource.hh"
 #include "MapTools.hh"
 #include "Application.hh"
+#include "InstructionTemplate.hh"
 
 /**
  * Constructor.
  *
  * @param name Name of template.
  */
-ITemplateResource::ITemplateResource(const std::string& name, unsigned int initiationInterval):
-    SchedulingResource(name, initiationInterval) {
+ITemplateResource::ITemplateResource(
+    TTAMachine::InstructionTemplate& templ,
+    unsigned int initiationInterval):
+    SchedulingResource(templ.name(), initiationInterval),
+    template_(&templ){
 }
 
 /**
@@ -91,6 +95,7 @@ ITemplateResource::assign(const int, MoveNode&) {
  */
 void
 ITemplateResource::assign(const int cycle) {
+
     if (canAssign(cycle)) {
         if (MapTools::containsKey(resourceRecord_, cycle)){
             resourceRecord_[instructionIndex(cycle)]++;
@@ -105,6 +110,7 @@ ITemplateResource::assign(const int cycle) {
  */
 void
 ITemplateResource::unassign(const int, MoveNode&) {
+
     abortWithError("Not implemented!");
 }
 
@@ -115,6 +121,7 @@ ITemplateResource::unassign(const int, MoveNode&) {
  */
 void
 ITemplateResource::unassign(const int cycle) {
+
     if (isInUse(cycle)) {
         resourceRecord_[instructionIndex(cycle)]--;
     }
@@ -197,4 +204,19 @@ void
 ITemplateResource::clear() {
     SchedulingResource::clear();
     resourceRecord_.clear();
+}
+
+/**
+ * Comparison operator.
+ *
+ * Favours itemplates with more nop slots.
+ */
+bool
+ITemplateResource::operator< (const SchedulingResource& other) const {
+    const ITemplateResource *itr = static_cast<const ITemplateResource*>(&other);
+    if (itr == NULL) {
+        return false;
+    }
+
+    return SchedulingResource::operator<(other);
 }

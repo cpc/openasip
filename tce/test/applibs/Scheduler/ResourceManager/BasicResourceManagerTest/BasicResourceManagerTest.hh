@@ -36,8 +36,9 @@
 
 #include <iostream>
 #include <TestSuite.h>
+#include <memory>
 #include "SimpleResourceManager.hh"
-#include "CriticalPathBBMoveNodeSelector.hh"
+#include "DDGMoveNodeSelector.hh"
 #include "ControlFlowGraph.hh"
 #include "UniversalMachine.hh"
 #include "POMDisassembler.hh"
@@ -64,6 +65,7 @@
 #include "Move.hh"
 #include "BasicBlock.hh"
 #include "Conversion.hh"
+#include "Immediate.hh"
 
 // In case some debug info is needed, uncomment
 #define DEBUG_OUTPUT
@@ -564,6 +566,12 @@ BasicResourceManagerTest::testLongImmediates() {
         TS_ASSERT_THROWS_NOTHING(rm->assign(2,moves.node(2)));
         TS_ASSERT_THROWS_NOTHING(selector->notifyScheduled(moves.node(2)));
         MoveNode* node = moves.node(2).copy();
+
+        // node which writes to SP
+        MoveNode* limmUse = moves.node(2).copy();
+        // .. and reads from LIMM
+        limmUse->move().setSource(moves.node(0).move().source().copy());
+
         delete node;
 
         moves = selector->candidates();
@@ -597,6 +605,41 @@ BasicResourceManagerTest::testLongImmediates() {
         TS_ASSERT_EQUALS(rm->instruction(2)->moveCount(), 3);
         TS_ASSERT_EQUALS(rm->instruction(3)->moveCount(), 2);
         TS_ASSERT_EQUALS(rm->instruction(4)->moveCount(), 1);
+
+        std::shared_ptr<TTAProgram::Immediate> limm =
+            rm->instruction(0)->immediate(0).copy();
+        std::shared_ptr<TTAProgram::Immediate> limm2 =
+            rm->instruction(0)->immediate(0).copy();
+        MoveNode* limmNode = new MoveNode(limm);
+        MoveNode* limmNode2 = new MoveNode(limm2);
+#if 0
+        // Undeterministically failing tests. Valgrind reports
+        // cond jumps depending on uninitialized values. TO FIX
+        TS_ASSERT_EQUALS(rm->canAssign(5, *limmNode), true);
+
+        TS_ASSERT_THROWS_NOTHING(rm->assign(5, *limmNode));
+        TS_ASSERT_EQUALS(rm->instruction(5)->immediateCount(), 1);
+
+        TS_ASSERT_EQUALS(rm->canAssign(6, *limmNode2), true);
+        TS_ASSERT_THROWS_NOTHING(rm->assign(6, *limmNode2));
+        TS_ASSERT_EQUALS(rm->instruction(6)->immediateCount(), 1);
+
+        TS_ASSERT_THROWS_NOTHING(rm->unassign(*limmNode2));
+
+        TS_ASSERT_EQUALS(rm->instruction(6)->immediateCount(), 0);
+
+        TS_ASSERT_THROWS_NOTHING(rm->unassign(*limmNode));
+
+        TS_ASSERT_EQUALS(rm->instruction(5)->immediateCount(), 0);
+
+        TS_ASSERT_EQUALS(rm->canAssign(7, *limmUse), true);
+        TS_ASSERT_THROWS_NOTHING(rm->assign(7, *limmUse));
+//        TS_ASSERT_EQUALS(rm->instruction(6)->immediateCount(), 0);
+#endif
+
+        delete limmNode;
+        delete limmNode2;
+
         delete selector;
         SimpleResourceManager::disposeRM(rm, false);
         }
@@ -806,6 +849,7 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         TS_ASSERT_THROWS_NOTHING(
             rm->assign(rm->earliestCycle(*bypassed),*bypassed));
 
+        delete node6; // only use bypassd node as po2 trigger from now on.
         TS_ASSERT_EQUALS(rm->earliestCycle(3,*node7), 8);
         TS_ASSERT_EQUALS(rm->earliestCycle(11,*node7), 11);
         // can not schedule result before trigger
@@ -861,7 +905,6 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         delete node2;
         delete node3;
         delete node5;
-        delete node6;
         delete node7;
         delete duplicate;
         delete otherTarget;

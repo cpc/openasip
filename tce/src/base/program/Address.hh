@@ -57,6 +57,19 @@ public:
 
     InstructionAddress location() const;
     const TTAMachine::AddressSpace& space() const;
+    bool operator==(const Address& other) const;
+    bool operator!=(const Address& other) const;
+
+    bool operator<(const Address& addr) const {
+        if (location_ < addr.location_) return true;
+        if (location_ > addr.location_) return false;
+
+        // The location is equal.
+
+        if (space_ < addr.space_) return true;
+
+        return false;
+    }
 
 private:
     /// The location identified by the address.

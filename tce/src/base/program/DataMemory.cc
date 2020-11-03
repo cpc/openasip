@@ -130,6 +130,27 @@ DataMemory::dataDefinitionCount() const {
     return dataDefs_.size();
 }
 
+
+/**
+ * Returns the place where the data definitions end. Calculates it based
+ * only on the last data definition (since dataDefs_ is sorted).
+ *
+ * @return int end of data definitions
+ */
+int
+DataMemory::dataDefinitionsEnd() const {
+    std::map<AddressImage, DataDefinition*>::const_reverse_iterator iter =
+        dataDefs_.rbegin();
+
+    if (iter != dataDefs_.rend()) {
+        DataDefinition* dataDef = (*iter).second;
+        // this data definition should be the last one
+        return dataDef->startAddress().location() + dataDef->size();
+    }
+    // no data definitions added
+    return 0;
+}
+
 /**
  * Deletes the data definition at the given index.
  *

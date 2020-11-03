@@ -58,21 +58,36 @@
 #include "Operation.hh"
 #include "Move.hh"
 #include "Conversion.hh"
+#include "Immediate.hh"
+#include "Instruction.hh"
 
 using namespace TTAMachine;
+
+//#define PRINT_ID
 
 /**
  * Constructor.
  *
- * Creates a new node with Move.
+ * Creates a new node with a smart pointer to the given Move.
  *
- * @param newmove the Move this node contains.
+ * @param newmove the Move this node refers to.
  */
-MoveNode::MoveNode(std::shared_ptr<TTAProgram::Move> newmove) :
-    move_(newmove), cycle_(0),  placed_(false), finalized_(false),
-    isInFrontier_(false) {
+MoveNode::MoveNode(std::shared_ptr<TTAProgram::Move> newMove) :
+    move_(newMove), immediate_(nullptr), srcOp_(nullptr), guardOp_(nullptr),
+    cycle_(0), placed_(false), finalized_(false), isInFrontier_(false) {
 }
 
+/**
+ * Constructor.
+ *
+ * Creates a new node with a smart pointer to the given immediate.
+ *
+ * @param imm the long immediate this node refers to.
+ */
+MoveNode::MoveNode(std::shared_ptr<TTAProgram::Immediate> imm) :
+    move_(nullptr), immediate_(imm),  srcOp_(nullptr), guardOp_(nullptr),
+    cycle_(0), placed_(false), finalized_(false), isInFrontier_(false) {
+}
 
 /**
  * Constructor.
@@ -82,13 +97,14 @@ MoveNode::MoveNode(std::shared_ptr<TTAProgram::Move> newmove) :
  */
 
 MoveNode::MoveNode() :
-    move_(NULL), cycle_(0), placed_(false), finalized_(false),
-    isInFrontier_(false) {
+    move_(nullptr), immediate_(nullptr), srcOp_(nullptr), guardOp_(nullptr),
+    cycle_(0), placed_(false), finalized_(false), isInFrontier_(false) {
 }
 
 /**
  * Destructor.
  *
+ * Deletes the owned Move instance.
  * Does not unregister this movenode from ProgramOperations.
  */
 MoveNode::~MoveNode() {
@@ -96,6 +112,10 @@ MoveNode::~MoveNode() {
     if (isSourceOperation()) {
         sourceOperation().removeOutputNode(*this);
     }
+    if (isGuardOperation()) {
+        guardOperation().removeGuardOutputNode(*this);
+    }
+
     if (isDestinationOperation()) {
         for (unsigned int i = 0; i < destinationOperationCount(); i++) {
             destinationOperation(i).removeInputNode(*this);
@@ -118,7 +138,11 @@ MoveNode::copy() {
     if (move_ != NULL) {
         newNode = new MoveNode(move_->copy());
     } else {
-        newNode = new MoveNode;
+        if (immediate_) {
+            newNode = new MoveNode(immediate_->copy());
+        } else {
+            newNode = new MoveNode;
+        }
     }
 
     if (isSourceOperation()) {
@@ -127,8 +151,10 @@ MoveNode::copy() {
     }
 
     if (isDestinationOperation()) {
-        destinationOperation().addInputNode(*newNode);
-        newNode->addDestinationOperationPtr(destinationOperationPtr());
+        for (unsigned int i = 0; i < destinationOperationCount(); i++) {
+            destinationOperation(i).addInputNode(*newNode);
+            newNode->addDestinationOperationPtr(destinationOperationPtr());
+        }
     }
     return newNode;
 }
@@ -144,6 +170,19 @@ MoveNode::isSourceOperation() const {
         return false;
     }
     return srcOp_.get() != NULL;
+}
+
+/**
+ * Tells whether the guard of the MoveNode (move) is a port guard from op.
+ *
+ * @return True if the source of the MoveNode is an operation output.
+ */
+bool
+MoveNode::isGuardOperation() const {
+    if (move_ == NULL) {
+        return false;
+    }
+    return guardOp_.get() != NULL;
 }
 
 
@@ -269,27 +308,37 @@ MoveNode::inSameOperation(const MoveNode& other) const {
     if (other.isRegisterMove() || this->isRegisterMove())
         return false;
 
-    // due to bypass moves we have to consider both ends of each moves
-    // separately.. there has to be quicker way to check this ;-)
-    std::set<ProgramOperation*> operationsA;
-    std::set<ProgramOperation*> operationsB;
+    unsigned int dopCount1 = destinationOperationCount();
+    unsigned int dopCount2 = other.destinationOperationCount();
 
-    if (this->isSourceOperation())
-        operationsA.insert(&this->sourceOperation());
+    if (isSourceOperation()) {
+        if (other.isSourceOperation()) {
+            if (&sourceOperation() == &other.sourceOperation()) {
+                return true;
+            }
+        }
+        for (unsigned int i = 0; i < dopCount2; i++) {
+            if (&other.destinationOperation(i) == &sourceOperation()) {
+                return true;
+            }
+        }
+    }
 
-    if (this->isDestinationOperation())
-        operationsA.insert(&this->destinationOperation());
+    for (unsigned int i = 0; i < dopCount1; i++) {
+        const ProgramOperation* dop = &destinationOperation(i);
+        if (other.isSourceOperation()) {
+            if (dop == &other.sourceOperation()) {
+                return true;
+            }
+        }
 
-    if (other.isSourceOperation())
-        operationsB.insert(&other.sourceOperation());
-
-    if (other.isDestinationOperation())
-        operationsB.insert(&other.destinationOperation());
-
-    std::set<ProgramOperation*> commonOperations;
-
-    SetTools::intersection(operationsA, operationsB, commonOperations);
-    return commonOperations.size() > 0;
+        for (unsigned int j = 0; j < dopCount2; j++) {
+            if (&other.destinationOperation(j) == dop) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 
@@ -316,6 +365,13 @@ MoveNode::isPlaced() const {
  */
 bool
 MoveNode::isAssigned() const {
+
+    if (immediate_ != NULL) {
+        TTAProgram::Instruction* parent = immediate_->parent();
+        return parent != NULL &&
+            &parent->instructionTemplate() !=
+            &NullInstructionTemplate::instance();
+    }
 
     if (move_ == NULL) {
         // probably a dummy ENTRYNODE or something
@@ -364,12 +420,7 @@ MoveNode::isScheduled() const {
 int
 MoveNode::cycle() const {
     if (!isPlaced()){
-        std::string msg = "MoveNode was not placed yet: ";
-        if (isMove()) {
-            msg+= POMDisassembler::disassemble(*move_);
-        } else {
-            msg+= "Node does not contain a move.";
-        }
+        std::string msg = "MoveNode was not placed yet: " + toString();
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     } else {
         return cycle_;
@@ -413,6 +464,32 @@ MoveNode::sourceOperationPtr() const {
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     } else {
         return srcOp_;
+    }
+}
+
+/**
+ * Returns the instance of operation in the program whose output is the
+ * guard of this node.
+ *
+ * @return A program operation.
+ * @exception InvalidData if the given node does not read an operation
+ *     output.
+ */
+ProgramOperation&
+MoveNode::guardOperation() const {
+    return *guardOperationPtr().get();
+}
+
+ProgramOperationPtr
+MoveNode::guardOperationPtr() const {
+    if (!isGuardOperation()){
+        std::string msg =
+            (boost::format(
+                "MoveNode: '%s' guard is not Operation.") % toString()).
+            str();
+        throw InvalidData(__FILE__, __LINE__, __func__, msg);
+    } else {
+        return guardOp_;
     }
 }
 
@@ -466,6 +543,15 @@ void MoveNode::setSourceOperationPtr(ProgramOperationPtr po) {
 }
 
 /**
+ * Set a guard src of MoveNode to ProgramOperation
+ *
+ * @param po Program operation that is source of MoveNode
+ */
+void MoveNode::setGuardOperationPtr(ProgramOperationPtr po) {
+    guardOp_ = po;
+}
+
+/**
  * Returns type of the MoveNode.
  *
  * Not yet used anywhere and types not decided so
@@ -491,9 +577,16 @@ MoveNode::toString() const {
     if (move_ == NULL) {
         return "-1:\tENTRYNODE";
     }
-    std::string content = 
-        (isPlaced() ? Conversion::toString(cycle()) + " " : 
-         std::string()) + POMDisassembler::disassemble(*move_);
+#ifdef PRINT_ID
+    std::string content = Conversion::toString(nodeID()) + " ";
+#else
+    std::string content;
+#endif
+    content +=  (isPlaced() ? Conversion::toString(cycle()) + " " : 
+                 std::string()) + POMDisassembler::disassemble(*move_);
+    if (isScheduled()) {
+        content += " Bus: " + move_->bus().name();
+    }
     return content;
 }
 
@@ -531,9 +624,18 @@ MoveNode::dotString() const {
     }
 
     if (isScheduled()) {
-        contents += ",shape=box";
+        if (isFinalized()) {
+            contents += ",shape=hexagon";
+        } else {
+            contents += ",shape=box";
+        }
     } else {
-        contents += ",shape=ellipse";
+        if (!isInFrontier_) {
+            contents += ",shape=ellipse";
+        } else {
+            contents += ",shape=diamond";
+        }
+
     }
     return contents;
 }
@@ -549,14 +651,21 @@ MoveNode::dotString() const {
 int
 MoveNode::earliestResultReadCycle() const {
 
-    if (!isSourceOperation())
-        throw IllegalParameters(
-            __FILE__, __LINE__, __func__, "Not a result read move.");
+    const ProgramOperation* po;
 
-    const ProgramOperation& po = sourceOperation();
-
+    int outputIndex;
+    if (isSourceOperation()) {
+        po = &sourceOperation();
+        outputIndex = move_->source().operationIndex();
+    } else {
+        if (!isGuardOperation())
+            throw IllegalParameters(
+                __FILE__, __LINE__, __func__, "Not a result read move.");
+        po = &guardOperation();
+        outputIndex = po->outputIndexOfMove(*this);
+    }
     try {
-        MoveNode* trigger = po.triggeringMove();
+        MoveNode* trigger = po->triggeringMove();
         if (trigger == NULL || !trigger->isScheduled()) {
             return INT_MAX;
         }
@@ -564,10 +673,8 @@ MoveNode::earliestResultReadCycle() const {
         // find the latency of the operation output we are reading
         const TTAMachine::HWOperation& hwop =
             *trigger->move().destination().functionUnit().operation(
-                po.operation().name());
+                po->operation().name());
 
-        // find the OSAL id of the operand of the output we are reading
-        const int outputIndex = move_->source().operationIndex();
         return trigger->cycle() + hwop.latency(outputIndex);
     } catch (const InvalidData& id) {
         // triggeringMove() throws if the triggering move cannot be resolved
@@ -655,6 +762,17 @@ MoveNode::unsetSourceOperation() {
 }
 
 /**
+ * Unsets guard operation.
+ *
+ * Does not ask the ProgramOperation to remove this MoveNode from
+ * it's output moves.
+ */
+void
+MoveNode::unsetGuardOperation() {
+    guardOp_ = ProgramOperationPtr();
+}
+
+/**
  * Returns the total guard latency of the guard of given move,
  * or 0 if the move is unconditional.
  */
@@ -715,4 +833,16 @@ bool MoveNode::isLastUnscheduledMoveOfDstOp() const {
             return true;
     }
     return false;
+}
+
+TTAProgram::Immediate& MoveNode::immediate() {
+    return *immediate_;
+}
+
+const TTAProgram::Immediate& MoveNode::immediate() const {
+    return *immediate_;
+}
+
+std::shared_ptr<TTAProgram::Immediate> MoveNode::immediatePtr() {
+    return immediate_;
 }

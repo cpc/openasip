@@ -26,7 +26,7 @@
  *
  * Declaration of CollisionMatrix class.
  *
- * @author Pekka Jääskeläinen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -38,7 +38,9 @@
 
 #include "BitMatrix.hh"
 
-class ResourceVectorSet;
+namespace TTAMachine{
+    class ResourceVectorSet;
+}
 class FUReservationTableIndex;
 
 /**

@@ -15,10 +15,11 @@ CDG_DIR=${APPLIBS_DIR}/Scheduler/ProgramRepresentations/CDG
 DDG_DIR=${APPLIBS_DIR}/Scheduler/ProgramRepresentations/DDG
 CFG_DIR=${APPLIBS_DIR}/Scheduler/ProgramRepresentations/CFG
 DISASSEMBLER_DIR = ${APPLIBS_DIR}/Disassembler
+IBUFFER_DIR = ${APPLIBS_DIR}/InstructionBuffer
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${POM_DIR} -I${TPEF_DIR} -I${OSAL_DIR} \
 	-I${MACH_DIR} -I${UM_DIR} -I${GRAPH_DIR} -I${DISASSEMBLER_DIR} \
-	-I${CDG_DIR} -I${DDG_DIR} -I${CFG_DIR} ${LLVM_CPPFLAGS}
+	-I${CDG_DIR} -I${DDG_DIR} -I${CFG_DIR} -I${IBUFFER_DIR} ${LLVM_CPPFLAGS}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

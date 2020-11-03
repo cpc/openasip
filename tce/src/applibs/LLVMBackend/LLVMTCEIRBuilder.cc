@@ -27,6 +27,7 @@
  * This builder builds a CFG and DDG from the new LLVM TTA backend format.
  *
  * @author Heikki Kultala 2011
+ * @author Henry Linjamäki 2017 (henry.linjamaki-no.spam-tut.fi)
  * @note reting: red
  */
 
@@ -51,6 +52,9 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "BBSchedulerController.hh"
 #include "CycleLookBackSoftwareBypasser.hh"
 #include "CopyingDelaySlotFiller.hh"
+#include "SimpleIfConverter.hh"
+#include "Peel2BBLoops.hh"
+#include "passes/InnerLoopFinder.hh"
 #include "Machine.hh"
 #include "InstructionReferenceManager.hh"
 #include "Program.hh"
@@ -63,8 +67,10 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "BasicBlock.hh"
 #include "Move.hh"
 #include "MapTools.hh"
+#include "PRegionMarkerAnalyzer.hh"
 #include "PostpassOperandSharer.hh"
-
+#include "CallsToJumps.hh"
+#include "AbsoluteToRelativeJumps.hh"
 
 #include <stdlib.h>
 #include <llvm/ADT/SmallString.h>
@@ -99,7 +105,9 @@ LLVMTCEIRBuilder::LLVMTCEIRBuilder(
     InterPassData& ipd, AliasAnalysis* AA, bool functionAtATime, 
     bool modifyMF) :
     LLVMTCEBuilder(tm, mach, ID, functionAtATime), ipData_(&ipd), 
-    ddgBuilder_(ipd), modifyMF_(modifyMF), AA_(AA), options_(NULL), dsf_(NULL) {
+    ddgBuilder_(ipd), AA_(AA), modifyMF_(modifyMF),
+    scheduler_(NULL), dsf_(NULL),
+    bypasser_(NULL), loopFinder_(NULL) {
     RegisterCopyAdder::findTempRegisters(*mach, ipd);
 
     if (functionAtATime_) {
@@ -116,12 +124,12 @@ LLVMTCEIRBuilder::LLVMTCEIRBuilder(
         }
 
     } 
-    if (Application::cmdLineOptions() != NULL) {
-        options_ = 
-            dynamic_cast<LLVMTCECmdLineOptions*>(
-                Application::cmdLineOptions());
-    }
     delaySlotFilling_ = !options_->disableDelaySlotFiller();
+}
+
+void
+LLVMTCEIRBuilder::getAnalysisUsage(AnalysisUsage &AU) const {
+    LLVMTCEBuilder::getAnalysisUsage(AU);
 }
 
 bool
@@ -131,6 +139,13 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
         tm_ = &mf.getTarget();
 
     clearFunctionBookkeeping();
+
+#if LLVM_OLDER_THAN_4_0
+    curFrameInfo_ = mf.getFrameInfo();
+#else
+    curFrameInfo_ = &mf.getFrameInfo();
+#endif
+    assert(curFrameInfo_ != NULL);
 
     if (!functionAtATime_) {
         // ensure data sections have been initialized when compiling
@@ -155,7 +170,7 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
     TCEString fnName(Buffer.c_str());
 
     TTAProgram::Procedure* procedure = 
-        new TTAProgram::Procedure(fnName, *as);
+        new TTAProgram::Procedure(fnName, *as);   
 
     if (!functionAtATime_) {
         prog_->addProcedure(procedure);
@@ -174,13 +189,20 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
     cfg->writeToDotFile(fnName + "_cfg1.dot");
 #endif
 
-    bool fastCompilation = options_ != NULL && options_->optLevel() == 0;    
+    bool fastCompilation = options_ != NULL && options_->optLevel() == 0;
 
     markJumpTableDestinations(mf, *cfg);
 
-    if (fastCompilation) {
+    if (!mach_->controlUnit()->hasOperation("call")) {
+        CallsToJumps ctj(*ipData_);
+        ctj.handleControlFlowGraph(*cfg, *mach_);
+    }
+
+    if (fastCompilation || !isHotFunction(mf)) {
+        verboseLog(TCEString("###      compiling (fast): ") + fnName);
         EXIT_IF_THROWS(compileFast(*cfg));
     } else {
+        verboseLog(TCEString("### compiling (optimized): ") + fnName);
         AliasAnalysis* AA = NULL;
         if (!AA_) {
             // Called through LLVMBackend. We are actual module and 
@@ -221,9 +243,50 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
         return true;
     }
 
+    AbsoluteToRelativeJumps jumpConv(*ipData_);
+    jumpConv.handleProcedure(*procedure, *mach_);
+
+    if (Application::verboseLevel() > 0 && spillMoveCount_ > 0) {
+        Application::logStream() 
+            << "spill moves in " << 
+#ifdef LLVM_OLDER_THAN_6_0
+            (std::string)(mf.getFunction()->getName()) << ": " 
+#else
+            (std::string)(mf.getFunction().getName()) << ": "
+#endif
+            << spillMoveCount_ << std::endl;
+    }
+
     delete cfg;
     if (functionAtATime_) delete irm;
     return false;
+}
+
+/**
+ * Returns false in case the given function should be compiled with
+ * fast settings without optimizations.
+ *
+ * This looks into the tcecc --primary-functions function list if it's
+ * set. If not set, assumes all functions are "hot".
+ */
+bool
+LLVMTCEIRBuilder::isHotFunction(llvm::MachineFunction& mf) const {
+
+    if (options_ == NULL) return true;
+
+    FunctionNameList* funcs = options_->primaryFunctions();
+
+    if (funcs == NULL || funcs->size() == 0)
+        return true;
+
+    SmallString<256> Buffer;
+#ifdef LLVM_OLDER_THAN_6_0
+    mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
+#else
+    mang_->getNameWithPrefix(Buffer, &mf.getFunction(), false);
+#endif
+    TCEString fnName(Buffer.c_str());
+    return AssocTools::containsKey(*funcs, fnName);
 }
 
 ControlFlowGraph*
@@ -242,18 +305,28 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
     bbMapping_.clear();
     skippedBBs_.clear();
 
+    // TODO: these maps/sets with pointer keys are possible source of
+    // indeterminism.
     std::set<const MachineBasicBlock*> endingCallBBs;
     std::set<const MachineBasicBlock*> endingCondJumpBBs;
     std::set<const MachineBasicBlock*> endingUncondJumpBBs;
+    std::set<const MachineBasicBlock*> endingInlineAsmBBs;
     std::map<const BasicBlockNode*, BasicBlockNode*> callSuccs;
     std::map<const BasicBlockNode*, const MachineBasicBlock*> condJumpSucc;
     std::map<const BasicBlockNode*, BasicBlockNode*> ftSuccs;
+    // This holds BB -> inlineAsmBB mapping.
+    std::map<const BasicBlockNode*, BasicBlockNode*> ftSuccsToInlineAsm;
+    // This holds inlineAsmBB -> BB and inlineAsmBB -> inlineAsmBB mapping.
+    std::map<const BasicBlockNode*, BasicBlockNode*> inlineAsmSuccs;
     std::set<const MachineBasicBlock*> emptyMBBs;
     std::map<const BasicBlockNode*, bool> bbPredicates;
+    ControlFlowGraph::NodeSet returningBBs;
 
     BasicBlockNode* entry = new BasicBlockNode(0, 0, true);
     cfg->addNode(*entry);
     bool firstInsOfProc = true;
+
+    pregions_ = new PRegionMarkerAnalyzer(mf);
 
     // 1st loop create all BB's. do not fill them yet.
     for (MachineFunction::const_iterator i = mf.begin(); i != mf.end(); i++) {
@@ -276,8 +349,28 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
         BasicBlockNode* bbn = new BasicBlockNode(*bb);
         bbn->setBBOwnership(true);
 
+        // if the basic block is detected as an inner loop basic block,
+        // transform the info to the built TCE CFG
+        if (loopFinder_ != NULL) {
+            InnerLoopFinder::InnerLoopInfoIndex loopInfos =
+                loopFinder_->innerLoopInfo();
+
+            InnerLoopFinder::InnerLoopInfoIndex::const_iterator loopInfoI = 
+                loopInfos.find(mbb.getBasicBlock());
+            if (loopInfoI != loopInfos.end()) {
+                InnerLoopFinder::InnerLoopInfo loopInfo = 
+                    (*loopInfoI).second;
+                bb->setInInnerLoop();
+                if (loopInfo.isTripCountKnown()) {               
+                    bb->setTripCount(loopInfo.tripCount());
+                }
+            } 
+        }
+        
         bool newMBB = true;
         bool newBB = true;
+        unsigned realInstructionCount = 0;
+        bool lastInstrWasInlineAsm = false;
 
         // 1st loop: create all BB's. Do not fill them with instructions.
         for (MachineBasicBlock::const_iterator j = mbb.begin();
@@ -286,7 +379,25 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
             if (!isRealInstruction(*j)) {
                 continue;
             }
+
+            // Put all instances of inline asm blocks to own BB.
+            // Split BB if there is instructions already added to BB.
+            if (isInlineAsm(*j)) {
+                // TODO check if inline asm does not have any instructions?
+                // Split BB before the inline asm unless first instruction in
+                // BB.
+                if (realInstructionCount > 0 && !lastInstrWasInlineAsm) {
+                    bb = new TTAProgram::BasicBlock(0);
+                    BasicBlockNode* succBBN = new BasicBlockNode(*bb);
+                    ftSuccsToInlineAsm[bbn] = succBBN;
+                    bbn = succBBN;
+                    newBB = true;
+                }
+                lastInstrWasInlineAsm = true;
+            }
+
             if (newBB) {
+                realInstructionCount = 0;
                 newBB = false;
                 cfg->addNode(*bbn);
                 if (firstInsOfProc) {
@@ -305,9 +416,30 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                     emptyMBBs.clear();
                 }
             }
+            realInstructionCount++;
 
-            if (j->getDesc().isCall()) {
-                if (j->getOperand(0).isGlobal()) {
+            // Put all instances of INLINEASM nodes to own BB.
+            // This one "closes" inline asm BB and creates new BB for rest
+            // of the instructions or next inline asm block.
+            if (isInlineAsm(*j)) {
+                // New BB after inline asm.
+                MachineBasicBlock::const_iterator afterInlineAsm = j;
+                ++afterInlineAsm;
+                if (hasRealInstructions(afterInlineAsm, mbb)) {
+                    bb = new TTAProgram::BasicBlock(0);
+                    BasicBlockNode* succBBN = new BasicBlockNode(*bb);
+                    inlineAsmSuccs[bbn] = succBBN;
+                    bbn = succBBN;
+                    newBB = true;
+                } else {
+                    endingInlineAsmBBs.insert(&mbb);
+                }
+                continue;
+            }
+            lastInstrWasInlineAsm = false;
+
+            if (j->getDesc().isCall() || isExplicitReturn(*j)) {
+                if (j->getDesc().isCall() && j->getOperand(0).isGlobal()) {
                     // If it's a direct call (not via function pointer),
                     // check that the called function is defined. At this
                     // point we should have a fully linked program.
@@ -340,52 +472,65 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                         newBB = true;
                     }
                 }
-            } else {
-                // also need to split BB on cond branch.
-                // LLVM BB may contain 2 branches.
-                if (j->getDesc().isBranch()) {
-                    TCEString opName = operationName(*j);
-                    bool pred = false;
-                    if (j->getDesc().isConditionalBranch() &&
-                        j->getNumOperands() == 2) {
+                continue;
+            }
+            // also need to split BB on cond branch.
+            // LLVM BB may contain 2 branches.
+            if (j->getDesc().isBranch()) {
+                TCEString opName = operationName(*j);
+                bool pred = false;
+                if (j->getDesc().isConditionalBranch()) {
+                    if (opName == "?jump") pred = true;
+                    if (opName == "BNZ") pred = true;
+                    if (opName == "BNZ1") pred = true;
+                    // TODO: Should this not have BZ/BZ1?
+                    if (opName == "BEQ") pred = true;
+                    if (opName == "BNE") pred = true;
+                    if (opName == "BGT") pred = true;
+                    if (opName == "BGTU") pred = true;
+                    if (opName == "BLT") pred = true;
+                    if (opName == "BLTU") pred = true;
+                    if (opName == "BLE") pred = true;
+                    if (opName == "BLEU") pred = true;
+                    if (opName == "BGE") pred = true;
+                    if (opName == "BGEU") pred = true;
 
-                        if (opName == "?jump") pred = true;
+                    // TODO: what is the meaning of this?
+                    if (opName.find("+") != std::string::npos) pred = true;
+                    bbPredicates[bbn] = pred;
+                    const MachineOperand& mo = j->getOperand(j->getNumOperands()-1);
+                    assert(mo.isMBB());
+                    condJumpSucc[bbn] = mo.getMBB();
 
-                        bbPredicates[bbn] = pred;
-                        const MachineOperand& mo = j->getOperand(1);
-                        assert(mo.isMBB());
-                        condJumpSucc[bbn] = mo.getMBB();
-
-                        if (&(*j) == &(mbb.back())) {
+                    if (&(*j) == &(mbb.back())) {
+                        endingCondJumpBBs.insert(&(*i));
+                    } else {
+                        if (!hasRealInstructions(j, mbb)) {
                             endingCondJumpBBs.insert(&(*i));
                         } else {
-                            if (!hasRealInstructions(j, mbb)) {
-                                endingCondJumpBBs.insert(&(*i));
-                            } else {
-                                // create a new BB for code after the call.
-                                // this should only contain one uncond jump.
-                                bb = new TTAProgram::BasicBlock(0);
-                                BasicBlockNode* succBBN = 
-                                    new BasicBlockNode(*bb);
-                                succBBN->setBBOwnership(true);
-                                ftSuccs[bbn] = succBBN;
-                                bbn = succBBN;
-                                newBB = true;
-                            }
+                            // create a new BB for the code after the conditional branch.
+                            // this should only contain one uncond jump.
+                            bb = new TTAProgram::BasicBlock(0);
+                            BasicBlockNode* succBBN = new BasicBlockNode(*bb);
+                            succBBN->setBBOwnership(true);
+                            ftSuccs[bbn] = succBBN;
+                            bbn = succBBN;
+                            newBB = true;
                         }
-                    } else {
-                        // has to be uncond jump, and last ins of bb.
-                        if (&(*j) != &(mbb.back())) {
-                            Application::logStream() << " not at the end of ";
-                            if (j->getDesc().isBranch())
-                                Application::logStream() << " is branch";
-                            abortWithError("Jump was not last ins of BB.");
-                        }
-                        endingUncondJumpBBs.insert(&(*i));
                     }
+                } else {
+                    // has to be uncond jump, and last ins of bb.
+                    if (&(*j) != &(mbb.back())) {
+                        Application::logStream() << " not at the end of ";
+                        if (j->getDesc().isBranch())
+                            Application::logStream() << " is branch";
+                        abortWithError("Jump was not last ins of BB.");
+                    }
+                    endingUncondJumpBBs.insert(&(*i));
                 }
+                continue;
             }
-        }
+        } // for loop
         if (newMBB) {
             assert(newBB);
             emptyMBBs.insert(&mbb);
@@ -394,6 +539,13 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
             assert(firstBBofTheProgram || bb->instructionCount() == 0);
             delete bbn;
         }
+    }
+
+    TTAProgram::InstructionReferenceManager* irm = NULL;
+    if (functionAtATime_) {
+        irm = new TTAProgram::InstructionReferenceManager();
+    } else {
+        irm = &prog_->instructionReferenceManager();
     }
 
     // 2nd loop: create all instructions inside BB's.
@@ -432,6 +584,24 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                 continue;
             }
 
+            if (isInlineAsm(*j)) {
+                if (AssocTools::containsKey(ftSuccsToInlineAsm, bbn)) {
+                    bbn = ftSuccsToInlineAsm[bbn];
+                    bb = &bbn->basicBlock();
+                }
+#if LLVM_OLDER_THAN_4_0
+                emitInlineAsm(mf, j, bb, *irm);
+#else
+                emitInlineAsm(mf, &*j, bb, *irm);
+#endif
+                bbn->setScheduled(true);
+                if (AssocTools::containsKey(inlineAsmSuccs, bbn)) {
+                    bbn = inlineAsmSuccs[bbn];
+                    bb = &bbn->basicBlock();
+                }
+                continue;
+            }
+
             TTAProgram::Instruction* instr = NULL;
 #if LLVM_OLDER_THAN_4_0
             instr = emitInstruction(j, bb);
@@ -451,7 +621,19 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                 nextLabel = "";
             }
             
-            if (j->getDesc().isCall() && &(*j) != &(mbb.back())) {
+            // basic blocks that contain return instruction will have jump
+            // edge to exit node in cfg, not callpass edge.
+            if (j->getDesc().isReturn()) {
+                returningBBs.insert(bbn);
+            }
+
+            // if a call or an explicit return instruction,
+            // or an unconditional jump from inline asm, switch to the
+            // next TCE bb (in callsucc chain) that was created in the
+            // previous loop
+            if ((j->getDesc().isCall() || isExplicitReturn(*j) ||
+                 (!j->getDesc().isBranch() && instr->hasControlFlowMove())) &&
+                &(*j) != &(mbb.back())) {
                 if (!AssocTools::containsKey(callSuccs, bbn)) {
                     // the call ends the basic block, after this only at most
                     // "non real" instructions (such as debug metadata), which
@@ -498,12 +680,18 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
         while (true) {
             std::map<const BasicBlockNode*, BasicBlockNode*>::iterator j =
                 callSuccs.find(bbn);
-            
             std::map<const BasicBlockNode*, BasicBlockNode*>::iterator k =
                 ftSuccs.find(bbn);
+            std::map<const BasicBlockNode*, BasicBlockNode*>::iterator l =
+                inlineAsmSuccs.find(bbn);
+            std::map<const BasicBlockNode*, BasicBlockNode*>::iterator m =
+                ftSuccsToInlineAsm.find(bbn);
 
-            // same BB should not be in both.
-            assert(j == callSuccs.end() || k == ftSuccs.end());
+            // BB should not have 2+ fallthrough successors.
+            assert(((j != callSuccs.end())
+                + (k != ftSuccs.end())
+                + (l != inlineAsmSuccs.end())
+                + (m != ftSuccsToInlineAsm.end())) < 2);
 
             if (j != callSuccs.end()) {
                 const BasicBlockNode* callSucc = j->second;
@@ -543,6 +731,31 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                 bbn = ftSucc;
                 continue;
             }
+
+            if (l != inlineAsmSuccs.end()) {
+                const BasicBlockNode* inlineAsmSucc = l->second;
+                assert(inlineAsmSucc);
+                ControlFlowEdge* cfe = new ControlFlowEdge(
+                    ControlFlowEdge::CFLOW_EDGE_NORMAL,
+                    ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
+                cfg->connectNodes(*bbn, *inlineAsmSucc, *cfe);
+                bbn = inlineAsmSucc;
+                jumpSucc = condJumpSucc[bbn];
+                continue;
+            }
+
+            if (m != ftSuccsToInlineAsm.end()) {
+                const BasicBlockNode* inlineAsmPred = m->second;
+                assert(inlineAsmPred);
+                ControlFlowEdge* cfe = new ControlFlowEdge(
+                    ControlFlowEdge::CFLOW_EDGE_NORMAL,
+                    ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
+                cfg->connectNodes(*bbn, *inlineAsmPred, *cfe);
+                bbn = inlineAsmPred;
+                jumpSucc = condJumpSucc[bbn];
+                continue;
+            }
+
             break;
         }
 
@@ -612,13 +825,6 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
         }
     }
 
-    TTAProgram::InstructionReferenceManager* irm = NULL;
-    if (functionAtATime_) {
-        irm = new TTAProgram::InstructionReferenceManager();
-    } else {        
-        irm = &prog_->instructionReferenceManager();
-    }
-
     cfg->setInstructionReferenceManager(*irm);
     // add back edge properties.
     cfg->detectBackEdges();
@@ -631,19 +837,68 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
     fixProgramOperationReferences();
     
     // create jumps to exit node
-    BasicBlockNode* exit = new BasicBlockNode(0, 0, false, true);
-    cfg->addNode(*exit);
-    cfg->addExitFromSinkNodes(exit);
+    cfg->addExit(returningBBs);
+
+    delete pregions_;
+    pregions_ = NULL;
+    
     // add back edge properties.
     cfg->detectBackEdges();
     //cfg->writeToDotFile(fnName + ".cfg.dot");
     return cfg;
 }
 
+/**
+ * Returns true in case the given MI is an explict return instruction generated
+ * from the pseudo assembly string ".return_to".
+ */
+bool
+LLVMTCEIRBuilder::isExplicitReturn(const llvm::MachineInstr& mi) const {
+
+    if (!mi.isInlineAsm()) return false;
+    
+    // Copied from LLVM's AsmPrinterInlineAsm.cpp. There doesn't
+    // seem to be a cleaner way to get the inline assembly text
+    // but this hack.
+    unsigned numOperands = mi.getNumOperands();
+
+    // Count the number of register definitions to find the asm string.
+    unsigned numDefs = 0;
+    for (; mi.getOperand(numDefs).isReg() && 
+             mi.getOperand(numDefs).isDef();
+         ++numDefs);
+          
+    TCEString asmStr = "";
+    if (mi.isInlineAsm() && numDefs < numOperands &&
+        mi.getOperand(numDefs).isSymbol()) {
+        asmStr = mi.getOperand(numDefs).getSymbolName();
+    }
+    // The .return_to pseudo assembly is used in threading code
+    // to switch execution to another thread when returning from
+    // the current function. A very special case.
+    return asmStr.startsWith(".return_to ") ||
+        asmStr == ".longjmp";
+}
+
 void
 LLVMTCEIRBuilder::compileFast(ControlFlowGraph& cfg) {
     SequentialScheduler sched(*ipData_);
     sched.handleControlFlowGraph(cfg, *mach_);
+}
+
+BBSchedulerController&
+LLVMTCEIRBuilder::scheduler() {
+    if (scheduler_ == NULL) {
+        bypasser_ = new CycleLookBackSoftwareBypasser;
+        // disabled for the LLVM->TCE->LLVM scheduling chain as
+        // it crashes
+        CopyingDelaySlotFiller* dsf = NULL;
+        if (!modifyMF_ && delaySlotFilling_) 
+            dsf = &delaySlotFiller();
+        scheduler_ = 
+            new BBSchedulerController(*mach_, *ipData_, bypasser_, dsf);
+    } 
+    return *scheduler_;
 }
 
 CopyingDelaySlotFiller&
@@ -658,6 +913,11 @@ LLVMTCEIRBuilder::compileOptimized(
     ControlFlowGraph& cfg, 
     llvm::AliasAnalysis* llvmAA) {
 
+    SimpleIfConverter ifConverter(*ipData_, *mach_);
+    ifConverter.handleControlFlowGraph(cfg, *mach_);
+    Peel2BBLoops peel2bbLoops(*ipData_, *mach_);
+    peel2bbLoops.handleControlFlowGraph(cfg, *mach_);
+
     SchedulerCmdLineOptions* options =
         dynamic_cast<SchedulerCmdLineOptions*>(
             Application::cmdLineOptions());
@@ -666,14 +926,12 @@ LLVMTCEIRBuilder::compileOptimized(
     // TODO: on trunk single bb loop(swp), last param true(rr, threading)
     DataDependenceGraph* ddg = ddgBuilder_.build(
         cfg,
-        (options->isLoopOptDefined()) ?
-        DataDependenceGraph::SINGLE_BB_LOOP_ANTIDEPS :
         DataDependenceGraph::INTRA_BB_ANTIDEPS, *mach_,
         NULL, true, true, llvmAA);
 
     TCEString fnName = cfg.name();
 #ifdef WRITE_DDG_DOTS
-    ddg.writeToDotFile(fnName + "_ddg1.dot");
+    ddg->writeToDotFile(cfg.name() + "_ddg1.dot");
 #endif
     cfg.optimizeBBOrdering(true, cfg.instructionReferenceManager(), ddg);
 
@@ -683,7 +941,7 @@ LLVMTCEIRBuilder::compileOptimized(
     cfg.optimizeBBOrdering(true, cfg.instructionReferenceManager(), ddg);
 
 #ifdef WRITE_DDG_DOTS
-    ddg->writeToDotFile(fnName + "_ddg2.dot");
+    ddg->writeToDotFile(cfg.name() + "_ddg2.dot");
 #endif
 
     if (!modifyMF_) {
@@ -693,35 +951,30 @@ LLVMTCEIRBuilder::compileOptimized(
         cfg.convertBBRefsToInstRefs();
     }
 
-    CycleLookBackSoftwareBypasser bypasser;
-    CopyingDelaySlotFiller* dsf = nullptr;
-    if (delaySlotFilling_)
-        dsf = &delaySlotFiller();
-    BBSchedulerController bbsc(*ipData_, &bypasser, dsf);
     if (delaySlotFilling_)
         delaySlotFiller().initialize(cfg, *ddg, *mach_);
-    bbsc.handleCFGDDG(cfg, *ddg, *mach_ );
+    scheduler().handleCFGDDG(cfg, ddg, *mach_ );
 
 #ifdef WRITE_CFG_DOTS
+    fnName = cfg.name();
     cfg.writeToDotFile(fnName + "_cfg2.dot");
 #endif
 #ifdef WRITE_DDG_DOTS
     ddg->writeToDotFile(fnName + "_ddg3.dot");
 #endif
 
-    if (!modifyMF_) {
-        // BBReferences converted to Inst references
-        // break LLVM->POM ->LLVM chain because we
-        // need the BB refs to rebuild the LLVM CFG 
-        cfg.convertBBRefsToInstRefs();
-    }
-
     if (!functionAtATime_) {
         // TODO: make DS filler work with FAAT
+        // sched yield emitter does not work with the delay slot filler
+
         if (delaySlotFilling_) {
             delaySlotFiller().fillDelaySlots(cfg, *ddg, *mach_);
         } 
     }
+
+#ifdef WRITE_CFG_DOTS
+    cfg.writeToDotFile(fnName + "_cfg3.dot");
+#endif
 
     PostpassOperandSharer ppos(*ipData_, cfg.instructionReferenceManager());
     ppos.handleControlFlowGraph(cfg, *mach_);
@@ -731,7 +984,7 @@ LLVMTCEIRBuilder::compileOptimized(
 #endif
 
 #ifdef WRITE_CFG_DOTS
-    cfg.writeToDotFile(fnName + "_cfg3.dot");
+    cfg.writeToDotFile(fnName + "_cfg4.dot");
 #endif
     delete ddg;    
 }
@@ -800,7 +1053,7 @@ LLVMTCEIRBuilder::createMBBReference(const MachineOperand& mo) {
             skippedBBs_.find(mbb);
         if (j == skippedBBs_.end()) {
             assert(j != skippedBBs_.end());
-        }        
+        }
         return new TTAProgram::TerminalBasicBlockReference(
             j->second->basicBlock());
     }
@@ -815,7 +1068,7 @@ LLVMTCEIRBuilder::createSymbolReference(const TCEString& symbolName) {
 }
 
 bool 
-LLVMTCEIRBuilder::isRealInstruction(const MachineInstr& instr) {
+LLVMTCEIRBuilder::isRealInstruction(const MachineInstr& instr) const {
     const llvm::MCInstrDesc* opDesc = &instr.getDesc();
     if (opDesc->isReturn()) {
         return true;
@@ -834,7 +1087,7 @@ LLVMTCEIRBuilder::isRealInstruction(const MachineInstr& instr) {
 
     std::string opName = operationName(instr);
 
-    // Pseudo instructions or debug labels don't require any actual instructions.
+    // Pseudo instrs or debug labels don't require any actual instructions.
     if (opName == "PSEUDO" || opName == "DEBUG_LABEL") {
         return false;
     }
@@ -876,6 +1129,17 @@ LLVMTCEIRBuilder::doFinalization(Module& m) {
     // https://bugs.launchpad.net/tce/+bug/894816
     EXIT_IF_THROWS(LLVMTCEBuilder::doFinalization(m));
     EXIT_IF_THROWS(prog_->convertSymbolRefsToInsRefs());
+
+    // The Program can now have a bunch of unscheduled Procedures
+    // created by the SchedYieldEmitter. Schedule them now.
+    for (int p = 0; p < prog_->procedureCount(); ++p) {
+        TTAProgram::Procedure& procedure = prog_->procedure(p);
+        // assume all functions that were not in the original LLVM
+        // module are new ones that need to be scheduled
+        
+        if (m.getFunction(procedure.name()) != NULL) continue;
+        scheduler().handleProcedure(procedure, *mach_);
+    }
     return false; 
 }
 
@@ -948,6 +1212,7 @@ void
 LLVMTCEIRBuilder::markJumpTableDestinations(
     llvm::MachineFunction& mf,
     ControlFlowGraph&) {
+
     llvm::MachineJumpTableInfo* jtInfo = mf.getJumpTableInfo();
     if (jtInfo == NULL || jtInfo->isEmpty()) {
         return;
@@ -1003,16 +1268,16 @@ LLVMTCEIRBuilder::fixJumpTableDestinations(
         }
     }
 }
+
 /**
  * Create MoveNode and attach it to TerminalFUs.
  * The MoveNode will be owned by DDG.
  */
-void
+void 
 LLVMTCEIRBuilder::createMoveNode(
     ProgramOperationPtr& po,
     std::shared_ptr<TTAProgram::Move> m,
     bool isDestination) {
-
     MoveNode* mn = new MoveNode(m);
 
     if (isDestination) {
@@ -1038,9 +1303,13 @@ LLVMTCEIRBuilder::~LLVMTCEIRBuilder() {
             dynamic_cast<LLVMTCECmdLineOptions*>(
                 Application::cmdLineOptions());
         if (options->isVerboseSwitchDefined()) {
-            PostpassOperandSharer::printStats();
-            CycleLookBackSoftwareBypasser::printStats();
+//            PostpassOperandSharer::printStats();
+//            CycleLookBackSoftwareBypasser::printStats();
         }
     }
+
+    delete scheduler_;
+    delete bypasser_;
+    delete dsf_;
 }
 }

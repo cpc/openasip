@@ -71,14 +71,11 @@ DesignSpaceExplorerPlugin::addParameter(
  * @param param Variable where to read the parameter.
  */
 template <typename T>
-void 
+void
 DesignSpaceExplorerPlugin::readCompulsoryParameter(
-    const std::string paramName, T& param) const
-     {
-
+    const std::string paramName, T& param) const {
     param = parameterValue<T>(paramName);
 }
-
 
 /**
  * Reads optional parameter from the plugin parameters.
@@ -87,17 +84,14 @@ DesignSpaceExplorerPlugin::readCompulsoryParameter(
  * @param param Variable where to read the parameter.
  */
 template <typename T>
-void 
+void
 DesignSpaceExplorerPlugin::readOptionalParameter(
-    const std::string paramName, T& param) const
-     {
-
+    const std::string paramName, T& param) const {
     // optional parameters
     if (hasParameter(paramName)) {
         param = parameterValue<T>(paramName);
-    } 
+    }
 }
-
 
 /**
  * Return parameter value.
@@ -106,9 +100,7 @@ DesignSpaceExplorerPlugin::readOptionalParameter(
  */
 template <typename RT>
 RT
-DesignSpaceExplorerPlugin::parameterValue(const std::string& paramName) const
-     {
-
+DesignSpaceExplorerPlugin::parameterValue(const std::string& paramName) const {
     using boost::lexical_cast;
     using boost::bad_lexical_cast;
 

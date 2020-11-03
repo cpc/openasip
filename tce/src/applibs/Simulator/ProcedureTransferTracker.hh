@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Declaration of ProcedureTransferTracker class.
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005,2010
  * @note rating: red
  */
 
@@ -34,6 +34,7 @@
 #define TTA_PROCEDURE_TRANSFER_TRACKER_HH
 
 #include "Listener.hh"
+#include "SimulatorConstants.hh"
 
 class SimulatorFrontend;
 class ExecutionTrace;
@@ -52,15 +53,24 @@ public:
     ProcedureTransferTracker(
         SimulatorFrontend& subject, 
         ExecutionTrace& traceDB);
+
+    ProcedureTransferTracker(
+        SimulatorFrontend& subject);
     virtual ~ProcedureTransferTracker();
 
     virtual void handleEvent();
+
+    virtual void addProcedureTransfer(
+        ClockCycleCount cycle,
+        InstructionAddress address,
+        InstructionAddress sourceAddress,
+        bool isEntry);
     
 private:
     /// the tracked SimulatorFrontend instance
     SimulatorFrontend& subject_;
     /// the trace database to store the trace to
-    ExecutionTrace& traceDB_;
+    ExecutionTrace* traceDB_;
     /// the previously executed instruction
     const TTAProgram::Instruction* previousInstruction_;
 };

@@ -39,6 +39,7 @@
 
 #include "Serializable.hh"
 #include "Exception.hh"
+#include "TCEString.hh"
 
 class ObjectState;
 
@@ -90,7 +91,7 @@ class Component : public MachinePart {
 public:
     virtual ~Component();
 
-    virtual std::string name() const;
+    virtual TCEString name() const;
     virtual void setName(const std::string& name);
 
     /**

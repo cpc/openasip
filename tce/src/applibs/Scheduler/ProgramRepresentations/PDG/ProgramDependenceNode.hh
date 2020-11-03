@@ -36,35 +36,92 @@
 #include "ControlDependenceNode.hh"
 
 class MoveNode;
+class BasicBlockNode;
 
 /**
 */
 class ProgramDependenceNode : public GraphNode {
 public:
-    ProgramDependenceNode(ControlDependenceNode& cdgNode, int nodeID);
+    enum NodeType {
+        PDG_NODE_REGION, // Region nodes of PDG
+        PDG_NODE_PREDICATE, // Predicate nodes of PDG
+        PDG_NODE_MOVE,   // Single statements nodes
+        PDG_NODE_LOOPENTRY, // Region that is loop entry node
+        PDG_NODE_LOOPCLOSE // Region that is loop entry node
+    };
+
+    ProgramDependenceNode(NodeType type = PDG_NODE_REGION);
     ProgramDependenceNode(
-        MoveNode& mNode, 
-        int nodeID, 
-        bool predicate = false);
+        ControlDependenceNode& cdgNode,
+        NodeType type = PDG_NODE_REGION);
+    ProgramDependenceNode(
+        MoveNode& mNode,
+        NodeType type = PDG_NODE_MOVE);
     virtual ~ProgramDependenceNode();
-   
-    bool isRegionNode() const;
-    bool isPredicateMoveNode() const;
-    bool isMoveNode() const;
+
+    // Stores information about region and eec
+    // Duplicates NodeSet which is available only in Graph :(
+    typedef std::set<ProgramDependenceNode*> NodesInfo;
+    bool isRegionNode() const { return type_ == PDG_NODE_REGION;}
+    bool isPredicateMoveNode() const { return type_ == PDG_NODE_PREDICATE;}
+    bool isMoveNode() const { return type_ == PDG_NODE_MOVE;}
+    bool isLoopEntryNode() const { return type_ == PDG_NODE_LOOPENTRY;}
+    bool isLoopEntryNode(int component) const {
+        return type_ == PDG_NODE_LOOPENTRY && component_ == component;}
+    bool isLoopCloseNode() const { return type_ == PDG_NODE_LOOPCLOSE;}
+    bool isLastNode() const { return lastNode_;}
+    void setLoopEntryNode(int component);
+    void setComponent(int component) { component_ = component;}
+    void setLastNode() { lastNode_ = true; }
+    int component() const { return component_;}
+
     MoveNode& moveNode();
     const MoveNode& moveNode() const;
+    ControlDependenceNode& cdgNode();
+    const ControlDependenceNode& cdgNode() const;
     std::string dotString() const;
     std::string toString() const;
-    
+    const NodesInfo& region();
+    const NodesInfo& eec();
+    void printRelations() const;
+    BasicBlockNode* newFirstBB() { return newFirstBB_;}
+    void setNewFirstBB(BasicBlockNode* newBB) { newFirstBB_ = newBB;}
+    std::vector<BasicBlockNode*> leafBlocks() { return leafBlocks_;}
+    void addLeafBlock(BasicBlockNode* newLeaf) {
+        leafBlocks_.push_back(newLeaf); }
+    void addLeafBlocks(std::vector<BasicBlockNode*> newLeafs) {
+        leafBlocks_.insert(leafBlocks_.end(), newLeafs.begin(), newLeafs.end());
+    }
+
 protected:
     friend class ProgramDependenceGraph;
     void setPredicateMoveNode();
-    
+    void addToRegion(ProgramDependenceNode& node);
+    void addToEEC(ProgramDependenceNode& node);
 private:
     MoveNode* mNode_;
     ControlDependenceNode* cdgNode_;
-    bool region_;
-    bool predicate_;
+    NodeType type_;
+    /// Stores "region" information for computing serialization information
+    NodesInfo region_;
+    /// Stores "eec" information for computing serialization information
+    NodesInfo eec_;
+    /// Number of strong component the node belongs to.
+    /// Node can be part of several strong components so this value
+    /// have practical meaning only for loop close nodes - close just one
+    /// loop, and loop entry nodes - marks a component in which node is
+    /// loop entry. Still can be regular region of larger loop
+    /// Full list of nodes that belongs to actual components is available
+    /// in strongComponents_ vector in PDG
+    int component_;
+    /// First basic block of a subgraph of a region
+    BasicBlockNode* newFirstBB_;
+    /// Vector of basic blocks of a subgraph that do not have outgoing
+    /// edged and will need to get connected
+    std::vector<BasicBlockNode*> leafBlocks_;
+    /// Indicates that node must be scheduled last between it's siblings
+    /// because it's subgraph contains close node and it's parent is entry
+    bool lastNode_;
 };
 
 #endif

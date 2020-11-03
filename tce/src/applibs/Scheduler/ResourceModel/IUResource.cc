@@ -90,19 +90,19 @@ IUResource::isInUse(const int cycle) const {
             j < static_cast<int>(resourceRecord_.at(i).size());
             j++) {
             int otherDef = resourceRecord_.at(i).at(j)->definition_;
-            int modOtherDef = instructionIndex(otherDef);
+            int modOtherDef = instructionIndex(otherDef + latency_);
             int otherUse = resourceRecord_.at(i).at(j)->use_;
             int modOtherUse = instructionIndex(otherUse);
             
             // no overlap in old.
-            if (modOtherUse > modOtherDef) {
+            if (modOtherUse >= modOtherDef) {
                 // ordinary comparison, use between old def and use?
-                if (modCycle > modOtherDef && modCycle < modOtherUse) {
+                if (modCycle >= modOtherDef && modCycle < modOtherUse) {
                     return true;
                 }
             } else { 
                 // before use before use, or after def of other
-                if (modCycle > modOtherDef || modCycle <= modOtherUse) {
+                if (modCycle >= modOtherDef || modCycle <= modOtherUse) {
                     return true;
                 }
             }
@@ -172,7 +172,16 @@ IUResource::isAvailable(const int cycle, int immRegIndex) const {
  */
 
 void
-IUResource::assign(const int, MoveNode&) {
+IUResource::assign(const int cycle, MoveNode& mn) {
+
+    assert(mn.move().source().isImmediateRegister());
+    int index = mn.move().source().index();
+    ResourceRecordType* rc =
+        new ResourceRecordType(
+            -1,cycle,nullptr);
+
+    resourceRecord_.at(index).push_back(rc);
+    return;
     std::string msg = "IUResource: called assign with \'cycle\'";
     msg += " and \'node\'. Use assign with \'defCycle\',";
     msg += " \'useCycle\', \'node\' and \'index\' reference!";
@@ -191,6 +200,7 @@ IUResource::assign(const int, MoveNode&) {
 void
 IUResource::assign(
     const int defCycle, const int useCycle, MoveNode& node, int& index) {
+
     if (defCycle > useCycle) {
         std::string msg =
             "Long immediate definition cycle later than use cycle: ";
@@ -228,6 +238,7 @@ IUResource::assign(
  */
 void
 IUResource::unassign(const int, MoveNode& node) {
+
     if (!node.move().source().isImmediateRegister()) {
         std::string msg = "Trying to unassign move that is not immediate\
             register read!";
@@ -268,13 +279,36 @@ IUResource::unassign(const int, MoveNode& node) {
  * This method is not to be used!
  */
 bool
-IUResource::canAssign(const int, const MoveNode&) const {
+IUResource::canAssign(const int cycle, const MoveNode& mn) const {
+    if (mn.isMove()) {
+        return canAssignUse(cycle);
+    }
     std::string msg = "IUResource: called canAssign with \'cycle\'";
     msg += " and \'node\'. Use canAssign with \'defCycle\',";
     msg += " \'useCycle\' and \'node\'!";
     abortWithError(msg);
     return false;
 }
+
+/**
+ * Checks that a immediate value can be read in the given cycle
+ */
+bool
+IUResource::canAssignUse(int useCycle) const {
+    for (int i = 0; i < relatedResourceGroupCount(); i++) {
+        for (int j = 0, count = relatedResourceCount(i); j < count; j++) {
+            SchedulingResource& relRes = relatedResource(i,j);
+            // related res is  counted as modcycles.
+            if (relRes.isOutputPSocketResource()) {
+                if (!relRes.isInUse(instructionIndex(useCycle))) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 
 /**
  * Return true if resource can be assigned for given resource in given cycle
@@ -310,21 +344,7 @@ IUResource::canAssign(
         if (reqWidth > width_) {
             return false;
         }
-/*
-        // FIXME: hack to check if terminal is floating point value
-        if ((iTerm->value().width() > INT_WORD_SIZE) && 
-            (iTerm->value().width() > width_)) {
-            return false;
-        }
-        if ((signExtension_ == true) &&
-            (MathTools::requiredBitsSigned(
-                iTerm->value().intValue()) > width_)) {
-            return false;
-        } else if (MathTools::requiredBits(iTerm->value().unsignedValue()) > 
-            width_) {
-            return false;
-        }
-*/
+
         for (int i = 0; i < relatedResourceGroupCount(); i++) {
             for (int j = 0, count = relatedResourceCount(i); j < count; j++) {
                 SchedulingResource& relRes = relatedResource(i,j);
@@ -407,14 +427,16 @@ IUResource::immediateValue(const MoveNode& node) const {
  * Returns a cycle in which immediate register used by MoveNode is written
  * 
  * @param node MoveNode which is reading the register
- * @return cycle in which register is written
+ * @return cycle in which register is written, or -1 if not found.
  */
 int
 IUResource::immediateWriteCycle(const MoveNode& node) const {
+
     MoveNode& testNode = const_cast<MoveNode&>(node);
     if (!testNode.move().source().isImmediateRegister()) {
-        std::string msg = "Immediate register was not assigned!";
-        throw KeyNotFound(__FILE__, __LINE__, __func__, msg);
+	return -1;
+        //std::string msg = "Immediate register was not assigned!";
+        //throw KeyNotFound(__FILE__, __LINE__, __func__, msg);
     }
     int regIndex = testNode.move().source().index();
     for (int j = 0;
@@ -426,8 +448,9 @@ IUResource::immediateWriteCycle(const MoveNode& node) const {
             return resourceRecord_.at(regIndex).at(j)->definition_;
         }
     }
-    std::string msg = "Immediate register was not recorded in resource!";
-    throw KeyNotFound(__FILE__, __LINE__, __func__, msg);
+    return -1;
+    //std::string msg = "Immediate register was not recorded in resource!";
+    //throw KeyNotFound(__FILE__, __LINE__, __func__, msg);
 }
 /**
  * Tests if all referred resources in dependent groups are of
@@ -467,7 +490,7 @@ IUResource::validateRelatedGroups() {
 int
 IUResource::findAvailable(
     const int defCycle, const int useCycle, int immRegIndex) const {
-    int modDef = instructionIndex(defCycle);
+    int modDef = instructionIndex(defCycle + latency_);
     int modUse = instructionIndex(useCycle);
     for (int i = 0; i < registerCount(); i++) {
         if (immRegIndex != -1 && i != immRegIndex) continue;
@@ -476,31 +499,31 @@ IUResource::findAvailable(
         int size = resVec.size();
         for (int j = 0; j < size; j++) {
             int otherDef = resVec[j]->definition_;
-            int modOtherDef = instructionIndex(otherDef);
+            int modOtherDef = instructionIndex(otherDef + latency_);
             int otherUse = resVec[j]->use_;
             int modOtherUse = instructionIndex(otherUse);
             
             // no overlap in old.
-            if (modOtherUse > modOtherDef) {
+            if (modOtherUse >= modOtherDef) {
                 // ordinary comparison, use between old def and use?
-                if (modUse > modOtherDef && modUse <= modOtherUse) {
+                if (modUse >= modOtherDef && modUse <= modOtherUse) {
                     marker = true;
                     break;
                 }
                 
-                if (modDef >= modOtherDef && modDef < modOtherUse) {
+                if (modDef >= modOtherDef && modDef <= modOtherUse) {
                     marker = true;
                     break;
                 }
 
             } else { 
                 // before use before use, or after def of other
-                if (modUse > modOtherDef || modUse <= modOtherUse) {
+                if (modUse >= modOtherDef || modUse <= modOtherUse) {
                     marker = true;
                     break;
                 }
                 
-                if (modDef >= modOtherDef || modDef < modOtherUse) {
+                if (modDef >= modOtherDef || modDef <= modOtherUse) {
                     marker = true;
                     break;
                 }
@@ -511,16 +534,16 @@ IUResource::findAvailable(
             // use or other def. checks above handle cases where
             // tries to def, def, use, use
 
-            if (modDef < modUse) {
+            if (modDef <= modUse) {
                 // no overlap in this. ordinary check.
-                if (modOtherDef >= modDef && modOtherDef < modUse) {
+                if (modOtherDef >= modDef && modOtherDef <= modUse) {
                     marker = true;
                     break;
                 }
             } else {
                 // we have overlap.
 
-                if (modOtherDef >= modDef || modOtherDef < modUse) {
+                if (modOtherDef >= modDef || modOtherDef <= modUse) {
                     marker = true;
                     break;
                 }

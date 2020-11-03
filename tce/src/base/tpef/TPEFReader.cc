@@ -98,7 +98,20 @@ TPEFReader::readData(BinaryStream& stream) const {
     // let's read file header stuff
     FileOffset startOffset = stream.readPosition();
 
-    // skip file identification code and version
+    // read file format identifier (including TPEF version number)
+    stream.setReadPosition(startOffset + TPEFHeaders::FH_ID);
+    for (Word i = 0; i < TPEFHeaders::FH_ID_SIZE; i++) {
+        // TPEF version number is located in the 9th Byte of FH_ID header
+        if (i == 8) {
+            TPEFHeaders::TPEFVersion version =
+                static_cast<TPEFHeaders::TPEFVersion>(stream.readByte());
+            stream.setTPEFVersion(version);
+            binary_->setTPEFVersion(version);
+        } else {
+            stream.readByte();
+        }
+    }
+
     stream.setReadPosition(startOffset + TPEFHeaders::FH_ARCH);
     binary_->setArch(
         static_cast<Binary::FileArchitecture>(stream.readByte()));
@@ -276,7 +289,7 @@ TPEFReader::sectionOfAddress(
 
             Word lastSectionAddress = sect->startingAddress();
 
-            if (sect->type() == Section::ST_CODE) {
+            if (sect->isCodeSection()) {
                 lastSectionAddress += 
                     dynamic_cast<CodeSection*>(sect)->instructionCount();
                 

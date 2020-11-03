@@ -41,7 +41,6 @@
 #include "SchedulingResource.hh"
 
 namespace TTAProgram {
-    class Terminal;
     class TerminalImmediate;
 }
 
@@ -77,9 +76,14 @@ public:
 	int immRegIndex) const;
     virtual void assign(const int cycle, MoveNode& node) override;
     virtual void assign(
-        const int defCycle, const int useCycle, MoveNode& node, int& index);
-    virtual void unassign(const int cycle, MoveNode& node);
-    virtual bool isIUResource() const;
+        const int defCycle,
+        const int useCycle,
+        MoveNode& node,
+        int& index);
+
+    virtual void unassign(const int cycle, MoveNode& node) override;
+
+    virtual bool isIUResource() const override;
 
     int registerCount() const;
     std::shared_ptr<TTAProgram::TerminalImmediate>
@@ -88,14 +92,16 @@ public:
     int width() const;
 
     void clearOldResources();
-    void clear();
+    void clear() override;
     
 protected:
-    virtual bool validateDependentGroups();
-    virtual bool validateRelatedGroups();
+    virtual bool validateDependentGroups() override;
+    virtual bool validateRelatedGroups() override;
     void setRegisterCount(const int registers);
 
 private:
+    bool canAssignUse(int useCycle) const;
+
     // Stores first and last cycle register is marked for use
     // also the actual value of constant to be stored in register
     struct ResourceRecordType{

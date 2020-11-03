@@ -26,7 +26,8 @@
  *
  * Implementation of DisassembleCommand class
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @authoe Henry Linjam√§ki 2017 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -99,14 +100,14 @@ DisassembleCommand::execute(const std::vector<DataObject>& arguments) {
     int firstAddress = -1;
     int lastAddress = -1; 
 
-    const int programLastAddress = 
+    const int programLastAddress =
         simFront.program().lastProcedure().endAddress().location() - 1;
 
     if (arguments.size() > 1) {
         try {
             firstAddress = parseInstructionAddressExpression(
                 arguments[1].stringValue());
-            
+
             if (arguments.size() == 3) {
                 lastAddress = parseInstructionAddressExpression(
                     arguments[2].stringValue());
@@ -120,16 +121,30 @@ DisassembleCommand::execute(const std::vector<DataObject>& arguments) {
         firstAddress = programLastAddress;
     }
 
+
+    for (auto addr : { firstAddress, lastAddress }) {
+        try {
+            if (addr != -1)
+                simFront.program().instructionAt(addr);
+        } catch (KeyNotFound& e) {
+            interpreter()->setError("No instruction at address "
+                + std::to_string(addr) + ".");
+            return false;
+        }
+    }
+
     if (firstAddress == -1 && lastAddress == -1) {
         firstAddress = simFront.currentProcedure().startAddress().location();
-        lastAddress =  simFront.currentProcedure().endAddress().location() - 1;
+        lastAddress =
+            simFront.currentProcedure().lastInstruction().address().location();
     } else if (firstAddress != -1 && lastAddress == -1) {
-        const Procedure& procedureAtAddress = 
+        const Procedure& procedureAtAddress =
             dynamic_cast<const Procedure&>(
                 simFront.program().instructionAt(firstAddress).parent());
         firstAddress = procedureAtAddress.startAddress().location();
-        lastAddress =  procedureAtAddress.endAddress().location() - 1;
-    } 
+        lastAddress =
+            procedureAtAddress.lastInstruction().address().location();
+    }
 
     if (lastAddress < 0) {
         lastAddress = 0;
@@ -143,9 +158,16 @@ DisassembleCommand::execute(const std::vector<DataObject>& arguments) {
         lastAddress = firstAddress;
     }
 
-    for (; firstAddress <= lastAddress; ++firstAddress) {
-        outputStream() << simFront.disassembleInstruction(firstAddress) 
-                       << std::endl;
+    try {
+        for (; firstAddress <= lastAddress; firstAddress +=
+            simFront.program().instructionAt(firstAddress).size()) {
+            outputStream() << simFront.disassembleInstruction(firstAddress)
+                           << std::endl;
+        }
+    } catch (KeyNotFound& e) {
+        interpreter()->setError("No instruction at address "
+            + std::to_string(firstAddress) + ".");
+        return false;
     }
 
     return true;

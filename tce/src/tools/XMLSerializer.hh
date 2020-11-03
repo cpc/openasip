@@ -45,7 +45,6 @@
 #endif
 #include <xercesc/dom/DOMDocument.hpp>
 
-
 #include "Serializable.hh"
 #include "Serializer.hh"
 #include "Exception.hh"
@@ -60,7 +59,7 @@ class ObjectState;
  * This class is used to read and write XML. This is a base class for
  * different kind of XML serializers.
  */
-class XMLSerializer : public Serializer {
+class XMLSerializer : public TCETools::Serializer {
 public:
     XMLSerializer();
     virtual ~XMLSerializer();
@@ -121,7 +120,7 @@ private:
 #if XERCES_VERSION_MAJOR >= 3
     DOMLSParser* parser_;
 #else
-     DOMBuilder* parser_;
+    DOMBuilder* parser_;
 #endif
     /// Implementation of the DOM.
     DOMImplementation* domImplementation_;

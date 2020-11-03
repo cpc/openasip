@@ -56,7 +56,7 @@
 #include "MoveNodeSet.hh"
 #include "InputPSocketResource.hh"
 #include "MachineConnectivityCheck.hh"
-#include "DataDependenceGraph.hh"
+#include "LLVMTCECmdLineOptions.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -388,6 +388,9 @@ InputFUBroker::isAlreadyAssigned(
 bool
 InputFUBroker::isApplicable(
     const MoveNode& node, const TTAMachine::Bus*) const {
+    if (!node.isMove()) {
+        return false;
+    }
     Move& move = const_cast<MoveNode&>(node).move();
     return move.destination().isFUPort();
 }
@@ -410,7 +413,6 @@ InputFUBroker::isApplicable(
 void
 InputFUBroker::assign(
     int cycle, MoveNode& node, SchedulingResource& res, int, int) {
-    //    cycle = instructionIndex(cycle);
     if (!isApplicable(node)) {
         string msg = "Broker not capable of assigning resources to node!";
         throw WrongSubclass(__FILE__, __LINE__, __func__, msg);
@@ -500,17 +502,23 @@ InputFUBroker::unassign(MoveNode& node) {
 void
 InputFUBroker::buildResources(const TTAMachine::Machine& target) {
     
+    std::map<const TTAMachine::FunctionUnit*,int> nopWeights;
+
+    CmdLineOptions *cmdLineOptions = Application::cmdLineOptions();
+    LLVMTCECmdLineOptions* opts =
+        dynamic_cast<LLVMTCECmdLineOptions*>(cmdLineOptions);
     Machine::FunctionUnitNavigator navi = target.functionUnitNavigator();
     for (int i = 0; i < navi.count(); i++) {
         FunctionUnit* fu = navi.item(i);
         InputFUResource* fuResource = new InputFUResource(
-            fu->name(), fu->operationCount(), initiationInterval_);
+            fu->name(), fu->operationCount(), nopWeights[fu],
+            initiationInterval_);
         ResourceBroker::addResource(*fu, fuResource);
     }
 
     ControlUnit* gcu = target.controlUnit();
     InputFUResource* fuResource = new InputFUResource(
-        gcu->name(), gcu->operationCount(), initiationInterval_);
+        gcu->name(), gcu->operationCount(), 0, initiationInterval_);
     ResourceBroker::addResource(*gcu, fuResource);
 }
 

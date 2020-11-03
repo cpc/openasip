@@ -57,15 +57,33 @@ const std::string BusTracker::COLUMN_SEPARATOR = ",";
  *
  * @param frontend The SimulationFrontend which is used to access simulation 
  *                 data.
- * @param traceStream Output stream where the trace data is written to.
+ * @param traceStream Output stream where the trace data is written to. Takes
+ *                    ownership of the stream.
  */
 BusTracker::BusTracker(
-    SimulatorFrontend& frontend, 
-    std::ostream& traceStream) :
-    Listener(), frontend_(frontend), traceStream_(traceStream) {
+    SimulatorFrontend& frontend,
+    std::ostream* traceStream) :
+    Listener(), frontend_(frontend),ownsTraceStream_(true),
+    traceStream_(traceStream) {
     // write the trace data at the end of simulation clock cycle
     frontend.eventHandler().registerListener(
         SimulationEventHandler::SE_CYCLE_END, this);
+}
+
+/**
+ * Constructor.
+ *
+ * @param frontend The SimulationFrontend which is used to access simulation
+ *                 data.
+ * @param traceStream Output stream where the trace data is written to.
+ */
+BusTracker::BusTracker(
+    SimulatorFrontend& frontend,
+    std::ostream& traceStream)
+    : Listener(), frontend_(frontend),ownsTraceStream_(false),
+      traceStream_(&traceStream) {
+    frontend.eventHandler().registerListener(
+            SimulationEventHandler::SE_CYCLE_END, this);
 }
 
 /**
@@ -74,6 +92,10 @@ BusTracker::BusTracker(
 BusTracker::~BusTracker() {
     frontend_.eventHandler().unregisterListener(
         SimulationEventHandler::SE_CYCLE_END, this);
+    traceStream_->flush();
+    if (ownsTraceStream_) {
+        delete traceStream_;
+    }
 }
 
 /**
@@ -88,21 +110,21 @@ BusTracker::handleEvent() {
     TTAMachine::Machine::BusNavigator navigator =
         frontend_.machine().busNavigator();
 
-    traceStream_ << frontend_.cycleCount();
+    *traceStream_ << frontend_.cycleCount();
 
     for (int i = 0; i < navigator.count(); ++i) {
         const std::string busName = navigator.item(i)->name();
 
-        BusState& bus = frontend_.machineState().busState(busName);
+        BusState& bus = frontend_.machineState(0).busState(busName);
         int columnWidth = (bus.width()+3)/4;
 
-        traceStream_ << COLUMN_SEPARATOR;
+        *traceStream_ << COLUMN_SEPARATOR;
         if (!bus.isSquashed()) {
-            traceStream_ << bus.value().hexValue(true);
+            *traceStream_ << bus.value().hexValue(true);
         } else {
             // Squashed values are displayed as zeros.
-            traceStream_ << std::string(columnWidth, '0');
+            *traceStream_ << std::string(columnWidth, '0');
         }
     }
-    traceStream_ << "\n";
+    *traceStream_ << "\n";
 }

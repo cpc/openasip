@@ -26,9 +26,9 @@
  *
  * Implementation of DesignSpaceExplorer class
  *
- * @author Jari Mäntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
- * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2011
+ * @author Jari MÃ¤ntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
+ * @author Esa MÃ¤Ã¤ttÃ¤ 2008 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka JÃ¤Ã¤skelÃ¤inen 2011
  * @note rating: red
  */
 
@@ -58,6 +58,7 @@
 #include "SimulatorToolbox.hh"
 #include "SimulatorFrontend.hh"
 #include "SimulatorInterpreter.hh"
+#include "ExecutableInstruction.hh"
 #include "OperationGlobals.hh"
 #include "Application.hh"
 #include "ComponentImplementationSelector.hh"
@@ -307,12 +308,14 @@ DesignSpaceExplorer::db() {
  *
  * @param bytecodeFile Bytecode filename with path.
  * @param target The machine to compile the sequential program against.
+ * @param paramOptions Compiler options (if cmdline options are not given)
  * @return Scheduled parallel program or NULL if scheduler produced exeption.
  */
 TTAProgram::Program*
 DesignSpaceExplorer::schedule(
     const std::string bytecodeFile,
-    TTAMachine::Machine& target) {
+    TTAMachine::Machine& target,
+    TCEString paramOptions) {
 
     TCEString compilerOptions;
     
@@ -321,7 +324,10 @@ DesignSpaceExplorer::schedule(
     if (options != NULL) {
         if (options->compilerOptions()) {
             compilerOptions = options->compilerOptionsString();
-        } 
+        // use compiler options given by method parameters (-O3 by default)
+        } else {
+            compilerOptions = paramOptions;
+        }
     }
     // If compiler options did not provide optimization, we use default.
     if (compilerOptions.find("-O") == std::string::npos) {
@@ -411,7 +417,8 @@ DesignSpaceExplorer::simulate(
     const TTAProgram::Program& program, const TTAMachine::Machine& machine,
     const TestApplication& testApplication, const ClockCycleCount&,
     ClockCycleCount& runnedCycles, const bool tracing,
-    const bool useCompiledSimulation) {
+    const bool useCompiledSimulation,
+    std::vector<ClockCycleCount>* executionCounts) {
     // initialize the simulator
     SimulatorFrontend simulator(
         useCompiledSimulation ? 
@@ -422,11 +429,15 @@ DesignSpaceExplorer::simulate(
     simulator.setTimeout(480);
 
     // use memory file in sqlite
+    // TODO: should use a tmp dir as now TraceDB produces multiple
+    // text files, thus only the SQL part goes to memory
     const string traceFile = ":memory:";
-    simulator.setTraceDBFileName(traceFile);
-    simulator.setRFAccessTracing(tracing);
+    simulator.forceTraceDBFileName(traceFile);
+    if (!useCompiledSimulation)
+        simulator.setRFAccessTracing(tracing);
     simulator.setUtilizationDataSaving(tracing);
     simulator.setExecutionTracing(tracing);
+
     simulator.loadMachine(machine);
     simulator.loadProgram(program);
     // run the 'setup.sh' in the test application directory
@@ -474,57 +485,25 @@ DesignSpaceExplorer::simulate(
     }
 
     runnedCycles = simulator.cycleCount();
+    
+    int instructionCount = program.instructionVector().size();
+    if (executionCounts) {
+        executionCounts->resize(instructionCount, 0);
+        for (int i=0; i<instructionCount; ++i) {
+            (*executionCounts)[i] = simulator.executableInstructionAt(i)
+                .executionCount();
+        }
+    }
 
     // Flush data collected during simulation to the trace file.
-    simulator.killSimulation();
+    const ExecutionTrace* db = NULL;
     if (tracing) {
-        return simulator.lastTraceDB();
-    } else {
-        return NULL;
+        db = simulator.lastTraceDB();
     }
-/*
-    // start timer to stop too long simulations
-    // Simulation is stopped after 10 hours of simulation, since it would most
-    // propably never stop itself.
-    boost::timer simulationTimer;
-    int maxSimulationTimeInSeconds = 36000;
-
-    // amount of simulated cycles so far
-    ClockCycleCount simulatedCycles = 0;
-
-    // amount of simulation steps to be advanced at a time
-    ClockCycleCount steps = 100000;
-    // run the simulation
-    while ((simulatedCycles < maxCycles || maxCycles == 0)
-           && !simulator_.hasSimulationEnded()) {
-        simulator_.step(steps);
-        simulatedCycles += steps;
-        
-        // In case the maximum simulation time is reched the simulation is
-        // stopped and an exception is thrown.
-        if (simulationTimer.elapsed() > maxSimulationTimeInSeconds) {
-            simulator_.killSimulation();
-            const std::string errorMessage = "Max simulation time reached";
-            throw SimulationTimeOut(__FILE__, __LINE__, __func__, errorMessage);
-        }        
-    }
-
-    // In case the maximum cycle amount is reached the
-    // simulation is stopped and an exception is thrown.
-    if (simulatedCycles < maxCycles && maxCycles != 0) {
-        simulator_.killSimulation();
-        const std::string errorMessage = "Max simulation cycles reached";
-        throw SimulationCycleLimitReached(
-            __FILE__, __LINE__, __func__, errorMessage);
-    }
-
-    // Simulation verification
-
-    // Flush data collected during simulation to the trace file.
-    simulator_.killSimulation();
-
-    return &simulator_.getTraceDB();
-*/
+    
+    simulator.killSimulation();
+    
+    return db;
 }
 
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"

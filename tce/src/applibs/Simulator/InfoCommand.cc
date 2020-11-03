@@ -195,8 +195,7 @@ public:
     static std::string registerDescription(
         const std::string& regName, 
         const SimValue& value) {
-        return regName + " " + 
-            Conversion::toHexString(value.uLongWordValue()) + " " +
+        return regName + " " + value.hexValue() + " " +
             Conversion::toString(value.sLongWordValue());
     }
 };
@@ -951,15 +950,21 @@ public:
 
                 int regsUsedInFile = 0;
                 int lastReg = 0;
+                int totalReads = 0;
+                int totalWrites = 0;
+                int totalGuards = 0;
                 lastReg = rf->numberOfRegisters() - 1;
 
                 for (int reg = 0; reg <= lastReg; ++reg) {
                     ClockCycleCount reads =
                         stats.registerReads(rf->name(), reg);
+                    totalReads += reads;
                     ClockCycleCount guardReads =
                         stats.guardRegisterReads(rf->name(), reg);
+                    totalGuards += guardReads;
                     ClockCycleCount writes =
                         stats.registerWrites(rf->name(), reg);
+                    totalWrites += writes;
                     ++regsUsedInFile;
                     result
                         << std::left << std::setw(COLUMN_WIDTH)
@@ -972,6 +977,18 @@ public:
                         << Conversion::toString(writes) + " writes"
                         << std::endl;
                 }
+
+                result
+                    << std::left << std::setw(COLUMN_WIDTH)
+                    << "TOTAL"
+                    << std::left << std::setw(COLUMN_WIDTH)
+                    << Conversion::toString(totalReads) + " reads, "
+                    << std::left << std::setw(COLUMN_WIDTH + 5)
+                    << Conversion::toString(totalGuards) + " guard reads, "
+                    << std::left << std::setw(COLUMN_WIDTH)
+                    << Conversion::toString(totalWrites) + " writes"
+                    << std::endl;
+
                 result
                     << "TOTAL " << regsUsedInFile << " registers used"
                     << std::endl << std::endl;
@@ -1253,8 +1270,9 @@ public:
                     << std::endl;
                 parent().printStopReasons();
             } else if (parent().simulatorFrontend().hasSimulationEnded()) {
-                parent().outputStream() << SimulatorToolbox::textGenerator().text(
-                    Texts::TXT_STATUS_FINISHED).str() << std::endl;
+                parent().outputStream() 
+                    << SimulatorToolbox::textGenerator().text(
+                        Texts::TXT_STATUS_FINISHED).str() << std::endl;
             } else if (parent().simulatorFrontend().isSimulationRunning()) {
                 abortWithError(
                     "It should not be possible to do this while "

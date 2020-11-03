@@ -54,17 +54,16 @@ public:
     virtual ~OutputPSocketResource();
     OutputPSocketResource(const std::string& name, unsigned int initiationInterval = 0);
 
-    virtual bool isAvailable(const int cycle) const;
-    virtual bool isOutputPSocketResource() const;
-    virtual void assign(const int cycle, MoveNode& node);
-    virtual void unassign(const int cycle, MoveNode& node);
-    virtual bool canAssign(const int cycle, const MoveNode& node) const;
-
-    virtual bool operator < (const SchedulingResource& other) const;
-    void clear();
+    virtual bool isAvailable(const int cycle) const override;
+    virtual bool isOutputPSocketResource() const override;
+    virtual void assign(const int cycle, MoveNode& node) override;
+    virtual void unassign(const int cycle, MoveNode& node) override;
+    virtual bool canAssign(const int cycle, const MoveNode& node) const override;
+    virtual bool operator < (const SchedulingResource& other) const override;
+    void clear() override;
 protected:
-    virtual bool validateDependentGroups();
-    virtual bool validateRelatedGroups();
+    virtual bool validateDependentGroups() override;
+    virtual bool validateRelatedGroups() override;
 
 private:
     mutable int activeCycle_;
@@ -73,7 +72,7 @@ private:
     // Assignment forbidden
     OutputPSocketResource& operator=(const OutputPSocketResource&);
     // For each cycle stores which Port connected to Socket is read
-    std::map<int, const TTAMachine::Port*> storedPorts_;
+    std::map<int, std::pair<const TTAMachine::Port*, int> > storedPorts_;
 };
 
 #endif

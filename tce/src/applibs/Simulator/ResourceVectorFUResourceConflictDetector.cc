@@ -26,7 +26,7 @@
  *
  * Definition of ResourceVectorFUResourceConflictDetector class.
  *
- * @author Pekka Jääskeläinen 2006 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2006 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -63,7 +63,8 @@ ResourceVectorFUResourceConflictDetector::
 bool
 ResourceVectorFUResourceConflictDetector::issueOperation(OperationID id) {
 
-    const ResourceVector& operationVector = vectors_.resourceVector(id);
+    const TTAMachine::ResourceVector& operationVector =
+        vectors_.resourceVector(id);
     if (compositeVector_.conflictsWith(operationVector, 1))
         return false;
     compositeVector_.mergeWith(operationVector, 1);
@@ -86,12 +87,12 @@ ResourceVectorFUResourceConflictDetector::advanceCycle() {
  * Returns an operation id for the given operation.
  *
  * Operation IDs are used in the interface for optimizing the access. This
- * method converts OSAL Operations to operation IDs. 
+ * method converts OSAL Operations to operation IDs.
  *
  * @param operation The OSAL Operation to find ID for.
  * @return The operation ID.
  */
-ResourceVectorFUResourceConflictDetector::OperationID 
+ResourceVectorFUResourceConflictDetector::OperationID
 ResourceVectorFUResourceConflictDetector::operationID(
     const TCEString& operationName) const {
 

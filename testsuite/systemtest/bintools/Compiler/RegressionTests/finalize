@@ -1,0 +1,4 @@
+rm -f tmp*
+rm -f test.tpef
+rm -fr data/*.opb
+rm data/simulator_test_operations.opp

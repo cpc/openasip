@@ -45,6 +45,7 @@
 #include "TerminalImmediate.hh"
 #include "BF2Scheduler.hh"
 #include "BFScheduleBU.hh"
+#include "BFEarlyGuardBypass.hh"
 #include "MoveGuard.hh"
 #include "Guard.hh"
 
@@ -59,6 +60,13 @@ BFScheduleExact::operator()() {
     //BFRegCopy* regCopyAfter = NULL;
     BFRegCopy* regCopy = NULL;
 
+    if (!mn_.move().isUnconditional() &&
+        mn_.move().guard().guard().parentBus() == nullptr) {
+        if (!runPreChild(new BFEarlyGuardBypass(sched_, mn_))) {
+            std::cerr << "Early guard bypass failed!" << std::endl;
+            return false;
+        }
+    }
     if (allowRegCopy_ && !canBeScheduled(mn_)) {
         if (mn_.isSourceOperation()) {
             // assumes the result read is wanted to the exact cycle.

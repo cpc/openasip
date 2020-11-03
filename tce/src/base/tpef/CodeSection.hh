@@ -63,6 +63,7 @@ public:
     Word indexOfInstruction(const InstructionElement &elem) const;
 
     bool isInSection(const InstructionElement &elem) const;
+    bool isCodeSection() const override { return true; }
 
 protected:
     CodeSection(bool init);

@@ -44,7 +44,7 @@
 #include "FUPort.hh"
 #include "HWOperation.hh"
 #include "Guard.hh"
-#include "Assembler.hh"
+#include "AssemblyParserDiagnostic.hh"
 #include "Exception.hh"
 
 #include "Bus.hh"
@@ -62,8 +62,8 @@ using namespace TTAMachine;
  */
 MachineResourceManager::MachineResourceManager(
     Binary& tpef,
-    Machine& adf,
-    Assembler* parent) :
+    const Machine& adf,
+    AssemblyParserDiagnostic* parent) :
     tpef_(tpef), adf_(adf), aSpaceSection_(NULL), strings_(NULL),
     undefASpace_(NULL), codeASpace_(NULL), nullSection_(NULL),
     resourceSection_(NULL), lastFunctionUnitID_(0), lastRegisterFileID_(0),

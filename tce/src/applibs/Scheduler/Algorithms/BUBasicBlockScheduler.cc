@@ -62,6 +62,8 @@
 #include "HWOperation.hh"
 #include "MachineConnectivityCheck.hh"
 #include "Operation.hh"
+#include "TerminalImmediate.hh"
+#include "TerminalRegister.hh"
 
 //#define DEBUG_OUTPUT
 //#define DEBUG_REG_COPY_ADDER
@@ -82,15 +84,15 @@ class CopyingDelaySlotFiller;
  * @param registerRenamer Helper module implementing register renaming
  */
 BUBasicBlockScheduler::BUBasicBlockScheduler(
-    InterPassData& data,
-    SoftwareBypasser* bypasser,
-    CopyingDelaySlotFiller* delaySlotFiller,
+    InterPassData& data, 
+    SoftwareBypasser* bypasser, 
     RegisterRenamer* renamer) :
-    BasicBlockScheduler(data, bypasser, delaySlotFiller, renamer),
-    endCycle_(INT_MAX), bypass_(true), dre_(true), bypassDistance_(12) {
+    BasicBlockScheduler(data, bypasser, renamer),
+    endCycle_(INT_MAX), bypass_(true), dre_(true), bypassDistance_(3) {
 
     CmdLineOptions *cmdLineOptions = Application::cmdLineOptions();
     options_ = dynamic_cast<LLVMTCECmdLineOptions*>(cmdLineOptions);
+    jumpMove_ = NULL;
 }
 
 /**
@@ -110,8 +112,7 @@ BUBasicBlockScheduler::~BUBasicBlockScheduler() {
 int
 BUBasicBlockScheduler::handleDDG(
     DataDependenceGraph& ddg, SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine, bool testOnly) {
-    assert(!testOnly);
+    const TTAMachine::Machine& targetMachine, int /*minCycle*/, bool test) {
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
 
@@ -140,7 +141,7 @@ BUBasicBlockScheduler::handleDDG(
     if (options_ != NULL && !options_->killDeadResults()) {
         dre_ = false;
     }
-
+    
     // empty need not to be scheduled
     if (ddg.nodeCount() == 0 ||
         (ddg.nodeCount() == 1 && !ddg.node(0).isMove())) {
@@ -156,7 +157,7 @@ BUBasicBlockScheduler::handleDDG(
     rm.setMaxCycle(endCycle_);
 
     BUMoveNodeSelector selector(ddg, targetMachine);
-    
+    selector_ = &selector;
     // register selector to renamer for notfications.
     if (renamer_ != NULL) {
         renamer_->setSelector(&selector);
@@ -173,8 +174,8 @@ BUBasicBlockScheduler::handleDDG(
             movesRemoved = true;
         } else {
             if (firstMove.move().destination().isRA()) {
-                scheduleMove(firstMove, endCycle_);
-                notifyScheduled(moves, selector);                
+                scheduleMove(firstMove, endCycle_, true);
+                finalizeSchedule(firstMove, selector);                
             } else {
                 int tmp = endCycle_;
                 if (bypassNode(firstMove,tmp) && dre_ 
@@ -187,11 +188,15 @@ BUBasicBlockScheduler::handleDDG(
                     // If move was register copy to self, it could have been
                     // just dropped.
                     movesRemoved = true;                    
+                    if (!firstMove.isScheduled()) {
+                        undoBypass(firstMove);
+                        scheduleRRMove(firstMove);
+                    }
                 }
-
+                if (bypass_) {
+                    bypassNode(firstMove, tmp);
+                }
                 finalizeSchedule(firstMove, selector);    
-                bypassDestinationsCycle_.clear();
-                bypassDestinations_.clear();                
             }
         }
         if (!movesRemoved) {
@@ -205,6 +210,8 @@ BUBasicBlockScheduler::handleDDG(
             }
         }
         moves = selector.candidates();
+        if (!test)
+            clearRemovedNodes();                
     }
 
     if (ddg.nodeCount() != ddg.scheduledNodeCount()) {
@@ -229,10 +236,206 @@ BUBasicBlockScheduler::handleDDG(
             std::endl << "This may break delay slot filler!" <<
             std::endl << " rm largest: " << rm_->largestCycle() <<
             " end cycle: " << endCycle_ << std::endl;
+        
         abortWithError("Should not happen!");
     }
-    int size = rm_->largestCycle() - rm_->smallestCycle();
+    int size = rm_->largestCycle() - rm_->smallestCycle();    
+    if (test) {
+        unscheduleAllNodes();
+    }
     return size;
+}
+
+/**
+ * Schedules loop in a DDG
+ *
+ * @param ddg The ddg containing the loop
+ * @param rm Resource manager that is to be used.
+ * @param targetMachine The target machine.
+ * @exception Exception several TCE exceptions can be thrown in case of
+ *            a scheduling error.
+ * @return negative if failed, else overlapcount.
+ */
+int
+BUBasicBlockScheduler::handleLoopDDG(
+    DataDependenceGraph& ddg, SimpleResourceManager& rm,
+    const TTAMachine::Machine& targetMachine, int tripCount,
+    SimpleResourceManager*, bool testOnly) {
+    tripCount_ = tripCount;
+    ddg_ = &ddg;
+    targetMachine_ = &targetMachine;
+    minCycle_ = 0;
+    schedulingTime_.restart();
+
+    if (renamer_ != NULL) {
+        renamer_->initialize(ddg);
+    }
+
+    if (options_ != NULL && options_->dumpDDGsDot()) {
+        ddgSnapshot(
+            ddg, std::string("0"), DataDependenceGraph::DUMP_DOT, false, true);
+    }
+
+    if (options_ != NULL && options_->dumpDDGsXML()) {
+        ddgSnapshot(
+            ddg, std::string("0"), DataDependenceGraph::DUMP_XML, false, true);
+    }
+
+    if (options_ != NULL && options_->bypassDistance() > -1) {
+        bypassDistance_ = options_->bypassDistance();        
+    } 
+    
+    if (options_ != NULL && options_->bypassDistance() == 0) {
+        bypass_ = false;
+    }     
+    
+    if (options_ != NULL && !options_->killDeadResults()) {
+        dre_ = false;
+    }
+    
+    scheduledTempMoves_.clear();
+
+    // empty DDGs can be ignored
+    if (ddg.nodeCount() == 0 ||
+        (ddg.nodeCount() == 1 && !ddg.node(0).isMove())) {        
+        return 0;
+    }
+    endCycle_ = 2 * rm.initiationInterval() - 1;
+    BUMoveNodeSelector selector(ddg, targetMachine);
+ 
+    rm_ = &rm;
+
+    if (renamer_ != NULL) {
+        renamer_->setSelector(&selector);
+    }
+    MoveNodeGroup moves = selector.candidates();
+    while (moves.nodeCount() > 0) {
+        bool movesRemoved = false;
+        MoveNode& firstMove = moves.node(0);
+        if (firstMove.isOperationMove()) {
+            scheduleOperation(moves, selector);
+            movesRemoved = true;
+        } else {
+            if (firstMove.move().destination().isRA()) {
+                scheduleMove(firstMove, endCycle_, true);
+                notifyScheduled(moves, selector);
+            } else {
+                int tmp = endCycle_;
+                if (bypassNode(firstMove,tmp) && dre_ 
+                    &&!ddg_->resultUsed(firstMove)) {
+                    // No need to schedule original move any more
+                    movesRemoved = true;
+                } else {
+                    // schedule original move
+                    scheduleRRMove(firstMove);
+                    // If move was register copy to self, it could have been
+                    // just dropped.
+                    movesRemoved = true;                    
+                }          
+                if (bypass_) {
+                    bypassNode(firstMove, tmp);
+                }
+                finalizeSchedule(firstMove, selector);                    
+            }
+        }
+
+        if (!movesRemoved && !moves.isScheduled()) {
+            ddg_->writeToDotFile(
+                std::string("ii_") + 
+                Conversion::toString(rm.initiationInterval()) + 
+                std::string("_dag.dot"));
+
+            unscheduleAllNodes();
+            return -1;
+        }
+
+        moves = selector.candidates();
+    }
+    
+    if (ddg.nodeCount() !=
+        ddg.scheduledNodeCount()) {
+        debugLog("All moves in the DDG didn't get scheduled.");
+//        debugLog("Disassembly of the situation:");
+//        Application::logStream() << bb.disassemble() << std::endl;
+        ddg.writeToDotFile("failed_bb.dot");
+        abortWithError("Should not happen!");
+    }
+
+    // loop scheduling did not help
+    if (static_cast<unsigned>(ddg.largestCycle() - ddg.smallestCycle()) < rm.initiationInterval()
+        || testOnly) {
+        if (static_cast<unsigned>(ddg.largestCycle() - ddg.smallestCycle()) < 
+            rm.initiationInterval()) {
+            Application::logStream() 
+                << "No overlapping instructions." 
+                << "Should Revert to ordinary scheduler."
+                << " ii = " << rm.initiationInterval() 
+                << " size = " << ddg.largestCycle() - ddg.smallestCycle()
+                << std::endl;
+        } 
+        // this have to be calculated before unscheduling.
+        int rv = (ddg.largestCycle() - ddg.smallestCycle()) / rm.initiationInterval();
+        unscheduleAllNodes();
+        return rv;
+    }
+
+    // test that ext-cond jump not in prolog (where it is skipped)
+    int overlap_count = (ddg.largestCycle() - ddg.smallestCycle()) / rm.initiationInterval();
+    if (overlap_count >= tripCount) {
+        unscheduleAllNodes();
+        return -1;
+    }
+    
+    if (options_ != NULL && options_->dumpDDGsDot()) {
+        ddgSnapshot(ddg, std::string("0"), DataDependenceGraph::DUMP_DOT, true);
+    }
+
+    if (options_ != NULL && options_->dumpDDGsXML()) {
+        ddgSnapshot(ddg, std::string("0"), DataDependenceGraph::DUMP_XML, true);
+    }
+    
+    if (jumpMove_ != NULL) {
+        MoveNode* jumpLimit = ddg_->findLoopLimitAndIndex(*jumpMove_).first;
+        if (jumpLimit != NULL) {
+            int jumpOverlapCount = (endCycle_ - rm.smallestCycle()) 
+                / rm.initiationInterval();
+            TTAProgram::TerminalImmediate& ti = dynamic_cast<
+		TTAProgram::TerminalImmediate&>(jumpLimit->move().source());
+            int jumpLimitValue = ti.value().unsignedValue();
+            int loopCounterStep = 1;
+            if (jumpLimitValue != tripCount_) {
+                if (jumpLimitValue == 2 * tripCount_) {
+                    loopCounterStep = 2;
+                } else {
+                    if (jumpLimitValue == 4 * tripCount_) {
+                        loopCounterStep = 4;
+                    } else {
+                        // don't know how much to decr. counter.
+                        unscheduleAllNodes();
+                        return -1;
+                    }
+                }
+            }
+            if (tripCount_ > jumpOverlapCount) {
+                jumpLimit->move().setSource(
+                    new TTAProgram::TerminalImmediate(
+                        SimValue(
+                            jumpLimitValue - 
+                            (jumpOverlapCount * loopCounterStep), 
+                            ti.value().width())));
+            } else {
+                // loop limit is too short. 
+                // would be always executed too many times.
+                jumpLimit->move().setSource(
+                    new TTAProgram::TerminalImmediate(SimValue(jumpLimitValue)));                
+                unscheduleAllNodes();
+                return -1;
+            }
+            
+        }
+    }
+    clearRemovedNodes();
+    return (ddg.largestCycle() - ddg.smallestCycle()) / rm.initiationInterval();
 }
 
 #ifdef DEBUG_REG_COPY_ADDER
@@ -255,6 +458,7 @@ BUBasicBlockScheduler::scheduleOperation(
         (moves.node(0).isSourceOperation())?
         (moves.node(0).sourceOperation()):
         (moves.node(0).destinationOperation());
+    tryToSwitchInputs(po);        
     bool operandsFailed = true;
     bool resultsFailed = true;
     int resultsStartCycle = endCycle_;
@@ -265,13 +469,13 @@ BUBasicBlockScheduler::scheduleOperation(
     ddg_->writeToDotFile(
         (boost::format("%s_before_ddg.dot") % ddg_->name()).str());
 #endif
-    RegisterCopyAdder regCopyAdder(BasicBlockPass::interPassData(), *rm_, true);
+    RegisterCopyAdder regCopyAdder(
+        BasicBlockPass::interPassData(), *rm_, *selector_, true);
+    RegisterCopyAdder::AddedRegisterCopies copies =
+         regCopyAdder.addMinimumRegisterCopies(po, *targetMachine_, ddg_);
+        
 #ifdef DEBUG_REG_COPY_ADDER
-    const int tempsAdded =
-#endif
-    regCopyAdder.addMinimumRegisterCopies(po, *targetMachine_, ddg_)
-#ifdef DEBUG_REG_COPY_ADDER
-        .count_
+    const int tempsAdded = copies.count_;
 #endif
     ;
 #ifdef DEBUG_REG_COPY_ADDER
@@ -279,12 +483,22 @@ BUBasicBlockScheduler::scheduleOperation(
         ddg_->writeToDotFile(
             (boost::format("%s_after_regcopy_ddg.dot") % ddg_->name()).str());
     }
-//    ddg_->sanityCheck();
+//    ddg_->sanityCheck();    
 #endif
+
     bool bypass = bypass_;
-    bool bypassLate = false;    
+    bool bypassLate = bypass_;   
+    int ii = rm_->initiationInterval();
+    // Find smallest cycle from RM is known, otherwise 1
+    int rmSmallest = (rm_->smallestCycle() < INT_MAX) ? rm_->smallestCycle() : 1;
+    // rmSmallest is cycle where there is nothing scheduled, and nothing
+    // is scheduled before it, so it the schedule of result fails there
+    // there is no point decreasing the schedule any more.
+    int stopingPoint = (ii == 0) ? 
+        rmSmallest - 1 : 
+        endCycle_ - ii -1;
     while ((operandsFailed || resultsFailed) &&
-        resultsStartCycle >= 0) {
+        resultsStartCycle >= stopingPoint) {
         maxResult = scheduleResultReads(
             moves, resultsStartCycle, bypass, bypassLate);
         if (maxResult != -1) {
@@ -307,67 +521,110 @@ BUBasicBlockScheduler::scheduleOperation(
                 }
             }
             resultsFailed = true;
-            if (bypass) {
+            if (bypass && bypassLate) {
+                bypass = true;
+                bypassLate = false;
+            } else if (bypass && !bypassLate) {
                 bypass = false;            
                 bypassLate = true;
-            } else if (bypassLate) {
+            } else if (!bypass && bypassLate) {
                 bypassLate = false;
             } else {
                 // We will try to schedule results in earlier cycle
                 resultsStartCycle--;    
                 bypass = bypass_;
-                bypassLate = false;                                                
+                bypassLate = bypass_;                                                
             }
-                
             continue;
         }
-
+        regCopyAdder.resultsScheduled(copies, *ddg_);
         if (scheduleOperandWrites(moves, resultsStartCycle)) {
             operandsFailed = false;
         } else {
             // Scheduling some operand failed, unschedule all moves, try earlier
-            for (int i = 0; i < moves.nodeCount(); i++){
-                MoveNode& moveNode = moves.node(i);
+            for (int i = 0;i < po.inputMoveCount(); i++) {
+                MoveNode& moveNode = po.inputMove(i);//moves.node(i);
                 if (moveNode.isScheduled()) {
                     unschedule(moveNode);
                     if (moveNode.isDestinationOperation()) {
                         unscheduleInputOperandTempMoves(moveNode);
                     }
+
                     if (moveNode.isSourceOperation()) {
                         unscheduleResultReadTempMoves(moveNode);
-                        undoBypass(moveNode);
                     }
                 }
             }
+
+            for (int i = 0;i < po.outputMoveCount(); i++) {
+                MoveNode& moveNode = po.outputMove(i);//moves.node(i);
+                if (moveNode.isScheduled()) {
+                    unschedule(moveNode);
+                    if (moveNode.isDestinationOperation()) {
+                        unscheduleInputOperandTempMoves(moveNode);
+                    }
+
+                    if (moveNode.isSourceOperation()) {
+                        unscheduleResultReadTempMoves(moveNode);
+                    }
+                }
+            }
+
+            std::vector<MoveNode*> outputMoves;
+            for (int i = 0; i < po.outputMoveCount(); i++) {
+                outputMoves.push_back(&po.outputMove(i));
+            }
+            
+            for (unsigned int i = 0; i < outputMoves.size(); i++) {
+                // then undo the bypass etc.
+                MoveNode& moveNode = *outputMoves[i]; //moves.node(i);
+                if (moveNode.isSourceOperation()) {
+                    undoBypass(moveNode);
+                }
+            }
+
             operandsFailed = true;
-            if (bypass) {
+            if (bypass && bypassLate) {
+                bypass = true;
+                bypassLate = false;
+            } else if (bypass && !bypassLate) {
                 bypass = false;            
                 bypassLate = true;
-            } else if (bypassLate) {
+            } else if (!bypass && bypassLate) {
                 bypassLate = false;
             } else {
                 resultsStartCycle--;                
                 maxResult--;                
                 resultsStartCycle = std::min(maxResult, resultsStartCycle);                                
                 bypass = bypass_;
-                bypassLate = false;                                                
+                bypassLate = bypass_;                                                
             }
         }
     }
     // This fails if we reach 0 cycle.
     if (resultsFailed) {
-        ddg_->writeToDotFile(
-             (boost::format("bb_%s_2_failed_scheduling.dot")
-              % ddg_->name()).str());
+        if (ii == 0) {
+            // This is only problem with regular scheduling, with loop schedule
+            // this is expected for too small II.
+            ddg_->writeToDotFile(
+                (boost::format("bb_%s_2_failed_scheduling.dot")
+                % ddg_->name()).str());
+        }
+        unscheduleAllNodes();
         throw ModuleRunTimeError(
              __FILE__, __LINE__, __func__,
              "Results scheduling failed for \'" + moves.toString());
     }
 
     if (operandsFailed) {
-        ddg_->writeToDotFile(
-            (boost::format("bb_%s_2_scheduling.dot")
-             % ddg_->name()).str());
+        if (ii == 0) {
+            // This is only problem with regular scheduling, with loop schedule
+            // this is expected for too small II.            
+            ddg_->writeToDotFile(
+                (boost::format("bb_%s_2_scheduling.dot")
+                % ddg_->name()).str());
+        }
+        unscheduleAllNodes();
         throw ModuleRunTimeError(
             __FILE__, __LINE__, __func__,
             "Operands scheduling failed for \'" + moves.toString());
@@ -376,9 +633,7 @@ BUBasicBlockScheduler::scheduleOperation(
     for (int i = 0; i < moves.nodeCount(); i++) {
         finalizeSchedule(moves.node(i), selector);
     }
-    bypassDestinationsCycle_.clear();
-    bypassDestinations_.clear();
-
+    regCopyAdder.operandsScheduled(copies,*ddg_);
 #ifdef DEBUG_REG_COPY_ADDER
     if (tempsAdded > 0) {
         ddg_->writeToDotFile(
@@ -431,7 +686,6 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves, int cycle) {
     }
     int counter = 0;
 
-    // Trigger is scheduled, try to schedule other operands
     while (unscheduledMoves != scheduledMoves && counter < 5 && cycle >=0) {
         // try to schedule all input moveNodes, also find trigger
         // Try to schedule trigger first, otherwise the operand
@@ -444,6 +698,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves, int cycle) {
                 counter++;
                 continue;
             }
+            assert(trigger->isScheduled());
             cycle = trigger->cycle();
 
             if (trigger->move().destination().isTriggering()) {
@@ -454,7 +709,9 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves, int cycle) {
                     // they may move trigger to later time.
                     ddg_->moveFUDependenciesToTrigger(*trigger);
                     int triggerLatest =
-                        std::min(ddg_->latestCycle(*trigger), cycle);
+                        std::min(ddg_->latestCycle(*trigger,
+                                rm_->initiationInterval()), 
+                            cycle);
                     triggerLatest = rm_->latestCycle(triggerLatest, *trigger);
                     if (triggerLatest != INT_MAX &&
                         triggerLatest > trigger->cycle()) {
@@ -465,6 +722,7 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves, int cycle) {
                             // bringing back originaly scheduled trigger
                             scheduleOperand(*trigger, cycle);
                         }
+                        assert(trigger->isScheduled());
                         cycle = trigger->cycle();
                     }
                 }
@@ -487,7 +745,8 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves, int cycle) {
             }
 
         }
-        // Tests if all input moveNodes were scheduled
+        // Tests if all input moveNodes were scheduled, if so check if trigger
+        // is latest
         scheduledMoves = 0;
         for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
             MoveNode& moveNode = moves.node(moveIndex);
@@ -497,6 +756,13 @@ BUBasicBlockScheduler::scheduleOperandWrites(MoveNodeGroup& moves, int cycle) {
             }
             if (moveNode.isScheduled()) {
                 scheduledMoves++;
+                if (moveNode.cycle() > cycle) {
+                    // moveNode is operand and it is scheduled after the 
+                    // trigger! This is wrong!
+                    std::cerr << "Move " << moveNode.toString()
+                    << " is scheduled after the trigger!" << std::endl;
+                    scheduledMoves--;
+                }
             }
         }
 
@@ -558,10 +824,8 @@ BUBasicBlockScheduler::scheduleResultReads(
             if (bypass) {
                 int newMaximum = maxResultCycle + bypassDistance_;
                 bypassSuccess = bypassNode(moveNode, newMaximum);                
-                if (newMaximum != maxResultCycle) {
-                    localMaximum = 
+                localMaximum = 
                         (newMaximum > localMaximum) ? newMaximum : localMaximum;
-                }
                 if (dre_ && bypassSuccess &&
                     !ddg_->resultUsed(moveNode)) {
                     // All uses of result were bypassed, result will be removed
@@ -571,6 +835,7 @@ BUBasicBlockScheduler::scheduleResultReads(
                     continue;
                 } 
             }
+
             // Find out if RegCopyAdded create temporary copy for output move
             MoveNode* test = succeedingTempMove(moveNode);
             if (test != NULL) {
@@ -594,16 +859,17 @@ BUBasicBlockScheduler::scheduleResultReads(
             }
             tempRegLimitCycle = 
                 (localMaximum != 0) 
-                    ? std::min(localMaximum + 1, tempRegLimitCycle)
+                    ? std::min(localMaximum +1, tempRegLimitCycle)
                     : tempRegLimitCycle;
-            scheduleMove(moveNode, tempRegLimitCycle);
+                    
+            scheduleMove(moveNode, tempRegLimitCycle, true);
             if (!moveNode.isScheduled()) {
                 // Scheduling result failed due to some of the bypassed moves
                 // will try again without bypassing anything.
                 undoBypass(moveNode);
                 return -1;
             }            
-            if (bypassLate) {     
+            if (bypassLate) {
                 int newMaximum = moveNode.cycle() + bypassDistance_;
                 if (bypassNode(moveNode, newMaximum)) {
                     localMaximum = 
@@ -611,9 +877,9 @@ BUBasicBlockScheduler::scheduleResultReads(
                     localMaximum = (localMaximum > cycle) ? localMaximum : cycle;                        
                     int originalCycle = moveNode.cycle();
                     unschedule(moveNode);
-                    scheduleMove(moveNode, localMaximum);
+                    scheduleMove(moveNode, localMaximum, true);
                     if (!moveNode.isScheduled()) {
-                        scheduleMove(moveNode, originalCycle);
+                        scheduleMove(moveNode, originalCycle, false);
                     }
                 }
                 assert(moveNode.isScheduled());
@@ -655,7 +921,8 @@ BUBasicBlockScheduler::scheduleRRMove(MoveNode& moveNode) {
         return;
     } 
 
-    RegisterCopyAdder regCopyAdder(BasicBlockPass::interPassData(), *rm_, true);
+    RegisterCopyAdder regCopyAdder(
+        BasicBlockPass::interPassData(), *rm_, *selector_, true);
 
 #ifdef DEBUG_REG_COPY_ADDER
     const int tempsAdded =
@@ -673,8 +940,8 @@ BUBasicBlockScheduler::scheduleRRMove(MoveNode& moveNode) {
     }
 //    ddg_->sanityCheck();
 #endif
-    scheduleRRTempMoves(moveNode, moveNode, endCycle_);
-    scheduleMove(moveNode, endCycle_);
+    scheduleResultReadTempMoves(moveNode, moveNode, endCycle_);
+    scheduleMove(moveNode, endCycle_, true);
 }
 
 /**
@@ -690,45 +957,46 @@ BUBasicBlockScheduler::scheduleRRMove(MoveNode& moveNode) {
  * @param earliestCycle The earliest cycle to try.
  */
 void
-BUBasicBlockScheduler::scheduleMove(MoveNode& moveNode, int latestCycle) {
+BUBasicBlockScheduler::scheduleMove(
+    MoveNode& moveNode, int latestCycle, bool allowPredicationAndRenaming) {
     if (moveNode.isScheduled()) {
         ddg_->writeToDotFile("already_sched.dot");
-        abort();
         throw InvalidData(
             __FILE__, __LINE__, __func__,
             (boost::format("Move '%s' is already scheduled!")
             % moveNode.toString()).str());
     }
+    int ii = rm_->initiationInterval();
     int ddgCycle = endCycle_;
     if (moveNode.move().isControlFlowMove()) {
         ddgCycle = endCycle_ - targetMachine_->controlUnit()->delaySlots();
-
-        if (ddg_->latestCycle(moveNode) < ddgCycle) {
-            // Trying to schedule CFG move but data dependence does not
-            // allow it to schedule in correct place
-            throw InvalidData(
-                __FILE__, __LINE__, __func__,
-                (boost::format("Move '%s' needs to be scheduled in %d,"
-                " but data dependence does not allow it!")
-                % moveNode.toString() % ddgCycle).str());
+        if (ddg_->latestCycle(moveNode, ii) < ddgCycle) {
+                // Trying to schedule CFG move but data dependence does not
+                // allow it to schedule in correct place
+                throw InvalidData(
+                    __FILE__, __LINE__, __func__,
+                    (boost::format("Move '%s' needs to be scheduled in %d,"
+                    " but data dependence does not allow it!")
+                    % moveNode.toString() % ddgCycle).str());
         }
+        jumpMove_ = &moveNode;
     } else { // not a control flow move:
-        ddgCycle = ddg_->latestCycle(moveNode);
-        if (renamer_ != NULL) {
+        ddgCycle = ddg_->latestCycle(moveNode, ii);
+        if (renamer_ != NULL && allowPredicationAndRenaming) {
             int latestFromTrigger =
                 (moveNode.isDestinationOperation()) ?
                     moveNode.latestTriggerWriteCycle() : latestCycle;
             int minRenamedEC = std::min(
                 latestFromTrigger, ddg_->latestCycle(
-                    moveNode, INT_MAX, true)); // TODO: 0 or INT_MAX
+                    moveNode, ii, true)); // TODO: 0 or INT_MAX
 
             // rename if can and may alow scheuduling later.
             if (minRenamedEC > ddgCycle) {
                 minRenamedEC =  rm_->latestCycle(minRenamedEC, moveNode);
                 if (minRenamedEC > ddgCycle) {
                     if (renamer_->renameSourceRegister(
-                            moveNode, false, true, true, minRenamedEC)) {
-                        ddgCycle = ddg_->latestCycle(moveNode);
+                            moveNode, ii != 0, true, true, minRenamedEC)) {
+                        ddgCycle = ddg_->latestCycle(moveNode, ii);
                     }
 #ifdef THIS_IS_BUGGY_WITH_REGCOPY_ADDER
                     else {
@@ -745,7 +1013,7 @@ BUBasicBlockScheduler::scheduleMove(MoveNode& moveNode, int latestCycle) {
                                 if (renamer_->renameDestinationRegister(
                                         *limitingAdep, false, true, true)) {
                                     ddgCycle =
-                                        ddg_->latestCycle(moveNode);
+                                        ddg_->latestCycle(moveNode, ii);
                                 }
                             }
                         }
@@ -755,13 +1023,58 @@ BUBasicBlockScheduler::scheduleMove(MoveNode& moveNode, int latestCycle) {
             }
         }
     }
+    // if it's a conditional move then we have to be sure that the guard
+    // is defined before executing the move.
+    // this is already handled by DDGs earliestCycle, except cases
+    // where the guard is defined in a previous BB. 
+    // So this prevents scheduling unconditional moves at the beginning
+    // of a BB.
+    
+    if (!moveNode.move().isUnconditional()) {
 
+        if (allowPredicationAndRenaming) {
+            // try to get rid of the guard if it gives earlier earliestcycle.
+            if (ddg_->latestCycle(moveNode, ii, false, true, true) 
+                > ddgCycle) {
+                bool guardNeeded = false;
+                if (moveNode.move().destination().isGPR() || 
+                    moveNode.move().isControlFlowMove()) {
+                    guardNeeded = true;
+                } else {
+                    // this would be needed only for trigger,
+                    // but trigger may change during scheduling.
+                    // so lets just limit all operands, it seems 
+                    // this does not make the schedule any worse.
+                    if (moveNode.isDestinationOperation()) {
+                        const Operation& o = 
+                            moveNode.destinationOperation().operation();
+                        if (o.writesMemory() || o.hasSideEffects() ||
+                            o.affectsCount() != 0) {
+                            guardNeeded = true;
+                        }
+                    }
+                }
+                if (!guardNeeded) {
+                    moveNode.move().setGuard(NULL);
+                    ddg_->removeIncomingGuardEdges(moveNode);
+                    ddgCycle = ddg_->latestCycle(moveNode, ii);
+                    assert(moveNode.move().isUnconditional());
+                }
+            }
+            
+            if (ii == 0 && tryToOptimizeWaw(moveNode)) {
+                ddgCycle = std::max(ddg_->latestCycle(moveNode, ii),
+                                    moveNode.guardLatency()-1);
+            }
+
+        }
+    }
+    
     ddgCycle = (ddgCycle == INT_MAX) ? endCycle_ : ddgCycle;
     assert(ddgCycle != -1);
     // Earliest cycle from which to start, could depend on result ready
     // for result moves.
     int minCycle = std::min(latestCycle, ddgCycle);
-
     if (moveNode.isSourceConstant() &&
         !moveNode.move().hasAnnotations(
             TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM)) {
@@ -775,7 +1088,7 @@ BUBasicBlockScheduler::scheduleMove(MoveNode& moveNode, int latestCycle) {
             moveNode.move().setAnnotation(annotation);
 
         } else if (!moveNode.isDestinationOperation() &&
-                   rm_->latestCycle(endCycle_, moveNode) == -1) {
+                   rm_->latestCycle(endCycle_, moveNode) == -1 && ii == 0) {
             // If source is constant and node does not have annotation already,
             // we add it if node has no connection, so IU broker and
             // OutputPSocket brokers will add Immediate
@@ -797,7 +1110,7 @@ BUBasicBlockScheduler::scheduleMove(MoveNode& moveNode, int latestCycle) {
             TTAProgram::ProgramAnnotation::ANN_STACKFRAME_PROCEDURE_RETURN);
         moveNode.move().setAnnotation(annotation);
     }
-    int earliestDDG = ddg_->earliestCycle(moveNode);
+    int earliestDDG = ddg_->earliestCycle(moveNode, ii);
     minCycle = rm_->latestCycle(minCycle, moveNode);
     if (minCycle < earliestDDG) {
         // Bypassed move could get scheduld too early, this should prevent it
@@ -850,7 +1163,6 @@ BUBasicBlockScheduler::scheduleMove(MoveNode& moveNode, int latestCycle) {
         }
     }
     rm_->assign(minCycle,  moveNode);
-
     if (!moveNode.isScheduled()) {
         throw ModuleRunTimeError(
             __FILE__, __LINE__, __func__,
@@ -942,13 +1254,26 @@ BUBasicBlockScheduler::scheduleResultReadTempMoves(
         if (firstWrite != NULL && firstWrite->isScheduled())
             firstWriteCycle = firstWrite->cycle();
         scheduleResultReadTempMoves(*tempMove1, resultRead, firstWriteCycle);   
-        if (tempMove2 != NULL)
+        if (tempMove2 != NULL && tempMove2->isScheduled()){ // TODO: maybe there is scheduled is missing
             firstWriteCycle = tempMove2->cycle() -1;        
+        }
     }
-
-    scheduleMove(*tempMove1, firstWriteCycle);
-    assert(tempMove1->isScheduled());
-    scheduledTempMoves_[&resultRead].insert(tempMove1);
+    bool bypassSuccess = false;
+    if (bypass_) {
+        int tmp = endCycle_;
+        bypassSuccess = bypassNode(*tempMove1, tmp);
+    }
+    if (!bypassSuccess || !dre_ || ddg_->resultUsed(*tempMove1)) {
+        scheduleMove(*tempMove1, firstWriteCycle, true);
+        assert(tempMove1->isScheduled());
+        if (bypass_) {
+            int tmp = endCycle_;
+            bypassSuccess = bypassNode(*tempMove1, tmp);
+        }        
+        scheduledTempMoves_[&resultRead].insert(tempMove1);
+    } else if (dre_ && !ddg_->resultUsed(*tempMove1)) {
+        finalizeSchedule(*tempMove1, dynamic_cast<BUMoveNodeSelector&>(*selector_));
+    }
 }
 
 /**
@@ -1014,7 +1339,7 @@ BUBasicBlockScheduler::scheduleInputOperandTempMoves(
     if (tempMove == NULL)
         return; // no temp moves found
 
-    scheduleMove(*tempMove, lastUse - 1);
+    scheduleMove(*tempMove, lastUse - 1, true);
     if (!tempMove->isScheduled()) {
         std::cerr << "temp move: " << tempMove->toString()
                   << "not scheduled."
@@ -1066,13 +1391,26 @@ BUBasicBlockScheduler::scheduleRRTempMoves(
         }            
     }
     scheduleResultReadTempMoves(*tempMove1, firstMove, lastUse);
-    scheduleMove(*tempMove1, lastUse -1);
-    if (!tempMove1->isScheduled()) {
-        std::cerr << "not scheduled: " << tempMove1->toString() << std::endl;
-        ddg_->writeToDotFile("tempNotSched.dot");
+    bool bypassSuccess = false;
+    if (bypass_) {
+        int tmp = endCycle_;
+        bypassSuccess = bypassNode(*tempMove1, tmp);
     }
-    assert(tempMove1->isScheduled());
-    scheduledTempMoves_[&firstMove].insert(tempMove1);
+    if (!bypassSuccess || !dre_ || ddg_->resultUsed(*tempMove1)) {
+        scheduleMove(*tempMove1, lastUse - 1, true);    
+        if (!tempMove1->isScheduled()) {
+            std::cerr << "not scheduled: " << tempMove1->toString() << std::endl;
+            ddg_->writeToDotFile("tempNotSched.dot");
+        }
+        if (bypass_) {
+            int tmp = endCycle_;
+            bypassSuccess = bypassNode(*tempMove1, tmp);
+        }        
+        assert(tempMove1->isScheduled());
+        scheduledTempMoves_[&firstMove].insert(tempMove1);
+    } else if (dre_ && !ddg_->resultUsed(*tempMove1)) {
+        finalizeSchedule(*tempMove1, dynamic_cast<BUMoveNodeSelector&>(*selector_));
+    }
 }
 
 /**
@@ -1129,7 +1467,7 @@ BUBasicBlockScheduler::scheduleOperand(MoveNode& node, int cycle) {
     }
     cycle = std::min(cycle, tempRegLimitCycle);
     // This must pass, since we got latest cycle from RM.
-    scheduleMove(node, cycle);
+    scheduleMove(node, cycle, true);
     if (node.isScheduled() == false) {
         // the latest cycle may change because scheduleMove may do things like
         // register renaming, so this may fail.
@@ -1146,41 +1484,40 @@ BUBasicBlockScheduler::scheduleOperand(MoveNode& node, int cycle) {
  *
  * @return pair of destination of bypass and amount of regs skipped by the bypass.
  */
-std::pair<BUBasicBlockScheduler::OrderedSet, int>
-BUBasicBlockScheduler::findBypassDestinations(
-    MoveNode& node, int maxHopCount) {
-
-    MoveNode* n = &node;
-    OrderedSet okDestination;
-    int hops = 0;
+BUBasicBlockScheduler::OrderedSet
+BUBasicBlockScheduler::findBypassDestinations(MoveNode& node) {
+    
+    OrderedSet okDestination;    
     // DDG can only handle single hops so far.
     // TODO: Fix when DDG could handle multiple destinations
-    maxHopCount = 1;
-    for (int i = 0; i < maxHopCount; i++) {
-        auto rrDestinations = ddg_->onlyRegisterRawDestinations(*n);
-        if (rrDestinations.empty()) {
-            break;
+    DataDependenceGraph::NodeSet rrDestinations =
+        ddg_->onlyRegisterRawDestinations(node, false, false);
+    for (DataDependenceGraph::NodeSet::iterator j = 
+             rrDestinations.begin(); j != rrDestinations.end(); j++) {
+        MoveNode* n = *j;
+        if (ddg_->onlyRegisterRawSource(*n) == NULL) {
+            // No bypassing of moves with multiple register definition
+            // sources.
+            // TODO: bypass destination with multiple definition sources
+            // using inverse guard of guarded source.
+            continue;
         }
-        for (auto n: rrDestinations) {
-            if (ddg_->onlyRegisterEdgeIn(*n) == NULL) {
-                // No bypassing of moves with multiple register definition
-                // sources.
-                // TODO: bypass destination with multiple definition sources
-                // using inverse guard of guarded source.
+        MachineConnectivityCheck::PortSet destinationPorts;            
+        destinationPorts.insert(&n->move().destination().port());
+        
+        if (MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
+             node, destinationPorts)) {
+            if (n->isScheduled() == false 
+                && rm_->initiationInterval() != 0) {
+                // Found node connected by loop edge, ignore it.
+                ddg_->writeToDotFile("failing_test.dot");
                 continue;
             }
-            MachineConnectivityCheck::PortSet destinationPorts;
-            destinationPorts.insert(&n->move().destination().port());
-            
-            if (MachineConnectivityCheck::canSourceWriteToAnyDestinationPort(
-                 node, destinationPorts)) {
-                okDestination.insert(n);                
-            }    
-            destinationPorts.clear();
-        }
-        hops = i+1;
+            okDestination.insert(n);                
+        }    
+        destinationPorts.clear();
     }
-    return std::pair<OrderedSet,int>(okDestination, hops);
+    return okDestination;
 }
 
 /**
@@ -1190,38 +1527,45 @@ BUBasicBlockScheduler::findBypassDestinations(
 void 
 BUBasicBlockScheduler::undoBypass(
     MoveNode& moveNode, MoveNode* single, int oCycle) {
+
     if (single == NULL) {
         if (MapTools::containsKey(bypassDestinations_, &moveNode)) {
             std::vector<MoveNode*> destinationsVector = 
                 bypassDestinations_[&moveNode];                    
             std::vector<std::pair<MoveNode*, int> > rescheduleVector;
-                
+
             for (unsigned int j = 0; j < destinationsVector.size(); j++) {            
             // unschedule and unmerge all bypassed nodes
                 MoveNode* dest = destinationsVector[j];
-                if (!dest->isScheduled())
-                    continue;
-                unschedule(*dest);
-                ddg_->unMerge(moveNode, *dest);
+                if (dest->isScheduled()) {
+                    unschedule(*dest);
+                }
+                ddg_->unMergeUser(moveNode, *dest);
                 int originalCycle =                 
                     bypassDestinationsCycle_[&moveNode][j];                
+                const TTAMachine::Bus* bus =
+                    bypassDestinationsBus_[&moveNode][j];
+                dest->move().setBus(*bus);
                 rescheduleVector.push_back(
                     std::pair<MoveNode*, int>(dest, originalCycle));
+                droppedNodes_.erase(dest);
             }
             for (unsigned int i = 0; i < rescheduleVector.size(); i++) {
             // reassign nodes to their original places
                 std::pair<MoveNode*, int> dest = rescheduleVector[i];
-                scheduleMove(*dest.first, dest.second);
+                //rm_->assign(dest.second,  *dest.first);
+                scheduleMove(*dest.first, dest.second, false);
                 if (!dest.first->isScheduled()) {
                     ddg_->writeToDotFile("unbypassFailed.dot");
                     std::cerr << " Source: " << moveNode.toString()
                     << ", Original: " << dest.first->toString() << 
-                    ", original cycle: " << dest.second << std::endl;                    
+                    ", original cycle: " << dest.second << std::endl<< std::endl;  
                 }
                 assert(dest.first->isScheduled());                
             }            
             bypassDestinations_.erase(&moveNode);          
-            bypassDestinationsCycle_.erase(&moveNode);                                      
+            bypassDestinationsCycle_.erase(&moveNode);
+            bypassDestinationsBus_.erase(&moveNode);                                      
         }
     } else {
         if (single->isScheduled()) {
@@ -1229,15 +1573,21 @@ BUBasicBlockScheduler::undoBypass(
             // this move need to be unscheduled.
             unschedule(*single);
         }        
-        ddg_->unMerge(moveNode, *single);
-        scheduleMove(*single, oCycle);
+        int size = bypassDestinationsBus_[&moveNode].size();
+        const TTAMachine::Bus* bus =
+            bypassDestinationsBus_[&moveNode][size-1];
+        ddg_->unMergeUser(moveNode, *single);
+        single->move().setBus(*bus);
+        //rm_->assign(oCycle,  *single);
+        scheduleMove(*single, oCycle, false);
         if (!single->isScheduled()) {
             ddg_->writeToDotFile("unbypassFailed.dot");
             std::cerr << " Source: " << moveNode.toString()
             << ", Original: " << single->toString() << ", original cycle: " 
             << oCycle << std::endl;
         }
-        assert(single->isScheduled());
+        droppedNodes_.erase(single);
+        assert(single->isScheduled());        
     }
 }
 
@@ -1249,19 +1599,23 @@ BUBasicBlockScheduler::undoBypass(
  * @return True if all of the successors were successfully bypassed
  */
 bool
-BUBasicBlockScheduler::bypassNode(MoveNode& moveNode, int& maxResultCycle) {
+BUBasicBlockScheduler::bypassNode(
+    MoveNode& moveNode, 
+    int& maxResultCycle) {
     bool edgesCopied = false;    
     unsigned int bypassCount = 0;
     int localMaximum = 0;
     if (!bypass_)
         return false;    
     // First try to bypass all uses of the result
+    unsigned int rawDestinations =
+        ddg_->onlyRegisterRawDestinations(moveNode, false, false).size();
     OrderedSet destinations = 
-        findBypassDestinations(moveNode, 1).first;
+        findBypassDestinations(moveNode);
     if (destinations.size() > 0) {
         for (OrderedSet::iterator it = destinations.begin(); 
             it != destinations.end(); it++) {
-            if (!ddg_->guardsAllowBypass(moveNode, **it)) {
+            if (!ddg_->guardsAllowBypass(moveNode, **it)) {                
                 continue;
             }
             MoveNode* temp = succeedingTempMove(moveNode);                         
@@ -1279,7 +1633,7 @@ BUBasicBlockScheduler::bypassNode(MoveNode& moveNode, int& maxResultCycle) {
             assert((*it)->isScheduled());
             int originalCycle = (*it)->cycle();                                    
             int latestLimit = originalCycle + bypassDistance_;            
-            int earliestLimit = originalCycle - 2*bypassDistance_;             
+            int earliestLimit = originalCycle - bypassDistance_;             
             if ((*it)->isDestinationVariable() && temp == (*it)) {
                 // If bypassing to temporary register
                 // missing edges in DDG could cause 
@@ -1293,6 +1647,7 @@ BUBasicBlockScheduler::bypassNode(MoveNode& moveNode, int& maxResultCycle) {
                         (*it)->move().destination().index(),
                         originalCycle);                        
                 if (lastRead != NULL) {
+                    assert(lastRead->isScheduled());
                     earliestLimit = lastRead->cycle();
                 }
                 MoveNode *firstRead = 
@@ -1301,28 +1656,41 @@ BUBasicBlockScheduler::bypassNode(MoveNode& moveNode, int& maxResultCycle) {
                         (*it)->move().destination().index(),
                         originalCycle);                        
                 if (firstRead != NULL) {
+                    assert(firstRead->isScheduled());
                     latestLimit = firstRead->cycle();
                 }      
             }     
-                                           
-            bypassDestinationsCycle_[&moveNode].push_back(
-                originalCycle);  
+                                             
 #ifdef DEBUG_BYPASS                            
             ddg_->writeToDotFile("beforeUnschedule.dot");
-#endif                        
+#endif                  
+            const TTAMachine::Bus* bus = &(*it)->move().bus();
+            bypassDestinationsBus_[&moveNode].push_back(
+                dynamic_cast<const TTAMachine::Bus*>(bus));
             unschedule(**it);
-            if (!ddg_->mergeAndKeep(moveNode, **it)) {
-                assert(!moveNode.isScheduled());
+            if (!ddg_->mergeAndKeepUser(moveNode, **it)) {
+                assert(!(*it)->isScheduled());
+                scheduleMove(**it, originalCycle, true);
+#ifdef DEBUG_BYPASS                                            
                 std::cerr << "Merge fail. moveNode=" << moveNode.toString()
                 << ", **it=" << (*it)->toString() << std::endl;
-                scheduleMove(**it, originalCycle);
+#endif                
+                bypassDestinationsBus_[&moveNode].pop_back();
                 continue;
             }
 
+            if ((**it).move().source().isImmediateRegister()) {
+                (**it).move().setSource(
+                    static_cast<SimpleResourceManager*>(rm_)->immediateValue(moveNode)->copy());
+            }
+
             bypassDestinations_[&moveNode].push_back(*it);       
+            bypassDestinationsCycle_[&moveNode].push_back(
+                originalCycle);            
             assert((*it)->isScheduled() == false);
             int startCycle = std::min(latestLimit, maxResultCycle);
-            scheduleMove(**it, startCycle);
+            scheduleMove(**it, startCycle, true);
+            
 #ifdef DEBUG_BYPASS                        
             std::cerr << "\t\t\tCreated " << (*it)->toString()
             << " with original cycle " << originalCycle << std::endl;
@@ -1335,7 +1703,8 @@ BUBasicBlockScheduler::bypassNode(MoveNode& moveNode, int& maxResultCycle) {
                 // schedule other possible bypasses.
                 undoBypass(moveNode, *it, originalCycle);
                 bypassDestinations_[&moveNode].pop_back();
-                bypassDestinationsCycle_[&moveNode].pop_back();                                                    
+                bypassDestinationsCycle_[&moveNode].pop_back();
+                bypassDestinationsBus_[&moveNode].pop_back();                                                    
             } else {
                 localMaximum =
                     ((*it)->cycle() > localMaximum) ?
@@ -1352,8 +1721,18 @@ BUBasicBlockScheduler::bypassNode(MoveNode& moveNode, int& maxResultCycle) {
                 bypassCount++;
             }
         }
+    } else {
+        DataDependenceGraph::NodeSet rrDestinations =
+            ddg_->onlyRegisterRawDestinations(moveNode, false, false);
+        if (rrDestinations.size() == 0 && 
+            moveNode.isDestinationVariable() && 
+            moveNode.isSourceVariable() &&
+            !ddg_->resultUsed(moveNode)) {
+            // move is not used at all anywhere? Lets try to drop it
+            return true;
+        }
     }
-    if (bypassCount == destinations.size() && bypassCount != 0) {
+    if (bypassCount == rawDestinations && bypassCount != 0) {
         maxResultCycle = localMaximum;
         return true;
     } else {
@@ -1364,7 +1743,6 @@ BUBasicBlockScheduler::bypassNode(MoveNode& moveNode, int& maxResultCycle) {
 void 
 BUBasicBlockScheduler::finalizeSchedule(
     MoveNode& node, BUMoveNodeSelector& selector) {
-
     if (node.isScheduled()) {                                    
         selector.notifyScheduled(node);
         std::map<const MoveNode*, DataDependenceGraph::NodeSet >::
@@ -1386,10 +1764,7 @@ BUBasicBlockScheduler::finalizeSchedule(
             copyDepsOver(node, true, true); 
         DataDependenceGraph::NodeSet preds = ddg_->predecessors(node); 
         ddg_->dropNode(node);
-        if (ddg_->rootGraph() != ddg_) {
-            assert(!node.isScheduled());
-            ddg_->rootGraph()->removeNode(node);
-        }
+        droppedNodes_.insert(&node);
 #ifdef DEBUG_BYPASS
         ddg_->writeToDotFile("after_dropNode.dot");
 #endif                
@@ -1416,18 +1791,18 @@ BUBasicBlockScheduler::finalizeSchedule(
                     static_cast<DataDependenceGraph*>(ddg_->rootGraph())->
                         copyDepsOver(**i, true, true);                   
                     ddg_->dropNode(**i);
-                    if (ddg_->rootGraph() != ddg_) {
-                        assert((*i)->isScheduled());
-                        ddg_->rootGraph()->removeNode(**i);
-                    }                      
+                    droppedNodes_.insert(*i);
 #ifdef DEBUG_BYPASS
                     ddg_->writeToDotFile("after_temp_dropNode.dot");
 #endif                                      
                 }    
             }
-        }          
-      
-    } else if (node.move().source().equals(node.move().destination())) {
+        }                
+    } else if (node.move().source().equals(node.move().destination()) ||
+            (node.isSourceVariable() 
+            && node.isDestinationVariable() 
+            && !ddg_->resultUsed(node))) {
+        
         // we lost edges so our notifyScheduled does not notify
         // some antidependencies. store them for notification.
                         
@@ -1442,12 +1817,7 @@ BUBasicBlockScheduler::finalizeSchedule(
             copyDepsOver(node, true, true);
     
         ddg_->dropNode(node);
-        // Node was dropped from the graph while scheduling RR copy
-        if (ddg_->rootGraph() != ddg_) {
-            assert(!node.isScheduled());
-            ddg_->rootGraph()->removeNode(node);
-        }        
-    
+        droppedNodes_.insert(&node);
         // we lost edges so our notifyScheduled does not notify
         // some antidependencies. notify them.
         for (DataDependenceGraph::NodeSet::iterator iter =
@@ -1456,10 +1826,227 @@ BUBasicBlockScheduler::finalizeSchedule(
             selector.mightBeReady(**iter);
         }
         
-    }else {
+    } else {
         TCEString msg = "Node " + node.toString() + " did not get scheduled";
-        ddg_->writeToDotFile("after_dropNode.dot");          
+        ddg_->writeToDotFile("after_dropNode.dot");     
         throw InvalidData(
         __FILE__, __LINE__, __func__, msg);
     }      
+}
+/**
+ * Calls unschedule() for all ddg nodes, which were scheduled and remove possible
+ * bypasses.
+ */
+void
+BUBasicBlockScheduler::unscheduleAllNodes() {
+    DataDependenceGraph::NodeSet scheduled = ddg_->scheduledMoves();
+
+    for (DataDependenceGraph::NodeSet::iterator i = scheduled.begin();
+         i != scheduled.end(); ++i) {
+        MoveNode& moveNode = **i;
+        if (moveNode.isScheduled()) {
+            unschedule(moveNode);
+            i = scheduled.begin();
+        }        
+    }
+    std::map<MoveNode*, std::vector<MoveNode*>, MoveNode::Comparator>::iterator it =
+        bypassDestinations_.begin();
+    for (; it != bypassDestinations_.end(); it++) {
+        std::vector<MoveNode*> destinationsVector = (*it).second;
+        for (unsigned int k = 0; k < destinationsVector.size(); k++) {            
+            // unschedule and unmerge all bypassed nodes
+            MoveNode* dest = destinationsVector[k];
+            ddg_->unMergeUser(*(*it).first, *dest);
+        }        
+    }
+    bypassDestinationsCycle_.clear();
+    bypassDestinationsBus_.clear();
+    bypassDestinations_.clear();
+    droppedNodes_.clear();
+    assert(ddg_->scheduledNodeCount() == 0);
+}
+
+/**
+ * Finaly, remove moves that were dropped during dead result move elimination
+ * also from the parent of the given subgraph DDG.
+ */
+void
+BUBasicBlockScheduler::clearRemovedNodes() {
+ 
+    for (std::set<MoveNode*>::iterator i = droppedNodes_.begin(); 
+        i != droppedNodes_.end(); i++) {
+        MoveNode& node = **i;
+        if (ddg_->rootGraph() != ddg_ && !node.isScheduled()) {            
+            ddg_->rootGraph()->removeNode(node);
+            if (MapTools::containsKey(bypassDestinations_, &node)) {
+                bypassDestinations_.erase(&node);
+                bypassDestinationsCycle_.erase(&node);
+                bypassDestinationsBus_.erase(&node);
+            }
+        }
+    }
+    droppedNodes_.clear();
+}
+/**
+ * If the operation is commutative, tries to change the operands so that
+ * the scheduler can schedule it better. 
+ *
+ * If the operation is not commutative, does nothing.
+ *
+ * Which is better depends lots on the code being compiled and architecture 
+ * which we are compiling for. 
+ * 
+ * Current implementation tries to make constants triggers,
+ * and if there are no constant inputs, try to also change inputs so
+ * that last ready operand becomes trigger if it's near,
+ * but first ready operand becomes trigger if it's further
+ * (allows better bypassing of other operands)
+ * This seems to work in practice
+ *
+ * @param po programoperation whose inputs to switch
+ * @return true if changed inputs, false if not.
+ */
+bool 
+BUBasicBlockScheduler::tryToSwitchInputs(ProgramOperation& po) {
+    
+    const Operation& op = po.operation();
+    if (op.numberOfInputs() == 2 && op.canSwap(1, 2)) {
+        
+        int triggerOperand = getTriggerOperand(op, *targetMachine_);
+
+        if (triggerOperand != 0) {
+            MoveNode* latest = NULL;
+            int latestMinCycle = -1;
+            int firstMinCycle = INT_MAX;
+
+            //check all input moves.
+            for (int i = 0; i < po.inputMoveCount(); i++) {
+                MoveNode& node = po.inputMove(i);
+                // always make constants triggers.
+                // todo: shoudl do this only with short imms?
+                if (node.isSourceConstant()) {
+                    int operandIndex = 
+                        node.move().destination().operationIndex();
+                    if (operandIndex != triggerOperand) {
+                        po.switchInputs();
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+                int minCycle = ddg_->latestCycle(
+                    node, rm_->initiationInterval(), false, true, true, true, true);
+                if (minCycle > latestMinCycle) {
+                    latest = &node;
+                    latestMinCycle = minCycle;
+                }
+                if (minCycle < firstMinCycle) {
+                    firstMinCycle = minCycle;
+                }
+            }
+
+            int lastOperand = latest->move().destination().operationIndex();
+
+            // don't change if min cycles of first and last are equal.
+            if (latestMinCycle == firstMinCycle) {
+                return false;
+            }
+            if (latestMinCycle - firstMinCycle > 1) { // reverse logic if far.
+                if (lastOperand == triggerOperand) {
+                    po.switchInputs();
+                    return true;
+                }
+            } else {
+                if (lastOperand != triggerOperand) {
+                    po.switchInputs();
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * Tries to get rid of WaW dependence from unconditional to conditional.
+ *
+ * if the conditional move's result is overwritten by the cond for
+ * all users, make the unconditional move conditional, with opposite guard.
+ */
+bool 
+BUBasicBlockScheduler::tryToOptimizeWaw(const MoveNode& moveNode) {
+
+    if (ddg_->latestCycle(moveNode, endCycle_ , false, true, true) >=
+        ddg_->latestCycle(moveNode)) {
+        return false;
+    }
+    
+    MoveNode* wawPred = NULL;
+    DataDependenceEdge* wawEdge = NULL;
+
+    DataDependenceGraph::EdgeSet inEdges = ddg_->inEdges(moveNode);
+    for (DataDependenceGraph::EdgeSet::iterator i = inEdges.begin();
+         i != inEdges.end(); i++) {
+        DataDependenceEdge* e = *i;
+
+        if (e->dependenceType() == DataDependenceEdge::DEP_WAW &&
+            e->edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+            !e->tailPseudo()) {
+            if (wawPred == NULL) {
+                wawPred = &ddg_->tailNode(**i);
+                wawEdge = e;
+            } else {
+                return false;
+            }
+        }
+    }
+    if (wawPred == NULL) {
+        return false;
+    }
+    
+    if (!wawPred->move().isUnconditional()) {
+        return false;
+    }
+
+    // check that no other usage of the data.
+    DataDependenceGraph::NodeSet consumers = ddg_->regRawSuccessors(*wawPred);
+    DataDependenceGraph::NodeSet consumers2 = ddg_->regRawSuccessors(moveNode);
+    for (DataDependenceGraph::NodeSet::iterator i = consumers.begin();
+         i != consumers.end(); i++) {
+        MoveNode* mn = *i;
+        if (consumers2.find(mn) == consumers2.end() &&
+            (mn->move().isUnconditional() ||
+             !ddg_->exclusingGuards(*mn, moveNode))) {
+            return false;
+        }
+    }
+    if (wawPred->isScheduled())
+        unschedule(*wawPred);
+
+    TTAProgram::CodeGenerator cg(*targetMachine_);
+    wawPred->move().setGuard(cg.createInverseGuard(moveNode.move().guard()));
+
+    ddg_->copyDepsOver(*wawPred, true, false);
+    
+    ddg_->copyIncomingGuardEdges(moveNode, *wawPred);
+    ddg_->copyOutgoingGuardWarEdges(moveNode, *wawPred);
+    
+    ddg_->removeEdge(*wawEdge);
+    
+    scheduleMove(*wawPred, endCycle_, false);
+    bool revert = false;
+
+    if (!wawPred->isScheduled()) {
+        revert = true;
+    }
+    if (revert) {
+        wawPred->move().setGuard(NULL);
+        ddg_->removeIncomingGuardEdges(*wawPred);
+        ddg_->removeOutgoingGuardWarEdges(*wawPred);
+        ddg_->connectNodes(*wawPred, moveNode, *wawEdge);
+        return false;
+    }
+
+    return true;
 }

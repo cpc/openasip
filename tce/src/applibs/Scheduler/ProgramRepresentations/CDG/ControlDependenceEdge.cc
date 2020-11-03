@@ -42,47 +42,19 @@ ControlDependenceEdge::~ControlDependenceEdge() {}
  */
 TCEString
 ControlDependenceEdge::toString() const {
+    TCEString label = "";
     if (isTrueEdge()) {
-        return "True";
+        label += "True";
     }
     if (isFalseEdge()) {
-        return "False";
+        label += "False";
     }
-    return "";
+    if (isLoopCloseEdge()) {
+        label += "Close";
+    }
+    return label;
 }
 
-/**
- * Returns true if edge type is oridinary control dependence edge
- * @return true if edge is normal
- */
-bool
-ControlDependenceEdge::isNormalEdge() const {
-    return edgeType_ == CDEP_EDGE_NORMAL;
-}
-/**
- * Returns true if edge type is true
- * @return true if edge is true
- */
-bool
-ControlDependenceEdge::isTrueEdge() const {
-    return edgeType_ == CDEP_EDGE_TRUE;
-}
-/**
- * Returns true if edge type is false
- * @return true if edge predicate is false
- */
-bool
-ControlDependenceEdge::isFalseEdge() const {
-    return edgeType_ == CDEP_EDGE_FALSE;
-}
-/**
- * Returns the type of the edge
- * @return the predicate of edge
- */
-ControlDependenceEdge::CDGEdgeType
-ControlDependenceEdge::edgeType() const {
-    return edgeType_;
-}
 /**
  * Inverts the predicate of the edge
  * @todo this should be handled better, after the ownership of CDG is moved

@@ -60,6 +60,9 @@ public:
 
     virtual RowID lastInsertRowID() = 0;
 
+    virtual int version() = 0;
+    virtual void updateVersion(int version) = 0;
+
     virtual bool tableExistsInDB(const std::string& tableName) = 0;
     virtual int rowCountInTable(const std::string& tableName) = 0;
 };

@@ -24,7 +24,7 @@
 /**
  * @file BFMergeAndKeepUser.hh
  *
- * Definition of scheduler operation which performs a bypass, including the
+ * Declaration of scheduler operation which performs a bypass, including the
  * ddg updates.
  *
  * @author Heikki Kultala 2020 (hkultala-no.spam-tuni.fi)

@@ -40,13 +40,19 @@
 #include "MemoryAliasAnalyzer.hh"
 
 class ConstantAliasAnalyzer : public MemoryAliasAnalyzer {
-
+public:
     virtual bool isAddressTraceable(
         DataDependenceGraph& ddg, const ProgramOperation& pop);
     virtual AliasingResult analyze(
         DataDependenceGraph& ddg, const ProgramOperation& pop1, 
-        const ProgramOperation& pop2);
+        const ProgramOperation& pop2, MoveNodeUse::BBRelation bbInfo);
     
+    static bool getConstantAddress(
+        DataDependenceGraph& ddg,
+        const ProgramOperation& po,
+        long& addr,
+        long& loopIncrement);
+
     ~ConstantAliasAnalyzer();
 };
 

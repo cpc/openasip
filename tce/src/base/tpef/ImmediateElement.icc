@@ -65,9 +65,7 @@ ImmediateElement::addByte(Byte aByte) {
  * @exception OutOfRange Thrown if index is too big.
  */
 inline void
-ImmediateElement::setByte(unsigned int index, Byte aValue)
-     {
-
+ImmediateElement::setByte(unsigned int index, Byte aValue) {
     if (index >= length()) {
         throw OutOfRange(__FILE__, __LINE__, "ImmediateElement::setByte()");
     }
@@ -82,9 +80,7 @@ ImmediateElement::setByte(unsigned int index, Byte aValue)
  * @exception OutOfRange If index is out of bounds.
  */
 inline Byte
-ImmediateElement::byte(unsigned int index) const
-     {
-
+ImmediateElement::byte(unsigned int index) const {
     if (index >= length()) {
         throw OutOfRange(__FILE__, __LINE__, "ImmediateElement::byte()");
     }
@@ -286,9 +282,7 @@ ImmediateElement::setSignedLong(SLongWord sValue) {
  * @exception OutOfRange Value is too big to return as a word.
  */
 inline Word
-ImmediateElement::word() const
-     {
-
+ImmediateElement::word() const {
     Word retValue = 0;
 
     // convert bytes to word

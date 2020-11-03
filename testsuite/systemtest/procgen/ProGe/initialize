@@ -9,8 +9,9 @@ rm -f *.img *.tpef
 
 ghdl_bin=$(which ghdl 2> /dev/null)
 if [ "x${ghdl_bin}" == "x" ]; then
-    touch test_hpu_embedded.testdesc.disabled
     touch tcetest_sram_rf.sh.disabled
 else
     rm -f tcetest_sram_rf.sh.disabled
 fi
+
+ln -s ../../../codesign/tce_tour/data/tutorial.opp data/tutorial.opp

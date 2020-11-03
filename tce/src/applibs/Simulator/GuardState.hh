@@ -117,13 +117,14 @@ private:
 // OneClockGuardState
 //////////////////////////////////////////////////////////////////////////////
 /**
- * Models a GuardState that has a latency of 1.
+ * Models a GuardState that reads value immediately from the source.
+ * Register guard latency 1 or port guard latency 0
  */
-class OneClockGuardState : public GuardState {
+class DirectGuardState : public GuardState {
 public:
-    OneClockGuardState(const ReadableState& targetRegister);
+    DirectGuardState(const ReadableState& targetRegister);
     
-    virtual ~OneClockGuardState();
+    virtual ~DirectGuardState();
     
     virtual const SimValue& value() const;
 
@@ -131,11 +132,11 @@ public:
     virtual void advanceClock();
     
 private:
-    OneClockGuardState();
+    DirectGuardState();
     /// Copying not allowed.
-    OneClockGuardState(const OneClockGuardState&);
+    DirectGuardState(const DirectGuardState&);
     /// Assignment not allowed.
-    OneClockGuardState& operator=(const OneClockGuardState&);
+    DirectGuardState& operator=(const DirectGuardState&);
     
     /// The target register watched by this guard.
     const ReadableState* target_;

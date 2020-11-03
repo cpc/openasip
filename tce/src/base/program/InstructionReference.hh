@@ -57,6 +57,8 @@ public:
     Instruction& instruction() const;
 
     bool setImpl(InstructionReferenceImpl* impl);
+
+    bool operator ==(const InstructionReference& other) const;
 private:
 
     InstructionReferenceImpl* impl_;

@@ -52,6 +52,7 @@
 #include "SimpleResourceManager.hh"
 #include "Instruction.hh"
 #include "POMDisassembler.hh"
+#include "TerminalImmediate.hh"
 
 //#define MOVE_BYPASSER
 /**
@@ -222,11 +223,16 @@ CycleLookBackSoftwareBypasser::bypassNode(
         std::pair<MoveNode*, MoveNode*>(&moveNode, &source));
     
     // if mergeandkeep fails, undo bypass and return 0
-    if (!ddg.mergeAndKeep(source, moveNode)) {
+    if (!ddg.mergeAndKeepUser(source, moveNode)) {
         rm.assign(originalCycle, moveNode);
         assert(moveNode.isScheduled());
         storedSources_.erase(&moveNode);
         return 0;
+    }
+
+    if (moveNode.move().source().isImmediateRegister()) {
+        moveNode.move().setSource(
+            static_cast<SimpleResourceManager&>(rm).immediateValue(source)->copy());
     }
 
     // then try to assign the bypassed node..
@@ -283,7 +289,7 @@ CycleLookBackSoftwareBypasser::bypassNode(
         } else {
             // undo only this bypass.
             // allow other moves of same po to be bypassed.
-            ddg.unMerge(source, moveNode);
+            ddg.unMergeUser(source, moveNode);
             if (!rm.canAssign(originalCycle, moveNode)) {
                 // Cannot return to original position. getting problematic.
                 // return source to it's position
@@ -400,7 +406,6 @@ CycleLookBackSoftwareBypasser::bypass(
             }
         }
     }
-
     // at this point the schedule might be broken in case we
     // managed to bypass the trigger and it got pushed above
     // an operand move
@@ -419,15 +424,11 @@ CycleLookBackSoftwareBypasser::bypass(
             moveNode.move().isControlFlowMove()) {
             continue;
         }
-        
-        if (trigger != &moveNode) {
-            lastOperandCycle =
-                std::max(lastOperandCycle, moveNode.cycle());
-        }
-
         // Bypassed moves and bypassed trigger are not rescheduled here
         if (moveNode.isBypass() ||
             (trigger == &moveNode && triggerWasBypassed)) {
+            lastOperandCycle =
+                std::max(lastOperandCycle, moveNode.cycle());
             continue;
         }
         int oldCycle = moveNode.cycle();
@@ -578,7 +579,7 @@ CycleLookBackSoftwareBypasser::removeBypass(
                 sourceBuses_.erase(tempSource);
             }
         }
-        ddg.unMerge(*tempSource, moveNode);
+        ddg.unMergeUser(*tempSource, moveNode);
 	    bypassCount_--;
     }
     // this is only for afterwards cleanup.
@@ -591,7 +592,7 @@ CycleLookBackSoftwareBypasser::removeBypass(
         if (moveNode.isScheduled()) {
             rm.unassign(moveNode);
         }
-        ddg.unMerge(*tempSource, moveNode);
+        ddg.unMergeUser(*tempSource, moveNode);
     }
 }
 
@@ -599,7 +600,8 @@ int
 CycleLookBackSoftwareBypasser::removeDeadResults(
     MoveNodeGroup& candidates,
     DataDependenceGraph& ddg,
-    ResourceManager& rm) {
+    ResourceManager& rm,
+    std::set<std::pair<TTAProgram::Move*, int> >& removedMoves) {
 
     for (int i = 0; i < candidates.nodeCount(); i++) {
         // For now, this version is called after operands AND results
@@ -635,12 +637,14 @@ CycleLookBackSoftwareBypasser::removeDeadResults(
         std::map<MoveNode*, int>::iterator srcIter = 
             sourceCycles_.find(&resultMove);
         if (srcIter != sourceCycles_.end()) {
+
             // we lose edges so our notifyScheduled does not notify
             // some antidependencies, store them for notification.
             DataDependenceGraph::NodeSet successors =
                 ddg.successors(resultMove);
 
             successors.erase(&resultMove); // if WaW to itself, remove it.
+
             ddg.dropNode(resultMove);
             removedNodes_.insert(&resultMove);
 
@@ -658,11 +662,13 @@ CycleLookBackSoftwareBypasser::removeDeadResults(
                 }
             }
 
+            removedMoves.insert(
+                std::make_pair(&resultMove.move(), (*srcIter).second));
+
             sourceCycles_.erase(srcIter);
             resultsRemoved++;
             deadResultCount_++;
 	    
-
             // we lost edges so our notifyScheduled does not notify
             // some antidependencies. notify them.
             if (selector_ != NULL) {

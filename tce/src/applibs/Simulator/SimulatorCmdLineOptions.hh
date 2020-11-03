@@ -62,8 +62,6 @@ private:
     SimulatorCmdLineOptions(const SimulatorCmdLineOptions&);
     /// Assignment not allowed.
     SimulatorCmdLineOptions& operator=(const SimulatorCmdLineOptions&);
-
-    bool optionGiven(std::string key);    
 };
 
 #endif

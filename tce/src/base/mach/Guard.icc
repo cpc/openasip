@@ -79,7 +79,7 @@ PortGuard::port() const {
  * @return The register file which contains the register from which the
  *         condition term is taken.
  */
-inline RegisterFile*
+inline const RegisterFile*
 RegisterGuard::registerFile() const {
     return regFile_;
 }

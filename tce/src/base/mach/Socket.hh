@@ -78,6 +78,8 @@ public:
     const Connection& connection(const Segment& bus) const;
     bool isConnectedTo(const Bus& bus) const;
     bool isConnectedTo(const Segment& bus) const;
+    std::set<Bus*> connectedBuses();
+    const std::set<Bus*> connectedBuses() const;
 
     int segmentCount() const;
     Segment* segment(int index) const;

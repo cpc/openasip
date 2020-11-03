@@ -116,12 +116,14 @@ int
 SoftwareBypasser::removeDeadResults(
     MoveNodeGroup& candidates,
     DataDependenceGraph& ddg,
-    ResourceManager& rm) {
+    ResourceManager& rm,
+    std::set<std::pair<TTAProgram::Move*, int> >& removedMoves) {
 
     // use the arguments just to avoid compiler warnings with strict flags
     candidates.nodeCount();
     ddg.nodeCount();
     rm.machine();
+    removedMoves.begin();
     return 0;
 }
 

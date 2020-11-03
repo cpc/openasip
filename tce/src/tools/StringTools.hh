@@ -62,7 +62,7 @@ public:
 
     static std::vector<TCEString> chopString(
         const std::string& source,
-        const std::string& delimiter);
+        const std::string& delimiters);
 
     static void chopString(
         const std::string& source,

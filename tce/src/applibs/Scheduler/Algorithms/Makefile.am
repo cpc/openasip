@@ -6,11 +6,12 @@ BasicBlockPass.cc RegisterCopyAdder.cc \
 SchedulerPass.cc ControlFlowGraphPass.cc ProgramPass.cc ProcedurePass.cc \
 InterPassData.cc SoftwareBypasser.cc CycleLookBackSoftwareBypasser.cc \
 DDGPass.cc CopyingDelaySlotFiller.cc \
-RegisterRenamer.cc LoopPrologAndEpilogBuilder.cc \
-SequentialScheduler.cc PreBypassBasicBlockScheduler.cc \
-BBSchedulerController.cc PreOptimizer.cc ResourceConstraintAnalyzer.cc \
+RegisterRenamer.cc \
+SimpleIfConverter.cc \
+SequentialScheduler.cc LoopPrologAndEpilogBuilder.cc BBSchedulerController.cc \
+PreOptimizer.cc ControlDependenceGraphPass.cc ResourceConstraintAnalyzer.cc \
 BUBasicBlockScheduler.cc \
-PostpassOperandSharer.cc \
+PostpassOperandSharer.cc CallsToJumps.cc \
 BF2Scheduler.cc BFOptimization.cc BFScheduleTD.cc BFScheduleBU.cc \
 BFScheduleExact.cc BFRegCopyAfter.cc BFRegCopyBefore.cc BFRegCopy.cc \
 BFLateBypasses.cc BFLateBypass.cc BFEarlyBypass.cc \
@@ -19,23 +20,23 @@ BFPushAntidepsDown.cc BFPushAntidepDown.cc \
 BFShareOperand.cc BFShareOperandsLate.cc BFShareOperandLate.cc \
 BFSwapOperands.cc BFShareOperands.cc BFShareOperandWithScheduled.cc \
 MoveNodeDuplicator.cc BFKillNode.cc \
-BFSchedulePreLoopShared.cc BFDropPreShared.cc \
+BFSchedulePreLoopShared.cc BFDropPreShared.cc BFRemoveLoopChecks.cc \
 BFPushDepsUp.cc \
 BFPushMoveUp.cc BFRescheduleMove.cc BFUnscheduleMove.cc \
-BFScheduleMove.cc BFLoopBypass.cc BFEarlyBypasser.cc  \
+BFScheduleMove.cc BFEarlyBypasser.cc \
 BFRemoveGuardFromSucc.cc BFRemoveGuardsFromSuccs.cc \
 BFRescheduleResultsClose.cc BFRescheduleResultClose.cc \
 BFRescheduleSuccessorsClose.cc BFDRELoop.cc \
 BFPushMoveUp2.cc \
-BFPostpassDRE.cc \
+Peel2BBLoops.cc BFPostpassDRE.cc \
 BFPostpassBypass.cc BFPostpassBypasser.cc  \
 BFPostpassLoopDRE.cc BFUnscheduleFromBody.cc BFAssignToBody.cc \
-BFRemoveGuard.cc BFTryRemoveGuard.cc \
-BFRemoveEdge.cc BFRenameSource.cc BFRenameLiveRange.cc \
+BFRemoveGuard.cc  BFTryRemoveGuard.cc \
+BFRemoveEdge.cc BFLateBypassGuard.cc BFEarlyGuardBypass.cc \
+BFCopyRegWithOp.cc BFRenameSource.cc BFRenameLiveRange.cc \
+AbsoluteToRelativeJumps.cc ScheduleEstimator.cc \
 BFMergeAndKeepUser.cc BFConnectNodes.cc BFUpdateMoveOnBypass.cc \
 BFInsertLiveRangeUse.cc BFClearLiveRangeUse.cc
-
-
 
 libscheduleralgorithms_la_LIBADD = 
 
@@ -49,35 +50,41 @@ TPEF_DIR = ${BASE_DIR}/tpef
 OSAL_DIR = ${BASE_DIR}/osal
 MACH_DIR = ${BASE_DIR}/mach
 UM_DIR = ${BASE_DIR}/umach
+PROGRAM_DIR = ${BASE_DIR}/program
 SCHED_APPLIBS_DIR = ${APPLIBS_DIR}/Scheduler
 RESOURCE_MODEL_DIR = ${APPLIBS_DIR}/Scheduler/ResourceModel
 RESOURCE_MANAGER_DIR = ${APPLIBS_DIR}/Scheduler/ResourceManager
 PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/PDG
+CDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/CDG
 CFG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/CFG
 DDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/DDG
 MACH_APPLIB_DIR = ${APPLIBS_DIR}/mach
 SELECTOR_DIR = ${APPLIBS_DIR}/Scheduler/Selector
 GRAPH_DIR = ${BASE_DIR}/Graph
 DISASM_DIR = ${APPLIBS_DIR}/Disassembler
+LLVMTCE_DIR = ${SRC_ROOT_DIR}/bintools/Compiler/llvm-tce
 LLVM_BACKEND_DIR = ${APPLIBS_DIR}/LLVMBackend
+IBUFFER_DIR = ${APPLIBS_DIR}/InstructionBuffer
 
 AM_CPPFLAGS = -I${RESOURCE_MODEL_DIR} -I${TOOLS_DIR} -I${POM_DIR} \
 	-I${OSAL_DIR} -I${MACH_DIR} -I${GRAPH_DIR} -I${SCHED_APPLIBS_DIR} \
 	-I${RESOURCE_MODEL_DIR} -I${RESOURCE_MANAGER_DIR} -I${CFG_DIR} \
 	-I${DDG_DIR} -I${PDG_DIR} -I${DISASM_DIR} -I${SELECTOR_DIR} \
-	-I${UM_DIR} -I${MACH_APPLIB_DIR} -I${LLVM_BACKEND_DIR} \
+	-I${UM_DIR} -I${MACH_APPLIB_DIR} -I${LLVMTCE_DIR} -I${LLVM_BACKEND_DIR} \
+	-I${PROGRAM_DIR} -I${CDG_DIR} -I${IBUFFER_DIR} -I${TPEF_DIR} \
         -I${APPLIBS_POM_DIR} \
 	-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
+
+# Static sources for target machine plugins.
+include_HEADERS = \
+ InterPassData.hh InterPassDatum.hh
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
+
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
-
-
-
-include_HEADERS = InterPassDatum.hh
 
 ## headers start
 libscheduleralgorithms_la_SOURCES += \
@@ -91,5 +98,25 @@ libscheduleralgorithms_la_SOURCES += \
 	PreOptimizer.hh InterPassData.hh \
 	BBSchedulerController.hh ProcedurePass.hh \
 	InterPassDatum.hh SequentialScheduler.hh \
-	DDGPass.hh PostpassOperandSharer.hh
+	DDGPass.hh PostpassOperandSharer.hh \
+    BFKillNode.hh
+	BF2Scheduler.hh BFOptimization.hh BFScheduleTD.hh BFScheduleBU.hh \
+	BFScheduleExact.hh BFRegCopyAfter.hh BFRegCopyBefore.hh BFRegCopy.h \
+	BFLateBypasses.hh BFLateBypass.hh BFEarlyBypass.hh \
+	BFDRELate.hh BFDREEarly.hh BF2ScheduleFront.hh \
+	BFPushAntidepsDown.hh BFPushAntidepDown.hh \
+	BFShareOperand.hh \
+	BFShareOperandsLate.hh 	BFShareOperandLate.hh BFSwapOperands.hh \
+	BFShareOperands.hh BFShareOperandWithScheduled.hh MoveNodeDuplicator.hh\
+	BFPushDepsUp.hh BFPushMoveUp.hh BFRescheduleMove.hh BFUnscheduleMove.hh\
+	BFSchduleMove.hh BFLoopBypass.hh BFEarlyBypasser.hh \
+	BFRemoveGuardFromSucc.hh BFRemoveGuardsFromSuccs.hh \
+	BFRescheduleResultsClose.hh BFRescheduleResultClose.hh \
+   BFRescheduleSuccessorsClose.hh BFDRELoop.hh \
+	BFPushMoveUp2.hh \
+	Peel2BBLoops.hh BFPostpassDRE.hh \
+	BFPostpassBypass.hh BFPostpassBypasser.hh  \
+	BFPostpassLoopDRE.hh BFUnscheduleFromBody.hh BFAssignToBody.hh \
+	BFRemoveGuard.hh BFTryRemoveGuard.hh BFRemoveEdge.hh
+
 ## headers end

@@ -47,7 +47,7 @@ namespace TPEF {
  * @exception EndOfFile If end of file was reached unexpectedly.
  */
 inline Byte
-BinaryStream::getByte()  {
+BinaryStream::getByte() {
     if (!iStream_.is_open()) {
         openInput(fileName_);
     }
@@ -68,7 +68,6 @@ BinaryStream::getByte()  {
     return result;
 }
 
-
 /**
  * Writes a single byte to the stream.
  *
@@ -84,7 +83,6 @@ BinaryStream::getByte()  {
  */
 inline void
 BinaryStream::putByte(Byte byte) {
-
     if (extOStream_ != NULL) {
         extOStream_->put(byte);
         return;
@@ -113,7 +111,5 @@ BinaryStream::putByte(Byte byte) {
     if (oStream_.bad()) {
         throw UnreachableStream(__FILE__, __LINE__, __func__, fileName_);
     }
-
 }
-
 }

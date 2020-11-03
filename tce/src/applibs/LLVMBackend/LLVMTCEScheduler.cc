@@ -119,10 +119,24 @@ LLVMTCEScheduler::doInitialization(Module& m) {
 }
 bool
 LLVMTCEScheduler::runOnMachineFunction(MachineFunction &MF) {
+#ifdef LLVM_OLDER_THAN_6_0
     OperationPool::setLLVMTargetInstrInfo(
         MF.getTarget().getSubtargetImpl(*MF.getFunction())->getInstrInfo());
-	
+#else
+    OperationPool::setLLVMTargetInstrInfo(
+        MF.getTarget().getSubtargetImpl(MF.getFunction())->getInstrInfo());
+#endif
+
+#ifdef LLVM_OLDER_THAN_3_8
     AliasAnalysis* AA = getAnalysisIfAvailable<AliasAnalysis>();
+#else
+    AliasAnalysis* AA = nullptr;
+    AAResultsWrapperPass* AARWPass =
+        getAnalysisIfAvailable<AAResultsWrapperPass>();
+    if (AARWPass)
+        AA = &AARWPass->getAAResults();
+#endif
+
     if (tceIRBuilder_ == NULL) {
         interPassData_ = new InterPassData();
         tceIRBuilder_ =  new LLVMTCEIRBuilder(

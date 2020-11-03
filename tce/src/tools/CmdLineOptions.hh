@@ -63,6 +63,7 @@ public:
     virtual void printVersion() const = 0;
     
     virtual bool isVerboseSwitchDefined() const;
+    virtual bool isVerboseSpamSwitchDefined() const;
 
 protected:
     bool optionGiven(std::string key) const;
@@ -99,6 +100,9 @@ private:
 
     /// Switch for verbose output listing scheduler modules
     static const std::string VERBOSE_SWITCH;
+
+    /// Switch for verbose output listing spam from scheduler internals
+    static const std::string VERBOSE_SPAM_SWITCH;
 
 };
 

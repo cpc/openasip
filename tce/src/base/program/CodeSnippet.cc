@@ -52,15 +52,18 @@ namespace TTAProgram {
 /**
  * Constructor.
  */
-CodeSnippet::CodeSnippet() : parent_(NULL),
-    start_(0,TTAMachine::NullAddressSpace::instance()) {
+CodeSnippet::CodeSnippet() :
+    parent_(NULL),
+    startAddr_(0, TTAMachine::NullAddressSpace::instance()),
+    endAddr_((InstructionAddress)-1,
+             TTAMachine::NullAddressSpace::instance()) {
 }
 
 /**
  * Constructor.
  */
 CodeSnippet::CodeSnippet(const TTAProgram::Address& start) : 
-    parent_(NULL), start_(start) {
+    parent_(NULL), startAddr_(start), endAddr_(start) {
 }
 
 
@@ -158,10 +161,13 @@ CodeSnippet::isInProgram() const {
  */
 Address
 CodeSnippet::address(const Instruction& ins) const {
+    if (ins.hasFinalAddress()) return ins.address();
+
     unsigned int i = 0;
 
-    /* this loop is executed very ofter so 
-       uses pre-computer size and [] for performance reasons */
+    /* this loop is executed very often, so it
+       uses a pre-computed size and [] for performance reasons.
+       TO CLEANUP: why not use std::find()? */
     const unsigned int size = instructions_.size();
     while (i < size && instructions_[i] != &ins) {
         i++;
@@ -169,7 +175,7 @@ CodeSnippet::address(const Instruction& ins) const {
 
     if (i != instructions_.size()) {
         Address insAddress(
-            start_.location() + i, start_.space());
+            startAddr_.location() + i, startAddr_.space());
         return insAddress;
     } else {
         throw IllegalRegistration(
@@ -182,7 +188,12 @@ CodeSnippet::address(const Instruction& ins) const {
  */
 void
 CodeSnippet::setStartAddress(Address start) {
-    start_ = start;
+    startAddr_ = start;
+}
+
+void
+CodeSnippet::setEndAddress(Address end) {
+    endAddr_ = end;
 }
 
 /**
@@ -212,37 +223,53 @@ CodeSnippet::firstInstruction() const {
 }
 
 /**
- * Returns the instruction at a given address.
+ * Returns the explicit instruction at a given address.
  *
  * The address space of the address is implied, since there is only
- * one address space for instructions.
+ * one address space for instructions. In case there are multiple
+ * instructions at the given address, only one of them is considered
+ * explicit, others implicit. The implicit instructions are detected
+ * by having a size of 0.
  *
  * @param address The instruction address.
+ * @note This is a slow method to traverse instructions, it's O(N).
  * @exception KeyNotFound if given address is illegal.
  * @todo Rename to instruction() to match Program::procedure() and
  * Instruction::move().
  */
 Instruction&
 CodeSnippet::instructionAt(UIntWord address) const {
-    int index = (address - start_.location());
-    if (index >= 0
-        && static_cast<unsigned int>(index) < instructions_.size()) {
+    if (isInProgram() && !parent().isInstructionPerAddress()) {
+        // In the finalized program, there might not be one instruction
+        // per index, thus we have to find the instruction by an
+        // exhaustive search. @todo optimize this in case it's a
+        // bottleneck somewhere.
 
-        Instruction* ins = instructions_.at(index);
-        if (ins == &NullInstruction::instance()) {
-            throw KeyNotFound(__FILE__, __LINE__);
-        } else {
-            return *ins;
+        for (size_t i = 0; i < instructions_.size(); ++i) {
+            Instruction* ins = instructions_.at(i);
+            if (ins->address().location() == address &&
+                ins->size() > 0)
+                return *ins;
         }
-
     } else {
-        std::string msg = "Address " + Conversion::toString(address) + 
-            " not in this codesnippet( " + 
-            Conversion::toString(start_.location()) + "-" +
-            Conversion::toString(start_.location() + instructions_.size()-1)
-            + " )";
-        throw KeyNotFound(__FILE__, __LINE__, __func__, msg );
+        int index = (address - startAddr_.location());
+        if (index >= 0 && static_cast<unsigned int>(index) <
+            instructions_.size()) {
+            Instruction* ins = instructions_.at(index);
+            if (ins == &NullInstruction::instance()) {
+                throw KeyNotFound(__FILE__, __LINE__);
+            } else {
+                return *ins;
+            }
+        }
     }
+    std::string msg = "Address " + Conversion::toString(address) + 
+        " not in this codesnippet( " + 
+        Conversion::toString(startAddr_.location()) + "-" +
+        Conversion::toString(startAddr_.location() +
+                             instructions_.size()-1)
+        + " )";
+    throw KeyNotFound(__FILE__, __LINE__, __func__, msg );
 }
 
 /**
@@ -289,21 +316,26 @@ CodeSnippet::hasNextInstruction(const Instruction& ins) const {
  */
 Instruction&
 CodeSnippet::nextInstruction(const Instruction& ins) const {
-    if (&ins.parent() == this) {
+    if (&ins.parent() != this)
+        throw IllegalRegistration(__FILE__, __LINE__);
 
+    if (isInProgram() && !parent().isInstructionPerAddress()) {
+        InsList::const_iterator pos =
+            std::find(instructions_.begin(), instructions_.end(), &ins);
+        if (pos == instructions_.end() || pos+1 == instructions_.end())
+            return NullInstruction::instance();
+        else
+            return **(pos+1);
+    } else {
         int insAddress = ins.address().location();
 
-        unsigned int current = (insAddress - start_.location());
+        unsigned int current = (insAddress - startAddr_.location());
         unsigned int next = current + 1;
 
-        if (next < instructions_.size()) {
+        if (next < instructions_.size())
             return *instructions_.at(next);
-        } else {
+        else
             return NullInstruction::instance();
-        }
-
-    } else {
-        throw IllegalRegistration(__FILE__, __LINE__);
     }
 }
 
@@ -318,8 +350,20 @@ CodeSnippet::nextInstruction(const Instruction& ins) const {
  */
 Instruction&
 CodeSnippet::previousInstruction(const Instruction& ins) const {
-    if (&ins.parent() == this) {
-        int insAddress = (ins.address().location() - start_.location()) - 1;
+    if (&ins.parent() != this)
+        throw IllegalRegistration(__FILE__, __LINE__, __func__);
+
+    if (isInProgram() && !parent().isInstructionPerAddress()) {
+        InsList::const_iterator pos =
+            std::find(instructions_.begin(), instructions_.end(), &ins);
+
+        if (pos == instructions_.begin())
+            return NullInstruction::instance();
+
+        return *const_cast<Instruction*>(*(--pos));
+    } else {
+        int insAddress =
+            (ins.address().location() - startAddr_.location()) - 1;
         while (insAddress >= 0) {
             Instruction& prevIns = *instructions_.at(insAddress);
             if (&prevIns != &NullInstruction::instance()) {
@@ -329,8 +373,6 @@ CodeSnippet::previousInstruction(const Instruction& ins) const {
             }
         }
         return NullInstruction::instance();
-    } else {
-        throw IllegalRegistration(__FILE__, __LINE__, __func__);
     }
 }
 
@@ -565,7 +607,7 @@ CodeSnippet::deleteInstructionAt(InstructionAddress address) {
 CodeSnippet*
 CodeSnippet::copy() const {
 
-    CodeSnippet* newProc = new CodeSnippet(start_);
+    CodeSnippet* newProc = new CodeSnippet(startAddr_);
     if (instructionCount() > 0) {
         Instruction* ins = &firstInstruction();
         while (ins != &NullInstruction::instance()) {
@@ -736,19 +778,22 @@ CodeSnippet::prepend(CodeSnippet* cs) {
  */
 Address
 CodeSnippet::startAddress() const {
-    return start_;
+    return startAddr_;
 }
 
 /**
- * Returns the end address of the code snippet.
- *
- * @return The end address of the code snippet, that is, the next address
- *         that does not belong to this code snippet.
+ * Returns the first address that is outside of the code snippet.
  */
 Address
 CodeSnippet::endAddress() const {
-    int endLocation = start_.location() + instructions_.size();
-    return Address(endLocation, start_.space());
+
+    if (isInProgram() && parent().isFinalized()) {
+        return endAddr_;
+    } else {
+        InstructionAddress endLocation =
+            startAddr_.location() + instructions_.size();
+        return Address(endLocation, startAddr_.space());
+    }
 }
 
 /**

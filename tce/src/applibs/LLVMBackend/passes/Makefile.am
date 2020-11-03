@@ -1,4 +1,5 @@
-pkglib_LTLIBRARIES = LowerIntrinsics.la LinkBitcode.la MachineDCE.la 
+pkglib_LTLIBRARIES = LowerIntrinsics.la LinkBitcode.la MachineDCE.la \
+InnerLoopFinder.la
 
 LowerIntrinsics_la_SOURCES = LowerIntrinsics.cc 
 # Static linking here is needed in FreeBSD and possibly other
@@ -15,12 +16,25 @@ LinkBitcode_la_LDFLAGS = -module
 MachineDCE_la_SOURCES = MachineDCE.cc MachineDCE.hh
 MachineDCE_la_LDFLAGS = -module
 
+InnerLoopFinder_la_SOURCES = InnerLoopFinder.cc
+InnerLoopFinder_la_LDFLAGS = -module
+
 TOOLS_DIR = ${SRC_ROOT}/tools
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT = ${PROJECT_ROOT}/src
 
 AM_CPPFLAGS = ${LLVM_CPPFLAGS} -I${TOOLS_DIR}
+
+all-local: ${pkglib_LTLIBRARIES}
+# Create links to the .so to the current directory just to make 
+# running ProGe from the source tree to find them.
+	@@(for soname in $(shell ls -1 ${srcdir}/.libs/*.so); do \
+		ln -sf $$soname ${srcdir}; \
+	done)
+
+clean-local:
+	rm -f ${srcdir}/*.so
 
 ## headers start
 LowerIntrinsics_la_SOURCES += \

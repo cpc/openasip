@@ -95,4 +95,109 @@ executeOperation(
     behavior.simulateTrigger(params, context);
 }
 
+inline static void 
+executeOperation(
+    OperationBehavior& behavior,
+    OperationContext& context, 
+    SimValue& arg0, SimValue& arg1, SimValue& arg2, SimValue& arg3, 
+    SimValue& arg4, SimValue& arg5, SimValue& arg6, SimValue& arg7, 
+    SimValue& arg8) {
+    SimValue* params[] = {&arg0, &arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8};
+    behavior.simulateTrigger(params, context);
+}
 
+inline static void 
+executeOperation(
+    OperationBehavior& behavior,
+    OperationContext& context, 
+    SimValue& arg0, SimValue& arg1, SimValue& arg2, SimValue& arg3, 
+    SimValue& arg4, SimValue& arg5, SimValue& arg6, SimValue& arg7, 
+    SimValue& arg8, SimValue& arg9, SimValue& arg10, SimValue& arg11, 
+    SimValue& arg12, SimValue& arg13, SimValue& arg14, SimValue& arg15, 
+    SimValue& arg16) {
+    SimValue* params[] = {&arg0, &arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8, &arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16};
+    behavior.simulateTrigger(params, context);
+}
+
+inline static void 
+executeOperation(
+    OperationBehavior& behavior,
+    OperationContext& context, 
+    SimValue& arg0, SimValue& arg1, SimValue& arg2, SimValue& arg3, 
+    SimValue& arg4, SimValue& arg5, SimValue& arg6, SimValue& arg7, 
+    SimValue& arg8, SimValue& arg9, SimValue& arg10, SimValue& arg11, 
+    SimValue& arg12, SimValue& arg13, SimValue& arg14, SimValue& arg15, 
+    SimValue& arg16, SimValue& arg17, SimValue& arg18, SimValue& arg19, 
+    SimValue& arg20, SimValue& arg21, SimValue& arg22, SimValue& arg23, 
+    SimValue& arg24, SimValue& arg25, SimValue& arg26, SimValue& arg27, 
+    SimValue& arg28, SimValue& arg29, SimValue& arg30, SimValue& arg31, 
+    SimValue& arg32) {
+    SimValue* params[] = {&arg0, &arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8, &arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16, &arg17, &arg18, &arg19, &arg20, &arg21, &arg22, &arg23, &arg24, &arg25, &arg26, &arg27, &arg28, &arg29, &arg30, &arg31, &arg32};
+    behavior.simulateTrigger(params, context);
+}
+
+inline static void 
+executeOperation(
+    OperationBehavior& behavior,
+    OperationContext& context, 
+    SimValue& arg0, SimValue& arg1, SimValue& arg2, SimValue& arg3, 
+    SimValue& arg4, SimValue& arg5, SimValue& arg6, SimValue& arg7, 
+    SimValue& arg8, SimValue& arg9, SimValue& arg10, SimValue& arg11, 
+    SimValue& arg12, SimValue& arg13, SimValue& arg14, SimValue& arg15, 
+    SimValue& arg16, SimValue& arg17, SimValue& arg18, SimValue& arg19, 
+    SimValue& arg20, SimValue& arg21, SimValue& arg22, SimValue& arg23, 
+    SimValue& arg24, SimValue& arg25, SimValue& arg26, SimValue& arg27, 
+    SimValue& arg28, SimValue& arg29, SimValue& arg30, SimValue& arg31, 
+    SimValue& arg32, SimValue& arg33, SimValue& arg34, SimValue& arg35, 
+    SimValue& arg36, SimValue& arg37, SimValue& arg38, SimValue& arg39, 
+    SimValue& arg40, SimValue& arg41, SimValue& arg42, SimValue& arg43, 
+    SimValue& arg44, SimValue& arg45, SimValue& arg46, SimValue& arg47, 
+    SimValue& arg48, SimValue& arg49, SimValue& arg50, SimValue& arg51, 
+    SimValue& arg52, SimValue& arg53, SimValue& arg54, SimValue& arg55, 
+    SimValue& arg56, SimValue& arg57, SimValue& arg58, SimValue& arg59, 
+    SimValue& arg60, SimValue& arg61, SimValue& arg62, SimValue& arg63, 
+    SimValue& arg64) {
+    SimValue* params[] = {&arg0, &arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8, &arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16, &arg17, &arg18, &arg19, &arg20, &arg21, &arg22, &arg23, &arg24, &arg25, &arg26, &arg27, &arg28, &arg29, &arg30, &arg31, &arg32, &arg33, &arg34, &arg35, &arg36, &arg37, &arg38, &arg39, &arg40, &arg41, &arg42, &arg43, &arg44, &arg45, &arg46, &arg47, &arg48, &arg49, &arg50, &arg51, &arg52, &arg53, &arg54, &arg55, &arg56, &arg57, &arg58, &arg59, &arg60, &arg61, &arg62, &arg63, &arg64};
+    behavior.simulateTrigger(params, context);
+}
+
+inline static void 
+executeOperation(
+    OperationBehavior& behavior,
+    OperationContext& context, 
+    SimValue& arg0, SimValue& arg1, SimValue& arg2, SimValue& arg3, 
+    SimValue& arg4, SimValue& arg5, SimValue& arg6, SimValue& arg7, 
+    SimValue& arg8, SimValue& arg9, SimValue& arg10, SimValue& arg11, 
+    SimValue& arg12, SimValue& arg13, SimValue& arg14, SimValue& arg15, 
+    SimValue& arg16, SimValue& arg17, SimValue& arg18, SimValue& arg19, 
+    SimValue& arg20, SimValue& arg21, SimValue& arg22, SimValue& arg23, 
+    SimValue& arg24, SimValue& arg25, SimValue& arg26, SimValue& arg27, 
+    SimValue& arg28, SimValue& arg29, SimValue& arg30, SimValue& arg31, 
+    SimValue& arg32, SimValue& arg33, SimValue& arg34, SimValue& arg35, 
+    SimValue& arg36, SimValue& arg37, SimValue& arg38, SimValue& arg39, 
+    SimValue& arg40, SimValue& arg41, SimValue& arg42, SimValue& arg43, 
+    SimValue& arg44, SimValue& arg45, SimValue& arg46, SimValue& arg47, 
+    SimValue& arg48, SimValue& arg49, SimValue& arg50, SimValue& arg51, 
+    SimValue& arg52, SimValue& arg53, SimValue& arg54, SimValue& arg55, 
+    SimValue& arg56, SimValue& arg57, SimValue& arg58, SimValue& arg59, 
+    SimValue& arg60, SimValue& arg61, SimValue& arg62, SimValue& arg63, 
+    SimValue& arg64, SimValue& arg65, SimValue& arg66, SimValue& arg67, 
+    SimValue& arg68, SimValue& arg69, SimValue& arg70, SimValue& arg71, 
+    SimValue& arg72, SimValue& arg73, SimValue& arg74, SimValue& arg75, 
+    SimValue& arg76, SimValue& arg77, SimValue& arg78, SimValue& arg79, 
+    SimValue& arg80, SimValue& arg81, SimValue& arg82, SimValue& arg83, 
+    SimValue& arg84, SimValue& arg85, SimValue& arg86, SimValue& arg87, 
+    SimValue& arg88, SimValue& arg89, SimValue& arg90, SimValue& arg91, 
+    SimValue& arg92, SimValue& arg93, SimValue& arg94, SimValue& arg95, 
+    SimValue& arg96, SimValue& arg97, SimValue& arg98, SimValue& arg99, 
+    SimValue& arg100, SimValue& arg101, SimValue& arg102, SimValue& arg103, 
+    SimValue& arg104, SimValue& arg105, SimValue& arg106, SimValue& arg107, 
+    SimValue& arg108, SimValue& arg109, SimValue& arg110, SimValue& arg111, 
+    SimValue& arg112, SimValue& arg113, SimValue& arg114, SimValue& arg115, 
+    SimValue& arg116, SimValue& arg117, SimValue& arg118, SimValue& arg119, 
+    SimValue& arg120, SimValue& arg121, SimValue& arg122, SimValue& arg123, 
+    SimValue& arg124, SimValue& arg125, SimValue& arg126, SimValue& arg127, 
+    SimValue& arg128) {
+    SimValue* params[] = {&arg0, &arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8, &arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16, &arg17, &arg18, &arg19, &arg20, &arg21, &arg22, &arg23, &arg24, &arg25, &arg26, &arg27, &arg28, &arg29, &arg30, &arg31, &arg32, &arg33, &arg34, &arg35, &arg36, &arg37, &arg38, &arg39, &arg40, &arg41, &arg42, &arg43, &arg44, &arg45, &arg46, &arg47, &arg48, &arg49, &arg50, &arg51, &arg52, &arg53, &arg54, &arg55, &arg56, &arg57, &arg58, &arg59, &arg60, &arg61, &arg62, &arg63, &arg64, &arg65, &arg66, &arg67, &arg68, &arg69, &arg70, &arg71, &arg72, &arg73, &arg74, &arg75, &arg76, &arg77, &arg78, &arg79, &arg80, &arg81, &arg82, &arg83, &arg84, &arg85, &arg86, &arg87, &arg88, &arg89, &arg90, &arg91, &arg92, &arg93, &arg94, &arg95, &arg96, &arg97, &arg98, &arg99, &arg100, &arg101, &arg102, &arg103, &arg104, &arg105, &arg106, &arg107, &arg108, &arg109, &arg110, &arg111, &arg112, &arg113, &arg114, &arg115, &arg116, &arg117, &arg118, &arg119, &arg120, &arg121, &arg122, &arg123, &arg124, &arg125, &arg126, &arg127, &arg128};
+    behavior.simulateTrigger(params, context);
+}

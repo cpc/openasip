@@ -46,19 +46,15 @@
 #define SIZEOF_LONG 8
 
 #if SIZEOF_LONG == 8
-// proper 64-bit unix system.
 typedef unsigned long LongWord;
 typedef long SignedLongWord;
 typedef unsigned long ULongWord;
 typedef long SLongWord;
-
 #else
-// 32-bit host or win64 crap.
 typedef unsigned long long LongWord;
 typedef long long SignedLongWord;
 typedef unsigned long long ULongWord;
 typedef long long SLongWord;
-
 #endif
 
 
@@ -173,10 +169,11 @@ const Byte FLT_WORD_SIZE = 8 * sizeof(FloatWord);
 const Byte DBL_WORD_SIZE = 8 * sizeof(DoubleWord);
 
 /*
- * Instruction addresses are represented as regular unsigned 32 bit
+ * Instruction and data addresses are represented as regular unsigned 32 bit
  * integers.
  */
 typedef UInt32 InstructionAddress;
+typedef UInt32 DataAddress;
 
 /// Type for storing addresses to memory image.
 typedef UInt32 AddressImage;

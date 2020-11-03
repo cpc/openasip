@@ -77,6 +77,9 @@ public:
     virtual ObjectState* saveState() const;
     virtual void loadState(const ObjectState* state);
 
+    bool operator==(const AddressSpace& other) const;
+    bool operator!=(const AddressSpace& other) const;
+
     /// ObjectState name for AddressSpace.
     static const std::string OSNAME_ADDRESS_SPACE;
     /// ObjectState attribute key for the bit width.

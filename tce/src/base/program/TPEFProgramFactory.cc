@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University.
+    Copyright (c) 2002-2014 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,8 +26,8 @@
  *
  * Implementation of TPEFProgramFactory class.
  *
- * @author Mikael Lepistï¿½ 2005 (tmlepist-no.spam-cs.tut.fi)
- * @author Pekka Jï¿½ï¿½skelï¿½inen 2011
+ * @author Mikael Lepistö 2005 (tmlepist-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2011,2014
  * @note rating: yellow
  */
 
@@ -206,8 +206,7 @@ TPEFProgramFactory::build() {
             "No code sections in TPEF.");
     }
 
-    tpefInstrASpace_ =
-        binary_->section(Section::ST_CODE, 0)->aSpace();
+    tpefInstrASpace_ = binary_->section(Section::ST_CODE, 0)->aSpace();
 
     // get address space for program from machine depending on
     // type of code (sequential, partially scheduled, fully scheduled)
@@ -287,7 +286,7 @@ TPEFProgramFactory::build() {
     // fix TerminalAddresses pointing to instructions to be
     // TerminalInstructionAddresses.
     while (!instructionImmediates_.empty()) {
-        std::shared_ptr<Move> move = *instructionImmediates_.begin();
+        auto move = *instructionImmediates_.begin();
         instructionImmediates_.erase(instructionImmediates_.begin());
 
         Terminal &addressTerm = move->source();
@@ -526,7 +525,7 @@ TPEFProgramFactory::createInstruction(
 
         // NOTE: we just ignore empty moves
         if (!move->isEmpty()) {
-            std::shared_ptr<Move> newMove = NULL;
+            std::shared_ptr<TTAProgram::Move> newMove;
             Terminal* source = NULL;
             Terminal* destination = NULL;
             Terminal* guardRegister = NULL;
@@ -594,9 +593,9 @@ TPEFProgramFactory::createInstruction(
             }
 
             if (guard != NULL) {
-                newMove = std::make_shared<Move>(source, destination, bus, guard);
+                newMove = std::make_shared<TTAProgram::Move>(source, destination, bus, guard);
             } else {
-                newMove = std::make_shared<Move>(source, destination, bus);
+                newMove = std::make_shared<TTAProgram::Move>(source, destination, bus);
             }
             assert(newMove != NULL);
 
@@ -655,6 +654,22 @@ TPEFProgramFactory::createInstruction(
                 &(newMove->source().address().space()) == adfInstrASpace_) {
                 instructionImmediates_.push_back(newMove);
             }
+        } else {
+            // empty instruction
+
+            // add move annotations
+            if (move->annotationCount() > 0) {
+                for (Word annotationIndex = 0;
+                     annotationIndex < move->annotationCount();
+                     ++annotationIndex) {
+                    newInstruction->addAnnotation(
+                        ProgramAnnotation(
+                            static_cast<ProgramAnnotation::Id>(
+                                move->annotation(annotationIndex)->id()),
+                            move->annotation(annotationIndex)->payload()));
+                }
+            }
+
         }
     }
 
@@ -743,7 +758,7 @@ TPEFProgramFactory::createInstruction(
 Terminal*
 TPEFProgramFactory::createTerminal(
     const ResourceSection& resources, const Bus* aBus,
-    Socket::Direction direction, MoveElement::FieldType type, Byte unitId,
+    Socket::Direction direction, MoveElement::FieldType type, HalfWord unitId,
     HalfWord index, const ImmediateMap* immediateMap) const {
 
     // omit caching because RF and IMM unit ports are resolved later
@@ -956,7 +971,7 @@ TPEFProgramFactory::createTerminal(
 Bus&
 TPEFProgramFactory::findBus(
     const ResourceSection &resources,
-    Byte busId) const {
+    HalfWord busId) const {
 
     if (busId == ResourceElement::UNIVERSAL_BUS) {
         if (universalMachine_ == NULL) {
@@ -1005,7 +1020,7 @@ TPEFProgramFactory::findBus(
 RegisterFile&
 TPEFProgramFactory::findRegisterFile(
     const ResourceSection& resources,
-    Byte rfId) const {
+    HalfWord rfId) const {
 
     switch (rfId) {
 
@@ -1127,7 +1142,7 @@ TPEFProgramFactory::findImmediateUnit(
 FunctionUnit&
 TPEFProgramFactory::findFunctionUnit(
     const ResourceSection& resources,
-    Byte unitId,
+    HalfWord unitId,
     std::string tpefOpName) const {
 
     switch (unitId) {
@@ -1358,7 +1373,7 @@ TTAMachine::Guard&
 TPEFProgramFactory::findGuard(
     const TPEF::ResourceSection &resources,
     TTAMachine::Bus &bus, TPEF::MoveElement::FieldType type,
-    Byte unitId, HalfWord index, bool isInverted) const {
+    HalfWord unitId, HalfWord index, bool isInverted) const {
 
     RegisterFile* guardRF = NULL;
     Port* guardPort = NULL;
@@ -1521,6 +1536,10 @@ TPEFProgramFactory::findInstrTemplate(
     Machine::InstructionTemplateNavigator tempNav =
         machine_->instructionTemplateNavigator();
 
+    // try to find an instruction template with the most NOP slots
+    // to enhance the possible variable length encoding benefits 
+    InstructionTemplate* bestiTempFound = NULL;
+
     for (int i = 0; i < tempNav.count(); i++) {
         InstructionTemplate* insTemp = tempNav.item(i);
 
@@ -1556,6 +1575,8 @@ TPEFProgramFactory::findInstrTemplate(
 
                     Bus& usedBus = findBus(resources, move->bus());
 
+                    // can be NOP slot also in which case the template cannot
+                    // used for the move either
                     if (insTemp->usesSlot(usedBus.name())) {
                         templateIsGood = false;
                         break;
@@ -1565,13 +1586,25 @@ TPEFProgramFactory::findInstrTemplate(
 
             // if template passed all the checks
             if (templateIsGood) {
-                return *insTemp;
+                if (bestiTempFound == NULL)
+                    bestiTempFound = insTemp;
             }
         }
     }
 
-    throw NotAvailable(__FILE__, __LINE__, __func__,
-                       "Valid instruction template is not found.");
+    if (bestiTempFound == NULL) {
+        std::string bitRequirementmsg;
+        for (const auto& pair : bitsToWrite) {
+            bitRequirementmsg += Conversion::toString(pair.second)
+                + " bits to IU: " + pair.first->name() + "\n";
+        }
+        THROW_EXCEPTION(NotAvailable,
+            "Valid instruction template is not found for instruction layout:\n"
+            + "An instruction template is needed that can write:\n"
+            + bitRequirementmsg);
+    } else {
+        return *bestiTempFound;
+    }
 }
 
 /**
@@ -1601,7 +1634,7 @@ TPEFProgramFactory::canSourceBeAssigned(
         // test against all allocations.
         for (unsigned int i = 0; i < socketAllocs.size(); i++) {
             // TODO: check against all users.
-            std::shared_ptr<Move> oldMove = socketAllocs[i]->move;
+            auto oldMove = socketAllocs[i]->move;
             Terminal* oldTerminal = &(oldMove->source());
 
             // allowed for same register of opposite guard.
@@ -1644,7 +1677,7 @@ TPEFProgramFactory::canDestinationBeAssigned(
         // test against all allocations.
         for (unsigned int i = 0; i < socketAllocs.size(); i++) {
             // TODO: check against all users.
-            std::shared_ptr<Move> oldMove = socketAllocs[i]->move;
+            auto oldMove = socketAllocs[i]->move;
             if (alloc.move->isUnconditional() || oldMove->isUnconditional() ||
                 !alloc.move->guard().guard().isOpposite(
                     oldMove->guard().guard())) {
@@ -2395,7 +2428,7 @@ TPEFProgramFactory::createDataMemories(Program &prog) {
                             Address(currArea.first, aSpace),
                             currArea.second,
                             prog.targetProcessor().isLittleEndian(),
-                            NULL, true );
+                            NULL, true);
                     } else {
                         for (int l = 0; l < currArea.second; l++) {
                             initData.push_back(dataSect->MAU(mauIndex++));

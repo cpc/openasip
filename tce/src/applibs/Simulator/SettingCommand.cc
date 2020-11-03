@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Implementation of SettingCommand class
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005, 2010
  * @note rating: red
  */
 
@@ -644,11 +644,25 @@ public:
     }
 };
 
-/**
- * Constructor.
- *
- * Sets the name of the command to the base class.
- */
+class SetCallHistoryLength {
+public:
+    static bool execute(
+        SimulatorInterpreter&, 
+        SimulatorFrontend& simFront, 
+        unsigned int newValue) {
+        simFront.setCallHistoryLength(newValue);
+        return true;
+    }
+                            
+    static const DataObject& defaultValue() {
+        static const DataObject defaultValue_("0");
+        return defaultValue_;
+    }
+    
+    static bool warnOnExistingProgramAndMachine() {
+        return false;
+    }
+};
 SettingCommand::SettingCommand() : 
     SimControlLanguageCommand("setting") {
 
@@ -740,7 +754,13 @@ SettingCommand::SettingCommand() :
         new TemplatedSimulatorSetting<
             BooleanSetting, SetStaticCompilation>(
                 SimulatorToolbox::textGenerator().text(
-                    Texts::TXT_STATIC_COMPILATION).str());            
+                    Texts::TXT_STATIC_COMPILATION).str());
+
+    settings_["call_history_length"] =
+        new TemplatedSimulatorSetting<
+            PositiveIntegerSetting, SetCallHistoryLength>(
+                "Sets the length of last procedure transfers to save in\n"
+                "memory for call trace printing.");
 }
 
 /**

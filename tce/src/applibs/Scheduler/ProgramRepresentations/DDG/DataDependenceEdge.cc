@@ -65,7 +65,7 @@ int DataDependenceEdge::regAntidepCount_ = 0;
 DataDependenceEdge::DataDependenceEdge(
     EdgeReason edgereason,
     DependenceType deptype,
-    const TCEString& data, bool guard,
+    TCEString data, bool guard,
     bool certainAlias, bool tailPs,
     bool headPs, int loopEdge) :
     dependenceType_(deptype), edgeReason_(edgereason),
@@ -323,7 +323,8 @@ DataDependenceEdge::operator==(const DataDependenceEdge& other) const {
         guardUse() == other.guardUse() &&
         certainAlias() == other.certainAlias() &&
         tailPseudo() == other.tailPseudo() &&
-        headPseudo() == other.headPseudo();
+        headPseudo() == other.headPseudo() &&
+        isBackEdge() == other.isBackEdge();
 }
 
 void

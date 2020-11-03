@@ -38,6 +38,7 @@
 
 #include "MoveNode.hh"
 #include "Move.hh"
+#include "MoveNodeGroup.hh"
 
 /**
  * A function object for prioritizing the ready list according to the move's
@@ -112,12 +113,32 @@ public:
         if (b.node(0).move().isControlFlowMove()) {
             // Push control flow move to beginning of the ready list
             return true;
-        }        
+        }
+#if 0
+        // also prioritize moves which write the jump guard.
+        if (a.writesJumpGuard()) {
+            return false;
+        }
+
+        // also prioritize moves which write the jump guard.
+        if (b.writesJumpGuard()) {
+            return true;
+        }
+#endif
         // Compute distances only once, it is expensive operation on graph
         int aSourceDistance = a.maxSourceDistance();
         int bSourceDistance = b.maxSourceDistance();
         if (bSourceDistance == aSourceDistance) {
-            return b.node(0).nodeID() < a.node(0).nodeID();
+            int aSinkDistance = a.maxSinkDistance();
+            int bSinkDistance = b.maxSinkDistance();
+            if (bSinkDistance == aSinkDistance) {
+                return b.node(0).nodeID() < a.node(0).nodeID();
+            }
+            // the lower the sink distance, the higher the priority
+            // this priority is better for loop scheduling, to make
+            // true tails get scheudled first.
+            return bSinkDistance < aSinkDistance;
+
         }
         // the higher the source distance, the higher the priority
         return bSourceDistance > aSourceDistance;

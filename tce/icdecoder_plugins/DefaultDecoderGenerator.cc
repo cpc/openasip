@@ -351,7 +351,7 @@ DefaultDecoderGenerator::completeDecoderBlock(
                         generatedRegGuards, *regGuard)) {
                     continue;
                 }
-                RegisterFile* rf = regGuard->registerFile();
+                const RegisterFile* rf = regGuard->registerFile();
                 assert(rf->portCount() > 0);
                 NetlistBlock* nlRf = nlGenerator.netlistPort(
                     *rf->port(0)).parentBlock();
@@ -4360,7 +4360,7 @@ DefaultDecoderGenerator::guardPortName(const TTAMachine::Guard& guard) {
         FunctionUnit* fu = port->parentUnit();
         return "fu_guard_" + fu->name() + "_" + port->name();
     } else if (regGuard != NULL) {
-        RegisterFile* rf = regGuard->registerFile();
+        const RegisterFile* rf = regGuard->registerFile();
         return "rf_guard_" + rf->name() + "_" + 
             Conversion::toString(regGuard->registerIndex());
     } else {

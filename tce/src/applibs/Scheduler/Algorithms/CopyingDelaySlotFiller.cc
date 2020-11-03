@@ -42,6 +42,8 @@
 #include "Guard.hh"
 #include "UniversalFunctionUnit.hh"
 
+#include "MachineConnectivityCheck.hh"
+
 #include "Move.hh"
 #include "TerminalInstructionReference.hh"
 #include "InstructionReference.hh"
@@ -85,6 +87,11 @@ IGNORE_COMPILER_WARNING("-Wstrict-overflow")
 bool
 CopyingDelaySlotFiller::fillDelaySlots(
     BasicBlockNode& jumpingBB, int delaySlots, bool fillFallThru) {
+    if (cfg_->hasMultipleUnconditionalSuccessors(jumpingBB)) {
+        bbnStatus_[&jumpingBB] = BBN_BOTH_FILLED;
+        return false;
+    }
+
     // do not try to fill loop scheduled, also skip epilog and prolog.
     if (jumpingBB.isLoopScheduled()) {
         bbnStatus_[&jumpingBB] = BBN_BOTH_FILLED;
@@ -124,7 +131,7 @@ CopyingDelaySlotFiller::fillDelaySlots(
 
     TTAProgram::BasicBlock& thisBB = jumpingBB.basicBlock();
     std::pair<int, TTAProgram::Move*> jumpData = findJump(thisBB);
-    std::pair<Move*, Immediate*> jumpAddressData;
+    std::pair<Move*, std::shared_ptr<Immediate> > jumpAddressData;
 
     // should be the same
     int jumpIndex = jumpData.first;
@@ -151,7 +158,7 @@ CopyingDelaySlotFiller::fillDelaySlots(
         }
     }
 
-    RegisterFile* grFile = NULL;
+    const RegisterFile* grFile = NULL;
     unsigned int grIndex = 0;
 
     // lets be aggressive, fill more than just branch slots?
@@ -159,7 +166,7 @@ CopyingDelaySlotFiller::fillDelaySlots(
         delaySlots + 12,
         thisBB.instructionCount() - thisBB.skippedFirstInstructions());
 
-    int maxGuardedFillCount = INT_MAX;
+    int maxGuardedFillCount = 0;
 
     // if we have references to instructions in target BB, cannot put anything
     // before them, so limit how many slots to fill at maximum.
@@ -171,13 +178,12 @@ CopyingDelaySlotFiller::fillDelaySlots(
 
     // if we have conditional jump, find the predicate register
     if (jumpMove != NULL && !jumpMove->isUnconditional()) {
+        maxGuardedFillCount = INT_MAX;
         const Guard& g = jumpMove->guard().guard();
         const RegisterGuard* rg = dynamic_cast<const RegisterGuard*>(&g);
         if (rg != NULL) {
             grFile = rg->registerFile();
             grIndex = rg->registerIndex();
-        } else {
-            return false; // port guards not yet supported
         }
 
         // find when the predicate reg is written to and use that
@@ -188,7 +194,7 @@ CopyingDelaySlotFiller::fillDelaySlots(
         if (guardDefs.size() != 1) {
             // many defs, don't know which is the critical one.
             // fill only slots+jump ins
-            maxGuardedFillCount = delaySlots+1;
+            maxGuardedFillCount = std::min(maxGuardedFillCount,delaySlots+1);
         } else {
             MoveNode& guardDefMove = **guardDefs.begin();
             if (&ddg_->getBasicBlockNode(guardDefMove) == &jumpingBB) {
@@ -199,15 +205,15 @@ CopyingDelaySlotFiller::fillDelaySlots(
                     rm.smallestCycle() +
                     jumpNode.guardLatency();
                 
-                maxFillCount = 
-                    std::min(maxFillCount, 
+                maxGuardedFillCount =
+                    std::min(maxGuardedFillCount,
                              thisBB.instructionCount() - earliestToFill);
             } else {
                 // guard written in previous BB?
                 // make sure not filled to first insrt if
                 // guard latency 2
-                maxFillCount = 
-                    std::min(maxFillCount,
+                maxGuardedFillCount =
+                    std::min(maxGuardedFillCount,
                              thisBB.instructionCount() -
                              std::max(0,jumpNode.guardLatency()-1));
             }
@@ -218,6 +224,7 @@ CopyingDelaySlotFiller::fillDelaySlots(
     for (ControlFlowGraph::EdgeSet::iterator iter = outEdges.begin();
          iter != outEdges.end(); iter++) {
         int slotsFilled = 0;
+        int myMaxGuardedFillCount = maxGuardedFillCount;
 
         ControlFlowEdge& edge = **iter;
         if (edge.isFallThroughEdge() != fillFallThru) {
@@ -247,10 +254,13 @@ CopyingDelaySlotFiller::fillDelaySlots(
         if (fillFallThru) {
             if (jumpMove != NULL) {
                 // test that we can create an inverse guard
+                if (jumpMove->isUnconditional()) {
+                    continue;
+                }
                 MoveGuard* invG = CodeGenerator::createInverseGuard(
                     jumpMove->guard());
                 if (invG == NULL) {
-                    continue; // don't fill
+                    myMaxGuardedFillCount = 0;
                 } else {
                     delete invG;
                 }
@@ -288,8 +298,8 @@ CopyingDelaySlotFiller::fillDelaySlots(
         // also try to fill into jump instruction.
         // fillSize = delaySlots still adpcm-3-full-fails, should be +1
         for (int fillSize = maxFillCount; fillSize > 0; fillSize--) {
-            int removeGuards = (fillSize > maxGuardedFillCount) ?
-                fillSize - maxGuardedFillCount : 0;
+            int removeGuards = (fillSize > myMaxGuardedFillCount) ?
+                fillSize - myMaxGuardedFillCount : 0;
             // then try to do the filling.
             bool ok = tryToFillSlots(
                 jumpingBB, nextBBN, fillFallThru, jumpMove, fillSize,
@@ -616,8 +626,12 @@ bool CopyingDelaySlotFiller::mightFillIncomingTo(BasicBlockNode& bbn) {
 
 /**
  * Report to the ds filler that a bb has been scheduled.
+ *
  * tries to fill some delay slots and then tries to get rid of the
  * resource managers when no longer needed.
+ * 
+ * addResourceManager() for the BB should be called before this
+ * method.
  *
  * @param bbn BasicBlockNode which has been scheduled.
  */
@@ -686,7 +700,7 @@ CopyingDelaySlotFiller::addResourceManager(
  * @param jumpMove the move containing the jump.
  * @return Immediate containing jump address or NULL if not found.
  */
-std::pair<TTAProgram::Move*, TTAProgram::Immediate*>
+std::pair<TTAProgram::Move*, std::shared_ptr<TTAProgram::Immediate> >
 CopyingDelaySlotFiller::findJumpImmediate(
     int jumpIndex, Move& jumpMove, InstructionReferenceManager& irm) {
     BasicBlock& bb = static_cast<BasicBlock&>(jumpMove.parent().parent());
@@ -706,7 +720,7 @@ CopyingDelaySlotFiller::findJumpImmediate(
         // if has refernces, the imm may be written in another BB.
         // we can not (yet) track that!
         if (irm.hasReference(bb.instructionAtIndex(irIndex))) {
-            return std::pair<Move*,Immediate*>(NULL, NULL);
+            return std::pair<Move*,std::shared_ptr<Immediate> >(nullptr, nullptr);
         }
         for (i = irIndex -1 ; i >= bb.skippedFirstInstructions() && !found; 
              i-- ) {
@@ -714,7 +728,8 @@ CopyingDelaySlotFiller::findJumpImmediate(
             // if has refernces, the imm may be written in another BB.
             // we can not (yet) track that!
             if (irm.hasReference(ins)) {
-                return std::pair<Move*,Immediate*>(NULL, NULL);
+                return std::pair<Move*,std::shared_ptr<Immediate> >(
+                    nullptr, nullptr);
             }
             for (int j = 0; j < ins.moveCount(); j++ ) {
                 Move& move = ins.move(j);
@@ -731,34 +746,37 @@ CopyingDelaySlotFiller::findJumpImmediate(
         }
         // jump imm not found.
         if (i < bb.skippedFirstInstructions() && !found) {
-            return std::pair<Move*,Immediate*>(NULL, NULL);
+            return std::pair<Move*,std::shared_ptr<Immediate> >(
+                nullptr, nullptr);
         }
     }
     if (irMove->source().isImmediate()) {
-        return std::pair<Move*,Immediate*>(irMove, NULL);
+        return std::pair<Move*,std::shared_ptr<Immediate> >(irMove, nullptr);
     }
 
     // then read the actual immediate
     if (irMove->source().isImmediateRegister()) {
         const ImmediateUnit& immu = irMove->source().immediateUnit();
         int index = static_cast<int>(irMove->source().index());
-        for (int i = irIndex -1; i >= 0; i--) {
+        for (int i = irIndex - immu.latency(); i >= 0; i--) {
             Instruction &ins = bb.instructionAtIndex(i);
             for (int j = 0; j < ins.immediateCount(); j++) {
-                Immediate& imm = ins.immediate(j);
-                if (imm.destination().index() == index &&
-                    &imm.destination().immediateUnit() == &immu) {
-                    return std::pair<Move*,Immediate*>(NULL, &imm);
+                auto imm = ins.immediatePtr(j);
+                if (imm->destination().index() == index &&
+                    &imm->destination().immediateUnit() == &immu) {
+                    return std::pair<Move*,std::shared_ptr<Immediate> >(
+                        nullptr, imm);
                 }
             }
             // if has refernces, the imm may be written in another BB.
             // we can not (yet) track that!
             if (irm.hasReference(ins)) {
-                return std::pair<Move*,Immediate*>(NULL, NULL);
+                return std::pair<Move*,std::shared_ptr<Immediate> >(
+                    nullptr, nullptr);
             }
         }
     }
-    return std::pair<Move*,Immediate*>(NULL, NULL);
+    return std::pair<Move*, std::shared_ptr<Immediate> >(nullptr, nullptr);
 }
 /**
  * Checks whether given move writes to given register
@@ -768,7 +786,7 @@ CopyingDelaySlotFiller::findJumpImmediate(
  * @param registerIndex index of the register.
  */
 bool CopyingDelaySlotFiller::writesRegister(
-    Move& move, RegisterFile* rf, unsigned int registerIndex) {
+    Move& move, const RegisterFile* rf, unsigned int registerIndex) {
     Terminal& term = move.destination();
     if (term.isGPR()) {
         TerminalRegister& rd = dynamic_cast<TerminalRegister&>(term);
@@ -798,7 +816,7 @@ bool
 CopyingDelaySlotFiller::tryToFillSlots(
     BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBNode, bool fallThru,
     Move* jumpMove, int slotsToFill, int removeGuards, int grIndex,
-    RegisterFile* grFile, Move*& skippedJump, int delaySlots) {
+    const RegisterFile* grFile, Move*& skippedJump, int delaySlots) {
     skippedJump = NULL;
     BasicBlock& blockToFill = blockToFillNode.basicBlock();
     SimpleResourceManager& rm = *resourceManagers_[&blockToFill];
@@ -872,7 +890,7 @@ CopyingDelaySlotFiller::collectMoves(
     BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBN,
     MoveNodeListVector& moves, int slotsToFill, bool fallThru,
     int removeGuards,
-    Move* jumpMove, int grIndex, TTAMachine::RegisterFile* grFile, 
+    Move* jumpMove, int grIndex, const TTAMachine::RegisterFile* grFile,
     Move*& skippedJump, int delaySlots) {
     PendingImmediateMap pendingImmediateMap;
 
@@ -895,37 +913,78 @@ CopyingDelaySlotFiller::collectMoves(
         if (filler.hasCall()) {
             return false;
         }
+
+        // loop through all 0-latency immediates fo the instr.
+        for (int j = 0; j < filler.immediateCount(); j++) {
+            // TODO: why immediates not allowed here? what about allowing
+            // with 0-latency?
+            if (&blockToFillNode == &nextBBN) {
+                return false;
+            }
+
+            TTAProgram::Immediate& imm = filler.immediate(j);
+            const TTAProgram::Terminal& dst = imm.destination();
+            const ImmediateUnit& immu = dst.immediateUnit();
+            if (immu.latency() == 0) {
+                TCEString immName = immu.name() + '.' + 
+                    Conversion::toString(dst.index());
+                
+                if (AssocTools::containsKey(pendingImmediateMap,immName)) {
+                    // there already is write to this imm reg without
+                    // a read to it? something is wrong, abort
+                    return false;
+                }
+                pendingImmediateMap[immName] = &imm.value();
+            }
+        }
+
+
         // loop thru all moves in the instr
         for (int j = 0; j < filler.moveCount(); j++) {
             Move& oldMove = filler.move(j);
             bool dontGuard = i < removeGuards;
             // may fill jump if fills the whole BB and updates the jump.
-            if (oldMove.isJump()) {
-                if (!oldMove.isUnconditional()) {
-                    // TODO: if first was uncond jump, and filling whole BB, 
-                    // this could be allowed.
+            if (oldMove.isControlFlowMove()) {
+                if (oldMove.isJump()) {
+                    if (!oldMove.isUnconditional()) {
+                        // TODO: if first was uncond jump, and filling whole BB,
+                        // this could be allowed.
+                        return false;
+                    }
+                    if (fallThru) {
+                        // Allow another jump only to same instruction
+                        // than where the filled jump is.
+                        if (i != slotsToFill - delaySlots -1) {
+                            return false;
+                        }
+                    } else {
+                        if (slotsToFill != nextBB.instructionCount() ||
+                            // TODO: find a way to find the source imm of this jump
+                            // even if LIMM or tempregcopy.
+                            // then no need to abort here.
+                            oldMove.source().isGPR() ||
+                            oldMove.source().isImmediateRegister()) {
+                            return false;
+                        }
+                        if (oldMove.source().isRA()) {
+                            // If updating jumpMove with RA, it may result to an
+                            // illegal instruction due to missing connectivity.
+                            if (jumpMove == nullptr
+                                || !MachineConnectivityCheck::isConnected(
+                                    jumpMove->bus(), oldMove.source().port())) {
+                                return false;
+                            }
+                        }
+                        skippedJump = &oldMove;
+                        continue; // can be skipped
+                    }
+                } else { // unknown cflow op
                     return false;
                 }
-                if (fallThru) {
-                    // Allow another jump only to same instruction
-                    // than where the filled jump is.
-                    if (i != slotsToFill - delaySlots -1) {
-                        return false;
-                    }
-                } else {
-                    if (slotsToFill != nextBB.instructionCount() || 
-                        // TODO: find a way to find the source imm of this jump
-                        // even if LIMM or tempregcopy.
-                        // then no need to abort here.
-                        oldMove.source().isGPR() ||
-                        oldMove.source().isImmediateRegister()) {
-                        return false;
-                    }
-                    skippedJump = &oldMove;
-                    continue; // can be skipped
-                }
+
             }
 
+            // TODO: should use guard latency here instead of -1
             // check if it overwrites the guard of the jump
             if (writesRegister(oldMove, grFile, grIndex)) {
                 // overwriting the guard reg as last thing does not matter,
@@ -935,13 +994,21 @@ CopyingDelaySlotFiller::collectMoves(
                 }
             }
             
-            // check all deps
+            // do not allow delay slot filling of lbufs op.
+            // this messes up at least the simulator.
             MoveNode& mnOld = ddg_->nodeOfMove(oldMove);
+            if (mnOld.isDestinationOperation() &&
+                mnOld.destinationOperation().operation().name() == "LBUFS"
+                && slotsToFill != nextBB.instructionCount()) {
+                return false;
+            }
+
+            // check all deps
             if (!oldMove.isUnconditional()) {
                 // Do not fill with guarded moves, if jump is guarded,
                 // might need 2 guards.
                 // Only allowed if removing the guards anyway.
-                if (grFile != NULL) {
+                if (jumpMove != NULL && !jumpMove->isUnconditional()) {
                     dontGuard = true;
                 }
                 // don't allow unconditionals before
@@ -955,31 +1022,15 @@ CopyingDelaySlotFiller::collectMoves(
             // if a move has no side effects, the guard can be omitted
             // and it can be scheduled before the guard is ready.
             if (dontGuard) {
-                // TODO: allow even writes if the reg is not alive?
-                if (oldMove.destination().isGPR()) {
+                if (!allowedToSpeculate(mnOld)) {
                     return false;
                 }
-
-                if (oldMove.isTriggering()) {
-                    Operation& o = oldMove.destination().operation();
-                    if (o.writesMemory() || o.hasSideEffects() ||
-                        o.affectsCount() != 0) {
-                        return false;
-                    }
-
-                    // also may not read memory, because the address may be invalid,
-                    // if the address comes with bypass from operation with different guard.
-                    if (o.readsMemory()) {
-                        if (mnOld.isSourceOperation() &&
-                            mnOld.sourceOperation().triggeringMove()->move().isUnconditional() &&
-                            i >= removeGuards) {
-                            return false;
-                        }
-                        // and if the address comes from a variable.
-                        if (mnOld.isSourceVariable()) {
-                            return false;
-                        }
-                    }
+            } else {
+                // guard with a portguard? then do not (yet) allow src op.
+                if (jumpMove != NULL && !jumpMove->isUnconditional() &&
+                    dynamic_cast<const PortGuard*>(&jumpMove->guard().guard())
+                    && mnOld.isSourceOperation()) {
+                    return false;
                 }
             }
 
@@ -1015,11 +1066,21 @@ CopyingDelaySlotFiller::collectMoves(
                 !dontGuard) {
                 
                 if (fallThru) {
-                    newMove.setGuard(CodeGenerator::createInverseGuard(
-                                         jumpMove->guard()));
+                    auto g = CodeGenerator::createInverseGuard(jumpMove->guard());
+                    assert(g != nullptr);
+                    newMove.setGuard(g);
                 } else {
                     newMove.setGuard(jumpMove->guard().copy());
                 }
+                if (dynamic_cast<const PortGuard*>(
+                        &jumpMove->guard().guard())) {
+                    // TODO: set guard op from the jump?
+                    MoveNode& jumpNode = ddg_->nodeOfMove(*jumpMove);
+                    auto guardOp = jumpNode.guardOperationPtr();
+                    guardOp->addGuardOutputNode(mn);
+                    mn.setGuardOperationPtr(guardOp);
+                }
+
                 MoveNode& jumpNode = ddg_->nodeOfMove(*jumpMove);
                 ddg_->copyIncomingGuardEdges(jumpNode, mn);
             }
@@ -1033,16 +1094,18 @@ CopyingDelaySlotFiller::collectMoves(
 
             TTAProgram::Immediate& imm = filler.immediate(j);
             const TTAProgram::Terminal& dst = imm.destination();
-            TCEString immName = 
-                dst.immediateUnit().name() + '.' + 
-                Conversion::toString(dst.index());
-
-            if (AssocTools::containsKey(pendingImmediateMap,immName)) {
-                // there already is write to this imm reg without
-                // a read to it? something is wrong, abort
-                return false;
+            const ImmediateUnit& immu = dst.immediateUnit();
+            if (immu.latency() == 1) {
+                TCEString immName = immu.name() + '.' + 
+                    Conversion::toString(dst.index());
+                
+                if (AssocTools::containsKey(pendingImmediateMap,immName)) {
+                    // there already is write to this imm reg without
+                    // a read to it? something is wrong, abort
+                    return false;
+                }
+                pendingImmediateMap[immName] = &imm.value();
             }
-            pendingImmediateMap[immName] = &imm.value();
         }
     }
 
@@ -1086,6 +1149,26 @@ CopyingDelaySlotFiller::checkImmediatesAfter(
     
     for (int i = slotsToFill; i < nextBB.instructionCount(); i++) {
         Instruction& filler = nextBB.instructionAtIndex(i);
+
+        // 0-latency immus
+        for (int j = 0; j < filler.immediateCount(); j++) {
+            TTAProgram::Immediate& imm = filler.immediate(j);
+            const TTAProgram::Terminal& dst = imm.destination();
+            const ImmediateUnit& immu = dst.immediateUnit();
+            if (immu.latency() == 0) {
+                TCEString immName = 
+                    immu.name() + '.' + 
+                    Conversion::toString(dst.index());
+                if (pendingImmediateMap.find(immName) != 
+                    pendingImmediateMap.end()) {
+                    // same imm written twice without reading it. something wrong.
+                    return false;
+                }
+                pendingImmediateMap[immName] = &imm.value();
+            }
+        } // imm loop
+
+
         for (int j=0; j < filler. moveCount(); j++) {
             Move& move = filler.move(j);
             if (move.source().isImmediateRegister()) {
@@ -1106,18 +1189,22 @@ CopyingDelaySlotFiller::checkImmediatesAfter(
                 pendingImmediateMap.erase(immWriteIter);
             }
         } // move loop
-
+        
+        // 1-latency immus
         for (int j = 0; j < filler.immediateCount(); j++) {
             TTAProgram::Immediate& imm = filler.immediate(j);
             const TTAProgram::Terminal& dst = imm.destination();
-            TCEString immName = 
-                dst.immediateUnit().name() + '.' + 
-                Conversion::toString(dst.index());
-            if(pendingImmediateMap.find(immName) != pendingImmediateMap.end()) {
-                // same imm written twice without reading it. something wrong.
-                return false;
+            const ImmediateUnit& immu = dst.immediateUnit();
+            if (immu.latency() == 1) {
+                TCEString immName = immu.name() + '.' + 
+                    Conversion::toString(dst.index());
+                if (pendingImmediateMap.find(immName) != 
+                    pendingImmediateMap.end()) {
+                    // same imm written twice without reading it. something wrong.
+                    return false;
+                }
+                pendingImmediateMap[immName] = &imm.value();
             }
-            pendingImmediateMap[immName] = &imm.value();
         } // imm loop
     } // instruction-loop
 
@@ -1210,10 +1297,34 @@ CopyingDelaySlotFiller::tryToAssignNodes(
 
             if (!mn.isScheduled()) {
                 
-                // if cannot assign move, immediate fail.
+                // if cannot assign move, try to remove
+                // predicate(of allowed) and try again
                 if (!rm.canAssign(currentCycle, mn)) {
-                    failed = true;
-                    break;
+                    if (!mn.move().isUnconditional()) {
+                        MoveNode* old = oldMoveNodes_[&mn];
+                        if (old == NULL) {
+                            failed = true;
+                            break;
+                        }
+                        if (allowedToSpeculate(*old)) {
+                            if (mn.isGuardOperation()) {
+                                auto guardOp = mn.guardOperationPtr();
+                                guardOp->removeGuardOutputNode(mn);
+                                mn.unsetGuardOperation();
+                            }
+                            mn.move().setGuard(nullptr);
+                        } else {
+                            failed = true;
+                            break;
+                        }
+                        if (!rm.canAssign(currentCycle, mn)) {
+                            failed = true;
+                            break;
+                        }
+                    } else {
+                        failed = true;
+                        break;
+                    }
                 }
                 
                 rm.assign(currentCycle, mn);
@@ -1227,8 +1338,9 @@ CopyingDelaySlotFiller::tryToAssignNodes(
             assert(mn.cycle() == currentCycle);
             
             if (mn.move().source().isImmediateRegister()) {
+                const ImmediateUnit& immu = mn.move().source().immediateUnit();
                 bool limmFound = false;
-                for (int j = (firstCycleToFill+i-1); 
+                for (int j = (firstCycleToFill+i-immu.latency()); 
                      j >= firstCycleToFill && !limmFound; j--) {
                     const Instruction* ins = rm.instruction(j);
                     for (int k = 0; k < ins->immediateCount(); k++) {
@@ -1316,16 +1428,31 @@ CopyingDelaySlotFiller::tryToAssignOtherMovesOfOp(
                     firstCycleToFill +
                     oldMoveNodes_[&operMn]->cycle() -
                     nextBBStart;
+                const TTAMachine::Bus* bus =
+                    mnCycle > lastCycle ? moveNodeBuses_[&operMn] : nullptr;
                 assert(operMn.isDestinationOperation());
-                
-                if (!rm.canAssign(mnCycle, operMn)) {
-                    return false;
-                } else {
-                    rm.assign(mnCycle, operMn);
-                    // need to be removed at end
-                    if (mnCycle > lastCycle) {
-                        tempAssigns.insert(&operMn);
+                if (!rm.canAssign(mnCycle, operMn, bus)) {
+                    if (operMn.move().isUnconditional()) {
+                        return false;
                     }
+                    if (!allowedToSpeculate(operMn)) {
+                        return false;
+                    }
+                    if (operMn.isGuardOperation()) {
+                        auto guardOp = operMn.guardOperationPtr();
+                        guardOp->removeGuardOutputNode(operMn);
+                        operMn.unsetGuardOperation();
+                    }
+                    operMn.move().setGuard(nullptr);
+                    if (!rm.canAssign(mnCycle, operMn, bus)) {
+                        return false;
+                    }
+                }
+
+                rm.assign(mnCycle, operMn);
+                // need to be removed at end
+                if (mnCycle > lastCycle) {
+                    tempAssigns.insert(&operMn);
                 }
             }
         } // end for
@@ -1338,10 +1465,11 @@ CopyingDelaySlotFiller::tryToAssignOtherMovesOfOp(
             int mnCycle =
                 firstCycleToFill + oldMoveNodes_[&resMn]->cycle() - 
                 nextBBStart;
-            assert(resMn.isSourceOperation());
-            if (!rm.canAssign(mnCycle, resMn)) {
+
+            const TTAMachine::Bus* bus =
+                mnCycle > lastCycle ? moveNodeBuses_[&resMn] : nullptr;
+            if (!rm.canAssign(mnCycle, resMn, bus)) {
                 return false;
-                
             } else {
                 rm.assign(mnCycle, resMn);
                 if (mnCycle > lastCycle) {
@@ -1373,7 +1501,8 @@ CopyingDelaySlotFiller::getMoveNode(
         auto movePtr = getMove(old.move());
         MoveNode *newMN = new MoveNode(movePtr);
         ddg_->addNode(*newMN, bbn);
-        ddg_->copyDependencies(old,*newMN, fillOverBackEdge);
+        ddg_->copyDependencies(old,*newMN, false, fillOverBackEdge);
+        moveNodeBuses_[newMN] = &old.move().bus();
 
         moveNodes_[&old] = newMN;
         oldMoveNodes_[newMN] = &old;
@@ -1383,6 +1512,10 @@ CopyingDelaySlotFiller::getMoveNode(
                 getProgramOperationPtr(
                     old.sourceOperationPtr(), bbn, fillOverBackEdge));
             assert(newMN->isSourceOperation());
+        }
+        if (old.isGuardOperation()) {
+            newMN->setGuardOperationPtr(
+                getProgramOperationPtr(old.guardOperationPtr(), bbn, fillOverBackEdge));
         }
         if (old.isDestinationOperation()) {
             for (unsigned int i = 0; i < old.destinationOperationCount(); i++) {
@@ -1422,8 +1555,11 @@ CopyingDelaySlotFiller::getProgramOperationPtr(
         }
         for (int j = 0; j < old->outputMoveCount();j++) {
             MoveNode& mn = old->outputMove(j);
-            assert(mn.isSourceOperation());
-            po->addOutputNode(getMoveNode(mn,bbn, fillOverBackEdge));
+            if (mn.isSourceOperation()) {
+                po->addOutputNode(getMoveNode(mn,bbn,fillOverBackEdge));
+            } else {
+                po->addGuardOutputNode(getMoveNode(mn,bbn, fillOverBackEdge));
+            }
         }
         return po;
     }
@@ -1531,6 +1667,7 @@ void CopyingDelaySlotFiller::loseCopies(
         }
     }
     moveNodes_.clear();
+    moveNodeBuses_.clear();
     mnOwned_.clear();
     oldMoveNodes_.clear();
 
@@ -1645,7 +1782,7 @@ CopyingDelaySlotFiller::findJump(
 
 /**
  * Updates jump instruction jump address to the new one.
- * Also updates CFG is it is changed due completely skipped BB.
+ * Also updates CFG if it is changed due completely skipped BB.
  *
  * @param jumpBBN basic block whose delay slots are filled
  * @param fillingBBN next basic block where the instructions are taken
@@ -1658,7 +1795,7 @@ bool
 CopyingDelaySlotFiller::updateJumpsAndCfg(
     BasicBlockNode& jumpBBN, BasicBlockNode& fillingBBN,
     ControlFlowEdge& fillEdge,
-    Move* jumpAddressMove, Immediate* jumpAddressImmediate,
+    Move* jumpAddressMove, std::shared_ptr<Immediate> jumpAddressImmediate,
     Move* jumpMove, int slotsFilled, Move* skippedJump) {
 
     bool cfgChanged = false;
@@ -1870,4 +2007,33 @@ CopyingDelaySlotFiller::unassignTempAssigns(
         delete *j;
     }
     tempAssigns.clear();
+}
+
+bool CopyingDelaySlotFiller::allowedToSpeculate(MoveNode& mn) const {
+    Move& move = mn.move();
+    // TODO: allow even writes if the reg is not alive?
+    if (!mn.isDestinationOperation()) {
+        return false;
+    }
+    if (move.isTriggering()) {
+        Operation& o = move.destination().operation();
+        if (o.writesMemory() || o.hasSideEffects() ||
+            o.affectsCount() != 0) {
+            return false;
+        }
+
+        // also may not read memory, because the address may be invalid,
+        // if the address comes with bypass from operation with different guard.
+        if (o.readsMemory()) {
+            if (mn.isSourceOperation() &&
+                mn.sourceOperation().triggeringMove()->move().isUnconditional()) {
+                return false;
+            }
+            // and if the address comes from a variable.
+            if (mn.isSourceVariable()) {
+                return false;
+            }
+        }
+    }
+    return true;
 }

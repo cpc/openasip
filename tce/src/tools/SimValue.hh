@@ -26,7 +26,7 @@
  *
  * Declaration of SimValue class.
  *
- * @author Pekka J√§√§skel√§inen 2004,2010,2014 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2004,2010,2014 (pjaaskel-no.spam-cs.tut.fi)
  * @author Mikko Jarvela 2013, 2014 (mikko.jarvela-no.spam-.tut.fi)
  * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
@@ -89,11 +89,14 @@ class TCEString;
  * SimValue users don't need to worry about the possible byte swapping
  * since it is automatic and is done only if the user's machine is a
  * little-endian machine. However, users shouldn't access the public 
- * rawData_ member directly unless they know exactly what they are doing.
+ * rawData_ member directly unless they know exactly what they are doing,
+ * and always use the accessors for getting/setting lane data.
  */
 
 class SimValue {
 public:
+    // We should use a separate type for 64b ints when they are implemented.
+    typedef DoubleWord DoubleFloatWord;
     SimValue();
     explicit SimValue(int width);
     explicit SimValue(SLongWord value, int width);
@@ -168,9 +171,31 @@ public:
     TCEString binaryValue() const;
     TCEString hexValue(bool noHexIdentifier = false) const;
 
+    Word wordElement(size_t elementIndex) const;
+    SIntWord sIntWordElement(size_t elementIndex) const;
+    UIntWord uIntWordElement(size_t elementIndex) const;
+    HalfWord halfWordElement(size_t elementIndex) const;
+    HalfFloatWord halfFloatElement(size_t elementIndex) const;
+    FloatWord floatElement(size_t elementIndex) const;
+    DoubleFloatWord doubleFloatElement(size_t elementIndex) const;
+    Byte byteElement(size_t elementIndex) const;
+    UIntWord bitElement(size_t elementIndex) const;
+    Word element(size_t elementIndex, size_t elementWidth) const;
+
+    void setWordElement(size_t elementIndex, Word data);
+    void setHalfWordElement(size_t elementIndex, HalfWord data);
+    void setByteElement(size_t elementIndex, Byte data);
+    void setBitElement(size_t elementIndex, UIntWord data);
+    void setElement(size_t elementIndex, size_t elementWidth, Word data);
+    void setHalfFloatElement(size_t elementIndex, HalfFloatWord data);
+    void setFloatElement(size_t elementIndex, FloatWord data);
+    void setDoubleFloatElement(size_t elementIndex, DoubleFloatWord data);
+
     void setValue(TCEString hexValue);
     void clearToZero(int bitWidth);
     void clearToZero();
+    void signExtendTo(int bitWidth);
+    void zeroExtendTo(int bitWidth);
     TCEString dump() const;
 
     /// Array that contains SimValue's underlaying bytes in little endian.
@@ -180,10 +205,18 @@ public:
     int bitWidth_;
 
 private:
-    /// @todo Create more optimal 4-byte and 2-byte swapper functions for
-    /// 2 and 4 byte values. The more optimal swapper would load all bytes
-    /// to int or short int and shift the values to their correct places,
-    /// which would reduce memory accesses.
+
+    template <typename T>
+    T vectorElement(size_t elementIndex) const;
+    template <typename T>
+    void setVectorElement(size_t elementIndex, T data);
+
+    /// @todo This currently works, but there could be more optimal 8-byte, 
+    /// 4-byte and 2-byte swapper functions for 2/4/8 byte swaps. The more
+    /// optimal swappers would load all bytes to 8, 4 or 2-byte values and
+    /// shift invidivual bytes to their correct places, which would reduce 
+    /// memory accesses. Or use some intrincs for optimal execution and
+    /// better code density.
     void swapByteOrder(const Byte* from, size_t byteCount, Byte* to) const;
 
     /// Mask for masking extra bits when returning unsigned value.

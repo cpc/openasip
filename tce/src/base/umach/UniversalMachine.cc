@@ -65,6 +65,9 @@ UniversalMachine::UniversalMachine() :
 
 /**
  * Use this to get access to an UM.
+ *
+ * Do not explicitly create new instances of UM anymore. 
+ * It's deprecated and won't work in the future. * 
  */
 UniversalMachine&
 UniversalMachine::instance() {
@@ -107,8 +110,8 @@ UniversalMachine::construct() {
             attachSocket(*outputSocket);
 
         // add boolean register guards
-        new RegisterGuard(false, *boolean, 0, *bus);
-        new RegisterGuard(true, *boolean, 0, *bus);
+        new RegisterGuard(false, *boolean, 0, bus);
+        new RegisterGuard(true, *boolean, 0, bus);
 
         // add universal register file for integers
         UnboundedRegisterFile* integerURF = new UnboundedRegisterFile(

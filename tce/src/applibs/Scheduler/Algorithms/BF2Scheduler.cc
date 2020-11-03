@@ -70,6 +70,8 @@
 #include "BFSwapOperands.hh"
 #include "BFShareOperand.hh"
 #include "BFSchedulePreLoopShared.hh"
+#include "BFRemoveLoopChecks.hh"
+#include "LoopAnalyzer.hh"
 #include "BFPostpassBypasser.hh"
 
 //#define DEBUG_PRE_SHARE
@@ -91,10 +93,10 @@ BF2Scheduler::BF2Scheduler(
     InterPassData& ipd, RegisterRenamer* renamer) :
     DDGPass(ipd), ddg_(NULL), prologDDG_(nullptr), rm_(NULL),
     prologRM_(nullptr), latestCycle_(INT_MAX/1024),
-    loopSchedulingMode_(PROLOG_RM_GUARD_ALAP),
     renamer_(renamer),
     killDeadResults_(true),
     jumpNode_(NULL),
+    llResult_(NULL),
     duplicator_(NULL) {
     options_ =
         dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
@@ -108,10 +110,10 @@ BF2Scheduler::BF2Scheduler(
     InterPassData& ipd, RegisterRenamer* renamer, bool killDeadResults) :
     DDGPass(ipd), ddg_(NULL), rm_(NULL),
     latestCycle_(INT_MAX/1024),
-    loopSchedulingMode_(PROLOG_RM_GUARD_ALAP),
     renamer_(renamer),
     killDeadResults_(killDeadResults),
     jumpNode_(NULL),
+    llResult_(NULL),
     duplicator_(NULL) {
     options_ =
         dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
@@ -144,7 +146,6 @@ void BF2Scheduler::scheduleDDG(
     const TTAMachine::Machine& targetMachine) {
 
     jumpGuardWrite_ = NULL;
-    loopSchedulingMode_ = NO_LOOP_SCHEDULER;
 
     BFOptimization::clearPrologMoves();
     prologRM_ = NULL;
@@ -242,7 +243,8 @@ void BF2Scheduler::scheduleDDG(
 int
 BF2Scheduler::handleDDG(
     DataDependenceGraph& ddg, SimpleResourceManager& rm,
-    const TTAMachine::Machine& targetMachine, bool testOnly) {
+    const TTAMachine::Machine& targetMachine, int, bool testOnly) {
+    loopBufOps_.clear();
 
     scheduleDDG(ddg, rm, targetMachine);
 
@@ -269,8 +271,8 @@ BF2Scheduler::handleDDG(
 
 int BF2Scheduler::handleLoopDDG(
     BUMoveNodeSelector& selector, bool allowPreLoopOpshare) {
+    loopBufOps_.clear();
     if (prologRM_ != NULL) {
-
         if (allowPreLoopOpshare) {
             allocateFunctionUnits();
             reservePreallocatedFUs();
@@ -310,14 +312,25 @@ int BF2Scheduler::handleLoopDDG(
 #ifndef DEBUG_BUBBLEFISH_SCHEDULER
             if (options_ != NULL && options_->dumpDDGsDot()) {
 #endif
-                ddg_->writeToDotFile(
-                    std::string("ii_fail_") +
-                    Conversion::toString(rm_->initiationInterval()) +
-                    "icount_" +
-                    Conversion::toString(tripCount_) +
-                    std::string("ops_") +
-                    Conversion::toString(allowPreLoopOpshare) +
-                    std::string("_dag.dot"));
+                if (loopLimitNode() == NULL) {
+                    ddg_->writeToDotFile(
+                        std::string("ii_fail_") +
+                        Conversion::toString(rm_->initiationInterval()) +
+                        "icount_" +
+                        Conversion::toString(tripCount_) +
+                        std::string("ops_") +
+                        Conversion::toString(allowPreLoopOpshare) +
+                        std::string("_dag.dot"));
+                } else {
+                    ddg_->writeToDotFile(
+                        std::string("ii_fail_") +
+                        Conversion::toString(rm_->initiationInterval()) +
+                        "llNode" +
+                        Conversion::toString(loopLimitNode()->nodeID()) +
+                        std::string("ops_") +
+                        Conversion::toString(allowPreLoopOpshare) +
+                        std::string("_dag.dot"));
+                }
 #ifndef DEBUG_BUBBLEFISH_SCHEDULER
             }
 #endif
@@ -346,7 +359,7 @@ int BF2Scheduler::handleLoopDDG(
 
     // Try to schedule pre-loop operand shared moves. if fail, abort.
     if (prologRM_ && allowPreLoopOpshare) {
-        if (!schedulePreLoopOperandShares()) {
+        if (false) {
 #ifdef DEBUG_BUBBLEFISH_SCHEDULER
             std::cerr << "Scheduling pre-loop opshares fail, undoing all"
                       << std::endl;
@@ -385,34 +398,6 @@ int BF2Scheduler::handleLoopDDG(
     return overlapCount;
 }
 
-
-void BF2Scheduler::checkPrologGuardsAllowed() {
-    // cannot use predication if same predicate reg use for other things
-    if (guardPrologMoves()) {
-        auto inEdges = ddg_->inEdges(*jumpGuardWrite_);
-        for (auto e : inEdges) {
-            if (e->isWAW() && !e->isBackEdge()) {
-#ifdef DEBUG_LOOP_SCHEDULER
-                std::cerr << "Multiple writes to the guard reg "
-                          << "forbid predication!" << std::endl;
-#endif
-                loopSchedulingMode_ =
-                    (LoopSchedulingMode)(loopSchedulingMode_ &
-                                         (~USE_PREDICATION_FOR_PROLOG_MOVES));
-            }
-        }
-    }
-}
-
-
-BF2Scheduler::LoopSchedulingMode BF2Scheduler::selectLoopSchedulingMode() {
-
-    if (prologRM_ == NULL) {
-        return EXTERNAL_BUILDER_WITH_EPILOG;
-    }
-    return NO_LOOPBUF_PREDICATE_ALAP;
-}
-
 int
 BF2Scheduler::handleLoopDDG(
     DataDependenceGraph& ddg, SimpleResourceManager& rm,
@@ -440,7 +425,6 @@ BF2Scheduler::handleLoopDDG(
     tripCount_ = tripCount;
     rm_ = &rm;
     prologRM_ = prologRM;
-    loopSchedulingMode_ = selectLoopSchedulingMode();
 
     // scheduling pipeline resources after last cycle may cause problems.
     // make RM to check for those
@@ -470,9 +454,6 @@ BF2Scheduler::handleLoopDDG(
     if (jumpGuardWrite_ == NULL) {
         return -1;
     }
-
-    // disable guarding 1st part moves if same predicate reg used elsewhere
-    checkPrologGuardsAllowed();
 
 #ifdef DEBUG_BUBBLEFISH_SCHEDULER
     std::cerr << "jumpguard write node is: "
@@ -588,7 +569,7 @@ BF2Scheduler::handleLoopDDG(
         return overlapCount;
     }
 
-    if (tripCount && overlapCount >= tripCount) {
+    if (loopLimitNode() == NULL && tripCount && overlapCount >= tripCount) {
 #ifndef DEBUG_BUBBLEFISH_SCHEDULER
         if (options_ != NULL && options_->dumpDDGsDot()) {
 #endif
@@ -1638,7 +1619,6 @@ void BF2Scheduler::unreservePreallocatedFUs() {
             TTAProgram::ProgramAnnotation::ANN_REJECTED_UNIT_SRC);
         m.removeAnnotations(
             TTAProgram::ProgramAnnotation::ANN_REJECTED_UNIT_DST);
-
     }
 }
 
@@ -1648,73 +1628,6 @@ TTAMachine::FUPort* BF2Scheduler::isPreLoopSharedOperand(MoveNode& mn) const {
         return NULL;
     }
     return i->second;
-}
-
-void BF2Scheduler::mergePreLoopOperandShares() {
-    for (auto i = preLoopSharedOperands_.begin();
-         i != preLoopSharedOperands_.end(); i++) {
-        auto j = i; j++;
-        while(j != preLoopSharedOperands_.end()) {
-            if (i->second == j->second) {
-#ifdef DEBUG_PRE_SHARE
-                std::cerr << "Should merge pre loop operand shares: "
-                          << i->first->toString() << " and "
-                          << j->first->toString() << std::endl;
-#endif
-                BFShareOperand* share =
-                    new BFShareOperand(*this, *(j->first), *(i->first));
-                if ((*share)()) {
-                    scheduledStack_.push_back(share);
-                    preLoopSharedOperands_.erase(j++);
-#ifdef DEBUG_PRE_SHARE
-                    std::cerr << "merging pre-shared ok!" << std::endl;
-#endif
-                } else {
-                    delete share;
-#ifdef DEBUG_PRE_SHARE
-                    std::cerr << "merging pre-shared failed!" << std::endl;
-#endif
-                    j++;
-                }
-            } else {
-                j++;
-            }
-        }
-    }
-}
-
-
-bool BF2Scheduler::schedulePreLoopOperandShares() {
-
-    // merge here multiple uses of same port
-    mergePreLoopOperandShares();
-
-    for (auto i : preLoopSharedOperands_) {
-#ifdef DEBUG_PRE_SHARE
-        std::cerr << "should after-schedule: " << i.first->toString() <<
-            " to port: " << i.second->name() << std::endl;
-#endif
-        BFSchedulePreLoopShared* sbu =
-            new BFSchedulePreLoopShared(*this, *(i.first));
-        if ((*sbu)()) {
-            scheduledStack_.push_back(sbu);
-        } else {
-#ifdef DEBUG_BUBBLEFISH_SCHEDULER
-            std::cerr << "Failed scheduling of pre-loop-opshare: "
-                      << i.first->toString()
-                      << " to port: " << i.second->parentUnit()->name() << "."
-                      << i.second->name() << std::endl;
-            ddg_->writeToDotFile("pre_loop_share_fail.dot");
-#endif
-            delete sbu;
-            return false;
-        }
-    }
-    preLoopSharedOperands_.clear();
-#ifdef DEBUG_BUBBLEFISH_SCHEDULER
-    std::cerr << "Scheduled all pre-loop opshares ok!" << std::endl;
-#endif
-    return true;
 }
 
 void BF2Scheduler::deletingNode(MoveNode* deletedNode) {

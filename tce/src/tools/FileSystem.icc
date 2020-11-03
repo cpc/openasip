@@ -161,13 +161,10 @@ FileSystem::homeDirectory() {
 template <typename STLCONT>
 bool
 FileSystem::findFromDirectory(
-    const std::string& regex,
-    const std::string& directory,
-    STLCONT& found) 
-     {
-    
-    static const boost::regex re(regex, 
-         boost::regex::perl|boost::regex::icase);
+    const std::string& regex, const std::string& directory, STLCONT& found) {
+    size_t originalSize = found.size();
+
+    const boost::regex re(regex, boost::regex::perl|boost::regex::icase);
 
     std::vector<std::string> dirCont;
     try {
@@ -189,7 +186,7 @@ FileSystem::findFromDirectory(
         ++it;
     } 
      
-    return !found.empty();
+    return found.size() > originalSize;
 }
 
 /** 
@@ -217,11 +214,10 @@ FileSystem::findFromDirectoryRecursive(
 
     using namespace boost::filesystem;
 
-    static const boost::regex re(regex, 
-         boost::regex::perl|boost::regex::icase);
+    const boost::regex re(regex, boost::regex::perl|boost::regex::icase);
 
 #if BOOST_VERSION < 103302
-    static const boost::regex reb("^\\..*|.*/\\..*", 
+    const boost::regex reb("^\\..*|.*/\\..*",
         boost::regex::perl|boost::regex::icase);
     if (regex_match(directory, reb)) {
         return false;

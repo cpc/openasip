@@ -56,6 +56,9 @@ public:
     virtual Port* port(const std::string& name) const;
     virtual Port* port(int index) const;
     virtual int portCount() const;
+    virtual int outputPortCount(bool countBidir = false) const;
+    virtual int inputPortCount(bool countBidir = false) const;
+    virtual int bidirPortCount() const;
 
     virtual void setMachine(Machine& mach);
     virtual void unsetMachine();

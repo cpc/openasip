@@ -52,7 +52,7 @@ bool MoveNodeUse::operator< (const MoveNodeUse& other) const {
  * @param mnu MoveNodeUse to copy.
  * @param setLoopProperty whether to set loop property true for the copy.
  */
-MoveNodeUse::MoveNodeUse(const MoveNodeUse& mnu, bool setLoopProperty) :
+MoveNodeUse::MoveNodeUse(const MoveNodeUse& mnu, BBRelation newBBRelation ) :
     mn_(mnu.mn_), guard_(mnu.guard_), ra_(mnu.ra_), pseudo_(mnu.pseudo_), 
-    loop_(mnu.loop_ | setLoopProperty) {
+    bbRelation_((BBRelation)(mnu.bbRelation_ | newBBRelation)) {
 }

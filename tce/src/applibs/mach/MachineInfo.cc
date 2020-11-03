@@ -43,6 +43,7 @@
 #include "Operand.hh"
 #include "FUPort.hh"
 #include "InstructionTemplate.hh"
+#include "OperationDAGSelector.hh"
 #include "MathTools.hh"
 #include "MachineConnectivityCheck.hh"
 #include "UniversalMachine.hh"
@@ -70,11 +71,95 @@ MachineInfo::getOpset(const TTAMachine::Machine &mach) {
         const TTAMachine::FunctionUnit* fu = fuNav.item(i);
         for (int o = 0; o < fu->operationCount(); o++) {
             const std::string opName = fu->operation(o)->name();
-            opNames.insert(StringTools::stringToUpper(opName));
+            opNames.insert(StringTools::stringToLower(opName));
         }
     }
     
     return opNames;
+}
+
+
+/**
+ * Returns opset used by Global Control Unit.
+ *
+ * @param gcu The Global Control Unit whose opset is requested.
+ * @return Opset used by the Global Control Unit.
+ */
+OperationDAGSelector::OperationSet
+MachineInfo::getOpset(const TTAMachine::ControlUnit& gcu) {
+    OperationDAGSelector::OperationSet opNames;
+    for (int i = 0; i < gcu.operationCount(); i++) {
+        const std::string opName = gcu.operation(i)->name();
+        opNames.insert(StringTools::stringToLower(opName));
+    }
+    return opNames;
+}
+
+
+/**
+ * Return first occurrence of FUPorts that are bound to operation given by
+ * name.
+ *
+ * Returned list has FUPorts ordered in the order of operands. At index 1 is
+ * port bounded to operand 1, at index 2 port bounded to operand 2 and so on.
+ * List is empty if operation was not found from machine. Unbounded operands
+ * have NULL at the index of operand (0 is always NULL).
+ *
+ * @param mach The machine.
+ * @param operationStr The operation.
+ * @return The list of ordered bound ports.
+ */
+MachineInfo::ConstPortList
+MachineInfo::getPortBindingsOfOperation(
+    const TTAMachine::Machine& mach,
+    const std::string& operationStr) {
+
+    ConstPortList bindedPorts;
+
+    const TTAMachine::FunctionUnit* found = NULL;
+    const TTAMachine::Machine::FunctionUnitNavigator fuNav =
+            mach.functionUnitNavigator();
+    for (int i = 0; i < fuNav.count(); i++) {
+        const TTAMachine::FunctionUnit* fu = fuNav.item(i);
+        if (fu->hasOperation(operationStr)) {
+            found = fu;
+            break;
+        }
+    }
+
+    if (found == NULL) {
+        if (mach.controlUnit()->hasOperation(operationStr)) {
+            found = mach.controlUnit();
+        }
+    }
+    if (found != NULL) {
+        bindedPorts.push_back(NULL); // Shift indexing.
+        HWOperation* operation = found->operation(operationStr);
+        for (int i = 1; i <= operation->operandCount(); i++) {
+            bindedPorts.push_back(operation->port(i));
+        }
+    }
+    return bindedPorts;
+}
+
+/**
+ * Returns port that is bound to operand index of the operation in the FU.
+ *
+ * Returns the port, if the FU has the operation and operation has the operand
+ * bound to some port. Otherwise, returns nullptr.
+ */
+const TTAMachine::FUPort*
+MachineInfo::getBoundPort(
+    const TTAMachine::FunctionUnit& fu,
+    const std::string& opName, int operandIndex) {
+
+    if (fu.hasOperation(opName)) {
+        const HWOperation* hwOp = fu.operation(opName);
+        if (hwOp->isBound(operandIndex)) {
+            return hwOp->port(operandIndex);
+        }
+    }
+    return nullptr;
 }
 
 /**
@@ -164,6 +249,71 @@ MachineInfo::operandFromPort(
 }
 
 /**
+ * Returns byte width of the widest load/store operation.
+ *
+ * @return Maximum memory alignment according to the widest memory operation.
+ */
+int
+MachineInfo::maxMemoryAlignment(const TTAMachine::Machine& mach) {
+    int byteAlignment = 4; // Stack alignment is four bytes at minimum.
+
+    OperationDAGSelector::OperationSet opNames = getOpset(mach);
+    OperationDAGSelector::OperationSet::const_iterator it;
+
+    for (it = opNames.begin(); it != opNames.end(); ++it) {
+        const TCEString opName = StringTools::stringToLower(*it);
+        if (opName.length() > 2 && isdigit(opName[2])) {
+            // Assume operations named ldNNxMM and stNNxMM are operations
+            // with alignment of NN (or ldNN / stNN). 
+            // @todo fix this horrible hack by adding the alignment info explicitly 
+            // to OSAL. 
+
+            // At least check for the name string format to match the above
+            // before parsing the number.
+            size_t xpos = opName.find("x", 3);
+            if (xpos == std::string::npos) {
+                for (size_t pos = 2; pos < opName.size(); ++pos)
+                    if (!isdigit(opName[pos])) continue;
+
+                if (opName.startsWith("ld")) {
+                    int loadByteWidth = Conversion::toInt(opName.substr(2)) / 8; 
+                    if (loadByteWidth > byteAlignment) {
+                        byteAlignment = loadByteWidth;
+                    }
+                } else if (opName.startsWith("st")) {
+                    int storeByteWidth = Conversion::toInt(opName.substr(2)) / 8; 
+                    if (storeByteWidth > byteAlignment) {
+                        byteAlignment = storeByteWidth;
+                    }
+                }
+            } else {
+                for (size_t pos = xpos + 1; pos < opName.size(); ++pos)
+                    if (!isdigit(opName[pos])) continue;
+
+                if (opName.startsWith("ld")) {
+                    int loadByteWidth = Conversion::toInt(opName.substr(2, xpos - 2)) / 8; 
+                    if (loadByteWidth > byteAlignment) {
+                        byteAlignment = loadByteWidth;
+                    }
+                } else if (opName.startsWith("st")) {
+                    int storeByteWidth = Conversion::toInt(opName.substr(2, xpos - 2)) / 8; 
+                    if (storeByteWidth > byteAlignment) {
+                        byteAlignment = storeByteWidth;
+                    }
+                }
+            }
+        } 
+    }
+
+    if (!(byteAlignment > 1 && !(byteAlignment & (byteAlignment - 1)))) {
+        std::cerr << "Stack alignment: " << byteAlignment << std::endl;
+        assert(false && "Error: stack alignment must be a power of 2.");
+    }
+
+    return byteAlignment;
+}
+
+/**
  * Checks if slot is used in any of the instruction templates defined in ADF.
  *
  * @param mach The Machine.
@@ -187,6 +337,7 @@ MachineInfo::templatesUsesSlot(
 
     return false;
 }
+
 
 /**
  * Returns set of pointers to instruction templates that uses the given slot.
@@ -220,6 +371,36 @@ MachineInfo::supportsOperation(
     return opNames.find(operation.upper()) != opNames.end();
 }
 
+bool
+MachineInfo::canEncodeImmediateInteger(
+    const TTAMachine::Bus& bus, int64_t imm, unsigned destWidth) {
+
+    size_t requiredBitsSigned =
+        std::min((unsigned)MathTools::requiredBitsSigned((long int)imm), destWidth);
+    size_t requiredBitsUnsigned =
+        std::min((unsigned)MathTools::requiredBits(imm), destWidth);
+
+    size_t requiredBits = bus.signExtends() ? 
+        requiredBitsSigned : requiredBitsUnsigned;
+    // In case the short immediate can write all bits in
+    // the bus, let's assume this is the word width to the
+    // target operation and the extension mode can be
+    // assumed to be 'signed' (the targeted operation can 
+    // interpret the value in the bus either way), we
+    // just have to be sure there is no information loss
+    // in the upper bits. This breaks with
+    // multibitwidth scalar machines, e.g., ones with
+    // INT32 datapath combined with FLOAT64 because now
+    // it assumes the constant can be written in case
+    // there's a 32b immediate slot for the INT32 bus. (*)
+    if (bus.width() == bus.immediateWidth() &&
+        requiredBitsSigned < requiredBits)
+        requiredBits = requiredBitsSigned;
+    if (static_cast<size_t>(bus.immediateWidth()) >= requiredBits)
+        return true;
+    return false;
+}
+
 /**
  * Checks if the given immediate can be transferred at all
  * in the given machine.
@@ -250,6 +431,25 @@ MachineInfo::canEncodeImmediateInteger(
 
     const Machine::BusNavigator& busNav = mach.busNavigator();
 
+    // first check the short immediate slots
+    for (int bi = 0; bi < busNav.count(); ++bi) {
+        const Bus& bus = *busNav.item(bi);
+        if (canEncodeImmediateInteger(bus, imm, destWidth))
+            return true;
+    }
+
+    // then the long immediate templates
+    for (const TTAMachine::InstructionTemplate* temp: mach.instructionTemplateNavigator())
+        if (canEncodeImmediateInteger(*temp, imm, destWidth))
+            return true;
+
+    return false;
+}
+
+bool
+MachineInfo::canEncodeImmediateInteger(
+    const TTAMachine::InstructionTemplate& temp, int64_t imm, 
+    unsigned destWidth) {
     size_t requiredBitsSigned =
         std::min((unsigned)MathTools::requiredBitsSigned(
                      static_cast<SLongWord>(imm)), destWidth);
@@ -257,62 +457,34 @@ MachineInfo::canEncodeImmediateInteger(
         std::min((unsigned)MathTools::requiredBits(
              static_cast<ULongWord>(imm)), destWidth);
 
-    // first check the short immediate slots
-    for (int bi = 0; bi < busNav.count(); ++bi) {
-        const Bus& bus = *busNav.item(bi);
-        size_t requiredBits = bus.signExtends() ? 
+    const TTAMachine::Machine& mach = *temp.machine();
+    const TTAMachine::Machine::ImmediateUnitNavigator nav = 
+        mach.immediateUnitNavigator();
+    for (const TTAMachine::ImmediateUnit* iu: mach.immediateUnitNavigator()) {
+        size_t requiredBits = iu->signExtends() ? 
             requiredBitsSigned : requiredBitsUnsigned;
-        // In case the short immediate can write all bits in
-        // the bus, let's assume this is the word width to the
-        // target operation and the extension mode can be
-        // assumed to be 'signed' (the targeted operation can 
-        // interpret the value in the bus either way), we
-        // just have to be sure there is no information loss
-        // in the upper bits. This breaks with
-        // multibitwidth scalar machines, e.g., ones with
-        // INT32 datapath combined with FLOAT64 because now
-        // it assumes the constant can be written in case
-        // there's a 32b immediate slot for the INT32 bus. (*)
-        if (bus.width() == bus.immediateWidth() &&
+        size_t supportedW = temp.supportedWidth(*iu);
+        // see above (*). Same applies here: if the template encodes
+        // as many bits as the buses that the IU can write to are wide, 
+        // the extension mode is meaningless -> can interpret it as one wishes 
+        // here.
+        size_t maxBusW = 0;
+        std::set<const TTAMachine::Bus*> buses;
+        MachineConnectivityCheck::appendConnectedDestinationBuses(
+            *iu, buses);
+        for (auto bus: buses) {
+            if (static_cast<size_t>(bus->width()) > maxBusW)
+                maxBusW = bus->width();
+        }
+
+        if (supportedW == maxBusW &&
             requiredBitsSigned < requiredBits)
             requiredBits = requiredBitsSigned;
-        if (static_cast<size_t>(bus.immediateWidth()) >= requiredBits)
+        if (supportedW >= requiredBits)
             return true;
+
     }
 
-    // then the long immediate units
-    TTAMachine::Machine::ImmediateUnitNavigator nav = 
-        mach.immediateUnitNavigator();
-    for (int i = 0; i < nav.count(); i++) {
-        const TTAMachine::ImmediateUnit& iu = *nav.item(i);
-        size_t requiredBits = iu.signExtends() ? 
-            requiredBitsSigned : requiredBitsUnsigned;
-        TTAMachine::Machine::InstructionTemplateNavigator inav = 
-            mach.instructionTemplateNavigator();
-        for (int t = 0; t < inav.count(); ++t) {
-            const TTAMachine::InstructionTemplate& itempl = *inav.item(t);
-            size_t supportedW = itempl.supportedWidth(iu);
-            // see above (*). Same applies here: if the template encodes
-            // as many bits as the buses that the IU can write to are wide, 
-            // the extension mode is meaningless -> can interpret it as one wishes 
-            // here.
-            size_t maxBusW = 0;
-            std::set<const TTAMachine::Bus*> buses;
-            MachineConnectivityCheck::appendConnectedDestinationBuses(
-                iu, buses);
-            for (auto bus: buses) {
-                if (static_cast<size_t>(bus->width()) > maxBusW)
-                    maxBusW = bus->width();
-            }
-
-            if (supportedW == maxBusW &&
-                requiredBitsSigned < requiredBits)
-                requiredBits = requiredBitsSigned;
-            if (supportedW >= requiredBits)
-                return true;
-        }
-    } 
-    
     return false;
 }
 
@@ -382,10 +554,6 @@ MachineInfo::findWidestOperand(
     OperationPool pool;
     unsigned widestOperand = 0;
 
-    if (vector) {
-        return 0;
-    }
-
     TTAMachine::Machine::FunctionUnitNavigator FUNavigator =
         machine.functionUnitNavigator();
 
@@ -423,4 +591,175 @@ MachineInfo::numberOfRegisters(
         }
     }
     return numRegisters;
+}
+
+/**
+ * Returns true if the machine has predicatable jump.
+ *
+ */
+bool
+MachineInfo::supportsBoolRegisterGuardedJumps(
+    const TTAMachine::Machine& machine) {
+    const ControlUnit* cu = machine.controlUnit();
+    if (cu == nullptr) {
+        return false;
+    }
+
+    if (!cu->hasOperation("jump")) {
+        return false;
+    }
+
+    const FUPort* jumpPort = getBoundPort(*cu, "jump", 1);
+    if (jumpPort == nullptr) {
+        return false;
+    }
+
+    std::vector<const Bus*> guardedBuses;
+    for (const Bus* bus : machine.busNavigator()) {
+        for (int i = 0; i < bus->guardCount(); i++) {
+
+            const TTAMachine::RegisterGuard *regGuard =
+                dynamic_cast<TTAMachine::RegisterGuard*>(bus->guard(i));
+            if (regGuard && regGuard->registerFile()->width() == 1) {
+                guardedBuses.push_back(bus);
+                break;
+            }
+        }
+    }
+
+    for (const Bus* bus : guardedBuses) {
+        if (MachineConnectivityCheck::busConnectedToPort(*bus, *jumpPort)) {
+            return true;
+        }
+        // Todo: Check if bus has sufficient transport capability for jumping?
+        // That is, it is at least connected to a RF, IU or can transport
+        // short immediates.
+    }
+
+    return false;
+}
+
+
+/**
+ * Returns true if the machine has predicatable jump.
+ *
+ */
+bool
+MachineInfo::supportsPortGuardedJumps(const TTAMachine::Machine& machine) {
+    const ControlUnit* cu = machine.controlUnit();
+    if (cu == nullptr) {
+        return false;
+    }
+
+    if (!cu->hasOperation("jump")) {
+        return false;
+    }
+
+    const FUPort* jumpPort = getBoundPort(*cu, "jump", 1);
+    if (jumpPort == nullptr) {
+        return false;
+    }
+
+    std::vector<const Bus*> guardedBuses;
+    for (const Bus* bus : machine.busNavigator()) {
+        for (int i = 0; i < bus->guardCount(); i++) {
+            const TTAMachine::PortGuard *portGuard =
+                dynamic_cast<TTAMachine::PortGuard*>(bus->guard(i));
+            if (portGuard) {
+                // TODO: should check what ops found from the source FU
+                guardedBuses.push_back(bus);
+            }
+        }
+    }
+
+    for (const Bus* bus : guardedBuses) {
+        if (MachineConnectivityCheck::busConnectedToPort(*bus, *jumpPort)) {
+            return true;
+        }
+        // Todo: Check if bus has sufficient transport capability for jumping?
+        // That is, it is at least connected to a RF, IU or can transport
+        // short immediates.
+    }
+
+    return false;
+}
+
+
+bool MachineInfo::supportsPortGuardedJump(
+    const TTAMachine::Machine& machine, bool inverted, const TCEString& opName) {
+
+    const ControlUnit* cu = machine.controlUnit();
+    if (cu == nullptr) {
+        return false;
+    }
+
+    if (!cu->hasOperation("jump")) {
+        return false;
+    }
+
+    const FUPort* jumpPort = getBoundPort(*cu, "jump", 1);
+    if (jumpPort == nullptr) {
+        return false;
+    }
+
+    std::vector<const Bus*> guardedBuses;
+    for (const Bus* bus : machine.busNavigator()) {
+        for (int i = 0; i < bus->guardCount(); i++) {
+            TTAMachine::Guard* guard = bus->guard(i);
+            if (guard->isInverted() != inverted) continue;
+            const TTAMachine::PortGuard *portGuard =
+                dynamic_cast<TTAMachine::PortGuard*>(guard);
+            if (portGuard) {
+                TTAMachine::FUPort* fup = portGuard->port();
+                auto fu = fup->parentUnit();
+                if (fu->hasOperation(opName)) {
+                // TODO: should check what ops found from the source FU
+                    guardedBuses.push_back(bus);
+                }
+            }
+        }
+    }
+
+    for (const Bus* bus : guardedBuses) {
+        if (MachineConnectivityCheck::busConnectedToPort(*bus, *jumpPort)) {
+            return true;
+        }
+        // Todo: Check if bus has sufficient transport capability for jumping?
+        // That is, it is at least connected to a RF, IU or can transport
+        // short immediates.
+    }
+
+    return false;
+}
+/**
+ * Convenience function for getting OSAL operation from HWOperation description.
+ *
+ * Throws InstanceNotFound if OSAL operation is not found.
+ */
+Operation&
+MachineInfo::osalOperation(const TTAMachine::HWOperation& hwOp) {
+    OperationPool opPool;
+
+    Operation& op = opPool.operation(hwOp.name().c_str());
+    if (op.isNull()) {
+        THROW_EXCEPTION(InstanceNotFound,
+            "Operation '" + hwOp.name() + "' was not found in OSAL.");
+    }
+    return op;
+}
+
+
+int MachineInfo::maxLatency(const TTAMachine::Machine& mach, TCEString& opName) {
+    int maxl = -1;
+    for (auto fu: mach.functionUnitNavigator()) {
+        if (fu->hasOperation(opName)) {
+            const auto op = fu->operation(opName);
+            maxl = std::max(maxl, op->latency());
+        }
+    }
+    if (mach.controlUnit()->hasOperation(opName)) {
+        const auto op = mach.controlUnit()->operation(opName);
+        maxl = std::max(maxl, op->latency());
+    }
+    return maxl;
 }

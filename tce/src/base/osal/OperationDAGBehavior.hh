@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2020 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -40,11 +40,12 @@
 
 #include "Exception.hh"
 #include "OperationBehavior.hh"
+#include "OperationContext.hh"
+#include "Operation.hh"
 
 class SimValue;
 class OperationContext;
 class OperationDAG;
-class Operation;
 
 /**
  * Implementation of OperationBehavior which uses OperationDAG for execution
@@ -52,21 +53,27 @@ class Operation;
  */
 class OperationDAGBehavior : public OperationBehavior {
 public:
-    OperationDAGBehavior(OperationDAG& dag, int operandCount);
+    OperationDAGBehavior(
+        OperationDAG& dag,
+        int operandCount,
+        const Operation& parent = NullOperation::instance());
     virtual ~OperationDAGBehavior();
 
     virtual bool simulateTrigger(
-        SimValue** io, OperationContext& context) const;
+        SimValue** io, OperationContext& context) const override;
+    virtual bool areValid(
+        const InputOperandVector& inputs,
+        const OperationContext& context) const override;
 
     virtual bool lateResult(
         SimValue** io, OperationContext& context) const;
 
-    virtual void createState(OperationContext& context) const;
-    virtual void deleteState(OperationContext& context) const;
+    virtual void createState(OperationContext& context) const override;
+    virtual void deleteState(OperationContext& context) const override;
 
-    virtual const char* stateName() const;
+    virtual const char* stateName() const override;
 
-    virtual bool canBeSimulated() const;
+    virtual bool canBeSimulated() const override;
 
 private:
     struct SimulationStep {

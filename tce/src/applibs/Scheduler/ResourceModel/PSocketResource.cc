@@ -102,7 +102,8 @@ PSocketResource::isAvailable(const int cycle) const {
  * with canAssign() before assign() is called.
  */
 void
-PSocketResource::assign(const int cycle, MoveNode& mn) {
+PSocketResource::assign(const int cycle, MoveNode& mn)
+{
     resourceRecord_[instructionIndex(cycle)].insert(&mn);
     increaseUseCount();
     return;
@@ -116,7 +117,8 @@ PSocketResource::assign(const int cycle, MoveNode& mn) {
  * @throw In case the PSocket was not assigned before.
  */
 void
-PSocketResource::unassign(const int cycle, MoveNode& mn) {
+PSocketResource::unassign(const int cycle, MoveNode& mn)
+{
     if (isInUse(cycle)) {
         resourceRecord_[instructionIndex(cycle)].erase(&mn);
         decreaseUseCount();

@@ -65,14 +65,18 @@ public:
     virtual ~MachineStateBuilder();
 
     MachineState* build(
-        const TTAMachine::Machine& machine, MemorySystem& memSys);
+        const TTAMachine::Machine& machine, 
+        MemorySystem& memSys);
 
     MachineState* build(
-        const TTAMachine::Machine& machine, MemorySystem& memSys,
-        FUConflictDetectorIndex& detectors, bool throwWhenConflict = true);
+        const TTAMachine::Machine& machine, 
+        MemorySystem& memSys,
+        FUConflictDetectorIndex& detectors,
+        bool throwWhenConflict=true);
 
     MachineState* build(
-        const TTAMachine::Machine& machine, MemorySystem& memSys,
+        const TTAMachine::Machine& machine,
+        MemorySystem& memSys,
         StateLocator& locator);
 
 private:
@@ -82,7 +86,8 @@ private:
     MachineStateBuilder& operator=(const MachineStateBuilder&);
 
     MachineState* buildMachineState(
-        const TTAMachine::Machine& machine, MemorySystem& memSys,
+        const TTAMachine::Machine& machine,
+        MemorySystem& memSys,
         StateLocator& locator);
 
     void addPortToFU(
@@ -106,7 +111,8 @@ private:
         TTAMachine::FunctionUnit& unit);
 
     void addVirtualOpcodeSettingPortsToFU(
-        MachineState& machineState, FUState& state,
+        MachineState& machineState,
+        FUState& state,
         TTAMachine::FunctionUnit& unit);
 
     /// The FU resource conflict detectors. They are needed while building

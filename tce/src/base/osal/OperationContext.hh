@@ -37,6 +37,7 @@
 
 #include "BaseType.hh"
 #include "TCEString.hh"
+#include <map>
 
 class OperationState;
 class SimValue;
@@ -60,31 +61,47 @@ public:
     OperationContext(
         Memory* memory,
         InstructionAddress& programCounter,
-        SimValue& returnAddress);
+        SimValue& returnAddress,
+        int delayCycles);
     
     OperationContext(const OperationContext&);
     
+    OperationState& state(const char* name) const;
+
+    /// Type of state registry.
+    typedef std::map<std::string, OperationState*> StateRegistry;
+
+    void setStateRegistry(StateRegistry& stateRegistry);
+    void unsetStateRegistry();
+    StateRegistry& stateRegistry();
+
     virtual ~OperationContext();
 
     Memory& memory();
+    const Memory& memory() const;
     void setMemory(Memory* memory);
     int contextId() const;
 
     InstructionAddress& programCounter();
+    const InstructionAddress& programCounter() const;
+    void setUpdateProgramCounter(bool value);
+    bool updateProgramCounter() const;
     void setSaveReturnAddress(bool value);
     bool saveReturnAddress();
     SimValue& returnAddress();
+    const SimValue& returnAddress() const;
 
     void advanceClock();
     bool isEmpty() const;
     bool hasMemoryModel() const;
-    const TCEString& functionUnitName();
+    const TCEString& functionUnitName() const;
+
+    int branchDelayCycles() const;
 
     // These methods are only for internal use. Used by the macro definitions
     // of OSAL.hh.
     void registerState(OperationState* state);
     void unregisterState(const char* name);
-    OperationState& state(const char* name) const;
 
     CycleCount cycleCount() const;
     void setCycleCountVariable(CycleCount& cycleCount);

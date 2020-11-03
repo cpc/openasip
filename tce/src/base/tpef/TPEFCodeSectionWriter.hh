@@ -47,8 +47,8 @@ namespace TPEF {
  */
 class TPEFCodeSectionWriter : public TPEFSectionWriter {
 protected:
-    virtual ~TPEFCodeSectionWriter();
     TPEFCodeSectionWriter();
+    virtual ~TPEFCodeSectionWriter();
 
     virtual Section::SectionType type() const;
 
@@ -57,6 +57,7 @@ protected:
         const Section* sect) const;
 
     virtual void writeInfo(BinaryStream& stream, const Section* sect) const;
+    virtual void writeId(BinaryStream& stream, HalfWord id) const;
 
 private:
     /// Copying not allowed.

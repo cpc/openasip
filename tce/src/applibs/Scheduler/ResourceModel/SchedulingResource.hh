@@ -73,9 +73,11 @@ public:
         const int group,
         SchedulingResource& resource);
     virtual SchedulingResource& relatedResource(
-        const int group, const int index) const;
+        const int group,
+        const int index) const;
     virtual SchedulingResource& dependentResource(
-        const int group, const int index) const;
+        const int group,
+        const int index) const;
     virtual bool hasRelatedResource(
         const SchedulingResource& sResource)const;
     virtual bool hasDependentResource(
@@ -107,11 +109,11 @@ public:
     virtual bool isITemplateResource() const;
     
     // Get instruction index for resource
-    inline unsigned int instructionIndex(unsigned int cycle) const;
+    inline int instructionIndex(int cycle) const;
 
     // Set initiation interval for resource
     void setInitiationInterval(unsigned int ii);
-    unsigned int initiationInterval() const;
+    int initiationInterval() const;
 
     friend class ResourceBroker;
 
@@ -127,7 +129,7 @@ protected:
     virtual bool validateRelatedGroups() ;
     
     // initiation interval used for modulo scheduler
-    unsigned int initiationInterval_;
+    int initiationInterval_;
 
 private:
     // A vector type that stores SchedulingResource pointers

@@ -26,7 +26,7 @@
  *
  * Declarations of exception classes.
  *
- * @author Mikael Lepist� 2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_EXCEPTION_HH
@@ -88,7 +88,7 @@ private:
     /// Error message
     std::string errorMessage_;
     /// Exception that caused current exception.
-    const Exception *cause_;
+    const Exception* cause_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -873,7 +873,7 @@ public:
 /////////////////////////////////////////////////////////////////////////////
 
 /**
- * Exception which is thrown when machine being used is somehow erronous.
+ * Exception which is thrown when machine being used is somehow erroneous.
  */
 class IllegalMachine : public InvalidData {
 public:
@@ -1047,6 +1047,22 @@ public:
 	std::string procname = unknownProcMsg_,
 	std::string errorMessage = "");
     virtual ~ModuleRunTimeError() {};
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// NoKnownConversion
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * Exception which is thrown when conversion of from a type to another can not
+ * be resolved or there are no known mapping of a variable to another.
+ */
+class NoKnownConversion : public InvalidData {
+public:
+    NoKnownConversion(
+    std::string filename, int linenum,
+    std::string procname = unknownProcMsg_,
+    std::string errorMessage = "");
+    virtual ~NoKnownConversion() {};
 };
 
 #include "Exception.icc"

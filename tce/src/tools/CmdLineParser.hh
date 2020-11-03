@@ -26,8 +26,8 @@
  *
  * Declaration of class CmdLineParser.
  *
- * @author Jussi Nykänen 2003 (nykanen-no.spam-cs.tut.fi)
- * @author Jari Mäntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
+ * @author Jussi Nykï¿½nen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Jari Mï¿½ntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
  * @note reviewed 3 December 2003 by jn, kl, ao
  * @note rating: red
  */
@@ -58,7 +58,7 @@ public:
     virtual void parse(char* argv[], int argc);
     virtual void parse(std::vector<std::string> options);
     virtual void storeOptions(Options& options);
-
+    
     virtual int numberOfArguments() const;
     virtual std::string argument(int index) const;
 

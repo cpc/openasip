@@ -34,6 +34,7 @@
 #ifndef TTA_TPEF_PROGRAM_FACTORY_HH
 #define TTA_TPEF_PROGRAM_FACTORY_HH
 
+#include <memory>
 #include <map>
 #include <list>
 #include <memory>
@@ -124,17 +125,17 @@ protected:
         const TTAMachine::Bus *aBus,
         TTAMachine::Socket::Direction direction,
         TPEF::MoveElement::FieldType type,
-        Byte unitId,
+        HalfWord unitId,
         HalfWord index,
         const ImmediateMap *immediateMap = NULL) const;
     
     TTAMachine::Bus& findBus(
         const TPEF::ResourceSection &resources,
-        Byte busId) const;
+        HalfWord busId) const;
     
     TTAMachine::RegisterFile& findRegisterFile(
         const TPEF::ResourceSection &resources,
-        Byte rfId) const;
+        HalfWord rfId) const;
     
     TTAMachine::ImmediateUnit& findImmediateUnit(
         const TPEF::ResourceSection &resources,
@@ -142,7 +143,7 @@ protected:
     
     TTAMachine::FunctionUnit& findFunctionUnit(
         const TPEF::ResourceSection &resources,
-        Byte unitId, std::string tpefOpName = "") const;
+        HalfWord unitId, std::string tpefOpName = "") const;
     
     TTAMachine::Port& findPort(
         const TTAMachine::Bus &bus,
@@ -157,7 +158,7 @@ protected:
         const TPEF::ResourceSection &resources,
         TTAMachine::Bus &bus,
         TPEF::MoveElement::FieldType type,
-        Byte unitId,
+        HalfWord unitId,
         HalfWord index,
         bool isInverted) const;
     
@@ -193,7 +194,7 @@ private:
             const TTAMachine::Bus &aBus,
             TTAMachine::Socket::Direction aDirection,
             TPEF::MoveElement::FieldType aType,
-            Byte anUnitId, HalfWord anIndex) :
+            HalfWord anUnitId, HalfWord anIndex) :
             bus_(aBus), direction_(aDirection), type_(aType),
             unitId_(anUnitId), index_(anIndex) { }
                
@@ -224,7 +225,7 @@ private:
         /// Type of the accessed unit.
         TPEF::MoveElement::FieldType type_;
         /// unit id of the corresponding TPEF resource element.
-        Byte unitId_;
+        HalfWord unitId_;
         /// Index of the corresponding TPEF resource element.
         HalfWord index_;
     };
@@ -296,7 +297,7 @@ private:
     mutable std::map<const CacheKey, Terminal *> cache_;
     
     /// Busses that are already allocated by moves of current instruction.
-    mutable std::set<Byte> allocatedBusses_;
+    mutable std::set<HalfWord> allocatedBusses_;
     
     /// Program instruction by TPEF instruction element.
     mutable std::map<TPEF::InstructionElement*, Instruction*> instructionMap_;

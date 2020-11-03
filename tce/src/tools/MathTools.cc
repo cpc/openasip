@@ -31,3 +31,26 @@
 
 #include "MathTools.hh"
 
+
+/**
+ * Concatenates two bit fields together.
+ *
+ * Example:
+ * @verbatim
+ * concatenateBits(12, 4, 13, 3)
+ *   -> (0b1100, 0b1101)
+ *   -> 0b1100 + 0b101
+ *   -> 0b1100101
+ * @endverbatim
+ */
+unsigned long int
+MathTools::concatenateBits(
+    unsigned long int msbBitField, unsigned msbWidth,
+    unsigned long int lsbBitField, unsigned lsbWidth) {
+
+    const unsigned long int allOnes = -1ul;
+
+    return ((msbBitField & ~(allOnes << msbWidth)) << lsbWidth) |
+        (lsbBitField & ~(allOnes << lsbWidth));
+}
+

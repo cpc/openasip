@@ -107,6 +107,8 @@ FUState::reset() {
         // Ensure the init state is called again.
         op->deleteState(context());
         op->createState(context());
+        // Reset the internal state of executor
+        (*i).second->reset();
     }
 }
 
@@ -179,9 +181,9 @@ FUState::advanceClock() {
         return;
     }
 
-
     activeExecutors_ = 0;
-    for (size_t i = 0; i < execList_.size(); ++i) {
+    size_t execListSize = execList_.size();
+    for (size_t i = 0; i < execListSize; ++i) {
         OperationExecutor* opexec = execList_[i];
         if (opexec->hasPendingOperations()) {            
             opexec->advanceClock();

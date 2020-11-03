@@ -194,10 +194,12 @@ UniversalFunctionUnit::portWithWidth(int index, int width) const {
     }
 
     int count(0);
-    for (int i = 0; i < FunctionUnit::portCount(); i++) {
-        FUPort* port = 
-            static_cast<const FunctionUnit*>(this)->operationPort(i);
-        if (port->width() == width) {
+    int portC = portCount();
+    for (int i = 0; i < portC; i++) {
+        auto p = port(i);
+        TTAMachine::FUPort* port =
+            dynamic_cast<FUPort*>(p);
+        if (p != nullptr && port->width() == width) {
             count++;
             if (count > index) {
                 return *port;

@@ -7,12 +7,16 @@ pkglib_LTLIBRARIES = LLVMTCEPOMBuilder.la
 
 libtcellvmbackend_la_SOURCES = \
     TCETargetMachine.cc TCEMCAsmInfo.cc  LLVMPOMBuilder.cc \
-	LLVMTCEBuilder.cc ProgramPartitioner.cc InstructionPatternAnalyzer.cc \
+	LLVMTCEBuilder.cc InstructionPatternAnalyzer.cc \
 	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc \
 	passes/LinkBitcode.cc passes/MachineDCE.cc passes/LowerIntrinsics.cc \
+	passes/InnerLoopFinder.cc \
 	LLVMTCECmdLineOptions.cc LLVMTCEIRBuilder.cc \
-	MachineInstrDDG.cc ConstantTransformer.cc \
-	TCEStubTargetMachine.cc
+	LLVMTCEScheduler.cc MachineInstrDDG.cc PRegionMarkerAnalyzer.cc \
+	ConstantTransformer.cc \
+	TCEStubTargetMachine.cc \
+	InlineAsmParser.cc \
+	LLVMUtilities.cc
 
 libtcellvmbackend_la_SOURCES += TCEStubTargetTransformInfo.cc \
 	TCEStubSubTarget.cc TCEStubTargetMachine.hh
@@ -41,13 +45,14 @@ APPLIBS_DIR = ${SRC_ROOT}/applibs
 PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/PDG
 CFG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/CFG
 DDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/DDG
+ASSEMBLER_DIR = ${APPLIBS_DIR}/Assembler
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${MACH_DIR} \
     -I${PROG_DIR} -I${TPEF_DIR} -I${OSAL_DIR} -I${DISASM_DIR} \
     -I${UMACH_DIR} -I${OSAL_APPLIBS_DIR} -I${GRAPH_DIR} \
     -I${MACH_APPLIBS_DIR} -I${SCHED_ALGO_DIR} -I${SCHED_DIR} ${LLVM_CPPFLAGS} \
 	-I${PDG_DIR} -I${CFG_DIR} -I${DDG_DIR} -I${SELECTOR_DIR} -I${RM_DIR} \
-	-I${SCHED_ALGO_DIR} -I${PROG_APPLIBS_DIR}
+	-I${SCHED_ALGO_DIR} -I${PROG_APPLIBS_DIR} -I${ASSEMBLER_DIR}
 
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
@@ -61,7 +66,6 @@ AM_CXXFLAGS = -g ${CXXFLAGS}
 include_HEADERS = \
  plugin/TCEDAGToDAGISel.cc \
  plugin/TCEDAGToDAGISel.hh \
- plugin/TCEInstrFormats.td \
  plugin/TCEInstrInfo.cc \
  plugin/TCEInstrInfo.hh \
  plugin/TCEInstrInfo.td \
@@ -82,7 +86,8 @@ include_HEADERS = \
  plugin/TCESubtarget.hh \
  LLVMTCECmdLineOptions.hh \
  TCEStubTargetMachine.hh \
- TCEStubSubTarget.hh
+ TCEStubSubTarget.hh \
+ plugin/TCEItinerary.td
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
@@ -90,7 +95,7 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 libtcellvmbackend_la_SOURCES += \
 	TCETargetMachinePlugin.hh \
 	LLVMTCECmdLineOptions.hh LLVMTCEPOMBuilder.hh \
-	MachineInstrDDG.hh ProgramPartitioner.hh \
+	MachineInstrDDG.hh \
 	LLVMTCEIRBuilder.hh LLVMBackend.hh \
 	TDGen.hh LLVMTCEScheduler.hh \
 	InstructionPatternAnalyzer.hh TCETargetMachine.hh \
@@ -99,6 +104,8 @@ libtcellvmbackend_la_SOURCES += \
 	TCEStubTargetMachine.hh \
 	TCEStubSubTarget.hh \
 	TCEStubTargetTransformInfo.hh \
-	TCEStubSubTarget.hh
+	TCEStubSubTarget.hh \
+	InlineAsmParser.hh \
+	LLVMUtilities.hh
 
 ## headers end

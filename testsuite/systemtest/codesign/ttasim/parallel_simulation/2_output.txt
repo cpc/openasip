@@ -1,6 +1,6 @@
       1        <unknownFunctionName+1>: 1 -> complex.P2.addf ;
 error: runtime error: Resource conflict detected: operation ADDF.
-Current PC: 1 last PC: 1
+Current PC: 1 last PC: 0 cycle count: 1
       1        <unknownFunctionName+1>: 1 -> complex.P2.addf ;
 0
 

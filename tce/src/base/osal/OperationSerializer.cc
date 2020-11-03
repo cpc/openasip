@@ -256,6 +256,14 @@ OperationSerializer::toXMLFormat(const ObjectState* state) {
                         new ObjectState(Operand::OPRND_MEM_DATA));
                 }
 
+                if (child->hasAttribute(Operand::OPRND_MEM_UNITS)) {
+                    ObjectState* units = new ObjectState(
+                        Operand::OPRND_MEM_UNITS);
+                    units->setValue(child->intAttribute(
+                                        Operand::OPRND_MEM_UNITS));
+                    operandChild->addChild(units);
+                }
+                
                 // can swap list
                 if (child->childCount() > 0) {
                     ObjectState* swap = 
@@ -509,9 +517,12 @@ OperationSerializer::setOperandProperties(
             operand->setAttribute(Operand::OPRND_MEM_ADDRESS, true);
         } else if (child->name() == Operand::OPRND_MEM_DATA) {
             operand->setAttribute(Operand::OPRND_MEM_DATA, true);
-        } else if (child->name() == Operand::OPRND_CAN_SWAP) {            
+        } else if (child->name() == Operand::OPRND_CAN_SWAP) {      
             ObjectState* canSwap = new ObjectState(*child);
             operand->addChild(canSwap);
+        }
+        if (child->name() == Operand::OPRND_MEM_UNITS) {
+            operand->setAttribute(Operand::OPRND_MEM_UNITS,child->intValue());
         }
     }
 }

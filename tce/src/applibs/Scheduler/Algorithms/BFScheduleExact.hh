@@ -36,7 +36,6 @@
 #ifndef BF_SCHEDULE_EXACT_HH
 #define BF_SCHEDULE_EXACT_HH
 
-#include <cstddef>
 #include "BFScheduleMove.hh"
 
 class MoveNode;

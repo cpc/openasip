@@ -31,6 +31,7 @@
  */
 
 #include "FalseAliasAnalyzer.hh"
+#include "DataDependenceGraph.hh"
 
 /**
  * Checks whether can say something about a memory address. 
@@ -39,8 +40,8 @@
  */
 bool 
 FalseAliasAnalyzer::isAddressTraceable(
-    DataDependenceGraph&, const ProgramOperation&) {
-    return true;
+    DataDependenceGraph& ddg, const ProgramOperation&) {
+    return isEnabled(ddg) ?  true : false;
 }
 
 /**
@@ -49,11 +50,18 @@ FalseAliasAnalyzer::isAddressTraceable(
  */
 MemoryAliasAnalyzer::AliasingResult
 FalseAliasAnalyzer::analyze(
-    DataDependenceGraph&, const ProgramOperation&, const ProgramOperation&) {
-    return ALIAS_FALSE;
+    DataDependenceGraph& ddg, const ProgramOperation&, const ProgramOperation&, MoveNodeUse::BBRelation) {
+    return isEnabled(ddg) ? ALIAS_FALSE : ALIAS_UNKNOWN;
 }
 
 /**
  * Desctructor
  */
 FalseAliasAnalyzer::~FalseAliasAnalyzer() {}
+
+bool FalseAliasAnalyzer::isEnabled(const DataDependenceGraph& ddg) const {
+    if (funcs_ == NULL) {
+        return true;
+    }
+    return AssocTools::containsKey(*funcs_, ddg.name());
+}

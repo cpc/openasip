@@ -26,7 +26,7 @@
  *
  * Declaration of TCETargetMachinePlugin class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -83,6 +83,10 @@ typedef llvm::DataLayout TargetData;
 
 #include "TCEString.hh"
 
+namespace llvm {
+    class MachineOperand;
+}
+
 namespace TTAMachine {
     class Machine;
 }
@@ -92,6 +96,7 @@ namespace TTAMachine {
  */
 namespace llvm { 
    class TargetInstrInfo;
+   class TCEInstrInfo;
    class TargetLowering;
    class TargetRegisterInfo;
    class TargetFrameLowering;
@@ -102,9 +107,11 @@ namespace llvm {
    class TargetRegisterClass;
    class MachineInstr;
    class SDNode;
+   struct EVT;
 
    class TCETargetMachinePlugin {
     public:
+       // TODO: why is here this default??
        TCETargetMachinePlugin() : lowering_(NULL), tm_(NULL),
                                   dl_(TCELE64DLString) {};
                              // this is overwritten anyway later
@@ -127,10 +134,20 @@ namespace llvm {
        /// to a generated register ID.
        virtual unsigned registerIndex(unsigned dwarfRegNum) = 0;
 
+       /** Returns LLVM register ID corresponding to TTA register name.
+        *
+        * @param ttaRegister The name of the TTA register. For example "RF.5".
+        * @returns The register number if it exists in the target.
+        *          Otherwise, returns TCE::NoRegister.
+        */
+       virtual unsigned llvmRegisterId(const TCEString& ttaRegister) = 0;
+
        /// Returns operation name corresponding to llvm target opcode.
        virtual std::string operationName(unsigned opc) const = 0;
+       /// Returns true if OSAL operation is valid for stack accesses.
+       virtual bool validStackAccessOperation(
+           const std::string& opName) const = 0;
        /// Returns true in case the target supports the given osal operation
-
        virtual bool hasOperation(TCEString operationName) const = 0;
        /// Returns the opcode for the given osal operation, undefined if not found.
        virtual unsigned opcode(TCEString operationName) const = 0;
@@ -153,6 +170,10 @@ namespace llvm {
        virtual unsigned rvDRegNum() = 0;
 
        virtual unsigned rvHighDRegNum() = 0;
+
+       virtual std::vector<unsigned> getParamDRegNums() const = 0;
+
+       virtual std::vector<unsigned> getVectorRVDRegNums() const = 0;
 
        virtual bool hasUDIV() const = 0;
        virtual bool hasSDIV() const = 0;
@@ -183,13 +204,24 @@ namespace llvm {
        virtual int getLoad(const TargetRegisterClass *rc) const = 0;
        virtual int getStore(const TargetRegisterClass *rc) const = 0;
 
-       virtual unsigned getMaxMemoryAlignment() const = 0;
+       virtual int getLoadOpcode(const llvm::EVT& vt) const = 0;
+       // -1 or add opcode. Implementation generated to Backend.inc
+       virtual int getAddOpcode(const llvm::EVT& vt) const = 0;
+       // -1 or shl opcode. Implementation generated to Backend.inc
+       virtual int getShlOpcode(const llvm::EVT& vt) const = 0;
+       // -1 or ior opcode. Implementation generated to Backend.inc
+       virtual int getIorOpcode(const llvm::EVT& vt) const = 0;
 
        /// Clustered-TTA-subtemplate related methods.
        virtual const llvm::TargetRegisterClass* extrasRegClass(
            const llvm::TargetRegisterClass* current) const = 0;
        virtual const llvm::TargetRegisterClass* nodeRegClass(
            unsigned nodeId, const llvm::TargetRegisterClass* current) const = 0;
+
+#ifdef LLVM_OLDER_THAN_3_6       
+       virtual const llvm::TargetRegisterClass* RFRegClass(
+           std::string rf) const = 0;
+#endif
 
        virtual bool isLittleEndian() const = 0;
        virtual bool is64bit() const = 0;
@@ -202,9 +234,19 @@ namespace llvm {
            return &dl_;
        }
 
-       virtual TCETargetMachine *getCurrentTargetMachine() {
-           return tm_;
+        virtual TCETargetMachine* getCurrentTargetMachine() {
+            return tm_;
+        }
+        virtual const TCETargetMachine* getCurrentTargetMachine() const {
+            return tm_;
+        }
+
+       virtual bool analyzeCCBranch(
+           llvm::MachineInstr& i,
+           llvm::SmallVectorImpl<llvm::MachineOperand>& cond) const {
+           return true;
        }
+
 #ifdef LLVM_OLDER_THAN_3_9
        virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const {
 #else
@@ -213,10 +255,16 @@ namespace llvm {
            return &tsInfo_;
        }
 
+        // Implementation generated to Backend.inc
+        virtual bool canMaterializeConstant(const ConstantInt& ci) const = 0;
+
+        virtual std::tuple<int, int> getPointerAdjustment(
+            int offset) const = 0;
+
        virtual MVT::SimpleValueType getDefaultType() const = 0;
    protected:
        /// Target machine instruction info for the llvm framework. 
-       TargetInstrInfo* instrInfo_;
+       TCEInstrInfo* instrInfo_;
        TargetLowering* lowering_;
        TargetFrameLowering* frameInfo_;
        TCETargetMachine* tm_;

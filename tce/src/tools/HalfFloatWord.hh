@@ -60,6 +60,7 @@ public:
     uint16_t getBinaryRep() const { return binaryRep_; }
 
     static uint16_t convertFloatToHalfWordRep(float value);
+    static float convertToFloat(HalfFloatWord value);
 
 private:
     uint16_t binaryRep_;

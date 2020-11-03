@@ -47,15 +47,16 @@ class RuntimeErrorReporter;
  */
 class SimulatorCLI {
 public:
+    SimulatorCLI() = delete;
     SimulatorCLI(
         SimulatorFrontend& frontend);
     virtual ~SimulatorCLI();
 
-    void run();
-    void interpreteAndPrintResults(const TCEString& scriptString);
+    virtual void run();
+    virtual void interpreteAndPrintResults(const TCEString& scriptString);
 
     SimulatorInterpreter& interpreter() { return *interpreter_; }
-private:
+protected:
     SimulatorFrontend& simFront_;
     SimulatorInterpreterContext* context_;
     LineReader* reader_;

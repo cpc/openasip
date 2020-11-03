@@ -53,20 +53,20 @@ namespace TTAMachine {
 class OutputFUResource : public FUResource {
 public:
     virtual ~OutputFUResource();
-    OutputFUResource(const std::string& name, int opCount);
+    OutputFUResource(const std::string& name, int opCount, int nopSlotWeight);
 
-    virtual bool canAssign(const int cycle, const MoveNode& node) const;
+    virtual bool canAssign(const int cycle, const MoveNode& node) const override;
     virtual bool canAssign(
         const int cycle,
         const MoveNode& node,
         const TTAMachine::Port& resultPort) const;
-    virtual void assign(const int cycle, MoveNode& node);
-    virtual void unassign(const int cycle, MoveNode& node);
-    virtual bool isOutputFUResource() const;
+    virtual void assign(const int cycle, MoveNode& node) override;
+    virtual void unassign(const int cycle, MoveNode& node) override;
+    virtual bool isOutputFUResource() const override;
 
 protected:
-    virtual bool validateDependentGroups();
-    virtual bool validateRelatedGroups();
+    virtual bool validateDependentGroups() override;
+    virtual bool validateRelatedGroups() override;
 private:
     // Copying forbidden
     OutputFUResource(const OutputFUResource&);

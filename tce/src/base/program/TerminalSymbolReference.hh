@@ -26,8 +26,6 @@
  *
  * Declaration of TerminalSymbolReference class.
  *
- * This class is only used inside llvmbackend for 
- *
  * @author Heikki Kultala 2011 (hkultala-at-cs.tut.fi)
  * @note rating: red
  */

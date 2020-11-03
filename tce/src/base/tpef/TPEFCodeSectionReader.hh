@@ -53,7 +53,8 @@ protected:
 
     virtual Section::SectionType type() const;
 
-    void readInfo(BinaryStream& stream, Section* sect) const;
+    virtual void readInfo(BinaryStream& stream, Section* sect) const;
+    virtual HalfWord readId(BinaryStream& stream) const;
 
 private:
     /// Copying not allowed.

@@ -128,8 +128,7 @@ BaseRegisterFile::setWidth(int width) {
 RFPort*
 BaseRegisterFile::port(const std::string& name) const {
     Port* port = Unit::port(name);
-    RFPort* rfPort = dynamic_cast<RFPort*>(port);
-    assert(rfPort != NULL);
+    RFPort* rfPort = static_cast<RFPort*>(port);
     return rfPort;
 }
 

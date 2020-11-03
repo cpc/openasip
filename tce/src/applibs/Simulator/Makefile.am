@@ -34,16 +34,17 @@ libsimulator_la_SOURCES = WritableState.cc ReadableState.cc StateData.cc \
 	ConflictDetectingOperationExecutor.cc MemoryProxy.cc \
 	MultiLatencyOperationExecutor.cc SymbolAddressCommand.cc \
 	CompiledSimCodeGenerator.cc CompiledSimController.cc \
-	CompiledSimCompiler.cc TTASimulationController.cc \
+	CompiledSimCompiler.cc TTASimulationController.cc OTASimulationController.cc \
     CompiledSimulation.cc AssignmentQueue.cc \
 	CompiledSimSymbolGenerator.cc ConflictDetectionCodeGenerator.cc \
 	CompiledSimMove.cc CompiledSimInterpreter.cc CompiledSimSettingCommand.cc \
 	CompiledSimulationPimpl.cc FSAFUResourceConflictDetectorPimpl.cc \
 	OperationIDIndex.cc CompiledSimUtilizationStats.cc \
-	SimpleSimulatorFrontend.cc ExecutingOperation.cc SimulatorCLI.cc \
+	SimpleSimulatorFrontend.cc ExecutingOperation.cc \
+	CallPathTracker.cc BackTraceCommand.cc SimulatorCLI.cc \
 	SimulatorCmdLineOptions.cc \
-	RemoteController.cc CustomDBGController.cc TCEDBGController.cc
-	
+	RemoteController.cc CustomDBGController.cc TCEDBGController.cc \
+	TTASimulatorCLI.cc
 
 # Required by compiled simulator to compile simulation engines.
 include_HEADERS = \
@@ -166,5 +167,5 @@ libsimulator_la_SOURCES += \
 	SettingCommand.icc CompiledSimulation.icc \
 	GCUState.icc DCMFUResourceConflictDetector.icc \
 	ExecutableInstruction.icc MachineState.icc \
-	AssignmentQueue.icc 
+	AssignmentQueue.icc TTASimulatorCLI.hh
 ## headers end

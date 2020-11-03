@@ -40,6 +40,7 @@
 
 #include "MoveNodeUse.hh"
 #include "TCEString.hh"
+
 #include <set>
 #include <map>
 
@@ -119,6 +120,12 @@ struct LiveRangeData {
     // live range information
     std::set<TCEString> registersUsedAfter_;
     std::set<TCEString> registersUsedInOrAfter_;
+
+    // Liverange data, initialized from INLINEASM llvm instruction node,
+    // passed to DDG Builder.
+    std::set<TCEString> inlineAsmRegUses_;
+    std::set<TCEString> inlineAsmRegDefs_;
+    std::set<TCEString> inlineAsmClobbers_;
 };
 
 #endif

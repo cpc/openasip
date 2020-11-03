@@ -36,7 +36,12 @@
 #ifndef TTA_OPERATION_HH
 #define TTA_OPERATION_HH
 
+#include <map>
+#include <vector>
+
 #include "Serializable.hh"
+#include "SimValue.hh"
+#include "OperationBehavior.hh"
 
 class OperationContext;
 class OperationBehavior;
@@ -44,14 +49,18 @@ class OperationDAG;
 class TCEString;
 class OperationPimpl;
 class Operand;
-class SimValue;
+class RandomNumberGenerator;
+class SeedType;
 
 /**
  * Class that models the static properties and the behavior of operations
  * of the target processor.
  */
 class Operation : public Serializable {
-public:  
+public:
+
+    typedef OperationBehavior::InputOperandVector InputOperandVector;
+
     /// Object state name for operation.
     static const char* OPRN_OPERATION;
     /// Object state name for name.
@@ -106,6 +115,7 @@ public:
     virtual int numberOfInputs() const;
     virtual int numberOfOutputs() const;
     virtual int operandCount() const;
+    virtual bool isVectorOperation() const;
     virtual bool usesMemory() const;
     virtual bool readsMemory() const;
     virtual bool writesMemory() const;
@@ -127,6 +137,7 @@ public:
     virtual void setCall(bool setting);
     virtual void setBranch(bool setting);
     virtual void setControlFlowOperation(bool setting);
+    virtual bool isPure() const;
     
     virtual Operand& input(int index) const;
     virtual void addInput(Operand* operand);
@@ -143,6 +154,9 @@ public:
     virtual bool simulateTrigger(
         SimValue**,
         OperationContext& context) const;
+    virtual bool areValid(
+        const InputOperandVector& inputs,
+        const OperationContext& context) const;
 
     virtual void createState(OperationContext& context) const;
     virtual void deleteState(OperationContext& context) const;
@@ -152,7 +166,7 @@ public:
     bool isNull() const;
 
     TCEString emulationFunctionName() const;
-    
+   
     OperationPimpl& impl() { return *pimpl_; }
 private:
     /// Private implementation in a separate source file.

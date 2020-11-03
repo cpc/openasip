@@ -159,11 +159,17 @@ BoostGraph<GraphNode, GraphEdge>::~BoostGraph() {
  */
 template <typename GraphNode, typename GraphEdge>
 void
-BoostGraph<GraphNode, GraphEdge>::addNode(GraphNode& node)
-     {
-    
+BoostGraph<GraphNode, GraphEdge>::addNode(GraphNode& node) {
     NodeDescriptor nd = boost::add_vertex(&node, graph_);
     nodeDescriptors_[&node] = nd;
+
+    if (height_ != -1) {
+        sourceDistances_[&node] = 0;
+        sinkDistances_[&node] = 0;
+
+        loopingSourceDistances_[&node] = 0;
+        loopingSinkDistances_[&node] = 0;
+    }
 
     // add node also to parent graph
     if (parentGraph_ != NULL) {
@@ -206,9 +212,7 @@ BoostGraph<GraphNode, GraphEdge>::edgeCount() const {
  */
 template <typename GraphNode, typename GraphEdge>
 GraphNode&
-BoostGraph<GraphNode, GraphEdge>::node(
-    const int index) const
-     {
+BoostGraph<GraphNode, GraphEdge>::node(const int index) const {
     return node(index, true);
 }
 
@@ -226,8 +230,7 @@ BoostGraph<GraphNode, GraphEdge>::node(
 template <typename GraphNode, typename GraphEdge>
 GraphNode&
 BoostGraph<GraphNode, GraphEdge>::node(
-    const int index, bool cacheResult) const
-     {
+    const int index, bool cacheResult) const {
     if (index < 0 || index >=  nodeCount()) {
         TCEString procName("BoostGraph::node");
         boost::format errorMsg("Node index %1% out of range [0, %2%).");
@@ -257,9 +260,7 @@ BoostGraph<GraphNode, GraphEdge>::node(
  */
 template <typename GraphNode, typename GraphEdge>
 GraphEdge&
-BoostGraph<GraphNode, GraphEdge>::edge(const int index) const
-     {
-
+BoostGraph<GraphNode, GraphEdge>::edge(const int index) const {
     if (index < 0 || index >=  edgeCount()) {
         TCEString procName("BoostGraph::edge");
         boost::format errorMsg("Edge index %1% out of range [0, %2%).");
@@ -295,10 +296,7 @@ BoostGraph<GraphNode, GraphEdge>::edge(const int index) const
 template <typename GraphNode, typename GraphEdge>
 GraphEdge&
 BoostGraph<GraphNode, GraphEdge>::outEdge(
-    const GraphNode& node,
-    const int index) const
-     {
-
+    const GraphNode& node, const int index) const {
     const TCEString procName("BoostGraph::outEdge");
 
     if (outDegree(node) <= index) {
@@ -344,10 +342,7 @@ BoostGraph<GraphNode, GraphEdge>::outEdge(
 template <typename GraphNode, typename GraphEdge>
 GraphEdge&
 BoostGraph<GraphNode, GraphEdge>::inEdge(
-    const GraphNode& node,
-    const int index) const
-     {
-
+    const GraphNode& node, const int index) const {
     std::pair<InEdgeIter, InEdgeIter> edges =
         boost::in_edges(descriptor(node), graph_);
     if (edges.first == edges.second) {
@@ -385,9 +380,7 @@ BoostGraph<GraphNode, GraphEdge>::inEdge(
  */
 template <typename GraphNode, typename GraphEdge>
 typename BoostGraph<GraphNode, GraphEdge>::EdgeSet
-BoostGraph<GraphNode, GraphEdge>::outEdges(const GraphNode& node) const
-     {
-
+BoostGraph<GraphNode, GraphEdge>::outEdges(const GraphNode& node) const {
     typedef typename GraphTraits::out_edge_iterator outEdgeIter;
     std::pair<outEdgeIter, outEdgeIter> edges = boost::out_edges(
         descriptor(node), graph_);
@@ -411,9 +404,7 @@ BoostGraph<GraphNode, GraphEdge>::outEdges(const GraphNode& node) const
 template <typename GraphNode, typename GraphEdge>
 typename BoostGraph<GraphNode, GraphEdge>::EdgeSet
 BoostGraph<GraphNode, GraphEdge>::rootGraphOutEdges(
-    const GraphNode& node) const
-     {
-
+    const GraphNode& node) const {
     if (parentGraph_ == NULL) {
         return outEdges(node);
     } else {
@@ -429,9 +420,7 @@ BoostGraph<GraphNode, GraphEdge>::rootGraphOutEdges(
  */
 template <typename GraphNode, typename GraphEdge>
 typename BoostGraph<GraphNode, GraphEdge>::EdgeSet
-BoostGraph<GraphNode, GraphEdge>::inEdges(const GraphNode& node) const
-     {
-
+BoostGraph<GraphNode, GraphEdge>::inEdges(const GraphNode& node) const {
     typedef typename GraphTraits::in_edge_iterator InEdgeIter;
     std::pair<InEdgeIter, InEdgeIter> edges = boost::in_edges(
         descriptor(node), graph_);
@@ -452,9 +441,8 @@ BoostGraph<GraphNode, GraphEdge>::inEdges(const GraphNode& node) const
  */
 template <typename GraphNode, typename GraphEdge>
 typename BoostGraph<GraphNode, GraphEdge>::EdgeSet
-BoostGraph<GraphNode, GraphEdge>::rootGraphInEdges(const GraphNode& node) const
-     {
-
+BoostGraph<GraphNode, GraphEdge>::rootGraphInEdges(
+    const GraphNode& node) const {
     if (parentGraph_ == NULL) {
         return inEdges(node);
     } else {
@@ -472,9 +460,7 @@ BoostGraph<GraphNode, GraphEdge>::rootGraphInEdges(const GraphNode& node) const
 template <typename GraphNode, typename GraphEdge>
 typename BoostGraph<GraphNode, GraphEdge>::Edge&
 BoostGraph<GraphNode, GraphEdge>::rootGraphInEdge(
-    const GraphNode& node, const int index) const
-     {
-
+    const GraphNode& node, const int index) const {
     if (parentGraph_ == NULL) {
         return inEdge(node, index);
     } else {
@@ -510,8 +496,7 @@ BoostGraph<GraphNode, GraphEdge>::rootGraphOutEdge(
  */
 template <typename GraphNode, typename GraphEdge>
 int
-BoostGraph<GraphNode, GraphEdge>::outDegree(const GraphNode& node) const
-     {
+BoostGraph<GraphNode, GraphEdge>::outDegree(const GraphNode& node) const {
     return boost::out_degree(descriptor(node), graph_);
 }
 
@@ -525,8 +510,7 @@ BoostGraph<GraphNode, GraphEdge>::outDegree(const GraphNode& node) const
  */
 template <typename GraphNode, typename GraphEdge>
 int
-BoostGraph<GraphNode, GraphEdge>::inDegree(const GraphNode& node) const
-     {
+BoostGraph<GraphNode, GraphEdge>::inDegree(const GraphNode& node) const {
     return boost::in_degree(descriptor(node), graph_);
 }
 
@@ -541,8 +525,7 @@ BoostGraph<GraphNode, GraphEdge>::inDegree(const GraphNode& node) const
 template <typename GraphNode, typename GraphEdge>
 int
 BoostGraph<GraphNode, GraphEdge>::rootGraphOutDegree(
-    const GraphNode& node) const
-     {
+    const GraphNode& node) const {
     return parentGraph_ == NULL ?
         boost::out_degree(descriptor(node), graph_) :
         parentGraph_->rootGraphOutDegree(node);
@@ -559,13 +542,11 @@ BoostGraph<GraphNode, GraphEdge>::rootGraphOutDegree(
 template <typename GraphNode, typename GraphEdge>
 int
 BoostGraph<GraphNode, GraphEdge>::rootGraphInDegree(
-    const GraphNode& node) const
-     {
+    const GraphNode& node) const {
     return parentGraph_ == NULL ?
         boost::in_degree(descriptor(node), graph_) :
         parentGraph_->rootGraphInDegree(node);
 }
-
 
 /**
  * Returns the tail node of a edge.
@@ -577,8 +558,7 @@ BoostGraph<GraphNode, GraphEdge>::rootGraphInDegree(
  */
 template <typename GraphNode, typename GraphEdge>
 GraphNode&
-BoostGraph<GraphNode, GraphEdge>::tailNode(const GraphEdge& edge) const
-     {
+BoostGraph<GraphNode, GraphEdge>::tailNode(const GraphEdge& edge) const {
     EdgeDescriptor ed = descriptor(edge);
     NodeDescriptor nd = boost::source(ed, graph_);
     GraphNode* nn = graph_[nd];
@@ -597,8 +577,7 @@ BoostGraph<GraphNode, GraphEdge>::tailNode(const GraphEdge& edge) const
 template <typename GraphNode, typename GraphEdge>
 GraphNode&
 BoostGraph<GraphNode, GraphEdge>::tailNode(
-    const GraphEdge& edge, const NodeDescriptor& headNode) const
-     {
+    const GraphEdge& edge, const NodeDescriptor& headNode) const {
     EdgeDescriptor ed = edgeDescriptor(edge, headNode);
     NodeDescriptor nd = boost::source(ed, graph_);
     GraphNode* nn = graph_[nd];
@@ -616,8 +595,7 @@ BoostGraph<GraphNode, GraphEdge>::tailNode(
  */
 template <typename GraphNode, typename GraphEdge>
 GraphNode&
-BoostGraph<GraphNode, GraphEdge>::headNode(const GraphEdge& edge) const
-     {
+BoostGraph<GraphNode, GraphEdge>::headNode(const GraphEdge& edge) const {
     EdgeDescriptor ed = descriptor(edge);
     NodeDescriptor nd = boost::target(ed, graph_);
     GraphNode* node = graph_[nd];
@@ -636,9 +614,7 @@ BoostGraph<GraphNode, GraphEdge>::headNode(const GraphEdge& edge) const
 template <typename GraphNode, typename GraphEdge>
 GraphNode&
 BoostGraph<GraphNode, GraphEdge>::headNode(
-    const GraphEdge& edge, const NodeDescriptor& tailNode) const
-     {
-
+    const GraphEdge& edge, const NodeDescriptor& tailNode) const {
     EdgeDescriptor ed = edgeDescriptor(tailNode,edge);
     NodeDescriptor nd = boost::target(ed, graph_);
     GraphNode* node = graph_[nd];
@@ -661,8 +637,7 @@ BoostGraph<GraphNode, GraphEdge>::headNode(
 template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::connectNodes(
-    const GraphNode& nTail, const GraphNode& nHead, GraphEdge& e)
-     {
+    const GraphNode& nTail, const GraphNode& nHead, GraphEdge& e) {
     connectNodes(nTail, nHead, e, NULL);
 }
 
@@ -726,16 +701,17 @@ template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::connectNodes(
     const GraphNode& nTail, const GraphNode& nHead, GraphEdge& e,
-    GraphBase<GraphNode, GraphEdge>* modifier, bool creatingSG)
-     {
-
+    GraphBase<GraphNode, GraphEdge>* modifier, bool creatingSG) {
     // not add if invalid params
     if (!hasNode(nTail) || !hasNode(nHead)) {
         // for sub graphs silently skip it
         if (parentGraph_ != NULL) {
             return;
         } else {
-            assert(false && "Trying to Connect nodes not on the graph");
+            assert(hasNode(nTail)
+                && "Trying to connect tail node not on the graph");
+            assert(hasNode(nHead)
+                && "Trying to connect head node not on the graph");
         }
     }
 
@@ -750,58 +726,19 @@ BoostGraph<GraphNode, GraphEdge>::connectNodes(
     }
 
     if (allowLoopEdges_ || !e.isBackEdge()) {
+        NodeDescriptor td = descriptor(nTail);
+        NodeDescriptor hd = descriptor(nHead);
+        if (!e.isBackEdge() && td == hd && creatingSG) {
+            std::cerr << "node: " << nTail.toString() << " edge: " << e.toString() << std::endl;
+            assert(0 && "non-loop-edge going from node to itsefl!");
+        }
         edgeDescriptors_[&e] =
-            boost::add_edge(descriptor(nTail), descriptor(nHead), &e, graph_).
+            boost::add_edge(td, hd, &e, graph_).
             first;
 
         // If we have calculated path lenght data, keep it in sync.
         if (height_ != -1) {
-            int eWeight = edgeWeight(e, nHead);
-
-
-            typename std::map<const GraphNode*,int,
-                typename GraphNode::Comparator>::iterator
-                loopingHeadIter = loopingSinkDistances_.find(&nHead);
-
-            typename std::map<const GraphNode*,int,
-                typename GraphNode::Comparator>::iterator
-                loopingTailIter = loopingSourceDistances_.find(&nTail);
-
-            typename std::map<const GraphNode*,int,
-                typename GraphNode::Comparator>::iterator
-                headIter = sinkDistances_.find(&nHead);
-
-            typename std::map<const GraphNode*,int,
-                typename GraphNode::Comparator>::iterator
-                tailIter = sourceDistances_.find(&nTail);
-
-            if (loopingHeadIter != loopingSinkDistances_.end() &&
-                !e.isBackEdge()) {
-                calculateSinkDistance(
-                    nTail, loopingHeadIter->second + eWeight, true);
-            }
-
-            if (headIter == sinkDistances_.end()) {
-                sinkDistances_[&nHead] = 0;
-                calculateSinkDistance(nTail, eWeight, e.isBackEdge());
-            } else {
-                calculateSinkDistance(
-                    nTail, headIter->second + eWeight, e.isBackEdge());
-            }
-
-            if (loopingTailIter != loopingSourceDistances_.end() &&
-                !e.isBackEdge()) {
-                calculateSourceDistances(
-                    &nHead, loopingTailIter->second + eWeight, true);
-            }
-
-            if (tailIter == sourceDistances_.end()) {
-                sourceDistances_[&nTail] = 0;
-                calculateSourceDistances(&nHead, eWeight, e.isBackEdge());
-            } else {
-                calculateSourceDistances(
-                    &nHead, tailIter->second + eWeight, e.isBackEdge());
-            }
+            calculatePathLengthsOnConnect(nTail, nHead, e);
         }
     }
 
@@ -816,6 +753,117 @@ BoostGraph<GraphNode, GraphEdge>::connectNodes(
     }
 }
 
+template<typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::sinkDistDecreased(
+const GraphNode& n) const {
+
+    if (height_ == -1) {
+        return;
+    }
+
+    auto lsdIter = loopingSinkDistances_.find(&n);
+    int oldSD = sinkDistances_[&n];
+    int oldLSD = lsdIter != loopingSinkDistances_.end() ?
+        lsdIter->second : 0;
+    int sd = 0;
+    int loopingSD = 0;
+    int nd = descriptor(n);
+    auto edges = boost::out_edges(nd, graph_);
+    for (auto j = edges.first; j != edges.second; j++) {
+        EdgeDescriptor ed = *j;
+        NodeDescriptor hd = boost::target(ed, graph_);
+        GraphNode* head = graph_[hd];
+        GraphEdge* edge = graph_[ed];
+        int eWeight = edgeWeight(*edge, *head);
+        int headSD = sinkDistances_[head] + eWeight;
+        if (edge->isBackEdge()) {
+            loopingSD = std::max(loopingSD, headSD);
+        } else {
+            sd = std::max(sd, headSD);
+            auto headLSDIter = loopingSinkDistances_.find(head);
+            if (headLSDIter != loopingSinkDistances_.end()) {
+                loopingSD = std::max(
+                    loopingSD, headLSDIter->second + eWeight);
+            }
+        }
+    }
+    if (sd < oldSD || loopingSD < oldLSD) {
+        sinkDistances_[&n] = sd;
+        if (loopingSD < oldLSD) {
+            loopingSinkDistances_[&n] = loopingSD;
+        }
+
+        // propagate to predecessors
+        auto edges = boost::in_edges(nd, graph_);
+        for (auto j = edges.first; j != edges.second; j++) {
+            EdgeDescriptor ed = *j;
+            GraphEdge* edge = graph_[ed];
+            if (!edge->isBackEdge() || sd < oldSD) {
+                NodeDescriptor td = boost::source(ed, graph_);
+                GraphNode* tail = graph_[td];
+                sinkDistDecreased(*tail);
+            }
+        }
+    }
+}
+
+template<typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::sourceDistDecreased(
+    const GraphNode& n) const {
+
+    if (height_ == -1) {
+        return;
+    }
+
+    auto lsdIter = loopingSourceDistances_.find(&n);
+    int oldSD = sourceDistances_[&n];
+    int oldLSD = lsdIter != loopingSourceDistances_.end() ?
+        lsdIter->second : 0;
+
+    int sd = 0;
+    int loopingSD = 0;
+    int nd = descriptor(n);
+    auto edges = boost::in_edges(nd, graph_);
+    for (auto j = edges.first; j != edges.second; j++) {
+        EdgeDescriptor ed = *j;
+        NodeDescriptor td = boost::source(ed, graph_);
+        GraphNode* tail = graph_[td];
+        GraphEdge* edge = graph_[ed];
+        int eWeight = edgeWeight(*edge, n);
+        int tailSD = sourceDistances_[tail] + eWeight;
+        if (edge->isBackEdge()) {
+            loopingSD = std::max(loopingSD, tailSD);
+        } else {
+            sd = std::max(sd, tailSD);
+            auto tailLSDIter = loopingSourceDistances_.find(tail);
+            if (tailLSDIter != loopingSourceDistances_.end()) {
+                loopingSD = std::max(
+                    loopingSD, tailLSDIter->second + eWeight);
+            }
+        }
+    }
+
+    if (sd < oldSD || loopingSD < oldLSD) {
+        sourceDistances_[&n] = sd;
+        if (loopingSD < oldLSD) {
+            loopingSourceDistances_[&n] = loopingSD;
+        }
+
+        // propagate to successors
+        auto edges = boost::out_edges(nd, graph_);
+        for (auto j = edges.first; j != edges.second; j++) {
+            EdgeDescriptor ed = *j;
+            GraphEdge* edge = graph_[ed];
+            if (!edge->isBackEdge() || sd < oldSD) {
+                NodeDescriptor hd = boost::target(ed, graph_);
+                GraphNode* head = graph_[hd];
+                sourceDistDecreased(*head);
+            }
+        }
+    }
+}
 
 /**
  * Disconnects two nodes.
@@ -832,27 +880,51 @@ BoostGraph<GraphNode, GraphEdge>::disconnectNodes(
     const GraphNode& nTail,
     const GraphNode& nHead) {
 
+    int maxW = 0;
+    int maxwLoop = 0;
     while (hasEdge(nTail, nHead)) {
         EdgeDescriptor ed = connectingEdge(nTail, nHead);
         GraphEdge* e = graph_[ed];
         if (height_ != -1) {
             int eWeight = edgeWeight(*e, nHead);
-            if (sourceDistances_[&nTail] + eWeight ==
-                sourceDistances_[&nHead] ||
-                (!sinkDistances_.empty() &&
-                sinkDistances_[&nHead] + eWeight ==
-                 sinkDistances_[&nTail])) {
-                // removing a edge may invalidate some cached data
-                height_ = -1;
-                sourceDistances_.clear();
-                sinkDistances_.clear();
-                loopingSourceDistances_.clear();
-                loopingSinkDistances_.clear();
-                delete pathCache_;
-                pathCache_ = NULL;
+            if (e->isBackEdge()) {
+                maxwLoop = std::max(eWeight, maxW);
+            } else {
+                maxW = std::max(eWeight, maxW);
             }
         }
         removeEdge(*e, &nTail, &nHead);
+    }
+
+    if (height_ != -1) {
+        bool recalc = false;
+        if (sourceDistances_[&nTail] + maxW ==
+            sourceDistances_[&nHead] ||
+            (!loopingSourceDistances_.empty() &&
+             (loopingSourceDistances_[&nTail] + maxW ==
+              loopingSourceDistances_[&nHead] ||
+              sourceDistances_[&nTail] + maxwLoop ==
+              loopingSourceDistances_[&nHead]))) {
+            recalc = true;
+            sourceDistDecreased(nTail);
+        }
+
+        if (!sinkDistances_.empty() &&
+            (sinkDistances_[&nHead] + maxW ==
+             sinkDistances_[&nTail] ||
+             (!loopingSinkDistances_.empty() &&
+              (loopingSinkDistances_[&nHead] + maxW ==
+               loopingSinkDistances_[&nTail] ||
+               sinkDistances_[&nHead] +maxwLoop ==
+               loopingSinkDistances_[&nTail])))) {
+            recalc = true;
+            sinkDistDecreased(nHead);
+        }
+
+        if (recalc) {
+            delete pathCache_;
+            pathCache_ = NULL;
+        }
     }
 }
 
@@ -868,8 +940,7 @@ BoostGraph<GraphNode, GraphEdge>::disconnectNodes(
 template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::moveInEdges(
-    const GraphNode& source,
-    const GraphNode& destination)  {
+    const GraphNode& source, const GraphNode& destination) {
     moveInEdges(source, destination, NULL);
 }
 
@@ -885,10 +956,8 @@ BoostGraph<GraphNode, GraphEdge>::moveInEdges(
 template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::moveInEdges(
-    const GraphNode& source,
-    const GraphNode& destination,
-    BoostGraph* modifierGraph)  {
-
+    const GraphNode& source, const GraphNode& destination,
+    BoostGraph* modifierGraph) {
     if (!hasNode(source)) {
         if (hasNode(destination)) {
             TCEString msg = "Illegal Graph update: "
@@ -913,12 +982,20 @@ BoostGraph<GraphNode, GraphEdge>::moveInEdges(
                 edgeDescriptors_.erase(edIter);
             }
 
+            sourceDistDecreased(source);
+            sinkDistDecreased(tail);
+
             // if dest not in this graph, just remove
             if (hasNode(destination)) {
                 std::pair<EdgeDescriptor,bool> tmpPair =
                     boost::add_edge(
                         descriptor(tail), descriptor(head), &e, graph_);
                 edgeDescriptors_[&e] = tmpPair.first;
+
+                if (height_ != -1) {
+                    calculatePathLengthsOnConnect(tail, head, e);
+                }
+
             }
         }
 
@@ -937,11 +1014,9 @@ BoostGraph<GraphNode, GraphEdge>::moveInEdges(
     }
 }
 
-
 template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::copyInEdge(
-//    const GraphNode& source,
     const GraphNode& destination,
     GraphEdge& edge,
     const GraphNode* tail) {
@@ -995,11 +1070,13 @@ BoostGraph<GraphNode, GraphEdge>::moveInEdge(
     if (hasNode(*tail) && hasEdge(edge)) {
         bool hasSource = hasNode(originalHeadNode);
         bool hasDestination = hasNode(newHeadNode);
-
         const GraphNode& head = newHeadNode;
 
         if (hasSource) {
             boost::remove_edge(descriptor(edge), graph_);
+
+            sourceDistDecreased(originalHeadNode);
+            sinkDistDecreased(*tail);
         }
 
         if (hasDestination) {
@@ -1007,6 +1084,11 @@ BoostGraph<GraphNode, GraphEdge>::moveInEdge(
                 boost::add_edge(
                     descriptor(*tail), descriptor(head), &edge, graph_);
             edgeDescriptors_[&edge] = tmpPair.first;
+
+            if (height_ != -1) {
+                calculatePathLengthsOnConnect(*tail, head, edge);
+            }
+
         }
         // need to process child graphs?
         if (hasSource | hasDestination) {
@@ -1044,9 +1126,12 @@ BoostGraph<GraphNode, GraphEdge>::moveOutEdge(
         bool hasDestination = hasNode(newTailNode);
 
         const GraphNode& tail = newTailNode;
-
         if (hasSource) {
             boost::remove_edge(descriptor(edge), graph_);
+
+            sourceDistDecreased(*head);
+            sinkDistDecreased(originalTailNode);
+
         }
 
         if (hasDestination) {
@@ -1054,6 +1139,11 @@ BoostGraph<GraphNode, GraphEdge>::moveOutEdge(
                 boost::add_edge(
                     descriptor(tail), descriptor(*head), &edge, graph_);
             edgeDescriptors_[&edge] = tmpPair.first;
+
+            if (height_ != -1) {
+                calculatePathLengthsOnConnect(tail, *head, edge);
+            }
+
         }
 
         // need to process child graphs?
@@ -1078,9 +1168,7 @@ BoostGraph<GraphNode, GraphEdge>::moveOutEdge(
 template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::moveOutEdges(
-    const GraphNode& source,
-    const GraphNode& destination)
-     {
+    const GraphNode& source, const GraphNode& destination) {
     moveOutEdges(source, destination, this);
 }
 
@@ -1096,10 +1184,8 @@ BoostGraph<GraphNode, GraphEdge>::moveOutEdges(
 template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::moveOutEdges(
-    const GraphNode& source,
-    const GraphNode& destination,
-    BoostGraph* modifierGraph)  {
-
+    const GraphNode& source, const GraphNode& destination,
+    BoostGraph* modifierGraph) {
     if (!hasNode(source)) {
         if (hasNode(destination)) {
             TCEString msg = "Illegal Graph update: "
@@ -1110,7 +1196,6 @@ BoostGraph<GraphNode, GraphEdge>::moveOutEdges(
         }
 
     } else {
-
         EdgeSet edges = outEdges(source);
         for (typename EdgeSet::iterator i = edges.begin();
              i != edges.end(); ++i) {
@@ -1118,6 +1203,9 @@ BoostGraph<GraphNode, GraphEdge>::moveOutEdges(
             const GraphNode& tail = destination;
             const GraphNode& head = headNode(e);
             boost::remove_edge(descriptor(e), graph_);
+
+            sourceDistDecreased(head);
+            sinkDistDecreased(source);
 
             typename EdgeDescMap::iterator
                 edIter = edgeDescriptors_.find(&e);
@@ -1130,6 +1218,10 @@ BoostGraph<GraphNode, GraphEdge>::moveOutEdges(
                 boost::add_edge(
                     descriptor(tail), descriptor(head), &e, graph_);
                 edgeDescriptors_[&e] = tmpPair.first;
+
+                if (height_ != -1) {
+                    calculatePathLengthsOnConnect(tail, head, e);
+                }
 
             }
         }
@@ -1174,9 +1266,7 @@ BoostGraph<GraphNode, GraphEdge>::clearDescriptorCache(EdgeSet edges) {
 template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::removeNode(
-    GraphNode& nodeToRemove, BoostGraph* modifierGraph)
-     {
-
+    GraphNode& nodeToRemove, BoostGraph* modifierGraph) {
     if (hasNode(nodeToRemove)) {
 
         replaceNodeWithLastNode(nodeToRemove);
@@ -1210,8 +1300,7 @@ BoostGraph<GraphNode, GraphEdge>::removeNode(
  */
 template <typename GraphNode, typename GraphEdge>
 void
-BoostGraph<GraphNode, GraphEdge>::removeNode(GraphNode& node)
-     {
+BoostGraph<GraphNode, GraphEdge>::removeNode(GraphNode& node) {
     removeNode(node, NULL);
 }
 
@@ -1226,9 +1315,7 @@ BoostGraph<GraphNode, GraphEdge>::removeNode(GraphNode& node)
  */
 template <typename GraphNode, typename GraphEdge>
 void
-BoostGraph<GraphNode, GraphEdge>::dropNode(GraphNode& nodeToDrop)
-     {
-
+BoostGraph<GraphNode, GraphEdge>::dropNode(GraphNode& nodeToDrop) {
     if (!hasNode(nodeToDrop)) {
         return;
     }
@@ -1253,6 +1340,11 @@ void
 BoostGraph<GraphNode, GraphEdge>::replaceNodeWithLastNode(GraphNode& dest) {
 
     NodeDescriptor nd = descriptor(dest);
+    typename BoostGraph<GraphNode, GraphEdge>::NodeSet preds;
+    typename BoostGraph<GraphNode, GraphEdge>::NodeSet succs;
+
+    succs = successors(dest);
+    preds = predecessors(dest);
 
     // remove edge cache
     clearDescriptorCache(inEdges(dest));
@@ -1272,19 +1364,6 @@ BoostGraph<GraphNode, GraphEdge>::replaceNodeWithLastNode(GraphNode& dest) {
              i != iEdges.end(); ++i) {
             Edge& e = **i;
             const GraphNode& tail = tailNode(e);
-            if (height_ != -1) {
-                int eWeight = edgeWeight(e, dest);
-                // does removal of this edge shorten longest paths?
-                if (!sinkDistances_.empty() &&
-                    sinkDistances_[&dest] + eWeight ==
-                    sinkDistances_[&tail]) {
-                    height_ = -1;
-                    sourceDistances_.clear();
-                    sinkDistances_.clear();
-                    loopingSourceDistances_.clear();
-                    loopingSinkDistances_.clear();
-                }
-            }
             // remove the edge pointing to old place of last node
             boost::remove_edge(descriptor(e), graph_);
 
@@ -1309,18 +1388,6 @@ BoostGraph<GraphNode, GraphEdge>::replaceNodeWithLastNode(GraphNode& dest) {
              i != oEdges.end(); ++i) {
             Edge& e = **i;
             const GraphNode& head = headNode(e);
-            if (height_ != -1) {
-                int eWeight = edgeWeight(e, head);
-                // does removal of this edge shorten longest paths?
-                if (sourceDistances_[&dest] + eWeight ==
-                    sourceDistances_[&head]) {
-                    height_ = -1;
-                    sourceDistances_.clear();
-                    sinkDistances_.clear();
-                    loopingSourceDistances_.clear();
-                    loopingSinkDistances_.clear();
-                }
-            }
             // remove the edge pointing to old place of last node
             boost::remove_edge(descriptor(e), graph_);
 
@@ -1345,6 +1412,18 @@ BoostGraph<GraphNode, GraphEdge>::replaceNodeWithLastNode(GraphNode& dest) {
         // update descriptor map.
         nodeDescriptors_[&lastNode] = nd;
     }
+
+    if (height_ != -1) {
+        sinkDistances_.erase(&dest);
+        sourceDistances_.erase(&dest);
+        loopingSinkDistances_.erase(&dest);
+        loopingSourceDistances_.erase(&dest);
+    }
+
+    for (auto n: succs) sourceDistDecreased(*n);
+    for (auto n: preds) sinkDistDecreased(*n);
+
+    nodeDescriptors_[&lastNode] = nd;
 
     // remove just the last node.
     boost::remove_vertex(lnd, graph_);
@@ -1371,9 +1450,7 @@ BoostGraph<GraphNode, GraphEdge>::replaceNodeWithLastNode(GraphNode& dest) {
  */
 template <typename GraphNode, typename GraphEdge>
 void
-BoostGraph<GraphNode, GraphEdge>::removeEdge(
-    GraphEdge& e)
-     {
+BoostGraph<GraphNode, GraphEdge>::removeEdge(GraphEdge& e) {
     removeEdge(e, NULL, NULL, NULL);
 }
 
@@ -1388,9 +1465,7 @@ BoostGraph<GraphNode, GraphEdge>::removeEdge(
  */
 template <typename GraphNode, typename GraphEdge>
 void
-BoostGraph<GraphNode, GraphEdge>::dropEdge(GraphEdge& e)
-     {
-
+BoostGraph<GraphNode, GraphEdge>::dropEdge(GraphEdge& e) {
     boost::remove_edge(descriptor(e), graph_);
 
     typename EdgeDescMap::iterator
@@ -1420,8 +1495,7 @@ template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::removeEdge(
     GraphEdge& e, const GraphNode* tailNode, const GraphNode* headNode,
-    BoostGraph* modifierGraph)
-     {
+    BoostGraph* modifierGraph) {
     if (hasEdge(e, tailNode, headNode)) {
         boost::remove_edge(descriptor(e), graph_);
 
@@ -1666,10 +1740,11 @@ BoostGraph<GraphNode, GraphEdge>::hasEdge(
 
     typedef std::pair<OutEdgeIter, OutEdgeIter> OutEdgeIterPair;
 
+    unsigned int hd = descriptor(nHead);
     OutEdgeIterPair edges = boost::out_edges(descriptor(nTail), graph_);
 
     for (OutEdgeIter i = edges.first; i != edges.second; i++) {
-        if (graph_[*i] == &edge && target(*i, graph_) == descriptor(nHead)) {
+        if (graph_[*i] == &edge && target(*i, graph_) == hd) {
             return true;
         }
     }
@@ -1943,16 +2018,19 @@ BoostGraph<GraphNode, GraphEdge>::predecessors(
 
     NodeSet pred;
 
-    NodeDescriptor nd = descriptor(node);
-    EdgeSet in = inEdges(node);
-    typedef typename EdgeSet::iterator EdgeIterator;
+    typedef typename GraphTraits::in_edge_iterator InEdgeIter;
+    std::pair<InEdgeIter, InEdgeIter> edges = boost::in_edges(
+        descriptor(node), graph_);
 
-    for (EdgeIterator i = in.begin(); i != in.end(); ++i) {
-        bool backEdge = (*i)->isBackEdge();
-
+    for (InEdgeIter ei = edges.first; ei != edges.second; ++ei) {
+        EdgeDescriptor ed = *ei;
+        GraphEdge* edge = graph_[ed];
+        bool backEdge = edge->isBackEdge();
         if (!((ignoreBackEdges && backEdge) ||
               (ignoreForwardEdges && !backEdge))) {
-            pred.insert(&tailNode(**i, nd));
+            NodeDescriptor nTail = boost::source(ed, graph_);
+            GraphNode* tail = graph_[nTail];
+            pred.insert(tail);
         }
     }
     return pred;
@@ -2057,7 +2135,7 @@ BoostGraph<GraphNode, GraphEdge>::calculatePathLengths() const {
  *
  * Iterative algorithm, starts from given node or all source nodes.
  *
- * Does a breadth-first search, prioritizating first nodes in thr graph.
+ * Does a breadth-first search, prioritizating first nodes in the graph.
  *
  * @param startingNode node whose successors's source dist to calculate,
  * or NULL if start from all sources.
@@ -2069,6 +2147,10 @@ void
 BoostGraph<GraphNode, GraphEdge>::calculateSourceDistances(
     const GraphNode* startingNode, int startingLength, bool looping) const {
 
+    if (startingLength > height_) {
+        height_ = startingLength;
+    }
+
     // priority queue of nodes to be processed
     typename std::map <NodeDescriptor, int> sourceDistanceQueue;
 
@@ -2077,7 +2159,7 @@ BoostGraph<GraphNode, GraphEdge>::calculateSourceDistances(
 
     // first initialize starting nodes to the queue
 
-    // one starting ndoe?
+    // one starting node?
     if (startingNode != NULL) {
         if (!looping) {
             sourceDistances_[startingNode] = startingLength;
@@ -2129,6 +2211,10 @@ BoostGraph<GraphNode, GraphEdge>::calculateSourceDistances(
             Node* headNode = graph_[headDesc];
             int eWeight = edgeWeight(*edge, *headNode);
             int destLen = len + eWeight;
+
+            if (destLen > height_) {
+                height_ = destLen;
+            }
 
             // normal or loop-containing length?
             typename std::map<
@@ -2252,7 +2338,7 @@ template<typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::calculateSinkDistance(
     const Node& node, int len, bool looping ) const {
-    if (len > 450000) {
+    if (len > 26000) {
         GraphBase<GraphNode,GraphEdge>::writeToDotFile("not_dag.dot");
         assert(false&&"cannot calc sink distance for graph which is not dag");
     }
@@ -2297,6 +2383,9 @@ BoostGraph<GraphNode, GraphEdge>::calculateSinkDistance(
             Node* tailNode = graph_[td];
             int eWeight = edgeWeight(*edge, node);
             int sdLen = len + eWeight;
+            if (sdLen > height_) {
+                height_ = sdLen;
+            }
 
             // the predecessor is thru one loop?
             if (looping || edge->isBackEdge()) {
@@ -2384,6 +2473,10 @@ int
 BoostGraph<GraphNode, GraphEdge>::maxSourceDistance(const GraphNode& node)
     const {
 
+    if (!hasNode(node)) {
+        return -1;
+    }
+
 
     for (int i = 0; i < 2; i++) {
         typename std::map<
@@ -2398,13 +2491,20 @@ BoostGraph<GraphNode, GraphEdge>::maxSourceDistance(const GraphNode& node)
             iterator iter2 = sourceDistances_.find(&node);
 
         if (iter2 == sourceDistances_.end()) {
-            calculateSourceDistances();
-//            calculatePathLengths();
+            if (i == 0) {
+                calculateSourceDistances();
+            }
         } else {
             return iter2->second;
         }
     }
-    assert("source distance should have been found.");
+    if (!hasNode(node)) {
+        return -1;
+    }
+    std::cerr << "Node lacks source distance! " << node.nodeID() << " " << node.nodeID() << " "
+              << node.toString() << std::endl;
+    BoostGraph<GraphNode, GraphEdge>::writeToDotFile("lacking_sourced.dot");
+    assert(0 && "source distance should have been found.");
     return -1;
 }
 
@@ -2426,18 +2526,19 @@ int
 BoostGraph<GraphNode, GraphEdge>::maxSinkDistance(const GraphNode& node)
     const {
 
+    if (!hasNode(node)) {
+        return -1;
+    }
+
     for (int i = 0; i < 2; i++) {
         typename std::map<
         const GraphNode*,int,typename GraphNode::Comparator>::
             iterator iter = loopingSinkDistances_.find(&node);
         if (iter != loopingSinkDistances_.end()) {
-            assert(sinkDistances_.find(&node) != sinkDistances_.end());
-            if (iter->second <= sinkDistances_[&node]) {
-                BoostGraph<GraphNode, GraphEdge>::writeToDotFile(
-                    "sinkdistance_fail.dot");
+            if (sinkDistances_.find(&node) == sinkDistances_.end() ||
+                iter->second > sinkDistances_[&node]) {
+                return iter->second;
             }
-            assert(iter->second > sinkDistances_[&node]);
-            return iter->second;
         }
 
         typename std::map<
@@ -2450,7 +2551,14 @@ BoostGraph<GraphNode, GraphEdge>::maxSinkDistance(const GraphNode& node)
             return iter2->second;
         }
     }
-    assert("sink distance should have been found.");
+    if (!hasNode(node)) {
+        return -1;
+    }
+    std::cerr << "Node lacks sink distance! " << node.nodeID() << " "
+              << node.toString() << std::endl;
+    BoostGraph<GraphNode, GraphEdge>::writeToDotFile("lacking_sinkd.dot");
+
+    assert(0 && "sink distance should have been found.");
     return -1;
 }
 

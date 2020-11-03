@@ -27,7 +27,7 @@
  * Definition of TransportPipeline class.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005,2009 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -44,6 +44,7 @@
 #include "SimulatorToolbox.hh"
 #include "OperationPool.hh"
 #include "StringTools.hh"
+#include "TCEString.hh"
 
 using std::vector;
 using std::string;
@@ -55,13 +56,20 @@ using std::string;
  */
 TransportPipeline::TransportPipeline(GCUState& parent) : 
     OperationExecutor(parent), operation_(NULL), 
-    context_(NULL), tempContext_(NULL, PC_, RA_), parent_(parent) {
+    context_(&parent.context()), 
+    tempContext_(NULL, PC_, RA_, parent.context().branchDelayCycles()),
+    parent_(parent) {
+    // delete the own state registry to avoid mem leaks
+    delete &tempContext_.stateRegistry();
+    // share the state registry with the actual context
+    tempContext_.setStateRegistry(parent.context().stateRegistry());
 }
 
 /**
  * Destructor.
  */
 TransportPipeline::~TransportPipeline() {
+    tempContext_.unsetStateRegistry();
 }
 
 /**
@@ -88,19 +96,28 @@ void
 TransportPipeline::startOperation(Operation& op) {
 
     operation_ = &op;
-    // assume for now that there's only one operand in all control flow
-    // operations
-    assert(op.numberOfInputs() + op.numberOfOutputs() == 1);
-    SimValue* io[1];
-    io[0] = const_cast<SimValue*>(&(binding(1).value()));
+    int operands = op.numberOfInputs() + op.numberOfOutputs();
+    SimValue* io[32];
+    assert(operands < 32);
+    for (int i = 0; i < operands; ++i)
+        io[i] = const_cast<SimValue*>(&(binding(i + 1).value()));
+
+    // use a temporary context here as the original context points to the
+    // internal program counter variables of the simulator engine,
+    // which we do not want to modify in the middle of simulating 
+    // a cycle
     tempContext_.programCounter() = context_->programCounter();
     tempContext_.returnAddress() = context_->returnAddress();
     tempContext_.setSaveReturnAddress(false);
+    tempContext_.setUpdateProgramCounter(false);
     operation_->simulateTrigger(io, tempContext_);
 
-    /// expect all operations of the transport pipeline to change
-    /// the program counter
-    parent_.setProgramCounter(tempContext_.programCounter());
+    // If the operation is a jump or a call operation, update the program
+    // counter after delay slot cycles. If a loop buffer setup op is called,
+    // do not update the program counter this way.
+    if (tempContext_.updateProgramCounter() && (op.isCall() || op.isBranch())) {
+        parent_.setProgramCounter(tempContext_.programCounter());
+    }
     if (tempContext_.saveReturnAddress()) {
         parent_.setReturnAddress();        
     }

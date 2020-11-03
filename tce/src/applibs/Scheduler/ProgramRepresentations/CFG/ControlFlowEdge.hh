@@ -37,6 +37,10 @@
 
 #include "GraphEdge.hh"
 
+namespace TTAProgram {
+    class Move;
+}
+
 /**
  * Edge of the control flow graph (control flow edge). Each edge implies a
  * possible change of execution flow from the source basic block to the
@@ -76,12 +80,15 @@ public:
     TCEString toString() const;
     void setPredicate(CFGEdgePredicate pred) { edgePredicate_ = pred; }
 
-    CFGEdgePredicate edgePredicate() { return edgePredicate_; }
+    CFGEdgePredicate edgePredicate() const { return edgePredicate_; }
     CFGEdgeType edgeType() { return edgeType_; }
 
     /// Add property to edge to mark is as back edge - loop edge
     /// DO NOT USE unless you know what you are doing!!!
     void setBackEdge() { backEdge_ = true;}
+
+    static ControlFlowEdge::CFGEdgePredicate
+    edgePredicateFromMove(const TTAProgram::Move& move);
 
 private:
     CFGEdgePredicate edgePredicate_;

@@ -58,6 +58,8 @@ class ITemplateBroker;
 class BusBroker;
 class ExecutionPipelineBroker;
 class DataDependenceGraph;
+class ControlFlowGraph;
+class BasicBlockNode;
 
 /**
  * A simple broker director.
@@ -140,6 +142,8 @@ public:
     void clearOldResources();
     void clear();
     void setDDG(const DataDependenceGraph* ddg);
+    void setCFG(const ControlFlowGraph* cfg);
+    void setBBN(const BasicBlockNode* bbn);
 
 private:
     struct OriginalResources {

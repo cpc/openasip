@@ -34,6 +34,8 @@
 #ifndef TTA_CONTAINERTOOLS_HH
 #define TTA_CONTAINERTOOLS_HH
 
+#include <vector>
+
 class ContainerTools {
 public:
     template <typename ContainerType, typename ElementType>
@@ -53,6 +55,8 @@ public:
         ContainerType& aContainer,
         const ContainerType& toRemove);
 
+    template <typename E, typename I>
+    static void swapRemoveValue(std::vector<E>& aContainer, I index);
 };
 
 #include "ContainerTools.icc"

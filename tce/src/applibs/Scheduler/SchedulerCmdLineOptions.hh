@@ -36,6 +36,7 @@
 
 #include <string>
 #include "CmdLineOptions.hh"
+#include "InterPassDatum.hh"
 
 /**
  * Command line options for the command line interface of the
@@ -46,42 +47,70 @@ public:
     SchedulerCmdLineOptions();
     virtual ~SchedulerCmdLineOptions();
 
-    bool isTargetADFDefined() const;
-    std::string targetADF() const;
-    bool isOutputFileDefined() const;
-    std::string outputFile() const;
-    bool isVerboseSwitchDefined() const;
     virtual void printVersion() const;
+
+    virtual bool isMachineFileDefined() const;
+    virtual std::string machineFile() const;
+
+    virtual bool isOutputFileDefined() const;
+    virtual std::string outputFile() const;
+    
+    virtual int schedulingWindowSize() const {
+        return findOption(SWL_SCHEDULING_WINDOW)->isDefined() ? 
+            findOption(SWL_SCHEDULING_WINDOW)->integer() : 
+            140;
+    }
+
+    virtual bool useRestrictedAliasAnalyzer() const;
+
+    virtual bool renameRegisters() const;
+
+    bool enableStackAA() const;
+
+    bool enableOffsetAA() const;
+
     bool printResourceConstraints() const;
-    bool renameRegisters() const;
+    
+    virtual int ifConversionThreshold() const;
+    virtual bool dumpIfConversionCFGs() const;
+
+    virtual int lowMemModeThreshold() const;
 
     virtual bool isLoopOptDefined() const;
     virtual int bypassDistance() const;
     virtual int noDreBypassDistance() const;
     virtual int operandShareDistance() const;
     virtual bool killDeadResults() const;
+
+    virtual FunctionNameList* noaliasFunctions() const;
 private:
     /// Copying forbidden.
     SchedulerCmdLineOptions(const SchedulerCmdLineOptions&);
     /// Assignment forbidden.
     SchedulerCmdLineOptions& operator=(const SchedulerCmdLineOptions&);
 
-    /// Long name of the ADF file parameter.
-    static const std::string ADF_PARAM_NAME;
-    /// Long name of the output file parameter.
-    static const std::string OUTPUT_PARAM_NAME;
     /// Description of the command line usage of the Scheduler.
     static const std::string USAGE;
-    /// Switch for verbose output listing scheduler modules
-    static const std::string VERBOSE_SWITCH;
-    /// Rename register duing scheduling after register allocation.
-    static const std::string SWL_RENAME_REGISTERS;
-    // Use the instruction scheduler in loop mode.
+    static const std::string SWL_TARGET_MACHINE;
+    static const std::string SWS_TARGET_MACHINE;
+    static const std::string SWL_OUTPUT_FILE;
+    static const std::string SWS_OUTPUT_FILE;
     static const std::string SWL_LOOP_FLAG;
+    static const std::string SWL_SCHEDULING_WINDOW;
+    static const std::string SWL_STACK_AA;
+    static const std::string SWL_OFFSET_AA;
+    static const std::string SWL_RENAME_REGISTERS;
+    static const std::string SWL_RESTRICTED_AA;
+    static const std::string SWL_IF_CONVERSION_THRESHOLD;
+    static const std::string SWL_LOWMEM_MODE_THRESHOLD;
+    static const std::string SWL_RESOURCE_CONSTRAINT_PRINTING;
     static const std::string SWL_KILL_DEAD_RESULTS;
     static const std::string SWL_NO_DRE_BYPASS_DISTANCE;
     static const std::string SWL_BYPASS_DISTANCE;
+    static const std::string SWL_DUMP_IFCONVERSION_CFGS;
     static const std::string SWL_OPERAND_SHARE_DISTANCE;
+    static const std::string SWL_NOALIAS_FUNCTIONS;
+
 };
 
 #endif

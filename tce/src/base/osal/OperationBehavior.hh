@@ -36,8 +36,11 @@
 #ifndef TTA_OPERATION_BEHAVIOR_HH
 #define TTA_OPERATION_BEHAVIOR_HH
 
-class SimValue;
+#include <vector>
+#include "SimValue.hh"
+
 class OperationContext;
+class Operation;
 
 /**
  * Interface to access the behavior model of TTA operations.
@@ -49,9 +52,16 @@ class OperationContext;
  */
 class OperationBehavior {
 public:
+
+    /// Input operand type for areValid()
+    typedef std::vector<SimValue> InputOperandVector;
+
     virtual bool simulateTrigger(
         SimValue** io,
         OperationContext& context) const = 0;
+    virtual bool areValid(
+        const InputOperandVector& inputs,
+        const OperationContext& context) const;
 
     virtual void createState(OperationContext& context) const;
     virtual void deleteState(OperationContext& context) const;
@@ -63,7 +73,11 @@ public:
     virtual void writeOutput(const char* text) const;
 
     OperationBehavior();
+    OperationBehavior(const Operation& parent);
     virtual ~OperationBehavior();
+
+protected:
+    const Operation& parent_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

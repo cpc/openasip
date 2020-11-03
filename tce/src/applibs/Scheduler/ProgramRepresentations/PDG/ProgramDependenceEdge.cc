@@ -32,27 +32,39 @@
  */
 
 #include "ProgramDependenceEdge.hh"
+#include "Exception.hh"
+
+/**
+ * Constructor, makes new Program Dependence Edge without reference
+ * to original Control Dependence Edge in CDG. It is artificial edge.
+ */
+ProgramDependenceEdge::ProgramDependenceEdge(EdgeType type)
+    : cEdge_(NULL), dEdge_(NULL), type_(type), fixed_(false) {
+}
 
 /**
  * Constructor, makes new Program Dependence Edge with reference to
  * original Control Dependence Edge in CDG.
  * @param cEdge Control Dependence Edge
- * @param edgeID unique ID of and edge
  */
 ProgramDependenceEdge::ProgramDependenceEdge(
     ControlDependenceEdge& cEdge)
-    : cEdge_(&cEdge), dEdge_(NULL) {
+    : cEdge_(&cEdge), dEdge_(NULL), type_(PDG_EDGE_CONTROL), fixed_(false) {
+    if (cEdge.isLoopCloseEdge()) {
+        type_ = PDG_EDGE_LOOP_CLOSE;
+    } else {
+        type_ = PDG_EDGE_CONTROL;
+    }
 }
 
 /**
  * Constructor, makes new Program Dependence Edge with reference to
  * original Data Dependence Edge in DDG.
  * @param dEdge Data Dependence Edge
- * @param edgeID unique ID of and edge
  */
 ProgramDependenceEdge::ProgramDependenceEdge(
     DataDependenceEdge& dEdge)
-    : cEdge_(NULL), dEdge_(&dEdge) {
+    : cEdge_(NULL), dEdge_(&dEdge), type_(PDG_EDGE_DATA), fixed_(false) {
 }
 
 /**
@@ -67,6 +79,12 @@ ProgramDependenceEdge::~ProgramDependenceEdge() {
  */
 TCEString
 ProgramDependenceEdge::toString() const {
+    if (isArtificialControlDependence()) {
+        return "PDG_ARTIFICIAL";
+    }
+    if (isLoopCloseEdge()) {
+        return "LoopClose";
+    }
     if (isDataDependence()) {
         return dEdge_->toString();
     }
@@ -81,48 +99,83 @@ ProgramDependenceEdge::toString() const {
  */
 TCEString
 ProgramDependenceEdge::dotString() const {
+    if (isArtificialControlDependence()) {
+       return TCEString("label=\"") + toString() + "\",color=green";
+    }
+    if (isLoopCloseEdge()) {
+       return TCEString("label=\"") + toString() + "\",color=cyan";
+    }
+
     if (isControlDependence()) {
         if (cEdge_->isTrueEdge()) {
-            return std::string("label=\"") + toString() + "\",color=blue";
+            return TCEString("label=\"") + toString() + "\",color=blue";
         }
         if (cEdge_->isFalseEdge()) {
-            return std::string("label=\"") + toString() + "\",color=red";
-        } 
-        return std::string("label=\"") + toString() + "\"";
+            return TCEString("label=\"") + toString() + "\",color=red";
+        }
+        return TCEString("label=\"") + toString() + "\"";
     }
-    return std::string("label=\"") + toString() + "\",style=dashed";    
+    return TCEString("label=\"") + toString() + "\",style=dashed";
 }
 
 /**
  * Tests if edge is control dependence type.
  * @return true if edge is control dependence
  */
-bool 
+bool
 ProgramDependenceEdge::isControlDependence() const {
-    return cEdge_ != NULL;
+    if (isArtificialControlDependence()) {
+        return true;
+    }
+    return type_ == PDG_EDGE_CONTROL && cEdge_ != NULL ;
 }
 /**
  * Tests if edge is data dependence type.
  * @return true if edge is data dependence
  */
-bool 
+bool
 ProgramDependenceEdge::isDataDependence() const {
-    return dEdge_ != NULL;
+    return type_ == PDG_EDGE_DATA && dEdge_ != NULL;
+}
+
+/**
+ * Tests if edge is artificial control dependence type.
+ * Artificial edges are added during PDG synchronization.
+ * @return true if edge is artificial control dependence
+ */
+bool
+ProgramDependenceEdge::isArtificialControlDependence() const {
+    return type_ == PDG_EDGE_CONTROL_ARTIFICIAL;
+}
+
+/**
+ * Tests if edge is loop close edge from artificial close node to
+ * loop entry node
+ * @return true if edge is loop close edge
+ */
+bool
+ProgramDependenceEdge::isLoopCloseEdge() const {
+    return type_ == PDG_EDGE_LOOP_CLOSE;
 }
 
 /**
  * Returns reference to control dependence edge of CDG.
  * @return control dependence edge of underlying CDG
  */
-ControlDependenceEdge& 
+ControlDependenceEdge&
 ProgramDependenceEdge::controlDependenceEdge() {
-    return *cEdge_;
+    if (cEdge_ != NULL) {
+        return *cEdge_;
+    } else {
+        throw InvalidData(__FILE__, __LINE__, __func__,
+            "Not a control dependence edge!");
+    }
 }
 /**
  * Returns reference to data dependence edge of CDG.
  * @return data dependence edge of underlying DDG
  */
-DataDependenceEdge& 
+DataDependenceEdge&
 ProgramDependenceEdge::dataDependenceEdge() {
     return *dEdge_;
 }

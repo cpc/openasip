@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2014 Tampere University.
+    Copyright (c) 2002-2020 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,67 +27,68 @@
  * Implementation of LLVMTCECmdLineOptions class.
  *
  * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2008-2014
+ * @author Pekka Jääskeläinen 2008-2020
  * @note rating: red
  */
 
 #include "LLVMTCECmdLineOptions.hh"
 #include "Environment.hh"
 
-const std::string LLVMTCECmdLineOptions::SWL_TARGET_MACHINE = "adf";
-const std::string LLVMTCECmdLineOptions::SWS_TARGET_MACHINE = "a";
-const std::string LLVMTCECmdLineOptions::SWL_OUTPUT_FILE = "output";
-const std::string LLVMTCECmdLineOptions::SWS_OUTPUT_FILE = "o";
 const std::string LLVMTCECmdLineOptions::SWL_EMULATION_LIB = "emulation";
 const std::string LLVMTCECmdLineOptions::SWS_EMULATION_LIB = "e";
 const std::string LLVMTCECmdLineOptions::SWL_DEBUG_FLAG = "debug";
 const std::string LLVMTCECmdLineOptions::SWL_OPT_LEVEL = "optimize";
 const std::string LLVMTCECmdLineOptions::SWS_OPT_LEVEL = "O";
+const std::string LLVMTCECmdLineOptions::SWL_PRIMARY_FUNCTIONS =
+    "primary-functions";
+const std::string LLVMTCECmdLineOptions::SWS_PRIMARY_FUNCTIONS = "p";
 const std::string LLVMTCECmdLineOptions::VERBOSE_SWITCH = "verbose";
 const std::string LLVMTCECmdLineOptions::DISABLE_LLVMAA = "disable-llvmaa";
+const std::string LLVMTCECmdLineOptions::DISABLE_ADDRESS_SPACE_AA = "disable-as-aa";
 const std::string LLVMTCECmdLineOptions::DISABLE_DSF = "disable-dsf";
-const std::string LLVMTCECmdLineOptions::CONSERVATIVE_PRE_RA_SCHEDULER= 
+const std::string LLVMTCECmdLineOptions::CONSERVATIVE_PRE_RA_SCHEDULER=
     "conservative-pre-ra-scheduler";
+const std::string LLVMTCECmdLineOptions::LLVM_USER_ARGS = "llvm-args";
 
 const std::string LLVMTCECmdLineOptions::SWL_DUMP_DDGS_DOT = "dump-ddgs-dot";
 const std::string LLVMTCECmdLineOptions::SWL_DUMP_DDGS_XML = "dump-ddgs-xml";
-const std::string LLVMTCECmdLineOptions::SWL_SAVE_BACKEND_PLUGIN = 
+const std::string LLVMTCECmdLineOptions::SWL_SAVE_BACKEND_PLUGIN =
     "save-backend-plugin";
-const std::string LLVMTCECmdLineOptions::SWL_BU_SCHEDULER = 
+const std::string LLVMTCECmdLineOptions::SWL_BU_SCHEDULER =
     "bottom-up-scheduler";
+const std::string LLVMTCECmdLineOptions::SWL_BUBBLEFISH2_SCHEDULER =
+    "bubblefish2-scheduler";
 const std::string LLVMTCECmdLineOptions::SWL_TD_SCHEDULER = "td-scheduler";
-const std::string LLVMTCECmdLineOptions::SWL_USE_OLD_BACKEND_SOURCES = 
+const std::string LLVMTCECmdLineOptions::SWL_USE_OLD_BACKEND_SOURCES =
     "use-old-backend-src";
-
-const std::string LLVMTCECmdLineOptions::SWL_ANALYZE_INSTRUCTION_PATTERNS = 
+const std::string LLVMTCECmdLineOptions::SWL_ANALYZE_INSTRUCTION_PATTERNS =
     "analyze-instruction-patterns";
-
 const std::string LLVMTCECmdLineOptions::SWL_TEMP_DIR = "temp-dir";
-
-const std::string LLVMTCECmdLineOptions::SWL_ENABLE_VECTOR_BACKEND = 
+const std::string LLVMTCECmdLineOptions::SWL_ENABLE_VECTOR_BACKEND =
     "vector-backend";
-const std::string LLVMTCECmdLineOptions::SWL_WORK_ITEM_AA_FILE = "wi-aa-filename";
-const std::string LLVMTCECmdLineOptions::SWL_BACKEND_CACHE_DIR = "backend-cache-dir";
+const std::string LLVMTCECmdLineOptions::SWL_WORK_ITEM_AA_FILE =
+    "wi-aa-filename";
+const std::string LLVMTCECmdLineOptions::SWL_BACKEND_CACHE_DIR =
+    "backend-cache-dir";
+
+const std::string LLVMTCECmdLineOptions::SWL_PRINT_INLINE_ASM_WARNINGS =
+    "print-inline-asm-warnings";
+
 const std::string LLVMTCECmdLineOptions::SWL_INIT_SP = "init-sp";
 
 const std::string LLVMTCECmdLineOptions::USAGE =
-    "Usage: llvmtce [OPTION]... BYTECODE\n"
+    "Usage: llvm-tce [OPTION]... BYTECODE\n"
     "Compile LLVM bytecode for target TCE architecture.\n";
 
+const std::string LLVMTCECmdLineOptions::SWL_GEN_PLUGIN_ONLY =
+    "gen-plugin-only";
+
+const std::string LLVMTCECmdLineOptions::SWL_ASSUME_ADF_STACKALIGNMENT =
+    "assume-adf-stackalignment";
 /**
  * Constructor.
  */
 LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
-
-    addOption(
-        new StringCmdLineOptionParser(
-            SWL_TARGET_MACHINE, "Target machine (.adf file)",
-            SWS_TARGET_MACHINE));
-
-    addOption(
-        new StringCmdLineOptionParser(
-            SWL_OUTPUT_FILE, "Output file name.",
-            SWS_OUTPUT_FILE));
 
     addOption(
         new StringCmdLineOptionParser(
@@ -104,13 +105,26 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
             SWL_DEBUG_FLAG, "Print LLVM debug data."));
 
     addOption(
+        new StringListCmdLineOptionParser(
+            SWL_PRIMARY_FUNCTIONS,
+            "List of function names that should be scheduled with "
+            "the primary scheduler config (-c). Other functions are scheduled "
+            "with the secondary config (-s).",
+            SWS_PRIMARY_FUNCTIONS));
+
+    addOption(
         new BoolCmdLineOptionParser(
             VERBOSE_SWITCH, "The verbose switch", "v"));
 
     addOption(
         new BoolCmdLineOptionParser(
-            DISABLE_LLVMAA, "Disable use of LLVM alias analysis.", 
-            DISABLE_LLVMAA));
+            DISABLE_LLVMAA, "Disable use of LLVM Alias Analysis", DISABLE_LLVMAA));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            DISABLE_ADDRESS_SPACE_AA,
+            "Disable use of Address Space Alias Analysis",
+            DISABLE_ADDRESS_SPACE_AA));
 
     addOption(
         new BoolCmdLineOptionParser(
@@ -123,14 +137,17 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
             "Conservative pre-ra-scheduler. May decrease register usage but "
             "limit ILP. good for machines with low amount of registers."));
 
+    addOption(new StringCmdLineOptionParser(
+        LLVM_USER_ARGS, "Parameters to pass to LLVM"));
+
     addOption(
         new BoolCmdLineOptionParser(
-            SWL_DUMP_DDGS_DOT, 
+            SWL_DUMP_DDGS_DOT,
             "Dump DDGs in dot format before and after scheduling."));
 
     addOption(
         new BoolCmdLineOptionParser(
-            SWL_DUMP_DDGS_XML, 
+            SWL_DUMP_DDGS_XML,
             "Dump DDGs in XML format before and after scheduling."));
 
     addOption(
@@ -141,8 +158,13 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
             "tcecc for the same architecture."));
     addOption(
         new BoolCmdLineOptionParser(
-            SWL_BU_SCHEDULER, 
+            SWL_BU_SCHEDULER,
             "Use an experiment Bottom Up scheduler."));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_BUBBLEFISH2_SCHEDULER,
+            "Use an experimental Bubblefish instructionscheduler v2."));
 
     addOption(
         new BoolCmdLineOptionParser(
@@ -151,17 +173,17 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
 
     addOption(
         new BoolCmdLineOptionParser(
-            SWL_USE_OLD_BACKEND_SOURCES, 
+            SWL_USE_OLD_BACKEND_SOURCES,
             "Use the existing backend sources from the given temporary directory."));
 
     addOption(
         new StringCmdLineOptionParser(
-            SWL_TEMP_DIR, 
+            SWL_TEMP_DIR,
             "The temporary directory to use for files needed during the code generation."));
 
     addOption(
         new StringCmdLineOptionParser(
-            SWL_WORK_ITEM_AA_FILE, 
+            SWL_WORK_ITEM_AA_FILE,
             "The filename with Work Item Alias Analysis - this is filled automatically "
             "if tcecc finds path to installed pocl."));
 
@@ -184,6 +206,20 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
         new UnsignedIntegerCmdLineOptionParser(
             SWL_INIT_SP,
             "Initialize the stack pointer of the program to the given value."));
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_PRINT_INLINE_ASM_WARNINGS,
+            "Prints warnings from inline assembly parsing. Default is off."));
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_GEN_PLUGIN_ONLY,
+            "Generates LLVM backend plugin for target machine without tpef "
+            "generation."));
+
+    addOption(
+	new BoolCmdLineOptionParser(
+            SWL_ASSUME_ADF_STACKALIGNMENT,
+            "Assume size of stackalignment based on biggest memory operations in the adf."));
 }
 
 /**
@@ -194,23 +230,22 @@ LLVMTCECmdLineOptions::~LLVMTCECmdLineOptions() {
 
 
 /**
- * Returns path to the target .adf file defined with the -a switch.
+ * Returns the list of "primary functions" that should be scheduled
+ * with the primary scheduling conf.
  *
- * @return Target adf file defined in the command line.
+ * Rest of the functions are scheduled with the scheduling config
+ * given with -s.
  */
-std::string
-LLVMTCECmdLineOptions::machineFile() const {
-    return findOption(SWS_TARGET_MACHINE)->String();
-}
-
-/**
- * Returns true if the target machine file is defined, false otherwise.
- *
- * @return True if the target machine file is defined.
- */
-bool
-LLVMTCECmdLineOptions::isMachineFileDefined() const {
-    return findOption(SWS_TARGET_MACHINE)->isDefined();
+FunctionNameList*
+LLVMTCECmdLineOptions::primaryFunctions() const {
+    FunctionNameList* funcs = new FunctionNameList();
+    CmdLineOptionParser* opt = findOption(SWS_PRIMARY_FUNCTIONS);
+    if (opt == NULL)
+        return funcs;
+    for (int i = 1; i <= opt->listSize(); ++i) {
+        funcs->insert(opt->String(i));
+    }
+    return funcs;
 }
 
 std::string
@@ -221,26 +256,6 @@ LLVMTCECmdLineOptions::standardEmulationLib() const {
 bool
 LLVMTCECmdLineOptions::isStandardEmulationLibDefined() const {
     return findOption(SWS_EMULATION_LIB)->isDefined();
-}
-
-/**
- * Returns path to the output file defined with the -o switch.
- *
- * @return Output file name defined in the command line.
- */
-std::string
-LLVMTCECmdLineOptions::outputFile() const {
-    return findOption(SWS_OUTPUT_FILE)->String();
-}
-
-/**
- * Returns true if the output file name is defined, false otherwise.
- *
- * @return True if the output file name is defined.
- */
-bool
-LLVMTCECmdLineOptions::isOutputFileDefined() const {
-    return findOption(SWS_OUTPUT_FILE)->isDefined();
 }
 
 /**
@@ -287,6 +302,11 @@ LLVMTCECmdLineOptions::disableLLVMAA() const {
 }
 
 bool
+LLVMTCECmdLineOptions::disableAddressSpaceAA() const {
+    return findOption(DISABLE_ADDRESS_SPACE_AA)->isDefined();
+}
+
+bool
 LLVMTCECmdLineOptions::disableDelaySlotFiller() const {
     return findOption(DISABLE_DSF)->isDefined();
 }
@@ -310,6 +330,17 @@ LLVMTCECmdLineOptions::conservativePreRAScheduler() const {
     return false;
 }
 
+std::string
+LLVMTCECmdLineOptions::getLLVMargv() const {
+    if (!findOption(LLVM_USER_ARGS)->isDefined()) {
+        return "llvm-tce --no-stack-coloring";
+    } else {
+        std::string argv = "llvm-tce --no-stack-coloring" +
+                           findOption(LLVM_USER_ARGS)->String();
+        return argv;
+    }
+}
+
 bool
 LLVMTCECmdLineOptions::dumpDDGsDot() const {
     return findOption(SWL_DUMP_DDGS_DOT)->isDefined();
@@ -328,6 +359,11 @@ LLVMTCECmdLineOptions::saveBackendPlugin() const {
 bool
 LLVMTCECmdLineOptions::useBUScheduler() const {
     return findOption(SWL_BU_SCHEDULER)->isDefined();
+}
+
+bool
+LLVMTCECmdLineOptions::useBubbleFish2Scheduler() const {
+    return findOption(SWL_BUBBLEFISH2_SCHEDULER)->isDefined();
 }
 
 bool
@@ -377,7 +413,23 @@ LLVMTCECmdLineOptions::isInitialStackPointerValueSet() const {
    return findOption(SWL_INIT_SP)->isDefined();
 }
 
-unsigned
+uint64_t
 LLVMTCECmdLineOptions::initialStackPointerValue() const {
     return findOption(SWL_INIT_SP)->unsignedInteger();
+}
+
+bool
+LLVMTCECmdLineOptions::printInlineAsmWarnings() const {
+    return (findOption(SWL_PRINT_INLINE_ASM_WARNINGS)->isDefined() &&
+        findOption(SWL_PRINT_INLINE_ASM_WARNINGS)->isFlagOn());
+}
+
+bool
+LLVMTCECmdLineOptions::generatePluginOnly() const {
+    return (findOption(SWL_GEN_PLUGIN_ONLY)->isDefined() &&
+        findOption(SWL_GEN_PLUGIN_ONLY)->isFlagOn());
+}
+bool
+LLVMTCECmdLineOptions::assumeADFStackAlignment() const {
+    return findOption(SWL_ASSUME_ADF_STACKALIGNMENT)->isDefined();
 }

@@ -30,18 +30,23 @@
  * @note rating: red
  */
 
+#include <boost/timer.hpp>
+#include <boost/format.hpp>
+
 #include "ProgramPass.hh"
 #include "Program.hh"
 #include "ProcedurePass.hh"
 #include "Application.hh"
 #include "Procedure.hh"
 #include "POMDisassembler.hh"
+#include "InterPassDatum.hh"
+#include "InterPassData.hh"
 
 /**
  * Constructor.
  */
-ProgramPass::ProgramPass(InterPassData& data) : 
-    SchedulerPass(data) {
+ProgramPass::ProgramPass(InterPassData& data) :
+    SchedulerPass(data)  {
 }
 
 /**
@@ -67,10 +72,74 @@ void
 ProgramPass::executeProcedurePass(
     TTAProgram::Program& program, const TTAMachine::Machine& targetMachine,
     ProcedurePass& procedurePass) {
+    boost::timer totalTime;
+
+    FunctionNameList proceduresToProcess, proceduresToIgnore;
+    if (procedurePass.interPassData().hasDatum("FUNCTIONS_TO_PROCESS")) {
+        proceduresToProcess = 
+            dynamic_cast<FunctionNameList&>(
+                procedurePass.interPassData().datum("FUNCTIONS_TO_PROCESS"));
+    } else if (procedurePass.interPassData().hasDatum("FUNCTIONS_TO_IGNORE")) {
+        proceduresToIgnore = 
+            dynamic_cast<FunctionNameList&>(
+                procedurePass.interPassData().datum("FUNCTIONS_TO_IGNORE"));
+    }
+    
+    std::size_t proceduresDone = 0;
+    // always call procedureCount() again because a pass might have
+    // added a new procedure to the program that needs to be handled
     for (int procIndex = 0; procIndex < program.procedureCount(); 
          ++procIndex) {
         TTAProgram::Procedure& proc = program.procedure(procIndex);
+               
+        if (proceduresToProcess.size() > 0 && 
+            proceduresToProcess.find(proc.name()) == 
+            proceduresToProcess.end())
+            continue;
+
+        if (proceduresToIgnore.size() > 0 &&
+            proceduresToIgnore.find(proc.name()) !=
+            proceduresToIgnore.end())
+            continue;
+            
+
+        boost::timer currentTime;
+        std::size_t totalProcedures = 0;
+        if (Application::verboseLevel() > 0) {
+
+            if (proceduresToProcess.size() > 0) {
+                totalProcedures = proceduresToProcess.size();
+            } else {
+                totalProcedures = program.procedureCount();
+            }
+
+            totalProcedures -= proceduresToIgnore.size();
+            Application::logStream() 
+                << std::endl
+                << "procedure: " << proc.name() 
+                << (boost::format(" (%d/%d)") 
+                    % (proceduresDone + 1) % totalProcedures).str();
+        }
         procedurePass.handleProcedure(proc, targetMachine);
+        ++proceduresDone;
+
+        if (Application::verboseLevel() > 0) {
+            double cur = currentTime.elapsed();
+            double tot = totalTime.elapsed();
+            long currentElapsed = static_cast<long>(cur);
+            long totalElapsed = static_cast<long>(tot);
+            long eta = 
+                static_cast<long>(
+                    (tot / proceduresDone) * 
+                    (totalProcedures - proceduresDone));
+            Application::logStream()
+                << (boost::format(
+                        " %d min %d s. Total %d min %d s. ETA in %d min %d s")
+                    % (currentElapsed / 60) % (currentElapsed % 60)
+                    % (totalElapsed / 60) % (totalElapsed % 60)
+                    % (eta / 60) % (eta % 60)).str()
+                << std::endl;
+        }
     }
 }
 

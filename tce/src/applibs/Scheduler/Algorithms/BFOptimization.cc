@@ -82,7 +82,7 @@ const TTAMachine::Machine& BFOptimization::targetMachine() const  {
     return sched_.targetMachine();
 }
 
-unsigned int BFOptimization::ii() const { return rm().initiationInterval(); }
+unsigned int BFOptimization::ii() const { return 0; }
 
 MoveNodeDuplicator& BFOptimization::duplicator() const {
     return sched_.duplicator();
@@ -876,11 +876,6 @@ bool BFOptimization::canBeSpeculated(const MoveNode& mn) {
 }
 
 bool BFOptimization::needJumpGuard(const MoveNode& mn, int cycle){
-    // TODO: different modes for prolog/epilog.
-    if (sched_.hasEpilog()) {
-        return false;
-    }
-
     if (cycle >= (int)(ii())) {
         return false;
     }
@@ -922,20 +917,12 @@ void BFOptimization::unsetJumpGuardIfNeeded(MoveNode& mn, int cycle) {
 
 int BFOptimization::jumpGuardAvailableCycle(const MoveNode& mn) {
 
-    if (!sched_.jumpNode()) {
+    if (!sched_.jumpNode() || sched_.jumpNode()->isGuardOperation()) {
 #ifdef DEBUG_LOOP_SCHEDULER
-        std::cerr << "jump node is null!" << std::endl;
+        std::cerr << "jump node is null or guard operation!" << std::endl;
 #endif
         return INT_MAX;
     }
-
-    if (!sched_.guardPrologMoves()) {
-        return INT_MAX;
-    }
-
-    if (sched_.scheduleJumpGuardBetweenIters())
-        return 0;
-
     if (sched_.guardWriteNode() == NULL) {
 #ifdef DEBUG_LOOP_SCHEDULER
         std::cerr << "Guard write node not known!" << std::endl;

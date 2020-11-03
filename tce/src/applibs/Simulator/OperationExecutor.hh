@@ -63,6 +63,7 @@ public:
     virtual void advanceClock() = 0;
     virtual OperationExecutor* copy() = 0;
     virtual void setContext(OperationContext& context) = 0;
+    virtual void reset();
 
 protected:
     /// PortStates that are bound to a certain input or output operand.

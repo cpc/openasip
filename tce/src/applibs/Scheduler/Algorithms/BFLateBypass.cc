@@ -57,6 +57,10 @@
 
 bool
 BFLateBypass::operator()() {
+    // if already has guard operation, cannot have source operation.
+    if (dst_.isGuardOperation()) {
+        return false;
+    }
 
 #ifdef DEBUG_BUBBLEFISH_SCHEDULER
    std::cerr << "\t\tPerforming late bypass: " << dst_.toString() <<std::endl;

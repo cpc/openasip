@@ -43,6 +43,10 @@
 
 class InterPassData;
 class LLVMTCECmdLineOptions;
+class BBSchedulerController;
+class CopyingDelaySlotFiller;
+class CycleLookBackSoftwareBypasser;
+struct InnerLoopFinder;
 
 namespace TTAMachine {
     class Machine;
@@ -71,13 +75,18 @@ namespace llvm {
 
         virtual void emitSPInitialization() {}
 
+        void getAnalysisUsage(AnalysisUsage &AU) const;
+
 #if LLVM_OLDER_THAN_4_0
-    virtual const char *getPassName() const {
+        virtual const char *getPassName() const {
 #else
-    virtual StringRef getPassName() const {
+        virtual StringRef getPassName() const {
 #endif
             return "TCE: build TCE scheduler IR from MachineFunctions";
         }
+
+        void setInnerLoopFinder(InnerLoopFinder* loopFinder) { 
+            loopFinder_ = loopFinder; }
 
     protected:
 
@@ -117,7 +126,7 @@ namespace llvm {
 
         virtual TTAProgram::Terminal* createSymbolReference(
             const TCEString& symbolName);
-
+            
         virtual void createMoveNode(
             ProgramOperationPtr& po,
             std::shared_ptr<TTAProgram::Move> m,
@@ -125,7 +134,8 @@ namespace llvm {
 
     private:
 
-        bool isRealInstruction(const MachineInstr& instr);
+        bool isHotFunction(llvm::MachineFunction& mf) const;
+        bool isRealInstruction(const MachineInstr& instr) const;
         bool hasRealInstructions(
             MachineBasicBlock::const_iterator i, 
             const MachineBasicBlock& mbb);
@@ -139,7 +149,10 @@ namespace llvm {
             ControlFlowGraph& cfg, 
             llvm::AliasAnalysis* llvmAA);
 
+        bool isExplicitReturn(const llvm::MachineInstr& mi) const;
+
         CopyingDelaySlotFiller& delaySlotFiller();
+        BBSchedulerController& scheduler();
 
         ControlFlowGraph* buildTCECFG(llvm::MachineFunction& mf);
         void markJumpTableDestinations(
@@ -159,17 +172,21 @@ namespace llvm {
         std::map<const MachineBasicBlock*,BasicBlockNode*> bbMapping_;
 
         std::vector<std::vector<BasicBlockNode*> > jumpTableRecord_;
-        
+
+        AliasAnalysis* AA_;
+                
         // write back the scheduled instructions to the machine function?
         bool modifyMF_;
 
-        AliasAnalysis* AA_;
         std::map<const MachineBasicBlock*, BasicBlockNode*> skippedBBs_;
 
-        LLVMTCECmdLineOptions* options_;
-
-        CopyingDelaySlotFiller* dsf_;
         bool delaySlotFilling_;
+
+        BBSchedulerController* scheduler_;
+        CopyingDelaySlotFiller* dsf_;
+        CycleLookBackSoftwareBypasser* bypasser_;
+
+        InnerLoopFinder* loopFinder_;
     };
 }
 

@@ -36,6 +36,7 @@
 #include <memory>
 
 #include "Exception.hh"
+#include <memory>
 
 namespace TTAMachine {
     class InstructionTemplate;
@@ -45,7 +46,7 @@ namespace TTAProgram {
 
 class Terminal;
 class TerminalImmediate;
-
+class Instruction;
 /**
  * Represents the long immediate value and its transport into a
  * dedicated register
@@ -63,6 +64,8 @@ public:
 
     std::shared_ptr<Immediate> copy() const;
 
+    Instruction* parent() const { return parent_; }
+    void setParent(Instruction* ins) { parent_ = ins; }
 private:
     /// Copying not allowed.
     Immediate(const Immediate&);
@@ -74,6 +77,9 @@ private:
 
     /// The destination register.
     Terminal* dst_;
+
+    /// Instruction which contains this immediate.
+    Instruction* parent_;
 };
 
 }

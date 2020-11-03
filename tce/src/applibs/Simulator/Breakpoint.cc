@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Definition of Breakpoint class.
  *
  * @author Atte Oksman 2005 (oksman-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005,2010
  * @note rating: red
  */
 

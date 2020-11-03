@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University.
+    Copyright (c) 2002-2017 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Declaration of ExplorerCmdLineOptions.
  *
  * @author Jari M‰ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Pekka J‰‰skel‰inen 2011, 2017
  * @note rating: red
  */
 
@@ -60,6 +60,8 @@ public:
     bool printSummary() const;
     std::string summaryOrdering() const;
     bool writeOutConfiguration() const;
+    bool writeOutBestConfiguration() const;
+
     int numberOfConfigurationsToWrite() const;
     RowID configurationToWrite(int index) const;
     bool printApplications() const;
@@ -70,15 +72,17 @@ public:
     int hdbFileNameCount() const;
     std::string hdbFileName(int index) const;
     RowID startConfiguration() const;
-    int verboseLevel() const;
     bool adfFile() const;
+    bool adfOutFile() const;
+
     bool idfFile() const;
     std::string adfFileName() const;
+    std::string adfOutFileName() const;
     std::string idfFileName() const;
 
     std::string paretoSetValues() const;
-    
-    bool compilerOptions() const;    
+
+    bool compilerOptions() const;
     std::string compilerOptionsString() const;
 
 private:

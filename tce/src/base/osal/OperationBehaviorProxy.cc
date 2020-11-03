@@ -58,7 +58,8 @@ OperationBehaviorProxy::OperationBehaviorProxy(
     OperationBehaviorLoader& loader,
     bool alwaysReloadBehavior) : 
     OperationBehavior(), target_(&targetOperation), loader_(&loader),
-    initialized_(false),  alwaysReloadBehavior_(alwaysReloadBehavior) {
+    initialized_(false),  alwaysReloadBehavior_(alwaysReloadBehavior),
+    alreadyCreatingState_(false) {
 }
 
 /**
@@ -109,8 +110,26 @@ OperationBehaviorProxy::simulateTrigger(
 void
 OperationBehaviorProxy::createState(OperationContext& context) const {
     initializeBehavior();
+
+    // If operation does not have operation behavior defined or behavior file
+    // is missing it causes infinite recursive call between
+    // Operation::createState() and this function. Catch such event and break
+    // out of it.
+    if (alreadyCreatingState_) {
+        throw IllegalOperationBehavior(__FILE__, __LINE__, __func__,
+            std::string("Error while loading operation behavior for "
+                "operation \"")
+            + target_->name()
+            + "\". Operation behavior is undefined or missing.");
+    }
+    alreadyCreatingState_ = true;
+
     target_->createState(context);
-    if (alwaysReloadBehavior_) uninitializeBehavior();
+
+    if (alwaysReloadBehavior_) {
+        uninitializeBehavior();
+    }
+    alreadyCreatingState_ = true;
 }
 
 /**
@@ -206,7 +225,8 @@ OperationBehaviorProxy::initializeBehavior() const {
         new OperationDAGBehavior(
             target_->dag(0), 
             target_->numberOfInputs() + 
-            target_->numberOfOutputs());        
+            target_->numberOfOutputs(),
+            *target_);
     target_->setBehavior(*behavior);
     
     // add for cleanup

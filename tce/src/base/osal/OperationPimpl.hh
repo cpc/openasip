@@ -36,6 +36,7 @@
 #include <string>
 #include <set>
 #include <vector>
+#include <map>
 
 #include "TCEString.hh"
 
@@ -55,8 +56,8 @@ public:
     friend class Operation;
     ~OperationPimpl();
 
-    int numberOfInputs() const;
-    int numberOfOutputs() const;
+    inline int numberOfInputs() const;
+    inline int numberOfOutputs() const;
     TCEString name() const;
     void setCall(bool setting);
     void setBranch(bool setting);
@@ -84,9 +85,9 @@ private:
     void setDagCode(int index, const TCEString& code);
     TCEString dagError(int index) const;
 
-    bool usesMemory() const;
-    bool readsMemory() const;
-    bool writesMemory() const;
+    inline bool usesMemory() const;
+    inline bool readsMemory() const;
+    inline bool writesMemory() const;
     bool canTrap() const;
     bool hasSideEffects() const;
     bool isClocked() const;
@@ -102,7 +103,7 @@ private:
     TCEString affectedBy(unsigned int i) const;
     bool canSwap(int id1, int id2) const;
 
-    Operand& input(int index) const;
+    inline Operand& input(int index) const;
     void addInput(Operand* operand);
     Operand& output(int index) const;
     void addOutput(Operand* operand);
@@ -189,6 +190,8 @@ private:
     bool isBranch_;
 
 };
+
+#include "OperationPimpl.icc"
 
 #endif
 

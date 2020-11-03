@@ -50,13 +50,22 @@ public:
     
     ~OperationContextPimpl();
 
+    /// Type of state registry.
+    typedef std::map<std::string, OperationState*> StateRegistry;
+
+    void setStateRegistry(StateRegistry& stateRegistry) 
+        { stateRegistry_ = &stateRegistry; }
+    void unsetStateRegistry() { stateRegistry_ = NULL; }
+    StateRegistry& stateRegistry() { return *stateRegistry_; }
+
 private:
     OperationContextPimpl(const TCEString& name);
     OperationContextPimpl(
         const TCEString& name,
         Memory* memory,
         InstructionAddress& programCounter,
-        SimValue& returnAddress);
+        SimValue& returnAddress,
+        int delayCycles);
     
     Memory& memory();
     void setMemory(Memory* memory);
@@ -67,6 +76,9 @@ private:
     }
     
     InstructionAddress& programCounter();
+    InstructionAddress& irfBlockStart();
+    void setUpdateProgramCounter(bool value);
+    bool updateProgramCounter() const;
     void setSaveReturnAddress(bool value);
     bool saveReturnAddress();
     SimValue& returnAddress();
@@ -76,15 +88,14 @@ private:
     bool hasMemoryModel() const;
     const TCEString& functionUnitName();
 
+    int branchDelayCycles();
+
     // These methods are only for internal use. Used by the macro definitions
     // of OSAL.hh.
     void registerState(OperationState* state);
     void unregisterState(const char* name);
     OperationState& state(const char* name) const;
     
-    /// Type of state registry.
-    typedef std::map<std::string, OperationState*> StateRegistry;
-
     bool hasState(const char* name) const;
     void initializeContextId();
 
@@ -99,9 +110,11 @@ private:
     /// Simulates the procedure return address. 
     SimValue& returnAddress_;    
     /// The state registry.
-    StateRegistry stateRegistry_;
+    StateRegistry* stateRegistry_;
     /// Should the return address be saved?
     bool saveReturnAddress_;
+    /// Should program counter be updated?
+    bool updateProgramCounter_;
     /// Number of times advanceClock() has been called since
     /// the creation.
     CycleCount cycleCount_;
@@ -110,6 +123,8 @@ private:
     CycleCount* cycleCountVar_;
     /// Name of the FU instance -- passed down from MachineStateBuilder
     const TCEString FUName_;
+    /// Amount of delay cycles caused by pipeline
+    int branchDelayCycles_;
 };
 
 #endif

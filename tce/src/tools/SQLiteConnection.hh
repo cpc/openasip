@@ -68,6 +68,9 @@ public:
 
     void finalizeQuery(sqlite3_stmt* statement);
 
+    virtual int version();
+    virtual void updateVersion(int version);
+
 private:
     sqlite3_stmt* compileQuery(const std::string& queryString);
 

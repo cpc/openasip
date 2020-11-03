@@ -26,8 +26,9 @@
  *
  * Declaration of CmdLineOptionParser classes.
  *
- * @author Jussi Nyk‰nen 2003 (nykanen-no.spam-cs.tut.fi)
- * @author Jari M‰ntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
+ * @author Jussi Nyk√§nen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Jari M√§ntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
+ * @author Henry Linjam√§ki 2017 (henry.linjamaki-no.spam-tut.fi)
  * @note reviewed 3 December 2003 by jn, kl, ao
  */
 
@@ -55,7 +56,11 @@ class OptionValue;
 class CmdLineOptionParser {
 public:
 
-    CmdLineOptionParser(std::string name, std::string desc, std::string alias);
+    CmdLineOptionParser(
+        std::string name,
+        std::string desc,
+        std::string alias,
+        bool hidden = false);
     virtual ~CmdLineOptionParser();
 
     virtual OptionValue* copy() const = 0;
@@ -67,6 +72,7 @@ public:
     /// Pure virtual function that parses the value of option.
     virtual bool parseValue(std::string arguments, std::string prefix) = 0;
 
+    bool isHidden() { return hidden_; }
     bool isDefined();
 
     virtual int integer(int index = 0) const;
@@ -93,6 +99,8 @@ private:
     std::string shortName_;
     /// The description of option.
     std::string desc_;
+    /// The hidden flag. If set, no entry is printed in the normal help text
+    bool hidden_ = false;
 
     /// Is the value of this option set in the parsed command line?
     bool defined_;
@@ -193,6 +201,42 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////////////////
+// OptionalStringCmdLineOptionParser
+//////////////////////////////////////////////////////////////////////////////
+
+/**
+ * CmdLineOptionParser that acts as flag with optional string value.
+ */
+class OptionalStringCmdLineOptionParser : public CmdLineOptionParser {
+public:
+    OptionalStringCmdLineOptionParser(
+        std::string name,
+        std::string desc,
+        std::string alias = "");
+    virtual ~OptionalStringCmdLineOptionParser();
+
+    virtual OptionValue* copy() const;
+
+    virtual bool parseValue(std::string arguments, std::string prefix);
+    virtual std::string String(int index = 0) const;
+    virtual bool isFlagOn() const;
+    virtual bool isFlagOff() const;
+
+private:
+    /// Copying not allowed.
+    OptionalStringCmdLineOptionParser(
+        const OptionalStringCmdLineOptionParser&);
+    /// Assignment not allowed.
+    OptionalStringCmdLineOptionParser& operator=(
+        const OptionalStringCmdLineOptionParser&);
+
+    /// The value of the option.
+    std::string value_;
+    /// The flag status.
+    bool flag_;
+};
+
+//////////////////////////////////////////////////////////////////////////////
 // RealCmdLineOptionParser
 //////////////////////////////////////////////////////////////////////////////
 
@@ -236,7 +280,8 @@ public:
     BoolCmdLineOptionParser(
         std::string name,
         std::string desc,
-        std::string alias = "");
+        std::string alias = "",
+        bool hidden = false);
     virtual ~BoolCmdLineOptionParser();
 
     virtual OptionValue* copy() const;

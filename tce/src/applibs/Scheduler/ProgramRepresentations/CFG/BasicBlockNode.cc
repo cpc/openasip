@@ -42,7 +42,7 @@
 #include "Program.hh"
 #include "Instruction.hh"
 #include "TCEString.hh"
-
+#include <climits>
 /**
  * Constructor.
  *
@@ -65,7 +65,7 @@ BasicBlockNode::BasicBlockNode(
     bbOwned_(true),
     entry_(entry), exit_(exit),
     scheduled_(false), refsUpdated_(false), loopScheduled_(false),
-    successor_(NULL), predecessor_(NULL) {
+    successor_(NULL), predecessor_(NULL), maximumSize_(INT_MAX) {
 
     if (entry || exit) {
         hasOriginalAddress_ = false;
@@ -92,7 +92,7 @@ BasicBlockNode::BasicBlockNode(
     entry_(false), exit_(false),
     scheduled_(scheduled), refsUpdated_(refsUpdated), 
     loopScheduled_(loopScheduled),
-    successor_(NULL), predecessor_(NULL) {
+    successor_(NULL), predecessor_(NULL), maximumSize_(INT_MAX) {
 }
 
 /**
@@ -102,6 +102,13 @@ BasicBlockNode::~BasicBlockNode() {
     if (bbOwned_)
         delete basicBlock_;
     basicBlock_ = NULL;
+
+    if (successor_ != nullptr && successor_->predecessor_ == this) {
+        successor_->predecessor_ = predecessor_;
+    }
+    if (predecessor_ != nullptr && predecessor_->successor_ == this) {
+        predecessor_->successor_ = successor_;
+    }
 }
 
 /**
@@ -174,12 +181,21 @@ BasicBlockNode::toString() const {
     if (isNormalBB()) {
         TCEString content = "";
         int iCount = basicBlock().instructionCount();
-        if (iCount > 0) {
+        if (iCount > basicBlock().skippedFirstInstructions()) {
             const TTAProgram::Instruction& first = 
                 basicBlock().instructionAtIndex(
                     basicBlock().skippedFirstInstructions());
-            
-            content << "0: ";
+            if (first.moveCount() > 0 &&
+                first.move(0).hasSourceLineNumber())
+                content << " srclines: " << first.move(0).sourceLineNumber();
+
+            const TTAProgram::Instruction& last = 
+                basicBlock().lastInstruction();
+            if (last.moveCount() > 0 &&
+                last.move(0).hasSourceLineNumber())
+                content << "-" << last.move(0).sourceLineNumber();
+
+            content << "\\n0: ";
             content << first.toString();
 
             // print at most last 4 instructions to (usually) print out the
@@ -306,12 +322,40 @@ BasicBlockNode::updateReferencesFromProcToCfg(TTAProgram::Program& prog) {
 }
 
 void BasicBlockNode::link(BasicBlockNode* successor) {
+    // this is already the successor!
+    if (successor == successor_) {
+        assert(successor_->predecessor_ == this);
+        return;
+    }
+
+    // link the new one between previous successor
+    if (successor_) {
+        auto oldSucc = successor_;
+        oldSucc->predecessor_ = successor;
+        successor->successor_ = oldSucc;
+    }
+
     if (successor != NULL) {
         // make sure no inconsistent links.
-        if (successor->predecessor_ != NULL) {
+        if (successor->predecessor_ != NULL &&
+            successor->predecessor_->successor_ == successor) {
             successor->predecessor_->successor_ = NULL;
         }
         successor->predecessor_ = this;
     }
     successor_ = successor;
+}
+
+/**
+ *
+ * Returns maximum size of a basic block.
+ * If scheduled, return the actual size.
+ *
+ * If not scheduled, return the size stored in max size field.
+ */
+int BasicBlockNode::maximumSize() const {
+    return scheduled_ ?
+        basicBlock().instructionCount() -
+        basicBlock().skippedFirstInstructions() :
+        maximumSize_;
 }

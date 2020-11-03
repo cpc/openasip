@@ -84,7 +84,6 @@ LongImmediateUnitState::~LongImmediateUnitState() {
 void
 LongImmediateUnitState::clear() {
     SequenceTools::deleteAllItems(registers_);
-    SequenceTools::deleteAllItems(queue_);
     values_.clear();
 }
 
@@ -118,8 +117,11 @@ LongImmediateUnitState::setRegisterValue(int index, const SimValue& value) {
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);
     }
 
-    // iu latency (cycles) is fixed to 1
-    values_[index] = value;
+    if (latency_ == 0) {
+        values_[index] = value;
+    } else {
+        queue_.emplace(value, index, timer_ + latency_);
+    }
 }
 
 /**
@@ -140,18 +142,10 @@ LongImmediateUnitState::endClock() {
  */
 void
 LongImmediateUnitState::advanceClock() {
-
-    ItemQueue::iterator iter = queue_.begin();
-    while (iter != queue_.end()) {
-   
-        (*iter)->timer_++;
-        if ((*iter)->timer_ == latency_) {
-            values_[(*iter)->index_] = (*iter)->value_;
-            delete *iter;
-            iter = queue_.erase(iter);
-        } else {
-            iter++;
-        }
+    timer_++;
+    while (!queue_.empty() && queue_.front().arrival_ == timer_) {
+        values_[queue_.front().index_] = queue_.front().value_;
+        queue_.pop();
     }
 }
 

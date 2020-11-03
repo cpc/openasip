@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2016 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Definition of InstructionMemory class.
  *
  * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005,2016 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -57,8 +57,14 @@ InstructionMemory::~InstructionMemory() {
     for (InstructionContainer::const_iterator i = instructions_.begin();
          i != instructions_.end();  ++i) {
         delete (*i);
-    }   
+    }
     instructions_.clear();
+
+    for (auto Pair : implicitInstructions_) {
+        InstructionContainer* C = Pair.second;
+        delete C;
+    }
+    implicitInstructions_.clear();
 }
 
 /**
@@ -68,9 +74,27 @@ InstructionMemory::~InstructionMemory() {
  */
 void
 InstructionMemory::addExecutableInstruction(
-    ExecutableInstruction* instruction) {
+    InstructionAddress addr, ExecutableInstruction* instruction) {
 
     instructions_.push_back(instruction);
+    instructionMap_[addr] = instruction;
+}
+
+/**
+ * Adds an "implicit instruction" used to simulate effects triggered
+ * by operation-triggered instructions as side-effects, but which are
+ * not controlled by the programmer.
+ *
+ * Should be added after the explicit instruction in the order of
+ * how the effects should be done.
+ */
+void
+InstructionMemory::addImplicitExecutableInstruction(
+    InstructionAddress addr, ExecutableInstruction* instruction) {
+    if (implicitInstructions_.find(addr) == implicitInstructions_.end()) {
+        implicitInstructions_[addr] = new InstructionContainer;
+    }
+    implicitInstructions_[addr]->push_back(instruction);
 }
 
 /**
@@ -83,4 +107,29 @@ InstructionMemory::resetExecutionCounts() {
          i != instructions_.end(); ++i) {
         (*i)->resetExecutionCounts();
     }
+}
+
+/**
+ * Returns true in case there is an implicit or explicit instruction
+ * at the given address.
+ */
+bool
+InstructionMemory::hasInstructionAt(InstructionAddress addr) const {
+    return instructionMap_.find(addr) != instructionMap_.end();
+}
+
+
+bool
+InstructionMemory::hasImplicitInstructionsAt(InstructionAddress addr) const {
+    return implicitInstructions_.find(addr) != implicitInstructions_.end();
+}
+
+const InstructionMemory::InstructionContainer&
+InstructionMemory::implicitInstructionsAt(InstructionAddress addr) const {
+    if (implicitInstructions_.find(addr) == implicitInstructions_.end()) {
+        return emptyInstructions_;
+    }
+
+    const InstructionContainer* IC = implicitInstructions_.find(addr)->second;
+    return *IC;
 }

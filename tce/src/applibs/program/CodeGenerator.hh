@@ -3,7 +3,8 @@
  *
  * Declaration of CodeGenerator class.
  *
- * @author Mikael Lepistö 2008 (mikael.lepisto@tut.fi)
+ * @author Mikael Lepisto 2008 (mikael.lepisto@tut.fi)
+ * @author Heikki Kultala 2015 (heikki.kultala-NO.SPAM-tut.fi)
  * @note rating: red
  */
 
@@ -12,11 +13,14 @@
 
 #include <set>
 
+#include "MachineInfo.hh"
+#include "ProgramOperation.hh"
 #include "TCEString.hh"
 
 namespace TTAMachine {
     class Machine;
     class Bus;
+    class RegisterFile;
 }
 
 namespace TTAProgram {
@@ -25,13 +29,13 @@ namespace TTAProgram {
     class InstructionReference;
     class InstructionReferenceManager;
     class Procedure;
-    class CodeSnippet;
     class TerminalRegister;
     class Terminal;
     class TerminalFUPort;
     class Move;
     class ProgramAnnotation;
     class MoveGuard;
+    class CodeSnippet;
 }
 
 class UniversalMachine;
@@ -56,15 +60,21 @@ public:
 
     virtual ~CodeGenerator();
 
-    void addMoveToProcedure(TTAProgram::CodeSnippet& dstProcedure,
-                            TTAProgram::Terminal* srcTerminal,
-                            TTAProgram::Terminal* dstTerminal);
+    TTAProgram::Instruction* addMoveToProcedure(
+        TTAProgram::CodeSnippet& dstProcedure,
+        TTAProgram::Terminal* srcTerminal,
+        TTAProgram::Terminal* dstTerminal);
 
     void addAnnotatedMoveToProcedure(TTAProgram::CodeSnippet& dstProcedure,
                                      TTAProgram::Terminal* srcTerminal,
                                      TTAProgram::Terminal* dstTerminal,
                                      const TTAProgram::ProgramAnnotation&
                                      annotation);
+
+
+    TTAProgram::Terminal*
+    createTerminalRegister(
+        const TTAMachine::RegisterFile& rf, int regNum, bool readPort) const;
 
     TTAProgram::Terminal* createTerminalRegister(
         const TCEString& name, bool readPort);
@@ -96,11 +106,19 @@ public:
                                 const TCEString& dstReg,
                                 const TCEString& srcReg);
 
-    void incrementRegisterAddress(TTAProgram::CodeSnippet& dstProcedure,
-                                  const TCEString& dstReg);
+    void incrementRegisterAddress(
+        TTAProgram::CodeSnippet& dstProcedure, const TCEString& dstReg,
+        int increment);
 
-    void decrementRegisterAddress(TTAProgram::CodeSnippet& dstProcedure,
-                                  const TCEString& dstReg);
+    void decrementRegisterAddress(
+        TTAProgram::CodeSnippet& dstProcedure, const TCEString& dstReg,
+        int decrement);
+
+    void incrementStackPointer(
+        TTAProgram::CodeSnippet& dstProcedure, const TCEString& spReg);
+
+    void decrementStackPointer(
+        TTAProgram::CodeSnippet& dstProcedure, const TCEString& spReg);
 
     void popFromStack(TTAProgram::CodeSnippet& dstProcedure,
                       const TCEString& stackRegister,
@@ -154,10 +172,15 @@ public:
         const TCEString& jumpAddrReg,
         const TTAProgram::ProgramAnnotation& annotation);
 
-    TTAProgram::Move* createJump(TTAProgram::InstructionReference& dst);
+    std::shared_ptr<TTAProgram::Move>
+    createJump(TTAProgram::InstructionReference& dst);
 
-    TTAProgram::Move* createCall(
+    std::shared_ptr<TTAProgram::Move> createCall(
         TTAProgram::InstructionReference& callDst);
+
+    void createExternalCall(
+        TTAProgram::CodeSnippet& dstProcedure,
+        const TCEString& procedureName);
 
     void createCall(
         TTAProgram::CodeSnippet& dstProcedure,
@@ -171,10 +194,10 @@ public:
         TTAProgram::CodeSnippet& dstProcedure,
         int imm, const TCEString& dstReg);
 
-    TTAProgram::CodeSnippet* createSchedYieldProcedure(
+    TTAProgram::Procedure* createSchedYieldProcedure(
         TTAProgram::InstructionReferenceManager& refManager,
         const TCEString& name,
-        TTAProgram::InstructionReference& schedProcedure,
+        const TCEString& schedProcedureName,
         const TCEString& stackReg,
         const TCEString& rvReg,
         const RegisterSet& saveRegs);
@@ -182,12 +205,24 @@ public:
     static TTAProgram::MoveGuard* createInverseGuard(
         const TTAProgram::MoveGuard &mg, const TTAMachine::Bus* bus = NULL);
 
+    std::vector<ProgramOperationPtr> createForLoopBufferInit(
+        const MoveNode* dynamicLimitMove, int iterationCount, int divider, int loopSize);
+
+    ProgramOperationPtr createBreakOperation(const MoveNode* jump);
+
+    ProgramOperationPtr createWhileLoopBufferInit(int loopSize);
+
+    std::shared_ptr<TTAProgram::Move> createMove(
+        TTAProgram::Terminal* src, TTAProgram::Terminal* dst);
 
 private:
     /// Target machine.
     const TTAMachine::Machine* mach_;
     /// Universal machine
     const UniversalMachine* uMach_;
+
+    int stackAlignment_;
+    MachineInfo::OperationSet opset_;
 };
 }
 

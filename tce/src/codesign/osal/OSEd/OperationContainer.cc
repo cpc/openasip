@@ -71,7 +71,7 @@ IdealSRAM* OperationContainer::memory_ =
     new IdealSRAM(MEMORY_START, MEMORY_END, MAUSIZE, false);
 
 OperationContext OperationContainer::context_(
-    memory_, programCounter_, returnAddress_);
+    memory_, programCounter_, returnAddress_, 0);
 
 /**
  * Constructor.

@@ -26,7 +26,7 @@
  *
  * Definition of BBSchedulerController class.
  *
- * @author Pekka J‰‰skel‰inen 2006-2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006-2011 (pjaaskel-no.spam-cs.tut.fi)
  * @author Heikki Kultala 2009 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
@@ -43,6 +43,7 @@
 #include "DataDependenceGraphBuilder.hh"
 #include "SimpleResourceManager.hh"
 #include "Procedure.hh"
+#include "ControlUnit.hh"
 #include "Machine.hh"
 #include "Instruction.hh"
 #include "BasicBlock.hh"
@@ -55,14 +56,18 @@
 #include "Application.hh"
 #include "LLVMTCECmdLineOptions.hh"
 #include "SchedulerCmdLineOptions.hh"
+#include "LoopPrologAndEpilogBuilder.hh"
+#include "MachineConnectivityCheck.hh"
 #include "InterPassData.hh"
 #include "ResourceConstraintAnalyzer.hh"
 #include "BasicBlockScheduler.hh"
 #include "RegisterRenamer.hh"
 #include "BUBasicBlockScheduler.hh"
 #include "BF2Scheduler.hh"
-#include "ControlUnit.hh"
-#include "LoopPrologAndEpilogBuilder.hh"
+#include "DisassemblyRegister.hh"
+
+#include "LoopAnalyzer.hh"
+#include "ScheduleEstimator.hh"
 
 namespace TTAMachine {
     class UniversalMachine;
@@ -75,6 +80,7 @@ namespace TTAMachine {
 
 // getting slow with very big II's. limit it. TODO: make this cmdline param.
 static const int MAXIMUM_II = 60;
+static const int DEFAULT_LOWMEM_MODE_THRESHOLD = 200000;
 
 /**
  * Constructs the basic block scheduler.
@@ -84,18 +90,20 @@ static const int MAXIMUM_II = 60;
  * @param delaySlotFiller Helper module implementing jump delay slot filling
  */
 BBSchedulerController::BBSchedulerController(
+    const TTAMachine::Machine& targetMachine,
     InterPassData& data,
     SoftwareBypasser* bypasser,
     CopyingDelaySlotFiller* delaySlotFiller,
     DataDependenceGraph* bigDDG) :
     BasicBlockPass(data), ControlFlowGraphPass(data), ProcedurePass(data),
-    ProgramPass(data), bigDDG_(bigDDG), 
+    ProgramPass(data), targetMachine_(targetMachine), 
+    scheduledProcedure_(NULL), bigDDG_(bigDDG), 
     softwareBypasser_(bypasser), delaySlotFiller_(delaySlotFiller),
-    basicBlocksScheduled_(0),
-    totalBasicBlocks_(0), progressBar_(NULL) {
+    basicBlocksScheduled_(0), totalBasicBlocks_(0), progressBar_(NULL) {
 
     CmdLineOptions *cmdLineOptions = Application::cmdLineOptions();
     options_ = dynamic_cast<LLVMTCECmdLineOptions*>(cmdLineOptions);
+
 }
 
 BBSchedulerController::~BBSchedulerController() {
@@ -139,52 +147,88 @@ BBSchedulerController::handleBasicBlock(
         && BasicBlockPass::interPassData().hasDatum(SP_DATUM) &&
         BasicBlockPass::interPassData().hasDatum(FP_DATUM) &&
         BasicBlockPass::interPassData().hasDatum(RV_DATUM) &&
-        BasicBlockPass::interPassData().hasDatum(RV_HIGH_DATUM)) {
-        rr = new RegisterRenamer(targetMachine, bb);
+        BasicBlockPass::interPassData().hasDatum(RV_DATUM)) {
+        rr = new RegisterRenamer(targetMachine, bbn->basicBlock());
     }
 
     std::vector<DDGPass*> bbSchedulers;
 
-    if (options_ != NULL && options_->useTDScheduler()) {
-        bbSchedulers.push_back(
-            new BasicBlockScheduler(
-                BasicBlockPass::interPassData(), softwareBypasser_, NULL,rr));
+    if (options_ != NULL && options_->useBubbleFish2Scheduler()) {
+        bbSchedulers.push_back(new BF2Scheduler(
+                                   BasicBlockPass::interPassData(), rr));
     } else if (options_ != NULL && options_->useBUScheduler()) {
-        bbSchedulers.push_back(
-            new BUBasicBlockScheduler(
-                BasicBlockPass::interPassData(), softwareBypasser_, NULL,rr));
-    } else {   
+        bbSchedulers.push_back(new BUBasicBlockScheduler(
+                BasicBlockPass::interPassData(), softwareBypasser_, rr));
+    } else if (options_ != NULL && options_->useTDScheduler()) {
+        bbSchedulers.push_back(new BasicBlockScheduler(
+            BasicBlockPass::interPassData(), softwareBypasser_, rr));
+    } else {
         bbSchedulers.push_back(new BF2Scheduler(
                                    BasicBlockPass::interPassData(), rr));
     }
 
     if (options_->isLoopOptDefined() &&
-        cfg_->isSingleBBLoop(*bbn) &&
+        cfg_->isSingleBBLoop(*bbn) && 
         bb.lastInstruction().hasJump() &&
-        bigDDG_ != NULL &&
-        dynamic_cast<BF2Scheduler*>(bbSchedulers[0])) {
-       
-        // software pipeline instead of calling the flat BB scheduler
-        if (Application::verboseLevel() > 0) {
-            Application::logStream()
-                << "executing loop pass with trip count " << bb.tripCount()
-                << std::endl;
-        }
+        bigDDG_ != NULL) {
 
-        if (executeLoopPass(
-                bb, targetMachine, irm, bbSchedulers, bbn) ) {
-            bbScheduled = true;
-        } else {
-            if (Application::verboseLevel() > 0) {
-                Application::logStream()
-                    << "loop scheduler failed, using basic block "
-                    << "scheduler instead" << std::endl;
+        LoopAnalyzer::LoopAnalysisResult* analysis = NULL;
+        if (Application::verboseLevel() > 1) {
+            Application::logStream() 
+                << "CFG detects single BB loop" << std::endl
+                << "tripcount: " << bb.tripCount() << std::endl;
+        }
+        if (bigDDG_ && bb.tripCount() == 0 && options_->useBubbleFish2Scheduler()) {
+            analysis = LoopAnalyzer::analyze(*bbn, *bigDDG_);
+            if (analysis != NULL) {
+                bb.setTripCount(analysis->iterationCount);
+                if (analysis->counterValueNode == NULL) {
+                    if (Application::verboseLevel() > 1) {
+                        Application::logStream() 
+                            << "loop analyzis analyzed loop to have fixed trip count"
+                            << analysis->iterationCount << std::endl;
+                    }
+                } else {
+                    if (Application::verboseLevel() > 1) {
+                        Application::logStream() 
+                            << "loop analyzis analyzed loop to have variable trip count"
+                            << analysis->counterValueNode->toString()
+                            << " + "
+                            << analysis->iterationCount << " divided by"
+                            << analysis->counterMultiplier << std::endl;
+                    }   
+                }
             }
-            bbScheduled = false;
         }
+        
+        if ((((bb.tripCount() > 0 || (analysis && analysis->counterValueNode)) &&
+              MachineConnectivityCheck::tempRegisterFiles(targetMachine).empty()) ||
+             options_->useBubbleFish2Scheduler())) {
+            if (analysis) {
+                (static_cast<BF2Scheduler*>(bbSchedulers[0]))->
+                    setLoopLimits(analysis);
+            }
+            // software pipeline instead of calling the flat BB scheduler
+            if (Application::verboseLevel() > 1) {
+                Application::logStream()
+                    << "executing loop pass with trip count " << bb.tripCount()
+                    << std::endl;
+            }
+            
+            if (executeLoopPass(
+                    bb, targetMachine, irm, bbSchedulers, bbn) ) {
+                bbScheduled = true;
+            } else {
+                if (Application::verboseLevel() > 1) {
+                    Application::logStream()
+                        << "loop scheduler failed, using basic block "
+                        << "scheduler instead" << std::endl;
+                }
+                bbScheduled = false;
+            }
+        }
+        // if not scheduled yet (or loop scheduling failed)
     }
-
-    // if not scheduled yet (or loop scheduling failed)
     if (!bbScheduled) {
 
         executeDDGPass(
@@ -202,15 +246,21 @@ BBSchedulerController::handleBasicBlock(
     }
 
     // these are no longer needed. delete them to save memory.
-    bb.liveRangeData_->regFirstDefines_.clear();
-    bb.liveRangeData_->regDefines_.clear();
-    bb.liveRangeData_->regLastUses_.clear();
-
-    bb.liveRangeData_->regDefReaches_.clear();
-    bb.liveRangeData_->registersUsedAfter_.clear();
-    bb.liveRangeData_->regFirstUses_.clear();
-    bb.liveRangeData_->regDefines_.clear();
-    AssocTools::deleteAllItems(bbSchedulers);
+    if (bb.liveRangeData_ != NULL) {
+        bb.liveRangeData_->regFirstDefines_.clear();
+        bb.liveRangeData_->regDefines_.clear();
+        bb.liveRangeData_->regLastUses_.clear();
+        
+        bb.liveRangeData_->regDefReaches_.clear();
+        bb.liveRangeData_->registersUsedAfter_.clear();
+        bb.liveRangeData_->regFirstUses_.clear();
+        bb.liveRangeData_->regDefines_.clear();
+    } else {
+        std::cerr << "Wargning: BB liverange data null for: " 
+                  << bbn->toString() << std::endl;
+    }
+    for (unsigned int i = 0; i < bbSchedulers.size(); i++)
+        delete bbSchedulers[i];
 }
 
 #ifdef DEBUG_REG_COPY_ADDER
@@ -224,6 +274,9 @@ static int graphCount = 0;
  *
  * @param procedure The procedure to schedule.
  * @param targetMachine The target machine.
+ * @todo remove the targetMachine argument. The machine is given in the
+ * constructor and assumed to be the same for whole lifetime of the
+ * scheduler instance.
  * @exception Exception In case of an error during scheduling. The exception
  *            type can be any subtype of Exception.
  */
@@ -250,42 +303,43 @@ BBSchedulerController::handleProcedure(
         }
     }
 
-    DataDependenceGraph::AntidependenceLevel adepLevel =
-        DataDependenceGraph::INTRA_BB_ANTIDEPS;
-
-    SchedulerCmdLineOptions* options =
-        dynamic_cast<SchedulerCmdLineOptions*>(
-            Application::cmdLineOptions());
-
-    if (options && options_->isLoopOptDefined()) {
-        if (Application::verboseLevel() > 0) {
-            std::cerr << "Loop scheduling option defined, "
-                      << "creating DDG with single-bb loop antideps"
-                      << std::endl;
-        }
-        adepLevel = DataDependenceGraph::SINGLE_BB_LOOP_ANTIDEPS;
-    }
-
-
 #ifdef CFG_SNAPSHOTS
     cfg.writeToDotFile(procedure.name() + "_cfg.dot");
 #endif
 
-    bigDDG_ = ddgBuilder().build(
-        cfg, adepLevel, targetMachine);
-    
-    if (options_ != NULL && options_->dumpDDGsDot()) {
-        bigDDG_->writeToDotFile( 
-            (boost::format("proc_%s_before_scheduling.dot") % 
-             bigDDG_->name()).str());
+    SchedulerCmdLineOptions* opts =
+        dynamic_cast<SchedulerCmdLineOptions*>(Application::cmdLineOptions());
+    int lowMemThreshold = DEFAULT_LOWMEM_MODE_THRESHOLD;
+
+    if (opts != NULL && opts->lowMemModeThreshold() > -1) {
+        lowMemThreshold = opts->lowMemModeThreshold();
     }
     
-    if (options_ != NULL && options_->dumpDDGsXML()) {
-        bigDDG_->writeToXMLFile( 
-            (boost::format("proc_%s_before_scheduling.xml") % 
-             bigDDG_->name()).str());
+    if (procedure.instructionCount() < lowMemThreshold) {
+        // create the procedure-wide ddg.
+        bigDDG_ = ddgBuilder().build(
+            cfg, DataDependenceGraph::SINGLE_BB_LOOP_ANTIDEPS, targetMachine);
+
+        if (options_ != NULL && options_->dumpDDGsDot()) {
+            bigDDG_->writeToDotFile( 
+                (boost::format("proc_%s_before_scheduling.dot") % 
+                 bigDDG_->name()).str());
+        }
+
+        if (options_ != NULL && options_->dumpDDGsXML()) {
+            bigDDG_->writeToXMLFile( 
+                (boost::format("proc_%s_before_scheduling.xml") % 
+                 bigDDG_->name()).str());
+        }
     }
 
+    if (delaySlotFiller_ != NULL && bigDDG_ != NULL) {
+        delaySlotFiller_->initialize(cfg, *bigDDG_, targetMachine);
+    }
+
+#ifdef BIG_DDG_SNAPSHOTS
+    bigDDG_->writeToDotFile(bigDDG_->name() + "_unscheduled_ddg.dot");
+#endif
     scheduledProcedure_ = &procedure;
 
     // dsf also called between scheduling.. have to update these before it.
@@ -301,23 +355,24 @@ BBSchedulerController::handleProcedure(
         delaySlotFiller_->fillDelaySlots(cfg, *bigDDG_, targetMachine);
     }
 
+#ifdef CFG_SNAPSHOTS
+    cfg.writeToDotFile(procedure.name() + "_cfg_after.dot");
+#endif
+
     // now all basic blocks are scheduled, let's put them back to the
     // original procedure
     cfg.copyToProcedure(procedure);
-
     if (bigDDG_ != NULL) {
 
         if (options_ != NULL && options_->dumpDDGsDot()) {
             bigDDG_->writeToDotFile(
-                (boost::format("proc_%s_after_scheduling.dot") % 
-                 bigDDG_->name())
+                (boost::format("proc_%s_after_scheduling.dot") % bigDDG_->name())
                 .str());
         } 
 
         if (options_ != NULL && options_->dumpDDGsXML()) {
             bigDDG_->writeToXMLFile(
-                (boost::format("proc_%s_after_scheduling.xml") % 
-                 bigDDG_->name())
+                (boost::format("proc_%s_after_scheduling.xml") % bigDDG_->name())
                 .str());
         } 
         delete bigDDG_;
@@ -342,7 +397,7 @@ BBSchedulerController::handleProcedure(
 void
 BBSchedulerController::handleControlFlowGraph(
     ControlFlowGraph& cfg, const TTAMachine::Machine& targetMachine) {
-    return handleCFGDDG(cfg, *bigDDG_, targetMachine);
+    return handleCFGDDG(cfg, bigDDG_, targetMachine);
 }
 
 /**
@@ -359,13 +414,6 @@ void
 BBSchedulerController::handleProgram(
     TTAProgram::Program& program, const TTAMachine::Machine& targetMachine) {
     ProgramPass::executeProcedurePass(program, targetMachine, *this);
-#ifdef SW_BYPASSING_STATISTICS
-    if (softwareBypasser != NULL) {
-        Application::logStream() << softwareBypasser_->bypassedCount() << 
-            " moves were bypassed and " <<
-            softwareBypassed_->deadResults() << 
-            " dead results were removed." << std::endl;
-#endif
 }
 
 /**
@@ -410,26 +458,98 @@ DataDependenceGraph*
         return bigDDG_->createSubgraph(bb);
     } else {
         return this->ddgBuilder().build(
-            bb, DataDependenceGraph::INTRA_BB_ANTIDEPS, mach);
+bb, DataDependenceGraph::INTRA_BB_ANTIDEPS, mach,
+            scheduledProcedure_->name() + '_' + 
+            Conversion::toString(basicBlocksScheduled_) + ".dot");
     }
 }
 
 /**
- * Creates a DDG from the given basic block and executes a DDG pass for that.
+ * Creates a DDG from the given basic block and executes the set of DDG passes 
+ * for that.
  */
-void BBSchedulerController::executeDDGPass(
-    TTAProgram::BasicBlock & bb, const TTAMachine::Machine& targetMachine,
+void
+BBSchedulerController::executeDDGPass(
+    TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
     TTAProgram::InstructionReferenceManager& irm,
-    std::vector<DDGPass*> ddgPasses, BasicBlockNode*) {
-
+    std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn) {
+    int minCycle = 0;
+    DataDependenceGraph* ddg = NULL;
+    SimpleResourceManager* rm = NULL;
+    // Used for live info dumping.
     static int bbNumber = 0;
-    DataDependenceGraph* ddg = createDDGFromBB(bb, targetMachine);
-    SimpleResourceManager* rm = SimpleResourceManager::createRM(targetMachine);
+    int min = INT_MAX;
+    int fastest = 0;
+    if (ddgPasses.size() > 1) {
+        for (unsigned int i = 0; i < ddgPasses.size(); i++) {
+            ddg = createDDGFromBB(bb, targetMachine);
+            rm = SimpleResourceManager::createRM(targetMachine);
+            rm->setDDG(ddg);
+            rm->setCFG(cfg_);
+            rm->setBBN(bbn);
 
-    rm->setDDG(ddg);
-    assert (ddgPasses.size() == 1);
-    ddgPasses.at(0)->handleDDG(*ddg, *rm, targetMachine);
+            int size =
+                ddgPasses[i]->handleDDG(*ddg, *rm, targetMachine, minCycle, true);
+            if (size < min) {
+                min = size;
+                fastest = i;
+            }
+            SimpleResourceManager::disposeRM(rm);
+            delete ddg;  
+            ddg = NULL;
+        }
+    }
+    ddg = createDDGFromBB(bb, targetMachine);
+    rm = SimpleResourceManager::createRM(targetMachine);
+    rm->setDDG(static_cast<DataDependenceGraph*>(ddg->rootGraph()));
+    rm->setCFG(cfg_);
+    rm->setBBN(bbn);
+
+    if (options_ != NULL && options_->printResourceConstraints()) {
+        TCEString ddgName = ddg->name();
+        // Use the BBN id if possible so it's easier to find the matching BBs when
+        // looking at the if-conversion CFGs.
+        if (bbn != NULL)
+            ddgName << bbn->nodeID(); 
+        else
+            ddgName << bbNumber;
+        ResourceConstraintAnalyzer rcAnalyzer(*ddg, *rm, ddgName);
+        rcAnalyzer.analyzePreSchedule();
+    }
+
+    
+#ifdef DDG_SNAPSHOTS
+    std::string name = "scheduling";
+    ddgSnapshot(ddg, name, false);
+#endif
+
+    try {
+        ddgPasses[fastest]->handleDDG(*ddg, *rm, targetMachine, minCycle);
+    } catch (const Exception &e) {
+        debugLog(e.errorMessageStack());
+        abortWithError("Scheduling failed!");
+    }
+
+#ifdef DDG_SNAPSHOTS
+    std::string name = "scheduling";
+    ddgSnapshot(ddg, name, true);
+#endif
+
     copyRMToBB(*rm, bb, targetMachine, irm);
+
+    bbNumber++;
+
+    if (options_ != NULL && options_->printResourceConstraints()) {
+        TCEString ddgName = ddg->name();
+        // Use the BBN id if possible so it's easier to find the matching BBs when
+        // looking at the if-conversion CFGs.
+        if (bbn != NULL)
+            ddgName << bbn->nodeID(); 
+        else
+            ddgName << bbNumber;
+        ResourceConstraintAnalyzer rcAnalyzer(*ddg, *rm, ddgName);
+        rcAnalyzer.analyze();
+    }
     
     if (delaySlotFiller_ != NULL && bigDDG_ != NULL) {
         rm->clearOldResources();
@@ -438,266 +558,105 @@ void BBSchedulerController::executeDDGPass(
         SimpleResourceManager::disposeRM(rm);
     }
 
-    if (options_ != NULL && options_->printResourceConstraints()) {
-        TCEString ddgName = ddg->name();
-        ddgName << bbNumber;
-        ResourceConstraintAnalyzer rcAnalyzer(*ddg, *rm, ddgName);
-        rcAnalyzer.analyze();
+    // print some stats about the loop kernel body DDGs
+    if (Application::verboseLevel() > 1 && bb.isInInnerLoop()) {
+        Application::logStream()
+            << "DDG height " <<  ddg->height() << std::endl;        
     }
-    ++bbNumber;
 
     delete ddg;
-    rm->setDDG(nullptr);
 }
 
+/* Returns true if node count changed */
+bool BBSchedulerController::handleBBNode(
+    ControlFlowGraph& cfg, BasicBlockNode& bb,
+    const TTAMachine::Machine& targetMachine, int nodeCount) {
 
-/**
- * Creates a DDG from the given basic block and executes a Loop pass for that.
- */
-bool
-BBSchedulerController::executeLoopPass(
-    TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
-    TTAProgram::InstructionReferenceManager& irm,
-    std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn) {
+    TCEString procName = cfg.procedureName();
+    if (procName == "") procName = cfg.name();
 
-    BF2Scheduler* sched = dynamic_cast<BF2Scheduler*>(ddgPasses[0]);
-    if (sched == nullptr) {
+    if (!bb.isNormalBB() || bb.isScheduled()) {
         return false;
     }
 
-    std::pair<unsigned int, unsigned int> iiMinMax =
-        calculateII(*bbn,  targetMachine);
+    handleBasicBlock(
+        bb.basicBlock(), targetMachine,
+        cfg.instructionReferenceManager(), &bb);
+    bb.setScheduled();
 
-    unsigned int iiMax = iiMinMax.second;
-    unsigned int iiMin = iiMinMax.first;
-    unsigned int smallestSuccess = INT_MAX;
-    int tryCount = 0;
-    unsigned int ii;
-
-    if (Application::verboseLevel() > 0) {
-        Application::logStream() << "LoopScheduler with MinII="
-                                 << iiMin << " MaxII=" << iiMax << std::endl;
+    if (delaySlotFiller_ != NULL && bigDDG_ != NULL) {
+        delaySlotFiller_->bbnScheduled(bb);
     }
 
-    // search ii which is to be used by binary search.
-    while (iiMin <= iiMax) {
-
-        // split the search range by half.
-        ii = (iiMin*2 + iiMax)/3;
-
-        // Do not binary search with a max that is not working schedule.
-        // Try the max on second round instead to fail quickly
-        // when there is no solution.
-        if (tryCount && smallestSuccess == INT_MAX) {
-            ii = iiMax;
-        }
-
-        // Have we already tested this and found that it works?
-        // Don't test again!
-        if (ii == smallestSuccess) {
-            break;
-        }
-
-        if (Application::verboseLevel() > 0) {
-            Application::logStream() << "Testing with II=" << ii <<
-                std::endl;
-        }
-
-        // ddg of loop with back edges
-        DataDependenceGraph* loopDDG = bigDDG_->createSubgraph(bb, true);
-
-        SimpleResourceManager* rm =
-            SimpleResourceManager::createRM(targetMachine, ii);
-        rm->setDDG(loopDDG);
-
-        // when only testing, do not really need the prolog rm.
-        SimpleResourceManager* prologRM = NULL;
-
-        prologRM = SimpleResourceManager::createRM(targetMachine);
-        prologRM->setDDG(loopDDG);
-
-        // test scheduling.
-        try {
-            int loopScheduled = sched->handleLoopDDG(
-                *loopDDG, *rm, targetMachine, bb.tripCount(), prologRM, true);
-
-            // loop scheduler was slower than ordinary scheduler?
-            if (loopScheduled == 0) {
-                iiMax = ii -1;
-                smallestSuccess = ii;
-            } else {
-                // failed.
-                if (loopScheduled < 0) {
-                    iiMin = ii+1;
-                } else { // ok.
-                    iiMax = ii;
-                    smallestSuccess = ii;
-                }
-            }
-            SimpleResourceManager::disposeRM(rm);
-            SimpleResourceManager::disposeRM(prologRM);
-
-            delete loopDDG;
-
-        } catch(ModuleRunTimeError& err) {
-            if (Application::verboseLevel() > 0) {
-                Application::logStream() << "\tLoop Scheduling failed: " <<
-                    err.errorMessageStack() << std::endl;
-            }
-            SimpleResourceManager::disposeRM(rm);
-            SimpleResourceManager::disposeRM(prologRM);
-
-            delete loopDDG;
-            iiMin = ii+1;
-        }
-        tryCount++;
+    // if some node is removed, make sure does not skip some node and
+    // then try to handle too many nodes.
+    if (cfg.nodeCount() != nodeCount) {
+        return true;
     }
-
-    // no such ii where some overlapping and still possible to schedule
-    if (iiMin > iiMax) {
-        if (Application::verboseLevel() > 0) {
-            std::cerr << "Loop scheduling solution not found." << std::endl;
-        }
-        return false;
-    }
-    // now we should have a working ii.
-    ii = iiMin;
-
-    // ddg of loop with back edges
-    DataDependenceGraph* loopDDG = bigDDG_->createSubgraph(bb, true);
-
-    if (Application::verboseLevel() > 1) {
-        Application::logStream() << "Should schedule with II=" << ii <<
-            std::endl;
-    }
-
-    SimpleResourceManager* rm =
-        SimpleResourceManager::createRM(targetMachine, ii);
-    rm->setDDG(loopDDG);
-
-    SimpleResourceManager* prologRM =
-        SimpleResourceManager::createRM(targetMachine);
-    prologRM->setDDG(loopDDG);
-
-    try {
-        int loopScheduled =
-            sched->handleLoopDDG(
-                *loopDDG, *rm, targetMachine, bb.tripCount(), prologRM,false);
-
-        // loop scheduler was slower than ordinary scheduler?
-        if (loopScheduled<0) {
-            SimpleResourceManager::disposeRM(rm);
-            SimpleResourceManager::disposeRM(prologRM);
-            delete loopDDG;
-            return false;
-        }
-    } catch(ModuleRunTimeError& err) {
-        if (Application::verboseLevel() > 1) {
-            Application::logStream() << "\tLoop Scheduling failed: " <<
-                err.errorMessageStack() << std::endl;
-        }
-        SimpleResourceManager::disposeRM(rm);
-        SimpleResourceManager::disposeRM(prologRM);
-        delete loopDDG;
-        return false;
-    }
-
-#ifdef DDG_SNAPSHOTS
-    std::string name = "loop_scheduling";
-    ddgSnapshot(loopDDG, name, true);
-#endif
-
-    BasicBlockNode* prologBBN = NULL;
-    // Create prolog and epilog for the loop
-    bbn->setLoopScheduled();
-    LoopPrologAndEpilogBuilder peBuilder;
-    if (prologRM != NULL) {
-        // bf2 scheduler does not use epilog, it's
-        // intergrated into loop
-        if (Application::verboseLevel() > 0) {
-            std::cerr << "Adding prolog from rm.." << std::endl;
-        }
-        prologBBN = peBuilder.addPrologFromRM(*prologRM, *rm, *cfg_, *bbn);
-        if (sched->hasEpilogInRM()) {
-            if (Application::verboseLevel() > 0) {
-                std::cerr << "Adding epilog from rm.." << std::endl;
-            }
-            peBuilder.addEpilogFromRM(*prologRM, ii, *cfg_, *bbn);
-        }
-    }
-    copyRMToBB(*rm, bb, targetMachine, irm);
-
-    if (Application::verboseLevel() > 0) {
-        Application::logStream() <<
-            "\tScheduling succeeded with ii: "  << rm->initiationInterval() <<
-            std::endl;
-    }
-
-    // prolog RM given to delayslot filler to allow filling from prolog
-    // to the BB before the loop.
-    if (prologBBN != NULL && delaySlotFiller_ != NULL && bigDDG_ != NULL) {
-        prologRM->clearOldResources();
-        delaySlotFiller_->addResourceManager(
-            prologBBN->basicBlock(), *prologRM);
-    } else {
-        SimpleResourceManager::disposeRM(prologRM);
-    }
-
-    // deletes or stores rm for future use
-    SimpleResourceManager::disposeRM(rm);
-
-    delete loopDDG;
-    return true;
+    return false;
 }
-
-std::pair<unsigned int, unsigned int>
-BBSchedulerController::calculateII(
-        const BasicBlockNode& bbn,  const TTAMachine::Machine& targetMachine) {
-
-    // get ii minimum and maximum
-    unsigned int iiMax = std::min(
-        std::max(bbn.basicBlock().instructionCount(),
-                 targetMachine.controlUnit()->delaySlots()+1),
-        MAXIMUM_II);
-
-    unsigned int iiMin = targetMachine.controlUnit()->delaySlots()+1;
-    return std::pair<unsigned int, unsigned int>(iiMin, iiMax);
-}
-
 void
 BBSchedulerController::handleCFGDDG(
     ControlFlowGraph& cfg,
-    DataDependenceGraph& ddg,
+    DataDependenceGraph* ddg,
     const TTAMachine::Machine& targetMachine) {
     cfg_ = &cfg;
-    bigDDG_ = &ddg;
+    bigDDG_ = ddg;
 
-    TCEString procName = cfg.procedureName();
-
-    if (procName == "") procName = cfg.name();
+    ScheduleEstimator est(ProcedurePass::interPassData());
+    est.handleControlFlowGraph(cfg, targetMachine);
 
     int nodeCount = cfg.nodeCount();
+
+    // for handle single-BB-loops
     for (int bbIndex = 0; bbIndex < nodeCount; ++bbIndex) {
-        BasicBlockNode& bb = dynamic_cast<BasicBlockNode&>(cfg.node(bbIndex));
-        if (!bb.isNormalBB())
-            continue;
-        if (bb.isScheduled()) {
+        BasicBlockNode& bb = cfg.node(bbIndex);
+        if (!cfg.isSingleBBLoop(bb)) {
             continue;
         }
 
-        handleBasicBlock(
-            bb.basicBlock(), targetMachine, cfg.instructionReferenceManager(), &bb);
-        bb.setScheduled();
-
-        if (delaySlotFiller_ != NULL && bigDDG_ != NULL) {
-            delaySlotFiller_->bbnScheduled(bb);
-        }
-
-        // if some node is removed, make sure does not skip some node and
-        // then try to handle too many nodes.
-        if (cfg.nodeCount() != nodeCount) {
+        if (handleBBNode(cfg, bb, targetMachine, nodeCount)) {
             nodeCount = cfg.nodeCount();
             bbIndex = 0;
         }
     }
+
+    // then handle BBs which do not have outgoing jumps.
+    for (int bbIndex = 0; bbIndex < nodeCount; ++bbIndex) {
+        BasicBlockNode& bb = cfg.node(bbIndex);
+        auto jumpDest = cfg.jumpSuccessor(bb);
+        if (jumpDest != nullptr && jumpDest->isNormalBB()) {
+            continue;
+        }
+
+        if (handleBBNode(cfg, bb, targetMachine, nodeCount)) {
+            nodeCount = cfg.nodeCount();
+            bbIndex = 0;
+        }
+    }
+
+
+    for (int bbIndex = cfg.nodeCount() -1; bbIndex >= 0; --bbIndex) {
+        BasicBlockNode& bb = cfg.node(bbIndex);
+        auto jumpDest = cfg.jumpSuccessor(bb);
+        if (jumpDest == nullptr || !jumpDest->isNormalBB()) {
+            continue;
+        }
+
+        if (cfg.allScheduledInBetween(bb, *jumpDest)) {
+            if (handleBBNode(cfg, bb, targetMachine, nodeCount)) {
+                nodeCount = cfg.nodeCount();
+                bbIndex = nodeCount -1;
+            }
+        }
+    }
+
+    for (int bbIndex = cfg.nodeCount() -1; bbIndex >= 0; --bbIndex) {
+        BasicBlockNode& bb = cfg.node(bbIndex);
+        if (handleBBNode(cfg, bb, targetMachine, nodeCount)) {
+            nodeCount = cfg.nodeCount();
+            bbIndex = nodeCount -1;
+        }
+    }
 }
+

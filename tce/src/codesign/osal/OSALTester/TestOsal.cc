@@ -411,8 +411,10 @@ OsalInterpreter::operation(const std::string& name) {
  */
 TesterContext::TesterContext() :
     InterpreterContext(), continue_(true), programCounterStorage_(0),
+    irfStartStorage_(0), branchDelayCycles_(3),
     outputFormat_(CmdOutput::OUTPUT_FORMAT_INT_SIGNED),
-    opContext_(NULL, programCounterStorage_, returnAddressStorage_) {
+    opContext_(NULL, programCounterStorage_, returnAddressStorage_,
+               branchDelayCycles_) {
 
 }
 

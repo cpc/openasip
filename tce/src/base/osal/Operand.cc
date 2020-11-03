@@ -218,6 +218,44 @@ Operand::typeString() const {
     }
 }
 
+TCEString 
+Operand::CTypeString() const {
+    if (isVector()) {
+        return "";
+    }
+    TCEString type;
+    switch (this->type()) {
+    case Operand::SINT_WORD:
+        type = "signed";
+        break;
+    case Operand::UINT_WORD:
+        type = "unsigned";
+        break;
+    case Operand::FLOAT_WORD:
+        return "float";
+        break;
+    case Operand::DOUBLE_WORD:
+        return "double";
+        break;
+    case Operand::RAW_DATA:
+        return "";
+        break;
+    default:
+    // TODO: how do halffloats work?
+    // they should not need any casts.
+    // cannot return half as it's only supported in opencl.
+        return "";
+    }
+    if (elementWidth() <= 8) {
+        return type + " char";
+    }
+    if (elementWidth() <= 16) {
+        return type + " short";
+    }
+    return type + " int";
+}
+
+
 /**
  * Tells if the operand is a vector operand, in other words, has subwords.
  *
@@ -241,7 +279,7 @@ Operand::elementWidth() const {
 /**
  * Sets the element bit width.
  *
- * @param elementWidth New element bit width.
+ * @param New element bit width.
  */
 void
 Operand::setElementWidth(int elementWidth) {
@@ -261,7 +299,7 @@ Operand::elementCount() const {
 /**
  * Sets the number of elements.
  *
- * @param elementCount New element count.
+ * @param New element count.
  */
 void
 Operand::setElementCount(int elementCount) {

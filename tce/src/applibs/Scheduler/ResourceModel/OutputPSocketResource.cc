@@ -80,12 +80,16 @@ OutputPSocketResource::isOutputPSocketResource() const {
  * @param node MoveNode to assign
  */
 void
-OutputPSocketResource::assign(const int cycle, MoveNode& node) {
+OutputPSocketResource::assign(const int cycle, MoveNode& node)
+{
     PSocketResource::assign(cycle, node);
-    if (!MapTools::containsKey(storedPorts_, instructionIndex(cycle))) {
+    auto i = storedPorts_.find(instructionIndex(cycle));
+    if (i == storedPorts_.end()) {
         const TTAMachine::Port* newPort = &node.move().source().port();
-        storedPorts_.insert(std::pair<int, const TTAMachine::Port*>(
-                                instructionIndex(cycle), newPort));
+        storedPorts_[instructionIndex(cycle)] = 
+            std::make_pair(newPort,1);
+    } else {
+        i->second.second++;
     }
 }
 
@@ -96,10 +100,16 @@ OutputPSocketResource::assign(const int cycle, MoveNode& node) {
  * @param node MoveNode to remove assignment from
  */
 void
-OutputPSocketResource::unassign(const int cycle, MoveNode& node) {
+OutputPSocketResource::unassign(const int cycle, MoveNode& node)
+{
     PSocketResource::unassign(cycle, node);
-    if (MapTools::containsKey(storedPorts_, instructionIndex(cycle))) {
-        storedPorts_.erase(instructionIndex(cycle));
+    auto i = storedPorts_.find(instructionIndex(cycle));
+    if (i != storedPorts_.end()) {
+        if (i->second.second == 1) {
+            storedPorts_.erase(i);
+        } else {
+            i->second.second--;
+        }
     }
 }
 
@@ -114,29 +124,26 @@ bool
 OutputPSocketResource::canAssign(const int cycle, const MoveNode& node)
     const {
     MoveNode& mNode = const_cast<MoveNode&>(node);
-
+    auto i = storedPorts_.find(instructionIndex(cycle));
     if (mNode.move().source().isFUPort()) {
-        if (MapTools::containsKey(storedPorts_, instructionIndex(cycle))) {
-            const TTAMachine::Port* storedP =
-                MapTools::valueForKey<const TTAMachine::Port*>(
-                    storedPorts_, instructionIndex(cycle));
+        if (i != storedPorts_.end()) {
+            const TTAMachine::Port* storedP = i->second.first;
             if (&mNode.move().source().port() != storedP) {
                 return false;
             }
         }
     }
     if (mNode.move().source().isImmediateRegister()) {
-        if (MapTools::containsKey(storedPorts_, instructionIndex(cycle))) {
+        if (i != storedPorts_.end()) {
             return false;
         }
     }
     if (node.move().source().isGPR()) {
-        if (MapTools::containsKey(storedPorts_, instructionIndex(cycle))) {
+        if (i != storedPorts_.end()) {
             const TTAMachine::Port* storedP =
-                MapTools::valueForKey<const TTAMachine::Port*>(
-                    storedPorts_, instructionIndex(cycle));
+                i->second.first;
             if (mNode.move().source().port().parentUnit() != 
-                storedP->parentUnit()) {                
+                storedP->parentUnit()) {
                 return false;
             }
         }

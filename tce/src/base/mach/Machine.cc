@@ -881,9 +881,10 @@ Machine::writeToADF(const std::string& adfFileName) const {
  * The hash consists of a 32bit hash of the .adf xml data concat with
  * the .adf data length as a hex string. 
  *
- * @note The hash string is dependent on the XML format and does 
- * not account any architecture file changes that still retain
- * the identical architecture.
+ * @note The hash string is done based on the ADF XML format, thus does 
+ * not account for changes that have the different XML output, but in
+ * reality are the same architecture (in the point of view of the 
+ * programmer).
  */
 TCEString
 Machine::hash() const {
@@ -903,7 +904,7 @@ Machine::hash() const {
     return hash;
 }
 
-/*
+/**
  * Returns true if result value always needs to be written to GPR.
  *
  */
@@ -912,7 +913,7 @@ Machine::alwaysWriteResults() const {
     return alwaysWriteResults_;
 }
     
-/*
+/**
  * Returns true if triggering make content of the register where result will
  * be stored invalid.
  *
@@ -922,7 +923,7 @@ Machine::triggerInvalidatesResults() const {
     return triggerInvalidatesResults_;
 }
 
-/*
+/**
  * Returns true if sequential order of FUs in ADF file is significant.
  *
  * In certain architectures (Cell SPU) the "relative order" of the function 
@@ -935,7 +936,7 @@ Machine::isFUOrdered() const {
     return fuOrdered_;
 }
 
-/* 
+/**
  * Sets whether or not result must always be written to register.
  */
 void 
@@ -943,15 +944,15 @@ Machine::setAlwaysWriteResults(bool result){
     alwaysWriteResults_ = result;
 }
     
-/* 
+/**
  * Sets whether triggering invalidates register where result will be stored.
- */
-    
+ */    
 void 
 Machine::setTriggerInvalidatesResults(bool trigger) {
     triggerInvalidatesResults_ = trigger;
 }
-/* 
+
+/* *
  * Sets whether or not order of FUs in ADF file is significant.
  *
  * In certain architectures (Cell SPU) the "relative order" of the function 

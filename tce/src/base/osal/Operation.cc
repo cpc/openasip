@@ -32,6 +32,9 @@
  * @note rating: yellow
  * @note reviewed 17 August 2004 by jn, ll, tr, pj
  */
+
+#include <algorithm>
+
 #include "Operation.hh"
 #include "OperationPimpl.hh"
 #include "TCEString.hh"
@@ -39,6 +42,8 @@
 #include "Exception.hh"
 #include "Operand.hh"
 #include "OperationBehavior.hh"
+#include "SimValue.hh"
+#include "OperationContext.hh"
 
 const char* Operation::OPRN_OPERATION = "operation";
 const char* Operation::OPRN_NAME = "name";
@@ -104,7 +109,8 @@ Operation::description() const {
  *
  * @param code Source code written in DAG language.
  */
-void Operation::addDag(const TCEString& code) {
+void 
+Operation::addDag(const TCEString& code) {
     pimpl_->addDag(code);
 }
 
@@ -138,8 +144,8 @@ Operation::dagCount() const {
  * @return Requested operation DAG or OperationDAG::null
  *         if DAG is not valid.
  */
-OperationDAG& 
-Operation::dag(int index) const {       
+OperationDAG&
+Operation::dag(int index) const {
     return pimpl_->dag(index);
 }
 
@@ -205,6 +211,16 @@ Operation::numberOfOutputs() const {
 int
 Operation::operandCount() const {
     return numberOfInputs() + numberOfOutputs();
+}
+
+/**
+ * Returns true if any of the operands is a vector operand.
+ *
+ * @return True if the Operation has a vector operand, false otherwise.
+ */
+bool
+Operation::isVectorOperation() const {
+    return false; // WiP.
 }
 
 /**
@@ -318,6 +334,22 @@ Operation::isBaseOffsetMemOperation() const {
 void
 Operation::setControlFlowOperation(bool setting) {
     pimpl_->setControlFlowOperation(setting);
+}
+
+/**
+ * Returns true if Operand does not have any kind of side effects program wide.
+ *
+ * In Addition of !hasSideEffects(), the operation does not access memory and
+ * is not control flow operation.
+ */
+bool
+Operation::isPure() const {
+    return (!hasSideEffects()
+        && !usesMemory()
+        && !isControlFlowOperation()
+        && !isCall()
+        && !isBranch() && affectsCount() == 0
+        && affectedByCount() == 0);
 }
 
 /**
@@ -462,7 +494,7 @@ Operation::saveState() const {
 /**
  * Returns the input Operand with the given index.
  *
- * This method can be used to traverse the list of output operands
+ * This method can be used to traverse the list of input operands
  * (the max index is numberOfOutput() - 1).
  *
  * @param index The id of Operand.
@@ -525,6 +557,27 @@ Operation::simulateTrigger(
     OperationContext& context) const {
    
     return pimpl_->simulateTrigger(io, context);
+}
+
+/**
+ * Returns true if the given inputs for valid and sensible for the operation.
+ *
+ * The Base implementation return always true unless number of inputs does
+ * not match of the operands or the operation can not be simulated.
+ *
+ * @param inputs Input vector of SimValues for each input operand in order.
+ *                     Note: Vector at index 0 is for Operand 1, index 1 is
+ *                     for Operand 2 and so on.
+ * @param context The context in which the validation is performed.
+ */
+bool
+Operation::areValid(
+    const InputOperandVector& inputs,
+    const OperationContext& context) const {
+
+    return canBeSimulated()
+        && (inputs.size() == static_cast<size_t>(numberOfInputs()))
+        && pimpl_->behavior().areValid(inputs, context);
 }
 
 /**

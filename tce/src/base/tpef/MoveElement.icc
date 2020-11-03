@@ -61,7 +61,7 @@ MoveElement::setEmpty(bool flag) {
  *
  * @return The bus id.
  */
-inline Byte
+inline HalfWord
 MoveElement::bus() const {
     return bus_;
 }
@@ -72,7 +72,7 @@ MoveElement::bus() const {
  * @param aBus The bus identification code to set.
  */
 inline void
-MoveElement::setBus(Byte aBus) {
+MoveElement::setBus(HalfWord aBus) {
     bus_ = aBus;
 }
 
@@ -129,7 +129,7 @@ MoveElement::setDestinationType(FieldType aType) {
  *
  * @return The source register file or unit.
  */
-inline Byte
+inline HalfWord
 MoveElement::sourceUnit() const {
     return sourceUnit_;
 }
@@ -142,7 +142,7 @@ MoveElement::sourceUnit() const {
  * @param aSourceUnit The source register file or unit.
  */
 inline void
-MoveElement::setSourceUnit(Byte aSourceUnit) {
+MoveElement::setSourceUnit(HalfWord aSourceUnit) {
     sourceUnit_ = aSourceUnit;
 }
 
@@ -175,7 +175,7 @@ MoveElement::setSourceIndex(HalfWord aSourceIndex) {
  *
  * @return The destination register file or unit.
  */
-inline Byte
+inline HalfWord
 MoveElement::destinationUnit() const {
     return destinationUnit_;
 }
@@ -186,7 +186,7 @@ MoveElement::destinationUnit() const {
  * @param aDestinationUnit The destination register file or unit.
  */
 inline void
-MoveElement::setDestinationUnit(Byte aDestinationUnit) {
+MoveElement::setDestinationUnit(HalfWord aDestinationUnit) {
     destinationUnit_ = aDestinationUnit;
 }
 
@@ -276,7 +276,7 @@ MoveElement::setGuardType(FieldType gType) {
  *
  * @return The guard register file id.
  */
-inline Byte
+inline HalfWord
 MoveElement::guardUnit() const {
     return guardUnit_;
 }
@@ -287,7 +287,7 @@ MoveElement::guardUnit() const {
  * @param aGuard The guard register file id.
  */
 inline void
-MoveElement::setGuardUnit(Byte aGuardUnit) {
+MoveElement::setGuardUnit(HalfWord aGuardUnit) {
     guardUnit_ = aGuardUnit;
 }
 

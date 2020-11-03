@@ -23,9 +23,11 @@
  */
 /** 
  * @file ADFSerializerTest.hh 
+ *
  * A test suite for ADFSerializer.
  *
  * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2009,2014 (pjaaskel-no.spam-cs.tut.fi)
  * @note reviewed 15 Jun 2004 by pj, vpj, ml, ll
  * @note rating: red
  */
@@ -55,6 +57,7 @@
 #include "ControlUnit.hh"
 #include "InstructionTemplate.hh"
 #include "FileSystem.hh"
+#include "Conversion.hh"
 
 using namespace TTAMachine;
 using std::string;
@@ -82,6 +85,7 @@ const string op1Name = "op1";
 const string res1Name = "res1";
 const string controlPortName = "control";
 const string raPortName = "ra";
+const int coreCount = 4;
 
 const string DIR_SEP = FileSystem::DIRECTORY_SEPARATOR;
 const string FILE_TO_WRITE = "." + DIR_SEP + "data" + DIR_SEP + 
@@ -161,7 +165,7 @@ ADFSerializerTest::testWriteState() {
     TS_ASSERT(fu1->orderNumber() == 0);
     FUPort* fuPort1 = new FUPort(port1Name, 16, *fu1, true, true);
     FUPort* fuPort2 = new FUPort(port2Name, 16, *fu1, false, false, true);    
-    FUPort* fuPort3 = new FUPort(port3Name, 16, *fu1, false, false, true);        
+    FUPort* fuPort3 = new FUPort(port3Name, 16, *fu1, false, false, true);
     mach->addUnit(*fu1);
     HWOperation* op1 = new HWOperation(op1Name, *fu1);
     op1->bindPort(1, *fuPort1);
@@ -206,7 +210,7 @@ ADFSerializerTest::testWriteState() {
 
     new UnconditionalGuard(false, *bus1);
     new PortGuard(false, *fuPort1, *bus1);
-    new RegisterGuard(false, *rf1, 0, *bus1);
+    new RegisterGuard(false, *rf1, 0, bus1);
 
     ADFSerializer* serializer = new ADFSerializer();
     serializer->setDestinationFile(FILE_TO_WRITE);
@@ -226,7 +230,9 @@ ADFSerializerTest::testReadState() {
     ADFSerializer* serializer = new ADFSerializer();
     serializer->setSourceFile(FILE_TO_WRITE);
 
-    Machine* mach = serializer->readMachine();
+    Machine* mach = NULL;
+
+    CATCH_ANY(mach = serializer->readMachine());
 
     TS_ASSERT(!mach->isLittleEndian());
     TS_ASSERT(mach->triggerInvalidatesResults());

@@ -70,21 +70,22 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "DataDependenceGraphBuilder.hh"
 #include "DataDependenceEdge.hh"
 #include "MemoryAliasAnalyzer.hh"
+#include "PRegionAliasAnalyzer.hh"
 
 #include "TerminalRegister.hh"
 #include "TerminalFUPort.hh"
 
 #include "ConstantAliasAnalyzer.hh"
 #include "FalseAliasAnalyzer.hh"
+#include "StackAliasAnalyzer.hh"
+#include "OffsetAliasAnalyzer.hh"
+#include "GlobalVsStackAA.hh"
 #include "LLVMAliasAnalyzer.hh"
 #include "LLVMTCECmdLineOptions.hh"
-//#include "StackAliasAnalyzer.hh"
-//#include "OffsetAliasAnalyzer.hh"
-//#include "TrivialAliasAnalyzer.hh"
 
 #include "InterPassData.hh"
 #include "InterPassDatum.hh"
-//#include "SchedulerCmdLineOptions.hh"
+#include "SchedulerCmdLineOptions.hh"
 
 #include "MachineInfo.hh"
 
@@ -93,11 +94,14 @@ using namespace TTAMachine;
 
 using std::list;
 
+
+static const int REG_RV_HIGH = -1;
 static const int REG_SP = 1;
 static const int REG_RV = 0;
 static const int REG_IPARAM = 2;
-static const int REG_RV_HIGH = 6;
-static const int REG_FP = 7;
+
+static const int REG_VRV = -3;
+static const int REG_FP = -2;
 
 POP_COMPILER_DIAGS
 
@@ -121,6 +125,8 @@ DataDependenceGraphBuilder::DataDependenceGraphBuilder() :
     /// broken code. just for testing theoretical benefits.
     addAliasAnalyzer(new FalseAliasAnalyzer);
 #endif
+    addAliasAnalyzer(new PRegionAliasAnalyzer);
+
     LLVMTCECmdLineOptions* llvmOptions =
         dynamic_cast<LLVMTCECmdLineOptions*>(
                 Application::cmdLineOptions());    
@@ -150,36 +156,18 @@ DataDependenceGraphBuilder::DataDependenceGraphBuilder(InterPassData& ipd) :
     // high part of 64-bit return values.
     static const TCEString RV_HIGH_DATUM = "RV_HIGH_REGISTER";
 
-#ifdef ENABLE_BETTER_AA // todo: until backport some more from trunk
+    static const TCEString IPARAM_DATUM_PREFIX = "IPARAM";
+    static const TCEString VECTOR_RV_PREFIX="VRV_REGISTER";
+
     SchedulerCmdLineOptions* options =
         dynamic_cast<SchedulerCmdLineOptions*>(
                 Application::cmdLineOptions());
-
-#endif
-
-#ifdef USE_RESTRICTED_POINTER_AA
-    /** seems to worsen restric_aa test results, enable when reason found.
-       One reason is lowering 32-bit memory operations into 4 8-bit
-       memory operations by llvm. These 4 have same index, which makes
-       trivialAA to think they alias.
-       This may be fixed on llvm side some day, but also, the trivialAA should
-       check the sizes of the memory operations.
-       But even when this is fixed, it seems the trivialAA still has some
-       problems; offsets seem to be 0 sometimes when they should not
-    */
-    if (ipd.hasDatum("RESTRICTED_POINTERS_FOUND")) {
-        addAliasAnalyzer(new
-                TrivialAliasAnalyzer(
-                    ipd.hasDatum("MULTIPLE_ADDRESS_SPACES_FOUND")));
-    }
-#endif
 
     if (ipd.hasDatum(SP_DATUM)) {
         RegDatum& sp = dynamic_cast<RegDatum&>(ipd.datum(SP_DATUM));
         TCEString spName =  sp.first + '.' + Conversion::toString(sp.second);
         specialRegisters_[REG_SP] = spName;
 
-#ifdef ENABLE_BETTER_AA // todo: until backport some more from trunk
         // create stack alias analyzer if enabled.
         if ((options != NULL && options->enableStackAA())) {
             addAliasAnalyzer(new StackAliasAnalyzer(spName));
@@ -188,7 +176,9 @@ DataDependenceGraphBuilder::DataDependenceGraphBuilder(InterPassData& ipd) :
         if (options != NULL && options->enableOffsetAA()) {
             addAliasAnalyzer(new OffsetAliasAnalyzer(spName));
         }
-#endif
+
+        addAliasAnalyzer(new GlobalVsStackAA(spName));
+
     } else {
         if (Application::verboseLevel() > 
             Application::VERBOSE_LEVEL_DEFAULT) {
@@ -219,6 +209,29 @@ DataDependenceGraphBuilder::DataDependenceGraphBuilder(InterPassData& ipd) :
         }
     }
 
+    for(int i = 2;;i++) {
+        TCEString datum = IPARAM_DATUM_PREFIX; datum << i;
+        if (ipd.hasDatum(datum)) {
+            RegDatum& p = dynamic_cast<RegDatum&>(ipd.datum(datum));
+            TCEString reg = p.first + '.' + Conversion::toString(p.second);
+            specialRegisters_[REG_IPARAM+i-1] = reg;
+        } else {
+            break;
+        }
+    }
+
+    for (int i = 0;;i++) {
+        TCEString datum = VECTOR_RV_PREFIX; datum << i;
+        if (ipd.hasDatum(datum)) {
+            RegDatum& p = dynamic_cast<RegDatum&>(ipd.datum(datum));
+            TCEString reg = p.first + '.' + Conversion::toString(p.second);
+            specialRegisters_[REG_VRV-i] = reg;
+        } else {
+            break;
+        }
+
+    }
+
     if (ipd.hasDatum(FP_DATUM)) {
         RegDatum& fp = dynamic_cast<RegDatum&>(ipd.datum(FP_DATUM));
         TCEString reg = fp.first + '.' + Conversion::toString(fp.second);
@@ -238,16 +251,6 @@ DataDependenceGraphBuilder::DataDependenceGraphBuilder(InterPassData& ipd) :
         RegDatum& rvh = dynamic_cast<RegDatum&>(ipd.datum(RV_HIGH_DATUM));
         specialRegisters_[REG_RV_HIGH] =
             rvh.first + '.' + Conversion::toString(rvh.second);
-    } else {
-        if (Application::verboseLevel() > 
-            Application::VERBOSE_LEVEL_DEFAULT) {
-            Application::logStream() 
-                << "Warning: Return value hi register datum not "
-                << "found in interpassdata given to ddg builder. "
-                << "May generate invalid code if "
-                << "64-bit (struct) return values used."
-                << std::endl;
-        }
     }
 
     // constant alias AA check aa between global variables.
@@ -259,10 +262,17 @@ DataDependenceGraphBuilder::DataDependenceGraphBuilder(InterPassData& ipd) :
     if (llvmOptions != NULL && llvmOptions->disableLLVMAA() == false) {
         addAliasAnalyzer(new LLVMAliasAnalyzer);
     }
+    addAliasAnalyzer(new PRegionAliasAnalyzer);
+
 #ifdef USE_FALSE_AA
     /// defining USE_FALSE_AA results in faster but
     /// broken code. just for testing theoretical benefits.
     addAliasAnalyzer(new FalseAliasAnalyzer);
+#else
+    if ((options != NULL && options->noaliasFunctions() &&
+         !options->noaliasFunctions()->empty())) {
+        addAliasAnalyzer(new FalseAliasAnalyzer(options->noaliasFunctions()));
+    }
 #endif
 }
 
@@ -519,9 +529,17 @@ DataDependenceGraphBuilder::build(
 void
 DataDependenceGraphBuilder::constructIndividualBB(
     BBData& bbd, ConstructionPhase phase) {
+
     currentData_ = &bbd;
     currentBB_ = bbd.bblock_;
-    constructIndividualBB(phase);
+
+    // Parallel inline asm block are already marked as scheduled
+    // TODO: should BBN have isInlineAsm() method?
+    if (currentBB_->isScheduled()) {
+        constructIndividualFromInlineAsmBB(phase);
+    } else {
+        constructIndividualBB(phase);
+    }
 }
 
 /**
@@ -543,9 +561,10 @@ DataDependenceGraphBuilder::constructIndividualBB(
 
     for (int ia = 0; ia < currentBB_->basicBlock().instructionCount(); ia++) {
         Instruction& ins = currentBB_->basicBlock().instructionAtIndex(ia);
+
         for (int i = 0; i < ins.moveCount(); i++) {
             auto movePtr = ins.movePtr(i);
-            auto& move = *movePtr;
+            Move& move = *movePtr;
 
             MoveNode* moveNode = NULL;
 
@@ -638,6 +657,94 @@ DataDependenceGraphBuilder::constructIndividualBB(
     }
 }
 
+/**
+ * Same as constructIndividualBB() but for already fully scheduled and inline
+ * asm BB.
+ *
+ * @Note: currently, this does not really construct DDG - just creates
+ *        dummy MoveNodes.
+ */
+void
+DataDependenceGraphBuilder::constructIndividualFromInlineAsmBB(
+    ConstructionPhase phase) {
+
+    if (phase != REGISTERS_AND_PROGRAM_OPERATIONS) {
+        return;
+    }
+    auto& bb = currentBB_->basicBlock();
+    assert(currentBB_->isScheduled());
+    for (int ia = 0; ia < bb.instructionCount(); ia++) {
+        Instruction& ins = bb.instructionAtIndex(ia);
+        for (int i = 0; i < ins.moveCount(); i++) {
+            MoveNode* moveNode = new MoveNode(ins.movePtr(i));
+            currentDDG_->addNode(*moveNode, *currentBB_);
+        }
+    }
+
+    // Process live range with dummy move nodes.
+    assert(bb.liveRangeData_);
+    LiveRangeData& liveRangeData = *bb.liveRangeData_;
+    std::set<TCEString> actualRegUses;
+    std::set<TCEString> actualRegDefs;
+    for (int i = 0; i < bb.instructionCount(); i++) {
+        auto& ins = bb.instructionAtIndex(i);
+        for (int m = 0; m < ins.moveCount(); m++) {
+            auto& move = ins.move(m);
+
+            auto rdReg = move.source().isGPR() ? move.source().toString()
+                                               : TCEString("");
+            if (!rdReg.empty()) actualRegUses.insert(rdReg);
+
+            if (move.isConditional()) {
+                const Guard& grd = move.guard().guard();
+                const RegisterGuard* grdReg =
+                    dynamic_cast<const RegisterGuard*>(&grd);
+                if (grdReg) {
+                    TCEString regName = grdReg->registerFile()->name() + '.' +
+                    Conversion::toString(grdReg->registerIndex());
+                    actualRegUses.insert(regName);
+                }
+            }
+
+            auto wrReg = move.destination().isGPR()
+                ? move.destination().toString()
+                : TCEString("");
+            if (!wrReg.empty()) actualRegDefs.insert(wrReg);
+        }
+    }
+
+    auto& iaRegUses = liveRangeData.inlineAsmRegUses_;
+    auto effectiveRegUses = SetTools::intersection(iaRegUses, actualRegUses);
+    for (auto reg : effectiveRegUses) {
+        MoveNode* moveNode = new MoveNode();
+        currentDDG_->addNode(*moveNode, *currentBB_);
+        liveRangeData.regFirstUses_[reg].insert(*moveNode);
+        currentDDG_->updateRegUse(*moveNode, reg, bb);
+    }
+
+    auto& iaRegDefs = liveRangeData.inlineAsmRegDefs_;
+    auto effectiveRegDefs = SetTools::intersection(iaRegDefs, actualRegDefs);
+    for (auto reg : effectiveRegDefs) {
+        MoveNode* moveNode = new MoveNode();
+        currentDDG_->addNode(*moveNode, *currentBB_);
+        liveRangeData.regDefines_[reg].insert(*moveNode);
+        MoveNodeUse mnd(*moveNode);
+        liveRangeData.regKills_[reg] = std::make_pair(mnd, mnd);
+    }
+
+    for (auto& reg : liveRangeData.inlineAsmClobbers_) {
+        MoveNode* moveNode = new MoveNode();
+        currentDDG_->addNode(*moveNode, *currentBB_);
+        liveRangeData.regDefines_[reg].insert(*moveNode);
+        MoveNodeUse mnd(*moveNode);
+        liveRangeData.regKills_[reg] = std::make_pair(mnd, mnd);
+    }
+
+    // Not needed anymore.
+    liveRangeData.inlineAsmRegUses_.clear();
+    liveRangeData.inlineAsmRegDefs_.clear();
+    liveRangeData.inlineAsmClobbers_.clear();
+}
 
 /**
  * Analyzes dependencies related to guard usage.
@@ -751,8 +858,12 @@ DataDependenceGraphBuilder::processDestination(
                     processOperand(moveNode, dop);
                 }
             } else { // memory and fu state deps
-                if (isTriggering(moveNode)) {
-                    processTriggerMemoryAndFUStates(moveNode, dop);
+                if (dop.usesMemory() || dop.hasSideEffects() ||
+                    dop.affectsCount() || dop.affectedByCount() ||
+                    moveNode.move().isControlFlowMove()) {
+                    if (isTriggering(moveNode)) {
+                        processTriggerMemoryAndFUStates(moveNode, dop);
+                    }
                 }
             }
         } else {  // RA write
@@ -908,7 +1019,7 @@ DataDependenceGraphBuilder::processTriggerRegistersAndOperations(
 
     processTriggerPO(moveNode, dop);
     
-    if (moveNode.move().isCall()) {
+    if (moveNode.move().isFunctionCall()) {
         processCall(moveNode);
     }
 }
@@ -931,7 +1042,7 @@ DataDependenceGraphBuilder::processTriggerMemoryAndFUStates(
     createTriggerDependencies(moveNode, dop);
     
     // handle call mem deps
-    if (moveNode.move().isCall()) {
+    if (moveNode.move().isFunctionCall()) {
         // no guard, is not ra, is pseudo.
         MoveNodeUse mnd2(moveNode, false, false, true);
         processMemWrite(mnd2);
@@ -1084,6 +1195,25 @@ DataDependenceGraphBuilder::hasEarlierWriteWithSameGuard(
     return false;
 }
 
+std::set<MoveNodeUse> 
+DataDependenceGraphBuilder::earlierWritesWithSameGuard(
+    MoveNodeUse& mnd, std::set<MoveNodeUse>& defines) {
+
+    std::set<MoveNodeUse> results;
+    // first just check if there is earlier write to this reg with same guard..
+    for (std::set<MoveNodeUse>::iterator i = defines.begin();
+         i != defines.end(); i++) {
+        // if earlier write to this reg with same guard..
+        if (!mnd.guard() &&
+            !i->mn()->move().isUnconditional() &&
+            currentDDG_->sameGuards(*(i->mn()), *(mnd.mn()))) {
+            results.insert(*i);
+        }
+    }
+    return results;
+}
+
+
 /**
  * Handles a usage of a register value.
  *
@@ -1105,9 +1235,10 @@ DataDependenceGraphBuilder::processRegUse(
     std::set<MoveNodeUse>& defines =
         currentBB_->basicBlock().liveRangeData_->regDefines_[reg];
 
+    std::set<MoveNodeUse> sameGuardDefines = earlierWritesWithSameGuard(mnd, defines);
     // find if we have a earlier write with same guard. In this case
     // no need to draw dependencies over it.
-    bool guardedKillFound = hasEarlierWriteWithSameGuard(mnd, defines);
+    bool guardedKillFound = !sameGuardDefines.empty();
 
     // then create the edges. if no guarded kill found,
     // all non-exclusive. if guarded kill found, not to uncond move.
@@ -1117,7 +1248,8 @@ DataDependenceGraphBuilder::processRegUse(
         // If we have a guarded kill, only draw edges from 
         // unconditional moves, as the guarded kill overshadows the 
         // inconditional writes.
-        if (!guardedKillFound || !i->mn()->move().isUnconditional()) {
+        if (!guardedKillFound || (!i->mn()->move().isUnconditional() &&
+                                  !currentDDG_->hasRegWaw(*i, sameGuardDefines))) {
             if (!currentDDG_->exclusingGuards(*(i->mn()), *(mnd.mn()))) {
                 DataDependenceEdge* dde =
                     new DataDependenceEdge(
@@ -1135,9 +1267,12 @@ DataDependenceGraphBuilder::processRegUse(
     // if not(this bb has a kill), has to check deps from incoming BB's.
     if (currentBB_->basicBlock().liveRangeData_->regKills_.find(reg) ==
         currentBB_->basicBlock().liveRangeData_->regKills_.end()) {
-        currentBB_->basicBlock().liveRangeData_->regFirstUses_[reg].insert(mnd);
+
         if (!guardedKillFound) {
             // process dependencies from previous BB's
+            currentBB_->basicBlock().liveRangeData_->regFirstUses_[reg].
+                insert(mnd);
+
             currentDDG_->updateRegUse(mnd, reg, currentBB_->basicBlock());
         }
     }
@@ -1362,6 +1497,17 @@ DataDependenceGraphBuilder::processReturn(MoveNode& moveNode) {
         processRegUse(MoveNodeUse(moveNode,false,false,true),rv);
     }
 
+    // process all vector rv values
+    for (int i = REG_VRV;;i--) {
+        auto vrvIt = specialRegisters_.find(i);
+        if (vrvIt != specialRegisters_.end()) {
+            processRegUse(
+                MoveNodeUse(moveNode,false,false,true),vrvIt->second);
+        } else {
+            break;
+        }
+    }
+
     // return is also considered as read of RV high(for 64-bit RV's)
     TCEString rvh = specialRegisters_[REG_RV_HIGH];
     if (rvh != "") {
@@ -1404,6 +1550,16 @@ DataDependenceGraphBuilder::processCall(MoveNode& mn) {
             processRegUse(mnd2,rv);
         }
         processRegWrite(mnd2,rv);
+    }
+
+    // process all vector rv values
+    for (int i = REG_VRV;;i--) {
+        auto vrvIt = specialRegisters_.find(i);
+        if (vrvIt != specialRegisters_.end()) {
+            processRegWrite(mnd2, vrvIt->second);
+        } else {
+            break;
+        }
     }
 
     // call is considered as write of RV high (64-bit return values)
@@ -1538,7 +1694,7 @@ DataDependenceGraphBuilder::hasEarlierMemWriteToSameAddressWithSameGuard(
 //            MoveNode* currentAddress = addressMove(*mnd.mn());
 //            MoveNode* prevAddress = addressMove(*(i->mn()));
             if (!isAddressTraceable(prevPop) ||
-                analyzeMemoryAlias(prevPop, curPop) ==
+                analyzeMemoryAlias(prevPop, curPop, i->bbRelation()) ==
                 MemoryAliasAnalyzer::ALIAS_TRUE) {
                 return true;
             }
@@ -1729,7 +1885,7 @@ DataDependenceGraphBuilder::checkAndCreateMemDep(
             }
         }
         if (aliasResult == MemoryAliasAnalyzer::ALIAS_UNKNOWN)
-            aliasResult = analyzeMemoryAlias(prevPop, currPop);
+            aliasResult = analyzeMemoryAlias(prevPop, currPop, prev.bbRelation());
     }
 
     if (aliasResult != MemoryAliasAnalyzer::ALIAS_FALSE) {
@@ -1784,12 +1940,13 @@ DataDependenceGraphBuilder::addressMove(const MoveNode& mn) {
  */
 MemoryAliasAnalyzer::AliasingResult
 DataDependenceGraphBuilder::analyzeMemoryAlias(
-    const ProgramOperation& pop1, const ProgramOperation& pop2) {
+    const ProgramOperation& pop1, const ProgramOperation& pop2, 
+    MoveNodeUse::BBRelation bbInfo) {
 
     for (unsigned int i = 0; i < aliasAnalyzers_.size(); i++) {
+        MemoryAliasAnalyzer* analyzer = aliasAnalyzers_[i];
         MemoryAliasAnalyzer::AliasingResult res =
-            aliasAnalyzers_[i]->analyze(
-                *currentDDG_, pop1, pop2);
+            analyzer->analyze(*currentDDG_, pop1, pop2, bbInfo);
         if (res != MemoryAliasAnalyzer::ALIAS_UNKNOWN) {
             return res;
         }
@@ -1853,6 +2010,10 @@ DataDependenceGraphBuilder::memoryCategory(const MoveNodeUse& mnd) {
             TTAProgram::ProgramAnnotation::ANN_STACKUSE_FP_SAVE) {
             return "_FP";
         }
+        if (anno.id() ==
+            TTAProgram::ProgramAnnotation::ANN_CONSTANT_MEM) {
+            return "_CONSTANT";
+        }
     }
     if (!mnd.mn()->isDestinationOperation()) {
         PRINT_VAR(mnd.mn()->toString());
@@ -1860,25 +2021,29 @@ DataDependenceGraphBuilder::memoryCategory(const MoveNodeUse& mnd) {
     }
     ProgramOperation& po = mnd.mn()->destinationOperation();
 
-    // address space
-    for (int i = 0; i < po.inputMoveCount(); i++) {
-        MoveNode& mn = po.inputMove(i);
-        Move& m = mn.move();
-        if (m.hasAnnotations(
-                ProgramAnnotation::ANN_POINTER_ADDR_SPACE)) {
-            if (m.annotation(
-                    0, ProgramAnnotation::ANN_POINTER_ADDR_SPACE).stringValue()
-                != "0") {
-                category +=
-                    "_AS:" +
-                    m.annotation(
-                        0, ProgramAnnotation::ANN_POINTER_ADDR_SPACE)
-                    .stringValue();
-                break;
+    LLVMTCECmdLineOptions* llvmOptions =
+        dynamic_cast<LLVMTCECmdLineOptions*>(
+                Application::cmdLineOptions());
+    if (llvmOptions == NULL || !llvmOptions->disableAddressSpaceAA()) {
+        // address space
+        for (int i = 0; i < po.inputMoveCount(); i++) {
+            MoveNode& mn = po.inputMove(i);
+            Move& m = mn.move();
+            if (m.hasAnnotations(
+                    ProgramAnnotation::ANN_POINTER_ADDR_SPACE)) {
+                if (m.annotation(
+                        0, ProgramAnnotation::ANN_POINTER_ADDR_SPACE).stringValue()
+                    != "0") {
+                    category +=
+                        "_AS:" +
+                        m.annotation(
+                            0, ProgramAnnotation::ANN_POINTER_ADDR_SPACE)
+                        .stringValue();
+                    break;
+                }
             }
         }
     }
-
     for (int i = 0; i < po.inputMoveCount(); i++) {
         MoveNode& mn = po.inputMove(i);
         Move& m = mn.move();
@@ -2199,6 +2364,7 @@ DataDependenceGraphBuilder::iterateBBs(
                 setSucceedingPredeps(bbd, !bbd.constructed_, phase);
             }
         }
+
         bbd.constructed_ = true;
     }
 }
@@ -2441,7 +2607,7 @@ bool DataDependenceGraphBuilder::updateMemAndFuAliveAfter(BBData& bbd) {
                     if (j->mn()->move().isUnconditional()) {
 //                        MoveNode* ownAddress = addressMove(*(j->mn()));
                         ProgramOperation& ownPop = j->mn()->destinationOperation();
-                        if (analyzeMemoryAlias(prevPop, ownPop) ==
+                        if (analyzeMemoryAlias(prevPop, ownPop, i->bbRelation()) ==
                             MemoryAliasAnalyzer::ALIAS_TRUE) {
                             overWritten = true;
                             break;
@@ -2483,7 +2649,7 @@ bool DataDependenceGraphBuilder::updateMemAndFuAliveAfter(BBData& bbd) {
                          ownDefines.begin(); j != ownDefines.end(); j++) {
                     if (j->mn()->move().isUnconditional()) {
                         ProgramOperation& ownPop = j->mn()->destinationOperation();
-                        if (analyzeMemoryAlias(prevPop, ownPop) ==
+                        if (analyzeMemoryAlias(prevPop, ownPop, i->bbRelation()) ==
                             MemoryAliasAnalyzer::ALIAS_TRUE) {
                             overWritten = true;
                             break;
@@ -2538,10 +2704,12 @@ void DataDependenceGraphBuilder::processEntryNode(MoveNode& mn) {
 
     // params
     // this is for old frontend generated code.
-    for (int i = 0; i < 4;i++) {
+    for (int i = 0;;i++) {
         TCEString paramReg = specialRegisters_[REG_IPARAM+i];
         if(paramReg != "") {
             currentBB_->basicBlock().liveRangeData_->regDefReaches_[paramReg].insert(mnd2);
+        } else {
+            break;
         }
     }
 
@@ -2572,8 +2740,10 @@ DataDependenceGraphBuilder::updateBB(
     // register and operation dependencies
     if (phase == REGISTERS_AND_PROGRAM_OPERATIONS) {
         //loop all regs having ext deps and create reg edges
-        for (MoveNodeUseMapSet::iterator firstUseIter=bb.liveRangeData_->regFirstUses_.begin();
-             firstUseIter != bb.liveRangeData_->regFirstUses_.end(); firstUseIter++) {
+        for (MoveNodeUseMapSet::iterator firstUseIter =
+                 bb.liveRangeData_->regFirstUses_.begin();
+             firstUseIter != bb.liveRangeData_->regFirstUses_.end();
+             firstUseIter++) {
             TCEString reg = firstUseIter->first;
             std::set<MoveNodeUse>& firstUseSet = firstUseIter->second;
             for (std::set<MoveNodeUse>::iterator iter2 = firstUseSet.begin();
@@ -2603,9 +2773,11 @@ DataDependenceGraphBuilder::updateBB(
     } else {
         // phase 1 .. mem deps and fu state/side effect dependencies.
 
-        //loop all regs having ext deps and create reg edges
-        for (MoveNodeUseMapSet::iterator firstUseIter=bb.liveRangeData_->memFirstUses_.begin();
-             firstUseIter != bb.liveRangeData_->memFirstUses_.end(); firstUseIter++) {
+        //loop all first mem uses having ext deps and create mem edges
+        for (MoveNodeUseMapSet::iterator firstUseIter =
+                 bb.liveRangeData_->memFirstUses_.begin();
+             firstUseIter != bb.liveRangeData_->memFirstUses_.end(); 
+             firstUseIter++) {
             TCEString category = firstUseIter->first;
             std::set<MoveNodeUse>& firstUseSet = firstUseIter->second;
             for (std::set<MoveNodeUse>::iterator iter2 = firstUseSet.begin();
@@ -2614,10 +2786,11 @@ DataDependenceGraphBuilder::updateBB(
             }
         }
 
-        // antidependencies to registers
+        // antidependencies to memory
         for (MoveNodeUseMapSet::iterator firstDefineIter =
                  bb.liveRangeData_->memFirstDefines_.begin();
-             firstDefineIter != bb.liveRangeData_->memFirstDefines_.end(); firstDefineIter++) {
+             firstDefineIter != bb.liveRangeData_->memFirstDefines_.end();
+             firstDefineIter++) {
             TCEString category = firstDefineIter->first;
             std::set<MoveNodeUse>& firstDefineSet = firstDefineIter->second;
             for (std::set<MoveNodeUse>::iterator iter2=firstDefineSet.begin();
@@ -2627,13 +2800,15 @@ DataDependenceGraphBuilder::updateBB(
         }
 
         // and fu state deps
-        for (MoveNodeUseSet::iterator iter = bb.liveRangeData_->fuDeps_.begin();
+        for (MoveNodeUseSet::iterator iter =
+                 bb.liveRangeData_->fuDeps_.begin();
              iter != bb.liveRangeData_->fuDeps_.end(); iter++) {
             Terminal& dest = iter->mn()->move().destination();
             TerminalFUPort& tfpd = dynamic_cast<TerminalFUPort&>(dest);
             Operation &dop = tfpd.hintOperation();
             createSideEffectEdges(
-                currentBB_->basicBlock().liveRangeData_->fuDepReaches_, *iter->mn(), dop);
+                currentBB_->basicBlock().liveRangeData_->fuDepReaches_, 
+                *iter->mn(), dop);
         }
     }
 }

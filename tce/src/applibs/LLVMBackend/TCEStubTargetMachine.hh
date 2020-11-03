@@ -53,6 +53,11 @@
 #include <llvm/CodeGen/TargetLoweringObjectFileImpl.h>
 #pragma pop_macro("PIC")
 
+// TODO: What was the meaning of this. may have been broken with a merge.
+//#ifndef PACKAGE
+//#include "tce_config.h"
+//#endif
+
 #include "TCEStubSubTarget.hh"
 
 // initializes TCE target to LLVM
@@ -81,6 +86,22 @@ namespace llvm {
      * Base class common to TCEStubTargetMachine(for middle end) and
      * TCETargetMachine(for backend)
      */
+#ifndef LLVM_OLDER_THAN_11
+    class TCEBaseTargetMachine : public LLVMTargetMachine {
+    public:
+        TCEBaseTargetMachine(
+            const Target &T, const Triple& TT,
+            const llvm::StringRef& CPU, const llvm::StringRef& FS,
+            const TargetOptions &Options,
+            Reloc::Model RM, CodeModel::Model CM,
+            CodeGenOpt::Level OL);
+        const TTAMachine::Machine* ttaMach_;
+        virtual void setTTAMach(
+            const TTAMachine::Machine* mach) {
+            ttaMach_ = mach;
+        }
+    };
+#else
     class TCEBaseTargetMachine : public LLVMTargetMachine {
     public:
         TCEBaseTargetMachine(
@@ -95,6 +116,7 @@ namespace llvm {
             ttaMach_ = mach;
         }
     };
+#endif
 
     /**
      * TargetStub for middle end optimizations. (for loopvectorizer initially)
@@ -119,13 +141,21 @@ namespace llvm {
             const TargetOptions &Options,
             Optional<Reloc::Model> RM, CodeModel::Model CM,
             CodeGenOpt::Level OL);
-#else
+#elif LLVM_OLDER_THAN_11
         TCEStubTargetMachine(
             const Target &T, const Triple& TT,
             const std::string& CPU, const std::string& FS,
             const TargetOptions &Options,
             Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
             CodeGenOpt::Level OL, bool isLittle);
+#else
+	TCEStubTargetMachine(
+            const Target &T, const Triple& TT,
+            const llvm::StringRef& CPU, const llvm::StringRef& FS,
+            const TargetOptions &Options,
+            Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
+            CodeGenOpt::Level OL, bool isLittle);
+
 #endif
         // TODO: this is no longer virtual in llvm 6.0
         // I wonder what this button does..
@@ -138,10 +168,14 @@ namespace llvm {
         const TCEStubSubTarget *getSubtargetImpl() const {
             return ST;
         }
-        const TCEStubSubTarget *getSubtargetImpl(const Function&) 
-	    const override {
+        const TCEStubSubTarget *getSubtargetImpl(const Function&)
+            const override {
             return ST;
         }
+
+        static void setADFString(std::string adfXML);
+
+        static std::string adfXML_;
     };
 } //end namespace llvm
 #endif

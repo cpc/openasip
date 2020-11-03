@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2016 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,8 +26,8 @@
  *
  * Implementation of POMDisassembler class.
  *
- * @author Veli-Pekka Jääskeläinen 2005 (vjaaskel-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2008 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2008,2016 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -66,6 +66,9 @@
 #include "MoveGuard.hh"
 #include "HWOperation.hh"
 #include "Conversion.hh"
+#include "DataMemory.hh"
+#include "DataDefinition.hh"
+#include "NullProgram.hh"
 
 #include "DisassemblyMove.hh"
 #include "DisassemblyRegister.hh"
@@ -86,17 +89,31 @@
 #include "NullInstructionTemplate.hh"
 
 using std::string;
+using std::endl;
+
 using namespace TTAMachine;
 using namespace TTAProgram;
 
 /**
- * The constructor.
+ * A constructor for disassembling whole programs.
  *
  * @param program Program to disassemble.
+ * @param printAddresses True in case instruction addresses should be printed at
+ *                       the end of instruction lines as comments.
  */
-POMDisassembler::POMDisassembler(const Program& program):
-    Disassembler(),
-    program_(program) {
+POMDisassembler::POMDisassembler(const Program& program, bool printAddresses) :
+    program_(program), printAddresses_(printAddresses) {
+}
+
+/**
+ * A constructor for disassembling pieces of a program which might not
+ * be attached to a Program object.
+ *
+ * @param printAddresses True in case instruction addresses should be printed at
+ *                       the end of instruction lines as comments.
+ */
+POMDisassembler::POMDisassembler(bool printAddresses) :
+    program_(NullProgram::instance()), printAddresses_(printAddresses) {
 }
 
 
@@ -166,7 +183,7 @@ POMDisassembler::createInstruction(
     // Add disassembly of long immediates in immediate slots.
     for (int i = 0; i < instruction.immediateCount(); i++) {
         disassembly->addLongImmediate(
-            createImmediateAssignment(instruction.immediate(i)));                
+            createImmediateAssignment(instruction.immediate(i)));
     }
 
     return disassembly;
@@ -640,6 +657,11 @@ POMDisassembler::disassemble(const TTAProgram::Move& move) {
                     % move.source().toString()
                     % move.destination().functionUnit().name()).str();
         }
+    } else if (move.isJump() && move.source().isCodeSymbolReference()) {
+        // A jump to a procedure, converted from a call.
+        return (boost::format("%s -> %s.jump.1")
+                % move.source().toString()
+                % move.destination().functionUnit().name()).str();
     }
 
     DisassemblyMove* dMove = createMove(move);
@@ -649,17 +671,23 @@ POMDisassembler::disassemble(const TTAProgram::Move& move) {
     return disasm;
 }
 
+TCEString
+POMDisassembler::disassembleInstruction(
+    const TTAProgram::Instruction& instruction, int addr) {
+    return POMDisassembler::disassemble(instruction, printAddresses_, addr);
+}
+
 /**
  * Static helper function to create disassembly string from an instruction.
  *
  * @param instruction Instruction to disassemble.
- * @param indices Print the instruction's index as comment.
+ * @param printAddresses Print the instruction's index as comment.
  * @return Disassembly of the instruction.
  */
-std::string 
+std::string
 POMDisassembler::disassemble(
-    const TTAProgram::Instruction& instruction, bool indices, int addr) {
-    
+    const TTAProgram::Instruction& instruction, bool printAddresses, int addr) {
+
     std::string disasm = "";
     if (!instruction.isInProcedure() ||
         !instruction.parent().isInProgram()) {
@@ -743,44 +771,44 @@ POMDisassembler::disassemble(
             // a sequential program
         }
 
-        if (indices) {
+        if (printAddresses) {
             disasm += 
                 "\t# @" + 
                 Conversion::toString(
                     addr != -1 ? addr : instruction.address().location());
         }
-
-//to display source filename and line number
-//check for source code filename, we just use the file filename, 
-//assume the all the move belong the same file
-        TCEString fileNameStr = "";
-        for (int i = 0; i < instruction.moveCount(); ++i) {
-            const TTAProgram::Move& m = instruction.move(i);
-            if (m.hasSourceFileName()) {
-                fileNameStr += m.sourceFileName();
-                break;
-            }
-        }	
-
-	if (fileNameStr != "")
-            disasm += "\t# file: " + fileNameStr;        
-	
-        // check for soure code line number info
-        TCEString lineNumberStr = "";
-        for (int i = 0; i < instruction.moveCount(); ++i) {
-            const TTAProgram::Move& m = instruction.move(i);
-            if (m.hasSourceLineNumber()) {
-                if (lineNumberStr != "") {
-                    lineNumberStr += ", ";
-                }
-                lineNumberStr += 
-                    Conversion::toString(m.sourceLineNumber());
-            }
-        }
-
-        if (lineNumberStr != "")
-            disasm += "\t# slines: " + lineNumberStr;        
     }
+    // to display source filename and line number
+    // check for source code filename, we just use the file filename, 
+    // assume the all the move belong the same file
+    TCEString fileNameStr = "";
+    for (int i = 0; i < instruction.moveCount(); ++i) {
+        const TTAProgram::Move& m = instruction.move(i);
+        if (m.hasSourceFileName()) {
+            fileNameStr += m.sourceFileName();
+            break;
+        }
+    }
+
+    if (fileNameStr != "")
+        disasm += "\t# file: " + fileNameStr;        
+
+    // check for soure code line number info
+    TCEString lineNumberStr = "";
+    for (int i = 0; i < instruction.moveCount(); ++i) {
+        const TTAProgram::Move& m = instruction.move(i);
+        if (m.hasSourceLineNumber()) {
+            if (lineNumberStr != "") {
+                lineNumberStr += ", ";
+            }
+            lineNumberStr += 
+                Conversion::toString(m.sourceLineNumber());
+        }
+    }
+        
+    if (lineNumberStr != "")
+        disasm += "\t# slines: " + lineNumberStr;        
+    
     return disasm;
 }
 
@@ -788,58 +816,217 @@ POMDisassembler::disassemble(
  * Static helper function to create a disassembly string from a program.
  *
  * @param program Program to disassemble.
- * @param indices Print the instruction indices as comment.
+ * @param printAddresses Print the instruction addresses as comment.
  * @return Disassembly of the program in a string.
  * @exception Exception Can leak exceptions if the traversed program is
  * malformed, etc.
+ * @deprecated Use obj.disassembleProcedures() instead.
  */
 std::string
-POMDisassembler::disassemble(const TTAProgram::Program& program, bool indices) {
+POMDisassembler::disassemble(
+    const TTAProgram::Program& program, bool printAddresses) {
+    POMDisassembler disasm(program, printAddresses);
+    return disasm.disassembleProcedures();
+}
+
+TCEString
+POMDisassembler::procedureDescription(const TTAProgram::Procedure& proc) {
+    TCEString output;
+    output << ":procedure " << proc.name() << ";";
+    return output;
+}
+
+TCEString
+POMDisassembler::destinationLabels(
+    const TTAProgram::Procedure& proc, int instrIndex) const {
+
+    std::stringstream stringStream;
+    InstructionAddress addr = proc.startAddress().location() + instrIndex;
+    const int lc = POMDisassembler::labelCount(proc.parent(), addr);
+    for (int labelIndex = 0; labelIndex < lc; ++labelIndex) {
+        stringStream
+            << labelPositionDescription(POMDisassembler::label(
+                proc.parent(), addr, labelIndex))
+            << std::endl;
+    }
+    return stringStream.str();
+}
+
+TCEString
+POMDisassembler::labelPositionDescription(TCEString labelStr) const {
+    return labelStr + ":";
+}
+
+TCEString
+POMDisassembler::disassembleProcedure(const TTAProgram::Procedure& proc) {
+
     std::stringstream stringStream;
 
-    for (int procIndex = 0; procIndex < program.procedureCount(); 
+    const TTAProgram::Instruction* currentInstruction = NULL;
+    stringStream << procedureDescription(proc) << std::endl;
+
+    for (int instrIndex = 0, iCount = proc.instructionCount();
+         instrIndex < iCount; ++instrIndex) {
+        currentInstruction = &proc.instructionAtIndex(instrIndex);
+
+        stringStream << destinationLabels(proc, instrIndex);
+
+        InstructionAddress addr = proc.startAddress().location() + instrIndex;
+
+        // Do not print "implicit instructions" of OTAs.
+        if (currentInstruction->size() > 0) {
+            stringStream << "\t" <<
+                disassembleInstruction(*currentInstruction, addr) << std::endl;
+        }
+    }
+    return stringStream.str();
+}
+
+TCEString
+POMDisassembler::disassembleProcedures() {
+
+    std::stringstream stringStream;
+
+    for (int procIndex = 0; procIndex < program_.procedureCount();
          ++procIndex) {
-        const Procedure& proc = program.procedureAtIndex(procIndex);
-        stringStream << POMDisassembler::disassemble(proc, indices);
+        const Procedure& proc = program_.procedureAtIndex(procIndex);
+        stringStream << disassembleProcedure(proc);
     }
     return stringStream.str();
 }
 
 /**
- * Static helper function to create a disassembly string from a procedure.
+ * Static helper function to create a disassembly string from a whole program
+ * including section markers and data memory initializations.
  *
- * @param proc Procedure to disassemble.
- * @param indices Print the instruction indices as comment.
- * @return Disassembly of the procedure in a string.
+ * @param program Program to disassemble.
+ * @param printAddresses If the instruction addresses should be printed.
+ * @return Disassembly of the program in a string.
+ * @exception Exception Can leak exceptions if the traversed program is
+ * malformed, etc.
+ * @deprecated Use obj.disassembleProgram() instead.
+ */
+TCEString
+POMDisassembler::disassembleFully(
+    const TTAProgram::Program& program, bool printAddresses) {
+    POMDisassembler disasm(program, printAddresses);
+    return disasm.disassembleProgram();
+}
+
+TCEString
+POMDisassembler::codeSectionDescription(Word startAddress) {
+    TCEString output;
+    output << "CODE " << startAddress << " ;";
+    return output;
+}
+
+TCEString
+POMDisassembler::dataSectionDescription(
+    const TTAMachine::AddressSpace& aSpace, Word location) {
+    TCEString output;
+    output << "DATA " << aSpace.name() << " "
+           << location << " ;";
+    return output;
+}
+
+TCEString
+POMDisassembler::dataDefDescription(
+    const TTAProgram::DataDefinition& def) {
+
+    std::ostringstream output;
+    output << "DA " << std::dec << def.size();
+    if (def.isInitialized())  {
+        for (int mau = 0; mau < def.size(); mau++) {
+            output << endl << "1:0x" << std::hex << def.MAU(mau);
+        }
+    }
+    output << " ;" << endl;
+    return output.str();
+}
+
+/**
+ * Create a disassembly string from the whole program
+ * including module headers, section markers and data memory initializations.
+ *
+ * @return Disassembly of the program in a string.
  * @exception Exception Can leak exceptions if the traversed program is
  * malformed, etc.
  */
-std::string
-POMDisassembler::disassemble(const TTAProgram::Procedure& proc, bool indices) {
-    std::stringstream stringStream;
+TCEString
+POMDisassembler::disassembleProgram() {
 
-    const TTAProgram::Instruction* currentInstruction = NULL;
+    std::stringstream output;
+    Word first = startAddress();
 
-    // proc.instructionCount() is O(n) operation so do it only once.
-    
-    stringStream << ":procedure " << proc.name() << ";" << std::endl;
+    output << codeSectionDescription(first) << endl << endl;
+    output << disassembleProcedures() << endl << endl;
 
-    for (int instrIndex = 0, iCount = proc.instructionCount(); 
-         instrIndex < iCount; ++instrIndex) {
-        currentInstruction = 
-            &proc.instructionAtIndex(instrIndex);
-        
-        InstructionAddress addr = proc.startAddress().location() + instrIndex;
-//currentInstruction->address().location();
+    // Write data memory initializations.
+    for (int i = 0; i < program_.dataMemoryCount(); i++) {
 
-        const int lc = POMDisassembler::labelCount(proc.parent(), addr); 
-        for (int labelIndex = 0; labelIndex < lc; ++labelIndex) {
+        const TTAProgram::DataMemory& mem = program_.dataMemory(i);
+        const TTAMachine::AddressSpace& aSpace = mem.addressSpace();
 
-            stringStream << POMDisassembler::label(
-                proc.parent(), addr, labelIndex) << ":" << std::endl;
+        if (mem.dataDefinitionCount() == 0) continue;
+
+        output << dataSectionDescription(
+            aSpace, mem.dataDefinition(0).startAddress().location()) << endl;
+
+        // Definitions are put in a map to order them.
+        // TODO: the indexing API of DataMemory could be used for this?
+        // TODO: does this handle "holes" correctly or assume fully
+        // "connected regions" always?
+        // TODO: this does not handle UDATA at all!
+        std::map<Word, const TTAProgram::DataDefinition*> definitions;
+        for (int d = 0; d < mem.dataDefinitionCount(); d++) {
+            const TTAProgram::DataDefinition& def = mem.dataDefinition(d);
+            definitions[def.startAddress().location()] = &def;
         }
-        stringStream << "\t" << POMDisassembler::disassemble(
-            *currentInstruction, indices, addr) << std::endl;                
+
+        std::map<Word, const TTAProgram::DataDefinition*>::iterator iter =
+            definitions.begin();
+
+        for (; iter != definitions.end(); iter++) {
+            const TTAProgram::DataDefinition* def = (*iter).second;
+            output << dataDefDescription(*def) << endl;
+        }
     }
-    return stringStream.str();
+    output << endl;
+
+    return output.str();
+}
+
+
+/**
+ * Static helper function to create a disassembly string from a procedure.
+ *
+ * @param proc Procedure to disassemble.
+ * @param printAddresses Print the instruction addresses as comment.
+ * @return Disassembly of the procedure in a string.
+ * @exception Exception Can leak exceptions if the traversed program is
+ * malformed, etc.
+ * @deprecated Use obj.disassembleProcedure(proc) instead.
+ */
+std::string
+POMDisassembler::disassemble(
+    const TTAProgram::Procedure& proc, bool printAddresses) {
+    POMDisassembler disasm(printAddresses);
+    return disasm.disassembleProcedure(proc);
+}
+
+/**
+ * A factor for building a correct type of disassembler for the
+ * target.
+ */
+POMDisassembler*
+POMDisassembler::disassembler(
+    const TTAMachine::Machine& /*mach*/,
+    const TTAProgram::Program& program) {
+    return new POMDisassembler(program);
+}
+
+
+TCEString
+POMDisassembler::printAddress(const TTAProgram::Instruction& instr) const {
+    return TCEString("\t# @") << instr.address().location();
 }

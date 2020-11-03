@@ -4,6 +4,7 @@ SUBDIRS = ProgramRepresentations ResourceModel ResourceManager Selector \
 noinst_LTLIBRARIES = libscheduler.la
 
 libscheduler_la_SOURCES = SchedulerCmdLineOptions.cc
+
 libscheduler_la_LIBADD = ProgramRepresentations/libprogramrepresentations.la \
 	ResourceModel/libresourcemodel.la \
 	ResourceManager/libresourcemanager.la \
@@ -22,9 +23,11 @@ TPEF_DIR = ${BASE_DIR}/tpef
 OSAL_DIR = ${BASE_DIR}/osal
 MACH_DIR = ${BASE_DIR}/mach
 UM_DIR = ${BASE_DIR}/umach
+DDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/DDG
+ALGO_DIR= ${APPLIBS_DIR}/Scheduler/Algorithms
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I ${POM_DIR} -I${TPEF_DIR} -I${OSAL_DIR} \
-	-I${MACH_DIR} -I${UM_DIR} -I${APPLIBS_DIR}/mach 
+	-I${MACH_DIR} -I${UM_DIR} -I${APPLIBS_DIR}/mach -I${DDG_DIR} -I${ALGO_DIR}
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 dist-hook:
@@ -34,8 +37,6 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
 
-
 ## headers start
-libscheduler_la_SOURCES += \
-	SchedulerCmdLineOptions.hh 
+libscheduler_la_SOURCES += SchedulerCmdLineOptions.hh
 ## headers end

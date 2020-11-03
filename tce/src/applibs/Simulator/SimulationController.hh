@@ -39,6 +39,8 @@
 /**
  * Controls the simulation running in stand-alone mode.
  *
+ * Supports also homogeneous multicore simulation when ADF's core-count > 1.
+ *
  * Owns and is the main client of the machine state model.
  */
 class SimulationController : public TTASimulationController {
@@ -65,8 +67,8 @@ public:
 
     virtual InstructionAddress programCounter() const;
 
-    virtual MachineState& machineState();
-    virtual const InstructionMemory& instructionMemory() const;
+    virtual MachineState& machineState(int core=-1);
+    virtual const InstructionMemory& instructionMemory(int core=-1) const;
 
     virtual std::string registerFileValue(
         const std::string& rfName, 
@@ -79,31 +81,38 @@ public:
         const std::string& fuName, 
         const std::string& portName);
 
+protected:
+    virtual bool simulateCycle();
+
+    typedef std::vector<MachineState*> MachineStateContainer;
+
+    /// The machine state models for the simulated cores.
+    MachineStateContainer machineStates_;
+    /// The instruction memory models of cores.
+    std::vector<InstructionMemory*> instructionMemories_;
+
 private:
     /// Copying not allowed.
     SimulationController(const SimulationController&);
     /// Assignment not allowed.
     SimulationController& operator=(const SimulationController&);
 
-    bool simulateCycle();
     void buildFUResourceConflictDetectors(const TTAMachine::Machine& machine);
     void findExitPoints(
         const TTAProgram::Program& program,
         const TTAMachine::Machine& machine);
 
-    /// Instruction memory.
-    InstructionMemory* instructionMemory_;
-    
-    /// Machine state to be simulated.
-    MachineState* machineState_;
-    /// Global control unit.
-    GCUState* gcu_; 
+    MachineState& selectedMachineState();
+    InstructionMemory& selectedInstructionMemory();
 
     /// The FU resource conflict detectors used to detect conflicts during
     /// simulation.
-    FUConflictDetectorIndex fuConflictDetectors_;
+    MultiCoreFUConflictDetectorIndex fuConflictDetectors_;
     /// Resource conflict detectors in a more quickly traversed container.
     std::vector<FUResourceConflictDetector*> conflictDetectorVector_;
+    /// Temporary place for lastExecuted Instruction.
+    std::vector<InstructionAddress> tmpExecutedInstructions_;
+
 };
 
 #endif

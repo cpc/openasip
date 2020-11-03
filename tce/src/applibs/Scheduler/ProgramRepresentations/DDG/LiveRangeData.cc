@@ -36,6 +36,7 @@
  */
 
 #include "LiveRangeData.hh"
+#include "DataDependenceGraph.hh"
 #include "Move.hh"
 
 /**
@@ -111,6 +112,116 @@ void LiveRangeData::appendMoveNodeUse(
     for (LiveRangeData::MoveNodeUseSet::const_iterator i =
              src.begin(); i != src.end(); i++) {
         const MoveNodeUse& mnu = *i;
-        dst.insert(MoveNodeUse(mnu, setLoopProperty));
+        if (setLoopProperty || mnu.loop()) {
+            dst.insert(MoveNodeUse(mnu, MoveNodeUse::LOOP));
+        } else {
+            dst.insert(MoveNodeUse(mnu, MoveNodeUse::INTRA_BB));
+        }
     }
+}
+
+/**
+ * Returns the set of registers that are alive at the given cycle.
+ */
+std::set<TCEString> 
+LiveRangeData::registersAlive(
+    int cycle, int delaySlots, DataDependenceGraph& ddg) {
+
+    std::set<TCEString> aliveRegs;
+
+    // Part 1: Live ranges incoming to this BB.
+    // handles both incoming and overgoing live ranges
+    for (MoveNodeUseMapSet::iterator rdrIter = regDefReaches_.begin();
+         rdrIter != regDefReaches_.end(); rdrIter++) {
+        const TCEString& reg = rdrIter->first;
+
+        // if use after and not killed here, alive for the whole BB.
+        if (registersUsedAfter_.find(reg) != registersUsedAfter_.end()) {
+            // nothing in this BB overwrites this.
+            if (regKills_.find(reg) == regKills_.end()) {
+                aliveRegs.insert(reg);
+            }
+        }
+
+        // check for first uses in this BB. If before a read, is used.
+        MoveNodeUseSet& firstUses = regFirstUses_[reg];
+        for (MoveNodeUseSet::iterator iter = firstUses.begin();
+             iter != firstUses.end(); iter++) {
+            const MoveNode& mn = *(iter->mn());
+            if (mn.isScheduled()) {
+                int mnCycle = mn.cycle();
+                if (iter->pseudo()) {
+                    mnCycle += delaySlots;
+                }
+                if (cycle <= mnCycle) {
+                    aliveRegs.insert(reg);
+                }
+            } else { // unscheduled.. later?
+                aliveRegs.insert(reg);
+            }
+        }
+    }
+
+    // Part 2: check deps going out from this.
+    for (std::set<TCEString>::iterator ruaIter = registersUsedAfter_.begin();
+         ruaIter != registersUsedAfter_.end(); ruaIter++) {
+        const TCEString& reg = *ruaIter;
+
+        // check against last defines.
+        MoveNodeUseSet& lastDefs = regDefines_[reg];
+        for (MoveNodeUseSet::iterator iter = lastDefs.begin();
+             iter != lastDefs.end(); iter++) {
+            const MoveNode& mn = *iter->mn();
+            if (mn.isScheduled()) {
+                int mnCycle = mn.cycle();
+                if (iter->pseudo()) {
+                    mnCycle += delaySlots;
+                }
+                if (cycle >= mnCycle) {
+                    aliveRegs.insert(reg);
+                }
+            }
+            // if not scheduld, is at end?
+        }
+    }
+
+    // part 3: Check edges inside this BB. done from DDG.
+
+    // TODO: psedo-dep delay slots.
+    for (int i = 0; i < ddg.nodeCount(); i++) {
+        MoveNode& node = ddg.node(i);
+        // only check writes that are scheduled.
+        if (!node.isScheduled() || node.cycle() > cycle) {
+            continue; // write after the given cycle
+        }
+
+        // Find all edges out from this
+        DataDependenceGraph::EdgeSet edges = ddg.outEdges(node);
+        for (DataDependenceGraph::EdgeSet::iterator eIter = 
+                 edges.begin(); eIter != edges.end(); eIter++) {
+            DataDependenceEdge& edge = **eIter;
+
+            // we are only interested in register RAWs.
+            if ((edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER || 
+                 edge.edgeReason() == DataDependenceEdge::EDGE_RA) &&
+                (edge.dependenceType() == DataDependenceEdge::DEP_RAW)) {
+                const TCEString& reg = edge.data();
+                MoveNode &headNode = ddg.headNode(edge);
+                // if tail pseudo, delay by delaySlots amount
+                if (edge.tailPseudo()) {
+                    if (node.cycle() + delaySlots > cycle) {
+                        continue;
+                    }
+                }
+                // if pseudo, delay mncycle by delayslot amount
+                int delay = edge.headPseudo() ? delaySlots : 0;
+                // is the read after this
+                if (headNode.isScheduled() && 
+                    headNode.cycle()+delay >= cycle) {
+                    aliveRegs.insert(reg);
+                }
+            }
+        }
+    }
+    return aliveRegs;
 }

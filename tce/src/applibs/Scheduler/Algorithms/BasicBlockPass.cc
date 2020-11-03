@@ -106,6 +106,9 @@ BasicBlockPass::executeDDGPass(
 
     DataDependenceGraph* ddg = createDDGFromBB(bb, targetMachine);
 
+    // Used for live info dumping.
+    static int bbNumber = 0;
+
 #ifdef DDG_SNAPSHOTS
     std::string name = "scheduling";
     ddgSnapshot(ddg, name, false);
@@ -120,6 +123,23 @@ BasicBlockPass::executeDDGPass(
 #endif
 
     copyRMToBB(*rm, bb, targetMachine, irm);
+
+    // Print the live range count for each cycle for the sched_yield emitting
+    // paper.
+    if (Application::verboseLevel() > 1 || 
+        getenv("TCE_DUMP_LIVE_INFO") != NULL) {
+        for (int index = 0; index < bb.instructionCount(); ++index) {
+            if (bb.liveRangeData_ != NULL) {
+                Application::logStream() 
+                    << "liveinfo:" << bbNumber << ":" << index + rm->smallestCycle() << ":" 
+                << bb.liveRangeData_->registersAlive(
+                    rm->smallestCycle()+index, targetMachine.controlUnit()->delaySlots(), *ddg).
+                size()
+                << std::endl;
+            }
+        }
+        bbNumber++;
+    }
 
     delete ddg;
     SimpleResourceManager::disposeRM(rm);

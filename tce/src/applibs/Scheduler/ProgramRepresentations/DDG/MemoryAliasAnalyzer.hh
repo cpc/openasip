@@ -42,6 +42,8 @@ class DataDependenceGraph;
 class Operation;
 class MoveNode;
 
+#include "MoveNodeUse.hh"
+
 class MemoryAliasAnalyzer {
 public:
 
@@ -56,7 +58,7 @@ public:
 
     virtual AliasingResult analyze(
         DataDependenceGraph& ddg, const ProgramOperation& pop1, 
-        const ProgramOperation& pop2) = 0;
+        const ProgramOperation& pop2, MoveNodeUse::BBRelation bbInfo) = 0;
 
     /**
      * Checks whether the analyzer knows anything about the address.
@@ -77,7 +79,7 @@ protected:
         int index2, 
         const ProgramOperation& pop1, 
         const ProgramOperation& pop2);
-    const MoveNode* addressOperandMove(const ProgramOperation&po);
+    static const MoveNode* addressOperandMove(const ProgramOperation&po);
 
     struct TwoPartAddressOperandDetection {
         enum OffsetOperation { NOT_FOUND, ADD, SUB };
@@ -94,9 +96,15 @@ protected:
         }
     };
 
-    TwoPartAddressOperandDetection findTwoPartAddressOperands(
+    static TwoPartAddressOperandDetection findTwoPartAddressOperands(
         const ProgramOperation& po);
 
+    static  const MoveNode* searchLoopIndexBasedIncrement(
+        DataDependenceGraph& ddg, const MoveNode &mn, long& loopIncrement);
+
+    static const MoveNode* findIncrement(const MoveNode& mn, long& increment);
+
+    static const MoveNode* detectConstantScale(const MoveNode& mn, int &shiftAmount);
 private:
     unsigned int mausOfOperation(const Operation& op);
 };

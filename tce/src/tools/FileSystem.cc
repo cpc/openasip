@@ -26,9 +26,9 @@
  *
  * Implementation of FileSystem class.
  *
- * @author Pekka J��skel�inen (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J??skel?inen (pekka.jaaskelainen-no.spam-tut.fi)
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
- * @author Esa M��tt� 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Esa M??tt? 2007 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -398,11 +398,12 @@ FileSystem::sizeInBytes(const std::string& filePath) {
  */
 bool
 FileSystem::createDirectory(const std::string& path) {
-    if (!isAbsolutePath(path)) {
-        return false;
+    std::string p = path;
+    if (!isAbsolutePath(p)) {
+        p = absolutePathOf(p);
     }
     Path DS(DIRECTORY_SEPARATOR);
-    Path orPath(path.substr(1));
+    Path orPath(p.substr(1));
     string origPath = orPath.string();
     string currentPath = DS.string();
     while (origPath.size() > 0) {
@@ -432,13 +433,17 @@ FileSystem::createDirectory(const std::string& path) {
  * Creates a temporary directory to the given path
  * 
  * @param path Path to create the temporary directory in
- * @return Full path to the generated temporary directory. Empty string on error
+ * @param tempDirPrefix Prefix string before randomly generated string part.
+ * @return Full path to the generated temporary directory.
+ *         Empty string on error.
  */
 std::string 
-FileSystem::createTempDirectory(const std::string& path) {
+FileSystem::createTempDirectory(
+    const std::string& path,
+    const std::string& tempDirPrefix) {
     const int RANDOM_CHARS = 10;
     const string DS(DIRECTORY_SEPARATOR);
-    string tempDir = path + DS + "tmp_tce_";
+    string tempDir = path + DS + tempDirPrefix;
     
     for (int i = 0; i < RANDOM_CHARS || fileExists(tempDir); ++i) {
         tempDir += static_cast<char>(MathTools::random('0', '9'));
@@ -528,6 +533,10 @@ FileSystem::copy(const std::string& source, const std::string& target) {
             } else {
                 fs::path::iterator lastIt = --(sourcePath.end());
                 targetPath /= *lastIt;
+                // The target directory may have already a file by name
+                if(!fileIsDirectory(targetPath.string())) {
+                    fs::remove(targetPath);
+                }
             }
         }
         fs::copy_file(sourcePath, targetPath);
@@ -573,6 +582,10 @@ FileSystem::findFileInSearchPaths(
     }
 
     string errorMsg = "File " + file + " not found in any search path.";
+    errorMsg += "Searched paths:\n";
+    for (unsigned int i = 0; i < searchPaths.size(); i++) {
+        errorMsg += searchPaths.at(i) + "\n";
+    }
     throw FileNotFound(__FILE__, __LINE__, __func__, errorMsg);
 }
 
@@ -1037,21 +1050,88 @@ FileSystem::appendReplaceFile(
     return true;
 }
 
+/**
+ * Counts lines in a file.
+ *
+ * @param filepath Path to the file.
+ * @return The count if successful. On error returns negative number.
+ */
+int
+FileSystem::countLines(const std::string& filepath) {
+    std::ifstream fileStream(filepath);
+    if (!fileStream.is_open()) {
+        return -1;
+    }
+    unsigned count = 0;
+    std::string dummyLine;
+    while (std::getline(fileStream, dummyLine)) {
+        count++;
+    }
+    return count;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // Path
 //////////////////////////////////////////////////////////////////////////////
 
 /**
- * Constructor.
- *
- * @param pathName String to be converted to path.
+ * Constructs an empty Path.
  */
-Path::Path(const std::string& pathName) :
-    boost::filesystem::path(pathName) {
+Path::Path() : boost::filesystem::path() {
+}
+
+/**
+ * Constructor for implicit conversion from boost::filesystem::path.
+ */
+Path::Path(const boost::filesystem::path& path) :
+    boost::filesystem::path(path) {
 }
 
 /**
  * Destructor.
  */
 Path::~Path() {
+}
+
+/**
+ * Copy constructor.
+ */
+Path&
+Path::operator=(const boost::filesystem::path& pathName) {
+    if (this == &pathName) {
+        return *this;
+    }
+
+    boost::filesystem::path::assign(
+        pathName.string().begin(), pathName.string().end());
+    return *this;
+}
+
+/**
+ * Allows conversion to std::string.
+ */
+Path::operator std::string() const {
+    return this->string();
+}
+
+/**
+ * Allows conversion to TCEString.
+ */
+Path::operator TCEString() const {
+    return this->string();
+}
+
+/**
+ * Returns C string of the path.
+ */
+const char*
+Path::c_str() const {
+    return this->string().c_str();
+}
+
+/**
+ * Appends file of directory to the path.
+ */
+Path operator/(const Path& path, const std::string& fileOrDir) {
+    return Path(boost::filesystem::operator/(path, fileOrDir));
 }

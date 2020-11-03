@@ -44,6 +44,13 @@
 #include "OperationPimpl.hh"
 #include "ObjectState.hh"
 
+// -----------
+/// @todo These two lines can be removed after C++11 features can be used in
+/// the source code, since it has native support for initializing std::map.
+#include "boost/assign.hpp"
+using namespace boost::assign;
+// -----------
+
 using std::set;
 using std::vector;
 using std::string;
@@ -79,7 +86,7 @@ OperationPimpl::~OperationPimpl() {
  */
 void
 OperationPimpl::clear() {
-    
+
     for (int i = 0; i < dagCount(); i++) {
         if (!dags_[i].dag->isNull()) {
             delete dags_[i].dag;
@@ -146,12 +153,12 @@ void OperationPimpl::addDag(const TCEString& code) {
 void 
 OperationPimpl::removeDag(int index) {
     DAGContainer::iterator i = dags_.begin() + index;
-    
+
     if (!i->dag->isNull()) {
         delete i->dag;
         i->dag = &OperationDAG::null;
     }
-    
+
     dags_.erase(i);
 }
 
@@ -161,7 +168,7 @@ OperationPimpl::removeDag(int index) {
  *
  * @return Number of DAGs stored for operation.
  */
-int 
+int
 OperationPimpl::dagCount() const {
     return dags_.size();
 }
@@ -240,56 +247,6 @@ OperationPimpl::setDagCode(int index, const TCEString& code) {
 TCEString 
 OperationPimpl::dagError(int index) const {
     return dags_[index].error;
-}
-
-/**
- * Returns the number of the inputs of the Operation.
- *
- * @return The number of inputs of the Operation.
- */
-int 
-OperationPimpl::numberOfInputs() const {
-    return inputs_;
-}
-
-/**
- * Returns the number of outputs of the Operation.
- *
- * @return The number of outputs of the Operation.
- */
-int
-OperationPimpl::numberOfOutputs() const {
-    return outputs_;
-}
-
-/**
- * Returns true if Operation uses memory.
- *
- * @return True if Operation uses memory, false otherwise.
- */
-bool
-OperationPimpl::usesMemory() const {
-    return readsMemory_ || writesMemory_;
-}
-
-/**
- * Returns true if Operation reads from memory.
- *
- * @return True if Operation reads from memory, false otherwise.
- */
-bool
-OperationPimpl::readsMemory() const {
-    return readsMemory_;
-}
-
-/**
- * Returns true if Operation writes to memory.
- *
- * @return True if Operation writes to memory, false otherwise.
- */
-bool
-OperationPimpl::writesMemory() const {
-    return writesMemory_;
 }
 
 /**
@@ -657,19 +614,6 @@ OperationPimpl::saveState() const {
     }
 
     return root;
-}
-
-/**
- * Returns the input Operand with the given index.
- *
- * This method can be used to traverse the list of output operands
- * (the max index is numberOfOutput() - 1).
- *
- * @param index The id of Operand.
- */
-Operand&
-OperationPimpl::input(int index) const {
-    return *inputOperands_.at(index);
 }
 
 void

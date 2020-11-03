@@ -45,6 +45,8 @@
 #include "HWOperation.hh"
 #include "ExecutionPipeline.hh"
 #include "Guard.hh"
+#include "ControlUnit.hh"
+#include "FullyConnectedCheck.hh"
 #include "Conversion.hh"
 
 //using namespace TTAProgram;
@@ -63,10 +65,19 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
     ADFCombiner(): DesignSpaceExplorerPlugin(), 
         node_("node.adf"),
         nodeCount_(4),
-        extra_("extra.adf"),
+        extra_(""),
         buildIDF_(false),
         vectorLSU_(false),
-        addressSpaces_("data") {
+        addressSpaces_("data"),
+        addBroadcast_(false),
+        addRing_(false),
+        addBar_(false),
+        addStar_(true),
+        nodesPerBus_(1),
+        reuseRFPorts_(true),
+        sharedLSULatency_(3),
+        dataLSULatency_(3),
+        VLSUConnectionBuses_(1000){
 
         // compulsory parameters
         // no compulsory parameters
@@ -74,12 +85,34 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
         // parameters that have a default value
         addParameter(NodePN_, STRING, false, node_);
         addParameter(NodeCountPN_, UINT, false, 
-            Conversion::toString(nodeCount_));        
+            Conversion::toString(nodeCount_));
         addParameter(ExtraPN_, STRING, false, extra_);
         addParameter(BuildIDFPN_, BOOL, false, Conversion::toString(buildIDF_));
         addParameter(VectorLSUPN_, BOOL, false, 
-            Conversion::toString(vectorLSU_));   
-        addParameter(AddressSpacesPN_, STRING, false, addressSpaces_);        
+            Conversion::toString(vectorLSU_));
+
+
+        addParameter(AddressSpacesPN_, STRING, false, addressSpaces_);
+        addParameter(AddBroadcastPN_, BOOL, false, 
+            Conversion::toString(addBroadcast_));
+        addParameter(AddRingConnectionPN_, BOOL, false, 
+            Conversion::toString(addRing_));
+        addParameter(AddBarConnectionPN_, BOOL, false, 
+            Conversion::toString(addBar_));
+        addParameter(AddStarConnectionPN_, BOOL, false, 
+            Conversion::toString(addStar_));
+        addParameter(NodesPerBusPN_, UINT, false, Conversion::toString(nodesPerBus_));
+        addParameter(ReuseRFPortsPN_, BOOL, false, 
+            Conversion::toString(reuseRFPorts_));
+        
+        addParameter(
+            SharedLSULatencyPN_, UINT, false, Conversion::toString(sharedLSULatency_));
+        addParameter(
+            DataLSULatencyPN_, UINT, false, Conversion::toString(dataLSULatency_));
+        addParameter(
+            VLSUConnectionBusesPN_, UINT, false, Conversion::toString(VLSUConnectionBuses_));
+
+        
     }
 
     virtual bool requiresStartingPointArchitecture() const { return false; }
@@ -122,18 +155,24 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
             throw Exception(
                 __FILE__, __LINE__, __func__, msg);
         }
-        try {
-            extraMach = TTAMachine::Machine::loadFromADF(extra_);            
-        } catch (const Exception& e) {
-            TCEString msg =
-            "Error loading the \'" + extra_ + "\'";
-            throw Exception(
-                __FILE__, __LINE__, __func__, msg);
+        assert(nodeMach != NULL);
+
+        if (extra_ != "") {
+            try {
+                extraMach = TTAMachine::Machine::loadFromADF(extra_);            
+                finalMach = new TTAMachine::Machine(*extraMach);
+            } catch (const Exception& e) {
+                TCEString msg =
+                    "Error loading the \'" + extra_ + "\'";
+                throw Exception(
+                    __FILE__, __LINE__, __func__, msg);
+            }
+        } else {
+            extraMach = NULL;
+            finalMach = new TTAMachine::Machine();
         }
         
-        assert(nodeMach != NULL && extraMach != NULL);
         // Copies the extra machine to new architecture
-        finalMach = new TTAMachine::Machine(*extraMach);
         // add components
         addComponents(finalMach, nodeMach, extraMach, nodeCount_);                  
         
@@ -151,10 +190,18 @@ class ADFCombiner : public DesignSpaceExplorerPlugin {
                 
             lsuAdd->giveParameter("node_count", Conversion::toString(nodeCount_));            
             lsuAdd->giveParameter(
-                "address_spaces", Conversion::toString(addressSpaces_));        
+                "address_spaces", Conversion::toString(addressSpaces_));  
+            lsuAdd->giveParameter(
+                "add_broadcast", Conversion::toString(addBroadcast_));        
+
+            lsuAdd->giveParameter(
+                "shared_lsu_latency", Conversion::toString(sharedLSULatency_));
+            lsuAdd->giveParameter(
+                "data_lsu_latency", Conversion::toString(dataLSULatency_));
+
             std::vector<RowID> addedLSUConf = 
                 lsuAdd->explore(confID);   
-                
+            
             finalMach = dsdb.architecture(addedLSUConf.back());
             
             bool connectAgain = false;
@@ -189,12 +236,20 @@ private:
     ComponentImplementationSelector selector_;
     
     static const TCEString NodePN_;
-    static const TCEString NodeCountPN_;    
+    static const TCEString NodeCountPN_;
     static const TCEString ExtraPN_;
     static const TCEString BuildIDFPN_;
     static const TCEString VectorLSUPN_;
-    static const TCEString AddressSpacesPN_;    
-    
+    static const TCEString AddressSpacesPN_;
+    static const TCEString AddBroadcastPN_;
+    static const TCEString AddRingConnectionPN_;    
+    static const TCEString AddBarConnectionPN_;    
+    static const TCEString AddStarConnectionPN_;        
+    static const TCEString NodesPerBusPN_;
+    static const TCEString ReuseRFPortsPN_; 
+    static const TCEString SharedLSULatencyPN_;
+    static const TCEString DataLSULatencyPN_;
+    static const TCEString VLSUConnectionBusesPN_;
     
     TCEString node_;
     int nodeCount_;    
@@ -202,6 +257,15 @@ private:
     bool buildIDF_;
     bool vectorLSU_;
     TCEString addressSpaces_;
+    bool addBroadcast_;
+    bool addRing_;
+    bool addBar_;
+    bool addStar_;
+    int nodesPerBus_;
+    bool reuseRFPorts_;
+    int sharedLSULatency_;
+    int dataLSULatency_;
+    int VLSUConnectionBuses_;
 
     /**
      * Reads the parameters given to the plugin.
@@ -213,8 +277,24 @@ private:
         readOptionalParameter(BuildIDFPN_, buildIDF_);
         readOptionalParameter(VectorLSUPN_, vectorLSU_);     
         readOptionalParameter(AddressSpacesPN_, addressSpaces_);        
+        readOptionalParameter(AddBroadcastPN_, addBroadcast_);
+        readOptionalParameter(AddRingConnectionPN_, addRing_);             
+        readOptionalParameter(AddBarConnectionPN_, addBar_);
+        readOptionalParameter(AddStarConnectionPN_, addStar_);             
+        readOptionalParameter(NodesPerBusPN_, nodesPerBus_);
+        readOptionalParameter(ReuseRFPortsPN_, reuseRFPorts_);             
+        if (vectorLSU_ && extra_ == "") {
+            Application::logStream() 
+                << "Warning: vector LSUs can be added only if there's an extras node."
+                << std::endl;
+            vectorLSU_ = false;                
+        }
+        readOptionalParameter(SharedLSULatencyPN_,sharedLSULatency_);
+        readOptionalParameter(DataLSULatencyPN_,dataLSULatency_);
+        readOptionalParameter(VLSUConnectionBusesPN_,VLSUConnectionBuses_);
     }
 
+    typedef std::vector<TTAMachine::Bus*> BusVector;
     typedef std::set<TTAMachine::Guard*, TTAMachine::MachinePart::Comparator>
     GuardSet;
     
@@ -253,13 +333,45 @@ private:
 
         renameExtraUnits(finalMach);
         addAddressSpaces(finalMach, nodeMach);
-        addAddressSpaces(finalMach, extraMach);                        
+        if (extraMach != NULL)
+            addAddressSpaces(finalMach, extraMach);                        
         addBuses(finalMach, nodeMach, nodeCount, busMapping);
         addRegisterFiles(finalMach, nodeMach, nodeCount);
         addFunctionUnits(finalMach, nodeMach, nodeCount);     
+
+        BusVector connectionBuses;
         connectRegisterFiles(
-            finalMach, nodeMach, extraMach, nodeCount, extrasGuards);
+            finalMach, nodeMach, extraMach, nodeCount, extrasGuards,
+            connectionBuses);
         addGuardsToBuses(busMapping, extrasGuards);
+
+        /* For the node-only machine, copy the guards from the nodes to the
+           connection buses to enable predicated inter-node moves. */
+        if (extra_ == "")
+            addAllGuardsToConnectionBuses(finalMach, connectionBuses);
+    }
+
+    TCEString nodeNamePrefix(int nodeId) {
+       TCEString nodeNamePrefix = "L_";
+       nodeNamePrefix << nodeId << "_";
+       return nodeNamePrefix;     
+    }
+
+    void
+    addAllGuardsToConnectionBuses(
+        TTAMachine::Machine* finalMach, 
+        const BusVector& connectionBuses) {
+        for (BusVector::const_iterator i = connectionBuses.begin(); 
+             i != connectionBuses.end(); ++i) {
+            const TTAMachine::Machine::BusNavigator& busNav =
+                finalMach->busNavigator();
+            Bus* connectionBus = *i;            
+            for (int b = 0; b < busNav.count(); b++) {
+                Bus* origBus = busNav.item(b);
+                origBus->copyGuardsTo(*connectionBus);
+            }
+        }
+
     }
 
     void 
@@ -267,10 +379,8 @@ private:
                      GuardSet& extrasGuards) {
         for (std::map<Bus*, std::pair<Bus*, int> >::iterator i =
                  busMapping.begin(); i != busMapping.end(); i++) {
-            TCEString nodeNamePrefix = "L_";
-            nodeNamePrefix << i->second.second << "_";
             
-            copyGuards(*(i->second.first), *(i->first), nodeNamePrefix);
+            copyGuards(*(i->second.first), *(i->first), nodeNamePrefix(i->second.second));
             
             for (GuardSet::iterator j = extrasGuards.begin();
                  j != extrasGuards.end(); j++) {
@@ -283,12 +393,9 @@ private:
     
 
     /**
-     * Adds buses and sockets to the machine
+     * Adds buses and sockets to the machine.
      *
-     *
-     * @return void 
-     */
-    
+     */    
     void addBuses(
         TTAMachine::Machine* finalMach, 
         TTAMachine::Machine* nodeMach, 
@@ -296,7 +403,7 @@ private:
         std::map<Bus*, std::pair<Bus*, int> >& busMapping) {
         const Machine::SocketNavigator socketNav = nodeMach->socketNavigator();
         const TTAMachine::Machine::BusNavigator& busNav = 
-        nodeMach->busNavigator();
+            nodeMach->busNavigator();
         
         for (unsigned j = 0; j < nodeCount; j++) {
             bool socketsCreated = false;
@@ -317,6 +424,7 @@ private:
                     throw Exception(
                         __FILE__, __LINE__, __func__, msg);
                 }
+
                 for (int k = 0; k < socketNav.count(); k++) {
                     TTAMachine::Socket* addSocket = NULL;
                     if (socketNav.item(k)->portCount() == 0) {
@@ -431,6 +539,26 @@ private:
                 connectPorts(finalMach, originalFU, addFU, j);
             }
         }
+
+        if (extra_ == "") {
+            TTAMachine::ControlUnit *originalCU = nodeMach->controlUnit();
+            TTAMachine::ControlUnit *copyCU = originalCU->copy();
+            finalMach->setGlobalControl(*copyCU);
+            if (originalCU->hasAddressSpace()) {
+                TCEString aName = originalCU->addressSpace()->name();
+                const TTAMachine::Machine::AddressSpaceNavigator& aNav = 
+                    finalMach->addressSpaceNavigator();
+                assert(aNav.hasItem(aName));
+                copyCU->setAddressSpace(aNav.item(aName));
+
+                // Connect the CU to all node 0 buses for now. 
+                // @todo remove the connections not to RFs and
+                // ensure the buses are guarded
+                FullyConnectedCheck conn;
+                conn.connectControlUnit(*copyCU);
+            }
+            
+        }
     }
     
     /**
@@ -508,8 +636,11 @@ private:
             }
         }        
     }
+
+
+
     /**
-     * Connect register files from extra and node into a ring.
+     * Connect register files from extra and node into a ring, star or bar.
      */
     void connectRegisterFiles(
         TTAMachine::Machine* finalMach, 
@@ -517,83 +648,304 @@ private:
         TTAMachine::Machine* extraMach,
         unsigned nodeCount,
         std::set<TTAMachine::Guard*, TTAMachine::MachinePart::Comparator>
-        extrasGuards) {
-        
+        extrasGuards,
+        BusVector& connectionBuses) {
+
         const TTAMachine::Machine::RegisterFileNavigator& nodeNav =
             nodeMach->registerFileNavigator();
         const TTAMachine::Machine::RegisterFileNavigator& finalNav =
             finalMach->registerFileNavigator();
-        const TTAMachine::Machine::RegisterFileNavigator& extraNav =
-            extraMach->registerFileNavigator();
+                    
+        const TTAMachine::Machine::ImmediateUnitNavigator& finalImmNav =
+            finalMach->immediateUnitNavigator();
+            
+        const TTAMachine::Machine::BusNavigator& busNav =
+            finalMach->busNavigator();
+        if (addRing_) {
+            for (int i = 0; i < nodeNav.count(); i++) {
+                TCEString rfName = nodeNav.item(i)->name();            
+                // Connect register file between neighbouring node
+                for (unsigned int j = 0; j < nodeCount -1; j++) {        
+                    TCEString firstName = getNodeComponentName(rfName, j);
+                    TCEString secondName = getNodeComponentName(rfName, j+1);
+                    TTAMachine::RegisterFile* firstRF = finalNav.item(firstName);
+                    TTAMachine::RegisterFile* secondRF = finalNav.item(secondName);                
+                    
+                    TCEString busName = "connect_"
+                        + Conversion::toString(j) +
+                        "_" + Conversion::toString(j + 1);
+                    int width = std::max(firstRF->width(), secondRF->width());
+                    TTAMachine::Bus* newBus = NULL;
+                    
+                    if (busNav.hasItem(busName)) {
+                        newBus = busNav.item(busName);
+                    } else {
+                        newBus = createBus(finalMach, busName, width);
+                    }
+                    connectionBuses.push_back(newBus);
 
-        for (int i = 0; i < nodeNav.count(); i++) {
-            TCEString rfName = nodeNav.item(i)->name();            
-            // Connect register file between neighbouring node
-            for (unsigned int j = 0; j < nodeCount -1; j++) {        
-                TCEString firstName = getNodeComponentName(rfName, j);
-                TCEString secondName = getNodeComponentName(rfName, j+1);
+                    // Copy guards from extras to neighbour connection buses.
+                    for (GuardSet::iterator k = extrasGuards.begin();
+                        k != extrasGuards.end(); k++) {
+                        if (!newBus->hasGuard(**k)) {
+                            (*k)->copyTo(*newBus);
+                        }
+                    }
+                    createPortsAndSockets(
+                        finalMach, firstRF, newBus, firstName, false);
+                    createPortsAndSockets(
+                        finalMach, secondRF, newBus, secondName, false);                
+                }
+
+                // A clustered machine without an extras node.
+                if (extraMach == NULL) continue;
+
+                const TTAMachine::Machine::RegisterFileNavigator& extraNav =
+                    extraMach->registerFileNavigator();
+
+                // Add connections between RF in extra.adf with first and
+                // last of the multiplied nodes
+                TCEString firstName = getNodeComponentName(rfName, 0);
+                TCEString lastName = getNodeComponentName(rfName, nodeCount -1);
                 TTAMachine::RegisterFile* firstRF = finalNav.item(firstName);
-                TTAMachine::RegisterFile* secondRF = finalNav.item(secondName);                
-                
-                TCEString busName = "connect_" + rfName + "_"
-                    + Conversion::toString(j) +
-                    "_" + Conversion::toString(j + 1);
-                int width = std::max(firstRF->width(), secondRF->width());
-                TTAMachine::Bus* newBus = createBus(finalMach, busName, width);
-
-                // Copy guards from extras to neighbour connection buses.
-                for (GuardSet::iterator j = extrasGuards.begin();
-                     j != extrasGuards.end(); j++) {
-                    if (!newBus->hasGuard(**j)) {
-                        (*j)->copyTo(*newBus);
+                TTAMachine::RegisterFile* lastRF = finalNav.item(lastName);                
+                    
+                for (int k = 0; k < extraNav.count(); k++) {
+                    TCEString newName = 
+                        getExtraComponentName(extraNav.item(k)->name());                
+                    TTAMachine::RegisterFile* extraRF = finalNav.item(newName);                
+                    if (extraRF->width() != firstRF->width()) {
+                        continue;
                     }
-                }
-                createPortsAndSockets(finalMach, firstRF, newBus, firstName);
-                createPortsAndSockets(finalMach, secondRF, newBus, secondName);                
-            }
-            // Add connections between RF in extra.adf with first and
-            // last of the multiplied nodes
-            TCEString firstName = getNodeComponentName(rfName, 0);
-            TCEString lastName = getNodeComponentName(rfName, nodeCount -1);
-            TTAMachine::RegisterFile* firstRF = finalNav.item(firstName);
-            TTAMachine::RegisterFile* lastRF = finalNav.item(lastName);                
-                
-            for (int k = 0; k < extraNav.count(); k++) {
-                TCEString newName = 
-                    getExtraComponentName(extraNav.item(k)->name());                
-                TTAMachine::RegisterFile* extraRF = finalNav.item(newName);                
-                if (extraRF->width() != firstRF->width()) {
-                    continue;
-                }
-                TCEString extraName = extraRF->name();
-                int width = std::max(firstRF->width(), extraRF->width());
-                TCEString busName = "connect_" + extraName + "_" + firstName;
-                TTAMachine::Bus* newBus = createBus(finalMach, busName, width);
-                for (GuardSet::iterator j = extrasGuards.begin();
-                     j != extrasGuards.end(); j++) {
-                    if (!newBus->hasGuard(**j)) {
-                        (*j)->copyTo(*newBus);
+                    TCEString extraName = extraRF->name();
+                    int width = std::max(firstRF->width(), extraRF->width());
+                    TCEString busName = "connect_extra_first";
+                    TTAMachine::Bus* newBus = NULL;
+                    if (busNav.hasItem(busName)) {
+                        newBus = busNav.item(busName);
+                    } else {
+                        newBus = createBus(finalMach, busName, width);
                     }
-                }
-                createPortsAndSockets(finalMach, firstRF, newBus, firstName);
-                createPortsAndSockets(finalMach, extraRF, newBus, extraName);                
-                // In case we only one node, there is no need to bidirectional
-                // connection
-                if (firstName != lastName) {
-                    width = std::max(lastRF->width(), extraRF->width());
-                    busName = "connect_" + extraName + "_" + lastName;
-                    newBus = createBus(finalMach, busName, width);
-                    for (GuardSet::iterator j = extrasGuards.begin(); 
-                         j != extrasGuards.end(); j++) {
+                    for (GuardSet::iterator j = extrasGuards.begin();
+                        j != extrasGuards.end(); j++) {
                         if (!newBus->hasGuard(**j)) {
                             (*j)->copyTo(*newBus);
                         }
-                    }                
-                    createPortsAndSockets(finalMach, lastRF, newBus, lastName);
-                    createPortsAndSockets(finalMach, extraRF, newBus, extraName);                                
+                    }
+                    createPortsAndSockets(
+                        finalMach, firstRF, newBus, firstName, false);
+                    createPortsAndSockets(
+                        finalMach, extraRF, newBus, extraName, false);                
+                    // In case we only one node, there is no need to bidirectional
+                    // connection
+                    if (firstName != lastName) {
+                        width = std::max(lastRF->width(), extraRF->width());
+                        busName = "connect_extra_last";
+                        if (busNav.hasItem(busName)) {
+                            newBus = busNav.item(busName);
+                        } else {
+                            newBus = createBus(finalMach, busName, width);
+                        }                        
+                        for (GuardSet::iterator j = extrasGuards.begin(); 
+                            j != extrasGuards.end(); j++) {
+                            if (!newBus->hasGuard(**j)) {
+                                (*j)->copyTo(*newBus);
+                            }
+                        }                
+                        createPortsAndSockets(
+                            finalMach, lastRF, newBus, lastName, false);
+                        createPortsAndSockets(
+                            finalMach, extraRF, newBus, extraName, false);                                
+                    }
+                }                
+            }        
+        }
+        if (addBar_) {
+            int busCount = nodeCount;
+            for (int i = 0; i < busCount; i++) {                    
+                TCEString busName = 
+                    "connect_all_" + Conversion::toString(i);
+
+                TTAMachine::Bus* newBus = createBus(finalMach, busName, 32);
+                connectionBuses.push_back(newBus);
+
+                for (int i = 0; i < nodeNav.count(); i++) {
+                    // Pick all register files in node, one by one
+                    TCEString rfName = nodeNav.item(i)->name();            
+                    for (unsigned int j = 0; j < nodeCount; j++) {        
+                        // connect register file from all node to the
+                        // bus
+                        TCEString nodeName = 
+                            getNodeComponentName(rfName, j);                            
+                        TTAMachine::RegisterFile* nodeRF = 
+                            finalNav.item(nodeName);                                            
+                        createPortsAndSockets(
+                            finalMach, nodeRF, newBus, nodeName, false);
+                    }
                 }
-            }                
-        }        
+
+                if (extraMach == NULL) continue;
+
+                const TTAMachine::Machine::RegisterFileNavigator& extraNav =
+                    extraMach->registerFileNavigator();
+            
+                for (int k = 0; k < extraNav.count(); k++) {
+                    TCEString newName = 
+                        getExtraComponentName(extraNav.item(k)->name());                
+                    TTAMachine::RegisterFile* extraRF = finalNav.item(newName);                
+                    TCEString extraName = extraRF->name();
+                    int width = extraRF->width();
+                    if (width == 1)
+                        continue;                
+                                    
+                    createPortsAndSockets(finalMach, extraRF, newBus, extraName, false);
+                    for (GuardSet::iterator j = extrasGuards.begin();
+                        j != extrasGuards.end(); j++) {
+                        if (!newBus->hasGuard(**j)) {
+                            (*j)->copyTo(*newBus);
+                        }
+                    }
+                }
+
+                const TTAMachine::Machine::ImmediateUnitNavigator& extraImmNav =
+                    extraMach->immediateUnitNavigator();
+
+
+                for (int k = 0; k < extraImmNav.count(); k++) {
+                    TCEString newName = 
+                        getExtraComponentName(extraImmNav.item(k)->name());                
+                    TTAMachine::ImmediateUnit* extraImm = finalImmNav.item(newName);                
+                    TCEString extraName = extraImm->name();
+                    int width = extraImm->width();
+                    if (width == 1)
+                        continue;                
+                                    
+                    createPortsAndSockets(
+                        finalMach, extraImm, newBus, extraName, true);
+                    for (GuardSet::iterator j = extrasGuards.begin();
+                        j != extrasGuards.end(); j++) {
+                        if (!newBus->hasGuard(**j)) {
+                            (*j)->copyTo(*newBus);
+                        }
+                    }
+                }                
+            }                            
+        }
+        if (addStar_) {
+            if (extraMach != NULL) {
+                const TTAMachine::Machine::RegisterFileNavigator& extraNav =
+                    extraMach->registerFileNavigator();
+
+                for (unsigned int i = 0; i*nodesPerBus_ < nodeCount; i++) {
+                    TCEString busName =
+                        "star_" + Conversion::toString(i);
+                    TTAMachine::Bus* newBus = 
+                        createBus(finalMach, busName, 32);
+                    connectionBuses.push_back(newBus);
+                    // Connect RFs in extra to the bus
+                    for (int k = 0; k < extraNav.count(); k++) {
+                        TCEString newName =
+                            getExtraComponentName(extraNav.item(k)->name());
+                        TTAMachine::RegisterFile* extraRF = 
+                            finalNav.item(newName);
+                        TCEString extraName = extraRF->name();
+                        int width = extraRF->width();
+                        if (width == 1)
+                            continue;
+                        
+                        createPortsAndSockets(
+                            finalMach, extraRF, newBus, extraName, false, i);                                                    
+                        for (GuardSet::iterator j = extrasGuards.begin();
+                             j != extrasGuards.end(); j++) {
+                            if (!newBus->hasGuard(**j)) {
+                                (*j)->copyTo(*newBus);
+                            }
+                        }
+                    } 
+                    
+                    for (int j = 0; j < nodeNav.count(); j++) {
+                        // Pick all register files in node, one by one
+                        TCEString rfName = nodeNav.item(j)->name();
+                        for (int k = 0; 
+                             k < nodesPerBus_ && (i*nodesPerBus_)+k 
+                                 < nodeCount; k++) {
+                            TCEString nodeName =
+                                getNodeComponentName(
+                                    rfName, ((i*nodesPerBus_)+k));
+                            TTAMachine::RegisterFile* nodeRF =
+                                finalNav.item(nodeName);
+                            createPortsAndSockets(
+                                finalMach, nodeRF, newBus, nodeName, false);
+                        }
+                    }
+
+                    const TTAMachine::Machine::ImmediateUnitNavigator& extraImmNav =
+                        extraMach->immediateUnitNavigator();
+                
+                    for (int k = 0; k < extraImmNav.count(); k++) {
+                        TCEString newName = 
+                            getExtraComponentName(extraImmNav.item(k)->name());                
+                        TTAMachine::ImmediateUnit* extraImm = finalImmNav.item(newName);                
+                        TCEString extraName = extraImm->name();
+                        int width = extraImm->width();
+                        if (width == 1)
+                            continue;                
+                        
+                        createPortsAndSockets(
+                            finalMach, extraImm, newBus, extraName, true);
+                        for (GuardSet::iterator j = extrasGuards.begin();
+                             j != extrasGuards.end(); j++) {
+                            if (!newBus->hasGuard(**j)) {
+                                (*j)->copyTo(*newBus);
+                            }
+                        }
+                    }                                
+
+                }
+            } else { // extrasless - connect all to lane 0
+
+                for (unsigned int i = 0; i*nodesPerBus_ < nodeCount-1; i++) {
+                    TCEString busName =
+                        "star_" + Conversion::toString(i);
+                    TTAMachine::Bus* newBus = 
+                        createBus(finalMach, busName, 32);
+                    connectionBuses.push_back(newBus);
+
+                    for (int j = 0; j < nodeNav.count(); j++) {
+                        // Pick all register files in node, one by one
+                        TCEString rfName = nodeNav.item(j)->name();
+                        for (int k = 0; 
+                             k < nodesPerBus_ && (i*nodesPerBus_)+k 
+                                 < nodeCount-1; k++) {
+                            TCEString nodeName = 
+                                getNodeComponentName(
+                                    rfName, ((i*nodesPerBus_)+k+1));
+                            TTAMachine::RegisterFile* nodeRF =
+                                finalNav.item(nodeName);
+                            createPortsAndSockets(
+                                finalMach, nodeRF, newBus, nodeName, false);
+                        }
+                    }
+
+
+                    for (int j = 0; j < nodeNav.count(); j++) {
+                        // Pick all register files in node, one by one
+                        TCEString rfName = nodeNav.item(j)->name();            
+                        TCEString node0Name = 
+                            getNodeComponentName(rfName, 0);
+                        TTAMachine::RegisterFile* node0RF = 
+                        finalNav.item(node0Name);
+                        int width = node0RF->width();
+                        if (width == 1)
+                            continue;                
+                    
+                        createPortsAndSockets(
+                            finalMach, node0RF, newBus, node0Name, false, i);
+
+                    }
+                }
+            }
+        }
     }
     /**
      * Create single bus with given name and width.
@@ -615,7 +967,7 @@ private:
                 "ADFCombiner: Tried to add Bus with an already"
                 "existing name (" + busName +")";
             throw Exception(
-                __FILE__, __LINE__, __func__, msg);            
+                __FILE__, __LINE__, __func__, msg);
         }   
         return newBus;
     }
@@ -627,61 +979,114 @@ private:
         TTAMachine::Machine* finalMach,
         TTAMachine::RegisterFile* rf,
         TTAMachine::Bus* newBus,
-        TCEString name) {
+        TCEString name, 
+        bool readOnly,
+        int nodeNumber = -1) {
         
         TTAMachine::RFPort* readPort = NULL;
-        TTAMachine::RFPort* writePort = NULL;                
+        TTAMachine::RFPort* writePort = NULL;        
+        TTAMachine::Socket* readSocket = NULL;
+        TTAMachine::Socket* writeSocket = NULL;        
         
-        for (int k = 0; k < rf->portCount(); k++) {
-            if (rf->port(k)->name() == name + "_connect_r") {
-                readPort = rf->port(k);
+        if (!reuseRFPorts_) {
+            // Create new ports and sockets for the register files connections
+            for (int k = 0; k < rf->portCount(); k++) {
+                if (rf->port(k)->name() == name + "_connect_r") {
+                    readPort = rf->port(k);
+                }
+                if (rf->port(k)->name() == name + "_connect_w") {
+                    writePort = rf->port(k);
+                }                    
+            }         
+        } else if (reuseRFPorts_ && nodeNumber != -1) {
+            // If the callee passed the node number, we connect only
+            // certain ports to the bus.
+            int indexRead = nodeNumber % rf->maxReads();
+            int indexWrite = nodeNumber % rf->maxWrites();
+            int foundReads = 0;
+            int foundWrites = 0;
+            for (int k = 0; k < rf->portCount(); k++) {
+                if (rf->port(k)->outputSocket() != NULL) {                    
+                    if (foundReads == indexRead) {
+                        readPort = rf->port(k);
+                        readSocket = rf->port(k)->outputSocket();
+                    }
+                    foundReads++;
+                }
+                if (rf->port(k)->inputSocket() != NULL) {                    
+                    if (foundWrites == indexWrite) {
+                        writePort = rf->port(k);
+                        writeSocket = rf->port(k)->inputSocket();
+                    }
+                    foundWrites++;
+                }                
             }
-            if (rf->port(k)->name() == name + "_connect_w") {
-                writePort = rf->port(k);
-            }                    
+        } else {
+            // Just find first available port for reuse.
+            for (int k = 0; k < rf->portCount(); k++) {
+                if (rf->port(k)->outputSocket() != NULL) {                                 
+                    if (readPort == NULL) {
+                        readPort = rf->port(k);
+                        readSocket = rf->port(k)->outputSocket();
+                    }
+                }
+                if (!readOnly && rf->port(k)->inputSocket() != NULL) {                    
+                    if (writePort == NULL) {
+                        writePort = rf->port(k);
+                        writeSocket = rf->port(k)->inputSocket();
+                    }
+                }                
+            }            
         }
+
         if (readPort == NULL) {
             readPort = new TTAMachine::RFPort(
                 name + "_connect_r", *rf);
         }
-        if (writePort == NULL) {
+        if (!readOnly && writePort == NULL) {
             writePort = new TTAMachine::RFPort(
                 name + "_connect_w", *rf);        
         }
+        
         const Machine::SocketNavigator socketNavigator = 
             finalMach->socketNavigator();
         
-        TTAMachine::Socket* readSocket = NULL;
-        TTAMachine::Socket* writeSocket = NULL;        
-        
-        if (!socketNavigator.hasItem(readPort->name())) {
-            readSocket = new TTAMachine::Socket(readPort->name());                
-            try {     
-                finalMach->addSocket(*readSocket);
-            } catch (const ComponentAlreadyExists& e) {
-                TCEString msg = 
-                    "ADFCombiner: Tried to add Socket with "
-                    " an already existing name (" + readSocket->name() +")";
-                throw Exception(
-                    __FILE__, __LINE__, __func__, msg);                            
-            }
-        } else {
-            readSocket = socketNavigator.item(readPort->name());
-        }                
-        if (!socketNavigator.hasItem(writePort->name())) {
-            writeSocket = new TTAMachine::Socket(writePort->name());                
-            try {     
-                finalMach->addSocket(*writeSocket);
-            } catch (const ComponentAlreadyExists& e) {
-                TCEString msg = 
-                "ADFCombiner: Tried to add Socket with "
-                " an already existing name (" + writeSocket->name() +")";
-                throw Exception(
-                    __FILE__, __LINE__, __func__, msg);                            
-            }
-        } else {
-            writeSocket = socketNavigator.item(writePort->name());
+        // If we reused the ports, the socket is already known, if not 
+        // try to find it or create new one.
+        if (readSocket == NULL) {
+            if (!socketNavigator.hasItem(readPort->name())) {
+                readSocket = new TTAMachine::Socket(readPort->name());                
+                try {     
+                    finalMach->addSocket(*readSocket);
+                } catch (const ComponentAlreadyExists& e) {
+                    TCEString msg = 
+                        "ADFCombiner: Tried to add Socket with "
+                        " an already existing name (" + readSocket->name() +")";
+                    throw Exception(
+                        __FILE__, __LINE__, __func__, msg);                            
+                }
+            } else {
+                readSocket = socketNavigator.item(readPort->name());
+            }                
         }
+
+        if (!readOnly && writeSocket == NULL) {
+            if (!socketNavigator.hasItem(writePort->name())) {
+                writeSocket = new TTAMachine::Socket(writePort->name());                
+                try {     
+                    finalMach->addSocket(*writeSocket);
+                } catch (const ComponentAlreadyExists& e) {
+                    TCEString msg = 
+                    "ADFCombiner: Tried to add Socket with "
+                    " an already existing name (" + writeSocket->name() +")";
+                    throw Exception(
+                        __FILE__, __LINE__, __func__, msg);                            
+                }
+            } else {
+                writeSocket = socketNavigator.item(writePort->name());
+            }
+        }
+
         if (readPort->outputSocket() == NULL) {
             readPort->attachSocket(*readSocket);                                
         }
@@ -689,10 +1094,10 @@ private:
             readSocket->attachBus(*newBus->segment(0));
             readSocket->setDirection(Socket::OUTPUT);                                                    
         }
-        if (writePort->inputSocket() == NULL) {               
+        if (!readOnly && writePort->inputSocket() == NULL) {               
             writePort->attachSocket(*writeSocket);                                                
         }
-        if (!writeSocket->isConnectedTo(*newBus->segment(0))) {
+        if (!readOnly && !writeSocket->isConnectedTo(*newBus->segment(0))) {
             writeSocket->attachBus(*newBus->segment(0));                
             writeSocket->setDirection(Socket::INPUT);                                                            
         }  
@@ -716,6 +1121,7 @@ private:
         TTAMachine::FUPort* outExtra = NULL;
         int triggerIndex = -1;
         int outputPortCount = 0;
+        bool broadcastUnit = false;
         for (int i = 0; i < finalNav.count(); i++) {
             TTAMachine::FunctionUnit* fu = finalNav.item(i);
             bool unconnected = false;
@@ -741,9 +1147,14 @@ private:
                     // Find equivalends in final architecture
                     vectorLSU = fu;                                    
                     trigger = vectorLSU->operationPort(triggerIndex);
-                    inExtra = vectorLSU->operationPort("in_extra2");
-                    outExtra = vectorLSU->operationPort("out_extra1");
                     break;
+                } else if (addBroadcast_){
+                    // We enabled addition of broadcast unit, so there is
+                    // unit without the address space.
+                    vectorLSU = fu;                                    
+                    trigger = vectorLSU->operationPort(triggerIndex);
+                    broadcastUnit = true;
+                    break;                    
                 } else {
                     verboseLog("Candidate for Vector LSU does not have "
                     "address space defined - " + fu->name());
@@ -812,6 +1223,8 @@ private:
         // Connect trigger socket to all the buses in extra.
         for (int i = 0; i < extraBusNav.count(); i++) {
             TCEString busName = extraBusNav.item(i)->name();
+            if (i>VLSUConnectionBuses_)
+                continue;
             triggerSocket->attachBus(*finalBusNav.item(busName)->segment(0));
             if (inExtra)
                 inExtraSocket->attachBus(*finalBusNav.item(busName)->segment(0));                            
@@ -836,6 +1249,7 @@ private:
                 pipeline->readOperands();
             TTAMachine::ExecutionPipeline::OperandSet::iterator it =
                 readOperandSet.begin();
+            bool writeConnectedToExtra = false;
             for (; it != readOperandSet.end(); it++) {
                 TTAMachine::Port* port = operation->port(*it);               
                 if (port != trigger && port != inExtra) {
@@ -874,11 +1288,25 @@ private:
                             nodeBusNav.item(i)->name() + "_connect_" + 
                             Conversion::toString((*it -2) % nodeCount);
                         assert(finalBusNav.hasItem(busName));
+                        if (i>VLSUConnectionBuses_)
+                            continue;
                         if (!inputSocket->isConnectedTo(
                             *finalBusNav.item(busName)->segment(0))) {
                             inputSocket->attachBus(
                                 *finalBusNav.item(busName)->segment(0));                            
                         }
+                    }
+                    if (!writeConnectedToExtra) {
+                        for (int i = 0; i < extraBusNav.count(); i++) {
+                            TCEString busName = extraBusNav.item(i)->name();
+                            if (i>VLSUConnectionBuses_)
+                                continue;
+                            if (!inputSocket->isConnectedTo(
+                                *finalBusNav.item(busName)->segment(0)))
+                                inputSocket->attachBus(
+                                    *finalBusNav.item(busName)->segment(0));                            
+                        }
+                        writeConnectedToExtra = true;
                     }
                     inputSocket->setDirection(Socket::INPUT);                                                                    
                 }
@@ -887,7 +1315,7 @@ private:
             TTAMachine::ExecutionPipeline::OperandSet writeOperandSet =
                 pipeline->writtenOperands();
             it = writeOperandSet.begin();
-            
+            bool readConnectedToExtra = false;
             for (; it != writeOperandSet.end(); it++) {
                 TTAMachine::Port* port = operation->port(*it);  
                 if (port == outExtra)
@@ -926,11 +1354,25 @@ private:
                         nodeBusNav.item(i)->name() + "_connect_" + 
                         Conversion::toString((*it -2) % nodeCount);
                     assert(finalBusNav.hasItem(busName));
+                    if (i>VLSUConnectionBuses_)
+                        continue;
                     if (!outputSocket->isConnectedTo(
                             *finalBusNav.item(busName)->segment(0))) {
                         outputSocket->attachBus(
                             *finalBusNav.item(busName)->segment(0));                            
                     }
+                }
+                if (!readConnectedToExtra && !broadcastUnit) {
+                    for (int i = 0; i < extraBusNav.count(); i++) {
+                        TCEString busName = extraBusNav.item(i)->name();
+                        if (i>VLSUConnectionBuses_)
+                            continue;
+                        if (!outputSocket->isConnectedTo(
+                            *finalBusNav.item(busName)->segment(0)))
+                            outputSocket->attachBus(
+                                *finalBusNav.item(busName)->segment(0));                            
+                    }
+                    readConnectedToExtra = true;
                 }
                 outputSocket->setDirection(Socket::OUTPUT);                                                                    
             }
@@ -950,7 +1392,12 @@ private:
             TCEString oldName = finalRFNav.item(i)->name();
             finalRFNav.item(i)->setName(getExtraComponentName(oldName));
         }
-        
+        const TTAMachine::Machine::ImmediateUnitNavigator& finalImmNav =
+            finalMach->immediateUnitNavigator();
+        for (int i = 0; i < finalImmNav.count(); i++) {
+            TCEString oldName = finalImmNav.item(i)->name();
+            finalImmNav.item(i)->setName(getExtraComponentName(oldName));
+        }        
     }
     TCEString getNodeComponentName(TCEString originalName, int idx) {
         return "L_" + Conversion::toString(idx) + "_" + originalName; 
@@ -975,7 +1422,7 @@ private:
                     continue;
                 }
                 new RegisterGuard(
-                    rg->isInverted(), *rfNew, index, addBus);
+                    rg->isInverted(), *rfNew, index, &addBus);
             } else if (PortGuard* pg = dynamic_cast<PortGuard*>(guard)) {
                 FUPort* fuPort = pg->port();
                 FunctionUnit* fu = 
@@ -992,7 +1439,7 @@ private:
                     addBus.machine()->functionUnitNavigator().item(fuName);
                 if (fuNew == NULL) {
                     std::cerr << "FU: " << fuName << " not found from mach!"
-                              << std::endl;
+                        << std::endl;
                     continue;
                 }
                 FUPort* port = static_cast<FUPort*>(fuNew->port(index));
@@ -1009,6 +1456,14 @@ const TCEString ADFCombiner::ExtraPN_("extra");
 const TCEString ADFCombiner::BuildIDFPN_("build_idf");
 const TCEString ADFCombiner::VectorLSUPN_("vector_lsu");
 const TCEString ADFCombiner::AddressSpacesPN_("address_spaces");
-
+const TCEString ADFCombiner::AddBroadcastPN_("add_broadcast");
+const TCEString ADFCombiner::AddRingConnectionPN_("add_ring");
+const TCEString ADFCombiner::AddBarConnectionPN_("add_bar");
+const TCEString ADFCombiner::AddStarConnectionPN_("add_star");
+const TCEString ADFCombiner::NodesPerBusPN_("nodes_per_bus");
+const TCEString ADFCombiner::ReuseRFPortsPN_("reuse_rf_ports");
+const TCEString ADFCombiner::SharedLSULatencyPN_("shared_lsu_latency");
+const TCEString ADFCombiner::DataLSULatencyPN_("data_lsu_latency");
+const TCEString ADFCombiner::VLSUConnectionBusesPN_("vlsu_connection_buses");
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ADFCombiner)

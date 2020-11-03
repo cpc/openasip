@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * A test suite for Data Dependence Graph generation.
  *
  * @author Heikki Kultala 2006 (heikki.kultala-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2010
  * @note rating: red
  */
 
@@ -47,6 +48,9 @@
 #include "ControlFlowGraph.hh"
 #include "ADFSerializer.hh"
 #include "Instruction.hh"
+#include "Machine.hh"
+#include "InterPassData.hh"
+#include "InterPassDatum.hh"
 #include "BasicBlock.hh"
 #include "Move.hh"
 
@@ -59,12 +63,25 @@ int edgeCounts0[] = { 13, -1,7 };
 int edgeCounts1[] = { 8, -1, 41, 7 };
 int edgeCounts2[] = { 26, -1, 12 };
 
+unsigned int usedAfterSizes1[] = {7,UINT_MAX,7,0};
+unsigned int usedAfterSizes2[] = {2,UINT_MAX,0};
+
+unsigned int splessUsedAfterSizes1[] = {6,UINT_MAX,6,0};
+unsigned int splessUsedAfterSizes2[] = {1,UINT_MAX,0};
+unsigned int ipdUsedAfterSizes1[] = {8,UINT_MAX,8,0};
+unsigned int ipdUsedAfterSizes2[] = {2,UINT_MAX,0};
+unsigned int rallocatedUsedAfterSizes1[] = {7,UINT_MAX,7,0};
+unsigned int rallocatedUsedAfterSizes2[] = {1,UINT_MAX,0};
+
 class DataDependenceGraphTest : public CxxTest::TestSuite {
 public:
     void setUp();
     void tearDown();
 
+    void testBasics();
+
     void testProcedureDDG();
+
     void testBBDDG();
 
     void testRallocatedDDG();
@@ -73,6 +90,12 @@ public:
     void testPathCalculation();
 
     void testSWBypassing();
+
+    void testUsedAfter();
+ 
+    void testRallocatedUsedAfter();
+
+    void testSpecialRegIPData();
 
     MoveNode& findMoveNodeById(DataDependenceGraph& ddg, int id);
 };
@@ -84,6 +107,55 @@ DataDependenceGraphTest::setUp() {
 
 void 
 DataDependenceGraphTest::tearDown() {
+}
+
+/**
+ * Tests the very basic API of DDG.
+ */
+void 
+DataDependenceGraphTest::testBasics() {
+    DataDependenceEdge edge(
+        DataDependenceEdge::EDGE_REGISTER,
+        DataDependenceEdge::DEP_UNKNOWN,
+        TCEString("foo"),
+        false, false);
+
+#if 0
+    PRINT_VAR(sizeof(DataDependenceEdge));
+    PRINT_VAR(sizeof(DataDependenceGraph));
+    PRINT_VAR(sizeof(MoveNode));
+    PRINT_VAR(sizeof(DataDependenceEdge::DependenceType));
+    PRINT_VAR(sizeof(DataDependenceEdge::EdgeReason));
+#endif
+
+    TS_ASSERT_EQUALS(edge.edgeReason(), DataDependenceEdge::EDGE_REGISTER);
+    TS_ASSERT_EQUALS(
+        edge.dependenceType(), DataDependenceEdge::DEP_UNKNOWN);
+    TS_ASSERT_EQUALS(edge.guardUse(), false);
+    TS_ASSERT_EQUALS(edge.certainAlias(), false);
+    TS_ASSERT_EQUALS(edge.tailPseudo(), false);
+    TS_ASSERT_EQUALS(edge.headPseudo(), false);
+    TS_ASSERT_EQUALS(edge.data(), "foo");
+    TS_ASSERT_EQUALS(edge.loopDepth(), 0);
+
+
+    DataDependenceEdge edge2(
+        DataDependenceEdge::EDGE_RA,
+        DataDependenceEdge::DEP_WAW,
+        true, true, true, true, 2);
+    
+    edge2.setData("this is data");
+
+    TS_ASSERT_EQUALS(edge2.edgeReason(), DataDependenceEdge::EDGE_RA);
+    TS_ASSERT_EQUALS(
+        edge2.dependenceType(), DataDependenceEdge::DEP_WAW);
+    TS_ASSERT_EQUALS(edge2.guardUse(), true);
+    TS_ASSERT_EQUALS(edge2.certainAlias(), true);
+    TS_ASSERT_EQUALS(edge2.tailPseudo(), true);
+    TS_ASSERT_EQUALS(edge2.headPseudo(), true);
+    TS_ASSERT_EQUALS(edge2.data(), "this is data");
+    TS_ASSERT_EQUALS(edge2.loopDepth(), 2);
+
 }
 
 MoveNode&
@@ -106,7 +178,6 @@ DataDependenceGraphTest::findMoveNodeById(DataDependenceGraph& ddg, int id) {
 void
 DataDependenceGraphTest::testProcedureDDG() {
 
-    OperationPool opool;
     TPEF::BinaryStream binaryStream("data/arrmul.tpef");
 
     // read to TPEF Handler Module
@@ -118,7 +189,7 @@ DataDependenceGraphTest::testProcedureDDG() {
     TTAProgram::TPEFProgramFactory factory(
         *tpef_, &UniversalMachine::instance());
     TTAProgram::Program* currentProgram = factory.build();
-    
+    {
     ControlFlowGraph cfg(currentProgram->procedure(1));
 
     DataDependenceGraph* ddg = NULL;
@@ -133,46 +204,72 @@ DataDependenceGraphTest::testProcedureDDG() {
     TS_ASSERT_EQUALS(ddg->programOperationCount(), 18);
     TS_ASSERT_EQUALS(ddg->nodeCount(), 48);
     TS_ASSERT_EQUALS(ddg->edgeCount(), 108);
-
-    int first  = ddg->node(1).nodeID();
+    int first = ddg->node(1).nodeID();
     TS_ASSERT(
-        ddg->hasEdge(findMoveNodeById(*ddg, first), 
-                     findMoveNodeById(*ddg, first+2)));
-
-    TS_ASSERT(
-        ddg->hasEdge(findMoveNodeById(*ddg, first+1), 
-                     findMoveNodeById(*ddg, first+2)));
+        ddg->hasEdge(
+            findMoveNodeById(*ddg, first), 
+            findMoveNodeById(*ddg, first + 2)));
 
     TS_ASSERT(
-        !ddg->hasEdge(findMoveNodeById(*ddg, first), 
-                      findMoveNodeById(*ddg, first+1)));
+        ddg->hasEdge(
+            findMoveNodeById(*ddg, first + 1), 
+            findMoveNodeById(*ddg, first + 2)));
+
+    TS_ASSERT(
+        !ddg->hasEdge(
+            findMoveNodeById(*ddg, first), 
+            findMoveNodeById(*ddg, first + 1)));
 
     // check mem WARs
     TS_ASSERT(
-        ddg->hasEdge(findMoveNodeById(*ddg,first+25),
-                     findMoveNodeById(*ddg,first+33)));
+        ddg->hasEdge(
+            findMoveNodeById(*ddg, first + 25),
+            findMoveNodeById(*ddg, first + 33)));
 
     TS_ASSERT(
-        ddg->hasEdge(findMoveNodeById(*ddg,first+27),
-                     findMoveNodeById(*ddg,first+33)));
+        ddg->hasEdge(
+            findMoveNodeById(*ddg, first + 27),
+            findMoveNodeById(*ddg, first + 33)));
 
 
     // RARs are not dependencies, no edge
     TS_ASSERT(
-        !ddg->hasEdge(findMoveNodeById(*ddg,first+25),
-                     findMoveNodeById(*ddg,first+27)));
+        !ddg->hasEdge(
+            findMoveNodeById(*ddg, first + 25),
+            findMoveNodeById(*ddg, first + 27)));
     
     // write it out to a .dot file, just check it does not crash or anything
     // it's not feasible to verify the output as the node ids are the
     // object addresses, thus change, etc.
     ddg->writeToDotFile("/dev/null");
+    //ddg->writeToDotFile("ddg.dot");
+
+    ddg->findAllPaths();
+    // test the path caching, this should be quite fast
+    for (int i = 1000000; i > 0; --i) {
+        TS_ASSERT(
+            ddg->hasPath(
+                findMoveNodeById(*ddg, first), 
+                findMoveNodeById(*ddg, first + 2)));
+
+        // from ra->store to the ra->jump
+        TS_ASSERT(
+            ddg->hasPath(
+                findMoveNodeById(*ddg, 10), 
+                findMoveNodeById(*ddg, 52))); 
+
+        TS_ASSERT(
+            !ddg->hasPath(
+                findMoveNodeById(*ddg, first + 2), 
+                findMoveNodeById(*ddg, first)));
+    }
 
     // Then try to do something with subgraphs
     try {
         for (int i = 0; i < cfg.nodeCount(); i++) {
             BasicBlockNode& bbn = cfg.node(i);
             if (bbn.isNormalBB()) {
-
+                
                 DataDependenceGraph *sg = ddg->createSubgraph(
                     bbn.basicBlock(), true);
                 DataDependenceGraph *sg2 = sg->createSubgraph(
@@ -186,11 +283,11 @@ DataDependenceGraphTest::testProcedureDDG() {
 
                 // try to add some nodes to SG2
 
-                auto move0 =
+                auto move0 = 
                     bbn.basicBlock().instructionAtIndex(0).move(0).copy();
-                auto move1 =
+                auto move1 = 
                     bbn.basicBlock().instructionAtIndex(0).move(0).copy();
-                auto move2 =
+                auto move2 = 
                     bbn.basicBlock().instructionAtIndex(0).move(0).copy();
 
                 MoveNode* mn0 = new MoveNode(move0);
@@ -209,6 +306,8 @@ DataDependenceGraphTest::testProcedureDDG() {
                 sg2->removeNode(*mn0);
                 sg2->removeNode(*mn1);
                 sg2->removeNode(*mn2);
+
+                delete mn0; delete mn1; delete mn2;
 
                 // check rootGraphInEdges and rootGraphOutEdges
                 MoveNode& mn4 = sg->node(0);
@@ -234,24 +333,23 @@ DataDependenceGraphTest::testProcedureDDG() {
                 delete sg;
             }
 
-       }
+        }
     } catch ( Exception &e ) {
         std::cerr << Exception::lastExceptionInfo () << std::endl;
         TS_ASSERT(0);
     }
-
+    
     delete ddg;
-    delete currentProgram;
     currentProgram = NULL;
-
+    }
+    // delete currentProgram only after cfg.
+    delete currentProgram;
 }
-
 
 void
 DataDependenceGraphTest::testBBDDG() {
 
     try {
-        OperationPool opool;
         TPEF::BinaryStream binaryStream("data/arrmul.tpef");
         
         // read to TPEF Handler Module
@@ -264,7 +362,7 @@ DataDependenceGraphTest::testBBDDG() {
             *tpef_, 
             &UniversalMachine::instance());
         TTAProgram::Program* currentProgram = factory.build();
-
+        {
         ControlFlowGraph cfg0(currentProgram->procedure(0));
         ControlFlowGraph cfg1(currentProgram->procedure(1));
         ControlFlowGraph cfg2(currentProgram->procedure(2));
@@ -350,10 +448,11 @@ DataDependenceGraphTest::testBBDDG() {
                 findMoveNodeById(*ddg1l, 35), findMoveNodeById(*ddg1l, 37)));
 */
 
-        delete currentProgram;
-        currentProgram = NULL;
 
         delete ddg1l;
+        }
+        delete currentProgram;
+        currentProgram = NULL;
 
     } catch (Exception &e) {
         std::cerr << e.fileName() << ":" << e.lineNum()
@@ -383,20 +482,20 @@ DataDependenceGraphTest::testRallocatedDDG() {
         TTAProgram::TPEFProgramFactory factory(
             *tpef_, *machine, &UniversalMachine::instance());
         TTAProgram::Program* currentProgram = factory.build();
-
+        {
         ControlFlowGraph cfg(currentProgram->procedure(1));
         
         DataDependenceGraph* ddg = NULL;
         
         DataDependenceGraphBuilder builder;
-        ddg = builder.build(cfg, DataDependenceGraph::ALL_ANTIDEPS, *machine);
+        ddg = builder.build(
+            cfg, DataDependenceGraph::ALL_ANTIDEPS, *machine, NULL, true, true);
 
         ddg->writeToDotFile("/dev/null");
 
         TS_ASSERT_EQUALS(ddg->programOperationCount(), 14);
         TS_ASSERT_EQUALS(ddg->nodeCount(), 38);
         TS_ASSERT_EQUALS(ddg->edgeCount(), 81);
-        
         int first = ddg->node(1).nodeID();
 
         TS_ASSERT(
@@ -447,7 +546,7 @@ DataDependenceGraphTest::testRallocatedDDG() {
         TS_ASSERT(
             !ddg->hasEdge(findMoveNodeById(*ddg,first+20),
                      findMoveNodeById(*ddg,first+22)));
-
+        }
         delete currentProgram;
         currentProgram = NULL;
 
@@ -481,7 +580,7 @@ DataDependenceGraphTest::testRallocatedBBDDG() {
         TTAProgram::TPEFProgramFactory factory(
             *tpef_, *machine, &UniversalMachine::instance());
         TTAProgram::Program* currentProgram = factory.build();
-
+        {
         ControlFlowGraph cfg0(currentProgram->procedure(0));
         ControlFlowGraph cfg1(currentProgram->procedure(1));
         ControlFlowGraph cfg2(currentProgram->procedure(2));
@@ -499,7 +598,7 @@ DataDependenceGraphTest::testRallocatedBBDDG() {
             if( bb.isNormalBB()) {
                 ddg0 = builder.build(
                     bb.basicBlock(), 
-                    DataDependenceGraph::ALL_ANTIDEPS,
+                    DataDependenceGraph::INTRA_BB_ANTIDEPS,
                     *machine);
                 delete ddg0; ddg0 = NULL;
             }
@@ -510,7 +609,7 @@ DataDependenceGraphTest::testRallocatedBBDDG() {
             if( bb.isNormalBB()) {
                 ddg1 = builder.build(
                     bb.basicBlock(), 
-                    DataDependenceGraph::ALL_ANTIDEPS,
+                    DataDependenceGraph::INTRA_BB_ANTIDEPS,
                     *machine);
                 if(cfg1.hasEdge(bb,bb)) { // looping bb
                     ddg1l = ddg1;
@@ -525,7 +624,7 @@ DataDependenceGraphTest::testRallocatedBBDDG() {
             if( bb.isNormalBB()) {
                 ddg2 = builder.build(
                     bb.basicBlock(),
-                    DataDependenceGraph::ALL_ANTIDEPS,
+                    DataDependenceGraph::INTRA_BB_ANTIDEPS,
                     *machine);
                 delete ddg2; ddg2 = NULL;
             }
@@ -542,11 +641,12 @@ DataDependenceGraphTest::testRallocatedBBDDG() {
             !ddg1l->hasEdge(
                 findMoveNodeById(*ddg1l, 35), findMoveNodeById(*ddg1l, 37)));
 */
-        delete currentProgram;
-        currentProgram = NULL;
 
         if(ddg1l)
             delete ddg1l;
+        }
+        delete currentProgram;
+        currentProgram = NULL;
 
     } catch (Exception &e) {
         std::cerr << e.fileName() << ":" << e.lineNum()
@@ -560,12 +660,12 @@ DataDependenceGraphTest::testRallocatedBBDDG() {
 
 void
 DataDependenceGraphTest::testPathCalculation() {
-    int longestPathLengths0[] = { 3 ,-1,4 };
-    int longestPathLengths0M[] = { 3 ,-1,8 };
-    int longestPathLengths1[] = { 3, -1,8 ,2};
-    int longestPathLengths1M[] = { 6, -1,12 ,6};
-    int longestPathLengths2[] = { 5, -1,3};
-    int longestPathLengths2M[] = { 5, -1,4};
+    int longestPathLengths0[] = { 9 ,-1,12 };
+    int longestPathLengths0M[] = { 8 ,-1,22 };
+    int longestPathLengths1[] = { 9, -1,24 ,6};
+    int longestPathLengths1M[] = { 17, -1,32 ,17};
+    int longestPathLengths2[] = { 15, -1,9};
+    int longestPathLengths2M[] = { 13, -1,17};
     try {
         TPEF::BinaryStream binaryStream("data/arrmul.tpef");
         
@@ -583,7 +683,7 @@ DataDependenceGraphTest::testPathCalculation() {
         TTAProgram::TPEFProgramFactory factory(
             *tpef_, &UniversalMachine::instance());
         TTAProgram::Program* currentProgram = factory.build();
-
+        {
         ControlFlowGraph cfg0(currentProgram->procedure(0));
         ControlFlowGraph cfg1(currentProgram->procedure(1));
         ControlFlowGraph cfg2(currentProgram->procedure(2));
@@ -595,16 +695,16 @@ DataDependenceGraphTest::testPathCalculation() {
 
             BasicBlockNode& bb = cfg0.node(i);
             if (bb.isNormalBB()) {
-                auto move0 =
+                auto move0 = 
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
-                auto move1 =
+                auto move1 = 
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
-                auto move2 =
+                auto move2 = 
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
 
                 ddg = builder.build(
-                    bb.basicBlock(), DataDependenceGraph::ALL_ANTIDEPS,
-                    UniversalMachine::instance(), "",
+                    bb.basicBlock(), DataDependenceGraph::INTRA_BB_ANTIDEPS,
+                    UniversalMachine::instance(), "test ddg", 
                     &UniversalMachine::instance());
                 TS_ASSERT_EQUALS(ddg->height(), longestPathLengths0[i]);
 
@@ -615,7 +715,7 @@ DataDependenceGraphTest::testPathCalculation() {
                     MoveNode &node = ddg->node(j);
                     if (ddg->maxSourceDistance(node) == ddg->height()) {
                         
-//                        TS_ASSERT_EQUALS(ddg->outDegree(node), 0);
+                        if (ddg->outDegree(node) == 0) {
                         
                         MoveNode *mn0 = new MoveNode(move0);
                         MoveNode *mn1 = new MoveNode(move1);
@@ -639,25 +739,26 @@ DataDependenceGraphTest::testPathCalculation() {
                         // add node to end.  should increase height
                         ddg->connectNodes(node, *mn0,*e0);
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths0[i]+1);
+                                         longestPathLengths0[i]+3);
 
                         // add another node to end. should increase height
                         ddg->connectNodes(*mn0, *mn1,*e1);
 
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths0[i]+2);
+                                         longestPathLengths0[i]+6);
 
                         // add node which has edge to last
                         // should NOT increase height
                         ddg->connectNodes(*mn2, *mn1,*e2);
 
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths0[i]+2);
+                                         longestPathLengths0[i]+6);
 
-                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),1);
+                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),3);
 
                         sinkFound = true;
                         break;
+                        }
                     }
                 }
                 TS_ASSERT(sinkFound);
@@ -666,7 +767,7 @@ DataDependenceGraphTest::testPathCalculation() {
                 ddg->setMachine(*machine);
                 
                 TS_ASSERT_EQUALS(ddg->height(),
-                                 longestPathLengths0M[i]+2);
+                                 longestPathLengths0M[i]+6);
 
                 delete ddg; ddg = NULL;
             }
@@ -679,8 +780,8 @@ DataDependenceGraphTest::testPathCalculation() {
                 auto move1 = bb.basicBlock().instructionAtIndex(0).move(0).copy();
                 auto move2 = bb.basicBlock().instructionAtIndex(0).move(0).copy();
                 ddg = builder.build(
-                    bb.basicBlock(),
-                    DataDependenceGraph::ALL_ANTIDEPS,
+                    bb.basicBlock(), 
+                    DataDependenceGraph::INTRA_BB_ANTIDEPS,
                     UniversalMachine::instance());
                 TS_ASSERT_EQUALS(ddg->height(), longestPathLengths1[i]);
 
@@ -716,22 +817,22 @@ DataDependenceGraphTest::testPathCalculation() {
                         // add node to end. should increase height
                         ddg->connectNodes(node, *mn0,*e0);
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths1[i]+1);
+                                         longestPathLengths1[i]+3);
 
                         // add another node to end. should increase height
                         ddg->connectNodes(*mn0, *mn1,*e1);
 
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths1[i]+2);
+                                         longestPathLengths1[i]+6);
 
                         // add node which has edge to last
                         // should NOT increase height
                         ddg->connectNodes(*mn2, *mn1,*e2);
 
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths1[i]+2);
+                                         longestPathLengths1[i]+6);
 
-                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),1);
+                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),3);
 
                         sinkFound = true;
                         break;
@@ -743,7 +844,7 @@ DataDependenceGraphTest::testPathCalculation() {
                 ddg->setMachine(*machine);
                 
                 TS_ASSERT_EQUALS(ddg->height(),
-                                 longestPathLengths1M[i]+2);
+                                 longestPathLengths1M[i]+6);
 
                 delete ddg; ddg = NULL;
             }
@@ -752,15 +853,15 @@ DataDependenceGraphTest::testPathCalculation() {
         for (int i = 0; i < cfg2.nodeCount(); i++) {
             BasicBlockNode& bb = cfg2.node(i);
             if (bb.isNormalBB()) {
-                auto move0 =
+                auto move0 = 
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
-                auto move1 =
+                auto move1 = 
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
-                auto move2 =
+                auto move2 = 
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
                 ddg = builder.build(
                     bb.basicBlock(),
-                    DataDependenceGraph::ALL_ANTIDEPS,
+                    DataDependenceGraph::INTRA_BB_ANTIDEPS,
                     UniversalMachine::instance());
                 TS_ASSERT_EQUALS(ddg->height(), longestPathLengths2[i]);
 
@@ -771,7 +872,7 @@ DataDependenceGraphTest::testPathCalculation() {
                     MoveNode &node = ddg->node(j);
                     if (ddg->maxSourceDistance(node) == ddg->height()) {
                         
-//                        TS_ASSERT_EQUALS(ddg->outDegree(node), 0);
+                        if (ddg->outDegree(node) == 0) {
                         
                         MoveNode *mn0 = new MoveNode(move0);
                         MoveNode *mn1 = new MoveNode(move1);
@@ -796,13 +897,13 @@ DataDependenceGraphTest::testPathCalculation() {
                         // add node to end. should increase height
                         ddg->connectNodes(node, *mn0, *e0);
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths2[i]+1);
+                                         longestPathLengths2[i]+3);
 
                         // add another node to end. should increase height
                         ddg->connectNodes(*mn0, *mn1, *e1);
 
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths2[i]+2);
+                                         longestPathLengths2[i]+6);
 
                         // add node which has edge to last
                         // should NOT increase height.
@@ -810,12 +911,13 @@ DataDependenceGraphTest::testPathCalculation() {
                         ddg->connectNodes(*mn2, *mn1,*e2);
 
                         TS_ASSERT_EQUALS(ddg->height(),
-                                         longestPathLengths2[i]+2);
+                                         longestPathLengths2[i]+6);
 
-                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),1);
+                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),3);
 
                         sinkFound = true;
                         break;
+                            }
                     }
                 }
                 TS_ASSERT(sinkFound);
@@ -824,12 +926,12 @@ DataDependenceGraphTest::testPathCalculation() {
                 ddg->setMachine(*machine);
                 
                 TS_ASSERT_EQUALS(ddg->height(),
-                                 longestPathLengths2M[i]+2);
+                                 longestPathLengths2M[i]+6);
 
                 delete ddg; ddg = NULL;
             }
         }
-
+        }
         delete currentProgram;
         currentProgram = NULL;
 
@@ -855,7 +957,7 @@ DataDependenceGraphTest::testSWBypassing() {
     TTAProgram::TPEFProgramFactory factory(
         *tpef_, &UniversalMachine::instance());
     TTAProgram::Program* currentProgram = factory.build();
-    
+    {
     ControlFlowGraph cfg(currentProgram->procedure(2));
 
     DataDependenceGraph* ddg = NULL;
@@ -864,9 +966,8 @@ DataDependenceGraphTest::testSWBypassing() {
 
     ddg = builder.build(
         cfg, DataDependenceGraph::ALL_ANTIDEPS,
-        UniversalMachine::instance(),
-        &UniversalMachine::instance());
-
+        UniversalMachine::instance(), &UniversalMachine::instance(),
+        true, true);
     // these do not exist at the beginning..
     TS_ASSERT(!ddg->hasEdge(ddg->node(6), ddg->node(27)));
     TS_ASSERT(!ddg->hasEdge(ddg->node(6), ddg->node(26)));
@@ -882,7 +983,7 @@ DataDependenceGraphTest::testSWBypassing() {
     TS_ASSERT(ddg->hasEdge(user, warDest));
 
     TS_ASSERT(ddg->resultUsed(res));
-    ddg->mergeAndKeep(res, user);
+    ddg->mergeAndKeepUser(res, user);
 
     // new op edges
     TS_ASSERT(ddg->hasEdge(ddg->node(22), user));
@@ -898,25 +999,31 @@ DataDependenceGraphTest::testSWBypassing() {
 
     ddg->copyDepsOver(res, true, false);
 
-    // updated WaW edge due node removal
-    TS_ASSERT(ddg->hasEdge(ddg->node(6), warDest)); //ddg->node(26))); 
-
-    // updated WaR edge due node removal
+    // updated WaW edge due copyantidepsover
+    TS_ASSERT(ddg->hasEdge(ddg->node(6), warDest));
+    // updated WaR edge due copyantidepsover
     TS_ASSERT(ddg->hasEdge(ddg->node(20), warDest)); //ddg->node(26))); 
 
     ddg->removeNode(res); // should fix WaW edge 
-
+/*
+    TTAProgram::Instruction& ins =  res.move().parent();
+    ins.removeMove(res.move());
+    if (ins.moveCount() == 0) {
+        ins.parent().remove(ins);
+    }
+    delete &res;
+*/
     // updated WaW edge shoudl still be there
     TS_ASSERT(ddg->hasEdge(ddg->node(6), warDest));
     // updated WaR edge should stll be there
-    TS_ASSERT(ddg->hasEdge(ddg->node(20), warDest));
+    TS_ASSERT(ddg->hasEdge(ddg->node(20), warDest)); //ddg->node(26))); 
 
     // try to do another bypass.. that cannot ne DRE'd.
     MoveNode& res2 = ddg->node(6);
     MoveNode& user2 = ddg->node(7);
 
     TS_ASSERT(ddg->resultUsed(res2));
-    ddg->mergeAndKeep(res2, user2);
+    ddg->mergeAndKeepUser(res2, user2);
     // result still alive
     TS_ASSERT(ddg->resultUsed(res2));
 
@@ -926,7 +1033,7 @@ DataDependenceGraphTest::testSWBypassing() {
     // and missing original edge
     TS_ASSERT(!ddg->hasEdge(res2, user2));
 
-    ddg->unMerge(res2,user2);
+    ddg->unMergeUser(res2,user2);
 
     // new op edges should be removed 
     TS_ASSERT(!ddg->hasEdge(ddg->node(4),user2));
@@ -935,10 +1042,433 @@ DataDependenceGraphTest::testSWBypassing() {
     TS_ASSERT(ddg->hasEdge(res2,user2));
 
     delete ddg;
+    }
     delete currentProgram;
     currentProgram = NULL;
     
 }
 
-#endif
 
+/**
+ * Tests if the bookkeeping of registers used in later BB's work.
+ *
+ * @todo
+ */
+void
+DataDependenceGraphTest::testUsedAfter() {
+
+    UniversalMachine* umach = &UniversalMachine::instance();
+    TPEF::BinaryStream binaryStream("data/arrmul.tpef");
+
+    // read to TPEF Handler Module
+    TPEF::Binary* tpef_ = TPEF::BinaryReader::readBinary(binaryStream);
+
+    assert(tpef_ != NULL);
+
+    // convert the loaded TPEF to POM
+    TTAProgram::TPEFProgramFactory factory(*tpef_, umach);
+    TTAProgram::Program* currentProgram = factory.build();
+    DataDependenceGraphBuilder builder;
+    {
+    ControlFlowGraph cfg1(currentProgram->procedure(1));
+    DataDependenceGraph* ddg1 = NULL;
+    ddg1 = builder.build(
+        cfg1, DataDependenceGraph::ALL_ANTIDEPS, *umach, umach, true, true);
+
+    for (int i = 0; i < cfg1.nodeCount(); i++) {
+        BasicBlockNode& bbn = cfg1.node(i);
+        if (bbn.isNormalBB()) {
+            TTAProgram::BasicBlock& bb = bbn.basicBlock();
+            std::set<TCEString> usedAfter = bb.liveRangeData_->usedAfter();
+            TS_ASSERT_EQUALS(usedAfter.size(), usedAfterSizes1[i]);   
+
+            // due very simple loop, the usedafter is same for both
+            // BB0 and BB2.
+            if (i != 3) {
+
+                // r1=sp is used after
+                TS_ASSERT(usedAfter.find("universal_integer_rf.1") != 
+                          usedAfter.end());
+
+                // r2 = iarg1 is not used after
+                TS_ASSERT(usedAfter.find("universal_integer_rf.2") == 
+                          usedAfter.end());
+
+                // r3 = iarg2 is not used after
+                TS_ASSERT(usedAfter.find("universal_integer_rf.3") == 
+                          usedAfter.end());
+
+                // r4 = iarg3 is not used after
+                TS_ASSERT(usedAfter.find("universal_integer_rf.4") == 
+                          usedAfter.end());
+
+                // r5 = iarg4 is used after
+                TS_ASSERT(usedAfter.find("universal_integer_rf.5") != 
+                          usedAfter.end());
+
+                // r6 is used after
+                TS_ASSERT(usedAfter.find("universal_integer_rf.6") != 
+                          usedAfter.end());
+
+                // r7 is used after
+                TS_ASSERT(usedAfter.find("universal_integer_rf.7") != 
+                          usedAfter.end());
+
+                // r8 is used after
+                TS_ASSERT(usedAfter.find("universal_integer_rf.8") != 
+                          usedAfter.end());
+
+                // r9 is used after
+                TS_ASSERT(usedAfter.find("universal_integer_rf.9") != 
+                          usedAfter.end());
+
+                // rv is used after as we don't know it's void.
+                TS_ASSERT(usedAfter.find("universal_integer_rf.0") != 
+                          usedAfter.end());
+
+                // RA is loaded before return so the old value not used
+                TS_ASSERT(usedAfter.find("RA") == 
+                          usedAfter.end());
+
+            }
+        }
+    }
+    delete ddg1;
+
+
+    ControlFlowGraph cfg2(currentProgram->procedure(2));
+    DataDependenceGraph* ddg2 = NULL;
+    ddg2 = builder.build(
+        cfg2, DataDependenceGraph::ALL_ANTIDEPS, *umach, umach, true, true);
+
+    for (int i = 0; i < cfg2.nodeCount(); i++) {
+        BasicBlockNode& bbn = cfg2.node(i);
+        if (bbn.isNormalBB()) {
+            TTAProgram::BasicBlock& bb = bbn.basicBlock();
+            std::set<TCEString> usedAfter = bb.liveRangeData_->usedAfter();
+            TS_ASSERT_EQUALS(usedAfter.size(), usedAfterSizes2[i]);   
+
+            // due very simple loop, the usedafter is same for both
+            // BB0 and BB2.
+            if (i == 0) {
+
+                // rv is used after as we don't know it's void.
+                TS_ASSERT(usedAfter.find("universal_integer_rf.0") != 
+                          usedAfter.end());
+
+                // r1=sp is used after
+                TS_ASSERT(usedAfter.find("universal_integer_rf.1") != 
+                          usedAfter.end());
+
+                // r2 = iarg1 is not used after
+                TS_ASSERT(usedAfter.find("universal_integer_rf.2") == 
+                          usedAfter.end());
+
+                // r3 = iarg2 is not used after
+                TS_ASSERT(usedAfter.find("universal_integer_rf.3") == 
+                          usedAfter.end());
+
+                // r4 = iarg3 is not used after
+                TS_ASSERT(usedAfter.find("universal_integer_rf.4") == 
+                          usedAfter.end());
+
+                // r5 = iarg4 is used after
+                TS_ASSERT(usedAfter.find("universal_integer_rf.5") == 
+                          usedAfter.end());
+
+                // RA is loaded before return so the old value not used
+                TS_ASSERT(usedAfter.find("RA") == 
+                          usedAfter.end());
+                
+            }
+        }
+    }
+    delete ddg2;
+    }
+    delete currentProgram;
+}
+
+void DataDependenceGraphTest::testRallocatedUsedAfter() {
+
+    UniversalMachine* umach = &UniversalMachine::instance();
+    TPEF::BinaryStream binaryStream("data/rallocated_arrmul.tpef");
+    
+    ADFSerializer adfSerializer;
+    adfSerializer.setSourceFile("data/10_bus_full_connectivity.adf");
+    
+    TTAMachine::Machine* machine = adfSerializer.readMachine();
+    
+    // read to TPEF Handler Module
+    TPEF::Binary* tpef_ = TPEF::BinaryReader::readBinary(binaryStream);
+    
+    assert(tpef_ != NULL);
+    
+    
+    // convert the loaded TPEF to POM
+    TTAProgram::TPEFProgramFactory factory(*tpef_, *machine, umach);
+    TTAProgram::Program* currentProgram = factory.build();
+    {
+    DataDependenceGraphBuilder builder;
+    ControlFlowGraph cfg0(currentProgram->procedure(0));
+    ControlFlowGraph cfg(currentProgram->procedure(1));
+    ControlFlowGraph cfg2(currentProgram->procedure(2));
+    
+    DataDependenceGraph* ddg = NULL;
+    
+    // DDg builder reads sp and rv from there.
+    ddg = builder.build(
+        cfg0, DataDependenceGraph::SINGLE_BB_LOOP_ANTIDEPS, *machine);
+    delete ddg;
+
+    ddg = builder.build(
+        cfg, DataDependenceGraph::SINGLE_BB_LOOP_ANTIDEPS, *machine);
+    
+    for (int i = 0; i < cfg.nodeCount(); i++) {
+        BasicBlockNode& bbn = cfg.node(i);
+        if (bbn.isNormalBB()) {
+            TTAProgram::BasicBlock& bb = bbn.basicBlock();
+            std::set<TCEString> usedAfter = bb.liveRangeData_->usedAfter();
+            TS_ASSERT_EQUALS(
+                usedAfter.size(), rallocatedUsedAfterSizes1[i]);   
+
+            if (i != 3) {
+
+                // rv is never used so it's not needed
+                TS_ASSERT(usedAfter.find("integer0.0") == 
+                          usedAfter.end());
+
+                // r1=sp is used after
+                TS_ASSERT(usedAfter.find("integer0.1") != 
+                          usedAfter.end());
+
+                // r2 = iarg1 is not used after
+                TS_ASSERT(usedAfter.find("integer0.2") == 
+                          usedAfter.end());
+
+                // r3 = iarg2 is not used after
+                TS_ASSERT(usedAfter.find("integer0.3") == 
+                          usedAfter.end());
+
+                // r4 = iarg3 is not used after
+                TS_ASSERT(usedAfter.find("integer0.4") == 
+                          usedAfter.end());
+
+                // r5 = iarg4 is used after
+                TS_ASSERT(usedAfter.find("integer0.5") != 
+                          usedAfter.end());
+
+                // r6 is used after
+                TS_ASSERT(usedAfter.find("integer0.6") != 
+                          usedAfter.end());
+
+                // r7 is used after
+                TS_ASSERT(usedAfter.find("integer0.7") != 
+                          usedAfter.end());
+
+                // r8 is not used after
+                TS_ASSERT(usedAfter.find("integer0.8") == 
+                          usedAfter.end());
+
+                // r1.1 is used after
+                TS_ASSERT(usedAfter.find("integer1.1") != 
+                          usedAfter.end());
+
+                // r1.1 is used after
+                TS_ASSERT(usedAfter.find("integer1.0") != 
+                          usedAfter.end());
+
+
+                // RA is not loaded before return so the old value is used
+                TS_ASSERT(usedAfter.find("RA") != 
+                          usedAfter.end());
+
+            }
+        }
+    }
+    delete ddg;
+
+    ddg = builder.build(
+        cfg2, DataDependenceGraph::SINGLE_BB_LOOP_ANTIDEPS, *machine);
+    
+    for (int i = 0; i < cfg2.nodeCount(); i++) {
+        BasicBlockNode& bbn = cfg2.node(i);
+        if (bbn.isNormalBB()) {
+            TTAProgram::BasicBlock& bb = bbn.basicBlock();
+            std::set<TCEString> usedAfter = bb.liveRangeData_->usedAfter();
+            TS_ASSERT_EQUALS(
+                usedAfter.size(), rallocatedUsedAfterSizes2[i]);   
+
+            if (i == 0) {
+
+                // rv is never used so it's not needed
+                TS_ASSERT(usedAfter.find("integer0.0") == 
+                          usedAfter.end());
+
+                // r1=sp is used after
+                TS_ASSERT(usedAfter.find("integer0.1") != 
+                          usedAfter.end());
+
+                // RV is loaded from mem so old value not used.
+                TS_ASSERT(usedAfter.find("RA") ==
+                          usedAfter.end());
+
+            }
+        }
+    }
+    }
+    delete currentProgram;
+}
+
+void DataDependenceGraphTest::testSpecialRegIPData() {
+
+    UniversalMachine* umach = &UniversalMachine::instance();
+    TPEF::BinaryStream binaryStream("data/rallocated_arrmul.tpef");
+    
+    ADFSerializer adfSerializer;
+    adfSerializer.setSourceFile("data/10_bus_full_connectivity.adf");
+    
+    TTAMachine::Machine* machine = adfSerializer.readMachine();
+    
+    // read to TPEF Handler Module
+    TPEF::Binary* tpef_ = TPEF::BinaryReader::readBinary(binaryStream);
+    
+    assert(tpef_ != NULL);
+    
+    
+    // convert the loaded TPEF to POM
+    TTAProgram::TPEFProgramFactory factory(*tpef_, *machine, umach);
+    TTAProgram::Program* currentProgram = factory.build();
+    {
+    DataDependenceGraphBuilder builder;
+    ControlFlowGraph cfg0(currentProgram->procedure(0));
+    ControlFlowGraph cfg(currentProgram->procedure(1));
+    ControlFlowGraph cfg2(currentProgram->procedure(2));
+
+    ControlFlowGraph cfg21(currentProgram->procedure(1));
+    ControlFlowGraph cfg22(currentProgram->procedure(2));
+    DataDependenceGraph* ddg = NULL;
+    
+    // we do not know SP and RV here, so those are not alive
+    ddg = builder.build(
+        cfg, DataDependenceGraph::SINGLE_BB_LOOP_ANTIDEPS, *machine);
+    
+    for (int i = 0; i < cfg.nodeCount(); i++) {
+        BasicBlockNode& bbn = cfg.node(i);
+        if (bbn.isNormalBB()) {
+            TTAProgram::BasicBlock& bb = bbn.basicBlock();
+            std::set<TCEString> usedAfter = bb.liveRangeData_->usedAfter();
+            TS_ASSERT_EQUALS(
+                usedAfter.size(), splessUsedAfterSizes1[i]);
+
+            if (i != 3) {
+
+                // rv is never used so it's not needed
+                TS_ASSERT(usedAfter.find("integer0.0") == 
+                          usedAfter.end());
+
+                // SP not known here so not found.
+                TS_ASSERT(usedAfter.find("integer0.1") == 
+                          usedAfter.end());
+
+            }
+        }
+    }
+    delete ddg;
+
+    // we do not know SP and RV here
+    ddg = builder.build(
+        cfg2, DataDependenceGraph::SINGLE_BB_LOOP_ANTIDEPS, *machine);
+    
+    for (int i = 0; i < cfg2.nodeCount(); i++) {
+        BasicBlockNode& bbn = cfg2.node(i);
+        if (bbn.isNormalBB()) {
+            TTAProgram::BasicBlock& bb = bbn.basicBlock();
+            std::set<TCEString> usedAfter = bb.liveRangeData_->usedAfter();
+            TS_ASSERT_EQUALS(
+                usedAfter.size(), splessUsedAfterSizes2[i]);   
+
+            if (i == 0) {
+
+                // rv is never used so it's not needed
+                TS_ASSERT(usedAfter.find("integer0.0") == 
+                          usedAfter.end());
+
+                // SP known here, gets from annotations.x
+                TS_ASSERT(usedAfter.find("integer0.1") != 
+                          usedAfter.end());
+                
+            }
+        }
+    }
+    delete ddg;
+        
+    typedef SimpleInterPassDatum<
+        std::pair<TCEString, unsigned int> > RegDatum;
+
+    // no nice constructor available..
+    RegDatum* sp = new RegDatum; sp->first = "integer0"; sp->second = 1;
+    RegDatum* rv = new RegDatum; rv->first = "integer0"; rv->second = 0;
+
+    InterPassData ipd;
+
+    ipd.setDatum("STACK_POINTER", sp);
+    ipd.setDatum("RV_REGISTER", rv);
+    
+    DataDependenceGraphBuilder builder2(ipd);
+    
+    ddg = builder2.build(
+        cfg21, DataDependenceGraph::SINGLE_BB_LOOP_ANTIDEPS, *machine);
+    
+    for (int i = 0; i < cfg21.nodeCount(); i++) {
+        BasicBlockNode& bbn = cfg21.node(i);
+        if (bbn.isNormalBB()) {
+            TTAProgram::BasicBlock& bb = bbn.basicBlock();
+            std::set<TCEString> usedAfter = bb.liveRangeData_->usedAfter();
+            TS_ASSERT_EQUALS(
+                usedAfter.size(), ipdUsedAfterSizes1[i]);   
+
+            if (i == 0) {
+
+                // rv is used by return.
+                TS_ASSERT(usedAfter.find("integer0.0") != 
+                          usedAfter.end());
+
+                // SP not known here so not found.
+                TS_ASSERT(usedAfter.find("integer0.1") != 
+                          usedAfter.end());
+
+            }
+        }
+    }
+    delete ddg;
+
+    ddg = builder2.build(
+        cfg22, DataDependenceGraph::SINGLE_BB_LOOP_ANTIDEPS, *machine);
+    
+    for (int i = 0; i < cfg22.nodeCount(); i++) {
+        BasicBlockNode& bbn = cfg22.node(i);
+        if (bbn.isNormalBB()) {
+            TTAProgram::BasicBlock& bb = bbn.basicBlock();
+            std::set<TCEString> usedAfter = bb.liveRangeData_->usedAfter();
+            TS_ASSERT_EQUALS(
+                usedAfter.size(), ipdUsedAfterSizes2[i]);   
+
+            if (i == 0) {
+
+                // rv known so should be in use?
+                TS_ASSERT(usedAfter.find("integer0.0") != 
+                          usedAfter.end());
+
+                // SP not known here so not found.
+                TS_ASSERT(usedAfter.find("integer0.1") != 
+                          usedAfter.end());
+
+            }
+        }
+    }
+    delete ddg;
+    }
+    delete currentProgram;
+}
+
+#endif

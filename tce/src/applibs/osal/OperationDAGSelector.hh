@@ -42,6 +42,7 @@
 #include "TCEString.hh"
 
 class Operation;
+class ImmInfo;
 
 /**
  * Class that search DAGs from operation set.
@@ -87,7 +88,9 @@ public:
     typedef TCETools::CIStringSet OperationSet;
 
     static OperationDAGList findDags(
-        const std::string& opName, OperationSet opSet);
+        const std::string& opName,
+        OperationSet opSet,
+        const ImmInfo* immInfo = nullptr);
     
     static OperationDAG* createExpandedDAG(
         const Operation& op, OperationSet& opSet);

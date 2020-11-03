@@ -35,6 +35,7 @@
 #define LLVM_TCE_HH
 
 #include <string>
+
 #include "Exception.hh"
 #include "PluginTools.hh"
 #include "OperationDAGSelector.hh"
@@ -85,8 +86,11 @@ public:
     llvm::TCETargetMachinePlugin* createPlugin(
         const TTAMachine::Machine& target);
 
-private:
     std::string pluginFilename(const TTAMachine::Machine& target);
+
+private:
+
+    unsigned maxAllocaAlignment(const llvm::Module& mod) const;
 
     /// Assume we are running an installed TCE version.
     bool useInstalledVersion_;

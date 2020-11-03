@@ -168,7 +168,7 @@ SequentialScheduler::scheduleOperation(
         (moves.node(0).destinationOperation());
 
     RegisterCopyAdder regCopyAdder(
-        BasicBlockPass::interPassData(), *rm_);
+        BasicBlockPass::interPassData(), *rm_, *selector_);
 
 
     // TODO: registercopyader and ddg..
@@ -229,7 +229,6 @@ SequentialScheduler::scheduleOperandWrites(
     MoveNode& firstNode = moves.node(0);
     ProgramOperation& po = firstNode.destinationOperation();
 
-
     for (int i = 0; i < moves.nodeCount(); i++) {
 
         MoveNode& node = moves.node(i);
@@ -243,7 +242,7 @@ SequentialScheduler::scheduleOperandWrites(
         scheduledMoves++;
 
         TTAProgram::Terminal& dest = node.move().destination();
-        // got triger?
+        // got trigger?
         if (dest.isFUPort() && dest.isTriggering()) {
 
             // if all operands not scheduled, delay trigger
@@ -255,7 +254,7 @@ SequentialScheduler::scheduleOperandWrites(
                 continue;
             }
         }
-        cycle = node.cycle() +1;
+        cycle = node.cycle() + 1;
     }
     // trigger scheduling delayed, schedule at end
     if (trigger != NULL && !trigger->isScheduled()) {
@@ -291,7 +290,7 @@ SequentialScheduler::scheduleResultReads(
             }
 
             cycle = std::max(cycle, node.earliestResultReadCycle());
-            cycle = scheduleMove(cycle, node) +1;
+            cycle = scheduleMove(cycle, node);
             cycle = scheduleResultTempMoves(cycle, node, regCopies);
 
             if (!node.isScheduled()) {
@@ -302,7 +301,7 @@ SequentialScheduler::scheduleResultReads(
             }
         }
     }
-    return cycle - 1;
+    return cycle;
 }
 
 /**
@@ -315,7 +314,7 @@ SequentialScheduler::scheduleResultReads(
 int
 SequentialScheduler::scheduleRRMove(int cycle, MoveNode& moveNode) {
     RegisterCopyAdder regCopyAdder(
-        BasicBlockPass::interPassData(), *rm_);
+        BasicBlockPass::interPassData(), *rm_, *selector_);
 
     RegisterCopyAdder::AddedRegisterCopies addedCopies =
       regCopyAdder.addRegisterCopiesToRRMove(moveNode, NULL);
@@ -370,6 +369,7 @@ SequentialScheduler::scheduleMove(int earliestCycle, MoveNode& moveNode) {
     if (moveNode.isSourceConstant() &&
         !moveNode.move().hasAnnotations(
             TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM)) {
+
         // If source is constant and node does not have annotation already,
         // we add it if constant can not be transported so IU broker and
         // OutputPSocket brokers will add Immediate

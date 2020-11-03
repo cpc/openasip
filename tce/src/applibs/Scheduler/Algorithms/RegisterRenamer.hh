@@ -38,10 +38,12 @@
 #include "TCEString.hh"
 #include <set>
 #include "MachinePart.hh"
+#include "DataDependenceGraph.hh"
 
 namespace TTAMachine {
     class Machine;
     class RegisterFile;
+    class Bus;
 }
 
 namespace TTAProgram {
@@ -84,6 +86,11 @@ public:
         LiveRange& liveRange, const TCEString& newReg, bool usedBefore,
         bool usedAfter, bool loopScheduling);
 
+    std::set<TCEString> findPartiallyUsedRegistersAfterCycle(
+        int bitWidth, int latestCycle) const;
+
+    std::set<TCEString> findFreeRegisters(int bitWidth) const;
+
     std::set<TCEString> findPartiallyUsedRegistersInRFAfterCycle(
         const RegisterFileSet& rfs, int latestCycle) const;
 
@@ -98,22 +105,30 @@ public:
     void revertedRenameToRegister(const TCEString& reg);
 private:
 
+
     std::set<TCEString> registersOfRFs(const RegisterFileSet& rfs) const;
 
     void initializeFreeRegisters();
 
     std::set<TCEString> findPartiallyUsedRegistersInRFBeforeCycle(
-        std::set<const TTAMachine::RegisterFile*,
-        TTAMachine::MachinePart::Comparator>& rfs,
-        int earliestCycle) const;
-    
-    std::set<TCEString> findPartiallyUsedRegistersBeforeCycle(
-        int bitWidth, int earliestCycle) const;
+        const RegisterFileSet& rfs, int earliestCycle,
+        const DataDependenceGraph::NodeSet& guardMoves) const;
 
-    std::set<TCEString> findPartiallyUsedRegistersAfterCycle(
-        int bitWidth, int latestCycle) const;
-    
-    std::set<TCEString> findFreeRegisters(int bitWidth) const;
+    std::set<TCEString> findPartiallyUsedRegistersBeforeCycle(
+        int bitWidth, int earliestCycle, 
+        const DataDependenceGraph::NodeSet& guardMoves) const;
+
+    std::set<TCEString> findFreeGuardRegisters(
+        const DataDependenceGraph::NodeSet& guardUseNodes,
+        int bitWidth, const RegisterFileSet& rfs) const;
+
+    std::set<TCEString> findGuardRegisters(
+        const DataDependenceGraph::NodeSet& guardMoves,
+        const RegisterFileSet& rfs) const;
+
+    std::set<TCEString> findGuardRegisters(
+        const TTAMachine::Bus& bus,
+        const RegisterFileSet& rfs) const;
 
     void updateAntiEdgesFromLRTo(
         LiveRange& liveRange, 
@@ -137,8 +152,11 @@ private:
     std::set<TCEString> onlyMidPartiallyUsedRegs_;
 
     static std::map<const TTAMachine::Machine*, 
-                    std::vector <TTAMachine::RegisterFile*> >tempRegFileCache_;
-    std::vector <TTAMachine::RegisterFile*> tempRegFiles_;
+                    std::set <const TTAMachine::RegisterFile*,
+                              TTAMachine::MachinePart::Comparator> >
+    tempRegFileCache_;
+    std::set <const TTAMachine::RegisterFile*,
+              TTAMachine::MachinePart::Comparator> tempRegFiles_;
 
     const TTAMachine::Machine& machine_;
     TTAProgram::BasicBlock& bb_;

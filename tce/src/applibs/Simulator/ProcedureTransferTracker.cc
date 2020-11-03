@@ -48,7 +48,8 @@
 #include "Program.hh"
 
 /**
- * Constructor.
+ * Constructor for the default implementation of storing the transfers 
+ * to a TraceDB.
  *
  * @param subject The SimulationController which is observed.
  * @param traceDB The Execution Trace Database instance in which the
@@ -57,8 +58,23 @@
  */
 ProcedureTransferTracker::ProcedureTransferTracker(
     SimulatorFrontend& subject,
-    ExecutionTrace& traceDB) : Listener(),
-    subject_(subject), traceDB_(traceDB), previousInstruction_(NULL) {
+    ExecutionTrace& traceDB) : 
+    Listener(), subject_(subject), traceDB_(&traceDB), 
+    previousInstruction_(NULL) {
+    subject.eventHandler().registerListener(
+        SimulationEventHandler::SE_CYCLE_END, this);
+}
+
+/**
+ * Constructors for the derived implementations.
+ *
+ * The implementation should override the addProcedureTransfer() to
+ * record the transfers as wished.
+ */
+ProcedureTransferTracker::ProcedureTransferTracker(
+    SimulatorFrontend& subject) : 
+    Listener(), subject_(subject), traceDB_(NULL),
+    previousInstruction_(NULL) {
     subject.eventHandler().registerListener(
         SimulationEventHandler::SE_CYCLE_END, this);
 }
@@ -81,10 +97,12 @@ ProcedureTransferTracker::~ProcedureTransferTracker() {
 void 
 ProcedureTransferTracker::handleEvent() {
 
+    InstructionAddress lastExecutedInstrAddr = 
+        subject_.lastExecutedInstruction();
     // the instruction that WAS executed in the current cycle (this handles
     // clock cycle *end* events)
     const TTAProgram::Instruction& currentInstruction =
-        subject_.program().instructionAt(subject_.lastExecutedInstruction());
+        subject_.program().instructionAt(lastExecutedInstrAddr);
 
     if (!currentInstruction.isInProcedure() ||
         (previousInstruction_ != NULL && &(currentInstruction.parent()) == 
@@ -129,17 +147,32 @@ ProcedureTransferTracker::handleEvent() {
         }
     }  
     previousInstruction_ = &currentInstruction;
+    addProcedureTransfer(
+        subject_.cycleCount(), lastExecutedInstrAddr, 
+        lastControlFlowInstructionAddress, entry);
+}
+
+/**
+ * This function is called to record a procedure transfer (call or return).
+ *
+ * The default implementation stores the transfer to a TraceDB.
+ */
+void 
+ProcedureTransferTracker::addProcedureTransfer(
+    ClockCycleCount cycle,
+    InstructionAddress address,
+    InstructionAddress sourceAddress,
+    bool isEntry) {
+
+    if (traceDB_ == NULL)
+        return;
+
     try {
-        if (entry) {
-            traceDB_.addProcedureTransfer(
-                subject_.cycleCount(), subject_.lastExecutedInstruction(), 
-                lastControlFlowInstructionAddress, ExecutionTrace::PT_ENTRY);
-        } else {
-            traceDB_.addProcedureTransfer(
-                subject_.cycleCount(), subject_.lastExecutedInstruction(), 
-                lastControlFlowInstructionAddress, ExecutionTrace::PT_EXIT);
-        }
+        traceDB_->addProcedureTransfer(
+            cycle, address, sourceAddress, 
+            isEntry? ExecutionTrace::PT_ENTRY : ExecutionTrace::PT_EXIT);
     } catch (const Exception& e) {
         debugLog("Error while writing TraceDB: " + e.errorMessage());
     }
 }
+

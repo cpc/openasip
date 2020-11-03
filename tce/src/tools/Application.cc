@@ -32,7 +32,7 @@
  * exceptions, "control-c" signal handling.
  *
  * @author Atte Oksman 2003 (oksman-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2005-2009 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2005-2009 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #include <string>
@@ -90,7 +90,6 @@ CmdLineOptions* Application::cmdLineOptions_ = NULL;
 
 int Application::argc_;
 char** Application::argv_;
-
 string Application::installationRoot_ = "";
 
 /**
@@ -134,7 +133,7 @@ Application::initialize() {
             "Application initialization failed.");
         abortProgram();
     }
-
+ 
     initialized_ = true;
 }
 
@@ -283,6 +282,49 @@ Application::unexpectedExceptionHandler() {
 }
 
 /**
+ * Returns true if all commands separated by space are found.
+ *
+ * Otherwise return false;
+ */
+bool
+Application::shellCommandsExists(const std::string& commands) {
+    return runShellCommandSilently(std::string("type ") + commands) == 0;
+}
+
+/**
+ * Runs a shell command and redirects all output to /dev/null
+ *
+ * @param command Command to execute.
+ * @return The return value of the program. -1 if some weird error occurred.
+ */
+int
+Application::runShellCommandSilently(
+    const std::string& command) {
+
+    char line[MAX_OUTPUT_LINE_LENGTH];
+    // flush all streams to avoid: "...the output from a
+    // command opened for writing may become intermingled with that of
+    // the original process." (man popen)
+    fflush(NULL);
+
+    std::string fullCommand = command + " 2>&1 ";
+    FILE* pipe = popen(fullCommand.c_str(), "r");
+
+    while (fgets(line, MAX_OUTPUT_LINE_LENGTH, pipe) == line) {
+        // Drain stdout and stderr data.
+    }
+
+    int exitStatus = pclose(pipe);
+
+    // see man wait4 for info about macros WIFEXITED and WEXITSTATUS
+    if (WIFEXITED(exitStatus)) {
+        return WEXITSTATUS(exitStatus);
+    }
+
+    return -1;
+}
+
+/**
  * Runs a shell command and captures its output (stdout) in the given vector.
  *
  * Assumes that the executed program does not block and wait for input.
@@ -296,7 +338,8 @@ int
 Application::runShellCommandAndGetOutput(
     const std::string& command,
     std::vector<std::string>& outputLines,
-    std::size_t maxOutputLines) {
+    std::size_t maxOutputLines,
+    bool includeStdErr) {
 
     char line[MAX_OUTPUT_LINE_LENGTH];
 
@@ -305,7 +348,11 @@ Application::runShellCommandAndGetOutput(
     // the original process." (man popen)
     fflush(NULL);
 
-    FILE* pipe = popen(command.c_str(), "r");
+    string shellCommand = command;
+    if (includeStdErr) {
+        shellCommand += " 2>1";
+    }
+    FILE* pipe = popen(shellCommand.c_str(), "r");
 
     while (fgets(line, MAX_OUTPUT_LINE_LENGTH, pipe) == line) {
 
@@ -339,6 +386,10 @@ Application::setCmdLineOptions(CmdLineOptions* options) {
 
     if (options->isVerboseSwitchDefined()) {
         setVerboseLevel(Application::VERBOSE_LEVEL_INCREASED);
+    }
+
+    if (options->isVerboseSpamSwitchDefined()) {
+        setVerboseLevel(Application::VERBOSE_LEVEL_SPAM);
     }
 }
 
@@ -490,6 +541,7 @@ Application::isInstalled() {
     if (pieces.at(pieces.size() - 1).startsWith("lt-")) {
         return false;
     }
+
     return true;
 }
 

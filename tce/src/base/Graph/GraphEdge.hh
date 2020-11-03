@@ -70,8 +70,11 @@ public:
         }
     };
 
+    int weight() const { return weight_; }
+    void setWeight(int w) { weight_ = w; }
 private:
     int edgeID_;
+    int weight_;
     static int edgeCounter_;
 };
 

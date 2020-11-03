@@ -44,7 +44,6 @@ public:
 
     virtual void endClock() = 0;
     virtual void advanceClock() = 0;
-    virtual bool isIdle();
     /// this is called at (re)initialization of the simulation
     virtual void reset() {}
 

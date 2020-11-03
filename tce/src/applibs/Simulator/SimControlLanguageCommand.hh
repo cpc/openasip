@@ -48,6 +48,7 @@ class SimulatorFrontend;
 class Breakpoint;
 class TclConditionScript;
 class ExpressionScript;
+class TCEString;
 
 ///////////////////////////////////////////////////////////////////////////////
 // SimControlLanguageCommand
@@ -98,6 +99,7 @@ public:
         const std::vector<DataObject>& arguments, 
         std::size_t startIndex = 1);
 
+    void setErrorMessage(const TCEString& errorMsg);
 protected:
     bool setMemoryAddress(
         const std::string& addressString,

@@ -51,6 +51,11 @@
 #include "TemplateSlot.hh"
 #include "TerminalImmediate.hh"
 #include "UniversalMachine.hh"
+#include "ControlUnit.hh"
+#include "BasicBlockNode.hh"
+#include "InstructionReference.hh"
+#include "BasicBlock.hh"
+#include "ControlFlowGraph.hh"
 
 using std::string;
 using std::set;
@@ -645,8 +650,9 @@ BusBroker::buildResources(const TTAMachine::Machine& target) {
         target.instructionTemplateNavigator();
 
     std::map<const Bus*,int> limmSlotCounts;
+    std::map<const Bus*,int> nopSlotCounts;
     
-    // calculate count of limm slots associated with each bus.
+    // calculate count of limm slots and nop slots associated with each bus.
     // used to priorize busses which do not get into way of limm writes.
     for (int i = 0; i < itn.count(); i++) {
         InstructionTemplate* it = itn.item(i);
@@ -663,7 +669,8 @@ BusBroker::buildResources(const TTAMachine::Machine& target) {
         assert(bus->segmentCount() == 1);
         int socketCount = bus->segment(0)->connectionCount();
         BusResource* busResource = new BusResource(
-            bus->name(), bus->width(),limmSlotCounts[bus], bus->guardCount(),
+            bus->name(), bus->width(),limmSlotCounts[bus],
+            nopSlotCounts[bus], bus->guardCount(),
             bus->immediateWidth(), socketCount, initiationInterval_);
         ResourceBroker::addResource(*bus, busResource);
     }
@@ -790,6 +797,12 @@ BusBroker::canTransportImmediate(
     return false;
 }
 
+
+bool BusBroker::canPerformSIMMJump(
+    const MoveNode& mn, ShortImmPSocketResource& immRes) const {
+    return false; // WiP.
+}
+
 /**
  * Return true if immediate in given node can be transported by bus
  * that is represented by given p-socket resource.
@@ -799,7 +812,6 @@ BusBroker::canTransportImmediate(
  * bus.
  * @return True if immediate in given node can be transported by bus
  * that is represented by given p-socket resource.
- * @note Minimum number of bits for Control Flow operations is 10!
  */
 bool
 BusBroker::canTransportImmediate(
@@ -807,10 +819,16 @@ BusBroker::canTransportImmediate(
     ShortImmPSocketResource& immRes) const {
 
     Move& move = const_cast<MoveNode&>(node).move();
+
+    if (move.isJump() && canPerformSIMMJump(node, immRes)) {
+        return true;
+    }
+
     int bits = MachineConnectivityCheck::requiredImmediateWidth(
         immRes.signExtends(),
         static_cast<const TTAProgram::TerminalImmediate&>(move.source()),
         *mach_);
+
     if (bits <= immRes.immediateWidth()) {
         return true;
     } else {
@@ -832,14 +850,7 @@ BusBroker::findImmResource(BusResource& busRes) const {
     while (i < busRes.relatedResourceCount(0)) {
         socketRes = &busRes.relatedResource(0, i);
         if (socketRes->isShortImmPSocketResource()) {
-            immRes =
-                dynamic_cast<ShortImmPSocketResource*>(socketRes);
-            if (immRes == NULL) {
-                throw InvalidData(
-                    __FILE__, __LINE__, __func__,
-                    "BusBroker has other then ShortImm resource registered!");
-            }                
-            break;
+            return *(static_cast<ShortImmPSocketResource*>(socketRes));
         }
         i++;
     }

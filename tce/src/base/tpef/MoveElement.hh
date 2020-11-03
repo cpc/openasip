@@ -62,14 +62,14 @@ public:
     bool isEmpty() const;
     void setEmpty(bool flag);
 
-    Byte bus() const;
-    void setBus(Byte aBus);
+    HalfWord bus() const;
+    void setBus(HalfWord aBus);
 
     FieldType sourceType() const;
     void setSourceType(FieldType aType);
 
-    Byte sourceUnit() const;
-    void setSourceUnit(Byte aSourceUnit);
+    HalfWord sourceUnit() const;
+    void setSourceUnit(HalfWord aSourceUnit);
 
     HalfWord sourceIndex() const;
     void setSourceIndex(HalfWord aSourceIndex);
@@ -77,8 +77,8 @@ public:
     FieldType destinationType() const;
     void setDestinationType(FieldType aType);
 
-    Byte destinationUnit() const;
-    void setDestinationUnit(Byte aDestinationUnit);
+    HalfWord destinationUnit() const;
+    void setDestinationUnit(HalfWord aDestinationUnit);
 
     HalfWord destinationIndex() const;
     void setDestinationIndex(HalfWord aDestinationIndex);
@@ -86,8 +86,8 @@ public:
     FieldType guardType() const;
     void setGuardType(FieldType gType);
 
-    Byte guardUnit() const;
-    void setGuardUnit(Byte aGuardUnit);
+    HalfWord guardUnit() const;
+    void setGuardUnit(HalfWord aGuardUnit);
 
     HalfWord guardIndex() const;
     void setGuardIndex(HalfWord aGuardIndex);
@@ -102,15 +102,15 @@ private:
     /// Empty move bit.
     bool isEmpty_;
     /// Move bus identifier.
-    Byte bus_;
+    HalfWord bus_;
     /// The type of Move source.
     FieldType sourceType_;
     /// The type of move destination.
     FieldType destinationType_;
     /// Move source unit or register file.
-    Byte sourceUnit_;
+    HalfWord sourceUnit_;
     /// Move destination unit or register file identifier.
-    Byte destinationUnit_;
+    HalfWord destinationUnit_;
     /// Move source register index.
     HalfWord sourceIndex_;
     /// Move destination register index.
@@ -122,7 +122,7 @@ private:
     /// Guard type.
     FieldType guardType_;
     /// Guard register file / unit identifier.
-    Byte guardUnit_;
+    HalfWord guardUnit_;
     /// Guard register index.
     HalfWord guardIndex_;
 };

@@ -78,7 +78,6 @@ Binary::section(Section::SectionType type, Word number) const {
             foundSections++;
         }
     }
-    assert(false);
     return NULL;
 }
 
@@ -177,6 +176,25 @@ Binary::arch() const {
 inline Binary::FileType
 Binary::type() const {
     return fileType_;
+}
+
+/**
+ * Sets TPEF version to be used.
+ *
+ * @param version TPEF format version.
+ */
+inline void
+Binary::setTPEFVersion(TPEFHeaders::TPEFVersion version) {
+    tpefVersion_ = version;
+}
+
+/**
+ * Returns TPEF version being used.
+ *
+ */
+inline TPEFHeaders::TPEFVersion
+Binary::TPEFVersion() const {
+    return tpefVersion_;
 }
 
 }

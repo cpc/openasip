@@ -37,6 +37,7 @@
 #include "DDGPass.hh"
 #include "BasicBlockPass.hh"
 #include "BasicBlockScheduler.hh"
+#include "CodeGenerator.hh"
 
 class BasicBlockNode;
 class SimpleResourceManager;
@@ -62,21 +63,25 @@ class BUBasicBlockScheduler :
 public:
     BUBasicBlockScheduler(
         InterPassData& data, SoftwareBypasser* bypasser=NULL,
-        CopyingDelaySlotFiller* delaySlotFiller=NULL,
         RegisterRenamer* registerRenamer = NULL);
     virtual ~BUBasicBlockScheduler();
 
     virtual int handleDDG(
         DataDependenceGraph& ddg, SimpleResourceManager& rm,
-        const TTAMachine::Machine& targetMachine, bool testOnly) override;
+        const TTAMachine::Machine& targetMachine, int minCycle = 0,
+        bool testOnly = false);
+    virtual int handleLoopDDG(
+        DataDependenceGraph& ddg, SimpleResourceManager& rm,
+        const TTAMachine::Machine& targetMachine, int tripCount,
+        SimpleResourceManager* prologRM = NULL, bool testOnly = false);
 
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;
 
-    virtual MoveNodeSelector* createSelector(
+/*    virtual MoveNodeSelector* createSelector(
         TTAProgram::BasicBlock& bb, const TTAMachine::Machine& machine) {
         return new BUMoveNodeSelector(bb, machine);
-    }
+    }*/
 
     using BasicBlockPass::ddgBuilder;
 
@@ -101,7 +106,8 @@ protected:
         MoveNodeGroup& moves, int cycle, bool bypass = false,
         bool bypassLate = false);
 
-    void scheduleMove(MoveNode& move, int cycle);
+    void scheduleMove(
+        MoveNode& move, int cycle, bool allowPredicationandRenaming);
 
     void scheduleResultReadTempMoves(
         MoveNode& resultMove, MoveNode& resultRead, int lastUse);
@@ -113,11 +119,14 @@ protected:
         MoveNode& regToRegMove, MoveNode& firstMove, int lastUse);
 
     bool scheduleOperand(MoveNode&, int cycle);
+    
+    bool tryToSwitchInputs(ProgramOperation& op);    
 
+    bool tryToOptimizeWaw(const MoveNode& moveNode);
+    
     MoveNode* precedingTempMove(MoveNode& current);
 
-    std::pair<OrderedSet, int> findBypassDestinations(
-        MoveNode& node, int maxHopCount);
+    OrderedSet findBypassDestinations(MoveNode& node);
 
     void undoBypass(
         MoveNode& node, MoveNode* single = NULL, int originalCycle = -1);
@@ -126,12 +135,23 @@ protected:
     
     void finalizeSchedule(MoveNode& node, BUMoveNodeSelector& selector);
     
+    void unscheduleAllNodes();    
+
+    void clearRemovedNodes();
+    
+    MoveNode* jumpMove_;
+
     std::map<MoveNode*, std::vector<MoveNode*>, MoveNode::Comparator> 
         bypassDestinations_;
     std::map<MoveNode*, std::vector<int>, MoveNode::Comparator > 
         bypassDestinationsCycle_;
-    unsigned int endCycle_;
+    std::map<MoveNode*,
+             std::vector<const TTAMachine::Bus*>,
+             MoveNode::Comparator >
+        bypassDestinationsBus_;        
+    std::set<MoveNode*> droppedNodes_;
     
+    unsigned int endCycle_;    
     bool bypass_;
     bool dre_;
     int bypassDistance_;

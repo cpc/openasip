@@ -34,13 +34,13 @@
 #include <llvm/CodeGen/MachineFrameInfo.h>
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 
-#include <iostream> // DEBUG
-
 #include "TCEPlugin.hh" // this includes the .inc files
 
 using namespace llvm;
 
 #include "TCEString.hh"
+#include "Application.hh"
+#include "LLVMTCECmdLineOptions.hh"
 
 /**
  * Emits machine function prologue to machine functions.
@@ -51,6 +51,7 @@ using namespace llvm;
     MBB.erase(I);                                \
     return
 #else
+// Some LLVM 3.9 function wants iterator after the erased instruction.
 #define ERASE_INSTR_AND_RETURN(I) return MBB.erase(I)
 #endif
 
@@ -109,14 +110,15 @@ TCEFrameLowering::eliminateCallFramePseudoInstr(
             if (val == 0) {
                 ERASE_INSTR_AND_RETURN(I);
             }
-            I->setDesc(tii_.get(SUBIMM));
+            auto spOpcAndOffset = tii_.getPointerAdjustment(-val);
+            I->setDesc(tii_.get(std::get<0>(spOpcAndOffset)));
             I->getOperand(0).ChangeToRegister(mo1.getReg(), mo1.isDef(),
                                               false/*mo.isImplicit()*/, mo1.isKill(),
                                               false/*dead*/, false/*undef*/,
                                               mo1.isDebug());
             I->getOperand(1).ChangeToRegister(mo2.getReg(), false, false, mo2.isKill(),
                                               false, false, mo2.isDebug());
-            I->getOperand(2).ChangeToImmediate(val);
+            I->getOperand(2).ChangeToImmediate(std::get<1>(spOpcAndOffset));
 
         // convert stack up to add
         } else if (opc == TCE::ADJCALLSTACKUP) {
@@ -140,9 +142,7 @@ TCEFrameLowering::eliminateCallFramePseudoInstr(
         ERASE_INSTR_AND_RETURN(I);
     }
 #ifndef LLVM_OLDER_THAN_3_9
-    // LLVM 3.9 wants an iterator pointing to the instruction after 
-    // the replaced one.
-    return I++;
+    return I;
 #endif
 }
 #undef ERASE_INSTR_AND_RETURN
@@ -159,8 +159,8 @@ bool TCEFrameLowering::hasFP(const MachineFunction &MF) const {
 }
 
 bool
-TCEFrameLowering::containsCall(MachineFunction& mf) const {
-    for (MachineFunction::iterator i = mf.begin(); i != mf.end(); i++) {
+TCEFrameLowering::containsCall(const MachineFunction& mf) const {
+    for (MachineFunction::const_iterator i = mf.begin(); i != mf.end(); i++) {
         const MachineBasicBlock& mbb = *i;
         for (MachineBasicBlock::const_iterator j = mbb.begin();
              j != mbb.end(); j++){
@@ -211,9 +211,10 @@ TCEFrameLowering::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
     // if (hasCalls && !mf.getFunction()->doesNotReturn()) {
     // However, there is a bug elsewhere and this triggers it.
     if (hasCalls) {
-        BuildMI(mbb, ii, dl, tii_.get(SUBIMM), TCE::SP)
+        auto spOpcAndOffset = tii_.getPointerAdjustment(-stackAlignment_);
+        BuildMI(mbb, ii, dl, tii_.get(std::get<0>(spOpcAndOffset)), TCE::SP)
             .addReg(TCE::SP)
-            .addImm(stackAlignment_);
+            .addImm(std::get<1>(spOpcAndOffset));
 
         // Save RA to stack.
         BuildMI(mbb, ii, dl, tii_.get(STRA))
@@ -246,9 +247,11 @@ TCEFrameLowering::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
 #else
         if (!mf.getFunction().doesNotReturn()) {
 #endif
-            BuildMI(mbb, ii, dl, tii_.get(SUBIMM), TCE::SP)
+            auto spOpcAndOffset = tii_.getPointerAdjustment(-stackAlignment_);
+            BuildMI(mbb, ii, dl, tii_.get(std::get<0>(spOpcAndOffset)),
+                    TCE::SP)
                 .addReg(TCE::SP)
-                .addImm(stackAlignment_);
+                .addImm(std::get<1>(spOpcAndOffset));
 
             BuildMI(mbb, ii, dl, tii_.get(STREG))
                 .addReg(TCE::SP)
@@ -281,9 +284,10 @@ TCEFrameLowering::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
 
     // Adjust stack pointer
     if (varBytes != 0) {
-        BuildMI(mbb, ii, dl, tii_.get(SUBIMM), TCE::SP)
+        auto spOpcAndOffset = tii_.getPointerAdjustment(-varBytes);
+        BuildMI(mbb, ii, dl, tii_.get(std::get<0>(spOpcAndOffset)), TCE::SP)
             .addReg(TCE::SP)
-            .addImm(varBytes);
+            .addImm(std::get<1>(spOpcAndOffset));
     }
 }
 
@@ -309,6 +313,7 @@ TCEFrameLowering::emitEpilogue(
     }
 
     unsigned numBytes = mfi.getStackSize();
+    numBytes = (numBytes + (stackAlignment_-1)) & ~(stackAlignment_-1);
     unsigned varBytes = numBytes;
 
     if (hasFP(mf)) {
@@ -397,5 +402,6 @@ TCEFrameLowering::emitEpilogue(
             .addImm(stackAlignment_);
     }
 }
+
 
 

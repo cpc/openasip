@@ -42,7 +42,7 @@
 
 #include <vector>
 #include <string>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include "Exception.hh"
 #include "GraphNode.hh"
 
@@ -50,10 +50,11 @@
 class Scope{} ;
 // Implementation in header file that includes this header file
 class ProgramOperation;
-typedef boost::shared_ptr<ProgramOperation> ProgramOperationPtr;
+typedef std::shared_ptr<ProgramOperation> ProgramOperationPtr;
 
 namespace TTAProgram{
     class Move;
+    class Immediate;
 }
 
 /**
@@ -64,12 +65,14 @@ namespace TTAProgram{
 class MoveNode : public GraphNode {
 public:
 
-    explicit MoveNode(std::shared_ptr<TTAProgram::Move> newmove);
+    explicit MoveNode(std::shared_ptr<TTAProgram::Move> newMove);
+    explicit MoveNode(std::shared_ptr<TTAProgram::Immediate> imm);
     virtual ~MoveNode();
 
     MoveNode* copy();
 
     bool isSourceOperation() const;
+    bool isGuardOperation() const;
     inline bool isDestinationOperation() const;
     inline unsigned int destinationOperationCount() const;
 
@@ -98,22 +101,30 @@ public:
 
     Scope& scope();
     ProgramOperation& sourceOperation() const;
+    ProgramOperation& guardOperation() const;
     ProgramOperation& destinationOperation(unsigned int index = 0) const;
+    ProgramOperationPtr guardOperationPtr() const;
     ProgramOperationPtr sourceOperationPtr() const;
     ProgramOperationPtr destinationOperationPtr(unsigned int index = 0) const;
 
     std::shared_ptr<TTAProgram::Move> movePtr();
     std::shared_ptr<const TTAProgram::Move> movePtr() const;
+    std::shared_ptr<TTAProgram::Immediate> immediatePtr();
+    std::shared_ptr<const TTAProgram::Immediate> immediatePtr() const;
 
     TTAProgram::Move& move();
     const TTAProgram::Move& move() const;
+    TTAProgram::Immediate& immediate();
+    const TTAProgram::Immediate& immediate() const;
 
     void addDestinationOperationPtr(ProgramOperationPtr po);
     void setSourceOperationPtr(ProgramOperationPtr po);
+    void setGuardOperationPtr(ProgramOperationPtr po);
 
     void clearDestinationOperation();
     void removeDestinationOperation(const ProgramOperation* po);
     void unsetSourceOperation();
+    void unsetGuardOperation();
 
     void finalize();
     bool isFinalized() const;
@@ -129,6 +140,7 @@ public:
 
     // is move or entry node?
     inline bool isMove() const;
+    inline bool isImmediate() const { return immediate_ != nullptr; }
     bool isSourceReg(const std::string& reg) const;
 
     /// Node can be entry node
@@ -142,9 +154,14 @@ private:
     /// Pointer to Move this node represents, Node itself do not change move
     const std::shared_ptr<TTAProgram::Move> move_;
 
+    /// Pointer to Immediate this node represents, Node itself do not change move
+    const std::shared_ptr<TTAProgram::Immediate> immediate_;
+
     std::vector<ProgramOperationPtr> dstOps_;
 
     ProgramOperationPtr srcOp_;
+
+    ProgramOperationPtr guardOp_;
 
     /// Cycle in which the node is placed. Each cycle uniquely identifies an
     /// instruction slot within the current scheduling scope.

@@ -39,9 +39,7 @@
  * @exception OutOfRange If index i is out of range.
  */
 inline std::string
-OperationIndex::path(int i) const 
-     {
-
+OperationIndex::path(int i) const {
     if (i < 0 || static_cast<unsigned>(i) > paths_.size() - 1) {
         std::string msg = "Index out of range";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);
@@ -77,9 +75,7 @@ OperationIndex::moduleCount() const {
  * @exception OutOfRange If index i is out of range.
  */
 inline OperationModule&
-OperationIndex::module(int i) 
-     {
- 
+OperationIndex::module(int i) {
     if (i < 0 || static_cast<unsigned>(i) > modules_.size() - 1) {
         std::string msg = "index out of range";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);

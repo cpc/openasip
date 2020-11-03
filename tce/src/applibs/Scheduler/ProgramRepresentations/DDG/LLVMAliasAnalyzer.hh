@@ -62,7 +62,7 @@ public:
         DataDependenceGraph& ddg, const ProgramOperation& pop);
     virtual AliasingResult analyze(
         DataDependenceGraph& ddg, const ProgramOperation& pop1, 
-        const ProgramOperation& pop2);
+        const ProgramOperation& pop2, MoveNodeUse::BBRelation bbInfo);
     virtual void setLLVMAA(llvm::AliasAnalysis* AA);
     ~LLVMAliasAnalyzer();
 

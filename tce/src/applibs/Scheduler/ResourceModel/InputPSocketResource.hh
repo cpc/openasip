@@ -49,13 +49,13 @@ public:
     virtual ~InputPSocketResource();
     InputPSocketResource(const std::string& name, unsigned int initiationInterval = 0);
 
-    virtual bool isInputPSocketResource() const;
-    virtual bool canAssign(const int cycle, const MoveNode& node) const;
+    virtual bool isInputPSocketResource() const override;
+    virtual bool canAssign(const int cycle, const MoveNode& node) const override;
 
-    virtual bool operator < (const SchedulingResource& other) const;
+    virtual bool operator < (const SchedulingResource& other) const override;
 protected:
-    virtual bool validateDependentGroups() ;
-    virtual bool validateRelatedGroups() ;
+    virtual bool validateDependentGroups() override;
+    virtual bool validateRelatedGroups() override;
 
 private:
     // Copying forbidden

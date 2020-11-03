@@ -33,11 +33,17 @@
 #ifndef TTA_SOFTWARE_BYPASSER_HH
 #define TTA_SOFTWARE_BYPASSER_HH
 
+#include <set>
+
 class MoveNodeGroup;
 class DataDependenceGraph;
 class ResourceManager;
 class MoveNodeSelector;
 class MoveNode;
+
+namespace TTAProgram {
+    class Move;
+}
 
 /**
  * Classes that implement this interface are able to software bypass
@@ -72,7 +78,8 @@ public:
     virtual int removeDeadResults(
         MoveNodeGroup& candidates,
         DataDependenceGraph& ddg,
-        ResourceManager& rm) = 0;
+        ResourceManager& rm,
+        std::set<std::pair<TTAProgram::Move*, int> >& removedMoves) = 0;
 
     virtual void setSelector(MoveNodeSelector* selector);
 

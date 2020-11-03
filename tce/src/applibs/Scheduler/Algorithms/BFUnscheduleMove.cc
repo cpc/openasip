@@ -70,16 +70,81 @@ void BFUnscheduleMove::unscheduleOriginal() {
             prologImmWriteCycle_ = prologRM()->immediateWriteCycle(*prologMN);
         }
 
+#ifdef DEBUG_BUBBLEFISH_SCHEDULER
+        std::cerr << "\t\t\t\tProlog move: " << prologMN->toString() << std::endl;
+        std::cerr << "\t\t\t\tBFUnscheduleMove Saving prolog bus: " << prologBus_->name() << " cycle: " << oldCycle_ << std::endl;
+#endif
     }
+#ifdef DEBUG_BUBBLEFISH_SCHEDULER
+    for (int i = 0; i < recurseCounter_*2; i++)
+        std::cerr << "\t";
+        
+    std::cerr << "\t\tUnscheduling original: " << mn_.toString() << " bus: " << oldBus_->name() << std::endl;
+#endif
     unassign(mn_, false);
+#ifdef DEBUG_BUBBLEFISH_SCHEDULER
+    if (!canAssign(oldCycle_, mn_, oldBus_, srcFU_, dstFU_, prologBus_,
+                   oldImmWriteCycle_, prologImmWriteCycle_)) {
+        for (int i = 0; i < recurseCounter_*2; i++)
+            std::cerr << "\t";
+
+        std::cerr << "\t\tCannot assign to old cycle: " << mn_.toString()
+                  << " old cycle: " << oldCycle_ << std::endl;
+        ddg().writeToDotFile("cannot_assign_old_cycle.dot");
+        if (mn_.isSourceOperation()) {
+            std::cerr << "\t\twhole src PO: " << mn_.sourceOperation().toString()
+                      << std::endl;
+        }
+        if (mn_.isDestinationOperation()) {
+            std::cerr << "\t\twhole dst PO: " << mn_.destinationOperation().toString()
+                      << std::endl;
+        }
+        assert(false);
+    }
+#endif
 }
 
 void BFUnscheduleMove::returnOriginal() {
+#ifdef DEBUG_BUBBLEFISH_SCHEDULER
+    for (int i = 0; i < recurseCounter_*2; i++)
+        std::cerr << "\t";
+
+    std::cerr << "\t\treturning original: " << mn_.toString() << " current bus: "
+              << mn_.move().bus().name() << " old bus: " << oldBus_->name()
+              << " cycle: " << oldCycle_ << std::endl;
+#endif
+
+#ifdef DEBUG_BUBBLEFISH_SCHEDULER
+    if (!canAssign(oldCycle_, mn_, oldBus_, srcFU_, dstFU_, prologBus_,
+                   oldImmWriteCycle_, prologImmWriteCycle_, immu_,
+                   immRegIndex_, true)) {
+        std::cerr << "Cannot return to old cycle: " << mn_.toString() << " cycle: " << oldCycle_  << std::endl;
+        if (mn_.isDestinationOperation()) {
+            std::cerr << "dstPO: " << mn_.destinationOperation().toString() << std::endl;
+        }
+        if (mn_.isSourceOperation()) {
+            std::cerr << "srcPO: " << mn_.sourceOperation().toString() << std::endl;
+        }
+        std::cerr << "Original bus: " << oldBus_->name() << std::endl;
+        ddg().writeToDotFile("cannot_return_old_cycle.dot");
+        TTAProgram::Instruction* ins = rm().instruction(oldCycle_);
+        for (int i = 0; i < ins->moveCount(); i++) {
+            std::cerr << "\t" << POMDisassembler::disassemble(ins->move(i))
+                      << " bus: " << ins->move(i).bus().name()
+                      << std::endl;
+        }
+        std::cerr << "ins contains " << ins->immediateCount() << " immediates." << std::endl;
+        assert(false);
+    }
+#endif
     assign(oldCycle_, mn_, oldBus_, srcFU_, dstFU_, prologBus_,
 	   oldImmWriteCycle_, prologImmWriteCycle_, immu_, immRegIndex_);
 }
 
 void BFUnscheduleMove::undoOnlyMe() {
+#ifdef DEBUG_BUBBLEFISH_SCHEDULER
+    std::cerr << "BFUnscheudleMove undo" << std::endl;
+#endif
     returnOriginal();
 }
 

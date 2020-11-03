@@ -46,6 +46,7 @@
 #include "ExecutionPipelineResourceTable.hh"
 
 #include <sstream>
+#include <climits>
 
 using namespace TTAProgram;
 
@@ -56,7 +57,8 @@ using namespace TTAProgram;
  */
 SimpleResourceManager::SimpleResourceManager(
     const TTAMachine::Machine& machine, unsigned int ii):
-    ResourceManager(machine), director_(NULL),  initiationInterval_(ii) {
+    ResourceManager(machine), director_(NULL),  initiationInterval_(ii),
+    maxCycle_(INT_MAX-1) {
 
     buildResourceModel(machine);
 }
@@ -460,9 +462,9 @@ SimpleResourceManager::supportsExternalAssignments() const {
 int
 SimpleResourceManager::largestCycle() const{
 #ifdef DEBUG_RM
-    Application::logStream() << "\tLC." << std::endl;
+    Application::logStream() << "\tLargestC." << std::endl;
     int lc = director_->largestCycle();
-    Application::logStream() << "\tLC got: " << lc << std::endl;
+    Application::logStream() << "\tLargestC got: " << lc << std::endl;
     return lc;
 #else
     return director_->largestCycle();
@@ -619,11 +621,23 @@ void SimpleResourceManager::clear() {
     buildDirector_.clear();
     director_->clear();
     setDDG(NULL);
+    setCFG(NULL);
+    setBBN(NULL);
 }
 
 void
 SimpleResourceManager::setDDG(const DataDependenceGraph* ddg) {
     director_->setDDG(ddg);
+}
+
+void
+SimpleResourceManager::setCFG(const ControlFlowGraph* cfg) {
+    director_->setCFG(cfg);
+}
+
+void
+SimpleResourceManager::setBBN(const BasicBlockNode* bbn) {
+    director_->setBBN(bbn);
 }
 
 std::map<const TTAMachine::Machine*, 
@@ -632,5 +646,6 @@ SimpleResourceManager::rmPool_;
 
 void SimpleResourceManager::setMaxCycle(unsigned int maxCycle) {
     director_->setMaxCycle(maxCycle);
+    maxCycle_ = maxCycle;
 }
 

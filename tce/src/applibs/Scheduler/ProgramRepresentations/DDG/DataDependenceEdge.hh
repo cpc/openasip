@@ -58,7 +58,7 @@ public:
 
     DataDependenceEdge(
         EdgeReason edgereason, DependenceType deptype,
-        const TCEString& data,
+        TCEString data,
         bool guard = false, bool certainAlias = false, 
         bool tailPseudo = false, bool headPseudo = false,
         int loop = 0);
@@ -120,6 +120,10 @@ public:
     }
     int loopDepth() const {
         return loopEdge_;
+    }
+
+    bool isGPREdge() const {
+        return edgeReason() == EDGE_REGISTER;
     }
 
     bool isRegisterOrRA() const {

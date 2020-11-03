@@ -35,7 +35,7 @@
 
 #include "DataSectionCreator.hh"
 #include "LabelManager.hh"
-#include "Assembler.hh"
+#include "AssemblyParserDiagnostic.hh"
 
 #include "MapTools.hh"
 
@@ -53,7 +53,7 @@ using namespace TPEF;
  * @param resourceManager Resource manager for TPEF to create.
  */
 DataSectionCreator::DataSectionCreator(
-    MachineResourceManager& resourceManager, Assembler* /*parent*/) :
+    MachineResourceManager& resourceManager, AssemblyParserDiagnostic*) :
     resources_(resourceManager), currentStartAddress_(0),
     isStartAddressDefined_(false) {
 }

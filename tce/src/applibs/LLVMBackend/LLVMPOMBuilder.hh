@@ -53,14 +53,19 @@ namespace llvm {
         TCETargetMachine& tm, TTAMachine::Machine* mach);
 
     /**
-     * Implements building TCE POM from RISC-style sequential input 
+     * Implements building unscheduled TCE POM from RISC-style sequential input 
      * from LLVM codegen.
+     *
+     * The resulting POM has the registers allocated but 
+     * the FUs and the buses unassigned.
      */
     class LLVMPOMBuilder : public LLVMTCEBuilder {
     public:
         static char ID; // Pass identification, replacement for typeid
 
         LLVMPOMBuilder(char& ID);
+
+        bool doFinalization(Module& m);
 
         LLVMPOMBuilder(
             TCETargetMachine& tm,

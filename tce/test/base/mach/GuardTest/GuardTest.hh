@@ -96,14 +96,14 @@ GuardTest::testCreation() {
     RegisterFile* rf1 = mach_->registerFileNavigator().item(rf1Name);
     RegisterGuard* regGuard = NULL;
     TS_ASSERT_THROWS_NOTHING(
-        regGuard = new RegisterGuard(false, *rf1, 0, *bus1));
+        regGuard = new RegisterGuard(false, *rf1, 0, bus1));
     TS_ASSERT(regGuard->registerFile() == rf1);
     TS_ASSERT(regGuard->registerIndex() == 0);
     TS_ASSERT(regGuard->parentBus() == bus1);
 
-    TS_ASSERT_THROWS(new RegisterGuard(false, *rf1, 32, *bus1), OutOfRange);
+    TS_ASSERT_THROWS(new RegisterGuard(false, *rf1, 32, bus1), OutOfRange);
     TS_ASSERT_THROWS(
-        new RegisterGuard(false, *rf1, 0, *bus1), ComponentAlreadyExists);
+        new RegisterGuard(false, *rf1, 0, bus1), ComponentAlreadyExists);
 
     FUPort* port1 = 
         mach_->functionUnitNavigator().item(fu1Name)->operationPort(0);
@@ -130,8 +130,8 @@ GuardTest::testRestrictive() {
 
     Bus* bus1 = mach_->busNavigator().item(bus1Name);
     RegisterFile* rf1 = mach_->registerFileNavigator().item(rf1Name);
-    RegisterGuard* regGuard1 = new RegisterGuard(false, *rf1, 0, *bus1);
-    RegisterGuard* regGuard2 = new RegisterGuard(false, *rf1, 1, *bus1);
+    RegisterGuard* regGuard1 = new RegisterGuard(false, *rf1, 0, bus1);
+    RegisterGuard* regGuard2 = new RegisterGuard(false, *rf1, 1, bus1);
 
     TS_ASSERT(!regGuard1->isLessRestrictive(*regGuard2));
     TS_ASSERT(!regGuard1->isMoreRestrictive(*regGuard2));
@@ -147,7 +147,7 @@ GuardTest::testLoadState() {
 
     Bus* bus1 = mach_->busNavigator().item(bus1Name);
     RegisterFile* rf1 = mach_->registerFileNavigator().item(rf1Name);
-    RegisterGuard* regGuard1 = new RegisterGuard(false, *rf1, 3, *bus1);
+    RegisterGuard* regGuard1 = new RegisterGuard(false, *rf1, 3, bus1);
 
     ObjectState* machState = mach_->saveState();
     Machine* newMach = new Machine();

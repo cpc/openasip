@@ -55,6 +55,7 @@ namespace TTAProgram {
     class TerminalRegister;
     class CodeSnippet;
     class Instruction;
+    class Move;
     class BasicBlock;
 }
 
@@ -135,7 +136,7 @@ protected:
         ProgramOperationPtr destPending_;
         /// ProgramOperations lacking result read
         ProgramOperationPtr readPending_;
-	int poReadsHandled_;
+        int poReadsHandled_;
         /// State of the BB.
         BBState state_;
         /// Whether the BB has been constructed or not.
@@ -187,13 +188,12 @@ protected:
     void updateBB(
         BBData& bbd, 
         ConstructionPhase phase);
+
     void constructIndividualBB(ConstructionPhase phase);
-    
-    void constructIndividualBB(
-        BBData& bbd, 
-        ConstructionPhase);    
+    void constructIndividualFromInlineAsmBB(ConstructionPhase phase);
+    void constructIndividualBB(BBData& bbd, ConstructionPhase);
     void constructBB(BasicBlockNodeSet& inputBlocks);
-    
+
     void createOperationEdges(ProgramOperationPtr po);
     void processGuard(MoveNode& moveNode);
     void processSource(MoveNode& moveNode);
@@ -244,7 +244,8 @@ protected:
 
     MemoryAliasAnalyzer::AliasingResult analyzeMemoryAlias(
         const ProgramOperation& pop1, 
-        const ProgramOperation& pop2);
+        const ProgramOperation& pop2, 
+        MoveNodeUse::BBRelation bbInfo);
 
     bool isAddressTraceable(const ProgramOperation& pop);
     TCEString memoryCategory(const MoveNodeUse& mnd);
@@ -261,6 +262,10 @@ protected:
     bool hasEarlierMemWriteToSameAddressWithSameGuard(
         MoveNodeUse& mnd,
         std::set<MoveNodeUse>& defines);
+
+    std::set<MoveNodeUse> earlierWritesWithSameGuard(
+        MoveNodeUse& mnd, std::set<MoveNodeUse>& defines);
+
     bool hasEarlierWriteWithSameGuard(
         MoveNodeUse& mnd, std::set<MoveNodeUse>& defines);    
 

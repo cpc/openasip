@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University.
+    Copyright (c) 2002-2016 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Implementation of Program class.
  *
  * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2006,2011 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2006,2011,2016 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -64,6 +64,8 @@
 #include "Immediate.hh"
 #include "MathTools.hh"
 #include "TerminalInstructionReference.hh"
+#include "POMDisassembler.hh"
+#include "hash_set.hh"
 #include "GlobalScope.hh"
 
 using std::string;
@@ -87,9 +89,20 @@ namespace TTAProgram {
  * @param space The address space of the program.
  */
 Program::Program(const AddressSpace& space):
-    start_(0, space), entry_(0, space), umach_(NULL) {
+    start_(0, space), entry_(0, space), umach_(NULL), finalized_(false),
+    instructionPerAddress_(true) {
     globalScope_ = new GlobalScope();
     refManager_ = new InstructionReferenceManager();
+}
+
+/**
+ * Deprecated.
+ *
+ * Use UniversalMachine::instance() directly.
+ */
+UniversalMachine& 
+Program::universalMachine() const {
+    return UniversalMachine::instance();
 }
 
 /**
@@ -101,7 +114,8 @@ Program::Program(const AddressSpace& space):
  * @param start The start address of the program.
  */
 Program::Program(const AddressSpace& space, Address start):
-    start_(start), entry_(0, space), umach_(NULL) {
+    start_(start), entry_(0, space), umach_(NULL), finalized_(false),
+    instructionPerAddress_(true) {
     globalScope_ = new GlobalScope();
     refManager_ = new InstructionReferenceManager();
 }
@@ -118,7 +132,8 @@ Program::Program(const AddressSpace& space, Address start):
  */
 Program::Program(
     const AddressSpace&, Address start, Address entry):
-    start_(start), entry_(entry), umach_(NULL) {
+    start_(start), entry_(entry), umach_(NULL), finalized_(false),
+    instructionPerAddress_(true) {
     globalScope_ = new GlobalScope();
     refManager_ = new InstructionReferenceManager();
 }
@@ -132,6 +147,11 @@ Program::~Program() {
     globalScope_ = NULL;
     delete refManager_;
     refManager_ = NULL;
+    // NOTE: we cannot delete universal machine anymore because after linking
+    // the Program to another Program, the new Program refers to the,
+    // TODO: make UniversalMachine a singleton and start hiding it from APIs.
+    // delete umach_;
+    // umach_ = NULL;
 }
 
 /**
@@ -352,7 +372,7 @@ Program::firstInstruction() const {
  */
 Instruction&
 Program::instructionAt(InstructionAddress address) const {
-    for(ProcIter iter = procedures_.begin(); iter != procedures_.end();
+    for (ProcIter iter = procedures_.begin(); iter != procedures_.end();
         iter++) {
 
         if ((*iter)->startAddress().location() <= address &&
@@ -390,6 +410,12 @@ Program::nextInstruction(const Instruction& ins) const {
     }
 
     unsigned int insAddress = ins.address().location();
+
+    // Check first the basic case of having the next instruction in the same
+    // procedure. Find the instruction and return its next iterator.
+    Instruction* nextInstr = &ins.parent().nextInstruction(ins);
+    if (nextInstr != &NullInstruction::instance())
+        return *nextInstr;
 
     ProcIter iter = procedures_.begin();
     while (iter != procedures_.end()) {
@@ -739,14 +765,18 @@ Program::copyFrom(const Program& source) {
 
 /**
  * Fix instruction references to point to the corresponding instructions
- * of the program.
+ * of this Program. 
+ *
+ * This should be called after copying procedures from
+ * other programs to transform the instruction references to
+ * point to the current program instead of the old one.
  */
 void
 Program::fixInstructionReferences() {
     for (int k = 0; k < procedureCount(); k++) {
         Procedure& proc = procedure(k);
         for (int j = 0; j < proc.instructionCount(); j++) {
-            Instruction &ins = proc.instructionAtIndex(j);
+            Instruction& ins = proc.instructionAtIndex(j);
 
             // sources of all moves.
             for (int i = 0; i < ins.moveCount(); i++) {
@@ -756,9 +786,19 @@ Program::fixInstructionReferences() {
                     Instruction& oldRefIns =
                         source.instructionReference().instruction();
                     
-                    Instruction& newRefIns =
-                        instructionAt(oldRefIns.address().location());
+                    // Fix the reference via 
+                    // a procedure offset to not break references
+                    // inside Procedures copied from another Program 
+                    InstructionAddress procStartAddr = 
+                        procedure(dynamic_cast<Procedure&>(oldRefIns.parent()).name()).
+                        startAddress().location();
                     
+                    Instruction& newRefIns =
+                        instructionAt(
+                            procStartAddr + 
+                            oldRefIns.address().location() -
+                            oldRefIns.parent().startAddress().location());
+
                     InstructionReference newRef =
                         instructionReferenceManager().createReference(
                             newRefIns);
@@ -772,9 +812,17 @@ Program::fixInstructionReferences() {
 
                     Instruction& oldRefIns =
                         value.instructionReference().instruction();
-                    
+
+
+                    InstructionAddress procStartAddr = 
+                        procedure(dynamic_cast<Procedure&>(oldRefIns.parent()).name()).
+                        startAddress().location();
+
                     Instruction& newRefIns =
-                        instructionAt(oldRefIns.address().location());
+                        instructionAt(
+                            procStartAddr +
+                            oldRefIns.address().location() -
+                            oldRefIns.parent().startAddress().location());
                     
                     InstructionReference newRef =
                         instructionReferenceManager().createReference(
@@ -1172,7 +1220,7 @@ Program::instructionCount() const {
  * InstructionReference to the symbol or TerminalImmediate into the
  * data label.
  *
- * @TODO: Use CodeLabels isntead of procedure?
+ * @TODO: Use CodeLabels instead of procedure?
  */
 TerminalImmediate* 
 Program::convertSymbolRef(Terminal& tsr) {
@@ -1199,20 +1247,21 @@ Program::convertSymbolRef(Terminal& tsr) {
                                + procName + TCEString("' not found!"));
     }
     const Procedure& target = procedure(procName);
-    assert(target.instructionCount() >0);
+    assert(target.instructionCount() > 0);
     return new TTAProgram::TerminalInstructionReference(
         refManager_->createReference(
             target.firstInstruction()));
 }
 
 /**
- * Converts all TerminalSymbolReferences into 
- * InstructionReference to the symbol or TerminalImmediate into the 
- * data label.
- *
+ * Converts all TerminalSymbolReferences into InstructionReferences pointing to
+ * instructions or TerminalImmediates into data label.
+ * 
+ * @param ignoreUnfoundSymbols if set to true, just skips symbol references for which 
+ * the symbol is not found. Otherwise throws in that case. 
  */
 void 
-Program::convertSymbolRefsToInsRefs() {
+Program::convertSymbolRefsToInsRefs(bool ignoreUnfoundSymbols) {
     for (int i = 0; i < procedureCount();i++) {
         Procedure& proc = procedure(i);
         for (int j = 0; j < proc.instructionCount(); j++) {
@@ -1220,19 +1269,131 @@ Program::convertSymbolRefsToInsRefs() {
             for (int k = 0; k < ins.moveCount(); k++) {
                 TTAProgram::Move& move = ins.move(k);
                 TTAProgram::Terminal& src = move.source();
+
                 if (src.isCodeSymbolReference()) {
+
+                    TCEString procName = src.toString();
+                    if (!hasProcedure(procName) && ignoreUnfoundSymbols)
+                        continue;
+
                     move.setSource(convertSymbolRef(src));
                 }
             }
             for (int k = 0; k < ins.immediateCount(); k++) {
                 TTAProgram::Immediate& imm = ins.immediate(k);
                 TTAProgram::Terminal& immVal = imm.value();
+
                 if (immVal.isCodeSymbolReference()) {
+
+                    TCEString procName = immVal.toString();
+                    if (!hasProcedure(procName) && ignoreUnfoundSymbols)
+                        continue;
+
                     imm.setValue(convertSymbolRef(immVal));
                 }
             }
         }
     }
 }
+
+/**
+ * Links the given Program with this one.
+ *
+ * "Linking" here means copying all the procedures to this Program and
+ * fixing all fixable (external) symbol references. That is, in case
+ * either this or the other Program contained calls to external 
+ * functions that are now found, the references are fixed to point
+ * to the actual Procedures. 
+ */
+void 
+Program::link(const TTAProgram::Program& other) {
+
+    if (other.procedureCount() == 0) return;
+
+    for (int i = 0; i < other.procedureCount(); ++i) {
+        addProcedure(dynamic_cast<Procedure*>(other.procedure(i).copy()));
+    }
+    copyDataMemoriesFrom(other);
+    convertSymbolRefsToInsRefs(true);
+    fixInstructionReferences();
+
+    // todo merge GlobalScope (to retain labels)
+}
+
+/**
+ * Dump the Program as a disassembly string.
+ */
+TCEString
+Program::toString() const {
+    return POMDisassembler::disassemble(*this, true);
+}
+
+/**
+ * This should be called if the program has been fully constructed and won't
+ * get new instructions added anymore.
+ *
+ * Computes and updates the final Instruction addresses with the best available
+ * accuracy. Before this method is called, instruction per address indexing is
+ * used, which is fast but might not reflect the final instruction addresses.
+ * After this method has been called, the user of the Program can also assume
+ * all the Instructions are attached to a Procedure and Procedures to the
+ * Program.
+ */
+void
+Program::finalize() {
+
+    InstructionVector instructions = instructionVector();
+
+    if (instructions.size() == 0) return;
+
+    InstructionAddress previousAddress = startAddress().location();
+
+    POMDisassembler* disasm =
+        POMDisassembler::disassembler(targetProcessor(), *this);
+
+    InstructionAddress currentSize =
+        disasm->instructionSize(*instructions[0]);
+
+    instructions[0]->setFinalAddress(previousAddress);
+    instructions[0]->setSize(currentSize);
+
+    bool newInstructionPerAddress = instructionPerAddress_;
+    // From now on assume there's not an instruction per address layout.
+    instructionPerAddress_ = false;
+
+    if (currentSize != 1)
+        newInstructionPerAddress = false;
+
+    for (size_t i = 1; i < instructions.size(); ++i) {
+        TTAProgram::Instruction* instr = instructions[i];
+        currentSize = disasm->instructionSize(*instr);
+        instr->setSize(currentSize);
+        InstructionAddress newAddress = previousAddress + currentSize;
+        instr->setFinalAddress(newAddress);
+        previousAddress = newAddress;
+        if (currentSize != 1)
+            newInstructionPerAddress = false;
+    }
+
+    instructionPerAddress_ = newInstructionPerAddress;
+
+    // Fix the procedure start and end addresses.
+    ProcIter iter = procedures_.begin();
+    while (iter != procedures_.end()) {
+        Procedure& proc = **iter;
+        proc.setStartAddress(proc.firstInstruction().address());
+        // End address is the first address that doesn't store
+        // instructions of the procedure.
+        proc.setEndAddress(
+            Address(proc.lastInstruction().address().location() +
+                    proc.lastInstruction().size(),
+                    proc.lastInstruction().address().space()));
+        ++iter;
+    }
+
+    finalized_ = true;
+    delete disasm;
+}
+
 } // namespace TTAProgram
 

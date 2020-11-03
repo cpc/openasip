@@ -89,10 +89,13 @@ public:
         TTAProgram::BasicBlock& bb,
         ControlFlowEdge::CFGEdgePredicate* pred = nullptr);
 
-    static std::pair<TTAProgram::Move*, TTAProgram::Immediate*>
+    static std::pair<TTAProgram::Move*, std::shared_ptr<TTAProgram::Immediate> >
     findJumpImmediate(
         int jumpIndex, TTAProgram::Move& jumpMove,
         TTAProgram::InstructionReferenceManager& irm);
+
+    typedef std::map<TCEString,TTAProgram::TerminalImmediate*> 
+    PendingImmediateMap;
 
 protected:
     bool fillDelaySlots(
@@ -100,8 +103,6 @@ protected:
 
 private:
     typedef std::vector <std::list<MoveNode*> > MoveNodeListVector;
-    typedef std::map<TCEString,TTAProgram::TerminalImmediate*> 
-    PendingImmediateMap;
 
 
     bool areAllJumpPredsScheduled(BasicBlockNode& bbn) const;
@@ -113,13 +114,13 @@ private:
     bool mightFillIncomingTo(BasicBlockNode& bbn);
 
     bool writesRegister(
-        TTAProgram::Move& move, TTAMachine::RegisterFile* rf,
+        TTAProgram::Move& move, const TTAMachine::RegisterFile* rf,
         unsigned int registerIndex);
 
     bool tryToFillSlots(
         BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBNode,
         bool fallThru, TTAProgram::Move* jumpMove, int slotsToFill,
-        int removeGuards, int grIndex, TTAMachine::RegisterFile* grFile,
+        int removeGuards, int grIndex, const TTAMachine::RegisterFile* grFile,
         TTAProgram::Move*& skippedJump, int delaySlots);
 
     bool updateJumpsAndCfg(
@@ -127,7 +128,7 @@ private:
         BasicBlockNode& fillingBBN,
         ControlFlowEdge& fillEdge,
         TTAProgram::Move* jumpAddressMove, 
-        TTAProgram::Immediate* jumpAddressImmediate,
+        std::shared_ptr<TTAProgram::Immediate> jumpAddressImmediate,
         TTAProgram::Move* jumpMove,
         int slotsFilled,
         TTAProgram::Move* skippedJump);
@@ -142,7 +143,7 @@ private:
         BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBN, 
         MoveNodeListVector& moves, int slotsToFill, bool fallThru, 
         int removeGuards, TTAProgram::Move* jumpMove, int grIndex, 
-        TTAMachine::RegisterFile* grFile, TTAProgram::Move*& skippedJump,
+        const TTAMachine::RegisterFile* grFile, TTAProgram::Move*& skippedJump,
         int delaySlots);
 
     bool checkImmediatesAfter(TTAProgram::BasicBlock& nextBB, int slotsToFill);
@@ -176,6 +177,9 @@ private:
         ProgramOperationPtr po,  MoveNodeListVector& movesToCopy, 
         DataDependenceGraph::NodeSet& tempAssigns);
     
+
+    bool allowedToSpeculate(MoveNode& mn) const;
+
     void finishBB(BasicBlockNode& bbn, bool force = false);
 
     DataDependenceGraph* ddg_;
@@ -191,7 +195,8 @@ private:
     oldProgramOperations_;
     std::map<MoveNode*,MoveNode*,MoveNode::Comparator> moveNodes_;
     std::map<MoveNode*,MoveNode*,MoveNode::Comparator> oldMoveNodes_;
-    std::map<TTAProgram::Move*,std::shared_ptr<TTAProgram::Move> > moves_;
+    std::map<TTAProgram::Move*, std::shared_ptr<TTAProgram::Move> > moves_;
+    std::map<MoveNode*, const TTAMachine::Bus*, MoveNode::Comparator> moveNodeBuses_;
 
     std::map<BasicBlockNode*, DataDependenceGraph::NodeSet> tempResultNodes_;
     std::map<BasicBlockNode*, std::set<

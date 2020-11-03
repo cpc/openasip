@@ -422,7 +422,7 @@ int BF2ScheduleFront::prefResultCycle(const MoveNode& mn) {
                     *sop.hwopFromOutMove(outNode);
                 // find the OSAL id of the operand of the output being tested
                 const int outNodeOutputIndex =
-                    outNode.move().source().operationIndex();
+                    sop.outputIndexOfMove(outNode);
                 int onLatency = hwop.latency(outNodeOutputIndex);
                 int latestTrigger = outNode.cycle() - onLatency;
                 const int myOutIndex = mn.move().source().operationIndex();
@@ -461,37 +461,6 @@ BF2ScheduleFront::getPreferredLimits(
         limits.earliestCycle = limits.latestCycle = prefCycle;
         limits.direction = BF2Scheduler::EXACTCYCLE;
     }
-
-    if (sched_.scheduleJumpGuardBetweenIters()) {
-        if (ii() != 0 &&
-            static_cast<DataDependenceGraph*>(
-                ddg().rootGraph())->writesJumpGuard(mn)) {
-            // if other writes to the guard reg, cannot schedule.
-            if (ddg().hasOtherRegWawSources(mn)) {
-#ifdef DEBUG_BUBBLEFISH_SCHEDULER
-                std::cerr << "has other reg waw sources, cannot loopsched"
-                          << std::endl;
-#endif
-                limits.earliestCycle = limits.latestCycle = -1;
-                limits.direction = BF2Scheduler::EXACTCYCLE;
-                return limits;
-            }
-            //TODO: check that no WAW deps to other moves?
-#ifdef DEBUG_BUBBLEFISH_SCHEDULER
-            std::cerr << "Writes jump guard: " << mn.toString() << std::endl;
-#endif
-            assert(mn.isDestinationVariable());
-            int glat = mn.move().destination().registerFile().guardLatency()+
-                targetMachine().controlUnit()->globalGuardLatency();
-            prefCycle = ii() - glat;
-#ifdef DEBUG_BUBBLEFISH_SCHEDULER
-            std::cerr << "Correct place for guard wr would be: " << prefCycle
-                      << std::endl;
-#endif
-            limits.earliestCycle = limits.latestCycle = prefCycle;
-            limits.direction = BF2Scheduler::EXACTCYCLE;
-        }
-    }
     return limits;
 }
 
@@ -521,7 +490,8 @@ BF2ScheduleFront::scheduleMove(
         break;
     case BF2Scheduler::EXACTCYCLE:
         assert(limits.earliestCycle == limits.latestCycle);
-        sched = new BFScheduleExact(sched_,mn,limits.earliestCycle);
+        sched = new BFScheduleExact(
+	    sched_,mn,limits.earliestCycle);
         break;
     default:
         return -1;
@@ -554,6 +524,11 @@ BF2ScheduleFront::allNodesOfSameOperation(MoveNode& mn) {
         if (mn->isSourceOperation()) {
             BUMoveNodeSelector::queueOperation(
                 mn->sourceOperation(), nodes, queue);
+        }
+
+        if (mn->isGuardOperation()) {
+            BUMoveNodeSelector::queueOperation(
+                mn->guardOperation(), nodes, queue);
         }
 
         for (unsigned int i = 0; i < mn->destinationOperationCount(); i++) {

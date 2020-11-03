@@ -143,4 +143,9 @@ InstructionReference::instruction() const {
     }
 }
 
+bool
+InstructionReference::operator ==(const InstructionReference& other) const {
+    return impl_ == other.impl_;
+}
+
 }

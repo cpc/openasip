@@ -60,7 +60,7 @@ namespace TTAMachine {
     class Port;
 }
 
-class Assembler;
+class AssemblyParserDiagnostic;
 
 /**
  * Provides all TPEF and machine resources needed by CodeSectionCreator
@@ -105,8 +105,8 @@ public:
     };
 
     MachineResourceManager(
-        TPEF::Binary &tpef, TTAMachine::Machine &adf,
-        Assembler* parent_);
+        TPEF::Binary &tpef, const TTAMachine::Machine &adf,
+        AssemblyParserDiagnostic* parent_);
 
     TPEF::Section* nullSection();
 
@@ -199,7 +199,7 @@ private:
     TPEF::Binary  &tpef_;
 
     /// Machine where manager tries to find used resources.
-    TTAMachine::Machine &adf_;
+    const TTAMachine::Machine &adf_;
 
     /// The address space section of TPEF.
     TPEF::ASpaceSection *aSpaceSection_;
@@ -239,7 +239,7 @@ private:
     std::map<std::string, UValue> opOrPortIDs_;
 
     /// Assembler root class for adding warnings.
-    Assembler* parent_;
+    AssemblyParserDiagnostic* parent_;
 };
 
 #endif

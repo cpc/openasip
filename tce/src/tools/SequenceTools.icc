@@ -31,12 +31,20 @@
  *
  */
 
-
 /**
  *
  * Deletes all objects in a sequence container and clears it.
  *
  * Calls delete for all items in container and clears it.
+ * @note this is awfully slow for bigger containers as it
+ * moves the container all the time as it deletes always 
+ * the first element first! This is because the deletion of an
+ * object in the container can cause deletion of another object
+ * thus after deleting an object we cannot assume rest of the
+ * objects in the sequence are still there and iterators must
+ * be assumed invalid.
+ *
+ * @todo Improve the implementation.
  *
  * @param aContainer The container to delete all objects from.
  */

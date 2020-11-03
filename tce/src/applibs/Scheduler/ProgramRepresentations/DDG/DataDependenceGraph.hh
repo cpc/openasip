@@ -117,7 +117,8 @@ public:
 
     int programOperationCount() const;
     ProgramOperation& programOperation(int index);
-    const ProgramOperation& programOperationConst(int index) const;
+    const ProgramOperation& programOperation(int index) const;
+    ProgramOperationPtr programOperationPtr(int index);
 
     DataDependenceEdge* onlyRegisterEdgeIn(MoveNode& mn) const;
     DataDependenceEdge* onlyRegisterEdgeOut(MoveNode& mn) const;
@@ -127,6 +128,7 @@ public:
     void addNode(MoveNode& moveNode, MoveNode& relatedNode);
     void addNode(MoveNode& moveNode, BasicBlockNode& bblock);
     void addProgramOperation(ProgramOperationPtr po);
+    void dropProgramOperation(ProgramOperationPtr po);
 
     using BoostGraph<MoveNode, DataDependenceEdge>::addNode;
 
@@ -138,7 +140,8 @@ public:
         bool ignoreRegWaRs = false, 
         bool ignoreRegWaWs = false, bool ignoreGuards = false,
         bool ignoreFUDeps = false,
-        bool ignoreSameOperationEdges = false) const;
+        bool ignoreSameOperationEdges = false,
+        bool assumeBypassing = false) const;
 
     int latestCycle(
         const MoveNode& moveNode, unsigned int ii = UINT_MAX,
@@ -147,6 +150,9 @@ public:
         bool ignoreGuards = false,
         bool ignoreFUDeps = false,
         bool ignoreSameOperationEdges = false) const;
+    
+    bool hasUnscheduledSuccessors(const MoveNode& mn) const;
+    bool hasUnscheduledPredecessors(const MoveNode& mn) const;
     
     int smallestCycle() const;
     int largestCycle() const;
@@ -192,6 +198,10 @@ public:
     firstScheduledRegisterWrites(
         const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
 
+    NodeSet
+    firstScheduledRegisterReads(
+        const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
+
     MoveNode*
     lastScheduledRegisterKill(
         const TTAMachine::BaseRegisterFile& rf, int registerIndex) const;
@@ -218,29 +228,34 @@ public:
     void writeToXMLFile(std::string fileName) const;
 
     bool mergeAndKeepAllowed(MoveNode& sourceNode, MoveNode& userNode);
+    TCEString removeRAWEdges(MoveNode& sourceNode, MoveNode& userNode);
     bool isLoopBypass(MoveNode& sourceNode, MoveNode& userNode);
 
-    bool mergeAndKeep(MoveNode& resultNode, MoveNode& userNode);
-    void unMerge(MoveNode& resultNode, MoveNode& mergedNode);
+    bool mergeAndKeepUser(
+	MoveNode& resultNode, MoveNode& userNode, bool force = false);
+    bool mergeAndKeepSource(
+	MoveNode& resultNode, MoveNode& userNode, bool force = false);
+    void unMergeUser(MoveNode& resultNode, MoveNode& mergedNode, bool loopBypass = false);
+
+    // guard converted from register guard to portguard.
+    void guardConverted(MoveNode& guardSrc, MoveNode& dst);
+
+    // guard converted back from portguard to register guard.
+    void guardRestored(MoveNode& guardSrc, MoveNode& dst);
 
     bool resultUsed(MoveNode& resultNode);
+    bool resultUsed(MoveNode& resultNode, MoveNode* regCopy);
 
     void removeNode(MoveNode& node);
     void deleteNode(MoveNode& node);
 
-    void setEdgeWeightHeuristics(EdgeWeightHeuristics ewh) {
-        if (edgeWeightHeuristics_ != ewh) {
-            // force path recalculation
-            height_ = -1; 
-            sourceDistances_.clear();
-            sinkDistances_.clear();
-        }
-        edgeWeightHeuristics_ = ewh;
-    }
+    void setEdgeWeightHeuristics(EdgeWeightHeuristics ewh);
 
     int edgeWeight(DataDependenceEdge& e, const MoveNode& hNode) const;
     bool predecessorsReady(MoveNode& node) const;
     bool successorsReady(MoveNode& node) const;    
+    bool otherSuccessorsScheduled(MoveNode& node, const NodeSet& ignoredNodes) const;
+
     void setMachine(const TTAMachine::Machine& machine);
     const TTAMachine::Machine& machine() const { return *machine_; } 
 
@@ -283,12 +298,12 @@ public:
     DataDependenceEdge* onlyIncomingGuard(const MoveNode& mn) const;
     MoveNode* onlyRegisterRawSource(
         const MoveNode& mn, int allowGuardEdges = 2, int backEdges = 0) const;
-    
+
     NodeSet onlyRegisterRawDestinations(
         const MoveNode& mn,
         bool allowGuardEdges = false,
         bool allowBackEdges = false) const;
-
+    
     std::map<DataDependenceEdge*, MoveNode*, DataDependenceEdge::Comparator>
     onlyRegisterRawDestinationsWithEdges(
         const MoveNode& mn, bool allowBackEdges) const;
@@ -297,6 +312,7 @@ public:
     NodeSet regRawSuccessors(const MoveNode& node) const;
     NodeSet regWawSuccessors(const MoveNode& node) const;
     NodeSet regDepSiblings(const MoveNode& mn) const;
+    NodeSet regRawPredecessors(const MoveNode& node, int backedges=0) const;
 
     void createRegisterAntiDependenciesBetweenNodes(NodeSet& nodes);
 
@@ -320,7 +336,11 @@ public:
     void combineNodes(
         MoveNode& node1, MoveNode& node2, MoveNode& destination);
 
-    TTAProgram::Move* findLoopLimit(MoveNode& jumpMove);
+    std::pair<MoveNode*, MoveNode*> findLoopLimitAndIndex(MoveNode& jumpMove);
+
+    std::pair<MoveNode*, int> findLoopIndexUpdate(MoveNode* indexMove);
+
+    MoveNode* findLoopIndexInit(MoveNode& updateMove);
 
     bool writesJumpGuard(const MoveNode& moveNode);
 
@@ -344,7 +364,8 @@ public:
     void copyExternalInEdges(MoveNode& nodeCopy, const MoveNode& source);
     void copyExternalOutEdges(MoveNode& nodeCopy, const MoveNode& source);
 
-    void updateRegWrite(
+    DataDependenceGraph::EdgeSet
+    updateRegWrite(
         const MoveNodeUse& mnd, const TCEString& reg, 
         TTAProgram::BasicBlock& bb);
 
@@ -367,26 +388,36 @@ public:
         return registerAntidependenceLevel_ >= INTRA_BB_ANTIDEPS;
     }
 
+    bool hasRegWaw(const MoveNodeUse& mnu, std::set<MoveNodeUse> targets) const;
+
     bool isNotAvoidable(const DataDependenceEdge& edge) const;
 
     bool isLoopInvariant(const MoveNode& mn) const;
 
     bool hasOtherRegWawSources(const MoveNode& mn) const;
 
+    MoveNode* findBypassSource(const MoveNode& mn);
+    
+    void copyIncomingRawEdges(const MoveNode& src, MoveNode& dst);
+
+    void fixAntidepsAfterLoopUnmergeUser(
+        MoveNode& sourceNode, MoveNode& mergedNode, const TCEString& reg);
+
+    void setNodeBB(
+        MoveNode& mn, BasicBlockNode& bblock, DataDependenceGraph* updater);
+
     void undo(UndoData& undoData);
 
     EdgeSet operationInEdges(const MoveNode& node) const;
+    EdgeSet registerAndRAInEdges(const MoveNode& node) const;
 private:
 
     bool queueRawPredecessors(
-        NodeSet& queue, NodeSet& finalDest, NodeSet& predQueue,
+        NodeSet& queue, NodeSet& finalDest, NodeSet& predQueue, 
         NodeSet& predFinalDest, bool guard) const;
 
     bool rWawRawEdgesOutUncond(MoveNode& mn);
     int rAntiEdgesIn(MoveNode& mn);
-
-    void setNodeBB(
-        MoveNode& mn, BasicBlockNode& bblock, DataDependenceGraph* updater);
 
     bool isRootGraphProcedureDDG();
     
@@ -417,6 +448,7 @@ private:
     const TTAMachine::Machine* machine_;
     int delaySlots_;
     std::map<TCEString, int> operationLatencies_;
+    int rrCost_;
 
     BasicBlockNode* ownedBBN_;
     bool procedureDDG_;

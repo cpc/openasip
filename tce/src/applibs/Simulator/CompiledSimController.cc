@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2010 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Definition of CompiledSimController class.
  *
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2010
  * @note rating: red
  */
 
@@ -309,7 +310,7 @@ CompiledSimController::reset() {
     simulation_.reset(
         simulationGetter(sourceMachine_, program_.entryAddress().location(),
             program_.lastInstruction().address().location(), 
-            frontend_, *this, memorySystem(), !frontend_.staticCompilation(), 
+            frontend_, *this, memorySystem(0), !frontend_.staticCompilation(), 
             procedureBBRelations_));
     
     state_ = STA_INITIALIZED;

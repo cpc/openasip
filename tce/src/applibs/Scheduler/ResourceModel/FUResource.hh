@@ -46,16 +46,16 @@
 class FUResource : public SchedulingResource {
 public:
     FUResource(const std::string& name, int operationCount,
+               int nopSlotWeight, 
             unsigned int initiationInterval = 0);
     virtual ~FUResource();
 
-    virtual bool isInUse(const int cycle) const;
-    virtual bool isAvailable(const int cycle) const;
-    virtual bool canAssign(const int cycle, const MoveNode& node) const;
-    virtual void assign(const int cycle, MoveNode& node);
-    virtual void unassign(const int cycle, MoveNode& node);
-
-    virtual bool operator < (const SchedulingResource& other) const;
+    virtual bool isInUse(const int cycle) const override;
+    virtual bool isAvailable(const int cycle) const override;
+    virtual bool canAssign(const int cycle, const MoveNode& node) const override;
+    virtual void assign(const int cycle, MoveNode& node) override;
+    virtual void unassign(const int cycle, MoveNode& node) override;
+    virtual bool operator < (const SchedulingResource& other) const override;
 
 private:
     // Copying forbidden
@@ -63,6 +63,7 @@ private:
     // Assignment forbidden
     FUResource& operator=(const FUResource&);
     int opCount_;
+    int nopSlotWeight_;
 };
 
 #endif

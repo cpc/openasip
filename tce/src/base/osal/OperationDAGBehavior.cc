@@ -45,11 +45,14 @@
 #include "TCEString.hh"
 
 /**
- * Constructor.
+ * Initilized class to be easier to simulate.
+ *
+ * Basically goes through DAG and schedules operation nodes to calculation
+ * levels.
  */
 OperationDAGBehavior::OperationDAGBehavior(
-    OperationDAG& dag, int operandCount) : 
-    OperationBehavior(), dag_(dag), operandCount_(operandCount),
+    OperationDAG& dag, int operandCount, const Operation& parent) :
+    OperationBehavior(parent), dag_(dag), operandCount_(operandCount),
     cycleFound_(false) {
   
     ios_ = new SimValue[operandCount_];
@@ -219,7 +222,7 @@ OperationDAGBehavior::~OperationDAGBehavior() {
  *
  * Clients should invoke isTriggerLocking() before any attempt to call 
  * simulateTrigger() in current clock cycle. By default, an operation 
- * invokations are successful.
+ * invocations are successful.
  *
  *
  * @param io The input operands and the results of the operation.
@@ -239,12 +242,65 @@ OperationDAGBehavior::simulateTrigger(
         simulationSteps_[i].op->simulateTrigger(
             simulationSteps_[i].params, context);
     }
-
+    
     for (int i = 0; i < operandCount_; i++) {
         operands[i]->deepCopy(ios_[i]);
     }
 
     return true;
+}
+
+/**
+ * Checks that the input operands for the OperationDag are valid.
+ */
+bool
+OperationDAGBehavior::areValid(
+    const OperationBehavior::InputOperandVector& inputs,
+    const OperationContext& context) const {
+
+    assert(simulationSteps_.size() != 0);
+
+    InstructionAddress sandboxedProgramCounter = context.programCounter();
+    SimValue sandboxedReturnAddress = context.returnAddress();
+    OperationContext sandBoxContext(
+        NULL, // Todo Add sandboxed memory proxy
+        sandboxedProgramCounter,
+        sandboxedReturnAddress,
+        context.branchDelayCycles());
+
+    for (size_t i = 0; i < inputs.size(); i++) {
+        ios_[i].deepCopy(inputs.at(i));
+    }
+    bool valid = true;
+
+    // Check validity of inputs for each step.
+    for (unsigned int stepi = 0; stepi < simulationSteps_.size(); stepi++) {
+        // Ugly copying values back and forth just to accommodate arguments for
+        // areValid().
+        OperationBehavior::InputOperandVector tmp;
+        tmp.resize(simulationSteps_.at(stepi).op->numberOfInputs());
+        for (int inputi = 0;
+            inputi < simulationSteps_.at(stepi).op->numberOfInputs();
+            inputi++) {
+            tmp.at(inputi).deepCopy(*simulationSteps_[stepi].params[inputi]);
+        }
+
+        // Note: OperationState may not be preserved sanely even if the
+        // context is sandboxed (concern is that copying OperationContext does
+        // not deep copy the OperationState mannerly).
+        assert(!simulationSteps_[stepi].op->hasSideEffects());
+
+        if (simulationSteps_[stepi].op->areValid(tmp, context)) {
+            // Simulate the step to get new inputs for the next step.
+            simulationSteps_[stepi].op->simulateTrigger(
+                simulationSteps_[stepi].params, sandBoxContext);
+        } else {
+            valid = false;
+            break;
+        }
+    }
+
+    return valid;
 }
 
 /**

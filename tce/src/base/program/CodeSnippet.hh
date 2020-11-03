@@ -77,6 +77,7 @@ public:
     virtual Address startAddress() const;
     virtual void setStartAddress(Address start);
     virtual Address endAddress() const;
+    virtual void setEndAddress(Address end);
 
     virtual Instruction& firstInstruction() const;
     virtual Instruction& instructionAt(UIntWord address) const;
@@ -126,8 +127,9 @@ protected:
     /// The parent program of the procedure.
     Program* parent_;
     /// The start (lowest) address of the procedure.
-    Address start_;
-
+    Address startAddr_;
+    /// The highest address of the procedure.
+    Address endAddr_;
 
 };
 

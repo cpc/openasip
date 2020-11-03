@@ -46,6 +46,12 @@ LiveRange::noneScheduled() const {
             return false;
         }
     }
+    for (DataDependenceGraph::NodeSet::iterator i = guards.begin();
+         i != guards.end(); i++) {
+        if ((*i)->isScheduled()) {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -58,6 +64,10 @@ LiveRange::toString() const {
     }
     for (DataDependenceGraph::NodeSet::iterator i = reads.begin();
          i != reads.end(); i++) {
+        rv << (*i)->toString() << " ";
+    }
+    for (DataDependenceGraph::NodeSet::iterator i = guards.begin();
+         i != guards.end(); i++) {
         rv << (*i)->toString() << " ";
     }
     return rv;
@@ -79,6 +89,13 @@ LiveRange::firstCycle() const {
 
         }
     }
+    for (DataDependenceGraph::NodeSet::iterator i = guards.begin();
+         i != guards.end(); i++) {
+        if ((*i)->isScheduled()) {
+            fc = std::min(fc, (*i)->cycle());
+
+        }
+    }
     return fc;
 }
 
@@ -93,6 +110,13 @@ LiveRange::lastCycle() const {
     }
     for (DataDependenceGraph::NodeSet::iterator i = reads.begin();
          i != reads.end(); i++) {
+        if ((*i)->isScheduled()) {
+            fc = std::max(fc, (*i)->cycle());
+
+        }
+    }
+    for (DataDependenceGraph::NodeSet::iterator i = guards.begin();
+         i != guards.end(); i++) {
         if ((*i)->isScheduled()) {
             fc = std::max(fc, (*i)->cycle());
 

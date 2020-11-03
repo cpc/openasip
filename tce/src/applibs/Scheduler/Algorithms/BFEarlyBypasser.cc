@@ -41,7 +41,6 @@
 #include "DataDependenceGraph.hh"
 #include "BF2Scheduler.hh"
 #include "BF2ScheduleFront.hh"
-#include "BFLoopBypass.hh"
 #include "BFEarlyBypass.hh"
 #include "SchedulerCmdLineOptions.hh"
 
@@ -80,8 +79,6 @@ BFEarlyBypasser::operator()() {
     if (bypassEdge->isBackEdge()) {
         if (!src.isScheduled() || src.cycle() < (int)ii()) {
             return false;
-        } else {
-            return runPreChild(new BFLoopBypass(sched_, src, dst_));
         }
     } else {
         return runPreChild(new BFEarlyBypass(sched_, src, dst_));

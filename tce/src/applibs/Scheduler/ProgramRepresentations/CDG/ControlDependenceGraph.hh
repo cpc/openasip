@@ -27,6 +27,12 @@
  * Declaration of prototype control dependence graph of TTA program
  * representation.
  *
+ * Known limitations are:
+ * - can not create CDG for procedure with indirect jump - multiple out edges
+ *   to basic blocks in CFG without edge predicates
+ * - can not create CDG for procedure with unreachable basic block - crt0 with
+ *   missing fall through edge after calling __exit
+ *
  * @author Andrea Cilio 2005 (cilio-no.spam-cs.tut.fi)
  * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
@@ -52,6 +58,7 @@ POP_CLANG_DIAGS
 #include "ControlDependenceEdge.hh"
 #include "ControlDependenceNode.hh"
 
+#include "hash_set.hh"
 /**
  * Graph-based program representation.
  */
@@ -59,24 +66,42 @@ class ControlDependenceGraph : public
     BoostGraph<ControlDependenceNode, ControlDependenceEdge> {
 
 public:
+    enum CompareResult {
+        A_BEFORE_B, // Subgraph A must be scheduled before subgraph B
+        B_BEFORE_A, // vice versa
+        ANY_ORDER,  // Any order is acceptable
+        UNORDERABLE, // Can not be ordered, needs additional predicate
+        ERROR      // Try again with reordered nodes TODO: remove this!
+    };
+
     ControlDependenceGraph(const ControlFlowGraph& cGraph);
     virtual ~ControlDependenceGraph();
 
     int alignment() const;
     TTAProgram::Program* program() const;
     ControlDependenceNode& entryNode();
-
+    void analyzeCDG();
+    bool analyzed() const { return analyzed_; }
+    int componentCount() const { return strongComponents_.size(); }
 private:
+    /// Stores data to compute post order relation on CFG
     typedef std::map<ControlFlowGraph::NodeDescriptor, int> PostOrderMap;
     typedef boost::associative_property_map<PostOrderMap> PostOrder;
-    typedef std::pair<
-        ControlDependenceNode*, ControlDependenceEdge::CDGEdgeType> 
-        SourceType;
+    /// Stores data to compute post order relation on CDG and strong components
+    typedef std::map<NodeDescriptor, int> CDGOrderMap;
+    typedef boost::associative_property_map<CDGOrderMap> CDGOrder;
+    /// Storage for relations between nodes
+    typedef std::map<NodeDescriptor, NodeDescriptor> DescriptorMap;
+    typedef boost::associative_property_map<DescriptorMap> Descriptors;
+    /// Storage for color property used by dfs
+    typedef std::map <NodeDescriptor, boost::default_color_type > ColorMap;
+    typedef boost::associative_property_map<ColorMap> Color;
+
+    typedef std::pair<Node*, Edge::CDGEdgeType> SourceType;
     typedef std::vector<SourceType> DependentOn;
     typedef std::vector<BasicBlockNode*> BlockVector;
-    typedef std::map<ControlDependenceNode*, DependentOn*,
-                     ControlDependenceNode::Comparator> DependenceMap;
 
+    typedef std::map<Node*, DependentOn*, Node::Comparator> DependenceMap;
 
     void computeDependence();
     void createPostDominanceTree(
@@ -84,18 +109,26 @@ private:
         PostOrder& postOrder);
     void detectControlDependencies(
         BlockVector& nodes,
-        std::vector<ControlDependenceNode*>& cdNodes,
+        std::vector<Node*>& cdNodes,
         PostOrder& postOrder,
         DependenceMap& dependencies);
     void eliminateMultipleOutputs();
-    bool findSubset(DependentOn*, DependentOn*, ControlDependenceNode*);
+    bool findSubset(DependentOn*, DependentOn*, Node*);
     int nearestCommonDom(std::vector<int>& iDom, int node1, int node2) const;
 
+    int detectStrongComponents(
+        CDGOrderMap& components,
+        DescriptorMap& roots);
+    void computeRegionInfo(const CDGOrderMap& orderMap);
+    void computeEECInfo(const CDGOrderMap& orderMap);
+    CompareResult compareSiblings(Node* a, Node* b) const;
+    void regionHelper(Node*, Node::NodesInfo&);
+    void computeRelations(const CDGOrderMap& orderMap);
+    void processRegion(Node* region);
     ControlDependenceEdge& createControlDependenceEdge(
-        ControlDependenceNode& bTail,
-        ControlDependenceNode& bHead,
-        ControlDependenceEdge::CDGEdgeType edgeValue =
-            ControlDependenceEdge::CDEP_EDGE_NORMAL);
+        Node& bTail,
+        Node& bHead,
+        Edge::CDGEdgeType edgeValue = Edge::CDEP_EDGE_NORMAL);
 
     // Data saved from original procedure object
     TTAProgram::Program* program_;
@@ -103,7 +136,13 @@ private:
     int alignment_;
 
     ControlFlowGraph* cGraph_;
-    std::vector<int> iDomTree;
+    std::vector<int> iDomTree_;
+    std::vector<std::set<Node*> > strongComponents_;
+    /// Indicates that CDG already has data required for serialization
+    bool analyzed_;
+    /// Stores reference to entryNode of the graph
+    Node* entryNode_;
+    bool componentsDetected_;
 };
 
 #endif

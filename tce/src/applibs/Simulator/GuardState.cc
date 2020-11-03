@@ -51,7 +51,7 @@ GuardState::GuardState(
     const ReadableState& targetRegister, 
     int latency) :
     target_(&targetRegister) {
-
+    assert(latency && "Use DirectGuardState for 0-cycle latency");
     for (int i = 0; i < latency; ++i) {
         history_.push_back(targetRegister.value());
     }
@@ -88,7 +88,9 @@ GuardState::endClock() {
 void
 GuardState::advanceClock() {
     history_[position_] = target_->value();
-    position_ = (position_ + 1) % history_.size();
+    position_ = (position_ + 1);
+    if ((size_t)position_ >= history_.size())
+      position_ = 0;
 }
 
 /**
@@ -130,21 +132,21 @@ NullGuardState::~NullGuardState() {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// OneClockGuardState
+// DirectGuardState
 //////////////////////////////////////////////////////////////////////////////
 /**
  * Constructor.
  * 
  * @param targetRegister The targer register this guard watches.
  */
-OneClockGuardState::OneClockGuardState(const ReadableState& targetRegister) :
+DirectGuardState::DirectGuardState(const ReadableState& targetRegister) :
     target_(&targetRegister) {
 }
 
 /**
  * Destructor.
  */
-OneClockGuardState::~OneClockGuardState() {
+DirectGuardState::~DirectGuardState() {
 }
 
 
@@ -152,14 +154,14 @@ OneClockGuardState::~OneClockGuardState() {
  * Does nothing.
  */
 void 
-OneClockGuardState::endClock() {
+DirectGuardState::endClock() {
 }
 
 /**
  * Does nothing.
  */
 void
-OneClockGuardState::advanceClock() {
+DirectGuardState::advanceClock() {
 }
 
 /**
@@ -168,7 +170,7 @@ OneClockGuardState::advanceClock() {
  * @return The current value of the guard.
  */
 const SimValue&
-OneClockGuardState::value() const {
+DirectGuardState::value() const {
     return target_->value();
 }
 

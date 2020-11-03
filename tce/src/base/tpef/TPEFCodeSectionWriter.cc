@@ -204,7 +204,7 @@ TPEFCodeSectionWriter::writeDataField(
     if (dynamic_cast<InstructionElement*>(elem)->isMove()) {
         MoveElement* move = dynamic_cast<MoveElement*>(elem);
 
-        stream.writeByte(move->bus());
+        writeId(stream, move->bus());
 
         Byte fieldTypes = 0;
 
@@ -269,13 +269,13 @@ TPEFCodeSectionWriter::writeDataField(
 
         stream.writeByte(fieldTypes);
 
-        stream.writeByte(move->sourceUnit());
+        writeId(stream, move->sourceUnit());
         stream.writeHalfWord(move->sourceIndex());
 
-        stream.writeByte(move->destinationUnit());
+        writeId(stream, move->destinationUnit());
         stream.writeHalfWord(move->destinationIndex());
 
-        stream.writeByte(move->guardUnit());
+        writeId(stream, move->guardUnit());
         stream.writeHalfWord(move->guardIndex());
 
     } else {
@@ -355,6 +355,29 @@ TPEFCodeSectionWriter::writeInfo(
     stream.writeHalfWord(0); // unused field
     stream.writeByte(0); // unused field - must be set to zero!
     stream.writeByte(0); // padding
+}
+
+
+/**
+ * Writes Bus, FU or RF id according to TPEF version.
+ *
+ * Original TPEF version 1 supports only less than 256 buses, FUs and RFs.
+ * Version 2 fixes that issue and we need to check the stream version for proper
+ * amount of bytes to write.
+ *
+ * @param stream Stream to which the data is written.
+ * @param sect id of the component.
+ */
+void
+TPEFCodeSectionWriter::writeId(BinaryStream& stream, HalfWord id) const {
+
+    TPEFHeaders::TPEFVersion version = stream.TPEFVersion();
+
+    if (version == TPEFHeaders::TPEFVersion::TPEF_V1) {
+        stream.writeByte(id);
+    } else {
+        stream.writeHalfWord(id);
+    }
 }
 
 } // namespace TPEF

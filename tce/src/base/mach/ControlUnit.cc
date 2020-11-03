@@ -27,7 +27,7 @@
  * Implementation of ControlUnit class.
  *
  * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #include "ControlUnit.hh"
@@ -37,6 +37,7 @@
 #include "Application.hh"
 #include "Machine.hh"
 #include "ObjectState.hh"
+#include "Conversion.hh"
 
 using std::string;
 
@@ -140,15 +141,6 @@ ControlUnit::unsetMachine() {
     }
 }
 
-
-/**
- * Sets the number of delay instruction slots of the transport pipeline.
- *
- * The number of delay slots must be a nonnegative integer.
- *
- * @param delaySlots Number of delay slots of the transport pipeline.
- * @exception OutOfRange If the given delay slots is negative
- */
 void
 ControlUnit::setDelaySlots(int delaySlots) {
     if (delaySlots < 0) {
@@ -254,7 +246,8 @@ ControlUnit::specialRegisterPort(const std::string& name) const {
     const string procName = "ControlUnit::specialRegisterPort";
 
     if (!hasPort(name)) {
-        throw InstanceNotFound(__FILE__, __LINE__, procName);
+        throw InstanceNotFound(
+            __FILE__, __LINE__, procName, "Port not found: " + name);
     }
 
     Port* port = this->port(name);
@@ -424,7 +417,7 @@ ControlUnit::hasLocalGuardLatencyOfZero(const Machine& machine) {
             RegisterGuard* regGuard = 
                 dynamic_cast<RegisterGuard*>(guard);
             if (regGuard != NULL) {
-                RegisterFile* rf = regGuard->registerFile();
+                const RegisterFile* rf = regGuard->registerFile();
                 if (rf->guardLatency() == 0) {
                     return true;
                 }

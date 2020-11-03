@@ -44,7 +44,7 @@ namespace TPEF {
 
 class MachineResourceManager;
 class LabelManager;
-class Assembler;
+class AssemblyParserDiagnostic;
 
 /**
  * Collects data area information and parses data to tpef data sections.
@@ -52,7 +52,8 @@ class Assembler;
 class DataSectionCreator {
 public:
     DataSectionCreator(
-        MachineResourceManager &resourceManager, Assembler* parent);
+        MachineResourceManager &resourceManager,
+        AssemblyParserDiagnostic* parent);
 
     ~DataSectionCreator();
 

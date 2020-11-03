@@ -105,7 +105,7 @@ NullAddressSpace::end() const {
  *
  * @return Never returns.
  */
-std::string
+TCEString
 NullAddressSpace::name() const {
     abortWithError("name()");
     return "";

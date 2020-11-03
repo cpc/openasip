@@ -102,10 +102,7 @@ ProgCommand::execute(const std::vector<DataObject>& arguments) {
         errorMessage->setString(e.errorMessage());
         interpreter()->setResult(errorMessage);
         return false;
-    } catch (...) {
-        assert(false);
-        return false;
-    }
+    } 
     
     if (simulatorFrontend.automaticFinishImpossible())
         outputStream() 

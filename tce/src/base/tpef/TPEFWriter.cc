@@ -98,7 +98,14 @@ TPEFWriter::actualWriteBinary(
     // file header must be written first
     stream.setWritePosition(startOffset + TPEFHeaders::FH_ID);
     for (Word i = 0; i < TPEFHeaders::FH_ID_SIZE; i++) {
-        stream.writeByte(TPEFHeaders::FH_ID_BYTES[i]);
+        // sets stream tpef version same as binary version
+        if (i == 8) {
+            TPEFHeaders::TPEFVersion version = bin->TPEFVersion();
+            stream.setTPEFVersion(version);
+            stream.writeByte(version);
+        } else {
+            stream.writeByte(TPEFHeaders::FH_ID_BYTES[i]);
+        }
     }
     
     stream.setWritePosition(startOffset + TPEFHeaders::FH_ARCH);

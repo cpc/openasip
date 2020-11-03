@@ -34,6 +34,7 @@
 #include "TerminalImmediate.hh"
 #include "DisassemblyImmediate.hh"
 #include "POMDisassembler.hh"
+#include <typeinfo>
 
 using namespace TTAMachine;
 
@@ -95,6 +96,9 @@ bool
 TerminalImmediate::equals(const Terminal& other) const {
 
     if (other.isImmediate() != true) {
+        return false;
+    }
+    if (typeid(*this) != typeid(other)) {
         return false;
     }
     return value() == other.value();

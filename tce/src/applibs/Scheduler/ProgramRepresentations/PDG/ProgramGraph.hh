@@ -70,6 +70,8 @@ public:
     ProgramDependenceGraph* graph(const std::string);
     
 private:
+    void clear();
+
     /// Copying forbidden
     ProgramGraph(const ProgramGraph&);
     /// Assignment forbidden

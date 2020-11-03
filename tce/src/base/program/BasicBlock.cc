@@ -66,7 +66,7 @@ BasicBlock::~BasicBlock() {
 BasicBlock*
 BasicBlock::copy() const {
 
-    BasicBlock* newBB = new BasicBlock(start_.location());
+    BasicBlock* newBB = new BasicBlock(startAddr_.location());
     if (instructionCount() > 0) {
         for (int i = skippedFirstInstructions(); i < instructionCount(); i++) {
             newBB->add(instructionAtIndex(i).copy());
@@ -98,6 +98,8 @@ BasicBlock::skippedFirstInstructions() const {
 void BasicBlock::skipFirstInstructions(int count) {
     skippedFirstInstructions_ = count;
 }
+
+
 
 /**
  * Updates and returns the statistics about Basic Block

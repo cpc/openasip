@@ -1,0 +1,631 @@
+/*
+ Copyright (c) 2002-2016 Tampere University.
+
+ This file is part of TTA-Based Codesign Environment (TCE).
+
+ Permission is hereby granted, free of charge, to any person obtaining a
+ copy of this software and associated documentation files (the "Software"),
+ to deal in the Software without restriction, including without limitation
+ the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ and/or sell copies of the Software, and to permit persons to whom the
+ Software is furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ DEALINGS IN THE SOFTWARE.
+ */
+/*
+ * @file BitTrie.icc
+ *
+ * Implementation of BitTrie class.
+ *
+ * Created on: 2.2.2016
+ * @author Henry Linjamäki 2016 (henry.linjamaki-no.spam-tut.fi)
+ * @note rating: red
+ */
+
+#include "BitTrie.hh"
+
+#include <cassert>
+#include <list>
+
+#include "MathTools.hh"
+#include "Conversion.hh"
+
+/**
+ * Constructs an empty bit trie where patterns to be stored are read starting
+ * from LSB.
+ */
+template<class DataType, class ValueType>
+inline
+BitTrie<DataType, ValueType>::BitTrie() {
+}
+
+
+/**
+ * Constructs an empty bit trie where patterns to be stored are read in order
+ * of choice.
+ *
+ * @param bitReadLeftToRight If true, patterns are read MSB first. Otherwise,
+ *        they are read LSB first.
+ */
+template<class DataType, class ValueType>
+inline
+BitTrie<DataType, ValueType>::BitTrie(bool bitReadLeftToRight)
+    : bitReadLeftToRight_(bitReadLeftToRight) {
+}
+
+
+/**
+ * Private constructor.
+ */
+template<class DataType, class ValueType>
+inline
+BitTrie<DataType, ValueType>::BitTrie(
+    bool bitReadLeftToRight,
+    BitTrie& parent)
+    : bitReadLeftToRight_(bitReadLeftToRight), parent_(&parent) {
+
+
+}
+
+
+/**
+ * Desctructor.
+ */
+template<class DataType, class ValueType>
+inline
+BitTrie<DataType, ValueType>::~BitTrie() {
+    for (auto& node : node_) {
+        delete node;
+        node = nullptr;
+    }
+    delete data_;
+    data_ = nullptr;
+}
+
+
+/**
+ * Returns count where the given pattern overlaps with the patterns stored.
+ *
+ * @param bits The pattern.
+ * @return The count.
+ */
+template<class DataType, class ValueType>
+inline
+unsigned
+BitTrie<DataType, ValueType>::frequency(
+    const BitTrie<DataType, ValueType>::BitVector& bits) const {
+
+    if (width(bits) == 0) {
+        return frequency_;
+    }
+    BitTrie* nextNode = node_[nextBit(bits)];
+    if (nextNode) {
+        return nextNode->frequency(stripBit(bits));
+    } else {
+        return 0;
+    }
+}
+
+
+/**
+ * Return true if the trie has the exact bit pattern.
+ */
+template<class DataType, class ValueType>
+inline
+bool
+BitTrie<DataType, ValueType>::check(
+    const BitTrie<DataType, ValueType>::BitVector& bits) const {
+
+    const BitTrie* found = findNode(bits);
+
+    if (found == nullptr) {
+        return false;
+    }
+    if (isRootNode(*found)) {
+        return false;
+    }
+
+    return nodeTerminatesPattern(*found);
+}
+
+
+/**
+ * Inserts new pattern into the trie with default constructed data.
+ *
+ * @param bits The bit pattern to add
+ * @return True, if the pattern is added to the trie. Otherwise, returns false
+ *         and the pattern pattern is not added.
+ */
+template<class DataType, class ValueType>
+inline
+bool
+BitTrie<DataType, ValueType>::insert(
+    BitTrie<DataType, ValueType>::BitVector bits) {
+
+    return insert(bits, DataType());
+}
+
+
+/**
+ * Inserts new pattern into the trie and attaches the given data to it.
+ *
+ * @param bits The bit pattern to add
+ * @return True, if the pattern is added to the trie. Otherwise, returns false
+ *         and the pattern pattern is not added.
+ */
+template<class DataType, class ValueType>
+inline
+bool
+BitTrie<DataType, ValueType>::insert(
+    BitTrie<DataType, ValueType>::BitVector bits,
+    const DataType& data) {
+
+    if (isRootNode(*this) && check(bits)) {
+        return false;
+    }
+    if (width(bits) == 0 && isRootNode(*this)) {
+        return false;
+    }
+
+    if (width(bits) == 0) {
+        frequency_++;
+        assert(nodeTerminatesPattern(*this));
+        if (data_ == nullptr) {
+            data_ = new DataType(data);
+        } else {
+            *data_ = data;
+        }
+        return true;
+    }
+
+    BitTrie*& node = node_[nextBit(bits)];
+    if (node == nullptr) {
+        node = new BitTrie(bitReadLeftToRight_, *this);
+    }
+    assert(node_[nextBit(bits)] != nullptr);
+    assert(node_[nextBit(bits)]->parent_ == this);
+    assert(node_[nextBit(bits)] != this);
+    frequency_++;
+    return node->insert(stripBit(bits), data);
+}
+
+
+/**
+ * Erases the given exact pattern from the trie.
+ *
+ * Data associated to the pattern is deleted.
+ *
+ * @return Returns true if the given pattern was erased from the trie.
+ *         Otherwise, returns false (i.e. trie does not have the pattern).
+ *
+ */
+template<class DataType, class ValueType>
+inline
+bool
+BitTrie<DataType, ValueType>::erase(
+    BitTrie<DataType, ValueType>::BitVector bits) {
+
+    if (parent_ == nullptr && !check(bits)) {
+        return false;
+    }
+
+    if (width(bits) == 0) {
+        if (parent_ == nullptr) {
+            return false;
+        }
+        if (frequency_) frequency_--;
+        return true;
+    }
+
+    BitTrie*& node = node_[nextBit(bits)];
+    if (node) {
+        if (node->erase(stripBit(bits))) {
+            frequency_--;
+            if (node->frequency_ == 0) {
+                delete node;
+                node = nullptr;
+            }
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+/**
+ * Returns shortest unambiguous pattern in the trie.
+ *
+ * In a case where there is multiple patterns of same length, the smallest in
+ * the binary value is returned.
+ */
+template<class DataType, class ValueType>
+inline
+typename BitTrie<DataType, ValueType>::BitVector
+BitTrie<DataType, ValueType>::uniqueUnusedPrefix() const {
+
+    return uniqueUnusedPrefixImpl(*this);
+}
+
+
+/**
+ * Returns data associated with the bit pattern.
+ *
+ * @param bits The pattern as key to the data
+ * @return The data stored with one of the insert() methods.
+ * @exception KeyNotFound If the trie does not have the given pattern (bits).
+ */
+template <class DataType, class ValueType>
+inline DataType&
+BitTrie<DataType, ValueType>::at(BitTrie<DataType, ValueType>::BitVector bits) {
+    BitTrie* found = findNode(bits);
+    if (found == nullptr) {
+        THROW_EXCEPTION(KeyNotFound, "BitTrie does not have pattern of 0b"
+            + Conversion::toBinary(value(bits), width(bits)) + ".");
+    } else {
+        if (found->data_ == nullptr) {
+            found->data_ = new DataType();
+        }
+        return *found->data_;
+    }
+}
+
+/**
+ * Returns width of the BitVector as reference.
+ */
+template<class DataType, class ValueType>
+inline
+typename BitTrie<DataType, ValueType>::WidthType&
+BitTrie<DataType, ValueType>::width(
+    BitVector& bitVector) {
+
+    return std::get<1>(bitVector);
+}
+
+
+/**
+ * Returns width of the BitVector as constant reference.
+ */
+template<class DataType, class ValueType>
+inline
+const typename BitTrie<DataType, ValueType>::WidthType&
+BitTrie<DataType, ValueType>::width(
+    const BitVector& bitVector) {
+
+    return std::get<1>(bitVector);
+}
+
+
+/**
+ * Returns value of the BitVector as reference.
+ */
+template<class DataType, class ValueType>
+inline
+ValueType&
+BitTrie<DataType, ValueType>::value(
+    BitVector& bitVector) {
+
+    return std::get<0>(bitVector);
+}
+
+
+/**
+ * Returns value of the BitVector as constant reference.
+ */
+template<class DataType, class ValueType>
+inline
+const ValueType&
+BitTrie<DataType, ValueType>::value(
+    const BitVector& bitVector) {
+
+    return std::get<0>(bitVector);
+}
+
+
+/**
+ * Returns next bit in the read order set in the trie.
+ */
+template<class DataType, class ValueType>
+inline
+bool
+BitTrie<DataType, ValueType>::nextBit(
+    const BitVector& bits) const {
+
+    assert(width(bits) > 0);
+    return MathTools::bit(value(bits), bitReadLeftToRight_?(width(bits)-1):0);
+}
+
+
+/**
+ * Returns BitVector with one bit removed from it in the read order set in the
+ * trie.
+ *
+ * The bit to removed is same that would be returned by nextBit() method.
+ */
+template<class DataType, class ValueType>
+inline
+typename BitTrie<DataType, ValueType>::BitVector
+BitTrie<DataType, ValueType>::stripBit(BitVector bits) const {
+
+    assert(width(bits) > 0);
+    width(bits)--;
+    if (!bitReadLeftToRight_) {
+        value(bits) = value(bits) >> 1;
+    }
+    return bits;
+}
+
+
+/**
+ * Looks for trie node by the pattern.
+ *
+ * @param bits The Pattern.
+ * @return Returns pointer to the found node. If not found, return nullptr.
+ */
+template<class DataType, class ValueType>
+inline
+BitTrie<DataType, ValueType>*
+BitTrie<DataType, ValueType>::findNode(const BitVector& bits) {
+    if (width(bits) == 0) {
+        return this;
+    }
+
+    BitTrie* nextNode = node_[nextBit(bits)];
+    if (nextNode == nullptr) {
+        return nullptr;
+    } else {
+        return nextNode->findNode(stripBit(bits));
+    }
+}
+
+
+/**
+ * Const version of findNode() method.
+ */
+template<class DataType, class ValueType>
+inline
+const BitTrie<DataType, ValueType>*
+BitTrie<DataType, ValueType>::findNode(const BitVector& bits) const {
+    if (width(bits) == 0) {
+        return this;
+    }
+
+    const BitTrie* nextNode = node_[nextBit(bits)];
+    if (nextNode == nullptr) {
+        return nullptr;
+    } else {
+        return nextNode->findNode(stripBit(bits));
+    }
+}
+
+
+/**
+ * The implementation of uniqueUnusedPrefix() method.
+ */
+template<class DataType, class ValueType>
+inline
+typename BitTrie<DataType, ValueType>::BitVector
+BitTrie<DataType, ValueType>::uniqueUnusedPrefixImpl(const BitTrie& bitTrie) {
+
+    std::list<const BitTrie*> queue;
+    queue.push_back(&bitTrie);
+    const BitTrie* current = nullptr;
+    bool availableBit = false;
+    while(!queue.empty()) {
+        current = queue.front();
+        queue.pop_front();
+        for (unsigned i = 0; i < 2; i++) {
+            if (current->node_[i]) {
+                assert(current->node_[i]->parent_ == current);
+                queue.push_back(current->node_[i]);
+            } else {
+                availableBit = i;
+                queue.clear(); // break from while clause
+                break;
+            }
+        }
+    }
+
+    BitVector result;
+    value(result) = availableBit;
+    width(result) = 1;
+    assert(current != nullptr);
+
+    while (current->parent_ != nullptr) {
+        for (unsigned i = 0; i < 2; i++) {
+            if (current->parent_->node_[i] == current) {
+                if (current->bitReadLeftToRight_) {
+                    value(result) = MathTools::concatenateBits(
+                        i, 1, value(result), width(result));
+                } else {
+		    value(result) = MathTools::concatenateBits(
+                        value(result), width(result), i, 1);
+                }
+                width(result)++;
+                break;
+            }
+        }
+        current = current->parent_;
+    }
+
+    return result;
+}
+
+
+/**
+ * Clears all patterns stored to the trie and deletes any data associated to
+ * them.
+ */
+template<class DataType, class ValueType>
+inline
+void 
+BitTrie<DataType, ValueType>::clear() {
+    for (int i = 0; i < 2; i++) {
+	if (node_[i]) { 
+	    node_[i]->clear();
+	    delete node_[i];
+	    node_[i] = nullptr;
+	}
+    }
+    frequency_ = 0;
+}
+
+
+/**
+ * Returns the count of stored patterns.
+ */
+template<class DataType, class ValueType>
+inline
+unsigned
+BitTrie<DataType, ValueType>::size() const {
+    assert(parent_ == nullptr && "size(): Valid call only for root node.");
+    return frequency_;
+}
+
+
+/**
+ * Returns longest pattern in the trie that as whole acts as prefix to the
+ * given pattern.
+ */
+template<class DataType, class ValueType>
+inline
+typename BitTrie<DataType, ValueType>::BitVector
+BitTrie<DataType, ValueType>::longestCompletePattern(
+    const BitVector& bits) const {
+
+    // Traverse bit trie until bits or nodes are run out. //
+    if (width(bits) > 0) {
+        const BitTrie* nextNode = node_[nextBit(bits)];
+        if (nextNode) {
+            return nextNode->longestCompletePattern(stripBit(bits));
+        }
+    }
+
+    // Traverse towards root to find a node that terminates a bit pattern. //
+    const BitTrie* node = this;
+    do {
+        if (nodeTerminatesPattern(*node)) {
+            // Found complete pattern.
+            return patternAtNode(*node);
+        }
+    } while((node = node->parent_));
+
+    // No pattern found. //
+    return BitVector{0, 0};
+}
+
+
+/**
+ * Debug method.
+ */
+template<class DataType, class ValueType>
+inline
+void
+BitTrie<DataType, ValueType>::dump(std::ostream& out) const {
+    out << this << ", " << depth(*this) << ", "
+        << value(patternAtNode(*this)) << ", "
+        << width(patternAtNode(*this)) << ", "
+        << frequency_ << std::endl;
+    if (node_[0]) node_[0]->dump(out);
+    if (node_[1]) node_[1]->dump(out);
+}
+
+
+/**
+ * Returns true id some bit pattern is terminated at the node.
+ */
+template<class DataType, class ValueType>
+inline
+bool
+BitTrie<DataType, ValueType>::nodeTerminatesPattern(const BitTrie& node) {
+    WidthType subFreq = 0;
+    for (const BitTrie* subTrie : node.node_) {
+        subFreq += subTrie?subTrie->frequency_:0;
+    }
+    assert(node.frequency_ >= subFreq);
+    assert((node.frequency_ - subFreq) < 2);
+    if ((node.frequency_ - subFreq) == 1) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+/**
+ * Returns the BitVector that the node describes.
+ */
+template<class DataType, class ValueType>
+inline
+typename BitTrie<DataType, ValueType>::BitVector
+BitTrie<DataType, ValueType>::patternAtNode(const BitTrie& node) {
+    if (isRootNode(node)) {
+        return BitVector{0, 0};
+    }
+    BitVector result{0, depth(node)};
+
+    const BitTrie* currentNode = &node;
+    for (unsigned i = 0; i < width(result); i++) {
+        if (currentNode->bitReadLeftToRight_) {
+            MathTools::setBit(value(result), i, nodeBitValue(*currentNode));
+        } else {
+            MathTools::setBit(
+                value(result), width(result)-1-i, nodeBitValue(*currentNode));
+        }
+        currentNode = currentNode->parent_;
+    }
+    return result;
+}
+
+
+/**
+ * Returns the bit value of the node.
+ *
+ */
+template<class DataType, class ValueType>
+inline
+bool
+BitTrie<DataType, ValueType>::nodeBitValue(const BitTrie& node) {
+    assert(node.parent_ != nullptr
+        && "Illegal call for root node.");
+    assert((node.parent_->node_[1] == &node || node.parent_->node_[0] == &node)
+        && "Not registered to parent.");
+    return (node.parent_->node_[1] == &node);
+}
+
+
+/**
+ * Returns true if the node is root node of the trie. Otherwise returns false.
+ */
+template<class DataType, class ValueType>
+inline
+bool
+BitTrie<DataType, ValueType>::isRootNode(const BitTrie& node) {
+    return (node.parent_ == nullptr);
+}
+
+
+/**
+ * Returns the depth of the node and also number of bits it describes.
+ */
+template<class DataType, class ValueType>
+inline
+unsigned
+BitTrie<DataType, ValueType>::depth(const BitTrie& node) {
+    unsigned count = 0;
+    const BitTrie* parent = node.parent_;
+    while (parent) {
+        count++;
+        parent = parent->parent_;
+    }
+    return count;
+}

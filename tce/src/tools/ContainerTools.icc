@@ -31,7 +31,6 @@
  *
  */
 
-
 #include <algorithm>
 
 /**
@@ -129,4 +128,21 @@ ContainerTools::removeValues(
     }
 }
 
+/**
+ * Remove element at index from vector by swapping to-be-removed element and
+ * last element first and then removing the last element making removing fast.
+ *
+ * Useful when removing element that is not the last element from vector where
+ * order of the elements does not matter
+ *
+ * @param aContainer The container to remove value from.
+ * @param index The index to element to be removed.
+ */
+template <typename E, typename I>
+void
+ContainerTools::swapRemoveValue(std::vector<E>& aContainer, I index) {
+    size_t castedIndex = static_cast<size_t>(index);
 
+    aContainer.at(castedIndex) = aContainer.back();
+    aContainer.pop_back();
+}

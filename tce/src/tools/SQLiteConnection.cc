@@ -200,6 +200,8 @@ SQLiteConnection::tableExistsInDB(const std::string& tableName) {
             "SQLiteConnection::tableExistsInDB()",
             "Exception from DataObject: " + e.errorMessage());
     }
+
+    delete result;
     return intBoolValue;
 }
 
@@ -235,6 +237,8 @@ SQLiteConnection::rowCountInTable(const std::string& tableName) {
             "SQLiteConnection::tableExistsInDB()",
             "Exception from DataObject: " + e.errorMessage());
     }
+
+    delete result;
     assert(countAsInt > -1);
     return countAsInt;
 }
@@ -290,4 +294,46 @@ SQLiteConnection::finalizeQuery(sqlite3_stmt* statement) {
     }
 
     throwIfSQLiteError(sqlite3_finalize(statement));
+}
+
+/**
+* Return database version number.
+*
+* @return Database version.
+*/
+int
+SQLiteConnection::version() {
+    int version = 0;
+
+    string query = "pragma user_version;";
+
+    RelationalDBQueryResult* result = this->query(query, false);
+
+
+    assert(result->hasNext());
+    result->next();
+    const DataObject& count = result->data(0);
+
+    try {
+        version = count.integerValue();
+    } catch (NumberFormatException& e) {
+        throw RelationalDBException(__FILE__, __LINE__,
+            "SQLiteConnection::version()",
+            "Exception from DataObject: " + e.errorMessage());
+    }
+
+    delete result;
+    return version;
+}
+
+/**
+* Set database version number.
+*
+* @param version New database version.
+*/
+void
+SQLiteConnection::updateVersion(int version) {
+    string query = "pragma user_version = " +
+        std::to_string(version) + ";";
+    this->updateQuery(query);
 }

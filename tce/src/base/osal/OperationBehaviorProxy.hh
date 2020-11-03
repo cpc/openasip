@@ -96,6 +96,9 @@ private:
     /// dynamic library or the DAG instead of loading it once and
     /// reusing in the future calls.
     bool alwaysReloadBehavior_;
+    /// Helpers variable to catch infinite recursive function call due to
+    /// missing or undefined operation behavior.
+    mutable bool alreadyCreatingState_;
 };
 
 #endif

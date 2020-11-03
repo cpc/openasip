@@ -28,7 +28,7 @@
  *
  * Inline and template definitions.
  *
- * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen-no.spam-tut.fi) 
+ * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #include <algorithm>
@@ -108,7 +108,8 @@ AssocTools::containsKey(
  * @param firstContainer The first container.
  * @param secondContainer The second container.
  * @param difference Result set. Updated by adding all elements in the first
- *            container that are not in the second container.
+ *            container that are not in the second container. Note the items
+ *            are added to an existing (potentially non-empty) container.
  */
 template <typename ContainerType>
 void

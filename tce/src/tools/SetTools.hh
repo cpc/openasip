@@ -47,6 +47,11 @@ public:
         const std::set<ValueType>& secondContainer,
         std::set<ValueType>& intersection);
 
+    template <typename ValueType>
+    static std::set<ValueType> intersection(
+        const std::set<ValueType>& firstContainer,
+        const std::set<ValueType>& secondContainer);
+
     template <typename ValueType, typename Comparator>
     static void intersection(
         const std::set<ValueType, Comparator>& firstContainer,

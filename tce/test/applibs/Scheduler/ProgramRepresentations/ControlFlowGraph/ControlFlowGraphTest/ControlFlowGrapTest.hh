@@ -89,7 +89,7 @@ ControlFlowGraphTest::testProcedureCFG() {
     // convert the loaded TPEF to POM
     TTAProgram::TPEFProgramFactory factory(*tpef_, umach);
     TTAProgram::Program* currentProgram = factory.build();
-
+    {
     ControlFlowGraph cfg(currentProgram->procedure(1));
     TS_ASSERT_EQUALS(cfg.nodeCount(), 5);
     TS_ASSERT_EQUALS(cfg.edgeCount(), 6);
@@ -98,7 +98,7 @@ ControlFlowGraphTest::testProcedureCFG() {
     TS_ASSERT_EQUALS(cfg2.nodeCount(), 4);
     TS_ASSERT_EQUALS(cfg2.edgeCount(), 3);
     cfg2.writeToDotFile("/dev/null");
-
+    }
     delete currentProgram;
     currentProgram = NULL;
 
@@ -121,7 +121,7 @@ ControlFlowGraphTest::testRallocatedCFG() {
     // convert the loaded TPEF to POM
     TTAProgram::TPEFProgramFactory factory(*tpef_, *machine, umach);
     TTAProgram::Program* currentProgram = factory.build();
-
+    {
     ControlFlowGraph cfg(currentProgram->procedure(1));
     TS_ASSERT_EQUALS(cfg.nodeCount(), 5);
     TS_ASSERT_EQUALS(cfg.edgeCount(), 6);
@@ -131,7 +131,7 @@ ControlFlowGraphTest::testRallocatedCFG() {
     TS_ASSERT_EQUALS(cfg2.edgeCount(), 3);
     cfg2.writeToDotFile("/dev/null");
 
-
+    }
     delete currentProgram;
     currentProgram = NULL;
 }
@@ -156,7 +156,7 @@ ControlFlowGraphTest::testImmediatesCFG() {
     // convert the loaded TPEF to POM
     TTAProgram::TPEFProgramFactory factory(*tpef_, *machine, umach);
     TTAProgram::Program* currentProgram = factory.build();
-
+    {
     ControlFlowGraph cfg0(currentProgram->procedure(0));
     TS_ASSERT_EQUALS(cfg0.nodeCount(), 4);
     TS_ASSERT_EQUALS(cfg0.edgeCount(), 3);
@@ -169,7 +169,7 @@ ControlFlowGraphTest::testImmediatesCFG() {
     TS_ASSERT_EQUALS(cfg2.nodeCount(), 9);
     TS_ASSERT_EQUALS(cfg2.edgeCount(), 9);
     cfg2.writeToDotFile("/dev/null");
-
+    }
 
     delete currentProgram;
     currentProgram = NULL;

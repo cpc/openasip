@@ -26,7 +26,7 @@
  *
  * Definition of BF framework operation which removes a ddg edge.
  *
- * @author Heikki Kultala 2018 (heikki.kultala-no.spam-tut.fi)
+ * @author Heikki Kultala 2018-2020 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -63,3 +63,4 @@ void BFRemoveEdge::undoOnlyMe() {
 }
 
 BFRemoveEdge::~BFRemoveEdge() {}
+

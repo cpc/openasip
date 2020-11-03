@@ -26,7 +26,8 @@
  *
  * Implementation of SimulationStatistics class.
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka JÃ¤Ã¤skelÃ¤inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Henry LinjamÃ¤ki 2017 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -83,20 +84,44 @@ SimulationStatistics::calculate() {
         &program_.instructionAt(program_.startAddress().location());
     while (currentInstruction != &TTAProgram::NullInstruction::instance()) {
 
+        // Skip implicit instructions they are processed already (see below).
+        if (currentInstruction->size() == 0) {
+            currentInstruction = &program_.nextInstruction(*currentInstruction);
+            continue;
+        }
+
+        auto instrAddr = currentInstruction->address().location();
         const ExecutableInstruction& execInstr = 
-            executionCounts_.instructionAtConst(
-                currentInstruction->address().location());
+            executionCounts_.instructionAtConst(instrAddr);
         if (execInstr.executionCount() == 0) {
             currentInstruction = 
                 &program_.nextInstruction(*currentInstruction);
             continue;
         }
 
+        // First process explicit instruction ...
         for (std::size_t i = 0; i < statisticsTypes_.size(); ++i) {
             statisticsTypes_[i]->calculateForInstruction(
                 *currentInstruction, execInstr);
         }
 
+        // ... and then the following implicit instructions.
+        // FIXME: Potential breakage. Can not know if the executable instruction
+        // corresponds to the program instruction. It is now assumed the
+        // execution instructions are created and added to executionCounts_ in
+        // same order as program instructions currently being traversed.
+        const TTAProgram::Instruction* implInstr = &program_.nextInstruction(
+            *currentInstruction);
+        for (auto& implExecInstr : executionCounts_.implicitInstructionsAt(
+            instrAddr)) {
+            if (implInstr->size() != 0)
+                break;
+            for (std::size_t i = 0; i < statisticsTypes_.size(); ++i) {
+                statisticsTypes_[i]->calculateForInstruction(
+                    *implInstr, *implExecInstr);
+            }
+            implInstr = &program_.nextInstruction(*implInstr);
+        }
         currentInstruction = &program_.nextInstruction(*currentInstruction);
     }
 }

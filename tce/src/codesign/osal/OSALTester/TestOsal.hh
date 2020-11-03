@@ -230,6 +230,8 @@ private:
     bool continue_;
     SimValue returnAddressStorage_;
     InstructionAddress programCounterStorage_;
+    InstructionAddress irfStartStorage_;
+    int branchDelayCycles_;
     /// Indicates which output format is used currently.
     std::string outputFormat_;
     /// The operation context shared with all operations invoked in

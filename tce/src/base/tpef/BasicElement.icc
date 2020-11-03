@@ -52,9 +52,7 @@ BasicElement::addByte(const Byte& data) {
  * @exception OutOfRange If index is bigger than length of section.
  */
 inline Byte
-BasicElement::byte(Word index) const
-     {
-
+BasicElement::byte(Word index) const {
     if (index >= length()) {
         throw OutOfRange(
             __FILE__, __LINE__, __func__, 

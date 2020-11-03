@@ -72,7 +72,8 @@ public:
     virtual int removeDeadResults(
         MoveNodeGroup& candidates,
         DataDependenceGraph& ddg,
-        ResourceManager& rm);
+        ResourceManager& rm,
+        std::set<std::pair<TTAProgram::Move*, int> >& removedMoves);
 
     void setSelector(MoveNodeSelector* selector);
     

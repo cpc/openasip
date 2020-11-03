@@ -146,6 +146,42 @@ DisassemblyInstruction::toString() const {
         disassembly = disassembly + " " + longImmediate(i).toString();
     }
 
+    for (int i = 0; i < annotationCount(); i++) {
+        disassembly += annotation(i).toString();
+    }
+
     disassembly = disassembly + " ;";
     return disassembly;
+}
+
+
+/**
+ * Returns annotation of requested index.
+ *
+ * @param index Index of annotation to return.
+ * @return Annotation of requested index.
+ */
+DisassemblyAnnotation&
+DisassemblyInstruction::annotation(int index) const {
+    return *(annotations_.at(index));
+}
+
+/**
+ * Adds an annotation to instruction.
+ *
+ * @param annotation Annotation to add.
+ */
+void
+DisassemblyInstruction::addAnnotation(DisassemblyAnnotation* annotation) {
+    annotations_.push_back(annotation);
+}
+
+/**
+ * Returns the number of annotationes stored for the instruction.
+ *
+ * @return The number of annotationes stored for the instruction.
+ */
+int
+DisassemblyInstruction::annotationCount() const {
+    return static_cast<int>(annotations_.size());
 }

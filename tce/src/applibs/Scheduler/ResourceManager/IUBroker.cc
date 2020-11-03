@@ -162,7 +162,15 @@ IUBroker::allAvailableResources(int useCycle, const MoveNode& node,
     SchedulingResourceSet results;
 
     // pre-split LIMM
-//    assert (!node.move().source().isImmediateRegister());
+    if (node.move().source().isImmediateRegister()) {
+        const ImmediateUnit& iu =
+            node.move().source().immediateUnit();
+        IUResource* iuRes = static_cast<IUResource*>(resourceOf(iu));
+        if (iuRes->canAssign(useCycle, node)) {
+            results.insert(*iuRes);
+        }
+        return results;
+    }
 
     std::vector<IUResource*> tmpResult;
 

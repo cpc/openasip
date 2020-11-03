@@ -35,6 +35,12 @@
 #define TTA_INSTRUCTION_MEMORY_HH
 
 #include <vector>
+#if __cplusplus < 201103L
+#include <map>
+#else
+#include <unordered_map>
+#endif
+
 #include "SimulatorConstants.hh"
 #include "Exception.hh"
 #include "BaseType.hh"
@@ -42,19 +48,32 @@
 class ExecutableInstruction;
 
 /**
- * Container for ExecutableInstructions.
+ * Container for ExecutableInstructions which represent the actions performed
+ * by the simulated program's instructions to the machine's state.
  */
 class InstructionMemory {
 public:
+    /// Container for instructions.
+    typedef std::vector<ExecutableInstruction*> InstructionContainer;
+
     InstructionMemory(InstructionAddress startAddress);
     virtual ~InstructionMemory();
-    
-    void addExecutableInstruction(ExecutableInstruction* instruction);
+
+    void addExecutableInstruction(
+        InstructionAddress addr, ExecutableInstruction* instruction);
+    void addImplicitExecutableInstruction(
+        InstructionAddress addr, ExecutableInstruction* instruction);
     ExecutableInstruction& instructionAt(InstructionAddress address);
     const ExecutableInstruction& instructionAtConst(
         InstructionAddress address) const;
 
     void resetExecutionCounts();
+
+    bool hasInstructionAt(InstructionAddress addr) const;
+
+    bool hasImplicitInstructionsAt(InstructionAddress addr) const;
+    const InstructionContainer& implicitInstructionsAt(
+        InstructionAddress addr) const;
 
 private:
     /// Copying not allowed.
@@ -62,14 +81,30 @@ private:
     /// Assignment not allowed.
     InstructionMemory& operator=(const InstructionMemory&);
 
-    /// Container for instructions.
-    typedef std::vector<ExecutableInstruction*> InstructionContainer;
-
     /// The starting address of the instruction memory address space.
     InstructionAddress startAddress_;
 
     /// All the instructions of the memory.
     InstructionContainer instructions_;
+
+    InstructionContainer emptyInstructions_;
+
+
+#if __cplusplus < 201103L
+    /// Stores the explicit instruction addresses.
+    std::map<InstructionAddress, ExecutableInstruction*> instructionMap_;
+    /// Stores implicit instructions that should be executed after the explicit
+    /// one in the same address.
+    std::map<InstructionAddress, InstructionContainer*> implicitInstructions_;
+#else
+    /// Stores the explicit instruction addresses.
+    std::unordered_map<InstructionAddress, ExecutableInstruction*> instructionMap_;
+    /// Stores implicit instructions that should be executed after the explicit
+    /// one in the same address.
+    std::unordered_map<InstructionAddress, InstructionContainer*> implicitInstructions_;
+#endif
+
+
 };
 
 #include  "InstructionMemory.icc"

@@ -33,7 +33,6 @@
  * @note rating: red
  */
 
-
 template<typename Graph, typename GraphNode>
 void
 doOnAllNodes(

@@ -45,6 +45,7 @@
 #include "MoveGuard.hh"
 #include "RegisterFile.hh"
 #include "InstructionReferenceManager.hh"
+#include "Bus.hh"
 
 using TTAProgram::Move;
 using TTAProgram::Instruction;
@@ -113,7 +114,7 @@ bool PostpassOperandSharer::tryRemoveOperandWrite(
         return false;
     }
 
-    TTAMachine::RegisterFile* guardRF = NULL;
+    const TTAMachine::RegisterFile* guardRF = NULL;
     int guardIndex = -1;
     if (!move.isUnconditional()) {
         const TTAMachine::Guard& guard = move.guard().guard();
@@ -186,7 +187,13 @@ bool PostpassOperandSharer::tryRemoveOperandWrite(
 
             // write to same port..
             if (&prevDest.port() == &dest.port()) {
-                if (move.source().equals(prevMove.source())) {
+                // Check if previous move used narrower bus and
+                // potentially cut  upper bits of the transported value.
+                // This is possible is the value was previously used in
+                // operation which used only the lower bits of the value
+                // (see BusResource::canAssign()).
+                if (move.source().equals(prevMove.source())
+                    && move.bus().width() <= prevMove.bus().width()) {
 
                     // TODO: what if guard is conditional, ok or not?
                     if (!prevMove.isUnconditional() &&

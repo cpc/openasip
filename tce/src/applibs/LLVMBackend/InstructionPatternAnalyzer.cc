@@ -46,6 +46,13 @@ char InstructionPatternAnalyzer::ID = 0;
 bool
 InstructionPatternAnalyzer::runOnMachineFunction(llvm::MachineFunction &F) {
     MachineInstrDDG ddg(F);
+    ddg.setPrintOnlyCriticalPath(true);
+#ifdef LLVM_OLDER_THAN_6_0
+    ddg.writeToDotFile(F.getFunction()->getName().str() + ".pre_ra.critical_path.dot");
+#else
+    ddg.writeToDotFile(F.getFunction().getName().str() + ".pre_ra.critical_path.dot");
+#endif
+    ddg.setPrintOnlyCriticalPath(false);
     ddg.computeOptimalSchedule();
 #ifdef LLVM_OLDER_THAN_6_0
     ddg.writeToDotFile(F.getFunction()->getName().str() + ".pre_ra.dot");

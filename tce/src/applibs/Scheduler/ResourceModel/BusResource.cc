@@ -40,6 +40,9 @@
 #include "Port.hh"
 #include "Terminal.hh"
 #include "Move.hh"
+#include "ProgramOperation.hh"
+#include "Operation.hh"
+#include "Operand.hh"
 
 /**
  * Constructor
@@ -49,10 +52,12 @@
  * @param limmSlotCount how many itemplates use this bus in limm field
  */
 BusResource::BusResource(
-    const std::string& name, int width, int limmSlotCount, int guardCount,
+    const std::string& name, int width, int limmSlotCount, int nopSlotCount,
+    int guardCount,
     int immSize, int socketCount, unsigned int initiationInterval) : 
     SchedulingResource(name, initiationInterval), busWidth_(width), 
-    limmSlotCount_(limmSlotCount), guardCount_(guardCount), 
+    limmSlotCount_(limmSlotCount), nopSlotCount_(nopSlotCount),
+    guardCount_(guardCount),
     immSize_(immSize), socketCount_(socketCount) {
 }
 
@@ -88,6 +93,7 @@ BusResource::isAvailable(const int cycle) const {
 
 /**
  * Test if resource BusResource is available.
+ *
  * @param cycle Cycle which to test
  * @return False if all the segments of bus are InUse
  */
@@ -115,8 +121,9 @@ BusResource::isAvailable(
  * @throw In case assignment can not be done
  */
 void
-BusResource::assign(const int cycle, MoveNode& node) {
-    if (canAssign(cycle, node)) {
+BusResource::assign(const int cycle, MoveNode& node)
+{
+   if (canAssign(cycle, node)) {
         resourceRecord_[instructionIndex(cycle)] = 1;
         increaseUseCount();
         return;
@@ -126,12 +133,14 @@ BusResource::assign(const int cycle, MoveNode& node) {
 /**
  * Unassign resource from given node for given cycle without testing
  * Input or Output PSocket, unassign all segments of bus
+ *
  * @param cycle Cycle to remove assignment from
  * @param node MoveNode to remove assignment from
  * @throw In case bus was not assigned
  */
 void
 BusResource::unassign(const int cycle, MoveNode&) {
+
     if (isInUse(cycle)) {
         resourceRecord_[instructionIndex(cycle)] = 0;
         return;
@@ -174,19 +183,32 @@ BusResource::canAssign(
     if (!isAvailable(cycle, inputPSocket, outputPSocket)) {
         return false;
     }
-    
-    // TODO: find better way how to check various combinations of different
-    // source and destination port widths, such as writes to boolean register
-    bool sourceWontFit = false;
-    if (!node.isSourceConstant()) {
-        if (node.move().source().port().width() > busWidth_) {
-            sourceWontFit = true;
+
+    int defBits = node.isSourceConstant()?
+        busWidth_ : node.move().source().port().width();
+    // TODO: Check if source is from an operation result that defines less bits.
+    int useBits = node.move().destination().port().width();
+    if (useBits > busWidth_ && node.destinationOperationCount()) {
+        // Writing undefined bits *1 to upper bits of the destination port.
+        // Check if none of the destinations use those bits.
+        //     *1: DefaultICDecoderPlugin zero extends when writing to port from
+        //         narrower bus, but this is not documented semantic?
+        int maxOpdWidth = 0;
+        for (size_t i = 0; i < node.destinationOperationCount(); i++) {
+            const auto& op = node.destinationOperation(i).operation();
+            int opdIdx = node.move().destination().operationIndex();
+            int opdWidth = op.operand(opdIdx).width();
+            maxOpdWidth = std::max(maxOpdWidth, opdWidth);
         }
-    } else {
-        sourceWontFit = true; // invalid extension of immediate
+        assert(maxOpdWidth > 0);
+        useBits = std::min(useBits, maxOpdWidth);
     }
-    if (sourceWontFit &&
-        node.move().destination().port().width() > busWidth_) {
+    // Define bit width of the value transportation as in below statement to
+    // allow cases such as:
+    // - Move from ALU compare to boolean reg.
+    // - Move from boolean reg to LSU store.
+    int transportWidth = std::min(defBits, useBits);
+    if (transportWidth > busWidth_) {
         return false;
     }
 
@@ -252,6 +274,15 @@ BusResource::validateRelatedGroups() {
 bool 
 BusResource::operator< (const SchedulingResource& other) const {
     const BusResource *busr = static_cast<const BusResource*>(&other);
+
+    // favour buses with less nop slots
+    if (nopSlotCount_ < busr->nopSlotCount_) {
+        return true;
+    }
+    if (nopSlotCount_ > busr->nopSlotCount_) {
+        return false;
+    }
+
     if (busr == NULL) {
         return false;
     }

@@ -40,24 +40,36 @@
 
 class ProgramDependenceEdge : public GraphEdge {
 public:
-    ProgramDependenceEdge(
-        ControlDependenceEdge& cEdge);
+    enum EdgeType {
+        PDG_EDGE_CONTROL, /// Indicates Control Dependence Edge from CDG
+        PDG_EDGE_DATA, /// Indicates Data Dependence Edge from DDG
+        PDG_EDGE_LOOP_CLOSE, /// Loop close edge from close node to loop entry
+        PDG_EDGE_CONTROL_ARTIFICIAL /// Indicates artificial control edge for
+                                    /// serialization
+    };
 
-    ProgramDependenceEdge(
-        DataDependenceEdge& cEdge);
+    ProgramDependenceEdge(ControlDependenceEdge& cEdge);
+    ProgramDependenceEdge(DataDependenceEdge& cEdge);
+    ProgramDependenceEdge(EdgeType type = PDG_EDGE_CONTROL_ARTIFICIAL);
 
     virtual ~ProgramDependenceEdge();
 
     bool isControlDependence() const;
     bool isDataDependence() const ;
+    bool isArtificialControlDependence() const;
+    bool isLoopCloseEdge() const;
     ControlDependenceEdge& controlDependenceEdge();
     DataDependenceEdge& dataDependenceEdge();
     TCEString toString() const;
     TCEString dotString() const;
-    
+    void setFixed() { fixed_ = true; }
+    bool fixed() { return fixed_; }
 private:
     ControlDependenceEdge* cEdge_;
     DataDependenceEdge* dEdge_;
+    EdgeType type_;
+    /// Set to fixed if edge is not to be moved any more while serializing
+    bool fixed_;
 };
 
 #endif

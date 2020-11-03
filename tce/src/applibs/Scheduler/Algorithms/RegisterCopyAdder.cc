@@ -72,8 +72,10 @@
  * @param rm The resource manager used to check for availability of resources.
  */
 RegisterCopyAdder::RegisterCopyAdder(
-    InterPassData& data, SimpleResourceManager& rm, bool buScheduler) :
-    interPassData_(data), rm_(rm), buScheduler_(buScheduler) {
+    InterPassData& data, SimpleResourceManager& rm, 
+    MoveNodeSelector&, bool buScheduler) :
+    interPassData_(data), rm_(rm),  
+    buScheduler_(buScheduler) {
 }
 
 /**
@@ -105,14 +107,14 @@ RegisterCopyAdder::requiredRegisterCopiesForEachFU(
         // include control unit in the traversed FUs
         const TTAMachine::FunctionUnit& unit = 
             (i == FUs.count())?
-            (*targetMachine.controlUnit()):(*FUs.item(i));
+            (*targetMachine.controlUnit()) : (*FUs.item(i));
 
         std::string operationName = programOperation.operation().name();
         if (unit.hasOperation(operationName)) {
-	    if (isAllowedUnit(unit, programOperation)) {
-		registerCopiesRequired[&unit] = 
-		    addRegisterCopies(programOperation, unit).count_;
-	    }
+            if (isAllowedUnit(unit, programOperation)) {
+                registerCopiesRequired[&unit] = 
+                    addRegisterCopies(programOperation, unit).count_;
+            }
         }
     }
 
@@ -129,7 +131,7 @@ RegisterCopyAdder::requiredRegisterCopiesForEachFU(
  * @param programOperation The operation execution.
  * @param targetMachine The target machine.
  * @param ddg ddg which to update when adding temp reg moves. Can be NULL.
- * @return Data which temp reg mvoes were added.
+ * @return Data which temp reg moves were added.
  * @exception In case there was no such FU that could be connected with 
  *            a temp register chain of maximal length of 2 copies.
  */
@@ -160,7 +162,7 @@ RegisterCopyAdder::addMinimumRegisterCopies(
         const TTAMachine::FunctionUnit* u = (*i).first;
         if (!isAllowedUnit(*u, programOperation)) {
             continue;
-        }    
+        }
         int copies = (*i).second;
         if (copies < min) {
             min = copies;
@@ -178,11 +180,10 @@ RegisterCopyAdder::addMinimumRegisterCopies(
         addCandidateSetAnnotations(programOperation, targetMachine);
         // return empty
         return AddedRegisterCopies();
-
     } else if (unit != NULL && min < INT_MAX) {
         // add register copies as if the operation was assigned to that FU
-            AddedRegisterCopies copies = 
-                addRegisterCopies(programOperation, *unit, false, ddg, min);
+        AddedRegisterCopies copies =
+            addRegisterCopies(programOperation, *unit, false, ddg, min);
         
         // create the FU candidate set now that we have added the register
         // copies
@@ -195,7 +196,7 @@ RegisterCopyAdder::addMinimumRegisterCopies(
             programOperation.toString() +
             "' ensure that at least one FU supports the operation and is "
             "connected to some register file.");
-    } 
+    }
 }
 
 /**
@@ -541,7 +542,9 @@ RegisterCopyAdder::addConnectionRegisterCopies(
         // try to bypass the regcopy away, by using previous value in
         // some reg which is connected to the FU.
         if (ddg != NULL && neededCopies == 1) {
-            MoveNode* rawSource = ddg->onlyRegisterRawSource(originalMove);
+            // 2 == no guard edges, 0 == do not care if backedge
+            MoveNode* rawSource =
+                ddg->onlyRegisterRawSource(originalMove, 2, 0);
 
             // if would have war out edges, we would have to handle
             // the war conflicts to those nodes as well, limiting schedule
@@ -554,7 +557,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
                     if (MachineConnectivityCheck::isConnected(
                             rf, destinationPort)) {
                         delete temp;
-                        ddg->mergeAndKeep(*rawSource, originalMove);
+                        ddg->mergeAndKeepUser(*rawSource, originalMove);
                         
 			/* cannot remove if first or last write?
 			   as may have refs in live range bookkeeping.
@@ -732,7 +735,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
         else {
             fixDDGEdgesInTempReg(
                 *ddg, originalMove, firstMove, lastMove, lastRF,
-                lastRegisterIndex, bbn, buScheduler_);
+                lastRegisterIndex, bbn, buScheduler_, false);
         }
     }
     
@@ -1050,7 +1053,8 @@ RegisterCopyAdder::fixDDGEdgesInTempReg(
     const TTAMachine::RegisterFile* lastRF, 
     int lastRegisterIndex,
     BasicBlockNode& currentBBNode,
-    bool bottomUpScheduler) {
+    bool bottomUpScheduler,
+    bool loopScheduling) {
 
     // move all incoming edges
     DataDependenceGraph::EdgeSet inEdges = 
@@ -1068,18 +1072,22 @@ RegisterCopyAdder::fixDDGEdgesInTempReg(
         // guard is copied to all.
         if (edge.guardUse() && 
             edge.dependenceType() == DataDependenceEdge::DEP_RAW) {
-            ddg.copyInEdge(*firstMove, edge);
+            if (lastMove == &originalMove) {
+                ddg.rootGraph()->copyInEdge(*firstMove, edge);
+            } else {
+                ddg.rootGraph()->copyInEdge(*lastMove, edge);
+            }
         } else {
             // operand move?
             if (lastMove == &originalMove) {
                 if (edge.dependenceType() == DataDependenceEdge::DEP_RAW) {
-                    ddg.moveInEdge(originalMove, *firstMove, edge);
+                    ddg.rootGraph()->moveInEdge(originalMove, *firstMove, edge);
                 }
             } else { // result move
                 assert (firstMove == &originalMove);
                 if (edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
                     edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
-                    ddg.moveInEdge(originalMove, *lastMove, edge);
+                    ddg.rootGraph()->moveInEdge(originalMove, *lastMove, edge);
                 }
             }
         }
@@ -1104,19 +1112,19 @@ RegisterCopyAdder::fixDDGEdgesInTempReg(
             if (edge.dependenceType() == DataDependenceEdge::DEP_WAR) {
                 // guard war's leave from all nodes.
                 if (!edge.guardUse()) {
-                    ddg.moveOutEdge(originalMove, *firstMove, edge);
+                    ddg.rootGraph()->moveOutEdge(originalMove, *firstMove, edge);
                 } // todo: should be copyOutEdge in else branch but
                 // it causes some ddg to not be dag
             }
         } else { // result move
             if (edge.dependenceType() == DataDependenceEdge::DEP_WAW ||
                 edge.dependenceType() == DataDependenceEdge::DEP_RAW) {
-                ddg.moveOutEdge(originalMove, *lastMove, edge);
+                ddg.rootGraph()->moveOutEdge(originalMove, *lastMove, edge);
             }
             // copy outgoing guard war
             if (edge.dependenceType() == DataDependenceEdge::DEP_WAR &&
                 edge.guardUse()) {
-                ddg.copyOutEdge(*lastMove, edge);
+                ddg.rootGraph()->copyOutEdge(*lastMove, edge);
             }
         }
     }    
@@ -1135,7 +1143,7 @@ RegisterCopyAdder::fixDDGEdgesInTempReg(
 
     createAntidepsForReg(
         *firstMove, *lastMove, originalMove, *lastRF, lastRegisterIndex,
-        ddg, currentBBNode, bottomUpScheduler);
+        ddg, currentBBNode, bottomUpScheduler, loopScheduling);
 }
 
 /**
@@ -1267,7 +1275,7 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
     
     createAntidepsForReg(
         *firstMove, *intMoves[0], originalMove, 
-        *firstRF, firstRegisterIndex, ddg, currentBBNode, buScheduler_);
+        *firstRF, firstRegisterIndex, ddg, currentBBNode, buScheduler_, false);
 
     for (int i = 0; i < regsRequired - 2; ++i) {
 
@@ -1282,7 +1290,7 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
         
         createAntidepsForReg(
             *intMoves[i], *intMoves[i+1], originalMove, 
-            *intRF[i], intRegisterIndex[i], ddg, currentBBNode, buScheduler_);
+            *intRF[i], intRegisterIndex[i], ddg, currentBBNode, buScheduler_, false);
     }
 
     TCEString lastTempReg = DisassemblyRegister::registerName(
@@ -1295,7 +1303,7 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
 
     createAntidepsForReg(
         *intMoves[regsRequired - 2], *lastMove, originalMove,
-        *lastRF, lastRegisterIndex, ddg, currentBBNode, buScheduler_);
+        *lastRF, lastRegisterIndex, ddg, currentBBNode, buScheduler_, false);
 }
 
 
@@ -1305,7 +1313,8 @@ RegisterCopyAdder::createAntidepsForReg(
     const MoveNode& defMove, const MoveNode& useMove, 
     const MoveNode& originalMove,
     const TTAMachine::RegisterFile& rf, int index,
-    DataDependenceGraph& ddg, BasicBlockNode& bbn, bool backwards) {
+    DataDependenceGraph& ddg, BasicBlockNode& bbn, bool backwards, 
+    bool loopScheduling) {
     
     TCEString tempReg = DisassemblyRegister::registerName(rf, index);
     
@@ -1335,6 +1344,40 @@ RegisterCopyAdder::createAntidepsForReg(
             }
         }
 
+        if (loopScheduling) {
+            DataDependenceGraph::NodeSet lastScheduledReads0 =
+                ddg.lastScheduledRegisterReads(rf, index);
+
+            for (DataDependenceGraph::NodeSet::iterator i = 
+                     lastScheduledReads0.begin();
+                 i != lastScheduledReads0.end(); i++) {
+                if (!ddg.exclusingGuards(**i, defMove)) {
+                    DataDependenceEdge* war = 
+                        new DataDependenceEdge(
+                            DataDependenceEdge::EDGE_REGISTER, 
+                            DataDependenceEdge::DEP_WAR, tempReg, 
+                            false, false, false, false, 1);
+                    ddg.connectNodes(**i, defMove, *war);
+                }
+            }
+
+            DataDependenceGraph::NodeSet lastScheduledDefs0 =
+                ddg.lastScheduledRegisterWrites(rf, index);
+
+            for (DataDependenceGraph::NodeSet::iterator i = 
+                     lastScheduledDefs0.begin();
+                 i != lastScheduledDefs0.end(); i++) {
+                if (!ddg.exclusingGuards(**i, defMove)) {
+                    DataDependenceEdge* waw = 
+                        new DataDependenceEdge(
+                            DataDependenceEdge::EDGE_REGISTER, 
+                            DataDependenceEdge::DEP_WAW, tempReg,
+                            false, false, false, false, 1);
+                    ddg.connectNodes(**i, defMove, *waw);            
+                }
+            }
+        }
+
         if (bbn.basicBlock().liveRangeData_ != NULL) {
             if (lastScheduledKill0 == NULL) {
 
@@ -1354,6 +1397,7 @@ RegisterCopyAdder::createAntidepsForReg(
             if (originalMove.move().isUnconditional()) {
                 LiveRangeData::MoveNodeUseSet& firstReads = 
                     bbn.basicBlock().liveRangeData_->regFirstUses_[tempReg];
+                
                 firstReads.clear();
                 firstDefs.clear();
                 // TODO: what about updating the kill bookkeeping?
@@ -1563,7 +1607,7 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
         createAntidepsForReg(
             *firstMove, *regToRegCopy, originalMove,
             *tempRF1, tempRegisterIndex1, ddg, currentBBNode,
-            buScheduler_);
+            buScheduler_, false);
             
     } else { // regcopy == nul
         DataDependenceEdge* edge1 = 
@@ -1574,7 +1618,7 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
 
         createAntidepsForReg(
             *firstMove, *lastMove, originalMove,
-            *tempRF1, tempRegisterIndex1, ddg, currentBBNode, buScheduler_);
+            *tempRF1, tempRegisterIndex1, ddg, currentBBNode, buScheduler_, false);
     }
 }
 
@@ -1657,6 +1701,16 @@ RegisterCopyAdder::countAndAddConnectionRegisterCopiesToRR(
 
     CombinationSet pairs = AssocTools::pairs<TTAMachine::Port::PairComparator>(
         srcPorts, dstPorts);
+
+    // check if some portpairs already has connection
+    for (CombinationSet::const_iterator i = pairs.begin(); i != pairs.end();
+         ++i) {
+        const TTAMachine::Port& src = *(*i).first;
+        const TTAMachine::Port& dst = *(*i).second;
+
+        if (MachineConnectivityCheck::isConnected(src, dst))
+            return 0;
+    }
 
     const std::pair<const TTAMachine::Port*, const TTAMachine::Port*>*
         bestConnection = NULL;
@@ -1885,6 +1939,17 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     CombinationSet pairs = AssocTools::pairs<TTAMachine::Port::PairComparator>(
         srcPorts, dstPorts);
 
+    // check if some portpairs already has connection
+    for (CombinationSet::const_iterator i = pairs.begin(); i != pairs.end();
+         ++i) {
+        const TTAMachine::Port& src = *(*i).first;
+        const TTAMachine::Port& dst = *(*i).second;
+
+        if (MachineConnectivityCheck::isConnected(src, dst))
+            return 0;
+    }
+
+
     const std::pair<const TTAMachine::Port*, const TTAMachine::Port*>*
         bestConnection = NULL;
     int registersRequired = INT_MAX;
@@ -1971,12 +2036,14 @@ RegisterCopyAdder::addCandidateSetAnnotations(
         return;
     }
 
+
+
     // add annotations to moves of the ProgramOperation that restrict the
     // choice of FU to the ones that are possible to assign with the current
     // register copies
     for (int input = 0; input < programOperation.inputMoveCount(); ++input) {
         MoveNode& m = programOperation.inputMove(input);
-        
+
         for (std::set<std::string>::const_iterator i = candidates.begin();
              i != candidates.end(); ++i) {
             std::string candidateFU = (*i);
@@ -2018,15 +2085,15 @@ void RegisterCopyAdder::operandsScheduled(
     // input operands scheduled, set the ddg edges between temp reg copies.
     for (RegisterCopyAdder::AddedRegisterCopyMap::iterator iter = 
              copies.operandCopies_.begin(); 
-	 iter != copies.operandCopies_.end(); 
+         iter != copies.operandCopies_.end(); 
          iter++) {
         MoveNode* result = const_cast<MoveNode*>(iter->first);
         assert(result->isScheduled());
         inputMoves.insert(result);
-	for (DataDependenceGraph::NodeSet::iterator i2 =
-		 iter->second.begin(); i2 != iter->second.end(); i2++) {
-	    inputMoves.insert(*i2);
-	}
+        for (DataDependenceGraph::NodeSet::iterator i2 =
+                 iter->second.begin(); i2 != iter->second.end(); i2++) {
+            inputMoves.insert(*i2);
+        }
     }
     ddg.createRegisterAntiDependenciesBetweenNodes(inputMoves);
 }
@@ -2051,10 +2118,12 @@ void RegisterCopyAdder::resultsScheduled(
         MoveNode* result = const_cast<MoveNode*>(iter->first);
         assert(result->isScheduled());
         outputMoves.insert(result);
-	for (DataDependenceGraph::NodeSet::iterator i2 =
-		 iter->second.begin(); i2 != iter->second.end(); i2++) {
-	    outputMoves.insert(*i2);
-	}
+        for (DataDependenceGraph::NodeSet::iterator i2 =
+            iter->second.begin(); i2 != iter->second.end(); i2++) {
+            // Temporary result moves could get bypassed.
+            if ((*i2)->isScheduled())
+                outputMoves.insert(*i2);
+        }
     }
     ddg.createRegisterAntiDependenciesBetweenNodes(outputMoves);
 }
@@ -2067,8 +2136,7 @@ void
 RegisterCopyAdder::findTempRegisters(
     const TTAMachine::Machine& mach, InterPassData& ipd) {
 
-    std::vector<TTAMachine::RegisterFile*> tempRegRFs =
-        MachineConnectivityCheck::tempRegisterFiles(mach);
+    auto tempRegRFs = MachineConnectivityCheck::tempRegisterFiles(mach);
 
     typedef SimpleInterPassDatum<
     std::vector<std::pair<const TTAMachine::RegisterFile*,int> > >
@@ -2094,10 +2162,22 @@ RegisterCopyAdder::findTempRegisters(
         }
     }
 
+    std::vector<const TTAMachine::RegisterFile*> tempRegRFVec;
+    for (auto rf: tempRegRFs) {
+        tempRegRFVec.push_back(rf);
+    }
+    // Sort temp RFs by width (narrowest first) so reg copies with small
+    // registers are preferred.
+    auto rfLessFn = [] (const TTAMachine::RegisterFile* rf0,
+                        const TTAMachine::RegisterFile* rf1) -> bool {
+                            return rf0->width() < rf1->width();
+                        };
+    std::sort(tempRegRFVec.begin(), tempRegRFVec.end(), rfLessFn);
+
     // then mark last (non-guard) register of all gotten reg files
     // as tempregcopy reg. 
-    for (unsigned int i = 0; i < tempRegRFs.size(); i++) {
-        const TTAMachine::RegisterFile* rf = tempRegRFs.at(i);
+    for (unsigned int i = 0; i < tempRegRFVec.size(); i++) {
+        const TTAMachine::RegisterFile* rf = tempRegRFVec.at(i);
         for (int j = rf->size()-1; j >= 0; j--) {
             // if does not have a guard, only then used.
             // if has guard, try next.
@@ -2116,53 +2196,38 @@ bool
 RegisterCopyAdder::isAllowedUnit(
     const TTAMachine::FunctionUnit& fu, const ProgramOperation& po) {
     
-    bool result = true;
     for (int i = 0; i < po.inputMoveCount(); i++) {
-	TTAProgram::ProgramAnnotation::Id annoId = 
-	    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST;
-
-	std::set<TCEString> allowedUnits;
-
-	const TTAProgram::Move& move = po.inputMove(i).move();
-	const int annotationCount = move.annotationCount(annoId);
-
-	bool annoFound = false;
-	for (int j = 0; j < annotationCount; j++) {
-	    annoFound = true;
-	    std::string allowedFUName =
-		move.annotation(j, annoId).stringValue();
-	    allowedUnits.insert(allowedFUName);
-	}
-	if (annoFound) {
-	    if (!AssocTools::containsKey(allowedUnits, fu.name())) {
-            result = false;
-	    }
-	}
+        const TTAProgram::Move& move = po.inputMove(i).move();
+        if (move.hasAnnotations(
+                TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST) &&
+            !move.hasAnnotation(
+                TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST,
+                fu.name()))
+            return false;
+        if (move.hasAnnotations(
+                TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST) &&
+            !move.hasAnnotation(
+                TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST,
+                fu.name()))
+            return false;
     }
 
     for (int i = 0; i < po.outputMoveCount(); i++) {
-	TTAProgram::ProgramAnnotation::Id annoId = 
-	    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC;
-
-	std::set<TCEString> allowedUnits;
-	
-	TTAProgram::Move& move = po.outputMove(i).move();
-	const int annotationCount =
-	    move.annotationCount(annoId);
-	bool annoFound = false;
-	for (int j = 0; j < annotationCount; j++) {
-	    annoFound = true;
-	    std::string allowedFUName =
-		move.annotation(j, annoId).stringValue();
-	    allowedUnits.insert(allowedFUName);
-	}
-	if (annoFound) {
-	    if (!AssocTools::containsKey(allowedUnits, fu.name())) {
-            result = false;
-        }
-	}
+        const TTAProgram::Move& move = po.outputMove(i).move();
+        if (move.hasAnnotations(
+                TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC) &&
+            !move.hasAnnotation(
+                TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC,
+                fu.name()))
+            return false;
+        if (move.hasAnnotations(
+                TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_SRC) &&
+            !move.hasAnnotation(
+                TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_SRC,
+                fu.name()))
+            return false;
     }
-    return result;
+    return true;
 }
 
 /**

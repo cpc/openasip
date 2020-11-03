@@ -864,7 +864,9 @@ Bus::loadStateWithoutReferences(const ObjectState* state) {
     const string procName = "Bus::loadStateWithoutReferences";
 
     if (state->name() != OSNAME_BUS) {
-        throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
+        throw ObjectStateLoadingException(
+            __FILE__, __LINE__, procName,
+            "Invalid XML object state for a bus, name: " + state->name());
     }
 
     Component::loadState(state);
@@ -1152,7 +1154,8 @@ Bus::copy() const {
 void
 Bus::copyGuardsTo(Bus& other) const {
     for (int i = 0; i < guardCount(); ++i) {
-        guard(i)->copyTo(other);
+        if (!other.hasGuard(*guard(i)))
+            guard(i)->copyTo(other);
     }        
 }
 

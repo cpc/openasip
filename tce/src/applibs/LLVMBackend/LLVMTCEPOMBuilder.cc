@@ -50,8 +50,8 @@
 #include "SpecialRegisterPort.hh"
 #include "SequentialScheduler.hh"
 #include "InterPassData.hh"
-#include "PreBypassBasicBlockScheduler.hh"
-#include "LLVMTCEDataDependenceGraphBuilder.hh"
+//#include "PreBypassBasicBlockScheduler.hh"
+//#include "LLVMTCEDataDependenceGraphBuilder.hh"
 #include "FUPort.hh"
 
 namespace llvm {
@@ -102,11 +102,14 @@ LLVMTCEPOMBuilder::emitMove(
     TCEString opName(targetMachine().getSubtargetImpl(
                          *mi->getParent()->getParent()->getFunction())->
                      getInstrInfo()->getName(mi->getOpcode()));
-#else
+#elif LLVM_OLDER_THAN_11
     TCEString opName(targetMachine().getSubtargetImpl(
                          mi->getParent()->getParent()->getFunction())->
                      getInstrInfo()->getName(mi->getOpcode()));
-
+#else
+    TCEString opName(targetMachine().getSubtargetImpl(
+                         mi->getParent()->getParent()->getFunction())->
+                     getInstrInfo()->getName(mi->getOpcode()).str());
 #endif
     /* Non-trigger move. */
     if (opName == "MOVE")
@@ -204,85 +207,8 @@ bool
 LLVMTCEPOMBuilder::doFinalization(Module& m) {
 
     LLVMTCEBuilder::doFinalization(m);
+    prog_->convertSymbolRefsToInsRefs();
 
-    TTAProgram::Program& prog = *result();
-    /* update the operation and operand info of non-trigger moves */
-    for (int procIndex = 0; procIndex < prog.procedureCount(); ++procIndex) {
-
-        std::map<std::string, const TTAMachine::HWOperation*> 
-            lastTriggeredOperations;
-        std::map<std::string, std::set<TTAProgram::TerminalFUPort*> > 
-            pendingOperandTerminals;
-        const TTAProgram::Procedure& proc = prog.procedureAtIndex(procIndex);
-        for (int instrIndex = 0; instrIndex < proc.instructionCount(); 
-             ++instrIndex) {
-            TTAProgram::Instruction& instr = 
-                proc.instructionAtIndex(instrIndex);     
-            
-            TTAProgram::TerminalFUPort* termFUportSrc = 
-                dynamic_cast<TTAProgram::TerminalFUPort*>(
-                    &instr.move(0).source());
-            TTAProgram::TerminalFUPort* termFUportDst = 
-                dynamic_cast<TTAProgram::TerminalFUPort*>(
-                    &instr.move(0).destination());
-
-            if (termFUportDst != NULL) {
-                if (termFUportDst->isTriggering()) {
-                    lastTriggeredOperations[
-                        termFUportDst->functionUnit().name()] =
-                        termFUportDst->hwOperation();
-
-                    std::set<TTAProgram::TerminalFUPort*>& pending =
-                        pendingOperandTerminals[
-                            termFUportDst->functionUnit().name()];
-                    std::set<TTAProgram::TerminalFUPort*>::const_iterator i = 
-                        pending.begin();
-                    const TTAMachine::HWOperation& hwOp = 
-                        *termFUportDst->hwOperation();
-                    for (; i != pending.end(); ++i) {
-                        TTAProgram::TerminalFUPort& term = (**i);
-                        term.setOperation(hwOp);
-                        term.setOperationIndex(
-                            hwOp.io(
-                                dynamic_cast<const TTAMachine::FUPort&>(
-                                    term.port())));
-                    }
-                    pendingOperandTerminals.clear();
-                } else { 
-                    // operand move 
-                    pendingOperandTerminals[
-                        termFUportDst->functionUnit().name()].insert(
-                            termFUportDst);
-                }
-            }
-
-            if (termFUportSrc != NULL && !termFUportSrc->isRA()) {
-                // fix the output moves, assume the operation is the
-                // previously triggered one in the FU
-                const TTAMachine::HWOperation& hwOp = 
-                    *lastTriggeredOperations[
-                        termFUportSrc->functionUnit().name()];
-                termFUportSrc->setOperation(hwOp);
-                termFUportSrc->setOperationIndex(
-                    hwOp.io(
-                        dynamic_cast<const TTAMachine::FUPort&>(
-                            termFUportSrc->port())));
-            }
-        }
-    }    
-
-    InterPassData ipData;
-    if (ParallelizeMoves) {        
-        LLVMTCEDataDependenceGraphBuilder ddgBuilder(ipData);
-        PreBypassBasicBlockScheduler parScheduler(ipData, ddgBuilder);
-        CATCH_ANY(parScheduler.handleProgram(prog, *mach_));
-        TTAProgram::Program::writeToTPEF(prog, "parallel.tpef");
-    } else {
-        SequentialScheduler seqScheduler(ipData);
-        seqScheduler.handleProgram(*result(), *mach_);
-        TTAProgram::Program::writeToTPEF(prog, "sequential.tpef");
-    }
-    std::cout << POMDisassembler::disassemble(prog) << std::endl;
     return true;
 }
 

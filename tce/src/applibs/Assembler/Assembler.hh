@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2017 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Mikael Lepistö 2005 (tmlepist-no.spam-cs.tut.fi)
  * @author Pekka Jääskeläinen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Henry Linjamäki 2017 (henry.linjamaki-no.spam-tut.fi)
  *
  * @note rating yellow
  */
@@ -37,6 +38,7 @@
 
 #include "Exception.hh"
 #include "ParserStructs.hh"
+#include "AssemblyParserDiagnostic.hh"
 
 namespace TPEF {
     class BinaryStream;
@@ -52,24 +54,13 @@ namespace TTAMachine {
  */
 class Assembler {
 public:
-    /**
-     * Compiler error and warning message type.
-     */
-    struct CompilerMessage {
-        std::string message;       ///< Message.
-        std::string assemblerLine; ///< Assembly code line number.
-        UValue lineNumber;         ///< Message generation line number.
-    };
-
     Assembler(
         TPEF::BinaryStream& assemblerFile,
         TTAMachine::Machine& assemblerMachine);
 
     TPEF::Binary* compile();
 
-    UValue warningCount() const;
-
-    const CompilerMessage& warning(UValue index) const;
+    const std::set<CompilerMessage>& warnings() const;
 
     const CompilerMessage& error() const;
 
@@ -91,14 +82,11 @@ private:
     /// Last thrown error message
     CompilerMessage error_;
 
-    /// Warning messages.
-    std::vector<CompilerMessage> warnings_;
-
-    /// New line start positions in assembly file.
-    std::vector<UValue> lineStarts_;
+    /// Parser messages.
+    AssemblyParserDiagnostic parserDiagnostic_;
 
     /// String containing code to compile.
-    std::string asmCode_;
+    std::shared_ptr<std::string> asmCode_;
 };
 
 #endif

@@ -199,7 +199,7 @@ RFGuardDialog::onRFChoice(wxCommandEvent&) {
 
     indexChoice_->Clear();
 
-    RegisterFile* rf = selectedRF();
+    const RegisterFile* rf = selectedRF();
     for (int i = 0; i < rf->numberOfRegisters(); i++) {
         wxString index = WxConversion::toWxString(i);
         indexChoice_->Append(index);
@@ -225,7 +225,7 @@ RFGuardDialog::onRFChoice(wxCommandEvent&) {
  *
  * @return Pointer to the selected refister file.
  */
-RegisterFile*
+const RegisterFile*
 RFGuardDialog::selectedRF() const {
     string name = WxConversion::toString(nameChoice_->GetStringSelection());
     Machine::RegisterFileNavigator navigator =
@@ -262,7 +262,7 @@ RFGuardDialog::onOK(wxCommandEvent&) {
         if (!adding_ || (adding_ && singleGuard)) {
             // add / edit one guard
             new RegisterGuard(newInverted_, *selectedRF(), newIndex_, 
-                              *bus_);
+                              bus_);
         } else {
             // add new guard for every index
 
@@ -302,7 +302,7 @@ RFGuardDialog::onOK(wxCommandEvent&) {
             for (int index = 0; index < selectedRF()->numberOfRegisters(); 
                  ++index) {
                 new RegisterGuard(newInverted_, *selectedRF(), index, 
-                              *bus_);
+                              bus_);
             }
         }
     } catch (ComponentAlreadyExists& e) {
@@ -327,7 +327,7 @@ RFGuardDialog::onOK(wxCommandEvent&) {
 void
 RFGuardDialog::onCancel(wxCommandEvent&) {
     if (adding_ == false) {
-        new RegisterGuard(inverted_, *rf_, index_, *bus_);
+        new RegisterGuard(inverted_, *rf_, index_, bus_);
     }
     EndModal(wxID_CANCEL);
 }

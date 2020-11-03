@@ -253,7 +253,7 @@ VLIWConnectIC : public DesignSpaceExplorerPlugin {
               
                 RegisterFile* rf = new RegisterFile(
                     "RF_" + Conversion::toString(width),
-                    32, // 32 seems like a good default size for RF
+                    512, // high enough to avoid register spills
                     width,
                     readBuses[widx].size(),
                     writeBuses[widx].size(),
@@ -306,15 +306,21 @@ VLIWConnectIC : public DesignSpaceExplorerPlugin {
             Bus* bus = busNavi.item(i);
             
             new UnconditionalGuard(false, *bus);
-            new RegisterGuard(false, *boolrf, 0, *bus);
-            new RegisterGuard(true, *boolrf, 0, *bus);
-            new RegisterGuard(false, *boolrf, 1, *bus);
-            new RegisterGuard(true, *boolrf, 1, *bus);
+            new RegisterGuard(false, *boolrf, 0, bus);
+            new RegisterGuard(true, *boolrf, 0, bus);
+            new RegisterGuard(false, *boolrf, 1, bus);
+            new RegisterGuard(true, *boolrf, 1, bus);
         }
 
         for (int i = 0; i < busNavi.count(); i++) {
             Bus* bus = busNavi.item(i);
             bus->setImmediateWidth(shortImmediateWidth_);
+
+            // connect each bus to immediate unit to avoid register files access
+            ImmediateUnit* immu = mach->immediateUnitNavigator().item(0);
+            if (!immu->port(0)->outputSocket()->isConnectedTo(*bus)) {
+                immu->port(0)->outputSocket()->attachBus(*bus->segment(0));
+            }
         }
 
         // add unconnected long immediate buses

@@ -50,7 +50,7 @@ public:
     virtual ULongWord start() const;
     virtual ULongWord end() const;
 
-    virtual std::string name() const override;
+    virtual TCEString name() const override;
     virtual void setName(const std::string& name) override;
     virtual void setWidth(int width) override;
     virtual void setAddressBounds(ULongWord start, ULongWord end) override;

@@ -67,8 +67,10 @@ public:
 
     virtual void bindPort(int operand, const FUPort& port);
     virtual void unbindPort(const FUPort& port);
+    int operandCount() const;
     virtual FUPort* port(int operand) const;
     bool isBound(const FUPort& port) const;
+    bool isBound(int operand) const;
     int io(const FUPort& port) const;
 
     virtual ObjectState* saveState() const;

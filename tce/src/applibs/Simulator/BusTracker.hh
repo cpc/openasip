@@ -53,18 +53,22 @@ class SimulatorFrontend;
 class BusTracker : public Listener {
 public:
     BusTracker(
-        SimulatorFrontend& frontend, 
+        SimulatorFrontend& frontend,
+        std::ostream* traceStream);
+    BusTracker(
+        SimulatorFrontend& frontend,
         std::ostream& traceStream);
     virtual ~BusTracker();
 
     virtual void handleEvent();
-    
+
 private:
     static const int COLUMN_WIDTH;
     static const std::string COLUMN_SEPARATOR;
     /// the simulator frontend used to access simulation data
     SimulatorFrontend& frontend_;
-    std::ostream& traceStream_;
+    bool ownsTraceStream_;
+    std::ostream* traceStream_;
 };
 
 #endif

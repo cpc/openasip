@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -31,13 +31,15 @@
  * functions that instantiate these custom classes. The factory functions 
  * constitute the plugin interface.
  *
- * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2004-2015 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
  */
 
 #ifndef TTA_OSAL_LANGUAGE_DEFINITIONS_HH
 #define TTA_OSAL_LANGUAGE_DEFINITIONS_HH
+
+#include <vector>
 
 #include "tce_config.h"
 #include "OperationContext.hh"
@@ -72,8 +74,7 @@
  */
 #define OPERATION_COMMON(OPNAME) \
 public: \
-OPNAME##_Behavior(const Operation& parent) : parent_(parent) {}; \
-    const Operation& parent_; \
+OPNAME##_Behavior(const Operation& parent) : OperationBehavior(parent) {}; \
 private: \
     mutable OperationPool opPool_;
 
@@ -128,7 +129,7 @@ public:
  * semicolon after it, but the block ender (e.g., END_OPERATION()) does. 
  */
 #define END_OPERATION(OPNAME) \
-};\
+}; \
 extern "C" { \
     OperationBehavior* createOpBehavior_##OPNAME(const Operation& parent) {\
         return new OPNAME##_Behavior(parent);\
@@ -317,6 +318,42 @@ bool simulateTrigger( \
 #define HFLT(OPERAND) (io[(OPERAND) -1]->halfFloatWordValue())
 
 /**
+ * Operand value accessor macros for raw data field in value_ of SimValue.
+ *
+ * Needed for vector operations to access subwords.
+ */
+#define SUBWORD1(OPERAND, ELEMENT) \
+    (io[(OPERAND) - 1]->bitElement(ELEMENT))
+#define SUBWORD8(OPERAND, ELEMENT) \
+    (io[(OPERAND) - 1]->byteElement(ELEMENT))
+#define SUBWORD16(OPERAND, ELEMENT) \
+    (io[(OPERAND) - 1]->halfWordElement(ELEMENT))
+#define SUBWORD32(OPERAND, ELEMENT) \
+    (io[(OPERAND) - 1]->wordElement(ELEMENT))
+#define SET_SUBWORD1(OPERAND, ELEMENT, VALUE) \
+    (io[(OPERAND) - 1]->setBitElement(ELEMENT, VALUE))
+#define SET_SUBWORD8(OPERAND, ELEMENT, VALUE) \
+    (io[(OPERAND) - 1]->setByteElement(ELEMENT, VALUE))
+#define SET_SUBWORD16(OPERAND, ELEMENT, VALUE) \
+    (io[(OPERAND) - 1]->setHalfWordElement(ELEMENT, VALUE))
+#define SET_SUBWORD32(OPERAND, ELEMENT, VALUE) \
+    (io[(OPERAND) - 1]->setWordElement(ELEMENT, VALUE))
+
+#define SUBFLOAT16(OPERAND, ELEMENT) \
+    (io[(OPERAND) - 1]->halfFloatElement(ELEMENT))
+#define SUBFLOAT32(OPERAND, ELEMENT) \
+    (io[(OPERAND) - 1]->floatElement(ELEMENT))
+#define SUBFLOAT64(OPERAND, ELEMENT) \
+    (io[(OPERAND) - 1]->doubleFloatElement(ELEMENT))
+
+#define SET_SUBFLOAT16(OPERAND, ELEMENT, VALUE) \
+    (io[(OPERAND) - 1]->setHalfFloatElement(ELEMENT, VALUE))
+#define SET_SUBFLOAT32(OPERAND, ELEMENT, VALUE) \
+    (io[(OPERAND) - 1]->setFloatElement(ELEMENT, VALUE))
+#define SET_SUBFLOAT64(OPERAND, ELEMENT, VALUE) \
+    (io[(OPERAND) - 1]->setDoubleWordElement(ELEMENT, VALUE))
+
+/**
  * Operand accessor macro.
  *
  * This macro must be used as lvalue when assigning values to output operands.
@@ -332,6 +369,14 @@ bool simulateTrigger( \
  * Access the program counter register.
  */
 #define PROGRAM_COUNTER (context.programCounter())
+
+/**
+ * Updates the program counter. This includes transport delay (the number
+ * of delay slots in the machine).
+ */
+#define SET_PROGRAM_COUNTER(PCVAL) \
+    context.programCounter() = (PCVAL); \
+    context.setUpdateProgramCounter(true)
 
 /**
  * Instruct the GCU to save the return address register.
@@ -443,3 +488,38 @@ bool simulateTrigger( \
  * Returns the function unit name associated to the OperationContext.
  */
 #define FU_NAME (context.functionUnitName())
+
+/**
+ * Returns the delay cycle amount caused by pipeline length.
+ */
+#define BRANCH_DELAY_CYCLES (context.branchDelayCycles())
+
+
+/**
+ * Opening macro for user defined input validation code.
+ */
+#define INPUT_VALIDATION \
+virtual bool areValid( \
+    const OperationBehavior::InputOperandVector& inputs, \
+    const OperationContext& context) const { \
+    (void)context; \
+    (void)inputs; \
+    std::vector<const SimValue*> io; \
+    for (size_t i = 0; i < inputs.size(); i++) { \
+        const SimValue* tmp = &inputs.at(i); \
+        io.push_back(tmp); \
+    }
+
+/**
+ * Closing macro for user defined input validation code.
+ */
+#define END_INPUT_VALIDATION \
+    return false; \
+}
+
+/**
+ * Macro to accept given inputs in the user validation code.
+ */
+#define DECLARE_VALID \
+    return true
+

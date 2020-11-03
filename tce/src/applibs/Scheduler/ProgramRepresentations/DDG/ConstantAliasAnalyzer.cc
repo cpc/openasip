@@ -39,34 +39,64 @@
 #include "Move.hh"
 #include "DataDependenceGraph.hh"
 #include "Terminal.hh"
+#include "Operation.hh"
+#include "MoveNodeSet.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;
 
-bool 
-ConstantAliasAnalyzer::isAddressTraceable(
-    DataDependenceGraph& ddg, const ProgramOperation& po) {
 
-    const MoveNode *rawSrc = addressOperandMove(po);
 
-    while (rawSrc != NULL && rawSrc->isMove() && 
-           rawSrc->move().source().isGPR()) {
-        rawSrc = ddg.onlyRegisterRawSource(*rawSrc);
-    }
-    if (rawSrc == NULL) {
-        return false;
-    }
-           
-    if (rawSrc->isMove()) {
-        const Move& move = rawSrc->move();
-        if (!move.isCall()) {
-            const Terminal& src = move.source();
-            if (src.isImmediate()) {
-                return true;
+bool ConstantAliasAnalyzer::getConstantAddress(
+    DataDependenceGraph& ddg, const ProgramOperation& po,
+    long& addr, long& loopIncrement) {
+    const MoveNode* mn = addressOperandMove(po);
+    addr = 0;
+    while (mn != NULL && mn->isMove()) {
+        if (mn->isSourceVariable()) {
+            MoveNode* prevSrc = ddg.onlyRegisterRawSource(*mn,2,2);
+            MoveNode* loopSrc = ddg.onlyRegisterRawSource(*mn,2,1);
+            if (prevSrc == NULL) {
+                break;
+            }
+            if (loopSrc) {
+                if (!findIncrement(*loopSrc, loopIncrement)) {
+                    return false;
+                }
+            }
+            mn = prevSrc;
+        } else {
+            if (mn->isSourceOperation()) {
+                const MoveNode* incrementInput = findIncrement(*mn, addr);
+                if (incrementInput != NULL) {
+                    mn = incrementInput;
+                } else {
+                    mn = searchLoopIndexBasedIncrement(ddg, *mn, loopIncrement);
+                }
+            } else {
+                if (mn->isMove()) {
+                    const Move& move = mn->move();
+                    if (!move.isFunctionCall()) {
+                        const Terminal& src = move.source();
+                        if (src.isImmediate()) {
+                            addr += src.value().unsignedValue();
+                            return true;
+                        }
+                    }
+                }
+                return false;
             }
         }
     }
     return false;
+}
+
+bool
+ConstantAliasAnalyzer::isAddressTraceable(
+    DataDependenceGraph& ddg, const ProgramOperation& po) {
+    long tmp;
+    long tmp2 = 0;
+    return getConstantAddress(ddg, po, tmp, tmp2);
 }
 
 // TODO: does not handle unaligned 64-bit memory operations well.
@@ -74,30 +104,27 @@ MemoryAliasAnalyzer::AliasingResult
 ConstantAliasAnalyzer::analyze(
     DataDependenceGraph& ddg, 
     const ProgramOperation& pop1, 
-    const ProgramOperation& pop2) {
+    const ProgramOperation& pop2, 
+    MoveNodeUse::BBRelation bbRel) {
 
-    if (isAddressTraceable(ddg, pop1) && isAddressTraceable(ddg, pop2)) {
+    long addr1, addr2;
+    long inc1 = 0, inc2 = 0;
 
-        const MoveNode *rawSrc1 = addressOperandMove(pop1);
-        while (rawSrc1 != NULL && rawSrc1->isMove() && rawSrc1->move().
-               source().isGPR()) {
-            rawSrc1 = ddg.onlyRegisterRawSource(*rawSrc1);
-        }
-
-        const MoveNode *rawSrc2 = addressOperandMove(pop2);
-        while (rawSrc2 != NULL && rawSrc2->isMove() && rawSrc2->move().
-               source().isGPR()) {
-            rawSrc2 = ddg.onlyRegisterRawSource(*rawSrc2);
-        }
-
-        int addr1 = rawSrc1->move().source().value().intValue();
-        int addr2 = rawSrc2->move().source().value().intValue();
-
-        return compareIndeces(addr1, addr2, pop1, pop2);
-    } else {
+    if (!getConstantAddress(ddg, pop1, addr1, inc1) ||
+        !getConstantAddress(ddg, pop2, addr2, inc2)) {
         return ALIAS_UNKNOWN;
     }
 
+    // if updated different amount, may overlap?
+    if (inc1 != inc2) {
+        return ALIAS_UNKNOWN;
+    }
+
+    if (bbRel != MoveNodeUse::LOOP) {
+        return compareIndeces(addr1, addr2, pop1, pop2);
+    } else {
+        return compareIndeces(addr1, addr2+inc2, pop1, pop2);
+    }
 }
 
 ConstantAliasAnalyzer::~ConstantAliasAnalyzer() {}

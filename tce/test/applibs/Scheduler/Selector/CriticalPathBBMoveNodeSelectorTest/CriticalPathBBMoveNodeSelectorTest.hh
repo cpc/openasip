@@ -38,7 +38,7 @@
 #include "Program.hh"
 #include "ControlFlowGraph.hh"
 #include "POMDisassembler.hh"
-#include "CriticalPathBBMoveNodeSelector.hh"
+#include "DDGMoveNodeSelector.hh"
 #include "MoveNode.hh"
 #include "SimpleResourceManager.hh"
 #include "BasicBlock.hh"

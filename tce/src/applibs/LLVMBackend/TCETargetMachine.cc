@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University.
+    Copyright (c) 2002-2020 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -49,15 +49,24 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/MC/MCInstPrinter.h"
 #include "llvm/CodeGen/MachineModuleInfo.h"
+#include "llvm/ADT/APFloat.h"
 
 #include "TCEStubTargetMachine.hh"
 #include "TCETargetMachine.hh"
 #include "TCEMCAsmInfo.hh"
 #include "LLVMPOMBuilder.hh"
 #include "PluginTools.hh"
+#include "MathTools.hh"
 #include "FileSystem.hh"
 #include "ADFSerializer.hh"
 #include "Conversion.hh"
+#include "MachineInfo.hh"
+#include "MachineConnectivityCheck.hh"
+#include "Machine.hh"
+#include "ImmediateAnalyzer.hh"
+#include "ImmInfo.hh"
+#include <llvm/Transforms/Scalar.h>
+
 
 #include <iostream>
 
@@ -70,7 +79,7 @@ using namespace llvm;
 
 Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach);
 Pass* createLinkBitcodePass(Module& inputCode);
-Pass* createProgramPartitionerPass();
+Pass* createProgramPartitionerPass(std::string partitioningStrategy);
 Pass* createInstructionPatternAnalyzer();
 
 class DummyInstPrinter : public MCInstPrinter {
@@ -150,10 +159,22 @@ TCETargetMachine::TCETargetMachine(
     // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
     plugin_(NULL), pluginTool_(NULL) {
 }
-#else
+#elif LLVM_OLDER_THAN_11
 TCETargetMachine::TCETargetMachine(
     const Target &T, const Triple& TTriple,
     const std::string& CPU, const std::string &FS,
+    const TargetOptions &Options,
+    Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM, CodeGenOpt::Level OL, bool) :
+    TCEBaseTargetMachine(T, TTriple, CPU, FS, Options,
+                         RM?*RM:Reloc::Model::Static, CM?*CM:CodeModel::Small, OL),
+    // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
+    // Note: CodeModel does not have "Default" named member. "Small" is ok?
+    plugin_(NULL), pluginTool_(NULL) {
+}
+#else
+TCETargetMachine::TCETargetMachine(
+    const Target &T, const Triple& TTriple,
+    const llvm::StringRef& CPU, const llvm::StringRef& FS,
     const TargetOptions &Options,
     Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM, CodeGenOpt::Level OL, bool) :
     TCEBaseTargetMachine(T, TTriple, CPU, FS, Options,
@@ -175,10 +196,13 @@ TCETargetMachine::~TCETargetMachine() {
 }
 
 void 
-TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
+TCETargetMachine::setTargetMachinePlugin(
+    TCETargetMachinePlugin& plugin, TTAMachine::Machine& target) {
 
+    setTTAMach(&target);
     plugin_ = &plugin;
     missingOps_.clear();
+    promotedOps_.clear();
     MVT::SimpleValueType defType = plugin_->getDefaultType();
     if (!plugin_->hasSDIV()) missingOps_.insert(std::make_pair(llvm::ISD::SDIV, defType));
     if (!plugin_->hasUDIV()) missingOps_.insert(std::make_pair(llvm::ISD::UDIV, defType));
@@ -207,18 +231,16 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
 
     initAsmInfo();
 
-    bool is64bit = plugin_->is64bit();
-
     // Set data layout with correct stack alignment.
-    unsigned alignBits = getMaxMemoryAlignment() * 8;
+    unsigned alignBits = MachineInfo::maxMemoryAlignment(target) * 8;
     TCEString dataLayoutStr("");
     if (plugin_->isLittleEndian()) {
-        dataLayoutStr += is64bit? "e-p:64:64:64" : "e-p:32:32:32";
+        dataLayoutStr += target.is64bit() ? "e-p:64:64:64" : "e-p:32:32:32";
     } else {
         dataLayoutStr += "E-p:32:32:32";
     }
     dataLayoutStr += "-a0:0:" + Conversion::toString(alignBits);
-    if (is64bit) {
+    if (target.is64bit()) {
         dataLayoutStr += "-i1:8:64";
         dataLayoutStr += "-i8:8:64";
         dataLayoutStr += "-i16:16:64";
@@ -269,11 +291,6 @@ TCEPassConfig::addInstSelector()
  */
 void
 TCEPassConfig::addPreRegAlloc() {
-    LLVMTCECmdLineOptions *options =
-        dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
-    addPass(createProgramPartitionerPass());
-    if (options != NULL && options->analyzeInstructionPatterns())
-        addPass(createInstructionPatternAnalyzer());
 }
 
 
@@ -330,6 +347,18 @@ TCETargetMachine::missingOperations() {
 
 /**
  * Returns list of llvm::ISD SelectionDAG opcodes for operations that are not
+ * supported in the target architecture but will be promoted.
+ *
+ * The returned operations have to be promoted to emulation function calls
+ * or emulation patterns in TCETargetLowering.
+ */
+const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >*
+TCETargetMachine::promotedOperations() {
+    return &promotedOps_;
+}
+
+/**
+ * Returns list of llvm::ISD SelectionDAG opcodes for operations that are not
  * supported in the target architecture but will be custom-selected.
  */
 const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >*
@@ -348,7 +377,139 @@ TCETargetMachine::createPassConfig(
     return tpc;
 }
 
+/**
+ * Returns true if the value can be encoded as immediate to register.
+ */
+bool
+TCETargetMachine::canEncodeAsMOVI(const llvm::MVT& vt, int64_t val) const {
+    // setTargetMachinePlugin() calls calculateSupportedImmediateLimits.
+    assert(ttaMach_ && "setTargetMachinePlugin() was not called");
+    switch (vt.SimpleTy) {
+        case MVT::i1:
+            return (1 <= largestImm_);
+        case MVT::i8:
+        case MVT::i16:
+        case MVT::i32:
+        case MVT::i64:
+            return smallestImm_ == INT64_MIN || largestImm_ == UINT64_MAX ||
+                ((int64_t)smallestImm_ <= val &&
+                (val < 0 || val <= (int64_t)largestImm_));
+        default: assert(false && "Not implemented or supported.");
+    }
+    return false;
+}
+
+/**
+ * Returns true if the floating point value can be encoded as immediate to
+ * register.
+ */
+bool
+TCETargetMachine::canEncodeAsMOVF(const llvm::APFloat& fp) const {
+    int fpBitWidth = static_cast<int>(
+        llvm::APFloat::getSizeInBits(fp.getSemantics()));
+    return fpBitWidth <= SupportedFPImmWidth_;
+}
+
+void
+TCETargetMachine::calculateSupportedImmediates() {
+    using MCC = MachineConnectivityCheck;
+
+    // FIX ME: All 32 bit regs are assumed to be RF-connected.
+    std::pair<int64_t, uint64_t> moveImm{
+        std::numeric_limits<int64_t>::max(),
+        std::numeric_limits<uint64_t>::min() };
+    assert(ttaMach_);
+    for (auto& rf : ttaMach_->registerFileNavigator()) {
+        if (rf->width() != 32) continue;
+
+        for (auto& bus : ttaMach_->busNavigator()) {
+            if (!MCC::busConnectedToRF(*bus, *rf)
+                || bus->immediateWidth() == 0) {
+                continue;
+            }
+
+            if (bus->immediateWidth() >= 32) {
+                moveImm.first = -(1ll << (32-1));
+                moveImm.second = (1ll << 32)-1;
+                break;
+            } else {
+                std::pair<int64_t, uint64_t> imm =
+                    MathTools::bitsToIntegerRange<int64_t, uint64_t>(
+                        bus->immediateWidth(),
+                        bus->signExtends());
+
+                moveImm.first = std::min(moveImm.first, imm.first);
+                moveImm.second = std::max(moveImm.second, imm.second);
+            }
+        }
+    }
+
+    for (auto& iu : ttaMach_->immediateUnitNavigator()) {
+        for (auto& it : ttaMach_->instructionTemplateNavigator()) {
+            int supportedWidth = it->supportedWidth(*iu);
+            if (supportedWidth >= 32) {
+                moveImm.first = -(1ll << (32-1));
+                moveImm.second = (1ll << 32)-1;
+                break;
+            } else {
+                std::pair<int64_t, uint64_t> imm =
+                    MathTools::bitsToIntegerRange<int64_t, uint64_t>(
+                        supportedWidth, iu->signExtends());
+
+                moveImm.first = std::min(moveImm.first, imm.first);
+                moveImm.second = std::max(moveImm.second, imm.second);
+            }
+        }
+    }
+    smallestImm_ = moveImm.first;
+    largestImm_ = moveImm.second;
+
+    for (auto* rf : ttaMach_->registerFileNavigator()) {
+        if (!MCC::rfConnected(*rf)) continue;
+
+        SupportedFPImmWidth_ = std::max(
+            SupportedFPImmWidth_,
+            ImmInfo::registerImmediateLoadWidth(*rf, false));
+    }
+}
+
 void
 TCEPassConfig::addPreSched2() {
     addPass(&IfConverterID);
+}
+
+int TCETargetMachine::getLoadOpcode(int asid, int align, const llvm::EVT& vt) const {
+#ifdef LLVM_OLDER_THAN_11
+    int laneCount = vt.getVectorNumElements();
+#else
+    int laneCount = vt.getVectorElementCount().Min;
+#endif
+    int laneSize = vt.getScalarSizeInBits();
+    int vecSize = laneCount * laneSize;
+    TCEString relaxedName = "LD"; relaxedName << laneSize << "X" << laneCount;
+    TCEString strictName = "LD"; strictName << vecSize;
+    bool allowStrict = vecSize <= align;
+
+    auto fuNav = ttaMach_->functionUnitNavigator();
+    bool found = false;
+    for (int i = 0; i < fuNav.count(); i++) {
+        auto fu =  fuNav.item(i);
+        if (fu->hasOperation(relaxedName) && fu->hasAddressSpace()) {
+            auto as = fu->addressSpace();
+            if (as->hasNumericalId(asid)) {
+                found = true;
+                break;
+            }
+        }
+        if (allowStrict) {
+            if (fu->hasOperation(strictName) && fu->hasAddressSpace()) {
+                auto as = fu->addressSpace();
+                if (as->hasNumericalId(asid)) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+    }
+    return found ? plugin_->getLoadOpcode(vt) : -1;
 }

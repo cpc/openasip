@@ -29,6 +29,7 @@
  * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
  * @author Pekka Jääskeläinen 2005,2010 (pjaaskel-no.spam-cs.tut.fi)
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2005-2009 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -100,7 +101,10 @@ MachineStateBuilder::~MachineStateBuilder() {
  * @exception IllegalMachine If machine state building fails.
  */
 MachineState*
-MachineStateBuilder::build(const Machine& machine, MemorySystem& memSys) {
+MachineStateBuilder::build(
+    const Machine& machine, 
+    MemorySystem& memSys) {
+
     StateLocator locator;
     detectors_ = NULL;
     return buildMachineState(machine, memSys, locator);
@@ -122,8 +126,11 @@ MachineStateBuilder::build(const Machine& machine, MemorySystem& memSys) {
  */
 MachineState*
 MachineStateBuilder::build(
-    const Machine& machine, MemorySystem& memSys,
-    FUConflictDetectorIndex& detectors, bool throwWhenConflict) {
+    const Machine& machine, 
+    MemorySystem& memSys,
+    FUConflictDetectorIndex& detectors,
+    bool throwWhenConflict) {
+
     StateLocator locator;
     detectors_ = &detectors;
     throwWhenConflict_ = throwWhenConflict;
@@ -141,7 +148,9 @@ MachineStateBuilder::build(
  */
 MachineState*
 MachineStateBuilder::build(
-    const Machine& machine, MemorySystem& memSys, StateLocator& locator) {
+    const Machine& machine,
+    MemorySystem& memSys,
+    StateLocator& locator) {
     detectors_ = NULL;
     return buildMachineState(machine, memSys, locator);
 }
@@ -157,15 +166,21 @@ MachineStateBuilder::build(
  */
 MachineState*
 MachineStateBuilder::buildMachineState(
-    const Machine& machine, MemorySystem& memSys, StateLocator& locator) {
+    const Machine& machine, 
+    MemorySystem& memSys,
+    StateLocator& locator) {
+    
     MachineState* machineState = new MachineState();
 
     int controlUnitGuardLatency = 0;
     if (machine.controlUnit() != NULL) {
         ControlUnit* controlUnit = machine.controlUnit();
         /// @todo This assumes that natural word width of GCU is 4 MAUs!
+        int WordWidthInMAUs = 1;
+
         GCUState* gcu = new GCUState(
-            controlUnit->delaySlots() + 1, 4);
+            (controlUnit->delaySlots() + 1), 4, controlUnit->delaySlots(),
+            WordWidthInMAUs);
         machineState->addGCUState(gcu);
         controlUnitGuardLatency  = controlUnit->globalGuardLatency();
 
@@ -285,9 +300,16 @@ MachineStateBuilder::buildMachineState(
                             Texts::TXT_ILLEGAL_PROGRAM_PORT_STATE_NOT_FOUND).
                         str());
                 }
-	
                 targetRegister = &port;
-	
+
+                // 0-cycle guard latency means reading the value directly
+                // from the port.
+                if (guardLatency == 0) {
+                    GuardState* guardState =
+                        new DirectGuardState(*targetRegister);
+                    machineState->addGuardState(guardState, *guard);
+                    continue;
+                }
             } else if (registerGuard != NULL) {
 	
                 RegisterFileState& unit = 
@@ -305,6 +327,16 @@ MachineStateBuilder::buildMachineState(
                 
                 targetRegister = 
                     &unit.registerState(registerGuard->registerIndex());
+
+                // Values of registers are written later than guard are evaluated,
+                // so in case of 1-cycle register guard, can use direct guard
+                // without any pipeline.
+                if (guardLatency == 1) {
+                    GuardState* guardState =
+                        new DirectGuardState(*targetRegister);
+                    machineState->addGuardState(guardState, *guard);
+                    continue;
+                }
             } else if (uncondGuard != NULL) {
                 // do not create a state object for unconditional guards,
                 // it makes no sense
@@ -313,15 +345,9 @@ MachineStateBuilder::buildMachineState(
                 abortWithError("Unknown guard type.");
             }   
 
-            if (guardLatency == 1) {
-                GuardState* guardState = 
-                    new OneClockGuardState(*targetRegister);
-                machineState->addGuardState(guardState, *guard);
-            } else {
-                GuardState* guardState = 
-                    new GuardState(*targetRegister, guardLatency);
-                machineState->addGuardState(guardState, *guard);
-            }
+            GuardState* guardState =
+                new GuardState(*targetRegister, guardLatency);
+            machineState->addGuardState(guardState, *guard);
         }
     }
 
@@ -339,7 +365,9 @@ MachineStateBuilder::buildMachineState(
  */
 void
 MachineStateBuilder::addVirtualOpcodeSettingPortsToFU(
-    MachineState& machineState, FUState& state, FunctionUnit& unit) {
+    MachineState& machineState,
+    FUState& state,
+    FunctionUnit& unit) {
     for (int i = 0; i < unit.portCount(); i++) {
         BaseFUPort& port = *unit.port(i);
 

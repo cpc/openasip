@@ -33,6 +33,9 @@
  * @note rating: red
  */
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wunused-parameter")
+
 #include "LLVMAliasAnalyzer.hh"
 
 #include "CompilerWarnings.hh"
@@ -55,6 +58,8 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 #include "Move.hh"
 #include "DataDependenceGraph.hh"
 #include "Terminal.hh"
+
+POP_COMPILER_DIAGS
 
 using namespace TTAProgram;
 using namespace TTAMachine;
@@ -102,7 +107,12 @@ MemoryAliasAnalyzer::AliasingResult
 LLVMAliasAnalyzer::analyze(
     DataDependenceGraph& ddg, 
     const ProgramOperation& pop1, 
-    const ProgramOperation& pop2) {
+    const ProgramOperation& pop2,
+    MoveNodeUse::BBRelation bbInfo) {
+
+    if (bbInfo) {
+        return ALIAS_UNKNOWN;
+    }
 
     if (!isAddressTraceable(ddg, pop1) || 
         !isAddressTraceable(ddg, pop2) ||

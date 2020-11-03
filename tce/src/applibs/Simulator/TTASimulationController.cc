@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2020 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -54,11 +54,6 @@ using namespace TTAProgram;
 /**
  * Constructor.
  *
- * @param machine Machine to be simulated.
- * @param memSys Memory system.
- * @param fuResourceConflictDetection Should the model detect FU resource
- * conflicts.
- * @param memoryAccessTracking Sets memory access tracking on and off.
  * @exception Exception Exceptions while building the simulation models
  * are thrown forward.
  */
@@ -68,8 +63,9 @@ TTASimulationController::TTASimulationController(
     const Program& program) :
     frontend_(frontend),
     sourceMachine_(machine), program_(program),
-    state_(STA_INITIALIZING), clockCount_(0), 
-    initialPC_( program.entryAddress().location()),  
+    state_(STA_INITIALIZING), clockCount_(0),
+    lastExecutedInstruction_(1),
+    initialPC_(program.entryAddress().location()),
     automaticFinishImpossible_(true),
     firstIllegalInstructionIndex_(UINT_MAX) {
 }
@@ -101,7 +97,7 @@ TTASimulationController::prepareToStop(StopReason reason) {
  *
  * @return The count of stop reasons.
  */
-unsigned int 
+unsigned int
 TTASimulationController::stopReasonCount() const {
     return stopReasons_.size();
 }
@@ -137,7 +133,7 @@ TTASimulationController::stopReason(unsigned int index) const {
  *
  * @return The state of the simulation.
  */
-TTASimulationController::SimulationStatus 
+TTASimulationController::SimulationStatus
 TTASimulationController::state() const {
     return state_;
 }
@@ -147,9 +143,13 @@ TTASimulationController::state() const {
  *
  * @return Address of the last executed instruction.
  */
-InstructionAddress 
-TTASimulationController::lastExecutedInstruction() const {
-    return lastExecutedInstruction_;
+InstructionAddress
+TTASimulationController::lastExecutedInstruction(int coreId) const {
+    if (coreId == -1) {
+        return lastExecutedInstruction_[frontend_.selectedCore()];
+    } else {
+        return lastExecutedInstruction_[coreId];
+    }
 }
 
 /**
@@ -157,7 +157,7 @@ TTASimulationController::lastExecutedInstruction() const {
  *
  * @return Count of simulated clock cycles.
  */
-ClockCycleCount 
+ClockCycleCount
 TTASimulationController::clockCount() const {
     return clockCount_;
 }
@@ -167,14 +167,14 @@ TTASimulationController::clockCount() const {
  *
  * @return A reference to the memory system.
  */
-MemorySystem& 
-TTASimulationController::memorySystem() {
-    return frontend_.memorySystem();
+MemorySystem&
+TTASimulationController::memorySystem(int coreId) {
+    return frontend().memorySystem(coreId);
 }
-    
+   
 /**
  * Returns the simulator frontend.
- * 
+ *
  * @return A reference to the simulator frontend.
  */
 SimulatorFrontend&
@@ -186,8 +186,8 @@ TTASimulationController::frontend() {
  * Returns true in case simulation cannot be finished automatically.
  *
  * In order for this method to return false, it means that while initializing
- * the SimulationController, a *probable* ending point in the program was 
- * detected and it is possible that when running the simulation it is possible 
+ * the SimulationController, a *probable* ending point in the program was
+ * detected and it is possible that when running the simulation it is possible
  * to finish it automatically at that position. If this method returns true
  * it is *impossible* to finish simulation automatically.
  *
@@ -209,27 +209,32 @@ std::set<InstructionAddress>
 TTASimulationController::findProgramExitPoints(
     const TTAProgram::Program& program,
     const TTAMachine::Machine& machine) const {
-    std::set<InstructionAddress> exitPoints;          
-          
+    std::set<InstructionAddress> exitPoints;
+
     /* Set return points to be all the returns from the first executed
        procedure. When control returns from that (usually the crt0(),
        start(), or main()), we should stop simulation. This is for
-       convenience of simulating unmodified benchmark programs without 
+       convenience of simulating unmodified benchmark programs without
        having infinite loops etc. */
-          
+
     // find the entry procedure
     Address entryAddr = program.entryAddress();
     Procedure* entryProc = NULL;
     for(int i = 0; i < program.procedureCount(); i++) {
-        Procedure &currProc = program.procedure(i);
-        
+        Procedure& currProc = program.procedure(i);
+
         if (currProc.startAddress().location() <= entryAddr.location() &&
             currProc.endAddress().location() > entryAddr.location()) {
             entryProc = &currProc;
             break;
-        }          
+        }
     }
-   
+
+    if (entryProc == NULL)
+        throw IllegalProgram(
+            __FILE__, __LINE__, __func__,
+            "The entry point of the program does not point to a procedure.");
+
     // If __exit procedure exists, the first instruction in it is set
     // as an exit point.
     for(int i = 0; i < program.procedureCount(); i++) {
@@ -240,17 +245,11 @@ TTASimulationController::findProgramExitPoints(
        }
     }
 
-    if (entryProc == NULL)
-        throw IllegalProgram(
-            __FILE__, __LINE__, __func__,
-            "The entry point of the program does not point to a procedure.");
-        
     const int delaySlots = machine.controlUnit()->delaySlots();
     // check instructions of entry procedure if they are "ra ->jump.1"
-    for (InstructionAddress i = entryProc->startAddress().location(); 
-         i < entryProc->endAddress().location(); i++) {
-        
-        const Instruction& currInstr = program.instructionAt(i);
+    for (int i = 0; i < entryProc->instructionCount(); ++i) {
+
+        const Instruction& currInstr = entryProc->instructionAtIndex(i);
 
         // check if the instruction has a return move
         for (int m = 0; m < currInstr.moveCount(); ++m) {
@@ -258,13 +257,15 @@ TTASimulationController::findProgramExitPoints(
             const Move& currMove = currInstr.move(m);
 
             if (currMove.isReturn()) {
-
                 // set an exit point at the return + delay slots to allow
                 // executing the delay slot code of the final return
-                if (i + machine.controlUnit()->delaySlots() <=
-                    entryProc->endAddress().location()) {
-                    exitPoints.insert(i + delaySlots);
-                    
+                unsigned exitDelay = static_cast<unsigned>(
+                    i + machine.controlUnit()->delaySlots());
+                if (exitDelay <= entryProc->endAddress().location()) {
+                    exitPoints.insert(
+                        entryProc->instructionAtIndex(i + delaySlots).
+                        address().location());
+
                     automaticFinishImpossible_ = false;
                 }
                 break; // check the next instruction
@@ -273,7 +274,7 @@ TTASimulationController::findProgramExitPoints(
     }
 
     /*  In case the last instruction of the first procedure is *not*
-        a jump and it's the last procedure in the program, set it as an exit 
+        a jump and it's the last procedure in the program, set it as an exit
         point too (after executing the instruction we should stop simulation
         because there's nothing sensible to execute next). This is to allow
         simulating some obscure assembler programs that do not loop
@@ -281,13 +282,14 @@ TTASimulationController::findProgramExitPoints(
 
         The detection in that case is done by comparing the PC+1 to
         firstIllegalInstructionIndex_. */
-    
+
     if (program.procedureCount() == 1) {
         // such assembly programs are usually stored in one procedure
         automaticFinishImpossible_ = false;
     }
-    firstIllegalInstructionIndex_ = 
+    firstIllegalInstructionIndex_ =
         program.lastInstruction().address().location() + 1;
-    
+
     return exitPoints;
 }
+

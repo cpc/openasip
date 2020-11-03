@@ -50,13 +50,12 @@ public:
     virtual ~PSocketResource();
     PSocketResource(const std::string& name, unsigned int initiationInterval = 0);
 
-    virtual bool isInUse(const int cycle) const;
-    virtual bool isAvailable(const int cycle) const;
-    virtual bool canAssign(const int cycle, const MoveNode& node) const;
-    virtual void assign(const int cycle, MoveNode& node);
-    virtual void unassign(const int cycle, MoveNode& node);
-
-    void clear();
+    virtual bool isInUse(const int cycle) const override;
+    virtual bool isAvailable(const int cycle) const override;
+    virtual bool canAssign(const int cycle, const MoveNode& node) const override;
+    virtual void assign(const int cycle, MoveNode& node) override;
+    virtual void unassign(const int cycle, MoveNode& node) override;
+    void clear() override;
 protected:
     // Recording PSocket usage - cycle = value map
     typedef std::map<int, std::set<MoveNode*> > ResourceRecordType;

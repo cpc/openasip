@@ -64,7 +64,7 @@ public:
     void setTriggered();
     void setOperation(Operation& operation);
     void setOperation(Operation& operation, OperationExecutor& executor);
-    virtual bool isIdle();
+    bool isIdle();
 
     virtual void endClock();
     virtual void advanceClock();

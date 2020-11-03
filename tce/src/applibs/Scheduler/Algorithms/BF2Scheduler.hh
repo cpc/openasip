@@ -45,6 +45,7 @@
 #include "MachinePart.hh"
 
 #include "LiveRangeData.hh"
+#include "LoopAnalyzer.hh"
 
 class ResourceManager;
 class SimpleResourceManager;
@@ -81,8 +82,8 @@ public:
 
     virtual int handleDDG(
         DataDependenceGraph& ddg, SimpleResourceManager& rm,
-        const TTAMachine::Machine& targetMachine,
-        bool testOnly = false) override;
+        const TTAMachine::Machine& targetMachine, int minCycle = 0,
+        bool testOnly = false);
 
     void scheduleDDG(
         DataDependenceGraph& ddg,
@@ -125,51 +126,10 @@ public:
 
     const TTAMachine::Machine& targetMachine() const { return *targetMachine_; }
 
-    void checkPrologGuardsAllowed();
-
     // This is not yet used, but will be used soon.
     enum LoopSchedulingMode {
         // Old version
         NO_LOOP_SCHEDULER = 0,
-        ENABLE_LOOP_SCHEDULER = 1,
-        HAS_EPILOG = 2,
-        USE_PREDICATION_FOR_PROLOG_MOVES = 4,
-        EXTERNAL_PROLOG_EPILOG_BUILDER = 8,
-        // Current BF2-loop-scheduler
-        PROLOG_RM_GUARD_BETWEEN_ITERS = 16,
-        // Schedule jump guard as normal bottom-up
-        PROLOG_RM_GUARD_ALAP = 32,
-        USE_FOR_LOOP_BUFFER = 64,
-        DYNAMIC_FOR_LOOP_BUFFER = 128,
-        DECREMENT_DYNAMIC_COUNTER = 256,
-        USE_WHILE_LOOP_BUFFER = 512,
-
-        // external builder which copies moves
-        EXTERNAL_BUILDER_WITH_EPILOG =
-        EXTERNAL_PROLOG_EPILOG_BUILDER | HAS_EPILOG,
-
-        // no loop buffer, predicate prolog moves, no epilog.
-        // works for while loops.
-        NO_LOOPBUF_PREDICATE_ALAP =
-        PROLOG_RM_GUARD_ALAP | USE_PREDICATION_FOR_PROLOG_MOVES,
-        // static loop count, use loop buffer, use epilog
-        PROLOG_RM_EPILOG_STATIC_FORLOOP_BUFFER =
-        USE_FOR_LOOP_BUFFER | HAS_EPILOG ,
-        // dynamic for loop where loop iteration count is n+1
-        PROLOG_RM_EPILOG_DYNAMIC_FORLOOP_BUFFER =
-        USE_FOR_LOOP_BUFFER | HAS_EPILOG | DYNAMIC_FOR_LOOP_BUFFER,
-        // dynamic for loop where loop iteration count is n. no epilog.
-        NO_PRED_NOR_EPILOG_DYNAMIC_FORLOOP_BUFFER =
-        USE_FOR_LOOP_BUFFER | DYNAMIC_FOR_LOOP_BUFFER,
-        // dynamic for loop where loop iteration count is n,
-        // but decrement n it to make it n+1
-        PROLOG_RM_EPILOG_DYNAMIC_FORLOOP_BUFFER_DECREMENT =
-        USE_FOR_LOOP_BUFFER | HAS_EPILOG |
-        DYNAMIC_FOR_LOOP_BUFFER | DECREMENT_DYNAMIC_COUNTER,
-        // while-loop buffer.
-        WHILE_LOOP_BUF_PREDICATE_ALAP =
-        USE_WHILE_LOOP_BUFFER | PROLOG_RM_GUARD_ALAP |
-        USE_PREDICATION_FOR_PROLOG_MOVES
     };
 
     enum PreLoopOperandEnum {
@@ -231,38 +191,24 @@ public:
     MoveNode* guardWriteNode() { return jumpGuardWrite_; }
     MoveNode* jumpNode() { return jumpNode_; }
 
-    bool guardPrologMoves() const {
-        return (loopSchedulingMode_ & USE_PREDICATION_FOR_PROLOG_MOVES);
+    MoveNode* loopLimitNode() {
+        return llResult_ == 0 ? NULL : llResult_->counterValueNode;
     }
 
-    bool onlySpeculatedPrologMoves() const {
-        return (!((loopSchedulingMode_ & HAS_EPILOG) ||
-                  (loopSchedulingMode_ & USE_PREDICATION_FOR_PROLOG_MOVES)));
+    LoopAnalyzer::LoopAnalysisResult* getLoopAnalysis() {
+        return llResult_;
     }
 
-    bool scheduleJumpGuardBetweenIters() {
-        return (loopSchedulingMode_ & PROLOG_RM_GUARD_BETWEEN_ITERS);
+    void setLoopLimits(LoopAnalyzer::LoopAnalysisResult* llResult) {
+        llResult_ = llResult;
     }
-
-    bool hasEpilog() const {
-        return (loopSchedulingMode_ & HAS_EPILOG);
-    }
-
-    bool hasEpilogInRM() const {
-        return ((loopSchedulingMode_ & HAS_EPILOG) &&
-                !(loopSchedulingMode_ & EXTERNAL_PROLOG_EPILOG_BUILDER));
-    }
-
-    bool decrementLoopCounter() const {
-        return loopSchedulingMode_ & DECREMENT_DYNAMIC_COUNTER;
-    }
-
-    LoopSchedulingMode selectLoopSchedulingMode();
 
     bool mustBeTrigger(const MoveNode& mn, const ProgramOperation& po);
 
     // just to allow prolog to be longer than loop body.
     static const int PROLOG_CYCLE_BIAS = 1000;
+
+    std::list<ProgramOperation*> loopBufOps();
 
     void deletingNode(MoveNode* deletedNode);
 
@@ -348,16 +294,12 @@ private:
 
     void releasePortForOp(const Operation& op);
 
-    bool schedulePreLoopOperandShares();
-    void mergePreLoopOperandShares();
-
     DataDependenceGraph* ddg_;
     DataDependenceGraph* prologDDG_;
     SimpleResourceManager* rm_;
     SimpleResourceManager* prologRM_;
 
     int latestCycle_;
-    LoopSchedulingMode loopSchedulingMode_;
 
     const TTAMachine::Machine* targetMachine_;
     BUMoveNodeSelector* selector_;
@@ -368,6 +310,7 @@ private:
     int tripCount_;
     MoveNode* jumpNode_;
     MoveNode* jumpGuardWrite_;
+    LoopAnalyzer::LoopAnalysisResult* llResult_;
 
     MoveNodeDuplicator* duplicator_;
 
@@ -380,6 +323,8 @@ private:
     // NULL as movenode means no operand share, FU used multiple times
     std::map<MoveNode*, TTAMachine::FUPort*, MoveNode::Comparator>
     preLoopSharedOperands_;
+
+    std::list<ProgramOperation*> loopBufOps_;
 };
 
 #endif

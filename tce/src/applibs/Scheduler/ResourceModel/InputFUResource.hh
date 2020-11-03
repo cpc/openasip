@@ -49,22 +49,27 @@ class InputPSocketResource;
 class InputFUResource : public FUResource {
 public:
     virtual ~InputFUResource();
-    InputFUResource(const std::string& name, int opCount,
+    InputFUResource(const std::string& name, int opCount, int nopSlotWeight,
             unsigned int initiationInterval = 0);
 
-    virtual bool canAssign(const int cycle, const MoveNode& node) const;
-    virtual void assign(const int cycle, MoveNode& node);
-    virtual bool isAvailable(const int cycle) const;
-    virtual bool isInUse(const int cycle) const;
-    virtual void unassign(const int cycle, MoveNode& node);
+    virtual bool canAssign(const int cycle, const MoveNode& node) const override;
+    virtual void assign(const int cycle, MoveNode& node) override;
+
+    virtual bool isAvailable(const int cycle) const override;
+    virtual bool isInUse(const int cycle) const override;
+    virtual void unassign(const int cycle, MoveNode& node) override;
+
     virtual bool canAssign(
-        const int cycle, const MoveNode& node,
-        const InputPSocketResource& pSocket, const bool triggers = false) const;
-    virtual bool isInputFUResource() const;
+        const int cycle,
+        const MoveNode& node,
+        const InputPSocketResource& pSocket,
+        const bool triggers = false) const;
+
+    virtual bool isInputFUResource() const override;
 
 protected:
-    virtual bool validateDependentGroups();
-    virtual bool validateRelatedGroups();
+    virtual bool validateDependentGroups() override;
+    virtual bool validateRelatedGroups() override;
 
 private:
     // Copying forbidden

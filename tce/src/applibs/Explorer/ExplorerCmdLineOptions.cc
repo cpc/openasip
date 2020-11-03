@@ -88,6 +88,10 @@ const std::string SWS_LIST_APPS = "l";
 const std::string SWL_LIST_PLUGINS = "list_plugins";
 /// Short switch string for listing application paths in the dsdb.
 const std::string SWS_LIST_PLUGINS = "g";
+
+const std::string SWL_DUMP_BEST = "dump_best";
+const std::string SWL_ADF_OUT_FILE = "adf_out";
+
 /// Short switch string for hdb file.
 const std::string SWS_HDB_FILE = "b";
 /// Long switch string for hdb file.
@@ -202,7 +206,16 @@ ExplorerCmdLineOptions::ExplorerCmdLineOptions() : CmdLineOptions("") {
             SWL_COMPILER_OPTIONS,
             "Options to pass to the compiler.",
             SWS_COMPILER_OPTIONS));
-            
+    addOption(
+        new StringCmdLineOptionParser(
+            SWL_ADF_OUT_FILE,
+            "Set the ADF output filename (use in combination with -w "
+            "or --dump_best).", ""));
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_DUMP_BEST,
+            "Dump the best configuration produced by the executed exploration "
+            "algorithm.", ""));
 }
 
 /**
@@ -381,6 +394,11 @@ ExplorerCmdLineOptions::writeOutConfiguration() const {
     return findOption(SWL_CONFIGURATION_WRITE)->listSize();
 }
 
+bool
+ExplorerCmdLineOptions::writeOutBestConfiguration() const {
+    return findOption(SWL_DUMP_BEST)->isDefined();
+}
+
 /**
  * Returns the number of the write out configuration options given.
  *
@@ -521,6 +539,11 @@ ExplorerCmdLineOptions::adfFile() const {
     return findOption(SWL_ADF_FILE)->isDefined();
 }
 
+bool
+ExplorerCmdLineOptions::adfOutFile() const {
+    return findOption(SWL_ADF_OUT_FILE)->isDefined();
+}
+
 /**
  * Returns true if an idf file is given as an option.
  *
@@ -542,6 +565,15 @@ std::string
 ExplorerCmdLineOptions::adfFileName() const {
     if (adfFile()) {
         return findOption(SWL_ADF_FILE)->String(1);
+    } else {
+        return "";
+    }
+}
+
+std::string
+ExplorerCmdLineOptions::adfOutFileName() const {
+    if (adfOutFile()) {
+        return findOption(SWL_ADF_OUT_FILE)->String();
     } else {
         return "";
     }

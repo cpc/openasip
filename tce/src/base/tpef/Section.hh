@@ -139,7 +139,9 @@ public:
     void setName(Chunk* sectionName);
     Chunk* name() const;
 
-    virtual bool isDataSection() { return false; }
+    virtual bool isDataSection() const { return false; }
+    virtual bool isCodeSection() const { return false; }
+
 protected:
     /// Creates clone of instance.
     virtual Section* clone() const = 0;

@@ -97,7 +97,7 @@ public:
     }
 
     virtual bool issueOperation(OperationID id) {
-        trace_ += prefix_ + operationName(id) + separator_;
+        trace_ << prefix_ << operationName(id) << separator_;
         return FSAFUResourceConflictDetector::issueOperation(id);
     }    
 
@@ -105,7 +105,7 @@ public:
         return trace_;
     }
 private:
-    std::string trace_;
+    TCEString trace_;
     std::string prefix_;
     std::string separator_;
 };

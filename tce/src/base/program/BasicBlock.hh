@@ -95,6 +95,9 @@ public:
     void skipFirstInstructions(int count);
     const BasicBlockStatistics& statistics();
 
+    bool isEmpty() {
+        return skippedFirstInstructions() == instructionCount();
+    }
 
     /// returns true in case the BB is *known* to be inside an inner loop
     bool isInInnerLoop() const { return innerLoop_; }

@@ -31,6 +31,7 @@
  */
 
 #include <cstdlib>
+#include <bitset>
 #include <cmath>
 #include <ctime>
 #include "Exception.hh"
@@ -59,6 +60,26 @@ MathTools::requiredBits(unsigned long int number) {
         return bits;
     }
 }
+
+
+/**
+ * Returns ceiling of base-2 logarithm of given number as integer.
+ */
+inline int
+MathTools::ceil_log2(long unsigned int number) {
+    return static_cast<int>(ceil(log(number)/log(2.0)));
+}
+
+/**
+ * Returns ceiling of divided numbers as integer.
+ */
+template<typename NumberType>
+inline int
+MathTools::ceil_div(NumberType dividee, NumberType diveder) {
+    return static_cast<int>(ceil((double) dividee / (double) diveder));
+}
+
+
 
 /**
  * Returns the number of bits required to represent the given number as
@@ -149,6 +170,41 @@ MathTools::bitLength(long unsigned int number) {
 }
 
 
+/**
+ * Compares bit fields (binary encoded) of enc1 and enc2.
+ *
+ * @verbatim
+ * Example:
+ *   ->|  |<-----| pos1  = 6
+ * 00001101011011| enc1  = 859   =>     1101
+ * 00001011110100| enc2  = 756   => =   1101
+ *       ->|  |<-| pos2  = 2       ---------
+ * --------------- width = 4            true
+ * @endverbatim
+ *
+ * @param enc1 The first binary encoded bit field.
+ * @param pos1 The first LSB bit from right of the enc1.
+ * @param enc2 The second binary encoded bit field.
+ * @param pos2 The first LSB bit from right of the enc2.
+ * @param width The number of bits considered in the comparison.
+ * @return True if the fields do match. Otherwise, false.
+ */
+inline bool
+MathTools::bitFieldsEquals(
+    unsigned enc1, unsigned pos1,
+    unsigned enc2, unsigned pos2,
+    unsigned width) {
+
+    if (width) {
+        enc1 = enc1 >> pos1;
+        enc2 = enc2 >> pos2;
+        enc1 = enc1 & ~(~(0u) << width);
+        enc2 = enc2 & ~(~(0u) << width);
+        return enc1 == enc2;
+    }
+    return false;
+}
+
 
 /**
  * Returns the value of the bit at a given position in an integer.
@@ -160,6 +216,27 @@ MathTools::bitLength(long unsigned int number) {
 inline bool
 MathTools::bit(ULongWord integer, unsigned int index) {
     return (integer & (1 << index)) != 0;
+}
+
+
+/**
+ * Sets or clears bit at the index.
+ *
+ * @param bits The bits.
+ * @param index The index of the bit starting from zero. The bits are indexed
+ *              from LSB.
+ * @param bitState The state of the bit to be set. By default sets bit to one.
+ */
+template<class IntegerType>
+inline
+void
+MathTools::setBit(
+    IntegerType& bits, unsigned int index, bool bitState) {
+    if (bitState) {
+        bits |= IntegerType(1) << index;
+    } else {
+        bits &= ~(IntegerType(1) << index);
+    }
 }
 
 
@@ -278,14 +355,89 @@ MathTools::random(int min, int max) {
 }
 
 /**
+ * Rounds a number upwards to a number which is of power-2.
+ */
+inline unsigned int
+MathTools::roundUpToPowerTwo(unsigned int number) {
+    unsigned int i = 0;
+    if (number == 0) {
+        return 0;
+    }
+    for (; (1u << i) < number; i++) ;
+    return (1u << i);
+}
+
+/**
  * Rounds a number downwards to a number which is of power-2.
  */
 inline ULongWord
 MathTools::roundDownToPowerTwo(ULongWord number) {
     ULongWord i = 0;
     if (number == 0) {
-	return 0;
+        return 0;
     }
     for (; 1lu << i <= number; i++) ;
     return (1lu<<i) >> 1;
 }
+
+/**
+ * Rounds a number upwards to a number which is of power-2.
+ */
+inline int
+MathTools::roundUpToPowerTwo(int number) {
+    return static_cast<int>(roundUpToPowerTwo(
+        static_cast<unsigned int>(number)));
+}
+
+/**
+ * Rounds a number downwards to a number which is of power-2.
+ */
+inline SLongWord
+MathTools::roundDownToPowerTwo(SLongWord number) {
+    return static_cast<SLongWord>(roundDownToPowerTwo(
+        static_cast<ULongWord>(number)));
+}
+
+
+/**
+ * Returns true if the number is in set of 2^i where i is positive integer.
+ */
+inline bool
+MathTools::isInPowerOfTwo(unsigned int number) {
+    std::bitset<sizeof(unsigned int)*8> bits(number);
+    return bits.count() == 1;
+}
+
+
+/**
+ * Return integer range that can be expressed by a binary field.
+ *
+ * The template argument must implement:
+ * - ResultNumberType(0), ResultNumberType(1),
+ * - (-ResultNumberType) -> ResultNumberType,
+ * - (ResultNumberType << unsigned) -> ResultNumberType and
+ * - (ResultNumberType - int) -> ResultNumberType
+ */
+template<typename ResultNumberTypeS, typename ResultNumberTypeU>
+inline std::pair<ResultNumberTypeS, ResultNumberTypeU>
+MathTools::bitsToIntegerRange(
+    unsigned bitWidth, bool signExtending) {
+
+    if (bitWidth == 0) {
+        return std::make_pair(ResultNumberTypeS(0), ResultNumberTypeU(0));
+    }
+
+    // Todo needs different handling when
+    // bitWidth == bitWidth(ResultNumberType)
+
+    ResultNumberTypeS currLowerBound(0);
+    ResultNumberTypeU currUpperBound(0);
+    if (signExtending) {
+        currLowerBound = -(ResultNumberTypeS(1) << (bitWidth-1));
+        currUpperBound = (ResultNumberTypeU(1) << (bitWidth-1))-1;
+    } else {
+        currUpperBound = (ResultNumberTypeU(1) << (bitWidth))-1;
+    }
+    return std::make_pair(currLowerBound, currUpperBound);
+}
+

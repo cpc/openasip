@@ -25,7 +25,7 @@
  * @file BBSchedulerController.hh
  *
  * Declaration of BBSchedulerController class.
- * @author Pekka J��skel�inen 2006,2015 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2006-2011 (pjaaskel-no.spam-cs.tut.fi)
  * @author Heikki Kultala 2009 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
@@ -39,18 +39,18 @@
 #include "ControlFlowGraphPass.hh"
 #include "ProcedurePass.hh"
 #include "ProgramPass.hh"
+#include "Program.hh"
 
 class BasicBlockNode;
 class SoftwareBypasser;
 class CopyingDelaySlotFiller;
-class SchedYieldEmitter;
 class LLVMTCECmdLineOptions;
 class DDGPass;
 class DataDependenceGraph;
 
 namespace TTAProgram {
-    class Program;
     class Procedure;
+    class Program;
 }
 
 /**
@@ -64,6 +64,7 @@ class BBSchedulerController :
     public ProgramPass {
 public:
     BBSchedulerController(
+        const TTAMachine::Machine& targetMachine,
         InterPassData& data, SoftwareBypasser* bypasser=NULL, 
         CopyingDelaySlotFiller* delaySlotFiller=NULL,
         DataDependenceGraph* bigDDG = NULL);
@@ -87,19 +88,18 @@ public:
         TTAProgram::Program& program,
         const TTAMachine::Machine& targetMachine) override;
 
-    virtual void executeDDGPass(
-        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
-        TTAProgram::InstructionReferenceManager& irm,
-        std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn = NULL) override;
+    bool handleBBNode(
+        ControlFlowGraph& cfg, BasicBlockNode& bbn,
+        const TTAMachine::Machine& targetMachine, int nodeCount);
 
-    bool executeLoopPass(
+    virtual void executeDDGPass(
         TTAProgram::BasicBlock& bb, const TTAMachine::Machine& targetMachine,
         TTAProgram::InstructionReferenceManager& irm,
         std::vector<DDGPass*> ddgPasses, BasicBlockNode* bbn = NULL) override;
 
     virtual void handleCFGDDG(
         ControlFlowGraph& cfg,
-        DataDependenceGraph& ddg,
+        DataDependenceGraph* ddg,
         const TTAMachine::Machine& targetMachine);
 
     virtual std::string shortDescription() const override;
@@ -109,11 +109,10 @@ protected:
     virtual DataDependenceGraph* createDDGFromBB(
         TTAProgram::BasicBlock& bb, const TTAMachine::Machine& mach);
 
-    std::pair<unsigned int, unsigned int> calculateII(
-        const BasicBlockNode& bbn,  const TTAMachine::Machine& targetMachine);
-
 private:
-    
+
+    const TTAMachine::Machine& targetMachine_;
+
     /// The currently scheduled procedure.
     TTAProgram::Procedure* scheduledProcedure_;
 

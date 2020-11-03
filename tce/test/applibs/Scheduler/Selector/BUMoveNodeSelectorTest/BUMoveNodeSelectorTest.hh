@@ -111,8 +111,7 @@ BUMoveNodeSelectorTest::testBasicFunctionality() {
     // once stabilised.
     do {
         moves = selector.candidates();
-        for (int i = 0; i < moves.nodeCount(); i++) {
-
+        for (int i = moves.nodeCount()-1; i >= 0; i--) {
             TS_ASSERT_THROWS_NOTHING(
                 rm->assign(rm->latestCycle(10, moves.node(i)), moves.node(i)));
             TS_ASSERT_THROWS_NOTHING(selector.notifyScheduled(moves.node(i)));            

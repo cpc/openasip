@@ -148,6 +148,8 @@ public:
     typedef unsigned Register;
     typedef std::set<Register> RegisterSet;
 
+    explicit MachineInstrDDG(const MachineInstrDDG& parent);
+
     MachineInstrDDG(
         llvm::MachineFunction& mf, 
         bool onlyTrueDeps=true);
@@ -169,6 +171,8 @@ public:
     void computeOptimalSchedule();
 
     TCEString dotString() const;
+
+    void setPrintOnlyCriticalPath(bool flag) { printOnlyCriticalPath_ = flag; }
 
 private:
     typedef std::map<Register, MIDDGNode*> DefinerMap;
@@ -200,6 +204,8 @@ private:
 
     llvm::MachineFunction& mf_;
     const llvm::TargetRegisterInfo* regInfo_;
+
+    bool printOnlyCriticalPath_;
 };
 
 POP_COMPILER_DIAGS

@@ -34,40 +34,56 @@
 #include "ProgramDependenceNode.hh"
 #include "Move.hh"
 #include "MoveNode.hh"
+#include "Conversion.hh"
+#include "Application.hh"
 
 /**
- * Constructor creating Program Dependence Node from Control Dependence 
+ * Constructor creating Program Dependence Node which is empty.
+ * Does not have related CDG node. For example Loop Close node.
+ * @param type Type of the node
+ */
+ProgramDependenceNode::ProgramDependenceNode(
+    NodeType type)
+    : GraphNode(), type_(type), component_(-1), newFirstBB_(NULL),
+    lastNode_(false) {
+    mNode_ = NULL;
+    cdgNode_ = NULL;
+}
+
+/**
+ * Constructor creating Program Dependence Node from Control Dependence
  * region node.
  * @param cdgNode node of CDG
- * @param nodeID unique ID of a node
+ * @param type Type of the node
  */
 ProgramDependenceNode::ProgramDependenceNode(
     ControlDependenceNode& cdgNode,
-    int nodeID)
-    : GraphNode(nodeID), cdgNode_(&cdgNode) {
-    region_ = true;
-    predicate_ = false;
+    NodeType type)
+    : GraphNode(), cdgNode_(&cdgNode), type_(type), component_(-1),
+    newFirstBB_(NULL), lastNode_(false) {
     mNode_ = NULL;
 }
 
 /**
  * Constructor creating Program Dependence Node from Data Dependence node.
  * @param mNode MoveNode of DDG
- * @param nodeID unique ID of a node
- * @param predicate indicates if created node is also predicate node, default
- * to false
+ * @param type Type of the node
  */
 ProgramDependenceNode::ProgramDependenceNode(
     MoveNode& mNode,
-    int nodeID, bool predicate)
-    : GraphNode(nodeID), mNode_(&mNode), predicate_(predicate) {
-    region_ = false;
+    NodeType type)
+    : GraphNode(), mNode_(&mNode), type_(type), component_(-1),
+    newFirstBB_(NULL), lastNode_(false) {
+    cdgNode_ = NULL;
 }
 
 /**
  * Empty destructor.
  */
-ProgramDependenceNode::~ProgramDependenceNode() {}
+ProgramDependenceNode::~ProgramDependenceNode() {
+    region_.clear();
+    eec_.clear();
+}
 
 /**
  * Returns content of a node as a string.
@@ -75,77 +91,223 @@ ProgramDependenceNode::~ProgramDependenceNode() {}
  */
 std::string
 ProgramDependenceNode::toString() const {
+    TCEString result;
     if (isRegionNode()) {
-        return cdgNode_->toString();
+        if (cdgNode_ != NULL) {
+            result += cdgNode_->toString() + ": " +
+                Conversion::toString(nodeID());
+        } else {
+            /// Node added during strong components detection
+            /// to collect edges pointing to loop entry from outside the loop.
+            /// Do not have cdg equivalent if analysis was done directly on pdg
+            result += "Collect_" +  Conversion::toString(nodeID());
+        }
     }
-    return mNode_->toString();
+    if (isLoopEntryNode()) {
+        /// Loop entry is region node converted during detection of loops
+        /// Exists in CDG even if loop detection was done on PDG
+        result += "LoopEntry_" + Conversion::toString(nodeID()) +
+            ": " + cdgNode_->toString();
+    }
+    if (isLoopCloseNode()) {
+        /// Node added during strong components detection
+        /// to collect edges pointing to loop entry from inside the loop.
+        /// Do not have cdg equivalent if analysis was done directly on pdg
+        if (cdgNode_ != NULL) {
+            result += "LoopClose_" + Conversion::toString(nodeID()) +
+                ": " + cdgNode_->toString();
+        } else {
+            result += "LoopClose_" + Conversion::toString(nodeID());
+        }
+    }
+    if (isPredicateMoveNode()) {
+        result += "Predicate: " + mNode_->toString() + ": " +
+            Conversion::toString(nodeID());
+    }
+    if (isLastNode()) {
+        result += "_LAST";
+    }
+    if (mNode_ != NULL && !isPredicateMoveNode()) {
+        result+= mNode_->toString() + ": " + Conversion::toString(nodeID());
+    }
+    return result;
 }
 /**
  * Returns content of a node as a string in .dot format.
  * @return string representing content of a node in .dot format
  */
-std::string 
+std::string
 ProgramDependenceNode::dotString() const {
     if (isPredicateMoveNode()) {
-        return std::string("label=\"") + 
+        return TCEString("label=\"") +
             toString() + "\",shape=box,color=green";
     }
     if (isRegionNode()) {
-        return std::string("label=\"") 
+        return TCEString("label=\"")
             + toString() + "\",shape=box,color=blue";
     }
     if (isMoveNode() && moveNode().isMove() && moveNode().move().isCall()) {
-        return std::string("label=\"") 
+        return TCEString("label=\"")
                     + toString() + "\",shape=box,color=red";
     }
-    return std::string("label=\"") + toString() + "\"";
+    if (isLoopEntryNode()) {
+        return TCEString("label=\"")
+            + toString() + "\",shape=box,color=red";
+    }
+    if (isLoopCloseNode()) {
+        return TCEString("label=\"")
+            + toString() + "\",shape=box,color=yellow";
+    }
+
+    return TCEString("label=\"") + toString() + "\"";
 }
 /**
  * Sets node to be predicate node
  */
-void 
+void
 ProgramDependenceNode::setPredicateMoveNode() {
-    predicate_ = true;
+    if (type_ != PDG_NODE_MOVE && type_ != PDG_NODE_PREDICATE) {
+        TCEString msg = "Trying to create predicate move from Region in ";
+        msg += toString() + "!";
+        throw InvalidData(__FILE__, __LINE__, __func__, msg);
+    }
+    type_ = PDG_NODE_PREDICATE;
 }
 
-/**
- * Checks if a node is region node.
- * @return true if a node is region node of graph
- */
-bool 
-ProgramDependenceNode::isRegionNode() const {
-    return region_;
-}
-/**
- * Checks is node is predicate MoveNode.
- * @return true if a node is predicate MoveNode
- */
-bool 
-ProgramDependenceNode::isPredicateMoveNode() const {
-    return predicate_;
-}
-/**
- * Checks if node is MoveNode.
- * @return true if node is MoveNode.
- */
-bool 
-ProgramDependenceNode::isMoveNode() const {
-    return mNode_ != NULL;
-}
 /**
  * Returns MoveNode corresponding to given node in DDG.
  * @return MoveNode corresponding to given node in DDG
  */
-MoveNode& 
+MoveNode&
 ProgramDependenceNode::moveNode() {
-    return *mNode_;
+    if ((type_ == PDG_NODE_MOVE || type_ == PDG_NODE_PREDICATE)
+        && mNode_ != NULL) {
+        return *mNode_;
+    } else {
+        TCEString msg = "MoveNode type does not contain move in ";
+        msg += toString() + "!";
+        throw InvalidData(__FILE__, __LINE__, __func__, msg);
+    }
 }
 
 /**
  * Returns MoveNode corresponding to given node in DDG as constant.
  * @return MoveNode corresponding to given node in DDG as constant
  */
-const MoveNode& 
+const MoveNode&
 ProgramDependenceNode::moveNode() const {
-    return *mNode_;
+    if ((type_ == PDG_NODE_MOVE || type_ == PDG_NODE_PREDICATE)
+        && mNode_ != NULL) {
+        return *mNode_;
+    } else {
+        TCEString msg = "MoveNode type does not contain move in ";
+        msg += toString() + "!";
+        throw InvalidData(__FILE__, __LINE__, __func__, msg);
+    }
+}
+
+/**
+ * Returns CDGNode corresponding to given node in CDG.
+ * @return CDGNode corresponding to given node in CDG
+ */
+ControlDependenceNode&
+ProgramDependenceNode::cdgNode() {
+    if ((type_ == PDG_NODE_REGION
+        || type_ == PDG_NODE_LOOPENTRY
+        || type_ == PDG_NODE_LOOPCLOSE)
+        && cdgNode_ != NULL) {
+        return *cdgNode_;
+    } else {
+        TCEString msg = "ControlNode type does not contain CDGNode in ";
+        msg += toString() + "!";
+        throw InvalidData(__FILE__, __LINE__, __func__, msg);
+    }
+}
+/**
+ * Returns CDGNode corresponding to given node in CDG as constant.
+ * @return CDGNode corresponding to given node in CDG as constant
+ */
+const ControlDependenceNode&
+ProgramDependenceNode::cdgNode() const {
+    if ((type_ == PDG_NODE_REGION
+        || type_ == PDG_NODE_LOOPENTRY
+        || type_ == PDG_NODE_LOOPCLOSE)
+        && cdgNode_ != NULL) {
+        return *cdgNode_;
+    } else {
+        TCEString msg = "ControlNode type does not contain CDGNode in ";
+        msg += toString() + "!";
+        throw InvalidData(__FILE__, __LINE__, __func__, msg);
+    }
+}
+
+/**
+ * Add node to "region" set for computing serialization information
+ *
+ * @param node Node to add to the set
+ */
+void
+ProgramDependenceNode::addToRegion(ProgramDependenceNode& node) {
+    region_.insert(&node);
+}
+
+/**
+ * Returns the "region" set for given node
+ *
+ * @return the "region" set for given node
+ */
+const ProgramDependenceNode::NodesInfo&
+ProgramDependenceNode::region() {
+    return region_;
+}
+/**
+ * Add node to "eec" set for computing serialization information
+ *
+ * @param node Node to add to the set
+ */
+
+void
+ProgramDependenceNode::addToEEC(ProgramDependenceNode& node) {
+    eec_.insert(&node);
+}
+
+/**
+ * Returns the "eec" set for given node
+ *
+ * @return the "eec" set for given node
+ */
+
+const ProgramDependenceNode::NodesInfo&
+ProgramDependenceNode::eec() {
+    return eec_;
+}
+
+/**
+ * Sets the node to be loop entry node of a given component (loop)
+ *
+ * @param component Component of which the node is loop entry node
+ *
+ */
+void
+ProgramDependenceNode::setLoopEntryNode(int component) {
+    type_ = PDG_NODE_LOOPENTRY;
+    component_ = component;
+}
+void
+ProgramDependenceNode::printRelations() const {
+    Application::logStream() << "Relations: ";
+    for (NodesInfo::const_iterator iter = region_.begin();
+        iter != region_.end();
+        iter ++) {
+        Application::logStream() << (*iter)->toString() << ", ";
+    }
+    Application::logStream() << std::endl;
+    Application::logStream() << "EEC: ";
+    for (NodesInfo::const_iterator iter = eec_.begin();
+        iter != eec_.end();
+        iter ++) {
+        Application::logStream() << (*iter)->toString() << ", ";
+    }
+    Application::logStream() << std::endl;
+
 }

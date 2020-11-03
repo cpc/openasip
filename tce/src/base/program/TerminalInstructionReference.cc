@@ -34,6 +34,8 @@
 #include "TerminalInstructionReference.hh"
 #include "InstructionReference.hh"
 #include "Instruction.hh"
+#include "TerminalBasicBlockReference.hh"
+#include "BasicBlock.hh"
 
 using namespace TTAMachine;
 
@@ -119,10 +121,20 @@ TerminalInstructionReference::copy() const {
 bool 
 TerminalInstructionReference::equals(const Terminal& other) const {
 
-    if (other.isInstructionAddress() != true) {
-        return false;
+    const TerminalBasicBlockReference* otherBBRef =
+        dynamic_cast<const TerminalBasicBlockReference*>(&other);
+    if (otherBBRef) {
+        const BasicBlock& bb = otherBBRef->basicBlock();
+        return &ref_.instruction() == &(bb.firstInstruction());
     }
-    return value() == other.value();
+
+    const TerminalInstructionReference* otherInsRef =
+        dynamic_cast<const TerminalInstructionReference*>(&other);
+    if (otherInsRef) {
+        return otherInsRef->instructionReference() ==
+            ref_;
+    }
+    return false;
 }
 
 }

@@ -35,8 +35,17 @@
 #include "BasicBlock.hh"
 #include "ControlDependenceNode.hh"
 #include "Exception.hh"
+#include "Conversion.hh"
+#include "Application.hh"
 
-
+/**
+ * Destructor.
+ */
+ControlDependenceNode::~ControlDependenceNode() {
+    region_.clear();
+    eec_.clear();
+    pseudoPredicateEEC_.clear();
+}
 /**
  * Returns instruction at given index in basic block.
  *
@@ -46,7 +55,8 @@
 TTAProgram::Instruction&
 ControlDependenceNode::instruction(int index) const {
     if (!isBBNode()) {
-        std::string msg = "Trying to read from non basic block node!";
+        std::string msg = 
+            "Trying to read from non basic block node" + toString() + "!";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
     return code_->basicBlock().instructionAtIndex(index);
@@ -60,26 +70,41 @@ ControlDependenceNode::instruction(int index) const {
  */
 std::string
 ControlDependenceNode::toString() const {
-    std::string result = "";
-    if (isRegionNode()) {
-        result += "Region";
-        return result;
-    }
-    if (isEntryNode()) {
-        result += "Entry";
-        return result;
-    }
-    if (isExitNode()) {
-        result += "Exit";
-        return result;
-    }
-    if (isPredicateNode()) {
-        result += "Predicate";
-        return result;
-    }
-    if (isBBNode()) {
-        return code_->toString();
-    }
+   TCEString result = "";
+   if (isRegionNode()) {
+      result += "Region " + Conversion::toString(nodeID());
+      if (isLastNode()) {
+          result += "_LAST";
+      }
+      return result;
+   }
+   if (isLoopEntryNode()) {
+      result += "Loop Entry " + Conversion::toString(nodeID());
+      return result;
+   }
+   if (isEntryNode()) {
+      result += "Entry";
+      return result;
+   }
+   if (isLoopCloseNode()) {
+      result += "Close " + Conversion::toString(nodeID());
+      return result;
+   }
+
+   if (isExitNode()) {
+      result += "Exit";
+      return result;
+   }
+   if (isPredicateNode()) {
+      result += "Predicate(" + code_->toString() +")";
+      if (isLastNode()) {
+          result += "_LAST";
+      }
+      return result;
+   }
+   if (isBBNode()) {
+      return code_->toString();
+   }
     return result;
 }
 
@@ -89,7 +114,7 @@ ControlDependenceNode::toString() const {
  */
 BasicBlockNode*
 ControlDependenceNode::basicBlockNode() const {
-    if (isBBNode()) {
+    if (isBBNode() || isPredicateNode()) {
         return code_;
     }
     std::string msg = "Trying to read from non basic block node!";
@@ -128,7 +153,8 @@ ControlDependenceNode::isPredicateNode() const {
 
 bool
 ControlDependenceNode::isBBNode() const {
-    return type_ == CDEP_NODE_BB;
+    /// Predicate nodes are BB which ends with conditional jump in CFG
+    return (type_ == CDEP_NODE_BB) || isPredicateNode();
 }
 
 bool
@@ -141,7 +167,123 @@ ControlDependenceNode::isExitNode() const {
     return type_ == CDEP_NODE_BB && code_->isExitBB();
 }
 
+bool
+ControlDependenceNode::isLoopEntryNode() const {
+    return type_ == CDEP_NODE_LOOPENTRY;
+}
+
+bool
+ControlDependenceNode::isLoopEntryNode(int component) const {
+    return type_ == CDEP_NODE_LOOPENTRY && component == component_;
+}
+
+bool
+ControlDependenceNode::isLoopCloseNode() const {
+    return type_ == CDEP_NODE_LOOPCLOSE;
+}
+
+void
+ControlDependenceNode::setLoopEntryNode(int component) {
+    if (!isRegionNode() && !isEntryNode()) {
+        TCEString msg = "Loop entry node \'" + toString();
+        msg += "\' is not a Region node!";
+        throw InvalidData(
+            __FILE__, __LINE__, __func__, msg);
+    } else {
+        type_ = CDEP_NODE_LOOPENTRY;
+    }
+    /// In case node was previously in other component as regular
+    /// region, mark it as loop entry of current component
+    if (component_ != component) {
+        component_ = component;
+    }
+}
 ControlDependenceNode::NodeType
 ControlDependenceNode::type() const {
     return type_;
+}
+
+/**
+ * Add CDG node to "region" set for computing serialization information
+ *
+ * @param node Control Dependence Node to add to the set
+ */
+void
+ControlDependenceNode::addToRegion(ControlDependenceNode& node) {
+    region_.insert(&node);
+}
+
+/**
+ * Returns the "region" set for given node
+ *
+ * @return the "region" set for given node
+ */
+const ControlDependenceNode::NodesInfo&
+ControlDependenceNode::region() {
+    return region_;
+}
+/**
+ * Add CDG node to "eec" set for computing serialization information
+ *
+ * @param node Control Dependence Node to add to the set
+ */
+
+void
+ControlDependenceNode::addToEEC(ControlDependenceNode& node) {
+    eec_.insert(&node);
+}
+
+/**
+ * Returns the "eec" set for given node
+ *
+ * @return the "eec" set for given node
+ */
+
+const ControlDependenceNode::NodesInfo&
+ControlDependenceNode::eec() {
+    return eec_;
+}
+
+/**
+ * Add CDG node to "pseduo eec" set for computing serialization information
+ * case node is predicate basic block. Only actuall predicate move will have
+ * predicate eec, rest of moves of basic block needs regular 'leaf' eec
+ * computation
+ *
+ * @param node Control Dependence Node to add to the set
+ */
+
+void
+ControlDependenceNode::addToPseudoPredicateEEC(ControlDependenceNode& node) {
+    pseudoPredicateEEC_.insert(&node);
+}
+
+/**
+ * Returns the "pseudo eec" set for given node, applicable for predicate nodes
+ *
+ * @return the "eec" set for given node
+ */
+
+const ControlDependenceNode::NodesInfo&
+ControlDependenceNode::pseudoPredicateEEC() {
+    return pseudoPredicateEEC_;
+}
+
+void
+ControlDependenceNode::printRelations() const {
+    Application::logStream() << "Relations: ";
+    for (NodesInfo::const_iterator iter = region_.begin();
+        iter != region_.end();
+        iter ++) {
+        Application::logStream() << (*iter)->toString() << ", ";
+    }
+    Application::logStream() << std::endl;
+    Application::logStream() << "EEC: ";
+    for (NodesInfo::const_iterator iter = eec_.begin();
+        iter != eec_.end();
+        iter ++) {
+        Application::logStream() << (*iter)->toString() << ", ";
+    }
+    Application::logStream() << std::endl;
+
 }

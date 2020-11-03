@@ -54,7 +54,7 @@ public:
 
     void addNode(MoveNode& node);
     
-    int earliestCycle() const;
+    int earliestCycle(bool assumeBypassing = false) const;
     int latestCycle() const;
 
     int maxSinkDistance() const;
@@ -63,6 +63,7 @@ public:
     int nodeCount() const;
     MoveNode& node(int index) const;
 
+    bool isPlaced() const;
     bool isScheduled() const;
     std::string toString() const;
     bool isAlive() const;
@@ -73,6 +74,7 @@ public:
     bool isOperation() const { return operation_ != NULL; }
     ProgramOperationPtr programOperationPtr() const { return operation_; }
 
+    bool writesJumpGuard() const;
 private:
     std::vector<MoveNode*> nodes_;
     /// The data dependence graph the moves in this group belong to 

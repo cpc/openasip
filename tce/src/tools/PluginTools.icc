@@ -52,11 +52,7 @@
 template <typename T>
 void
 PluginTools::importSymbol(
-    const std::string& symbolName,
-    T*& target,
-    const std::string& module)
-     {
-
+    const std::string& symbolName, T*& target, const std::string& module) {
     /* This produces warnings with newer gcc's, but it seems it's 
        a known problem with dlsym():
 
@@ -69,7 +65,6 @@ PluginTools::importSymbol(
     */
     target = (T*)(intptr_t)loadSym(symbolName, module);
 }
-
 
 /**
  * Loads a symbol.
@@ -88,8 +83,6 @@ PluginTools::importSymbol(
  */
 template <typename T>
 void
-PluginTools::importSymbol(const std::string& symbolName, T*& target)
-     {
-
+PluginTools::importSymbol(const std::string& symbolName, T*& target) {
     target = (T*)(intptr_t)loadSym(symbolName);
 }

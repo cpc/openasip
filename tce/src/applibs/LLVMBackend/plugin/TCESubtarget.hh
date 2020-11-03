@@ -66,6 +66,14 @@ namespace llvm {
         virtual bool isLittleEndian() const { return false; };
 
         virtual bool is64bit() const { return false; }
+
+#ifndef LLVM_OLDER_THAN_10
+        const InstrItineraryData*
+        getInstrItineraryData() const override {
+            return &InstrItins;
+        }
+#endif
+
         virtual const TargetInstrInfo* getInstrInfo() const override;
         virtual const TargetFrameLowering* getFrameLowering() const override;
         virtual const TargetLowering* getTargetLowering() const override;
@@ -76,12 +84,18 @@ namespace llvm {
 #endif
 
         virtual const TargetRegisterInfo* getRegisterInfo() const override;
+#ifndef LLVM_OLDER_THAN_9
+        virtual bool enableMachinePipeliner() const override;
+#endif
 
     protected:
         void ParseSubtargetFeatures(llvm::StringRef, llvm::StringRef);
     private:
         std::string pluginFile_;
         TCETargetMachinePlugin* plugin_;
+#ifndef LLVM_OLDER_THAN_10
+        InstrItineraryData InstrItins;
+#endif
     };
 
     class  TCELESubtarget: public TCESubtarget {

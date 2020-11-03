@@ -155,12 +155,8 @@ int main(int argc, char *argv[]) {
         Binary* compiledTPEF = assembler.compile();
         
         if (options.printWarnings()) {
-            for (unsigned int i = 0; i < assembler.warningCount(); i++) {
-                const Assembler::CompilerMessage& message = assembler.warning(i);
-                std::cerr << "Warning in line " << message.lineNumber
-                          << ": " << message.assemblerLine 
-                          << "\nreason: " << message.message 
-                          << std::endl;       
+            for (const CompilerMessage& message : assembler.warnings()) {
+                std::cerr << message.toString() << std::endl;
             }
         }
         

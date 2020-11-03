@@ -25,10 +25,10 @@
  * Templated simulator setting.
  *
  * Allows setting the varying parts of setting types using
- * policy classes: SettingValueType and SettingAction. The previous 
- * validates and parses the user defined value, the latter performs the 
+ * policy classes: SettingValueType and SettingAction. The previous
+ * validates and parses the user defined value, the latter performs the
  * activity that should be done when the value is changed. This class
- * is used in implementation to provide easy generation of SimulatorSetting 
+ * is used in implementation to provide easy generation of SimulatorSetting
  * classes without duplicating code.
  */
 template <class SettingValueType, class SettingAction>

@@ -57,8 +57,8 @@ public:
     virtual ~Guard();
 
     virtual Bus* parentBus() const;
-    virtual void setParentBus(Bus& parentBus) {
-        parent_ = &parentBus;
+    virtual void setParentBus(Bus* parentBus) {
+        parent_ = parentBus;
     }
     virtual bool isEqual(const Guard& guard) const = 0;
     virtual bool isInverted() const;
@@ -77,7 +77,7 @@ public:
     static const std::string OSKEY_INVERTED;
 
 protected:
-    Guard(bool inverted, Bus& parentBus);
+    Guard(bool inverted, Bus* parentBus);
     Guard(const ObjectState* state, Bus& parentBus);
 
 private:
@@ -137,17 +137,19 @@ private:
 class RegisterGuard : public Guard {
 public:
     RegisterGuard(
-        bool inverted, RegisterFile& regFile, int registerIndex,
-        Bus& parentBus);
+        bool inverted, const RegisterFile& regFile, unsigned int registerIndex,
+        Bus* parentBus);
     RegisterGuard(const ObjectState* state, Bus& parentBus);
     virtual ~RegisterGuard();
 
     bool isOpposite(const Guard& guard) const;
     bool isEqual(const Guard& guard) const;
-    RegisterFile* registerFile() const;
+    const RegisterFile* registerFile() const;
     int registerIndex() const;
     virtual void copyTo(Bus& parentBus) const {
-        new RegisterGuard(isInverted(), *regFile_, registerIndex_, parentBus);
+        new RegisterGuard(
+            isInverted(), *regFile_, registerIndex_,
+            &parentBus);
     }
 
     ObjectState* saveState() const;
@@ -162,7 +164,7 @@ public:
 
 private:
     /// RegisterFile from which the condition term is taken.
-    RegisterFile* regFile_;
+    const RegisterFile* regFile_;
     /// Index of the register from which the condition term is taken.
     int registerIndex_;
 };

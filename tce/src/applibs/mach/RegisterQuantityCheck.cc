@@ -223,7 +223,7 @@ RegisterQuantityCheck::findGuardRegisters(
     for (int i = 0; i < busNav.count(); i++) {
         TTAMachine::Bus* bus = busNav.item(i);
         for (int j = 0; j < bus->guardCount(); j++) {
-            TTAMachine::RegisterGuard* regGuard = 
+            const TTAMachine::RegisterGuard* regGuard =
                 dynamic_cast<TTAMachine::RegisterGuard*>(bus->guard(j));
             if (regGuard != NULL) {
                 if(ignoreRFs.find(regGuard->registerFile()->name()) ==
@@ -261,7 +261,7 @@ RegisterQuantityCheck::countIntRegisters(
 
     unsigned int intRegs = 0;
     for (int i = 0; i < regNav.count(); i++) {
-        TTAMachine::RegisterFile* rf = regNav.item(i);
+        const TTAMachine::RegisterFile* rf = regNav.item(i);
         if (rf->width() == 32 && 
                 ignoreRFs.find(rf->name()) == ignoreRFs.end()) {
             for (int j = 0; j < rf->size(); j++) {

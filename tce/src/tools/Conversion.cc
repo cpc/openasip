@@ -40,6 +40,7 @@ using std::hex;
 #include <sstream>
 using std::stringstream;
 
+#include <cstdio>
 
 #include "Conversion.hh"
 
@@ -221,3 +222,57 @@ Conversion::toRawData(const std::string& hexSource, unsigned char* target) {
         ++target;
     }
 }
+
+/**
+ * Specialized version of toHexString() for float type with fixed
+ * digit count (8).
+ */
+std::string
+Conversion::floatToHexString(
+    float source, bool include0x) {
+
+    union {
+        float f;
+        int i;
+    } conv;
+
+    conv.f = source;
+
+    std::stringstream str;
+    str << std::setw(8) << std::setfill('0') << std::right << std::hex
+        << conv.i;
+
+    std::string result = "";
+    str >> result;
+
+    if (include0x) {
+        result.insert(0, "0x");
+    }
+
+    return result;
+}
+
+/**
+ * Specialized version of toHexString() for double type with fixed
+ * digit count (16).
+ */
+std::string
+Conversion::doubleToHexString(double source, bool include0x) {
+
+    unsigned char* bytes = (unsigned char*) &source;
+    std::stringstream str;
+    if (include0x) {
+        str << "0x";
+    }
+    for (size_t i = 0; i < sizeof(double); i++) {
+#if HOST_BIGENDIAN == 1
+        unsigned int value = (unsigned int)bytes[i];
+#else
+        unsigned int value = (unsigned int)bytes[sizeof(double)-i-1];
+#endif
+        value &= 0xff;
+        str << std::setfill('0') << std::setw(2) << std::hex << value;
+    }
+    return std::string(str.str());
+}
+

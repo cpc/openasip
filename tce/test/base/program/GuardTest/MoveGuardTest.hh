@@ -88,8 +88,8 @@ MoveGuardTest::testMoveGuard() {
     dummy_mach.addBus(*bus1);
     dummy_mach.addBus(*bus2);
 
-    RegisterGuard guard1(false, *reg_file, index1, *bus1);
-    RegisterGuard guard2(true, *reg_file, index2, *bus2);
+    RegisterGuard guard1(false, *reg_file, index1, bus1);
+    RegisterGuard guard2(true, *reg_file, index2, bus2);
 
     MoveGuard guard(guard1);
     MoveGuard invGuard(guard2);

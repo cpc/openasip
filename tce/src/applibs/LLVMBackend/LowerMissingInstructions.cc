@@ -54,7 +54,11 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/IR/Constants.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Support/Compiler.h"
+#ifdef LLVM_OLDER_THAN_11
 #include "llvm/IR/CallSite.h"
+#else
+#include "llvm/IR/AbstractCallSite.h"
+#endif
 #ifndef LLVM_OLDER_THAN_3_8
 #include "llvm/IR/InstrTypes.h" // CreateIntegerCast()
 #include "llvm/ADT/Twine.h"
@@ -99,7 +103,7 @@ namespace {
 #else
     class LowerMissingInstructions : public FunctionPass {
 #endif
-        std::map< std::string, Constant*> replaceFunctions;        
+        std::map< std::string, Function*> replaceFunctions;
         const TTAMachine::Machine* mach_;
         Module* dstModule_;
         
@@ -453,7 +457,11 @@ LowerMissingInstructions::getFootprint(Instruction& I) {
             dyn_cast<CallInst>(&I)->getCalledFunction() == NULL)
             break;
         std::string calledName = 
+#ifdef LLVM_OLDER_THAN_11
             dyn_cast<CallInst>(&I)->getCalledFunction()->getName();
+#else
+            dyn_cast<CallInst>(&I)->getCalledFunction()->getName().str();
+#endif
         if (calledName == "llvm.sqrt.f32") {
             return "f32.sqrt.f32";
         }
@@ -686,7 +694,6 @@ bool LowerMissingInstructions::doFinalization(Module& /* M */) {
 //
 bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
     bool Changed = false;
-
     BasicBlock::InstListType &BBIL = BB.getInstList();
 
     // Loop over all of the instructions, looking for instructions to lower
@@ -696,7 +703,7 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
         // get footprint of instruction
         std::string footPrint = getFootprint(*I);
         
-        std::map<std::string, Constant*>::iterator 
+        std::map<std::string, Function*>::iterator
             replaceFunc =  replaceFunctions.find(footPrint);        
  
         // std::cerr << "Footprint: " << footPrint << "\n";
@@ -793,15 +800,19 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                 }
             }
 #ifdef LLVM_OLDER_THAN_3_8
-            CallInst *NewCall = 
+            CallInst *NewCall =
                 CallInst::Create(
                     replaceFunc->second, args, "", I);
-#else
-            CallInst *NewCall = 
+#elif LLVM_OLDER_THAN_11
+            CallInst *NewCall =
                 CallInst::Create(
                 replaceFunc->second, args, Twine(""), &(*I));
+#else
+            CallInst *NewCall =
+                CallInst::Create(
+                FunctionCallee(replaceFunc->second), args, Twine(""), &(*I));
 #endif
-            NewCall->setTailCall();    
+            NewCall->setTailCall();
 
             // Replace all uses of the instruction with call instruction
             if (I->getType() != NewCall->getType()) {
@@ -833,7 +844,6 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
             NumLowered++;
         } 
     }
-
     return Changed;
 }
 

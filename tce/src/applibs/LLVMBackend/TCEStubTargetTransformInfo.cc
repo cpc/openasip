@@ -62,8 +62,7 @@ using namespace llvm;
 unsigned
 TCEStubTTIImpl::getNumberOfRegisters(bool vector) {
     // without adf information we have no clue about registers
-    // and vectors are not supported
-    if (TM->ttaMach_ == NULL || vector)
+    if (TM->ttaMach_ == NULL)
         return 0;
 
     // Widest operand tells directly the widest register
@@ -80,8 +79,7 @@ const
 #endif
 {
     // without adf information we have no clue about registers
-    // and vectors are not supported
-    if (TM->ttaMach_ == NULL || vector)
+    if (TM->ttaMach_ == NULL)
         return 0;
 
     // Widest operand tells directly the widest register

@@ -55,11 +55,27 @@
  */
 void
 BUMoveNodeSelector::initializeReadylist() {
+    while (!readyList_.empty()) {
+        readyList_.pop();
+    }
     DataDependenceGraph::NodeSet sinks = ddg_->sinkNodes();
     for (DataDependenceGraph::NodeSet::iterator i = sinks.begin(); 
          i != sinks.end(); 
          ++i) {
-        mightBeReady(**i);
+        MoveNode& node = **i;
+
+        // a hack to avoid adding the root operations multiple times
+        // (the count of input moves): only "announce" the move to the first
+        // operand (every operation should have one input operand)
+        if (node.isDestinationOperation() && !node.move().destination().isFUPort()) {
+            std::cerr << "termimal not fuport even though dest op!: " << node.toString();
+            ddg_->writeToDotFile("not_dest_port.dot");
+        }
+        if (!node.isDestinationOperation())
+            mightBeReady(**i);
+        else if (node.move().destination().operationIndex() == 1) {
+            mightBeReady(**i); 
+        }
     }
 }
 
@@ -158,7 +174,9 @@ BUMoveNodeSelector::candidates() {
              ++i) {
             MoveNode& node = **i;
 #ifdef WARN_ORPHAN_NODES
-            std::cerr << "Found orphan node: " << node.toString() << std::endl;
+            std::cerr << "Found orphan node: " << node.toString() << " max src dist: " 
+                      << ddg_->maxSourceDistance(node) << " sink dist: " << 
+                ddg_->maxSinkDistance(node) << std::endl;
             ddg_->writeToDotFile("oprhan.dot");
 #ifdef ABORT_ORPHAN_NODES
             abortWithError("orphan node!");
@@ -222,71 +240,66 @@ BUMoveNodeSelector::mightBeReady(MoveNode& node) {
         return;
     }
 
-    if (!isReadyToBeScheduled(node)) 
-        return;
+    DataDependenceGraph::NodeSet queue;
+    DataDependenceGraph::NodeSet nodes;
+    queue.insert(&node);
 
-    if (node.isDestinationOperation() || node.isSourceOperation()) {
-        // it's a trigger, result, or operand move, let's see if all the
-        // moves of the operation are ready to be scheduled
-        ProgramOperation& operation = 
-            (node.isDestinationOperation()?
-             (node.destinationOperation()) : node.sourceOperation());
-        bool allReady = true;
-        MoveNodeGroup moves(*ddg_);
-        for (int outputIndex = 0; outputIndex < operation.outputMoveCount();
-             ++outputIndex) {
-            MoveNode& m = operation.outputMove(outputIndex);
-            if (&m != &node) {
-                if (!isReadyToBeScheduled(m)) {
-                    allReady = false;
-                    break;
-                } 
-            } 
-            if (!m.isScheduled())
-                moves.addNode(m);
+    while (!queue.empty()) {
+        MoveNode* mn = *queue.begin();
+        nodes.insert(mn);
+        queue.erase(mn);
+        if (mn->isSourceOperation()) {
+            queueOperation(mn->sourceOperation(), nodes, queue);
         }
-        if (allReady) {
-            // let's add also the input move(s) to the MoveNodeGroup
-            for (int inputIndex = 0; 
-                 inputIndex < operation.inputMoveCount();
-                 ++inputIndex) {
-                MoveNode& m = operation.inputMove(inputIndex);
-                if (&m != &node) { 
-                    if (!isReadyToBeScheduled(m)) {
-                        allReady = false;
-                        break;
+
+        for (unsigned int i = 0; i < mn->destinationOperationCount(); i++) {
+            queueOperation(mn->destinationOperation(i), nodes, queue);
+        }
+
+        if (mn->move().source().isUniversalMachineRegister()) {
+            if (ddg_->hasNode(*mn)) {
+                MoveNode* bypassSrc =
+                    ddg_->onlyRegisterRawSource(*mn);
+                if (bypassSrc != NULL) {
+                    if (nodes.find(bypassSrc) == nodes.end()) {
+                        queue.insert(bypassSrc);
+                    }
+                } else {
+                    std::cerr << "Warning: Cannot find source for forced bypass. "
+                              << " Instruction scheduler may fail/deadlock" << std::endl;
+                }
+            }
+        }
+        if (mn->move().destination().isUniversalMachineRegister()) {
+            if (ddg_->hasNode(*mn)) {
+                DataDependenceGraph::NodeSet rrDestinations = 
+                    ddg_->onlyRegisterRawDestinations(*mn, false, false);
+                for (DataDependenceGraph::NodeSet::iterator j = 
+                         rrDestinations.begin(); j != rrDestinations.end(); j++) {
+                    MoveNode* n = *j;
+                    if (nodes.find(n) == nodes.end()) {
+                        queue.insert(n);
                     }
                 }
-                if (!m.isScheduled())
-                    moves.addNode(m);
-            }
-            if (allReady) {
-                readyList_.push(moves);
             }
         }
-    } else if ((node.isSourceVariable() || node.move().source().isRA()) &&
-               (node.isDestinationVariable() || 
-                node.move().destination().isRA())) {
-        // it's a register to register move, we can always schedule these
-        // as soon as all the dependencies are satisfied
-        // handle RA -> ireg also as a register to register move
-        if (isReadyToBeScheduled(node)) {
-            MoveNodeGroup move(*ddg_);
-            move.addNode(node);
-            readyList_.push(move);
+    }
+    
+    if (!isReadyToBeScheduled(nodes)) {
+        return;
+    }
+
+
+    if (!nodes.empty()) {
+        MoveNodeGroup moves(*ddg_);
+        for (DataDependenceGraph::NodeSet::iterator i = nodes.begin(); i != nodes.end(); i++) {
+            if (!((**i).isScheduled())) {
+                moves.addNode(**i);
+            }
         }
-    } else if (node.isSourceConstant() && node.isDestinationVariable()) {
-        if (isReadyToBeScheduled(node)) {
-            MoveNodeGroup move(*ddg_);
-            move.addNode(node);
-            readyList_.push(move);
+        if (moves.nodeCount()) {
+            readyList_.push(moves);
         }
-        
-    } else {
-        throw IllegalProgram(
-            __FILE__, __LINE__, __func__,
-            (boost::format("Illegal move '%s'.") % 
-             POMDisassembler::disassemble(node.move())).str());
     }
 
 }
@@ -333,25 +346,34 @@ void BUMoveNodeSelector::queueOperation(
  * @return True if the move is ready to be scheduled.
  */
 bool
-BUMoveNodeSelector::isReadyToBeScheduled(MoveNode& node) 
+BUMoveNodeSelector::isReadyToBeScheduled(DataDependenceGraph::NodeSet& nodes) 
     const {
-    // the control flow move(s) are ready as they are at the end of the basic
-    // blocks.
-    // TODO: make sure CF moves are scheduled proper number of delay slots
-    // from the end of the block
-    if (node.move().isControlFlowMove()) {
-        return true;    
-    }
-    return ddg_->successorsReady(node);
-}
 
-bool
-BUMoveNodeSelector::isReadyToBeScheduled(MoveNodeGroup& nodes) const {
-    for (int i = 0; i < nodes.nodeCount(); i++) {
-        MoveNode& mn = nodes.node(i);
-        if (!isReadyToBeScheduled(mn)) {
+    for (DataDependenceGraph::NodeSet::iterator i = nodes.begin(); i != nodes.end(); i++) {
+        MoveNode& node = **i;
+        if (!isReadyToBeScheduled(node, nodes)) {
             return false;
         }
     }
     return true;
+}
+
+bool
+BUMoveNodeSelector::isReadyToBeScheduled(MoveNode& node, DataDependenceGraph::NodeSet& nodes) 
+    const {
+    if (!ddg_->hasNode(node)) {
+        return true;
+    }
+    
+    return ddg_->otherSuccessorsScheduled(node, nodes);
+}
+
+bool
+BUMoveNodeSelector::isReadyToBeScheduled(MoveNodeGroup& nodes) const {
+    DataDependenceGraph::NodeSet ns;
+    for (int i = 0; i < nodes.nodeCount(); i++) {
+        MoveNode& mn = nodes.node(i);
+        ns.insert(&mn);
+    }
+    return isReadyToBeScheduled(ns);
 }

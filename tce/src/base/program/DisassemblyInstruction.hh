@@ -58,6 +58,10 @@ public:
 
     std::string toString() const;
 
+    DisassemblyAnnotation& annotation(int index) const;
+    void addAnnotation(DisassemblyAnnotation* annotation);
+    int annotationCount() const;
+
 private:
     /// Vector of DisassemblyMoves.
     typedef std::vector<DisassemblyInstructionSlot*> MoveTable;
@@ -75,5 +79,9 @@ private:
 
     /// List of instruction long immediates
     LongImmediateTable longImmediates_;
+
+    /// Annotationes of instruction itself
+    std::vector<DisassemblyAnnotation*> annotations_;
+
 };
 #endif

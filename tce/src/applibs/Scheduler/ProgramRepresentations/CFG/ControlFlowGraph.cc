@@ -963,7 +963,18 @@ ControlFlowGraph::addExit() {
     } 
 
     addExitFromSinkNodes(exit);
+}
 
+void ControlFlowGraph::addExit(ControlFlowGraph::NodeSet& retSourceNodes) {
+    BasicBlockNode* exitNode = new BasicBlockNode(0, 0, false, true);
+    addNode(*exitNode);
+
+    for (auto blockSource: retSourceNodes) {
+        ControlFlowEdge* theEdge = new ControlFlowEdge;
+        connectNodes(*blockSource, *exitNode, *theEdge);
+    }
+
+    addExitFromSinkNodes(exitNode);
 }
 
 void 
@@ -1359,7 +1370,7 @@ ControlFlowGraph::statistics() {
  * @return node where control falls thru from given node or NULL if not exist.
  */
 BasicBlockNode*
-ControlFlowGraph::fallThruSuccessor(const BasicBlockNode& bbn) {
+ControlFlowGraph::fallThruSuccessor(const BasicBlockNode& bbn) const {
     if (bbn.isExitBB()) {
         return NULL;
     }
@@ -1372,6 +1383,28 @@ ControlFlowGraph::fallThruSuccessor(const BasicBlockNode& bbn) {
     }
     return NULL;
 }
+
+/**
+ * Finds a node where control falls thru to the give node.
+ *
+ * @param bbn basic block node whose successor we are searching
+ * @return node where control falls thru from given node or NULL if not exist.
+ */
+BasicBlockNode*
+ControlFlowGraph::fallThroughPredecessor(const BasicBlockNode& bbn) const {
+    if (bbn.isEntryBB()) {
+        return NULL;
+    }
+
+    EdgeSet iEdges = inEdges(bbn);
+    for (auto i: iEdges) {
+        if (i->isFallThroughEdge() || i->isCallPassEdge()) {
+            return &tailNode(*i);
+        }
+    }
+    return NULL;
+}
+
 
 /**
  * Returns true if given basic blocks has a predecessor which
@@ -2534,6 +2567,12 @@ ControlFlowGraph::optimizeBBOrdering(
     bool removeDeadCode, InstructionReferenceManager& irm,
     DataDependenceGraph* ddg) {
 
+#ifdef DEBUG_BB_OPTIMIZER
+    writeToDotFile(
+        (boost::format("%s_before_optimize_cfg.dot") %
+         name()).str());
+#endif
+
     ControlFlowGraph::NodeSet firstBBs = successors(entryNode());
     assert(firstBBs.size() == 1);
     BasicBlockNode* firstBBN = *firstBBs.begin();
@@ -2562,7 +2601,8 @@ ControlFlowGraph::optimizeBBOrdering(
 
         // if has a fall-through node, it has to be the next node
         BasicBlockNode* ftNode = fallThruSuccessor(*currentBBN);
-        if (ftNode != NULL && ftNode->isNormalBB()) {
+        bool unhandledFT = false;
+        while (ftNode != NULL && ftNode->isNormalBB()) {
             if (queuedNodes.find(ftNode) == queuedNodes.end()) {
                 std::cerr << "not-queued fall-thru: " << ftNode->toString()
                           << " current: " << currentBBN->toString() << 
@@ -2579,8 +2619,13 @@ ControlFlowGraph::optimizeBBOrdering(
                 **connectingEdges(*currentBBN, *ftNode).begin();
 
             // if fall-through node has no other predecessors, merge.
-            if (inDegree(*ftNode) == 1 && outDegree(*currentBBN) == 1 &&
-                !cfe.isCallPassEdge()) {
+            if (inDegree(*ftNode) == 1 && !cfe.isCallPassEdge()
+                && ftNode->isScheduled() == currentBBN->isScheduled() // *1
+                && (outDegree(*currentBBN) == 1 || ftNode->basicBlock().isEmpty())) {
+
+                // *1: No merging of inline asm block (they are set as
+                //     scheduled before others). After all is scheduled this
+                //     might be ok.
 #ifdef DEBUG_BB_OPTIMIZER
                 std::cerr << "Merging: " << currentBBN->toString()
                           << " with: " << ftNode->toString() << std::endl;
@@ -2591,29 +2636,38 @@ ControlFlowGraph::optimizeBBOrdering(
                 }
 #endif
                 queuedNodes.erase(ftNode);
-                mergeNodes(*currentBBN, *ftNode, ddg);
+                mergeNodes(*currentBBN, *ftNode, ddg, cfe);
 #ifdef DEBUG_BB_OPTIMIZER
                 writeToDotFile("after_merge.dot");
                 std::cerr << "Merged with ft node." << std::endl;
 #endif
+                ftNode = fallThruSuccessor(*currentBBN);
             } else {
                 currentBBN->link(ftNode);
 #ifdef DEBUG_BB_OPTIMIZER
                 writeToDotFile("linked.dot");
 #endif
                 currentBBN = ftNode;
+                unhandledFT = true;
+                break;
             }
-            continue;
         }
 
-        // Select some node, preferably successrs without ft-preds
+        if (unhandledFT) continue;
+
+        // Select some node, preferably successors without ft-preds
         // The jump can then be removed.
         EdgeSet oEdges = outEdges(*currentBBN);
         for (EdgeSet::iterator i = oEdges.begin(); i != oEdges.end(); i++) {
             ControlFlowEdge& e = **i;
             BasicBlockNode& head = headNode(e);
             if (!hasFallThruPredecessor(head) && head.isNormalBB() &&
-                queuedNodes.find(&head) != queuedNodes.end()) {
+                queuedNodes.find(&head) != queuedNodes.end()
+                && currentBBN->isScheduled() == head.isScheduled() /* *1 */) {
+                // *1: No merging of inline asm block (they are set as
+                //     scheduled before others). After all is scheduled this
+                //     might be ok.
+
                 // try to remove the jump as it's jump to the next BB.
                 RemovedJumpData rjd = removeJumpToTarget(
                     bb, head.basicBlock().firstInstruction(), 0, ddg);
@@ -2628,8 +2682,9 @@ ControlFlowGraph::optimizeBBOrdering(
                                     head.basicBlock().
                                     skippedFirstInstructions()));
                         }
+                        bb.skipFirstInstructions(bb.instructionCount());
                         queuedNodes.erase(&head);
-                        mergeNodes(*currentBBN, head, ddg);
+                        mergeNodes(*currentBBN, head, ddg, e);
 #ifdef DEBUG_BB_OPTIMIZER
                         std::cerr << "Merged with after jump removal(1)" <<
                             std::endl;
@@ -2640,9 +2695,14 @@ ControlFlowGraph::optimizeBBOrdering(
                     // we removed a jump so convert the jump edge into
                     // fall-through edge, OR merge BBs.
 
-                    if (inDegree(head) == 1) {
+                    if (inDegree(head) == 1 && outDegree(*currentBBN) == 1) {
+#ifdef DEBUG_BB_OPTIMIZER
+                        std::cerr << "Merging after jump removal.." << std::endl;
+#endif
+                        // should not be allowd to do this if has return
+
                         queuedNodes.erase(&head);
-                        mergeNodes(*currentBBN, head, ddg);
+                        mergeNodes(*currentBBN, head, ddg, e);
                         nextNode = currentBBN;
 #ifdef DEBUG_BB_OPTIMIZER
                         std::cerr << "Merged with after jump removal(2)" <<
@@ -2710,6 +2770,11 @@ ControlFlowGraph::optimizeBBOrdering(
             currentBBN = nextNode;
         }
     }
+#ifdef DEBUG_BB_OPTIMIZER
+    writeToDotFile(
+        (boost::format("%s_after_optimize_cfg.dot") %
+         name()).str());
+#endif
 }
 
 /**
@@ -2739,7 +2804,8 @@ ControlFlowGraph::removeUnreachableNodes(
 
 void
 ControlFlowGraph::mergeNodes(
-    BasicBlockNode& node1, BasicBlockNode& node2, DataDependenceGraph* ddg) {
+    BasicBlockNode& node1, BasicBlockNode& node2,
+    DataDependenceGraph* ddg, const ControlFlowEdge& connectingEdge) {
 
     if (ddg != NULL && 
         (!ddg->hasAllRegisterAntidependencies() &&
@@ -2767,8 +2833,13 @@ ControlFlowGraph::mergeNodes(
             *node2.basicBlock().liveRangeData_);
     }
 
-    node2.setBBOwnership(false); // append deletes bb2.
-    bb1.append(&bb2);
+    for (int i = bb2.skippedFirstInstructions(),
+             end = bb2.instructionCount();
+         i < end; i++) {
+        Instruction& ins = bb2[bb2.skippedFirstInstructions()];
+        bb2.remove(ins);
+        bb1.add(&ins);
+    }
 
     EdgeSet n2in = inEdges(node2);
     for (EdgeSet::iterator i = n2in.begin(); i != n2in.end(); i++) {
@@ -2782,6 +2853,10 @@ ControlFlowGraph::mergeNodes(
     EdgeSet n2out = outEdges(node2);
     for (EdgeSet::iterator i = n2out.begin(); i != n2out.end(); i++) {
         ControlFlowEdge* e = *i;
+        if (!connectingEdge.isNormalEdge()) {
+            assert(e->isNormalEdge());
+            e->setPredicate(connectingEdge.edgePredicate());
+        }
         moveOutEdge(node2, node1, *e);
     }
 
@@ -2843,56 +2918,6 @@ ControlFlowGraph::splitBasicBlocksWithCallsAndRefs() {
     }
 }
 
-/**
- * Checks if the basic blocks have calls in the middle of them and splits
- * them to multiple basic blocks with call edge chains.
- *
- * TCE scheduler assumes there cannot be calls in the middle of basic block.
- */
-void
-ControlFlowGraph::splitBasicBlocksWithCalls() {
-    std::set<BasicBlockNode*> bbsToHandle;
-    for (int i = 0; i < nodeCount(); ++i) {
-        BasicBlockNode& bb = node(i);
-        bbsToHandle.insert(&bb);
-    }
-
-    while (bbsToHandle.size() > 0) {
-        BasicBlockNode& bbn = **bbsToHandle.begin();
-        TTAProgram::BasicBlock& bb = bbn.basicBlock();
-
-        for (int ii = 0; ii < bb.instructionCount(); ++ii) {
-            TTAProgram::Instruction& instr = bb.instructionAt(ii);
-            if (instr.hasCall() && &instr != &bb.lastInstruction()) {
-                TTAProgram::BasicBlock* newbb = new TTAProgram::BasicBlock();
-                BasicBlockNode* newbbn = new BasicBlockNode(*newbb);
-                addNode(*newbbn);
-
-                // the BB can contain multiple calls, handle them
-                // in the new BB
-                bbsToHandle.insert(newbbn);
-                moveOutEdges(bbn, *newbbn);                
-
-                // move the instructions after the call in the old BB to
-                // the new one
-                while (&instr != &bb.lastInstruction()) {
-                    TTAProgram::Instruction& next = bb.nextInstruction(instr);
-                    bb.remove(next);
-                    newbb->add(&next);
-                }
-
-                ControlFlowEdge* cfe = new ControlFlowEdge(
-                    ControlFlowEdge::CFLOW_EDGE_NORMAL, 
-                    ControlFlowEdge::CFLOW_EDGE_CALL);
-                connectNodes(bbn, *newbbn, *cfe);
-
-                break;
-            }
-        }
-        bbsToHandle.erase(bbsToHandle.begin());
-    }
-}
-
 BasicBlockNode*
 ControlFlowGraph::splitBasicBlockAtIndex(
     BasicBlockNode& bbn, int index) {
@@ -2900,6 +2925,8 @@ ControlFlowGraph::splitBasicBlockAtIndex(
     TTAProgram::BasicBlock& bb = bbn.basicBlock();
     TTAProgram::BasicBlock* newbb = new TTAProgram::BasicBlock();
     BasicBlockNode* newbbn = new BasicBlockNode(*newbb);
+    // Inline Asm BBs are set scheduled, copy the property.
+    newbbn->setScheduled(bbn.isScheduled());
     addNode(*newbbn);
     
     // the BB can contain multiple calls, handle them
@@ -2920,6 +2947,16 @@ ControlFlowGraph::splitBasicBlockAtIndex(
         ControlFlowEdge::CFLOW_EDGE_CALL);
     connectNodes(bbn, *newbbn, *cfe);
 
+    if (bb.liveRangeData_) {
+        newbb->liveRangeData_ = new LiveRangeData;
+        newbb->liveRangeData_->inlineAsmRegUses_ =
+            bb.liveRangeData_->inlineAsmRegUses_;
+        newbb->liveRangeData_->inlineAsmRegDefs_ =
+            bb.liveRangeData_->inlineAsmRegDefs_;
+        newbb->liveRangeData_->inlineAsmClobbers_ =
+            bb.liveRangeData_->inlineAsmClobbers_;
+    }
+
     return newbbn;
 }
 
@@ -2929,6 +2966,270 @@ bool ControlFlowGraph::isSingleBBLoop(const BasicBlockNode& node) const {
         if (e.isJumpEdge() && &headNode(e) == &node) {
             assert(e.isBackEdge());
             return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Sanitizes CFG back to a format where there are no jumps to middle of a BB,
+ * And where the instruction index 0 of all basic blocks really mean
+ * the first instructions.
+ * The delay slot filler may generate such "insane" CFGs which breaks these.
+ * So this should be run after the delay slot filler to make the CFG sane
+ * again.
+ */
+void ControlFlowGraph::sanitize() {
+
+    for (int i = 0; i < nodeCount(); i++) {
+        auto& n = node(i);
+        auto& bb = n.basicBlock();
+        // Remove the skipped first instructions. They are totally dead!
+        // they only exist to not mess up BB vs RM bookkeeping,
+        // but no need for this anymore!
+        for (int j = bb.skippedFirstInstructions(); j > 0; j--) {
+            auto& ins = bb[0];
+
+            if (instructionReferenceManager().hasReference(ins)) {
+                std::cerr << "Skipped ins has ref: " << ins.toString()
+                          << std::endl;
+                std::cerr << "node: " << n.toString() << std::endl;
+                writeToDotFile("skipped_ins_has_ref.dot");
+            }
+            assert(!instructionReferenceManager().hasReference(ins));
+
+            bb.remove(ins);
+        }
+        bb.skipFirstInstructions(0);
+        // now our BB instructions start from index 0.
+
+        if (!bb.instructionCount()) continue;
+
+        // do we need to split this?
+        auto& firstIns = bb[0];
+        auto ns = inEdges(n);
+
+        for (int j = 1; j < bb.instructionCount(); j++) {
+            auto& ins = bb[j];
+
+            // need to split before this instruction?
+            if (instructionReferenceManager().hasReference(ins)) {
+                BasicBlockNode* newBBN = splitBB(n, j);
+
+                auto firstInsRef =
+                    instructionReferenceManager().createReference(firstIns);
+                TTAProgram::TerminalInstructionReference tir(firstInsRef);
+
+                // update in edges. jumps that don't point to original start ins
+                // should be updated to this.
+                for (auto e: ns) {
+                    if (!e->isJumpEdge()) {
+                        continue;
+                    }
+                    auto& srcNode = tailNode(*e);
+                    auto t = findJumpAddress(srcNode, *e);
+                    if (!tir.equals(*t)) {
+                        moveInEdge(n, *newBBN, *e, &srcNode);
+                    }
+                }
+                break;
+            }
+        }
+    }
+}
+
+/**
+ * Finds the terminal containing the target address of the jump
+ * corresponding to the edge.
+ *
+ * @param src basic block node which is the tail of the edge,
+ * containing the jump.
+ * @param edge edge whose target address is being searched.
+ */
+TTAProgram::Terminal*
+ControlFlowGraph::findJumpAddress(BasicBlockNode& src, ControlFlowEdge& e) {
+    auto& bb = src.basicBlock();
+    for (int i = bb.instructionCount()-1;
+         i >= bb.skippedFirstInstructions(); i--) {
+        auto& ins = bb[i];
+        for (int j = 0; j < ins.moveCount(); j++) {
+            auto& m = ins.move(j);
+            if (!m.isJump())
+                continue;
+            auto ep = ControlFlowEdge::edgePredicateFromMove(m);
+            if (e.edgePredicate() == ep) {
+                if (m.source().isInstructionAddress()) {
+                    return &m.source();
+                } else {
+                    auto limm = findLimmWrite(m, src, i);
+                    assert(limm != nullptr);
+                    return &limm->value();
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
+/**
+ * Finds the immediate write which is read by a move.
+ * @param move move containing the immediate use.
+ * @param bbn basic block containing the move
+ * @param moveIndex index of the instruction containing the move in the BB.
+ */
+TTAProgram::Immediate*
+ControlFlowGraph::findLimmWrite(
+    TTAProgram::Move& move, BasicBlockNode& bbn, int moveIndex) {
+    auto& bb = bbn.basicBlock();
+    const TTAMachine::ImmediateUnit& immu = move.source().immediateUnit();
+    int lat = immu.latency();
+    int i = moveIndex - lat;
+    while (i >= bb.skippedFirstInstructions()) {
+        TTAProgram::Instruction& ins = bb[i];
+        for (int j = 0; j < ins.immediateCount(); j++) {
+            auto& imm = ins.immediate(j);
+            if (&imm.destination().immediateUnit() == &immu &&
+                move.source().index() == imm.destination().index()) {
+                return &imm;
+            }
+        }
+        i--;
+    }
+    if (inDegree(bbn) == 1) {
+        BasicBlockNode* pred = *predecessors(bbn).begin();
+        if (!pred->isNormalBB()) {
+            return nullptr;
+        }
+        // search staring from last ins of prev bb
+        return findLimmWrite(
+            move, *pred, pred->basicBlock().instructionCount() + lat -1);
+    }
+    return nullptr;
+}
+
+/**
+ * Splits a basic block into two parts.
+ *
+ * @param n basic block node being splitted
+ * @param remainingSize remaining effective size of the first bb,
+ * or index of the instruction starting the new BB.
+ * @return the created new basic block node.
+ */
+BasicBlockNode*
+ControlFlowGraph::splitBB(
+    BasicBlockNode& n, int remainingSize) {
+    TTAProgram::BasicBlock& bb = n.basicBlock();
+    TTAProgram::BasicBlock* nbb = new TTAProgram::BasicBlock();
+    BasicBlockNode* nbbn = new BasicBlockNode(*nbb);
+
+    // TODO: this is slow O(n^2) loop
+    for (int i = remainingSize + bb.skippedFirstInstructions();
+         i < bb.instructionCount(); ) {
+        TTAProgram::Instruction& ins = bb[i];
+        bb.remove(ins); // this changes the indeces and is a very slow op.
+        nbb->add(&ins);
+    }
+
+    if (n.isScheduled()) {
+        nbbn->setScheduled();
+    }
+    // then fix cfg
+    addNode(*nbbn);
+    moveOutEdges(n, *nbbn);
+    connectNodes(n, *nbbn, *(new ControlFlowEdge(
+                                 ControlFlowEdge::CFLOW_EDGE_NORMAL,
+                                 ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH)));
+    n.link(nbbn);
+    return nbbn;
+}
+
+bool
+ControlFlowGraph::hasMultipleUnconditionalSuccessors(
+    const BasicBlockNode& bbn) const {
+    bool hasUncondSucc = false;
+
+    for (int i = 0; i < outDegree(bbn); i++) {
+        Edge& e = outEdge(bbn,i);
+        if (e.isNormalEdge()) {
+            if (hasUncondSucc) {
+                return true;
+            } else {
+                hasUncondSucc = true;
+            }
+        }
+    }
+    return false;
+}
+
+bool ControlFlowGraph::jumpToBBN(
+    const TTAProgram::Terminal& jumpAddr, const BasicBlockNode& bbn) const {
+    if (!bbn.isNormalBB()) {
+        return false;
+    }
+    if (jumpAddr.isBasicBlockReference()) {
+        auto& target = jumpAddr.basicBlock();
+        return &target  == &bbn.basicBlock();
+    }
+    if (!jumpAddr.isCodeSymbolReference() && jumpAddr.isInstructionAddress()){
+        auto& ir = jumpAddr.instructionReference();
+        return &ir.instruction() ==
+            &bbn.basicBlock().firstInstruction();
+    }
+    return false;
+}
+
+int ControlFlowGraph::findRelJumpDistance(
+    const BasicBlockNode &src, const TTAProgram::Terminal& jumpAddr,
+    const TTAMachine::Machine& mach) const {
+
+    int diff = mach.controlUnit()->delaySlots() +1;
+
+    // search forwards.
+    const BasicBlockNode* ftBBN = src.successor();
+    while (ftBBN != nullptr && ftBBN->isNormalBB()) {
+        if (jumpToBBN(jumpAddr, *ftBBN)) {
+            return diff;
+        }
+        int nextSz = ftBBN->maximumSize();
+        // max size not known, give up.
+        if (nextSz == INT_MAX) {
+            break;
+        }
+        ftBBN = ftBBN->successor();
+        diff += nextSz;
+    }
+
+    // Then search backwards.
+    diff = mach.controlUnit()->delaySlots() +1;
+    ftBBN = &src;
+    while (ftBBN != nullptr) {
+        int sz = ftBBN->maximumSize();
+
+        // maximum size not known, give up?
+        if (sz == INT_MAX) {
+            return INT_MAX;
+        }
+        diff -= sz;
+
+        if (jumpToBBN(jumpAddr, *ftBBN)) {
+            return diff;
+        }
+        ftBBN = ftBBN->predecessor();
+    }
+    return INT_MAX;
+}
+
+bool ControlFlowGraph::allScheduledInBetween(
+    const BasicBlockNode& src, const BasicBlockNode& dst) const {
+    const BasicBlockNode* ftBBN = src.successor();
+    while (ftBBN != nullptr && ftBBN->isNormalBB()) {
+        if (ftBBN == &dst) {
+            return true;
+        }
+        if (ftBBN->isScheduled()) {
+            ftBBN = ftBBN->successor();
+        } else {
+            return false;
         }
     }
     return false;

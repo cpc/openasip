@@ -1,4 +1,4 @@
 error: runtime error: Memory access at 65524 of size 4 is out of the address space.
-Current PC: 1 last PC: 1
+Current PC: 1 last PC: 0 cycle count: 1
       1                    <__start+1>: alu_comp.out1 -> lsu.in1t.stw, 4 -> alu_comp.in2, alu_comp.out1 -> alu_comp.in1t.sub, ... ;
 Stopped because of a runtime error in the simulated program.

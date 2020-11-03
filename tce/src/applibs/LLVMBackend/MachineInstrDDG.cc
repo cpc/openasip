@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2012 Tampere University.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -83,12 +83,12 @@ MachineInstrDDG::MachineInstrDDG(
     onlyTrueDeps_(onlyTrueDeps), mf_(mf), 
 #if LLVM_OLDER_THAN_6_0
     regInfo_(mf_.getTarget().getSubtargetImpl(
-                 *mf_.getFunction())->getRegisterInfo()) 
+                 *mf_.getFunction())->getRegisterInfo())
 #else
     regInfo_(mf_.getTarget().getSubtargetImpl(
                  mf_.getFunction())->getRegisterInfo())
 #endif
-{
+    , printOnlyCriticalPath_(false) {
     int instructions = 0;
     for (llvm::MachineFunction::const_iterator bbi = mf.begin(); 
          bbi != mf.end(); ++bbi) {
@@ -196,6 +196,16 @@ MachineInstrDDG::MachineInstrDDG(
         }
     }
 }
+
+/**
+ * Constructor for creating a subgraph.
+ */
+MachineInstrDDG::MachineInstrDDG(const MachineInstrDDG& parent) : 
+    BoostGraph<MIDDGNode, MIDDGEdge>(
+        std::string(parent.name(), true)),
+    onlyTrueDeps_(parent.onlyTrueDeps_), mf_(parent.mf_) {
+}
+
 
 MachineInstrDDG::~MachineInstrDDG() {
 }
@@ -405,7 +415,11 @@ MachineInstrDDG::dotString() const {
                 s << "\t{ rank = same; \"cycle " << c << "\"; ";
                 for (std::list<MIDDGNode*>::iterator i = ops.begin(); 
                      i != ops.end(); ++i) {
-                    MIDDGNode& n = **i;        
+                    MIDDGNode& n = **i; 
+                    if (n.osalOperationName() == "llvm::DBG_VALUE")
+                        continue;
+                    if (printOnlyCriticalPath_ && !isInCriticalPath(n))
+                        continue;
                     s << "n" << n.nodeID() << "; ";
                 }
                 s << "}" << std::endl;
@@ -468,6 +482,11 @@ MachineInstrDDG::dotString() const {
     // first print all the nodes and their properties
     for (int i = 0; i < nodeCount(); ++i) {
         Node& n = node(i);
+        if (n.osalOperationName() == "llvm::DBG_VALUE")
+            continue;
+        if (printOnlyCriticalPath_ && !isInCriticalPath(n))
+            continue;
+
         s << "\tn" << n.nodeID()
           << " [" << n.dotString();
         if (isInCriticalPath(n))
@@ -480,6 +499,10 @@ MachineInstrDDG::dotString() const {
         Edge& e = edge(i);
         Node& tail = tailNode(e);
         Node& head = headNode(e);
+
+        if (printOnlyCriticalPath_ && !isInCriticalPath(tail) &&
+            !isInCriticalPath(head))
+            continue;
 
         s << "\tn" << tail.nodeID() << " -> n" 
           << head.nodeID() << "[" 
@@ -617,3 +640,4 @@ std::string
 MIDDGNode::dotString() const { 
     return (boost::format("label=\"%s\"") % osalOperationName()).str();
 }
+

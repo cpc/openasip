@@ -56,6 +56,9 @@ public:
     virtual void advanceClock();
     virtual OperationExecutor* copy();
     virtual void setContext(OperationContext& context);
+    bool hasPendingOperations() const {
+        return true;
+    }
    
 private:
     /// Assignment not allowed.
@@ -69,8 +72,12 @@ private:
     OperationContext tempContext_;
     /// Storage for PC value in the context.
     InstructionAddress PC_;
+    /// Storage for IRF block start in the context.
+    InstructionAddress IBS_;
     /// Storage for RA value in the context.
     SimValue RA_;
+    /// Branch delay cycles
+    int branchDelayCycles_;
     /// The owner GCUState.
     GCUState& parent_;
 

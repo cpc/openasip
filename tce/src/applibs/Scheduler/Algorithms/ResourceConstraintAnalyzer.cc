@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2012 Tampere University.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Definition of ResourceConstraintAnalyzer class.
  *
- * @author Pekka J‰‰skel‰inen 2010-2012
+ * @author Pekka J‰‰skel‰inen 2010-2015
  * @note rating: red
  */
 
@@ -43,6 +43,14 @@
 #include "DataDependenceGraph.hh"
 #include "SimpleResourceManager.hh"
 #include "Move.hh"
+#include "MoveNodeSet.hh"
+#include "DDGMoveNodeSelector.hh"
+
+void
+ResourceConstraintAnalyzer::analyzePreSchedule() {
+    origDDG_.setProgramOperationNodes(true);
+    memoryBoundScheduleResourceUsage(origDDG_, graphName_);  
+}
 
 /**
  * Analyzes the resource constraints in the schedule.
@@ -228,58 +236,23 @@ ResourceConstraintAnalyzer::analyze() {
 #endif
 }
 
-/**
- * Analyses the program based on a non-resource constrained schedule.
- *
- * Produces statistics of maximum number of parallel operations that
- * can be potentially utilized. 
- *
- * @todo this is incomplete as the operand to trigger edges are missing,
- * thus the analysis results are likely to be false.
- */
+
 void
-ResourceConstraintAnalyzer::optimalScheduleResourceUsage(
-    DataDependenceGraph& ddg, TCEString graphName) {
+ResourceConstraintAnalyzer::dumpGraphWithStats(
+    DataDependenceGraph& ddg, TCEString dotFileName, 
+    const std::map<int, std::list<MoveNode*> >& schedule) {
 
-    ddg.writeToDotFile(graphName + ".dot");
-
-    TCEString dotFileName = graphName + ".optimal_schedule.dot";
     std::ofstream s(dotFileName.c_str());
-    
-    int smallestCycle = 0;
-    int largestCycle = 0;
-    std::map<int, std::list<MoveNode*> > schedule;
 
-    ddg.setEdgeWeightHeuristics(DataDependenceGraph::EWH_REAL);
-    for (int nc = 0; nc < ddg.nodeCount(); ++nc) {
-        MoveNode& n = ddg.node(nc);
-        int cycle = ddg.maxSourceDistance(n);
-        // immediate operand moves always get cycle 0, fix this by
-        // assuming the cycle is the same as the latest other operand
-        // move (at least one of them must be a non-immediate move)
-        if (n.isDestinationOperation() && 
-            n.move().source().isImmediate()) {
-            for (int input = 0; 
-                 input < n.destinationOperation().inputMoveCount();
-                 ++input) {
-                MoveNode& inputMove = 
-                    n.destinationOperation().inputMove(input);
-                if (&inputMove == &n) continue;
-                cycle = std::max(cycle, ddg.maxSourceDistance(inputMove));
-            }
-        }
-        largestCycle = std::max(cycle, largestCycle);
-        schedule[cycle].push_back(&n);
-    }
-    ddg.setEdgeWeightHeuristics(DataDependenceGraph::EWH_DEFAULT);
-
-    s << "digraph " << graphName.replaceString(".", "_") << " {" << std::endl;
+    s << "digraph ddg {" << std::endl;
 
 
     s << "/*" << std::endl << "### dependence constraints: " << std::endl << std::endl;
 
     analyzeRegisterAntideps(ddg, s);
 
+    int smallestCycle = (*schedule.begin()).first;
+    int largestCycle = (*schedule.rbegin()).first;
 
     // record stats of operationA -> operationB bypasses to guide
     // IC customization
@@ -299,7 +272,8 @@ ResourceConstraintAnalyzer::optimalScheduleResourceUsage(
     std::set<ProgramOperation*> recordedOps;
 
     for (int c = smallestCycle; c <= largestCycle; ++c) {
-        std::list<MoveNode*> moves = schedule[c];
+        if (schedule.find(c) == schedule.end()) continue;
+        std::list<MoveNode*> moves = (*schedule.find(c)).second;
         if (moves.size() == 0) continue;
 
         std::map<TCEString, int> parallelOpsAtCycle;
@@ -401,16 +375,16 @@ ResourceConstraintAnalyzer::optimalScheduleResourceUsage(
     
     // print the nodes
     for (int c = smallestCycle; c <= largestCycle; ++c) {
-        std::list<MoveNode*> moves = schedule[c];
-        if (moves.size() > 0) {
-            s << "\t{ rank = same; \"cycle " << c << "\"; ";
-            for (std::list<MoveNode*>::iterator i = moves.begin(); 
-                 i != moves.end(); ++i) {
-                MoveNode& n = **i;        
-                s << "n" << n.nodeID() << "; ";
-            }
-            s << "}" << std::endl;
+        if (schedule.find(c) == schedule.end()) continue;
+        std::list<MoveNode*> moves = (*schedule.find(c)).second;
+        if (moves.size() == 0) continue;
+        s << "\t{ rank = same; \"cycle " << c << "\"; ";
+        for (std::list<MoveNode*>::iterator i = moves.begin(); 
+             i != moves.end(); ++i) {
+            MoveNode& n = **i;        
+            s << "n" << n.nodeID() << "; ";
         }
+        s << "}" << std::endl;    
     }
 
     // first print all the nodes and their properties
@@ -437,6 +411,143 @@ ResourceConstraintAnalyzer::optimalScheduleResourceUsage(
     s.close();
 }
 
+/**
+ * Analyses the program based on a non-resource constrained schedule.
+ *
+ * Produces statistics of maximum number of parallel operations that
+ * can be potentially utilized. 
+ *
+ * @todo this is incomplete as the operand to trigger edges are missing,
+ * thus the analysis results are likely to be false.
+ */
+void
+ResourceConstraintAnalyzer::optimalScheduleResourceUsage(
+    DataDependenceGraph& ddg, TCEString graphName) {
+
+    ddg.writeToDotFile(graphName + ".dot");
+
+    TCEString dotFileName = graphName + ".optimal_schedule.dot";
+    
+    std::map<int, std::list<MoveNode*> > schedule;
+
+    ddg.setEdgeWeightHeuristics(DataDependenceGraph::EWH_REAL);
+    for (int nc = 0; nc < ddg.nodeCount(); ++nc) {
+        MoveNode& n = ddg.node(nc);
+        int cycle = ddg.maxSourceDistance(n);
+        // immediate operand moves always get cycle 0, fix this by
+        // assuming the cycle is the same as the latest other operand
+        // move (at least one of them must be a non-immediate move)
+        if (n.isDestinationOperation() && 
+            n.move().source().isImmediate()) {
+            for (int input = 0; 
+                 input < n.destinationOperation().inputMoveCount();
+                 ++input) {
+                MoveNode& inputMove = 
+                    n.destinationOperation().inputMove(input);
+                if (&inputMove == &n) continue;
+                cycle = std::max(cycle, ddg.maxSourceDistance(inputMove));
+            }
+        }
+        schedule[cycle].push_back(&n);
+    }
+    ddg.setEdgeWeightHeuristics(DataDependenceGraph::EWH_DEFAULT);
+
+    dumpGraphWithStats(ddg, dotFileName, schedule);
+}
+
+/**
+ * Analyses the program based on a memory resource constrained schedule.
+ *
+ * Produces statistics of maximum number of parallel operations that
+ * can be potentially utilized given that there's only a fixed number of
+ * parallel memory operations allowed.
+ */
+void
+ResourceConstraintAnalyzer::memoryBoundScheduleResourceUsage(
+    DataDependenceGraph& ddg, TCEString graphName) {
+
+    TCEString dotFileName = graphName + ".memory_bound_optimal_schedule.dot";
+
+    int maxMemOpsPerCycle = 2;
+    std::map<int, std::list<MoveNode*> > schedule;
+    std::map<int, std::list<ProgramOperationPtr> > operationSchedule;
+
+    // Maximum number of parallel operations of the given name.    
+    std::map<TCEString, unsigned> maxParallelOps;
+
+    ddg.setEdgeWeightHeuristics(DataDependenceGraph::EWH_REAL);
+
+    CriticalPathBBMoveNodeSelector selector(ddg, ddg.machine());
+
+    Application::logStream()
+        << "### analyzing " << graphName << std::endl;
+
+    // Produce the "operation schedule" where we assume there are enough
+    // interconnection and RF port resources to invoke the required operations
+    // in parallel. 
+    MoveNodeGroup cands = selector.candidates();
+
+    while (cands.nodeCount() > 0) {
+        if (cands.nodeCount() > 1) {
+            ProgramOperationPtr po = cands.programOperationPtr();
+            const Operation& op = po->operation();
+            // Schedule the triggering move first and at the earliest position,
+            // rest of the nodes can fall in to cycles based on the DDG. Assume
+            // operand 1 is always the triggering. 
+            for (auto mn : po->inputNode(1)) {
+                int cycle = ddg.earliestCycle(
+                    *mn, UINT_MAX, false, false, false, false, false, true);
+                int memOpsInCycle = 0; 
+                do {
+                    if (!op.usesMemory()) break;
+                    // Assuming placing the current mem OP to the cycle.
+                    memOpsInCycle = 1;
+                    // Count the number of memory operations already triggered 
+                    // on the planned cycle.
+                    for (auto otherOp : operationSchedule[cycle]) {
+                        if (otherOp->operation().usesMemory())
+                            memOpsInCycle++;
+                    }
+                    if (memOpsInCycle > maxMemOpsPerCycle) {
+                        Application::logStream()
+                            << "would get " << memOpsInCycle 
+                            << " mem operations in cycle " << cycle 
+                            << std::endl;
+                        ++cycle;
+                    }
+                } while (memOpsInCycle > maxMemOpsPerCycle);
+                mn->setCycle(cycle);
+                schedule[cycle].push_back(mn);
+                operationSchedule[cycle].push_back(po);
+                Application::logStream() 
+                    << "placed operation trigger " << mn->toString() << std::endl; 
+                selector.notifyScheduled(*mn);
+            }
+        } 
+        for (int n = 0; n < cands.nodeCount(); ++n) {
+            MoveNode& mn = cands.node(n);
+            if (mn.isPlaced()) continue;
+            int cycle = ddg.earliestCycle(
+                mn, UINT_MAX, false, false, false, false, false, true);
+            mn.setCycle(cycle);
+            schedule[cycle].push_back(&mn);
+            Application::logStream() 
+                << "placed mn " << mn.toString() << std::endl; 
+            selector.notifyScheduled(mn);
+        }
+        
+        cands = selector.candidates();
+    }
+    dumpGraphWithStats(ddg, dotFileName, schedule);
+    ddg.setEdgeWeightHeuristics(DataDependenceGraph::EWH_DEFAULT);
+
+    // Unschedule the nodes so the actual scheduler that might be ran
+    // after this analysis does not get confused.
+    for (auto n : ddg.scheduledMoves()) {
+        n->unsetCycle();
+    }
+}
+
 
 /**
  * Analyzes the register antideps in the schedule.
@@ -449,9 +560,8 @@ bool
 ResourceConstraintAnalyzer::analyzeRegisterAntideps(
     DataDependenceGraph& ddg, std::ostream& s) {
 
-    s << "DDG largest cycle: " << ddg.largestCycle() << std::endl;
-
-    
+    s << "schedule length: " << ddg.largestCycle() - ddg.smallestCycle() << std::endl;
+   
     ddg.setEdgeWeightHeuristics(DataDependenceGraph::EWH_REAL);
     s << "DDG height: " << ddg.height() << std::endl;
     ddg.setEdgeWeightHeuristics(DataDependenceGraph::EWH_DEFAULT);
@@ -461,20 +571,15 @@ ResourceConstraintAnalyzer::analyzeRegisterAntideps(
     s << "DDG height without register antideps: " 
       << trueDepGraph->height() << std::endl;
 
-#if 0
-    static int counter = 0;
-    trueDepGraph->writeToDotFile((boost::format("tddg-noreg-%d.dot") % counter).str());
-#endif
+    trueDepGraph->writeToDotFile((boost::format("%s.tddg_noreg.dot") % graphName_).str());
 
     DataDependenceGraph* trueDepGraph2 = ddg.trueDependenceGraph(true);
     trueDepGraph2->setEdgeWeightHeuristics(DataDependenceGraph::EWH_REAL);
     s << "DDG height without any antideps: " 
       << trueDepGraph2->height() << std::endl;
 
-#if 0
     trueDepGraph2->writeToDotFile(
-        (boost::format("tddg-noantidep-%d.dot") % counter).str());
-#endif
+        (boost::format("%s.tddg_noantidep_.dot") % graphName_).str());
     delete trueDepGraph2; 
 
     DataDependenceGraph* trueDepGraph3 = ddg.trueDependenceGraph(true, true);
@@ -482,11 +587,8 @@ ResourceConstraintAnalyzer::analyzeRegisterAntideps(
     s << "DDG height without any antideps and memory deps: " 
       << trueDepGraph3->height() << std::endl;
 
-#if 0
     trueDepGraph3->writeToDotFile(
-        (boost::format("tddg-noantidep-nonmemdep-%d.dot") % counter).str());
-    counter++;
-#endif
+        (boost::format("%s.tddg_noantidep_nonmemdep.dot") % graphName_).str());
 
     delete trueDepGraph3; 
 
@@ -538,6 +640,12 @@ ResourceConstraintAnalyzer::analyzeRegisterAntideps(
                 }
             }
 
+            s << "Limiting antidep: from " 
+              << tail.toString() << " to " << head.toString() << " ("
+              << edge.toString() << ")"
+              << std::endl;
+
+
             } catch (const Exception& e) {
                 // just skip this for now, have to take a look why
                 // there are some extra R_G_war edges, example:
@@ -553,10 +661,6 @@ ResourceConstraintAnalyzer::analyzeRegisterAntideps(
                 continue;
                     
             }
-#if 0
-            Application::logStream()
-                << "restricting antidep: " << edge.toString() << std::endl;
-#endif
         }
     }
     for (std::map<int, int>::iterator i = foundCounts.begin(); 

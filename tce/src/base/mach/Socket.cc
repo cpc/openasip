@@ -361,6 +361,31 @@ Socket::isConnectedTo(const Segment& bus) const {
     return false;
 }
 
+/**
+ * Returns set of buses where the socket is connected to.
+ */
+std::set<Bus*>
+Socket::connectedBuses() {
+    set<Bus*> result;
+    for (const Connection* conn : busses_) {
+        result.insert(conn->bus()->parentBus());
+    }
+
+    return result;
+}
+
+/**
+ * Returns set of buses where the socket is connected to.
+ */
+const std::set<Bus*>
+Socket::connectedBuses() const {
+    set<Bus*> result;
+    for (const Connection* conn : busses_) {
+        result.insert(conn->bus()->parentBus());
+    }
+
+    return result;
+}
 
 /**
  * By the given index, returns the segment a socket is connected to.

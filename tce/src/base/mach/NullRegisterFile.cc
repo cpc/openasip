@@ -258,7 +258,7 @@ NullRegisterFile::isReserved() const {
  *
  * @return Never returns.
  */
-std::string
+TCEString
 NullRegisterFile::name() const {
     abortWithError("name()");
     return "";

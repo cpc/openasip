@@ -30,6 +30,9 @@
  * @note rating: red
  */
 
+#ifndef TTA_OPERATION_DAG_BUILDER_HH
+#define TTA_OPERATION_DAG_BUILDER_HH
+
 #include "OperationDAGLanguageParser.hh"
 
 class OperationNode;
@@ -102,3 +105,5 @@ private:
 
     const OperationPimpl& operation_;
 };
+
+#endif

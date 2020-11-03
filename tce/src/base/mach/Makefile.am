@@ -12,7 +12,7 @@ libmach_la_SOURCES =							     \
         SpecialRegisterPort.cc NullAddressSpace.cc \
 	NullInstructionTemplate.cc  \
         NullRegisterFile.cc NullMachine.cc          \
-	DummyMachineTester.cc
+	DummyMachineTester.cc ResourceVector.cc ResourceVectorSet.cc
 
 libmach_la_LDFLAGS = ${XERCES_LIBDIR} -lxerces-c ${PTHREAD_LIBS}
 
@@ -21,7 +21,7 @@ DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
 
 AM_CPPFLAGS = -I${PROJECT_ROOT}/src/tools -I${PROJECT_ROOT}/src/base/osal \
 	      -I${PROJECT_ROOT}/src/applibs/mach \
-	      -I${PROJECT_ROOT}/src/applibs/FSA
+	      -I${PROJECT_ROOT}/src/applibs/FSA -I$(PROJECT_ROOT)/src/tools
 AM_CXXFLAGS = -UNDEBUG
 
 dist-hook:
@@ -86,5 +86,6 @@ libmach_la_SOURCES += \
 	Bridge.icc Connection.icc \
 	Segment.icc Port.icc \
 	Socket.icc MachinePart.icc \
-	BaseRegisterFile.icc 
+	BaseRegisterFile.icc \
+	ResourceVector.hh ResourceVectorSet.hh AutomagicTools.hh
 ## headers end

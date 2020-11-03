@@ -30,6 +30,8 @@
  * @note rating: red
  */
 
+#include <climits>
+
 /**
  * Return the name of resource
  * return Name of resource
@@ -201,9 +203,9 @@ SchedulingResource::dependentResourceCount(const int group) const {
  * @param cycle Cycle to get instruction index.
  * @return Return the instruction index for cycle.
  */
-unsigned int
-SchedulingResource::instructionIndex(unsigned int cycle) const {
-    if (initiationInterval_ != 0) {
+int
+SchedulingResource::instructionIndex(int cycle) const {
+    if (initiationInterval_ != 0 &&  cycle != -1 && cycle != INT_MAX) {
         return cycle % initiationInterval_;
     } else {
         return cycle;

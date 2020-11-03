@@ -38,6 +38,7 @@
 #include "Address.hh"
 #include "BaseType.hh"
 #include "Exception.hh"
+#include "TCEString.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -47,7 +48,7 @@ class UniversalMachine;
 
 namespace TTAProgram {
 
-    class Instruction;
+class Instruction;
 class Procedure;
 class DataMemory;
 class Move;
@@ -126,6 +127,8 @@ public:
 
     InstructionVector instructionVector() const;
 
+    void link(const TTAProgram::Program& other);
+
     static Program* loadFromUnscheduledTPEF(
         const std::string& tpefFileName, const TTAMachine::Machine& theMachine);
 
@@ -137,7 +140,15 @@ public:
     static void writeToTPEF(
         const TTAProgram::Program& program, const std::string& tpefFileName);
 
-    void convertSymbolRefsToInsRefs();
+    void convertSymbolRefsToInsRefs(bool ignoreUnfoundSymbols=false);
+    void fixInstructionReferences();
+
+    TCEString toString() const;
+
+    void finalize();
+    bool isFinalized() const { return finalized_; }
+
+    bool isInstructionPerAddress() const { return instructionPerAddress_; }
 private:
     /// List for procedures.
     typedef std::vector<Procedure*> ProcList;
@@ -151,7 +162,6 @@ private:
     /// Copying not allowed.
     Program(const Program&);
 
-    void fixInstructionReferences();
     void copyDataMemoriesFrom(const Program& srcProg);
     void copyCodeLabelsFrom(const Program& srcProg);
     void copyDataLabelsFrom(const Program& srcProg);
@@ -168,7 +178,7 @@ private:
 
     /// The data memories in the program.
     DataMemList dataMems_;
-    
+
     /// List of all the moves of the program.
     MoveList moves_;
 
@@ -181,9 +191,17 @@ private:
     /// references in the program.
     InstructionReferenceManager* refManager_;
 
-    /// The UniversalMachine instance used to refer to in case of the 
+    /// The UniversalMachine instance used to refer to in case of the
     /// unscheduled/unassigned parts of the program.
     mutable UniversalMachine* umach_;
+
+    /// True in case the program is not (and must not be) updated anymore
+    /// and it has its final instruction addresses computed.
+    bool finalized_;
+
+    /// True in case the program is instruction indexed, that is, each
+    /// instruction is assumed to be in a single instruction memory location.
+    bool instructionPerAddress_;
 };
 
 }

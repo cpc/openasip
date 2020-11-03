@@ -112,15 +112,15 @@ public:
     virtual StopReason stopReason(unsigned int index) const;
     virtual SimulationStatus state() const;
     virtual InstructionAddress programCounter() const = 0;
-    virtual InstructionAddress lastExecutedInstruction() const;
+    virtual InstructionAddress lastExecutedInstruction(int coreId=-1) const;
     virtual ClockCycleCount clockCount() const;
-    virtual MemorySystem& memorySystem();
+    virtual MemorySystem& memorySystem(int coreId=-1);
     virtual SimulatorFrontend& frontend();
     virtual bool automaticFinishImpossible() const;
     
     virtual std::set<InstructionAddress> findProgramExitPoints(
-    const TTAProgram::Program& program,
-    const TTAMachine::Machine& machine) const;
+        const TTAProgram::Program& program,
+        const TTAMachine::Machine& machine) const;
 
 protected:
     /// Copying not allowed.
@@ -133,11 +133,11 @@ protected:
     
     /// Reference to the simulator frontend
     SimulatorFrontend& frontend_;
-    /// The source Machine Object Model.
+    /// The simulated Machine Object Model.
     const TTAMachine::Machine& sourceMachine_;
     /// Program object model of the simulated program.
     const TTAProgram::Program& program_;
-        
+   
     /// Flag indicating that simulation should stop.
     bool stopRequested_;
     /// The set of reasons the simulation was stopped.
@@ -148,7 +148,7 @@ protected:
     /// How many clock cycles have been simulated.
     ClockCycleCount clockCount_;
     /// The address of the last executed instruction.
-    InstructionAddress lastExecutedInstruction_;
+    std::vector<InstructionAddress> lastExecutedInstruction_;
     /// The address of the first executed instruction.
     InstructionAddress initialPC_;
     /// If this is true, simulation cannot be finished automatically.

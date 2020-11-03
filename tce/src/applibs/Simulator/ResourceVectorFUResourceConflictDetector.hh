@@ -26,7 +26,7 @@
  *
  * Declaration of ResourceVectorFUResourceConflictDetector class.
  *
- * @author Pekka Jääskeläinen 2006 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2006 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -39,6 +39,7 @@
 #include "Exception.hh"
 #include "FUResourceConflictDetector.hh"
 #include "FUFiniteStateAutomaton.hh"
+#include "ResourceVector.hh"
 #include "ResourceVectorSet.hh"
 
 namespace TTAMachine {
@@ -50,7 +51,7 @@ class Operation;
 /**
  * An FSA implementation of a FU resource conflict detector.
  */
-class ResourceVectorFUResourceConflictDetector : 
+class ResourceVectorFUResourceConflictDetector :
     public FUResourceConflictDetector {
 public:
     ResourceVectorFUResourceConflictDetector(
@@ -67,9 +68,9 @@ public:
 
 private:
     /// The resource vectors of operations.
-    ResourceVectorSet vectors_;
+    TTAMachine::ResourceVectorSet vectors_;
     /// The composite resource vector.
-    ResourceVector compositeVector_;
+    TTAMachine::ResourceVector compositeVector_;
 };
 
 #endif

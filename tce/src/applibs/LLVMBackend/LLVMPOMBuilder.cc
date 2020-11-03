@@ -45,6 +45,13 @@ LLVMPOMBuilder::LLVMPOMBuilder(
 LLVMPOMBuilder::LLVMPOMBuilder(char& ID) : LLVMTCEBuilder(ID) {
 }
 
+bool
+LLVMPOMBuilder::doFinalization(Module& m) { 
+
+    LLVMTCEBuilder::doFinalization(m);
+    return false; 
+}
+
 FunctionPass*
 createLLVMPOMBuilderPass(
     TCETargetMachine& tm, TTAMachine::Machine* mach) {

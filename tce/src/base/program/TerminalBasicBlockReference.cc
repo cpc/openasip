@@ -32,12 +32,13 @@
 
 #include "TerminalBasicBlockReference.hh"
 #include "BasicBlock.hh"
+#include "TerminalInstructionReference.hh"
 
 namespace TTAProgram {
 TerminalBasicBlockReference::TerminalBasicBlockReference(
     const BasicBlock& bb) : 
     TerminalImmediate(
-        SimValue(bb.startAddress().location(),WORD_BITWIDTH)),
+        SimValue(bb.startAddress().location(), WORD_BITWIDTH)),
     bb_(&bb) {}
     
 Terminal* 
@@ -48,10 +49,17 @@ bool
 TerminalBasicBlockReference::equals(const Terminal& other) const {
     const TerminalBasicBlockReference* otherBBRef = 
         dynamic_cast<const TerminalBasicBlockReference*>(&other);
-    if (otherBBRef == NULL) {
-        return false;
+    if (otherBBRef) {
+        return otherBBRef->bb_ == bb_;
     }
-    return otherBBRef->bb_ == bb_;
+
+    const TerminalInstructionReference* otherInsRef =
+        dynamic_cast<const TerminalInstructionReference*>(&other);
+    if (otherInsRef) {
+        return &otherInsRef->instructionReference().instruction() ==
+            &(bb_->firstInstruction());
+    }
+    return false;
 }
 
 SimValue 

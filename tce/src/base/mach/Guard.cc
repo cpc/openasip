@@ -61,8 +61,8 @@ const string Guard::OSKEY_INVERTED = "inverted";
  * @param inverted Indicates whether the condition term is inverted.
  * @param parentBus Parent bus component of the guard.
  */
-Guard::Guard(bool inverted, Bus& parentBus) :
-    inverted_(inverted), parent_(&parentBus) {
+Guard::Guard(bool inverted, Bus* parentBus) :
+    inverted_(inverted), parent_(parentBus) {
 
     // parentBus.addGuard() cannot be called here because isEqual method
     // does not work until the whole
@@ -90,7 +90,9 @@ Guard::Guard(const ObjectState* state, Bus& parentBus) : parent_(&parentBus) {
 Guard::~Guard() {
     Bus* parent = parent_;
     parent_ = NULL;
-    parent->removeGuard(*this);
+    if (parent) {
+        parent->removeGuard(*this);
+    }
 }
 
 
@@ -192,7 +194,7 @@ const string PortGuard::OSKEY_PORT = "port";
  *                                   guard.
  */
 PortGuard::PortGuard(bool inverted, FUPort& port, Bus& parentBus)
-    : Guard(inverted, parentBus), port_(&port) {
+    : Guard(inverted, &parentBus), port_(&port) {
     FunctionUnit* unit = port.parentUnit();
     parentBus.ensureRegistration(*unit);
     parentBus.addGuard(*this);
@@ -255,6 +257,13 @@ PortGuard::isEqual(const Guard& guard) const {
     }
 }
 
+/**
+ * Returns true if the guard is opposite with the given guard,
+ * ie. always if one is executed, another is not executed.
+ *
+ * @param guard The other guard.
+ * @return True if the guard is opposite with the given guard.
+ */
 bool
 PortGuard::isOpposite(const Guard& guard) const { 
     const PortGuard* portGuard = dynamic_cast<const PortGuard*>(&guard);
@@ -382,28 +391,32 @@ const string RegisterGuard::OSKEY_INDEX = "index";
  * @exception InvalidData If local + global guard latency would be zero.
  */
 RegisterGuard::RegisterGuard(
-    bool inverted, RegisterFile& regFile, int registerIndex, Bus& parentBus)
+    bool inverted, const RegisterFile& regFile, unsigned int registerIndex,
+    Bus* parentBus)
     : Guard(inverted, parentBus),
       regFile_(&regFile),
       registerIndex_(registerIndex) {
-    parentBus.ensureRegistration(regFile);
-    if (registerIndex < 0 || regFile.numberOfRegisters() <= registerIndex) {
+    if (parentBus) {
+        parentBus->ensureRegistration(regFile);
+    }
+    if ((unsigned)regFile.numberOfRegisters() <= registerIndex) {
         string procName = "RegisterGuard::RegisterGuard";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
 
-    // make sure global + local guard latency > 0
-    Machine* mach = parentBus.machine();
-    ControlUnit* gcu = mach->controlUnit();
-    if (gcu != NULL && gcu->globalGuardLatency() == 0 &&
-        regFile.guardLatency() == 0) {
-        MOMTextGenerator textGen;
-        boost::format text = textGen.text(
-            MOMTextGenerator::TXT_INVALID_GUARD_LATENCY);
-        throw InvalidData(__FILE__, __LINE__, __func__, text.str());
+    if (parentBus) {
+        // make sure global + local guard latency > 0
+        Machine* mach = parentBus->machine();
+        ControlUnit* gcu = mach->controlUnit();
+        if (gcu != NULL && gcu->globalGuardLatency() == 0 &&
+            regFile.guardLatency() == 0) {
+            MOMTextGenerator textGen;
+            boost::format text = textGen.text(
+                MOMTextGenerator::TXT_INVALID_GUARD_LATENCY);
+            throw InvalidData(__FILE__, __LINE__, __func__, text.str());
+        }
+        parentBus->addGuard(*this);
     }
-
-    parentBus.addGuard(*this);
 }
 
 /**
@@ -467,6 +480,13 @@ RegisterGuard::isEqual(const Guard& guard) const {
     }
 }
 
+/**
+ * Returns true if the guard is opposite with the given guard,
+ * ie. always if one is executed, another is not executed.
+ *
+ * @param guard The other guard.
+ * @return True if the guard is opposite with the given guard.
+ */
 bool
 RegisterGuard::isOpposite(const Guard& guard) const {
     const RegisterGuard* regGuard =
@@ -593,7 +613,7 @@ UnconditionalGuard::OSNAME_UNCONDITIONAL_GUARD = "unconditional";
  *                                   guard.
  */
 UnconditionalGuard::UnconditionalGuard(bool inverted, Bus& parentBus)
-    : Guard(inverted, parentBus) {
+    : Guard(inverted, &parentBus) {
     parentBus.addGuard(*this);
 }
 

@@ -33,13 +33,21 @@
 #ifndef TTA_FU_CONFLICT_DETECTOR_INDEX_HH
 #define TTA_FU_CONFLICT_DETECTOR_INDEX_HH
 
-#include "FUResourceConflictDetector.hh"
 #include <map>
+#include <vector>
+
+#include "FUResourceConflictDetector.hh"
 
 /**
- * An index for FUResourceConflictDetectors
+ * Index for conflict detectors for FUs of a single core.
  */
 typedef std::map<std::string, FUResourceConflictDetector*> 
 FUConflictDetectorIndex;
+
+/**
+ * An index for conflict detectors for each core in a multicore processor.
+ */
+typedef std::vector<FUConflictDetectorIndex>
+MultiCoreFUConflictDetectorIndex;
 
 #endif

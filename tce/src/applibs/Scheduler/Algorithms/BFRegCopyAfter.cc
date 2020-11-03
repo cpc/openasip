@@ -138,6 +138,14 @@ BFRegCopyAfter::splitMove(BasicBlockNode& bbn) {
     std::cerr << " \t\t\tMoves after split: " << mn_.toString() << " and " <<
         regCopy_->toString() << std::endl;
 #endif
+#ifdef DEBUG_BUBBLEFISH_SCHEDULER
+//    writeDotWithNameAndNodeID(ddg(), "regcopy_created_after", mn_);
+
+//        assert(ddg_->maxSourceDistance(mn) != -1);
+//        assert(ddg_->maxSourceDistance(*copyNode) != -1);
+//        std::cerr << "\t\tmn source distance: " << ddg_->maxSourceDistance(mn) << std::endl;
+//        std::cerr << "\t\tmn regcopy source distance: " << ddg_->maxSourceDistance(*copyNode) << std::endl;
+#endif
 
     // TODO: bypass regcopies??
     BFScheduleBU* regCopySched =

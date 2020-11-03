@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libassembler.la
 libassembler_la_SOURCES = CodeSectionCreator.cc DataSectionCreator.cc \
-LabelManager.cc AssemblerParser.cc MachineResourceManager.cc Assembler.cc
+LabelManager.cc AssemblerParser.cc MachineResourceManager.cc Assembler.cc \
+AssemblyParserDiagnostic.cc
 
 SRC_ROOT = $(top_srcdir)/src
 
@@ -22,5 +23,5 @@ libassembler_la_SOURCES += \
 	Assembler.hh DataSectionCreator.hh \
 	AssemblerParser.hh MachineResourceManager.hh \
 	LabelManager.hh CodeSectionCreator.hh \
-	ParserStructs.hh 
+	ParserStructs.hh AssemblyParserDiagnostic.hh
 ## headers end

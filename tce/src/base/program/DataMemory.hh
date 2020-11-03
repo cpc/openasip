@@ -62,6 +62,7 @@ public:
     DataDefinition& dataDefinition(Address address) const;
     DataDefinition& dataDefinition(int index) const;
     int dataDefinitionCount() const;
+    int dataDefinitionsEnd() const;
 
     void deleteDataDefinition(int index);
 

@@ -92,6 +92,15 @@ ObjectState::setValue(int value) {
     value_ = Conversion::toString(value);
 }
 
+/**
+ * Sets the value of the object.
+ *
+ * @param value Value of the object.
+ */
+inline void
+ObjectState::setValue(unsigned value) {
+    value_ = Conversion::toString(value);
+}
 
 /**
  * Sets the value of the object.
@@ -133,12 +142,20 @@ ObjectState::stringValue() const {
  * @exception NumberFormatException If the value cannot be converted to int.
  */
 inline int
-ObjectState::intValue() const
-     {
-
+ObjectState::intValue() const {
     return Conversion::toInt(value_);
 }
 
+/**
+ * Returns the value of the node.
+ *
+ * @return Value of the node.
+ * @exception NumberFormatException If the value cannot be converted to int.
+ */
+inline unsigned int
+ObjectState::unsignedIntValue() const {
+    return Conversion::toUnsignedInt(value_);
+}
 
 /**
  * Returns the value of the node.
@@ -148,12 +165,9 @@ ObjectState::intValue() const
  *                                  double.
  */
 inline double
-ObjectState::doubleValue() const
-     {
-
+ObjectState::doubleValue() const {
     return Conversion::toDouble(value_);
 }
-
 
 /**
  * Returns the value of the node.
@@ -162,9 +176,7 @@ ObjectState::doubleValue() const
  * @exception TypeMismatch If the value cannot be converted to boolean.
  */
 inline bool
-ObjectState::boolValue() const
-     {
-
+ObjectState::boolValue() const {
     int intValue;
     try {
         intValue = this->intValue();
@@ -185,7 +197,6 @@ ObjectState::boolValue() const
 
     return intValue;
 }
-
 
 /**
  * Returns the number of attributes of the ObjectState instance.

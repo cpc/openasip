@@ -37,9 +37,9 @@
 
 GraphEdge::~GraphEdge() { }
 
-GraphEdge::GraphEdge() : edgeID_(edgeCounter_++) {}
+GraphEdge::GraphEdge() : edgeID_(edgeCounter_++), weight_(-1) {}
 
-GraphEdge::GraphEdge(const GraphEdge&) : edgeID_(edgeCounter_++) {}
+GraphEdge::GraphEdge(const GraphEdge& e) : edgeID_(edgeCounter_++), weight_(e.weight()) {}
 
 /**
  * Clones edge. Needed for dynamic binding, when copying 

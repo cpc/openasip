@@ -44,7 +44,6 @@
 #include "Machine.hh"
 
 bool BFDRELoop::operator()() {
-    assert(sched_.hasEpilog());
     if (!sched_.killDeadResults() || targetMachine().alwaysWriteResults()) {
         return false;
     }

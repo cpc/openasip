@@ -35,6 +35,7 @@
 #include "SequenceTools.hh"
 #include "OperationContext.hh"
 #include "Application.hh"
+#include "OperationExecutor.hh"
 
 using std::string;
 
@@ -47,11 +48,16 @@ using std::string;
  */
 GCUState::GCUState(
     int latency, 
-    int nww) : 
+    int nww,
+    int cuDelaySlots,
+    int instructionAddressIncrement) :
     naturalWordWidth_(nww), returnAddressRegister_(64),
     latency_(latency), 
+    branchDelayCycles_(cuDelaySlots),
     operationContext_(
-        NULL, programCounter_, returnAddressRegister_) {
+        NULL, programCounter_, returnAddressRegister_,
+        branchDelayCycles_),
+        instructionAddressIncrement_(instructionAddressIncrement) {
     reset();
 }
 
@@ -91,6 +97,7 @@ GCUState::context() {
 void
 GCUState::advanceClock() {
 
+    // For call and jump operations
     if (operationPending_) {
         operationPendingTime_--;
     }
@@ -98,6 +105,12 @@ GCUState::advanceClock() {
         programCounter_ = newProgramCounter_;
         operationPending_ = false;
     } 
-    FUState::advanceClock();
-    idle_ = !operationPending_;
+
+    // Special handling for Loop Buffer Setup operation
+    if (!context().isEmpty()) {
+        idle_ = false;
+        context().advanceClock();
+    } else {
+        idle_ = !operationPending_;
+    }
 }

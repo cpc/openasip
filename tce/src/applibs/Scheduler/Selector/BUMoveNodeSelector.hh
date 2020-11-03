@@ -92,7 +92,10 @@ public:
         DataDependenceGraph::NodeSet& queue);
 
 private:
-    virtual bool isReadyToBeScheduled(MoveNode& node) const;
+    bool isReadyToBeScheduled(DataDependenceGraph::NodeSet& nodes) const;
+
+    bool isReadyToBeScheduled(MoveNode& mn, DataDependenceGraph::NodeSet& nodes) const;
+
     virtual bool isReadyToBeScheduled(MoveNodeGroup& nodes) const;
     /// The data dependence graph built from the basic block.
     DataDependenceGraph* ddg_;    

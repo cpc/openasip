@@ -64,8 +64,9 @@ const string HWOperation::OSKEY_PORT = "port";
  *                                   same name in the given function unit.
  * @exception InvalidName If the given name is not valid for a component.
  */
-HWOperation::HWOperation(const string& name, FunctionUnit& parent)
-    : SubComponent(), name_(name), pipeline_(NULL), parent_(NULL) {
+HWOperation::HWOperation(const string& name, FunctionUnit& parent) :
+    SubComponent(), name_(name), pipeline_(NULL), parent_(NULL) {
+
     name_ = StringTools::stringToLower(name);
 
     if (!MachineTester::isValidComponentName(name_)) {
@@ -91,8 +92,9 @@ HWOperation::HWOperation(const string& name, FunctionUnit& parent)
  * @exception ObjectStateLoadingException If an error occurs while loading
  *                                        the state.
  */
-HWOperation::HWOperation(const ObjectState* state, FunctionUnit& parent)
-    : SubComponent(), name_(""), pipeline_(NULL), parent_(&parent) {
+HWOperation::HWOperation(const ObjectState* state, FunctionUnit& parent) :
+    SubComponent(), name_(""), pipeline_(NULL), parent_(&parent) {
+
     const string procName = "HWOperation::HWOperation";
 
     // set name
@@ -151,6 +153,7 @@ HWOperation::name() const {
  */
 void
 HWOperation::setName(const std::string& name) {
+
     string lowerName = StringTools::stringToLower(name);
 
     if (lowerName == this->name()) {
@@ -225,6 +228,7 @@ HWOperation::latency() const {
  */
 int
 HWOperation::latency(int output) const {
+
     return pipeline_->latency(output);
 }
 
@@ -242,6 +246,7 @@ HWOperation::latency(int output) const {
  */
 int
 HWOperation::slack(int input) const {
+
     return pipeline_->slack(input);
 }
 
@@ -262,6 +267,7 @@ HWOperation::slack(int input) const {
  */
 void
 HWOperation::bindPort(int operand, const FUPort& port) {
+
     const string procName = "HWOperation::bindPort";
 
     if (operand < 1) {
@@ -290,6 +296,15 @@ void
 HWOperation::unbindPort(const FUPort& port) {
     MapTools::removeItemsByValue(operandBinding_, &port);
     port.updateBindingString();
+}
+
+
+/**
+ * Returns number of operands for this operation.
+ */
+int
+HWOperation::operandCount() const {
+    return operandBinding_.size();
 }
 
 
@@ -324,6 +339,19 @@ HWOperation::isBound(const FUPort& port) const {
     return MapTools::containsValue(operandBinding_, &port);
 }
 
+/**
+ * Checks whetever the given operand is bound to some port.
+ *
+ * @param operand The operand.
+ * @return True if bound and otherwise false.
+ */
+bool
+HWOperation::isBound(int operand) const {
+    if (operand < 1) {
+        THROW_EXCEPTION(OutOfRange, "Operand out of range (must be > 0).");
+    }
+    return MapTools::containsKey(operandBinding_, operand);
+}
 
 /**
  * Returns the index of the input or output that is bound to the given port.
@@ -334,9 +362,13 @@ HWOperation::isBound(const FUPort& port) const {
  */
 int
 HWOperation::io(const FUPort& port) const {
+
     if (!isBound(port)) {
         const string procName = "HWOperation::operand";
-        throw InstanceNotFound(__FILE__, __LINE__, procName);
+        const string msg = string("The port '") + port.name()
+            + "' is not bound to the operation '"
+            + name() + "'.";
+        throw InstanceNotFound(__FILE__, __LINE__, procName, msg);
     }
 
     return MapTools::keyForValue<int>(operandBinding_, &port);
@@ -379,6 +411,7 @@ HWOperation::saveState() const {
  */
 void
 HWOperation::loadState(const ObjectState* state) {
+
     const string procName = "HWOperation::loadState";
 
     if (state->name() != OSNAME_OPERATION) {

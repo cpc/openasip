@@ -53,6 +53,7 @@ using std::vector;
 #include "OSAL.hh"
 #include "Exception.hh"
 #include "Operation.hh"
+#include "Operand.hh"
 #include "ObjectState.hh"
 #include "IdealSRAM.hh"
 #include "BaseType.hh"
@@ -437,7 +438,10 @@ LanguageTest::testControl() {
     InstructionAddress PC = 0;
     SimValue returnAddress(32);
 
-    OperationContext context(NULL, PC, returnAddress);
+    int delayCycles = 3; // Not used in call and jump instructions
+
+    OperationContext context(
+        NULL, PC, returnAddress, delayCycles);
 
     SimValue callTarget(32);
     callTarget = 500;

@@ -226,16 +226,18 @@ SetGlobalActor::operator() (const char* start, const char* end) const {
  *
  * @param aBin TPEF object where to create program.
  * @param aMach Machine which for program is written.
- * @param parent Assembler root class for warning handling.
+ * @param parserDiagnostic Assembler root class for warning handling.
  */
 AssemblerParser::AssemblerParser(
-    TPEF::Binary &aBin, TTAMachine::Machine &aMach,
-    Assembler* parent) :
+    TPEF::Binary &aBin, const TTAMachine::Machine &aMach,
+    AssemblyParserDiagnostic* parserDiagnostic,
+    bool codeLinesOnly) :
     bin_(aBin),
-    resourceManager_(aBin, aMach, parent),
-    dataSectionCreator_(resourceManager_, parent),
-    codeSectionCreator_(resourceManager_, parent),
-    labelManager_(aBin, resourceManager_, parent) {
+    resourceManager_(aBin, aMach, parserDiagnostic),
+    dataSectionCreator_(resourceManager_, parserDiagnostic),
+    codeSectionCreator_(resourceManager_, aMach, parserDiagnostic),
+    labelManager_(aBin, resourceManager_, parserDiagnostic),
+    codeLinesOnly_(codeLinesOnly) {
 }
 
 /**
@@ -249,7 +251,7 @@ AssemblerParser::cleanup() {
 }
 
 bool
-AssemblerParser::compile(std::string& asmCode) const {
+AssemblerParser::compile(const std::string& asmCode) const {
 #if BOOST_VERSION >= 103800
     return boost::spirit::classic::parse(asmCode.c_str(), *this).full;
 #else

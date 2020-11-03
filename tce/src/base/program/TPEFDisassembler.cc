@@ -68,7 +68,7 @@ using namespace TPEF;
  * @param aTpef TPEF hierarchy whose code sections are disassembled.
  */
 TPEFDisassembler::TPEFDisassembler(const Binary &aTpef) :
-    Disassembler(), tpef_(&aTpef) {
+    tpef_(&aTpef) {
 }
 
 /**
@@ -231,6 +231,14 @@ TPEFDisassembler::createInstruction(Word instructionIndex) const {
             } else {
                 organizedInstr.push_back(newMove);
             }
+        } else {
+            // empty move element. NOP?
+            // add annotationes for the move
+            for (Word j = 0; j < currMove->annotationCount(); j++) {
+                InstructionAnnotation& ann = *(currMove->annotation(j));
+                newInstruction->addAnnotation(
+                    new DisassemblyAnnotation(ann.id(), ann.payload()));
+            }
         }
     }
 
@@ -258,6 +266,7 @@ Word
 TPEFDisassembler::startAddress() const {
     CodeSection *theCodeSection =
 	dynamic_cast<CodeSection*>(tpef_->section(Section::ST_CODE,0));
+
     assert(theCodeSection != NULL);
     return theCodeSection->startingAddress();
 }
@@ -298,6 +307,7 @@ void
 TPEFDisassembler::initCache() const {
     CodeSection *theCodeSection =
 	dynamic_cast<CodeSection*>(tpef_->section(Section::ST_CODE,0));
+
     assert(theCodeSection != NULL);
 
     for (Word i = 0; i < theCodeSection->elementCount(); i++) {

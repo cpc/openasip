@@ -123,9 +123,7 @@ AOutReader::textSection() const {
  * @exception OutOfRange If requested element is outside sections.
  */
 inline ASpaceElement*
-AOutReader::aSpaceOfElement(SectionElement *elem) const
-     {
-
+AOutReader::aSpaceOfElement(SectionElement* elem) const {
     if (elem == NULL) {
         return undefASpace_;
     }
@@ -161,9 +159,7 @@ AOutReader::aSpaceOfElement(SectionElement *elem) const
  * @exception OutOfRange If requested element is outside sections.
  */
 inline AddressImage
-AOutReader::addressOfElement(SectionElement *elem) const
-     {
-
+AOutReader::addressOfElement(SectionElement* elem) const {
     // Section offset and identification code of destination element to find
     ReferenceManager::SectionOffsetKey elemSectionOffsetKey =
         ReferenceManager::SafePointer::sectionOffsetKeyFor(elem);
@@ -202,10 +198,7 @@ AOutReader::addressOfElement(SectionElement *elem) const
  * @exception OutOfRange If address in not in binary file.
  */
 inline SectionOffset
-AOutReader::sectionOffsetOfAddress(
-    AddressImage address) const
-     {
-
+AOutReader::sectionOffsetOfAddress(AddressImage address) const {
     SectionOffset endOfText = header_.sectionSizeText();
     SectionOffset endOfData = endOfText + header_.sectionSizeData();
     SectionOffset endOfUData = endOfData + header_.sectionSizeUData();
@@ -253,12 +246,8 @@ AOutReader::header() {
  */
 inline void
 AOutReader::readSection(
-    BinaryStream& stream,
-    FileOffset startPosition,
-    Section* section,
-    Length length) const
-     {
-
+    BinaryStream& stream, FileOffset startPosition, Section* section,
+    Length length) const {
     stream.setReadPosition(startPosition);
 
     if (length > 0) {

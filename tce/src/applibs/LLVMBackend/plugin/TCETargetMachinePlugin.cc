@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2013 Tampere University.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,9 +26,9 @@
  *
  * Implementation of TCETargetMachinePlugin class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepistˆ 2009 (mikael.lepisto-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2012
+ * @author Veli-Pekka J√§√§skel√§inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepist√∂ 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2012
  * @note rating: red
  */
 
@@ -38,12 +38,14 @@
 #include <sstream>
 #include "TCETargetMachinePlugin.hh"
 #include "TCEPlugin.hh"
-#include "TCEInstrInfo.hh"
 #include "TCETargetMachine.hh"
 #include "TCEFrameInfo.hh"
 #include "TCEISelLowering.hh"
 #include "TCESubtarget.hh"
 #include "MapTools.hh"
+#include "CIStringSet.hh"
+#include "LLVMTCECmdLineOptions.hh"
+#include "TCEStubTargetMachine.hh"
 
 using namespace llvm;
 
@@ -54,31 +56,35 @@ class GeneratedTCEPlugin : public TCETargetMachinePlugin {
 public:
     GeneratedTCEPlugin();
     virtual ~GeneratedTCEPlugin();
-    virtual const TargetInstrInfo* getInstrInfo() const;
-    virtual const TargetRegisterInfo* getRegisterInfo() const;
-    virtual const TargetFrameLowering* getFrameLowering() const;
-    virtual TargetLowering* getTargetLowering() const;
-    virtual const TargetSubtargetInfo* getSubtarget() const;
+    virtual const TargetInstrInfo* getInstrInfo() const override;
+    virtual const TargetRegisterInfo* getRegisterInfo() const override;
+    virtual const TargetFrameLowering* getFrameLowering() const override;
+    virtual TargetLowering* getTargetLowering() const override;
+    virtual const TargetSubtargetInfo* getSubtarget() const override;
 
-    virtual FunctionPass* createISelPass(TCETargetMachine* tm);
+    virtual FunctionPass* createISelPass(TCETargetMachine* tm) override;
 
-    virtual unsigned spDRegNum() {
+    virtual unsigned spDRegNum() override {
         return TCE::SP;
     }
 
-    virtual unsigned fpDRegNum() {
+    virtual unsigned fpDRegNum() override {
         return TCE::FP;
     }
 
-    virtual unsigned rvDRegNum() {
+    virtual unsigned rvDRegNum() override {
         return TCE::IRES0;
     }
 
-    virtual unsigned rvHighDRegNum() {
+    virtual unsigned rvHighDRegNum() override {
         return TCE::KLUDGE_REGISTER;
     }
 
-    virtual const std::string* adfXML() {
+    virtual std::vector<unsigned> getParamDRegNums() const override;
+
+    virtual std::vector<unsigned> getVectorRVDRegNums() const override;
+
+    virtual const std::string* adfXML() override {
         return &adfXML_;
     }
 
@@ -89,26 +95,35 @@ public:
         return MVT::i32;
 #endif
     }
-    virtual std::string rfName(unsigned dwarfRegNum);
-    virtual unsigned registerIndex(unsigned dwarfRegNum);
+    virtual std::string rfName(unsigned dwarfRegNum) override;
+    virtual unsigned registerIndex(unsigned dwarfRegNum) override;
 
-    unsigned int extractElementLane(const llvm::MachineInstr&) const;
+    unsigned llvmRegisterId(const TCEString& ttaRegister) override {
+        if (ttallvmRegMap_.count(ttaRegister)) {
+            return ttallvmRegMap_[ttaRegister];
+        }
+        return TCE::NoRegister;
+    }
 
-    virtual std::string operationName(unsigned opc) const;
+    unsigned int extractElementLane(const llvm::MachineInstr&) const override;
 
-    virtual bool hasOperation(TCEString operationName) const {
+    virtual std::string operationName(unsigned opc) const override;
+    virtual bool validStackAccessOperation(
+        const std::string& opName) const override;
+
+    virtual bool hasOperation(TCEString operationName) const override {
         return MapTools::containsValue(opNames_, operationName.upper());
     }
 
-    virtual unsigned opcode(TCEString operationName) const {
+    virtual unsigned opcode(TCEString operationName) const override {
         return MapTools::keyForValue<unsigned>(opNames_, operationName.upper());
     }
 
-    virtual int getTruePredicateOpcode(unsigned opc) const;
-    virtual int getFalsePredicateOpcode(unsigned opc) const;
+    virtual int getTruePredicateOpcode(unsigned opc) const override;
+    virtual int getFalsePredicateOpcode(unsigned opc) const override;
 
-    unsigned int raPortDRegNum();
-    std::string dataASName();
+    unsigned int raPortDRegNum() override;
+    std::string dataASName() override;
 
     virtual bool hasSDIV() const override;
     virtual bool hasUDIV() const override;
@@ -126,36 +141,60 @@ public:
     virtual bool has8bitLoads() const override;
     virtual bool has16bitLoads() const override;
 
-    virtual int maxVectorSize() const override { return 1; }
-    virtual void registerTargetMachine(TCETargetMachine &tm);
+    virtual int maxVectorSize() const override;
 
-    virtual int getLoad(const TargetRegisterClass *rc) const;
-    virtual int getStore(const TargetRegisterClass *rc) const;
+    virtual bool analyzeCCBranch(
+        llvm::MachineInstr& i,
+        llvm::SmallVectorImpl<llvm::MachineOperand>& cond) const override;
 
-    virtual int getMinOpcode(llvm::SDNode* n) const;
-    virtual int getMaxOpcode(llvm::SDNode* n) const;
-    virtual int getMinuOpcode(llvm::SDNode* n) const;
-    virtual int getMaxuOpcode(llvm::SDNode* n) const;
+    virtual void registerTargetMachine(TCETargetMachine &tm) override;
+
+    virtual int getLoad(const TargetRegisterClass *rc) const override;
+    virtual int getStore(const TargetRegisterClass *rc) const override;
+
+    virtual int getMinOpcode(llvm::SDNode* n) const override;
+    virtual int getMaxOpcode(llvm::SDNode* n) const override;
+    virtual int getMinuOpcode(llvm::SDNode* n) const override;
+    virtual int getMaxuOpcode(llvm::SDNode* n) const override;
 
     virtual const llvm::TargetRegisterClass* extrasRegClass(
-        const llvm::TargetRegisterClass* current) const;
+        const llvm::TargetRegisterClass* current) const override;
     virtual const llvm::TargetRegisterClass* nodeRegClass(
-        unsigned nodeId, const llvm::TargetRegisterClass* current) const;
+        unsigned nodeId,
+        const llvm::TargetRegisterClass* current) const override;
 
-    virtual unsigned getMaxMemoryAlignment() const;
+    virtual int getLoadOpcode(const EVT& vt) const override;
+    // -1 or vector add opcode. Implementation generated to Backend.inc
+    virtual int getAddOpcode(const EVT& vt) const override;
+    // -1 or vector shl opcode. Implementation generated to Backend.inc
+    virtual int getShlOpcode(const EVT& vt) const override;
+    // -1 or vector or opcode. Implementation generated to Backend.inc
+    virtual int getIorOpcode(const EVT& vt) const override;
 
     // If machine is little-endian.
     virtual bool isLittleEndian() const override;
     virtual bool is64bit() const override;
 
+    // Returns true if the constant value can be materialized. Implementation
+    // is generated to Backend.inc
+    virtual bool canMaterializeConstant(const ConstantInt& ci) const override;
+
+    virtual std::tuple<int, int> getPointerAdjustment(
+        int offset) const override;
+    virtual void manualInitialize();
+
 private:
     void initialize();
-    
+
     std::map<unsigned, TCEString> opNames_;
     std::map<unsigned, unsigned> truePredOps_;
     std::map<unsigned, unsigned> falsePredOps_;
     std::map<unsigned, TCEString> regNames_;
     std::map<unsigned, unsigned> regIndices_;
+    /// Map for TTA register to LLVM register id conversion.
+    std::map<TCEString, unsigned> ttallvmRegMap_;
+    /// Set of valid LLVM opcodes for stack accesses.
+    TCETools::CIStringSet validStackAccessOperations_;
 
     std::string adfXML_;
     std::string dataASName_;
@@ -164,24 +203,30 @@ private:
 
 #include "Backend.inc"
 
+
+// This global class initialization hack is needed to pass the adf data to the
+// middle-end, which provides details for llvm autovectorization.
+class TCEPluginInitializer {
+public:
+    TCEPluginInitializer() {
+
+        GeneratedTCEPlugin* plugin = new GeneratedTCEPlugin();
+        plugin->manualInitialize();
+
+        // Pass adf xml string to the middle-end stub targetmachine
+        TCEStubTargetMachine::setADFString(*(plugin->adfXML()));
+
+        // Register LLVM Target and TCE Stub TargetMachine
+        LLVMInitializeTCETargetInfo();
+        LLVMInitializeTCEStubTarget();
+    }
+} myPlugin;
+
 /**
  * The Constructor.
  */
 GeneratedTCEPlugin::GeneratedTCEPlugin() : 
     TCETargetMachinePlugin() {
-     int stackAlignment = static_cast<int>(getMaxMemoryAlignment());
-
-     auto tii = new TCEInstrInfo(this);
-     instrInfo_ = tii;
-     // Initialize register & opcode maps.
-     initialize();
-
-     TCERegisterInfo* ri =
-         const_cast<TCERegisterInfo*>(
-             static_cast<const TCERegisterInfo*>(getRegisterInfo()));
-
-     frameInfo_ = new TCEFrameLowering(ri, tii, stackAlignment);
-     subTarget_ = new TCESubtarget(this);
 }
 
 
@@ -196,10 +241,23 @@ GeneratedTCEPlugin::~GeneratedTCEPlugin() {
    }
 }
 
+void
+GeneratedTCEPlugin::manualInitialize() {
+    initialize();
+}
+
 void 
 GeneratedTCEPlugin::registerTargetMachine(
     TCETargetMachine &tm) {
     tm_ = &tm;
+    instrInfo_ = new TCEInstrInfo(this);
+    // Initialize register & opcode maps.
+    initialize();
+
+    TCERegisterInfo* ri =
+        const_cast<TCERegisterInfo*>(
+            static_cast<const TCERegisterInfo*>(getRegisterInfo()));
+    frameInfo_ = new TCEFrameLowering(ri, instrInfo_, tm.stackAlignment());
 
     if (isLittleEndian()) {
 #ifndef TARGET64BIT
@@ -300,6 +358,10 @@ int GeneratedTCEPlugin::getFalsePredicateOpcode(unsigned opc) const {
 
 /**
  * Maps llvm target opcodes to target operation names.
+ *
+ * Returns an empty string in case the operation code could not be
+ * mapped to an OSAL operation name. This is the case with pseudo
+ * ops, for example.
  */
 std::string
 GeneratedTCEPlugin::operationName(unsigned opc) const {
@@ -325,6 +387,7 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     if (opc == TCE::MOVI1ri) return MOVE;
     if (opc == TCE::PRED_TRUE_MOVI1ri) return "?MOVE";
     if (opc == TCE::PRED_FALSE_MOVI1ri) return "!MOVE";
+    if (opc == TCE::MOVGri) return MOVE;
     if (opc == TCE::MOVI32rr) return MOVE;
     if (opc == TCE::PRED_TRUE_MOVI32rr) return "?MOVE";
     if (opc == TCE::PRED_FALSE_MOVI32rr) return "!MOVE";
@@ -346,6 +409,11 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     if (opc == TCE::MOVI32I1rr) return MOVE;
     if (opc == TCE::MOVFI32rf) return MOVE;
     if (opc == TCE::MOVIF32fr) return MOVE;
+    if (opc == TCE::MOVGrr) return MOVE;
+    if (opc == TCE::MOVGI32rr) return MOVE;
+    if (opc == TCE::MOVI32Grr) return MOVE;
+    if (opc == TCE::MOVGI1rr) return MOVE;
+    if (opc == TCE::MOVI1Grr) return MOVE;
     if (opc == TCE::MOVhh) return MOVE;
     if (opc == TCE::MOVhk) return MOVE;
     if (opc == TCE::MOVrh) return MOVE;
@@ -354,7 +422,24 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     if (opc == TCE::MOVsd) return MOVE;
     if (opc == TCE::MOVds) return MOVE;
 
+    // TODO: added as a spot fix for simd_operations_On,
+    // which selects this particular move operation.
+    // Most likely, the compiler can pick other moves not
+    // listed here, and subsequently crash.
+    if (opc == TCE::MOVI1I32rr) return MOVE;
+
     if (opc == TCE::INLINEASM) return INLINEASM;
+
+/* TODO: 64-bit support missing here? */
+
+    if (opc == TCE::ADDfri || opc == TCE::ADDhri) return "add";
+    
+    if (opc == TCE::SUBfir || opc == TCE::SUBfri || opc == TCE::SUBhir ||
+        opc == TCE::SUBhri) return "sub";
+
+    if (opc == TCE::SUBfir) return "sub";
+    if (opc == TCE::SUBfri) return "sub";
+
 #ifdef TARGET64BIT
     if (opc == TCE::ANDext) return "and64";
     if (opc == TCE::XORbicmp) return "xor64";
@@ -384,23 +469,31 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     if (opc == TCE::ST32RArr) return "st32";
     if (opc == TCE::LD32RAr) return "ld32";
 #endif
-    if (opc == TCE::TCEBRCOND) return "?jump";
-    if (opc == TCE::TCEBRICOND) return "!jump";
     if (opc == TCE::TCEBR) return "jump";
     if (opc == TCE::TCEBRIND) return "jump";
     if (opc == TCE::CALL) return "call";
     if (opc == TCE::CALL_MEMrr) return "call";
     if (opc == TCE::CALL_MEMri) return "call";
 
+    std::map<unsigned int, TCEString>::const_iterator opNameIt;
+
     std::map<unsigned int, TCEString>::const_iterator i = opNames_.find(opc);
     if (i == opNames_.end()) {
         std::cerr << "ERROR: Couldn't find operation with opc: " << opc
                   << std::endl;
         std::cerr << "Total ops: " << opNames_.size() << std::endl;
+/*
         abort();
+*/
+        return "";
     } else {
-	return i->second;
+        return i->second;
     }
+}
+
+bool
+GeneratedTCEPlugin::validStackAccessOperation(const std::string& opName) const {
+    return validStackAccessOperations_.count(opName);
 }
 
 #include "TCEGenRegisterInfo.inc"
@@ -420,35 +513,9 @@ const llvm::TargetRegisterClass*
 GeneratedTCEPlugin::nodeRegClass(
     unsigned nodeId, const llvm::TargetRegisterClass* current) const {
 
-#ifdef LLVM_3_5
-
-    const llvm::TargetRegisterInfo& TRI = *getRegisterInfo();
-
-    TCEString origRCName(current->getName());
-    for (unsigned c = 0; c < TRI.getNumRegClasses(); ++c) {
-        const llvm::TargetRegisterClass* regClass = TRI.getRegClass(c);
-        TCEString RCName(regClass->getName());
-        if (!current->hasSubClass(regClass) || !RCName.startsWith("R")) 
-            continue;
-        std::istringstream parser(origRCName);
-        char c2;
-        int width;
-        TCEString suffix;
-        parser >> c2;
-        parser >> width;
-        parser >> suffix;
-
-        TCEString wantedRegClassName;
-        wantedRegClassName << "R" << width << "_L_" << nodeId << suffix;
-
-        if (wantedRegClassName == RCName)
-            return regClass;
-    }
-    return current;
-#else
     return NULL;
-#endif
 }
+
 
 /**
  * Returns the specific register class representing registers belonging to 
@@ -461,31 +528,7 @@ GeneratedTCEPlugin::extrasRegClass(
     const llvm::TargetRegisterClass* current) const {
     const llvm::TargetRegisterInfo& TRI = *getRegisterInfo();
 
-#ifdef LLVM_3_5
-    TCEString origRCName(current->getName());
-    for (unsigned c = 0; c < TRI.getNumRegClasses(); ++c) {
-        const llvm::TargetRegisterClass* regClass = TRI.getRegClass(c);
-        TCEString RCName(regClass->getName());
-        if (!current->hasSubClass(regClass) || !RCName.startsWith("R")) 
-            continue;
-        std::istringstream parser(origRCName);
-        char c2;
-        int width;
-        TCEString suffix;
-        parser >> c2;
-        parser >> width;
-        parser >> suffix;
-
-        TCEString wantedRegClassName;
-        wantedRegClassName << "R" << width << "_Ex" << suffix;
-
-        if (wantedRegClassName == RCName)
-            return regClass;
-    }
-    return current;
-#else
     return NULL;
-#endif
 }
 
 
@@ -494,7 +537,9 @@ GeneratedTCEPlugin::extrasRegClass(
  */
 std::string
 GeneratedTCEPlugin::rfName(unsigned dwarfRegNum) {
-    assert(regNames_.find(dwarfRegNum) != regNames_.end());
+    if (regNames_.find(dwarfRegNum) == regNames_.end()) {
+        return "BYPASS_PSEUDO";
+    }
     return regNames_[dwarfRegNum];
 }
 
@@ -503,7 +548,9 @@ GeneratedTCEPlugin::rfName(unsigned dwarfRegNum) {
  */
 unsigned
 GeneratedTCEPlugin::registerIndex(unsigned dwarfRegNum) {
-    assert(regIndices_.find(dwarfRegNum) != regIndices_.end());
+    if (regIndices_.find(dwarfRegNum) == regIndices_.end()) {
+        return dwarfRegNum;
+    }
     return regIndices_[dwarfRegNum];
 }
 

@@ -102,6 +102,9 @@ public:
         
     void addOperationExecutor(OperationExecutor* executor);
 
+    bool isFinished() const { return finished_; }
+    void setFinished(bool finished=true) { finished_ = finished; }
+
 private:
     /// Copying not allowed.
     MachineState(const MachineState&);
@@ -158,6 +161,10 @@ private:
     LongImmediateUnitCache longImmediateCache_;
     RegisterFileCache rfCache_;
     GuardCache guardCache_;
+
+    // This is set to true when the core has finished execution (reached
+    // a known program exit point).
+    bool finished_;
 };
 
 #include "MachineState.icc"

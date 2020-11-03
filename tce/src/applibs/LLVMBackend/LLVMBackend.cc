@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University.
+    Copyright (c) 2002-2020 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -24,14 +24,17 @@
 /**
  * @file LLVMBackend.cc
  *
- * TCE compiler backend 
+ * TCE runtime retargeting compiler backend.
  *
- * @author Veli-Pekka J��skel�inen 2008 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepist� 2009 (mikael.lepisto-no.spam-tut.fi)
- * @author Pekka J��skel�inen 2009-2015
+ * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2009-2020
  * @note rating: red
  */
 
+#ifdef NDEBUG
+#undef NDEBUG
+#endif
 #include "CompilerWarnings.hh"
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
 IGNORE_COMPILER_WARNING("-Wcomment")
@@ -89,6 +92,7 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 #include "tce_config.h" // to get llvm version
 
 #include <llvm/Support/TargetRegistry.h>
+#include "llvm/Support/FileSystem.h"
 
 #ifndef LLVM_OLDER_THAN_10
 #include <llvm/InitializePasses.h>
@@ -104,6 +108,7 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 #include "LLVMTCECmdLineOptions.hh"
 #include "TDGen.hh"
 
+#include "passes/InnerLoopFinder.hh"
 #include "Environment.hh"
 #include "Conversion.hh"
 #include "FileSystem.hh"
@@ -122,8 +127,8 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 #include "InterPassDatum.hh"
 #include "LLVMTCEIRBuilder.hh"
 #include "Machine.hh"
+#include "MachineInfo.hh"
 #include "ConstantTransformer.hh"
-
 //#define DEBUG_TDGEN
 
 #define DS TCEString(FileSystem::DIRECTORY_SEPARATOR)
@@ -135,7 +140,6 @@ using namespace llvm;
 #include "llvm/IR/DataLayout.h"
 typedef llvm::DataLayout TargetData;
 
-
 POP_COMPILER_DIAGS
 
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
@@ -144,6 +148,8 @@ const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
 const TCEString LLVMBackend::CXX0X_FLAG = "-std=c++0x";
 const TCEString LLVMBackend::CXX11_FLAG = "-std=c++11";
 const TCEString LLVMBackend::CXX14_FLAG = "-std=c++14";
+
+Pass* createWorkItemAliasAnalysisPass();
 
 /**
  * Returns minimum opset that is required by llvm.
@@ -531,6 +537,35 @@ static void printAndVerify(PassManagerBase &PM,
 */
 
 /**
+ * Finds the maximum alignment of an alloca in the module.
+ *
+ * Used to align the stack for the program image.
+ */
+unsigned
+LLVMBackend::maxAllocaAlignment(const llvm::Module& mod) const {
+    unsigned maxAlignment = 4;
+    for (llvm::Module::const_iterator f = mod.begin(), 
+             fe = mod.end(); f != fe; ++f) {
+        for (llvm::Function::const_iterator bb = f->begin(), be = f->end();
+             bb != be; ++bb) {
+#ifdef LLVM_OLDER_THAN_3_8
+            const llvm::BasicBlock* basicBlock = bb;
+#else
+            const llvm::BasicBlock* basicBlock = &(*bb);
+#endif
+            for (llvm::BasicBlock::const_iterator i = basicBlock->begin(),
+                     ie = basicBlock->end(); i != ie; ++i) {
+                if (!isa<const llvm::AllocaInst>(i)) continue;
+                const llvm::AllocaInst* alloca = 
+                    dyn_cast<const llvm::AllocaInst>(i);
+                maxAlignment = std::max(maxAlignment, alloca->getAlignment());
+            }
+        }
+    }
+    return maxAlignment;
+}
+
+/**
  * Compiles given llvm program module for target machine using the given
  * target machine plugin.
  *
@@ -576,7 +611,7 @@ LLVMBackend::compile(
 
     // get registered target machine and set plugin.
     const Target* tceTarget = 
-        TargetRegistry::lookupTarget(targetStr, errorStr);
+        TargetRegistry::lookupTarget(targetStr, errorStr); 
     
     if (!tceTarget) {
         errs() << errorStr << "\n";
@@ -596,8 +631,30 @@ LLVMBackend::compile(
     Options.NoInfsFPMath = false; //EnableNoInfsFPMath;
     Options.NoNaNsFPMath = false; //EnableNoNaNsFPMath;
     Options.HonorSignDependentRoundingFPMathOption = false;
+    // the stack alignment depends on the widest aligned
+    // memory operations supported by the machine and
+    // on the maximum alignment of any stack object in
+    // the program, recompute this now as the llvm::Module has
+    // been loaded
+    Options.StackAlignmentOverride =
+        (unsigned)MachineInfo::maxMemoryAlignment(target);
+    if (options_->assumeADFStackAlignment()) {
+
+        if (maxAllocaAlignment(module) > Options.StackAlignmentOverride) {
+            abortWithError(
+                "Alloca object requires larger stack alignment than widest "
+                "memory operation. "
+                "We were hoping this wouldn't happen, because now stack "
+                "alignment cannot be "
+                "figured out just from adf-file. ATM (5/20) this assumption is "
+                "made here, "
+                "at tcecc::getStackAlignment and at CodeGenerator.cc "
+                "constructor.");
+        }
+    } else {
+        Options.StackAlignmentOverride = std::max((unsigned)MachineInfo::maxMemoryAlignment(target), maxAllocaAlignment(module));
+    }
     Options.GuaranteedTailCallOpt = true; //EnableGuaranteedTailCallOpt;
-    Options.StackAlignmentOverride = false; //OverrideStackAlignment;
 
     TCETargetMachine* targetMachine =
         static_cast<TCETargetMachine*>(
@@ -616,8 +673,7 @@ LLVMBackend::compile(
 
     // This hack must be cleaned up before adding TCE target to llvm upstream
     // these are needed by TCETargetMachine::addInstSelector passes
-    targetMachine->setTargetMachinePlugin(plugin);
-    targetMachine->setTTAMach(&target);
+    targetMachine->setTargetMachinePlugin(plugin, target);
     targetMachine->setEmulationModule(emulationModule);
 
     /**
@@ -693,12 +749,39 @@ LLVMBackend::compile(
         rvReg->second = plugin.registerIndex(plugin.rvDRegNum());
         ipData_->setDatum("RV_REGISTER", rvReg);
 
-        // high-part of 64-bit RV datum
-        RegDatum* rvHighReg = new RegDatum;
-        rvHighReg->first = plugin.rfName(plugin.rvHighDRegNum());
-        rvHighReg->second = plugin.registerIndex(plugin.rvHighDRegNum());
-        ipData_->setDatum("RV_HIGH_REGISTER", rvHighReg);
+        std::vector<unsigned> paramRegs = plugin.getParamDRegNums();
+        for (unsigned int i = 0; i < paramRegs.size(); i++) {
+            RegDatum* p = new RegDatum;
+            p->first = plugin.rfName(paramRegs[i]);
+            p->second = plugin.registerIndex(paramRegs[i]);
+            TCEString datumName = "IPARAM";
+            datumName << i+2;
+            ipData_->setDatum(datumName, p);
+        }
+
+        std::vector<unsigned> vectorRVRegs = plugin.getVectorRVDRegNums();
+        for (unsigned int i = 0; i < vectorRVRegs.size(); i++) {
+            RegDatum* p = new RegDatum;
+            p->first = plugin.rfName(vectorRVRegs[i]);
+            p->second = plugin.registerIndex(vectorRVRegs[i]);
+            TCEString datumName = "VRV_REGISTER";
+            datumName << i;
+            ipData_->setDatum(datumName, p);
+        }
+        
+        // TODO: add datums for vector RV registers.
     }
+
+    // Find the inner loops. Must be executed with a separate
+    // PassManager as mixing module passes and loop passes does
+    // not seem to magically work.
+    // TODO: is it safe to trust the llvm::BasicBlock pointers are
+    // intact until we run the actual code generation? The loop info
+    // is stored using those as indices.
+    llvm::legacy::PassManager FPasses;
+    InnerLoopFinder* loopFinder = new InnerLoopFinder();
+    FPasses.add(loopFinder);
+    FPasses.run(module);
 
     LLVMTCEBuilder* builder = NULL;
 
@@ -707,7 +790,10 @@ LLVMBackend::compile(
     // When LLVMTCEIRBuilder is called from TCEScheduler it will require
     // AA parameter.
     AliasAnalysis* AA = NULL;
-    builder = new LLVMTCEIRBuilder(*targetMachine, &target, *ipData, AA);
+    LLVMTCEIRBuilder* b = 
+        new LLVMTCEIRBuilder(*targetMachine, &target, *ipData, AA);
+    b->setInnerLoopFinder(loopFinder);
+    builder = b;
 
     if (options_ != NULL && options_->isInitialStackPointerValueSet()) {
         builder->setInitialStackPointerValue(
@@ -716,18 +802,14 @@ LLVMBackend::compile(
     addPass(new ConstantTransformer(target));
     addPass(builder);
     Passes.run(module);
-    // get and write out pom
-    TTAProgram::Program* prog = builder->result();
-    assert(prog != NULL);
+
     if (ipData_ != NULL) {
         if (builder->isProgramUsingRestrictedPointers()) {
             ipData_->setDatum("RESTRICTED_POINTERS_FOUND", NULL);
         }
-        if (builder->isProgramUsingAddressSpaces()) {
-            ipData_->setDatum("MULTIPLE_ADDRESS_SPACES_FOUND", NULL);
-        }
     }
-    return prog;
+    builder->deleteDeadProcedures();
+    return builder->result();
 }
 
 /**
@@ -738,13 +820,20 @@ LLVMBackend::compile(
 TCETargetMachinePlugin*
 LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
     std::string pluginFile = pluginFilename(target);
-    std::string pluginFileName = "";
+    std::string pluginFileName;
+    std::string tempPluginFileName;
 
     // Create cache directory if it doesn't exist.
     if (!FileSystem::fileIsDirectory(cachePath_)) {
         FileSystem::createDirectory(cachePath_);
     }
+
     pluginFileName = cachePath_ + DS + pluginFile;
+    tempPluginFileName = cachePath_ + DS + pluginFile + ".%%_%%_%%_%%";
+
+    llvm::SmallString<128> ResultPath;
+    llvm::sys::fs::createUniqueFile(llvm::Twine(tempPluginFileName), ResultPath);
+    tempPluginFileName = ResultPath.str().str();
 
     // Static plugin source files path.
     std::string srcsPath = "";
@@ -759,11 +848,16 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
         pluginIncludeFlags =
             " -I" + srcsPath + 
             " -I" + std::string(TCE_SRC_ROOT) + DS + " " +
-            " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS + "tools" +              
+            " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS + "tools" +
+            " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS + "base" +
+            DS + "mach"
             " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS + 
             "applibs" + DS + "LLVMBackend" + DS + " " +
 
             " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS + 
+            "applibs" + DS + "mach" + " " +
+
+            " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS +
             "applibs" + DS + "Scheduler" + DS + " " +
 
             " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS + 
@@ -798,9 +892,11 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
 
     if (!options_->useOldBackendSources()) {
         // Create target instruction and register definitions in .td files.
-        TDGen plugingen(target);
+        TDGen* pluginGenPtr = new TDGen(target);
+
         try {
-            plugingen.generateBackend(tempDir_);
+            pluginGenPtr->generateBackend(tempDir_);
+            delete pluginGenPtr;
         } catch(Exception& e) {
             std::string msg =
                 "Failed to build compiler plugin for target architecture: ";
@@ -918,7 +1014,24 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
 
     ret = system(cmd.c_str());
     if (ret) {
-        std::string msg = std::string() +
+        std::string msg =
+            std::string() +
+            "Failed to build compiler plugin for target architecture.\n" +
+            "Failed command was: " + cmd;
+
+        throw CompileError(__FILE__, __LINE__, __func__, msg);
+    }
+
+#ifndef LLVM_OLDER_THAN_10
+    // Generate TCEDFAPacketizer.inc
+    cmd = tblgenCmd + " -gen-dfa-packetizer" + " -o " + tempDir_ +
+          FileSystem::DIRECTORY_SEPARATOR + "TCEGenDFAPacketizer.inc";
+#endif
+
+    ret = system(cmd.c_str());
+    if (ret) {
+        std::string msg =
+            std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
 
@@ -938,7 +1051,12 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
         " -I" + tempDir_ +
         pluginIncludeFlags +
         " " + SHARED_CXX_FLAGS +
-        " " + LLVM_CPPFLAGS +
+        " " + LLVM_CPPFLAGS;
+
+    if (useInstalledVersion_)
+        cmd += " -I`llvm-config --includedir`";
+
+    cmd +=
 #ifdef LLVM_OLDER_THAN_10
 #if defined(HAVE_CXX0X)
         " " + CXX0X_FLAG +
@@ -951,13 +1069,15 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
         " " + endianOption +
         " " + bitnessOption +
         " " + pluginSources +
-        " -o " + pluginFileName;
+        " -o " + tempPluginFileName;
 
     // TODO: whether vectors are used or not stored in has of the
     // plugin. this is a temporary solution
+#ifdef LLVM_OLDER_THAN_3_6
     if (options_->useVectorBackend()) {
         cmd += " -DUSE_VECTOR_REGS";
     }
+#endif
     if (Application::verboseLevel() > 0) {
         Application::logStream() << "LLVMBackend: " << cmd << std::endl;
     }
@@ -969,6 +1089,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
 
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
+
+    // move plugin to final location
+    llvm::sys::fs::rename(llvm::Twine(tempPluginFileName), llvm::Twine(pluginFileName));
 
     // Load plugin.
     TCETargetMachinePlugin* (*creator)();
@@ -1000,7 +1123,8 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
  * @return Filename for the target architecture.
  */
 std::string
-LLVMBackend::pluginFilename(const TTAMachine::Machine& target) {
+LLVMBackend::pluginFilename(
+    const TTAMachine::Machine& target) {
     TCEString fileName = target.hash();
     fileName += "-" + Application::TCEVersionString();
     fileName += PLUGIN_SUFFIX;

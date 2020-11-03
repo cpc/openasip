@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2017 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Mikael Lepistö 2005 (tmlepist-no.spam-cs.tut.fi)
  * @author Pekka Jääskeläinen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Henry Linjamäki 2017 (henry.linjamaki-no.spam-tut.fi)
  *
  * @note rating: yellow
  */
@@ -65,20 +66,20 @@ Assembler::Assembler(
  */
 Binary*
 Assembler::compile() {
-    // clear old warnings from previous compilation
-    warnings_.clear();
-
     // read binary stream to string
     readAssemblerCode();
+
+    // clear old warnings from previous compilation
+    parserDiagnostic_.reset(asmCode_);
 
     Binary* newBinary = new Binary();
 
     // this one does the actual parsing work
-    AssemblerParser parser(*newBinary, *mach_, this);
+    AssemblerParser parser(*newBinary, *mach_, &parserDiagnostic_);
 
     try {
         try {
-            if (!parser.compile(asmCode_)) {
+            if (!parser.compile(*asmCode_)) {
 
                 CompileError error(
                     __FILE__, __LINE__, __func__, "Syntax error.");
@@ -137,29 +138,7 @@ Assembler::compile() {
  */
 void
 Assembler::addWarning(UValue lineNumber, std::string errorMessage) {
-    // add new warning to right position of warning list
-    CompilerMessage newWarning;
-    newWarning.lineNumber = lineNumber;
-    newWarning.message = errorMessage;
-    newWarning.assemblerLine = codeLine(lineNumber);
-
-    for (unsigned int i = 0; i < warnings_.size(); i++) {
-        if (warnings_[i].lineNumber > lineNumber) {
-            warnings_.push_back(newWarning);
-
-            for (unsigned int j = warnings_.size() - 2;
-                 j != i; j--) {
-
-                warnings_[j+1] = warnings_[j];
-            }
-
-            warnings_[i] = newWarning;
-
-            return;
-        }
-    }
-
-    warnings_.push_back(newWarning);
+    parserDiagnostic_.addWarning(lineNumber, errorMessage);
 }
 
 /**
@@ -172,27 +151,9 @@ Assembler::targetMachine() const {
     return *mach_;
 }
 
-
-/**
- * Returns number of stored warnings.
- *
- * @return Number of stored warnings.
- */
-UValue
-Assembler::warningCount() const {
-    return warnings_.size();
-}
-
-/**
- * Returns warning of requested index.
- *
- * @param index Warning index to return.
- * @return Warning message and line number.
- */
-const Assembler::CompilerMessage&
-Assembler::warning(UValue index) const {
-    assert(index < warningCount());
-    return warnings_[index];
+const std::set<CompilerMessage>&
+Assembler::warnings() const {
+    return parserDiagnostic_.warnings();
 }
 
 /**
@@ -200,32 +161,24 @@ Assembler::warning(UValue index) const {
  *
  * @return Error that halted compilation.
  */
-const Assembler::CompilerMessage&
+const CompilerMessage&
 Assembler::error() const {
     return error_;
 }
 
 /**
- * Reads assembly code from binary stream to a string and
- * stores start positions of new lines of assembly code.
+ * Reads assembly code from binary stream to a string.
  */
 void
 Assembler::readAssemblerCode() {
-    // first line starts from index zero
-    lineStarts_.push_back(0);
-
     unsigned int streamPosition = stream_.readPosition();
+
+    asmCode_ = std::make_shared<std::string>();
 
     // read file to string and mark line start indexes.
     for (unsigned int i = streamPosition; i < stream_.sizeOfFile(); i++) {
         Byte readByte = stream_.readByte();
-
-        // next is line start
-        if (readByte == '\n') {
-            lineStarts_.push_back(i - streamPosition + 1);
-        }
-
-        asmCode_ += readByte;
+        *asmCode_ += readByte;
     }
 
     // restore stream position...
@@ -241,30 +194,6 @@ Assembler::readAssemblerCode() {
 
 std::string
 Assembler::codeLine(UValue lineNumber) const {
-
-    std::string errorLine;
-
-    unsigned int errorLineNum =
-        static_cast<unsigned int>(lineNumber - 1);
-
-    if (errorLineNum < lineStarts_.size()) {
-
-        std::string::size_type startPos =
-            lineStarts_[errorLineNum];
-
-        std::string::size_type endPos = asmCode_.find('\n', startPos);
-
-        // no line feed at end of file
-        if (endPos == std::string::npos) {
-            endPos = asmCode_.length();
-        }
-
-        errorLine = asmCode_.substr(startPos, endPos - startPos);
-
-    } else {
-        errorLine = "Invalid line number info, probably last line of file.";
-    }
-
-    return errorLine;
+    return parserDiagnostic_.codeLine(lineNumber);
 }
 

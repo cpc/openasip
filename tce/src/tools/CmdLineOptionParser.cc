@@ -26,8 +26,9 @@
  *
  * Definitions of CmdLineOptionParser classes.
  *
- * @author Jussi Nyk‰nen 2003 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Jussi NykÔøΩnen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Henry Linjam√§ki 2017 (henry.linjamaki-no.spam-tut.fi)
  * @note reviewed 3 December 2003 by jn, kl, ao
  * @note rating: red
  */
@@ -61,8 +62,10 @@ using std::istringstream;
 CmdLineOptionParser::CmdLineOptionParser(
     std::string name,
     std::string desc,
-    std::string alias) :
-    longName_(name), shortName_(alias), desc_(desc), defined_(false) {
+    std::string alias,
+    bool hidden) :
+    longName_(name), shortName_(alias), desc_(desc), hidden_(hidden),
+    defined_(false) {
 }
 
 /**
@@ -356,7 +359,7 @@ StringCmdLineOptionParser::~StringCmdLineOptionParser() {
 /**
  * Copies the option value into a OptionValue object.
  *
- * Client is responsible of deallocating the memeory reserved for the
+ * Client is responsible of deallocating the memery reserved for the
  * returned object.
  *
  * @return A copy of the option value.
@@ -400,6 +403,94 @@ string
 StringCmdLineOptionParser::String(int index) const {
     assert(index == 0);
     return value_;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// OptionalStringCmdLineOptionParser
+//////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Constructor.
+ *
+ * @param name The name of the option.
+ * @param desc The description of the option.
+ * @param alias The short name of the option.
+ */
+OptionalStringCmdLineOptionParser::OptionalStringCmdLineOptionParser(
+    std::string name, std::string desc, std::string alias)
+    :  CmdLineOptionParser(name, desc, alias), value_(""), flag_(false) {
+}
+
+/**
+ * Destructor.
+ */
+OptionalStringCmdLineOptionParser::~OptionalStringCmdLineOptionParser() {
+}
+
+/**
+ * Copies the option value into a OptionValue object.
+ *
+ * Client is responsible of deallocating the memeory reserved for the
+ * returned object.
+ *
+ * @return A copy of the option value.
+ */
+OptionValue*
+OptionalStringCmdLineOptionParser::copy() const {
+    StringOptionValue* copy = new StringOptionValue(value_);
+    return copy;
+}
+
+/**
+ * Parses the value of option.
+ *
+ * @param arguments The arguments of option.
+ * @param prefix The prefix of option.
+ * @return True when parsing is ready.
+ * @exception IllegalCommandLine Not thrown.
+ */
+bool
+OptionalStringCmdLineOptionParser::parseValue(
+    std::string arguments, std::string prefix) {
+    if (prefix != "") {
+        string msg = "Illegal prefix for string option";
+        string method = "StringCmdLineOptionParser::parseValue()";
+        throw IllegalCommandLine(__FILE__, __LINE__, method, msg);
+    }
+
+    value_ = arguments;
+    flag_ = true;
+
+    setDefined();
+    return true;
+}
+
+string
+OptionalStringCmdLineOptionParser::String(int index) const {
+    assert(index == 0);
+    return value_;
+}
+
+/**
+ * Returns true if the flag is set.
+ *
+ * @return The boolean flag value.
+ * @exception WrongSubclass Is never thrown by this function.
+ */
+bool
+OptionalStringCmdLineOptionParser::isFlagOn() const {
+    return flag_;
+}
+
+/**
+ * Returns true if the flag is not set.
+ *
+ * @return Inverse of the boolean flag.
+ * @exception WrongSubclass Is never thrown by this function.
+ */
+bool
+OptionalStringCmdLineOptionParser::isFlagOff() const {
+    return !flag_;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -500,8 +591,9 @@ RealCmdLineOptionParser::real() const {
 BoolCmdLineOptionParser::BoolCmdLineOptionParser(
     std::string name,
     std::string desc,
-    std::string alias) :
-    CmdLineOptionParser(name, desc, alias), value_(false) {
+    std::string alias,
+    bool hidden) :
+    CmdLineOptionParser(name, desc, alias, hidden), value_(false) {
 }
 
 /**
@@ -548,7 +640,7 @@ BoolCmdLineOptionParser::parseValue(std::string arguments, std::string prefix) {
     if (arguments != "") {
         return false;
     } else {
-	setDefined();
+        setDefined();
         return true;
     }
 }

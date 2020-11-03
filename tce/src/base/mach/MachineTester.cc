@@ -97,7 +97,7 @@ MachineTester::canConnect(const Socket& socket, const Segment& segment) {
     }
     if (socket.isConnectedTo(segment)) {
         connectionExists_ = true;
-	return false;
+        return false;
     }
 
     // check that the direction of the socket can be set if needed

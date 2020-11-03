@@ -164,7 +164,7 @@ TPEFTools::sectionOfElement(
             }
 
             // optimization for code section
-            if (currSect->type() == Section::ST_CODE) {
+            if (currSect->isCodeSection()) {
                 CodeSection* codeSect =
                     dynamic_cast<CodeSection*>(currSect);
 

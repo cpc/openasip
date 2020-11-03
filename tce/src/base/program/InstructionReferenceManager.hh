@@ -81,6 +81,9 @@ class InstructionReferenceImpl;
  */
 class InstructionReferenceManager {
 public:
+    /// Map for instruction references. faster to search than list.
+    typedef std::map<Instruction*, InstructionReferenceImpl*> RefMap;
+
     InstructionReferenceManager();
     virtual ~InstructionReferenceManager();
 
@@ -90,17 +93,8 @@ public:
     bool hasReference(Instruction& ins) const;
     unsigned int referenceCount(Instruction& ins) const;
     void referenceDied(Instruction* ins);
-private:
-    // disable copying and assignment.
-    InstructionReferenceManager(const InstructionReferenceManager&);
-    InstructionReferenceManager& operator=(const InstructionReferenceManager&);
 
-    /// Map for instruction references. faster to search than list.
-    typedef std::map<Instruction*, InstructionReferenceImpl*> RefMap;
-
-    /// Instruction references to maintain.
-    RefMap references_;
-public:
+    void validate();
 
     class Iterator {
     public:
@@ -116,6 +110,15 @@ public:
         
     inline Iterator begin();
     inline Iterator end();
+
+private:
+    // disable copying and assignment.
+    InstructionReferenceManager(const InstructionReferenceManager&);
+    InstructionReferenceManager& operator=(const InstructionReferenceManager&);
+
+    /// Instruction references to maintain.
+    RefMap references_;
+
 };
 
 #include "InstructionReferenceManager.icc"

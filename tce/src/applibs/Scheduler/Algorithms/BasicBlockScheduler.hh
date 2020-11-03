@@ -34,17 +34,17 @@
 #ifndef TTA_BB_SCHEDULER_HH
 #define TTA_BB_SCHEDULER_HH
 
-#include "CriticalPathBBMoveNodeSelector.hh"
+#include <boost/timer.hpp>
+#include <boost/progress.hpp>
+
+#include "MoveNodeSelector.hh"
 #include "DDGPass.hh"
 #include "BasicBlockPass.hh"
-#include "BBSchedulerController.hh"
 #include "DataDependenceGraph.hh"
 
-class BasicBlockNode;
 class SimpleResourceManager;
 class SoftwareBypasser;
-class CopyingDelaySlotFiller;
-class DataDependenceGraphBuilder;
+class LLVMTCECmdLineOptions;
 class RegisterRenamer;
 class MoveNode;
 class MoveNodeGroup;
@@ -64,25 +64,28 @@ namespace TTAMachine {
  * instruction importing).
  */
 class BasicBlockScheduler :
-    public BBSchedulerController, public DDGPass {
+    public DDGPass, public BasicBlockPass {
 public:
     BasicBlockScheduler(
         InterPassData& data, SoftwareBypasser* bypasser=NULL, 
-        CopyingDelaySlotFiller* delaySlotFiller=NULL,
-        RegisterRenamer* registerRenamer = NULL);
+        RegisterRenamer* renamer=NULL);
+
     virtual ~BasicBlockScheduler();
 
     virtual int handleDDG(
         DataDependenceGraph& ddg, SimpleResourceManager& rm,
-        const TTAMachine::Machine& targetMachine, bool testOnly) override;
+        const TTAMachine::Machine& targetMachine, int minCycle = 0,
+        bool testOnly = false) override;
+
+    virtual int handleLoopDDG(
+        DataDependenceGraph& ddg, SimpleResourceManager& rm,
+        const TTAMachine::Machine& targetMachine, int tripCount,
+        SimpleResourceManager* prologRM, bool testOnly = false) override;
 
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;
 
-    virtual MoveNodeSelector* createSelector( 
-        TTAProgram::BasicBlock& bb, const TTAMachine::Machine& machine) {
-        return new CriticalPathBBMoveNodeSelector(bb, machine);
-    }
+    virtual void printStats() const;
 
     using BasicBlockPass::ddgBuilder;
 
@@ -99,7 +102,8 @@ protected:
 
     bool scheduleResultReads(MoveNodeGroup& moves);
 
-    void scheduleMove(MoveNode& move, int earliestCycle);
+    void scheduleMove(
+        MoveNode& move, int earliestCycle, bool allowPredicationAndRenaming);
 
     void scheduleRRTempMoves(
         MoveNode& regToRegMove, MoveNode& firstMove, int lastUse);
@@ -108,6 +112,8 @@ protected:
         MoveNode& operandMove, MoveNode& operandWrite);
 
     void unschedule(MoveNode& moveNode);
+    
+    void unscheduleAllNodes();
 
     void unscheduleInputOperandTempMoves(MoveNode& operandMove);
 
@@ -124,15 +130,22 @@ protected:
         bool resetCounter = false) const;
 
     MoveNode* succeedingTempMove(MoveNode& current);
-
+        
+    static MoveNode* findTriggerFromUnit(
+        const ProgramOperation& po, const TTAMachine::Unit& unit);
+    
     int getTriggerOperand(
         const Operation& operation, const TTAMachine::Machine& machine);
 
     bool tryToSwitchInputs(ProgramOperation& op);
 
-    static MoveNode* findTriggerFromUnit(
-        const ProgramOperation& po, const TTAMachine::Unit& unit);
+    void handleRemovedResultMoves(
+        std::set<std::pair<TTAProgram::Move*, int> > removedMoves);
 
+    bool tryToOptimizeWaw(const MoveNode& moveNode);
+
+    void tryToDelayOperands(MoveNodeGroup& moves);
+  
     /// The target machine we are scheduling the program against.
     const TTAMachine::Machine* targetMachine_;
     /// DDG of the currently scheduled BB.
@@ -147,10 +160,21 @@ protected:
 
     RegisterRenamer* renamer_;
 
+    /// The earliest cycle to schedule moves in. Used to leave room for
+    /// sched_yield() by the sched_yield() emitter.
+    int minCycle_;
+
+    MoveNodeSelector* selector_;
+    /// Time for getting the scheduling time for current basic block.
+    boost::timer schedulingTime_;
     int bypassedCount_;
     int deadResults_;
 
     LLVMTCECmdLineOptions* options_;
+
+    MoveNode* jumpNode_;
+
+    int tripCount_;
 };
 
 #endif

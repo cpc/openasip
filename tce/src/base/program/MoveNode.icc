@@ -135,16 +135,12 @@ MoveNode::isMove() const {
  *     input.
  */
 inline ProgramOperation&
-MoveNode::destinationOperation(unsigned int index) const
-     {
-
+MoveNode::destinationOperation(unsigned int index) const {
     return *dstOps_[index].get();
 }
 
 inline ProgramOperationPtr
-MoveNode::destinationOperationPtr(unsigned int index) const
-     {
-
+MoveNode::destinationOperationPtr(unsigned int index) const {
     if (!isDestinationOperation()){
         std::string msg = "MoveNode destination is not Operation.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);

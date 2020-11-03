@@ -401,7 +401,6 @@ bool ExecutionPipelineBroker::isLoopBypass(const MoveNode& node) const {
     if (ddg_ == NULL || !ddg_->hasNode(node)) {
         return false;
     }
-
     auto inEdges = ddg_->operationInEdges(node);
     for (auto e : inEdges) {
         if (e->isBackEdge()) {
@@ -496,8 +495,12 @@ ExecutionPipelineBroker::latestFromSource(
     if (lastOperandNode != NULL) {
         fu = &lastOperandNode->move().destination().functionUnit();
     } else {
-        assert(lastResultNode->isSourceOperation());
-        fu = &lastResultNode->move().source().functionUnit();
+        if (lastResultNode->isSourceOperation()) {
+            fu = &lastResultNode->move().source().functionUnit();
+        } else {
+            assert(lastResultNode->isGuardOperation());
+            fu = lastResultNode->guardOperation().fuFromOutMove(*lastResultNode);
+        }
     }
 
     if (srcFU != NULL && fu != srcFU) {
@@ -563,7 +566,11 @@ ExecutionPipelineBroker::latestFromDestination(
                     *fu->operation(
                         destOp.operation().name());
                 const int outputIndex =
-                    tempNode->move().source().operationIndex();
+                    (tempNode->isSourceOperation() &&
+                     &tempNode->sourceOperation() == &destOp)
+                    ?
+                    tempNode->move().source().operationIndex() :
+                    destOp.outputIndexFromGuardOfMove(*tempNode);
 
                 int tempCycle = tempNode->cycle();
                 if (isLoopBypass(*tempNode)) {
@@ -760,7 +767,7 @@ ExecutionPipelineBroker::earliestFromDestination(
             const MoveNode* tempNode = &destOp.outputMove(i);
             if (tempNode->isScheduled()) {
                 if (fu == NULL) {
-                    fu = &tempNode->move().source().functionUnit();
+                    fu = destOp.fuFromOutMove(*tempNode);
                     hwop = fu->operation(destOp.operation().name());
                 }
 
@@ -769,7 +776,7 @@ ExecutionPipelineBroker::earliestFromDestination(
                 }
 
                 const int outputIndex =
-                    tempNode->move().source().operationIndex();
+                    destOp.outputIndexOfMove(*tempNode);
 
                 // TODO: slack
                 

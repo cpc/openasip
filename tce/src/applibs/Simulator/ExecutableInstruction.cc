@@ -39,7 +39,8 @@
 /**
  * Constructor.
  */
-ExecutableInstruction::ExecutableInstruction() : exitPoint_(false) {
+ExecutableInstruction::ExecutableInstruction() :
+    exitPoint_(false) {
     resetExecutionCounts();
 }
 

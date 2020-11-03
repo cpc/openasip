@@ -138,7 +138,7 @@ TPEFCodeSectionReader::readData(BinaryStream& stream, Section* section) const {
                 MoveElement* newElem = new MoveElement();
                 newInstrElement = dynamic_cast<InstructionElement*>(newElem);
 
-                newElem->setBus(stream.readByte());
+                newElem->setBus(readId(stream));
 
                 Byte fieldTypes = stream.readByte();
 
@@ -204,13 +204,13 @@ TPEFCodeSectionReader::readData(BinaryStream& stream, Section* section) const {
                     }
                 }
 
-                newElem->setSourceUnit(stream.readByte());
+                newElem->setSourceUnit(readId(stream));
                 newElem->setSourceIndex(stream.readHalfWord());
 
-                newElem->setDestinationUnit(stream.readByte());
+                newElem->setDestinationUnit(readId(stream));
                 newElem->setDestinationIndex(stream.readHalfWord());
 
-                newElem->setGuardUnit(stream.readByte());
+                newElem->setGuardUnit(readId(stream));
                 newElem->setGuardIndex(stream.readHalfWord());
 
                 // guard extra parameters
@@ -310,6 +310,27 @@ TPEFCodeSectionReader::readAnnotations(BinaryStream& stream,
         }
 
         elem->addAnnotation(newAnnotation);
+    }
+}
+
+/**
+ * Reads Bus, FU or RF id according to TPEF version.
+ *
+ * Original TPEF version 1 supports only less than 256 buses, FUs and RFs.
+ * Version 2 fixes that issue and we need to check the stream version for proper
+ * amount of bytes to read.
+ *
+ * @param stream Stream to which the data is read.
+ */
+HalfWord
+TPEFCodeSectionReader::readId(BinaryStream& stream) const {
+
+    TPEFHeaders::TPEFVersion version = stream.TPEFVersion();
+
+    if (version == TPEFHeaders::TPEF_V1) {
+        return stream.readByte();
+    } else {
+        return stream.readHalfWord();
     }
 }
 

@@ -48,8 +48,8 @@
  */
 ExecutionTracker::ExecutionTracker(
     TTASimulationController& subject,
-    ExecutionTrace& traceDB) : Listener(),
-    subject_(subject), traceDB_(traceDB) {
+    ExecutionTrace& traceDB) :
+    Listener(), subject_(subject), traceDB_(traceDB) {
     subject.frontend().eventHandler().registerListener(
         SimulationEventHandler::SE_CYCLE_END, this);
 }
@@ -72,7 +72,8 @@ void
 ExecutionTracker::handleEvent() {
     try {
         traceDB_.addInstructionExecution(
-            subject_.clockCount(), subject_.lastExecutedInstruction());
+            subject_.clockCount(), 
+            subject_.lastExecutedInstruction());
     } catch (const Exception& e) {
         debugLog("Error while writing TraceDB: " + e.errorMessage());
     }

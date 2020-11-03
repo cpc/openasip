@@ -32,4 +32,20 @@
 
 #include "Address.hh"
 
-// Empty implementation. All method definitions are inlined in the header.
+#include "AddressSpace.hh"
+
+namespace TTAProgram {
+
+bool
+Address::operator==(const Address& other) const {
+    return this->location_ == other.location_
+        && *this->space_ == *other.space_;
+}
+
+bool
+Address::operator!=(const Address& other) const {
+    return !this->operator==(other);
+}
+
+
+}

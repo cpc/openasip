@@ -168,7 +168,8 @@ void
 MultiLatencyOperationExecutor::advanceClock() {
 
     bool foundActiveOperation = false;
-    for (std::size_t i = 0; i < executingOps_.size(); ++i) {
+    size_t executingOpCount = executingOps_.size();
+    for (std::size_t i = 0; i < executingOpCount; ++i) {
         ExecutingOperation& execOp = executingOps_[i];
         if (execOp.free_) {
             freeExecOp_ = &execOp;
@@ -214,3 +215,13 @@ MultiLatencyOperationExecutor::setContext(OperationContext& context) {
     context_ = &context;
 }
 
+/**
+ * Resets the state to allow simulation restart.
+ * hasPendingOperations_ is resetted because otherwise some operations
+ * could be left in middle of execution if there was a runtime error
+ * during operation.
+ */
+void
+MultiLatencyOperationExecutor::reset() {
+    hasPendingOperations_ = false;
+}

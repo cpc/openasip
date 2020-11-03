@@ -144,6 +144,8 @@ public:
 
     TPEF::Binary* createBinary() const;
 
+    static TPEF::Binary* createBinary(const Program& prog);
+
 private:
     /**
      * TPEF resource id:s for getting corresponding resource elements.

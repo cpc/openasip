@@ -61,9 +61,7 @@ MapTools::containsValue(const ContainerType& aMap, const ValueType& aValue) {
  */
 template <typename KeyType, typename ContainerType, typename ValueType>
 KeyType
-MapTools::keyForValue(const ContainerType& aMap, const ValueType& aValue)
-     {
-
+MapTools::keyForValue(const ContainerType& aMap, const ValueType& aValue) {
     for (typename ContainerType::const_iterator i = aMap.begin();
          i != aMap.end(); i++) {
         if ((*i).second == aValue)
@@ -99,9 +97,7 @@ MapTools::containsKey(const ContainerType& aMap, const KeyType& aKey) {
  */
 template <typename ValueType, typename MapType, typename KeyType>
 ValueType
-MapTools::valueForKey(const MapType& aMap, const KeyType& aKey)
-     {
-
+MapTools::valueForKey(const MapType& aMap, const KeyType& aKey) {
     typename MapType::const_iterator valueToFind = aMap.find(aKey);
 
     if (valueToFind == aMap.end()) {
@@ -125,9 +121,7 @@ MapTools::valueForKey(const MapType& aMap, const KeyType& aKey)
  */
 template <typename ValueType, typename MapType, typename KeyType>
 const ValueType
-MapTools::valueForKeyNoThrow(const MapType& aMap, const KeyType& aKey)
-     {
-
+MapTools::valueForKeyNoThrow(const MapType& aMap, const KeyType& aKey) {
     typename MapType::const_iterator valueToFind = aMap.find(aKey);
 
     if (valueToFind == aMap.end()) {

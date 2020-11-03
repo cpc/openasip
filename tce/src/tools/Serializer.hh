@@ -37,6 +37,8 @@
 
 class ObjectState;
 
+namespace TCETools { // had to wrap this to a namespace due to llvm::Serializer
+
 /**
  * All serializers must implement this interface.
  */
@@ -60,6 +62,10 @@ public:
 
     virtual ~Serializer() {}
 };
+
+}
+
+using namespace TCETools;
 
 
 #endif

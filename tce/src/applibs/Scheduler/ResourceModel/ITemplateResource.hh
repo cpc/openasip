@@ -39,6 +39,10 @@
 
 #include "SchedulingResource.hh"
 
+namespace TTAMachine {
+    class InstructionTemplate;
+}
+
 /**
  * An interface for scheduling resources of Resource Model
  * The derived class ITemplateResource
@@ -47,22 +51,25 @@
 class ITemplateResource : public SchedulingResource {
 public:
     virtual ~ITemplateResource();
-    ITemplateResource(const std::string& name, unsigned int initiationInterval = 0);
+    ITemplateResource(TTAMachine::InstructionTemplate& templ, unsigned int initiationInterval = 0);
 
-    virtual bool isInUse(const int cycle) const;
-    virtual bool isAvailable(const int cycle) const;
-    virtual bool canAssign(const int cycle, const MoveNode& node) const;
+    virtual bool isInUse(const int cycle) const override;
+    virtual bool isAvailable(const int cycle) const override;
+    virtual bool canAssign(
+	const int cycle, const MoveNode& node) const override;
     virtual bool canAssign(const int cycle) const;
-    virtual void assign(const int cycle, MoveNode& node);
+    virtual void assign(const int cycle, MoveNode& node) override;
     virtual void assign(const int cycle);
-    virtual void unassign(const int cycle, MoveNode& node);
+    virtual void unassign(const int cycle, MoveNode& node) override;
     virtual void unassign(const int cycle);
-    virtual bool isITemplateResource() const;
-    void clear();
+    virtual bool isITemplateResource() const override;
+    void clear() override;
+
+    virtual bool operator < (const SchedulingResource& other) const override;
 
 protected:
-    virtual bool validateDependentGroups();
-    virtual bool validateRelatedGroups();
+    virtual bool validateDependentGroups() override;
+    virtual bool validateRelatedGroups() override;
 
 private:
     //map contains <Cycle, testCounter>
@@ -73,6 +80,7 @@ private:
     ITemplateResource& operator=(const ITemplateResource&);
 
     ResourceRecordType resourceRecord_;
+    TTAMachine::InstructionTemplate* template_;
 };
 
 #endif

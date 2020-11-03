@@ -26,7 +26,7 @@
  *
  * Declaration of TCERegisterInfo class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @author Heikki Kultala 2011 (heikki.kultala-no.spam-tut.fi)
  */
 
@@ -55,12 +55,15 @@ namespace llvm {
         TCERegisterInfo(const TargetInstrInfo& tii);
         virtual ~TCERegisterInfo() {};
 
-        const MCPhysReg* getCalleeSavedRegs(const MachineFunction *MF = 0) const override;
+// TODO: why ifdef commented out in trunk 
+//#ifdef LLVM_3_2
+        void eliminateCallFramePseudoInstr(
+            MachineFunction &MF,
+            MachineBasicBlock &MBB,
+            MachineBasicBlock::iterator I) const;
+//#endif
 
-        // TODO: These are in TCEFrameInfo now, but those delegate here
-        // TODO: Moved them there some day.
-        //void emitPrologue(MachineFunction& mf) const;
-        //void emitEpilogue(MachineFunction& mf, MachineBasicBlock& mbb) const;
+        const MCPhysReg* getCalleeSavedRegs(const MachineFunction *MF = 0) const override;
 
         BitVector getReservedRegs(const MachineFunction &MF) const override;
 
@@ -76,12 +79,15 @@ namespace llvm {
         Register getFrameRegister(const MachineFunction& mf) const override;
 #endif
 
+        bool requiresRegisterScavenging(const MachineFunction&) const override;
+	
         int getDwarfRegNum(unsigned regNum, bool isEH) const;
         int getLLVMRegNum(unsigned int, bool) const;
-        // TODO: call TCEFrameInfo::hasFP(MF)
         bool hasFP(const MachineFunction &MF) const;
         void setTFI(const TCEFrameLowering* tfi) { tfi_ = tfi; };
     private:
+        void setReservedVectorRegs(llvm::BitVector& reserved) const;
+
         const TargetInstrInfo& tii_;
         const TCEFrameLowering* tfi_;
     };

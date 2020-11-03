@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2011 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of TCEString class.
  *
  * @author Viljami Korhonen 2008 (viljami.korhonen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 
@@ -35,6 +36,14 @@
 
 #include <string>
 #include <vector>
+#include <locale>
+
+
+class TCEString;
+
+// Type aliases
+typedef const std::string& stringCRef;
+typedef const TCEString& TCEStringCRef;
 
 /**
  * A simple wrapper around std::string to make forward declarations possible.
@@ -55,14 +64,58 @@ public:
     bool endsWith(const std::string& str) const;
     bool ciEqual(const TCEString& other) const;
     std::vector<TCEString> split(const std::string& delim) const;
+    TCEString& appendIf(bool expression, stringCRef ifTrue);
 
     TCEString lower() const;
     TCEString upper() const;
     TCEString capitalize() const;
 
+    TCEString operator+(int val) const;
+    TCEString operator+(char c) const;
+
     TCEString& operator<<(const TCEString& rhs);
     TCEString& operator<<(const char* rhs);
     TCEString& operator<<(const int rhs);
+
+    static TCEString toUpper(
+        const TCEString& str, const std::locale& loc = std::locale());
+    static std::string toUpper(
+        const std::string& str, const std::locale& loc = std::locale());
+    static TCEString& toUpper(
+        TCEString& str, const std::locale& loc = std::locale());
+    static std::string& toUpper(
+        std::string& str, const std::locale& loc = std::locale());
+    static std::string toLower(
+            const std::string& str, const std::locale& loc = std::locale());
+
+    static std::string& appendToNonEmpty(
+        std::string& toAppend, stringCRef appender);
+    static std::string appendToNonEmpty(
+        stringCRef toAppend, stringCRef appender);
+    static std::string applyIf(
+        bool expression, stringCRef ifTrue, stringCRef ifFalse);
+    static std::string applyIf(
+        bool expression, stringCRef ifTrue);
+    template<typename IntegerType>
+    static std::string& appendInteger(
+        std::string& toAppend,
+        const IntegerType& appender);
+    template<typename IntegerType>
+    static std::string appendInteger(
+        stringCRef toAppend,
+        const IntegerType& appender);
+
+    template<typename IterableContainer>
+    static std::string makeString(
+        const IterableContainer& container,
+        const std::string& separator = ", ");
+
+    static unsigned replace(
+        std::string& str,
+        const std::string& oldPattern,
+        const std::string& newPattern);
+
+    static std::string filterDigits(const std::string& str);
 
     struct ICLess {
         bool operator() (const TCEString& lhs, const TCEString& rhs) const;
@@ -70,6 +123,8 @@ public:
 
 private:
 };
+
+
 
 #include "TCEString.icc"
 

@@ -248,7 +248,12 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
                 } else {
                     std::ostringstream errMsg;
                     errMsg << "Program uses constant '"
-                           << mo.getImm() << "' that cannot be encoded "
+                           << mo.getImm() << "'";
+                    if (Application::verboseLevel() > 0) {
+                        errMsg << " -> " << opname
+                               << " (llvm opc = " << opc << ")";
+                    }
+                    errMsg << " that cannot be encoded "
                            << "for the machine by the current compiler.";
                     throw CompileError(
                         __FILE__, __LINE__, __func__, errMsg.str());

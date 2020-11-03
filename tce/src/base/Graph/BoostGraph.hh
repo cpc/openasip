@@ -192,6 +192,7 @@ public:
     bool hasNode(const Node&) const;
 
     virtual const TCEString& name() const;
+    void setName(const TCEString& newName) { name_ = newName; }
 
     bool hasPath(GraphNode& src, const GraphNode& dest) const;
 
@@ -233,6 +234,8 @@ protected:
     };
 
     typedef std::set<RemovedEdgeDatum> RemovedEdgeMap;
+
+    void restoreRemovedEdges(RemovedEdgeMap removedEdges);
 
     /// Internal graph type, providing actual graph-like operations.
     /// This type definition relies on bundled properties of boost library,
@@ -303,6 +306,10 @@ protected:
 
     void calculatePathLengthsOnConnect(
         const GraphNode& nTail, const GraphNode& nHead, GraphEdge& e);
+
+    void  sinkDistDecreased(const GraphNode& n) const;
+
+    void  sourceDistDecreased(const GraphNode& n) const;
 
     virtual int edgeWeight( GraphEdge& e, const GraphNode& n) const;
     

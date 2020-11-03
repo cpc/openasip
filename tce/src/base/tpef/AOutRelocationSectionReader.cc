@@ -117,7 +117,7 @@ AOutRelocationSectionReader::readData(
     SectionId refSectionID;
 
     Word length = 0;
-    if (refSection->type() == Section::ST_CODE) {
+    if (refSection->isCodeSection()) {
         refSectionID = AOutReader::ST_TEXT;
         length = aOutReader->header().sectionSizeTextReloc();
 
@@ -247,7 +247,7 @@ AOutRelocationSectionReader::finalize(Section* section) const {
             aOutReader->addressOfElement(elem->destination());
 
         // fix value of immediate or chunk
-        if (refSection->type() == Section::ST_CODE) {
+        if (refSection->isCodeSection()) {
 
             // value of immediate element, is file offset to
             // that element, which to immediate refers

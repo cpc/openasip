@@ -33,6 +33,10 @@
  */
 
 #include "ControlFlowEdge.hh"
+#include "Move.hh"
+#include "MoveGuard.hh"
+#include "Operation.hh"
+#include "Terminal.hh"
 
 /**
  * Constructor creates Control Flow Edge of given type
@@ -176,3 +180,39 @@ ControlFlowEdge::isBackEdge() const {
     return backEdge_;
 }
 
+/**
+ * Creates an edge predicate based on the guard of a move
+ */
+ControlFlowEdge::CFGEdgePredicate
+ControlFlowEdge::edgePredicateFromMove(const TTAProgram::Move& move) {
+    if (move.isUnconditional()) {
+        if (move.isTriggering()) {
+            Operation& o = move.destination().operation();
+            if (o.name() == "BNZ" || o.name() == "IRFJUMPNZ" ||
+                o.name() == "BNZ1" || o.name() == "IRFJUMPNZ1") {
+                return ControlFlowEdge::CFLOW_EDGE_TRUE;
+            }
+            if (o.name() == "BZ" || o.name() == "IRFJUMPZ" ||
+                o.name() == "BZ1" || o.name() == "IRFJUMPZ1") {
+                return ControlFlowEdge::CFLOW_EDGE_FALSE;
+            }
+        } else {
+            Operation& o = move.destination().hintOperation();
+            if (&o != &NullOperation::instance()) {
+                if (o.name() == "BNZ" || o.name() == "IRFJUMPNZ" ||
+                    o.name() == "BNZ1" || o.name() == "IRFJUMPNZ1") {
+                    return ControlFlowEdge::CFLOW_EDGE_TRUE;
+                }
+                if (o.name() == "BZ" || o.name() == "IRFJUMPZ" ||
+                    o.name() == "BZ1" || o.name() == "IRFJUMPZ1") {
+                    return ControlFlowEdge::CFLOW_EDGE_FALSE;
+                }
+            }
+        }
+        return ControlFlowEdge::CFLOW_EDGE_NORMAL;
+    }
+    TTAProgram::MoveGuard& mg = move.guard();
+    return mg.isInverted() ?
+        ControlFlowEdge::CFLOW_EDGE_FALSE :
+        ControlFlowEdge::CFLOW_EDGE_TRUE;
+}

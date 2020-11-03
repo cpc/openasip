@@ -33,6 +33,7 @@
  */
 
 #include <string>
+#include <tuple>
 
 #include "AddressSpace.hh"
 #include "ControlUnit.hh"
@@ -425,6 +426,20 @@ AddressSpace::setNumericalIds(const std::set<unsigned>& ids) {
     // no violating ids found, overwrite ids for this address space
     numericalIds_ = ids;
     return true;
+}
+
+bool
+AddressSpace::operator==(const AddressSpace& other) const {
+    return (this->width_ == other.width_
+        && this->minAddress_ == other.minAddress_
+        && this->maxAddress_ == other.maxAddress_
+        && this->numericalIds_ == other.numericalIds_
+        && this->shared_ == other.shared_);
+}
+
+bool
+AddressSpace::operator!=(const AddressSpace& other) const {
+    return !this->operator==(other);
 }
 
 }

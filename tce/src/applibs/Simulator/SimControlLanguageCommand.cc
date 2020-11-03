@@ -734,6 +734,13 @@ SimControlLanguageCommand::verifyBreakpointHandles(
     return true;
 }
 
+void 
+SimControlLanguageCommand::setErrorMessage(const TCEString& errorMsg) {
+    DataObject* errorMessage = new DataObject();
+    errorMessage->setString(errorMsg);
+    interpreter()->setResult(errorMessage);
+}
+
 /**
  * Parses the address string to corresponding memory address and address space.
  *

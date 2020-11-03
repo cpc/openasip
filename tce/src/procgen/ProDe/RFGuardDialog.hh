@@ -57,7 +57,7 @@ private:
     void onRFChoice(wxCommandEvent& event);
     void onOK(wxCommandEvent& event);
     void onCancel(wxCommandEvent& event);
-    TTAMachine::RegisterFile* selectedRF() const;
+    const TTAMachine::RegisterFile* selectedRF() const;
     void setTexts();
 
     /// Choice widget for register file name selection.
@@ -76,7 +76,7 @@ private:
     /// Modified register index of the guard.
     int newIndex_;
     /// Guard register.
-    TTAMachine::RegisterFile* rf_;
+    const TTAMachine::RegisterFile* rf_;
     /// Parent bus of the register guard.
     TTAMachine::Bus* bus_;
     /// True if a new guard is being added, false otherwise.

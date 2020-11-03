@@ -44,6 +44,7 @@
 #include "SimulatorInterpreter.hh"
 #include "CompiledSimInterpreter.hh"
 #include "TCEString.hh"
+#include "FileSystem.hh"
 
 /**
  * Class that catches simulated program runtime error events and prints
@@ -81,6 +82,7 @@ public:
             SimulatorFrontend::RES_FATAL);
         InstructionAddress currentPC = target_.programCounter();
         InstructionAddress lastPC = target_.lastExecutedInstruction();
+        ClockCycleCount cycleCount = target_.cycleCount();
 
         if (minorErrors > 0) {
             for (size_t i = 0; i < minorErrors; ++i) {
@@ -102,7 +104,7 @@ public:
         }
         std::cerr 
             << "Current PC: " << currentPC << " last PC: " << lastPC
-            << std::endl;
+            << " cycle count: " << cycleCount << std::endl;
         target_.clearProgramErrorReports();
     }
 
@@ -111,6 +113,11 @@ private:
     SimulatorFrontend& target_;
 };
 
+/**
+ *
+ * @param simulatorInterpreter Use the given interpreter instead of default one.
+ *                             Takes ownership of the object.
+ */
 SimulatorCLI::SimulatorCLI(SimulatorFrontend& frontend) :
     simFront_(frontend),
     context_(new SimulatorInterpreterContext(frontend)),
@@ -126,6 +133,7 @@ SimulatorCLI::SimulatorCLI(SimulatorFrontend& frontend) :
         options_ = dynamic_cast<SimulatorCmdLineOptions*>(
             Application::cmdLineOptions());
     }
+
     if (frontend.isCompiledSimulation()) {
         interpreter_ =
             new CompiledSimInterpreter(
@@ -134,7 +142,7 @@ SimulatorCLI::SimulatorCLI(SimulatorFrontend& frontend) :
     } else {
         interpreter_ =
             new SimulatorInterpreter(
-                Application::argc(), Application::argv(), 
+                Application::argc(), Application::argv(),
                 *context_, *reader_);
     }
 
@@ -198,6 +206,6 @@ SimulatorCLI::run() {
         }
         interpreter_->interpret(command);
         if (interpreter_->result().size() > 0)
-            std::cout << interpreter_->result() << std::endl;	
+            std::cout << interpreter_->result() << std::endl;
     }
 }

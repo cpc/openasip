@@ -59,10 +59,10 @@ UnboundedRegisterFile::~UnboundedRegisterFile() {
 
 
 /**
- * Returns INT_MAX. 
+ * Returns INT_MAX.
  *
- * UnboundedRegisterFile has "unlimited" amount of registers. 
- * 
+ * UnboundedRegisterFile has "unlimited" amount of registers.
+ *
  * @return INT_MAX.
  */
 int

@@ -84,7 +84,7 @@ GCUStateTest::tearDown() {
 void
 GCUStateTest::testPipeline() {
 
-    GCUState gcu(3, 4);
+    GCUState gcu(3, 4, 3);
 
     gcu.advanceClock(); // cycle 1
 
@@ -117,7 +117,7 @@ GCUStateTest::testPipeline() {
 void
 GCUStateTest::testOperations() {
 
-    GCUState gcu(2, 4);
+    GCUState gcu(2, 4, 3);
     TransportPipeline sysPipeline(gcu);
     TransportPipeline jumpPipeline(gcu);
     OperationPool pool;

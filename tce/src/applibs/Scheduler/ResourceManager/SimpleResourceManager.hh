@@ -42,7 +42,9 @@
 #include "AssignmentPlan.hh"
 #include "ResourceBuildDirector.hh"
 
+class BasicBlockNode;
 class DataDependenceGraph;
+class ControlFlowGraph;
 class SimpleBrokerDirector;
 namespace TTAProgram {
     class Instruction;
@@ -133,8 +135,11 @@ public:
     virtual unsigned initiationInterval() const {return initiationInterval_;}
     virtual void clearOldResources();
     void setDDG(const DataDependenceGraph* ddg);
-    void setMaxCycle(unsigned int maxCycle);
+    void setCFG(const ControlFlowGraph* cfg);
+    void setBBN(const BasicBlockNode* bbn);
 
+    void setMaxCycle(unsigned int maxCycle);
+    int maxCycle() { return maxCycle_; }
     unsigned int instructionIndex(unsigned int) const;
 private:
     SimpleResourceManager(
@@ -155,9 +160,9 @@ private:
     ResourceBuildDirector buildDirector_;
 
     unsigned int initiationInterval_;
+    unsigned int maxCycle_;
 
     unsigned int resources;
-    
     
     static std::map<const TTAMachine::Machine*, 
                     std::map<int, std::list< SimpleResourceManager*> > >

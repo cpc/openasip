@@ -353,23 +353,27 @@ FullyConnectedCheck::fix(TTAMachine::Machine& mach) const {
 
     ControlUnit* gcu = mach.controlUnit();
     if (gcu != NULL) {
-        for (int p = 0; p < gcu->operationPortCount(); p++) {
-            FUPort& port = *gcu->operationPort(p);
-            if (port.socketCount() == 0) {
-                connectFUPort(port);
-            }
-        }
-        for (int p = 0; p < gcu->specialRegisterPortCount(); p++) {
-            SpecialRegisterPort& port = *gcu->specialRegisterPort(p);
-            if (port.socketCount() == 0) {
-                connectSpecialRegisterPort(port);
-            }
-        }
+        connectControlUnit(*gcu);
     }    
 
     return "";
 }
 
+void
+FullyConnectedCheck::connectControlUnit(TTAMachine::ControlUnit& gcu) const {
+    for (int p = 0; p < gcu.operationPortCount(); p++) {
+        FUPort& port = *gcu.operationPort(p);
+        if (port.socketCount() == 0) {
+            connectFUPort(port);
+        }
+    }
+    for (int p = 0; p < gcu.specialRegisterPortCount(); p++) {
+        SpecialRegisterPort& port = *gcu.specialRegisterPort(p);
+        if (port.socketCount() == 0) {
+            connectSpecialRegisterPort(port);
+        }
+    }
+}
 /**
  * Connects an immediate unit port to all possible busses.
  *

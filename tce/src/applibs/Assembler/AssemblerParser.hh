@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2017 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Mikael Lepistö 2005 (tmlepist-no.spam-cs.tut.fi)
  * @author Pekka Jääskeläinen 2009
+ * @author Henry Linjamäki 2017 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: yellow
  */
 
@@ -75,7 +76,7 @@ POP_COMPILER_DIAGS
 #include "CodeSectionCreator.hh"
 #include "LabelManager.hh"
 
-#include "Assembler.hh"
+#include "AssemblyParserDiagnostic.hh"
 
 typedef char                    char_t;
 typedef file_iterator <char_t>  iterator_t;
@@ -336,13 +337,19 @@ struct AssemblerParser : public grammar<AssemblerParser>
      * @param aBin TPEF where to program is compiled.
      * @param aMach Machine which for program is compiled.
      * @param parent Error message manager of the compiler.
+     * @param codeLinesOnly If true start symbol for the grammar is
+     *                      'codeLines'. The option is suitable for inline
+     *                      assembly parsing. Default is false.
      */
     AssemblerParser(
-        TPEF::Binary &aBin, TTAMachine::Machine &aMach,
-        Assembler* parent);
+        TPEF::Binary &aBin, const TTAMachine::Machine &aMach,
+        AssemblyParserDiagnostic* parserDiagnostic,
+        bool codeLinesOnly = false);
 
     template <typename ScannerT>
     struct definition {
+
+        const AssemblerParser& parent_;
 
         // assembly grammar
         // for spirit syntax, see:
@@ -354,7 +361,7 @@ struct AssemblerParser : public grammar<AssemblerParser>
         // NOTE! Coding guidelines does not apply for this part... NOTE!
         // because code is more like BNF description than C
 
-        definition(AssemblerParser const& self) {
+        definition(AssemblerParser const& self) : parent_(self) {
 
             // ------------------------------------------------------------
             // omits comments and update current line couter
@@ -910,17 +917,25 @@ struct AssemblerParser : public grammar<AssemblerParser>
         /**
          * Spirits grammar interface.
          */
-        rule<ScannerT> const& start() const { return program; }
+        rule<ScannerT> const& start() const {
+            if (parent_.codeLinesOnly()) {
+                return codeLines;
+            } else {
+                return program;
+            }
+        }
     };
 
 public:
-    bool compile(std::string& asmCode) const;
+    bool compile(const std::string& asmCode) const;
 
     void finalize(bool littleEndian) const;
 
     void cleanup();
 
     UValue errorLine();
+
+    bool codeLinesOnly() const { return codeLinesOnly_; }
 
 private:
 
@@ -938,6 +953,11 @@ private:
 
     /// Temp-structure containing most recent parsed tokens.
     mutable ParserTemp parserTemp_;
+
+    /// Controls start symbol of the grammar. False: the default symbol
+    /// (program) for parsing assembly files. True: 'codeLines' symbol
+    /// suitable for inline assembly parsing.
+    bool codeLinesOnly_ = false;
 };
 
 #endif

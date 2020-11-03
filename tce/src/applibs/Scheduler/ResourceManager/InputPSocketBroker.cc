@@ -200,7 +200,7 @@ InputPSocketBroker::isAlreadyAssigned(
  * Return true if the given node needs a resource of the type managed
  * by this broker, false otherwise.
  *
- * This broker is applicable for input FU/RF ports.
+ * This broker is applicable for all moves, but not long immediates.
  *
  * @param node Node.
  * @return True if the given node needs a resource of the type managed
@@ -209,8 +209,7 @@ InputPSocketBroker::isAlreadyAssigned(
 bool
 InputPSocketBroker::isApplicable(
     const MoveNode& node, const TTAMachine::Bus*) const {
-    Move& move = const_cast<MoveNode&>(node).move();
-    return (move.destination().isFUPort() || move.destination().isGPR());
+    return node.isMove();
 }
 
 /**

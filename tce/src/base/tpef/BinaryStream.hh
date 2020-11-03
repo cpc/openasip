@@ -39,6 +39,7 @@
 #include <string>
 #include "TPEFBaseType.hh"
 #include "Exception.hh"
+#include "TPEFHeaders.hh"
 
 namespace TPEF {
 
@@ -84,6 +85,9 @@ public:
     bool endOfFile();
     unsigned int sizeOfFile();
 
+    void setTPEFVersion(TPEFHeaders::TPEFVersion version);
+    TPEFHeaders::TPEFVersion TPEFVersion() const;
+
 private:
     /// The input stream.
     std::ifstream iStream_;
@@ -98,6 +102,9 @@ private:
     /// In case we want to store the words in little endian order,
     /// big endian otherwise.
     bool littleEndianStorage_;
+
+    /// Indicates TPEF format version used.
+    TPEFHeaders::TPEFVersion tpefVersion_;
 
     /// Assignment not allowed.
     BinaryStream& operator=(BinaryStream& old);

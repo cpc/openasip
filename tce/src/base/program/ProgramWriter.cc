@@ -95,6 +95,7 @@
 #include "TCEString.hh"
 #include "MathTools.hh"
 #include "POMDisassembler.hh"
+#include "TPEFHeaders.hh"
 
 using TPEF::Binary;
 using TPEF::Section;
@@ -932,6 +933,17 @@ ProgramWriter::createBinary() const {
 }
 
 /**
+ * Creates TPEF binary of given Program.
+ *
+ * @return TPEF binary of a program.
+ */
+TPEF::Binary*
+ProgramWriter::createBinary(const Program& prog) {
+    ProgramWriter writer(prog);
+    return writer.createBinary();
+}
+
+/**
  * Creates code section.
  *
  * @param code Code section where to instructions are added.
@@ -955,7 +967,7 @@ ProgramWriter::createCodeSection(
     code->setStartingAddress(prog_.startAddress().location());
 
     for (int i = 0; i < prog_.procedureCount(); i++) {
-        Procedure &currProcedure = prog_.procedure(i);
+        Procedure& currProcedure = prog_.procedure(i);
 
         for (int j = 0; j < currProcedure.instructionCount(); j++) {
             Instruction &currInstr = currProcedure.instructionAtIndex(j);
@@ -1197,7 +1209,7 @@ ProgramWriter::createCodeSection(
                         } else if (registerGuard != NULL) {
                             tpefMove->setGuardType(MoveElement::MF_RF);
 
-                            RegisterFile &regFile = 
+                            const RegisterFile &regFile =
                                 *registerGuard->registerFile();
 
                             ResourceElement &rf = 
@@ -1269,6 +1281,18 @@ ProgramWriter::createCodeSection(
                 MoveElement *tpefNOP = new MoveElement();
                 tpefNOP->setBegin(true);
                 tpefNOP->setEmpty(true);
+
+                if (currInstr.hasAnnotations()) {
+                    for (int annotationIndex = 0;
+                         annotationIndex < currInstr.annotationCount();
+                         ++annotationIndex) {
+                        const ProgramAnnotation& annot =
+                            currInstr.annotation(annotationIndex);
+                        tpefNOP->addAnnotation(
+                            new InstructionAnnotation(
+                                annot.id(), annot.payload()));
+                    }
+                }
                 code->addElement(tpefNOP);
             }
         }
@@ -1585,7 +1609,7 @@ ProgramWriter::createRelocSections(TPEF::Binary* bin) const {
         SectionElement* dstElem = NULL;
 
         // get element by address (destination element)
-        if (dstSect.type() == Section::ST_CODE) {
+        if (dstSect.isCodeSection()) {
             CodeSection& codeSect = 
                 dynamic_cast<CodeSection&>(dstSect);
             
@@ -1643,7 +1667,7 @@ ProgramWriter::findSection(Binary& bin, Address address) const {
                 &createASpaceElement(address.space(), bin) == 
                 currSect.aSpace()) {
                 
-                if (currSect.type() == Section::ST_CODE) {
+                if (currSect.isCodeSection()) {
                     CodeSection& codeSect = 
                         dynamic_cast<CodeSection&>(currSect);
 

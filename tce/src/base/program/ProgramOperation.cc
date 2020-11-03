@@ -49,10 +49,11 @@
 #include "BaseFUPort.hh"
 #include "FunctionUnit.hh"
 #include "TCEString.hh"
-#include "FUPort.hh"
+#include "UniversalFUPort.hh"
 #include "HWOperation.hh"
 #include "Guard.hh"
 #include "MoveGuard.hh"
+#include "TerminalFUPort.hh"
 
 namespace TTAProgram{
     class NullOperation;
@@ -66,7 +67,7 @@ namespace TTAProgram{
 ProgramOperation::ProgramOperation(
 	const Operation &operation,
     const llvm::MachineInstr* instr) :
-    operation_(operation), poId_(idCounter++), mInstr_(instr) {
+    operation_(&operation), poId_(idCounter++), mInstr_(instr) {
 }
 
 /**
@@ -76,7 +77,7 @@ ProgramOperation::ProgramOperation(
  */
  ///TODO: this better go, just for testing with empty operation...
 ProgramOperation::ProgramOperation() :
-    operation_(NullOperation::instance()), poId_(idCounter++) {
+    operation_(&NullOperation::instance()), poId_(idCounter++) {
     inputMoves_.clear();
     outputMoves_.clear();
 }
@@ -93,7 +94,13 @@ ProgramOperation::~ProgramOperation() {
         inputMove(i).removeDestinationOperation(this);
     }
     for (int i = 0; i < outputMoveCount(); i++) {
-        outputMove(i).unsetSourceOperation();
+        if (&outputMove(i).sourceOperation() == this) {
+            outputMove(i).unsetSourceOperation();
+        } else {
+            if (&outputMove(i).guardOperation() == this) {
+                outputMove(i).unsetGuardOperation();
+            }
+        }
     }       
     AssocTools::deleteAllValues(inputMoves_);
     AssocTools::deleteAllValues(outputMoves_);
@@ -154,10 +161,10 @@ ProgramOperation::addInputNode(MoveNode& node) {
  *
  * Add node to nodes of program operation
  * @param node MoveNode to add to operation
+ * @param outputIndex output index of the operation.
  */
 void
-ProgramOperation::addOutputNode(MoveNode& node) {
-    int outputIndex = node.move().source().operationIndex();
+ProgramOperation::addOutputNode(MoveNode& node, int outputIndex){
     if (MapTools::containsKey(outputMoves_, outputIndex)) {
         MoveNodeSet* nodeSet =
             MapTools::valueForKey<MoveNodeSet*>(outputMoves_,outputIndex);
@@ -172,13 +179,39 @@ ProgramOperation::addOutputNode(MoveNode& node) {
 }
 
 /**
+ * Add given node to the set of nodes that belong to this program operation.
+ *
+ * Add node to nodes of program operation
+ * @param node MoveNode to add to operation
+ */
+void
+ProgramOperation::addOutputNode(MoveNode& node) {
+
+    int outputIndex = node.move().source().operationIndex();
+    addOutputNode(node, outputIndex);
+}
+
+/**
+ * Add given node to the set of nodes that belong to this program operation.
+ *
+ * Add node to nodes of program operation
+ * @param node MoveNode to add to operation
+ */
+void
+ProgramOperation::addGuardOutputNode(MoveNode& node) {
+
+    addOutputNode(node, outputIndexFromGuardOfMove(node));
+}
+
+
+/**
  * Removes output node from set of nodes that belong to this program operation.
  *
  * @param node MoveNode being removed from this program operation
+ * @param outputIndex the output index.
  */
 void
-ProgramOperation::removeOutputNode(MoveNode& node) {
-    int outputIndex = node.move().source().operationIndex();
+ProgramOperation::removeOutputNode(MoveNode& node, int outputIndex) {
     if (MapTools::containsKey(outputMoves_,outputIndex)) {
         MoveNodeSet* nodeSet =
             MapTools::valueForKey<MoveNodeSet*>(outputMoves_,outputIndex);
@@ -194,6 +227,57 @@ ProgramOperation::removeOutputNode(MoveNode& node) {
         throw IllegalRegistration(
             __FILE__,__LINE__,__func__,"MoveNode not part of PO");
     }
+}
+
+/**
+ * Removes output node from set of nodes that belong to this program operation.
+ *
+ * @param node MoveNode being removed from this program operation
+ */
+void
+ProgramOperation::removeOutputNode(MoveNode& node) {
+    int outputIndex = node.move().source().operationIndex();
+    removeOutputNode(node, outputIndex);
+}
+
+/**
+ * Removes output node from set of nodes that belong to this program operation.
+ *
+ * @param node MoveNode being removed from this program operation
+ */
+void
+ProgramOperation::removeGuardOutputNode(MoveNode& node) {
+
+    removeOutputNode(node, outputIndexFromGuardOfMove(node));
+}
+
+
+int
+ProgramOperation::outputIndexFromGuardOfMove(const MoveNode& node) const {
+    assert(!node.move().isUnconditional()); // todo: throw?
+    const TTAMachine::Guard& guard = node.move().guard().guard();
+    const TTAMachine::PortGuard* pg =
+        dynamic_cast<const TTAMachine::PortGuard*>(&guard);
+    assert(pg); // todo: throw?
+    return outputIndexFromGuard(*pg);
+}
+
+int
+ProgramOperation::outputIndexFromGuard(const TTAMachine::PortGuard& pg) const {
+    return outputIndexFromGuard(pg, operation());
+}
+
+int
+ProgramOperation::outputIndexFromGuard(
+    const TTAMachine::PortGuard& pg, const Operation& op) {
+
+    const TTAMachine::Port* p = pg.port();
+    const TTAMachine::FUPort* fup = static_cast<const TTAMachine::FUPort*>(p);
+    const TTAMachine::Unit* u = p->parentUnit();
+    const TTAMachine::FunctionUnit* fu =
+        static_cast<const TTAMachine::FunctionUnit*>(u);
+    const TTAMachine::HWOperation* hwop = fu->operation(op.name());
+    return hwop->io(*fup);
 }
 
 /**
@@ -233,8 +317,8 @@ ProgramOperation::isComplete() {
         return false;
     }
     // numbering of output does not start from 1 but input count +1
-    int begin = operation_.numberOfInputs() + 1;
-    int end =  operation_.numberOfInputs() + operation_.numberOfOutputs();
+    int begin = operation_->numberOfInputs() + 1;
+    int end =  operation_->numberOfInputs() + operation_->numberOfOutputs();
     for (int i = begin; i <= end; i++) {
         if (!MapTools::containsKey(outputMoves_,i)) {
             return false;
@@ -250,7 +334,7 @@ ProgramOperation::isComplete() {
  */
 bool
 ProgramOperation::isReady() {
-    for (int i = 1; i <= operation_.numberOfInputs(); i++) {
+    for (int i = 1; i <= operation_->numberOfInputs(); i++) {
         if (!MapTools::containsKey(inputMoves_,i)) {
             return false;
         }
@@ -427,7 +511,7 @@ ProgramOperation::opcodeSettingNode() {
  */
 MoveNodeSet&
 ProgramOperation::inputNode(int index) const {
-    if (index < 1 || index > operation_.numberOfInputs()) {
+    if (index < 1 || index > operation_->numberOfInputs()) {
         std::string msg = "InputNode index out of range.";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);
     }
@@ -449,9 +533,9 @@ ProgramOperation::inputNode(int index) const {
  */
 MoveNodeSet&
 ProgramOperation::outputNode(int index) const {
-    if (index <= operation_.numberOfInputs() ||
-        index > operation_.numberOfInputs()+
-        operation_.numberOfOutputs()) {
+    if (index <= operation_->numberOfInputs() ||
+        index > operation_->numberOfInputs()+
+        operation_->numberOfOutputs()) {
         std::string msg = "OutputNode index out of range.";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);
     }
@@ -504,7 +588,7 @@ ProgramOperation::hasOutputNode(int index) const {
  */
 const Operation&
 ProgramOperation::operation() const {
-    return operation_;
+    return *operation_;
 }
 
 /**
@@ -560,12 +644,30 @@ ProgramOperation::triggeringMove() const {
 
     for (std::size_t i = 0; i < allInputMoves_.size(); ++i) {
         MoveNode& moveNode = *allInputMoves_.at(i);
-        if (moveNode.isScheduled()) {
-            const TTAProgram::Move& move = moveNode.move();
-            if (move.destination().isFUPort() &&
-                (dynamic_cast<const TTAMachine::BaseFUPort&>(
-                    move.destination().port())).isTriggering())
-                return &moveNode;
+        const TTAProgram::Move& move = moveNode.move();
+        TTAProgram::Terminal& dest = move.destination();
+        if (!dest.isFUPort()) {
+            continue;
+        }
+        const TTAMachine::BaseFUPort* fup = 
+            static_cast<const TTAMachine::BaseFUPort*>(&dest.port());
+        if (dynamic_cast<const UniversalFUPort*>(fup)) {
+            continue;
+        }
+        
+        if (fup->isTriggering()) {
+            return &moveNode;
+        } else {
+            return findTriggerFromUnit(
+                *fup->parentUnit());
+        }
+    }
+
+    for (std::size_t i = 0; i< allOutputMoves_.size(); ++i) {
+        MoveNode& moveNode = *allOutputMoves_.at(i);
+        const TTAMachine::FunctionUnit* fu = fuFromOutMove(moveNode);
+        if (fu != nullptr) {
+            return findTriggerFromUnit(*fu);
         }
     }
     return NULL;
@@ -642,10 +744,12 @@ ProgramOperation::hasMoveNodeForMove(const TTAProgram::Move& move)
  */
 std::string
 ProgramOperation::toString() const {
-    std::string output = "";
+    TCEString output = Conversion::toString(poId());
+    output << " Inputs: ";
     for (std::size_t i = 0; i < allInputMoves_.size(); ++i) {
         output += allInputMoves_.at(i)->toString() + " ";
     }
+    output << " Outputs: ";
     for (std::size_t i = 0; i < allOutputMoves_.size(); ++i) {
         output += allOutputMoves_.at(i)->toString() + " ";
     }
@@ -737,6 +841,28 @@ ProgramOperation::hasConstantOperand() const {
 unsigned int ProgramOperation::idCounter = 0;
 
 const TTAMachine::FunctionUnit*
+ProgramOperation::fuFromOutMove(const MoveNode& outputNode) const {
+    if (outputNode.isAssigned() &&
+        outputNode.isSourceOperation() &&
+        &outputNode.sourceOperation() == this) {
+        return static_cast<const TTAMachine::FunctionUnit*>(
+            outputNode.move().source().port().parentUnit());
+    }
+    if (!outputNode.move().isUnconditional() &&
+        outputNode.isGuardOperation() &&
+        outputNode.guardOperationPtr().get() == this) {
+        const TTAMachine::Guard& guard =
+            outputNode.move().guard().guard();
+        const TTAMachine::PortGuard* pg =
+            dynamic_cast<const TTAMachine::PortGuard*>(&guard);
+        assert(pg); // todo: throw?
+        return static_cast<const TTAMachine::FunctionUnit*>(
+            pg->port()->parentUnit());
+    }
+    return nullptr;
+}
+
+const TTAMachine::FunctionUnit*
 ProgramOperation::scheduledFU() const {
 
     for (int i = 0; i < inputMoveCount(); i++ ) {
@@ -748,13 +874,22 @@ ProgramOperation::scheduledFU() const {
     }
     for (int i = 0; i < outputMoveCount(); i++ ) {
         MoveNode& outputNode = outputMove(i);
-        if (outputNode.isAssigned()) {
-            auto& source = outputNode.move().source();
-            assert(source.isFUPort());
-            return &source.functionUnit();
+        const TTAMachine::FunctionUnit* fu = fuFromOutMove(outputNode);
+        if (fu != nullptr) {
+            return fu;
         }
     }
     return nullptr;
+}
+
+int
+ProgramOperation::outputIndexOfMove(const MoveNode& mn) const {
+    if (mn.isSourceOperation() &&
+        &mn.sourceOperation() == this) {
+        return mn.move().source().operationIndex();
+    } else {
+        return outputIndexFromGuardOfMove(mn);
+    }
 }
 
 const TTAMachine::HWOperation* ProgramOperation::hwopFromOutMove(
@@ -779,7 +914,7 @@ const TTAMachine::HWOperation* ProgramOperation::hwopFromOutMove(
 
 bool ProgramOperation::isLegalFU(const TTAMachine::FunctionUnit& fu) const {
 
-    if (!fu.hasOperation(operation_.name())) {
+    if (!fu.hasOperation(operation_->name())) {
         return false;
     }
     for (int i = 0; i < inputMoveCount(); i++) {
@@ -801,4 +936,23 @@ bool ProgramOperation::isLegalFU(const TTAMachine::FunctionUnit& fu) const {
         }
     }
     return true;
+}
+
+void ProgramOperation::setOperation(const Operation& op) {
+    operation_ = &op;
+    for (int i = 0; i < inputMoveCount(); i++) {
+        MoveNode& mn = inputMove(i);
+        TTAProgram::TerminalFUPort* tfp = dynamic_cast<TTAProgram::TerminalFUPort*>(
+            &mn.move().destination());
+        assert(tfp);
+        tfp->setHintOperation(op.name().c_str());
+    }
+
+    for (int i = 0; i < outputMoveCount(); i++) {
+        MoveNode& mn = outputMove(i);
+        TTAProgram::TerminalFUPort* tfp = dynamic_cast<TTAProgram::TerminalFUPort*>(
+            &mn.move().source());
+        assert(tfp);
+        tfp->setHintOperation(op.name().c_str());
+    }
 }

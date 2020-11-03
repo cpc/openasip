@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -138,7 +138,7 @@ ResourceBroker::availableResource(int cycle, const MoveNode& node,
  * @param cycle Cycle.
  * @param node Node.
  * @note This default implementation always returns an empty set.
- */
+ */ 
 SchedulingResourceSet
 ResourceBroker::allAvailableResources(int, const MoveNode&,
                                       const TTAMachine::Bus*,

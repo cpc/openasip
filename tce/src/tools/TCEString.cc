@@ -30,6 +30,10 @@
  * @note rating: red
  */
 #include <string>
+#include <sstream>
+#include <algorithm>
+#include <cctype>
+
 #include "TCEString.hh"
 #include "Conversion.hh"
 
@@ -67,40 +71,30 @@ TCEString::ciEqual(const TCEString& other) const {
     return true;
 }
 
+/**
+ * Turns the string to lowercase.
+ */
 TCEString
 TCEString::lower() const {
     return StringTools::stringToLower(*this);
 }
 
-
+/**
+ * Turns the string to uppercase.
+ */
 TCEString
 TCEString::upper() const {
     return StringTools::stringToUpper(*this);
 }
 
 /**
- * Replaces all occurences of string 'old' with 'newString'
+ * Replaces all occurrences of string 'old' with 'newString'
  */
 TCEString&
 TCEString::replaceString(
     const std::string& old, const std::string& newString) {
-        
-    TCEString modifiedString(*this);
-    std::string::size_type location = modifiedString.find(old);
-    while (location != std::string::npos) {
-        modifiedString.replace(
-            modifiedString.begin() + location,
-            modifiedString.begin() + location + old.length(),
-            newString.c_str());
-        // Avoid infinite recursion if replacing with a string
-        // that also contains the searched string. This happens
-        // when escaping reserved characters such as '_' -> '\\_'.
-        location = modifiedString.find(
-            old, std::distance(
-                modifiedString.begin(), 
-                modifiedString.begin() + location + newString.length() + (size_t)1));
-    }
-    *this = modifiedString;
+
+    TCEString::replace(*this, old, newString);
     return *this;
 }
 
@@ -119,6 +113,14 @@ TCEString::capitalize() const {
 std::vector<TCEString>
 TCEString::split(const std::string& delim) const {
     return StringTools::chopString(*this, delim);
+}
+
+TCEString&
+TCEString::appendIf(bool expression, stringCRef ifTrue) {
+    if (expression) {
+        append(ifTrue);
+    }
+    return *this;
 }
 
 // stream operators for easier string construction
@@ -140,6 +142,149 @@ TCEString::operator<<(const int rhs) {
     return *this;
 }
 
+TCEString
+TCEString::operator+(int val) const {
+    return TCEString(*this) += Conversion::toString(val);
+}
+
+TCEString
+TCEString::operator+(char c) const {
+    return *this + TCEString(c);
+}
+
+TCEString
+TCEString::toUpper(const TCEString& str, const std::locale& loc) {
+    TCEString newStr(str);
+    return toUpper(newStr, loc);
+}
+
+std::string
+TCEString::toUpper(const std::string& str, const std::locale& loc) {
+    std::string newStr(str);
+    return toUpper(newStr, loc);
+}
+
+TCEString&
+TCEString::toUpper(TCEString& str, const std::locale& loc) {
+    for (size_t i = 0; i < str.size(); i++) {
+        str.at(i) = std::toupper(str.at(i), loc);
+    }
+    return str;
+}
+
+std::string&
+TCEString::toUpper(std::string& str, const std::locale& loc) {
+    for (size_t i = 0; i < str.size(); i++) {
+        str.at(i) = std::toupper(str.at(i), loc);
+    }
+    return str;
+}
+
+std::string
+TCEString::toLower(
+    const std::string& str, const std::locale& loc) {
+    std::string result(str);
+    for (size_t i = 0; i < result.size(); i++) {
+        result.at(i) = std::tolower(result.at(i), loc);
+    }
+    return result;
+}
+
+/**
+ * Appends a string if the target string is not empty.
+ *
+ * @param toAppend The target string.
+ * @param appender The string to append with.
+ * @return Reference to original possibly appended with appender.
+ */
+std::string&
+TCEString::appendToNonEmpty(
+    std::string& toAppend, stringCRef appender) {
+    if (!toAppend.empty()) {
+        return toAppend += appender;
+    } else {
+        return toAppend;
+    }
+}
+
+/**
+ * Returns string of target string appended with another string if the target
+ * string is not empty.
+ *
+ * @param toAppend The target string.
+ * @param appender The string to append with.
+ * @return String initialized with toAppend and possibly appended with appender.
+ */
+std::string
+TCEString::appendToNonEmpty(
+    stringCRef toAppend, stringCRef appender) {
+    std::string tmp(toAppend);
+    return appendToNonEmpty(tmp, appender);
+}
+
+/**
+ * Returns first string if "expression" is true. Otherwise return second.
+ */
+std::string
+TCEString::applyIf(bool expression, stringCRef ifTrue, stringCRef ifFalse) {
+    if (expression) {
+        return ifTrue;
+    } else {
+        return ifFalse;
+    }
+}
+
+/**
+ * Returns string if "expression" is true. Otherwise return empty string.
+ */
+std::string
+TCEString::applyIf(bool expression, stringCRef ifTrue) {
+   return applyIf(expression, ifTrue, "");
+}
+
+/**
+ * Replaces all occurrences of oldPattern in str with newPattern.
+ *
+ * @return Number of made replacements.
+ */
+unsigned
+TCEString::replace(
+    std::string& str,
+    const std::string& oldPattern,
+    const std::string& newPattern) {
+
+    unsigned replacementCount = 0;
+
+    std::string::size_type location = str.find(oldPattern);
+    while (location != std::string::npos) {
+        str.replace(
+            str.begin() + location,
+            str.begin() + location + oldPattern.length(),
+            newPattern.c_str());
+        replacementCount++;
+        // Avoid infinite recursion if replacing with a string
+        // that also contains the searched string. This happens
+        // when escaping reserved characters such as '_' -> '\\_'.
+        location = str.find(oldPattern, location + newPattern.length());
+    }
+    return replacementCount;
+}
+
+
+/**
+ * Returns string in which all non-digit characters have been removed.
+ */
+std::string
+TCEString::filterDigits(const std::string& str) {
+    std::string result;
+    result.reserve(str.size());
+    for (auto c : str) {
+        if (std::isdigit(c)) result += c;
+    }
+    return result;
+}
+
+
 /**
  * Implementation of lhs < rhs string comparison case insensitively.
  *
@@ -152,5 +297,4 @@ TCEString::ICLess::operator() (
     const TCEString& lhs, const TCEString& rhs) const {
     return lhs.lower() < rhs.lower();
 }
-
 

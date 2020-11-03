@@ -47,7 +47,10 @@ namespace TPEF {
 
 class MachineResourceManager;
 class LabelManager;
-class Assembler;
+class AssemblyParserDiagnostic;
+namespace TTAMachine {
+    class Machine;
+}
 
 /**
  * Read moves and creates TPEF code section out of them.
@@ -57,7 +60,8 @@ public:
 
     CodeSectionCreator(
         MachineResourceManager &resourceManager,
-        Assembler* parent);
+        const TTAMachine::Machine& targetMachine,
+        AssemblyParserDiagnostic* parent);
 
     void newSection(UValue startAddress);
 
@@ -150,6 +154,8 @@ private:
     void addAnnotationes(TPEF::InstructionElement& instrElem, 
                          InternalElement& elem, LabelManager& lables) const;
 
+    const TTAMachine::Machine& mach_;
+
     /// Internal representation of code section.
     InternalSection internalSection_;
 
@@ -157,7 +163,7 @@ private:
     MachineResourceManager& resources_;
 
     /// Place to add warnings during compilation.
-    Assembler* parent_;
+    AssemblyParserDiagnostic* parent_;
 
     /// Next element is starting element of instruction.
     bool isNextBegin_;

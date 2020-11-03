@@ -53,6 +53,7 @@ namespace TTAMachine {
     class Unit;
     class FunctionUnit;
     class Guard;
+    class HWOperation;
 }
 
 namespace TTAProgram {
@@ -69,8 +70,13 @@ class MachineConnectivityCheck : MachineCheck {
 public:
     typedef std::set<const TTAMachine::Port*,
                      const TTAMachine::MachinePart::Comparator> PortSet;
+    typedef std::set<TTAMachine::Bus*,
+                     const TTAMachine::MachinePart::Comparator> BusSet;
     typedef std::set<const TTAMachine::FunctionUnit*,
                      const TTAMachine::MachinePart::Comparator> FUSet;
+
+    virtual bool check(const TTAMachine::Machine& mach,
+                       MachineCheckResults& results) const;
 
     static bool isConnected(
         const TTAMachine::Port& sourcePort,
@@ -104,6 +110,14 @@ public:
         PortSet destinationPorts,
         const TTAMachine::Guard* guard = NULL);
 
+    static bool isConnected(
+        const TTAMachine::Bus& bus,
+        const TTAMachine::Port& port);
+
+    static bool isConnected(
+        const TTAMachine::Port& port,
+        const TTAMachine::Bus& bus);
+
     static bool canWriteAllImmediates(TTAMachine::Port& destPort);
 
     static bool canTransportImmediate(
@@ -120,6 +134,10 @@ public:
         const TTAProgram::TerminalImmediate& immediate,
         PortSet destinationPorts,
         const TTAMachine::Guard* guard = NULL);
+
+    static bool canTransportImmediate(
+        const TTAProgram::TerminalImmediate& immediate,
+        const TTAMachine::Bus& bus);
     
     static bool canTransportMove(
         const MoveNode& moveNode,
@@ -158,8 +176,9 @@ public:
     static void appendConnectedDestinationBuses(
         const TTAMachine::Unit& unit, std::set<const TTAMachine::Bus*>& buses);
 
-    static std::vector<TTAMachine::RegisterFile*> tempRegisterFiles(
-        const TTAMachine::Machine& machine);
+    static std::set<const TTAMachine::RegisterFile*,
+                    TTAMachine::MachinePart::Comparator> tempRegisterFiles(
+                        const TTAMachine::Machine& machine);
 
     static int requiredImmediateWidth(
         bool signExtension,
@@ -173,7 +192,7 @@ public:
         const TTAMachine::Bus& bus, const TTAMachine::Unit& destRF);
 
     static bool busConnectedToFU(
-        const TTAMachine::Bus& bus, const TTAMachine::FunctionUnit& fu, 
+        const TTAMachine::Bus& bus, const TTAMachine::FunctionUnit& fu,
         const TCEString& opName, int opIndex);
 
     static bool busConnectedToAnyFU(
@@ -200,23 +219,79 @@ public:
         const MoveNode& dest);
 
     static PortSet findWritePorts(const TTAMachine::Unit& rf);
-
     static PortSet findReadPorts(const TTAMachine::Unit& rf);
 
-    static bool hasConditionalMoves(const TTAMachine::Machine& mach);
+    static BusSet findRoutes(
+        TTAMachine::Port& port1,
+        TTAMachine::Port& port2);
+
+    static bool canBypassOpToDst(
+        const TTAMachine::Machine& mach,
+        const TCEString& opName,
+        int outIndex,
+        const MoveNode& mn);
+
+    static FUSet copyOpFUs(
+        const TTAMachine::Machine& mach,
+        const MoveNode& mn);
+
+    static bool hasConditionalMoves(
+        const TTAMachine::Machine& mach,
+        const std::set<int>& rfWidths);
 
     MachineConnectivityCheck();
     virtual ~MachineConnectivityCheck();
 
-    static void addAnnotatedFUs(std::set<TCEString>& candidateFUs, const TTAProgram::Move& m, 
-	TTAProgram::ProgramAnnotation::Id id);
+    static void addAnnotatedFUs(
+        std::set<TCEString>& candidateFUs,
+        const TTAProgram::Move& m,
+        TTAProgram::ProgramAnnotation::Id id);
+
+    static bool isConnectedToDifferentlyConnectedRFs(
+        const TTAMachine::RegisterFile& rf);
+
+    static bool isEquallyConnected(
+        const TTAMachine::BaseRegisterFile& RF1,
+        const TTAMachine::BaseRegisterFile& RF2);
 
     static std::pair<bool,bool> hasBothGuards(
-        const TTAMachine::Bus* bus, 
+        const TTAMachine::Bus* bus,
         std::pair<const TTAMachine::RegisterFile*,int> guardReg);
+
+    static std::set<const TTAMachine::RegisterFile*>
+    needRegCopiesDueReadPortConflicts(
+        const TTAMachine::Machine& machine);
 
     static int maxLIMMCount(const TTAMachine::Machine& targetMachine);
     static int maxSIMMCount(const TTAMachine::Machine& targetMachine);
+
+    static bool
+    isPortApplicableToWidths(
+        const TTAMachine::Port& port, std::set<int> widths);
+
+    static bool immToFUConnected(const TTAMachine::Machine& mach);
+
+    static std::pair<int, int>
+    shortImmBits(std::set<const TTAMachine::Bus*>& buses);
+
+    static std::pair<int, int>
+    immBits(const TTAMachine::RegisterFile& rf);
+
+    static bool
+    needsRegisterCopiesDueImmediateOperands(
+    const TTAMachine::Machine& mach);
+
+    static std::pair<int, int>
+    immBits(const TTAMachine::Machine& mach);
+
+    static void
+    shortImmBits(
+        std::set<const TTAMachine::Bus*>& buses,
+        std::pair<int, int>&);
+
+static int operandWidth(const TTAMachine::HWOperation& hwop, int index);
+
+static bool raConnected(const TTAMachine::Machine& machine);
 
 protected:
     MachineConnectivityCheck(const std::string& shortDesc_);
@@ -226,10 +301,10 @@ private:
 
     typedef std::pair<const TTAMachine::BaseRegisterFile*,
                       const TTAMachine::BaseRegisterFile*> RfRfPair;
-    
+
     typedef std::pair<const TTAMachine::BaseRegisterFile*,
                       const TTAMachine::Port*> RfPortPair;
-    
+
     typedef std::pair<const TTAMachine::Port*,
                       const TTAMachine::BaseRegisterFile*> PortRfPair;
 

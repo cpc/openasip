@@ -28,6 +28,7 @@
  *
  * @author Veli-Pekka J��skel�inen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepist� 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Heikki Kultala 2012 (heikki.kultala-no.spam-tut.fi)
  */
 
 #include "tce_config.h"
@@ -40,6 +41,8 @@
 #include "TCETargetMachine.hh"
 #include "TCESubtarget.hh"
 #include "TCEISelLowering.hh"
+#include "Conversion.hh"
+#include "MathTools.hh"
 
 #ifdef TARGET64BIT
 #define DEFAULT_TYPE MVT::i64
@@ -74,6 +77,21 @@ public:
     }
 
 private:
+
+    static bool isBroadcast(SDNode *n);
+    static bool isConstantBuild(SDNode* n);
+    static bool isConstantFPBuild(SDNode* n);
+#ifdef LLVM_OLDER_THAN_3_9
+    SDNode* SelectOptimizedBuildVector(SDNode* n);
+#else
+    void SelectOptimizedBuildVector(SDNode* n);
+#endif
+    // returns size of cancat
+
+    EVT getIntegerVectorVT(EVT vt);
+
+    MachineSDNode* createPackNode(SDNode*n, const EVT& vt, int laneCount, SDValue* vals);
+
     llvm::TCETargetLowering& lowering_;
     const llvm::TCESubtarget& subtarget_;
     llvm::TCETargetMachine* tm_;
@@ -106,12 +124,17 @@ TCEDAGToDAGISel::~TCEDAGToDAGISel() {
 
 #ifdef LLVM_OLDER_THAN_3_9
 #define SELECT_NODE_AND_RETURN(args...) return CurDAG->SelectNodeTo(args)
+#define RETURN_SELECTED_NODE(node) return (node)
 #else
 // in LLVM 3.9 select() returns void
 #define SELECT_NODE_AND_RETURN(args...) \
     CurDAG->SelectNodeTo(args); \
     return
+#define RETURN_SELECTED_NODE(node) \
+    (void)(node); \
+    return
 #endif
+
 
 /**
  * Handles custom instruction selections.
@@ -133,29 +156,6 @@ TCEDAGToDAGISel::Select(SDNode* n) {
 #else
         return;
 #endif
-    } else if (n->getOpcode() == ISD::BRCOND) {
-
-        // TODO: Check this. Following IA64 example..
-        SDValue chain = n->getOperand(0);
-        SDValue cc = n->getOperand(1);
-
-        MachineBasicBlock* dest =
-            cast<BasicBlockSDNode>(n->getOperand(2))->getBasicBlock();
-
-        // FIXME? - this creates long branches all the time
-        SELECT_NODE_AND_RETURN(
-            n, TCE::TCEBRCOND, MVT::Other, cc,
-            CurDAG->getBasicBlock(dest), chain);
-        //} else if (n->getOpcode() == ISD::SETCC) {
-        //SDValue op1 = n->getOperand(0);
-        //SDValue op1 = n->getOperand(1);
-        //ISD::CondCode cc = cast<CondCodeSDNode>(op.getOperand(2))->get();
-        //switch (cc) {
-        //default: assert(false && "Unhandled CC");
-        //case ISD::SETEQ: {
-        //    return dag.getNode(TCE::EQ
-        //}
-        //}
     } else if (n->getOpcode() == ISD::BR) {
         SDValue chain = n->getOperand(0);
 
@@ -183,68 +183,81 @@ TCEDAGToDAGISel::Select(SDNode* n) {
             return;
 #endif
         }
-    } else if (n->getOpcode() == ISD::SELECT) {
-        SDValue cond = n->getOperand(0);
-        if (cond.getValueType() == MVT::i1) {
-            SDNode* node2 = dyn_cast<SDNode>(n->getOperand(0));
-            if (node2->getOpcode() == ISD::SETCC) {
-                SDValue val1 = n->getOperand(1);
-                SDValue val2 = n->getOperand(2);
+    } else if (n->getOpcode() == ISD::VSELECT ||
+               (n->getOpcode() == ISD::SELECT &&
+                !n->getOperand(1).getValueType().isVector())) {
+        SDNode* node2 = dyn_cast<SDNode>(n->getOperand(0));
+        if (node2->getOpcode() == ISD::SETCC) {
+            SDValue val1 = n->getOperand(1);
+            SDValue val2 = n->getOperand(2);
+            
+            SDValue n2val1 = node2->getOperand(0);
+            SDValue n2val2 = node2->getOperand(1);
+            
+            if (val1 == n2val1 && val2 == n2val2 && node2->hasOneUse()) {
+                int opc;
+                ISD::CondCode cc = cast<CondCodeSDNode>(
+                    node2->getOperand(2))->get();
                 
-                SDValue n2val1 = node2->getOperand(0);
-                SDValue n2val2 = node2->getOperand(1);
-
-                if (val1 == n2val1 && val2 == n2val2) {
-                    if (node2->hasOneUse()) {
-                        int opc;
-                        ISD::CondCode cc = cast<CondCodeSDNode>(
-                            node2->getOperand(2))->get();
-                        
-                        switch (cc) {
-                        case ISD::SETLT:
-                        case ISD::SETLE:
-                        case ISD::SETOLT:
-                        case ISD::SETOLE:
-                            opc = tm_->getMinOpcode(n);
-                            if (opc != -1) {
-                                SELECT_NODE_AND_RETURN(
-                                    n,opc, DEFAULT_TYPE, val1, val2);
-                            }
-                            break;
-                        case ISD::SETGT:
-                        case ISD::SETGE:
-                        case ISD::SETOGT:
-                        case ISD::SETOGE: // todo: what is ordered here? nan handling?
-                            opc = tm_->getMaxOpcode(n);
-                            if (opc != -1) {
-                                SELECT_NODE_AND_RETURN(
-                                    n, opc,DEFAULT_TYPE, val1, val2);
-                            }
-                            break;
-                        case ISD::SETULT:
-                        case ISD::SETULE:
-                            opc = tm_->getMinuOpcode(n);
-                            if (opc != -1) {
-                                SELECT_NODE_AND_RETURN(
-                                    n, opc, DEFAULT_TYPE, val1, val2);
-                            }
-                            break;
-                        case ISD::SETUGT:
-                        case ISD::SETUGE:
-                            opc = tm_->getMaxuOpcode(n);
-                            if (opc != -1) {
-                                SELECT_NODE_AND_RETURN(
-                                    n, opc, DEFAULT_TYPE, val1, val2);
-                            }
-                            break;
-                        default:
-                            break;
-                        }
+                switch (cc) {
+                case ISD::SETLT:
+                case ISD::SETLE:
+                case ISD::SETOLT:
+                case ISD::SETOLE:
+                    opc = tm_->getMinOpcode(n);
+                    if (opc != -1) {
+                        SELECT_NODE_AND_RETURN(
+                            n,opc, n->getSimpleValueType(0), val1, val2);
                     }
+                    break;
+                case ISD::SETGT:
+                case ISD::SETGE:
+                case ISD::SETOGT:
+                case ISD::SETOGE: // todo: what is ordered here? nan handling?
+                    opc = tm_->getMaxOpcode(n);
+                    if (opc != -1) {
+                        SELECT_NODE_AND_RETURN(
+                            n, opc, n->getSimpleValueType(0), val1, val2);
+                    }
+                    break;
+                case ISD::SETULT:
+                case ISD::SETULE:
+                    opc = tm_->getMinuOpcode(n);
+                    if (opc != -1) {
+                        SELECT_NODE_AND_RETURN(
+                            n, opc, n->getSimpleValueType(0), val1, val2);
+                    }
+                    break;
+                case ISD::SETUGT:
+                case ISD::SETUGE:
+                    opc = tm_->getMaxuOpcode(n);
+                    if (opc != -1) {
+                        SELECT_NODE_AND_RETURN(
+                            n, opc, n->getSimpleValueType(0), val1, val2);
+                    }
+                    break;
+                default:
+                    break;
                 }
             }
         }
+    } else if (n->getOpcode() == ISD::SHL ||
+               n->getOpcode() == ISD::SRA ||
+               n->getOpcode() == ISD::SRL) {
+        SDValue shifted = n->getOperand(0);
+        SDValue shifter = n->getOperand(1);
+        EVT shiftedVt = shifted.getValueType();
+        EVT shifterVt = shifter.getValueType();
+
+    } else if (n->getOpcode() == ISD::AND ||
+               n->getOpcode() == ISD::OR ||
+               n->getOpcode() == ISD::XOR) {
+        SDValue lhs = n->getOperand(0);
+        SDValue rhs = n->getOperand(1);
+        EVT lhsVt = lhs.getValueType();
+        EVT rhsVt = rhs.getValueType();
     }
+
 #ifdef LLVM_OLDER_THAN_3_9
     SDNode* res =  SelectCode(n);
     return res;
@@ -253,7 +266,7 @@ TCEDAGToDAGISel::Select(SDNode* n) {
 #endif
 }
 #undef SELECT_NODE_AND_RETURN
-
+#undef RETURN_SELECTED_NODE
 
 /**
  * Handles ADDRri operands.
@@ -308,4 +321,35 @@ TCEDAGToDAGISel::SelectADDRrr(
 FunctionPass*
 llvm::createTCEISelDag(TCETargetMachine& tm) {
     return new TCEDAGToDAGISel(tm);
+}
+
+bool 
+TCEDAGToDAGISel::isBroadcast(SDNode *n) {
+    return TCETargetLowering::isBroadcast(n);
+}
+
+bool
+TCEDAGToDAGISel::isConstantBuild(SDNode* n) {
+    int operandCount = n->getNumOperands();
+    for (unsigned i = 1; i <operandCount; i++) {
+        SDValue val2 = n->getOperand(i);
+        SDNode *n2 = val2.getNode();
+        if (n2->getOpcode() != ISD::Constant ) { 
+            return false;
+        }
+    }
+    return true;
+}
+
+bool
+TCEDAGToDAGISel::isConstantFPBuild(SDNode* n) {
+    int operandCount = n->getNumOperands();
+    for (unsigned i = 1; i <operandCount; i++) {
+        SDValue val2 = n->getOperand(i);
+        SDNode *n2 = val2.getNode();
+        if (n2->getOpcode() != ISD::ConstantFP) {
+            return false;
+        }
+    }
+    return true;
 }

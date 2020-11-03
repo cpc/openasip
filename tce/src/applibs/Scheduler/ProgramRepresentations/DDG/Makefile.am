@@ -1,12 +1,11 @@
 noinst_LTLIBRARIES = libddg.la
 libddg_la_SOURCES = \
 	DataDependenceEdge.cc DataDependenceGraph.cc DataDependenceGraphBuilder.cc \
-    ConstantAliasAnalyzer.cc FalseAliasAnalyzer.cc \
-	LLVMTCEDataDependenceGraphBuilder.cc MemoryAliasAnalyzer.cc \
-	LLVMAliasAnalyzer.cc LiveRangeData.cc LiveRange.cc
-
-#MNData.cc
-#MemoryAliasAnalyzer.cc
+	ConstantAliasAnalyzer.cc FalseAliasAnalyzer.cc StackAliasAnalyzer.cc \
+	MemoryAliasAnalyzer.cc OffsetAliasAnalyzer.cc \
+	LLVMTCEDataDependenceGraphBuilder.cc LiveRangeData.cc \
+    LLVMAliasAnalyzer.cc LiveRange.cc PRegionAliasAnalyzer.cc \
+	GlobalVsStackAA.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
@@ -20,6 +19,7 @@ UM_DIR = ${BASE_DIR}/umach
 GRAPH_DIR = ${BASE_DIR}/Graph
 DISASSEMBLER_DIR = ${APPLIBS_DIR}/Disassembler
 SCHED_DIR = ${APPLIBS_DIR}/Scheduler
+
 PDG_DIR = ${SCHED_DIR}/ProgramRepresentations/PDG
 CFG_DIR = ${SCHED_DIR}/ProgramRepresentations/CFG
 ALGO_DIR = ${SCHED_DIR}/Algorithms
@@ -38,9 +38,6 @@ dist-hook:
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
-
-
-
 ## headers start
 libddg_la_SOURCES += \
 	DataDependenceGraph.hh FalseAliasAnalyzer.hh \
@@ -48,5 +45,5 @@ libddg_la_SOURCES += \
 	MemoryAliasAnalyzer.hh LLVMTCEDataDependenceGraphBuilder.hh \
 	ConstantAliasAnalyzer.hh LLVMAliasAnalyzer.hh \
 	MoveNodeUse.hh LiveRange.hh \
-	LiveRangeData.hh MoveNodeUse.icc 
+	LiveRangeData.hh MoveNodeUse.icc GlobalVsStackAA.hh
 ## headers end

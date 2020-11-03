@@ -66,7 +66,7 @@ namespace TTAProgram {
 //}
 
 Immediate::Immediate(TerminalImmediate* value, Terminal* dst)
-    : value_(value), dst_(dst) {}
+    : value_(value), dst_(dst), parent_(nullptr) {}
 
 /**
  * The destructor.

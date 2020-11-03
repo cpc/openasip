@@ -35,7 +35,9 @@
 #define TTA_CONTROL_DEPENDENCE_NODE_HH
 
 #include <string>
+#include <set>
 
+#include "TCEString.hh"
 #include "GraphNode.hh"
 #include "CodeSnippet.hh"
 #include "BasicBlockNode.hh"
@@ -61,15 +63,19 @@ public:
     enum NodeType {
         CDEP_NODE_REGION, // Region nodes of CDG
         CDEP_NODE_PREDICATE, // Predicate nodes of CDG
-        CDEP_NODE_BB   // Basic block nodes containing code snippets
+        CDEP_NODE_BB,   // Basic block nodes containing code snippets
+        CDEP_NODE_LOOPENTRY, // Region that is loop entry node
+        CDEP_NODE_LOOPCLOSE // Region that is loop entry node
     };
-
+    /// Storage type for other nodes of same graph needed to define
+    /// some non graph relations.
+    /// Duplicit type compared to NodeSet, but that is defined in Graph class
+    typedef std::set<ControlDependenceNode*> NodesInfo;
     ControlDependenceNode(
-        const int nodeID,
         const NodeType type = CDEP_NODE_BB,
         BasicBlockNode* bblock = NULL) :
-        GraphNode(nodeID), type_(type), code_(bblock) {}
-    virtual ~ControlDependenceNode() {}
+        type_(type), code_(bblock), component_(-1), lastNode_(false) {}
+    virtual ~ControlDependenceNode();
 
     bool isControlDependenceNode() const;
     bool isRegionNode() const;
@@ -77,7 +83,16 @@ public:
     bool isBBNode() const;
     bool isEntryNode() const;
     bool isExitNode() const;
-
+    bool isLoopEntryNode() const;
+    bool isLoopEntryNode(int component) const;
+    bool isLoopCloseNode() const;
+    void setLoopEntryNode(int component);
+    void setComponent(int component) { component_ = component;}
+    int component() const { return component_;}
+    /// LastNode marks node that must be ordered last compared to it's
+    /// sibling nodes - Close node of loop
+    void setLastNode() { lastNode_ = true; }
+    bool isLastNode() const { return lastNode_;}
     int instructionCount() const;
     TTAProgram::Instruction& instruction(int index) const;
     BasicBlockNode* basicBlockNode() const;
@@ -85,9 +100,34 @@ public:
     NodeType type() const;
     std::string toString() const;
 
+    void addToRegion(ControlDependenceNode& node);
+    const NodesInfo& region();
+
+    void addToEEC(ControlDependenceNode& node);
+    const NodesInfo& eec();
+
+    void addToPseudoPredicateEEC(ControlDependenceNode& node);
+    const NodesInfo& pseudoPredicateEEC();
+
+    void printRelations() const;
+
 private:
     NodeType type_;
     BasicBlockNode* code_;
+    /// Stores "region" information for computing serialization information
+    NodesInfo region_;
+    /// Stores "eec" information for computing serialization information
+    NodesInfo eec_;
+    /// Stores "shadow" eec information for predicate basic blocks
+    /// which can be then copied into PDG for nodes of basic blocks
+    /// that are not actuall predicate node
+    NodesInfo pseudoPredicateEEC_;
+    /// Number of strong component the node belongs to, if any
+    int component_;
+    /// Indicated that the node should be scheduled last from it's siblings
+    /// Case when node is predicate or region, has close node in it's subgraph
+    /// and ancestor which is loop entry node
+    bool lastNode_;
 };
 
 #endif

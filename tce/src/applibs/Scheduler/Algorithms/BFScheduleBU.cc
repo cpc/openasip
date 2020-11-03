@@ -57,6 +57,7 @@
 #include "Terminal.hh"
 #include "BFRescheduleResultsClose.hh"
 #include "BFTryRemoveGuard.hh"
+#include "BFCopyRegWithOp.hh"
 #include "BFRenameSource.hh"
 
 //#define DEBUG_BUBBLEFISH_SCHEDULER
@@ -75,6 +76,30 @@ BFScheduleBU::operator()() {
 
     if (mn_.isDestinationOperation() && mn_.isSourceVariable() &&
         allowEarlySharing_) {
+	/* this does not yet work, leads to schduler deadlock.
+       so commented out.
+	if (BF2ScheduleFront::getSisterTrigger(mn_, targetMachine()) == &mn_) {
+	    ProgramOperationPtr poPtr = mn_.destinationOperationPtr();
+	    for (int i = 0; i < poPtr->inputMoveCount(); i++) {
+		MoveNode& operand = poPtr->inputMove(i);
+		if (&operand != &mn_) {
+		    if (!operand.isScheduled() && !sched_.isDeadResult(operand)) {
+
+			BFShareOperands* shareOpers = new BFShareOperands(sched_, operand, lc_);
+			if ((*shareOpers)()) {
+			    //            if (shareOpers->removedNode()) {
+			    //                return true;
+			    //            }
+			    preChildren_.push(shareOpers);
+			} else {
+			    delete shareOpers;
+			}
+		    }
+
+		}
+	    }
+	}
+	*/
         /** Another op may not come between these, so if this does
             not work, try without this */
         BFShareOperands* shareOpers = new BFShareOperands(sched_, mn_, lc_);
@@ -135,23 +160,33 @@ BFScheduleBU::operator()() {
             if (mn_.isSourceOperation()) {
                 regCopy = regCopyAfter = new BFRegCopyAfter(sched_,mn_, lc_);
             } else {
-                BFRenameSource* renSrc =
-                    new BFRenameSource(sched_, mn_, lc_, lc_);
-                if (runPreChild(renSrc)) {
-                    auto forbiddenRF =
-                        RFReadPortCountPreventsScheduling(mn_);
-                    if (forbiddenRF) {
-                        renSrc->undo();
-                        preChildren_.pop();
-                        forbiddenRF = RFReadPortCountPreventsScheduling(mn_);
+                // check that we have copy op with suitable connectivity.
+                auto copyFUs =
+                    MachineConnectivityCheck::copyOpFUs(targetMachine(), mn_);
+                if (!copyFUs.empty()) {
+                    regCopy = regCopyBefore =
+                        new BFCopyRegWithOp(sched_, mn_, lc_, copyFUs);
+                } else { // source not op, dest not reg(is op)
+                    BFRenameSource* renSrc =
+                        new BFRenameSource(sched_, mn_, lc_, lc_);
+                    if (runPreChild(renSrc)) {
+                        auto forbiddenRF =
+                            RFReadPortCountPreventsScheduling(mn_);
+                        if (forbiddenRF) {
+                            renSrc->undo();
+                            preChildren_.pop();
+                            forbiddenRF =
+                                RFReadPortCountPreventsScheduling(mn_);
+                            regCopy = regCopyBefore =
+                                new BFRegCopyBefore(sched_, mn_, lc_, forbiddenRF);
+                        }
+                    } else {
+                        // could not use renaming to get rid of regcopy.
+                        auto forbiddenRF =
+                            RFReadPortCountPreventsScheduling(mn_);
                         regCopy = regCopyBefore =
                             new BFRegCopyBefore(sched_, mn_, lc_,forbiddenRF);
                     }
-                } else {
-                    // could not use renaming to get rid of regcopy.
-                    auto forbiddenRF = RFReadPortCountPreventsScheduling(mn_);
-                    regCopy = regCopyBefore =
-                        new BFRegCopyBefore(sched_, mn_, lc_, forbiddenRF);
                 }
             }
             if (regCopy && !runPreChild(regCopy)) {

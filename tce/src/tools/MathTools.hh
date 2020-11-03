@@ -35,11 +35,23 @@
 #ifndef TTA_MATH_TOOLS_HH
 #define TTA_MATH_TOOLS_HH
 
+#include <utility>
+
 #include "BaseType.hh"
 
 class MathTools {
 public:
     static unsigned int bitLength(long unsigned int number);
+    static bool bitFieldsEquals(
+        unsigned enc1, unsigned pos1,
+        unsigned enc2, unsigned pos2,
+        unsigned width);
+    static long unsigned int concatenateBits(
+        long unsigned int msbBitField, unsigned msbWidth,
+        long unsigned int lsbBitField, unsigned lsbWidth);
+    static int ceil_log2(long unsigned int number);
+    template<typename NumberType>
+    static int ceil_div(NumberType dividee, NumberType diveder);
     static int requiredBits(unsigned long int number);
     static int requiredBitsSigned(SLongWord number);
     static int requiredBitsSigned(int number);
@@ -51,9 +63,20 @@ public:
     static SLongWord fastSignExtendTo(SLongWord value, int width);
     static ULongWord fastZeroExtendTo(ULongWord value, int width);
 
-    static bool bit(ULongWord integer, unsigned int index);
+    template<class IntegerType>
+    static void setBit(
+        IntegerType& bits, unsigned int index, bool bitState = true);
     
     static int random(int, int);
+    static unsigned int roundUpToPowerTwo(unsigned int number);
+    static int roundUpToPowerTwo(int number);
+    static SLongWord roundDownToPowerTwo(SLongWord number);
+    static bool isInPowerOfTwo(unsigned int number);
+    template<typename ResultNumberTypeS, typename ResultNumberTypeU=ResultNumberTypeS>
+    static std::pair<ResultNumberTypeS, ResultNumberTypeU> bitsToIntegerRange(
+        unsigned bitWidth, bool signExtending);
+    static bool bit(ULongWord integer, unsigned int index);
+    
     static ULongWord roundDownToPowerTwo(ULongWord number);
 };
 

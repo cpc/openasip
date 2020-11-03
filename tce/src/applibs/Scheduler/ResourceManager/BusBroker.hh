@@ -51,6 +51,8 @@ class ResourceMapper;
 class SchedulingResource;
 class BusResource;
 class ShortImmPSocketResource;
+class ControlFlowGraph;
+class BasicBlockNode;
 
 /**
  * Bus broker.
@@ -129,8 +131,13 @@ public:
         const MoveNode& node, const TTAMachine::Bus* preAssigndBus) const;
     virtual bool isInUse(int cycle, const MoveNode& node) const;
     virtual bool hasGuard(const MoveNode& node) const;
-    void clear();
+    void clear() override;
+    void setCFG(const ControlFlowGraph* cfg) { cfg_ = cfg; }
+    void setBBN(const BasicBlockNode* bbn) { bbn_ = bbn; }
 private:
+    bool jumpToBBN(const MoveNode& mn, BasicBlockNode& bbn) const;
+    bool canPerformSIMMJump(const MoveNode& mn, ShortImmPSocketResource& immRes) const;
+
     virtual bool canTransportImmediate(
         const MoveNode& node,
         ShortImmPSocketResource& immRes) const;
@@ -142,6 +149,8 @@ private:
     ResourceBroker& outputPSocketBroker_;
     bool hasLimm_;
     const TTAMachine::Machine* mach_;
+    const ControlFlowGraph* cfg_;
+    const BasicBlockNode* bbn_;
 };
 
 #endif

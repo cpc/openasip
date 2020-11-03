@@ -91,7 +91,8 @@ namespace llvm {
     class TCETargetLowering : public llvm::TargetLowering {
         mutable int VarArgsFrameOffset;   // Frame offset to start of varargs area.
     public:
-        TCETargetLowering(TargetMachine& TM, const TCESubtarget &subt);
+        TCETargetLowering(TargetMachine &TM, const TCESubtarget &subt);
+
         virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
 
         int getVarArgsFrameOffset() const /* override */ { return VarArgsFrameOffset; }
@@ -102,6 +103,12 @@ namespace llvm {
         std::pair<unsigned, const TargetRegisterClass *>
         getRegForInlineAsmConstraint(const TargetRegisterInfo *TRI,
                                      StringRef Constraint, MVT VT) const override;
+
+        void LowerAsmOperandForConstraint(
+            SDValue Op,
+            std::string& Constraint,
+            std::vector<SDValue>& Ops,
+            SelectionDAG& DAG) const override;
 
         //TODO: this is from some old version - which?
         std::vector<unsigned>
@@ -122,7 +129,13 @@ namespace llvm {
         SDValue LowerTRAP(SDValue Op, SelectionDAG &DAG) const;
         SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG) const;
         SDValue LowerBlockAddress(SDValue Op, SelectionDAG &DAG) const;
+        SDValue LowerConstant(SDValue Op, SelectionDAG &DAG) const;
+        SDValue LowerBuildVector(SDValue Op, SelectionDAG &DAG) const;
+        SDValue LowerINLINEASM(SDValue Op, SelectionDAG &DAG) const;
         SDValue LowerShift(SDValue op, SelectionDAG& dag) const;
+        SDValue LowerBuildBooleanVectorVector(
+            SDValue Op, MVT newElementVT, int elemCount, SelectionDAG &DAG) const;
+
         SDValue lowerExtOrBoolLoad(SDValue op, SelectionDAG& DAG) const;
 
         std::pair<int, TCEString> getConstShiftNodeAndTCEOP(SDValue op) const;
@@ -137,6 +150,12 @@ namespace llvm {
                     const SmallVectorImpl<ISD::OutputArg> &Outs,
                     const SmallVectorImpl<SDValue> &OutVals,
                     SDLOC_PARAM_TYPE dl, SelectionDAG &DAG) const override;
+
+        bool isConstantOrUndefBuild(const SDNode& node) const;
+        bool canEncodeConstantOperands(const SDNode& node) const;
+        bool canEncodeImmediate(const ConstantSDNode& node) const;
+
+        bool shouldLoadFromConstantPool(unsigned addressSpace) const;
 
 #ifdef LLVM_OLDER_THAN_9
         virtual bool allowsMisalignedMemoryAccesses(EVT VT, unsigned as, unsigned align, bool* ) const override;
@@ -154,28 +173,52 @@ namespace llvm {
         //  Below here TCE specific stuff is added, which is not copied from Sparc
         //
         // ----------------------------------------------------
+
+        SDValue LowerGLOBALADDRESS(SDValue Op, SelectionDAG &DAG) const;
+
+        static bool isBroadcast(SDNode *n);
+
     private:
+
+        bool hasI1RegisterClass() const;
+
+        /// Tells if the target machine has boolean register file.
+        bool hasI1RC_ = false;
+
         TCETargetMachine& tm_;
-        
-    public:        
-        virtual llvm::EVT getSetCCResultType(const DataLayout &DL, LLVMContext &Context,
-                                       EVT VT) const override;
+
+        /// Predicates to tell whenever the addresses belonging to a address
+        /// space should be loaded from constant pool instead of immediates.
+        /// Address space as index maps to the predicate.
+        std::map<unsigned, bool> loadGAFromConstantPool_;
+
+        const TargetRegisterClass*
+        getVectorRegClassForInlineAsmConstraint(
+            const TargetRegisterInfo* TRI, MVT VT) const;
+
+        /// Implementation generated to Backend.inc from TDGenSIMD.cc.
+        void addVectorRegisterClasses();
+
+        /// Implementation generated to Backend.inc from TDGenSIMD.cc.
+        std::pair<unsigned, const TargetRegisterClass *>
+        associatedVectorRegClass(const EVT &vt) const;
+
+        /// Implementation generated to Backend.inc from TDGenSIMD.cc.
+        virtual llvm::EVT getSetCCResultVT(const EVT &VT) const;
+
+        /// Implementation generated to Backend.inc from TDGenSIMD.cc.
+        void addVectorLowerings();
+
+    public:
+        llvm::EVT getSetCCResultType(
+            const DataLayout &DL, LLVMContext &Context,
+            EVT VT) const override;
 
 #ifdef LLVM_OLDER_THAN_9
-        virtual bool isFPImmLegal(const APFloat& apf, EVT VT) const override {
-            if (VT==MVT::f32 || VT==MVT::f16) {
-                return true;
-            }
-            return false;
-        }
+        virtual bool isFPImmLegal(const APFloat& apf, EVT VT) const override;
 #else
         virtual bool isFPImmLegal(
-            const APFloat& apf, EVT VT, bool forCodeSize) const override {
-            if (VT==MVT::f32 || VT==MVT::f16) {
-                return true;
-            }
-            return false;
-        }
+            const APFloat& apf, EVT VT, bool forCodeSize) const override;
 #endif
 
     SDValue ExpandLibCall(

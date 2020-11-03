@@ -129,6 +129,9 @@ OperationSimulator::initializeSimValue(
     bool is_float = !is_int &&
         (value.find("f") != string::npos ||
         value.find("F") != string::npos);
+    bool is_half = value.find(".") != string::npos &&
+        (value.find("h") != string::npos ||
+        value.find("H") != string::npos);
 
     try {
         if (value.size() > 2 && value[0] == '0' && value[1] == 'x') {
@@ -137,6 +140,9 @@ OperationSimulator::initializeSimValue(
             *sim = Conversion::toLong(value);
         } else if (is_float) {
             *sim = Conversion::toFloat(value.substr(0, value.length()-1));
+        } else if (is_half) {
+            *sim = HalfFloatWord(
+                Conversion::toFloat(value.substr(0, value.length()-1)));
         } else {
             *sim = Conversion::toDouble(value);
         }

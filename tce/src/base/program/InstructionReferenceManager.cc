@@ -37,6 +37,8 @@
 #include "InstructionReference.hh"
 #include "InstructionReferenceImpl.hh"
 #include "Application.hh"
+#include "Instruction.hh"
+#include "Procedure.hh"
 
 namespace TTAProgram {
 
@@ -166,6 +168,42 @@ InstructionReferenceManager::referenceDied(Instruction* ins) {
     assert (iter->second->count() == 0);
     delete iter->second; iter->second = NULL;
     references_.erase(iter);
+}
+
+/**
+ * Performs sanity checks to the instruction references.
+ *
+ * Asserts in case of illegal irefs found. Before calling this method,
+ * all instruction references must have been "stabilized", i.e.,
+ * pointing to valid instructions inside the Program.
+ */
+void
+InstructionReferenceManager::validate()  {
+
+    for (InstructionReferenceManager::Iterator i = begin();
+         i != end(); ++i) {
+        Instruction& targetInstruction = i->instruction();
+
+        if (!targetInstruction.isInProcedure()) {
+            Application::logStream()
+                << "Reference to an instruction " << &targetInstruction
+                << " that is not in a Procedure." << std::endl;
+            PRINT_VAR(targetInstruction.address().location());
+            abort();
+        } else if (!targetInstruction.parent().isInProgram()) {
+            Application::logStream()
+                << "Reference to an instruction " << &targetInstruction
+                << " that is not in a Program." << std::endl;
+            PRINT_VAR(&(*i));
+            PRINT_VAR(
+                dynamic_cast<TTAProgram::Procedure&>(
+                    targetInstruction.parent()).name());
+            PRINT_VAR(
+                &targetInstruction.parent().firstInstruction());
+            PRINT_VAR(targetInstruction.address().location());
+            abort();
+        }
+    }    
 }
 
 } // namespace TTAProgram

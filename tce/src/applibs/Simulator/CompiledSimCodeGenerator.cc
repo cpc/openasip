@@ -1045,7 +1045,7 @@ CompiledSimCodeGenerator::generateGuardRead(
     // Find out the guard type
     if (rg != NULL) {
         const RegisterGuard& rg = dynamic_cast<const RegisterGuard&>(guard);
-        RegisterFile& rf = *rg.registerFile();
+        const RegisterFile& rf = *rg.registerFile();
         guardSymbolName = symbolGen_.registerSymbol(rf, rg.registerIndex());        
     } else if (dynamic_cast<const PortGuard*>(&guard) != NULL) {
         const PortGuard& pg = dynamic_cast<const PortGuard&>(guard);
@@ -1097,7 +1097,7 @@ CompiledSimCodeGenerator::generateGuardCondition(
     // Find out the guard type
     if (dynamic_cast<const RegisterGuard*>(&guard) != NULL) {
         const RegisterGuard& rg = dynamic_cast<const RegisterGuard&>(guard);
-        RegisterFile& rf = *rg.registerFile();
+        const RegisterFile& rf = *rg.registerFile();
         guardSymbolName = symbolGen_.registerSymbol(rf, rg.registerIndex());        
     } else if (dynamic_cast<const PortGuard*>(&guard) != NULL) {
         const PortGuard& pg = dynamic_cast<const PortGuard&>(guard);

@@ -34,7 +34,6 @@
 #define TTA_MOVE_HH
 
 #include <memory>
-
 #include "Exception.hh"
 #include "AnnotatedInstructionElement.hh"
 
@@ -55,24 +54,25 @@ class Instruction;
  */
 class Move : public AnnotatedInstructionElement {
 public:
-    Move(
-        Terminal* src,
-        Terminal* dst,
-        const TTAMachine::Bus& bus,
-        MoveGuard* guard);
-    Move(
-        Terminal* src, Terminal* dst, const TTAMachine::Bus& bus);
+    Move(Terminal* src,
+         Terminal* dst,
+         const TTAMachine::Bus& bus,
+         MoveGuard* guard);
+    Move(Terminal* src, Terminal* dst, const TTAMachine::Bus& bus);
+
     ~Move();
 
     Instruction& parent() const;
     void setParent(Instruction& ins);
     bool isInInstruction() const;
     bool isUnconditional() const;
+    inline bool isConditional() const { return !isUnconditional(); }
 
     bool isJump() const;
     bool isCall() const;
     bool isControlFlowMove() const;
     bool isReturn() const;
+    bool isFunctionCall() const;
 
     bool isTriggering() const;
 

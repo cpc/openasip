@@ -100,7 +100,6 @@ protected:
     const TTAMachine::Machine& targetMachine() const;
     unsigned int ii() const;
     MoveNodeDuplicator& duplicator() const;
-
     BF2Scheduler& sched_;
 
     // wrappers over RM for loop scheduling

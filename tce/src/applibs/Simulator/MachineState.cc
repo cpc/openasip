@@ -58,7 +58,8 @@ using std::string;
 /**
  * Constructor.
  */
-MachineState::MachineState() : GCUState_(NULL), fuStateCount_(0) {  
+MachineState::MachineState() : 
+    GCUState_(NULL), fuStateCount_(0), finished_(false) {  
 }
 
 /**

@@ -70,6 +70,7 @@ public:
     virtual void advanceClock();
     virtual OperationExecutor* copy();
     virtual void setContext(OperationContext& context);
+    virtual void reset();
     virtual void setOperationSimulator(
         DetailedOperationSimulator& sim) {
         opSimulator_ = &sim;

@@ -26,7 +26,7 @@
  *
  * Implementation of SimulatorFrontend class
  *
- * @author Pekka J‰‰skel‰inen 2005,2010-2012 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005,2010-2012 (pjaaskel-no.spam-cs.tut.fi)
  *
  * @note rating: red
  */
@@ -36,6 +36,7 @@
 #include <sstream>
 #include <iomanip>
 #include <ctime>
+#include <iostream>
 
 #include "CompilerWarnings.hh"
 IGNORE_CLANG_WARNING("-Wkeyword-macro")
@@ -57,6 +58,7 @@ POP_CLANG_DIAGS
 #include "SimulatorTextGenerator.hh"
 #include "ProcessorConfigurationFile.hh"
 #include "SimulationController.hh"
+#include "OTASimulationController.hh"
 #include "UniversalMachine.hh"
 #include "UniversalFunctionUnit.hh"
 #include "HWOperation.hh"
@@ -116,29 +118,29 @@ using namespace TPEF;
  * Constructor.
  */
 SimulatorFrontend::SimulatorFrontend(SimulationType backendType) : 
-    currentMachine_(NULL), machineState_(NULL), simCon_(NULL),
+    currentMachine_(NULL), simCon_(NULL),
     machineOwnedByFrontend_(false), currentProgram_(NULL), 
     programFileName_(""), programOwnedByFrontend_(false), 
     currentBackend_(backendType),
-    disassembler_(NULL), traceFileName_(""), executionTracing_(false),
+    disassembler_(NULL), executionTracing_(false),
     busTracing_(false), 
     rfAccessTracing_(false), procedureTransferTracing_(false), 
     saveProfileData_(false), saveUtilizationData_(false),
-    traceDB_(NULL), lastTraceDB_(NULL),
-    executionTracker_(NULL), busTracker_(NULL),
-    rfAccessTracker_(NULL), procedureTransferTracker_(NULL),
-    stopPointManager_(NULL),  utilizationStats_(NULL), tpef_(NULL),
+    stopPointManager_(NULL), tpef_(NULL),
     fuResourceConflictDetection_(true),
     printNextInstruction_(true), printSimulationTimeStatistics_(false),
     staticCompilation_(true), traceFileNameSetByUser_(false), outputStream_(0),
     memoryAccessTracking_(false), eventHandler_(NULL), lastRunCycleCount_(0),
     lastRunTime_(0.0), simulationTimeout_(0), leaveCompiledDirty_(false),
-    memorySystem_(NULL), zeroFillMemoriesOnReset_(true) {
+    callHistoryLength_(0), zeroFillMemoriesOnReset_(true) {
 
     if (backendType == SIM_COMPILED) {
+        setCompiledSimulation(true);
         setFUResourceConflictDetection(false); // disabled by default
         SimulatorToolbox::textGenerator().generateCompiledSimTexts();
-    } 
+    } else {
+        setCompiledSimulation(false);
+    }
 }
 
 /**
@@ -167,18 +169,14 @@ SimulatorFrontend::~SimulatorFrontend() {
     stopPointManager_ = NULL;
     delete tpef_;
     tpef_ = NULL;
-    delete lastTraceDB_;
-    lastTraceDB_ = NULL;
     delete eventHandler_;
     eventHandler_ = NULL;
     delete simCon_;
     simCon_ = NULL;
-    if (memorySystem_ != NULL)
-        memorySystem_->deleteSharedMemories();
-    delete memorySystem_;
-    memorySystem_ = NULL;
+    SequenceTools::deleteAllItems(memorySystems_);
 
     clearProgramErrorReports();
+    
 }
 
 /**
@@ -208,6 +206,7 @@ SimulatorFrontend::loadProgram(const Program& program) {
         delete currentProgram_;
         currentProgram_ = NULL;
     }
+
     currentProgram_ = &program;
     programOwnedByFrontend_ = false;
 
@@ -241,18 +240,16 @@ SimulatorFrontend::loadMachine(const Machine& machine) {
     delete simCon_;
     simCon_ = NULL;
 
-    delete memorySystem_;
-    memorySystem_ = NULL;
-
-    // compiled sim does not handle long guard latencies nor 64 bits  correctly.
+    // compiled sim does not handle long guard latencies nor 64 bits correctly
     // remove when fixed.
-    if (isCompiledSimulation() && 
+    if (isCompiledSimulation() &&
         (machine.controlUnit()->globalGuardLatency() > 1 ||
          machine.is64bit())) {
         setCompiledSimulation(false);
         // TODO: warn about this, when the warning can be ignored
         // by tests.
     }
+    SequenceTools::deleteAllItems(memorySystems_);
     initializeMemorySystem();
 }
 
@@ -331,7 +328,9 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
 
         // convert the loaded TPEF to POM
         TPEFProgramFactory factory(*tpef_, *currentMachine_);
-        currentProgram_ = factory.build();       
+        TTAProgram::Program* program = factory.build();
+        program->finalize();
+        currentProgram_ = program;
     } catch (const Exception& e) {
         delete tpef_;
         tpef_ = NULL;
@@ -342,7 +341,7 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
 
         if (e.errorMessage() != "")
             errorMsg += " " + e.errorMessage();
-            
+
         IllegalProgram illegp(__FILE__, __LINE__, __func__, errorMsg);
         illegp.setCause(e);
         throw illegp;
@@ -446,14 +445,17 @@ SimulatorFrontend::initializeDataMemories(
     if (currentProgram_ == NULL || simCon_ == NULL)
         return;
 
-    simCon_->memorySystem().resetAllMemories();
+    memorySystem().resetAllMemories();
     if (zeroFillMemoriesOnReset_)
-        simCon_->memorySystem().fillAllMemoriesWithZero();
+        memorySystem().fillAllMemoriesWithZero();
 
     const int dataSections = currentProgram_->dataMemoryCount();
 
-    // data memory initialization
-    if (dataSections > 0) {
+    if (dataSections < 0) 
+        return;
+
+    for (int core = 0; core < 1; ++core) {
+        // data memory initialization
         for (int i = 0; i < dataSections; ++i) {
 
             // initialize the data memory
@@ -463,13 +465,14 @@ SimulatorFrontend::initializeDataMemories(
 
             try {
                 MemorySystem::MemoryPtr dataMemory =
-                    simCon_->memorySystem().memory(addressSpaceName);
+                    simCon_->memorySystem(core).memory(addressSpaceName);
 
                 const AddressSpace& addressSpace =
-                    simCon_->memorySystem().addressSpace(
+                    simCon_->memorySystem(core).addressSpace(
                         addressSpaceName);
 
-                if (onlyOne != NULL && &addressSpace != onlyOne) continue;
+                if ((onlyOne != NULL && &addressSpace != onlyOne) ||
+                    (addressSpace.isShared() && core != 0)) continue;
 
                 for (int d = 0; d < data.dataDefinitionCount(); ++d) {
                     const DataDefinition& def = data.dataDefinition(d);
@@ -513,7 +516,6 @@ SimulatorFrontend::initializeDataMemories(
             }
         }
     }
- 
 }
 
 /**
@@ -569,9 +571,6 @@ SimulatorFrontend::loadMachine(const std::string& fileName) {
     delete simCon_;
     simCon_ = NULL;
 
-    delete memorySystem_;
-    memorySystem_ = NULL;
-
     // compiled sim does not handle long guard latencies correctly.
     // remove when fixed.
     if (isCompiledSimulation() && 
@@ -581,6 +580,7 @@ SimulatorFrontend::loadMachine(const std::string& fileName) {
         // TODO: warn about this, when the warning can be ignored
         // by tests.
     }
+    SequenceTools::deleteAllItems(memorySystems_);
     initializeMemorySystem();
 }
 
@@ -630,12 +630,12 @@ SimulatorFrontend::loadProcessorConfiguration(const std::string& fileName) {
  * and RemoteMemory accesses its physical memory via the controller, 
  * RemoteMemories must be further initialized here.
  */
-void 
+void
 SimulatorFrontend::setControllerForMemories(RemoteController* con) {
 
-    int num_mems = memorySystem_->memoryCount();    
+    int num_mems = memorySystem(0).memoryCount();    
     for (int i = 0; i < num_mems; i++) {
-        MemorySystem::MemoryPtr memptr = memorySystem_->memory(i);
+        MemorySystem::MemoryPtr memptr = memorySystem(0).memory(i);
         boost::shared_ptr<RemoteMemory> rmem = 
             boost::static_pointer_cast<RemoteMemory>(memptr);
         assert(rmem != NULL && "not a RemoteMemory!");
@@ -659,33 +659,35 @@ SimulatorFrontend::initializeSimulation() {
     delete simCon_;
     simCon_ = NULL;
     switch(currentBackend_) {
-        case SIM_REMOTE:    
-            simCon_ = 
-                new TCEDBGController( 
-                    *this, *currentMachine_, *currentProgram_);
-            setControllerForMemories(dynamic_cast<RemoteController*>(simCon_));
-            break;
-        case SIM_CUSTOM:
-            simCon_ = 
-                new CustomDBGController(
-                    *this, *currentMachine_, *currentProgram_);
-            setControllerForMemories(dynamic_cast<RemoteController*>(simCon_));
-            break;
-        case SIM_COMPILED:
-            simCon_ = 
-                new CompiledSimController(
-                    *this, *currentMachine_, *currentProgram_, 
-                    leaveCompiledDirty_);
-            break;
-        case SIM_NORMAL:
-        default:
-            simCon_ = 
-             new SimulationController(
-                    *this, *currentMachine_, *currentProgram_, 
-                    fuResourceConflictDetection_, detailedSimulation_);
-            machineState_ = 
-                &(dynamic_cast<SimulationController*>(simCon_)->machineState());
-
+    case SIM_REMOTE:    
+        simCon_ = 
+            new TCEDBGController( 
+                *this, *currentMachine_, *currentProgram_);
+        setControllerForMemories(dynamic_cast<RemoteController*>(simCon_));
+        break;
+    case SIM_CUSTOM:
+        simCon_ = 
+            new CustomDBGController(
+                *this, *currentMachine_, *currentProgram_);
+        setControllerForMemories(dynamic_cast<RemoteController*>(simCon_));
+        break;
+    case SIM_COMPILED:
+        simCon_ =
+            new CompiledSimController(
+                *this, *currentMachine_, *currentProgram_, 
+                leaveCompiledDirty_);
+        break;
+    case SIM_OTA:
+        simCon_ =
+            new OTASimulationController(
+                *this, *currentMachine_, *currentProgram_);
+        break;
+    case SIM_NORMAL:
+    default:
+        simCon_ = 
+            new SimulationController(
+                *this, *currentMachine_, *currentProgram_, 
+                fuResourceConflictDetection_, detailedSimulation_);
     }
         
     delete stopPointManager_;
@@ -715,7 +717,7 @@ SimulatorFrontend::findBooleanRegister() {
         RegisterFile* rf = navigator.item(i);
         if (rf->width() == 1 && rf->numberOfRegisters() == 1) {
             RegisterFileState& rfState = 
-                machineState_->registerFileState(rf->name());
+                machineState().registerFileState(rf->name());
             return rfState.registerState(0);
         }
     }
@@ -793,7 +795,7 @@ SimulatorFrontend::findRegister(const std::string& rfName, int registerIndex) {
             "Register file " + rfName + " not found.");
     }
     try {
-        return machineState_->registerFileState(
+        return machineState().registerFileState(
             regFileName).registerState(registerIndex);
     } catch (const OutOfRange&) {
         throw InstanceNotFound(
@@ -822,8 +824,9 @@ SimulatorFrontend::findPort(
         std::string("No port ") + fuName + "." + portName + " found.";
 
     // first try to fetch the port from GCU
-    PortState& foundState = machineState_->portState(
-        portName, currentMachine_->controlUnit()->name());
+    PortState& foundState = 
+        machineState().portState(
+            portName, currentMachine_->controlUnit()->name());
     
     if (&foundState != &NullPortState::instance()) {
         return foundState;
@@ -846,13 +849,13 @@ SimulatorFrontend::findPort(
         }
 
         // it's a control flow operand, we should get the port from GCU
-        return machineState_->portState(
+        return machineState().portState(
             currentMachine_->controlUnit()->operation(fuName)->port(
                 operandNumber)->name(), 
             currentMachine_->controlUnit()->name());
     }
 
-    return machineState_->portState(
+    return machineState().portState(
         StringTools::stringToLower(portName), 
         StringTools::stringToLower(fuName));
     throw InstanceNotFound(
@@ -889,7 +892,7 @@ SimulatorFrontend::stateValue(std::string searchString) {
  */
 StateData&
 SimulatorFrontend::state(std::string searchString) {
-    if (machineState_ == NULL || currentMachine_ == NULL) 
+    if (currentMachine_ == NULL) 
         throw InstanceNotFound(
             __FILE__, __LINE__, __func__, "State not found.");
 
@@ -997,9 +1000,7 @@ SimulatorFrontend::run() {
         boost::bind(timeoutThread, simulationTimeout_, this));
     simCon_->run();
     stopTimer();
-    // invalidate utilization statistics (they are not fresh anymore)
-    delete utilizationStats_;
-    utilizationStats_ = NULL;
+    SequenceTools::deleteAllItems(utilizationStats_);
 }
 
 /**
@@ -1017,8 +1018,7 @@ SimulatorFrontend::runUntil(UIntWord address) {
     simCon_->runUntil(address);
     stopTimer();
     // invalidate utilization statistics (they are not fresh anymore)
-    delete utilizationStats_;
-    utilizationStats_ = NULL;
+    SequenceTools::deleteAllItems(utilizationStats_);
 }
 
 /**
@@ -1036,8 +1036,7 @@ SimulatorFrontend::step(double count) {
 
     simCon_->step(count);
     // invalidate utilization statistics (they are not fresh anymore)
-    delete utilizationStats_;
-    utilizationStats_ = NULL;
+    SequenceTools::deleteAllItems(utilizationStats_);
 }
 
 /**
@@ -1060,8 +1059,7 @@ SimulatorFrontend::next(int count) {
     stopTimer();
     
     // invalidate utilization statistics (they are not fresh anymore)
-    delete utilizationStats_;
-    utilizationStats_ = NULL;
+    SequenceTools::deleteAllItems(utilizationStats_);
 }
 
 /**
@@ -1090,9 +1088,11 @@ SimulatorFrontend::disassembleInstruction(UIntWord instructionAddress) const {
         disassembly += "\n" + currentProc.name() + ":\n";
     }
 
+    initializeDisassembler();
+
     disassembly +=
-        Conversion::toString(instructionAddress) + ":\t\t" + 
-        POMDisassembler::disassemble(theInstruction, false);
+        Conversion::toString(instructionAddress) + ":\t\t" +
+        disassembler_->disassembleInstruction(theInstruction);
     return disassembly;
 }
 
@@ -1104,7 +1104,7 @@ SimulatorFrontend::disassembleInstruction(UIntWord instructionAddress) const {
  *
  * @return A description as defined in Simulator specs.
  */
-std::string 
+std::string
 SimulatorFrontend::programLocationDescription() const {
 
     if (hasSimulationEnded()) {
@@ -1113,26 +1113,22 @@ SimulatorFrontend::programLocationDescription() const {
 
     InstructionAddress instructionAddress = programCounter();
 
-    const InstructionAddress programLastAddress = 
-        currentProgram_->lastProcedure().endAddress().location() - 1;
+    const InstructionAddress programLastAddress =
+        currentProgram_->lastProcedure().endAddress().location();
 
-    if (instructionAddress > programLastAddress) {
-        std::stringstream tempStream;
-        return tempStream.str();
+    if (instructionAddress >= programLastAddress) {
+        return "";
     }
 
     const Instruction& theInstruction =
         currentProgram_->instructionAt(instructionAddress);
-    const Procedure& currentProc = 
+    const Procedure& currentProc =
         dynamic_cast<const Procedure&>(theInstruction.parent());
 
-    InstructionAddress distanceFromStart = 
+    InstructionAddress distanceFromStart =
         instructionAddress - currentProc.startAddress().location();
 
     initializeDisassembler();
-
-    DisassemblyInstruction* disassembledInstruction = 
-        disassembler_->createInstruction(instructionAddress);
 
     std::stringstream tempStream;
 
@@ -1141,9 +1137,7 @@ SimulatorFrontend::programLocationDescription() const {
         << std::setw(30) << std::right << 
         std::string("<") + currentProc.name() + "+" + 
         Conversion::toString(distanceFromStart) + ">" << ": "
-        << disassembledInstruction->toString();
-
-    delete disassembledInstruction;
+        << disassembler_->disassembleInstruction(theInstruction);
 
     return tempStream.str();
 }
@@ -1161,7 +1155,8 @@ SimulatorFrontend::initializeDisassembler() const {
         // already initialized or no program to disassemble
         return;
     }
-    disassembler_ = new POMDisassembler(*currentProgram_);
+    disassembler_ =
+        POMDisassembler::disassembler(*currentMachine_, *currentProgram_);
 }
 
 /**
@@ -1179,12 +1174,14 @@ SimulatorFrontend::programCounter() const {
 /**
  * Returns the address of the last executed instruction.
  *
+ * @param coreId Look at the given processor core. If -1, the currently
+ *               selected core will be used.
  * @return Address of the last executed instruction.
  */
 InstructionAddress
-SimulatorFrontend::lastExecutedInstruction() const {
+SimulatorFrontend::lastExecutedInstruction(int coreId) const {
     assert(simCon_ != NULL);
-    return simCon_->lastExecutedInstruction();
+    return simCon_->lastExecutedInstruction(coreId);
 }
 
 /**
@@ -1417,71 +1414,117 @@ void
 SimulatorFrontend::initializeTracing() {
     if (executionTracing_ || rfAccessTracing_ || 
         procedureTransferTracing_ || saveProfileData_ || 
-        saveUtilizationData_) {
+        saveUtilizationData_ || busTracing_) {
 
-        // initialize the data base
-        if (traceDB_ == NULL) {
-            if (traceFileNameSetByUser_ == false) {
-                // generate the file name
-                setTraceDBFileName(programFileName_ + ".trace");
+        int coreCount = 1;
+        
+        traceDBs_.resize(coreCount, NULL);
+        traceDBOwned_.resize(coreCount, true);
+        executionTrackers_.resize(coreCount, NULL);
+        rfAccessTrackers_.resize(coreCount, NULL);
+        procedureTransferTrackers_.resize(coreCount, NULL);
+        busTrackers_.resize(coreCount, NULL);
+        for (int core = 0; core < 1; ++core) {
 
-                int runningNumber = 0;
-                while (FileSystem::fileExists(traceFileName_)) {
-                    // append ".n" where n is a running number, in case the
-                    // file exists
-                    ++runningNumber;
-                    setTraceDBFileName(
-                        programFileName_ + ".trace" +
-                        Conversion::toString(runningNumber));
+            ExecutionTrace* traceDB = traceDBs_.at(core);
+            // initialize the data base for each core
+            if (traceDB == NULL) {
+                TCEString traceFileName;
+                if (forcedTraceDBFileName_ == "") {
+                    // generate the file name
+
+                    TCEString coreMarker = "";
+                    if (coreCount > 1) {
+                        coreMarker << ".core";
+                        coreMarker << core;
+                    }
+                    TCEString fname = programFileName_;
+                    if (coreCount > 1) {
+                        fname << ".core";
+                        fname << core;                        
+                    }
+                    fname << ".trace";
+                    
+                    int runningNumber = 1;
+                    while (FileSystem::fileExists(fname)) {
+                        // append ".n" where n is a running number, in case the
+                        // file exists
+                        fname = programFileName_;
+                        if (coreCount > 1) {
+                            fname << ".core";
+                            fname << core;                        
+                        }
+                        fname << ".trace";
+                        fname << "." << runningNumber;
+                        ++runningNumber;
+                    }
+                    traceFileName = fname;
+                } else {
+                    traceFileName = forcedTraceDBFileName_;
                 }
-                // set the flag to false, since the name is generated
-                traceFileNameSetByUser_ = false;
+
+                /// @note May throw IOException.
+                traceDB = ExecutionTrace::open(traceFileName);
+                traceDBs_[core] = traceDB;
+                traceDBOwned_[core] = true;
             }
 
-            /// @note May throw IOException.
-            traceDB_ = ExecutionTrace::open(traceFileName_);
-        }
-        if (executionTracing_ && executionTracker_ == NULL) {
-            assert(simCon_ != NULL);
-            assert(traceDB_ != NULL);
-            executionTracker_ = new ExecutionTracker(*simCon_, *traceDB_);
-        }
+            ExecutionTracker* executionTracker = executionTrackers_.at(core);
+            if (executionTracing_ && executionTracker == NULL) {
+                executionTracker = 
+                    new ExecutionTracker(*simCon_, *traceDB);
+                executionTrackers_[core] = executionTracker;
+            }
 
-        if (rfAccessTracing_) {
-            rfAccessTracker_ = new RFAccessTracker(
-                *this, dynamic_cast<SimulationController*>(simCon_)->instructionMemory());
-        }
-        if (procedureTransferTracing_) {
-            assert(traceDB_ != NULL);
-            procedureTransferTracker_ = new ProcedureTransferTracker(
-                *this, *traceDB_);
-        }
-    }
+            if (rfAccessTracing_) {
+                rfAccessTrackers_[core] = 
+                    new RFAccessTracker(
+                        *this, 
+                        dynamic_cast<SimulationController*>(
+                            simCon_)->instructionMemory(core));
+            }
+            if (procedureTransferTracing_) {
+                procedureTransferTrackers_[core] = 
+                    new ProcedureTransferTracker(*this, *traceDB);
+            }
 
-    // For perfomance reasons bus trace is written directly to an ascii
-    // output file instead of the trace database.
-    if (busTracing_ && busTracker_ == NULL) {
-        // generate the file name
-        std::string busTraceFileName = programFileName_ + ".bustrace";
-        int runningNumber = 0;
-        while (FileSystem::fileExists(busTraceFileName)) {
-            // append ".n" where n is a running number, in case the
-            // file exists
-            ++runningNumber;
-                busTraceFileName = 
-                    programFileName_ + ".bustrace." + 
-                    Conversion::toString(runningNumber);
-        } 
+            if (busTracing_) {
+                // generate the file name
+                TCEString busTraceFileName = programFileName_; 
+                if (coreCount > 1)
+                    busTraceFileName << ".core" << core;
+
+                busTraceFileName << ".bustrace";
+
+                int runningNumber = 1;
+                while (FileSystem::fileExists(busTraceFileName)) {
+                    // append ".n" where n is a running number, in case the
+                    // file exists
+
+                    busTraceFileName = programFileName_; 
+                    if (coreCount > 1)
+                        busTraceFileName << ".core" << core;
+
+                    busTraceFileName << ".bustrace";
+                    busTraceFileName << "." << runningNumber;
+                    ++runningNumber;
+                } 
         
-        busTraceStream_.open(busTraceFileName.c_str(), std::ios::out);
-        if (!busTraceStream_) {
-            std::string errorMessage =
-                "Unable to open bus trace file " + busTraceFileName +
-                " for writing.";
-            throw IOException(__FILE__, __LINE__, __func__, errorMessage);
+                std::ostream* busTraceStream =
+                    new std::ofstream(busTraceFileName.c_str(), std::ios::out);
+                if (!busTraceStream) {
+                    std::string errorMessage =
+                        "Unable to open bus trace file " + busTraceFileName +
+                        " for writing.";
+                    throw IOException(
+                        __FILE__, __LINE__, __func__, errorMessage);
+                }
+                busTrackers_[core] = 
+                    new BusTracker(*this, busTraceStream);
+            }
         }
-        busTracker_ = new BusTracker(*this, busTraceStream_);
     }
+    setupCallHistoryTracking();
 }
 
 /**
@@ -1497,15 +1540,18 @@ SimulatorFrontend::finishSimulation() {
     if (simCon_ == NULL)
         return;
 
-    delete executionTracker_;
-    executionTracker_ = NULL;
+    SequenceTools::deleteAllItems(executionTrackers_);
+    if (traceDBs_.size() == 0)
+        return;
 
-    if (traceDB_ != NULL) {
-        // flush the concurrent RF access trace data
+    for (int core = 0; core < 1; ++core) {
+            // flush the concurrent RF access trace data
+        ExecutionTrace* traceDB = traceDBs_.at(core);
         if (rfAccessTracing_) {
-            assert(rfAccessTracker_ != NULL);
+            RFAccessTracker* rfAccessTracker = rfAccessTrackers_.at(core);
+            assert(rfAccessTracker != NULL);
             const RFAccessTracker::ConcurrentRFAccessIndex& accesses =
-                rfAccessTracker_->accessDataBase();
+                rfAccessTracker->accessDataBase();
             for (RFAccessTracker::ConcurrentRFAccessIndex::const_iterator i = 
                      accesses.begin(); i != accesses.end(); ++i) {
                 const RFAccessTracker::ConcurrentRFAccess& access = (*i).first;
@@ -1513,13 +1559,13 @@ SimulatorFrontend::finishSimulation() {
                 const std::size_t& reads = access.get<2>();
                 const std::size_t& writes = access.get<1>();
                 const ClockCycleCount& count = (*i).second;
-                traceDB_->addConcurrentRegisterFileAccessCount(
+                traceDB->addConcurrentRegisterFileAccessCount(
                     rfName, reads, writes, count);
             }
         }
 
         if (saveUtilizationData_) {
-            const UtilizationStats& stats = utilizationStatistics();
+            const UtilizationStats& stats = utilizationStatistics(core);
             // save the function unit operation execution counts
             const TTAMachine::Machine::FunctionUnitNavigator& fuNav = 
                 machine().functionUnitNavigator();
@@ -1548,7 +1594,7 @@ SimulatorFrontend::finishSimulation() {
                     if (executions == 0) 
                         continue;
 
-                    traceDB_->addFunctionUnitOperationTriggerCount(
+                    traceDB->addFunctionUnitOperationTriggerCount(
                         fu->name(), operationUpper, executions);
                 }
             }
@@ -1564,7 +1610,7 @@ SimulatorFrontend::finishSimulation() {
                 const ClockCycleCount writes = 
                     stats.socketWrites(socket->name());
                 
-                traceDB_->addSocketWriteCount(socket->name(), writes);
+                traceDB->addSocketWriteCount(socket->name(), writes);
             }            
         
             // save the bus write counts
@@ -1575,7 +1621,7 @@ SimulatorFrontend::finishSimulation() {
                 assert(bus != NULL);
                 const ClockCycleCount writes = stats.busWrites(bus->name());
                 
-                traceDB_->addBusWriteCount(bus->name(), writes);
+                traceDB->addBusWriteCount(bus->name(), writes);
             }
 
             // save the register access stats
@@ -1592,21 +1638,19 @@ SimulatorFrontend::finishSimulation() {
                         stats.registerReads(rf->name(), reg);
                     ClockCycleCount writes = 
                         stats.registerWrites(rf->name(), reg);
-                    traceDB_->addRegisterAccessCount(
+                    traceDB->addRegisterAccessCount(
                         rf->name(), reg, reads, writes);
                 }
             }            
-
+            
         }
 
         if (saveProfileData_) {
             
-            assert(simCon_ != NULL);
-            assert(currentProgram_ != NULL);
-
             // save the instruction execution counts (profile data)
             const InstructionMemory& instructions = 
-                dynamic_cast<SimulationController*>(simCon_)->instructionMemory();
+                dynamic_cast<SimulationController*>(simCon_)->
+                instructionMemory(core);
 
             InstructionAddress firstAddress = 
                 InstructionAddress(currentProgram_->startAddress().location());
@@ -1614,42 +1658,37 @@ SimulatorFrontend::finishSimulation() {
                 InstructionAddress(
                     currentProgram_->lastInstruction().address().location());
 
-            /// @note this expects that each instruction is 1 address long
             for (InstructionAddress a = firstAddress; a <= lastAddress; ++a) {
-                traceDB_->addInstructionExecutionCount(
+                traceDB->addInstructionExecutionCount(
                     a, instructions.instructionAtConst(a).executionCount());
             }
-            
         }
 
-	if (procedureTransferTracing_ || saveProfileData_) {
+        if (procedureTransferTracing_ || saveProfileData_) {
             // save the start addresses of procedures in order to provide
             // possibility for more readable query outputs with traces
-	    // that include procedure data in them
+            // that include procedure data in them
             for (int i = 0; i < currentProgram_->procedureCount(); ++i) {
                 const Procedure& procedure = currentProgram_->procedure(i);
-                traceDB_->addProcedureAddressRange(
+                traceDB->addProcedureAddressRange(
                     procedure.startAddress().location(), 
                     procedure.endAddress().location() - 1, procedure.name());
             }
         }
 	
-        traceDB_->setSimulatedCycleCount(cycleCount());
-        delete lastTraceDB_;
-        lastTraceDB_ = traceDB_;
-        traceDB_ = NULL;
+        traceDB->setSimulatedCycleCount(cycleCount());
+        
+        if (traceDBOwned_[core]) {
+            delete traceDBs_[core];
+            traceDBs_[core]=NULL;
+        }
     }
 
-    busTraceStream_.close();
-    delete busTracker_;
-    busTracker_ = NULL;
-    delete rfAccessTracker_;
-    rfAccessTracker_ = NULL;
-    delete procedureTransferTracker_;
-    procedureTransferTracker_ = NULL;
-    delete utilizationStats_;
-    utilizationStats_ = NULL;
-
+    SequenceTools::deleteAllItems(busTrackers_);
+    SequenceTools::deleteAllItems(rfAccessTrackers_);
+    SequenceTools::deleteAllItems(procedureTransferTrackers_);
+    SequenceTools::deleteAllItems(utilizationStats_);
+    SequenceTools::deleteAllItems(callPathTrackers_);
 }
 
 /**
@@ -1661,61 +1700,74 @@ SimulatorFrontend::initializeMemorySystem() {
 
     assert (currentMachine_ != NULL);
     const Machine& machine = *currentMachine_;
-    memorySystem_ = new MemorySystem(machine);
-    // create a memory system for the loaded machine by going
-    // through all address spaces in the machine and create a memory model 
-    // for each of them, except for the one of GCU's
-    Machine::AddressSpaceNavigator nav = machine.addressSpaceNavigator();
+    MemorySystem* firstMemorySystem = NULL;
 
-    
-    std::string controlUnitASName = "";
-    if (machine.controlUnit() != NULL &&
-        machine.controlUnit()->hasAddressSpace()) {
-        controlUnitASName = machine.controlUnit()->addressSpace()->name();
-    }
+    for (int core = 0; core < 1; ++core) {
 
-    for (int i = 0; i < nav.count(); ++i) {
-        const AddressSpace& space = *nav.item(i);
+        MemorySystem* memorySystem_ = new MemorySystem(machine);
 
-        if (space.name() == controlUnitASName)
-            continue;
+        // create a memory system for the loaded machine by going
+        // through all address spaces in the machine and create a memory model
+        // for each of them, except for the one of GCU's
+        Machine::AddressSpaceNavigator nav = machine.addressSpaceNavigator();
 
-        /// if shared, assume the external initializer initializes the shared 
-        /// memory model to the rest of the MemorySystems before starting 
-        /// the simulation
-        const bool shared = space.isShared();
-
-        MemorySystem::MemoryPtr mem;
-        switch (currentBackend_) {
-        case SIM_COMPILED:
-             mem = MemorySystem::MemoryPtr(
-                 new DirectAccessMemory(
-                     space.start(), space.end(), space.width(), machine.isLittleEndian()));
-             break;
-        case SIM_NORMAL:
-             mem = MemorySystem::MemoryPtr(
-                 new IdealSRAM(
-                    space.start(), space.end(), space.width(), machine.isLittleEndian()));
-             break;
-        case SIM_REMOTE:
-        case SIM_CUSTOM:
-             mem = MemorySystem::MemoryPtr(
-                 new RemoteMemory( space, machine.isLittleEndian()));
-
-            break;
-        default:            
-        throw Exception(
-            __FILE__, __LINE__, __func__,
-            "Internal error: memory model not specified");
+        std::string controlUnitASName = "";
+        if (machine.controlUnit() != NULL &&
+            machine.controlUnit()->hasAddressSpace()) {
+            controlUnitASName = machine.controlUnit()->addressSpace()->name();
         }
 
-        // If memory tracking is enabled, memories are wrapped by a proxy
-        // that tracks memory access.
-        if (memoryAccessTracking_) {
-            mem = MemorySystem::MemoryPtr(
-                new MemoryProxy(*this, mem.get()));
+        for (int i = 0; i < nav.count(); ++i) {
+            const AddressSpace& space = *nav.item(i);
+
+            if (space.name() == controlUnitASName)
+                continue;
+
+            const bool shared = space.isShared();
+
+            MemorySystem::MemoryPtr mem;
+
+            if (shared && firstMemorySystem != NULL) {
+                // the memory model should have been created previously
+                // because all cores share the same memory
+                mem = firstMemorySystem->memory(space.name());
+                assert(mem != NULL);
+            } else {
+                switch (currentBackend_) {
+                case SIM_COMPILED:
+                    mem = MemorySystem::MemoryPtr(
+                        new DirectAccessMemory(
+                            space.start(), space.end(), space.width(), machine.isLittleEndian()));
+                    break;
+                case SIM_OTA:
+                case SIM_NORMAL:
+                    mem = MemorySystem::MemoryPtr(
+                        new IdealSRAM(
+                            space.start(), space.end(), space.width(), machine.isLittleEndian()));
+                    break;
+                case SIM_REMOTE:
+                case SIM_CUSTOM:
+                    mem = MemorySystem::MemoryPtr(
+                        new RemoteMemory( space, machine.isLittleEndian()));
+                    
+                    break;
+                default:            
+                    throw Exception(
+                        __FILE__, __LINE__, __func__,
+                        "Internal error: memory model not specified");
+                }
+                // If memory tracking is enabled, memories are wrapped by
+                // a proxy that tracks memory access.
+                if (memoryAccessTracking_) {
+                    mem = MemorySystem::MemoryPtr(
+                        new MemoryProxy(*this, mem.get()));
+                }
+            }
+            memorySystem_->addAddressSpace(space, mem, shared);
         }
-        memorySystem_->addAddressSpace(space, mem, shared);
+        memorySystems_.push_back(memorySystem_);
+        if (firstMemorySystem == NULL)
+            firstMemorySystem = memorySystem_;
     }
 }
 
@@ -1725,7 +1777,7 @@ SimulatorFrontend::initializeMemorySystem() {
  *
  * Allows restarting the simulation with the loaded machine and program. 
  * Flushes data collected during simulation to the trace file, if tracing is
- * enabled, and reinitializes everyting that needs to be reinitialized,
+ * enabled, and reinitializes everything that needs to be reinitialized,
  * such as the data memory initial values.
  */
 void
@@ -1815,11 +1867,11 @@ SimulatorFrontend::staticCompilation() const {
  */
 const RFAccessTracker&
 SimulatorFrontend::rfAccessTracker() const {
-    if (rfAccessTracker_ == NULL) {
+    if (rfAccessTrackers_.size() == 0) {
         throw InstanceNotFound(
             __FILE__, __LINE__, __func__, "RF access tracing is disabled.");
     }
-    return *rfAccessTracker_;
+    return *rfAccessTrackers_.at(0);
 }
 
 /**
@@ -1889,16 +1941,20 @@ SimulatorFrontend::setProfileDataSaving(bool value) {
     saveProfileData_ = value;
 }
 
+#if 0
 /**
- * Sets the file name of the TraceDB.
+ * Sets the base file name of the TraceDB.
  *
+ * The base file name is appended with a ".coreN" suffix for
+ * multicore simulation.
  * @param fileName The file name to set.
  */
 void
-SimulatorFrontend::setTraceDBFileName(const std::string& fileName) {
-    traceFileName_ = fileName;
-    traceFileNameSetByUser_ = true;
+SimulatorFrontend::setTraceDBBaseFileName(const std::string& fileName) {
+    traceFileBaseName_ = fileName;
+    traceFileBaseNameSetByUser_ = true;
 }
+#endif
 
 /**
  * Sets the simulation timeout in seconds. Use zero for no timeout.
@@ -2062,21 +2118,28 @@ SimulatorFrontend::stopPointManager() {
  * @return The used MemorySystem.
  */
 MemorySystem&
-SimulatorFrontend::memorySystem() {
-    assert(memorySystem_ != NULL);
-    return *memorySystem_;
+SimulatorFrontend::memorySystem(int coreId) {
+    if (coreId == -1)
+        return *memorySystems_.at(selectedCore());
+    else 
+        return *memorySystems_.at(coreId);
 }
 
 /**
  * Returns a reference to the state model of the currently loaded machine.
  *
- * Asserts if no simulation is initialized.
+ * @note: This should be called only for interpretive simulation which
+ * uses the SimulationController engine. Asserts if another engine (compiled)
+ * is used.
+ *
  * @return State model of the simulated machine.
  */
 MachineState&
-SimulatorFrontend::machineState() {
-    assert (machineState_ != NULL);
-    return *machineState_;
+SimulatorFrontend::machineState(int core) {
+    SimulationController* simCon =
+        dynamic_cast<SimulationController*>(simCon_);
+    assert(simCon != NULL && "Wrong TTASimulationController implementation.");
+    return simCon->machineState(core);
 }
 
 /**
@@ -2089,15 +2152,23 @@ SimulatorFrontend::machineState() {
  * @todo: unimplemented for remote debuggers
  */
 const UtilizationStats& 
-SimulatorFrontend::utilizationStatistics() {
-    if (utilizationStats_ == NULL) {
+SimulatorFrontend::utilizationStatistics(int core) {
+    if (core == -1) 
+        core = selectedCore();
+
+    utilizationStats_.resize(1);
+
+    UtilizationStats* utilizationStats = utilizationStats_.at(core);
+
+    if (utilizationStats == NULL) {
         // stats calculation differs slightly for compiled & interpretive sims.
         if (!isCompiledSimulation()) {
-            utilizationStats_ = new UtilizationStats();
+            utilizationStats = new UtilizationStats();
             SimulationStatistics stats(
-                *currentProgram_, dynamic_cast<SimulationController*>(
-                    simCon_)->instructionMemory());
-            stats.addStatistics(*utilizationStats_);
+                *currentProgram_, 
+                dynamic_cast<SimulationController*>(
+                    simCon_)->instructionMemory(core));
+            stats.addStatistics(*utilizationStats);
             stats.calculate();
         } else {
             CompiledSimUtilizationStats* compiledSimUtilizationStats =
@@ -2106,10 +2177,11 @@ SimulatorFrontend::utilizationStatistics() {
                 dynamic_cast<CompiledSimController&>(*simCon_);
             compiledSimUtilizationStats->calculate(program(), 
                 *compiledSimCon.compiledSimulation());
-            utilizationStats_ = compiledSimUtilizationStats;
+            utilizationStats = compiledSimUtilizationStats;
         }
+        utilizationStats_[core] = utilizationStats;
     }
-    return *utilizationStats_;
+    return *utilizationStats;
 }
 
 
@@ -2163,17 +2235,17 @@ SimulatorFrontend::automaticFinishImpossible() const {
  * Returns the last produced execution trace database.
  *
  * The ownership of the TraceDB is transferred to the caller. That is,
- * it should delete it after use. Note that this method returns the 
- * TraceDB only once, next calls return NULL unless new TraceDB has
- * been produced.
+ * it should delete it after use. 
  *
  * @return The traceDB instance.
  */
 ExecutionTrace*
-SimulatorFrontend::lastTraceDB() {
-
-    ExecutionTrace* last = lastTraceDB_;
-    lastTraceDB_ = NULL;
+SimulatorFrontend::lastTraceDB(int core) {
+    if (core == -1) 
+        core = selectedCore();
+    
+    ExecutionTrace* last = traceDBs_[core];
+    traceDBOwned_[core] = false;
     return last;
 }
 
@@ -2287,6 +2359,44 @@ SimulatorFrontend::programErrorReportCount(
 void 
 SimulatorFrontend::clearProgramErrorReports() {
     programErrorReports_.clear();
+}
+
+/**
+ * Sets the length of the call history stored in memory to be used
+ * for the simulator's debugging commands that need it.
+ *
+ * Setting this to 0 disables the call history tracking thus speeding
+ * up simulation. It's disabled by default.
+ */
+void
+SimulatorFrontend::setCallHistoryLength(std::size_t length) {
+    callHistoryLength_ = length;
+    setupCallHistoryTracking();
+}
+
+void
+SimulatorFrontend::setupCallHistoryTracking() {
+    if (callHistoryLength_ == 0 || !isMachineLoaded()) {
+        SequenceTools::deleteAllItems(callPathTrackers_);
+        return;
+    } else {
+        for (int core = 0; core < 1; 
+             ++core) {
+            CallPathTracker* tracker = 
+                new CallPathTracker(*this, core, callHistoryLength_);
+            callPathTrackers_.push_back(tracker);
+        }
+    }    
+}
+
+const CallPathTracker&
+SimulatorFrontend::callPathTracker(int core) const { 
+    assert(callPathTrackers_.size() > 0);
+    if (core == -1) {
+        return *callPathTrackers_.at(selectedCore());
+    } else {
+        return *callPathTrackers_.at(core);
+    }   
 }
 
 /**

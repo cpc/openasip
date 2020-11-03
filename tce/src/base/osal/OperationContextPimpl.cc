@@ -46,6 +46,7 @@ using std::string;
 int OperationContextPimpl::nextContextId_ = 0;
 
 InstructionAddress dummyInstructionAddress;
+int dummyInt;
 
 /**
  * Constructor for contexts suitable for basic operations.
@@ -54,9 +55,14 @@ OperationContextPimpl::OperationContextPimpl(const TCEString& name) :
     memory_(NULL), 
     programCounter_(dummyInstructionAddress), 
     returnAddress_(NullSimValue::instance()),
-    saveReturnAddress_(false), cycleCount_(0), 
-    cycleCountVar_(NULL), FUName_(name) {
+    saveReturnAddress_(false),
+    updateProgramCounter_(false),
+    cycleCount_(0),
+    cycleCountVar_(NULL),
+    FUName_(name),
+    branchDelayCycles_(dummyInt) {
     initializeContextId();
+    stateRegistry_ = new StateRegistry();
 }
 
 /**
@@ -74,17 +80,27 @@ OperationContextPimpl::OperationContextPimpl(
     const TCEString& name,
     Memory* memory,
     InstructionAddress& programCounter,
-    SimValue& returnAddress) :
-    memory_(memory), programCounter_(programCounter), 
-    returnAddress_(returnAddress), saveReturnAddress_(false), 
-    cycleCount_(0), cycleCountVar_(NULL), FUName_(name) {
+    SimValue& returnAddress,
+    int delayCycles) :
+    memory_(memory),
+    programCounter_(programCounter),
+    returnAddress_(returnAddress),
+    saveReturnAddress_(false),
+    updateProgramCounter_(false),
+    cycleCount_(0),
+    cycleCountVar_(NULL),
+    FUName_(name),
+    branchDelayCycles_(delayCycles) {
     initializeContextId();
+    stateRegistry_ = new StateRegistry();
 }
 
 /**
  * Default destructor
  */
 OperationContextPimpl::~OperationContextPimpl() {
+    delete stateRegistry_;
+    stateRegistry_ = NULL;
 }
 
 /**
@@ -122,10 +138,11 @@ OperationContextPimpl::initializeContextId() {
 OperationState&
 OperationContextPimpl::state(const char* name) const {
 
-    StateRegistry::const_iterator i = stateRegistry_.find(name);
+    StateRegistry::const_iterator i = stateRegistry_->find(name);
 
-    if (i == stateRegistry_.end()) {
-        throw KeyNotFound(__FILE__, __LINE__, __func__, "State not found.");
+    if (i == stateRegistry_->end()) {
+        throw KeyNotFound(__FILE__, __LINE__, __func__, 
+                          "OperationContextPimpl: State not found.");
     }
 
     return *(*i).second;
@@ -137,9 +154,9 @@ OperationContextPimpl::state(const char* name) const {
 void 
 OperationContextPimpl::advanceClock(OperationContext& context) {
 
-    StateRegistry::iterator i = stateRegistry_.begin();
+    StateRegistry::iterator i = stateRegistry_->begin();
 
-    while (i != stateRegistry_.end()) {
+    while (i != stateRegistry_->end()) {
         (*i).second->advanceClock(context);
         ++i;
     }
@@ -164,7 +181,7 @@ OperationContextPimpl::registerState(OperationState* stateToRegister) {
     // only internally, they are not part of the "client IF", therefore
     // it's reasonable to assert.
     assert(!hasState(stateName.c_str()));
-    stateRegistry_[stateName] = stateToRegister;    
+    (*stateRegistry_)[stateName] = stateToRegister;    
 }
 
 /**
@@ -182,7 +199,7 @@ OperationContextPimpl::unregisterState(const char* name) {
     // only internally, they are not part of the "client IF", therefore
     // it's reasonable to assert.
     assert(hasState(name));
-    stateRegistry_.erase(name);
+    stateRegistry_->erase(name);
 }
 
 /**
@@ -246,6 +263,22 @@ OperationContextPimpl::programCounter() {
 }
 
 /**
+ * TODO
+ */
+void
+OperationContextPimpl::setUpdateProgramCounter(bool value) {
+    updateProgramCounter_ = value;
+}
+
+/**
+ * TODO
+ */
+bool
+OperationContextPimpl::updateProgramCounter() const {
+    return updateProgramCounter_;
+}
+
+/**
  * Returns a reference to the current value of the return address register.
  *
  * The value of the return address can be changed through this reference. 
@@ -291,7 +324,7 @@ OperationContextPimpl::saveReturnAddress() {
  */
 bool 
 OperationContextPimpl::isEmpty() const {
-    return stateRegistry_.size() == 0;
+    return stateRegistry_->size() == 0;
 }
 
 /**
@@ -318,4 +351,12 @@ OperationContextPimpl::cycleCount() const {
     } else {
         return cycleCount_;
     }
+}
+
+/**
+ * Returns the amount of pipeline delay cycles.
+ */
+int
+OperationContextPimpl::branchDelayCycles() {
+    return branchDelayCycles_; 
 }

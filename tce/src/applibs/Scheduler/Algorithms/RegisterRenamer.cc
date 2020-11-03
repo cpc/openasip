@@ -37,6 +37,7 @@
 #include "RegisterRenamer.hh"
 
 #include "RegisterFile.hh"
+#include "Guard.hh"
 #include "Machine.hh"
 #include "MachineConnectivityCheck.hh"
 #include "BasicBlock.hh"
@@ -48,8 +49,10 @@
 #include "TerminalRegister.hh"
 #include "MoveNodeSelector.hh"
 #include "Move.hh"
+#include "MoveGuard.hh"
 #include "LiveRange.hh"
 
+// #define DEBUG_REG_RENAMER
 #include "tce_config.h"
 
 /**
@@ -82,12 +85,9 @@ RegisterRenamer::initialize(DataDependenceGraph& ddg) {
 
 void
 RegisterRenamer::initialize() {
-    TTAMachine::Machine::RegisterFileNavigator regNav =
-        machine_.registerFileNavigator();
+    auto regNav = machine_.registerFileNavigator();
 
-    std::map<const TTAMachine::Machine*, 
-        std::vector <TTAMachine::RegisterFile*> >::iterator trCacheIter =
-        tempRegFileCache_.find(&machine_);
+        auto trCacheIter = tempRegFileCache_.find(&machine_);
 
     if (trCacheIter == tempRegFileCache_.end()) {
         tempRegFiles_ = MachineConnectivityCheck::tempRegisterFiles(machine_);
@@ -100,10 +100,8 @@ RegisterRenamer::initialize() {
     for (int i = 0; i < regNav.count(); i++) {
         bool isTempRf = false;
         TTAMachine::RegisterFile* rf = regNav.item(i);
-        for (unsigned int j = 0; j < tempRegFiles_.size(); j++) {
-            if (tempRegFiles_[j] == rf) {
-                isTempRf = true;
-            }
+        if (AssocTools::containsKey(tempRegFiles_, rf)) {
+            isTempRf = true;
         }
         unsigned int regCount = isTempRf ? rf->size()-1 : rf->size();
         for (unsigned int j = 0; j < regCount; j++ ) {
@@ -233,22 +231,20 @@ RegisterRenamer::findFreeRegistersInRF(
 
 std::set<TCEString> 
 RegisterRenamer::registersOfRFs(
-    const RegisterFileSet & rfs) const {
+    const RegisterFileSet& rfs) const {
 
     std::set<TCEString> gprs;
     for (std::set<const TTAMachine::RegisterFile*,
              TTAMachine::MachinePart::Comparator>::iterator i = rfs.begin();
          i != rfs.end(); i++) {
         bool isTempRF = false;
-        const TTAMachine::RegisterFile& rf = **i;
-        for (unsigned int j = 0; j < tempRegFiles_.size(); j++) {
-            if (tempRegFiles_[j] == &rf) {
-                isTempRF = true;
-            }
+        const TTAMachine::RegisterFile* rf = *i;
+        if (AssocTools::containsKey(tempRegFiles_, rf)) {
+            isTempRF = true;
         }
 
-        for (int j = 0; j < (isTempRF ? rf.size()-1 : rf.size()); j++ ) {
-            gprs.insert(DisassemblyRegister::registerName(rf, j));
+        for (int j = 0; j < (isTempRF ? rf->size()-1 : rf->size()); j++ ) {
+            gprs.insert(DisassemblyRegister::registerName(*rf, j));
         }
     }
     return gprs;
@@ -258,9 +254,8 @@ RegisterRenamer::registersOfRFs(
  */ 
 std::set<TCEString> 
 RegisterRenamer::findPartiallyUsedRegistersInRFBeforeCycle(
-    std::set<const TTAMachine::RegisterFile*,
-    TTAMachine::MachinePart::Comparator>& rfs, 
-    int earliestCycle) const {
+    const RegisterFileSet& rfs, int earliestCycle,
+    const DataDependenceGraph::NodeSet& guardMoves) const {
 
     std::set<TCEString> availableRegs;
     // nothing can be scheduled earlier than cycle 0.
@@ -290,7 +285,18 @@ RegisterRenamer::findPartiallyUsedRegistersInRFBeforeCycle(
             availableRegs.insert(*i);
         }
     }
-    return availableRegs;
+    
+    // if need to have guards?
+    if (guardMoves.empty()) {
+        return availableRegs;        
+    } else {
+        std::set<TCEString> guardedRegs = 
+            findGuardRegisters(guardMoves, rfs);
+        std::set<TCEString> guardedAvailableRegs;
+        SetTools::intersection(
+            availableRegs, guardedRegs, guardedAvailableRegs);
+        return guardedAvailableRegs;
+    }
 }
 
 /** 
@@ -329,7 +335,8 @@ RegisterRenamer::findPartiallyUsedRegistersInRFAfterCycle(
 
 std::set<TCEString> 
 RegisterRenamer::findPartiallyUsedRegistersBeforeCycle(
-    int bitWidth, int earliestCycle) const {
+    int bitWidth, int earliestCycle, 
+    const DataDependenceGraph::NodeSet& guardMoves) const {
     std::set<TCEString> availableRegs;
     // nothing can be scheduled earlier than cycle 0.
     // in that case we have empty set, no need to check.
@@ -353,7 +360,30 @@ RegisterRenamer::findPartiallyUsedRegistersBeforeCycle(
             availableRegs.insert(*i);
         }
     }
-    return availableRegs;
+    // if need to have guards?
+    if (guardMoves.empty()) {
+        return availableRegs;        
+    } else {
+#ifdef DEBUG_REGISTER_RENAMER
+        if (!liveRange->guards.empty()) {
+            std::cerr << "\t\t\t\tpartiallyusedregs: ";
+            for (std::set<TCEString>::iterator i = 
+                     regs.begin();
+                 i != regs.end(); i++) {
+                std::cerr << *i << " ";
+            }
+            std::cerr << std::endl;
+        }
+#endif
+
+        RegisterFileSet rfs; // empty, all rf's
+        std::set<TCEString> guardedRegs = 
+            findGuardRegisters(guardMoves, rfs);
+        std::set<TCEString> guardedAvailableRegs;
+        SetTools::intersection(
+            availableRegs, guardedRegs, guardedAvailableRegs);
+        return guardedAvailableRegs;
+    }
 }
 
 std::set<TCEString> 
@@ -399,6 +429,22 @@ RegisterRenamer::findFreeRegisters(
     return availableRegs;
 }
 
+std::set<TCEString>
+RegisterRenamer::findFreeGuardRegisters(
+    const DataDependenceGraph::NodeSet& guardUseNodes,
+    int bitWidth, const RegisterFileSet& rfs) const {
+    std::set<TCEString> availableRegs;
+
+    SetTools::intersection(
+        (rfs.empty() ?
+         findFreeRegisters(bitWidth) :
+         findFreeRegistersInRF(rfs)),
+        findGuardRegisters(guardUseNodes, rfs),
+        availableRegs);
+    
+    return availableRegs;
+}
+
 
 /** 
  * Renames destination register of a move (from the move itself and 
@@ -409,13 +455,13 @@ RegisterRenamer::renameDestinationRegister(
     MoveNode& node, bool loopScheduling, 
     bool allowSameRf, bool differentRfOnlyDirectlyReachable, 
     int earliestCycle) {
-
+    
     if (!node.isMove() || !node.move().destination().isGPR()) {
         return false;
     }
     const TTAMachine::RegisterFile& rf = 
         node.move().destination().registerFile();
-
+    
     // don't allow using same reg multiple times if loop scheduling.
     // unscheudling would cause problems, missing war edges.
     if (loopScheduling) {
@@ -433,69 +479,120 @@ RegisterRenamer::renameDestinationRegister(
     std::set<TCEString> availableRegisters;
 
     if (!liveRange->noneScheduled()) {
+        // not yet allow guards rename when some movenodes of lr
+        // already sched
         if (!allowSameRf) {
             return false;
         }
-        std::set<const TTAMachine::RegisterFile*,
-            TTAMachine::MachinePart::Comparator> rfs;
+        RegisterFileSet rfs;
         rfs.insert(&rf);
         earliestCycle = std::min(earliestCycle, liveRange->firstCycle());
         availableRegisters = 
-	    findPartiallyUsedRegistersInRFBeforeCycle(rfs, earliestCycle);
+            findPartiallyUsedRegistersInRFBeforeCycle(rfs, earliestCycle,
+                                                      liveRange->guards);
     } else { // none scheduled.
         if (tempRegFiles_.empty()) {
-            availableRegisters = 
-                findPartiallyUsedRegistersBeforeCycle(rf.width(), earliestCycle);
-        } else {
-	    if (!differentRfOnlyDirectlyReachable) 
-	    {
-		// only connected RFs
-		std::set < const TTAMachine::RegisterFile*, 
-		    TTAMachine::MachinePart::Comparator >
-		rfs = findConnectedRFs(*liveRange, false);
-		availableRegisters = 
-		    findPartiallyUsedRegistersInRFBeforeCycle(
-			rfs, earliestCycle);
-		if (availableRegisters.empty()) {
-		    // allow usasge of limm.
-		    rfs = findConnectedRFs(*liveRange, true);
-		    availableRegisters = 
-			findPartiallyUsedRegistersInRFBeforeCycle(
-			    rfs, earliestCycle);
-		}
-	   }
-       }
-    }
 
+#ifdef DEBUG_REG_RENAMER
+            if (!liveRange->guards.empty()) {
+                std::cerr<<"\t\tSearching for avail guard regs before cycle:" 
+                         << earliestCycle << std::endl;
+            }
+#endif
+
+            availableRegisters = 
+                findPartiallyUsedRegistersBeforeCycle(
+                    rf.width(), earliestCycle, liveRange->guards);
+
+#ifdef DEBUG_REG_RENAMER
+            if (!liveRange->guards.empty()) {
+                std::cerr << "\t\t\tfound free gaurd regs: ";
+                for (std::set<TCEString>::iterator i = 
+                         availableRegisters.begin();
+                     i != availableRegisters.end(); i++) {
+                    std::cerr << *i << " ";
+                }
+                std::cerr << std::endl;
+            }
+#endif
+
+        } else {
+            if (!differentRfOnlyDirectlyReachable) {
+                // only connected RFs
+                RegisterFileSet rfs = findConnectedRFs(*liveRange, false);
+                availableRegisters = 
+                    findPartiallyUsedRegistersInRFBeforeCycle(
+                        rfs, earliestCycle, liveRange->guards);
+                if (availableRegisters.empty()) {
+                    // allow usasge of limm.
+                    rfs = findConnectedRFs(*liveRange, true);
+                    availableRegisters = 
+                        findPartiallyUsedRegistersInRFBeforeCycle(
+                            rfs, earliestCycle, liveRange->guards);
+                }
+            }
+        }
+    } // if not guards - after this can be guards
     if (availableRegisters.empty()) {
         reused = false;
-
+        
         if (!liveRange->noneScheduled()) {
-            std::set<const TTAMachine::RegisterFile*,
-                TTAMachine::MachinePart::Comparator> rfs;
-            rfs.insert(&rf);
-            availableRegisters = 
-                findFreeRegistersInRF(rfs);
+            if (liveRange->guards.empty()) {
+                RegisterFileSet rfs;
+                rfs.insert(&rf);
+                availableRegisters = 
+                    findFreeRegistersInRF(rfs);
+            }
         } else {
             if (tempRegFiles_.empty()) {
-                availableRegisters = 
-                    findFreeRegisters(rf.width());
+                if (liveRange->guards.empty()) {
+                    availableRegisters = 
+                        findFreeRegisters(rf.width());
+                } else { // guards use..
+#ifdef DEBUG_REG_RENAMER
+                    std::cerr << "\t\tSearching for avail guard regs" << std::endl;
+#endif
+                    RegisterFileSet rfs; // empty, use all RF's
+                    availableRegisters =
+                        findFreeGuardRegisters(
+                            liveRange->guards, rf.width(), rfs);
+#ifdef DEBUG_REG_RENAMER
+                    std::cerr << "\t\t\tfound free gaurd regs: ";
+                    for (std::set<TCEString>::iterator i = 
+                             availableRegisters.begin();
+                         i != availableRegisters.end(); i++) {
+                        std::cerr << *i << " ";
+                    }
+                    std::cerr << std::endl;
+#endif
+                }
+                
             } else {
-		if (!differentRfOnlyDirectlyReachable) {
-		    // only connected RFs
-		    std::set<const TTAMachine::RegisterFile*,
-			TTAMachine::MachinePart::Comparator> 
-		    rfs = findConnectedRFs(*liveRange, false);
-		    availableRegisters = 
-			findFreeRegistersInRF(rfs);
-		    if (availableRegisters.empty()) {
-			// allow usage of LIMM
-			rfs = findConnectedRFs(*liveRange, true);
-			availableRegisters = 
-			    findFreeRegistersInRF(rfs);
-		    }
-	        }
-	    }
+                // TODO: this disables guard renaming with regcopyadder
+                if (liveRange->guards.empty()) {
+                    if (!differentRfOnlyDirectlyReachable) {
+                        // only connected RFs
+                        RegisterFileSet rfs = 
+                            findConnectedRFs(*liveRange, false);
+                        availableRegisters = 
+                            findFreeRegistersInRF(rfs);
+                        if (availableRegisters.empty()) {
+                            // allow usage of LIMM
+                            rfs = findConnectedRFs(*liveRange, true);
+                            availableRegisters = 
+                                findFreeRegistersInRF(rfs);
+                        }
+                    }
+                } else {
+                    // guards. use only same rf for now.
+                    // TODO: update findconnectedRF's to work with guards
+                    RegisterFileSet rfs;
+                    rfs.insert(&rf);
+                    availableRegisters = 
+                        findFreeGuardRegisters(
+                            liveRange->guards, rf.width(), rfs);
+                }
+            }
         }
         if (availableRegisters.empty()) {
             return false;
@@ -614,10 +711,13 @@ RegisterRenamer::renameLiveRange(
     LiveRange& liveRange, const TCEString& newReg, bool usedBefore,
     bool usedAfter, bool loopScheduling) {
 
-    // > 0 breaks at least denbench
-    if (!(liveRange.writes.size() == 1  && liveRange.reads.size() > 0)) {
+    if (liveRange.writes.size() <1) {
         return false;
-    } 
+    }
+    
+    if (liveRange.reads.size() == 0 && liveRange.guards.size() == 0) {
+        return false;
+    }
 
     assert(newReg.length() > 2);
     TCEString rfName = newReg.substr(0, newReg.find('.'));
@@ -715,6 +815,16 @@ RegisterRenamer::renameLiveRange(
             bb_.liveRangeData_->regFirstUses_[newReg].insert(mnd);
             // no need to create raw deps here
         }
+
+        // for guards.
+        for (DataDependenceGraph::NodeSet::iterator i = 
+                 liveRange.guards.begin(); i != liveRange.guards.end(); i++) {
+
+            MoveNodeUse mnd(**i);
+            bb_.liveRangeData_->regFirstUses_[newReg].insert(mnd);
+            // no need to create raw deps here
+        }
+
     }
 
     if (usedAfter) {
@@ -722,6 +832,28 @@ RegisterRenamer::renameLiveRange(
         DataDependenceGraph::NodeSet firstWrites = 
             ddg_->firstScheduledRegisterWrites(
                 *rf, newRegIndex);
+
+        // make sure no circular antidep path
+        for (DataDependenceGraph::NodeSet::iterator 
+                 j = firstWrites.begin(); j != firstWrites.end(); j++) {
+
+            for (DataDependenceGraph::NodeSet::iterator i = 
+                     liveRange.reads.begin(); i != liveRange.reads.end(); 
+                 i++) {
+                if (ddg_->hasPath(**j, **i)) {
+                    return false;
+                }
+            }
+
+            for (DataDependenceGraph::NodeSet::iterator i = 
+                     liveRange.writes.begin(); i != liveRange.writes.end(); 
+                 i++) {
+                if (ddg_->hasPath(**j, **i)) {
+                    return false;
+                }
+            }
+        }
+
 
         // create the antidep deps.
 
@@ -815,6 +947,60 @@ RegisterRenamer::renameLiveRange(
         }
     }
 
+
+    // for reads.
+    for (DataDependenceGraph::NodeSet::iterator i = liveRange.guards.begin();
+         i != liveRange.guards.end(); i++) {
+        MoveNode& mn = **i;
+        TTAProgram::Move& move = mn.move();
+        const TTAMachine::Guard& guard = move.guard().guard();
+        // TODO: update the guard here
+
+#ifdef DEBUG_REG_RENAMER
+
+        TTAMachine::Bus& bus = move.bus();
+
+        std::cerr << "We should be updating guard here for: " 
+                  << mn.toString()
+                  << std::endl;
+        std::cerr << "\tnew guard reg: " << rf->name() << "." << newRegIndex
+                  << std::endl;
+        
+        std::cerr << "\tBus: " << bus.name() << std::endl;
+
+#endif
+        TTAMachine::Bus* guardBus =  guard.parentBus();
+#ifdef DEBUG_REG_RENAMER
+        std::cerr << "\tGuard bus: " << guardBus->name() << std::endl;
+#endif
+        for (int j = 0 ; j < guardBus->guardCount(); j++) {
+            TTAMachine::Guard *g = guardBus->guard(j);
+            TTAMachine::RegisterGuard* rg =
+                dynamic_cast<TTAMachine::RegisterGuard*>(g);
+            if (rg) {
+                if (rg->registerFile() == rf &&
+                    rg->registerIndex() == newRegIndex &&
+                    rg->isInverted() == guard.isInverted()) {
+                    move.setGuard(new TTAProgram::MoveGuard(*g));
+#ifdef DEBUG_REG_RENAMER
+                    std::cerr << "\tset new guard: " << mn.toString()
+                              << std::endl;
+#endif
+                }
+            }
+        }
+        
+    }
+
+
+
+
+
+
+    
+
+
+
     // then update ddg and notify selector.
 
     // for writes.
@@ -869,7 +1055,32 @@ RegisterRenamer::renameLiveRange(
              iter != predecessors.end(); iter++) {
             selector_->mightBeReady(**iter);
         }
+    }
 
+    // for guards
+    for (DataDependenceGraph::NodeSet::iterator i = liveRange.guards.begin();
+         i != liveRange.guards.end(); i++) {
+        DataDependenceGraph::NodeSet successors =
+            ddg_->successors(**i);
+
+        ddg_->guardRenamed(**i);
+
+        DataDependenceGraph::NodeSet predecessors =
+            ddg_->predecessors(**i);
+        
+        // notify successors to prevent orphan nodes.
+        for (DataDependenceGraph::NodeSet::iterator iter =
+                 successors.begin();
+             iter != successors.end(); iter++) {
+            selector_->mightBeReady(**iter);
+        }
+
+        // notify successors to prevent orphan nodes.
+        for (DataDependenceGraph::NodeSet::iterator iter =
+                 predecessors.begin();
+             iter != predecessors.end(); iter++) {
+            selector_->mightBeReady(**iter);
+        }
     }
 
     renamedToRegister(newReg);
@@ -966,6 +1177,23 @@ RegisterRenamer::updateAntiEdgesFromLRTo(
                 ddg_->connectOrDeleteEdge(
                     **j, *destination.mn(), dde);
             }
+
+            //War's of guards.
+            for (DataDependenceGraph::NodeSet::iterator j = 
+                     liveRange.guards.begin(); 
+                 j != liveRange.guards.end(); j++) {
+                
+                // create dependency edge
+                DataDependenceEdge* dde =
+                    new DataDependenceEdge(
+                        DataDependenceEdge::EDGE_REGISTER,
+                        DataDependenceEdge::DEP_WAR, newReg, 
+                        true, false, false, destination.pseudo(), 1);
+                
+                // and connect.
+                ddg_->connectOrDeleteEdge(
+                    **j, *destination.mn(), dde);
+            }
         }
     }
 }
@@ -990,7 +1218,8 @@ RegisterRenamer::findConnectedRFs(LiveRange& lr, bool allowLimm) {
         if (rf->width() != bitwidth) {
             continue;
         }
-        auto writePorts = MachineConnectivityCheck::findWritePorts(*rf);
+        MachineConnectivityCheck::PortSet writePorts = 
+            MachineConnectivityCheck::findWritePorts(*rf);
         bool connected = true;
         
         for (DataDependenceGraph::NodeSet::iterator j = lr.writes.begin();
@@ -1011,7 +1240,8 @@ RegisterRenamer::findConnectedRFs(LiveRange& lr, bool allowLimm) {
             continue;
         }
         
-        auto readPorts = MachineConnectivityCheck::findReadPorts(*rf);
+        MachineConnectivityCheck::PortSet readPorts = 
+            MachineConnectivityCheck::findReadPorts(*rf);
         
         for (DataDependenceGraph::NodeSet::iterator j = lr.reads.begin();
              j != lr.reads.end() && connected; j++) {
@@ -1029,6 +1259,90 @@ RegisterRenamer::findConnectedRFs(LiveRange& lr, bool allowLimm) {
 }
 
 
+
+
+
+std::set<TCEString>
+RegisterRenamer::findGuardRegisters(
+    const DataDependenceGraph::NodeSet& guardMoves,
+    const RegisterFileSet& rfs) const {
+
+
+    TTAMachine::Bus* bus = NULL;
+    for (DataDependenceGraph::NodeSet::iterator i = guardMoves.begin();
+         i != guardMoves.end(); i++) {
+        const MoveNode& mn = **i;
+        const TTAProgram::Move& move = mn.move();
+        assert(!move.isUnconditional());
+        if (bus == NULL) {
+            bus = move.guard().guard().parentBus();
+        } else {
+            TTAMachine::Bus* bus2 = move.guard().guard().parentBus();
+            if (bus != bus2) {
+                return std::set<TCEString>();
+            }
+        }
+    }
+
+    if (bus != NULL) {
+        return findGuardRegisters(*bus, rfs);
+    } else {
+        return std::set<TCEString>();
+    }
+}
+
+/**
+ * Finds registers which can guard moves from the given bus.
+ */
+std::set<TCEString> 
+RegisterRenamer::findGuardRegisters(
+    const TTAMachine::Bus& bus, const RegisterFileSet& rfs) const {
+    
+    std::set<TCEString> trueGuards;
+    std::set<TCEString> falseGuards;
+
+    // find guard
+    for (int i = 0 ; i < bus.guardCount(); i++) {
+        TTAMachine::Guard *g = bus.guard(i);
+        TTAMachine::RegisterGuard* rg =
+            dynamic_cast<TTAMachine::RegisterGuard*>(g);
+        if (rg) {
+            bool rfOk = true;
+            if (!rfs.empty()) {
+                if (rfs.find(rg->registerFile()) == rfs.end()) {
+                    rfOk = false;
+                    continue;
+                }
+            }
+            
+            if (rfOk) {
+                if (rg->isInverted()) {
+                    falseGuards.insert(
+                        DisassemblyRegister::registerName(
+                            *rg->registerFile(), rg->registerIndex()));
+                } else {
+                    trueGuards.insert(
+                        DisassemblyRegister::registerName(
+                            *rg->registerFile(), rg->registerIndex()));
+                }
+            }
+        }
+    }
+
+    for (std::set<TCEString>::iterator i = trueGuards.begin();
+         i != trueGuards.end(); i++) {
+        if (falseGuards.find(*i) == falseGuards.end()) {
+            trueGuards.erase(i);
+            i = trueGuards.begin();
+        }
+    }
+    return trueGuards;
+}
+
+
+
 /// To avoid reanalysing machine every time hen new rr created.
-std::map<const TTAMachine::Machine*, std::vector <TTAMachine::RegisterFile*> >
+std::map<const TTAMachine::Machine*,
+         std::set <const TTAMachine::RegisterFile*,
+                   TTAMachine::MachinePart::Comparator> >
 RegisterRenamer::tempRegFileCache_;

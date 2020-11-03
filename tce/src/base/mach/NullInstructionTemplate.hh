@@ -46,7 +46,7 @@ class NullInstructionTemplate : public InstructionTemplate {
 public:
     static NullInstructionTemplate& instance();
 
-    virtual std::string name() const;
+    virtual TCEString name() const;
     virtual void setName(const std::string& name);
 
     virtual void addSlot(

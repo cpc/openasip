@@ -26,8 +26,14 @@
  *
  * Implementation of GuardInverver class.
  *
- * This optimizer removes unneeded predicate arithmetic by using
+ * This optimizer does some peephole optimizations before actual scheduling:
+ *
+ * Removes unneeded predicate arithmetic by using
  * opposite guard instead where the guard is used.
+ *
+ * Changes registers of address calculations to eliminate entideps
+ *
+ * Removes adds of compile-time ocnstants
  *
  * @author Heikki Kultala 2009 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
@@ -50,6 +56,8 @@
 #include "BasicBlock.hh"
 #include "SchedulerCmdLineOptions.hh"
 #include "Operand.hh"
+#include "TerminalImmediate.hh"
+#include "Bus.hh"
 
 static const int DEFAULT_LOWMEM_MODE_THRESHOLD = 200000;
 
@@ -169,12 +177,11 @@ PreOptimizer::tryToOptimizeAddressReg(
 }
 
 /**
- * Tries to remove unnecessary guard value xor befre condutional jump.
+ * Tries to remove an unnecessary guard value xor before a conditional jump.
  *
- * Tries to remove xor operation which is used for
- * converting false boolean value into true boolean value
- * which is then used for jump. 
- * The xor operation is removed and jump predicate reversed.
+ * Tries to remove xor operation which is used for converting false boolean
+ * value into true boolean value which is then used for jump. The xor
+ * operation is removed and the jump predicate reversed.
  *
  * @param ddg The datadependence graph of the whole function
  * @param po ProgramOperation which is a xor operation
@@ -324,6 +331,7 @@ bool PreOptimizer::checkGuardReversalAllowed(
     for (DataDependenceGraph::EdgeSet::iterator i = oEdges.begin();
          i != oEdges.end(); i++) {
         DataDependenceEdge& edge = **i;
+        bool dstOpIsSelect = false;
         if (edge.dependenceType() == DataDependenceEdge::DEP_RAW && 
             !edge.guardUse()) {
             MoveNode& dstMN = ddg.headNode(edge);
@@ -334,6 +342,7 @@ bool PreOptimizer::checkGuardReversalAllowed(
             if (dstOp.operation().name() != "SELECT") {
                 return false;
             }
+            dstOpIsSelect = true;
         }
 
         
@@ -348,6 +357,15 @@ bool PreOptimizer::checkGuardReversalAllowed(
              j != iEdges.end(); j++) {
             if ((**j).guardUse() && 
                 (**j).dependenceType() == DataDependenceEdge::DEP_RAW) {
+                gRawCount++;
+                if (gRawCount > 1) {
+                    return false;
+                }
+            }
+
+            // Prevent select's condition to be reversed multiple times.
+            if ((**j).dependenceType() == DataDependenceEdge::DEP_RAW &&
+                dstOpIsSelect) {
                 gRawCount++;
                 if (gRawCount > 1) {
                     return false;
@@ -388,6 +406,75 @@ PreOptimizer::inverseGuardsOfHeads(
 }
 
 /**
+ * Remove additions that can be removed staticly. LLVM leaves these when
+ * another ide of the addition is an address of a global variable.
+ */
+void PreOptimizer::tryToPrecalcConstantAdd(
+    DataDependenceGraph& ddg, ProgramOperation& po) {
+
+    if (po.operation().name() != "ADD" ) return;
+
+    MoveNode& result = po.outputMove(0);
+    if (po.inputMoveCount() != 2) {
+        return;
+    }
+    MoveNode& operand1 = po.inputMove(0);
+    MoveNode& operand2 = po.inputMove(1);
+    MoveNode* src1 = &operand1;
+    MoveNode* src2 = &operand2;
+
+    // allow hopping over regs
+    while (src1->isSourceVariable()) {
+        src1 = ddg.onlyRegisterRawSource(*src1,2);
+        if (src1 == nullptr) {
+            return;
+        }
+    }
+
+    // allow hopping over regs
+    while (src2->isSourceVariable()) {
+        src2 = ddg.onlyRegisterRawSource(*src2,2);
+        if (src2 == nullptr) {
+            return;
+        }
+    }
+    if (!src2->isSourceConstant() || !src1->isSourceConstant()) {
+        return;
+    }
+
+    auto& s1 = src1->move().source();
+    auto& s2 = src2->move().source();
+
+    if (s1.value().intValue() == 0 || s2.value().intValue() == 0) {
+        return;
+    }
+
+    // all tests ok, proceed and remove the add.
+    TTAProgram::Instruction& operand1Ins = operand1.move().parent();
+    TTAProgram::Instruction& operand2Ins = operand2.move().parent();
+    TTAProgram::CodeSnippet& parent = operand1Ins.parent();
+
+    int val = s1.value().intValue() + s2.value().intValue();
+    auto immTerm =
+        new TTAProgram::TerminalImmediate(SimValue(val, 32));
+
+    result.unsetSourceOperation();
+    po.removeOutputNode(result);
+
+    result.move().setSource(immTerm);
+
+    assert(operand1Ins.moveCount() == 1);
+    ddg.deleteNode(operand1);
+    parent.remove(operand1Ins);
+    delete &operand1Ins;
+
+    assert(operand2Ins.moveCount() == 1);
+    ddg.deleteNode(operand2);
+    parent.remove(operand2Ins);
+    delete &operand2Ins;
+}
+
+/**
  * Handles a procedure.
  * 
  * @param procedure the procedure.
@@ -399,7 +486,13 @@ PreOptimizer::handleProcedure(
     // If procedure has too many instructions, may run out of memory.
     // so check the lowmem mode. in lowmem mode this optimiziation 
     // is disabled, so returns.
+    SchedulerCmdLineOptions* opts = 
+        dynamic_cast<SchedulerCmdLineOptions*>(Application::cmdLineOptions());
     int lowMemThreshold = DEFAULT_LOWMEM_MODE_THRESHOLD;
+
+    if (opts != NULL && opts->lowMemModeThreshold() > -1) {
+        lowMemThreshold = opts->lowMemModeThreshold();
+    }
 
     if (procedure.instructionCount() >=lowMemThreshold) {
         return;
@@ -420,20 +513,20 @@ PreOptimizer::handleCFGDDG(
     DataDependenceGraph& ddg) {
 
     TTAProgram::Program* program = cfg.program();
-    TTAProgram::InstructionReferenceManager* irm = 
+    TTAProgram::InstructionReferenceManager* irm =
         program == NULL ? NULL :
         &program->instructionReferenceManager();
 
     // Loop over all programoperations. find XOR's by 1.
-    for (int i = ddg.programOperationCount()-1; i>=0; i--) {
+    for (int i = ddg.programOperationCount() - 1; i >= 0; i--) {
         ProgramOperation& po = ddg.programOperation(i);
         ControlFlowGraph::NodeSet jumpNodes;
         if (po.operation().name() == "XOR" ||
             po.operation().name() == "XOR64") {
-            jumpNodes = tryToRemoveXor(ddg,po,irm,cfg);
+            jumpNodes = tryToRemoveXor(ddg, po, irm, cfg);
         }
         if (po.operation().name() == "EQ") {
-            jumpNodes = tryToRemoveEq(ddg,po,irm,cfg);
+            jumpNodes = tryToRemoveEq(ddg, po, irm, cfg);
         }
         for (auto bbn : jumpNodes) {
             cfg.reverseGuardOnOutEdges(*bbn);
@@ -441,8 +534,12 @@ PreOptimizer::handleCFGDDG(
         if (po.operation().readsMemory()) {
             tryToOptimizeAddressReg(ddg, po);
         }
-        // TODO: remove also programoperation.
+
+        if (po.operation().name() == "ADD") {
+            tryToPrecalcConstantAdd(ddg, po);
+        }
     }
+    // todo: remove also programoprations.
 }
 
 void

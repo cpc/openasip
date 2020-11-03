@@ -38,29 +38,6 @@
  MoveNodeSet::MoveNodeSet() {
  }
 
-/**
- * Returns number of MoveNodes in this set
- * @return Number of nodes in this set
- */
-int
-MoveNodeSet::count() const {
-    return moveNodes_.size();
-}
-
-/**
- * Returns a copy of a MoveNode identified by index
- *
- * @param index Index of MoveNode to return
- * @return MoveNode identified by index
- */
-MoveNode&
-MoveNodeSet::at(const int index) {
-    if (index >= count()) {
-        std::string msg = "MoveNodeSet at() index too high.";
-        throw OutOfRange(__FILE__, __LINE__, __func__, msg);
-    }
-    return *moveNodes_[index];
-}
 
 /**
  * Returns the disassembly of the moves in the set in a single line.
@@ -83,6 +60,12 @@ MoveNodeSet::toString() const {
  */
 void
 MoveNodeSet::addMoveNode(MoveNode& newMove){
+    for (std::vector<MoveNode*>::iterator i = moveNodes_.begin();
+         i != moveNodes_.end(); i++) {
+        if (*i == &newMove) {
+            return;  // already in the set. please even play to be a set if named a set
+        }
+    }
     moveNodes_.push_back(&newMove);
 }
 

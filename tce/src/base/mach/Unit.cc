@@ -138,6 +138,50 @@ Unit::portCount() const {
 
 
 /**
+ * @param countBidir True if we should count bidirectional ports
+ * @return The number of output ports in the unit.
+ */
+int
+Unit::outputPortCount(bool countBidir) const {
+    unsigned count = 0;
+    for (auto &port : ports_) {
+        if (port->isOutput() && (!port->isInput() || countBidir))
+            count++;
+    }
+    return count;
+}
+
+
+/**
+ * @param countBidir True if we should count bidirectional ports
+ * @return The number of input ports in the unit.
+ */
+int
+Unit::inputPortCount(bool countBidir) const {
+    unsigned count = 0;
+    for (auto &port : ports_) {
+        if (port->isInput() && (!port->isOutput() || countBidir))
+            count++;
+    }
+    return count;
+}
+
+
+/**
+ * @return The number of bidirectional ports in the unit.
+ */
+int
+Unit::bidirPortCount() const {
+    unsigned count = 0;
+    for (auto &port : ports_) {
+        if (port->isInput() && port->isOutput())
+            count++;
+    }
+    return count;
+}
+
+
+/**
  * Returns a port by the given index.
  *
  * The index must be greater or equal to 0 and smaller than the number of

@@ -39,6 +39,7 @@
 #include "SafePointer.hh"
 #include "Section.hh"
 #include "StringSection.hh"
+#include "TPEFHeaders.hh"
 
 namespace TPEF {
 
@@ -91,6 +92,9 @@ public:
     FileType type() const;
     void setType(FileType type);
 
+    void setTPEFVersion(TPEFHeaders::TPEFVersion version);
+    TPEFHeaders::TPEFVersion TPEFVersion() const;
+
 private:
     Binary(const Binary&);
     Binary operator=(const Binary&);
@@ -105,6 +109,9 @@ private:
     FileType fileType_;
     /// Binary's file architecture. See enumerations for more info.
     FileArchitecture fileArch_;
+
+    /// Indicates TPEF format version used.
+    TPEFHeaders::TPEFVersion tpefVersion_;
 };
 }
 

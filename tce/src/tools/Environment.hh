@@ -104,6 +104,8 @@ private:
 
     static std::string pathTo(const std::string& name);
     static inline void parsePathEnvVariable(std::vector<std::string>& paths);
+    static std::string findExecutableFromPATH(
+        const std::vector<std::string>& file);
 
     /// Name of the XML Schema directory.
     static const std::string SCHEMA_DIR_NAME_;

@@ -652,6 +652,8 @@ Environment::icDecoderPluginPaths(bool libraryPathsOnly) {
     string cwd = FileSystem::currentWorkingDir();
     string data = cwd + DS + "data";
     if (!DISTRIBUTED_VERSION) {
+        // first find from the src tree to make the system tests etc.
+        // to test the plugins in source base, not the installed plugins
         string path = string(TCE_SRC_ROOT) + DS + "icdecoder_plugins";
         paths.push_back(path);
     }
@@ -1046,21 +1048,12 @@ Environment::defaultTextEditorPath() {
         editors.push_back("leafpad");  // LXDE
         editors.push_back("mousepad"); // XFCE (old)
         editors.push_back("kate");     // KDE
-        vector<std::string> paths;
-        parsePathEnvVariable(paths);
-        for (unsigned int i = 0; i < paths.size(); ++i) {
-            for (unsigned int j = 0; j < editors.size(); ++j) {
-                editor = paths.at(i) + DS + editors.at(j);
-                if (FileSystem::fileIsExecutable(editor)) {
-                    return editor;
-                }
-            }
-        }
-        // no editor were found
-        return "";
+
+        // returns empty string if none found
+        return findExecutableFromPATH(editors);
     }
 
-    // testi if env variable contained full path to text editor executable
+    // test if env variable contained full path to text editor executable
     if (FileSystem::fileIsExecutable(editor)) {
         return editor;
     }
@@ -1106,6 +1099,31 @@ Environment::llvmtceCachePath() {
         FileSystem::DIRECTORY_SEPARATOR + string("cache");
 
     return path;
+}
+
+/**
+ * Finds a first match of a given list of files from PATH env variable.
+ *
+ * Finds a first executable match of a given list of files from paths in the
+ * PATH environment variable.
+ *
+ * @param execs A list of file names, that are to be searched from PATH.
+ * @return Full path of the executable found or a zero length string, in case
+ *         nothing was found.
+ */
+std::string 
+Environment::findExecutableFromPATH(const std::vector<std::string>& execs) {
+    vector<std::string> paths;
+    parsePathEnvVariable(paths);
+    for (unsigned int i = 0; i < paths.size(); ++i) {
+        for (unsigned int j = 0; j < execs.size(); ++j) {
+            std::string exec = paths.at(i) + DS + execs.at(j);
+            if (FileSystem::fileIsExecutable(exec)) {
+                return exec;
+            }
+        }
+    }
+    return "";
 }
 
 /**

@@ -78,7 +78,7 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments) {
     static size_t MAUsToDisplay = 1;
 
     const int argumentCount = arguments.size() - 1;
-    if (!checkArgumentCount(argumentCount, 0, 7)) {
+    if (!checkArgumentCount(argumentCount, 0, 9)) {
         return false;
     } 
 

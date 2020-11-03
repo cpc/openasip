@@ -435,7 +435,7 @@ findBooleanGuard(const TTAMachine::Machine& machine, bool isInverted) {
     PRINTOUT(" "); \
     Bus* bus__ = &findBus(\
         machine__, std::string("bus") + Conversion::toString(moveCounter__));\
-    std::shared_ptr<Move> tempMove = NULL;                                              \
+    std::shared_ptr<Move> tempMove = nullptr;                                          \
     CONSTRUCT_MOVE;\
     tempInstruction__->addMove(tempMove);\
 } moveCounter__++;

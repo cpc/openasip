@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2020 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -65,9 +65,11 @@ OperationContext::OperationContext(const TCEString& name) : pimpl_(new Operation
 OperationContext::OperationContext(
     Memory* memory,
     InstructionAddress& programCounter,
-    SimValue& returnAddress) :
+    SimValue& returnAddress,
+    int delayCycles) :
     pimpl_(new OperationContextPimpl(
-        DEFAULT_FU_NAME, memory, programCounter, returnAddress)) {
+               DEFAULT_FU_NAME, memory, programCounter,
+               returnAddress, delayCycles)) {
 }
 
 /**
@@ -146,10 +148,29 @@ OperationContext::unregisterState(const char* name) {
  *
  * @return The program counter value as a reference.
  */
-InstructionAddress& OperationContext::programCounter() {
+InstructionAddress& 
+OperationContext::programCounter() {
     return pimpl_->programCounter();
 }
-        
+
+const InstructionAddress&
+OperationContext::programCounter() const {
+    return pimpl_->programCounter();
+}
+
+void
+OperationContext::setUpdateProgramCounter(bool value) {
+    pimpl_->setUpdateProgramCounter(value);
+}
+
+
+
+bool
+OperationContext::updateProgramCounter() const {
+    return pimpl_->updateProgramCounter();
+}
+
+
 /**
  * Makes the return address to be saved in the RA register.
  *
@@ -186,6 +207,11 @@ SimValue&
 OperationContext::returnAddress() {
     return pimpl_->returnAddress();
 } 
+
+const SimValue&
+OperationContext::returnAddress() const {
+    return pimpl_->returnAddress();
+}
 
 /**
  * Returns true if there are no operation state objects stored in the
@@ -226,6 +252,11 @@ OperationContext::memory() {
     return pimpl_->memory();
 }
 
+const Memory&
+OperationContext::memory() const {
+    return pimpl_->memory();
+}
+
 /**
  * Returns the unique id of the OperationContext instance.
  *
@@ -242,7 +273,7 @@ OperationContext::contextId() const {
  * @return The FU name for the OperationContext instance.
  */
 const TCEString& 
-OperationContext::functionUnitName() {
+OperationContext::functionUnitName() const {
 	return pimpl_->functionUnitName();
 }
 
@@ -268,4 +299,27 @@ OperationContext::cycleCount() const {
 void 
 OperationContext::setCycleCountVariable(CycleCount& cycleCount) {
     pimpl_->setCycleCountVariable(cycleCount);
+}
+
+/**
+ * Returns the amount of pipeline delay cycles.
+ */
+int
+OperationContext::branchDelayCycles() const {
+    return pimpl_->branchDelayCycles(); 
+}
+
+void
+OperationContext::setStateRegistry(StateRegistry& stateRegistry) {
+    pimpl_->setStateRegistry(stateRegistry);
+}
+
+void
+OperationContext::unsetStateRegistry() {
+    pimpl_->unsetStateRegistry();
+}
+
+OperationContext::StateRegistry&
+OperationContext::stateRegistry() {
+    return pimpl_->stateRegistry();
 }

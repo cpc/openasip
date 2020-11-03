@@ -48,6 +48,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "tce_config.h"
 #include "TCEStubTargetMachine.hh"
+#include "ADFSerializer.hh"
 #include "TCEStubTargetTransformInfo.hh"
 #include "TCEStubSubTarget.hh"
 #ifndef LLVM_6_0
@@ -74,20 +75,21 @@ Target llvm::TheTCELE64Target;
 extern "C" void LLVMInitializeTCETargetInfo() {
 #ifdef LLVM_OLDER_THAN_6_0
     RegisterTarget<Triple::tce, /*HasJIT=*/false>
-        X(TheTCETarget, "tce", "TCE custom processor");
+        X(TheTCETarget, "tce-tut-llvm", "TCE custom processor");
     RegisterTarget<Triple::tcele, false>
         Y(TheTCELETarget, "tcele", "TCE custom processor (little endian)");
     RegisterTarget<Triple::tcele64, false>
         Z(TheTCELE64Target, "tcele64", "64-bit TCE custom processor (little endian)");
 #else
     RegisterTarget<Triple::tce, /*HasJIT=*/false>
-        X(TheTCETarget, "tce", "TCE custom processor",
-          "TODO: wonder what this button does");
+        X(TheTCETarget, "tce-tut-llvm", "TCE custom processor",
+            "TODO: wonder what this button does");
     RegisterTarget<Triple::tcele, false>
-        Y(TheTCELETarget, "tcele", "TCE custom processor (little endian)",
-          "TODO: wonder what this button does");
+        Y(TheTCELETarget, "tcele-tut-llvm",
+            "TCE custom processor (little endian)",
+            "TODO: wonder what this button does");
     RegisterTarget<Triple::tcele64, false>
-        Z(TheTCELE64Target, "tcele64", "64-bit TCE custom processor (little endian) ",
+        Z(TheTCELE64Target, "tcele64-tut-llvm", "64-bit TCE custom processor (little endian) ",
           "TODO: wonder what this button does");
 #endif
 }
@@ -137,6 +139,15 @@ StringRef getTargetDesc(const Triple &TT) {
 }
 
 /* Base class constructor */
+#ifndef LLVM_OLDER_THAN_11
+TCEBaseTargetMachine::TCEBaseTargetMachine(
+    const Target &T, const Triple& TT, const llvm::StringRef& CPU,
+    const llvm::StringRef& FS, const TargetOptions &Options,
+    Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL) :
+    LLVMTargetMachine(T, getTargetDesc(TT), TT, CPU, FS, Options, RM, CM, OL),
+    ttaMach_(NULL) {
+}
+#else
 TCEBaseTargetMachine::TCEBaseTargetMachine(
     const Target &T, const Triple& TT, const std::string& CPU, 
     const std::string &FS, const TargetOptions &Options,
@@ -144,6 +155,7 @@ TCEBaseTargetMachine::TCEBaseTargetMachine(
     LLVMTargetMachine(T, getTargetDesc(TT), TT, CPU, FS, Options, RM, CM, OL),
     ttaMach_(NULL) {
 }
+#endif
 
 #ifdef LLVM_OLDER_THAN_3_9
 TCEStubTargetMachine::TCEStubTargetMachine(
@@ -164,8 +176,7 @@ TCEStubTargetMachine::TCEStubTargetMachine(
     // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
     TLOF(new TargetLoweringObjectFileELF) {
     ST = new TCEStubSubTarget(TT, CPU, FS, *this);
-}
-#else
+#elif LLVM_OLDER_THAN_11
 TCEStubTargetMachine::TCEStubTargetMachine(
     const Target &T, const Triple &TT, const std::string& CPU,
     const std::string& FS, const TargetOptions &Options,
@@ -178,8 +189,30 @@ TCEStubTargetMachine::TCEStubTargetMachine(
     // Note: CodeModel does not have "Default" named member. "Small" is ok?
     TLOF(new TargetLoweringObjectFileELF) {
     ST = new TCEStubSubTarget(TT, CPU, FS, *this);
-}
+#else
+TCEStubTargetMachine::TCEStubTargetMachine(
+    const Target &T, const Triple &TT, const llvm::StringRef& CPU,
+    const llvm::StringRef& FS, const TargetOptions &Options,
+    Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
+    CodeGenOpt::Level OL, bool) :
+    TCEBaseTargetMachine(T, TT, CPU, FS, Options,
+                         RM?*RM:Reloc::Model::Static,
+                         CM?*CM:CodeModel::Small, OL),
+    // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
+    // Note: CodeModel does not have "Default" named member. "Small" is ok?
+    TLOF(new TargetLoweringObjectFileELF) {
+//    TLOF(new TargetLoweringObjectFile) {
+    ST = new TCEStubSubTarget(TT, CPU, FS, *this);
+
 #endif
+    // For autovectorization to work we need to set target machine information:
+    // Load ADF from static adfXML string
+    ADFSerializer serializer;
+    serializer.setSourceString(adfXML_);
+    // Create and set TTAMachine
+    TTAMachine::Machine* targetTTAMachine = serializer.readMachine();
+    setTTAMach(targetTTAMachine);
+}
 
 #ifdef LLVM_OLDER_THAN_6_0
 TargetIRAnalysis TCEStubTargetMachine::getTargetIRAnalysis() {
@@ -196,6 +229,13 @@ TargetIRAnalysis TCEStubTargetMachine::getTargetIRAnalysis() {
 #endif
 
 TCEStubTargetMachine::~TCEStubTargetMachine() {}
+
+void
+TCEStubTargetMachine::setADFString(std::string adfXML) {
+    adfXML_ = adfXML;
+}
+
+std::string TCEStubTargetMachine::adfXML_ = "";
 
 namespace {
     /**

@@ -44,6 +44,7 @@ class ProgramOperation;
 class MoveNode;
 class DataDependenceGraph;
 class InterPassData;
+class MoveNodeSelector;
 class SimpleResourceManager;
 
 namespace TTAProgram {
@@ -92,6 +93,7 @@ public:
     RegisterCopyAdder(
         InterPassData& data, 
         SimpleResourceManager& rm,
+        MoveNodeSelector& selector,         
         bool buScheduler = false);
 
     virtual ~RegisterCopyAdder();
@@ -135,7 +137,8 @@ public:
         const TTAMachine::RegisterFile* lastRF,
         int lastRegisterIndex,
         BasicBlockNode& currentBBNode,
-        bool bottomUpScheduling);
+        bool bottomUpScheduling,
+        bool loopScheduling);
 
 private:
     bool isAllowedUnit(
@@ -205,7 +208,8 @@ private:
         int index,
         DataDependenceGraph& ddg, 
         BasicBlockNode& bbn,
-        bool backwards);
+        bool backwards,
+        bool loopScheduling);
 
   void fixDDGEdgesInTempRegChainImmediate(
     DataDependenceGraph& ddg,
@@ -236,7 +240,6 @@ private:
     // SimpleResourceManager provides many methods not in the base interface
     // ResourceManager, so we cannot use it.
     SimpleResourceManager& rm_;
-
     /// Indicate that register copy adder is called from bottom up scheduler,
     /// this causes search for first scheduled register write instead of last
     /// read.

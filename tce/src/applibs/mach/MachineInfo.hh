@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,22 +27,28 @@
  * Declaration of MachineInfo class.
  *
  * @author Mikael Lepistö 2008 (mikael.lepisto-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2014-2015
  * @note rating: red
  */
 
 #ifndef TTA_MACHINE_INFO_HH
 #define TTA_MACHINE_INFO_HH
 
-#include "OperationDAGSelector.hh"
 #include "InstructionTemplate.hh"
+#include "CIStringSet.hh"
 
 #include <set>
+#include <vector>
+#include <climits>
 
 namespace TTAMachine {
     class AddressSpace;
     class Machine;
     class HWOperation;
     class FUPort;
+    class Port;
+    class InstructionTemplate;
+    class ControlUnit;
     class FunctionUnit;
 }
 
@@ -51,8 +57,20 @@ class Operation;
 
 class MachineInfo {
 public:
-    static OperationDAGSelector::OperationSet getOpset(
+    typedef TCETools::CIStringSet OperationSet;
+    typedef std::vector<const TTAMachine::FUPort*> ConstPortList;
+
+    static int maxLatency(const TTAMachine::Machine& mach, TCEString& opName);
+    static OperationSet getOpset(
         const TTAMachine::Machine& mach);
+    static OperationSet getOpset(
+        const TTAMachine::ControlUnit& gcu);
+    static ConstPortList getPortBindingsOfOperation(
+        const TTAMachine::Machine& mach,
+        const std::string& operation);
+    static const TTAMachine::FUPort* getBoundPort(
+        const TTAMachine::FunctionUnit& fu,
+        const std::string& opName, int operandIndex);
     static bool supportsOperation(
         const TTAMachine::Machine& mach, TCEString operation);
     static TTAMachine::AddressSpace* defaultDataAddressSpace(
@@ -62,6 +80,8 @@ public:
     static Operand& operandFromPort(
         const TTAMachine::HWOperation& hwOp,
         const TTAMachine::FUPort& port);
+    static int maxMemoryAlignment(
+        const TTAMachine::Machine &mach);
     static bool templatesUsesSlot(
         const TTAMachine::Machine& mach,
         const std::string& slotName);
@@ -71,17 +91,40 @@ public:
     static bool canEncodeImmediateInteger(
         const TTAMachine::Machine& mach, int64_t imm,
         unsigned destWidth=UINT_MAX);
+    static bool canEncodeImmediateInteger(
+        const TTAMachine::InstructionTemplate& temp,
+        int64_t imm, unsigned destWidth=UINT_MAX);
     static int triggerIndex(
         const TTAMachine::Machine& machine, const Operation& op);
     static int triggerIndex(
         const TTAMachine::FunctionUnit& fu, const Operation& op);
+    static bool canEncodeImmediateInteger(
+        const TTAMachine::Bus& bus, int64_t imm, unsigned destWidth=UINT_MAX);
     static unsigned findWidestOperand(
         const TTAMachine::Machine& machine, bool vector) ;
     static unsigned numberOfRegisters(
         const TTAMachine::Machine& machine, unsigned width);
+    static bool supportsBoolRegisterGuardedJumps(const TTAMachine::Machine& machine);
+    static bool supportsPortGuardedJumps(const TTAMachine::Machine& machine);
+    static bool supportsPortGuardedJump(
+        const TTAMachine::Machine& machine, bool inverted, const TCEString& opName);
+
+    static std::vector<const TTAMachine::FunctionUnit*> findLockUnits(
+        const TTAMachine::Machine& machine);
+    static Operation& osalOperation(const TTAMachine::HWOperation& hwOp);
 
 private:
     MachineInfo();
+    template<typename PortType>
+    static PortType& portFromOperand(
+        const TTAMachine::HWOperation& hwOp,
+        const TTAMachine::FUPort& port);
+
+    static const TCEString LOCK_READ_;
+    static const TCEString TRY_LOCK_ADDR_;
+    static const TCEString UNLOCK_ADDR_;
 };
+
+
 
 #endif

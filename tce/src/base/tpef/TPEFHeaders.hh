@@ -40,7 +40,8 @@
 namespace TPEF {
 namespace TPEFHeaders {
 
-    /// Magic number.
+    /// File format identification mark (TPEF version 1).
+    /// See TPEF documentation for more info.
     const Byte FH_ID_BYTES[] = {
         0x7f, 0x54, 0x54, 0x41, 0x2d, 0x50, 0x46, 0x00, 0x01, 0x0a
     };
@@ -51,6 +52,11 @@ namespace TPEFHeaders {
     const HalfWord FH_HEADER_SIZE = 26;
     /// Suze of section header.
     const HalfWord SH_HEADER_SIZE = 32;
+
+    enum TPEFVersion {
+        TPEF_V1 = 0x01, ///< Initial TPEF version.
+        TPEF_V2 = 0x02  ///< Support for over 255 Buses, FUs, RFs.
+    };
 
     /**
      * Offsets of file header.

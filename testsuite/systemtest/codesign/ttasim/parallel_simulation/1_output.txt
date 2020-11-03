@@ -18,8 +18,8 @@ RF.2 0x00000034
 RF.3 0x00000035
 RF.4 0x00000000
 Not enough arguments.
-ADD.P1 0xf 15
-ADD.P2 0x1 1
+ADD.P1 0x0f 15
+ADD.P2 0x01 1
 ADD.P3 0x10 -16
 15
 Not enough arguments.

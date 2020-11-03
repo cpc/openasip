@@ -8,6 +8,7 @@
  */
 
 #include "StringTools.hh"
+#include "Conversion.hh"
 
 /**
  * Returns true in case the string starts with the given string.
@@ -24,3 +25,56 @@ inline bool
 TCEString::endsWith(const std::string& str) const {
     return str.size() <= size() && substr(size() - str.size(), size()) == str;
 }
+
+/**
+ * Appends appender that is convertible to integer to string toAppend.
+ *
+ * @return returns reference toAppend with appended integer.
+ */
+template<typename IntegerType>
+std::string&
+TCEString::appendInteger(
+    std::string& toAppend,
+    const IntegerType& appender) {
+
+    toAppend += Conversion::toString(appender);
+    return toAppend;
+}
+
+/**
+ * Appends appender that is convertible to integer to string toAppend.
+ *
+ * @return returns string of toAppend with appended integer.
+ */
+template<typename IntegerType>
+std::string
+TCEString::appendInteger(
+    stringCRef toAppend,
+    const IntegerType& appender) {
+
+    return std::string(toAppend + Conversion::toString(appender));
+}
+
+/**
+ * Makes single string from container's elements separated by delimiter.
+ *
+ * Default delimiter is ", ".
+ *
+ */
+template<typename IterableContainer>
+std::string
+TCEString::makeString(
+    const IterableContainer& container,
+    const std::string& separator) {
+
+    std::string result;
+
+    typename IterableContainer::const_iterator it;
+    for (it = container.begin(); it != container.end(); it++) {
+        appendToNonEmpty(result, separator);
+        result +=
+            Conversion::toString<typename IterableContainer::value_type>(*it);
+    }
+    return result;
+}
+

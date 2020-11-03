@@ -37,6 +37,7 @@
 
 #include <set>
 #include <string>
+#include <TCEString.hh>
 
 #include "Serializable.hh"
 #include "Exception.hh"
@@ -109,6 +110,8 @@ public:
     virtual OperandType type() const;
     virtual void setType(OperandType type);
     virtual const std::string& typeString() const;
+    virtual TCEString CTypeString() const;
+
     virtual bool isVector() const;
     virtual int elementWidth() const;
     virtual void setElementWidth(int elementWidth);

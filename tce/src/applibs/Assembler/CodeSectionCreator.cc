@@ -38,7 +38,7 @@
 
 #include "MachineResourceManager.hh"
 #include "LabelManager.hh"
-#include "Assembler.hh"
+#include "AssemblyParserDiagnostic.hh"
 
 #include "Binary.hh"
 #include "Section.hh"
@@ -64,7 +64,9 @@ const UValue CodeSectionCreator::CODE_RELOC_SIZE = 32;
  */
 CodeSectionCreator::CodeSectionCreator(
     MachineResourceManager &resourceManager,
-    Assembler* parent) :
+    const TTAMachine::Machine& targetMachine,
+    AssemblyParserDiagnostic* parent) :
+    mach_(targetMachine),
     resources_(resourceManager), parent_(parent),
     isNextBegin_(true), slotNumber_(0), immediateIndex_(0) {
 }
@@ -431,8 +433,7 @@ CodeSectionCreator::finalize(Binary& tpef, LabelManager& labels) {
                             // the referred address space and set it as
                             // the relocation width for the immediate
                             const TTAMachine::AddressSpace* addressSpace =
-                                parent_->targetMachine().
-                                addressSpaceNavigator().item(aSpaceName);
+                                mach_.addressSpaceNavigator().item(aSpaceName);
                             assert(addressSpace != NULL);
                             relocSize = MathTools::requiredBits(
                                 static_cast<unsigned int>(

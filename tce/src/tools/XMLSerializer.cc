@@ -90,8 +90,8 @@ XMLSerializer::XMLSerializer() :
     parser_ = domImplementation_->createLSParser(
             DOMImplementationLS::MODE_SYNCHRONOUS, 0);
 #else
-     parser_ = domImplementation_->createDOMBuilder(
-         DOMImplementationLS::MODE_SYNCHRONOUS, 0);
+    parser_ = domImplementation_->createDOMBuilder(
+        DOMImplementationLS::MODE_SYNCHRONOUS, 0);
 #endif
 }
 
@@ -446,23 +446,29 @@ XMLSerializer::writeFile(
     DOMDocument* document = createDOMDocument(rootState);
 
     try {
-	if (!FileSystem::fileIsCreatable(destinationFile) &&
-	    !FileSystem::fileIsWritable(destinationFile)) {
-	      throw "";
+        if (!FileSystem::fileIsCreatable(destinationFile) &&
+            !FileSystem::fileIsWritable(destinationFile)) {
+            throw "";
         }
 #if XERCES_VERSION_MAJOR >= 3
         LocalFileFormatTarget targetFile(destinationFile.c_str());
         lsOutput->setByteStream(&targetFile);
         domWriter->write(document, lsOutput);
-#else        
+        domWriter->release();
+        delete lsOutput;
+#else
         LocalFileFormatTarget targetFile(destinationFile.c_str());
         domWriter->writeNode(&targetFile, *document);
-#endif        
         domWriter->release();
         delete document;
+#endif
     } catch (...) {
+#if XERCES_VERSION_MAJOR >= 3
         domWriter->release();
+        delete lsOutput;
+#else
         delete document;
+#endif
         string errorMessage = "Cannot write to " + destinationFile;
         throw SerializerException(__FILE__, __LINE__, __func__,
             errorMessage);

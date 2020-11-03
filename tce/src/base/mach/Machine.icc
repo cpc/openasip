@@ -60,9 +60,7 @@ namespace TTAMachine {
  */
 template <typename ContainerType, typename ComponentType>
 void
-Machine::addComponent(ContainerType& container, ComponentType& toAdd)
-     {
-
+Machine::addComponent(ContainerType& container, ComponentType& toAdd) {
     if (container.item(toAdd.name()) != NULL) {
         const std::string procName = "Machine::addComponent";
         throw ComponentAlreadyExists(__FILE__, __LINE__, procName);
@@ -74,7 +72,6 @@ Machine::addComponent(ContainerType& container, ComponentType& toAdd)
         container.addComponent(&toAdd);
     }
 }
-
 
 /**
  * Template method which adds the given component to machine into the given
@@ -92,10 +89,7 @@ Machine::addComponent(ContainerType& container, ComponentType& toAdd)
 template <typename ContainerType, typename ComponentType>
 void
 Machine::addRegisteredComponent(
-    ContainerType& container,
-    ComponentType& toAdd)
-     {
-
+    ContainerType& container, ComponentType& toAdd) {
     if (container.item(toAdd.name()) != NULL) {
         const std::string procName = "Machine::addRegisteredComponent";
         throw ComponentAlreadyExists(__FILE__, __LINE__, procName);
@@ -106,7 +100,6 @@ Machine::addRegisteredComponent(
     assert(toAdd.machine() == NULL);
     container.addComponent(&toAdd);
 }
-
 
 /**
  * Template method which removes the given component from machine from the
@@ -120,11 +113,7 @@ Machine::addRegisteredComponent(
  */
 template <typename ContainerType, typename ComponentType>
 void
-Machine::removeComponent(
-    ContainerType& container,
-    ComponentType& toRemove)
-     {
-
+Machine::removeComponent(ContainerType& container, ComponentType& toRemove) {
     if (container.item(toRemove.name()) != &toRemove) {
         std::string procName = "Machine::removeComponent";
         throw InstanceNotFound(__FILE__, __LINE__, procName);
@@ -137,7 +126,6 @@ Machine::removeComponent(
     }
 }
 
-
 /**
  * Template method which deletes the given component from machine from the
  * given container.
@@ -149,11 +137,8 @@ Machine::removeComponent(
  *                             given container.
  */
 template <typename ContainerType, typename ComponentType>
-void Machine::deleteComponent(
-    ContainerType& container,
-    ComponentType& toDelete)
-     {
-
+void
+Machine::deleteComponent(ContainerType& container, ComponentType& toDelete) {
     std::string componentName = toDelete.name();
     if (container.item(componentName) != &toDelete) {
         std::string procName = "Machine::deleteComponent";
@@ -166,7 +151,6 @@ void Machine::deleteComponent(
         delete &toDelete;
     }
 }
-
 
 /////////////////////////////////////////////////////////////////////////////
 // Machine::Navigator
@@ -229,16 +213,13 @@ Machine::Navigator<ComponentType>::operator=(const Navigator& old) {
  */
 template <typename ComponentType>
 ComponentType*
-Machine::Navigator<ComponentType>::item(int index) const
-     {
-
+Machine::Navigator<ComponentType>::item(int index) const {
     if (index < 0 || index >= count()) {
         const std::string procName = "Machine::Navigator::item";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
     return container_->item(index);
 }
-
 
 /**
  * Returns an item with the given name.
@@ -249,9 +230,7 @@ Machine::Navigator<ComponentType>::item(int index) const
  */
 template <typename ComponentType>
 ComponentType*
-Machine::Navigator<ComponentType>::item(const std::string& name) const
-     {
-
+Machine::Navigator<ComponentType>::item(const std::string& name) const {
     ComponentType* component = container_->item(name);
     if (component != NULL) {
         return component;
@@ -261,7 +240,6 @@ Machine::Navigator<ComponentType>::item(const std::string& name) const
         throw InstanceNotFound(__FILE__, __LINE__, __func__, msg);
     }
 }
-
 
 /**
  * Returns true if a component with the given name is found,
@@ -307,7 +285,6 @@ typename Machine::Navigator<ComponentType>::const_iterator
 Machine::Navigator<ComponentType>::end() const noexcept {
     return container_->end();
 }
-
 
 /////////////////////////////////////////////////////////////////////////////
 // Machine::ComponentContainer
@@ -452,10 +429,7 @@ Machine::ComponentContainer<ComponentType>::count() const {
 template <typename ComponentType>
 void
 Machine::ComponentContainer<ComponentType>::moveToPosition(
-    const ComponentType* component,
-    int position)
-     {
-
+    const ComponentType* component, int position) {
     const std::string procName = 
         "Machine::ComponentContainer::moveToPosition";
 

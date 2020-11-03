@@ -216,7 +216,7 @@ NullOperationModule::~NullOperationModule() {
  */
 string
 NullOperationModule::name() const {
-    Application::abortWithError("name()");
+    abortWithError("name()");
     return "";
 }
 
@@ -227,7 +227,7 @@ NullOperationModule::name() const {
  */
 bool
 NullOperationModule::definesBehavior() const {
-    Application::abortWithError("definesBehavior()");
+    abortWithError("definesBehavior()");
     return false;
 }
 
@@ -239,7 +239,7 @@ NullOperationModule::definesBehavior() const {
  */
 string
 NullOperationModule::behaviorModule() const {
-    Application::abortWithError("behaviorModule()");
+    abortWithError("behaviorModule()");
     return "";
 }
 
@@ -251,7 +251,7 @@ NullOperationModule::behaviorModule() const {
 string
 NullOperationModule::propertiesModule() const {
     
-    Application::abortWithError("propertiesModule()");
+    abortWithError("propertiesModule()");
     return "";
 }
 
@@ -262,7 +262,7 @@ NullOperationModule::propertiesModule() const {
  */
 bool
 NullOperationModule::hasBehaviorSource() const {
-    Application::abortWithError("hasBehaviorSource()");
+    abortWithError("hasBehaviorSource()");
     return false;
 }
 
@@ -274,6 +274,6 @@ NullOperationModule::hasBehaviorSource() const {
  */
 string
 NullOperationModule::behaviorSourceModule() const {
-    Application::abortWithError("behaviorSourceModule()");
+    abortWithError("behaviorSourceModule()");
     return "";
 }

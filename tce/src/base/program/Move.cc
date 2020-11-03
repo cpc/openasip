@@ -108,8 +108,6 @@ Move::~Move() {
 }
 
 /**
- * Return the parent instruction of the move.
- *
  * @return The parent instruction of the move.
  * @exception IllegalRegistration if the move is independent.
  */
@@ -207,6 +205,22 @@ Move::isCall() const {
         }
     }
     return false;
+}
+
+/**
+ * Returns true in case the move performs a function call.
+ *
+ * Currently two ways of calling functions are supported:
+ * the separate CALL operation, and regular JUMP with a
+ * separate RA save move. The latter is detected using an
+ * annotation in the JUMP move.
+ */
+bool
+Move::isFunctionCall() const {
+    if (isCall()) return true;
+    if (!isJump()) return false;
+    
+    return hasAnnotations(ProgramAnnotation::ANN_JUMP_FUNCTION_CALL);
 }
 
 /**
@@ -498,9 +512,7 @@ Move::guardLatency() const {
             return rf.guardLatency() +
             rf.machine()->controlUnit()->globalGuardLatency();
         } else {
-            throw IllegalMachine(
-                __FILE__, __LINE__, __func__,
-                "Scheduling FU output port guards is not yet supported.");
+            return g.parentBus()->machine()->controlUnit()->globalGuardLatency();
         }
     } else {
         return 0;

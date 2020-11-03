@@ -46,12 +46,14 @@
 #include "Exception.hh"
 
 #include "CmdLineOptionParser.hh"
+#include "tce_version_string.h"
 
 // text column lengths for the flags in --help printout
 const int CmdLineOptions::SHORT_FLAG = 2;
 const int CmdLineOptions::LONG_FLAG = 22;
 
 const std::string CmdLineOptions::VERBOSE_SWITCH = "verbose";
+const std::string CmdLineOptions::VERBOSE_SPAM_SWITCH = "verbose_spam";
 
 using std::vector;
 using std::map;
@@ -80,6 +82,11 @@ CmdLineOptions::CmdLineOptions(
         new BoolCmdLineOptionParser(
             VERBOSE_SWITCH, "The verbose switch", "v");
     addOption(verboseSwitch);
+
+    BoolCmdLineOptionParser* verboseSpamSwitch = 
+        new BoolCmdLineOptionParser(
+            VERBOSE_SPAM_SWITCH, "The verbose spam - switch", "V");
+    addOption(verboseSpamSwitch);
 }
 
 /**
@@ -177,7 +184,7 @@ CmdLineOptions::parseAll() {
             bool hasArgument = true;
 
             if (!parseOption(
-		    optString, name, arguments, prefix, hasArgument)) {
+                    optString, name, arguments, prefix, hasArgument)) {
                 finished = true;
                 if (optString == "--") {
                     checkArguments = false;
@@ -193,14 +200,14 @@ CmdLineOptions::parseAll() {
 	    //
             if (name == "help" || name == "h") {
                 printHelp();
-		string msg = "The client should not proceed";
-		string method = "CmdLineParser::parseAll()";
-		throw ParserStopRequest(__FILE__, __LINE__, method, msg);
+                string msg = "The client should not proceed";
+                string method = "CmdLineParser::parseAll()";
+                throw ParserStopRequest(__FILE__, __LINE__, method, msg);
             } else if (name == "version") {
                 printVersion();
                 string msg = "The client should not proceed";
-		string method = "CmdLineParser::parseAll()";
-		throw ParserStopRequest(__FILE__, __LINE__, method, msg);
+                string method = "CmdLineParser::parseAll()";
+                throw ParserStopRequest(__FILE__, __LINE__, method, msg);
             }
 
             CmdLineOptionParser* opt = findOption(name);
@@ -258,8 +265,14 @@ CmdLineOptions::printHelp() const {
     constMapIter i;
     for (i = optionLongNames_.begin(); i != optionLongNames_.end(); i++) {
         CmdLineOptionParser* opt = findOption((*i).first);
-        cout << left << setw(SHORT_FLAG) << "-" + opt->shortName() + ", "
-             << left << setw(LONG_FLAG) << "--" + opt->longName();
+        if (opt->isHidden()) continue;
+        if (opt->shortName() != "") {
+            cout << left << setw(SHORT_FLAG) << "-" + opt->shortName() + ", "
+                 << left << setw(LONG_FLAG) << "--" + opt->longName();
+        } else {
+            cout << "    "
+                 << left << setw(LONG_FLAG) << "--" + opt->longName();
+        }
         
         std::stringstream str(opt->description());
         int charsPrintedInRow = 0;
@@ -286,6 +299,16 @@ CmdLineOptions::printHelp() const {
 bool
 CmdLineOptions::isVerboseSwitchDefined() const {
     return findOption(VERBOSE_SWITCH)->isDefined();
+}
+
+/**
+ * Return true if the verbose spam switch was defined in the command line.
+ *
+ * @return True if the verbose spam switch was defined in the command line.
+ */
+bool
+CmdLineOptions::isVerboseSpamSwitchDefined() const {
+    return findOption(VERBOSE_SPAM_SWITCH)->isDefined();
 }
 
 /**

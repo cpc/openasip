@@ -42,16 +42,19 @@ class MoveNodeSet {
 public:
     MoveNodeSet();
 
-    int count() const;
-    MoveNode& at(int index);
+    inline int count() const;
+    inline MoveNode& at(int index);
     void addMoveNode(MoveNode&);
     void removeMoveNode(MoveNode&);
 
     std::string toString() const;
-
+    std::vector<MoveNode*>::iterator begin() { return moveNodes_.begin(); }
+    std::vector<MoveNode*>::iterator end() { return moveNodes_.end(); }
 private:
     // Vector holding pointers to MoveNodes in a collection
     std::vector<MoveNode*> moveNodes_;
 };
+
+#include "MoveNodeSet.icc"
 
 #endif

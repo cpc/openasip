@@ -70,6 +70,12 @@ namespace TTAProgram {
     class POMRelocBookkeeper;
     class Address;
     class NullAddress;
+    class Immediate;
+    class Terminal;
+}
+
+namespace TTAMachine {
+    class Machine;
 }
 
 namespace llvm {
@@ -139,7 +145,8 @@ public:
     }
 
     BasicBlockNode* jumpSuccessor(BasicBlockNode& bbn);
-    BasicBlockNode* fallThruSuccessor(const BasicBlockNode& bbn);
+    BasicBlockNode* fallThruSuccessor(const BasicBlockNode& bbn) const;
+    BasicBlockNode* fallThroughPredecessor(const BasicBlockNode& bbn) const;
 
     void addExitFromSinkNodes(BasicBlockNode* exitNode);
     void detectBackEdges();
@@ -154,9 +161,32 @@ public:
         const TTAProgram::BasicBlock& bb) const;
 
     void splitBasicBlocksWithCallsAndRefs();
-    void splitBasicBlocksWithCalls();
 
     bool isSingleBBLoop(const BasicBlockNode& node) const;
+    bool hasMultipleUnconditionalSuccessors(const BasicBlockNode& node) const;
+
+    void addExit(NodeSet& retSourceNodes);
+
+    void sanitize();
+
+    TTAProgram::Immediate* findLimmWrite(
+        TTAProgram::Move& move, BasicBlockNode& bb, int moveIndex);
+
+    TTAProgram::Terminal* findJumpAddress(
+        BasicBlockNode& src, ControlFlowEdge& e);
+
+    BasicBlockNode* splitBB(BasicBlockNode& n, int remainingSize);
+
+    bool hasFallThruPredecessor(const BasicBlockNode& bbn);
+
+    int findRelJumpDistance(
+        const BasicBlockNode &src,
+        const TTAProgram::Terminal& jumpAddr,
+        const TTAMachine::Machine& mach) const;
+
+    bool allScheduledInBetween(
+        const BasicBlockNode& src, const BasicBlockNode& dst) const;
+
 private:
     // For temporary storage
     typedef hash_map<InstructionAddress, const TTAProgram::Instruction*>
@@ -246,8 +276,6 @@ private:
     void addEntryExitEdge();
     void removeEntryExitEdge();
 
-    bool hasFallThruPredecessor(const BasicBlockNode& bbn);
-
     NodeSet findReachableNodes();
     NodeSet findUnreachableNodes(const NodeSet& reachableNodes);
 
@@ -258,7 +286,12 @@ private:
     void mergeNodes(
         BasicBlockNode& node1,
         BasicBlockNode& node2,
-        DataDependenceGraph* ddg);
+        DataDependenceGraph* ddg,
+        const ControlFlowEdge& connectingEdge);
+
+    bool jumpToBBN(
+        const TTAProgram::Terminal& jumpAddr, const BasicBlockNode& bbn) const;
+
         
     enum RemovedJumpData {
         JUMP_NOT_REMOVED = 0, /// nothing removed

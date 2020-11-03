@@ -76,6 +76,8 @@ public:
     // sets the "hint operation" for moves which are not opcode setting
     // but are known to be part of an operation execution
     virtual void setOperation(const TTAMachine::HWOperation& hwOp);
+    void setHintOperation(const char* name);
+
     virtual int operationIndex() const;
     virtual void setOperationIndex(int index) { opIndex_ = index; }
     virtual const TTAMachine::Port& port() const;

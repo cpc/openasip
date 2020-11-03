@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Declaration of LLVMTCEBuilder class.
  *
- * @author Pekka Jääskeläinen 2010 
+ * @author Pekka Jääskeläinen 2010-2015
  * @note reting: red
  */
 
@@ -58,14 +58,17 @@
 #include "passes/MachineDCE.hh"
 #include "TCETargetMachine.hh"
 #include "ProgramOperation.hh"
+#include "InlineAsmParser.hh"
 
 namespace TTAProgram {
     class Program;
     class Procedure;
     class CodeSnippet;
+    class BasicBlock;
     class Terminal;
     class TerminalRegister;
     class TerminalInstructionAddress;
+    class InstructionReferenceManager;
     class TerminalProgramOperation;
     class Instruction;
     class DataMemory;
@@ -74,8 +77,10 @@ namespace TTAProgram {
     class MoveGuard;
 }
 
+class PRegionMarkerAnalyzer;
 class UniversalMachine;
 class Operation;
+class LLVMTCECmdLineOptions;
 
 namespace TTAMachine {
     class Machine;
@@ -88,10 +93,11 @@ namespace llvm {
     class ConstantInt;
     class ConstantFP;
     class ConstantExpr;
+    class ConstantDataSequential;
     class TCETargetMachine;
 
     /**
-     * Base class for different LLVM to TCE builder implementations.
+     * Base class for the various LLVM to TCE builder implementations.
      */
     class LLVMTCEBuilder : public MachineFunctionPass {
 
@@ -111,19 +117,16 @@ namespace llvm {
         TTAProgram::Program* result();
 
         TTAProgram::Instruction* firstInstructionOfBasicBlock(
-            llvm::BasicBlock* bb) {
+            const llvm::BasicBlock* bb) {
             return bbIndex_[bb];
         }
         bool isProgramUsingRestrictedPointers() const { return noAliasFound_; }
-        bool isProgramUsingAddressSpaces() const {
-            return  multiAddrSpacesFound_;
-        }
 
-        void getAnalysisUsage(AnalysisUsage &AU) const {
+        virtual void getAnalysisUsage(AnalysisUsage &AU) const {
 #ifdef LLVM_OLDER_THAN_3_8
             AU.addRequired<AliasAnalysis>();
 #else
-	    AU.addRequired<AAResultsWrapperPass>();
+            AU.addRequired<AAResultsWrapperPass>();
 #endif
             AU.addRequired<MachineDCE>();
             AU.addPreserved<MachineDCE>();
@@ -135,6 +138,8 @@ namespace llvm {
                         &targetMachine()) != NULL);
         }
 
+        void deleteDeadProcedures();
+
         void setInitialStackPointerValue(unsigned value);
 
     protected:
@@ -142,6 +147,9 @@ namespace llvm {
         bool doInitialization(Module &M);
         bool runOnMachineFunction(MachineFunction &MF);
         bool doFinalization(Module &M);
+
+        bool hasAmbiguousASpaceRefs(
+            const TTAProgram::Instruction& instr) const;
 
         virtual bool writeMachineFunction(MachineFunction &MF);
         void initDataSections();
@@ -162,6 +170,7 @@ namespace llvm {
         // the ADF register index of the llvm reg number
         virtual int registerIndex(unsigned llvmRegNum) const = 0;
         // OSAL operation name from a LLVM MachineInstr
+        TCEString registerName(unsigned llvmRegNum) const;
         virtual TCEString operationName(const MachineInstr& mi) const = 0;
         virtual TTAProgram::Terminal* createFUTerminal(
             const MachineOperand&) const {
@@ -171,10 +180,10 @@ namespace llvm {
         /* Helper methods */
         std::string mbbName(const MachineBasicBlock& mbb);
 
-	const TTAMachine::HWOperation& getHWOperation(std::string opName);
+        const TTAMachine::HWOperation& getHWOperation(std::string opName);
 
-	TTAProgram::TerminalRegister* createTerminalRegister(
-	    const std::string& rfName, int index);
+        TTAProgram::TerminalRegister* createTerminalRegister(
+            const std::string& rfName, int index);
 
         TTAProgram::Terminal* createTerminal(
             const MachineOperand& mo, int bitLimit = 0);
@@ -206,6 +215,12 @@ namespace llvm {
             const MachineInstr* mi, TTAProgram::CodeSnippet* proc,
             bool conditional=false, bool trueGuard=true);
 
+        TTAProgram::Instruction* emitInlineAsm(
+            const MachineFunction& mf,
+            const MachineInstr* mi,
+            TTAProgram::BasicBlock* bb,
+            TTAProgram::InstructionReferenceManager& irm);
+
         void fixProgramOperationReferences();
 
         void addLabelForProgramOperation(
@@ -214,7 +229,7 @@ namespace llvm {
         }
 
         virtual void emitSPInitialization();
-        
+
         void emitSPInitialization(TTAProgram::CodeSnippet& target);
 
         void clearFunctionBookkeeping() {
@@ -222,6 +237,8 @@ namespace llvm {
             symbolicPORefs_.clear();            
         }
 
+        static bool isInlineAsm(const MachineInstr& instr);
+ 
         /// Code labels.
         std::map<std::string, TTAProgram::Instruction*> codeLabels_;
 
@@ -242,9 +259,21 @@ namespace llvm {
         // set to true in case the builder is used to schedule one
         // function at a time (the default processes the whole module)
         bool functionAtATime_;
-	
+
+        PRegionMarkerAnalyzer* pregions_;
+
+        int spillMoveCount_;
+
+        unsigned initialStackPointerValue_;
+
+        MachineFrameInfo* curFrameInfo_;
+
+        /// The compiler options.
+        LLVMTCECmdLineOptions* options_ = nullptr;
+
     private:
 
+        /// Data definition structure for global values.
         struct DataDef {
             std::string name;
             //llvm::Constant* initializer;
@@ -255,16 +284,32 @@ namespace llvm {
             bool initialize;
         };
 
+        /// Data definition structure for constant pool values
+        struct ConstantDataDef {
+            unsigned address = 0;
+            unsigned alignment = 0;
+            unsigned size = 0;
+            const llvm::Constant* value = nullptr;
+
+            ConstantDataDef(
+                unsigned addr,
+                unsigned align,
+                unsigned size,
+                const llvm::Constant* value)
+            : address(addr), alignment(align), size(size), value(value) {}
+        };
+
         typedef std::map<TTAMachine::AddressSpace*, TTAProgram::DataMemory*>
         DataMemIndex;
 
         void initMembers();
 
         void emitDataDef(const DataDef& def);
+        void emitDataDef(const ConstantDataDef& def);
 
         unsigned createDataDefinition(
             int addressSpaceId, unsigned& addr,  const Constant* cv,
-            bool forceInitialize=false);
+            bool forceInitialize=false,  unsigned forceAlignment=0);
 
         void createIntDataDefinition(
             int addressSpaceId, unsigned& addr, const llvm::ConstantInt* ci,
@@ -281,6 +326,9 @@ namespace llvm {
             int addressSpaceId, unsigned& addr, const ConstantExpr* gv, 
             int offset = 0);
 
+        void padToAlignment(
+            int addressSpaceId, unsigned& addr, unsigned align);
+
         TTAProgram::Terminal* createAddrTerminal(
             const MachineOperand& base, const MachineOperand& offset);
 
@@ -293,7 +341,7 @@ namespace llvm {
         TTAProgram::Instruction* emitReturn(
             const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
 
-        TTAProgram::Instruction* emitInlineAsm(
+        TTAProgram::Instruction* emitOperationMacro(
             const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
 
         TTAProgram::Instruction* emitSpecialInlineAsm(
@@ -317,11 +365,28 @@ namespace llvm {
         TTAProgram::Instruction* emitReadSP(
             const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
 
+        TTAProgram::Instruction* emitWriteSP(
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
+
+        TTAProgram::Instruction* emitReturnTo(
+            const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
+
         TTAProgram::Instruction* handleMemoryCategoryInfo(
             const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
 
-        bool isInitialized(const Constant* cv);
+        TTAProgram::Instruction* emitComparisonForBranch(
+            TCEString firstOp, const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
 
+        TTAProgram::Instruction* emitRemaingingBrach(
+            TCEString opName, const MachineInstr* mi, TTAProgram::CodeSnippet* proc);
+
+        void createSPInitLoad(
+            TTAProgram::CodeSnippet& target,
+            TTAProgram::Terminal& src,
+            TTAProgram::Terminal& dst);
+
+        bool isInitialized(const Constant* cv);
+        
         TTAProgram::MoveGuard* createGuard(
             const TTAProgram::Terminal* guardReg, bool trueOrFalse);
 
@@ -335,7 +400,7 @@ namespace llvm {
         // Create MoveNodes before calling DDGBuilder.
         virtual void createMoveNode(
             ProgramOperationPtr&,
-            std::shared_ptr<TTAProgram::Move>,
+            std::shared_ptr<TTAProgram::Move> m,
             bool /*isDestination*/) {}
 
         unsigned addressSpaceId(TTAMachine::AddressSpace& aSpace) const;
@@ -348,8 +413,11 @@ namespace llvm {
         TTAProgram::DataMemory&
         dataMemoryForAddressSpace(TTAMachine::AddressSpace& aSpace);
 
-	void copyFUAnnotations(
-	    const std::vector<TTAProgram::Instruction*>& operandMoves, TTAProgram::Move& move) const;
+        void copyFUAnnotations(
+            const std::vector<TTAProgram::Instruction*>& operandMoves, 
+            TTAProgram::Move& move) const;
+
+        std::string getAsmString(const MachineInstr& mi) const;
 
         /// Target architechture MAU size in bits.
         static unsigned MAU_BITS;
@@ -375,10 +443,10 @@ namespace llvm {
 #endif
         DataMemIndex dmemIndex_;
         
-
         /// Data definitions.
         std::vector<DataDef> data_;
         std::vector<DataDef> udata_;
+        std::vector<ConstantDataDef> cpData_;
 
         /// Machine basic block -> first instruction in the BB map.
         std::map<std::string, TTAProgram::Instruction*> mbbs_;
@@ -403,6 +471,12 @@ namespace llvm {
         /// Dummy references to the _end symbol.
         std::vector<std::shared_ptr<TTAProgram::Move> > endReferences_;
         
+        /// Global constant pool for all constants gathered from machine
+        /// functions. Map key is unique constant and the value is address of
+        /// the constant.
+        std::map<const llvm::Constant*, unsigned> globalCP_;
+        /// Constant pool for the current machine function. Map key is constant
+        /// pool index and the value is address.
         std::map<unsigned, unsigned> currentFnCP_;
 
         /// The first position after the last data in the given address space.
@@ -422,17 +496,13 @@ namespace llvm {
         /// List of machine functions collected from runForMachineFunction.
         std::vector<MachineFunction*> functions_;
 
-        int spillMoveCount_;
-
-        unsigned initialStackPointerValue_;
-
         bool dataInitialized_;
 
         std::set<TTAProgram::TerminalProgramOperation*> symbolicPORefs_;
 
         std::map<TCEString, ProgramOperationPtr > labeledPOs_;
 
-        // The data layout for the machine.
+        /// The data layout for the machine.
         const llvm::DataLayout* dl_;
     };
 }

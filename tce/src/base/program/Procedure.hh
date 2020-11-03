@@ -53,10 +53,10 @@ class Program;
  * Represents a TTA procedure.
  */
 class Procedure : public CodeSnippet {
-
-    public:
-    Procedure(const TCEString& name,
-              const TTAMachine::AddressSpace& space);
+public:
+    Procedure(
+        const TCEString& name,
+        const TTAMachine::AddressSpace& space);
     Procedure(
         const TCEString& name,
         const TTAMachine::AddressSpace& space,

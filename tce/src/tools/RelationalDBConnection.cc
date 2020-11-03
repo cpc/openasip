@@ -136,3 +136,23 @@ int
 RelationalDBConnection::rowCountInTable(const std::string&) {
     return false;
 }
+
+/**
+* Return database version number.
+*
+* @return Database version.
+*/
+int
+RelationalDBConnection::version() {
+    return 0;
+}
+
+/**
+* Set database version number.
+*
+* @param version New database version.
+*/
+void
+RelationalDBConnection::updateVersion(int version) {
+    (void)version;
+}

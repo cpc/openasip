@@ -89,20 +89,21 @@ ProgramGraphTest::testProcedureGraph() {
     // convert the loaded TPEF to POM
     TTAProgram::TPEFProgramFactory factory(*tpef_, umach);
     TTAProgram::Program* currentProgram = factory.build();
-
+    Application::setVerboseLevel(1);
     try {
         ProgramGraph graph(*currentProgram, *umach);
         TS_ASSERT_EQUALS(graph.graphCount(), 3);
         for (int i = 0; i < graph.graphCount(); i++){
             TS_ASSERT_THROWS_NOTHING(graph.graph(graph.graphAt(i)->name()));
+            graph.graphAt(i)->serializePDG();
         }
         TS_ASSERT_THROWS_NOTHING(graph.graph("_arrmul"));
-        TS_ASSERT_THROWS(graph.graph("__arrmul"),InvalidData); 
+        TS_ASSERT_THROWS(graph.graph("__arrmul"),InvalidData);
     } catch (const Exception& e) {
         throw InvalidData(
-            __FILE__, __LINE__, __func__, e.errorMessageStack());        
+            __FILE__, __LINE__, __func__, e.errorMessageStack());
     }
-    
+
     delete currentProgram;
     currentProgram = NULL;
 
@@ -131,7 +132,7 @@ ProgramGraphTest::testRallocatedGraph() {
         ProgramGraph graph(*currentProgram, *machine);
         TS_ASSERT_EQUALS(graph.graphCount(), 3);
         TS_ASSERT_THROWS_NOTHING(graph.graph("_crt0"));
-        TS_ASSERT_THROWS(graph.graph("__crt0"),InvalidData); 
+        TS_ASSERT_THROWS(graph.graph("__crt0"),InvalidData);
     } catch (const Exception& e) {
         throw InvalidData(
             __FILE__, __LINE__, __func__, e.errorMessageStack());
@@ -151,21 +152,21 @@ ProgramGraphTest::testImmediatesGraph() {
         ADFSerializer adfSerializer;
         adfSerializer.setSourceFile(
             "data/3_bus_reduced_connectivity_shortimms.adf");
-    
+
         TTAMachine::Machine* machine = adfSerializer.readMachine();
-    
+
         // read to TPEF Handler Module
         TPEF::Binary* tpef_ = TPEF::BinaryReader::readBinary(binaryStream);
-    
+
         assert(tpef_ != NULL);
-    
+
         // convert the loaded TPEF to POM
         TTAProgram::TPEFProgramFactory factory(*tpef_, *machine, umach);
         TTAProgram::Program* currentProgram = factory.build();
-        
-        TS_ASSERT_THROWS(ProgramGraph graph(*currentProgram, *machine), 
-                         InvalidData);
-
+        {
+            TS_ASSERT_THROWS(ProgramGraph graph(*currentProgram, *machine),
+                             InvalidData);
+        }
         delete currentProgram;
         currentProgram = NULL;
     } catch (const Exception& e) {

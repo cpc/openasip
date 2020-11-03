@@ -38,7 +38,7 @@
 #include "DataDependenceGraph.hh"
 #include "POMDisassembler.hh"
 #include "ProgramOperation.hh"
-
+#include "Move.hh"
 /**
  * Constructor.
  */
@@ -94,11 +94,13 @@ MoveNodeGroup::latestCycle() const {
  *
  * @todo What is the "leader node", in general, in an unassigned operation?
  *
+ * @param assumeBypassing If set to true, assume we can software bypass all 
+ *                        inputs from the original source.
  * @return The earliest possible cycle all nodes could be scheduled according
  * to their precedences.
  */
 int
-MoveNodeGroup::earliestCycle() const {
+MoveNodeGroup::earliestCycle(bool assumeBypassing) const {
 
     if (ddg_ == NULL)
         return INT_MAX;
@@ -107,8 +109,14 @@ MoveNodeGroup::earliestCycle() const {
     // check the predecessors of all nodes in the MoveNodeGroup
     for (std::size_t i = 0; i < nodes_.size(); ++i) {
         MoveNode& node = *nodes_.at(i);
-        int nodeCycle = ddg_->earliestCycle(node);
+        int nodeCycle = 
+            ddg_->earliestCycle(
+                node, UINT_MAX, false, false, false, false, false, 
+                assumeBypassing);
 
+        Application::logStream() << "EC " << nodeCycle << " for " 
+                                 << node.toString() << std::endl;
+        
         // the result read moves have unscheduled predecessors in case
         // the operand moves are not yet scheduled, ignore that
         if (nodeCycle == INT_MAX) {
@@ -160,6 +168,16 @@ MoveNodeGroup::isScheduled() const {
     }
     return true;
 }
+
+bool
+MoveNodeGroup::isPlaced() const {
+    for (std::size_t i = 0; i < nodes_.size(); ++i) {
+        if (!nodes_.at(i)->isPlaced())
+            return false;
+    }
+    return true;
+}
+
 
 /**
  * Returns true if all moves in the move group are alive.
@@ -237,4 +255,22 @@ MoveNodeGroup::toString() const {
         result += "[PO: " + programOperationPtr()->toString() + "] ";
     }
     return result;
+}
+
+bool MoveNodeGroup::writesJumpGuard() const {
+    if (ddg_ == nullptr) return false;
+    for (auto n: nodes_) {
+        if (!ddg_->hasNode(*n)) continue;
+        DataDependenceGraph::EdgeSet outEdges = ddg_->outEdges(*n);
+        for (auto e: outEdges) {
+            if (e->guardUse() && e->edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
+                !e->isFalseDep() && !e->headPseudo() && !e->tailPseudo()) {
+                MoveNode& head = ddg_->headNode(*e);
+                if (head.isMove() && head.move().isControlFlowMove()) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }

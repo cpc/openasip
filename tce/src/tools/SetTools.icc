@@ -62,6 +62,30 @@ SetTools::intersection(
 /**
  * Creates an intersection of the given containers.
  *
+ * Same as intersection(3), but this returns the intersection instead of
+ * appending existing set via reference.
+ *
+ * @param firstContainer The first container.
+ * @param secondContainer The second container.
+ * @returns The intersection.
+ */
+template <typename ValueType>
+std::set<ValueType>
+SetTools::intersection(
+    const std::set<ValueType>& firstContainer,
+    const std::set<ValueType>& secondContainer) {
+
+    std::set<ValueType> result;
+    std::set_intersection(firstContainer.begin(), firstContainer.end(),
+                          secondContainer.begin(), secondContainer.end(),
+                          std::inserter(result, result.end()));
+    return result;
+}
+
+
+/**
+ * Creates an intersection of the given containers.
+ *
  * The elements in the intersection are selected by using comparator operator
  * of the elements in the container. Thus, if both containers contains an
  * equal element, it is added to the intersection.

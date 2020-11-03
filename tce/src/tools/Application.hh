@@ -73,6 +73,12 @@ typedef int siginfo_t;
     Application::writeToErrorLog(__FILE__, __LINE__, __func__, message); \
     Application::abortProgram();
 
+#ifdef NDEBUG
+
+# define assert(condition) 
+
+#else
+
 // provide a TCE version of assert macro for error logging
 #ifdef NDEBUG
 #define assert(condition)
@@ -81,6 +87,8 @@ typedef int siginfo_t;
     if (!(condition)) { \
         abortWithError("Assertion failed: " #condition); \
     }
+#endif
+
 #endif
 
 // provide an easy way to "debug print"
@@ -151,18 +159,33 @@ public:
 
     static void unexpectedExceptionHandler();
 
+    static bool shellCommandsExists(
+        const std::string& commands);
+    static int runShellCommandSilently(
+        const std::string& command);
     static int runShellCommandAndGetOutput(
         const std::string& command,
         std::vector<std::string>& outputLines,
-        std::size_t maxOutputLines  = DEFAULT_MAX_OUTPUT_LINES);
+        std::size_t maxOutputLines  = DEFAULT_MAX_OUTPUT_LINES,
+        bool includeStdErr = false);
 
     static std::ostream& logStream();
     static std::ostream& warningStream();
     static std::ostream& errorStream();
 
-    static int verboseLevel() {return verboseLevel_;}
-    static void setVerboseLevel(const int level = VERBOSE_LEVEL_DEFAULT)
-        {verboseLevel_ = level;}
+    static int verboseLevel() {
+        return verboseLevel_;
+    }
+    static bool increasedVerbose() {
+        return verboseLevel() > VERBOSE_LEVEL_DEFAULT;
+    }
+    static bool spamVerbose() {
+        return verboseLevel() > VERBOSE_LEVEL_INCREASED;
+    }
+
+    static void setVerboseLevel(const int level = VERBOSE_LEVEL_DEFAULT) {
+        verboseLevel_ = level;
+    }
 
     static void setCmdLineOptions(CmdLineOptions* options_);
     static CmdLineOptions* cmdLineOptions();
@@ -170,6 +193,8 @@ public:
     static char** argv() { return argv_; }
     static bool isInstalled();
     static std::string installationDir();
+
+    /// ---------------------
 
     /**
      * An interface for classes that can receive notification when a Unix
@@ -197,6 +222,11 @@ public:
     static const int VERBOSE_LEVEL_DEFAULT = 0;
     /// Increased verbose level - print information about modules etc
     static const int VERBOSE_LEVEL_INCREASED = 1;
+    /// More Increased verbose level - spam about ddg heights of loops
+    static const int VERBOSE_LEVEL_SPAM = 2;
+
+    /// Use Loop Optimizations
+    static const bool LOOP_OPT_DEFAULT = false;
 
 private:
     static void signalRedirector(int data, siginfo_t *info, void *context);
@@ -219,7 +249,7 @@ private:
 
     /// Verbose level directs how much output will be printed to console
     static int verboseLevel_;
-
+    
     /// Holds command line options passed to program
     static CmdLineOptions* cmdLineOptions_;
 

@@ -51,6 +51,9 @@
 #include "ResourceManager.hh"
 #include "Move.hh"
 #include "MachineConnectivityCheck.hh"
+#include "LLVMTCECmdLineOptions.hh"
+#include "MoveGuard.hh"
+#include "Guard.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -103,33 +106,41 @@ OutputFUBroker::allAvailableResources(
 
     const Operation* op = nullptr;
 
-    assert (node.move().source().isFUPort());
-    TerminalFUPort& src = static_cast<TerminalFUPort&>(node.move().source());
-    if (dynamic_cast<const SpecialRegisterPort*>(&src.port()) != NULL) {
-        // only gcu applies
-        while (resIter != resMap_.end()) {
-            const ControlUnit* gcu =
-                dynamic_cast<const ControlUnit*>((*resIter).first);
-            if (gcu != NULL) {
-                if ((*resIter).second->isAvailable(modCycle)) {
-                    resourceSet.insert(*(*resIter).second);
+    if (node.move().source().isFUPort()) {
+        TerminalFUPort& src =
+            static_cast<TerminalFUPort&>(node.move().source());
+
+        if (dynamic_cast<const SpecialRegisterPort*>(&src.port()) != NULL) {
+            // only gcu applies
+            while (resIter != resMap_.end()) {
+                const ControlUnit* gcu =
+                    dynamic_cast<const ControlUnit*>((*resIter).first);
+                if (gcu != NULL) {
+                    if ((*resIter).second->isAvailable(modCycle)) {
+                        resourceSet.insert(*(*resIter).second);
+                    }
+                    return resourceSet;
                 }
-                return resourceSet;
+                resIter++;
             }
-            resIter++;
+            abortWithError("No GCU found!");
         }
-        abortWithError("No GCU found!");
-    }
 
-    op = &src.hintOperation();
-    opIndex = src.operationIndex();
+        op = &src.hintOperation();
+        opIndex = src.operationIndex();
 
-    // check if a unit has already been assigned to some node
-    // of the same operation and use it.
-    if (node.isSourceOperation()) {
-        PO = &node.sourceOperation();
+        // check if a unit has already been assigned to some node
+        // of the same operation and use it.
+        if (node.isSourceOperation()) {
+            PO = &node.sourceOperation();
+        } else {
+            assert(false);
+        }
     } else {
-        assert(false);
+        // port guard?
+        PO = &node.guardOperation();
+        opIndex = PO->outputIndexFromGuardOfMove(node);
+        op = &PO->operation();
     }
 
     auto a = findFUOfPO(*PO, foundFU);
@@ -208,7 +219,7 @@ OutputFUBroker::allAvailableResources(
                 " in the rejected set.");
             ++resIter;
             continue;
-        }
+        }            
 
         if (unit->hasOperation(op->name())) {
             OutputFUResource& fuRes =
@@ -262,9 +273,12 @@ OutputFUBroker::assign(
     }
     OutputFUResource& fuRes = static_cast<OutputFUResource&>(res);
     Move& move = const_cast<MoveNode&>(node).move();
-    TerminalFUPort& src = static_cast<TerminalFUPort&>(move.source());
 
-    if (dynamic_cast<const SpecialRegisterPort*>(&src.port()) != NULL) {
+    int opIndex = -1;
+    const Operation* op = nullptr;
+    TerminalFUPort* src = dynamic_cast<TerminalFUPort*>(&move.source());
+    if (src != nullptr &&
+        dynamic_cast<const SpecialRegisterPort*>(&src->port()) != NULL) {
         const ControlUnit* gcu =
             dynamic_cast<const ControlUnit*>(&machinePartOf(res));
         if (gcu != NULL) {
@@ -289,17 +303,30 @@ OutputFUBroker::assign(
         }
     }
 
-    int opIndex = src.operationIndex();
-    Operation& op = src.hintOperation();
-    const FunctionUnit& unit =
-        static_cast<const FunctionUnit&>(machinePartOf(res));
-    HWOperation* hwOp = unit.operation(op.name());
-    TerminalFUPort* newSrc = new TerminalFUPort(*hwOp, opIndex);
-    move.setSource(newSrc);
-    fuRes.assign(cycle, node);
-    assignedResources_.insert(
-        std::pair<const MoveNode*, SchedulingResource*>(
-        &node, &fuRes));
+    if (node.isSourceOperation()) {
+
+        opIndex = src->operationIndex();
+        op = &src->hintOperation();
+        const FunctionUnit& unit =
+            static_cast<const FunctionUnit&>(machinePartOf(res));
+        HWOperation* hwOp = unit.operation(op->name());
+        TerminalFUPort* newSrc = new TerminalFUPort(*hwOp, opIndex);
+        move.setSource(newSrc);
+        fuRes.assign(cycle, node);
+        assignedResources_.insert(
+            std::pair<const MoveNode*, SchedulingResource*>(
+                &node, &fuRes));
+    } else {
+        assert(node.isGuardOperation());
+        ProgramOperation& po = node.guardOperation();
+        opIndex = po.outputIndexOfMove(node);
+        op = &po.operation();
+
+        fuRes.assign(cycle, node);
+        assignedResources_.insert(
+            std::pair<const MoveNode*, SchedulingResource*>(
+                &node, &fuRes));
+    }
 }
 
 /**
@@ -318,17 +345,28 @@ OutputFUBroker::unassign(MoveNode& node) {
         return;
     }
     if (MapTools::containsKey(assignedResources_, &node)) {
-        Move& move = const_cast<MoveNode&>(node).move();
-        TerminalFUPort& src = dynamic_cast<TerminalFUPort&>(move.source());
-        SchedulingResource& res = *resourceOf(src.functionUnit());
-        const ControlUnit* gcu =
-            dynamic_cast<const ControlUnit*>(&machinePartOf(res));
 
-        // not ra read? unassign from fu
-        if (gcu == NULL) {
-            OutputFUResource& fuRes = dynamic_cast<OutputFUResource&>(res);
-            fuRes.unassign(node.cycle(), node);
-        } 
+        TTAProgram::Move& move = node.move();
+        const TerminalFUPort* src = dynamic_cast<const TerminalFUPort*>(&move.source());
+        if (src) {
+            const TerminalFUPort* src = dynamic_cast<const TerminalFUPort*>(&move.source());
+            assert(src);
+            SchedulingResource& res = *resourceOf(src->functionUnit());
+            const ControlUnit* gcu =
+                dynamic_cast<const ControlUnit*>(&machinePartOf(res));
+
+            // not ra read? unassign from fu
+            if (gcu == NULL) {
+                OutputFUResource* fuRes = dynamic_cast<OutputFUResource*>(&res);
+                fuRes->unassign(node.cycle(), node);
+            }
+        } else {
+            if (node.isGuardOperation()) {
+                ProgramOperation& gop = node.guardOperation();
+                SchedulingResource& res = *resourceOf(*gop.fuFromOutMove(node));
+                res.unassign(node.cycle(), node);
+            }
+        }
         // removed from assigned resources also if ra read
         assignedResources_.erase(&node);
     }
@@ -403,6 +441,14 @@ OutputFUBroker::isAlreadyAssigned(
             }
         }
     }
+    if (node.isGuardOperation()) {
+        const FunctionUnit* fu = node.guardOperation().fuFromOutMove(node);
+        if (fu && hasResourceOf(*fu)) {
+            if (MapTools::containsKey(assignedResources_, &node)) {
+                return true;
+            }
+        }
+    }
     return false;
 }
 
@@ -417,8 +463,17 @@ OutputFUBroker::isAlreadyAssigned(
 bool
 OutputFUBroker::isApplicable(
     const MoveNode& node, const TTAMachine::Bus*) const {
+    if (!node.isMove()) {
+        return false;
+    }
     Move& move = const_cast<MoveNode&>(node).move();
-    return move.source().isFUPort();
+    if (move.source().isFUPort() ||
+        (!move.isUnconditional() &&
+         dynamic_cast<const TTAMachine::PortGuard*>(&move.guard().guard()))) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /**
@@ -432,16 +487,22 @@ OutputFUBroker::isApplicable(
  */
 void
 OutputFUBroker::buildResources(const TTAMachine::Machine& target) {
+
+    std::map<const TTAMachine::FunctionUnit*,int> nopWeights;
+
+    CmdLineOptions *cmdLineOptions = Application::cmdLineOptions();
+    LLVMTCECmdLineOptions* opts =
+        dynamic_cast<LLVMTCECmdLineOptions*>(cmdLineOptions);
     Machine::FunctionUnitNavigator navi = target.functionUnitNavigator();
     for (int i = 0; i < navi.count(); i++) {
         FunctionUnit* fu = navi.item(i);
         OutputFUResource* fuResource = new OutputFUResource(
-            fu->name(), fu->operationCount());
+            fu->name(), fu->operationCount(), nopWeights[fu]);
         ResourceBroker::addResource(*fu, fuResource);
     }
     ControlUnit* gcu = target.controlUnit();
     OutputFUResource* fuResource = new OutputFUResource(
-        gcu->name(), gcu->operationCount());
+        gcu->name(), gcu->operationCount(),0);
     ResourceBroker::addResource(*gcu, fuResource);
 }
 

@@ -36,7 +36,6 @@
 #include <vector>
 
 #include "BaseType.hh"
-#include "Disassembler.hh"
 #include "MoveElement.hh"
 #include "ImmediateElement.hh"
 #include "Binary.hh"
@@ -56,13 +55,13 @@ class DisassemblyElement;
  *
  * NOTE: Class disassembles only the first of code sections in binary.
  */
-class TPEFDisassembler : public Disassembler {
+class TPEFDisassembler {
 public:
     TPEFDisassembler(const TPEF::Binary &aTpef);
     virtual ~TPEFDisassembler();
 
     virtual DisassemblyInstruction* createInstruction(
-	Word instructionIndex) const;
+        Word instructionIndex) const;
 
     virtual Word startAddress() const;
     virtual Word instructionCount() const;

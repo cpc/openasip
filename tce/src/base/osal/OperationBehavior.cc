@@ -40,14 +40,24 @@
 #include "OperationContext.hh"
 #include "OperationPool.hh"
 #include "OperationGlobals.hh"
+#include "Operation.hh"
+#include "Operand.hh"
 
 using std::string;
 
 
 /**
- * Constructor.
+ * Constructor with NULL parent.
  */
-OperationBehavior::OperationBehavior() {
+OperationBehavior::OperationBehavior()
+    : parent_(NullOperation::instance()){
+}
+
+/**
+ * Constructor with parent.
+ */
+OperationBehavior::OperationBehavior(const Operation& parent)
+    :   parent_(parent) {
 }
 
 /**
@@ -61,7 +71,7 @@ OperationBehavior::~OperationBehavior() {
  *
  * Clients should invoke isTriggerLocking() before any attempt to call 
  * simulateTrigger() in current clock cycle. By default, an operation 
- * invokations are successful.
+ * invocations are successful.
  *
  *
  * @param io The input operands and the results of the operation.
@@ -75,6 +85,21 @@ OperationBehavior::simulateTrigger(
     OperationContext&) const {
     return true;
 }
+
+/**
+ * The default implementation of input operand validation.
+ *
+ * This always return true. This is meant to be overridden in derived classes
+ * when necessary.
+ */
+bool
+OperationBehavior::areValid(
+    const InputOperandVector& /*inputs*/,
+    const OperationContext& /*context*/) const {
+
+    return true;
+}
+
 
 /**
  * Writes text to the output stream specified

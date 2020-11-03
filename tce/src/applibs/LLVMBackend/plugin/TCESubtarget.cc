@@ -30,12 +30,14 @@
  * @author Heikki Kultala 2013 (hkultala-no.spam-cs.tut.fi)
  */
 
-#include <iostream>
-#include "llvm/Support/CommandLine.h"
-
 #include "TCESubtarget.hh"
-#include "TCETargetMachinePlugin.hh"
+
+#include <iostream>
+
+#include "LLVMTCECmdLineOptions.hh"
 #include "TCETargetMachine.hh"
+#include "TCETargetMachinePlugin.hh"
+#include "llvm/Support/CommandLine.h"
 
 #define GET_SUBTARGETINFO_CTOR
 #define GET_SUBTARGETINFO_MC_DESC
@@ -65,10 +67,18 @@ BackendPluginFile(
  * The Constructor.
  */
 TCESubtarget::TCESubtarget(TCETargetMachinePlugin* plugin) :
-    TCEGenSubtargetInfo(
-        Triple("tce-tut-llvm"),
-        std::string(""), std::string("")),
-    pluginFile_(BackendPluginFile), plugin_(plugin) {
+      TCEGenSubtargetInfo(
+          Triple("tce-tut-llvm"), std::string(""), std::string("")),
+
+      pluginFile_(BackendPluginFile),
+#ifdef LLVM_OLDER_THAN_10
+      plugin_(plugin) {
+#else
+      plugin_(plugin),
+      InstrItins(getInstrItineraryForCPU("generic")) {
+    assert(&InstrItins != nullptr && "IstrItins nullptr");
+    assert(InstrItins.Itineraries != nullptr && "IstrItins not initialized");
+#endif
 }
 
 /**
@@ -81,7 +91,6 @@ std::string
 TCESubtarget::pluginFileName() {
     return pluginFile_;
 }
-
 
 const TargetInstrInfo* TCESubtarget::getInstrInfo() const {
     return plugin_->getInstrInfo();
@@ -107,3 +116,9 @@ const SelectionDAGTargetInfo* TCESubtarget::getSelectionDAGInfo() const {
     return plugin_->getSelectionDAGInfo();
 }
 
+#ifndef LLVM_OLDER_THAN_9
+bool
+TCESubtarget::enableMachinePipeliner() const {
+    return false;
+}
+#endif

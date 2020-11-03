@@ -96,7 +96,7 @@ OperationPoolPimpl::~OperationPoolPimpl() {
  * Deletes also the Operation instances, so be sure you are not using
  * them after calling this!
  */
-void 
+void
 OperationPoolPimpl::cleanupCache() {
     AssocTools::deleteAllValues(operationCache_);
     delete index_;
@@ -114,13 +114,13 @@ OperationPoolPimpl::cleanupCache() {
  */
 Operation&
 OperationPoolPimpl::operation(const char* name) {
-  
-    OperationTable::iterator it = 
+
+    OperationTable::iterator it =
         operationCache_.find(StringTools::stringToLower(name));
     if (it != operationCache_.end()) {
         return *((*it).second);
     }
-    
+
     // If llvmTargetInstrInfo_ is set, the scheduler is called
     // directly from LLVM code gen. Use the TargetInstrDesc as
     // the source for operation info instead.
@@ -128,17 +128,17 @@ OperationPoolPimpl::operation(const char* name) {
         for (unsigned opc = 0; opc < llvmTargetInstrInfo_->getNumOpcodes();
              ++opc) {
             const llvm::MCInstrDesc& tid = llvmTargetInstrInfo_->get(opc);
-#ifdef LLVM_3_0
-            TCEString operName = TCEString(tid.getName()).lower();
-#else
-            TCEString operName = 
+            TCEString operName =
+#ifdef LLVM_OLDER_THAN_11
                 TCEString(llvmTargetInstrInfo_->getName(opc)).lower();
+#else
+                TCEString(llvmTargetInstrInfo_->getName(opc).str()).lower();
 #endif
             if (operName == TCEString(name).lower()) {
                 Operation* llvmOperation = loadFromLLVM(tid);
                 operationCache_[operName] = llvmOperation;
                 return *llvmOperation;
-            } 
+            }
         }
         abortWithError(
             TCEString("Did not find info for LLVM operation ") + name);
@@ -148,7 +148,7 @@ OperationPoolPimpl::operation(const char* name) {
     if (&module == &NullOperationModule::instance()) {
         return NullOperation::instance();
     }
-    
+
     Operation* effective = index_->effectiveOperation(name);
     if (effective != NULL) {
         operationCache_[StringTools::stringToLower(name)] = effective;

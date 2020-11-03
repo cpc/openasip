@@ -33,7 +33,6 @@
 #ifndef TTA_TERMINAL_PROGRAM_OPERATION_HH
 #define TTA_TERMINAL_PROGRAM_OPERATION_HH
 
-#include <boost/shared_ptr.hpp>
 #include "TerminalInstructionAddress.hh"
 #include "ProgramOperation.hh"
 

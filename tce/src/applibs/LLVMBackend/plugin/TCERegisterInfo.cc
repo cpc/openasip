@@ -26,8 +26,8 @@
  *
  * Implementation of TCERegisterInfo class.
  *
- * @author Veli-Pekka J��skel�inen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepist� 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
  * @author Heikki Kultala 2011-2016 (heikki.kultala-no.spam-tut.fi)
  */
 
@@ -49,8 +49,13 @@
 
 #include "TCEPlugin.hh"
 #include "TCERegisterInfo.hh"
+#include "TCETargetMachine.hh"
+#include "TCEInstrInfo.hh"
+#include "TCEString.hh"
 #include "Application.hh"
 #include "tce_config.h"
+#include "LLVMTCECmdLineOptions.hh"
+#include "Exception.hh"
 
 using namespace llvm;
 
@@ -59,14 +64,18 @@ using namespace llvm;
 
 #include "TCEFrameInfo.hh"
 #include "TCEGenRegisterInfo.inc"
+#include "ArgRegs.hh"
 
 #ifdef TARGET64BIT
 #define ADDIMM TCE::ADD64ssa
 #define SUBIMM TCE::SUB64ssa
+#define INTEGER_REG_CLASS TCE::R64IRegsRegClass
 #else
 #define ADDIMM TCE::ADDrri
 #define SUBIMM TCE::SUBrri
+#define INTEGER_REG_CLASS TCE::R32IRegsRegClass
 #endif
+
 
 /**
  * The Constructor.
@@ -98,13 +107,26 @@ TCERegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
  */
 BitVector
 TCERegisterInfo::getReservedRegs(const MachineFunction& mf) const {
+
+    LLVMTCECmdLineOptions* options =
+        dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
+
     assert(&mf != NULL);
     BitVector reserved(getNumRegs());
     reserved.set(TCE::SP);
     reserved.set(TCE::KLUDGE_REGISTER);
     reserved.set(TCE::RA);
-    reserved.set(TCE::IRES0);
-
+#if LLVM_OLDER_THAN_4_0
+    const MachineFrameInfo* mfi = mf.getFrameInfo();
+#else
+    const MachineFrameInfo* mfi = &mf.getFrameInfo();
+#endif
+    if (mfi->hasCalls() && tfi_->containsCall(mf)) {
+        for (int i = 0; i < argRegCount; i++) {
+            reserved.set(ArgRegs[i]);
+        }
+        setReservedVectorRegs(reserved);
+    }
     if (hasFP(mf)) {
         reserved.set(TCE::FP);
     }
@@ -116,12 +138,26 @@ void TCERegisterInfo::eliminateFrameIndex(
     MachineBasicBlock::iterator II, int SPAdj, 
     unsigned FIOperandNum,
     RegScavenger *RS) const {
-    const TargetInstrInfo &TII = tii_;
-    assert(SPAdj == 0 && "Unexpected");
+
     MachineInstr &MI = *II;
+    const TCETargetMachine& tm =
+        dynamic_cast<const TCETargetMachine&>(
+            MI.getParent()->getParent()->getTarget());
+    // Attempt to catch stack accesses using unsupported operation.
+    auto osalOpName = tm.operationName(MI.getOpcode());
+    if (!tm.validStackAccessOperation(osalOpName)
+        && osalOpName.find("MOVE") == std::string::npos) {
+        THROW_EXCEPTION(CompileError,
+            "Error: Stack address space is not reachable with operation '"
+            + tm.operationName(MI.getOpcode()) + "'.\n"
+            + "Forgot to add the operation to the stack LSU?");
+    }
+    static int lastBypassReg = 0;
+    const TCEInstrInfo &TII = dynamic_cast<const TCEInstrInfo&>(tii_);
+    assert(SPAdj == 0 && "Unexpected");
+
     DebugLoc dl = MI.getDebugLoc();
     int FrameIndex = MI.getOperand(FIOperandNum).getIndex();
-
     // Addressable stack objects are accessed using neg. offsets from %fp
     // NO THEY ARE NOT! apwards from SP!
     MachineFunction &MF = *MI.getParent()->getParent();
@@ -132,46 +168,252 @@ void TCERegisterInfo::eliminateFrameIndex(
     auto& frameinfo = MF.getFrameInfo();
 #endif
 
+    if (frameinfo.isSpillSlotObjectIndex(FrameIndex)) {
+        for (MachineInstr::mmo_iterator i = MI.memoperands_begin();
+             i != MI.memoperands_end(); i++) {
+            const PseudoSourceValue* psv = (*i)->getPseudoValue();
+            if (psv == NULL) {
+#ifdef LLVM_OLDER_THAN_6_0
+                (*i)->setValue(new FixedStackPseudoSourceValue(FrameIndex));
+#else
+                (*i)->setValue(new FixedStackPseudoSourceValue(FrameIndex, TII));
+#endif
+            }
+        }
+        if (MI.memoperands_begin() == MI.memoperands_end()) {
+            // TODO: operation and size
+#ifdef LLVM_OLDER_THAN_3_9
+            auto flags = static_cast<MachineMemOperand::MemOperandFlags>(
+#else
+            auto flags = static_cast<MachineMemOperand::Flags>(
+#endif
+                MI.mayLoad() * MachineMemOperand::MOLoad
+                | MI.mayStore() * MachineMemOperand::MOStore);
+            auto mmo = new MachineMemOperand(
+#ifdef LLVM_OLDER_THAN_11
+                MachinePointerInfo(), flags, 0, tfi_->stackAlignment());
+#else
+                MachinePointerInfo(), flags, 0, Align(tfi_->stackAlignment()));
+#endif
+#ifdef LLVM_OLDER_THAN_6_0
+            mmo->setValue(new FixedStackPseudoSourceValue(FrameIndex));
+#else
+            mmo->setValue(new FixedStackPseudoSourceValue(FrameIndex, TII));
+#endif
+            MI.addMemOperand(MF,  mmo);
+        }
+    }
+
     if (tfi_->hasFP(MF)) {
         int Offset = frameinfo.getObjectOffset(FrameIndex);
         int stackAlign = tfi_->stackAlignment();
         // FP storage space increases offset by stackAlign.
         Offset+= stackAlign;
         // RA storage space increases offset of incoming vars
-        if (FrameIndex < 0  && frameinfo.hasCalls() && tfi_->containsCall(MF)) {
+        if (FrameIndex < 0  && frameinfo.hasCalls()
+            && tfi_->containsCall(MF)) {
             Offset+= stackAlign;
         }
 
         if (Offset != 0) {
-            MI.getOperand(FIOperandNum).ChangeToRegister(
-                TCE::KLUDGE_REGISTER, false, false, true/*iskill*/);
-            if (Offset > 0) {
-                BuildMI(
-                    *MI.getParent(), II, MI.getDebugLoc(), TII.get(ADDIMM),
-                    TCE::KLUDGE_REGISTER).addReg(TCE::FP).addImm(Offset);
-            } else { // for negative offsets used sub, not add
-                BuildMI(
-                    *MI.getParent(), II, MI.getDebugLoc(), TII.get(SUBIMM),
-                    TCE::KLUDGE_REGISTER).addReg(TCE::FP).addImm(-Offset);
+            // try to use a combined add+ld/st operation
+            // (a base+offset load/store), if available
+            // TODO: check that an offset port width is big enough for the
+            // offset immediate.
+
+
+            TCEString baseOffsetOp = "";
+            TCEString originalOp = tm.operationName(MI.getOpcode());
+
+            // TODO: are these the same for LE? ALD8 etc.?
+            if (originalOp == "LDW" || originalOp == "LDHU" || 
+                originalOp == "LDH" || originalOp == "LDQU" ||
+                originalOp == "LDQ" || originalOp == "STW" ||
+                originalOp == "STH" || originalOp == "STQ" ||
+                originalOp == "LD32" || originalOp == "LDU16" || 
+                originalOp == "LD16" || originalOp == "LDU8" ||
+                originalOp == "LD8" || originalOp == "ST32" ||
+                originalOp == "ST16" || originalOp == "ST8") {
+                baseOffsetOp = TCEString("A") + originalOp;
             }
-        } else {
+            if (baseOffsetOp != "" && tm.hasOperation(baseOffsetOp)) {
+                const bool isStore = MI.getDesc().mayStore();
+                unsigned storeDataReg = 0;
+                uint64_t storeDataImm = 0;
+
+                // the address should be always the 1st operand for the
+                // base memory ops
+                if (isStore) {
+                    // operands: FI, 0, DATA
+                    int storeDataOp = FIOperandNum + 2;
+                    if (MI.getOperand(storeDataOp).isReg()) {                
+                        storeDataReg = MI.getOperand(storeDataOp).getReg();
+                    } else {
+                        assert(MI.getOperand(storeDataOp).isImm());
+                        storeDataImm = MI.getOperand(storeDataOp).getImm();
+                    }
+                }
+
+                MI.setDesc(TII.get(tm.opcode(baseOffsetOp)));
+                // now it should be safe to overwrite the 2nd operand
+                // with the stack offset
+                MI.getOperand(FIOperandNum).ChangeToRegister(TCE::FP, false);
+                MI.getOperand(FIOperandNum + 1).setImm(Offset);
+
+                if (isStore) {
+                    // need to fix the 3rd input operand (the written data)
+                    // for stores
+                    if (storeDataReg) {
+                        MI.getOperand(FIOperandNum + 2).ChangeToRegister(
+                            storeDataReg, false);
+                    } else {
+                        MI.getOperand(FIOperandNum + 2).ChangeToImmediate(
+                            storeDataImm);
+                    }
+                }
+            } else { // FP, no base+offset ops
+                MI.getOperand(FIOperandNum).ChangeToRegister(
+                    TCE::KLUDGE_REGISTER, false, false, true/*iskill*/);
+                //TODO clean up
+                if (Offset > 0) {
+                    BuildMI(
+                        *MI.getParent(), II, MI.getDebugLoc(),
+                        TII.get(ADDIMM), TCE::KLUDGE_REGISTER)
+                            .addReg(TCE::FP).addImm(Offset);
+                } else {
+                    auto spOpcAndOffset = TII.getPointerAdjustment(Offset);
+                    BuildMI(
+                        *MI.getParent(), II, MI.getDebugLoc(),
+                        TII.get(std::get<0>(spOpcAndOffset)),
+                                TCE::KLUDGE_REGISTER)
+                            .addReg(TCE::FP)
+                            .addImm(std::get<1>(spOpcAndOffset));
+                }
+            }
+        } else { // FP, offset 0
             MI.getOperand(FIOperandNum).ChangeToRegister(TCE::FP, false);
         }
-    } else {
-        int Offset =
-            frameinfo.getObjectOffset(FrameIndex) + frameinfo.getStackSize();
+    } else { // no FP
+       int Offset = frameinfo.getObjectOffset(FrameIndex) + 
+            frameinfo.getStackSize();
 
-        if (Offset != 0) {
-            MI.getOperand(FIOperandNum).ChangeToRegister(TCE::KLUDGE_REGISTER, false);
-            BuildMI(
-                *MI.getParent(), II, MI.getDebugLoc(), TII.get(ADDIMM),
-                TCE::KLUDGE_REGISTER).addReg(TCE::SP).addImm(Offset);
-        } else {
+       if (Offset == 0) {
             MI.getOperand(FIOperandNum).ChangeToRegister(TCE::SP, false);
+            return;
         }
+
+       // try to use a combined add+ld/st operation (a base+offset load/store), 
+       // if available
+       // TODO: check that an offset port width is big enough for the offset 
+       // immediate
+       const TCETargetMachine& tm = 
+           dynamic_cast<const TCETargetMachine&>(
+               MI.getParent()->getParent()->getTarget());
+
+
+       TCEString baseOffsetOp = "";
+       TCEString originalOp = tm.operationName(MI.getOpcode());
+
+       // TODO: are these the same for LE? ALD8 etc.?
+       if (originalOp == "LDW" || originalOp == "LDHU" || 
+           originalOp == "LDH" || originalOp == "LDQU" ||
+           originalOp == "LDQ" || originalOp == "STW" ||
+           originalOp == "STH" || originalOp == "STQ" ||
+           originalOp == "LD32" || originalOp == "LDU16" || 
+           originalOp == "LD16" || originalOp == "LDU8" ||
+           originalOp == "LD8" || originalOp == "ST32" ||
+           originalOp == "ST16" || originalOp == "ST8") {
+           baseOffsetOp = TCEString("A") + originalOp;
+       }
+       if (baseOffsetOp != "" && tm.hasOperation(baseOffsetOp)) {
+           const bool isStore = MI.getDesc().mayStore();
+           unsigned storeDataReg = 0;
+           uint64_t storeDataImm = 0;
+
+           // the address should be always the 1st operand for the
+           // base memory ops
+           if (isStore) {
+               // operands: FI, 0, DATA
+               int storeDataOp = FIOperandNum + 2;
+               if (MI.getOperand(storeDataOp).isReg()) {                
+                   storeDataReg = MI.getOperand(storeDataOp).getReg();
+               } else {
+                   assert(MI.getOperand(storeDataOp).isImm());
+                   storeDataImm = MI.getOperand(storeDataOp).getImm();
+               }
+           }
+
+           MI.setDesc(TII.get(tm.opcode(baseOffsetOp)));
+           // now it should be safe to overwrite the 2nd operand
+           // with the stack offset
+           MI.getOperand(FIOperandNum).ChangeToRegister(TCE::SP, false);
+           MI.getOperand(FIOperandNum + 1).setImm(Offset);
+
+           if (isStore) {
+               // need to fix the 3rd input operand (the written data)
+               // for stores
+               if (storeDataReg) {
+                   MI.getOperand(FIOperandNum + 2).ChangeToRegister(
+                       storeDataReg, false);
+               } else {
+                   MI.getOperand(FIOperandNum + 2).ChangeToImmediate(
+                       storeDataImm);
+               }
+           }
+       } else {
+           // generate the sp + offset addition before the use
+           unsigned int tmp = 0;
+
+           LLVMTCECmdLineOptions* options =
+               dynamic_cast<LLVMTCECmdLineOptions*>(
+                   Application::cmdLineOptions());
+           if (RS != NULL) {
+               tmp = RS->FindUnusedReg(&INTEGER_REG_CLASS);
+           }
+
+           if (tmp != 0) {
+               MI.getOperand(FIOperandNum).ChangeToRegister(
+                   tmp, false, false, true);
+               BuildMI(
+                   *MI.getParent(), II, MI.getDebugLoc(), TII.get(ADDIMM),
+                   tmp).addReg(TCE::SP).addImm(Offset);
+           } else {
+               MI.getOperand(FIOperandNum).ChangeToRegister(
+                   TCE::KLUDGE_REGISTER, false);
+               BuildMI(
+                   *MI.getParent(), II, MI.getDebugLoc(), TII.get(ADDIMM),
+                   TCE::KLUDGE_REGISTER).addReg(TCE::SP).addImm(Offset);
+           }
+       }
     }
 }
 
+
+/**
+ * Re-issue the specified 'original' instruction at the specific location 
+ * targeting a new destination register.
+ *
+ * @param mbb Machine basic block of the new instruction.
+ * @param i Position of the new instruction in the basic block.
+ * @param destReg New destination register.
+ * @param orig Original instruction.
+
+void
+TCERegisterInfo::reMaterialize(
+    MachineBasicBlock& mbb,
+    MachineBasicBlock::iterator i,
+    unsigned destReg,
+    const MachineInstr* orig) const {
+    assert(false && "It really was used");
+    MachineInstr* mi = mbb.getParent()->CloneMachineInstr(orig);
+    mi->getOperand(0).setReg(destReg);
+    mbb.insert(i, mi);
+}
+*/
+
+/**
+ * Not implemented: When is this method even called?
+ */
 unsigned
 TCERegisterInfo::getRARegister() const {
     assert(false && "Remove this assert if this is really called.");
@@ -191,6 +433,14 @@ TCERegisterInfo::getFrameRegister(const MachineFunction& mf) const {
     }
 }
 
-bool TCERegisterInfo::hasFP(const MachineFunction &MF) const {
+bool
+TCERegisterInfo::hasFP(const MachineFunction &MF) const {
     return tfi_->hasFP(MF);
 }
+
+bool
+TCERegisterInfo::requiresRegisterScavenging(const MachineFunction&) const {
+    return false;
+}
+
+

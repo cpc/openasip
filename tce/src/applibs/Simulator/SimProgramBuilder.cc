@@ -262,47 +262,57 @@ SimProgramBuilder::processMove(const Move& move, MachineState& state) {
         // extend the immediate so we don't have to extend it
         // during runtime every time the move is simulated
         immediateSource = new InlineImmediateValue(move.bus().width());
-        long immediate = move.source().value().sLongWordValue();
 
         if (move.isControlFlowMove()) {
             int targetWidth = move.destination().port().width();
-            if (targetWidth < MathTools::requiredBits(immediate)) {
-                TCEString errorMsg = 
-                    (boost::format(
-                        "Immediate of jump '%s' gets clipped due to the target "
-                        "port being too narrow. Wrong execution would occur.") 
-                     % move.toString()).str();
-                throw IllegalProgram(
-                    __FILE__, __LINE__, __func__, errorMsg);
-
+            if (!move.bus().signExtends()) {
+                ULongWord immediate =
+                move.source().value().uLongWordValue();
+                if (targetWidth < MathTools::requiredBits(immediate)) {
+                    TCEString errorMsg =
+                        (boost::format(
+                             "Immediate of jump '%s' gets clipped due to the target "
+                             "port being too narrow. Wrong execution would occur.")
+                         % move.toString()).str();
+                    throw IllegalProgram(
+                        __FILE__, __LINE__, __func__, errorMsg);
+                }
+            } else {
+                SLongWord immediate =
+                move.source().value().sLongWordValue();
+                if (targetWidth < MathTools::requiredBitsSigned(immediate)) {
+                    TCEString errorMsg =
+                        (boost::format(
+                             "Immediate of jump '%s' gets clipped due to the target "
+                             "port being too narrow. Wrong execution would occur.")
+                         % move.toString()).str();
+                    throw IllegalProgram(
+                        __FILE__, __LINE__, __func__, errorMsg);
+                }
             }
         }
 
+        SimValue val(move.bus().width());
+        val = move.source().value();
         if (move.bus().signExtends()) {
-            immediate = 
-                MathTools::signExtendTo(
-                    immediate, move.bus().immediateWidth());
+            val.signExtendTo(move.bus().immediateWidth());
         } else {
-            immediate = 
-                MathTools::zeroExtendTo(
-                    immediate, move.bus().immediateWidth());
-        }  
-     
-        SimValue val(immediate, move.bus().width());
+            val.zeroExtendTo(move.bus().immediateWidth());
+        }
         immediateSource->setValue(val);
     }  else {
         source = processSourceTerminal(move.source(), state);
     }
-    
+
     BusState& bus = state.busState(move.bus().name());
     if (&bus == &NullBusState::instance()) {
         throw IllegalProgram(
-	    __FILE__, __LINE__, __func__, 
+	    __FILE__, __LINE__, __func__,
 	    SimulatorToolbox::textGenerator().text(
-            Texts::TXT_ILLEGAL_PROGRAM_BUS_STATE_NOT_FOUND).str());	
+            Texts::TXT_ILLEGAL_PROGRAM_BUS_STATE_NOT_FOUND).str());
     }
-    
-    WritableState& destination = 
+
+    WritableState& destination =
         *processBidirTerminal(move.destination(), state);
 
     // in case this is a sequential move, or a move that executes a
@@ -313,7 +323,7 @@ SimProgramBuilder::processMove(const Move& move, MachineState& state) {
         if (move.destination().isFUPort()) {
             if (dynamic_cast<const TTAMachine::ControlUnit*>(
                     &move.destination().functionUnit())) {
-                if (move.source().isImmediate() || 
+                if (move.source().isImmediate() ||
                     (move.source().isFUPort() &&
                      dynamic_cast<const TTAMachine::ControlUnit*>(
                          &move.source().functionUnit()) != NULL)) {
@@ -344,18 +354,18 @@ SimProgramBuilder::processMove(const Move& move, MachineState& state) {
     } else {
         // create a guarded move
         MoveGuard& guard = move.guard();
-        
+
         if (move.source().isImmediate()) {
             assert(immediateSource != NULL);
             if (buslessMove) {
                 return new BuslessExecutableMove(
-                    immediateSource, destination, 
-                    findGuardModel(guard.guard(), state), 
+                    immediateSource, destination,
+                    findGuardModel(guard.guard(), state),
                     guard.guard().isInverted());
             } else {
                 return new ExecutableMove(
-                    immediateSource, bus, destination, 
-                    findGuardModel(guard.guard(), state), 
+                    immediateSource, bus, destination,
+                    findGuardModel(guard.guard(), state),
                     guard.guard().isInverted());
             }
         } else {
@@ -363,12 +373,12 @@ SimProgramBuilder::processMove(const Move& move, MachineState& state) {
             if (buslessMove) {
                 return new BuslessExecutableMove(
                     *source, destination,
-                    findGuardModel(guard.guard(), state), 
-                    guard.guard().isInverted());                
+                    findGuardModel(guard.guard(), state),
+                    guard.guard().isInverted());
             } else {
                 return new ExecutableMove(
                     *source, bus, destination,
-                    findGuardModel(guard.guard(), state), 
+                    findGuardModel(guard.guard(), state),
                     guard.guard().isInverted());
             }
         }
@@ -376,7 +386,7 @@ SimProgramBuilder::processMove(const Move& move, MachineState& state) {
 
     // should never end up here
     assert(false);
-    
+
     return NULL;
 }
 
@@ -471,26 +481,34 @@ SimProgramBuilder::build(const Program& prog, MachineState& state) {
     const TTAProgram::Instruction* currentInstruction = NULL;
     try {
 
-        // Traverse all instructions of the Program quickly.
         for (int procIndex = 0; procIndex < prog.procedureCount(); 
              ++procIndex) {
             const Procedure& proc = prog.procedureAtIndex(procIndex);
             for (int instrIndex = 0; instrIndex < proc.instructionCount(); 
                  ++instrIndex) {
-                currentInstruction = 
+                currentInstruction =
                     &proc.instructionAtIndex(instrIndex);
-                ExecutableInstruction* processedInstruction = 
+                ExecutableInstruction* processedInstruction =
                     processInstruction(*currentInstruction, state);
-                memory->addExecutableInstruction(processedInstruction);
+
+                if (currentInstruction->size() > 0) {
+                    memory->addExecutableInstruction(
+                        currentInstruction->address().location(),
+                        processedInstruction);
+                } else {
+                    memory->addImplicitExecutableInstruction(
+                        currentInstruction->address().location(),
+                        processedInstruction);
+                }
             }
         }
     } catch (const Exception& e) {
         throw IllegalProgram(
-            __FILE__, __LINE__, __func__, 
+            __FILE__, __LINE__, __func__,
             (boost::format("Error while processing instruction %d "
-                           "(with moves %s): %s") 
+                           "(with moves %s): %s")
              % currentInstruction->address().location()
-             % POMDisassembler::disassemble(*currentInstruction) 
+             % POMDisassembler::disassemble(*currentInstruction)
              % e.errorMessage()).str());
     }
 

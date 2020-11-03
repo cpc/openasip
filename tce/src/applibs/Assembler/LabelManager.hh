@@ -53,7 +53,7 @@ namespace TPEF {
 }
 
 class MachineResourceManager;
-class Assembler;
+class AssemblyParserDiagnostic;
 
 /**
  * Keeps track of labels, symbols and relocations.
@@ -65,7 +65,7 @@ class LabelManager {
 public:
     LabelManager(
         TPEF::Binary& bin, MachineResourceManager& resources, 
-        Assembler* parent);
+        AssemblyParserDiagnostic* parent);
 
     ~LabelManager();
 

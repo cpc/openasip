@@ -42,6 +42,7 @@
 
 union FloatConvUnion {
     int i;
+    unsigned int u;
     float f;
 };
 
@@ -87,6 +88,44 @@ HalfFloatWord::convertFloatToHalfWordRep(float value) {
 	binary16++;
 
     return binary16;
+}
+
+/**
+ * Exact and slower version of operator float()-function.
+ *
+ * Attempts to retain original presentation of the source half float.
+ */
+float
+HalfFloatWord::convertToFloat(HalfFloatWord value) {
+    FloatConvUnion u;
+
+    static const uint32_t half_inf_mask = 0x7C00;
+    static const uint32_t half_mant_mask = 0x03FF;
+    static const uint32_t float_inf_mask = 0x7F800000;
+
+    uint32_t sign = (value.getBinaryRep() & 0x8000) << 16;
+    uint32_t exp = (value.getBinaryRep() & half_inf_mask) >> 10; // Biased form
+    uint32_t mant = (value.getBinaryRep() & half_mant_mask);
+
+    if (exp == 0x1F) { // is +-inf or NaN?
+        u.u = sign | float_inf_mask | mant << 13;
+        return u.f;
+    }
+
+    if ((exp == 0 && mant != 0)) { // is denormal?
+        // normalize
+        exp = 127;
+        while (!(mant & 0x400)) {
+            exp--;
+            mant <<= 1;
+        }
+        mant &= 0x400;
+        u.u = sign | exp << 23 | mant << 13;
+        return u.f;
+    } else {
+        u.u = sign | (exp-15+127) << 23 | mant << 13;
+        return u.f;
+    }
 }
 
 #pragma GCC diagnostic warning "-Wstrict-aliasing"

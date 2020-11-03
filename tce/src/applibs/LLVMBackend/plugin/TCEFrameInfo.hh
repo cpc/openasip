@@ -56,7 +56,8 @@ namespace llvm {
 
 //  Frame info:
 // -------------
-// Grows down, alignment at least 4 bytes.
+// Grows down, alignment at least 4 bytes. The alignment is set according to
+// the widest operand in the machine.
 //
 
 
@@ -68,6 +69,10 @@ namespace llvm {
      * stack realignment is not allowed. This means, that every stack object
      * having a bigger alignment than the stack's own alignment, will be 
      * reduced to have the stack's alignment.
+     * 
+     * For example, if stack realignment parameter is set to false, and 
+     * stack has alignment of 4, and v4i32 vector has alignment of 16 
+     * (bytes) -> vector's alignment in stack will be demoted to 4.
      */
         TCEFrameLowering(
             TCERegisterInfo* tri,
@@ -88,7 +93,8 @@ namespace llvm {
             StackGrowsDown, Align(stackAlignment), -stackAlignment),
 #endif
         tri_(tri), tii_(*tii), stackAlignment_(stackAlignment) {
-            tri->setTFI(this); }
+            tri->setTFI(this);
+        }
 
 #ifdef LLVM_OLDER_THAN_3_9
         void
@@ -104,7 +110,7 @@ namespace llvm {
         void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const override;
         bool hasFP(const MachineFunction &MF) const override;
         int stackAlignment() const { return stackAlignment_; }
-        bool containsCall(MachineFunction& mf) const;
+        bool containsCall(const MachineFunction& mf) const;
     private:
         int stackAlignment_;
         const TCERegisterInfo* tri_;

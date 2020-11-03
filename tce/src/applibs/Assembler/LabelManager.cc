@@ -81,7 +81,9 @@ using TPEF::TPEFTools;
  * @param parent Assembler root class.
  */
 LabelManager::LabelManager(
-    Binary& bin, MachineResourceManager& resources, Assembler* /*parent*/) :
+    Binary& bin,
+    MachineResourceManager& resources,
+    AssemblyParserDiagnostic* /*parent*/) :
     bin_(bin), resources_(resources) {
 }
 
@@ -400,7 +402,7 @@ LabelManager::finalize() {
                 currReloc->destination - dstSect->startingAddress();
 
             // set destination element
-            if (dstSect->type() == Section::ST_CODE) {
+            if (dstSect->isCodeSection()) {
                 CodeSection* codeSect =
                     dynamic_cast<CodeSection*>(dstSect);
                 
@@ -472,7 +474,7 @@ LabelManager::findSectionByAddress(InternalLabel *currLabel) {
                     return currSect;
                 }
 
-            } else if (currSect->type() == Section::ST_CODE) {
+            } else if (currSect->isCodeSection()) {
 
                 CodeSection* sect = dynamic_cast<CodeSection*>(currSect);
 
@@ -508,7 +510,7 @@ LabelManager::createSymbolWithReference(
 
     SymbolElement *symbol = NULL;
 
-    if (ownerSection->type() == Section::ST_CODE) {
+    if (ownerSection->isCodeSection()) {
         CodeSymElement *codeSym = new CodeSymElement();
         symbol = codeSym;
 
@@ -632,7 +634,7 @@ LabelManager::findRelocationDstSection(InternalRelocation* currReloc) {
         if (currSect->aSpace() == currReloc->dstASpace &&
             currSect->startingAddress() <= currReloc->destination) {
 
-            if (currSect->type() == Section::ST_CODE) {
+            if (currSect->isCodeSection()) {
                 CodeSection* codeSect = dynamic_cast<CodeSection*>(currSect);
 
                 // check that section is enough long

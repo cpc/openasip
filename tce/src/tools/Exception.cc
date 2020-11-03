@@ -1509,3 +1509,23 @@ ModuleRunTimeError::ModuleRunTimeError(
     std::string errorMessage) :
     Exception(filename, linenum, procname, errorMessage) {
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+// NoKnownConversion
+///////////////////////////////////////////////////////////////////////////////
+/**
+ * Constructor.
+ *
+ * @param filename Name of the file in which the exception is created.
+ * @param linenum Number of the line in which the exception is created.
+ * @param procname Name of the function in which the exception is created.
+ * @param errorMessage Error message.
+ */
+NoKnownConversion::NoKnownConversion(
+    std::string filename,
+    int linenum,
+    std::string procname,
+    std::string errorMessage)
+    : InvalidData(filename, linenum, procname, errorMessage) {
+}

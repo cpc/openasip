@@ -34,6 +34,7 @@
 #define TTA_CONTROL_UNIT_HH
 
 #include <string>
+#include <utility>
 
 #include "FunctionUnit.hh"
 

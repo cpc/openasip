@@ -97,7 +97,11 @@ public:
 
     Address address() const;
 
-    int size() const;
+    bool hasFinalAddress() const
+        { return finalAddress_ != (InstructionAddress)-1; }
+
+    short size() const;
+    void setSize(short size) { size_ = size; }
 
     bool hasRegisterAccesses() const;
     bool hasConditionalRegisterAccesses() const;
@@ -113,6 +117,8 @@ public:
     const TTAMachine::InstructionTemplate& instructionTemplate() const;
 
     std::string toString() const;
+
+    void setFinalAddress(InstructionAddress addr) { finalAddress_ = addr; }
 
 private:
     /// List for moves.
@@ -135,13 +141,15 @@ private:
     /// Instruction template that is used for this instruction.
     const TTAMachine::InstructionTemplate* insTemplate_;
 
-    /// cache the instruction's index in the its procedure for faster address()
+    /// Cache the instruction's index in the its procedure for faster address().
     mutable InstructionAddress positionInProcedure_;
-
-    unsigned tripCount_;
+    /// In case the final instruction address is known (due to program not
+    /// modified anymore), the final instruction address is stored here.
+    /// -1 in case not known.
+    mutable InstructionAddress finalAddress_;
 
     /// Size of instruction in MAU's.
-    short size_;
+    mutable short size_;
     /// Set to true in case this instruction has moves that access registers.
     bool hasRegisterAccesses_;
     /// Set to true in case this instruction has moves that access registers

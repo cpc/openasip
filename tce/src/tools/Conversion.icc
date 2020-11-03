@@ -74,6 +74,19 @@ Conversion::toString(bool source) {
 }
 
 /**
+ * Converts double to a string with custom precision.
+ *
+ * @param source Double to convert.
+ * @return String representation of source.
+ */
+inline std::string
+Conversion::toString(double source, unsigned precision) {
+    std::stringstream s;
+    s << std::setprecision(precision) << source;
+    return s.str();
+}
+
+/**
  * Converts an XMLCh* to C++ string.
  *
  * @param ch XMLCh* to be converted.
@@ -594,15 +607,16 @@ Conversion::toFloat(const T& source)
  * Converts an source to the string which is in hexadecimal format.
  *
  * Hexadecimal format contains lower case characters and includes '0x'
- * literal at the beginning of the string.
+ * literal at the beginning of the string by default.
  *
  * @param source An source to be converted into a hexadecimal string.
  * @param digits Number of digits to display (default is no leading zeroes).
+ * @param include0x If true prepend '0x'.
  * @return Returns the binary string.
  */
 template <typename T>
 std::string
-Conversion::toHexString(T source, std::size_t digits) {
+Conversion::toHexString(T source, std::size_t digits, bool include0x) {
 
     std::stringstream str;
     str << std::setw(digits) << std::setfill('0') << std::right << std::hex
@@ -611,7 +625,13 @@ Conversion::toHexString(T source, std::size_t digits) {
     std::string result = "";
     str >> result;
 
-    result.insert(0, "0x");
+    if (include0x) {
+        result.insert(0, "0x");
+    }
 
     return result;
 }
+
+
+
+

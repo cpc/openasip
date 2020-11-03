@@ -90,24 +90,24 @@ ControlDependenceGraphTest::testProcedureCDG() {
     // convert the loaded TPEF to POM
     TTAProgram::TPEFProgramFactory factory(*tpef_, umach);
     TTAProgram::Program* currentProgram = factory.build();
-
+    {
     ControlFlowGraph CFG(currentProgram->procedure(1));
     ControlDependenceGraph CDG(CFG);
-    TS_ASSERT_EQUALS(CDG.nodeCount(), 6);
-    TS_ASSERT_EQUALS(CDG.edgeCount(), 6);
+    TS_ASSERT_EQUALS(CDG.nodeCount(), 5);
+    TS_ASSERT_EQUALS(CDG.edgeCount(), 5);
     CFG.writeToDotFile("/dev/null");
     CDG.writeToDotFile("/dev/null");
     
     ControlFlowGraph CFG2(currentProgram->procedure(2));
     ControlDependenceGraph CDG2(CFG2);
-    TS_ASSERT_EQUALS(CDG2.nodeCount(), 4);
-    TS_ASSERT_EQUALS(CDG2.edgeCount(), 3);
+    TS_ASSERT_EQUALS(CDG2.nodeCount(), 3);
+    TS_ASSERT_EQUALS(CDG2.edgeCount(), 2);
     CFG2.writeToDotFile("/dev/null");    
     CDG2.writeToDotFile("/dev/null");
-
+    }
     delete currentProgram;
     currentProgram = NULL;
-
+    delete tpef_;
 }
 
 void
@@ -128,24 +128,24 @@ ControlDependenceGraphTest::testRallocatedCDG() {
     // convert the loaded TPEF to POM
     TTAProgram::TPEFProgramFactory factory(*tpef_, *machine, umach);
     TTAProgram::Program* currentProgram = factory.build();
-
+    {
     ControlFlowGraph CFG(currentProgram->procedure(1));
     ControlDependenceGraph CDG(CFG);
-    TS_ASSERT_EQUALS(CDG.nodeCount(), 6);
-    TS_ASSERT_EQUALS(CDG.edgeCount(), 6);
+    TS_ASSERT_EQUALS(CDG.nodeCount(), 5);
+    TS_ASSERT_EQUALS(CDG.edgeCount(), 5);
     CDG.writeToDotFile("/dev/null");
     CFG.writeToDotFile("/dev/null");
-    
     ControlFlowGraph CFG2(currentProgram->procedure(2));
     ControlDependenceGraph CDG2(CFG2);
-    TS_ASSERT_EQUALS(CDG2.nodeCount(), 4);
-    TS_ASSERT_EQUALS(CDG2.edgeCount(), 3);
+    TS_ASSERT_EQUALS(CDG2.nodeCount(), 3);
+    TS_ASSERT_EQUALS(CDG2.edgeCount(), 2);
     CFG2.writeToDotFile("/dev/null");
     CDG2.writeToDotFile("/dev/null");
-
-
+    }// cfg has to die before program due referemanager
     delete currentProgram;
     currentProgram = NULL;
+    delete tpef_;
+    delete machine;
 }
 
 void
@@ -155,8 +155,7 @@ ControlDependenceGraphTest::testImmediatesCDG() {
     TPEF::BinaryStream
         binaryStream("data/3_bus_reduced_connectivity_shortimms.tpef");
     ADFSerializer adfSerializer;
-    adfSerializer.setSourceFile(
-        "data/3_bus_reduced_connectivity_shortimms.adf");
+    adfSerializer.setSourceFile("data/3_bus_reduced_connectivity_shortimms.adf");
 
     TTAMachine::Machine* machine = adfSerializer.readMachine();
 
@@ -168,31 +167,31 @@ ControlDependenceGraphTest::testImmediatesCDG() {
     // convert the loaded TPEF to POM
     TTAProgram::TPEFProgramFactory factory(*tpef_, *machine, umach);
     TTAProgram::Program* currentProgram = factory.build();
-
+    {
     ControlFlowGraph CFG0(currentProgram->procedure(0));
     ControlDependenceGraph CDG0(CFG0);
-    TS_ASSERT_EQUALS(CDG0.nodeCount(), 4);
-    TS_ASSERT_EQUALS(CDG0.edgeCount(), 3);
+    TS_ASSERT_EQUALS(CDG0.nodeCount(), 3);
+    TS_ASSERT_EQUALS(CDG0.edgeCount(), 2);
     CFG0.writeToDotFile("/dev/null");
     CDG0.writeToDotFile("/dev/null");
-    
     ControlFlowGraph CFG1(currentProgram->procedure(1));
     ControlDependenceGraph CDG1(CFG1);
-    TS_ASSERT_EQUALS(CDG1.nodeCount(), 9);
-    TS_ASSERT_EQUALS(CDG1.edgeCount(), 9);
+    TS_ASSERT_EQUALS(CDG1.nodeCount(), 8);
+    TS_ASSERT_EQUALS(CDG1.edgeCount(), 8);
     CFG1.writeToDotFile("/dev/null");
     CDG1.writeToDotFile("/dev/null");
-    
+
     ControlFlowGraph CFG2(currentProgram->procedure(2));    
     ControlDependenceGraph CDG2(CFG2);    
-    TS_ASSERT_EQUALS(CDG2.nodeCount(), 11);
-    TS_ASSERT_EQUALS(CDG2.edgeCount(), 11);
+    TS_ASSERT_EQUALS(CDG2.nodeCount(), 10);
+    TS_ASSERT_EQUALS(CDG2.edgeCount(), 10);
     CFG2.writeToDotFile("/dev/null");
     CDG2.writeToDotFile("/dev/null");
-
-
+    }
     delete currentProgram;
     currentProgram = NULL;
+    delete tpef_;
+    delete machine;
 }
 
 #endif

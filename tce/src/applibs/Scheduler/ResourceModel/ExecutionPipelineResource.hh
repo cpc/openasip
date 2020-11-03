@@ -120,6 +120,13 @@ protected:
     unsigned int size() const;
 private:
 
+    inline bool cyclesOverlap(
+        int rangeFirst, int rangeLast, int targetCycle) const ;
+
+    bool cyclesConflict(
+        const MoveNode* mn1, const MoveNode* mn2, int guardCycle,
+        int rangeFirst, int rangeLast, int targetCycle) const;
+
     bool isLoopBypass(const MoveNode& node) const;
 
     struct ResultHelper {

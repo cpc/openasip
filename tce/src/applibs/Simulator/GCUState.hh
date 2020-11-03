@@ -45,7 +45,11 @@
  */
 class GCUState : public FUState {
 public:
-    GCUState(int latency, int nww);
+    GCUState(
+        int latency,
+        int nww,
+        int cuDelaySlots,
+        int instructionAddressIncrement = 1);
     virtual ~GCUState();
 
     InstructionAddress& programCounter();
@@ -57,8 +61,6 @@ public:
 
     virtual void advanceClock();
     virtual void reset();
-
-protected:
 
     virtual OperationContext& context();
 
@@ -79,6 +81,8 @@ private:
     InstructionAddress newProgramCounter_;
     /// The delay of the control flow operations to take place.
     int latency_;
+    /// The delay of branch operations in the pipeline, as opposed to this unit
+    int branchDelayCycles_;
     /// If this this is true, there's a control flow operation pending.
     bool operationPending_;
     /// This indicates how many cycles the operation has been pending,
@@ -87,7 +91,8 @@ private:
     int operationPendingTime_;
     /// The operation context for this FU.
     OperationContext operationContext_;
-
+    /// The increment to instruction address to retrieve next instruction.
+    int instructionAddressIncrement_ = 1;
 };
 
 #include "GCUState.icc"

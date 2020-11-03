@@ -41,6 +41,9 @@
 #include "TerminalNode.hh"
 #include "MoveNodeSet.hh"
 #include "Operation.hh"
+#include "Move.hh"
+#include "Terminal.hh"
+#include "DataDependenceGraph.hh"
 
 /**
  * Compares two indeces (memory addresses or part of memory address).
@@ -265,4 +268,143 @@ MemoryAliasAnalyzer::findTwoPartAddressOperands(
         }
     }
     return result;
+}
+
+const MoveNode* MemoryAliasAnalyzer::findIncrement(const MoveNode& mn, long& increment) {
+    int myInc = 0;
+    if (!mn.isSourceOperation()) {
+        return NULL;
+    }
+
+    ProgramOperation& po = mn.sourceOperation();
+    bool isSub = po.operation().name() == "SUB";
+    bool isAdd = po.operation().name() == "ADD";
+    if (!isSub && !isAdd) {
+        return NULL;
+    }
+
+    // is add or sub
+    MoveNodeSet& input1Set = po.inputNode(1);
+    MoveNodeSet& input2Set = po.inputNode(2);
+    if (input1Set.count() != 1 || input2Set.count() != 1) {
+        return NULL;
+    }
+    MoveNode& input1 = input1Set.at(0);
+    MoveNode& input2 = input2Set.at(0);
+    MoveNode *immMove = NULL;
+    MoveNode* varMove = NULL;
+    if (input1.move().source().isGPR() &&
+        input2.move().source().isImmediate()) {
+        immMove = &input2;
+        varMove = &input1;
+    } else if (input2.move().source().isGPR() &&
+               input1.move().source().isImmediate()) {
+        // no sub by variable
+        if (isSub) {
+            return NULL;
+        }
+        immMove = &input1;
+        varMove = &input2;
+    } else { // not yet supported.
+        return NULL;
+    }
+
+    myInc = immMove->move().source().value().intValue();
+    if (isSub) {
+        increment -= myInc;
+    } else {
+        increment += myInc;
+    }
+    return varMove;
+}
+
+const MoveNode* MemoryAliasAnalyzer::searchLoopIndexBasedIncrement(
+    DataDependenceGraph& ddg, const MoveNode &mn, long& loopIncrement) {
+
+    ProgramOperation& po = mn.sourceOperation();
+    if (po.operation().name() != "ADD") return NULL;
+
+    MoveNodeSet& input1Set = po.inputNode(1);
+    MoveNodeSet& input2Set = po.inputNode(2);
+    if (input1Set.count() != 1 || input2Set.count() != 1) {
+        return NULL;
+    }
+    const MoveNode& input1 = input1Set.at(0);
+    const MoveNode& input2 = input2Set.at(0);
+
+    if (!input1.isSourceVariable() || !input2.isSourceVariable()) {
+        return NULL;
+    }
+
+    const MoveNode* prevSrc2 = ddg.onlyRegisterRawSource(input2,2,2);
+    const MoveNode* loopSrc2 = ddg.onlyRegisterRawSource(input2,2,1);
+    if (prevSrc2 == NULL) {
+        return NULL;
+    }
+
+    int loopMul = 1;
+    if (!loopSrc2) {
+        int shiftAmount;
+        const MoveNode* loopIndex;
+        if (( loopIndex = detectConstantScale(*prevSrc2, shiftAmount))) {
+            prevSrc2 = ddg.onlyRegisterRawSource(*loopIndex,2,2);
+            if (prevSrc2 == NULL) {
+                return NULL;
+            }
+            loopMul <<= shiftAmount;
+            if (!(loopSrc2 = ddg.onlyRegisterRawSource(*loopIndex,2,1))) {
+                return NULL;
+            }
+        } else {
+            return NULL;
+        }
+    }
+
+    while (prevSrc2->isSourceVariable()) {
+        prevSrc2 = ddg.onlyRegisterRawSource(*prevSrc2);
+        if (prevSrc2 == NULL) {
+            return NULL;
+        }
+    }
+
+    // TODO: track over multiple copies
+    if (!prevSrc2->isSourceConstant()) {
+        return NULL;
+    }
+    int counterInit = prevSrc2->move().source().value().intValue();
+    if (counterInit != 0) {
+        return NULL;
+    }
+
+    long increment = 0;
+    const MoveNode* baseOfInc = findIncrement(*loopSrc2, increment);
+    if (!baseOfInc) {
+        return NULL;
+    }
+    loopIncrement = increment * loopMul;
+    // TODO: should check that the loop update really goes over the loop
+    return &input1;
+}
+
+const MoveNode* MemoryAliasAnalyzer::detectConstantScale(const MoveNode& mn, int &shiftAmount) {
+    if (!mn.isSourceOperation()) {
+        return NULL;
+    }
+    ProgramOperation& po = mn.sourceOperation();
+    if (po.operation().name() != "SHL") {
+        return NULL;
+    }
+    MoveNodeSet& input1Set = po.inputNode(1);
+    MoveNodeSet& input2Set = po.inputNode(2);
+    if (input1Set.count() != 1 || input2Set.count() != 1) {
+        return NULL;
+    }
+    const MoveNode& input1 = input1Set.at(0);
+    const MoveNode& input2 = input2Set.at(0);
+    if (!input1.isSourceVariable() ||
+        !input2.isSourceConstant()) {
+        return NULL;
+    }
+    shiftAmount = input2.move().source().value().intValue();
+    return &input1;
 }

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University.
+    Copyright (c) 2002-2020 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -29,7 +29,8 @@
  * @author Veli-Pekka Jääskeläinen 2007-2009 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
  * @author Esa Määttä 2009 (esa.maatta-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2007-2011
+ * @author Pekka Jääskeläinen 2007-2020
+ * @author Henry Linjamäki 2016-2017 (henry.linjamaki-no.spam-tut.fi)
  * @note reting: red
  */
 #ifdef NDEBUG
@@ -37,6 +38,8 @@
 #endif
 
 #include <list>
+#include <fstream>
+#include <sstream>
 
 #include <boost/format.hpp>
 
@@ -46,6 +49,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "LLVMTCEBuilder.hh"
 #include "Program.hh"
+#include "BasicBlock.hh"
 #include "Machine.hh"
 #include "Procedure.hh"
 #include "Instruction.hh"
@@ -74,7 +78,6 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "DataMemory.hh"
 #include "CodeLabel.hh"
 #include "DataLabel.hh"
-#include "BinaryStream.hh"
 #include "LLVMTCEBuilder.hh"
 #include "Operand.hh"
 #include "CodeGenerator.hh"
@@ -86,12 +89,18 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "InstructionReferenceManager.hh"
 #include "HWOperation.hh"
 #include "AssocTools.hh"
+#include "PRegionMarkerAnalyzer.hh"
 #include "Conversion.hh"
+#include "UnboundedRegisterFile.hh"
 #include "InstructionElement.hh"
+#include "MachineInfo.hh"
+#include "LiveRangeData.hh"
+#include "LLVMUtilities.hh"
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Module.h>
+#include "llvm/IR/InlineAsm.h"
 #include <llvm/CodeGen/MachineInstr.h>
 #include <llvm/CodeGen/MachineMemOperand.h>
 #include <llvm/CodeGen/MachineConstantPool.h>
@@ -130,6 +139,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #define END_SYMBOL_NAME "_end"
 
+//#define DISASSEMBLE_LLVM_OUTPUT
 POP_COMPILER_DIAGS
 
 using namespace TTAMachine;
@@ -137,12 +147,14 @@ using namespace llvm;
 using TTAProgram::CodeGenerator;
 
 unsigned LLVMTCEBuilder::MAU_BITS = 8;
+//pointer size in bytes
 unsigned LLVMTCEBuilder::POINTER_SIZE_32 = 4; // Pointer size in maus.
 unsigned LLVMTCEBuilder::POINTER_SIZE_64 = 8; // Pointer size in maus.
 
 char LLVMTCEBuilder::ID = 0;
 
 //#define DEBUG_LLVMTCEBUILDER
+//#define WARN_AS_FU_NOT_FOUND
 
 LLVMTCEBuilder::LLVMTCEBuilder(
     const TargetMachine& tm,
@@ -182,6 +194,12 @@ LLVMTCEBuilder::initMembers() {
     spillMoveCount_ = 0;
     dataInitialized_ = false;
     initialStackPointerValue_ = 0;
+
+    if (Application::cmdLineOptions() != NULL) {
+        options_ =
+            dynamic_cast<LLVMTCECmdLineOptions*>(
+                Application::cmdLineOptions());
+    }
 }
 
 
@@ -229,6 +247,11 @@ LLVMTCEBuilder::initDataSections() {
         for (int o = 0; o < fu.operationCount(); o++) {
             opset_.insert(StringTools::stringToLower(fu.operation(o)->name()));
         }
+    }
+
+    const auto& cu = *mach_->controlUnit();
+    for (int o = 0; o < cu.operationCount(); o++) {
+        opset_.insert(StringTools::stringToLower(cu.operation(o)->name()));
     }
 
     // Set GCU address space as the instruction address space.
@@ -282,22 +305,6 @@ LLVMTCEBuilder::initDataSections() {
 
     const TCETargetMachine* tm = dynamic_cast<const TCETargetMachine*>(tm_);
     assert(tm != NULL);
-    const unsigned stackAlignment = tm->getMaxMemoryAlignment();
-        
-#if 0
-    dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
-    end_ = dmem_->addressSpace().start();
-
-    // Avoid placing data to address 0, it may break some null pointer
-    // tests.
-
-    // Waste a valuable word of memory 
-    // (word to prevent writing bytes to 1,2,3 
-    //  addresses and then reading word from 0)
-    if (end_ == 0) {
-        end_ += stackAlignment;
-    }
-#endif
 
     TTAProgram::GlobalScope& gscope = prog_->globalScope();
 
@@ -309,24 +316,34 @@ LLVMTCEBuilder::initDataSections() {
 #ifdef LLVM_OLDER_THAN_3_8
         mang_->getNameWithPrefix(Buffer, i, false);
 #else
-	mang_->getNameWithPrefix(Buffer, &(*i), false);
+        mang_->getNameWithPrefix(Buffer, &(*i), false);
 #endif
         TCEString name(Buffer.c_str());
-        
+
+#ifdef LLVM_OLDER_THAN_11
         const llvm::GlobalValue& gv = *i;
         unsigned int gvAlign = gv.getAlignment();
+#else
+        const llvm::GlobalObject& gv = *i;
+        MaybeAlign gvAlign = gv.getAlign();
+#endif
 
-        if (gv.hasSection() && 
+        if (gv.hasSection() &&
             gv.getSection() == std::string("llvm.metadata")) {
             // do not write debug constants to the data section
-            continue; 
+            continue;
         }
 
         if (name == END_SYMBOL_NAME) {
             // Skip original _end symbol.
             continue;
         }
-                       
+
+        if (name == "__dso_handle") {
+            // Should not be needed without dynamic library support.
+            continue;
+        }
+
         if (!i->hasInitializer()) {
             std::cerr << "Initializer missing for: " << name << std::endl;
             assert(false && "No initializer. External linkage?");
@@ -340,11 +357,15 @@ LLVMTCEBuilder::initDataSections() {
         def.address = 0;
         def.addressSpaceId = 
             cast<PointerType>(gv.getType())->getAddressSpace();
+#ifdef LLVM_OLDER_THAN_11
         def.alignment = std::max(gvAlign, dl_->getPrefTypeAlignment(type));
+#else
+        def.alignment = std::max(gvAlign.hasValue()? gvAlign->value():0, (long unsigned int)(dl_->getPrefTypeAlignment(type)));
+#endif
         def.size = dl_->getTypeStoreSize(type);
         // memcpy seems to assume global values are aligned by 4
         if (def.size > def.alignment) {
-            def.alignment = std::max(def.alignment, stackAlignment);
+            def.alignment = std::max(def.alignment, tm->stackAlignment());
         }
 
         assert(def.alignment != 0);
@@ -502,38 +523,54 @@ LLVMTCEBuilder::emitDataDef(const DataDef& def) {
 }
 
 /**
+ * Creates data definition from a Constant pool entry definition.
+ *
+ * @param addr Address where the data is to be defined in the data memory.
+ * @param cv Constant initializer for the data.
+ */
+void
+LLVMTCEBuilder::emitDataDef(const ConstantDataDef& def) {
+
+#ifndef NDEBUG
+    unsigned address = def.address;
+#endif
+    createDataDefinition(0, address, def.value);
+    assert(address == def.address + def.size);
+}
+
+/**
  * Creates POM data definition from a llvm data initializer.
  *
  * @param addr Address for the POM data.
  * @param cv Initializer for the data in llvm.
  * @param forceInitialize In case wanting to use initialization data even 
  *                        for null values.
+ * @param forceAlignment Use the given alignment for the constant instead of
+ *                       the alignment defined in DataLayout.
  * @return POM data address after padding data to correct alignment.
  */
 unsigned
 LLVMTCEBuilder::createDataDefinition(
     int addressSpaceId, unsigned& addr, const Constant* cv, 
-    bool forceInitialize) {
+    bool forceInitialize, unsigned forceAlignment) {
 
     unsigned sz = dl_->getTypeStoreSize(cv->getType());
-    unsigned align = dl_->getABITypeAlignment(cv->getType());
+    unsigned align = (forceAlignment == 0)?
+        dl_->getABITypeAlignment(cv->getType()):forceAlignment;
 
-    unsigned pad = 0;
-    while ((addr + pad) % align != 0) pad++;
+    // KLUDGE FIX: Currently, for little-endian machines, OSAL base simd
+    // module has only vector load and store operations that require full
+    // vector width alignment.
+    // Remove this when accesses can be done at ABI alignment.
+    if (mach_->isLittleEndian() && cv->getType()->isVectorTy()) {
+        align = (forceAlignment == 0)?sz:forceAlignment;
+    }
 
     TTAMachine::AddressSpace& aSpace = 
         addressSpaceById(addressSpaceId);
     TTAProgram::DataMemory& dmem = dataMemoryForAddressSpace(aSpace);
 
-    // Pad with zeros to correct alignment.
-    if (pad > 0) {
-        std::vector<MinimumAddressableUnit> zeros(pad, 0);
-        TTAProgram::Address address(addr, aSpace);
-        dmem.addDataDefinition(
-            new TTAProgram::DataDefinition(
-                address, zeros, mach_->isLittleEndian()));
-        addr += pad;
-    }
+    padToAlignment(addressSpaceId, addr, align);
 
     // paddedAddr is the actual address data was put to
     // after alignment.
@@ -598,6 +635,20 @@ LLVMTCEBuilder::createDataDefinition(
                     !allZeros);
             }
         }
+    }  else if (const ConstantDataSequential* cds = 
+                dyn_cast<ConstantDataSequential>(cv)) {
+        // Force other alignment for vector types. If the element type is less
+        // than i32, it gets promoted based on DataLayout's ABI or Preferred
+        // alignment of integer type.
+        unsigned alignmentOverride = 0;
+        if (cv->getType()->isVectorTy()) {
+            alignmentOverride = sz/cds->getNumElements();
+        }
+        for (unsigned int i = 0; i < cds->getNumElements(); i++) {
+            createDataDefinition(
+                addressSpaceId, addr, cds->getElementAsConstant(i),
+                forceInitialize, alignmentOverride);
+        }
     } else {
         // LLVM does not include dump() when built in non-debug mode.
         // cv->dump();
@@ -626,7 +677,7 @@ LLVMTCEBuilder::createIntDataDefinition(
     unsigned sz = ((ci->getBitWidth() + MAU_BITS-1) / MAU_BITS);
 
     if (isPointer) {
-        sz = mach_->is64bit() ? POINTER_SIZE_32 : POINTER_SIZE_64;
+        sz = mach_->is64bit() ? POINTER_SIZE_64 : POINTER_SIZE_32;
     }
 
     if (!(sz == 1 || sz == 2 || sz == 4 || sz == 8)) {
@@ -731,26 +782,14 @@ LLVMTCEBuilder::createFPDataDefinition(
         def = new TTAProgram::DataDefinition(
             start, maus, mach_->isLittleEndian());
     } else if (type->getTypeID() == Type::HalfTyID) {
-
-        APFloat apf = cfp->getValueAPF();
-        bool inexact;
-#if LLVM_OLDER_THAN_4_0
-        apf.convert(APFloat::IEEEhalf, APFloat::rmNearestTiesToEven, &inexact);
-#else
-        apf.convert(APFloat::IEEEhalf(),
-            APFloat::rmNearestTiesToEven, &inexact);
-#endif
-        APInt api = apf.bitcastToAPInt();
+        APInt bits = cfp->getValueAPF().bitcastToAPInt();
+        uint64_t bigval = bits.getLimitedValue(0xFFFF);
         assert(sz == 2);
         union {
-            uint64_t i;
-            char bytes[4];
+            short h;
+            char bytes[2];
         } u;
-
-        u.i = api.getRawData()[0];
-        for (unsigned i = sz; i < 4; i++) {
-            maus.push_back(0);
-        }
+        u.h = bigval;
         if (!mach_->isLittleEndian()) {
             for (unsigned i = 0; i < sz; i++) {
                 maus.push_back(u.bytes[sz - i - 1]);
@@ -780,7 +819,7 @@ void
 LLVMTCEBuilder::createGlobalValueDataDefinition(
     int addressSpaceId, unsigned& addr, const GlobalValue* gv, int offset) {
 
-    TYPE_CONST Type* type = gv->getType();
+    TYPE_CONST PointerType* type = gv->getType();
 
     unsigned sz = dl_->getTypeStoreSize(type);
 
@@ -807,8 +846,9 @@ LLVMTCEBuilder::createGlobalValueDataDefinition(
         def = new TTAProgram::DataInstructionAddressDef(
             start, sz, ref, mach_->isLittleEndian());
     } else if (dataLabels_.find(label) != dataLabels_.end()) {
-        TTAProgram::Address ref(
-            (dataLabels_[label] + offset), aSpace);
+        unsigned gvAS = type->getAddressSpace();
+        TTAMachine::AddressSpace& aSpace = addressSpaceById(gvAS);
+        TTAProgram::Address ref((dataLabels_[label] + offset), aSpace);
 
         def = new TTAProgram::DataAddressDef(
             start, sz, ref, mach_->isLittleEndian());
@@ -902,15 +942,38 @@ LLVMTCEBuilder::createExprDataDefinition(
 }
 
 /**
- * Sets the value the stack pointer should be initialized to.
+ * Pads data memory with zeroes until desired alignment is reached.
+ *
+ * Zero padding is only added when necessary. That is the address is already
+ * aligned.
+ *
+ * @param addressSpaceId The address space id.
+ * @param addr The current address, which is updated to the desired alignment
+ *             after the call.
+ * @param align The desired alignment.
  */
 void
-LLVMTCEBuilder::setInitialStackPointerValue(unsigned value) {
-    initialStackPointerValue_ = value;
+LLVMTCEBuilder::padToAlignment(
+    int addressSpaceId, unsigned& addr, unsigned align) {
+
+    TTAMachine::AddressSpace& aSpace = addressSpaceById(addressSpaceId);
+    TTAProgram::DataMemory& dmem = dataMemoryForAddressSpace(aSpace);
+
+    unsigned pad = 0;
+    while ((addr + pad) % align != 0) pad++;
+
+    // Pad with zeros to correct alignment.
+    if (pad > 0) {
+        std::vector<MinimumAddressableUnit> zeros(pad, 0);
+        TTAProgram::Address address(addr, aSpace);
+        dmem.addDataDefinition(
+            new TTAProgram::DataDefinition(
+                address, zeros, mach_->isLittleEndian()));
+
+        addr += pad;
+    }
 }
 
-
-//        std::min(addressSpaceById(0).end() & 0xfffffff8, value);
 
 /**
  * Creates POM procedure of a MachineFunction object and adds it to the
@@ -937,7 +1000,17 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
     // the new TTA backend does not initialize TCETargetMachine
     // in construction (at least not yet)
     if (tm_ == NULL)
-        tm_ = &mf.getTarget();
+        tm_ = dynamic_cast<const TCETargetMachine*>(&mf.getTarget());
+
+    assert(tm_ != NULL);
+
+#if LLVM_OLDER_THAN_4_0
+    curFrameInfo_ = mf.getFrameInfo();
+#else
+    curFrameInfo_ = &mf.getFrameInfo();
+#endif
+    assert(curFrameInfo_ != NULL);
+
     // ensure data sections have been initialized
     initDataSections();
 
@@ -945,7 +1018,7 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
     if (mf.begin() == mf.end()) return true;
 
     // TODO: make list of mf's which for the pass will be ran afterwards..
-    
+
     SmallString<256> Buffer;
 #ifdef LLVM_OLDER_THAN_6_0
     mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
@@ -989,6 +1062,13 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
             // Pseudo instructions:
             if (instr == NULL) continue;
 
+            if (multiDataMemMachine_ && hasAmbiguousASpaceRefs(*instr)) {
+                Application::logStream()
+                    << "ERROR: The machine contains multiple data address spaces "
+                    << "and ambigious memory accessing moves '"
+                    << instr->toString() << "' were found." << std::endl;
+                abort();
+            }
 
             // If there was any empty basic blocks before this instruction,
             // set the basic blocks to point the next available (this)
@@ -1039,8 +1119,18 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
             instructionReferenceManager().createReference(*dummyIns);
         prog_->globalScope().addCodeLabel(
             new TTAProgram::CodeLabel(ref, fnName));
-        
+               
         codeLabels_[fnName] = dummyIns;
+    }
+    if (Application::verboseLevel() > 0) {
+        Application::logStream() 
+            << "spill moves in " << 
+#ifdef LLVM_OLDER_THAN_6_0
+	    (std::string)(mf.getFunction()->getName()) << ": " 
+#else
+	    (std::string)(mf.getFunction().getName()) << ": "
+#endif
+            << spillMoveCount_ << std::endl;
     }
     return false;
 }
@@ -1052,37 +1142,11 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
  * Fixes dummy code references to point the actual instructions.
  */
 bool
-LLVMTCEBuilder::doFinalization(Module& m) {
+LLVMTCEBuilder::doFinalization(Module& /* m */) {
+    
+    // errs() << "Finalize LLVMPOM builder\n";
 
-    // get machine dce analysis
-    MachineDCE& MDCE = getAnalysis<MachineDCE>();
-    // For some reason this is not otherwise ran _before_ this pass,
-    // even though this pass depends on it.
-    MDCE.doFinalization(m);
-
-    for (MachineDCE::UnusedFunctionsList::iterator i = 
-             MDCE.removeableFunctions.begin();
-         i != MDCE.removeableFunctions.end(); i++) {        
-        std::string name = *i;
-#if 0
-        Application::logStream() 
-            <<  "Deleting unused function from pom: " 
-            << name << std::endl;
-#endif
-
-        TTAProgram::Procedure& notUsedProc = prog_->procedure(name);
-        prog_->removeProcedure(notUsedProc);
-    }
-             
-    // Create data initializers.
-    for (unsigned i = 0; i < data_.size(); i++) {
-        emitDataDef(data_[i]);
-    }
-    for (unsigned i = 0; i < udata_.size(); i++) {
-        emitDataDef(udata_[i]);
-    }
-
-    TTAMachine::AddressSpace& aSpace = addressSpaceById(0);  
+    TTAMachine::AddressSpace& aSpace = addressSpaceById(0);
     unsigned& dataEndPos = dataEnd(aSpace);
 
     // Create new _end symbol at the end of the data memory definitions of
@@ -1096,6 +1160,19 @@ LLVMTCEBuilder::doFinalization(Module& m) {
     def.size = 1;
     def.initialize = false;
     emitDataDef(def);
+    dataLabels_[def.name] = def.address;
+
+    // Create data initializers.
+    for (unsigned i = 0; i < data_.size(); i++) {
+        emitDataDef(data_[i]);
+    }
+    for (unsigned i = 0; i < udata_.size(); i++) {
+        emitDataDef(udata_[i]);
+    }
+    for (auto cpDataDef : cpData_) {
+        emitDataDef(cpDataDef);
+    }
+
 
     TTAProgram::Address endAddr(dataEndPos, aSpace);
     TTAProgram::DataLabel* label = new TTAProgram::DataLabel(
@@ -1162,37 +1239,103 @@ LLVMTCEBuilder::doFinalization(Module& m) {
     // Add stackpointer initialization.
     emitSPInitialization();
 
-    /* In case both the program and the machine use multiple
-       data address spaces, ensure all memory operations are
-       annotated with the candidate LSUs. In this scenario
-       no memory operation is freely schedulable to any LSU otherwise
-       random memory accesses happen.
+#ifdef DISASSEMBLE_LLVM_OUTPUT    
+    std::ofstream outfile("llvm_output.S");
+    outfile << POMDisassembler::disassemble(*prog_, true);
+    outfile.close();
+#endif
 
-       In case the machine contains only a single data address space,
-       all accesses (regardless of their id in the code) are mapped to
-       it so the annotations are not needed.
-    */
-    if (multiAddrSpacesFound_ && multiDataMemMachine_) {
-        TTAProgram::Program::InstructionVector instrs = 
-            prog_->instructionVector();
-        for (TTAProgram::Program::InstructionVector::const_iterator i = 
-                 instrs.begin(); i != instrs.end(); ++i) {
-            if ((*i)->moveCount() == 0) continue;
-            TTAProgram::Move& m = (*i)->move(0);
-            TTAProgram::Terminal& t = m.destination();
-            if (t.isFUPort() && !t.isRA() &&
-                t.hintOperation().operand(t.operationIndex()).isAddress() &&
-                !m.hasAnnotations(
-                    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST)) {
-                std::cerr
-                    << "The program refers to multiple data address spaces, "
-                    << "the machine contains multiple data address spaces and "
-                    << "an ambigious memory accessing move '" << m.toString()
-                    << "' found." << std::endl;
-                abort();
+    return false;
+}
+
+void
+LLVMTCEBuilder::deleteDeadProcedures() {
+    // get machine dce analysis
+    MachineDCE& MDCE = getAnalysis<MachineDCE>();
+
+    for (MachineDCE::UnusedFunctionsList::iterator i = 
+             MDCE.removeableFunctions.begin();
+         i != MDCE.removeableFunctions.end(); i++) {        
+        std::string name = *i;
+        if (Application::verboseLevel() > 0) {
+            Application::logStream() 
+                << "Deleting unused function: " << name << std::endl;
+        }
+        TTAProgram::Procedure& notUsedProc = prog_->procedure(name);
+        // Delete data definitions poining to the deleted procedure.
+        for (int dmemIdx = 0; dmemIdx < prog_->dataMemoryCount(); dmemIdx++) {
+            auto& dmem = prog_->dataMemory(dmemIdx);
+            for (int dataDefIdx = 0; dataDefIdx < dmem.dataDefinitionCount();
+                 dataDefIdx++) {
+                auto& dataDef = dmem.dataDefinition(dataDefIdx);
+                if (dataDef.isInstructionAddress()) {
+                    auto instrAddr = dataDef.destinationAddress();
+                    if (instrAddr != notUsedProc.startAddress()) {
+                        continue;
+                    }
+                    if (Application::verboseLevel() > 0) {
+                        Application::logStream()
+                            << "Deleting data definition pointing to "
+                            << "dead function: " << name << std::endl;
+                    }
+                    dmem.deleteDataDefinition(dataDefIdx);
+                }
             }
         }
+        prog_->removeProcedure(notUsedProc);
+
+        delete &notUsedProc;
     }
+}
+
+/**
+ * Sets the value the stack pointer should be initialized to.
+ */
+void
+LLVMTCEBuilder::setInitialStackPointerValue(unsigned value) {
+    initialStackPointerValue_ = value;
+}
+
+
+//        std::min(addressSpaceById(0).end() & 0xfffffff8, value);
+
+/**
+ * Checks that the potential memory operations triggered in the
+ * given unscheduled instruction (with exactly one move) have 
+ * unambiguous address space.
+ *
+ * This should be called as a sanity check for instructions in
+ * a program (and a machine) with multiple address spaces. Returns
+ * true in case the instruction has at least one move that refers
+ * to memory without the address space information being unambiguous
+ * in the currently targeted machine.
+ */
+bool
+LLVMTCEBuilder::hasAmbiguousASpaceRefs(
+    const TTAProgram::Instruction& instr) const {
+
+    const TTAProgram::Move& m = instr.move(0);
+    const TTAProgram::Terminal& t = m.destination();
+    if (t.isFUPort() && !t.isRA() &&
+        t.hintOperation().operand(t.operationIndex()).isAddress() &&
+        !m.hasAnnotations(
+            TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST)) {
+                
+        TCEString opName = 
+            dynamic_cast<const TTAProgram::TerminalFUPort&>(t).
+            hwOperation()->name();
+        int numberOfPotentialFUs = 0;
+        const TTAMachine::Machine::FunctionUnitNavigator fuNav =
+            mach_->functionUnitNavigator();
+        for (int i = 0; i < fuNav.count(); i++) {
+            const TTAMachine::FunctionUnit& fu = *fuNav.item(i);
+            if (fu.hasOperation(opName)) numberOfPotentialFUs++;
+        }
+
+        if (numberOfPotentialFUs > 1) {
+            return true;
+        }
+    }    
     return false;
 }
 
@@ -1274,6 +1417,13 @@ LLVMTCEBuilder::emitInstruction(
             return NULL;
         }
         
+        // Debug labels don't require any actual instructions.
+        // TODO: should store the data and apply to next? (or prev?) instr,
+        // but just ignore it to not cause a crash.
+        if (opName =="DEBUG_LABEL") {
+            return nullptr;
+        }
+
         if (opName[0] == '?') {
             hasGuard = true;
             opName = opName.substr(1);
@@ -1291,7 +1441,7 @@ LLVMTCEBuilder::emitInstruction(
 
         // TODO: guarded also for these
         if (opName == "INLINEASM") {
-            return emitInlineAsm(mi, proc);
+            return emitOperationMacro(mi, proc);
         }
 
         if (opName == "CMOV_SELECT") {
@@ -1299,6 +1449,16 @@ LLVMTCEBuilder::emitInstruction(
         }
     } else {
         opName = operationName(*mi);
+    }
+
+    // split compare + jump combo op.
+    size_t split = opName.find("+");
+    if (split != std::string::npos) {
+        TCEString firstOp = opName.substr(0, split);
+        TCEString remainingName = opName.substr(split+1);
+        TTAProgram::Instruction* ins = emitComparisonForBranch(firstOp, mi, proc);
+        emitRemaingingBrach(remainingName, mi, proc);
+        return ins;
     }
 
     const HWOperation& op = getHWOperation(opName);
@@ -1331,8 +1491,8 @@ LLVMTCEBuilder::emitInstruction(
 
             if (mo.isReg() && mo.isUse()) {
                 guardOperandIndex = o;
-                // Create move from the condition operand register to bool register
-                // which is used by the guard.
+                // Create move from the condition operand register to bool
+                // register which is used by the guard.
                 TTAProgram::Terminal *t = createTerminal(mo);
                 // inv guards not yet supported
                 guard = createGuard(t, trueGuard);
@@ -1384,7 +1544,7 @@ LLVMTCEBuilder::emitInstruction(
             // in that case correctly, thus we have to treat those operations
             // as special cases for the time being
             if (operation.operand(inputOperand).isAddress() ||
-                (isBaseOffsetMemOperation(operation) && inputOperand == 1)) {
+                (operation.isBaseOffsetMemOperation() && inputOperand == 1)) {
                 // MachineInstructions have two operands for each Operation
                 // address operand: base and offset immediate, split it to
                 // two in case of an add+ld/st.
@@ -1404,7 +1564,7 @@ LLVMTCEBuilder::emitInstruction(
                 addPointerAnnotations(mi, *move);
                 o += 1;                  
                 const MachineOperand& offset = mi->getOperand(o);
-                if (isBaseOffsetMemOperation(operation)) {
+                if (operation.isBaseOffsetMemOperation()) {
                     ++inputOperand;
                     // the offset is always the 2nd operand for the standard
                     // base+offset ops
@@ -1416,9 +1576,9 @@ LLVMTCEBuilder::emitInstruction(
                     TTAProgram::MoveGuard* guardCopy = 
                         guard == NULL ? NULL : guard->copy();
                     
-                    move = createMove(src, dst, bus, guardCopy);
+                    auto move = createMove(src, dst, bus, guardCopy);
                     instr = new TTAProgram::Instruction();
-                    instr->addMove(move);
+                    instr->addMove(move);           
                     operandMoves.push_back(instr);
                     debugDataToAnnotations(mi, *move);
                 } else {
@@ -1465,7 +1625,7 @@ LLVMTCEBuilder::emitInstruction(
             resultMoves.push_back(instr);
             debugDataToAnnotations(mi, *move);
         }
-    }
+    } // End of for each MI Operand
 
     for (unsigned int i = 0; i < resultMoves.size();i++) {
         TTAProgram::Instruction& resultIns = *resultMoves[i];
@@ -1490,7 +1650,7 @@ LLVMTCEBuilder::emitInstruction(
         const TTAMachine::HWOperation* jump =  &getHWOperation(opName);
         TTAProgram::TerminalFUPort* dst = 
         	new TTAProgram::TerminalFUPort(*jump, 1);
-        int width = mach_->is64bit() ? 64: 32;
+        int width = mach_->is64bit() ? 64 : 32;
         SimValue val(0, width);
                     
         auto move = createMove(
@@ -1503,12 +1663,70 @@ LLVMTCEBuilder::emitInstruction(
     } else {
         assert(false && "No moves?");
     }
-    boost::shared_ptr<ProgramOperation> po(
-    	new ProgramOperation(operation, mi));
+    ProgramOperationPtr po(new ProgramOperation(operation, mi));
 
+    // Read candidate FUs from MachineInstr metadata.
+    std::vector<std::string> candidateFUs;
+    for (unsigned i = 0; i < mi->getNumOperands(); ++i) {
+
+        const MachineOperand& op = mi->getOperand(i);
+        if (!op.isMetadata()) continue;
+        const MDNode* mdNode = op.getMetadata();
+        if (mdNode->getNumOperands() > 0) {
+
+#ifdef LLVM_OLDER_THAN_3_6
+            Value* op = mdNode->getOperand(0);
+            MDString* str = dyn_cast<MDString>(op);
+#else
+            llvm::Metadata* op = mdNode->getOperand(0);
+            MDString* str = dyn_cast<llvm::MDString>(op);
+#endif
+
+            if (str->getString().str() == "fu_candidates") {
+                for (unsigned j = 1; j < mdNode->getNumOperands(); ++j) {
+#ifdef LLVM_OLDER_THAN_3_6
+                    op = mdNode->getOperand(j);
+                    str = dyn_cast<MDString>(op);
+#else
+                    op = mdNode->getOperand(j);
+                    str = dyn_cast<MDString>(op);
+#endif
+                    TCEString fuName = str->getString().str();
+                    /* The metadata from MachineInstr might contain "illegal"
+                       FU candidates, pointing to FUs that do not contain the
+                       operation. Filter them out. */
+                    if (mach_->functionUnitNavigator().hasItem(fuName) && 
+                        mach_->functionUnitNavigator().item(fuName)->
+                        hasOperation(operation.name())) {
+#ifdef DEBUG_LLVMTCEBUILDER
+                        Application::logStream()
+                            << "FU candidate " << str->getString().str() << " set for ";
+                        mi->dump();
+#endif
+                        candidateFUs.push_back(str->getString().str());
+                    }
+                }
+            }
+        }
+    }
+      
     for (unsigned i = 0; i < operandMoves.size(); i++) {
         TTAProgram::Instruction* instr = operandMoves[i];
         auto m = instr->movePtr(0);
+        
+        // Add candidate FUs as DST candidates
+        for (unsigned j = 0; j < candidateFUs.size(); ++j) {
+            if (m->hasAnnotations(
+                    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST) &&
+                !m->hasAnnotation(
+                    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST,
+                    candidateFUs[j])) 
+                continue; // do not add candidates that are not allowed                   
+                        
+            m->addAnnotation(
+                TTAProgram::ProgramAnnotation(
+                    TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_DST, candidateFUs[j]));
+        }
 
         // create the memory category annotations
         if (isSpill) {
@@ -1531,6 +1749,20 @@ LLVMTCEBuilder::emitInstruction(
     for (unsigned i = 0; i < resultMoves.size(); i++) {
         TTAProgram::Instruction* instr = resultMoves[i];
         auto m = instr->movePtr(0);
+        
+        // Add candidate FUs as SRC candidates
+        for (unsigned j = 0; j < candidateFUs.size(); ++j) {
+            if (m->hasAnnotations(
+                    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC) &&
+                !m->hasAnnotation(
+                    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_SRC,
+                    candidateFUs[j])) 
+                continue; // do not add candidates that are not allowed                   
+
+            m->addAnnotation(TTAProgram::ProgramAnnotation(
+                TTAProgram::ProgramAnnotation::ANN_CONN_CANDIDATE_UNIT_SRC, candidateFUs[j]));
+        }
+        
         // create the memory category annotations
         if (isSpill) {
             m->addAnnotation(
@@ -1550,11 +1782,79 @@ LLVMTCEBuilder::emitInstruction(
         createMoveNode(po, m, false);
     }
 
-    if (guard != NULL) {
-	delete guard;
-    }
+    delete guard; guard = NULL;
     return first;
 }
+
+
+TTAProgram::Instruction* LLVMTCEBuilder::emitComparisonForBranch(
+    TCEString opName, const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
+
+    const HWOperation& op = getHWOperation(opName);
+
+    OperationPool pool;
+    const Operation& operation = pool.operation(opName.c_str());
+    const Bus& bus = UniversalMachine::instance().universalBus();
+
+    ProgramOperationPtr po(new ProgramOperation(operation, mi));
+
+    TTAProgram::Instruction* first = nullptr;
+    for (int i = 0; i < 2; i++) {
+        const MachineOperand& mo = mi->getOperand(i);
+        TTAProgram::Terminal* src = createTerminal(mo);
+        TTAProgram::Terminal* dst = new TTAProgram::TerminalFUPort(op, i+1);
+        auto move = createMove(src, dst, bus);
+        TTAProgram::Instruction* instr = new TTAProgram::Instruction();
+        if (i == 0) {
+            first = instr;
+        }
+        instr->addMove(move);
+        proc->add(instr);
+        createMoveNode(po, move, true);
+    }
+
+    // dummy result value, to universal machine register
+    TTAProgram::Terminal* src = new TTAProgram::TerminalFUPort(op, 3);
+    TTAProgram::Terminal* dst = new TTAProgram::TerminalRegister(
+        *UniversalMachine::instance().booleanRegisterFile().port(0), 0);
+    auto move = createMove(src, dst, bus);
+    TTAProgram::Instruction* instr = new TTAProgram::Instruction();
+    instr->addMove(move);
+    proc->add(instr);
+    createMoveNode(po, move, false);
+    return first;
+}
+
+TTAProgram::Instruction* LLVMTCEBuilder::emitRemaingingBrach(
+    TCEString opName, const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
+
+    bool inverted = (opName[0] == '!');
+    opName = opName.substr(1); // drop the inversion char
+    const HWOperation& op = getHWOperation(opName);
+
+    OperationPool pool;
+    const Operation& operation = pool.operation(opName.c_str());
+    const Bus& bus = UniversalMachine::instance().universalBus();
+
+    ProgramOperationPtr po(new ProgramOperation(operation, mi));
+    const MachineOperand& mo = mi->getOperand(2);
+    TTAProgram::Terminal* src = createTerminal(mo);
+    TTAProgram::Terminal* dst = new TTAProgram::TerminalFUPort(op, 1);
+
+    RegisterGuard* bypassRegGuard =
+        new RegisterGuard(inverted,
+                          UniversalMachine::instance().booleanRegisterFile(),
+                          0, nullptr);
+
+    auto move = createMove(src, dst, bus, (new TTAProgram::MoveGuard(*bypassRegGuard)));
+    TTAProgram::Instruction* instr = new TTAProgram::Instruction();
+    instr->addMove(move);
+    proc->add(instr);
+    createMoveNode(po, move, true);
+    return instr;
+}
+
+
 
 void
 LLVMTCEBuilder::copyFUAnnotations(
@@ -1575,24 +1875,12 @@ LLVMTCEBuilder::copyFUAnnotations(
     }
 }
 
-
-/**
- * Returns true in case the operation is one of the standard base+offset
- * operations with operand 1 the base address and operand 2 the offset.
- */
-bool
-LLVMTCEBuilder::isBaseOffsetMemOperation(const Operation& operation) const {
-    std::string name = operation.name().upper();
-
-    return name == "ALDW" || name == "ALDHU" || 
-        name == "ALDH" || name == "ALDQU" ||
-        name == "ALDQ" || name == "ASTW" ||
-        name == "ASTH" || name == "ASTQ";
-}
-
 /**
  * Adds annotations to a pointer-register move to assist the
  * TCE-side alias analysis.
+ *
+ * Note: this function now assumes that mi has only one address
+ * operand.
  */
 void
 LLVMTCEBuilder::addPointerAnnotations(
@@ -1607,18 +1895,39 @@ LLVMTCEBuilder::addPointerAnnotations(
     }
 #endif
 
+    if (pregions_->markersFound()) {
+        unsigned nodeId = pregions_->pregion(*mi);
+        if (nodeId != UINT_MAX) {
+            TTAProgram::ProgramAnnotation progAnnotation(
+                TTAProgram::ProgramAnnotation::ANN_PARALLEL_REGION_ID, 
+                nodeId);
+            move.addAnnotation(progAnnotation); 
+        } 
+    }
+
     int addrSpaceId = 0;
     // TODO: why this is a loop actually?? It only handles a single 
     // Move anyways --Pekka
     for (MachineInstr::mmo_iterator i = mi->memoperands_begin();
          i != mi->memoperands_end(); i++) {
         
-        // annotate only RF -> {ld,st}.1 moves
-        // @todo make this more foolproof
-        if (!(move.source().isGPR() &&
-              move.destination().operationIndex() == 1))
-            continue;
-            
+        const PseudoSourceValue* psv = (*i)->getPseudoValue();
+        if (psv != NULL) {
+            if (psv->isConstant(curFrameInfo_)) {
+                TTAProgram::ProgramAnnotation progAnnotation(
+                    TTAProgram::ProgramAnnotation::ANN_CONSTANT_MEM, "");
+                move.addAnnotation(progAnnotation); 
+            } else {
+// it seems this breaks something, so disabled.
+#if 0
+                if (!psv->isAliased(curFrameInfo_)) {
+                    TTAProgram::ProgramAnnotation progAnnotation(
+                        TTAProgram::ProgramAnnotation::ANN_STACKUSE_SPILL, "");
+                    move.addAnnotation(progAnnotation); 
+                }
+#endif
+            }
+        }
         const llvm::Value* memOpValue = (*i)->getValue();
 
         if (memOpValue != NULL) {
@@ -1627,13 +1936,21 @@ LLVMTCEBuilder::addPointerAnnotations(
             // GetElemntPtrInst
                 
             if (memOpValue->hasName()) {
-                pointerName = memOpValue->getName();
+#ifdef LLVM_OLDER_THAN_11
+		pointerName = memOpValue->getName();
+#else
+		pointerName = memOpValue->getName().str();
+#endif
             } else if (isa<GetElementPtrInst>(memOpValue)) {
                 memOpValue =
                     cast<GetElementPtrInst>(
                         memOpValue)->getPointerOperand();
                 if (memOpValue->hasName()) {
+#ifdef LLVM_OLDER_THAN_11
                     pointerName = memOpValue->getName();
+#else
+                    pointerName = memOpValue->getName().str();
+#endif
                 }
             } 
 
@@ -1647,7 +1964,7 @@ LLVMTCEBuilder::addPointerAnnotations(
                 TTAProgram::ProgramAnnotation progAnnotation(
                     TTAProgram::ProgramAnnotation::ANN_POINTER_OFFSET, 
                     offset);
-                move.addAnnotation(progAnnotation);
+                move.addAnnotation(progAnnotation); 
             }
 
             // try to find the origin for the pointer which can be
@@ -1678,7 +1995,7 @@ LLVMTCEBuilder::addPointerAnnotations(
                     TTAProgram::ProgramAnnotation progAnnotation(
                         TTAProgram::ProgramAnnotation::
                         ANN_OPENCL_WORK_ITEM_ID, id);
-                    move.addAnnotation(progAnnotation);
+                    move.addAnnotation(progAnnotation); 
                     // In case the memory operand is BitCastInst, we may be
                     // looking at the vector memory access.
                     // Find the type of the accessed element and if it is 
@@ -1702,7 +2019,7 @@ LLVMTCEBuilder::addPointerAnnotations(
                                 TTAProgram::ProgramAnnotation progAnnotation(
                                     TTAProgram::ProgramAnnotation::
                                     ANN_OPENCL_WORK_ITEM_ID_LAST, idLast);
-                                move.addAnnotation(progAnnotation);
+                                move.addAnnotation(progAnnotation);    
                             }
                         }
                     }                                                
@@ -1713,11 +2030,11 @@ LLVMTCEBuilder::addPointerAnnotations(
                     TTAProgram::ProgramAnnotation progAnnotation(
                         TTAProgram::ProgramAnnotation::
                         ANN_POINTER_NOALIAS, 1);
-                    move.addAnnotation(progAnnotation);
+                    move.addAnnotation(progAnnotation); 
                     noAliasFound_ = true;
 
 
-                    /// TODO: this is not correct, especially
+                    /// FIXME: this is not correct, especially
                     /// when the above offset info is set!
 
                     /*
@@ -1735,8 +2052,11 @@ LLVMTCEBuilder::addPointerAnnotations(
                       derived from and separate annotation for the 
                       real pointer name + offset.
                     */
-
-                    pointerName = originMemOpValue->getName();
+#ifdef LLVM_OLDER_THAN_11
+		    pointerName = originMemOpValue->getName();
+#else
+		    pointerName = originMemOpValue->getName().str();
+#endif
                     break;
                 } else if (isa<GetElementPtrInst>(originMemOpValue)) {
                     originMemOpValue =
@@ -1745,6 +2065,10 @@ LLVMTCEBuilder::addPointerAnnotations(
                 } else if (isa<BitCastInst>(originMemOpValue)) {
                     originMemOpValue =                            
                         cast<BitCastInst>(originMemOpValue)->
+                        getOperand(0);
+                } else if (isa<PtrToIntInst>(originMemOpValue)) {
+                    originMemOpValue =                            
+                        cast<PtrToIntInst>(originMemOpValue)->
                         getOperand(0);
                 } else {
                     break;
@@ -1755,7 +2079,7 @@ LLVMTCEBuilder::addPointerAnnotations(
                 TTAProgram::ProgramAnnotation pointerAnn(
                     TTAProgram::ProgramAnnotation::ANN_POINTER_NAME, 
                     pointerName);
-                move.addAnnotation(pointerAnn);
+                move.addAnnotation(pointerAnn); 
             }
 
             addrSpaceId =
@@ -1770,10 +2094,10 @@ LLVMTCEBuilder::addPointerAnnotations(
                 TTAProgram::ProgramAnnotation progAnnotation(
                     TTAProgram::ProgramAnnotation::ANN_POINTER_ADDR_SPACE, 
                     addressSpace);
-                move.addAnnotation(progAnnotation);
+                move.addAnnotation(progAnnotation); 
                 multiAddrSpacesFound_ = true;
-            }                
-        }
+            } 
+        } 
     }
     if (multiDataMemMachine_) {
         // annotate all memory moves with FU candidate sets
@@ -1797,7 +2121,7 @@ LLVMTCEBuilder::debugDataToAnnotations(
     if (mi->getFlag(MachineInstr::FrameSetup)) {
             TTAProgram::ProgramAnnotation progAnnotation(
                 TTAProgram::ProgramAnnotation::ANN_STACKUSE_RA_SAVE);
-            move.setAnnotation(progAnnotation);
+            move.setAnnotation(progAnnotation); 
     }
 
     DebugLoc dl = mi->getDebugLoc();
@@ -1810,7 +2134,7 @@ LLVMTCEBuilder::debugDataToAnnotations(
     if (dl.getLine() == 0xFFFFFFF0) {
         TTAProgram::ProgramAnnotation progAnnotation(
             TTAProgram::ProgramAnnotation::ANN_STACKUSE_SPILL);
-        move.setAnnotation(progAnnotation);
+        move.setAnnotation(progAnnotation); 
         ++spillMoveCount_;
     } else {
         // handle file+line number debug info
@@ -1826,7 +2150,11 @@ LLVMTCEBuilder::debugDataToAnnotations(
             sourceLineNumber = dl.getLine();
             sourceFileName = 
                 static_cast<TCEString>(
+#ifdef LLVM_OLDER_THAN_11
                     cast<DIScope>(dl.getScope())->getFilename());
+#else
+                    cast<DIScope>(dl.getScope())->getFilename().str());
+#endif
 
             if (sourceFileName.size() >
                 TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES) {
@@ -1839,14 +2167,14 @@ LLVMTCEBuilder::debugDataToAnnotations(
             TTAProgram::ProgramAnnotation progAnnotation(
                 TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_LINE, 
                 sourceLineNumber);
-            move.addAnnotation(progAnnotation);
+            move.addAnnotation(progAnnotation); 
                        
             if (sourceFileName != "") {
                 TTAProgram::ProgramAnnotation progAnnotation(
                     TTAProgram::ProgramAnnotation::
                     ANN_DEBUG_SOURCE_CODE_PATH, 
                     sourceFileName);
-                move.addAnnotation(progAnnotation);
+                move.addAnnotation(progAnnotation); 
             }
         }
     }
@@ -1856,13 +2184,14 @@ TTAProgram::TerminalRegister*
 LLVMTCEBuilder::createTerminalRegister(
     const std::string& rfName, int idx) {
 
+    const RegisterFile* rf;
     if (!mach_->registerFileNavigator().hasItem(rfName)) {
-	TCEString msg = "regfile ";
-	msg << rfName << " not found.";
+        rf = &UniversalMachine::instance().integerRegisterFile();
+    } else {
+        rf = mach_->registerFileNavigator().item(rfName);
+        assert(idx >= 0 && idx < rf->size());
     }
-    const RegisterFile* rf = 
-	mach_->registerFileNavigator().item(rfName);
-    assert(idx >= 0 && idx < rf->size());
+
     const RFPort* port = NULL;
     for (int i = 0; i < rf->portCount(); i++) {
 	if (rf->port(i)->isOutput()) {
@@ -1883,7 +2212,7 @@ LLVMTCEBuilder::createTerminalRegister(
 TTAProgram::Terminal*
 LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
     if (bitLimit == 0) {
-        bitLimit = mach_->is64bit() ? 64: 32;
+        bitLimit = mach_->is64bit() ? 64 : 32;
     }
 
     if (mo.isReg()) {
@@ -1983,6 +2312,8 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
         return createSymbolReference(mo);
     } else if (mo.isMCSymbol()) {
         return createProgramOperationReference(mo);
+    } else if (mo.isMetadata()) {
+        assert("Metadata MachineOperands should not get here" && false);
     } else {
         std::cerr << "Unknown src operand type!" << std::endl;
         // LLVM does not include dump() when built in non-debug mode.
@@ -2069,9 +2400,13 @@ LLVMTCEBuilder::createSymbolReference(const TCEString& name) {
 }
 
 /**
- * Emits data definitions for a function constant pool.
+ * Reserves space and addresses for constant pool entries.
+ *
+ * Data defitions are not emitted until in doFinalization() because CP values
+ * may refer to symbols not yet encountered such as functions and _end symbol.
  *
  * The constant pool is appended to the end of the default data memory.
+ * FIXME: should be emitted before global data.
  *
  * @param mcp Constant pool to emit.
  */
@@ -2082,11 +2417,41 @@ LLVMTCEBuilder::emitConstantPool(const MachineConstantPool& mcp) {
 
     const std::vector<MachineConstantPoolEntry>& cp = mcp.getConstants();
 
-    unsigned& dataEndPos = dataEnd(addressSpaceById(0));      
+    const unsigned cpAddrSpaceId = 0;
+    unsigned& dataEndPos = dataEnd(addressSpaceById(cpAddrSpaceId));
+
     for (unsigned i = 0, e = cp.size(); i != e; ++i) {
-        assert(!(cp[i].isMachineConstantPoolEntry()) && "NOT SUPPORTED");
-        currentFnCP_[i] = 
-            createDataDefinition(0, dataEndPos, cp[i].Val.ConstVal);
+        auto& cpe = cp[i];
+        assert(!(cpe.isMachineConstantPoolEntry()) && "NOT SUPPORTED");
+        if (!globalCP_.count(cpe.Val.ConstVal)) {
+            // New unique constant.
+#ifdef LLVM_OLDER_THAN_11
+            assert(cpe.getAlignment() > 0);
+            unsigned alignment = std::max(
+                static_cast<unsigned>(cpe.getAlignment()),
+                dl_->getPrefTypeAlignment(cpe.getType()));
+#else
+	    assert(cpe.getAlign().value() > 0);
+	    MaybeAlign constantPoolAlignment = cpe.getAlign();
+            unsigned alignment = std::max(
+                static_cast<unsigned>(constantPoolAlignment? 0: cpe.getAlign().value()),
+                dl_->getPrefTypeAlignment(cpe.getType()));
+#endif
+            padToAlignment(cpAddrSpaceId, dataEndPos, alignment);
+            unsigned address = dataEndPos;
+            unsigned size = dl_->getTypeStoreSize(cpe.getType());
+
+            cpData_.emplace_back(ConstantDataDef(
+                address, alignment, size, cpe.Val.ConstVal));
+            globalCP_.insert(std::make_pair(cpe.Val.ConstVal, address));
+            dataEndPos += size;
+            // std::cerr << "Constant* = " << cpe.Val.ConstVal << ", "
+            //           << "value = ";
+            // cpe.Val.ConstVal->dump();
+        }
+        // Map current machine function constant pool indexes to the
+        // addresses of the global CP constants.
+        currentFnCP_[i] = globalCP_.at(cpe.Val.ConstVal);
     }
 }
 
@@ -2100,11 +2465,11 @@ LLVMTCEBuilder::emitConstantPool(const MachineConstantPool& mcp) {
  */
 std::shared_ptr<TTAProgram::Move>
 LLVMTCEBuilder::createMove(
-    const MachineOperand& src, const MachineOperand& dst, 
+    const MachineOperand& src, const MachineOperand& dst,
     TTAProgram::MoveGuard* guard) {
     assert(!src.isReg() || src.isUse());
     assert(dst.isDef());
-    
+
     // eliminate register-to-itself moves
     if (dst.isReg() && src.isReg() && dst.getReg() == src.getReg()) {
         return NULL;
@@ -2112,8 +2477,10 @@ LLVMTCEBuilder::createMove(
 
     Bus& bus = UniversalMachine::instance().universalBus();
     TTAProgram::Terminal* dstTerm = createTerminal(dst);
-    auto move = createMove(
-        createTerminal(src, dstTerm->port().width()), dstTerm, bus, guard);
+    TTAProgram::Terminal* srcTerm =
+        createTerminal(src, dstTerm->port().width());
+
+    auto move = createMove(srcTerm, dstTerm, bus, guard);
 
     return move;
 }
@@ -2127,13 +2494,18 @@ LLVMTCEBuilder::createMove(
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitMove(
-    const MachineInstr* mi, TTAProgram::CodeSnippet* proc, 
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc,
     bool conditional, bool trueGuard) {
 
     unsigned int operandCount = conditional ? 3 : 2;
     if (mi->getNumOperands() > operandCount) {
         for (unsigned int i = operandCount; i < mi->getNumOperands(); i++) {
-            assert(mi->getOperand(i).isImplicit());
+            if (!(mi->getOperand(i).isMetadata()) &&
+                (!mi->getOperand(i).isImplicit())) {
+                mi->dump();
+            }
+            assert(mi->getOperand(i).isMetadata() ||
+                   mi->getOperand(i).isImplicit());
         }
     }
 
@@ -2151,7 +2523,66 @@ LLVMTCEBuilder::emitMove(
         // inv guards not yet supported
         guard = createGuard(t, trueGuard);
     }
-    auto move = createMove(src, dst, guard);
+
+    TTAProgram::Terminal* dstTerm = createTerminal(dst);
+    TTAProgram::Terminal* srcTerm =
+        createTerminal(src, dstTerm->port().width());
+
+    if (srcTerm->isGPR() && dstTerm->isGPR() &&
+        &srcTerm->registerFile() == &dstTerm->registerFile()) {
+
+        // Omit no-op copies.
+        if (srcTerm->index() == dstTerm->index())
+            return NULL;
+
+        if (srcTerm->registerFile().portCount() == 1) {
+            // Cannot perform a reg2reg move with single ported register
+            // files, need to find another way to perform the copy.
+            const TTAMachine::HWOperation* copyOp = NULL;
+
+            // Use only operations which get imm 0 as the other operand
+            // for the lowest immediate requirements.
+            if (mach_->hasOperation("XOR")) {
+                copyOp = &getHWOperation("XOR");
+            } else if (mach_->hasOperation("OR")) {
+                copyOp = &getHWOperation("OR");
+            } else if (mach_->hasOperation("ADD")) {
+                copyOp = &getHWOperation("ADD");
+            }
+
+            if (copyOp == NULL || guard != NULL) {
+                THROW_EXCEPTION(
+                    CompileError,
+                    TCEString("Unable to create a reg to reg copy due to "
+                              "having only one port in '") +
+                    srcTerm->registerFile().name() + "'.");
+            }
+
+            SimValue val(0, mach_->is64bit() ? 64 : 32);
+
+            TTAProgram::TerminalImmediate *immTerm =
+                new TTAProgram::TerminalImmediate(val);
+            TTAProgram::TerminalFUPort* oprTerm =
+                new TTAProgram::TerminalFUPort(*copyOp, 1);
+            TTAProgram::TerminalFUPort* trigTerm =
+                new TTAProgram::TerminalFUPort(*copyOp, 2);
+            TTAProgram::TerminalFUPort* resTerm =
+                new TTAProgram::TerminalFUPort(*copyOp, 3);
+
+            Application::logStream() << "Created a reg to reg copy due to RF "
+                                     << srcTerm->registerFile().name()
+                                     << " having only 1 port" << std::endl;
+            CodeGenerator codeGenerator(*mach_);
+            // 0 -> OP.1
+            codeGenerator.addMoveToProcedure(*proc, immTerm, oprTerm);
+            // RF.X -> OP.2
+            codeGenerator.addMoveToProcedure(*proc, srcTerm, trigTerm);
+            // OP.3 -> RF.Y
+            return codeGenerator.addMoveToProcedure(*proc, resTerm, dstTerm);
+        }
+    }
+    Bus& bus = UniversalMachine::instance().universalBus();
+    auto move = createMove(srcTerm, dstTerm, bus, guard);
 
     if (move == NULL) {
         return NULL;
@@ -2173,7 +2604,7 @@ LLVMTCEBuilder::emitMove(
  */
 TTAProgram::Instruction*
 LLVMTCEBuilder::emitReturn(
-    const MachineInstr*  mi , TTAProgram::CodeSnippet* proc) {
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
     Bus& bus = UniversalMachine::instance().universalBus();
     TTAProgram::TerminalFUPort* src = new TTAProgram::TerminalFUPort(
@@ -2190,10 +2621,7 @@ LLVMTCEBuilder::emitReturn(
     TTAProgram::Instruction* instr = new TTAProgram::Instruction();
     instr->addMove(move);
     proc->add(instr);
-    // Create ProgramOperation also for return so DDGBuilder does not have
-    // to do that.
-    boost::shared_ptr<ProgramOperation> po(
-        new ProgramOperation(operation, mi));    
+    ProgramOperationPtr po(new ProgramOperation(operation, mi));    
     createMoveNode(po, move, true);
     return instr;
 }
@@ -2229,6 +2657,10 @@ LLVMTCEBuilder::emitSelect(
 
     // do no create X -> X moves.
     if (dstT->equals(*srcT)) {
+        if (dstT->equals(*srcF)) {
+            std::cerr << "Empty select!" << std::endl;
+            return NULL;
+        }
         delete srcT;
         delete dstT;
     } else {
@@ -2327,10 +2759,10 @@ void
 LLVMTCEBuilder::emitSPInitialization(TTAProgram::CodeSnippet& target) {
 
     unsigned spDRN = spDRegNum();
-    std::string rfName = registerFileName(spDRN);
+    std::string spRfName = registerFileName(spDRN);
     int idx = registerIndex(spDRN);
-    assert(mach_->registerFileNavigator().hasItem(rfName));
-    const RegisterFile* rf = mach_->registerFileNavigator().item(rfName);
+    assert(mach_->registerFileNavigator().hasItem(spRfName));
+    const RegisterFile* rf = mach_->registerFileNavigator().item(spRfName);
     assert(idx >= 0 && idx < rf->size());
     const RFPort* port = NULL;
     for (int i = 0; i < rf->portCount(); i++) {
@@ -2344,46 +2776,171 @@ LLVMTCEBuilder::emitSPInitialization(TTAProgram::CodeSnippet& target) {
         TTAProgram::TerminalRegister(*port, idx);
 
     unsigned ival = initialStackPointerValue_;
+    
+    const TCETargetMachine* tm = dynamic_cast<const TCETargetMachine*>(tm_);
+    assert(tm != NULL);
+    unsigned stackAlignment = tm->stackAlignment();
+    unsigned mask = 0xffffffff;
+    
+    while (stackAlignment > 1) {
+        mask = mask << 1;
+        stackAlignment = stackAlignment >> 1;
+    }
 
     if (initialStackPointerValue_ == 0 || 
-        initialStackPointerValue_ >
-        (addressSpaceById(0).end() & 0xfffffff8))
-        ival = addressSpaceById(0).end() & 0xfffffff8;
+        initialStackPointerValue_ > (addressSpaceById(0).end() & mask)) {
+        ival = addressSpaceById(0).end() & mask;
+    }
 
-    SimValue val(ival, mach_->is64bit() ? 64: 32);
-    TTAProgram::TerminalImmediate* src =
-        new TTAProgram::TerminalImmediate(val);
+    SimValue val(ival, mach_->is64bit() ? 64 : 32);
+    TTAProgram::CodeSnippet* spInit = new TTAProgram::CodeSnippet();
+    if (MachineInfo::canEncodeImmediateInteger(*mach_, ival)) {
+        TTAProgram::TerminalImmediate* src =
+            new TTAProgram::TerminalImmediate(val);
+        Bus& bus = UniversalMachine::instance().universalBus();
+        auto move = createMove(src, dst, bus);
+        TTAProgram::Instruction* spInitInst =
+            new TTAProgram::Instruction();
+        spInitInst->addMove(move);
+        spInit->add(spInitInst);
+    } else {
+        // Immediate is not enough for the initial stack pointer value,   //
+        // must load it from memory.                                      //
 
-    Bus& bus = UniversalMachine::instance().universalBus();
-    auto move = createMove(src, dst, bus);
-    TTAProgram::Instruction* spInit = new TTAProgram::Instruction();
-    spInit->addMove(move);
-    
+        // Data definition for initial stack pointer value stored at zero //
+        // address                                                        //
+
+        // FIXME: Assuming 8bit MAU.
+        // TODO: FIXME: Also assumes 32-bit architecture!
+        union {
+            unsigned i;
+            char bytes[4];
+        } u;
+
+        u.i = ival;
+
+        std::vector<MinimumAddressableUnit> spmaus;
+        unsigned nMaus = sizeof(unsigned);
+        if (!mach_->isLittleEndian()) {
+            for (unsigned i = 0; i < nMaus; i++) {
+                spmaus.push_back(u.bytes[nMaus-i-1]);
+            }
+        } else {
+            for (unsigned i = 0; i < nMaus; i++) {
+                spmaus.push_back(u.bytes[i]);
+            }
+        }
+        TTAMachine::AddressSpace& aSpace = addressSpaceById(0);
+        TTAProgram::DataMemory& dmem = dataMemoryForAddressSpace(aSpace);
+        TTAProgram::Address zeroAddr(0, aSpace);
+        dmem.addDataDefinition(new TTAProgram::DataDefinition(
+            zeroAddr, spmaus, mach_->isLittleEndian()));
+
+        // Emit load for stack pointer //
+        CodeGenerator codegen(*mach_);
+        TTAProgram::TerminalAddress* zeroImm =
+            new TTAProgram::TerminalAddress(SimValue(0, 32), aSpace);
+
+        createSPInitLoad(*spInit, *zeroImm, *dst);
+    }
+
     if (target.instructionCount() > 0) {
         TTAProgram::Instruction& first = target.firstInstruction(); 
         target.insertBefore(first, spInit);
         if (prog_->instructionReferenceManager().hasReference(first)) {
-            prog_->instructionReferenceManager().replace(first, *spInit);
+            prog_->instructionReferenceManager().replace(
+                first, spInit->firstInstruction());
         }
     } else {
-        target.add(spInit);
+        target.append(spInit);
     }
 }
 
+/**
+ * Handles INLINEASM nodes that hold real inline assembly code.
+ *
+ * This method should not be called for pseudo inline assembly - like TCE
+ * operation macros (see emitOperationMacro()).
+ */
+TTAProgram::Instruction*
+LLVMTCEBuilder::emitInlineAsm(
+    const MachineFunction& mf,
+    const MachineInstr* mi,
+    TTAProgram::BasicBlock* bb,
+    TTAProgram::InstructionReferenceManager& irm) {
 
+    assert(isInlineAsm(*mi));
+    assert(bb->instructionCount() == 0 && "Expected empty BB.");
+
+    const TCETargetMachine* tm = dynamic_cast<const TCETargetMachine*>(tm_);
+    assert(tm && "Inline asm parser requires TCETargetMachine.");
+
+    // Avoid unintended overwrite of reserved registers.
+    auto asmOpds = getInlineAsmOperands(*mi);
+    for (auto& opds : asmOpds) {
+        auto& asmOpdNodes = std::get<1>(opds.second);
+        for (auto mo : asmOpdNodes) {
+            if (!mo->isReg() ||
+                !mf.getRegInfo().isReserved(mo->getReg())) {
+                continue;
+            }
+            auto srcLoc = getSourceLocationString(*mi);
+            std::cerr << srcLoc
+                      << "Error: An use of reserved register '"
+                      << tm->registerName(mo->getReg())
+                      << "' in inline assembly." << std::endl;
+            THROW_EXCEPTION(
+                CompileError,
+                "Encountered errors in inline assembly.");
+        }
+    }
+
+    // Static since the parser has state for "%=" template strings.
+    static InlineAsmParser inlineAsmParser(*tm, *mang_);
+
+    if (!inlineAsmParser.parse(*mi, dataLabels_, *bb, irm)) {
+        auto& diag = inlineAsmParser.diagnostics();
+        auto srcLoc = getSourceLocationInfo(*mi);
+        if (!std::get<0>(srcLoc).empty()) {
+            std::cerr << std::get<0>(srcLoc) << ":" << std::get<1>(srcLoc)
+                      << ":" << std::endl;
+        }
+        for (auto syntaxError : diag.errors()) {
+            std::cerr << "Error in line " << syntaxError.lineNumber << ": "
+                      << syntaxError.message << std::endl;
+        }
+        for (auto internalError : diag.otherErrors()) {
+            std::cerr << "Error: " << internalError.message << std::endl;
+        }
+        THROW_EXCEPTION(
+            CompileError, "Encountered errors in inline assembly parsing.");
+    }
+
+    if (options_ && options_->printInlineAsmWarnings()) {
+        for (auto warning : inlineAsmParser.diagnostics().warnings()) {
+            // TODO point to line in C code.
+            std::cerr << warning.toString() << std::endl;
+        }
+    }
+
+    return bb->instructionCount() ? &bb->instructionAtIndex(0)
+                                  : nullptr;
+}
 
 /**
- * Handles INLINEASM nodes.
+ * Handles operation macros which too uses INLINEASM nodes.
  *
- * Currently the inline assembly string is expected to be just a name
+ * Here the inline assembly string is expected to be just a name
  * of a (custom) operation. Operation operands are expected to be listed
  * as the inline assembly use and def registers. Architecture specific
  * pseudo assembly constructs are also supported (they start with dot) and
  * are delegated to emitSpecialInlineAsm().
  */
 TTAProgram::Instruction*
-LLVMTCEBuilder::emitInlineAsm(
+LLVMTCEBuilder::emitOperationMacro(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
+
+//     mi->print(llvm::dbgs()); //DEBUG
 
 #ifndef NDEBUG
     unsigned numOperands = 
@@ -2404,7 +2961,8 @@ LLVMTCEBuilder::emitInlineAsm(
     }
 
     if (opName[0] == '.') {
-        // Special handling for dotted architecture-dependant asm contructs.
+        // Special handling for dotted architecture-dependent asm contructs,
+        // a.k.a. "pseudo assembly strings"
         return emitSpecialInlineAsm(opName, mi, proc);
     }
 
@@ -2500,7 +3058,7 @@ LLVMTCEBuilder::emitInlineAsm(
     if (!fu.hasOperation(opName)) {
         std::cerr 
             << "ERROR: Explicitly executed operation '" 
-            << opName << "' not found."
+            << opName << "' does not match any operation definition in OSAL."
             << std::endl;        
         assert(false);
     }
@@ -2518,11 +3076,35 @@ LLVMTCEBuilder::emitInlineAsm(
     const Operation& operation = pool.operation(opName.c_str());
     int inputOperand = 0;
 
-    // go through the operands (0 is the chain, 1 is the asm string)
-    for (unsigned o = 3; o < mi->getNumOperands(); o++) {
+    const MachineFunction& mf = *mi->getParent()->getParent();
+
+    // Go through the operands.
+    unsigned startOp = InlineAsm::MIOp_FirstOperand;
+    unsigned asmDescOp = InlineAsm::MIOp_FirstOperand;
+    unsigned clobberOp = InlineAsm::MIOp_FirstOperand-1;
+    for (unsigned o = startOp; o < mi->getNumOperands(); o++) {
         const MachineOperand& mo = mi->getOperand(o);
-        if (!(mo.isReg() || mo.isImm() || mo.isGlobal()))   {
-            // All operands should be in registers. Everything else is ignored.
+        if (mo.isMetadata()) {
+            continue;
+        } else if (o == asmDescOp && mo.isImm()) {
+            // Skip inline assembly flags.
+            unsigned flag = mo.getImm();
+            if (InlineAsm::getKind(flag) == InlineAsm::Kind_Clobber) {
+                clobberOp = o + 1;
+            }
+
+            asmDescOp += 1 + InlineAsm::getNumOperandRegisters(flag);
+            continue;
+        } else if (o == clobberOp) {
+            if (mf.getRegInfo().isReserved(mo.getReg())) {
+                std::cerr << "Warning: inline assembly clobbers"
+                          << " reserved register (regNum = " << mo.getReg()
+                          << "), which has undefined behavior."
+                          << std::endl;
+            }
+        } else if (!(mo.isReg() || mo.isImm() || mo.isGlobal()))   {
+            // All operands should be immediates or in registers.
+            // Everything else is ignored.
             std::cerr << "Ignoring an operand of " << opName << std::endl;
             continue;
         }
@@ -2554,9 +3136,17 @@ LLVMTCEBuilder::emitInlineAsm(
                 std::cerr << std::endl;
                 std::cerr << "ERROR: Too many output operands for custom "
                           << "operation '" << opName << "'." << std::endl;
-
+                mi->dump();
                 assert(false);
             }
+            assert(mo.isReg());
+            if (mf.getRegInfo().isReserved(mo.getReg())) {
+                std::cerr << "Warning: inline assembly overwriting"
+                          << " reserved register (regNum = " << mo.getReg()
+                          << ") has undefined behavior."
+                          << std::endl;
+            }
+
             src = new TTAProgram::TerminalFUPort(*op, (*defOps.begin()));
             dst = createTerminal(mo);
             defOps.erase(defOps.begin());
@@ -2578,10 +3168,6 @@ LLVMTCEBuilder::emitInlineAsm(
         } else {
             resultMoves.push_back(instr);
         }
-
-        // this is Operand #2n+2, let's skip the #2n+3 because it's
-        // the TargetConstant indicating if the reg is a use/def
-        ++o;
     }
 
     if (!defOps.empty() || !useOps.empty()) {
@@ -2668,8 +3254,19 @@ LLVMTCEBuilder::emitSpecialInlineAsm(
     if (subOp == "call_global_dtors")
         return emitGlobalXXtructorCalls(mi, proc, false);
 
-    if (subOp == "read_sp") 
+    if (subOp.startsWith("read_sp "))
         return emitReadSP(mi, proc);
+
+    if (subOp.startsWith("write_sp "))
+        return emitWriteSP(mi, proc);
+
+    if (subOp.startsWith("return_to "))
+        return emitReturnTo(mi, proc);
+
+    // Just strip the pregion markers for now, later on, use it in the 
+    // alias analysis.
+    if (subOp.startsWith("pregion_start.") || subOp.startsWith("pregion_end"))
+        return NULL; 
 
     // memory_category pseudo asms can be used to define
     // categories for different pointers. They mark those
@@ -2720,6 +3317,80 @@ LLVMTCEBuilder::emitReadSP(
     codeGenerator.addMoveToProcedure(*proc, srcTerminal, destTerminal);
     return &(proc->nextInstruction(lastInstruction));
 }
+
+/**
+ * Emits moves that overwrite the RA and return to that address.
+ */
+TTAProgram::Instruction*
+LLVMTCEBuilder::emitReturnTo(
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
+
+    if (mi->getNumOperands() != 5) {
+	mi->dump();
+        abortWithError(
+            "ERROR: wrong number of operands in \".return_to\"");
+    }
+
+    // We need to know where current procedure ends to
+    // be able to return first generated instruction.
+    TTAProgram::Instruction& lastInstruction = proc->lastInstruction();
+
+    CodeGenerator codeGenerator(*mach_);
+    // the source from which to overwrite RA
+    const MachineOperand& src = mi->getOperand(3);
+
+    /* src -> RA */
+    codeGenerator.addMoveToProcedure(
+        *proc, createTerminal(src), 
+        codeGenerator.createTerminalRegister("RA", false));
+    /* RA -> JUMP.1 */
+    codeGenerator.registerJump(*proc, "RA");
+
+    return &(proc->nextInstruction(lastInstruction));
+}
+
+
+/**
+ * Emits moves to write the stack pointer value.
+ */
+TTAProgram::Instruction*
+LLVMTCEBuilder::emitWriteSP(
+    const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
+
+    if (mi->getNumOperands() != 5) {
+        Application::logStream() 
+            << "got " << mi->getNumOperands() << " operands" << std::endl;
+	mi->dump();
+        abortWithError(
+            "ERROR: wrong number of operands in \".write_sp\"");
+    }
+
+    const TCETargetMachine* tm = dynamic_cast<const TCETargetMachine*>(tm_);
+    assert(tm_ != NULL);
+    // Get the stack pointer. It will be used as index into
+    // the buffer.
+    unsigned spDRN = tm->spDRegNum();
+    TCEString sp = (boost::format("%s.%d") %
+                    tm->rfName(spDRN) %
+                    tm->registerIndex(spDRN)).str();
+
+    // We need to know where current procedure ends to
+    // be able to return first generated instruction.
+    TTAProgram::Instruction& lastInstruction =
+        proc->lastInstruction();
+
+    CodeGenerator codeGenerator(*mach_);
+
+    TTAProgram::Terminal* destTerminal =
+        codeGenerator.createTerminalRegister(sp, false);
+
+    const MachineOperand& src = mi->getOperand(3);
+    TTAProgram::Terminal* srcTerminal = createTerminal(src);
+
+    codeGenerator.addMoveToProcedure(*proc, srcTerminal, destTerminal);
+    return &(proc->nextInstruction(lastInstruction));
+}
+
 /** 
  * Handles the .pointer_category pseudo assembler instruction.
  * 
@@ -2789,13 +3460,12 @@ LLVMTCEBuilder::emitSetjmp(
 
     if (mi->getNumOperands() != 7) {
         std::cerr << "ERROR: wrong number of operands in "".setjmp"""
-            << std::endl;
+		  << std::endl;
+        mi->dump();
         assert(false);
     }
-
     const MachineOperand& val = mi->getOperand(3);
     const MachineOperand& env = mi->getOperand(5);
-
     // Get the stack pointer. It will be used as index into
     // the buffer.
     unsigned spDRN = spDRegNum();
@@ -2805,8 +3475,7 @@ LLVMTCEBuilder::emitSetjmp(
 
     // We need to know where current procedure ends to
     // be able to return first generated instruction.
-    TTAProgram::Instruction& last_instruction =
-        proc->lastInstruction();
+    int oldSize = proc->instructionCount();
 
     CodeGenerator codeGenerator(*mach_);
 
@@ -2825,17 +3494,17 @@ LLVMTCEBuilder::emitSetjmp(
 
     // Increment index to jump over the place where SP was
     // stored.
-    codeGenerator.incrementRegisterAddress(*proc, sp);
+    codeGenerator.incrementStackPointer(*proc, sp);
 
     // Save RA first (special register).
-    codeGenerator.pushRegisterToBuffer(*proc, sp, "RA");
+    codeGenerator.pushRegisterToStack(*proc, sp, "RA");
 
     // Now save the desired return value.
-    SimValue immVal(mach_->is64bit() ? 64: 32);
+    SimValue immVal(mach_->is64bit() ? 64 : 32);
     immVal = 0;
     TTAProgram::TerminalImmediate *immTerminal =
         new TTAProgram::TerminalImmediate(immVal);
-    codeGenerator.pushToBuffer(*proc, sp, immTerminal);
+    codeGenerator.pushToStack(*proc, sp, immTerminal);
 
     // Now we can save every register there.
     const TTAMachine::Machine::RegisterFileNavigator nav =
@@ -2849,7 +3518,7 @@ LLVMTCEBuilder::emitSetjmp(
             TCEString reg =
                 (boost::format("%s.%d") % rf.name() % j).str();
             if (reg != sp) { // sp already saved, ignore it.
-                codeGenerator.pushRegisterToBuffer(*proc, sp, reg);
+                codeGenerator.pushRegisterToStack(*proc, sp, reg);
                 buffer_words++;
             }
         }
@@ -2864,28 +3533,27 @@ LLVMTCEBuilder::emitSetjmp(
         prog_->instructionReferenceManager().createReference(
             *returnInstruction);
 
-    codeGenerator.pushInstructionReferenceToBuffer(
-        *proc, sp, returnReference);
+    codeGenerator.pushInstructionReferenceToStack(*proc, sp, returnReference);
 
-    codeGenerator.decrementRegisterAddress(*proc, sp);
+    codeGenerator.decrementStackPointer(*proc, sp);
 
     proc->add(returnInstruction);
 
     // Move back the stored registers.
     for (int i = 0; i < buffer_words; i++)
-        codeGenerator.decrementRegisterAddress(*proc, sp);
+        codeGenerator.decrementStackPointer(*proc, sp);
 
     // Get return value.
     TTAProgram::Terminal* rv = createTerminal(val);
-    codeGenerator.popFromBuffer(*proc, sp, rv);
+    codeGenerator.popFromStack(*proc, sp, rv);
 
     // Restore original RA.
-    codeGenerator.popRegisterFromBuffer(*proc, sp, "RA");
+    codeGenerator.popRegisterFromStack(*proc, sp, "RA");
 
     // Restore SP from first position in the buffer.
-    codeGenerator.popRegisterFromBuffer(*proc, sp, sp);
+    codeGenerator.popRegisterFromStack(*proc, sp, sp);
 
-    return &(proc->nextInstruction(last_instruction));
+    return &(proc->instructionAtIndex(oldSize));
 }
 
 
@@ -2925,8 +3593,12 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
             // structs for LLVM 3.4 and lower, and an array of
             // '{ int, void ()*, i8* }' structs for LLVM 3.5.
             // The first value is the init priority, which we ignore.
-            const ConstantArray* initList = cast<const ConstantArray>
-                (gv->getInitializer());
+            auto init = gv->getInitializer();
+            if (!isa<ConstantArray>(init)) {
+                std::cerr << "Global array initializer not ConstantArray:";
+                init->dump();
+            }
+            const ConstantArray* initList = cast<const ConstantArray>(init);
             for (unsigned i = 0, e = initList->getNumOperands(); i != e; ++i) {
                 if (ConstantStruct* cs = 
                     dyn_cast<ConstantStruct>(initList->getOperand(i))) {
@@ -2969,7 +3641,7 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
                     
                     // Create ProgramOperation also for return so DDGBuilder does not have
                     // to do that.
-                    boost::shared_ptr<ProgramOperation> po(
+                    ProgramOperationPtr po(
                         new ProgramOperation(opPool.operation("call")));
                     createMoveNode(po, ctrCall, true);
 
@@ -3005,9 +3677,9 @@ LLVMTCEBuilder::emitLongjmp(
     if (mi->getNumOperands() != 7) {
         std::cerr << "ERROR: wrong number of operands in "".longjmp"""
             << std::endl;
+	mi->dump();
         assert(false);
     }
-
     const MachineOperand& env = mi->getOperand(3);
     const MachineOperand& val = mi->getOperand(5);
 
@@ -3020,8 +3692,7 @@ LLVMTCEBuilder::emitLongjmp(
 
     // We need to know where current procedure ends to
     // be able to return first generated instruction.
-    TTAProgram::Instruction& last_instruction =
-        proc->lastInstruction();
+    int oldSize = proc->instructionCount();
 
     CodeGenerator codeGenerator(*mach_);
 
@@ -3034,14 +3705,14 @@ LLVMTCEBuilder::emitLongjmp(
 
     // Increment index to jump over the place where SP was
     // stored.
-    codeGenerator.incrementRegisterAddress(*proc, sp);
+    codeGenerator.incrementStackPointer(*proc, sp);
 
     // Jump over RA (will be restored in setjmp tail).
-    codeGenerator.incrementRegisterAddress(*proc, sp);
+    codeGenerator.incrementStackPointer(*proc, sp);
 
     // Now save the desired return value.
     TTAProgram::Terminal* rv = createTerminal(val);
-    codeGenerator.pushToBuffer(*proc, sp, rv);
+    codeGenerator.pushToStack(*proc, sp, rv);
 
     // Reload all registers but SP.
     const TTAMachine::Machine::RegisterFileNavigator nav =
@@ -3064,7 +3735,20 @@ LLVMTCEBuilder::emitLongjmp(
     codeGenerator.loadFromRegisterAddress(*proc, sp, "RA");
     codeGenerator.registerJump(*proc, "RA");
 
-    return &(proc->nextInstruction(last_instruction));
+    return &(proc->instructionAtIndex(oldSize));
+}
+
+/**
+ * Creates instruction(s) to load initial stack pointer value.
+ */
+void
+LLVMTCEBuilder::createSPInitLoad(
+    TTAProgram::CodeSnippet& target,
+    TTAProgram::Terminal& src,
+    TTAProgram::Terminal& dst) {
+
+    CodeGenerator codegen(*mach_);
+    codegen.loadTerminal(target, &src, &dst);
 }
 
 /**
@@ -3084,7 +3768,7 @@ LLVMTCEBuilder::createMove(
     const TTAMachine::Bus& bus,
     TTAProgram::MoveGuard* guard) {
 
-    std::shared_ptr<TTAProgram::Move> move = NULL;
+    std::shared_ptr<TTAProgram::Move> move = nullptr;
 
     bool endRef = false;
 
@@ -3132,6 +3816,7 @@ TTAProgram::MoveGuard* LLVMTCEBuilder::createGuard(
         return NULL;
     }
 
+    bool hasPortGuard = false;
     Machine::BusNavigator busNav = mach_->busNavigator();
     for (int i = 0; i < busNav.count(); i++) {
         Bus* bus = busNav.item(i);
@@ -3144,13 +3829,28 @@ TTAProgram::MoveGuard* LLVMTCEBuilder::createGuard(
                 regGuard->isInverted() != trueOrFalse) {
                 return new TTAProgram::MoveGuard(*regGuard);
             }
+            PortGuard* portGuard = dynamic_cast<PortGuard*>(
+                bus->guard(i));
+            if (portGuard != nullptr &&
+                portGuard->isInverted() != trueOrFalse)
+                hasPortGuard = true;
         }
     }
-    std::cerr << "Warning: Could not find suitable guard from any bus in the"
-              << "processor. Did you forget to add guards to the processor?"
-              << std::endl;
-    return NULL;
+
+    if (hasPortGuard) {
+        RegisterGuard* bypassRegGuard =
+            new RegisterGuard(!trueOrFalse, guardReg->registerFile(),
+                              guardReg->index(), nullptr);
+
+        return new TTAProgram::MoveGuard(*bypassRegGuard);
+    } else {
+        std::cerr << "Warning: Could not find suitable guard from any bus in the "
+                  << "processor. Did you forget to add guards to the processor?"
+                  << std::endl;
+        return NULL;
+    }
 }
+
 
 TTAMachine::AddressSpace&
 LLVMTCEBuilder::addressSpaceById(unsigned id) {
@@ -3179,21 +3879,21 @@ LLVMTCEBuilder::addressSpaceById(unsigned id) {
 unsigned&
 LLVMTCEBuilder::dataEnd(TTAMachine::AddressSpace& aSpace) {
     if (!MapTools::containsKey(dataEnds_, &aSpace)) {
-        unsigned end = aSpace.start();
-        /* Avoid placing data to address 0, as it may break some null pointer
-           tests. Waste a valuable word of memory. Add a dummy word to prevent 
-           writing bytes to 1,2,3 addresses and thus then reading valid data 
-           from 0. */
+        unsigned end = 0;
+        /* Avoid placing data to address 0 as it may break some null pointer
+           tests. Waste a valuable word of memory and add a dummy word to
+           prevent writing bytes to 1,2,3 addresses and thus then avoid reading
+           valid data from address 0. */
         if (end == 0) {
-            const TCETargetMachine* tm = 
+            const TCETargetMachine* tm =
                 dynamic_cast<const TCETargetMachine*>(tm_);
             assert(tm != NULL);
-            end = tm->getMaxMemoryAlignment();
+            end = MachineInfo::maxMemoryAlignment(*mach_);
         }
         dataEnds_[&aSpace] = end;
 
     }
-    return dataEnds_[&aSpace];   
+    return dataEnds_[&aSpace];
 }
 
 /**
@@ -3208,6 +3908,8 @@ LLVMTCEBuilder::dataMemoryForAddressSpace(TTAMachine::AddressSpace& aSpace) {
     return *dmemIndex_[&aSpace];
 }
 
+//#define DEBUG_LLVMTCEBUILDER
+//#define WARN_AS_FU_NOT_FOUND
 /**
  * Adds annotations to the given move that limit the choice of the
  * load-store unit to only those that support the given address space.
@@ -3216,13 +3918,22 @@ void
 LLVMTCEBuilder::addCandidateLSUAnnotations(
     unsigned asNum, TTAProgram::Move& move) {
 
+    TCEString opName;
+    if (move.destination().isFUPort()) {
+        opName = dynamic_cast<TTAProgram::TerminalFUPort&>(
+            move.destination()).hwOperation()->name();
+    } else {
+        opName = dynamic_cast<TTAProgram::TerminalFUPort&>(
+            move.source()).hwOperation()->name();
+    }
     bool foundLSU = false;
     const TTAMachine::Machine::FunctionUnitNavigator fuNav =
         mach_->functionUnitNavigator();
     for (int i = 0; i < fuNav.count(); i++) {
         const TTAMachine::FunctionUnit& fu = *fuNav.item(i);
         if (fu.hasAddressSpace()) {
-            if (fu.addressSpace()->hasNumericalId(asNum)) {
+            if (fu.addressSpace()->hasNumericalId(asNum) &&
+                fu.hasOperation(opName)) {
                 TTAProgram::ProgramAnnotation progAnnotation(
                     TTAProgram::ProgramAnnotation::
                     ANN_ALLOWED_UNIT_DST, fu.name());
@@ -3231,10 +3942,61 @@ LLVMTCEBuilder::addCandidateLSUAnnotations(
             }
         }
     }
+
+    /* Fail silently for now.
+
+       The problem here is that stack instructions should be mapped
+       to AS0 but they do not have memoperands, thus
+       addPointerAnnotations() does not manage to figure out any
+       real address space info for it. Thus, we just could
+       assume all such instructions belong to the default AS.
+
+       The problem appears with custom operations which take in
+       memory operands. For example, TRY_LOCK_ADDR etc. of the DILU.
+       The INLINEASM blocks, even if the operand is marked as 'm', do not
+       produce MachineInstrs with memoperands, thus the pointer info cannot
+       be obtained. However, in that case the address space could be
+       something else than the default.
+
+       For now, we leave the AS info out in case FU with the operation and
+       the address space is found, thus assume there is only one such FU
+       which is then selected correctly during the scheduling.
+       We only abort if the asNum != 0, otherwise fail silently.
+     */
     if (!foundLSU) {
-        Application::logStream()
-            << "ERROR: no candidate LSU found for address space id " 
-            << asNum << std::endl;
-        abort();
+        if (asNum == 0){
+#ifdef WARN_AS_FU_NOT_FOUND
+            if (true || Application::verboseLevel() > 0) {
+                Application::logStream()
+                    << "WARNING: no candidate FU found for "
+                    << move.toString() << " with address space id "
+                    << asNum << " not adding any AS info."
+                    << std::endl;
+             }
+#endif
+        } else {
+            // If the asNum isn't already 0, we can't quietly make the
+            // assumption that it should be 0. Instead abort.
+            abortWithError((boost::format("ERROR: No candidate FU found for %s"
+                        " address space id %u") % move.toString() % asNum).str());
+        }
     }
 }
+
+/**
+ * Returns true if the instruction is real inline asm aka. holds moves.
+ *
+ * Returns false if instruction is not inline asm.
+ * This also return false for operation macros (_TCE_OP(...)) that also use
+ * inline asm statements in C code.
+ *
+ * @param instr The instruction.
+ */
+bool
+LLVMTCEBuilder::isInlineAsm(const MachineInstr& instr) {
+    return InlineAsmParser::isInlineAsm(instr);
+}
+
+
+
+

@@ -42,6 +42,7 @@
 #include "DataDependenceGraph.hh"
 #include "DataDependenceGraphBuilder.hh"
 #include "ProgramDependenceGraph.hh"
+#include "SequenceTools.hh"
 
 /**
  * Constructor.
@@ -51,30 +52,52 @@
  */
 
 ProgramGraph::ProgramGraph(
-    TTAProgram::Program& program, const TTAMachine::Machine& mach) : program_(program){
-    for (int i = 0; i < program.procedureCount(); i++) {
-        ControlFlowGraph* cfg = NULL;
-        cfg = new ControlFlowGraph(program.procedure(i));    
-        cfgs_.push_back(cfg);
-        ControlDependenceGraph* cdg = NULL;
-        cdg = new ControlDependenceGraph(*cfg);
-        cdgs_.push_back(cdg);
-        DataDependenceGraphBuilder builder;
-        DataDependenceGraph* ddg = NULL;
-        ddg = builder.build(*cfg, DataDependenceGraph::ALL_ANTIDEPS, mach);
-        ddgs_.push_back(ddg);   
-        ProgramDependenceGraph* pdg = NULL;
-        pdg = new ProgramDependenceGraph(*cdg, *ddg);        
-        pdgs_.push_back(pdg);
+    TTAProgram::Program& program, const TTAMachine::Machine& mach ) 
+    : program_(program){
+    try {
+        for (int i = 0; i < program.procedureCount(); i++) {
+            ControlFlowGraph* cfg = NULL;
+            cfg = new ControlFlowGraph(program.procedure(i));
+            cfgs_.push_back(cfg);
+            ControlDependenceGraph* cdg = NULL;
+            try {
+                cdg = new ControlDependenceGraph(*cfg);
+                cdgs_.push_back(cdg);
+            } catch (const InvalidData& e) {
+                delete cdg;
+                continue;
+            }
+            DataDependenceGraphBuilder builder;
+            DataDependenceGraph* ddg = NULL;
+            ddg = builder.build(*cfg, DataDependenceGraph::ALL_ANTIDEPS,mach);
+            ddgs_.push_back(ddg);
+            ProgramDependenceGraph* pdg = NULL;
+            pdg = new ProgramDependenceGraph(*cdg, *ddg);
+            pdgs_.push_back(pdg);
+        }
+    } catch (Exception&) {
+        clear();
+        throw;
     }
+}
+
+/**
+ * Deletes all graphs owned by this.
+ */
+void ProgramGraph::clear() {
+    SequenceTools::deleteAllItems(pdgs_);
+    SequenceTools::deleteAllItems(ddgs_);
+    SequenceTools::deleteAllItems(cdgs_);
+    SequenceTools::deleteAllItems(cfgs_);
 }
 
 /**
  * Destructor.
  *
- * Does not do anything.
+ * Removes the graphs.
  */
 ProgramGraph::~ProgramGraph() {
+    clear();
 }
 
 /**
@@ -98,7 +121,7 @@ ProgramGraph::generateProgram() const {
 MoveNode&
 ProgramGraph::nodeOf(const TTAProgram::Move&) const{
     ///TODO: find a move and return corresponding MoveNode
-    return *(new MoveNode(NULL));
+    return *(new MoveNode());
 }
 
 /**
@@ -106,7 +129,7 @@ ProgramGraph::nodeOf(const TTAProgram::Move&) const{
  * in program.
  * @return number of PDG's in a graph
  */
-int 
+int
 ProgramGraph::graphCount() const {
     return pdgs_.size();
 }
@@ -116,7 +139,7 @@ ProgramGraph::graphCount() const {
  * @param i index of a procedure
  * @return PDG for given procedure
  */
-ProgramDependenceGraph* 
+ProgramDependenceGraph*
 ProgramGraph::graphAt(int i) {
     if (i < 0 || i >= graphCount()){
         throw InvalidData(__FILE__, __LINE__, __func__, "Trying to access"
@@ -130,7 +153,7 @@ ProgramGraph::graphAt(int i) {
  * @param name name of a procedure
  * @return PDG for given procedure
  */
-ProgramDependenceGraph* 
+ProgramDependenceGraph*
 ProgramGraph::graph(const std::string name) {
     for (int i = 0; i < graphCount(); i++) {
         if (pdgs_.at(i)->name() == name) {

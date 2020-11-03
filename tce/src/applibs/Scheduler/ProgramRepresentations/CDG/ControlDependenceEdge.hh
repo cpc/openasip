@@ -35,8 +35,6 @@
 #ifndef TTA_CONTROL_DEPENDENCE_EDGE_HH
 #define TTA_CONTROL_DEPENDENCE_EDGE_HH
 
-#include <string>
-
 #include "GraphEdge.hh"
 
 /**
@@ -49,7 +47,8 @@ public:
     enum CDGEdgeType {
         CDEP_EDGE_NORMAL,
         CDEP_EDGE_TRUE,
-        CDEP_EDGE_FALSE};
+        CDEP_EDGE_FALSE,
+        CDEP_EDGE_LOOPCLOSE};
 
     ControlDependenceEdge(
         CDGEdgeType edgeType = CDEP_EDGE_NORMAL) :
@@ -58,13 +57,14 @@ public:
     virtual ~ControlDependenceEdge();
 
     TCEString toString() const;
-    bool isNormalEdge() const;
-    bool isTrueEdge() const;
-    bool isFalseEdge() const;
-    CDGEdgeType edgeType() const;
-    
+    bool isNormalEdge() const { return edgeType_ == CDEP_EDGE_NORMAL; }
+    bool isTrueEdge() const { return edgeType_ == CDEP_EDGE_TRUE; }
+    bool isFalseEdge() const { return edgeType_ == CDEP_EDGE_FALSE; }
+    bool isLoopCloseEdge() const { return edgeType_ == CDEP_EDGE_LOOPCLOSE;}
+    CDGEdgeType edgeType() const { return edgeType_; }
+
 protected:
-    void invertEdgePredicate();       
+    void invertEdgePredicate();
 private:
     CDGEdgeType edgeType_;
 };

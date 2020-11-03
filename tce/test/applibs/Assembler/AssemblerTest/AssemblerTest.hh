@@ -508,7 +508,7 @@ AssemblerTest::testErrorHandling() {
     Binary* newBin = assembler.compile();
     delete newBin;
 
-    TS_ASSERT_EQUALS(static_cast<int>(assembler.warningCount()), 10);
+    TS_ASSERT_EQUALS(static_cast<int>(assembler.warnings().size()), 10);
 
     delete mach;
 }

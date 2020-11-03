@@ -16,11 +16,13 @@ SCHEDULER_DIR = ${APPLIBS_DIR}/Scheduler/
 PR_DIR = ${SCHEDULER_DIR}/ProgramRepresentations/
 DDG_DIR = ${PR_DIR}/DDG/
 PDG_DIR = ${PR_DIR}/PDG/
-CFLOWGRAPH_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/CFG
+CFLOWGRAPH_DIR = ${PR_DIR}/CFG
+IBUFFER_DIR = ${APPLIBS_DIR}/InstructionBuffer
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${POM_DIR} -I${TPEF_DIR} -I${OSAL_DIR} \
 	-I${MACH_DIR} -I${UM_DIR} -I${GRAPH_DIR} -I${DISASSEMBLER_DIR} \
--I${CFLOWGRAPH_DIR} -I${PDG_DIR} -I${DDG_DIR} ${LLVM_CPPFLAGS}
+	-I${CFLOWGRAPH_DIR} -I${PDG_DIR} -I${DDG_DIR} ${LLVM_CPPFLAGS} \
+	-I${IBUFFER_DIR}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

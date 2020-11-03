@@ -46,32 +46,34 @@
 class BusResource : public SchedulingResource {
 public:
     BusResource(
-        const std::string& name, int width, int limmSlotCount, int guardCount,
+        const std::string& name, int width, int limmSlotCount, 
+        int nopSlotCount, int guardCount,
         int immSize, int socketCount, unsigned int initiationInterval = 0);
     virtual ~BusResource();
 
-    virtual bool isInUse(const int cycle) const;
-    virtual bool isAvailable(const int cycle) const;
+    virtual bool isInUse(const int cycle) const override;
+    virtual bool isAvailable(const int cycle) const override;
     virtual bool isAvailable(
         const int cycle,
         const SchedulingResource& inputPSocket,
         const SchedulingResource& outputPSocket) const;
-    virtual bool canAssign(const int cycle, const MoveNode& node) const;
-    virtual void assign(const int cycle, MoveNode& node);
-    virtual void unassign(const int cycle, MoveNode& node);
+    virtual bool canAssign(const int cycle, const MoveNode& node) const override;
+    virtual void assign(const int cycle, MoveNode& node) override;
+    virtual void unassign(const int cycle, MoveNode& node) override;
     virtual bool canAssign(
         const int cycle,
         const MoveNode& node,
         const SchedulingResource& inputPSocket,
         const SchedulingResource& outputPSocket) const;
-    virtual bool isBusResource() const;
+    virtual bool isBusResource() const override;
 
-    virtual bool operator < (const SchedulingResource& other) const;
+    virtual bool operator < (const SchedulingResource& other) const override;
 
-    void clear();
+    int nopSlotCount() { return nopSlotCount_; }
+    void clear() override;
 protected:
-    virtual bool validateDependentGroups();
-    virtual bool validateRelatedGroups();
+    virtual bool validateDependentGroups() override;
+    virtual bool validateRelatedGroups() override;
 
 private:
     // Copying forbidden
@@ -82,6 +84,8 @@ private:
     int busWidth_;
     // count of limm slots associated into this bus resource.
     int limmSlotCount_;
+    // count of nop slots associated into this bus resource.
+    int nopSlotCount_;
     // coutn of guard associated to this bus.
     int guardCount_;
     // bitwidth of imm.

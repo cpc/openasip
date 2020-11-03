@@ -45,6 +45,7 @@
 #include "SimpleResourceManager.hh"
 #include "Port.hh"
 #include "SchedulerCmdLineOptions.hh"
+#include "BFLateBypassGuard.hh"
 #include "Machine.hh"
 
 #include <map>
@@ -170,7 +171,22 @@ BFLateBypasses::operator()() {
                 bypassDestinations.erase(n.first);
                 break;
             } else {
-                // Guard bypass not yet supported.
+#ifdef DEBUG_BUBBLEFISH_SCHEDULER
+                std::cerr << "\nAttempting guard bypass from: " <<
+                    src_.toString() << " to: " << n.first->toString()
+                          << std::endl;
+#endif
+                // guard bypass
+                BFLateBypassGuard* lbp =
+                    new BFLateBypassGuard(sched_, src_, *n.first, lc_);
+                if (runPreChild(lbp)) {
+                    bypassed = true;
+#ifdef DEBUG_BUBBLEFISH_SCHEDULER
+                    std::cerr << "\tguard bypass ok." << std::endl;
+                } else {
+                    std::cerr << "\tGuard bypass failed." << std::endl;
+#endif
+                }
                 bypassDestinations.erase(n.first);
                 break;
             }

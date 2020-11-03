@@ -151,6 +151,12 @@ MoveNodeDuplicator::duplicateMoveNode(
             }
             assert(newMN->isDestinationOperation());
         }
+        if (old.isGuardOperation()) {
+            newMN->setGuardOperationPtr(
+                duplicateProgramOperationPtr(old.guardOperationPtr()));
+            newMN->guardOperation().addGuardOutputNode(*newMN);
+            assert(newMN->isGuardOperation());
+        }
         return std::make_pair(newMN, true);
     }
 }

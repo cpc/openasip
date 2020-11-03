@@ -90,7 +90,27 @@ void
 ControlFlowGraphPass::executeBasicBlockPass(
     ControlFlowGraph& cfg, const TTAMachine::Machine& targetMachine,
     BasicBlockPass& bbPass) {
+    // first schedule all inner-loop basic blocks.
     int nodeCount = cfg.nodeCount();
+    for (int bbIndex = 0; bbIndex < nodeCount; ++bbIndex) {
+        BasicBlockNode& bb = dynamic_cast<BasicBlockNode&>(cfg.node(bbIndex));
+        if (!bb.isNormalBB() || bb.isScheduled() || !cfg.isSingleBBLoop(bb)) {
+            continue;
+        }
+        bbPass.handleBasicBlock(
+            bb.basicBlock(), targetMachine,
+            cfg.instructionReferenceManager(), &bb);
+        bb.setScheduled();
+        // if some node is removed, make sure does not skip some node and
+        // then try to handle too many nodes.
+        if (cfg.nodeCount() != nodeCount) {
+            nodeCount = cfg.nodeCount();
+            bbIndex = 0;
+        }
+    }
+
+    // then other basic blocks.
+    nodeCount = cfg.nodeCount();
     for (int bbIndex = 0; bbIndex < nodeCount; ++bbIndex) {
         BasicBlockNode& bb = dynamic_cast<BasicBlockNode&>(cfg.node(bbIndex));
         if (!bb.isNormalBB())
