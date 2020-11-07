@@ -176,6 +176,16 @@ def run_command(command, echoStdout=False, echoStderr=False, echoCmd=False,
 
     return process.wait()
 
+def ansi_color_setup(color=None):
+    out = "\033["
+    if color == 'red':
+        out += "31;1"
+    elif color is None:
+        out += "0"
+    else:
+        assert False, "Unknown color."
+    return out + "m"
+
 tempfiles = []
 def create_temp_file(suffix=""):
     tf = tempfile.mkstemp(suffix=suffix)
@@ -207,6 +217,10 @@ def parse_options():
                       default=[],
                       help="Execute only the given test case files. " + \
                       "This option can be given multiple times.")
+    parser.add_option("-c", "--colors", dest="colors", action="store_true",
+                      default=False,
+                      help="Use ANSI color codes for highlighting the output. " + \
+                      "Does not check that the terminal supports them..")
     if mp_supported:
         parser.add_option("-p", "--parallel-processes", dest="par_process_count", type="int", 
                           default=multiprocessing.cpu_count(),
@@ -480,7 +494,13 @@ class IntegrationTestCase(object):
             if options.print_successful:
                 stdout_stream.write("OK %s\n" % duration_str)
         else:
+            if options.colors: stdout_stream.write(ansi_color_setup("red"))
             stdout_stream.write("FAIL %s\n" % duration_str)
+            if options.colors:
+                stdout_stream.write(ansi_color_setup())
+                # For some reason the ANSI code sets the color red also to stderr
+                # at least with my terminal. Need to reset stderr too here.
+                sys.stderr.write(ansi_color_setup())
 
         return all_ok
 
