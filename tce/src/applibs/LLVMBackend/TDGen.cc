@@ -6525,8 +6525,8 @@ void TDGen::createByteExtLoadPatterns(std::ostream& os) {
     TCEString SHL4 = mach_.is64bit() ? "SHL4_32" : "SHL4_64";
     TCEString SHR4 = mach_.is64bit() ? "SHR4_32" : "SHR4_64";
     TCEString SHRU4 = mach_.is64bit() ? "SHRU4_32" : "SHRU4_64ssa";
-    TCEString dstTypeChar = mach_.is64bit() ? OT_REG_LONG : OT_REG_INT;
-    TCEString regSrcChar = dstTypeChar;
+    TCEString regSrcChar = mach_.is64bit() ? OT_REG_LONG : OT_REG_INT;
+    TCEString dstTypeChar = OT_REG_INT;
     TCEString immSrcChar = mach_.is64bit() ? OT_IMM_LONG : OT_IMM_INT;
     TCEString loadOpcReg = load + dstTypeChar + regSrcChar;
     TCEString loadOpcImm = load + dstTypeChar + immSrcChar;
@@ -6674,8 +6674,8 @@ void TDGen::createShortExtLoadPatterns(std::ostream& os) {
     TCEString uload = littleEndian_ ? "LDU16" : "LDHU";
     TCEString EXTOP = mach_.is64bit() ? "SXH64" : "SXHW";
     TCEString EXTOPC = mach_.is64bit() ? "SXH64sr" : "SXHWrr";
-    TCEString dstTypeChar = mach_.is64bit() ? OT_REG_LONG : OT_REG_INT;
-    TCEString regSrcChar = dstTypeChar;
+    TCEString regSrcChar = mach_.is64bit() ? OT_REG_LONG : OT_REG_INT;
+    TCEString dstTypeChar = OT_REG_INT;
     TCEString immSrcChar = mach_.is64bit() ? OT_IMM_LONG : OT_IMM_INT;
     TCEString loadOpcReg = load + dstTypeChar + regSrcChar;
     TCEString loadOpcImm = load + dstTypeChar + immSrcChar;

@@ -1456,7 +1456,9 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
       <mem-data/>
     </out>
     <trigger-semantics>
-      EXEC_OPERATION(ldq, IO(1), IO(2));
+      SimValue tmp;
+      EXEC_OPERATION(ldq, IO(1), tmp);
+      EXEC_OPERATION(sxqw, tmp, IO(2));
     </trigger-semantics>
   </operation>
 
@@ -1469,14 +1471,13 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <in element-count="1" element-width="64" id="1" type="ULongWord">
       <mem-address/>
     </in>
-    <out element-count="1" element-width="8" id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="SIntWord">
       <mem-data/>
     </out>
     <trigger-semantics>
-      EXEC_OPERATION(ldq, IO(1), IO(2));
-    </trigger-semantics>
-    <trigger-semantics>
-      EXEC_OPERATION(ld8, IO(1), IO(2));
+      SimValue tmp;
+      EXEC_OPERATION(ldq, IO(1), tmp);
+      EXEC_OPERATION(sxqw, tmp, IO(2));
     </trigger-semantics>
   </operation>
 
@@ -1493,7 +1494,9 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
       <mem-data/>
     </out>
     <trigger-semantics>
-      EXEC_OPERATION(ldh, IO(1), IO(2));
+      SimValue tmp;
+      EXEC_OPERATION(ldh, IO(1), tmp);
+      EXEC_OPERATION(sxhw, tmp, IO(2));
     </trigger-semantics>
   </operation>
 
@@ -1506,11 +1509,13 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <in element-count="1" element-width="64" id="1" type="ULongWord">
       <mem-address/>
     </in>
-    <out element-count="1" element-width="16" id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="SIntWord">
       <mem-data/>
     </out>
     <trigger-semantics>
-      EXEC_OPERATION(ld16, IO(1), IO(2));
+      SimValue tmp;
+      EXEC_OPERATION(ld16, IO(1), tmp);
+      EXEC_OPERATION(sxhw, tmp, IO(2));
     </trigger-semantics>
   </operation>
 
@@ -1660,8 +1665,8 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <description>sign extend from 1 bit to 64 bits</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" element-width="8" type="SIntWord"/>
-    <out id="2" element-width="64" type="SLongWord"/>
+    <in element-width="8" id="1" type="SIntWord"/>
+    <out element-width="64" id="2" type="SLongWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sxb64, IO(1), IO(2));
     </trigger-semantics>
@@ -2955,7 +2960,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <in element-count="1" element-width="64" id="1" type="ULongWord">
       <mem-address/>
     </in>
-    <out element-count="1" element-width="8" id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="UIntWord">
       <mem-data/>
     </out>
     <trigger-semantics>
@@ -2992,7 +2997,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <in element-count="1" element-width="64" id="1" type="ULongWord">
       <mem-address/>
     </in>
-    <out element-count="1" element-width="16" id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="UIntWord">
       <mem-data/>
     </out>
     <trigger-semantics>
