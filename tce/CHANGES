@@ -4,6 +4,9 @@
 Notable changes and features
 ----------------------------
 - Experimental support for 64-bit little-endian TTA processors.
+  Please note that the support is at the architecture level yet;
+  compilation and simulation is implemented, but RTL generation is
+  still incomplete (HDB for 64b FUs not yet added).
 - New instruction scheduler which is much more aggressive at
   performing software bypasses, which reduces register pressure.
   Creates considerably faster code with processor architectures with
