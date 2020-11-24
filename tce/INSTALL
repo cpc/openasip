@@ -17,37 +17,32 @@ This step needs root/admin privileges.
 For Ubuntus, you need to enable the universe and multiverse repositories first:
 https://help.ubuntu.com/community/Repositories/Ubuntu#Adding_Repositories_in_Ubuntu
 
-Ubuntu 16.04 and 18.04
-----------------------
+Ubuntu 16.04+
+-------------
 
-Note! Since Ubuntu might install its own libllvm, it can cause a problem with
-the TCE-patched LLVM at build time. You might need a workaround that is documented
-in this issue https://github.com/cpc/tce/issues/91
-
-  sudo apt-get install libwxgtk3.0-dev libboost-all-dev \
-    tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make \
-    latex2html libffi-dev autoconf automake libtool subversion git cmake
-
+sudo apt-get install libwxgtk3.0-dev libboost-all-dev \
+ tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make \
+ latex2html libffi-dev autoconf automake libtool subversion git cmake
 
 Ubuntu 14.04 LTS
 ----------------
 
-  sudo apt-get install libwxgtk2.8-dev libboost-all-dev \
-    tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
-    libffi-dev autoconf automake libtool subversion git cmake
+sudo apt-get install libwxgtk2.8-dev libboost-all-dev \
+ tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
+ libffi-dev autoconf automake libtool subversion git cmake
 
 Debian 7
 --------
 
-  sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
-    tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
-    libffi-dev autoconf automake libtool subversion git cmake
+sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
+ tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
+ libffi-dev autoconf automake libtool subversion git cmake
 
 CentOS 6.5
 ----------
 
-  sudo yum install -y bzr wxGTK-devel boost-devel tcl-devel libedit-devel \
-  sqlite-devel xerces-c-devel gcc-c++ make autoconf automake libtool svn
+sudo yum install -y bzr wxGTK-devel boost-devel tcl-devel libedit-devel \
+ sqlite-devel xerces-c-devel gcc-c++ make autoconf automake libtool svn
 
 Get the Latest TCE Source Code
 ==============================
@@ -56,19 +51,19 @@ Get the Latest TCE Source Code
 
 Alternatively you can get one of the release branches, e.g.:
 
-  git clone -b release-1.21 https://github.com/cpc/tce.git tce-1.21
+  git clone -b release-1.22 https://github.com/cpc/tce.git tce-1.22
 
 LLVM and Clang
 ==============
 
 In order to compile programs from C/C++ with TCE, you need to install
-LLVM and Clang with some patches and correct LLVM build switches to fix
-issues affecting TCE use.
+LLVM and Clang with a few additional patches and use correct LLVM build
+switches to fix some issues affecting TCE usage.
 
-You can do this easiest by executing
+You can do this easiest as follows:
 
    cd tce-devel/tce
-   tools/scripts/install_llvm_10.sh $HOME/local
+   tools/scripts/install_llvm_11.sh $HOME/local
 
 After successful installation, add information about installed libraries to the
 search path. We assume TCE will be installed to the same location later.
@@ -136,7 +131,7 @@ wxWidgets             2.8+                                 wxWidgets
 Tcl                   8.0-8.4                              BSD-style
 Boost                 1.48.0-1.53.0                        very permissive
 sqlite3               3.2.0+                               public domain
-LLVM                  9.0-10.0                             LLVM Release License
+LLVM                  10.0-11.0                            LLVM Release License
 Editline              2.9                                  BSD-style
 Python                2.4-2.8                              PSF license
 
