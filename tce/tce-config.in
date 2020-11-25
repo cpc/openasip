@@ -33,6 +33,8 @@ version_string="@VERSION_STRING@"
 
 llvm_ldflags="@LLVM_LDFLAGS@"
 
+llvm_config="@LLVM_CONFIG@"
+
 usage()
 {
 	cat <<EOF
@@ -46,6 +48,7 @@ Options:
   [--cxxflags]
   [--c++-compiler]
   [--so-flags]
+  [--llvm-config]
 EOF
 	exit $1
 }
@@ -86,6 +89,9 @@ while test $# -gt 0; do
     --cxxflags)
       echo_cxxflags=yes
       ;;
+    --llvm-config)
+      echo_llvm_config=yes
+      ;;
     *)
       usage 1 1>&2
       ;;
@@ -121,4 +127,8 @@ fi
 
 if test "$echo_cxxflags" = "yes"; then
     echo "$cxxflags"
+fi
+
+if test "$echo_llvm_config" = "yes"; then
+    echo "$llvm_config"
 fi
