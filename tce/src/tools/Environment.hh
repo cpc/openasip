@@ -98,6 +98,8 @@ public:
     static std::vector<std::string> implementationTesterTemplatePaths();
     static std::string simTraceDirPath();
 
+    static bool developerMode();
+
 private:
     Environment();
     ~Environment();
@@ -123,6 +125,8 @@ private:
     static const std::string ERROR_LOG_FILE_NAME_;
     /// Flag indicating whether class has been initialized.
     static bool initialized_;
+    /// Flag indicating whether TCE is executing in developer mode.
+    static bool developerMode_;
 
     /// Schema directory search paths.
     static std::vector<std::string> schemaPaths_;

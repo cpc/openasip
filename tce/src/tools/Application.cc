@@ -106,7 +106,7 @@ Application::initialize() {
     // if this is a developer version, we can output debug messages to
     // cerr, in 'distributed version', we'll output the debug messages to
     // a file
-    if (!DISTRIBUTED_VERSION) {
+    if (Environment::developerMode()) {
         logStream_ = &cerr;
     } else {
         ofstream* fileLog = new ofstream;
@@ -512,37 +512,15 @@ Application::TCEVersionString() {
 }
 
 /**
- * Returns true if the application was started from an installed location
- * instead of the build tree.
+ * Returns true if the application is running from an install path.
  *
- * This can affect selection of some paths etc. in some TCE applicatons.
- * Warning: this check is incomplete, lightly tested, and might sometimes 
- * return true even if running from the source tree. Use with caution.
+ * Since there is no reliable way to detect this from the binary name
+ * or such since TCE can be used as a library, we just assume we are
+ * using an installed TCE in case the developer mode is not set.
  */
 bool
 Application::isInstalled() {
-
-    if (argv_ == NULL || argv_[0] == NULL)
-        return true;
-
-    TCEString execPath(argv_[0]);
-
-    Path execDir(FileSystem::directoryOfPath(execPath));
-
-    // In source tree the binaries are placed under .lib directory.
-    std::vector<TCEString> dirPieces = TCEString(execDir.string()).split("/");
-    if (dirPieces.back() == ".libs") {
-        return false;
-    }
-
-    // assume that the binaries executed from the build tree
-    // contain the libtool lt- prefix
-    std::vector<TCEString> pieces = execPath.split("/");
-    if (pieces.at(pieces.size() - 1).startsWith("lt-")) {
-        return false;
-    }
-
-    return true;
+    return !Environment::developerMode();
 }
 
 /**

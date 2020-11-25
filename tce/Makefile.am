@@ -1,8 +1,6 @@
 SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scripts manual cost_estimator_plugins explorer doc 
 
-if ! DISTRIBUTED_VERSION
 SUBDIRS += scheduler 
-endif
 
 if COMPILER_FOUND
 SUBDIRS += bclib

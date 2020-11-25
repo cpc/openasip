@@ -154,12 +154,12 @@ OperationBuilder::buildObject(
         vector<string> includes = Environment::includeDirPaths();
 
         TCEString INCLUDES = makeIncludeString(includes);
-        
-        // Ugly fix. When compiling TCE the base opset is compiled in the 
+
+        // Ugly fix. When compiling TCE the base opset is compiled in the
         // source directory. When distributed version is enabled buildopset
         // needs to know some include paths from the source tree because these
         // headers aren't resident in places that includeDirPaths() returns.
-        if (DISTRIBUTED_VERSION) {
+        if (!Environment::developerMode()) {
             string cwd = FileSystem::currentWorkingDir();
             string DS = FileSystem::DIRECTORY_SEPARATOR;
             string srcOpsetDir = TCE_SRC_ROOT + DS + "opset" + DS + "base";

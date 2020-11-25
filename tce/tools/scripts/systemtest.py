@@ -742,6 +742,7 @@ def setup_exec_env():
 
     lib_tce_dir = os.path.join(bld_root, 'src/.libs')
 
+    os.environ['TCE_DEVEL_MODE'] = '1'
     os.environ['TCE_LDFLAGS'] = "-L" + lib_tce_dir
     os.environ['TCE_CPPFLAGS'] = cpp_flags
     os.environ['LD_LIBRARY_PATH'] = lib_tce_dir + ":" + os.environ.get('LD_LIBRARY_PATH', '')

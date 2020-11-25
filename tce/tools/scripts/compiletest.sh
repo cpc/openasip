@@ -319,6 +319,7 @@ MAKEFLAGS="${MAKEFLAGS#-j[0-9]}"
 MAKEFLAGS="${MAKEFLAGS#[0-9[:space:]]}"
 MAKE_OPT="-k"
 
+export TCE_DEVEL_MODE=1
 export PATH="$PATH:/bin:/usr/local/bin:/usr/bin"
 
 USER=`whoami`

@@ -1651,49 +1651,6 @@ fi
 #
 ################################
 
-# In case 'distro' file exists, this is a packaged tar ball
-# release. Apply "distributed version" modifications.
-if test -e $srcdir/distro
-then
-DISTRIBUTED_VERSION_DEFAULT=true
-else
-DISTRIBUTED_VERSION_DEFAULT=false
-fi
-DISTRIBUTED_VERSION=$DISTRIBUTED_VERSION_DEFAULT
-
-# Enable DISTRIBUTED_VERSION
-AC_ARG_ENABLE(distributed,
-              [AS_HELP_STRING([--enable-distributed],[Build TCE as distributed version])],
-[ case "${enableval}" in
-  yes) 
-  AC_DEFINE(DISTRIBUTED_VERSION, true,
-            [This macro is defined to 'true'  in case the build is going to be \
-             distributed to be used in non-developer systems. This results in debug logs \
-             etc. being printed to different files, search paths do not include the TCE \
-             source directory, etc.])
-  DISTRIBUTED_VERSION=true
-    ;;
-  no) 
-  AC_DEFINE(DISTRIBUTED_VERSION, false,
-            [This macro is defined to 'true'  in case the build is going to be \
-             distributed to be used in non-developer systems. This results in debug logs \
-             etc. being printed to different files, search paths do not include the TCE \
-             source directory, etc.])
-  DISTRIBUTED_VERSION=false
-    ;;
-  *) 
-    AC_MSG_ERROR(bad value ${enableval for --enable-distributed}) 
-    ;;
-  esac], 
-  [AC_DEFINE_UNQUOTED(DISTRIBUTED_VERSION, [$DISTRIBUTED_VERSION_DEFAULT],
-            [This macro is defined to 'true'  in case the build is going to be \
-             distributed to be used in non-developer systems. This results in debug logs \
-             etc. being printed to different files, search paths do not include the TCE \
-             source directory, etc.])]
-
-)
-AM_CONDITIONAL(DISTRIBUTED_VERSION, test x$DISTRIBUTED_VERSION == xtrue)
-
 # set variables, which were used by old system...
 AC_SUBST([BOOST_INCLUDES], ["$BOOST_CPPFLAGS"] )
 AC_SUBST([BOOST_LIBDIR], ["$BOOST_LDFLAGS"])

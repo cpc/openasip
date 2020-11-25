@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2012 Tampere University.
+    Copyright (c) 2002-2020 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,24 +26,9 @@
  *
  * Definition of Environment class.
  *
- * *
- * @todo DISTRIBUTED_VERSION compile time variable does not make much sense.
- *
- * Currently the paths include the src dir first and then from the 
- * installation path which might cause strange behavior when running
- * a differing (usually old) installed version than the src dir has.
- *
- * In case DISTRIBUTED_VERSION is 'true' then the src dirs are excluded
- * from the search path for efficiency etc. One way to fix this is
- * to make DISTRIBUTED_VERSION a function call which determines somehow
- * if the binary is executed from the build path or from the installation
- * prefix. Anyways, it works fine as long as the developers know about
- * this issue.
- *
- *
  * @author Atte Oksman 2003 (oksman-no.spam-cs.tut.fi)
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2007,2010-2012
+ * @author Pekka J‰‰skel‰inen 2007-2020
  *
  * @note reviewed 19 May 2004 by ao, jn, ml, am
  * @note rating: red
@@ -73,6 +58,7 @@ const string Environment::CONF_DIR_NAME_ = "conf";
 const string Environment::ICON_DIR_NAME_ = "icons";
 const string Environment::ERROR_LOG_FILE_NAME_ = "error_log.log";
 bool Environment::initialized_ = false;
+bool Environment::developerMode_ = false;
 vector<string> Environment::schemaPaths_;
 vector<string> Environment::dataPaths_;
 vector<string> Environment::bitmapsPaths_;
@@ -112,11 +98,14 @@ Environment::initialize() {
         return;
     }
 
+    developerMode_ =
+        Environment::environmentVariable("TCE_DEVEL_MODE") == "1";
+
     errorPaths_.push_back(
         FileSystem::homeDirectory() +
         FileSystem::DIRECTORY_SEPARATOR + string(".tce"));
 
-    if (!DISTRIBUTED_VERSION) {
+    if (developerMode_) {
         schemaPaths_.push_back(string(TCE_SRC_ROOT));
         iconPaths_.push_back(string(TCE_SRC_ROOT));
         dataPaths_.push_back(string(TCE_SRC_ROOT));
@@ -124,14 +113,15 @@ Environment::initialize() {
         manPaths_.push_back(
             string(TCE_SRC_ROOT) +
             FileSystem::DIRECTORY_SEPARATOR + string("doc"));
+    } else {
+        string instDir =
+            Application::installationDir() + string(INSTALLATION_DIR);
+        schemaPaths_.push_back(instDir);
+        iconPaths_.push_back(instDir);
+        dataPaths_.push_back(instDir);
+        bitmapsPaths_.push_back(instDir);
+        manPaths_.push_back(instDir);
     }
-
-    string instDir = Application::installationDir() + string(INSTALLATION_DIR);
-    schemaPaths_.push_back(instDir);
-    iconPaths_.push_back(instDir);
-    dataPaths_.push_back(instDir);
-    bitmapsPaths_.push_back(instDir);
-    manPaths_.push_back(instDir);
 
     string traceEnv = environmentVariable("TTASIM_TRACE_DIR");
     if (traceEnv != "") {
@@ -277,7 +267,7 @@ Environment::manDirPath(const std::string& prog) {
  *
  * First tries to find one in the user's homedir, if not found,
  * uses the installed one (with defaults). Note: when writing
- * (overriding) configuration files, one should call userConfDirPath() 
+ * (overriding) configuration files, one should call userConfDirPath()
  * instead!
  *
  * @param fileName The name of the configuration file.
@@ -287,23 +277,21 @@ TCEString
 Environment::confPath(const std::string& fileName) {
     initialize();
 
-    TCEString userConf = 
-        FileSystem::homeDirectory() + DS + ".tce" + DS + fileName;   
-    TCEString srcDirConf = 
+    TCEString userConf =
+        FileSystem::homeDirectory() + DS + ".tce" + DS + fileName;
+    TCEString srcDirConf =
         TCEString(TCE_SRC_ROOT) + DS + CONF_DIR_NAME_ + DS + fileName;
 
-    TCEString installedConf = 
+    TCEString installedConf =
         Application::installationDir() + TCEString(INSTALLATION_DIR) +
         DS + CONF_DIR_NAME_ + DS + fileName;
     if (FileSystem::fileExists(userConf)) {
         return userConf;
-    } 
+    }
 
-    if (!DISTRIBUTED_VERSION && FileSystem::fileExists(srcDirConf)) {
+    if (Environment::developerMode() && FileSystem::fileExists(srcDirConf)) {
         return srcDirConf;
-    } 
-
-    if (DISTRIBUTED_VERSION && FileSystem::fileExists(installedConf)) {
+    } else if (FileSystem::fileExists(installedConf)) {
         return installedConf;
     }
 
@@ -313,8 +301,8 @@ Environment::confPath(const std::string& fileName) {
 
 TCEString
 Environment::userConfPath(const std::string& fileName) {
-    TCEString userConf = 
-        FileSystem::homeDirectory() + DS + ".tce" + DS + fileName;   
+    TCEString userConf =
+        FileSystem::homeDirectory() + DS + ".tce" + DS + fileName;
     if (!FileSystem::fileExists(userConf)) {
         FileSystem::createFile(userConf);
     }
@@ -363,8 +351,8 @@ Environment::includeDirPaths() {
     const std::string BASE = ROOT + DS + "src" + DS + "base";
     const std::string APPLIBS = ROOT + DS + "src" + DS + "applibs";
     const std::string BLD = string(TCE_BLD_ROOT);
-    
-    if (!DISTRIBUTED_VERSION) {
+
+    if (Environment::developerMode()) {
         includes.push_back(ROOT);
         includes.push_back(ROOT + DS + "src" + DS + "tools");
         includes.push_back(BASE + DS + "osal");
@@ -380,9 +368,10 @@ Environment::includeDirPaths() {
         includes.push_back(APPLIBS + DS + "mach");
         includes.push_back(APPLIBS + DS + "FSA");
         includes.push_back(TCE_BLD_ROOT);
-    } 
-    includes.push_back(Application::installationDir() + DS + "include");
-    
+    } else {
+        includes.push_back(Application::installationDir() + DS + "include");
+    }
+
     return includes;
 }
 
@@ -578,23 +567,23 @@ vector<string>
 Environment::codeCompressorPaths(bool libraryPathsOnly) {
 
     vector<string> paths;
-    string base = Application::installationDir() + string(INSTALLATION_DIR) +
-        "codecompressors" + DS + "base";
-    string custom = Application::installationDir() + string(INSTALLATION_DIR)+
-        "codecompressors" + DS + "custom";
-    string personal = FileSystem::homeDirectory() + DS + ".tce" + DS +
-        "codecompressors" + DS + "custom";
-    string cwd = FileSystem::currentWorkingDir();
 
-    paths.push_back(base);
-    paths.push_back(personal);
-    paths.push_back(custom);
-
-    if (!DISTRIBUTED_VERSION) {
+    if (Environment::developerMode()) {
         string path = string(TCE_SRC_ROOT) + DS + "compressors";
         paths.push_back(path);
-    }
+    } else {
+        string base = Application::installationDir() + string(INSTALLATION_DIR) +
+            "codecompressors" + DS + "base";
+        string custom = Application::installationDir() + string(INSTALLATION_DIR)+
+            "codecompressors" + DS + "custom";
+        string personal = FileSystem::homeDirectory() + DS + ".tce" + DS +
+            "codecompressors" + DS + "custom";
 
+        paths.push_back(base);
+        paths.push_back(personal);
+        paths.push_back(custom);
+    }
+    string cwd = FileSystem::currentWorkingDir();
     if (!libraryPathsOnly) paths.push_back(cwd);
     return paths;
 }
@@ -619,14 +608,14 @@ Environment::schedulerPluginPaths() {
 
     string cwd = FileSystem::currentWorkingDir();
 
-    if (!DISTRIBUTED_VERSION) {
+    if (Environment::developerMode()) {
         // first find from the src tree to make the system tests etc.
         // to test the plugins in source base, not the installed plugins
         paths.push_back(srcBase);
-    } 
-
-    paths.push_back(base);
-    paths.push_back(personal);
+    } else {
+        paths.push_back(base);
+        paths.push_back(personal);
+    }
     paths.push_back(cwd);
 
     return paths;
@@ -651,16 +640,16 @@ Environment::icDecoderPluginPaths(bool libraryPathsOnly) {
         "icdecoder_plugins";
     string cwd = FileSystem::currentWorkingDir();
     string data = cwd + DS + "data";
-    if (!DISTRIBUTED_VERSION) {
+    if (Environment::developerMode()) {
         // first find from the src tree to make the system tests etc.
         // to test the plugins in source base, not the installed plugins
         string path = string(TCE_SRC_ROOT) + DS + "icdecoder_plugins";
         paths.push_back(path);
+    } else {
+        paths.push_back(base);
+        paths.push_back(personal);
+        paths.push_back(custom);
     }
-
-    paths.push_back(base);
-    paths.push_back(personal);
-    paths.push_back(custom);
     if (!libraryPathsOnly) paths.push_back(cwd);
     if (!libraryPathsOnly) paths.push_back(data);
     return paths;
@@ -690,14 +679,14 @@ std::vector<std::string>
 Environment::hdbPaths(bool libraryPathsOnly) {
 
     vector<string> paths;
-    if (!DISTRIBUTED_VERSION) {
+    if (Environment::developerMode()) {
         string srcBase = string(TCE_SRC_ROOT) + DS + "hdb";
         paths.push_back(srcBase);
+    } else {
+        string instBase = Application::installationDir() +
+            string(INSTALLATION_DIR) + "hdb";
+        paths.push_back(instBase);
     }
-
-    string instBase = Application::installationDir() +
-        string(INSTALLATION_DIR) + "hdb";
-    paths.push_back(instBase);
     if (!libraryPathsOnly) {
         string cwd = FileSystem::currentWorkingDir();
         paths.push_back(cwd);
@@ -770,21 +759,19 @@ Environment::vhdlPaths(const std::string& hdbPath) {
 
     // Drop the name of hdb file from hdb path
     string hdbDir = FileSystem::directoryOfPath(hdbPath);
-    
-    
     paths.push_back(hdbDir);
-    paths.push_back(hdbDir + DS + "vhdl");    
-    
-    if (!DISTRIBUTED_VERSION) {
+    paths.push_back(hdbDir + DS + "vhdl");
+
+    if (Environment::developerMode()) {
         string srcBase = string(TCE_SRC_ROOT) + DS + "hdb";
         paths.push_back(srcBase);
         paths.push_back(srcBase + DS + "vhdl");
+    } else {
+        string srcBase = Application::installationDir() +
+            string(INSTALLATION_DIR) + "hdb";
+        paths.push_back(srcBase);
+        paths.push_back(srcBase + DS + "vhdl");
     }
-
-    string srcBase = Application::installationDir() +
-        string(INSTALLATION_DIR) + "hdb";
-    paths.push_back(srcBase);
-    paths.push_back(srcBase + DS + "vhdl");
     string cwd = FileSystem::currentWorkingDir();
     paths.push_back(cwd);
     paths.push_back(cwd + DS + "data");
@@ -819,22 +806,17 @@ Environment::explorerPluginPaths() {
 
     vector<string> paths;
 
-    if (!DISTRIBUTED_VERSION) {
+    if (Environment::developerMode()) {
         string srcBase = string(TCE_SRC_ROOT) + DS + "explorer";
         paths.push_back(srcBase);
-    }
+    } else {
+        string base = Application::installationDir() + string(INSTALLATION_DIR) +
+            "explorer" + DS + "base";
+        paths.push_back(base);
 
-    string base = Application::installationDir() + string(INSTALLATION_DIR) +
-        "explorer" + DS + "base";
-    paths.push_back(base);
-
-    string personal = FileSystem::homeDirectory() + DS + ".tce" + DS +
-        "explorer";
-    paths.push_back(personal);
-
-    if (DISTRIBUTED_VERSION) {
-        string custom = string(TCE_SRC_ROOT) + DS + "explorer";
-        paths.push_back(custom);
+        string personal = FileSystem::homeDirectory() + DS + ".tce" + DS +
+            "explorer";
+        paths.push_back(personal);
     }
 
     string cwd = FileSystem::currentWorkingDir();
@@ -868,11 +850,14 @@ Environment::estimatorPluginPaths() {
     string cwd = FileSystem::currentWorkingDir();
     string data = FileSystem::currentWorkingDir() + DS + "data";
 
-    paths.push_back(base);
-    paths.push_back(baseRF);
-    paths.push_back(baseFU);
+    if (Environment::developerMode()) {
+        paths.push_back(custom);
+    } else {
+        paths.push_back(base);
+        paths.push_back(baseRF);
+        paths.push_back(baseFU);
+    }
     paths.push_back(personal);
-    paths.push_back(custom);
     paths.push_back(cwd);
     paths.push_back(data);
     return paths;
@@ -887,21 +872,22 @@ Environment::estimatorPluginPaths() {
 string
 Environment::pdfManual() {
 
-    if (!DISTRIBUTED_VERSION) {
-        // first find from the src tree
+    if (Environment::developerMode()) {
         std::string srcPath =
             string(TCE_SRC_ROOT) + FileSystem::DIRECTORY_SEPARATOR +
             PDF_MANUAL_SRC;
+        assert(
+            FileSystem::fileExists(srcPath) &&
+            "Installation broken, minimal.adf not found");
+        return srcPath;
+    } else {
+        std::string path = Application::installationDir() +
+            string(INSTALLATION_DIR) + PDF_MANUAL_INSTALLED;
 
-        if (FileSystem::fileExists(srcPath))
-            return srcPath;
-    } 
-    std::string path = Application::installationDir() +
-        string(INSTALLATION_DIR) + PDF_MANUAL_INSTALLED;
-
-    if (!FileSystem::fileExists(path))
-        debugLog("Installation broken, manual not found");
-    return path;
+        if (!FileSystem::fileExists(path))
+            debugLog("Installation broken, manual not found");
+        return path;
+    }
 }
 
 /**
@@ -910,22 +896,24 @@ Environment::pdfManual() {
 string
 Environment::minimalADF() {
 
-    if (!DISTRIBUTED_VERSION) {
-        // first find from the src tree
+    if (Environment::developerMode()) {
         std::string srcPath =
             string(TCE_SRC_ROOT) + FileSystem::DIRECTORY_SEPARATOR +
             MINIMAL_ADF_SRC;
 
-        if (FileSystem::fileExists(srcPath))
-            return srcPath;
-    } 
-    std::string path = Application::installationDir() +
-        string(INSTALLATION_DIR) + MINIMAL_ADF_INSTALLED;
+        assert(
+            FileSystem::fileExists(srcPath) &&
+            "Installation broken, minimal.adf not found");
+        return srcPath;
+    } else {
+        std::string path = Application::installationDir() +
+            string(INSTALLATION_DIR) + MINIMAL_ADF_INSTALLED;
 
-    assert(
-        FileSystem::fileExists(path) && 
-        "Installation broken, minimal.adf not found");
-    return path;
+        assert(
+            FileSystem::fileExists(path) &&
+            "Installation broken, minimal.adf not found");
+        return path;
+    }
 }
 
 
@@ -937,23 +925,24 @@ Environment::minimalADF() {
 string
 Environment::tceCompiler() {
 
-    if (!DISTRIBUTED_VERSION) {
-        // first find from the src tree
+    if (Environment::developerMode()) {
         std::string srcPath =
             string(TCE_SRC_ROOT) + "/src/bintools/Compiler/tcecc";
 
         std::string llvmTceSrcPath =
             string(TCE_SRC_ROOT) + "/src/bintools/Compiler/llvm-tce/llvm-tce";
 
-        if (FileSystem::fileExists(srcPath) &&
-            FileSystem::fileExists(llvmTceSrcPath))
-            return srcPath;
-    } 
-    std::string path = Application::installationDir() + "/bin/tcecc";
-    assert(
-        FileSystem::fileExists(path) &&
-        "Installation broken, tcecc not found.");
-    return path;
+        assert(FileSystem::fileExists(srcPath) &&
+               FileSystem::fileExists(llvmTceSrcPath) &&
+               "Build broken, compiler paths not found.");
+        return srcPath;
+    } else {
+        std::string path = Application::installationDir() + "/bin/tcecc";
+        assert(
+            FileSystem::fileExists(path) &&
+            "Installation broken, tcecc not found.");
+        return path;
+    }
 }
 
 
@@ -965,20 +954,21 @@ Environment::tceCompiler() {
 string
 Environment::defaultSchedulerConf() {
 
-    if (!DISTRIBUTED_VERSION) {
-        // first find from the src tree
+    if (Environment::developerMode()) {
         std::string srcPath =
             string(TCE_SRC_ROOT) + "/scheduler/passes/default_scheduler.conf";
-
-        if (FileSystem::fileExists(srcPath))
-            return srcPath;
-    } 
-    std::string path = Application::installationDir() +
-        string(INSTALLATION_DIR) + "/scheduler/passes/default_scheduler.conf";
-    assert(
-        FileSystem::fileExists(path) &&
-        "Installation broken, default_scheduler.conf not found.");
-    return path;
+        assert(
+            FileSystem::fileExists(srcPath) &&
+            "Build broken, default_scheduler.conf not found.");
+        return srcPath;
+    } else {
+        std::string path = Application::installationDir() +
+            string(INSTALLATION_DIR) + "/scheduler/passes/default_scheduler.conf";
+        assert(
+            FileSystem::fileExists(path) &&
+            "Installation broken, default_scheduler.conf not found.");
+        return path;
+    }
 }
 
 
@@ -993,20 +983,22 @@ Environment::defaultSchedulerConf() {
 string
 Environment::oldGccSchedulerConf() {
 
-    if (!DISTRIBUTED_VERSION) {
+    if (Environment::developerMode()) {
         // first find from the src tree
         std::string srcPath =
             string(TCE_SRC_ROOT) + "/scheduler/passes/old_gcc.conf";
-
-        if (FileSystem::fileExists(srcPath))
-            return srcPath;
-    } 
-    std::string path = Application::installationDir() +
-        string(INSTALLATION_DIR) + "/scheduler/passes/old_gcc.conf";
-    assert(
-        FileSystem::fileExists(path) &&
-        "Installation broken, old_gcc.conf not found.");
-    return path;
+        assert(
+            FileSystem::fileExists(srcPath) &&
+            "Build broken, old_gcc.conf not found.");
+        return srcPath;
+    } else {
+        std::string path = Application::installationDir() +
+            string(INSTALLATION_DIR) + "/scheduler/passes/old_gcc.conf";
+        assert(
+            FileSystem::fileExists(path) &&
+            "Installation broken, old_gcc.conf not found.");
+        return path;
+    }
 }
 
 /**
@@ -1134,7 +1126,7 @@ Environment::findExecutableFromPATH(const std::vector<std::string>& execs) {
  */
 std::vector<std::string> Environment::implementationTesterTemplatePaths() {
     std::vector<std::string> paths;
-    if (!DISTRIBUTED_VERSION) {
+    if (Environment::developerMode()) {
         string path = string(TCE_SRC_ROOT) + DS + "data" + DS + "hdb";
         paths.push_back(path);
     }
@@ -1155,4 +1147,21 @@ string
 Environment::simTraceDirPath() {
     initialize();
     return simTraceDir_;
+}
+
+/**
+ * Returns true in case TCE is running in developer mode.
+ *
+ * The developer mode can be enabled by setting environment variable
+ * TCE_DEVEL_MODE to 1 and causes the following differences at TCE
+ * runtime:
+ *
+ * - build directories are used as various search paths instead of
+ *   installation prefix paths
+ * - debug output printed to stderr
+ */
+bool
+Environment::developerMode() {
+    Environment::initialize();
+    return developerMode_;
 }
