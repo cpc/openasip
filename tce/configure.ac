@@ -34,8 +34,9 @@ AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 # TCE 1.20 = 20:0:0
 # TCE 1.21 = 21:0:0
 # TCE 1.22 = 22:0:0
+# TCE 1.23 = 23:0:0
 
-AC_SUBST([LIB_VERSION], ["22:0:0"])
+AC_SUBST([LIB_VERSION], ["23:0:0"])
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
