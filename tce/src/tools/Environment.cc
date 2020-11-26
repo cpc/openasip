@@ -549,10 +549,13 @@ Environment::osalPaths() {
         VectorTools::insertUnique(paths, envPath);
     VectorTools::insertUnique(paths, cwd);
     VectorTools::insertUnique(paths, data);
-    VectorTools::insertUnique(paths, src);
-    VectorTools::insertUnique(paths, userPath);
-    VectorTools::insertUnique(paths, customPath);
-    VectorTools::insertUnique(paths, basePath);
+    if (Environment::developerMode()) {
+        VectorTools::insertUnique(paths, src);
+    } else {
+        VectorTools::insertUnique(paths, userPath);
+        VectorTools::insertUnique(paths, customPath);
+        VectorTools::insertUnique(paths, basePath);
+    }
 
     return paths;
 }
