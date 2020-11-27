@@ -1855,7 +1855,7 @@ AC_CONFIG_FILES([src/bintools/Compiler/tcecc],
 # Configure newlib as well
 m4_pattern_allow([^AS_FOR_TARGET$])
 
-NEWLIB_CFLAGS="-O2 -fno-builtin -Wno-unknown-warning-option \
+NEWLIB_CFLAGS="--tce-build-mode -O2 -fno-builtin -Wno-unknown-warning-option \
 -Wno-literal-range -Wno-pointer-sign -Wno-return-type \
 -Wno-empty-body -Wno-dangling-else -Wno-implicit-function-declaration -Wno-unused-value"
 
