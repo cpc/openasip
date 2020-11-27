@@ -1,7 +1,7 @@
 #!/usr/bin/env @PYTHON_BIN@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2002-2014 Tampere University.
+# Copyright (c) 2002-2020 Tampere University.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 #
@@ -24,7 +24,7 @@
 # IN THE SOFTWARE.
 #
 # @author 2006-2009 Veli-Pekka Jääskeläinen
-# @author 2006-2014 Pekka Jääskeläinen
+# @author 2006-2020 Pekka Jääskeläinen
 #
 # High-level language compiler driver for TCE.
 #
@@ -1307,6 +1307,11 @@ p.add_option('--no-emulationlib',
              action="store_true", dest="no_emulationlib", default=False,
 	     help="Do not compile the emulationLib. Code which requires division or multiplication may fail if the processor does not have multiplier or divider." )
 
+
+p.add_option('--tce-build-mode', action="store_true",
+             dest="tce_build_mode", default=False,
+             help="Use when building TCE's bitcode libraries. Sets build directory search paths correctly.")
+
 p.add_option('--blocks-startfiles', action="store_true",
              dest="blocks_startfiles", default=False,
              help="Use start routines with exit routine for Blocks.")
@@ -1327,6 +1332,11 @@ for opt in sys.argv[1:]:
 
 # parse valid args
 options, inFiles = p.parse_args(args)
+
+if options.tce_build_mode:
+    # Ensure we find the OSAL directories to produce the tceopgen macros for
+    # launching STDOUT etc. from C implementations in newlib.
+    os.environ['TCE_DEVEL_MODE'] = '1'
 
 if options.verbose_spam:
     options.verbose = True;
