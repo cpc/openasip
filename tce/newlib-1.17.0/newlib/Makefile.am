@@ -243,7 +243,8 @@ stmp-targ-include: config.status
 	  done
 	touch $@
 
-CLEANFILES = targ-include stmp-targ-include
+#CLEANFILES = targ-include stmp-targ-include
+CLEANFILES = libg.a
 
 install-data-local:	install-toollibLIBRARIES
 if USE_LIBTOOL
