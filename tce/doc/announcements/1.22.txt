@@ -1,9 +1,9 @@
 OpenASIP v1.22 Released
 -----------------------
 
-OpenASIP, also known as TTA-based Co-Design Environment (TCE) is an open
-application-specific instruction-set processor (ASIP) toolset for design
-and programming of customized co-processors (compiler-programmable
+OpenASIP, also known as TTA-based Co-Design Environment (TCE), is an open
+source application-specific instruction-set processor (ASIP) toolset for
+design and programming of customized co-processors (compiler-programmable
 accelerators). It is based on the static energy efficient Transport Triggered
 Architecture (TTA) processor template.
 
