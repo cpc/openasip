@@ -444,7 +444,7 @@ AC_ARG_WITH(llvm,
  llvmConf="$llvmDir/bin/llvm-config"
 ],
 [llvmDir=""
-AC_PATH_PROGS([LLVM_CONFIG], [llvm-config llvm-config-6.0 llvm-config-5.0 llvm-config-3.5 llvm-config-3.4 llvm-config-3.3 llvm-config-3.2 ])
+AC_PATH_PROGS([LLVM_CONFIG], [llvmtce-config llvm-config llvm-config-6.0 llvm-config-5.0 llvm-config-3.5 llvm-config-3.4 llvm-config-3.3 llvm-config-3.2 ])
 llvmConf=$LLVM_CONFIG
 ]
 )
