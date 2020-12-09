@@ -33,8 +33,9 @@ import re
 import glob
 import time
 import math
+import traceback
 import signal
-import StringIO
+from io import StringIO
 
 try:
     import multiprocessing
@@ -62,11 +63,11 @@ def run_with_timeout(command, timeoutSecs, inputStream = "", combinedOutput=True
     else:
         stdoutFD, outFile = tempfile.mkstemp()
 
-    process =  Popen(command, shell=True, stdin=PIPE, 
-                     stdout=stdoutFD, stderr=stderrFD, close_fds=False)
+    process =  Popen(command, shell=True, stdin=PIPE,
+                     stdout=stdoutFD, stderr=stderrFD, close_fds=False, text=True)
 
-    if process == None:
-        print "Could not create process"
+    if process is None:
+        print("Could not create process")
         sys.exit(1)
     try:
         if inputStream != "":
@@ -77,7 +78,7 @@ def run_with_timeout(command, timeoutSecs, inputStream = "", combinedOutput=True
 
         while True:
             status = process.poll()
-            if status != None:
+            if status is not None:
                 # Process terminated succesfully.
                 stdoutSize = os.lseek(stdoutFD, 0, 2)
                 stderrSize = os.lseek(stderrFD, 0, 2)
@@ -85,12 +86,12 @@ def run_with_timeout(command, timeoutSecs, inputStream = "", combinedOutput=True
                 os.lseek(stdoutFD, 0, 0)
                 os.lseek(stderrFD, 0, 0)
 
-                stdoutContents = os.read(stdoutFD, stdoutSize)
+                stdoutContents = os.read(stdoutFD, stdoutSize).decode('utf-8')
                 os.close(stdoutFD)
                 os.remove(outFile)
 
                 if not combinedOutput:
-                    stderrContents = os.read(stderrFD, stderrSize)
+                    stderrContents = os.read(stderrFD, stderrSize).decode('utf-8')
                     os.close(stderrFD)
                     os.remove(errFile)
                 else:
@@ -107,21 +108,24 @@ def run_with_timeout(command, timeoutSecs, inputStream = "", combinedOutput=True
                 stderrSize = os.lseek(stderrFD, 0, 2)
 
                 os.lseek(stdoutFD, 0, 0)
-                stdoutContents = os.read(stdoutFD, stdoutSize)
+                stdoutContents = os.read(stdoutFD, stdoutSize).decode('utf-8')
                 os.close(stdoutFD)
                 os.remove(outFile)
 
                 if not combinedOutput:
                     os.lseek(stderrFD, 0, 0)
-                    stderrContents = os.read(stderrFD, stderrSize)
+                    stderrContents = os.read(stderrFD, stderrSize).decode('utf-8')
                     os.close(stderrFD)
                     os.remove(errFile)
                 else:
                     stderrContents = stdoutContents
                 os.kill(process.pid, signal.SIGTSTP)
                 return (True, stdoutContents, stderrContents, process.returncode)
-    except Exception, e:
+    except Exception:
+        print(traceback.format_exc(), file=sys.stderr)
         # if something threw exception (e.g. ctrl-c)
+        stderrContents = ''
+        stdoutContents = ''
         os.kill(process.pid, signal.SIGTSTP)
         try:
             # time out, kill the process.
@@ -130,33 +134,33 @@ def run_with_timeout(command, timeoutSecs, inputStream = "", combinedOutput=True
             stderrSize = os.lseek(stderrFD, 0, 2)
 
             os.lseek(stdoutFD, 0, 0)
-            stdoutContents = os.read(stdoutFD, stdoutSize)
+            stdoutContents = os.read(stdoutFD, stdoutSize).decode('utf-8')
             os.close(stdoutFD)
             os.remove(outFile)
 
             if not combinedOutput:
                 os.lseek(stderrFD, 0, 0)
-                stderrContents = os.read(stderrFD, stderrSize)
+                stderrContents = os.read(stderrFD, stderrSize).decode('utf-8')
             else:
                 os.close(stderrFD)
                 os.remove(errFile)
                 stderrContents = stdoutContents
 
-            os.kill(process.pid, signal.SIGTSTP)                
+            os.kill(process.pid, signal.SIGTSTP)
         except:
             pass
 
         return (False, stdoutContents, stderrContents, process.returncode)
 
 
-def run_command(command, echoStdout=False, echoStderr=False, echoCmd=False, 
+def run_command(command, echoStdout=False, echoStderr=False, echoCmd=False,
                 stdoutFD=None, stderrFD=None, stdinFile=None):
     """Runs the given shell command and returns its exit code.
 
     If echoOutput is False, stdout and stderr are redirected to /dev/null."""
-      
+
     if echoCmd:
-        print command
+        print(command)
 
     if not echoStdout:
         stdoutRedir = open('/dev/null', 'w')
@@ -201,14 +205,14 @@ def parse_options():
     parser = OptionParser(usage="usage: %prog [options] tests_root_dir")
     parser.add_option("-s", "--print_successful", dest="print_successful", action="store_true",
                       help="Print successful tests also. " + \
-                          "Default is to not print anything in case of an OK run.", 
+                          "Default is to not print anything in case of an OK run.",
                       default=False)
-    parser.add_option("-o", "--output-differences", dest="output_diff", action="store_true", 
+    parser.add_option("-o", "--output-differences", dest="output_diff", action="store_true",
                       help="Output the found differences to 'differences.txt'.")
     parser.add_option("-d", "--dump-output", dest="dump_output", action="store_true",
                       help="Executes the test case(s) and dumps the stdout and stderr. " + \
-                      "Useful for creating the initial test case verification files.", 
-                      default=False)      
+                      "Useful for creating the initial test case verification files.",
+                      default=False)
     parser.add_option("-w", "--watchdog-time", dest="timeout", type="int",
                       help="The number of seconds to wait before assuming a single test got " +\
                           "stuck and should be killed.",
@@ -222,7 +226,7 @@ def parse_options():
                       help="Use ANSI color codes for highlighting the output. " + \
                       "Does not check that the terminal supports them..")
     if mp_supported:
-        parser.add_option("-p", "--parallel-processes", dest="par_process_count", type="int", 
+        parser.add_option("-p", "--parallel-processes", dest="par_process_count", type="int",
                           default=multiprocessing.cpu_count(),
                           help="The number of parallel processes to use for running the test dirs. " + \
                               "Use 1 to disable parallel execution.")
@@ -248,26 +252,26 @@ class IntegrationTestCase(object):
         self.xstdout = None
         # In case the tcetest does not contain an xstdout line, it means
         # that stdout should be ignored and the test can fail only with
-        # a nonzero exit code. On the other hand, if xstdout is empty, 
+        # a nonzero exit code. On the other hand, if xstdout is empty,
         # the tests expectes there's no stdout printouts.
         self.ignore_stdout = False
         self.xstderr = None
         self.stdin = ""
         self.valid = False
-        if test_case_file.endswith(".testdesc"): 
+        if test_case_file.endswith(".testdesc"):
             self._load_legacy_testdesc()
         elif os.path.basename(test_case_file).startswith("tcetest_") and \
                 os.path.basename(test_case_file).endswith(".sh"):
-            self._load_sh_testdesc()        
+            self._load_sh_testdesc()
 
         # list of tuples of test data:
         # (stdin, expected stdout)
         self._test_data = []
-   
+
 
     def _parse_php_str_assignment(self, contents, variable):
         m = re.search(r"\$%s\s*=\s*(.*?)\s*\"\s*;" % variable, contents, re.DOTALL)
-        if m is None: 
+        if m is None:
             return ""
         else:
             clean_str = ""
@@ -283,9 +287,9 @@ class IntegrationTestCase(object):
             return clean_str.strip()
 
     def _load_verification_data(self):
-        
+
         out_files = glob.glob(os.path.join(self.verification_data_dir, "*_output.txt"))
-        
+
         for out_file in out_files:
             index = os.path.basename(out_file)[0:-len("output.txt")]
             in_files_pattern = \
@@ -295,7 +299,7 @@ class IntegrationTestCase(object):
             in_files.remove(out_file)
 
             if len(in_files) > 2:
-                print >> sys.stderr, "More than 1 stdin files for %s." % out_file
+                print("More than 1 stdin files for %s." % out_file, file=sys.stderr)
                 cleanup_and_exit(1)
             elif len(in_files) == 1:
                 in_file = os.path.basename(in_files[0])
@@ -305,11 +309,11 @@ class IntegrationTestCase(object):
                 no_index_file = os.path.join(self.verification_data_dir, index[0:-1] + ".txt")
                 if os.path.exists(no_index_file):
                     in_file = index[0:-1] + ".txt"
-                else:                                 
+                else:
                     in_file = None
 
             self._test_data.append((in_file, os.path.basename(out_file)))
-            self.ignore_stdout = False;
+            self.ignore_stdout = False
 
         if len(self._test_data) == 0:
             # Assume the test case should be executed only once, does not
@@ -327,18 +331,18 @@ class IntegrationTestCase(object):
     def _load_legacy_testdesc(self):
         contents = open(self._file_name).read().strip()
         if not contents.startswith("<?"):
-            print >> sys.stderr, "Illegal test file", self._file_name
+            print("Illegal test file", self._file_name, file=sys.stderr)
             self.valid = False
             return
 
         self.description = self._parse_php_str_assignment(contents, "test_description")
         self.bin = self._parse_php_str_assignment(contents, "test_bin")
-        self.args = self._parse_php_str_assignment(contents, "bin_args")        
+        self.args = self._parse_php_str_assignment(contents, "bin_args")
         self.type = "testdesc"
         self.verification_data_dir = os.path.basename(self._file_name).split(".testdesc")[0]
 
         if len(self.description) == 0 or len(self.bin) == 0:
-            print >> sys.stderr, "Illegal test file", self._file_name
+            print("Illegal test file", self._file_name, file=sys.stderr)
             self.valid = False
             return
 
@@ -349,8 +353,7 @@ class IntegrationTestCase(object):
         self.valid = False
         if not "### TCE TESTCASE" in contents or \
                 not "### title: " in contents:
-            print >> sys.stderr, (str(self._file_name)
-                                  + ": Invalid test description.")
+            print((str(self._file_name) + ": Invalid test description."), file=sys.stderr)
             sys.exit(2)
             return
 
@@ -366,7 +369,7 @@ class IntegrationTestCase(object):
             self.xstdout = None
             self.ignore_stdout = True
         else:
-            # The verifier assumes the lines are terminated with the new line 
+            # The verifier assumes the lines are terminated with the new line
             # character.
             self.xstdout = [x + "\n" for x in m.group(1).strip().split("\\n")]
             self.ignore_stdout = False
@@ -378,7 +381,7 @@ class IntegrationTestCase(object):
         self.verification_data_dir = os.path.basename(self._file_name)[8:-3]
 
         if len(self.description) == 0 or len(self.bin) == 0:
-            print >> sys.stderr, "Illegal test file", self._file_name
+            print("Illegal test file", self._file_name, file=sys.stderr)
             self.valid = False
             return
 
@@ -404,7 +407,7 @@ class IntegrationTestCase(object):
             stdout_stream.flush()
 
         all_ok = True
-        
+
         start_time = time.time()
 
         self._load_verification_data()
@@ -428,7 +431,7 @@ class IntegrationTestCase(object):
                 all_ok = False
                 continue
 
-            stdout = StringIO.StringIO(stdoutStr)
+            stdout = StringIO(stdoutStr)
             gotOut = stdout.readlines()
 
             stdout_fn = test_data[1]
@@ -439,7 +442,7 @@ class IntegrationTestCase(object):
 
 
             # Allow checking only against the script exit code. In this case the
-            # xstdout can be completely empty. It is marked a list with an empty 
+            # xstdout can be completely empty. It is marked a list with an empty
             # string.
             if correctOut is None or correctOut == []:
                 correctOut = [""]
@@ -448,7 +451,7 @@ class IntegrationTestCase(object):
                 gotOut = [""]
 
             if not self.ignore_stdout:
-                stdoutDiff = list(unified_diff(correctOut, gotOut, 
+                stdoutDiff = list(unified_diff(correctOut, gotOut,
                                                fromfile="expected.stdout", tofile="produced.stdout"))
             if options.dump_output:
                 stdout_stream.write(stdoutStr)
@@ -467,7 +470,7 @@ class IntegrationTestCase(object):
             if exitcode != 0:
                 if options.output_diff:
                     output_diff_file.write("FAIL: " + self._file_name + ": " + self.description + \
-                                               " [nonzero (%d) exit code]\n" % exitcode)
+                                               " [nonzero ({0}) exit code]\n".format(exitcode))
                     if self.ignore_stdout and gotOut:
                         # In case we ignore stdout in the verification, it might still
                         # contain useful information for debugging the failed error code,
@@ -515,7 +518,6 @@ def get_fs_tree(root):
             found_files.append(os.path.join(root, f))
         else:
             found_files += get_fs_tree(os.path.join(root, f))
-
     return found_files
 
 def get_fs_tree_dirs(root, max_depth=10, ignoredirs=[".deps", ".libs"]):
@@ -540,7 +542,7 @@ def find_test_cases(root):
     test_cases = []
     for f in fs_tree:
         test_case = IntegrationTestCase(f)
-        if test_case.valid: 
+        if test_case.valid:
             test_cases.append(test_case)
     return test_cases
 
@@ -568,12 +570,12 @@ def finalize_test_dir(test_dir):
 # test cases.
 def run_test_case_par(test_case):
 
-    top_dir = os.getcwd()   
+    top_dir = os.getcwd()
     os.chdir(test_case.test_dir)
 
-    stdout_stream = StringIO.StringIO()
+    stdout_stream = StringIO()
 
-    ok = test_case.execute(stdout_stream) 
+    ok = test_case.execute(stdout_stream)
 
     stdout_str = stdout_stream.getvalue()
     if len(stdout_str):
@@ -591,14 +593,14 @@ def run_test_case_par(test_case):
 # of multiple test dirs.
 def run_test_dir_par(test_dir, test_cases):
 
-    top_dir = os.getcwd()   
+    top_dir = os.getcwd()
 
     init_test_dir(test_dir)
     os.chdir(test_dir)
 
     all_ok = True
     for test_case in test_cases:
-        stdout_stream = StringIO.StringIO()
+        stdout_stream = StringIO()
         all_ok = test_case.execute(stdout_stream) and all_ok
         stdout_str = stdout_stream.getvalue()
         if len(stdout_str):
@@ -618,7 +620,7 @@ def run_test_dir_par(test_dir, test_cases):
 def process_test_dir_seq(test_dir, test_cases):
 
     top_dir = os.getcwd()
-    
+
     init_test_dir(test_dir)
     os.chdir(test_dir)
 
@@ -642,7 +644,7 @@ def run_test_dirs_in_parallel(test_dirs):
         exec_results.append(exec_pool.apply_async(run_test_dir_par, (test_dir, test_dirs[test_dir])))
     exec_pool.close()
     all_ok = all([x.get(options.timeout) for x in exec_results])
-    exec_pool.join()    
+    exec_pool.join()
 
     return all_ok
 
@@ -668,9 +670,9 @@ def run_finalizers_in_parallel(test_dirs):
     [x.get(options.timeout) for x in finalizer_results]
     finalizer_pool.join()
 
-def run_all_tests_in_parallel(test_dirs):    
-    # Initalize all test dirs first so all the test cases can be ran in any 
-    # order. Then, distribute the test cases to processes, and finally, 
+def run_all_tests_in_parallel(test_dirs):
+    # Initalize all test dirs first so all the test cases can be ran in any
+    # order. Then, distribute the test cases to processes, and finally,
     # finalize all test dirs. This does not work with the scheduler_tester.py
     # tests because multiple testdescs reuse the same test dirs and
     # scheduler_tester.py uses constant name files for functioning.
@@ -683,15 +685,15 @@ def run_all_tests_in_parallel(test_dirs):
             exec_results.append(exec_pool.apply_async(run_test_case_par, (test_case, )))
     exec_pool.close()
     all_ok = all([x.get(options.timeout) for x in exec_results])
-    exec_pool.join()    
+    exec_pool.join()
 
-    run_finalizers_in_parrallel(test_dirs)
+    run_finalizers_in_parallel(test_dirs)
 
 
 def setup_exec_env():
     """Sets up the execution environment variables."""
     # Setup the PATH to point to the TCE binaries to test.
-    # Find the tce/src from the dir parents.    
+    # Find the tce/src from the dir parents.
     bld_root = os.getcwd()
     while bld_root != "":
         if os.path.exists(bld_root + "/tce/src"):
@@ -699,12 +701,11 @@ def setup_exec_env():
         bld_root = "/".join(os.path.split(bld_root)[0:-1])
         if bld_root.endswith('/'): bld_root = bld_root[0:-1]
 
-    if bld_root == "": 
+    if bld_root == "":
         sys.stderr.write("Cannot find TCE build root to set up the test environment PATH.\n")
         cleanup_and_exit(2)
 
     bld_root += "/tce"
-#    print bld_root
 
     subtreeroots = ["scripts", "src/bintools", "src/codesign", "src/procgen"]
     # If any of the dirs inside the subtreeroots contains at least one
@@ -727,7 +728,6 @@ def setup_exec_env():
         for new_dir in new_dirs:
             for wanted in wanted_binaries:
                 if os.path.exists(os.path.join(new_dir, wanted)):
-                    #print "Found", wanted, "in", new_dir
                     tce_path_env += new_dir + ":"
                     wanted_binaries.remove(wanted)
                     break
@@ -770,7 +770,7 @@ if __name__ == "__main__":
     else:
         for fn in options.test_cases:
             if not os.access(fn, os.R_OK):
-                print >> sys.stderr, "Cannot open %s." % fn
+                print("Cannot open %s." % fn, file=sys.stderr)
                 cleanup_and_exit(1)
         all_test_cases = [IntegrationTestCase(x) for x in options.test_cases]
     test_dirs = dict()
@@ -781,7 +781,7 @@ if __name__ == "__main__":
 
     all_ok = True
 
-    if mp_supported and options.par_process_count > 1: 
+    if mp_supported and options.par_process_count > 1:
         if options.all_parallel:
             all_ok = run_all_tests_in_parallel(test_dirs)
         else:
@@ -793,14 +793,11 @@ if __name__ == "__main__":
     if options.output_diff:
         output_diff_file.close()
 
-    if not all_ok: 
+    if not all_ok:
         if options.output_diff:
             sys.stderr.write("Differences found against verification data are stored into difference.txt\n")
         cleanup_and_exit(1)
-    else: 
+    else:
         if options.output_diff and os.path.exists("difference.txt"):
             os.unlink("difference.txt")
         cleanup_and_exit(0)
-
-
-    

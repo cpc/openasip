@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
     Copyright (c) 2002-2009 Tampere University.
@@ -27,9 +27,9 @@
 Creates a profile file loadable into kcachegrind for
 a visual profile from a ttasim trace database.
 
-@author Pekka Jääskeläinen 2009 
+@author Pekka Jääskeläinen 2009
 
-Set following settings in ttasim before initializing simulation to 
+Set following settings in ttasim before initializing simulation to
 collect the needed traces:
 
 setting procedure_transfer_tracking 1
@@ -42,12 +42,13 @@ import os.path
 
 try:
     import sqlite3
-except:
+except Exception:
     try:
-	from pysqlite2 import dbapi2 as sqlite3
-    except:
-	sys.stderr.write("pysqlite for SQLite 3 library required\n")
-	sys.exit(1)
+        from pysqlite2 import dbapi2 as sqlite3
+    except Exception:
+        sys.stderr.write("pysqlite for SQLite 3 library required\n")
+        sys.exit(1)
+
 
 class CachegrindGenerator(object):
 
@@ -91,7 +92,7 @@ class CachegrindGenerator(object):
 
         events = ["Cycles"]
         totals = [self.cycle_count]
-        if self.disasm: 
+        if self.disasm:
             events.append("NOPs")
             totals.append(self._count_nops())
 
@@ -112,11 +113,10 @@ fl=%s
 
     def _load_cycle_count(self):
         cursor = self.conn.cursor()
-        res = cursor.execute('''
+        cursor.execute('''
 SELECT integer_value FROM totals WHERE value_name = 'cycle_count';''')
-        self.cycle_count = int(res.next()[0])
+        self.cycle_count = int(cursor.fetchone()[0])
         cursor.close()
-
 
     def _load_function_address_ranges(self):
         """Loads the different data structures used to find procedure
@@ -148,7 +148,7 @@ ORDER BY first_address ASC;''')
             self.target_file.write('%d %d' % \
                         (address + self.first_address, count))
 
-            if self.disasm: 
+            if self.disasm:
                 line = self.disasm[address]
                 nops = line.count('...')
                 slots = line.count(',') + 1
@@ -169,14 +169,13 @@ ORDER BY first_address ASC;''')
                     self.target_file.write('cfn=%s\n' \
                                                'calls=%d %d\n' \
                                                '%d %d\n' % \
-                                               (call.target_func, call.total_calls, 
-                                                call.target_address + self.first_address, 
-                                                address + self.first_address, 
+                                               (call.target_func, call.total_calls,
+                                                call.target_address + self.first_address,
+                                                address + self.first_address,
                                                 call.total_inclusive_cycles))
-                        
+
         #for row in results:
-            
-            #print row
+
         cursor.close()
 
         if not got_one:
@@ -242,7 +241,7 @@ ORDER BY address ASC;
                     finished_call.target_func, finished_call.source_address,
                     finished_call.target_address))
             program_call.total_inclusive_cycles += finished_call.total_inclusive_cycles
-            program_call.total_calls += 1    
+            program_call.total_calls += 1
 
             program_call_dict[finished_call.target_address] = program_call
             program_calls[finished_call.source_address] = program_call_dict
@@ -250,7 +249,7 @@ ORDER BY address ASC;
         got_one = False
         for call_info in self.call_trace.readlines():
             cycle, address, source_address, is_return = \
-                call_info.split('\t') 
+                call_info.split('\t')
 
             cycle = int(cycle)
             address = int(address)
@@ -258,7 +257,7 @@ ORDER BY address ASC;
             is_return = bool(is_return.strip() != '0')
 
             procedure_name = find_procedure_name(address)
-                
+
             got_one = True
             if not is_return:
                 call_stack.append(TraceCall(procedure_name, address, source_address, cycle))
@@ -266,7 +265,7 @@ ORDER BY address ASC;
                 finished_call = call_stack.pop()
                 finished_call.set_end_cycle(cycle)
                 update_program_call_stats(finished_call)
-            
+
         if not got_one:
             sys.stderr.write(
                 "No call trace available. " +
@@ -277,7 +276,7 @@ ORDER BY address ASC;
         max_cycle = self.cycle_count
         # Unwind the call stack as exit has been called at some point
         # without returning from all functions (usually just _start).
-        # Need to account the unreturned function calls to the 
+        # Need to account the unreturned function calls to the
         # call profile.
         while len(call_stack) > 0:
             finished_call = call_stack.pop()
@@ -289,28 +288,30 @@ ORDER BY address ASC;
             update_program_call_stats(finished_call)
 
         self.program_calls = program_calls
-        cursor.close()        
+        cursor.close()
 
     def finish(self):
         """Flushes and closes the output and DB connections."""
         self.target_file.close()
-        self.conn.close()        
-    
+        self.conn.close()
+
+
 if __name__ == "__main__":
     try:
-        trace_file = sys.argv[1] 
-        if not os.path.exists(sys.argv[1]): raise Exception()
-    except:
+        trace_file = sys.argv[1]
+        if not os.path.exists(sys.argv[1]):
+            raise Exception()
+    except Exception:
         sys.stderr.write("Input trace database file missing.\n")
         sys.exit(1)
-    
+
     try:
         output_file = sys.argv[2]
-    except:
+    except Exception:
         output_file = trace_file + ".cachegrind"
-        
+
     gen = CachegrindGenerator(trace_file, output_file)
     gen.generate_call_data()
     gen.generate_instruction_profile()
     gen.finish()
-    
+

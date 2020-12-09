@@ -29,7 +29,7 @@
 # High-level language compiler driver for TCE.
 #
 
-import os, sys, commands, optparse, shutil, glob, signal
+import os, sys, subprocess, optparse, shutil, glob, signal
 import os.path
 import re
 
@@ -43,27 +43,29 @@ def runCommandBuffered(command, echoOutput, applyStdErr = True, stripOutput = Tr
     """Runs a command and prints everything if requested."""
 
     if echoOutput:
-        print command
+        print(command)
 
-    proc = Popen(command, shell=True, stdout = PIPE, stderr = PIPE)
+    proc = Popen(command, shell=True, stdout=PIPE, stderr=PIPE)
     output, errs = proc.communicate()
 
     if echoOutput:
-        print output
+        print(output)
 
     if echoOutput and applyStdErr:
-        print errs
+        print(errs)
 
+    stringOut = output.decode('utf-8')
+    stringErr = errs.decode('utf-8')
     if applyStdErr:
         if stripOutput:
-            return (proc.returncode, (output + errs).strip())
+            return (proc.returncode, (stringOut + stringErr).strip())
         else:
-            return (proc.returncode, output + errs)
+            return (proc.returncode, stringOut + stringErr)
     else:
         if stripOutput:
-            return (proc.returncode, output.strip())
+            return (proc.returncode, stringOut.strip())
         else:
-            return (proc.returncode, output)
+            return (proc.returncode, stringOut)
 
 
 # global variables...
@@ -104,7 +106,7 @@ def runCommand(command, echoOutput=True, echoStderr=False, stdoutFD=None):
     If echoOutput is False, stdout and stderr are redirected to /dev/null."""
 
     if echoOutput:
-        print command
+        print(command)
         stderrFD = None
     else:
         if stdoutFD is None:
@@ -122,19 +124,12 @@ def runCommand(command, echoOutput=True, echoStderr=False, stdoutFD=None):
     return process.wait()
 
 
-# TODO: not used anymore?
-#def is_llvm_bitcode(file_name):
-#    f = open(file_name, 'rb')
-#    magic_number = f.read(2)
-#    f.close()
-#    return magic_number == 'BC'
-
 poclInstalled = None
 poclVersion = None
 def isOpenCLEnabled():
     global poclInstalled
     if poclInstalled is not None: return poclInstalled
-    (exitCode, output) = commands.getstatusoutput("pkg-config pocl --modversion")
+    (exitCode, output) = subprocess.getstatusoutput("pkg-config pocl --modversion")
     if exitCode != 0:
         poclInstalled = False
     else:
@@ -289,8 +284,8 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                     extra_flags = ""
                     if options.soft_float:
                         extra_flags += " POCL_VECTORIZE_NO_FP=1 "
-                        print "You are compiling OpenCL code with software floating point emulation!"
-                        print "Expect abysmal peformance!"
+                        print("You are compiling OpenCL code with software floating point emulation!")
+                        print("Expect abysmal peformance!")
 
                     input_file = baseName + suffix
                     oclextgen = os.path.join(tceOclExtGenDir, "tceoclextgen") + " "  + options.adf_file
@@ -458,7 +453,7 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
 
 def exitWithError(status, errorMessage=None):
     if errorMessage is not None:
-        print >>sys.stderr, errorMessage
+        print(errorMessage, file=sys.stderr)
     cleanup(tempDir)
     sys.exit(status)
 
@@ -731,8 +726,8 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
             optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
         elif @LLVM_VERSION@ >= 9 and @LLVM_VERSION@ < 11:
             optSwitches += " -disable-slp-vectorization"
-	elif @LLVM_VERSION@ >= 11:
-	    optSwitches += " -vectorize-slp=false"
+        elif @LLVM_VERSION@ >= 11:
+            optSwitches += " -vectorize-slp=false"
 
     command = "opt -f " + inFile + " -o " + outputName + " " + optSwitches + extraSwitches
 
@@ -757,8 +752,8 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
             optSwitches += " -disable-slp-vectorization -disable-loop-vectorization"
         elif @LLVM_VERSION@ >= 9 and @LLVM_VERSION@ < 11:
             optSwitches += " -disable-slp-vectorization"
-	elif @LLVM_VERSION@ >= 11:
-	    optSwitches += " -vectorize-slp=false"
+        elif @LLVM_VERSION@ >= 11:
+            optSwitches += " -vectorize-slp=false"
 
     # if software floatingpoint should be lowered, link the emulation functions in
     emulationLib = os.path.join(newlib_libdir, "float_emulation.o") + " "
@@ -883,7 +878,6 @@ class SourceLib(object):
 
         sourceFiles = [x.fullPath for x in self.sources]
 
-        #print self.compiler_options
         compilerOptions, inFiles = optionParser.parse_args(self.compiler_options)
         compilerOptions.compile_only = True
         compilerOptions.frontend_optlevel = 1
@@ -1153,8 +1147,8 @@ p.add_option('--version', action='store_true',
 """Print the tcecc version info and exit.""")
 
 p.add_option('--llvm-args', type="string",
-	     action='store', dest='llvm_args', default="",
-	     help="""Arguments passed to LLVM.""")
+             action='store', dest='llvm_args', default="",
+             help="""Arguments passed to LLVM.""")
 
 p.add_option('--dump-ddgs-dot', action='store_true', dest='dump_ddgs_dot', default=False,
              help=\
@@ -1305,7 +1299,7 @@ p.add_option('--little-endian64',
 
 p.add_option('--no-emulationlib',
              action="store_true", dest="no_emulationlib", default=False,
-	     help="Do not compile the emulationLib. Code which requires division or multiplication may fail if the processor does not have multiplier or divider." )
+             help="Do not compile the emulationLib. Code which requires division or multiplication may fail if the processor does not have multiplier or divider." )
 
 
 p.add_option('--tce-build-mode', action="store_true",
@@ -1318,9 +1312,9 @@ p.add_option('--blocks-startfiles', action="store_true",
 
 p.add_option('--assume-adf-stackalignment', action="store_true",
              dest="assume_adf_stackalignment", default=False,
-	     help="Assume that the stack alignment can be extracted by searching for the biggest memory operations found in the ADF."
-	     "When linking in dthread this option will be set automatically, dthread uses this assumption and can crash when breaking this assumption."
-	     "When using dthreads and there are bigger object in the bitcode than assumed by looking at the ADF overrule the stack alignment size manually with the -DSTACK_ALIGNMENT= argument.")
+             help="Assume that the stack alignment can be extracted by searching for the biggest memory operations found in the ADF."
+             "When linking in dthread this option will be set automatically, dthread uses this assumption and can crash when breaking this assumption."
+             "When using dthreads and there are bigger object in the bitcode than assumed by looking at the ADF overrule the stack alignment size manually with the -DSTACK_ALIGNMENT= argument.")
 # Commandline argument parsing
 
 # fix gcc switches, which cannot be represented in OptionParser format by adding extra "-" before switch
@@ -1380,13 +1374,13 @@ if options.list_langs:
     supported_languages = ["ISO C99 (c)", "C++ (c++)"]
     if isOpenCLEnabled():
         supported_languages.append("OpenCL C (cl)")
-    print "\n".join(supported_languages)
+    print("\n".join(supported_languages))
     sys.exit(0)
 
 if options.std == 'c99':
     sys.stderr.write("warning: use --std=gnu99 instead of c99 in case you use custom operations\n")
 if options.print_version:
-    print "tcecc - TCE retargetable compiler %s" % "@PACKAGE_VERSION@"
+    print("tcecc - TCE retargetable compiler %s" % "@PACKAGE_VERSION@")
     sys.exit(0)
 
 if len(inFiles) == 0:
@@ -1413,7 +1407,7 @@ tceInstalled = True
 if 'TCE_INSTALL_DIR' in os.environ.keys():
     tceprefix = os.environ['TCE_INSTALL_DIR']
 else:
-    (exitCode, output) = commands.getstatusoutput("tce-config --prefix")
+    (exitCode, output) = subprocess.getstatusoutput("tce-config --prefix")
     if exitCode != 0:
         tceInstalled = False
     else:
@@ -1559,9 +1553,9 @@ else:
 
 if options.verbose:
     if runningInstalled:
-        print "Running installed TCE from PATH."
+        print("Running installed TCE from PATH.")
     else:
-        print "Running from a TCE build tree rooted at '%s'." % "@abs_top_builddir@"
+        print("Running from a TCE build tree rooted at '%s'." % "@abs_top_builddir@")
 
 namePrefix = tempDir + "/" + os.path.basename(outputName)
 
@@ -1658,7 +1652,7 @@ else:
                 # Prefer source libraries as they work for both LE and BE,
                 # and can take in account the target specifics.
                 if options.verbose:
-                    print "note: Using source library for", i
+                    print("note: Using source library for", i)
                 slib = SourceLib(i, src_lib_path)
                 linkList += slib.build(tempDir)
                 lib_found = True
@@ -1793,7 +1787,7 @@ if options.adf_file != "":
 
     if options.disable_dsf:
         command += " --disable-dsf"
-        
+
     if options.analyze_ipatterns:
         command += " --analyze-instruction-patterns"
 
@@ -1817,7 +1811,7 @@ if options.adf_file != "":
     command += " --bypass-distance=%d" % options.bypass_distance
     command += " --bypass-distance-nodre=%d" % options.bypass_distance_nodre
     if poclInstalled:
-        (exitCode, output) = commands.getstatusoutput("pkg-config pocl --variable=libdir")
+        (exitCode, output) = subprocess.getstatusoutput("pkg-config pocl --variable=libdir")
         if exitCode == 0:
             command += " --wi-aa-filename=" + output + "/pocl/llvmopencl.so"
 

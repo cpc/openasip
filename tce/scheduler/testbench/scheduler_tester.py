@@ -1,20 +1,20 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# 
+#
 # Copyright (c) 2002-2010 Tampere University.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
 # deal in the Software without restriction, including without limitation the
 # rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
 # sell copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,13 +26,14 @@
 # @author 2006-2010 Pekka Jääskeläinen
 #
 
-import getopt, sys, os, glob, __builtin__, subprocess, time, signal, csv, tempfile, math
+import getopt, sys, os, glob, builtins, subprocess, time, signal, csv, tempfile, math
 
 # This shadows builtin open with the nasty os.open.
 from os import *
 from subprocess import *
 from difflib import unified_diff
 from pprint import pformat
+import traceback
 
 
 # General settings.
@@ -44,8 +45,8 @@ schedulingTimeoutSec = 100*60
 simulationTimeoutSec = 120*60
 
 def usage():
-    print "Usage: scheduler_tester.py [options]"
-    print """
+    print("Usage: scheduler_tester.py [options]")
+    print("""
 Options:
   -a <ADF> Override architecture with which to run tests
   -b <list of test case directories to include> The matching is done from the
@@ -62,7 +63,7 @@ Options:
      generated_seq_program otherwise.
      e.g scheduler_tester.py -x -g \"-O3\"
   -h This help text.
-  -i <comma separated list of stats>. Print more statistics for each run. 
+  -i <comma separated list of stats>. Print more statistics for each run.
      Stats available:
      c=cycle count, rr=register reads, rw=register writes, oc=operation count,
      opc=ops/cycle, and 'all' which includes all stats. Example: 'rr,rw'
@@ -78,7 +79,7 @@ Options:
   -q Use compiled simulation (slow initialization, fast simulation, basic
      block simulation granularity).
   -r Regression test mode. Do not output anything unless there's an error, in
-     which case output as normal.  
+     which case output as normal.
   -s Stop testing after the first FAILED test encountered.
   -t Update top results (only the improved cycle counts) if all tests passed.
   -T Update top results (even the worsened ones) if all tests passed, thus
@@ -99,16 +100,16 @@ Options:
   disabled.txt         If test is disabled for specific reason this file can
                        be created with reason message.
   program.bc           LLVM byte code file is test should be ran when
-                       -x switch *is* set.		       
+                       -x switch *is* set.
   sequential_program   Universal tpef binary, if wanted that test is ran
                        when -x switch *is not* set.
   simulate.ttasim      Lines to feed into ttasim to simulate and dump
                        verification output. If exists, no run command is given
-    	               by the tester but only the commands from this file
+                       by the tester but only the commands from this file
                        are executed.
-  extraCompileFlags    Adds contents of this file as extra parameters to tcecc.               
+  extraCompileFlags    Adds contents of this file as extra parameters to tcecc.
   ----------------------------------------------------------------------------
-"""
+""")
 
 # Location of the scheduler and simulator programs relative to the location
 # of this script.
@@ -127,7 +128,7 @@ tceccExe = os.path.normpath(rootDir + "/" + tceccExe)
 testRootDir = "."
 
 backendCacheDir = None
-def get_backend_cache_dir():    
+def get_backend_cache_dir():
     """Returns the location of the backend plugin directory.
 
     Creates a new temporary directory, if there's not one already."""
@@ -147,7 +148,7 @@ def get_backend_cache_dir():
 # Find the ADF and Operations directory in the same directory
 # the script is at.
 fileListing = glob.glob(ADFDir + "/*.adf")
-allArchitectures = map(os.path.basename, fileListing)
+allArchitectures = list(map(os.path.basename, fileListing))
 
 stopTestingAfterFailingTest = False
 csvFormat = False
@@ -182,8 +183,8 @@ cmdLineArchitectures = []
 failureFound = False
 
 if len(allArchitectures) == 0:
-    print "No architecture files found in " + ADFDir
-    sys.exit(3)    
+    print("No architecture files found in " + ADFDir)
+    sys.exit(3)
 
 def ParseCommandLine():
 
@@ -198,13 +199,13 @@ def ParseCommandLine():
 
     try:
         args_start = 1
-            
+
         opts, args = getopt.getopt(\
             sys.argv[args_start:], "g:a:b:shtTvVCopqrxw:dlLi:e:", ["help"])
 
-    except getopt.GetoptError, e:
+    except getopt.GetoptError as e:
         # print help information and exit:
-        print str(e)
+        print(str(e))
         sys.exit(1)
 
     for o, a in opts:
@@ -221,7 +222,7 @@ def ParseCommandLine():
             verboseOutput = True
         elif o == "-V":
             verboseOutput = True
-            veryVerboseOutput = True            
+            veryVerboseOutput = True
         elif o == "-C":
             csvFormat = True
         elif o == "-p":
@@ -233,7 +234,8 @@ def ParseCommandLine():
             # Write everything to a tmpfile and in case of an error only,
             # copy everything from that tmpfile to stdout at the end of
             # execution.
-            sys.stdout = tmpfile()
+            temp_file, path = tempfile.mkstemp(text=True)
+            sys.stdout = builtins.open(temp_file, mode='w+')
         elif o == "-a":
             for arch in a.split(','):
                 cmdLineArchitectures.append(arch)
@@ -271,9 +273,9 @@ def ParseCommandLine():
 
     def file_readable(filename):
         return access(filename, R_OK)
-               
+
     normalOutput = not latexTable and not csvFormat
-        
+
 def runWithTimeout(command, timeoutSecs, inputStream = ""):
     """
     Runs the given process until it exits or the given time out is reached.
@@ -282,20 +284,20 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
     second gives the process' output from stdout as a string, third the stderr
     """
     global veryVerboseOutput
-    
+
     timePassed = 0.0
     increment = 0.01
-    
+
     stderrFD, errFile = tempfile.mkstemp()
     stdoutFD, outFile = tempfile.mkstemp()
 
     if veryVerboseOutput:
-        print "running: %s input-stream: %s" % (command,inputStream)
+        print("running: %s input-stream: %s" % (command,inputStream))
 
-    process =  Popen(command, shell=True, stdin=PIPE, stdout=stdoutFD, stderr=stderrFD, close_fds=False)
+    process = subprocess.Popen(command, shell=True, stdin=PIPE, stdout=stdoutFD, stderr=stderrFD, close_fds=False, text=True)
 
-    if process == None:
-        print "Could not create process"
+    if process is None:
+        print("Could not create process")
         sys.exit(1)
 
     try:
@@ -306,16 +308,16 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
 
         while True:
             status = process.poll()
-            if status != None:
-                # Process terminated succesfully.            
+            if status is not None:
+                # Process terminated succesfully.
                 stdoutSize = os.lseek(stdoutFD, 0, 2)
                 stderrSize = os.lseek(stderrFD, 0, 2)
 
                 os.lseek(stdoutFD, 0, 0)
                 os.lseek(stderrFD, 0, 0)
 
-                stdoutContents = os.read(stdoutFD, stdoutSize)
-                stderrContents = os.read(stderrFD, stderrSize)
+                stdoutContents = os.read(stdoutFD, stdoutSize).decode('utf-8')
+                stderrContents = os.read(stderrFD, stderrSize).decode('utf-8')
 
                 os.close(stdoutFD)
                 os.remove(outFile)
@@ -323,7 +325,7 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
                 os.remove(errFile)
 
                 return (True, stdoutContents, stderrContents)
-        
+
             if timePassed < timeoutSecs:
                 time.sleep(increment)
                 timePassed = timePassed + increment
@@ -336,21 +338,23 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
                 os.lseek(stdoutFD, 0, 0)
                 os.lseek(stderrFD, 0, 0)
 
-                stdoutContents = os.read(stdoutFD, stdoutSize)
-                stderrContents = os.read(stderrFD, stderrSize)
+                stdoutContents = os.read(stdoutFD, stdoutSize).decode('utf-8')
+                stderrContents = os.read(stderrFD, stderrSize).decode('utf-8')
 
                 os.close(stdoutFD)
                 os.remove(outFile)
                 os.close(stderrFD)
                 os.remove(errFile)
-            
+
                 os.kill(process.pid, signal.SIGTSTP)
-            
+
                 return (False, stdoutContents, stderrContents)
     except KeyboardInterrupt:
         os.kill(process.pid, signal.SIGTSTP)
         raise
-    except:
+    except Exception:
+        print(traceback.format_exc(), file=sys.stderr)
+
         # if something threw exception (e.g. ctrl-c)
         os.kill(process.pid, signal.SIGTSTP)
 
@@ -362,8 +366,8 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
             os.lseek(stdoutFD, 0, 0)
             os.lseek(stderrFD, 0, 0)
 
-            stdoutContents = os.read(stdoutFD, stdoutSize)
-            stderrContents = os.read(stderrFD, stderrSize)
+            stdoutContents = os.read(stdoutFD, stdoutSize).decode('utf-8')
+            stderrContents = os.read(stderrFD, stderrSize).decode('utf-8')
 
             os.close(stdoutFD)
             os.remove(outFile)
@@ -371,14 +375,14 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
             os.remove(errFile)
         except:
             pass
-        
+
         return (False, stdoutContents, stderrContents)
 
 def callSilent(command):
     schedProc = Popen(command, shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)
     schedProc.communicate()
     return schedProc.returncode
-        
+
 def tryRemove(filename):
     try:
         os.remove(filename)
@@ -388,10 +392,10 @@ def tryRemove(filename):
 class TestBenchException(RuntimeError):
     def __init__(self, msg):
         self.msg = msg
-        
+
     def getMsg(self):
         return self.msg
-    
+
 class TestRunResult:
     """Stores data of a single test run.
 
@@ -407,11 +411,11 @@ class SimulationStats:
         self.registerReads = 0
         self.registerWrites = 0
         self.operationExecutions = 0
-    
+
     def decodeStatString(self, stat):
         """
         Interprets a statistics string given in a list of '-i' switch.
-        
+
         Returns a tuple with first column a long name for statistic,
         second column a short name (can be equal to stat), and third
         column the value of the statistics.
@@ -432,9 +436,9 @@ class SimulationStats:
                 pass
             return ('operation per cycle', 'opc', '%.2f' % value)
         else:
-            print 'unknown statistics type:',stat
+            print('unknown statistics type:', stat)
             return (None, None, None)
-    
+
     def toLatexRow(self, statColumns, colWidth=16):
         """
         Generates a row of results in LaTeX table format according to the
@@ -462,14 +466,14 @@ class TestCase:
         if not access(self.directory + "/topresults.csv", R_OK):
             self.oldResults = None
             return
-        reader = csv.reader(__builtin__.open(self.directory + "/topresults.csv", "rb"))
+        reader = csv.reader(builtins.open(self.directory + "/topresults.csv", "rt"))
         self.oldResults = {}
         for row in reader:
             self.oldResults[row[0]] = row[1:]
-        
+
     def __init__(self, directory):
 
-        """Loads a new test case stored in the given directory."""        
+        """Loads a new test case stored in the given directory."""
 
         global cmdLineArchitectures
         global extraCompileFlags
@@ -483,24 +487,24 @@ class TestCase:
         else:
             self.title = directory
 
-        descriptionFile = __builtin__.open(directory + '/description.txt', 'r')
+        descriptionFile = builtins.open(directory + '/description.txt', 'r')
         self.description = descriptionFile.read().strip()
         descriptionFile.close()
 
         if os.access(directory + '/architectures.lst', R_OK):
-            archFile = __builtin__.open(directory + '/architectures.lst')
+            archFile = builtins.open(directory + '/architectures.lst')
             for line in archFile.read().splitlines():
                 arch = line.strip()
                 if arch != '':
                     self.architectures.append(arch)
             archFile.close()
         elif len(cmdLineArchitectures) > 0:
-            self.architectures = cmdLineArchitectures            
+            self.architectures = cmdLineArchitectures
         else:
             self.architectures = allArchitectures
 
         if os.access(directory + '/extraCompileFlags', R_OK):
-            flagsFile = __builtin__.open(directory + '/extraCompileFlags')
+            flagsFile = builtins.open(directory + '/extraCompileFlags')
             for line in flagsFile.read().splitlines():
                 param = line.strip()
                 if param != '':
@@ -509,15 +513,15 @@ class TestCase:
                     self.testExtraCompileFlags += ' ';
 
         self.improvedRuns = False
-        # Simulation results for each architecture (the verification data and the 
+        # Simulation results for each architecture (the verification data and the
         # cycle count).
-        self.results = {}      
+        self.results = {}
         # Simulation stats for each architecture.
-        self.stats = {}  
+        self.stats = {}
         self.loadOldResults()
         self.setupExecuted = False
         self.parallelPrograms = []
-        
+
         # If requested. stores the results for each architecture in LaTeX format
         self.latexResults = {}
         self.latexColumnCount = 0
@@ -539,7 +543,7 @@ class TestCase:
             os.symlink(operationDir, "src/data")
         except:
             pass
-        
+
         tryRemove("cyclecount")
         tryRemove("generated_seq_program")
         tryRemove("src/generated_seq_program")
@@ -555,7 +559,7 @@ class TestCase:
 
         if deleteOSALLink:
             tryRemove("data")
-            
+
         tryRemove("cyclecount")
         tryRemove("ttasim.out")
         tryRemove("generated_seq_program")
@@ -573,7 +577,7 @@ class TestCase:
         if not saveParallelPrograms:
             for tpef in self.parallelPrograms:
                 tryRemove(tpef)
-                
+
         if access("./cleanup.sh", X_OK):
             callSilent("./cleanup.sh")
 
@@ -587,19 +591,19 @@ class TestCase:
         else:
             sys.stdout.write("FAILED! " + reason)
             sys.stdout.write(" (!)\n")
-        
+
             if verboseOutput and len(verbose) > 0:
                 sys.stdout.write("[" + verbose + "]\n")
-            
+
         sys.stdout.flush()
         failureFound = True
 
     def verifySimulation(self):
         if access("correct_simulation_output", R_OK):
-            correctOutputFile = __builtin__.open("correct_simulation_output", "r")
+            correctOutputFile = builtins.open("correct_simulation_output", "r")
             correctOutput = correctOutputFile.read().strip().split("\n")
-            self.simStdOut = self.simStdOut.strip().split("\n")    
-	
+            self.simStdOut = self.simStdOut.strip().split("\n")
+
             if correctOutput != self.simStdOut:
                 # The outputs differ.
                 result = list(unified_diff(correctOutput, self.simStdOut))
@@ -616,7 +620,7 @@ class TestCase:
             if retcode != 0:
                 self.testFailed("verification with 'verify.sh' failed (retcode %d)" % retcode)
                 return False
-                     
+
         return True
 
     def schedule(self, archFilename, seqProgFileName, dstProgFileName):
@@ -635,14 +639,14 @@ class TestCase:
         schedulingCommand += " -o " + dstProgFileName + \
                              " -a " + archFilename + \
                              " " + seqProgFileName
-                
-                
+
+
         exitOk, stdoutContents, stderrContents = runWithTimeout(schedulingCommand, schedulingTimeoutSec)
 
         if not exitOk:
             self.testFailed("scheduling timeout")
             return False
-        
+
         errmsg = stderrContents
         status = not exitOk
 
@@ -650,7 +654,7 @@ class TestCase:
                not access(dstProgFileName, R_OK):
             self.testFailed("compilation error", errmsg)
             return False
-        
+
 
         if veryVerboseOutput and len(errmsg) > 0:
             sys.stdout.write("[" + errmsg + "]\n")
@@ -660,9 +664,9 @@ class TestCase:
     def simulate(self, archFilename, progFilename):
 
         global compiledSimulation
-        
+
         # Create the simulation script.
-        simulationScript = ""       
+        simulationScript = ""
 
         if not archFilename == "":
             simulationScript += "mach " + archFilename + "\n"
@@ -670,7 +674,7 @@ class TestCase:
         simulationScript = simulationScript + "prog " + progFilename + "\n"
 
         if access("simulate.ttasim", R_OK):
-            script = __builtin__.open("simulate.ttasim", "r")
+            script = builtins.open("simulate.ttasim", "r")
             simulationScript = simulationScript + script.read()
         else:
             simulationScript = simulationScript + "until 0\n"
@@ -680,9 +684,9 @@ class TestCase:
         tryRemove('registers_written')
         tryRemove('registers_read')
         # Create a script that creates the stat files. Do not overwrite
-	    # possible existing files to allow the custom simulation 
-	    # script to create a stats of its own (for example, in case of
-	    # wanting to include only a part of the simulated program in the stats)
+            # possible existing files to allow the custom simulation
+            # script to create a stats of its own (for example, in case of
+            # wanting to include only a part of the simulated program in the stats)
 
         simulationScript = simulationScript + '''
 if ![file exists cyclecount] {
@@ -691,26 +695,26 @@ flush $cycle_file
 close $cycle_file
 }
 '''
-	if not compiledSimulation:
-	        simulationScript += '''
-		if ![file exists operations_executed] {
-		set f [open operations_executed w] ; puts $f "[info stats executed_operations]"
-		flush $f
-		close $f
-		}
-		
-		if ![file exists registers_written] {
-		set f [open registers_written w] ; puts $f "[info stats register_writes]"
-		flush $f
-		close $f
-		}
-		
-		if ![file exists registers_read] {
-		set f [open registers_read w] ; puts $f "[info stats register_reads]"
-		flush $f
-		close $f
-		}
-		'''
+        if not compiledSimulation:
+                simulationScript += '''
+                if ![file exists operations_executed] {
+                set f [open operations_executed w] ; puts $f "[info stats executed_operations]"
+                flush $f
+                close $f
+                }
+
+                if ![file exists registers_written] {
+                set f [open registers_written w] ; puts $f "[info stats register_writes]"
+                flush $f
+                close $f
+                }
+
+                if ![file exists registers_read] {
+                set f [open registers_read w] ; puts $f "[info stats register_reads]"
+                flush $f
+                close $f
+                }
+                '''
         simulationScript = simulationScript + "quit\n"
 
         simulationCommand = simulatorExe
@@ -739,10 +743,10 @@ close $cycle_file
             verbose = verbose + self.simStdErr
             self.testFailed("simulation error, stderr: " + self.simStdErr );
             return False
-        
+
         def getStat(fileName):
             if access(fileName, R_OK):
-                f = __builtin__.open(fileName, "r")
+                f = builtins.open(fileName, "r")
                 try:
                     return float(f.read().strip())
                 except:
@@ -754,20 +758,20 @@ close $cycle_file
         self.lastStats.cycleCount = getStat('cyclecount')
 
         if self.lastStats.cycleCount is None:
-            self.testFailed("simulation", "failed to get cycle count " + verbose)            
+            self.testFailed("simulation", "failed to get cycle count " + verbose)
             return False
 
         if not exitOk:
 
             gotOutput = len(self.simStdOut) > 0 or len(self.simStdErr) > 0
 
-            self.testFailed("simulation", verbose)            
+            self.testFailed("simulation", verbose)
             return False
-                                                
+
         self.lastStats.operationExecutions = getStat('operations_executed')
         self.lastStats.registerReads = getStat('registers_read')
-        self.lastStats.registerWrites = getStat('registers_written')            
-        
+        self.lastStats.registerWrites = getStat('registers_written')
+
         self.stats[archFilename] = self.lastStats
         return True
 
@@ -778,30 +782,30 @@ close $cycle_file
         """
 
         global normalOutput
-        
+
         archFilename = architecture
         if not access(archFilename, R_OK):
             archFilename = ADFDir + "/" + architecture
 
         if not access(archFilename, R_OK):
-            print "Cannot find ",archFilename
+            print("Cannot find ", archFilename)
             sys.exit(2)
 
-        machineLittleEndian = "<little-endian/>" in __builtin__.open(archFilename).read()
-        machine64bits = "<bitness64/>" in __builtin__.open(archFilename).read()
+        machineLittleEndian = "<little-endian/>" in builtins.open(archFilename).read()
+        machine64bits = "<bitness64/>" in builtins.open(archFilename).read()
         if machineLittleEndian:
             if (machine64bits):
                 seqProgFile = seqProgFileBase + ".64.bc";
                 if verboseOutput:
-                    print "Machine is 64-bit. using 64 bc file."
+                    print("Machine is 64-bit. using 64 bc file.")
             else:
                 seqProgFile = seqProgFileBase + ".le.bc";
                 if verboseOutput:
-                    print "Machine is little endian. using LE bc file."
+                    print("Machine is little endian. using LE bc file.")
         else:
             seqProgFile = seqProgFileBase + ".be.bc";
             if verboseOutput:
-                print "Machine is big endian. using BE bc file."
+                print("Machine is big endian. using BE bc file.")
 
         if csvFormat:
             sys.stdout.write(self.title + "," + architecture + ",")
@@ -822,12 +826,12 @@ close $cycle_file
 
         # always write the TPEF to the current directory
         progFileName = os.getcwd() + "/" + os.path.basename(progFileName)
-        
+
         self.parallelPrograms.append(progFileName)
 
         # let's try to remove file if exists..
         tryRemove(progFileName)
-        
+
         if not self.schedule(archFilename, seqProgFile, progFileName):
             return False
 
@@ -845,7 +849,7 @@ close $cycle_file
             elif csvFormat:
                 sys.stdout.write("OK,%.0f,-,first\n"
                              % (self.lastStats.cycleCount))
-                
+
             self.improvedRuns = True
         else:
             oldResult = int(self.oldResults[architecture][-1])
@@ -867,7 +871,7 @@ close $cycle_file
                 sys.stdout.write("OK,%.0f,%.0f,%.1f%%\n"
                              % (self.lastStats.cycleCount, difference, percentage))
 
-                
+
         if normalOutput:
             if moreStats is not None:
                 for stat in moreStats:
@@ -894,12 +898,12 @@ close $cycle_file
             seqProgramNameLe = "generated_program.le.bc"
             seqProgramName64 = "generated_program.64.bc"
             compileRule = "llvm"
-            
+
             command = ("cd src;" +
                        makeCommand + ' clean;' +
-                       'SCHEDULER_TESTER_FLAGS="'  + extraFlags + '" ' +                       
+                       'SCHEDULER_TESTER_FLAGS="'  + extraFlags + '" ' +
                        makeCommand + " GCCLLVM=" + tceccExe + " " + compileRule)
-            
+
             command += ";cp " + seqProgramNameBe + " .."
             command += ";cp " + seqProgramNameLe + " .."
             command += ";cp " + seqProgramName64 + " .."
@@ -911,8 +915,8 @@ close $cycle_file
             #command += ";cp " + seqProgramName + " ../program.bc"
 
             if verboseOutput:
-                print "Compiling from sources:"
-                print command;
+                print("Compiling from sources:")
+                print(command)
 
             exitOk, stdoutContents, stderrContents = runWithTimeout(command, schedulingTimeoutSec)
 
@@ -920,27 +924,27 @@ close $cycle_file
                 self.testFailed("compiling timeout")
                 return False
 
-            errorMessage = stdoutContents + stderrContents 
-            
+            errorMessage = stdoutContents + stderrContents
+
             if not access(seqProgramNameBe, R_OK):
-                print "Error while compiling be program\n" + errorMessage
-                print "Compiler error message over\n."
+                print("Error while compiling be program\n" + errorMessage)
+                print("Compiler error message over\n.")
                 return False
 
             if not access(seqProgramNameLe, R_OK):
-                print "Error while compiling le program\n" + errorMessage
-                print "Compiler error message over\n."
+                print("Error while compiling le program\n" + errorMessage)
+                print("Compiler error message over\n.")
                 return False
 
             if not access(seqProgramName64, R_OK):
-                print "Error while compiling 64 bit program\n" + errorMessage
-                print "Compiler error message over\n."
+                print("Error while compiling 64 bit program\n" + errorMessage)
+                print("Compiler error message over\n.")
                 return False
         else:
-            print "src dir does not contain Makefile. Cannot build from src."
+            print("src dir does not contain Makefile. Cannot build from src.")
             return False
         return True
-        
+
     def run(self):
         """Runs the test case with all architectures.
 
@@ -951,7 +955,7 @@ close $cycle_file
         self.oldDir = os.getcwd()
         os.chdir(self.directory)
 
-        self.setupTestDirectory()        
+        self.setupTestDirectory()
 
         if not self.setupExecuted and access("./setup.sh", X_OK):
             callSilent("./setup.sh")
@@ -973,7 +977,7 @@ close $cycle_file
                 return False
             else:
                 seqProgFileBase = "generated_program"
-        
+
 #        if configFileDefined:
         for arch in self.architectures:
             allPassed = self.runWithArchitecture(arch, seqProgFileBase) and allPassed
@@ -981,10 +985,10 @@ close $cycle_file
                 os.chdir(self.oldDir)
                 return False
 
-        if not leaveDirty:            
+        if not leaveDirty:
             self.cleanupTestDirectory()
 
-        os.chdir(self.oldDir)        
+        os.chdir(self.oldDir)
         return allPassed
 
     def updateStatisticsFiles(self):
@@ -993,15 +997,15 @@ close $cycle_file
         This should be called only after running all test cases sucessfully, as it makes
         no sense to update the statistics if the algorithm fails for other test cases.
         """
-        timeStamp = time.strftime("%d.%m.%y %H:%M")        
-        lastRunWriter = csv.writer(__builtin__.open(self.directory + "/lastresults.csv", "w"))
+        timeStamp = time.strftime("%d.%m.%y %H:%M")
+        lastRunWriter = csv.writer(builtins.open(self.directory + "/lastresults.csv", "w"))
         for arch in self.architectures:
             lastRunWriter.writerow([arch, timeStamp, "%.0f" %
-                                    self.results[arch][0]])       
+                                    self.results[arch][0]])
 
         if (topStatsUpdates and self.improvedRuns) or baselineUpdate or loosenResults:
-            topStatsWriter = csv.writer(__builtin__.open(self.directory + "/topresults.csv", "w"))
-            
+            topStatsWriter = csv.writer(builtins.open(self.directory + "/topresults.csv", "w"))
+
             for arch in set(self.architectures + (self.oldResults and self.oldResults.keys() or [])):
                 oldResult = None
                 if self.oldResults is not None and arch in self.oldResults:
@@ -1013,7 +1017,7 @@ close $cycle_file
                     if loosenResults:
                         if oldResult is None: continue
                         # "loosen results" mode only makes some topresults worse to
-                        # give headroom for worsening (useful e.g. when supporting two LLVM 
+                        # give headroom for worsening (useful e.g. when supporting two LLVM
                         # versions)
                         if int(oldResult[-1]) < cycles:
                             topStatsWriter.writerow([arch, timeStamp, "%.0f" % cycles])
@@ -1036,9 +1040,9 @@ def get_subdirectories(root):
             found_subdirs += get_subdirectories(os.path.join(root, subdir))
             # TODO: check that same directory is not found many times in list
             #       (loop detection)
-            
-    return found_subdirs    
-        
+
+    return found_subdirs
+
 class Tester:
     """
     Test suite - responsible for running all test cases and printing out
@@ -1051,27 +1055,27 @@ class Tester:
 
     def loadTestCases(self):
         global testCaseFilters, recompile
-        
+
         self.testCases = []
-        
-        for root in get_subdirectories(testRootDir):
-            
+
+        dirs = get_subdirectories(testRootDir)
+        for root in dirs:
+
             if recompile:
                 inputProg = 'src'
             else:
                 inputProg = 'program.bc'
-            
+
             if os.access(root + "/description.txt", R_OK):
 
                 disableText = None
                 if os.access(root + "/disabled.txt", R_OK):
-                    disableFile = __builtin__.open(root + "/disabled.txt", "r")
+                    disableFile = builtins.open(root + "/disabled.txt", "r")
                     disableText =  "Reason: " + disableFile.read()
                     disableFile.close()
-                    
-                    
+
                 if disableText is None and os.access(root + "/" + inputProg, R_OK):
-                    
+
                     if testCaseFilters is not None:
                         found = False
                         for filter in testCaseFilters:
@@ -1081,40 +1085,40 @@ class Tester:
                         if not found:
                             continue
                     newCase = TestCase(root)
-                
+
                     # Push the new test case to our test case sequence
                     self.testCases.append(newCase)
 
                 #info about disabled tests (to not to forget fix them...)
-                elif normalOutput:                    
+                elif normalOutput:
                     if  not os.access(root + "/" + inputProg, R_OK):
                         disableText = inputProg + " not found"
-                        
+
                     if disableText:
-                        print ("Test in " + root +
+                        print("Test in " + root +
                                "/description.txt is disabled with selected frontend: " + disableText)
                     else:
-                        print ("Test in " + root +
+                        print("Test in " + root +
                                "/description.txt is disabled with selected frontend")
 
 
-                    
+
     def printSummary(self):
         global recompile, worsenedIsErrorLimit, failureFound
-                
+
         improved = 0
         worsened = 0
         equal = 0
         newResults = 0
-        broken = 0        
+        broken = 0
         totalCombinations = 0
         improvementSum = 0
-        worseningSum = 0    
-        
+        worseningSum = 0
+
         for testCase in self.testCases:
-            
+
             for arch in testCase.architectures:
-                
+
                 if not arch in testCase.results:
                     broken = broken + 1
                 else:
@@ -1131,7 +1135,7 @@ class Tester:
                             else:
                                 worsened = worsened + 1
                                 worseningSum = worseningSum + percentage
-                        
+
                 totalCombinations = totalCombinations + 1
 
         sys.stdout.write("SUMMARY\n")
@@ -1148,7 +1152,7 @@ class Tester:
 
         if worsened > 0:
             percentage = (worseningSum / worsened)
-            sys.stdout.write(                
+            sys.stdout.write(
                 "Worsened schedule for %d/%d case(s). Average worsening %.1f%%.\n"
                 % (worsened, totalCombinations, percentage))
             if worsenedIsErrorLimit is not None and percentage > worsenedIsErrorLimit:
@@ -1157,7 +1161,7 @@ class Tester:
                 # the previous run, try to filter these out by
                 # watching the average worsening only.
                 failureFound = True
-            
+
 
         if newResults > 0:
             sys.stdout.write(
@@ -1167,7 +1171,7 @@ class Tester:
             sys.stdout.write(
                 "Broken schedule for %d/%d case(s). Top results not updated.\n"
                 % (broken, totalCombinations))
-            
+
     def updateStatisticsFiles(self):
         for testCase in self.testCases:
             testCase.updateStatisticsFiles()
@@ -1180,9 +1184,9 @@ class Tester:
 
     def runTests(self):
         global normalOutput
-        
+
         self.initOperations()
-        
+
         testsDone = 0
         allSuccessful = True
         self.archs = []
@@ -1191,17 +1195,17 @@ class Tester:
 
             if normalOutput:
                 if len(testCase.title) > 0:
-                    print testCase.title + ":"
+                    print(testCase.title + ":")
                 if len(testCase.description) > 0:
-                    print testCase.description
+                    print(testCase.description)
 
             allSuccessful = testCase.run() and allSuccessful
-            
+
             if stopTestingAfterFailingTest and not allSuccessful:
                 return
 
             if normalOutput:
-                print
+                print()
 
             if len(self.archs) == 0:
                 for arch in testCase.architectures:
@@ -1210,21 +1214,21 @@ class Tester:
             if testsDone == 0:
                 if latexTable:
                     self.printLatexHeader()
-                
+
             if latexTable:
                 self.printLatexRow(testCase)
-                               
+
             testsDone += 1
 
         if normalOutput:
             self.printSummary()
-            
+
         if latexTable:
             self.printLatexFooter()
-        
+
         if allSuccessful:
             self.updateStatisticsFiles()
-    
+
     def printLatexHeader(self, firstColumnWidth=30, valueColumnWidth=16):
         """
         Prints the LaTeX table header.
@@ -1233,7 +1237,7 @@ class Tester:
         cols = ''
         for i in range(0, len(moreStats)*len(self.archs)):
             cols += 'l|'
-            
+
         sys.stdout.write('\\begin{tabular}{|l|%s} \hline\n' % cols)
         sys.stdout.write(''.ljust(firstColumnWidth))
         sys.stdout.write(' & ')
@@ -1247,7 +1251,7 @@ class Tester:
             archsPrinted += 1
             if archsPrinted < len(self.archs):
                 sys.stdout.write(' & ')
-        
+
         if len(moreStats) > 1:
             # Print the column headers only if there are more than one
             # column per architecture.
@@ -1263,17 +1267,17 @@ class Tester:
                     statsPrinted += 1
                     if statsPrinted < len(moreStats):
                         sys.stdout.write(' &')
-                                                                
+
                 archsPrinted += 1
                 if archsPrinted < len(self.archs):
-                    sys.stdout.write(' &')                       
-        
+                    sys.stdout.write(' &')
+
         sys.stdout.write('\\\\ \hline\n')
-    
+
     def printLatexRow(self, testCase, firstColumnWidth=30):
         """
         Prints a single row of the LaTeX table.
-        """        
+        """
         global moreStats
         sys.stdout.write(os.path.basename(testCase.directory).replace('_', '\_').ljust(firstColumnWidth))
         sys.stdout.write(' & ')
@@ -1283,18 +1287,18 @@ class Tester:
             result = testCase.stats[arch]
             sys.stdout.write(result.toLatexRow(moreStats))
             archsPrinted += 1
-            
+
             if archsPrinted < len(self.archs):
                 # More architectures going to be appended.
                 sys.stdout.write(' &')
-                
+
         sys.stdout.write('\\\\\n')
-           
+
     def printLatexFooter(self, testCase=None):
         """
         Prints the LaTeX table footer.
         """
-        sys.stdout.write('\\hline \\end{tabular}\n')        
+        sys.stdout.write('\\hline \\end{tabular}\n')
 
 
 def cleanup_and_exit(retval):
@@ -1305,10 +1309,10 @@ def cleanup_and_exit(retval):
 def main():
     global failureFound, outputOnlyIfFailure
     ParseCommandLine()
-    try:    
+    try:
         testCases = Tester()
-    except TestBenchException, e:
-        print "Error while initializing test system: " + e.getMsg()
+    except TestBenchException as e:
+        print("Error while initializing test system: " + e.getMsg())
         cleanup_and_exit(3)
 
     try:
@@ -1319,12 +1323,11 @@ def main():
             sys.__stdout__.write(sys.stdout.read())
             sys.stdout = sys.__stdout__
             cleanup_and_exit(1)
-            
-    except TestBenchException, e:
-        print "Error while running tests: " + e.getMsg()
+
+    except TestBenchException as e:
+        print("Error while running tests: " + e.getMsg())
         cleanup_and_exit(1)
-    
+
 if __name__ == '__main__':
     main()
     cleanup_and_exit(0)
-

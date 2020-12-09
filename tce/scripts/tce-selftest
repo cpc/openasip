@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8
 # Copyright (c) 2002-2019 Tampere University.
 #
@@ -30,26 +30,33 @@
 # It's sort of a "smoke test" that tells whether there is something seriously
 # broken with the TCE installation.
 #
-# (C) 2009-2019 Pekka J‰‰skel‰inen
+# (C) 2009-2019 Pekka J√§√§skel√§inen
 
 # exploit the unittest framework even though this is actually a system test
-import unittest, os, tempfile, signal, time, glob
-from subprocess import Popen, PIPE
+import unittest
+import os
+import tempfile
+import signal
+import time
+import glob
+import sys
+import shutil
+import subprocess
+
 
 class TCETestCase(unittest.TestCase):
+    prefix = None
+    minimal_adf = None
+    minimal_stdout_adf = None
 
-    def cleanup_files(self, files):
-        for f in files:
-            if os.path.exists(f):
-                os.unlink(f)
+    def setUp(self):
+        self.temp_files = []
 
-    def cleanup_dirs(self, dirs):
-        for d in dirs:
-            if os.path.exists(d):
-                os.rmdir(d)
-                
-    
-    def runWithTimeout(self, command, timeoutSecs, inputStream = ""):
+    def tearDown(self):
+        for temp_file in self.temp_files:
+            os.remove(temp_file.name)
+
+    def runWithTimeout(self, command, timeoutSecs, inputStream=""):
         """
         Runs the given process until it exits or the given time out is reached.
 
@@ -58,13 +65,13 @@ class TCETestCase(unittest.TestCase):
         timePassed = 0.0
         increment = 0.01
 
-        stderrFD, errFile = tempfile.mkstemp()
-        stdoutFD, outFile = tempfile.mkstemp()
+        process = subprocess.Popen(
+            command, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, universal_newlines=True, close_fds=False
+        )
 
-        process =  Popen(command, shell=True, stdin=PIPE, stdout=stdoutFD, stderr=stderrFD, close_fds=False)
-
-        if process == None:
-            print "Could not create process"
+        if process is None:
+            print("Could not create process")
             sys.exit(1)
 
         try:
@@ -75,73 +82,36 @@ class TCETestCase(unittest.TestCase):
 
             while True:
                 status = process.poll()
-                if status != None:
+                if status is not None:
                     # Process terminated succesfully.
-                    stdoutSize = os.lseek(stdoutFD, 0, 2)
-                    stderrSize = os.lseek(stderrFD, 0, 2)
-
-                    os.lseek(stdoutFD, 0, 0)
-                    os.lseek(stderrFD, 0, 0)
-
-                    stdoutContents = os.read(stdoutFD, stdoutSize)
-                    stderrContents = os.read(stderrFD, stderrSize)
-
-                    os.close(stdoutFD)
-                    os.remove(outFile)
-                    os.close(stderrFD)
-                    os.remove(errFile)
-                    
-                    return (False, stdoutContents, stderrContents, process.returncode)
+                    stdout, stderr = process.communicate()
+                    return (False, stdout, stderr, process.returncode)
 
                 if timePassed < timeoutSecs:
                     time.sleep(increment)
                     timePassed = timePassed + increment
                 else:
                     # time out, kill the process.
-                    stdoutSize = os.lseek(stdoutFD, 0, 2)
-                    stderrSize = os.lseek(stderrFD, 0, 2)
-
-                    os.lseek(stdoutFD, 0, 0)
-                    os.lseek(stderrFD, 0, 0)
-
-                    stdoutContents = os.read(stdoutFD, stdoutSize)
-                    stderrContents = os.read(stderrFD, stderrSize)
-
-                    os.close(stdoutFD)
-                    os.remove(outFile)
-                    os.close(stderrFD)
-                    os.remove(errFile)
                     os.kill(process.pid, signal.SIGTSTP)
-                    return (True, stdoutContents, stderrContents, process.returncode)
-        except Exception, e:
+                    stdout, stderr = process.communicate()
+                    return (True, stdout, stderr, process.returncode)
+        except Exception:
             # if something threw exception (e.g. ctrl-c)
             os.kill(process.pid, signal.SIGTSTP)
+            stdout = ''
+            stderr = ''
             try:
                 # time out, kill the process.
-                # time out, kill the process.
-                stdoutSize = os.lseek(stdoutFD, 0, 2)
-                stderrSize = os.lseek(stderrFD, 0, 2)
-
-                os.lseek(stdoutFD, 0, 0)
-                os.lseek(stderrFD, 0, 0)
-
-                stdoutContents = os.read(stdoutFD, stdoutSize)
-                stderrContents = os.read(stderrFD, stderrSize)
-
-                os.close(stdoutFD)
-                os.remove(outFile)
-                os.close(stderrFD)
-                os.remove(errFile)
-                os.kill(process.pid, signal.SIGTSTP)                
-            except:
+                os.kill(process.pid, signal.SIGTSTP)
+                stdout, stderr = process.communicate()
+            except Exception:
                 pass
 
-            return (False, stdoutContents, stderrContents, process.returncode)
+            return (False, stdout, stderr, process.returncode)
 
-    
     def get_helloWorldCFile(self):
         "Returns a .c file (name) which contains the Hello World code."
-        
+
         hello_world_c = """
             #include <stdio.h>
 
@@ -153,15 +123,18 @@ class TCETestCase(unittest.TestCase):
                 printf("World!\\n");
                 return 0;
             }
-            
+
             """
-        (fd, c_file_name) = tempfile.mkstemp(".c")
-        os.write(fd, hello_world_c)
-        os.close(fd)
-        return c_file_name
+        return self.createTempFile('.c', hello_world_c)
 
+    def createTempFile(self, suffix, content=None):
+        temp_file = tempfile.NamedTemporaryFile(mode='w', suffix=suffix, delete=False)
+        if content:
+            temp_file.write(content)
+        temp_file.close()
+        self.temp_files.append(temp_file)
+        return temp_file.name
 
-    prefix = None
     def get_tcePrefix(self):
         "Returns the path where TCE has been installed."
         if TCETestCase.prefix is None:
@@ -170,14 +143,12 @@ class TCETestCase(unittest.TestCase):
             else:
                 (timeout, TCETestCase.prefix, stderr, code) = \
                         self.runWithTimeout("tce-config --prefix", 60)
-                TCETestCase.prefix = TCETestCase.prefix and TCETestCase.prefix.strip()
-            assert TCETestCase.prefix is not None and TCETestCase.prefix != "", \
-                    "Could not find TCE prefix. Is TCE installed in PATH?"
+                TCETestCase.prefix = (
+                    TCETestCase.prefix and TCETestCase.prefix.strip()
+                )
+            assert TCETestCase.prefix, "Could not find TCE prefix. Is TCE installed in PATH?"
 
-        return TCETestCase.prefix
-
-
-    minimal_adf = None
+        return str(TCETestCase.prefix)
 
     def get_minimalADF(self):
         if TCETestCase.minimal_adf is None:
@@ -185,7 +156,6 @@ class TCETestCase(unittest.TestCase):
             assert os.path.exists(TCETestCase.minimal_adf)
         return TCETestCase.minimal_adf
 
-    minimal_stdout_adf = None
     def get_minimalStdoutADF(self):
         if TCETestCase.minimal_stdout_adf is None:
             TCETestCase.minimal_stdout_adf = self.get_tcePrefix() + "/share/tce/data/mach/minimal_with_stdout.adf"
@@ -198,105 +168,92 @@ class TestCompiler(TCETestCase):
     """Test compilation from C"""
 
     def setUp(self):
-        self.hello_world_file = self.get_helloWorldCFile()
-
-        (fd, self.ocl_kernel_fn) = tempfile.mkstemp(".cl")
-        os.write(fd, opencl_example_kernel)
-        os.close(fd)
-
-        (fd, self.ocl_host_fn) = tempfile.mkstemp(".c")
-        os.write(fd, opencl_example_host)
-        os.close(fd)
-
+        super().setUp()
+        self.ocl_kernel_fn = self.createTempFile('.cl', opencl_example_kernel)
+        self.ocl_host_fn = self.createTempFile('.c', opencl_example_host)
         self.runWithTimeout("tcecc --clear-plugin-cache", 1)
-
-    def tearDown(self):
-        os.unlink(self.hello_world_file)
-        os.unlink(self.ocl_kernel_fn)
-        os.unlink(self.ocl_host_fn)
 
     def _verify_output(self, tpef):
         (timeout, stdout, stderr, code) = \
            self.runWithTimeout("ttasim -a %s -p %s --no-debugmode" %
                                (self.get_minimalStdoutADF(), tpef), 15*60)
-        self.assertEquals(stdout.strip(), "Hello \nTTA World!")
-        self.assertEquals(stderr, "")
-        self.assertEquals(code, 0)        
-        
+        self.assertEqual(stdout.strip(), "Hello \nTTA World!")
+        self.assertEqual(stderr, "")
+        self.assertEqual(code, 0)
 
     def _test_compilation(self, switches):
-        (fd, tpef_file_name) = tempfile.mkstemp(".tpef")
-        (timeout, stdout, stderr, code) = \
-           self.runWithTimeout("tcecc %s -a %s -o %s %s" % \
-                               (switches, self.get_minimalStdoutADF(),
-                                tpef_file_name, self.get_helloWorldCFile()),
-                               20*60)
-        self.assertEquals(stdout, "")
-        self.assertEquals(stderr, "")
-        self.assertEquals(code, 0)
+        tpef_file_name = self.createTempFile('.tpef')
+        command = "tcecc {0} -a {1} -o {2} {3}".format(
+            switches, self.get_minimalStdoutADF(), tpef_file_name,
+            self.get_helloWorldCFile()
+        )
+        (timeout, stdout, stderr, code) = self.runWithTimeout(command, 20*60)
+        self.assertEqual(stdout, "")
+        self.assertEqual(stderr, "")
+        self.assertEqual(code, 0)
 
         self._verify_output(tpef_file_name)
 
     def test_noOpt(self):
         "Test C compilation with -O0"
         self._test_compilation("-O0 --swfp")
-        
+
     def test_opt(self):
         "Test C compilation with -O3"
-        self._test_compilation("-O3") 
+        self._test_compilation("-O3")
 
     def DISABLEDtest_opencl_sa(self):
         "Test standalone OpenCL compilation if the support has been enabled"
 
-        (timeout, stdout, stderr, code) = \
-           self.runWithTimeout("tcecc --supported-languages", 20*60)
-        if "OpenCL C" not in stdout: return
+        (timeout, stdout, stderr, code) = self.runWithTimeout(
+            "tcecc --supported-languages", 20*60
+        )
+        if "OpenCL C" not in stdout:
+            return
 
-        (fd, tpef_file_name) = tempfile.mkstemp(".tpef")
-        (timeout, stdout, stderr, code) = \
-           self.runWithTimeout("tcecc --swfp -O3 -a %s -o %s %s %s -loclhost-sa" % \
-                               (self.get_minimalStdoutADF(),
-                                tpef_file_name, self.ocl_kernel_fn, self.ocl_host_fn),
-                               20*60)
-        self.assertEquals(stdout, "You are compiling OpenCL code with software floating point emulation!\nExpect abysmal peformance!\n")
-        self.assertEquals(stderr, "")
-        self.assertEquals(code, 0)
-
-        (timeout, stdout, stderr, code) = \
-           self.runWithTimeout("ttasim -a %s -p %s --no-debugmode" %
-                               (self.get_minimalStdoutADF(), tpef_file_name), 15*60)
-        self.assertEquals(stdout.strip(), "OK")
-        self.assertEquals(stderr, "")
-        self.assertEquals(code, 0)        
+        tpef_file_name = self.createTempFile(".tpef")
+        command = "tcecc --swfp -O3 -a {0} -o {1} {2} {3} -loclhost-sa".format(
+            self.get_minimalStdoutADF(), tpef_file_name, self.ocl_kernel_fn,
+            self.ocl_host_fn
+        )
+        (timeout, stdout, stderr, code) = self.runWithTimeout(command, 20*60)
+        self.assertEqual(
+            stdout,
+            "You are compiling OpenCL code with software floating point emulation!\nExpect abysmal peformance!\n"
+        )
+        self.assertEqual(stderr, "")
+        self.assertEqual(code, 0)
+        command = "ttasim -a {0} -p {1} --no-debugmode".format(
+            self.get_minimalStdoutADF(), tpef_file_name
+        )
+        (timeout, stdout, stderr, code) = self.runWithTimeout(command, 15*60)
+        self.assertEqual(stdout.strip(), "OK")
+        self.assertEqual(stderr, "")
+        self.assertEqual(code, 0)
 
 
 class TestSimulator(TCETestCase):
     """Test simulating with the compiled and debugging engines."""
 
     def setUp(self):
-        if hasattr(self, 'tpef_file_name') and self.tpef_file_name is not None:
-            return
+        super().setUp()
         self.hello_world_file = self.get_helloWorldCFile()
-        (fd, self.tpef_file_name) = tempfile.mkstemp(".tpef")
-        (timeout, stdout, stderr, code) = \
-           self.runWithTimeout("tcecc %s -a %s -o %s %s" % \
-                               ("-O0 --swfp", self.get_minimalStdoutADF(),
-                                self.tpef_file_name, self.get_helloWorldCFile()),
-                               20*60)
-
-    def __del__(self):
-        os.unlink(self.tpef_file_name)
+        self.tpef_file_name = self.createTempFile(".tpef")
+        command = "tcecc -O0 --swfp -a {0} -o {1} {2}".format(
+           self.get_minimalStdoutADF(), self.tpef_file_name,
+           self.hello_world_file
+        )
+        (timeout, stdout, stderr, code) = self.runWithTimeout(command, 20*60)
 
     def _test_simulation(self, switches):
-        (timeout, stdout, stderr, code) = \
-           self.runWithTimeout("ttasim %s -a %s -p %s --no-debugmode" %
-                               (switches,
-                                self.get_minimalStdoutADF(),
-                                self.tpef_file_name), 10*60)
+        command = "ttasim {0} -a {1} -p {2} --no-debugmode".format(
+            switches, self.get_minimalStdoutADF(), self.tpef_file_name
+        )
+        (timeout, stdout, stderr, code) = self.runWithTimeout(command, 10*60)
         self.assertFalse(timeout)
-        self.assertEquals(stdout.strip(), "Hello \nTTA World!")
-        self.assertEquals(stderr, "")
-        self.assertEquals(code, 0)
+        self.assertEqual(stdout.strip(), "Hello \nTTA World!")
+        self.assertEqual(stderr, "")
+        self.assertEqual(code, 0)
 
     def test_debugging_simulation(self):
         "Test the debugging engine of the simulator"
@@ -304,22 +261,28 @@ class TestSimulator(TCETestCase):
 
     def test_compiled_simulation(self):
         "Test the compiled engine of the simulator"
-        self._test_simulation("-q")    
+        self._test_simulation("-q")
+
 
 class TestCustomOps(TCETestCase):
     """Test for custom op functionality"""
+
+    def setUp(self):
+        super().setUp()
+        self.temp_dir = tempfile.mkdtemp()
+        self.old_work_dir = os.getcwd()
+        os.chdir(self.temp_dir)
+
     def tearDown(self):
-        if hasattr(self, 'temp_dir'):
-            os.chdir(self.temp_dir)
-            self.cleanup_files(['hello.cc', 'hello.opb', 'hello.opp'])
-            os.chdir('..')
-            os.rmdir(self.temp_dir)
+        super().tearDown()
+        os.chdir(self.old_work_dir)
+        shutil.rmtree(self.temp_dir)
 
     def test_custom_operation_from_c_code(self):
         """Test creating a simple custom operation with simulation code and
         using it from C code"""
         opp_contents = """<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<osal version="0.1">       
+<osal version="0.1">
   <operation>
     <name>HELLO_WORLD</name>
     <description>Prints hello world to the screen. The most useful operation ever.</description>
@@ -327,12 +290,12 @@ class TestCustomOps(TCETestCase):
     <outputs>0</outputs>
     <in id="1" type="SIntWord"/>
   </operation>
-</osal> 
+</osal>
   """
         opb_src = """
 #include "OSAL.hh"
 #include <iostream>
-        
+
 OPERATION(HELLO_WORLD)
 
 TRIGGER
@@ -342,10 +305,6 @@ END_TRIGGER;
 END_OPERATION(HELLO_WORLD)
 
 """
-        esa = ""
-
-        self.temp_dir = tempfile.mkdtemp()
-        os.chdir(self.temp_dir)
         opp = open('hello.opp', 'w+')
         opp.write(opp_contents)
         opp.close()
@@ -354,67 +313,71 @@ END_OPERATION(HELLO_WORLD)
         cc.write(opb_src)
         cc.close()
 
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout('buildopset hello', 120)
-        self.assertEquals(stdout.strip(), '')
-        self.assertEquals(stderr.strip(), '')
-        self.assertEquals(code, 0)
-        self.assertEquals(os.path.exists('hello.opb'), True)
+        (timeout, stdout, stderr, code) = self.runWithTimeout('buildopset hello', 120)
+        self.assertEqual(stdout.strip(), '')
+        self.assertEqual(stderr.strip(), '')
+        self.assertEqual(code, 0)
+        self.assertTrue(os.path.exists('hello.opb'))
 
-        (timeout, stdout, stderr, code) = \
-                  self.runWithTimeout(\
-            "echo 'HELLO_WORLD 0' | testosal", 120)
-        self.assertEquals(
+        (timeout, stdout, stderr, code) = self.runWithTimeout("echo 'HELLO_WORLD 0' | testosal", 120)
+        self.assertEqual(
             stdout.strip(),
-            'Hello TTA Custom Operation World!')
+            'Hello TTA Custom Operation World!'
+        )
 
 
 class TestExplorer(TCETestCase):
 
     def setUp(self):
+        super().setUp()
         self.temp_dir = tempfile.mkdtemp()
+        self.old_work_dir = os.getcwd()
         os.chdir(self.temp_dir)
-        
+
     def tearDown(self):
-        os.chdir("..")
-        os.system('rm -fr %s' % self.temp_dir)
+        super().tearDown()
+        os.chdir(self.old_work_dir)
+        shutil.rmtree(self.temp_dir)
 
     def test_default_plugins_found(self):
-        "Check that the default Explorer plugins are listed."
-        (timeout, stdout, stderr, code) = \
-                  self.runWithTimeout('explore -g', 120)
-        default_plugins = \
-          ['FrequencySweepExplorer', 'SimpleICOptimizer',
-           'RemoveUnconnectedComponents', 'MinimizeMachine',
-           'GrowMachine', 'ImmediateGenerator', 'ImplementationSelector',
-           'ComponentAdder', 'Evaluate', 'MinimalOpSet']
+        """
+        Check that the default Explorer plugins are listed.
+        """
+        (timeout, stdout, stderr, code) = self.runWithTimeout(
+            'explore -g', 120)
+        default_plugins = [
+            'FrequencySweepExplorer', 'SimpleICOptimizer',
+            'RemoveUnconnectedComponents', 'MinimizeMachine',
+            'GrowMachine', 'ImmediateGenerator', 'ImplementationSelector',
+            'ComponentAdder', 'Evaluate', 'MinimalOpSet'
+        ]
 
         for plugin in default_plugins:
             assert plugin in stdout, '%s not found' % plugin
-        
-        self.assertEquals(stderr.strip(), '')
-        self.assertEquals(code, 0)
+
+        self.assertEqual(stderr.strip(), '')
+        self.assertEqual(code, 0)
 
     def test_basic_plugins(self):
-        "Test the ImplementationSelector and Evaluate explorer plugins (this takes a while!)"
+        """
+        Test the ImplementationSelector and Evaluate explorer plugins (this
+        takes a while!)
+        """
         # Generate .idf using the ImplementationSelector plugin
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout(
-            'explore -e ImplementationSelector -a %s -s1 test.dsdb' % \
-            self.get_minimalADF(), 120)
+        command = 'explore -e ImplementationSelector -a {0} -s1 test.dsdb'.format(self.get_minimalADF())
+        (timeout, stdout, stderr, code) = self.runWithTimeout(command, 120)
         self.assertTrue('Best result configurations:' in stdout)
         self.assertTrue('2' in stdout)
-        self.assertEquals(stderr.strip(), '')
-        self.assertEquals(code, 0)
+        self.assertEqual(stderr.strip(), '')
+        self.assertEqual(code, 0)
 
         # Dump the .idf a file.
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout(
+        (timeout, stdout, stderr, code) = self.runWithTimeout(
             'explore -w 2 test.dsdb', 120)
-        self.assertEquals(stderr.strip(), '')
-        self.assertEquals(code, 0)        
+        self.assertEqual(stderr.strip(), '')
+        self.assertEqual(code, 0)
         self.assertTrue('Written ADF file of configuration 2' in stdout)
-        self.assertTrue('Written IDF file of configuration 2' in stdout)      
+        self.assertTrue('Written IDF file of configuration 2' in stdout)
         self.assertTrue(os.path.exists('2.adf'))
         self.assertTrue(os.path.exists('2.idf'))
 
@@ -430,57 +393,55 @@ class TestExplorer(TCETestCase):
         }
         """
 
-        os.mkdir('test_app')
-        f = open('test_app/test.c', 'w+')
+        dir_name = 'test_app'
+        os.mkdir(dir_name)
+        f = open('{0}/test.c'.format(dir_name), 'w+')
         f.write(dummy_app_c)
         f.close()
 
         # program.bc
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout(
-            'tcecc test_app/test.c -c -o test_app/program.bc', 120)
+        (timeout, stdout, stderr, code) = self.runWithTimeout(
+            'tcecc {0}/test.c -c -o {0}/program.bc'.format(dir_name), 120)
 
         # description.txt
-        f = open('test_app/description.txt', 'w+')
+        f = open('{0}/description.txt'.format(dir_name), 'w+')
         f.write("Dummy test application for explorer")
         f.close()
 
         # max_runtime
-        f = open('test_app/max_runtime', 'w+')
+        f = open('{0}/max_runtime'.format(dir_name), 'w+')
         f.write('100')
         f.close()
 
         # correct_simulation_output
-        f = open('test_app/correct_simulation_output', 'w+')
+        f = open('{0}/correct_simulation_output'.format(dir_name), 'w+')
         f.write('\n')
         f.close()
 
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout(
-            'explore -v -d test_app test.dsdb', 120)
+        (timeout, stdout, stderr, code) = self.runWithTimeout(
+            'explore -v -d {0} test.dsdb'.format(dir_name), 120)
 
-        self.assertEquals(stdout, '')
-        self.assertEquals(stderr.strip(), '')
-        self.assertEquals(code, 0)
+        self.assertEqual(stdout, '')
+        self.assertEqual(stderr.strip(), '')
+        self.assertEqual(code, 0)
 
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout(
+        (timeout, stdout, stderr, code) = self.runWithTimeout(
             'explore -e Evaluate -s 2 test.dsdb', 40*60)
 
         self.assertFalse(timeout)
         # Evaluate does not generate new configurations
         self.assertTrue('No fitting processor configurations were created.' in stdout)
         self.assertTrue(x.startswith('Warning') for x in stderr.splitlines())
-        self.assertEquals(code, 0)
+        self.assertEqual(code, 0)
 
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout('explore -c C test.dsdb', 60)
+        (timeout, stdout, stderr, code) = self.runWithTimeout('explore -c C test.dsdb', 60)
 
-        #expected_output = "| 1       | test_app         | 12          | 1.32785e-07     | 12.33              | 6262.15 |"
+        # expected_output = "| 1       | test_app         | 12          | 1.32785e-07     | 12.33              | 6262.15 |"
 
         row = stdout.split('\n')[4]
-        id, cycles, energy, delay, area = \
-            [float(x.strip()) for x in row.split('|') if x.strip() != '' and x.strip() != 'test_app']
+        id, cycles, energy, delay, area = [
+            float(x.strip()) for x in row.split('|') if x.strip() != '' and x.strip() != dir_name
+        ]
 
         """
         # Rough checks because the numbers change as the
@@ -494,58 +455,64 @@ class TestExplorer(TCETestCase):
 
         self.assertFalse(timeout)
         self.assertTrue("Configurations in DSDB" in stdout)
-        self.assertEquals(stderr, '')
-        self.assertEquals(code, 0)
+        self.assertEqual(stderr, '')
+        self.assertEqual(code, 0)
         """
+
+
 class TestEstimator(TCETestCase):
 
     def setUp(self):
+        super().setUp()
         self.temp_dir = tempfile.mkdtemp()
+        self.old_work_dir = os.getcwd()
         os.chdir(self.temp_dir)
-        
+
     def tearDown(self):
-        os.chdir("..")
-        os.system('rm -fr %s' % self.temp_dir)
+        super().tearDown()
+        os.chdir(self.old_work_dir)
+        shutil.rmtree(self.temp_dir)
 
     # Cost estimator test is disabled for now due to lack of cost data for
     # the default minimal.adf
     def _disabled_test_estimator(self):
-        "Test the cost estimator by estimating the area and delay of minimal.adf (this takes a while!)"
+        """
+        Test the cost estimator by estimating the area and delay of
+        minimal.adf (this takes a while!)
+        """
 
         # Generate .idf using explorer
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout(
-            'explore -e ImplementationSelector -a %s -s 1 test.dsdb' % \
-            self.get_bigEndianMinimalADF(), 120)
+        command = 'explore -e ImplementationSelector -a {0} -s 1 test.dsdb'.format(self.get_bigEndianMinimalADF())
+        (timeout, stdout, stderr, code) = self.runWithTimeout(command, 120)
         self.assertTrue('Best result configurations:' in stdout)
         self.assertTrue('2' in stdout)
-        self.assertEquals(stderr.strip(), '')
-        self.assertEquals(code, 0)
+        self.assertEqual(stderr.strip(), '')
+        self.assertEqual(code, 0)
 
         # Dump the .idf a file.
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout(
-            'explore -w 2 test.dsdb', 60)
-        self.assertEquals(stderr.strip(), '')
-        self.assertEquals(code, 0)
+        (timeout, stdout, stderr, code) = self.runWithTimeout(
+            'explore -w 2 test.dsdb', 60
+        )
+        self.assertEqual(stderr.strip(), '')
+        self.assertEqual(code, 0)
         self.assertTrue('Written ADF file of configuration 2' in stdout)
         self.assertTrue('Written IDF file of configuration 2' in stdout)
         self.assertTrue(os.path.exists('2.adf'))
         self.assertTrue(os.path.exists('2.idf'))
 
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout(
-            'estimate -l -a 2.adf 2.idf', 40*60)
+        (timeout, stdout, stderr, code) = self.runWithTimeout(
+            'estimate -l -a 2.adf 2.idf', 40*60
+        )
 
         self.assertFalse(timeout)
 
-        expected = \
+        # expected = \
         """
 total area: 4813 gates
 delay of the longest path: 12 ns
 """
 
-        #stdout = expected
+        # stdout = expected
 
         rows = stdout.split('\n')
         area = int(rows[0].split(':')[1].split(' ')[1].strip())
@@ -554,39 +521,46 @@ delay of the longest path: 12 ns
         assert area < 5400 and area > 3000, "area: %d" % area
         self.assertTrue(delay < 14)
         self.assertTrue(x.startswith('Warning') for x in stderr.splitlines())
-        self.assertEquals(code, 0)
+        self.assertEqual(code, 0)
+
 
 class TestProGeAndPIG(TCETestCase):
-    "Test the processor generator and the program image generator"
+    """
+    Test the processor generator and the program image generator
+    """
     def setUp(self):
+        super().setUp()
         self.temp_dir = tempfile.mkdtemp()
+        self.old_work_dir = os.getcwd()
         os.chdir(self.temp_dir)
 
     def tearDown(self):
-        os.chdir("..")
-        os.system('rm -fr %s' % self.temp_dir)
+        super().tearDown()
+        os.chdir(self.old_work_dir)
+        shutil.rmtree(self.temp_dir)
 
     def test_proge_and_pig(self):
-        "Test the processor generator and the program image generator (with dictionary instruction compression)"
+        """
+        Test the processor generator and the program image generator (with
+        dictionary instruction compression)
+        """
 
         # Generate .idf using the ImplementationSelector plugin
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout(
-            'explore -e ImplementationSelector -a %s -s1 test.dsdb' % \
-            self.get_minimalADF(), 120)
+        command = 'explore -e ImplementationSelector -a {0} -s1 test.dsdb'.format(
+            self.get_minimalADF())
+        (timeout, stdout, stderr, code) = self.runWithTimeout(command, 120)
         self.assertTrue('Best result configurations:' in stdout)
         self.assertTrue('2' in stdout)
-        self.assertEquals(stderr.strip(), '')
-        self.assertEquals(code, 0)
+        self.assertEqual(stderr.strip(), '')
+        self.assertEqual(code, 0)
 
         # Dump the .idf a file.
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout(
+        (timeout, stdout, stderr, code) = self.runWithTimeout(
             'explore -w 2 test.dsdb', 120)
-        self.assertEquals(stderr.strip(), '')
-        self.assertEquals(code, 0)        
+        self.assertEqual(stderr.strip(), '')
+        self.assertEqual(code, 0)
         self.assertTrue('Written ADF file of configuration 2' in stdout)
-        self.assertTrue('Written IDF file of configuration 2' in stdout)      
+        self.assertTrue('Written IDF file of configuration 2' in stdout)
         self.assertTrue(os.path.exists('2.adf'))
         self.assertTrue(os.path.exists('2.idf'))
 
@@ -602,82 +576,53 @@ class TestProGeAndPIG(TCETestCase):
         }
         """
 
-        f = open('test.c', 'w+')
-        f.write(dummy_app_c)
-        f.close()
+        c_file = self.createTempFile('.c', dummy_app_c)
 
         # test.tpef
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout(
-            'tcecc -O0 test.c -a 2.adf -o test.tpef', 60*10)
+        (timeout, stdout, stderr, code) = self.runWithTimeout(
+            'tcecc -O0 {0} -a 2.adf -o test.tpef'.format(c_file), 60*10)
 
         self.assertFalse(timeout)
-        self.assertEquals(stdout, '')
-        self.assertEquals(stderr, '')
-        self.assert_(os.path.exists('test.tpef'))
-        self.assertEquals(code, 0)
+        self.assertEqual(stdout, '')
+        self.assertEqual(stderr, '')
+        self.assertTrue(os.path.exists('test.tpef'))
+        self.assertEqual(code, 0)
 
         # generate VHDL for the processor
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout(
+        (timeout, stdout, stderr, code) = self.runWithTimeout(
             'generateprocessor -o proc_vhdl -i 2.idf 2.adf', 60*5)
         self.assertFalse(timeout)
-        self.assertEquals(stdout, '')
-        self.assertEquals(stderr, '')
-        self.assert_(os.path.exists('proc_vhdl'))
-        self.assertEquals(code, 0)
+        self.assertEqual(stdout, '')
+        self.assertEqual(stderr, '')
+        self.assertTrue(os.path.exists('proc_vhdl'))
+        self.assertEqual(code, 0)
 
         dir_contents = glob.glob('proc_vhdl/vhdl/*')
-        self.assertEquals(len(dir_contents), 8)
+        self.assertEqual(len(dir_contents), 8)
 
         # generate the program image
-        (timeout, stdout, stderr, code) = \
-             self.runWithTimeout(
+        (timeout, stdout, stderr, code) = self.runWithTimeout(
             'generatebits -c InstructionDictionary.so -d -g -x proc_vhdl -p test.tpef 2.adf', 60*5)
 
         self.assertFalse(timeout)
-        self.assertEquals(stdout, '')
-        self.assertEquals(stderr, '')
-        self.assertEquals(code, 0)
-        self.assertEquals('', stderr.strip())
-        self.assert_(os.path.exists('proc_vhdl/vhdl/tta0_imem_mau_pkg.vhdl'))
-        self.assert_(os.path.exists('test_data.img'))
-        self.assert_(os.path.exists('test.img'))        
+        self.assertEqual(stdout, '')
+        self.assertEqual(stderr, '')
+        self.assertEqual(code, 0)
+        self.assertEqual('', stderr.strip())
+        self.assertTrue(os.path.exists('proc_vhdl/vhdl/tta0_imem_mau_pkg.vhdl'))
+        self.assertTrue(os.path.exists('test_data.img'))
+        self.assertTrue(os.path.exists('test.img'))
         # Probably due to Bug http://tce.cs.tut.fi/cgi-bin/tce-bugzilla/show_bug.cgi?id=114
         # this is nonempty even though we do not initialize any global data
-        #self.assertEquals(os.path.getsize('test_data.img'), 0) # No global data defs
+        # self.assertEqual(os.path.getsize('test_data.img'), 0) # No global data defs
         self.assertTrue(os.path.getsize('test.img') > 0)
-        self.assertEquals(len(open('test.img','r').readlines()[0].strip()), 6)
-        self.assertTrue('IMEMMAUWIDTH : positive := 6;' in open('proc_vhdl/vhdl/tta0_imem_mau_pkg.vhdl', 'r').read())
+        with open('test.img', 'r') as opened_file:
+            self.assertEqual(len(opened_file.readlines()[0].strip()), 6)
+        with open('proc_vhdl/vhdl/tta0_imem_mau_pkg.vhdl', 'r') as opened_file:
+            self.assertTrue('IMEMMAUWIDTH : positive := 6;' in opened_file.read())
 
-opencl_example_kernel = \
-r"""
-__attribute__((reqd_work_group_size(4, 1, 1)))
-kernel void
-dot_product (global const float4 *a,
-             global const float4 *b, 
-             global float *c,
-             local float *temp1) {
 
-    __local float temp2[4];
-    int lid = get_local_id(0);
-    int gid = get_global_id(0);
-
-    temp1[lid] = dot(a[gid], b[gid]);
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-    temp2[3 - lid] = temp1[lid];
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-    temp1[lid] = temp2[3 - lid];
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-    c[gid] = temp1[lid];
-} 
-"""
-
-opencl_example_host = \
-r"""
+opencl_example_host = """
 #include <CL/cl.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -853,13 +798,13 @@ volatile cl_float4 inputB[TEST_SET_SIZE];
 volatile cl_float results[TEST_SET_SIZE];
 
 /* TODO: global constructor call injection breaks
-   in case main is inlined as the context is not 
+   in case main is inlined as the context is not
    saved before calling it at the moment and inlining
    brings in live variables. FIXME by doing the calls
    at LLVM Instruction level after which proper
    context saving code will be generated automatically. */
 __attribute__((noinline))
-int main() {  
+int main() {
 
     for (int i = 0; i < TEST_SET_SIZE; ++i) {
         inputA[i].s[0] = i;
@@ -874,7 +819,7 @@ int main() {
     }
 
     int retVal = exec_dot_product_kernel(
-        NULL, TEST_SET_SIZE, (void*)inputA, 
+        NULL, TEST_SET_SIZE, (void*)inputA,
         (void*)inputB, (void*)results);
 
 #ifdef DEBUG
@@ -887,7 +832,7 @@ int main() {
     int broken = 0;
     for (int i = 0; i < TEST_SET_SIZE; ++i) {
 
-        cl_float expected = 
+        cl_float expected =
             inputA[i].s[0]*inputB[i].s[0] +
             inputA[i].s[1]*inputB[i].s[1] +
             inputA[i].s[2]*inputB[i].s[2] +
@@ -895,15 +840,41 @@ int main() {
 
         if (results[i] != expected) ++broken;
     }
-    if (broken == 0) 
-        puts("OK"); 
-    else 
+    if (broken == 0)
+        puts("OK");
+    else
         puts("NOK");
     return retVal;
 }
 """
 
+opencl_example_kernel = """
+__attribute__((reqd_work_group_size(4, 1, 1)))
+kernel void
+dot_product (global const float4 *a,
+             global const float4 *b,
+             global float *c,
+             local float *temp1) {
+
+    __local float temp2[4];
+    int lid = get_local_id(0);
+    int gid = get_global_id(0);
+
+    temp1[lid] = dot(a[gid], b[gid]);
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    temp2[3 - lid] = temp1[lid];
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    temp1[lid] = temp2[3 - lid];
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    c[gid] = temp1[lid];
+}
+"""
+
+
 if __name__ == '__main__':
-    print "Testing TCE installation, this can take up to two hours."
-    print "Time to go for a lunch? Use -v to see the progress."
+    print("Testing TCE installation, this can take up to two hours.")
+    print("Time to go for a lunch? Use -v to see the progress.")
     unittest.main()

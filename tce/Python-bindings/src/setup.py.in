@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #
 # Python distutils file for building and installing the
@@ -137,13 +137,13 @@ setup(name='TCE Python bindings',
                              define_macros=TCE_define_macros,
                              include_dirs=TCE_includes,
                              library_dirs=TCE_library_dirs,
-                             libraries=TCE_libraries),                             
+                             libraries=TCE_libraries),
                    Extension('TCE.applibs.Scheduler.ProgramRepresentations.DataDependenceGraph',
                              list_cpps('DataDependenceGraph'),
                              define_macros=TCE_define_macros,
                              include_dirs=TCE_includes,
                              library_dirs=TCE_library_dirs,
-                             libraries=TCE_libraries),                             
+                             libraries=TCE_libraries),
                    Extension('TCE.applibs.Scheduler.SchedulerModules',
 
                              # This is a temporary solution to get the two .cpp files included
@@ -160,14 +160,12 @@ setup(name='TCE Python bindings',
                                               '%s/scheduler/passes/BasicBlockScheduler/CopyingDSFillerModule.so'
                                               % project_root,
                                               ],
-                             libraries=TCE_libraries),                             
+                             libraries=TCE_libraries),
                    Extension('TCE.applibs.Scheduler.Algorithms',
                              list_cpps('Algorithms'),
                              define_macros=TCE_define_macros,
                              include_dirs=TCE_includes,
                              library_dirs=TCE_library_dirs,
-                             libraries=TCE_libraries),                             
+                             libraries=TCE_libraries),
                    ]
 )
-      
-     

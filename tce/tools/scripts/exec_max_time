@@ -1,6 +1,13 @@
-#!/usr/bin/env python
-import getopt, sys, os, time, signal, tempfile, subprocess
-        
+#!/usr/bin/env python3
+import getopt
+import sys
+import os
+import time
+import signal
+import tempfile
+import subprocess
+
+
 def runWithTimeout(command, timeoutSecs, inputStream = None, verbose = False):
     """
     Runs the given process until it exits or the given time out is reached.
@@ -8,10 +15,10 @@ def runWithTimeout(command, timeoutSecs, inputStream = None, verbose = False):
     Returns a triplet of which first value tells whether exited without timeout,
     second gives the process' output from stdout as a string, third the stderr
     """
-    
+
     timePassed = 0.0
     increment = 0.01
-    
+
     stderrFD, errFile = tempfile.mkstemp()
     stdoutFD, outFile = tempfile.mkstemp()
 
@@ -19,12 +26,12 @@ def runWithTimeout(command, timeoutSecs, inputStream = None, verbose = False):
     # command that is ran in the new shell.
     process =  subprocess.Popen(command, shell=True, stdin=subprocess.PIPE,
                                 stdout=stdoutFD, stderr=stderrFD, close_fds=False)
-    
+
     if verbose:
-        print "Process.pid " + str(process.pid)
-                
+        print("Process.pid " + str(process.pid))
+
     if process == None:
-        print "Could not create process"
+        print("Could not create process")
         sys.exit(1)
 
     try:
@@ -36,15 +43,15 @@ def runWithTimeout(command, timeoutSecs, inputStream = None, verbose = False):
         while True:
             status = process.poll()
             if status != None:
-                # Process terminated succesfully.            
+                # Process terminated succesfully.
                 stdoutSize = os.lseek(stdoutFD, 0, 2)
                 stderrSize = os.lseek(stderrFD, 0, 2)
 
                 os.lseek(stdoutFD, 0, 0)
                 os.lseek(stderrFD, 0, 0)
 
-                stdoutContents = os.read(stdoutFD, stdoutSize)
-                stderrContents = os.read(stderrFD, stderrSize)
+                stdoutContents = os.read(stdoutFD, stdoutSize).decode('utf-8')
+                stderrContents = os.read(stderrFD, stderrSize).decode('utf-8')
 
                 os.close(stdoutFD)
                 os.remove(outFile)
@@ -52,15 +59,15 @@ def runWithTimeout(command, timeoutSecs, inputStream = None, verbose = False):
                 os.remove(errFile)
 
                 if verbose:
-                    print "Command was executed successfully."
-                                               
+                    print("Command was executed successfully.")
+
                 return (True, stdoutContents, stderrContents)
 
             if verbose:
-                print ("Running command: " + command +
+                print("Running command: " + command +
                        " timePassed: " + str(timePassed) +
                        " limit: " + str(timeoutSecs))
-        
+
             if timePassed < timeoutSecs:
                 time.sleep(increment)
                 timePassed = timePassed + increment
@@ -73,20 +80,20 @@ def runWithTimeout(command, timeoutSecs, inputStream = None, verbose = False):
                 os.lseek(stdoutFD, 0, 0)
                 os.lseek(stderrFD, 0, 0)
 
-                stdoutContents = os.read(stdoutFD, stdoutSize)
-                stderrContents = os.read(stderrFD, stderrSize)
+                stdoutContents = os.read(stdoutFD, stdoutSize).decode('utf-8')
+                stderrContents = os.read(stderrFD, stderrSize).decode('utf-8')
 
                 os.close(stdoutFD)
                 os.remove(outFile)
                 os.close(stderrFD)
                 os.remove(errFile)
-            
+
                 os.kill(process.pid, signal.SIGTSTP)
                 if verbose:
-                    print "Timeout occured."
-                           
+                    print("Timeout occured.")
+
                 return (False, stdoutContents, stderrContents)
-            
+
     except:
         try:
             # Simulation time out, kill the simulated process.
@@ -96,8 +103,8 @@ def runWithTimeout(command, timeoutSecs, inputStream = None, verbose = False):
             os.lseek(stdoutFD, 0, 0)
             os.lseek(stderrFD, 0, 0)
 
-            stdoutContents = os.read(stdoutFD, stdoutSize)
-            stderrContents = os.read(stderrFD, stderrSize)
+            stdoutContents = os.read(stdoutFD, stdoutSize).decode('utf-8')
+            stderrContents = os.read(stderrFD, stderrSize).decode('utf-8')
 
             os.close(stdoutFD)
             os.remove(outFile)
@@ -105,38 +112,39 @@ def runWithTimeout(command, timeoutSecs, inputStream = None, verbose = False):
             os.remove(errFile)
         except:
             pass
-        
+
         # We give SIGSTPT instead SIGKILL to child process, because SIGKILL only kills given PID.
         # Popen command actually opens new shell and runs requested command in there so SIGKILL would
         # kill only the shell and leaves child command running background.
         os.kill(process.pid, signal.SIGTSTP)
 
         if verbose:
-            print "Interrupted by user."
-            
+            print("Interrupted by user.")
+
         return (False, stdoutContents, stderrContents)
-            
+
 
 def main():
     opts, args = getopt.getopt(sys.argv[1:], "v")
 
     if len(args) < 2:
-        print 'Usage: exec_max_time [-v] <time> <command>'
-        print "e.g. exec_max_time -v 10 'ls -la'"                
+        print('Usage: exec_max_time [-v] <time> <command>')
+        print("e.g. exec_max_time -v 10 'ls -la'")
         exit(0)
 
     verbose = False
-    if ('-v','') in opts:
+    if ('-v', '') in opts:
         verbose = True
-    
-    exitStatus,output,error = runWithTimeout(args[1], float(args[0]), verbose = verbose)
+
+    exitStatus, output, error = runWithTimeout(args[1], float(args[0]), verbose = verbose)
 
     sys.stdout.write(output)
     sys.stderr.write(error)
-    if exitStatus == False:
+    if not exitStatus:
         sys.exit(1)
     else:
         sys.exit(0)
+
 
 if __name__ == "__main__":
     main()
