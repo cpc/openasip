@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -!- coding: utf-8 -!-
 """
     Copyright (c) 2011-2020 Pekka Jääskeläinen / Tampere University.
@@ -64,7 +64,7 @@ def run_with_timeout(command, timeoutSecs, inputStream = "", combinedOutput=True
         stdoutFD, outFile = tempfile.mkstemp()
 
     process =  Popen(command, shell=True, stdin=PIPE,
-                     stdout=stdoutFD, stderr=stderrFD, close_fds=False, text=True)
+                     stdout=stdoutFD, stderr=stderrFD, close_fds=False, universal_newlines=True)
 
     if process is None:
         print("Could not create process")

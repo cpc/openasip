@@ -294,7 +294,7 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
     if veryVerboseOutput:
         print("running: %s input-stream: %s" % (command,inputStream))
 
-    process = subprocess.Popen(command, shell=True, stdin=PIPE, stdout=stdoutFD, stderr=stderrFD, close_fds=False, text=True)
+    process = subprocess.Popen(command, shell=True, stdin=PIPE, stdout=stdoutFD, stderr=stderrFD, close_fds=False, universal_newlines=True)
 
     if process is None:
         print("Could not create process")
