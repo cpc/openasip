@@ -133,7 +133,7 @@ Boost                 1.48.0-1.53.0                        very permissive
 sqlite3               3.2.0+                               public domain
 LLVM                  10.0-11.0                            LLVM Release License
 Editline              2.9                                  BSD-style
-Python                3.0+                                 PSF license
+Python                3.6+                                 PSF license
 
 Please remember to install the '-dev' versions of the packages in order to get
 the library headers which are need to compile client code against them.
