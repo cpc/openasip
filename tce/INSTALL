@@ -69,13 +69,23 @@ After successful installation, add information about installed libraries to the
 search path. We assume TCE will be installed to the same location later.
 
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/local/lib
-  export PATH=$PATH:$HOME/local/bin
+  export PATH=$HOME/local/bin:$PATH
   export LDFLAGS=-L$HOME/local/lib
 
 You might want to put the above environment variable modification commands to
 your ~/.bashrc or similar so they are taken in effect automatically whenever
 you start a new shell. Otherwise you need to remember to enter them
 before attempting to use LLVM or TCE.
+
+Notice that TCE and LLVM installation folder comes first in the path variable.
+This is to prevent TCE of using system's LLVM installation. This might
+interfere with other tools in your system which rely on using system's LLVM
+installation. If this is the case, then better option is to put above lines to
+a separate tce-env.sh file and place this file somewhere in your path or home
+directory. Now when you open a new shell and need to use TCE, just source this
+file to your shell with:
+
+   source tce-env.sh
 
 Building and Installing TCE
 ===========================
