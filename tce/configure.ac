@@ -482,6 +482,9 @@ AC_LANG_CONFTEST(
   [])
 ])
 
+AC_DEFINE_UNQUOTED([LLVM_CONFIG], ["$LLVM_CONFIG"],
+                   [llvm-config used for the TCE build])
+
 LLVM_TCELE_TARGET=no
 
 AC_MSG_CHECKING([if the little endian tcele target is supported in Clang/LLVM])
