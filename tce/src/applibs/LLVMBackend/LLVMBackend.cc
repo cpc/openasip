@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2020 Tampere University.
+    Copyright (c) 2002-2021 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,7 +28,7 @@
  *
  * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2009-2020
+ * @author Pekka Jääskeläinen 2009-2021
  * @note rating: red
  */
 
@@ -860,10 +860,10 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
             " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS +
             "applibs" + DS + "Scheduler" + DS + " " +
 
-            " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS + 
+            " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS +
             "applibs" + DS + "Scheduler" + DS + "Algorithms" + " " +
-            
-            " -I`llvm-config --includedir`" + DS + "llvm" + DS + 
+
+            " -I`" LLVM_CONFIG " --includedir`" + DS + "llvm" + DS +
             "Target" + DS;
 
     }
@@ -907,29 +907,29 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
         }
     }
     std::string tblgenbin = "llvm-tblgen";
-       
+
     // Generate TCEGenRegisterNames.inc
     std::string tblgenCmd;
-    
+
     if (useInstalledVersion_) {
         // This is quite ugly. LLVM include dir is determined by
         // executing llvm-config in the commandline. This doesn't
         // work if llvm-config is not found in path.
         // First check that llvm-config is found in path.
-        if (system("llvm-config --version")) {
+        if (system(LLVM_CONFIG " --version")) {
             std::string msg = "Unable to determine llvm include dir. "
-                "llvm-config not found in path";
+                LLVM_CONFIG " not found in path";
 
             throw CompileError(__FILE__, __LINE__, __func__, msg);
         }
         // /usr/include needs to be last in case there is old llvm installation
         // from packages
         tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
-            pluginIncludeFlags + 
+            pluginIncludeFlags +
             " -I" + tempDir_ +
-            " -I`llvm-config --includedir`" + 
-            " -I`llvm-config --includedir`/Target" + 
-            " -I`llvm-config --includedir`/llvm/Target" +
+            " -I`" LLVM_CONFIG " --includedir`" +
+            " -I`" LLVM_CONFIG " --includedir`/Target" +
+            " -I`" LLVM_CONFIG " --includedir`/llvm/Target" +
             " -I/usr/include ";
     } else {
         tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
@@ -1054,7 +1054,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
         " " + LLVM_CPPFLAGS;
 
     if (useInstalledVersion_)
-        cmd += " -I`llvm-config --includedir`";
+        cmd += " -I`" LLVM_CONFIG " --includedir`";
 
     cmd +=
 #ifdef LLVM_OLDER_THAN_10

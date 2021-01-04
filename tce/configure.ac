@@ -34,9 +34,8 @@ AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 # TCE 1.20 = 20:0:0
 # TCE 1.21 = 21:0:0
 # TCE 1.22 = 22:0:0
-# TCE 1.23 = 23:0:0
 
-AC_SUBST([LIB_VERSION], ["23:0:0"])
+AC_SUBST([LIB_VERSION], ["22:0:0"])
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
@@ -481,6 +480,9 @@ AC_LANG_CONFTEST(
 [AC_LANG_PROGRAM(
   [])
 ])
+
+AC_DEFINE_UNQUOTED([LLVM_CONFIG], ["$LLVM_CONFIG"],
+                   [llvm-config used for the TCE build])
 
 LLVM_TCELE_TARGET=no
 

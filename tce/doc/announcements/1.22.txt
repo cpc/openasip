@@ -38,9 +38,9 @@ Acknowledgements
 This project has received funding from the ECSEL Joint Undertaking (JU) under
 grant agreement No 783162 (FitOptiVis). The JU receives support from the
 European Union’s Horizon 2020 research and innovation programme and Netherlands,
-Czech Republic, Finland, Spain, Italy. The Customized Parallel Computing research
-group of Tampere University, Finland did most of their work to this release as part
-of the FitOptiVis project with further support from the HSA Foundation.
+Czech Republic, Finland, Spain, Italy. It was also supported by European
+Union's Horizon 2020 research and innovation programme under Grant Agreement
+No 871738 (CPSoSaware) and HSA Foundation.
 
 Links
 =====
