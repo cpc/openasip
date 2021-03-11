@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2015 Tampere University.
+    Copyright (c) 2002-2021 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -30,6 +30,7 @@
  * however have been allocated.
  *
  * @author Heikki Kultala 2006-2009 (heikki.kultala-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2021 (pekka.jaaskelainen tuni fi)
  * @note rating: red
  */
 
@@ -1641,7 +1642,7 @@ DataDependenceGraphBuilder::createTriggerDependencies(
  * @param mn moveNode that is the destination of the dependencies.
  * @param dop Operation that mn triggers.
  */
-void 
+void
 DataDependenceGraphBuilder::createSideEffectEdges(
     MoveNodeUseSet& prevMoves, const MoveNode& mn, Operation& dop) {
 
@@ -1654,6 +1655,33 @@ DataDependenceGraphBuilder::createSideEffectEdges(
             // mem writes are handled by memory deps so exclude here
             if ((&dop == &o && o.hasSideEffects()) ||
                 dop.dependsOn(o) || o.dependsOn(dop)) {
+
+                // Operations forced to different FUs are independent since
+                // the operation state is per FU. Check if the moves have
+                // forced set of FUs and if the sets overlap.
+                if (mn.move().hasAnnotations(
+                        TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST) &&
+                    i->mn()->move().hasAnnotations(
+                        TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST)) {
+                    bool alwaysDifferentFUs = true;
+                    for (int idx = 0; idx < mn.move().annotationCount(
+                             TTAProgram::ProgramAnnotation::
+                             ANN_ALLOWED_UNIT_DST);
+                         ++idx) {
+                        if (i->mn()->move().hasAnnotation(
+                                TTAProgram::ProgramAnnotation::
+                                ANN_ALLOWED_UNIT_DST,
+                                mn.move().annotation(
+                                    idx,
+                                    TTAProgram::ProgramAnnotation::
+                                    ANN_ALLOWED_UNIT_DST).stringValue())) {
+                            alwaysDifferentFUs = false;
+                            break;
+                        }
+                    }
+                    if (alwaysDifferentFUs)
+                        return;
+                }
 
                 if (!currentDDG_->exclusingGuards(*(i->mn()), mn)) {
                     DataDependenceEdge* dde =
