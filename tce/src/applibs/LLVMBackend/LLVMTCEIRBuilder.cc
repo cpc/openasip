@@ -918,10 +918,11 @@ LLVMTCEIRBuilder::compileOptimized(
     Peel2BBLoops peel2bbLoops(*ipData_, *mach_);
     peel2bbLoops.handleControlFlowGraph(cfg, *mach_);
 
+#if 0
     SchedulerCmdLineOptions* options =
         dynamic_cast<SchedulerCmdLineOptions*>(
             Application::cmdLineOptions());
-
+#endif
 
     // TODO: on trunk single bb loop(swp), last param true(rr, threading)
     DataDependenceGraph* ddg = ddgBuilder_.build(

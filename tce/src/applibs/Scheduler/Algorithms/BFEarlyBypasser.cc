@@ -83,6 +83,7 @@ BFEarlyBypasser::operator()() {
     } else {
         return runPreChild(new BFEarlyBypass(sched_, src, dst_));
     }
+    return false;
 }
 
 /**

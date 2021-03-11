@@ -799,7 +799,7 @@ BusBroker::canTransportImmediate(
 
 
 bool BusBroker::canPerformSIMMJump(
-    const MoveNode& mn, ShortImmPSocketResource& immRes) const {
+    const MoveNode&, ShortImmPSocketResource&) const {
     return false; // WiP.
 }
 

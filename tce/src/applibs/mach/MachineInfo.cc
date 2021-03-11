@@ -550,7 +550,7 @@ MachineInfo::triggerIndex(
 unsigned
 MachineInfo::findWidestOperand(
     const TTAMachine::Machine& machine,
-    bool vector) {
+    bool) {
     OperationPool pool;
     unsigned widestOperand = 0;
 

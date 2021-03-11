@@ -491,8 +491,10 @@ OutputFUBroker::buildResources(const TTAMachine::Machine& target) {
     std::map<const TTAMachine::FunctionUnit*,int> nopWeights;
 
     CmdLineOptions *cmdLineOptions = Application::cmdLineOptions();
+#if 0
     LLVMTCECmdLineOptions* opts =
         dynamic_cast<LLVMTCECmdLineOptions*>(cmdLineOptions);
+#endif
     Machine::FunctionUnitNavigator navi = target.functionUnitNavigator();
     for (int i = 0; i < navi.count(); i++) {
         FunctionUnit* fu = navi.item(i);
