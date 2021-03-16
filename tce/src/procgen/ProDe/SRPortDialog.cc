@@ -27,6 +27,7 @@
  * Definition of SRPortDialog class.
  *
  * @author Veli-Pekka Jääskeläinen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2021
  * @note rating: red
  */
 
@@ -416,7 +417,7 @@ SRPortDialog::createContents(
     wxChoice *item9 = new wxChoice( parent, ID_OUTPUT_SOCKET, wxDefaultPosition, wxSize(200,-1), 1, strs9, 0 );
     item1->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item1, 0, wxADJUST_MINSIZE|wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item10 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
     item0->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );

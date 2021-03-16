@@ -687,7 +687,7 @@ GUI_INCLUDES="$GUI_INCLUDES $($wxwindowsBin --cxxflags)"
 # if wx-config is found and the version is 2.4.*, conditional
 # WX is set.
 case "$($wxwindowsBin --version)" in
-     2.6.* | 2.8.* | 2.9.* | 3.0.*)
+     2.6.* | 2.8.* | 2.9.* | 3.0.* | 3.1.*)
    DO_WX_COMPILE=true
    ;;
      *)
