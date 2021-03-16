@@ -413,7 +413,7 @@ FUPortDialog::createContents(
     wxChoice *item9 = new wxChoice( parent, ID_OUTPUT_SOCKET, wxDefaultPosition, wxSize(200,-1), 1, strs9, 0 );
     item1->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item1, 0, wxADJUST_MINSIZE|wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
 

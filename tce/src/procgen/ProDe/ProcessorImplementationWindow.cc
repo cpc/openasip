@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2019 Tampere University.
+    Copyright (c) 2002-2021 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of ProcessorImplementationWindow class.
  *
  * @author Veli-Pekka Jääskeläinen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2021
  * @note rating: red
  */
 
@@ -1068,34 +1069,34 @@ wxSizer *ProcessorImplementationWindow::createContents( wxWindow *parent, bool c
     ProcessorImplementationWindow::icDecoderPluginPage( item7, FALSE );
     item2->AddPage( item7, wxT("IC / Decoder Plugin") );
 
-    item0->Add( item1, 0, wxADJUST_MINSIZE|wxFIXED_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 0, wxFIXED_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticLine *item8 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(200,-1), wxLI_HORIZONTAL );
-    item0->Add( item8, 0, wxADJUST_MINSIZE|wxFIXED_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item8, 0, wxFIXED_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxGridSizer *item9 = new wxGridSizer( 2, 0, 0 );
 
     wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item11 = new wxButton( parent, ID_LOAD_IDF, wxT("Load IDF..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item11, 0, wxADJUST_MINSIZE|wxFIXED_MINSIZE|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item10->Add( item11, 0, wxFIXED_MINSIZE|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxButton *item12 = new wxButton( parent, ID_SAVE_IDF, wxT("Save IDF..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item12, 0, wxADJUST_MINSIZE|wxFIXED_MINSIZE|wxALIGN_CENTER|wxALL, 5 );
+    item10->Add( item12, 0, wxFIXED_MINSIZE|wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item13 = new wxButton( parent, ID_GENERATE, wxT("Generate Processor"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item13, 0, wxADJUST_MINSIZE|wxFIXED_MINSIZE|wxALIGN_CENTER|wxALL, 5 );
+    item10->Add( item13, 0, wxFIXED_MINSIZE|wxALIGN_CENTER|wxALL, 5 );
 
-    item9->Add( item10, 0, wxADJUST_MINSIZE|wxFIXED_MINSIZE|wxALIGN_CENTER_VERTICAL, 5 );
+    item9->Add( item10, 0, wxFIXED_MINSIZE|wxALIGN_CENTER_VERTICAL, 5 );
 
     wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item15 = new wxButton( parent, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item14->Add( item15, 0, wxADJUST_MINSIZE|wxFIXED_MINSIZE|wxALIGN_CENTER|wxALL, 5 );
+    item14->Add( item15, 0, wxFIXED_MINSIZE|wxALIGN_CENTER|wxALL, 5 );
 
-    item9->Add( item14, 0, wxADJUST_MINSIZE|wxFIXED_MINSIZE|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+    item9->Add( item14, 0, wxFIXED_MINSIZE|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
 
-    item0->Add( item9, 0, wxADJUST_MINSIZE|wxFIXED_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item9, 0, wxFIXED_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {
