@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<architecture>
+    <!-- Use 'hdl_param=name' to identify parameters '<<name>>' that are replaced in the HDL code-->
+    <!-- By default this file EXTENDS(!) the included configurations. If you want to OVERRIDE a section, add the override='true' attribute to the tag you want to override -->
+
+    <Includes>
+        <!-- Inherit from base configuration -->
+        <Base file="../../Common/32b.xml"/>
+    </Includes>
+
+    <configuration>
+
+        <functionalunits>
+
+
+            <!-- ISSUE SLOT 1 -->
+            <fu type="ID" name='S1_id_abu'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ABU" name='S1_abu' ID="S1_id_abu" config="1">
+                <input index="0" source="S1_imm.0"/>
+                <input index="1" source="S1_rf.1"/>
+                <input index="2" source="S1_alu.0"/>
+            </fu>
+
+            <fu type="IU" name='S1_imm'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S1_id_lsu'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S1_id_mul'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S1_id_alu'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S1_id_rf'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="MUL" name='S1_mul' ID="S1_id_mul" config="1">
+                <input index="1" source="S1_rf.1"/>
+                <input index="2" source="S8_rf.1"/>
+                <input index="3" source="S2_rf.1"/>
+            </fu>
+
+            <fu type="ALU" name='S1_alu' ID="S1_id_alu" config="1">
+                <input index="1" source="S1_rf.1"/>
+                <input index="2" source="S1_alu.0"/>
+                <input index="3" source="S1_mul.0"/>
+            </fu>
+
+            <fu type="LSU" name='S1_lsu' ID="S1_id_lsu" config="1">
+                <input index="1" source="S1_rf.1"/>
+                <input index="2" source="S1_alu.0"/>
+                <input index="3" source="S1_mul.0"/>
+            </fu>
+
+            <fu type="RF" name='S1_rf' ID="S1_id_rf">
+                <input index="0" source="S1_alu.0"/>
+                <input index="1" source="S1_mul.0"/>
+                <input index="2" source="S1_lsu.0"/>
+                <input index="3" source="S1_imm.0"/>
+            </fu>
+
+            <!-- ISSUE SLOT 2 -->
+            <fu type="ID" name='S2_id_mul'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S2_id_alu'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S2_id_rf'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="MUL" name='S2_mul' ID="S2_id_mul" config="1">
+                <input index="1" source="S2_rf.1"/>
+                <input index="2" source="S1_rf.1"/>
+                <input index="3" source="S3_rf.1"/>
+            </fu>
+
+            <fu type="ALU" name='S2_alu' ID="S2_id_alu" config="1">
+                <input index="1" source="S2_rf.1"/>
+                <input index="2" source="S2_alu.0"/>
+                <input index="3" source="S2_mul.0"/>
+            </fu>
+
+            <fu type="RF" name='S2_rf' ID="S2_id_rf">
+                <input index="0" source="S2_alu.0"/>
+                <input index="1" source="S2_mul.0"/>
+            </fu>
+
+            <!-- ISSUE SLOT 3 -->
+            <fu type="IU" name='S3_imm'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S3_id_lsu'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S3_id_mul'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S3_id_alu'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S3_id_rf'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="MUL" name='S3_mul' ID="S3_id_mul" config="1">
+                <input index="1" source="S3_rf.1"/>
+                <input index="2" source="S2_rf.1"/>
+                <input index="3" source="S4_rf.1"/>
+            </fu>
+
+            <fu type="ALU" name='S3_alu' ID="S3_id_alu" config="1">
+                <input index="1" source="S3_rf.1"/>
+                <input index="2" source="S3_alu.0"/>
+                <input index="3" source="S3_mul.0"/>
+            </fu>
+
+            <fu type="LSU" name='S3_lsu' ID="S3_id_lsu" config="1">
+                <input index="1" source="S3_rf.1"/>
+                <input index="2" source="S3_alu.0"/>
+                <input index="3" source="S3_mul.0"/>
+            </fu>
+
+            <fu type="RF" name='S3_rf' ID="S3_id_rf">
+                <input index="0" source="S3_alu.0"/>
+                <input index="1" source="S3_mul.0"/>
+                <input index="2" source="S3_lsu.0"/>
+                <input index="3" source="S3_imm.0"/>
+            </fu>
+
+            <!-- ISSUE SLOT 4 -->
+            <fu type="ID" name='S4_id_mul'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S4_id_alu'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S4_id_rf'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="MUL" name='S4_mul' ID="S4_id_mul" config="1">
+                <input index="1" source="S4_rf.1"/>
+                <input index="2" source="S3_rf.1"/>
+                <input index="3" source="S5_rf.1"/>
+            </fu>
+
+            <fu type="ALU" name='S4_alu' ID="S4_id_alu" config="1">
+                <input index="1" source="S4_rf.1"/>
+                <input index="2" source="S4_alu.0"/>
+                <input index="3" source="S4_mul.0"/>
+            </fu>
+
+            <fu type="RF" name='S4_rf' ID="S4_id_rf">
+                <input index="0" source="S4_alu.0"/>
+                <input index="1" source="S4_mul.0"/>
+            </fu>
+
+            <!-- ISSUE SLOT 5 -->
+            <fu type="IU" name='S5_imm'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S5_id_lsu'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S5_id_mul'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S5_id_alu'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S5_id_rf'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="MUL" name='S5_mul' ID="S5_id_mul" config="1">
+                <input index="1" source="S5_rf.1"/>
+                <input index="2" source="S4_rf.1"/>
+                <input index="3" source="S6_rf.1"/>
+
+            </fu>
+
+            <fu type="ALU" name='S5_alu' ID="S5_id_alu" config="1">
+                <input index="1" source="S5_rf.1"/>
+                <input index="2" source="S5_alu.0"/>
+                <input index="3" source="S5_mul.0"/>
+            </fu>
+
+            <fu type="LSU" name='S5_lsu' ID="S5_id_lsu" config="1">
+                <input index="1" source="S5_rf.1"/>
+                <input index="2" source="S5_alu.0"/>
+                <input index="3" source="S5_mul.0"/>
+            </fu>
+
+            <fu type="RF" name='S5_rf' ID="S5_id_rf">
+                <input index="0" source="S5_alu.0"/>
+                <input index="1" source="S5_mul.0"/>
+                <input index="2" source="S5_lsu.0"/>
+                <input index="3" source="S5_imm.0"/>
+            </fu>
+
+            <!-- ISSUE SLOT 6 -->
+            <fu type="ID" name='S6_id_mul'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S6_id_alu'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S6_id_rf'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="MUL" name='S6_mul' ID="S6_id_mul" config="1">
+                <input index="1" source="S6_rf.1"/>
+                <input index="2" source="S5_rf.1"/>
+                <input index="3" source="S7_rf.1"/>
+            </fu>
+
+            <fu type="ALU" name='S6_alu' ID="S6_id_alu" config="1">
+                <input index="1" source="S6_rf.1"/>
+                <input index="2" source="S6_alu.0"/>
+                <input index="3" source="S6_mul.0"/>
+            </fu>
+
+            <fu type="RF" name='S6_rf' ID="S6_id_rf">
+                <input index="0" source="S6_alu.0"/>
+                <input index="1" source="S6_mul.0"/>
+            </fu>
+
+            <!-- ISSUE SLOT 7 -->
+            <fu type="IU" name='S7_imm'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S7_id_lsu'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S7_id_mul'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S7_id_alu'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S7_id_rf'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="MUL" name='S7_mul' ID="S7_id_mul" config="1">
+                <input index="1" source="S7_rf.1"/>
+                <input index="2" source="S6_rf.1"/>
+                <input index="3" source="S8_rf.1"/>
+            </fu>
+
+            <fu type="ALU" name='S7_alu' ID="S7_id_alu" config="1">
+                <input index="1" source="S7_rf.1"/>
+                <input index="2" source="S7_alu.0"/>
+                <input index="3" source="S7_mul.0"/>
+            </fu>
+
+            <fu type="LSU" name='S7_lsu' ID="S7_id_lsu" config="1">
+                <input index="1" source="S7_rf.1"/>
+                <input index="2" source="S7_alu.0"/>
+                <input index="3" source="S7_mul.0"/>
+            </fu>
+
+            <fu type="RF" name='S7_rf' ID="S7_id_rf">
+                <input index="0" source="S7_alu.0"/>
+                <input index="1" source="S7_mul.0"/>
+                <input index="2" source="S7_lsu.0"/>
+                <input index="3" source="S7_imm.0"/>
+            </fu>
+
+            <!-- ISSUE SLOT 8 -->
+            <fu type="ID" name='S8_id_mul'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S8_id_alu'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="ID" name='S8_id_rf'>
+                <input index="0" source="S1_abu.1"/>
+            </fu>
+
+            <fu type="MUL" name='S8_mul' ID="S8_id_mul" config="1">
+                <input index="1" source="S8_rf.1"/>
+                <input index="2" source="S7_rf.1"/>
+                <input index="3" source="S1_rf.1"/>
+            </fu>
+
+            <fu type="ALU" name='S8_alu' ID="S8_id_alu" config="1">
+                <input index="1" source="S8_rf.1"/>
+                <input index="2" source="S8_alu.0"/>
+                <input index="3" source="S8_mul.0"/>
+            </fu>
+
+            <fu type="RF" name='S8_rf' ID="S8_id_rf">
+                <input index="0" source="S8_alu.0"/>
+                <input index="1" source="S8_mul.0"/>
+            </fu>
+        </functionalunits>
+
+    </configuration>
+    <Core>
+        <Peripherals>
+            <Peripheral type="Console" name="CON" addr_offset="32768"/>
+        </Peripherals>
+        <Memory>
+            <GM width="32" depth="8192" addresswidth="32"/>
+        </Memory>
+    </Core>
+
+</architecture>
