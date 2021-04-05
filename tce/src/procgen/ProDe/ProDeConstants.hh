@@ -145,6 +145,8 @@ public:
     static const std::string CMD_NAME_FULLY_CONNECT_BUSSES;
     /// Command name for the "VLIW Connect IC" command.
     static const std::string CMD_NAME_VLIW_CONNECT_IC;
+    /// Command name for the "Blcoks Connect IC" command.
+    static const std::string CMD_NAME_BLOCKS_CONNECT_IC;
     /// Command name for the "Processor configurations" command.
     static const std::string CMD_NAME_EDIT_MACHINE;
 
@@ -237,6 +239,8 @@ public:
     static const std::string CMD_SNAME_FULLY_CONNECT_BUSSES;
     /// Command name for the "VLIW Connect IC" command.
     static const std::string CMD_SNAME_VLIW_CONNECT_IC;
+    /// Command name for the "Blocks Connect IC" command.
+    static const std::string CMD_SNAME_BLOCKS_CONNECT_IC;
     /// Command name for the "Verify Machine" command.
     static const std::string CMD_SNAME_VERIFY_MACHINE;
     /// Command name for the "Processor Implementation" command.
@@ -442,6 +446,7 @@ public:
 
             COMMAND_FULLY_CONNECT_BUSSES,
             COMMAND_VLIW_CONNECT_IC,
+            COMMAND_BLOCKS_CONNECT_IC,
             COMMAND_VERIFY_MACHINE,
             COMMAND_IMPLEMENTATION,
             COMMAND_CALL_EXPLORER_PLUGIN,

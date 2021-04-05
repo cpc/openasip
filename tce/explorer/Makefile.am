@@ -5,7 +5,8 @@ pkglib_LTLIBRARIES = \
 	GrowMachine.la ImmediateGenerator.la \
 	ImplementationSelector.la ComponentAdder.la \
 	Evaluate.la MinimalOpSet.la ConnectionSweeper.la \
-	ADFCombiner.la VectorLSGenerator.la VLIWConnectIC.la
+	ADFCombiner.la VectorLSGenerator.la VLIWConnectIC.la \
+	BlocksConnectIC.la
 
 # Libtool seems to realize we are compiling from .cc instead of .c
 # just by defining the first source. Without this it fails.
@@ -23,6 +24,7 @@ ConnectionSweeper_la_SOURCES = ConnectionSweeper.cc
 ADFCombiner_la_SOURCES = ADFCombiner.cc
 VectorLSGenerator_la_SOURCES = VectorLSGenerator.cc
 VLIWConnectIC_la_SOURCES = VLIWConnectIC.cc
+BlocksConnectIC_la_SOURCES = BlocksConnectIC.cc
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src

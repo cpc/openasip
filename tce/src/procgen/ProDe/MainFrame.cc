@@ -30,7 +30,6 @@
  * @note rating: red
  */
 
-
 #include <wx/sizer.h>
 #include <wx/statusbr.h>
 
@@ -88,6 +87,7 @@
 #include "ToggleUnitDetailsCmd.hh"
 #include "EditMachineCmd.hh"
 #include "VLIWConnectICCmd.hh"
+#include "BlocksConnectICCmd.hh"
 
 #include "KeyboardShortcut.hh"
 #include "ProDeOptions.hh"
@@ -175,6 +175,7 @@ MainFrame::MainFrame(
     commandRegistry_->addCommand(new UserManualCmd());
     commandRegistry_->addCommand(new AboutCmd());
     commandRegistry_->addCommand(new VLIWConnectICCmd());
+    commandRegistry_->addCommand(new BlocksConnectICCmd());
 
     toolbar_ = NULL;
     CreateStatusBar(2);
@@ -653,6 +654,11 @@ MainFrame::createMenubar() {
         ProDeConstants::COMMAND_VLIW_CONNECT_IC,
         menuAccelerator(ProDeConstants::COMMAND_VLIW_CONNECT_IC).Prepend(
             _T("&VLIW Connect IC")));
+
+    toolMenu->Append(
+        ProDeConstants::COMMAND_BLOCKS_CONNECT_IC,
+        menuAccelerator(ProDeConstants::COMMAND_BLOCKS_CONNECT_IC)
+            .Prepend(_T("&Blocks Connect IC")));
 
     toolMenu->Append(
         ProDeConstants::COMMAND_VERIFY_MACHINE,
