@@ -30,6 +30,10 @@
  * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
+ 
+ /*
+ Description: Default code was edited by Latif AKÇAY to make it compatible with 64-bit TTA processor designs.
+ */
 
 #include <string>
 #include <vector>
@@ -985,7 +989,7 @@ public:
         }
 
         //Figure out some constants
-        int dbgDataWidth=32;
+        int dbgDataWidth=64;
 
         Machine::BusNavigator busNav = ttamachine_.busNavigator();
         int bustrace_width = dbgDataWidth*busNav.count();
@@ -998,16 +1002,16 @@ public:
             "db_pc", "IMEMADDRWIDTH", 
             ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
         NetlistPort* ttaBustracePort = new NetlistPort(
-            "db_bustraces", "32*BUSCOUNT", 
+            "db_bustraces", "64*BUSCOUNT", 
             bustrace_width, ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
         NetlistPort* ttaInstrPort = new NetlistPort(
             "db_instr", "IMEMDATAWIDTH", 
             ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
         NetlistPort* ttaLockcountPort = new NetlistPort(
-            "db_lockcnt", "32", dbgDataWidth,
+            "db_lockcnt", "64", dbgDataWidth,
             ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
         NetlistPort* ttaCyclecountPort = new NetlistPort(
-            "db_cyclecnt", "32", dbgDataWidth,
+            "db_cyclecnt", "64", dbgDataWidth,
             ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
         NetlistPort* ttaResetPort = new NetlistPort(
             "db_tta_nreset", "1", ProGe::BIT, HDB::IN, toplevelBlock);
@@ -1049,12 +1053,12 @@ public:
             *fetchBlock);
         toplevelBlock.netlist().connectPorts(*ifetchPCNextPort, *dbPCNextPort);
         NetlistPort* ifetchCyclecountPort = new NetlistPort(
-            "db_cyclecnt", "32", 32, ProGe::BIT_VECTOR, HDB::OUT,
+            "db_cyclecnt", "64", 64, ProGe::BIT_VECTOR, HDB::OUT,
             *fetchBlock);
         toplevelBlock.netlist().connectPorts(
             *ifetchCyclecountPort, *ttaCyclecountPort);
         NetlistPort* ifetchLockcountPort = new NetlistPort(
-            "db_lockcnt", "32", 32, ProGe::BIT_VECTOR, HDB::OUT,
+            "db_lockcnt", "64", 64, ProGe::BIT_VECTOR, HDB::OUT,
             *fetchBlock);
         toplevelBlock.netlist().connectPorts(
             *ifetchLockcountPort, *ttaLockcountPort);
