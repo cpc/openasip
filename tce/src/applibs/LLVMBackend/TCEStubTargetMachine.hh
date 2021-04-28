@@ -42,7 +42,7 @@
 #endif
 // LLVM has function with parameter named as "PIC". Command line
 // option -DPIC messes up the compilation.
-#pragma push_macro("PIC")
+#define PICCOPY PIC
 #undef PIC
 #ifndef LLVM_6_0
 // LLVM, COULD YOU PLEASE TRY TO DECIDE WHERE TO PUT THIS FILE?
@@ -51,7 +51,8 @@
 #include <llvm/CodeGen/TargetLoweringObjectFile.h>
 #endif
 #include <llvm/CodeGen/TargetLoweringObjectFileImpl.h>
-#pragma pop_macro("PIC")
+#define PIC PICCOPY
+#undef PICCOPY
 
 // TODO: What was the meaning of this. may have been broken with a merge.
 //#ifndef PACKAGE
@@ -86,7 +87,24 @@ namespace llvm {
      * Base class common to TCEStubTargetMachine(for middle end) and
      * TCETargetMachine(for backend)
      */
-#ifndef LLVM_OLDER_THAN_11
+#ifndef LLVM_OLDER_THAN_12
+    class TCEBaseTargetMachine : public LLVMTargetMachine {
+    public:
+        TCEBaseTargetMachine(
+            const Target& T, const Triple& TT, const llvm::StringRef& CPU,
+            const llvm::StringRef& FS, const TargetOptions& Options,
+            Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL);
+        virtual bool
+        isNoopAddrSpaceCast(unsigned SrcAS, unsigned DestAS) const override {
+            return true;
+        }
+        const TTAMachine::Machine* ttaMach_;
+        virtual void
+        setTTAMach(const TTAMachine::Machine* mach) {
+            ttaMach_ = mach;
+        }
+    };
+#elif LLVM_OLDER_THAN_12
     class TCEBaseTargetMachine : public LLVMTargetMachine {
     public:
         TCEBaseTargetMachine(

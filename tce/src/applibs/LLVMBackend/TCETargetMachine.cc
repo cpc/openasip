@@ -87,14 +87,31 @@ public:
     DummyInstPrinter(
         const llvm::MCAsmInfo& mai, const llvm::MCInstrInfo& mii, 
         const llvm::MCRegisterInfo& mri) : llvm::MCInstPrinter(mai, mii, mri) {}
+
+#ifndef LLVM_OLDER_THAN_12
+    bool
+    applyTargetSpecificCLOption(StringRef Opt) override {
+        return false;
+    }
+    std::pair<const char*, uint64_t>
+    getMnemonic(const MCInst* MI) override {
+        return std::make_pair(nullptr, 0);
+    }
+#endif
+
 #ifdef LLVM_OLDER_THAN_10
-    void printInst(
-        const MCInst*, raw_ostream&, StringRef,
-        const MCSubtargetInfo&) override {}    
+    void
+    printInst(const MCInst*, raw_ostream&, StringRef, const MCSubtargetInfo&)
+        override {}
 #else
     void printInst(
         const MCInst*, uint64_t, StringRef,
         const MCSubtargetInfo&, raw_ostream&) override {}
+#endif
+
+#ifndef LLVM_OLDER_THAN_12
+    void
+    printRegName(raw_ostream& OS, unsigned RegNo) const override {}
 #endif
 };
 
@@ -481,9 +498,12 @@ TCEPassConfig::addPreSched2() {
 int TCETargetMachine::getLoadOpcode(int asid, int align, const llvm::EVT& vt) const {
 #ifdef LLVM_OLDER_THAN_11
     int laneCount = vt.getVectorNumElements();
-#else
+#elif LLVM_OLDER_THAN_12
     int laneCount = vt.getVectorElementCount().Min;
+#else
+    int laneCount = vt.getVectorElementCount().getKnownMinValue();
 #endif
+
     int laneSize = vt.getScalarSizeInBits();
     int vecSize = laneCount * laneSize;
     TCEString relaxedName = "LD"; relaxedName << laneSize << "X" << laneCount;

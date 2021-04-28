@@ -66,9 +66,14 @@ BackendPluginFile(
 /**
  * The Constructor.
  */
-TCESubtarget::TCESubtarget(TCETargetMachinePlugin* plugin) :
-      TCEGenSubtargetInfo(
+TCESubtarget::TCESubtarget(TCETargetMachinePlugin* plugin)
+    : TCEGenSubtargetInfo(
+#ifdef LLVM_OLDER_THAN_12
           Triple("tce-tut-llvm"), std::string(""), std::string("")),
+#else
+          Triple("tce-tut-llvm"), std::string(""), std::string(""),
+          std::string("")),
+#endif
 
       pluginFile_(BackendPluginFile),
 #ifdef LLVM_OLDER_THAN_10

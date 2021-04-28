@@ -43,16 +43,21 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 using namespace llvm;
 
 TCEStubSubTarget::TCEStubSubTarget(
-    const Triple &TT, const StringRef &CPU,
-    const StringRef &FS,
+    const Triple &TT, const StringRef &CPU, const StringRef &FS,
     const TCEStubTargetMachine &TM)
 #ifdef LLVM_OLDER_THAN_9
-    : TargetSubtargetInfo(TT, CPU, FS, ArrayRef<SubtargetFeatureKV>(),
-                          ArrayRef<SubtargetFeatureKV>(), NULL, NULL,
-                          NULL, NULL, NULL, NULL, NULL),
+    : TargetSubtargetInfo(
+          TT, CPU, FS, ArrayRef<SubtargetFeatureKV>(),
+          ArrayRef<SubtargetFeatureKV>(), NULL, NULL, NULL, NULL, NULL, NULL,
+          NULL),
+#elif LLVM_OLDER_THAN_12
+    : TargetSubtargetInfo(
+          TT, CPU, FS, ArrayRef<SubtargetFeatureKV>(),
+          ArrayRef<SubtargetSubTypeKV>(), NULL, NULL, NULL, NULL, NULL, NULL),
 #else
-    : TargetSubtargetInfo(TT, CPU, FS, ArrayRef<SubtargetFeatureKV>(),
-                          ArrayRef<SubtargetSubTypeKV>(), NULL, NULL,
-                          NULL, NULL, NULL, NULL),
+    : TargetSubtargetInfo(
+          TT, CPU, FS, FS, ArrayRef<SubtargetFeatureKV>(),
+          ArrayRef<SubtargetSubTypeKV>(), NULL, NULL, NULL, NULL, NULL, NULL),
 #endif
-      TLI(TM) {}
+      TLI(TM) {
+}

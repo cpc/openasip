@@ -565,6 +565,35 @@ LLVMBackend::maxAllocaAlignment(const llvm::Module& mod) const {
     return maxAlignment;
 }
 
+#ifndef LLVM_OLDER_THAN_12
+static MCRegisterInfo*
+createTCEMCRegisterInfo(const Triple& TT) {
+    MCRegisterInfo* X = new MCRegisterInfo();
+    return X;
+}
+
+static MCInstrInfo*
+createTCEMCInstrInfo() {
+    MCInstrInfo* X = new MCInstrInfo();
+    return X;
+}
+
+static MCSubtargetInfo*
+createTCEMCSubtargetInfo(const Triple& TT, StringRef CPU, StringRef FS) {
+    const MCWriteProcResEntry WPR[] = {{0, 0}};
+    const MCWriteLatencyEntry WL[] = {{0, 0}};
+    const MCReadAdvanceEntry RA[] = {{0, 0, 0}};
+    ArrayRef<SubtargetFeatureKV> PF;
+    ArrayRef<SubtargetSubTypeKV> PD;
+
+    MCSubtargetInfo* X = new MCSubtargetInfo(
+        TT, CPU, /*TuneCPU*/ "", FS, PF, PD, WPR, WL, RA, nullptr, nullptr,
+        nullptr);
+
+    return X;
+}
+#endif
+
 /**
  * Compiles given llvm program module for target machine using the given
  * target machine plugin.
@@ -610,14 +639,26 @@ LLVMBackend::compile(
     LLVMInitializeTCETarget();
 
     // get registered target machine and set plugin.
-    const Target* tceTarget = 
-        TargetRegistry::lookupTarget(targetStr, errorStr); 
-    
+    const Target* tceTarget =
+        TargetRegistry::lookupTarget(targetStr, errorStr);
+#ifndef LLVM_OLDER_THAN_12
+    Target* nonconst_target = const_cast<Target*>(tceTarget);
+#endif
+
     if (!tceTarget) {
         errs() << errorStr << "\n";
         return NULL;
     }
-    
+
+#ifndef LLVM_OLDER_THAN_12
+    TargetRegistry::RegisterMCRegInfo(
+        *nonconst_target, createTCEMCRegisterInfo);
+    TargetRegistry::RegisterMCInstrInfo(
+        *nonconst_target, createTCEMCInstrInfo);
+    TargetRegistry::RegisterMCSubtargetInfo(
+        *nonconst_target, createTCEMCSubtargetInfo);
+#endif
+
     std::string cpuStr = "tce";
 
     TargetOptions Options;
@@ -626,7 +667,9 @@ LLVMBackend::compile(
 #else
     // TODO: has this been removed or replaced with something else?
 #endif
+#ifdef LLVM_OLDER_THAN_12
     Options.PrintMachineCode = false; //PrintCode;
+#endif
     Options.UnsafeFPMath = false; //EnableUnsafeFPMath;
     Options.NoInfsFPMath = false; //EnableNoInfsFPMath;
     Options.NoNaNsFPMath = false; //EnableNoNaNsFPMath;

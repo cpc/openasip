@@ -558,6 +558,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_9=1
      LLVM_OLDER_THAN_10=1
      LLVM_OLDER_THAN_11=1
+     LLVM_OLDER_THAN_12=1
    ;;
      3.6*)
      AC_DEFINE([LLVM_3_6], [], "Using LLVM 3.6")
@@ -584,6 +585,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_9=1
      LLVM_OLDER_THAN_10=1
      LLVM_OLDER_THAN_11=1
+     LLVM_OLDER_THAN_12=1
    ;;
      3.7*)
      AC_DEFINE([LLVM_3_7], [], "Using LLVM 3.7")
@@ -610,6 +612,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_9=1
      LLVM_OLDER_THAN_10=1
      LLVM_OLDER_THAN_11=1
+     LLVM_OLDER_THAN_12=1
    ;;
      3.8*)
      AC_DEFINE([LLVM_3_8], [], "Using LLVM 3.8")
@@ -634,6 +637,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_9=1
      LLVM_OLDER_THAN_10=1
      LLVM_OLDER_THAN_11=1
+     LLVM_OLDER_THAN_12=1
    ;;
      3.9*)
      AC_DEFINE([LLVM_3_9], [], "Using LLVM 3.9")
@@ -657,6 +661,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_9=1
      LLVM_OLDER_THAN_10=1
      LLVM_OLDER_THAN_11=1
+     LLVM_OLDER_THAN_12=1
    ;;
      4.0*)
      AC_DEFINE([LLVM_4_0], [], "Using LLVM 4.0")
@@ -678,6 +683,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_9=1
      LLVM_OLDER_THAN_10=1
      LLVM_OLDER_THAN_11=1
+     LLVM_OLDER_THAN_12=1
    ;;
      5.0.0svn*)
      AC_DEFINE([LLVM_5_0], [], "Using LLVM 5.0svn")
@@ -691,6 +697,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_9=1
      LLVM_OLDER_THAN_10=1
      LLVM_OLDER_THAN_11=1
+     LLVM_OLDER_THAN_12=1
    ;;
      5.0*)
      AC_DEFINE([LLVM_5_0], [], "Using LLVM 5.0")
@@ -715,6 +722,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_9=1
      LLVM_OLDER_THAN_10=1
      LLVM_OLDER_THAN_11=1
+     LLVM_OLDER_THAN_12=1
    ;;
      6.0*)
      AC_DEFINE([LLVM_6_0], [], "Using LLVM 6.0")
@@ -738,6 +746,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_9=1
      LLVM_OLDER_THAN_10=1
      LLVM_OLDER_THAN_11=1
+     LLVM_OLDER_THAN_12=1
    ;;
      7.0*)
      AC_DEFINE([LLVM_7_0], [], "Using LLVM 7")
@@ -760,6 +769,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_9=1
      LLVM_OLDER_THAN_10=1
      LLVM_OLDER_THAN_11=1
+     LLVM_OLDER_THAN_12=1
    ;;
      7.1*)
      # There should not be difference in TCE-related functionality to
@@ -773,6 +783,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_9=1
      LLVM_OLDER_THAN_10=1
      LLVM_OLDER_THAN_11=1
+     LLVM_OLDER_THAN_12=1
    ;;
      8.0.0svn)
      AC_DEFINE([LLVM_8], [], "Using LLVM 8-svn")
@@ -793,6 +804,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_9=1
      LLVM_OLDER_THAN_10=1
      LLVM_OLDER_THAN_11=1
+     LLVM_OLDER_THAN_12=1
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
    ;;
      8*)
@@ -822,6 +834,7 @@ case "$LLVM_VERSION" in
      LLVM_OLDER_THAN_9=1
      LLVM_OLDER_THAN_10=1
      LLVM_OLDER_THAN_11=1
+     LLVM_OLDER_THAN_12=1
    ;;
      9*)
      AC_DEFINE([LLVM_9], [], "Using LLVM 9")
@@ -857,6 +870,7 @@ case "$LLVM_VERSION" in
      fi
      LLVM_VERSION=10
      LLVM_OLDER_THAN_11=1
+     LLVM_OLDER_THAN_12=1
      LLVM_LIBRARYVERSION=10
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVM-$LLVM_LIBRARYVERSION
@@ -865,12 +879,24 @@ case "$LLVM_VERSION" in
      11*)
      AC_DEFINE([LLVM_11], [], "Using LLVM 11")
      LLVM_VERSION=11
+     LLVM_OLDER_THAN_12=1
      LLVM_LIBRARYVERSION=11
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVMTCE-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVMTCE-$LLVM_LIBRARYVERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
      AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the wide custom vector extension patch(wide)")
      AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
+   ;;
+     12*)
+     AC_DEFINE([LLVM_12], [], "Using LLVM 12")
+     LLVM_VERSION=12
+     LLVM_LIBRARYVERSION=12
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVMTCE-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVMTCE-$LLVM_LIBRARYVERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the wide custom vector extension patch(wide)")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
+
 ;;
      *)
    AC_MSG_NOTICE(
@@ -946,6 +972,11 @@ fi
 if  test "x$LLVM_OLDER_THAN_11" == "x1";
 then
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_11, 1, [LLVM version is older than 11])
+fi
+
+if  test "x$LLVM_OLDER_THAN_12" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_12, 1, [LLVM version is older than 12])
 fi
 
 

@@ -753,16 +753,27 @@ int TCEInstrInfo::getMatchingCondBranchOpcode(int opc, bool inv) const {
 
 
 // mostly ripped from hexagon
-bool
 #ifdef LLVM_OLDER_THAN_3_9
 TCEInstrInfo::DefinesPredicate(
     MachineInstr *MI, std::vector<MachineOperand> &Pred) const {
-#else
+    for (unsigned oper = 0; oper < MI->getNumOperands(); ++oper) {
+        MachineOperand MO = MI->getOperand(oper);
+        if (MO.isReg() && MO.isDef()) {
+            const TargetRegisterClass *RC =
+                ri_.getMinimalPhysRegClass(MO.getReg());
+            if (RC == &TCE::GuardRegsRegClass || RC == &TCE::R1RegsRegClass) {
+                Pred.push_back(MO);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+#elif LLVM_OLDER_THAN_12
+bool
 TCEInstrInfo::DefinesPredicate(
-    MachineInstr& MI_ref, std::vector<MachineOperand> &Pred) const {
-
+    MachineInstr& MI_ref, std::vector<MachineOperand>& Pred) const {
     MachineInstr *MI = &MI_ref;
-#endif
     for (unsigned oper = 0; oper < MI->getNumOperands(); ++oper) {
         MachineOperand MO = MI->getOperand(oper);
         if (MO.isReg() && MO.isDef()) {
@@ -776,6 +787,25 @@ TCEInstrInfo::DefinesPredicate(
     }
     return false;
 }
+#else
+bool
+TCEInstrInfo::ClobbersPredicate(
+    MachineInstr& MI, std::vector<MachineOperand>& Pred,
+    bool SkipDead) const {
+    for (unsigned oper = 0; oper < MI.getNumOperands(); ++oper) {
+        MachineOperand MO = MI.getOperand(oper);
+        if (MO.isReg() && MO.isDef()) {
+            const TargetRegisterClass* RC =
+                ri_.getMinimalPhysRegClass(MO.getReg());
+            if (RC == &TCE::GuardRegsRegClass || RC == &TCE::R1RegsRegClass) {
+                Pred.push_back(MO);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+#endif
 
 bool
 TCEInstrInfo::

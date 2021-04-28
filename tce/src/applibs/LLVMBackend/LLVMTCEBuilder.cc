@@ -2010,8 +2010,14 @@ LLVMTCEBuilder::addPointerAnnotations(
                             llvm::Type* typeElem = 
                                 cast<PointerType>(type)->getElementType();
                             if (typeElem->isVectorTy()) {
-                                int numElems = 
-                                    cast<VectorType>(typeElem)->getNumElements();
+#ifdef LLVM_OLDER_THAN_12
+                                int numElems = cast<VectorType>(typeElem)
+                                                   ->getNumElements();
+#else
+                                int numElems = cast<VectorType>(typeElem)
+                                                   ->getElementCount()
+                                                   .getKnownMinValue();
+#endif
                                 int idLast = (CZ->getZExtValue() & 0x0FF)
                                         | ((CY->getZExtValue() & 0x0FF) << 8)
                                         | (((CX->getZExtValue() 
@@ -2430,17 +2436,24 @@ LLVMTCEBuilder::emitConstantPool(const MachineConstantPool& mcp) {
             unsigned alignment = std::max(
                 static_cast<unsigned>(cpe.getAlignment()),
                 dl_->getPrefTypeAlignment(cpe.getType()));
-#else
-	    assert(cpe.getAlign().value() > 0);
-	    MaybeAlign constantPoolAlignment = cpe.getAlign();
+#elif LLVM_OLDER_THAN_12
+            assert(cpe.getAlign().value() > 0);
+            MaybeAlign constantPoolAlignment = cpe.getAlign();
             unsigned alignment = std::max(
                 static_cast<unsigned>(constantPoolAlignment? 0: cpe.getAlign().value()),
                 dl_->getPrefTypeAlignment(cpe.getType()));
+#else
+            assert(cpe.getAlign().value() > 0);
+            unsigned alignment = cpe.getAlign().value();
 #endif
             padToAlignment(cpAddrSpaceId, dataEndPos, alignment);
             unsigned address = dataEndPos;
-            unsigned size = dl_->getTypeStoreSize(cpe.getType());
 
+#ifdef LLVM_OLDER_THAN_12
+            unsigned size = dl_->getTypeStoreSize(cpe.getType());
+#else
+            unsigned size = cpe.getSizeInBytes(*dl_);
+#endif
             cpData_.emplace_back(ConstantDataDef(
                 address, alignment, size, cpe.Val.ConstVal));
             globalCP_.insert(std::make_pair(cpe.Val.ConstVal, address));

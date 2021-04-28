@@ -41,7 +41,6 @@
 #include <llvm/CodeGen/TargetLowering.h>
 #endif
 
-
 /**
  * Minimalistic subtarget implementation to be used in LLVM middle end 
  * optimization phase. 

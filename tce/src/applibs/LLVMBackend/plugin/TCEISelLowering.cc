@@ -1170,8 +1170,11 @@ TCETargetLowering::LowerBuildVector(SDValue Op, SelectionDAG &DAG) const {
                 unsigned int laneW = vt.getScalarSizeInBits();
 #ifdef LLVM_OLDER_THAN_7
                 for (int i = 0; i < vt.getVectorNumElements(); i++) {
-#else
+#elif LLVM_OLDER_THAN_12
                 for (int i = 0; i < vt.getVectorElementCount().Min; i++) {
+#else
+                for (int i = 0;
+                     i < vt.getVectorElementCount().getKnownMinValue(); i++) {
 #endif
                     auto oprd = node->getOperand(i);
                     ConstantSDNode* cn = cast<ConstantSDNode>(oprd);

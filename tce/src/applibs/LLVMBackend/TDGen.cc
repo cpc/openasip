@@ -3118,13 +3118,16 @@ TDGen::genTCETargetLoweringSIMD_getSetCCResultVT(std::ostream& o) const {
         if (!boolVecVt.isSupportedByLLVM()) {
             break;
         }
-#ifdef LLVM_OLDER_THAN_11
+
+#ifdef LLVM_OLDER_THAN_12
+        o << "\tif (vt.getVectorElementCount().Min == "
+#elif LLVM_OLDER_THAN_11
         o << "\tif (vt.getVectorNumElements() == "
 #else
-        o << "\tif (vt.getVectorElementCount().Min == "
+        o << "\tif (vt.getVectorElementCount().getKnownMinValue() == "
 #endif
-          << Conversion::toString(subwCount) << ") return llvm::MVT::"
-          << boolVecVtStr << ";" << endl;
+          << Conversion::toString(subwCount)
+          << ") return llvm::MVT::" << boolVecVtStr << ";" << endl;
         subwCount *= 2;
     }
 

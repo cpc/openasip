@@ -206,19 +206,26 @@ namespace llvm {
         ArrayRef<MachineOperand> cond) const override;
 #endif
 
-    virtual bool DefinesPredicate(
 #ifdef LLVM_OLDER_THAN_3_9
-        MachineInstr *MI,
+    virtual bool DefinesPredicate(
+        MachineInstr *MI, std::vector<MachineOperand> &Pred) const override;
+#elif LLVM_OLDER_THAN_12
+    virtual bool DefinesPredicate(
+        MachineInstr& MI, std::vector<MachineOperand>& Pred) const override;
 #else
-        MachineInstr& MI,
+            virtual bool ClobbersPredicate(
+                MachineInstr& MI, std::vector<MachineOperand>& Pred,
+                bool SkipDead) const override;
 #endif
-        std::vector<MachineOperand> &Pred) const override;
 
-	virtual bool
-	SubsumesPredicate(ArrayRef<MachineOperand> Pred1,
-                      ArrayRef<MachineOperand> Pred2) const override {
-	    return false;
-	}
+#ifndef LLVM_OLDER_THAN_12
+    virtual bool
+    SubsumesPredicate(
+        ArrayRef<MachineOperand> Pred1,
+        ArrayRef<MachineOperand> Pred2) const override {
+        return false;
+    }
+#endif
 
     virtual void insertCCBranch(
         MachineBasicBlock& mbb,
