@@ -35,11 +35,7 @@
 #include "tce_config.h"
 
 #include <llvm/Support/ErrorHandling.h>
-#ifdef LLVM_OLDER_THAN_6_0
-#include <llvm/Target/TargetFrameLowering.h>
-#else
 #include <llvm/CodeGen/TargetFrameLowering.h>
-#endif
 #include "TCERegisterInfo.hh"
 #include "TCEInstrInfo.hh"
 
@@ -78,29 +74,16 @@ namespace llvm {
             TCERegisterInfo* tri,
             const TCEInstrInfo* tii,
             int stackAlignment) :
-#ifdef LLVM_OLDER_THAN_10
-        TargetFrameLowering(
-            TargetFrameLowering::StackGrowsDown, 
-            stackAlignment, 
-            -stackAlignment,
-            1,
-            true /*false*/),
-#else
         // The -stackAlignment is local area offset.
         // Storing RA to stack consumes one slot,
         // so local are offset begins below it.
         TargetFrameLowering(
             StackGrowsDown, Align(stackAlignment), -stackAlignment),
-#endif
         tri_(tri), tii_(*tii), stackAlignment_(stackAlignment) {
             tri->setTFI(this);
         }
 
-#ifdef LLVM_OLDER_THAN_3_9
-        void
-#else
         MachineBasicBlock::iterator
-#endif
         eliminateCallFramePseudoInstr(
             MachineFunction &MF,
             MachineBasicBlock &MBB,

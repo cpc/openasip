@@ -29,12 +29,8 @@ namespace llvm {
   
   class TCEMCAsmInfo : public MCAsmInfo {
   public:    
-#ifdef LLVM_OLDER_THAN_10
-    explicit TCEMCAsmInfo(const llvm::Triple &);
-#else
     explicit TCEMCAsmInfo(
         const llvm::Triple&, const llvm::MCTargetOptions&);
-#endif
   };
 
 } // namespace llvm

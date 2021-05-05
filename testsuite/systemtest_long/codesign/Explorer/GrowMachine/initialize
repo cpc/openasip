@@ -2,10 +2,4 @@
 CURDIR=$(pwd)
 rm -rf growmachine.dsdb
 rm -rf ?.{adf,tpef}
-
-if egrep -q "#define.LLVM_3_6|#define.LLVM_3_5" ../../../../../tce/tce_config.h; 
-then
-    touch growmachine.testdesc.disabled
-else
-    rm -f growmachine.testdesc.disabled
-fi
+rm -f growmachine.testdesc.disabled

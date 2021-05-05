@@ -37,11 +37,7 @@
 #include <llvm/IR/Function.h>
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/CodeGen/MachineFrameInfo.h>
-#ifdef LLVM_OLDER_THAN_6_0
-#include <llvm/Target/TargetInstrInfo.h>
-#else
 #include <llvm/CodeGen/TargetInstrInfo.h>
-#endif
 #include <llvm/Target/TargetOptions.h>
 
 #include <llvm/ADT/STLExtras.h>
@@ -116,11 +112,7 @@ TCERegisterInfo::getReservedRegs(const MachineFunction& mf) const {
     reserved.set(TCE::SP);
     reserved.set(TCE::KLUDGE_REGISTER);
     reserved.set(TCE::RA);
-#if LLVM_OLDER_THAN_4_0
-    const MachineFrameInfo* mfi = mf.getFrameInfo();
-#else
     const MachineFrameInfo* mfi = &mf.getFrameInfo();
-#endif
     if (mfi->hasCalls() && tfi_->containsCall(mf)) {
         for (int i = 0; i < argRegCount; i++) {
             reserved.set(ArgRegs[i]);
@@ -162,44 +154,24 @@ void TCERegisterInfo::eliminateFrameIndex(
     // NO THEY ARE NOT! apwards from SP!
     MachineFunction &MF = *MI.getParent()->getParent();
 
-#if LLVM_OLDER_THAN_4_0
-    auto& frameinfo = *MF.getFrameInfo();
-#else
     auto& frameinfo = MF.getFrameInfo();
-#endif
 
     if (frameinfo.isSpillSlotObjectIndex(FrameIndex)) {
         for (MachineInstr::mmo_iterator i = MI.memoperands_begin();
              i != MI.memoperands_end(); i++) {
             const PseudoSourceValue* psv = (*i)->getPseudoValue();
             if (psv == NULL) {
-#ifdef LLVM_OLDER_THAN_6_0
-                (*i)->setValue(new FixedStackPseudoSourceValue(FrameIndex));
-#else
                 (*i)->setValue(new FixedStackPseudoSourceValue(FrameIndex, TII));
-#endif
             }
         }
         if (MI.memoperands_begin() == MI.memoperands_end()) {
             // TODO: operation and size
-#ifdef LLVM_OLDER_THAN_3_9
-            auto flags = static_cast<MachineMemOperand::MemOperandFlags>(
-#else
             auto flags = static_cast<MachineMemOperand::Flags>(
-#endif
                 MI.mayLoad() * MachineMemOperand::MOLoad
                 | MI.mayStore() * MachineMemOperand::MOStore);
             auto mmo = new MachineMemOperand(
-#ifdef LLVM_OLDER_THAN_11
-                MachinePointerInfo(), flags, 0, tfi_->stackAlignment());
-#else
                 MachinePointerInfo(), flags, 0, Align(tfi_->stackAlignment()));
-#endif
-#ifdef LLVM_OLDER_THAN_6_0
-            mmo->setValue(new FixedStackPseudoSourceValue(FrameIndex));
-#else
             mmo->setValue(new FixedStackPseudoSourceValue(FrameIndex, TII));
-#endif
             MI.addMemOperand(MF,  mmo);
         }
     }
@@ -420,11 +392,7 @@ TCERegisterInfo::getRARegister() const {
     return TCE::RA;
 }
 
-#ifdef LLVM_OLDER_THAN_9
-unsigned
-#else
 Register
-#endif
 TCERegisterInfo::getFrameRegister(const MachineFunction& mf) const {
     if (hasFP(mf)) {
         return TCE::FP;

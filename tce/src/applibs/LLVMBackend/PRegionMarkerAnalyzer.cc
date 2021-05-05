@@ -72,11 +72,7 @@ PRegionMarkerAnalyzer::propagatePregionID(
     for (MachineBasicBlock::const_iterator i = &start; 
          i != mbb->end(); 
          ++i) {
-#if LLVM_OLDER_THAN_4_0
-        const llvm::MachineInstr* mi = i;
-#else
         const llvm::MachineInstr* mi = &*i;
-#endif
         if (mi != &start && 
             (isPregionEndMarker(*mi) || isPregionStartMarker(*mi)))
             return;

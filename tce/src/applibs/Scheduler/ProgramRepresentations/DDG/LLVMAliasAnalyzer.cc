@@ -44,11 +44,7 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 
 #include <llvm/CodeGen/MachineInstr.h>
 #include "tce_config.h"
-#if (defined(LLVM_3_2) || defined(LLVM_3_1))
-#include <llvm/Value.h>
-#else
 #include <llvm/IR/Value.h>
-#endif
 #include <llvm/CodeGen/MachineMemOperand.h>
 
 #include <llvm/Analysis/AliasAnalysis.h>
@@ -64,17 +60,10 @@ POP_COMPILER_DIAGS
 using namespace TTAProgram;
 using namespace TTAMachine;
 
-#ifdef LLVM_OLDER_THAN_3_7
-#define MayAlias llvm::AliasAnalysis::MayAlias
-#define PartialAlias llvm::AliasAnalysis::PartialAlias
-#define MustAlias llvm::AliasAnalysis::MustAlias
-#define NoAlias llvm::AliasAnalysis::NoAlias
-#else
 #define MayAlias llvm::MayAlias
 #define PartialAlias llvm::PartialAlias
 #define MustAlias llvm::MustAlias
 #define NoAlias llvm::NoAlias
-#endif
 
 LLVMAliasAnalyzer::LLVMAliasAnalyzer(){
     AA_ = NULL;

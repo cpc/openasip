@@ -129,11 +129,7 @@ OperationPoolPimpl::operation(const char* name) {
              ++opc) {
             const llvm::MCInstrDesc& tid = llvmTargetInstrInfo_->get(opc);
             TCEString operName =
-#ifdef LLVM_OLDER_THAN_11
-                TCEString(llvmTargetInstrInfo_->getName(opc)).lower();
-#else
                 TCEString(llvmTargetInstrInfo_->getName(opc).str()).lower();
-#endif
             if (operName == TCEString(name).lower()) {
                 Operation* llvmOperation = loadFromLLVM(tid);
                 operationCache_[operName] = llvmOperation;
@@ -168,13 +164,7 @@ Operation*
 OperationPoolPimpl::loadFromLLVM(
 const llvm::MCInstrDesc& tid
 ) {
-#ifdef LLVM_3_0
-    TCEString opName = TCEString(tid.getName());
-#elif LLVM_OLDER_THAN_4_0
-    TCEString opName = llvmTargetInstrInfo_->getName(tid.getOpcode());
-#else
     TCEString opName = llvmTargetInstrInfo_->getName(tid.getOpcode()).str();
-#endif
     Operation* op = new Operation(opName, NullOperationBehavior::instance());
    
     unsigned outputs = tid.getNumDefs();

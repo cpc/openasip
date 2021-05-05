@@ -98,19 +98,9 @@ TTAProgram::Instruction*
 LLVMTCEPOMBuilder::emitMove(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc,
     bool, bool) {
-#if LLVM_OLDER_THAN_6_0
-    TCEString opName(targetMachine().getSubtargetImpl(
-                         *mi->getParent()->getParent()->getFunction())->
-                     getInstrInfo()->getName(mi->getOpcode()));
-#elif LLVM_OLDER_THAN_11
-    TCEString opName(targetMachine().getSubtargetImpl(
-                         mi->getParent()->getParent()->getFunction())->
-                     getInstrInfo()->getName(mi->getOpcode()));
-#else
     TCEString opName(targetMachine().getSubtargetImpl(
                          mi->getParent()->getParent()->getFunction())->
                      getInstrInfo()->getName(mi->getOpcode()).str());
-#endif
     /* Non-trigger move. */
     if (opName == "MOVE")
         return LLVMTCEBuilder::emitMove(mi, proc);
@@ -139,17 +129,10 @@ LLVMTCEPOMBuilder::operationName(const MachineInstr&) const {
 
 TTAProgram::Terminal*
 LLVMTCEPOMBuilder::createFUTerminal(const MachineOperand& mo) const {
-#if LLVM_OLDER_THAN_6_0
-    TCEString regName(
-        targetMachine().getSubtargetImpl(
-            *mo.getParent()->getParent()->getParent()->getFunction())->
-        getRegisterInfo()->getName(mo.getReg()));
-#else
     TCEString regName(
         targetMachine().getSubtargetImpl(
             mo.getParent()->getParent()->getParent()->getFunction())->
         getRegisterInfo()->getName(mo.getReg()));
-#endif
     
     // test for _number which indicates a RF access
     std::vector<TCEString> pieces = regName.split("_");

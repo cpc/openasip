@@ -54,15 +54,9 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/IR/Constants.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Support/Compiler.h"
-#ifdef LLVM_OLDER_THAN_11
-#include "llvm/IR/CallSite.h"
-#else
 #include "llvm/IR/AbstractCallSite.h"
-#endif
-#ifndef LLVM_OLDER_THAN_3_8
 #include "llvm/IR/InstrTypes.h" // CreateIntegerCast()
 #include "llvm/ADT/Twine.h"
-#endif
 
 #include "llvm/ADT/STLExtras.h" // array_endof
 #include "llvm/Support/CommandLine.h" // cl::opt
@@ -98,11 +92,7 @@ STATISTIC(NumLowered, "Number of instructions lowered");
 #define TYPE_CONST
 
 namespace {
-#ifdef LLVM_OLDER_THAN_10
-    class LowerMissingInstructions : public BasicBlockPass {
-#else
     class LowerMissingInstructions : public FunctionPass {
-#endif
         std::map< std::string, Function*> replaceFunctions;
         const TTAMachine::Machine* mach_;
         Module* dstModule_;
@@ -117,22 +107,13 @@ namespace {
         bool doFinalization (Module &M) override;
 
         // to suppress Clang warnings
-#ifdef LLVM_OLDER_THAN_10
-        using llvm::BasicBlockPass::doInitialization;
-        using llvm::BasicBlockPass::doFinalization;
-#else
         using llvm::FunctionPass::doInitialization;
         using llvm::FunctionPass::doFinalization;
-#endif
 
         bool runOnBasicBlock(BasicBlock &BB);
         bool runOnFunction(Function &F);
 
-#if LLVM_OLDER_THAN_4_0
-    virtual const char *getPassName() const override {
-#else
     virtual StringRef getPassName() const override {
-#endif
             return "TCE: LowerMissingInstructions";
         }
 
@@ -148,12 +129,10 @@ namespace {
 
         std::string getFootprint(Instruction& I);
 
-#ifndef LLVM_OLDER_THAN_3_9
         // getGlobalContext() was removed form LLVM.
         LLVMContext& getGlobalContext() const {
             return dstModule_->getContext();
         }
-#endif
     };
 
     char LowerMissingInstructions::ID = 0;    
@@ -171,11 +150,7 @@ Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach) {
 
 LowerMissingInstructions::LowerMissingInstructions(
     const TTAMachine::Machine& mach) : 
-#ifdef LLVM_OLDER_THAN_10
-    BasicBlockPass(ID), 
-#else
     FunctionPass(ID),
-#endif
     mach_(&mach) {
 }
 
@@ -457,11 +432,7 @@ LowerMissingInstructions::getFootprint(Instruction& I) {
             dyn_cast<CallInst>(&I)->getCalledFunction() == NULL)
             break;
         std::string calledName = 
-#ifdef LLVM_OLDER_THAN_11
-            dyn_cast<CallInst>(&I)->getCalledFunction()->getName();
-#else
             dyn_cast<CallInst>(&I)->getCalledFunction()->getName().str();
-#endif
         if (calledName == "llvm.sqrt.f32") {
             return "f32.sqrt.f32";
         }
@@ -746,33 +717,19 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                         footPrint == "f32.sitofp.i8") {
 
                         // sign extension needed
-#ifdef LLVM_OLDER_THAN_3_8
-                        args.push_back(
-                            llvm::CastInst::CreateIntegerCast(
-                                I->getOperand(j),
-                                Type::getInt32Ty(getGlobalContext()), true, "", I));
-#else
                         args.push_back(
                             llvm::CastInst::CreateIntegerCast(
                                 I->getOperand(j),
                                 Type::getInt32Ty(getGlobalContext()), 
                                 true, "", &(*I)));
-#endif
                     } else if (footPrint == "f32.uitofp.i16" ||
                                footPrint == "f32.uitofp.i8") {
                         // zero extension needed
-#ifdef LLVM_OLDER_THAN_3_8
-                        args.push_back(
-                            llvm::CastInst::CreateIntegerCast(
-                                I->getOperand(j), Type::getInt32Ty(getGlobalContext()),
-                                false, "", I));
-#else
                         args.push_back(
                             llvm::CastInst::CreateIntegerCast(
                                 I->getOperand(j),
                                 Type::getInt32Ty(getGlobalContext()),
                                 false, "", &(*I)));
-#endif
                     } else if (footPrint == "f64.sitofp.i32" && mach_->is64bit()) {
                         args.push_back(
                                 llvm::CastInst::CreateIntegerCast(
@@ -799,19 +756,9 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                     args.push_back(I->getOperand(j));
                 }
             }
-#ifdef LLVM_OLDER_THAN_3_8
-            CallInst *NewCall =
-                CallInst::Create(
-                    replaceFunc->second, args, "", I);
-#elif LLVM_OLDER_THAN_11
-            CallInst *NewCall =
-                CallInst::Create(
-                replaceFunc->second, args, Twine(""), &(*I));
-#else
             CallInst *NewCall =
                 CallInst::Create(
                 FunctionCallee(replaceFunc->second), args, Twine(""), &(*I));
-#endif
             NewCall->setTailCall();
 
             // Replace all uses of the instruction with call instruction
@@ -825,14 +772,9 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                 Instruction::CastOps castOps =
                     llvm::CastInst::getCastOpcode(
                         NewCall, false, I->getType(), false);
-#ifdef LLVM_OLDER_THAN_3_8
-                MCast = llvm::CastInst::Create(
-                    castOps, NewCall, I->getType(), "", I);
-#else
                 MCast = llvm::CastInst::Create(
                     castOps, NewCall, I->getType(), Twine(""), 
                     &(*I));
-#endif
                 I->replaceAllUsesWith(MCast);
 
             } else {

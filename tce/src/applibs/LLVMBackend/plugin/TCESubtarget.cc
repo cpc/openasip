@@ -76,14 +76,10 @@ TCESubtarget::TCESubtarget(TCETargetMachinePlugin* plugin)
 #endif
 
       pluginFile_(BackendPluginFile),
-#ifdef LLVM_OLDER_THAN_10
-      plugin_(plugin) {
-#else
       plugin_(plugin),
       InstrItins(getInstrItineraryForCPU("generic")) {
     assert(&InstrItins != nullptr && "IstrItins nullptr");
     assert(InstrItins.Itineraries != nullptr && "IstrItins not initialized");
-#endif
 }
 
 /**
@@ -113,17 +109,11 @@ const TargetLowering* TCESubtarget::getTargetLowering() const {
     return plugin_->getTargetLowering();
 }
 
-#ifdef LLVM_OLDER_THAN_3_9
-const TargetSelectionDAGInfo* TCESubtarget::getSelectionDAGInfo() const {
-#else
 const SelectionDAGTargetInfo* TCESubtarget::getSelectionDAGInfo() const {
-#endif
     return plugin_->getSelectionDAGInfo();
 }
 
-#ifndef LLVM_OLDER_THAN_9
 bool
 TCESubtarget::enableMachinePipeliner() const {
     return false;
 }
-#endif

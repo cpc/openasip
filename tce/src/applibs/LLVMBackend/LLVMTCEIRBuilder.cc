@@ -140,11 +140,7 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
 
     clearFunctionBookkeeping();
 
-#if LLVM_OLDER_THAN_4_0
-    curFrameInfo_ = mf.getFrameInfo();
-#else
     curFrameInfo_ = &mf.getFrameInfo();
-#endif
     assert(curFrameInfo_ != NULL);
 
     if (!functionAtATime_) {
@@ -162,11 +158,7 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
     TTAMachine::AddressSpace* as = mach_->controlUnit()->addressSpace();
     
     SmallString<256> Buffer;
-#ifdef LLVM_OLDER_THAN_6_0
-    mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
-#else
     mang_->getNameWithPrefix(Buffer, &mf.getFunction(), false);
-#endif
     TCEString fnName(Buffer.c_str());
 
     TTAProgram::Procedure* procedure = 
@@ -207,14 +199,10 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
         if (!AA_) {
             // Called through LLVMBackend. We are actual module and 
             // can get previous pass analysis!
-#ifdef LLVM_OLDER_THAN_3_8
-            AA = getAnalysisIfAvailable<AliasAnalysis>();
-#else
             AAResultsWrapperPass* AARWPass =
                 getAnalysisIfAvailable<AAResultsWrapperPass>();
             if (AARWPass)
                 AA = &AARWPass->getAAResults();
-#endif
         } else {
             // Called through LLVMTCEScheduler. We are not registered
             // module in pass manager, so we do not have previous
@@ -249,11 +237,7 @@ LLVMTCEIRBuilder::writeMachineFunction(MachineFunction& mf) {
     if (Application::verboseLevel() > 0 && spillMoveCount_ > 0) {
         Application::logStream() 
             << "spill moves in " << 
-#ifdef LLVM_OLDER_THAN_6_0
-            (std::string)(mf.getFunction()->getName()) << ": " 
-#else
             (std::string)(mf.getFunction().getName()) << ": "
-#endif
             << spillMoveCount_ << std::endl;
     }
 
@@ -280,11 +264,7 @@ LLVMTCEIRBuilder::isHotFunction(llvm::MachineFunction& mf) const {
         return true;
 
     SmallString<256> Buffer;
-#ifdef LLVM_OLDER_THAN_6_0
-    mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
-#else
     mang_->getNameWithPrefix(Buffer, &mf.getFunction(), false);
-#endif
     TCEString fnName(Buffer.c_str());
     return AssocTools::containsKey(*funcs, fnName);
 }
@@ -293,11 +273,7 @@ ControlFlowGraph*
 LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
 
     SmallString<256> Buffer;
-#ifdef LLVM_OLDER_THAN_6_0
-    mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
-#else
     mang_->getNameWithPrefix(Buffer, &mf.getFunction(), false);
-#endif
     TCEString fnName(Buffer.c_str());
 
     ControlFlowGraph* cfg = new ControlFlowGraph(fnName, prog_);
@@ -589,11 +565,7 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                     bbn = ftSuccsToInlineAsm[bbn];
                     bb = &bbn->basicBlock();
                 }
-#if LLVM_OLDER_THAN_4_0
-                emitInlineAsm(mf, j, bb, *irm);
-#else
                 emitInlineAsm(mf, &*j, bb, *irm);
-#endif
                 bbn->setScheduled(true);
                 if (AssocTools::containsKey(inlineAsmSuccs, bbn)) {
                     bbn = inlineAsmSuccs[bbn];
@@ -603,11 +575,7 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
             }
 
             TTAProgram::Instruction* instr = NULL;
-#if LLVM_OLDER_THAN_4_0
-            instr = emitInstruction(j, bb);
-#else
             instr = emitInstruction(&*j, bb);
-#endif
 
             if (instr == NULL) {
                 continue;
@@ -1151,19 +1119,9 @@ LLVMTCEIRBuilder::operationName(const MachineInstr& mi) const {
         return dynamic_cast<const TCETargetMachine&>(targetMachine())
             .operationName(mi.getDesc().getOpcode());
     } else {
-#if (defined LLVM_OLDER_THAN_4_0)
-        return targetMachine().getSubtargetImpl(
-            *mi.getParent()->getParent()->getFunction())->getInstrInfo()->
-            getName(mi.getOpcode());
-#elif defined LLVM_OLDER_THAN_6_0
-        return targetMachine().getSubtargetImpl(
-            *mi.getParent()->getParent()->getFunction())->getInstrInfo()->
-            getName(mi.getOpcode()).str();
-#else
         return targetMachine().getSubtargetImpl(
             mi.getParent()->getParent()->getFunction())->getInstrInfo()->
             getName(mi.getOpcode()).str();
-#endif
     }
 }
 
@@ -1261,11 +1219,7 @@ LLVMTCEIRBuilder::fixJumpTableDestinations(
             // Slight cheating to force LLVM to emit machine basic block label
             // to avoid missing references from Jump Table Records to basic
             // blocks. TODO: Proper fix is needed.
-#ifdef LLVM_OLDER_THAN_3_8
-            newMBB->setIsLandingPad();
-#else
             newMBB->setIsEHPad();
-#endif
         }
     }
 }

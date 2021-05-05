@@ -40,19 +40,10 @@
 
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
-#ifdef LLVM_OLDER_THAN_6_0
-#include "llvm/Target/TargetLowering.h"
-#include "llvm/Target/TargetFrameLowering.h"
-#else
 #include "llvm/CodeGen/TargetLowering.h"
 #include "llvm/CodeGen/TargetFrameLowering.h"
-#endif
 #include "llvm/Target/TargetMachine.h"
-#ifdef LLVM_OLDER_THAN_3_9
-#include "llvm/Target/TargetSelectionDAGInfo.h"
-#else
 #include "llvm/CodeGen/SelectionDAGTargetInfo.h"
-#endif
 
 #include "llvm/IR/PassManager.h"
 //#include "TCESubtarget.hh"
@@ -69,9 +60,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/CodeGen/Passes.h"
 #include "llvm/IR/DataLayout.h"
 
-#ifndef LLVM_OLDER_THAN_3_9
 #include "llvm/CodeGen/TargetPassConfig.h"
-#endif
 
 POP_COMPILER_DIAGS
 
@@ -94,11 +83,7 @@ namespace llvm {
 	    LLVMTargetMachine* tm, 
 	    PassManagerBase& pm, 
 	    TCETargetMachinePlugin* plugin) :
-#ifdef LLVM_OLDER_THAN_5_0
-	    TargetPassConfig(tm, pm),
-#else
 	    TargetPassConfig(*tm, pm),
-#endif
 plugin_(plugin) {
 	    assert(plugin_ != NULL);
 	}
@@ -120,35 +105,14 @@ plugin_(plugin) {
     class TCETargetMachine : public TCEBaseTargetMachine {
 
     public:
-#ifdef LLVM_OLDER_THAN_3_9
-        TCETargetMachine(
-            const Target &T, const Triple& TTriple,
-            const std::string& CPU, const std::string &FS, 
-            const TargetOptions &Options,
-            Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL);
-#elif LLVM_OLDER_THAN_6_0
-        TCETargetMachine(
-            const Target &T, const Triple& TTriple,
-            const std::string& CPU, const std::string &FS,
-            const TargetOptions &Options,
-            Optional<Reloc::Model> RM, CodeModel::Model CM,
-            CodeGenOpt::Level OL);
-#elif LLVM_OLDER_THAN_11
-        TCETargetMachine(
-            const Target &T, const Triple& TTriple,
-            const std::string& CPU, const std::string &FS,
-            const TargetOptions &Options,
-            Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
-            CodeGenOpt::Level OL, bool isLittle);
-#else
         TCETargetMachine(
             const Target &T, const Triple& TTriple,
             const llvm::StringRef& CPU, const llvm::StringRef& FS,
             const TargetOptions &Options,
             Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
             CodeGenOpt::Level OL, bool isLittle);
-#endif
-        virtual ~TCETargetMachine();
+
+	virtual ~TCETargetMachine();
 
         virtual void setTargetMachinePlugin(
             TCETargetMachinePlugin& plugin, TTAMachine::Machine& target);

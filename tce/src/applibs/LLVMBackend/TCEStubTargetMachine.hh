@@ -35,21 +35,12 @@
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Target/TargetMachine.h>
 #include "tce_config.h"
-#ifdef LLVM_OLDER_THAN_6_0
-#include <llvm/Target/TargetLowering.h>
-#else
 #include <llvm/CodeGen/TargetLowering.h>
-#endif
 // LLVM has function with parameter named as "PIC". Command line
 // option -DPIC messes up the compilation.
 #define PICCOPY PIC
 #undef PIC
-#ifndef LLVM_6_0
-// LLVM, COULD YOU PLEASE TRY TO DECIDE WHERE TO PUT THIS FILE?
 #include <llvm/Target/TargetLoweringObjectFile.h>
-#else
-#include <llvm/CodeGen/TargetLoweringObjectFile.h>
-#endif
 #include <llvm/CodeGen/TargetLoweringObjectFileImpl.h>
 #define PIC PICCOPY
 #undef PICCOPY
@@ -119,21 +110,6 @@ namespace llvm {
             ttaMach_ = mach;
         }
     };
-#else
-    class TCEBaseTargetMachine : public LLVMTargetMachine {
-    public:
-        TCEBaseTargetMachine(
-            const Target &T, const Triple& TT,
-            const std::string& CPU, const std::string &FS,
-            const TargetOptions &Options,
-            Reloc::Model RM, CodeModel::Model CM,
-            CodeGenOpt::Level OL);
-        const TTAMachine::Machine* ttaMach_;
-        virtual void setTTAMach(
-            const TTAMachine::Machine* mach) {
-            ttaMach_ = mach;
-        }
-    };
 #endif
 
     /**
@@ -145,28 +121,6 @@ namespace llvm {
         TCEStubSubTarget *ST;
 
     public:
-#ifdef LLVM_OLDER_THAN_3_9
-        TCEStubTargetMachine(
-            const Target &T, const Triple& TT,
-            const std::string& CPU, const std::string& FS,
-            const TargetOptions &Options,
-            Reloc::Model RM, CodeModel::Model CM,
-            CodeGenOpt::Level OL);
-#elif LLVM_OLDER_THAN_6_0
-        TCEStubTargetMachine(
-            const Target &T, const Triple& TT,
-            const std::string& CPU, const std::string& FS,
-            const TargetOptions &Options,
-            Optional<Reloc::Model> RM, CodeModel::Model CM,
-            CodeGenOpt::Level OL);
-#elif LLVM_OLDER_THAN_11
-        TCEStubTargetMachine(
-            const Target &T, const Triple& TT,
-            const std::string& CPU, const std::string& FS,
-            const TargetOptions &Options,
-            Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
-            CodeGenOpt::Level OL, bool isLittle);
-#else
 	TCEStubTargetMachine(
             const Target &T, const Triple& TT,
             const llvm::StringRef& CPU, const llvm::StringRef& FS,
@@ -174,12 +128,8 @@ namespace llvm {
             Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
             CodeGenOpt::Level OL, bool isLittle);
 
-#endif
         // TODO: this is no longer virtual in llvm 6.0
         // I wonder what this button does..
-#ifdef LLVM_OLDER_THAN_6_0
-        virtual TargetIRAnalysis getTargetIRAnalysis() override;
-#endif
         virtual ~TCEStubTargetMachine();
 
         //const TargetSubtargetInfo *getSubtargetImpl() const {

@@ -53,9 +53,6 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 #include <llvm/CodeGen/AsmPrinter.h>
 #include <llvm/CodeGen/Passes.h>
 #include <llvm/CodeGen/GCStrategy.h>
-#if LLVM_OLDER_THAN_4_0
-#include <llvm/CodeGen/MachineFunctionAnalysis.h>
-#endif
 
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
@@ -72,17 +69,11 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
 
-#if LLVM_OLDER_THAN_4_0
-#include <llvm/Bitcode/ReaderWriter.h>
-#else
 #include <llvm/Bitcode/BitcodeReader.h>
-#endif
 
 #include <llvm/IR/Verifier.h>
 
-#ifndef LLVM_OLDER_THAN_3_9
 #include <llvm-c/Core.h> // LLVMGetGlobalContext()
-#endif
 
 // tce_config.h defines these. this undef to avoid warning.
 // TODO: how to do this in tce_config.h???
@@ -94,9 +85,7 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 #include <llvm/Support/TargetRegistry.h>
 #include "llvm/Support/FileSystem.h"
 
-#ifndef LLVM_OLDER_THAN_10
 #include <llvm/InitializePasses.h>
-#endif
 
 // cheat llvm's multi-include-protection
 #define CONFIG_H
@@ -343,18 +332,6 @@ LLVMBackend::LLVMBackend(bool useInstalledVersion, TCEString tempDir) :
         cachePath_ = options_->backendCacheDir();
 
     PassRegistry &Registry = *llvm::PassRegistry::getPassRegistry();
-#ifdef LLVM_OLDER_THAN_10
-    initializeCore(Registry);
-    initializeScalarOpts(Registry);
-    initializeIPO(Registry);
-    initializeAnalysis(Registry);
-#ifdef LLVM_OLDER_THAN_3_8
-    initializeIPA(Registry);
-#endif
-    initializeTransformUtils(Registry);
-    initializeInstCombine(Registry);
-    initializeTarget(Registry);
-#else
     llvm::initializeCore(Registry);
     llvm::initializeScalarOpts(Registry);
     llvm::initializeIPO(Registry);
@@ -362,7 +339,6 @@ LLVMBackend::LLVMBackend(bool useInstalledVersion, TCEString tempDir) :
     llvm::initializeTransformUtils(Registry);
     llvm::initializeInstCombine(Registry);
     llvm::initializeTarget(Registry);
-#endif
 }
 
 /**
@@ -405,11 +381,7 @@ LLVMBackend::compile(
 
     // Load bytecode file.
     std::string errMsgParse;
-#ifdef LLVM_OLDER_THAN_3_9
-    LLVMContext &context = getGlobalContext();
-#else
     LLVMContext context;
-#endif
 
     std::unique_ptr<llvm::Module> m;
 
@@ -424,17 +396,12 @@ LLVMBackend::compile(
 
     // todo: what are these buffers..
     std::unique_ptr<MemoryBuffer> buffer = std::move(bufferPtr.get());
-#if defined(LLVM_OLDER_THAN_4_0)
-    ErrorOr<std::unique_ptr<llvm::Module> > module =
-        parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
-#else
     Expected<std::unique_ptr<llvm::Module> > module =
         parseBitcodeFile(buffer.get()->getMemBufferRef(), context);
     if (Error E = module.takeError()) {
         THROW_EXCEPTION(CompileError, "Error parsing bytecode file: "
             + bytecodeFile);
     }
-#endif
 
     // TODO: why does this work? it should not?
 //    m.reset(module.get().get());
@@ -461,10 +428,6 @@ LLVMBackend::compile(
 
         std::unique_ptr<MemoryBuffer> emuBuffer = 
             std::move(emuBufferPtr.get());
-#if defined(LLVM_OLDER_THAN_4_0)
-        ErrorOr<std::unique_ptr<Module> > module =
-            parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
-#else
         Expected<std::unique_ptr<Module> > module =
             parseBitcodeFile(emuBuffer.get()->getMemBufferRef(), context);
         if (Error E = module.takeError()) {
@@ -472,7 +435,6 @@ LLVMBackend::compile(
                 emulationBytecodeFile + " of emulation library \n"
                 + errMsgParse);
         }
-#endif
 
         emuM = std::move(module.get());
         if (emuM.get() == 0) {
@@ -548,11 +510,7 @@ LLVMBackend::maxAllocaAlignment(const llvm::Module& mod) const {
              fe = mod.end(); f != fe; ++f) {
         for (llvm::Function::const_iterator bb = f->begin(), be = f->end();
              bb != be; ++bb) {
-#ifdef LLVM_OLDER_THAN_3_8
-            const llvm::BasicBlock* basicBlock = bb;
-#else
             const llvm::BasicBlock* basicBlock = &(*bb);
-#endif
             for (llvm::BasicBlock::const_iterator i = basicBlock->begin(),
                      ie = basicBlock->end(); i != ie; ++i) {
                 if (!isa<const llvm::AllocaInst>(i)) continue;
@@ -662,11 +620,6 @@ LLVMBackend::compile(
     std::string cpuStr = "tce";
 
     TargetOptions Options;
-#ifdef LLVM_OLDER_THAN_5_0
-    Options.LessPreciseFPMADOption = true; //EnableFPMAD;
-#else
-    // TODO: has this been removed or replaced with something else?
-#endif
 #ifdef LLVM_OLDER_THAN_12
     Options.PrintMachineCode = false; //PrintCode;
 #endif
@@ -702,12 +655,8 @@ LLVMBackend::compile(
     TCETargetMachine* targetMachine =
         static_cast<TCETargetMachine*>(
             tceTarget->createTargetMachine(
-#ifdef LLVM_OLDER_THAN_3_9
-                targetStr, cpuStr, featureString, Options));
-#else
                 targetStr, cpuStr, featureString, Options,
                 Reloc::Model::Static));
-#endif
 
     if (!targetMachine) {
         errs() << "Could not create tce target machine" << "\n";
@@ -723,29 +672,13 @@ LLVMBackend::compile(
      * This is quite straight copy how llc actually creates passes for target.
      */       
 
-#ifdef LLVM_OLDER_THAN_10
-    // if opt level is less than 2 we will not run extra optimization passes
-    // after linking emulation function code
-    CodeGenOpt::Level OptLevel = 
-        (optLevel < 2) ? (CodeGenOpt::None) : (CodeGenOpt::Aggressive);
-#endif
-
     llvm::legacy::PassManager Passes;
 #define addPass(P) Passes.add(P)    
     
     llvm::raw_fd_ostream sos(STDOUT_FILENO, false);
-#ifdef LLVM_OLDER_THAN_7
-    targetMachine->addPassesToEmitFile(
-        Passes, sos, TargetMachine::CGFT_AssemblyFile, OptLevel);
-#else
-#ifdef LLVM_OLDER_THAN_10
-    targetMachine->addPassesToEmitFile(
-        Passes, sos, nullptr, TargetMachine::CGFT_AssemblyFile, OptLevel);
-#else
+
     targetMachine->addPassesToEmitFile(
         Passes, sos, nullptr, CGFT_AssemblyFile);
-#endif
-#endif
 
 
     // Add alias analysis pass that is distributed with pocl library.
@@ -1065,11 +998,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
 
-#ifndef LLVM_OLDER_THAN_10
     // Generate TCEDFAPacketizer.inc
     cmd = tblgenCmd + " -gen-dfa-packetizer" + " -o " + tempDir_ +
           FileSystem::DIRECTORY_SEPARATOR + "TCEGenDFAPacketizer.inc";
-#endif
 
     ret = system(cmd.c_str());
     if (ret) {
@@ -1100,27 +1031,12 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
         cmd += " -I`" LLVM_CONFIG " --includedir`";
 
     cmd +=
-#ifdef LLVM_OLDER_THAN_10
-#if defined(HAVE_CXX0X)
-        " " + CXX0X_FLAG +
-#elif defined(HAVE_CXX11)
-        " " + CXX11_FLAG +
-#endif
-#else
         " " + CXX14_FLAG +
-#endif
         " " + endianOption +
         " " + bitnessOption +
         " " + pluginSources +
         " -o " + tempPluginFileName;
 
-    // TODO: whether vectors are used or not stored in has of the
-    // plugin. this is a temporary solution
-#ifdef LLVM_OLDER_THAN_3_6
-    if (options_->useVectorBackend()) {
-        cmd += " -DUSE_VECTOR_REGS";
-    }
-#endif
     if (Application::verboseLevel() > 0) {
         Application::logStream() << "LLVMBackend: " << cmd << std::endl;
     }

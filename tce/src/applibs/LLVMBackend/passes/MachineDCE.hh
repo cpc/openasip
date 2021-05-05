@@ -48,11 +48,7 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 
 #include "llvm/Support/Compiler.h"
-#ifdef LLVM_OLDER_THAN_6_0
-#include "llvm/Target/TargetInstrInfo.h"
-#else
 #include "llvm/CodeGen/TargetInstrInfo.h"
-#endif
 #include "llvm/ADT/DepthFirstIterator.h"
 #include "llvm/Analysis/CallGraph.h"
 #include "llvm/Analysis/AliasAnalysis.h"
@@ -89,11 +85,7 @@ namespace llvm {
     virtual bool runOnMachineFunction(MachineFunction &F) override;
     virtual bool doFinalization(Module &M) override;
 
-#if LLVM_OLDER_THAN_4_0
-    virtual const char *getPassName() const override {
-#else
     virtual StringRef getPassName() const override {
-#endif
         return "TCE deadcode elimination of unused emulation functions";
     }
 

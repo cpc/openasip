@@ -73,11 +73,7 @@
     "-v1024:32:1024"
 
 #include <llvm/IR/DataLayout.h>
-#ifdef LLVM_OLDER_THAN_3_9
-#include <llvm/Target/TargetSelectionDAGInfo.h>
-#else
 #include <llvm/CodeGen/SelectionDAGTargetInfo.h>
-#endif
 
 typedef llvm::DataLayout TargetData;
 
@@ -218,11 +214,6 @@ namespace llvm {
        virtual const llvm::TargetRegisterClass* nodeRegClass(
            unsigned nodeId, const llvm::TargetRegisterClass* current) const = 0;
 
-#ifdef LLVM_OLDER_THAN_3_6       
-       virtual const llvm::TargetRegisterClass* RFRegClass(
-           std::string rf) const = 0;
-#endif
-
        virtual bool isLittleEndian() const = 0;
        virtual bool is64bit() const = 0;
 
@@ -247,11 +238,7 @@ namespace llvm {
            return true;
        }
 
-#ifdef LLVM_OLDER_THAN_3_9
-       virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const {
-#else
        virtual const SelectionDAGTargetInfo* getSelectionDAGInfo() const {
-#endif
            return &tsInfo_;
        }
 
@@ -270,11 +257,7 @@ namespace llvm {
        TCETargetMachine* tm_;
        TCESubtarget* subTarget_;
        DataLayout dl_; // Calculates type size & alignment
-#ifdef LLVM_OLDER_THAN_3_9
-       TargetSelectionDAGInfo tsInfo_;
-#else
        SelectionDAGTargetInfo tsInfo_;
-#endif
    };
 
 }

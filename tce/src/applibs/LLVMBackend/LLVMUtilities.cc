@@ -66,11 +66,7 @@ getSourceLocationInfo(const llvm::MachineInstr& mi) {
     // inspired from lib/codegen/MachineInstr.cpp
     sourceLineNumber = dl.getLine();
     sourceFileName = static_cast<TCEString>(
-#ifdef LLVM_OLDER_THAN_11
-        cast<DIScope>(dl.getScope())->getFilename());
-#else
         cast<DIScope>(dl.getScope())->getFilename().str());
-#endif
     return std::make_tuple(sourceFileName, sourceLineNumber);
 }
 

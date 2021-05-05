@@ -77,11 +77,7 @@ namespace llvm {
 
         void getAnalysisUsage(AnalysisUsage &AU) const;
 
-#if LLVM_OLDER_THAN_4_0
-        virtual const char *getPassName() const {
-#else
         virtual StringRef getPassName() const {
-#endif
             return "TCE: build TCE scheduler IR from MachineFunctions";
         }
 

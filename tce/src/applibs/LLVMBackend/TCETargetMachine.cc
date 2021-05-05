@@ -38,11 +38,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "tce_config.h"
 
 #include "llvm/IR/PassManager.h"
-#ifdef LLVM_OLDER_THAN_6_0
-#include "llvm/Target/TargetRegisterInfo.h"
-#else
 #include "llvm/CodeGen/TargetRegisterInfo.h"
-#endif
 #include "llvm/CodeGen/SelectionDAGNodes.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/MC/MCContext.h"
@@ -99,15 +95,9 @@ public:
     }
 #endif
 
-#ifdef LLVM_OLDER_THAN_10
-    void
-    printInst(const MCInst*, raw_ostream&, StringRef, const MCSubtargetInfo&)
-        override {}
-#else
     void printInst(
         const MCInst*, uint64_t, StringRef,
         const MCSubtargetInfo&, raw_ostream&) override {}
-#endif
 
 #ifndef LLVM_OLDER_THAN_12
     void
@@ -156,39 +146,6 @@ extern "C" void LLVMInitializeTCETarget() {
 // etc.
 // 
 
-#ifdef LLVM_OLDER_THAN_3_9
-TCETargetMachine::TCETargetMachine(
-    const Target &T, const Triple& TTriple,
-    const std::string& CPU, const std::string &FS, 
-    const TargetOptions &Options,
-    Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL) : 
-    TCEBaseTargetMachine(T, TTriple, CPU, FS, Options, RM, CM, OL), 
-    plugin_(NULL), pluginTool_(NULL) {
-}
-#elif LLVM_OLDER_THAN_6_0
-TCETargetMachine::TCETargetMachine(
-    const Target &T, const Triple& TTriple,
-    const std::string& CPU, const std::string &FS,
-    const TargetOptions &Options,
-    Optional<Reloc::Model> RM, CodeModel::Model CM, CodeGenOpt::Level OL) :
-    TCEBaseTargetMachine(T, TTriple, CPU, FS, Options,
-                         RM?*RM:Reloc::Model::Static, CM, OL),
-    // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
-    plugin_(NULL), pluginTool_(NULL) {
-}
-#elif LLVM_OLDER_THAN_11
-TCETargetMachine::TCETargetMachine(
-    const Target &T, const Triple& TTriple,
-    const std::string& CPU, const std::string &FS,
-    const TargetOptions &Options,
-    Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM, CodeGenOpt::Level OL, bool) :
-    TCEBaseTargetMachine(T, TTriple, CPU, FS, Options,
-                         RM?*RM:Reloc::Model::Static, CM?*CM:CodeModel::Small, OL),
-    // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
-    // Note: CodeModel does not have "Default" named member. "Small" is ok?
-    plugin_(NULL), pluginTool_(NULL) {
-}
-#else
 TCETargetMachine::TCETargetMachine(
     const Target &T, const Triple& TTriple,
     const llvm::StringRef& CPU, const llvm::StringRef& FS,
@@ -200,7 +157,6 @@ TCETargetMachine::TCETargetMachine(
     // Note: CodeModel does not have "Default" named member. "Small" is ok?
     plugin_(NULL), pluginTool_(NULL) {
 }
-#endif
 
 /**
  * The Destructor.
@@ -496,9 +452,7 @@ TCEPassConfig::addPreSched2() {
 }
 
 int TCETargetMachine::getLoadOpcode(int asid, int align, const llvm::EVT& vt) const {
-#ifdef LLVM_OLDER_THAN_11
-    int laneCount = vt.getVectorNumElements();
-#elif LLVM_OLDER_THAN_12
+#ifdef LLVM_OLDER_THAN_12
     int laneCount = vt.getVectorElementCount().Min;
 #else
     int laneCount = vt.getVectorElementCount().getKnownMinValue();

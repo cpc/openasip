@@ -92,11 +92,7 @@ void MachineDCE::addInitializer(const Constant* init, std::string& name) {
                << "\n";
 #endif
         baseUsers_.insert(name);
-#ifdef LLVM_OLDER_THAN_11
-        usersOfValue_[gv->getName()].insert(name);
-#else
         usersOfValue_[gv->getName().str()].insert(name);
-#endif
     }
     
     if ((dyn_cast<ConstantArray>(init) != NULL) ||
@@ -117,22 +113,14 @@ bool MachineDCE::doInitialization(Module &M) {
     // errs() << "Initializing MachineDCE\n";
 
     // add first function to baseUsers, assume it's the startup function
-#ifdef LLVM_OLDER_THAN_11
-    baseUsers_.insert(M.begin()->getName());
-#else
     baseUsers_.insert(M.begin()->getName().str());
-#endif
     for (Module::const_iterator f = M.begin(), e = M.end(); f != e; ++f) {
         // aAd all noinline functions to baseUsers so they won't
         // get removed. We might want to call them via a
         // function pointer initialized from the outside. 
         const bool noinlineFunction = f->hasFnAttribute(Attribute::NoInline);
         if (noinlineFunction) {
-#ifdef LLVM_OLDER_THAN_11
-            baseUsers_.insert(f->getName());
-#else
             baseUsers_.insert(f->getName().data());
-#endif
 #ifdef DEBUG_MACHINE_DCE
             std::cerr << "Added " << f->getName().str() 
                       << " to base functions due to noinline"
@@ -145,11 +133,7 @@ bool MachineDCE::doInitialization(Module &M) {
     // Go through global variables to find out 
     for (Module::const_global_iterator i = M.global_begin();
          i != M.global_end(); i++) {
-#ifdef LLVM_OLDER_THAN_11
-        std::string name = i->getName();
-#else
         std::string name = i->getName().str();
-#endif
 
         if (!i->hasInitializer()) {
             continue;
@@ -169,11 +153,7 @@ bool MachineDCE::doInitialization(Module &M) {
 }
 
 bool MachineDCE::runOnMachineFunction(MachineFunction &F) {
-#ifdef LLVM_OLDER_THAN_11
-    std::string funcName = F.getFunction().getName();
-#else
     std::string funcName = F.getFunction().getName().str();
-#endif
 
     // add function to function map...
     functionMappings_[funcName] = &F;
@@ -189,11 +169,7 @@ bool MachineDCE::runOnMachineFunction(MachineFunction &F) {
                 std::string moName;
 
                 if (mo.isGlobal()) {
-#ifdef LLVM_OLDER_THAN_11
-                    moName = mo.getGlobal()->getName();
-#else
                     moName = mo.getGlobal()->getName().str();
-#endif
                 } else if (mo.isSymbol()) {
                     moName = mo.getSymbolName();
                 }

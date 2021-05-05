@@ -33,11 +33,7 @@
 #ifndef TCE_TARGET_LOWERING_H
 #define TCE_TARGET_LOWERING_H
 
-#ifdef LLVM_OLDER_THAN_6_0
-#include <llvm/Target/TargetLowering.h>
-#else
 #include <llvm/CodeGen/TargetLowering.h>
-#endif
 #include "TCEPlugin.hh"
 #include "TCESubtarget.hh"
 #include "tce_config.h"
@@ -77,11 +73,7 @@ namespace TCEISD {
 
 namespace llvm {
 
-#ifdef LLVM_OLDER_THAN_3_9
-#define SDLOC_PARAM_TYPE SDLoc
-#else
 #define SDLOC_PARAM_TYPE const SDLoc&
-#endif
 
     class TCETargetMachine;
 
@@ -157,11 +149,7 @@ namespace llvm {
 
         bool shouldLoadFromConstantPool(unsigned addressSpace) const;
 
-#ifdef LLVM_OLDER_THAN_9
-        virtual bool allowsMisalignedMemoryAccesses(EVT VT, unsigned as, unsigned align, bool* ) const override;
-#else // LLVM 9+
         virtual bool allowsMisalignedMemoryAccesses(EVT VT, unsigned as, unsigned align, MachineMemOperand::Flags flags, bool* ) const override;
-#endif
         // We can ignore the bitwidth differences between the pointers
         // for now. It's the programmer's responsibility to ensure they
         // fit.
@@ -216,12 +204,8 @@ namespace llvm {
             const DataLayout &DL, LLVMContext &Context,
             EVT VT) const override;
 
-#ifdef LLVM_OLDER_THAN_9
-        virtual bool isFPImmLegal(const APFloat& apf, EVT VT) const override;
-#else
         virtual bool isFPImmLegal(
             const APFloat& apf, EVT VT, bool forCodeSize) const override;
-#endif
 
     SDValue ExpandLibCall(
         RTLIB::Libcall LC, SDNode *Node, bool isSigned, SelectionDAG &DAG)

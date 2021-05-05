@@ -51,26 +51,11 @@ POP_CLANG_DIAGS
 #include <llvm/CodeGen/MachineFunction.h>
 #include <llvm/Target/TargetMachine.h>
 #include "tce_config.h"
-#ifdef LLVM_OLDER_THAN_6_0
-#include <llvm/Target/TargetInstrInfo.h>
-#else
 #include <llvm/CodeGen/TargetInstrInfo.h>
-#endif
 
-#if defined(LLVM_3_2)
-#include <llvm/Function.h>
-#include <llvm/Module.h>
-#else
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Module.h>
-#if (!(defined(LLVM_3_3)) && !(defined(LLVM_3_4)) && !(defined(LLVM_3_5)))
-#ifdef LLVM_OLDER_THAN_6_0
-#include <llvm/Target/TargetSubtargetInfo.h>
-#else
 #include <llvm/CodeGen/TargetSubtargetInfo.h>
-#endif
-#endif
-#endif
 #include <llvm/MC/MCContext.h>
 #pragma GCC diagnostic warning "-Wunused-parameter"
 
@@ -1854,18 +1839,8 @@ ControlFlowGraph::copyToLLVMMachineFunction(
         assert(programOperationToMIMap_.find(po.get()) != programOperationToMIMap_.end());
         llvm::MachineInstr* mi = programOperationToMIMap_[po.get()];
         assert(mi != NULL);
-#if (defined(LLVM_3_2) || defined(LLVM_3_3) || defined(LLVM_3_4) || defined(LLVM_3_5))
-        const llvm::TargetInstrInfo& tii = *mf.getTarget().getInstrInfo();
-#elif (defined (LLVM_3_6))
-        const llvm::TargetInstrInfo& tii = 
-            *mf.getTarget().getSubtargetImpl()->getInstrInfo();
-#elif LLVM_OLDER_THAN_6_0
-        const llvm::TargetInstrInfo& tii = 
-            *mf.getTarget().getSubtargetImpl(*mf.getFunction())->getInstrInfo();
-#else
         const llvm::TargetInstrInfo& tii =
             *mf.getTarget().getSubtargetImpl(mf.getFunction())->getInstrInfo();
-#endif
         const llvm::MCInstrDesc& tid =
             findLLVMTargetInstrDesc("HBR_LABEL", tii);
         llvm::MachineInstr* labelInstruction = 
@@ -1907,11 +1882,7 @@ ControlFlowGraph::findLLVMTargetInstrDesc(
     TCEString name, 
     const llvm::MCInstrInfo& tii) const {
     for (unsigned opc = 0; opc < tii.getNumOpcodes(); ++opc) {
-#if LLVM_OLDER_THAN_4_0
-        if (name.ciEqual(tii.getName(opc))) {
-#else
         if (name.ciEqual(tii.getName(opc).str())) {
-#endif
             return tii.get(opc);
         }
     }
@@ -2075,18 +2046,9 @@ ControlFlowGraph::buildMBBFromBB(
         for (BundleOrderIndex::const_iterator boi = bundleOrder.begin();
              boi != bundleOrder.end(); ++boi) {
             llvm::MachineInstr* mi = NULL;
-#if LLVM_OLDER_THAN_3_6
-            const llvm::TargetInstrInfo& tii = 
-                *mbb.getParent()->getTarget().getInstrInfo();
-#elif LLVM_OLDER_THAN_6_0
-            const llvm::TargetInstrInfo& tii = 
-                *mbb.getParent()->getTarget().getSubtargetImpl(
-                    *mbb.getParent()->getFunction())->getInstrInfo();
-#else
             const llvm::TargetInstrInfo& tii =
                 *mbb.getParent()->getTarget().getSubtargetImpl(
                     mbb.getParent()->getFunction())->getInstrInfo();
-#endif
             if (startedOps.find(*boi) == startedOps.end()) {
 #if 0
                 // TODO: figure out a generic way to find the NOP opcode for 
@@ -2165,15 +2127,9 @@ ControlFlowGraph::buildMBBFromBB(
                             dynamic_cast<
                             const TTAProgram::TerminalProgramOperation&>(
                                 *terminal);
-#ifdef LLVM_OLDER_THAN_3_7
-                        llvm::MCSymbol* symbol = 
-                            mbb.getParent()->getContext().GetOrCreateSymbol(
-                                llvm::StringRef(tpo.label()));
-#else
                         llvm::MCSymbol* symbol = 
                             mbb.getParent()->getContext().getOrCreateSymbol(
                                 llvm::StringRef(tpo.label()));
-#endif
                         mi->addOperand(llvm::MachineOperand::CreateMCSymbol(symbol));
                         // need to keep book of the TPOs in order to recreate the
                         // label instructions

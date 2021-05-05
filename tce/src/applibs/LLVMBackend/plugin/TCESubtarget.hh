@@ -36,19 +36,13 @@
 
 #include "tce_config.h"
 
-#ifdef LLVM_OLDER_THAN_6_0
-#include "llvm/Target/TargetSubtargetInfo.h"
-#else
 #include "llvm/CodeGen/TargetSubtargetInfo.h"
-#endif
 
 #define GET_SUBTARGETINFO_HEADER
 #include "TCEGenSubTargetInfo.inc"
 #undef GET_SUBTARGETINFO_HEADER
 
-#ifndef LLVM_OLDER_THAN_3_9
 #include "llvm/CodeGen/SelectionDAGTargetInfo.h"
-#endif
 
 namespace llvm {
 
@@ -67,28 +61,19 @@ namespace llvm {
 
         virtual bool is64bit() const { return false; }
 
-#ifndef LLVM_OLDER_THAN_10
         const InstrItineraryData*
         getInstrItineraryData() const override {
             return &InstrItins;
         }
-#endif
 
         virtual const TargetInstrInfo* getInstrInfo() const override;
         virtual const TargetFrameLowering* getFrameLowering() const override;
         virtual const TargetLowering* getTargetLowering() const override;
-
-#ifdef LLVM_OLDER_THAN_3_9
-        virtual const TargetSelectionDAGInfo* getSelectionDAGInfo() const override;
-#else
         virtual const SelectionDAGTargetInfo* getSelectionDAGInfo()
             const override;
-#endif
 
         virtual const TargetRegisterInfo* getRegisterInfo() const override;
-#ifndef LLVM_OLDER_THAN_9
         virtual bool enableMachinePipeliner() const override;
-#endif
 
     protected:
         /// ParseSubtargetFeatures - Parses features string setting specified
@@ -103,9 +88,7 @@ namespace llvm {
     private:
         std::string pluginFile_;
         TCETargetMachinePlugin* plugin_;
-#ifndef LLVM_OLDER_THAN_10
         InstrItineraryData InstrItins;
-#endif
     };
 
     class  TCELESubtarget: public TCESubtarget {

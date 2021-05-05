@@ -46,13 +46,8 @@ IGNORE_COMPILER_WARNING("-Wunused-private-field")
 #include <set>
 #include <map>
 #include <sstream>
-#ifdef LLVM_OLDER_THAN_6_0
-#include "llvm/Target/TargetRegisterInfo.h"
-#include "llvm/Target/TargetInstrInfo.h"
-#else
 #include "llvm/CodeGen/TargetRegisterInfo.h"
 #include "llvm/CodeGen/TargetInstrInfo.h"
-#endif
 #include "llvm/Target/TargetMachine.h"
 
 namespace llvm {

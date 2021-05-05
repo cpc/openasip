@@ -89,40 +89,21 @@ const std::set<TCEString> ValueType::SUPPORTED_LLVM_VALUE_TYPES =
     ("v64i8")                                              // i8 subword
     ("v32i16")                                             // i16 subword
 
-#ifndef LLVM_OLDER_THAN_3_8
     ("v512i1") ("v1024i1") ("v128i8") ("v256i8")
     ("v64i16") ("v128i16") ("v32i32") ("v64i32")
-#endif
 
-#ifndef LLVM_OLDER_THAN_7
     ("v128i1")
     ("v2048i1")
     ("v256i8")                                             // i8 subword
-#endif
 
 // New values that the custom vector extension patch unlocks.
 #if defined(LLVM_HAS_CUSTOM_VECTOR_EXTENSION)
     ("v16f16") ("v32f16") ("v64f16")                       // f16 subword
     ("v32f32")                                             // f32 subword
-#ifdef LLVM_3_7
-    ("v128i8")
-#endif
 
-#ifdef LLVM_OLDER_THAN_3_8
-    ("v32i32") ("v64i16") ("v128i16")
-
-#endif
-
-#ifndef LLVM_OLDER_THAN_4_0
     ("v256i1")
-    #ifdef LLVM_OLDER_THAN_7
-        ("v2048i1")
-    #endif
-#endif
-
-#ifdef LLVM_OLDER_THAN_7
+    ("v2048i1")
     ("v128i1")                                             // i1 subword
-#endif
 
 // new wider extension, for up to 4096 bits
 #if LLVM_HAS_CUSTOM_VECTOR_EXTENSION == 2
@@ -252,13 +233,8 @@ const std::map<TCEString, TCEString> TDGen::OPERATION_PATTERNS_ =
     ("cifu","uint_to_fp %1%")
     ("cfiu","fp_to_uint %1%")
     ("sqrtf","fsqrt %1%")
-#if LLVM_OLDER_THAN_4_0
-    ("chf","fextend %1%")
-    ("cfh","fround %1%")
-#else
     ("chf","fpextend %1%")
     ("cfh","fpround %1%")
-#endif
     ("csh","sint_to_fp %1%")
     ("cshu","uint_to_fp %1%")
     ("chs","fp_to_sint %1%")
@@ -2883,19 +2859,8 @@ TDGen::genGeneratedTCEPlugin_getStore(std::ostream& o) const {
         }
     }
 
-#ifdef LLVM_OLDER_THAN_5_0
-    o << "\tstd::cerr << \"regclass: of size \" <<rc->getSize() << std::endl;"
-      << std::endl;
-#elif LLVM_OLDER_THAN_6_0
-    o << "\tstd::cerr << \"regclass of size \" <<rc->SpillSize<< std::endl;"
-      << std::endl;
-#elif LLVM_OLDER_THAN_8
-    o << "\tstd::cerr << \"regclass of size \" <<rc->MC->getSize()<< std::endl;"
-      << std::endl;
-#else
     o << "\tstd::cerr << \"regclass id:\" <<rc->getID() << \"of size \" "
       << "<<rc->MC->RegsSize<< std::endl;" << std::endl;
-#endif
     o  << "\tassert(0&&\"Storing given regclass to stack not supported. "
        << "Bug in backend?\");"
        << endl
@@ -3008,15 +2973,7 @@ TDGen::genGeneratedTCEPlugin_getLoad(std::ostream& o) const {
         }
     }
 
-#ifdef LLVM_OLDER_THAN_5_0
-    o  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl
-#elif LLVM_OLDER_THAN_6_0
-    o  << "\tprintf(\"regclass of size %d \\n\", rc->SpillSize);" << std::endl
-#elif LLVM_OLDER_THAN_8
-    o  << "\tprintf(\"regclass of size %d \\n\", rc->MC->getSize());" << std::endl
-#else
     o  << "\tprintf(\"regclass of size %d \\n\", rc->MC->RegsSize);" << std::endl
-#endif
       << "\tassert(0&&\"loading from stack to given regclass not supported."
       << " Bug in backend?\");"
       << endl
@@ -3121,13 +3078,11 @@ TDGen::genTCETargetLoweringSIMD_getSetCCResultVT(std::ostream& o) const {
 
 #ifdef LLVM_OLDER_THAN_12
         o << "\tif (vt.getVectorElementCount().Min == "
-#elif LLVM_OLDER_THAN_11
-        o << "\tif (vt.getVectorNumElements() == "
 #else
         o << "\tif (vt.getVectorElementCount().getKnownMinValue() == "
 #endif
-          << Conversion::toString(subwCount)
-          << ") return llvm::MVT::" << boolVecVtStr << ";" << endl;
+          << Conversion::toString(subwCount) << ") return llvm::MVT::"
+          << boolVecVtStr << ";" << endl;
         subwCount *= 2;
     }
 
@@ -3177,16 +3132,8 @@ TDGen::genTCEInstrInfoSIMD_copyPhysVectorReg(std::ostream& o) const {
       << "bool TCEInstrInfo::copyPhysVectorReg(" << endl
       << "\tMachineBasicBlock& mbb," << endl
       << "\tMachineBasicBlock::iterator mbbi," << endl
-#ifdef LLVM_OLDER_THAN_3_9
-      << "DebugLoc dl," << endl
-#else
       << "const DebugLoc& dl," << endl
-#endif
-#ifdef LLVM_OLDER_THAN_10
-      << "\tunsigned destReg, unsigned srcReg," << endl
-#else
       << "\tMCRegister destReg, MCRegister srcReg," << endl
-#endif
       << "\tbool killSrc) const {" << endl
       << endl;
 
@@ -4198,15 +4145,6 @@ void TDGen::genTCERegisterInfo_setReservedVectorRegs(
  */
 void
 TDGen::writeTopLevelTD(std::ostream& o) {
-#ifdef LLVM_OLDER_THAN_10
-    o << "include \"Target.td\"" << endl;
-    o << "include \"GenRegisterInfo.td\"" << endl;
-    o << "include \"GenTCEInstrFormats.td\"" << endl;
-    o << "include \"TCEInstrInfo.td\"" << endl;
-    o << "include \"GenCallingConv.td\"" << endl;
-    o << "def TCEInstrInfo : InstrInfo { }" << endl;
-    o << "def TCE : Target { let InstructionSet = TCEInstrInfo; }" << endl;
-#else
     o << "include \"Target.td\"" << std::endl;
     o << "include \"TCEItinerary.td\"" << std::endl;
     o << "include \"GenRegisterInfo.td\"" << std::endl;
@@ -4222,7 +4160,6 @@ TDGen::writeTopLevelTD(std::ostream& o) {
     o << std::endl;
     o << "def TCE : Target { let InstructionSet = TCEInstrInfo; }"
       << std::endl;
-#endif
 }
 
 /**
@@ -4241,21 +4178,15 @@ TDGen::writeInstrFormats(std::ostream& o) {
     o << "//" << endl;
     o << "" << endl;
     o << "class InstTCE<dag outOps, dag inOps, string asmstr," << endl;
-#ifdef LLVM_OLDER_THAN_10
-    o << "              list<dag> pattern> : Instruction {" << endl;
-#else
     o << "              list<dag> pattern = []," << endl;
     o << "              InstrItinClass itin = IT_FU>" << endl;
     o << "             : Instruction {" << endl;
-#endif
     o << "    let Namespace = \"TCE\";" << endl;
     o << "    dag InOperandList = inOps;" << endl;
     o << "    dag OutOperandList = outOps;" << endl;
     o << "    let AsmString = asmstr;" << endl;
     o << "    let Pattern = pattern;" << endl;
-#ifndef LLVM_OLDER_THAN_10
     o << "    let Itinerary = itin;" << endl;
-#endif
     o << "}" << endl;
     o << "" << endl;
     o << "class Pseudo<dag outOps, dag inOps," << endl;
@@ -4972,15 +4903,9 @@ TDGen::llvmOperationPattern(const Operation& op, char /*operandType*/) const {
     if (opName == "cldu") return "uint_to_fp %1%";
     if (opName == "cdlu") return "fp_to_uint %1%";
 
-#if LLVM_OLDER_THAN_4_0
-    if (opName == "cfh" || opName == "cdf") return "fround %1%";
-    if (opName == "chf") return "f32 (fextend %1%)";
-    if (opName == "cfd") return "f64 (fextend %1%)";
-#else
     if (opName == "cfh" || opName == "cdf") return "fpround %1%";
     if (opName == "chf") return "f32 (fpextend %1%)";
     if (opName == "cfd") return "f64 (fpextend %1%)";
-#endif
 
     if (opName == "cih") return "sint_to_fp %1%";
     if (opName == "chi") return "i32 (fp_to_sint %1%)";
@@ -5187,13 +5112,8 @@ TDGen::llvmOperationName(const TCEString& operationName) const {
     if (opName == "cifu") return "uint_to_fp";
     if (opName == "cfiu") return "fp_to_uint";
 
-#if LLVM_OLDER_THAN_4_0
-    if (opName == "cfh") return "fround";
-    if (opName == "chf") return "fextend";
-#else
     if (opName == "cfh") return "fpround";
     if (opName == "chf") return "fpextend";
-#endif
 
     if (littleEndian_) {
         if (opName == "ld8") return "sextloadi8";
@@ -6215,17 +6135,8 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
         }
     }
 
-#ifdef LLVM_OLDER_THAN_5_0
-    os  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl
-#elif LLVM_OLDER_THAN_6_0
-    os  << "\tprintf(\"regclass of size %d \\n\",rc->SpillSize);" << std::endl
-#elif LLVM_OLDER_THAN_8
-    os  << "\tprintf(\"regclass of size %d \\n\",rc->MC->getSize());"
-        << std::endl
-#else
     os  << "\tprintf(\"regclass of size %d \\n\",rc->MC->RegsSize);"
         << std::endl
-#endif
         << "\tassert(0&&\"Storing given regclass to stack not supported. "
         << "Bug in backend?\");"
         << std::endl
@@ -6316,17 +6227,8 @@ TDGen::generateLoadStoreCopyGenerator(std::ostream& os) {
            << std::endl;
     }
 
-#ifdef LLVM_OLDER_THAN_5_0
-    os  << "\tprintf(\"regclass: of size %d \\n\", rc->getSize());" << std::endl
-#elif LLVM_OLDER_THAN_6_0
-    os  << "\tprintf(\"regclass of size %d \\n\",rc->SpillSize);" << std::endl
-#elif LLVM_OLDER_THAN_8
-    os  << "\tprintf(\"regclass of size %d \\n\",rc->MC->getSize());"
-        << std::endl
-#else
     os  << "\tprintf(\"regclass of size %d \\n\",rc->MC->RegsSize);"
         << std::endl
-#endif
         << "\tassert(0&&\"loading from stack to given regclass not supported."
         << " Bug in backend?\");"
         << std::endl
@@ -7925,26 +7827,6 @@ TDGen::getMovePattern(
 void TDGen::writeCallSeqStart(std::ostream& os) {
 
     bool is64bit = mach_.is64bit();
-#ifdef LLVM_OLDER_THAN_5_0
-    if (!is64bit) {
-        os << "def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32>]>;";
-    } else {
-        os << "def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i64>]>;";
-    }
-  os << std::endl << std::endl
-     << "def callseq_start : SDNode<\"ISD::CALLSEQ_START\", "
-     << "SDT_TCECallSeqStart, [SDNPHasChain, SDNPOutGlue]>;" << std::endl
-     << std::endl
-     << "let Defs = [SP], Uses = [SP] in {" << std::endl;
-  if (!is64bit) {
-      os << "def ADJCALLSTACKDOWN : Pseudo<(outs), (ins i32imm:$amt),";
-  } else {
-      os << "def ADJCALLSTACKDOWN : Pseudo<(outs), (ins i64imm:$amt),";
-  }
-  os << "\"# ADJCALLSTACKDOWN $amt\","
-     << "[(callseq_start timm:$amt)]>;}" << std::endl << std::endl;
-
-#else
 
   if (!is64bit) {
       os << "def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32>,"
@@ -7966,8 +7848,6 @@ void TDGen::writeCallSeqStart(std::ostream& os) {
   os << "\"# ADJCALLSTACKDOWN $amt1, $amt2\","
      << "[(callseq_start timm:$amt1, timm:$amt2)]>;}"
      << std::endl << std::endl;
-
-#endif
 }
 
 void TDGen::createBranchAnalysis(std::ostream& os) {
@@ -8403,11 +8283,7 @@ void TDGen::genTCEInstrInfo_copyPhys64bitReg(std::ostream&o) const {
       << "bool TCEInstrInfo::copyPhys64bitReg(" << std::endl
       << "\tMachineBasicBlock& mbb," << std::endl
       << "\tMachineBasicBlock::iterator mbbi," << std::endl
-#ifdef LLVM_OLDER_THAN_3_9
-      <<  "DebugLoc dl," << std::endl
-#else
       <<  "const DebugLoc& dl," << std::endl
-#endif
       << "\tunsigned destReg, unsigned srcReg," << std::endl
       << "\tbool killSrc) const {" << std::endl
       << std::endl;

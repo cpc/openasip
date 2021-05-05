@@ -51,20 +51,13 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "ADFSerializer.hh"
 #include "TCEStubTargetTransformInfo.hh"
 #include "TCEStubSubTarget.hh"
-#ifndef LLVM_6_0
-// LLVM, COULD YOU PLEASE TRY TO DECIDE WHERE TO PUT THIS FILE?
 #include <llvm/Target/TargetLoweringObjectFile.h>
-#else
-#include <llvm/CodeGen/TargetLoweringObjectFile.h>
-#endif
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/CodeGen/Passes.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Target/TargetOptions.h>
-#ifndef LLVM_OLDER_THAN_3_9
 #include <llvm/CodeGen/TargetPassConfig.h>
-#endif
 
 using namespace llvm;
 
@@ -73,14 +66,6 @@ Target llvm::TheTCELETarget;
 Target llvm::TheTCELE64Target;
 
 extern "C" void LLVMInitializeTCETargetInfo() {
-#ifdef LLVM_OLDER_THAN_6_0
-    RegisterTarget<Triple::tce, /*HasJIT=*/false>
-        X(TheTCETarget, "tce-tut-llvm", "TCE custom processor");
-    RegisterTarget<Triple::tcele, false>
-        Y(TheTCELETarget, "tcele", "TCE custom processor (little endian)");
-    RegisterTarget<Triple::tcele64, false>
-        Z(TheTCELE64Target, "tcele64", "64-bit TCE custom processor (little endian)");
-#else
     RegisterTarget<Triple::tce, /*HasJIT=*/false>
         X(TheTCETarget, "tce-tut-llvm", "TCE custom processor",
             "TODO: wonder what this button does");
@@ -91,7 +76,6 @@ extern "C" void LLVMInitializeTCETargetInfo() {
     RegisterTarget<Triple::tcele64, false>
         Z(TheTCELE64Target, "tcele64-tut-llvm", "64-bit TCE custom processor (little endian) ",
           "TODO: wonder what this button does");
-#endif
 }
 
 extern "C" void LLVMInitializeTCEStubTarget() {
@@ -139,7 +123,6 @@ StringRef getTargetDesc(const Triple &TT) {
 }
 
 /* Base class constructor */
-#ifndef LLVM_OLDER_THAN_11
 TCEBaseTargetMachine::TCEBaseTargetMachine(
     const Target &T, const Triple& TT, const llvm::StringRef& CPU,
     const llvm::StringRef& FS, const TargetOptions &Options,
@@ -147,49 +130,8 @@ TCEBaseTargetMachine::TCEBaseTargetMachine(
     LLVMTargetMachine(T, getTargetDesc(TT), TT, CPU, FS, Options, RM, CM, OL),
     ttaMach_(NULL) {
 }
-#else
-TCEBaseTargetMachine::TCEBaseTargetMachine(
-    const Target &T, const Triple& TT, const std::string& CPU, 
-    const std::string &FS, const TargetOptions &Options,
-    Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL) :
-    LLVMTargetMachine(T, getTargetDesc(TT), TT, CPU, FS, Options, RM, CM, OL),
-    ttaMach_(NULL) {
-}
-#endif
 
-#ifdef LLVM_OLDER_THAN_3_9
-TCEStubTargetMachine::TCEStubTargetMachine(
-    const Target &T, const Triple &TT, const std::string& CPU, 
-    const std::string& FS, const TargetOptions &Options,
-    Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL) :
-    TCEBaseTargetMachine(T, TT, CPU, FS, Options, RM, CM, OL),
-    TLOF(new TargetLoweringObjectFileELF) {
-    ST = new TCEStubSubTarget(TT, CPU, FS, *this);
-}
-#elif LLVM_OLDER_THAN_6_0
-TCEStubTargetMachine::TCEStubTargetMachine(
-    const Target &T, const Triple &TT, const std::string& CPU,
-    const std::string& FS, const TargetOptions &Options,
-    Optional<Reloc::Model> RM, CodeModel::Model CM, CodeGenOpt::Level OL) :
-    TCEBaseTargetMachine(T, TT, CPU, FS, Options,
-                         RM?*RM:Reloc::Model::Static, CM, OL),
-    // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
-    TLOF(new TargetLoweringObjectFileELF) {
-    ST = new TCEStubSubTarget(TT, CPU, FS, *this);
-#elif LLVM_OLDER_THAN_11
-TCEStubTargetMachine::TCEStubTargetMachine(
-    const Target &T, const Triple &TT, const std::string& CPU,
-    const std::string& FS, const TargetOptions &Options,
-    Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
-    CodeGenOpt::Level OL, bool) :
-    TCEBaseTargetMachine(T, TT, CPU, FS, Options,
-                         RM?*RM:Reloc::Model::Static,
-                         CM?*CM:CodeModel::Small, OL),
-    // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
-    // Note: CodeModel does not have "Default" named member. "Small" is ok?
-    TLOF(new TargetLoweringObjectFileELF) {
-    ST = new TCEStubSubTarget(TT, CPU, FS, *this);
-#else
+
 TCEStubTargetMachine::TCEStubTargetMachine(
     const Target &T, const Triple &TT, const llvm::StringRef& CPU,
     const llvm::StringRef& FS, const TargetOptions &Options,
@@ -204,7 +146,6 @@ TCEStubTargetMachine::TCEStubTargetMachine(
 //    TLOF(new TargetLoweringObjectFile) {
     ST = new TCEStubSubTarget(TT, CPU, FS, *this);
 
-#endif
     // For autovectorization to work we need to set target machine information:
     // Load ADF from static adfXML string
     ADFSerializer serializer;
@@ -213,20 +154,6 @@ TCEStubTargetMachine::TCEStubTargetMachine(
     TTAMachine::Machine* targetTTAMachine = serializer.readMachine();
     setTTAMach(targetTTAMachine);
 }
-
-#ifdef LLVM_OLDER_THAN_6_0
-TargetIRAnalysis TCEStubTargetMachine::getTargetIRAnalysis() {
-#ifdef LLVM_OLDER_THAN_3_8
-    return TargetIRAnalysis(
-        [this](Function &F) {
-            return TargetTransformInfo(TCEStubTTIImpl(this, F)); });
-#else
-    return TargetIRAnalysis(
-        [this](const Function &F) {
-            return TargetTransformInfo(TCEStubTTIImpl(this, F)); });
-#endif
-}
-#endif
 
 TCEStubTargetMachine::~TCEStubTargetMachine() {}
 
@@ -244,11 +171,7 @@ namespace {
     class TCEStubPassConfig : public TargetPassConfig {
     public:
         TCEStubPassConfig(TCEStubTargetMachine *TM, PassManagerBase &PM)
-#ifdef LLVM_OLDER_THAN_5_0
-            : TargetPassConfig(TM, PM) {}
-#else
             : TargetPassConfig(*TM, PM) {}
-#endif
 
         TCEStubTargetMachine &getTCEStubTargetMachine() const {
             return getTM<TCEStubTargetMachine>();

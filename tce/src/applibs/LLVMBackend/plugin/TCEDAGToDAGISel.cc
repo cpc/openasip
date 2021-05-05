@@ -62,17 +62,9 @@ public:
     bool SelectADDRrr(SDValue N, SDValue &R1, SDValue &R2);
     bool SelectADDRri(SDValue N, SDValue &Base, SDValue &Offset);
 
-#ifdef LLVM_OLDER_THAN_3_9
-    llvm::SDNode* Select(llvm::SDNode* op) override;
-#else
     void Select(llvm::SDNode* op) override;
-#endif
 
-#if LLVM_OLDER_THAN_4_0
-    virtual const char* getPassName() const override {
-#else
     virtual StringRef getPassName() const override {
-#endif
         return "TCE DAG->DAG Pattern Instruction Selection";
     }
 
@@ -81,11 +73,7 @@ private:
     static bool isBroadcast(SDNode *n);
     static bool isConstantBuild(SDNode* n);
     static bool isConstantFPBuild(SDNode* n);
-#ifdef LLVM_OLDER_THAN_3_9
-    SDNode* SelectOptimizedBuildVector(SDNode* n);
-#else
     void SelectOptimizedBuildVector(SDNode* n);
-#endif
     // returns size of cancat
 
     EVT getIntegerVectorVT(EVT vt);
@@ -122,10 +110,6 @@ TCEDAGToDAGISel::~TCEDAGToDAGISel() {
 //}
 
 
-#ifdef LLVM_OLDER_THAN_3_9
-#define SELECT_NODE_AND_RETURN(args...) return CurDAG->SelectNodeTo(args)
-#define RETURN_SELECTED_NODE(node) return (node)
-#else
 // in LLVM 3.9 select() returns void
 #define SELECT_NODE_AND_RETURN(args...) \
     CurDAG->SelectNodeTo(args); \
@@ -133,7 +117,6 @@ TCEDAGToDAGISel::~TCEDAGToDAGISel() {
 #define RETURN_SELECTED_NODE(node) \
     (void)(node); \
     return
-#endif
 
 
 /**
@@ -141,21 +124,13 @@ TCEDAGToDAGISel::~TCEDAGToDAGISel() {
  *
  * @param op Operation to select.
  */
-#ifdef LLVM_OLDER_THAN_3_9
-SDNode*
-#else
 void
-#endif
 TCEDAGToDAGISel::Select(SDNode* n) {
     SDLoc dl(n);
     if (n->getOpcode() >= ISD::BUILTIN_OP_END &&
         n->getOpcode() < TCEISD::FIRST_NUMBER) {
         // Already selected.
-#ifdef LLVM_OLDER_THAN_3_9
-        return NULL;
-#else
         return;
-#endif
     } else if (n->getOpcode() == ISD::BR) {
         SDValue chain = n->getOperand(0);
 
@@ -171,17 +146,11 @@ TCEDAGToDAGISel::Select(SDNode* n) {
                 n, MOVE_IMM, DEFAULT_TYPE,
                 CurDAG->getTargetFrameIndex(fi, DEFAULT_TYPE));
         } else {
-#ifdef LLVM_OLDER_THAN_3_9
-            return CurDAG->getMachineNode(
-                MOVE_IMM, dl, DEFAULT_TYPE,
-                CurDAG->getTargetFrameIndex(fi, DEFAULT_TYPE));
-#else
             auto fiN = CurDAG->getMachineNode(
                 MOVE_IMM, dl, DEFAULT_TYPE,
                 CurDAG->getTargetFrameIndex(fi, DEFAULT_TYPE));
             ReplaceNode(n, fiN);
             return;
-#endif
         }
     } else if (n->getOpcode() == ISD::VSELECT ||
                (n->getOpcode() == ISD::SELECT &&
@@ -258,12 +227,7 @@ TCEDAGToDAGISel::Select(SDNode* n) {
         EVT rhsVt = rhs.getValueType();
     }
 
-#ifdef LLVM_OLDER_THAN_3_9
-    SDNode* res =  SelectCode(n);
-    return res;
-#else
     SelectCode(n);
-#endif
 }
 #undef SELECT_NODE_AND_RETURN
 #undef RETURN_SELECTED_NODE

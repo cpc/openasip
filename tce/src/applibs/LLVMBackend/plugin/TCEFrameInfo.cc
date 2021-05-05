@@ -46,14 +46,9 @@ using namespace llvm;
  * Emits machine function prologue to machine functions.
  */
 
-#ifdef LLVM_OLDER_THAN_3_9
-#define ERASE_INSTR_AND_RETURN(I)                \
-    MBB.erase(I);                                \
-    return
-#else
+
 // Some LLVM 3.9 function wants iterator after the erased instruction.
 #define ERASE_INSTR_AND_RETURN(I) return MBB.erase(I)
-#endif
 
 #ifdef TARGET64BIT
 #define ADDIMM TCE::ADD64ssa
@@ -86,11 +81,7 @@ using namespace llvm;
  *
  * Stack space is already reserved in caller stack.
  */
-#ifdef LLVM_OLDER_THAN_3_9
-void
-#else
 MachineBasicBlock::iterator
-#endif
 TCEFrameLowering::eliminateCallFramePseudoInstr(
     MachineFunction &MF, MachineBasicBlock &MBB,
     MachineBasicBlock::iterator I) const {
@@ -98,13 +89,8 @@ TCEFrameLowering::eliminateCallFramePseudoInstr(
         int opc = I->getOpcode();
         // convert stack down to sub
         if (opc == TCE::ADJCALLSTACKDOWN) {
-#ifdef LLVM_OLDER_THAN_5_0
-            MachineOperand mo1 = I->getOperand(1);
-            MachineOperand mo2 = I->getOperand(2);
-#else
             MachineOperand mo1 = I->getOperand(2);
             MachineOperand mo2 = I->getOperand(3);
-#endif
             long val = I->getOperand(0).getImm();
 
             if (val == 0) {
@@ -141,18 +127,12 @@ TCEFrameLowering::eliminateCallFramePseudoInstr(
     } else {
         ERASE_INSTR_AND_RETURN(I);
     }
-#ifndef LLVM_OLDER_THAN_3_9
     return I;
-#endif
 }
 #undef ERASE_INSTR_AND_RETURN
 
 bool TCEFrameLowering::hasFP(const MachineFunction &MF) const {
-#if LLVM_OLDER_THAN_4_0
-    if (MF.getFrameInfo()->hasVarSizedObjects()) {
-#else
     if (MF.getFrameInfo().hasVarSizedObjects()) {
-#endif
         return true;
     }
     return false;
@@ -182,11 +162,7 @@ void
 TCEFrameLowering::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
  const {
     MachineBasicBlock& mbb = mf.front();
-#if LLVM_OLDER_THAN_4_0
-    MachineFrameInfo& mfi = *mf.getFrameInfo();
-#else
     MachineFrameInfo& mfi = mf.getFrameInfo();
-#endif
     int numBytes = (int)mfi.getStackSize();
 
     // this unfortunately return true for inline asm.
@@ -226,11 +202,7 @@ TCEFrameLowering::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
 
         // Create metadata which says that this is an RA save
         MachineBasicBlock::iterator raStore = ii; raStore--;
-#ifdef LLVM_OLDER_THAN_6_0
-        LLVMContext& context = mbb.getParent()->getFunction()->getContext();
-#else
         LLVMContext& context = mbb.getParent()->getFunction().getContext();
-#endif
         llvm::Metadata* md =
             llvm::MDString::get(context, "AA_CATEGORY_RA_SAVE_SLOT");
         MDNode* mdNode =
@@ -242,11 +214,7 @@ TCEFrameLowering::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
 
     if (hasFP(mf)) {
         // only need to save old FP if this function may return
-#ifdef LLVM_OLDER_THAN_6_0
-        if (!mf.getFunction()->doesNotReturn()) {
-#else
         if (!mf.getFunction().doesNotReturn()) {
-#endif
             auto spOpcAndOffset = tii_.getPointerAdjustment(-stackAlignment_);
             BuildMI(mbb, ii, dl, tii_.get(std::get<0>(spOpcAndOffset)),
                     TCE::SP)
@@ -262,11 +230,7 @@ TCEFrameLowering::emitPrologue(MachineFunction& mf, MachineBasicBlock &MBB)
             numBytes += stackAlignment_;
             // Create metadata which says that this is an FP save
             MachineBasicBlock::iterator fpStore = ii; fpStore--;
-#ifdef LLVM_OLDER_THAN_6_0
-            LLVMContext& context = mbb.getParent()->getFunction()->getContext();
-#else
             LLVMContext& context = mbb.getParent()->getFunction().getContext();
-#endif
             llvm::Metadata* md =
                 llvm::MDString::get(context, "AA_CATEGORY_FP_SAVE_SLOT");
             MDNode* mdNode =
@@ -298,11 +262,7 @@ void
 TCEFrameLowering::emitEpilogue(
     MachineFunction& mf, MachineBasicBlock& mbb) const {
 
-#if LLVM_OLDER_THAN_4_0
-    MachineFrameInfo& mfi = *mf.getFrameInfo();
-#else
     MachineFrameInfo& mfi = mf.getFrameInfo();
-#endif
 
     MachineBasicBlock::iterator mbbi = std::prev(mbb.end());
 
@@ -345,13 +305,8 @@ TCEFrameLowering::emitEpilogue(
         // Create metadata which says that this is an FP load
         MachineBasicBlock::iterator fpLoad = mbbi; fpLoad--;
 
-#ifdef LLVM_OLDER_THAN_6_0
-        LLVMContext& context =
-            mbb.getParent()->getFunction()->getContext();
-#else
         LLVMContext& context =
             mbb.getParent()->getFunction().getContext();
-#endif
 
         llvm::Metadata* md = llvm::MDString::get(context, "AA_CATEGORY_FP_SAVE_SLOT");
         MDNode* mdNode = MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
@@ -381,14 +336,8 @@ TCEFrameLowering::emitEpilogue(
         // Create metadata which says that this is an RA load
         MachineBasicBlock::iterator raLoad = mbbi; raLoad--;
 
-
-#ifdef LLVM_OLDER_THAN_6_0
-        LLVMContext& context =
-            mbb.getParent()->getFunction()->getContext();
-#else
         LLVMContext& context =
             mbb.getParent()->getFunction().getContext();
-#endif
 
         llvm::Metadata* md = llvm::MDString::get(context, "AA_CATEGORY_RA_SAVE_SLOT");
         MDNode* mdNode = MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));

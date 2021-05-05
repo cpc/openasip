@@ -55,13 +55,10 @@ namespace llvm {
         TCERegisterInfo(const TargetInstrInfo& tii);
         virtual ~TCERegisterInfo() {};
 
-// TODO: why ifdef commented out in trunk 
-//#ifdef LLVM_3_2
         void eliminateCallFramePseudoInstr(
             MachineFunction &MF,
             MachineBasicBlock &MBB,
             MachineBasicBlock::iterator I) const;
-//#endif
 
         const MCPhysReg* getCalleeSavedRegs(const MachineFunction *MF = 0) const override;
 
@@ -73,11 +70,7 @@ namespace llvm {
 
         unsigned getRARegister() const;
 
-#ifdef LLVM_OLDER_THAN_9
-        unsigned getFrameRegister(const MachineFunction& mf) const override;
-#else
         Register getFrameRegister(const MachineFunction& mf) const override;
-#endif
 
         bool requiresRegisterScavenging(const MachineFunction&) const override;
 	

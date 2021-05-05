@@ -42,12 +42,10 @@
 #include "CompilerWarnings.hh"
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
-#ifndef LLVM_3_1
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
 #include <llvm/Support/CommandLine.h>
-#endif
 
 POP_COMPILER_DIAGS
 

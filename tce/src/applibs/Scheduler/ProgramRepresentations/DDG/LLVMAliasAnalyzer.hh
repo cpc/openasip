@@ -48,12 +48,8 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 POP_COMPILER_DIAGS
 
-#ifdef LLVM_OLDER_THAN_3_7
-typedef llvm::AliasAnalysis::AliasResult AliasResult;
-#else
 typedef llvm::MemoryLocation Location;
 typedef llvm::AliasResult AliasResult;
-#endif
 
 class LLVMAliasAnalyzer : public MemoryAliasAnalyzer {
 public:

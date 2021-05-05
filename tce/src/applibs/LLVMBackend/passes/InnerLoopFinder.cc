@@ -50,20 +50,12 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 #include <llvm/IR/Constants.h>
 #include <llvm/Analysis/LoopInfo.h>
 #include "llvm/Transforms/Scalar.h"
-#ifndef LLVM_OLDER_THAN_7
 #include "llvm/Transforms/Utils.h"
-#endif
-#ifndef LLVM_OLDER_THAN_11
 #include <llvm/Pass.h>
-#else
-#include <llvm/PassSupport.h>
-#endif
 #include "llvm/CodeGen/Passes.h"
 #include "InnerLoopFinder.hh"
 
-#ifndef LLVM_OLDER_THAN_10
 #include "llvm/InitializePasses.h"
-#endif
 
 using namespace llvm;
 
@@ -82,11 +74,7 @@ INITIALIZE_PASS_BEGIN(
     false, true)
 INITIALIZE_PASS_DEPENDENCY(LoopInfoWrapperPass)
 INITIALIZE_PASS_DEPENDENCY(LoopSimplify)
-#ifdef LLVM_OLDER_THAN_3_9
-INITIALIZE_PASS_DEPENDENCY(LCSSA)
-#else
 INITIALIZE_PASS_DEPENDENCY(LCSSAWrapperPass)
-#endif
 INITIALIZE_PASS_END(
     InnerLoopFinder, "find-innerloops", 
     "Finds info of the inner loops in the program.",
@@ -114,20 +102,9 @@ InnerLoopFinder::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
     AU.addRequiredID(llvm::LCSSAID);
     AU.addPreservedID(llvm::LCSSAID);
     AU.addRequired<llvm::LoopInfoWrapperPass>();
-
-#ifdef LLVM_OLDER_THAN_3_8
-    AU.addRequired<llvm::ScalarEvolution>();
-#else
     AU.addRequired<llvm::ScalarEvolutionWrapperPass>();
-#endif
-
     AU.addPreserved<llvm::LoopInfoWrapperPass>();
-
-#ifdef LLVM_OLDER_THAN_3_8
-    AU.addPreserved<llvm::ScalarEvolution>();
-#else
     AU.addPreserved<llvm::ScalarEvolutionWrapperPass>();
-#endif
 }
 
 InnerLoopFinder::~InnerLoopFinder() {
@@ -180,11 +157,7 @@ InnerLoopFinder::loopDescription(llvm::Loop* l) {
     std::ostringstream ss;
     assert(l->getHeader() != NULL);
     assert(l->getHeader()->getParent() != NULL);
-#ifdef LLVM_OLDER_THAN_11
-    std::string curProcName = l->getHeader()->getParent()->getName();
-#else
     std::string curProcName = l->getHeader()->getParent()->getName().str();
-#endif
     ss << "in " << curProcName << "()";
 
     return ss.str();
@@ -246,11 +219,7 @@ InnerLoopFinder::runOnLoop(llvm::Loop* l, llvm::LPPassManager&) {
         assert(l->getBlocks().size() > 0);
 
         InnerLoopInfo loopInfo(tripCount);
-#ifdef LLVM_OLDER_THAN_6_0
-        loopInfos_[l->getBlocks().at(0)] = loopInfo;
-#else
         loopInfos_[l->getBlocks()[0]] = loopInfo;
-#endif
     } 
 
     if (dump) {
@@ -283,12 +252,8 @@ InnerLoopFinder::runOnLoop(llvm::Loop* l, llvm::LPPassManager&) {
  */
 unsigned 
 InnerLoopFinder::getSmallConstantTripCount(llvm::Loop* loop) {
-#ifdef LLVM_OLDER_THAN_3_8
-    ScalarEvolution *SE = &getAnalysis<llvm::ScalarEvolution>();
-#else
     ScalarEvolution *SE =
         &getAnalysis<llvm::ScalarEvolutionWrapperPass>().getSE();
-#endif
     llvm::BasicBlock* loopLatch = loop->getLoopLatch();
     // In case of the forever loop in the exit() the latch does
     // not jump out of the loop and SE cannot analyze the trip count,

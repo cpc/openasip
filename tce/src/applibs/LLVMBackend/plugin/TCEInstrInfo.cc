@@ -38,9 +38,7 @@
 #include "TCEInstrInfo.hh"
 
 #include <llvm/ADT/STLExtras.h>
-#ifndef LLVM_OLDER_THAN_10
 #include <llvm/CodeGen/DFAPacketizer.h>
-#endif
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/CodeGen/MachineRegisterInfo.h>
 #include <llvm/Support/ErrorHandling.h>
@@ -66,10 +64,8 @@
 
 using namespace llvm;
 
-#ifndef LLVM_OLDER_THAN_10
 #define GET_INSTRMAP_INFO
 #include "TCEGenDFAPacketizer.inc"
-#endif
 
 /**
  * Constructor.
@@ -98,25 +94,13 @@ TCEInstrInfo:: ~TCEInstrInfo() {
  * @return number of branch instructions inserted
  */
 unsigned
-#if LLVM_OLDER_THAN_4_0
-TCEInstrInfo::InsertBranch(
-#else
 TCEInstrInfo::insertBranch(
-#endif
     MachineBasicBlock& mbb,
     MachineBasicBlock* tbb,
     MachineBasicBlock* fbb,
     ArrayRef<MachineOperand> cond,
-#ifdef LLVM_OLDER_THAN_3_9
-    DebugLoc dl
-#else
     const DebugLoc& dl
-#endif
-#ifdef LLVM_OLDER_THAN_4_0
-    ) const {
-#else
     , int *BytesAdded) const {
-#endif
     assert(cond.size() == 0 || cond.size() == 2 || cond.size() == 3);
 
     if (mbb.size() != 0) {
@@ -187,12 +171,8 @@ TCEInstrInfo::insertBranch(
  * @return number of braches removed
  */
 unsigned
-#if LLVM_OLDER_THAN_4_0
-TCEInstrInfo::RemoveBranch(MachineBasicBlock &mbb) const {
-#else
 TCEInstrInfo::removeBranch(
     MachineBasicBlock &mbb, int *BytesRemoved) const {
-#endif
     int j = 0;
     MachineBasicBlock::iterator i = mbb.end();
     while (i != mbb.begin()) {
@@ -236,11 +216,7 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   BuildMI(MBB, I, DL, get(plugin_->getStore(RC))).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
 
-#ifdef LLVM_OLDER_THAN_6_0
-  LLVMContext& context = MBB.getParent()->getFunction()->getContext();
-#else
   LLVMContext& context = MBB.getParent()->getFunction().getContext();
-#endif
   llvm::Metadata* md = llvm::MDString::get(context, "AA_CATEGORY_STACK_SLOT");
   MDNode* mdNode =
       MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
@@ -259,11 +235,7 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   BuildMI(MBB, I, DL, get(plugin_->getLoad(RC)), DestReg).addFrameIndex(FI)
       .addImm(0);
 
-#ifdef LLVM_OLDER_THAN_6_0
-  LLVMContext& context = MBB.getParent()->getFunction()->getContext();
-#else
   LLVMContext& context = MBB.getParent()->getFunction().getContext();
-#endif
   llvm::Metadata* md = llvm::MDString::get(context, "AA_CATEGORY_STACK_SLOT");
   MDNode* mdNode =
       MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
@@ -284,16 +256,8 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 void TCEInstrInfo::copyPhysReg(
     MachineBasicBlock& mbb,
     MachineBasicBlock::iterator mbbi,
-#ifdef LLVM_OLDER_THAN_3_9
-    DebugLoc DL,
-#else
     const DebugLoc& DL,
-#endif
-#ifdef LLVM_OLDER_THAN_10
-        unsigned destReg, unsigned srcReg,
-#else
         MCRegister destReg, MCRegister srcReg,
-#endif
     bool killSrc) const
 {
     DebugLoc dl;
@@ -364,11 +328,7 @@ void TCEInstrInfo::copyPhysReg(
  * @return false if did reverse condition, true if could not.
  */
 bool
-#if LLVM_OLDER_THAN_4_0
-TCEInstrInfo::ReverseBranchCondition(
-#else
 TCEInstrInfo::reverseBranchCondition(
-#endif
     llvm::SmallVectorImpl<llvm::MachineOperand>& cond) const {
     assert(cond.size() != 0);
 
@@ -486,11 +446,7 @@ TCEInstrInfo::reverseBranchCondition(
  * @return false if could analyze, true if could not analyze
  */
 bool
-#ifdef LLVM_OLDER_THAN_3_9
-    TCEInstrInfo::AnalyzeBranch(
-#else
     TCEInstrInfo::analyzeBranch(
-#endif
     MachineBasicBlock &mbb, MachineBasicBlock *&tbb,
     MachineBasicBlock *&fbb, 
     llvm::SmallVectorImpl<llvm::MachineOperand>& cond, bool allowModify)
@@ -565,7 +521,6 @@ bool
     return true;
 }
 
-#ifndef LLVM_OLDER_THAN_10
 namespace {
 class TCEPipelinerLoopInfo : public TargetInstrInfo::PipelinerLoopInfo {
 public:
@@ -599,15 +554,10 @@ std::unique_ptr<TargetInstrInfo::PipelinerLoopInfo>
 TCEInstrInfo::analyzeLoopForPipelining(MachineBasicBlock *LoopBB) const {
     return std::make_unique<TCEPipelinerLoopInfo>();
 }
-#endif
 
 bool 
-#ifdef LLVM_OLDER_THAN_3_9
-TCEInstrInfo::isPredicated(const MachineInstr *mi) const {
-#else
 TCEInstrInfo::isPredicated(const MachineInstr& mi_ref) const {
     const MachineInstr* mi = &mi_ref;
-#endif
     // TODO: should be conditional move here..
     if (mi->getOpcode() == TCE::RETL) {
         return false;
@@ -623,18 +573,8 @@ TCEInstrInfo::isPredicated(const MachineInstr& mi_ref) const {
 }
 
 bool
-#ifdef LLVM_OLDER_THAN_3_9
-TCEInstrInfo::isPredicable(MachineInstr *mi) const {
-#else
-#ifdef LLVM_OLDER_THAN_5_0
-TCEInstrInfo::isPredicable(MachineInstr& mi_ref) const {
-    MachineInstr* mi = &mi_ref;
-#else
 TCEInstrInfo::isPredicable(const MachineInstr& mi_ref) const {
     const MachineInstr* mi = &mi_ref;
-#endif
-
-#endif
     if (mi->getOpcode() == TCE::COPY) {
         return false;
     }
@@ -644,11 +584,7 @@ TCEInstrInfo::isPredicable(const MachineInstr& mi_ref) const {
         return false;
     }
 
-#ifdef LLVM_OLDER_THAN_3_9
-    if (isPredicated(mi)) {
-#else
     if (isPredicated(*mi)) {
-#endif
         return false;
     }
 
@@ -674,25 +610,15 @@ TCEInstrInfo::isPredicable(const MachineInstr& mi_ref) const {
 // todo: mostlly ripped from hexagon.
 // check the legal things
 bool TCEInstrInfo::PredicateInstruction(
-#ifdef LLVM_OLDER_THAN_3_9
-    MachineInstr *mi,
-#else
     MachineInstr& mi_ref,
-#endif
     ArrayRef<MachineOperand> cond
 ) const {
 
-#ifndef LLVM_OLDER_THAN_3_9
     MachineInstr *mi = &mi_ref;
-#endif
 
     int opc = mi->getOpcode();
 
-#ifdef LLVM_OLDER_THAN_3_9
-    assert (isPredicable(mi) && "Expected predicable instruction");
-#else
     assert (isPredicable(*mi) && "Expected predicable instruction");
-#endif
 
     bool invertJump = (cond.size() >1 && cond[1].isImm() &&
                        (cond[1].getImm() == 0));
@@ -753,26 +679,10 @@ int TCEInstrInfo::getMatchingCondBranchOpcode(int opc, bool inv) const {
 
 
 // mostly ripped from hexagon
-#ifdef LLVM_OLDER_THAN_3_9
-TCEInstrInfo::DefinesPredicate(
-    MachineInstr *MI, std::vector<MachineOperand> &Pred) const {
-    for (unsigned oper = 0; oper < MI->getNumOperands(); ++oper) {
-        MachineOperand MO = MI->getOperand(oper);
-        if (MO.isReg() && MO.isDef()) {
-            const TargetRegisterClass *RC =
-                ri_.getMinimalPhysRegClass(MO.getReg());
-            if (RC == &TCE::GuardRegsRegClass || RC == &TCE::R1RegsRegClass) {
-                Pred.push_back(MO);
-                return true;
-            }
-        }
-    }
-    return false;
-}
-#elif LLVM_OLDER_THAN_12
+#ifdef LLVM_OLDER_THAN_12
 bool
 TCEInstrInfo::DefinesPredicate(
-    MachineInstr& MI_ref, std::vector<MachineOperand>& Pred) const {
+    MachineInstr& MI_ref, std::vector<MachineOperand> &Pred) const {
     MachineInstr *MI = &MI_ref;
     for (unsigned oper = 0; oper < MI->getNumOperands(); ++oper) {
         MachineOperand MO = MI->getOperand(oper);
@@ -812,11 +722,7 @@ TCEInstrInfo::
 isProfitableToIfCvt(MachineBasicBlock &MBB,
                     unsigned NumCycles,
                     unsigned ExtraPredCycles,
-#ifdef LLVM_OLDER_THAN_3_8
-                    const BranchProbability &Probability) const {
-#else
                     BranchProbability Probability) const {
-#endif
     return true;
 }
 
@@ -829,11 +735,7 @@ isProfitableToIfCvt(MachineBasicBlock &TMBB,
                     MachineBasicBlock &FMBB,
                     unsigned NumFCycles,
                     unsigned ExtraFCycles,
-#ifdef LLVM_OLDER_THAN_3_8
-                    const BranchProbability &Probability) const {
-#else
                     BranchProbability Probability) const {
-#endif
     return true;
 }
 
@@ -843,7 +745,6 @@ TCEInstrInfo::getPointerAdjustment(int offset) const {
     return plugin_->getPointerAdjustment(offset);
 }
 
-#ifndef LLVM_OLDER_THAN_10
 DFAPacketizer *
 TCEInstrInfo::CreateTargetScheduleState(
     const TargetSubtargetInfo &STI) const {
@@ -853,4 +754,4 @@ TCEInstrInfo::CreateTargetScheduleState(
     assert(dfa != nullptr);
     return dfa;
 }
-#endif
+

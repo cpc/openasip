@@ -104,13 +104,8 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/CodeGen/MachineInstr.h>
 #include <llvm/CodeGen/MachineMemOperand.h>
 #include <llvm/CodeGen/MachineConstantPool.h>
-#ifdef LLVM_OLDER_THAN_6_0
-#include <llvm/Target/TargetInstrInfo.h>
-#include <llvm/Target/TargetLowering.h>
-#else
 #include <llvm/CodeGen/TargetInstrInfo.h>
 #include <llvm/CodeGen/TargetLowering.h>
-#endif
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/Support/raw_ostream.h>
@@ -166,15 +161,7 @@ LLVMTCEBuilder::LLVMTCEBuilder(
     tm_ = &tm;
     mach_ = mach;
     functionAtATime_ = functionAtATime;
-#if (defined(LLVM_OLDER_THAN_3_8))
-    // The required type size info is the same for both BE and LE targets,
-    // no need to ask for the sub target as it requires llvm::Function in
-    // LLVM 3.7 for some reason. If the endianness is needed, ask for it
-    // separately.
-    dl_ = tm_->getDataLayout();
-#else
     dl_ = new DataLayout(tm_->createDataLayout());
-#endif
 }
 
 LLVMTCEBuilder::LLVMTCEBuilder(char& ID) : MachineFunctionPass(ID) {
@@ -313,20 +300,11 @@ LLVMTCEBuilder::initDataSections() {
          i != mod_->global_end(); i++) {
 
         SmallString<256> Buffer;
-#ifdef LLVM_OLDER_THAN_3_8
-        mang_->getNameWithPrefix(Buffer, i, false);
-#else
         mang_->getNameWithPrefix(Buffer, &(*i), false);
-#endif
         TCEString name(Buffer.c_str());
 
-#ifdef LLVM_OLDER_THAN_11
-        const llvm::GlobalValue& gv = *i;
-        unsigned int gvAlign = gv.getAlignment();
-#else
         const llvm::GlobalObject& gv = *i;
         MaybeAlign gvAlign = gv.getAlign();
-#endif
 
         if (gv.hasSection() &&
             gv.getSection() == std::string("llvm.metadata")) {
@@ -357,11 +335,7 @@ LLVMTCEBuilder::initDataSections() {
         def.address = 0;
         def.addressSpaceId = 
             cast<PointerType>(gv.getType())->getAddressSpace();
-#ifdef LLVM_OLDER_THAN_11
-        def.alignment = std::max(gvAlign, dl_->getPrefTypeAlignment(type));
-#else
         def.alignment = std::max(gvAlign.hasValue()? gvAlign->value():0, (long unsigned int)(dl_->getPrefTypeAlignment(type)));
-#endif
         def.size = dl_->getTypeStoreSize(type);
         // memcpy seems to assume global values are aligned by 4
         if (def.size > def.alignment) {
@@ -495,19 +469,11 @@ LLVMTCEBuilder::emitDataDef(const DataDef& def) {
              i != mod_->global_end(); i++) {
 
             SmallString<256> Buffer;
-#ifdef LLVM_OLDER_THAN_3_8
-            mang_->getNameWithPrefix(Buffer, i, false);
-            if (def.name == Buffer.c_str()) {
-                var = i;
-                break;
-            }
-#else
             mang_->getNameWithPrefix(Buffer, &(*i), false);
             if (def.name == Buffer.c_str()) {
                 var = &(*i);
                 break;
             }
-#endif
         }
 
         unsigned addr = def.address;
@@ -878,16 +844,11 @@ LLVMTCEBuilder::createExprDataDefinition(
         const Constant* ptr = ce->getOperand(0);
         SmallVector<Value*, 8> idxVec(ce->op_begin() + 1, ce->op_end());
 
-#ifdef LLVM_OLDER_THAN_3_9
-        int64_t ptrOffset = offset + dl_->getIndexedOffset(
-            ptr->getType(), idxVec);
-#else
         APInt offsetAI(dl_->getPointerTypeSizeInBits(ce->getType()), 0);
         bool success = cast<GEPOperator>(ce)->accumulateConstantOffset(
             *dl_, offsetAI);
         assert(success); // Fails if GEP is not all-constant.
         int64_t ptrOffset = offset + offsetAI.getSExtValue();
-#endif
 
         if (const GlobalValue* gv = dyn_cast<GlobalValue>(ptr)) {
             createGlobalValueDataDefinition(
@@ -1004,11 +965,7 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
 
     assert(tm_ != NULL);
 
-#if LLVM_OLDER_THAN_4_0
-    curFrameInfo_ = mf.getFrameInfo();
-#else
     curFrameInfo_ = &mf.getFrameInfo();
-#endif
     assert(curFrameInfo_ != NULL);
 
     // ensure data sections have been initialized
@@ -1020,11 +977,7 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
     // TODO: make list of mf's which for the pass will be ran afterwards..
 
     SmallString<256> Buffer;
-#ifdef LLVM_OLDER_THAN_6_0
-    mang_->getNameWithPrefix(Buffer, mf.getFunction(), false);
-#else
     mang_->getNameWithPrefix(Buffer, &mf.getFunction(), false);
-#endif
     TCEString fnName(Buffer.c_str());
 
     emitConstantPool(*mf.getConstantPool());
@@ -1053,11 +1006,7 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
             std::cerr << "### converting: ";
             std::cerr << std::endl;
 #endif
-#if LLVM_OLDER_THAN_4_0
-            instr = emitInstruction(j, proc);
-#else
             instr = emitInstruction(&*j, proc);
-#endif
 
             // Pseudo instructions:
             if (instr == NULL) continue;
@@ -1125,11 +1074,7 @@ LLVMTCEBuilder::writeMachineFunction(MachineFunction& mf) {
     if (Application::verboseLevel() > 0) {
         Application::logStream() 
             << "spill moves in " << 
-#ifdef LLVM_OLDER_THAN_6_0
-	    (std::string)(mf.getFunction()->getName()) << ": " 
-#else
 	    (std::string)(mf.getFunction().getName()) << ": "
-#endif
             << spillMoveCount_ << std::endl;
     }
     return false;
@@ -1674,23 +1619,13 @@ LLVMTCEBuilder::emitInstruction(
         const MDNode* mdNode = op.getMetadata();
         if (mdNode->getNumOperands() > 0) {
 
-#ifdef LLVM_OLDER_THAN_3_6
-            Value* op = mdNode->getOperand(0);
-            MDString* str = dyn_cast<MDString>(op);
-#else
             llvm::Metadata* op = mdNode->getOperand(0);
             MDString* str = dyn_cast<llvm::MDString>(op);
-#endif
 
             if (str->getString().str() == "fu_candidates") {
                 for (unsigned j = 1; j < mdNode->getNumOperands(); ++j) {
-#ifdef LLVM_OLDER_THAN_3_6
                     op = mdNode->getOperand(j);
                     str = dyn_cast<MDString>(op);
-#else
-                    op = mdNode->getOperand(j);
-                    str = dyn_cast<MDString>(op);
-#endif
                     TCEString fuName = str->getString().str();
                     /* The metadata from MachineInstr might contain "illegal"
                        FU candidates, pointing to FUs that do not contain the
@@ -1936,21 +1871,13 @@ LLVMTCEBuilder::addPointerAnnotations(
             // GetElemntPtrInst
                 
             if (memOpValue->hasName()) {
-#ifdef LLVM_OLDER_THAN_11
-		pointerName = memOpValue->getName();
-#else
 		pointerName = memOpValue->getName().str();
-#endif
             } else if (isa<GetElementPtrInst>(memOpValue)) {
                 memOpValue =
                     cast<GetElementPtrInst>(
                         memOpValue)->getPointerOperand();
                 if (memOpValue->hasName()) {
-#ifdef LLVM_OLDER_THAN_11
-                    pointerName = memOpValue->getName();
-#else
                     pointerName = memOpValue->getName().str();
-#endif
                 }
             } 
 
@@ -2058,11 +1985,7 @@ LLVMTCEBuilder::addPointerAnnotations(
                       derived from and separate annotation for the 
                       real pointer name + offset.
                     */
-#ifdef LLVM_OLDER_THAN_11
-		    pointerName = originMemOpValue->getName();
-#else
 		    pointerName = originMemOpValue->getName().str();
-#endif
                     break;
                 } else if (isa<GetElementPtrInst>(originMemOpValue)) {
                     originMemOpValue =
@@ -2156,11 +2079,7 @@ LLVMTCEBuilder::debugDataToAnnotations(
             sourceLineNumber = dl.getLine();
             sourceFileName = 
                 static_cast<TCEString>(
-#ifdef LLVM_OLDER_THAN_11
-                    cast<DIScope>(dl.getScope())->getFilename());
-#else
                     cast<DIScope>(dl.getScope())->getFilename().str());
-#endif
 
             if (sourceFileName.size() >
                 TPEF::InstructionAnnotation::MAX_ANNOTATION_BYTES) {
@@ -2242,11 +2161,7 @@ LLVMTCEBuilder::createTerminal(const MachineOperand& mo, int bitLimit) {
         return createTerminalRegister(rfName, idx);
     } else if (mo.isFPImm()) {
         const APFloat& apf = mo.getFPImm()->getValueAPF();
-#if LLVM_OLDER_THAN_4_0
-        if (&apf.getSemantics() == &APFloat::IEEEhalf) { //Half float
-#else
         if (&apf.getSemantics() == &APFloat::IEEEhalf()) { //Half float
-#endif
             APInt api = apf.bitcastToAPInt();
             uint16_t binary = (uint16_t)api.getRawData()[0];
             SimValue val(bitLimit);
@@ -2431,12 +2346,7 @@ LLVMTCEBuilder::emitConstantPool(const MachineConstantPool& mcp) {
         assert(!(cpe.isMachineConstantPoolEntry()) && "NOT SUPPORTED");
         if (!globalCP_.count(cpe.Val.ConstVal)) {
             // New unique constant.
-#ifdef LLVM_OLDER_THAN_11
-            assert(cpe.getAlignment() > 0);
-            unsigned alignment = std::max(
-                static_cast<unsigned>(cpe.getAlignment()),
-                dl_->getPrefTypeAlignment(cpe.getType()));
-#elif LLVM_OLDER_THAN_12
+#ifdef LLVM_OLDER_THAN_12
             assert(cpe.getAlign().value() > 0);
             MaybeAlign constantPoolAlignment = cpe.getAlign();
             unsigned alignment = std::max(
@@ -2720,11 +2630,7 @@ LLVMTCEBuilder::emitSelect(
 std::string
 LLVMTCEBuilder::mbbName(const MachineBasicBlock& mbb) {
     SmallString<256> Buffer;
-#ifdef LLVM_OLDER_THAN_6_0
-    mang_->getNameWithPrefix(Buffer, mbb.getParent()->getFunction(), false);
-#else
     mang_->getNameWithPrefix(Buffer, &mbb.getParent()->getFunction(), false);
-#endif
     TCEString name(Buffer.c_str());
     name += " ";
     name += Conversion::toString(mbb.getNumber());
@@ -3595,12 +3501,7 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
     for (Module::const_global_iterator i = mod_->global_begin();
          i != mod_->global_end(); i++) {
 
-#ifdef LLVM_OLDER_THAN_3_8        
-        const GlobalVariable* gv = i;
-#else
         const GlobalVariable* gv = &(*i);
-#endif
-
         if (gv->getName() == globalName && gv->use_empty()) {
             // The initializer should be an array of '{ int, void ()* }' 
             // structs for LLVM 3.4 and lower, and an array of

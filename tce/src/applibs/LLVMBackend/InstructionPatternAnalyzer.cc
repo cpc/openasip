@@ -33,9 +33,6 @@
 #include "MachineInstrDDG.hh"
 
 #include "llvm/CodeGen/MachineFunction.h"
-#if LLVM_OLDER_THAN_4_0
-#include "llvm/CodeGen/MachineFunctionAnalysis.h"
-#endif
 #include "llvm/IR/Function.h"
 using namespace llvm;
 
@@ -47,18 +44,10 @@ bool
 InstructionPatternAnalyzer::runOnMachineFunction(llvm::MachineFunction &F) {
     MachineInstrDDG ddg(F);
     ddg.setPrintOnlyCriticalPath(true);
-#ifdef LLVM_OLDER_THAN_6_0
-    ddg.writeToDotFile(F.getFunction()->getName().str() + ".pre_ra.critical_path.dot");
-#else
     ddg.writeToDotFile(F.getFunction().getName().str() + ".pre_ra.critical_path.dot");
-#endif
     ddg.setPrintOnlyCriticalPath(false);
     ddg.computeOptimalSchedule();
-#ifdef LLVM_OLDER_THAN_6_0
-    ddg.writeToDotFile(F.getFunction()->getName().str() + ".pre_ra.dot");
-#else
     ddg.writeToDotFile(F.getFunction().getName().str() + ".pre_ra.dot");
-#endif
     return false;
 }
 

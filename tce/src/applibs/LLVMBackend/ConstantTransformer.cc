@@ -45,15 +45,9 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/CodeGen/MachineFunction.h>
 #include <llvm/CodeGen/MachineBasicBlock.h>
 #include <llvm/MC/MCInstrInfo.h>
-#ifdef LLVM_OLDER_THAN_6_0
-#include <llvm/Target/TargetInstrInfo.h>
-#include <llvm/Target/TargetSubtargetInfo.h>
-#include <llvm/Target/TargetOpcodes.h>
-#else
 #include <llvm/CodeGen/TargetInstrInfo.h>
 #include <llvm/CodeGen/TargetSubtargetInfo.h>
 #include <llvm/CodeGen/TargetOpcodes.h>
-#endif
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 
 POP_COMPILER_DIAGS
@@ -129,11 +123,7 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
         MachineBasicBlock& mbb = *i;
         for (MachineBasicBlock::iterator j = mbb.begin();
              j != mbb.end(); j++) {
-#if LLVM_OLDER_THAN_4_0
-            const llvm::MachineInstr* mi = j;
-#else
             const llvm::MachineInstr* mi = &*j;
-#endif
             unsigned opc = mi->getOpcode();
 
             const llvm::MCInstrDesc& opDesc = mi->getDesc();
@@ -196,19 +186,9 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
                         mach_, -mo.getImm()) && /* SUB is 32b */
                     MachineInfo::supportsOperation(mach_, sub)) {
 
-#if LLVM_OLDER_THAN_6_0
-                    const llvm::MCInstrInfo* iinfo =
-                        mf.getTarget().getSubtargetImpl(
-                            *mf.getFunction())->getInstrInfo();
-#else
                     const llvm::MCInstrInfo* iinfo = 
                         mf.getTarget().getSubtargetImpl(
                             mf.getFunction())->getInstrInfo();
-#endif
-#if 0
-                    Application::logStream() 
-                        << "ConstantTransformer: converting constant in ";
-#endif
                     // RV_HIGH = SUB 0 -X
                     BuildMI(
                         mbb, j, j->getDebugLoc(), iinfo->get(plugin.opcode(sub)),
@@ -221,20 +201,11 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
                     for (unsigned opr = 0; opr < j->getNumOperands(); ++opr) {
                         MachineOperand& orig = j->getOperand(opr);
                         if (opr == operandI) {
-#ifdef LLVM_OLDER_THAN_5_0
-                            mib.addOperand(
-                                MachineOperand::CreateReg(plugin.rvHighDRegNum(), false));
-#else
 			    mib.add(MachineOperand::CreateReg(
 					plugin.rvHighDRegNum(), false));
-#endif
                             continue;
                         }
-#ifdef LLVM_OLDER_THAN_5_0
-                        mib.addOperand(orig);
-#else
                         mib.add(orig);
-#endif
                         orig.clearParent();
                     }
                         

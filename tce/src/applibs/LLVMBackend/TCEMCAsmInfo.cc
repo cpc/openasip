@@ -17,11 +17,7 @@
 
 using namespace llvm;
 
-#ifdef LLVM_OLDER_THAN_10
-TCEMCAsmInfo::TCEMCAsmInfo(const llvm::Triple&) {
-#else
 TCEMCAsmInfo::TCEMCAsmInfo(const llvm::Triple&, const llvm::MCTargetOptions&) {
-#endif
     AlignmentIsInBytes          = true;
     COMMDirectiveAlignmentIsInBytes = true;
 

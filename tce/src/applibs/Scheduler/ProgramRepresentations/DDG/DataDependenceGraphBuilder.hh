@@ -42,12 +42,8 @@
 #include "LiveRangeData.hh"
 
 namespace llvm {
-#ifdef LLVM_OLDER_THAN_3_8
-    class AliasAnalysis;
-#else
     class AAResults;
     typedef AAResults AliasAnalysis;
-#endif
 }
 
 namespace TTAProgram {

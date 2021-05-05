@@ -33,13 +33,8 @@
 #define TTA_TCE_STUB_SUBTARGET_HH
 
 #include "TCEStubTargetMachine.hh"
-#ifdef LLVM_OLDER_THAN_6_0
-#include <llvm/Target/TargetSubtargetInfo.h>
-#include <llvm/Target/TargetLowering.h>
-#else
 #include <llvm/CodeGen/TargetSubtargetInfo.h>
 #include <llvm/CodeGen/TargetLowering.h>
-#endif
 
 /**
  * Minimalistic subtarget implementation to be used in LLVM middle end 

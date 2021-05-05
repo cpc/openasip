@@ -47,12 +47,7 @@ VirtRegIndependenceGraph::VirtRegIndependenceGraph(
     llvm::MachineFunction& mf, llvm::VirtRegMap& vrm) :
     vrm_(vrm) {
 
-#ifdef LLVM_3_0
-    MachineInstrDDG tddg(*vrm.TRI, mf,  true); 
-#else
     MachineInstrDDG tddg(*vrm.TII, *vrm.TRI, mf,  true); 
-#endif
-
     MachineInstrDDG::RegisterSet regs = tddg.allRegisters();
 #ifdef DEBUG_FDPG    
     Application::logStream() << "building FDPG" << std::endl;
