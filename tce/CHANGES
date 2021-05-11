@@ -1,5 +1,18 @@
-1.23       unreleased
+1.23         May 2021
 =====================
+
+Notable changes and features
+----------------------------
+- Added support for LLVM 12.
+  Dropped support for LLVM versions older than 11.
+  
+Notable bugfixes
+----------------
+- Compiler instruction scheduler does not any more
+  assume an FU state dependency between operations
+  if the operations are forced to different FUs
+  (thus modify different states).
+  Fixes GitHub issue #114.
 
 1.22    December 2020
 =====================

@@ -1,0 +1,50 @@
+OpenASIP v1.23 Released
+-----------------------
+
+OpenASIP, also known as TTA-based Co-Design Environment (TCE), is an open
+source application-specific instruction-set processor (ASIP) toolset for
+design and programming of customized co-processors (compiler-programmable
+accelerators). It is based on the static energy efficient Transport Triggered
+Architecture (TTA) processor template.
+
+The toolset provides a complete retargetable LLVM-based compiler supported
+co-design flow from high-level language programs down to FPGA/ASIC
+synthesizable processor RTL (VHDL and Verilog generation supported) and
+instruction-parallel program binaries.
+
+The size and quantity of register files, function units, supported operations,
+and the interconnection network can be freely customized to create new
+co-processors ranging from small single-application specific cores with
+special operations to more general multi-issue domain-specific processors.
+
+Notable Changes
+===============
+
+This release is a maintenance/cleanup release that adds support for LLVM 12,
+drops support for older than LLVM 11 and fixes a bug in the instruction
+scheduler.
+
+Download
+========
+
+Get the release via git by cloning the release branch:
+
+  git clone -b release-1.23 https://github.com/cpc/tce.git tce-1.22
+
+Acknowledgements
+================
+
+This project has received funding from the ECSEL Joint Undertaking (JU) under
+grant agreement No 783162 (FitOptiVis). The JU receives support from the
+European Union’s Horizon 2020 research and innovation programme and Netherlands,
+Czech Republic, Finland, Spain, Italy. It was also supported by European
+Union's Horizon 2020 research and innovation programme under Grant Agreement
+No 871738 (CPSoSaware).
+
+Links
+=====
+
+TCE download page:  http://openasip.org/download.html
+This announcement:  http://openasip.org/downloads/ANNOUNCEMENT
+Change log:         http://openasip.org/downloads/CHANGES
+Install info:       http://openasip.org/downloads/INSTALL
