@@ -252,6 +252,9 @@ Operand::CTypeString() const {
     if (elementWidth() <= 16) {
         return type + " short";
     }
+    if (elementWidth() <= 64) {
+        return type + " long";
+    }
     return type + " int";
 }
 
