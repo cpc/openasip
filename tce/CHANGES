@@ -5,7 +5,7 @@ Notable changes and features
 ----------------------------
 - Added support for LLVM 12.
   Dropped support for LLVM versions older than 11.
-  
+
 Notable bugfixes
 ----------------
 - Compiler instruction scheduler does not any more
