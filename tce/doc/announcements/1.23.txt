@@ -29,7 +29,7 @@ Download
 
 Get the release via git by cloning the release branch:
 
-  git clone -b release-1.23 https://github.com/cpc/tce.git tce-1.22
+  git clone -b release-1.23 https://github.com/cpc/tce.git tce-1.23
 
 Acknowledgements
 ================

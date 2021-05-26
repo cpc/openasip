@@ -51,7 +51,7 @@ Get the Latest TCE Source Code
 
 Alternatively you can get one of the release branches, e.g.:
 
-  git clone -b release-1.23 https://github.com/cpc/tce.git tce-1.22
+  git clone -b release-1.23 https://github.com/cpc/tce.git tce-1.23
 
 LLVM and Clang
 ==============
