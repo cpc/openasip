@@ -62,7 +62,7 @@ switches to fix some issues affecting TCE usage.
 
 You can do this easiest as follows:
 
-   cd tce-devel/tce
+   cd tce-1.23/tce OR cd tce-devel/tce
    tools/scripts/install_llvm_12.sh $HOME/local
 
 After successful installation, add information about installed libraries to the
