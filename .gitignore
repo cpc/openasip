@@ -57,6 +57,7 @@ tce/src/bintools/Scheduler/buildschedulerpass
 tce/src/bintools/Scheduler/schedule
 tce/src/bintools/TPEFDumper/dumptpef
 tce/src/bintools/BlocksTranslator/blocks_translator
+tce/src/bintools/BlocksDisassembler/tpef2pasm
 tce/src/codesign/Estimator/buildestimatorplugin
 tce/test/Makefile
 tce/test/Makefile_configure_settings

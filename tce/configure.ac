@@ -1368,6 +1368,7 @@ AC_CONFIG_FILES([
   src/bintools/Assembler/Makefile
   src/bintools/Disassembler/Makefile
   src/bintools/BlocksTranslator/Makefile
+  src/bintools/BlocksDisassembler/Makefile
   src/applibs/Scheduler/Selector/Makefile
   src/applibs/Scheduler/Algorithms/Makefile
   src/codesign/Makefile
