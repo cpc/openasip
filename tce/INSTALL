@@ -90,6 +90,12 @@ file to your shell with:
 Building and Installing TCE
 ===========================
 
+During installation, Python 2 is required. If your default Python version is 3,
+you can use a custom Python 2 environment. For example, using conda:
+
+  conda create -n py2 python=2.7
+  conda activate py2
+
 In the root of TCE sources (e.g. tce-devel/tce), run:
 
   ./autogen.sh && ./configure --prefix=$HOME/local && make -j8 && make install
