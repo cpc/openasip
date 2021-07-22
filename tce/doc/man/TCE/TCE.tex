@@ -8476,6 +8476,18 @@ Example of invoking the plugin:
 \shellcmd{explore -e VLIWConnectIC -a test.adf -s 1 test.dsdb}\\
 \shellcmd{explore -w 2 test.dsdb}
 
+\subsection{Explorer Plugin: BlocksConnectIC}
+
+BlocksConnectIC takes an .ADF architecture as input, and arranges its FUs into a
+Blocks-CGRA [FPL, 2019] interconnection. The output machine has an empty bus whose
+instruction slot is used to encode long immediates. The RFs, FUs, and instructions
+are not modified by the plugin.
+
+Example of invoking the plugin:
+
+\shellcmd{explore -e BlocksConnectIC -a test.adf -s 1 test.dsdb}\\
+\shellcmd{explore -w 2 test.dsdb}
+
 \chapter{PROCESSOR TEMPLATE}
 \label{section:template}
 
