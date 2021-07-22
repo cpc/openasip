@@ -5,11 +5,13 @@
 
 blocks_xml=./data/generic_blocks_vliw_arch.xml
 
-blocks_translator $blocks_xml out
+outfile=$(mktemp)
 
-BUSES="$(grep '<bus name.*>' out.adf | wc -l)"
-FUS="$(grep '<function-unit name.*>' out.adf | wc -l)"
-RFS="$(grep '<register-file name.*>' out.adf | wc -l)"
+blocks_translator $blocks_xml $outfile
+
+BUSES="$(grep '<bus name.*>' $outfile | wc -l)"
+FUS="$(grep '<function-unit name.*>' $outfile | wc -l)"
+RFS="$(grep '<register-file name.*>' $outfile | wc -l)"
 echo "$BUSES, $FUS, $RFS"
 
-rm -f out.adf
+rm -f $outfile
