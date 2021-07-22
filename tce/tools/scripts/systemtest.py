@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -!- coding: utf-8 -!-
 """
-    Copyright (c) 2011-2020 Pekka Jääskeläinen / Tampere University.
+    Copyright (c) 2011-2021 Pekka Jääskeläinen / Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -710,7 +710,7 @@ def setup_exec_env():
     subtreeroots = ["scripts", "src/bintools", "src/codesign", "src/procgen"]
     # If any of the dirs inside the subtreeroots contains at least one
     # of these tested binaries, put the dir to the PATH.
-    wanted_binaries = ["buildcompressor", "buildestimatorplugin",
+    wanted_binaries = ["blocks_translator", "buildcompressor", "buildestimatorplugin",
                        "buildexplorerplugin", "buildicdecoderplugin", "buildopset",
                        "c2vhdl", "createbem", "createhdb", "dictionary_tool",
                        "dump_instruction_execution_trace", "dumptpef",
