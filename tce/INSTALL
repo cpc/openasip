@@ -62,7 +62,7 @@ switches to fix some issues affecting TCE usage.
 
 You can do this easiest as follows:
 
-   cd tce-devel/tce
+   cd tce-1.23/tce OR cd tce-devel/tce
    tools/scripts/install_llvm_12.sh $HOME/local
 
 After successful installation, add information about installed libraries to the
@@ -129,10 +129,10 @@ Further information of library and tools prerequisite versions
 These are the current prerequisites for libraries and tools required to
 build TCE:
 
-Compiler              supported versions
+Host compiler         Supported versions
 -----------------     ------------------
 GCC                   9.0+
-Clang                 9.0+
+Clang                 11 and 12
 
 Library               supported versions                   library license
 -----------------     ------------------                   ---------------
@@ -141,7 +141,7 @@ wxWidgets             2.8+                                 wxWidgets
 Tcl                   8.0-8.4                              BSD-style
 Boost                 1.48.0-1.53.0                        very permissive
 sqlite3               3.2.0+                               public domain
-LLVM                  11.0-12.0                            LLVM Release License
+LLVM                  11 and 12                            LLVM Release License
 Editline              2.9                                  BSD-style
 Python                3.6+                                 PSF license
 
