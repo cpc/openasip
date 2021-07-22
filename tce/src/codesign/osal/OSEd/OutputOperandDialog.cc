@@ -92,6 +92,8 @@ OutputOperandDialog::OutputOperandDialog(
     outputTypes_.push_back(Operand::HALF_FLOAT_WORD_STRING);
     outputTypes_.push_back(Operand::BOOL_STRING);
     outputTypes_.push_back(Operand::RAW_DATA_STRING);
+    outputTypes_.push_back(Operand::SLONG_WORD_STRING);
+    outputTypes_.push_back(Operand::ULONG_WORD_STRING);
 
     operandTypes_.insert(operandPair(0, Operand::SINT_WORD));
     operandTypes_.insert(operandPair(1, Operand::UINT_WORD));
@@ -100,6 +102,8 @@ OutputOperandDialog::OutputOperandDialog(
     operandTypes_.insert(operandPair(4, Operand::HALF_FLOAT_WORD));
     operandTypes_.insert(operandPair(5, Operand::BOOL));
     operandTypes_.insert(operandPair(6, Operand::RAW_DATA));
+    operandTypes_.insert(operandPair(7, Operand::SLONG_WORD));
+    operandTypes_.insert(operandPair(8, Operand::ULONG_WORD));
 
     FindWindow(wxID_OK)->SetFocus();
 
@@ -299,6 +303,14 @@ OutputOperandDialog::onOk(wxCommandEvent&) {
             break;
         case Operand::RAW_DATA:
             root->setAttribute(Operand::OPRND_TYPE, Operand::RAW_DATA_STRING);
+            break;
+        case Operand::SLONG_WORD:
+            root->setAttribute(
+                Operand::OPRND_TYPE, Operand::SLONG_WORD_STRING);
+            break;
+        case Operand::ULONG_WORD:
+            root->setAttribute(
+                Operand::OPRND_TYPE, Operand::ULONG_WORD_STRING);
             break;
         default:
             root->setAttribute(Operand::OPRND_TYPE, Operand::SINT_WORD_STRING);

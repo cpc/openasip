@@ -113,7 +113,9 @@ InputOperandDialog::InputOperandDialog(
     inputTypes_.push_back(Operand::HALF_FLOAT_WORD_STRING);
     inputTypes_.push_back(Operand::BOOL_STRING);
     inputTypes_.push_back(Operand::RAW_DATA_STRING);
-    
+    inputTypes_.push_back(Operand::SLONG_WORD_STRING);
+    inputTypes_.push_back(Operand::ULONG_WORD_STRING);
+
     operandTypes_[0] = Operand::SINT_WORD;
     operandTypes_[1] = Operand::UINT_WORD;
     operandTypes_[2] = Operand::FLOAT_WORD;
@@ -121,7 +123,9 @@ InputOperandDialog::InputOperandDialog(
     operandTypes_[4] = Operand::HALF_FLOAT_WORD;
     operandTypes_[5] = Operand::BOOL;
     operandTypes_[6] = Operand::RAW_DATA;
-    
+    operandTypes_[7] = Operand::SLONG_WORD;
+    operandTypes_[8] = Operand::ULONG_WORD;
+
     type_ = operand_->type();
     elemWidth_ = operand_->elementWidth();
     elemCount_ = operand_->elementCount();
@@ -443,6 +447,14 @@ InputOperandDialog::updateOperand() {
         case Operand::RAW_DATA:
             root->setAttribute(
                 Operand::OPRND_TYPE, Operand::RAW_DATA_STRING);
+            break;
+        case Operand::SLONG_WORD:
+            root->setAttribute(
+                Operand::OPRND_TYPE, Operand::SLONG_WORD_STRING);
+            break;
+        case Operand::ULONG_WORD:
+            root->setAttribute(
+                Operand::OPRND_TYPE, Operand::ULONG_WORD_STRING);
             break;
         default:
             root->setAttribute(Operand::OPRND_TYPE, Operand::SINT_WORD_STRING);

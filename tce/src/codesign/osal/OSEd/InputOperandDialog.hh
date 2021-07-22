@@ -128,8 +128,8 @@ private:
     /// Input types
     std::vector<std::string> inputTypes_;
 
-    Operand::OperandType operandTypes_[7];
-    
+    Operand::OperandType operandTypes_[9];
+
     DECLARE_EVENT_TABLE()
 };
 
