@@ -100,6 +100,8 @@ MachineValidator::validate(const std::set<ErrorCode>& errorsToCheck) const {
             checkRAPortHasSameWidthAsPCPort(*results);
         } else if (code == IMEM_ADDR_WIDTH_DIFFERS_FROM_RA_AND_PC) {
             checkIMemAddrWidth(*results);
+        } else if (code == FU_PORT_MISSING) {
+            checkFUConnections(*results);
         } else {
             assert(false);
         }
@@ -345,6 +347,30 @@ MachineValidator::checkIMemAddrWidth(
                 "memory address.";
             results.addError(
                 IMEM_ADDR_WIDTH_DIFFERS_FROM_RA_AND_PC, errorMsg);
+        }
+    }
+}
+
+/**
+ * Checks that the every FU has all the input and output ports that it needs.
+ *
+ *
+ * @param results Results of the validation are added to the given instance.
+ */
+
+void
+MachineValidator::checkFUConnections(MachineValidatorResults& results) const {
+    const Machine::FunctionUnitNavigator fuNav =
+        machine_.functionUnitNavigator();
+
+    for (int i = 0; i < fuNav.count(); i++) {
+        FunctionUnit& fu = *fuNav.item(i);
+        for (int p = 0; p < fu.operationPortCount(); p++) {
+            FUPort& port = *fu.operationPort(p);
+            if (port.socketCount() == 0) {
+                string errorMsg = "The machine has an FU with missing ports.";
+                results.addError(FU_PORT_MISSING, errorMsg);
+            }
         }
     }
 }

@@ -269,8 +269,6 @@ public:
     isPortApplicableToWidths(
         const TTAMachine::Port& port, std::set<int> widths);
 
-    static bool immToFUConnected(const TTAMachine::Machine& mach);
-
     static std::pair<int, int>
     shortImmBits(std::set<const TTAMachine::Bus*>& buses);
 

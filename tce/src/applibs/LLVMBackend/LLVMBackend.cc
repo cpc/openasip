@@ -368,6 +368,7 @@ LLVMBackend::compile(
     checks.insert(MachineValidator::USED_IO_NOT_BOUND);
     checks.insert(MachineValidator::PC_PORT_MISSING);
     checks.insert(MachineValidator::RA_PORT_MISSING);
+    checks.insert(MachineValidator::FU_PORT_MISSING);
     MachineValidatorResults* res = validator.validate(checks);
 
     if (res->errorCount() > 0) {
