@@ -1,6 +1,14 @@
 1.24       unreleased
 =====================
 
+Notable changes and features
+----------------------------
+- Experimental tool support for Blocks-CGRA [1] designs. Currently
+  tooling is limited to translation of VLIW like Blocks (xml representation)
+  to ADF file,  and re-using TCE compiler for Blocks codegeneration.
+  [1] Wijtvliet, M. (2020). Blocks, a reconfigurable architecture combining
+  energy efficiency and flexibility. Technische Universiteit Eindhoven.
+
 1.23        June 2021
 =====================
 
