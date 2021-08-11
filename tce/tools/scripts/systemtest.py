@@ -717,7 +717,7 @@ def setup_exec_env():
                        "estimate", "explore", "generatebits", "generate_cachegrind",
                        "generateprocessor", "hdbeditor", "llvm-tce", "machine_instruction_info",
                        "mc-stats", "minimize-ic", "osed", "pareto-vis", "prode",
-                       "proxim", "tceasm", "tcecc", "tce-config", "tcedisasm",
+                       "proxim", "tceasm", "tcecc", "tce-config", "tcedisasm", "tpef2pasm",
                        "tceoclextgen", "tceopgen",
                        "testhdb", "testosal", "ttasim", "ttasim-tandem",
                        "ttaunittester", "viewbem", "rtlstats", "generatetests"]
