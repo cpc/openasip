@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # Copyright (c) 2002-2009 Tampere University.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).

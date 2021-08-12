@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #
 # Adds .hh and .icc to *_SOURCES of Makefile.ams recursively
 #
