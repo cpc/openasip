@@ -8,7 +8,7 @@ LowerIntrinsics_la_SOURCES = LowerIntrinsics.cc
 # This means that opt or llc do not have a reference to that
 # dynamic library thus cannot find the symbols needed when the
 # LowerIntrinsics.so is loaded in tcecc.
-LowerIntrinsics_la_LDFLAGS = -module ${LLVM_LDFLAGS} -lLLVMCodeGen
+LowerIntrinsics_la_LDFLAGS = -module ${LLVM_LDFLAGS}
 
 LinkBitcode_la_SOURCES = LinkBitcode.cc 
 LinkBitcode_la_LDFLAGS = -module

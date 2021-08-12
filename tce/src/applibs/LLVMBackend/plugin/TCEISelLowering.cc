@@ -1527,13 +1527,14 @@ TCETargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
 }
 
 
-
+/*
 bool
     TCETargetLowering::allowsMisalignedMemoryAccesses(EVT, unsigned, unsigned, MachineMemOperand::Flags, bool*) const {
     /// @todo This commented area and the whole function is probably not
     /// needed anymore. The base class version returns false as default.
     return false;
 }
+*/
 
 /**
  * Returns true if all operands of the SDNode are constants or undefined.

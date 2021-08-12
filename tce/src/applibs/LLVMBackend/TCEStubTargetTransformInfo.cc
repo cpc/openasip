@@ -32,6 +32,8 @@
 #include "CompilerWarnings.hh"
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
+#include "tce_config.h"
+
 #include "TCEStubTargetMachine.hh"
 #include "TCEStubTargetTransformInfo.hh"
 #include "MachineInfo.hh"

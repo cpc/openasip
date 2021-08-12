@@ -48,11 +48,9 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/Pass.h>
-//#include <llvm/ModuleProvider.h>
 
 #include <llvm/CodeGen/AsmPrinter.h>
 #include <llvm/CodeGen/Passes.h>
-#include <llvm/CodeGen/GCStrategy.h>
 
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
@@ -72,6 +70,12 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 #include <llvm/Bitcode/BitcodeReader.h>
 
 #include <llvm/IR/Verifier.h>
+
+#ifdef LLVM_OLDER_THAN_13
+#include <llvm/CodeGen/GCStrategy.h>
+#else
+#include <llvm/IR/GCStrategy.h>
+#endif
 
 #include <llvm-c/Core.h> // LLVMGetGlobalContext()
 
@@ -633,11 +637,15 @@ LLVMBackend::compile(
     // on the maximum alignment of any stack object in
     // the program, recompute this now as the llvm::Module has
     // been loaded
-    Options.StackAlignmentOverride =
-        (unsigned)MachineInfo::maxMemoryAlignment(target);
+    unsigned maxMachineAlignment = (unsigned)MachineInfo::maxMemoryAlignment(target);
+#ifdef LLVM_OLDER_THAN_13
+    Options.StackAlignmentOverride = maxMachineAlignment;
+#else
+    module.setOverrideStackAlignment(maxMachineAlignment);
+#endif
     if (options_->assumeADFStackAlignment()) {
 
-        if (maxAllocaAlignment(module) > Options.StackAlignmentOverride) {
+        if (maxAllocaAlignment(module) > maxMachineAlignment) {
             abortWithError(
                 "Alloca object requires larger stack alignment than widest "
                 "memory operation. "
@@ -649,7 +657,11 @@ LLVMBackend::compile(
                 "constructor.");
         }
     } else {
-        Options.StackAlignmentOverride = std::max((unsigned)MachineInfo::maxMemoryAlignment(target), maxAllocaAlignment(module));
+#ifdef LLVM_OLDER_THAN_13
+    Options.StackAlignmentOverride = std::max(maxMachineAlignment, maxAllocaAlignment(module));
+#else
+    module.setOverrideStackAlignment(std::max(maxMachineAlignment, maxAllocaAlignment(module)));
+#endif
     }
     Options.GuaranteedTailCallOpt = true; //EnableGuaranteedTailCallOpt;
 

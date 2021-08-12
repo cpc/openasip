@@ -258,9 +258,11 @@ plugin_(plugin) {
         }
 
         unsigned stackAlignment() const {
+#ifdef LLVM_OLDER_THAN_13
             if (Options.StackAlignmentOverride > 0)
                 return Options.StackAlignmentOverride;
             else
+#endif
                 return bitness() / 8;
         }
 

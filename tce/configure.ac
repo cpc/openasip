@@ -58,6 +58,13 @@ AC_CONFIG_HEADERS(tce_config.h)
 AH_TOP([
 #ifndef TCE_CONFIG_H
 #define TCE_CONFIG_H
+
+/* LLVM has function with parameter named as "PIC".
+ * Libtool adds a "-DPIC" command line macro, which
+ * messes up the compilation. The ugly trick with
+ * comment inside undef is required, otherwise
+ * autoconf in its infinite wisdom disables the undef*/
+#/**/undef/**/ PIC
 ])
 AH_BOTTOM([
 #endif
@@ -534,8 +541,9 @@ case "$LLVM_VERSION" in
      11*)
      AC_DEFINE([LLVM_11], [], "Using LLVM 11")
      LLVM_VERSION=11
-     LLVM_OLDER_THAN_12=1
      LLVM_LIBRARYVERSION=11
+     LLVM_OLDER_THAN_12=1
+     LLVM_OLDER_THAN_13=1
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVMTCE-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVMTCE-$LLVM_LIBRARYVERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
@@ -546,6 +554,17 @@ case "$LLVM_VERSION" in
      AC_DEFINE([LLVM_12], [], "Using LLVM 12")
      LLVM_VERSION=12
      LLVM_LIBRARYVERSION=12
+     LLVM_OLDER_THAN_13=1
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVMTCE-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVMTCE-$LLVM_LIBRARYVERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the wide custom vector extension patch(wide)")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
+   ;;
+     13*)
+     AC_DEFINE([LLVM_13], [], "Using LLVM 13")
+     LLVM_VERSION=13
+     LLVM_LIBRARYVERSION=13
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVMTCE-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVMTCE-$LLVM_LIBRARYVERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
@@ -572,6 +591,11 @@ AC_MSG_NOTICE([
 if  test "x$LLVM_OLDER_THAN_12" == "x1";
 then
 AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_12, 1, [LLVM version is older than 12])
+fi
+
+if  test "x$LLVM_OLDER_THAN_13" == "x1";
+then
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_13, 1, [LLVM version is older than 13])
 fi
 
 
