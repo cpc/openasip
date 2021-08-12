@@ -58,6 +58,13 @@ AC_CONFIG_HEADERS(tce_config.h)
 AH_TOP([
 #ifndef TCE_CONFIG_H
 #define TCE_CONFIG_H
+
+/* LLVM has function with parameter named as "PIC".
+ * Libtool adds a "-DPIC" command line macro, which
+ * messes up the compilation. The ugly trick with
+ * comment inside undef is required, otherwise
+ * autoconf in its infinite wisdom disables the undef*/
+#/**/undef/**/ PIC
 ])
 AH_BOTTOM([
 #endif

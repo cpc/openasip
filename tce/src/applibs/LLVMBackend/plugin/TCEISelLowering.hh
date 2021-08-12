@@ -149,7 +149,7 @@ namespace llvm {
 
         bool shouldLoadFromConstantPool(unsigned addressSpace) const;
 
-        virtual bool allowsMisalignedMemoryAccesses(EVT VT, unsigned as, unsigned align, MachineMemOperand::Flags flags, bool* ) const override;
+//        virtual bool allowsMisalignedMemoryAccesses(EVT VT, unsigned as, unsigned align, MachineMemOperand::Flags flags, bool* ) const override;
         // We can ignore the bitwidth differences between the pointers
         // for now. It's the programmer's responsibility to ensure they
         // fit.

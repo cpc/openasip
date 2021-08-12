@@ -459,7 +459,10 @@ def exitWithError(status, errorMessage=None):
 
 def lowerMemIntrinsicCommand(srcFile, dstFile):
     optSwitches = ""
-    commandp = "opt -f -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
+    forceOldPassMan = ""
+    if @LLVM_VERSION@ > 10:
+        forceOldPassMan = " -enable-new-pm=0"
+    commandp = "opt" + forceOldPassMan + " -f -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
     command = commandp + " -o " + dstFile + " " + srcFile + " " + optSwitches
     return command
 

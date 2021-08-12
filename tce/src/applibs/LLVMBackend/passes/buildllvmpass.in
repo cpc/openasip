@@ -7,7 +7,7 @@ then
     echo "Usage: buildllvmpass <object file> <source files>"
 else
     compiler="@CXX@"
-    llvmlibs="-lLLVMCodeGen"
+    llvmlibs=$(@LLVM_CONFIG@ --link-shared --libs)
     llvmldflags=$(@LLVM_CONFIG@ --ldflags)
     llvmcppflags=$(@LLVM_CONFIG@ --cppflags)
     soflags="@SHARED_CXX_FLAGS@ -o"
