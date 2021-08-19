@@ -235,6 +235,9 @@ def parse_options():
 
     (options, args) = parser.parse_args()
 
+    if options.dump_output and mp_supported:
+        options.par_process_count = 1
+
     return (options, args)
 
 output_diff_file = None
@@ -491,9 +494,11 @@ class IntegrationTestCase(object):
         duration = end_time - start_time
         duration_str = "(%dm%.3fs)" % \
             (duration / 60, duration % 60)
-        if not options.print_successful and not all_ok:
+        if not options.print_successful and not all_ok and not options.dump_output:
             stdout_stream.write(self._file_name + ": " + self.description + "...")
-        if all_ok:
+        # if dump_output is set, we want to produce the exact output
+        # for verification file creation, not add OK/FAIL.
+        if all_ok or options.dump_output:
             if options.print_successful:
                 stdout_stream.write("OK %s\n" % duration_str)
         else:
