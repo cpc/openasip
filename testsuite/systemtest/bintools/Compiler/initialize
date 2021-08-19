@@ -1,7 +1,0 @@
-#!/bin/sh
-
-# LLVM 3.6 lays out the arrays differently than 3.5: The constant string
-# comes after the arrays, producing different addresses than previously.
-
-cp -f addr_spaces/1_output.txt.llvm_3.6 addr_spaces/1_output.txt
-cp -f addr_spaces/1_output.txt.llvm_3.6 addr_spaces_bu/1_output.txt

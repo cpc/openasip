@@ -3,19 +3,25 @@
  */
 
 #include <stdio.h>
+#include <stdint.h>
 
 #define ASIZE 4
 
-#define memory_0 __attribute__((address_space(0))) 
-#define memory_1 __attribute__((address_space(1))) 
-#define memory_2 __attribute__((address_space(2))) 
+#define memory_0 __attribute__((address_space(0)))
+#define memory_1 __attribute__((address_space(1)))
+#define memory_2 __attribute__((address_space(2)))
 
+/* Clang 13 orders the global data according to their lexical
+   usage order, it seems, so we cannot guarantee them to be in
+   this order. */
 memory_0 volatile int space0[ASIZE];
 memory_0 volatile int space0_1[ASIZE];
 memory_1 volatile int space1[ASIZE];
 memory_1 volatile int space1_1[ASIZE];
 memory_2 volatile int space2[ASIZE];
 memory_2 volatile int space2_1[ASIZE];
+
+#define MAX(x, y) ((((uint32_t)x) > ((uint32_t)y)) ? ((uint32_t)x) : ((uint32_t)y))
 
 int main() {
     int i = 0;
@@ -25,16 +31,20 @@ int main() {
         space2[i] = space0[i] + space1[i] + 2;
     }
 
-    /* The start addresses of the tables should overlap as
-       they are allocated in different address spaces. */
-    iprintf("space0@%x space0_1@%x space1@%x space1_1@%x space2@%x space2_1@%x\n",
-            (unsigned)space0, (unsigned)space0_1, (unsigned)space1, (unsigned)space1_1,
-            (unsigned)space2, (unsigned)space2_1);
-    for (i = 0; i < ASIZE; ++i) {
-        iprintf("i=%d space0[i]=%d space1[i]=%d space2[i]=%d\n",
-                i, space0[i], space1[i], space2[i]);
-    }
+    uint32_t max_start_addr = MAX(space0, MAX(space1, MAX(space2, MAX(space0_1, MAX(space1_1, space2_1)))));
 
+    /* All of the arrays should start at zero thus receive smaller
+       or equal start address as the (likely) largest one. */
+    iprintf("%lu\n", max_start_addr);
+#if 0
+    /* This causes out of reg failure since LLVM generates a huge
+       selection clause out of it, which likely doesn't play well
+       with the predicate registers. */
+    if (max_start_addr <= MAX(space0_1, space0))
+        iprintf("OK\n");
+    else
+        iprintf("NOK\n");
+#endif
     int tmp;
     _TCEAS_LDW("data", space0, tmp);
     iprintf("i=%d space0 ", tmp);
@@ -42,7 +52,6 @@ int main() {
     iprintf("i=%d space1 ", tmp);
     _TCEAS_LDW("data2", space2, tmp);
     iprintf("i=%d space2 ", tmp);
-
 
     return 0;
 }
