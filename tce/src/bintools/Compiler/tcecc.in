@@ -459,10 +459,7 @@ def exitWithError(status, errorMessage=None):
 
 def lowerMemIntrinsicCommand(srcFile, dstFile):
     optSwitches = ""
-    forceOldPassMan = ""
-    if @LLVM_VERSION@ > 10:
-        forceOldPassMan = " -enable-new-pm=0"
-    commandp = "opt" + forceOldPassMan + " -f -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
+    commandp = "opt -enable-new-pm=0 -f -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
     command = commandp + " -o " + dstFile + " " + srcFile + " " + optSwitches
     return command
 
@@ -695,10 +692,7 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
 
     if options.optimization_level == 1 or options.disable_internalize:
         # disable-internalize missing in llvm 3.6
-        if @LLVM_VERSION@ > 3.5:
-            optSwitches = (default_opts)
-        else:
-            optSwitches = (default_opts + "-disable-internalize ")
+        optSwitches = (default_opts)
     elif options.optimization_level > 1:
         optSwitches = (" -internalize "+ default_opts)
 
@@ -732,7 +726,7 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
         elif @LLVM_VERSION@ >= 11:
             optSwitches += " -vectorize-slp=false"
 
-    command = "opt -f " + inFile + " -o " + outputName + " " + optSwitches + extraSwitches
+    command = "opt -enable-new-pm=0 -f " + inFile + " -o " + outputName + " " + optSwitches + extraSwitches
 
     exitCode = runCommand(command, verbose)
 
@@ -786,7 +780,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     else:
         internalizeCmd = ""
 
-    command = ("opt " + linkedName + no_inline +
+    command = ("opt -enable-new-pm=0 " + linkedName + no_inline +
                " -f " + internalizeCmd + " -o " + outputName +
                 " " + optSwitches)
 
