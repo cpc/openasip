@@ -58,21 +58,21 @@ char MachineDCE::ID = 0;
 
 /**
  * Returns true if can find startpoint.
- */ 
+ */
 bool MachineDCE::canFindStart(const std::string& user, AvoidRecursionSet& avoid_recursion) {
     if (avoid_recursion.find(&user) != avoid_recursion.end()) {
         return false;
     } else {
         avoid_recursion.insert(&user);
     }
-    
+
     // current function is actually the start point.. nice job.
     if (baseUsers_.find(user) != baseUsers_.end()) {
         return true;
     }
 
     UserList &usesList = usersOfValue_[user];
-    
+
     // check if this function is used by start point to be sure...
     for (UserList::iterator i= usesList.begin(); i != usesList.end(); i++) {
         if (canFindStart((*i), avoid_recursion)) {
@@ -85,9 +85,9 @@ bool MachineDCE::canFindStart(const std::string& user, AvoidRecursionSet& avoid_
 void MachineDCE::addInitializer(const Constant* init, std::string& name) {
 
     if (const GlobalValue* gv = dyn_cast<GlobalValue>(init)) {
-#if 0
+#ifdef DEBUG_MACHINE_DCE
         errs() << "Added data " << name 
-               << " to uses of value: " << gv->getNameStr()
+               << " to uses of value: " << gv->getName()
                << " and " << name << " to baseUsers." 
                << "\n";
 #endif
@@ -108,29 +108,28 @@ void MachineDCE::addInitializer(const Constant* init, std::string& name) {
     }
 }
 
-bool MachineDCE::doInitialization(Module &M) {    
+bool MachineDCE::doInitialization(Module &M) {
 
-    // errs() << "Initializing MachineDCE\n";
-
-    // add first function to baseUsers, assume it's the startup function
-    baseUsers_.insert(M.begin()->getName().str());
-    for (Module::const_iterator f = M.begin(), e = M.end(); f != e; ++f) {
-        // aAd all noinline functions to baseUsers so they won't
-        // get removed. We might want to call them via a
-        // function pointer initialized from the outside. 
-        const bool noinlineFunction = f->hasFnAttribute(Attribute::NoInline);
-        if (noinlineFunction) {
-            baseUsers_.insert(f->getName().data());
 #ifdef DEBUG_MACHINE_DCE
-            std::cerr << "Added " << f->getName().str() 
-                      << " to base functions due to noinline"
-                      << std::endl;
+    std::cerr << "Initializing MachineDCE\n";
 #endif
+
+    for (Module::const_iterator f = M.begin(), e = M.end(); f != e; ++f) {
+        if (f->getName().startswith("_") &&
+            !(f->getName().equals("_start") ||
+              f->getName().equals("_exit")))
             continue;
-        }
+        baseUsers_.insert(f->getName().data());
+#ifdef DEBUG_MACHINE_DCE
+        std::cerr << "Added " << f->getName().str()
+                  << " to entry/exit functions"
+                  << std::endl;
+        f->dump();
+#endif
+        continue;
     }
 
-    // Go through global variables to find out 
+    // Go through global variables to find out.
     for (Module::const_global_iterator i = M.global_begin();
          i != M.global_end(); i++) {
         std::string name = i->getName().str();
@@ -139,13 +138,13 @@ bool MachineDCE::doInitialization(Module &M) {
             continue;
             assert(false && "No initializer. External linkage?");
         }
-        
+
         const Constant* initializer = i->getInitializer();
 #if 0
         const Type* type = initializer->getType();
-        errs() << "Data name: " << name 
+        errs() << "Data name: " << name
                << "\ttype: " << type->getDescription() << "\n";
-#endif        
+#endif
         addInitializer(initializer, name);        
     }
     
