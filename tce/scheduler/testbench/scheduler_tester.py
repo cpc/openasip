@@ -175,7 +175,7 @@ worsenedIsErrorLimit = None
 extraCompileFlags = ""
 recompile = False
 makeCommand = "SCHEDULER_BENCHMARK_TEST_MAKEFILE_DEFS=" + \
-              rootDir + "/compile_sources.make" + " make -s "
+              rootDir + "/compile_sources.make" + " make "
 
 # List of architectures given in command line.
 cmdLineArchitectures = []
@@ -1309,6 +1309,8 @@ def cleanup_and_exit(retval):
 def main():
     global failureFound, outputOnlyIfFailure
     ParseCommandLine()
+    if not (verboseOutput or veryVerboseOutput):
+        makeCommand += " -s "
     try:
         testCases = Tester()
     except TestBenchException as e:
