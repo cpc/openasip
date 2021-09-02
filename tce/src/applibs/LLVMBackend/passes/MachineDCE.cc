@@ -58,21 +58,21 @@ char MachineDCE::ID = 0;
 
 /**
  * Returns true if can find startpoint.
- */ 
+ */
 bool MachineDCE::canFindStart(const std::string& user, AvoidRecursionSet& avoid_recursion) {
     if (avoid_recursion.find(&user) != avoid_recursion.end()) {
         return false;
     } else {
         avoid_recursion.insert(&user);
     }
-    
+
     // current function is actually the start point.. nice job.
     if (baseUsers_.find(user) != baseUsers_.end()) {
         return true;
     }
 
     UserList &usesList = usersOfValue_[user];
-    
+
     // check if this function is used by start point to be sure...
     for (UserList::iterator i= usesList.begin(); i != usesList.end(); i++) {
         if (canFindStart((*i), avoid_recursion)) {
@@ -114,15 +114,15 @@ bool MachineDCE::doInitialization(Module &M) {
     std::cerr << "Initializing MachineDCE\n";
 #endif
 
-    // Add the first function to baseUsers, assume it's the startup
-    // function.
-    baseUsers_.insert(M.begin()->getName().str());
     for (Module::const_iterator f = M.begin(), e = M.end(); f != e; ++f) {
-        if (!f->hasInternalLinkage())
-            baseUsers_.insert(f->getName().data());
+        if (f->getName().startswith("_") &&
+            !(f->getName().equals("_start") ||
+              f->getName().equals("_exit")))
+            continue;
+        baseUsers_.insert(f->getName().data());
 #ifdef DEBUG_MACHINE_DCE
         std::cerr << "Added " << f->getName().str()
-                  << " to base functions due to it not having internal linkage"
+                  << " to entry/exit functions"
                   << std::endl;
         f->dump();
 #endif
