@@ -645,7 +645,7 @@ LLVMBackend::compile(
 #endif
     if (options_->assumeADFStackAlignment()) {
 
-        if (maxAllocaAlignment(module) > module.getOverrideStackAlignment()) {
+        if (maxAllocaAlignment(module) > maxMachineAlignment) {
             abortWithError(
                 "Alloca object requires larger stack alignment than widest "
                 "memory operation. "
