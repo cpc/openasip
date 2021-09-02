@@ -1,7 +1,7 @@
 #!/usr/bin/env @PYTHON_BIN@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2002-2020 Tampere University.
+# Copyright (c) 2002-2021 Tampere University.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 #
@@ -24,7 +24,7 @@
 # IN THE SOFTWARE.
 #
 # @author 2006-2009 Veli-Pekka Jääskeläinen
-# @author 2006-2020 Pekka Jääskeläinen
+# @author 2006-2021 Pekka Jääskeläinen
 #
 # High-level language compiler driver for TCE.
 #
@@ -243,7 +243,8 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                 # be compiled first
                 command = ""
 
-                extra_opts = ""
+                extra_opts = "-mllvm --disable-loop-idiom-memcpy " +\
+                             "-mllvm --disable-loop-idiom-memset "
                 if options.language != "":
                     extra_opts += "-x %s " % options.language
 
@@ -666,7 +667,7 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
     # memset() et. al. since (at least older versions of) LoopIdiomRecognize
     # ended up generating a call to memset() inside them, causing infinite
     # recursion.
-    default_opts = " -O3 --disable-simplify-libcalls " + \
+    default_opts = " -O3 -disable-simplify-libcalls " + \
                    "-disable-loop-idiom-memcpy " + \
                    "-disable-loop-idiom-memset "
 
