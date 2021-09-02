@@ -661,16 +661,14 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
 
     verbose = options.verbose
 
-    # lets trust llvm team that they know which is the best
-    # optimization set for overall performance... since when separately
-    # adding own set we just end up tuning denbench / fft optimed switches
-    # (its practically impossible to know how switches effect on any other case)
-
-    # disable-simplify-libcalls needed to prevent memset/memset loop detection in
-    # LoopIdiomRecognize pass, which breaks things due to memset contents being
-    # converted to memset calls which causes infinite recursion. This has to be done
-    # because we always do full program linkage and optimization for TTA targets.
-    default_opts = " -O3 --disable-simplify-libcalls "
+    # Disable memcpy and memset generation since they are typically slower
+    # than the original inline loops, and can break things when compiling
+    # memset() et. al. since (at least older versions of) LoopIdiomRecognize
+    # ended up generating a call to memset() inside them, causing infinite
+    # recursion.
+    default_opts = " -O3 --disable-simplify-libcalls " + \
+                   "-disable-loop-idiom-memcpy " + \
+                   "-disable-loop-idiom-memset "
 
     # no inline
     default_opts += options.noinline and "-disable-inlining " or "-inline-threshold=%d " % options.inline_threshold
