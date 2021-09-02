@@ -31,7 +31,11 @@ int main() {
         space2[i] = space0[i] + space1[i] + 2;
     }
 
-    uint32_t max_start_addr = MAX(space0, MAX(space1, MAX(space2, MAX(space0_1, MAX(space1_1, space2_1)))));
+    uint32_t max_start_addr = MAX(space1_1, space2_1);
+    max_start_addr = MAX(max_start_addr, space0);
+    max_start_addr = MAX(max_start_addr, space1);
+    max_start_addr = MAX(max_start_addr, space2);
+    max_start_addr = MAX(max_start_addr, space0_1);
 
     /* All of the arrays should start at zero thus receive smaller
        or equal start address as the (likely) largest one. */
