@@ -1,7 +1,7 @@
 #!/usr/bin/env @PYTHON_BIN@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2002-2020 Tampere University.
+# Copyright (c) 2002-2021 Tampere University.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 #
@@ -24,7 +24,7 @@
 # IN THE SOFTWARE.
 #
 # @author 2006-2009 Veli-Pekka Jääskeläinen
-# @author 2006-2020 Pekka Jääskeläinen
+# @author 2006-2021 Pekka Jääskeläinen
 #
 # High-level language compiler driver for TCE.
 #
@@ -243,7 +243,8 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                 # be compiled first
                 command = ""
 
-                extra_opts = ""
+                extra_opts = "-mllvm --disable-loop-idiom-memcpy " +\
+                             "-mllvm --disable-loop-idiom-memset "
                 if options.language != "":
                     extra_opts += "-x %s " % options.language
 
@@ -664,16 +665,14 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
 
     verbose = options.verbose
 
-    # lets trust llvm team that they know which is the best
-    # optimization set for overall performance... since when separately
-    # adding own set we just end up tuning denbench / fft optimed switches
-    # (its practically impossible to know how switches effect on any other case)
-
-    # disable-simplify-libcalls needed to prevent memset/memset loop detection in
-    # LoopIdiomRecognize pass, which breaks things due to memset contents being
-    # converted to memset calls which causes infinite recursion. This has to be done
-    # because we always do full program linkage and optimization for TTA targets.
-    default_opts = " -O3 --disable-simplify-libcalls "
+    # Disable memcpy and memset generation since they are typically slower
+    # than the original inline loops, and can break things when compiling
+    # memset() et. al. since (at least older versions of) LoopIdiomRecognize
+    # ended up generating a call to memset() inside them, causing infinite
+    # recursion.
+    default_opts = " -O3 -disable-simplify-libcalls " + \
+                   "-disable-loop-idiom-memcpy " + \
+                   "-disable-loop-idiom-memset "
 
     # no inline
     default_opts += options.noinline and "-disable-inlining " or "-inline-threshold=%d " % options.inline_threshold
