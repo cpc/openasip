@@ -258,7 +258,7 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                 if options.soft_float:
                     extra_opts += " -ffp-contract=off"
 
-                if @LLVM_VERSION@ >= 3.4 and (options.soft_float or not options.autovectorize):
+                if options.soft_float or not options.autovectorize:
                     extra_opts += " -fno-vectorize -fno-slp-vectorize"
 
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
@@ -713,18 +713,11 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
     if options.soft_float:
         optSwitches += " -fp-contract=off "
 
-    # vectorizing breaks floating point emulation.
-    # phase ordering: vectorizer, fp emu, isel(including devectorizer)
-    # fp emu does not detect vectorized fp ops and cannot emulate them
-
-
-    if @LLVM_VERSION@ >= 3.4 and (options.soft_float or not options.autovectorize):
-        if @LLVM_VERSION@ < 9:
-            optSwitches += "-disable-slp-vectorization -disable-loop-vectorization"
-        elif @LLVM_VERSION@ >= 9 and @LLVM_VERSION@ < 11:
-            optSwitches += " -disable-slp-vectorization"
-        elif @LLVM_VERSION@ >= 11:
-            optSwitches += " -vectorize-slp=false"
+    # Vectorizing breaks floating point emulation currently due to
+    # phase ordering: vectorizer, FP emu, isel (including devectorizer).
+    # FP emu does not detect vectorized FP ops and cannot emulate them.
+    if options.soft_float or not options.autovectorize:
+        optSwitches += " -vectorize-slp=false -vectorize-loops=false "
 
     command = "opt -enable-new-pm=0 -f " + inFile + " -o " + outputName + " " + optSwitches + extraSwitches
 
