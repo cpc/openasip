@@ -262,6 +262,9 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                 if options.soft_float or not options.autovectorize:
                     extra_opts += " -fno-vectorize -fno-slp-vectorize"
 
+                if options.unroll_threshold == 0:
+                    extra_opts += " -fno-unroll-loops"
+
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
                 if suffix == ".c":
                     # -O greater than 0 seems to modify loops in such a way
@@ -685,6 +688,9 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
 
     # unroll swithes and disabling (threshold 0 should work as disable in opt)
     default_opts += "-unroll-allow-partial -unroll-threshold=%d " % options.unroll_threshold
+
+    if options.unroll_threshold == 0:
+        default_opts += " --disable-loop-unrolling "
 
     # -O0 optimization doesn't exist in opt
     optSwitches = ""
