@@ -257,13 +257,17 @@ plugin_(plugin) {
             return plugin_->getIorOpcode(vt);
         }
 
+        void setStackAlignment(unsigned align) {
+            stackAlignment_ = align;
+        }
+
         unsigned stackAlignment() const {
-#ifdef LLVM_OLDER_THAN_13
-            if (Options.StackAlignmentOverride > 0)
-                return Options.StackAlignmentOverride;
-            else
-#endif
-                return bitness() / 8;
+            if (stackAlignment_ == 0) {
+                std::cerr << "ZERO STACK ALIGN\n";
+                abort();
+            }
+            assert(stackAlignment_ > 0);
+            return stackAlignment_;
         }
 
         bool has8bitLoads() const {
@@ -322,6 +326,9 @@ plugin_(plugin) {
         int64_t smallestImm_ = std::numeric_limits<int64_t>::max();
         uint64_t largestImm_ = std::numeric_limits<int64_t>::min();
         int SupportedFPImmWidth_ = std::numeric_limits<int>::min();
+        // The stack alignment. Note: this should be overridden per
+        // generated Module if the Module requires a larger one.
+        unsigned stackAlignment_;
     };
 }
 

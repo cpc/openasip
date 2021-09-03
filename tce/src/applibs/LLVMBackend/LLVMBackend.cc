@@ -658,9 +658,11 @@ LLVMBackend::compile(
         }
     } else {
 #ifdef LLVM_OLDER_THAN_13
-    Options.StackAlignmentOverride = std::max(maxMachineAlignment, maxAllocaAlignment(module));
+        Options.StackAlignmentOverride =
+            std::max(maxMachineAlignment, maxAllocaAlignment(module));
 #else
-    module.setOverrideStackAlignment(std::max(maxMachineAlignment, maxAllocaAlignment(module)));
+        module.setOverrideStackAlignment(
+            std::max(maxMachineAlignment, maxAllocaAlignment(module)));
 #endif
     }
     Options.GuaranteedTailCallOpt = true; //EnableGuaranteedTailCallOpt;
@@ -675,6 +677,19 @@ LLVMBackend::compile(
         errs() << "Could not create tce target machine" << "\n";
         return NULL;
     }
+#ifdef LLVM_OLDER_THAN_13
+    targetMachine->setStackAlignment(
+        std::max((unsigned)(target.is64bit() ? 8 : 4),
+                 Options.StackAlignmentOverride));
+#else
+    // The way to override the stack alignment was
+    // changed in LLVM commit 787ee457173c. It's easiest
+    // we just pass it through TCETargetMachine for now
+    // even though it's really module specific.
+    targetMachine->setStackAlignment(
+        std::max((unsigned)(target.is64bit() ? 8 : 4),
+                 module.getOverrideStackAlignment()));
+#endif
 
     // This hack must be cleaned up before adding TCE target to llvm upstream
     // these are needed by TCETargetMachine::addInstSelector passes
