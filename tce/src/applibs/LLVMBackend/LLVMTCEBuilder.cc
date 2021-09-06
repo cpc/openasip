@@ -2423,10 +2423,12 @@ LLVMTCEBuilder::emitMove(
     unsigned int operandCount = conditional ? 3 : 2;
     if (mi->getNumOperands() > operandCount) {
         for (unsigned int i = operandCount; i < mi->getNumOperands(); i++) {
+#if 0
             if (!(mi->getOperand(i).isMetadata()) &&
                 (!mi->getOperand(i).isImplicit())) {
                 mi->dump();
             }
+#endif
             assert(mi->getOperand(i).isMetadata() ||
                    mi->getOperand(i).isImplicit());
         }
@@ -3055,7 +3057,6 @@ LLVMTCEBuilder::emitOperationMacro(
                 std::cerr << std::endl;
                 std::cerr << "ERROR: Too many output operands for custom "
                           << "operation '" << opName << "'." << std::endl;
-                mi->dump();
                 assert(false);
             }
             assert(mo.isReg());
@@ -3245,7 +3246,6 @@ LLVMTCEBuilder::emitReturnTo(
     const MachineInstr* mi, TTAProgram::CodeSnippet* proc) {
 
     if (mi->getNumOperands() != 5) {
-	mi->dump();
         abortWithError(
             "ERROR: wrong number of operands in \".return_to\"");
     }
@@ -3279,7 +3279,6 @@ LLVMTCEBuilder::emitWriteSP(
     if (mi->getNumOperands() != 5) {
         Application::logStream() 
             << "got " << mi->getNumOperands() << " operands" << std::endl;
-	mi->dump();
         abortWithError(
             "ERROR: wrong number of operands in \".write_sp\"");
     }
@@ -3379,8 +3378,7 @@ LLVMTCEBuilder::emitSetjmp(
 
     if (mi->getNumOperands() != 7) {
         std::cerr << "ERROR: wrong number of operands in "".setjmp"""
-		  << std::endl;
-        mi->dump();
+                  << std::endl;
         assert(false);
     }
     const MachineOperand& val = mi->getOperand(3);
@@ -3509,8 +3507,7 @@ LLVMTCEBuilder::emitGlobalXXtructorCalls(
             // The first value is the init priority, which we ignore.
             auto init = gv->getInitializer();
             if (!isa<ConstantArray>(init)) {
-                std::cerr << "Global array initializer not ConstantArray:";
-                init->dump();
+                abortWithError("Global array initializer not ConstantArray.");
             }
             const ConstantArray* initList = cast<const ConstantArray>(init);
             for (unsigned i = 0, e = initList->getNumOperands(); i != e; ++i) {
@@ -3591,7 +3588,6 @@ LLVMTCEBuilder::emitLongjmp(
     if (mi->getNumOperands() != 7) {
         std::cerr << "ERROR: wrong number of operands in "".longjmp"""
             << std::endl;
-	mi->dump();
         assert(false);
     }
     const MachineOperand& env = mi->getOperand(3);

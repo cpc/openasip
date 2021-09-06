@@ -102,14 +102,6 @@ TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
 TCEDAGToDAGISel::~TCEDAGToDAGISel() {
 }
 
-// from Sparc backend:
-//void TCEDAGToDAGISel::InstructionSelect() {
-    //DEBUG(BB->dump());
-//  SelectRoot(*CurDAG);
-//  CurDAG->RemoveDeadNodes();
-//}
-
-
 // in LLVM 3.9 select() returns void
 #define SELECT_NODE_AND_RETURN(args...) \
     CurDAG->SelectNodeTo(args); \

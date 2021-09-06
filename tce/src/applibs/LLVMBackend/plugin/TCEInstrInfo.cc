@@ -648,12 +648,10 @@ bool TCEInstrInfo::PredicateInstruction(
         } else if (mo.isFPImm()) {
             mi->getOperand(oper+1).ChangeToFPImmediate(mo.getFPImm());
         } else if (mo.isGlobal()) {
-            mi->dump();
-            // TODO: what to do here? 
+            // TODO: what to do here?
             llvm_unreachable("Unexpected operand type");
             mi->getOperand(oper+1).ChangeToImmediate(mo.getImm());
         } else {
-            mi->dump();
             llvm_unreachable("Unexpected operand type");
         }
     }
