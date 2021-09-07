@@ -212,6 +212,10 @@ OutputOperandDialog::updateElementWidths() {
         }
         elementWidthSpinCtrl_->SetRange(1, lastValidWidth);
         elementWidthSpinCtrl_->SetValue(elemWidth_);
+    } else if (operType == Operand::SINT_WORD || operType == Operand::UINT_WORD) {
+        // element width for integers is 8 to 32
+        elementWidthSpinCtrl_->SetRange(8, 32);
+        elementWidthSpinCtrl_->SetValue(elemWidth_);
     } else {
         // element width for other types is their default type width
         elementWidthSpinCtrl_->SetRange(elemWidth_, elemWidth_);
