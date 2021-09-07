@@ -129,7 +129,7 @@ class BlocksConnectIC : public DesignSpaceExplorerPlugin {
         // save directions and sockets
         std::vector<Socket::Direction> directions;
         std::vector<int> readSockets, writeSockets;
-        int gcu_ra_input, gcu_ra_output, gcu_pc;
+        int gcu_ra_input = -1, gcu_ra_output = -1, gcu_pc = -1;
 
         for (int i = 0; i < socketNavi.count(); i++) {
             Socket* sock = socketNavi.item(i);
@@ -184,6 +184,7 @@ class BlocksConnectIC : public DesignSpaceExplorerPlugin {
             Unit* parentUnit = input_sock->port(0)->parentUnit();
             if (dynamic_cast<ControlUnit*>(parentUnit) != NULL &&
                 input_sock->port(0)->name() == "pc") {
+                assert(gcu_ra_input != -1);
                 Socket* ra_sock = socketNavi.item(gcu_ra_input);
                 newSegment->attachSocket(*ra_sock);
                 ra_sock->setDirection(directions[gcu_ra_input]);
@@ -233,8 +234,11 @@ class BlocksConnectIC : public DesignSpaceExplorerPlugin {
             // Attch GCU's RA and PC sockets (We do not have explicit RA port
             // in Blocks; so, this is just to emulate the effect of single
             // port.)
+            assert(gcu_ra_input != -1);
             newSegment->attachSocket(*socketNavi.item(gcu_ra_input));
+            assert(gcu_ra_output != -1);
             newSegment->attachSocket(*socketNavi.item(gcu_ra_output));
+            assert(gcu_pc != -1);
             newSegment->attachSocket(*socketNavi.item(gcu_pc));
         }
 

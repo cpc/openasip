@@ -35,6 +35,10 @@
 #include <iostream>
 #include <map>
 
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wunused-variable")
+
 #include "ADFSerializer.hh"
 #include "Binary.hh"
 #include "BinaryReader.hh"
