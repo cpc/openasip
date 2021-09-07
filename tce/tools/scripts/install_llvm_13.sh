@@ -43,11 +43,11 @@ function fetch_llvm {
         git clone --branch release/13.x https://github.com/cpc/llvmtce.git $llvm_co_dir\
 	    || eexit "Git clone $REV_TOFETCH from llvm failed"
     else
-	      cd $llvm_co_dir;
-          git checkout release/13.x ||	eexit "checking out git branch failed"
-	      git reset --hard HEAD || eexit "resetting --hard HEAD failed"
-	      git pull || eexit "error doing a git pull"
-	      cd ..;
+        cd $llvm_co_dir;
+	git checkout release/13.x ||	eexit "checking out git branch failed"
+	git fetch
+	git reset --hard origin/release/13.x || eexit "resetting --hard HEAD failed"
+	cd ..;
     fi
 }
 
