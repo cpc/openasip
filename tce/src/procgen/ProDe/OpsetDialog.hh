@@ -34,6 +34,10 @@
 #define TTA_OPSET_DIALOG_HH
 
 #include <wx/wx.h>
+#include "TCEString.hh"
+#include <set>
+#include <map>
+#include "FUPort.hh"
 
 namespace TTAMachine {
     class FunctionUnit;
@@ -52,6 +56,16 @@ protected:
     virtual bool TransferDataToWindow();
     virtual bool TransferDataFromWindow();
 private:
+    typedef std::set<const TTAMachine::FUPort*, 
+                     TTAMachine::MachinePart::Comparator> PortSet;
+    typedef std::map<int, PortSet> PortMap;
+
+    bool bindPorts(TTAMachine::HWOperation& operation, 
+                   std::map<int, std::set<int> >& operands, PortMap& ports,
+                   bool needsTrigger);
+
+    const TTAMachine::FUPort* findTriggerPort(PortMap& ports);
+
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     void onSelectOperation(wxCommandEvent& event);
     void onOK(wxCommandEvent& event);
@@ -60,7 +74,7 @@ private:
     /// Chosen latency.
     int latency_;
     /// Name of the selected operation.
-    std::string operation_;
+    TCEString operation_;
     /// Operation list widget.
     wxListBox* operationList_;
     /// A string to filter opset list.

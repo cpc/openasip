@@ -63,7 +63,8 @@ END_EVENT_TABLE()
  * @param parent Parent window of the dialog.
  */
 OpsetDialog::OpsetDialog(wxWindow* parent):
-    wxDialog(parent, -1, _T("Choose operation & latency")),
+    wxDialog(parent, -1, _T("Choose operation & latency"),
+        wxDefaultPosition),
     latency_(1), operation_("") {
 
     createContents(this, true, true);
@@ -90,7 +91,7 @@ OpsetDialog::TransferDataToWindow() {
     OperationPool::cleanupCache();
     OperationPool pool;
     OperationIndex& index = pool.index();
-    std::set<std::string> opset;
+    std::set<TCEString> opset;
     for (int m = 0; m < index.moduleCount(); m++) {
         OperationModule& module = index.module(m);
         for (int i = 0; i < index.operationCount(module); i++) {
@@ -219,25 +220,29 @@ OpsetDialog::createOperation(FunctionUnit& fu) {
 
     OperationPool pool;
     const Operation& op = pool.operation(operation_.c_str());
-    
+
     HWOperation* operation = new HWOperation(operation_, fu);
 
     // Read operation operand information from the operation pool.
-    std::set<int> inputs;
-    std::set<int> outputs;
+    std::map<int, std::set<int> > inputs;
+    std::map<int, std::set<int> > outputs;
     wxString opWidths;
 
-    for (int i = 1; i <= op.operandCount(); i++) {
+    PortMap inputPorts;
+    PortMap outputPorts;
+    PortMap unconnectedPorts;
+
+    for (int i = 1; i <= op.numberOfInputs() + op.numberOfOutputs(); i++) {
         const Operand& oper = op.operand(i);
         opWidths.Append(WxConversion::toWxString(oper.width()));
 
         if (oper.isInput()) {
+            inputs[oper.width()].insert(oper.index());
             opWidths.Append(WxConversion::toWxString("b input, "));
-            inputs.insert(oper.index());
             operation->pipeline()->addPortRead(oper.index(), 0, 1);
         } else if (oper.isOutput()) {
+            outputs[oper.width()].insert(oper.index());
             opWidths.Append(WxConversion::toWxString("b output, "));
-            outputs.insert(oper.index());
             if (!inputs.empty()) {
                 // 0 and 1 latency means that the output operand is written
                 // on cycle 0.
@@ -254,45 +259,42 @@ OpsetDialog::createOperation(FunctionUnit& fu) {
     for (int i = 0; i < fu.operationPortCount(); i++) {
         const FUPort* port = fu.operationPort(i);
 
-        // Input ports: triggering port is bound to the last input operand.
-        if (port->inputSocket() != NULL && !inputs.empty()) {
-            if (port->isTriggering()) {
-                std::set<int>::iterator iter = --inputs.end();
-                operation->bindPort(*iter, *port);
-                inputs.erase(iter);
-            } else {                
-                std::set<int>::iterator iter = inputs.begin();
-                operation->bindPort(*iter, *port);
-                inputs.erase(iter);
-            }
-        } else if (port->outputSocket() != NULL && !outputs.empty()) {
-            // Output ports.
-            std::set<int>::iterator iter = outputs.begin();
-            operation->bindPort(*iter, *port);
-            outputs.erase(iter);
-        } else if (!inputs.empty() && port->outputSocket() == NULL) {
-            std::set<int>::iterator iter = inputs.begin();
-            operation->bindPort(*iter, *port);
-            inputs.erase(iter);
-        } else if (!outputs.empty() && port->inputSocket() == NULL) {
-            std::set<int>::iterator iter = outputs.begin();
-            operation->bindPort(*iter, *port);
-            outputs.erase(iter);
+        if (port->inputSocket() != NULL || port->isTriggering()) {
+            inputPorts[port->width()].insert(port);
+        } else if (port->outputSocket() != NULL) {
+            outputPorts[port->width()].insert(port);
+        } else {
+            unconnectedPorts[port->width()].insert(port);
         }
     }
 
+    bool triggerBound = false;
+    triggerBound |= bindPorts(*operation, inputs, inputPorts, !inputs.empty());
+    bindPorts(*operation, outputs, outputPorts, false);
+
+    bindPorts(*operation, inputs, unconnectedPorts, false);
+    bindPorts(*operation, outputs, unconnectedPorts, false);
+    
     // Display an error dialog and abort if the operands couldn't be bound
     // to ports.
-    if (!inputs.empty() || !outputs.empty()) {
+    if (!inputs.empty() || !outputs.empty()
+        || (!inputs.empty() && !triggerBound)) {
         wxString message;
+        if (!inputs.empty() && !triggerBound) {
+            message.Append(
+                _T("Could not any operand to trigger port of FU. "));
+            message.Append(
+                _T("It may be too narrow or missing?\n"));
+        }
+
         if (!inputs.empty()) {
             message.Append(
-                _T("Not enough input ports for the operation "
+                _T("Not enough (wide enough?) input ports for the operation "
                    "input operands.\n"));
         }
         if (!outputs.empty()) {
             message.Append(
-                _T("Not enough output ports for the operation "
+                _T("Not enough (wide enough?) output ports for the operation "
                    "output operands.\n"));
         }
         message.Append(WxConversion::toWxString("\n" + operation_));
@@ -305,6 +307,98 @@ OpsetDialog::createOperation(FunctionUnit& fu) {
     }
 
     return operation;
+}
+/**
+ * Binds ports to operands of an instruction.
+ *
+ * Tries to use sensible port widths, ie smallest allowed.
+ * 
+ * @param operation HWOperation being constructed
+ * @param operands width-based map of all operands
+ * @param ports width-based map of all ports
+ * @param needsTrigger if trigger neeed to be bound.
+ * @return true if did bind trigger, false if did not.
+ */
+bool OpsetDialog::bindPorts(TTAMachine::HWOperation& operation, 
+                            std::map<int, std::set<int> >& operands, 
+                            PortMap& ports,
+                            bool needsTrigger) {
+    bool triggerBound = false;
+    int triggerWidth = 0;
+    const FUPort* triggerPort = NULL;
+
+    if (needsTrigger) {
+        triggerPort = findTriggerPort(ports);
+        if (triggerPort) {
+            triggerWidth = triggerPort->width();
+        }
+    }
+
+    while (!operands.empty() && !ports.empty()) {
+        std::map<int, std::set<int> >::iterator j = operands.begin(); 
+        int width = j->first;
+        for (PortMap::iterator k = ports.begin();
+             k != ports.end();) {
+            if (k->first >= width) {
+                std::set<int>& operandsOfSize = j->second;
+                std::set<int>::iterator operandIter = operandsOfSize.begin();
+                if (needsTrigger
+                    && triggerPort != nullptr
+                    && width <= triggerWidth
+                    && operandsOfSize.size() == 1) {
+                    std::map<int, std::set<int> >::iterator next = j;
+                    next++;
+                    if (next==operands.end() || next->first > triggerWidth) {
+                        operation.bindPort(*operandIter, *triggerPort);
+                        operands.erase(j->first);
+                        ports.erase(triggerWidth);
+                        needsTrigger = false;
+                        triggerBound = true;
+                        break;
+                    }
+                }
+                PortSet& portsOfSize = k->second;
+                PortSet::iterator portIter = portsOfSize.begin();
+                const TTAMachine::FUPort* fuPort = *portIter;
+                operation.bindPort(*operandIter, *fuPort);
+                if (fuPort->isTriggering()) {
+                    needsTrigger = false;
+                    triggerBound = true;
+                }
+                operandsOfSize.erase(operandIter);
+                if (operandsOfSize.empty()) {
+                    operands.erase(j->first);
+                }
+                portsOfSize.erase(portIter);
+                if (portsOfSize.empty()) {
+                    ports.erase(k->first);
+                }
+                break;
+            } else {
+                // port sizes of this size are too small for all in the future
+                ports.erase(k++);
+            }
+        }
+    }
+    return triggerBound;
+}
+
+/**
+ * Finds the trigger port from map of function unit ports.
+ */
+const TTAMachine::FUPort*
+OpsetDialog::findTriggerPort(PortMap& ports) {
+    for (PortMap::iterator i = ports.begin(); i != ports.end(); i++) {
+        PortSet& portsOfSize = i->second;
+        for (PortSet::iterator j = portsOfSize.begin(); 
+             j != portsOfSize.end(); j++) {
+            const TTAMachine::FUPort* port = *j;
+            if (port->isTriggering()) {
+                return port;
+            }
+        }
+    }
+    return NULL;
 }
 
 /**
@@ -401,5 +495,6 @@ OpsetDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
             mainSizer->SetSizeHints( parent );
         }
     }
+    
     return mainSizer;
 }
