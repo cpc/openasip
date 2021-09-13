@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2021 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Implementation of OpsetDialog class.
  *
- * @author Veli-Pekka J��skel�inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jääskeläinen 2006 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -282,7 +282,7 @@ OpsetDialog::createOperation(FunctionUnit& fu) {
         wxString message;
         if (!inputs.empty() && !triggerBound) {
             message.Append(
-                _T("Could not any operand to trigger port of FU. "));
+                _T("Could not bind operand to the trigger port. "));
             message.Append(
                 _T("It may be too narrow or missing?\n"));
         }
