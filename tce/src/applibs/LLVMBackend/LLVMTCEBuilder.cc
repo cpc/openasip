@@ -1331,13 +1331,25 @@ LLVMTCEBuilder::emitInstruction(
     // when the -g option turn on, this will come up opc with this, therefore
     // add this to ignore however, it is uncertain whether the debug "-g" will
     // generate more opc, need to verify
+    // NOTE there is similar code in ConstantTransformer::runOnMachineFunction
+#ifdef LLVM_OLDER_THAN_13
     if (opc == TargetOpcode::DBG_VALUE) {
         return NULL;
-    }	
+    }
 
     if (opc == TargetOpcode::KILL) {
         return NULL;
     }
+#else
+    if (opc == TargetOpcode::DBG_VALUE
+        || opc == TargetOpcode::DBG_LABEL
+        || opc == TargetOpcode::DBG_INSTR_REF
+        || opc == TargetOpcode::DBG_VALUE_LIST
+        || opc == TargetOpcode::DBG_PHI
+        || opc == TargetOpcode::KILL) {
+        return NULL;
+    }
+#endif
 
     std::string opName = "";
 
