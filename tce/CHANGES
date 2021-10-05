@@ -1,16 +1,25 @@
 1.25       unreleased
 =====================
 
-1.24    November 2021
+1.24     October 2021
 =====================
 
 Notable changes and features
 ----------------------------
+- Added support for LLVM 13.
 - Experimental tool support for Blocks-CGRA [1] designs. Currently
   tooling is limited to translation of VLIW like Blocks (xml representation)
-  to ADF file,  and re-using TCE compiler for Blocks codegeneration.
+  to ADF file  and re-using TCE compiler for Blocks codegeneration.
   [1] Wijtvliet, M. (2020). Blocks, a reconfigurable architecture combining
   energy efficiency and flexibility. Technische Universiteit Eindhoven.
+- Support for wxWidgets 3.1
+
+Notable bugfixes
+----------------------------
+- tcecc: did not disable loop unrolling properly, even if asked to do so.
+- OSEd: Element-width for SIntWord was fixed to 32.
+- ProDe: Added an operation even when its operand width exceeded the socket
+  width.
 
 1.23        June 2021
 =====================
