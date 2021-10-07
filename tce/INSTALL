@@ -20,7 +20,7 @@ https://help.ubuntu.com/community/Repositories/Ubuntu#Adding_Repositories_in_Ubu
 Ubuntu 20.04+
 -------------
 
-sudo apt-get install libwxgtk3.0-dev libboost-all-dev \
+sudo apt-get install libwxgtk3.0-gtk3-dev libboost-all-dev \
  tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make \
  latex2html libffi-dev autoconf automake libtool subversion git cmake
 
