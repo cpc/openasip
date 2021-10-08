@@ -20,7 +20,7 @@ special operations to more general multi-issue domain-specific processors.
 Notable Changes
 ===============
 
-Support for LLVM 13 experimental tooling support for Blocks CGRA designs
+Support for LLVM 13 and experimental tooling support for Blocks CGRA designs
 along with various bug fixes.
 
 Download
