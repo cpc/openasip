@@ -279,6 +279,8 @@ protected:
         BBState newState,
         bool priorize = false);
 
+    bool isAlwaysDifferentFU(const MoveNode* srcMN, const MoveNode* dstMN);
+
     // related to mem operation addresses
 //    MoveNode* addressMove(const MoveNode&mn);
 

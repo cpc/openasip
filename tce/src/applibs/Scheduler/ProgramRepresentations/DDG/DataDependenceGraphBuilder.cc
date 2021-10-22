@@ -1655,33 +1655,9 @@ DataDependenceGraphBuilder::createSideEffectEdges(
             // mem writes are handled by memory deps so exclude here
             if ((&dop == &o && o.hasSideEffects()) ||
                 dop.dependsOn(o) || o.dependsOn(dop)) {
-
-                // Operations forced to different FUs are independent since
-                // the operation state is per FU. Check if the moves have
-                // forced set of FUs and if the sets overlap.
-                if (mn.move().hasAnnotations(
-                        TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST) &&
-                    i->mn()->move().hasAnnotations(
-                        TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST)) {
-                    bool alwaysDifferentFUs = true;
-                    for (int idx = 0; idx < mn.move().annotationCount(
-                             TTAProgram::ProgramAnnotation::
-                             ANN_ALLOWED_UNIT_DST);
-                         ++idx) {
-                        if (i->mn()->move().hasAnnotation(
-                                TTAProgram::ProgramAnnotation::
-                                ANN_ALLOWED_UNIT_DST,
-                                mn.move().annotation(
-                                    idx,
-                                    TTAProgram::ProgramAnnotation::
-                                    ANN_ALLOWED_UNIT_DST).stringValue())) {
-                            alwaysDifferentFUs = false;
-                            break;
-                        }
-                    }
-                    if (alwaysDifferentFUs)
-                        return;
-                }
+                // if operations are always assigned to differnt FU,
+                // skip creating dependency edge
+                if (isAlwaysDifferentFU(&mn, i->mn())) continue;
 
                 if (!currentDDG_->exclusingGuards(*(i->mn()), mn)) {
                     DataDependenceEdge* dde =
@@ -1922,6 +1898,11 @@ DataDependenceGraphBuilder::checkAndCreateMemDep(
         ProgramOperation& prevPo = prev.mn()->destinationOperation();
         for (int i = 0; i < prevPo.inputMoveCount(); i++) {
             if (prev.loop() || &prevPo.inputMove(i) != mnd.mn()) {
+                // if operations are always assigned to differnt FU,
+                // then skip creating memroy dependency edge
+                if (isAlwaysDifferentFU(prev.mn(), mnd.mn())) {
+                    continue;
+                }
                 DataDependenceEdge* dde2 =
                     new DataDependenceEdge(
                         DataDependenceEdge::EDGE_MEMORY, depType, false,
@@ -2994,6 +2975,45 @@ DataDependenceGraphBuilder::updateRegistersUsedInOrAfter(
     }
     if (bb.liveRangeData_->registersUsedInOrAfter_.size() > size) {
         return true;
+    }
+    return false;
+}
+
+/**
+ * Check if operations are assigned to differnt FU
+ *
+ * Operations forced to different FUs are independent since
+ * the operation state is per FU. Check if the moves have
+ * forced set of FUs and if the sets overlap.
+ *
+ * @param srcMN MoveNode first node for dependency check
+ * @param dstMN MoveNode for which dependency needs to be checked
+ * @return Nodes are alawys mapped to different FU
+ */
+bool
+DataDependenceGraphBuilder::isAlwaysDifferentFU(
+    const MoveNode* srcMN, const MoveNode* dstMN) {
+    if (srcMN->move().hasAnnotations(
+            TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST) &&
+        dstMN->move().hasAnnotations(
+            TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST)) {
+        bool alwaysDifferentFUs = true;
+        for (int idx = 0;
+             idx < srcMN->move().annotationCount(
+                       TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST);
+             ++idx) {
+            if (dstMN->move().hasAnnotation(
+                    TTAProgram::ProgramAnnotation::ANN_ALLOWED_UNIT_DST,
+                    srcMN->move()
+                        .annotation(
+                            idx, TTAProgram::ProgramAnnotation::
+                                     ANN_ALLOWED_UNIT_DST)
+                        .stringValue())) {
+                alwaysDifferentFUs = false;
+                break;
+            }
+        }
+        return alwaysDifferentFUs;
     }
     return false;
 }
