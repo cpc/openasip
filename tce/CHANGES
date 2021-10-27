@@ -1,5 +1,9 @@
 1.25       unreleased
 =====================
+Notable changes and features
+----------------------------
+- TDGen: Register-file marked as 'reserved' will not be used by LLVM RegAlloc
+  anymore
 
 1.24     October 2021
 =====================

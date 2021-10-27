@@ -813,6 +813,9 @@ TDGen::analyzeRegisters() {
         for (int i = 0; i < nav.count(); i++) {
             const TTAMachine::RegisterFile* rf = nav.item(i);
 
+            // Skip definition for registers that are marked as 'reserved'
+            if (rf->isReserved()) continue;
+
             // Check that the registerfile has both input and output ports.
             bool hasInput = false;
             bool hasOutput = false;
