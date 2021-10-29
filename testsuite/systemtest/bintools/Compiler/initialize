@@ -1,0 +1,10 @@
+#!/bin/bash
+
+touch parallel_markers.testdesc.disabled
+
+rm -f data/*.opb
+
+rm -f tcetest_inline_asm_local_register_variable.sh.disabled
+rm -f tcetest_inline_asm_clobber.sh.disabled
+
+rm -f tcetest_swp.sh.disabled

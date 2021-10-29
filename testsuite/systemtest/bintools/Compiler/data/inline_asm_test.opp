@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>TEST</name>
+    <description>Used for inline assembly test.
+
+The operation just adds integers together.</description>
+    <inputs>4</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+        <in id="3"/>
+        <in id="4"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="32" id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+        <in id="3"/>
+        <in id="4"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="32" id="3" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+        <in id="2"/>
+        <in id="4"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="32" id="4" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+        <in id="2"/>
+        <in id="3"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="32" id="5" type="SIntWord"/>
+    <trigger-semantics>SimValue tmp1;
+EXEC_OPERATION(add, IO(1), IO(2), tmp1);
+SimValue tmp2;
+EXEC_OPERATION(add, IO(3), IO(4), tmp2);
+EXEC_OPERATION(add, tmp1, tmp2, IO(5));
+
+
+</trigger-semantics>
+  </operation>
+
+</osal>

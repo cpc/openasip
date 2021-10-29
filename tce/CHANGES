@@ -6,6 +6,9 @@ Notable changes and features
 - TDGen: Register-file marked as 'reserved' will not be used by LLVM
   RegAlloc anymore. This is needed for the upcoming inline asm named
   reg support.
+- Inline assembly supports GNU's  extended assembly constructs such as
+  local register variables and  clobbers in C code. Consequently, this
+  enables clobber and physical register constraints in LLVM IR.
 
 Notable bugfixes
 ----------------------------
