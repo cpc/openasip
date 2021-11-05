@@ -10,6 +10,8 @@ Notable changes and features
   assembly constructs such as local register variables and clobbers
   in C code. Consequently, this enables clobber and physical register
   constraints in LLVM IR.
+- Experimental hardware loop compiler support based on LLVM's generic
+  hardware loop pass.
 
 Notable bugfixes
 ----------------------------

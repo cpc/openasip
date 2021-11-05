@@ -33,16 +33,20 @@
  */
 
 #include "BasicBlockNode.hh"
-#include "Exception.hh"
+
+#include <climits>
+
 #include "BasicBlock.hh"
 #include "Conversion.hh"
-#include "POMDisassembler.hh"
+#include "Exception.hh"
+#include "Instruction.hh"
 #include "InstructionReferenceManager.hh"
 #include "Move.hh"
+#include "POMDisassembler.hh"
 #include "Program.hh"
-#include "Instruction.hh"
 #include "TCEString.hh"
-#include <climits>
+#include "Terminal.hh"
+#include "TerminalImmediate.hh"
 /**
  * Constructor.
  *
@@ -292,6 +296,28 @@ BasicBlockNode::findJumps() {
         }
     }
     return moves;
+}
+
+/**
+ * Update hwloop instruction count.
+ *
+ */
+void
+BasicBlockNode::updateHWloopLength(unsigned len) {
+    for (int i = 0; i < basicBlock_->instructionCount(); i++) {
+        TTAProgram::Instruction& ins = basicBlock_->instructionAtIndex(i);
+        for (int j = 0; j < ins.moveCount(); j++) {
+            TTAProgram::Move& move = ins.move(j);
+            if (move.toString().find("hwloop") != std::string::npos &&
+                move.isTriggering()) {
+                // Only process hwloop instr-length setting
+                auto& s = move.source();
+                assert(s.isImmediate() && "hwloop instruction should be imm");
+                move.setSource(
+                    new TTAProgram::TerminalImmediate(SimValue(len, 32)));
+            }
+        }
+    }
 }
 
 /**

@@ -469,7 +469,12 @@ Instruction::hasReturn() const {
  */
 bool
 Instruction::hasControlFlowMove() const {
-    return hasJump() || hasCall();
+    for (int i = 0; i < moveCount(); i++) {
+        if (move(i).isControlFlowMove()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 

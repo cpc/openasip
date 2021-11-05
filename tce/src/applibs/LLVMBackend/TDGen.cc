@@ -3473,6 +3473,9 @@ TDGen::writeInstrInfo(std::ostream& os) {
     // Call operations.
     writeControlFlowInstrDefs(os);
 
+    // Hardware loop instructions
+    if (mach_.controlUnit()->hasOperation("hwloop")) writeHWLoopDef(os);
+
     // Emulated operations.
     for (iter = requiredOps.begin(); iter != requiredOps.end(); iter++) {
         const Operation& op = opPool.operation((*iter).c_str());       
@@ -3557,6 +3560,38 @@ TDGen::writeControlFlowInstrDefs(std::ostream& os) {
     writeCallDef(os);
 }
 
+/**
+ * Writes hwloop instructions and patterns.
+ */
+void
+TDGen::writeHWLoopDef(std::ostream& os) {
+    os << "// Hardware loop instructions" << std::endl
+       << "let isTerminator=1 in {" << std::endl
+       << "  def HWLOOPii : InstTCE<(outs), (ins i32imm0:$rIter, "
+          "i32imm0:$rInstr), \"\", []>;"
+       << std::endl
+       << "  def HWLOOPri : InstTCE<(outs), (ins i32imm0:$rIter, "
+          "i32imm0:$rInstr), \"\", []>;"
+       << std::endl
+       << "}" << std::endl
+       << "def : Pat<(int_set_loop_iterations i32imm0:$rIter), (HWLOOPii "
+          "i32imm0:$rIter, -1)>;"
+       << std::endl
+       << "def : Pat<(int_set_loop_iterations R32IRegs:$rIter), (HWLOOPri "
+          "R32IRegs:$rIter, -1)>;"
+       << std::endl
+
+       << "let isTerminator = 1 in {" << std::endl
+       << "  def LJUMP : InstTCE<(outs)," << std::endl
+       << "      (ins i32imm0:$rS, brtarget:$dst), \"\"," << std::endl
+       << "      [(brcond (int_loop_decrement i32imm0:$rS), bb:$dst)]>;"
+       << std::endl
+       << "}" << std::endl;
+
+    opNames_["HWLOOPii"] = "hwloop";
+    opNames_["HWLOOPri"] = "hwloop";
+    opNames_["LJUMP"] = "PSEUDO";
+}
 
 /**
  * Writes instructions definitions and patterns for conditional branches.

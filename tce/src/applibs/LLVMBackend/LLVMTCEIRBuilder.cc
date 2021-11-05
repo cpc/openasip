@@ -295,6 +295,8 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
     // This holds inlineAsmBB -> BB and inlineAsmBB -> inlineAsmBB mapping.
     std::map<const BasicBlockNode*, BasicBlockNode*> inlineAsmSuccs;
     std::set<const MachineBasicBlock*> emptyMBBs;
+    std::set<const MachineBasicBlock*> hwloopMBBs;
+    std::map<const MachineBasicBlock*, unsigned> hwloopTripcount;
     std::map<const BasicBlockNode*, bool> bbPredicates;
     ControlFlowGraph::NodeSet returningBBs;
 
@@ -303,6 +305,7 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
     bool firstInsOfProc = true;
 
     pregions_ = new PRegionMarkerAnalyzer(mf);
+    hwloopMBBs.clear();
 
     // 1st loop create all BB's. do not fill them yet.
     for (MachineFunction::const_iterator i = mf.begin(); i != mf.end(); i++) {
@@ -602,6 +605,13 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
             if ((j->getDesc().isCall() || isExplicitReturn(*j) ||
                  (!j->getDesc().isBranch() && instr->hasControlFlowMove())) &&
                 &(*j) != &(mbb.back())) {
+                if (operationName(*j) == "hwloop") {
+                    if (j->getNextNode() != nullptr &&
+                        !j->getNextNode()->isBranch()) {
+                        mbb.dump();
+                        assert(false && "HWLOOP is not terminator in BB");
+                    }
+                }
                 if (!AssocTools::containsKey(callSuccs, bbn)) {
                     // the call ends the basic block, after this only at most
                     // "non real" instructions (such as debug metadata), which
@@ -618,6 +628,14 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                 &(*j) != &(mbb.back())) {
                 bbn = ftSuccs[bbn];
                 bb = &bbn->basicBlock();
+            }
+            if (operationName(*j) == "hwloop") {
+                assert(mbb.succ_size() == 1 &&
+                    "HW Loop should have one succ MBB");
+                hwloopMBBs.insert(*mbb.succ_begin());
+                hwloopTripcount[*mbb.succ_begin()] =
+                    j->getOperand(1).getImm();
+                continue;
             }
         }
 
@@ -780,6 +798,21 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
                     // unconditional jump to nxt bb
                     if (hasUncondJump) {
                         cfe = new ControlFlowEdge;
+                    } else if (hwloopMBBs.find(&mbb) != hwloopMBBs.end()) {
+                        if (&mbb == succ) {
+                            // Loop jump to same BB
+                            cfe = new ControlFlowEdge(
+                                ControlFlowEdge::CFLOW_EDGE_FALSE,
+                                ControlFlowEdge::CFLOW_EDGE_JUMP);
+                            succBBN->basicBlock().setInInnerLoop();
+                            succBBN->basicBlock().setTripCount(
+                                hwloopTripcount[&mbb]);
+                        } else {
+                            // Exit condition
+                            cfe = new ControlFlowEdge(
+                                ControlFlowEdge::CFLOW_EDGE_TRUE,
+                                ControlFlowEdge::CFLOW_EDGE_FALLTHROUGH);
+                        }
                     } else {
                         // no unconditional jump to next bb. limits bb
                         // reordering
@@ -1116,6 +1149,7 @@ TCEString
 LLVMTCEIRBuilder::operationName(const MachineInstr& mi) const {
     if (dynamic_cast<const TCETargetMachine*>(&targetMachine()) 
         != NULL) {
+        if (mi.getDesc().isReturn()) return "RET";
         return dynamic_cast<const TCETargetMachine&>(targetMachine())
             .operationName(mi.getDesc().getOpcode());
     } else {

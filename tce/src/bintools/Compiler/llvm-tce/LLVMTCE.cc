@@ -170,9 +170,25 @@ main(int argc, char* argv[]) {
     // ---- Run compiler ----
     try {
         InterPassData* ipData = new InterPassData;
-
-        const char* argv[] = {"llvm-tce", "--no-stack-coloring"};
-        llvm::cl::ParseCommandLineOptions(2, argv, "llvm linker\n");
+        int argc = 0;
+        std::string argv = options->getLLVMargv();
+        if (options->isVerboseSpamSwitchDefined()) {
+            std::cout << "llvm args = " << argv << std::endl;
+        }
+        // Convert to char**
+        std::vector<char*> argv_array;
+        std::istringstream iss(argv);
+        std::string token;
+        while (iss >> token) {
+            char* arg = new char[token.size() + 1];
+            copy(token.begin(), token.end(), arg);
+            arg[token.size()] = '\0';
+            argv_array.push_back(arg);
+            argc++;
+        }
+        argv_array.push_back(0);
+        llvm::cl::ParseCommandLineOptions(
+            argc, argv_array.data(), "llvm flags\n");
 
         LLVMBackend compiler(useInstalledVersion, options->tempDir());
         TTAProgram::Program* seqProg =

@@ -3502,6 +3502,73 @@ You can now select \textit{Flow>Generate Bitstream} from the menu bar. This will
 run the design through synthesis and implementation, and give you a bitstream
 file with which you can program the FPGA fabric on your SoC.
 
+\section{Hardware Loops}
+\label{section:hwloops}
+
+This section explains the usage of hardware loop operations in TCE. The design
+is based on the LLVM's generic hardware loop support (Hardware Loops pass)
+and its purpose is to provide enhancements to the program control unit in
+TTA by effectively handling loop control-flow (loop index update and conditional
+branch to loop-entry).
+
+TCE's implementation of hardware loops lowers the LLVM's hardware loop
+intrinsics to a backend instruction HWLOOP in the loop pre-header. The
+HWLOOP instruction takes two parameters
+\begin{itemize}
+\item \textbf{Iteration count} - Specifies the number of times the loop-body
+    need to be iterated
+\item \textbf{Instruction count} - Number instructions in the loop-body
+\end{itemize}
+
+Note that, the HWLOOP instruction is handled by the control hardware. Other
+details such as whether and how the loop is cached is left to the underlying
+hardware implementation.
+
+\subsection{Tour to Using the Hardware Loops}
+The hardware loop can be enabled in the TCE by simply adding HWLOOP
+instructions to control-unit in the TTA design. To start with, \textbf{copy
+minimalist TTA machine by}:
+
+\shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf hwloop.adf}
+
+We can observe from OSED that the HWLOOP instruction takes two parameters.
+Hence, add an additional input port to the control-unit and add then the
+HWLOOP instruction to the unit.
+
+Next, we create a program that uses the added hardware loop instruction
+and simulate it in the TTA simulator. \textbf{Create a new file named as
+``example.c''}. In the below, is example program that can use the hardware
+loops.
+
+\begin{verbatim}
+#define SAMPLE_SIZE 128
+volatile int input[SAMPLE_SIZE];
+
+int main() {
+    // Simple memset kernel
+    #pragma clang loop unroll(disable)
+    for (int i=0; i<SAMPLE_SIZE; i++) {
+        input[i] = 0;
+    }
+    return 0;
+}
+\end{verbatim}
+
+\textbf{Copy-paste the code to the newly created file and compile it to TPEF} by
+
+\shellcmd{tcecc -O3 -o example.tpef -a hwloop.adf example.c}
+
+Next, to see  how the hardware loop works,  \textbf{simulate the program
+  in TTA simulator ProXim} by:
+
+\shellcmd{proxim hwloop.adf example.tpef}
+
+After triggering the hardware loop operation HWLOOP, there are delay
+slot instructions,  which are  always executed before the  actual loop.
+The number  of delay slots is  defined in the control  unit of  the ADF.
+Stepping  through the  program we  should observe that the loop in the
+above source  code is repeated by 128 times before exiting the  loop.
+
 \chapter{PROCESSOR DESIGN TOOLS}
 \label{chapter:procgen}
 

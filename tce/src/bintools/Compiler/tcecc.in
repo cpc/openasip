@@ -1144,6 +1144,9 @@ p.add_option('--version', action='store_true',
 p.add_option('--llvm-args', type="string",
              action='store', dest='llvm_args', default="",
              help="""Arguments passed to LLVM.""")
+p.add_option('--disable-llvm-hwloop',
+             action='store_true', dest='disable_llvm_hwloop', default=False,
+             help="""Disable LLVM hwloop pass.""")
 
 p.add_option('--dump-ddgs-dot', action='store_true', dest='dump_ddgs_dot', default=False,
              help=\
@@ -1751,6 +1754,11 @@ if options.adf_file != "":
 
     if options.dump_ifc_cfgs:
         command += " --dump-ifconversion-cfgs"
+
+    if options.disable_llvm_hwloop:
+        command += " --disable-hwloops"
+    else:
+        options.llvm_args += " -force-hardware-loops -hardware-loop-decrement=1 -hardware-loop-counter-bitwidth=32"
 
     if options.llvm_args != "":
         command += " --llvm-args=\"" + options.llvm_args + "\""

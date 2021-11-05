@@ -269,6 +269,13 @@ TCEPassConfig::addPreRegAlloc() {
 
 bool
 TCEPassConfig::addPreISel() {
+    LLVMTCECmdLineOptions* options =
+        dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
+    if (options != NULL && !options->disableHWLoops() &&
+        ((static_cast<TCETargetMachine*>(TM))->ttaMach_)
+            ->hasOperation("hwloop"))
+        addPass(createHardwareLoopsPass());
+
     // lower floating point stuff.. maybe could use plugin as param instead machine...    
     addPass(createLowerMissingInstructionsPass(
                 *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));

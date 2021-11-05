@@ -98,6 +98,7 @@ public:
     bool printInlineAsmWarnings() const;
     bool generatePluginOnly() const;
     bool disableAddressSpaceAA() const;
+    bool disableHWLoops() const;
     bool assumeADFStackAlignment() const;
 
     virtual void printVersion() const {
@@ -140,6 +141,7 @@ private:
     static const std::string USAGE;
     static const std::string SWL_PRINT_INLINE_ASM_WARNINGS;
     static const std::string SWL_GEN_PLUGIN_ONLY;
+    static const std::string SWL_DISABLE_HWLOOPS;
     static const std::string SWL_ASSUME_ADF_STACKALIGNMENT;
 };
 

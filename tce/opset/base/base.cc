@@ -2287,3 +2287,67 @@ OUTPUT_STREAM << "[...woke up]" << std::endl;
 END_TRIGGER;
 END_OPERATION(SLEEP)
 
+
+////////////////////////////////////////////////////////////////////////////////
+// STATE for HWLOOP operation
+////////////////////////////////////////////////////////////////////////////////
+DEFINE_STATE(HLOOP_SETUP)
+    unsigned loopCounter;       // Iterations
+    unsigned loopLength;        // Loop length
+    bool hwloopEnabled;         // hwloop enabled/disabled
+    unsigned instrCount;        // Loop instr counter (for jumps)
+    unsigned delayCycles;       // pipeline branch delay
+
+INIT_STATE(HLOOP_SETUP)
+    loopCounter = 0;
+    loopLength = 0;
+    hwloopEnabled = false;
+    instrCount = 0;
+    delayCycles = 0;
+END_INIT_STATE;
+
+ADVANCE_CLOCK
+    if (delayCycles > 0) {
+        delayCycles--;
+    } else if (hwloopEnabled && loopCounter > 0) {
+        instrCount++;
+        if (instrCount == loopLength) {
+            instrCount = 0;
+            PROGRAM_COUNTER = PROGRAM_COUNTER - loopLength;
+            loopCounter--;
+        }
+
+        // If it is last iteration, disable loop jump
+        if (loopCounter == 0)
+            hwloopEnabled = false;
+    }
+END_ADVANCE_CLOCK;
+
+FINALIZE_STATE(HLOOP_SETUP)
+END_FINALIZE_STATE;
+
+END_DEFINE_STATE
+
+////////////////////////////////////////////////////////////////////////////////
+// HWLOOP - Iterates loop instructions for given count
+////////////////////////////////////////////////////////////////////////////////
+OPERATION_WITH_STATE(HWLOOP, HLOOP_SETUP)
+TRIGGER
+    // sanity check
+    if (STATE.hwloopEnabled) {
+        RUNTIME_ERROR("Already hwloop is in progress");
+    }
+    if (UINT(1) == 0) {
+        RUNTIME_ERROR("hwloop for iterations=0 is invalid");
+    }
+
+    STATE.loopCounter = UINT(1)-1;
+    if (STATE.loopCounter > 0) {
+        STATE.loopLength = UINT(2);
+        STATE.hwloopEnabled = true;
+        STATE.instrCount = 0;
+        STATE.delayCycles = BRANCH_DELAY_CYCLES + 1;
+    }
+END_TRIGGER;
+END_OPERATION_WITH_STATE(HWLOOP)
+

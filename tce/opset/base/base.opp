@@ -4341,4 +4341,17 @@ Input operand is discarded.</description>
     <in element-count="1" element-width="1" id="1" type="RawData"/>
   </operation>
 
+  <operation>
+    <name>HWLOOP</name>
+    <description>Hardware-loop instruction to iterate given number of instruction. Operand-1: Iteration count and Operand-2: Number of instructions.
+        The instruction only guarantees the loop-iterations. Insturction cache behaviour (eg: Loop bufffers) are left to hardware to handle.
+    </description>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <control-flow/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+  </operation>
+
 </osal>

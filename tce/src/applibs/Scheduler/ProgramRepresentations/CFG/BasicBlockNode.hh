@@ -94,6 +94,7 @@ public:
     void setScheduled(bool state=true) { scheduled_ = state;}
 
     std::pair<TTAProgram::Move*,TTAProgram::Move*> findJumps();
+    void updateHWloopLength(unsigned len);
 
     void updateReferencesFromProcToCfg(TTAProgram::Program& prog);
 

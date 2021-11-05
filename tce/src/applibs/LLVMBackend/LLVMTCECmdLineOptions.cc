@@ -83,6 +83,9 @@ const std::string LLVMTCECmdLineOptions::USAGE =
 const std::string LLVMTCECmdLineOptions::SWL_GEN_PLUGIN_ONLY =
     "gen-plugin-only";
 
+const std::string LLVMTCECmdLineOptions::SWL_DISABLE_HWLOOPS =
+    "disable-hwloops";
+
 const std::string LLVMTCECmdLineOptions::SWL_ASSUME_ADF_STACKALIGNMENT =
     "assume-adf-stackalignment";
 /**
@@ -216,6 +219,10 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
             "Generates LLVM backend plugin for target machine without tpef "
             "generation."));
 
+    addOption(new BoolCmdLineOptionParser(
+        SWL_DISABLE_HWLOOPS,
+        "Do not use hardware loops even though the processor supports them."));
+
     addOption(
 	new BoolCmdLineOptionParser(
             SWL_ASSUME_ADF_STACKALIGNMENT,
@@ -335,7 +342,7 @@ LLVMTCECmdLineOptions::getLLVMargv() const {
     if (!findOption(LLVM_USER_ARGS)->isDefined()) {
         return "llvm-tce --no-stack-coloring";
     } else {
-        std::string argv = "llvm-tce --no-stack-coloring" +
+        std::string argv = "llvm-tce --no-stack-coloring " +
                            findOption(LLVM_USER_ARGS)->String();
         return argv;
     }
@@ -429,6 +436,12 @@ LLVMTCECmdLineOptions::generatePluginOnly() const {
     return (findOption(SWL_GEN_PLUGIN_ONLY)->isDefined() &&
         findOption(SWL_GEN_PLUGIN_ONLY)->isFlagOn());
 }
+
+bool
+LLVMTCECmdLineOptions::disableHWLoops() const {
+    return findOption(SWL_DISABLE_HWLOOPS)->isDefined();
+}
+
 bool
 LLVMTCECmdLineOptions::assumeADFStackAlignment() const {
     return findOption(SWL_ASSUME_ADF_STACKALIGNMENT)->isDefined();

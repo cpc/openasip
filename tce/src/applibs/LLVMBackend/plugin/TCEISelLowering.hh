@@ -127,6 +127,7 @@ namespace llvm {
         SDValue LowerShift(SDValue op, SelectionDAG& dag) const;
         SDValue LowerBuildBooleanVectorVector(
             SDValue Op, MVT newElementVT, int elemCount, SelectionDAG &DAG) const;
+        SDValue lowerHWLoops(SDValue op, SelectionDAG &dag) const;
 
         SDValue lowerExtOrBoolLoad(SDValue op, SelectionDAG& DAG) const;
 

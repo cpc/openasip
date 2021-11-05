@@ -274,6 +274,7 @@ protected:
     void writeControlFlowInstrDefs(std::ostream& os);
     void writeCondBranchDefs(std::ostream& os);
     void writeCallDef(std::ostream& o);
+    void writeHWLoopDef(std::ostream& o);
     virtual void writeCallDefRegs(std::ostream& o);
 
     void writeRegisterClasses(std::ostream& o);

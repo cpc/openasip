@@ -1,0 +1,11 @@
+hwloop 3 3
+!advanceclock
+!advanceclock
+!advanceclock
+!advanceclock
+!advanceclock
+!advanceclock
+!advanceclock
+!advanceclock
+!advanceclock
+!quit

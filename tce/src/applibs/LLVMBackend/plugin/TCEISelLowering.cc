@@ -617,6 +617,9 @@ TCETargetLowering::TCETargetLowering(
         setOperationAction(ISD::BR_CC, MVT::i64, Expand);
     }
 
+    // Hardware loop ops
+    setOperationAction(ISD::INTRINSIC_VOID, MVT::Other, Custom);
+
 #ifdef TARGET64BIT
     setOperationAction(ISD::BR_CC, MVT::f64, Expand);
 #endif
@@ -1333,6 +1336,86 @@ TCETargetLowering::LowerShift(SDValue op, SelectionDAG& dag) const {
     return op;
 }
 
+SDValue
+TCETargetLowering::lowerHWLoops(SDValue op, SelectionDAG &dag) const {
+    if (cast<ConstantSDNode>(op->getOperand(1))->getZExtValue() !=
+        Intrinsic::set_loop_iterations) {
+        std::cerr << "Trying to lower invalid hwloop instruction"
+                  << std::endl;
+        return op;
+    }
+
+    // If hwloop is last instruction, let TDGen do the lowering.
+    if (op->use_empty()) return op;
+
+    // If we see a jump after hwloop, we have the hwloop
+    // in correct place. Let TDGen handle the hwloop lowering.
+    if (op->use_size() > 1) {
+        dag.dump();
+        assert(false && "HWLoop should not have more than one Use");
+    }
+    auto linkNode = op->use_begin();
+    auto linkOpc = linkNode->getOpcode();
+    if (linkOpc == ISD::BR || linkNode->use_empty()) {
+        // hwloop follows branch. No action taken in ISel
+        return op;
+    }
+
+    // Sanity check for known pattern
+    //  Expected pattern: hwloop -> TokenFactor -> BR
+    if (linkOpc != ISD::TokenFactor || linkNode->use_size() > 1) {
+        std::cerr << "  - Unable recognize hwloop pattern" << std::endl;
+        dag.dump();
+        assert(false && "Loop pattern not implemented");
+    } else if (linkNode->use_begin()->getOpcode() == ISD::HANDLENODE) {
+        // hwloop has dangling TokenFactor; No action taken"
+        return op;
+    }
+
+    // Create HWLOOP operands with link to ISD::BR node
+    // i.e. TokenFactor -> HWLOOP -> BR
+    SmallVector<SDValue, 8> ops;
+    SmallVector<SDValue, 8> linkOps;
+    bool replaceLinkNode = false;
+    for (int i = 0; i < op.getNumOperands(); i++) {
+        if (i == 0) {
+            // If we have two operand TokenFactor (one of which is hwloop),
+            // then remove TokenFactor node and directly link node to hwloop
+            if (linkNode->getNumOperands() == 2) {
+                for (int i = 0; i < linkNode->getNumOperands(); i++) {
+                    // Add non-hwloop op as depdendent instr
+                    if (linkNode->getOperand(i) != op)
+                        ops.push_back(linkNode->getOperand(i));
+                }
+            } else {
+                // Add TokenFactor to operand list of hwloop
+                auto endUse = linkNode->use_begin();
+                ops.push_back(endUse->getOperand(endUse.getOperandNo()));
+
+                // Create operand list for new TokenFactor
+                for (int i = 0; i < linkNode->getNumOperands(); i++) {
+                    if (linkNode->getOperand(i) == op) continue;
+                    linkOps.push_back(linkNode->getOperand(i));
+                }
+                replaceLinkNode = true;
+            }
+        } else {
+            // Keep rest of the operands as it is in hwloop
+            ops.push_back(op.getOperand(i));
+        }
+    }
+    SDLoc dl(op);
+    dag.ReplaceAllUsesWith(*linkNode, &op);
+    auto Chain = dag.UpdateNodeOperands(op.getNode(), ArrayRef<SDValue>(ops));
+    if (replaceLinkNode) {
+        SDValue newLinkNode = dag.getNode(
+            linkNode->getOpcode(), dl, MVT::Other,
+            ArrayRef<SDValue>(linkOps));
+        dag.ReplaceAllUsesWith(*linkNode, &newLinkNode);
+    }
+    return op;
+}
+
 /**
  * Handles custom operation lowerings.
  */
@@ -1350,6 +1433,8 @@ TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) const {
     case ISD::SRA:
     case ISD::SRL: return LowerShift(op, dag);
     case ISD::LOAD: return lowerExtOrBoolLoad(op, dag);
+    case ISD::INTRINSIC_VOID:
+        return lowerHWLoops(op, dag);
     case ISD::DYNAMIC_STACKALLOC: {
         assert(false && "Dynamic stack allocation not yet implemented.");
     }

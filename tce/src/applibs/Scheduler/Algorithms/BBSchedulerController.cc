@@ -525,6 +525,10 @@ BBSchedulerController::executeDDGPass(
 
     try {
         ddgPasses[fastest]->handleDDG(*ddg, *rm, targetMachine, minCycle);
+        if (bb.tripCount()) {
+            bbn->predecessor()->updateHWloopLength(
+                ddg->largestCycle() + 1 - ddg->smallestCycle());
+        }
     } catch (const Exception &e) {
         debugLog(e.errorMessageStack());
         abortWithError("Scheduling failed!");
