@@ -1,0 +1,41 @@
+ist_init 0x64 0x4
+!advanceclock
+ist32 0x01020304
+!advanceclock
+ist32 0x05060708
+!advanceclock
+ist_init 0x6c 0x1
+!advanceclock
+ist8 0xff
+!advanceclock
+ist8 0xf0
+!advanceclock
+!mem byte 0x64
+!mem byte 0x65
+!mem byte 0x66
+!mem byte 0x67
+!mem byte 0x68
+!mem byte 0x69
+!mem byte 0x6a
+!mem byte 0x6b
+!mem byte 0x6c
+!mem byte 0x6d
+!output hex
+ild_init 0x64 0x4
+!advanceclock
+ild32 0x0
+!advanceclock
+ildu32 0x0
+!advanceclock
+ild_init 0x6c 0x1
+!advanceclock
+ildu8 0x0
+!advanceclock
+ild8 0x0
+ild_init 0x64 0x4
+ist_init 0x68 0x4
+!advanceclock
+ildu32_ist32 0xdeedbeef
+!advanceclock
+ildu32_ist32 0xdeedbeef
+!quit

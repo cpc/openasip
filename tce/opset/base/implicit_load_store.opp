@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+  <operation>
+    <name>ILD_INIT</name>
+    <description>Initialize implicit load operations with start address and stride. Operand-1: start address. Operand-2: stride</description>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <reads-memory/>
+    <affects>
+      <operation name="ILD32"/>
+      <operation name="ILDU32"/>
+      <operation name="ILD8"/>
+      <operation name="ILDU8"/>
+      <operation name="ILDU_IST32"/>
+      <operation name="ILDU_IST8"/>
+    </affects>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>IST_INIT</name>
+    <description>Initialize implicit store operations with start address and stride. Operand-1: start address. Operand-2: stride</description>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <reads-memory/>
+    <affects>
+      <operation name="ILDU_IST32"/>
+      <operation name="ILDU_IST8"/>
+      <operation name="IST32"/>
+      <operation name="IST8"/>
+    </affects>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>ILD8</name>
+    <description>Loads a byte and sign-extends to 32bits (idential to LD8) with implicit address.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <affected-by>
+      <operation name="ILD8"/>
+      <operation name="ILDU8"/>
+      <operation name="ILDU32"/>
+      <operation name="ILD32"/>
+      <operation name="ILDU_IST8"/>
+      <operation name="ILDU_IST32"/>
+      <operation name="IST8"/>
+      <operation name="IST32"/>
+    </affected-by>
+    <in element-count="1" element-width="1" id="1" type="Bool"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord">
+      <mem-data/>
+    </out>
+</operation>
+
+  <operation>
+    <name>ILDU8</name>
+    <description>Loads a byte and zero-extends to 32bits (idential to LDU8) with implicit address.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <affected-by>
+      <operation name="ILD8"/>
+      <operation name="ILDU8"/>
+      <operation name="ILDU32"/>
+      <operation name="ILD32"/>
+      <operation name="ILDU_IST8"/>
+      <operation name="ILDU_IST32"/>
+      <operation name="IST8"/>
+      <operation name="IST32"/>
+    </affected-by>
+    <in element-count="1" element-width="1" id="1" type="Bool"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord">
+      <mem-data/>
+    </out>
+  </operation>
+
+  <operation>
+    <name>IST8</name>
+    <description>Stores a byte to absolute byte address (identical to ST8) with implicit address.</description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <affected-by>
+      <operation name="ILDU_IST8"/>
+      <operation name="ILDU_IST32"/>
+      <operation name="IST8"/>
+      <operation name="IST32"/>
+    </affected-by>
+    <in element-count="1" element-width="32" id="1" type="RawData">
+      <mem-data/>
+    </in>
+  </operation>
+
+  <operation>
+    <name>ILD32</name>
+    <description>Loads a 32-bit in LE byte order and sign-extend (identical to LD32) with implicit address</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <affected-by>
+      <operation name="ILD8"/>
+      <operation name="ILDU8"/>
+      <operation name="ILDU32"/>
+      <operation name="ILD32"/>
+      <operation name="ILDU_IST8"/>
+      <operation name="ILDU_IST32"/>
+      <operation name="IST8"/>
+      <operation name="IST32"/>
+    </affected-by>
+    <in element-count="1" element-width="1" id="1" type="Bool"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord">
+      <mem-data/>
+    </out>
+  </operation>
+
+  <operation>
+    <name>ILDU32</name>
+    <description>Loads a 32-bit in LE byte order and zero-extend (identical to LDU32) with implicit address</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <affected-by>
+      <operation name="ILD8"/>
+      <operation name="ILDU8"/>
+      <operation name="ILDU32"/>
+      <operation name="ILD32"/>
+      <operation name="ILDU_IST8"/>
+      <operation name="ILDU_IST32"/>
+      <operation name="IST8"/>
+      <operation name="IST32"/>
+    </affected-by>
+    <in element-count="1" element-width="1" id="1" type="Bool"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord">
+      <mem-data/>
+    </out>
+  </operation>
+
+  <operation>
+    <name>IST32</name>
+    <description>Stores 32-bit word in LE byte order (identical to ST32) with implicit address</description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <affected-by>
+      <operation name="ILDU_IST8"/>
+      <operation name="ILDU_IST32"/>
+      <operation name="IST8"/>
+      <operation name="IST32"/>
+    </affected-by>
+    <in element-count="1" element-width="32" id="1" type="RawData">
+      <mem-data/>
+    </in>
+  </operation>
+
+  <operation>
+    <name>ILDU32_IST8</name>
+    <description>LDU32 and ST8 with implicit addressing</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <writes-memory/>
+    <affected-by>
+      <operation name="ILD8"/>
+      <operation name="ILDU8"/>
+      <operation name="ILDU32"/>
+      <operation name="ILD32"/>
+      <operation name="ILDU_IST8"/>
+      <operation name="ILDU_IST32"/>
+      <operation name="IST8"/>
+      <operation name="IST32"/>
+    </affected-by>
+    <in element-count="1" element-width="32" id="1" type="RawData">
+      <mem-data/>
+    </in>
+    <out element-count="1" element-width="32" id="2" type="SIntWord">
+      <mem-data/>
+    </out>
+  </operation>
+
+  <operation>
+    <name>ILD32_IST32</name>
+    <description>LD32 and ST32 with implicit addressing</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <writes-memory/>
+    <affected-by>
+      <operation name="ILD8"/>
+      <operation name="ILDU8"/>
+      <operation name="ILDU32"/>
+      <operation name="ILD32"/>
+      <operation name="ILDU_IST8"/>
+      <operation name="ILDU_IST32"/>
+      <operation name="IST8"/>
+      <operation name="IST32"/>
+    </affected-by>
+    <in element-count="1" element-width="32" id="1" type="RawData">
+      <mem-data/>
+    </in>
+    <out element-count="1" element-width="32" id="2" type="SIntWord">
+      <mem-data/>
+    </out>
+  </operation>
+
+  <operation>
+    <name>ILDU32_IST32</name>
+    <description>LDU32 and ST32 with implicit addressing</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <writes-memory/>
+    <affected-by>
+      <operation name="ILD8"/>
+      <operation name="ILDU8"/>
+      <operation name="ILDU32"/>
+      <operation name="ILD32"/>
+      <operation name="ILDU_IST8"/>
+      <operation name="ILDU_IST32"/>
+      <operation name="IST8"/>
+      <operation name="IST32"/>
+    </affected-by>
+    <in element-count="1" element-width="32" id="1" type="RawData">
+      <mem-data/>
+    </in>
+    <out element-count="1" element-width="32" id="2" type="SIntWord">
+      <mem-data/>
+    </out>
+  </operation>
+
+</osal>
