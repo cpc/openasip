@@ -69,6 +69,7 @@ BasicBlockNode::BasicBlockNode(
     bbOwned_(true),
     entry_(entry), exit_(exit),
     scheduled_(false), refsUpdated_(false), loopScheduled_(false),
+    isHardwareLoop_(false),
     successor_(NULL), predecessor_(NULL), maximumSize_(INT_MAX) {
 
     if (entry || exit) {
@@ -96,6 +97,7 @@ BasicBlockNode::BasicBlockNode(
     entry_(false), exit_(false),
     scheduled_(scheduled), refsUpdated_(refsUpdated), 
     loopScheduled_(loopScheduled),
+    isHardwareLoop_(false),
     successor_(NULL), predecessor_(NULL), maximumSize_(INT_MAX) {
 }
 

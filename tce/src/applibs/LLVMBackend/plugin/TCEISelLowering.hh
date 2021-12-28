@@ -86,6 +86,8 @@ namespace llvm {
         TCETargetLowering(TargetMachine &TM, const TCESubtarget &subt);
 
         virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) const override;
+        virtual SDValue PerformDAGCombine(
+            SDNode *N, DAGCombinerInfo &DCI) const override;
 
         int getVarArgsFrameOffset() const /* override */ { return VarArgsFrameOffset; }
 

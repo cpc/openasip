@@ -619,6 +619,9 @@ TCETargetLowering::TCETargetLowering(
 
     // Hardware loop ops
     setOperationAction(ISD::INTRINSIC_VOID, MVT::Other, Custom);
+    if (!opts->disableHWLoops()) {
+        setTargetDAGCombine(ISD::BRCOND);
+    }
 
 #ifdef TARGET64BIT
     setOperationAction(ISD::BR_CC, MVT::f64, Expand);
@@ -1356,20 +1359,18 @@ TCETargetLowering::lowerHWLoops(SDValue op, SelectionDAG &dag) const {
     }
     auto linkNode = op->use_begin();
     auto linkOpc = linkNode->getOpcode();
-    if (linkOpc == ISD::BR || linkNode->use_empty()) {
-        // hwloop follows branch. No action taken in ISel
+    if (linkOpc == ISD::BR || linkOpc == ISD::HANDLENODE) {
+        // hwloop follows branch (or) last instruction of BB,
+        // No action needed.
         return op;
     }
 
-    // Sanity check for known pattern
-    //  Expected pattern: hwloop -> TokenFactor -> BR
+    // Sanity check for known pattern. Expected patterns,
+    //   - hwloop -> TokenFactor -> BR (or)
+    //   - hwloop -> TokenFactor
     if (linkOpc != ISD::TokenFactor || linkNode->use_size() > 1) {
-        std::cerr << "  - Unable recognize hwloop pattern" << std::endl;
         dag.dump();
-        assert(false && "Loop pattern not implemented");
-    } else if (linkNode->use_begin()->getOpcode() == ISD::HANDLENODE) {
-        // hwloop has dangling TokenFactor; No action taken"
-        return op;
+        assert(false && "HWLoop loop pattern not implemented.");
     }
 
     // Create HWLOOP operands with link to ISD::BR node
@@ -1378,27 +1379,20 @@ TCETargetLowering::lowerHWLoops(SDValue op, SelectionDAG &dag) const {
     SmallVector<SDValue, 8> linkOps;
     bool replaceLinkNode = false;
     for (int i = 0; i < op.getNumOperands(); i++) {
+        // Swap the use list of op and linkNode
         if (i == 0) {
-            // If we have two operand TokenFactor (one of which is hwloop),
-            // then remove TokenFactor node and directly link node to hwloop
-            if (linkNode->getNumOperands() == 2) {
-                for (int i = 0; i < linkNode->getNumOperands(); i++) {
-                    // Add non-hwloop op as depdendent instr
-                    if (linkNode->getOperand(i) != op)
-                        ops.push_back(linkNode->getOperand(i));
-                }
-            } else {
-                // Add TokenFactor to operand list of hwloop
-                auto endUse = linkNode->use_begin();
-                ops.push_back(endUse->getOperand(endUse.getOperandNo()));
+            // Set TokenFactor as 1st operand
+            ops.push_back(SDValue(*linkNode, 0));
 
-                // Create operand list for new TokenFactor
-                for (int i = 0; i < linkNode->getNumOperands(); i++) {
-                    if (linkNode->getOperand(i) == op) continue;
-                    linkOps.push_back(linkNode->getOperand(i));
+            // Create operand list for linkNode
+            for (int j = 0; j < linkNode->getNumOperands(); j++) {
+                if (linkNode->getOperand(j) == op) {
+                    linkOps.push_back(op.getOperand(i));
+                } else {
+                    linkOps.push_back(linkNode->getOperand(j));
                 }
-                replaceLinkNode = true;
             }
+            replaceLinkNode = true;
         } else {
             // Keep rest of the operands as it is in hwloop
             ops.push_back(op.getOperand(i));
@@ -1446,6 +1440,66 @@ TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) const {
     assert(0 && "Custom lowerings not implemented!");
 }
 
+SDValue
+TCETargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI) const {
+    SelectionDAG &DAG = DCI.DAG;
+    SDLoc dl(N);
+    switch (N->getOpcode()) {
+        default:
+            break;
+        case ISD::BRCOND: {
+            SDValue Cond = N->getOperand(1);
+            SDValue Target = N->getOperand(2);
+            // Corner case for decrement -> setcc -> brcond link
+            if (Cond.getOpcode() == ISD::SETCC)
+                Cond = Cond.getOperand(0);
+            if (Cond.getOpcode() == ISD::INTRINSIC_W_CHAIN &&
+                cast<ConstantSDNode>(Cond.getOperand(1))->getZExtValue() ==
+                    Intrinsic::loop_decrement) {
+                /// Replace the decrement use chain with it predecessor
+                /// The decrement should connect to BRCOND node directly or
+                /// via TokeneFactor. If it is connected via TokenFactor, move
+                /// the decrement close to BRCOND by updating the chain
+                auto chain = N->getOperand(0);
+                // Correct form. no action needed
+                if (chain.getNode() == Cond.getNode()) {
+                    DAG.SelectNodeTo(N, TCE::LJUMP, MVT::Other,
+                            N->getOperand(2), Cond->getOperand(0));
+                } else {
+                    assert((chain.getOpcode() == ISD::TokenFactor) &&
+                        "chain to brcond is not TokenFactor.");
+                    assert((N->use_begin()->getOpcode() == ISD::BR) &&
+                        "brcond is not connected to br.");
+                    SmallVector<SDValue, 8> Ops;
+                    bool hasDecrement = false;
+                    for (unsigned i = 0, e = chain->getNumOperands(); i != e;
+                         ++i) {
+                        if (chain->getOperand(i).getNode() ==
+                            Cond.getNode()) {
+                            hasDecrement = true;
+                            Ops.push_back(Cond->getOperand(0));
+                        } else {
+                            Ops.push_back(chain->getOperand(i));
+                        }
+                    }
+                    assert(hasDecrement &&
+                        "Unable to find Chain for loop decrement");
+                    auto newChain = DAG.getNode(
+                        ISD::TokenFactor, SDLoc(chain), MVT::Other, Ops);
+                    DAG.ReplaceAllUsesOfValueWith(chain, newChain);
+
+                    // Custom ISEL for LJUMP
+                    DAG.UpdateNodeOperands(
+                        N, newChain, N->getOperand(1), N->getOperand(2));
+                    DAG.SelectNodeTo(
+                        N, TCE::LJUMP, MVT::Other, N->getOperand(2),
+                        newChain);
+                }
+            }
+        }
+    }
+    return SDValue();
+}
 
 //===----------------------------------------------------------------------===//
 //                         Inline Assembly Support

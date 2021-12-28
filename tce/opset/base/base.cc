@@ -2334,11 +2334,16 @@ END_DEFINE_STATE
 OPERATION_WITH_STATE(HWLOOP, HLOOP_SETUP)
 TRIGGER
     // sanity check
-    if (STATE.hwloopEnabled) {
-        RUNTIME_ERROR("Already hwloop is in progress");
-    }
     if (UINT(1) == 0) {
-        RUNTIME_ERROR("hwloop for iterations=0 is invalid");
+        RUNTIME_ERROR(
+            "Hardware loop invocation with 0 iterations is invalid.");
+    }
+    if (UINT(2) == 0) {
+        RUNTIME_ERROR(
+            "Hardware loop invocation with instruction length 0 is invalid.");
+    }
+    if (STATE.hwloopEnabled) {
+        RUNTIME_ERROR("Hardware loop execution already in progress.");
     }
 
     STATE.loopCounter = UINT(1)-1;

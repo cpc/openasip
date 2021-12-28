@@ -525,7 +525,7 @@ BBSchedulerController::executeDDGPass(
 
     try {
         ddgPasses[fastest]->handleDDG(*ddg, *rm, targetMachine, minCycle);
-        if (bb.tripCount()) {
+        if (bbn->isHWLoop()) {
             bbn->predecessor()->updateHWloopLength(
                 ddg->largestCycle() + 1 - ddg->smallestCycle());
         }

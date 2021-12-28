@@ -102,6 +102,19 @@ public:
     void setLoopScheduled() { loopScheduled_ = true; }
     void setBBOwnership(bool ownership = true) { bbOwned_ = ownership; }
 
+    /// Set true if the bbn is known to be a loop body of a hwloop with
+    /// loop pattern- preheader BB -> loop body (single BB) -> tail BB.
+    /// Furthermore, preheader should use HWLOOP instruction for its
+    /// fallthrough jump to its loop body.
+    void
+    setHWLoop(bool hwloop = true) {
+        isHardwareLoop_ = hwloop;
+    }
+    bool
+    isHWLoop() const {
+        return isHardwareLoop_;
+    }
+
     // Ordering of basic blocks in a procedure.
     // These are NULL if not set/decided.
     const BasicBlockNode* successor() const { return successor_; }
@@ -135,7 +148,9 @@ private:
     bool scheduled_;
     bool refsUpdated_;
     // if this bb was scheduled with loop scheduler
-    bool loopScheduled_; 
+    bool loopScheduled_;
+    /// true if this bb is known to be a hwloop body
+    bool isHardwareLoop_;
 
     BasicBlockNode* successor_;
     BasicBlockNode* predecessor_;

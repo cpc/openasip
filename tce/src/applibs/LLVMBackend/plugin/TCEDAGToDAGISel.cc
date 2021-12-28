@@ -118,6 +118,12 @@ TCEDAGToDAGISel::~TCEDAGToDAGISel() {
  */
 void
 TCEDAGToDAGISel::Select(SDNode* n) {
+    // Custom nodes are already selected
+    if (n->isMachineOpcode()) {
+        n->setNodeId(-1);
+        return;
+    }
+
     SDLoc dl(n);
     if (n->getOpcode() >= ISD::BUILTIN_OP_END &&
         n->getOpcode() < TCEISD::FIRST_NUMBER) {

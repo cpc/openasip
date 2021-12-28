@@ -29,7 +29,7 @@ double_la_LIBADD = ../../src/libtce.la
 implicit_load_store_la_LIBADD = ../../src/libtce.la
 
 EXTRA_DIST = ${nobase_base_DATA} ${nobase_avalon_DATA} ${nobase_simple_io_DATA} ${nobase_double_DATA} \
-             {nobase_implicit_load_store_DATA}
+             ${nobase_implicit_load_store_DATA}
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src

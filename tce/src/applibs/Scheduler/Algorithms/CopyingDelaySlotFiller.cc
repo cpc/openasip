@@ -93,7 +93,7 @@ CopyingDelaySlotFiller::fillDelaySlots(
     }
 
     // do not try to fill loop scheduled, also skip epilog and prolog.
-    if (jumpingBB.isLoopScheduled()) {
+    if (jumpingBB.isLoopScheduled() || jumpingBB.isHWLoop()) {
         bbnStatus_[&jumpingBB] = BBN_BOTH_FILLED;
         return false;
     }
@@ -237,7 +237,8 @@ CopyingDelaySlotFiller::fillDelaySlots(
         BasicBlockNode& nextBBN = cfg_->headNode(edge);
 
         // cannot fill if the next is not normal BB.
-        if (!nextBBN.isNormalBB() || nextBBN.isLoopScheduled()) {
+        if (!nextBBN.isNormalBB() || nextBBN.isLoopScheduled() ||
+            nextBBN.isHWLoop()) {
             continue;
         }
 
