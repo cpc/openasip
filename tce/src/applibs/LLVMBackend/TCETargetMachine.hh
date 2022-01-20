@@ -42,6 +42,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "llvm/CodeGen/TargetLowering.h"
 #include "llvm/CodeGen/TargetFrameLowering.h"
+#include "llvm/Analysis/TargetTransformInfo.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/CodeGen/SelectionDAGTargetInfo.h"
 
@@ -171,6 +172,11 @@ plugin_(plugin) {
 
         virtual TargetPassConfig *createPassConfig(
             PassManagerBase &PM) override;
+
+        TargetTransformInfo
+        getTargetTransformInfo(const Function& F) override {
+            return plugin_->getTargetTransformInfo(F);
+        }
 
         std::string operationName(unsigned opc) const {
             return plugin_->operationName(opc);

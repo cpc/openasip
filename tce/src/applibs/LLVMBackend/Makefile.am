@@ -80,6 +80,8 @@ include_HEADERS = \
  plugin/TCEFrameInfo.hh \
  plugin/TCEFrameInfo.cc \
  plugin/TCETargetMachinePlugin.cc \
+ plugin/TCETargetTransformInfo.cc\
+ plugin/TCETargetTransformInfo.hh \
  plugin/PluginCompileWrapper.cc \
  TCETargetMachine.hh \
  TCETargetMachinePlugin.hh \

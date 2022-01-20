@@ -97,6 +97,7 @@ namespace llvm {
    class TargetRegisterInfo;
    class TargetFrameLowering;
    class TargetSubtargetInfo;
+   class TargetTransformInfo;
    class TCESubtarget;
    class FunctionPass;
    class TCETargetMachine;
@@ -119,6 +120,8 @@ namespace llvm {
        virtual const TargetFrameLowering* getFrameLowering() const = 0;
        virtual TargetLowering* getTargetLowering() const = 0;
        virtual const TargetSubtargetInfo* getSubtarget() const = 0;
+       virtual TargetTransformInfo getTargetTransformInfo(
+           const Function& F) const = 0;
 
        virtual FunctionPass* createISelPass(TCETargetMachine* tm) = 0;
 

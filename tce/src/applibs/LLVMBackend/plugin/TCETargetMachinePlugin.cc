@@ -46,6 +46,7 @@
 #include "CIStringSet.hh"
 #include "LLVMTCECmdLineOptions.hh"
 #include "TCEStubTargetMachine.hh"
+#include "TCETargetTransformInfo.hh"
 
 using namespace llvm;
 
@@ -60,6 +61,8 @@ public:
     virtual const TargetRegisterInfo* getRegisterInfo() const override;
     virtual const TargetFrameLowering* getFrameLowering() const override;
     virtual TargetLowering* getTargetLowering() const override;
+    virtual TargetTransformInfo getTargetTransformInfo(
+        const Function& F) const override;
     virtual const TargetSubtargetInfo* getSubtarget() const override;
 
     virtual FunctionPass* createISelPass(TCETargetMachine* tm) override;
@@ -296,6 +299,11 @@ GeneratedTCEPlugin::getRegisterInfo() const {
 const TargetFrameLowering* 
 GeneratedTCEPlugin::getFrameLowering() const {
     return frameInfo_;
+}
+
+TargetTransformInfo
+GeneratedTCEPlugin::getTargetTransformInfo(const Function& F) const {
+    return TargetTransformInfo(TCETTIImpl(tm_, F));
 }
 
 /**
