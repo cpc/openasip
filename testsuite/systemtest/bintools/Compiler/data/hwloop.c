@@ -17,11 +17,17 @@ void __attribute__((noinline)) checksum() {
 
 void
 init_data() {
+    // Loop unroll with unroll condition (SAMPLE_SIZE % N != 0)
+    // Should not be converted to hwloop
+    #pragma clang loop unroll_count(5)
+    for (int x = 0; x < SAMPLE_SIZE; x++) {
+        input[x] = SAMPLE_SIZE - x;
+    }
+
     // set top borders to zero
     #pragma clang loop unroll(disable)
     for (int x = 0; x < SAMPLE_SIZE; x++) {
         output[x] = 0;
-        input[x] = SAMPLE_SIZE - x;
     }
 }
 

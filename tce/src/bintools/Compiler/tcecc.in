@@ -1757,8 +1757,6 @@ if options.adf_file != "":
 
     if options.disable_llvm_hwloop:
         command += " --disable-hwloops"
-    else:
-        options.llvm_args += " -force-hardware-loops -hardware-loop-decrement=1 -hardware-loop-counter-bitwidth=32"
 
     if options.llvm_args != "":
         command += " --llvm-args=\"" + options.llvm_args + "\""
