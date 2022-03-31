@@ -60,17 +60,10 @@ POP_COMPILER_DIAGS
 using namespace TTAProgram;
 using namespace TTAMachine;
 
-#ifdef LLVM_OLDER_THAN_13
-#define MayAlias llvm::MayAlias
-#define PartialAlias llvm::PartialAlias
-#define MustAlias llvm::MustAlias
-#define NoAlias llvm::NoAlias
-#else
 #define MayAlias llvm::AliasResult::Kind::MayAlias
 #define PartialAlias llvm::AliasResult::Kind::PartialAlias
 #define MustAlias llvm::AliasResult::Kind::MustAlias
 #define NoAlias llvm::AliasResult::Kind::NoAlias
-#endif
 
 LLVMAliasAnalyzer::LLVMAliasAnalyzer(){
     AA_ = NULL;

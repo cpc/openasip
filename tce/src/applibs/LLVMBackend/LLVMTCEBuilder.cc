@@ -1332,15 +1332,6 @@ LLVMTCEBuilder::emitInstruction(
     // add this to ignore however, it is uncertain whether the debug "-g" will
     // generate more opc, need to verify
     // NOTE there is similar code in ConstantTransformer::runOnMachineFunction
-#ifdef LLVM_OLDER_THAN_13
-    if (opc == TargetOpcode::DBG_VALUE) {
-        return NULL;
-    }
-
-    if (opc == TargetOpcode::KILL) {
-        return NULL;
-    }
-#else
     if (opc == TargetOpcode::DBG_VALUE
         || opc == TargetOpcode::DBG_LABEL
         || opc == TargetOpcode::DBG_INSTR_REF
@@ -1349,7 +1340,6 @@ LLVMTCEBuilder::emitInstruction(
         || opc == TargetOpcode::KILL) {
         return NULL;
     }
-#endif
 
     std::string opName = "";
 
@@ -1949,14 +1939,9 @@ LLVMTCEBuilder::addPointerAnnotations(
                             llvm::Type* typeElem = 
                                 cast<PointerType>(type)->getElementType();
                             if (typeElem->isVectorTy()) {
-#ifdef LLVM_OLDER_THAN_12
-                                int numElems = cast<VectorType>(typeElem)
-                                                   ->getNumElements();
-#else
                                 int numElems = cast<VectorType>(typeElem)
                                                    ->getElementCount()
                                                    .getKnownMinValue();
-#endif
                                 int idLast = (CZ->getZExtValue() & 0x0FF)
                                         | ((CY->getZExtValue() & 0x0FF) << 8)
                                         | (((CX->getZExtValue() 
@@ -2358,24 +2343,12 @@ LLVMTCEBuilder::emitConstantPool(const MachineConstantPool& mcp) {
         assert(!(cpe.isMachineConstantPoolEntry()) && "NOT SUPPORTED");
         if (!globalCP_.count(cpe.Val.ConstVal)) {
             // New unique constant.
-#ifdef LLVM_OLDER_THAN_12
-            assert(cpe.getAlign().value() > 0);
-            MaybeAlign constantPoolAlignment = cpe.getAlign();
-            unsigned alignment = std::max(
-                static_cast<unsigned>(constantPoolAlignment? 0: cpe.getAlign().value()),
-                dl_->getPrefTypeAlignment(cpe.getType()));
-#else
             assert(cpe.getAlign().value() > 0);
             unsigned alignment = cpe.getAlign().value();
-#endif
             padToAlignment(cpAddrSpaceId, dataEndPos, alignment);
             unsigned address = dataEndPos;
 
-#ifdef LLVM_OLDER_THAN_12
-            unsigned size = dl_->getTypeStoreSize(cpe.getType());
-#else
             unsigned size = cpe.getSizeInBytes(*dl_);
-#endif
             cpData_.emplace_back(ConstantDataDef(
                 address, alignment, size, cpe.Val.ConstVal));
             globalCP_.insert(std::make_pair(cpe.Val.ConstVal, address));

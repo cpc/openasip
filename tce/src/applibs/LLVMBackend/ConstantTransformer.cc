@@ -130,12 +130,6 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
             if (opDesc.isReturn()) {
                 continue;
             }
-#ifdef LLVM_OLDER_THAN_13
-            if (opc == llvm::TargetOpcode::DBG_VALUE || 
-                opc == llvm::TargetOpcode::KILL) {
-                continue;
-            }
-#else
             if (opc == llvm::TargetOpcode::DBG_VALUE
                 || opc == llvm::TargetOpcode::DBG_LABEL
                 || opc == llvm::TargetOpcode::DBG_INSTR_REF
@@ -144,7 +138,6 @@ ConstantTransformer::runOnMachineFunction(llvm::MachineFunction& mf) {
                 || opc == llvm::TargetOpcode::KILL) {
                 continue;
             }
-#endif
 
             TCEString opname = tm.operationName(opc);
             if (opname == "") continue;

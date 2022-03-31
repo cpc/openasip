@@ -763,10 +763,6 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
 
             // Replace all uses of the instruction with call instruction
             if (I->getType() != NewCall->getType()) {
-#ifdef LLVM_OLDER_THAN_12
-                assert(llvm::CastInst::isCastable(
-                           NewCall->getType(), I->getType()));
-#endif
 
                 Value *MCast;                
                 Instruction::CastOps castOps =

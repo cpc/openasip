@@ -676,26 +676,6 @@ int TCEInstrInfo::getMatchingCondBranchOpcode(int opc, bool inv) const {
 }
 
 
-// mostly ripped from hexagon
-#ifdef LLVM_OLDER_THAN_12
-bool
-TCEInstrInfo::DefinesPredicate(
-    MachineInstr& MI_ref, std::vector<MachineOperand> &Pred) const {
-    MachineInstr *MI = &MI_ref;
-    for (unsigned oper = 0; oper < MI->getNumOperands(); ++oper) {
-        MachineOperand MO = MI->getOperand(oper);
-        if (MO.isReg() && MO.isDef()) {
-            const TargetRegisterClass* RC = ri_.getMinimalPhysRegClass(
-                MO.getReg());
-            if (RC == &TCE::GuardRegsRegClass || RC == &TCE::R1RegsRegClass) {
-                Pred.push_back(MO);
-                return true;
-            }
-        }
-    }
-    return false;
-}
-#else
 bool
 TCEInstrInfo::ClobbersPredicate(
     MachineInstr& MI, std::vector<MachineOperand>& Pred,
@@ -713,7 +693,6 @@ TCEInstrInfo::ClobbersPredicate(
     }
     return false;
 }
-#endif
 
 bool
 TCEInstrInfo::

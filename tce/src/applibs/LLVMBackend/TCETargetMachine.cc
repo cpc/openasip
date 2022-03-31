@@ -84,7 +84,6 @@ public:
         const llvm::MCAsmInfo& mai, const llvm::MCInstrInfo& mii, 
         const llvm::MCRegisterInfo& mri) : llvm::MCInstPrinter(mai, mii, mri) {}
 
-#ifndef LLVM_OLDER_THAN_12
     bool
     applyTargetSpecificCLOption(StringRef Opt) override {
         return false;
@@ -93,16 +92,13 @@ public:
     getMnemonic(const MCInst* MI) override {
         return std::make_pair(nullptr, 0);
     }
-#endif
 
     void printInst(
         const MCInst*, uint64_t, StringRef,
         const MCSubtargetInfo&, raw_ostream&) override {}
 
-#ifndef LLVM_OLDER_THAN_12
     void
     printRegName(raw_ostream& OS, unsigned RegNo) const override {}
-#endif
 };
 
 // In TCE target we don't print the MCInsts from LLVM, but
@@ -459,11 +455,7 @@ TCEPassConfig::addPreSched2() {
 }
 
 int TCETargetMachine::getLoadOpcode(int asid, int align, const llvm::EVT& vt) const {
-#ifdef LLVM_OLDER_THAN_12
-    int laneCount = vt.getVectorElementCount().Min;
-#else
     int laneCount = vt.getVectorElementCount().getKnownMinValue();
-#endif
 
     int laneSize = vt.getScalarSizeInBits();
     int vecSize = laneCount * laneSize;

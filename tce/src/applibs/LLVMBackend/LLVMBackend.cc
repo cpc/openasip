@@ -71,11 +71,7 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 
 #include <llvm/IR/Verifier.h>
 
-#ifdef LLVM_OLDER_THAN_13
-#include <llvm/CodeGen/GCStrategy.h>
-#else
 #include <llvm/IR/GCStrategy.h>
-#endif
 
 #include <llvm-c/Core.h> // LLVMGetGlobalContext()
 
@@ -528,7 +524,6 @@ LLVMBackend::maxAllocaAlignment(const llvm::Module& mod) const {
     return maxAlignment;
 }
 
-#ifndef LLVM_OLDER_THAN_12
 static MCRegisterInfo*
 createTCEMCRegisterInfo(const Triple& TT) {
     MCRegisterInfo* X = new MCRegisterInfo();
@@ -555,7 +550,6 @@ createTCEMCSubtargetInfo(const Triple& TT, StringRef CPU, StringRef FS) {
 
     return X;
 }
-#endif
 
 /**
  * Compiles given llvm program module for target machine using the given
@@ -604,30 +598,23 @@ LLVMBackend::compile(
     // get registered target machine and set plugin.
     const Target* tceTarget =
         TargetRegistry::lookupTarget(targetStr, errorStr);
-#ifndef LLVM_OLDER_THAN_12
     Target* nonconst_target = const_cast<Target*>(tceTarget);
-#endif
 
     if (!tceTarget) {
         errs() << errorStr << "\n";
         return NULL;
     }
 
-#ifndef LLVM_OLDER_THAN_12
     TargetRegistry::RegisterMCRegInfo(
         *nonconst_target, createTCEMCRegisterInfo);
     TargetRegistry::RegisterMCInstrInfo(
         *nonconst_target, createTCEMCInstrInfo);
     TargetRegistry::RegisterMCSubtargetInfo(
         *nonconst_target, createTCEMCSubtargetInfo);
-#endif
 
     std::string cpuStr = "tce";
 
     TargetOptions Options;
-#ifdef LLVM_OLDER_THAN_12
-    Options.PrintMachineCode = false; //PrintCode;
-#endif
     Options.UnsafeFPMath = false; //EnableUnsafeFPMath;
     Options.NoInfsFPMath = false; //EnableNoInfsFPMath;
     Options.NoNaNsFPMath = false; //EnableNoNaNsFPMath;
@@ -638,11 +625,7 @@ LLVMBackend::compile(
     // the program, recompute this now as the llvm::Module has
     // been loaded
     unsigned maxMachineAlignment = (unsigned)MachineInfo::maxMemoryAlignment(target);
-#ifdef LLVM_OLDER_THAN_13
-    Options.StackAlignmentOverride = maxMachineAlignment;
-#else
     module.setOverrideStackAlignment(maxMachineAlignment);
-#endif
     if (options_->assumeADFStackAlignment()) {
 
         if (maxAllocaAlignment(module) > maxMachineAlignment) {
@@ -657,13 +640,8 @@ LLVMBackend::compile(
                 "constructor.");
         }
     } else {
-#ifdef LLVM_OLDER_THAN_13
-        Options.StackAlignmentOverride =
-            std::max(maxMachineAlignment, maxAllocaAlignment(module));
-#else
         module.setOverrideStackAlignment(
             std::max(maxMachineAlignment, maxAllocaAlignment(module)));
-#endif
     }
     Options.GuaranteedTailCallOpt = true; //EnableGuaranteedTailCallOpt;
 
@@ -677,11 +655,6 @@ LLVMBackend::compile(
         errs() << "Could not create tce target machine" << "\n";
         return NULL;
     }
-#ifdef LLVM_OLDER_THAN_13
-    targetMachine->setStackAlignment(
-        std::max((unsigned)(target.is64bit() ? 8 : 4),
-                 Options.StackAlignmentOverride));
-#else
     // The way to override the stack alignment was
     // changed in LLVM commit 787ee457173c. It's easiest
     // we just pass it through TCETargetMachine for now
@@ -689,7 +662,6 @@ LLVMBackend::compile(
     targetMachine->setStackAlignment(
         std::max((unsigned)(target.is64bit() ? 8 : 4),
                  module.getOverrideStackAlignment()));
-#endif
 
     // This hack must be cleaned up before adding TCE target to llvm upstream
     // these are needed by TCETargetMachine::addInstSelector passes

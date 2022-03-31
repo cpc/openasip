@@ -379,26 +379,20 @@ GeneratedTCEPlugin::operationName(unsigned opc) const {
     const std::string NOP = "NOP";
     const std::string INLINEASM = "INLINEASM";
     const std::string DEBUG_LABEL = "DEBUG_LABEL";
-#ifndef LLVM_OLDER_THAN_13
     const std::string DEBUG_VALUE = "DEBUG_VALUE";
     const std::string DEBUG_INSTR_REF = "DEBUG_INSTR_REF";
     const std::string DEBUG_VALUE_LIST = "DEBUG_VALUE_LIST";
     const std::string DEBUG_PHI = "DEBUG_PHI";
-#endif
 
     if (opc == TCE::IMPLICIT_DEF) return PSEUDO;
     else if (opc == TCE::ADJCALLSTACKDOWN) return PSEUDO;
     else if (opc == TCE::ADJCALLSTACKUP) return PSEUDO;
     else if (opc == TCE::NOP) return NOP;
-#ifdef LLVM_OLDER_THAN_13
-    else if (opc == TCE::DBG_LABEL) return DEBUG_LABEL;
-#else
     if (opc == TCE::DBG_VALUE) return DEBUG_VALUE;
     if (opc == TCE::DBG_INSTR_REF) return DEBUG_INSTR_REF;
     if (opc == TCE::DBG_LABEL) return DEBUG_LABEL;
     if (opc == TCE::DBG_VALUE_LIST) return DEBUG_VALUE_LIST;
     if (opc == TCE::DBG_PHI) return DEBUG_PHI;
-#endif
     // Moves
     if (opc == TCE::COPY) return MOVE;
     if (opc == TCE::MOVI1rr) return MOVE;

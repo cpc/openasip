@@ -3079,11 +3079,7 @@ TDGen::genTCETargetLoweringSIMD_getSetCCResultVT(std::ostream& o) const {
             break;
         }
 
-#ifdef LLVM_OLDER_THAN_12
-        o << "\tif (vt.getVectorElementCount().Min == "
-#else
         o << "\tif (vt.getVectorElementCount().getKnownMinValue() == "
-#endif
           << Conversion::toString(subwCount) << ") return llvm::MVT::"
           << boolVecVtStr << ";" << endl;
         subwCount *= 2;
