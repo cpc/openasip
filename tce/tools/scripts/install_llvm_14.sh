@@ -22,7 +22,7 @@ echo "### LLVM build mode: "$LLVM_BUILD_MODE
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 patch_dir=$script_dir/../patches
-llvm_co_dir=release_12
+llvm_co_dir=release_14
 
 mkdir -p $build_dir
 cd $build_dir
@@ -40,14 +40,14 @@ function fetch_llvm {
 
     if ! test -d $llvm_co_dir;
     then
-        git clone --branch release/12.x https://github.com/cpc/llvmtce.git $llvm_co_dir\
-	    || eexit "Git clone $REV_TOFETCH from llvm failed"
+        git clone --branch release/14.x https://github.com/cpc/llvmtce.git $llvm_co_dir\
+            || eexit "Git clone $REV_TOFETCH from llvm failed"
     else
-	      cd $llvm_co_dir;
-          git checkout release/12.x ||	eexit "checking out git branch failed"
-	      git reset --hard HEAD || eexit "resetting --hard HEAD failed"
-	      git pull || eexit "error doing a git pull"
-	      cd ..;
+        cd $llvm_co_dir;
+        git checkout release/14.x ||	eexit "checking out git branch failed"
+        git fetch
+        git reset --hard origin/release/14.x || eexit "resetting --hard HEAD failed"
+        cd ..;
     fi
 }
 
@@ -70,6 +70,5 @@ cmake ../llvm/ -DLLVM_ENABLE_PROJECTS=clang \
     -DLLVM_ENABLE_RTTI=TRUE \
     -DLLVM_ENABLE_Z3_SOLVER=OFF \
     || eexit "Configuring LLVM/Clang failed."
-make -j8 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 \
-    || eexit "Building LLVM/Clang failed."
+make -j$(nproc) || eexit "Building LLVM/Clang failed."
 make install || eexit "Installation of LLVM/Clang failed."

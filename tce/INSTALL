@@ -17,8 +17,8 @@ This step needs root/admin privileges.
 For Ubuntus, you need to enable the universe and multiverse repositories first:
 https://help.ubuntu.com/community/Repositories/Ubuntu#Adding_Repositories_in_Ubuntu
 
-Ubuntu 20.04+
--------------
+Ubuntu 20.04+ / Debian 11
+-------------------------
 
 sudo apt-get install libwxgtk3.0-gtk3-dev libboost-all-dev \
  tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make \
@@ -142,7 +142,7 @@ build TCE:
 Host compiler         Supported versions
 -----------------     ------------------
 GCC                   9.0+
-Clang                 11 to 13
+Clang                 13 to 14
 
 Library               supported versions                   library license
 -----------------     ------------------                   ---------------
@@ -151,7 +151,7 @@ wxWidgets             2.8+                                 wxWidgets
 Tcl                   8.0-8.4                              BSD-style
 Boost                 1.48.0-1.53.0                        very permissive
 sqlite3               3.2.0+                               public domain
-LLVM                  11 to 13                             LLVM Release License
+LLVM                  13 to 14                             LLVM Release License
 Editline              2.9                                  BSD-style
 Python                3.6+                                 PSF license
 
