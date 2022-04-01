@@ -32,9 +32,14 @@
 #ifndef TTA_TCE_STUB_TARGET_MACHINE_HH
 #define TTA_TCE_STUB_TARGET_MACHINE_HH
 
-#include <llvm/Support/TargetRegistry.h>
-#include <llvm/Target/TargetMachine.h>
 #include "tce_config.h"
+
+#ifdef LLVM_OLDER_THAN_14
+#include "llvm/Support/TargetRegistry.h"
+#else
+#include "llvm/MC/TargetRegistry.h"
+#endif
+#include <llvm/Target/TargetMachine.h>
 #include <llvm/CodeGen/TargetLowering.h>
 // LLVM has function with parameter named as "PIC". Command line
 // option -DPIC messes up the compilation.

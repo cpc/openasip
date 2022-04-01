@@ -40,7 +40,6 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "llvm/IR/PassManager.h"
 #include "llvm/CodeGen/TargetRegisterInfo.h"
 #include "llvm/CodeGen/SelectionDAGNodes.h"
-#include "llvm/Support/TargetRegistry.h"
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCStreamer.h"
 #include "llvm/MC/MCInstPrinter.h"

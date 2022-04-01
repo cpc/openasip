@@ -55,7 +55,6 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/CodeGen/Passes.h>
 #include <llvm/IR/LegacyPassManager.h>
-#include <llvm/Support/TargetRegistry.h>
 #include <llvm/Target/TargetOptions.h>
 #include <llvm/CodeGen/TargetPassConfig.h>
 
