@@ -36,7 +36,7 @@ REVNO=$(shell which git > /dev/null && echo -n "-r" && git rev-list --all --coun
 
 TCE_VERSION_STRING=@PACKAGE_VERSION@$(REVNO)
 
-tce_version_string.h: ../../../.git/index
+tce_version_string.h: ../../../.git
 	@echo "Setting TCE_VERSION_STRING to $(TCE_VERSION_STRING)"
 	@echo '#define TCE_VERSION_STRING "$(TCE_VERSION_STRING)"' > $@
 
