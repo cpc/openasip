@@ -255,8 +255,11 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                 # fmac (which need to be emulated). This is not the best
                 # possible fix, but soft float should not be used for
                 # performance critical FP code anyways.
+                # Version 14 onwards this is on by default. We must compile
+                # Newlib with this disabled so that soft floats work.
+                # A better solution would be to emulate also the fmuladd intrinsics.
 
-                if options.soft_float:
+                if @LLVM_VERSION@ >= 14 or options.soft_float :
                     extra_opts += " -ffp-contract=off"
 
                 if options.soft_float or not options.autovectorize:
@@ -675,7 +678,12 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
                    "-disable-loop-idiom-memset "
 
     # no inline
-    default_opts += options.noinline and "-disable-inlining " or "-inline-threshold=%d " % options.inline_threshold
+    # In version 14, "disable-inlining" was removed from opt and replaced with
+    # "inline"
+    if @LLVM_VERSION@ < 14 :
+        default_opts += options.noinline and "-disable-inlining " or "-inline-threshold=%d " % options.inline_threshold
+    else :
+        default_opts += (not options.noinline) and "-inline " or "-inline-threshold=%d " % options.inline_threshold
 
     # no need to run this, since intrinsics are lowered in isel...
 
@@ -770,8 +778,14 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
         internalize_api_list += "," + options.keep_symbols
 
     no_inline = ""
+    # In version 14, "disable-inlining" was removed from opt and replaced with
+    # "inline"
     if options.noinline:
-        no_inline = " -disable-inlining"
+        if @LLVM_VERSION@ < 14 :
+            no_inline = " -disable-inlining "
+    else : 
+        if @LLVM_VERSION@ >= 14 :
+            no_inline = " -inline "
 
     if not options.disable_internalize:
         internalizeCmd = " -internalize " + internalize_api_list
