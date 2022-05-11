@@ -15,7 +15,7 @@ Notable changes and features
 
 Notable bugfixes
 ----------------------------
-- DDG: Operations mapped to differnt FU should not have false-dependency edge
+- DDG: Operations mapped to different FU should not have false-dependency edge
 
 1.24     October 2021
 =====================
