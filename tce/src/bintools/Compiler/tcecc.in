@@ -259,7 +259,7 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                 # Newlib with this disabled so that soft floats work.
                 # A better solution would be to emulate also the fmuladd intrinsics.
 
-                if @LLVM_VERSION@ >= 14 or options.soft_float :
+                if @LLVM_VERSION@ >= 14 or options.soft_float:
                     extra_opts += " -ffp-contract=off"
 
                 if options.soft_float or not options.autovectorize:
@@ -477,10 +477,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
     #startFiles = [os.path.join(newlib_libdir, "crt0.o ")]
 
-    # format of llvm-nm has been changed in llvm 3.7
-    nmidx = 0
-    if @LLVM_VERSION@ >= 3.7:
-        nmidx = 1
+    nmidx = 1
 
     libNoSys = os.path.join(newlib_libdir, "libnosys.a")
     if not os.path.exists(libNoSys):
@@ -680,9 +677,9 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
     # no inline
     # In version 14, "disable-inlining" was removed from opt and replaced with
     # "inline"
-    if @LLVM_VERSION@ < 14 :
+    if @LLVM_VERSION@ < 14:
         default_opts += options.noinline and "-disable-inlining " or "-inline-threshold=%d " % options.inline_threshold
-    else :
+    else:
         default_opts += (not options.noinline) and "-inline " or "-inline-threshold=%d " % options.inline_threshold
 
     # no need to run this, since intrinsics are lowered in isel...
@@ -750,13 +747,8 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
 
     optSwitches = ""
 
-    if options.soft_float and @LLVM_VERSION@ >= 3.4:
-        if @LLVM_VERSION@ < 9:
-            optSwitches += " -disable-slp-vectorization -disable-loop-vectorization"
-        elif @LLVM_VERSION@ >= 9 and @LLVM_VERSION@ < 11:
-            optSwitches += " -disable-slp-vectorization"
-        elif @LLVM_VERSION@ >= 11:
-            optSwitches += " -vectorize-slp=false"
+    if options.soft_float:
+        optSwitches += " -vectorize-slp=false"
 
     # if software floatingpoint should be lowered, link the emulation functions in
     emulationLib = os.path.join(newlib_libdir, "float_emulation.o") + " "
@@ -781,10 +773,10 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     # In version 14, "disable-inlining" was removed from opt and replaced with
     # "inline"
     if options.noinline:
-        if @LLVM_VERSION@ < 14 :
+        if @LLVM_VERSION@ < 14:
             no_inline = " -disable-inlining "
-    else : 
-        if @LLVM_VERSION@ >= 14 :
+    else: 
+        if @LLVM_VERSION@ >= 14:
             no_inline = " -inline "
 
     if not options.disable_internalize:
@@ -1199,25 +1191,24 @@ p.add_option('-x', type='string', action='store', metavar='language',
              dest="language", default='', help=\
 """Bypass language detection and use the given language for compilation.""")
 
-if "@LLVM_VERSION@" != "3.0":
-    p.add_option('--vectorize', action='store_true', dest='vectorize', default=False,
-             help=\
-    """Call work item vectorizer. This requires metadata support from pocl.""")
+p.add_option('--vectorize', action='store_true', dest='vectorize', default=False,
+            help=\
+"""Call work item vectorizer. This requires metadata support from pocl.""")
 
-    p.add_option('--vectorize-mem-only', action='store_true', dest='vectorize_mem_only',
-            default=False,
-             help=\
-    """Vectorize only memory operations.""")
+p.add_option('--vectorize-mem-only', action='store_true', dest='vectorize_mem_only',
+        default=False,
+            help=\
+"""Vectorize only memory operations.""")
 
-    p.add_option('--vector-width', type="int", action='store', dest='vector_width',
-            default=8,
-             help=\
-    """Number of lanes for vectorizer.""")
+p.add_option('--vector-width', type="int", action='store', dest='vector_width',
+        default=8,
+            help=\
+"""Number of lanes for vectorizer.""")
 
-    p.add_option('--arg-reg-count', type="int", action='store', dest='arg_reg_count',
-            default=0,
-             help=\
-    """Number of registers used for passing function arguments. The default is to look it
+p.add_option('--arg-reg-count', type="int", action='store', dest='arg_reg_count',
+        default=0,
+            help=\
+"""Number of registers used for passing function arguments. The default is to look it
 from the ADF if available, if not, then 1 is used.""")
 
 p.add_option('--analyze-instruction-patterns', action='store_true', dest='analyze_ipatterns', default=False,
