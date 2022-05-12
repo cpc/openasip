@@ -20,8 +20,10 @@ special operations to more general multi-issue domain-specific processors.
 Notable Changes
 ===============
 
-...
-
+- Added support for LLVM 14.
+- Initial partial inline assembly support.
+- Experimental hardware loop compiler support based on LLVM's generic
+  hardware loop pass.
 
 Download
 ========
@@ -33,15 +35,10 @@ Get the release via git by cloning the release branch:
 Acknowledgements
 ================
 
-This project has received funding from the ECSEL Joint Undertaking (JU) under
-grant agreement No 783162 (FitOptiVis). The JU receives support from the
-European Union’s Horizon 2020 research and innovation programme and Netherlands,
-Czech Republic, Finland, Spain, Italy. It was also supported by European
-Union's Horizon 2020 research and innovation programme under Grant Agreement
-No 871738 (CPSoSaware).
-
-The contributions of this release were supported in part by Eindhoven University
-of Technology (TU/e) under the Dutch NWO project ZERO (P15-06 project 5).
+This project was supported by European Union's Horizon 2020 research and
+innovation programme under Grant Agreement No 871738 (CPSoSaware) and
+by Eindhoven University of Technology (TU/e) under the Dutch NWO project
+ZERO (P15-06 project 5).
 
 Links
 =====

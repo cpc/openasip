@@ -3,6 +3,7 @@
 
 Notable changes and features
 ----------------------------
+- Added support for LLVM 14.
 - TDGen: Register-file marked as 'reserved' will not be used by LLVM
   RegAlloc anymore. This is needed for the upcoming inline asm named
   reg support.
