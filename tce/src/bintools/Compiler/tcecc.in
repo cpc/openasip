@@ -37,7 +37,6 @@ from tempfile import mkdtemp, mkstemp
 from optparse import OptionParser
 from shutil import rmtree
 from subprocess import Popen, PIPE
-from distutils.spawn import find_executable
 
 def runCommandBuffered(command, echoOutput, applyStdErr = True, stripOutput = True):
     """Runs a command and prints everything if requested."""
