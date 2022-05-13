@@ -61,7 +61,7 @@ Get the Latest TCE Source Code
 
 Alternatively you can get one of the release branches, e.g.:
 
-  git clone -b release-1.23 https://github.com/cpc/tce.git tce-1.23
+  git clone -b release-1.25 https://github.com/cpc/tce.git tce-1.25
 
 LLVM and Clang
 ==============
@@ -72,8 +72,8 @@ switches to fix some issues affecting TCE usage.
 
 You can do this easiest as follows:
 
-   cd tce-1.23/tce OR cd tce-devel/tce
-   tools/scripts/install_llvm_13.sh $HOME/local
+   cd tce-1.25/tce OR cd tce-devel/tce
+   tools/scripts/install_llvm_14.sh $HOME/local
 
 After successful installation, add information about installed libraries to the
 search path. We assume TCE will be installed to the same location later.
