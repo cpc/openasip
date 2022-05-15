@@ -500,7 +500,7 @@ wxSizer *TemplateListDialog::createContents(wxWindow *parent, bool call_fit,
 
   item2->Add(item8, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item1->Add(item2, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
+  item1->Add(item2, 0, wxALL, 5);
 
   wxStaticBox *item12 = new wxStaticBox(parent, -1, wxT("Template Slots:"));
   wxStaticBoxSizer *item11 = new wxStaticBoxSizer(item12, wxVERTICAL);
