@@ -1080,8 +1080,7 @@ wxSizer *OperationDialog::createContents(wxWindow *parent, bool call_fit,
 
   wxSpinCtrl *item18 = new wxSpinCtrl(
       parent, ID_NUMBER, wxT("1"), wxDefaultPosition, wxDefaultSize, 0, 1,
-      10000, 1); // replaced explicit size w/ default (TODO do this everywhere
-                 // for spin controls)
+      10000, 1); // replaced explicit size w/ default
   operand_row->Add(item18, 0, wxGROW | wxALL, 5);
 
   wxButton *item19 = new wxButton(parent, ID_ADD_OPERAND, wxT("Add"),

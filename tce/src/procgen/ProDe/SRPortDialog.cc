@@ -366,7 +366,7 @@ wxSizer *SRPortDialog::createContents(wxWindow *parent, bool call_fit,
 
   wxSpinCtrl *item5 =
       new wxSpinCtrl(parent, ID_WIDTH, wxT("1"), wxDefaultPosition,
-                     wxSize(200, -1), 0, 1, 10000, 1);
+                     wxDefaultSize, 0, 1, 10000, 1);
   item1->Add(item5, 0, wxALIGN_CENTER | wxALL, 5);
 
   wxStaticText *item6 =

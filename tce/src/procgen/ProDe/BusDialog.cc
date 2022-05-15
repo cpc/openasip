@@ -1102,7 +1102,7 @@ wxSizer *BusDialog::createContents(wxWindow *parent, bool call_fit,
 
   wxSpinCtrl *item9 =
       new wxSpinCtrl(parent, ID_BUS_WIDTH, wxT("1"), wxDefaultPosition,
-                     wxSize(100, -1), 0, 1, 1024, 1);
+                     wxDefaultSize, 0, 1, 1024, 1);
   item7->Add(item9, 0, wxALIGN_CENTER | wxALL, 5);
 
   item2->Add(item7, 0, wxGROW | wxALL, 5);
@@ -1123,7 +1123,7 @@ wxSizer *BusDialog::createContents(wxWindow *parent, bool call_fit,
 
   wxSpinCtrl *item14 =
       new wxSpinCtrl(parent, ID_SI_WIDTH, wxT("0"), wxDefaultPosition,
-                     wxSize(100, -1), 0, 0, 1000, 0);
+                     wxDefaultSize, 0, 0, 1000, 0);
   item12->Add(item14, 0, wxALIGN_CENTER | wxALL, 5);
 
   item10->Add(item12, 0, wxGROW | wxALL, 5);

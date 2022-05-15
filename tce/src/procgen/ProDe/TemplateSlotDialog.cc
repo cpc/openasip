@@ -273,7 +273,7 @@ wxSizer *TemplateSlotDialog::createContents(wxWindow *parent, bool call_fit,
 
   wxSpinCtrl *item7 =
       new wxSpinCtrl(parent, ID_WIDTH, wxT("1"), wxDefaultPosition,
-                     wxSize(100, -1), 0, 1, 10000, 1);
+                     wxDefaultSize, 0, 1, 10000, 1);
   item1->Add(item7, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
   mainCol->Add(item1, 0, wxGROW | wxALL, 5);

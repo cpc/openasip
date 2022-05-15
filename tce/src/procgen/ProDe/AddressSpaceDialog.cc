@@ -486,7 +486,7 @@ wxSizer *AddressSpaceDialog::createContents(wxWindow *parent, bool call_fit,
 
   wxSpinCtrl *item10 =
       new wxSpinCtrl(parent, ID_WIDTH, wxT("1"), wxDefaultPosition,
-                     wxSize(100, -1), 0, 1, 10000, 1, wxT("Spin"));
+                     wxDefaultSize, 0, 1, 10000, 1, wxT("Spin"));
   widthCol->Add(item10, 0, wxGROW | wxALL, 5);
 
   mainFlex->Add(widthCol, 0, wxGROW | wxALL, 5);
@@ -531,7 +531,7 @@ wxSizer *AddressSpaceDialog::createContents(wxWindow *parent, bool call_fit,
 
   wxSpinCtrl *itemIdSpinCtrl =
       new wxSpinCtrl(parent, ID_SPIN_ID, wxT("0"), wxDefaultPosition,
-                     wxSize(100, -1), 0, 0, 2147483647, 1, wxT("Spin"));
+                     wxDefaultSize, 0, 0, 2147483647, 1, wxT("Spin"));
   rightSizerCol->Add(itemIdSpinCtrl, 0, wxGROW | wxALL, 5);
   idSpinCtrl_ = itemIdSpinCtrl;
 

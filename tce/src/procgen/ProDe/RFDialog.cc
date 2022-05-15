@@ -505,7 +505,7 @@ wxSizer *RFDialog::createContents(wxWindow *parent, bool call_fit,
 
   wxSpinCtrl *item7 =
       new wxSpinCtrl(parent, ID_SIZE, wxT("1"), wxDefaultPosition,
-                     wxSize(120, -1), 0, 1, 10000, 1);
+                     wxDefaultSize, 0, 1, 10000, 1);
   item1->Add(item7, 0, wxGROW | wxALL, 5);
 
   wxStaticText *item8 = new wxStaticText(parent, ID_LABEL_WIDTH, wxT("Width:"),
@@ -514,7 +514,7 @@ wxSizer *RFDialog::createContents(wxWindow *parent, bool call_fit,
 
   wxSpinCtrl *item9 =
       new wxSpinCtrl(parent, ID_WIDTH, wxT("1"), wxDefaultPosition,
-                     wxSize(100, -1), 0, 1, 10000, 1);
+                     wxDefaultSize, 0, 1, 10000, 1);
   item1->Add(item9, 0, wxGROW | wxALL, 5);
 
   wxStaticText *item10 =
@@ -542,7 +542,7 @@ wxSizer *RFDialog::createContents(wxWindow *parent, bool call_fit,
 
   wxSpinCtrl *item15 =
       new wxSpinCtrl(parent, ID_GUARD_LATENCY, wxT("0"), wxDefaultPosition,
-                     wxSize(100, -1), 0, 0, 1, 0);
+                     wxDefaultSize, 0, 0, 1, 0);
   item1->Add(item15, 0, wxGROW | wxALL, 5);
 
   mainCol->Add(item1, 0, wxGROW | wxALL, 5);
