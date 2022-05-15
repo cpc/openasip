@@ -478,7 +478,7 @@ void RFDialog::onPortRightClick(wxListEvent &event) {
 wxSizer *RFDialog::createContents(wxWindow *parent, bool call_fit,
                                   bool set_sizer) {
 
-  wxBoxSizer *item0 = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *mainCol = new wxBoxSizer(wxVERTICAL);
 
   wxFlexGridSizer *item1 = new wxFlexGridSizer(2, 0, 0);
 
@@ -545,7 +545,7 @@ wxSizer *RFDialog::createContents(wxWindow *parent, bool call_fit,
                      wxSize(100, -1), 0, 0, 1, 0);
   item1->Add(item15, 0, wxGROW | wxALL, 5);
 
-  item0->Add(item1, 0, wxGROW | wxALL, 5);
+  mainCol->Add(item1, 0, wxGROW | wxALL, 5);
 
   wxStaticBox *item17 = new wxStaticBox(parent, -1, wxT("Ports:"));
   wxStaticBoxSizer *item16 = new wxStaticBoxSizer(item17, wxVERTICAL);
@@ -572,7 +572,7 @@ wxSizer *RFDialog::createContents(wxWindow *parent, bool call_fit,
 
   item16->Add(item19, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, 5);
 
-  item0->Add(item16, 0, wxALIGN_CENTER | wxALL, 5);
+  mainCol->Add(item16, 0, wxALIGN_CENTER | wxALL, 5);
 
   wxBoxSizer *item23 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -588,13 +588,13 @@ wxSizer *RFDialog::createContents(wxWindow *parent, bool call_fit,
                                   wxDefaultPosition, wxDefaultSize, 0);
   item23->Add(item26, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item0->Add(item23, 0, wxALIGN_CENTER | wxALL, 5);
+  mainCol->Add(item23, 0, wxALIGN_CENTER | wxALL, 5);
 
   if (set_sizer) {
-    parent->SetSizer(item0);
+    parent->SetSizer(mainCol);
     if (call_fit)
-      item0->SetSizeHints(parent);
+      mainCol->SetSizeHints(parent);
   }
 
-  return item0;
+  return mainCol;
 }

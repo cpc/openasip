@@ -481,25 +481,25 @@ wxSizer *AddressSpaceDialog::createContents(wxWindow *parent, bool call_fit,
   mainFlex->Add(minAddressCol, 0, wxGROW | wxALL, 5);
 
   wxStaticBox *item9 = new wxStaticBox(parent, -1, wxT("Width:"));
-  wxStaticBoxSizer *item8 = new wxStaticBoxSizer(item9, wxVERTICAL);
-  widthSizer_ = item8;
+  wxStaticBoxSizer *widthCol = new wxStaticBoxSizer(item9, wxVERTICAL);
+  widthSizer_ = widthCol;
 
   wxSpinCtrl *item10 =
       new wxSpinCtrl(parent, ID_WIDTH, wxT("1"), wxDefaultPosition,
                      wxSize(100, -1), 0, 1, 10000, 1, wxT("Spin"));
-  item8->Add(item10, 0, wxGROW | wxALL, 5);
+  widthCol->Add(item10, 0, wxGROW | wxALL, 5);
 
-  mainFlex->Add(item8, 0, wxGROW | wxALL, 5);
+  mainFlex->Add(widthCol, 0, wxGROW | wxALL, 5);
 
   wxStaticBox *item12 = new wxStaticBox(parent, -1, wxT("Max-Address"));
-  wxStaticBoxSizer *item11 = new wxStaticBoxSizer(item12, wxVERTICAL);
-  maxAddressSizer_ = item11;
+  wxStaticBoxSizer *maxAddressCol = new wxStaticBoxSizer(item12, wxVERTICAL);
+  maxAddressSizer_ = maxAddressCol;
 
   NumberControl *item13 = new NumberControl(
       parent, ID_MAX_ADDRESS, wxDefaultPosition, wxSize(180, -1),
       (NumberControl::MODE_UNSIGNED | NumberControl::MODE_HEXADECIMAL));
   wxASSERT(item13);
-  item11->Add(item13, 0, wxALIGN_CENTER | wxALL, 5);
+  maxAddressCol->Add(item13, 0, wxALIGN_CENTER | wxALL, 5);
 
   wxBoxSizer *bitRow = new wxBoxSizer(wxHORIZONTAL);
 
@@ -511,9 +511,9 @@ wxSizer *AddressSpaceDialog::createContents(wxWindow *parent, bool call_fit,
       wxSP_ARROW_KEYS, 1, 10000, 1); // last 3: min, max, initial
   bitRow->Add(bitWidth, 0, wxGROW | wxALL, 5);
 
-  item11->Add(bitRow, 0, wxGROW | wxALL, 5);
+  maxAddressCol->Add(bitRow, 0, wxGROW | wxALL, 5);
 
-  mainFlex->Add(item11, 0, wxGROW | wxALL, 5);
+  mainFlex->Add(maxAddressCol, 0, wxGROW | wxALL, 5);
 
   // address space id box
   wxStaticBox *itemIdBox = new wxStaticBox(parent, -1, wxT("ID number:"));
@@ -527,23 +527,23 @@ wxSizer *AddressSpaceDialog::createContents(wxWindow *parent, bool call_fit,
   idListCtrl_ = itemIdListCtrl;
   idListCtrl_->InsertColumn(0, _("ID"));
 
-  wxBoxSizer *sizerOnRight = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *rightSizerCol = new wxBoxSizer(wxVERTICAL);
 
   wxSpinCtrl *itemIdSpinCtrl =
       new wxSpinCtrl(parent, ID_SPIN_ID, wxT("0"), wxDefaultPosition,
                      wxSize(100, -1), 0, 0, 2147483647, 1, wxT("Spin"));
-  sizerOnRight->Add(itemIdSpinCtrl, 0, wxGROW | wxALL, 5);
+  rightSizerCol->Add(itemIdSpinCtrl, 0, wxGROW | wxALL, 5);
   idSpinCtrl_ = itemIdSpinCtrl;
 
   wxButton *addButton = new wxButton(parent, ID_ADD_ID, wxT("Add"),
                                      wxDefaultPosition, wxDefaultSize, 0);
-  sizerOnRight->Add(addButton, 0, wxALIGN_CENTER | wxALL, 5);
+  rightSizerCol->Add(addButton, 0, wxALIGN_CENTER | wxALL, 5);
 
   wxButton *deleteButton = new wxButton(parent, ID_DELETE_ID, wxT("Delete"),
                                         wxDefaultPosition, wxDefaultSize, 0);
-  sizerOnRight->Add(deleteButton, 0, wxALIGN_CENTER | wxALL, 5);
+  rightSizerCol->Add(deleteButton, 0, wxALIGN_CENTER | wxALL, 5);
 
-  idSizer_->Add(sizerOnRight, 0, wxALIGN_CENTER | wxALL, 5);
+  idSizer_->Add(rightSizerCol, 0, wxALIGN_CENTER | wxALL, 5);
   mainFlex->Add(idSizer_, 0, wxGROW | wxALL, 5);
 
   assert(idSizer_ != NULL);

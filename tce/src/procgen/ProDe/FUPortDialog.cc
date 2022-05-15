@@ -346,7 +346,7 @@ void FUPortDialog::onName(wxCommandEvent &) {
 wxSizer *FUPortDialog::createContents(wxWindow *parent, bool call_fit,
                                       bool set_sizer) {
 
-  wxBoxSizer *item0 = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *mainCol = new wxBoxSizer(wxVERTICAL);
 
   wxFlexGridSizer *item1 = new wxFlexGridSizer(2, 0, 0);
 
@@ -387,7 +387,7 @@ wxSizer *FUPortDialog::createContents(wxWindow *parent, bool call_fit,
                                  wxSize(200, -1), 1, strs9, 0);
   item1->Add(item9, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item0->Add(item1, 0, wxALIGN_CENTER | wxALL, 5);
+  mainCol->Add(item1, 0, wxALIGN_CENTER | wxALL, 5);
 
   wxBoxSizer *item10 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -395,11 +395,11 @@ wxSizer *FUPortDialog::createContents(wxWindow *parent, bool call_fit,
                                       wxDefaultPosition, wxDefaultSize, 0);
   item10->Add(item11, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item0->Add(item10, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  mainCol->Add(item10, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
   wxStaticLine *item12 = new wxStaticLine(parent, ID_LINE, wxDefaultPosition,
                                           wxDefaultSize, wxLI_HORIZONTAL);
-  item0->Add(item12, 0, wxGROW | wxALL, 5);
+  mainCol->Add(item12, 0, wxGROW | wxALL, 5);
 
   wxBoxSizer *item13 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -415,13 +415,13 @@ wxSizer *FUPortDialog::createContents(wxWindow *parent, bool call_fit,
                                   wxDefaultPosition, wxDefaultSize, 0);
   item13->Add(item16, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item0->Add(item13, 0, wxALIGN_CENTER | wxALL, 5);
+  mainCol->Add(item13, 0, wxALIGN_CENTER | wxALL, 5);
 
   if (set_sizer) {
-    parent->SetSizer(item0);
+    parent->SetSizer(mainCol);
     if (call_fit)
-      item0->SetSizeHints(parent);
+      mainCol->SetSizeHints(parent);
   }
 
-  return item0;
+  return mainCol;
 }

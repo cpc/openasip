@@ -313,12 +313,12 @@ void AddressSpacesDialog::onASRightClick(wxListEvent &event) {
  */
 wxSizer *AddressSpacesDialog::createContents(wxWindow *parent, bool call_fit,
                                              bool set_sizer) {
-  wxBoxSizer *item0 = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *mainCol = new wxBoxSizer(wxVERTICAL);
 
   wxListCtrl *item1 =
       new wxListCtrl(parent, ID_LIST, wxDefaultPosition, wxSize(400, 200),
                      wxLC_REPORT | wxLC_SINGLE_SEL);
-  item0->Add(item1, 0, wxALIGN_CENTER | wxALL, 5);
+  mainCol->Add(item1, 0, wxALIGN_CENTER | wxALL, 5);
 
   wxGridSizer *item2 = new wxGridSizer(3, 0, 0);
 
@@ -334,11 +334,11 @@ wxSizer *AddressSpacesDialog::createContents(wxWindow *parent, bool call_fit,
                                  wxDefaultPosition, wxDefaultSize, 0);
   item2->Add(item5, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item0->Add(item2, 0, wxGROW, 5);
+  mainCol->Add(item2, 0, wxGROW, 5);
 
   wxStaticLine *item6 = new wxStaticLine(parent, ID_LINE, wxDefaultPosition,
                                          wxSize(20, -1), wxLI_HORIZONTAL);
-  item0->Add(item6, 0, wxGROW | wxALL, 5);
+  mainCol->Add(item6, 0, wxGROW | wxALL, 5);
 
   wxGridSizer *item7 = new wxGridSizer(2, 0, 0);
 
@@ -346,25 +346,25 @@ wxSizer *AddressSpacesDialog::createContents(wxWindow *parent, bool call_fit,
                                  wxDefaultPosition, wxDefaultSize, 0);
   item7->Add(item8, 0, wxALL, 5);
 
-  wxBoxSizer *item9 = new wxBoxSizer(wxHORIZONTAL);
+  wxBoxSizer *okCancelRow = new wxBoxSizer(wxHORIZONTAL);
 
   wxButton *item10 = new wxButton(parent, wxID_OK, wxT("&OK"),
                                   wxDefaultPosition, wxDefaultSize, 0);
-  item9->Add(item10, 0, wxALIGN_CENTER | wxALL, 5);
+  okCancelRow->Add(item10, 0, wxALIGN_CENTER | wxALL, 5);
 
   wxButton *item11 = new wxButton(parent, wxID_CANCEL, wxT("&Cancel"),
                                   wxDefaultPosition, wxDefaultSize, 0);
-  item9->Add(item11, 0, wxALIGN_CENTER | wxALL, 5);
+  okCancelRow->Add(item11, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item7->Add(item9, 0, wxALIGN_RIGHT | wxALL, 5);
+  item7->Add(okCancelRow, 0, wxALIGN_RIGHT | wxALL, 5);
 
-  item0->Add(item7, 0, wxGROW, 5);
+  mainCol->Add(item7, 0, wxGROW, 5);
 
   if (set_sizer) {
-    parent->SetSizer(item0);
+    parent->SetSizer(mainCol);
     if (call_fit)
-      item0->SetSizeHints(parent);
+      mainCol->SetSizeHints(parent);
   }
 
-  return item0;
+  return mainCol;
 }

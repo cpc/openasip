@@ -249,12 +249,12 @@ void ImmediateSlotDialog::onSlotName(wxCommandEvent &) {
 wxSizer *ImmediateSlotDialog::createContents(wxWindow *parent, bool call_fit,
                                              bool set_sizer) {
 
-  wxBoxSizer *item0 = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *mainCol = new wxBoxSizer(wxVERTICAL);
 
   wxListCtrl *item1 =
       new wxListCtrl(parent, ID_SLOT_LIST, wxDefaultPosition, wxSize(300, 200),
                      wxLC_REPORT | wxLC_SINGLE_SEL | wxSUNKEN_BORDER);
-  item0->Add(item1, 0, wxGROW | wxALL, 5);
+  mainCol->Add(item1, 0, wxGROW | wxALL, 5);
 
   wxBoxSizer *item2 = new wxBoxSizer(wxVERTICAL);
 
@@ -286,11 +286,11 @@ wxSizer *ImmediateSlotDialog::createContents(wxWindow *parent, bool call_fit,
 
   item2->Add(item3, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item0->Add(item2, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
+  mainCol->Add(item2, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
 
   wxStaticLine *item10 = new wxStaticLine(parent, ID_LINE, wxDefaultPosition,
                                           wxSize(20, -1), wxLI_HORIZONTAL);
-  item0->Add(item10, 0, wxGROW | wxALL, 5);
+  mainCol->Add(item10, 0, wxGROW | wxALL, 5);
 
   wxGridSizer *item11 = new wxGridSizer(2, 0, 0);
 
@@ -310,13 +310,13 @@ wxSizer *ImmediateSlotDialog::createContents(wxWindow *parent, bool call_fit,
 
   item11->Add(item13, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, 5);
 
-  item0->Add(item11, 0, wxGROW, 5);
+  mainCol->Add(item11, 0, wxGROW, 5);
 
   if (set_sizer) {
-    parent->SetSizer(item0);
+    parent->SetSizer(mainCol);
     if (call_fit)
-      item0->SetSizeHints(parent);
+      mainCol->SetSizeHints(parent);
   }
 
-  return item0;
+  return mainCol;
 }

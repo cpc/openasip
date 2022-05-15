@@ -93,7 +93,7 @@ void AboutDialog::setTexts() {
 wxSizer *AboutDialog::createContents(wxWindow *parent, bool call_fit,
                                      bool set_sizer) {
 
-  wxBoxSizer *item0 = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *mainCol = new wxBoxSizer(wxVERTICAL);
   wxBitmap logo;
 
   wxString filename = WxConversion::toWxString(
@@ -102,35 +102,35 @@ wxSizer *AboutDialog::createContents(wxWindow *parent, bool call_fit,
   logo.LoadFile(filename, wxBITMAP_TYPE_PNG);
   wxStaticBitmap *dialogLogo = new wxStaticBitmap(parent, -1, logo);
 
-  item0->Add(dialogLogo, 0, wxALIGN_CENTER | wxALL, 5);
-  wxBoxSizer *item3 = new wxBoxSizer(wxVERTICAL);
+  mainCol->Add(dialogLogo, 0, wxALIGN_CENTER | wxALL, 5);
+  wxBoxSizer *bodyCol = new wxBoxSizer(wxVERTICAL);
   wxStaticText *item4 =
       new wxStaticText(parent, -1, ProDeConstants::EDITOR_NAME,
                        wxDefaultPosition, wxDefaultSize, 0);
-  item3->Add(item4, 0, wxALIGN_CENTER | wxALL, 5);
+  bodyCol->Add(item4, 0, wxALIGN_CENTER | wxALL, 5);
   wxStaticText *item5 = new wxStaticText(
       parent, -1, _T("TCE ") + WxConversion::toWxString(VERSION),
       wxDefaultPosition, wxDefaultSize, 0);
-  item3->Add(item5, 0, wxALIGN_CENTER | wxALL, 5);
+  bodyCol->Add(item5, 0, wxALIGN_CENTER | wxALL, 5);
   wxStaticText *item6 =
       new wxStaticText(parent, -1, ProDeConstants::EDITOR_COPYRIGHT_TEXT,
                        wxDefaultPosition, wxDefaultSize, 0);
-  item3->Add(item6, 0, wxALIGN_CENTER | wxALL, 5);
-  item0->Add(item3, 0, wxALIGN_CENTER | wxALL, 5);
+  bodyCol->Add(item6, 0, wxALIGN_CENTER | wxALL, 5);
+  mainCol->Add(bodyCol, 0, wxALIGN_CENTER | wxALL, 5);
   wxStaticLine *item7 = new wxStaticLine(parent, -1, wxDefaultPosition,
                                          wxSize(20, -1), wxLI_HORIZONTAL);
-  item0->Add(item7, 0, wxGROW | wxALL, 5);
+  mainCol->Add(item7, 0, wxGROW | wxALL, 5);
   wxButton *item8 = new wxButton(parent, wxID_OK, wxT("&OK"), wxDefaultPosition,
                                  wxDefaultSize, 0);
-  item0->Add(item8, 0, wxALIGN_CENTER | wxALL, 5);
+  mainCol->Add(item8, 0, wxALIGN_CENTER | wxALL, 5);
   if (set_sizer) {
     parent->SetAutoLayout(TRUE);
-    parent->SetSizer(item0);
+    parent->SetSizer(mainCol);
     if (call_fit) {
-      item0->Fit(parent);
-      item0->SetSizeHints(parent);
+      mainCol->Fit(parent);
+      mainCol->SetSizeHints(parent);
     }
   }
 
-  return item0;
+  return mainCol;
 }

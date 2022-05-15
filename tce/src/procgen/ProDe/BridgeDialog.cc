@@ -430,7 +430,7 @@ void BridgeDialog::onBidirectional(wxCommandEvent &) {
 wxSizer *BridgeDialog::createContents(wxWindow *parent, bool call_fit,
                                       bool set_sizer) {
 
-  wxBoxSizer *item0 = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *mainCol = new wxBoxSizer(wxVERTICAL);
 
   wxBoxSizer *item1 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -466,31 +466,31 @@ wxSizer *BridgeDialog::createContents(wxWindow *parent, bool call_fit,
 
   item1->Add(item2, 0, wxALIGN_CENTER | wxALL, 5);
 
-  wxBoxSizer *item9 = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *optionsCol = new wxBoxSizer(wxVERTICAL);
 
   wxCheckBox *item10 =
       new wxCheckBox(parent, ID_BIDIRECTIONAL, wxT("Bidirectional"),
                      wxDefaultPosition, wxDefaultSize, 0);
-  item9->Add(item10, 0, wxALIGN_CENTER | wxALL, 5);
+  optionsCol->Add(item10, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item9->Add(20, 20, 0, wxALIGN_CENTER | wxALL, 5);
+  optionsCol->Add(20, 20, 0, wxALIGN_CENTER | wxALL, 5);
 
   wxStaticText *item11 = new wxStaticText(parent, ID_LABEL_OPPOSITE_NAME,
                                           wxT("Opposite Bridge Name:"),
                                           wxDefaultPosition, wxDefaultSize, 0);
-  item9->Add(item11, 0, wxGROW, 15);
+  optionsCol->Add(item11, 0, wxGROW, 15);
 
   wxTextCtrl *item12 = new wxTextCtrl(parent, ID_OPPOSITE_BRIDGE, wxT(""),
                                       wxDefaultPosition, wxSize(80, -1), 0);
-  item9->Add(item12, 0, wxGROW | wxALL, 5);
+  optionsCol->Add(item12, 0, wxGROW | wxALL, 5);
 
-  item1->Add(item9, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
+  item1->Add(optionsCol, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
 
-  item0->Add(item1, 0, wxALIGN_CENTER | wxALL, 5);
+  mainCol->Add(item1, 0, wxALIGN_CENTER | wxALL, 5);
 
   wxStaticLine *item13 = new wxStaticLine(parent, ID_LINE, wxDefaultPosition,
                                           wxSize(20, -1), wxLI_HORIZONTAL);
-  item0->Add(item13, 0, wxGROW | wxALL, 5);
+  mainCol->Add(item13, 0, wxGROW | wxALL, 5);
 
   wxGridSizer *item14 = new wxGridSizer(2, 0, 0);
 
@@ -510,13 +510,13 @@ wxSizer *BridgeDialog::createContents(wxWindow *parent, bool call_fit,
 
   item14->Add(item16, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-  item0->Add(item14, 0, wxALIGN_CENTER, 5);
+  mainCol->Add(item14, 0, wxALIGN_CENTER, 5);
 
   if (set_sizer) {
-    parent->SetSizer(item0);
+    parent->SetSizer(mainCol);
     if (call_fit)
-      item0->SetSizeHints(parent);
+      mainCol->SetSizeHints(parent);
   }
 
-  return item0;
+  return mainCol;
 }

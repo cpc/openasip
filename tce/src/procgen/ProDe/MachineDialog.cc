@@ -108,7 +108,7 @@ void MachineDialog::onCancel(wxCommandEvent & /*event*/) {
 wxSizer *MachineDialog::createContents(wxWindow *parent, bool call_fit,
                                        bool set_sizer) {
 
-  wxBoxSizer *root = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *mainCol = new wxBoxSizer(wxVERTICAL);
   wxFlexGridSizer *machSettings = new wxFlexGridSizer(2, 0, 0);
 
   // Global Endianess Setting //
@@ -122,12 +122,12 @@ wxSizer *MachineDialog::createContents(wxWindow *parent, bool call_fit,
                                   wxDefaultPosition, wxDefaultSize);
   machSettings->Add(endianessChoise_, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-  root->Add(machSettings, 0, wxALIGN_CENTER | wxALL, 5);
+  mainCol->Add(machSettings, 0, wxALIGN_CENTER | wxALL, 5);
 
   // Buttons //
   wxStaticLine *horizLine = new wxStaticLine(
       parent, wxID_ANY, wxDefaultPosition, wxSize(20, -1), wxLI_HORIZONTAL);
-  root->Add(horizLine, 0, wxGROW | wxALL, 5);
+  mainCol->Add(horizLine, 0, wxGROW | wxALL, 5);
   wxBoxSizer *buttonBox = new wxBoxSizer(wxHORIZONTAL);
   // Ok button
   wxButton *okButton = new wxButton(parent, wxID_OK, wxT("&OK"),
@@ -137,15 +137,15 @@ wxSizer *MachineDialog::createContents(wxWindow *parent, bool call_fit,
   wxButton *cancelButton = new wxButton(parent, wxID_CANCEL, wxT("&Cancel"),
                                         wxDefaultPosition, wxDefaultSize, 0);
   buttonBox->Add(cancelButton, 0, wxALIGN_CENTER | wxALL, 5);
-  root->Add(buttonBox, 0, wxALIGN_CENTER | wxALL, 5);
+  mainCol->Add(buttonBox, 0, wxALIGN_CENTER | wxALL, 5);
 
   if (set_sizer) {
     parent->SetAutoLayout(TRUE);
-    parent->SetSizer(root);
+    parent->SetSizer(mainCol);
     if (call_fit) {
-      root->Fit(parent);
-      root->SetSizeHints(parent);
+      mainCol->Fit(parent);
+      mainCol->SetSizeHints(parent);
     }
   }
-  return root;
+  return mainCol;
 }

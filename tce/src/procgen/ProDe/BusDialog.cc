@@ -1072,9 +1072,9 @@ void BusDialog::onActivateFUGuard(wxListEvent &) {
 wxSizer *BusDialog::createContents(wxWindow *parent, bool call_fit,
                                    bool set_sizer) {
 
-  wxFlexGridSizer *item0 = new wxFlexGridSizer(2, 0, 0);
+  wxFlexGridSizer *mainFlexContainer = new wxFlexGridSizer(2, 0, 0);
 
-  wxBoxSizer *item1 = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *mainCol = new wxBoxSizer(wxVERTICAL);
 
   wxStaticBox *item3 = new wxStaticBox(parent, -1, wxT("Bus:"));
   wxStaticBoxSizer *item2 = new wxStaticBoxSizer(item3, wxVERTICAL);
@@ -1107,8 +1107,8 @@ wxSizer *BusDialog::createContents(wxWindow *parent, bool call_fit,
 
   item2->Add(item7, 0, wxGROW | wxALL, 5);
 
-  item0->Add(item2, 0, wxGROW | wxALL, 5);
-  // item1->Add( item2, 0, wxGROW|wxALL, 5 );
+  mainFlexContainer->Add(item2, 0, wxGROW | wxALL, 5);
+  // mainCol->Add( item2, 0, wxGROW|wxALL, 5 );
 
   wxStaticBox *item11 = new wxStaticBox(parent, -1, wxT("Short Immediate:"));
   wxStaticBoxSizer *item10 = new wxStaticBoxSizer(item11, wxVERTICAL);
@@ -1132,22 +1132,22 @@ wxSizer *BusDialog::createContents(wxWindow *parent, bool call_fit,
   wxRadioBox *item15 = new wxRadioBox(parent, ID_SI_EXTENSION, wxT("Extension"),
                                       wxDefaultPosition, wxDefaultSize, 2,
                                       strs15, 1, wxRA_SPECIFY_ROWS);
-  item10->Add(item15, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  item10->Add(item15, 0, wxALL, 5);
 
-  item0->Add(item10, 0, wxGROW | wxALL, 5);
-  // item1->Add( item10, 0, wxGROW|wxALL, 5 );
+  mainFlexContainer->Add(item10, 0, wxGROW | wxALL, 5);
+  // mainCol->Add( item10, 0, wxGROW|wxALL, 5 );
 
   wxCheckBox *item16 =
       new wxCheckBox(parent, ID_TRUE_GUARD, wxT("Always true guard"),
                      wxDefaultPosition, wxDefaultSize, 0);
-  item1->Add(item16, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  mainCol->Add(item16, 0, wxALL, 5);
 
   wxCheckBox *item17 =
       new wxCheckBox(parent, ID_FALSE_GUARD, wxT("Always false guard"),
                      wxDefaultPosition, wxDefaultSize, 0);
-  item1->Add(item17, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  mainCol->Add(item17, 0, wxALL, 5);
 
-  item0->Add(item1, 0, wxGROW | wxALL, 5);
+  mainFlexContainer->Add(mainCol, 0, wxGROW | wxALL, 5);
 
   wxStaticBox *item19 = new wxStaticBox(parent, -1, wxT("Segements:"));
   wxStaticBoxSizer *item18 = new wxStaticBoxSizer(item19, wxVERTICAL);
@@ -1197,7 +1197,7 @@ wxSizer *BusDialog::createContents(wxWindow *parent, bool call_fit,
 
   item18->Add(item27, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item0->Add(item18, 0, wxALL, 5);
+  mainFlexContainer->Add(item18, 0, wxALL, 5);
 
   wxStaticBox *item31 =
       new wxStaticBox(parent, -1, wxT("Register File Guards:"));
@@ -1227,7 +1227,7 @@ wxSizer *BusDialog::createContents(wxWindow *parent, bool call_fit,
 
   item30->Add(item33, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item0->Add(item30, 0, wxGROW | wxALL, 5);
+  mainFlexContainer->Add(item30, 0, wxGROW | wxALL, 5);
 
   wxStaticBox *item38 =
       new wxStaticBox(parent, -1, wxT("Function Unit Guards"));
@@ -1257,11 +1257,11 @@ wxSizer *BusDialog::createContents(wxWindow *parent, bool call_fit,
 
   item37->Add(item40, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item0->Add(item37, 0, wxGROW | wxALL, 5);
+  mainFlexContainer->Add(item37, 0, wxGROW | wxALL, 5);
 
   wxButton *item44 = new wxButton(parent, ID_HELP, wxT("&Help"),
                                   wxDefaultPosition, wxDefaultSize, 0);
-  item0->Add(item44, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  mainFlexContainer->Add(item44, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
   wxBoxSizer *item45 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1273,13 +1273,13 @@ wxSizer *BusDialog::createContents(wxWindow *parent, bool call_fit,
                                   wxDefaultPosition, wxDefaultSize, 0);
   item45->Add(item47, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item0->Add(item45, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  mainFlexContainer->Add(item45, 0, wxALIGN_RIGHT | wxALL, 5);
 
   if (set_sizer) {
-    parent->SetSizer(item0);
+    parent->SetSizer(mainFlexContainer);
     if (call_fit)
-      item0->SetSizeHints(parent);
+      mainFlexContainer->SetSizeHints(parent);
   }
 
-  return item0;
+  return mainFlexContainer;
 }

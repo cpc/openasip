@@ -756,7 +756,7 @@ void GCUDialog::onRAPortChoice(wxCommandEvent &) {
 wxSizer *GCUDialog::createContents(wxWindow *parent, bool call_fit,
                                    bool set_sizer) {
 
-  wxBoxSizer *item0 = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *mainCol = new wxBoxSizer(wxVERTICAL);
 
   wxBoxSizer *item1 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -802,7 +802,7 @@ wxSizer *GCUDialog::createContents(wxWindow *parent, bool call_fit,
                                   wxSize(100, -1), 0, strs11, 0);
   item3->Add(item11, 0, wxGROW | wxALL, 5);
 
-  item2->Add(item3, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  item2->Add(item3, 0, wxALL, 5);
 
   wxStaticBox *item13 = new wxStaticBox(parent, -1, wxT("Operations:"));
   wxStaticBoxSizer *item12 = new wxStaticBoxSizer(item13, wxVERTICAL);
@@ -896,11 +896,11 @@ wxSizer *GCUDialog::createContents(wxWindow *parent, bool call_fit,
 
   item1->Add(item19, 0, wxGROW | wxALL, 5);
 
-  item0->Add(item1, 0, wxALIGN_CENTER | wxALL, 5);
+  mainCol->Add(item1, 0, wxALIGN_CENTER | wxALL, 5);
 
   wxStaticLine *item36 = new wxStaticLine(parent, ID_LINE, wxDefaultPosition,
                                           wxSize(20, -1), wxLI_HORIZONTAL);
-  item0->Add(item36, 0, wxGROW | wxALL, 5);
+  mainCol->Add(item36, 0, wxGROW | wxALL, 5);
 
   wxGridSizer *item37 = new wxGridSizer(2, 0, 0);
 
@@ -920,13 +920,13 @@ wxSizer *GCUDialog::createContents(wxWindow *parent, bool call_fit,
 
   item37->Add(item39, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-  item0->Add(item37, 0, wxGROW | wxLEFT | wxRIGHT, 5);
+  mainCol->Add(item37, 0, wxGROW | wxLEFT | wxRIGHT, 5);
 
   if (set_sizer) {
-    parent->SetSizer(item0);
+    parent->SetSizer(mainCol);
     if (call_fit)
-      item0->SetSizeHints(parent);
+      mainCol->SetSizeHints(parent);
   }
 
-  return item0;
+  return mainCol;
 }

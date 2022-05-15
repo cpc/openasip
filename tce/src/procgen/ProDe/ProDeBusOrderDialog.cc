@@ -177,7 +177,7 @@ int ProDeBusOrderDialog::selectedBus() const {
 wxSizer *ProDeBusOrderDialog::createContents(wxWindow *parent, bool call_fit,
                                              bool set_sizer) {
 
-  wxBoxSizer *item0 = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *mainCol = new wxBoxSizer(wxVERTICAL);
 
   wxBoxSizer *item1 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -198,11 +198,11 @@ wxSizer *ProDeBusOrderDialog::createContents(wxWindow *parent, bool call_fit,
 
   item1->Add(item3, 0, wxALIGN_BOTTOM | wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
 
-  item0->Add(item1, 0, wxALIGN_CENTER | wxALL, 5);
+  mainCol->Add(item1, 0, wxALIGN_CENTER | wxALL, 5);
 
   wxStaticLine *item6 = new wxStaticLine(parent, ID_LINE, wxDefaultPosition,
                                          wxSize(20, -1), wxLI_HORIZONTAL);
-  item0->Add(item6, 0, wxGROW | wxALL, 5);
+  mainCol->Add(item6, 0, wxGROW | wxALL, 5);
 
   wxBoxSizer *item7 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -214,13 +214,13 @@ wxSizer *ProDeBusOrderDialog::createContents(wxWindow *parent, bool call_fit,
                                  wxDefaultSize, 0);
   item7->Add(item9, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item0->Add(item7, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  mainCol->Add(item7, 0, wxALIGN_RIGHT | wxALL, 5);
 
   if (set_sizer) {
-    parent->SetSizer(item0);
+    parent->SetSizer(mainCol);
     if (call_fit)
-      item0->SetSizeHints(parent);
+      mainCol->SetSizeHints(parent);
   }
 
-  return item0;
+  return mainCol;
 }

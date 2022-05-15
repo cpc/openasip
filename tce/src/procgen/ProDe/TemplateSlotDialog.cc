@@ -244,7 +244,7 @@ void TemplateSlotDialog::onOK(wxCommandEvent &) {
 wxSizer *TemplateSlotDialog::createContents(wxWindow *parent, bool call_fit,
                                             bool set_sizer) {
 
-  wxBoxSizer *item0 = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *mainCol = new wxBoxSizer(wxVERTICAL);
 
   wxFlexGridSizer *item1 = new wxFlexGridSizer(2, 0, 0);
 
@@ -276,11 +276,11 @@ wxSizer *TemplateSlotDialog::createContents(wxWindow *parent, bool call_fit,
                      wxSize(100, -1), 0, 1, 10000, 1);
   item1->Add(item7, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-  item0->Add(item1, 0, wxGROW | wxALL, 5);
+  mainCol->Add(item1, 0, wxGROW | wxALL, 5);
 
   wxStaticLine *item8 = new wxStaticLine(parent, ID_LINE, wxDefaultPosition,
                                          wxDefaultSize, wxLI_HORIZONTAL);
-  item0->Add(item8, 0, wxGROW | wxALL, 5);
+  mainCol->Add(item8, 0, wxGROW | wxALL, 5);
 
   wxFlexGridSizer *item9 = new wxFlexGridSizer(2, 0, 0);
 
@@ -300,13 +300,13 @@ wxSizer *TemplateSlotDialog::createContents(wxWindow *parent, bool call_fit,
 
   item9->Add(item11, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, 5);
 
-  item0->Add(item9, 0, wxGROW | wxALL, 5);
+  mainCol->Add(item9, 0, wxGROW | wxALL, 5);
 
   if (set_sizer) {
-    parent->SetSizer(item0);
+    parent->SetSizer(mainCol);
     if (call_fit)
-      item0->SetSizeHints(parent);
+      mainCol->SetSizeHints(parent);
   }
 
-  return item0;
+  return mainCol;
 }

@@ -391,7 +391,7 @@ wxSizer *GenerateProcessorDialog::createContents(wxWindow *parent,
                                                  bool call_fit,
                                                  bool set_sizer) {
 
-  wxBoxSizer *item0 = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *mainCol = new wxBoxSizer(wxVERTICAL);
 
   wxBoxSizer *item1 = new wxBoxSizer(wxVERTICAL);
 
@@ -420,7 +420,7 @@ wxSizer *GenerateProcessorDialog::createContents(wxWindow *parent,
       new wxRadioButton(parent, ID_GENERATE_BEM, wxT("Generate new"),
                         wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
   item4->SetValue(TRUE);
-  item2->Add(item4, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  item2->Add(item4, 0, wxALL, 5);
 
   wxBoxSizer *item5 = new wxBoxSizer(wxVERTICAL);
 
@@ -430,7 +430,7 @@ wxSizer *GenerateProcessorDialog::createContents(wxWindow *parent,
                                      wxDefaultPosition, wxDefaultSize, 0);
   item6->Add(item7, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 5);
 
-  item5->Add(item6, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  item5->Add(item6, 0, wxALL, 5);
 
   wxBoxSizer *item8 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -442,14 +442,14 @@ wxSizer *GenerateProcessorDialog::createContents(wxWindow *parent,
                                   wxDefaultPosition, wxDefaultSize, 0);
   item8->Add(item10, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item5->Add(item8, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  item5->Add(item8, 0, wxALIGN_RIGHT | wxALL, 5);
 
   item2->Add(item5, 0, wxGROW | wxALL, 5);
 
   wxRadioButton *item11 =
       new wxRadioButton(parent, ID_LOAD_BEM, wxT("Load from file"),
                         wxDefaultPosition, wxDefaultSize, 0);
-  item2->Add(item11, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  item2->Add(item11, 0, wxALL, 5);
 
   wxBoxSizer *item12 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -461,7 +461,7 @@ wxSizer *GenerateProcessorDialog::createContents(wxWindow *parent,
                                   wxDefaultPosition, wxDefaultSize, 0);
   item12->Add(item14, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item2->Add(item12, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  item2->Add(item12, 0, wxALIGN_RIGHT | wxALL, 5);
 
   item1->Add(item2, 0, wxGROW | wxALL, 5);
 
@@ -480,7 +480,7 @@ wxSizer *GenerateProcessorDialog::createContents(wxWindow *parent,
                                   wxDefaultPosition, wxDefaultSize, 0);
   item17->Add(item19, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item15->Add(item17, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  item15->Add(item17, 0, wxALIGN_RIGHT | wxALL, 5);
 
   item1->Add(item15, 0, wxGROW | wxALL, 5);
 
@@ -498,15 +498,15 @@ wxSizer *GenerateProcessorDialog::createContents(wxWindow *parent,
                                   wxDefaultSize, 0);
   item21->Add(item23, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item1->Add(item21, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  item1->Add(item21, 0, wxALIGN_RIGHT | wxALL, 5);
 
-  item0->Add(item1, 0, wxGROW | wxALL, 5);
+  mainCol->Add(item1, 0, wxGROW | wxALL, 5);
 
   if (set_sizer) {
-    parent->SetSizer(item0);
+    parent->SetSizer(mainCol);
     if (call_fit)
-      item0->SetSizeHints(parent);
+      mainCol->SetSizeHints(parent);
   }
 
-  return item0;
+  return mainCol;
 }
