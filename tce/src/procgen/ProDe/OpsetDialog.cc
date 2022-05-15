@@ -413,7 +413,8 @@ wxSizer *OpsetDialog::createContents(wxWindow *parent, bool call_fit,
   wxTextCtrl *opNameFilter = new wxTextCtrl(
       parent, ID_OP_FILTER, wxT(""), wxDefaultPosition, wxDefaultSize, 0);
   filterSizer->Add(opNameFilterLabel, 0, wxALIGN_CENTER_VERTICAL);
-  filterSizer->Add(opNameFilter, 1, wxEXPAND | wxALIGN_RIGHT);
+  filterSizer->Add(opNameFilter, 1,
+                   wxEXPAND); // fix: cannot align right in hsizer
   leftSizer->Add(filterSizer, 0, wxEXPAND | wxALL, 5);
 
   // Sizer for latencyLabel and latencySpinner

@@ -395,7 +395,7 @@ wxSizer *FUPortDialog::createContents(wxWindow *parent, bool call_fit,
                                       wxDefaultPosition, wxDefaultSize, 0);
   item10->Add(item11, 0, wxALIGN_CENTER | wxALL, 5);
 
-  mainCol->Add(item10, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  mainCol->Add(item10, 0, wxALL, 5);
 
   wxStaticLine *item12 = new wxStaticLine(parent, ID_LINE, wxDefaultPosition,
                                           wxDefaultSize, wxLI_HORIZONTAL);
