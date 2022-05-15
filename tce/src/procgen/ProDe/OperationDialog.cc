@@ -1059,8 +1059,7 @@ wxSizer *OperationDialog::createContents(wxWindow *parent, bool call_fit,
   wxString *strs13 = (wxString *)NULL;
   wxChoice *item13 = new wxChoice(parent, ID_PORT, wxDefaultPosition,
                                   wxSize(100, -1), 0, strs13, 0);
-  port_row->Add(item13, 0, wxGROW | wxALL,
-                5); // Don't specify alignment w/ wxGROW
+  port_row->Add(item13, 0, wxGROW | wxALL, 5);
 
   wxButton *item14 = new wxButton(parent, ID_DELETE_OPERAND, wxT("Delete"),
                                   wxDefaultPosition, wxDefaultSize, 0);

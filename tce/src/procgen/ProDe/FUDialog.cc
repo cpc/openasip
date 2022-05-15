@@ -741,7 +741,7 @@ wxSizer *FUDialog::createContents(wxWindow *parent, bool call_fit,
                                   wxDefaultPosition, wxDefaultSize, 0);
   r2c1->Add(item14, 0, wxALL, 5);
 
-  grid->Add(r2c1, 0, wxGROW | wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
+  grid->Add(r2c1, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
 
   // row 2, Column 2: Ports group (note: vertical)
   wxStaticBox *r2c2_frame = new wxStaticBox(parent, -1, wxT("Ports:"));
@@ -769,7 +769,7 @@ wxSizer *FUDialog::createContents(wxWindow *parent, bool call_fit,
 
   r2c2->Add(item18, 0, wxALIGN_CENTER | wxALL, 5);
 
-  grid->Add(r2c2, 0, wxGROW | wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
+  grid->Add(r2c2, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
 
   // Row 3
   wxBoxSizer *row3 = new wxBoxSizer(wxHORIZONTAL);

@@ -26,24 +26,24 @@
  *
  * Definition of AutoSelectImplementationsDialog class.
  *
- * @author Mikko Järvelä 2013 (jarvela7-no.spam-cs.tut.fi)
+ * @author Mikko Jï¿½rvelï¿½ 2013 (jarvela7-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
-#include <wx/valgen.h>
-#include <wx/statline.h>
 #include "AutoSelectImplementationsDialog.hh"
-#include "HDBRegistry.hh"
-#include "WxConversion.hh"
 #include "ComponentImplementationSelector.hh"
-#include "RegisterFile.hh"
-#include "ErrorDialog.hh"
 #include "ConfirmDialog.hh"
+#include "ErrorDialog.hh"
+#include "HDBRegistry.hh"
+#include "RegisterFile.hh"
 #include "WarningDialog.hh"
+#include "WxConversion.hh"
+#include <wx/statline.h>
+#include <wx/valgen.h>
 
 #if wxCHECK_VERSION(3, 0, 0)
-    #define wxOPEN wxFD_OPEN
-    #define wxFILE_MUST_EXIST wxFD_FILE_MUST_EXIST
+#define wxOPEN wxFD_OPEN
+#define wxFILE_MUST_EXIST wxFD_FILE_MUST_EXIST
 #endif
 
 using namespace IDF;
@@ -51,13 +51,13 @@ using namespace TTAMachine;
 using namespace HDB;
 
 BEGIN_EVENT_TABLE(AutoSelectImplementationsDialog, wxDialog)
-    EVT_BUTTON(ID_BROWSE, AutoSelectImplementationsDialog::onBrowse)
-    EVT_BUTTON(ID_FIND, AutoSelectImplementationsDialog::onFind)
-    EVT_BUTTON(ID_CLOSE, AutoSelectImplementationsDialog::onClose)
+EVT_BUTTON(ID_BROWSE, AutoSelectImplementationsDialog::onBrowse)
+EVT_BUTTON(ID_FIND, AutoSelectImplementationsDialog::onFind)
+EVT_BUTTON(ID_CLOSE, AutoSelectImplementationsDialog::onClose)
 END_EVENT_TABLE()
 
-const std::string AutoSelectImplementationsDialog::defaultHDB_
-    ("asic_130nm_1.5V.hdb");
+const std::string
+    AutoSelectImplementationsDialog::defaultHDB_("asic_130nm_1.5V.hdb");
 
 /**
  * The Constructor.
@@ -67,83 +67,75 @@ const std::string AutoSelectImplementationsDialog::defaultHDB_
  * @param impl Implementation of the machine.
  */
 AutoSelectImplementationsDialog::AutoSelectImplementationsDialog(
-    wxWindow* parent,
-    Machine& machine,
-    MachineImplementation& impl) :
-    wxDialog(parent, -1, _T("Auto Select Implementations"), wxDefaultPosition),
-    machine_(machine),
-    impl_(impl) {
-    
-    createContents(this, true, true);
-    
-    hdbChoice_ = dynamic_cast<wxChoice*>(FindWindow(ID_HDB_CHOICE));
-    cboxRF_ = dynamic_cast<wxCheckBox*>(FindWindow(ID_RF));
-    cboxIU_ = dynamic_cast<wxCheckBox*>(FindWindow(ID_IU));
-    cboxFU_ = dynamic_cast<wxCheckBox*>(FindWindow(ID_FU));
-    
-    // set all checkboxes as selected
-    cboxRF_->SetValue(true);
-    cboxIU_->SetValue(true);
-    cboxFU_->SetValue(true);
+    wxWindow *parent, Machine &machine, MachineImplementation &impl)
+    : wxDialog(parent, -1, _T("Auto Select Implementations"),
+               wxDefaultPosition),
+      machine_(machine), impl_(impl) {
 
-    // add available HDBs to the choice list
-    HDBRegistry& registry = HDBRegistry::instance();
-    registry.loadFromSearchPaths();
-    for (int i = 0; i < registry.hdbCount(); i++) {
-        hdbs_.insert(registry.hdbPath(i));
+  createContents(this, true, true);
+
+  hdbChoice_ = dynamic_cast<wxChoice *>(FindWindow(ID_HDB_CHOICE));
+  cboxRF_ = dynamic_cast<wxCheckBox *>(FindWindow(ID_RF));
+  cboxIU_ = dynamic_cast<wxCheckBox *>(FindWindow(ID_IU));
+  cboxFU_ = dynamic_cast<wxCheckBox *>(FindWindow(ID_FU));
+
+  // set all checkboxes as selected
+  cboxRF_->SetValue(true);
+  cboxIU_->SetValue(true);
+  cboxFU_->SetValue(true);
+
+  // add available HDBs to the choice list
+  HDBRegistry &registry = HDBRegistry::instance();
+  registry.loadFromSearchPaths();
+  for (int i = 0; i < registry.hdbCount(); i++) {
+    hdbs_.insert(registry.hdbPath(i));
+  }
+  if (!hdbs_.empty()) {
+    std::set<TCEString>::iterator iter = hdbs_.begin();
+    bool defaultHDBFound = false;
+    int selection = 0;
+    for (; iter != hdbs_.end(); iter++) {
+      std::string shortPath = Environment::shortHDBPath(*iter);
+      hdbChoice_->Append(WxConversion::toWxString(shortPath));
+      if (!defaultHDBFound && StringTools::endsWith(*iter, defaultHDB_)) {
+        selection = hdbChoice_->GetCount() - 1;
+        defaultHDBFound = true;
+      }
     }
-    if (!hdbs_.empty()) {
-        std::set<TCEString>::iterator iter = hdbs_.begin();
-        bool defaultHDBFound = false;
-        int selection = 0;
-        for (; iter != hdbs_.end(); iter++) {
-            std::string shortPath = Environment::shortHDBPath(*iter);
-            hdbChoice_->Append(WxConversion::toWxString(shortPath));
-            if (!defaultHDBFound && StringTools::endsWith(*iter, defaultHDB_)) {
-                selection = hdbChoice_->GetCount() - 1;
-                defaultHDBFound = true;
-            }
-        }
-        hdbChoice_->SetSelection(selection);
-    }
+    hdbChoice_->SetSelection(selection);
+  }
 }
 
 /**
  * The Destructor.
  */
-AutoSelectImplementationsDialog::~AutoSelectImplementationsDialog() {
-}
+AutoSelectImplementationsDialog::~AutoSelectImplementationsDialog() {}
 
 /**
  * File dialog for choosing a custom HDB file.
  */
-void
-AutoSelectImplementationsDialog::onBrowse(wxCommandEvent&) {
+void AutoSelectImplementationsDialog::onBrowse(wxCommandEvent &) {
 
-    wxFileDialog dialog(
-        this, _T("Choose a HDB file containing the implementation"),
-        _T(""), _T(""), _T("HDBs|*.hdb|All files|*.*"),
-        (wxOPEN | wxFILE_MUST_EXIST));
+  wxFileDialog dialog(
+      this, _T("Choose a HDB file containing the implementation"), _T(""),
+      _T(""), _T("HDBs|*.hdb|All files|*.*"), (wxOPEN | wxFILE_MUST_EXIST));
 
-    if (dialog.ShowModal() == wxID_OK) {
-        std::string hdb = std::string(dialog.GetPath().mb_str());
-        hdb = Environment::shortHDBPath(hdb);
-        auto wxHDB = WxConversion::toWxString(hdb);
-        int item = hdbChoice_->FindString(wxHDB);
-        if (item == wxNOT_FOUND) {
-            item = hdbChoice_->Append(wxHDB);
-        }
-        hdbChoice_->Select(item);
+  if (dialog.ShowModal() == wxID_OK) {
+    std::string hdb = std::string(dialog.GetPath().mb_str());
+    hdb = Environment::shortHDBPath(hdb);
+    auto wxHDB = WxConversion::toWxString(hdb);
+    int item = hdbChoice_->FindString(wxHDB);
+    if (item == wxNOT_FOUND) {
+      item = hdbChoice_->Append(wxHDB);
     }
+    hdbChoice_->Select(item);
+  }
 }
 
 /**
  * Exit the dialog.
  */
-void
-AutoSelectImplementationsDialog::onClose(wxCommandEvent&) {
-    Close();
-}
+void AutoSelectImplementationsDialog::onClose(wxCommandEvent &) { Close(); }
 
 /**
  * Searches implementations for empty RF/IU/FU units.
@@ -152,145 +144,144 @@ AutoSelectImplementationsDialog::onClose(wxCommandEvent&) {
  * if he/she wants to integrate the found implementations to the current
  * machine implementation.
  */
-void
-AutoSelectImplementationsDialog::onFind(wxCommandEvent&) {
+void AutoSelectImplementationsDialog::onFind(wxCommandEvent &) {
 
-    foundRF_.clear();
-    foundIU_.clear();
-    foundFU_.clear();
+  foundRF_.clear();
+  foundIU_.clear();
+  foundFU_.clear();
 
-    // if none of the check boxes are selected, no point in searching
-    if (!cboxRF_->GetValue() && !cboxIU_->GetValue() && !cboxFU_->GetValue()) {
-        return;
-    }
+  // if none of the check boxes are selected, no point in searching
+  if (!cboxRF_->GetValue() && !cboxIU_->GetValue() && !cboxFU_->GetValue()) {
+    return;
+  }
 
-    // extract path of the HDB file that user has chosen
-    TCEString path = WxConversion::toString(hdbChoice_->GetStringSelection());
-    path = Environment::longHDBPath(path);
-    // make sure the file exists
-    if (!FileSystem::fileExists(path)) {
-        wxString message = _T("Error: path ");
-        message.append(WxConversion::toWxString(path));
-        message.append(_T(" could not be found!\n"));
-        ErrorDialog dialog(this, message);
-        dialog.ShowModal();
-        return;
-    }
+  // extract path of the HDB file that user has chosen
+  TCEString path = WxConversion::toString(hdbChoice_->GetStringSelection());
+  path = Environment::longHDBPath(path);
+  // make sure the file exists
+  if (!FileSystem::fileExists(path)) {
+    wxString message = _T("Error: path ");
+    message.append(WxConversion::toWxString(path));
+    message.append(_T(" could not be found!\n"));
+    ErrorDialog dialog(this, message);
+    dialog.ShowModal();
+    return;
+  }
 
-    // pass the hdb file to search functions for implementation searching
-    try {
-        HDBManager& hdb = HDBRegistry::instance().hdb(path);
-        
-        if (cboxRF_->GetValue()) {
-            findRFImplementations(hdb);
-        }
-        if (cboxIU_->GetValue()) {
-            findIUImplementations(hdb);
-        }
-        if (cboxFU_->GetValue()) {
-            findFUImplementations(hdb);
-        }
-    } catch (Exception& e) {
-        wxString message = _T("");
-        message.append(WxConversion::toWxString(e.errorMessage()));
-        ErrorDialog dialog(this, message);
-        dialog.ShowModal();
-        return;
-    }
-    
-    unsigned int rfCount = static_cast<unsigned int>(foundRF_.size());
-    unsigned int iuCount = static_cast<unsigned int>(foundIU_.size());
-    unsigned int fuCount = static_cast<unsigned int>(foundFU_.size());
+  // pass the hdb file to search functions for implementation searching
+  try {
+    HDBManager &hdb = HDBRegistry::instance().hdb(path);
 
-    // form a message describing how many implementations were found
-    wxString message = _T("");
-    message.append(WxConversion::toWxString(rfCount+iuCount+fuCount));
-    message.append(_T(" implementations were found for ")); 
     if (cboxRF_->GetValue()) {
-        message.append(_T("RF ("));
-        message.append(WxConversion::toWxString(rfCount));
-        message.append(_T(")"));
+      findRFImplementations(hdb);
     }
     if (cboxIU_->GetValue()) {
-        if (cboxRF_->GetValue()) {
-            message.append(_T(" / "));
-        }
-        message.append(_T("IU ("));
-        message.append(WxConversion::toWxString(iuCount));
-        message.append(_T(")"));
+      findIUImplementations(hdb);
     }
     if (cboxFU_->GetValue()) {
-        if (cboxIU_->GetValue() || cboxRF_->GetValue()) {
-            message.append(_T(" / "));
-        }
-        message.append(_T("FU ("));
-        message.append(WxConversion::toWxString(fuCount));
-        message.append(_T(")"));
+      findFUImplementations(hdb);
     }
-    message.append(_T(" units that have no implementations yet.\n\n"));
-    
-    // if no implementations were found, prompt user and exit
-    if ((rfCount+iuCount+fuCount) == 0) {
-        WarningDialog dialog(this, message);
-        dialog.ShowModal();
-        return;
-    }
-    
-    message.append(_T("Press Yes to integrate found implementations into"));
-    message.append(_T(" the empty units.\n"));
+  } catch (Exception &e) {
+    wxString message = _T("");
+    message.append(WxConversion::toWxString(e.errorMessage()));
+    ErrorDialog dialog(this, message);
+    dialog.ShowModal();
+    return;
+  }
 
-    // ask if user wants to save the found implementations
-    ConfirmDialog dialog(this, message);
-    if (dialog.ShowModal() != wxID_YES) {
-        return;
-    }
-    
-    // add all the newly found implementations to the machine implementation
-    
-    // steps: set the new HDB file and ID pair for the unit implementation,
-    // and then add the unit implementation to the machine implementation 
-    std::map<const RFImplementationLocation*, HdbIdPair>::iterator itRF;
-    for (itRF = foundRF_.begin(); itRF != foundRF_.end(); ++itRF) {
-        const RFImplementationLocation* unit = itRF->first;
-        HdbIdPair hdbID = itRF->second;
-        RFImplementationLocation* rf = new RFImplementationLocation(
-            hdbID.hdbFile, hdbID.id, unit->unitName());
-        try {
-            impl_.addRFImplementation(rf);
-        } catch (...) {
-            // do nothing if the implementation could not be added
-        }
-    }
+  unsigned int rfCount = static_cast<unsigned int>(foundRF_.size());
+  unsigned int iuCount = static_cast<unsigned int>(foundIU_.size());
+  unsigned int fuCount = static_cast<unsigned int>(foundFU_.size());
 
-    std::map<const RFImplementationLocation*, HdbIdPair>::iterator itIU;
-    for (itIU = foundIU_.begin(); itIU != foundIU_.end(); ++itIU) {
-        const RFImplementationLocation* unit = itIU->first;
-        HdbIdPair hdbID = itIU->second;
-        RFImplementationLocation* iu = new RFImplementationLocation(
-            hdbID.hdbFile, hdbID.id, unit->unitName());
-        try {
-            impl_.addIUImplementation(iu);
-        } catch (...) {
-            // do nothing if the implementation could not be added
-        }
+  // form a message describing how many implementations were found
+  wxString message = _T("");
+  message.append(WxConversion::toWxString(rfCount + iuCount + fuCount));
+  message.append(_T(" implementations were found for "));
+  if (cboxRF_->GetValue()) {
+    message.append(_T("RF ("));
+    message.append(WxConversion::toWxString(rfCount));
+    message.append(_T(")"));
+  }
+  if (cboxIU_->GetValue()) {
+    if (cboxRF_->GetValue()) {
+      message.append(_T(" / "));
     }
-
-    std::map<const FUImplementationLocation*, HdbIdPair>::iterator itFU;
-    for (itFU = foundFU_.begin(); itFU != foundFU_.end(); ++itFU) {
-        const FUImplementationLocation* unit = itFU->first;
-        HdbIdPair hdbID = itFU->second;
-        FUImplementationLocation* fu = new FUImplementationLocation(
-            hdbID.hdbFile, hdbID.id, unit->unitName());
-        try {
-            impl_.addFUImplementation(fu);
-        } catch (...) {
-            // do nothing if the implementation could not be added
-        }
+    message.append(_T("IU ("));
+    message.append(WxConversion::toWxString(iuCount));
+    message.append(_T(")"));
+  }
+  if (cboxFU_->GetValue()) {
+    if (cboxIU_->GetValue() || cboxRF_->GetValue()) {
+      message.append(_T(" / "));
     }
+    message.append(_T("FU ("));
+    message.append(WxConversion::toWxString(fuCount));
+    message.append(_T(")"));
+  }
+  message.append(_T(" units that have no implementations yet.\n\n"));
 
-    // exit to update the RF/IU/FU implementation list view for user
-    wxCommandEvent dummy;
-    onClose(dummy);
+  // if no implementations were found, prompt user and exit
+  if ((rfCount + iuCount + fuCount) == 0) {
+    WarningDialog dialog(this, message);
+    dialog.ShowModal();
+    return;
+  }
+
+  message.append(_T("Press Yes to integrate found implementations into"));
+  message.append(_T(" the empty units.\n"));
+
+  // ask if user wants to save the found implementations
+  ConfirmDialog dialog(this, message);
+  if (dialog.ShowModal() != wxID_YES) {
+    return;
+  }
+
+  // add all the newly found implementations to the machine implementation
+
+  // steps: set the new HDB file and ID pair for the unit implementation,
+  // and then add the unit implementation to the machine implementation
+  std::map<const RFImplementationLocation *, HdbIdPair>::iterator itRF;
+  for (itRF = foundRF_.begin(); itRF != foundRF_.end(); ++itRF) {
+    const RFImplementationLocation *unit = itRF->first;
+    HdbIdPair hdbID = itRF->second;
+    RFImplementationLocation *rf =
+        new RFImplementationLocation(hdbID.hdbFile, hdbID.id, unit->unitName());
+    try {
+      impl_.addRFImplementation(rf);
+    } catch (...) {
+      // do nothing if the implementation could not be added
+    }
+  }
+
+  std::map<const RFImplementationLocation *, HdbIdPair>::iterator itIU;
+  for (itIU = foundIU_.begin(); itIU != foundIU_.end(); ++itIU) {
+    const RFImplementationLocation *unit = itIU->first;
+    HdbIdPair hdbID = itIU->second;
+    RFImplementationLocation *iu =
+        new RFImplementationLocation(hdbID.hdbFile, hdbID.id, unit->unitName());
+    try {
+      impl_.addIUImplementation(iu);
+    } catch (...) {
+      // do nothing if the implementation could not be added
+    }
+  }
+
+  std::map<const FUImplementationLocation *, HdbIdPair>::iterator itFU;
+  for (itFU = foundFU_.begin(); itFU != foundFU_.end(); ++itFU) {
+    const FUImplementationLocation *unit = itFU->first;
+    HdbIdPair hdbID = itFU->second;
+    FUImplementationLocation *fu =
+        new FUImplementationLocation(hdbID.hdbFile, hdbID.id, unit->unitName());
+    try {
+      impl_.addFUImplementation(fu);
+    } catch (...) {
+      // do nothing if the implementation could not be added
+    }
+  }
+
+  // exit to update the RF/IU/FU implementation list view for user
+  wxCommandEvent dummy;
+  onClose(dummy);
 }
 
 /**
@@ -298,45 +289,43 @@ AutoSelectImplementationsDialog::onFind(wxCommandEvent&) {
  *
  * @param hdb HDB file from which implementations are searched.
  */
-void
-AutoSelectImplementationsDialog::findRFImplementations(HDBManager& hdb) {
+void AutoSelectImplementationsDialog::findRFImplementations(HDBManager &hdb) {
 
-    // this component searches proper implementations for register files
-    ComponentImplementationSelector* selector = 
-        new ComponentImplementationSelector();
-    // add the HDB file to selector for searching
-    selector->addHDB(hdb);
+  // this component searches proper implementations for register files
+  ComponentImplementationSelector *selector =
+      new ComponentImplementationSelector();
+  // add the HDB file to selector for searching
+  selector->addHDB(hdb);
 
-    std::map<const RFImplementationLocation*, CostEstimates*> rfImpls;
-    std::map<const RFImplementationLocation*, CostEstimates*>::iterator it;
+  std::map<const RFImplementationLocation *, CostEstimates *> rfImpls;
+  std::map<const RFImplementationLocation *, CostEstimates *>::iterator it;
 
-    // loop through machine's register files
-    int rfCount = machine_.registerFileNavigator().count();
-    for (int i = 0; i < rfCount; ++i) {
-        Component* comp = machine_.registerFileNavigator().item(i);
-        RegisterFile* rf = dynamic_cast<RegisterFile*>(comp);
-        
-        // if register file doesn't have an implementation...
-        if (rf != NULL && !impl_.hasRFImplementation(rf->name())) {
-            // ...try to find one using the selector component
-            rfImpls = selector->rfImplementations(*rf, rf->isUsedAsGuard());
-            it = rfImpls.begin();
+  // loop through machine's register files
+  int rfCount = machine_.registerFileNavigator().count();
+  for (int i = 0; i < rfCount; ++i) {
+    Component *comp = machine_.registerFileNavigator().item(i);
+    RegisterFile *rf = dynamic_cast<RegisterFile *>(comp);
 
-            // if an implementation was found, save it into the std::map
-            if (rfImpls.size() > 0 && it->first != NULL) {
-                const RFImplementationLocation* location = it->first;
-                HdbIdPair locationInfo;
-                locationInfo.hdbFile = hdb.fileName();
-                locationInfo.id = location->id();
+    // if register file doesn't have an implementation...
+    if (rf != NULL && !impl_.hasRFImplementation(rf->name())) {
+      // ...try to find one using the selector component
+      rfImpls = selector->rfImplementations(*rf, rf->isUsedAsGuard());
+      it = rfImpls.begin();
 
-                foundRF_.insert(
-                    std::pair<const RFImplementationLocation*, HdbIdPair>(
-                        location, locationInfo));
-            }
-        }
+      // if an implementation was found, save it into the std::map
+      if (rfImpls.size() > 0 && it->first != NULL) {
+        const RFImplementationLocation *location = it->first;
+        HdbIdPair locationInfo;
+        locationInfo.hdbFile = hdb.fileName();
+        locationInfo.id = location->id();
+
+        foundRF_.insert(std::pair<const RFImplementationLocation *, HdbIdPair>(
+            location, locationInfo));
+      }
     }
+  }
 
-    delete selector;
+  delete selector;
 }
 
 /**
@@ -344,45 +333,43 @@ AutoSelectImplementationsDialog::findRFImplementations(HDBManager& hdb) {
  *
  * @param hdb HDB file from which implementations are searched.
  */
-void
-AutoSelectImplementationsDialog::findIUImplementations(HDBManager& hdb) {
+void AutoSelectImplementationsDialog::findIUImplementations(HDBManager &hdb) {
 
-    // this component searches proper implementations for immediate units
-    ComponentImplementationSelector* selector = 
-        new ComponentImplementationSelector();
-    // add the HDB file to selector for searching
-    selector->addHDB(hdb);
+  // this component searches proper implementations for immediate units
+  ComponentImplementationSelector *selector =
+      new ComponentImplementationSelector();
+  // add the HDB file to selector for searching
+  selector->addHDB(hdb);
 
-    std::map<const RFImplementationLocation*, CostEstimates*> iuImpls;
-    std::map<const RFImplementationLocation*, CostEstimates*>::iterator it;
+  std::map<const RFImplementationLocation *, CostEstimates *> iuImpls;
+  std::map<const RFImplementationLocation *, CostEstimates *>::iterator it;
 
-    // loop through machine's immediate units
-    int iuCount = machine_.immediateUnitNavigator().count();
-    for (int i = 0; i < iuCount; ++i) {
-        Component* comp = machine_.immediateUnitNavigator().item(i);
-        ImmediateUnit* iu = dynamic_cast<ImmediateUnit*>(comp);
+  // loop through machine's immediate units
+  int iuCount = machine_.immediateUnitNavigator().count();
+  for (int i = 0; i < iuCount; ++i) {
+    Component *comp = machine_.immediateUnitNavigator().item(i);
+    ImmediateUnit *iu = dynamic_cast<ImmediateUnit *>(comp);
 
-        // if immediate unit doesn't have an implementation...
-        if (iu != NULL  && !impl_.hasIUImplementation(iu->name())) {
-            // ...try to find one using the selector component
-            iuImpls = selector->iuImplementations(*iu);
-            it = iuImpls.begin();
+    // if immediate unit doesn't have an implementation...
+    if (iu != NULL && !impl_.hasIUImplementation(iu->name())) {
+      // ...try to find one using the selector component
+      iuImpls = selector->iuImplementations(*iu);
+      it = iuImpls.begin();
 
-            // if an implementation was found, save it into the std::map
-            if (iuImpls.size() > 0 && it->first != NULL) {
-                const RFImplementationLocation* location = it->first;
-                HdbIdPair locationInfo;
-                locationInfo.hdbFile = hdb.fileName();
-                locationInfo.id = location->id();
+      // if an implementation was found, save it into the std::map
+      if (iuImpls.size() > 0 && it->first != NULL) {
+        const RFImplementationLocation *location = it->first;
+        HdbIdPair locationInfo;
+        locationInfo.hdbFile = hdb.fileName();
+        locationInfo.id = location->id();
 
-                foundIU_.insert(
-                    std::pair<const RFImplementationLocation*, HdbIdPair>(
-                        location, locationInfo));
-            }
-        }
+        foundIU_.insert(std::pair<const RFImplementationLocation *, HdbIdPair>(
+            location, locationInfo));
+      }
     }
+  }
 
-    delete selector;
+  delete selector;
 }
 
 /**
@@ -390,110 +377,115 @@ AutoSelectImplementationsDialog::findIUImplementations(HDBManager& hdb) {
  *
  * @param hdb HDB file from which implementations are searched.
  */
-void
-AutoSelectImplementationsDialog::findFUImplementations(HDBManager& hdb) {
+void AutoSelectImplementationsDialog::findFUImplementations(HDBManager &hdb) {
 
-    // this component searches proper implementations for function units
-    ComponentImplementationSelector* selector = 
-        new ComponentImplementationSelector();
-    // add the HDB file to selector for searching
-    selector->addHDB(hdb);
+  // this component searches proper implementations for function units
+  ComponentImplementationSelector *selector =
+      new ComponentImplementationSelector();
+  // add the HDB file to selector for searching
+  selector->addHDB(hdb);
 
-    std::map<const FUImplementationLocation*, CostEstimates*> fuImpls;
-    std::map<const FUImplementationLocation*, CostEstimates*>::iterator it;
+  std::map<const FUImplementationLocation *, CostEstimates *> fuImpls;
+  std::map<const FUImplementationLocation *, CostEstimates *>::iterator it;
 
-    // loop through machine's function units
-    int fuCount = machine_.functionUnitNavigator().count();
-    for (int i = 0; i < fuCount; ++i) {
-        Component* comp = machine_.functionUnitNavigator().item(i);
-        FunctionUnit* fu = dynamic_cast<FunctionUnit*>(comp);
+  // loop through machine's function units
+  int fuCount = machine_.functionUnitNavigator().count();
+  for (int i = 0; i < fuCount; ++i) {
+    Component *comp = machine_.functionUnitNavigator().item(i);
+    FunctionUnit *fu = dynamic_cast<FunctionUnit *>(comp);
 
-        // if function unit doesn't have an implementation...
-        if (fu != NULL && !impl_.hasFUImplementation(fu->name())) {
-            // ...try to find one using the selector component
-            fuImpls = selector->fuImplementations(*fu);
-            it = fuImpls.begin();
+    // if function unit doesn't have an implementation...
+    if (fu != NULL && !impl_.hasFUImplementation(fu->name())) {
+      // ...try to find one using the selector component
+      fuImpls = selector->fuImplementations(*fu);
+      it = fuImpls.begin();
 
-            // if an implementation was found, save it into the std::map
-            if (fuImpls.size() > 0 && it->first != NULL) {
-                const FUImplementationLocation* location = it->first;
-                HdbIdPair locationInfo;
-                locationInfo.hdbFile = hdb.fileName();
-                locationInfo.id = location->id();
+      // if an implementation was found, save it into the std::map
+      if (fuImpls.size() > 0 && it->first != NULL) {
+        const FUImplementationLocation *location = it->first;
+        HdbIdPair locationInfo;
+        locationInfo.hdbFile = hdb.fileName();
+        locationInfo.id = location->id();
 
-                foundFU_.insert(
-                    std::pair<const FUImplementationLocation*, HdbIdPair>(
-                        location, locationInfo));
-            }
-        }
+        foundFU_.insert(std::pair<const FUImplementationLocation *, HdbIdPair>(
+            location, locationInfo));
+      }
     }
+  }
 
-    delete selector;
+  delete selector;
 }
 
 /**
  * Creates the dialog widgets.
  */
-wxSizer*
-AutoSelectImplementationsDialog::createContents(
-    wxWindow *parent, 
-    bool call_fit, 
-    bool set_sizer) {
+wxSizer *AutoSelectImplementationsDialog::createContents(wxWindow *parent,
+                                                         bool call_fit,
+                                                         bool set_sizer) {
 
-    wxFlexGridSizer *item0 = new wxFlexGridSizer( 1, 0, 0 );
-    item0->AddGrowableCol( 0 );
-    item0->AddGrowableRow( 1 );
+  wxFlexGridSizer *item0 = new wxFlexGridSizer(1, 0, 0);
+  item0->AddGrowableCol(0);
+  item0->AddGrowableRow(1);
 
-    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+  wxBoxSizer *item1 = new wxBoxSizer(wxHORIZONTAL);
 
-    wxStaticText *itemText = new wxStaticText( parent, ID_TEXT, wxT("HDB file:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( itemText, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+  wxStaticText *itemText = new wxStaticText(
+      parent, ID_TEXT, wxT("HDB file:"), wxDefaultPosition, wxDefaultSize, 0);
+  item1->Add(itemText, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxString *strs2 = (wxString*) NULL;
-    wxChoice *item2 = new wxChoice( parent, ID_HDB_CHOICE, wxDefaultPosition, wxSize(250,-1), 0, strs2, 0 );
-    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
+  wxString *strs2 = (wxString *)NULL;
+  wxChoice *item2 = new wxChoice(parent, ID_HDB_CHOICE, wxDefaultPosition,
+                                 wxSize(250, -1), 0, strs2, 0);
+  item1->Add(item2, 0, wxALIGN_CENTER | wxALL, 5);
 
-    wxButton *item3 = new wxButton( parent, ID_BROWSE, wxT("Browse..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+  wxButton *item3 = new wxButton(parent, ID_BROWSE, wxT("Browse..."),
+                                 wxDefaultPosition, wxDefaultSize, 0);
+  item1->Add(item3, 0, wxALIGN_CENTER | wxALL, 5);
 
-    wxButton *buttonFind = new wxButton( parent, ID_FIND, wxT("Find"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( buttonFind, 0, wxALIGN_CENTER|wxALL, 5 );
+  wxButton *buttonFind = new wxButton(parent, ID_FIND, wxT("Find"),
+                                      wxDefaultPosition, wxDefaultSize, 0);
+  item1->Add(buttonFind, 0, wxALIGN_CENTER | wxALL, 5);
 
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
+  item0->Add(item1, 0, wxALIGN_CENTER | wxALL, 5);
 
-    wxBoxSizer *cboxSizer = new wxBoxSizer( wxHORIZONTAL );
+  wxBoxSizer *cboxSizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxStaticText *cboxText = new wxStaticText( parent, ID_TEXT, wxT("Do selections for:"), wxDefaultPosition, wxDefaultSize, 0 );
-    cboxSizer->Add( cboxText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+  wxStaticText *cboxText =
+      new wxStaticText(parent, ID_TEXT, wxT("Do selections for:"),
+                       wxDefaultPosition, wxDefaultSize, 0);
+  cboxSizer->Add(cboxText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxCheckBox *cboxRF = new wxCheckBox( parent, ID_RF, wxT("Register Files"), wxDefaultPosition, wxDefaultSize, 0 );
-    cboxSizer->Add( cboxRF, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+  wxCheckBox *cboxRF = new wxCheckBox(parent, ID_RF, wxT("Register Files"),
+                                      wxDefaultPosition, wxDefaultSize, 0);
+  cboxSizer->Add(cboxRF, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxCheckBox *cboxIU = new wxCheckBox( parent, ID_IU, wxT("Immediate Units"), wxDefaultPosition, wxDefaultSize, 0 );
-    cboxSizer->Add( cboxIU, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+  wxCheckBox *cboxIU = new wxCheckBox(parent, ID_IU, wxT("Immediate Units"),
+                                      wxDefaultPosition, wxDefaultSize, 0);
+  cboxSizer->Add(cboxIU, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxCheckBox *cboxFU = new wxCheckBox( parent, ID_FU, wxT("Function Units"), wxDefaultPosition, wxDefaultSize, 0 );
-    cboxSizer->Add( cboxFU, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-    
-    item0->Add( cboxSizer, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+  wxCheckBox *cboxFU = new wxCheckBox(parent, ID_FU, wxT("Function Units"),
+                                      wxDefaultPosition, wxDefaultSize, 0);
+  cboxSizer->Add(cboxFU, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxStaticLine *item5 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-    
-    wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
+  item0->Add(cboxSizer, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    wxButton *closeButton = new wxButton( parent, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( closeButton, 0, wxALIGN_CENTER|wxALL, 5 );
+  wxStaticLine *item5 = new wxStaticLine(parent, ID_LINE, wxDefaultPosition,
+                                         wxSize(20, -1), wxLI_HORIZONTAL);
+  item0->Add(item5, 0, wxGROW | wxALL, 5);
 
-    item0->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+  wxBoxSizer *item6 = new wxBoxSizer(wxHORIZONTAL);
 
+  wxButton *closeButton = new wxButton(parent, ID_CLOSE, wxT("Close"),
+                                       wxDefaultPosition, wxDefaultSize, 0);
+  item6->Add(closeButton, 0, wxALIGN_CENTER | wxALL, 5);
 
-    if (set_sizer)
-    {
-        parent->SetSizer( item0 );
-        if (call_fit)
-            item0->SetSizeHints( parent );
-    }
+  item0->Add(item6, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-    return item0;
+  if (set_sizer) {
+    parent->SetSizer(item0);
+    if (call_fit)
+      item0->SetSizeHints(parent);
+  }
+
+  return item0;
 }
