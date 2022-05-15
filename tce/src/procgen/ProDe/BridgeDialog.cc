@@ -484,7 +484,7 @@ wxSizer *BridgeDialog::createContents(wxWindow *parent, bool call_fit,
                                       wxDefaultPosition, wxSize(80, -1), 0);
   optionsCol->Add(item12, 0, wxGROW | wxALL, 5);
 
-  item1->Add(optionsCol, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
+  item1->Add(optionsCol, 0, wxALIGN_CENTER | wxALL, 5);
 
   mainCol->Add(item1, 0, wxALIGN_CENTER | wxALL, 5);
 

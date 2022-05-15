@@ -527,7 +527,7 @@ wxSizer *TemplateListDialog::createContents(wxWindow *parent, bool call_fit,
 
   item11->Add(item14, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item1->Add(item11, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
+  item1->Add(item11, 0, wxALIGN_CENTER | wxALL, 5);
 
   mainCol->Add(item1, 0, wxALIGN_CENTER | wxALL, 5);
 
