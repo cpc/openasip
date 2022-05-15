@@ -320,7 +320,7 @@ wxSizer *FUGuardDialog::createContents(wxWindow *parent, bool call_fit,
 
   wxCheckBox *item6 = new wxCheckBox(parent, ID_INVERTED, wxT("Inverted"),
                                      wxDefaultPosition, wxDefaultSize, 0);
-  mainCol->Add(item6, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  mainCol->Add(item6, 0, wxALL, 5);
 
   wxStaticLine *item7 = new wxStaticLine(parent, ID_LINE, wxDefaultPosition,
                                          wxSize(20, -1), wxLI_HORIZONTAL);

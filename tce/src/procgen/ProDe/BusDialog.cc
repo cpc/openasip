@@ -1179,7 +1179,7 @@ wxSizer *BusDialog::createContents(wxWindow *parent, bool call_fit,
                                   wxDefaultPosition, wxSize(50, -1), 0);
   item24->Add(item26, 0, wxALIGN_CENTER | wxALL, 5);
 
-  item21->Add(item24, 0, wxALIGN_CENTER_HORIZONTAL | wxALL, 5);
+  item21->Add(item24, 0, wxALL, 5);
 
   item18->Add(item21, 0, wxGROW | wxALL, 5);
 
