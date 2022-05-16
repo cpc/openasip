@@ -1200,7 +1200,9 @@ BusDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxStaticText *item8 = new wxStaticText( parent, ID_LABEL_BUS_WIDTH, wxT("Width:"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxSpinCtrl *item9 = new wxSpinCtrl( parent, ID_BUS_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 1024, 1 );
+    wxSpinCtrl *item9 =
+        new wxSpinCtrl(parent, ID_BUS_WIDTH, wxT("1"), wxDefaultPosition,
+                       wxDefaultSize, 0, 1, 1024, 1);
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add(item7, 0, wxGROW | wxALL, 5);
@@ -1217,7 +1219,9 @@ BusDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxStaticText *item13 = new wxStaticText( parent, ID_LABEL_SI_WIDTH, wxT("Width:"), wxDefaultPosition, wxDefaultSize, 0 );
     item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxSpinCtrl *item14 = new wxSpinCtrl( parent, ID_SI_WIDTH, wxT("0"), wxDefaultPosition, wxSize(100,-1), 0, 0, 1000, 0 );
+    wxSpinCtrl *item14 =
+        new wxSpinCtrl(parent, ID_SI_WIDTH, wxT("0"), wxDefaultPosition,
+                       wxDefaultSize, 0, 0, 1000, 0);
     item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item10->Add(item12, 0, wxGROW | wxALL, 5);

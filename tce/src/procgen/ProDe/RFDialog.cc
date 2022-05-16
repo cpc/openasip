@@ -547,13 +547,17 @@ RFDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxStaticText *item6 = new wxStaticText( parent, ID_LABEL_SIZE, wxT("Size:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add(item6, 0, wxALIGN_RIGHT | wxALL, 5);
 
-    wxSpinCtrl *item7 = new wxSpinCtrl( parent, ID_SIZE, wxT("1"), wxDefaultPosition, wxSize(120,-1), 0, 1, 10000, 1 );
+    wxSpinCtrl *item7 =
+        new wxSpinCtrl(parent, ID_SIZE, wxT("1"), wxDefaultPosition,
+                       wxDefaultSize, 0, 1, 10000, 1);
     item1->Add(item7, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item8 = new wxStaticText( parent, ID_LABEL_WIDTH, wxT("Width:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add(item8, 0, wxALIGN_RIGHT | wxALL, 5);
 
-    wxSpinCtrl *item9 = new wxSpinCtrl( parent, ID_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 10000, 1 );
+    wxSpinCtrl *item9 =
+        new wxSpinCtrl(parent, ID_WIDTH, wxT("1"), wxDefaultPosition,
+                       wxDefaultSize, 0, 1, 10000, 1);
     item1->Add(item9, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item10 = new wxStaticText( parent, ID_LABEL_MAX_READS, wxT("Max-Reads:"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -571,7 +575,9 @@ RFDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxStaticText *item14 = new wxStaticText( parent, ID_LABEL_GUARD_LATENCY, wxT("Guard Latency:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add(item14, 0, wxALIGN_RIGHT | wxALL, 5);
 
-    wxSpinCtrl *item15 = new wxSpinCtrl( parent, ID_GUARD_LATENCY, wxT("0"), wxDefaultPosition, wxSize(100,-1), 0, 0, 1, 0 );
+    wxSpinCtrl *item15 =
+        new wxSpinCtrl(parent, ID_GUARD_LATENCY, wxT("0"), wxDefaultPosition,
+                       wxDefaultSize, 0, 0, 1, 0);
     item1->Add(item15, 0, wxGROW | wxALL, 5);
 
     item0->Add(item1, 0, wxGROW | wxALL, 5);

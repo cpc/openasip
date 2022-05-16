@@ -439,8 +439,9 @@ OpsetDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxStaticText *latencyLabel = new wxStaticText(parent, ID_TEXT,
         wxT("Latency:"), wxDefaultPosition, wxDefaultSize, 0);
     // Latency spinner
-    wxSpinCtrl *latencySpinner = new wxSpinCtrl(parent, ID_LATENCY, wxT("1"),
-        wxDefaultPosition, wxSize(50,-1), 0, 1, 100, 1);
+    wxSpinCtrl *latencySpinner =
+        new wxSpinCtrl(parent, ID_LATENCY, wxT("1"), wxDefaultPosition,
+                       wxDefaultSize, 0, 1, 100, 1);
     latencySizer->Add(latencyLabel, 1, wxALIGN_CENTER_VERTICAL);
     latencySizer->Add(latencySpinner, 1);
     leftSizer->Add(latencySizer, 0, wxEXPAND|wxALL, 5);

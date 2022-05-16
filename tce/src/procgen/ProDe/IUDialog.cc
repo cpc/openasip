@@ -517,13 +517,17 @@ IUDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxStaticText *item5 = new wxStaticText( parent, ID_LABEL_SIZE, wxT("Size:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add(item5, 0, wxALIGN_RIGHT | wxALL, 5);
 
-    wxSpinCtrl *item6 = new wxSpinCtrl( parent, ID_SIZE, wxT("1"), wxDefaultPosition, wxSize(60,-1), 0, 1, 10000, 1 );
+    wxSpinCtrl *item6 =
+        new wxSpinCtrl(parent, ID_SIZE, wxT("1"), wxDefaultPosition,
+                       wxDefaultSize, 0, 1, 10000, 1);
     item2->Add(item6, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item7 = new wxStaticText( parent, ID_LABEL_WIDTH, wxT("Width:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add(item7, 0, wxALIGN_RIGHT | wxALL, 5);
 
-    wxSpinCtrl *item8 = new wxSpinCtrl( parent, ID_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 10000, 1 );
+    wxSpinCtrl *item8 =
+        new wxSpinCtrl(parent, ID_WIDTH, wxT("1"), wxDefaultPosition,
+                       wxDefaultSize, 0, 1, 10000, 1);
     item2->Add( item8, 0, wxGROW|wxALL, 5 );
 
     item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL, 5 );

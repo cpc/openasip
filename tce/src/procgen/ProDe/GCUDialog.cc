@@ -856,7 +856,9 @@ GCUDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_DS, wxT("Delay slots:"), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add(item6, 0, wxALIGN_RIGHT | wxALL, 5);
 
-    wxSpinCtrl *item7 = new wxSpinCtrl( parent, ID_DELAY_SLOTS, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 0, 10000, 1 );
+    wxSpinCtrl *item7 =
+        new wxSpinCtrl(parent, ID_DELAY_SLOTS, wxT("1"), wxDefaultPosition,
+                       wxDefaultSize, 0, 0, 10000, 1);
     item3->Add(item7, 0, wxGROW | wxALL, 5);
 
     // global guard latency currently fixed at 1.

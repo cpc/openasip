@@ -390,7 +390,9 @@ FUPortDialog::createContents(
     wxStaticText *item4 = new wxStaticText( parent, ID_LABEL_WIDTH, wxT("Width:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add(item4, 0, wxALIGN_RIGHT | wxALL, 5);
 
-    wxSpinCtrl *item5 = new wxSpinCtrl( parent, ID_WIDTH, wxT("1"), wxDefaultPosition, wxSize(200,-1), 0, 1, 10000, 1 );
+    wxSpinCtrl *item5 =
+        new wxSpinCtrl(parent, ID_WIDTH, wxT("1"), wxDefaultPosition,
+                       wxDefaultSize, 0, 1, 10000, 1);
     item1->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item6 = new wxStaticText( parent, ID_LABEL_INPUT_SOCKET, wxT("Input Socket:"), wxDefaultPosition, wxDefaultSize, 0 );

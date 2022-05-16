@@ -521,7 +521,9 @@ AddressSpaceDialog::createContents(
     wxStaticBoxSizer *item8 = new wxStaticBoxSizer( item9, wxVERTICAL );
     widthSizer_ = item8;
 
-    wxSpinCtrl *item10 = new wxSpinCtrl(parent, ID_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 10000, 1, wxT("Spin"));
+    wxSpinCtrl *item10 =
+        new wxSpinCtrl(parent, ID_WIDTH, wxT("1"), wxDefaultPosition,
+                       wxDefaultSize, 0, 1, 10000, 1, wxT("Spin"));
     item8->Add(item10, 0, wxGROW | wxALL, 5);
 
     item1->Add(item8, 0, wxGROW | wxALL, 5);
@@ -539,7 +541,9 @@ AddressSpaceDialog::createContents(
     wxStaticText *bitText = new wxStaticText(parent, -1, wxT("Bits:"));
     bitSizer->Add(bitText, 0, wxGROW | wxALL, 5);
 
-    wxSpinCtrl *bitWidth = new wxSpinCtrl( parent, ID_BIT_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 10000, 1);
+    wxSpinCtrl *bitWidth =
+        new wxSpinCtrl(parent, ID_BIT_WIDTH, wxT("1"), wxDefaultPosition,
+                       wxDefaultSize, 0, 1, 10000, 1);
     bitSizer->Add(bitWidth, 0, wxGROW | wxALL, 5);
 
     item11->Add(bitSizer, 0, wxGROW | wxALL, 5);
@@ -561,8 +565,10 @@ AddressSpaceDialog::createContents(
     idListCtrl_->InsertColumn(0, _("ID"));
     
     wxBoxSizer *sizerOnRight = new wxBoxSizer(wxVERTICAL);
-    
-    wxSpinCtrl *itemIdSpinCtrl = new wxSpinCtrl( parent, ID_SPIN_ID, wxT("0"), wxDefaultPosition, wxSize(100,-1), 0, 0, 2147483647, 1, wxT("Spin") );
+
+    wxSpinCtrl *itemIdSpinCtrl =
+        new wxSpinCtrl(parent, ID_SPIN_ID, wxT("0"), wxDefaultPosition,
+                       wxDefaultSize, 0, 0, 2147483647, 1, wxT("Spin"));
     sizerOnRight->Add(itemIdSpinCtrl, 0, wxGROW | wxALL, 5);
     idSpinCtrl_ = itemIdSpinCtrl;
     

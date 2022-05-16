@@ -1148,7 +1148,9 @@ OperationDialog::createContents(
     wxStaticText *item17 = new wxStaticText( parent, ID_LABEL_OPERAND, wxT("New operand:"), wxDefaultPosition, wxDefaultSize, 0 );
     item16->Add(item17, 0, wxALIGN_RIGHT | wxALL, 5);
 
-    wxSpinCtrl *item18 = new wxSpinCtrl( parent, ID_NUMBER, wxT("1"), wxDefaultPosition, wxSize(60,-1), 0, 1, 10000, 1 );
+    wxSpinCtrl *item18 =
+        new wxSpinCtrl(parent, ID_NUMBER, wxT("1"), wxDefaultPosition,
+                       wxDefaultSize, 0, 1, 10000, 1);
     item16->Add(item18, 0, wxGROW | wxALL, 5);
 
     wxButton *item19 = new wxButton( parent, ID_ADD_OPERAND, wxT("Add"), wxDefaultPosition, wxDefaultSize, 0 );

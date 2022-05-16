@@ -285,7 +285,9 @@ TemplateSlotDialog::createContents(
     wxStaticText *item6 = new wxStaticText( parent, ID_LABEL_WIDTH, wxT("Width:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add(item6, 0, wxALIGN_RIGHT | wxALL, 5);
 
-    wxSpinCtrl *item7 = new wxSpinCtrl( parent, ID_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 10000, 1 );
+    wxSpinCtrl *item7 =
+        new wxSpinCtrl(parent, ID_WIDTH, wxT("1"), wxDefaultPosition,
+                       wwxDefaultSize, 0, 1, 10000, 1);
     item1->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add(item1, 0, wxGROW | wxALL, 5);
