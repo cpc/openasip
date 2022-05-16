@@ -151,7 +151,7 @@ AddIUFromHDBDialog::AddIUFromHDBDialog(wxWindow *parent, Model *model)
   string iconPath =
       Environment::iconDirPath() + FileSystem::DIRECTORY_SEPARATOR;
 
-  wxImageList *imageList = new wxImageList();
+  wxImageList *imageList = new wxImageList(13, 17);
   imageList->Add(wxIcon(
       WxConversion::toWxString(iconPath + ProDeConstants::ICON_SORT_DESC)));
   imageList->Add(wxIcon(
