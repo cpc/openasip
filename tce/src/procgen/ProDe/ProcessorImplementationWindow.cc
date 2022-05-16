@@ -26,8 +26,8 @@
  *
  * Implementation of ProcessorImplementationWindow class.
  *
- * @author Veli-Pekka J��skel�inen 2006 (vjaaskel-no.spam-cs.tut.fi)
- * @author Pekka J��skel�inen 2021
+ * @author Veli-Pekka Jääskeläinen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2021
  * @note rating: red
  */
 
