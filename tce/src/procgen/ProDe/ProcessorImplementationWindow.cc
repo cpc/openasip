@@ -1094,7 +1094,7 @@ wxSizer *ProcessorImplementationWindow::createContents( wxWindow *parent, bool c
     wxButton *item15 = new wxButton( parent, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item14->Add( item15, 0, wxFIXED_MINSIZE|wxALIGN_CENTER|wxALL, 5 );
 
-    item9->Add( item14, 0, wxFIXED_MINSIZE|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+    item9->Add(item14, 0, wxFIXED_MINSIZE | wxALIGN_RIGHT, 5);
 
     item0->Add(item9, 0, wxFIXED_MINSIZE | wxGROW | wxALL, 5);
 
@@ -1119,12 +1119,12 @@ wxSizer *ProcessorImplementationWindow::registerFilePage( wxWindow *parent, bool
 
     wxBoxSizer *buttonSizer = new wxBoxSizer( wxHORIZONTAL );
     wxButton *autoSelButton = new wxButton( parent, ID_AUTO_SELECT_IMPL, wxT("Auto Select Implementations"), wxDefaultPosition, wxDefaultSize, 0 );
-    buttonSizer->Add( autoSelButton, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    buttonSizer->Add(autoSelButton, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxButton *item2 = new wxButton( parent, ID_SELECT_RF_IMPL, wxT("Select implementation..."), wxDefaultPosition, wxDefaultSize, 0 );
-    buttonSizer->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    buttonSizer->Add(item2, 0, wxALIGN_RIGHT | wxALL, 5);
 
-    item0->Add( buttonSizer, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(buttonSizer, 0, wxALIGN_RIGHT | wxALL, 5);
 
     if (set_sizer)
     {
@@ -1147,12 +1147,12 @@ wxSizer *ProcessorImplementationWindow::functionUnitPage( wxWindow *parent, bool
 
     wxBoxSizer *buttonSizer = new wxBoxSizer( wxHORIZONTAL );
     wxButton *autoSelButton = new wxButton( parent, ID_AUTO_SELECT_IMPL, wxT("Auto Select Implementations"), wxDefaultPosition, wxDefaultSize, 0 );
-    buttonSizer->Add( autoSelButton, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    buttonSizer->Add(autoSelButton, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxButton *item2 = new wxButton( parent, ID_SELECT_FU_IMPL, wxT("Select implementation..."), wxDefaultPosition, wxDefaultSize, 0 );
-    buttonSizer->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    buttonSizer->Add(item2, 0, wxALIGN_RIGHT | wxALL, 5);
 
-    item0->Add( buttonSizer, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(buttonSizer, 0, wxALIGN_RIGHT | wxALL, 5);
 
     if (set_sizer)
     {
@@ -1216,7 +1216,7 @@ wxSizer *ProcessorImplementationWindow::icDecoderPluginPage( wxWindow *parent, b
     wxFlexGridSizer *item2 = new wxFlexGridSizer( 3, 0, 0 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_TEXT, wxT("Plugin file:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item3, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxTextCtrl *item4 = new wxTextCtrl( parent, ID_IC_DEC_PLUGIN_FILE, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_READONLY );
     item2->Add(item4, 0, wxGROW | wxALL, 5);
@@ -1225,7 +1225,7 @@ wxSizer *ProcessorImplementationWindow::icDecoderPluginPage( wxWindow *parent, b
     item2->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, wxT("HDB file:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item6, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxTextCtrl *item7 = new wxTextCtrl( parent, ID_IC_DEC_HDB_FILE, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
     item2->Add(item7, 0, wxGROW | wxALL, 5);
@@ -1234,7 +1234,7 @@ wxSizer *ProcessorImplementationWindow::icDecoderPluginPage( wxWindow *parent, b
     item2->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item9 = new wxStaticText( parent, ID_TEXT, wxT("Plugin name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item9, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item9, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxTextCtrl *item10 = new wxTextCtrl( parent, ID_IC_DEC_PLUGIN_NAME, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_READONLY );
     item2->Add(item10, 0, wxGROW | wxALL, 5);
@@ -1297,12 +1297,12 @@ wxSizer *ProcessorImplementationWindow::immediateUnitPage( wxWindow *parent, boo
 
     wxBoxSizer *buttonSizer = new wxBoxSizer( wxHORIZONTAL );
     wxButton *autoSelButton = new wxButton( parent, ID_AUTO_SELECT_IMPL, wxT("Auto Select Implementations"), wxDefaultPosition, wxDefaultSize, 0 );
-    buttonSizer->Add( autoSelButton, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    buttonSizer->Add(autoSelButton, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxButton *item2 = new wxButton( parent, ID_SELECT_IU_IMPL, wxT("Select implementation..."), wxDefaultPosition, wxDefaultSize, 0 );
-    buttonSizer->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    buttonSizer->Add(item2, 0, wxALIGN_RIGHT | wxALL, 5);
 
-    item0->Add( buttonSizer, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(buttonSizer, 0, wxALIGN_RIGHT | wxALL, 5);
 
     if (set_sizer)
     {

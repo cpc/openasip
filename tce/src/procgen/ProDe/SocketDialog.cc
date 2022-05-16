@@ -639,7 +639,7 @@ SocketDialog::createContents(
     wxButton *item21 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item19->Add( item21, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item17->Add( item19, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item17->Add(item19, 0, wxALIGN_RIGHT | wxALL, 5);
 
     item0->Add(item17, 0, wxGROW | wxALL, 5);
 

@@ -222,7 +222,7 @@ ProDeBusOrderDialog::createContents(
     wxButton *item9 = new wxButton( parent, wxID_OK, wxT("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item7, 0, wxALIGN_RIGHT | wxALL, 5);
 
     if (set_sizer)
     {

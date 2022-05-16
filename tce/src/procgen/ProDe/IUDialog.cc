@@ -509,19 +509,19 @@ IUDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxFlexGridSizer *item2 = new wxFlexGridSizer( 4, 0, 0 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_LABEL_NAME, wxT("Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item3, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxTextCtrl *item4 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(120,-1), 0 );
     item2->Add(item4, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item5 = new wxStaticText( parent, ID_LABEL_SIZE, wxT("Size:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item5, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxSpinCtrl *item6 = new wxSpinCtrl( parent, ID_SIZE, wxT("1"), wxDefaultPosition, wxSize(60,-1), 0, 1, 10000, 1 );
     item2->Add(item6, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item7 = new wxStaticText( parent, ID_LABEL_WIDTH, wxT("Width:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item7, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxSpinCtrl *item8 = new wxSpinCtrl( parent, ID_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 10000, 1 );
     item2->Add( item8, 0, wxGROW|wxALL, 5 );
@@ -567,7 +567,7 @@ IUDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
 
     item1->Add(item15, 0, wxGROW | wxALL, 5);
 
-    item0->Add( item1, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxALL, 5);
 
     wxStaticLine *item22 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
     item0->Add(item22, 0, wxGROW | wxALL, 5);
@@ -585,7 +585,7 @@ IUDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxButton *item27 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item25->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item23->Add( item25, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item23->Add(item25, 0, wxALIGN_RIGHT | wxALL, 5);
 
     item0->Add(item23, 0, wxGROW, 5);
 

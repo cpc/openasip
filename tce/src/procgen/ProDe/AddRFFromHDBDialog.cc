@@ -395,13 +395,13 @@ AddRFFromHDBDialog::createContents(
     item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
     wxButton *item2 = new wxButton( parent, ID_ADD, wxT("&Add"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item2, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxStaticLine *item3 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
     item0->Add(item3, 0, wxGROW | wxALL, 5);
 
     wxButton *item4 = new wxButton( parent, ID_CLOSE, wxT("&Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item4, 0, wxALIGN_RIGHT | wxALL, 5);
 
     if (set_sizer) {
         parent->SetSizer( item0 );

@@ -848,33 +848,34 @@ GCUDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxFlexGridSizer *item3 = new wxFlexGridSizer( 2, 0, 0 );
 
     wxStaticText *item4 = new wxStaticText( parent, ID_TEXT_NAME, wxT("Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item3->Add(item4, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxTextCtrl *item5 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(140,-1), 0 );
     item3->Add(item5, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item6 = new wxStaticText( parent, ID_TEXT_DS, wxT("Delay slots:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item3->Add(item6, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxSpinCtrl *item7 = new wxSpinCtrl( parent, ID_DELAY_SLOTS, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 0, 10000, 1 );
     item3->Add(item7, 0, wxGROW | wxALL, 5);
 
     // global guard latency currently fixed at 1.
-    //wxStaticText *item8 = new wxStaticText( parent, ID_LABEL_GLOBAL_GUARD_LATENCY, wxT("Guard Latency:"), wxDefaultPosition, wxDefaultSize, 0 );
-    //item3->Add( item8, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    // wxStaticText *item8 = new wxStaticText( parent,
+    // ID_LABEL_GLOBAL_GUARD_LATENCY, wxT("Guard Latency:"), wxDefaultPosition,
+    // wxDefaultSize, 0 ); item3->Add( item8, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     // wxSpinCtrl *item9 = new wxSpinCtrl( parent, ID_GUARD_LATENCY, wxT("0"),
     // wxDefaultPosition, wxSize(100,-1), 0, 0, 1000, 0 ); item3->Add( item9, 0,
     // wxGROW|wxALL, 5 );
 
     wxStaticText *item10 = new wxStaticText( parent, ID_TEXT_AS, wxT("Address Space:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item3->Add( item10, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item3->Add(item10, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxString *strs11 = (wxString*) NULL;
     wxChoice *item11 = new wxChoice( parent, ID_ADDRESS_SPACE, wxDefaultPosition, wxSize(100,-1), 0, strs11, 0 );
     item3->Add(item11, 0, wxGROW | wxALL, 5);
 
-    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item3, 0, wxALL, 5);
 
     wxStaticBox *item13 = new wxStaticBox( parent, -1, wxT("Operations:") );
     wxStaticBoxSizer *item12 = new wxStaticBoxSizer( item13, wxVERTICAL );
@@ -917,7 +918,7 @@ GCUDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxButton *item25 = new wxButton( parent, ID_DELETE_PORT, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
     item23->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item21->Add( item23, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+    item21->Add(item23, 0, wxALIGN_RIGHT, 5);
 
     wxBoxSizer *item26 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -971,7 +972,7 @@ GCUDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxButton *item41 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item39->Add( item41, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item37->Add( item39, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item37->Add(item39, 0, wxALIGN_RIGHT | wxALL, 5);
 
     item0->Add(item37, 0, wxGROW | wxLEFT | wxRIGHT, 5);
 

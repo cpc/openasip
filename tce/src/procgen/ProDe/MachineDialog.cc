@@ -127,8 +127,7 @@ MachineDialog::createContents(
     // Label
     wxStaticText *endianessLabel = new wxStaticText(parent, -1,
         wxT("Endianess:"), wxDefaultPosition, wxDefaultSize, 0 );
-    machSettings->Add(endianessLabel,
-        0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    machSettings->Add(endianessLabel, 0, wxALIGN_RIGHT | wxALL, 5);
     // Choice
     endianessChoise_ = new wxChoice(parent, ID_ENDIANESS_CHOICE,
         wxDefaultPosition, wxDefaultSize);

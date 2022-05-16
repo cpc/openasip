@@ -396,7 +396,7 @@ BlockImplementationDialog::createContents(
     wxButton *item8 = new wxButton( parent, wxID_OK, wxT("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item6, 0, wxALIGN_RIGHT | wxALL, 5);
 
     if (set_sizer)
     {

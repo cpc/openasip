@@ -427,8 +427,8 @@ GenerateProcessorDialog::createContents(
 
     wxRadioButton *verilog_item = new wxRadioButton( parent, ID_VERILOG, wxT("Verilog"), wxDefaultPosition, wxDefaultSize, 0 );
 
-    hdl_boxsizer->Add( vhdl_item, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-    hdl_boxsizer->Add( verilog_item, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    hdl_boxsizer->Add(vhdl_item, 0, wxALL, 5);
+    hdl_boxsizer->Add(verilog_item, 0, wxALL, 5);
     item1->Add(hdl_boxsizer, 0, wxGROW | wxALL, 5);
     //
 
@@ -437,7 +437,7 @@ GenerateProcessorDialog::createContents(
 
     wxRadioButton *item4 = new wxRadioButton( parent, ID_GENERATE_BEM, wxT("Generate new"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP );
     item4->SetValue( TRUE );
-    item2->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item4, 0, wxALL, 5);
 
     wxBoxSizer *item5 = new wxBoxSizer( wxVERTICAL );
 
@@ -446,7 +446,7 @@ GenerateProcessorDialog::createContents(
     wxCheckBox *item7 = new wxCheckBox( parent, ID_SAVE_BEM, wxT("Save to file:"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5 );
 
-    item5->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item5->Add(item6, 0, wxALL, 5);
 
     wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -456,12 +456,12 @@ GenerateProcessorDialog::createContents(
     wxButton *item10 = new wxButton( parent, ID_BROWSE_BEM_SAVE, wxT("Browse..."), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item5->Add( item8, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item5->Add(item8, 0, wxALIGN_RIGHT | wxALL, 5);
 
     item2->Add(item5, 0, wxGROW | wxALL, 5);
 
     wxRadioButton *item11 = new wxRadioButton( parent, ID_LOAD_BEM, wxT("Load from file"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item11, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item11, 0, wxALL, 5);
 
     wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -471,7 +471,7 @@ GenerateProcessorDialog::createContents(
     wxButton *item14 = new wxButton( parent, ID_BROWSE_BEM_LOAD, wxT("Browse..."), wxDefaultPosition, wxDefaultSize, 0 );
     item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item12, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item12, 0, wxALIGN_RIGHT | wxALL, 5);
 
     item1->Add(item2, 0, wxGROW | wxALL, 5);
 
@@ -488,7 +488,7 @@ GenerateProcessorDialog::createContents(
     wxButton *item19 = new wxButton( parent, ID_BROWSE_TARGET, wxT("Browse..."), wxDefaultPosition, wxDefaultSize, 0 );
     item17->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item15->Add( item17, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item15->Add(item17, 0, wxALIGN_RIGHT | wxALL, 5);
 
     item1->Add(item15, 0, wxGROW | wxALL, 5);
 
@@ -503,7 +503,7 @@ GenerateProcessorDialog::createContents(
     wxButton *item23 = new wxButton( parent, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item21->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item21, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item21, 0, wxALIGN_RIGHT | wxALL, 5);
 
     item0->Add(item1, 0, wxGROW | wxALL, 5);
 

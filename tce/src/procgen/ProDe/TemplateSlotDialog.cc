@@ -269,21 +269,21 @@ TemplateSlotDialog::createContents(
     wxFlexGridSizer *item1 = new wxFlexGridSizer( 2, 0, 0 );
 
     wxStaticText *item2 = new wxStaticText( parent, ID_LABEL_SLOT, wxT("Slot:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item2, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxString *strs3 = (wxString*) NULL;
     wxChoice *item3 = new wxChoice( parent, ID_SLOT, wxDefaultPosition, wxSize(150,-1), 0, strs3, 0 );
     item1->Add(item3, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item4 = new wxStaticText( parent, ID_LABEL_DESTINATION, wxT("Destination:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item4, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxString *strs5 = (wxString*) NULL;
     wxChoice *item5 = new wxChoice( parent, ID_DESTINATION, wxDefaultPosition, wxSize(100,-1), 0, strs5, 0 );
     item1->Add(item5, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item6 = new wxStaticText( parent, ID_LABEL_WIDTH, wxT("Width:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item6, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxSpinCtrl *item7 = new wxSpinCtrl( parent, ID_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 10000, 1 );
     item1->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -306,7 +306,7 @@ TemplateSlotDialog::createContents(
     wxButton *item13 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item9->Add( item11, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+    item9->Add(item11, 0, wxALIGN_RIGHT, 5);
 
     item0->Add(item9, 0, wxGROW | wxALL, 5);
 

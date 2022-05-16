@@ -447,7 +447,7 @@ AutoSelectImplementationsDialog::createContents(
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
     wxStaticText *itemText = new wxStaticText( parent, ID_TEXT, wxT("HDB file:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( itemText, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(itemText, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxString *strs2 = (wxString*) NULL;
     wxChoice *item2 = new wxChoice( parent, ID_HDB_CHOICE, wxDefaultPosition, wxSize(250,-1), 0, strs2, 0 );
@@ -485,8 +485,7 @@ AutoSelectImplementationsDialog::createContents(
     wxButton *closeButton = new wxButton( parent, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( closeButton, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-
+    item0->Add(item6, 0, wxALIGN_RIGHT | wxALL, 5);
 
     if (set_sizer)
     {

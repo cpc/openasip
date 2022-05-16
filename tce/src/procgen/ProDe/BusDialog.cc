@@ -1228,16 +1228,16 @@ BusDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
         wxT("Sign")
     };
     wxRadioBox *item15 = new wxRadioBox( parent, ID_SI_EXTENSION, wxT("Extension"), wxDefaultPosition, wxDefaultSize, 2, strs15, 1, wxRA_SPECIFY_ROWS );
-    item10->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item10->Add(item15, 0, wxALL, 5);
 
     item0->Add(item10, 0, wxGROW | wxALL, 5);
     // item1->Add( item10, 0, wxGROW|wxALL, 5 );
 
     wxCheckBox *item16 = new wxCheckBox( parent, ID_TRUE_GUARD, wxT("Always true guard"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item16, 0, wxALL, 5);
 
     wxCheckBox *item17 = new wxCheckBox( parent, ID_FALSE_GUARD, wxT("Always false guard"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item17, 0, wxALL, 5);
 
     item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
@@ -1341,7 +1341,7 @@ BusDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxButton *item47 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item45->Add( item47, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item45, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item45, 0, wxALIGN_RIGHT | wxALL, 5);
 
     if (set_sizer)
     {

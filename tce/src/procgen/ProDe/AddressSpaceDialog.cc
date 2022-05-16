@@ -598,7 +598,7 @@ AddressSpaceDialog::createContents(
     wxButton *item19 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item17->Add( item19, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item15->Add( item17, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item15->Add(item17, 0, wxALIGN_RIGHT | wxALL, 5);
 
     item0->Add(item15, 0, wxGROW, 5);
 

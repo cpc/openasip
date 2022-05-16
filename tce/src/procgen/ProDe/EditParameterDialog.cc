@@ -174,7 +174,7 @@ EditParameterDialog::createContents(
     wxStaticText *item3 = new wxStaticText( parent, ID_NAME, wxT("xxxxxxxxxxxxxxx"), wxDefaultPosition, wxSize(150,-1), 0 );
     item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item1, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -184,7 +184,7 @@ EditParameterDialog::createContents(
     wxStaticText *item6 = new wxStaticText( parent, ID_TYPE, wxT("xxxxxxxxxxxx"), wxDefaultPosition, wxSize(150,-1), 0 );
     item4->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item4, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -202,7 +202,7 @@ EditParameterDialog::createContents(
     item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item12 = new wxButton( parent, ID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add( item12, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item10->Add(item12, 0, wxALIGN_RIGHT | wxALL, 5);
 
     item0->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 

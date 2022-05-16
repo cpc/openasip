@@ -767,7 +767,7 @@ FUDialog::createContents(wxWindow* parent, bool call_fit, bool set_sizer) {
     wxChoice *item6 = new wxChoice( parent, ID_ADDRESS_SPACE, wxDefaultPosition, wxSize(150,-1), 0, strs6, 0 );
     item4->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item4, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxStaticBox *item8 = new wxStaticBox( parent, -1, wxT("Operations:") );
     wxStaticBoxSizer *item7 = new wxStaticBoxSizer( item8, wxVERTICAL );
@@ -790,7 +790,7 @@ FUDialog::createContents(wxWindow* parent, bool call_fit, bool set_sizer) {
     item7->Add( item10, 0, wxALIGN_CENTER, 5 );
 
     wxButton *item14 = new wxButton( parent, ID_ADD_OPERATION_FROM_OPSET, wxT(" Add from  Opset... "), wxDefaultPosition, wxDefaultSize, 0 );
-    item7->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item7->Add(item14, 0, wxALL, 5);
 
     item0->Add(item7, 0, wxGROW | wxALL, 5);
 
@@ -831,7 +831,7 @@ FUDialog::createContents(wxWindow* parent, bool call_fit, bool set_sizer) {
     wxButton *item29 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item27->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item27, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item27, 0, wxALIGN_RIGHT | wxALL, 5);
 
     if (set_sizer)
     {

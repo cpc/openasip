@@ -368,7 +368,7 @@ RFGuardDialog::createContents(
     item0->Add(item1, 0, wxGROW | wxALL, 5);
 
     wxCheckBox *item6 = new wxCheckBox( parent, ID_INVERTED, wxT("Inverted"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item6, 0, wxALL, 5);
 
     wxStaticLine *item7 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
     item0->Add(item7, 0, wxGROW | wxALL, 5);

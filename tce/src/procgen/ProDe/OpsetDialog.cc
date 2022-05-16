@@ -487,7 +487,7 @@ OpsetDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
         wxDefaultPosition, wxDefaultSize, 0);
     buttonsSizer->Add(okButton, 0, wxALIGN_CENTER|wxALL, 5);
 
-    mainSizer->Add(buttonsSizer, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    mainSizer->Add(buttonsSizer, 0, wxALIGN_RIGHT, 5);
 
     if (set_sizer) {
         parent->SetSizer(mainSizer);

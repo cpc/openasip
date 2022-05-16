@@ -475,20 +475,20 @@ BridgeDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxFlexGridSizer *item2 = new wxFlexGridSizer( 2, 0, 0 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_LABEL_NAME, wxT("Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item3, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxTextCtrl *item4 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(120,-1), 0 );
     item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_LABEL_INPUT_BUS, wxT("Input Bus:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item5, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxString *strs6 = (wxString*) NULL;
     wxChoice *item6 = new wxChoice( parent, ID_INPUT_BUS, wxDefaultPosition, wxSize(100,-1), 0, strs6, 0 );
     item2->Add(item6, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item7 = new wxStaticText( parent, ID_LABEL_OUTPUT_BUS, wxT("Output Bus:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item7, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxString *strs8 = (wxString*) NULL;
     wxChoice *item8 = new wxChoice( parent, ID_OUTPUT_BUS, wxDefaultPosition, wxSize(100,-1), 0, strs8, 0 );
@@ -529,7 +529,7 @@ BridgeDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxButton *item18 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item14->Add( item16, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item14->Add(item16, 0, wxALIGN_RIGHT | wxALL, 5);
 
     item0->Add( item14, 0, wxALIGN_CENTER, 5 );
 

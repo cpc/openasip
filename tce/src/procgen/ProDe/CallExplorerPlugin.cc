@@ -403,7 +403,7 @@ CallExplorerPluginWindow::createContents(
     item0->Add(item1, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, wxT("Plugin Parameters:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item6, 0, wxALL, 5);
 
     wxListCtrl *item7 = new wxListCtrl( parent, ID_PARAM_LIST, wxDefaultPosition, wxSize(400,200), wxLC_REPORT|wxSUNKEN_BORDER );
     item0->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -418,14 +418,14 @@ CallExplorerPluginWindow::createContents(
     item9->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxButton *item11 = new wxButton( parent, ID_RUN, wxT("&Run Plugin"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->Add( item11, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item9->Add(item11, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item13 = new wxButton( parent, wxID_CLOSE, wxT("&Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item12->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item9->Add( item12, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item9->Add(item12, 0, wxALIGN_RIGHT | wxALL, 5);
 
     item0->Add(item9, 0, wxGROW, 5);
 

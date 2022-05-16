@@ -326,7 +326,7 @@ ImmediateSlotDialog::createContents(
     wxButton *item15 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item11->Add( item13, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+    item11->Add(item13, 0, wxALIGN_RIGHT, 5);
 
     item0->Add(item11, 0, wxGROW, 5);
 

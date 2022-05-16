@@ -386,19 +386,19 @@ SRPortDialog::createContents(
     wxFlexGridSizer *item1 = new wxFlexGridSizer( 2, 0, 0 );
 
     wxStaticText *item2 = new wxStaticText( parent, ID_LABEL_NAME, wxT("Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item2, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxTextCtrl *item3 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), 0 );
     item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item4 = new wxStaticText( parent, ID_LABEL_WIDTH, wxT("Width:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item4, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxSpinCtrl *item5 = new wxSpinCtrl( parent, ID_WIDTH, wxT("1"), wxDefaultPosition, wxSize(200,-1), 0, 1, 10000, 1 );
     item1->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item6 = new wxStaticText( parent, ID_LABEL_INPUT_SOCKET, wxT("Input Socket:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item6, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxString strs7[] =
     {
@@ -408,7 +408,7 @@ SRPortDialog::createContents(
     item1->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item8 = new wxStaticText( parent, ID_LABEL_OUTPUT_SOCKET, wxT("Output Socket:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item8, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item8, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxString strs9[] =
     {

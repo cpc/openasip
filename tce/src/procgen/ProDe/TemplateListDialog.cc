@@ -578,7 +578,7 @@ TemplateListDialog::createContents(
     wxButton *item23 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item21->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item19->Add( item21, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item19->Add(item21, 0, wxALIGN_RIGHT | wxALL, 5);
 
     item0->Add(item19, 0, wxGROW, 5);
 
