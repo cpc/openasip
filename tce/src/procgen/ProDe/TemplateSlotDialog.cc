@@ -26,7 +26,7 @@
  *
  * Implementation of TemplateSlotDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -273,14 +273,14 @@ TemplateSlotDialog::createContents(
 
     wxString *strs3 = (wxString*) NULL;
     wxChoice *item3 = new wxChoice( parent, ID_SLOT, wxDefaultPosition, wxSize(150,-1), 0, strs3, 0 );
-    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item3, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item4 = new wxStaticText( parent, ID_LABEL_DESTINATION, wxT("Destination:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxString *strs5 = (wxString*) NULL;
     wxChoice *item5 = new wxChoice( parent, ID_DESTINATION, wxDefaultPosition, wxSize(100,-1), 0, strs5, 0 );
-    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item5, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item6 = new wxStaticText( parent, ID_LABEL_WIDTH, wxT("Width:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -288,10 +288,10 @@ TemplateSlotDialog::createContents(
     wxSpinCtrl *item7 = new wxSpinCtrl( parent, ID_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 10000, 1 );
     item1->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxGROW | wxALL, 5);
 
     wxStaticLine *item8 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    item0->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item8, 0, wxGROW | wxALL, 5);
 
     wxFlexGridSizer *item9 = new wxFlexGridSizer( 2, 0, 0 );
 
@@ -308,7 +308,7 @@ TemplateSlotDialog::createContents(
 
     item9->Add( item11, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
 
-    item0->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item9, 0, wxGROW | wxALL, 5);
 
     if (set_sizer)
     {

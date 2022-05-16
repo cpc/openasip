@@ -26,7 +26,7 @@
  *
  * Definition of BusDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -1193,7 +1193,7 @@ BusDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxTextCtrl *item6 = new wxTextCtrl( parent, ID_BUS_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), 0 );
     item4->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item4, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -1203,10 +1203,10 @@ BusDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxSpinCtrl *item9 = new wxSpinCtrl( parent, ID_BUS_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 1024, 1 );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item7, 0, wxGROW | wxALL, 5);
 
-    item0->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-    //item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item2, 0, wxGROW | wxALL, 5);
+    // item1->Add( item2, 0, wxGROW|wxALL, 5 );
 
     wxStaticBox *item11 = new wxStaticBox( parent, -1, wxT("Short Immediate:") );
     wxStaticBoxSizer *item10 = new wxStaticBoxSizer( item11, wxVERTICAL );
@@ -1220,7 +1220,7 @@ BusDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxSpinCtrl *item14 = new wxSpinCtrl( parent, ID_SI_WIDTH, wxT("0"), wxDefaultPosition, wxSize(100,-1), 0, 0, 1000, 0 );
     item12->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item10->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item10->Add(item12, 0, wxGROW | wxALL, 5);
 
     wxString strs15[] =
     {
@@ -1230,8 +1230,8 @@ BusDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxRadioBox *item15 = new wxRadioBox( parent, ID_SI_EXTENSION, wxT("Extension"), wxDefaultPosition, wxDefaultSize, 2, strs15, 1, wxRA_SPECIFY_ROWS );
     item10->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-    //item1->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item10, 0, wxGROW | wxALL, 5);
+    // item1->Add( item10, 0, wxGROW|wxALL, 5 );
 
     wxCheckBox *item16 = new wxCheckBox( parent, ID_TRUE_GUARD, wxT("Always true guard"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -1266,7 +1266,7 @@ BusDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
 
     item21->Add( item24, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
-    item18->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item18->Add(item21, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item27 = new wxBoxSizer( wxHORIZONTAL );
 

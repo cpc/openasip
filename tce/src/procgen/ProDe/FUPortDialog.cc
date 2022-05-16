@@ -26,7 +26,7 @@
  *
  * Definition of FUPortDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -423,7 +423,7 @@ FUPortDialog::createContents(
     item0->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticLine *item12 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL );
-    item0->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item12, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 

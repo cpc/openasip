@@ -26,7 +26,7 @@
  *
  * Definition of AutoSelectImplementationsDialog class.
  *
- * @author Mikko Järvelä 2013 (jarvela7-no.spam-cs.tut.fi)
+ * @author Mikko Jï¿½rvelï¿½ 2013 (jarvela7-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -478,8 +478,8 @@ AutoSelectImplementationsDialog::createContents(
     item0->Add( cboxSizer, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticLine *item5 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-    
+    item0->Add(item5, 0, wxGROW | wxALL, 5);
+
     wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *closeButton = new wxButton( parent, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0 );

@@ -26,8 +26,8 @@
  *
  * Implementation of ProcessorImplementationWindow class.
  *
- * @author Veli-Pekka Jääskeläinen 2006 (vjaaskel-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2021
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2021
  * @note rating: red
  */
 
@@ -1069,10 +1069,10 @@ wxSizer *ProcessorImplementationWindow::createContents( wxWindow *parent, bool c
     ProcessorImplementationWindow::icDecoderPluginPage( item7, FALSE );
     item2->AddPage( item7, wxT("IC / Decoder Plugin") );
 
-    item0->Add( item1, 0, wxFIXED_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxFIXED_MINSIZE | wxGROW | wxALL, 5);
 
     wxStaticLine *item8 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(200,-1), wxLI_HORIZONTAL );
-    item0->Add( item8, 0, wxFIXED_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item8, 0, wxFIXED_MINSIZE | wxGROW | wxALL, 5);
 
     wxGridSizer *item9 = new wxGridSizer( 2, 0, 0 );
 
@@ -1096,7 +1096,7 @@ wxSizer *ProcessorImplementationWindow::createContents( wxWindow *parent, bool c
 
     item9->Add( item14, 0, wxFIXED_MINSIZE|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
 
-    item0->Add( item9, 0, wxFIXED_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item9, 0, wxFIXED_MINSIZE | wxGROW | wxALL, 5);
 
     if (set_sizer)
     {
@@ -1115,7 +1115,7 @@ wxSizer *ProcessorImplementationWindow::registerFilePage( wxWindow *parent, bool
     item0->AddGrowableRow( 0 );
 
     wxListCtrl *item1 = new wxListCtrl( parent, ID_RF_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *buttonSizer = new wxBoxSizer( wxHORIZONTAL );
     wxButton *autoSelButton = new wxButton( parent, ID_AUTO_SELECT_IMPL, wxT("Auto Select Implementations"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -1143,7 +1143,7 @@ wxSizer *ProcessorImplementationWindow::functionUnitPage( wxWindow *parent, bool
     item0->AddGrowableRow( 0 );
 
     wxListCtrl *item1 = new wxListCtrl( parent, ID_FU_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *buttonSizer = new wxBoxSizer( wxHORIZONTAL );
     wxButton *autoSelButton = new wxButton( parent, ID_AUTO_SELECT_IMPL, wxT("Auto Select Implementations"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -1187,9 +1187,9 @@ wxSizer *ProcessorImplementationWindow::decompressionPage( wxWindow *parent, boo
     wxButton *item6 = new wxButton( parent, ID_BROWSE_DECOMPRESSOR, wxT("Browse..."), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item3, 0, wxGROW | wxALL, 5);
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxGROW | wxALL, 5);
 
     item0->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -1219,7 +1219,7 @@ wxSizer *ProcessorImplementationWindow::icDecoderPluginPage( wxWindow *parent, b
     item2->Add( item3, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxTextCtrl *item4 = new wxTextCtrl( parent, ID_IC_DEC_PLUGIN_FILE, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_READONLY );
-    item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item4, 0, wxGROW | wxALL, 5);
 
     wxButton *item5 = new wxButton( parent, ID_BROWSE_IC_DEC_PLUGIN, wxT("Browse..."), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -1228,7 +1228,7 @@ wxSizer *ProcessorImplementationWindow::icDecoderPluginPage( wxWindow *parent, b
     item2->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxTextCtrl *item7 = new wxTextCtrl( parent, ID_IC_DEC_HDB_FILE, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item2->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item7, 0, wxGROW | wxALL, 5);
 
     wxButton *item8 = new wxButton( parent, ID_BROWSE_IC_DEC_HDB, wxT("Browse..."), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -1237,7 +1237,7 @@ wxSizer *ProcessorImplementationWindow::icDecoderPluginPage( wxWindow *parent, b
     item2->Add( item9, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxTextCtrl *item10 = new wxTextCtrl( parent, ID_IC_DEC_PLUGIN_NAME, wxT(""), wxDefaultPosition, wxSize(80,-1), wxTE_READONLY );
-    item2->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item10, 0, wxGROW | wxALL, 5);
 
     item2->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -1247,7 +1247,7 @@ wxSizer *ProcessorImplementationWindow::icDecoderPluginPage( wxWindow *parent, b
     wxTextCtrl *item12 = new wxTextCtrl( parent, ID_IC_DEC_PLUGIN_DESC, wxT(""), wxDefaultPosition, wxSize(320,80), wxTE_MULTILINE|wxTE_READONLY );
     item2->Add( item12, 0, wxGROW|wxALL, 5 );
 
-    item1->Add( item2, 0, wxFIXED_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item2, 0, wxFIXED_MINSIZE | wxGROW | wxALL, 5);
 
     wxFlexGridSizer *item13 = new wxFlexGridSizer( 1, 0, 0 );
     item13->AddGrowableCol( 0 );
@@ -1257,7 +1257,7 @@ wxSizer *ProcessorImplementationWindow::icDecoderPluginPage( wxWindow *parent, b
     item13->Add( item14, 0, wxALL, 5 );
 
     wxListCtrl *item15 = new wxListCtrl( parent, ID_PARAMETER_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
-    item13->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item13->Add(item15, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -1272,9 +1272,9 @@ wxSizer *ProcessorImplementationWindow::icDecoderPluginPage( wxWindow *parent, b
 
     item13->Add( item16, 0, wxALIGN_CENTER, 5 );
 
-    item1->Add( item13, 0, wxFIXED_MINSIZE|wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item13, 0, wxFIXED_MINSIZE | wxGROW | wxALL, 5);
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxGROW | wxALL, 5);
 
     if (set_sizer)
     {
@@ -1293,7 +1293,7 @@ wxSizer *ProcessorImplementationWindow::immediateUnitPage( wxWindow *parent, boo
     item0->AddGrowableRow( 0 );
 
     wxListCtrl *item1 = new wxListCtrl( parent, ID_IU_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *buttonSizer = new wxBoxSizer( wxHORIZONTAL );
     wxButton *autoSelButton = new wxButton( parent, ID_AUTO_SELECT_IMPL, wxT("Auto Select Implementations"), wxDefaultPosition, wxDefaultSize, 0 );

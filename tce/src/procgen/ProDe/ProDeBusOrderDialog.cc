@@ -26,7 +26,7 @@
  *
  * Implementation of ProDeBusOrderDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2005 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -212,7 +212,7 @@ ProDeBusOrderDialog::createContents(
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item6 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item6, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 

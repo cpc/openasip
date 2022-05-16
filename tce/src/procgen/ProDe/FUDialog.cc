@@ -26,7 +26,7 @@
  *
  * Definition of FUDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -774,7 +774,7 @@ FUDialog::createContents(wxWindow* parent, bool call_fit, bool set_sizer) {
     operationsSizer_ = item7;
 
     wxListCtrl *item9 = new wxListCtrl( parent, ID_OPERATION_LIST, wxDefaultPosition, wxSize(160,200), wxLC_REPORT|wxSUNKEN_BORDER );
-    item7->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item7->Add(item9, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item10 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -792,14 +792,14 @@ FUDialog::createContents(wxWindow* parent, bool call_fit, bool set_sizer) {
     wxButton *item14 = new wxButton( parent, ID_ADD_OPERATION_FROM_OPSET, wxT(" Add from  Opset... "), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item7, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item0->Add(item7, 0, wxGROW | wxALL, 5);
 
     wxStaticBox *item16 = new wxStaticBox( parent, -1, wxT("Ports:") );
     wxStaticBoxSizer *item15 = new wxStaticBoxSizer( item16, wxVERTICAL );
     portsSizer_ = item15;
 
     wxListCtrl *item17 = new wxListCtrl( parent, ID_PORT_LIST, wxDefaultPosition, wxSize(160,200), wxLC_REPORT|wxSUNKEN_BORDER );
-    item15->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item15->Add(item17, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -814,7 +814,7 @@ FUDialog::createContents(wxWindow* parent, bool call_fit, bool set_sizer) {
 
     item15->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item15, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item0->Add(item15, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
 

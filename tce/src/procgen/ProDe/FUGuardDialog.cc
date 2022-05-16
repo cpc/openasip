@@ -26,7 +26,7 @@
  *
  * Implementation of FUGuardDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #include <wx/wx.h>
@@ -329,14 +329,14 @@ FUGuardDialog::createContents(
 
     wxString *strs3 = (wxString*) NULL;
     wxChoice *item3 = new wxChoice( parent, ID_FU_NAME, wxDefaultPosition, wxSize(100,-1), 0, strs3, 0 );
-    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item3, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item4 = new wxStaticText( parent, ID_LABEL_PORT, wxT("Port Name:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxString *strs5 = (wxString*) NULL;
     wxChoice *item5 = new wxChoice( parent, ID_FU_PORT, wxDefaultPosition, wxSize(100,-1), 0, strs5, 0 );
-    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item5, 0, wxGROW | wxALL, 5);
 
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -344,7 +344,7 @@ FUGuardDialog::createContents(
     item0->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticLine *item7 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item7, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 

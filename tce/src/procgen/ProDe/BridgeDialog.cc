@@ -26,7 +26,7 @@
  *
  * Definition of BridgeDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -485,14 +485,14 @@ BridgeDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
 
     wxString *strs6 = (wxString*) NULL;
     wxChoice *item6 = new wxChoice( parent, ID_INPUT_BUS, wxDefaultPosition, wxSize(100,-1), 0, strs6, 0 );
-    item2->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item6, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item7 = new wxStaticText( parent, ID_LABEL_OUTPUT_BUS, wxT("Output Bus:"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxString *strs8 = (wxString*) NULL;
     wxChoice *item8 = new wxChoice( parent, ID_OUTPUT_BUS, wxDefaultPosition, wxSize(100,-1), 0, strs8, 0 );
-    item2->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item8, 0, wxGROW | wxALL, 5);
 
     item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -504,17 +504,17 @@ BridgeDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     item9->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item11 = new wxStaticText( parent, ID_LABEL_OPPOSITE_NAME, wxT("Opposite Bridge Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 15 );
+    item9->Add(item11, 0, wxGROW, 15);
 
     wxTextCtrl *item12 = new wxTextCtrl( parent, ID_OPPOSITE_BRIDGE, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item9->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item9->Add(item12, 0, wxGROW | wxALL, 5);
 
-    item1->Add( item9, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item1->Add(item9, 0, wxGROW | wxALL, 5);
 
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item13 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item13, 0, wxGROW | wxALL, 5);
 
     wxGridSizer *item14 = new wxGridSizer( 2, 0, 0 );
 

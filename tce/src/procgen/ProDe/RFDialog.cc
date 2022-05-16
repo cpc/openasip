@@ -26,7 +26,7 @@
  *
  * Definition of RFDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -535,53 +535,53 @@ RFDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     item1->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxTextCtrl *item3 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), 0 );
-    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item3, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item4 = new wxStaticText( parent, ID_LABEL_TYPE, wxT("Type:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxString *strs5 = (wxString*) NULL;
     wxChoice *item5 = new wxChoice( parent, ID_TYPE, wxDefaultPosition, wxSize(100,-1), 0, strs5, 0 );
-    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item5, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item6 = new wxStaticText( parent, ID_LABEL_SIZE, wxT("Size:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxSpinCtrl *item7 = new wxSpinCtrl( parent, ID_SIZE, wxT("1"), wxDefaultPosition, wxSize(120,-1), 0, 1, 10000, 1 );
-    item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item7, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item8 = new wxStaticText( parent, ID_LABEL_WIDTH, wxT("Width:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item8, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxSpinCtrl *item9 = new wxSpinCtrl( parent, ID_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 10000, 1 );
-    item1->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item9, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item10 = new wxStaticText( parent, ID_LABEL_MAX_READS, wxT("Max-Reads:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item10, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item11 = new wxStaticText( parent, ID_MAX_READS, wxT("0"), wxDefaultPosition, wxSize(100,-1), 0);
-    item1->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item11, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item12 = new wxStaticText( parent, ID_LABEL_MAX_WRITES, wxT("Max-Writes:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item12, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticText *item13 = new wxStaticText( parent, ID_MAX_WRITES, wxT("0"), wxDefaultPosition, wxSize(100,-1), 0);
-    item1->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item13, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item14 = new wxStaticText( parent, ID_LABEL_GUARD_LATENCY, wxT("Guard Latency:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item14, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxSpinCtrl *item15 = new wxSpinCtrl( parent, ID_GUARD_LATENCY, wxT("0"), wxDefaultPosition, wxSize(100,-1), 0, 0, 1, 0 );
-    item1->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item15, 0, wxGROW | wxALL, 5);
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxGROW | wxALL, 5);
 
     wxStaticBox *item17 = new wxStaticBox( parent, -1, wxT("Ports:") );
     wxStaticBoxSizer *item16 = new wxStaticBoxSizer( item17, wxVERTICAL );
     portsSizer_ = item16;
 
     wxListCtrl *item18 = new wxListCtrl( parent, ID_PORT_LIST, wxDefaultPosition, wxSize(160,120), wxLC_REPORT|wxSUNKEN_BORDER );
-    item16->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item16->Add(item18, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
 

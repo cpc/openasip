@@ -26,7 +26,7 @@
  *
  * Definition of ValidateMachineDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2006 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -205,14 +205,14 @@ ValidateMachineDialog::createContents(
     resultsWindow_ = new wxHtmlWindow(parent, ID_RESULTS, wxDefaultPosition, wxSize(250, 250));
     wxWindow* item9 = resultsWindow_;
     wxASSERT( item9 );
-    item7->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item7->Add(item9, 0, wxGROW | wxALL, 5);
 
-    item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item7, 0, wxGROW | wxALL, 5);
 
     item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
     wxStaticLine *item10 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item10, 0, wxGROW | wxALL, 5);
 
     wxButton *item11 = new wxButton( parent, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item11, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );

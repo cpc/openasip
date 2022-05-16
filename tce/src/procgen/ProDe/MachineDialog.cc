@@ -27,7 +27,7 @@
  * Implementation of MachineDialog class.
  *
  * Created on: 6.2.2015
- * @author: Henry Linjamäki (henry.linjamaki-no.spam-tut.fi)
+ * @author: Henry Linjamï¿½ki (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -140,7 +140,7 @@ MachineDialog::createContents(
     // Buttons //
     wxStaticLine *horizLine = new wxStaticLine(parent, wxID_ANY,
         wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL);
-    root->Add(horizLine, 0, wxGROW|wxALIGN_CENTER|wxALL, 5);
+    root->Add(horizLine, 0, wxGROW | wxALL, 5);
     wxBoxSizer *buttonBox = new wxBoxSizer(wxHORIZONTAL);
     // Ok button
     wxButton *okButton =

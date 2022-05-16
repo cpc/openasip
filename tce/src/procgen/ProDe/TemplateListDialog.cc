@@ -26,7 +26,7 @@
  *
  * Implementation of TemplateListDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -514,7 +514,7 @@ TemplateListDialog::createContents(
     templateSizer_ = item2;
 
     wxListCtrl *item4 = new wxListCtrl( parent, ID_TEMPLATE_LIST, wxDefaultPosition, wxSize(160,200), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
-    item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item4, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -524,7 +524,7 @@ TemplateListDialog::createContents(
     wxTextCtrl *item7 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(120,-1), 0 );
     item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item2->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item5, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -536,14 +536,14 @@ TemplateListDialog::createContents(
 
     item2->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item1->Add(item2, 0, wxGROW | wxALL, 5);
 
     wxStaticBox *item12 = new wxStaticBox( parent, -1, wxT("Template Slots:") );
     wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxVERTICAL );
     slotSizer_ = item11;
 
     wxListCtrl *item13 = new wxListCtrl( parent, ID_SLOT_LIST, wxDefaultPosition, wxSize(250,245), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
-    item11->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add(item13, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -558,12 +558,12 @@ TemplateListDialog::createContents(
 
     item11->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item11, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item1->Add(item11, 0, wxGROW | wxALL, 5);
 
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item18 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item18, 0, wxGROW | wxALL, 5);
 
     wxGridSizer *item19 = new wxGridSizer( 2, 0, 0 );
 
@@ -580,7 +580,7 @@ TemplateListDialog::createContents(
 
     item19->Add( item21, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item19, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item0->Add(item19, 0, wxGROW, 5);
 
     if (set_sizer)
     {

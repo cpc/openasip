@@ -398,9 +398,9 @@ CallExplorerPluginWindow::createContents(
     item1->Add( item4, 0, wxFIXED_MINSIZE|wxALL, 5 );
 
     wxTextCtrl *item5 = new wxTextCtrl( parent, ID_DESCRIPTION_FIELD, wxT(""), wxDefaultPosition, wxSize(240,150), wxTE_MULTILINE|wxTE_READONLY );
-    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item1->Add(item5, 0, wxGROW | wxALL, 5);
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxGROW | wxALL, 5);
 
     wxStaticText *item6 = new wxStaticText( parent, ID_TEXT, wxT("Plugin Parameters:"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -410,7 +410,7 @@ CallExplorerPluginWindow::createContents(
 
     wxGridSizer *item8 = new wxGridSizer( 3, 0, 0 );
 
-    item0->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item0->Add(item8, 0, wxGROW, 5);
 
     wxGridSizer *item9 = new wxGridSizer( 3, 0, 0 );
 
@@ -427,7 +427,7 @@ CallExplorerPluginWindow::createContents(
 
     item9->Add( item12, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item0->Add(item9, 0, wxGROW, 5);
 
     if (set_sizer)
     {

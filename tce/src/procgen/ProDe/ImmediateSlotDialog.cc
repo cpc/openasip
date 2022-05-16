@@ -26,7 +26,7 @@
  *
  * Implementation of ImmediateSlotDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2005 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -280,7 +280,7 @@ ImmediateSlotDialog::createContents(
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
     wxListCtrl *item1 = new wxListCtrl( parent, ID_SLOT_LIST, wxDefaultPosition, wxSize(300,200), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
 
@@ -294,7 +294,7 @@ ImmediateSlotDialog::createContents(
     wxTextCtrl *item6 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(120,-1), 0 );
     item4->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item3->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item3->Add(item4, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -308,10 +308,10 @@ ImmediateSlotDialog::createContents(
 
     item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item2, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item0->Add(item2, 0, wxGROW | wxALL, 5);
 
     wxStaticLine *item10 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item10, 0, wxGROW | wxALL, 5);
 
     wxGridSizer *item11 = new wxGridSizer( 2, 0, 0 );
 
@@ -328,7 +328,7 @@ ImmediateSlotDialog::createContents(
 
     item11->Add( item13, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
 
-    item0->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item0->Add(item11, 0, wxGROW, 5);
 
     if (set_sizer)
     {

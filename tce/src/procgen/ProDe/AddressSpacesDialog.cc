@@ -26,7 +26,7 @@
  *
  * Definition of AddressSpacesDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -367,10 +367,10 @@ AddressSpacesDialog::createContents( wxWindow *parent, bool call_fit, bool set_s
     wxButton *item5 = new wxButton( parent, ID_DELETE, wxT("&Delete"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item0->Add(item2, 0, wxGROW, 5);
 
     wxStaticLine *item6 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item6, 0, wxGROW | wxALL, 5);
 
     wxGridSizer *item7 = new wxGridSizer( 2, 0, 0 );
 
@@ -387,7 +387,7 @@ AddressSpacesDialog::createContents( wxWindow *parent, bool call_fit, bool set_s
 
     item7->Add( item9, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item0->Add(item7, 0, wxGROW, 5);
 
     if (set_sizer)
     {

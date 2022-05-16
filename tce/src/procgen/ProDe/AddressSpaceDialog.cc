@@ -26,7 +26,7 @@
  *
  * Definition of AddressSpaceDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -503,9 +503,9 @@ AddressSpaceDialog::createContents(
     nameSizer_ = item2;
 
     wxTextCtrl *item4 = new wxTextCtrl(parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(160,-1), 0);
-    item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item4, 0, wxGROW | wxALL, 5);
 
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item2, 0, wxGROW | wxALL, 5);
 
     wxStaticBox *item6 = new wxStaticBox( parent, -1, wxT("Min-Address") );
     wxStaticBoxSizer *item5 = new wxStaticBoxSizer( item6, wxVERTICAL );
@@ -515,16 +515,16 @@ AddressSpaceDialog::createContents(
     wxASSERT( item7 );
     item5->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item5, 0, wxGROW | wxALL, 5);
 
     wxStaticBox *item9 = new wxStaticBox( parent, -1, wxT("Width:") );
     wxStaticBoxSizer *item8 = new wxStaticBoxSizer( item9, wxVERTICAL );
     widthSizer_ = item8;
 
     wxSpinCtrl *item10 = new wxSpinCtrl(parent, ID_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 10000, 1, wxT("Spin"));
-    item8->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item8->Add(item10, 0, wxGROW | wxALL, 5);
 
-    item1->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item8, 0, wxGROW | wxALL, 5);
 
     wxStaticBox *item12 = new wxStaticBox( parent, -1, wxT("Max-Address") );
     wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxVERTICAL );
@@ -537,14 +537,14 @@ AddressSpaceDialog::createContents(
     wxBoxSizer *bitSizer = new wxBoxSizer(wxHORIZONTAL);
 
     wxStaticText *bitText = new wxStaticText(parent, -1, wxT("Bits:"));
-    bitSizer->Add( bitText, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    bitSizer->Add(bitText, 0, wxGROW | wxALL, 5);
 
     wxSpinCtrl *bitWidth = new wxSpinCtrl( parent, ID_BIT_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 10000, 1);
-    bitSizer->Add( bitWidth, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    bitSizer->Add(bitWidth, 0, wxGROW | wxALL, 5);
 
-    item11->Add( bitSizer, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add(bitSizer, 0, wxGROW | wxALL, 5);
 
-    item1->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item11, 0, wxGROW | wxALL, 5);
 
     // address space id box
     wxStaticBox *itemIdBox = new wxStaticBox(parent, -1, wxT("ID number:"));
@@ -563,7 +563,7 @@ AddressSpaceDialog::createContents(
     wxBoxSizer *sizerOnRight = new wxBoxSizer(wxVERTICAL);
     
     wxSpinCtrl *itemIdSpinCtrl = new wxSpinCtrl( parent, ID_SPIN_ID, wxT("0"), wxDefaultPosition, wxSize(100,-1), 0, 0, 2147483647, 1, wxT("Spin") );
-    sizerOnRight->Add( itemIdSpinCtrl, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    sizerOnRight->Add(itemIdSpinCtrl, 0, wxGROW | wxALL, 5);
     idSpinCtrl_ = itemIdSpinCtrl;
     
     wxButton *addButton = new wxButton( parent, ID_ADD_ID, wxT("Add"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -573,8 +573,8 @@ AddressSpaceDialog::createContents(
     sizerOnRight->Add( deleteButton, 0, wxALIGN_CENTER|wxALL, 5 );
 
     idSizer_->Add( sizerOnRight, 0, wxALIGN_CENTER|wxALL, 5 );
-    item1->Add( idSizer_, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-    
+    item1->Add(idSizer_, 0, wxGROW | wxALL, 5);
+
     assert (idSizer_ != NULL);
     assert (idListCtrl_ != NULL);
     assert (idSpinCtrl_ != NULL);
@@ -583,7 +583,7 @@ AddressSpaceDialog::createContents(
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item14 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item14, 0, wxGROW | wxALL, 5);
 
     wxGridSizer *item15 = new wxGridSizer( 2, 0, 0 );
 
@@ -600,7 +600,7 @@ AddressSpaceDialog::createContents(
 
     item15->Add( item17, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item0->Add(item15, 0, wxGROW, 5);
 
     if (set_sizer)
     {

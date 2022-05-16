@@ -26,8 +26,8 @@
  *
  * Implementation of BlockImplementationDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2006 (vjaaskel-no.spam-cs.tut.fi)
- * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Esa Mï¿½ï¿½ttï¿½ 2007 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -383,10 +383,10 @@ BlockImplementationDialog::createContents(
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxListCtrl *item4 = new wxListCtrl( parent, ID_LIST, wxDefaultPosition, wxSize(300,120), wxLC_REPORT|wxSUNKEN_BORDER );
-    item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item4, 0, wxGROW | wxALL, 5);
 
     wxStaticLine *item5 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item5, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
 

@@ -26,9 +26,9 @@
  *
  * Implementation of GenerateProcessorDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2006 (vjaaskel-no.spam-cs.tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2011
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2011
  * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */
@@ -429,7 +429,7 @@ GenerateProcessorDialog::createContents(
 
     hdl_boxsizer->Add( vhdl_item, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
     hdl_boxsizer->Add( verilog_item, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-    item1->Add( hdl_boxsizer, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(hdl_boxsizer, 0, wxGROW | wxALL, 5);
     //
 
     wxStaticBox *item3 = new wxStaticBox( parent, -1, wxT("Binary Encoding Map:") );
@@ -458,7 +458,7 @@ GenerateProcessorDialog::createContents(
 
     item5->Add( item8, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item2->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add(item5, 0, wxGROW | wxALL, 5);
 
     wxRadioButton *item11 = new wxRadioButton( parent, ID_LOAD_BEM, wxT("Load from file"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item11, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -473,7 +473,7 @@ GenerateProcessorDialog::createContents(
 
     item2->Add( item12, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item2, 0, wxGROW | wxALL, 5);
 
     item1->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -490,10 +490,10 @@ GenerateProcessorDialog::createContents(
 
     item15->Add( item17, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item1->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item15, 0, wxGROW | wxALL, 5);
 
     wxStaticLine *item20 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item1->Add( item20, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item20, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item21 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -505,7 +505,7 @@ GenerateProcessorDialog::createContents(
 
     item1->Add( item21, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxGROW | wxALL, 5);
 
     if (set_sizer)
     {

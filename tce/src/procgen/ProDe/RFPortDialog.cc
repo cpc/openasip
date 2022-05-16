@@ -26,7 +26,7 @@
  *
  * Definition of RFPortDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -363,8 +363,7 @@ RFPortDialog::createContents(
     inputSocketChoice_ =
 	new wxChoice(parent, ID_INPUT_SOCKET, wxDefaultPosition,
 		     wxSize(100,-1), 0, strs5, 0);
-    item1->Add( inputSocketChoice_, 0,
-                wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(inputSocketChoice_, 0, wxGROW | wxALL, 5);
 
     // output socket element
     wxStaticText *item6 =
@@ -375,13 +374,12 @@ RFPortDialog::createContents(
     outputSocketChoice_ =
 	new wxChoice(parent, ID_OUTPUT_SOCKET, wxDefaultPosition,
 		     wxSize(100,-1), 0, strs7, 0);
-    item1->Add( outputSocketChoice_, 0,
-                wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(outputSocketChoice_, 0, wxGROW | wxALL, 5);
+    item0->Add(item1, 0, wxGROW | wxALL, 5);
     wxStaticLine *item8 =
 	new wxStaticLine(parent, -1, wxDefaultPosition, wxSize(20,-1),
 			 wxLI_HORIZONTAL);
-    item0->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item8, 0, wxGROW | wxALL, 5);
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
     // buttons

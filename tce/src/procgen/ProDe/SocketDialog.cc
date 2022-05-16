@@ -26,7 +26,7 @@
  *
  * Definition of SocketDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -579,7 +579,7 @@ SocketDialog::createContents(
     wxTextCtrl *item4 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(120,-1), 0 );
     item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item2, 0, wxGROW | wxALL, 5);
 
     wxString strs5[] =
     {
@@ -587,9 +587,9 @@ SocketDialog::createContents(
         wxT("Output")
     };
     wxRadioBox *item5 = new wxRadioBox( parent, ID_DIRECTION, wxT("Direction:"), wxDefaultPosition, wxDefaultSize, 2, strs5, 1, wxRA_SPECIFY_COLS );
-    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add(item5, 0, wxGROW | wxALL, 5);
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item1, 0, wxGROW | wxALL, 5);
 
     wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -624,7 +624,7 @@ SocketDialog::createContents(
     item0->Add( item6, 0, wxALIGN_CENTER, 5 );
 
     wxStaticLine *item16 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item16, 0, wxGROW | wxALL, 5);
 
     wxGridSizer *item17 = new wxGridSizer( 2, 0, 0 );
 
@@ -641,7 +641,7 @@ SocketDialog::createContents(
 
     item17->Add( item19, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item0->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add(item17, 0, wxGROW | wxALL, 5);
 
     if (set_sizer)
     {
