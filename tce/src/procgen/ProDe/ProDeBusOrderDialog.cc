@@ -207,7 +207,7 @@ ProDeBusOrderDialog::createContents(
     wxButton *item5 = new wxButton( parent, ID_DOWN, wxT("&Down"), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item3, 0, wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item1->Add(item3, 0, wxALIGN_BOTTOM | wxALL, 5);
 
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
