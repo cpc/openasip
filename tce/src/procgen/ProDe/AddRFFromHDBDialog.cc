@@ -26,7 +26,7 @@
  *
  * Implementation of AddRFFromHDBDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2006 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -165,7 +165,7 @@ AddRFFromHDBDialog::AddRFFromHDBDialog(
     string iconPath =
         Environment::iconDirPath() + FileSystem::DIRECTORY_SEPARATOR;
 
-    wxImageList* imageList = new wxImageList();
+    wxImageList *imageList = new wxImageList(13, 17);
     imageList->Add(wxIcon(
         WxConversion::toWxString(iconPath + ProDeConstants::ICON_SORT_DESC)));
     imageList->Add(wxIcon(

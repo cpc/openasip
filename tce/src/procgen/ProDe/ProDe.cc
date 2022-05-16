@@ -26,7 +26,7 @@
  *
  * Implementation of the ProDe class.
  *
- * @author Veli-Pekka Jääskeläinen (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -145,7 +145,7 @@ ProDe::OnInit() {
     commandRegistry_ = new CommandRegistry();
 
     // load image handler for pngs
-    wxImage::AddHandler(new wxPNGHandler);
+    wxImage::AddHandler(new wxPNGHandler());
 
     // set configurations
     string configFile = Environment::confPath("ProDe.conf");
