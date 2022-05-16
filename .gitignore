@@ -182,3 +182,7 @@ tce/doc/man/TCE/algorithm.sty
 tce/doc/man/TCE/algorithmic.sty
 tce/doc/man/TCE/tce.cls
 tce/doc/man/TCE/tcedocs.cls
+tce/configure~
+tce/tce_config.h.in~
+tce/src/applibs/LLVMBackend/passes/.dirstamp
+tce/src/procgen/MachInfo/machinfo
