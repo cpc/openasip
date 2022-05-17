@@ -27,7 +27,7 @@
  * Implementation of MachineDialog class.
  *
  * Created on: 6.2.2015
- * @author: Linjamäki (henry.linjamaki-no.spam-tut.fi)
+ * @author: Henry Linjamäki (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
