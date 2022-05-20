@@ -40,7 +40,7 @@ function fetch_llvm {
 
     if ! test -d $llvm_co_dir;
     then
-        git clone --branch release/13.x https://github.com/cpc/llvmtce.git $llvm_co_dir\
+        git clone --depth=1 --single-branch --branch release/13.x https://github.com/cpc/llvmtce.git $llvm_co_dir\
 	    || eexit "Git clone $REV_TOFETCH from llvm failed"
     else
         cd $llvm_co_dir;
