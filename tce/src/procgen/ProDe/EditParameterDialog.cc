@@ -202,7 +202,7 @@ EditParameterDialog::createContents(
     item10->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item12 = new wxButton( parent, ID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item10->Add(item12, 0, wxALIGN_RIGHT | wxALL, 5);
+    item10->Add(item12, 0, wxALL, 5);
 
     item0->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 

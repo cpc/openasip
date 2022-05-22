@@ -447,7 +447,7 @@ AutoSelectImplementationsDialog::createContents(
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
     wxStaticText *itemText = new wxStaticText( parent, ID_TEXT, wxT("HDB file:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add(itemText, 0, wxALIGN_RIGHT | wxALL, 5);
+    item1->Add(itemText, 0, wxALL, 5);
 
     wxString *strs2 = (wxString*) NULL;
     wxChoice *item2 = new wxChoice( parent, ID_HDB_CHOICE, wxDefaultPosition, wxSize(250,-1), 0, strs2, 0 );

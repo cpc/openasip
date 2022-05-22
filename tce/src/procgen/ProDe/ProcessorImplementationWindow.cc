@@ -1122,7 +1122,7 @@ wxSizer *ProcessorImplementationWindow::registerFilePage( wxWindow *parent, bool
     buttonSizer->Add(autoSelButton, 0, wxALIGN_RIGHT | wxALL, 5);
 
     wxButton *item2 = new wxButton( parent, ID_SELECT_RF_IMPL, wxT("Select implementation..."), wxDefaultPosition, wxDefaultSize, 0 );
-    buttonSizer->Add(item2, 0, wxALIGN_RIGHT | wxALL, 5);
+    buttonSizer->Add(item2, 0, wxALL, 5);
 
     item0->Add(buttonSizer, 0, wxALIGN_RIGHT | wxALL, 5);
 
@@ -1147,10 +1147,10 @@ wxSizer *ProcessorImplementationWindow::functionUnitPage( wxWindow *parent, bool
 
     wxBoxSizer *buttonSizer = new wxBoxSizer( wxHORIZONTAL );
     wxButton *autoSelButton = new wxButton( parent, ID_AUTO_SELECT_IMPL, wxT("Auto Select Implementations"), wxDefaultPosition, wxDefaultSize, 0 );
-    buttonSizer->Add(autoSelButton, 0, wxALIGN_RIGHT | wxALL, 5);
+    buttonSizer->Add(autoSelButton, 0, wxALL, 5);
 
     wxButton *item2 = new wxButton( parent, ID_SELECT_FU_IMPL, wxT("Select implementation..."), wxDefaultPosition, wxDefaultSize, 0 );
-    buttonSizer->Add(item2, 0, wxALIGN_RIGHT | wxALL, 5);
+    buttonSizer->Add(item2, 0, wxALL, 5);
 
     item0->Add(buttonSizer, 0, wxALIGN_RIGHT | wxALL, 5);
 
@@ -1297,10 +1297,10 @@ wxSizer *ProcessorImplementationWindow::immediateUnitPage( wxWindow *parent, boo
 
     wxBoxSizer *buttonSizer = new wxBoxSizer( wxHORIZONTAL );
     wxButton *autoSelButton = new wxButton( parent, ID_AUTO_SELECT_IMPL, wxT("Auto Select Implementations"), wxDefaultPosition, wxDefaultSize, 0 );
-    buttonSizer->Add(autoSelButton, 0, wxALIGN_RIGHT | wxALL, 5);
+    buttonSizer->Add(autoSelButton, 0, wxALL, 5);
 
     wxButton *item2 = new wxButton( parent, ID_SELECT_IU_IMPL, wxT("Select implementation..."), wxDefaultPosition, wxDefaultSize, 0 );
-    buttonSizer->Add(item2, 0, wxALIGN_RIGHT | wxALL, 5);
+    buttonSizer->Add(item2, 0, wxALL, 5);
 
     item0->Add(buttonSizer, 0, wxALIGN_RIGHT | wxALL, 5);
 

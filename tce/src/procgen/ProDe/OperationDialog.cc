@@ -1129,14 +1129,14 @@ OperationDialog::createContents(
     wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
     wxStaticText *item12 = new wxStaticText( parent, ID_LABEL_PORT, wxT("Port:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add(item12, 0, wxALIGN_RIGHT | wxALL, 5);
+    item11->Add(item12, 0, wxALL, 5);
 
     wxString *strs13 = (wxString*) NULL;
     wxChoice *item13 = new wxChoice( parent, ID_PORT, wxDefaultPosition, wxSize(100,-1), 0, strs13, 0 );
     item11->Add(item13, 0, wxGROW | wxALL, 5);
 
     wxButton *item14 = new wxButton( parent, ID_DELETE_OPERAND, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add(item14, 0, wxALIGN_RIGHT | wxALL, 5);
+    item11->Add(item14, 0, wxALL, 5);
 
     item10->Add(item11, 0, wxGROW, 5);
 
@@ -1146,7 +1146,7 @@ OperationDialog::createContents(
     wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
     wxStaticText *item17 = new wxStaticText( parent, ID_LABEL_OPERAND, wxT("New operand:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->Add(item17, 0, wxALIGN_RIGHT | wxALL, 5);
+    item16->Add(item17, 0, wxALL, 5);
 
     wxSpinCtrl *item18 =
         new wxSpinCtrl(parent, ID_NUMBER, wxT("1"), wxDefaultPosition,
