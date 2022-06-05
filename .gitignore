@@ -129,6 +129,7 @@ tce/src/bintools/Compiler/OpenCL/stamp-h1
 tce/src/bintools/Compiler/OpenCL/examples/oclADDF8x8/Makefile.native
 tce/src/bintools/Compiler/OpenCL/tests/atconfig
 tce/src/bintools/Compiler/OpenCL/tests/atlocal
+tce/llvm-build-Release/
 #.gitignore#
 .gitignore~
 CONTRIBUTING.md~
