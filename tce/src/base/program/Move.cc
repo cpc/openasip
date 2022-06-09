@@ -26,8 +26,8 @@
  *
  * Implementation of Move class.
  *
- * @author Ari Mets‰halme 2005 (ari.metsahalme-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Ari Mets√§halme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 

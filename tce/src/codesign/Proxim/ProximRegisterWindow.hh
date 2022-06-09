@@ -26,8 +26,8 @@
  *
  * Declaration of ProximRegisterWindow class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2010
+ * @author Veli-Pekka J√§√§skel√§inen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2010
  * @note rating: red
  */
 

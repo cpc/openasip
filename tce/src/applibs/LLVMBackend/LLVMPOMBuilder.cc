@@ -26,7 +26,7 @@
  *
  * Implementation of LLVMPOMBuilder class.
  *
- * @author Pekka J‰‰skel‰inen 2010
+ * @author Pekka J√§√§skel√§inen 2010
  * @note reting: red
  */
 

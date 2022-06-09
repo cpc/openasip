@@ -29,7 +29,7 @@
  * @author Andrea Cilio 2005 (cilio-no.spam-cs.tut.fi)
  * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @author Heikki Kultala 2007-2010
- * @author Pekka J‰‰skel‰inen 2009-2010
+ * @author Pekka J√§√§skel√§inen 2009-2010
  * @note rating: red
  */
 

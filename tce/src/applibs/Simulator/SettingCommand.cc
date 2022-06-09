@@ -26,7 +26,7 @@
  *
  * Implementation of SettingCommand class
  *
- * @author Pekka J‰‰skel‰inen 2005, 2010
+ * @author Pekka J√§√§skel√§inen 2005, 2010
  * @note rating: red
  */
 

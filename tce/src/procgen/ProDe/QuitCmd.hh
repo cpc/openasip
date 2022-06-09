@@ -26,7 +26,7 @@
  *
  * Declaration of QuitCmd class.
  *
- * @author Veli-Pekka J‰‰skel‰inen (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_QUIT_CMD_HH

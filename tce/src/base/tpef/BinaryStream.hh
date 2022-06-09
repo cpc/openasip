@@ -26,7 +26,7 @@
  *
  * Declaration of BinaryStream class.
  *
- * @author Ari Mets‰halme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Mets√§halme 2003 (ari.metsahalme-no.spam-tut.fi)
  * @note reviewed 7 August 2003 by pj, am, jn, ao, rl
  *
  * @note rating: yellow

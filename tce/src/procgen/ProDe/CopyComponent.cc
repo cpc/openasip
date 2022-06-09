@@ -26,8 +26,8 @@
  *
  * Definition of CopyComponent class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2004 
- * @author Pekka J‰‰skel‰inen 2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2004 
+ * @author Pekka J√§√§skel√§inen 2010 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #include "Application.hh"

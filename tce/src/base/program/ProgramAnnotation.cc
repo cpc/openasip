@@ -26,7 +26,7 @@
  *
  * Implementation of ProgramAnnotation class.
  *
- * @author Pekka J‰‰skel‰inen 2006,2014 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2006,2014 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 

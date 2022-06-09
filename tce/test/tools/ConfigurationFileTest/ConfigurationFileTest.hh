@@ -26,7 +26,7 @@
  * 
  * A test suite for ConfigurationFile.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
  */
 
 #ifndef CONFIGURATION_FILE_TEST_HH

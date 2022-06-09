@@ -26,8 +26,8 @@
  *
  * A test suite for DataObject.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi) 
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi) 
+ * @author Pekka J√§√§skel√§inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_DATA_OBJECT_TEST_HH

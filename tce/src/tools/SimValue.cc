@@ -26,7 +26,7 @@
  *
  * Non-inline definitions of SimValue class.
  *
- * @author Pekka J‰‰skel‰inen 2004,2014-2015 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2004,2014-2015 (pjaaskel-no.spam-cs.tut.fi)
  * @author Mikko Jarvela 2013, 2014 (mikko.jarvela-no.spam-.tut.fi)
  * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red

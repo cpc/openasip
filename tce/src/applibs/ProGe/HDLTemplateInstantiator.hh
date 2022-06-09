@@ -24,7 +24,7 @@
 /**
  * @file HDLTemplateInstantiator.hh
  *
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Pekka J√§√§skel√§inen 2011
  * @note rating: red
  */
 

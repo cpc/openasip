@@ -26,8 +26,8 @@
  *
  * Definition of SimpleOperationExecutor class.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
  * @note rating: red
  */

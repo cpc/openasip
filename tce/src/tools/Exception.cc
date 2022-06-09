@@ -26,8 +26,8 @@
  *
  * Implementations of all exceptions.
  *
- * @author Mikael Lepistˆ 2003 (tmlepist-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Mikael Lepist√∂ 2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #include <boost/format.hpp>

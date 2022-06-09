@@ -26,7 +26,7 @@
  *
  * Definition of BBSchedulerController class.
  *
- * @author Pekka J‰‰skel‰inen 2006-2011 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2006-2011 (pjaaskel-no.spam-cs.tut.fi)
  * @author Heikki Kultala 2009 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */

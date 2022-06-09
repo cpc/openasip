@@ -28,7 +28,7 @@
  * estimates data generating cost database from the cost data stored in HDB.
  * Estimate is interpolated if possible if no exact data values are found.
  *
- * @author Jari Mäntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
+ * @author Jari MÃ¤ntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 #include "RFCostEstimationPlugin.hh"

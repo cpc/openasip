@@ -26,7 +26,7 @@
  *
  * Declaration of PasteComponentCmd class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_PASTE_COMPONENT_CMD_HH

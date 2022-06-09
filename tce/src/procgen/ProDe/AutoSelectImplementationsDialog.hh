@@ -26,7 +26,7 @@
  *
  * Declaration of AutoSelectImplementationsDialog class.
  *
- * @author Mikko J‰rvel‰ 2013 (jarvela7-no.spam-cs.tut.fi)
+ * @author Mikko J√§rvel√§ 2013 (jarvela7-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

@@ -26,8 +26,8 @@
  *
  * Declaration of TPEFStringSectionWriter class.
  *
- * @author Jussi Nykänen 2003 (nykanen-no.spam-cs.tut.fi)
- * @author Mikael Lepistö 18.12.2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Jussi NykÃ¤nen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 18.12.2003 (tmlepist-no.spam-cs.tut.fi)
  *
  * @note rating: yellow
  */

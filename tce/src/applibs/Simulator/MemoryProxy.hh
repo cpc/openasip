@@ -26,7 +26,7 @@
  *
  * Declaration of MemoryProxy class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

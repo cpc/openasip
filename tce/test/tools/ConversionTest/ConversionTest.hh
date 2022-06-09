@@ -27,7 +27,7 @@
  * A test suite for Conversion.
  *
  * @author Tommi Rantanen 2004 (tommi.rantanen-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #ifndef TTA_CONVERSION_TEST_HH

@@ -27,7 +27,7 @@
  * Declaration of Informer class.
  *
  * @author Atte Oksman 2005 (oksman-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

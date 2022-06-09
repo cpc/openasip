@@ -26,8 +26,8 @@
  *
  * Definition of OperationContainer class.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2011
  * @note rating: red
  */
 

@@ -26,7 +26,7 @@
  *
  * Declaration of ClockedState class.
  *
- * @author Jussi Nyk‰nen 2004,2010
+ * @author Jussi Nyk√§nen 2004,2010
  * @note rating: red
  */
 

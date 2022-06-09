@@ -29,7 +29,7 @@
  * execution to detect differences in the simulations, which indicate there's
  * a missimulation bug in one or both of the engines.
  *
- * @author Pekka J‰‰skel‰inen 2009 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2009 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

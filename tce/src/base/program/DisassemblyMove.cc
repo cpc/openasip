@@ -26,8 +26,8 @@
  *
  * Implementation of DisassemblyMove class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2008 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2008 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

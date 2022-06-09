@@ -26,7 +26,7 @@
  *
  * A test suite for all TPEFReader and TPEFWriter classes.
  *
- * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 2003 (tmlepist-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_TPEF_READER_AND_WRITER_TEST_HH

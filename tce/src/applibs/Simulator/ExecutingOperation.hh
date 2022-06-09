@@ -24,7 +24,7 @@
 /**
  * @file ExecutingOperation.hh
  *
- * @author Pekka J‰‰skel‰inen 2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2010 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_EXECUTING_OPERATION_HH

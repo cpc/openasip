@@ -26,7 +26,7 @@
  *
  * Declaration of ExecutionTrace class.
  *
- * @author Pekka J‰‰skel‰inen 2004,2009 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2004,2009 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_EXECUTION_TRACE_HH

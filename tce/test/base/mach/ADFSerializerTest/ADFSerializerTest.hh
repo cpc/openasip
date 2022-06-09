@@ -27,7 +27,7 @@
  * A test suite for ADFSerializer.
  *
  * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2009,2014 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2009,2014 (pjaaskel-no.spam-cs.tut.fi)
  * @note reviewed 15 Jun 2004 by pj, vpj, ml, ll
  * @note rating: red
  */

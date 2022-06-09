@@ -26,10 +26,10 @@
  *
  * Definition of CmdLineOptions class.
  *
- * @author Jussi Nyk‰nen 2003 (nykanen-no.spam-cs.tut.fi)
- * @author Jari M‰ntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
- * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Jussi Nyk√§nen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Jari M√§ntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
+ * @author Esa M√§√§tt√§ 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2011
  * @note reviewed 3 December 2003 by jn, kl, ao
  */
 

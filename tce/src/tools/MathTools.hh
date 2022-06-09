@@ -28,7 +28,7 @@
  *
  * Declarations.
  *
- * @author Ari Mets‰halme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Mets√§halme 2005 (ari.metsahalme-no.spam-tut.fi)
  *
  */
 

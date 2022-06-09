@@ -26,8 +26,8 @@
  *
  * Implementation of TerminalImmediate class.
  *
- * @author Ari Mets‰halme 2005 (ari.metsahalme-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Ari Mets√§halme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2011
  * @note rating: red
  */
 

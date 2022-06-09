@@ -26,7 +26,7 @@
  *
  * Definition of ScriptInterpreter class.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
  * @note reviewed 27 May 2004 by pj, jn, vpj, ll
  * @note rating: yellow
  */

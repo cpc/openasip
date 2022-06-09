@@ -26,7 +26,7 @@
  *
  * Declaration of GUICommand class.
  *
- * @author Veli-Pekka J‰‰skel‰inen (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_GUI_COMMAND_HH

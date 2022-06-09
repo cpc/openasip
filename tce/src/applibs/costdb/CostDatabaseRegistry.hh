@@ -26,7 +26,7 @@
  *
  * Declaration of CostDatabaseRegistry class.
  *
- * @author Jari Mäntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Jari MÃ¤ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 #ifndef TTA_COST_DATABASE_REGISTRY_HH

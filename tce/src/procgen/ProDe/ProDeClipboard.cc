@@ -26,7 +26,7 @@
  *
  * Implementation of the ProDeClipboard class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka JÃ¤Ã¤skelÃ¤inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #include "ProDeClipboard.hh"
@@ -82,7 +82,7 @@ ProDeClipboard::destroy() {
 /**
  * Sets the clipboard contents.
  *
- * @param component Copied/cut component.
+ *Â @param component Copied/cut component.
  */
 void
 ProDeClipboard::setContents(

@@ -26,7 +26,7 @@
  *
  * Definition of OSEdAddOperationCmd class.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

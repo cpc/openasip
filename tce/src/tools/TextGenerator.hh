@@ -26,7 +26,7 @@
  *
  * Declaration of TextGenerator class.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
  * @note reviewed 19 May 2004 by ml, jn, ao, am
  * @note rating: green
  */

@@ -26,7 +26,7 @@
  *
  * A test suite for BinaryStream.
  *
- * @author Ari Mets‰halme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Mets√§halme 2003 (ari.metsahalme-no.spam-tut.fi)
  * @note reviewed 8 August 2003 by pj, am, jn, tr, rl
  */
 

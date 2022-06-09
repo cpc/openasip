@@ -26,7 +26,7 @@
  *
  * Definition of TPEFDebugSectionReader class.
  *
- * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 2003 (tmlepist-no.spam-cs.tut.fi)
  *
  * @note rating: yellow
  */

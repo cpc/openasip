@@ -26,7 +26,7 @@
  *
  * Implementation of DataInstructionAddressDef class.
  *
- * @author Mikael Lepistö 2006 (mikael.lepisto-no.spam-tut.fi)
+ * @author Mikael LepistÃ¶ 2006 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: red
  */
 

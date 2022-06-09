@@ -26,8 +26,8 @@
  *
  * Types visible both to the kernel and host code.
  *
- * @author 2009 Carlos SanchÈz de La Lama (csanchez @ urjc.es)
- * @author 2009-2010 Pekka J‰‰skel‰inen (pekka jaaskelainen tut fi)
+ * @author 2009 Carlos Sanch√©z de La Lama (csanchez @ urjc.es)
+ * @author 2009-2010 Pekka J√§√§skel√§inen (pekka jaaskelainen tut fi)
  */
 
 

@@ -26,7 +26,7 @@
  *
  * Definition of StopPoint class.
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

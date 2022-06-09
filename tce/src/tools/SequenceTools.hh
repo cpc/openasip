@@ -24,7 +24,7 @@
 /**
  * @file SequenceTools.hh
  *
- * @author Pekka J‰‰skel‰inen 2004-2009 (pekka.jaaskelainen-no.spam-tut.fi) 
+ * @author Pekka J√§√§skel√§inen 2004-2009 (pekka.jaaskelainen-no.spam-tut.fi) 
  *
  * Tools for inspecting and manipulating STL Sequences.
  *

@@ -26,7 +26,7 @@
  *
  * Declaration of MessageDialog class.
  *
- * @author Veli-Pekka J‰‰skel‰inen (vjaaskel-no.spam-cs.tut.fi) 2005.
+ * @author Veli-Pekka J√§√§skel√§inen (vjaaskel-no.spam-cs.tut.fi) 2005.
  * @note rating: red
  */
 

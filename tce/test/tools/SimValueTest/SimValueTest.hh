@@ -26,7 +26,7 @@
  * 
  * A test suite for SimValue.
  *
- * @author Pekka J‰‰skel‰inen 2004,2010 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2004,2010 (pekka.jaaskelainen-no.spam-tut.fi)
  * @author Mikko Jarvela 2014 (mikko.jarvela-no.spam-tut.fi)
  */
 

@@ -27,7 +27,7 @@
  * Definition of CompiledSimCodeGenerator class.
  *
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2009-2010 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2009-2010 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 

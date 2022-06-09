@@ -26,7 +26,7 @@
  *
  * Non-inline definitions of DebugStabElem class.
  *
- * @author Mikael Lepistö 2006 (tmlepist-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 2006 (tmlepist-no.spam-cs.tut.fi)
  *
  * @note rating: yellow
  */

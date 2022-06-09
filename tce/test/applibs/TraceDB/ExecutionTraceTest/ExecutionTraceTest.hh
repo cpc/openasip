@@ -26,7 +26,7 @@
  *
  * A test suite for TraceDB.
  * 
- * @author Pekka J‰‰skel‰inen 2004 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2004 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_TRACEDB_TEST_HH

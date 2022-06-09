@@ -25,7 +25,7 @@
  * Generates OpenCL C extension functions and definitions for the
  * (custom) operations in the given ADF.
  *
- * @author Pekka J‰‰skel‰inen 2009 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2009 (pjaaskel-no.spam-cs.tut.fi)
  *
  * @note rating: red
  */

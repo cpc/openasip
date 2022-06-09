@@ -27,7 +27,7 @@
  * Implementation of data dependence graph class
  *
  * @author Heikki Kultala 2006-2012 (heikki.kultala-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2010-2012
+ * @author Pekka J√§√§skel√§inen 2010-2012
  * @author Fabio Garzia 2010 (fabio.garzia-no.spam-tut.fi)
 
  * @note rating: red

@@ -27,8 +27,8 @@
  * Program that builds operation behavior module and locates
  * them to the target directory.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2013
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2013
  * @note rating: red
  */
 

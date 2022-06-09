@@ -26,7 +26,7 @@
  *
  * Declaration of FUResourceConflictDetector class.
  *
- * @author Pekka J‰‰skel‰inen 2006 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2006 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

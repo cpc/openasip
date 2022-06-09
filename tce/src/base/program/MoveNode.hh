@@ -32,8 +32,8 @@
  * and thus form a graph.
  *
  * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
- * @author Ari Mets‰halme 2006 (ari.metsahalme-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2010, 2011
+ * @author Ari Mets√§halme 2006 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2010, 2011
  * @note rating: red
  */
 

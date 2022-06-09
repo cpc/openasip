@@ -28,7 +28,7 @@
  *
  * @todo rename the file to match the class name
  *
- * @author Pekka J‰‰skel‰inen 2007,2012 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2007,2012 (pjaaskel-no.spam-cs.tut.fi)
  * @author Fabio Garzia 2010 (fabio.garzia-no.spam-cs.tut.fi)
  * @note rating: orange
  * @note reviewed 16-17 January 2008 by pj, pk, ml, hk

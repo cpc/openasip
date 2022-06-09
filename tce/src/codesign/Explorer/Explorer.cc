@@ -28,9 +28,9 @@
  *
  * The command line version of the Design Space Explorer.
  *
- * @author Jari M‰ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
- * @author Esa M‰‰tt‰ 2008 (esa.maatta-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Jari M√§ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Esa M√§√§tt√§ 2008 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2011
  * @note rating: red
  */
 

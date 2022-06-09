@@ -26,7 +26,7 @@
  *
  * Definition of TPEFDumper class.
  *
- * @author Mikael Lepistö 2005 (tmlepist-no.spam-tut.fi)
+ * @author Mikael LepistÃ¶ 2005 (tmlepist-no.spam-tut.fi)
  * @note rating: red
  */
 

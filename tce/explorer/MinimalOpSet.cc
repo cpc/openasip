@@ -27,8 +27,8 @@
  * Explorer plugin that checks that given config or adf meets minimal opset
  * requirements stated by minimal machine adf or user given reference adf.
  *
- * @author Esa M‰‰tt‰ 2008 (esa.maatta-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Esa M√§√§tt√§ 2008 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2011
  * @note rating: red
  */
 

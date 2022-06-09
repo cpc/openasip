@@ -26,8 +26,8 @@
  *
  * Implementation of the SafePointable class.
  *
- * @author Pekka J‰‰skel‰inen 2003 (pjaaskel-no.spam-cs.tut.fi)
- * @note Reviewed 29 Aug 2003 by Risto M‰kinen, Mikael Lepistˆ, Andrea Cilio,
+ * @author Pekka J√§√§skel√§inen 2003 (pjaaskel-no.spam-cs.tut.fi)
+ * @note Reviewed 29 Aug 2003 by Risto M√§kinen, Mikael Lepist√∂, Andrea Cilio,
  * Tommi Rantanen
  *
  * @note rating: yellow

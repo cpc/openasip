@@ -54,7 +54,7 @@
  * can notify them in case the instructionReferenceImpl is merged with
  * another.
  *
- * @author Ari Mets‰halme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Mets√§halme 2005 (ari.metsahalme-no.spam-tut.fi)
  * @author Heikki Kultala 2009 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */

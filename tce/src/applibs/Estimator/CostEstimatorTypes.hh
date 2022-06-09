@@ -27,7 +27,7 @@
  * Declaration of type definitions used in cost estimation functionality
  * of TCE.
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 namespace CostEstimator {

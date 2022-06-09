@@ -26,8 +26,8 @@
  *
  * Definition of class AOutSymbolSectionReader.
  *
- * @author Jussi Nykänen 2003 (nykanen-no.spam-cs.tut.fi)
- * @author Mikael Lepistö 18.12.2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Jussi NykÃ¤nen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 18.12.2003 (tmlepist-no.spam-cs.tut.fi)
  * @note reviewed 23 October 2003 by pj, am, ll, jn
  *
  * @note rating: yellow

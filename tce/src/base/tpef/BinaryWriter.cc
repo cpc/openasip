@@ -26,8 +26,8 @@
  *
  * Definition of BinaryWriter class.
  *
- * @author Mikael Lepistˆ 2003 (tmlepist-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2006 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepist√∂ 2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2006 (pjaaskel-no.spam-cs.tut.fi)
  *
  * @note rating: yellow
  */

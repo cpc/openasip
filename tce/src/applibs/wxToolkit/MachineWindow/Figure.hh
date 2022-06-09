@@ -26,7 +26,7 @@
  *
  * Declaration of Figure class.
  *
- * @author Ari Mets‰halme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Mets√§halme 2003 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: yellow
  * @note reviewed Jul 22 2004 by tr, ml, jm, am
  */

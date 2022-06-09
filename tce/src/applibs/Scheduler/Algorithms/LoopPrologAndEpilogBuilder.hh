@@ -26,7 +26,7 @@
  *
  * Declaration of LoopPrologAndEpilogBuilder interface.
  *
- * @author Mikael Lepistö 2008 (mikael.lepisto-no.spam-tut.fi)
+ * @author Mikael LepistÃ¶ 2008 (mikael.lepisto-no.spam-tut.fi)
  * @author Heikki Kultala 2015-2020 (heikki.kultala-no.spam-tuni.fi)
  * @note rating: red
  */

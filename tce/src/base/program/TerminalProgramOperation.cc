@@ -26,7 +26,7 @@
  *
  * Implementation of the TerminalProgramOperation class.
  *
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Pekka J√§√§skel√§inen 2011
  * @note rating: red
  */
 

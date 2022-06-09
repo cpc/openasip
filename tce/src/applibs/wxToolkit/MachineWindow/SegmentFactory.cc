@@ -26,8 +26,8 @@
  *
  * Definition of SegmentFactory class.
  *
- * @author Ari Mets‰halme 2003 (ari.metsahalme-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2010
+ * @author Ari Mets√§halme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2010
  * @note rating: yellow
  * @note reviewed Jul 14 2004 by jm, ll, jn, am
  */

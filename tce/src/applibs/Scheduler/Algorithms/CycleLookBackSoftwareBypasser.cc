@@ -26,8 +26,8 @@
  *
  * Definition of CycleLookBackSoftwareBypasser interface.
  *
- * @author Pekka J‰‰skel‰inen 2007 (pjaaskel-no.spam-cs.tut.fi)
- * @author VladmÌr Guzma 2008 (vg-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2007 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Vladm√≠r Guzma 2008 (vg-no.spam-cs.tut.fi)
  * @author Heikki Kultala 2008 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */

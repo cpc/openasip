@@ -31,7 +31,7 @@
  * That is, M[O,I] = 1 in case operation O cannot be started I cycles after, 0 
  * otherwise.
  *
- * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 

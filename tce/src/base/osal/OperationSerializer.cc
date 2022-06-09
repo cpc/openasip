@@ -26,9 +26,9 @@
  *
  * Definition of OperationSerializer class.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
- * @author Mikael Lepistˆ 2007 (mikael.lepisto-no.spam-tut.fi)
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Mikael Lepist√∂ 2007 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: yellow
  * @note reviewed 7 September 2004 by pj, jn, jm, ao
  */

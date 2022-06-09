@@ -26,7 +26,7 @@
  *
  * Declaration of OperationDAGEditor class.
  *
- * @author Tero Ryyn‰nen 2008 (tero.ryynanen-no.spam-tut.fi)
+ * @author Tero Ryyn√§nen 2008 (tero.ryynanen-no.spam-tut.fi)
  * @note rating: red
  */
 

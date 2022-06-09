@@ -26,7 +26,7 @@
  *
  * Declaration of PendingAssignment class.
  *
- * @author Ari Mets‰halme 2006 (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Mets√§halme 2006 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: red
  */
 

@@ -26,7 +26,7 @@
  *
  * A test suite for TPEFReader and TPEFSectionReader classes.
  *
- * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 2003 (tmlepist-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_TPEF_READER_TEST_HH

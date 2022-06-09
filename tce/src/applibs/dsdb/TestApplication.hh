@@ -26,8 +26,8 @@
  *
  * Declaration of TestApplication class.
  *
- * @author Jari M‰ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2012
+ * @author Jari M√§ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2012
  * @note rating: red
  */
 

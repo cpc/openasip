@@ -27,7 +27,7 @@
  * Implementation of AddressSpace class.
  *
  * @author Lasse Laasonen 2003 (lasse.laasonen-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2010
+ * @author Pekka JÃ¤Ã¤skelÃ¤inen 2010
  * @note reviewed 10 Jun 2004 by vpj, am, tr, ll
  * @note rating: red
  */
@@ -325,7 +325,7 @@ AddressSpace::saveState() const {
  *
  * @param state The ObjectState instance.
  * @exception ObjectStateLoadingException If the given ObjectState instance
- *                                        is invalid or if the machine
+ *Â                                        is invalid or if the machine
  *                                        already has an address space by
  *                                        the same name as the coming name
  *                                        of this address space.

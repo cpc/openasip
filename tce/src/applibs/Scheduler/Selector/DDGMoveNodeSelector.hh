@@ -26,7 +26,7 @@
  *
  * Declaration of DDGMoveNodeSelector class.
  *
- * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
  * @author Heikki Kultala 2008 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */

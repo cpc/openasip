@@ -26,7 +26,7 @@
  *
  * Declaration of SimpleSimulatorFrontend class.
  *
- * @author Pekka J‰‰skel‰inen 2010-2013 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2010-2013 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

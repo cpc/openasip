@@ -26,8 +26,8 @@
  *
  * Implementation of TPEFProgramFactory class.
  *
- * @author Mikael Lepistˆ 2005 (tmlepist-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2011,2014
+ * @author Mikael Lepist√∂ 2005 (tmlepist-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2011,2014
  * @note rating: yellow
  */
 

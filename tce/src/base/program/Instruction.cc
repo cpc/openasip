@@ -26,8 +26,8 @@
  *
  * Implementation of Instruction class.
  *
- * @author Ari Mets‰halme 2005 (ari.metsahalme-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2016
+ * @author Ari Mets√§halme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2016
  * @note rating: red
  */
 

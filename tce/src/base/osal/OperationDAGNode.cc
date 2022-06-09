@@ -26,6 +26,6 @@
  *
  * Implementation of OperationDAGNode class.
  *
- * @author Mikael Lepistö 2007 (mikael.lepisto-no.spam-tut.fi)
+ * @author Mikael LepistÃ¶ 2007 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: red
  */

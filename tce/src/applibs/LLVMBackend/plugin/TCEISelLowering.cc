@@ -26,9 +26,9 @@
  *
  * Implementation of TCETargetLowering class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepistˆ 2009 (mikael.lepisto-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2010
+ * @author Veli-Pekka J√§√§skel√§inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepist√∂ 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2010
  * @author Heikki Kultala 2011-2012 (heikki.kultala-no.spam-tut.fi)
  */
 

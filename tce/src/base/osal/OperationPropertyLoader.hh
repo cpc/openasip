@@ -26,7 +26,7 @@
  *
  * Declaration of OperationPropertyLoader.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
  * @note rating: yellow
  * @note reviewed 7 September 2004 by pj, jn, jm, ao
  */

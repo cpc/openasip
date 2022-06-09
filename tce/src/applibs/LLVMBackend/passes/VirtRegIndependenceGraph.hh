@@ -26,7 +26,7 @@
  *
  * Declaration of VirtRegIndependence class.
  *
- * @author Pekka J‰‰skel‰inen 2010
+ * @author Pekka J√§√§skel√§inen 2010
  * @note rating: red
  */
 

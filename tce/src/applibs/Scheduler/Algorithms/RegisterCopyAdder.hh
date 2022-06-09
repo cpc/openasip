@@ -26,7 +26,7 @@
  *
  * Declaration of RegisterCopyAdder class.
  *
- * @author Pekka J‰‰skel‰inen 2007 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2007 (pjaaskel-no.spam-cs.tut.fi)
  * @author Fabio Garzia 2010 (fabio.garzia-no.spam-tut.fi)
  * @note rating: yellow
  * @note reviewed 16-17 January 2008 by pj, pk, ml, hk

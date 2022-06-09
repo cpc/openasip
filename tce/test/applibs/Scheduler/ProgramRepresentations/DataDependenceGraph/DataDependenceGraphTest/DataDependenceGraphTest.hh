@@ -27,7 +27,7 @@
  * A test suite for Data Dependence Graph generation.
  *
  * @author Heikki Kultala 2006 (heikki.kultala-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2010
+ * @author Pekka J√§√§skel√§inen 2010
  * @note rating: red
  */
 

@@ -26,8 +26,8 @@
  * 
  * A test suite for MachineStateBuilder.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005,2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005,2010 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef MACHINE_STATE_BUILDER_TEST_HH

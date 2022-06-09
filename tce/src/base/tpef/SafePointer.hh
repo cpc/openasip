@@ -27,7 +27,7 @@
  * Declaration of SafePointer class and utility classes and types related
  * to ReferenceManager.
  *
- * @author Pekka J‰‰skel‰inen 2003 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2003 (pjaaskel-no.spam-cs.tut.fi)
  * @note reviewed 29 Aug 2003 by rm, ml, ac, tr
  *
  * @note rating: yellow

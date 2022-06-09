@@ -27,7 +27,7 @@
  * Wrappers and utilities for connecting TTA core simulation models to
  * SystemC simulations.
  *
- * @author Pekka J‰‰skel‰inen 2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2010 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TCE_SYSTEMC_HH

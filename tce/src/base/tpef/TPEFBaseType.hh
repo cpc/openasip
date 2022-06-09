@@ -26,8 +26,8 @@
  *
  * Contains definitions of base types used in TPEF Binary representation.
  *
- * @author Mikael Lepistˆ 2004 (tmlepist-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2004  (pjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepist√∂ 2004 (tmlepist-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2004  (pjaaskel-no.spam-cs.tut.fi)
  *
  * @note rating: yellow
  */

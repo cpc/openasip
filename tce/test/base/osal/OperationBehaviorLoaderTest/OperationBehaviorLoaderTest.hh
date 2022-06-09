@@ -26,7 +26,7 @@
  * 
  * A test suite for OperationBehaviorLoader.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
  */
 
 #ifndef OPERATION_BEHAVIOR_LOADER_TEST_HH

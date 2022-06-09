@@ -26,7 +26,7 @@
  *
  * Implementation of the ConfirmDialog class.
  *
- * @author Veli-Pekka J‰‰skel‰inen (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

@@ -62,7 +62,7 @@ Connection::Connection(Socket& socket, Segment& bus) :
 /**
  * Destructor.
  *
- * If Connection object still joins a socket and a segment, they are detached
+ *Â If Connection object still joins a socket and a segment, they are detached
  * before destructing the Connection object.
  */
 Connection::~Connection() {

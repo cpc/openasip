@@ -27,7 +27,7 @@
  * Implementation/Declaration of ImmInfo class.
  *
  * Created on: 8.3.2016
- * @author Henry Linjam‰ki 2016 (henry.linjamaki-no.spam-tut.fi)
+ * @author Henry Linjam√§ki 2016 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 

@@ -26,7 +26,7 @@
  *
  * A test suite for RelocSection.
  *
- * @author Jussi Nyk‰nen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Jussi Nyk√§nen 2003 (nykanen-no.spam-cs.tut.fi)
  * @note reviewed 7 November 2003 by pj, ml, am, ml
  */
 

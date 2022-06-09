@@ -26,8 +26,8 @@
  *
  * Definition of SegmentFigure class.
  *
- * @author Ari Mets‰halme 2003 (ari.metsahalme-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2010
+ * @author Ari Mets√§halme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2010
  * @note rating: yellow
  * @note reviewed Jul 27 2004 by ml, pj, am
  */

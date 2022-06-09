@@ -26,8 +26,8 @@
  *
  * Declaration of SchedulerCmdLineOptions class.
  *
- * @author Ari Mets�halme 2005 (ari.metsahalme-no.spam-tut.fi)
- * @author Pekka J��skel�inen 2010
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2010
  * @note rating: red
  */
 

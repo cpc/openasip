@@ -26,8 +26,8 @@
  *
  * Implementation on the WxConversion class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2013
+ * @author Veli-Pekka J√§√§skel√§inen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2013
  * @note rating: red
  */
 

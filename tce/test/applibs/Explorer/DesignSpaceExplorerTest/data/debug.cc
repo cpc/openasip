@@ -26,7 +26,7 @@
  *
  * Behavior definition file for simulator debugging operations.
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #include <fstream>

@@ -26,7 +26,7 @@
  *
  * A test suite for SequenceTools class.
  *
- * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #ifndef TTA_SEQUENCETOOLS_TEST_HH

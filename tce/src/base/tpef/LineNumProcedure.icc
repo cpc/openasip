@@ -26,7 +26,7 @@
  *
  * Inline definitions of LineNumProcedure class.
  *
- * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 2003 (tmlepist-no.spam-cs.tut.fi)
  *
  * @note rating: yellow
  */
@@ -92,7 +92,7 @@ LineNumProcedure::line(HalfWord index) const {
 }
 
 /**
- * Returns line numbers which are defined for procedure.
+Â * Returns line numbers which are defined for procedure.
  *
  * @return Line numbers which are defined for procedure.
  */

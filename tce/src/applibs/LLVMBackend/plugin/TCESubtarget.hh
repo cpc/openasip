@@ -26,7 +26,7 @@
  *
  * Declaration of TCESubtarget class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2007 (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_TCE_SUBTARGET_H

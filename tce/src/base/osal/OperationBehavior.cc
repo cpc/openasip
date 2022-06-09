@@ -26,7 +26,7 @@
  *
  * Implementations of OperationBehavior class.
  *
- * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  * @note reviewed 19 August 2004 by pj, jn, ao, ac
  */

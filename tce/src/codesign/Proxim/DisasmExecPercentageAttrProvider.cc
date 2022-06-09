@@ -26,7 +26,7 @@
  *
  * Implementation of DisasmExecPercentageAttrProvider class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2006 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

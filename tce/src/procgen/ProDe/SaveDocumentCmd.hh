@@ -26,7 +26,7 @@
  *
  * Declaration of SaveDocumentCmd class.
  *
- * @author Veli-Pekka J‰‰skel‰inen (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_SAVE_DOCUMENT_CMD_HH

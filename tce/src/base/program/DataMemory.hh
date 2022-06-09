@@ -26,8 +26,8 @@
  *
  * Declaration of DataMemory class.
  *
- * @author Mikael Lepistˆ 2006 (mikael.lepisto-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Mikael Lepist√∂ 2006 (mikael.lepisto-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 

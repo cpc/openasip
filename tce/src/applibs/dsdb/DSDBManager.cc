@@ -26,8 +26,8 @@
  *
  * Implementation of DSDBManager class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Veli-Pekka J√§√§skel√§inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2011
  * @note rating: red
  */
 

@@ -26,8 +26,8 @@
  *
  * Declaration of AOutReader.
  *
- * @author Jussi Nykänen 2003 (nykanen-no.spam-cs.tut.fi)
- * @author Mikael Lepistö 18.12.2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Jussi NykÃ¤nen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 18.12.2003 (tmlepist-no.spam-cs.tut.fi)
  *
  * @note reviewed 7 October 2003 by jn, ml, tr, ll
  * @note rating: yellow
@@ -72,7 +72,7 @@ public:
         N_JTE   = 0x96, ///< Jump table entry.
         N_MEM   = 0xb6, ///< Memory reference.
         N_FC    = 0xd6, ///< Function call.
-        N_STAB  = 0xe0, ///< Mask for stabs.
+        N_STAB  = 0xe0, ///< Mask forÂ stabs.
         N_GSYM  = 0x20, ///< Global.
         N_FNAME = 0x22, ///< Procedure name (f77).
         N_FUN   = 0x24, ///< Procedure.

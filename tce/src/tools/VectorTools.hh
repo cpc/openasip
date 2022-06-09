@@ -23,7 +23,7 @@
  */
 /**
  * @file VectorTools.icc
- * @author Tero Ryyn‰nen (tero.ryynanen-no.spam-tut.fi) 2008
+ * @author Tero Ryyn√§nen (tero.ryynanen-no.spam-tut.fi) 2008
  *
  * Tools for handling STL Iterative Containers (usually vector).
  *

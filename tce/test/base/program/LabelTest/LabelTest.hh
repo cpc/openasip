@@ -26,7 +26,7 @@
  *
  * A test suite for Label.
  *
- * @author Ari Mets‰halme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Mets√§halme 2005 (ari.metsahalme-no.spam-tut.fi)
  */
 
 #ifndef LABEL_TEST_HH

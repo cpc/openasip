@@ -26,7 +26,7 @@
  *
  * A test suite for StringSection.
  *
- * @author Ari Mets‰halme (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Mets√§halme (ari.metsahalme-no.spam-tut.fi)
  * @note reviewed 17 October 2003 by am, pj, rm, kl
  */
 

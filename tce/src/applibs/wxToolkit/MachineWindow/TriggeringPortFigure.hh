@@ -26,7 +26,7 @@
  *
  * Declaration of TriggeringPortFigure class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2006 (vjaaskel-no.spam-tut.fi)
  * @note rating: red
  */
 

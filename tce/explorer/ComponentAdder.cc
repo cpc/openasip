@@ -26,8 +26,8 @@
  *
  * Explorer plugin that adds machine components to a given machine.
  *
- * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
- * @author Pekka J��skel�inen 2011
+ * @author Esa MÃ¤Ã¤ttÃ¤ 2008 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2011
  * @note rating: red
  */
 

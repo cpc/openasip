@@ -26,7 +26,7 @@
  *
  * Implementation of SimpleSimulatorFrontend class.
  *
- * @author Pekka J‰‰skel‰inen 2010,2012 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2010,2012 (pjaaskel-no.spam-cs.tut.fi)
  */
 #include "SimpleSimulatorFrontend.hh"
 #include "SimulatorFrontend.hh"

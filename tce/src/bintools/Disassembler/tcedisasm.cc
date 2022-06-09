@@ -26,8 +26,8 @@
  *
  * TCE parallel disassembler.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2009,2011 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2009,2011 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

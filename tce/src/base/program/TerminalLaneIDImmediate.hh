@@ -26,7 +26,7 @@
  *
  * Declaration of TerminalLaneIDImmediate class.
  *
- * @author Pekka J‰‰skel‰inen 2013
+ * @author Pekka J√§√§skel√§inen 2013
  * @note rating: red
  */
 

@@ -27,7 +27,7 @@
  * A test suite for AddressSpace.
  *
  * @author Andrea Cilio 2003 (a.cilio-no.spam-et.tudelft.nl)
- * @author Pekka J‰‰skel‰inen 2010
+ * @author Pekka J√§√§skel√§inen 2010
  */
 
 #ifndef AddressSpaceTest_HH

@@ -4,7 +4,7 @@
  * LLVM pass for finding loops that can be software pipelined by the TCE
  * loop scheduler.
  *
- * @author Pekka J‰‰skel‰inen
+ * @author Pekka J√§√§skel√§inen
  */
 #ifndef HH_INNER_LOOP_FINDER
 #define HH_INNER_LOOP_FINDER

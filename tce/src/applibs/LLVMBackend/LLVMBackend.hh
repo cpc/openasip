@@ -26,8 +26,8 @@
  *
  * Declaration of LLVMBackend class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2008 (vjaaskel-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2008-2012
+ * @author Veli-Pekka J√§√§skel√§inen 2008 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2008-2012
  * @note rating: red
  */
 

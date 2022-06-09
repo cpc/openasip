@@ -26,7 +26,7 @@
  * 
  * A test suite for FUResourceConflictDetector.
  *
- * @author Pekka J‰‰skel‰inen 2006,2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2006,2010 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef RESOURCE_CONFLICT_DETECTOR_TEST_HH

@@ -26,7 +26,7 @@
  *
  * Definition of DeleteBridgeCmd class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  * @note reviewed Jun 23 2004 by ml, jn, jm, vpj
  */

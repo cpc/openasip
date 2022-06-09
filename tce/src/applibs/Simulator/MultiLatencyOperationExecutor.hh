@@ -26,7 +26,7 @@
  *
  * Declaration of MultiLatencyOperationExecutor class.
  *
- * @author Pekka J‰‰skel‰inen 2008,2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2008,2010 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

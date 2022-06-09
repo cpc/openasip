@@ -28,7 +28,7 @@
  *
  * Operations contain no state and define only the main simulation function.
  *
- * @author Pekka J‰‰skel‰inen (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 

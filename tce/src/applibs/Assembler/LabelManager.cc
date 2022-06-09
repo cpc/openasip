@@ -26,8 +26,8 @@
  *
  * Definition of LabelManager class.
  *
- * @author Mikael Lepistˆ 2005 (tmlepist-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Mikael Lepist√∂ 2005 (tmlepist-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
  *
  * @note rating: yellow
  */

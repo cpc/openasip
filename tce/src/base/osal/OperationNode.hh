@@ -29,7 +29,7 @@
  * Represents one operation which might be constructed out of other operations
  * or of a OSAL opartion.
  *
- * @author Mikael Lepistö 2007 (mikael.lepisto-no.spam-tut.fi)
+ * @author Mikael LepistÃ¶ 2007 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: red
  */
 

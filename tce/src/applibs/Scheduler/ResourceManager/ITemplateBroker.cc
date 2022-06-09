@@ -26,7 +26,7 @@
  *
  * Implementation of ITemplateBroker class.
  *
- * @author Ari Mets‰halme 2006 (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Mets√§halme 2006 (ari.metsahalme-no.spam-tut.fi)
  * @author Vladimir Guzma 2007 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */

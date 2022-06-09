@@ -26,7 +26,7 @@
  *
  * Declaration of SegmentFactory class.
  *
- * @author Ari Mets‰halme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Mets√§halme 2003 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: yellow
  * @note reviewed Jul 14 2004 by jm, ll, jn, am
  */

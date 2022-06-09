@@ -26,7 +26,7 @@
  *
  * Declaration of ExternalPort class.
  *
- * @author Henry Linjam‰ki 2014 (henry.linjamaki-no.spam-tut.fi)
+ * @author Henry Linjam√§ki 2014 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 

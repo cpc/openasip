@@ -26,7 +26,7 @@
  *
  * Declaration of AddRFCmd class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_ADD_RF_CMD_HH

@@ -24,7 +24,7 @@
 /**
  * @file ExecutingOperation.cc
  *
- * @author Pekka J‰‰skel‰inen 2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2010 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #include "ExecutingOperation.hh"

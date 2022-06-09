@@ -27,7 +27,7 @@
  * Declaration of CompiledSimCodeGenerator class.
  *
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2010
+ * @author Pekka J√§√§skel√§inen 2010
  * @note rating: red
  */
 

@@ -26,7 +26,7 @@
  *
  * Definitions of OptionValue classes.
  *
- * @author Jari Mäntyneva (jari.mantyneva-no.spam-tut.fi)
+ * @author Jari MÃ¤ntyneva (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 

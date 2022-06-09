@@ -26,7 +26,7 @@
  *
  * TCE Target plugin declaration.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @author Heikki Kultala 2011 (heikki.kultala-no.spam-tut.fi)
  */
 

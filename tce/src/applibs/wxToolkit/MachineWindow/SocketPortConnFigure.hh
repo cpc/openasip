@@ -26,7 +26,7 @@
  *
  * Declaration of SocketPortConnFigure class.
  *
- * @author Ari Mets‰halme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Mets√§halme 2003 (ari.metsahalme-no.spam-tut.fi)
  * @note reviewed Jul 27 2004 by ml, pj, am
  * @note rating: yellow
  */

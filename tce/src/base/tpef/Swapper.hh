@@ -26,8 +26,8 @@
  *
  * Declaration of Swapper class.
  *
- * @author Jussi Nyk‰nen 2003 (nykanen-no.spam-cs.tut.fi)
- * @author Ari Mets‰halme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Jussi Nyk√§nen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Ari Mets√§halme 2003 (ari.metsahalme-no.spam-tut.fi)
  * @note reviewed 23 October 2003 by am, jn, ll, pj
  *
  * @note rating: yellow

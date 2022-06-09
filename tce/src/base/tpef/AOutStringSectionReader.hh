@@ -26,8 +26,8 @@
  *
  * Declaration of AOutStringSectionReader class.
  *
- * @author Ari Metsähalme (ari.metsahalme-no.spam-tut.fi)
- * @author Mikael Lepistö 2004 (tmlepist-no.spam-cs.tut.fi)
+ * @author Ari MetsÃ¤halme (ari.metsahalme-no.spam-tut.fi)
+ * @author Mikael LepistÃ¶ 2004 (tmlepist-no.spam-cs.tut.fi)
  * @note reviewed 17 October 2003 by kl, pj, am, rm
  *
  * @note rating: yellow

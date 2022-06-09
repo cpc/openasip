@@ -26,7 +26,7 @@
  *
  * Definition of ResourceConstraintAnalyzer class.
  *
- * @author Pekka J‰‰skel‰inen 2010-2015
+ * @author Pekka J√§√§skel√§inen 2010-2015
  * @note rating: red
  */
 

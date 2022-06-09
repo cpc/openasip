@@ -26,7 +26,7 @@
  *
  * Test: operations that use the control registers (PC and return address).
  *
- * @author Pekka Jääskeläinen (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka JÃ¤Ã¤skelÃ¤inen (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 

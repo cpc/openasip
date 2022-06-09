@@ -26,9 +26,9 @@
  *
  * Implementation of Swapper class inline and template functions.
  *
- * @author Jussi Nyk‰nen 2003 (nykanen-no.spam-cs.tut.fi)
- * @author Ari Mets‰halme 2003 (ari.metsahalme-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2014
+ * @author Jussi Nyk√§nen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Ari Mets√§halme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2014
  */
 
 #include <tce_config.h>

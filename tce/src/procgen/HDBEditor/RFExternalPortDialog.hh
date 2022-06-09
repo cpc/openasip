@@ -26,7 +26,7 @@
  *
  * Declaration of RFExternalPortDialog class.
  *
- * @author Henry Linjam‰ki (henry-linjamaki-no.spam-cs.tut.fi)
+ * @author Henry Linjam√§ki (henry-linjamaki-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

@@ -26,7 +26,7 @@
  *
  * Definition of ModifyBusCmd class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #include "Application.hh"

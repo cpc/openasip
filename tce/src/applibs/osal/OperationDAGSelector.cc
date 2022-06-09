@@ -26,7 +26,7 @@
  *
  * Definition of OperationDAGSelector class.
  *
- * @author Mikael Lepistö 2008 (mikael.lepisto-no.spam-tut.fi)
+ * @author Mikael LepistÃ¶ 2008 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: red
  */
 

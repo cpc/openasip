@@ -26,7 +26,7 @@
  *
  * Declaration of DisassemblyNOP class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel-no.spam-.cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2005 (vjaaskel-no.spam-.cs.tut.fi)
  * @note rating: red
  */
 

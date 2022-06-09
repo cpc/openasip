@@ -26,7 +26,7 @@
  *
  * Tests for BasicElement class.
  *
- * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 2003 (tmlepist-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_BASIC_ELEMENT_TEST_HH

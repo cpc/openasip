@@ -5,8 +5,8 @@
  *
  * Modified to do other things that just validating.
  *
- * @author Mikael Lepistˆ 2007 (mikael.lepisto-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2009
+ * @author Mikael Lepist√∂ 2007 (mikael.lepisto-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2009
  * @rating red 
  */
 

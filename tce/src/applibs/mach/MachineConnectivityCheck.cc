@@ -26,7 +26,7 @@
  *
  * Implementation of MachineConnectivityCheck class.
  *
- * @author Pekka J‰‰skel‰inen 2007 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2007 (pjaaskel-no.spam-cs.tut.fi)
  * @author Heikki Kultala 2008 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */

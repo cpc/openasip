@@ -26,7 +26,7 @@
  *
  * A test suite for Script.
  * 
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_SCRIPT_TEST_HH

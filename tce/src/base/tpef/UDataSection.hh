@@ -26,7 +26,7 @@
  *
  * Declaration of UDataSection class.
  *
- * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 2003 (tmlepist-no.spam-cs.tut.fi)
  * @note reviewed 22 October 2003 by ml, jn, ao, tr
  *
  * @note rating: yellow

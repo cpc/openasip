@@ -26,8 +26,8 @@
  *
  * Declaration of TerminalFUPort class.
  *
- * @author Ari Mets‰halme 2005
- * @author Pekka J‰‰skel‰inen 2008,2011
+ * @author Ari Mets√§halme 2005
+ * @author Pekka J√§√§skel√§inen 2008,2011
  * @note rating: red
  */
 

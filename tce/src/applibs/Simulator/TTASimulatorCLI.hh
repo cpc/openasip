@@ -26,7 +26,7 @@
  *
  * Implementation of TTASimulatorCLI class.
  *
- * @author Henry Linjam‰ki 2016 (henry.linjamaki@tut.fi)
+ * @author Henry Linjam√§ki 2016 (henry.linjamaki@tut.fi)
  * @note rating: red
  */
 

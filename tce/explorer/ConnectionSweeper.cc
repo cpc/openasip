@@ -27,7 +27,7 @@
  * Explorer plugin that optimizes the interconnection network by
  * removing connections with least effect to the cycle count.
  *
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Pekka J√§√§skel√§inen 2011
  * @note rating: red
  */
 

@@ -26,7 +26,7 @@
  *
  * Declaration of TCEDAGToDAGISel class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi) 
+ * @author Veli-Pekka J√§√§skel√§inen 2007 (vjaaskel-no.spam-cs.tut.fi) 
  */
 
 #ifndef TCE_DAG_TO_DAG_ISEL_H

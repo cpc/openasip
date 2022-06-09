@@ -26,7 +26,7 @@
  *
  * Implementations. Dummy file just to force the MathTools.icc to be compiled.
  *
- * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #include "MathTools.hh"

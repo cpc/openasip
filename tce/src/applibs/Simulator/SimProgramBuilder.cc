@@ -26,8 +26,8 @@
  *
  * Definition of SimProgramBuilder class.
  *
- * @author Jussi Nyk‰nen 2005 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005, 2010
+ * @author Jussi Nyk√§nen 2005 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005, 2010
  * @note rating: red
  */
 

@@ -29,7 +29,7 @@
  * It does not perform any kind of linearization etc. to try to estimate
  * a RF that has not direct cost data in HDB.
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 #include "RFCostEstimationPlugin.hh"

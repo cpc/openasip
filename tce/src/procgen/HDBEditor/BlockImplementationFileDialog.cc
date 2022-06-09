@@ -26,7 +26,7 @@
  *
  * Implementation of BlockImplementationFileDialog class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2006 (vjaaskel-no.spam-cs.tut.fi)
  * @author Vinogradov Viacheslav(added Verilog generating) 2012 
  * @note rating: red
  */

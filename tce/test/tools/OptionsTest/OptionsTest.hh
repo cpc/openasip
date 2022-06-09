@@ -26,7 +26,7 @@
  *
  * A test suite for Options and OptionValue.
  *
- * @author Jari Mäntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
+ * @author Jari MÃ¤ntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 

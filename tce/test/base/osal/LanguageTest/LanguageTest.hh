@@ -27,8 +27,8 @@
  * A test suite for C preprocessor definition macros that constitute the
  * operation behavior definition language.
  *
- * @author Jussi Nyk‰nen 2004 (jussi.nykanen-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Jussi Nyk√§nen 2004 (jussi.nykanen-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
  */    
 
 #ifndef TTA_OSAL_LANGUAGE_TEST_HH

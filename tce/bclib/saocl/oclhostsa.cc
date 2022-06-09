@@ -27,7 +27,7 @@
  * Implementation of the host-side library of the TCE OpenCL support for
  * the "standalone" static linkage mode.
  *
- * @author Pekka J‰‰skel‰inen 2009-2011 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2009-2011 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #define __STDC_LIMIT_MACROS

@@ -26,8 +26,8 @@
  *
  * Definition of MemorySystem class.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005,2009-2012
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005,2009-2012
  * @note rating: red
  */
 

@@ -26,7 +26,7 @@
  *
  * Non-inline definitions of OperationContext class.
  *
- * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: yellow
  * @note reviewed 7 September 2004 by pj, jn, jm, ao
  */

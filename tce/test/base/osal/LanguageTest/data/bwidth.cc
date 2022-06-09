@@ -28,7 +28,7 @@
  *
  * Operation which returns the value of BWIDTH macro as result.
  *
- * @author Pekka J‰‰skel‰inen (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 

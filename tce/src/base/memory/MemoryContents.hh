@@ -26,8 +26,8 @@
  *
  * Declaration of MemoryContents class.
  *
- * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J��kel�inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Jussi NykÃ¤nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka Jääkeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
  */

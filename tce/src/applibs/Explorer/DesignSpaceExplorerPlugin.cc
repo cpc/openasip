@@ -26,8 +26,8 @@
  *
  * Implementation of DesignSpaceExplorerPlugin class
  *
- * @author Jari M‰ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Jari M√§ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2011
  * @note rating: red
  */
 

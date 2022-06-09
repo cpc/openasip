@@ -26,8 +26,8 @@
  *
  * Implementation of ProGeTestBenchGenerator class.
  *
- * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2011
+ * @author Esa M√§√§tt√§ 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2011
  * @note rating: red
  */
 

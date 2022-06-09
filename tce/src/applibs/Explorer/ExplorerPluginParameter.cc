@@ -27,8 +27,8 @@
  *
  * Implementation of ExplorerPluginParameter class.
  *
- * @author Esa M‰‰tt‰ 2008 (esa.maatta-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2012
+ * @author Esa M√§√§tt√§ 2008 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka J√§√§skel√§inen 2012
  * @note rating: red
  */
 

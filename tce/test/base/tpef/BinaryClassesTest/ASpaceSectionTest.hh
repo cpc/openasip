@@ -26,7 +26,7 @@
  *
  * A test suite for ASpaceSection and ASpaceElements.
  *
- * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 2003 (tmlepist-no.spam-cs.tut.fi)
  */
 
 #ifndef ASpaceSectionTest_HH

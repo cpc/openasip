@@ -26,8 +26,8 @@
  *
  * Implementation of CachedHDBManager class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Esa M√§√§tt√§ 2007 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 

@@ -26,7 +26,7 @@
  *
  * Declaration of OperationBehaviorLoader class.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
  * @note rating: yellow
  * @note reviewed 19 August 2004 by pj, jn, ao, ac
  */

@@ -26,8 +26,8 @@
  *
  * Tests for DataSection class.
  *
- * @author Jussi Nykänen 2003 (nykanen-no.spam-cs.tut.fi)
- * @author Mikael Lepistö 2005 (tmlepist-no.spam-cs.tut.fi)
+ * @author Jussi NykÃ¤nen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 2005 (tmlepist-no.spam-cs.tut.fi)
  * @note reviewed 21 October 2003 by rl, ml, jn, pj
  */
 

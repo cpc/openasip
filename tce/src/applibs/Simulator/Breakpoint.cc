@@ -27,7 +27,7 @@
  * Definition of Breakpoint class.
  *
  * @author Atte Oksman 2005 (oksman-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005,2010
+ * @author Pekka J√§√§skel√§inen 2005,2010
  * @note rating: red
  */
 

@@ -26,7 +26,7 @@
  *
  * LLVM pass for finding inner loops in the code.
  *
- * @author 2008-2015 Pekka J‰‰skel‰inen
+ * @author 2008-2015 Pekka J√§√§skel√§inen
  */
 
 #include <sstream>

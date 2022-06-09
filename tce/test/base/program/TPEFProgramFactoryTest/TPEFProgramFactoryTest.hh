@@ -26,7 +26,7 @@
  * 
  * A test suite for .
  *
- * @author Mikael Lepistö 2005 (mikael.lepisto-no.spam-tut.fi)
+ * @author Mikael LepistÃ¶ 2005 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: red
  */
 

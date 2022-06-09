@@ -29,7 +29,7 @@
  * classes.
  *
  * @author Tommi Rantanen 2003 (tommi.rantanen-no.spam-tut.fi)
- * @author Jari Mäntyneva 2005 (jari.mantyneva-no.spam-tut.fi)
+ * @author Jari MÃ¤ntyneva 2005 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 

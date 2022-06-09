@@ -26,7 +26,7 @@
  *
  * Declaration of the BasicBlock class.
  *
- * @author Pekka J‰‰skel‰inen 2007-2010
+ * @author Pekka J√§√§skel√§inen 2007-2010
  * @note rating: red
  */
 

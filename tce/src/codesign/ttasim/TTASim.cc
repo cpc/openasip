@@ -28,7 +28,7 @@
  *
  * The command line version of the TTA Simulator / Debugger
  *
- * @author Pekka J‰‰skel‰inen 2005-2012 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005-2012 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

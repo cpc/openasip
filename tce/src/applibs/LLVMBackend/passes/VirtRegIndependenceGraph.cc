@@ -24,7 +24,7 @@
 /**
  * @file VirtRegIndependenceGraph.cc
  *
- * @author Pekka J‰‰skel‰inen 2010
+ * @author Pekka J√§√§skel√§inen 2010
  * @note rating: red
  */
 #include "hash_set.hh"

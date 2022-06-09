@@ -26,7 +26,7 @@
  *
  * Declaration of ImmediateElement class.
  *
- * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
+ * @author Mikael LepistÃ¶ 2003 (tmlepist-no.spam-cs.tut.fi)
  * @note reviewed 21 October 2003 by ml, jn, rl, pj
  *
  * @note rating: yellow
