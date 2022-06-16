@@ -97,8 +97,11 @@ EnvironmentTest::tearDown() {
 void
 EnvironmentTest::testFindDirs() {
 
+    if (Environment::environmentVariable("TCE_DEVEL_MODE") != "1")
+      return;
+
     string DS = FileSystem::DIRECTORY_SEPARATOR;
-    
+
     string path = Environment::dataDirPath(APPLICATION_NAME);
     string correctPath = string(TCE_SRC_ROOT) + DS + "data" + DS + "ProDe";
     TS_ASSERT_EQUALS(path, correctPath);
