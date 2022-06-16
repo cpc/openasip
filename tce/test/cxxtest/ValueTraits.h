@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2022 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -24,10 +24,15 @@
 #ifndef __cxxtest__ValueTraits_h__
 #define __cxxtest__ValueTraits_h__
 
+#include "CompilerWarnings.hh"
+
+IGNORE_COMPILER_WARNING("-Wignored-qualifiers")
+IGNORE_COMPILER_WARNING("-Wcatch-value")
+
 //
 // ValueTraits are used by CxxTest to convert arbitrary
 // values used in TS_ASSERT_EQUALS() to a string representation.
-// 
+//
 // This header file contains value traits for builtin integral types.
 // To declare value traits for new types you should instantiate the class
 // ValueTraits<YourClass>.
