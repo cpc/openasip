@@ -189,13 +189,13 @@ ValidateMachineDialog::createContents(
     wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
 
     wxCheckBox *item4 = new wxCheckBox( parent, ID_CHECK_ANSI_C, wxT("Check for operations needed to support ANSI C."), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item4, 0, wxALL, 5 );
 
     wxCheckBox *item5 = new wxCheckBox( parent, ID_CHECK_GLOBAL_CONN_REGISTER, wxT("Check for global connection register."), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item5, 0, wxALL, 5 );
 
     wxButton *item6 = new wxButton( parent, ID_VALIDATE, wxT("Validate"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item6, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     item1->Add( item2, 0, wxGROW|wxALL, 5 );
 
@@ -205,17 +205,17 @@ ValidateMachineDialog::createContents(
     resultsWindow_ = new wxHtmlWindow(parent, ID_RESULTS, wxDefaultPosition, wxSize(250, 250));
     wxWindow* item9 = resultsWindow_;
     wxASSERT( item9 );
-    item7->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item7->Add( item9, 0, wxGROW|wxALL, 5 );
 
-    item1->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item7, 0, wxGROW|wxALL, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
     wxStaticLine *item10 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item10, 0, wxGROW|wxALL, 5 );
 
     wxButton *item11 = new wxButton( parent, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item11, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item11, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     if (set_sizer)
     {

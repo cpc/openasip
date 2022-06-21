@@ -347,7 +347,7 @@ RFPortDialog::createContents(
     wxStaticText *item2 =
 	new wxStaticText( parent, -1, wxT("Name:"),
 			  wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 0, wxALIGN_RIGHT|wxALL, 5 );
     wxTextCtrl *item3 =
 	new wxTextCtrl(parent, ID_NAME, wxT(""), wxDefaultPosition,
 		       wxSize(160,-1), 0,
@@ -358,30 +358,30 @@ RFPortDialog::createContents(
     wxStaticText *item4 =
 	new wxStaticText(parent, -1, wxT("Input Socket:"),
 			 wxDefaultPosition, wxDefaultSize, 0);
-    item1->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item4, 0, wxALIGN_RIGHT|wxALL, 5 );
     wxString *strs5 = (wxString*) NULL;
     inputSocketChoice_ =
 	new wxChoice(parent, ID_INPUT_SOCKET, wxDefaultPosition,
 		     wxSize(100,-1), 0, strs5, 0);
     item1->Add( inputSocketChoice_, 0,
-                wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+                wxGROW|wxALL, 5 );
 
     // output socket element
     wxStaticText *item6 =
 	new wxStaticText(parent, -1, wxT("Output Socket:"),
 			 wxDefaultPosition, wxDefaultSize, 0);
-    item1->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item6, 0, wxALIGN_RIGHT|wxALL, 5 );
     wxString *strs7 = (wxString*) NULL;
     outputSocketChoice_ =
 	new wxChoice(parent, ID_OUTPUT_SOCKET, wxDefaultPosition,
 		     wxSize(100,-1), 0, strs7, 0);
     item1->Add( outputSocketChoice_, 0,
-                wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+                wxGROW|wxALL, 5 );
+    item0->Add( item1, 0, wxGROW|wxALL, 5 );
     wxStaticLine *item8 =
 	new wxStaticLine(parent, -1, wxDefaultPosition, wxSize(20,-1),
 			 wxLI_HORIZONTAL);
-    item0->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item8, 0, wxGROW|wxALL, 5 );
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
     // buttons

@@ -26,7 +26,7 @@
  *
  * Definition of AboutDialog class.
  *
- * @author Veli-Pekka J��skel�inen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jääskeläinen (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #include <string>
@@ -126,7 +126,7 @@ AboutDialog::createContents(
     wxStaticLine *item7 =
 	new wxStaticLine(parent, -1, wxDefaultPosition,
 			 wxSize(20,-1), wxLI_HORIZONTAL);
-    item0->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item7, 0, wxGROW|wxALL, 5 );
     wxButton *item8 =
 	new wxButton(parent, wxID_OK, wxT("&OK"), wxDefaultPosition,
 		     wxDefaultSize, 0);

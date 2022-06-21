@@ -165,7 +165,7 @@ AddRFFromHDBDialog::AddRFFromHDBDialog(
     string iconPath =
         Environment::iconDirPath() + FileSystem::DIRECTORY_SEPARATOR;
 
-    wxImageList* imageList = new wxImageList();
+    wxImageList* imageList = new wxImageList(13, 17);
     imageList->Add(wxIcon(
         WxConversion::toWxString(iconPath + ProDeConstants::ICON_SORT_DESC)));
     imageList->Add(wxIcon(
@@ -398,7 +398,7 @@ AddRFFromHDBDialog::createContents(
     item0->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticLine *item3 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item3, 0, wxGROW|wxALL, 5 );
 
     wxButton *item4 = new wxButton( parent, ID_CLOSE, wxT("&Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );

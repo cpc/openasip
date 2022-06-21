@@ -352,26 +352,26 @@ RFGuardDialog::createContents(
     wxGridSizer *item1 = new wxGridSizer( 2, 0, 0 );
 
     wxStaticText *item2 = new wxStaticText( parent, ID_LABEL_NAME, wxT("Register File Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 0, wxALL, 5 );
 
     wxString *strs3 = (wxString*) NULL;
     wxChoice *item3 = new wxChoice( parent, ID_RF_NAME, wxDefaultPosition, wxSize(100,-1), 0, strs3, 0 );
-    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item3, 0, wxGROW|wxALL, 5 );
 
     wxStaticText *item4 = new wxStaticText( parent, ID_LABEL_INDEX, wxT("Register Index:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item4, 0, wxALL, 5 );
 
     wxString *strs5 = (wxString*) NULL;
     wxChoice *item5 = new wxChoice( parent, ID_RF_INDEX, wxDefaultPosition, wxSize(100,-1), 0, strs5, 0 );
-    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item5, 0, wxGROW|wxALL, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
     wxCheckBox *item6 = new wxCheckBox( parent, ID_INVERTED, wxT("Inverted"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item6, 0, wxALL, 5 );
 
     wxStaticLine *item7 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item7, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 

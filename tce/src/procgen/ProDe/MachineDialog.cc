@@ -128,19 +128,19 @@ MachineDialog::createContents(
     wxStaticText *endianessLabel = new wxStaticText(parent, -1,
         wxT("Endianess:"), wxDefaultPosition, wxDefaultSize, 0 );
     machSettings->Add(endianessLabel,
-        0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+        0, wxALIGN_RIGHT|wxALL, 5);
     // Choice
     endianessChoise_ = new wxChoice(parent, ID_ENDIANESS_CHOICE,
         wxDefaultPosition, wxDefaultSize);
     machSettings->Add(endianessChoise_,
-        0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+        0, wxALL, 5);
 
     root->Add(machSettings, 0, wxALIGN_CENTER|wxALL, 5);
 
     // Buttons //
     wxStaticLine *horizLine = new wxStaticLine(parent, wxID_ANY,
         wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL);
-    root->Add(horizLine, 0, wxGROW|wxALIGN_CENTER|wxALL, 5);
+    root->Add(horizLine, 0, wxGROW|wxALL, 5);
     wxBoxSizer *buttonBox = new wxBoxSizer(wxHORIZONTAL);
     // Ok button
     wxButton *okButton =

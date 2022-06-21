@@ -383,10 +383,10 @@ BlockImplementationDialog::createContents(
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxListCtrl *item4 = new wxListCtrl( parent, ID_LIST, wxDefaultPosition, wxSize(300,120), wxLC_REPORT|wxSUNKEN_BORDER );
-    item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item4, 0, wxGROW|wxALL, 5 );
 
     wxStaticLine *item5 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item5, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -396,7 +396,7 @@ BlockImplementationDialog::createContents(
     wxButton *item8 = new wxButton( parent, wxID_OK, wxT("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item6->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item6, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {

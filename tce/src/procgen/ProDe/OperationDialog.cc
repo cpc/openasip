@@ -1122,47 +1122,47 @@ OperationDialog::createContents(
     item8->AddGrowableRow( 0 );
 
     wxListCtrl *item9 = new wxListCtrl( parent, ID_BIND_LIST, wxDefaultPosition, wxSize(200,300), wxLC_REPORT|wxSUNKEN_BORDER );
-    item8->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item8->Add( item9, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
     wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
     wxStaticText *item12 = new wxStaticText( parent, ID_LABEL_PORT, wxT("Port:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item12, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item12, 0, wxALL, 5 );
 
     wxString *strs13 = (wxString*) NULL;
     wxChoice *item13 = new wxChoice( parent, ID_PORT, wxDefaultPosition, wxSize(100,-1), 0, strs13, 0 );
-    item11->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item13, 0, wxGROW|wxALL, 5 );
 
     wxButton *item14 = new wxButton( parent, ID_DELETE_OPERAND, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item14, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item14, 0, wxALL, 5 );
 
-    item10->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item10->Add( item11, 0, wxGROW, 5 );
 
     wxStaticLine *item15 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item10->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item10->Add( item15, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
     wxStaticText *item17 = new wxStaticText( parent, ID_LABEL_OPERAND, wxT("New operand:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->Add( item17, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item16->Add( item17, 0, wxALL, 5 );
 
-    wxSpinCtrl *item18 = new wxSpinCtrl( parent, ID_NUMBER, wxT("1"), wxDefaultPosition, wxSize(60,-1), 0, 1, 10000, 1 );
-    item16->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxSpinCtrl *item18 = new wxSpinCtrl( parent, ID_NUMBER, wxT("1"), wxDefaultPosition, wxSize(-1,-1), 0, 1, 10000, 1 );
+    item16->Add( item18, 0, wxGROW|wxALL, 5 );
 
     wxButton *item19 = new wxButton( parent, ID_ADD_OPERAND, wxT("Add"), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->Add( item19, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item16->Add( item19, 0, wxALL, 5 );
 
     item10->Add( item16, 0, wxALIGN_CENTER, 5 );
 
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item6->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item6->Add( item8, 0, wxGROW, 5 );
 
-    item2->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item2->Add( item6, 0, wxGROW, 5 );
 
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 0, wxGROW|wxALL, 5 );
 
     wxFlexGridSizer *item20 = new wxFlexGridSizer( 1, 0, 0 );
     item20->AddGrowableCol( 0 );
@@ -1179,7 +1179,7 @@ OperationDialog::createContents(
 
     wxGrid *item24 = new wxGrid( parent, ID_RESOURCE_GRID, wxDefaultPosition, wxSize(400,200), wxWANTS_CHARS );
     item24->CreateGrid( 0, 0, wxGrid::wxGridSelectRows );
-    item23->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item23->Add( item24, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item25 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -1199,11 +1199,11 @@ OperationDialog::createContents(
 
     //item25->Add( 30, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item23->Add( item25, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item23->Add( item25, 0, wxGROW|wxALL, 5 );
 
-    item21->Add( item23, 1, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item21->Add( item23, 1, wxGROW, 5 );
 
-    item20->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxBOTTOM, 5 );
+    item20->Add( item21, 0, wxGROW|wxBOTTOM, 5 );
 
     wxStaticBox *item33 = new wxStaticBox( parent, -1, wxT("Operand usage:") );
     wxStaticBoxSizer *item32 = new wxStaticBoxSizer( item33, wxHORIZONTAL );
@@ -1213,7 +1213,7 @@ OperationDialog::createContents(
     item34->CreateGrid( 0, 0, wxGrid::wxGridSelectCells );
     item32->Add( item34, 1, wxGROW|wxALL, 5 );
 
-    item20->Add( item32, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item20->Add( item32, 0, wxGROW, 5 );
 
     wxBoxSizer *item35 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -1223,21 +1223,21 @@ OperationDialog::createContents(
     wxStaticText *item37 = new wxStaticText( parent, ID_LATENCY, wxT("                 "), wxDefaultPosition, wxDefaultSize, 0 );
     item35->Add( item37, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item20->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item20->Add( item35, 0, wxGROW|wxALL, 5 );
 
     item1->Add( item20, 0, wxGROW, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item38 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticLine *item39 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item38->Add( item39, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item38->Add( item39, 0, wxGROW|wxALL, 5 );
 
     wxGridSizer *item40 = new wxGridSizer( 2, 0, 0 );
 
     wxButton *item41 = new wxButton( parent, ID_HELP, wxT("&Help"), wxDefaultPosition, wxDefaultSize, 0 );
-    item40->Add( item41, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item40->Add( item41, 0, wxALL, 5 );
 
     wxBoxSizer *item42 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -1247,11 +1247,11 @@ OperationDialog::createContents(
     wxButton *item44 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item42->Add( item44, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item40->Add( item42, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+    item40->Add( item42, 0, 0, 5 );
 
-    item38->Add( item40, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item38->Add( item40, 0, wxGROW, 5 );
 
-    item0->Add( item38, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item0->Add( item38, 0, wxGROW, 5 );
 
     if (set_sizer) {
         parent->SetSizer( item0 );

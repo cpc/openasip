@@ -429,8 +429,8 @@ OpsetDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     // Operation filter input
     wxTextCtrl *opNameFilter = new wxTextCtrl(parent, ID_OP_FILTER, wxT(""),
         wxDefaultPosition, wxDefaultSize, 0);
-    filterSizer->Add(opNameFilterLabel, 0, wxALIGN_CENTER_VERTICAL);
-    filterSizer->Add(opNameFilter, 1, wxEXPAND|wxALIGN_RIGHT);
+    filterSizer->Add(opNameFilterLabel, 0, 0);
+    filterSizer->Add(opNameFilter, 1, wxEXPAND);
     leftSizer->Add(filterSizer, 0, wxEXPAND|wxALL, 5);
 
     // Sizer for latencyLabel and latencySpinner
@@ -440,8 +440,8 @@ OpsetDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
         wxT("Latency:"), wxDefaultPosition, wxDefaultSize, 0);
     // Latency spinner
     wxSpinCtrl *latencySpinner = new wxSpinCtrl(parent, ID_LATENCY, wxT("1"),
-        wxDefaultPosition, wxSize(50,-1), 0, 1, 100, 1);
-    latencySizer->Add(latencyLabel, 1, wxALIGN_CENTER_VERTICAL);
+        wxDefaultPosition, wxSize(-1,-1), 0, 1, 100, 1);
+    latencySizer->Add(latencyLabel, 1, 0);
     latencySizer->Add(latencySpinner, 1);
     leftSizer->Add(latencySizer, 0, wxEXPAND|wxALL, 5);
 
@@ -487,7 +487,7 @@ OpsetDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
         wxDefaultPosition, wxDefaultSize, 0);
     buttonsSizer->Add(okButton, 0, wxALIGN_CENTER|wxALL, 5);
 
-    mainSizer->Add(buttonsSizer, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    mainSizer->Add(buttonsSizer, 0, 0, 5);
 
     if (set_sizer) {
         parent->SetSizer(mainSizer);
