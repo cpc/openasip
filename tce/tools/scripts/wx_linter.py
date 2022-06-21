@@ -41,10 +41,10 @@ def main():
 
     parser = argparse.ArgumentParser(allow_abbrev=False)
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("-v", "--verbose", help="display debugging data)",
+    group.add_argument("-v", "--verbose", help="display all files processed",
+                       action="store_const", const=logging.INFO, dest='loglevel')
+    group.add_argument("-d", "--debug", help="display debugging information)",
                        action="store_const", const=logging.DEBUG, dest='loglevel')
-    group.add_argument("-q", "--quiet", help="display warnings and errors only",
-                       action="store_const", const=logging.WARNING, dest='loglevel')
 
     parser.add_argument(
         "--lint", choices=linter_keywords, default=linter_keywords,
@@ -56,12 +56,15 @@ def main():
     parser.add_argument("file", nargs="+", help="file to check")
     args = parser.parse_args()
 
-    logging.basicConfig(level=args.loglevel or logging.INFO)
+    logging.basicConfig(level=args.loglevel or logging.WARNING)
 
     if args.dry_run:
         logging.info("Dry run -- no files will be overwritten")
+    num_changed = 0
     for filepath in args.file:
-        process_file(filepath, args.lint, args.dry_run)
+        if process_file(filepath, args.lint, args.dry_run):
+            num_changed += 1
+    print(f"{num_changed} file(s) changed")
 
 
 def allocate_linters(linter_keys, filepath):
@@ -111,6 +114,7 @@ def process_file(path, linter_keys, is_dry_run):
             logging.warning("%s: needs fixes", path)
     else:
         logging.info("%s: ok", path)
+    return is_changed
 
 
 class UTF8ContextManager:
