@@ -169,9 +169,9 @@ class TestFixSizeOnSpinner(unittest.TestCase):
 
     def test_repair_size(self):
         """Cannot have alignment flags w/ wxWXPAND or wxGROW"""
-        self.assertEqual(self.rule.process("wxSize(100, 100)"), "wxSize()")
-        self.assertEqual(self.rule.process("wxSize(-1, -1)"), "wxSize()")
-        self.assertEqual(self.rule.process("wxSize()"), "wxSize()")
+        self.assertEqual(self.rule.process("wxSize(100, 100)"), "wxSize(-1,-1)")
+        self.assertEqual(self.rule.process("wxSize(-1, -1)"), "wxSize(-1,-1)")
+        self.assertEqual(self.rule.process("wxSize()"), "wxSize(-1,-1)")
 
 
 if __name__ == '__main__':

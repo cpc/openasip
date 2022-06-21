@@ -249,7 +249,7 @@ class RemoveSizeFromSpinner(LintRuleBase):
         self.name = "RemoveSizeFromSpinner"
         self.in_candidate = False
         self.spinner_re = re.compile(r"new\s+wxSpinCtrl")
-        self.size_re = re.compile(r"wxSize\(([-]?\d+),\s*([-]?\d+)\)")
+        self.size_re = re.compile(r"wxSize\((([-]?\d+),\s*([-]?\d+))?\)")
         super().__init__(filepath)
 
     def match(self, line, _=0):
@@ -261,7 +261,7 @@ class RemoveSizeFromSpinner(LintRuleBase):
             self.in_candidate = True
         if self.in_candidate:
             size_param = self.size_re.search(cleaned_line)
-            if size_param and (size_param.group(1) != "-1" or size_param.group(2) != "-1"):
+            if size_param and (size_param.group(2) != "-1" or size_param.group(3) != "-1"):
                 self.in_candidate = False
                 return line
             if cleaned_line.endswith(";"):
@@ -275,7 +275,7 @@ class RemoveSizeFromSpinner(LintRuleBase):
             return line
         prefix = line[:matched.start()]
         suffix = line[matched.end():]
-        return prefix + "wxSize()" + suffix
+        return prefix + "wxSize(-1,-1)" + suffix
 
 
 class FlagUnsizedImageList(LintRuleBase):
