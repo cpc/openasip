@@ -1,6 +1,16 @@
 2.0        unreleased
 =====================
 
+Notable changes and features
+----------------------------
+
+Notable bugfixes
+----------------------------
+- GUIs: Patches to GTK assertion errors on (mostly) non-Ubuntu systems.
+  Fixes Github issue #140. Thanks to Sarah Clark.
+
+
+
 1.25        June 2022
 =====================
 
