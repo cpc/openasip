@@ -289,22 +289,22 @@ IUPortDialog::createContents(
     wxFlexGridSizer *item1 = new wxFlexGridSizer( 2, 0, 0 );
 
     wxStaticText *item2 = new wxStaticText( parent, ID_LABEL_NAME, wxT("Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxTextCtrl *item3 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(140,-1), 0 );
-    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item3, 0, wxGROW|wxALL, 5 );
 
     wxStaticText *item4 = new wxStaticText( parent, ID_LABEL_OUTPUT_SOCKET, wxT("Output Socket"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item4, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxString *strs5 = (wxString*) NULL;
     wxChoice *item5 = new wxChoice( parent, ID_OUTPUT_SOCKET, wxDefaultPosition, wxSize(100,-1), 0, strs5, 0 );
-    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item5, 0, wxGROW|wxALL, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
     wxStaticLine *item6 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item6, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 

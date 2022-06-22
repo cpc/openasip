@@ -140,7 +140,7 @@ ProDeOptionsDialog::createGeneralPage(
     wxStaticText *item1 = new wxStaticText( parent, ID_LABEL_UNDO_LEVELS, wxT("Undo levels:"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxSpinCtrl *item2 = new wxSpinCtrl( parent, ID_UNDO_LEVELS, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 100, 0 );
+    wxSpinCtrl *item2 = new wxSpinCtrl( parent, ID_UNDO_LEVELS, wxT("1"), wxDefaultPosition, wxSize(-1,-1), 0, 1, 100, 0 );
     item0->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
 
     if (set_sizer)

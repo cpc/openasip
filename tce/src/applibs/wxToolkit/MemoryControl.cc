@@ -205,7 +205,7 @@ MemoryControl::createContents() {
     grid_->DisableDragGridSize();
     grid_->DisableDragRowSize();
 
-    sizer_->Add(grid_, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    sizer_->Add(grid_, 1, wxGROW|wxALL, 5);
 
     dataMode_ = new wxChoice(
         this, ID_CHOICE_DATA, wxDefaultPosition, wxDefaultSize, 0, NULL, 0);

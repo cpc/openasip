@@ -207,12 +207,12 @@ ProDeBusOrderDialog::createContents(
     wxButton *item5 = new wxButton( parent, ID_DOWN, wxT("&Down"), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item3, 0, wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item1->Add( item3, 0, wxALL, 5 );
 
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item6 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item6, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item7 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -222,7 +222,7 @@ ProDeBusOrderDialog::createContents(
     wxButton *item9 = new wxButton( parent, wxID_OK, wxT("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item7, 0, wxALL, 5 );
 
     if (set_sizer)
     {
