@@ -593,7 +593,7 @@ SimulateDialog::createContents(
     inputSizer_ = item2;
 
     wxListCtrl *item4 = new wxListCtrl( parent, ID_INPUT_LIST, wxDefaultPosition, wxSize(160,120), wxLC_REPORT|wxSUNKEN_BORDER );
-    item2->Add( item4, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item4, 1, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item5 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -610,16 +610,16 @@ SimulateDialog::createContents(
 
     item2->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item2, 1, wxGROW|wxALIGN_CENTER|wxALL, 5 );
+    item1->Add( item2, 1, wxGROW|wxALL, 5 );
 
     wxStaticBox *item9 = new wxStaticBox( parent, -1, wxT("Output values") );
     wxStaticBoxSizer *item8 = new wxStaticBoxSizer( item9, wxVERTICAL );
     outputSizer_ = item8;
 
     wxListCtrl *item10 = new wxListCtrl( parent, ID_OUTPUT_LIST, wxDefaultPosition, wxSize(200,120), wxLC_REPORT|wxSUNKEN_BORDER );
-    item8->Add( item10, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item8->Add( item10, 1, wxGROW|wxALL, 5 );
 
-    item1->Add( item8, 1, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item1->Add( item8, 1, wxGROW|wxALL, 5 );
 
     wxGridSizer *item11 = new wxGridSizer( 2, 0, 0 );
 
@@ -641,9 +641,9 @@ SimulateDialog::createContents(
     wxStaticText *item17 = new wxStaticText( parent, ID_TEXT_CLOCK_VALUE, wxT("0"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item11, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item1->Add( item11, 0, wxGROW|wxALL, 5 );
 
-    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 

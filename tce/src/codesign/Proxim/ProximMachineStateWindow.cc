@@ -233,9 +233,9 @@ ProximMachineStateWindow::createContents() {
         left, ID_UTILIZATION, wxT(""), wxDefaultPosition, wxSize(80,40),
         wxTE_MULTILINE|wxTE_READONLY|wxVSCROLL|wxHSCROLL);
 
-    leftSizer->Add(title, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    leftSizer->Add(title, 0, wxGROW|wxALL, 5);
     leftSizer->Add(detailsCtrl_, 0, wxGROW|wxALL, 5);
-    leftSizer->Add(line, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    leftSizer->Add(line, 0, wxGROW|wxALL, 5);
     leftSizer->Add(utilizationTitle, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
     leftSizer->Add(utilizationCtrl_, 0, wxGROW|wxALL, 5);
     left->SetSizer(leftSizer);
@@ -247,7 +247,7 @@ ProximMachineStateWindow::createContents() {
     rightSizer->AddGrowableRow(0);
     canvas_ = new MachineCanvas(right, new ProximEditPolicyFactory());
     statusbar_ = new wxStatusBar(right, -1);
-    rightSizer->Add(canvas_, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    rightSizer->Add(canvas_, 0, wxGROW|wxALL, 5);
     rightSizer->Add(statusbar_, 0, wxGROW|wxALL, 5);
     right->SetSizer(rightSizer);
 

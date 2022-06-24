@@ -174,24 +174,24 @@ FUExternalPortDialog::createContents(
     wxFlexGridSizer *item2 = new wxFlexGridSizer( 2, 0, 0 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_LABEL_NAME, wxT("Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item3, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxTextCtrl *item4 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(300,-1), 0 );
     item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_LABEL_WIDTH, wxT("Width formula:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item5, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxTextCtrl *item6 = new wxTextCtrl( parent, ID_WIDTH, wxT(""), wxDefaultPosition, wxSize(200,-1), 0 );
-    item2->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item6, 0, wxGROW|wxALL, 5 );
 
     wxStaticText *item7 = new wxStaticText( parent, ID_LABEL_DESCRIPTION, wxT("Description:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item7, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxTextCtrl *item8 = new wxTextCtrl( parent, ID_DESCRIPTION, wxT(""), wxDefaultPosition, wxSize(300,-1), 0 );
     item2->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 0, wxGROW|wxALL, 5 );
 
     wxGridSizer *item9 = new wxGridSizer( 2, 0, 0 );
 
@@ -202,23 +202,23 @@ FUExternalPortDialog::createContents(
         wxT("Bidirectional")
     };
     wxRadioBox *item10 = new wxRadioBox( parent, ID_DIRECTION, wxT("Direction:"), wxDefaultPosition, wxDefaultSize, 3, strs10, 1, wxRA_SPECIFY_COLS );
-    item9->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item9->Add( item10, 0, wxGROW|wxALL, 5 );
 
     wxStaticBox *item12 = new wxStaticBox( parent, -1, wxT("Parameter dependency:") );
     wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxVERTICAL );
     
     wxWindow *item13 = new wxCheckListBox(parent, ID_PARAMETER_DEPS, wxDefaultPosition, wxSize(200, 150));
     wxASSERT( item13 );
-    item11->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item13, 0, wxGROW|wxALL, 5 );
 
-    item9->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item9->Add( item11, 0, wxGROW|wxALL, 5 );
 
-    item1->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item9, 0, wxGROW|wxALL, 5 );
 
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item14 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item14, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -228,7 +228,7 @@ FUExternalPortDialog::createContents(
     wxButton *item17 = new wxButton( parent, wxID_OK, wxT("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item15->Add( item17, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item15, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item15, 0, wxALL, 5 );
 
     if (set_sizer)
     {

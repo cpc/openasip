@@ -70,7 +70,7 @@ DisasmExecCountFrame::DisasmExecCountFrame(
 
     list_->InsertColumn(0, _T("Exec Count"), wxLIST_FORMAT_LEFT, 100);
     list_->InsertColumn(1, _T("Address range"), wxLIST_FORMAT_LEFT, 200);
-    sizer->Add(list_, 1, wxEXPAND |wxALL, 5);
+    sizer->Add(list_, 1, wxEXPAND|wxALL, 5);
     SetSizer(sizer);
 }
 

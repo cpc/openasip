@@ -527,7 +527,7 @@ InputOperandDialog::createContents(wxWindow *parent, bool call_fit, bool set_siz
 
     wxStaticText *itemTextWidth = new wxStaticText(parent, ID_TEXT_WIDTH, wxT("Element width:"), wxDefaultPosition, wxDefaultSize, 0);
     item1->Add(itemTextWidth, 0, wxALIGN_CENTER|wxALL, 5);
-    wxSpinCtrl *itemElemWidth = new wxSpinCtrl(parent, ID_ELEMENT_WIDTH, wxT(""), wxDefaultPosition, wxSize(70,-1), 1);
+    wxSpinCtrl *itemElemWidth = new wxSpinCtrl(parent, ID_ELEMENT_WIDTH, wxT(""), wxDefaultPosition, wxSize(-1,-1), 1);
     item1->Add(itemElemWidth, 0, wxALIGN_CENTER|wxALL, 5);
     wxStaticText *itemTextCount = new wxStaticText(parent, ID_TEXT_COUNT, wxT("Element count:"), wxDefaultPosition, wxDefaultSize, 0);
     item1->Add(itemTextCount, 0, wxALIGN_CENTER|wxALL, 5);
@@ -550,7 +550,7 @@ InputOperandDialog::createContents(wxWindow *parent, bool call_fit, bool set_siz
     swapSizer_ = item4;
 
     wxListCtrl *item6 = new wxListCtrl(parent, ID_SWAP_LIST, wxDefaultPosition, wxSize(160,120), wxLC_REPORT|wxSUNKEN_BORDER);
-    item4->Add(item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item4->Add(item6, 0, wxGROW|wxALL, 5);
 
     wxBoxSizer *item7 = new wxBoxSizer(wxHORIZONTAL);
     
@@ -579,7 +579,7 @@ InputOperandDialog::createContents(wxWindow *parent, bool call_fit, bool set_siz
     wxButton *item14 = new wxButton(parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0);
     item12->Add(item14, 0, wxALIGN_CENTER|wxALL, 5);
 
-    item11->Add(item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item11->Add(item12, 0, wxGROW|wxALL, 5);
 
     item0->Add(item11, 0, wxALIGN_CENTER|wxALL, 5);
 

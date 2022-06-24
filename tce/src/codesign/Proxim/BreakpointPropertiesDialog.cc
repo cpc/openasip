@@ -159,13 +159,13 @@ BreakpointPropertiesDialog::createContents(
     item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_TEXT_BP_ID, wxT(""), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item3, 0, wxALL, 5 );
 
     wxStaticText *item4 = new wxStaticText( parent, ID_LABEL_IGNORE_COUNT, wxT("Ignore count:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item4, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-    wxSpinCtrl *item5 = new wxSpinCtrl( parent, ID_IGNORE_CTRL, wxT("0"), wxDefaultPosition, wxSize(100,-1), 0, 0, 100, 0 );
-    item1->Add( item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    wxSpinCtrl *item5 = new wxSpinCtrl( parent, ID_IGNORE_CTRL, wxT("0"), wxDefaultPosition, wxSize(-1,-1), 0, 0, 100, 0 );
+    item1->Add( item5, 0, wxALL, 5 );
 
     wxStaticText *item6 = new wxStaticText( parent, ID_LABEL_CONDITION, wxT("Condition:"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item6, 0, wxALIGN_RIGHT|wxALL, 5 );
@@ -173,10 +173,10 @@ BreakpointPropertiesDialog::createContents(
     wxTextCtrl *item7 = new wxTextCtrl( parent, ID_CONDITION, wxT(""), wxDefaultPosition, wxSize(250,-1));
     item1->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL, 5 );
+    item0->Add( item1, 0, wxGROW, 5 );
 
     wxStaticLine *item8 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item8, 0, wxGROW|wxALL, 5 );
 
     wxGridSizer *item9 = new wxGridSizer( 2, 0, 0 );
 
@@ -186,7 +186,7 @@ BreakpointPropertiesDialog::createContents(
     wxButton *item11 = new wxButton( parent, wxID_OK, wxT("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL, 5 );
+    item0->Add( item9, 0, wxGROW, 5 );
 
     if (set_sizer)
     {

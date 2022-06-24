@@ -238,10 +238,10 @@ ProximMemoryWindow::createContents() {
     wxStaticLine *item4 = new wxStaticLine(
         this, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL);
 
-    sizer_->Add(item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    sizer_->Add(item4, 0, wxGROW|wxALL, 5);
     
     asInfoText_ = new wxStaticText(this, ID_TEXT_AS_INFO, wxT(""));
-    sizer_->Add(asInfoText_, 0, wxGROW|wxALIGN_CENTER|wxALL, 5);
+    sizer_->Add(asInfoText_, 0, wxGROW|wxALL, 5);
 
     this->SetSizer(sizer_);
     sizer_->SetSizeHints(this);

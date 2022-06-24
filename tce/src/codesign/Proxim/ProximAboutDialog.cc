@@ -84,7 +84,7 @@ ProximAboutDialog::createContents(
     item0->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item4 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(200,-1), wxLI_HORIZONTAL );
-    item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item4, 0, wxGROW|wxALL, 5 );
 
     wxButton *item5 = new wxButton( parent, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );

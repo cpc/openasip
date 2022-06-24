@@ -1282,10 +1282,10 @@ OperationPropertyDialog::createContents(
     wxBoxSizer *nameSizer = new wxBoxSizer(wxHORIZONTAL);
 
     wxStaticText *item2 = new wxStaticText(parent, ID_TEXT_NAME, wxT("Name:"), wxDefaultPosition, wxDefaultSize, 0);
-    nameSizer->Add(item2, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    nameSizer->Add(item2, 0, wxALL, 5);
 
     wxTextCtrl *item3 = new wxTextCtrl(parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), 0);
-    nameSizer->Add(item3, 0, wxALIGN_LEFT|wxALL, 5);
+    nameSizer->Add(item3, 0, wxALL, 5);
 
     wxStaticBox *opProperties = new wxStaticBox(parent, -1, wxT("Operation properties"));
     wxStaticBoxSizer *opPropertiesContainer = new wxStaticBoxSizer(opProperties, wxVERTICAL);
@@ -1299,23 +1299,23 @@ OperationPropertyDialog::createContents(
 
     opDescriptionContainer->Add(editDescription, 0, wxALL|wxEXPAND, 5);
 
-    opHeaderSizer->Add(opPropertiesContainer, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
-    opHeaderSizer->Add(opDescriptionContainer, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL|wxGROW, 5);
+    opHeaderSizer->Add(opPropertiesContainer, 0, wxALL, 5);
+    opHeaderSizer->Add(opDescriptionContainer, 0, wxALL|wxGROW, 5);
 
     wxCheckBox *item4 = new wxCheckBox(parent, ID_READS_MEMORY, wxT("Reads memory"), wxDefaultPosition, wxDefaultSize, 0);
-    item1->Add(item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item1->Add(item4, 0, wxALL, 5);
 
     wxCheckBox *item5 = new wxCheckBox(parent, ID_WRITES_MEMORY, wxT("Writes memory"), wxDefaultPosition, wxDefaultSize, 0);
-    item1->Add(item5, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item1->Add(item5, 0, wxALL, 5);
 
     wxCheckBox *item6 = new wxCheckBox(parent, ID_CAN_TRAP, wxT("Can trap"), wxDefaultPosition, wxDefaultSize, 0);
-    item1->Add(item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item1->Add(item6, 0, wxALL, 5);
 
     wxCheckBox *item7 = new wxCheckBox(parent, ID_HAS_SIDE_EFFECTS, wxT("Has side effects"), wxDefaultPosition, wxDefaultSize, 0);
-    item1->Add(item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item1->Add(item7, 0, wxALL, 5);
 
     wxCheckBox *clocked = new wxCheckBox(parent, ID_CLOCKED, wxT("Clocked"), wxDefaultPosition, wxDefaultSize, 0);
-    item1->Add(clocked, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item1->Add(clocked, 0, wxALL, 5);
 
     item0->Add(opHeaderSizer, 0, wxALIGN_CENTER|wxALL, 5);
 
@@ -1326,7 +1326,7 @@ OperationPropertyDialog::createContents(
     affectedBySizer_ = item9;
 
     wxListCtrl *item11 = new wxListCtrl(parent, ID_AFFECTED_BY, wxDefaultPosition, wxSize(160,120), wxLC_REPORT|wxSUNKEN_BORDER);
-    item9->Add(item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 10);
+    item9->Add(item11, 0, wxGROW|wxALL, 10);
 
     wxBoxSizer *item12 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1343,9 +1343,9 @@ OperationPropertyDialog::createContents(
     wxButton *item15 = new wxButton(parent, ID_AFFECTED_DELETE_BUTTON, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0);
     item12->Add(item15, 0, wxALIGN_CENTER|wxALL, 5);
 
-    item9->Add(item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item9->Add(item12, 0, wxGROW|wxALL, 5);
 
-    item8->Add(item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item8->Add(item9, 0, wxGROW|wxALL, 5);
 
     // Operation inputs
     wxStaticBox *item17 = new wxStaticBox(parent, -1, wxT("Input operands"));
@@ -1362,14 +1362,14 @@ OperationPropertyDialog::createContents(
 
     // Move up and down buttons
     wxBitmapButton *item21 = new wxBitmapButton(parent, ID_INPUT_UP_BUTTON, createBitmaps(0), wxDefaultPosition, wxDefaultSize);
-    item20->Add(item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item20->Add(item21, 0, wxALL, 5);
 
     wxBitmapButton *item22 = new wxBitmapButton(parent, ID_INPUT_DOWN_BUTTON, createBitmaps(1), wxDefaultPosition, wxDefaultSize);
     item20->Add(item22, 0, wxALIGN_CENTER|wxALL, 5);
 
     item18->Add(item20, 0, wxALIGN_CENTER|wxALL, 5);
 
-    item16->Add(item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item16->Add(item18, 0, wxGROW|wxALL, 5);
 
     wxBoxSizer *item23 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1384,14 +1384,14 @@ OperationPropertyDialog::createContents(
 
     item16->Add(item23, 0, wxALIGN_CENTER|wxALL, 5);
 
-    item8->Add(item16, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item8->Add(item16, 0, wxGROW|wxALL, 5);
 
     wxStaticBox *item28 = new wxStaticBox(parent, -1, wxT("Affects"));
     wxStaticBoxSizer *item27 = new wxStaticBoxSizer(item28, wxVERTICAL);
     affectsSizer_ = item27;
 
     wxListCtrl *item29 = new wxListCtrl(parent, ID_AFFECTS, wxDefaultPosition, wxSize(160,120), wxLC_REPORT|wxSUNKEN_BORDER);
-    item27->Add(item29, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 10);
+    item27->Add(item29, 0, wxGROW|wxALL, 10);
 
     wxBoxSizer *item30 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1408,9 +1408,9 @@ OperationPropertyDialog::createContents(
     wxButton *item33 = new wxButton(parent, ID_AFFECTS_DELETE_BUTTON, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0);
     item30->Add(item33, 0, wxALIGN_CENTER|wxALL, 5);
 
-    item27->Add(item30, 0, wxGROW|wxALIGN_CENTER|wxALL, 5);
+    item27->Add(item30, 0, wxGROW|wxALL, 5);
 
-    item8->Add(item27, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item8->Add(item27, 0, wxGROW|wxALL, 5);
 
     wxStaticBox *item35 = new wxStaticBox(parent, -1, wxT("Output operands"));
     wxStaticBoxSizer *item34 = new wxStaticBoxSizer(item35, wxVERTICAL);
@@ -1431,7 +1431,7 @@ OperationPropertyDialog::createContents(
 
     item36->Add(item38, 0, wxALIGN_CENTER|wxALL, 5);
 
-    item34->Add(item36, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item34->Add(item36, 0, wxGROW|wxALL, 5);
 
     wxBoxSizer *item41 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1449,7 +1449,7 @@ OperationPropertyDialog::createContents(
     item8->Add(item34, 0, wxALIGN_CENTER|wxALL, 5);
 
     wxBoxSizer *pageSizer = new wxBoxSizer(wxHORIZONTAL);
-    pageSizer->Add(item8, 0, wxALIGN_TOP|wxALL, 5);
+    pageSizer->Add(item8, 0, wxALL, 5);
 
     item0->Add(pageSizer, 0, wxALIGN_CENTER|wxALL, 5);
 
@@ -1471,7 +1471,7 @@ OperationPropertyDialog::createContents(
     wxButton *OpenDAG = new wxButton(parent, ID_DAG_BUTTON, wxT("Open DAG"), wxDefaultPosition, wxDefaultSize, 0);
     item46->Add(OpenDAG, 0, wxALIGN_CENTER|wxALL, 5);
 
-    item45->Add(item46, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item45->Add(item46, 0, wxALL, 5);
 
     wxBoxSizer *item49 = new wxBoxSizer(wxHORIZONTAL);
 
@@ -1481,9 +1481,9 @@ OperationPropertyDialog::createContents(
     wxButton *item51 = new wxButton(parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0);
     item49->Add(item51, 0, wxALIGN_CENTER|wxALL, 5);
 
-    item45->Add(item49, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item45->Add(item49, 0, wxALL, 5);
 
-    item0->Add(item45, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    item0->Add(item45, 0, wxGROW|wxALL, 5);
 
     if (set_sizer)
     {

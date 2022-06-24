@@ -191,11 +191,11 @@ KeyboardShortcutDialog::createContents(
 	 new wxStaticText(parent, ID_SHORTCUT, wxT(""), wxDefaultPosition,
 			  wxDefaultSize, 0);
     item2->Add(shortcutField_, 0, wxALIGN_CENTER|wxALL, 5 );
-    item0->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item2, 0, wxGROW|wxALL, 5 );
     wxStaticLine *item5 =
 	new wxStaticLine(parent, -1, wxDefaultPosition, wxSize(20,-1),
 			 wxLI_HORIZONTAL );
-    item0->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item5, 0, wxGROW|wxALL, 5 );
     wxBoxSizer *item6 = new wxBoxSizer( wxHORIZONTAL );
     wxButton *item7 =
 	new wxButton(parent, wxID_OK, wxT("OK"), wxDefaultPosition,

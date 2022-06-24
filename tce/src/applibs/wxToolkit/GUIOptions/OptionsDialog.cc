@@ -793,7 +793,7 @@ OptionsDialog::createContents(
     OptionsDialog::createToolbarPage( item5, true, true );
     item2->AddPage( item5, wxT("Toolbar") );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
     wxGridSizer *item6 = new wxGridSizer( 2, 0, 0 );
 
@@ -808,9 +808,9 @@ OptionsDialog::createContents(
     wxButton *item10 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item6->Add( item8, 0, wxALIGN_RIGHT|wxALL, 5 );
+    item6->Add( item8, 0, wxALL, 5 );
 
-    item0->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT, 5 );
+    item0->Add( item6, 0, wxGROW|wxLEFT|wxRIGHT, 5 );
 
     if (set_sizer)
     {
@@ -841,7 +841,7 @@ OptionsDialog::createKBShortcutPage(
     item0->AddGrowableRow( 0 );
 
     wxListCtrl *item1 = new wxListCtrl( parent, ID_KB_SC_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxSUNKEN_BORDER );
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -891,7 +891,7 @@ OptionsDialog::createToolbarPage(
     item2->AddGrowableRow( 0 );
 
     wxListCtrl *item3 = new wxListCtrl( parent, ID_TOOLBAR_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
-    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item3, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -920,11 +920,11 @@ OptionsDialog::createToolbarPage(
     item10->AddGrowableRow( 0 );
 
     wxListCtrl *item11 = new wxListCtrl( parent, ID_COMMAND_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
-    item10->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item10->Add( item11, 0, wxGROW|wxALL, 5 );
 
     item1->Add( item10, 0, wxGROW|wxALL, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item0->Add( item1, 0, wxGROW|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
 
