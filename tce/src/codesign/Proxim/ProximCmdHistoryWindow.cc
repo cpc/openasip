@@ -183,10 +183,10 @@ ProximCmdHistoryWindow::createContents(
 
     wxString *strs1 = (wxString*) NULL;
     wxListBox *item1 = new wxListBox( parent, ID_LIST, wxDefaultPosition, wxSize(300,300), 0, strs1, wxLB_SINGLE );
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
     wxStaticLine *item2 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item2, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item3 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -194,7 +194,7 @@ ProximCmdHistoryWindow::createContents(
     item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item5 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(-1,20), wxLI_VERTICAL );
-    item3->Add( item5, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item3->Add( item5, 0, wxGROW|wxALL, 5 );
 
     wxButton *item6 = new wxButton( parent, ID_CLOSE, wxT("&Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item3->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );

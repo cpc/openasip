@@ -137,7 +137,7 @@ MemoryDialog::createContents(
     memoryWindow_ = new MemoryControl(
         parent, &OperationContainer::memory(), MemoryDialog::ID_CONTROL_MEMORY);
 
-    item0->Add(memoryWindow_, 1, wxGROW|wxALIGN_CENTER|wxALL, 5);
+    item0->Add(memoryWindow_, 1, wxGROW|wxALL, 5);
 
     wxButton *item1 = new wxButton( parent, ID_BUTTON_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0 );
     

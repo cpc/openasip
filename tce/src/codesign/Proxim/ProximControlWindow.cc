@@ -82,7 +82,7 @@ ProximControlWindow::createContents(
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
     wxButton *item1 = new wxButton( parent, ProximConstants::COMMAND_RUN, wxT("Run"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
     wxGridSizer *item2 = new wxGridSizer( 2, 0, 0 );
 
@@ -95,10 +95,10 @@ ProximControlWindow::createContents(
     item0->Add( item2, 0, wxALIGN_CENTER, 5 );
 
     wxButton *item5 = new wxButton( parent, ProximConstants::COMMAND_KILL, wxT("Kill"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item5, 0, wxGROW|wxALL, 5 );
 
     wxButton *item6 = new wxButton( parent, ProximConstants::COMMAND_RESUME, wxT("Resume"), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item6, 0, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {

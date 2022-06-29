@@ -197,7 +197,7 @@ SimulationInfoDialog::createContents(
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
     wxListCtrl *item1 = new wxListCtrl( parent, ID_LISTCTRL, wxDefaultPosition, wxSize(160,120), wxLC_REPORT|wxLC_NO_HEADER|wxSUNKEN_BORDER );
-    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {

@@ -166,27 +166,27 @@ ProximStopDialog::createContents(
     wxFlexGridSizer *item2 = new wxFlexGridSizer( 2, 0, 0 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_LABEL_CYCLES, wxT("Cycles:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item3, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxStaticText *item4 = new wxStaticText( parent, ID_CYCLES, wxT("???????????????????"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item2->Add( item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item4, 0, wxALL, 5 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_LABEL_TIME, wxT("Time:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item5, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxStaticText *item6 = new wxStaticText( parent, ID_TIME, wxT("???????????????????"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item2->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item6, 0, wxALL, 5 );
 
     wxStaticText *item7 = new wxStaticText( parent, ID_LABEL_CPS, wxT("Avg. cycles/sec:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item7, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxStaticText *item8 = new wxStaticText( parent, ID_CPS, wxT("???????????????????"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT );
-    item2->Add( item8, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item8, 0, wxALL, 5 );
 
     item0->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item9 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(300,-1), wxLI_HORIZONTAL );
-    item0->Add( item9, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item9, 0, wxGROW|wxALL, 5 );
 
     wxButton *item10 = new wxButton( parent, ID_STOP, wxT("&Stop"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );

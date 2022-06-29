@@ -216,15 +216,15 @@ FindWindow::createContents(
 
     opInput_ = new wxTextCtrl(parent, ID_OP_INPUT, wxT(""),
         wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
-    mainSizer->Add(opInput_, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5);
+    mainSizer->Add(opInput_, 0, wxALL|wxEXPAND, 5);
 
     matchCase_ = new wxCheckBox(parent, ID_MATCH_CASE, wxT("Case sensitive"),
         wxDefaultPosition, wxDefaultSize);
-    mainSizer->Add(matchCase_, 0, wxALIGN_LEFT|wxALL|wxEXPAND, 5);
+    mainSizer->Add(matchCase_, 0, wxALL|wxEXPAND, 5);
 
     infoLabel_ = new wxStaticText(parent, ID_INFO_LABEL, wxT(""),
         wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
-    mainSizer->Add(infoLabel_, 0, wxALIGN_CENTER|wxALL|wxEXPAND, 5);
+    mainSizer->Add(infoLabel_, 0, wxALL|wxEXPAND, 5);
 
     findPrevBtn_ = new wxButton(parent, ID_FIND_PREV, wxT("Previous"),
         wxDefaultPosition, wxDefaultSize, 0);

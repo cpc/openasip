@@ -190,7 +190,7 @@ BlockImplementationFileDialog::createContents(
     wxFlexGridSizer *item1 = new wxFlexGridSizer( 3, 0, 0 );
 
     wxStaticText *item2 = new wxStaticText( parent, ID_LABEL_PATH, wxT("Path:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxTextCtrl *item3 = new wxTextCtrl( parent, ID_PATH, wxT(""), wxDefaultPosition, wxSize(200,-1), 0 );
     item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -199,7 +199,7 @@ BlockImplementationFileDialog::createContents(
     item1->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_LABEL_FORMAT, wxT("Format:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item5, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxString strs6[] = 
     {
@@ -207,17 +207,17 @@ BlockImplementationFileDialog::createContents(
         wxT("Verilog")
     };
     wxChoice *item6 = new wxChoice( parent, ID_FORMAT, wxDefaultPosition, wxSize(100,-1), 2, strs6, 0 );
-    item1->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item6, 0, wxGROW|wxALL, 5 );
 
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item7 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item7, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item8 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item9 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
-    item8->Add( item9, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item8->Add( item9, 0, wxALL, 5 );
 
     wxButton *item10 = new wxButton( parent, wxID_OK, wxT("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item8->Add( item10, 0, wxALIGN_CENTER|wxALL, 5 );

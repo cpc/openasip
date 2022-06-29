@@ -108,7 +108,7 @@ AddBreakpointDialog::createContents(
     item0->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item3 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item3, 0, wxGROW|wxALL, 5 );
 
     wxGridSizer *item4 = new wxGridSizer( 2, 0, 0 );
 

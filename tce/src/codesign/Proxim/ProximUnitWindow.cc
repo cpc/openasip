@@ -177,22 +177,22 @@ ProximUnitWindow::createContents(
 
     wxString *strs2 = (wxString*) NULL;
     wxChoice *item2 = new wxChoice( parent, ID_UNIT_CHOICE, wxDefaultPosition, wxSize(120,-1), 0, strs2, 0 );
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 0, wxGROW|wxALL, 5 );
 
     wxString *strs3 = (wxString*) NULL;
     wxChoice *item3 = new wxChoice( parent, ID_MODE_CHOICE, wxDefaultPosition, wxSize(120,-1), 0, strs3, 0 );
-    item1->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item3, 0, wxGROW|wxALL, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
     wxStaticLine *item4 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item4, 0, wxGROW|wxALL, 5 );
 
     wxListCtrl *item5 = new wxListCtrl( parent, ID_VALUE_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxSUNKEN_BORDER );
     item0->Add( item5, 0, wxGROW|wxALL, 5 );
 
     wxStaticLine *item6 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item6, 0, wxGROW|wxALL, 5 );
 
     wxGridSizer *item7 = new wxGridSizer( 2, 0, 0 );
 
@@ -202,7 +202,7 @@ ProximUnitWindow::createContents(
     wxButton *item9 = new wxButton( parent, ID_CLOSE, wxT("&Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item7->Add( item9, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
 
-    item0->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item7, 0, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {

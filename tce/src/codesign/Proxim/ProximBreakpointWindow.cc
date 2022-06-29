@@ -454,17 +454,17 @@ ProximBreakpointWindow::createContents(
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item5 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item5, 0, wxGROW|wxALL, 5 );
 
     wxGridSizer *item6 = new wxGridSizer( 2, 0, 0 );
 
     wxButton *item7 = new wxButton( parent, ID_HELP, wxT("&Help"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item6->Add( item7, 0, wxALL, 5 );
 
     wxButton *item8 = new wxButton( parent, ID_CLOSE, wxT("&Close"), wxDefaultPosition, wxDefaultSize, 0 );
-    item6->Add( item8, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item6->Add( item8, 0, wxALIGN_RIGHT|wxALL, 5 );
 
-    item0->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item6, 0, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {
@@ -501,7 +501,7 @@ ProximBreakpointWindow::createBreakpointTab(
     wxCheckBox *item6 = new wxCheckBox( parent, ID_BREAKPOINT_ENABLED, wxT("Enabled"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item2, 0, wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item1->Add( item2, 0, wxALL, 5 );
 
     breakpointList_ = new wxListCtrl( parent, ID_BREAKPOINT_LIST, wxDefaultPosition, wxSize(400,300), wxLC_REPORT|wxSUNKEN_BORDER );
     item1->Add( breakpointList_, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -509,7 +509,7 @@ ProximBreakpointWindow::createBreakpointTab(
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item8 = new wxButton( parent, ID_ADD_BREAKPOINT, wxT("Add breakpoint..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item8, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item8, 0, wxALL, 5 );
 
     if (set_sizer)
     {
@@ -543,7 +543,7 @@ ProximBreakpointWindow::createWatchTab(
     wxCheckBox *item5 = new wxCheckBox( parent, ID_WATCH_ENABLED, wxT("Enabled"), wxDefaultPosition, wxDefaultSize, 0 );
     item2->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item2, 0, wxALIGN_BOTTOM|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item1->Add( item2, 0, wxALL, 5 );
 
     watchList_ = new wxListCtrl( parent, ID_WATCH_LIST, wxDefaultPosition, wxSize(400,300), wxLC_REPORT|wxSUNKEN_BORDER );
     item1->Add( watchList_, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -551,7 +551,7 @@ ProximBreakpointWindow::createWatchTab(
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item7 = new wxButton( parent, ID_ADD_WATCH, wxT("Add watch..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item0->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item7, 0, wxALL, 5 );
 
     if (set_sizer)
     {

@@ -135,19 +135,19 @@ RFPortImplementationDialog::createContents(
     wxFlexGridSizer *item2 = new wxFlexGridSizer( 2, 0, 0 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_LABEL_NAME, wxT("Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item3, 0, wxALL, 5 );
 
     wxTextCtrl *item4 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), 0 );
     item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_LABEL_LOAD_PORT, wxT("Load port:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item5, 0, wxALL, 5 );
 
     wxTextCtrl *item6 = new wxTextCtrl( parent, ID_LOAD_PORT, wxT(""), wxDefaultPosition, wxSize(200,-1), 0 );
-    item2->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item6, 0, wxGROW|wxALL, 5 );
 
     wxStaticText *item7 = new wxStaticText( parent, ID_LABEL_OPCODE_PORT, wxT("Opcode port:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item7, 0, wxALL, 5 );
 
     wxTextCtrl *item8 = new wxTextCtrl( parent, ID_OPCODE_PORT, wxT(""), wxDefaultPosition, wxSize(200,-1), 0 );
     item2->Add( item8, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -156,9 +156,9 @@ RFPortImplementationDialog::createContents(
     item2->Add( item9, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxTextCtrl *item10 = new wxTextCtrl( parent, ID_OPCODE_PORT_WIDTH, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item2->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item10, 0, wxGROW|wxALL, 5 );
 
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 0, wxGROW|wxALL, 5 );
 
     wxString strs11[] = 
     {
@@ -167,12 +167,12 @@ RFPortImplementationDialog::createContents(
         wxT("Bidirectional")
     };
     wxRadioBox *item11 = new wxRadioBox( parent, ID_DIRECTION, wxT("Direction:"), wxDefaultPosition, wxDefaultSize, 3, strs11, 1, wxRA_SPECIFY_COLS );
-    item1->Add( item11, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item1->Add( item11, 0, wxGROW|wxALL, 5 );
 
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item12 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item12, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item13 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -182,7 +182,7 @@ RFPortImplementationDialog::createContents(
     wxButton *item15 = new wxButton( parent, wxID_OK, wxT("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item13->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item13, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item13, 0, wxALL, 5 );
 
     if (set_sizer)
     {

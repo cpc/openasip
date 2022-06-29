@@ -541,7 +541,7 @@ OperationDAGDialog::createContents(
     dagImageStaticBoxSizer_ =
         new wxStaticBoxSizer(dagImageStaticBox, wxVERTICAL);
 
-    dagImageStaticBoxSizer_->Add(dagWindow_, 1, wxALIGN_TOP|wxALL|wxGROW, 5);
+    dagImageStaticBoxSizer_->Add(dagWindow_, 1, wxALL|wxGROW, 5);
     dagImageStaticBoxSizer_->SetDimension(-1, -1, 550, 550);
 
     // DAG image
@@ -554,15 +554,15 @@ OperationDAGDialog::createContents(
     dagImageStaticBoxSizer_->Show(true);
 
     // Add DAG editor to DAG code sizer
-    dagStaticBoxSizer->Add(editDAG, 1, wxALIGN_TOP|wxALL|wxGROW, 5);
+    dagStaticBoxSizer->Add(editDAG, 1, wxALL|wxGROW, 5);
     
     // Add DAG code to page sizer
     wxBoxSizer *pageSizer = new wxBoxSizer(wxHORIZONTAL);
-    pageSizer->Add(dagStaticBoxSizer, 1, wxALIGN_TOP|wxGROW|wxTOP, 10);
-    pageSizer->Add(dagImageStaticBoxSizer_, 2, wxALIGN_TOP|wxGROW|wxTOP, 10);
+    pageSizer->Add(dagStaticBoxSizer, 1, wxGROW|wxTOP, 10);
+    pageSizer->Add(dagImageStaticBoxSizer_, 2, wxGROW|wxTOP, 10);
 
     // Add page sizer to window sizer
-    item0->Add(pageSizer, 1, wxALIGN_CENTER|wxEXPAND|wxALL, 5);
+    item0->Add(pageSizer, 1, wxEXPAND|wxALL, 5);
 
     wxString strs9[] = 
         {
@@ -603,7 +603,7 @@ OperationDAGDialog::createContents(
     dagButtonSizer->Add(newDAG, 0, wxALIGN_CENTER|wxALL, 5);
 
     dagToolsSizer->Add(dagButtonSizer, 0, wxALIGN_CENTER|wxALL, 5);
-    dagStaticBoxSizer->Add(dagToolsSizer, 0, wxALIGN_TOP|wxALL, 5);
+    dagStaticBoxSizer->Add(dagToolsSizer, 0, wxALL, 5);
 
     wxBoxSizer *controlButtonSizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton *OK =
@@ -615,11 +615,11 @@ OperationDAGDialog::createContents(
                 parent, wxID_CANCEL, wxT("Cancel"), wxDefaultPosition,
                 wxDefaultSize, 0);
 
-    controlButtonSizer->Add(OK, 0, wxALIGN_RIGHT|wxALL, 5);
-    controlButtonSizer->Add(Cancel, 0, wxALIGN_RIGHT|wxALL, 5);
+    controlButtonSizer->Add(OK, 0, wxALL, 5);
+    controlButtonSizer->Add(Cancel, 0, wxALL, 5);
     item0->Add(
             controlButtonSizer, 0,
-            wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+            wxALL, 5);
 
     if (set_sizer) {
         parent->SetSizer(item0);

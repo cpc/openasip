@@ -1070,42 +1070,42 @@ FUImplementationDialog::createContents(
     wxFlexGridSizer *item2 = new wxFlexGridSizer( 2, 0, 0 );
 
     wxStaticText *item3 = new wxStaticText( parent, ID_LABEL_NAME, wxT("Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item3, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxTextCtrl *item4 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(160,-1), 0 );
-    item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item4, 0, wxGROW|wxALL, 5 );
 
     wxStaticText *item5 = new wxStaticText( parent, ID_LABEL_OPCODE_PORT_NAME, wxT("Opcode port:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item5, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item5, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxTextCtrl *item6 = new wxTextCtrl( parent, ID_OPCODE_PORT, wxT(""), wxDefaultPosition, wxSize(160,-1), 0 );
-    item2->Add( item6, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item6, 0, wxGROW|wxALL, 5 );
 
     wxStaticText *item7 = new wxStaticText( parent, ID_LABEL_CLK_PORT, wxT("Clock port:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item7, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxTextCtrl *item8 = new wxTextCtrl( parent, ID_CLK_PORT, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item2->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item8, 0, wxGROW|wxALL, 5 );
 
     wxStaticText *item9 = new wxStaticText( parent, ID_LABEL_GLOCK_PORT, wxT("Global lock port:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item9, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item9, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxTextCtrl *item10 = new wxTextCtrl( parent, ID_GLOCK_PORT, wxT(""), wxDefaultPosition, wxSize(150,-1), 0 );
-    item2->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item10, 0, wxGROW|wxALL, 5 );
 
     wxStaticText *item11 = new wxStaticText( parent, ID_LABEL_RST_PORT, wxT("Reset port:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item11, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item11, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxTextCtrl *item12 = new wxTextCtrl( parent, ID_RST_PORT, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item2->Add( item12, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item12, 0, wxGROW|wxALL, 5 );
 
     wxStaticText *item13 = new wxStaticText( parent, ID_LABEL_GLOCK_REQ_PORT, wxT("Global lock req. port:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item13, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item13, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxTextCtrl *item14 = new wxTextCtrl( parent, ID_GLOCK_REQ_PORT, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item2->Add( item14, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item14, 0, wxGROW|wxALL, 5 );
 
-    item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 0, wxALL, 5 );
 
     wxStaticBox *item16 = new wxStaticBox( parent, -1, wxT("Source files:") );
 
@@ -1114,7 +1114,7 @@ FUImplementationDialog::createContents(
     wxFlexGridSizer *item17_1 = new wxFlexGridSizer( 2, 0, 0 );
 
     wxListCtrl *item17 = new wxListCtrl( parent, ID_SOURCE_LIST, wxDefaultPosition, wxSize(300,150), wxLC_REPORT|wxSUNKEN_BORDER );
-    item17_1->Add( item17, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item17_1->Add( item17, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item17_3 = new wxBoxSizer( wxVERTICAL );
     
@@ -1126,44 +1126,44 @@ FUImplementationDialog::createContents(
     
     item17_1->Add( item17_3, 0, wxALIGN_RIGHT|wxALIGN_CENTER, 5 );
 
-    item15->Add( item17_1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item15->Add( item17_1, 0, wxGROW|wxALL, 5 );
     
     wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item19 = new wxButton( parent, ID_ADD_SOURCE, wxT("Add..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item18->Add( item19, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item18->Add( item19, 0, wxALL, 5 );
 
     wxButton *item20 = new wxButton( parent, ID_DELETE_SOURCE, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
     item18->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item15->Add( item18, 0, wxALIGN_RIGHT|wxALIGN_BOTTOM, 5 );
+    item15->Add( item18, 0, 0, 5 );
 
-    item1->Add( item15, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item15, 0, wxGROW|wxALL, 5 );
 
     wxStaticBox *item22 = new wxStaticBox( parent, -1, wxT("Architecture ports:") );
     wxStaticBoxSizer *item21 = new wxStaticBoxSizer( item22, wxVERTICAL );
 
     wxListCtrl *item23 = new wxListCtrl( parent, ID_ARCH_PORT_LIST, wxDefaultPosition, wxSize(200,120), wxLC_REPORT|wxSUNKEN_BORDER );
-    item21->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item21->Add( item23, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item24 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item25 = new wxButton( parent, ID_EDIT_ARCH_PORT, wxT("Edit..."), wxDefaultPosition, wxDefaultSize, 0 );
     item24->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item21->Add( item24, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+    item21->Add( item24, 0, 0, 5 );
 
-    item1->Add( item21, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item21, 0, wxGROW|wxALL, 5 );
 
     wxStaticBox *item27 = new wxStaticBox( parent, -1, wxT("Opcodes:") );
     wxStaticBoxSizer *item26 = new wxStaticBoxSizer( item27, wxVERTICAL );
 
     wxListCtrl *item28 = new wxListCtrl( parent, ID_OPCODE_LIST, wxDefaultPosition, wxSize(260,120), wxLC_REPORT|wxSUNKEN_BORDER );
-    item26->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item26->Add( item28, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
 #ifdef ALLOW_OPCODE_EDITING
-    wxSpinCtrl *item30 = new wxSpinCtrl( parent, ID_OPCODE, wxT("0"), wxDefaultPosition, wxSize(60,-1), 0, 0, 100, 0 );
+    wxSpinCtrl *item30 = new wxSpinCtrl( parent, ID_OPCODE, wxT("0"), wxDefaultPosition, wxSize(-1,-1), 0, 0, 100, 0 );
     item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item31 = new wxButton( parent, ID_SET_OPCODE, wxT("Set"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -1172,20 +1172,20 @@ FUImplementationDialog::createContents(
     wxButton *item32 = new wxButton( parent, ID_CLEAR_OPCODE, wxT("Clear"), wxDefaultPosition, wxDefaultSize, 0 );
     item29->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
 #endif
-    item26->Add( item29, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+    item26->Add( item29, 0, 0, 5 );
 
-    item1->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item26, 0, wxGROW|wxALL, 5 );
 
     wxStaticBox *item34 = new wxStaticBox( parent, -1, wxT("External ports:") );
     wxStaticBoxSizer *item33 = new wxStaticBoxSizer( item34, wxVERTICAL );
 
     wxListCtrl *item35 = new wxListCtrl( parent, ID_EXTERNAL_PORT_LIST, wxDefaultPosition, wxSize(200,120), wxLC_REPORT|wxSUNKEN_BORDER );
-    item33->Add( item35, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item33->Add( item35, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item36 = new wxBoxSizer( wxHORIZONTAL );
 
     wxButton *item37 = new wxButton( parent, ID_ADD_EXTERNAL_PORT, wxT("Add..."), wxDefaultPosition, wxDefaultSize, 0 );
-    item36->Add( item37, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item36->Add( item37, 0, wxALL, 5 );
 
     wxButton *item38 = new wxButton( parent, ID_EDIT_EXTERNAL_PORT, wxT("Edit..."), wxDefaultPosition, wxDefaultSize, 0 );
     item36->Add( item38, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -1195,13 +1195,13 @@ FUImplementationDialog::createContents(
 
     item33->Add( item36, 0, wxALIGN_CENTER, 5 );
 
-    item1->Add( item33, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item33, 0, wxGROW|wxALL, 5 );
 
     wxStaticBox *item41 = new wxStaticBox( parent, -1, wxT("Parameters:") );
     wxStaticBoxSizer *item40 = new wxStaticBoxSizer( item41, wxVERTICAL );
 
     wxListCtrl *item42 = new wxListCtrl( parent, ID_PARAMETER_LIST, wxDefaultPosition, wxSize(260,120), wxLC_REPORT|wxSUNKEN_BORDER );
-    item40->Add( item42, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item40->Add( item42, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item43 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -1214,14 +1214,14 @@ FUImplementationDialog::createContents(
     wxButton *item46 = new wxButton( parent, ID_DELETE_PARAMETER, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0 );
     item43->Add( item46, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item40->Add( item43, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+    item40->Add( item43, 0, 0, 5 );
 
-    item1->Add( item40, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item1->Add( item40, 0, wxGROW|wxALL, 5 );
 
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticLine *item47 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item47, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item47, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item48 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -1231,7 +1231,7 @@ FUImplementationDialog::createContents(
     wxButton *item50 = new wxButton( parent, wxID_OK, wxT("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
     item48->Add( item50, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item0->Add( item48, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item48, 0, wxALL, 5 );
 
     if (set_sizer)
     {

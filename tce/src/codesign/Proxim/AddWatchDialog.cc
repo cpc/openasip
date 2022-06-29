@@ -421,7 +421,7 @@ AddWatchDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
     wxRadioButton *item3 = new wxRadioButton( parent, ID_RB_PORT, wxT("Port watch"), wxDefaultPosition, wxDefaultSize, 0 );
-    item2->Add( item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item2->Add( item3, 0, wxALL, 5 );
 
     wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -443,12 +443,12 @@ AddWatchDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) 
 
     item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item2, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 0, wxALL, 5 );
 
     wxBoxSizer *item9 = new wxBoxSizer( wxHORIZONTAL );
 
     wxRadioButton *item10 = new wxRadioButton( parent, ID_RB_REGISTER, wxT("Register watch"), wxDefaultPosition, wxDefaultSize, 0 );
-    item9->Add( item10, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item9->Add( item10, 0, wxALL, 5 );
 
     wxBoxSizer *item11 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -470,12 +470,12 @@ AddWatchDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) 
 
     item9->Add( item11, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item9, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item9, 0, wxALL, 5 );
 
     wxBoxSizer *item16 = new wxBoxSizer( wxHORIZONTAL );
 
     wxRadioButton *item17 = new wxRadioButton( parent, ID_RB_BUS, wxT("Bus watch"), wxDefaultPosition, wxDefaultSize, 0 );
-    item16->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item16->Add( item17, 0, wxALL, 5 );
 
     wxBoxSizer *item18 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -490,12 +490,12 @@ AddWatchDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) 
 
     item16->Add( item18, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item16, 0, wxALL, 5 );
 
     wxBoxSizer *item21 = new wxBoxSizer( wxVERTICAL );
 
     wxRadioButton *item22 = new wxRadioButton( parent, ID_RB_MEMORY, wxT("Memory watch"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->Add( item22, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item21->Add( item22, 0, wxALL, 5 );
 
     wxBoxSizer *item23 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -511,35 +511,35 @@ AddWatchDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) 
     wxStaticText *item26 = new wxStaticText( parent, ID_LABEL_START_ADDRESS, wxT("Start address:"), wxDefaultPosition, wxDefaultSize, 0 );
     item23->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxSpinCtrl *item27 = new wxSpinCtrl( parent, ID_START_ADDRESS, wxT("0"), wxDefaultPosition, wxSize(100,-1), 0, 0, 100, 0 );
+    wxSpinCtrl *item27 = new wxSpinCtrl( parent, ID_START_ADDRESS, wxT("0"), wxDefaultPosition, wxSize(-1,-1), 0, 0, 100, 0 );
     item23->Add( item27, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item28 = new wxStaticText( parent, ID_LABEL_END_ADDRESS, wxT("End address:"), wxDefaultPosition, wxDefaultSize, 0 );
     item23->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxSpinCtrl *item29 = new wxSpinCtrl( parent, ID_END_ADDRESS, wxT("0"), wxDefaultPosition, wxSize(100,-1), 0, 0, 100, 0 );
+    wxSpinCtrl *item29 = new wxSpinCtrl( parent, ID_END_ADDRESS, wxT("0"), wxDefaultPosition, wxSize(-1,-1), 0, 0, 100, 0 );
     item23->Add( item29, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item21->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item21, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item21, 0, wxALL, 5 );
 
     wxBoxSizer *item30 = new wxBoxSizer( wxHORIZONTAL );
 
     wxRadioButton *item31 = new wxRadioButton( parent, ID_RB_EXPRESSION, wxT("Experession:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item30->Add( item31, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item30->Add( item31, 0, wxALL, 5 );
 
     wxTextCtrl *item32 = new wxTextCtrl( parent, ID_EXPRESSION, wxT(""), wxDefaultPosition, wxSize(500,-1), 0 );
     item30->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item30, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item30, 0, wxGROW|wxALL, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item33 = new wxBoxSizer( wxVERTICAL );
 
     wxStaticLine *item34 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item33->Add( item34, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item33->Add( item34, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item35 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -549,9 +549,9 @@ AddWatchDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) 
     wxButton *item37 = new wxButton( parent, wxID_CANCEL, wxT("&Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
     item35->Add( item37, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item33->Add( item35, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item33->Add( item35, 0, wxALL, 5 );
 
-    item0->Add( item33, 0, wxGROW|wxALIGN_BOTTOM|wxALL, 5 );
+    item0->Add( item33, 0, wxGROW|wxALL, 5 );
 
     if (set_sizer)
     {

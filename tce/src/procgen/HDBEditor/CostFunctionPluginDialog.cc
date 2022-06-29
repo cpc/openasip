@@ -307,7 +307,7 @@ CostFunctionPluginDialog::createContents(
     wxFlexGridSizer *item1 = new wxFlexGridSizer( 3, 0, 0 );
 
     wxStaticText *item2 = new wxStaticText( parent, ID_TEXT, wxT("Name:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item2, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxTextCtrl *item3 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(300,-1), 0 );
     item1->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -315,20 +315,20 @@ CostFunctionPluginDialog::createContents(
     item1->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item4 = new wxStaticText( parent, ID_TEXT, wxT("Plugin file path:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item4, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item4, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxTextCtrl *item5 = new wxTextCtrl( parent, ID_PATH, wxT(""), wxDefaultPosition, wxSize(80,-1), 0 );
-    item1->Add( item5, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item5, 0, wxGROW|wxALL, 5 );
 
     wxButton *item6 = new wxButton( parent, ID_BROWSE, wxT("Browse..."), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item7 = new wxStaticText( parent, ID_TEXT, wxT("Plugin type:"), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->Add( item7, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item7, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxString *strs8 = (wxString*) NULL;
     wxChoice *item8 = new wxChoice( parent, ID_TYPE, wxDefaultPosition, wxSize(100,-1), 0, strs8, 0 );
-    item1->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item8, 0, wxGROW|wxALL, 5 );
 
     item1->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -336,17 +336,17 @@ CostFunctionPluginDialog::createContents(
     item1->Add( item9, 0, wxALIGN_RIGHT|wxALL, 5 );
 
     wxTextCtrl *item10 = new wxTextCtrl( parent, ID_DESCRIPTION, wxT(""), wxDefaultPosition, wxSize(200,60), wxTE_MULTILINE );
-    item1->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item1->Add( item10, 0, wxGROW|wxALL, 5 );
 
-    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item1, 0, wxGROW|wxALL, 5 );
 
     wxStaticBox *item12 = new wxStaticBox( parent, -1, wxT("Plugin data:") );
     wxStaticBoxSizer *item11 = new wxStaticBoxSizer( item12, wxVERTICAL );
 
     wxListCtrl *item13 = new wxListCtrl( parent, ID_LIST, wxDefaultPosition, wxSize(500,300), wxLC_REPORT|wxSUNKEN_BORDER );
-    item11->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item11->Add( item13, 0, wxGROW|wxALL, 5 );
 
-    item0->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item11, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item14 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -362,7 +362,7 @@ CostFunctionPluginDialog::createContents(
     item0->Add( item14, 0, wxALIGN_CENTER, 5 );
 
     wxStaticLine *item18 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );
-    item0->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item18, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item19 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -370,9 +370,9 @@ CostFunctionPluginDialog::createContents(
     item19->Add( item20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item21 = new wxButton( parent, wxID_OK, wxT("&OK"), wxDefaultPosition, wxDefaultSize, 0 );
-    item19->Add( item21, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item19->Add( item21, 0, wxALL, 5 );
 
-    item0->Add( item19, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
+    item0->Add( item19, 0, 0, 5 );
 
     if (set_sizer)
     {

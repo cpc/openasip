@@ -166,7 +166,7 @@ ResultDialog::createContents(
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
     wxTextCtrl *item1 = new wxTextCtrl( parent, ID_RESULT, wxT(""), wxDefaultPosition, wxSize(400,100), wxTE_MULTILINE );
-    item0->Add( item1, 1, wxGROW|wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item1, 1, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
