@@ -7,7 +7,7 @@ Notable changes and features
 Notable bugfixes
 ----------------------------
 - GUIs: Patches to GTK assertion errors on (mostly) non-Ubuntu systems.
-  Fixes Github issue #140. Thanks to Sarah Clark.
+  Fixes Github issue #140. Thanks to Sarah Clark of Google.
 
 
 
