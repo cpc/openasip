@@ -375,8 +375,8 @@ HWOperation::io(const FUPort& port) const {
 }
 
 /**
- * Returns the number of input ports tied to the operation 
- * 
+ * Returns the number of input ports tied to the operation
+ *
  * @return Number of input ports
  */
 
@@ -395,8 +395,8 @@ HWOperation::numberOfInputs() const {
 }
 
 /**
- * Returns the number of output ports tied to the operation 
- * 
+ * Returns the number of output ports tied to the operation
+ *
  * @return Number of output ports
  */
 

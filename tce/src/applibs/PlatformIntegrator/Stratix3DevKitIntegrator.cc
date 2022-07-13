@@ -210,7 +210,6 @@ Stratix3DevKitIntegrator::projectFileGenerator() const {
 
 void
 Stratix3DevKitIntegrator::mapToplevelPorts() {
-
     NetlistBlock& tl = *integratorBlock();
     for (size_t i = 0; i < tl.portCount(); i++) {
         addSignalMapping(tl.port(i).name());

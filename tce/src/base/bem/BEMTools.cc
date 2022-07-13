@@ -37,7 +37,6 @@
 
 #include "MathTools.hh"
 
-
 /**
  * Returns bit width required by the encoding and extrabits combination.
  *
@@ -47,7 +46,6 @@ unsigned
 BEMTools::encodingWidth(unsigned encoding, unsigned extrabits) {
     return MathTools::bitLength(encoding) + extrabits;
 }
-
 
 /**
  * Calculates the extra bits (zeroes) of the given encoding.

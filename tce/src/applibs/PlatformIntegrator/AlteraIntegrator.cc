@@ -100,15 +100,13 @@ AlteraIntegrator::integrateProcessor(
     projectFileGenerator()->writeProjectFiles();
 }
 
-
 MemoryGenerator&
 AlteraIntegrator::imemInstance(MemInfo imem, int coreId) {
-
     assert(imem.type != UNKNOWN && "Imem type not set!");
 
     TCEString initFile;
     if (imem.type == ONCHIP) {
-        initFile = programName() + ".mif";        
+        initFile = programName() + ".mif";
         projectFileGenerator()->addMemInitFile(initFile);
     } else if (imem.type == VHDL_ARRAY) {
         initFile = programName() + "_imem_pkg.vhdl";
@@ -132,13 +130,10 @@ AlteraIntegrator::imemInstance(MemInfo imem, int coreId) {
     return *imemGen_;
 }
 
-
 MemoryGenerator&
 AlteraIntegrator::dmemInstance(
-    MemInfo dmem,
-    TTAMachine::FunctionUnit& lsuArch,
+    MemInfo dmem, TTAMachine::FunctionUnit& lsuArch,
     std::vector<std::string> lsuPorts) {
-
     MemoryGenerator* memGen = NULL;
     if (dmemGen_.find(dmem.asName) != dmemGen_.end()) {
         memGen = dmemGen_.find(dmem.asName)->second;

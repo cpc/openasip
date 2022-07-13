@@ -36,28 +36,30 @@
 using ProGe::NetlistPort;
 
 HDLPort::HDLPort(
-    const TCEString name,
-    const TCEString& widthFormula,
-    ProGe::DataType type,
-    ProGe::Direction direction,
-    bool needsInversion): name_(name), widthFormula_(widthFormula),
-                          type_(type), direction_(direction),
-                          needsInversion_(needsInversion), hasWidth_(false),
-                          width_(0), hasStaticValue_(false),
-                          staticValue_(ProGe::StaticSignal::GND) {
-}
+    const TCEString name, const TCEString& widthFormula, ProGe::DataType type,
+    ProGe::Direction direction, bool needsInversion)
+    : name_(name),
+      widthFormula_(widthFormula),
+      type_(type),
+      direction_(direction),
+      needsInversion_(needsInversion),
+      hasWidth_(false),
+      width_(0),
+      hasStaticValue_(false),
+      staticValue_(ProGe::StaticSignal::GND) {}
 
 HDLPort::HDLPort(
-    const TCEString name,
-    const TCEString& widthFormula,
-    ProGe::DataType type,
-    ProGe::Direction direction,
-    bool needsInversion,
-    int width): name_(name), widthFormula_(widthFormula), type_(type),
-                direction_(direction), needsInversion_(needsInversion),
-                hasWidth_(true), width_(width), hasStaticValue_(false),
-                staticValue_(ProGe::StaticSignal::GND) {
-}
+    const TCEString name, const TCEString& widthFormula, ProGe::DataType type,
+    ProGe::Direction direction, bool needsInversion, int width)
+    : name_(name),
+      widthFormula_(widthFormula),
+      type_(type),
+      direction_(direction),
+      needsInversion_(needsInversion),
+      hasWidth_(true),
+      width_(width),
+      hasStaticValue_(false),
+      staticValue_(ProGe::StaticSignal::GND) {}
 
 HDLPort::HDLPort(const HDLPort& old):
     name_(old.name_), widthFormula_(old.widthFormula_), type_(old.type_),
@@ -66,18 +68,20 @@ HDLPort::HDLPort(const HDLPort& old):
     hasStaticValue_(old.hasStaticValue_), staticValue_(old.staticValue_) {
 }
 
-
-HDLPort::HDLPort(const ProGe::NetlistPort& port):
-    name_(port.name()), widthFormula_(port.widthFormula()),
-    type_(port.dataType()), direction_(port.direction()),
-    needsInversion_(false), hasWidth_(port.realWidthAvailable()), width_(0),
-    hasStaticValue_(false), staticValue_(ProGe::StaticSignal::GND) {
-    
+HDLPort::HDLPort(const ProGe::NetlistPort& port)
+    : name_(port.name()),
+      widthFormula_(port.widthFormula()),
+      type_(port.dataType()),
+      direction_(port.direction()),
+      needsInversion_(false),
+      hasWidth_(port.realWidthAvailable()),
+      width_(0),
+      hasStaticValue_(false),
+      staticValue_(ProGe::StaticSignal::GND) {
     if (port.realWidthAvailable()) {
         width_ = port.realWidth();
     }
 }
-
 
 TCEString 
 HDLPort::name() const {

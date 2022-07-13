@@ -64,7 +64,6 @@ IPXactClkInterface::~IPXactClkInterface() {
 
 bool
 IPXactClkInterface::mapPortsToInterface(const ProGe::NetlistBlock& toplevel) {
-    
     for (size_t i = 0; i < toplevel.portCount(); i++) {
         if (toplevel.port(i).name() == TTA_CLK_PORT) {
             addSignalMapping(TTA_CLK_PORT, SPIRIT_CLK_PORT);

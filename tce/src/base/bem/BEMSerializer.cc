@@ -58,7 +58,6 @@
 #include "ObjectState.hh"
 #include "InstructionFormat.hh"
 
-
 using std::string;
 using std::vector;
 
@@ -191,10 +190,13 @@ BEMSerializer::readState() {
     if (fileState->hasAttribute(REQUIRED_VERSION)) {
         double requiredVersion = fileState->doubleAttribute(REQUIRED_VERSION);
         if (requiredVersion > 1.4) {
-            THROW_EXCEPTION(SerializerException, "Cannot parse the file. "
+            THROW_EXCEPTION(
+                SerializerException,
+                "Cannot parse the file. "
                 "The file requests parser version of " +
-                fileState->stringAttribute(REQUIRED_VERSION) + ". "
-                "The version of the parser is 1.4.");
+                    fileState->stringAttribute(REQUIRED_VERSION) +
+                    ". "
+                    "The version of the parser is 1.4.");
         }
     }
     if (version < 1.2) {
@@ -301,7 +303,8 @@ BEMSerializer::convertToOMFormat(const ObjectState* fileState) {
         } else if (child->name() == INSTRUCTION_FORMAT) {
             ObjectState* newChild = new ObjectState(*child);
             bem->addChild(newChild);
-        } else if (child->name() == BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BITS) {
+        } else if (
+            child->name() == BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BITS) {
             bem->addChild(new ObjectState(*child));
         } else {
             assert(false);
@@ -374,8 +377,7 @@ BEMSerializer::convertToFileFormat(const ObjectState* state) {
 
     for (int i = 0; i < state->childCount(); i++) {
         ObjectState* child = state->child(i);
-        if (child->name() == 
-            InstructionFormat::OSNAME_INSTRUCTION_FORMAT) {
+        if (child->name() == InstructionFormat::OSNAME_INSTRUCTION_FORMAT) {
             ObjectState* newChild = new ObjectState(*child);
             fileState->addChild(newChild);
         }
@@ -541,8 +543,8 @@ BEMSerializer::longImmTagToFile(const ObjectState* immTag) {
             LIMM_TAG_MAP_NAME,
             child->stringAttribute(
                 ImmediateControlField::OSKEY_TEMPLATE_NAME));
-        map->setValue(child->stringAttribute(
-                          ImmediateControlField::OSKEY_ENCODING));
+        map->setValue(
+            child->stringAttribute(ImmediateControlField::OSKEY_ENCODING));
     }
 
     return fileTag;
@@ -836,7 +838,7 @@ BEMSerializer::slotFieldToFile(const ObjectState* sFieldState) {
                child->stringAttribute(SocketEncoding::OSKEY_ENCODING));
        }
    }
-   
+
    // add move no-operation element
    if (sFieldState->hasChild(NOPEncoding::OSNAME_NOP_ENCODING)) {
        ObjectState* nopEncoding = sFieldState->childByName(
@@ -991,8 +993,7 @@ BEMSerializer::socketCodeTableToOM(const ObjectState* scTable) {
  */
 ObjectState*
 BEMSerializer::longImmTagToOM(const ObjectState* immTag) {
-
-    ObjectState* immControlField = 
+    ObjectState* immControlField =
         new ObjectState(ImmediateControlField::OSNAME_IMM_CONTROL_FIELD);
     ObjectState* pos = immTag->childByName(LIMM_TAG_POSITION);
     immControlField->setAttribute(

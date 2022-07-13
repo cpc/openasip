@@ -247,7 +247,7 @@ RegisterRenamer::registersOfRFs(
             lowestFreeIndex = 1;
         }
         for (int j = lowestFreeIndex;
-        j < (isTempRF ? rf->size()-1 : rf->size()); j++ ) {
+             j < (isTempRF ? rf->size() - 1 : rf->size()); j++) {
             gprs.insert(DisassemblyRegister::registerName(*rf, j));
         }
     }

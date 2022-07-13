@@ -50,46 +50,45 @@ namespace ProGe {
  * @param dataWidth The width of the data port.
  * @param memInitFile Name of the memory initialization file loaded during
  *                    RTL-simulation.
- * @param isForSimulation Tells if the block is used in RTL simulation. Affects
- *                        placement of the HDL source.
+ * @param isForSimulation Tells if the block is used in RTL simulation.
+ * Affects placement of the HDL source.
  */
 SinglePortByteMaskSSRAMBlock::SinglePortByteMaskSSRAMBlock(
-    const std::string& addressWidth,
-    const std::string& dataWidth,
-    const std::string& memInitFile,
-    bool isForSimulation)
+    const std::string& addressWidth, const std::string& dataWidth,
+    const std::string& memInitFile, bool isForSimulation)
     : BaseNetlistBlock("synch_byte_mask_sram", ""),
       isForSimulation_(isForSimulation) {
-
     addParameter(Parameter("DATAW", "integer", dataWidth));
     addParameter(Parameter("ADDRW", "integer", addressWidth));
     addParameter(Parameter("INITFILENAME", "string", memInitFile));
     addParameter(Parameter("access_trace", "boolean", "false"));
-    addParameter(Parameter("ACCESSTRACEFILENAME", "string",
-        "\"access_trace\""));
+    addParameter(
+        Parameter("ACCESSTRACEFILENAME", "string", "\"access_trace\""));
 
     addPort(PortFactory::clockPort());
 
-    // todo add memory ports via PortFactory 
-    addPortGroup(memoryPortGroup_ = new NetlistPortGroup(
-        SignalGroupType::BYTEMASKED_SRAM_PORT,
-        new InBitPort(
-            "avalid", Signal(SignalType::AVALID, ActiveState::HIGH)),
-        new OutBitPort(
-            "aready", Signal(SignalType::AREADY, ActiveState::HIGH)),
-        new InPort("aaddr", "ADDRW", BIT_VECTOR, SignalType::AADDR),
-        new InBitPort("awren", Signal(SignalType::AWREN, ActiveState::HIGH)),
-        new InPort("astrb", dataWidth + "/8", BIT_VECTOR, SignalType::ASTRB),
-        new InBitPort(
-            "rready", Signal(SignalType::RREADY, ActiveState::HIGH)),
-        new OutPort("rdata", "DATAW", BIT_VECTOR, SignalType::RDATA),
-        new InPort("adata", "DATAW", BIT_VECTOR, SignalType::ADATA),
-        new OutBitPort("rvalid", Signal(SignalType::RVALID, ActiveState::HIGH))
-    ));
+    // todo add memory ports via PortFactory
+    addPortGroup(
+        memoryPortGroup_ = new NetlistPortGroup(
+            SignalGroupType::BYTEMASKED_SRAM_PORT,
+            new InBitPort(
+                "avalid", Signal(SignalType::AVALID, ActiveState::HIGH)),
+            new OutBitPort(
+                "aready", Signal(SignalType::AREADY, ActiveState::HIGH)),
+            new InPort("aaddr", "ADDRW", BIT_VECTOR, SignalType::AADDR),
+            new InBitPort(
+                "awren", Signal(SignalType::AWREN, ActiveState::HIGH)),
+            new InPort(
+                "astrb", dataWidth + "/8", BIT_VECTOR, SignalType::ASTRB),
+            new InBitPort(
+                "rready", Signal(SignalType::RREADY, ActiveState::HIGH)),
+            new OutPort("rdata", "DATAW", BIT_VECTOR, SignalType::RDATA),
+            new InPort("adata", "DATAW", BIT_VECTOR, SignalType::ADATA),
+            new OutBitPort(
+                "rvalid", Signal(SignalType::RVALID, ActiveState::HIGH))));
 }
 
-SinglePortByteMaskSSRAMBlock::~SinglePortByteMaskSSRAMBlock() {
-}
+SinglePortByteMaskSSRAMBlock::~SinglePortByteMaskSSRAMBlock() {}
 
 /**
  * Sets a file name where memory access trace is dumped for this memory.
@@ -108,21 +107,19 @@ SinglePortByteMaskSSRAMBlock::memoryPort() const {
 
 void
 SinglePortByteMaskSSRAMBlock::write(
-    const Path& targetBaseDir, HDL targetLang)const {
+    const Path& targetBaseDir, HDL targetLang) const {
     Path progeDataDir(Environment::dataDirPath("ProGe"));
 
     assert(targetLang == VHDL);
 
     std::string tempFile = std::string("synch_byte_mask_sram.vhdl");
     std::string targetDir =
-        (isForSimulation_)?
-            std::string("tb"):
-            ((targetLang == VHDL)?
-                std::string("vhdl"):
-                std::string("verilog"));
+        (isForSimulation_) ? std::string("tb")
+                           : ((targetLang == VHDL) ? std::string("vhdl")
+                                                   : std::string("verilog"));
     HDLTemplateInstantiator().instantiateTemplateFile(
-        (progeDataDir/"tb"/tempFile).string(),
-        (targetBaseDir/targetDir/tempFile).string());
+        (progeDataDir / "tb" / tempFile).string(),
+        (targetBaseDir / targetDir / tempFile).string());
 }
 
 } /* namespace ProGe */

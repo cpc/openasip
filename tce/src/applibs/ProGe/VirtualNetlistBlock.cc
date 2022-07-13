@@ -36,12 +36,8 @@
 namespace ProGe {
 
 VirtualNetlistBlock::VirtualNetlistBlock(
-    const std::string& moduleName,
-    const std::string& instanceName)
-    : NetlistBlock(moduleName, instanceName) {
-
-}
-
+    const std::string& moduleName, const std::string& instanceName)
+    : NetlistBlock(moduleName, instanceName) {}
 
 VirtualNetlistBlock::~VirtualNetlistBlock() {
 }

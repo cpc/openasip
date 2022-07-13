@@ -123,13 +123,13 @@ BitVector::pushBack(bool bit) {
 
 /**
  * Converts BitVector to std::string format
- * 
+ *
  */
 
 std::string
 BitVector::toString() const {
     std::string bits;
-    for(int i = 0; i < this->size(); i++) {
+    for (int i = 0; i < this->size(); i++) {
         bits.append(std::to_string(this->at(i)));
     }
     return bits;

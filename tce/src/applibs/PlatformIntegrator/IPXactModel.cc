@@ -292,13 +292,10 @@ IPXactModel::addSignal(const HDLPort& signal) {
     signals_.push_back(new HDLPort(signal));
 }
 
-
 void
 IPXactModel::addParameter(const ProGe::Parameter& parameter) {
-
     parameters_.push_back(parameter);
 }
-
 
 void
 IPXactModel::addBusInterface(IPXactInterface* interface) {
@@ -492,7 +489,7 @@ IPXactModel::addModelParamsObject(ObjectState* parent) const {
         } else if (parameters_.at(i).type().lower() == INTEGER_PARAM) {
             value->setAttribute(OSNAME_ATTR_FORMAT, LONG_PARAM);
         }
-        TCEString id; 
+        TCEString id;
         id << parameters_.at(i).name().upper() << "_ID";
         value->setAttribute(OSNAME_ATTR_ID, id);
         value->setAttribute(OSNAME_ATTR_RESOLVE, RESOLVE_USER);
@@ -962,7 +959,7 @@ IPXactModel::extractModelParam(const ObjectState* modelParameter) {
     ProGe::Parameter parameter;
     const ObjectState* nameObj = modelParameter->childByName(OSNAME_NAME);
     parameter.setName(nameObj->stringValue());
-    
+
     parameter.setType(STRING_PARAM);
     if (nameObj->hasAttribute(OSNAME_ATTR_DATA_TYPE)) {
         TCEString typeAttr =

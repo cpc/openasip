@@ -576,11 +576,11 @@ MainFrame::createMenubar() {
         ProDeConstants::COMMAND_EDIT_TEMPLATES,
         menuAccelerator(ProDeConstants::COMMAND_EDIT_TEMPLATES).Prepend(
             _T("Instruction &Templates...")));
-    
+
     editMenu->Append(
         ProDeConstants::COMMAND_EDIT_OTA_FORMATS,
-        menuAccelerator(ProDeConstants::COMMAND_EDIT_OTA_FORMATS).Prepend(
-            _T("OTA Formats...")));
+        menuAccelerator(ProDeConstants::COMMAND_EDIT_OTA_FORMATS)
+            .Prepend(_T("OTA Formats...")));
 
     editMenu->Append(
         ProDeConstants::COMMAND_EDIT_IMMEDIATE_SLOTS,

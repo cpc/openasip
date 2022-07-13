@@ -50,39 +50,31 @@
 
 namespace ProGe {
 
-NetlistVisualization::NetlistVisualization() {
-}
+NetlistVisualization::NetlistVisualization() {}
 
-NetlistVisualization::~NetlistVisualization() {
-}
+NetlistVisualization::~NetlistVisualization() {}
 
 void
 NetlistVisualization::visualizeBlockTree(
-    const BaseNetlistBlock& root,
-    std::ostream& streamOut) {
-
+    const BaseNetlistBlock& root, std::ostream& streamOut) {
     printBlock(root, "", streamOut);
     printBlockTree(root, "", streamOut);
 }
 
 void
 NetlistVisualization::listConnections(
-    const BaseNetlistBlock& block,
-    std::ostream& streamOut) {
-
-//    typedef boost::graph_traits<Netlist>::edge_iterator EdgeIterator;
-//    typedef std::pair<EdgeIterator, EdgeIterator> EdgePair;
+    const BaseNetlistBlock& block, std::ostream& streamOut) {
+    //    typedef boost::graph_traits<Netlist>::edge_iterator EdgeIterator;
+    //    typedef std::pair<EdgeIterator, EdgeIterator> EdgePair;
     typedef std::pair<std::string, std::string> PortNamePair;
     typedef std::set<PortNamePair> ConnectionSet;
 
     ConnectionSet connections;
-//    EdgePair edge_it;
+    //    EdgePair edge_it;
 
     Netlist::const_iterator edge_it;
-    for (edge_it = block.netlist().begin();
-        edge_it != block.netlist().end();
-        edge_it++) {
-
+    for (edge_it = block.netlist().begin(); edge_it != block.netlist().end();
+         edge_it++) {
         const NetlistPort* port_a =
             block.netlist()[boost::source(*edge_it, block.netlist())];
         const NetlistPort* port_b =
@@ -101,28 +93,24 @@ NetlistVisualization::listConnections(
 
     ConnectionSet::const_iterator conn_it;
     for (conn_it = connections.begin(); conn_it != connections.end();
-        conn_it++) {
-        streamOut << conn_it->first << " <-> " << conn_it->second << std::endl;
+         conn_it++) {
+        streamOut << conn_it->first << " <-> " << conn_it->second
+                  << std::endl;
     }
 }
 
 void
 NetlistVisualization::listNetlistDescriptors(
-    const BaseNetlistBlock& block,
-    std::ostream& streamOut) {
-
+    const BaseNetlistBlock& block, std::ostream& streamOut) {
     listNetlistDescriptors(block.netlist(), streamOut);
 }
 
 void
 NetlistVisualization::listNetlistDescriptors(
-    const Netlist& netlist,
-    std::ostream& streamOut) {
-
+    const Netlist& netlist, std::ostream& streamOut) {
     Netlist::const_descriptor_iterator desc_it;
     for (desc_it = netlist.descriptorBegin();
-        desc_it != netlist.descriptorEnd();
-        desc_it++) {
+         desc_it != netlist.descriptorEnd(); desc_it++) {
         const NetlistPort* port = desc_it->first;
         const BaseNetlistBlock* parent = &port->parentBlock();
         size_t descriptor = desc_it->second;
@@ -133,10 +121,8 @@ NetlistVisualization::listNetlistDescriptors(
 
 void
 NetlistVisualization::printBlockTree(
-    const BaseNetlistBlock& blockNode,
-    std::string prefix,
+    const BaseNetlistBlock& blockNode, std::string prefix,
     std::ostream& streamOut) {
-
     for (size_t i = 0; i < blockNode.parameterCount(); i++) {
         printParameter(blockNode.parameter(i), prefix + "|- ", streamOut);
     }
@@ -149,52 +135,48 @@ NetlistVisualization::printBlockTree(
         printBlock(blockNode.subBlock(i), prefix + "+- ", streamOut);
         printBlockTree(
             blockNode.subBlock(i),
-            prefix + TCEString::applyIf(i < blockNode.subBlockCount()-1,
-                "|  ", "   "),
+            prefix + TCEString::applyIf(
+                         i < blockNode.subBlockCount() - 1, "|  ", "   "),
             streamOut);
     }
 }
 
 void
 NetlistVisualization::printBlock(
-    const BaseNetlistBlock& blockNode,
-    const std::string& prefix,
+    const BaseNetlistBlock& blockNode, const std::string& prefix,
     std::ostream& streamOut) {
-
     streamOut << prefix << "Blk: " << blockNode.instanceName() << " : "
               << blockNode.moduleName() << std::endl;
 }
 
 void
 NetlistVisualization::printParameter(
-    const Parameter& parameter,
-    const std::string& prefix,
+    const Parameter& parameter, const std::string& prefix,
     std::ostream& streamOut) {
-
-    streamOut << prefix << "Prm: "
-              << parameter.name() << " : "
-              << parameter.type() << " := "
-              << parameter.value() << std::endl;
+    streamOut << prefix << "Prm: " << parameter.name() << " : "
+              << parameter.type() << " := " << parameter.value() << std::endl;
 }
 
 void
 NetlistVisualization::printPort(
-    const NetlistPort& port,
-    const std::string& prefix,
+    const NetlistPort& port, const std::string& prefix,
     std::ostream& streamOut) {
-
     streamOut << prefix << "Prt: " << port.name() << " "
-              << toString(port.direction()) << " "
-              << portWidthToString(port) << std::endl;
+              << toString(port.direction()) << " " << portWidthToString(port)
+              << std::endl;
 }
 
 std::string
 NetlistVisualization::toString(Direction dir) {
     switch (dir) {
-        case IN: return "in";
-        case OUT: return "out";
-        case BIDIR: return "bidir";
-        default: return "N/A";
+        case IN:
+            return "in";
+        case OUT:
+            return "out";
+        case BIDIR:
+            return "bidir";
+        default:
+            return "N/A";
     }
 }
 
@@ -204,8 +186,8 @@ NetlistVisualization::portWidthToString(const NetlistPort& port) {
         return "1";
     } else if (port.dataType() == BIT_VECTOR) {
         if (port.realWidthAvailable()) {
-            return std::string("[")
-                + Conversion::toString(port.realWidth()) + "-1:0]";
+            return std::string("[") + Conversion::toString(port.realWidth()) +
+                   "-1:0]";
         } else {
             return std::string("[") + port.widthFormula() + "-1:0]";
         }
@@ -215,4 +197,3 @@ NetlistVisualization::portWidthToString(const NetlistPort& port) {
 }
 
 } /* namespace ProGe */
-

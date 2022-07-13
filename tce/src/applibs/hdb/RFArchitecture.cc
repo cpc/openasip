@@ -61,8 +61,9 @@ namespace HDB {
  * @exception OutOfRange If some of the arguments is out of range.
  */
 RFArchitecture::RFArchitecture(
-    int readPorts, int writePorts, int bidirPorts, int maxReads, int maxWrites,
-    int latency, bool guardSupport, int guardLatency, bool zeroRegister)
+    int readPorts, int writePorts, int bidirPorts, int maxReads,
+    int maxWrites, int latency, bool guardSupport, int guardLatency,
+    bool zeroRegister)
     : readPorts_(readPorts),
       writePorts_(writePorts),
       bidirPorts_(bidirPorts),
@@ -520,8 +521,8 @@ RFArchitecture::hasGuardSupport() const {
 }
 
 /**
- * Sets the zero register flag of the register file 
- * 
+ * Sets the zero register flag of the register file
+ *
  * @param zeroRegister True if has a zero register, otherwise false
  */
 
@@ -531,15 +532,15 @@ RFArchitecture::setZeroRegister(bool zeroRegister) {
 }
 
 /**
- * Tells whether the RF has a zero register 
- * 
- * @return True if RF has a zero register 
+ * Tells whether the RF has a zero register
+ *
+ * @return True if RF has a zero register
  */
 
-bool RFArchitecture::zeroRegister() const {
+bool
+RFArchitecture::zeroRegister() const {
     return zeroRegister_;
 }
-
 
 /**
  * Returns the guard latency.

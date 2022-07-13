@@ -22,13 +22,13 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
-* @file ProGeTools.cc
-*
-* Tools for automated TTA generation.
-*
-* @author Lasse Lehtonen 2017 (lasse.lehtonen-no.spam-tut.fi)
-* @author Topi Leppänen 2019 (topi.leppanen-no.spam-tuni.fi)
-*/
+ * @file ProGeTools.cc
+ *
+ * Tools for automated TTA generation.
+ *
+ * @author Lasse Lehtonen 2017 (lasse.lehtonen-no.spam-tut.fi)
+ * @author Topi Leppänen 2019 (topi.leppanen-no.spam-tuni.fi)
+ */
 
 #include "StringTools.hh"
 #include "ProGeTools.hh"
@@ -55,11 +55,11 @@
  * Check if given fu can be generated. If so return it in fug.
  *
  */
-bool ProGeTools::checkForGeneratableFU(const ProGeOptions& options,
-    TTAMachine::FunctionUnit& fu, IDF::FUGenerated& fug,
-    const std::vector<IDF::FUGenerated::Info>& infos,
+bool
+ProGeTools::checkForGeneratableFU(
+    const ProGeOptions& options, TTAMachine::FunctionUnit& fu,
+    IDF::FUGenerated& fug, const std::vector<IDF::FUGenerated::Info>& infos,
     const std::vector<IDF::FUGenerated::DAGOperation> dagops) {
-
     std::vector<TTAMachine::HWOperation*> operations;
     std::vector<std::string> genops;
 
@@ -70,26 +70,26 @@ bool ProGeTools::checkForGeneratableFU(const ProGeOptions& options,
     for (auto&& op : operations) {
         int maxLatency;
         if (ProGeTools::findInOptionList(
-            fug.name(), options.fuFrontRegistered, false)) {
+                fug.name(), options.fuFrontRegistered, false)) {
             maxLatency = op->latency() - 1;
         } else if (ProGeTools::findInOptionList(
-                   fug.name(), options.fuMiddleRegistered, false)) {
+                       fug.name(), options.fuMiddleRegistered, false)) {
             maxLatency = op->latency() - 2;
         } else if (ProGeTools::findInOptionList(
-                   fug.name(), options.fuBackRegistered, false)) {
+                       fug.name(), options.fuBackRegistered, false)) {
             maxLatency = op->latency();
         } else if (ProGeTools::findInOptionList(
-                   fug.name(), options.fuFrontRegistered)) {
+                       fug.name(), options.fuFrontRegistered)) {
             maxLatency = op->latency() - 1;
         } else if (ProGeTools::findInOptionList(
-                   fug.name(), options.fuMiddleRegistered)) {
+                       fug.name(), options.fuMiddleRegistered)) {
             maxLatency = op->latency() - 2;
-        } else { // Default to back-register
+        } else {  // Default to back-register
             maxLatency = op->latency();
         }
         for (auto&& info : infos) {
-            if (op->name() == info.operationName
-                && maxLatency >= info.latency) {
+            if (op->name() == info.operationName &&
+                maxLatency >= info.latency) {
                 fug.addOperation(info);
                 genops.emplace_back(info.operationName);
                 break;
@@ -120,13 +120,15 @@ bool ProGeTools::checkForGeneratableFU(const ProGeOptions& options,
 /**
  * Check if option is in the list or list has 'ALL' in it.
  */
-bool ProGeTools::findInOptionList(
-    const std::string& option, std::vector<std::string> list, bool enableAll) {
+bool
+ProGeTools::findInOptionList(
+    const std::string& option, std::vector<std::string> list,
+    bool enableAll) {
     std::string lowered_option = StringTools::stringToLower(option);
     for (auto&& item : list) {
         std::string lowered_item = StringTools::stringToLower(item);
-        if (lowered_item == lowered_option
-            || (enableAll && lowered_item == "all")) {
+        if (lowered_item == lowered_option ||
+            (enableAll && lowered_item == "all")) {
             return true;
         }
     }
@@ -138,8 +140,7 @@ bool ProGeTools::findInOptionList(
  */
 std::vector<IDF::FUGenerated::DAGOperation>
 ProGeTools::generateableDAGOperations(
-    const std::vector<IDF::FUGenerated::Info> infos,
-    std::ostream& verbose) {
+    const std::vector<IDF::FUGenerated::Info> infos, std::ostream& verbose) {
     std::vector<IDF::FUGenerated::DAGOperation> dagops;
     std::set<std::string> opNames;
 
@@ -165,8 +166,8 @@ ProGeTools::generateableDAGOperations(
                 std::vector<IDF::FUGenerated::Info> subops;
                 if (canGenerateFromDAG(op.dag(d), infos, &subops)) {
                     opName = StringTools::stringToLower(opName);
-                    dagops.emplace_back(IDF::FUGenerated::DAGOperation{opName,
-                                                                       subops});
+                    dagops.emplace_back(
+                        IDF::FUGenerated::DAGOperation{opName, subops});
                     opNames.insert(opName);
                     break;
                 }
@@ -190,9 +191,9 @@ ProGeTools::generateableDAGOperations(
  * can be implemented
  */
 bool
-ProGeTools::canGenerateFromDAG(const OperationDAG& dag,
-        const std::vector<IDF::FUGenerated::Info> infos,
-        std::vector<IDF::FUGenerated::Info>* subops) {
+ProGeTools::canGenerateFromDAG(
+    const OperationDAG& dag, const std::vector<IDF::FUGenerated::Info> infos,
+    std::vector<IDF::FUGenerated::Info>* subops) {
     if (dag.isNull()) {
         return false;
     }
@@ -202,7 +203,8 @@ ProGeTools::canGenerateFromDAG(const OperationDAG& dag,
         OperationNode* operationNode =
             dynamic_cast<OperationNode*>(&dag.node(n));
         if (operationNode) {
-            std::string operation = operationNode->referencedOperation().name();
+            std::string operation =
+                operationNode->referencedOperation().name();
             operation = StringTools::stringToLower(operation);
 
             bool foundOperation = false;
@@ -219,7 +221,6 @@ ProGeTools::canGenerateFromDAG(const OperationDAG& dag,
                 canImplement = false;
                 break;
             }
-
         }
     }
     return canImplement;
@@ -230,8 +231,9 @@ ProGeTools::canGenerateFromDAG(const OperationDAG& dag,
  * the node latencies.
  */
 int
-ProGeTools::dagLatency(const OperationDAG& dag,
-        const std::unordered_map<std::string, int>& maxOpLatency) {
+ProGeTools::dagLatency(
+    const OperationDAG& dag,
+    const std::unordered_map<std::string, int>& maxOpLatency) {
     assert(!dag.isNull());
 
     int maxLatency = 0;
@@ -250,7 +252,6 @@ int
 ProGeTools::nodeLatency(
     OperationDAGNode& node,
     const std::unordered_map<std::string, int>& maxOpLatency) {
-
     int latency = 0;
 
     OperationNode* operationNode = dynamic_cast<OperationNode*>(&node);
@@ -274,18 +275,18 @@ ProGeTools::maxLatencyToNode(
     const OperationDAG& dag, OperationDAGNode& node,
     const std::unordered_map<std::string, int>& maxOpLatency,
     bool allowDifference) {
-
     // Go through all the parents.
     int maxLeafLatency = -1;
     for (auto&& e : dag.inEdges(node)) {
         OperationDAGNode& nextNode = dag.tailNode(*e);
         // Recursive call to parent nodes
-        int parentLatency =  maxLatencyToNode(dag, nextNode, maxOpLatency)
-                           + nodeLatency(nextNode, maxOpLatency);
+        int parentLatency = maxLatencyToNode(dag, nextNode, maxOpLatency) +
+                            nodeLatency(nextNode, maxOpLatency);
 
         if (!allowDifference && maxLeafLatency != -1) {
-            assert(maxLeafLatency == parentLatency &&
-                   "Two input edges of DAG node have different latency!");
+            assert(
+                maxLeafLatency == parentLatency &&
+                "Two input edges of DAG node have different latency!");
         }
 
         maxLeafLatency = std::max(maxLeafLatency, parentLatency);
@@ -315,13 +316,15 @@ ProGeTools::createFUGeneratableOperationInfos(
         std::vector<IDF::FUGenerated::Info> newInfos;
         for (auto&& row : rows) {
             auto opimpl = manager.OperationImplementationByID(row);
-            newInfos.emplace_back(IDF::FUGenerated::Info{opimpl.name, hdbPath,
-                                                opimpl.id, opimpl.latency});
+            newInfos.emplace_back(IDF::FUGenerated::Info{
+                opimpl.name, hdbPath, opimpl.id, opimpl.latency});
         }
 
-        std::sort(newInfos.begin(), newInfos.end(),
-                  [](IDF::FUGenerated::Info a, IDF::FUGenerated::Info b)
-                  { return a.latency > b.latency; });
+        std::sort(
+            newInfos.begin(), newInfos.end(),
+            [](IDF::FUGenerated::Info a, IDF::FUGenerated::Info b) {
+                return a.latency > b.latency;
+            });
 
         infos.insert(infos.end(), newInfos.begin(), newInfos.end());
     }
@@ -332,8 +335,8 @@ ProGeTools::createFUGeneratableOperationInfos(
 /**
  * Tries to find full path for hdb file.
  */
-std::string ProGeTools::findHDBPath(std::string name) {
-
+std::string
+ProGeTools::findHDBPath(std::string name) {
     if (FileSystem::fileExists(name)) {
         return name;
     }
@@ -345,9 +348,10 @@ std::string ProGeTools::findHDBPath(std::string name) {
 /**
  * Checks if FU has an implementation in hdbs.
  */
-bool ProGeTools::checkForSelectableFU(const ProGeOptions& options,
-    TTAMachine::FunctionUnit& fu, IDF::FUImplementationLocation& loc,
-    std::ostream& verbose) {
+bool
+ProGeTools::checkForSelectableFU(
+    const ProGeOptions& options, TTAMachine::FunctionUnit& fu,
+    IDF::FUImplementationLocation& loc, std::ostream& verbose) {
     (void)verbose;
     for (auto&& hdb : options.hdbList) {
         std::string hdbPath = findHDBPath(hdb);
@@ -363,8 +367,7 @@ bool ProGeTools::checkForSelectableFU(const ProGeOptions& options,
             auto arch = fuEntry->architecture();
             auto impl = fuEntry->implementation();
             // Check that operations match.
-            if (fu.operationCount() !=
-                arch.architecture().operationCount()) {
+            if (fu.operationCount() != arch.architecture().operationCount()) {
                 continue;
             }
             bool wrongLanguage = false;
@@ -375,9 +378,10 @@ bool ProGeTools::checkForSelectableFU(const ProGeOptions& options,
                     options.language == ProGe::HDL::Verilog) {
                     wrongLanguage = true;
                     break;
-                } else if (f.format() == HDB::BlockImplementationFile::
-                                             Format::Verilog &&
-                           options.language == ProGe::HDL::VHDL) {
+                } else if (
+                    f.format() ==
+                        HDB::BlockImplementationFile::Format::Verilog &&
+                    options.language == ProGe::HDL::VHDL) {
                     wrongLanguage = true;
                     break;
                 }
@@ -414,9 +418,10 @@ bool ProGeTools::checkForSelectableFU(const ProGeOptions& options,
 /**
  * Checks if RF has an implementation in hdbs.
  */
-bool ProGeTools::checkForSelectableRF(const ProGeOptions& options,
-    TTAMachine::RegisterFile& rf, IDF::RFImplementationLocation& loc,
-    std::ostream& verbose) {
+bool
+ProGeTools::checkForSelectableRF(
+    const ProGeOptions& options, TTAMachine::RegisterFile& rf,
+    IDF::RFImplementationLocation& loc, std::ostream& verbose) {
     (void)verbose;
     for (auto&& hdb : options.hdbList) {
         std::string hdbPath = findHDBPath(hdb);
@@ -440,9 +445,10 @@ bool ProGeTools::checkForSelectableRF(const ProGeOptions& options,
                     options.language == ProGe::HDL::Verilog) {
                     wrongLanguage = true;
                     break;
-                } else if (f.format() == HDB::BlockImplementationFile::
-                                             Format::Verilog &&
-                           options.language == ProGe::HDL::VHDL) {
+                } else if (
+                    f.format() ==
+                        HDB::BlockImplementationFile::Format::Verilog &&
+                    options.language == ProGe::HDL::VHDL) {
                     wrongLanguage = true;
                     break;
                 }
@@ -472,8 +478,7 @@ bool ProGeTools::checkForSelectableRF(const ProGeOptions& options,
                 (rf.width() != arch.width())) {
                 continue;
             }
-            if (!arch.hasParameterizedSize() &&
-                (rf.size() != arch.size())) {
+            if (!arch.hasParameterizedSize() && (rf.size() != arch.size())) {
                 continue;
             }
             if (rf.zeroRegister() != arch.zeroRegister()) {
@@ -491,9 +496,10 @@ bool ProGeTools::checkForSelectableRF(const ProGeOptions& options,
 /**
  * Checks if RF has an implementation in hdbs.
  */
-bool ProGeTools::checkForSelectableIU(const ProGeOptions& options,
-    TTAMachine::ImmediateUnit& iu, IDF::IUImplementationLocation& loc,
-    std::ostream& verbose) {
+bool
+ProGeTools::checkForSelectableIU(
+    const ProGeOptions& options, TTAMachine::ImmediateUnit& iu,
+    IDF::IUImplementationLocation& loc, std::ostream& verbose) {
     (void)verbose;
     for (auto&& hdb : options.hdbList) {
         std::string hdbPath = findHDBPath(hdb);
@@ -517,9 +523,10 @@ bool ProGeTools::checkForSelectableIU(const ProGeOptions& options,
                     options.language == ProGe::HDL::Verilog) {
                     wrongLanguage = true;
                     break;
-                } else if (f.format() == HDB::BlockImplementationFile::
-                                             Format::Verilog &&
-                           options.language == ProGe::HDL::VHDL) {
+                } else if (
+                    f.format() ==
+                        HDB::BlockImplementationFile::Format::Verilog &&
+                    options.language == ProGe::HDL::VHDL) {
                     wrongLanguage = true;
                     break;
                 }
@@ -543,8 +550,7 @@ bool ProGeTools::checkForSelectableIU(const ProGeOptions& options,
                 (iu.width() != arch.width())) {
                 continue;
             }
-            if (!arch.hasParameterizedSize() &&
-                (iu.size() != arch.size())) {
+            if (!arch.hasParameterizedSize() && (iu.size() != arch.size())) {
                 continue;
             }
             // Must be a perfect choise.

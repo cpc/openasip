@@ -64,7 +64,9 @@ LoopBufferBlock::LoopBufferBlock(
 
     if (!cuOps.count("hwloop") && !cuOps.count("lbufs") &&
         !cuOps.count("infloop")) {
-        THROW_EXCEPTION(NotAvailable, "Could not recognize any loop buffer "
+        THROW_EXCEPTION(
+            NotAvailable,
+            "Could not recognize any loop buffer "
             "utilizing operations in CU");
     } else if (cuOps.count("hwloop") && cuOps.count("lbufs")) {
         THROW_EXCEPTION(
@@ -72,7 +74,9 @@ LoopBufferBlock::LoopBufferBlock(
             "Can not support hwloop and lbufs "
             "operation combination.");
     } else if (cuOps.count("lbufs") && cuOps.count("infloop")) {
-        THROW_EXCEPTION(NotAvailable, "Can not support lbufs and infloop "
+        THROW_EXCEPTION(
+            NotAvailable,
+            "Can not support lbufs and infloop "
             "operation combination.");
     }
 
@@ -94,10 +98,10 @@ LoopBufferBlock::LoopBufferBlock(
     // note: port widths "IMEMWIDTHINMAUS*IMEMMAUWIDTH", "LBUFMAXDEPTH" and
     // "LBUFMAXITER" are temporary solutions for instancing blocks. The actual
     // port width formulas use generics.
-    instructionPortIn_ = addPort(
-        new InPort("fetchblock_in", "IMEMWIDTHINMAUS*IMEMMAUWIDTH"));
-    instructionPortOut_ = addPort(
-        new OutPort("dispatch_out", "IMEMWIDTHINMAUS*IMEMMAUWIDTH"));
+    instructionPortIn_ =
+        addPort(new InPort("fetchblock_in", "IMEMWIDTHINMAUS*IMEMMAUWIDTH"));
+    instructionPortOut_ =
+        addPort(new OutPort("dispatch_out", "IMEMWIDTHINMAUS*IMEMMAUWIDTH"));
     startPortIn_ = addPort(new InBitPort("loop_start_in"));
 
     if (cuOps.count("hwloop")) {
@@ -131,13 +135,15 @@ LoopBufferBlock::LoopBufferBlock(
         implmenetationFile_ = "hwloop";
     } else if (cuOps.count("lbufs")) {
         if (cuOps.count("lbufc")) {
-            THROW_EXCEPTION(NotAvailable, "BREAK-operation is not currently "
+            THROW_EXCEPTION(
+                NotAvailable,
+                "BREAK-operation is not currently "
                 "available with LBUFS operation.");
         }
         setModuleName(context.coreEntityName() + "_loopbuf");
         addParameter(Parameter("iterw", "integer", ""));
-        loopIterationPortIn_ = addPort(
-            new InPort("loop_iter_in", "LBUFMAXITER"));
+        loopIterationPortIn_ =
+            addPort(new InPort("loop_iter_in", "LBUFMAXITER"));
         implmenetationFile_ = "loopbuffer";
     } else if (cuOps.count("infloop")) {
         if (cuOps.count("lbufc")) {
@@ -153,7 +159,6 @@ LoopBufferBlock::LoopBufferBlock(
 LoopBufferBlock::~LoopBufferBlock() {
     // Managed by BaseNetlistBlock
 }
-
 
 /**
  * Sets the width of the blocks (i.e. instructions).
@@ -184,7 +189,7 @@ LoopBufferBlock::setBufferSizeParameter(const std::string value) {
 void
 LoopBufferBlock::setIterationPortWidthParameter(const std::string value) {
     // Constructor creates the parameter when needed.
-    if(hasParameter("iterw")) {
+    if (hasParameter("iterw")) {
         setParameter(Parameter("iterw", "integer", value));
     }
 }
@@ -210,10 +215,9 @@ LoopBufferBlock::setCoreIdParameter(const std::string value) {
  */
 void
 LoopBufferBlock::setUsageTracingParameter(bool value) {
-    setParameter(Parameter("enable_usage_trace", "boolean",
-        value?"true":"false"));
+    setParameter(
+        Parameter("enable_usage_trace", "boolean", value ? "true" : "false"));
 }
-
 
 /**
  * Returns (global) lock request input port.
@@ -225,7 +229,6 @@ LoopBufferBlock::lockReqPortIn() const {
     return *lockReqPortIn_;
 }
 
-
 /**
  * Returns (global) lock request output port.
  */
@@ -234,7 +237,6 @@ LoopBufferBlock::lockReqPortOut() const {
     assert(lockReqPortOut_ != nullptr && "Unset port.");
     return *lockReqPortOut_;
 }
-
 
 /**
  * Returns (global) lock input port.
@@ -245,7 +247,6 @@ LoopBufferBlock::lockPortIn() const {
     return *lockPortIn_;
 }
 
-
 /**
  * Returns (global) lock output port.
  */
@@ -254,7 +255,6 @@ LoopBufferBlock::lockPortOut() const {
     assert(lockPortOut_ != nullptr && "Unset port.");
     return *lockPortOut_;
 }
-
 
 /**
  * Returns input port for instruction word.
@@ -265,7 +265,6 @@ LoopBufferBlock::instructionPortIn() const {
     return *instructionPortIn_;
 }
 
-
 /**
  * Returns output port for instruction word.
  */
@@ -274,7 +273,6 @@ LoopBufferBlock::instructionPortOut() const {
     assert(instructionPortOut_ != nullptr && "Unset port.");
     return *instructionPortOut_;
 }
-
 
 /**
  * Returns control port for starting loop buffer.
@@ -296,7 +294,6 @@ LoopBufferBlock::stopPortIn() const {
     return stopPortIn_;
 }
 
-
 /**
  * Returns control port for setting loop body size.
  */
@@ -305,7 +302,6 @@ LoopBufferBlock::loopBodySizePortIn() const {
     assert(loopBodySizePortIn_ != nullptr && "Unset port.");
     return *loopBodySizePortIn_;
 }
-
 
 /**
  * Returns control port for setting iteration count.
@@ -345,8 +341,8 @@ LoopBufferBlock::write(const Path& targetBaseDir, HDL targetLang) const {
     assert(moduleName() != "not_set_yet");
 
     std::string target = targetBaseDir.string() +
-        FileSystem::DIRECTORY_SEPARATOR + "gcu_ic" +
-        FileSystem::DIRECTORY_SEPARATOR;
+                         FileSystem::DIRECTORY_SEPARATOR + "gcu_ic" +
+                         FileSystem::DIRECTORY_SEPARATOR;
 
     bool usesLoopBreaking = stopPortIn() != nullptr;
 
@@ -360,21 +356,19 @@ LoopBufferBlock::write(const Path& targetBaseDir, HDL targetLang) const {
             "loop_stop_in : in std_logic;");
         instantiator.replacePlaceholderFromFile(
             "fsm-logic",
-            progeDataDir/"inflooper_fsm_with_stopping.snippet");
+            progeDataDir / "inflooper_fsm_with_stopping.snippet");
         instantiator.replacePlaceholderFromFile(
             "signal-declarations",
-            progeDataDir/"inflooper_stop_signals.snippet");
+            progeDataDir / "inflooper_stop_signals.snippet");
         instantiator.replacePlaceholderFromFile(
-            "stop-reg",
-            progeDataDir/"inflooper_stop_register.snippet");
+            "stop-reg", progeDataDir / "inflooper_stop_register.snippet");
     } else {
         instantiator.replacePlaceholderFromFile(
-            "fsm-logic",
-            progeDataDir/"inflooper_fsm_default.snippet");
+            "fsm-logic", progeDataDir / "inflooper_fsm_default.snippet");
     }
 
     instantiator.instantiateTemplateFile(
-        (progeDataDir/(implmenetationFile_+".vhdl.tmpl")).string(),
+        (progeDataDir / (implmenetationFile_ + ".vhdl.tmpl")).string(),
         target + implmenetationFile_ + ".vhdl");
 }
 

@@ -172,13 +172,13 @@ BEMGenerator::addTopLevelFields(BinaryEncoding& bem) const {
     // add long immediate control field
     Machine::InstructionTemplateNavigator itNav = 
         machine_->instructionTemplateNavigator();
-    
+
     if (itNav.count() > 1) {
         ImmediateControlField* field = new ImmediateControlField(bem);
         addEncodings(*field);
     }
 
-    Machine::OperationTriggeredFormatNavigator fNav = 
+    Machine::OperationTriggeredFormatNavigator fNav =
         machine_->operationTriggeredFormatNavigator();
     for (int i = 0; i < fNav.count(); i++) {
         OperationTriggeredFormat* fTemp = fNav.item(i);
@@ -187,26 +187,25 @@ BEMGenerator::addTopLevelFields(BinaryEncoding& bem) const {
 }
 
 /**
- * Adds a RISC-V format to the binary encoding map 
- * 
+ * Adds a RISC-V format to the binary encoding map
+ *
  * @param format The operation triggered format
  * @param bem The binary encoding
  */
 
 void
-BEMGenerator::addRiscvFormat(OperationTriggeredFormat* format,
-BinaryEncoding& bem) const {
-
+BEMGenerator::addRiscvFormat(
+    OperationTriggeredFormat* format, BinaryEncoding& bem) const {
     std::string name = format->name();
     InstructionFormat* instrFormat = new InstructionFormat(name, bem);
 
     if (name == "riscv_r_type") {
-        OperationTriggeredEncoding* rs1 = new OperationTriggeredEncoding(
-            std::string("rs1"), *instrFormat);
+        OperationTriggeredEncoding* rs1 =
+            new OperationTriggeredEncoding(std::string("rs1"), *instrFormat);
         OperationTriggeredEncoding* rs2 =
-        new OperationTriggeredEncoding(std::string("rs2"), *instrFormat);
-        OperationTriggeredEncoding* rd = new OperationTriggeredEncoding(
-            std::string("rd"), *instrFormat);
+            new OperationTriggeredEncoding(std::string("rs2"), *instrFormat);
+        OperationTriggeredEncoding* rd =
+            new OperationTriggeredEncoding(std::string("rd"), *instrFormat);
         new OperationTriggeredField(*rs1, 0, 15, 5);
         new OperationTriggeredField(*rs2, 0, 20, 5);
         new OperationTriggeredField(*rd, 0, 7, 5);
@@ -229,14 +228,14 @@ BinaryEncoding& bem) const {
             }
         }
     } else if (name == "riscv_i_type") {
-        //TODO: shift operations use immediate bits for funct code in this
-        // format
-        OperationTriggeredEncoding* rs1 = new OperationTriggeredEncoding(
-        std::string("rs1"), *instrFormat);
+        // TODO: shift operations use immediate bits for funct code in this
+        //  format
+        OperationTriggeredEncoding* rs1 =
+            new OperationTriggeredEncoding(std::string("rs1"), *instrFormat);
         OperationTriggeredEncoding* imm =
-        new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
-        OperationTriggeredEncoding* rd = new OperationTriggeredEncoding(
-            std::string("rd"), *instrFormat);
+            new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
+        OperationTriggeredEncoding* rd =
+            new OperationTriggeredEncoding(std::string("rd"), *instrFormat);
         new OperationTriggeredField(*rs1, 0, 15, 5);
         new OperationTriggeredField(*imm, 0, 25, 12);
         new OperationTriggeredField(*rd, 0, 7, 5);
@@ -254,12 +253,12 @@ BinaryEncoding& bem) const {
             }
         }
     } else if (name == "riscv_s_type") {
-        OperationTriggeredEncoding* rs1 = new OperationTriggeredEncoding(
-        std::string("rs1"), *instrFormat);
+        OperationTriggeredEncoding* rs1 =
+            new OperationTriggeredEncoding(std::string("rs1"), *instrFormat);
         OperationTriggeredEncoding* imm =
-        new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
+            new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
         OperationTriggeredEncoding* rs2 =
-        new OperationTriggeredEncoding(std::string("rs2"), *instrFormat);
+            new OperationTriggeredEncoding(std::string("rs2"), *instrFormat);
         new OperationTriggeredField(*rs1, 0, 15, 5);
         new OperationTriggeredField(*rs2, 0, 20, 5);
         new OperationTriggeredField(*imm, 0, 7, 5);
@@ -277,12 +276,12 @@ BinaryEncoding& bem) const {
             }
         }
     } else if (name == "riscv_b_type") {
-        OperationTriggeredEncoding* rs1 = new OperationTriggeredEncoding(
-        std::string("rs1"), *instrFormat);
+        OperationTriggeredEncoding* rs1 =
+            new OperationTriggeredEncoding(std::string("rs1"), *instrFormat);
         OperationTriggeredEncoding* imm =
-        new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
+            new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
         OperationTriggeredEncoding* rs2 =
-        new OperationTriggeredEncoding(std::string("rs2"), *instrFormat);
+            new OperationTriggeredEncoding(std::string("rs2"), *instrFormat);
         new OperationTriggeredField(*rs1, 0, 15, 5);
         new OperationTriggeredField(*rs2, 0, 20, 5);
         new OperationTriggeredField(*imm, 0, 8, 4);
@@ -302,13 +301,13 @@ BinaryEncoding& bem) const {
             }
         }
     } else if (name == "riscv_u_type") {
-        OperationTriggeredEncoding* rd = new OperationTriggeredEncoding(
-            std::string("rd"), *instrFormat);
+        OperationTriggeredEncoding* rd =
+            new OperationTriggeredEncoding(std::string("rd"), *instrFormat);
         new OperationTriggeredField(*rd, 0, 7, 5);
         OperationTriggeredEncoding* opcode = new OperationTriggeredEncoding(
             std::string("opcode"), *instrFormat);
         OperationTriggeredEncoding* imm =
-        new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
+            new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
         new OperationTriggeredField(*imm, 0, 12, 20);
         new OperationTriggeredField(*opcode, 0, 0, 7);
         std::vector<std::string> operations = format->operations();
@@ -320,13 +319,13 @@ BinaryEncoding& bem) const {
             }
         }
     } else if (name == "riscv_j_type") {
-        OperationTriggeredEncoding* rd = new OperationTriggeredEncoding(
-            std::string("rd"), *instrFormat);
+        OperationTriggeredEncoding* rd =
+            new OperationTriggeredEncoding(std::string("rd"), *instrFormat);
         new OperationTriggeredField(*rd, 0, 7, 5);
         OperationTriggeredEncoding* opcode = new OperationTriggeredEncoding(
             std::string("opcode"), *instrFormat);
         OperationTriggeredEncoding* imm =
-        new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
+            new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
         new OperationTriggeredField(*imm, 0, 20, 10);
         new OperationTriggeredField(*imm, 1, 20, 1);
         new OperationTriggeredField(*imm, 2, 15, 8);
@@ -341,12 +340,10 @@ BinaryEncoding& bem) const {
             }
         }
     } else {
-        //TODO: Throw some meaniningful exception here
+        // TODO: Throw some meaniningful exception here
         assert(false);
     }
-
 }
-
 
 /**
  * Adds the long immediate destination register fields to the given
@@ -497,10 +494,9 @@ BEMGenerator::addSubfields(MoveSlot& slot) const {
  * @param field The immediate control field.
  */
 void
-BEMGenerator::addEncodings(ImmediateControlField& field) const {   
-
-    Machine::InstructionTemplateNavigator itNav = 
-    machine_->instructionTemplateNavigator();
+BEMGenerator::addEncodings(ImmediateControlField& field) const {
+    Machine::InstructionTemplateNavigator itNav =
+        machine_->instructionTemplateNavigator();
     for (int i = 0; i < itNav.count(); i++) {
         InstructionTemplate* iTemp = itNav.item(i);
         field.addTemplateEncoding(iTemp->name(), i);

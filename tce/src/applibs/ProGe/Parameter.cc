@@ -43,12 +43,7 @@ namespace ProGe {
  * Empty parameter with undefined members.
  */
 Parameter::Parameter()
-    : name_(""),
-      type_(""),
-      value_(""),
-      default_(""),
-      package_("") {
-}
+    : name_(""), type_(""), value_(""), default_(""), package_("") {}
 
 /**
  * Constructs a parameter with both the assigned and default value having the
@@ -60,11 +55,10 @@ Parameter::Parameter()
  *                                parameter.
  */
 Parameter::Parameter(
-    const TCEString& name,
-    const TCEString& type,
+    const TCEString& name, const TCEString& type,
     const TCEString& assignedAndDefaultValue)
-    : Parameter(name, type, assignedAndDefaultValue, assignedAndDefaultValue) {
-}
+    : Parameter(
+          name, type, assignedAndDefaultValue, assignedAndDefaultValue) {}
 
 /**
  * Constructs a parameter with separate assigned and default value.
@@ -75,27 +69,21 @@ Parameter::Parameter(
  * @param defaultValue The default value of the parameter.
  */
 Parameter::Parameter(
-    const TCEString& name,
-    const TCEString& type,
-    const TCEString& assignedValue,
-    const TCEString& defaultValue)
+    const TCEString& name, const TCEString& type,
+    const TCEString& assignedValue, const TCEString& defaultValue)
     : name_(name),
       type_(type),
       value_(assignedValue),
       default_(defaultValue),
-      package_("") {
-}
+      package_("") {}
 Parameter::Parameter(
-    const TCEString& name,
-    const TCEString& type,
-    int assignedValue,
+    const TCEString& name, const TCEString& type, int assignedValue,
     const TCEString& defaultValue)
     : name_(name),
       type_(type),
       value_(""),
       default_(defaultValue),
       package_("") {
-
     value_ = Conversion::toString(assignedValue);
 }
 
@@ -107,26 +95,20 @@ Parameter::Parameter(
  * @param nameOfPackage The name of a package where the constant is defined.
  */
 Parameter::Parameter(
-    const TCEString& name,
-    const TCEString& type,
-    const TCEString& nameOfConstant,
-    const TCEString& defaultValue,
+    const TCEString& name, const TCEString& type,
+    const TCEString& nameOfConstant, const TCEString& defaultValue,
     const TCEString& nameOfPackage)
     : name_(name),
       type_(type),
       value_(nameOfConstant),
       default_(defaultValue),
-      package_(nameOfPackage) {
-}
+      package_(nameOfPackage) {}
 
-Parameter::~Parameter() {
-}
+Parameter::~Parameter() {}
 
 void
 Parameter::set(
-        const TCEString& name,
-        const TCEString& type,
-        const TCEString& value) {
+    const TCEString& name, const TCEString& type, const TCEString& value) {
     name_ = name;
     type_ = type;
     value_ = value;
@@ -173,7 +155,7 @@ Parameter::defaultValue() const {
  */
 bool
 Parameter::valueIsSymbol() const {
-    return !package_.empty(); //note: placeholder
+    return !package_.empty();  // note: placeholder
 }
 
 /**

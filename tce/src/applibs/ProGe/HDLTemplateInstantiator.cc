@@ -39,15 +39,11 @@ const std::string HDLTemplateInstantiator::PLACEHOLDERBEGIN =
     "<<placeholder" + PLACEHOLDERSEPARATOR;
 const std::string HDLTemplateInstantiator::PLACEHOLDEREND = ">>";
 
-
 HDLTemplateInstantiator::HDLTemplateInstantiator()
-    : HDLTemplateInstantiator(TCEString()) {
-}
-
+    : HDLTemplateInstantiator(TCEString()) {}
 
 HDLTemplateInstantiator::HDLTemplateInstantiator(const TCEString& entityStr)
-    : entityStr_(entityStr), replacers_() {
-}
+    : entityStr_(entityStr), replacers_() {}
 
 /**
  * Adds replace string for the template placeholder by key.
@@ -70,7 +66,8 @@ HDLTemplateInstantiator::replacePlaceholder(
         replacers_[key] += replacer;
     } else {
         if (replacers_.count(key)) {
-            THROW_EXCEPTION(KeyAlreadyExists,
+            THROW_EXCEPTION(
+                KeyAlreadyExists,
                 "The placeholder \"" + key + "\" is already filled. ");
         }
         replacers_.insert(std::pair<PlaceholderKey, Replacer>(key, replacer));
@@ -90,17 +87,16 @@ HDLTemplateInstantiator::replacePlaceholder(
  */
 void
 HDLTemplateInstantiator::replacePlaceholderFromFile(
-    const std::string& key,
-    const Path& filePath,
-    bool append) {
-
+    const std::string& key, const Path& filePath, bool append) {
     std::string snippetFileName = filePath;
     std::ifstream snippetfile(snippetFileName.c_str());
     if (!snippetfile.is_open()) {
-        THROW_EXCEPTION(UnreachableStream, "Could not open snippet file: \""
-            + snippetFileName + "\" for reading.");
+        THROW_EXCEPTION(
+            UnreachableStream, "Could not open snippet file: \"" +
+                                   snippetFileName + "\" for reading.");
     }
-    std::string str((std::istreambuf_iterator<char>(snippetfile)),
+    std::string str(
+        (std::istreambuf_iterator<char>(snippetfile)),
         std::istreambuf_iterator<char>());
     replacePlaceholder(key, str, append);
 }
@@ -143,7 +139,6 @@ HDLTemplateInstantiator::instantiateTemplateFile(
     output.close();
 }
 
-
 /**
  * Fills all placeholder templates with added replace strings by key.
  *
@@ -184,7 +179,6 @@ HDLTemplateInstantiator::fillPlaceholders(TCEString& str) {
     str = target;
 }
 
-
 /**
  * Searches placeholder template over given string.
  *
@@ -197,18 +191,16 @@ HDLTemplateInstantiator::findPlaceholder(const TCEString& str) {
     if (beginpos == std::string::npos) {
         return "";
     }
-    size_t endpos = str.find(
-        PLACEHOLDEREND,
-        beginpos + PLACEHOLDERBEGIN.size());
+    size_t endpos =
+        str.find(PLACEHOLDEREND, beginpos + PLACEHOLDERBEGIN.size());
     if (endpos == std::string::npos) {
         return "";
     }
     TCEString placeholder;
-    placeholder = str.substr(beginpos,
-        endpos - beginpos + PLACEHOLDEREND.size());
+    placeholder =
+        str.substr(beginpos, endpos - beginpos + PLACEHOLDEREND.size());
     return placeholder;
 }
-
 
 /**
  * Searches placeholder template over given string and returns its key.
@@ -243,7 +235,6 @@ HDLTemplateInstantiator::getPlaceholderKey(const TCEString& str) {
     return StringTools::trim(key);
 }
 
-
 /**
  * Searches placeholder template over given string and returns its default
  * part.
@@ -256,14 +247,13 @@ TCEString
 HDLTemplateInstantiator::getPlaceholderDefault(const TCEString& str) {
     TCEString placeholder = findPlaceholder(str);
     if (placeholder.empty()) {
-            return "";
+        return "";
     }
     int count = 0;
     for (size_t offset = placeholder.find(PLACEHOLDERSEPARATOR);
-        offset != std::string::npos;
-        offset = placeholder.find(PLACEHOLDERSEPARATOR,
-            offset + PLACEHOLDERSEPARATOR.size())) {
-
+         offset != std::string::npos;
+         offset = placeholder.find(
+             PLACEHOLDERSEPARATOR, offset + PLACEHOLDERSEPARATOR.size())) {
         count++;
     }
     if (count == 2) {
@@ -276,7 +266,7 @@ HDLTemplateInstantiator::getPlaceholderDefault(const TCEString& str) {
         TCEString defaultStr;
         defaultStr = placeholder.substr(
             beginpos + PLACEHOLDERSEPARATOR.size(),
-            endpos - beginpos - PLACEHOLDERSEPARATOR.size() );
+            endpos - beginpos - PLACEHOLDERSEPARATOR.size());
         return StringTools::trim(defaultStr);
     } else {
         return "";

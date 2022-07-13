@@ -171,13 +171,13 @@ CodeCompressorPlugin::setMachine(const TTAMachine::Machine& machine) {
             throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
     mau_ = bem_->width();
-    //For RISCV fix mau to 4
+    // For RISCV fix mau to 4
     if (machine.RISCVMachine()) {
         mau_ = 8;
         setImemWidth(8);
-    //fix machines imem width if adf has wrong value
+        // fix machines imem width if adf has wrong value
     } else if (mau_ != iMem->width()) {
-       setImemWidth(mau_);
+        setImemWidth(mau_);
     }
     addressSpaceOffset_ = iMem->start();
 }    

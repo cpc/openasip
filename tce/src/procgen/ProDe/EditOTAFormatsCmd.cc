@@ -45,20 +45,16 @@
 using std::string;
 using std::vector;
 
-
 /**
  * The Constructor.
  */
-EditOTAFormatsCmd::EditOTAFormatsCmd():
-    EditorCommand(ProDeConstants::CMD_NAME_EDIT_OTA_FORMATS) {
-}
-
+EditOTAFormatsCmd::EditOTAFormatsCmd()
+    : EditorCommand(ProDeConstants::CMD_NAME_EDIT_OTA_FORMATS) {}
 
 /**
  * The Destructor.
  */
 EditOTAFormatsCmd::~EditOTAFormatsCmd() {}
-
 
 /**
  * Executes the command.
@@ -67,27 +63,25 @@ EditOTAFormatsCmd::~EditOTAFormatsCmd() {}
  */
 bool
 EditOTAFormatsCmd::Do() {
-
     assert(parentWindow() != NULL);
     assert(view() != NULL);
 
-    Model* model = dynamic_cast<MDFDocument*>(
-        view()->GetDocument())->getModel();
+    Model* model =
+        dynamic_cast<MDFDocument*>(view()->GetDocument())->getModel();
 
     model->pushToStack();
 
     OTAFormatListDialog dialog(parentWindow(), model->getMachine());
 
     if (dialog.ShowModal() == wxID_OK) {
-	model->notifyObservers();
+        model->notifyObservers();
         return true;
     } else {
         // Cancel button was pressed, templates are not modified.
-	model->popFromStack();
+        model->popFromStack();
         return false;
     }
 }
-
 
 /**
  * Returns id of this command.
@@ -99,7 +93,6 @@ EditOTAFormatsCmd::id() const {
     return ProDeConstants::COMMAND_EDIT_OTA_FORMATS;
 }
 
-
 /**
  * Creates and returns a new instance of this command.
  *
@@ -109,8 +102,6 @@ EditOTAFormatsCmd*
 EditOTAFormatsCmd::create() const {
     return new EditOTAFormatsCmd();
 }
-
-
 
 /**
  * Returns path to the command's icon file.
@@ -122,7 +113,6 @@ EditOTAFormatsCmd::icon() const {
     return ProDeConstants::CMD_ICON_EDIT_OTA_FORMATS;
 }
 
-
 /**
  * Returns short version of the command name.
  *
@@ -132,7 +122,6 @@ string
 EditOTAFormatsCmd::shortName() const {
     return ProDeConstants::CMD_SNAME_EDIT_OTA_FORMATS;
 }
-
 
 /**
  * Returns true when the command is executable, false when not.
@@ -145,7 +134,7 @@ bool
 EditOTAFormatsCmd::isEnabled() {
     wxDocManager* manager = wxGetApp().docManager();
     if (manager->GetCurrentView() != NULL) {
-	return true;
+        return true;
     }
     return false;
 }

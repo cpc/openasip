@@ -155,7 +155,7 @@ MoveSlot::setName(const std::string& name) {
         const string procName = "MoveSlot::setName";
         throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
     }
-    
+
     name_ = name;
 }
 
@@ -176,7 +176,7 @@ MoveSlot::setGuardField(GuardField& field) {
         const string procName = "MoveSlot::setGuardField";
         throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
     }
-    
+
     guardField_ = &field;
 }
 
@@ -220,8 +220,6 @@ MoveSlot::guardField() const {
     }
 }
 
-
-
 /**
  * Adds the given source field to the move slot.
  *
@@ -235,7 +233,7 @@ void
 MoveSlot::setSourceField(SourceField& field) {
     // verify that this is called from SourceField constructor
     assert(field.parent() == NULL);
-    
+
     if (hasSourceField()) {
         const string procName = "MoveSlot::setSourceField";
         throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
@@ -394,7 +392,7 @@ MoveSlot::childField(int position) const {
         destinationField().relativePosition() == position) {
         return destinationField();
     }
-    
+
     assert(false);
     return NullInstructionField::instance();
 }
@@ -436,7 +434,6 @@ MoveSlot::loadState(const ObjectState* state) {
     deleteSourceField();
     deleteDestinationField();
 
-
     ObjectState* newState = new ObjectState(*state);
     reorderSubfields(newState);
     InstructionField::loadState(newState);
@@ -449,8 +446,8 @@ MoveSlot::loadState(const ObjectState* state) {
                 new GuardField(child, *this);
             } else if (child->name() == SourceField::OSNAME_SOURCE_FIELD) {
                 new SourceField(child, *this);
-            } else if (child->name() ==
-                DestinationField::OSNAME_DESTINATION_FIELD) {
+            } else if (
+                child->name() == DestinationField::OSNAME_DESTINATION_FIELD) {
                 new DestinationField(child, *this);
             }
         }
@@ -459,7 +456,7 @@ MoveSlot::loadState(const ObjectState* state) {
         throw ObjectStateLoadingException(
             __FILE__, __LINE__, procName, exception.errorMessage());
     }
-    
+
     delete newState;
 }
 

@@ -116,10 +116,7 @@ SocketEncoding::SocketEncoding(const ObjectState* state, SlotField& parent)
 /**
  * The destructor.
  */
-SocketEncoding::~SocketEncoding() {
-    detachFromParent();
-}
-
+SocketEncoding::~SocketEncoding() { detachFromParent(); }
 
 /**
  * Returns the parent slot field.
@@ -199,7 +196,6 @@ SocketEncoding::socketCodes() const {
     }
 }
 
-
 /**
  * Returns the position of the socket code within the slot field.
  */
@@ -207,12 +203,11 @@ int
 SocketEncoding::socketCodePosition() const {
     if (parent()->componentIDPosition() == BinaryEncoding::RIGHT) {
         return parent()->width() - parent()->extraBits() -
-            socketCodes().width();
+               socketCodes().width();
     } else {
         return 0;
     }
 }
-
 
 /**
  * Sets new encoding.
@@ -314,7 +309,6 @@ SocketEncoding::saveState() const {
     return state;
 }
 
-
 /**
  * Removes itself from the parent slot field.
  */
@@ -327,4 +321,3 @@ SocketEncoding::detachFromParent() {
     setParent(nullptr);
     parent->removeSocketEncoding(*this);
 }
-

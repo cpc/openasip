@@ -30,25 +30,23 @@
  * @note rating: red
  */
 
-
 #include "OperationTriggeredEncoding.hh"
 #include "OperationTriggeredField.hh"
 #include "InstructionFormat.hh"
 #include "ObjectState.hh"
 #include <algorithm>
 
+const std::string OperationTriggeredEncoding::OSNAME_OTA_ENCODING =
+    "ota-encoding";
 
-const std::string OperationTriggeredEncoding::OSNAME_OTA_ENCODING
-= "ota-encoding";
-
-const std::string OperationTriggeredEncoding::OSKEY_OTA_ENCODING_NAME
-= "name";
+const std::string OperationTriggeredEncoding::OSKEY_OTA_ENCODING_NAME =
+    "name";
 
 /**
  * The constructor.
- * 
+ *
  * Adds the instruction format to the parent binary encoding automatically.
- * 
+ *
  * @param name Name of the instruction format.
  * @param parent The parent Instruction Format.
  */
@@ -61,9 +59,9 @@ OperationTriggeredEncoding::OperationTriggeredEncoding(
 
 /**
  * The constructor.
- * 
+ *
  * Loads the state of the instruction format from the given ObjectState tree.
- * 
+ *
  * @param state The ObjectState tree.
  * @param parent The parent binary encoding map.
  * @exception ObjectStateLoadingException If an error occurs while loading
@@ -78,7 +76,7 @@ OperationTriggeredEncoding::OperationTriggeredEncoding(
 
 /**
  * The destructor
- * 
+ *
  */
 
 OperationTriggeredEncoding::~OperationTriggeredEncoding() {
@@ -87,10 +85,9 @@ OperationTriggeredEncoding::~OperationTriggeredEncoding() {
     }
 }
 
-
 /**
  * Returns the name of the instruction format.
- * 
+ *
  * @return The name of the instruction format
  */
 
@@ -100,8 +97,8 @@ OperationTriggeredEncoding::name() const {
 }
 
 /**
- * Sets the name of the instruction format. 
- * 
+ * Sets the name of the instruction format.
+ *
  * @param name The name of the instruction format.
  */
 
@@ -112,9 +109,9 @@ OperationTriggeredEncoding::setName(const std::string& name) {
 
 /**
  * Returns the number of operation triggered fields.
- * 
+ *
  * @return The number of child fields.
- */     
+ */
 
 int
 OperationTriggeredEncoding::childFieldCount() const {
@@ -123,8 +120,8 @@ OperationTriggeredEncoding::childFieldCount() const {
 
 /**
  * Returns the bit width of the instruction format.
- * 
- * @return Bit width of the instruction format. 
+ *
+ * @return Bit width of the instruction format.
  */
 
 int
@@ -139,10 +136,9 @@ OperationTriggeredEncoding::width() const {
 
 void
 OperationTriggeredEncoding::addField(OperationTriggeredField& field) {
-    //TODO: Inspect that field is valid
+    // TODO: Inspect that field is valid
     fields_.push_back(&field);
 }
-
 
 /**
  * Loads the state of the instruction format from the given ObjectState tree.
@@ -152,22 +148,22 @@ OperationTriggeredEncoding::addField(OperationTriggeredField& field) {
  *                                        the state.
  */
 
-void 
+void
 OperationTriggeredEncoding::loadState(const ObjectState* state) {
     ObjectState* newState = new ObjectState(*state);
     try {
         setName(newState->stringAttribute(OSKEY_OTA_ENCODING_NAME));
         for (int i = 0; i < newState->childCount(); i++) {
             ObjectState* child = newState->child(i);
-            if(child->name() == OperationTriggeredField::OSNAME_FIELD) {
+            if (child->name() == OperationTriggeredField::OSNAME_FIELD) {
                 new OperationTriggeredField(child, *this);
             }
         }
-     } catch (const Exception& exception) {
-     const std::string procName = "OperationTriggeredEncoding::loadState";
-     throw ObjectStateLoadingException(
-         __FILE__, __LINE__, procName, exception.errorMessage());
-     }
+    } catch (const Exception& exception) {
+        const std::string procName = "OperationTriggeredEncoding::loadState";
+        throw ObjectStateLoadingException(
+            __FILE__, __LINE__, procName, exception.errorMessage());
+    }
     delete newState;
 }
 

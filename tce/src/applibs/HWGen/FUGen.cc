@@ -22,12 +22,12 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
-* @file FUGen.cc
-*
-* @author Lasse Lehtonen 2017 (lasse.lehtonen-no.spam-tut.fi)
-* @author Kati Tervo 2017-2019 (kati.tervo-no.spam-tuni.fi)
-* @author Topi Leppänen 2019 (topi.leppanen-no.spam-tuni.fi)
-*/
+ * @file FUGen.cc
+ *
+ * @author Lasse Lehtonen 2017 (lasse.lehtonen-no.spam-tut.fi)
+ * @author Kati Tervo 2017-2019 (kati.tervo-no.spam-tuni.fi)
+ * @author Topi Leppänen 2019 (topi.leppanen-no.spam-tuni.fi)
+ */
 
 #include <regex>
 #include "IPXact.hh"
@@ -57,24 +57,26 @@
 
 using namespace HDLGenerator;
 
-bool FUGen::hasToken(std::string line, std::string token) {
+bool
+FUGen::hasToken(std::string line, std::string token) {
     auto regex = std::regex("\\b" + token + "\\b");
     return std::regex_search(line, regex);
 }
 
-std::string FUGen::replaceToken(std::string line, Replace replace) {
+std::string
+FUGen::replaceToken(std::string line, Replace replace) {
     auto regex = std::regex("\\b" + replace.first + "\\b");
     return std::regex_replace(line, regex, replace.second);
 }
 
-Language FUGen::selectedLanguage() {
+Language
+FUGen::selectedLanguage() {
     if (options_.language == ProGe::HDL::VHDL) {
         return Language::VHDL;
     } else {
         return Language::Verilog;
     }
 }
-
 
 std::deque<std::string>
 FUGen::readFile(std::string filename) {
@@ -95,7 +97,8 @@ FUGen::readFile(std::string filename) {
 /**
  * Searches for file in TCE folders and makes the path absolute.
  */
-std::string FUGen::findAbsolutePath(std::string file) {
+std::string
+FUGen::findAbsolutePath(std::string file) {
     if (file.length() > 4 && file.substr(0, 4) == "tce:") {
         file = file.substr(4);
     }
@@ -106,7 +109,8 @@ std::string FUGen::findAbsolutePath(std::string file) {
     return FileSystem::findFileInSearchPaths(paths, file);
 }
 
-std::string FUGen::opcodeSignal(int stage) {
+std::string
+FUGen::opcodeSignal(int stage) {
     if (stage == 0) {
         return "operation_in";
     } else {
@@ -114,7 +118,8 @@ std::string FUGen::opcodeSignal(int stage) {
     }
 }
 
-std::string FUGen::triggerSignal(int stage) {
+std::string
+FUGen::triggerSignal(int stage) {
     if (stage == 0) {
         return "load_" + triggerPort_ + "_in";
     } else {
@@ -122,19 +127,23 @@ std::string FUGen::triggerSignal(int stage) {
     }
 }
 
-std::string FUGen::opcodeConstant(std::string operation) {
+std::string
+FUGen::opcodeConstant(std::string operation) {
     return "op_" + operation + "_c";
 }
 
-std::string FUGen::operandSignal(std::string operation, int id) {
+std::string
+FUGen::operandSignal(std::string operation, int id) {
     return operation + "_op" + std::to_string(id);
 }
 
-std::string FUGen::operandPlaceholder(int id) {
+std::string
+FUGen::operandPlaceholder(int id) {
     return "op" + std::to_string(id);
 }
 
-std::string FUGen::pipelineName(std::string port, int cycle) {
+std::string
+FUGen::pipelineName(std::string port, int cycle) {
     if (cycle == 0) {
         return "data_" + port;
     } else {
@@ -142,11 +151,13 @@ std::string FUGen::pipelineName(std::string port, int cycle) {
     }
 }
 
-std::string FUGen::pipelineValid(std::string port, int cycle) {
+std::string
+FUGen::pipelineValid(std::string port, int cycle) {
     return "data_" + port + "_" + std::to_string(cycle) + "_valid_r";
 }
 
-std::string FUGen::subOpName(OperationNode* node) {
+std::string
+FUGen::subOpName(OperationNode* node) {
     int id;
     std::string op = node->referencedOperation().name();
     op = StringTools::stringToLower(op);
@@ -163,7 +174,8 @@ std::string FUGen::subOpName(OperationNode* node) {
     return "subop_" + op + "_" + std::to_string(id);
 }
 
-std::string FUGen::constantName(ConstantNode* node, OperationDAG* dag) {
+std::string
+FUGen::constantName(ConstantNode* node, OperationDAG* dag) {
     int id;
     std::string op = dag->operation().name();
     op = StringTools::stringToLower(op);
@@ -180,13 +192,14 @@ std::string FUGen::constantName(ConstantNode* node, OperationDAG* dag) {
     return constantName(dagConstants_[node->nodeID()]);
 }
 
-std::string FUGen::constantName(DAGConstant dagc) {
+std::string
+FUGen::constantName(DAGConstant dagc) {
     return "dag_" + dagc.operation + "_" + std::to_string(dagc.id) + "_c";
 }
 
-int FUGen::DAGNodeOperandWidth(OperationDAGNode& node, int id,
-                               OperationDAG* dag) {
-
+int
+FUGen::DAGNodeOperandWidth(
+    OperationDAGNode& node, int id, OperationDAG* dag) {
     auto operation = dynamic_cast<OperationNode*>(&node);
     auto terminal = dynamic_cast<TerminalNode*>(&node);
     auto constant = dynamic_cast<ConstantNode*>(&node);
@@ -211,7 +224,8 @@ int FUGen::DAGNodeOperandWidth(OperationDAGNode& node, int id,
 /**
  * Creates the header comment for fu.
  */
-void FUGen::createFUHeaderComment() {
+void
+FUGen::createFUHeaderComment() {
     fu_.appendToHeader("Function Unit: " + fug_.name());
     fu_.appendToHeader("");
     fu_.appendToHeader("Operations:");
@@ -222,8 +236,8 @@ void FUGen::createFUHeaderComment() {
             TTAMachine::HWOperation* hwop = adfFU_->operation(i);
             maxOpNameLen = std::max(maxOpNameLen, hwop->name().size());
         }
-        int opDigits = static_cast<int>(
-            std::ceil(std::log10(adfFU_->operationCount())));
+        int opDigits =
+            static_cast<int>(std::ceil(std::log10(adfFU_->operationCount())));
         for (int i = 0; i < adfFU_->operationCount(); ++i) {
             TTAMachine::HWOperation* hwop = adfFU_->operation(i);
             operations_.emplace_back(hwop->name());
@@ -234,8 +248,8 @@ void FUGen::createFUHeaderComment() {
             fu_ << BinaryConstant(opcodeConstant(op), opcodeWidth_, opcode);
             std::ostringstream comment;
             comment << boost::format(
-                           " %-" + std::to_string(maxOpNameLen) +
-                           "s : %" + std::to_string(opDigits) + "s") %
+                           " %-" + std::to_string(maxOpNameLen) + "s : %" +
+                           std::to_string(opDigits) + "s") %
                            op % std::to_string(opcode);
             fu_.appendToHeader(comment.str());
             opcode++;
@@ -249,8 +263,9 @@ void FUGen::createFUHeaderComment() {
     fu_.appendToHeader("");
 }
 
-void FUGen::copyImplementation(std::string file, std::string format,
-                               bool isSynthesizable) {
+void
+FUGen::copyImplementation(
+    std::string file, std::string format, bool isSynthesizable) {
     file = findAbsolutePath(file);
     const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
     std::string dir = options_.outputDirectory + DS;
@@ -260,8 +275,8 @@ void FUGen::copyImplementation(std::string file, std::string format,
         dir += "blackbox" + DS;
         dir += format == "VHDL simulation" ? "vhdl" : "verilog";
     }
-    std::string target = dir + FileSystem::DIRECTORY_SEPARATOR +
-                         FileSystem::fileOfPath(file);
+    std::string target =
+        dir + FileSystem::DIRECTORY_SEPARATOR + FileSystem::fileOfPath(file);
     if (!FileSystem::fileExists(target)) {
         FileSystem::createDirectory(dir);
         FileSystem::copy(file, target);
@@ -271,7 +286,8 @@ void FUGen::copyImplementation(std::string file, std::string format,
 /*
  * Create actual HDL files.
  */
-void FUGen::createImplementationFiles() {
+void
+FUGen::createImplementationFiles() {
     if (options_.language == ProGe::HDL::VHDL) {
         Path dir = Path(options_.outputDirectory) / "vhdl";
         FileSystem::createDirectory(dir.string());
@@ -307,7 +323,8 @@ void FUGen::createImplementationFiles() {
 /*
  * Create ports that are always there.
  */
-void FUGen::createMandatoryPorts() {
+void
+FUGen::createMandatoryPorts() {
     std::string resetPort;
     if (ProGeTools::findInOptionList("active low reset", globalOptions_)) {
         resetPort = "rstx";
@@ -315,9 +332,7 @@ void FUGen::createMandatoryPorts() {
         resetPort = "rst";
     }
 
-    fu_ << InPort("clk")
-        << InPort(resetPort)
-        << InPort("glock_in")
+    fu_ << InPort("clk") << InPort(resetPort) << InPort("glock_in")
         << OutPort("glockreq_out");
 
     if (adfFU_->operationCount() > 1) {
@@ -330,12 +345,14 @@ void FUGen::createMandatoryPorts() {
             static_cast<TTAMachine::FUPort*>(adfFU_->port(i));
 
         if (adfPort->isInput()) {
-            fu_ << InPort("data_" + adfPort->name() + "_in",
-                adfPort->width(), WireType::Vector);
+            fu_ << InPort(
+                "data_" + adfPort->name() + "_in", adfPort->width(),
+                WireType::Vector);
             fu_ << InPort("load_" + adfPort->name() + "_in");
         } else {
-            fu_ << OutPort("data_" + adfPort->name() + "_out",
-                adfPort->width(), WireType::Vector);
+            fu_ << OutPort(
+                "data_" + adfPort->name() + "_out", adfPort->width(),
+                WireType::Vector);
         }
     }
 
@@ -344,7 +361,8 @@ void FUGen::createMandatoryPorts() {
     }
 }
 
-void FUGen::checkForValidity() {
+void
+FUGen::checkForValidity() {
     // Check that we can implement the FU.
     // Cannot implement if FU has multioutput operation that has
     //  different latencies for the outputs.
@@ -365,8 +383,8 @@ void FUGen::checkForValidity() {
             } else if (prevLatency != latency) {
                 // TODO: probably not true anymore, but needs to be tested
                 throw std::runtime_error(
-                    "FUGen cannot implement multioutput operations (" +
-                    op + ") which have different latencies for"
+                    "FUGen cannot implement multioutput operations (" + op +
+                    ") which have different latencies for"
                     " its outputs.");
             }
         }
@@ -375,7 +393,6 @@ void FUGen::checkForValidity() {
 
 std::vector<FUGen::Replace>
 FUGen::buildReplaces(std::string name) {
-
     OperationSchedule& schedule = scheduledOperations_[name];
     std::string op = schedule.baseOp;
     std::vector<FUGen::Replace> replaces;
@@ -385,10 +402,12 @@ FUGen::buildReplaces(std::string name) {
 
     for (auto&& operand : schedule.operands) {
         int id = operand.id;
-        replaces.emplace_back(operandPlaceholder(id), operandSignal(name, id));
+        replaces.emplace_back(
+            operandPlaceholder(id), operandSignal(name, id));
     }
     for (int id : schedule.results) {
-        replaces.emplace_back(operandPlaceholder(id), operandSignal(name, id));
+        replaces.emplace_back(
+            operandPlaceholder(id), operandSignal(name, id));
     }
 
     if (!baseOperations_.count(op)) {
@@ -469,8 +488,9 @@ FUGen::buildReplaces(std::string name) {
     return replaces;
 }
 
-void FUGen::readImplementation(std::string filename, std::string opName,
-                               std::deque<std::string>& sink) {
+void
+FUGen::readImplementation(
+    std::string filename, std::string opName, std::deque<std::string>& sink) {
     // replace temps in operation implmentations and keep track of
     // read temps.
     std::ifstream implStream(findAbsolutePath(filename));
@@ -492,16 +512,15 @@ void FUGen::readImplementation(std::string filename, std::string opName,
  * @param portName The port name given in HDB.
  * @return True if the port is LSU data memory port.
  */
-bool 
+bool
 FUGen::isLSUDataPort(const std::string& portName) const {
-
     if (!adfFU_->hasAddressSpace()) {
         return false;
     }
 
     static const std::set<std::string> magicWords{
-        "avalid", "aready", "aaddr", "awren", "astrb", "rvalid",
-        "rready", "rdata", "adata"};
+        "avalid", "aready", "aaddr", "awren", "astrb",
+        "rvalid", "rready", "rdata", "adata"};
 
     for (auto magicWord : magicWords) {
         if (portName.find(magicWord) != std::string::npos) {
@@ -513,7 +532,7 @@ FUGen::isLSUDataPort(const std::string& portName) const {
 }
 /**
  * (Ugly) heuristics for mapping FUGen generated LSU signal types
- * 
+ *
  * @param portName Name of the port
  * @return SignalType
  */
@@ -543,7 +562,8 @@ FUGen::inferLSUSignal(const std::string& portName) const {
     return SigT::UNDEFINED;
 }
 
-void FUGen::createExternalInterfaces(bool genIntegrator) {
+void
+FUGen::createExternalInterfaces(bool genIntegrator) {
     std::set<std::pair<ProGe::NetlistPort*, ProGe::NetlistPort*>> lsuPorts;
     Replace replaceAddress = {"addrw_c", std::to_string(addressWidth_)};
     for (auto&& ei : extIfaces_) {
@@ -555,13 +575,13 @@ void FUGen::createExternalInterfaces(bool genIntegrator) {
             }
             ProGe::Direction dir;
             if (port.direction == "out") {
-                fu_ << OutPort(port.name, width,
-                               HDLGenerator::WireType::Vector);
+                fu_ << OutPort(
+                    port.name, width, HDLGenerator::WireType::Vector);
                 extOutputs_.emplace(port.name, port.defaultValue);
                 dir = ProGe::Direction::OUT;
             } else {
-                fu_ << InPort(port.name, width,
-                              HDLGenerator::WireType::Vector);
+                fu_ << InPort(
+                    port.name, width, HDLGenerator::WireType::Vector);
                 extInputs_.emplace(port.name);
                 dir = ProGe::Direction::IN;
             }
@@ -569,16 +589,16 @@ void FUGen::createExternalInterfaces(bool genIntegrator) {
             std::string extName = moduleName_ + "_" + port.name;
             ProGe::NetlistPort* ext = NULL;
             ProGe::NetlistPort* internal = new ProGe::NetlistPort(
-                port.name, width, ProGe::DataType::BIT_VECTOR,
-                dir, *netlistBlock_);
+                port.name, width, ProGe::DataType::BIT_VECTOR, dir,
+                *netlistBlock_);
             if (isLSUDataPort(extName) && !genIntegrator) {
-                ext = new ProGe::NetlistPort(extName,
-                width, ProGe::DataType::BIT_VECTOR, dir, *core_,
-                inferLSUSignal(extName));
+                ext = new ProGe::NetlistPort(
+                    extName, width, ProGe::DataType::BIT_VECTOR, dir, *core_,
+                    inferLSUSignal(extName));
                 lsuPorts.insert(std::make_pair(internal, ext));
             } else {
-                ext = new ProGe::NetlistPort(extName,
-                width, ProGe::DataType::BIT_VECTOR, dir, *core_);
+                ext = new ProGe::NetlistPort(
+                    extName, width, ProGe::DataType::BIT_VECTOR, dir, *core_);
                 core_->netlist().connect(*ext, *internal);
             }
         }
@@ -591,15 +611,14 @@ void FUGen::createExternalInterfaces(bool genIntegrator) {
     if (adfFU_->hasAddressSpace()) {
         asName = adfFU_->addressSpace()->name();
     }
-    
+
     ProGe::NetlistPortGroup* dmemPortGroup = nullptr;
     for (auto portPair : lsuPorts) {
         dmemPortGroup =
-        dmemPortGroup
-            ? dmemPortGroup
-            : (new ProGe::MemoryBusInterface(
-                    ProGe::SignalGroupType::BYTEMASKED_SRAM_PORT,
-                    asName));
+            dmemPortGroup
+                ? dmemPortGroup
+                : (new ProGe::MemoryBusInterface(
+                      ProGe::SignalGroupType::BYTEMASKED_SRAM_PORT, asName));
         dmemPortGroup->addPort(*portPair.second);
         core_->netlist().connect(*portPair.first, *portPair.second);
     }
@@ -609,7 +628,8 @@ void FUGen::createExternalInterfaces(bool genIntegrator) {
     }
 }
 
-void FUGen::createOperationResources() {
+void
+FUGen::createOperationResources() {
     std::map<std::string, int> instantiatedResources;
     for (auto&& rs : baseOperations_) {
         for (auto&& r : rs.second.resources) {
@@ -622,13 +642,12 @@ void FUGen::createOperationResources() {
 
             for (int i = instantiatedResources[r.name]; i < rCount; ++i) {
                 auto module = ipxact::parseComponent(file);
-                Module resource(module, i+1);
+                Module resource(module, i + 1);
                 resource.set_prefix(rName);
                 fu_ << resource;
                 for (auto&& p : module.ports) {
-                    std::string wName =
-                        StringTools::stringToLower(
-                            rName + "_" + std::to_string(i + 1) + "_" + p.name);
+                    std::string wName = StringTools::stringToLower(
+                        rName + "_" + std::to_string(i + 1) + "_" + p.name);
                     if (p.vector) {
                         fu_ << Wire(wName, p.width);
                     } else {
@@ -647,7 +666,8 @@ void FUGen::createOperationResources() {
     }
 }
 
-void FUGen::buildOperations() {
+void
+FUGen::buildOperations() {
     Asynchronous operationCp("operations_actual_cp");
     CodeBlock defaultValues;
     CodeBlock defaultSnippets;
@@ -692,10 +712,12 @@ void FUGen::buildOperations() {
             std::string source = operand.signalName;
             std::string destination = operandSignal(name, id);
             if (operand.portWidth > operand.operandWidth) {
-                defaultValues.append(Assign(destination,
+                defaultValues.append(Assign(
+                    destination,
                     Splice(source, operand.operandWidth - 1, 0)));
             } else if (operand.portWidth < operand.operandWidth) {
-                defaultValues.append(Assign(destination,
+                defaultValues.append(Assign(
+                    destination,
                     Ext(source, operand.operandWidth, operand.portWidth)));
             } else {
                 defaultValues.append(Assign(destination, LHSSignal(source)));
@@ -716,7 +738,6 @@ void FUGen::buildOperations() {
     }
 
     for (int cycle = 0; cycle <= maxLatency_; ++cycle) {
-
         Switch opSwitch(LHSSignal(opcodeSignal(cycle)));
         bool emptySwitch = true;
 
@@ -760,21 +781,21 @@ void FUGen::buildOperations() {
                 opSwitch.addCase(opCase);
                 emptySwitch = false;
             } else {
-                If opIf(Equals(LHSSignal(triggerSignal(cycle)),
-                               BinaryLiteral("1")),
-                        onTrigger);
+                If opIf(
+                    Equals(
+                        LHSSignal(triggerSignal(cycle)), BinaryLiteral("1")),
+                    onTrigger);
                 triggeredSnippets.append(opIf);
             }
         }
 
         if (!emptySwitch) {
             opSwitch.addCase(DefaultCase());
-            If opIf(Equals(LHSSignal(triggerSignal(cycle)),
-                           BinaryLiteral("1")),
-                    opSwitch);
+            If opIf(
+                Equals(LHSSignal(triggerSignal(cycle)), BinaryLiteral("1")),
+                opSwitch);
             triggeredSnippets.append(opIf);
         }
-
     }
 
     if (useGlock_) {
@@ -808,12 +829,10 @@ void FUGen::buildOperations() {
     behaviour_ << operationCp;
 }
 
-
 void
-FUGen::prepareSnippet(std::string name,
-                      std::deque<std::string> statements,
-                      CodeBlock& sink,
-                      std::set<std::string>& addedStatements) {
+FUGen::prepareSnippet(
+    std::string name, std::deque<std::string> statements, CodeBlock& sink,
+    std::set<std::string>& addedStatements) {
     std::deque<std::string> snippet;
     std::set<std::string> lines;
     for (std::string line : statements) {
@@ -845,7 +864,8 @@ FUGen::prepareSnippet(std::string name,
     sink.append(HDLOperation(name, snippet, selectedLanguage()));
 }
 
-void FUGen::finalizeHDL() {
+void
+FUGen::finalizeHDL() {
     // Create lock request wires
     if (useGlockRequest_) {
         fu_ << Wire("glockreq");
@@ -861,7 +881,8 @@ void FUGen::finalizeHDL() {
     }
 }
 
-void FUGen::parseOperations() {
+void
+FUGen::parseOperations() {
     OperationPool opPool;
     std::vector<std::string> dagOperations;
 
@@ -917,8 +938,7 @@ void FUGen::parseOperations() {
 
                 auto search = operationCycles_.find(op);
                 if (search != operationCycles_.end()) {
-                    operationCycles_[op] =
-                        std::max(search->second, latency);
+                    operationCycles_[op] = std::max(search->second, latency);
                 } else {
                     operationCycles_[op] = latency;
                 }
@@ -945,7 +965,6 @@ void FUGen::parseOperations() {
 
         bool implementable = false;
         for (int i = 0; i < dagCount; ++i) {
-
             OperationDAG* dagPtr;
             {
                 OperationPool opPool;
@@ -954,13 +973,14 @@ void FUGen::parseOperations() {
                 dagPtr = &osalOp->dag(i);
             }
 
-            if (!ProGeTools::canGenerateFromDAG(*dagPtr, fug_.operations(),
-                                               nullptr)) {
+            if (!ProGeTools::canGenerateFromDAG(
+                    *dagPtr, fug_.operations(), nullptr)) {
                 continue;
             } else {
                 implementable = true;
                 implementapleDAGs_[op] = dagPtr;
-                implLatency_[op] = ProGeTools::dagLatency(*dagPtr, implLatency_);
+                implLatency_[op] =
+                    ProGeTools::dagLatency(*dagPtr, implLatency_);
                 break;
             }
         }
@@ -971,9 +991,9 @@ void FUGen::parseOperations() {
     }
 }
 
-FUGen::OperandConnection FUGen::subOpConnection(OperationDAG* dag,
-                                                OperationDAGEdge* edge,
-                                                bool isOutput) {
+FUGen::OperandConnection
+FUGen::subOpConnection(
+    OperationDAG* dag, OperationDAGEdge* edge, bool isOutput) {
     OperationDAGNode& srcNode = dag->tailNode(*edge);
     int srcID = edge->srcOperand();
     int srcWidth = DAGNodeOperandWidth(srcNode, srcID, dag);
@@ -1006,30 +1026,32 @@ FUGen::OperandConnection FUGen::subOpConnection(OperationDAG* dag,
         assert(false && "It shouldn't be possible to get here.");
     }
 
-    FUGen::OperandConnection conn = {dstID, srcWidth, dstWidth,
-                                     signalName, isOutput};
+    FUGen::OperandConnection conn = {
+        dstID, srcWidth, dstWidth, signalName, isOutput};
     return conn;
 }
 
-void FUGen::scheduleOperations() {
+void
+FUGen::scheduleOperations() {
     std::set<std::string> instantiatedWires;
     for (auto&& op : operations_) {
-
         OperationSchedule schedule;
         schedule.baseOp = op;
 
         if (frontRegistered_) {
-            schedule.initialCycle =   operationCycles_[op]
-                                    - implLatency_[op];
+            schedule.initialCycle = operationCycles_[op] - implLatency_[op];
             schedule.finalCycle = operationCycles_[op];
         } else if (middleRegistered_) {
-            schedule.initialCycle = operationCycles_[op] - implLatency_[op] - 1;
+            schedule.initialCycle =
+                operationCycles_[op] - implLatency_[op] - 1;
             schedule.finalCycle = schedule.initialCycle + implLatency_[op];
-        } else { // Back-registered
+        } else {  // Back-registered
             schedule.initialCycle = 0;
             schedule.finalCycle = implLatency_[op];
         }
-        assert(schedule.initialCycle >= 0 && "Failure likely due to mis-selected operation implementation");
+        assert(
+            schedule.initialCycle >= 0 &&
+            "Failure likely due to mis-selected operation implementation");
 
         OperationPool opPool;
         Operation& osalOp = opPool.operation(op.c_str());
@@ -1042,9 +1064,9 @@ void FUGen::scheduleOperations() {
             int accessCycle;
             ProGe::Direction dir;
 
-            OperandConnection oper = {i, fuPort->width(), width,
-                                      pipelineName(port, schedule.initialCycle),
-                                      false};
+            OperandConnection oper = {
+                i, fuPort->width(), width,
+                pipelineName(port, schedule.initialCycle), false};
             if (osalOperand.isInput()) {
                 accessCycle = schedule.initialCycle;
                 schedule.operands.push_back(oper);
@@ -1053,12 +1075,15 @@ void FUGen::scheduleOperations() {
                 accessCycle = operationCycles_[op] - schedule.finalCycle;
                 schedule.results.insert(i);
                 dir = ProGe::Direction::OUT;
-                OutputConnection out = {width, i, schedule.finalCycle,
-                                        accessCycle, op};
+                OutputConnection out = {
+                    width, i, schedule.finalCycle, accessCycle, op};
                 portInputs_.emplace(port, out);
             }
 
-            assert(accessCycle >= 0 && "Failure likely due to mis-selected operation implementation");
+            assert(
+                accessCycle >= 0 &&
+                "Failure likely due to mis-selected operation "
+                "implementation");
 
             std::string newWire = operandSignal(op, i);
             if (!instantiatedWires.count(newWire)) {
@@ -1069,16 +1094,17 @@ void FUGen::scheduleOperations() {
             if (pipelineLength_.find(port) == pipelineLength_.end()) {
                 pipelineLength_[port] = accessCycle;
             } else {
-                pipelineLength_[port] = std::max(accessCycle,
-                                                 pipelineLength_[port]);
+                pipelineLength_[port] =
+                    std::max(accessCycle, pipelineLength_[port]);
             }
 
             if (portDirection_.find(port) == portDirection_.end()) {
                 portDirection_[port] = dir;
             } else {
                 if (portDirection_[port] != dir) {
-                    throw std::runtime_error("Unsupported bidirectional port "
-                                             + port + ", aborting.");
+                    throw std::runtime_error(
+                        "Unsupported bidirectional port " + port +
+                        ", aborting.");
                 }
             }
         }
@@ -1089,8 +1115,8 @@ void FUGen::scheduleOperations() {
             for (auto&& res : baseOperations_[op].resources) {
                 std::string resName = StringTools::stringToLower(res.name);
                 schedule.resourceOffsets[resName] = 0;
-                resourceCount_[res.name] = std::max(resourceCount_[res.name],
-                                                    res.count);
+                resourceCount_[res.name] =
+                    std::max(resourceCount_[res.name], res.count);
             }
         } else {
             assert(implementapleDAGs_.find(op) != implementapleDAGs_.end());
@@ -1108,7 +1134,8 @@ void FUGen::scheduleOperations() {
                     continue;
                 }
 
-                std::string subOp = operationNode->referencedOperation().name();
+                std::string subOp =
+                    operationNode->referencedOperation().name();
                 subOp = StringTools::stringToLower(subOp);
 
                 std::string name = subOpName(operationNode);
@@ -1119,13 +1146,13 @@ void FUGen::scheduleOperations() {
                     schedule.initialCycle +
                     ProGeTools::maxLatencyToNode(
                         *dag, node, implLatency_, false);
-                subopSchedule.finalCycle =   subopSchedule.initialCycle
-                                           + implLatency_[subOp];
+                subopSchedule.finalCycle =
+                    subopSchedule.initialCycle + implLatency_[subOp];
 
                 for (auto&& input : dag->inEdges(node)) {
                     int dstID = input->dstOperand();
-                    int width = DAGNodeOperandWidth(dag->headNode(*input),
-                                                    dstID, dag);
+                    int width = DAGNodeOperandWidth(
+                        dag->headNode(*input), dstID, dag);
 
                     std::string newWire = operandSignal(name, dstID);
                     if (!instantiatedWires.count(newWire)) {
@@ -1134,14 +1161,13 @@ void FUGen::scheduleOperations() {
                     }
 
                     subopSchedule.operands.push_back(
-                        subOpConnection(dag,input, false));
-
+                        subOpConnection(dag, input, false));
                 }
 
                 for (auto&& output : dag->outEdges(node)) {
                     int srcID = output->srcOperand();
-                    int width = DAGNodeOperandWidth(dag->tailNode(*output),
-                                                    srcID, dag);
+                    int width = DAGNodeOperandWidth(
+                        dag->tailNode(*output), srcID, dag);
 
                     std::string newWire = operandSignal(name, srcID);
                     if (!instantiatedWires.count(newWire)) {
@@ -1167,27 +1193,25 @@ void FUGen::scheduleOperations() {
                     if (!dagResourceCount.count(resName)) {
                         dagResourceCount[resName] = 0;
                     }
-                    subopSchedule.resourceOffsets[resName]
-                        = dagResourceCount[resName];
+                    subopSchedule.resourceOffsets[resName] =
+                        dagResourceCount[resName];
                     dagResourceCount[resName] += r.count;
                 }
 
                 scheduledOperations_[name] = subopSchedule;
             }
 
-
             for (auto&& d : dagResourceCount) {
                 resourceCount_[d.first] =
                     std::max(resourceCount_[d.first], d.second);
             }
-
         }
         scheduledOperations_[op] = schedule;
     }
 }
 
-void FUGen::createShadowRegisters() {
-
+void
+FUGen::createShadowRegisters() {
     std::vector<std::string> inOperands;
     std::unordered_set<std::string> registeredInOperands;
     std::unordered_map<std::string, std::string> currentName;
@@ -1213,16 +1237,15 @@ void FUGen::createShadowRegisters() {
             std::string name = pipelineName(adfPort->name(), 0);
             fu_ << Wire(name, adfPort->width());
         } else {
-            currentName[adfPort->name()] =
-                "data_" + adfPort->name() + "_out";
+            currentName[adfPort->name()] = "data_" + adfPort->name() + "_out";
         }
     }
 
     if (ProGeTools::findInOptionList(fug_.name(), options_.fuIcGateList)) {
         for (auto&& p : inOperands) {
             std::string newName = "data_" + p + "_gated";
-            auto  gate = LHSSignal(currentName[p]) &
-                         Sext("load_" + p + "_in", portWidth[p], 1);
+            auto gate = LHSSignal(currentName[p]) &
+                        Sext("load_" + p + "_in", portWidth[p], 1);
             behaviour_ << Assign(newName, gate);
             currentName[p] = newName;
             fu_ << Wire(newName, portWidth[p]);
@@ -1239,16 +1262,19 @@ void FUGen::createShadowRegisters() {
 
             fu_ << Register(shadowReg, portWidth[p], ResetOption::Optional);
 
-            auto noLock   = Equals(LHSSignal("glock_in"), BinaryLiteral("0"));
+            auto noLock = Equals(LHSSignal("glock_in"), BinaryLiteral("0"));
             auto portLoad = Equals(LHSSignal(loadPort), BinaryLiteral("1"));
-            If iffi(noLock && portLoad, Assign(shadowReg, LHSSignal(dataPort)));
+            If iffi(
+                noLock && portLoad, Assign(shadowReg, LHSSignal(dataPort)));
 
             behaviour_ << (Synchronous("shadow_" + p + "_sp") << iffi);
 
-            auto triggerLoad = Equals(LHSSignal("load_" + triggerPort_ + "_in"),
-                                      BinaryLiteral("1"));
-            If cpIf(triggerLoad && portLoad,
-                    Assign(output, LHSSignal("data_" + p + "_in")));
+            auto triggerLoad = Equals(
+                LHSSignal("load_" + triggerPort_ + "_in"),
+                BinaryLiteral("1"));
+            If cpIf(
+                triggerLoad && portLoad,
+                Assign(output, LHSSignal("data_" + p + "_in")));
             cpIf.elseClause(Assign(output, LHSSignal(shadowReg)));
 
             behaviour_ << (Asynchronous("shadow_" + p + "_cp") << cpIf);
@@ -1258,8 +1284,8 @@ void FUGen::createShadowRegisters() {
     }
 }
 
-void FUGen::createPortPipeline() {
-
+void
+FUGen::createPortPipeline() {
     CodeBlock pipelineAssignments;
     CodeBlock firstStage;
 
@@ -1274,15 +1300,15 @@ void FUGen::createPortPipeline() {
             if (i == 0) {
                 firstStage.append(Assign(nextOpcode, LHSSignal(prevOpcode)));
             } else {
-                pipelineAssignments.append(Assign(nextOpcode,
-                                           LHSSignal(prevOpcode)));
+                pipelineAssignments.append(
+                    Assign(nextOpcode, LHSSignal(prevOpcode)));
             }
         }
         std::string prevTrigger = triggerSignal(i);
         std::string nextTrigger = triggerSignal(i + 1);
         addRegisterIfMissing(nextTrigger, 1);
-        pipelineAssignments.append(Assign(nextTrigger,
-                                   LHSSignal(prevTrigger)));
+        pipelineAssignments.append(
+            Assign(nextTrigger, LHSSignal(prevTrigger)));
     }
 
     // Pipelines for operand data
@@ -1296,34 +1322,38 @@ void FUGen::createPortPipeline() {
 
         for (int i = 0; i < length; ++i) {
             std::string prevReg = pipelineName(port->name(), i);
-            std::string nextReg = pipelineName(port-> name(), i + 1);
+            std::string nextReg = pipelineName(port->name(), i + 1);
             addRegisterIfMissing(nextReg, width, WireType::Vector);
             if (i == 0) {
                 firstStage.append(Assign(nextReg, LHSSignal(prevReg)));
             } else {
-                pipelineAssignments.append(Assign(nextReg, LHSSignal(prevReg)));
+                pipelineAssignments.append(
+                    Assign(nextReg, LHSSignal(prevReg)));
             }
         }
     }
 
-    If operationTrigger(Equals(LHSSignal(triggerSignal(0)), BinaryLiteral("1")),
-                        firstStage);
+    If operationTrigger(
+        Equals(LHSSignal(triggerSignal(0)), BinaryLiteral("1")), firstStage);
     pipelineAssignments.append(operationTrigger);
-    If glock_low(Equals(LHSSignal("glock_in"), BinaryLiteral("0")),
-                 pipelineAssignments);
+    If glock_low(
+        Equals(LHSSignal("glock_in"), BinaryLiteral("0")),
+        pipelineAssignments);
     Synchronous pipeline("input_pipeline_sp");
     pipeline << glock_low;
     behaviour_ << pipeline;
 }
 
-void FUGen::addRegisterIfMissing(std::string name, int width, WireType wt) {
+void
+FUGen::addRegisterIfMissing(std::string name, int width, WireType wt) {
     if (!ContainerTools::containsValue(registers_, name)) {
         fu_ << Register(name, width, wt, ResetOption::Optional);
         registers_.emplace_back(name);
     }
 }
 
-void FUGen::createOutputPipeline() {
+void
+FUGen::createOutputPipeline() {
     CodeBlock outputPipeline;
     CodeBlock lastStage;
 
@@ -1337,13 +1367,11 @@ void FUGen::createOutputPipeline() {
 
         auto inputs = portInputs_.equal_range(port->name());
         for (int cycle = length; cycle >= 0; --cycle) {
-
             bool cycleActive = false;
 
             std::string nextReg = pipelineName(port->name(), cycle);
-            std::string prevReg = pipelineName(port->name(), cycle+1);
+            std::string prevReg = pipelineName(port->name(), cycle + 1);
             std::string valid = pipelineValid(port->name(), cycle);
-
 
             if (cycle == 0) {
                 fu_ << Wire(nextReg, width, WireType::Vector);
@@ -1365,26 +1393,27 @@ void FUGen::createOutputPipeline() {
                     LHSSignal(triggerSignal(connection.sourceCycle)),
                     BinaryLiteral("1"));
                 LogicalAnd active(
-                        Equals(LHSSignal(opcodeSignal(connection.sourceCycle)),
-                               LHSSignal(opcodeConstant(connection.operation))),
-                        triggered);
+                    Equals(
+                        LHSSignal(opcodeSignal(connection.sourceCycle)),
+                        LHSSignal(opcodeConstant(connection.operation))),
+                    triggered);
 
-                Ext source(operandSignal(connection.operation,
-                                         connection.operandID),
-                           width, connection.operandWidth);
+                Ext source(
+                    operandSignal(connection.operation, connection.operandID),
+                    width, connection.operandWidth);
 
                 if (cycleActive) {
                     if (operations_.size() == 1) {
-                        validOperations.elseIfClause(triggered,
-                                                     Assign(nextReg, source));
+                        validOperations.elseIfClause(
+                            triggered, Assign(nextReg, source));
                     } else {
-                        validOperations.elseIfClause(active,
-                                                     Assign(nextReg, source));
+                        validOperations.elseIfClause(
+                            active, Assign(nextReg, source));
                     }
                 } else {
                     if (operations_.size() == 1) {
-                        validOperations = If(triggered,
-                                             Assign(nextReg, source));
+                        validOperations =
+                            If(triggered, Assign(nextReg, source));
                     } else {
                         validOperations = If(active, Assign(nextReg, source));
                     }
@@ -1395,20 +1424,20 @@ void FUGen::createOutputPipeline() {
             bool skip_last_assign = false;
             // No need for this on first cycle
             if (cycle != length) {
-                std::string prevValid = pipelineValid(port->name(), cycle+1);
+                std::string prevValid =
+                    pipelineValid(port->name(), cycle + 1);
 
                 Equals isValid(LHSSignal(prevValid), BinaryLiteral("1"));
                 if (cycleActive) {
-                    validOperations.elseIfClause(isValid,
-                                    Assign(nextReg, LHSSignal(prevReg)));
+                    validOperations.elseIfClause(
+                        isValid, Assign(nextReg, LHSSignal(prevReg)));
                 } else {
                     if (cycle == 0) {
                         skip_last_assign = true;
-                        lastStage.append(Assign(nextReg,
-                                               LHSSignal(prevReg)));
+                        lastStage.append(Assign(nextReg, LHSSignal(prevReg)));
                     } else {
-                        validOperations = If(isValid, Assign(nextReg,
-                                                      LHSSignal(prevReg)));
+                        validOperations =
+                            If(isValid, Assign(nextReg, LHSSignal(prevReg)));
                     }
                 }
                 cycleActive = true;
@@ -1433,13 +1462,14 @@ void FUGen::createOutputPipeline() {
                 outputPipeline.append(validOperations);
             }
         }
-        lastStage.append(Assign("data_" + port->name() + "_out",
-                                LHSSignal(pipelineName(port->name(), 0))));
+        lastStage.append(Assign(
+            "data_" + port->name() + "_out",
+            LHSSignal(pipelineName(port->name(), 0))));
     }
 
     Synchronous sync("output_pipeline_sp");
-    sync << If(Equals(LHSSignal("glock_in"), BinaryLiteral("0")),
-               outputPipeline);
+    sync << If(
+        Equals(LHSSignal("glock_in"), BinaryLiteral("0")), outputPipeline);
     behaviour_ << sync;
 
     Asynchronous async("output_pipeline_cp");
@@ -1452,11 +1482,11 @@ void FUGen::createOutputPipeline() {
  * Generate all FUGen FUs.
  *
  */
-void FUGen::implement(const ProGeOptions& options,
-    std::vector<std::string> globalOptions,
+void
+FUGen::implement(
+    const ProGeOptions& options, std::vector<std::string> globalOptions,
     const std::vector<IDF::FUGenerated>& generatetFUs,
     const TTAMachine::Machine& machine, ProGe::NetlistBlock* core) {
-
     // Generate FU innards.
     for (auto fug : generatetFUs) {
         FUGen fugen(options, globalOptions, fug, machine, core);
@@ -1464,21 +1494,21 @@ void FUGen::implement(const ProGeOptions& options,
         // Some repetition to have named FUs override an "all"
         // e.g. --fu-front-register=all --fu-back-register=lsu
         if (ProGeTools::findInOptionList(
-            fug.name(), options.fuFrontRegistered, false)) {
+                fug.name(), options.fuFrontRegistered, false)) {
             fugen.frontRegistered_ = true;
         } else if (ProGeTools::findInOptionList(
-                   fug.name(), options.fuMiddleRegistered, false)) {
+                       fug.name(), options.fuMiddleRegistered, false)) {
             fugen.middleRegistered_ = true;
         } else if (ProGeTools::findInOptionList(
-                   fug.name(), options.fuBackRegistered, false)) {
+                       fug.name(), options.fuBackRegistered, false)) {
             fugen.backRegistered_ = true;
         } else if (ProGeTools::findInOptionList(
-                   fug.name(), options.fuFrontRegistered)) {
+                       fug.name(), options.fuFrontRegistered)) {
             fugen.frontRegistered_ = true;
         } else if (ProGeTools::findInOptionList(
-                   fug.name(), options.fuMiddleRegistered)) {
+                       fug.name(), options.fuMiddleRegistered)) {
             fugen.middleRegistered_ = true;
-        } else { // Default to back-register
+        } else {  // Default to back-register
             fugen.backRegistered_ = true;
         }
 

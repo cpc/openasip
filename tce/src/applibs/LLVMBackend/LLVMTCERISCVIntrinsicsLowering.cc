@@ -43,26 +43,26 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "OperationPool.hh"
 #include "BEMGenerator.hh"
 #include "Exception.hh"
- 
 
 POP_COMPILER_DIAGS
 
 namespace llvm {
-    
+
 char LLVMTCERISCVIntrinsicsLowering::ID = 0;
 
-LLVMTCERISCVIntrinsicsLowering::LLVMTCERISCVIntrinsicsLowering() : 
-    MachineFunctionPass(ID) {
-    auto *option = static_cast<llvm::cl::opt<std::string>*>(
-    llvm::cl::getRegisteredOptions().lookup("adf"));
+LLVMTCERISCVIntrinsicsLowering::LLVMTCERISCVIntrinsicsLowering()
+    : MachineFunctionPass(ID) {
+    auto* option = static_cast<llvm::cl::opt<std::string>*>(
+        llvm::cl::getRegisteredOptions().lookup("adf"));
     const std::string adf = option->getValue();
     try {
         mach_ = TTAMachine::Machine::loadFromADF(adf);
     } catch (const Exception& e) {
         Application::logStream()
             << "TCE: unable to load the ADF:" << std::endl
-            << e.errorMessage() << std::endl << "Make sure you give the" <<
-            " correct adf with the -adf switch to llc";
+            << e.errorMessage() << std::endl
+            << "Make sure you give the"
+            << " correct adf with the -adf switch to llc";
     }
     bem_ = BEMGenerator(*mach_).generate();
     rFormat_ = findRFormat();
@@ -102,16 +102,17 @@ LLVMTCERISCVIntrinsicsLowering::findRegs(const std::string& s) const {
         }
     }
     if (foundRegs != 3) {
-        std::string msg = 
-        "Invalid amount of register operands, 3 required, found "
-        + std::to_string(foundRegs);
+        std::string msg =
+            "Invalid amount of register operands, 3 required, found " +
+            std::to_string(foundRegs);
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
     return regs;
 }
 
 std::string
-LLVMTCERISCVIntrinsicsLowering::findOperationName(const std::string& s) const {
+LLVMTCERISCVIntrinsicsLowering::findOperationName(
+    const std::string& s) const {
     std::vector<TCEString> asmSubStrings = StringTools::chopString(s, " ");
     std::string opName = "";
     for (TCEString i : asmSubStrings) {
@@ -139,31 +140,33 @@ LLVMTCERISCVIntrinsicsLowering::findRegIndexes(
     const MachineBasicBlock::iterator& it) const {
     const unsigned OpIdx = 0;
     std::vector<int> regIdxs;
-    const std::string asmString = std::string(
-        it->getOperand(OpIdx).getSymbolName());
+    const std::string asmString =
+        std::string(it->getOperand(OpIdx).getSymbolName());
     for (unsigned o = 0; o < it->getNumOperands(); o++) {
         const MachineOperand& mo = it->getOperand(o);
         if (mo.isReg()) {
             int idx = mo.getReg() - 40;
             regIdxs.push_back(idx);
             if (idx < 0 && idx > 31) {
-                std::string msg = "Invalid register index: "
-                + std::to_string(idx) + " in instruction: " + asmString;
-                    throw InvalidData(__FILE__, __LINE__, __func__, msg);
+                std::string msg =
+                    "Invalid register index: " + std::to_string(idx) +
+                    " in instruction: " + asmString;
+                throw InvalidData(__FILE__, __LINE__, __func__, msg);
             };
         }
     }
     if (regIdxs.size() != 3) {
-        std::string msg = "3 reg operands required, found "
-        + std::to_string(regIdxs.size()) + " in instruction: " + asmString;
+        std::string msg = "3 reg operands required, found " +
+                          std::to_string(regIdxs.size()) +
+                          " in instruction: " + asmString;
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
     return regIdxs;
 }
 
 int
-LLVMTCERISCVIntrinsicsLowering::constructEncoding(const std::string& opName,
-const std::vector<int>& regIdxs) const {
+LLVMTCERISCVIntrinsicsLowering::constructEncoding(
+    const std::string& opName, const std::vector<int>& regIdxs) const {
     const int fu3Mask = 0b1110000000;
     const int fu7Mask = 0b11111110000000000;
     const int opcodeMask = 0b1111111;
@@ -171,23 +174,22 @@ const std::vector<int>& regIdxs) const {
     const int fu3Enc = ((encoding & fu3Mask) >> 7);
     const int fu7Enc = ((encoding & fu7Mask) >> 10);
     const int opcodeEnc = encoding & opcodeMask;
-    const int shiftedEnc = (fu7Enc << 25) +
-    (fu3Enc << 12) + opcodeEnc;
+    const int shiftedEnc = (fu7Enc << 25) + (fu3Enc << 12) + opcodeEnc;
 
-    encoding = shiftedEnc + (regIdxs.at(0) << 7) +
-    (regIdxs.at(1) << 15) + (regIdxs.at(2) << 20);
+    encoding = shiftedEnc + (regIdxs.at(0) << 7) + (regIdxs.at(1) << 15) +
+               (regIdxs.at(2) << 20);
 
     return encoding;
 }
 
 bool
-LLVMTCERISCVIntrinsicsLowering::runOnMachineFunction(MachineFunction &MF) {
+LLVMTCERISCVIntrinsicsLowering::runOnMachineFunction(MachineFunction& MF) {
     for (MachineFunction::iterator i = MF.begin(); i != MF.end(); i++) {
         for (MachineBasicBlock::iterator j = i->begin(); j != i->end(); j++) {
             if (j->isInlineAsm()) {
                 const unsigned OpIdx = 0;
-                std::string asmString = std::string(
-                    j->getOperand(OpIdx).getSymbolName());
+                std::string asmString =
+                    std::string(j->getOperand(OpIdx).getSymbolName());
 
                 const std::string regs = findRegs(asmString);
                 const std::string opName = findOperationName(asmString);
@@ -195,8 +197,8 @@ LLVMTCERISCVIntrinsicsLowering::runOnMachineFunction(MachineFunction &MF) {
 
                 int encoding = constructEncoding(opName, regIdxs);
                 std::string* cName = new std::string(
-                    ".long " + std::to_string(encoding) + "; #" 
-                    + opName  + regs);
+                    ".long " + std::to_string(encoding) + "; #" + opName +
+                    regs);
                 j->getOperand(OpIdx).ChangeToES(
                     cName->c_str(), j->getOperand(OpIdx).getTargetFlags());
             }
@@ -210,4 +212,4 @@ createRISCVIntrinsicsPass(const char* /*target*/) {
     return new LLVMTCERISCVIntrinsicsLowering();
 }
 
-}
+}  // namespace llvm

@@ -398,22 +398,15 @@ ComponentImplementationSelector::rfImplementations(
                 readPorts++;
             }
         }
-        set<RowID> rfEntryIDs =
-            hdb.rfEntriesByArchitecture(
-                readPorts,
-                writePorts,
-                bidirPorts,
-                rf.maxReads(),
-                rf.maxWrites(),
-                // latency always 1
-                1,
-                // guard support
-                guarded,
-                // guard latency
-                rf.guardLatency(),
-                rf.width(),
-                rf.numberOfRegisters(),
-                rf.zeroRegister());
+        set<RowID> rfEntryIDs = hdb.rfEntriesByArchitecture(
+            readPorts, writePorts, bidirPorts, rf.maxReads(), rf.maxWrites(),
+            // latency always 1
+            1,
+            // guard support
+            guarded,
+            // guard latency
+            rf.guardLatency(), rf.width(), rf.numberOfRegisters(),
+            rf.zeroRegister());
 
         set<RowID>::const_iterator id = rfEntryIDs.begin();
         for (; id != rfEntryIDs.end(); id++) {

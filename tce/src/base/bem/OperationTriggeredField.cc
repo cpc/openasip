@@ -30,7 +30,6 @@
  * @note rating: red
  */
 
-
 #include "OperationTriggeredField.hh"
 #include "OperationTriggeredEncoding.hh"
 #include "ObjectState.hh"
@@ -42,41 +41,41 @@ const std::string OperationTriggeredField::OSKEY_WIDTH_NAME = "width";
 
 /**
  * The constructor.
- * 
+ *
  * Registers the field encoding to the parent
  * binary encoding automatically.
- * 
+ *
  * @param parent The parent binaryEncoding.
  */
 
 OperationTriggeredField::OperationTriggeredField(
     OperationTriggeredEncoding& parent, int piece, int start, int width)
     : piece_(piece), start_(start), width_(width) {
-        parent.addField(*this);
+    parent.addField(*this);
 }
 
 /**
  * The constructor
- * 
+ *
  * Loads the state of the field encoding from
  * the given ObjectState tree
- * 
+ *
  * @param state The ObjectState tree
  * @param parent The parent operation triggered encoding
  * @exception ObjectStateLoadingException If an error occurs while loading
               the state.
  */
 
-OperationTriggeredField::OperationTriggeredField(const ObjectState* state,
-OperationTriggeredEncoding& parent) {
-        parent.addField(*this);
-        loadState(state);
+OperationTriggeredField::OperationTriggeredField(
+    const ObjectState* state, OperationTriggeredEncoding& parent) {
+    parent.addField(*this);
+    loadState(state);
 }
 
 /**
  * Returns the piece index that indicates the index of the encoding piece.
- * 
- * @return The encoding piece index.      
+ *
+ * @return The encoding piece index.
  */
 
 int
@@ -84,15 +83,15 @@ OperationTriggeredField::piece() const {
     return piece_;
 }
 
-void 
+void
 OperationTriggeredField::setPiece(int piece) {
     piece_ = piece;
 }
 
 /**
  * Returns the piece index that indicates the index of the encoding piece.
- * 
- * @return The encoding piece index.      
+ *
+ * @return The encoding piece index.
  */
 
 int
@@ -100,7 +99,7 @@ OperationTriggeredField::start() const {
     return start_;
 }
 
-void 
+void
 OperationTriggeredField::setStart(int start) {
     start_ = start;
 }
@@ -108,7 +107,7 @@ OperationTriggeredField::setStart(int start) {
 /**
  *  Always returns 0 because field encoding does not
  *  have any child fields.
- * 
+ *
  * @return 0
  */
 
@@ -119,8 +118,8 @@ OperationTriggeredField::childFieldCount() const {
 
 /**
  *  Returns the bit width of the field encoding
- * 
- * @return The bit width of the field encoding.  
+ *
+ * @return The bit width of the field encoding.
  */
 
 int
@@ -128,18 +127,18 @@ OperationTriggeredField::width() const {
     return width_;
 }
 
-void 
+void
 OperationTriggeredField::setWidth(int width) {
     width_ = width;
 }
 
 /**
  * Loads the state of the field
- * encoding from the given ObjectState tree. 
- * 
+ * encoding from the given ObjectState tree.
+ *
  * @param state The ObjectState tree.
  * @exception ObjectStateLoadingException If an error occurs while loading
- *            the state. 
+ *            the state.
  */
 
 void
@@ -150,13 +149,13 @@ OperationTriggeredField::loadState(const ObjectState* state) {
         piece_ = newState->intAttribute(OSKEY_PIECE_NAME);
         start_ = newState->intAttribute(OSKEY_START_NAME);
         width_ = newState->intAttribute(OSKEY_WIDTH_NAME);
-        
+
     } catch (const Exception& exception) {
-     const std::string procName = "OperationTriggeredField::loadState";
-     throw ObjectStateLoadingException(
-         __FILE__, __LINE__, procName, exception.errorMessage());
+        const std::string procName = "OperationTriggeredField::loadState";
+        throw ObjectStateLoadingException(
+            __FILE__, __LINE__, procName, exception.errorMessage());
     }
- 
+
     delete newState;
 }
 
@@ -169,10 +168,10 @@ OperationTriggeredField::loadState(const ObjectState* state) {
 
 ObjectState*
 OperationTriggeredField::saveState() const {
-    ObjectState* state = new ObjectState(OSNAME_FIELD);   
+    ObjectState* state = new ObjectState(OSNAME_FIELD);
     state->setAttribute(OSKEY_PIECE_NAME, piece_);
     state->setAttribute(OSKEY_START_NAME, start_);
     state->setAttribute(OSKEY_WIDTH_NAME, width_);
 
-return state;
+    return state;
 }

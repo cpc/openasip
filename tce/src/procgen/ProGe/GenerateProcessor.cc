@@ -54,10 +54,10 @@
 #include "StringTools.hh"
 
 using namespace ProGe;
-using std::string;
 using std::cerr;
-using std::endl;
 using std::cout;
+using std::endl;
+using std::string;
 using std::vector;
 
 int const DEFAULT_IMEMWIDTH_IN_MAUS = 1;
@@ -106,7 +106,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
 
         options.parse(argv, argc);
         ProGeOptions progeOptions(options);
-            
+
         std::string pluginParamQuery = options.pluginParametersQuery();
         if (pluginParamQuery != "") {
             return listICDecPluginParameters(pluginParamQuery);
@@ -136,8 +136,8 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
             return false;
         }
 
-        if (!options.forceOutputDirectory()
-            && FileSystem::fileExists(progeOptions.outputDirectory)) {
+        if (!options.forceOutputDirectory() &&
+            FileSystem::fileExists(progeOptions.outputDirectory)) {
             cerr << "Error: Output directory " << progeOptions.outputDirectory
                  << " already exists." << endl;
             return false;
@@ -172,8 +172,8 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
             loadMachineImplementation(idf);
         }
 
-        ProGeUI::generateProcessor(progeOptions,
-            imemWidthInMAUs, std::cerr, std::cerr, std::cerr);
+        ProGeUI::generateProcessor(
+            progeOptions, imemWidthInMAUs, std::cerr, std::cerr, std::cerr);
     } catch (ParserStopRequest) {
         return false;
     } catch (const IllegalCommandLine& exception) {
@@ -190,12 +190,11 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
     ProGeOptions progeOptions(options);
 
     if (options.generateTestbench()) {
-
-        string testBenchDir = progeOptions.outputDirectory
-                + FileSystem::DIRECTORY_SEPARATOR +
-                "tb";
+        string testBenchDir = progeOptions.outputDirectory +
+                              FileSystem::DIRECTORY_SEPARATOR + "tb";
         try {
-            ProGeUI::generateTestBench(progeOptions.language, testBenchDir,
+            ProGeUI::generateTestBench(
+                progeOptions.language, testBenchDir,
                 progeOptions.outputDirectory);
         } catch (const Exception& e) {
             std::cerr << "Warning: Processor Generator failed to "
@@ -205,10 +204,10 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
 
         try {
             ProGeUI::generateScripts(
-                    progeOptions.language, progeOptions.outputDirectory,
-                    progeOptions.outputDirectory,
-                    progeOptions.sharedOutputDirectory,
-                    testBenchDir, progeOptions.simulationRuntime);
+                progeOptions.language, progeOptions.outputDirectory,
+                progeOptions.outputDirectory,
+                progeOptions.sharedOutputDirectory, testBenchDir,
+                progeOptions.simulationRuntime);
         } catch (const Exception& e) {
             std::cerr << "Warning: Processor Generator failed to "
                     << "generate simulation/compilation scripts."
@@ -219,7 +218,6 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
     
     string integrator = options.integratorName();
     if (!integrator.empty()) {
-
         if (progeOptions.language == Verilog) {
             std::cerr << "Verilog is not yet supported by Platform Integrator"
                       << std::endl;
@@ -242,14 +240,14 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         MemType dmem = string2MemType(options.dmemType());
         int fmax = options.clockFrequency();
         string devFamily = options.deviceFamilyName();
-        string devName   = options.deviceName();
+        string devName = options.deviceName();
         bool syncReset = options.syncReset();
 
         try {
             ProGeUI::integrateProcessor(
-                std::cout, std::cerr, progeOutDir, sharedOutDir,
-                integrator, progeOptions.entityName, program, devFamily,
-                devName, imem, dmem, progeOptions.language, fmax, syncReset);
+                std::cout, std::cerr, progeOutDir, sharedOutDir, integrator,
+                progeOptions.entityName, program, devFamily, devName, imem,
+                dmem, progeOptions.language, fmax, syncReset);
         } catch (const Exception& e) {
             std::cerr << "Processor integration failed: "
                       << e.procedureName() << ": "

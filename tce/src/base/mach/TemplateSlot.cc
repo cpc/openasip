@@ -50,7 +50,6 @@ const string TemplateSlot::OSKEY_RF_WRITE = "rf_write";
 const string TemplateSlot::OSKEY_FU_READ = "fu_read";
 const string TemplateSlot::OSKEY_FU_WRITE = "fu_write";
 
-
 /**
  * Constructor.
  *
@@ -87,19 +86,16 @@ TemplateSlot::TemplateSlot(
     bus_(NULL), immSlot_(&slot), width_(width), destination_(&destination) {
 }
 
-
 /**
  * Creates an implicit slot in a template that does not target
  * an ImmediateUnit.
- * 
+ *
  * @param slot The bus or which is programmed by the instruction bit field
  *             of this template slot.
  */
 
-TemplateSlot::TemplateSlot(const Bus& slot) : 
-    bus_(&slot), width_(0), destination_(NULL) {
-}
-
+TemplateSlot::TemplateSlot(const Bus& slot)
+    : bus_(&slot), width_(0), destination_(NULL) {}
 
 /**
  * Destructor.
@@ -121,6 +117,4 @@ TemplateSlot::saveState() const {
     slotState->setAttribute(OSKEY_DESTINATION, destination()->name());
     return slotState;
 }
-
-
 }

@@ -67,10 +67,12 @@ const std::string HDBEditorConstants::COMMAND_NAME_ADD_RF_IMPLEMENTATION =
 const std::string HDBEditorConstants::COMMAND_NAME_MODIFY = "Modify";
 const std::string HDBEditorConstants::COMMAND_NAME_ABOUT = "About";
 
-const std::string HDBEditorConstants::COMMAND_NAME_ADD_OPERATION_IMPLEMENTATION_RESOURCE =
-    "Add Operation Implementation Resource";
-const std::string HDBEditorConstants::COMMAND_NAME_ADD_OPERATION_IMPLEMENTATION =
-    "Add FUGEN Operation Implementation";
+const std::string
+    HDBEditorConstants::COMMAND_NAME_ADD_OPERATION_IMPLEMENTATION_RESOURCE =
+        "Add Operation Implementation Resource";
+const std::string
+    HDBEditorConstants::COMMAND_NAME_ADD_OPERATION_IMPLEMENTATION =
+        "Add FUGEN Operation Implementation";
 
 const wxString HDBEditorConstants::HDB_EDITOR_COPYRIGHT =
     _T("Portions of this program are copyright\n"

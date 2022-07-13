@@ -201,7 +201,6 @@ SocketCodeTable::width() const {
     return maxCodeWidth() + extraBits();
 }
 
-
 /**
  * Returns the bit width of the longest control code.
  *
@@ -235,7 +234,6 @@ SocketCodeTable::maxCodeWidth() const {
     }
     return width;
 }
-
 
 /**
  * Adds the given control code that identifies a port of a function unit.
@@ -643,7 +641,6 @@ SocketCodeTable::iuPortCode(const std::string& immediateUnit) const {
     return NullIUPortCode::instance();
 }
 
-
 /**
  * Returns count of all types of port codes defined in the socket table.
  */
@@ -651,7 +648,6 @@ int
 SocketCodeTable::portCodeCount() const {
     return fuPortCodeCount() + rfPortCodeCount() + iuPortCodeCount();
 }
-
 
 /**
  * Returns the port code stored at the given position.
@@ -670,10 +666,10 @@ SocketCodeTable::portCode(int index) const {
 
     if (index < fuPortCodeCount()) {
         return fuPortCode(index);
-    } else if (index < fuPortCodeCount()+rfPortCodeCount()) {
-        return rfPortCode(index-fuPortCodeCount());
+    } else if (index < fuPortCodeCount() + rfPortCodeCount()) {
+        return rfPortCode(index - fuPortCodeCount());
     } else {
-        return iuPortCode(index-fuPortCodeCount()-rfPortCodeCount());
+        return iuPortCode(index - fuPortCodeCount() - rfPortCodeCount());
     }
 }
 
