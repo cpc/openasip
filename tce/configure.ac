@@ -1,9 +1,9 @@
-# configure.ac for TCE project
+# configure.ac for the OpenASIP project
 # Process this file with autoconf to produce a configure script.
 
 # Mandatory macro. Set the name of the package and the version number.
 # Email address is for bug reporting.
-AC_INIT([tce],[2.0-pre],[tce@lists.tuni.fi])
+AC_INIT([openasip],[2.0-pre],[tce@lists.tuni.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
@@ -37,8 +37,9 @@ AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 # TCE 1.23 = 23:0:0
 # TCE 1.24 = 24:0:0
 # TCE 1.25 = 25:0:0
+# OpenASIP 2.0 = 26:0:0
 
-AC_SUBST([LIB_VERSION], ["25:0:0"])
+AC_SUBST([LIB_VERSION], ["26:0:0"])
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
