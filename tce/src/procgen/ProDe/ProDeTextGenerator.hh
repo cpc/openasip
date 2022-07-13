@@ -69,6 +69,7 @@ public:
         TXT_LABEL_MAX_WRITES,           ///< Label for Max-Writes widget.
         TXT_LABEL_MAX_READS,            ///< Label for Max-Reads widget.
         TXT_LABEL_SLOT,                 ///< Label for slot widget.
+        TXT_LABEL_OTA_OPERATION,        ///< Label for OTA operation widget.
         TXT_LABEL_DESTINATION,          ///< Label for destination widget.
         TXT_LABEL_CYCLES,               ///< Label for cycles widget.
         TXT_LABEL_PORT,                 ///< Label for port widget.
@@ -112,6 +113,7 @@ public:
         TXT_COLUMN_INDEX,               ///< Label for index column in a list.
         TXT_COLUMN_PORT,                ///< Label for port column in a list.
         TXT_COLUMN_SLOT,                ///< Label for slot column in a list.
+        TXT_COLUMN_OTA_OPERATION,       ///< Label for OTA operation column in a list.
         TXT_COLUMN_DESTINATION,         ///< Label for destination column.
         TXT_COLUMN_OPERAND,             ///< Label for operand column.
         TXT_COLUMN_TRIGGERS,            ///< Label for T column in a list.
@@ -163,6 +165,12 @@ public:
         TXT_TEMPLATES_SLOTS_BOX,        ///< Template Slots box title.
 
         TXT_TEMPLATE_SLOT_DIALOG_TITLE, ///< Template Slot dialog title.
+
+        TXT_OTA_FORMATS_DIALOG_TITLE,   ///< OTA Formats dialog title.
+        TXT_OTA_FORMATS_BOX,            ///< OTA Formats box title.
+        TXT_OTA_FORMATS_OPERATIONS_BOX, ///< OTA Formats operations dialog title.
+
+        TXT_OTA_OPERATION_DIALOG_TITLE, ///< OTA Operations dialog title.
 
         TXT_IMMEDIATE_SLOT_DIALOG_TITLE,///< Immediate Slot dialog title.
 
@@ -263,6 +271,8 @@ public:
         COMP_PORT,                      ///< Name for port (w/o article).
         COMP_A_TEMPLATE,                ///< Name for template (w/ article).
         COMP_TEMPLATE,                  ///< Name for template (w/o article).
+        COMP_AN_OTA_FORMAT,             ///< Name for OTA Format (w/ article).
+        COMP_OTA_FORMAT,                ///< Name for OTA Format (w/o article).
         COMP_RESOURCE_USE,              ///< String for resource use.
         COMP_OPERAND_READ,              ///< String for operand read.
         COMP_AN_ADDRESS_SPACE,          ///< Address space (w/ article).

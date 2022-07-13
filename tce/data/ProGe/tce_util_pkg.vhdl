@@ -1,17 +1,17 @@
--- Copyright (c) 2002-2009 Tampere University.
+-- Copyright (c) 2002-2015 Tampere University.
 --
 -- This file is part of TTA-Based Codesign Environment (TCE).
--- 
+--
 -- Permission is hereby granted, free of charge, to any person obtaining a
 -- copy of this software and associated documentation files (the "Software"),
 -- to deal in the Software without restriction, including without limitation
 -- the rights to use, copy, modify, merge, publish, distribute, sublicense,
 -- and/or sell copies of the Software, and to permit persons to whom the
 -- Software is furnished to do so, subject to the following conditions:
--- 
+--
 -- The above copyright notice and this permission notice shall be included in
 -- all copies or substantial portions of the Software.
--- 
+--
 -- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 -- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 -- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,9 +22,11 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.to_integer;
+use ieee.numeric_std.unsigned;
 
 package tce_util is
-  
+
   function flip_bits(in_vec : std_logic_vector)  -- make unconstrained
     return std_logic_vector;
 
@@ -34,20 +36,38 @@ package tce_util is
   function bit_width (num : integer)
     return integer;
 
+  function tce_ext (
+    constant src    : std_logic_vector;
+    constant dstlen : integer)
+    return std_logic_vector;
+
+  function tce_sxt (
+    constant src    : std_logic_vector;
+    constant dstlen : integer)
+    return std_logic_vector;
+
+  function to_int (
+    constant val : boolean)
+    return integer;
+
+  function to_uint (
+    constant interpret_as_unsigned : std_logic_vector)
+    return natural;
+
   type integer_array is array (natural range <>) of integer;
   function return_highest(values : integer_array; numberOfValues : integer)
     return integer;
 
-  component util_inverter is  
-  port (
-    data_in  : in  std_logic;
-    data_out : out std_logic);
+  component util_inverter is
+    port (
+      data_in  : in  std_logic;
+      data_out : out std_logic);
   end component;
 
 end package tce_util;
 
 package body tce_util is
-  
+
   function flip_bits(in_vec : std_logic_vector)  -- make unconstrained
     return std_logic_vector is
 
@@ -85,16 +105,16 @@ package body tce_util is
         ) ;
 
     --  Local variables used in this function.
-    
+
     variable inpVal      : integer := inputInt;
     variable divisor     : integer := 10;
     variable tmpStrIndex : integer := 1;
     variable tmpStr      : string (1 to 256);
     variable ResultStr   : string (1 to 256);
     variable appendPos   : integer := 1;
-    
+
   begin
-    
+
     if (inpVal = 0) then
       tmpStr(tmpStrIndex) := integer_table (0);
       tmpStrIndex         := tmpStrIndex + 1;
@@ -117,7 +137,7 @@ package body tce_util is
     end loop;
 
     return ResultStr;
-    
+
   end int_to_str;
 
   function bit_width (num : integer) return integer is
@@ -155,11 +175,79 @@ package body tce_util is
     end if;
   end bit_width;
 
+  -- Same as Synopsys' EXT function but set all bits to 'X'es if some bits
+  -- in the src vector are 'U', 'X', 'W' or 'Z'.
+  function tce_ext (
+    constant src    : std_logic_vector;
+    constant dstlen : integer)
+    return std_logic_vector is
+    -- Normalize src's slice i.e. 4 downto 2 -> 2 downto 0.
+    variable tmp_src : std_logic_vector(src'length-1 downto 0) :=
+      (others => '0');
+    variable dst     : std_logic_vector(dstlen-1 downto 0) :=
+      (others => '0');
+    variable common_msb : integer := 0;
+  begin
+    tmp_src := src;
+    if tmp_src'high < dst'high then
+      common_msb := tmp_src'high;
+    else
+      common_msb := dst'high;
+    end if;
+    dst(common_msb downto 0) := tmp_src(common_msb downto 0);
+    return dst;
+  end tce_ext;
+
+  -- Same as Synopsys' SXT function but set all bits to 'X'es if some bits
+  -- in the src vector are 'U', 'X', 'W' or 'Z'.
+  function tce_sxt (
+    constant src    : std_logic_vector;
+    constant dstlen : integer)
+    return std_logic_vector is
+    -- Normalize src's slice i.e. 4 downto 2 -> 2 downto 0.
+    variable tmp_src    : std_logic_vector(src'length-1 downto 0) :=
+      (others => '0');
+    variable dst        : std_logic_vector(dstlen-1 downto 0);
+    variable common_msb : integer := 0;
+  begin
+    tmp_src := src;
+    if tmp_src'high < dst'high then
+      common_msb                          := tmp_src'high;
+      dst(dst'high downto tmp_src'length) :=
+        (dst'high downto tmp_src'length => tmp_src(tmp_src'high));
+    else
+      common_msb := dst'high;
+    end if;
+    dst(common_msb downto 0) := tmp_src(common_msb downto 0);
+    return dst;
+  end tce_sxt;
+
+  -- Converts boolean value to integer. Maps true as 1 and otherwise 0.
+  function to_int (
+    constant val : boolean)
+    return integer is
+  begin
+    if val then
+      return 1;
+    else
+      return 0;
+    end if;
+  end to_int;
+
+  -- Converts std_logic_vector to natural while interpreting the vector
+  -- as unsigned.
+  function to_uint (
+    constant interpret_as_unsigned : std_logic_vector)
+    return natural is
+  begin
+    return to_integer(unsigned(interpret_as_unsigned));
+  end to_uint;
+
   function return_highest(values : integer_array; numberOfValues : integer)
     return integer is
-    
+
     variable highest : integer;
-    
+
   begin
 
     highest := 0;
@@ -168,16 +256,16 @@ package body tce_util is
         highest := values(x);
       end if;
     end loop;  -- x
-    
+
     return highest;
   end return_highest;
-  
+
 end package body tce_util;
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity tce_util_inverter is  
+entity tce_util_inverter is
   port (
     data_in  : in  std_logic;
     data_out : out std_logic);

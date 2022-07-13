@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2012 Vinogradov Viacheslav.
+    Copyright (c) 2012-2015 Vinogradov Viacheslav.
 
     This file is going to be a part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of VerilogNetlistWriter class based on VHDLnetlistWriter
  *
  * @author Vinogradov Viacheslav 2012
+ * @author Henry Linjamäki 2015 (henry.linjamaki-no.spam.tut.fi)
  * @note rating: red
  */
 
@@ -39,29 +40,29 @@
 
 #include "NetlistWriter.hh"
 #include "Netlist.hh"
-#include "HDBTypes.hh"
+#include "ProGeTypes.hh"
 
 namespace ProGe {
 
-class NetlistBlock;
+class BaseNetlistBlock;
 
 /**
  * Writes Verilog files which implement the given netlist.
  */
 class VerilogNetlistWriter : public NetlistWriter {
 public:
-    VerilogNetlistWriter(const Netlist& netlist);
+    VerilogNetlistWriter(const BaseNetlistBlock& targetBlock);
     virtual ~VerilogNetlistWriter();
 
     virtual void write(const std::string& dstDirectory);
 
     static void writeGenericDeclaration(
-        const NetlistBlock& block,
+        const BaseNetlistBlock& block,
         unsigned int indentationLevel,
         const std::string& indentation,
         std::ostream& stream);
     static void writePortDeclaration(
-        const NetlistBlock& block,
+        const BaseNetlistBlock& block,
         unsigned int indentationLevel,
         const std::string& indentation,
         std::ostream& stream);
@@ -76,19 +77,20 @@ private:
 
     void writeNetlistParameterPackage(const std::string& dstDirectory) const;
     std::string netlistParameterPkgName() const;
-    void writeBlock(const NetlistBlock& block, const std::string& dstDirectory);
+    void writeBlock(
+        const BaseNetlistBlock& block, const std::string& dstDirectory);
     void writeSignalDeclarations(
-        const NetlistBlock& block,
+        const BaseNetlistBlock& block,
         std::ofstream& stream);
     void writeSignalAssignments(
-        const NetlistBlock& block,
+        const BaseNetlistBlock& block,
         std::ofstream& stream) const;
                                 
     void writeComponentDeclarations(
-        const NetlistBlock& block,
+        const BaseNetlistBlock& block,
         std::ofstream& stream) const;
     void writePortMappings(
-        const NetlistBlock& block,
+        const BaseNetlistBlock& block,
         std::ofstream& stream) const;
     std::string indentation(unsigned int level) const;
 
@@ -104,14 +106,13 @@ private:
      */
     TCEString genericMapStringValue(const TCEString& generic) const;
 
-    static std::string directionString(HDB::Direction direction);
+    static std::string directionString(Direction direction);
     static std::string generateIndentation(
         unsigned int level, const std::string& indentation);
     static bool isNumber(const std::string& formula);
     static std::string portSignalName(const NetlistPort& port);
     static std::string portSignalType(const NetlistPort& port);
     
-
     /// Width of the ground signal.
     int groundWidth_;
     

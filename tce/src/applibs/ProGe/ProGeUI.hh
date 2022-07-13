@@ -45,6 +45,7 @@
 #include "Exception.hh"
 #include "PluginTools.hh"
 #include "MemoryGenerator.hh"
+#include "ProGeOptions.hh"
 
 
 namespace TTAMachine {
@@ -66,29 +67,32 @@ class ProGeUI {
 public:
     virtual ~ProGeUI();
 
-protected:
     ProGeUI();
-    void loadMachine(const std::string& adfFile);
-    void loadBinaryEncoding(const std::string& bemFile);
-    void loadMachineImplementation(const std::string& idfFile);
-    void loadProcessorConfiguration(const std::string& configurationFile);
-    void loadICDecoderGeneratorPlugin(
-        const std::string& pluginFile, const std::string& pluginName);
-
     void generateProcessor(
-        int imemWidthInMAUs, HDL language, TCEString dstDirectory,
-        TCEString sharedDstDirectory, TCEString entityString,
-        std::ostream& errorStream, std::ostream& warningStream);
+        const ProGeOptions& options, int imemWidthInMAUs,
+        std::ostream& errorStream, std::ostream& warningStream,
+        std::ostream& verboseStream);
     void generateTestBench(
         const ProGe::HDL language,
-        const std::string& dstDir, 
+        const std::string& dstDir,
         const std::string& progeOutDir);
     void generateScripts(
         const ProGe::HDL language,
         const std::string& dstDir,
         const std::string& progeOutDir,
         const std::string& sharedOutDir,
-        const std::string& testBenchDir);
+        const std::string& testBenchDir,
+        const std::string& simulationRuntime);
+    void loadMachine(const TTAMachine::Machine& adf);
+    void loadBinaryEncoding(const BinaryEncoding& bem);
+    void loadMachineImplementation(const IDF::MachineImplementation& idf);
+protected:
+    void loadMachine(const std::string& adfFile);
+    void loadBinaryEncoding(const std::string& bemFile);
+    void loadMachineImplementation(const std::string& idfFile);
+    void loadProcessorConfiguration(const std::string& configurationFile);
+    void loadICDecoderGeneratorPlugin(
+        const std::string& pluginFile, const std::string& pluginName);
 
     void integrateProcessor(
         std::ostream& warningStream,
@@ -99,10 +103,15 @@ protected:
         const std::string& coreEntityName,
         const std::string& programName,
         const std::string& deviceFamily,
+        const std::string& deviceName,
         MemType imem,
         MemType dmem,
         HDL language,
-        int fmax);
+        int fmax,
+        bool syncReset);
+
+    /// The loaded machine.
+    TTAMachine::Machine* machine_;
 
 private:
     void checkIfNull(void* nullPointer, const std::string& errorMsg);
@@ -111,8 +120,9 @@ private:
 
     void readImemParameters(MemInfo& imem) const;
 
-    /// The loaded machine.
-    TTAMachine::Machine* machine_;
+    void generateIDF(const ProGeOptions& options,
+        std::ostream& verboseStream);
+
     /// The loaded binary encoding map.
     BinaryEncoding* bem_;
     /// The loaded machine implementation.

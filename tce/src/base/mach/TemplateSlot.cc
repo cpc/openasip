@@ -31,6 +31,7 @@
  */
 
 #include "TemplateSlot.hh"
+#include "MapTools.hh"
 #include "ImmediateUnit.hh"
 #include "ContainerTools.hh"
 #include "ObjectState.hh"
@@ -44,6 +45,10 @@ const string TemplateSlot::OSNAME_TEMPLATE_SLOT = "template_slot";
 const string TemplateSlot::OSKEY_SLOT = "slot";
 const string TemplateSlot::OSKEY_WIDTH = "width";
 const string TemplateSlot::OSKEY_DESTINATION = "destination";
+const string TemplateSlot::OSKEY_RF_READ = "rf_read";
+const string TemplateSlot::OSKEY_RF_WRITE = "rf_write";
+const string TemplateSlot::OSKEY_FU_READ = "fu_read";
+const string TemplateSlot::OSKEY_FU_WRITE = "fu_write";
 
 
 /**
@@ -64,7 +69,6 @@ TemplateSlot::TemplateSlot(
     bus_(&slot), immSlot_(NULL), width_(width), destination_(&destination) {
 }
 
-
 /**
  * Constructor.
  *
@@ -81,6 +85,19 @@ TemplateSlot::TemplateSlot(
     int width,
     ImmediateUnit& destination) :
     bus_(NULL), immSlot_(&slot), width_(width), destination_(&destination) {
+}
+
+
+/**
+ * Creates an implicit slot in a template that does not target
+ * an ImmediateUnit.
+ * 
+ * @param slot The bus or which is programmed by the instruction bit field
+ *             of this template slot.
+ */
+
+TemplateSlot::TemplateSlot(const Bus& slot) : 
+    bus_(&slot), width_(0), destination_(NULL) {
 }
 
 
@@ -104,5 +121,6 @@ TemplateSlot::saveState() const {
     slotState->setAttribute(OSKEY_DESTINATION, destination()->name());
     return slotState;
 }
+
 
 }

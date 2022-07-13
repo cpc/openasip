@@ -35,7 +35,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
-#include "HDBTypes.hh"
+#include "ProGeTypes.hh"
 #include "TCEString.hh"
 
 class SOPCInterface {
@@ -55,7 +55,7 @@ public:
     void setPort(
         const TCEString& hdlName,
         const TCEString& interfaceName,
-        HDB::Direction direction,
+        ProGe::Direction direction,
         int width);
     
     TCEString name() const;
@@ -91,7 +91,7 @@ protected:
     struct SOPCPort {
         TCEString hdlName;
         TCEString interfaceName;
-        HDB::Direction direction;
+        ProGe::Direction direction;
         int width;
     };
 

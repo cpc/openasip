@@ -1,0 +1,8 @@
+!register programcounter
+callr 100
+!register returnaddress
+!register programcounter
+callr 100
+!register returnaddress
+!register programcounter
+!quit

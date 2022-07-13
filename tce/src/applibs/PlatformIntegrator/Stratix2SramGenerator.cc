@@ -56,37 +56,37 @@ Stratix2SramGenerator::Stratix2SramGenerator(
     MemoryGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
                     integrator, warningStream, errorStream) {
 
-    ProGe::Netlist::Parameter dataw = {"sram_dataw", "integer", "32"};
-    ProGe::Netlist::Parameter addrw = {"sram_addrw", "integer", "18"};
+    ProGe::Parameter dataw("sram_dataw", "integer", "32");
+    ProGe::Parameter addrw("sram_addrw", "integer", "18");
     addParameter(dataw);
     addParameter(addrw);
     addPort("STRATIXII_SRAM_DQ",
-            new HDLPort("STRATIXII_SRAM_DQ", "sram_dataw", ProGe::BIT_VECTOR,
-                        HDB::BIDIR, false, 32));
+        new HDLPort("STRATIXII_SRAM_DQ", "sram_dataw", ProGe::BIT_VECTOR,
+            ProGe::BIDIR, false, 32));
     addPort("STRATIXII_SRAM_ADDR",
-            new HDLPort("STRATIXII_SRAM_ADDR", "sram_addrw",
-                        ProGe::BIT_VECTOR, HDB::OUT, false, 18));
+        new HDLPort("STRATIXII_SRAM_ADDR", "sram_addrw",
+            ProGe::BIT_VECTOR, ProGe::OUT, false, 18));
     addPort("STRATIXII_SRAM_WE_N",
-            new HDLPort("STRATIXII_SRAM_WE_N", "1", ProGe::BIT_VECTOR,
-                        HDB::OUT, false, 1));
+        new HDLPort("STRATIXII_SRAM_WE_N", "1", ProGe::BIT_VECTOR,
+            ProGe::OUT, false, 1));
     addPort("STRATIXII_SRAM_OE_N",
-            new HDLPort("STRATIXII_SRAM_OE_N", "1", ProGe::BIT_VECTOR,
-                        HDB::OUT, false, 1));
+        new HDLPort("STRATIXII_SRAM_OE_N", "1", ProGe::BIT_VECTOR,
+            ProGe::OUT, false, 1));
     addPort("STRATIXII_SRAM_CS_N",
-            new HDLPort("STRATIXII_SRAM_CS_N", "1", ProGe::BIT_VECTOR,
-                        HDB::OUT, false, 1));
+        new HDLPort("STRATIXII_SRAM_CS_N", "1", ProGe::BIT_VECTOR,
+            ProGe::OUT, false, 1));
     addPort("STRATIXII_SRAM_BE_N0",
-            new HDLPort("STRATIXII_SRAM_BE_N0", "1", ProGe::BIT_VECTOR,
-                        HDB::OUT, false, 1));
+        new HDLPort("STRATIXII_SRAM_BE_N0", "1", ProGe::BIT_VECTOR,
+            ProGe::OUT, false, 1));
     addPort("STRATIXII_SRAM_BE_N1",
-            new HDLPort("STRATIXII_SRAM_BE_N1", "1", ProGe::BIT_VECTOR,
-                        HDB::OUT, false, 1));
+        new HDLPort("STRATIXII_SRAM_BE_N1", "1", ProGe::BIT_VECTOR,
+            ProGe::OUT, false, 1));
     addPort("STRATIXII_SRAM_BE_N2",
-            new HDLPort("STRATIXII_SRAM_BE_N2", "1", ProGe::BIT_VECTOR,
-                        HDB::OUT, false, 1));
+        new HDLPort("STRATIXII_SRAM_BE_N2", "1", ProGe::BIT_VECTOR,
+            ProGe::OUT, false, 1));
     addPort("STRATIXII_SRAM_BE_N3",
-            new HDLPort("STRATIXII_SRAM_BE_N3", "1", ProGe::BIT_VECTOR,
-                        HDB::OUT, false, 1));
+        new HDLPort("STRATIXII_SRAM_BE_N3", "1", ProGe::BIT_VECTOR,
+            ProGe::OUT, false, 1));
 }
 
 
@@ -97,25 +97,28 @@ Stratix2SramGenerator::~Stratix2SramGenerator() {
 void
 Stratix2SramGenerator::addMemory(
     const ProGe::NetlistBlock& ttaCore,
-    ProGe::Netlist& netlist,
-    int /*memIndex*/) {
+    ProGe::NetlistBlock& integratorBlock,
+    int /*memIndex*/,
+    int coreId) {
     
-    NetlistBlock& toplevel = netlist.topLevelBlock();
     for (int i = 0; i < parameterCount(); i++) {
-        toplevel.setParameter(parameter(i).name, parameter(i).type,
-                              parameter(i).value);
+        integratorBlock.setParameter(
+            parameter(i).name(),
+            parameter(i).type(),
+            parameter(i).value());
     }
 
     for (int i = 0; i < portCount(); i++) {
         const HDLPort* hdlPort = port(i);
-        NetlistPort* memPort = hdlPort->convertToNetlistPort(toplevel);
+        NetlistPort* memPort = hdlPort->convertToNetlistPort(integratorBlock);
 
         TCEString corePortName = portKeyName(hdlPort);
-        NetlistPort* corePort = ttaCore.portByName(corePortName);
+        const NetlistPort* corePort = ttaCore.port(corePortName);
         assert(corePort != NULL);
 
         MemoryGenerator::connectPorts(
-            netlist, *memPort, *corePort, hdlPort->needsInversion());
+            integratorBlock, *memPort, *corePort,
+            hdlPort->needsInversion(), coreId);
     }
 
 }
@@ -144,8 +147,8 @@ Stratix2SramGenerator::moduleName() const {
     
 
 TCEString
-Stratix2SramGenerator::instanceName(int memIndex) const {
+Stratix2SramGenerator::instanceName(int coreId, int memIndex) const {
     
     TCEString iname("stratixII_sram_");
-    return iname << memoryIndexString(memIndex);
+    return iname << memoryIndexString(coreId, memIndex);
 }

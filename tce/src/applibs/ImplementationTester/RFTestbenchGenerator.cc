@@ -127,7 +127,8 @@ RFTestbenchGenerator::createMachineState() {
     machRf_ = 
         new TTAMachine::RegisterFile(
             name, size, width, rfArch_->maxReads(), rfArch_->maxWrites(),
-            rfArch_->guardLatency(), TTAMachine::RegisterFile::NORMAL);
+            rfArch_->guardLatency(), TTAMachine::RegisterFile::NORMAL,
+            rfArch_->zeroRegister());
     machine_->addRegisterFile(*machRf_);
 
     MachineStateBuilder msmBuilder;

@@ -10,7 +10,7 @@ $tcecc -O0 -a $adf -o $tpef \
 -k main,result,chroma_in0_32b data/tceop_casting.c
 
 $tceopgen 2>&1 | egrep "STW|MUL|ADD|DIVU|XOR" | egrep -v "_MULT" \
-| egrep -v "_AVALON"
+| egrep -v "_AVALON" |  egrep -v "MULHI"
 
 echo $($ttasim -p $tpef -a $adf -e "run; puts [x /u w result]; quit;" --no-debugmode)
 

@@ -72,6 +72,8 @@ public:
     bool isBusEntrySelected();
     bool isSocketEntrySelected();
     bool isCostFunctionPluginSelected();
+    bool isOperationImplementationSelected();
+    bool isOperationImplementationResourceSelected();
 
     RowID selectedFUArchitecture();
     RowID selectedFUImplementation();
@@ -82,6 +84,8 @@ public:
     RowID selectedBusEntry();
     RowID selectedSocketEntry();
     RowID selectedCostFunctionPlugin();
+    RowID selectedOperationImplementation();
+    RowID selectedOperationImplementationResource();
 
     void selectRFArchitecture(int id);
     void selectFUArchitecture(int id);

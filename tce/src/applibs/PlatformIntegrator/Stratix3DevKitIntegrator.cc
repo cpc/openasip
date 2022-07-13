@@ -78,6 +78,7 @@ Stratix3DevKitIntegrator::Stratix3DevKitIntegrator(
                      outputDir, programName, targetClockFreq, warningStream,
                      errorStream, imem, dmemType),
     quartusGen_(new QuartusProjectGenerator(coreEntityName, this)) {
+    setDeviceName(DEVICE_NAME_);
 }
 
 
@@ -107,7 +108,8 @@ Stratix3DevKitIntegrator::integrateProcessor(
     initPlatformNetlist(ttaCore);
 
     const NetlistBlock& core = progeBlock();
-    if (!integrateCore(core)) {
+    int coreId = -1;
+    if (!integrateCore(core, coreId)) {
         return;
     }
 
@@ -137,13 +139,6 @@ Stratix3DevKitIntegrator::setDeviceFamily(TCEString devFamily) {
             << "- Original device family: " << DEVICE_FAMILY_ << endl
             << "- New device family: " << devFamily << endl;
     }
-}
-
-
-TCEString
-Stratix3DevKitIntegrator::deviceName() const {
-    
-    return DEVICE_NAME_;
 }
 
 
@@ -216,8 +211,8 @@ Stratix3DevKitIntegrator::projectFileGenerator() const {
 void
 Stratix3DevKitIntegrator::mapToplevelPorts() {
 
-    NetlistBlock& tl = netlist()->topLevelBlock();
-    for (int i = 0; i < tl.portCount(); i++) {
+    NetlistBlock& tl = *integratorBlock();
+    for (size_t i = 0; i < tl.portCount(); i++) {
         addSignalMapping(tl.port(i).name());
     }
 }

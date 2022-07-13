@@ -293,7 +293,7 @@
         <in id="1"/>
       </can-swap>
     </in>
-    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(eq, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -328,7 +328,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
     <in element-count="1" element-width="32" id="2" type="SIntWord"/>
-    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(gt, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -355,7 +355,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
     <in element-count="1" element-width="32" id="2" type="UIntWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(gtu, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -381,7 +381,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
     <in element-count="1" element-width="32" id="2" type="SIntWord"/>
-    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(gt, IO(2), IO(1), IO(3));
     </trigger-semantics>
@@ -407,7 +407,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
     <in element-count="1" element-width="32" id="2" type="UIntWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(gtu, IO(2), IO(1), IO(3));
     </trigger-semantics>
@@ -436,12 +436,12 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
         <in id="2"/>
       </can-swap>
     </in>
-    <in element-count="1" element-width="32" id="2" type="SIntWord">
+    <in element-count="1" element-width="32" id="2" type="UIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="SIntWord"/>
     <trigger-semantics> 
       SimValue t1;
       EXEC_OPERATION(eq, IO(1), IO(2), t1);
@@ -491,7 +491,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
     <in element-count="1" element-width="32" id="2" type="SIntWord"/>
-    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="SIntWord"/>
     <trigger-semantics> 
       SimValue t1;
       EXEC_OPERATION(gt, IO(2), IO(1), t1);
@@ -533,7 +533,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
     <in element-count="1" element-width="32" id="2" type="UIntWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(gtu, IO(2),IO(1), t1);
@@ -575,7 +575,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
     <in element-count="1" element-width="32" id="2" type="SIntWord"/>
-    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="SIntWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(gt, IO(1),IO(2), t1);
@@ -617,7 +617,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
     <in element-count="1" element-width="32" id="2" type="UIntWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1;
       EXEC_OPERATION(gtu, IO(1),IO(2), t1);
@@ -658,7 +658,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
-    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="5" id="2" type="UIntWord"/>
     <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(shl, IO(1), IO(2), IO(3));
@@ -816,7 +816,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="SIntWord"/>
-    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="5" id="2" type="UIntWord"/>
     <out element-count="1" element-width="32" id="3" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(shr, IO(1), IO(2), IO(3));
@@ -974,7 +974,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
-    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <in element-count="1" element-width="5" id="2" type="UIntWord"/>
     <out element-count="1" element-width="32" id="3" type="UIntWord"/>
   </operation>
 
@@ -1263,6 +1263,19 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
   </operation>
 
   <operation>
+    <name>JUMPR</name>
+    <description>PC-relative jump to the given instruction address.</description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(jumpr, IO(1));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>CALL</name>
     <description>Calls a function at the given absolute instruction address. The return address is saved in the return address register (RA).</description>
     <inputs>1</inputs>
@@ -1272,6 +1285,55 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <in element-count="1" element-width="64" id="1" type="ULongWord"/>
     <trigger-semantics>
       EXEC_OPERATION(call, IO(1));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>CALLA</name>
+    <description>Sums the two input values and calls the result address. The return address is saved in the return address register (RA).</description>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-call/>
+    <in element-count="1" element-width="64" id="1" type="ULongWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="64" id="2" type="ULongWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <trigger-semantics>
+      SimValue addr;
+      EXEC_OPERATION(add, IO(1), IO(2), addr);
+      EXEC_OPERATION(call, addr);
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>APC</name>
+    <description>Adds the input value with the program counter and moves the result to output.</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <out element-count="1" element-width="64" id="2" type="ULongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(apc, IO(1));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>CALLR</name>
+    <description>Calls a function at the given PC-relative instruction address. The return address is saved in the return address register (RA).</description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-call/>
+    <in element-count="1" element-width="64" id="1" type="ULongWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(callr, IO(1));
     </trigger-semantics>
   </operation>
 
@@ -1629,8 +1691,8 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <description>sign extend from 1 bit to 32 bits</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <out id="2" type="SIntWord"/>
+    <in element-count="1" element-width="1" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sxbw, IO(1), IO(2));
     </trigger-semantics>
@@ -1641,7 +1703,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <description>Sign extend from 8 bits of the input 1 to 32 bits into output 2.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="8" id="1" type="SIntWord"/>
     <out element-count="1" element-width="32" id="2" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sxqw, IO(1), IO(2));
@@ -1653,7 +1715,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <description>Sign extend from 16 bits of of the input 1 to 32 bits into output 2.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="16" id="1" type="SIntWord"/>
     <out element-count="1" element-width="32" id="2" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sxhw, IO(1), IO(2));
@@ -1728,8 +1790,8 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <description>truncate 32 bit int to 16 bit int</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <out id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="16" id="2" type="SIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(truncwh, IO(1), IO(2));
     </trigger-semantics>
@@ -1872,6 +1934,60 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <trigger-semantics>
       EXEC_OPERATION(mul, IO(1), IO(2), IO(3));
     </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MULHI</name>
+    <description>32-bit integer multiplication of the signed inputs 1 and 2 with higher result bits in the output 3.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="32" id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>MULHIU</name>
+    <description>32-bit integer multiplication of the unsigned inputs 1 and 2 with higher result bits in the output 3.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="32" id="2" type="UIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>MULHISU</name>
+    <description>32-bit integer multiplication of the signed input 1 and unsigned input 2 with higher result bits in the output 3.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="32" id="2" type="UIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
   </operation>
 
   <operation>
@@ -2030,7 +2146,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
         <in id="1"/>
       </can-swap>
     </in>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(eqf, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -2051,7 +2167,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
         <in id="1"/>
       </can-swap>
     </in>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(nef, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -2070,7 +2186,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
     <in element-count="1" element-width="32" id="2" type="FloatWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(gtf, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -2083,7 +2199,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
     <in element-count="1" element-width="32" id="2" type="FloatWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(gef, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -2102,7 +2218,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
     <in element-count="1" element-width="32" id="2" type="FloatWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(ltf, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -2118,7 +2234,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
     <in element-count="1" element-width="32" id="2" type="FloatWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(lef, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -2145,7 +2261,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
         <in id="1"/>
       </can-swap>
     </in>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>EXEC_OPERATION(eqf, IO(1), IO(2), IO(3));
 
 
@@ -2168,7 +2284,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
         <in id="1"/>
       </can-swap>
     </in>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>SimValue temp1;
 EXEC_OPERATION(eqf, IO(1), IO(2), temp1);
 EXEC_OPERATION(xor, temp1, 1, IO(3));
@@ -2183,7 +2299,7 @@ EXEC_OPERATION(xor, temp1, 1, IO(3));
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
     <in element-count="1" element-width="32" id="2" type="FloatWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>EXEC_OPERATION(gtf, IO(1), IO(2), IO(3));
 
 </trigger-semantics>
@@ -2196,7 +2312,7 @@ EXEC_OPERATION(xor, temp1, 1, IO(3));
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
     <in element-count="1" element-width="32" id="2" type="FloatWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>SimValue temp1, temp2;
 EXEC_OPERATION(gtf, IO(1), IO(2), temp1);
 EXEC_OPERATION(eqf, IO(1), IO(2), temp2);
@@ -2213,7 +2329,7 @@ EXEC_OPERATION(ior, temp1, temp2, IO(3));
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
     <in element-count="1" element-width="32" id="2" type="FloatWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>SimValue temp1, temp2, temp3;
 EXEC_OPERATION(gtf, IO(1), IO(2), temp1);
 EXEC_OPERATION(eqf, IO(1), IO(2), temp2);
@@ -2232,7 +2348,7 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
     <outputs>1</outputs>
     <in element-count="1" element-width="32" id="1" type="FloatWord"/>
     <in element-count="1" element-width="32" id="2" type="FloatWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>SimValue temp1;
 EXEC_OPERATION(gtf, IO(1), IO(2), temp1);
 EXEC_OPERATION(xor,temp1,1, IO(3));
@@ -2516,7 +2632,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
         <in id="1"/>
       </can-swap>
     </in>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -2543,7 +2659,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
         <in id="1"/>
       </can-swap>
     </in>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -2576,7 +2692,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
         <in id="1"/>
       </can-swap>
     </in>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -2592,7 +2708,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
     <in element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -2611,7 +2727,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
     <in element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -2636,7 +2752,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
     <in element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -2658,7 +2774,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
     <in element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
-    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <out element-count="1" element-width="1" id="3" type="UIntWord"/>
     <trigger-semantics>
       SimValue t1, t2, t3;
       EXEC_OPERATION(chf, IO(1), t1);
@@ -2943,7 +3059,7 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <in element-count="1" element-width="32" id="1" type="UIntWord">
       <mem-address/>
     </in>
-    <out element-count="1" element-width="8" id="2" type="RawData">
+    <out element-count="1" element-width="32" id="2" type="RawData">
       <mem-data/>
     </out>
     <trigger-semantics>
@@ -3019,6 +3135,19 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
   </operation>
 
   <operation>
+    <name>REM</name>
+    <description>Integer remainder.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(rem, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
     <name>MOD64</name>
     <description>Integer modulo.</description>
     <inputs>2</inputs>
@@ -3041,6 +3170,19 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
     <out element-count="1" element-width="32" id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(modu, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>REMU</name>
+    <description>Integer remainder (unsigned)</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(remu, IO(1), IO(2), IO(3));
     </trigger-semantics>
   </operation>
 
@@ -4302,7 +4444,7 @@ Input operand is discarded.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
-    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="16" id="2" type="SIntWord"/>
   </operation>
 
   <operation>
@@ -4311,7 +4453,7 @@ Input operand is discarded.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in element-count="1" element-width="16" id="1" type="HalfFloatWord"/>
-    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="16" id="2" type="UIntWord"/>
   </operation>
 
   <operation>
@@ -4319,7 +4461,7 @@ Input operand is discarded.</description>
     <description>Convert short to half</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="16" id="1" type="SIntWord"/>
     <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
   </operation>
 
@@ -4328,7 +4470,7 @@ Input operand is discarded.</description>
     <description>Convert short to half unsigned</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="16" id="1" type="UIntWord"/>
     <out element-count="1" element-width="16" id="2" type="HalfFloatWord"/>
   </operation>
 
@@ -4342,16 +4484,565 @@ Input operand is discarded.</description>
   </operation>
 
   <operation>
-    <name>HWLOOP</name>
-    <description>Hardware-loop instruction to iterate given number of instruction. Operand-1: Iteration count and Operand-2: Number of instructions.
-        The instruction only guarantees the loop-iterations. Insturction cache behaviour (eg: Loop bufffers) are left to hardware to handle.
-    </description>
+    <name>ALD8</name>
+    <description>Little endian base + offset load</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>SimValue address;
+EXEC_OPERATION(add, IO(1), IO(2), address);
+EXEC_OPERATION(ld8, address, IO(3));
+
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ALDU8</name>
+    <description>Little endian base + offset load</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>SimValue address;
+EXEC_OPERATION(add, IO(1), IO(2), address);
+EXEC_OPERATION(ldu8, address, IO(3));
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ALD16</name>
+    <description>Little endian base + offset load</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>SimValue address;
+EXEC_OPERATION(add, IO(1), IO(2), address);
+EXEC_OPERATION(ld16, address, IO(3));
+
+
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ALDU16</name>
+    <description>Little endian base + offset load</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>SimValue address;
+EXEC_OPERATION(add, IO(1), IO(2), address);
+EXEC_OPERATION(ldu16, address, IO(3));
+
+
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ALD32</name>
+    <description>Little endian base + offset load</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>SimValue address;
+EXEC_OPERATION(add, IO(1), IO(2), address);
+EXEC_OPERATION(ld32, address, IO(3));
+
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>AST32</name>
+    <description>Base + offset store. The input 1 is the base address, input 2 the offset and input 3 the data.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>SimValue address;
+EXEC_OPERATION(add, IO(1), IO(2), address);
+EXEC_OPERATION(st32, address, IO(3));
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>AST16</name>
+    <description>Base + offset store. The input 1 is the base address, input 2 the offset and input 3 the data.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>SimValue address;
+EXEC_OPERATION(add, IO(1), IO(2), address);
+EXEC_OPERATION(st16, address, IO(3));
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>AST8</name>
+    <description>Base + offset store. The input 1 is the base address, input 2 the offset and input 3 the data.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>SimValue address;
+EXEC_OPERATION(add, IO(1), IO(2), address);
+EXEC_OPERATION(st8, address, IO(3));
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BNZ</name>
+    <description>Branch-if-not-zero. Jumps to the given location if the value is non-zero.
+
+Input 1: The value to be tested.
+Input 2: The branch target.</description>
     <inputs>2</inputs>
     <outputs>0</outputs>
-    <side-effects/>
     <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="RawData"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>EXEC_OPERATION(bnz, IO(1));
+  </trigger-semantics>
+  </operation>
+  
+    <operation>
+    <name>BNZR</name>
+    <description>Branch-if-not-zero. Jumps to the given PC relative location if the value is non-zero.
+
+Input 1: The value to be tested.
+Input 2: The branch target.</description>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="RawData"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>EXEC_OPERATION(bnzr, IO(1));
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BZ1</name>
+    <description>Branch-if-zero. Jumps to the given location if the lowest bit of value is zero.
+
+Input 1: The value to be tested.
+Input 2: The branch target.</description>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="1" id="1" type="RawData"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>EXEC_OPERATION(bz1, IO(1));
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BNZ1</name>
+    <description>Branch-if-not-zero. Jumps to the given location if the lowest bit of value is non-zero.
+
+Input 1: The value to be tested.
+Input 2: The branch target.</description>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="1" id="1" type="RawData"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <trigger-semantics>EXEC_OPERATION(bnz1, IO(1));
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BEQ</name>
+    <description>Branch-if-equal. Compares the first two operands, uses the third as branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(eq, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnz, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BNE</name>
+    <description>Branch-if-not-equal. Compares the first two operands, uses the third as branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(ne, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnz, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BGT</name>
+    <description>Branch-if-greater. Compares the first two operands, uses the third as branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(gt, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnz, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BLT</name>
+    <description>Branch-if-lesser. Compares the first two operands, uses the third as branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(lt, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnz, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BGTU</name>
+    <description>Unsigned branch-if-greater. Compares the first two operands, uses the third as branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
     <in element-count="1" element-width="32" id="1" type="UIntWord"/>
     <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(gtu, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnz, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BLTU</name>
+    <description>Unsigned branch-if-lesser. Compares the first two operands, uses the third as branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(ltu, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnz, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BLE</name>
+    <description>Branch-if-less-or-equal. Compares the first two operands, uses the third as branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(le, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnz, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BGE</name>
+    <description>Branch-if-greater-or-equal. Compares the first two operands, uses the third as branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(ge, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnz, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BLEU</name>
+    <description>Unsigned branch-if-less-or-equal. Compares the first two operands, uses the third as branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(leu, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnz, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BGEU</name>
+    <description>Unsigned branch-if-greater-equal. Compares the first two operands, uses the third as branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(geu, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnz, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+   <operation>
+    <name>BEQR</name>
+    <description>Branch-if-equal. Compares the first two operands, uses the third as PC relative branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(eq, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnzr, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BNER</name>
+    <description>Branch-if-not-equal. Compares the first two operands, uses the third as PC relative branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(ne, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnzr, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BGTR</name>
+    <description>Branch-if-greater. Compares the first two operands, uses the third as PC relative branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(gt, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnzr, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BLTR</name>
+    <description>Branch-if-lesser. Compares the first two operands, uses the third as PC relative branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(lt, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnzr, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BGTUR</name>
+    <description>Unsigned branch-if-greater. Compares the first two operands, uses the third as PC relative branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(gtu, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnzr, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BLTUR</name>
+    <description>Unsigned branch-if-lesser. Compares the first two operands, uses the third as PC relative branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(ltu, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnzr, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BLER</name>
+    <description>Branch-if-less-or-equal. Compares the first two operands, uses the third as PC relative branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(le, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnzr, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BGER</name>
+    <description>Branch-if-greater-or-equal. Compares the first two operands, uses the third as PC relative branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(ge, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnzr, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BLEUR</name>
+    <description>Unsigned branch-if-less-or-equal. Compares the first two operands, uses the third as PC relative branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(leu, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnzr, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>BGEUR</name>
+    <description>Unsigned branch-if-greater-equal. Compares the first two operands, uses the third as PC relative branch target.</description>
+    <inputs>3</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <is-branch/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+       SimValue cr;
+       EXEC_OPERATION(geu, IO(1), IO(2), cr);
+       EXEC_OPERATION(bnzr, cr, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>HWLOOP</name>
+      <description>Hardware-loop instruction to iterate given number of instruction. Operand-1: Iteration count and Operand-2: Number of instructions.
+          The instruction only guarantees the loop-iterations. Insturction cache behaviour (eg: Loop bufffers) are left to hardware to handle.
+      </description>
+      <inputs>2</inputs>
+      <outputs>0</outputs>
+      <side-effects/>
+      <control-flow/>
+      <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+      <in element-count="1" element-width="32" id="2" type="UIntWord"/>
   </operation>
 
 </osal>

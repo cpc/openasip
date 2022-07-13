@@ -1,3 +1,4 @@
+!output unsigned
 ge 3 5
 ge 3 3
 ge 10001243 210009

@@ -38,8 +38,8 @@ namespace ProGe {
 
 /// HDLs supported by ProGe.
 enum HDL {
-    VHDL=0, //< VHDL
-    Verilog//Verilog
+    VHDL=0, ///< VHDL
+    Verilog ///< Verilog
 };
 
 /// Data types of hardware ports.
@@ -47,6 +47,14 @@ enum DataType {
     BIT, ///< One bit.
     BIT_VECTOR ///< Several bits.
 };
+
+/// Direction of the port.
+enum Direction {
+    IN, ///< Input port.
+    OUT, ///< Output port.
+    BIDIR ///< Bidirectional port.
+};
+
 }
 
 #endif

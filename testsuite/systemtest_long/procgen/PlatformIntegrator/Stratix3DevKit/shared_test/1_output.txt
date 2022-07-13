@@ -1,3 +1,4 @@
+Warning: didn't find mapping for signal name locked
 proge-out vhdl files
 20
 shared vhdl files

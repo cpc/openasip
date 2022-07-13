@@ -45,9 +45,11 @@ using std::string;
  * Constructor.
  *
  * @param width The width of the register.
+ * @param constantZero Tells whether the register is constant zero
  */
-RegisterState::RegisterState(int width) : 
-    StateData(), value_(*(new SimValue(width))), shared_(false) {
+RegisterState::RegisterState(int width, bool constantZero) : 
+    StateData(), value_(*(new SimValue(width))), shared_(false),
+    constantZero_(constantZero) {
 }
 
 /**
@@ -56,7 +58,8 @@ RegisterState::RegisterState(int width) :
  * @param sharedRegister The register which is shared with this.
  */
 RegisterState::RegisterState(SimValue& sharedRegister) : 
-    StateData(), value_(sharedRegister), shared_(true) {
+    StateData(), value_(sharedRegister), shared_(true),
+    constantZero_(false) {
 }
 
 /**
@@ -75,7 +78,9 @@ RegisterState::~RegisterState() {
  */
 void
 RegisterState::setValue(const SimValue& value) {
-    value_ = value;
+    if (!constantZero_) {
+        value_ = value;
+    } 
 }
 
 /**

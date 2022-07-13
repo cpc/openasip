@@ -1,0 +1,5 @@
+st16 100 1000
+!advanceclock
+!output bin
+aldu16 90 10
+!quit

@@ -227,6 +227,13 @@ ProGeTestBenchGenerator::generate(
         // connected to, only once for every address space
         string dataWidth;
         string addrWidth;
+        string dmemImageFilename("dmem_");
+        if (ASFUs.size() == 1) {
+            dmemImageFilename += ASFUs.begin()->second.at(0)->addressSpace()
+                ->name();
+            dmemImageFilename += "_";
+        }
+        dmemImageFilename += "init.img";
         for (int p = 0, count = fuImplementation->parameterCount();
             p < count; ++p) {
 
@@ -271,7 +278,8 @@ ProGeTestBenchGenerator::generate(
         }
         // TODO: don't create whole file here just add memory widths and 
         // the init file entry
-        createTBConstFile(dstDirectory, dataWidth, addrWidth);
+        createTBConstFile(dstDirectory, dmemImageFilename, dataWidth,
+            addrWidth);
         ++it;
     }  
 
@@ -289,8 +297,8 @@ ProGeTestBenchGenerator::generate(
             "busy => '0',\n"
             "imem_en_x => imem_en_x,\n"
             "imem_addr => imem_addr,\n"
-            "imem_data => imem_data";
-
+            "imem_data => imem_data,\n"
+            "locked => locked";
         // Add external debugger ports, if needed
         if (implementation.icDecoderParameterValue("debugger") == 
             "external") {
@@ -318,9 +326,10 @@ ProGeTestBenchGenerator::generate(
     }
     
     // read toplevel.vhdl from proge output dir for proc_arch.vhdl
-    string toplevel = progeOutDir + FileSystem::DIRECTORY_SEPARATOR +
-        + ((language==VHDL)?"vhdl":"verilog") + FileSystem::DIRECTORY_SEPARATOR + 
-        entityStr + ((language==VHDL)?".vhdl":".v");
+    string toplevel = progeOutDir + FileSystem::DIRECTORY_SEPARATOR
+        + ((language==VHDL)?"vhdl":"verilog")
+        + FileSystem::DIRECTORY_SEPARATOR + entityStr
+        + ((language==VHDL)?".vhdl":".v");
 
     createProcArchVhdl(dstDirectory, toplevel, LSUMapConst);
 }
@@ -489,10 +498,12 @@ ProGeTestBenchGenerator::getSignalMapping(
 void
 ProGeTestBenchGenerator::createTBConstFile(
         std::string dstDirectory,
-        const string dataWidth,
-        const string addrWidth) {
+        const std::string& dmemImage,
+        const string& dataWidth,
+        const string& addrWidth) {
     string dstFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
-    ((language_==VHDL)?"testbench_constants_pkg.vhdl":"testbench_constants_pkg.vh");
+    ((language_ == VHDL)?
+        "testbench_constants_pkg.vhdl":"testbench_constants_pkg.vh");
 
     createFile(dstFile);
 
@@ -514,13 +525,11 @@ ProGeTestBenchGenerator::createTBConstFile(
                << "constant DMEM_INIT_FILE : string := "
                << ((dataWidth.empty()) ?
                  "\"\";" :
-                 "\"tb" + FileSystem::DIRECTORY_SEPARATOR + "dmem_init.img\";")
+                 "\"tb" + FileSystem::DIRECTORY_SEPARATOR + dmemImage + "\";")
                << endl
                
                << "constant IMEM_INIT_FILE : string := "
-               << ((addrWidth.empty()) ?
-                  "\"\";" :
-                  "\"tb" + FileSystem::DIRECTORY_SEPARATOR + "imem_init.img\";")
+               << "\"tb" + FileSystem::DIRECTORY_SEPARATOR + "imem_init.img\";"
                << endl
                << "end testbench_constants;" << endl;
     } else {
@@ -533,13 +542,13 @@ ProGeTestBenchGenerator::createTBConstFile(
                << ((addrWidth.empty()) ? "1" : addrWidth)<< "," << endl
 
                << "// simulation run time" << endl
-               << "parameter RUNTIME = 5234*10,// ns" << endl
+               << "parameter RUNTIME = `SIMTIME,// ns" << endl
 
                << "// memory init files" << endl
                << "parameter DMEM_INIT_FILE = "
                << ((dataWidth.empty()) ?
                  "\"\"," :
-                 "\"tb" + FileSystem::DIRECTORY_SEPARATOR + "dmem_init.img\",")
+                 "\"tb" + FileSystem::DIRECTORY_SEPARATOR + dmemImage + "\",")
                << endl
                
                << "parameter IMEM_INIT_FILE = "

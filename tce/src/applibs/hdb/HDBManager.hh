@@ -47,6 +47,7 @@
 #include "HDBTypes.hh"
 #include "CostEstimationData.hh"
 #include "SQLiteConnection.hh"
+#include "OperationImplementation.hh"
 
 class SQLite;
 class RelationalDBConnection;
@@ -130,7 +131,21 @@ public:
     std::set<RowID> rfEntryIDs() const;
     std::set<RowID> busEntryIDs() const;
     std::set<RowID> socketEntryIDs() const;
-    
+    std::set<RowID> OperationImplementationIDs() const;
+    std::set<RowID> OperationImplementationResourceIDs() const;
+
+    OperationImplementation OperationImplementationByID(RowID id) const;
+    OperationImplementationResource OperationImplementationResourceByID(
+        RowID id) const;
+
+    void addOperationImplementationResource(
+        const OperationImplementationResource& resource);
+    void addOperationImplementation(
+        const OperationImplementation& operation);
+
+    void removeOperationImplementation(RowID id);
+    void removeOperationImplementationResource(RowID id);
+
     std::set<RowID> fuArchitectureIDs() const;
     std::set<RowID> fuArchitectureIDsByOperationSet(
         const std::set<std::string>& operationNames) const;
@@ -161,7 +176,8 @@ public:
         bool guardSupport,
         int guardLatency = 0,
         int width = 0,
-        int size = 0) const;
+        int size = 0,
+        bool zeroRegister = false) const;
 
     virtual DataObject costEstimationDataValue(
         const std::string& valueName, const std::string& pluginName) const;
@@ -253,13 +269,15 @@ public:
 
     std::list<std::string> blockSourceFile();
 
+    static std::string formatString(BlockImplementationFile::Format format);
+
 protected:
     virtual RFImplementation* createImplementationOfRF(RowID id) const;
     virtual FUImplementation* createImplementationOfFU(
         FUArchitecture& architecture,
         RowID id) const;
     void createCostEstimatioDataIdsQuery(
-        const CostEstimationData& match, 
+        const CostEstimationData& match,
         std::string* query,
         RelationalDBQueryResult* compiledQuery = NULL,
         short int* queryHash = NULL,
@@ -351,7 +369,7 @@ private:
     static void insertFileFormats(RelationalDBConnection& connection);
     static BlockImplementationFile::Format fileFormat(
         const std::string& formatString);
-    static std::string formatString(BlockImplementationFile::Format format);
+
     static std::string directionString(HDB::Direction direction);
     static std::string fuEntryByIDQuery(RowID id);
     static std::string rfEntryByIDQuery(RowID id);

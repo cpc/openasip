@@ -412,7 +412,8 @@ ComponentImplementationSelector::rfImplementations(
                 // guard latency
                 rf.guardLatency(),
                 rf.width(),
-                rf.numberOfRegisters());
+                rf.numberOfRegisters(),
+                rf.zeroRegister());
 
         set<RowID>::const_iterator id = rfEntryIDs.begin();
         for (; id != rfEntryIDs.end(); id++) {

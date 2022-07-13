@@ -375,6 +375,47 @@ HWOperation::io(const FUPort& port) const {
 }
 
 /**
+ * Returns the number of input ports tied to the operation 
+ * 
+ * @return Number of input ports
+ */
+
+int
+HWOperation::numberOfInputs() const {
+    int inputs = 0;
+    for (int i = 1; i < operandCount() + 1; i++) {
+        FUPort* p = port(i);
+        if (p == NULL) {
+            continue;
+        } else if (p->isInput()) {
+            inputs++;
+        }
+    }
+    return inputs;
+}
+
+/**
+ * Returns the number of output ports tied to the operation 
+ * 
+ * @return Number of output ports
+ */
+
+int
+HWOperation::numberOfOutputs() const {
+    int outputs = 0;
+    for (int i = 1; i < operandCount() + 1; i++) {
+        FUPort* p = port(i);
+        if (p == NULL) {
+            continue;
+        }
+        if (p->isOutput()) {
+            outputs++;
+        }
+    }
+    return outputs;
+}
+
+/**
  * Saves the contents to an ObjectState tree.
  *
  * @return The newly created ObjectState tree.

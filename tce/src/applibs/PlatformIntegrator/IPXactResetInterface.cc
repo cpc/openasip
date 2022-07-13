@@ -65,7 +65,7 @@ IPXactResetInterface::~IPXactResetInterface() {
 bool
 IPXactResetInterface::mapPortsToInterface(const ProGe::NetlistBlock& toplevel) {
     
-    for (int i = 0; i < toplevel.portCount(); i++) {
+    for (size_t i = 0; i < toplevel.portCount(); i++) {
         if (toplevel.port(i).name() == TTA_RESET_PORT) {
             addSignalMapping(TTA_RESET_PORT, SPIRIT_RESET_PORT);
             return true;

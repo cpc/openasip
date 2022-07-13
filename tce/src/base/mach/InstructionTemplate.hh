@@ -55,6 +55,7 @@ public:
     virtual void setName(const std::string& name);
     virtual void addSlot(
         const std::string& slotName, int width, ImmediateUnit& dstUnit);
+
     virtual void removeSlot(const std::string& slotName);
     virtual void removeSlots(const ImmediateUnit& dstUnit);
 
@@ -93,8 +94,6 @@ private:
     typedef std::vector<TemplateSlot*> SlotTable;
 
     void deleteAllSlots();
-    
-  
     /// Contains all the slots of the instruction template.
     SlotTable slots_;
 };

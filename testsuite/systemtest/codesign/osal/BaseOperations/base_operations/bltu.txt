@@ -1,0 +1,11 @@
+bltu 13 0 10
+!register programcounter
+bltu 20 999 65
+!register programcounter
+bltu 1 1 67
+!register programcounter
+bltu 100 40 123
+!register programcounter
+bltu 0 0 126
+!register programcounter
+!quit

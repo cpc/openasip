@@ -1,0 +1,423 @@
+#!/usr/bin/env python3
+#-*- coding: utf-8 -*-
+# 
+# Copyright (C) 2022 Tampere University.
+# 
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+# 
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+#
+# @author Kari Hepola 2022
+#
+# RISC-V compiler driver that utilizes LLVM and the OpenASIP backend
+#
+# Usage: oacc-riscv module1.c module2.c -o module
+#
+import os, sys, subprocess, optparse, shutil, glob, signal
+import os.path
+import re
+
+from tempfile import mkdtemp, mkstemp
+from optparse import OptionParser
+from shutil import rmtree
+from shutil import which
+from subprocess import Popen, PIPE
+from xml.etree import ElementTree as ET
+
+
+script_dir = os.path.dirname(sys.argv[0])
+
+def run_command(command, echoStderr=True, echoStdout=True, echoCmd=False):
+    """Runs the given shell command and returns its exit code.
+
+    If echoOutput is False, stdout and stderr are redirected to /dev/null."""
+    
+    from subprocess import Popen, PIPE
+
+    if echoCmd:
+        print(command)
+
+    if not echoStdout:
+        stdoutRedir = open('/dev/null', 'w')
+        stdoutFD = stdoutRedir.fileno()
+    else:
+        stdoutFD = None
+
+    if not echoStderr:
+        stderrRedir = open('/dev/null', 'w')
+        stderrFD = stderrRedir.fileno()
+    else:
+        stderrFD = None
+
+    process = \
+       Popen(command, shell=True, stdin=PIPE, stdout=stdoutFD,
+             stderr=stderrFD, close_fds=False)
+    return process.wait()
+
+tempfiles = []
+
+def hasMExtension(options):
+    global MMachine
+    if bitness64 is not None:
+        return bitness64
+    MMachine = False
+    if options.adf_file != "":
+        #TODO: We should check all M extension operations here
+        MMachine = ">mul</" in open(options.adf_file).read()
+    return MMachine
+
+def create_temp_file(suffix=""):
+    if options.leave_tempfiles:
+        tf = mkstemp(suffix=suffix, dir=os.getcwd())[1]
+    else:
+        tf = mkstemp(suffix=suffix)[1]
+    tempfiles.append(tf)
+    return tf
+
+def cleanup_and_exit(retval=0):
+    if not options.leave_tempfiles:
+        for tf in tempfiles:
+            os.unlink(tf)
+        rmtree(tempDir)
+        
+    sys.exit(retval)
+
+def parse_options():
+    parser = OptionParser()
+    parser.add_option("-o", "--output", dest="output",
+                      help="The output file.", metavar="FILE",
+                      default=None)
+
+    parser.add_option("-a", "--adf", dest="adf",
+                      help="The OpenASIP architecture description format file.", 
+                      metavar="FILE", default=None)
+
+    parser.add_option('-O', '--optimization-level',
+                      type="int", action="store", metavar='level',
+                      dest='optimization_level', default=3,
+                      help="Optimization level. O0-O3")
+
+    parser.add_option("-S", "--compile-only", dest="compile_only",
+                      action="store_true", default=False,
+                      help="Compile only. Do not assemble or link.")
+
+    parser.add_option("", "--leave-tempfiles", dest="leave_tempfiles",
+                      action="store_true", default=False,
+                      help="Do not delete the temporary files.")
+
+    parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
+                      help="Verbose output. Output the commands executed etc.", default=False)
+
+    parser.add_option('-D', '--preprocessor-define',
+                      type="string", action="append", metavar='string',
+                      dest="defines", default=[],
+                      help="Passed to gcc.")
+                      
+    parser.add_option('-I', '--include-directory',
+                      type="string", action="append", metavar='directory',
+                      dest="include_dirs", default=[],
+                      help="Passed to gcc.")
+
+    parser.add_option('-l', '--library-name',
+                      type="string", action="append", metavar='string',
+                      dest="lib_name", default=[],
+                      help="Passed to ld.ldd.")
+
+    parser.add_option('-L', '--library-directory',
+                      type="string", action="append", metavar='directory',
+                      dest="lib_dir", default=[],
+                      help="Passed to ld.ldd.")
+    
+    parser.add_option('-W', '--warning',
+                      type="string", action="append", metavar='type',
+                      dest="warnings", default=[],
+                      help="Ignored.")
+
+    parser.add_option('--unroll-threshold',
+                      type="int", action="store", metavar='LLVM_INSTRUCTION_COUNT',
+                      dest='unroll_threshold', default=100,
+                      help="Unroll loops in case the unrolled loop body size will be less " + \
+                      "than the given number of LLVM instructions. Use 0 to disable " + \
+                      "loop unrolling.")
+    
+    parser.add_option('--disable-inlining', action="store_true",
+                      dest="noinline", default=False,
+                      help="Disable function inlining.")
+
+    parser.add_option('--inline-threshold',
+                      type="int", action="store",
+                      dest='inline_threshold', default=200,
+                      help="Control the amount of inlining.")
+
+    parser.add_option('--extra-llvm-opts',
+                      type="string", action="store",
+                      metavar='opt1,opt2,opt3', dest='extra_llvm_opts', default="",
+                      help="List of additional LLVM passes to run after the regular ones.")
+
+    parser.add_option('--disable-internalize',
+                      action="store_true", dest='disable_internalize', default=False,
+                      help="Do not internalize (make static) global symbols by default.")
+
+    parser.add_option('-k', '--keep-symbols',
+                      type="string", action="store",
+                      metavar='sym1,sym2,sym3', dest='keep_symbols', default="",
+                      help="List of symbols whose optimization away is prevented. "
+                      "If you are using this, remember to define "
+                      "at least 'main' symbol.")
+
+
+    (options, args) = parser.parse_args()
+    return (options, args)
+
+def exitWithError(status, errorMessage=None):
+    if errorMessage is not None:
+        print(errorMessage, sys.stderr)
+    rmtree(tempDir)
+    sys.exit(status)
+
+def optimizeBytecode(inFile):
+    default_opts = (not options.noinline) and "-inline " or "-inline-threshold=%d " % options.inline_threshold
+    default_opts += "-unroll-allow-partial -unroll-threshold=%d " % options.unroll_threshold
+    optSwitches = ""
+    if options.unroll_threshold == 0:
+        default_opts += " --disable-loop-unrolling "
+    if options.optimization_level == 1 or options.disable_internalize:
+        # disable-internalize missing in llvm 3.6
+        optSwitches = (default_opts)
+    elif options.optimization_level > 1:
+        optSwitches = (" -internalize "+ default_opts)
+    
+    internalize_api_list = " -internalize-public-api-list=" \
+                           "_start,_pthread_start,_dthread_start,memcpy"
+    if options.keep_symbols != "":
+        internalize_api_list += "," + options.keep_symbols
+
+    optSwitches += internalize_api_list
+
+    if options.extra_llvm_opts != "":
+        extra_opts = options.extra_llvm_opts.split(',')
+        optSwitches += ' -' + ' -'.join(extra_opts)
+    outputName = tempDir + "/" + os.path.basename(inFile) + "_optimized.bc"
+    command = "opt -enable-new-pm=0 -f " + inFile + " -o " + outputName + " " + optSwitches
+    exitCode = run_command(command, options.verbose)
+    if exitCode != 0:
+        exitWithError(1, "Error while optimizing bytecode: " + command + "\n")
+    return outputName
+    
+def compile_to_bitcode(input_files):    
+    bc_files = []
+    compileFlags = ""
+    for i in options.include_dirs:
+        compileFlags += "-I" + i + " "
+    for i in options.defines:
+        compileFlags += "-D" + i + " "
+    if options.unroll_threshold == 0:
+                    extra_opts += " -fno-unroll-loops"
+
+    for w in options.warnings:
+        # Types of warnings supported by the compiler:
+        white_list = []
+        if True:
+            white_list = ['no-empty-body',
+                          'no-dangling-else',
+                          'no-unknown-warning-option',
+                          'no-bad-literal',
+                          'no-literal-range',
+                          'no-pointer-sign',
+                          'no-return-type',
+                          'no-unused-value',
+                          'no-ignored-qualifiers',
+                          'no-incompatible-pointer-types-discards-qualifiers',
+                          'no-implicit-function-declaration']
+        if w in white_list:
+            compileFlags += "-W" + w + " "
+    
+    tceOpsDir = tempDir + "/tceops.h"
+    exitCode = run_command(
+        "tceopgen -o " + tceOpsDir , options.verbose)
+
+    if exitCode != 0:
+        exitWithError(1, "Error while generating custom operation macros:\n")
+
+    for input_file in input_files:
+        bc_file = create_temp_file(input_file.replace("/", ".") + ".bc")
+        march = "-march=rv32i"
+        if hasMExtension :
+            march += "m"
+        retval = \
+            run_command("clang -I %s %s -target riscv32 %s -O3 -c -emit-llvm %s -o %s" % \
+            (tempDir, compileFlags, march, input_file, bc_file), echoCmd=options.verbose)
+
+        if retval != 0: cleanup_and_exit(retval)
+        bc_files.append(bc_file)
+
+    bc_file = create_temp_file(".whole-program.bc")
+
+    retval = run_command("llvm-link %s -o %s" % (" ".join(bc_files), bc_file), echoCmd=options.verbose)
+    opt_bc_file = optimizeBytecode(bc_file)
+    if retval != 0: cleanup_and_exit(retval)
+
+    return bc_file
+
+def generate_code(bc_file, adf, objectCode=True, output=None):
+    (exitCode, prefix) = subprocess.getstatusoutput("tce-config --prefix")
+    if exitCode != 0 :
+        exitWithError(prefix)
+    lib_tce = str(os.path.join(prefix, "lib/libtce.so"))
+    if output is None:
+        asm_file = create_temp_file(".o")
+    else:
+        asm_file = output
+    dump_options = ""
+    llvmaa_options = ""
+    fileType = "--filetype=obj"
+    if objectCode == False :
+        fileType = "--filetype=asm"
+    retval = run_command("llc %s -load %s -adf %s %s -o %s" %
+    (fileType, lib_tce, adf,  bc_file, asm_file), 
+                            echoStdout=True, echoCmd=options.verbose)
+    if retval != 0: cleanup_and_exit(retval)
+    return asm_file 
+
+
+def link(obj_files, output):
+    init_asm = os.path.join(tempDir, "init.S")
+    init_out = os.path.join(tempDir, "init.o")
+    link_script = os.path.join(tempDir, "riscv.ld")
+    retval = run_command("clang -march=rv32i  -target riscv32 -c %s -o %s" % (init_asm, init_out))
+    if retval != 0: cleanup_and_exit(retval)
+    lib_names = ""
+    lib_dirs = ""
+    for lib_name in options.lib_name:
+        lib_names += "-l" + lib_name + " "
+    for lib_dir in options.lib_dir:
+        lib_dirs += "-L " + lib_dir + " "
+
+    retval = run_command("ld.lld %s %s -Ttext=0 -T %s %s %s -o %s" %
+    (lib_names, lib_dirs, link_script, init_out, obj_files, output), echoCmd=options.verbose)
+
+    if retval != 0: cleanup_and_exit(retval)
+    return output
+
+def generate_linker_script(options):
+    root = ET.parse(options.adf)
+    found_instr = False
+    found_data = False
+    instr_start = 0
+    data_start = 0
+    data_end = 0
+    root = ET.parse(options.adf)
+    address_spaces = root.findall(".//*[min-address]")
+    for i in range(len(address_spaces)):
+        if address_spaces[i].attrib["name"] == "instructions":
+            minAddr = address_spaces[i].find("min-address")
+            if minAddr == None:
+                exitWithError("Address space 'instructions' missing min-address tag")
+            instr_start = minAddr.text
+            found_instr = True
+            continue
+        elif address_spaces[i].attrib["name"] == "data":
+            minAddr = address_spaces[i].find("min-address")
+            maxAddr = address_spaces[i].find("max-address")
+            if minAddr == None:
+                exitWithError("Address space 'data' missing min-address tag")
+            if maxAddr == None:
+                exitWithError("Address space 'data' missing max-address tag")
+            data_start = minAddr.text
+            data_end = str(int(maxAddr.text) - 3)
+            found_data = True
+    if found_data == False:
+        exitWithError("Could not find address space named 'data'")
+    if found_instr == False:
+        exitWithError("Could not find address space named 'instructions'")
+    if int(instr_start) % 4 != 0:
+        exitWithError("Address space 'instructions' start address not word aligned")
+    if int(data_start) % 4 != 0:
+        exitWithError("Address space 'data' start address not word aligned")
+    if int(data_end) % 4 != 0:
+        exitWithError("Address space 'data' end address not word aligned")
+    linker_script = "ENTRY(_start)\n"\
+    "__mem   = " + str(instr_start) + ";\n"\
+    "__stack = " + str(data_end) + ";\n"\
+    "__global = " + str(data_start) + ";\n"\
+    "\n"\
+    "SECTIONS\n"\
+    "{\n"\
+    "    . = __mem;\n"\
+    "    .text : {\n"\
+    "        *(.text*)\n"\
+    "    }\n"\
+    "\n"\
+    "    .data : {\n"\
+    "        *(.sbss)\n"\
+    "        *(COMMON)\n"\
+    "        *(.bss)\n"\
+    "        *(.sdata)\n"\
+    "        *(.rodata)\n"\
+    "        *(.data*)\n"\
+    "        *(.got*)\n"\
+    "    }\n"\
+    "}"
+    file_path = os.path.join(tempDir, "riscv.ld")
+    text_file = open(file_path, "w")
+    text_file.write(linker_script)
+    text_file.close()
+
+def generate_start_func():
+    start_func =  ".global _start\n"\
+    ".global __global\n"\
+    ".global __stack\n"\
+    ".section .text\n"\
+    "_start:\n"\
+    "   la    t0, __global\n"\
+    "   la    sp, __stack\n"\
+    "   call  main\n"\
+    "_end:\n"\
+    "   j _end\n"
+    file_path = os.path.join(tempDir, "init.S")
+    text_file = open(file_path, "w")
+    text_file.write(start_func)
+    text_file.close()
+
+if __name__ == "__main__":
+    options, args = parse_options()
+    global tempDir
+    tempDir = mkdtemp("","oacc-")
+    if len(args) == 0:
+        sys.exit(0)
+    
+    if which("ld.lld") is None:
+        exitWithError("lld must be installed for linking")
+
+    final_output = options.output
+    if options.output is None:
+        pieces = args[0].split(".")
+        if len(pieces) > 0:
+            input_without_extension = ".".join(pieces[0:-1])
+        else:
+            input_without_extension = args[0]
+        if options.compile_only:
+            final_output = input_without_extension + ".s"
+        else:
+            final_output = "a.out"
+
+    bc_file = compile_to_bitcode(args)
+    if options.compile_only:
+        generate_code(bc_file, options.adf, False, final_output)
+    else:
+        generate_start_func()
+        generate_linker_script(options)
+        obj_file = generate_code(bc_file, options.adf, True)
+        #Link with generated start and linker script
+        link(obj_file, final_output)
+    cleanup_and_exit(0)

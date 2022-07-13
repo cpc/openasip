@@ -8,13 +8,13 @@
       <value>yes</value>
     </parameter>
     <parameter name="bustracestartingcycle">
-      <value>5</value>
+      <value>6</value>
     </parameter>
     <parameter name="locktrace">
       <value>yes</value>
     </parameter>
     <parameter name="locktracestartingcycle">
-      <value>5</value>
+      <value>6</value>
     </parameter>
   </ic-decoder-plugin>
 

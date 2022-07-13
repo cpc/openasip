@@ -113,7 +113,8 @@ IDFValidator::checkFUImplementations() {
 
     for (int i = 0; i < fuNav.count(); i++) {
         const FunctionUnit* fu = fuNav.item(i);
-        if (!idf_.hasFUImplementation(fu->name())) {
+        if (!idf_.hasFUImplementation(fu->name()) &&
+            !idf_.hasFUGeneration(fu->name())) {
             format errorMsg(
                 "IDF does not define an implementation for "
                 " function unit %1%.");

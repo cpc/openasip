@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,25 +28,27 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
+ * @author Henry Linjamäki 2015 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
 #include <cstdlib>
 #include <string>
+#include <map>
+#include <utility>
 
 #include "Netlist.hh"
 #include "NetlistPort.hh"
+#include "NetlistPortGroup.hh"
 #include "NetlistBlock.hh"
+#include "SignalTypes.hh"
 
 #include "MapTools.hh"
 #include "Application.hh"
 #include "Conversion.hh"
+#include "AssocTools.hh"
 
 namespace ProGe {
-
-const std::string Netlist::INVERTER_MODULE = "util_inverter";
-const std::string Netlist::INVERTER_INPUT = "data_in";
-const std::string Netlist::INVERTER_OUTPUT = "data_out";
 
 /**
  * The constructor.
@@ -76,27 +78,33 @@ Netlist::~Netlist() {
  * @param port1FirstBit The first bit of the first port to connect.
  * @param port2FirstBit The first bit of the second port to connect.
  * @param width The width of the connection.
+ * @param Return true, if connection was successful.
  */
-void
-Netlist::connectPorts(
-    NetlistPort& port1,
-    NetlistPort& port2,
+bool
+Netlist::connect(
+    const NetlistPort& port1,
+    const NetlistPort& port2,
     int port1FirstBit,
     int port2FirstBit,
     int width) {
+
+    // PortConnectionProperty regards width 0 as fully connected
+     if (width == 0 && (port1.dataType() != port2.dataType())) {
+         // BIT to/from BIT_VECTOR connection needs partial connectivity
+         width = 1;
+     }
 
     size_t port1Descriptor = descriptor(port1);
     size_t port2Descriptor = descriptor(port2);
 
     // create first edge
-    PortConnectionProperty property1(
-        port1FirstBit, port2FirstBit, width);
+    PortConnectionProperty property1(port1FirstBit, port2FirstBit, width);
     boost::add_edge(port1Descriptor, port2Descriptor, property1, *this);
 
     // create the opposite edge
-    PortConnectionProperty property2(
-        port2FirstBit, port1FirstBit, width);
+    PortConnectionProperty property2(port2FirstBit, port1FirstBit, width);
     boost::add_edge(port2Descriptor, port1Descriptor, property2, *this);
+    return true;
 }
 
 
@@ -109,42 +117,169 @@ Netlist::connectPorts(
  *
  * @param port1 The first port to connect.
  * @param port2 The second port to connect.
+ * @param Return true, if connection was successful.
  */
-void
-Netlist::connectPorts(
-    NetlistPort& port1,
-    NetlistPort& port2) {
+bool
+Netlist::connect(
+    const NetlistPort& port1,
+    const NetlistPort& port2) {
 
     size_t port1Descriptor = descriptor(port1);
     size_t port2Descriptor = descriptor(port2);
-    PortConnectionProperty property;
+    bool needsInversion = port1.assignedSignal().activeState()
+        != port2.assignedSignal().activeState();
+    PortConnectionProperty property(needsInversion);
 
     // create first edge
     boost::add_edge(port1Descriptor, port2Descriptor, property, *this);
     // create the opposite edge
     boost::add_edge(port2Descriptor, port1Descriptor, property, *this);
+    return true;
 }
 
 /**
- * TODO: partial connection version and support BIT_VECTOR length > 1
+ * Removes connection between two ports.
  */
 void
-Netlist::connectPortsInverted(
-        NetlistPort& input,
-        NetlistPort& output) {
+Netlist::disconnectPorts(
+    const NetlistPort& port1,
+    const NetlistPort& port2) {
 
-    std::string instance = input.name() + "_" + INVERTER_MODULE;
-    NetlistBlock* inverter =
-        new NetlistBlock(INVERTER_MODULE, instance, *this);
-    NetlistPort* inverterInput =
-        new NetlistPort(INVERTER_INPUT, "1", 1, ProGe::BIT, HDB::IN,
-                        *inverter);
-    NetlistPort* inverterOutput =
-        new NetlistPort(INVERTER_OUTPUT, "1", 1, ProGe::BIT, HDB::OUT,
-                        *inverter);
-    this->topLevelBlock().addSubBlock(inverter);
-    this->connectPorts(input, *inverterInput, 0, 0, 1);
-    this->connectPorts(output, *inverterOutput, 0, 0 ,1);
+    size_t port1Descriptor = descriptor(port1);
+    size_t port2Descriptor = descriptor(port2);
+
+    boost::remove_edge(port1Descriptor, port2Descriptor, *this);
+    boost::remove_edge(port2Descriptor, port1Descriptor, *this);
+}
+
+/**
+ * Trivially connect ports of the groups together by their signal types.
+ *
+ * @param Return true, if connection was successful.
+ */
+bool
+Netlist::connect(
+    const NetlistPortGroup& group1,
+    const NetlistPortGroup& group2) {
+
+    if (group1.portCount() != group2.portCount()) {
+        return false;
+    }
+
+    std::map<SignalType, const NetlistPort*> portsOfGroup2;
+    for (const NetlistPort* port : group2) {
+        assert(!AssocTools::containsKey(
+            portsOfGroup2, port->assignedSignal().type())
+            && "Netlist::Connect(): Currently cannot handle groups with "
+               "multiply of same signal type");
+        portsOfGroup2.insert(
+            std::make_pair(port->assignedSignal().type(), port));
+    }
+
+    for (const NetlistPort* from : group1) {
+        SignalType matchingType = from->assignedSignal().type();
+        assert(AssocTools::containsKey(portsOfGroup2, matchingType)
+            && "");
+        const NetlistPort* to = portsOfGroup2.at(matchingType);
+        connect(*from, *to);
+    }
+
+    return true;
+}
+
+/**
+ * Make single port connection by given signal type.
+ *
+ * Signal type is assumed to be unique within the both port groups.
+ */
+bool
+Netlist::connectBy(
+    SignalType byType,
+    const NetlistPortGroup& group1,
+    const NetlistPortGroup& group2) {
+
+    assert(group1.hasPortBySignal(byType));
+    assert(group2.hasPortBySignal(byType));
+
+    const NetlistPort& port1 = group1.portBySignal(byType);
+    const NetlistPort& port2 = group2.portBySignal(byType);
+
+    connect(port1, port2);
+
+    return true;
+}
+
+/**
+ * Makes connection between two different netlist port group by connection map
+ * using their SignalTypes.
+ *
+ * The connections are made from the first group to the second group by using
+ * the connection map. todo...
+ *
+ * @param group1 The first port group.
+ * @param group2 The second port group.
+ * @param connectionMap The connection rules.
+ *
+ */
+bool
+Netlist::connect(
+        const NetlistPortGroup& group1,
+        const NetlistPortGroup& group2,
+        std::map<SignalType, SignalType> connectionMap) {
+
+    for (const NetlistPort* port1 : group1) {
+        SignalType type1 = port1->assignedSignal().type();
+        SignalType type2 = SignalType::UNDEFINED;
+        if (connectionMap.count(type1)) {
+            type2 = connectionMap.at(type1);
+        } else {
+            continue;
+        }
+        if (type2 == SignalType::OPEN) {
+            continue;
+        }
+        const NetlistPort& port2 = group2.portBySignal(type2);
+
+        connect(*port1, port2);
+    }
+
+    return true;
+}
+
+/**
+ * Trivially connect ports of the groups together by their port names.
+ * Useful for exporting e.g. bus connections to higher-level netlist block
+ *
+ * @param Return true, if connection was successful.
+ */
+bool
+Netlist::connectGroupByName(
+    const NetlistPortGroup& group1,
+    const NetlistPortGroup& group2) {
+
+    if (group1.portCount() != group2.portCount()) {
+        return false;
+    }
+
+    std::map<std::string, const NetlistPort*> portsOfGroup2;
+    for (const NetlistPort* port : group2) {
+        assert(!AssocTools::containsKey(portsOfGroup2, port->name())
+                && "Netlist::Connect(): group2 has multiple ports "
+                   "with the same name");
+        portsOfGroup2.insert(
+            std::make_pair(port->name(), port));
+    }
+
+    for (const NetlistPort* from : group1) {
+        std::string matchingName = from->name();
+        assert(AssocTools::containsKey(portsOfGroup2, matchingName)
+            && "Netlist::connectByName: The two port groups' names "
+               "do not match");
+        const NetlistPort* to = portsOfGroup2.at(matchingName);
+        connect(*from, *to);
+    }
+
+    return true;
 }
 
 /**
@@ -173,46 +308,31 @@ Netlist::isEmpty() const {
     return boost::num_vertices(*this) == 0;
 }
 
-
 /**
- * Returns the top-level block in the netlist.
- *
- * @return The top-level block.
- * @exception InstanceNotFound If the netlist is empty.
+ * Returns true if there are some connections between ports.
  */
-NetlistBlock&
-Netlist::topLevelBlock() const {
-    if (isEmpty()) {
-        throw InstanceNotFound(__FILE__, __LINE__, __func__);
-    }
-
-    boost::graph_traits<Netlist>::vertex_iterator iter =
-	boost::vertices(*this).first;
-    size_t vertexDescriptor = *iter;
-    NetlistPort* port = (*this)[vertexDescriptor];
-    NetlistBlock* block = port->parentBlock();
-    while (block->hasParentBlock()) {
-        block = &block->parentBlock();
-    }
-
-    return *block;
+bool
+Netlist::hasConnections() const {
+    return boost::num_edges(*this) != 0;
 }
 
 /**
- * Maps the given descriptor for the given port.
+ * Registers given port to the netlist to make connection possible.
  *
  * This method does not need to be called by clients.
  *
  * @param port The port.
- * @param descriptor The descriptor.
+ * @return Descriptor to the port.
  */
-void
-Netlist::mapDescriptor(const NetlistPort& port, size_t descriptor) {
-    assert(!MapTools::containsKey(vertexDescriptorMap_, &port));
+size_t
+Netlist::registerPort(NetlistPort& port) {
+    assert(!MapTools::containsKey(vertexDescriptorMap_, &port)
+        && "The port is already registered");
+    size_t descriptor = boost::add_vertex(&port, *this);
     vertexDescriptorMap_.insert(
         std::pair<const NetlistPort*, size_t>(&port, descriptor));
+    return descriptor;
 }
-
 
 /**
  * Returns descriptor for the given port.
@@ -225,8 +345,28 @@ Netlist::descriptor(const NetlistPort& port) const {
     return MapTools::valueForKey<size_t>(vertexDescriptorMap_, &port);
 }
 
+/**
+ * Returns true if the netlist has the given port.
+ */
+bool
+Netlist::isRegistered(const NetlistPort& port) const {
+    return MapTools::containsKey(vertexDescriptorMap_, &port);
+}
 
 /**
+ * Removes port from the netlist and all connections related to it.
+ */
+void
+Netlist::unregisterPort(NetlistPort& port) {
+    if (MapTools::containsKey(vertexDescriptorMap_, &port)) {
+        boost::clear_vertex(this->descriptor(port), *this);
+        boost::remove_vertex(this->descriptor(port), *this);
+        vertexDescriptorMap_.erase(&port);
+    }
+}
+
+/**
+ * [DEPRECATED]
  * Adds a parameter for the netlist.
  *
  * If the netlist already has a parameter with the given name, it is replaced
@@ -250,6 +390,13 @@ Netlist::setParameter(
     parameters_.push_back(param);
 }
 
+void
+Netlist::setParameter(const Parameter&  param) {
+    setParameter(
+        param.name(),
+        param.type(),
+        param.value());
+}
 
 /**
  * Removes the given parameter from the netlist.
@@ -260,7 +407,7 @@ void
 Netlist::removeParameter(const std::string& name) {
     for (ParameterTable::iterator iter = parameters_.begin();
          iter != parameters_.end(); iter++) {
-        if (iter->name == name) {
+        if (iter->name() == name) {
             parameters_.erase(iter);
             break;
         }
@@ -278,7 +425,7 @@ Netlist::hasParameter(const std::string& name) const {
 
     for (ParameterTable::const_iterator iter = parameters_.begin(); 
          iter != parameters_.end(); iter++) {
-        if (iter->name == name) {
+        if (iter->name() == name) {
             return true;
         }
     }
@@ -292,7 +439,7 @@ Netlist::hasParameter(const std::string& name) const {
  *
  * @return The number of parameters.
  */
-int
+size_t
 Netlist::parameterCount() const {
     return parameters_.size();
 }
@@ -305,26 +452,110 @@ Netlist::parameterCount() const {
  * @exception OutOfRange If the given index is negative or not smaller than
  *                       the number of parameters.
  */
-Netlist::Parameter
-Netlist::parameter(int index) const {
-    if (index < 0 || index >= parameterCount()) {
+Parameter
+Netlist::parameter(size_t index) const {
+    if (index >= parameterCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
 
     return parameters_[index];
 }
 
+Netlist::iterator
+Netlist::begin() {
+    return boost::edges(*this).first;
+}
+
+Netlist::iterator
+Netlist::end() {
+    return boost::edges(*this).second;
+}
+
+Netlist::const_iterator
+Netlist::begin() const {
+    return boost::edges(*this).first;
+}
+
+Netlist::const_iterator
+Netlist::end() const {
+    return boost::edges(*this).second;
+}
+
+Netlist::descriptor_iterator
+Netlist::descriptorBegin() {
+    return vertexDescriptorMap_.begin();
+}
+
+Netlist::descriptor_iterator
+Netlist::descriptorEnd() {
+    return vertexDescriptorMap_.end();
+}
+
+Netlist::const_descriptor_iterator
+Netlist::descriptorBegin() const  {
+    return vertexDescriptorMap_.begin();
+}
+
+Netlist::const_descriptor_iterator
+Netlist::descriptorEnd() const {
+    return vertexDescriptorMap_.end();
+}
+
 void
-Netlist::setCoreEntityName(TCEString coreEntityName) { 
-    coreEntityName_ = coreEntityName; 
+Netlist::connectClocks(NetlistBlock& block) {
+    const NetlistPort* topClock = nullptr;
+    {
+        std::vector<const NetlistPort*> clockOfBlock;
+        clockOfBlock = block.portsBy(SignalType::CLOCK);
+        assert(clockOfBlock.size() < 2);
+        if (clockOfBlock.empty()) {
+            return;
+        } else {
+            topClock = clockOfBlock.at(0);
+        }
+    }
+
+    for (size_t i = 0; i < block.subBlockCount(); i++) {
+        std::vector<const NetlistPort*> clockOfSubBlock;
+        const BaseNetlistBlock& cblock = block;
+        clockOfSubBlock = cblock.subBlock(i).portsBy(SignalType::CLOCK);
+        assert(clockOfSubBlock.size() < 2);
+        if (clockOfSubBlock.empty()
+            || block.netlist().isPortConnected(*clockOfSubBlock.at(0))) {
+            continue;
+        } else {
+            block.netlist().connect(*topClock, *clockOfSubBlock.at(0));
+        }
+    }
 }
 
-TCEString
-Netlist::coreEntityName() const { 
-    if (coreEntityName_ == "")
-        return topLevelBlock().moduleName();
-    else
-        return coreEntityName_;
+void
+Netlist::connectResets(NetlistBlock& block) {
+    const NetlistPort* topClock = nullptr;
+    {
+        std::vector<const NetlistPort*> clockOfBlock;
+        clockOfBlock = block.portsBy(SignalType::RESET);
+        assert(clockOfBlock.size() < 2);
+        if (clockOfBlock.empty()) {
+            return;
+        } else {
+            topClock = clockOfBlock.at(0);
+        }
+    }
+
+    for (size_t i = 0; i < block.subBlockCount(); i++) {
+        std::vector<const NetlistPort*> clockOfSubBlock;
+        const BaseNetlistBlock& cblock = block;
+        clockOfSubBlock = cblock.subBlock(i).
+            portsBy(SignalType::RESET);
+        assert(clockOfSubBlock.size() < 2);
+        if (clockOfSubBlock.empty()
+            || block.netlist().isPortConnected(*clockOfSubBlock.at(0))) {
+            continue;
+        } else {
+            block.netlist().connect(*topClock, *clockOfSubBlock.at(0));
+        }
+    }
 }
 
-}
+} /* namespace ProGe  */

@@ -15,7 +15,7 @@ MACH_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/mach
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools
 
 bin_PROGRAMS = generatebits 
-bin_SCRIPTS = buildcompressor
+bin_SCRIPTS = buildcompressor oa-hex2bin
 generatebits_SOURCES = PIGCmdLineOptions.cc PIGCLITextGenerator.cc \
 	GenerateBits.cc
 

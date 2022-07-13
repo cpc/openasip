@@ -66,7 +66,7 @@ private:
 
     const SOPCPort* findInterfacePort(
         TCEString hdlName,
-        HDB::Direction direction) const;
+        ProGe::Direction direction) const;
 
     void addIrqInterface(
         const ProGe::NetlistPort& port,

@@ -142,6 +142,12 @@ HDBBrowserWindow::update() {
     wxTreeItemId costPlugins = tree_->AppendItem(
         root, WxConversion::toWxString(HDBToHtml::COST_PLUGINS));
 
+    wxTreeItemId operationImplementations = tree_->AppendItem(
+        root, WxConversion::toWxString(HDBToHtml::OPERATION_IMPLEMENTATIONS));
+
+    wxTreeItemId operationImplementationResources = tree_->AppendItem(
+        root, WxConversion::toWxString(HDBToHtml::OPERATION_IMPLEMENTATION_RESOURCES));
+
     std::set<RowID>::iterator iter;
  
 
@@ -152,6 +158,8 @@ HDBBrowserWindow::update() {
     std::set<RowID> busIDs = manager_->busEntryIDs();
     std::set<RowID> socketIDs = manager_->socketEntryIDs();
     std::set<RowID> pluginIDs = manager_->costFunctionPluginIDs();
+    std::set<RowID> operationImplementationIDs = manager_->OperationImplementationIDs();
+    std::set<RowID> operationImplementationResourceIDs = manager_->OperationImplementationResourceIDs();
 
     int entries = fuArchIds.size() + rfArchIds.size() + fuIDs.size() +
         rfIDs.size() + busIDs.size() + socketIDs.size() + pluginIDs.size();
@@ -308,6 +316,20 @@ HDBBrowserWindow::update() {
         dialog.SetSize(300,100);
     }
 
+    // fugenOperations
+    for (auto &id : operationImplementationIDs) {
+        auto op = manager_->OperationImplementationByID(id);
+        std::string label = std::to_string(id) + " : " + op.name;
+        tree_->AppendItem(operationImplementations, label);
+    }
+
+    // fugenResources
+    for (auto &id : operationImplementationResourceIDs) {
+        auto res = manager_->OperationImplementationResourceByID(id);
+        std::string label = std::to_string(id) + " : " + res.name;
+        tree_->AppendItem(operationImplementationResources, label);
+    }
+
     tree_->Expand(root);
     infoPanel_->clear();
 }
@@ -407,6 +429,33 @@ HDBBrowserWindow::isCostFunctionPluginSelected() {
     return MapTools::containsValue(costPlugins_, tree_->GetSelection());
 }
 
+/**
+ * Function for checking if a operation implementation resource
+ * is selected in the tree view.
+ *
+ * @return True, if selected.
+ */
+bool
+HDBBrowserWindow::isOperationImplementationResourceSelected() {
+    std::string parent = tree_->GetItemParent(tree_->GetSelection()).IsOk() ?
+        tree_->GetItemText(tree_->GetItemParent(tree_->GetSelection()))
+        .ToStdString() : "none";
+    return parent == "Operation Implementation Resources";
+}
+
+/**
+ * Function for checking if a operation implementation
+ * is selected in the tree view.
+ *
+ * @return True, if selected.
+ */
+bool
+HDBBrowserWindow::isOperationImplementationSelected() {
+    std::string parent = tree_->GetItemParent(tree_->GetSelection()).IsOk() ?
+        tree_->GetItemText(tree_->GetItemParent(tree_->GetSelection()))
+        .ToStdString() : "none";
+    return parent == "Operation Implementations";
+}
 
 /**
  * Returns rowID of the FU architecture selected in the treeview.
@@ -557,6 +606,41 @@ HDBBrowserWindow::selectedCostFunctionPlugin() {
 }
 
 /**
+ * Returns rowID of the operation implementation selected in the treeview.
+ *
+ * @return ID of the selection, or -1 if none is selected.
+ */
+RowID
+HDBBrowserWindow::selectedOperationImplementation() {
+    if (!isOperationImplementationSelected()) {
+        return -1;
+    }
+    std::istringstream iss(tree_->GetItemText(tree_->GetSelection())
+        .ToStdString());
+    RowID id;
+    iss >> id;
+    return id;
+}
+
+/**
+ * Returns rowID of the operation implementation resource
+ * selected in the treeview.
+ *
+ * @return ID of the selection, or -1 if none is selected.
+ */
+RowID
+HDBBrowserWindow::selectedOperationImplementationResource() {
+    if (!isOperationImplementationResourceSelected()) {
+        return -1;
+    }
+    std::istringstream iss(tree_->GetItemText(tree_->GetSelection())
+        .ToStdString());
+    RowID id;
+    iss >> id;
+    return id;
+}
+
+/**
  * Selects the given FU Entry.
  *
  * @param id RowID of the 
@@ -695,7 +779,13 @@ HDBBrowserWindow::selectCostFunctionPlugin(int id) {
  * Event handler for the tree-view selection changes.
  */
 void
-HDBBrowserWindow::onItemSelected(wxTreeEvent&) {
+HDBBrowserWindow::onItemSelected(wxTreeEvent& e) {
+
+    wxTreeCtrl* ctrl = new wxTreeCtrl();
+    std::string current = ctrl->GetItemText(e.GetItem().GetID()).ToStdString();
+    std::string parent = ctrl->GetItemParent(e.GetItem().GetID()).IsOk() ?
+        ctrl->GetItemText(ctrl->GetItemParent(e.GetItem().GetID())).ToStdString() :
+        "none";
 
     infoPanel_->clear();
 
@@ -717,7 +807,19 @@ HDBBrowserWindow::onItemSelected(wxTreeEvent&) {
         infoPanel_->displaySocketEntry(selectedSocketEntry());
     } else if (isCostFunctionPluginSelected()) {
         infoPanel_->displayCostFunctionPlugin(selectedCostFunctionPlugin());
+    } else if (parent == HDBToHtml::OPERATION_IMPLEMENTATIONS) {
+        std::istringstream iss(current);
+        int id;
+        iss >> id;
+        infoPanel_->displayOperationImplementation(id);
+    } else if (parent == HDBToHtml::OPERATION_IMPLEMENTATION_RESOURCES) {
+        std::istringstream iss(current);
+        int id;
+        iss >> id;
+        infoPanel_->displayOperationImplementationResource(id);
     }
+
+    delete ctrl;
 }
 
 

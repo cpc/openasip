@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>tce:DefaultICDecoderPlugin.so</file>
+    <parameter name="bustrace">
+      <value>yes</value>
+    </parameter>
+    <parameter name="bustracestartingcycle">
+      <value>5</value>
+    </parameter>
+    <parameter name="bustracestartingcycle">
+      <value>5</value>
+    </parameter>
+  </ic-decoder-plugin>
+
+
+  <fu name="LSU_DATA">
+    <hdb-file>tce:lsu_le.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+</adf-implementation>

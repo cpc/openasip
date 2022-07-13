@@ -59,7 +59,9 @@ public:
         COMMAND_MODIFY,
         COMMAND_DELETE,
         COMMAND_QUIT,
-        COMMAND_ABOUT
+        COMMAND_ABOUT,
+        COMMAND_ADD_OPERATION_IMPLEMENTATION_RESOURCE,
+        COMMAND_ADD_OPERATION_IMPLEMENTATION
     };
 
     /// Name of the open HDB command.
@@ -98,6 +100,10 @@ public:
     static const std::string COMMAND_NAME_MODIFY;
     /// Name of the about command.
     static const std::string COMMAND_NAME_ABOUT;
+    /// Name of the add fugen resource command.
+    static const std::string COMMAND_NAME_ADD_OPERATION_IMPLEMENTATION_RESOURCE;
+    /// Name of the add fugen operation command.
+    static const std::string COMMAND_NAME_ADD_OPERATION_IMPLEMENTATION;
     
     /// Copyright string
     static const wxString HDB_EDITOR_COPYRIGHT;

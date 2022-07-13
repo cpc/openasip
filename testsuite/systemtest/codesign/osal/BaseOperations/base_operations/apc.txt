@@ -1,0 +1,5 @@
+apc 35
+jump 10
+apc 1
+apc -1
+!quit

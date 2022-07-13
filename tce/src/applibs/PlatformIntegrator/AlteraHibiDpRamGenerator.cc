@@ -65,43 +65,43 @@ AlteraHibiDpRamGenerator::AlteraHibiDpRamGenerator(
     byteEnableWidth << DATAW_G << "/8";
     // memory port 1
     addPort("dmem1_data_in",
-            new HDLPort("q_a", DATAW_G, ProGe::BIT_VECTOR, HDB::OUT, noInvert,
-                        memoryTotalWidth()));
+        new HDLPort("q_a", DATAW_G, ProGe::BIT_VECTOR, ProGe::OUT, noInvert,
+            memoryTotalWidth()));
     addPort("dmem1_data_out",
-            new HDLPort("data_a", DATAW_G, ProGe::BIT_VECTOR, HDB::IN,
-                        noInvert, memoryTotalWidth()));
+        new HDLPort("data_a", DATAW_G, ProGe::BIT_VECTOR, ProGe::IN,
+            noInvert, memoryTotalWidth()));
     addPort("dmem1_addr",
-            new HDLPort("address_a", ADDRW_G, ProGe::BIT_VECTOR, HDB::IN,
-                        noInvert, memoryAddrWidth()));
+        new HDLPort("address_a", ADDRW_G, ProGe::BIT_VECTOR, ProGe::IN,
+            noInvert, memoryAddrWidth()));
     addPort("dmem1_mem_en",
-            new HDLPort("enable_a", "1", ProGe::BIT, HDB::IN, noInvert, 1));
+        new HDLPort("enable_a", "1", ProGe::BIT, ProGe::IN, noInvert, 1));
     addPort("dmem1_wr_en",
-            new HDLPort("wren_a", "1", ProGe::BIT, HDB::IN, noInvert, 1));
+        new HDLPort("wren_a", "1", ProGe::BIT, ProGe::IN, noInvert, 1));
     addPort("dmem1_wr_mask",
-            new HDLPort("byteena_a", byteEnableWidth, ProGe::BIT_VECTOR,
-                        HDB::IN, noInvert, memoryWidthInMaus()));
+        new HDLPort("byteena_a", byteEnableWidth, ProGe::BIT_VECTOR,
+            ProGe::IN, noInvert, memoryWidthInMaus()));
     addPort("clk",
-            new HDLPort("clock_a", "1", ProGe::BIT, HDB::IN, noInvert, 1));
+        new HDLPort("clock_a", "1", ProGe::BIT, ProGe::IN, noInvert, 1));
 
     // memory port 2
     addPort("dmem2_data_in",
-            new HDLPort("q_b", DATAW_G, ProGe::BIT_VECTOR, HDB::OUT, noInvert,
-                        memoryTotalWidth()));
+        new HDLPort("q_b", DATAW_G, ProGe::BIT_VECTOR, ProGe::OUT, noInvert,
+            memoryTotalWidth()));
     addPort("dmem2_data_out",
-            new HDLPort("data_b",DATAW_G, ProGe::BIT_VECTOR, HDB::IN,
-                        noInvert, memoryTotalWidth()));
+        new HDLPort("data_b",DATAW_G, ProGe::BIT_VECTOR, ProGe::IN,
+            noInvert, memoryTotalWidth()));
     addPort("dmem2_addr",
-            new HDLPort("address_b", ADDRW_G, ProGe::BIT_VECTOR, HDB::IN,
-                        noInvert, memoryAddrWidth())); 
+        new HDLPort("address_b", ADDRW_G, ProGe::BIT_VECTOR, ProGe::IN,
+            noInvert, memoryAddrWidth()));
     addPort("dmem2_mem_en",
-            new HDLPort("enable_b", "1", ProGe::BIT, HDB::IN, noInvert, 1));
+        new HDLPort("enable_b", "1", ProGe::BIT, ProGe::IN, noInvert, 1));
     addPort("dmem2_wr_en",
-            new HDLPort("wren_b", "1", ProGe::BIT, HDB::IN, noInvert, 1));
+        new HDLPort("wren_b", "1", ProGe::BIT, ProGe::IN, noInvert, 1));
     addPort("dmem2_wr_mask",
-            new HDLPort("byteena_b", byteEnableWidth, ProGe::BIT_VECTOR,
-                        HDB::IN, noInvert, memoryWidthInMaus()));
+        new HDLPort("byteena_b", byteEnableWidth, ProGe::BIT_VECTOR,
+            ProGe::IN, noInvert, memoryWidthInMaus()));
     addPort("clk",
-            new HDLPort("clock_b", "1", ProGe::BIT, HDB::IN, noInvert, 1));
+        new HDLPort("clock_b", "1", ProGe::BIT, ProGe::IN, noInvert, 1));
 }
 
 
@@ -111,13 +111,12 @@ AlteraHibiDpRamGenerator::~AlteraHibiDpRamGenerator() {
 
 bool
 AlteraHibiDpRamGenerator::checkFuPort(
-    const HDB::FUExternalPort& fuPort,
+    const std::string fuPort,
     std::vector<TCEString>& reasons) const {
-    
+
     // skip the hibi ports
     TCEString hibiSignal = "hibi_";
-    TCEString portName = fuPort.name();
-    if (portName.find(hibiSignal) != TCEString::npos) {
+    if (fuPort.find(hibiSignal) != TCEString::npos) {
         return true;
     }
     return MemoryGenerator::checkFuPort(fuPort, reasons);
@@ -126,17 +125,19 @@ AlteraHibiDpRamGenerator::checkFuPort(
 
 void
 AlteraHibiDpRamGenerator::connectPorts(
-    ProGe::Netlist& netlist,
-    ProGe::NetlistPort& memPort,
-    ProGe::NetlistPort& corePort,
-    bool inverted) {
+    ProGe::NetlistBlock& netlistBlock,
+    const ProGe::NetlistPort& memPort,
+    const ProGe::NetlistPort& corePort,
+    bool inverted,
+    int coreId) {
     
     // address ports need special connection
     if (memPort.name().find("address_") != TCEString::npos) {
-        netlist.connectPorts(memPort, corePort, 0, 0, memoryAddrWidth());
+        netlistBlock.netlist().connect(
+            memPort, corePort, 0, 0, memoryAddrWidth());
     } else {
         MemoryGenerator::connectPorts(
-            netlist, memPort, corePort, inverted);
+            netlistBlock, memPort, corePort, inverted, coreId);
     }
 }
 
@@ -161,8 +162,8 @@ AlteraHibiDpRamGenerator::moduleName() const {
 
     
 TCEString
-AlteraHibiDpRamGenerator::instanceName(int memIndex) const {
+AlteraHibiDpRamGenerator::instanceName(int coreId, int memIndex) const {
 
     TCEString iname("onchip_dp_dmem_");
-    return iname << memoryIndexString(memIndex);
+    return iname << memoryIndexString(coreId, memIndex);
 }

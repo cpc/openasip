@@ -51,7 +51,8 @@ class RFArchitecture : public HWBlockArchitecture {
 public:
     RFArchitecture(
         int readPorts, int writePorts, int bidirPorts, int maxReads,
-        int maxWrites, int latency, bool guardSupport, int guardLatency = 0);
+        int maxWrites, int latency, bool guardSupport, int guardLatency = 0,
+        bool zeroRegister = false);
     RFArchitecture(const TTAMachine::RegisterFile* rf);
     RFArchitecture(const TTAMachine::BaseRegisterFile* rf);
     RFArchitecture(const TTAMachine::ImmediateUnit* rf);
@@ -87,6 +88,9 @@ public:
     void setGuardSupport(bool supported);
     bool hasGuardSupport() const;
 
+    void setZeroRegister(bool zeroRegister);
+    bool zeroRegister() const;
+
     int guardLatency() const;
 
     bool operator==(const RFArchitecture& rightHand) const;
@@ -113,6 +117,9 @@ private:
     int size_;
     /// Guard latency.
     int guardLatency_;
+    /// Zero register
+    bool zeroRegister_;
+
 };
 }
 

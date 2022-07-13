@@ -36,7 +36,7 @@
 #include <iostream>
 #include <map>
 #include "ProjectFileGenerator.hh"
-#include "HDBTypes.hh"
+#include "ProGeTypes.hh"
 #include "SOPCInterface.hh"
 #include "NetlistPort.hh"
 

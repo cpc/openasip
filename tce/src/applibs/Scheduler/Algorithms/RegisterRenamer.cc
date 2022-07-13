@@ -242,8 +242,12 @@ RegisterRenamer::registersOfRFs(
         if (AssocTools::containsKey(tempRegFiles_, rf)) {
             isTempRF = true;
         }
-
-        for (int j = 0; j < (isTempRF ? rf->size()-1 : rf->size()); j++ ) {
+        int lowestFreeIndex = 0;
+        if (rf->zeroRegister()) {
+            lowestFreeIndex = 1;
+        }
+        for (int j = lowestFreeIndex;
+        j < (isTempRF ? rf->size()-1 : rf->size()); j++ ) {
             gprs.insert(DisassemblyRegister::registerName(*rf, j));
         }
     }

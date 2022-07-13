@@ -1,0 +1,7 @@
+if (extra_fetch_cycles > 0) then
+  instruction_reg(instruction_reg'length-fetchblock'length-1 downto 0)
+       <= instruction_reg(instruction_reg'length-1 downto fetchblock'length);
+end if;
+instruction_reg(instruction_reg'length-1
+                downto instruction_reg'length - fetchblock'length)
+<= imem_data;

@@ -1,0 +1,11 @@
+bltr 13 0 10
+!register programcounter
+bltr 20 -1 65
+!register programcounter
+bltr 1 1 67
+!register programcounter
+bltr -30 40 123
+!register programcounter
+bltr -1 -1 126
+!register programcounter
+!quit

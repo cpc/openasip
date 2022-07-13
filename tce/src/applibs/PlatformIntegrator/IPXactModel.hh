@@ -38,6 +38,7 @@
 #include "HDLPort.hh"
 #include "Vlnv.hh"
 #include "Netlist.hh"
+#include "Parameter.hh"
 
 class IPXactInterface;
 
@@ -81,7 +82,7 @@ public:
 
     void addSignal(const HDLPort& signal);
 
-    void addParameter(const ProGe::Netlist::Parameter& parameter);
+    void addParameter(const ProGe::Parameter& parameter);
 
     void addBusInterface(IPXactInterface* interface);
 
@@ -197,7 +198,7 @@ private:
     
     std::vector<HDLPort*> signals_;
 
-    std::vector<ProGe::Netlist::Parameter> parameters_;
+    std::vector<ProGe::Parameter> parameters_;
 
     std::vector<IPXactInterface*> busInterfaces_;
 

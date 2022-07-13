@@ -30,7 +30,7 @@ entity ENTITY_STR_decompressor is
   port (
     fetch_en        : out std_logic;
     lock            : in  std_logic;
-    fetchblock      : in  std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+    fetchblock      : in  std_logic_vector(<<placeholder,decomp-fetchblock-width,IMEMWIDTHINMAUS*IMEMMAUWIDTH>>-1 downto 0);
     instructionword : out std_logic_vector(INSTRUCTIONWIDTH-1 downto 0);
     glock           : out std_logic;
     lock_r          : in  std_logic;

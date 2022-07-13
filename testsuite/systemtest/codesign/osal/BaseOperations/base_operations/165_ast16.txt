@@ -1,0 +1,13 @@
+!output bin
+!mem halfword 0xfe
+ast16 0xfc 2 0000000000000101b
+!advanceclock
+!mem halfword 0xfe
+ast16 0xff -1 0000000010010010b
+!advanceclock
+!mem halfword 0xfe
+ald16 0xfc 2
+ast16 0xfd 1 0010000010010010b
+!advanceclock
+ald16 0xfe 0
+!quit

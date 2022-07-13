@@ -1,3 +1,4 @@
+!output unsigned
 neuh 19392 19392
 neuh 19392 16896
 neuh 0xfc25 0x0000

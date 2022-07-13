@@ -57,11 +57,12 @@ namespace HDB {
  * @param guardSupport Tells whether the RF architecture supports guards.
  * @param guardLatency Latency between writing a register and updating the
  *                     value of guard port.
+ * @param zeroRegister Tells whether RF architecture has a zero register.
  * @exception OutOfRange If some of the arguments is out of range.
  */
 RFArchitecture::RFArchitecture(
     int readPorts, int writePorts, int bidirPorts, int maxReads, int maxWrites,
-    int latency, bool guardSupport, int guardLatency)
+    int latency, bool guardSupport, int guardLatency, bool zeroRegister)
     : readPorts_(readPorts),
       writePorts_(writePorts),
       bidirPorts_(bidirPorts),
@@ -71,9 +72,10 @@ RFArchitecture::RFArchitecture(
       guardSupport_(guardSupport),
       width_(0),
       size_(0),
-      guardLatency_(guardLatency) {
+      guardLatency_(guardLatency),
+      zeroRegister_(zeroRegister) {
     if (readPorts < 0 || writePorts < 0 || bidirPorts < 0 || maxReads < 0 ||
-        maxWrites < 0 || latency < 1 || guardLatency < 0) {
+        maxWrites < 0 || latency < 0 || guardLatency < 0) {
         const string procName = "RFArchitecture::RFArchitecture";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
@@ -515,6 +517,27 @@ RFArchitecture::setGuardSupport(bool supported) {
 bool
 RFArchitecture::hasGuardSupport() const {
     return guardSupport_;
+}
+
+/**
+ * Sets the zero register flag of the register file 
+ * 
+ * @param zeroRegister True if has a zero register, otherwise false
+ */
+
+void
+RFArchitecture::setZeroRegister(bool zeroRegister) {
+    zeroRegister_ = zeroRegister;
+}
+
+/**
+ * Tells whether the RF has a zero register 
+ * 
+ * @return True if RF has a zero register 
+ */
+
+bool RFArchitecture::zeroRegister() const {
+    return zeroRegister_;
 }
 
 

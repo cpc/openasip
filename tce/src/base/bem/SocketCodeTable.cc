@@ -110,6 +110,7 @@ SocketCodeTable::~SocketCodeTable() {
 
     deleteRFPortCodes();
     deleteFUPortCodes();
+    deleteIUPortCodes();
 
     parent_ = NULL;
     parent->removeSocketCodeTable(*this);
@@ -197,21 +198,33 @@ SocketCodeTable::extraBits() const {
  */
 int
 SocketCodeTable::width() const {
+    return maxCodeWidth() + extraBits();
+}
 
+
+/**
+ * Returns the bit width of the longest control code.
+ *
+ * This does not account the extra bits of the socket table.
+ *
+ * @return The bit width.
+ */
+int
+SocketCodeTable::maxCodeWidth() const {
     int width(0);
 
     for (int i = 0; i < fuPortCodeCount(); i++) {
-	FUPortCode& code = fuPortCode(i);
-	if (width < code.width()) {
-	    width = code.width();
-	}
+        FUPortCode& code = fuPortCode(i);
+        if (width < code.width()) {
+            width = code.width();
+        }
     }
 
     for (int i = 0; i < rfPortCodeCount(); i++) {
-	RFPortCode& code = rfPortCode(i);
-	if (width < code.width()) {
-	    width = code.width();
-	}
+        RFPortCode& code = rfPortCode(i);
+        if (width < code.width()) {
+            width = code.width();
+        }
     }
 
     for (int i = 0; i < iuPortCodeCount(); i++) {
@@ -220,8 +233,7 @@ SocketCodeTable::width() const {
             width = code.width();
         }
     }
-
-    return width + extraBits();
+    return width;
 }
 
 
@@ -431,7 +443,7 @@ SocketCodeTable::addRFPortCode(RFPortCode& code) {
     }
 
     if (hasRFPortCode(code.unitName())) {
-	throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
+        throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
     }
 
     rfPortCodes_.push_back(&code);
@@ -589,8 +601,8 @@ SocketCodeTable::iuPortCodeCount() const {
 IUPortCode&
 SocketCodeTable::iuPortCode(int index) const {
     if (index < 0 || index >= iuPortCodeCount()) {
-	const string procName = "SocketCodeTable::iuPortCode";
-	throw OutOfRange(__FILE__, __LINE__, procName);
+        const string procName = "SocketCodeTable::iuPortCode";
+        throw OutOfRange(__FILE__, __LINE__, procName);
     }
 
     return *iuPortCodes_[index];
@@ -633,6 +645,39 @@ SocketCodeTable::iuPortCode(const std::string& immediateUnit) const {
 
 
 /**
+ * Returns count of all types of port codes defined in the socket table.
+ */
+int
+SocketCodeTable::portCodeCount() const {
+    return fuPortCodeCount() + rfPortCodeCount() + iuPortCodeCount();
+}
+
+
+/**
+ * Returns the port code stored at the given position.
+ *
+ * The possible kinds of port codes are FUPortCode, RFPortCode and IUPortCode.
+ *
+ * @param index The position.
+ * @exception OutOfRange If the index is negative or not smaller than the
+ *                       number of portCodeCount().
+ */
+PortCode&
+SocketCodeTable::portCode(int index) const {
+    if (index < 0 || index >= portCodeCount()) {
+        THROW_EXCEPTION(OutOfRange, "The given index is out of bounds. ");
+    }
+
+    if (index < fuPortCodeCount()) {
+        return fuPortCode(index);
+    } else if (index < fuPortCodeCount()+rfPortCodeCount()) {
+        return rfPortCode(index-fuPortCodeCount());
+    } else {
+        return iuPortCode(index-fuPortCodeCount()-rfPortCodeCount());
+    }
+}
+
+/**
  * Loads the state of the socket code table from the given ObjectState
  * instance.
  *
@@ -647,22 +692,22 @@ SocketCodeTable::loadState(const ObjectState* state) {
     deleteIUPortCodes();
 
     try {
-	setName(state->stringAttribute(OSKEY_NAME));
-	setExtraBits(state->intAttribute(OSKEY_EXTRA_BITS));
+        setName(state->stringAttribute(OSKEY_NAME));
+        setExtraBits(state->intAttribute(OSKEY_EXTRA_BITS));
 
-	for (int i = 0; i < state->childCount(); i++) {
-	    ObjectState* child = state->child(i);
-	    if (child->name() == FUPortCode::OSNAME_FU_PORT_CODE) {
-		new FUPortCode(child, *this);
-	    } else if (child->name() == RFPortCode::OSNAME_RF_PORT_CODE) {
-		new RFPortCode(child, *this);
-	    } else if (child->name() == IUPortCode::OSNAME_IU_PORT_CODE) {
-		new IUPortCode(child, *this);
-	    }
-	}
+        for (int i = 0; i < state->childCount(); i++) {
+            ObjectState* child = state->child(i);
+            if (child->name() == FUPortCode::OSNAME_FU_PORT_CODE) {
+                new FUPortCode(child, *this);
+            } else if (child->name() == RFPortCode::OSNAME_RF_PORT_CODE) {
+                new RFPortCode(child, *this);
+            } else if (child->name() == IUPortCode::OSNAME_IU_PORT_CODE) {
+                new IUPortCode(child, *this);
+            }
+        }
     } catch (const Exception& exception) {
-	const string procName = "SocketCodeTable::loadState";
-	throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
+        const string procName = "SocketCodeTable::loadState";
+        throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
     }
 }
 
@@ -680,20 +725,20 @@ SocketCodeTable::saveState() const {
 
     // add FU port codes
     for (int i = 0; i < fuPortCodeCount(); i++) {
-	FUPortCode& code = fuPortCode(i);
-	state->addChild(code.saveState());
+        FUPortCode& code = fuPortCode(i);
+        state->addChild(code.saveState());
     }
 
     // add RF port codes
     for (int i = 0; i < rfPortCodeCount(); i++) {
-	RFPortCode& code = rfPortCode(i);
-	state->addChild(code.saveState());
+        RFPortCode& code = rfPortCode(i);
+        state->addChild(code.saveState());
     }
 
     // add IU port codes
     for (int i = 0; i < iuPortCodeCount(); i++) {
-	IUPortCode& code = iuPortCode(i);
-	state->addChild(code.saveState());
+        IUPortCode& code = iuPortCode(i);
+        state->addChild(code.saveState());
     }
 
     return state;
@@ -707,10 +752,10 @@ SocketCodeTable::saveState() const {
 void
 SocketCodeTable::removeReferences(SlotField& field) const {
     for (int i = 0; i < field.socketEncodingCount(); i++) {
-	SocketEncoding& encoding = field.socketEncoding(i);
-	if (&encoding.socketCodes() == this) {
-	    encoding.unsetSocketCodes();
-	}
+        SocketEncoding& encoding = field.socketEncoding(i);
+        if (&encoding.socketCodes() == this) {
+            encoding.unsetSocketCodes();
+        }
     }
 }
 
@@ -727,10 +772,10 @@ bool
 SocketCodeTable::hasParentSCTable(const std::string& name) const {
     BinaryEncoding* parent = this->parent();
     for (int i = 0; i < parent->socketCodeTableCount(); i++) {
-	SocketCodeTable& table = parent->socketCodeTable(i);
-	if (table.name() == name) {
-	    return true;
-	}
+        SocketCodeTable& table = parent->socketCodeTable(i);
+        if (table.name() == name) {
+            return true;
+        }
     }
     return false;
 }

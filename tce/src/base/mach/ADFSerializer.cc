@@ -32,6 +32,7 @@
  * @note rating: red
  */
 
+
 #include "ADFSerializer.hh"
 #include "Bus.hh"
 #include "Guard.hh"
@@ -53,6 +54,7 @@
 #include "ADFSerializerTextGenerator.hh"
 #include "Environment.hh"
 #include "ObjectState.hh"
+#include "OperationTriggeredFormat.hh"
 
 using std::string;
 using boost::format;
@@ -138,6 +140,7 @@ const string RF_WIDTH = "width";
 const string RF_MAX_READS = "max-reads";
 const string RF_MAX_WRITES = "max-writes";
 const string RF_GUARD_LATENCY = "guard-latency";
+const string RF_ZERO_REGISTER = "zero-register";
 
 const string IMMEDIATE_UNIT = "immediate-unit";
 const string IU_NAME = "name";
@@ -146,6 +149,7 @@ const string IU_TYPE_NORMAL = "normal";
 const string IU_TYPE_VOLATILE = "volatile";
 const string IU_TYPE_RESERVED = "reserved";
 const string IU_SIZE = "size";
+const string IU_LATENCY = "latency";
 const string IU_WIDTH = "width";
 const string IU_MAX_READS = "max-reads";
 const string IU_MAX_WRITES = "max-writes";
@@ -186,6 +190,11 @@ const string FU_PORT_NO_REGISTER = "no-register";
 
 const string IMMEDIATE_SLOT = "immediate-slot";
 const string IMMEDIATE_SLOT_NAME = "name";
+
+const string TEMPLATE_RF_READ = "register-file-read";
+const string TEMPLATE_RF_WRITE = "register-file-write";
+const string TEMPLATE_FU_READ = "function-unit-read";
+const string TEMPLATE_FU_WRITE = "function-unit-write";
 
 const string ADF_SCHEMA_FILE = "mach/ADF_Schema.xsd";
 
@@ -268,6 +277,7 @@ ADFSerializer::readMachine() {
     ObjectState* machineState = readState();
     Machine* mach = new Machine();
     mach->loadState(machineState);
+    
     delete machineState;
     return mach;
 }
@@ -379,6 +389,15 @@ ADFSerializer::convertToMDFFormat(const ObjectState* machineState) {
         ObjectState* child = machineState->child(i);
         if (child->name() == ImmediateSlot::OSNAME_IMMEDIATE_SLOT) {
             root->addChild(immediateSlotToMDF(child));
+        }
+    }
+
+    //Add operation triggered formats
+    for (int i = 0; i < machineState->childCount(); i++) {
+        ObjectState* child = machineState->child(i);
+        if (child->name() == OperationTriggeredFormat::OSNAME_FORMAT) {
+            ObjectState* newChild = new ObjectState(*child);
+            root->addChild(newChild);
         }
     }
 
@@ -702,7 +721,14 @@ ADFSerializer::registerFileToMDF(const ObjectState* rfState) {
     for (int i = 0; i < rfState->childCount(); i++) {
         ObjectState* child = rfState->child(i);
         regFile->addChild(mdfPort(child));
-    }    
+    }
+
+    if (rfState->hasAttribute(RegisterFile::OSKEY_ZERO_REGISTER)) {
+        ObjectState* zeroRegister = new ObjectState(RF_ZERO_REGISTER);
+        regFile->addChild(zeroRegister);
+        zeroRegister->setValue(rfState->boolAttribute(
+            RegisterFile::OSKEY_ZERO_REGISTER));
+    }
 
     return regFile;
 }
@@ -778,16 +804,17 @@ ADFSerializer::immediateUnitToMDF(const ObjectState* iuState,
             iuState->stringAttribute(ImmediateUnit::OSKEY_GUARD_LATENCY));
     }
     
+    // add read latency element
+    ObjectState* readLatency = new ObjectState(IU_LATENCY);
+    iUnit->addChild(readLatency);
+    readLatency->setValue(iuState->stringAttribute(
+        ImmediateUnit::OSKEY_LATENCY));
+
     // add extension element
     ObjectState* extension = new ObjectState(IU_EXTENSION);
     iUnit->addChild(extension);
     extension->setValue(
         iuState->stringAttribute(ImmediateUnit::OSKEY_EXTENSION));
-
-    // add cycles element | removed
-    //ObjectState* cycles = new ObjectState(IU_CYCLES);
-    //iUnit->addChild(cycles);
-    //cycles->setValue(iuState->stringAttribute(ImmediateUnit::OSKEY_LATENCY));
 
     // add ports
     for (int i = 0; i < iuState->childCount(); i++) {
@@ -852,7 +879,6 @@ ADFSerializer::addressSpaceToMDF(const ObjectState* asState) {
         shared->setValue(
             asState->boolAttribute(AddressSpace::OSKEY_SHARED_MEMORY));
     }
-
     // the numerical ids
     for (int i = 0; i < asState->childCount(); i++) {
         ObjectState* child = asState->child(i);
@@ -1009,6 +1035,14 @@ ADFSerializer::convertToMachineFormat(const ObjectState* mdfState) {
                 machine->addChild(immediateUnitToMachine(child, machine));
             } else if (child->name() == IMMEDIATE_SLOT) {
                 machine->addChild(immediateSlotToMachine(child));
+            } else if (child->name() == IU_TEMPLATE) {
+                // the instruction template must not belong to any IU in case
+                // one defines a template with implicit slots
+                instructionTemplateToMachine(child, machine);
+            } else if (child->name() ==
+            OperationTriggeredFormat::OSNAME_FORMAT) {
+                ObjectState* newChild = new ObjectState(*child);
+                machine->addChild(newChild);
             }
         }
     } catch (const SerializerException&) {
@@ -1333,6 +1367,12 @@ ADFSerializer::registerFileToMachine(const ObjectState* rfState) {
         }
     }
 
+    if (rfState->hasChild(RF_ZERO_REGISTER)) {
+        ObjectState* zeroRegister = rfState->childByName(RF_ZERO_REGISTER);
+        regFile->setAttribute(
+            RegisterFile::OSKEY_ZERO_REGISTER, zeroRegister->boolValue());
+    }
+
     return regFile;
 }
 
@@ -1523,11 +1563,22 @@ ADFSerializer::immediateUnitToMachine(
     
     // set guard latency
     if (iuState->hasChild(IU_GUARD_LATENCY)) {
-        ObjectState* latencyChild = iuState->childByName(IU_GUARD_LATENCY);
+        ObjectState* guardLatencyChild =
+            iuState->childByName(IU_GUARD_LATENCY);
         iu->setAttribute(
-            ImmediateUnit::OSKEY_GUARD_LATENCY, latencyChild->stringValue());
+            ImmediateUnit::OSKEY_GUARD_LATENCY,
+            guardLatencyChild->stringValue());
     } else {
         iu->setAttribute(ImmediateUnit::OSKEY_GUARD_LATENCY, 0);
+    }
+
+    // set read latency
+    if (iuState->hasChild(IU_LATENCY)) {
+        ObjectState* readLatencyChild = iuState->childByName(IU_LATENCY);
+        iu->setAttribute(ImmediateUnit::OSKEY_LATENCY,
+            readLatencyChild->stringValue());
+    } else {
+        iu->setAttribute(ImmediateUnit::OSKEY_LATENCY, 1);
     }
 
     setIUExtensionMode(iuState, iu);
@@ -2108,39 +2159,39 @@ ADFSerializer::instructionTemplateToMDF(
         if (slot->stringAttribute(TemplateSlot::OSKEY_DESTINATION) ==
             iuName) {
 
-            ObjectState* correctTemplate = NULL;
+        ObjectState* correctTemplate = NULL;
 
-            for (int iuChildIndex = 0;
-                 iuChildIndex < mdfIUState->childCount(); iuChildIndex++) {
+        for (int iuChildIndex = 0;
+             iuChildIndex < mdfIUState->childCount(); iuChildIndex++) {
 
-                ObjectState* iuChild = mdfIUState->child(iuChildIndex);
-                if (iuChild->name() == IU_TEMPLATE &&
-                    iuChild->stringAttribute(IU_TEMPLATE_NAME) ==
-                    iTempName) {
-                    correctTemplate = iuChild;
-                }
+            ObjectState* iuChild = mdfIUState->child(iuChildIndex);
+            if (iuChild->name() == IU_TEMPLATE &&
+                iuChild->stringAttribute(IU_TEMPLATE_NAME) ==
+                iTempName) {
+                correctTemplate = iuChild;
             }
+        }
 
-            if (correctTemplate == NULL) {
-                correctTemplate = new ObjectState(IU_TEMPLATE);
-                mdfIUState->addChild(correctTemplate);
-                correctTemplate->setAttribute(IU_TEMPLATE_NAME, iTempName);
-            }
+        if (correctTemplate == NULL) {
+            correctTemplate = new ObjectState(IU_TEMPLATE);
+            mdfIUState->addChild(correctTemplate);
+            correctTemplate->setAttribute(IU_TEMPLATE_NAME, iTempName);
+        }
             
-            ObjectState* slotElem =
+        ObjectState* slotElem =
                 new ObjectState(IU_TEMPLATE_SLOT);
-            correctTemplate->addChild(slotElem);
-            ObjectState* nameElem =
-                new ObjectState(IU_TEMPLATE_SLOT_NAME);
-            slotElem->addChild(nameElem);
-            nameElem->setValue(
-                slot->stringAttribute(TemplateSlot::OSKEY_SLOT));
-            ObjectState* widthElem =
-                new ObjectState(IU_TEMPLATE_SLOT_WIDTH);
-            slotElem->addChild(widthElem);
-            widthElem->setValue(
-                slot->stringAttribute(
-                    TemplateSlot::OSKEY_WIDTH));
+        correctTemplate->addChild(slotElem);
+        ObjectState* nameElem =
+            new ObjectState(IU_TEMPLATE_SLOT_NAME);
+        slotElem->addChild(nameElem);
+        nameElem->setValue(
+            slot->stringAttribute(TemplateSlot::OSKEY_SLOT));
+        ObjectState* widthElem =
+            new ObjectState(IU_TEMPLATE_SLOT_WIDTH);
+        slotElem->addChild(widthElem);
+        widthElem->setValue(
+            slot->stringAttribute(
+                TemplateSlot::OSKEY_WIDTH));
         }
     }
 
@@ -2213,35 +2264,35 @@ ADFSerializer::instructionTemplateToMachine(
     for (int slotIndex = 0; slotIndex < mdfITState->childCount();
          slotIndex++) {
         ObjectState* slot = mdfITState->child(slotIndex);
-        string slotName = slot->childByName(IU_TEMPLATE_SLOT_NAME)->
-            stringValue();
-        string width = slot->childByName(IU_TEMPLATE_SLOT_WIDTH)->
-            stringValue();
+		string slotName = slot->childByName(IU_TEMPLATE_SLOT_NAME)->
+		    stringValue();
+		string width = slot->childByName(IU_TEMPLATE_SLOT_WIDTH)->
+		    stringValue();
 
-        ObjectState* iTempSlot = momTemplateSlot(iTemp, slotName);
-        if (iTempSlot == NULL) {
-            iTempSlot = new ObjectState(TemplateSlot::OSNAME_TEMPLATE_SLOT);
-            iTempSlot->setAttribute(TemplateSlot::OSKEY_SLOT, slotName);
-            iTempSlot->setAttribute(TemplateSlot::OSKEY_WIDTH, width);
-            iTempSlot->setAttribute(TemplateSlot::OSKEY_DESTINATION, iuName);
-            iTemp->addChild(iTempSlot);
-        } else {
-            format errorMsg;
-            if (iTempSlot->stringAttribute(
-                    TemplateSlot::OSKEY_DESTINATION) == iuName) {
-                errorMsg = textGen.text(
-                    ADFSerializerTextGenerator::TXT_SAME_TEMPLATE_SLOT);
-                errorMsg % slotName % iuName % templateName;
-            } else {
-                errorMsg = textGen.text(
-                    ADFSerializerTextGenerator::
-                    TXT_MULTIPLE_DESTINATIONS_IN_TEMPLATE_SLOT);
-                errorMsg % slotName % templateName % iuName %
-                    iTempSlot->stringAttribute(
-                        TemplateSlot::OSKEY_DESTINATION);
-            }
-            throw SerializerException(
-                __FILE__, __LINE__, procName, errorMsg.str());
+		ObjectState* iTempSlot = momTemplateSlot(iTemp, slotName);
+		if (iTempSlot == NULL) {
+		    iTempSlot = new ObjectState(TemplateSlot::OSNAME_TEMPLATE_SLOT);
+		    iTempSlot->setAttribute(TemplateSlot::OSKEY_SLOT, slotName);
+		    iTempSlot->setAttribute(TemplateSlot::OSKEY_WIDTH, width);
+		    iTempSlot->setAttribute(TemplateSlot::OSKEY_DESTINATION, iuName);
+		    iTemp->addChild(iTempSlot);
+		} else {
+		    format errorMsg;
+		    if (iTempSlot->stringAttribute(
+		            TemplateSlot::OSKEY_DESTINATION) == iuName) {
+		        errorMsg = textGen.text(
+		            ADFSerializerTextGenerator::TXT_SAME_TEMPLATE_SLOT);
+		        errorMsg % slotName % iuName % templateName;
+		    } else {
+		        errorMsg = textGen.text(
+		            ADFSerializerTextGenerator::
+		            TXT_MULTIPLE_DESTINATIONS_IN_TEMPLATE_SLOT);
+		        errorMsg % slotName % templateName % iuName %
+		            iTempSlot->stringAttribute(
+		                TemplateSlot::OSKEY_DESTINATION);
+		    }
+		    throw SerializerException(
+		        __FILE__, __LINE__, procName, errorMsg.str());
         }
     }
 }

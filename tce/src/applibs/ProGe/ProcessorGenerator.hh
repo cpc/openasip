@@ -36,12 +36,16 @@
 #ifndef TTA_PROCESSOR_GENERATOR_HH
 #define TTA_PROCESSOR_GENERATOR_HH
 
-#include "ProGeTypes.hh"
 #include "Exception.hh"
+#include "ProGeContext.hh"
+#include "ProGeTypes.hh"
 #include "TCEString.hh"
+#include "ProGeOptions.hh"
+
 
 namespace TTAMachine {
     class Machine;
+    class FunctionUnit;
 }
 
 namespace IDF {
@@ -49,61 +53,72 @@ namespace IDF {
 }
 
 class BinaryEncoding;
+class FUPortCode;
 
 namespace ProGe {
 
-class ICDecoderGeneratorPlugin;
-class Netlist;
+    class ICDecoderGeneratorPlugin;
+    class Netlist;
+    class NetlistBlock;
+    class NetlistPortGroup;
+    class ProGeContext;
+    class NetlistGenerator;
 
-/**
- * Controller class of ProGe.
- *
- * Acts as a middle-man between user interface, netlist generator, IC/decoder
- * plugin and HDL writers.
- */
-class ProcessorGenerator {
-public:
-    ProcessorGenerator();
-    virtual ~ProcessorGenerator();
+    /**
+     * Controller class of ProGe.
+     *
+     * Acts as a middle-man between user interface, netlist generator,
+     * IC/decoder
+     * plugin and HDL writers.
+     */
+    class ProcessorGenerator {
+    public:
+        ProcessorGenerator();
+        virtual ~ProcessorGenerator();
 
-    void generateProcessor(
-        HDL language, const TTAMachine::Machine& machine,
-        const IDF::MachineImplementation& implementation,
-        ICDecoderGeneratorPlugin& plugin, int imemWidthInMAUs,
-        const std::string& dstDirectory, const std::string& sharedDstDirectory,
-        const std::string& entityString, std::ostream& errorStream,
-        std::ostream& warningStream);
+        void generateProcessor(
+            const ProGeOptions& options, const TTAMachine::Machine& machine,
+            const IDF::MachineImplementation& implementation,
+            ICDecoderGeneratorPlugin& plugin, int imemWidthInMAUs,
+            std::ostream& errorStream, std::ostream& warningStream,
+            std::ostream& verboseStream);
 
-    static int iMemAddressWidth(const TTAMachine::Machine& mach);
-    static int iMemWidth(
-        const TTAMachine::Machine& mach, int imemWidthInMAUs);
+        static int iMemAddressWidth(const TTAMachine::Machine& mach);
+        static int
+        iMemWidth(const TTAMachine::Machine& mach, int imemWidthInMAUs);
 
-    const Netlist* netlist() const;
+        const NetlistBlock& processorTopLevel() const;
+        const ProGeContext& generatorContext() const;
 
-    TCEString entityName() const;
+        TCEString entityName() const;
 
-    static void removeUnconnectedSockets(
-        TTAMachine::Machine& machine,
-        std::ostream& warningStream);
+        static void removeUnconnectedSockets(
+            TTAMachine::Machine& machine, std::ostream& warningStream);
 
-private:
-    void validateMachine(
-        const TTAMachine::Machine& machine, std::ostream& errorStream,
-        std::ostream& warningStream);
-    void checkIULatencies(
-        const TTAMachine::Machine& machine,
-        const IDF::MachineImplementation& implementation,
-        const ICDecoderGeneratorPlugin& plugin);
-    void generateGlobalsPackage(
-        HDL language, const TTAMachine::Machine& machine,
-        const BinaryEncoding& bem, int imemWidthInMAUs,
-        const std::string& dstDirectory);
+    private:
+        void validateMachine(
+            const TTAMachine::Machine& machine, std::ostream& errorStream,
+            std::ostream& warningStream);
+        void checkIULatencies(
+            const TTAMachine::Machine& machine,
+            const IDF::MachineImplementation& implementation,
+            const ICDecoderGeneratorPlugin& plugin);
+        void generateGlobalsPackage(
+            HDL language, const TTAMachine::Machine& machine,
+            int imemWidthInMAUs, const std::string& dstDirectory,
+            ICDecoderGeneratorPlugin& plugin);
+        void generateGCUOpcodesPackage(HDL language,
+            const TTAMachine::Machine& machine,
+            const std::string& dstDirectory);
+        static std::string coreIdString(int i);
+        static const NetlistPortGroup* instructionBus(NetlistBlock& block);
 
-    Netlist* netlist_;
-    TCEString entityStr_;
+        NetlistBlock* coreTopBlock_;
+        TCEString entityStr_;
+        ProGeContext* generatorContext_;
 
-    static const TCEString DEFAULT_ENTITY_STR;
-};
+        static const TCEString DEFAULT_ENTITY_STR;
+    };
 }
 
 #endif

@@ -35,7 +35,9 @@
 #define TTA_DEFAULT_DECODER_GENERATOR_HH
 
 #include <string>
+#include <vector>
 #include <set>
+#include <map>
 
 #include "ProGeTypes.hh"
 #include "TCEString.hh"
@@ -43,6 +45,7 @@
 
 namespace TTAMachine {
     class Machine;
+    class Unit;
     class Bus;
     class FunctionUnit;
     class PortGuard;
@@ -56,6 +59,7 @@ namespace TTAMachine {
     class InstructionTemplate;
     class BaseRegisterFile;
     class ImmediateUnit;
+    class ControlUnit;
 }
 
 namespace ProGe {
@@ -88,41 +92,67 @@ public:
     virtual ~DefaultDecoderGenerator();
 
     void setGenerateDebugger(bool generate);
+    void setGenerateNoLoopbackGlock(bool generate);
+    void setSyncReset(bool value);
+    void setGenerateBusEnable(bool value);
 
     void SetHDL(ProGe::HDL language);
     
     void completeDecoderBlock(
         const ProGe::NetlistGenerator& nlGenerator,
-        ProGe::Netlist& netlist);
+        ProGe::NetlistBlock& coreBlock);
     void generateInstructionDecoder(
         const ProGe::NetlistGenerator& nlGenerator,
         const std::string& dstDirectory);
-    int requiredRFLatency(const TTAMachine::ImmediateUnit& iu) const;
+    std::set<int> requiredRFLatencies(
+        const TTAMachine::ImmediateUnit& iu) const;
     void verifyCompatibility() const;
     int glockRequestWidth() const;
+    int glockPortWidth() const;
 
     void setGenerateLockTrace(bool generate);
     void setLockTraceStartingCycle(unsigned int startCycle);
 
+    static const std::string RISCV_SIMM_PORT_IN_NAME;
+    static const std::string GLOCK_PORT_NAME;
+
 private:
     /// Set type for buses.
     typedef std::set<TTAMachine::Bus*> BusSet;
+    /// Types for mapping global lock and global lock request signals
+    typedef int GlockBitType;
+    typedef int GlockReqBitType;
+    typedef std::map<GlockBitType, const TTAMachine::Unit*>
+        UnitGlockBitMapType;
+    typedef std::map<const TTAMachine::Unit*, GlockReqBitType>
+        UnitGlockReqBitMapType;
 
     void addLockReqPortToDecoder();
     void addGlockPortToDecoder();
 
-    void writeInstructionDecoder(std::ostream& stream) const;
+    void writeComment(std::ostream& stream, int indent,
+                      std::string comment) const;
+    void writeSignalDeclaration(std::ostream& stream, ProGe::DataType type,
+                                std::string sigName, int width) const;
+
+    void writeInstructionDecoder(std::ostream& stream);
+    ///void writeDecompressSignalsVHDL(std::ostream& stream) const; TBR
     void writeLockDumpCode(std::ostream& stream) const;
-    void writeSourceDestinationAndGuardSignals(std::ostream& stream) const;
+    void writeMoveFieldSignals(std::ostream& stream) const;
     void writeImmediateSlotSignals(std::ostream& stream) const;
     void writeLongImmediateTagSignal(std::ostream& stream) const;
     void writeSquashSignals(std::ostream& stream) const;
-    void writeSocketCntrlSignals(std::ostream& stream) const;
-    void writeFUCntrlSignals(std::ostream& stream) const;
-    void writeFUCntrlSignals(
-        const TTAMachine::FunctionUnit& fu,
-        std::ostream& stream) const;
-    void writeRFCntrlSignals(std::ostream& stream) const;
+    void writeSocketCntrlSignals(std::ostream& stream);
+    void writeFUCntrlSignals(std::ostream& stream);
+    void writeFUCntrlSignals(const TTAMachine::FunctionUnit& fu,
+                             std::ostream& stream);
+    void writeRFCntrlSignals(std::ostream& stream);
+    void writeGlockHandlingSignals(std::ostream& stream) const;
+    void writePipelineFillSignals(std::ostream& stream) const;
+    void writeFullNOPConstant(std::ostream& stream) const;
+    std::string writeNOPEncodingVHDL() const;
+    //void writeDecompressTableVHDL(std::ostream& stream) const; TBR
+    void writeDismemberingAndITDecompression(std::ostream& stream) const;
     void writeInstructionDismembering(std::ostream& stream) const;
     void writeSquashSignalGenerationProcesses(std::ostream& stream) const;
     void writeSquashSignalGenerationProcess(
@@ -132,11 +162,16 @@ private:
     void writeControlRegisterMappings(std::ostream& stream) const;
     void writeRFSRAMDecodingProcess(std::ostream& stream) const;
     void writeMainDecodingProcess(std::ostream& stream) const;
+    void writeGlockMapping(std::ostream& stream) const;
+    void writePipelineFillProcess(std::ostream& stream) const;
     void writeResettingOfControlRegisters(std::ostream& stream) const;
     void writeInstructionDecoding(std::ostream& stream) const;
     void writeRulesForSourceControlSignals(std::ostream& stream) const;
     void writeRulesForDestinationControlSignals(std::ostream& stream) const;
-
+//    void writeCUOpcodeSettings(
+//        std::ostream& stream, const TTAMachine::ControlUnit& cu) const;
+    void writeSimmDataSignal(
+        const TTAMachine::Bus& bus, std::ostream& stream) const;
     void writeBusControlRulesOfOutputSocket(
         const TTAMachine::Socket& socket,
         std::ostream& stream) const;
@@ -160,6 +195,9 @@ private:
         const TTAMachine::InstructionTemplate& iTemp,
         int indLevel,
         std::ostream& stream) const;
+    void writeBusMuxControlLogic(const TTAMachine::Bus& bus,
+            const std::set<TTAMachine::Socket*> outputSockets,
+            std::ostream& stream) const;
 
     static void writeSquashSignalSubstitution(
         const ProGe::HDL language,
@@ -230,9 +268,14 @@ private:
         const std::string& unitName);
     static std::string iuWriteLoadCntrlSignal(
         const std::string& unitName);
+    static std::string busMuxCntrlSignal(const TTAMachine::Bus& bus);
+    static std::string busMuxCntrlRegister(const TTAMachine::Bus& bus);
+    static std::string busMuxEnableSignal(const TTAMachine::Bus& bus);
+    static std::string busMuxEnableRegister(const TTAMachine::Bus& bus);
 
     static std::string socketBusControlPort(const std::string& name);
     static std::string socketDataControlPort(const std::string& name);
+    static std::string moveFieldSignal(const std::string& busName);
     static std::string guardPortName(const TTAMachine::Guard& guard);
     static std::string srcFieldSignal(const std::string& busName);
     static std::string dstFieldSignal(const std::string& busName);
@@ -279,17 +322,32 @@ private:
     /// The IC generator.
     const CentralizedControlICGenerator& icGenerator_;
     /// The netlist generator.
-    const ProGe::NetlistGenerator* nlGenerator_;    
+    const ProGe::NetlistGenerator* nlGenerator_;
     /// The instruction decoder block in the netlist.
     ProGe::NetlistBlock* decoderBlock_;
     /// Tells whether to generate global lock tracing code.
     bool generateLockTrace_;
-    /// The starting cycle for bus tracing.
-    unsigned int lockTraceStartingCycle_;
     TCEString entityNameStr_;
     ProGe::HDL language_;
     /// Generate debugger signals?
-    bool generateDebugger_;  
+    bool generateDebugger_;
+	/// Reset synchronously (otherwise asynchronous)
+    bool syncReset_;
+    /// Bus enable signals for bustrace
+    bool generateBusEnable_;
+    /// The starting cycle for bus tracing.
+    unsigned int lockTraceStartingCycle_;
+    /// The flag to generate global lock request handling in decoder.
+    /// False means delegating the lock request towards instruction fetch.
+    bool generateAlternateGlockReqHandling_;
+    /// Maps connected glock port bits to associated TTA Units
+    UnitGlockBitMapType unitGlockBitMap_;
+    /// Maps TTA Units to associated glock request port bits.
+    UnitGlockReqBitMapType unitGlockReqBitMap_;
+
+    /// Bookkeeping for reset-needing signals
+    std::vector<std::string> registerVectors;
+    std::vector<std::string> registerBits;
 };
 
 #endif

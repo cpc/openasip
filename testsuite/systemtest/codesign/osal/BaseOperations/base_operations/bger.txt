@@ -1,0 +1,11 @@
+bger 13 0 10
+!register programcounter
+bger 20 -1 65
+!register programcounter
+bger 1 1 67
+!register programcounter
+bger -30 40 123
+!register programcounter
+bger -1 -1 126
+!register programcounter
+!quit

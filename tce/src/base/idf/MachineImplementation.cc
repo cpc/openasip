@@ -65,7 +65,9 @@ const std::string MachineImplementation::OSKEY_IC_DECODER_HDB =
 
 const std::string MachineImplementation::OSKEY_DECOMPRESSOR_FILE = 
     "decompressor_file";
-const std::string MachineImplementation::OSNAME_FU_IMPLEMENTATIONS = 
+const std::string MachineImplementation::OSNAME_FU_GENERATED =
+    "fu_generated";
+const std::string MachineImplementation::OSNAME_FU_IMPLEMENTATIONS =
     "fu_impls";
 const std::string MachineImplementation::OSNAME_RF_IMPLEMENTATIONS = 
     "rf_impls";
@@ -774,7 +776,9 @@ MachineImplementation::loadState(const ObjectState* state) {
             icdecState->stringAttribute(OSKEY_IC_DECODER_NAME);
         icDecoderPluginFile_ =
             icdecState->stringAttribute(OSKEY_IC_DECODER_FILE);
-        icDecoderHDB_ = icdecState->stringAttribute(OSKEY_IC_DECODER_HDB);
+        if (icdecState->hasAttribute(OSKEY_IC_DECODER_HDB)) {
+            icDecoderHDB_ = icdecState->stringAttribute(OSKEY_IC_DECODER_HDB);
+        }
 
         // Load ic/decoder plugin parameters.
         for (int i = 0; i < icdecState->childCount(); i++) {
@@ -798,7 +802,17 @@ MachineImplementation::loadState(const ObjectState* state) {
         decompressorFile_ = state->stringAttribute(OSKEY_DECOMPRESSOR_FILE);
     }
 
-    try {        
+    ObjectState* fuGenerate = state->childByName(
+            OSNAME_FU_GENERATED);
+
+    for (int i = 0; i < fuGenerate->childCount(); i++) {
+        ObjectState* child = fuGenerate->child(i);
+        FUGenerated newfug;
+        newfug.loadState(child);
+        fuGenerated_.emplace_back(newfug);
+    }
+
+    try {
         sourceIDF_ = state->stringAttribute(OSKEY_SOURCE_IDF);
         ObjectState* fuImplementations = state->childByName(
             OSNAME_FU_IMPLEMENTATIONS);
@@ -887,6 +901,13 @@ MachineImplementation::saveState() const {
     // add decompressor file data
     if (hasDecompressorFile()) {
         state->setAttribute(OSKEY_DECOMPRESSOR_FILE, decompressorFile_);
+    }
+
+    // add Generated FUs.
+    ObjectState* fuGenerated = new ObjectState(OSNAME_FU_GENERATED);
+    state->addChild(fuGenerated);
+    for (const auto fug : fuGenerated_) {
+        fuGenerated->addChild(fug.saveState());
     }
 
     // add FU implementations
@@ -1013,6 +1034,20 @@ MachineImplementation::makeImplFilesRelative(
     for (int i = 0; i < socketImplementationCount(); i++) {
         UnitImplementationLocation& impl = socketImplementation(i);
         makeHDBPathRelative(sPaths, impl);
+    }
+
+    // Generated FUs and their operations.
+    for (auto&& fug : FUGenerations()) {
+        for (auto&& op : fug.operations()) {
+            std::string& hdb = op.hdb;
+            std::string rel;
+            if (FileSystem::makeRelativePath(sPaths, hdb, rel)) {
+                hdb = rel;
+            } else if (FileSystem::makeRelativePath(
+                Environment::hdbPaths(true), hdb, rel)) {
+            hdb = "tce:" + rel;
+            }
+        }
     }
 }
  
@@ -1322,6 +1357,7 @@ MachineImplementation::clearState() {
     SequenceTools::deleteAllItems(iuImplementations_);
     SequenceTools::deleteAllItems(busImplementations_);
     SequenceTools::deleteAllItems(socketImplementations_);
+    fuGenerated_.clear();
     icDecoderParameters_.clear();
     icDecoderPluginName_ = "";
     icDecoderPluginFile_ = "";
@@ -1529,6 +1565,60 @@ MachineImplementation::isLibraryImplFile(
     }
 
     return false;
+}
+
+/**
+ * Return all FUs to generate.
+ */
+const std::vector<FUGenerated>&
+MachineImplementation::FUGenerations() const {
+    return fuGenerated_;
+}
+
+/**
+ * Return all FUs to generate.
+ */
+std::vector<FUGenerated>&
+MachineImplementation::FUGenerations() {
+    return fuGenerated_;
+}
+
+/**
+ * Return true if fu is to be generated.
+ *
+ * @param name Name of the FU Generation to check.
+ */
+bool
+MachineImplementation::hasFUGeneration(const std::string& name) const {
+    for (const auto fug : fuGenerated_) {
+        if (fug.name() == name) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Remove fu from generation list.
+ *
+ * @param name Name of the FU Generation to remove.
+ */
+void
+MachineImplementation::removeFuGeneration(const std::string& name) {
+    fuGenerated_.erase(std::remove_if(fuGenerated_.begin(),
+    fuGenerated_.end(), [name] (FUGenerated& fu) {
+             return fu.name() == name;
+         }), fuGenerated_.end());
+}
+
+/**
+ * Add fu to generation list.
+ *
+ * @param fug FU Generation to add.
+ */
+void
+MachineImplementation::addFuGeneration(const FUGenerated& fug) {
+    fuGenerated_.emplace_back(fug);
 }
 
 }

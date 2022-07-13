@@ -46,7 +46,9 @@ public:
     /// Format of the file.
     enum Format {
         VHDL, ///< VHDL file.
-        Verilog ///< Verilog file.
+        Verilog, ///< Verilog file.
+        VHDLsim, ///< VHDL simulation file.
+        Verilogsim ///< Verilog simulation file.
     };
 
     BlockImplementationFile(const std::string& pathToFile, Format format);

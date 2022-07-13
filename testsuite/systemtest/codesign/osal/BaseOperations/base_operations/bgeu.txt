@@ -1,0 +1,11 @@
+bgeu 13 0 10
+!register programcounter
+bgeu 20 999 65
+!register programcounter
+bgeu 1 1 67
+!register programcounter
+bgeu 100 40 123
+!register programcounter
+bgeu 0 0 126
+!register programcounter
+!quit

@@ -1,0 +1,10 @@
+!mem word 0x64
+ald32 0x63 1
+ast32 0x63 1 100
+!advanceclock
+!mem word 0x64
+ald32 0x65 -1
+ast32 0x65 -1 -2000000000
+!advanceclock
+ald32 0x64 0
+!quit

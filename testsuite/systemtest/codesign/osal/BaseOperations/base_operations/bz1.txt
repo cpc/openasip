@@ -1,0 +1,11 @@
+bz1 30 12
+!register programcounter
+bz1 5 65
+!register programcounter
+bz1 65536 65
+!register programcounter
+bz1 -1 123
+!register programcounter
+bz1 0 126
+!register programcounter
+!quit

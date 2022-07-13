@@ -20,12 +20,13 @@ entity tta_avalon_sfu_toplevel is
 
   generic (
     dev_family_g : string := "Cyclone III";
-    onchip_imem_0_init_file_g : string := "prog.mif";
-    onchip_dmem_0_init_file_g : string := "prog_data.mif");
+    onchip_imem_0_0_init_file_g : string := "prog.mif";
+    onchip_dmem_0_0_init_file_g : string := "prog_data.mif");
 
   port (
     clk : in std_logic;
     rstx : in std_logic;
+    locked : out std_logic;
     fu_leds_STRATIXII_LED : out std_logic_vector(fu_leds_led_count-1 downto 0);
     fu_avalon_sfu_avalon_d_address : out std_logic_vector(fu_avalon_sfu_a_addrw_g-1 downto 0);
     fu_avalon_sfu_avalon_d_byteenable : out std_logic_vector(fu_avalon_sfu_a_byteenable_g-1 downto 0);
@@ -41,7 +42,9 @@ end tta_avalon_sfu_toplevel;
 architecture structural of tta_avalon_sfu_toplevel is
 
 
-  component tta_avalon_sfu
+  component tta_avalon_sfu is
+    generic (
+      core_id : integer);
     port (
       clk : in std_logic;
       rstx : in std_logic;
@@ -49,6 +52,7 @@ architecture structural of tta_avalon_sfu_toplevel is
       imem_en_x : out std_logic;
       imem_addr : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
       imem_data : in std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+      locked : out std_logic;
       fu_lsu_dmem_data_in : in std_logic_vector(fu_lsu_dataw-1 downto 0);
       fu_lsu_dmem_data_out : out std_logic_vector(fu_lsu_dataw-1 downto 0);
       fu_lsu_dmem_addr : out std_logic_vector(fu_lsu_addrw-2-1 downto 0);
@@ -66,7 +70,7 @@ architecture structural of tta_avalon_sfu_toplevel is
       fu_avalon_sfu_avalon_d_waitrequest : in std_logic_vector(1-1 downto 0));
   end component;
 
-  component tta_avalon_sfu_altera_onchip_rom_comp
+  component tta_avalon_sfu_altera_onchip_rom_comp is
     generic (
       dev_family_g : string;
       init_file_g : string;
@@ -79,13 +83,13 @@ architecture structural of tta_avalon_sfu_toplevel is
       clken : in std_logic);
   end component;
 
-  component util_inverter
+  component util_inverter is
     port (
       data_in : in std_logic;
       data_out : out std_logic);
   end component;
 
-  component tta_avalon_sfu_altera_onchip_ram_comp
+  component tta_avalon_sfu_altera_onchip_ram_comp is
     generic (
       dev_family_g : string;
       init_file_g : string;
@@ -119,6 +123,8 @@ begin
   onchip_dmem_0_wren_wire <= fu_lsu_dmem_wr_en_x_util_inverter_data_out_wire;
 
   core : tta_avalon_sfu
+    generic map (
+      core_id => 0)
     port map (
       clk => clk,
       rstx => rstx,
@@ -126,6 +132,7 @@ begin
       imem_en_x => core_imem_en_x_wire,
       imem_addr => core_imem_addr_wire,
       imem_data => core_imem_data_wire,
+      locked => locked,
       fu_lsu_dmem_data_in => core_fu_lsu_dmem_data_in_wire,
       fu_lsu_dmem_data_out => core_fu_lsu_dmem_data_out_wire,
       fu_lsu_dmem_addr => core_fu_lsu_dmem_addr_wire,
@@ -145,7 +152,7 @@ begin
   onchip_imem_0 : tta_avalon_sfu_altera_onchip_rom_comp
     generic map (
       dev_family_g => dev_family_g,
-      init_file_g => onchip_imem_0_init_file_g,
+      init_file_g => onchip_imem_0_0_init_file_g,
       addrw_g => IMEMADDRWIDTH,
       dataw_g => IMEMWIDTHINMAUS*IMEMMAUWIDTH)
     port map (
@@ -162,7 +169,7 @@ begin
   onchip_dmem_0 : tta_avalon_sfu_altera_onchip_ram_comp
     generic map (
       dev_family_g => dev_family_g,
-      init_file_g => onchip_dmem_0_init_file_g,
+      init_file_g => onchip_dmem_0_0_init_file_g,
       addrw_g => 9,
       dataw_g => 32)
     port map (

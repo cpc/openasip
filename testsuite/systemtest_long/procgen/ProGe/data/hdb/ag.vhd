@@ -7,7 +7,7 @@
 -- Author     : Risto Makinen <rmmakine@cs.tut.fi>
 -- Company    :
 -- Created    : 2005-03-21
--- Last update: 2005/11/17
+-- Last update: 2019-04-26
 -- Platform   :
 -------------------------------------------------------------------------------
 -- Description: SFU for Index Generation generates always two memory adresses
@@ -56,11 +56,8 @@
 -------------------------------------------------------------------------------
 library IEEE;
 use IEEE.Std_Logic_1164.all;
-use IEEE.Std_Logic_arith.all;
-
-library IEEE;
-use IEEE.Std_Logic_1164.all;
-use IEEE.Std_Logic_arith.all;
+--use IEEE.Std_Logic_arith.all;
+use ieee.numeric_std.all;
 
 entity ag is
   generic (
@@ -102,7 +99,8 @@ begin  -- rtl
   begin  -- process
 
     tmp := unsigned(stage);	
-    stage_temp := conv_integer(tmp);
+    --stage_temp := conv_integer(tmp);
+    stage_temp := to_integer(tmp);
     
     case stage_temp is
       when  0 =>
@@ -121,18 +119,17 @@ begin  -- rtl
         shifted_linidx(dataw-1 downto 2) := linidx(dataw-3 downto 0);
         shifted_linidx(1 downto 0) := "00";
 
-        in_addr <= conv_std_logic_vector(unsigned(shifted_permuted_idx)+
-                                          unsigned(base_address_in),
-                                          base_address_in'length);
-        out_addr <= conv_std_logic_vector(unsigned(shifted_linidx)+
-                                          unsigned(base_address_out),
-                                          base_address_out'length);
+        in_addr <= std_logic_vector(unsigned(shifted_permuted_idx)+
+                                    unsigned(base_address_in));
+        out_addr <= std_logic_vector(unsigned(shifted_linidx)+
+                                     unsigned(base_address_out));
+
       when others =>
 -- Generate an address for the operand access.
         shifted_stage(dataw-1 downto 1) := stage(dataw-2 downto 0);
         shifted_stage(0 downto 0) := "0";
         temp := unsigned(shifted_stage)+2;
-        width_of_stage := conv_integer(temp);
+        width_of_stage := to_integer(temp);
 
         case width_of_stage is
           when 2 =>
@@ -167,9 +164,8 @@ begin  -- rtl
 
         in_addr <= (others => '0');
         rotated_index(1 downto 0) := "00";
-        out_addr <= conv_std_logic_vector(unsigned(rotated_index)+
-                                          unsigned(base_address_out),
-                                          base_address_out'length);
+        out_addr <= std_logic_vector(unsigned(rotated_index)+
+                                          unsigned(base_address_out));
     end case;
   end process;
 end rtl;

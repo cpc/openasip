@@ -40,6 +40,7 @@
 #include "ProGeTypes.hh"
 #include "TCEString.hh"
 #include "RFImplementationLocation.hh"
+#include "HDLTemplateInstantiator.hh"
 
 namespace IDF {
     class MachineImplementation;
@@ -47,6 +48,10 @@ namespace IDF {
 
 namespace HDB {
     class HWBlockImplementation;
+}
+
+namespace TTAMachine {
+    class Machine;
 }
 
 namespace ProGe {
@@ -70,6 +75,7 @@ public:
     void instantiateHDLTemplate(
         const std::string& srcFile, const std::string& dstDirectory,
         std::string newName = "0");
+    HDLTemplateInstantiator& getTemplateInstatiator();
 
 private:
     void copyBaseRFFiles(
@@ -90,7 +96,9 @@ private:
     TCEString entityStr_;
     const HDL language_;
     /// Copied files.
-    std::set<std::string> copiedFiles_;    
+    std::set<std::string> copiedFiles_;
+    /// Object that instantiates templates.
+    HDLTemplateInstantiator instantiator_;
 };
 }
 

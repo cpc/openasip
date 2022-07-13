@@ -53,6 +53,7 @@ public:
     template<typename NumberType>
     static int ceil_div(NumberType dividee, NumberType diveder);
     static int requiredBits(unsigned long int number);
+    static int requiredBits0Bit0(long unsigned int number);
     static int requiredBitsSigned(SLongWord number);
     static int requiredBitsSigned(int number);
     static int requiredBitsSigned(UInt32 number);

@@ -1,3 +1,4 @@
+!output unsigned
 ltu 5 5
 ltu 3 5
 ltu 10001243 210009

@@ -14,7 +14,9 @@ libbem_la_SOURCES = BinaryEncoding.cc ImmediateControlField.cc \
 	IUPortCode.cc NullIUPortCode.cc LImmDstRegisterField.cc \
 	NullUnconditionalGuardEncoding.cc Encoding.cc NullNOPEncoding.cc \
 	ImmediateSlotField.cc BEMTextGenerator.cc PortCode.cc \
-	NullBridgeEncoding.cc
+	NullBridgeEncoding.cc InstructionFormat.cc \
+	OperationTriggeredField.cc OperationTriggeredEncoding.cc \
+	BEMTools.cc
 
 libbem_la_LDFLAGS = $PTHREAD_LIBS
 
@@ -57,5 +59,6 @@ libbem_la_SOURCES += \
 	NullUnconditionalGuardEncoding.hh NullRFPortCode.hh \
 	NullImmediateEncoding.hh ImmediateControlField.hh \
 	IUPortCode.hh ImmediateSlotField.hh \
-	DestinationField.hh 
+	DestinationField.hh BEMTools.hh \
+	OperationTriggeredField.hh OperationTriggeredEncoding.hh 
 ## headers end

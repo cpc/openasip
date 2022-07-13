@@ -63,6 +63,8 @@ public:
     void displayFUImplementation(RowID id);
     void displayRFImplementation(RowID id);
     void displayCostFunctionPlugin(RowID id);
+    void displayOperationImplementation(RowID id);
+    void displayOperationImplementationResource(RowID id);
 
 private:
     virtual void OnLinkClicked(const wxHtmlLinkInfo& link);

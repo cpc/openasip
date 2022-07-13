@@ -27,7 +27,7 @@
 -- Author     : Teemu Pitkänen (teemu.pitkanen@tut.fi)
 -- Company    : TUT/IDCS
 -- Created    : 2003-11-26
--- Last update: 2016-06-14
+-- Last update: 2016-04-11
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -37,7 +37,7 @@
 -------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author  Description
--- 2003-11-26  1.0      sertamo	Created
+-- 2003-11-26  1.0      sertamo Created
 -------------------------------------------------------------------------------
 
 use work.testbench_constants.all;
@@ -48,23 +48,24 @@ architecture structural_dp_dmem of proc is
 
   component ENTITY_STR
     port (
-      clk : in std_logic;
-      rstx : in std_logic;
-      busy : in std_logic;
-      imem_en_x : out std_logic;
-      imem_addr : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
-      imem_data : in std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
-      fu_LSUA_data_in : in std_logic_vector(fu_LSUA_dataw-1 downto 0);
-      fu_LSUA_data_out : out std_logic_vector(fu_LSUA_dataw-1 downto 0);
-      fu_LSUA_addr : out std_logic_vector(fu_LSUA_addrw_plus_2-2-1 downto 0);
-      fu_LSUA_mem_en_x : out std_logic_vector(0 downto 0);
-      fu_LSUA_wr_en_x : out std_logic_vector(0 downto 0);
+      clk               : in  std_logic;
+      rstx              : in  std_logic;
+      busy              : in  std_logic;
+      imem_en_x         : out std_logic;
+      imem_addr         : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+      imem_data         : in  std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+      locked            : out std_logic;
+      fu_LSUA_data_in   : in  std_logic_vector(fu_LSUA_dataw-1 downto 0);
+      fu_LSUA_data_out  : out std_logic_vector(fu_LSUA_dataw-1 downto 0);
+      fu_LSUA_addr      : out std_logic_vector(fu_LSUA_addrw_plus_2-2-1 downto 0);
+      fu_LSUA_mem_en_x  : out std_logic_vector(0 downto 0);
+      fu_LSUA_wr_en_x   : out std_logic_vector(0 downto 0);
       fu_LSUA_wr_mask_x : out std_logic_vector(fu_LSUA_dataw-1 downto 0);
-      fu_LSUB_data_in : in std_logic_vector(fu_LSUB_dataw-1 downto 0);
-      fu_LSUB_data_out : out std_logic_vector(fu_LSUB_dataw-1 downto 0);
-      fu_LSUB_addr : out std_logic_vector(fu_LSUB_addrw_plus_2-2-1 downto 0);
-      fu_LSUB_mem_en_x : out std_logic_vector(0 downto 0);
-      fu_LSUB_wr_en_x : out std_logic_vector(0 downto 0);
+      fu_LSUB_data_in   : in  std_logic_vector(fu_LSUB_dataw-1 downto 0);
+      fu_LSUB_data_out  : out std_logic_vector(fu_LSUB_dataw-1 downto 0);
+      fu_LSUB_addr      : out std_logic_vector(fu_LSUB_addrw_plus_2-2-1 downto 0);
+      fu_LSUB_mem_en_x  : out std_logic_vector(0 downto 0);
+      fu_LSUB_wr_en_x   : out std_logic_vector(0 downto 0);
       fu_LSUB_wr_mask_x : out std_logic_vector(fu_LSUB_dataw-1 downto 0));
   end component;
 
@@ -77,11 +78,11 @@ architecture structural_dp_dmem of proc is
   signal dmem_q_b        : std_logic_vector(DMEMDATAWIDTH-1 downto 0);
   signal dmem_d_b        : std_logic_vector(DMEMDATAWIDTH-1 downto 0);
   signal dmem_addr_b     : std_logic_vector(DMEMADDRWIDTH-1 downto 0);
-  signal dmem_en_b_x     : std_logic; --:='1';
+  signal dmem_en_b_x     : std_logic;   --:='1';
   signal dmem_wr_b_x     : std_logic;
   signal dmem_bit_wr_b_x : std_logic_vector(DMEMDATAWIDTH-1 downto 0);
   signal imem_data       : std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
-  signal imem_addr    : std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+  signal imem_addr       : std_logic_vector(IMEMADDRWIDTH-1 downto 0);
   signal imem_en_x       : std_logic;
 
   signal q_a        : std_logic_vector(DMEMDATAWIDTH-1 downto 0);
@@ -92,16 +93,16 @@ architecture structural_dp_dmem of proc is
   signal wr_a_x     : std_logic;
   signal bit_wr_a_x : std_logic_vector(DMEMDATAWIDTH-1 downto 0);
 
-  signal imem_d_arb : std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
-  signal imem_addr_arb : std_logic_vector(IMEMADDRWIDTH-1 downto 0);
-  signal imem_en_arb_x : std_logic;
-  signal imem_wr_arb_x : std_logic;
+  signal imem_d_arb        : std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+  signal imem_addr_arb     : std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+  signal imem_en_arb_x     : std_logic;
+  signal imem_wr_arb_x     : std_logic;
   signal imem_bit_wr_arb_x : std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
-  
+
   component synch_rom
     generic (
-      DATAW : integer;
-      ADDRW : integer);
+      DATAW               : integer;
+      ADDRW               : integer);
     port (
       clk  : in  std_logic;
       en_x : in  std_logic;
@@ -112,7 +113,9 @@ architecture structural_dp_dmem of proc is
 
   component synch_dualport_sram
     generic (
+      -- pragma translate_off
       INITFILENAME : string;
+      -- pragma translate_on
       DATAW        : integer;
       ADDRW        : integer);
     port (
@@ -133,9 +136,13 @@ architecture structural_dp_dmem of proc is
 
   component synch_sram
     generic (
-      INITFILENAME : string;
-      DATAW        : integer;
-      ADDRW        : integer);
+       -- pragma translate_off
+      INITFILENAME        : string;
+      access_trace        : boolean := false;
+      ACCESSTRACEFILENAME : string  := "mem_access_trace.dump";
+      -- pragma translate_on
+      DATAW               : integer;
+      ADDRW               : integer);
     port (
       clk      : in  std_logic;
       d        : in  std_logic_vector(DATAW-1 downto 0);
@@ -170,53 +177,54 @@ architecture structural_dp_dmem of proc is
   end component;
 
   component imem_arbiter
-  generic (
-    PORTW     : integer := 32;
-    ADDRWIDTH : integer := 11);
+    generic (
+      PORTW     : integer := 32;
+      ADDRWIDTH : integer := 11);
 
-  port (
-    d_2 : in  std_logic_vector(PORTW-1 downto 0);
-    d   : out std_logic_vector(PORTW-1 downto 0);
+    port (
+      d_2 : in  std_logic_vector(PORTW-1 downto 0);
+      d   : out std_logic_vector(PORTW-1 downto 0);
 
-    addr_1 : in  std_logic_vector(ADDRWIDTH-1 downto 0);
-    addr_2 : in  std_logic_vector(ADDRWIDTH-1 downto 0);
-    addr   : out std_logic_vector(ADDRWIDTH-1 downto 0);
+      addr_1 : in  std_logic_vector(ADDRWIDTH-1 downto 0);
+      addr_2 : in  std_logic_vector(ADDRWIDTH-1 downto 0);
+      addr   : out std_logic_vector(ADDRWIDTH-1 downto 0);
 
-    en_1_x : in  std_logic;
-    en_2_x : in  std_logic;
-    en_x   : out std_logic;
+      en_1_x : in  std_logic;
+      en_2_x : in  std_logic;
+      en_x   : out std_logic;
 
-    wr_2_x : in  std_logic;
-    wr_x   : out std_logic;
+      wr_2_x : in  std_logic;
+      wr_x   : out std_logic;
 
-    bit_wr_2_x : in  std_logic_vector(PORTW-1 downto 0);
-    bit_wr_x   : out std_logic_vector(PORTW-1 downto 0);
+      bit_wr_2_x : in  std_logic_vector(PORTW-1 downto 0);
+      bit_wr_x   : out std_logic_vector(PORTW-1 downto 0);
 
-    mem_busy : out std_logic);
+      mem_busy : out std_logic);
   end component;
   
 begin  -- struct
 
   core : ENTITY_STR
     port map (
-      clk              => clk,
-      rstx             => rst_x,
-      busy             => '0', 
-      imem_en_x        => imem_en_x,
-      imem_addr        => imem_addr,
-      imem_data        => imem_data,
-      fu_LSUA_data_in   => dmem_q_a,
-      fu_LSUA_data_out  => dmem_d_a,
-      fu_LSUA_addr      => dmem_addr_a,
-      fu_LSUA_mem_en_x(0)  => dmem_en_a_x,
-      fu_LSUA_wr_en_x(0)   => dmem_wr_a_x,
-      fu_LSUA_wr_mask_x => dmem_bit_wr_a_x,
-      fu_LSUB_data_in   => dmem_q_b,
-      fu_LSUB_data_out  => dmem_d_b,
-      fu_LSUB_addr      => dmem_addr_b,
-      fu_LSUB_mem_en_x(0)  => dmem_en_b_x,
-      fu_LSUB_wr_en_x(0)   => dmem_wr_b_x,
-      fu_LSUB_wr_mask_x => dmem_bit_wr_b_x);
+      clk                 => clk,
+      rstx                => rst_x,
+      busy                => '0',
+      imem_en_x           => imem_en_x,
+      imem_addr           => imem_addr,
+      imem_data           => imem_data,
+      locked              => locked,
+      fu_LSUA_data_in     => dmem_q_a,
+      fu_LSUA_data_out    => dmem_d_a,
+      fu_LSUA_addr        => dmem_addr_a,
+      fu_LSUA_mem_en_x(0) => dmem_en_a_x,
+      fu_LSUA_wr_en_x(0)  => dmem_wr_a_x,
+      fu_LSUA_wr_mask_x   => dmem_bit_wr_a_x,
+      fu_LSUB_data_in     => dmem_q_b,
+      fu_LSUB_data_out    => dmem_d_b,
+      fu_LSUB_addr        => dmem_addr_b,
+      fu_LSUB_mem_en_x(0) => dmem_en_b_x,
+      fu_LSUB_wr_en_x(0)  => dmem_wr_b_x,
+      fu_LSUB_wr_mask_x   => dmem_bit_wr_b_x);
 
   datamem : synch_dualport_sram
     generic map (
@@ -274,8 +282,8 @@ begin  -- struct
       PORTW     => IMEMWIDTHINMAUS*IMEMMAUWIDTH,
       ADDRWIDTH => IMEMADDRWIDTH)
     port map (
-      d_2       => imem_ext_data,
-      d         => imem_d_arb,
+      d_2 => imem_ext_data,
+      d   => imem_d_arb,
 
       addr_1 => imem_addr,
       addr_2 => imem_ext_addr,
@@ -295,17 +303,19 @@ begin  -- struct
   instmem : synch_sram
     generic map (
       -- pragma translate_off
-      INITFILENAME => IMEM_INIT_FILE,
-      -- pragma translate_on;
-      DATAW => IMEMWIDTHINMAUS*IMEMMAUWIDTH,
-      ADDRW => IMEMADDRWIDTH)
+      INITFILENAME        => IMEM_INIT_FILE,
+      access_trace        => true,
+      ACCESSTRACEFILENAME => "core0_imem_access_trace.dump",
+      -- pragma translate_on
+      DATAW               => IMEMWIDTHINMAUS*IMEMMAUWIDTH,
+      ADDRW               => IMEMADDRWIDTH)
     port map (
-      clk  => clk,
-      d => imem_d_arb,
-      addr => imem_addr_arb,      
-      en_x => imem_en_arb_x,
-      wr_x => imem_wr_arb_x,
+      clk      => clk,
+      d        => imem_d_arb,
+      addr     => imem_addr_arb,
+      en_x     => imem_en_arb_x,
+      wr_x     => imem_wr_arb_x,
       bit_wr_x => imem_bit_wr_arb_x,
-      q => imem_data);
+      q        => imem_data);
 
 end structural_dp_dmem;

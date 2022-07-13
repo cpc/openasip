@@ -72,6 +72,8 @@ public:
     bool isBound(const FUPort& port) const;
     bool isBound(int operand) const;
     int io(const FUPort& port) const;
+    int numberOfInputs() const;
+    int numberOfOutputs() const;
 
     virtual ObjectState* saveState() const;
     virtual void loadState(const ObjectState* state);

@@ -34,6 +34,7 @@
 #include "TCEString.hh"
 #include "ProGeTypes.hh"
 #include "DefaultProjectFileGenerator.hh"
+#include "HDLTemplateInstantiator.hh"
 
 
 class AlmaIFIntegrator : public PlatformIntegrator {
@@ -53,16 +54,16 @@ public:
         std::ostream& warningStream,
         std::ostream& errorStream,
         const MemInfo& imem,
-        MemType dmemType);
+        MemType dmemType,
+        bool syncReset);
 
     virtual ~AlmaIFIntegrator();
 
     virtual void integrateProcessor(const ProGe::NetlistBlock* progeBlock);
-    virtual bool integrateCore(const ProGe::NetlistBlock& cores);
+    virtual bool integrateCore(const ProGe::NetlistBlock& cores, int coreId);
     virtual void printInfo(std::ostream& stream) const;
     virtual TCEString deviceFamily() const;
     virtual void setDeviceFamily(TCEString devFamily);
-    virtual TCEString deviceName() const; 
     virtual TCEString devicePackage() const;
     virtual TCEString deviceSpeedClass() const;
     virtual int targetClockFrequency() const;
@@ -76,31 +77,51 @@ public:
 
 protected:
 
-    virtual MemoryGenerator& imemInstance(MemInfo imem);
+    virtual MemoryGenerator& imemInstance(MemInfo imem, int coreId);
 
     virtual MemoryGenerator& dmemInstance(
         MemInfo dmem,
         TTAMachine::FunctionUnit& lsuArch,
-        HDB::FUImplementation& lsuImplementation);
+        std::vector<std::string> lsuPorts);
 
 
 
 private:
-    void addMemoryPorts(const TCEString as_name, const TCEString data_width,
-                        const TCEString addr_width);
-    void addAlmaifBlock();
+    void addMemoryPorts(
+        const TCEString as_name, int data_width, int addr_width,
+        const bool isShared, const bool overrideAsWidth);
+    void addMemoryPorts(
+        const TCEString as_name, int mem_count, int data_width,
+        int addr_width, int strb_width, const bool overrideAsWidth);
+
+    void initAlmaifBlock();
     void addAlmaifFiles();
     void copyPlatformFile(const TCEString inputPath,
-        std::vector<TCEString>& fileList) const;
-    void instantiatePlatformFile(const TCEString inputPath,
-        std::vector<TCEString>& fileList) const;
-    int axiAddressWidth() const;
-    bool verifyMemories() const;
-
+        std::vector<TCEString>& fileList, bool isScript = false) const;
+    TCEString axiAddressWidth() const;
+    void findMemories();
+    void exportUnconnectedPorts(int coreId);
+    void connectCoreMemories(MemInfo mem, TCEString mem_name,
+                             TCEString mem_block_name, bool seconds);
+    void addPortToGroup(ProGe::NetlistPortGroup* port_group,
+                        const ProGe::Direction dir, const TCEString name,
+                        const TCEString width);
+    void addPortToAlmaIFBlock(const TCEString name,
+                              const TCEString width,
+                              const ProGe::Direction dir,
+                              const TCEString core_name = "");
+    void addPortToAlmaIFBlock(const TCEString name,
+                              const int width,
+                              const ProGe::Direction dir,
+                              const TCEString core_name = "");
+    ProGe::NetlistPortGroup* axiSlavePortGroup();
+    ProGe::NetlistPortGroup* axiMasterPortGroup();
 
     static const TCEString DMEM_NAME;
     static const TCEString PMEM_NAME;
+    static const TCEString AXI_AS_NAME;
     static const TCEString ALMAIF_MODULE;
+    static const TCEString DEFAULT_DEVICE;
 
     MemoryGenerator* imemGen_;
     std::map<TCEString, MemoryGenerator*> dmemGen_;
@@ -109,8 +130,24 @@ private:
     ProGe::NetlistBlock* almaifBlock_;
 
     TCEString deviceFamily_;
+    TCEString deviceName_;
 
     DefaultProjectFileGenerator* fileGen_;
+
+    MemInfo dmemInfo_, pmemInfo_;
+
+    bool secondDmem_, secondPmem_;
+    bool dmemHandled_, pmemHandled_;
+    std::string secondDmemName_;
+    int secondDmemDataw_, secondDmemAddrw_;
+    std::string secondPmemName_;
+    int secondPmemDataw_, secondPmemAddrw_;
+    HDLTemplateInstantiator accelInstantiator_;
+
+    bool syncReset_;
+    bool broadcast_pmem_;
+    bool dmem_dram_;
+    bool imem_dp_;
 };
 
 #endif

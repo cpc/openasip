@@ -1,0 +1,11 @@
+bgtur 13 0 10
+!register programcounter
+bgtur 20 999 65
+!register programcounter
+bgtur 1 1 67
+!register programcounter
+bgtur 100 40 123
+!register programcounter
+bgtur 0 0 126
+!register programcounter
+!quit

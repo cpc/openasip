@@ -56,6 +56,8 @@
 #include "Application.hh"
 #include "Environment.hh"
 #include "ObjectState.hh"
+#include "InstructionFormat.hh"
+
 
 using std::string;
 using std::vector;
@@ -64,7 +66,7 @@ const string TRUE = "true";
 const string FALSE = "false";
 
 const string ADF_ENCODING = "adf-encoding";
-const string ADF_VERSION = "version";
+const string BEM_VERSION_STR = "version";
 const string REQUIRED_VERSION = "required-version";
 
 const string SOCKET_CODE_TABLE = "map-ports";
@@ -79,6 +81,7 @@ const string FU_PORT_CODE_EXTRA_BITS = "extra-bits";
 const string RF_PORT_CODE = "rf-port-code";
 const string RF_PORT_CODE_RF = "rf";
 const string RF_PORT_CODE_INDEX_WIDTH = "index-width";
+const string RF_PORT_CODE_MAX_INDEX = "max-index";
 const string RF_PORT_CODE_ENCODING = "encoding";
 const string RF_PORT_CODE_EXTRA_BITS = "extra-bits";
 const string IU_PORT_CODE = "iu-port-code";
@@ -143,6 +146,9 @@ const string SRC_DST_NO_OPERATION = "no-operation";
 const string SRC_DST_NO_OPERATION_MAP = "map";
 const string SRC_DST_NO_OPERATION_MAP_EXTRA_BITS = "extra-bits";
 
+const string INSTRUCTION_FORMAT = "ota-format";
+const string INSTRUCTION_FORMAT_NAME = "name";
+
 const string IMMEDIATE_SLOT = "immediate-slot";
 const string IMMEDIATE_SLOT_NAME = "name";
 const string IMMEDIATE_SLOT_WIDTH = "width";
@@ -181,7 +187,16 @@ ObjectState*
 BEMSerializer::readState() {
     ObjectState* fileState = XMLSerializer::readState();
 
-    double version = fileState->doubleAttribute(ADF_VERSION);
+    double version = fileState->doubleAttribute(BEM_VERSION_STR);
+    if (fileState->hasAttribute(REQUIRED_VERSION)) {
+        double requiredVersion = fileState->doubleAttribute(REQUIRED_VERSION);
+        if (requiredVersion > 1.4) {
+            THROW_EXCEPTION(SerializerException, "Cannot parse the file. "
+                "The file requests parser version of " +
+                fileState->stringAttribute(REQUIRED_VERSION) + ". "
+                "The version of the parser is 1.4.");
+        }
+    }
     if (version < 1.2) {
         convertZeroEncExtraBits(fileState);
     }
@@ -283,6 +298,11 @@ BEMSerializer::convertToOMFormat(const ObjectState* fileState) {
             bem->addChild(longImmTagToOM(child));
         } else if (child->name() == IMM_REG_FIELD) {
             bem->addChild(longImmDstRegFieldToOM(child));
+        } else if (child->name() == INSTRUCTION_FORMAT) {
+            ObjectState* newChild = new ObjectState(*child);
+            bem->addChild(newChild);
+        } else if (child->name() == BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BITS) {
+            bem->addChild(new ObjectState(*child));
         } else {
             assert(false);
         }
@@ -304,9 +324,9 @@ ObjectState*
 BEMSerializer::convertToFileFormat(const ObjectState* state) {
 
     ObjectState* fileState = new ObjectState(ADF_ENCODING);
-    const string version = "1.2";
-    const string requiredVersion = "1.2";
-    fileState->setAttribute(ADF_VERSION, version);
+    const string version = "1.4";
+    const string requiredVersion = "1.4";
+    fileState->setAttribute(BEM_VERSION_STR, version);
     fileState->setAttribute(REQUIRED_VERSION, requiredVersion);
 
     // create socket code tables
@@ -314,7 +334,7 @@ BEMSerializer::convertToFileFormat(const ObjectState* state) {
         ObjectState* child = state->child(i);
         if (child->name() == SocketCodeTable::OSNAME_SOCKET_CODE_TABLE) {
             fileState->addChild(socketCodeTableToFile(child));
-	}
+        }
     }
 
     // create long immediate tag
@@ -352,6 +372,22 @@ BEMSerializer::convertToFileFormat(const ObjectState* state) {
         }
     }
 
+    for (int i = 0; i < state->childCount(); i++) {
+        ObjectState* child = state->child(i);
+        if (child->name() == 
+            InstructionFormat::OSNAME_INSTRUCTION_FORMAT) {
+            ObjectState* newChild = new ObjectState(*child);
+            fileState->addChild(newChild);
+        }
+    }
+
+    // template extra bits: copy OS tree
+    for (int i = 0; i < state->childCount(); i++) {
+        ObjectState* child = state->child(i);
+        if (child->name() == BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BITS) {
+            fileState->addChild(new ObjectState(*child));
+        }
+    }
     return fileState;
 }
 
@@ -378,45 +414,51 @@ BEMSerializer::socketCodeTableToFile(const ObjectState* omTable) {
 
     // create fu-port-code elements
     for (int i = 0; i < omTable->childCount(); i++) {
-	ObjectState* portCode = omTable->child(i);
-	if (portCode->name() == FUPortCode::OSNAME_FU_PORT_CODE) {
-	    ObjectState* fuPortCode = new ObjectState(FU_PORT_CODE);
-	    scTable->addChild(fuPortCode);
-	    fuPortCode->setAttribute(
-		FU_PORT_CODE_PORT,
-		portCode->stringAttribute(FUPortCode::OSKEY_PORT_NAME));
-	    fuPortCode->setAttribute(
-		FU_PORT_CODE_FU,
-		portCode->stringAttribute(FUPortCode::OSKEY_UNIT_NAME));
-	    if (portCode->hasAttribute(FUPortCode::OSKEY_OPERATION_NAME)) {
-		fuPortCode->setAttribute(
-		    FU_PORT_CODE_OPERATION,
-		    portCode->stringAttribute(
-			FUPortCode::OSKEY_OPERATION_NAME));
-	    }
-	    ObjectState* encoding = new ObjectState(FU_PORT_CODE_ENCODING);
-	    fuPortCode->addChild(encoding);
-	    encoding->setValue(
-		portCode->stringAttribute(FUPortCode::OSKEY_ENCODING));
-	    ObjectState* extraBits = new ObjectState(FU_PORT_CODE_EXTRA_BITS);
-	    fuPortCode->addChild(extraBits);
-	    extraBits->setValue(
-		portCode->stringAttribute(FUPortCode::OSKEY_EXTRA_BITS));
-	}
+        ObjectState* portCode = omTable->child(i);
+        if (portCode->name() == FUPortCode::OSNAME_FU_PORT_CODE) {
+            ObjectState* fuPortCode = new ObjectState(FU_PORT_CODE);
+            scTable->addChild(fuPortCode);
+            fuPortCode->setAttribute(
+                FU_PORT_CODE_PORT,
+                portCode->stringAttribute(FUPortCode::OSKEY_PORT_NAME));
+            fuPortCode->setAttribute(
+                FU_PORT_CODE_FU,
+                portCode->stringAttribute(FUPortCode::OSKEY_UNIT_NAME));
+            if (portCode->hasAttribute(FUPortCode::OSKEY_OPERATION_NAME)) {
+                fuPortCode->setAttribute(
+                    FU_PORT_CODE_OPERATION,
+                    portCode->stringAttribute(
+                        FUPortCode::OSKEY_OPERATION_NAME));
+            }
+            ObjectState* encoding = new ObjectState(FU_PORT_CODE_ENCODING);
+            fuPortCode->addChild(encoding);
+            encoding->setValue(
+                portCode->stringAttribute(FUPortCode::OSKEY_ENCODING));
+            ObjectState* extraBits = new ObjectState(FU_PORT_CODE_EXTRA_BITS);
+            fuPortCode->addChild(extraBits);
+            extraBits->setValue(
+                portCode->stringAttribute(FUPortCode::OSKEY_EXTRA_BITS));
+        }
     }
 
     // create rf-port-code elements
     for (int i = 0; i < omTable->childCount(); i++) {
-	ObjectState* portCode = omTable->child(i);
-	if (portCode->name() == RFPortCode::OSNAME_RF_PORT_CODE) {
-	    ObjectState* rfPortCode = new ObjectState(RF_PORT_CODE);
-	    scTable->addChild(rfPortCode);
-	    rfPortCode->setAttribute(
-		RF_PORT_CODE_RF,
-		portCode->stringAttribute(RFPortCode::OSKEY_UNIT_NAME));
-	    rfPortCode->setAttribute(
-		RF_PORT_CODE_INDEX_WIDTH,
-		portCode->stringAttribute(RFPortCode::OSKEY_INDEX_WIDTH));
+        ObjectState* portCode = omTable->child(i);
+        if (portCode->name() == RFPortCode::OSNAME_RF_PORT_CODE) {
+            ObjectState* rfPortCode = new ObjectState(RF_PORT_CODE);
+            scTable->addChild(rfPortCode);
+            rfPortCode->setAttribute(
+                RF_PORT_CODE_RF,
+                portCode->stringAttribute(RFPortCode::OSKEY_UNIT_NAME));
+            rfPortCode->setAttribute(
+                RF_PORT_CODE_INDEX_WIDTH,
+                portCode->stringAttribute(RFPortCode::OSKEY_INDEX_WIDTH));
+
+            if (portCode->hasAttribute(PortCode::OSKEY_MAX_INDEX))
+                rfPortCode->setAttribute(
+                    RF_PORT_CODE_MAX_INDEX,
+                    portCode->stringAttribute(PortCode::OSKEY_MAX_INDEX));
+
             if (portCode->hasAttribute(RFPortCode::OSKEY_ENCODING)) {
                 ObjectState* encoding = new ObjectState(
                     RF_PORT_CODE_ENCODING);
@@ -429,21 +471,27 @@ BEMSerializer::socketCodeTableToFile(const ObjectState* omTable) {
                 extraBits->setValue(
                     portCode->stringAttribute(RFPortCode::OSKEY_EXTRA_BITS));
             }
-	}
+        }
     }
 
     // create iu-port-code elements
     for (int i = 0; i < omTable->childCount(); i++) {
-	ObjectState* portCode = omTable->child(i);
-	if (portCode->name() == IUPortCode::OSNAME_IU_PORT_CODE) {
-	    ObjectState* iuPortCode = new ObjectState(IU_PORT_CODE);
-	    scTable->addChild(iuPortCode);
-	    iuPortCode->setAttribute(
-		IU_PORT_CODE_IU,
-		portCode->stringAttribute(IUPortCode::OSKEY_UNIT_NAME));
-	    iuPortCode->setAttribute(
-		RF_PORT_CODE_INDEX_WIDTH,
-		portCode->stringAttribute(IUPortCode::OSKEY_INDEX_WIDTH));
+        ObjectState* portCode = omTable->child(i);
+        if (portCode->name() == IUPortCode::OSNAME_IU_PORT_CODE) {
+            ObjectState* iuPortCode = new ObjectState(IU_PORT_CODE);
+            scTable->addChild(iuPortCode);
+            iuPortCode->setAttribute(
+                IU_PORT_CODE_IU,
+                portCode->stringAttribute(IUPortCode::OSKEY_UNIT_NAME));
+            iuPortCode->setAttribute(
+                RF_PORT_CODE_INDEX_WIDTH,
+                portCode->stringAttribute(IUPortCode::OSKEY_INDEX_WIDTH));
+
+            if (portCode->hasAttribute(PortCode::OSKEY_MAX_INDEX))
+                iuPortCode->setAttribute(
+                    RF_PORT_CODE_MAX_INDEX,
+                    portCode->stringAttribute(PortCode::OSKEY_MAX_INDEX));
+
             if (portCode->hasAttribute(IUPortCode::OSKEY_ENCODING)) {
                 ObjectState* encoding = new ObjectState(
                     RF_PORT_CODE_ENCODING);
@@ -456,7 +504,7 @@ BEMSerializer::socketCodeTableToFile(const ObjectState* omTable) {
                 extraBits->setValue(
                     portCode->stringAttribute(IUPortCode::OSKEY_EXTRA_BITS));
             }
-	}
+        }
     }
 
     return scTable;
@@ -477,23 +525,23 @@ BEMSerializer::longImmTagToFile(const ObjectState* immTag) {
     ObjectState* position = new ObjectState(LIMM_TAG_POSITION);
     fileTag->addChild(position);
     position->setValue(
-	immTag->stringAttribute(ImmediateControlField::OSKEY_POSITION));
+        immTag->stringAttribute(ImmediateControlField::OSKEY_POSITION));
     ObjectState* extraBits = new ObjectState(LIMM_TAG_EXTRA_BITS);
     fileTag->addChild(extraBits);
     extraBits->setValue(
-	immTag->stringAttribute(ImmediateControlField::OSKEY_EXTRA_BITS));
+        immTag->stringAttribute(ImmediateControlField::OSKEY_EXTRA_BITS));
 
     // create map elements
     for (int i = 0; i < immTag->childCount(); i++) {
-	ObjectState* child = immTag->child(i);
-	assert(child->name() == ImmediateControlField::OSNAME_TEMPLATE_MAP);
-	ObjectState* map = new ObjectState(LIMM_TAG_MAP);
-	fileTag->addChild(map);
-	map->setAttribute(
-	    LIMM_TAG_MAP_NAME,
-	    child->stringAttribute(
-		ImmediateControlField::OSKEY_TEMPLATE_NAME));
-	map->setValue(child->stringAttribute(
+        ObjectState* child = immTag->child(i);
+        assert(child->name() == ImmediateControlField::OSNAME_TEMPLATE_MAP);
+        ObjectState* map = new ObjectState(LIMM_TAG_MAP);
+        fileTag->addChild(map);
+        map->setAttribute(
+            LIMM_TAG_MAP_NAME,
+            child->stringAttribute(
+                ImmediateControlField::OSKEY_TEMPLATE_NAME));
+        map->setValue(child->stringAttribute(
                           ImmediateControlField::OSKEY_ENCODING));
     }
 
@@ -543,7 +591,6 @@ BEMSerializer::moveSlotToFile(const ObjectState* slotState) {
             DestinationField::OSNAME_DESTINATION_FIELD);
         slot->addChild(destinationFieldToFile(destinationField));
     }
-
     return slot;
 }
 
@@ -738,7 +785,6 @@ BEMSerializer::destinationFieldToFile(const ObjectState* dFieldState) {
     return destination;
 }
 
-
 /**
  * Converts the given ObjectState tree that represents either source or
  * destination in BEM object model to BEM file format.
@@ -791,7 +837,7 @@ BEMSerializer::slotFieldToFile(const ObjectState* sFieldState) {
        }
    }
    
-   // add no-operation element
+   // add move no-operation element
    if (sFieldState->hasChild(NOPEncoding::OSNAME_NOP_ENCODING)) {
        ObjectState* nopEncoding = sFieldState->childByName(
            NOPEncoding::OSNAME_NOP_ENCODING);
@@ -946,8 +992,8 @@ BEMSerializer::socketCodeTableToOM(const ObjectState* scTable) {
 ObjectState*
 BEMSerializer::longImmTagToOM(const ObjectState* immTag) {
 
-    ObjectState* immControlField = new ObjectState(
-        ImmediateControlField::OSNAME_IMM_CONTROL_FIELD);
+    ObjectState* immControlField = 
+        new ObjectState(ImmediateControlField::OSNAME_IMM_CONTROL_FIELD);
     ObjectState* pos = immTag->childByName(LIMM_TAG_POSITION);
     immControlField->setAttribute(
         ImmediateControlField::OSKEY_POSITION, pos->stringValue());
@@ -1316,7 +1362,6 @@ BEMSerializer::longImmDstRegFieldToOM(const ObjectState* fileField) {
 
     return omState;
 }
-
 
 /**
  * Reads rf-port-code or iu-port-code element from an ObjectState tree that

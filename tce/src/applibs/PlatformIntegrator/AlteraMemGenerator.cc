@@ -80,15 +80,15 @@ AlteraMemGenerator::instantiateAlteraTemplate(
 void
 AlteraMemGenerator::addMemory(
     const ProGe::NetlistBlock& ttaCore,
-    ProGe::Netlist& netlist,
-    int memIndex) {
+    ProGe::NetlistBlock& integratorBlock,
+    int memIndex,
+    int coreId) {
 
-    ProGe::NetlistBlock& topBlock = netlist.topLevelBlock();
     TCEString addrwGeneric = Conversion::toString(memoryAddrWidth());
     TCEString datawGeneric = Conversion::toString(memoryTotalWidth());
-    addGenerics(topBlock, addrwGeneric, datawGeneric, memIndex);
+    addGenerics(integratorBlock, addrwGeneric, datawGeneric, memIndex);
 
-    MemoryGenerator::addMemory(ttaCore, netlist, memIndex);
+    MemoryGenerator::addMemory(ttaCore, integratorBlock, memIndex, coreId);
 }
 
 
@@ -100,25 +100,28 @@ AlteraMemGenerator::addGenerics(
     int memIndex) {
     
     if (!topBlock.hasParameter(DEV_FAMILY_G)) {
-        ProGe::Netlist::Parameter devFamilyTop = 
+        ProGe::Parameter devFamilyTop =
             {DEV_FAMILY_G, "string", platformIntegrator()->deviceFamily()};
         topBlock.setParameter(devFamilyTop);
     }
-    ProGe::Netlist::Parameter devFamilyComp = 
+    ProGe::Parameter devFamilyComp =
         {DEV_FAMILY_G, "string", DEV_FAMILY_G};
     addParameter(devFamilyComp);
 
     TCEString initFileGenericTop;
-    initFileGenericTop << instanceName(memIndex) << "_" << INIT_FILE_G;
-    ProGe::Netlist::Parameter initFileParamTop = 
-        {initFileGenericTop, "string", initializationFile()};
+    // coreId is 0 because homogenous multicores share the same memory image
+    initFileGenericTop
+        << instanceName(0, memIndex) << "_" << INIT_FILE_G;
+
+    ProGe::Parameter initFileParamTop(
+        initFileGenericTop, "string", initializationFile());
     topBlock.setParameter(initFileParamTop);
-    ProGe::Netlist::Parameter initFileParamComp =
-        {INIT_FILE_G, "string", initFileParamTop.name};
+    ProGe::Parameter initFileParamComp(
+        INIT_FILE_G, "string", initFileParamTop.name());
     addParameter(initFileParamComp);
 
-    ProGe::Netlist::Parameter addrw = {ADDRW_G,"integer", addrWidth};
-    ProGe::Netlist::Parameter memw =  {DATAW_G, "integer", dataWidth};
+    ProGe::Parameter addrw(ADDRW_G,"integer", addrWidth);
+    ProGe::Parameter memw(DATAW_G, "integer", dataWidth);
     addParameter(addrw);
     addParameter(memw);
 }

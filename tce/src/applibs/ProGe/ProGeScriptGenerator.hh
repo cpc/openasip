@@ -46,6 +46,8 @@ namespace IDF {
  * Class for script generating objects.
  *
  * Base class for script generating.
+ * simulationRuntime defaults to 52390ns, can be changed in generateprocessor
+ * with a command line parameter, but not in ProDe yet. TODO.
  */
 class ProGeScriptGenerator {
 public:
@@ -56,7 +58,8 @@ public:
         const std::string& progeOutDir,
         const std::string& sharedOutDir,
         const std::string& testBenchDir,
-        const std::string& toplevelEntity);
+        const std::string& toplevelEntity,
+        const std::string& simulationRuntime = "52390");
 
     virtual ~ProGeScriptGenerator();
 
@@ -75,12 +78,17 @@ public:
     void generateIverilogSimulate();
 
 private:
-    void generateStart(
-        std::ostream& stream);
+    void generateCompileStart(std::ostream& stream);
+    void generateSimulationStart(std::ostream& stream);
     void createExecutableFile(const std::string& fileName);
     void outputScriptCommands(
         std::ostream& stream,
         const std::list<std::string>& files,
+        const std::string& cmdPrefix,
+        const std::string& cmdPostfix);
+    void outputScriptCommand(
+        std::ostream& stream,
+        const std::string& file,
         const std::string& cmdPrefix,
         const std::string& cmdPostfix);
     template<typename T>
@@ -113,6 +121,7 @@ private:
         int start = 0,
         int end = -1);
     void fetchFiles();
+    void packageFilesFirst();
     void prepareFiles();
     
     // destination directory where scripts are generated.
@@ -149,6 +158,9 @@ private:
     const std::string toplevelEntity_;
     const IDF::MachineImplementation& idf_;
     const ProGe::HDL language_;
+
+    // HDL simulation runtime in nanoseconds
+    const std::string simulationRuntime_;
 };
 
 #include "ProGeScriptGenerator.icc"

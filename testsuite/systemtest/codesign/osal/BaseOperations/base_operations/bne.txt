@@ -1,0 +1,11 @@
+bne 13 0 10
+!register programcounter
+bne 20 -1 65
+!register programcounter
+bne 1 1 67
+!register programcounter
+bne -30 40 123
+!register programcounter
+bne -1 -1 126
+!register programcounter
+!quit

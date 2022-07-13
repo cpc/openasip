@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2014 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of ImmediateControlField class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2014
  * @note rating: red
  */
 

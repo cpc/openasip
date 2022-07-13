@@ -59,23 +59,23 @@ AvalonMMMasterInterface::AvalonMMMasterInterface(
     SOPCInterface(name, declaration), avalonPrefix_(avalonPrefix),
     clock_(&clock) {
 
-    SOPCPort addr = {"", AVALON_MM_ADDRESS, HDB::OUT, ADDRESS_DEF_WIDTH};
+    SOPCPort addr = {"", AVALON_MM_ADDRESS, ProGe::OUT, ADDRESS_DEF_WIDTH};
     masterPorts_.push_back(addr);
-    SOPCPort wdata = {"", AVALON_MM_WDATA, HDB::OUT, WDATA_DEF_WIDTH};
+    SOPCPort wdata = {"", AVALON_MM_WDATA, ProGe::OUT, WDATA_DEF_WIDTH};
     masterPorts_.push_back(wdata);
-    SOPCPort rdata = {"", AVALON_MM_RDATA, HDB::IN, RDATA_DEF_WIDTH};
+    SOPCPort rdata = {"", AVALON_MM_RDATA, ProGe::IN, RDATA_DEF_WIDTH};
     masterPorts_.push_back(rdata);
-    SOPCPort read = {"", AVALON_MM_READ, HDB::OUT, READ_DEF_WIDTH};
+    SOPCPort read = {"", AVALON_MM_READ, ProGe::OUT, READ_DEF_WIDTH};
     masterPorts_.push_back(read);
-    SOPCPort write = {"", AVALON_MM_WRITE, HDB::OUT, WRITE_DEF_WIDTH};
+    SOPCPort write = {"", AVALON_MM_WRITE, ProGe::OUT, WRITE_DEF_WIDTH};
     masterPorts_.push_back(write);
     SOPCPort bEnable =
-        {"", AVALON_MM_BYTE_ENABLE, HDB::OUT, BYTE_ENABLE_DEF_WIDTH};
+        {"", AVALON_MM_BYTE_ENABLE, ProGe::OUT, BYTE_ENABLE_DEF_WIDTH};
     masterPorts_.push_back(bEnable);
     SOPCPort waitReq =
-        {"", AVALON_MM_WAIT_REQ, HDB::IN, WAIT_REQ_DEF_WIDTH};
+        {"", AVALON_MM_WAIT_REQ, ProGe::IN, WAIT_REQ_DEF_WIDTH};
     masterPorts_.push_back(waitReq);
-    SOPCPort irqRecv = {"", AVALON_MM_IRQ_RECV, HDB::IN, IRQ_RECV_DEF_WIDTH};
+    SOPCPort irqRecv = {"", AVALON_MM_IRQ_RECV, ProGe::IN, IRQ_RECV_DEF_WIDTH};
     masterPorts_.push_back(irqRecv);
 
     // add default properties
@@ -132,7 +132,7 @@ AvalonMMMasterInterface::writeInterface(std::ostream& stream) const {
 const SOPCInterface::SOPCPort*
 AvalonMMMasterInterface::findInterfacePort(
     TCEString hdlName,
-    HDB::Direction direction) const {
+    ProGe::Direction direction) const {
 
     const SOPCPort* found = NULL;
     for (unsigned int i = 0; i < masterPorts_.size(); i++) {

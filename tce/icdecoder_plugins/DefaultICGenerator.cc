@@ -79,8 +79,8 @@ const string SOCKET_DATA_CONTROL_PORT = "data_cntrl";
  * @param machine The machine.
  */
 DefaultICGenerator::DefaultICGenerator(const TTAMachine::Machine& machine) :
-    machine_(machine), icBlock_(NULL), generateBusTrace_(false),
-    generateDebugger_(false), busTraceStartingCycle_(0) {
+    machine_(machine), icBlock_(NULL), generateBusTrace_(false), 
+    exportBustrace_(false), busTraceStartingCycle_(0) {
 }
 
 
@@ -103,42 +103,39 @@ DefaultICGenerator::SetHDL(ProGe::HDL language){
     language_= language;
 } 
 /**
- * Adds the interconnection network block to the given netlist and connects
- * it to the FUs, RFs and IUs.
+ * Adds the interconnection network block under the given netlist block
+ * representing the TTA core and connects it to the FUs, RFs and IUs.
  *
- * @param generator The netlist generator which generated the netlist.
- * @param netlist The netlist.
+ * @param generator The netlist generator which generated the netlist block.
+ * @param coreBlock The netlist block.
  */
 void
 DefaultICGenerator::addICToNetlist(
     const ProGe::NetlistGenerator& generator,
-    ProGe::Netlist& netlist) {
+    ProGe::NetlistBlock& coreBlock) {
 
-    entityNameStr_ = netlist.topLevelBlock().moduleName();
+    entityNameStr_ = coreBlock.moduleName();
     NetlistBlock* icBlock = 
-        new NetlistBlock(
-            entityNameStr_ + "_" + "interconn", "ic", netlist);
+        new NetlistBlock(entityNameStr_ + "_" + "interconn", "ic");
     icBlock_ = icBlock;
-    netlist.topLevelBlock().addSubBlock(icBlock);
+    coreBlock.addSubBlock(icBlock);
     ControlUnit* gcu = machine_.controlUnit();
 
     // Add clock, reset port and glock port
-    NetlistPort* tlClkPort =
-        netlist.topLevelBlock()
-        .portByName(NetlistGenerator::DECODER_CLOCK_PORT);
+    NetlistPort* tlClkPort = coreBlock.port(
+        NetlistGenerator::DECODER_CLOCK_PORT);
     NetlistPort* icClkPort = new NetlistPort(
-        NetlistGenerator::DECODER_CLOCK_PORT, "1", BIT, HDB::IN, *icBlock);
-    netlist.connectPorts(*icClkPort, *tlClkPort);
+        NetlistGenerator::DECODER_CLOCK_PORT, "1", BIT, ProGe::IN, *icBlock);
+    coreBlock.netlist().connect(*icClkPort, *tlClkPort);
 
-    NetlistPort* tlResetPort =
-        netlist.topLevelBlock()
-        .portByName(NetlistGenerator::DECODER_RESET_PORT);
+    NetlistPort* tlResetPort = coreBlock.port(
+        NetlistGenerator::DECODER_RESET_PORT);
     NetlistPort* icResetPort = new NetlistPort(
-        NetlistGenerator::DECODER_RESET_PORT, "1", BIT, HDB::IN, *icBlock);
-    netlist.connectPorts(*icResetPort, *tlResetPort);
+        NetlistGenerator::DECODER_RESET_PORT, "1", BIT, ProGe::IN, *icBlock);
+    coreBlock.netlist().connect(*icResetPort, *tlResetPort);
 
     NetlistPort* icGlockPort = new NetlistPort(
-        "glock", "1", BIT, HDB::IN, *icBlock);
+        "glock", "1", BIT, ProGe::IN, *icBlock);
     setGlockPort(*icGlockPort);
 
     // add data ports and control ports for sockets
@@ -149,22 +146,35 @@ DefaultICGenerator::addICToNetlist(
             continue;
         }
            
-        HDB::Direction socketDirection = convertDirection(
+        ProGe::Direction socketDirection = convertDirection(
             socket->direction());
 
         // add the data port(s)
         if (socket->direction() == Socket::INPUT) {
             int width = inputSocketDataPortWidth(*socket);
-            assert(width > 0);
+            if (width == 0) {
+                abortWithError(
+                    (boost::format(
+                        "data port of the input socket %s is zero!\n")
+                     % socket->name()).str());
+            }
             NetlistPort* socketDataPort = NULL;
             
             // connect the data port to the units
             for (int i = 0; i < socket->portCount(); i++) {
                 Port* port = socket->port(i);
                 NetlistPort* unitPort;
-                
-                // gcu ports must use IMEMADDRWIDTH as width
-                if (isGcuPort(port)) {
+                //RISCV must have 32b pc port due to APC operation
+                if (machine_.RISCVMachine() && port == gcu->triggerPort()) {
+                    socketDataPort = new NetlistPort(
+                        this->inputSocketDataPort(socket->name()), 
+                        Conversion::toString(32), ProGe::BIT_VECTOR,
+                        socketDirection, *icBlock);
+                }
+                // gcu ports pc and ra must use IMEMADDRWIDTH as width
+                else if (isGcuPort(port) && (port == gcu->triggerPort() ||
+                    port == gcu->returnAddressPort())) {
+
                     socket->setDataPortWidth("IMEMADDRWIDTH");
                     socketDataPort = new NetlistPort(
                         this->inputSocketDataPort(socket->name()),
@@ -182,9 +192,9 @@ DefaultICGenerator::addICToNetlist(
                     port == gcu->returnAddressPort()) {
                     unitPort = &generator.gcuReturnAddressInPort();
                 } else {
-                    unitPort = &generator.netlistPort(*port);
+                    unitPort = &generator.netlistPort(*port, ProGe::IN);
                 }
-                netlist.connectPorts(*socketDataPort, *unitPort);
+                coreBlock.netlist().connect(*socketDataPort, *unitPort);
             }
         } else {
             for (int i = 0; i < socket->portCount(); i++) {
@@ -196,7 +206,7 @@ DefaultICGenerator::addICToNetlist(
                 Port* port = socket->port(i);
                 NetlistPort* unitPort;
                 // gcu ports are treated differently
-                if (isGcuPort(port)) {
+                if (isGcuPort(port) && port == gcu->returnAddressPort()) {
                     socket->setDataPortWidth("IMEMADDRWIDTH");
                     socketDataPort = new NetlistPort(
                         outputSocketDataPort(socket->name(), i),
@@ -214,9 +224,9 @@ DefaultICGenerator::addICToNetlist(
                     port == gcu->returnAddressPort()) {
                     unitPort = &generator.gcuReturnAddressOutPort();
                 } else {
-                    unitPort = &generator.netlistPort(*port);
+                    unitPort = &generator.netlistPort(*port, ProGe::OUT);
                 }
-                netlist.connectPorts(*socketDataPort, *unitPort);
+                coreBlock.netlist().connect(*socketDataPort, *unitPort);
             }
         }
         
@@ -229,7 +239,7 @@ DefaultICGenerator::addICToNetlist(
             NetlistPort* icSocketCntrlPort = new NetlistPort(
                 socketBusControlPort(socket->name()), 
                 Conversion::toString(cntrlWidth), cntrlWidth,
-                ProGe::BIT_VECTOR, HDB::IN, *icBlock);
+                ProGe::BIT_VECTOR, ProGe::IN, *icBlock);
             mapBusCntrlPortOfSocket(socket->name(), *icSocketCntrlPort);
         }
         if (dataControlWidth(socket->direction(), socket->portCount()) > 0) {
@@ -239,7 +249,7 @@ DefaultICGenerator::addICToNetlist(
             NetlistPort* icSocketCntrlPort = new NetlistPort(
                 socketDataControlPort(socket->name()), 
                 Conversion::toString(cntrlWidth), cntrlWidth,
-                ProGe::BIT_VECTOR, HDB::IN, *icBlock);
+                ProGe::BIT_VECTOR, ProGe::IN, *icBlock);
             mapDataCntrlPortOfSocket(socket->name(), *icSocketCntrlPort);
         }
     }   
@@ -252,14 +262,15 @@ DefaultICGenerator::addICToNetlist(
             NetlistPort* icSimmPort = new NetlistPort(
                 simmDataPort(bus->name()), 
                 Conversion::toString(simmPortWidth(*bus)),
-                simmPortWidth(*bus), ProGe::BIT_VECTOR, HDB::IN, *icBlock);
+                simmPortWidth(*bus), ProGe::BIT_VECTOR, ProGe::IN, *icBlock);
             mapSImmDataPort(bus->name(), *icSimmPort);
             NetlistPort* icSimmCntrlPort = new NetlistPort(
                 simmControlPort(bus->name()), "1", 1, ProGe::BIT_VECTOR,
-                HDB::IN, *icBlock);
+                ProGe::IN, *icBlock);
             mapSImmCntrlPort(bus->name(), *icSimmCntrlPort);
         }
     }
+
 }
 
 
@@ -272,8 +283,8 @@ DefaultICGenerator::addICToNetlist(
 void
 DefaultICGenerator::generateInterconnectionNetwork(
     const std::string& dstDirectory) {
-    generateSockets(dstDirectory);
-    
+    generateSocketsAndMuxes(dstDirectory);
+
     // generate interconnection network
     string icFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR + 
         ((language_==Verilog)?"ic.v":"ic.vhdl");
@@ -313,15 +324,11 @@ DefaultICGenerator::verifyCompatibility() const {
     }
 }
 
-/**
- * Enables or disables generating debugger code.
- *
- * @param generate Tells whether to generate the debugger code.
- */
 void
-DefaultICGenerator::setGenerateDebugger(bool generate) {
-    generateDebugger_ = generate;
+DefaultICGenerator::setExportBustrace(bool export_bt) {
+    exportBustrace_ = export_bt;
 }
+
 
 /**
  * Enables or disables generating bus trace code.
@@ -380,22 +387,28 @@ DefaultICGenerator::outputSocketCntrlPinForSegment(
  * @exception IOException If an IO error occurs.
  */
 void
-DefaultICGenerator::generateSockets(const std::string& dstDirectory) const {
+DefaultICGenerator::generateSocketsAndMuxes(const std::string& dstDirectory) {
     bool needSimmSocket = true;
-    std::set<Socket*> generatedSockets;
     Machine::SocketNavigator socketNav = machine_.socketNavigator();
     for (int i = 0; i < socketNav.count(); i++) {
         Socket* socket = socketNav.item(i);
         if (socket->portCount() > 0 && socket->segmentCount() > 0 &&
-            !containsSimilarSocket(generatedSockets, *socket)) {
+            !socketIsGenerated(*socket)) {
             generateSocket(
                 socket->direction(), socket->portCount(),
                 socket->segmentCount(), dstDirectory);
-            generatedSockets.insert(socket);
 
             if (socket->portCount() == 1 && socket->segmentCount() == 1
-                && socket->direction() == Socket::OUTPUT) {
+                && socket->direction() == TTAMachine::Socket::OUTPUT) {
                 needSimmSocket = false;
+            }
+            if (socket->direction() == TTAMachine::Socket::OUTPUT) {
+                generatedOutputSockets_.emplace(socket->portCount(),
+                                                socket->segmentCount());
+            } else {
+                generatedInputSockets_.emplace(socket->portCount(),
+                                               socket->segmentCount());
+
             }
         }
     }
@@ -407,6 +420,7 @@ DefaultICGenerator::generateSockets(const std::string& dstDirectory) const {
             Bus* bus = busNav.item(i);
             if (bus->immediateWidth() > 0) {
                 generateSocket(Socket::OUTPUT, 1, 1, dstDirectory);
+                generatedOutputSockets_.emplace(1, 1);
             }
         }
     }
@@ -457,15 +471,13 @@ DefaultICGenerator::generateSocket(
         stream << "library IEEE;" << endl;
         stream << "use IEEE.std_logic_1164.all;" << endl;
         stream << "use IEEE.std_logic_arith.all;" << endl;
-        if (direction == Socket::OUTPUT) {
-            stream << "use work.tce_util.all;" << endl;
-        }
+        stream << "use work.tce_util.all;" << endl;
     } else {
         //nothing for verilog
     }
     stream << endl;
     if (direction == Socket::INPUT) {
-        generateInputSocket(segmentConns, stream);
+        generateInputMux(segmentConns, stream);
     } else if (direction == Socket::OUTPUT) {
         generateOutputSocket(portConns, segmentConns, stream);
     } else {
@@ -481,20 +493,20 @@ DefaultICGenerator::generateSocket(
  * @param stream The stream.
  */
 void
-DefaultICGenerator::generateInputSocket(
+DefaultICGenerator::generateInputMux(
     int segmentConns,
     std::ofstream& stream) const {
     
     assert(segmentConns > 0);
     if (language_ == VHDL) {
-        string entityName = socketEntityName(Socket::INPUT, 1, segmentConns);
+        string entityName = inputMuxEntityName(segmentConns);
         stream << "entity " << entityName << " is" << endl << endl;
         writeInputSocketComponentDeclaration(VHDL,segmentConns, 1, stream);
         stream << endl << "end " << entityName << ";" << endl << endl;
         
-        stream << "architecture input_socket of " << entityName << " is"
-               << endl;
-        stream << "begin" << endl << endl;
+        stream << "architecture rtl of " << entityName << " is"
+               << endl
+               << "begin" << endl << endl;
         stream << indentation(2) 
                << "-- If width of input bus is greater than width of output,"
                << endl;
@@ -520,6 +532,8 @@ DefaultICGenerator::generateInputSocket(
             }
             
             stream << indentation(1) << "begin" << endl;
+            stream << indentation(2) << INPUT_SOCKET_DATA_PORT
+                   << " <= (others => '0');" << endl;
             stream << indentation(2) << "case " << SOCKET_BUS_CONTROL_PORT 
                    << " is" << endl;
             
@@ -542,13 +556,15 @@ DefaultICGenerator::generateInputSocket(
             stream << indentation(1) << "process (" << inputSocketBusPort(0)
                    << ")" << endl;
             stream << indentation(1) << "begin" << endl;
+            stream << indentation(2) << INPUT_SOCKET_DATA_PORT
+                   << " <= (others => '0');" << endl;
             generateInputSocketRuleForBus(0, 2, stream);
             stream << indentation(1) << "end process;" << endl;
         }
         
-        stream << "end input_socket;" << endl;
+        stream << "end rtl;" << endl;
     } else {
-        string entityName = socketEntityName(Socket::INPUT, 1, segmentConns);
+        string entityName = inputMuxEntityName(segmentConns);
         stream << "`timescale 10ns/1ns" << endl
                << "module " << entityName << "" << endl << endl;
         writeInputSocketComponentDeclaration(Verilog,segmentConns, 1, stream);
@@ -612,8 +628,8 @@ DefaultICGenerator::generateInputSocketRuleForBus(
     int bus, int ind, std::ofstream& stream) const {
     if (language_ == VHDL) {
         stream << indentation(ind) << INPUT_SOCKET_DATA_PORT
-               << " <= ext(" << inputSocketBusPort(bus) << ", "
-               << INPUT_SOCKET_DATA_PORT << "'length);" << endl;
+               << " <= tce_ext(" << inputSocketBusPort(bus)
+               << ", " << INPUT_SOCKET_DATA_PORT << "'length);" << endl;
     } else {
         stream << indentation(ind) << "if (" << busWidthGeneric(bus) << " < " 
                << INPUT_SOCKET_DATAW_GENERIC << ")" << endl
@@ -644,15 +660,14 @@ DefaultICGenerator::generateOutputSocket(
     int segmentConns,
     std::ofstream& stream) const {
     
-    string entityName = socketEntityName(
-        Socket::OUTPUT, portConns, segmentConns);
+    string entityName = outputSocketEntityName(segmentConns, portConns);
     if (language_ == VHDL) {
         stream << "entity " << entityName << " is" << endl;
         writeOutputSocketComponentDeclaration(VHDL,
             portConns, segmentConns, 1, stream);
         stream << "end " << entityName << ";" << endl << endl << endl;
         
-        stream << "architecture output_socket_andor of " << entityName 
+        stream << "architecture output_socket_andor of " << entityName
                << " is" << endl << endl;
 
         if (portConns > 1) {
@@ -708,7 +723,7 @@ DefaultICGenerator::generateOutputSocket(
                 } else {
                     stream << "else" << endl;
                 }
-                stream << indentation(3) << "data <= sxt(" 
+                stream << indentation(3) << "data <= tce_sxt("
                        << outputSocketDataPort(i) << ", data'length);" 
                        << endl;
             }
@@ -727,7 +742,7 @@ DefaultICGenerator::generateOutputSocket(
 
         for (int i = 0; i < segmentConns; i++) {
             stream << indentation(2) << "databus_" << i 
-                   << "_temp <= data and sxt(" << SOCKET_BUS_CONTROL_PORT 
+                   << "_temp <= data and tce_sxt(" << SOCKET_BUS_CONTROL_PORT
                    << "(" << i << " downto " << i << "), data'length);" 
                    << endl;
         }
@@ -750,7 +765,7 @@ DefaultICGenerator::generateOutputSocket(
             
         for (int i = 0; i < segmentConns; i++) {
             stream << indentation(2) << outputSocketBusPort(i)
-                   << " <= ext(databus_" << i << "_temp, "
+                   << " <= tce_ext(databus_" << i << "_temp, "
                    << outputSocketBusPort(i) << "'length);" << endl;
         }
         stream << indentation(1) << "end process output;" << endl << endl;
@@ -876,8 +891,8 @@ DefaultICGenerator::generateOutputSocket(
             stream << indentation(2) << "if(" << busWidthGeneric(i) 
                    << " < " << data_length << ")" << endl;
             stream << indentation(3) << outputSocketBusPort(i) 
-                   << " = databus_" << i << "_temp[" << busWidthGeneric(i)
-                   << "-1 : 0];" << endl;
+                   << " = databus_" << i << "_temp;" << endl;
+                   //"[" << busWidthGeneric(i) << "-1 : 0];" << endl;
             stream << indentation(2) << "else" << endl;
             stream << indentation(3) << outputSocketBusPort(i) 
                    << " = $unsigned(databus_" << i << "_temp);" 
@@ -894,7 +909,7 @@ DefaultICGenerator::generateOutputSocket(
  * @param stream The stream.
  */
 void
-DefaultICGenerator::writeDebuggerCode(std::ostream& stream) const {
+DefaultICGenerator::writeBustraceExportCode(std::ostream& stream) const {
     stream << indentation(1) << "db_bustraces <= " << endl;
 
     Machine::BusNavigator busNav = machine_.busNavigator();
@@ -908,15 +923,11 @@ DefaultICGenerator::writeDebuggerCode(std::ostream& stream) const {
         int idx = busNav.count() - 1 - i;
         int busWidth = busNav.item(idx)->width();
 
-        if (busWidth < 32) { // Pad short busses with zeroes
+        if (busWidth % 32 != 0) { // Pad busses to multiple of 32b with zeroes
             stream << "\"" << string(32 - busWidth, '0') << "\"&";
         }
 
         stream << busSignal(*busNav.item(idx));
-
-        if (busWidth > 32) { // Truncate large busses
-            stream << "(31 downto 0)";
-        }
 
         if (i != busNav.count() - 1) {
             stream << " & ";
@@ -928,10 +939,10 @@ DefaultICGenerator::writeDebuggerCode(std::ostream& stream) const {
             stream << ";";
         }
 
-        
     }
     stream << endl;
 }
+
 
 /**
  * Writes the interconnection network to the given stream.
@@ -940,7 +951,6 @@ DefaultICGenerator::writeDebuggerCode(std::ostream& stream) const {
  */
 void
 DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
-
     if (language_ == VHDL) {
         stream << "library IEEE;" << endl;
         stream << "use IEEE.std_logic_1164.all;" << endl;
@@ -953,22 +963,20 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
             stream << "use IEEE.std_logic_textio.all;" << endl;
         }
         stream << "use work." << entityNameStr_ << "_globals.all;" << endl
+               << "use work.tce_util.all;" << endl
                << endl;
-            
+
         string entityName = entityNameStr_ + "_interconn";
         stream << "entity " << entityName << " is" << endl << endl;
 
-        if (generateDebugger_
-            && (icBlock_->portByName("db_bustraces") == NULL)) {
-            //Assume that all buses are 32-bit
-            Machine::BusNavigator busNav = machine_.busNavigator();
-            int bustrace_width = 32*busNav.count();
-
+        if (exportBustrace_ && (icBlock_->port("db_bustraces") == NULL)) {
             new NetlistPort(
-                "db_bustraces", "32*BUSCOUNT",
-                bustrace_width, ProGe::BIT_VECTOR, HDB::OUT, *icBlock_);
+                "db_bustraces", "BUSTRACE_WIDTH",
+                ProGe::BIT_VECTOR, ProGe::OUT, *icBlock_);
         }
 
+        VHDLNetlistWriter::writeGenericDeclaration(
+            *icBlock_, 1, indentation(1), stream);
         VHDLNetlistWriter::writePortDeclaration(
             *icBlock_, 1, indentation(1), stream);
 
@@ -988,11 +996,11 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
             stream << endl;
         }
 
-        if (generateDebugger_) {
-            writeDebuggerCode(stream);
+        if (exportBustrace_) {
+            writeBustraceExportCode(stream);
             stream << endl;
         }
-            
+
         // Sort sockets by name to get deterministic order in HDL.
         Machine::SocketNavigator socketNav = machine_.socketNavigator();
         std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
@@ -1009,9 +1017,7 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
                 continue;
             }
             stream << indentation(1) << socket->name() << " : " 
-                   << socketEntityName(
-                       socket->direction(), socket->portCount(),
-                       socket->segmentCount())
+                   << socketEntityName(*socket)
                    << endl;
             stream << indentation(2) << "generic map (" << endl;
             for (int i = 0; i < segmentCount; i++) {
@@ -1033,6 +1039,13 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
                     } else {
                         socketWidth =
                             Conversion::toString(socket->port(i)->width());
+                    }
+                    if (socket->portCount() > 0 && machine_.RISCVMachine()) {
+                        ControlUnit* gcu = machine_.controlUnit();
+                        if (isGcuPort(socket->port(0)) &&
+                        socket->port(0) == gcu->triggerPort()) {
+                            socketWidth = Conversion::toString(32);
+                        }
                     }
                     stream << indentation(3) << dataWidthGeneric(i) 
                            << " => " << socketWidth;
@@ -1112,7 +1125,7 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
                 stream << indentation(3) << outputSocketDataPort(0) << " => " 
                        << simmDataPort(bus->name()) << "," << endl;
                 stream << indentation(3) << SOCKET_BUS_CONTROL_PORT << " => "
-                       << simmControlPort(bus->name()) << ");" << endl << endl;  
+                       << simmControlPort(bus->name()) << ");" << endl << endl;
             }
         }
 
@@ -1120,9 +1133,10 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
         for (int i = 0; i < busNav.count(); i++) {
             Bus* bus = busNav.item(i);
             std::set<Socket*> outputSockets = this->outputSockets(*bus);
-            // Skip bus assignment if no one can write into it.
             if (outputSockets.size() == 0 && bus->immediateWidth() == 0) {
-                continue;
+                stream << indentation(1) << busSignal(*bus) 
+                           << " <= (others=>'0');" << endl;
+                    continue;
             }
             // Sort sockets by name to get deterministic HDL output.
             std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
@@ -1132,11 +1146,10 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
             }
 
             stream << indentation(1) << busSignal(*bus) << " <= ";
-            for (std::set<Socket*,
-                    Component::ComponentNameComparator>::const_iterator iter =
-                     socketsToWrite.begin(); iter != socketsToWrite.end();) {
+            for (auto iter = socketsToWrite.begin(); 
+                 iter != socketsToWrite.end();) {
                 Socket* socket = *iter;
-                stream << "ext(" << busAltSignal(*bus, *socket)
+                stream << "tce_ext(" << busAltSignal(*bus, *socket)
                        << ", " << busSignal(*bus) << "'length)";
                 iter++;
                 if (iter != socketsToWrite.end()) {
@@ -1148,9 +1161,9 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
                     stream << " or ";
                 }
                 if (bus->signExtends()) {
-                    stream << "sxt(";
+                    stream << "tce_sxt(";
                 } else if (bus->zeroExtends()) {
-                    stream << "ext(";
+                    stream << "tce_ext(";
                 } else {
                     assert(false && "Unknown extension policy.");
                 }
@@ -1162,6 +1175,7 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
             
         stream << endl;
         stream << "end comb_andor;" << endl;
+
     } else { // language_ == Verilog
         const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
         string entityName = entityNameStr_ + "_interconn";
@@ -1175,8 +1189,10 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
 
         VerilogNetlistWriter::writePortDeclaration(
             *icBlock_, 1, indentation(1), stream);
-        // create architecture
+        VerilogNetlistWriter::writeGenericDeclaration(
+            *icBlock_, 1, indentation(1), stream);
 
+        // create architecture
         createSignalsForIC(stream);
         stream << endl;
 
@@ -1199,11 +1215,7 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
             if (segmentCount == 0 || socket->portCount() == 0) {
                 continue;
             }
-            stream << indentation(1)
-                   << socketEntityName(
-                       socket->direction(), socket->portCount(),
-                       socket->segmentCount())
-                   << endl;
+            stream << indentation(1) << socketEntityName(*socket) << endl;
             
             //parameters(generics)
             stream << indentation(2) << "#(" << endl;
@@ -1359,25 +1371,33 @@ DefaultICGenerator::createSignalsForIC(std::ostream& stream) {
     if (language_ == VHDL){
         for (int i = 0; i < busNav.count(); i++) {
             Bus* bus = busNav.item(i);
-            // create signal for the bus
-            stream << indentation(1) << "signal " << busSignal(*bus) 
-                   << " : std_logic_vector(" << bus->width() - 1 
-                   << " downto 0);" << endl;
-                
-            // create a signal for all the output sockets connected to the bus
+
+            if (isBusConnected(*bus)) {
+                // create signal for the bus
+                stream << indentation(1) << "signal " << busSignal(*bus)
+                       << " : std_logic_vector(" << bus->width() - 1
+                       << " downto 0);" << endl;
+            }
+
+            // create a signal for all the output sockets connected to the
+            // bus
             // Sort alphabetically to get deterministic HDL output.
             std::set<Socket*> outputSockets = this->outputSockets(*bus);
-            std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
+            std::set<Socket*, Component::ComponentNameComparator>
+                socketsToWrite;
             for (std::set<Socket*>::iterator iter = outputSockets.begin();
                     iter != outputSockets.end(); iter++) {
                 socketsToWrite.insert(*iter);
             }
 
-            for (std::set<Socket*, Component::ComponentNameComparator>::iterator
-                    iter = socketsToWrite.begin(); iter != socketsToWrite.end();
+            for (std::set<Socket*,
+                          Component::ComponentNameComparator>::iterator
+                    iter = socketsToWrite.begin();
+                    iter != socketsToWrite.end();
                     iter++) {
-                stream << indentation(1) << "signal " 
-                       << busAltSignal(*bus, **iter) << " : std_logic_vector("
+                stream << indentation(1) << "signal "
+                       << busAltSignal(*bus, **iter)
+                       << " : std_logic_vector("
                        << maxOutputSocketDataPortWidth(**iter) - 1
                        << " downto 0);" << endl;
             }
@@ -1430,45 +1450,23 @@ DefaultICGenerator::createSignalsForIC(std::ostream& stream) {
 void
 DefaultICGenerator::declareSocketEntities(std::ostream& stream) const {
 
-    std::set<string> declaredSockets;
-    // Sort sockets by name to get deterministic HDL output.
-    std::set<Socket*, Component::ComponentNameComparator> socketsToWrite;
-    Machine::SocketNavigator socketNav = machine_.socketNavigator();
-    for (int i = 0; i < socketNav.count(); i++) {
-        socketsToWrite.insert(socketNav.item(i));
+    for (auto iter = generatedInputSockets_.begin();
+         iter != generatedInputSockets_.end(); iter++) {
+        int segmentCount = iter->second;
+        string entityName = inputMuxEntityName(segmentCount);
+        stream << indentation(1) << "component " << entityName << " is" << endl;
+        writeInputSocketComponentDeclaration(VHDL, segmentCount, 2, stream);
+        stream << indentation(1) << "end component;" << endl << endl;
     }
 
-    for (std::set<Socket*,
-            Component::ComponentNameComparator>::const_iterator iter =
-            socketsToWrite.begin(); iter != socketsToWrite.end(); iter++) {
-        Socket* socket = *iter;
-        if (socket->segmentCount() > 0 && socket->portCount() > 0 &&
-            !AssocTools::containsKey(
-                declaredSockets, socketEntityName(
-                    socket->direction(), socket->portCount(),
-                    socket->segmentCount()))) {
-            string entityName = socketEntityName(
-                socket->direction(), socket->portCount(),
-                socket->segmentCount());
-            declaredSockets.insert(entityName);
-            stream << indentation(1) << "component " << entityName << endl;
-            if (socket->direction() == Socket::INPUT) {
-                writeInputSocketComponentDeclaration(VHDL,
-                    socket->segmentCount(), 2, stream);
-            } else {
-                writeOutputSocketComponentDeclaration(VHDL,
-                    socket->portCount(), socket->segmentCount(), 2, stream);
-            }
-            stream << indentation(1) << "end component;" << endl << endl;
-        }
-    }
-    
-    // adding declaration for a output_socket_1_1 needed by short immediates
-    // if it didn't already exist
-    string entityName = socketEntityName(Socket::OUTPUT, 1, 1);
-    if (!AssocTools::containsKey(declaredSockets, entityName)) {
-        stream << indentation(1) << "component " << entityName << endl;
-        writeOutputSocketComponentDeclaration(VHDL,1, 1, 2, stream);
+    for (auto iter = generatedOutputSockets_.begin();
+         iter != generatedOutputSockets_.end(); iter++) {
+        int portCount = iter->first;
+        int segmentCount = iter->second;
+        string entityName = outputSocketEntityName(segmentCount, portCount);
+        stream << indentation(1) << "component " << entityName << " is" << endl;
+        writeOutputSocketComponentDeclaration(VHDL, portCount, segmentCount,
+                                              2, stream);
         stream << indentation(1) << "end component;" << endl << endl;
     }
 }
@@ -1748,8 +1746,10 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                << "-- setting DUMP false will disable dumping" << endl << endl;
         stream << indentation(1) << "-- Do not synthesize this process!" << endl;
         stream << indentation(1) << "-- pragma synthesis_off" << endl;
+        stream << indentation(1) << "-- pragma translate_off" << endl;
 
-        stream << indentation(1) << "file_output : process" << endl << endl;
+        stream << indentation(1) << "file_output : process" << endl
+               << endl;
         stream << indentation(2)
                << "file regularfileout : text;" << endl;
         stream << indentation(2)
@@ -1782,7 +1782,11 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
         stream << indentation(4) << "start := false;" << endl;
         stream << indentation(3) << "end if;" << endl << endl;
         
-        stream << indentation(3) << "wait for PERIOD;" << endl;
+        stream << indentation(3) << "-- wait until rising edge of clock"
+               << endl;
+        stream << indentation(3)
+               << "wait on clk until clk = '1' and clk'last_value = '0';"
+               << endl;
         int ind = 3;
         if (busTraceStartingCycle_ > 0) {
             stream << indentation(3) << "if (cyclecount > "
@@ -1802,7 +1806,7 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                    << "write(lineout, to_unsigned_hex("
                    << busSignal(*busNav.item(i)) << "));" << endl;
         }
-        
+
         stream << endl << indentation(ind)
                << "writeline(regularfileout, lineout);" << endl;
 
@@ -1829,6 +1833,7 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
         stream << indentation(3) << "cyclecount := cyclecount + 1;" << endl;
         stream << indentation(2) << "end if;" << endl;
         stream << indentation(1) << "end process file_output;" << endl;
+        stream << indentation(1) << "-- pragma translate_on" << endl;
         stream << indentation(1) << "-- pragma synthesis_on" << endl;
 
     } else { // language_ == Verilog
@@ -1907,6 +1912,48 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
 
 
 /**
+ * Checks if given bus is connected to at least one socket.
+ *
+ * @param bus The bus.
+ * @return True if bus is connected to some socket, false if bus is unconnected.
+ */
+bool
+DefaultICGenerator::isBusConnected(const TTAMachine::Bus& bus) {
+    std::set<Socket*> inputSockets;
+    for (int i = 0; i < bus.segmentCount(); i++) {
+        Segment* segment = bus.segment(i);
+        if (segment->connectionCount() > 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+/**
+ * Returns a set of all the input sockets that are connected to the
+ * given bus.
+ *
+ * @param bus The bus.
+ * @return The socket set.
+ */
+std::set<Socket*>
+DefaultICGenerator::inputSockets(const TTAMachine::Bus& bus) {
+    std::set<Socket*> inputSockets;
+    for (int i = 0; i < bus.segmentCount(); i++) {
+        Segment* segment = bus.segment(i);
+        for (int i = 0; i < segment->connectionCount(); i++) {
+            Socket* socket = segment->connection(i);
+            if (socket->direction() == Socket::INPUT) {
+                inputSockets.insert(socket);
+            }
+        }
+    }
+    return inputSockets;
+}
+
+
+/**
  * Returns a set of all the output sockets that are connected to the 
  * given bus.
  *
@@ -1938,35 +1985,34 @@ DefaultICGenerator::outputSockets(const TTAMachine::Bus& bus) {
  * @return True if the set contains similar socket, otherwise false.
  */
 bool
-DefaultICGenerator::containsSimilarSocket(
-    const std::set<TTAMachine::Socket*> set, 
-    const TTAMachine::Socket& socket) {
+DefaultICGenerator::socketIsGenerated(const TTAMachine::Socket& socket) {
 
-    int segmentConns = socket.segmentCount();
-    int portConns = socket.portCount();
-    Socket::Direction direction = socket.direction();
-    for (std::set<Socket*>::const_iterator iter = set.begin(); 
-         iter != set.end(); iter++) {
-        Socket* contained = *iter;
-        if (direction == Socket::INPUT) {
-            if (contained->segmentCount() == segmentConns && 
-                contained->direction() == direction) {
-                return true;
-            }
-        } else if (direction == Socket::OUTPUT) {
-            if (contained->segmentCount() == segmentConns &&
-                contained->portCount() == portConns &&
-                contained->direction() == direction) {
-                return true;
-            }
-        } else {
-            assert(false);
-        }
-    }
-    
-    return false;
+    return socketIsGenerated(socket.segmentCount(),
+                             socket.portCount(), socket.direction());
 }
 
+/**
+ * Tells whether the given socket set contains similar socket to the
+ * given one.
+ *
+ * @param set The socket set.
+ * @param socket The socket.
+ * @return True if the set contains similar socket, otherwise false.
+ */
+bool
+DefaultICGenerator::socketIsGenerated(int segmentConns, int portConns,
+                                      Socket::Direction direction) {
+
+    auto test_pair = std::make_pair(portConns, segmentConns);
+
+    if (direction == Socket::INPUT) {
+        return generatedInputSockets_.count(test_pair) == 1;
+    } else if (direction == Socket::OUTPUT) {
+        return generatedOutputSockets_.count(test_pair) == 1;
+    } else {
+        assert(false);
+    }
+}
 
 /**
  * Returns the control value that selects the given port if the socket
@@ -2022,6 +2068,10 @@ DefaultICGenerator::inputSocketControlValue(
     throw NotAvailable(__FILE__, __LINE__, __func__);
 }
 
+const DefaultICGenerator::BusSocketMap
+DefaultICGenerator::getBusConnections() const {
+    return busConnections;
+}
 /**
  * Calculates the width of the data port of the given input socket.
  *
@@ -2115,7 +2165,7 @@ DefaultICGenerator::dataControlWidth(
     TTAMachine::Socket::Direction direction,
     int portConns) {
 
-    if (direction == Socket::OUTPUT) { // && portConns > 1) {
+    if (direction == Socket::OUTPUT) {
         return MathTools::bitLength(portConns - 1);
     } else {
         return 0;
@@ -2258,6 +2308,21 @@ DefaultICGenerator::outputSocketDataPort(int port) {
 }
 
 
+std::string
+DefaultICGenerator::busMuxDataPort(const TTAMachine::Bus& bus, int index) {
+    return bus.name() + "_data_" + Conversion::toString(index) + "_in";
+}
+
+std::string
+DefaultICGenerator::busMuxControlPort(const TTAMachine::Bus& bus) {
+    return bus.name() + "_mux_ctrl_in";
+}
+
+std::string
+DefaultICGenerator::busMuxEnablePort(const TTAMachine::Bus& bus) {
+    return bus.name() + "_mux_enable_in";
+}
+
 /**
  * Returns the name of the signal of the given bus.
  *
@@ -2281,30 +2346,27 @@ std::string
 DefaultICGenerator::busAltSignal(
     const TTAMachine::Bus& bus, 
     const TTAMachine::Socket& socket) {
-    
+
     assert(socket.direction() == Socket::OUTPUT);
     if (!MapTools::containsKey(altSignalMap_, &bus)) {
         SocketSignalMap* newMap = new SocketSignalMap;
-        altSignalMap_.insert(
-            std::pair<const Bus*, SocketSignalMap*>(&bus, newMap));
+        altSignalMap_.emplace(&bus, newMap);
     }
-    
-    SocketSignalMap* signalMap = MapTools::valueForKey<SocketSignalMap*>(
-        altSignalMap_, &bus);
+
+    SocketSignalMap* signalMap = altSignalMap_[&bus];
     if (!MapTools::containsKey(*signalMap, &socket)) {
         int maxValue = -1;
-        for (SocketSignalMap::const_iterator iter = signalMap->begin(); 
-             iter != signalMap->end(); iter++) {
+        for (auto iter = signalMap->begin(); iter != signalMap->end();
+             iter++) {
             if ((*iter).second > maxValue) {
                 maxValue = (*iter).second;
             }
         }
         maxValue++;
-        signalMap->insert(
-            std::pair<const Socket*, int>(&socket, maxValue));
+        signalMap->emplace(&socket, maxValue);
     }
-    
-    int value = MapTools::valueForKey<int>(*signalMap, &socket);
+
+    int value = signalMap->at(&socket);
     return busSignal(bus) + "_alt" + Conversion::toString(value);
 }
 
@@ -2365,13 +2427,13 @@ DefaultICGenerator::simmSignal(const TTAMachine::Bus& bus) {
  * @return The direction of the corresponding socket data port in IC 
  *         block.
  */
-HDB::Direction
+ProGe::Direction
 DefaultICGenerator::convertDirection(
     TTAMachine::Socket::Direction direction) {
     
     switch (direction) {
-    case Socket::INPUT: return HDB::OUT;
-    case Socket::OUTPUT: return HDB::IN;
+    case Socket::INPUT: return ProGe::OUT;
+    case Socket::OUTPUT: return ProGe::IN;
     case Socket::UNKNOWN: assert(false);
     }
     
@@ -2395,7 +2457,7 @@ DefaultICGenerator::socketFileName(
     int segmentConns) {
 
     if (direction == Socket::INPUT) {
-        return "input_socket_" + 
+        return "input_mux_" + 
             Conversion::toString(segmentConns) +
             ((language==VHDL)?".vhdl":".v");
     } else if (direction == Socket::OUTPUT) {
@@ -2407,30 +2469,23 @@ DefaultICGenerator::socketFileName(
     }
 }
 
-
 /**
  * Generates VHDL entity name for the given socket.
  *
  * @param direction Direction of the socket.
- * @param portConns The number of port connections.
- * @param segmentConns The number of segment connections.
  * @return The entity name.
  */
 std::string
-DefaultICGenerator::socketEntityName(
-    TTAMachine::Socket::Direction direction,
-    int portConns,
-    int segmentConns) const {
-
-    if (direction == Socket::INPUT) {
-        return inputSocketEntityName(segmentConns);
-    } else if (direction == Socket::OUTPUT) {
-        return outputSocketEntityName(segmentConns, portConns);
+DefaultICGenerator::socketEntityName(TTAMachine::Socket &socket) const {
+    if (socket.direction() == Socket::INPUT) {
+        return inputMuxEntityName(socket.segmentCount());
+    } else if (socket.direction() == Socket::OUTPUT) {
+        return outputSocketEntityName(socket.segmentCount(),
+                                      socket.portCount());
     } else {
         assert(false);
     }
 }
-
 
 /**
  * Returns the entity name of the input socket which has the given number
@@ -2440,10 +2495,8 @@ DefaultICGenerator::socketEntityName(
  * @return The name of the entity.
  */
 std::string
-DefaultICGenerator::inputSocketEntityName(int conns) const {
-    return 
-        entityNameStr_ + "_input_socket_cons_" + 
-        Conversion::toString(conns);
+DefaultICGenerator::inputMuxEntityName(int conns) const {
+    return entityNameStr_ + "_input_mux_" + Conversion::toString(conns);
 }
 
 
@@ -2458,9 +2511,15 @@ DefaultICGenerator::inputSocketEntityName(int conns) const {
 std::string
 DefaultICGenerator::outputSocketEntityName(int busConns, int portConns) const {
     return 
-        entityNameStr_ + "_output_socket_cons_" + 
+        entityNameStr_ + "_output_socket_cons_" +
         Conversion::toString(busConns) + "_" +
         Conversion::toString(portConns);
+}
+
+
+std::string
+DefaultICGenerator::busMuxEntityName(TTAMachine::Bus &bus) {
+    return bus.name() + "_bus_mux_inst";
 }
 
 

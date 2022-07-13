@@ -67,11 +67,12 @@ RFArchitectureDialog::RFArchitectureDialog(
    maxReads_ = arch_.maxReads();
    maxWrites_ = arch_.maxWrites();
    latency_ = arch_.latency();
+   zeroRegister_ = arch.zeroRegister();
+
 
    paramWidth_ = arch_.hasParameterizedWidth();
    paramSize_ = arch_.hasParameterizedSize();
    guardSupport_ = arch_.hasGuardSupport();
-
    createContents(this, true, true);
 
    FindWindow(ID_SIZE)->SetValidator(wxGenericValidator(&size_));
@@ -81,6 +82,9 @@ RFArchitectureDialog::RFArchitectureDialog(
    FindWindow(ID_READ_PORTS)->SetValidator(wxGenericValidator(&readPorts_));
    FindWindow(ID_WRITE_PORTS)->SetValidator(wxGenericValidator(&writePorts_));
    FindWindow(ID_BIDIR_PORTS)->SetValidator(wxGenericValidator(&bidirPorts_));
+   FindWindow(ID_ZERO_REGISTER)->SetValidator(
+       wxGenericValidator(&zeroRegister_));
+
 
    FindWindow(ID_PARAM_SIZE)->SetValidator(wxGenericValidator(&paramSize_));
    FindWindow(ID_PARAM_WIDTH)->SetValidator(wxGenericValidator(&paramWidth_));
@@ -118,6 +122,7 @@ RFArchitectureDialog::onOK(wxCommandEvent&) {
     arch_.setMaxWrites(maxWrites_);
     arch_.setLatency(latency_);
     arch_.setGuardSupport(guardSupport_);
+    arch_.setZeroRegister(zeroRegister_);
 
     EndModal(wxID_OK);
 }
@@ -213,6 +218,9 @@ RFArchitectureDialog::createContents(
     item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item24, 0, wxALL, 5 );
+
+    wxCheckBox *item27 = new wxCheckBox( parent, ID_ZERO_REGISTER, wxT("Zero register"), wxDefaultPosition, wxDefaultSize, 0 );
+    item19->Add( item27, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {

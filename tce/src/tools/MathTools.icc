@@ -52,15 +52,23 @@ MathTools::requiredBits(unsigned long int number) {
     if (number == 0) {
         return 1;
     } else {
-        unsigned int bits = 0;
-        while (number != 0) {
-            number = number >> 1;
-            bits++;
-        }
-        return bits;
+        return requiredBits0Bit0(number);
     }
 }
 
+/**
+ * Returns the number of bits required to represent the given number
+ * as an unsigned number. Gives result(0) for 0.
+ */
+inline int
+MathTools::requiredBits0Bit0(long unsigned int number) {
+    unsigned int bits = 0;
+    while (number != 0) {
+        number = number >> 1;
+        bits++;
+    }
+    return bits;
+}
 
 /**
  * Returns ceiling of base-2 logarithm of given number as integer.

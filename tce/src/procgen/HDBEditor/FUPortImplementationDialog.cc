@@ -61,7 +61,8 @@ END_EVENT_TABLE()
 FUPortImplementationDialog::FUPortImplementationDialog(
     wxWindow* parent, wxWindowID id, FUPortImplementation& implementation,
     const BaseFUPort& architecture) :
-    wxDialog(parent, id, _T("Function Unit Port Implementation")),
+    wxDialog(parent, id, _T("Function Unit Port Implementation"),
+        wxDefaultPosition),
     implementation_(implementation), architecture_(architecture) {
 
     createContents(this, true, true);

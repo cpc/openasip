@@ -83,6 +83,7 @@ Stratix2DSPBoardIntegrator::Stratix2DSPBoardIntegrator(
                      errorStream, imem, dmemType),
     quartusGen_(new QuartusProjectGenerator(coreEntityName, this)),
     dmemGen_(NULL) {
+    setDeviceName(DEVICE_NAME_);
 }
 
 
@@ -115,7 +116,8 @@ Stratix2DSPBoardIntegrator::integrateProcessor(
     initPlatformNetlist(ttaCore);
     
     const NetlistBlock& core = progeBlock();
-    if (!integrateCore(core)) {
+    int coreId = -1;
+    if (!integrateCore(core, coreId)) {
         return;
     }
 
@@ -133,11 +135,11 @@ MemoryGenerator&
 Stratix2DSPBoardIntegrator::dmemInstance(
     MemInfo dmem,
     TTAMachine::FunctionUnit& lsuArch,
-    HDB::FUImplementation& lsuImplementation) {
+    std::vector<std::string> lsuPorts) {
 
     if (dmem.type == ONCHIP) {
         return AlteraIntegrator::dmemInstance(dmem, lsuArch,
-                                              lsuImplementation);
+                                              lsuPorts);
     } else if (dmem.type == SRAM) {
         if (dmemGen_ == NULL) {
             TCEString initFile = programName() + "_" + dmem.asName + ".img";
@@ -149,7 +151,7 @@ Stratix2DSPBoardIntegrator::dmemInstance(
                     this, warningStream(), errorStream());
             warningStream() << "Warning: Data memory is not initialized "
                             << "during FPGA programming." << endl;
-            dmemGen_->addLsu(lsuArch, lsuImplementation);
+            dmemGen_->addLsu(lsuArch, lsuPorts);
         }
     } else {
         TCEString msg = "Unsupported data memory type";
@@ -162,8 +164,8 @@ Stratix2DSPBoardIntegrator::dmemInstance(
 void
 Stratix2DSPBoardIntegrator::mapToplevelPorts() {
 
-    NetlistBlock& tl = netlist()->topLevelBlock();
-    for (int i = 0; i < tl.portCount(); i++) {
+    NetlistBlock& tl = *integratorBlock();
+    for (size_t i = 0; i < tl.portCount(); i++) {
         addSignalMapping(tl.port(i).name());
     }
 }
@@ -223,14 +225,6 @@ Stratix2DSPBoardIntegrator::setDeviceFamily(TCEString devFamily) {
             << "- New device family: " << devFamily << endl;
     }
 }
-
-
-TCEString
-Stratix2DSPBoardIntegrator::deviceName() const {
-
-    return DEVICE_NAME_;
-}
-
 
 TCEString
 Stratix2DSPBoardIntegrator::devicePackage() const {

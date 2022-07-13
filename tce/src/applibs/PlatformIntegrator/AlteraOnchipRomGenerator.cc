@@ -54,22 +54,22 @@ AlteraOnchipRomGenerator::AlteraOnchipRomGenerator(
     
     bool noInvert = false;
     bool inverted = true;
-    
+
     addPort("clk",
-            new HDLPort("clock", "1", ProGe::BIT, HDB::IN, noInvert, 1));
+        new HDLPort("clock", "1", ProGe::BIT, ProGe::IN, noInvert, 1));
     addPort("imem_addr",
-            new HDLPort("address", "IMEMADDRWIDTH", ProGe::BIT_VECTOR,
-                        HDB::IN, noInvert));
+        new HDLPort("address", "IMEMADDRWIDTH", ProGe::BIT_VECTOR,
+            ProGe::IN, noInvert));
     addPort("imem_en_x",
-            new HDLPort("clken", "1", ProGe::BIT, HDB::IN, inverted, 1));
+        new HDLPort("clken", "1", ProGe::BIT, ProGe::IN, inverted, 1));
     addPort("imem_data",
-            new HDLPort("q", "IMEMWIDTHINMAUS*IMEMMAUWIDTH",
-                        ProGe::BIT_VECTOR, HDB::OUT, noInvert));
+        new HDLPort("q", "IMEMWIDTHINMAUS*IMEMMAUWIDTH",
+            ProGe::BIT_VECTOR, ProGe::OUT, noInvert));
 
     // these signals are not driven by the imem component, connect to zero
     HDLPort* busyToGnd =
-        new HDLPort("wait", "1", ProGe::BIT, HDB::OUT, noInvert, 1);
-    busyToGnd->setToStatic(ProGe::GND);
+        new HDLPort("wait", "1", ProGe::BIT, ProGe::OUT, noInvert, 1);
+    busyToGnd->setToStatic(ProGe::StaticSignal::GND);
     addPort("busy", busyToGnd);
 }
 
@@ -92,16 +92,16 @@ AlteraOnchipRomGenerator::generateComponentFile(TCEString outputPath) {
 void
 AlteraOnchipRomGenerator::addMemory(
     const ProGe::NetlistBlock& ttaCore,
-    ProGe::Netlist& netlist,
-    int memIndex) {
+    ProGe::NetlistBlock& integratorBlock,
+    int memIndex,
+    int coreId) {
 
-    ProGe::NetlistBlock& topBlock = netlist.topLevelBlock();
     // Add generics as string constants!
     TCEString addrwGeneric = "IMEMADDRWIDTH";
     TCEString datawGeneric = "IMEMWIDTHINMAUS*IMEMMAUWIDTH";
-    addGenerics(topBlock, addrwGeneric, datawGeneric, memIndex);
+    addGenerics(integratorBlock, addrwGeneric, datawGeneric, memIndex);
 
-    MemoryGenerator::addMemory(ttaCore, netlist, memIndex);
+    MemoryGenerator::addMemory(ttaCore, integratorBlock, memIndex, coreId);
 }
 
 TCEString
@@ -112,8 +112,8 @@ AlteraOnchipRomGenerator::moduleName() const {
     
 
 TCEString
-AlteraOnchipRomGenerator::instanceName(int memIndex) const {
+AlteraOnchipRomGenerator::instanceName(int coreId, int memIndex) const {
 
     TCEString iname("onchip_imem_");
-    return iname << memoryIndexString(memIndex);
+    return iname << memoryIndexString(coreId, memIndex);
 }

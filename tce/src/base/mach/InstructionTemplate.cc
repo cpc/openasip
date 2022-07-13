@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2014 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of class InstructionTemplate.
  *
  * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2014
  */
 
 #include <set>
@@ -569,6 +570,7 @@ InstructionTemplate::loadState(const ObjectState* state) {
         for (int i = 0; i < state->childCount(); i++) {
             MOMTextGenerator textGenerator;
             ObjectState* child = state->child(i);
+
             string slotName = child->stringAttribute(
                 TemplateSlot::OSKEY_SLOT);
             if (!machine()->busNavigator().hasItem(slotName) &&
@@ -580,27 +582,29 @@ InstructionTemplate::loadState(const ObjectState* state) {
                     __FILE__, __LINE__, procName, errorMsg.str());
             }
 
-            int width = child->intAttribute(TemplateSlot::OSKEY_WIDTH);
-            string destination = child->stringAttribute(
-                TemplateSlot::OSKEY_DESTINATION);
-            Machine::ImmediateUnitNavigator iuNav =
-                machine()->immediateUnitNavigator();
-            ImmediateUnit* iu = NULL;
 
-            try {
-                iu = iuNav.item(destination);
-            } catch (const InstanceNotFound&) {
-                format errorMsg = textGenerator.text(
-                    MOMTextGenerator::TXT_IT_REF_LOAD_ERR_IU);
-                errorMsg % destination % name();
-                throw ObjectStateLoadingException(
-                    __FILE__, __LINE__, procName, errorMsg.str());
+            if (child->name() == TemplateSlot::OSNAME_TEMPLATE_SLOT) {
+                int width = child->intAttribute(TemplateSlot::OSKEY_WIDTH);
+                string destination = child->stringAttribute(
+                    TemplateSlot::OSKEY_DESTINATION);
+                Machine::ImmediateUnitNavigator iuNav =
+                    machine()->immediateUnitNavigator();
+                ImmediateUnit* iu = NULL;
+
+                try {
+                    iu = iuNav.item(destination);
+                } catch (const InstanceNotFound&) {
+                    format errorMsg = textGenerator.text(
+                        MOMTextGenerator::TXT_IT_REF_LOAD_ERR_IU);
+                    errorMsg % destination % name();
+                    throw ObjectStateLoadingException(
+                        __FILE__, __LINE__, procName, errorMsg.str());
+                }
+
+                addSlot(slotName, width, *iu);
             }
-
-            addSlot(slotName, width, *iu);
-        }
-
-    } catch (const Exception& exception) {
+            }
+        } catch (const Exception& exception) {
         throw ObjectStateLoadingException(
             __FILE__, __LINE__, procName, exception.errorMessage());
     }

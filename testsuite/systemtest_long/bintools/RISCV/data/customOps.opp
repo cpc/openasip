@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>XOR283</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="RawData"/>
+    <out element-count="1" element-width="32" id="2" type="RawData"/>
+    <trigger-semantics>SimValue xorred;
+SimValue shifted;
+SimValue ifcond;
+EXEC_OPERATION(xor,IO(1),283,xorred);
+EXEC_OPERATION(shr8_32, IO(1), shifted);
+EXEC_OPERATION(eq, shifted, 1, ifcond);
+EXEC_OPERATION(select, xorred, IO(1), ifcond, IO(2)); 
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>REFLECT8</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <in id="2" type="UIntWord"/>
+    <out id="3" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>REFLECT32</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <in id="2" type="UIntWord"/>
+    <out id="3" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>SHA_SUM0</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>SimValue x0, x1, x2, xor_tmp;
+EXEC_OPERATION(ROTL, IO(1), 30, x0);
+EXEC_OPERATION(ROTL, IO(1), 19, x1);
+EXEC_OPERATION(ROTL, IO(1), 10, x2);
+EXEC_OPERATION(xor, x0, x1, xor_tmp);
+EXEC_OPERATION(xor, xor_tmp, x2, IO(3))
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHA_SUM1</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>SimValue x0, x1, x2, xor_tmp;
+EXEC_OPERATION(ROTL, IO(1), 26, x0);
+EXEC_OPERATION(ROTL, IO(1), 21, x1);
+EXEC_OPERATION(ROTL, IO(1), 7, x2);
+EXEC_OPERATION(xor, x0, x1, xor_tmp);
+EXEC_OPERATION(xor, xor_tmp, x2, IO(3))
+
+
+
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHA_SIG0</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+    Var a,b,c,d;
+    OP(ROTL, IO(1), 25, a);
+    OP(ROTL, IO(1), 14, b);
+    OP(SHRU, IO(1), 3, c);
+    OP(xor, a, b, d);
+    OP(xor, d, c, IO(3))
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHA_SIG1</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>wgwg x0, x1, x2, xor_tmp;
+EXEC_OPERATION(ROTL, IO(1), 15, x0);
+EXEC_OPERATION(ROTL, IO(1), 13, x1);
+EXEC_OPERATION(SHRU, IO(1), 10, x2);
+EXEC_OPERATION(xor, x0, x1, xor_tmp);
+EXEC_OPERATION(xor, xor_tmp, x2, IO(3))
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MULHI</name>
+    <description>32-bit integer multiplication of the signed inputs 1 and 2 with higher result bits in the output 3.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="32" id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>SimValue muli1, muli2, mulo1, shifted;
+EXEC_OPERATION(SXW64, IO(1), muli1);
+EXEC_OPERATION(SXW64, IO(2), muli2);
+EXEC_OPERATION(MUL64, muli1, muli2, mulo1);
+EXEC_OPERATION(SHRU32_64,  mulo1, shifted);
+EXEC_OPERATION(TRUNC64W, shifted, IO(3));
+
+
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MULHIU</name>
+    <description>32-bit integer multiplication of the unsigned inputs 1 and 2 with higher result bits in the output 3.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="UIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="32" id="2" type="UIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>SimValue muli1, muli2, mulo1, shifted;
+EXEC_OPERATION(ZXW64, IO(1), muli1);
+EXEC_OPERATION(ZXW64, IO(2), muli2);
+EXEC_OPERATION(MUL64, muli1, muli2, mulo1);
+EXEC_OPERATION(SHRU32_64,  mulo1, shifted);
+EXEC_OPERATION(TRUNC64W, shifted, IO(3));
+
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MULHISU</name>
+    <description>32-bit integer multiplication of the signed input 1 and unsigned input 2 with higher result bits in the output 3.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in element-count="1" element-width="32" id="2" type="UIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>SimValue muli1, muli2, mulo1, shifted;
+EXEC_OPERATION(SXW64, IO(1), muli1);
+EXEC_OPERATION(ZXW64, IO(2), muli2);
+EXEC_OPERATION(MUL64, muli1, muli2, mulo1);
+EXEC_OPERATION(SHRU32_64,  mulo1, shifted);
+EXEC_OPERATION(TRUNC64W, shifted, IO(3));
+
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>REM</name>
+    <description>Integer remainder.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(rem, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>REMU</name>
+    <description>Integer remainder (unsigned)</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(remu, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+</osal>

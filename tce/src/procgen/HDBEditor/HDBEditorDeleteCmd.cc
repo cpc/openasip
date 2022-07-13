@@ -151,6 +151,20 @@ HDBEditorDeleteCmd::Do() {
         } else {
             return false;
         }
+    } else if (browser->isOperationImplementationSelected()) {
+        if (confirmDeletion(_T("Operation Implementation"))) {
+            int id = browser->selectedOperationImplementation();
+            manager->removeOperationImplementation(id);
+        } else {
+            return false;
+        }
+    } else if (browser->isOperationImplementationResourceSelected()) {
+        if (confirmDeletion(_T("Operation Implementation Resource"))) {
+            int id = browser->selectedOperationImplementationResource();
+            manager->removeOperationImplementationResource(id);
+        } else {
+            return false;
+        }
     } else {
         return false;
     }
@@ -217,7 +231,10 @@ HDBEditorDeleteCmd::isEnabled() {
         browser->isFUEntrySelected() ||
         browser->isRFEntrySelected() ||
         browser->isBusEntrySelected() ||
-        browser->isSocketEntrySelected()) {
+        browser->isSocketEntrySelected() ||
+        browser->isOperationImplementationSelected() ||
+        browser->isOperationImplementationResourceSelected()
+        ) {
 
         return true;
     }

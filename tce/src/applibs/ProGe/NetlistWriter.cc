@@ -27,6 +27,7 @@
  * Implementation of NetlistWriter class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Henry Linjamäki 2015 (henry.linjamaki-no.spam.tut.fi)
  * @note rating: red
  */
 
@@ -42,7 +43,8 @@ namespace ProGe {
  *
  * @param netlist The netlist to be written in some HDL.
  */
-NetlistWriter::NetlistWriter(const Netlist& netlist) : netlist_(netlist) {
+NetlistWriter::NetlistWriter(const BaseNetlistBlock& netlistBlock)
+    : netlistBlock_(netlistBlock) {
 }
 
 
@@ -58,8 +60,8 @@ NetlistWriter::~NetlistWriter() {
  *
  * @return The netlist.
  */
-const Netlist&
-NetlistWriter::netlist() const {
-    return netlist_;
+const BaseNetlistBlock&
+NetlistWriter::targetNetlistBlock() const {
+    return netlistBlock_;
 }
 }

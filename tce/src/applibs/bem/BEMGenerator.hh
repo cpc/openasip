@@ -52,6 +52,7 @@ namespace TTAMachine {
     class Bus;
     class Bridge;
     class BaseRegisterFile;
+    class OperationTriggeredFormat;
 }
 
 /**
@@ -78,6 +79,10 @@ private:
     void addEncodings(DestinationField& field) const;
     void addEncodings(SourceField& field) const;
     void addEncodings(GuardField& field) const;
+
+    void addRiscvFormat(TTAMachine::OperationTriggeredFormat* format,
+    BinaryEncoding& bem) const;
+
     void addPortCodes(
         SocketCodeTable& table, 
         const TTAMachine::Socket& socket) const;
@@ -117,6 +122,7 @@ private:
     static void addExtraBits(
         std::multiset<Encoding>& encodings,
         int bitCount);
+
 
     /// The machine for which the BEM is generated.
     const TTAMachine::Machine* machine_;

@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@vlad.cs.tut.fi>
 -- Company    : 
 -- Created    : 2003-11-14
--- Last update: 2006/07/10
+-- Last update: 2015-10-22
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -54,15 +54,17 @@ use IEEE.std_logic_arith.all;
 entity synch_sram is
   generic (
     -- pragma translate_off
-    init          : boolean := true;
-    INITFILENAME  : string  := "ram_init";
-    trace         : boolean := true;
-    TRACEFILENAME : string  := "dpram_trace";
+    init                : boolean := true;
+    INITFILENAME        : string  := "ram_init";
+    trace               : boolean := true;
+    TRACEFILENAME       : string  := "dpram_trace";
     -- trace_mode 0: hex, trace_mode 1: integer, trace_mode 2: unsigned
-    trace_mode    : natural := 0;
+    trace_mode          : natural := 0;
+    access_trace        : boolean := true;
+    ACCESSTRACEFILENAME : string  := "access_trace";
     -- pragma translate_on
-    DATAW         : integer := 32;
-    ADDRW         : integer := 7);
+    DATAW               : integer := 32;
+    ADDRW               : integer := 7);
   port (
     clk      : in  std_logic;
     d        : in  std_logic_vector(DATAW-1 downto 0);
@@ -78,8 +80,8 @@ architecture rtl of synch_sram is
   type std_logic_matrix is array (natural range <>) of
     std_logic_vector (DATAW-1 downto 0);
   subtype word_line_index is integer range 0 to 2**ADDRW-1;
-  signal  mem_r : std_logic_matrix (0 to 2**ADDRW-1);
-  signal  line  : word_line_index;
+  signal mem_r : std_logic_matrix (0 to 2**ADDRW-1);
+  signal line  : word_line_index;
 
   signal q_r : std_logic_vector(DATAW-1 downto 0);
   
@@ -119,7 +121,7 @@ architecture simulation of synch_sram is
   type std_logic_matrix is array (natural range <>) of
     std_logic_vector (DATAW-1 downto 0);
   subtype word_line_index is integer range 0 to 2**ADDRW-1;
-  signal  word_line : word_line_index;
+  signal word_line : word_line_index;
 
   signal mem_r : std_logic_matrix (0 to 2**ADDRW-1);
   signal q_r   : std_logic_vector(DATAW-1 downto 0);
@@ -134,48 +136,67 @@ begin  -- simulate
   -- inputs : clk
   regs_init : process (clk)
     -- input file
-    file mem_init           : text;
+    file mem_init              : text;
     -- output file
-    file mem_trace          : text;
-    variable line_in        : line;
-    variable line_out       : line;
-    variable word_from_file : std_logic_vector(DATAW-1 downto 0);
-    variable word_to_mem    : std_logic_vector(DATAW-1 downto 0);
-    variable i              : natural;
-    variable good           : boolean := false;
-    
+    file mem_trace             : text;
+    variable line_in           : line;
+    variable line_out          : line;
+    variable word_from_file    : std_logic_vector(DATAW-1 downto 0);
+    variable word_to_mem       : std_logic_vector(DATAW-1 downto 0);
+    variable i                 : natural;
+    variable good              : boolean                            := false;
+    variable cycle_count       : natural                            := 0;
+    file access_trace_file     : text;
+    variable access_trace_init : boolean                            := false;
+    variable last_addr         : std_logic_vector(ADDRW-1 downto 0) := (others => 'U');
+    variable access_trace_line : line;
+    constant separator_c       : string  := " | ";
+
   begin  -- process regs
 
     if (init = true) then
       if (initialized = false) then
         i := 0;
-        if INITFILENAME/="" then      
-	        file_open(mem_init, INITFILENAME, read_mode);
-	        while (not endfile(mem_init) and i < mem_r'length) loop
-	          readline(mem_init, line_in);
-	          read(line_in, word_from_file, good);
-	          assert good
-	            report "Read error in memory initialization file"
-	            severity failure;
-	          mem_r(i) <= word_from_file;
-	          i:= i+1;
-	        end loop;
-	        assert (not good)
-	          report "Memory initialization succesful"
-	          severity note;
-	    else
-	        while (i < mem_r'length) loop
-	          mem_r(i) <= (others=>'0');
-	          i:= i+1;
-	        end loop;
-	        assert (false)
-	          report "Memory initialized to zeroes!"
-	          severity note;	        	    		    
-	    end if;
+        if INITFILENAME /= "" then
+          file_open(mem_init, INITFILENAME, read_mode);
+          while (not endfile(mem_init) and i < mem_r'length) loop
+            readline(mem_init, line_in);
+            assert line_in'length >= DATAW
+              report "Memory initialization file must have word width " &
+                     "greater than or equal to the memory width. Set the " &
+                     "-w switch for generatebits accordingly."
+              severity failure;
+
+            assert line_in'length mod DATAW = 0
+              report "Memory initialization file must have word width " &
+                     "divisible by the memory width. Set the " &
+                     "-w switch for generatebits accordingly."
+              severity failure;
+
+            while line_in'length /= 0 loop
+              read(line_in, word_from_file, good);
+              assert good
+                report "Read error in memory initialization file"
+                severity failure;
+              mem_r(i) <= word_from_file;
+              i        := i+1;
+            end loop;
+          end loop;
+          assert (not good)
+            report "Memory initialization succesful"
+            severity note;
+        else
+          while (i < mem_r'length) loop
+            mem_r(i) <= (others => '0');
+            i        := i+1;
+          end loop;
+          assert (false)
+            report "Memory initialized to zeroes!"
+            severity note;
+        end if;
         initialized <= true;
       end if;
     end if;
-
 
     if clk'event and clk = '1' then     -- rising clock edge
       -- Memory write
@@ -211,11 +232,31 @@ begin  -- simulate
           file_close(mem_trace);
         end if;
 
-        -- Memory read
+      -- Memory read
       elsif (en_x = '0') then
         q_r <= mem_r(word_line);
       end if;
-    end if;
+
+      -- Memory access trace to file
+      if access_trace then
+        if en_x = '0' and last_addr /= addr then
+          file_open(access_trace_file, ACCESSTRACEFILENAME, append_mode);
+          write(access_trace_line, cycle_count, right, 12);
+          write(access_trace_line, separator_c);
+          hwrite(access_trace_line, addr, right, 12);
+          write(access_trace_line, separator_c);
+          write(access_trace_line, string'("1"), right, 12);
+          write(access_trace_line, separator_c);
+          write(access_trace_line, string'("1"), right, 12);
+          writeline(access_trace_file, access_trace_line);
+          file_close(access_trace_file);
+          last_addr := addr;
+        end if;
+
+        cycle_count := cycle_count + 1;
+      end if;
+      
+    end if;  -- rising edge
   end process regs_init;
 
   q <= q_r;

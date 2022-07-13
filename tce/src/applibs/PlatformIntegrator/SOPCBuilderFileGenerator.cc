@@ -79,8 +79,8 @@ SOPCBuilderFileGenerator::SOPCBuilderFileGenerator(
                 SOPCInterface::SOPC_EXPORT_INT_DECLR)) {
     
     clock_->setProperty("ptfSchematicName", "\"\"");
-    clock_->setPort(TTA_CLOCK_NAME, SOPC_CLOCK_NAME, HDB::IN, 1);
-    clock_->setPort(TTA_RESET_NAME, SOPC_RESET_NAME, HDB::IN, 1);
+    clock_->setPort(TTA_CLOCK_NAME, SOPC_CLOCK_NAME, ProGe::IN, 1);
+    clock_->setPort(TTA_RESET_NAME, SOPC_RESET_NAME, ProGe::IN, 1);
     
     export_->setProperty(
         SOPCInterface::SOPC_ASSOCIATED_CLOCK, clock_->name());
@@ -150,10 +150,10 @@ SOPCBuilderFileGenerator::countAvalonMMMasters() const {
     TCEString addressPortName =
         HDB_AVALON_PREFIX + AvalonMMMasterInterface::AVALON_MM_ADDRESS;
     int found = 0;
-    for (int i = 0; i < top.portCount(); i++) {
+    for (size_t i = 0; i < top.portCount(); i++) {
         TCEString portName = top.port(i).name();
         if (portName.find(addressPortName) != TCEString::npos) {
-            if (top.port(i).direction() == HDB::OUT) {
+            if (top.port(i).direction() == ProGe::OUT) {
                 found++;
             }
         }
@@ -202,24 +202,24 @@ SOPCBuilderFileGenerator::writeGenerics(std::ostream& stream) {
         return;
     }
     stream << "# toplevel parameters" << endl;
-    for (int i = 0; i < top.parameterCount(); i++) {
+    for (size_t i = 0; i < top.parameterCount(); i++) {
         TCEString line;
-        line << "add_parameter " << top.parameter(i).name << " ";
-        if (top.parameter(i).type.lower() == "string") {
+        line << "add_parameter " << top.parameter(i).name() << " ";
+        if (top.parameter(i).type().lower() == "string") {
             line << "STRING ";
-            if (!top.parameter(i).value.startsWith("\""))
+            if (!top.parameter(i).value().startsWith("\""))
                 line << "\"";
-            line << top.parameter(i).value;
-            if (!top.parameter(i).value.endsWith("\""))
+            line << top.parameter(i).value();
+            if (!top.parameter(i).value().endsWith("\""))
                 line << "\"";
-        } else if (top.parameter(i).type.lower() == "integer") {
-            line << "INTEGER " << top.parameter(i).value;
+        } else if (top.parameter(i).type().lower() == "integer") {
+            line << "INTEGER " << top.parameter(i).value();
         } else {
             // unknown type, ignore
             continue;
         }
         stream << line << endl;
-        if (top.parameter(i).name.lower() == PI_DEVICE_FAMILY_GENERIC) {
+        if (top.parameter(i).name().lower() == PI_DEVICE_FAMILY_GENERIC) {
             stream << "set_parameter_property " << PI_DEVICE_FAMILY_GENERIC
                    << " DISPLAY_NAME \"Device family (change if necessary)\""
                    << endl;
@@ -248,7 +248,7 @@ void
 SOPCBuilderFileGenerator::createInterfaces() {
 
     const ProGe::NetlistBlock& top = integrator()->toplevelBlock();
-    for (int i = 0; i < top.portCount(); i++) {
+    for (size_t i = 0; i < top.portCount(); i++) {
         TCEString portName = top.port(i).name();
 
         bool needToExport = true;

@@ -1,5 +1,5 @@
-  component fu_reflect
+  component fu_reflect is
   fu_reflect_instance : fu_reflect
   fu_fu_reflect : fu_reflect
-  component rf_rf
+  component rf_rf is
   rf_RF_instance : rf_rf

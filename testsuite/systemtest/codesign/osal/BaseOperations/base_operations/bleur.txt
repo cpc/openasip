@@ -1,0 +1,11 @@
+bleur 13 0 10
+!register programcounter
+bleur 20 999 65
+!register programcounter
+bleur 1 1 67
+!register programcounter
+bleur 100 40 123
+!register programcounter
+bleur 0 0 126
+!register programcounter
+!quit

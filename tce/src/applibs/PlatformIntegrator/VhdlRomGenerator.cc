@@ -55,27 +55,27 @@ VhdlRomGenerator::VhdlRomGenerator(
     const PlatformIntegrator* integrator,
     std::ostream& warningStream,
     std::ostream& errorStream): 
-    MemoryGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
-                    integrator, warningStream, errorStream) {
-    
-    addPort("clk", new HDLPort("clock", "1", ProGe::BIT, HDB::IN, false, 1));
+        MemoryGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
+            integrator, warningStream, errorStream) {
+
+    addPort("clk", new HDLPort("clock", "1", ProGe::BIT, ProGe::IN, false, 1));
     addPort("imem_addr", new HDLPort("addr", "addrw", ProGe::BIT_VECTOR,
-                                     HDB::IN, false, memoryAddrWidth()));
+        ProGe::IN, false, memoryAddrWidth()));
 
     addPort("imem_en_x", new HDLPort("en_x", "1", ProGe::BIT,
-                                     HDB::IN, false, 1));
-    
-    addPort("imem_data", new HDLPort("dataout", "instrw", ProGe::BIT_VECTOR,
-                                     HDB::OUT, false, memoryTotalWidth()));
+        ProGe::IN, false, 1));
 
-    HDLPort* busyToGnd = new HDLPort("wait", "1", ProGe::BIT, HDB::OUT, false,
-                                     1);
-    busyToGnd->setToStatic(ProGe::GND);
+    addPort("imem_data", new HDLPort("dataout", "instrw", ProGe::BIT_VECTOR,
+        ProGe::OUT, false, memoryTotalWidth()));
+
+    HDLPort* busyToGnd = new HDLPort("wait", "1", ProGe::BIT, ProGe::OUT,
+        false, 1);
+    busyToGnd->setToStatic(ProGe::StaticSignal::GND);
     addPort("busy", busyToGnd);
 
-    ProGe::Netlist::Parameter addr = {"addrw", "integer", "IMEMADDRWIDTH"};
-    ProGe::Netlist::Parameter data = {"instrw", "integer",
-                                      "IMEMMAUWIDTH*IMEMWIDTHINMAUS"};
+    ProGe::Parameter addr("addrw", "integer", "IMEMADDRWIDTH");
+    ProGe::Parameter data("instrw", "integer", "IMEMMAUWIDTH*IMEMWIDTHINMAUS");
+    
     addParameter(addr);
     addParameter(data);
 }
@@ -162,10 +162,10 @@ VhdlRomGenerator::moduleName() const {
 
     
 TCEString
-VhdlRomGenerator::instanceName(int memIndex) const {
+VhdlRomGenerator::instanceName(int coreId, int memIndex) const {
 
     TCEString iname("imem_array_instance_");
-    return iname << memoryIndexString(memIndex);
+    return iname << memoryIndexString(coreId, memIndex);
 }
 
 TCEString

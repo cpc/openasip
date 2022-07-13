@@ -159,9 +159,15 @@ AC_PROG_INSTALL
 # number of compilations.
 AC_DISABLE_STATIC
 
+# Declare we use sed. Libtool likes to se it
+AC_PROG_SED
+
 # Declare that we use libtool.
 AC_PROG_LIBTOOL
 AM_PROG_LIBTOOL
+
+lt_objdir=$lt_cv_objdir
+AC_SUBST(lt_objdir)
 
 # Declare that we use egrep.
 AC_PROG_EGREP
@@ -392,7 +398,7 @@ CXXFLAGS="$CXXFLAGS -ftest-coverage -fprofile-arcs"
 
 ####################################################################
 #
-# Python 3.x for the tcecc compiler driver script.
+# Python 3.x for the oacc compiler driver script.
 #
 ####################################################################
 AC_MSG_CHECKING(for python binary)
@@ -1303,7 +1309,7 @@ if test -d test
 then
 # Write out a file with flags for unit test Makefiles.
 FILENAME=test/Makefile_configure_settings
-echo "TCL_LD_FLAGS=$TCL_LD_FLAGS $TCL_LIBDIR 
+echo "TCL_LD_FLAGS=$TCL_LD_FLAGS
 
 EDITLINE_LD_FLAGS=$EDITLINE_LD_FLAGS
 EDITLINE_INCLUDES=$EDITLINE_INCLUDES
@@ -1328,11 +1334,14 @@ LLVM_CPPFLAGS=$LLVM_CPPFLAGS
 
 DYNAMIC_FLAG=$DYNAMIC_FLAG
 
+CXXFLAGS=$CXXFLAGS
 CXX=$CXX
 CPP=$CPP
 CC=$CC
+LIBRARY_SUFFIX=$LIBRARY_SUFFIX
 
-LDFLAGS="$LDFLAGS $EDITLINE_LD_FLAGS $BOOST_LDFLAGS $SQLITE_LD_FLAGS $XERCES_LIBDIR $XERCES_LIBS $GUI_LIBS $TCL_LIBDIR $TCL_LD_FLAGS $LLVM_LDFLAGS $DL_FLAGS"
+LDFLAGS="$LDFLAGS $LLVM_LDFLAGS $EDITLINE_LD_FLAGS $BOOST_LDFLAGS $SQLITE_LD_FLAGS $XERCES_LIBDIR $XERCES_LIBS $GUI_LIBS $TCL_LIBDIR $TCL_LD_FLAGS $LLVM_LDFLAGS $DL_FLAGS"
+CPPFLAGS="$CPPFLAGS"
 
 " > $FILENAME
 
@@ -1408,6 +1417,7 @@ AC_CONFIG_FILES([
   src/applibs/hdb/Makefile
   src/applibs/dsdb/Makefile
   src/applibs/Estimator/Makefile
+  src/applibs/HWGen/Makefile
   src/applibs/ProGe/Makefile
   src/applibs/EPSGenerator/Makefile
   src/applibs/costdb/Makefile
@@ -1446,6 +1456,7 @@ AC_CONFIG_FILES([
   src/bintools/Compiler/llvm-tce/Makefile
   src/applibs/ImplementationTester/Makefile
   src/applibs/PlatformIntegrator/Makefile
+  tools/Makefile
   scheduler/testbench/Makefile
   scheduler/testbench/Operations/Makefile
   bclib/Makefile
@@ -1486,8 +1497,8 @@ AC_CONFIG_FILES([src/procgen/ProGe/buildicdecoderplugin],
 AC_CONFIG_FILES([src/applibs/LLVMBackend/passes/buildllvmpass], 
                 [chmod +x src/applibs/LLVMBackend/passes/buildllvmpass])
 
-AC_CONFIG_FILES([src/bintools/Compiler/tcecc], 
-                [chmod +x src/bintools/Compiler/tcecc])
+AC_CONFIG_FILES([src/bintools/Compiler/oacc], 
+                [chmod +x src/bintools/Compiler/oacc])
 
 # Configure newlib as well
 m4_pattern_allow([^AS_FOR_TARGET$])
@@ -1510,8 +1521,8 @@ RANLIB_FOR_TARGET=ranlib \
 NM_FOR_TARGET=nm AR_FOR_TARGET=ar \
 AS_FOR_TARGET=as LD_FOR_TARGET=ld \
 CFLAGS_FOR_TARGET=$NEWLIB_CFLAGS \
-CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
-CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
+CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc \
+CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss \
 2>&1 | egrep -v "to force reconfigure";
 ])
@@ -1530,8 +1541,8 @@ RANLIB_FOR_TARGET=ranlib \
 NM_FOR_TARGET=nm AR_FOR_TARGET=ar \
 AS_FOR_TARGET=as LD_FOR_TARGET=ld \
 CFLAGS_FOR_TARGET="--little-endian $NEWLIB_CFLAGS" \
-CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
-CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
+CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc \
+CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tcele-llvm --disable-multilib --disable-libgloss \
 2>&1 | egrep -v "to force reconfigure";
 ])
@@ -1550,8 +1561,8 @@ RANLIB_FOR_TARGET=ranlib \
 NM_FOR_TARGET=nm AR_FOR_TARGET=ar \
 AS_FOR_TARGET=as LD_FOR_TARGET=ld \
 CFLAGS_FOR_TARGET="--little-endian64 $NEWLIB_CFLAGS" \
-CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
-CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/tcecc \
+CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc \
+CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tcele64-llvm --disable-multilib --disable-libgloss \
 2>&1 | egrep -v "to force reconfigure";
 ])

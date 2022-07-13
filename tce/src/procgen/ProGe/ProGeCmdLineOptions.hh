@@ -34,8 +34,8 @@
 #ifndef TTA_PROGE_CMD_LINE_OPTIONS_HH
 #define TTA_PROGE_CMD_LINE_OPTIONS_HH
 
+#include <utility> // std::pair
 #include "CmdLineOptions.hh"
-
 /**
  * Command line options for the command line interface of ProGe 
  * (generateprocessor).
@@ -49,11 +49,12 @@ public:
     std::string bemFile() const;
     std::string idfFile() const;
     std::string hdl() const;
-    std::string processorIdentifierString() const;
     std::string outputDirectory() const;
     std::string sharedOutputDirectory() const;
     std::string pluginParametersQuery() const;
     bool generateTestbench() const;
+
+    std::string mode() const;
 
     // platform integrator params
     std::string integratorName() const;
@@ -65,6 +66,21 @@ public:
     bool useAbsolutePaths() const;
     bool listAvailableIntegrators() const;
     std::string deviceFamilyName() const;
+    std::string deviceName() const;
+    std::string simulationRuntime() const;
+    bool forceOutputDirectory() const;
+    bool asyncReset() const;
+    bool syncReset() const;
+    std::vector<std::string> commaSeparatedList(const std::string argumentName) const;
+    std::vector<std::string> hdbList() const;
+    std::vector<std::string> rfIcGateList() const;
+    std::vector<std::string> fuIcGateList() const;
+    std::vector<std::pair<std::string, std::string>> icdArgList() const;
+    bool preferHDLGeneration() const;
+    bool resetAllRegisters() const;
+    std::vector<std::string> fuBackRegistered() const;
+    std::vector<std::string> fuFrontRegistered() const;
+    std::vector<std::string> fuMiddleRegistered() const;
 
     virtual void printVersion() const;
     virtual void printHelp() const;

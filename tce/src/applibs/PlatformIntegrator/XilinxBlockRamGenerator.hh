@@ -40,18 +40,14 @@ class PlatformIntegrator;
 
 class XilinxBlockRamGenerator : public MemoryGenerator {
 public:
-
     XilinxBlockRamGenerator(
-        int memMauWidth,
-        int widthInMaus,
-        int addrWidth,
-        TCEString initFile,
-        const PlatformIntegrator* integrator,
-        std::ostream& warningStream,
-        std::ostream& errorStream,
+        int memMauWidth, int widthInMaus, int addrWidth, int portBDataWidth,
+        int portBAddrWidth, const PlatformIntegrator* integrator,
+        std::ostream& warningStream, std::ostream& errorStream,
         bool connectToArbiter = false,
-        ProGe::NetlistBlock* AlmarviIF = nullptr,
-        TCEString signalPrefix = "");
+        ProGe::NetlistBlock* almaifBlocks = nullptr,
+        TCEString signalPrefix = "", bool overrideAddrWidth = false,
+        bool singleMemoryBlock = false);
 
     virtual ~XilinxBlockRamGenerator();
 
@@ -62,11 +58,13 @@ public:
 
     virtual void addMemory(
         const ProGe::NetlistBlock& ttaCore,
-        ProGe::Netlist& netlist,
-        int memIndex);
+        ProGe::NetlistBlock& integratorBlock,
+        int memIndex,
+        int coreId);
 
     virtual bool isCompatible(
         const ProGe::NetlistBlock& ttaCore,
+        int coreId,
         std::vector<TCEString>& reasons) const;
 
 
@@ -74,18 +72,22 @@ public:
 protected:
 
     virtual TCEString moduleName() const;
+    void addPorts(std::string prefix, int addrWidth, int dataWidth);
 
-    virtual TCEString instanceName(int) const;
+    virtual TCEString instanceName(int coreId, int) const;
 
     TCEString almaifPortName(const TCEString& portBaseName);
 
     const bool connectToArbiter_;
     ProGe::NetlistBlock* almaifBlock_;
     TCEString signalPrefix_;
+    const bool overrideAddrWidth_;
+    const bool singleMemoryBlock_;
 
 private:
 
-    static const TCEString COMPONENT_FILE;
+    static const TCEString DP_FILE;
+    static const TCEString SP_FILE;
 
 };
 

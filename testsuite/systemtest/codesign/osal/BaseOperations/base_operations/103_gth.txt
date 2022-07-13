@@ -1,3 +1,4 @@
+!output unsigned
 gth 15872 16896
 gth 19392 19392
 gth 19392 16896

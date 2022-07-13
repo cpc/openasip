@@ -96,9 +96,9 @@ IPXactHibiInterface::mapPortsToInterface(
     
     bool instanceNameSet = false;
     for (unsigned int i = 0; i < interfaceSearch_.size(); i++) {
-        for (int j = 0; j < toplevel.portCount(); j++) {           
+        for (size_t j = 0; j < toplevel.portCount(); j++) {
             TCEString interfacePort = interfaceSearch_.at(i)->first;
-            NetlistPort& port = toplevel.port(j);
+            const NetlistPort& port = toplevel.port(j);
             if (port.name().find(interfacePort) != TCEString::npos) {
                 TCEString abstractPort = interfaceSearch_.at(i)->second;
                 addSignalMapping(port.name(), abstractPort);

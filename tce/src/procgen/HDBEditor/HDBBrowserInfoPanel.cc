@@ -219,3 +219,31 @@ HDBBrowserInfoPanel::displayCostFunctionPlugin(RowID id) {
     std::string page = stream.str();
     SetPage(WxConversion::toWxString(page));
 }
+
+/**
+ * Displays details of a FUGEN oparation in the panel.
+ *
+ * @param id ID of the FUGEN operation plugin.
+ */
+void
+HDBBrowserInfoPanel::displayOperationImplementation(RowID id) {
+    assert(htmlGen_ != NULL);
+    std::stringstream stream;
+    htmlGen_->OperationImplementationToHtml(id, stream);
+    std::string page = stream.str();
+    SetPage(WxConversion::toWxString(page));
+}
+
+/**
+ * Displays details of a FUGEN resource in the panel.
+ *
+ * @param id ID of the FUGEN resource plugin.
+ */
+void
+HDBBrowserInfoPanel::displayOperationImplementationResource(RowID id) {
+    assert(htmlGen_ != NULL);
+    std::stringstream stream;
+    htmlGen_->OperationImplementationResourceToHtml(id, stream);
+    std::string page = stream.str();
+    SetPage(WxConversion::toWxString(page));
+}

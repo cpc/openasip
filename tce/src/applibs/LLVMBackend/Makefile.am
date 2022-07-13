@@ -16,7 +16,8 @@ libtcellvmbackend_la_SOURCES = \
 	ConstantTransformer.cc \
 	TCEStubTargetMachine.cc \
 	InlineAsmParser.cc \
-	LLVMUtilities.cc
+	LLVMUtilities.cc \
+	LLVMTCERISCVIntrinsicsLowering.cc
 
 libtcellvmbackend_la_SOURCES += TCEStubTargetTransformInfo.cc \
 	TCEStubSubTarget.cc TCEStubTargetMachine.hh
@@ -46,13 +47,17 @@ PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/PDG
 CFG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/CFG
 DDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/DDG
 ASSEMBLER_DIR = ${APPLIBS_DIR}/Assembler
+BEM_SRC_DIR = ${SRC_ROOT}/base/bem
+BEM_APPLIBS_DIR = ${APPLIBS_DIR}/bem
+
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${MACH_DIR} \
     -I${PROG_DIR} -I${TPEF_DIR} -I${OSAL_DIR} -I${DISASM_DIR} \
     -I${UMACH_DIR} -I${OSAL_APPLIBS_DIR} -I${GRAPH_DIR} \
     -I${MACH_APPLIBS_DIR} -I${SCHED_ALGO_DIR} -I${SCHED_DIR} ${LLVM_CPPFLAGS} \
 	-I${PDG_DIR} -I${CFG_DIR} -I${DDG_DIR} -I${SELECTOR_DIR} -I${RM_DIR} \
-	-I${SCHED_ALGO_DIR} -I${PROG_APPLIBS_DIR} -I${ASSEMBLER_DIR}
+	-I${SCHED_ALGO_DIR} -I${PROG_APPLIBS_DIR} -I${ASSEMBLER_DIR} \
+	-I${BEM_SRC_DIR} -I${BEM_APPLIBS_DIR} 
 
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
@@ -108,6 +113,7 @@ libtcellvmbackend_la_SOURCES += \
 	TCEStubTargetTransformInfo.hh \
 	TCEStubSubTarget.hh \
 	InlineAsmParser.hh \
-	LLVMUtilities.hh
+	LLVMUtilities.hh \
+	LLVMTCERISCVIntrinsicsLowering.hh
 
 ## headers end

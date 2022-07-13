@@ -1,0 +1,27 @@
+-------------- Conditional branching logic ---------------------------------
+-----------------------------------------------------------------------------
+  take_branch_proc : process(pc_opcode, cond_not_zero_wire)
+  begin
+    if (unsigned(pc_opcode) = IFE_BZ) then
+      take_branch <= not cond_not_zero_wire;
+    else
+      take_branch <= cond_not_zero_wire;
+    end if;
+  end process take_branch_proc;
+
+
+  cond_reg_write_proc : process(rstx, clk)
+  begin  -- process cond_reg_write
+    if rstx = '0' then                  -- asynchronous reset (active low)
+      cond_not_zero_reg <= '0';
+    elsif clk'event and clk = '1' then  -- rising clock edge
+      if cond_load = '1' then
+        cond_not_zero_reg <= cond_not_zero_wire;
+      end if;
+    end if;
+  end process cond_reg_write_proc;
+
+  cond_not_zero_wire <= '0' when (unsigned(cond_in) = 0 and cond_load = '1')
+                        else '1';
+
+   -----------------------------------------------------------------------------

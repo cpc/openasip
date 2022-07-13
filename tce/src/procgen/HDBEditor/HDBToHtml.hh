@@ -58,6 +58,8 @@ public:
     void fuImplToHtml(RowID id, std::ostream& stream);
     void rfImplToHtml(RowID id, std::ostream& stream);
     void costFunctionPluginToHtml(RowID id, std::ostream& stream);
+    void OperationImplementationToHtml(RowID id, std::ostream& stream);
+    void OperationImplementationResourceToHtml(RowID id, std::ostream& stream);
 
     static const std::string HDB_ROOT;
     static const std::string FU_ENTRIES;
@@ -70,6 +72,8 @@ public:
     static const std::string FU_IMPLEMENTATIONS;
     static const std::string RF_IMPLEMENTATIONS;
     static const std::string COST_PLUGINS;
+    static const std::string OPERATION_IMPLEMENTATIONS;
+    static const std::string OPERATION_IMPLEMENTATION_RESOURCES;
 
 private:
     /// HDB to create html from.

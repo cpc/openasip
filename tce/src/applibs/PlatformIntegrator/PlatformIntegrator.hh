@@ -105,9 +105,13 @@ public:
     virtual void setDeviceFamily(TCEString devFamily) = 0;
 
     /**
-     * Returns the FPGA device name
+     * Set or get the FPGA device name.
+     *
+     * This is used for synthesis scripts by AlmaIFIntegrator
+     * and QuartusProjectGenerator.
      */
-    virtual TCEString deviceName() const = 0;
+    void setDeviceName(TCEString devName) { deviceName_ = devName; }
+    TCEString deviceName() const { return deviceName_; }
 
 
     /**
@@ -187,7 +191,7 @@ public:
 
 protected:
 
-    ProGe::Netlist* netlist();
+    ProGe::NetlistBlock* integratorBlock();
 
     /**
      * Initializes the platform integrator netlist
@@ -203,13 +207,15 @@ protected:
      * Integrates a single TTA core
      *
      *
-     * @param cores NetlistBlock containing the core
+     * @param cores NetlistBlock containing the core(s)
+     * @param coreId Index of the core to be integrated
      */
-    virtual bool integrateCore(const ProGe::NetlistBlock& cores);
+    virtual bool integrateCore(const ProGe::NetlistBlock& cores, int coreId);
 
-    virtual void exportUnconnectedPorts();
+    virtual void exportUnconnectedPorts(int coreId);
 
-    virtual void connectToplevelPort(ProGe::NetlistPort& corePort);
+    virtual void connectToplevelPort(const ProGe::NetlistPort& corePort,
+                                     const TCEString signalPrefix = "");
 
     virtual TCEString pinTag() const = 0;
 
@@ -225,19 +231,20 @@ protected:
      */
     void copyProgeBlockToNetlist(const ProGe::NetlistBlock* progeBlock);
 
-    virtual bool createMemories();
+    virtual bool createMemories(int coreId);
 
     virtual bool generateMemory(
         MemoryGenerator& memGen,
         std::vector<TCEString>& generatedFiles,
-        int memIndex);
+        int memIndex,
+        int coreId);
 
-    virtual MemoryGenerator& imemInstance(MemInfo imem) = 0;
+    virtual MemoryGenerator& imemInstance(MemInfo imem, int coreId) = 0;
 
     virtual MemoryGenerator& dmemInstance(
         MemInfo dmem,
         TTAMachine::FunctionUnit& lsuArch,
-        HDB::FUImplementation& lsuImplementation) = 0;
+        std::vector<std::string> lsuPorts) = 0;
 
     virtual void writeNewToplevel();
 
@@ -288,6 +295,11 @@ protected:
 
     TCEString platformEntityName() const;
 
+    void parseDataMemories();
+    void clearDataMemories();
+
+    MemInfo readLsuParameters(const TTAMachine::FunctionUnit& lsu);
+
     static const TCEString TTA_CORE_CLK;
     static const TCEString TTA_CORE_RSTX;
 
@@ -295,18 +307,14 @@ private:
 
     void createOutputDir();
 
-    void parseDataMemories();
-
-    MemInfo readLsuParameters(const TTAMachine::FunctionUnit& lsu);
-
-    HDB::FUImplementation& loadFUImplementation(
+    std::vector<std::string> loadFUExternalPorts(
         TTAMachine::FunctionUnit& fu) const;
 
     const TTAMachine::Machine* machine_;
 
     const IDF::MachineImplementation* idf_;
 
-    ProGe::Netlist* netlist_;
+    ProGe::NetlistBlock* integratorBlock_;
     
     ProGe::HDL hdl_;
     
@@ -315,12 +323,13 @@ private:
     TCEString coreEntityName_;
     TCEString outputDir_;
     TCEString programName_;
+    TCEString deviceName_;
     int targetFrequency_;
 
     std::ostream& warningStream_;
     std::ostream& errorStream_;
 
-    ProGe::NetlistBlock* ttaCore_;
+    ProGe::NetlistBlock* ttaCores_;
 
     MemInfo imem_;
     MemType dmemType_;
@@ -331,5 +340,6 @@ private:
     ProGe::NetlistPort* clkPort_;
     ProGe::NetlistPort* resetPort_;
 
+    std::multimap<TCEString, const ProGe::NetlistPort*>* unconnectedPorts_;
 };
 #endif

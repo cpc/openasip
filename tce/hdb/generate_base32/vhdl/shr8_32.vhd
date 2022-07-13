@@ -1,0 +1,1 @@
+op2 <= (31 downto 24 => op1(31)) & op1(31 downto 8);

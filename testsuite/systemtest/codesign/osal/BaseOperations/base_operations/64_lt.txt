@@ -1,3 +1,4 @@
+!output unsigned
 lt 3 2
 lt 3 3
 lt -1 1

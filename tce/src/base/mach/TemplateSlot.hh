@@ -35,6 +35,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "Application.hh"
 
@@ -49,10 +50,11 @@ class Bus;
 
 /**
  * Repsesents a bit field of the TTA instruction that is used to encode a
- * piece of a long immediate for a given instruction template.
+ * piece of a long immediate for a given instruction template or a NOP move.
  */
 class TemplateSlot {
 public:
+
     TemplateSlot(
         const Bus& slot,
         int width,
@@ -61,6 +63,9 @@ public:
         const ImmediateSlot& slot,
         int width,
         ImmediateUnit& destination);
+
+    TemplateSlot(const Bus& slot);
+
     virtual ~TemplateSlot();
 
     int width() const;
@@ -78,6 +83,15 @@ public:
     static const std::string OSKEY_WIDTH;
     /// ObjectState attribute key for destination.
     static const std::string OSKEY_DESTINATION;
+    // ObjectState attribute key for RF read
+    static const std::string OSKEY_RF_READ;
+    // ObjectState attribute key for RF write
+    static const std::string OSKEY_RF_WRITE;
+    // ObjectState attribute key for FU read
+    static const std::string OSKEY_FU_READ;
+    // ObjectState attribute key for FU write
+    static const std::string OSKEY_FU_WRITE;
+
 
 private:
 
@@ -94,6 +108,7 @@ private:
 
     /// Destination unit.
     ImmediateUnit* destination_;
+
 };
 }
 

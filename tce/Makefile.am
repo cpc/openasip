@@ -1,4 +1,5 @@
-SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scripts manual cost_estimator_plugins explorer doc 
+SUBDIRS = src data conf opset hdb compressors icdecoder_plugins \
+scripts manual cost_estimator_plugins explorer doc tools
 
 SUBDIRS += scheduler 
 SUBDIRS += bclib 

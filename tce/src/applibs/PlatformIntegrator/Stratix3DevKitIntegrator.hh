@@ -68,8 +68,6 @@ public:
 
     virtual void setDeviceFamily(TCEString devFamily);
 
-    virtual TCEString deviceName() const;
-    
     virtual TCEString devicePackage() const;
 
     virtual TCEString deviceSpeedClass() const;

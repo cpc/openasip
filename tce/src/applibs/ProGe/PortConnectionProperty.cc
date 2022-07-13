@@ -46,9 +46,12 @@ PortConnectionProperty::PortConnectionProperty(
     int port2FirstBit,
     int width) :
     port1FirstBit_(port1FirstBit), port2FirstBit_(port2FirstBit),
-    width_(width) {
+    width_(width), inverted_(false) {
 }
 
+PortConnectionProperty::PortConnectionProperty(bool inverted)
+    : port1FirstBit_(0), port2FirstBit_(0), width_(0), inverted_(inverted) {
+}
 
 /**
  * The constructor.
@@ -58,7 +61,7 @@ PortConnectionProperty::PortConnectionProperty(
  * @param name Name of the connection.
  */
 PortConnectionProperty::PortConnectionProperty() :
-    port1FirstBit_(0), port2FirstBit_(0), width_(0) {
+    port1FirstBit_(0), port2FirstBit_(0), width_(0), inverted_(false) {
 }
 
 
@@ -90,6 +93,23 @@ PortConnectionProperty::fullyConnected() const {
     return width() == 0;
 }
 
+/**
+ * Returns true if signal between connected ports are inverted.
+ */
+bool
+PortConnectionProperty::inverted() const {
+    return inverted_;
+}
+
+/**
+ * Define inversion of connection.
+ *
+ * If set to true the signal need to be inverted.
+ */
+void
+PortConnectionProperty::setInverted(bool setting) {
+    inverted_ = setting;
+}
 
 /**
  * Returns the lowest bit of the port1 that is connected.

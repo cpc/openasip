@@ -258,7 +258,8 @@ MachineStateBuilder::buildMachineState(
         RegisterFile* regFile = registers.item(i);
         RegisterFileState* state = NULL;
         state = new RegisterFileState(
-            regFile->numberOfRegisters(), regFile->width());
+            regFile->numberOfRegisters(), regFile->width(),
+            regFile->zeroRegister());
         machineState->addRegisterFileState(state, regFile->name());
     }
 

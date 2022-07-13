@@ -12,7 +12,8 @@ libmach_la_SOURCES =							     \
         SpecialRegisterPort.cc NullAddressSpace.cc \
 	NullInstructionTemplate.cc  \
         NullRegisterFile.cc NullMachine.cc          \
-	DummyMachineTester.cc ResourceVector.cc ResourceVectorSet.cc
+	DummyMachineTester.cc ResourceVector.cc ResourceVectorSet.cc \
+	OperationTriggeredOperand.cc OperationTriggeredFormat.cc
 
 libmach_la_LDFLAGS = ${XERCES_LIBDIR} -lxerces-c ${PTHREAD_LIBS}
 
@@ -58,7 +59,8 @@ include_HEADERS = \
 	Segment.icc Machine.icc \
 	BaseRegisterFile.icc ControlUnit.icc \
 	Connection.icc Port.icc \
-	Bridge.icc MachinePart.icc 
+	Bridge.icc MachinePart.icc  \
+	OperationTriggeredOperand.hh OperationTriggeredFormat.hh
 
 ## headers start
 libmach_la_SOURCES += \
@@ -87,5 +89,6 @@ libmach_la_SOURCES += \
 	Segment.icc Port.icc \
 	Socket.icc MachinePart.icc \
 	BaseRegisterFile.icc \
-	ResourceVector.hh ResourceVectorSet.hh AutomagicTools.hh
+	ResourceVector.hh ResourceVectorSet.hh AutomagicTools.hh \
+	OperationTriggeredOperand.hh OperationTriggeredFormat.hh
 ## headers end

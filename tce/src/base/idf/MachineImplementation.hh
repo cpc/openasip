@@ -40,6 +40,8 @@
 #include "RFImplementationLocation.hh"
 #include "BusImplementationLocation.hh"
 #include "SocketImplementationLocation.hh"
+#include "FUGenerated.hh"
+
 
 
 namespace IDF {
@@ -47,7 +49,7 @@ namespace IDF {
 class UnitImplementationLocation;
 
 /**
- * Repsesents the implementation of a machine defined in an IDF.
+ * Represents the implementation of a machine defined in an IDF.
  */
 class MachineImplementation : public Serializable {
 public:
@@ -79,7 +81,6 @@ public:
     std::string icDecoderParameterValue(const std::string& name) const;
     std::string icDecoderParameterValue(unsigned param) const;
     void clearICDecoderParameters();
-
     void setICDecoderParameter(
         const std::string& name, const std::string& value);
 
@@ -154,6 +155,8 @@ public:
     static const std::string OSKEY_IC_DECODER_HDB;
     /// ObjectState attribute key for the name of the decompressor file.
     static const std::string OSKEY_DECOMPRESSOR_FILE;
+    /// ObjectState name for FU generations container.
+    static const std::string OSNAME_FU_GENERATED;
     /// ObjectState name for FU implementation container.
     static const std::string OSNAME_FU_IMPLEMENTATIONS;
     /// ObjectState name for RF implementation container.
@@ -164,7 +167,13 @@ public:
     static const std::string OSNAME_BUS_IMPLEMENTATIONS;
     /// ObjectState name for socket implementation container.
     static const std::string OSNAME_SOCKET_IMPLEMENTATIONS;
-    
+
+    const std::vector<FUGenerated>& FUGenerations() const;
+    std::vector<FUGenerated>& FUGenerations();
+    bool hasFUGeneration(const std::string& name) const;
+    void removeFuGeneration(const std::string& name);
+    void addFuGeneration(const FUGenerated& fug);
+
 private:
     /// Vector type for UnitImplementationLocation.
     typedef std::vector<UnitImplementationLocation*> ImplementationTable;
@@ -188,6 +197,9 @@ private:
         const std::string& unitName) const;
     void ensureIndexValidity(int index, const ImplementationTable& table) const;
     void clearState();
+
+    /// Generated FUs.
+    std::vector<FUGenerated> fuGenerated_;
 
     /// FU implementations.
     ImplementationTable fuImplementations_;

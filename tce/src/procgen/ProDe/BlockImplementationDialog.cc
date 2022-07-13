@@ -246,11 +246,13 @@ BlockImplementationDialog::onHDBSelection(wxCommandEvent&) {
             int maxWrites = 0;
             int guardLatency = 0;
             int latency = 1;
+            bool zeroRegister = false;
             const RegisterFile* r = dynamic_cast<const RegisterFile*>(rf);
             if (r != NULL) {
                 maxReads = r->maxReads();
                 maxWrites = r->maxWrites();
                 guardLatency = r->guardLatency();
+                zeroRegister = r->zeroRegister();
             }
             const ImmediateUnit* iu = dynamic_cast<const ImmediateUnit*>(rf);
             if (iu != NULL) {
@@ -268,7 +270,8 @@ BlockImplementationDialog::onHDBSelection(wxCommandEvent&) {
                     r->isUsedAsGuard(),
                     guardLatency,
                     width,
-                    size);
+                    size,
+                    zeroRegister);
 
             if (rfEntryIDs.empty()) {
                 wxString message = _T("No implementations for '");

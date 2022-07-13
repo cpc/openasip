@@ -343,7 +343,7 @@ AddRFFromHDBDialog::onAdd(wxCommandEvent&) {
 
     RegisterFile* rf = new RegisterFile(
         rfName, size, width, arch->maxReads(), arch->maxWrites(), 
-        arch->guardLatency(), RegisterFile::NORMAL);
+        arch->guardLatency(), RegisterFile::NORMAL, arch->zeroRegister());
 
     for (int i = 0; i < arch->readPortCount(); i++) {
         string name = "r" + Conversion::toString(i);

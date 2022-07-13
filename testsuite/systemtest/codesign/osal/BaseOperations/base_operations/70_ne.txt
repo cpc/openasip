@@ -1,3 +1,4 @@
+!output unsigned
 ne 35 35
 ne 3 -3
 ne -3 -3

@@ -64,6 +64,9 @@ public:
     void unsetSocketCodes();
     bool hasSocketCodes() const;
     SocketCodeTable& socketCodes() const;
+    int socketCodePosition() const;
+
+    void setEncoding(unsigned int encoding, unsigned int extraBits);
 
     int socketIDPosition() const;
     int socketIDWidth() const;
@@ -80,6 +83,9 @@ public:
     static const std::string OSKEY_SC_TABLE;
 
 private:
+
+    void detachFromParent();
+
     /// Name of the socket.
     std::string name_;
     /// Socket code table.

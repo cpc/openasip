@@ -11,7 +11,8 @@ libplatformintegrator_la_SOURCES = \
 	IPXactHibiInterface.cc IPXactClkInterface.cc IPXactResetInterface.cc \
 	Vlnv.cc AlteraMemGenerator.cc IPXactAddressSpace.cc \
 	Stratix3DevKitIntegrator.cc XilinxBlockRamGenerator.cc \
-	AlmaIFIntegrator.cc
+	AlmaIFIntegrator.cc \
+	DummyMemGenerator.cc
 
 
 SRC_ROOT_DIR = $(top_srcdir)/src

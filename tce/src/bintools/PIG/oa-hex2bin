@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2022 Tampere University.
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+# 
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+# 
+# @author 2022 Kari Hepola
+#
+# Python script for converting hexadecimal files to binary text format
+
+
+import sys, getopt
+
+def printHelpAndExit():
+    print("Usage: oa-hex2bin -w WIDTH -o FILE_OUT FILE_IN")
+    sys.exit(1)
+
+def main(argv):
+    if(len(argv) != 5):
+        printHelpAndExit()
+
+    inputfile = ''
+    outputfile = ''
+    width=32
+    try:
+        opts, args = getopt.getopt(argv,"w:o:",["outFile="])
+    except getopt.GetoptError:
+        printHelpAndExit()
+    
+    for opt, arg in opts:
+        if opt == '-h':
+            printHelpAndExit()
+        elif opt in ("-w", "--width"):
+            try:
+                width = int(arg)
+            except ValueError as e:
+                print("Invalid width value: " + arg)
+                sys.exit(1)
+        elif opt in ("-o", "--outfile"):
+            outputfile = arg
+
+    inputfile = argv[4]
+
+    hexfile = open(inputfile, 'r')
+    binfile = open(outputfile, 'w')
+
+    for line in hexfile:
+        line = line.rstrip()
+        if len(line) > width/4 :
+            print("Error: Minimum width of: "
+            + str(len(line)*4) + " required")
+            sys.exit(1)
+        try:
+            hexValue = (int(line, 16))
+        except ValueError as e:
+            print("Error: Invalid hex value"
+            ", make sure input file is in hex format!")
+            print(e)
+            sys.exit(1)
+
+        # zerofill to the correct width
+        binValue = (bin(hexValue)[2:]).zfill(width)
+        binfile.write(binValue)
+        binfile.write('\n')
+
+    hexfile.close()
+    binfile.close()
+
+
+if __name__ == "__main__":
+   main(sys.argv[1:])
+

@@ -54,6 +54,9 @@ const string RegisterFile::OSVALUE_VOLATILE = "volatile";
 const string RegisterFile::OSKEY_MAX_READS = "max_r";
 const string RegisterFile::OSKEY_MAX_WRITES = "max_w";
 const string RegisterFile::OSKEY_GUARD_LATENCY = "g_latency";
+const string RegisterFile::OSKEY_ZERO_REGISTER = "zero_register";
+
+
 
 
 /**
@@ -74,12 +77,13 @@ const string RegisterFile::OSKEY_GUARD_LATENCY = "g_latency";
 RegisterFile::RegisterFile(
     const std::string& name, unsigned int size, unsigned int width,
     unsigned int maxReads, unsigned int maxWrites, unsigned int guardLatency,
-    Type type)
+    Type type, bool zeroRegister)
     : BaseRegisterFile(name, size, width),
       maxReads_(0),
       maxWrites_(0),
       guardLatency_(0),
-      type_(type) {
+      type_(type),
+      zeroRegister_(zeroRegister) {
     setMaxReads(maxReads);
     setMaxWrites(maxWrites);
     setGuardLatency(guardLatency);
@@ -100,7 +104,8 @@ RegisterFile::RegisterFile(const ObjectState* state)
       maxReads_(0),
       maxWrites_(0),
       guardLatency_(0),
-      type_(NORMAL) {
+      type_(NORMAL),
+      zeroRegister_(false) {
     loadStateWithoutReferences(state);
 }
 
@@ -411,6 +416,11 @@ RegisterFile::saveState() const {
     // set guard latency
     regFile->setAttribute(OSKEY_GUARD_LATENCY, guardLatency_);
 
+    // set zero register
+    if (zeroRegister_) {
+        regFile->setAttribute(OSKEY_ZERO_REGISTER, zeroRegister_);
+    }
+
     return regFile;
 }
 
@@ -465,6 +475,9 @@ RegisterFile::loadStateWithoutReferences(const ObjectState* state) {
         setMaxReads(state->intAttribute(OSKEY_MAX_READS));
         setMaxWrites(state->intAttribute(OSKEY_MAX_WRITES));
         setGuardLatency(state->intAttribute(OSKEY_GUARD_LATENCY));
+        if (state->hasAttribute(OSKEY_ZERO_REGISTER)) {
+            setZeroRegister(state->boolAttribute(OSKEY_ZERO_REGISTER));
+        }
 
     } catch (const Exception& e) {
         throw ObjectStateLoadingException(
@@ -613,6 +626,16 @@ RegisterFile::firstWritePort() const {
         }
     }
     return NULL;
+}
+
+bool
+RegisterFile::zeroRegister() const {
+    return zeroRegister_;
+}
+
+void
+RegisterFile::setZeroRegister(const bool& value) {
+    zeroRegister_ = value;
 }
 
 }

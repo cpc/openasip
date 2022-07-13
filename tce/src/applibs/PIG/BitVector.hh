@@ -34,6 +34,7 @@
 #define TTA_BIT_VECTOR_HH
 
 #include <vector>
+#include <string>
 #include "Exception.hh"
 
 /**
@@ -51,6 +52,7 @@ public:
     void pushBack(long long unsigned int integer, int size);
     void pushBack(const BitVector& bits);
     void pushBack(bool bit);
+    std::string toString() const;
 };
 
 #endif

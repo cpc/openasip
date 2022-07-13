@@ -19,9 +19,14 @@
 % LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 % FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 % IN THE SOFTWARE.
-\documentclass[twoside]{tceusermanual}
+\documentclass[a4paper,twoside]{tceusermanual}
 \usepackage{pslatex,verbatim}
+\usepackage{mathtools}
 \usepackage[dvipdfm]{hyperref}
+\usepackage[font=footnotesize]{caption}
+\usepackage[font=footnotesize]{subfig}
+\usepackage{listings}
+\usepackage{alltt}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 
@@ -626,7 +631,11 @@ should be plenty for our case.
 
 
 \subsection{Compiling and simulating}
-\label{ssec:eval_start}
+We recommend that you create a bash script where you copy all these commands
+as you will be using them multiple times during the tutorial. In the script,
+you should have a sequence of commands that generates the processor, compiles
+the benchmarks and simulates it in RTL simulation.
+
 Now we want to know how well the starting point architecture executes
 our program. We must compile the source code for this architecture
 with command:
@@ -641,9 +650,10 @@ $-k$ $result$ and $-k$ $test$ tell the compiler to keep the \textit{result} and
 \textit{Result} is needed for us to access the variable contents by name in the
 simulator later on.
 
-Since the input data stored in \textit{test} is known at compile time, without $-k$ $test$ the compiler would aggresively optimize the whole program and
-calculate the CRC value at compile-time and produce a program that just stores
-a constant in the \textit{result} variable.
+Since the input data stored in \textit{test} is known at compile time,
+without $-k$ $test$ the compiler would aggresively optimize the whole program
+and calculate the CRC value at compile-time and produce a program that
+just stores a constant in the \textit{result} variable.
 
 Successful compilation does not print anything and we can now simulate
 the program. Let's use graphical user interface version of the
@@ -1048,7 +1058,7 @@ name of the user account being used for the tutorial.  This directory
 is intended for the custom operations defined by the current user, and
 should always have sufficient access rights.
 
-\begin{figure}
+\begin{figure}[!htp]
   \begin{center} \includegraphics[width=0.8\textwidth]{eps/osed}
   \caption{Operation Set Editor when adding new operation REFLECT32.} 
   \label{fig:osed} \end{center}
@@ -1091,7 +1101,7 @@ definitions to the newly created operation module.
   up. Press \emph{Yes} to confirm the action. The operation definition is
   now added to the module.
 \item%
-  Then repeat the steps for operation `REFLECT32', as shown in Fig.~\ref{fig:osed}
+  Then repeat the steps for operation `REFLECT32' as shown in Fig.~\ref{fig:osed}
 \end{enumerate}
 
 \paragraph{Defining the simulation behaviour of the operations} The new operations
@@ -3568,6 +3578,736 @@ slot instructions,  which are  always executed before the  actual loop.
 The number  of delay slots is  defined in the control  unit of  the ADF.
 Stepping  through the  program we  should observe that the loop in the
 above source  code is repeated by 128 times before exiting the  loop.
+
+\section{Function Unit Generator}
+
+Function Unit Generator (FUGen) is an automatic HDL generator for
+creating the boilerplate code binding operation hardware implementations
+together as a function unit with a combination of multiple operations,
+or with complex operations consisting of a number of simpler operations.
+
+FUGen can be used for all function units including ones
+that use external ports. FUGen alters the traditional hardware design
+flow for automating the creation of function units with different
+operation combinations. Individual operations need to be described
+once and can then be used in combination with any other operations.
+
+This section gives usage description with examples for utilizing the
+FUGen in the processor RTL generation parts of the design flow.
+
+\subsection{Operation Implementations}
+
+% TODO: does it really need both even if the user is interested
+% only on one of the languages?
+For FUGen to operate it needs both verilog and VHDL description for
+the operations. Operation descriptions are raw code ``snippets''
+written in the corresponding hardware description
+language. ``Snippets'' must refer to all of the operations operands as
+defined in the OSAL. In addition, ``snippets'' may refer to additional
+variables, ``resource'' ports, ``external ports'', or some generally
+available signals. ``Resource'' refers to a VHDL entity or a verilog
+module that the FUGen can instantiate to allow creating more complex
+operations that, for example, use blackbox models. FUGen can also
+generate most operations from OSAL Operation DAGs as long as all the
+nodes have ``snippet'' implementations.
+
+% TODO: might be worth mentioning how it generates pipelined
+% implementations?
+
+
+The following give examples of snippets for VHDL and Verilog for the
+base operation set MUL operation.
+
+\begin{lstlisting}[language=VHDL,caption={VHDL ``snippet'' for MUL operation}]
+op3 <= std_logic_vector(resize(unsigned(op1) *
+                               unsigned(op2), op3'length));  
+\end{lstlisting}
+
+\begin{lstlisting}[language=Verilog,caption={Verilog ``snippet'' for MUL operation}]
+op3 = op1 * op2;
+\end{lstlisting}
+
+The OSAL operands are referred in the HDL code as ``op1'', ``op2'',
+etc. The order of the operand numbering, and their widths are the same as defined
+in OSAL.
+
+When referring to variables, and when implementing operations otherwise, one
+must adhere to the hardware description language's own syntax and semantic rules.
+For example, the ADDH examples below implement the half-floating point
+addition operation using the Designware's fp\_mac blackbox module. When referring to
+a ``resource'', one must also specify its index after the port's name as one operation
+may instantiate multiple resources. FUGen counts the resource usage per
+operation and reuses them.
+% TODO: this explanation is a bit confusing. The examples are not self
+% explanatory either.
+
+\begin{lstlisting}[language=VHDL,caption={VHDL ``snippet'' for ADDH operation}]
+a_1 <= op1;
+var_v := op2;
+b_1 <= X"3C00";
+c_1 <= var_v;
+op3 <= z_1;
+rnd_1 <= "000";
+\end{lstlisting}
+
+\begin{lstlisting}[language=Verilog,caption={Verilog ``snippet'' for ADDH operation}]
+a_1 = op1;
+b_1 = 16'h3c00;
+c_1 = op2;
+rnd_1 = 3'b000;
+op3 = z_1;
+\end{lstlisting}
+
+
+The ``Snippets'' may also refer to the following ``TCE standard'' signals.
+
+\begin{description}
+\item[glock] Global lock input signaling that the TTA is locked.
+\item[glockreq] Global lock request that places the TTA under a
+  lock. Global Lock Request may not depend on the ``glock'' to avoid
+  combinatorial loops.
+\item[trigger] A Signal that has a logical one value only at the clock cycle that
+  the operation is triggered. It is useful in some situations, as normally a
+  generated FU may ``execute'' the previously triggered operation
+  ``snippet'' (thus cause logic toggling) even though the operation was
+  not triggered on the current clock cycle.
+\end{description}
+
+For implementing a resource one must create the resource entity in
+VHDL or a module in verilog and describe it as a IP-XACT component.
+External ports are descibed as a IP-XACT abstract bus definition.
+
+After creating resouces or ``snippets'' they can be added to the HDB
+along with all the variables used in the ``snippets''. Resources and
+external port descriptions must be created before the operations using
+them.
+
+In ProDe, for generating a function unit one must add all operation
+implementations used in it in ``Processor Implementation'' dialog's
+``Function Unit Generation'' pane. However, this is only capable of
+adding operations that have direct implementations in the HDB.
+
+FUGen is also capable of generating operations based on their OSAL definition.
+For example, the multiply-accumulate operation can be built from snippets for
+multiplication and addition. Specifying this in the IDF is not supported, and
+instead, automatic selection of operation implementations must be used. This is
+done alongside processor generation by specifying HDBs to search for the
+operations with the \verb|--hdb-list| argument. Processor Generator first
+attempts to select full function unit implementations, and falls back on FUGen
+snippets if that fails.
+
+There are HDBs with basic operation operation snippets, covering most of our
+operation set:
+\begin{description}
+  \item[generate\_base32.hdb] Scalar arithmetic operations.
+  \item[generate\_lsu\_32.hdb] HDBs containing AlmaIF Integrator -compatible
+    snippets for simple LSU implementations.
+  \item[generate\_rf\_iu.hdb] Generic register file implementations.
+\end{description}
+
+\subsection{HDL Details and Limitations}
+
+Everything should be described in lower case. Only integer
+generics/parameters are allowed for ``resources'' and they must have a
+value. Code ``snippets'' may not read its OSAL output or refer to any
+signal in any way before it has been written to. Outputs from
+``resources'' may be considered as having been written already.
+
+``Resources'' must implement its operation in zero clock cycles
+although may have a clock and a reset. If a ``resource'' has a clock and/or
+a reset, they must be named ``clk'' and ``rstx'', respectively.
+
+Operation implementations can also have a post-operation
+``snippet''. These are meant mainly to allow implementing load
+operations. Normal ``snippets'' are ``executed'' the clock cycle the FU
+is triggered, but post-operation ``snippets'' are ``executed'' on the
+last operation's last clock cycle. As all generated operations have a
+registered output, this means load operations must have a latency of
+at least 2 clock cycles to allow one for the memory.
+
+\subsection{Default Load and Store Operations}
+
+By default, TCE comes with load and store operation ``snippets'' that
+implement a simple 32-bit interface for accessing the
+memory. Interface is generated when operations from
+'generate\_lsu32.hdb' HDB are used to generate the FU.
+
+\begin{figure}[tbh]
+\centerline{\psfig{figure=eps/fugen/default_lsu32_iface.eps,width=0.95\textwidth}}
+\caption{Default generated LSU interface signals from TTA's perspective.}
+\label{fig:default_lsu32_iface}
+\end{figure}
+
+\begin{description}
+\item[avalid\_out] Access valid is asserted when the FU wants to make
+  a memory access. TTA is locked when 'aready' is not asserted and
+  'avalid' is.
+\item[aready\_in] Access ready from the memory side. Must not depend
+  on 'avalid'. Transaction must happen when both 'avalid' and 'aready'
+  are asserted.
+\item[aaddr\_out] Access address. Byte address.
+\item[awren\_out] Access active high write or active low read signal.
+\item[astrb\_out] Access strobe. Active high bits for the bytes that
+  are written to or read from the memory. Accesses are always aligned
+  on the access' width. E.g 16-bit operation on a 32-bit data lane
+  only ever generates strobes '0011' or '1100'.
+\item[adata\_out] Access data. Bytes that correspond to the strobe
+  carry valid data. E.g. 8-bit write to the memory may come on
+  different byte on the data lane depending on the address. Bit 0 on
+  'astrb' marks weather byte 0 is valid on 'adata', etc.
+\item[rvalid\_in] Read valid from memory. If 'rready' is not asserted
+  the memory must delay the data.
+\item[rready\_out] Read ready. Transaction must occure when both
+  'rvalid' and 'rready' are asserted. If 'rvalid' is not asserted FU
+  locks the core until the read data arrives.
+\item[rdata\_in] Read data. Data must always be on the LSBits for
+  different loads. E.g. a 16-bit loads from a wider memory must come
+  in the bits 15:0. 'astrb' is sufficient to infer the load's width
+  and the bits that must be shifted to those LSBits.
+\end{description}
+
+
+\section{RISC-V Tutorial}
+This tutorial goes through the RISC-V customization in OpenASIP toolset. It
+starts from C code and ends up with a VHDL of a customized processor.
+During the tutorial the user will learn how to add custom instructions to a 
+RISC-V architecture, as well as how to compile programs for the customized
+architecture.
+
+\begin{verbatim}
+  > wget http://openasip.org/tutorial_files/tce_tutorials.tar.gz
+  > tar -xzf tce_tutorials.tar.gz
+  > cd tce_tutorials/tce_tour
+  > ls -la
+  
+  total 84
+  drwxr-xr-x 3 tce tce  4096 2010-05-28 11:40 .
+  drwx------ 7 tce tce  4096 2012-05-18 13:22 ..
+  -rw------- 1 tce tce  5913 2010-03-08 20:01 crc.c
+  -rw------- 1 tce tce  1408 2008-11-07 11:35 crc.h
+  -rw------- 1 tce tce  3286 2008-11-07 11:35 crcTable.dat
+  -rw-r--r-- 1 tce tce  2345 2010-03-08 13:04 custom_operation_behavior.cc
+  -rw-r--r-- 1 tce tce   855 2010-05-28 11:41 custom_operations.idf
+  -rw------- 1 tce tce  1504 2010-03-08 20:01 main.c
+  -rw-r--r-- 1 tce tce 45056 2010-03-10 16:09 tour_example.hdb
+  drwxr-xr-x 2 tce tce  4096 2010-05-28 11:40 tour_vhdl
+\end{verbatim}
+
+\subsection{The Sample Application}
+
+The test application counts a 32-bit CRC (Cyclic Redundant Check)
+check value for a block of data, in this case 10 bytes. The C code
+implementation is written by Michael Barr and it is published under
+Public Domain. The implementation consists of two different version of
+crc, but we will be using the fast version only.
+
+The program consists of two separate files: \file{main.c} contains the
+simple main function and \file{crc.c} contains the actual
+implementation. Open \file{crc.c} in your preferred editor and take a
+look at the code. Algorithm performs modulo-2 division, a byte at a
+time, reflects the input data (MSB becomes LSB) depending on the
+previous remainder, and XORs the remainder with a predefined
+polynomial (32-bit constant). The main difference between the crcSlow
+and crcFast implementations is that crcFast exploits a precalculated
+lookup table. This is a quite usual method of algorithm optimization.
+
+\subsection{Starting Point Processor Architecture}
+
+
+Copy the \file{riscv.adf} file included in OpenASIP distribution to a new ADF
+file:
+
+\begin{verbatim}
+  cp $(tce-config --prefix)/share/tce/data/mach/riscv.adf start.adf
+\end{verbatim}
+
+The file describes a RISC-V processor containing a full bypass network
+and function units that implement the RISC-V operations.
+We use this description as the starting point.
+
+
+You can view the architecture using the graphical Processor Designer
+(ProDe, Section~\ref{sec:prode}) tool:
+
+\begin{verbatim}
+  prode start.adf &
+\end{verbatim}
+
+Fig.~\ref{fig:riscvStartProde} shows how Prode should look like. There are 4 buses
+and 4 units: control unit (CU), a register file (RF), 1 arithmetic-logic
+unit (ALU), and 1 load-store unit (LSU). These units and buses describe
+the microarchitectural implementation of the RISC-V processor. The user can
+freely split operations to multiple function units or combine them under the same
+function unit. In the example description, the LSU and ALU are separated.
+However, the control unit that implements control instructions,
+must be separated to its own unit.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=10cm]{eps/start.eps}
+    \caption{Processor Designer (prode) when start ADF is opened}
+    \label{fig:riscvStartProde}
+  \end{center}
+\end{figure}
+
+You'll learn how to edit the processor with ProDe later in this tutorial.
+
+\subsection{Compiling and simulating}
+\label{ssec:eval_start}
+Now we want to know how well the starting point architecture executes
+our program. We must compile the source code for this architecture
+with command:
+
+\shellcmd{oacc-riscv -O3 -a start.adf -o crc.elf main.c crc.c}
+
+In addition to source codes, the compiler needs the architecture
+definition \file{start.adf}. It will produce a program called
+\file{crc.elf} which can be executed by this architecture. As \file{start.adf}
+does not yet include any custom instructions, the compiled program is fully
+compatible with the RISC-V RV32I ISA.
+
+Now to simulate the processor in RTL simulation, we need to generate the
+processor RTL and its testbench:
+
+\shellcmd{generateprocessor -o riscv-proc -t start.adf}
+
+In the command we specified that we want the processor RTL generated in a
+folder $-o$ \textit{riscv-proc}. Option $-t$ declares that the testbench 
+is to be generated. The processor generator will automatically pick the
+correct hardware database entries for the user for function unit RTL
+generation.
+
+After this generate the HDL packages for the instruction address space.
+
+\shellcmd{generatebits -x riscv-proc start.adf}
+
+To simulate the processor in RTL simulation, we need to generate a
+binary image of the program in text format. Previously, we generated an
+executable and linkable format (ELF) \file{crc.elf}. To convert it to text
+format, we need additional tools.
+
+You can use RISCV GNU Toolchain and its riscv32-unknown-elf-elf2hex tool. Or 
+alternatively if you don't want to install the whole toolchain, you can use
+other projects such as SiFive's elf2hex:
+\url{https://github.com/sifive/elf2hex}
+
+Now that the program is presented in hex format in a text file, it must be 
+converted to a binary presentation for the testbench. Do this with an included
+script:
+
+\shellcmd{oa-hex2bin -w 32 -o riscv-proc/tb/imem\_init.img hex.txt}
+
+\shellcmd{oa-hex2bin -w 32 -o riscv-proc/tb/dmem\_data\_init.img hex.txt}
+
+Currently the testbench uses separate instruction and data memories which is
+why both of them require a separate initialization file.
+
+Now, move to the riscv-proc directory
+
+\shellcmd{cd riscv-proc}
+
+Here you can find the compilation and simulation scripts. Compile the the 
+VHDL source files with the script. This step requires ghdl to be installed.
+Alternatively you can use the modsim\_compile.sh and
+modsim\_simulate.sh scripts if you have ModelSim installed.
+
+\shellcmd{./ghdl\_compile.sh}
+
+and simulate the processor and the program run
+
+\shellcmd{./ghdl\_simulate.sh}
+
+After a moment the simulation exits automatically when the exit function is
+reached. You can see an instruction trace of the executed instructions in
+riscv\_instruction\_trace.dump and a trace of the register file traffic in 
+rf.dump. Cycles.dump stores the information about the amount of clock cycles
+and stalls. The simulation should take a bit under 400 cycles but your mileage
+may vary.
+
+\subsection{Considering custom operations}
+%\subsection{Accelerating the CRC Algorithm}
+
+Custom operations (also known as special instructions) can be used to accelerate
+application-specific functionality. This part of the tutorial teaches how to
+accelerate the CRC application using CRC-specific operations.
+
+%\subsubsection{Evaluating Custom Operation Candidates}
+
+First of all, it is quite simple and efficient to implement CRC
+calculation entirely on hardware. However, implementing the whole CRC
+function as a custom operation would be quite pointless and the
+flexibility benefits of using a processor-based implementation would diminish.
+Instead, we will concentrate on applying a ``fine grained'' custom
+operation which accelerates a smaller part of the algorithm, while
+keeping the architecture useful also for other applications.
+
+
+\subsection{Creating a custom operation with a DAG}
+In OpenASIP the user can add custom operations to processor designs in two ways:
+with HDL snippets or DAG descriptions. With DAG descriptions, the user is able
+describe operations that can be described as a chain of already implemented operations.
+When this is not possible, HDL snippets are practical.
+Let's first add a new custom operation with the DAG approach.
+
+
+
+%In this tutorial we add the FU
+%implementation for our custom operation so the processor
+%implementation can be generated, but omit the cost data required for
+%the cost estimation. In general case, cost data should be added to
+%cost database as well.
+
+\paragraph{Using Operation Set Editor (OSEd) to add the operation data.}
+
+OSEd is started with the command
+
+\shellcmd{osed \&}
+
+Create a new operation module, which is a container for a set of operations.
+You can add a new module in any of the predefined search paths, provided
+that you have sufficient file system access permissions.
+
+For example, choose directory
+\file{/home/\emph{user}/.tce/opset/custom}, where \emph{user} is the
+name of the user account being used for the tutorial.  This directory
+is intended for the custom operations defined by the current user, and
+should always have sufficient access rights.
+
+\begin{figure}
+  \begin{center} \includegraphics[width=0.8\textwidth]{eps/osed_crc_xor_shift.eps}
+  \caption{Operation Set Editor when adding new operation CRC\_XOR\_SHIFT.} 
+  \label{fig:osed_crc_xor_shift} \end{center}
+\end{figure}
+
+
+\begin{enumerate}
+\item%
+  Click the root in the left area of the main window which opens list
+  of paths. Right-click on a path name
+  \file{/home/\emph{user}/.tce/opset/custom}. A drop-down menu appears
+  below the mouse pointer.
+\item%
+  Select \textbf{Add module} menu item. 
+\item%
+  Type in the name of the module (for example, `riscv\_tutorial') and
+  press \emph{OK}. The module is now added under the selected path.
+\end{enumerate} 
+
+\paragraph{Adding the new operations.} We will now add the operation
+definitions to the newly created operation module.
+
+\begin{enumerate}
+\item%
+  Select the module that you just added by right-clicking on its name,
+  displayed in the left area of the main window. A drop down menu appears.
+\item%
+  Select \textbf{Add operation} menu item.
+\item%
+  Type `CRC\_XOR\_SHIFT' as the name of the operation.
+\item%
+  Add one input by pressing the \emph{Add} button under the operation input
+  list. Select \textit{UIntWord} as type.
+\item%
+  Add one output by pressing the \emph{Add} button under the operation output
+  list. Select \textit{UIntWord} as type.
+\item%
+  At this stage the dialog should look like in Fig.~\ref{fig:osed_crc_xor_shift}
+\item%
+  Press \emph{Open DAG}
+\item%
+  Type the operation description in the dialog as a DAG by combining an SHRU
+  and XOR operation, see Fig.~\ref{fig:crc_dag}.
+\item%
+  Press \emph{Save} and then \emph{OK}.
+\item%
+  Close the dialog by pressing the \emph{OK} button. A confirmation dialog
+  will pop up. Press \emph{Yes} to confirm the action.
+  The operation definition is now added to the module.
+\end{enumerate}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=12cm]{eps/crc_dag.eps}
+    \caption{CRC\_XOR\_SHIFT DAG description}
+    \label{fig:crc_dag}
+  \end{center}
+\end{figure}
+
+
+Now open start.adf with ProDe to add then new custom instruction.
+
+\shellcmd{prode start.adf}
+
+\begin{enumerate}
+  \item%
+    Double click the ALU function unit.
+  \item%
+    Click \emph{add from Opset}.
+  \item%
+    Filter CRC\_XOR\_SHIFT.
+  \item%
+    Click the operation and press \emph{OK}
+  \item%
+    Switch the operation-port binding so that the first operand is bound to 
+    P1 that is the triggering port. This is important when generating the 
+    RISC-V decoder.
+  \item%
+    On the Operand usage view, you can change the desired latency by switching
+    the third operand write cycle. Leave it as it is because the operation is 
+    simple and can be therefore easily implemented in a single cycle.
+  \item%
+    Press \emph{OK} on the operation dialog.
+  \item%
+    Press \emph{OK} on the FU dialog.
+\end{enumerate}
+
+Now you have successfully added the operation to the processor
+microarchitecture. However we must still add it a the RISC-V instruction
+format.
+
+\begin{enumerate}
+  \item%
+    Press \emph{OTA Formats} under \emph{Edit}.
+    The formats have predefined names that are included in this
+    architecture definition. The compiler and ProGe expects these names to be 
+    found in the definition. 
+  \item%
+    Click the \emph{riscv\_r\_type} item.
+    The operations included in this format are listed in the operations menu,
+    RISC-V naming scheme is used for the operations.
+  \item%
+    Click \emph{Add}
+  \item%
+    Click \emph{crc\_xor\_shift}
+  \item%
+    Click \emph{OK} on the operation dialog.
+  \item%
+    Click \emph{OK} on the OTA Formats dialog.
+\end{enumerate}
+
+Now we have added the operation both in the microarchitecture and the
+instruction format. Next, we need to call the new CRC\_XOR\_SHIFT custom
+instruction with an intrinsic from the source code. Open \file{crc.c} line
+224.
+
+Usage of OpenASIP RISC-V custom operation macros/intrinsics is as follows:
+
+\begin{verbatim}
+ _OA_RV_<opName>(input1, ... , inputN, output1, ... , outputN);
+\end{verbatim}
+
+where <opName> is the name of the operation in OSAL. Number of input and
+output operands depends on the operation. Input operands are listed first
+and they are followed by output operands, if any.
+
+In our case we need to write a single word into the CRC\_XOR\_SHIFT and read the
+result from it.
+
+\begin{verbatim}
+  _OA_RV_CRC_XOR_SHIFT(crcTable[data], remainder, remainder);
+\end{verbatim}
+
+After you add the macro, the loop body should look like this:
+\begin{verbatim}
+  data = REFLECT_DATA(message[byte]) ^ (remainder >> (WIDTH - 8));
+  _OA_RV_CRC_XOR_SHIFT(crcTable[data], remainder, remainder);
+\end{verbatim}
+
+Now regenerate the processor the same way as previously. Also compile the
+program and generate the program images for the testbench. Compile and run
+the program in RTL simulation. After the simulation is complete you see that
+the execution took 10 cycles less.
+
+\subsection{Creating a custom operation with a HDL snippet}
+In the previous section we described the operation as a DAG and were able to 
+automatically generate the hardware for the new operation. However, it is not
+possible to describe the whole reflect loop as a DAG. In this subsection we
+implement the reflection loop as a VHDL snippet and add it to the architecture
+definition.
+
+Start OSEd
+
+\shellcmd{osed \&}
+
+\begin{enumerate}
+
+\item%
+  Select the module that you added in the previous section by right-clicking
+  on its name, displayed in the left area of the main window.
+  A drop down menu appears.
+\item%
+  Select \textbf{Add operation} menu item.
+\item%
+  Type `REFLECT8' as the name of the operation.
+\item%
+  Add two inputs by pressing the \emph{Add} button under the operation input
+  list. Select \textit{UIntWord} as type. Currently OpenASIP requires RISC-V
+  custom instructions to have two inputs to follow the R-format, so we use one
+  empty input to pad the instruction.
+\item%
+  Add one output by pressing the \emph{Add} button under the operation output
+  list. Select \textit{UIntWord} as type.
+\item%
+  After the inputs and the output of the operation have been added, close
+  the dialog by pressing the \emph{OK} button. A confirmation dialog will pop
+  up. Press \emph{Yes} to confirm the action. The operation definition is
+  now added to the module.
+\item%
+  Then repeat the steps for operation `REFLECT32'.
+\end{enumerate}
+
+Now that we have the operations in the operation set library, we can add a
+hardware database entries for them. Let's start by creating the HDL snippets
+themselves.
+
+\begin{enumerate}
+  \item%
+    Create a file reflect8.vhd in the tour\_vhdl folder.
+  \item%
+    Write the HDL of the operation and use opN for the input signals, eg.
+    op1, op2, op3 ... . The processor generator will map the function unit 
+    input and outputs to these signals when generating the hardware. See
+    Fig.~\ref{fig:reflect_snippet} for the correct HDL description of REFLECT8.
+  \item%
+    Do the same thing but for the REFLECT32. Remember to set the loop iterator
+    limit to 31.
+  \item%
+    Now we could also add a a verilog definition of the operation but as this
+    exercise only goes through the VHDL generation, create an empty file
+    called verilog.v in the same directory. Alternatively the user can write
+    the verilog version as an excersise.
+\end{enumerate}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=8cm]{eps/reflect8_snippet.eps}
+    \caption{REFLECT8 VHDL snippet}
+    \label{fig:reflect_snippet}
+  \end{center}
+\end{figure}
+
+Now that we have the snippets written, we can add the operation 
+implementations to the hardware database.
+
+\shellcmd{hdbeditor \&}
+
+\begin{enumerate}
+\item%
+  Press \emph{Create hdb} under \emph{File}. Name it riscv\_tour.hdb
+\item%
+  Press \emph{Add operation implementation} under \emph{Edit}. Name it
+  'reflect8'. 
+\item%
+  Add the VHDL Op implementation file. Also add the verilog file as a verilog
+  Op implementation file.
+\item%
+  Press \emph{OK}.
+\item%
+  Add operation implementation for reflect32 similarly.
+\end{enumerate}
+
+Now open start.adf with ProDe to add the new custom instructions to the processor
+description.
+
+\shellcmd{prode start.adf}
+
+\begin{enumerate}
+  \item%
+    Double click the ALU function unit.
+  \item%
+    Click \emph{add from Opset}.
+  \item%
+    Filter REFLECT8.
+  \item%
+    Click the operation and press \emph{OK}
+  \item%
+    Switch the operation-port binding so that the first operand is bound to 
+    P1 that is the triggering port.
+  \item%
+    On the Operand usage view, you can change the desired latency by switching,
+    the third operand write cycle. Leave it as it is because the operation is 
+    simple and can be therefore easily implemented in a single cycle.
+  \item%
+    Press \emph{OK} on the operation dialog.
+  \item%
+    Add REFLECT32 similarly.
+  \item%
+    Press \emph{OK} on the FU dialog.
+\end{enumerate}
+
+Add the new instructions to the R-format like previously.
+
+\begin{enumerate}
+  \item%
+    Press \emph{OTA Formats} under \emph{Edit}.
+    The formats have predefined names that are included in this
+    architecture definition. The compiler and ProGe expects these names to be 
+    found in the definition. 
+  \item%
+    Click the \emph{riscv\_r\_type} item.
+    The operations included in this format are listed in the operations menu,
+    RISC-V naming scheme is used for the operations.
+  \item%
+    Click \emph{Add}
+  \item%
+    Click \emph{REFLECT8}
+  \item%
+    Click \emph{OK} on the operation dialog.
+  \item%
+    Add REFLECT32 similarly.
+  \item%
+    Click \emph{OK} on the OTA Formats dialog.
+\end{enumerate}
+
+Next modify the source code to use the REFLECT8 and REFLECT32 intrinsics as
+before. Add new crc variables "input" and "output" to the function to help
+make the intrinsic calls. Mark the second input of the reflect operation to 0.
+After the changes the loop body should look like this:
+
+\begin{verbatim}
+  input = message[byte];
+  _OA_RV_REFLECT8(input, 0, output);
+  data = (unsigned char) output ^ (remainder >> (WIDTH - 8));
+  _OA_RV_CRC_XOR_SHIFT(crcTable[data], remainder, remainder);
+\end{verbatim}
+
+   
+Next we will modify the return statement. Originally it uses a
+REFLECT\_REMAINDER macro where nBits is defined as WIDTH and data is
+remainder. Simply use \_OA\_RV\_REFLECT32 macro before return statement and
+replace the original macro with the variable output:
+\begin{verbatim}
+  _OA_RV_REFLECT32(remainder, 0, output);
+  return (output ^ FINAL_XOR_VALUE);
+\end{verbatim}
+
+Now we can generate the processor. Because we want to use a use-defined
+hardware database, we must explicitly state the HDBs we want to use to the
+processor generator.
+
+\shellcmd{generateprocessor --hdb-list=asic\_130nm\_1.5V.hdb,generate\_base32.hdb,generate\_lsu\_32.hdb,riscv\_tour.hdb
+-o riscv-proc -t start.adf}
+
+When generating RISC-V processors, these HDBs are sufficient. If you are
+generating a TTA you might want to add generate\_rf\_iu.hdb to the list.
+   
+Now compile the program and images as before and simulate the design in RTL 
+simulation. This time, you should see a more significant drop in cycle counts.
+
+\subsection{Final Words}
+
+This tutorial is now finished. Now you should know how to customize
+the RISC-V processor description by adding custom operations,
+as well as generate the processor implementation and its program image.
+
+The RISC-V feature of the toolset is new and somewhat experimental. Currently
+OpenASIP does not include an instruction set simulator for RISC-V which is why
+the processor must be simulated in RTL simulation.
+
+For your own designs, we recommend that you use the included riscv.adf description
+as a base and add your own custom instructions on top of it.
+
+
 
 \chapter{PROCESSOR DESIGN TOOLS}
 \label{chapter:procgen}

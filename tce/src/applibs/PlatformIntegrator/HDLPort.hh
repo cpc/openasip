@@ -35,7 +35,6 @@
 
 #include "TCEString.hh"
 #include "ProGeTypes.hh"
-#include "HDBTypes.hh"
 #include "NetlistPort.hh"
 
 namespace ProGe {
@@ -53,14 +52,14 @@ public:
         const TCEString name,
         const TCEString& widthFormula,
         ProGe::DataType type,
-        HDB::Direction direction,
+        ProGe::Direction direction,
         bool needsInversion);
 
     HDLPort(
         const TCEString name,
         const TCEString& widthFormula,
         ProGe::DataType type,
-        HDB::Direction direction,
+        ProGe::Direction direction,
         bool needsInversion,
         int width);
 
@@ -78,7 +77,7 @@ public:
 
     int realWidth() const;
 
-    HDB::Direction direction() const;
+    ProGe::Direction direction() const;
 
     ProGe::DataType type() const;
 
@@ -97,7 +96,7 @@ private:
     TCEString name_;
     TCEString widthFormula_;
     ProGe::DataType type_;
-    HDB::Direction direction_;
+    ProGe::Direction direction_;
     bool needsInversion_;
     bool hasWidth_;
     int width_;

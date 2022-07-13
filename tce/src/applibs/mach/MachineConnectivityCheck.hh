@@ -111,6 +111,11 @@ public:
         const TTAMachine::Guard* guard = NULL);
 
     static bool isConnected(
+        const std::set<TTAMachine::Port*> ports,
+        const TTAMachine::Bus& bus
+    );
+
+    static bool isConnected(
         const TTAMachine::Bus& bus,
         const TTAMachine::Port& port);
 

@@ -1,0 +1,34 @@
+function usage() {
+    echo "Usage: $0 [options]"
+    echo "Prepares processor design for RTL simulation."
+    echo "Options:"
+    echo "  -c     Enables code coverage."
+    echo "  -h     This helpful help text."
+}
+
+# Function to do clean up when this script exits.
+function cleanup() {
+    true # Dummy command. Can not have empty function.
+}
+trap cleanup EXIT
+
+OPTIND=1
+while getopts "ch" OPTION
+do
+    case $OPTION in
+        c)
+            enable_coverage=yes
+            ;;
+        h)
+            usage
+            exit 0
+            ;;
+        ?)  
+            echo "Unknown option -$OPTARG"
+            usage
+            exit 1
+            ;;
+    esac
+done
+shift "$((OPTIND-1))"
+

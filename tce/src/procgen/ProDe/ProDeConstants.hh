@@ -137,6 +137,8 @@ public:
     static const std::string CMD_NAME_EDIT_ADDRESS_SPACES;
     /// Command name for the "Edit Tempaltes" command.
     static const std::string CMD_NAME_EDIT_TEMPLATES;
+    /// Command name for the "Edit OTA Formats" command.
+    static const std::string CMD_NAME_EDIT_OTA_FORMATS;
     /// Command name for the "Edit Immediate Slots" command.
     static const std::string CMD_NAME_EDIT_IMMEDIATE_SLOTS;
     /// Command name for the "Edit Bus Order" command.
@@ -227,6 +229,8 @@ public:
     static const std::string CMD_SNAME_EDIT_ADDRESS_SPACES;
     /// Command name for the "Edit Templates" command.
     static const std::string CMD_SNAME_EDIT_TEMPLATES;
+    /// Command name for the "Edit Templates" command.
+    static const std::string CMD_SNAME_EDIT_OTA_FORMATS;
     /// Command name for the "Processor Configurations" command.
     static const std::string CMD_SNAME_EDIT_MACHINE;
     /// Command name for the "Edit Immediate slots" command.
@@ -334,6 +338,8 @@ public:
     static const std::string CMD_ICON_EDIT_ADDRESS_SPACES;
     /// Icon location for the "Edit Templates" command.
     static const std::string CMD_ICON_EDIT_TEMPLATES;
+    /// Icon location for the "Edit OTA Formats" command.
+    static const std::string CMD_ICON_EDIT_OTA_FORMATS;
     /// Icon location for the "Edit Connections" command.
     static const std::string CMD_ICON_EDIT_CONNECTIONS;
     /// Icon location for the "Processor Configurations" command.
@@ -433,6 +439,7 @@ public:
             COMMAND_EDIT_CONNECTIONS,
             COMMAND_EDIT_ADDRESS_SPACES,
             COMMAND_EDIT_TEMPLATES,
+            COMMAND_EDIT_OTA_FORMATS,
         COMMAND_EDIT_IMMEDIATE_SLOTS,
         COMMAND_EDIT_BUS_ORDER,
         COMMAND_EDIT_MACHINE,

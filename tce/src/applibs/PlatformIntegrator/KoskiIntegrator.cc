@@ -106,19 +106,19 @@ MemoryGenerator&
 KoskiIntegrator::dmemInstance(
     MemInfo dmem,
     TTAMachine::FunctionUnit& lsuArch,
-    HDB::FUImplementation& lsuImplementation) {
+    std::vector<std::string> lsuPorts) {
 
     if (dmem.type == ONCHIP) {
         if (dmemGen_ == NULL) {
             TCEString initFile = programName() + "_" + dmem.asName + ".mif";
             // onchip mem size is scalable, use value from adf's Address Space
-            int addrw = dmem.asAddrw;
+            int addrw = dmem.portAddrw;
             dmemGen_ =
                 new AlteraHibiDpRamGenerator(
                     dmem.mauWidth, dmem.widthInMaus, addrw, initFile,
                     this, warningStream(), errorStream());
             ipXactGen_->addMemInitFile(initFile);
-            dmemGen_->addLsu(lsuArch, lsuImplementation);
+            dmemGen_->addLsu(lsuArch, lsuPorts);
         }
     } else {
         TCEString msg = "Unsupported data memory type";
@@ -159,12 +159,6 @@ KoskiIntegrator::setDeviceFamily(TCEString devFamily) {
     deviceFamily_ = devFamily;
 }
 
-// these are not relevant here
-TCEString
-KoskiIntegrator::deviceName() const {
-    return "";
-}
-    
 TCEString
 KoskiIntegrator::devicePackage() const {
     return "";

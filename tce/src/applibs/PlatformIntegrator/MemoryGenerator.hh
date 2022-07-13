@@ -37,6 +37,7 @@
 #include <vector>
 #include <map>
 #include "Netlist.hh"
+#include "Parameter.hh"
 #include "TCEString.hh"
 
 class HDLPort;
@@ -69,13 +70,16 @@ struct MemInfo {
     int widthInMaus;
     int portAddrw;  //< port address width = port width - bytemask bits
     int asAddrw;    //< address width from ADF address space
+    bool isShared;
     TCEString asName;
+    TCEString lsuName;
 };
 
 namespace ProGe {
     class NetlistBlock;
     class VirtualNetlistBlock;
     class NetlistPort;
+    class Parameter;
 }
 
 class MemoryGenerator {
@@ -97,17 +101,20 @@ public:
      * If incompatible, reasons are appended to the reasons vector
      *
      * @param ttaCore TTA toplevel
+     * @param coreId The core ID number
      * @param reasons Reasons why incompatible
      * @return is memory generator compatible with the TTA core
      */
     virtual bool isCompatible(
         const ProGe::NetlistBlock& ttaCore,
+        int coreId,
         std::vector<TCEString>& reasons) const;
 
     virtual void addMemory(
         const ProGe::NetlistBlock& ttaCore,
-        ProGe::Netlist& netlist,
-        int memIndex);
+        ProGe::NetlistBlock& integratorBlock,
+        int memIndex,
+        int coreId);
 
     virtual bool generatesComponentHdlFile() const = 0;
 
@@ -129,7 +136,7 @@ public:
      */
     void addLsu(
         TTAMachine::FunctionUnit& lsuArch,
-        HDB::FUImplementation& lsuImplementation);
+        std::vector<std::string> lsuPorts);
 
  protected:
 
@@ -141,20 +148,22 @@ public:
     BlockPair;
 
     virtual bool checkFuPort(
-        const HDB::FUExternalPort& fuPort,
+        const std::string fuPort,
         std::vector<TCEString>& reasons) const;
 
     virtual void connectPorts(
-        ProGe::Netlist& netlist,
-        ProGe::NetlistPort& memPort,
-        ProGe::NetlistPort& corePort,
-        bool inverted);
+        ProGe::NetlistBlock& netlistBlock,
+        const ProGe::NetlistPort& memPort,
+        const ProGe::NetlistPort& corePort,
+        bool inverted,
+        int coreId);
 
     virtual MemoryGenerator::BlockPair
     createMemoryNetlistBlock(
-        ProGe::Netlist& netlist,
-        int memIndex);
-    
+        ProGe::NetlistBlock& integratorBlock,
+        int memIndex,
+        int coreId);
+
     const PlatformIntegrator* platformIntegrator() const;
 
     std::ostream& warningStream();
@@ -173,17 +182,17 @@ public:
 
     int parameterCount() const;
     
-    const ProGe::Netlist::Parameter& parameter(int index) const;
+    const ProGe::Parameter& parameter(int index) const;
 
-    void addParameter(const ProGe::Netlist::Parameter& add);
+    void addParameter(const ProGe::Parameter& add);
 
     TCEString ttaCoreName() const;
 
     virtual TCEString moduleName() const = 0;
     
-    virtual TCEString instanceName(int memIndex) const = 0;
+    virtual TCEString instanceName(int coreId, int memIndex) const = 0;
 
-    TCEString memoryIndexString(int memIndex) const;
+    TCEString memoryIndexString(int coreId, int memIndex) const;
 
     /**
      * Returns base path to template files.
@@ -199,13 +208,11 @@ public:
 
     const TTAMachine::FunctionUnit& lsuArchitecture() const;
 
-    const HDB::FUImplementation& lsuImplementation() const;
-
-    TCEString corePortName(const TCEString& portBaseName) const;
+    TCEString corePortName(const TCEString& portBaseName, int coreId) const;
 
 private:
     
-    typedef std::vector<ProGe::Netlist::Parameter> ParameterList;
+    typedef std::vector<ProGe::Parameter> ParameterList;
 
     int mauWidth_;
     int widthInMaus_;
@@ -222,7 +229,7 @@ private:
     ParameterList params_;
 
     TTAMachine::FunctionUnit* lsuArch_;
-    HDB::FUImplementation* lsuImplementation_;
+    std::vector<std::string> lsuPorts_;
 
     static const TCEString CLOCK_PORT;
     static const TCEString RESET_PORT;

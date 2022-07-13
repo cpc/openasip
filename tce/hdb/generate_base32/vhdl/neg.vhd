@@ -1,0 +1,1 @@
+op2 <= std_logic_vector(to_signed(0,op2'length) - signed(op1));

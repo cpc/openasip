@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@vlad.cs.tut.fi>
 -- Company    : TUT/IDCS
 -- Created    : 2001-07-13
--- Last update: 2016-06-14
+-- Last update: 2016-04-11
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Simply resets the processor and triggers execution
@@ -39,6 +39,7 @@
 library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Std_Logic_arith.all;
+use std.textio.all;
 use work.testbench_constants.all;
 use work.ENTITY_STR_globals.all;
 use work.ENTITY_STR_imem_mau.all;
@@ -56,25 +57,26 @@ architecture testbench of testbench is
       en  : in  std_logic := '1');
   end component;
 
-  signal clk : std_logic;
+  signal clk : std_logic := '1';
 
   component proc
     port (
-      clk           : in  std_logic;
-      rst_x         : in  std_logic;
+      clk               : in  std_logic;
+      rst_x             : in  std_logic;
       dmem_ext_bit_wr_x : in  std_logic_vector(DMEMDATAWIDTH-1 downto 0);
-      dmem_ext_wr_x : in  std_logic;
-      dmem_ext_en_x : in  std_logic;
-      dmem_ext_data : in  std_logic_vector(DMEMDATAWIDTH-1 downto 0);
-      dmem_ext_addr : in  std_logic_vector(DMEMADDRWIDTH-1 downto 0);
-      data_out      : out std_logic_vector(DMEMDATAWIDTH-1 downto 0);
-      imem_ext_bit_wr_x : in std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
-      imem_ext_wr_x     : in std_logic;
-      imem_ext_en_x     : in std_logic;
-      imem_ext_data     : in std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
-      imem_ext_addr     : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);
-      dmem_busy      : out std_logic;
-      imem_busy      : out std_logic);
+      dmem_ext_wr_x     : in  std_logic;
+      dmem_ext_en_x     : in  std_logic;
+      dmem_ext_data     : in  std_logic_vector(DMEMDATAWIDTH-1 downto 0);
+      dmem_ext_addr     : in  std_logic_vector(DMEMADDRWIDTH-1 downto 0);
+      data_out          : out std_logic_vector(DMEMDATAWIDTH-1 downto 0);
+      imem_ext_bit_wr_x : in  std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+      imem_ext_wr_x     : in  std_logic;
+      imem_ext_en_x     : in  std_logic;
+      imem_ext_data     : in  std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+      imem_ext_addr     : in  std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+      dmem_busy         : out std_logic;
+      imem_busy         : out std_logic;
+      locked            : out std_logic);
   end component;
 
   signal rst_x         : std_logic;
@@ -91,32 +93,38 @@ architecture testbench of testbench is
   signal dmem_busy     : std_logic;
   signal imem_busy     : std_logic;
   signal data_out      : std_logic_vector(DMEMDATAWIDTH-1 downto 0);
+
+  signal execution_count_reg : integer   := 0;
+  signal enable_clock        : std_logic := '1';
+  signal lock_status_wire    : std_logic;
+  
 begin
 
   clock : clkgen
     generic map (
       PERIOD => PERIOD)
     port map (
-      clk => clk);
+      clk => clk,
+      en  => enable_clock);
 
-  
   dut : proc
     port map (
-      clk           => clk,
-      rst_x         => rst_x,
+      clk               => clk,
+      rst_x             => rst_x,
       dmem_ext_bit_wr_x => dmem_bit_wr_x,
-      dmem_ext_wr_x => dmem_wr_x,
-      dmem_ext_en_x => dmem_en_x,
-      dmem_ext_data => dmem_data_in,
-      dmem_ext_addr => dmem_addr,
-      data_out      => data_out,
+      dmem_ext_wr_x     => dmem_wr_x,
+      dmem_ext_en_x     => dmem_en_x,
+      dmem_ext_data     => dmem_data_in,
+      dmem_ext_addr     => dmem_addr,
+      data_out          => data_out,
       imem_ext_bit_wr_x => imem_bit_wr_x,
-      imem_ext_wr_x => imem_wr_x,
-      imem_ext_en_x => imem_en_x,
-      imem_ext_data => imem_data,
-      imem_ext_addr => imem_addr,
-      dmem_busy     => dmem_busy,
-      imem_busy     => imem_busy);
+      imem_ext_wr_x     => imem_wr_x,
+      imem_ext_en_x     => imem_en_x,
+      imem_ext_data     => imem_data,
+      imem_ext_addr     => imem_addr,
+      dmem_busy         => dmem_busy,
+      imem_busy         => imem_busy,
+      locked            => lock_status_wire);
 
   dmem_bit_wr_x <= (others => '1');
   dmem_wr_x     <= '1';
@@ -125,28 +133,70 @@ begin
   dmem_addr     <= (others => '0');
 
   imem_bit_wr_x <= (others => '1');
-  imem_wr_x <= '1';
-  imem_en_x <= '1';
-  imem_data <= (others => '0');
-  imem_addr <= (others => '0');
+  imem_wr_x     <= '1';
+  imem_en_x     <= '1';
+  imem_data     <= (others => '0');
+  imem_addr     <= (others => '0');
 
   run_test : process
   begin
-    rst_x <= '0';
-    wait for PERIOD*3;
-    rst_x <= '1';
-
---    wait for PERIOD;
---    cntl_wr      <= '1'  after PERIOD/10;
---    cntl_data_in <= INIT after PERIOD/10;
-
---    wait for PERIOD;
---    cntl_wr      <= '0'             after PERIOD/10;
---    cntl_data_in <= (others => '0') after PERIOD/10;
-
-    wait for RUNTIME;
-    rst_x <= '0';
-    wait for PERIOD;
+    rst_x   <= '0';
+    -- Lower rstx a little after a clock edge so its clear on wich side reset
+    -- lift off occurs.
+    wait for (PERIOD*2 + PERIOD/10);
+    rst_x   <= '1';
+    -- Test runs until requested amount of instructions have been executed or
+    -- stopped by simulation script.
+    wait;
   end process;
-  
+
+  -- purpose: Counts executed instructions
+  -- type   : sequential
+  -- inputs : clk, rst_x
+  -- outputs: execution_count_reg
+  execution_counter : process (clk, rst_x)
+  begin  -- process execution_counter
+    if rst_x = '0' then                 -- asynchronous reset (active low)
+      execution_count_reg <= 0;
+    elsif clk'event and clk = '1' then  -- rising clock edge
+      if lock_status_wire = '0' then
+        execution_count_reg <= execution_count_reg + 1;
+      end if;
+    end if;
+  end process execution_counter;
+
+  -- purpose: Controls clock generation. At beginning of the simulation the
+  --          clock is enabled. If execution limit is defined then the clock
+  --          will be stopped causing simulation to end.
+  -- type   : combinational
+  -- inputs : execution_count_reg
+  -- outputs: enable_clock
+  clock_control : process
+    file execution_limit_file_v : text;
+    variable line_v             : line;
+    variable good_v             : boolean := false;
+    variable open_status_v      : file_open_status;
+    variable execution_limit_v  : integer := -1;
+  begin  -- process clock_control
+    file_open(open_status_v, execution_limit_file_v,
+              "execution_limit", read_mode);
+    if open_status_v = open_ok and not endfile(execution_limit_file_v) then
+      readline(execution_limit_file_v, line_v);
+      read(line_v, execution_limit_v, good_v);
+      if not good_v then
+        execution_limit_v := -2;
+      end if;
+    end if;
+
+    -- If execution limit is not defined then keep clock running indefinitely.
+    if execution_limit_v < 0 then
+      wait;
+    end if;
+
+    wait on execution_count_reg until execution_count_reg >= execution_limit_v;
+    enable_clock <= '0';
+    wait;
+    
+  end process clock_control;
+
 end testbench;

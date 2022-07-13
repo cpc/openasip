@@ -82,6 +82,7 @@ public:
     ProgramImageGenerator();
     virtual ~ProgramImageGenerator();
 
+
     void loadCompressorPlugin(const std::string& fileName);
     void loadCompressorParameters(
         CodeCompressorPlugin::ParameterTable parameters);
@@ -101,7 +102,7 @@ public:
     void generateDecompressor(std::ostream& stream, TCEString entityStr);
 
     int imemMauWidth() const;
-    const CodeCompressorPlugin& compressor() { return *compressor_; }
+    CodeCompressorPlugin& compressor() { return *compressor_; }
 
     void setEntityName(const std::string& entity);
 

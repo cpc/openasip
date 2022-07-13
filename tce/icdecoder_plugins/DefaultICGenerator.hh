@@ -37,6 +37,7 @@
 #define TTA_DEFAULT_IC_GENERATOR_HH
 
 #include <map>
+#include <set>
 
 #include "CentralizedControlICGenerator.hh"
 #include "ProGeTypes.hh"
@@ -60,6 +61,9 @@ namespace ProGe {
  */
 class DefaultICGenerator : public CentralizedControlICGenerator {
 public:
+    typedef std::map<const TTAMachine::Bus*,
+                     std::set<TTAMachine::Socket*>> BusSocketMap;
+
     DefaultICGenerator(const TTAMachine::Machine& machine);
     virtual ~DefaultICGenerator();
     
@@ -67,13 +71,15 @@ public:
     
     void addICToNetlist(
         const ProGe::NetlistGenerator& generator,
-        ProGe::Netlist& netlist);
+        ProGe::NetlistBlock& netlistBlock);
     void generateInterconnectionNetwork(const std::string& dstDirectory);
     void verifyCompatibility() const;
 
     void setGenerateBusTrace(bool generate);
-    void setGenerateDebugger(bool generate);
+    void setExportBustrace(bool export_bt);
+    void setFPGAOptimization(bool optimized);
     void setBusTraceStartingCycle(unsigned int cycle);
+    bool isBustraceEnabled();
 
     virtual int outputSocketCntrlPinForSegment(
         const TTAMachine::Socket& socket,
@@ -86,6 +92,8 @@ public:
         const TTAMachine::Socket& socket,
         const TTAMachine::Segment& segment) const;
 
+    virtual const BusSocketMap getBusConnections() const;
+
 private:
     typedef std::map<const TTAMachine::Socket*, int> SocketSignalMap;
     typedef std::map<const TTAMachine::Bus*, SocketSignalMap*> 
@@ -93,14 +101,14 @@ private:
 
     void writeInterconnectionNetwork(std::ostream& stream);
 
-    void generateSockets(const std::string& dstDirectory) const;
+    void generateSocketsAndMuxes(const std::string& dstDirectory);
 
     bool isGcuPort(const TTAMachine::Port* port) const;
 
     void generateSocket(
         TTAMachine::Socket::Direction direction, int portConns,
         int segmentConns, const std::string& dstDirectory) const;
-    void generateInputSocket(
+    void generateInputMux(
         int segmentConns,
         std::ofstream& stream) const;
     void generateInputSocketRuleForBus(
@@ -125,15 +133,18 @@ private:
         int ind,
         std::ostream& stream);
     void writeBusDumpCode(std::ostream& stream) const;
-    void writeDebuggerCode(std::ostream& stream) const;
+    void writeBustraceExportCode(std::ostream& stream) const;
 
+    static bool isBusConnected(const TTAMachine::Bus& bus);
+    static std::set<TTAMachine::Socket*> inputSockets(
+        const TTAMachine::Bus& bus);
     static std::set<TTAMachine::Socket*> outputSockets(
         const TTAMachine::Bus& bus);
 
-    static bool containsSimilarSocket(
-        const std::set<TTAMachine::Socket*> set, 
-        const TTAMachine::Socket& socket);
-        
+    bool socketIsGenerated(const TTAMachine::Socket& socket);
+    bool socketIsGenerated(int segmentConns, int portConns,
+                           TTAMachine::Socket::Direction direction);
+
     static int inputSocketDataPortWidth(const TTAMachine::Socket& socket);
     static int outputSocketDataPortWidth(
         const TTAMachine::Socket& socket, 
@@ -159,6 +170,9 @@ private:
     static std::string inputSocketBusPort(int bus);
     static std::string outputSocketBusPort(int bus);
     static std::string outputSocketDataPort(int port);
+    static std::string busMuxDataPort(const TTAMachine::Bus& bus, int index);
+    static std::string busMuxControlPort(const TTAMachine::Bus& bus);
+    static std::string busMuxEnablePort(const TTAMachine::Bus& bus);
 
     static std::string busWidthGeneric(int bus);
     static std::string dataWidthGeneric(int port);
@@ -171,7 +185,7 @@ private:
         const TTAMachine::Bus& bus, 
         const TTAMachine::Socket& socket);
 
-    static HDB::Direction convertDirection(
+    static ProGe::Direction convertDirection(
         TTAMachine::Socket::Direction direction);
 
     static std::string socketFileName(
@@ -179,11 +193,9 @@ private:
         TTAMachine::Socket::Direction direction,
         int portConns,
         int segmentConns);
-    std::string socketEntityName(
-        TTAMachine::Socket::Direction direction,
-        int portConns,
-        int segmentConns) const;
-    std::string inputSocketEntityName(int conns) const;
+    std::string socketEntityName(TTAMachine::Socket &socket) const;
+    static std::string busMuxEntityName(TTAMachine::Bus &bus);
+    std::string inputMuxEntityName(int conns) const;
     std::string outputSocketEntityName(int busConns, int portConns) const;
 
     static std::string indentation(unsigned int level);
@@ -196,12 +208,17 @@ private:
     BusAltSignalMap altSignalMap_;
     /// Tells whether to generate bus tracing code.
     bool generateBusTrace_;
-    /// Tells whether to generate debugger code.
-    bool generateDebugger_;
+    /// Tells whether to export bustraces to debugger
+    bool exportBustrace_;
     /// The starting cycle for bus tracing.
     unsigned int busTraceStartingCycle_;
     TCEString entityNameStr_;
     ProGe::HDL  language_;
+    BusSocketMap busConnections;
+
+    // Bookkeeping between writing socket RTL and entity
+    std::set<std::pair<int, int>> generatedOutputSockets_;
+    std::set<std::pair<int, int>> generatedInputSockets_;
 };
 
 #endif

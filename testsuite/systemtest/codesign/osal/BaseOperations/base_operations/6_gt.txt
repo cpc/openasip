@@ -1,3 +1,4 @@
+!output unsigned
 gt 3 2
 gt 3 3
 gt -1 1

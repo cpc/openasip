@@ -1,0 +1,13 @@
+bltur 13 0 10
+!register programcounter
+bltur 20 999 65
+!register programcounter
+bltur 1 1 67
+!register programcounter
+bltur 100 40 123
+!register programcounter
+bltur 0 0 126
+!register programcounter
+bltur 0 1 10
+!register programcounter
+!quit

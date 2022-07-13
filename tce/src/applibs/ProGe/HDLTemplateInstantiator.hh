@@ -31,20 +31,52 @@
 #ifndef TTA_HDL_TEMPLATE_INSTANTIATOR_HH
 #define TTA_HDL_TEMPLATE_INSTANTIATOR_HH
 
+#include <map>
+#include <string>
+
 #include "TCEString.hh"
+#include "Exception.hh"
+
+class Path;
+
 /**
  * Helper class for instantiating HDL template files.
  */ 
 class HDLTemplateInstantiator {
 public:
-    HDLTemplateInstantiator() {}
-    void setEntityString(TCEString entityStr) { entityStr_ = entityStr; }
+    friend class HDLTemplateInstantiatorTest;
 
+    HDLTemplateInstantiator();
+    HDLTemplateInstantiator(const TCEString& entityStr);
+    void setEntityString(const TCEString& entityStr) {
+        entityStr_ = entityStr; }
+    void replacePlaceholder(
+        const std::string& key, const std::string& replacer,
+        bool append = false);
+    void replacePlaceholderFromFile(
+        const std::string& key,
+        const Path& filePath,
+        bool append = false);
     void instantiateTemplateFile(
         const std::string& templateFile,
         const std::string& dstFile);
 
 private:
+    typedef TCEString PlaceholderKey;
+    typedef TCEString Replacer;
+    typedef std::map<PlaceholderKey, Replacer> ReplacerMap;
+
+    void fillPlaceholders(TCEString& str);
+    TCEString findPlaceholder(const TCEString& str);
+    TCEString getPlaceholderKey(const TCEString& str);
+    TCEString getPlaceholderDefault(const TCEString& str);
+
+    static const std::string PLACEHOLDERSEPARATOR;
+    static const std::string PLACEHOLDERBEGIN;
+    static const std::string PLACEHOLDEREND;
+
     TCEString entityStr_;
+    ReplacerMap replacers_;
+
 };
 #endif

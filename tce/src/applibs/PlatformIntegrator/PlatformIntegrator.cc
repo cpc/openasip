@@ -44,6 +44,7 @@
 #include "VHDLNetlistWriter.hh"
 #include "ProjectFileGenerator.hh"
 #include "Machine.hh"
+#include "HWOperation.hh"
 #include "MachineImplementation.hh"
 #include "FUPort.hh"
 #include "FUEntry.hh"
@@ -51,6 +52,8 @@
 #include "MathTools.hh"
 #include "HDBManager.hh"
 #include "HDBRegistry.hh"
+#include "FUImplementation.hh"
+#include "FUExternalPort.hh"
 using std::vector;
 using std::endl;
 using std::multimap;
@@ -64,11 +67,12 @@ const TCEString PlatformIntegrator::TTA_CORE_RSTX = "rstx";
 
 
 PlatformIntegrator::PlatformIntegrator():
-    machine_(NULL), idf_(NULL), netlist_(NULL),  hdl_(ProGe::VHDL),
+    machine_(NULL), idf_(NULL), integratorBlock_(NULL),  hdl_(ProGe::VHDL),
     progeOutputDir_(""), coreEntityName_(""), outputDir_(""), 
     programName_(""), targetFrequency_(0), warningStream_(std::cout),
-    errorStream_(std::cerr), ttaCore_(NULL), imem_(), dmemType_(UNKNOWN),
-    dmem_(), lsus_(), clkPort_(NULL), resetPort_(NULL) {
+    errorStream_(std::cerr), ttaCores_(NULL), imem_(), dmemType_(UNKNOWN),
+    dmem_(), lsus_(), clkPort_(NULL), resetPort_(NULL),
+    unconnectedPorts_(NULL) {
     
     imem_.type = UNKNOWN;
 }
@@ -87,29 +91,23 @@ PlatformIntegrator::PlatformIntegrator(
     std::ostream& errorStream,
     const MemInfo& imem,
     MemType dmemType): 
-    machine_(machine), idf_(idf), netlist_(new ProGe::Netlist()), hdl_(hdl),
+    machine_(machine), idf_(idf), integratorBlock_(NULL), hdl_(hdl),
     progeOutputDir_(progeOutputDir), sharedOutputDir_(""), 
     coreEntityName_(coreEntityName), outputDir_(outputDir),
     programName_(programName), targetFrequency_(targetClockFreq),
-    warningStream_(warningStream), errorStream_(errorStream), ttaCore_(NULL),
+    warningStream_(warningStream), errorStream_(errorStream), ttaCores_(NULL),
     imem_(imem), dmemType_(dmemType), dmem_(), lsus_(), clkPort_(NULL),
-    resetPort_(NULL) {
+    resetPort_(NULL), unconnectedPorts_(NULL) {
 
-    netlist_->setCoreEntityName(coreEntityName_);
-   
+    integratorBlock_ =
+        new NetlistBlock(platformEntityName(), platformEntityName() + "inst");
+
     createOutputDir();
 }
 
 
 PlatformIntegrator::~PlatformIntegrator() {
-
-    if (clkPort_ != NULL)
-        delete clkPort_;
-    
-    if (resetPort_ != NULL)
-        delete resetPort_;
-
-    delete netlist_;
+    delete integratorBlock_;
 }
 
 
@@ -279,13 +277,11 @@ PlatformIntegrator::targetClockFrequency() const {
 }
 
 
-ProGe::Netlist*
-PlatformIntegrator::netlist() {
-    
-    assert(netlist_ != NULL);
-    return netlist_;
+ProGe::NetlistBlock*
+PlatformIntegrator::integratorBlock() {
+    assert(integratorBlock_ != NULL);
+    return integratorBlock_;
 }
-
 
 const TTAMachine::Machine*
 PlatformIntegrator::machine() const {
@@ -311,14 +307,12 @@ void
 PlatformIntegrator::initPlatformNetlist(
     const ProGe::NetlistBlock* progeBlock) {
 
-    NetlistBlock* highestBlock =
-        new NetlistBlock(
-            platformEntityName(), platformEntityName(), *netlist());
+    NetlistBlock* highestBlock = integratorBlock_;
     // Must add ports to highest block *before* copying tta toplevel
     clkPort_ = new NetlistPort(TTA_CORE_CLK, "0", 1, ProGe::BIT,
-                               HDB::IN,*highestBlock);
+        ProGe::IN, *highestBlock);
     resetPort_ = new NetlistPort(TTA_CORE_RSTX, "0", 1, ProGe::BIT,
-                                 HDB::IN, *highestBlock);
+        ProGe::IN, *highestBlock);
     copyProgeBlockToNetlist(progeBlock);
 
     if (dmemType_ != NONE) {
@@ -330,14 +324,24 @@ PlatformIntegrator::initPlatformNetlist(
 void
 PlatformIntegrator::parseDataMemories() {
 
-    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
+    TTAMachine::Machine::FunctionUnitNavigator fuNav =
         machine_->functionUnitNavigator();
     for (int i = 0; i < fuNav.count(); i++) {
         TTAMachine::FunctionUnit* fu = fuNav.item(i);
         if (fu->hasAddressSpace()) {
             TTAMachine::AddressSpace* as = fu->addressSpace();
-            if (fu->hasOperationLowercase("ldw") &&
-                fu->hasOperationLowercase("stw")) {
+
+            bool isLSU = false;
+            for (int i = 0; i < fu->operationCount(); ++i) {
+                std::string operation = fu->operation(i)->name();
+                std::string prefix = operation.substr(0, 2);
+                if (prefix == "ld" || prefix == "st") {
+                    isLSU = true;
+                    break;
+                }
+            }
+
+            if (isLSU) {
                 dmem_[as] = readLsuParameters(*fu);
                 lsus_.push_back(fu);
             }
@@ -345,30 +349,50 @@ PlatformIntegrator::parseDataMemories() {
     }
 }
 
+void
+PlatformIntegrator::clearDataMemories() {
+    dmem_.clear();
+    lsus_.clear();
+}
 
-HDB::FUImplementation&
-PlatformIntegrator::loadFUImplementation(TTAMachine::FunctionUnit& fu) const {
-    
-    if (!idf()->hasFUImplementation(fu.name())) {
+
+std::vector<std::string>
+PlatformIntegrator::loadFUExternalPorts(TTAMachine::FunctionUnit& fu) const {
+
+    if (idf()->hasFUImplementation(fu.name())) {
+        IDF::FUImplementationLocation location =
+            idf()->fuImplementation(fu.name());
+        TCEString hdb = location.hdbFile();
+        int id = location.id();
+        HDB::HDBManager& manager = HDB::HDBRegistry::instance().hdb(hdb);
+        HDB::FUEntry* entry = manager.fuByEntryID(id);
+
+        if (!entry->hasImplementation()) {
+            TCEString msg = "HDB entry for " + fu.name() + " does not contain "
+                + "implementation!";
+            throw InvalidData(__FILE__, __LINE__, "PlatformIntegrator", msg);
+        }
+
+        auto implementation = entry->implementation();
+
+        std::vector<std::string> ports;
+        for (int i = 0; i > implementation.externalPortCount(); ++i) {
+            ports.push_back(implementation.externalPort(i).name());
+        }
+        return ports;
+    } else if (idf()->hasFUGeneration(fu.name())) {
+        // quick fix: assume AlmaIF ports
+        std::vector<std::string> ports = {
+            "avalid_out", "aready_in", "aaddr_out", "awren_out",
+            "astrb_out", "rvalid_in", "rready_out", "rdata_in", "adata_out"};
+        return ports;
+    } else {
         TCEString msg = "Function Unit " + fu.name() + " does not have an "
             + "implementation!";
         throw InvalidData(__FILE__, __LINE__, "PlatformIntegrator", msg);
     }
 
-    IDF::FUImplementationLocation location =
-        idf()->fuImplementation(fu.name());
-    TCEString hdb = location.hdbFile();
-    int id = location.id();
-    HDB::HDBManager& manager = HDB::HDBRegistry::instance().hdb(hdb);
-    HDB::FUEntry* entry = manager.fuByEntryID(id);
 
-    if (!entry->hasImplementation()) {
-        TCEString msg = "HDB entry for " + fu.name() + " does not contain "
-            + "implementation!";
-        throw InvalidData(__FILE__, __LINE__, "PlatformIntegrator", msg);
-    }
-
-    return entry->implementation();
 }
 
 
@@ -378,16 +402,13 @@ PlatformIntegrator::readLsuParameters(const TTAMachine::FunctionUnit& lsu) {
     MemInfo dmem;
     dmem.type = dmemType_;
     dmem.mauWidth = lsu.addressSpace()->width();
-    int internalAddrw = 0;
-    int dataWidth = 0;
+    unsigned int internalAddrw =
+        MathTools::requiredBits(lsu.addressSpace()->end());
+    unsigned int dataWidth = 0;
     for (int i = 0; i < lsu.operationPortCount(); i++) {
         TTAMachine::FUPort* port = lsu.operationPort(i);
-        if (port->isInput()) {
-            if (port->isTriggering()) {
-                internalAddrw = port->width();
-            } else {
-                dataWidth = port->width();
-            }
+        if (port->isInput() && !port->isTriggering()) {
+            dataWidth = std::max((unsigned)port->width(), dataWidth);
         }
     }
     dmem.widthInMaus = static_cast<int>(
@@ -398,51 +419,54 @@ PlatformIntegrator::readLsuParameters(const TTAMachine::FunctionUnit& lsu) {
         bytemaskWidth = MathTools::requiredBits(maus);
     }
     dmem.portAddrw = internalAddrw - bytemaskWidth;
-    int lastAddr = lsu.addressSpace()->end();
-    dmem.asAddrw = MathTools::requiredBits(lastAddr) - bytemaskWidth;
+    unsigned long int lastAddr = lsu.addressSpace()->end();
+    dmem.asAddrw = MathTools::requiredBits(lastAddr);
     dmem.asName = lsu.addressSpace()->name();
+    dmem.lsuName = lsu.name();
     return dmem;
 }
 
 
 bool
-PlatformIntegrator::integrateCore(const ProGe::NetlistBlock& core) {
+PlatformIntegrator::integrateCore(
+    const ProGe::NetlistBlock& cores,
+    int coreId) {
     
     TCEString clkPortName = PlatformIntegrator::TTA_CORE_CLK;
     TCEString resetPortName = PlatformIntegrator::TTA_CORE_RSTX;
-    NetlistPort* coreClk = core.portByName(clkPortName);
-    NetlistPort* coreRstx = core.portByName(resetPortName);
-    netlist()->connectPorts(*clockPort(), *coreClk);
-    netlist()->connectPorts(*resetPort(), *coreRstx);
+    const NetlistPort* coreClk = cores.port(clkPortName);
+    const NetlistPort* coreRstx = cores.port(resetPortName);
+    integratorBlock()->netlist().connect(*clockPort(), *coreClk);
+    integratorBlock()->netlist().connect(*resetPort(), *coreRstx);
     
-    if(!createMemories()) {
+    if(!createMemories(coreId)) {
         return false;
     }
 
-    exportUnconnectedPorts();
+    exportUnconnectedPorts(coreId);
 
     return true;
 }
 
-
 void
-PlatformIntegrator::exportUnconnectedPorts() {
+PlatformIntegrator::exportUnconnectedPorts(int coreId) {
 
     const NetlistBlock& core = progeBlock();
-    for (int i = 0; i < core.portCount(); i++) {
-        NetlistPort& port = core.port(i);
-        if (!netlist()->isPortConnected(port)) {
+    for (size_t i = 0; i < core.portCount(); i++) {
+        const NetlistPort& port = core.port(i);
+        if (!integratorBlock()->netlist().isPortConnected(port)) {
             connectToplevelPort(port);
         }
     }
 }
 
 void
-PlatformIntegrator::connectToplevelPort(ProGe::NetlistPort& corePort) {
+PlatformIntegrator::connectToplevelPort(const ProGe::NetlistPort& corePort,
+                                        const TCEString signalPrefix) {
 
     TCEString toplevelName = corePort.name();
     if (chopTaggedSignals() && hasPinTag(toplevelName)) {
-        toplevelName = chopSignalToTag(toplevelName, pinTag());
+        toplevelName = signalPrefix + chopSignalToTag(toplevelName, pinTag());
     }
     NetlistPort* topPort = NULL;
     if (corePort.realWidthAvailable()) {
@@ -451,22 +475,22 @@ PlatformIntegrator::connectToplevelPort(ProGe::NetlistPort& corePort) {
             topPort = new NetlistPort(
                 toplevelName, corePort.widthFormula(), corePort.realWidth(),
                 ProGe::BIT, corePort.direction(),
-                netlist()->topLevelBlock());
+                *integratorBlock());
         } else {
             topPort = new NetlistPort(
                 toplevelName, corePort.widthFormula(), corePort.realWidth(),
                 ProGe::BIT_VECTOR, corePort.direction(),
-                netlist()->topLevelBlock());
+                *integratorBlock());
         }
     } else {
         topPort = new NetlistPort(
             toplevelName, corePort.widthFormula(), corePort.dataType(),
-            corePort.direction(), netlist()->topLevelBlock());
+            corePort.direction(), *integratorBlock());
     }
     if (topPort->dataType() == corePort.dataType()) {
-        netlist()->connectPorts(*topPort, corePort);
+        integratorBlock()->netlist().connect(*topPort, corePort);
     } else {
-        netlist()->connectPorts(*topPort, corePort, 0, 0, 1);
+        integratorBlock()->netlist().connect(*topPort, corePort, 0, 0, 1);
     }
 }
 
@@ -482,13 +506,28 @@ void
 PlatformIntegrator::copyProgeBlockToNetlist(
     const ProGe::NetlistBlock* progeBlock) {
     
-    ttaCore_ = progeBlock->copyToNewNetlist("core", *netlist_);
-    NetlistBlock& top = netlist_->topLevelBlock();
-    top.addSubBlock(ttaCore_);
+    ttaCores_ = progeBlock->shallowCopy("core");
+    NetlistBlock& top = *integratorBlock_;
+    top.addSubBlock(ttaCores_);
 
     // copy parameters to the current toplevel
-    for (int i = 0; i < ttaCore_->parameterCount(); i++) {
-        top.setParameter(ttaCore_->parameter(i));
+    for (size_t i = 0; i < ttaCores_->parameterCount(); i++) {
+
+        // Filter out some parameters not usable in the integrator block.
+        if (ttaCores_->parameter(i).name() == "core_id") {
+            continue;
+        }
+
+        top.setParameter(ttaCores_->parameter(i));
+    }
+
+    // copy package references to the current toplevel
+    for (size_t i = 0; i < ttaCores_->packageCount(); i++) {
+        top.addPackage(ttaCores_->package(i));
+    }
+
+    for (size_t i = 0; i < ttaCores_->netlist().parameterCount(); i++) {
+        top.netlist().setParameter(ttaCores_->netlist().parameter(i));
     }
 }
 
@@ -496,44 +535,47 @@ PlatformIntegrator::copyProgeBlockToNetlist(
 const ProGe::NetlistBlock&
 PlatformIntegrator::progeBlock() const {
     
-    assert(ttaCore_ != NULL);
-    return *ttaCore_;
+    assert(ttaCores_ != NULL);
+    return *ttaCores_;
 }
 
 
 const ProGe::NetlistBlock&
 PlatformIntegrator::toplevelBlock() const {
 
-    return netlist_->topLevelBlock();
+    return *integratorBlock_;
 }
 
 
 bool
-PlatformIntegrator::createMemories() {
+PlatformIntegrator::createMemories(int coreId) {
 
     assert(imem_.type != UNKNOWN);
 
     int imemIndex = 0;
-    MemoryGenerator& imemGen = imemInstance(imem_);
+    MemoryGenerator& imemGen = imemInstance(imem_, coreId);
     vector<TCEString> imemFiles;
-    if (!generateMemory(imemGen, imemFiles, imemIndex)) {
-        return false;
-    }
-    if (imemFiles.size() != 0) {
-        projectFileGenerator()->addHdlFiles(imemFiles);
+
+    if (imem_.type != NONE) {
+        if (!generateMemory(imemGen, imemFiles, imemIndex, coreId)) {
+            return false;
+        }
+        if (imemFiles.size() != 0) {
+            projectFileGenerator()->addHdlFiles(imemFiles);
+        }
     }
 
     for (unsigned int i = 0; i < lsus_.size(); i++) {
         TTAMachine::FunctionUnit* lsuArch = lsus_.at(i);
-        HDB::FUImplementation& lsuImpl = loadFUImplementation(*lsuArch);
+        std::vector<std::string> ports = loadFUExternalPorts(*lsuArch);
 
         TTAMachine::AddressSpace* as = lsuArch->addressSpace();
         assert(dmem_.find(as) != dmem_.end() && "Address space not found!");
         
         MemoryGenerator& dmemGen =
-            dmemInstance(dmem_.find(as)->second, *lsuArch, lsuImpl);
+            dmemInstance(dmem_.find(as)->second, *lsuArch, ports);
         vector<TCEString> dmemFiles;
-        if (!generateMemory(dmemGen, dmemFiles, i)) {
+        if (!generateMemory(dmemGen, dmemFiles, i, coreId)) {
             return false;
         }
         if (dmemFiles.size() != 0) {
@@ -548,12 +590,13 @@ bool
 PlatformIntegrator::generateMemory(
     MemoryGenerator& memGen,
     std::vector<TCEString>& generatedFiles,
-    int memIndex) {
+    int memIndex,
+    int coreId) {
 
-    const NetlistBlock& ttaCore = progeBlock();
+    const NetlistBlock& ttaCores = progeBlock();
 
     vector<TCEString> reasons;
-    if (!memGen.isCompatible(ttaCore, reasons)) {
+    if (!memGen.isCompatible(ttaCores, coreId, reasons)) {
         errorStream() << "TTA core doesn't have compatible memory "
                       <<"interface:" << std::endl;
         for (unsigned int i = 0; i < reasons.size(); i++) {
@@ -562,7 +605,7 @@ PlatformIntegrator::generateMemory(
         return false;
     }
 
-    memGen.addMemory(ttaCore, *netlist(), memIndex);
+    memGen.addMemory(ttaCores, *integratorBlock(), memIndex, coreId);
 
     if (memGen.generatesComponentHdlFile()) {
         generatedFiles =
@@ -582,7 +625,7 @@ PlatformIntegrator::writeNewToplevel() {
     
     ProGe::NetlistWriter* writer;
     if (hdl_ == ProGe::VHDL) {
-        writer = new ProGe::VHDLNetlistWriter(*netlist_);
+        writer = new ProGe::VHDLNetlistWriter(*integratorBlock_);
     } else {
         assert(false);
     }
@@ -682,4 +725,6 @@ PlatformIntegrator::resetPort() const {
     }
     return resetPort_;
 }
+
+
 

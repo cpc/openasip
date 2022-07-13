@@ -62,18 +62,19 @@ public:
 protected:
 
     virtual bool checkFuPort(
-        const HDB::FUExternalPort& fuPort,
+        const std::string fuPort,
         std::vector<TCEString>& reasons) const;
 
     virtual void connectPorts(
-        ProGe::Netlist& netlist,
-        ProGe::NetlistPort& memPort,
-        ProGe::NetlistPort& corePort,
-        bool inverted);
+        ProGe::NetlistBlock& netlistBlock,
+        const ProGe::NetlistPort& memPort,
+        const ProGe::NetlistPort& corePort,
+        bool inverted,
+        int coreId);
 
     virtual TCEString moduleName() const;
     
-    virtual TCEString instanceName(int memIndex) const;
+    virtual TCEString instanceName(int coreId, int memIndex) const;
 
 private:
 

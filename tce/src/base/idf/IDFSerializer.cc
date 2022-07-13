@@ -31,6 +31,7 @@
  */
 
 #include <string>
+#include <set>
 
 #include "IDFSerializer.hh"
 #include "MachineImplementation.hh"
@@ -52,6 +53,13 @@ const string IC_DECODER_PARAMETER_VALUE = "value";
 const string DECOMPRESSOR_FILE = "decompressor-file";
 
 const string HDB_FILE = "hdb-file";
+
+const string FU_GENERATE = "fu-generate";
+const string FU_GENERATE_NAME = "name";
+const string FU_GENERATE_OPERATION = "operation";
+const string FU_GENERATE_OPERATION_NAME = "name";
+const string FU_GENERATE_OPERATION_ID = "operation-id";
+const string FU_GENERATE_OPTION = "option";
 
 const string FU = "fu";
 const string FU_NAME = "name";
@@ -173,6 +181,8 @@ IDFSerializer::convertToOMFormat(const ObjectState* fileState) {
         MachineImplementation::OSNAME_MACHINE_IMPLEMENTATION);
   
     // add unit implementations
+    ObjectState* fuGenerated = new ObjectState(
+        MachineImplementation::OSNAME_FU_GENERATED);
     ObjectState* fuImpls = new ObjectState(
         MachineImplementation::OSNAME_FU_IMPLEMENTATIONS);
     ObjectState* rfImpls = new ObjectState(
@@ -189,6 +199,7 @@ IDFSerializer::convertToOMFormat(const ObjectState* fileState) {
     omState->addChild(iuImpls);
     omState->addChild(busImpls);
     omState->addChild(socketImpls);
+    omState->addChild(fuGenerated);
 
     // the IC&decoder plugin data 
     if (fileState->hasChild(IC_DECODER_PLUGIN)) {
@@ -253,12 +264,24 @@ IDFSerializer::convertToOMFormat(const ObjectState* fileState) {
             MachineImplementation::OSKEY_DECOMPRESSOR_FILE, 
             child->stringValue());
     }
-
+    
+    // Generated FUs.
     for (int i = 0; i < fileState->childCount(); i++) {
-
         ObjectState* child = fileState->child(i);
-        if (child->name() == IC_DECODER_PLUGIN || 
-            child->name() == DECOMPRESSOR_FILE) {
+
+        if (child->name() != FU_GENERATE) {
+            continue;
+        }
+
+        ObjectState* impl = new ObjectState(*child);
+        fuGenerated->addChild(impl);
+    }
+
+    const std::set<std::string> handledElements { FU, RF, IU, SOCKET, BUS };
+    for (int i = 0; i < fileState->childCount(); i++) {
+        ObjectState* child = fileState->child(i);
+
+        if (!handledElements.count(child->name())) {
             continue;
         }
 
@@ -403,6 +426,14 @@ IDFSerializer::convertToFileFormat(const ObjectState* omState) {
             omState->stringAttribute(
                 MachineImplementation::OSKEY_DECOMPRESSOR_FILE));
 
+    }
+
+    // add generated FUs.
+    ObjectState* fuGens = omState->childByName(
+        MachineImplementation::OSNAME_FU_GENERATED);
+    for (int i = fuGens->childCount()-1; i >= 0; --i) {
+        ObjectState* child = fuGens->child(i);
+        fileState->addChild(new ObjectState(*child));
     }
 
     // add FU implementations

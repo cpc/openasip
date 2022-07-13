@@ -24,6 +24,13 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 
+include_HEADERS = \
+	CachedHDBManager.hh \
+	FUEntry.hh \
+	FUImplementation.hh \
+	FUPortImplementation.hh \
+	FUArchitecture.hh
+
 
 
 ## headers start

@@ -39,6 +39,8 @@
 #include <iterator>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <math.h>
 
 #include "boost/regex.hpp"
 #include "boost/format.hpp"
@@ -46,6 +48,7 @@
 #include "HDBManager.hh"
 #include "HDBRegistry.hh"
 #include "Machine.hh"
+#include "MachineInfo.hh"
 #include "Socket.hh"
 #include "Bus.hh"
 #include "Segment.hh"
@@ -61,11 +64,14 @@
 #include "ICDecoderGeneratorPlugin.hh"
 #include "ProGeTypes.hh"
 #include "NetlistBlock.hh"
+#include "LoopBufferBlock.hh"
 #include "NetlistGenerator.hh"
 #include "Netlist.hh"
 #include "NetlistPort.hh"
 #include "VHDLNetlistWriter.hh"
 #include "VerilogNetlistWriter.hh"
+#include "CUOpcodeGenerator.hh"
+#include "SignalTypes.hh"
 
 #include "DefaultDecoderGenerator.hh"
 #include "DefaultICGenerator.hh"
@@ -77,6 +83,7 @@
 #include "GuardField.hh"
 #include "ImmediateSlotField.hh"
 #include "ImmediateControlField.hh"
+#include "LImmDstRegisterField.hh"
 #include "GuardEncoding.hh"
 #include "GPRGuardEncoding.hh"
 #include "FUGuardEncoding.hh"
@@ -94,12 +101,18 @@
 #include "MapTools.hh"
 #include "Conversion.hh"
 #include "Environment.hh"
+#include "RV32MicroCodeGenerator.hh"
+ 
+#include "CUOpcodeGenerator.hh"
  
 
 using namespace CostEstimator;
 using std::cerr;
 using std::endl;
 using std::cout;
+
+const std::string RISCV_SIMM_PORT_OUT_NAME = "simm_out";
+const std::string IFETCH_STALL_PORT_NAME = "ifetch_stall";
 
 ////////////////////////////////////////////////////////////////////////////
 // DefaultICDecoderEstimator
@@ -883,23 +896,31 @@ private:
 // DefaultICDecoderGenerator
 ////////////////////////////////////////////////////////////////////////////
 
-using namespace TTAMachine;    
+using namespace TTAMachine;
 using namespace ProGe;
 using std::string;
 using std::endl;
 
 const std::string ENABLE_FEATURE = "yes";
+const std::string GENERATE_DEBUGGER_PARAM = "debugger";
+const std::string GENERATE_DEBUGGER_PARAM_YES = "external";
 const std::string GENERATE_BUS_TRACE_PARAM = "bustrace";
 const std::string GENERATE_BUS_TRACE_PARAM_YES = ENABLE_FEATURE;
 const std::string GENERATE_LOCK_TRACE_PARAM = "locktrace";
 const std::string GENERATE_LOCK_TRACE_PARAM_YES = ENABLE_FEATURE;
-const std::string GENERATE_DEBUGGER_PARAM = "debugger";
-const std::string GENERATE_DEBUGGER_PARAM_YES = "external";
+const std::string BYPASS_FETCHBLOCK_REG_PARAM = "bypassinstructionregister";
+const std::string BYPASS_FETCHBLOCK_REG_PARAM_YES = ENABLE_FEATURE;
 const std::string LOCK_TRACE_STARTING_CYCLE = "locktracestartingcycle";
 const std::string BUS_TRACE_STARTING_CYCLE = "bustracestartingcycle";
 const std::string PLUGIN_DESCRIPTION = 
                            "Generates the IC as as an AND-OR network.";
+const std::string NO_SELF_LOCKING_PARAM = "no-self-locking";
+const std::string NO_SELF_LOCKING_PARAM_YES = ENABLE_FEATURE;
+const std::string SYNC_RESET = "synchronous-reset";
 
+#include <iostream>
+#include <cmath>
+using namespace std;
 /**
  * Default implementation for IC/decoder generator.
  */
@@ -909,7 +930,8 @@ public:
         const TTAMachine::Machine& machine,
         const BinaryEncoding& bem) :
         ICDecoderGeneratorPlugin(machine, bem, PLUGIN_DESCRIPTION),
-        icGenerator_(NULL), decoderGenerator_(NULL), ttamachine_(machine) {
+        icGenerator_(NULL), decoderGenerator_(NULL), ttamachine_(machine),
+        bem_(bem) {
 
         addParameter(
             GENERATE_DEBUGGER_PARAM, 
@@ -918,19 +940,23 @@ public:
         addParameter(
             GENERATE_BUS_TRACE_PARAM, 
             "Generates code that prints bus trace if the value is '"
-            + ENABLE_FEATURE + "'");
+            + ENABLE_FEATURE + "'.");
         addParameter(
             BUS_TRACE_STARTING_CYCLE,
             "The first cycle for which the bus trace is printed.");
         addParameter(
             GENERATE_LOCK_TRACE_PARAM,
-            "Generates code that prints global lock trace if the value is '"
-            + ENABLE_FEATURE + "'");
+            "Generates code that prints global lock trace if the value is"
+            " '" + ENABLE_FEATURE + "'.");
         addParameter(
             LOCK_TRACE_STARTING_CYCLE,
             "The first cycle for which the global lock trace is printed. "
             "If value is \"" + BUS_TRACE_STARTING_CYCLE + "\" then the "
             "value is inherited from " + BUS_TRACE_STARTING_CYCLE + ".");
+        addParameter(
+            BYPASS_FETCHBLOCK_REG_PARAM,
+            "-1 delay slot by removing instruction fetch register. "
+            "'" + ENABLE_FEATURE + "' to enable the feature.");
         
         icGenerator_ = new DefaultICGenerator(machine);
         decoderGenerator_ = new DefaultDecoderGenerator(
@@ -951,32 +977,132 @@ public:
      * @param generator The netlist generator which generated the netlist.
      */
     virtual void completeNetlist(
-        Netlist& netlist,
+        NetlistBlock& netlistBlock,
         const NetlistGenerator& generator) {
 
-        if (generateDebugger()) {
-            icGenerator_->setGenerateDebugger(true);
-            decoderGenerator_->setGenerateDebugger(true);
-        } else {
-            icGenerator_->setGenerateDebugger(false);
-            decoderGenerator_->setGenerateDebugger(false);
-        }
         // add interconnection network to the netlist and connect it to the 
         // units
-        icGenerator_->addICToNetlist(generator, netlist);
+        icGenerator_->addICToNetlist(generator, netlistBlock);
         
         // complete the decoder block and connect it to the IC and units
-        decoderGenerator_->completeDecoderBlock(generator, netlist);
+        decoderGenerator_->completeDecoderBlock(generator, netlistBlock);
+
+        if (ttamachine_.RISCVMachine()) {
+            addRV32MicroCode(netlistBlock, generator);
+        }
+    }
+
+    void addRV32MicroCode(NetlistBlock& netlistBlock,
+    const NetlistGenerator& generator) {
+        NetlistBlock& decompressor = generator.instructionDecompressor();
+        NetlistBlock& decoder      = generator.instructionDecoder();
+        NetlistBlock& ifetch       = generator.instructionFetch();
+        Netlist& netlist = netlistBlock.netlist();
+
+        //Change port width to 32 to match socket width
+        ifetch.port("pc_in")->setWidthFormula("32");
+        
+        NetlistBlock* microCodeBlock = new NetlistBlock(
+            "rv32_microcode_wrapper", "rv32_microcode_wrapper_i");
+
+         //Adds the block to the netlist
+        netlistBlock.addSubBlock(microCodeBlock);
+
+        NetlistPort* decoderRISCVSimmPort = new NetlistPort(
+        DefaultDecoderGenerator::RISCV_SIMM_PORT_IN_NAME,
+        "32", ProGe::BIT_VECTOR, ProGe::IN, decoder);
+
+        NetlistPort* clk = new NetlistPort(
+        "clk", "1", ProGe::BIT, ProGe::IN, *microCodeBlock);
+        
+        NetlistPort* rst = new NetlistPort(
+        "rstx", "1", ProGe::BIT, ProGe::IN, *microCodeBlock);
+
+        NetlistPort* glock = new NetlistPort(
+        "glock_in", "1", ProGe::BIT, ProGe::IN, *microCodeBlock);
+
+
+        netlist.connect(*glock, *ifetch.port(
+            DefaultDecoderGenerator::GLOCK_PORT_NAME));
+
+        netlist.connect(*clk, generator.clkPort(netlistBlock));
+
+        netlist.connect(*rst, generator.rstPort(netlistBlock));
+        
+
+        NetlistPort* instructionOut = new NetlistPort("instruction_out",
+        "INSTRUCTIONWIDTH", BIT_VECTOR, ProGe::OUT, *microCodeBlock);
+
+        NetlistPort* microCodeImmOut = new NetlistPort(
+            RISCV_SIMM_PORT_OUT_NAME,
+            "32", BIT_VECTOR, ProGe::OUT, *microCodeBlock);
+
+        NetlistPort* instructionIn = new NetlistPort("instruction_in",
+        "IMEMWIDTHINMAUS*IMEMMAUWIDTH",BIT_VECTOR, ProGe::IN,
+        *microCodeBlock);
+
+        netlist.connect(*microCodeImmOut, *decoderRISCVSimmPort);
+        
+        netlist.disconnectPorts(*ifetch.port(
+            NetlistGenerator::FETCHBLOCK_PORT_NAME),
+        *decompressor.port(NetlistGenerator::FETCHBLOCK_PORT_NAME));
+
+        netlist.connect(*instructionOut,
+        *decompressor.port(NetlistGenerator::FETCHBLOCK_PORT_NAME));
+        
+        netlist.connect(*ifetch.port(
+            NetlistGenerator::FETCHBLOCK_PORT_NAME),
+            *instructionIn);
+
+        decompressor.port(NetlistGenerator::FETCHBLOCK_PORT_NAME)
+        ->setWidthFormula("INSTRUCTIONWIDTH");
+
+        NetlistPort* ifetchStallPortIFetch = new NetlistPort(
+        IFETCH_STALL_PORT_NAME, "1", ProGe::BIT, ProGe::IN, ifetch);
+
+        NetlistPort* ifetchStallPortMicroCode = new NetlistPort(
+        IFETCH_STALL_PORT_NAME, "1", ProGe::BIT, ProGe::OUT, *microCodeBlock);
+
+        NetlistPort* rvJumpPortMicroCode = new NetlistPort(
+        "rv_jump", "1", ProGe::BIT, ProGe::OUT, *microCodeBlock);
+
+        NetlistPort* rvAuipcPortMicroCode = new NetlistPort(
+        "rv_auipc", "1", ProGe::BIT, ProGe::OUT, *microCodeBlock);
+
+        NetlistPort* rvOffsetPortMicroCode = new NetlistPort(
+        "rv_offset", "20", BIT_VECTOR,
+        ProGe::OUT, *microCodeBlock);
+
+        NetlistPort* rvOffsetPortIfetch = new NetlistPort(
+        "rv_offset", "20", BIT_VECTOR,
+        ProGe::IN, ifetch);
+        
+        NetlistPort* rvJumpPortIfetch = new NetlistPort(
+        "rv_jump", "1", ProGe::BIT, ProGe::IN, ifetch);
+
+        NetlistPort* rvAuipcPortIfetch = new NetlistPort(
+        "rv_auipc", "1", ProGe::BIT, ProGe::IN, ifetch);
+
+        netlist.connect(*rvJumpPortMicroCode, *rvJumpPortIfetch);
+        netlist.connect(*rvAuipcPortMicroCode, *rvAuipcPortIfetch);
+        netlist.connect(*rvOffsetPortMicroCode,
+        *rvOffsetPortIfetch);
+
+        netlist.connect(
+            *ifetchStallPortMicroCode, *ifetchStallPortIFetch);
     }
 
     void generateDebuggerCode(const NetlistGenerator& generator) {
+        assert(generateDebugger()
+               && "Entered debugger connection generation without cause.");
+
         NetlistBlock* decoderBlock = &generator.instructionDecoder();
-        NetlistBlock& toplevelBlock = decoderBlock->netlist().topLevelBlock();
+        NetlistBlock& toplevelBlock = decoderBlock->parentBlock();
         std::string addrWidthFormula = generator.gcuReturnAddressInPort()
             .widthFormula();
         NetlistBlock* fetchBlock = &generator.instructionFetch();
         NetlistBlock* icBlock = NULL;
-        for (int i = 0; i < toplevelBlock.subBlockCount(); i++) {
+        for (std::size_t i = 0; i < toplevelBlock.subBlockCount(); i++) {
             icBlock = &toplevelBlock.subBlock(i);
             if (icBlock->instanceName() == "ic")
                 break;
@@ -984,97 +1110,106 @@ public:
                 break;
         }
 
-        //Figure out some constants
-        int dbgDataWidth=32;
-
-        Machine::BusNavigator busNav = ttamachine_.busNavigator();
-        int bustrace_width = dbgDataWidth*busNav.count();
-
-        //Add debugger interface ports to tta0 entity
-        NetlistPort* ttaPCStartPort = new NetlistPort(
-            "db_pc_start", "IMEMADDRWIDTH", 
-            ProGe::BIT_VECTOR, HDB::IN, toplevelBlock);
-        NetlistPort* ttaPCPort = new NetlistPort(
-            "db_pc", "IMEMADDRWIDTH", 
-            ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
-        NetlistPort* ttaBustracePort = new NetlistPort(
-            "db_bustraces", "32*BUSCOUNT", 
-            bustrace_width, ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
-        NetlistPort* ttaInstrPort = new NetlistPort(
-            "db_instr", "IMEMDATAWIDTH", 
-            ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
-        NetlistPort* ttaLockcountPort = new NetlistPort(
-            "db_lockcnt", "32", dbgDataWidth,
-            ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
-        NetlistPort* ttaCyclecountPort = new NetlistPort(
-            "db_cyclecnt", "32", dbgDataWidth,
-            ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
         NetlistPort* ttaResetPort = new NetlistPort(
-            "db_tta_nreset", "1", ProGe::BIT, HDB::IN, toplevelBlock);
+            "db_tta_nreset", "1", BIT, ProGe::IN, toplevelBlock);
+        NetlistPort *ttaLockcountPort = new NetlistPort("db_lockcnt",
+            "64", ProGe::BIT_VECTOR, ProGe::OUT, toplevelBlock);
+        NetlistPort *ttaCyclecountPort = new NetlistPort("db_cyclecnt",
+            "64", ProGe::BIT_VECTOR, ProGe::OUT, toplevelBlock);
 
-        NetlistPort* dbPCNextPort = new NetlistPort(
-            "db_pc_next", "IMEMADDRWIDTH", 
-            ProGe::BIT_VECTOR, HDB::OUT, toplevelBlock);
+        NetlistPort *ttaPCPort = new NetlistPort("db_pc",
+            "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::OUT, toplevelBlock);
+
         NetlistPort* dbGlockReqPort = new NetlistPort(
-            "db_lockrq", "1", ProGe::BIT, HDB::IN, toplevelBlock);
+                "db_lockrq", "1", BIT, ProGe::IN, toplevelBlock);
 
         // Connect to the highest bit of decoder lockrq vector, others are
         // already connected
         NetlistPort* decoderGlockReqPort =
-            decoderBlock->portByName("lock_req");
+            decoderBlock->port("lock_req");
         int bit = decoderGenerator_->glockRequestWidth()-1;
-        toplevelBlock.netlist().connectPorts(
+        toplevelBlock.netlist().connect(
             *dbGlockReqPort, *decoderGlockReqPort, 0, bit, 1);
 
-        // Connect ifetch debug ports        
-        NetlistPort* ifetchDebugLockRqPort = new NetlistPort(
-            "db_lockreq", "1", 1, ProGe::BIT, HDB::IN, *fetchBlock);
-        toplevelBlock.netlist().connectPorts(*dbGlockReqPort,
-            *ifetchDebugLockRqPort);
+        // Connect ifetch debug ports
         NetlistPort* ifetchDebugResetPort = new NetlistPort(
-            "db_rstx", "1", 1, ProGe::BIT, HDB::IN, *fetchBlock);
-        toplevelBlock.netlist().connectPorts(*ttaResetPort,
-            *ifetchDebugResetPort);
-        NetlistPort* ifetchPCStartPort = new NetlistPort(
-            "db_pc_start", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, HDB::IN,
-            *fetchBlock);
-        toplevelBlock.netlist().connectPorts(*ifetchPCStartPort,
-            *ttaPCStartPort);
-        NetlistPort* ifetchPCPort = new NetlistPort(
-            "db_pc", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, HDB::OUT,
-            *fetchBlock);
-        toplevelBlock.netlist().connectPorts(*ifetchPCPort, *ttaPCPort);
-        NetlistPort* ifetchPCNextPort = new NetlistPort(
-            "db_pc_next", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, HDB::OUT,
-            *fetchBlock);
-        toplevelBlock.netlist().connectPorts(*ifetchPCNextPort, *dbPCNextPort);
+            "db_rstx", "1", 1, ProGe::BIT, ProGe::IN, *fetchBlock);
+        toplevelBlock.netlist().connect(*ttaResetPort,
+                                        *ifetchDebugResetPort);
+
+        NetlistPort* ifetchDebugLockRqPort = new NetlistPort(
+            "db_lockreq", "1", 1, ProGe::BIT, ProGe::IN, *fetchBlock);
+        toplevelBlock.netlist().connect(*dbGlockReqPort,
+            *ifetchDebugLockRqPort);
+
         NetlistPort* ifetchCyclecountPort = new NetlistPort(
-            "db_cyclecnt", "32", 32, ProGe::BIT_VECTOR, HDB::OUT,
+            "db_cyclecnt", "64", 64, ProGe::BIT_VECTOR, ProGe::OUT,
             *fetchBlock);
-        toplevelBlock.netlist().connectPorts(
+        toplevelBlock.netlist().connect(
             *ifetchCyclecountPort, *ttaCyclecountPort);
         NetlistPort* ifetchLockcountPort = new NetlistPort(
-            "db_lockcnt", "32", 32, ProGe::BIT_VECTOR, HDB::OUT,
+            "db_lockcnt", "64", 64, ProGe::BIT_VECTOR, ProGe::OUT,
             *fetchBlock);
-        toplevelBlock.netlist().connectPorts(
+        toplevelBlock.netlist().connect(
             *ifetchLockcountPort, *ttaLockcountPort);
-        NetlistPort* ifetchFetchblockPort =
-            fetchBlock->portByName("fetchblock");
-        toplevelBlock.netlist().connectPorts(
-            *ifetchFetchblockPort, *ttaInstrPort);
+
+        NetlistPort* ifetchPCPort = new NetlistPort(
+            "db_pc", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::OUT,
+            *fetchBlock);
+        toplevelBlock.netlist().connect(*ifetchPCPort, *ttaPCPort);
+
+        //Add debugger interface ports to tta0 entity
+        NetlistPort *ttaPCStartPort = new NetlistPort("db_pc_start",
+            "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::IN, toplevelBlock);
+        NetlistPort *ttaBustracePort = new NetlistPort("db_bustraces",
+            "BUSTRACE_WIDTH", ProGe::BIT_VECTOR, ProGe::OUT, toplevelBlock);
 
         // Connect bustraces out and away
-        NetlistPort* icBustracePort = icBlock->portByName("db_bustraces");
+        NetlistPort* icBustracePort = icBlock->port("db_bustraces");
         assert(icBustracePort);
-        toplevelBlock.netlist().connectPorts(
+        toplevelBlock.netlist().connect(
             *icBustracePort, *ttaBustracePort);
 
+        NetlistPort* dbPCNextPort = new NetlistPort(
+            "db_pc_next", "IMEMADDRWIDTH",
+        ProGe::BIT_VECTOR, ProGe::OUT, toplevelBlock);
+        NetlistPort* ifetchPCStartPort = new NetlistPort(
+            "db_pc_start", "IMEMADDRWIDTH", ProGe::BIT_VECTOR,
+            ProGe::IN, *fetchBlock);
+        toplevelBlock.netlist().connect(*ifetchPCStartPort,
+                                        *ttaPCStartPort);
+        NetlistPort* ifetchPCNextPort = new NetlistPort(
+            "db_pc_next", "IMEMADDRWIDTH", ProGe::BIT_VECTOR,
+            ProGe::OUT, *fetchBlock);
+        toplevelBlock.netlist().connect(*ifetchPCNextPort,
+                                        *dbPCNextPort);
+
         // Connect decoder softreset
-        NetlistPort* decoderDBResetPort =
-            decoderBlock->portByName("db_tta_nreset");
+        NetlistPort* decoderDBResetPort = decoderBlock->port("db_tta_nreset");
         decoderDBResetPort->unsetStatic();
-        toplevelBlock.netlist().connectPorts(
-            *ttaResetPort, *decoderDBResetPort);
+        toplevelBlock.netlist().connect(*ttaResetPort, *decoderDBResetPort);
+    }
+
+
+    void addDummyIfetchDebugPorts(const NetlistGenerator& generator) {
+        NetlistBlock* fetchBlock = &generator.instructionFetch();
+        // Connect ifetch debug ports
+        NetlistPort* ifetchDebugLockRqPort = new NetlistPort(
+            "db_lockreq", "1", 1, ProGe::BIT, ProGe::IN, *fetchBlock);
+        ifetchDebugLockRqPort->setToStatic(ProGe::StaticSignal::GND);
+        NetlistPort* ifetchDebugResetPort = new NetlistPort(
+            "db_rstx", "1", 1, ProGe::BIT, ProGe::IN, *fetchBlock);
+        ifetchDebugResetPort->setToStatic(ProGe::StaticSignal::VCC);
+        new NetlistPort(
+            "db_pc", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::OUT,
+            *fetchBlock);
+        new NetlistPort(
+            "db_pc_next", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::OUT,
+            *fetchBlock);
+        new NetlistPort("db_cyclecnt", "32", 32,
+            ProGe::BIT_VECTOR, ProGe::OUT, *fetchBlock);
+        new NetlistPort("db_lockcnt", "32", 32,
+            ProGe::BIT_VECTOR, ProGe::OUT, *fetchBlock);
     }
 
     /**
@@ -1092,23 +1227,27 @@ public:
         const std::string& entityString) {
         const string DS = FileSystem::DIRECTORY_SEPARATOR;
         const string templateDir = Environment::dataDirPath("ProGe");
-        
-        BlockSourceCopier copier(implementation, entityString, language);
 
-        if (generateDebugger()) {
-            icGenerator_->setGenerateDebugger(true);
-            decoderGenerator_->setGenerateDebugger(true);
-            if (language != VHDL) {
-                std::string errorMsg = 
-                    "Language not set to VHDL when HW debugger is in use.";
-                throw Exception(__FILE__, __LINE__, __func__, errorMsg);
-            }
-            copier.instantiateHDLTemplate(
-                templateDir + DS + "debugfetch.vhdl.tmpl",
-                dstDirectory, "ifetch.vhdl");
-        } else {
-            icGenerator_->setGenerateDebugger(false);
-            decoderGenerator_->setGenerateDebugger(false);
+        BlockSourceCopier copier(
+            implementation, entityString, language);
+        MachineInfo::OperationSet cuOps = MachineInfo::getOpset(
+            *generator.context().adf().controlUnit());
+        Path proGeDataDir(Environment::dataDirPath("ProGe"));
+        HDLTemplateInstantiator& instantiator =
+            copier.getTemplateInstatiator();
+        
+        if (ttamachine_.RISCVMachine()) {
+            instantiator.replacePlaceholder("ifetch-stall-cond",
+            " and " + IFETCH_STALL_PORT_NAME + " = '0'");
+            instantiator.replacePlaceholder("ifetch-stall-port-declarations",
+            IFETCH_STALL_PORT_NAME + " : in std_logic;");
+
+            ProGe::RV32MicroCodeGenerator* microCodeGen =
+            new RV32MicroCodeGenerator(ttamachine_, bem_);
+            microCodeGen->setBypassInstructionRegister(
+                bypassInstructionRegister());
+            microCodeGen->generateRTL(instantiator,dstDirectory);
+
         }
 
         if (generateBusTrace()) {
@@ -1118,13 +1257,119 @@ public:
             icGenerator_->setGenerateBusTrace(false);
         }
 
-        if (generateLockTrace()) {
-            decoderGenerator_->setGenerateLockTrace(true);
-            decoderGenerator_->setLockTraceStartingCycle(
-                lockTraceStartingCycle());
-        } else {
-            decoderGenerator_->setGenerateLockTrace(false);
+        try {
+            // Check for illegal combinations in fetch/decode unit options
+
+            if (!generateDebugger()) {
+              // Signal declarations as a stand-in for debug ports
+              instantiator.replacePlaceholderFromFile(
+                        "db-signal-declarations",
+                        proGeDataDir/"no_debug_signal_declaration.snippet");
+            }
+
+            if (hasSynchronousReset()) {
+                if (language == VHDL) {
+                    generator.instructionFetch().setParameter(
+                        "sync_reset_g", "boolean", "true");
+                    instantiator.replacePlaceholder(
+                        "sync-waitlist",
+                        "clk");
+                } else {    // language == Verilog
+                    instantiator.replacePlaceholder(
+                        "update-condition",
+                        "always@(posedge clk)");
+                }
+            } else {
+                if (language == VHDL) {
+                    instantiator.replacePlaceholder(
+                        "sync-waitlist",
+                        "clk, rstx");
+                } else { // language == Verilog
+                    instantiator.replacePlaceholder(
+                        "update-condition",
+                        "always@(posedge clk or negedge rstx)");
+                }
+            }
+
+            if (generateNoSelfLockingFUs()) {
+                decoderGenerator_->setGenerateNoLoopbackGlock(true);
+                if (language == VHDL) {
+                    generator.instructionFetch()
+                        .setParameter("no_glock_loopback_g",
+                            "std_logic", "'1'");
+                } // todo verilog version
+            }
+
+            // Set the pc opcode port width
+            std::size_t reqOpcodeWidth =
+                CUOpcodeGenerator::gcuOpcodeWidth(ttamachine_);
+            instantiator.replacePlaceholder(
+                "pc-opcode-len",
+                Conversion::toString(reqOpcodeWidth - 1));
+
+            instantiator.replacePlaceholderFromFile(
+                    "default-instr-reg-write",
+                    Path(proGeDataDir/"default-instr-reg-write.snippet"));
+
+	    // Next PC process sensitivity list
+            std::string sensitivityStringPCBypassed
+                = "pc_in, pc_reg, increased_pc        ";
+            std::string sensitivityStringPCNotBypassed = "";
+            // Complete the default sensitivity list
+            sensitivityStringPCBypassed += ",\n pc_load, pc_opcode";
+                instantiator.replacePlaceholder( // This is bypassed too
+                    "pc-sensitivity-list-pc-bypass",
+                    sensitivityStringPCBypassed);
+
+            // Next PC signal assign condition
+            std::string conditionString =
+                    "pc_load = '1' and ((unsigned(pc_opcode) = IFE_CALL or \n"
+                    "    unsigned(pc_opcode) = IFE_JUMP))\n";
+            instantiator.replacePlaceholder("not-bypassed-next-pc-condition",
+                    conditionString);
+
+            if (generateDebugger()) { // DEBUGTODO
+                if (language != VHDL) {
+                    std::string errorMsg = 
+                        "Language not set to VHDL when HW debugger is in use.";
+                    throw Exception(__FILE__, __LINE__, __func__, errorMsg);
+            }
+        
+            generator.instructionFetch().setParameter(
+                    "debug_logic_g", "boolean", "true");
+            instantiator.replacePlaceholderFromFile(
+                "db-port-declarations",
+                Path(proGeDataDir/"debug_port_declaration.snippet"));
+            instantiator.replacePlaceholderFromFile(
+                "db-signal-declarations",
+                Path(proGeDataDir/"debug_signal_declaration.snippet"));
+    
+            copier.instantiateHDLTemplate(
+                    templateDir + DS + "ifetch." +
+                    (language == VHDL ? "vhdl" : "v") + ".tmpl",
+                    dstDirectory, std::string("ifetch.") +
+                    (language == VHDL ? "vhdl" : "v"));
+            } else {
+                copier.instantiateHDLTemplate(
+                    templateDir + DS + "ifetch." +
+                    (language == VHDL ? "vhdl" : "v") + ".tmpl",
+                    dstDirectory, std::string("ifetch.") +
+                    (language == VHDL ? "vhdl" : "v"));
+            }
+        } catch (const Exception& e) {
+            abortWithError(e.errorMessage());
         }
+
+        if (bypassInstructionRegister()) {
+                if (language != VHDL) {
+                    std::string errorMsg =
+                        "Instruction register bypass is not supported for "
+                        "given HDL.";
+                    throw Exception(__FILE__, __LINE__, __func__, errorMsg);
+                }
+
+                addInstructioRegisterBypass(language, generator);
+            }
 
         // generate the IC
         icGenerator_->SetHDL(language);
@@ -1142,7 +1387,18 @@ public:
                 generateDebuggerCode(generator);
             }
         }
+        if (ttamachine_.RISCVMachine()) {
+            copier.instantiateHDLTemplate(
+            templateDir + DS + "rv32_ifetch.vhdl.tmpl",
+            dstDirectory, "ifetch.vhdl");
+        } else {
+            copier.instantiateHDLTemplate(
+                templateDir + DS + "ifetch.vhdl.tmpl",
+                dstDirectory, "ifetch.vhdl");
+        }
+
     }
+    
 
     /**
      * Returns the required latency of the hardware implementation of the
@@ -1150,9 +1406,9 @@ public:
      *
      * @param iu The immediate unit.
      */
-    virtual int requiredRFLatency(
+    virtual std::set<int> requiredRFLatencies(
         const TTAMachine::ImmediateUnit& iu) const {
-        return decoderGenerator_->requiredRFLatency(iu);
+        return decoderGenerator_->requiredRFLatencies(iu);
     }
 
 
@@ -1164,11 +1420,49 @@ public:
      */
     virtual void
     verifyCompatibility() const {
+        int requiredDelaySlots = calculateSupportedDelaySlots();
+        int specifiedDelaySlots = ttamachine_.controlUnit()->delaySlots();
+
+         if (specifiedDelaySlots != requiredDelaySlots) {
+            throw InvalidData(
+                __FILE__, __LINE__, __func__,
+                TCEString("Decoder generator supports ") +
+                Conversion::toString(requiredDelaySlots + 1) +
+                "-stage transport pipeline of GCU with given options. "
+                "Given machine has " +
+                Conversion::toString(specifiedDelaySlots + 1) + " stages");
+        }
+
         icGenerator_->verifyCompatibility();
         decoderGenerator_->verifyCompatibility();
     }
 
 private:
+
+    /**
+     * Returns global package definitions in the form of a stream specifically
+     * for the variable length instruction architecture.
+     *
+     * @param pkgStream The destination stream
+     */
+    virtual void writeGlobalDefinitions(
+        HDL language,
+        std::ostream& pkgStream)
+        const {       
+
+        if (language == ProGe::VHDL) {
+            pkgStream
+                << "  -- instruction width" << endl
+                << "  constant INSTRUCTIONWIDTH : positive := " 
+                << bem().width()
+                << ";" << endl;
+        } else if (language == ProGe::Verilog) {
+            pkgStream 
+                << "// instruction width" << endl
+                << "parameter INSTRUCTIONWIDTH = " << bem().width()
+                << endl;
+        }
+    }
 
     /**
      * Tells whether IC generator should generate debug interface code.
@@ -1188,6 +1482,7 @@ private:
         }
     }
 
+
     /**
      * Tells whether IC generator should generate bus tracing code.
      *
@@ -1206,6 +1501,11 @@ private:
         }
     }
 
+    bool hasSynchronousReset() const {
+      return    hasParameterSet(SYNC_RESET)
+             && parameterValue(SYNC_RESET) == ENABLE_FEATURE;
+    }
+
     /**
      * Tells whether IC generator should generate global lock tracing code.
      *
@@ -1217,6 +1517,22 @@ private:
         } else {
             string paramValue = parameterValue(GENERATE_LOCK_TRACE_PARAM);
             if (paramValue == GENERATE_LOCK_TRACE_PARAM_YES) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Tells whether instruction register should be left generated (true).
+     */
+    bool bypassInstructionRegister() const {
+        if (!hasParameterSet(BYPASS_FETCHBLOCK_REG_PARAM)) {
+            return false;
+        } else {
+            string paramValue = parameterValue(BYPASS_FETCHBLOCK_REG_PARAM);
+            if (paramValue == BYPASS_FETCHBLOCK_REG_PARAM_YES) {
                 return true;
             } else {
                 return false;
@@ -1248,11 +1564,14 @@ private:
      * Returns the starting cycle to be written to the global lock trace
      * given as parameter.
      *
+     * If parameter is not defined use value from busTraceStartingCycle()
+     * instead.
+     *
      * @return The starting cycle.
      */
     int lockTraceStartingCycle() const {
         if (!hasParameterSet(LOCK_TRACE_STARTING_CYCLE)) {
-            return 0;
+            return busTraceStartingCycle();
         } else {
             string paramValue = parameterValue(LOCK_TRACE_STARTING_CYCLE);
 
@@ -1269,22 +1588,31 @@ private:
         }
     }
 
+    bool generateNoSelfLockingFUs() const {
+        if (!hasParameterSet(NO_SELF_LOCKING_PARAM)) {
+            return false;
+        } else {
+            string paramValue = parameterValue(NO_SELF_LOCKING_PARAM);
+            return paramValue == NO_SELF_LOCKING_PARAM_YES;
+        }
+    }
+
     /**
      * Converts the given direction to a string.
      *
      * @param direction The direction.
      * @return The direction as string in VHDL.
      */
-    static std::string vhdlDirection(HDB::Direction direction) {
+    static std::string vhdlDirection(ProGe::Direction direction) {
         switch (direction) {
-        case HDB::IN: return "in";
-        case HDB::OUT: return "out";
-        case HDB::BIDIR: return "inout";
+        case ProGe::IN: return "in";
+        case ProGe::OUT: return "out";
+        case ProGe::BIDIR: return "inout";
         }
         assert(false);
+        return std::string();
     }
 
-    
     /**
      * Calculates the data port width of the given socket.
      *
@@ -1302,11 +1630,84 @@ private:
         }
         return width;
     }
+
+
+    /**
+     * Enables instruction register bypass feature in the instruction fetch
+     * block.
+     */
+    void addInstructioRegisterBypass(HDL language,
+        const NetlistGenerator& generator) {
+
+        assert(ttamachine_.RISCVMachine() &&
+        "Instruction register by pass only implemented for RISC-V");
+
+        // Todo: remove when this feature is added to debugger-fetch.
+        assert(!generateDebugger() && "addInstructionRegisterBypass(): "
+            "debugger does not support Instruction Register Bypass "
+            "feature yet.");
+
+        NetlistBlock* ifetchBlock = &generator.instructionFetch();
+
+        if (language == ProGe::VHDL) {
+            ifetchBlock->setParameter(
+                "bypass_fetchblock_register",
+                "boolean",
+                "true");
+        } else if (language == ProGe::Verilog) {
+            // Todo
+            assert(false && "Verilog version of instruction register bypass "
+                "not implemented.");
+        } else {
+            assert(false && "Unknown HDL choice.");
+        }
+    }
     
+    /**
+     * Return number of required delay slots. By default the number is three
+     * but can be reduced or increased by options.
+     */
+    int calculateSupportedDelaySlots() const {
+        int delaySlots = 3;
+        if (bypassInstructionRegister()) {
+            delaySlots -= 1;
+        }
+        return delaySlots;
+    }
+
+    /**
+     * Reads parameters and configures the IC and decoder generators.
+     */
+    void readParameters() {
+        icGenerator_->setExportBustrace(generateDebugger());
+        decoderGenerator_->setGenerateDebugger(generateDebugger());
+        // IC is combinatorial, no need for reset
+        decoderGenerator_->setSyncReset(hasSynchronousReset());
+
+        if (generateBusTrace()) {
+            icGenerator_->setGenerateBusTrace(true);
+            icGenerator_->setBusTraceStartingCycle(
+                busTraceStartingCycle());
+        } else {
+            icGenerator_->setGenerateBusTrace(false);
+            decoderGenerator_->setGenerateBusEnable(false);
+        }
+
+        if (generateLockTrace()) {
+            decoderGenerator_->setGenerateLockTrace(true);
+            decoderGenerator_->setLockTraceStartingCycle(
+                lockTraceStartingCycle());
+        } else {
+            decoderGenerator_->setGenerateLockTrace(false);
+        }
+    }
+
     DefaultICGenerator* icGenerator_;
     DefaultDecoderGenerator* decoderGenerator_;
     const TTAMachine::Machine& ttamachine_;
-};
+    const BinaryEncoding& bem_;
+
+}; // class DefaultICDecoderGenerator
 
     
 EXPORT_ICDEC_GENERATOR(DefaultICDecoder)

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
+ * @author Henry Linjamäki 2015 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -37,6 +38,9 @@
 #include <string>
 #include <vector>
 #include <map>
+
+#include "BaseNetlistBlock.hh"
+#include "SignalTypes.hh"
 
 #include "Exception.hh"
 #include "Netlist.hh"
@@ -49,105 +53,56 @@ namespace ProGe {
 
 class Netlist;
 class NetlistPort;
+class Parameter;
 
 /**
  * Represents a hardware block in the netlist.
  */
-class NetlistBlock {
+class NetlistBlock : public BaseNetlistBlock {
 public:
     NetlistBlock(
         const std::string& moduleName,
         const std::string& instanceName,
-        Netlist& netlist);
+        BaseNetlistBlock* parent = NULL);
     virtual ~NetlistBlock();
-
-    std::string instanceName() const;
-    std::string moduleName() const;
 
     void setParameter(
         const std::string& name,
         const std::string& type,
         const std::string& value);
-    void setParameter(const Netlist::Parameter& param);
+    using BaseNetlistBlock::addParameter;
+    using BaseNetlistBlock::setParameter;
+    using BaseNetlistBlock::parameter;
 
-    bool hasParameter(const std::string& name) const;
-    Netlist::Parameter parameter(const std::string& name) const;
-    int parameterCount() const;
-    Netlist::Parameter parameter(int index) const;
-
-    void addPort(NetlistPort* port);
+    using BaseNetlistBlock::addPort;
+    using BaseNetlistBlock::removePort;
+    using BaseNetlistBlock::portCount;
+    using BaseNetlistBlock::port;
+    using BaseNetlistBlock::addPortGroup;
     void removePort(NetlistPort& port);
-    int portCount() const;
-    NetlistPort& port(int index) const;
 
-    NetlistPort* portByName(const std::string& name) const;
+    virtual NetlistPort* port(
+        const std::string& portName,
+        bool partialMatch = true);
 
-    void addSubBlock(NetlistBlock* block);
-    int subBlockCount() const;
-    NetlistBlock& subBlock(int index) const;
-    bool isSubBlock(const NetlistBlock& block) const;
+    using BaseNetlistBlock::addSubBlock;
+    using BaseNetlistBlock::subBlockCount;
+    NetlistBlock& subBlock(size_t index) override;
 
-    bool hasParentBlock() const;
-    NetlistBlock& parentBlock() const;
+    virtual const NetlistBlock& parentBlock() const override;
+    virtual NetlistBlock& parentBlock() override;
 
-    Netlist& netlist() const;
+    using BaseNetlistBlock::netlist;
 
-    NetlistBlock* copyToNewNetlist(
-        const std::string& instanceName,
-        Netlist& destination) const;
+    NetlistBlock* shallowCopy(
+        const std::string& instanceName) const;
 
-    virtual bool isVirtual() const;
+    using BaseNetlistBlock::addPackage;
+    using BaseNetlistBlock::packageCount;
+    using BaseNetlistBlock::package;
 
-    size_t packageCount() const;
-    const std::string& package(size_t idx) const;
-    void addPackage(const std::string& packageName);
-
-
-private:
-    /// Vector type for NetlistBlock.
-    typedef std::vector<NetlistBlock*> NetlistBlockTable;
-    /// Vector type for NetlistPort.
-    typedef std::vector<NetlistPort*> PortTable;
-    /// Vector type for parameters.
-    typedef std::vector<Netlist::Parameter> ParameterTable;
-
-    bool resolveRealWidth(const NetlistPort* port, int& width) const;
-
-    /// Name of the module.
-    std::string moduleName_;
-    /// Name of the block instance.
-    std::string instanceName_;
-    /// The parent NetlistBlock.
-    NetlistBlock* parentBlock_;
-    /// Child blocks.
-    NetlistBlockTable childBlocks_;
-    /// The netlist which the block belongs to.
-    Netlist& netlist_;
-    /// Ports of the block.
-    PortTable ports_;
-    /// Parameters of the block.
-    ParameterTable parameters_;
-    /// The referenced packages by the module.
-    std::vector<std::string> packages_;
-
-};
-
-
-/**
- * Compares 2 NetlistBlock's names lexicographically(dictionary order).
- *
- * Can be used to organize containers of type NetlistBlock to dictionary
- * order according to their instanceNames + moduleNames.
- * @param a the first NetlistBlock to compare.
- * @param b the second NetlistBlock to compare.
- * @return true, if a comes before b in dictionary order.
- */
-class NetlistBlockNameComparator {
-public:
-    bool operator () (const NetlistBlock* a, const NetlistBlock* b) const {
-        return (a->instanceName() + a->moduleName()) <
-                (b->instanceName() + b->moduleName());
-    }
+    virtual void write(
+        const Path& targetBaseDir, HDL targetLang = VHDL) const override;
 };
 
 }

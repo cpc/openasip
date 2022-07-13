@@ -16,6 +16,7 @@ IDF_DIR = ${SRC_ROOT_DIR}/base/idf
 IDF_TOOLS_DIR = ${SRC_ROOT_DIR}/applibs/idf
 BEM_DIR = ${SRC_ROOT_DIR}/base/bem
 PROGE_DIR = ${SRC_ROOT_DIR}/applibs/ProGe
+PROGE2_DIR = ${SRC_ROOT_DIR}/procgen/ProGe
 BEM_TOOLS_DIR = ${SRC_ROOT_DIR}/applibs/bem
 OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
 EXPLORER_DIR = ${SRC_ROOT_DIR}/applibs/Explorer
@@ -46,6 +47,7 @@ LIB_ESTIMATOR_DIR = ../../applibs/Estimator
 LIB_OSAL_DIR = ../../base/osal
 LIB_APPLIBS_DIR = ../../applibs/
 APPLIBS_FSA_DIR = ../../applibs/FSA
+APPLIBS_INTEGRATOR_DIR = ../../applibs/PlatformIntegrator
 
 bin_PROGRAMS = prode
 
@@ -112,7 +114,8 @@ prode_SOURCES = Model.cc\
 		  CallExplorerPlugin.cc CallExplorerPluginCmd.cc \
 		  EditParameterDialog.cc AutoSelectImplementationsDialog.cc \
 		  MachineDialog.cc EditMachineCmd.cc VLIWConnectICCmd.cc \
-		  BlocksConnectICCmd.cc
+		  BlocksConnectICCmd.cc EditOTAFormatsCmd.cc OTAFormatListDialog.cc \
+		  OTAOperationDialog.cc
 
 prode_LDFLAGS = $(TCE_LDFLAGS)
 
@@ -135,12 +138,14 @@ AM_CPPFLAGS = -I${TOOLS_DIR} \
 	      -I${BEM_DIR} \
 	      -I${BEM_TOOLS_DIR} \
 	      -I${PROGE_DIR} \
+		  -I${PROGE2_DIR} \
 	      -I${OSAL_DIR} \
 	      -I${EXPLORER_DIR} \
 	      -I${SIMULATOR_DIR} \
 	      -I${ESTIMATOR_DIR} \
 	      -I${DSDB_DIR} \
-	      -I${INTERPRETER_DIR}
+	      -I${INTERPRETER_DIR} \
+	      -I${APPLIBS_INTEGRATOR_DIR}
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_CXXFLAGS = -UNDEBUG ${AM_WXCXXFLAGS} 
@@ -241,5 +246,8 @@ prode_SOURCES += \
 	ProDeRFEditPolicy.hh PasteComponentCmd.icc \
 	MDFView.icc AutoSelectImplementationsDialog.hh \
 	MachineDialog.hh EditMachineCmd.hh VLIWConnectICCmd.hh \
-	BlocksConnectICCmd.hh
+	ProGeCmdLineOptions.hh \
+	BlocksConnectICCmd.hh \
+	EditOTAFormatsCmd.hh OTAFormatListDialog.hh OTAOperationDialog.hh
+
 ## headers end

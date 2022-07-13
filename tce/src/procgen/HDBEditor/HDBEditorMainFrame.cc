@@ -63,6 +63,8 @@
 #include "HDBEditorAboutCmd.hh"
 #include "UserManualCmd.hh"
 #include "FileSystem.hh"
+#include "AddOperationImplementationCmd.hh"
+#include "AddOperationImplementationResourceCmd.hh"
 
 BEGIN_EVENT_TABLE(HDBEditorMainFrame, wxFrame)
     //    EVT_KEY_DOWN(MainFrame::onKeyEvent)
@@ -109,6 +111,14 @@ HDBEditorMainFrame::HDBEditorMainFrame(
     addSubMenu->Append(
         HDBEditorConstants::COMMAND_ADD_RF_ARCHITECTURE,
         _T("RF Architecture..."));
+    addSubMenu->AppendSeparator();
+
+    addSubMenu->Append(
+        HDBEditorConstants::COMMAND_ADD_OPERATION_IMPLEMENTATION_RESOURCE,
+        _T("Operation Implementation Resource..."));
+    addSubMenu->Append(
+        HDBEditorConstants::COMMAND_ADD_OPERATION_IMPLEMENTATION,
+        _T("Operation Implementation..."));
     addSubMenu->AppendSeparator();
 
     addSubMenu->Append(
@@ -175,6 +185,8 @@ HDBEditorMainFrame::HDBEditorMainFrame(
     commandRegistry_->addCommand(new SetCostFunctionPluginCmd());
     commandRegistry_->addCommand(new HDBEditorAboutCmd());
     commandRegistry_->addCommand(new UserManualCmd());
+    commandRegistry_->addCommand(new AddOperationImplementationCmd());
+    commandRegistry_->addCommand(new AddOperationImplementationResourceCmd());
 
     SetSizeHints(400,300);
     SetSize(600, 400);

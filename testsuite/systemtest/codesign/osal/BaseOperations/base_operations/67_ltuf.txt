@@ -1,3 +1,4 @@
+!output unsigned
 ltuf 234.23f 34.54f
 ltuf -123.123f -123.123f
 ltuf -123.124f -123.123f

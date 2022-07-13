@@ -816,6 +816,11 @@ TDGen::analyzeRegisters() {
             // Skip definition for registers that are marked as 'reserved'
             if (rf->isReserved()) continue;
 
+            // Skip the 0th index of a register file with zero register flag
+            if (currentIdx == 0 && rf->zeroRegister()) {
+                continue;
+            }
+
             // Check that the registerfile has both input and output ports.
             bool hasInput = false;
             bool hasOutput = false;

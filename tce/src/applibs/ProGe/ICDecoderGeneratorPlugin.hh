@@ -36,6 +36,8 @@
 
 #include <map>
 #include <string>
+#include <iostream>
+#include <set>
 
 #include "Socket.hh"
 #include "HDBTypes.hh"
@@ -43,15 +45,19 @@
 #include "MachineImplementation.hh"
  
 namespace TTAMachine {
-class Machine;
-class ImmediateUnit;
+    class Machine;
+    class ImmediateUnit;
+}
+
+namespace IDF {
+    class MachineImplementation;
 }
 
 class BinaryEncoding;
 
 namespace ProGe {
 
-class Netlist;
+class NetlistBlock;
 class NetlistGenerator;
 
 /**
@@ -68,15 +74,15 @@ public:
     virtual ~ICDecoderGeneratorPlugin();
 
     /**
-     * Completes the given netlist by adding IC block and completing the
+     * Completes the given netlist block by adding IC block and completing the
      * decoder block by adding the ports connected to IC. Connects also IC
      * to all the units in the machine.
      *
-     * @param netlist The netlist to complete.
+     * @param coreBlock The netlist block to complete.
      * @param generator The netlist generator which generated the netlist.
      */
     virtual void completeNetlist(
-        Netlist& netlist,
+        NetlistBlock& netlistBlock,
         const NetlistGenerator& generator) = 0;
 
     /**
@@ -84,7 +90,7 @@ public:
      * given destination directory.
      *
      * @param destinationDirectory The destination directory.
-     * @param generator The netlist generator that generated the netlist.
+     * @param generator The netlist generator that generated the netlist block.
      */
     virtual void generate(
         HDL language,
@@ -94,12 +100,12 @@ public:
         const std::string& entityString) = 0;
 
     /**
-     * Returns the required latency of the hardware implementation of the
-     * given immediate unit.
+     * Returns the set of acceptable latencies of the hardware implementation
+     * of the given immediate unit.
      *
      * @param iu The immediate unit.
      */
-    virtual int requiredRFLatency(
+    virtual std::set<int> requiredRFLatencies(
         const TTAMachine::ImmediateUnit& iu) const = 0;
 
     /**
@@ -110,6 +116,17 @@ public:
      */
     virtual void verifyCompatibility() const = 0;
 
+    /**
+     * Returns global package definitions in the form of a stream specifically
+     * for the variable length instruction architecture.
+     *
+     * @param language The HDL to use.
+     * @param pkgStream The destination stream
+     */
+    virtual void writeGlobalDefinitions(
+        HDL language, std::ostream& pkgStream)
+        const = 0;
+
     std::string pluginDescription() const;
     int recognizedParameterCount() const;
     std::string recognizedParameter(int index) const;
@@ -118,6 +135,7 @@ public:
 
     const TTAMachine::Machine& machine() const;
     const BinaryEncoding& bem() const;
+    virtual void readParameters() = 0;
 
 protected:
     static TTAMachine::Socket::Direction convertDirection(

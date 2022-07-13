@@ -294,7 +294,7 @@ IPXactModel::addSignal(const HDLPort& signal) {
 
 
 void
-IPXactModel::addParameter(const ProGe::Netlist::Parameter& parameter) {
+IPXactModel::addParameter(const ProGe::Parameter& parameter) {
 
     parameters_.push_back(parameter);
 }
@@ -418,11 +418,11 @@ IPXactModel::addSignalObject(
 
     ObjectState* direction = new ObjectState(OSNAME_PORT_DIRECTION);
     TCEString dir = "";
-    if (port->direction() == HDB::IN) {
+    if (port->direction() == ProGe::IN) {
         dir = "in";
-    } else if (port->direction() == HDB::OUT) {
+    } else if (port->direction() == ProGe::OUT) {
         dir = "out";
-    } else if (port->direction() == HDB::BIDIR) {
+    } else if (port->direction() == ProGe::BIDIR) {
         dir = "inout";
     } else {
         assert(false && "unknown direction");
@@ -467,9 +467,9 @@ IPXactModel::addModelParamsObject(ObjectState* parent) const {
     parent->addChild(params);
     for (unsigned int i = 0; i < parameters_.size(); i++) {
         ObjectState* param= new ObjectState(OSNAME_MODEL_PARAM);
-        if (parameters_.at(i).type.lower() == STRING_PARAM) {
+        if (parameters_.at(i).type().lower() == STRING_PARAM) {
             param->setAttribute(OSNAME_ATTR_DATA_TYPE, STRING_PARAM);
-        } else if (parameters_.at(i).type.lower() == INTEGER_PARAM) {
+        } else if (parameters_.at(i).type().lower() == INTEGER_PARAM) {
             param->setAttribute(OSNAME_ATTR_DATA_TYPE, LONG_PARAM);
         } else {
             // unsuppored type, ignore
@@ -479,24 +479,24 @@ IPXactModel::addModelParamsObject(ObjectState* parent) const {
         params->addChild(param);
 
         ObjectState* name = new ObjectState(OSNAME_NAME);
-        name->setValue(parameters_.at(i).name);
+        name->setValue(parameters_.at(i).name());
         param->addChild(name);
 
         ObjectState* displayName =  new ObjectState(OSNAME_DISPLAY_NAME);
-        displayName->setValue(parameters_.at(i).name);
+        displayName->setValue(parameters_.at(i).name());
         param->addChild(displayName);
 
         ObjectState* value = new ObjectState(OSNAME_VALUE);
-        if (parameters_.at(i).type.lower() == STRING_PARAM) {
+        if (parameters_.at(i).type().lower() == STRING_PARAM) {
             value->setAttribute(OSNAME_ATTR_FORMAT, STRING_PARAM);
-        } else if (parameters_.at(i).type.lower() == INTEGER_PARAM) {
+        } else if (parameters_.at(i).type().lower() == INTEGER_PARAM) {
             value->setAttribute(OSNAME_ATTR_FORMAT, LONG_PARAM);
         }
         TCEString id; 
-        id << parameters_.at(i).name.upper() << "_ID";
+        id << parameters_.at(i).name().upper() << "_ID";
         value->setAttribute(OSNAME_ATTR_ID, id);
         value->setAttribute(OSNAME_ATTR_RESOLVE, RESOLVE_USER);
-        value->setValue(parameters_.at(i).value);
+        value->setValue(parameters_.at(i).value());
         param->addChild(value);
     }
 }
@@ -784,7 +784,7 @@ IPXactModel::extractSignals(const ObjectState* signals) {
         }
 
         TCEString name = "";
-        HDB::Direction direction = HDB::IN;
+        ProGe::Direction direction = ProGe::IN;
         ProGe::DataType type = ProGe::BIT;
         int width = 0;
         
@@ -801,11 +801,11 @@ IPXactModel::extractSignals(const ObjectState* signals) {
             TCEString dir =
                 wire->childByName(OSNAME_PORT_DIRECTION)->stringValue();
             if (dir == "in") {
-                direction = HDB::IN;
+                direction = ProGe::IN;
             } else if (dir == "out") {
-                direction = HDB::OUT;
+                direction = ProGe::OUT;
             } else if (dir == "inout") {
-                direction = HDB::BIDIR;
+                direction = ProGe::BIDIR;
             } else {
                 assert(false && "Unknown direction");
             }
@@ -959,22 +959,22 @@ IPXactModel::extractModelParam(const ObjectState* modelParameter) {
                                             "IPXactModel", msg);
         throw exc;
     }
-    ProGe::Netlist::Parameter parameter;
+    ProGe::Parameter parameter;
     const ObjectState* nameObj = modelParameter->childByName(OSNAME_NAME);
-    parameter.name = nameObj->stringValue();
+    parameter.setName(nameObj->stringValue());
     
-    parameter.type = STRING_PARAM;
+    parameter.setType(STRING_PARAM);
     if (nameObj->hasAttribute(OSNAME_ATTR_DATA_TYPE)) {
         TCEString typeAttr =
             nameObj->stringAttribute(OSNAME_ATTR_DATA_TYPE);
         if (typeAttr.lower() == STRING_PARAM) {
-            parameter.type = STRING_PARAM;
+            parameter.setType(STRING_PARAM);
         } else if (typeAttr.lower() == LONG_PARAM) {
-            parameter.type = INTEGER_PARAM;
+            parameter.setType(INTEGER_PARAM);
         }
     }
     
     const ObjectState* valueObj = modelParameter->childByName(OSNAME_VALUE);
-    parameter.value = valueObj->stringValue();
+    parameter.setValue(valueObj->stringValue());
     parameters_.push_back(parameter);
 }

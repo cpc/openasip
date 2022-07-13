@@ -1,3 +1,4 @@
+!output unsigned
 truncwh 0xffffffff
 truncwh 0xffff0000
 truncwh 0xffff0001

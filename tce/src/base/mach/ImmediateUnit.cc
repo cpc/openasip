@@ -242,6 +242,8 @@ ImmediateUnit::saveState() const {
         iUnit->setAttribute(OSKEY_EXTENSION, OSVALUE_ZERO);
     }
 
+    iUnit->setAttribute(OSKEY_LATENCY, latency_);
+
     return iUnit;
 }
 
@@ -287,7 +289,9 @@ ImmediateUnit::loadStateWithoutReferences(const ObjectState* state) {
             throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
         }
 
-        setLatency(LATENCY);
+        setLatency(state->intAttribute(OSKEY_LATENCY));
+        assert(latency_ >= 0);
+
     } catch (const Exception& e) {
         throw ObjectStateLoadingException(
             __FILE__, __LINE__, procName, e.errorMessage());

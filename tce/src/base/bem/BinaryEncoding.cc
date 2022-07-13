@@ -1,36 +1,38 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+  Copyright (c) 2002-2014 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+  This file is part of TTA-Based Codesign Environment (TCE).
 
-    Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation
-    the rights to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell copies of the Software, and to permit persons to whom the
-    Software is furnished to do so, subject to the following conditions:
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the "Software"),
+  to deal in the Software without restriction, including without limitation
+  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+  and/or sell copies of the Software, and to permit persons to whom the
+  Software is furnished to do so, subject to the following conditions:
 
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-    DEALINGS IN THE SOFTWARE.
- */
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  DEALINGS IN THE SOFTWARE.
+*/
 /**
  * @file BinaryEncoding.cc
  *
  * Implementation of BinaryEncoding class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2014
  * @note rating: red
  */
 
 #include <string>
+#include <algorithm>
 
 #include "BinaryEncoding.hh"
 #include "MoveSlot.hh"
@@ -44,10 +46,14 @@
 #include "SequenceTools.hh"
 #include "Application.hh"
 #include "ObjectState.hh"
+#include "InstructionFormat.hh"
 
 using std::string;
 
 const std::string BinaryEncoding::OSNAME_BEM = "bem";
+const std::string BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BITS = "template-extra-bits";
+const std::string BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BIT_COUNT = "bit-count";
+const std::string BinaryEncoding::OSNAME_TEMPLATE_NAME = "template";
 
 /**
  * The constructor.
@@ -77,12 +83,13 @@ BinaryEncoding::BinaryEncoding(const ObjectState* state)
  */
 BinaryEncoding::~BinaryEncoding() {
     if (hasImmediateControlField()) {
-	delete immediateField_;
+        delete immediateField_;
     }
     deleteMoveSlots();
     deleteImmediateSlots();
     deleteLongImmDstRegisterFields();
     deleteSocketCodes();
+    deleteInstructionFormats();
 }
 
 
@@ -111,8 +118,8 @@ BinaryEncoding::moveSlotCount() const {
 MoveSlot&
 BinaryEncoding::moveSlot(int index) const {
     if (index < 0 || index >= moveSlotCount()) {
-	const string procName = "BinaryEncoding::moveSlot";
-	throw OutOfRange(__FILE__, __LINE__, procName);
+        const string procName = "BinaryEncoding::moveSlot";
+        throw OutOfRange(__FILE__, __LINE__, procName);
     }
 
     return *moveSlots_[index];
@@ -129,12 +136,12 @@ bool
 BinaryEncoding::hasMoveSlot(const std::string& name) const {
 
     for (MoveSlotContainer::const_iterator iter = moveSlots_.begin();
-	 iter != moveSlots_.end(); iter++) {
+         iter != moveSlots_.end(); iter++) {
 
-	MoveSlot* slot = *iter;
-	if (slot->name() == name) {
-	    return true;
-	}
+        MoveSlot* slot = *iter;
+        if (slot->name() == name) {
+            return true;
+        }
     }
 
     return false;
@@ -152,12 +159,12 @@ BinaryEncoding::hasMoveSlot(const std::string& name) const {
 MoveSlot&
 BinaryEncoding::moveSlot(const std::string& name) const {
     for (MoveSlotContainer::const_iterator iter = moveSlots_.begin();
-	 iter != moveSlots_.end(); iter++) {
+         iter != moveSlots_.end(); iter++) {
 
-	MoveSlot* slot = *iter;
-	if (slot->name() == name) {
-	    return *slot;
-	}
+        MoveSlot* slot = *iter;
+        if (slot->name() == name) {
+            return *slot;
+        }
     }
 
     const string procName = "BinaryEncoding::moveSlot";
@@ -179,8 +186,8 @@ BinaryEncoding::addMoveSlot(MoveSlot& slot) {
     assert(slot.parent() == NULL);
 
     if (hasMoveSlot(slot.name())) {
-	const string procName = "BinaryEncoding::addMoveSlot";
-	throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
+        const string procName = "BinaryEncoding::addMoveSlot";
+        throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
     }
 
     moveSlots_.push_back(&slot);
@@ -227,8 +234,8 @@ BinaryEncoding::immediateSlotCount() const {
 ImmediateSlotField&
 BinaryEncoding::immediateSlot(int index) const {
     if (index < 0 || index >= immediateSlotCount()) {
-	const string procName = "BinaryEncoding::immediateSlot";
-	throw OutOfRange(__FILE__, __LINE__, procName);
+        const string procName = "BinaryEncoding::immediateSlot";
+        throw OutOfRange(__FILE__, __LINE__, procName);
     }
 
     return *immediateSlots_[index];
@@ -249,10 +256,10 @@ BinaryEncoding::hasImmediateSlot(const std::string& name) const {
              immediateSlots_.begin(); iter != immediateSlots_.end(); 
          iter++) {
 
-	ImmediateSlotField* slot = *iter;
-	if (slot->name() == name) {
-	    return true;
-	}
+        ImmediateSlotField* slot = *iter;
+        if (slot->name() == name) {
+            return true;
+        }
     }
 
     return false;
@@ -273,10 +280,10 @@ BinaryEncoding::immediateSlot(const std::string& name) const {
              immediateSlots_.begin(); iter != immediateSlots_.end(); 
          iter++) {
 
-	ImmediateSlotField* slot = *iter;
-	if (slot->name() == name) {
-	    return *slot;
-	}
+        ImmediateSlotField* slot = *iter;
+        if (slot->name() == name) {
+            return *slot;
+        }
     }
 
     const string procName = "BinaryEncoding::immediateSlot";
@@ -298,8 +305,8 @@ BinaryEncoding::addImmediateSlot(ImmediateSlotField& slot) {
     assert(slot.parent() == NULL);
 
     if (hasImmediateSlot(slot.name())) {
-	const string procName = "BinaryEncoding::addImmediateSlot";
-	throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
+        const string procName = "BinaryEncoding::addImmediateSlot";
+        throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
     }
 
     immediateSlots_.push_back(&slot);
@@ -343,9 +350,9 @@ BinaryEncoding::hasImmediateControlField() const {
 ImmediateControlField&
 BinaryEncoding::immediateControlField() const {
     if (hasImmediateControlField()) {
-	return *immediateField_;
+        return *immediateField_;
     } else {
-	return NullImmediateControlField::instance();
+        return NullImmediateControlField::instance();
     }
 }
 
@@ -365,8 +372,8 @@ BinaryEncoding::setImmediateControlField(ImmediateControlField& field) {
     assert(field.parent() == NULL);
 
     if (hasImmediateControlField()) {
-	const string procName = "BinaryEncoding::setImmediateControlField";
-	throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
+        const string procName = "BinaryEncoding::setImmediateControlField";
+        throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
     }
 
     immediateField_ = &field;
@@ -473,7 +480,91 @@ BinaryEncoding::removeLongImmDstRegisterField(LImmDstRegisterField& field) {
     assert(
         ContainerTools::removeValueIfExists(longImmDstRegFields_, &field));
 }
-    
+
+/**
+ * Returns the number of instruction formats in the in binary encoding. 
+ * 
+ * @return The number of instruction formats.
+ */
+
+int
+BinaryEncoding::instructionFormatCount() const {
+    return instructionFormats_.size();
+}
+
+/**
+ * Tells whether the binary encoding has an instruction format with the given
+ * name.
+ * 
+ * @param name The name. 
+ * @return True if the ecoding map contains an instruction format with the 
+ *         given name, otherwise false.
+ */
+
+bool
+BinaryEncoding::hasInstructionFormat(const std::string name) const {
+    return std::find_if(instructionFormats_.begin(),
+    instructionFormats_.end(), [name](const InstructionFormat* it) {
+        return it->name() == name;
+    }) != instructionFormats_.end();
+}
+
+/**
+ * Returns the instruction format with the given index. 
+ * 
+ * @param index The index.
+ * @return The instruction format
+ * @exception OutOfRange If the given index is negative or not smaller than
+ *                       the number of instruction formats in the encoding
+ *                       map.
+ */
+
+InstructionFormat&
+BinaryEncoding::instructionFormat(int index) const{
+    if (index < 0 || index >= instructionFormatCount()) {
+        throw OutOfRange(__FILE__, __LINE__, __func__);
+    }
+    return *instructionFormats_[index];
+
+}
+
+/**
+ * Adds the given instruction format to the encoding map.
+ * 
+ * @param format The instruction format to be added.
+ * @exception ObjectAlreadyExists If the encoding map already contains a
+ *                                a socket code table with the same name as
+ *                                the given table.
+ */
+
+void
+BinaryEncoding::addInstructionFormat(InstructionFormat& format){
+    // verify that this is called from InstructionFormat constructor
+    assert(format.parent() == NULL);
+
+    if (hasInstructionFormat(format.name())) {
+        const string procName = "BinaryEncoding::addInstructionFormat";
+        throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
+    }
+
+    instructionFormats_.push_back(&format);
+}
+
+/**
+ * Removes the given instruction format from the encoding map.
+ * This method is to be called from the destructor Instruction Format.
+ * 
+ * @param format The instruction format to be removed.
+ */
+
+void
+BinaryEncoding::removeInstructionFormat(InstructionFormat& format){
+    assert(format.parent() == NULL);
+    assert(
+        ContainerTools::removeValueIfExists(instructionFormats_, &format));
+}
+
+
 
 /**
  * Returns the number of socket code tables contained by the encoding map.
@@ -497,8 +588,8 @@ BinaryEncoding::socketCodeTableCount() const {
 SocketCodeTable&
 BinaryEncoding::socketCodeTable(int index) const {
     if (index < 0 || index >= socketCodeTableCount()) {
-	const string procName = "BinaryEncoding::socketCodeTable";
-	throw OutOfRange(__FILE__, __LINE__, procName);
+        const string procName = "BinaryEncoding::socketCodeTable";
+        throw OutOfRange(__FILE__, __LINE__, procName);
     }
 
     return *socketCodes_[index];
@@ -516,10 +607,10 @@ SocketCodeTable&
 BinaryEncoding::socketCodeTable(const std::string& name) const {
 
     for (int i = 0; i < socketCodeTableCount(); i++) {
-	SocketCodeTable& table = socketCodeTable(i);
-	if (table.name() == name) {
-	    return table;
-	}
+        SocketCodeTable& table = socketCodeTable(i);
+        if (table.name() == name) {
+            return table;
+        }
     }
 
     return NullSocketCodeTable::instance();
@@ -542,8 +633,8 @@ BinaryEncoding::addSocketCodeTable(SocketCodeTable& table) {
     assert(table.parent() == NULL);
 
     if (hasSocketCodeTable(table.name())) {
-	const string procName = "BinaryEncoding::addSocketCodeTable";
-	throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
+        const string procName = "BinaryEncoding::addSocketCodeTable";
+        throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
     }
 
     socketCodes_.push_back(&table);
@@ -562,6 +653,30 @@ BinaryEncoding::removeSocketCodeTable(SocketCodeTable& table) {
     assert(ContainerTools::removeValueIfExists(socketCodes_, &table));
 }
 
+/**
+ * Returns the extra template bit amount in the largest template in the machine.
+ * Needed for instructionField's bitPosition-method.
+ *
+ * @return The extra padding bits in the longest instruction template.
+ */
+int
+BinaryEncoding::longestTemplateExtraBits() const {
+
+    if (immediateField_ == NULL) return 0;
+
+    TCEString longestTemplate = "";
+    int maxWidth = 0;
+
+    for (int i = 0; i < immediateField_->templateCount(); ++i) {
+        TCEString iTemplate = immediateField_->instructionTemplate(i);
+        int w = width(iTemplate);
+        if (w > maxWidth) {
+            maxWidth = w;
+            longestTemplate = iTemplate;
+        }
+    }
+    return templateExtraBits(longestTemplate);
+}
 
 /**
  * Returns the number of immediate child fields
@@ -574,7 +689,7 @@ BinaryEncoding::childFieldCount() const {
     int count = moveSlotCount() + immediateSlotCount() + 
         longImmDstRegisterFieldCount();
     if (hasImmediateControlField()) {
-	count++;
+        count++;
     }
     return count;
 }
@@ -595,21 +710,21 @@ BinaryEncoding::childFieldCount() const {
 InstructionField&
 BinaryEncoding::childField(int position) const {
     if (position < 0 || position >= childFieldCount()) {
-	const string procName = "BinaryEncoding::childField";
-	throw OutOfRange(__FILE__, __LINE__, procName);
+        const string procName = "BinaryEncoding::childField";
+        throw OutOfRange(__FILE__, __LINE__, procName);
     }
 
     if (hasImmediateControlField() &&
-	immediateControlField().relativePosition() == position) {
-	return immediateControlField();
+        immediateControlField().relativePosition() == position) {
+        return immediateControlField();
     }
 
     int moveSlots = moveSlotCount();
     for (int i = 0; i < moveSlots; i++) {
-	MoveSlot& slot = moveSlot(i);
-	if (slot.relativePosition() == position) {
-	    return slot;
-	}
+        MoveSlot& slot = moveSlot(i);
+        if (slot.relativePosition() == position) {
+            return slot;
+        }
     }
 
     int immediateSlots = immediateSlotCount();
@@ -632,38 +747,59 @@ BinaryEncoding::childField(int position) const {
 }
 
 /**
- * Returns the bit width of the instruction word defined by this encoding
- * map.
+ * Returns the bit width of the maximum width instruction word defined by this 
+ * encoding map.
  *
+ * @param If set, returns the instruction width of the given instruction template,
+ *        otherwise the maximum.
  * @return The bit width of the instruction word.
  */
 int
 BinaryEncoding::width() const {
 
+    if (immediateField_ == NULL) return width("");
+
+    int maxWidth = 0;
+    for (int i = 0; i < immediateField_->templateCount(); ++i) {
+        TCEString iTemplate = immediateField_->instructionTemplate(i);
+        int w = width(iTemplate);
+        if (w > maxWidth) maxWidth = w;
+    }
+    return maxWidth;
+}
+
+/**
+ * Returns the bit width of the instruction word defined by an instruction template
+ * in this encoding map.
+ */
+int
+BinaryEncoding::width(const TCEString& templateName) const {
+
     int moveSlots = moveSlotCount();
     int immediateSlots = immediateSlotCount();
     int limmDstRegFields = longImmDstRegisterFieldCount();
-    int width(0);
+    int width = 0;
 
     for (int i = 0; i < moveSlots; i++) {
-	MoveSlot& slot = moveSlot(i);
-	width += slot.width();
+        MoveSlot& slot = moveSlot(i);
+        width += slot.width();
     }
 
     for (int i = 0; i < immediateSlots; i++) {
         ImmediateSlotField& slot = immediateSlot(i);
         width += slot.width();
     }
-
+    
     for (int i = 0; i < limmDstRegFields; i++) {
         LImmDstRegisterField& field = longImmDstRegisterField(i);
         width += field.width();
     }
 
     if (hasImmediateControlField()) {
-	width += immediateControlField().width();
+        width += immediateControlField().width();
     }
 
+    width += templateExtraBits(templateName);
     width += extraBits();
     return width;
 }
@@ -680,16 +816,16 @@ BinaryEncoding::width() const {
 void
 BinaryEncoding::loadState(const ObjectState* state) {
     if (state->name() != OSNAME_BEM) {
-	const string procName = "BinaryEncoding::loadState";
-	throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
+        const string procName = "BinaryEncoding::loadState";
+        throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
     }
 
     // create socket code tables at first
     for (int i = 0; i < state->childCount(); i++) {
-	ObjectState* child = state->child(i);
-	if (child->name() == SocketCodeTable::OSNAME_SOCKET_CODE_TABLE) {
-	    new SocketCodeTable(child, *this);
-	}
+        ObjectState* child = state->child(i);
+        if (child->name() == SocketCodeTable::OSNAME_SOCKET_CODE_TABLE) {
+            new SocketCodeTable(child, *this);
+        }
     }
 
     // create subfields in the correct order
@@ -709,6 +845,13 @@ BinaryEncoding::loadState(const ObjectState* state) {
         } else if (child->name() == 
                    LImmDstRegisterField::OSNAME_LIMM_DST_REGISTER_FIELD) {
             new LImmDstRegisterField(child, *this);
+        } else if (child->name() ==
+                   BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BITS) {
+            setTemplateExtraBits(
+                child->childByName(
+                    BinaryEncoding::OSNAME_TEMPLATE_NAME)->stringValue(),
+                child->childByName(
+                    BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BIT_COUNT)->intValue());
         }
     }
     delete newState;
@@ -727,8 +870,8 @@ BinaryEncoding::saveState() const {
     // add move slots
     int moveSlots = moveSlotCount();
     for (int i = 0; i < moveSlots; i++) {
-	MoveSlot& slot = moveSlot(i);
-	bem->addChild(slot.saveState());
+        MoveSlot& slot = moveSlot(i);
+        bem->addChild(slot.saveState());
     }
 
     // add immediate slots
@@ -748,13 +891,39 @@ BinaryEncoding::saveState() const {
     // add socket code tables
     int tableCount = socketCodeTableCount();
     for (int i = 0; i < tableCount; i++) {
-	SocketCodeTable& table = socketCodeTable(i);
-	bem->addChild(table.saveState());
+        SocketCodeTable& table = socketCodeTable(i);
+        bem->addChild(table.saveState());
     }
 
     // add immediate control field
     if (hasImmediateControlField()) {
-	bem->addChild(immediateControlField().saveState());
+        bem->addChild(immediateControlField().saveState());
+    }
+
+    for (TemplateExtraBitCountMap::const_iterator 
+             i = extraTemplateBits_.begin(), e = extraTemplateBits_.end(); 
+         i != e; ++i) {
+        TCEString templateName = (*i).first;
+        int bitCount = (*i).second;
+        ObjectState* root =
+            new ObjectState(BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BITS);
+
+        ObjectState* templateNameObj = 
+            new ObjectState(BinaryEncoding::OSNAME_TEMPLATE_NAME);       
+        templateNameObj->setValue(templateName);
+
+        ObjectState* bitCountObj = 
+            new ObjectState(BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BIT_COUNT);
+        bitCountObj->setValue(bitCount);
+
+        root->addChild(templateNameObj);
+        root->addChild(bitCountObj);
+
+        bem->addChild(root);
+    }
+
+    for (int i = 0; i < instructionFormatCount(); i++) {
+        bem->addChild(instructionFormats_.at(i)->saveState());
     }
 
     return bem;
@@ -774,12 +943,12 @@ BinaryEncoding::hasSocketCodeTable(const std::string& name) const {
 
     for (SocketCodeTableContainer::const_iterator iter = 
              socketCodes_.begin();
-	 iter != socketCodes_.end(); iter++) {
+         iter != socketCodes_.end(); iter++) {
         
-	SocketCodeTable* table = *iter;
-	if (table->name() == name) {
-	    return true;
-	}
+        SocketCodeTable* table = *iter;
+        if (table->name() == name) {
+            return true;
+        }
     }
 
     return false;
@@ -821,3 +990,31 @@ void
 BinaryEncoding::deleteSocketCodes() {
     SequenceTools::deleteAllItems(socketCodes_);
 }
+
+/**
+ * Deletes all the instruction formats contained by the encoding map.
+ */
+void
+BinaryEncoding::deleteInstructionFormats() {
+    SequenceTools::deleteAllItems(instructionFormats_);
+}
+ /**
+  * Sets the extra padding bit count for an instruction template
+  */
+void
+BinaryEncoding::setTemplateExtraBits(
+    const TCEString& templateName, int bitCount) {
+    extraTemplateBits_[templateName] = bitCount;
+}
+
+int
+BinaryEncoding::templateExtraBits(const TCEString& templateName) const {
+
+    TemplateExtraBitCountMap::const_iterator pos = 
+        extraTemplateBits_.find(templateName);
+
+    if (pos == extraTemplateBits_.end())
+        return 0;
+    return (*pos).second;
+}
+

@@ -122,10 +122,6 @@ AvalonIntegrator::setDeviceFamily(TCEString devFamily) {
     deviceFamily_ = devFamily;
 }
 
-TCEString
-AvalonIntegrator::deviceName() const {
-    return "";
-}
 
 TCEString
 AvalonIntegrator::devicePackage() const {

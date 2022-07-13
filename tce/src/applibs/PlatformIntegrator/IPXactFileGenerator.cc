@@ -44,7 +44,6 @@
 #include "IPXactResetInterface.hh"
 #include "IPXactAddressSpace.hh"
 #include "AddressSpace.hh"
-
 #include "Machine.hh"
 using ProGe::NetlistBlock;
 using ProGe::NetlistPort;
@@ -76,12 +75,12 @@ IPXactFileGenerator::writeProjectFiles() {
     ip->setVLNV(DEF_VENDOR, DEF_LIBRARY, toplevelEntity(), DEF_VERSION);
 
     const ProGe::NetlistBlock& toplevel = integrator()->toplevelBlock();
-    for (int i = 0; i < toplevel.portCount(); i++) {
+    for (size_t i = 0; i < toplevel.portCount(); i++) {
         HDLPort port(toplevel.port(i));
         ip->addSignal(port);
     }
 
-    for (int i = 0; i < toplevel.parameterCount(); i++) {
+    for (size_t i = 0; i < toplevel.parameterCount(); i++) {
         ip->addParameter(toplevel.parameter(i));
     }
 

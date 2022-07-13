@@ -8,7 +8,7 @@
       <value>yes</value>
     </parameter>
     <parameter name="bustracestartingcycle">
-      <value>5</value>
+      <value>6</value>
     </parameter>
   </ic-decoder-plugin>
 

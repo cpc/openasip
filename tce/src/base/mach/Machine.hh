@@ -59,6 +59,7 @@ class Machine;
 class ControlUnit;
 class Component;
 class ImmediateSlot;
+class OperationTriggeredFormat;
 
 template <typename ComponentType>
 class ComponentContainer;
@@ -96,6 +97,8 @@ public:
     virtual void addAddressSpace(AddressSpace& as);
     virtual void addBridge(Bridge& bridge);
     virtual void addInstructionTemplate(InstructionTemplate& instrTempl);
+    virtual void addOperationTriggeredFormat(
+        OperationTriggeredFormat& format);
     virtual void addImmediateSlot(ImmediateSlot& slot);
     virtual void setGlobalControl(ControlUnit& unit);
     virtual void unsetGlobalControl();
@@ -110,6 +113,8 @@ public:
     virtual void removeRegisterFile(RegisterFile& unit);
     virtual void deleteBridge(Bridge& bridge);
     virtual void deleteInstructionTemplate(InstructionTemplate& instrTempl);
+    virtual void deleteOperationTriggeredFormat(
+        OperationTriggeredFormat& format);
     virtual void deleteImmediateSlot(ImmediateSlot& slot);
     virtual void deleteAddressSpace(AddressSpace& as);
 
@@ -139,6 +144,7 @@ public:
     TCEString hash() const;
 
     bool hasOperation(const TCEString& opName) const;
+    bool RISCVMachine() const;
 
     /**
      * A template class which contains machine components.
@@ -221,6 +227,9 @@ public:
     typedef Navigator<RegisterFile> RegisterFileNavigator;
     /// Navigator type for ImmediateSlotNavigator.
     typedef Navigator<ImmediateSlot> ImmediateSlotNavigator;
+    /// Navigator type for OperationTriggeredFormatNavigator
+    typedef Navigator<OperationTriggeredFormat>
+    OperationTriggeredFormatNavigator;
 
     virtual BusNavigator busNavigator() const;
     virtual SocketNavigator socketNavigator() const;
@@ -232,6 +241,9 @@ public:
         const;
     virtual RegisterFileNavigator registerFileNavigator() const;
     virtual ImmediateSlotNavigator immediateSlotNavigator() const;
+    virtual OperationTriggeredFormatNavigator
+    operationTriggeredFormatNavigator() const;
+
 
     /// ObjectState name for Machine.
     static const std::string OSNAME_MACHINE;
@@ -286,6 +298,8 @@ private:
     ComponentContainer<Bridge> bridges_;
     /// Contains all the immediate slots of the machine.
     ComponentContainer<ImmediateSlot> immediateSlots_;
+    /// Contains all the OTA Formats of the machine.
+    ComponentContainer<OperationTriggeredFormat> operationTriggeredFormats_;
 
     /// Global control unit.
     ControlUnit* controlUnit_;

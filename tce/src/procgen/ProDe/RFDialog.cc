@@ -90,7 +90,8 @@ RFDialog::RFDialog(
     maxReads_(0),
     maxWrites_(0),
     portListCtrl_(NULL),
-    typeChoice_(NULL) {
+    typeChoice_(NULL),
+    zeroRegister_(false) {
 
     //registerFile_->updateMaxReadsAndWrites();
     createContents(this, true, true);
@@ -109,6 +110,9 @@ RFDialog::RFDialog(
     FindWindow(ID_SIZE)->SetValidator(wxGenericValidator(&size_));
     FindWindow(ID_GUARD_LATENCY)->SetValidator(
         wxGenericValidator(&guardLatency_));
+
+    FindWindow(ID_ZERO_REGISTER)->SetValidator(
+        wxGenericValidator(&zeroRegister_));
 
     // set widget texts
     setTexts();
@@ -226,6 +230,7 @@ RFDialog::updateWidgets() {
     maxReads_ = registerFile_->maxReads();
     maxWrites_ = registerFile_->maxWrites();
     guardLatency_ = registerFile_->guardLatency();
+    zeroRegister_ = registerFile_->zeroRegister();
 
     switch (registerFile_->type()) {
     case RegisterFile::NORMAL:
@@ -253,6 +258,8 @@ RFDialog::updateWidgets() {
             WxConversion::toWxString(maxWrites_));
     dynamic_cast<wxSpinCtrl*>(
         FindWindow(ID_GUARD_LATENCY))->SetValue(guardLatency_);
+    dynamic_cast<wxCheckBox*>(
+    FindWindow(ID_ZERO_REGISTER))->SetValue(zeroRegister_);
 }
 
 /**
@@ -330,6 +337,7 @@ RFDialog::onOK(wxCommandEvent&) {
         registerFile_->setWidth(width_);
         registerFile_->setNumberOfRegisters(size_);
         registerFile_->setGuardLatency(guardLatency_);
+        registerFile_->setZeroRegister(zeroRegister_);
     } catch (Exception& e) {
         InformationDialog dialog(
             this, WxConversion::toWxString(e.errorMessage()));
@@ -610,6 +618,9 @@ RFDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     item23->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item0->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxCheckBox *item27 = new wxCheckBox( parent, ID_ZERO_REGISTER, wxT("Zero register"), wxDefaultPosition, wxDefaultSize, 0);
+    item1->Add( item27, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     if (set_sizer)
     {

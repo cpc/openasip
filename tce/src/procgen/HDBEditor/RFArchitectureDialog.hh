@@ -73,7 +73,8 @@ private:
         ID_PARAM_WIDTH,
         ID_PARAM_SIZE,
         ID_GUARD_SUPPORT,
-        ID_LINE
+        ID_LINE,
+        ID_ZERO_REGISTER
     };
 
     HDB::RFArchitecture& arch_;
@@ -89,6 +90,7 @@ private:
     bool guardSupport_;
     bool paramWidth_;
     bool paramSize_;
+    bool zeroRegister_;
 
     DECLARE_EVENT_TABLE()
 };

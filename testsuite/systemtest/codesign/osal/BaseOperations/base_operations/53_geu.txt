@@ -1,3 +1,4 @@
+!output unsigned
 geu 3 5
 geu 3 3
 geu 10001243 210009

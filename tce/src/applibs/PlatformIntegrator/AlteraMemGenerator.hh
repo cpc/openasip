@@ -56,8 +56,9 @@ public:
 
     virtual void addMemory(
         const ProGe::NetlistBlock& ttaCore,
-        ProGe::Netlist& netlist,
-        int memIndex);
+        ProGe::NetlistBlock& integratorBlock,
+        int memIndex,
+        int coreId);
     
 protected:
 

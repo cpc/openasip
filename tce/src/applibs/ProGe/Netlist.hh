@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
+ * @author Henry Linjamäki 2015 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -47,11 +48,14 @@ POP_CLANG_DIAGS
 #include "PortConnectionProperty.hh"
 #include "Exception.hh"
 #include "TCEString.hh"
+#include "Parameter.hh"
 
 namespace ProGe {
 
 class NetlistPort;
+class NetlistPortGroup;
 class NetlistBlock;
+enum class SignalType;
 
 /**
  * Represents a netlist of port connections.
@@ -59,53 +63,82 @@ class NetlistBlock;
 class Netlist : public boost::adjacency_list<
     boost::vecS, boost::vecS, boost::bidirectionalS, NetlistPort*,
     PortConnectionProperty> {
+
+    /// Map type for vertex descriptors
+    typedef std::map<const NetlistPort*, size_t> DescriptorMap;
+
 public:
-    /// Struct for parameter type.
-    struct Parameter {
-        TCEString name;
-        TCEString type;
-        TCEString value;
-    };
 
     Netlist();
     virtual ~Netlist();
 
-    void connectPorts(
-        NetlistPort& port1,
-        NetlistPort& port2,
+    bool connect(
+        const NetlistPort& port1,
+        const NetlistPort& port2,
         int port1FirstBit,
         int port2FirstBit,
-        int width);
-    void connectPorts(
-        NetlistPort& port1,
-        NetlistPort& port2);
+        int width = 1);
+    bool connect(
+        const NetlistPort& port1,
+        const NetlistPort& port2);
+    bool connect(
+        const NetlistPortGroup& group1,
+        const NetlistPortGroup& group2);
+    bool connectBy(
+        SignalType byType,
+        const NetlistPortGroup& group1,
+        const NetlistPortGroup& group2);
+    bool connect(
+        const NetlistPortGroup& group1,
+        const NetlistPortGroup& group2,
+        std::map<SignalType, SignalType> connectionMap);
+    bool connectGroupByName(
+        const NetlistPortGroup& group1,
+        const NetlistPortGroup& group2);
 
-    void connectPortsInverted(
-        NetlistPort& port1,
-        NetlistPort& port2);
+    void disconnectPorts(
+        const NetlistPort& port1,
+        const NetlistPort& port2);
 
     bool isPortConnected(const NetlistPort& port) const;
 
     bool isEmpty() const;
-    NetlistBlock& topLevelBlock() const;
+    bool hasConnections() const;
 
-    void setCoreEntityName(TCEString coreEntityName);
-    TCEString coreEntityName() const;
-    void mapDescriptor(const NetlistPort& port, size_t descriptor);
+    size_t registerPort(NetlistPort& port);
     size_t descriptor(const NetlistPort& port) const;
+    bool isRegistered(const NetlistPort& port) const;
+    void unregisterPort(NetlistPort& port);
+
+    //todo overload boost's operator[]  with arg (const NetlistPort& port)
 
     void setParameter(
         const std::string& name,
         const std::string& type,
         const std::string& value);
+    void setParameter(const Parameter& param);
     void removeParameter(const std::string& name);
     bool hasParameter(const std::string& name) const;
-    int parameterCount() const;
-    Parameter parameter(int index) const;
+    size_t parameterCount() const;
+    Parameter parameter(size_t index) const;
 
+    typedef boost::graph_traits<Netlist>::edge_iterator iterator;
+    typedef boost::graph_traits<const Netlist>::edge_iterator const_iterator;
+    iterator begin();
+    iterator end();
+    const_iterator begin() const;
+    const_iterator end() const;
+
+    typedef DescriptorMap::iterator descriptor_iterator;
+    typedef DescriptorMap::const_iterator const_descriptor_iterator;
+    descriptor_iterator descriptorBegin();
+    descriptor_iterator descriptorEnd();
+    const_descriptor_iterator descriptorBegin() const;
+    const_descriptor_iterator descriptorEnd() const;
+
+    static void connectClocks(NetlistBlock& block);
+    static void connectResets(NetlistBlock& block);
 private:
-    /// Map type for vertex descriptors
-    typedef std::map<const NetlistPort*, size_t> DescriptorMap;
     /// Vector type for parameters.
     typedef std::vector<Parameter> ParameterTable;
 

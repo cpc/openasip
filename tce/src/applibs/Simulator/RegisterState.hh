@@ -49,7 +49,7 @@
  */
 class RegisterState : public StateData {
 public:
-    RegisterState(int width);
+    RegisterState(int width, bool constantZero = false);
     RegisterState(SimValue& sharedRegister);
     virtual ~RegisterState();
     
@@ -69,6 +69,8 @@ private:
     RegisterState& operator=(const RegisterState&);    
     /// Is the storage of this RegisterState shared with someone else?
     bool shared_;
+    /// Is this register constant zero?
+    bool constantZero_;
 };
 
 //////////////////////////////////////////////////////////////////////////////

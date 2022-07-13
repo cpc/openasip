@@ -1,3 +1,4 @@
+Warning: didn't find mapping for signal name locked
 set_global_assignment -name FAMILY "Stratix III"
 set_global_assignment -name DEVICE EP3SL150F1152C2
 set_global_assignment -name TOP_LEVEL_ENTITY stratix_test_onchip_onchip_toplevel
@@ -25,12 +26,13 @@ entity stratix_test_onchip_onchip_toplevel is
 
   generic (
     dev_family_g : string := "Stratix III";
-    onchip_imem_0_init_file_g : string := "program.mif";
-    onchip_dmem_0_init_file_g : string := "program_data.mif");
+    onchip_imem_0_0_init_file_g : string := "program.mif";
+    onchip_dmem_0_0_init_file_g : string := "program_data.mif");
 
   port (
     clk : in std_logic;
     rstx : in std_logic;
+    locked : out std_logic;
     STRATIXIII_LED : out std_logic_vector(fu_leds_led_count-1 downto 0));
 
 end stratix_test_onchip_onchip_toplevel;
@@ -38,7 +40,9 @@ end stratix_test_onchip_onchip_toplevel;
 architecture structural of stratix_test_onchip_onchip_toplevel is
 
 
-  component stratix_test_onchip_onchip
+  component stratix_test_onchip_onchip is
+    generic (
+      core_id : integer);
     port (
       clk : in std_logic;
       rstx : in std_logic;
@@ -46,6 +50,7 @@ architecture structural of stratix_test_onchip_onchip_toplevel is
       imem_en_x : out std_logic;
       imem_addr : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
       imem_data : in std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+      locked : out std_logic;
       fu_leds_STRATIXIII_LED : out std_logic_vector(fu_leds_led_count-1 downto 0);
       fu_LSU_dmem_data_in : in std_logic_vector(fu_LSU_dataw-1 downto 0);
       fu_LSU_dmem_data_out : out std_logic_vector(fu_LSU_dataw-1 downto 0);
@@ -55,7 +60,7 @@ architecture structural of stratix_test_onchip_onchip_toplevel is
       fu_LSU_dmem_bytemask : out std_logic_vector(fu_LSU_dataw/8-1 downto 0));
   end component;
 
-  component stratix_test_onchip_onchip_altera_onchip_rom_comp
+  component stratix_test_onchip_onchip_altera_onchip_rom_comp is
     generic (
       dev_family_g : string;
       init_file_g : string;
@@ -68,13 +73,13 @@ architecture structural of stratix_test_onchip_onchip_toplevel is
       clken : in std_logic);
   end component;
 
-  component util_inverter
+  component util_inverter is
     port (
       data_in : in std_logic;
       data_out : out std_logic);
   end component;
 
-  component stratix_test_onchip_onchip_altera_onchip_ram_comp
+  component stratix_test_onchip_onchip_altera_onchip_ram_comp is
     generic (
       dev_family_g : string;
       init_file_g : string;
@@ -108,6 +113,8 @@ begin
   onchip_dmem_0_wren_wire <= fu_LSU_dmem_wr_en_x_util_inverter_data_out_wire;
 
   core : stratix_test_onchip_onchip
+    generic map (
+      core_id => 0)
     port map (
       clk => clk,
       rstx => rstx,
@@ -115,6 +122,7 @@ begin
       imem_en_x => core_imem_en_x_wire,
       imem_addr => core_imem_addr_wire,
       imem_data => core_imem_data_wire,
+      locked => locked,
       fu_leds_STRATIXIII_LED => STRATIXIII_LED,
       fu_LSU_dmem_data_in => core_fu_LSU_dmem_data_in_wire,
       fu_LSU_dmem_data_out => core_fu_LSU_dmem_data_out_wire,
@@ -126,7 +134,7 @@ begin
   onchip_imem_0 : stratix_test_onchip_onchip_altera_onchip_rom_comp
     generic map (
       dev_family_g => dev_family_g,
-      init_file_g => onchip_imem_0_init_file_g,
+      init_file_g => onchip_imem_0_0_init_file_g,
       addrw_g => IMEMADDRWIDTH,
       dataw_g => IMEMWIDTHINMAUS*IMEMMAUWIDTH)
     port map (
@@ -143,7 +151,7 @@ begin
   onchip_dmem_0 : stratix_test_onchip_onchip_altera_onchip_ram_comp
     generic map (
       dev_family_g => dev_family_g,
-      init_file_g => onchip_dmem_0_init_file_g,
+      init_file_g => onchip_dmem_0_0_init_file_g,
       addrw_g => 9,
       dataw_g => 32)
     port map (

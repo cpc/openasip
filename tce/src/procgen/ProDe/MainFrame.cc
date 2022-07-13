@@ -56,6 +56,7 @@
 #include "EditConnectionsCmd.hh"
 #include "EditAddressSpacesCmd.hh"
 #include "EditTemplatesCmd.hh"
+#include "EditOTAFormatsCmd.hh"
 #include "ZoomInCmd.hh"
 #include "ZoomOutCmd.hh"
 #include "FitWindowCmd.hh"
@@ -157,6 +158,7 @@ MainFrame::MainFrame(
     commandRegistry_->addCommand(new EditAddressSpacesCmd());
     commandRegistry_->addCommand(new EditBusOrderCmd());
     commandRegistry_->addCommand(new EditTemplatesCmd());
+    commandRegistry_->addCommand(new EditOTAFormatsCmd());
     commandRegistry_->addCommand(new EditMachineCmd());
     commandRegistry_->addCommand(new EditImmediateSlotsCmd());
     commandRegistry_->addCommand(new SelectCmd());
@@ -574,6 +576,11 @@ MainFrame::createMenubar() {
         ProDeConstants::COMMAND_EDIT_TEMPLATES,
         menuAccelerator(ProDeConstants::COMMAND_EDIT_TEMPLATES).Prepend(
             _T("Instruction &Templates...")));
+    
+    editMenu->Append(
+        ProDeConstants::COMMAND_EDIT_OTA_FORMATS,
+        menuAccelerator(ProDeConstants::COMMAND_EDIT_OTA_FORMATS).Prepend(
+            _T("OTA Formats...")));
 
     editMenu->Append(
         ProDeConstants::COMMAND_EDIT_IMMEDIATE_SLOTS,

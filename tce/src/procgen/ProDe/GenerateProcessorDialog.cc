@@ -53,7 +53,7 @@
 #include "FileSystem.hh"
 #include "MachineImplementation.hh"
 #include "ICDecoderGeneratorPlugin.hh"
-#include "ProcessorGenerator.hh"
+#include "ProGeUI.hh"
 #include "PluginTools.hh"
 #include "InformationDialog.hh"
 #include "ProGeScriptGenerator.hh"
@@ -88,7 +88,7 @@ GenerateProcessorDialog::GenerateProcessorDialog(
     wxWindow* parent,
     TTAMachine::Machine& machine,
     const IDF::MachineImplementation& impl) :
-    wxDialog(parent, -1, _T("Generate Processor")),
+    wxDialog(parent, -1, _T("Generate Processor"), wxDefaultPosition),
     machine_(machine), impl_(impl), bem_(NULL) {
 
     createContents(this, true, true);
@@ -172,67 +172,25 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
         return;
     }
 
-    // validate BEM against machine
-    BEMValidator bemValidator(*bem_, machine_);
-    if (!bemValidator.validate()) {
-        wxString message = _T("Error in Binary Encoding Map:\n");
-        for (int i = 0; i < bemValidator.errorCount(); i++) {
-            message.Append(
-                WxConversion::toWxString(bemValidator.errorMessage(i)));
-            message.Append(_T("\n"));
-        }
-        ErrorDialog dialog(this, message);
-        dialog.ShowModal();
-        return;
-    } else if (bemValidator.warningCount() > 0) {
-        for (int i = 0; i < bemValidator.warningCount(); i++) {
-            warningStream << bemValidator.warningMessage(i) << std::endl;
-        }
-    }
+    ProGeOptions options;
+    options.outputDirectory = targetDir;
+    options.sharedOutputDirectory = targetDir;
+    options.generateTestbench = true;
+    options.validate();
+    // validate() would override this based on the given string option
+    wxRadioButton *VHDLItem = (wxRadioButton *) FindWindow(ID_VHDL);
+    options.language = (VHDLItem->GetValue()) ? ProGe::VHDL : ProGe::Verilog;
 
-    ProGe::ICDecoderGeneratorPlugin* plugin = NULL;
-    
-    // Load IC/Decoder generator plugin.
-    if (!impl_.hasICDecoderPluginFile() ||
-        !impl_.hasICDecoderPluginName()) {
-
-        wxString message = _T("IC/decoder generator plugin not defined");
-        ErrorDialog dialog(this, message);
-        dialog.ShowModal();
-        return;
-    } else {
-        try {
-            plugin = loadICDecoderGeneratorPlugin(
-                impl_.icDecoderPluginFile(), impl_.icDecoderPluginName());
-
-            if (plugin == NULL) return;
-        } catch (FileNotFound& e) {
-            wxString message = _T("Error:\n");
-            message.Append(WxConversion::toWxString(e.errorMessage()));
-            ErrorDialog dialog(this, message);
-            dialog.ShowModal();
-            return;
-        }
-    }
-
-    // Set plugin parameters.
-    for (unsigned i = 0; i < impl_.icDecoderParameterCount(); i++) {
-        plugin->setParameter(
-            impl_.icDecoderParameterName(i),
-            impl_.icDecoderParameterValue(i));
-    }
-
-    ProGe::ProcessorGenerator generator;
-    // remove unconnected sockets (if any)
-    ProGe::ProcessorGenerator::removeUnconnectedSockets(machine_,warningStream);
-
-    wxRadioButton *vhdl_item = (wxRadioButton *) FindWindow(ID_VHDL);
-    ProGe::HDL language = (vhdl_item->GetValue())?ProGe::VHDL:ProGe::Verilog;
+    ProGe::ProGeUI progeUI;
     try {
-        generator.generateProcessor(
-            language,
-            machine_, impl_, *plugin, 1, targetDir, targetDir, "",
-            errorStream, warningStream);
+        std::ostringstream verboseStream;
+
+
+        progeUI.loadMachine(machine_);
+        progeUI.loadBinaryEncoding(*bem_);
+        progeUI.loadMachineImplementation(impl_);
+        progeUI.generateProcessor(options, 1,
+                                  errorStream, warningStream, verboseStream);
     } catch (Exception& e) {
         wxString message = WxConversion::toWxString(e.errorMessage());
         ErrorDialog dialog(this, message);
@@ -240,36 +198,24 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
         return;
     }
 
-    // generate test bench for simulating
-    string testbenchDir = targetDir + FileSystem::DIRECTORY_SEPARATOR +
-        "tb";
+    string testBenchDir = targetDir + FileSystem::DIRECTORY_SEPARATOR + "tb";
     try {
-        ProGeTestBenchGenerator tbGen = ProGeTestBenchGenerator();
-        tbGen.generate(language,machine_, impl_, testbenchDir, targetDir);
+        progeUI.generateTestBench(options.language, testBenchDir, targetDir);
     } catch (const Exception& e) {
-        string errorMsg = "Warning: Processor Generator failed to "
-                          "generate a test bench.\n"; 
-        wxString message = WxConversion::toWxString(errorMsg + 
-            e.errorMessage());
+        std::cerr << e.errorMessage() << std::endl;
+        wxString message = WxConversion::toWxString(e.errorMessage());
         ErrorDialog dialog(this, message);
         dialog.ShowModal();
     }
 
-    // generate vhdl compilation and simulation scripts
     try {
-        ProGeScriptGenerator sGen(
-            language,
-            impl_, targetDir, targetDir, targetDir, testbenchDir,
-            generator.entityName());
-        sGen.generateAll();
-    } 
-    catch (const Exception& e) {
-        string errorMsg = "Warning: Processor Generator failed to "
-                          "generate a simulation/compilation scripts.\n";
-        wxString message = WxConversion::toWxString(errorMsg + 
-            e.errorMessage());
-        ErrorDialog dialog(this, message);
-        dialog.ShowModal();
+        progeUI.generateScripts(options.language, targetDir, targetDir,
+                                targetDir, testBenchDir, "52390");
+    } catch (const Exception& e) {
+        std::cerr << "Warning: Processor Generator failed to "
+                << "generate simulation/compilation scripts."
+                << std::endl;
+        std::cerr << e.errorMessage() << std::endl;
     }
 
     string warningMessages = warningStream.str();
@@ -284,8 +230,6 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
         dialog.ShowModal();
         return;
     }
-
-    delete plugin;
 
     wxString message = _T("Processor was succesfully generated.");
     InformationDialog dialog(this, message);
@@ -513,6 +457,6 @@ GenerateProcessorDialog::createContents(
         if (call_fit)
             item0->SetSizeHints( parent );
     }
-    
+
     return item0;
 }

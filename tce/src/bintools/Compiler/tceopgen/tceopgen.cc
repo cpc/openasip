@@ -42,7 +42,7 @@
 #include "Operand.hh"
 #include "Application.hh"
 
-enum mode {NORMAL, FU_ADDRESSABLE, ADDRESSPACE };
+enum mode {NORMAL, FU_ADDRESSABLE, ADDRESSPACE, RISCV };
 /**
  * Returns a C type string for the given operand type.
  */
@@ -84,14 +84,34 @@ operandTypeCString(const Operand& operand) {
 void
 writeCustomOpMacro(
     std::ostream& os, std::string& opName, const Operation& op, 
-    mode macroMode) {
+    mode macroMode, bool legacy) {
+
+    // Only generate valid RISC-V R-format intrinsics
+    if (macroMode == RISCV) {
+        if (op.numberOfInputs() != 2) {
+            return;
+        }
+        if (op.numberOfOutputs() != 1) {
+            return;
+        }
+    }
 
     if (op.numberOfInputs() + op.numberOfOutputs() == 0)
         return;
 
-    os << "#define _TCE";
+    if (legacy) {
+        os << "#define _TCE";
+    } else {
+        os << "#define _OA";
+    }
+
+    const std::string outputOperandName = legacy ? "__tce_op_output_" :
+    "__oa_op_output_";
 
     switch (macroMode) {
+    case RISCV:
+        os << "_RV_" << opName << "(";
+        break;
     case FU_ADDRESSABLE:
         os << "FU_" << opName << "(FU, ";
         break;
@@ -153,8 +173,8 @@ writeCustomOpMacro(
         const Operand& operand = op.output(out - 1);
         std::string operandTypeString = operandTypeCString(operand);
         if (operandTypeString != "" && !operand.isVector()) {
-            os << operandTypeCString(operand) << " __tce_op_output_" << out
-               << " = (" << operandTypeCString(operand) << ")0; ";
+            os << operandTypeCString(operand) << " " << outputOperandName
+               << out << " = (" << operandTypeCString(operand) << ")0; ";
         }
     }
 
@@ -167,18 +187,31 @@ writeCustomOpMacro(
     os << "asm " << volatileKeyword << "(";
 
     switch (macroMode) {
+    case RISCV: {
+        os << "\"//" << opName << " ";
+        int iterations = 0;
+        for (iterations = 0; iterations < op.numberOfInputs(); iterations++) {
+            os << "\\%" << std::to_string(iterations) << " ";
+        }
+        for (int i = 0; i < op.numberOfOutputs(); i++) {
+            os << "\\%" << std::to_string(iterations + i);
+        }
+    } break;
     case FU_ADDRESSABLE:
-	os << "FU\".";
-	break;
+	    os << "FU\".";
+	    break;
     case ADDRESSPACE:
-	os << "\"_AS.\" AS\".";
-	break;
+	    os << "\"_AS.\" AS\".";
+	    break;
     default:
-	os << "\"";
-	break;
+	    os << "\"";
+	    break;
     }
 
-    os << opName << "\":";
+    if (macroMode != RISCV) {
+        os << opName;
+    }
+    os << "\":";
 
     for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
         const Operand& operand = op.output(out - 1);
@@ -186,7 +219,7 @@ writeCustomOpMacro(
         if (out > 1)
             os << ", ";
         if (operandTypeCString(operand) != "" && !operand.isVector()) {
-            os << "\"=r\"(" << " __tce_op_output_" << out << ")";
+            os << "\"=r\"( " << outputOperandName << out << ")";
         } else {
             os << "\"=r\"(o" << out << ")";
         }
@@ -198,7 +231,11 @@ writeCustomOpMacro(
 
         if (in > 1)
             os << ", ";
-        if (operandTypeCString(operand) != "" && !operand.isVector()) {
+        // Only register inputs for RISC-V
+        if (macroMode == RISCV) {
+            os << "\"r\"((" << operandTypeCString(operand)
+               << ")(i" << in << "))";
+        } else if (operandTypeCString(operand) != "" && !operand.isVector()) {
             os << "\"ir\"((" << operandTypeCString(operand)
                << ")(i" << in << "))";
         } else {
@@ -216,7 +253,7 @@ writeCustomOpMacro(
     for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
         const Operand& operand = op.output(out - 1);
         if (operandTypeCString(operand) != "" && !operand.isVector()) {
-            os << "o" << out << " = __tce_op_output_" << out << ";";
+            os << "o" << out << " = " << outputOperandName << out << ";";
         }
     }
 
@@ -246,11 +283,16 @@ writeCustomOpMacros(std::ostream& os) {
                 }
                 const Operation& op = pool.operation(opName.c_str());
                 operations.insert(opName);
-
-                writeCustomOpMacro(os, opName, op, NORMAL);
-                writeCustomOpMacro(os, opName, op, FU_ADDRESSABLE);
+                // Write both legacy and new macros
+                writeCustomOpMacro(os, opName, op, NORMAL, true);
+                writeCustomOpMacro(os, opName, op, NORMAL, false);
+                writeCustomOpMacro(os, opName, op, RISCV, true);
+                writeCustomOpMacro(os, opName, op, RISCV, false);
+                writeCustomOpMacro(os, opName, op, FU_ADDRESSABLE, true);
+                writeCustomOpMacro(os, opName, op, FU_ADDRESSABLE, false);
                 if (op.usesMemory()) {
-                    writeCustomOpMacro(os, opName, op, ADDRESSPACE);
+                    writeCustomOpMacro(os, opName, op, ADDRESSPACE, true);
+                    writeCustomOpMacro(os, opName, op, ADDRESSPACE, false);
                 }
             }
         } catch (const Exception& e) {

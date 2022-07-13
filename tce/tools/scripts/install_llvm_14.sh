@@ -61,11 +61,11 @@ cd build
 # https://reviews.llvm.org/D54978#1390652
 # You might also need to delete libz3-dev.
 # This appears at least with Ubuntu 18.04.
-cmake ../llvm/ -DLLVM_ENABLE_PROJECTS=clang \
+cmake ../llvm/ -DLLVM_ENABLE_PROJECTS="clang;lld" \
     -G "Unix Makefiles" \
     $LLVM_BUILD_MODE\
     -DCMAKE_INSTALL_PREFIX=$TARGET_DIR \
-    -DLLVM_TARGETS_TO_BUILD="X86" \
+    -DLLVM_TARGETS_TO_BUILD="X86;RISCV" \
     -DLLVM_LINK_LLVM_DYLIB=TRUE \
     -DLLVM_ENABLE_RTTI=TRUE \
     -DLLVM_ENABLE_Z3_SOLVER=OFF \

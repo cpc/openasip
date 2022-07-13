@@ -1,3 +1,4 @@
+!output unsigned
 gtf 234.23f 34.54f
 gtf -123.123f -1234.123f
 gtf 12.12f -12.12f

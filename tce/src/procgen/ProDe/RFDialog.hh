@@ -83,6 +83,8 @@ private:
     int maxWrites_;
     /// Guard latency.
     int guardLatency_;
+    /// Zero register
+    bool zeroRegister_;
 
     /// Port list control.
     wxListCtrl* portListCtrl_;
@@ -109,7 +111,8 @@ private:
         ID_LABEL_TYPE,
         ID_LABEL_MAX_READS,
         ID_LABEL_MAX_WRITES,
-        ID_LABEL_GUARD_LATENCY
+        ID_LABEL_GUARD_LATENCY,
+        ID_ZERO_REGISTER
     };
 
     /// The event table for the controls of the dialog.

@@ -33,7 +33,6 @@
 #include <string>
 #include <set>
 #include <map>
-
 #include "BEMGenerator.hh"
 #include "BinaryEncoding.hh"
 #include "MoveSlot.hh"
@@ -63,6 +62,11 @@
 #include "MapTools.hh"
 #include "AssocTools.hh"
 #include "TemplateSlot.hh"
+#include "RISCVFields.hh"
+#include "InstructionFormat.hh"
+#include "OperationTriggeredFormat.hh"
+#include "OperationTriggeredEncoding.hh"
+#include "OperationTriggeredField.hh"
 
 using std::string;
 using std::pair;
@@ -168,10 +172,179 @@ BEMGenerator::addTopLevelFields(BinaryEncoding& bem) const {
     // add long immediate control field
     Machine::InstructionTemplateNavigator itNav = 
         machine_->instructionTemplateNavigator();
+    
     if (itNav.count() > 1) {
         ImmediateControlField* field = new ImmediateControlField(bem);
         addEncodings(*field);
     }
+
+    Machine::OperationTriggeredFormatNavigator fNav = 
+        machine_->operationTriggeredFormatNavigator();
+    for (int i = 0; i < fNav.count(); i++) {
+        OperationTriggeredFormat* fTemp = fNav.item(i);
+        addRiscvFormat(fTemp, bem);
+    }
+}
+
+/**
+ * Adds a RISC-V format to the binary encoding map 
+ * 
+ * @param format The operation triggered format
+ * @param bem The binary encoding
+ */
+
+void
+BEMGenerator::addRiscvFormat(OperationTriggeredFormat* format,
+BinaryEncoding& bem) const {
+
+    std::string name = format->name();
+    InstructionFormat* instrFormat = new InstructionFormat(name, bem);
+
+    if (name == "riscv_r_type") {
+        OperationTriggeredEncoding* rs1 = new OperationTriggeredEncoding(
+            std::string("rs1"), *instrFormat);
+        OperationTriggeredEncoding* rs2 =
+        new OperationTriggeredEncoding(std::string("rs2"), *instrFormat);
+        OperationTriggeredEncoding* rd = new OperationTriggeredEncoding(
+            std::string("rd"), *instrFormat);
+        new OperationTriggeredField(*rs1, 0, 15, 5);
+        new OperationTriggeredField(*rs2, 0, 20, 5);
+        new OperationTriggeredField(*rd, 0, 7, 5);
+        OperationTriggeredEncoding* opcode = new OperationTriggeredEncoding(
+            std::string("opcode"), *instrFormat);
+        new OperationTriggeredField(*opcode, 0, 0, 7);
+        new OperationTriggeredField(*opcode, 1, 12, 3);
+        new OperationTriggeredField(*opcode, 2, 25, 7);
+
+        std::vector<std::string> operations = format->operations();
+        unsigned int amountOfCustomOps = 0;
+        for (const std::string op : operations) {
+            if (MapTools::containsKey(riscvRTypeOperations, op)) {
+                instrFormat->addOperation(op, riscvRTypeOperations.at(op));
+            } else {
+                unsigned int customEncoding = 0b0001011;
+                customEncoding += (amountOfCustomOps << 7);
+                instrFormat->addOperation(op, customEncoding);
+                amountOfCustomOps++;
+            }
+        }
+    } else if (name == "riscv_i_type") {
+        //TODO: shift operations use immediate bits for funct code in this
+        // format
+        OperationTriggeredEncoding* rs1 = new OperationTriggeredEncoding(
+        std::string("rs1"), *instrFormat);
+        OperationTriggeredEncoding* imm =
+        new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
+        OperationTriggeredEncoding* rd = new OperationTriggeredEncoding(
+            std::string("rd"), *instrFormat);
+        new OperationTriggeredField(*rs1, 0, 15, 5);
+        new OperationTriggeredField(*imm, 0, 25, 12);
+        new OperationTriggeredField(*rd, 0, 7, 5);
+        OperationTriggeredEncoding* opcode = new OperationTriggeredEncoding(
+            std::string("opcode"), *instrFormat);
+        new OperationTriggeredField(*opcode, 0, 0, 7);
+        new OperationTriggeredField(*opcode, 1, 12, 3);
+        new OperationTriggeredField(*opcode, 2, 25, 7);
+        std::vector<std::string> operations = format->operations();
+        for (const std::string op : operations) {
+            if (MapTools::containsKey(riscvITypeOperations, op)) {
+                instrFormat->addOperation(op, riscvITypeOperations.at(op));
+            } else {
+                assert(false);
+            }
+        }
+    } else if (name == "riscv_s_type") {
+        OperationTriggeredEncoding* rs1 = new OperationTriggeredEncoding(
+        std::string("rs1"), *instrFormat);
+        OperationTriggeredEncoding* imm =
+        new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
+        OperationTriggeredEncoding* rs2 =
+        new OperationTriggeredEncoding(std::string("rs2"), *instrFormat);
+        new OperationTriggeredField(*rs1, 0, 15, 5);
+        new OperationTriggeredField(*rs2, 0, 20, 5);
+        new OperationTriggeredField(*imm, 0, 7, 5);
+        new OperationTriggeredField(*imm, 1, 25, 7);
+        OperationTriggeredEncoding* opcode = new OperationTriggeredEncoding(
+            std::string("opcode"), *instrFormat);
+        new OperationTriggeredField(*opcode, 0, 0, 7);
+        new OperationTriggeredField(*opcode, 1, 12, 3);
+        std::vector<std::string> operations = format->operations();
+        for (const std::string op : operations) {
+            if (MapTools::containsKey(riscvSTypeOperations, op)) {
+                instrFormat->addOperation(op, riscvSTypeOperations.at(op));
+            } else {
+                assert(false);
+            }
+        }
+    } else if (name == "riscv_b_type") {
+        OperationTriggeredEncoding* rs1 = new OperationTriggeredEncoding(
+        std::string("rs1"), *instrFormat);
+        OperationTriggeredEncoding* imm =
+        new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
+        OperationTriggeredEncoding* rs2 =
+        new OperationTriggeredEncoding(std::string("rs2"), *instrFormat);
+        new OperationTriggeredField(*rs1, 0, 15, 5);
+        new OperationTriggeredField(*rs2, 0, 20, 5);
+        new OperationTriggeredField(*imm, 0, 8, 4);
+        new OperationTriggeredField(*imm, 1, 25, 6);
+        new OperationTriggeredField(*imm, 2, 11, 1);
+        new OperationTriggeredField(*imm, 3, 31, 1);
+        OperationTriggeredEncoding* opcode = new OperationTriggeredEncoding(
+            std::string("opcode"), *instrFormat);
+        new OperationTriggeredField(*opcode, 0, 0, 7);
+        new OperationTriggeredField(*opcode, 1, 12, 3);
+        std::vector<std::string> operations = format->operations();
+        for (const std::string op : operations) {
+            if (MapTools::containsKey(riscvBTypeOperations, op)) {
+                instrFormat->addOperation(op, riscvBTypeOperations.at(op));
+            } else {
+                assert(false);
+            }
+        }
+    } else if (name == "riscv_u_type") {
+        OperationTriggeredEncoding* rd = new OperationTriggeredEncoding(
+            std::string("rd"), *instrFormat);
+        new OperationTriggeredField(*rd, 0, 7, 5);
+        OperationTriggeredEncoding* opcode = new OperationTriggeredEncoding(
+            std::string("opcode"), *instrFormat);
+        OperationTriggeredEncoding* imm =
+        new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
+        new OperationTriggeredField(*imm, 0, 12, 20);
+        new OperationTriggeredField(*opcode, 0, 0, 7);
+        std::vector<std::string> operations = format->operations();
+        for (const std::string op : operations) {
+            if (MapTools::containsKey(riscvUTypeOperations, op)) {
+                instrFormat->addOperation(op, riscvUTypeOperations.at(op));
+            } else {
+                assert(false);
+            }
+        }
+    } else if (name == "riscv_j_type") {
+        OperationTriggeredEncoding* rd = new OperationTriggeredEncoding(
+            std::string("rd"), *instrFormat);
+        new OperationTriggeredField(*rd, 0, 7, 5);
+        OperationTriggeredEncoding* opcode = new OperationTriggeredEncoding(
+            std::string("opcode"), *instrFormat);
+        OperationTriggeredEncoding* imm =
+        new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
+        new OperationTriggeredField(*imm, 0, 20, 10);
+        new OperationTriggeredField(*imm, 1, 20, 1);
+        new OperationTriggeredField(*imm, 2, 15, 8);
+        new OperationTriggeredField(*imm, 3, 31, 1);
+        new OperationTriggeredField(*opcode, 0, 0, 7);
+        std::vector<std::string> operations = format->operations();
+        for (const std::string op : operations) {
+            if (MapTools::containsKey(riscvJTypeOperations, op)) {
+                instrFormat->addOperation(op, riscvJTypeOperations.at(op));
+            } else {
+                assert(false);
+            }
+        }
+    } else {
+        //TODO: Throw some meaniningful exception here
+        assert(false);
+    }
+
 }
 
 
@@ -325,8 +498,9 @@ BEMGenerator::addSubfields(MoveSlot& slot) const {
  */
 void
 BEMGenerator::addEncodings(ImmediateControlField& field) const {   
+
     Machine::InstructionTemplateNavigator itNav = 
-        machine_->instructionTemplateNavigator();
+    machine_->instructionTemplateNavigator();
     for (int i = 0; i < itNav.count(); i++) {
         InstructionTemplate* iTemp = itNav.item(i);
         field.addTemplateEncoding(iTemp->name(), i);

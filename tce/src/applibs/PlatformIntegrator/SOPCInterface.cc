@@ -89,7 +89,7 @@ void SOPCInterface::setProperty(
 void SOPCInterface::setPort(
     const TCEString& hdlName,
     const TCEString& interfaceName,
-    HDB::Direction direction,
+    ProGe::Direction direction,
     int width) {
 
     SOPCPort port = {hdlName, interfaceName, direction, width};
@@ -153,11 +153,11 @@ SOPCInterface::writePorts(std::ostream& stream) const {
             << SOPC_ADD_INT_PORT << " " << name_ << " "
             << ports_.at(i).hdlName << " " << ports_.at(i).interfaceName
             << " ";
-        if (ports_.at(i).direction == HDB::IN) {
+        if (ports_.at(i).direction == ProGe::IN) {
             stream << SOPC_INPUT << " ";
-        } else if (ports_.at(i).direction == HDB::OUT) {
+        } else if (ports_.at(i).direction == ProGe::OUT) {
             stream << SOPC_OUTPUT << " ";
-        } else if (ports_.at(i).direction == HDB::BIDIR) {
+        } else if (ports_.at(i).direction == ProGe::BIDIR) {
             stream << SOPC_BIDIR << " ";
         } else {
             assert(false && "Invalid port direction");

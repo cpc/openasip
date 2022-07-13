@@ -38,58 +38,60 @@
 #include "FileSystem.hh"
 #include "FunctionUnit.hh"
 #include "Conversion.hh"
+ #include "Parameter.hh"
 using std::endl;
 
-const TCEString XilinxBlockRamGenerator::COMPONENT_FILE =
-    "xilinx_blockram.vhdl.tmpl";
+const TCEString XilinxBlockRamGenerator::SP_FILE = "xilinx_blockram.vhdl";
+const TCEString XilinxBlockRamGenerator::DP_FILE = "xilinx_dp_blockram.vhdl";
 
 XilinxBlockRamGenerator::XilinxBlockRamGenerator(
-    int memMauWidth,
-    int widthInMaus,
-    int addrWidth,
-    TCEString initFile,
-    const PlatformIntegrator* integrator,
-    std::ostream& warningStream,
-    std::ostream& errorStream,
-    bool connectToArbiter,
-    ProGe::NetlistBlock* almaifBlock,
-    TCEString signalPrefix):
-    MemoryGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
-                       integrator, warningStream, errorStream),
-    connectToArbiter_(connectToArbiter), almaifBlock_(almaifBlock),
-    signalPrefix_(signalPrefix) {
+    int memMauWidth, int widthInMaus, int addrWidth, int portBDataWidth,
+    int portBAddrWidth, const PlatformIntegrator* integrator,
+    std::ostream& warningStream, std::ostream& errorStream,
+    bool connectToArbiter, ProGe::NetlistBlock* almaifBlock,
+    TCEString signalPrefix, bool overrideAddrWidth, bool singleMemoryBlock)
+    : MemoryGenerator(
+          memMauWidth, widthInMaus, addrWidth, "", integrator, warningStream,
+          errorStream),
+      connectToArbiter_(connectToArbiter),
+      almaifBlock_(almaifBlock),
+      signalPrefix_(signalPrefix),
+      overrideAddrWidth_(overrideAddrWidth),
+      singleMemoryBlock_(singleMemoryBlock) {
     assert (!connectToArbiter || almaifBlock != nullptr);
 
-    ProGe::Netlist::Parameter dataw = {"dataw", "integer",
+    ProGe::Parameter dataw = {"dataw_g", "integer",
         Conversion::toString(memoryTotalWidth())};
-    ProGe::Netlist::Parameter addrw = {"addrw", "integer",
+    ProGe::Parameter addrw = {"addrw_g", "integer",
         Conversion::toString(memoryAddrWidth())};
+
+
+    ProGe::Parameter second_dataw = {"dataw_b_g", "integer",
+        Conversion::toString(portBDataWidth)};
+    ProGe::Parameter second_addrw = {"addrw_b_g", "integer",
+        Conversion::toString(portBAddrWidth)};
+
+    if (overrideAddrWidth) {
+        addrw.setValue("local_mem_addrw_g");
+        second_addrw.setValue("local_mem_addrw_g");
+    }
 
     addParameter(dataw);
     addParameter(addrw);
 
-    bool noInvert = false;
-    addPort("data_out",
-            new HDLPort("data", "dataw",
-                        ProGe::BIT_VECTOR, HDB::IN, noInvert,
-                        memoryTotalWidth()));
-    addPort("data_in",
-            new HDLPort("q", "dataw",
-                        ProGe::BIT_VECTOR, HDB::OUT, noInvert,
-                        memoryTotalWidth()));
-    addPort("addr",
-            new HDLPort("address", "addrw",
-                        ProGe::BIT_VECTOR, HDB::IN, noInvert,
-                        memoryAddrWidth()));
-    addPort("mem_en",
-            new HDLPort("clken", "1", ProGe::BIT, HDB::IN, noInvert, 1));
-    addPort("wr_en",
-            new HDLPort("wren", "1", ProGe::BIT, HDB::IN, noInvert, 1));
-    addPort("wr_mask",
-            new HDLPort("byteena", "dataw/8", ProGe::BIT_VECTOR,
-                        HDB::IN, noInvert, memoryTotalWidth()/8));
-    addPort("clk",
-            new HDLPort("clk", "1", ProGe::BIT, HDB::IN, noInvert, 1));
+    if (connectToArbiter_) {
+        addParameter(second_dataw);
+        addParameter(second_addrw);
+    }
+
+    addPort("clk", new HDLPort("clk", "1", ProGe::BIT, ProGe::IN, false, 1));
+    addPort("rstx", new HDLPort("rstx", "1", ProGe::BIT, ProGe::IN, false, 1));
+    if (connectToArbiter) {
+        addPorts("a_", memoryAddrWidth(), memoryTotalWidth());
+        addPorts("b_", portBAddrWidth, portBDataWidth);
+    } else {
+        addPorts("", memoryAddrWidth(), memoryTotalWidth());
+    }
 }
 
 XilinxBlockRamGenerator::~XilinxBlockRamGenerator() {
@@ -101,23 +103,74 @@ XilinxBlockRamGenerator::generatesComponentHdlFile() const {
 }
 
 void
+XilinxBlockRamGenerator::addPorts(std::string pfx, int addrWidth,
+                                  int dataWidth) {
+    std::string datawGeneric = "dataw_g";
+    std::string addrwGeneric = "addrw_g";
+    if (pfx == "b_") {
+        datawGeneric = "dataw_b_g";
+        addrwGeneric = "addrw_b_g";
+    }
+    const ProGe::DataType BIT = ProGe::BIT;
+    const ProGe::DataType VEC = ProGe::BIT_VECTOR;
+    const ProGe::Direction IN  = ProGe::IN;
+    const ProGe::Direction OUT = ProGe::OUT;
+    const bool noInvert = false;
+    addPort(pfx + "avalid_out",
+            new HDLPort(pfx + "avalid_in", "1", BIT, IN, noInvert, 1));
+    addPort(pfx + "aready_in",
+            new HDLPort(pfx + "aready_out", "1", BIT, OUT, noInvert, 1));
+    if (!overrideAddrWidth_) {
+        addPort(pfx + "aaddr_out",
+                new HDLPort(pfx + "aaddr_in", addrwGeneric, VEC, IN, noInvert,
+                            addrWidth));
+    } else {
+        addPort(pfx + "aaddr_out",
+                new HDLPort(pfx + "aaddr_in", addrwGeneric, VEC, IN, noInvert));
+    }
+    addPort(pfx + "awren_out",
+            new HDLPort(pfx + "awren_in", "1", BIT, IN, noInvert, 1));
+    addPort(pfx + "astrb_out",
+            new HDLPort(pfx + "astrb_in", "(" + datawGeneric + "+7)/8", VEC, IN,
+                        noInvert, (dataWidth+7)/8));
+    addPort(pfx + "adata_out",
+            new HDLPort(pfx + "adata_in", datawGeneric, VEC, IN, noInvert,
+                        dataWidth));
+    addPort(pfx + "rvalid_in",
+            new HDLPort(pfx + "rvalid_out", "1", BIT, ProGe::OUT, noInvert, 1));
+    addPort(pfx + "rready_out",
+            new HDLPort(pfx + "rready_in", "1", BIT, IN, noInvert, 1));
+    addPort(pfx + "rdata_in",
+            new HDLPort(pfx + "rdata_out", datawGeneric, VEC, OUT, noInvert,
+                        dataWidth));
+}
+
+void
 XilinxBlockRamGenerator::addMemory(
     const ProGe::NetlistBlock& ttaCore,
-    ProGe::Netlist& netlist,
-    int memIndex) {
+    ProGe::NetlistBlock& integratorBlock,
+    int memIndex, int coreId) {
 
+    // Do not instantiate multiple physical memories for shared AS when shared
+    if (coreId > 0 && connectToArbiter_ && singleMemoryBlock_) {
+        return;
+    }
     BlockPair blocks =
-        createMemoryNetlistBlock(netlist, memIndex);
+        createMemoryNetlistBlock(integratorBlock, memIndex, coreId);
     ProGe::NetlistBlock* mem = blocks.first;
     ProGe::VirtualNetlistBlock* virt = blocks.second;
     assert(mem != NULL);
     assert(virt != NULL);
 
+    if (virt->portCount() > 0) {
+        integratorBlock.addSubBlock(virt);
+    }
+
     for (int i = 0; i < portCount(); i++) {
         const HDLPort* hdlPort = port(i);
-        ProGe::NetlistPort* memPort = mem->portByName(hdlPort->name());
+        ProGe::NetlistPort* memPort = mem->port(hdlPort->name());
         if (memPort == NULL) {
-            memPort = virt->portByName(hdlPort->name());
+            memPort = virt->port(hdlPort->name());
             if (memPort == NULL) {
                 TCEString msg = "Port ";
                 msg << hdlPort->name() << " not found from netlist block";
@@ -126,8 +179,8 @@ XilinxBlockRamGenerator::addMemory(
         }
 
 
-        TCEString portName = corePortName(portKeyName(hdlPort));
-        ProGe::NetlistPort* corePort = NULL;
+        TCEString portName = corePortName(portKeyName(hdlPort), coreId);
+        const ProGe::NetlistPort* corePort = NULL;
         // clock and reset must be connected to new toplevel ports
         if (portName == platformIntegrator()->clockPort()->name()) {
             corePort = platformIntegrator()->clockPort();
@@ -136,9 +189,9 @@ XilinxBlockRamGenerator::addMemory(
         } else {
             if (connectToArbiter_) {
                 portName = almaifPortName(portKeyName(hdlPort));
-                corePort = almaifBlock_->portByName(portName);
+                corePort = almaifBlock_->port(portName);
             } else {
-                corePort = ttaCore.portByName(portName);
+                corePort = ttaCore.port(portName);
             }
         }
         if (corePort == NULL) {
@@ -153,14 +206,20 @@ XilinxBlockRamGenerator::addMemory(
             throw InvalidData(__FILE__, __LINE__, "MemoryGenerator", msg);
         }
 
-        connectPorts(
-            netlist, *corePort, *memPort, hdlPort->needsInversion());
-    }
-
-    if (virt->portCount() > 0) {
-        netlist.topLevelBlock().addSubBlock(virt);
-    } else {
-        delete virt;
+        if (connectToArbiter_ && !overrideAddrWidth_ &&
+            corePort->realWidth() != memPort->realWidth()) {
+            // Assume a private memory, split wide integrator signals accross
+            // multiple cores
+            int portWidth = memPort->realWidth();
+            // This assumes no ports are inverted
+            integratorBlock.netlist().connect(*memPort, *corePort,
+                                              0, portWidth*coreId,
+                                              portWidth);
+        } else {
+            connectPorts(
+                integratorBlock, *corePort, *memPort,
+                hdlPort->needsInversion(), coreId);
+        }
     }
 }
 
@@ -168,12 +227,12 @@ std::vector<TCEString>
 XilinxBlockRamGenerator::generateComponentFile(TCEString outputPath) {
     TCEString inputFile =
         templatePath() << FileSystem::DIRECTORY_SEPARATOR
-                       << COMPONENT_FILE;
+                       << (connectToArbiter_ ? DP_FILE : SP_FILE);
     TCEString outputFile;
     outputFile << outputPath << FileSystem::DIRECTORY_SEPARATOR
                << moduleName() << ".vhdl";
 
-    instantiateTemplate(inputFile, outputFile, ttaCoreName());
+    FileSystem::copy(inputFile, outputPath);
     std::vector<TCEString> files;
     files.push_back(outputFile);
     return files;
@@ -182,13 +241,21 @@ XilinxBlockRamGenerator::generateComponentFile(TCEString outputPath) {
 
 TCEString
 XilinxBlockRamGenerator::moduleName() const {
-    return ttaCoreName() + "_xilinx_blockram";
+    TCEString name = "xilinx_";
+    if (connectToArbiter_)
+        name += "dp_";
+    name += "blockram";
+    return name;
 }
 
 
 TCEString
-XilinxBlockRamGenerator::instanceName(int) const {
-    TCEString iname("onchip_mem_");
+XilinxBlockRamGenerator::instanceName(int coreId, int) const {
+    TCEString iname = "onchip_mem_";
+
+    if (coreId != -1) {
+        iname << "core" << coreId << "_";
+    }
     return iname << signalPrefix_;
 }
 
@@ -200,26 +267,16 @@ XilinxBlockRamGenerator::almaifPortName(const TCEString& portBaseName) {
         return portBaseName;
     }
 
-    TCEString portName = signalPrefix_;
-
-    if (portBaseName == "data_in") {
-        portName << "_" <<  "data_out";
-    } else if (portBaseName == "data_out") {
-        portName << "_" <<  "data_in";
-    } else {
-        portName << "_" << portBaseName;
-    }
-    return portName;
-
+    return signalPrefix_ + "_" + portBaseName;
 }
 
 bool
 XilinxBlockRamGenerator::isCompatible(const ProGe::NetlistBlock& ttaCore,
-        std::vector<TCEString>& reasons) const {
+        int coreId, std::vector<TCEString>& reasons) const {
     if (connectToArbiter_) {
         // TODO: Actually check almaifBlock_ ports?
         return true;
     } else {
-        return MemoryGenerator::isCompatible(ttaCore, reasons);
+        return MemoryGenerator::isCompatible(ttaCore, coreId, reasons);
     }
 }

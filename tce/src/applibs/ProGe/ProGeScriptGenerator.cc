@@ -38,6 +38,8 @@
 #include <list>
 #include <string>
 #include <fstream>
+#include <algorithm>
+#include <utility>
 
 #include "CompilerWarnings.hh"
 IGNORE_CLANG_WARNING("-Wkeyword-macro")
@@ -65,7 +67,8 @@ using std::string;
 using std::endl;
 using std::list;
 
-const string MAGICAL_RUNTIME_CONSTANT = "52390ns";
+// Default HDL simulation length unless another is given
+const string MAGICAL_RUNTIME_CONSTANT = "52390";
 
 /**
  * The constructor.
@@ -80,14 +83,15 @@ const string MAGICAL_RUNTIME_CONSTANT = "52390ns";
  * wanted to generated scripts. Useful if other dirs given are under this
  * directory.
  */
-ProGeScriptGenerator::ProGeScriptGenerator( 
+ProGeScriptGenerator::ProGeScriptGenerator(
     const ProGe::HDL language,
     const IDF::MachineImplementation& idf,
     const std::string& dstDir,
     const std::string& progeOutDir,
     const std::string& sharedOutDir,
     const std::string& testBenchDir,
-    const std::string& toplevelEntity = "tta0") :
+    const std::string& toplevelEntity = "tta0",
+    const std::string& simulationRuntime) :
     dstDir_(dstDir), 
     progeOutDir_(progeOutDir),
     sharedOutDir_(sharedOutDir),
@@ -106,9 +110,11 @@ ProGeScriptGenerator::ProGeScriptGenerator(
     testbenchName_("testbench"),
     toplevelEntity_(toplevelEntity),
     idf_(idf),
-    language_(language){
+    language_(language),
+    simulationRuntime_(simulationRuntime){
 
     fetchFiles();
+    packageFilesFirst();
     prepareFiles();
 }
 
@@ -152,27 +158,62 @@ void
 ProGeScriptGenerator::generateModsimCompile() {
     string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
         modsimCompileScriptName_;
+    const string coverageOpt = "+cover=sbcet";
 
     createExecutableFile(dstFile);
 
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
-    generateStart(stream);
+    generateCompileStart(stream);
 
     stream << "rm -rf " << workDir_ << endl;
     stream << "vlib " << workDir_ << endl;
     stream << "vmap"  << endl;
 
+    stream << "if [ \"$enable_coverage\" = \"yes\" ]; then" << endl;
+    stream << "    coverage_opt=\"" << coverageOpt << "\"" << endl;
+    stream << "fi" << endl;
+
     stream << endl;
+    string coverageOptAssign = " $coverage_opt";
     string program =
-    ((language_==VHDL)?"vcom":"vlog +incdir+verilog +incdir+gcu_ic +incdir+tb");
-    outputScriptCommands(stream, vhdlFiles_, program,"");
+    ((language_==VHDL)?
+        "vcom": "vlog +define+SIMTIME=" + simulationRuntime_ +
+        " +incdir+verilog +incdir+gcu_ic +incdir+tb");
+    string exitOnFailure = "|| exit 1";
+    string checkSynthesisFLag = (language_==VHDL)?" -check_synthesis":"";
+
+    for (const std::string& file : vhdlFiles_) {
+        if (file.find("_pkg.") != std::string::npos) {
+            // Do not add coverage option for package files since unused
+            // functions in the packages are not excluded and thus spoils
+            // code coverage.
+            outputScriptCommand(stream, file, program, exitOnFailure);
+        } else {
+            outputScriptCommand(
+                stream, file, program + coverageOptAssign + checkSynthesisFLag,
+                exitOnFailure);
+        }
+    }
 
     stream << endl;
-    outputScriptCommands(stream, gcuicFiles_, program,"");
+    for (const std::string& file : gcuicFiles_) {
+        if (file.find("_pkg.") != std::string::npos) {
+            // Do not add coverage option for package files since unused
+            // functions in the packages are not excluded and thus spoils
+            // code coverage.
+            outputScriptCommand(stream, file,
+                program + checkSynthesisFLag, exitOnFailure);
+        } else {
+            outputScriptCommand(
+                stream, file, program + coverageOptAssign + checkSynthesisFLag,
+                exitOnFailure);
+        }
+    }
 
     stream << endl;
-    outputScriptCommands(stream, testBenchFiles_, program,"");
+    outputScriptCommands(stream, testBenchFiles_, program, exitOnFailure);
 
+    stream << "exit 0" << endl;
     stream.close();
 }
 
@@ -189,28 +230,35 @@ ProGeScriptGenerator::generateGhdlCompile() {
     createExecutableFile(dstFile);
 
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
-    generateStart(stream);
+    generateCompileStart(stream);
 
     stream << "rm -rf " << workDir_ << endl;
     stream << "mkdir -p work" << endl;
     stream << "rm -rf bus.dump" << endl;
     stream << "rm -rf " << testbenchName_ << endl;
 
+    stream << "if [ \"$enable_coverage\" = \"yes\" ]; then" << endl;
+    stream << "    echo \"-c option is not available for ghdl.\"; exit 2;"
+           << endl;
+    stream << "fi" << endl;
+
     stream << endl;
     string program = "ghdl -i --workdir=" + workDir_;
-    outputScriptCommands(stream, vhdlFiles_, program,"");
+    string exitOnFailure = " || exit 1";
+    outputScriptCommands(stream, vhdlFiles_, program, exitOnFailure);
 
     stream << endl;
-    outputScriptCommands(stream, gcuicFiles_, program,"");
+    outputScriptCommands(stream, gcuicFiles_, program, exitOnFailure);
 
     stream << endl;
-    outputScriptCommands(stream, testBenchFiles_, program,"");
+    outputScriptCommands(stream, testBenchFiles_, program, exitOnFailure);
 
     stream << endl;
     // compile command for ghdl
     stream << "ghdl -m --workdir=" << workDir_ 
            << " --ieee=synopsys -fexplicit " << testbenchName_ << endl;
 
+    stream << "exit 0" << endl;
     stream.close();
 }
 
@@ -227,11 +275,17 @@ ProGeScriptGenerator::generateIverilogCompile() {
     createExecutableFile(dstFile);
 
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
-    generateStart(stream);
+    generateCompileStart(stream);
+
+    stream << "if [ \"$enable_coverage\" = \"yes\" ]; then" << endl;
+    stream << "    echo \"-c option is not available for iverilog.\"; exit 2;"
+           << endl;
+    stream << "fi" << endl;
 
     stream << "rm -rf " << testbenchName_ << endl
            << endl
            << "iverilog -g2001 -D _IVERILOG_ "
+           << "-D SIMTIME=" << simulationRuntime_ << " "
            << "-Itb -Iverilog -Igcu_ic ";
     outputScriptCommands(stream, vhdlFiles_, ""," \\");
     outputScriptCommands(stream, gcuicFiles_, ""," \\");
@@ -253,10 +307,30 @@ ProGeScriptGenerator::generateModsimSimulate() {
     createExecutableFile(dstFile);
 
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
-    generateStart(stream);
+    generateSimulationStart(stream);
 
-    stream << "vsim " << testbenchName_ << "  -c -do 'run " 
-           << MAGICAL_RUNTIME_CONSTANT << "; exit'" << endl;
+    stream << "master_coverage_db=accumulated_coverage.ucdb" << endl;
+    stream << "coverage_db=cov000.ucdb" << endl;
+    stream << "res_opt=\"-t $sim_res\"";
+    stream << endl;
+    stream << "coverage_opt=\"\"" << endl;
+    stream << "if [ \"$enable_coverage\" = \"yes\" ]; then" << endl;
+    stream << "    coverage_opt=\"-coverage\"" << endl;
+    stream << "    do_script=\"" << "coverage save -onexit ${coverage_db}; "
+           << "run ${runtime} ns; exit" << "\"" << endl;
+    stream << "else" << endl;
+    stream << "    do_script=\"" << "run ${runtime} ns; exit" << "\"" << endl;
+    stream << "fi" << endl;
+    stream << endl;
+    stream << "vsim " << testbenchName_ << " $res_opt -c $coverage_opt"
+           << " -do \"$do_script\"" << endl;
+    stream << endl;
+    stream << "# merge produced code coverage data into master database."
+           << endl;
+    stream << "if [ \"$enable_coverage\" = \"yes\" ]; then" << endl;
+    stream << "    vcover merge $master_coverage_db "
+           << "$master_coverage_db $coverage_db > /dev/null 2>&1" << endl;
+    stream << "fi" << endl;
 
     stream.close();
 }
@@ -270,22 +344,22 @@ void
 ProGeScriptGenerator::generateGhdlSimulate() {
     string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
         ghdlSimulateScriptName_;
-
     createExecutableFile(dstFile);
 
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
-    generateStart(stream);
+    generateSimulationStart(stream);
 
+    stream << "if [ \"$enable_coverage\" = \"yes\" ]; then" << endl;
+    stream << "    echo \"-c option is not available for ghdl.\"; exit 2;"
+           << endl;
+    stream << "fi" << endl;
     stream << "if [ -e " << testbenchName_ << " ]; then" << endl
            << "    ./" << testbenchName_
-           << " --assert-level=none --stop-time="
-           << MAGICAL_RUNTIME_CONSTANT
-           << endl
+           << " --stop-time=${runtime}ns" << endl
            << "else" << endl
            << "    # Newer GHDL versions does not produce binary." << endl
            << "    ghdl -r --workdir=work --ieee=synopsys " << testbenchName_
-           << " --assert-level=none --stop-time="
-           << MAGICAL_RUNTIME_CONSTANT << endl
+           << "  --stop-time=${runtime}ns" << endl
            << "fi" << endl;
 
     stream.close();
@@ -304,11 +378,16 @@ ProGeScriptGenerator::generateIverilogSimulate() {
     createExecutableFile(dstFile);
 
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
-    generateStart(stream);
+    generateSimulationStart(stream);
+
+    stream << "if [ \"$enable_coverage\" = \"yes\" ]; then" << endl;
+    stream << "    echo \"-c option is not available for iverilog.\"; exit 2;"
+           << endl;
+    stream << "fi" << endl;
 
     stream << "./" << testbenchName_ 
            << " --assert-level=none --stop-time="
-           << MAGICAL_RUNTIME_CONSTANT
+           << "${runtime}" << "ns"
            << endl;
 
     stream.close();
@@ -331,15 +410,47 @@ ProGeScriptGenerator::createExecutableFile(const std::string& fileName) {
     FileSystem::setFileExecutable(fileName);
 }
 
+/**
+ * Generates the start of the shell script for compilation script.
+ *
+ * @param stream Stream where output is put.
+ */
+void
+ProGeScriptGenerator::generateCompileStart(std::ostream& stream) {
+    stream << "#!/bin/bash" << endl;
+    stream << "# This script was automatically generated." << endl << endl;
+
+    // Copy common compile start from template
+    static const string separator(FileSystem::DIRECTORY_SEPARATOR);
+    const string scriptTmpl = Environment::dataDirPath("ProGe") +
+        separator + "tb" + separator + "compile.sh.tmpl";
+
+    std::ifstream scriptTmplIn(scriptTmpl.c_str());
+    stream << scriptTmplIn.rdbuf();
+}
+
 /** 
- * Generates the start of the shell script.
+ * Generates the start of the shell script for simulation script.
  * 
+ * The script includes option parsing for simulation controls.
+ * Shell variable \"runtime\" holds default simulation time set by this class
+ * or user defined time by option.
+ *
  * @param stream Stream where output is put.
  */
 void 
-ProGeScriptGenerator::generateStart(std::ostream& stream) {
-    stream << "#! /bin/sh" << endl;
+ProGeScriptGenerator::generateSimulationStart(std::ostream& stream) {
+    stream << "#!/bin/bash" << endl;
     stream << "# This script was automatically generated." << endl << endl;
+    stream << "DEFAULT_RUN_TIME=" << simulationRuntime_ << endl << endl;
+
+    // Copy rest of the shell script start from template
+    static const string separator(FileSystem::DIRECTORY_SEPARATOR);
+    const string scriptTmpl = Environment::dataDirPath("ProGe") +
+        separator + "tb" + separator + "simulate.sh.tmpl";
+
+    std::ifstream scriptTmplIn(scriptTmpl.c_str());
+    stream << scriptTmplIn.rdbuf();
 }
 
 
@@ -363,8 +474,29 @@ ProGeScriptGenerator::outputScriptCommands(
 
     list<string>::const_iterator iter = files.begin();
     while (iter != files.end()) {
-        stream << cmdPrefix << " " << *iter++ << cmdPostfix << endl;
+        outputScriptCommand(stream, *iter++, cmdPrefix, cmdPostfix);
     }
+}
+
+/**
+ * Outputs shell command to stream.
+ *
+ * Creates script commands using a file and command prefix and outputs
+ * them to the given stream.
+ *
+ * @param stream Output stream.
+ * @param files List of filenames to use.
+ * @param cmdPrefix Prefix command.
+ * @param cmdPostfix Postfix command.
+ */
+void
+ProGeScriptGenerator::outputScriptCommand(
+    std::ostream& stream,
+    const std::string& file,
+    const std::string& cmdPrefix,
+    const std::string& cmdPostfix) {
+
+    stream << cmdPrefix << " " << file << " " << cmdPostfix << endl;
 }
 
 
@@ -600,7 +732,7 @@ ProGeScriptGenerator::fetchFiles() {
         // add the toplevelEntity + _imem_mau_pkg.vhdl to vhdlFiles_.
         // It is generated by PIG so it is not yet present.
         if(language_==VHDL){
-            string imemMauPkg = vhdlDir_ + FileSystem::DIRECTORY_SEPARATOR 
+            string imemMauPkg = dirName + FileSystem::DIRECTORY_SEPARATOR
                 + toplevelEntity_ + "_imem_mau_pkg.vhdl";
             vhdlFiles_.push_back(imemMauPkg);
         }
@@ -609,7 +741,8 @@ ProGeScriptGenerator::fetchFiles() {
         sharedOutDir_ + FileSystem::DIRECTORY_SEPARATOR +
         ((language_==VHDL)?vhdlDir_:verDir_);
         
-    if (sharedDir != dirName && FileSystem::fileIsDirectory(sharedDir)) {
+    if (sharedDir != FileSystem::absolutePathOf(dirName)
+        && FileSystem::fileIsDirectory(sharedDir)) {
         findFiles(
             vhdlRegex, 
             FileSystem::directoryContents(sharedDir, absolutePaths),
@@ -633,6 +766,28 @@ ProGeScriptGenerator::fetchFiles() {
     }
 }
 
+/**
+ * Reorders filename lists by arranging packages (*_pkg*) to the beginning of
+ * the lists.
+ */
+void
+ProGeScriptGenerator::packageFilesFirst() {
+    auto packageComp = [](const string& str1, const string& str2) -> bool {
+        bool str1IsPkg = (str1.find("_pkg") != string::npos);
+        bool str2IsPkg = (str2.find("_pkg") != string::npos);
+        if (str1IsPkg && !str2IsPkg) {
+            return true;
+        } else if (!str1IsPkg && str2IsPkg) {
+            return false;
+        } else {
+            return str1 < str2;
+        }
+    };
+
+    vhdlFiles_.sort(packageComp);
+    gcuicFiles_.sort(packageComp);
+    testBenchFiles_.sort(packageComp);
+}
 
 /** 
  * Prepares filename lists, generally sorts them.
@@ -655,11 +810,10 @@ ProGeScriptGenerator::prepareFiles() {
 
         string vhdlDirName = progeOutDir_ + DS + vhdlDir_ + DS;
         list<string> vhdlFirstOrder;
-        vhdlFirstOrder.push_back(toplevelEntity_ + "_imem_mau_pkg.vhdl");
-        vhdlFirstOrder.push_back("globals_pkg.vhdl");
         vhdlFirstOrder.push_back("tce_util_pkg.vhdl");
-        string paramsPkg = toplevelEntity_ + "_params_pkg.vhdl";
-        vhdlFirstOrder.push_back(paramsPkg);
+        vhdlFirstOrder.push_back(toplevelEntity_ + "_imem_mau_pkg.vhdl");
+        vhdlFirstOrder.push_back(toplevelEntity_ + "_globals_pkg.vhdl");
+        vhdlFirstOrder.push_back(toplevelEntity_ + "_params_pkg.vhdl");
         // add FU and RF files in correct order
         getBlockOrder(vhdlFirstOrder);
         prefixStrings(vhdlFirstOrder, vhdlDirName);
@@ -677,7 +831,6 @@ ProGeScriptGenerator::prepareFiles() {
         testBenchLastOrder.push_back("testbench.vhdl");
         testBenchLastOrder.push_back("proc_arch.vhdl");
         testBenchLastOrder.push_back("proc_ent.vhdl");
-        testBenchLastOrder.push_back("testbench_constants_pkg.vhdl");
         prefixStrings(testBenchLastOrder, tbDirName);
         sortFilesLast(testBenchFiles_, testBenchLastOrder);
     } else {

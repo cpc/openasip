@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2014 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of MoveSlot class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2014
  * @note rating: red
  */
 
@@ -42,6 +43,7 @@
 #include "NullInstructionField.hh"
 #include "Application.hh"
 #include "ObjectState.hh"
+#include "BEMTester.hh"
 
 using std::string;
 
@@ -116,11 +118,11 @@ BinaryEncoding*
 MoveSlot::parent() const {
     InstructionField* parent = InstructionField::parent();
     if (parent == NULL) {
-	return NULL;
+        return NULL;
     } else {
-	BinaryEncoding* bem = dynamic_cast<BinaryEncoding*>(parent);
-	assert(bem != NULL);
-	return bem;
+        BinaryEncoding* bem = dynamic_cast<BinaryEncoding*>(parent);
+        assert(bem != NULL);
+        return bem;
     }
 }
 
@@ -146,14 +148,14 @@ MoveSlot::name() const {
 void
 MoveSlot::setName(const std::string& name) {
     if (name == this->name()) {
-	return;
+        return;
     }
 
     if (parent()->hasMoveSlot(name)) {
-	const string procName = "MoveSlot::setName";
-	throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
+        const string procName = "MoveSlot::setName";
+        throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
     }
-
+    
     name_ = name;
 }
 
@@ -171,10 +173,10 @@ MoveSlot::setGuardField(GuardField& field) {
     assert(field.parent() == NULL);
 
     if (hasGuardField()) {
-	const string procName = "MoveSlot::setGuardField";
-	throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
+        const string procName = "MoveSlot::setGuardField";
+        throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
     }
-
+    
     guardField_ = &field;
 }
 
@@ -212,11 +214,12 @@ MoveSlot::hasGuardField() const {
 GuardField&
 MoveSlot::guardField() const {
     if (hasGuardField()) {
-	return *guardField_;
+        return *guardField_;
     } else {
-	return NullGuardField::instance();
+        return NullGuardField::instance();
     }
 }
+
 
 
 /**
@@ -232,10 +235,10 @@ void
 MoveSlot::setSourceField(SourceField& field) {
     // verify that this is called from SourceField constructor
     assert(field.parent() == NULL);
-
+    
     if (hasSourceField()) {
-	const string procName = "MoveSlot::setSourceField";
-	throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
+        const string procName = "MoveSlot::setSourceField";
+        throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
     }
 
     sourceField_ = &field;
@@ -275,9 +278,9 @@ MoveSlot::hasSourceField() const {
 SourceField&
 MoveSlot::sourceField() const {
     if (hasSourceField()) {
-	return *sourceField_;
+        return *sourceField_;
     } else {
-	return NullSourceField::instance();
+        return NullSourceField::instance();
     }
 }
 
@@ -297,8 +300,8 @@ MoveSlot::setDestinationField(DestinationField& field) {
     assert(field.parent() == NULL);
 
     if (hasDestinationField()) {
-	const string procName = "MoveSlot::setDestinationField";
-	throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
+        const string procName = "MoveSlot::setDestinationField";
+        throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
     }
 
     destinationField_ = &field;
@@ -339,9 +342,9 @@ MoveSlot::hasDestinationField() const {
 DestinationField&
 MoveSlot::destinationField() const {
     if (hasDestinationField()) {
-	return *destinationField_;
+        return *destinationField_;
     } else {
-	return NullDestinationField::instance();
+        return NullDestinationField::instance();
     }
 }
 
@@ -356,13 +359,13 @@ int
 MoveSlot::childFieldCount() const {
     int count(0);
     if (hasGuardField()) {
-	count++;
+        count++;
     }
     if (hasSourceField()) {
-	count++;
+        count++;
     }
     if (hasDestinationField()) {
-	count++;
+        count++;
     }
     return count;
 }
@@ -380,18 +383,18 @@ MoveSlot::childField(int position) const {
     InstructionField::childField(position);
 
     if (hasGuardField() && guardField().relativePosition() == position) {
-	return guardField();
+        return guardField();
     }
 
     if (hasSourceField() && sourceField().relativePosition() == position) {
-	return sourceField();
+        return sourceField();
     }
 
     if (hasDestinationField() &&
-	destinationField().relativePosition() == position) {
-	return destinationField();
+        destinationField().relativePosition() == position) {
+        return destinationField();
     }
-
+    
     assert(false);
     return NullInstructionField::instance();
 }
@@ -407,13 +410,13 @@ MoveSlot::width() const {
     int width(0);
 
     if (hasGuardField()) {
-	width += guardField().width();
+        width += guardField().width();
     }
     if (hasSourceField()) {
-	width += sourceField().width();
+        width += sourceField().width();
     }
     if (hasDestinationField()) {
-	width += destinationField().width();
+        width += destinationField().width();
     }
 
     return width;
@@ -433,29 +436,30 @@ MoveSlot::loadState(const ObjectState* state) {
     deleteSourceField();
     deleteDestinationField();
 
+
     ObjectState* newState = new ObjectState(*state);
     reorderSubfields(newState);
     InstructionField::loadState(newState);
 
     try {
-	setName(newState->stringAttribute(OSKEY_BUS_NAME));
-	for (int i = 0; i < newState->childCount(); i++) {
-	    ObjectState* child = newState->child(i);
-	    if (child->name() == GuardField::OSNAME_GUARD_FIELD) {
-		new GuardField(child, *this);
-	    } else if (child->name() == SourceField::OSNAME_SOURCE_FIELD) {
-		new SourceField(child, *this);
-	    } else if (child->name() ==
-                       DestinationField::OSNAME_DESTINATION_FIELD) {
-		new DestinationField(child, *this);
+        setName(newState->stringAttribute(OSKEY_BUS_NAME));
+        for (int i = 0; i < newState->childCount(); i++) {
+            ObjectState* child = newState->child(i);
+            if (child->name() == GuardField::OSNAME_GUARD_FIELD) {
+                new GuardField(child, *this);
+            } else if (child->name() == SourceField::OSNAME_SOURCE_FIELD) {
+                new SourceField(child, *this);
+            } else if (child->name() ==
+                DestinationField::OSNAME_DESTINATION_FIELD) {
+                new DestinationField(child, *this);
             }
-	}
+        }
     } catch (const Exception& exception) {
-	const string procName = "MoveSlot::loadState";
-	throw ObjectStateLoadingException(
-	    __FILE__, __LINE__, procName, exception.errorMessage());
+        const string procName = "MoveSlot::loadState";
+        throw ObjectStateLoadingException(
+            __FILE__, __LINE__, procName, exception.errorMessage());
     }
-
+    
     delete newState;
 }
 
@@ -472,13 +476,13 @@ MoveSlot::saveState() const {
     state->setAttribute(OSKEY_BUS_NAME, name());
 
     if (hasGuardField()) {
-	state->addChild(guardField().saveState());
+        state->addChild(guardField().saveState());
     }
     if (hasSourceField()) {
-	state->addChild(sourceField().saveState());
+        state->addChild(sourceField().saveState());
     }
     if (hasDestinationField()) {
-	state->addChild(destinationField().saveState());
+        state->addChild(destinationField().saveState());
     }
 
     return state;
@@ -491,8 +495,8 @@ MoveSlot::saveState() const {
 void
 MoveSlot::deleteGuardField() {
     if (guardField_ != NULL) {
-	delete guardField_;
-	guardField_ = NULL;
+        delete guardField_;
+        guardField_ = NULL;
     }
 }
 
@@ -503,11 +507,10 @@ MoveSlot::deleteGuardField() {
 void
 MoveSlot::deleteSourceField() {
     if (sourceField_ != NULL) {
-	delete sourceField_;
-	sourceField_ = NULL;
+        delete sourceField_;
+        sourceField_ = NULL;
     }
 }
-
 
 /**
  * Deletes the destination field of the move slot.
@@ -515,7 +518,7 @@ MoveSlot::deleteSourceField() {
 void
 MoveSlot::deleteDestinationField() {
     if (destinationField_ != NULL) {
-	delete destinationField_;
-	destinationField_ = NULL;
+        delete destinationField_;
+        destinationField_ = NULL;
     }
 }

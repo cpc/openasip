@@ -61,12 +61,12 @@ public:
 
 protected:
 
-    virtual MemoryGenerator& imemInstance(MemInfo imem);
+    virtual MemoryGenerator& imemInstance(MemInfo imem, int coreId);
 
     virtual MemoryGenerator& dmemInstance(
         MemInfo dmem,
         TTAMachine::FunctionUnit& lsuArch,
-        HDB::FUImplementation& lsuImplementation);
+        std::vector<std::string> lsuPorts);
 
 private:
 

@@ -88,7 +88,8 @@ AlteraIntegrator::integrateProcessor(
     initPlatformNetlist(progeBlockInOldNetlist);
 
     const NetlistBlock& core = progeBlock();
-    if (!integrateCore(core)) {
+    int coreId = -1;
+    if (!integrateCore(core, coreId)) {
         return;
     }
 
@@ -101,20 +102,25 @@ AlteraIntegrator::integrateProcessor(
 
 
 MemoryGenerator&
-AlteraIntegrator::imemInstance(MemInfo imem) {
+AlteraIntegrator::imemInstance(MemInfo imem, int coreId) {
 
     assert(imem.type != UNKNOWN && "Imem type not set!");
-    
+
+    TCEString initFile;
+    if (imem.type == ONCHIP) {
+        initFile = programName() + ".mif";        
+        projectFileGenerator()->addMemInitFile(initFile);
+    } else if (imem.type == VHDL_ARRAY) {
+        initFile = programName() + "_imem_pkg.vhdl";
+    }
+
     if (imemGen_ == NULL) {
         if (imem.type == ONCHIP) {
-            TCEString initFile = programName() + ".mif";
             imemGen_ = 
                 new AlteraOnchipRomGenerator(
                     imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile,
                     this, warningStream(), errorStream());
-            projectFileGenerator()->addMemInitFile(initFile);
         } else if (imem.type == VHDL_ARRAY) {
-            TCEString initFile = programName() + "_imem_pkg.vhdl";
             imemGen_ = new VhdlRomGenerator(
                 imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile,
                 this, warningStream(), errorStream());
@@ -131,7 +137,7 @@ MemoryGenerator&
 AlteraIntegrator::dmemInstance(
     MemInfo dmem,
     TTAMachine::FunctionUnit& lsuArch,
-    HDB::FUImplementation& lsuImplementation) {
+    std::vector<std::string> lsuPorts) {
 
     MemoryGenerator* memGen = NULL;
     if (dmemGen_.find(dmem.asName) != dmemGen_.end()) {
@@ -140,7 +146,7 @@ AlteraIntegrator::dmemInstance(
         if (dmem.type == ONCHIP) {
             TCEString initFile = programName() + "_" + dmem.asName + ".mif";
             // onchip mem size is scalable, use value from adf's Address Space
-            int addrw = dmem.asAddrw;
+            int addrw = dmem.portAddrw;
             memGen =
                 new AlteraOnchipRamGenerator(
                     dmem.mauWidth, dmem.widthInMaus, addrw, initFile,
@@ -150,7 +156,7 @@ AlteraIntegrator::dmemInstance(
             TCEString msg = "Unsupported data memory type";
             throw InvalidData(__FILE__, __LINE__, "AlteraIntegrator", msg);
         }
-        memGen->addLsu(lsuArch, lsuImplementation);
+        memGen->addLsu(lsuArch, lsuPorts);
         dmemGen_[dmem.asName] = memGen;
     }
     return *memGen;

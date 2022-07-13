@@ -41,6 +41,7 @@
 #include "Netlist.hh"
 #include "NetlistBlock.hh"
 #include "NetlistPort.hh"
+#include "Parameter.hh"
 
 #include "FileSystem.hh"
 #include "Conversion.hh"
@@ -64,8 +65,8 @@ namespace ProGe {
  *
  * @param netlist The input netlist.
  */
-VerilogNetlistWriter::VerilogNetlistWriter(const Netlist& netlist) :
-    NetlistWriter(netlist), groundWidth_(0) {
+VerilogNetlistWriter::VerilogNetlistWriter(const BaseNetlistBlock& targetBlock)
+    : NetlistWriter(targetBlock), groundWidth_(0) {
 }
 
 /**
@@ -83,19 +84,19 @@ VerilogNetlistWriter::~VerilogNetlistWriter() {
  */
 void
 VerilogNetlistWriter::write(const std::string& dstDirectory) {
-    const Netlist& netlist = this->netlist();
-    if (netlist.isEmpty()) {
-        string errorMsg = "Empty input netlist.";
+    const BaseNetlistBlock& block = this->targetNetlistBlock();
+    if (block.netlist().isEmpty()) {
+        string errorMsg = "Empty input netlist block.";
         throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
 
     writeNetlistParameterPackage(dstDirectory);
-    NetlistBlock& topLevelBlock = netlist.topLevelBlock();
-    writeBlock(topLevelBlock, dstDirectory);
+    writeBlock(block, dstDirectory);
 }
 
 /**
- * Writes the package(include files for verilog) that defines parameters of the netlist.
+ * Writes the package(include files for verilog) that defines parameters of
+ * the netlist.
  *
  * @param dstDirectory The destination directory.
  */
@@ -106,10 +107,12 @@ VerilogNetlistWriter::writeNetlistParameterPackage(
         netlistParameterPkgName() + "_pkg.vh";
     ofstream outFile;
     outFile.open(fileName.c_str(), ofstream::out);
-    for (int i = 0; i < netlist().parameterCount(); i++) {
-        Netlist::Parameter param = netlist().parameter(i);
-        outFile << "parameter " << param.name << " = " << param.value;
-        if(i != netlist().parameterCount()-1)
+    for (size_t i = 0; i < targetNetlistBlock().netlist().parameterCount();
+        i++) {
+        Parameter param = targetNetlistBlock().netlist().parameter(i);
+        outFile << "parameter " << param.name() << " = "
+                << param.value();
+        if(i != targetNetlistBlock().netlist().parameterCount()-1)
             outFile << ",";
         outFile << endl;
     }
@@ -122,7 +125,7 @@ VerilogNetlistWriter::writeNetlistParameterPackage(
  */
 std::string
 VerilogNetlistWriter::netlistParameterPkgName() const {
-    return netlist().topLevelBlock().moduleName() + "_params";
+    return targetNetlistBlock().moduleName() + "_params";
 }
 
 
@@ -135,7 +138,7 @@ VerilogNetlistWriter::netlistParameterPkgName() const {
  */
 void
 VerilogNetlistWriter::writeBlock(
-    const NetlistBlock& block, const std::string& dstDirectory) {
+    const BaseNetlistBlock& block, const std::string& dstDirectory) {
     string fileName = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         block.moduleName() + ".v";
     if (!FileSystem::fileIsCreatable(fileName) && 
@@ -155,19 +158,20 @@ VerilogNetlistWriter::writeBlock(
     outFile << "module " + entityName << endl;
 
     //create include
+    string separator;
     outFile << "#(" << endl;
-    //outFile << "`include \"tce_util_pkg.vh\"" << endl;
-    //outFile << "," << endl;
-    outFile << "`include \"" << netlist().coreEntityName()
-            << "_globals_pkg.vh\"" << endl;
-    outFile << "," << endl;
-    outFile << "`include \"" << netlist().coreEntityName()
-            << "_imem_mau_pkg.vh\"" << endl;
-    if (netlist().parameterCount() > 0) {
-        outFile << "," << endl;
+    if (block.netlist().parameterCount() > 0) {
         outFile << "`include \"" << netlistParameterPkgName() << "_pkg.vh\""
                 << endl;
+        separator = ",";
     }
+
+    for (size_t i = 0; i < block.packageCount(); i++) {
+        outFile << separator << endl;
+        outFile << "`include \"" << block.package(i) << "_pkg.vh\"" << endl;
+        separator = ",";
+    }
+
     outFile << ")" << endl;
     
     // create port declarations
@@ -198,30 +202,30 @@ VerilogNetlistWriter::writeBlock(
  */
 void
 VerilogNetlistWriter::writeGenericDeclaration(
-    const NetlistBlock& block,
+    const BaseNetlistBlock& block,
     unsigned int indentationLevel,
     const std::string& indentation,
     std::ostream& stream) {
 
     if (block.parameterCount() > 0) {
         stream << endl;
-       for (int i = 0; i < block.parameterCount(); i++) {
+       for (size_t i = 0; i < block.parameterCount(); i++) {
             stream << generateIndentation(indentationLevel, indentation)
                    << "parameter ";
-            Netlist::Parameter param = block.parameter(i);
+            Parameter param = block.parameter(i);
             stream << generateIndentation(indentationLevel+1, indentation)
-                   << param.name;
-            if (param.value != "") {
+                   << param.name();
+            if (param.defaultValue() != "") {
                 stream << " = ";
-                if (param.type.lower() == PARAM_STRING) {
+                if (param.type().lower() == PARAM_STRING) {
                     // string literal needs quot. marks
-                    if (!param.value.startsWith("\""))
+                    if (!param.defaultValue().startsWith("\""))
                         stream << "\"";
-                    stream << param.value;
-                    if (!param.value.endsWith("\""))
+                    stream << param.defaultValue();
+                    if (!param.defaultValue().endsWith("\""))
                         stream << "\"";
                 } else {
-                    stream << param.value;
+                    stream << param.defaultValue();
                 }
             }
             stream << ";" << endl;
@@ -240,7 +244,7 @@ VerilogNetlistWriter::writeGenericDeclaration(
  */
 void
 VerilogNetlistWriter::writePortDeclaration(
-    const NetlistBlock& block,
+    const BaseNetlistBlock& block,
     unsigned int indentationLevel,
     const std::string& indentation,
     std::ostream& stream) {
@@ -248,8 +252,8 @@ VerilogNetlistWriter::writePortDeclaration(
     stream << generateIndentation(indentationLevel, indentation) << "("
            << endl;
 
-    for (int i = 0; i < block.portCount(); i++) {
-        NetlistPort& port = block.port(i);
+    for (size_t i = 0; i < block.portCount(); i++) {
+        const NetlistPort& port = block.port(i);
         string portName = port.name();
         string direction = directionString(port.direction());
         stream << generateIndentation(indentationLevel+1, indentation)
@@ -289,13 +293,14 @@ VerilogNetlistWriter::writePortDeclaration(
  */
 void
 VerilogNetlistWriter::writeSignalDeclarations(
-    const NetlistBlock& block,
+    const BaseNetlistBlock& block,
     std::ofstream& stream) {
 
     // collect all the sub blocks to a set
-    typedef std::set<NetlistBlock*, NetlistBlockNameComparator> BlockSet;
+    typedef std::set<const BaseNetlistBlock*, NetlistBlockNameComparator>
+        BlockSet;
     BlockSet subBlocks;
-    for (int i = 0; i < block.subBlockCount(); i++) {
+    for (size_t i = 0; i < block.subBlockCount(); i++) {
         // ports belonging to virtual blocks have static values, thus they are
         // excluded
         if (!block.subBlock(i).isVirtual()) {
@@ -306,26 +311,26 @@ VerilogNetlistWriter::writeSignalDeclarations(
     // create a signal for each port in the sub-blocks
     for (BlockSet::const_iterator iter = subBlocks.begin();
          iter != subBlocks.end(); iter++) {
-        NetlistBlock* subBlock = *iter;
+        const BaseNetlistBlock* subBlock = *iter;
         
-        for (int i = 0; i < subBlock->portCount(); i++) {
-            NetlistPort& port = subBlock->port(i);
+        for (size_t i = 0; i < subBlock->portCount(); i++) {
+            const NetlistPort& port = subBlock->port(i);
 
-            size_t vertexDescriptor = netlist().descriptor(port);
+            size_t vertexDescriptor = block.netlist().descriptor(port);
             std::pair<out_edge_iterator, out_edge_iterator> edges =
-                boost::out_edges(vertexDescriptor, netlist());
+                boost::out_edges(vertexDescriptor, block.netlist());
             
             if (edges.first != edges.second) {
                 edge_descriptor edgeDescriptor = *edges.first;
                 vertex_descriptor dstVertex = boost::target(
-                    edgeDescriptor, netlist());
-                NetlistPort* dstPort = netlist()[dstVertex];
-                if (dstPort->parentBlock() != &block) {
+                    edgeDescriptor, block.netlist());
+                NetlistPort* dstPort = block.netlist()[dstVertex];
+                if (&dstPort->parentBlock() != &block) {
                     stream << indentation(1) << "wire"
                            << portSignalType(port) << " "
                            << portSignalName(port) << ";" << endl;
                 }
-            } else {
+            } else if(!port.hasStaticValue()) {
                 // assume the port is connected to ground if is is
                 // unconnected in the netlist
                 if (port.realWidthAvailable()) {
@@ -355,24 +360,24 @@ VerilogNetlistWriter::writeSignalDeclarations(
  */
 void
 VerilogNetlistWriter::writeSignalAssignments(
-    const NetlistBlock& block,
+    const BaseNetlistBlock& block,
     std::ofstream& stream) const {
 
-    set<NetlistBlock*, NetlistBlockNameComparator> subBlocks;
-    for (int i = 0; i < block.subBlockCount(); i++) {
+    set<const BaseNetlistBlock*, NetlistBlockNameComparator> subBlocks;
+    for (size_t i = 0; i < block.subBlockCount(); i++) {
         subBlocks.insert(&block.subBlock(i));
     }
 
     typedef std::vector<edge_descriptor> EdgeTable;
     EdgeTable handledEdges;
     
-    for (int i = 0; i < block.subBlockCount(); i++) {
-        NetlistBlock& subBlock = block.subBlock(i);
-        for (int i = 0; i < subBlock.portCount(); i++) {
-            NetlistPort& port = subBlock.port(i);
-            size_t vertexDescriptor = netlist().descriptor(port);
+    for (size_t i = 0; i < block.subBlockCount(); i++) {
+        const BaseNetlistBlock& subBlock = block.subBlock(i);
+        for (size_t i = 0; i < subBlock.portCount(); i++) {
+            const NetlistPort& port = subBlock.port(i);
+            size_t vertexDescriptor = block.netlist().descriptor(port);
             std::pair<out_edge_iterator, out_edge_iterator> edges =
-                boost::out_edges(vertexDescriptor, netlist());
+                boost::out_edges(vertexDescriptor, block.netlist());
 
             while (edges.first != edges.second) {
                 edge_descriptor edgeDescriptor = *edges.first;
@@ -380,34 +385,34 @@ VerilogNetlistWriter::writeSignalAssignments(
                 if (!ContainerTools::containsValue(
                         handledEdges, edgeDescriptor)) {
                     vertex_descriptor srcVertex = boost::source(
-                        edgeDescriptor, netlist());
+                        edgeDescriptor, block.netlist());
                     vertex_descriptor dstVertex = boost::target(
-                        edgeDescriptor, netlist());
-                    NetlistPort* srcPort = netlist()[srcVertex];
-                    NetlistPort* dstPort = netlist()[dstVertex];
+                        edgeDescriptor, block.netlist());
+                    NetlistPort* srcPort = block.netlist()[srcVertex];
+                    NetlistPort* dstPort = block.netlist()[dstVertex];
                     
-                    if (dstPort->parentBlock() == &block) {
+                    if (&dstPort->parentBlock() == &block) {
                         continue;
                     }
 
                     assert(srcPort == &port);
                     if (AssocTools::containsKey(
-                            subBlocks, srcPort->parentBlock()) &&
+                            subBlocks, &srcPort->parentBlock()) &&
                         AssocTools::containsKey(
-                            subBlocks, dstPort->parentBlock())) {
+                            subBlocks, &dstPort->parentBlock())) {
                         
                          handledEdges.push_back(edgeDescriptor);
                          // add the opposite edge too
                          std::pair<edge_descriptor, bool> opposite =
-                             boost::edge(dstVertex, srcVertex, netlist());
+                             boost::edge(dstVertex, srcVertex, block.netlist());
                          assert(opposite.second);
                          assert(opposite.first != edgeDescriptor);
                          handledEdges.push_back(opposite.first);
                          
                          PortConnectionProperty property =
-                             netlist()[edgeDescriptor];
+                             block.netlist()[edgeDescriptor];
                          if (property.fullyConnected()) {
-                             if (srcPort->direction() == HDB::OUT) {
+                             if (srcPort->direction() == OUT) {
                                  stream << indentation(1)
                                         << "assign "
                                         << portSignalName(*dstPort) 
@@ -464,7 +469,7 @@ VerilogNetlistWriter::writeSignalAssignments(
                                  }
                              }
                                  
-                             if (srcPort->direction() == HDB::OUT) {
+                             if (srcPort->direction() == OUT) {
                                  stream << indentation(1) << "assign "
                                         <<  dstPortSignal
                                         << " = " << srcPortSignal << ";"
@@ -498,11 +503,11 @@ VerilogNetlistWriter::writeSignalAssignments(
  */
 void
 VerilogNetlistWriter::writePortMappings(
-    const NetlistBlock& block,
+    const BaseNetlistBlock& block,
     std::ofstream& stream) const {
 
-    for (int i = 0; i < block.subBlockCount(); i++) {
-        NetlistBlock& component = block.subBlock(i);
+    for (size_t i = 0; i < block.subBlockCount(); i++) {
+        const BaseNetlistBlock& component = block.subBlock(i);
 
         // virtual NetlistBlocks are omitted
         if (component.isVirtual()) {
@@ -514,15 +519,15 @@ VerilogNetlistWriter::writePortMappings(
         // create generic map(parameters)
         if (component.parameterCount() > 0) {
             stream << indentation(1) << "#(" << endl;
-            for (int i = 0; i < component.parameterCount(); i++) {
-                Netlist::Parameter param = component.parameter(i);
+            for (size_t i = 0; i < component.parameterCount(); i++) {
+                Parameter param = component.parameter(i);
                 stream << indentation(2) << "."
-                       << param.name << "(";
+                       << param.name() << "(";
                 
-                if (param.type.lower() == PARAM_STRING) {
-                    stream << genericMapStringValue(param.value);
+                if (param.type().lower() == PARAM_STRING) {
+                    stream << genericMapStringValue(param.value());
                 } else {
-                    stream << param.value;
+                    stream << param.value();
                 }
                 if (i == component.parameterCount() - 1) {
                     stream << ")";
@@ -537,21 +542,21 @@ VerilogNetlistWriter::writePortMappings(
         stream << indentation(1) << component.instanceName()
                << "_" << i << endl
                << indentation(2) << "(" << endl;
-        for (int i = 0; i < component.portCount(); i++) {
-            NetlistPort& port = component.port(i);
-            size_t vertexDescriptor = netlist().descriptor(port);
+        for (size_t i = 0; i < component.portCount(); i++) {
+            const NetlistPort& port = component.port(i);
+            size_t vertexDescriptor = block.netlist().descriptor(port);
             std::pair<out_edge_iterator, out_edge_iterator> edges =
-                boost::out_edges(vertexDescriptor, netlist());
+                boost::out_edges(vertexDescriptor, block.netlist());
 
             string srcConn = port.name();
             string dstConn = "";
             if (edges.first != edges.second) {
                 edge_descriptor edgeDescriptor = *edges.first;
                 vertex_descriptor dstVertex = boost::target(
-                    edgeDescriptor, netlist());
-                NetlistPort* dstPort = netlist()[dstVertex];
+                    edgeDescriptor, block.netlist());
+                NetlistPort* dstPort = block.netlist()[dstVertex];
                 
-                if (dstPort->parentBlock() == &block) {
+                if (&dstPort->parentBlock() == &block) {
                     if (port.dataType() != dstPort->dataType()) {
                         if (port.dataType() == BIT) {
                             assert(dstPort->dataType() == BIT_VECTOR);
@@ -586,11 +591,11 @@ VerilogNetlistWriter::writePortMappings(
  * @return The direction string.
  */
 std::string
-VerilogNetlistWriter::directionString(HDB::Direction direction) {
+VerilogNetlistWriter::directionString(Direction direction) {
     switch (direction) {
-    case HDB::IN: return "input";
-    case HDB::OUT: return "output";
-    case HDB::BIDIR: return "inout";
+    case IN: return "input";
+    case OUT: return "output";
+    case BIDIR: return "inout";
     }
     assert(false);
     // dummy return
@@ -653,9 +658,13 @@ VerilogNetlistWriter::generateIndentation(
  */
 std::string
 VerilogNetlistWriter::portSignalName(const NetlistPort& port) {
-    NetlistBlock* parentBlock = port.parentBlock();
+    const BaseNetlistBlock* parentBlock = &port.parentBlock();
     if (port.hasStaticValue()) {
-        return "{"+ Conversion::toString(port.realWidth())+"{"+ ((port.staticValue()== ProGe::VCC)?"1'b1":"1'b0") + "}}";
+        return "{"
+            + Conversion::toString(port.realWidth())
+            + "{"
+            + ((port.staticValue().is(StaticSignal::VCC))?"1'b1":"1'b0")
+            + "}}";
     }
     return parentBlock->instanceName() + "_" + port.name() +"_wire";
 }

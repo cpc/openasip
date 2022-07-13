@@ -1,0 +1,11 @@
+beqr 13 0 12
+!register programcounter
+beqr 20 -1 65
+!register programcounter
+beqr 1 1 65
+!register programcounter
+beqr -30 40 123
+!register programcounter
+beqr -1 -1 126
+!register programcounter
+!quit

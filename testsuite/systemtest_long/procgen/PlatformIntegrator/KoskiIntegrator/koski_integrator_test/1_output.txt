@@ -21,12 +21,13 @@ entity koskenlaskija_toplevel is
 
   generic (
     dev_family_g : string := "Stratix II";
-    onchip_imem_0_init_file_g : string := "prog.mif";
-    onchip_dp_dmem_0_init_file_g : string := "prog_data.mif");
+    onchip_imem_0_0_init_file_g : string := "prog.mif";
+    onchip_dp_dmem_0_0_init_file_g : string := "prog_data.mif");
 
   port (
     clk : in std_logic;
     rstx : in std_logic;
+    locked : out std_logic;
     fu_LSU_hibi_data_in : in std_logic_vector(fu_LSU_dataw-1 downto 0);
     fu_LSU_hibi_av_in : in std_logic;
     fu_LSU_hibi_empty_in : in std_logic;
@@ -43,7 +44,9 @@ end koskenlaskija_toplevel;
 architecture structural of koskenlaskija_toplevel is
 
 
-  component koskenlaskija
+  component koskenlaskija is
+    generic (
+      core_id : integer);
     port (
       clk : in std_logic;
       rstx : in std_logic;
@@ -51,6 +54,7 @@ architecture structural of koskenlaskija_toplevel is
       imem_en_x : out std_logic;
       imem_addr : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
       imem_data : in std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+      locked : out std_logic;
       fu_LSU_dmem1_data_in : in std_logic_vector(fu_LSU_dataw-1 downto 0);
       fu_LSU_dmem1_data_out : out std_logic_vector(fu_LSU_dataw-1 downto 0);
       fu_LSU_dmem1_addr : out std_logic_vector(fu_LSU_addrw-2-1 downto 0);
@@ -75,7 +79,7 @@ architecture structural of koskenlaskija_toplevel is
       fu_LSU_hibi_we_out : out std_logic_vector(1-1 downto 0));
   end component;
 
-  component koskenlaskija_altera_onchip_rom_comp
+  component koskenlaskija_altera_onchip_rom_comp is
     generic (
       dev_family_g : string;
       init_file_g : string;
@@ -88,13 +92,13 @@ architecture structural of koskenlaskija_toplevel is
       clken : in std_logic);
   end component;
 
-  component util_inverter
+  component util_inverter is
     port (
       data_in : in std_logic;
       data_out : out std_logic);
   end component;
 
-  component koskenlaskija_altera_onchip_dp_ram_comp
+  component koskenlaskija_altera_onchip_dp_ram_comp is
     generic (
       dev_family_g : string;
       init_file_g : string;
@@ -139,6 +143,8 @@ begin
   onchip_imem_0_clken_wire <= imem_en_x_util_inverter_data_out_wire;
 
   core : koskenlaskija
+    generic map (
+      core_id => 0)
     port map (
       clk => clk,
       rstx => rstx,
@@ -146,6 +152,7 @@ begin
       imem_en_x => core_imem_en_x_wire,
       imem_addr => core_imem_addr_wire,
       imem_data => core_imem_data_wire,
+      locked => locked,
       fu_LSU_dmem1_data_in => core_fu_LSU_dmem1_data_in_wire,
       fu_LSU_dmem1_data_out => core_fu_LSU_dmem1_data_out_wire,
       fu_LSU_dmem1_addr => core_fu_LSU_dmem1_addr_wire,
@@ -172,7 +179,7 @@ begin
   onchip_imem_0 : koskenlaskija_altera_onchip_rom_comp
     generic map (
       dev_family_g => dev_family_g,
-      init_file_g => onchip_imem_0_init_file_g,
+      init_file_g => onchip_imem_0_0_init_file_g,
       addrw_g => IMEMADDRWIDTH,
       dataw_g => IMEMWIDTHINMAUS*IMEMMAUWIDTH)
     port map (
@@ -189,7 +196,7 @@ begin
   onchip_dp_dmem_0 : koskenlaskija_altera_onchip_dp_ram_comp
     generic map (
       dev_family_g => dev_family_g,
-      init_file_g => onchip_dp_dmem_0_init_file_g,
+      init_file_g => onchip_dp_dmem_0_0_init_file_g,
       addrw_g => 14,
       dataw_g => 32)
     port map (

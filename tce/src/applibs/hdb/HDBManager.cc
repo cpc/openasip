@@ -87,6 +87,8 @@ const string OUT_DIRECTION = "OUT";
 const string BIDIR_DIRECTION = "BIDIR";
 const string VHDL_FORMAT = "VHDL";
 const string VERILOG_FORMAT = "Verilog";
+const string VHDL_SIM_FORMAT = "VHDL simulation";
+const string VERILOG_SIM_FORMAT = "Verilog simulation";
 
 const int DEFAULT_PORT_WIDTH = 32;
 
@@ -249,7 +251,8 @@ const string CQ_RF_ARCHITECTURE =
     "       max_reads INTEGER NOT NULL,"
     "       max_writes INTEGER NOT NULL,"
     "       guard_support BOOLEAN NOT NULL,"
-    "       guard_latency INTEGER NOT NULL);";
+    "       guard_latency INTEGER NOT NULL,"
+    "       zero_register BOOLEAN DEFAULT FALSE);";
 
 const string CQ_RF_IMPLEMENTATION =
     "CREATE TABLE rf_implementation("
@@ -334,6 +337,49 @@ const string CQ_FU_IMPL_ENTRY_INDEX =
 const string CQ_RF_IMPL_ENTRY_INDEX =
     "CREATE INDEX rf_impl_entry_index ON rf_implementation(rf)";
 
+const string CQ_OPERATION_IMPLEMENTATION_RESOURCE_SOURCE_FILE =
+    "CREATE TABLE operation_implementation_resource_source_file("
+    "       id INTEGER PRIMARY KEY,"
+    "       resource REFERENCES operation_implementation_resource(id),"
+    "       file REFERENCES block_source_file(id)"
+    ");";
+
+const string CQ_OPERATION_IMPLEMENTATION_SOURCE_FILE =
+    "CREATE TABLE operation_implementation_source_file("
+    "       id INTEGER PRIMARY KEY,"
+    "       operation REFERENCES operation_implementation(id),"
+    "       file REFERENCES block_source_file(id)"
+    ");";
+
+const string CQ_OPERATION_IMPLEMENTATION_RESOURCE =
+    "CREATE TABLE operation_implementation_resource("
+    "       id INTEGER PRIMARY KEY,"
+    "       name TEXT NOT NULL"
+    ");";
+
+const string CQ_OPERATION_IMPLEMENTATION =
+    "CREATE TABLE operation_implementation("
+    "       id INTEGER PRIMARY KEY,"
+    "       name TEXT NOT NULL"
+    ");";
+
+const string CQ_OPERATION_IMPLEMENTATION_RESOURCES =
+    "CREATE TABLE operation_implementation_resources("
+    "       id INTEGER PRIMARY KEY,"
+    "       operation REFERENCES operation_implementation(id),"
+    "       resource REFERENCES operation_implementation_resource(id),"
+    "       count INTEGER NOT NULL"
+    ");";
+
+const string CQ_OPERATION_IMPLEMENTATION_VARIABLE =
+    "CREATE TABLE operation_implementation_variable("
+    "       id INTEGER PRIMARY KEY,"
+    "       operation REFERENCES operation_implementation(id),"
+    "       name TEXT NOT NULL,"
+    "       width TEXT NOT NULL,"
+    "       type TEXT NOT NULL,"
+    "       language TEXT NOT NULL"
+    ");";
 
 namespace HDB {
 
@@ -363,6 +409,123 @@ HDBManager::HDBManager(const std::string& hdbFile)
         throw IOException(
             __FILE__, __LINE__, __func__, exception.errorMessage());
     }
+
+    // Update outdated HDB.
+    // Version 0 indicates db without version number also.
+    int dbVersion = dbConnection_->version();
+
+    // Version 0 -> 1
+    if (dbVersion < 1) {
+        // Initial fu-gen tables and fugen stuff.
+        dbConnection_->DDLQuery(CQ_OPERATION_IMPLEMENTATION_RESOURCE);
+        dbConnection_->DDLQuery(CQ_OPERATION_IMPLEMENTATION);
+        dbConnection_->DDLQuery(
+            CQ_OPERATION_IMPLEMENTATION_RESOURCE_SOURCE_FILE);
+        dbConnection_->DDLQuery(CQ_OPERATION_IMPLEMENTATION_SOURCE_FILE);
+        dbConnection_->DDLQuery(CQ_OPERATION_IMPLEMENTATION_RESOURCES);
+        dbConnection_->updateQuery(std::string(
+                "INSERT INTO format(id,format) VALUES"
+                "(NULL,\"" + VHDL_SIM_FORMAT + "\");"));
+        dbConnection_->updateQuery(std::string(
+                "INSERT INTO format(id,format) VALUES"
+                "(NULL,\"" + VERILOG_SIM_FORMAT + "\");"));
+        dbConnection_->updateVersion(1);
+    }
+
+    // Version 1 -> 2
+    if (dbVersion < 2) {
+        // Variables for operation snippets.
+        dbConnection_->DDLQuery(CQ_OPERATION_IMPLEMENTATION_VARIABLE);
+        dbConnection_->updateVersion(2);
+    }
+
+    // Version 2 -> 3
+    if (dbVersion < 3) {
+        // ipxact to resource table
+        dbConnection_->updateQuery(std::string(
+            "ALTER TABLE operation_implementation_resource ADD COLUMN "
+            "ipxact TEXT;"));
+        dbConnection_->updateVersion(3);
+    }
+
+    // Version 3 -> 4
+    if (dbVersion < 4) {
+        // support for post-operation (for LOADs) and
+        //  operation bus definitions for FUGen.
+        dbConnection_->updateQuery(std::string(
+            "ALTER TABLE operation_implementation ADD COLUMN "
+            "bus_definition TEXT;"));
+        dbConnection_->updateQuery(std::string(
+            "ALTER TABLE operation_implementation ADD COLUMN "
+            "post_op_vhdl TEXT;"));
+        dbConnection_->updateQuery(std::string(
+            "ALTER TABLE operation_implementation ADD COLUMN "
+            "post_op_verilog TEXT;"));
+        dbConnection_->updateVersion(4);
+    }
+
+    // Version 4 -> 5
+    if (dbVersion < 5) {
+        dbConnection_->updateQuery(std::string(
+            "ALTER TABLE operation_implementation_resource ADD COLUMN "
+            "latency INTEGER;"));
+        dbConnection_->updateQuery(std::string(
+            "ALTER TABLE operation_implementation ADD COLUMN "
+            "default_verilog TEXT;"));
+        dbConnection_->updateQuery(std::string(
+            "ALTER TABLE operation_implementation ADD COLUMN "
+            "default_vhdl TEXT;"));
+        dbConnection_->updateVersion(5);
+    }
+
+    // Version 5 -> 6
+    if (dbVersion < 6) {
+        try {
+            // rename default_vhdl and default_verilog to initial_*
+            // and add latency column
+            dbConnection_->updateQuery(std::string(
+                "ALTER TABLE operation_implementation RENAME TO "
+                "operation_implementation_old"));
+            dbConnection_->updateQuery(std::string(
+                "CREATE TABLE operation_implementation ( "
+                "id INTEGER PRIMARY KEY, "
+                "latency INTEGER, "
+                "name TEXT NOT NULL, "
+                "bus_definition TEXT, "
+                "post_op_vhdl TEXT, "
+                "post_op_verilog TEXT, "
+                "initial_vhdl TEXT, "
+                "initial_verilog TEXT)"));
+            dbConnection_->updateQuery(std::string(
+                "INSERT INTO operation_implementation "
+                    "(id, name, bus_definition, post_op_vhdl, post_op_verilog, "
+                    "initial_vhdl, initial_verilog) "
+                "SELECT id, name, bus_definition, post_op_vhdl, post_op_verilog, "
+                       "default_vhdl, default_verilog "
+                "FROM operation_implementation_old"));
+            dbConnection_->updateQuery(std::string(
+                "DROP TABLE operation_implementation_old"));
+
+            dbConnection_->updateVersion(6);
+        } catch (const RelationalDBException& exception) {
+            throw IOException(
+                __FILE__, __LINE__, __func__, exception.errorMessage());
+        }
+        dbConnection_->updateVersion(6);
+    }
+
+    if (dbVersion < 7) {
+        try {
+            if (!hasColumn("rf_architecture", "zero_register")) {
+                addBooleanColumn("rf_architecture", "zero_register");
+            }
+        } catch (const RelationalDBException& exception) {
+            throw IOException(
+                __FILE__, __LINE__, __func__, exception.errorMessage());
+        }
+        dbConnection_->updateVersion(7);
+    }
+
 }
 
 /**
@@ -391,7 +554,7 @@ HDBManager::createNew(const std::string& file) {
     try {
         SQLite db;
         RelationalDBConnection& connection = db.connect(file);
-    
+
         // create tables to the database
         connection.DDLQuery(CQ_FU);
         connection.DDLQuery(CQ_FU_ARCHITECTURE);
@@ -428,11 +591,11 @@ HDBManager::createNew(const std::string& file) {
         connection.DDLQuery(CQ_RF_IMPL_ENTRY_INDEX);
 
         // insert the contents to format table
-        insertFileFormats(connection);        
+        insertFileFormats(connection);
         db.close(connection);
     } catch (const Exception& e) {
         debugLog(
-            std::string("Initialization of HDB failed. ") + 
+            std::string("Initialization of HDB failed. ") +
             e.errorMessage());
         // this should not normally happen, but only if our table creation
         // queries are broken, thus it's a program error and not input error
@@ -476,7 +639,7 @@ HDBManager::addCostFunctionPlugin(const CostFunctionPlugin& plugin) const {
         case CostFunctionPlugin::COST_RF:
             type = COST_PLUGIN_TYPE_RF;
             break;
-        case CostFunctionPlugin::COST_DECOMP:            
+        case CostFunctionPlugin::COST_DECOMP:
             type = COST_PLUGIN_TYPE_DECOMP;
             break;
         case CostFunctionPlugin::COST_ICDEC:
@@ -484,14 +647,14 @@ HDBManager::addCostFunctionPlugin(const CostFunctionPlugin& plugin) const {
             break;
         default:
             InvalidData ex(
-                __FILE__, __LINE__, __func__, 
+                __FILE__, __LINE__, __func__,
                 (boost::format("Illegal cost_function_plugin type %d.") %
                  type).str());
             throw ex;
             break;
         }
         string name = plugin.name();
-    
+
         dbConnection_->updateQuery(
             std::string(
                 "INSERT INTO cost_function_plugin(id,description,name,"
@@ -620,7 +783,7 @@ HDBManager::addFUArchitecture(const FUArchitecture& arch) const {
                             MapTools::valueForKey<RowID>(portIDMap, port)) +
                         ",(SELECT id FROM operation WHERE "
                         "lower(name)=\"" + operation->name() + "\"));");
-                    dbConnection_->updateQuery(query);   
+                    dbConnection_->updateQuery(query);
                 }
             }
         }
@@ -1014,7 +1177,7 @@ HDBManager::addFUImplementation(const FUEntry& entry) const {
                             "fu_data_port.fu_arch=" +
                             Conversion::toString(archID) +
                             " AND io_binding.port=fu_data_port.id AND "
-                            "io_binding.io_number=" + 
+                            "io_binding.io_number=" +
                             Conversion::toString(io) +
                             " AND lower(operation.name)=\"" + 
                             operation->name() + 
@@ -1301,7 +1464,7 @@ HDBManager::addRFArchitecture(const RFArchitecture& architecture) const {
         string query = 
             "INSERT INTO rf_architecture(id,size,width,read_ports,"
             "write_ports,bidir_ports,latency,max_reads,max_writes,"
-            "guard_support,guard_latency) VALUES(NULL,";
+            "guard_support,guard_latency,zero_register) VALUES(NULL,";
         if (architecture.hasParameterizedSize()) {
             query += "NULL,";
         } else {
@@ -1320,7 +1483,8 @@ HDBManager::addRFArchitecture(const RFArchitecture& architecture) const {
         query += (Conversion::toString(architecture.maxWrites()) + ",");
         query += 
             (Conversion::toString(architecture.hasGuardSupport()) + ",");
-        query += (Conversion::toString(architecture.guardLatency()));
+        query += (Conversion::toString(architecture.guardLatency()) + ",");
+        query += (Conversion::toString(architecture.zeroRegister()));
         query += ");";
         
         dbConnection_->updateQuery(query);
@@ -2018,17 +2182,515 @@ HDBManager::fuArchitectureIDs() const {
     return idSet;
 }
 
-std::set<RowID> 
+
+/**
+ * Returns a set of Operation Implementation Resource IDs in the database.
+ *
+ * @return A set containing all the Operation Implementation Resource
+ * IDs in the database.
+ */
+std::set<RowID>
+HDBManager::OperationImplementationIDs() const {
+    RelationalDBQueryResult* result = NULL;
+    try {
+        result = dbConnection_->query(
+            std::string("SELECT id FROM operation_implementation;"));
+    } catch (const Exception& e) {
+        debugLog(e.errorMessage());
+        assert(false);
+    }
+
+    std::set<RowID> idSet;
+    while (result->hasNext()) {
+        result->next();
+        const DataObject& idData = result->data(0);
+        idSet.insert(idData.integerValue());
+    }
+
+    delete result;
+    return idSet;
+}
+
+/**
+ * Returns a set of Operation Implementation IDs in the database.
+ *
+ * @return A set containing all the Operation Implemnetation
+ * IDs in the database.
+ */
+std::set<RowID>
+HDBManager::OperationImplementationResourceIDs() const {
+    RelationalDBQueryResult* result = NULL;
+    try {
+        result = dbConnection_->query(
+            std::string("SELECT id FROM operation_implementation_resource;"));
+    } catch (const Exception& e) {
+        debugLog(e.errorMessage());
+        assert(false);
+    }
+
+    std::set<RowID> idSet;
+    while (result->hasNext()) {
+        result->next();
+        const DataObject& idData = result->data(0);
+        idSet.insert(idData.integerValue());
+    }
+
+    delete result;
+    return idSet;
+}
+
+/**
+ * Returns OperationImplementation.
+ *
+ * @return OperationImplementation.
+ */
+HDB::OperationImplementation
+HDBManager::OperationImplementationByID(RowID id) const {
+    RelationalDBQueryResult* result = nullptr;
+    try {
+        result = dbConnection_->query(
+            std::string("SELECT * FROM operation_implementation WHERE id = ") +
+            std::to_string(id) +
+            std::string(";"));
+    } catch (const Exception& e) {
+        debugLog(e.errorMessage());
+        assert(false);
+    }
+
+    OperationImplementation retval;
+    if (result->hasNext()) {
+        result->next();
+
+        retval.id = id;
+        retval.latency = result->data("latency").integerValue();
+        retval.name = result->data("name").stringValue();
+        retval.postOpImplFileVhdl =
+            result->data("post_op_vhdl").stringValue();
+        retval.postOpImplFileVerilog =
+            result->data("post_op_verilog").stringValue();
+        retval.absBusDefFile =
+            result->data("bus_definition").stringValue();
+        retval.initialImplFileVerilog =
+            result->data("initial_verilog").stringValue();
+        retval.initialImplFileVhdl =
+            result->data("initial_vhdl").stringValue();
+    }
+    delete result;
+    result = nullptr;
+
+    try {
+        result = dbConnection_->query(
+            std::string("SELECT block_source_file.file "
+                        "FROM operation_implementation_source_file, "
+                        "block_source_file "
+                        "WHERE operation_implementation_source_"
+                            "file.operation = ") +
+            std::to_string(id) +
+            std::string(" AND operation_implementation_source_file.file = "
+                        " block_source_file.id"
+                        " AND block_source_file.format = "
+                        + std::to_string(
+                            BlockImplementationFile::VHDL) +
+                        ";"));
+
+    } catch (const Exception& e) {
+        debugLog(e.errorMessage());
+        assert(false);
+    }
+    if (result->hasNext()) {
+        result->next();
+        retval.implFileVhdl = result->data("file").stringValue();
+    }
+    delete result;
+    result = nullptr;
+
+    try {
+        result = dbConnection_->query(
+            std::string("SELECT block_source_file.file "
+                        "FROM operation_implementation_source_file, "
+                        "block_source_file "
+                        "WHERE operation_implementation_"
+                            "source_file.operation = ") +
+            std::to_string(id) +
+            std::string(" AND operation_implementation_source_file.file = "
+                        " block_source_file.id"
+                        " AND block_source_file.format = "
+                        + std::to_string(
+                            BlockImplementationFile::Verilog) +
+                        ";"));
+
+    } catch (const Exception& e) {
+        debugLog(e.errorMessage());
+        assert(false);
+    }
+    if (result->hasNext()) {
+        result->next();
+        retval.implFileVerilog = result->data("file").stringValue();
+    }
+    delete result;
+    result = nullptr;
+
+    std::string q1 = "SELECT resource, count "
+        "FROM operation_implementation_resources "
+        "WHERE operation_implementation_resources.operation = "
+        + std::to_string(id) + ";";
+    result = dbConnection_->query(q1);
+    while (result->hasNext()) {
+        result->next();
+        int resource = result->data("resource").integerValue();
+        OperationImplementationResource r =
+            OperationImplementationResourceByID(resource);
+        r.count = result->data("count").integerValue();
+        retval.resources.emplace_back(r);
+    }
+
+    std::string q2 = "SELECT name, width, type, language "
+        "FROM operation_implementation_variable "
+        "WHERE CAST(operation as TEXT) = \"" + std::to_string(id) + "\";";
+    result = dbConnection_->query(q2);
+    while (result->hasNext()) {
+        result->next();
+        std::string name = result->data("name").stringValue();
+        std::string width = result->data("width").stringValue();
+        std::string type = result->data("type").stringValue();
+        std::string lang = result->data("language").stringValue();
+        // TODO not all HDBs have a rename column yet, so variable renaming is
+        // hardcoded
+        bool rename = true;
+        // std::string renamestr = result->data("rename").stringValue();
+        // bool rename = renamestr != "0";
+        if (lang == "VHDL") {
+            Variable var = {name, width, type, rename};
+            retval.vhdlVariables.emplace_back(var);
+        } else if (lang == "Verilog") {
+            retval.verilogVariables.emplace_back(
+                Variable{name, width, type, rename});
+        } else {
+            throw std::runtime_error("Unknown language");
+        }
+    }
+
+    if (dbConnection_->tableExistsInDB(
+            "operation_implementation_globalsignal")) {
+        std::string q3 =
+            "SELECT name, width, type, language, rename "
+            "FROM operation_implementation_globalsignal "
+            "WHERE CAST(operation as TEXT) = \"" +
+            std::to_string(id) + "\";";
+        result = dbConnection_->query(q3);
+        while (result->hasNext()) {
+            result->next();
+            std::string name = result->data("name").stringValue();
+            std::string width = result->data("width").stringValue();
+            std::string type = result->data("type").stringValue();
+            std::string lang = result->data("language").stringValue();
+            std::string renamestr = result->data("rename").stringValue();
+            bool rename = renamestr != "0";
+            if (lang == "VHDL") {
+                Variable var = {name, width, type, rename};
+                retval.vhdlGlobalSignals.emplace_back(var);
+            } else if (lang == "Verilog") {
+                retval.verilogGlobalSignals.emplace_back(
+                    Variable{name, width, type, rename});
+            } else {
+                throw std::runtime_error("Unknown language");
+            }
+        }
+    }
+
+    return retval;
+}
+
+/**
+ * Returns OperationImplementationResource.
+ *
+ * @return OperationImplementationResource.
+ */
+HDB::OperationImplementationResource
+HDBManager::OperationImplementationResourceByID(RowID id) const {
+    RelationalDBQueryResult* result = nullptr;
+    try {
+        result = dbConnection_->query(
+            std::string("SELECT * FROM "
+                "operation_implementation_resource WHERE id = ") +
+            std::to_string(id) +
+            std::string(";"));
+    } catch (const Exception& e) {
+        debugLog(e.errorMessage());
+        assert(false);
+    }
+
+    OperationImplementationResource retval;
+    if (result->hasNext()) {
+        result->next();
+
+        retval.id = id;
+        retval.name = result->data("name").stringValue();
+        retval.ipxact = result->data("ipxact").stringValue();
+    }
+    delete result;
+    result = nullptr;
+
+    try {
+        result = dbConnection_->query(
+            std::string("SELECT block_source_file.file, "
+                        "format.format "
+                        "FROM operation_implementation_resource_"
+                        "source_file, block_source_file, "
+                        "format "
+                        "WHERE operation_implementation_resource_"
+                            "source_file.resource = ") +
+            std::to_string(id) +
+            std::string(" AND operation_implementation_resource_"
+                        "source_file.file = "
+                        " block_source_file.id "
+                        "AND block_source_file.format = "
+                        "format.id;"
+                        ));
+
+    } catch (const Exception& e) {
+        debugLog(e.errorMessage());
+        assert(false);
+    }
+    while (result->hasNext()) {
+        result->next();
+        std::string format = result->data("format").stringValue();
+        if (format == VHDL_FORMAT) {
+            retval.synFiles.push_back(result->data("file").stringValue());
+            retval.synFormats.push_back(format);
+        } else if (format == VHDL_SIM_FORMAT) {
+            retval.simFiles.push_back(result->data("file").stringValue());
+            retval.simFormats.push_back(format);
+        } else if (format == VERILOG_FORMAT) {
+            retval.synFiles.push_back(result->data("file").stringValue());
+            retval.synFormats.push_back(format);
+        } else if (format == VERILOG_SIM_FORMAT) {
+            retval.simFiles.push_back(result->data("file").stringValue());
+            retval.simFormats.push_back(format);
+        }
+    }
+    delete result;
+    result = nullptr;
+
+    return retval;
+}
+
+/**
+ * Add addOperationImplementationResource to the DB.
+ */
+void
+HDBManager::addOperationImplementationResource(
+    const OperationImplementationResource& resource) {
+
+    dbConnection_->updateQuery(
+        std::string(
+            "INSERT INTO operation_implementation_resource(id,name,ipxact) "
+            "VALUES (NULL, \"" +
+            resource.name +"\", \"" + resource.ipxact+ "\");"));
+    RowID resourceID = dbConnection_->lastInsertRowID();
+
+    auto t = resource.simFormats.begin();
+    auto f = resource.simFiles.begin();
+    for (; f != resource.simFiles.end(); ++f, ++t) {
+        int type = fileFormat(*t) + 1;
+
+        dbConnection_->updateQuery(
+        std::string(
+            "INSERT INTO block_source_file(id,file,format) "
+            "VALUES (NULL, \"" + *f + "\","
+            + std::to_string(type) +
+            ");"));
+        RowID fileID = dbConnection_->lastInsertRowID();
+
+        dbConnection_->updateQuery(
+        std::string(
+            "INSERT INTO operation_implementation_resource_source_file"
+            "(id,resource,file) "
+            "VALUES (NULL, " + std::to_string(resourceID) + ", "
+            + std::to_string(fileID) +
+            ");"));
+    }
+
+    auto st = resource.synFormats.begin();
+    auto sf = resource.synFiles.begin();
+    for (; sf != resource.synFiles.end(); ++sf, ++st) {
+        int type = fileFormat(*st) + 1;
+
+        dbConnection_->updateQuery(
+        std::string(
+            "INSERT INTO block_source_file(id,file,format) "
+            "VALUES (NULL, \"" + *sf + "\","
+            + std::to_string(type) +
+            ");"));
+        RowID fileID = dbConnection_->lastInsertRowID();
+
+        dbConnection_->updateQuery(
+        std::string(
+            "INSERT INTO operation_implementation_resource_source_file"
+            "(id,resource,file) "
+            "VALUES (NULL, " + std::to_string(resourceID) + ", "
+            + std::to_string(fileID) +
+            ");"));
+    }
+}
+
+/**
+ * Add addOperationImplementation to the DB.
+ */
+void
+HDBManager::addOperationImplementation(
+        const OperationImplementation& operation) {
+
+
+    std::string i1 = "INSERT INTO operation_implementation(id,name,latency,"
+        "post_op_vhdl,post_op_verilog,bus_definition,"
+        "initial_vhdl,initial_verilog) "
+        "VALUES (NULL,\"" + operation.name + "\","
+             + std::to_string(operation.latency) + ","
+        "\"" + operation.postOpImplFileVhdl + "\","
+        "\"" + operation.postOpImplFileVerilog + "\","
+        "\"" + operation.absBusDefFile + "\","
+        "\"" + operation.initialImplFileVhdl + "\","
+        "\"" + operation.initialImplFileVerilog +
+        "\");";
+    dbConnection_->updateQuery(i1);
+    RowID newid = dbConnection_->lastInsertRowID();
+
+    for (const auto r : operation.resources) {
+        std::string i2 = "INSERT INTO operation_implementation_resources("
+            "id, operation, resource, count) "
+            "VALUES (NULL, " + std::to_string(newid)
+            + ", " + std::to_string(r.id)
+            + ", " + std::to_string(r.count)
+            + ");";
+        dbConnection_->updateQuery(i2);
+    }
+
+    for (const auto r : operation.vhdlVariables) {
+        std::string i2 = "INSERT INTO operation_implementation_variable("
+            "id, operation, name, width, type, language) "
+            "VALUES (NULL, " + std::to_string(newid)
+            + ", \"" + r.name + "\""
+            + ", \"" + r.width + "\""
+            + ", \"" + r.type + "\""
+            + ", \"VHDL\");";
+        dbConnection_->updateQuery(i2);
+    }
+
+    for (const auto r : operation.verilogVariables) {
+        std::string i2 = "INSERT INTO operation_implementation_variable("
+            "id, operation, name, width, type, language) "
+            "VALUES (NULL, " + std::to_string(newid)
+            + ", \"" + r.name + "\""
+            + ", \"" + r.width + "\""
+            + ", \"" + r.type + "\""
+            + ", \"Verilog\");";
+        dbConnection_->updateQuery(i2);
+    }
+
+    std::string i3 = "INSERT INTO block_source_file(id,file,format) "
+        "VALUES (NULL,\"" + operation.implFileVhdl +
+        "\", " + std::to_string(BlockImplementationFile::VHDL) + ");";
+    dbConnection_->updateQuery(i3);
+    RowID vhdl = dbConnection_->lastInsertRowID();
+
+    std::string i4 = "INSERT INTO "
+        "operation_implementation_source_file(id, operation, file) "
+        "VALUES (NULL, " + std::to_string(newid) +
+        ", " + std::to_string(vhdl) +
+        ");";
+    dbConnection_->updateQuery(i4);
+
+    std::string i5 = "INSERT INTO block_source_file(id,file,format) "
+        "VALUES (NULL,\"" + operation.implFileVerilog +
+        "\", " + std::to_string(BlockImplementationFile::Verilog) + ");";
+    dbConnection_->updateQuery(i5);
+    RowID verilog = dbConnection_->lastInsertRowID();
+
+    std::string i6 = "INSERT INTO "
+        "operation_implementation_source_file(id, operation, file) "
+        "VALUES (NULL, " + std::to_string(newid) +
+        ", " + std::to_string(verilog) +
+        ");";
+    dbConnection_->updateQuery(i6);
+}
+
+/**
+ * Remove Operation Implemententation from DB.
+ */
+void
+HDBManager::removeOperationImplementation(RowID id) {
+    std::string d1 = "DELETE FROM operation_implementation "
+        "WHERE id = " + std::to_string(id) + ";";
+    std::string d2 =
+        "DELETE FROM operation_implementation_source_file "
+        "WHERE operation = " + std::to_string(id) + ";";
+    std::string d3 =
+        "DELETE FROM operation_implementation_resources "
+        "WHERE operation = " + std::to_string(id) + ";";
+    std::string d4 =
+        "DELETE FROM operation_implementation_variable "
+        "WHERE operation = " + std::to_string(id) + ";";
+    std::string s1 = "SELECT file FROM "
+        "operation_implementation_source_file "
+        "WHERE operation = " + std::to_string(id) + ";";
+
+    RelationalDBQueryResult* result = dbConnection_->query(s1);
+    while (result->hasNext()) {
+        result->next();
+        int file_id = result->data(0).integerValue();
+        std::string d3lete = "DELETE FROM block_source_file "
+            "WHERE id = " + std::to_string(file_id) + ";";
+        dbConnection_->updateQuery(d3lete);
+    }
+
+    dbConnection_->updateQuery(d4);
+    dbConnection_->updateQuery(d3);
+    dbConnection_->updateQuery(d2);
+    dbConnection_->updateQuery(d1);
+    delete result;
+}
+
+/**
+ * Remove Operation Implemententation Resource from DB.
+ */
+void
+HDBManager::removeOperationImplementationResource(RowID id) {
+    std::string d1 = "DELETE FROM operation_implementation_resource "
+        "WHERE id = " + std::to_string(id) + ";";
+    std::string d2 =
+        "DELETE FROM operation_implementation_resource_source_file "
+        "WHERE resource = " + std::to_string(id) + ";";
+    std::string s1 = "SELECT file FROM "
+        "operation_implementation_resource_source_file "
+        "WHERE resource = " + std::to_string(id) + ";";
+
+    RelationalDBQueryResult* result = dbConnection_->query(s1);
+    while (result->hasNext()) {
+        result->next();
+        int file_id = result->data(0).integerValue();
+        std::string d3 = "DELETE FROM block_source_file "
+            "WHERE id = " + std::to_string(file_id) + ";";
+            dbConnection_->updateQuery(d3);
+    }
+
+    dbConnection_->updateQuery(d2);
+    dbConnection_->updateQuery(d1);
+    delete result;
+}
+
+
+std::set<RowID>
 HDBManager::fuArchitectureIDsByOperationSet(
     const std::set<std::string>& operationNames) const {
-    
+
     RelationalDBQueryResult* result = NULL;
     try {
         std::string operationQuery = "(";
         std::set<string>::const_iterator iter = operationNames.begin();
         while (iter != operationNames.end()) {
             // LIKE makes case-insensitive match to operation names
-            operationQuery += 
+            operationQuery +=
                 "operation.name LIKE '" + *iter + "'";
             iter++;
             if (iter != operationNames.end()) {
@@ -2321,6 +2983,7 @@ HDBManager::rfArchitectureByID(RowID id) const {
     int maxWritesColumn = architectureData->column("max_writes");
     int guardSupportColumn = architectureData->column("guard_support");
     int guardLatencyColumn = architectureData->column("guard_latency");
+    int zeroRegisterColumn = architectureData->column("zero_register");
 
     assert(architectureData->hasNext());
     architectureData->next();
@@ -2343,11 +3006,14 @@ HDBManager::rfArchitectureByID(RowID id) const {
         guardSupportColumn);
     const DataObject& guardLatencyData = architectureData->data(
         guardLatencyColumn);
+    const DataObject& zeroRegisterData = architectureData->data(
+        zeroRegisterColumn);
     RFArchitecture* architecture = new RFArchitecture(
         readPortsData.integerValue(), writePortsData.integerValue(),
         bidirPortsData.integerValue(), maxReadsData.integerValue(),
         maxWritesData.integerValue(), latencyData.integerValue(), 
-        guardSupportData.boolValue(), guardLatencyData.integerValue());
+        guardSupportData.boolValue(), guardLatencyData.integerValue(),
+        zeroRegisterData.boolValue());
     std::cout.flush();
     architecture->setID(id);
     if (!sizeData.isNull()) {
@@ -2455,11 +3121,12 @@ HDBManager::fuEntriesByArchitecture(
  * @param writePorts The number of write ports.
  * @param bidirPorts The number of bidirectional ports.
  * @param maxRead The (minimum) max reads value.
- * @param latency The (maximum) latency.
+ * @param latency The exact latency.
  * @param guardSupport Guard support.
  * @param guardLatency The guard latency.
  * @param width The bit withd of the register file.
  * @param size The number of registers in the register file.
+ * @param zeroRegister zero register of the register file
  * @return Set of RF entry IDs.
  */
 std::set<RowID>
@@ -2473,7 +3140,8 @@ HDBManager::rfEntriesByArchitecture(
     bool guardSupport,
     int guardLatency,
     int width,
-    int size) const {
+    int size,
+    bool zeroRegister) const {
 
     RelationalDBQueryResult* result = NULL;
     try {
@@ -2488,7 +3156,7 @@ HDBManager::rfEntriesByArchitecture(
             Conversion::toString(maxReads) +
             " AND rf_architecture.max_writes>=" +
             Conversion::toString(maxWrites) +
-            " AND rf_architecture.latency<=" +
+            " AND rf_architecture.latency=" +
             Conversion::toString(latency);
         if (guardSupport) {
             query += " AND rf_architecture.guard_support=" + 
@@ -2506,6 +3174,12 @@ HDBManager::rfEntriesByArchitecture(
                 Conversion::toString(width) +
                 " OR rf_architecture.width is NULL)";
         }
+        query += " AND (rf_architecture.zero_register=" +
+            Conversion::toString(zeroRegister);
+        if (!zeroRegister) {
+            query += " OR rf_architecture.zero_register is NULL";
+        }
+        query += ")";
         query += " AND rf.architecture=rf_architecture.id;";
         result = dbConnection_->query(query);
     } catch (const Exception& e) {
@@ -2547,8 +3221,8 @@ HDBManager::addFUCostEstimationData(
         dbConnection_->updateQuery(
             std::string(
                 "INSERT INTO cost_estimation_data (id,plugin_reference,"
-                "fu_reference,name,value) VALUES (NULL," + 
-                Conversion::toString(pluginID) + "," + 
+                "fu_reference,name,value) VALUES (NULL," +
+                Conversion::toString(pluginID) + "," +
                 Conversion::toString(fuID) + ",\"" + valueName + "\",\"" +
                 value + "\");"));
         dataID = dbConnection_->lastInsertRowID();
@@ -3116,7 +3790,7 @@ HDBManager::socketCostEstimationDataList(
         // should not throw in any case
         debugLog(e.errorMessage());
         assert(false);        
-    }   
+    }
 
     if (queryResult->hasNext()) {
      
@@ -3512,7 +4186,7 @@ HDBManager::containsImplementationFile(const std::string& pathToFile) const {
     try {
         RelationalDBQueryResult* result = dbConnection_->query(
             std::string(
-                "SELECT * FROM block_source_file WHERE file=\"" + 
+                "SELECT * FROM block_source_file WHERE file=\"" +
                 pathToFile + "\";"));
         bool returnValue = result->hasNext();
         delete result;
@@ -5038,12 +5712,14 @@ HDBManager::insertFileFormats(RelationalDBConnection& connection) {
  */
 BlockImplementationFile::Format
 HDBManager::fileFormat(const std::string& formatString) {
-
     if (formatString == VHDL_FORMAT) {
         return BlockImplementationFile::VHDL;
-    } else
-    if (formatString == VERILOG_FORMAT) {
+    } else if (formatString == VERILOG_FORMAT) {
          return BlockImplementationFile::Verilog;
+    } else if (formatString == VHDL_SIM_FORMAT) {
+         return BlockImplementationFile::VHDLsim;
+    } else if (formatString == VERILOG_SIM_FORMAT) {
+         return BlockImplementationFile::Verilogsim;
     }
     assert(false);
     // dummy return to avoid whining with some compilers
@@ -5061,9 +5737,12 @@ std::string
 HDBManager::formatString(BlockImplementationFile::Format format) {
     if (format == BlockImplementationFile::VHDL) {
         return VHDL_FORMAT;
-    } else
-    if (format == BlockImplementationFile::Verilog) {
+    } else if (format == BlockImplementationFile::Verilog) {
        return VERILOG_FORMAT;
+    } else if (format == BlockImplementationFile::VHDLsim) {
+       return VHDL_SIM_FORMAT;
+    } else if (format == BlockImplementationFile::Verilogsim) {
+       return VERILOG_SIM_FORMAT;
     }
 
     // dummy return to avoid compiler whining

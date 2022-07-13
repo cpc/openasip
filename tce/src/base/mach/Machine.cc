@@ -55,6 +55,7 @@
 #include "Application.hh"
 #include "ADFSerializer.hh"
 #include "ObjectState.hh"
+#include "OperationTriggeredFormat.hh"
 
 using std::string;
 using std::set;
@@ -276,6 +277,18 @@ Machine::addInstructionTemplate(InstructionTemplate& instrTempl) {
 }
 
 /**
+ * Adds an OTA format for the machine.
+ *
+ * @param OperationTriggeredFormat The OTA format to be added.
+ * @exception ComponentAlreadyExists If an instruction template by the same
+ *                                   name already exists in the machine.
+ */
+void
+Machine::addOperationTriggeredFormat(OperationTriggeredFormat& format) {
+    addRegisteredComponent(operationTriggeredFormats_, format);
+}
+
+/**
  * Adds an immediate slot to (instruction of) the machine.
  *
  * @param slot The immediate slot to be added.
@@ -414,6 +427,17 @@ Machine::immediateUnitNavigator() const {
 Machine::InstructionTemplateNavigator
 Machine::instructionTemplateNavigator() const {
     InstructionTemplateNavigator navigator(instructionTemplates_);
+    return navigator;
+}
+
+/**
+ * Returns a handle to the instruction templates in the machine.
+ *
+ * @return Handle to the instruction templates in the machine.
+ */
+Machine::OperationTriggeredFormatNavigator
+Machine::operationTriggeredFormatNavigator() const {
+    OperationTriggeredFormatNavigator navigator(operationTriggeredFormats_);
     return navigator;
 }
 
@@ -578,6 +602,19 @@ Machine::deleteInstructionTemplate(InstructionTemplate& instrTempl) {
 }
 
 /**
+ * Deletes the given instruction template.
+ *
+ * @param instrTempl The instruction template to be deleted.
+ * @exception InstanceNotFound If the machine does not have the given
+ *                             instruction template.
+ */
+void
+Machine::deleteOperationTriggeredFormat(OperationTriggeredFormat& format) {
+    deleteComponent(operationTriggeredFormats_, format);
+}
+
+
+/**
  * Deletes the given address space.
  *
  * @param as The address space to be deleted.
@@ -661,6 +698,7 @@ Machine::saveState() const {
     saveComponentStates(addressSpaces_, rootState);
     saveComponentStates(instructionTemplates_, rootState);
     saveComponentStates(immediateSlots_, rootState);
+    saveComponentStates(operationTriggeredFormats_, rootState);
 
     // save global control unit
     if (controlUnit_ != NULL) {
@@ -706,6 +744,7 @@ Machine::loadState(const ObjectState* state) {
     addressSpaces_.deleteAll();
     bridges_.deleteAll();
     immediateSlots_.deleteAll();
+    operationTriggeredFormats_.deleteAll();
 
     if (controlUnit_ != NULL) {
         delete controlUnit_;
@@ -770,11 +809,14 @@ Machine::loadState(const ObjectState* state) {
             } else if (child->name() == ImmediateSlot::OSNAME_IMMEDIATE_SLOT) {
                 new ImmediateSlot(child, *this);
             } else if (child->name() != 
-                       InstructionTemplate::OSNAME_INSTRUCTION_TEMPLATE) {
+                       InstructionTemplate::OSNAME_INSTRUCTION_TEMPLATE &&
+                       child->name() !=
+                       OperationTriggeredFormat::OSNAME_FORMAT) {
                 throw ObjectStateLoadingException(
                     __FILE__, __LINE__, procName);
             }
         }
+        
 
     } catch (const Exception& e) {
         if (toAdd != NULL) {
@@ -822,6 +864,9 @@ Machine::loadState(const ObjectState* state) {
                        InstructionTemplate::OSNAME_INSTRUCTION_TEMPLATE) {
                 // instruction template loads its state completely
                 new InstructionTemplate(child, *this);
+            } else if (child->name() ==
+            OperationTriggeredFormat::OSNAME_FORMAT) {
+                new OperationTriggeredFormat(child, *this);
             }
         }
     } catch (const Exception& e) {
@@ -1015,5 +1060,34 @@ Machine::hasOperation(const TCEString& opName) const {
         return true;
     }
     return false;
+}
+
+bool
+Machine::RISCVMachine() const {
+    OperationTriggeredFormatNavigator fNav =
+    operationTriggeredFormatNavigator();
+    int fCount = fNav.count();
+    if (fCount == 0) {
+        return false;
+    } else if (fCount != 6) {
+        throw InvalidData(
+                __FILE__, __LINE__, __func__,
+                TCEString("Only Instruction format count 6 or 0 valid") +
+                "Given machine has " +
+                Conversion::toString(fCount) + " formats");
+    }
+    const std::vector<std::string> requiredFormats = 
+    {"riscv_r_type", "riscv_i_type", "riscv_s_type", "riscv_b_type",
+     "riscv_u_type", "riscv_j_type"};
+     
+    for (const std::string f : requiredFormats) {
+        if (!fNav.hasItem(f)) {
+            throw InvalidData(
+                __FILE__, __LINE__, __func__,
+                TCEString("Missing required instruction format: ") + f);
+        }
+    }
+    return true;
+    
 }
 }

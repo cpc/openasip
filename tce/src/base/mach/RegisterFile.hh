@@ -56,7 +56,7 @@ public:
     RegisterFile(
         const std::string& name, unsigned int size, unsigned int width,
         unsigned int maxReads, unsigned int maxwrites,
-        unsigned int guardLatency, Type type);
+        unsigned int guardLatency, Type type, bool zeroRegister = false);
     explicit RegisterFile(const ObjectState* state);
     virtual ~RegisterFile();
     virtual RegisterFile* copy() const;
@@ -87,6 +87,9 @@ public:
 
     virtual bool isUsedAsGuard() const;
 
+    virtual bool zeroRegister() const;
+    virtual void setZeroRegister(const bool& value);
+
     /// ObjectState name for RegisterFile.
     static const std::string OSNAME_REGISTER_FILE;
     /// ObjectState attribute key for register file type.
@@ -103,6 +106,9 @@ public:
     static const std::string OSKEY_MAX_WRITES;
     /// ObjectState attribute key for the guard latency.
     static const std::string OSKEY_GUARD_LATENCY;
+    /// ObjectState attribute key for zero register flag.
+    static const std::string OSKEY_ZERO_REGISTER;
+
 
     Port* firstReadPort() const;
     Port* firstWritePort() const;
@@ -128,6 +134,8 @@ private:
 
     /// Type of the register file.
     Type type_;
+    // True if the first index is hard coded to zero
+    bool zeroRegister_;
 };
 }
 

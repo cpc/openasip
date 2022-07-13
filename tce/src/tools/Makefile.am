@@ -11,7 +11,7 @@ libtcetools_la_SOURCES = Exception.cc CmdLineOptions.cc CmdLineOptionParser.cc \
 	PluginTools.cc Conversion.cc StringTools.cc DataObject.cc SimValue.cc \
 	ConfigurationFile.cc ProcessorConfigurationFile.cc Listener.cc \
 	Informer.cc Options.cc OptionValue.cc CmdLineParser.cc MathTools.cc \
-	BitMatrix.cc TCEString.cc HalfFloatWord.cc Reversible.cc
+	BitMatrix.cc TCEString.cc HalfFloatWord.cc Reversible.cc IPXact.cc
 
 if HAVE_SQLITE
   libtcetools_la_SOURCES += SQLiteConnection.cc RelationalDBQueryResult.cc \
@@ -21,7 +21,22 @@ endif
 
 PROJECT_ROOT = $(top_srcdir)
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
-AM_CPPFLAGS = -I${PROJECT_ROOT} -I${PROJECT_ROOT}/src/base/memory
+AM_CPPFLAGS = -I${PROJECT_ROOT} -I${PROJECT_ROOT}/src/base/memory \
+    -I${PROJECT_ROOT}/src/bintools/Compiler/llvm-tce/ \
+    -I$(PROJECT_ROOT)/src/applibs/Scheduler/Algorithms/ \
+    -I$(PROJECT_ROOT)/src/base/mach \
+    -I$(PROJECT_ROOT)/src/base/program \
+    -I$(PROJECT_ROOT)/src/base/osal \
+	-I$(PROJECT_ROOT)/src/base/idf \
+	-I$(PROJECT_ROOT)/src/base/Graph \
+	-I$(PROJECT_ROOT)/src/applibs/ProGe \
+	-I$(PROJECT_ROOT)/src/applibs/hdb \
+	-I$(PROJECT_ROOT)/src/applibs/Explorer \
+	-I$(PROJECT_ROOT)/src/applibs/dsdb \
+	-I$(PROJECT_ROOT)/src/applibs/Simulator \
+	-I$(PROJECT_ROOT)/src/applibs/Estimator \
+	-I$(PROJECT_ROOT)/src/procgen/ProGe
+AM_LDFLAGS = -L../bintools/Compiler/llvm-tce/
 
 include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseType.hh \
 	SimValue.hh Serializable.hh ObjectState.icc Conversion.hh \
@@ -32,7 +47,7 @@ include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseT
 	Informer.hh Informer.icc HalfFloatWord.hh tce_config_public.h \
 	CompilerWarnings.hh Environment.hh
 
-REVNO=$(shell which git > /dev/null && echo -n "-r" && git rev-list --all --count)
+REVNO=$(shell which git > /dev/null && echo -n "-r" && git rev-list HEAD | wc -l)
 
 TCE_VERSION_STRING=@PACKAGE_VERSION@$(REVNO)
 

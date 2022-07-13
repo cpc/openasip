@@ -1,0 +1,11 @@
+bnz 13 12
+!register programcounter
+bnz 0 65
+!register programcounter
+bnz 1 65
+!register programcounter
+bnz 0 123
+!register programcounter
+bnz -1 126
+!register programcounter
+!quit

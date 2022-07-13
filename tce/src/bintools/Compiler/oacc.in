@@ -1144,7 +1144,7 @@ p.add_option('--supported-languages', action='store_true',
 
 p.add_option('--version', action='store_true',
              dest='print_version', default=False, help=\
-"""Print the tcecc version info and exit.""")
+"""Print the oacc version info and exit.""")
 
 p.add_option('--llvm-args', type="string",
              action='store', dest='llvm_args', default="",
@@ -1382,7 +1382,7 @@ if options.list_langs:
 if options.std == 'c99':
     sys.stderr.write("warning: use --std=gnu99 instead of c99 in case you use custom operations\n")
 if options.print_version:
-    print("tcecc - TCE retargetable compiler %s" % "@PACKAGE_VERSION@")
+    print("oacc - TCE retargetable compiler %s" % "@PACKAGE_VERSION@")
     sys.exit(0)
 
 if len(inFiles) == 0:

@@ -113,7 +113,7 @@ private:
         ObjectState* mdfIUState);
     static void instructionTemplateToMachine(
         const ObjectState* mdfITState, ObjectState* momMachineState,
-        const std::string& iuName);
+        const std::string& iuName = std::string(""));
     static ObjectState* momTemplateSlot(
         const ObjectState* momITState,
         const std::string& busName);

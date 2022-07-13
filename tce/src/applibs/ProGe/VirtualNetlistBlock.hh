@@ -53,8 +53,7 @@ class VirtualNetlistBlock : public NetlistBlock {
 public:
     VirtualNetlistBlock(
         const std::string& moduleName,
-        const std::string& instanceName,
-        Netlist& netlist);
+        const std::string& instanceName);
     virtual ~VirtualNetlistBlock();
 
     virtual bool isVirtual() const;

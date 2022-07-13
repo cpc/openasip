@@ -41,8 +41,9 @@
 
 #include "VHDLNetlistWriter.hh"
 #include "Netlist.hh"
-#include "NetlistBlock.hh"
+#include "BaseNetlistBlock.hh"
 #include "NetlistPort.hh"
+#include "Parameter.hh"
 
 #include "FileSystem.hh"
 #include "Conversion.hh"
@@ -66,8 +67,8 @@ namespace ProGe {
  *
  * @param netlist The input netlist.
  */
-VHDLNetlistWriter::VHDLNetlistWriter(const Netlist& netlist) :
-    NetlistWriter(netlist), groundWidth_(0) {
+VHDLNetlistWriter::VHDLNetlistWriter(const BaseNetlistBlock& targetBlock) :
+    NetlistWriter(targetBlock), groundWidth_(0) {
 }
 
 
@@ -87,15 +88,12 @@ VHDLNetlistWriter::~VHDLNetlistWriter() {
  */
 void
 VHDLNetlistWriter::write(const std::string& dstDirectory) {
-    const Netlist& netlist = this->netlist();
-    if (netlist.isEmpty()) {
+    if (targetNetlistBlock().netlist().isEmpty()) {
         string errorMsg = "Empty input netlist.";
         throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
-
     writeNetlistParameterPackage(dstDirectory);
-    NetlistBlock& topLevelBlock = netlist.topLevelBlock();
-    writeBlock(topLevelBlock, dstDirectory);
+    writeBlock(targetNetlistBlock(), dstDirectory);
 }
 
 /**
@@ -113,10 +111,12 @@ VHDLNetlistWriter::writeNetlistParameterPackage(
     outFile.open(fileName.c_str(), ofstream::out);
 
     outFile << "package " << netlistParameterPkgName() << " is" << endl;
-    for (int i = 0; i < netlist().parameterCount(); i++) {
-        Netlist::Parameter param = netlist().parameter(i);
-        outFile << indentation(1) << "constant " << param.name << " : "
-                << param.type << " := " << param.value << ";" << endl;
+    for (size_t i = 0; i < targetNetlistBlock().netlist().parameterCount();
+        i++) {
+        Parameter param = targetNetlistBlock().netlist().parameter(i);
+        outFile << indentation(1) << "constant " << param.name() << " : "
+                << param.type() << " := " << param.value()
+                << ";" << endl;
     }
     outFile << "end " << netlistParameterPkgName() << ";" << endl;
 }
@@ -129,8 +129,7 @@ VHDLNetlistWriter::writeNetlistParameterPackage(
  */
 std::string
 VHDLNetlistWriter::netlistParameterPkgName() const {
-//    return netlist().coreEntityName() + "_params";
-    return netlist().topLevelBlock().moduleName() + "_params";
+    return targetNetlistBlock().moduleName() + "_params";
 }
 
 
@@ -143,7 +142,7 @@ VHDLNetlistWriter::netlistParameterPkgName() const {
  */
 void
 VHDLNetlistWriter::writeBlock(
-    const NetlistBlock& block, const std::string& dstDirectory) {
+    const BaseNetlistBlock& block, const std::string& dstDirectory) {
     string fileName = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         block.moduleName() + ".vhdl";
     if (!FileSystem::fileIsCreatable(fileName) && 
@@ -163,17 +162,12 @@ VHDLNetlistWriter::writeBlock(
     outFile << "use IEEE.std_logic_1164.all;" << endl;
     outFile << "use IEEE.std_logic_arith.all;" << endl;
     outFile << "use work.tce_util.all;" << endl;
-    outFile << "use work." << netlist().coreEntityName()
-            << "_globals.all;" << endl;
-    outFile << "use work." << netlist().coreEntityName()
-            << "_imem_mau.all;" << endl;
 
     for (size_t i = 0; i < block.packageCount(); i++) {
         outFile << "use work." << block.package(i) << ".all;" << endl;
     }
 
-
-    if (netlist().parameterCount() > 0) {
+    if (block.netlist().parameterCount() > 0) {
         outFile << "use work." << netlistParameterPkgName() << ".all;"
                 << endl;
     }
@@ -221,7 +215,7 @@ VHDLNetlistWriter::writeBlock(
  */
 void
 VHDLNetlistWriter::writeGenericDeclaration(
-    const NetlistBlock& block,
+    const BaseNetlistBlock& block,
     unsigned int indentationLevel,
     const std::string& indentation,
     std::ostream& stream) {
@@ -230,21 +224,21 @@ VHDLNetlistWriter::writeGenericDeclaration(
         stream << endl;
         stream << generateIndentation(indentationLevel, indentation)
                << "generic (" << endl;
-        for (int i = 0; i < block.parameterCount(); i++) {
-            Netlist::Parameter param = block.parameter(i);
+        for (size_t i = 0; i < block.parameterCount(); i++) {
+            Parameter param = block.parameter(i);
             stream << generateIndentation(indentationLevel+1, indentation)
-                   << param.name << " : " << param.type;
-            if (param.value != "") {
+                   << param.name() << " : " << param.type();
+            if (param.defaultValue() != "") {
                 stream << " := ";
-                if (param.type.lower() == PARAM_STRING) {
+                if (param.type().lower() == PARAM_STRING) {
                     // string literal needs quot. marks
-                    if (!param.value.startsWith("\""))
+                    if (!param.defaultValue().startsWith("\""))
                         stream << "\"";
-                    stream << param.value;
-                    if (!param.value.endsWith("\""))
+                    stream << param.value();
+                    if (!param.defaultValue().endsWith("\""))
                         stream << "\"";
                 } else {
-                    stream << param.value;
+                    stream << param.defaultValue();
                 }
             }
             if (i + 1 == block.parameterCount()) {
@@ -269,7 +263,7 @@ VHDLNetlistWriter::writeGenericDeclaration(
  */
 void
 VHDLNetlistWriter::writePortDeclaration(
-    const NetlistBlock& block,
+    const BaseNetlistBlock& block,
     unsigned int indentationLevel,
     const std::string& indentation,
     std::ostream& stream) {
@@ -277,8 +271,8 @@ VHDLNetlistWriter::writePortDeclaration(
     stream << generateIndentation(indentationLevel, indentation) << "port ("
            << endl;
 
-    for (int i = 0; i < block.portCount(); i++) {
-        NetlistPort& port = block.port(i);
+    for (size_t i = 0; i < block.portCount(); i++) {
+        const NetlistPort& port = block.port(i);
         string portName = port.name();
         string direction = directionString(port.direction());
         stream << generateIndentation(indentationLevel+1, indentation)
@@ -316,13 +310,14 @@ VHDLNetlistWriter::writePortDeclaration(
  */
 void
 VHDLNetlistWriter::writeSignalDeclarations(
-    const NetlistBlock& block,
+    const BaseNetlistBlock& block,
     std::ofstream& stream) {
 
     // collect all the sub blocks to a set, lexicographical sort.
-    typedef std::set<NetlistBlock*, NetlistBlockNameComparator> BlockSet;
+    typedef std::set<const BaseNetlistBlock*, NetlistBlockNameComparator>
+        BlockSet;
     BlockSet subBlocks;
-    for (int i = 0; i < block.subBlockCount(); i++) {
+    for (size_t i = 0; i < block.subBlockCount(); i++) {
         // ports belonging to virtual blocks have static values, thus they are
         // excluded
         if (!block.subBlock(i).isVirtual()) {
@@ -333,27 +328,28 @@ VHDLNetlistWriter::writeSignalDeclarations(
     // create a signal for each port in the sub-blocks
     for (BlockSet::const_iterator iter = subBlocks.begin();
          iter != subBlocks.end(); iter++) {
-        NetlistBlock* subBlock = *iter;
+        const BaseNetlistBlock* subBlock = *iter;
         
-        for (int i = 0; i < subBlock->portCount(); i++) {
-            NetlistPort& port = subBlock->port(i);
+        for (size_t i = 0; i < subBlock->portCount(); i++) {
+            const NetlistPort& port = subBlock->port(i);
 
-            size_t vertexDescriptor = netlist().descriptor(port);
+            size_t vertexDescriptor = block.netlist().descriptor(port);
             std::pair<out_edge_iterator, out_edge_iterator> edges =
-                boost::out_edges(vertexDescriptor, netlist());
+                boost::out_edges(vertexDescriptor, block.netlist());
             
             if (edges.first != edges.second) {
                 edge_descriptor edgeDescriptor = *edges.first;
                 vertex_descriptor dstVertex = boost::target(
-                    edgeDescriptor, netlist());
-                NetlistPort* dstPort = netlist()[dstVertex];
-                if (dstPort->parentBlock() != &block ||
+                    edgeDescriptor, block.netlist());
+                const NetlistPort* dstPort = block.netlist()[dstVertex];
+
+                if (&dstPort->parentBlock() != &block ||
                     boost::out_degree(vertexDescriptor, block.netlist()) > 1) {
                     stream << indentation(1) << "signal "
                            << portSignalName(port) << " : "
                            << portSignalType(port) << ";" << endl;
                 }
-            } else {
+            } else if(!port.hasStaticValue()) {
                 // assume the port is connected to ground if is is
                 // unconnected in the netlist
                 if (port.realWidthAvailable()) {
@@ -370,8 +366,8 @@ VHDLNetlistWriter::writeSignalDeclarations(
     // create a ground signal
     if (groundWidth_ > 0) {
         stream << indentation(1) << "signal " << GROUND_SIGNAL
-               << " : std_logic_vector(" << groundWidth_ - 1
-               << " downto 0);" << endl;
+               << " : std_logic_vector" << signalRange(groundWidth_-1, 0)
+               << ";" << endl;
     }
 }
 
@@ -384,24 +380,24 @@ VHDLNetlistWriter::writeSignalDeclarations(
  */
 void
 VHDLNetlistWriter::writeSignalAssignments(
-    const NetlistBlock& block,
+    const BaseNetlistBlock& block,
     std::ofstream& stream) const {
 
-    set<NetlistBlock*, NetlistBlockNameComparator> subBlocks;
-    for (int i = 0; i < block.subBlockCount(); i++) {
+    set<const BaseNetlistBlock*, NetlistBlockNameComparator> subBlocks;
+    for (size_t i = 0; i < block.subBlockCount(); i++) {
         subBlocks.insert(&block.subBlock(i));
     }
 
     typedef std::vector<edge_descriptor> EdgeTable;
     EdgeTable handledEdges;
     
-    for (int i = 0; i < block.subBlockCount(); i++) {
-        NetlistBlock& subBlock = block.subBlock(i);
-        for (int i = 0; i < subBlock.portCount(); i++) {
-            NetlistPort& port = subBlock.port(i);
-            size_t vertexDescriptor = netlist().descriptor(port);
+    for (size_t i = 0; i < block.subBlockCount(); i++) {
+        const BaseNetlistBlock& subBlock = block.subBlock(i);
+        for (size_t i = 0; i < subBlock.portCount(); i++) {
+            const NetlistPort& port = subBlock.port(i);
+            size_t vertexDescriptor = block.netlist().descriptor(port);
             std::pair<out_edge_iterator, out_edge_iterator> edges =
-                boost::out_edges(vertexDescriptor, netlist());
+                boost::out_edges(vertexDescriptor, block.netlist());
 
             while (edges.first != edges.second) {
                 edge_descriptor edgeDescriptor = *edges.first;
@@ -409,112 +405,45 @@ VHDLNetlistWriter::writeSignalAssignments(
                 if (!ContainerTools::containsValue(
                         handledEdges, edgeDescriptor)) {
                     vertex_descriptor srcVertex = boost::source(
-                        edgeDescriptor, netlist());
+                        edgeDescriptor, block.netlist());
                     vertex_descriptor dstVertex = boost::target(
-                        edgeDescriptor, netlist());
-                    NetlistPort* srcPort = netlist()[srcVertex];
-                    NetlistPort* dstPort = netlist()[dstVertex];
+                        edgeDescriptor, block.netlist());
+                    NetlistPort* srcPort = block.netlist()[srcVertex];
+                    NetlistPort* dstPort = block.netlist()[dstVertex];
                     
-                    if (dstPort->parentBlock() == &block) {
-                        if (dstPort->direction() == HDB::OUT &&
-                            srcPort->dataType() == dstPort->dataType() && 
-                            boost::out_degree(vertexDescriptor,
+                    if (&dstPort->parentBlock() == &block) {
+                        if (boost::out_degree(vertexDescriptor,
                                 block.netlist()) > 1) {
                             // Handle the rare case of multiple outputs
                             // through a wire signal. This isn't done normally
                             // because there would be an ugly wire signal for
                             // every clk, rstx, etc.
-                            stream << indentation(1)
-                                   << dstPort->name()
-                                   << " <= "
-                                   << portSignalName(*srcPort) << ";"
-                                   << endl;
+                            if (dstPort->direction() == OUT ||
+                                srcPort->dataType() != dstPort->dataType()) {
+                                writeConnection(block, stream, edgeDescriptor,
+                                            srcPort, dstPort);
+                            }
                         }
                         continue;
                     }
 
                     assert(srcPort == &port);
                     if (AssocTools::containsKey(
-                            subBlocks, srcPort->parentBlock()) &&
+                            subBlocks, &srcPort->parentBlock()) &&
                         AssocTools::containsKey(
-                            subBlocks, dstPort->parentBlock())) {
+                            subBlocks, &dstPort->parentBlock())) {
                         
-                         handledEdges.push_back(edgeDescriptor);
-                         // add the opposite edge too
-                         std::pair<edge_descriptor, bool> opposite =
-                             boost::edge(dstVertex, srcVertex, netlist());
-                         assert(opposite.second);
-                         assert(opposite.first != edgeDescriptor);
-                         handledEdges.push_back(opposite.first);
-                         
-                         PortConnectionProperty property =
-                             netlist()[edgeDescriptor];
-                         if (property.fullyConnected()) {
-                             if (srcPort->direction() == HDB::OUT) {
-                                 stream << indentation(1)
-                                        << portSignalName(*dstPort) 
-                                        << " <= " 
-                                        << portSignalName(*srcPort) << ";"
-                                        << endl;
-                             } else {
-                                 stream << indentation(1)
-                                        << portSignalName(*srcPort)
-                                        << " <= "
-                                        << portSignalName(*dstPort) << ";"
-                                        << endl;
-                             }
-                         } else {
-                             string srcPortSignal;
-                             if (srcPort->dataType() == BIT) {
-                                 srcPortSignal = portSignalName(*srcPort);
-                             } else {
-                                 if (dstPort->dataType() == BIT) {
-                                     srcPortSignal = 
-                                         portSignalName(*srcPort) + "(" + 
-                                         Conversion::toString(
-                                             property.port1FirstBit()) + ")";
-                                 } else {
-                                     srcPortSignal = 
-                                         portSignalName(*srcPort) + "(" + 
-                                         Conversion::toString(
-                                             property.port1FirstBit() + 
-                                             property.width() - 1) + 
-                                         " downto " + 
-                                         Conversion::toString(
-                                             property.port1FirstBit()) + ")";
-                                 }
-                             }
-                             string dstPortSignal;
-                             if (dstPort->dataType() == BIT) {
-                                 dstPortSignal = portSignalName(*dstPort);
-                             } else {
-                                 if (srcPort->dataType() == BIT) {
-                                     dstPortSignal = 
-                                         portSignalName(*dstPort) + "(" + 
-                                         Conversion::toString(
-                                             property.port2FirstBit()) + ")";
-                                 } else {
-                                     dstPortSignal = 
-                                         portSignalName(*dstPort) + "(" + 
-                                         Conversion::toString(
-                                             property.port2FirstBit() + 
-                                             property.width() - 1) + 
-                                         " downto " + 
-                                         Conversion::toString(
-                                             property.port2FirstBit()) + ")";
-                                 }
-                             }
-                                 
-                             if (srcPort->direction() == HDB::OUT) {
-                                 stream << indentation(1) << dstPortSignal
-                                        << " <= " << srcPortSignal << ";"
-                                        << endl;
-                             } else {
-                                 stream << indentation(1) << srcPortSignal
-                                        << " <= " << dstPortSignal << ";"
-                                        << endl;
-                             }
-                         }
+                        handledEdges.push_back(edgeDescriptor);
+                        // add the opposite edge too
+                        std::pair<edge_descriptor, bool> opposite =
+                            boost::edge(dstVertex, srcVertex,
+                                block.netlist());
+                        assert(opposite.second);
+                        assert(opposite.first != edgeDescriptor);
+                        handledEdges.push_back(opposite.first);
+
+                        writeConnection(block, stream, edgeDescriptor,
+                                        srcPort, dstPort);
                     }
                 }
             }
@@ -526,7 +455,92 @@ VHDLNetlistWriter::writeSignalAssignments(
                << endl;
     }
 }
-            
+
+void
+VHDLNetlistWriter::writeConnection(
+    const BaseNetlistBlock& block,
+    std::ofstream& stream,
+    edge_descriptor edgeDescriptor,
+    NetlistPort* srcPort,
+    NetlistPort* dstPort) const {
+
+    PortConnectionProperty property =
+         block.netlist()[edgeDescriptor];
+    if (property.fullyConnected()) {
+        if (&dstPort->parentBlock() == &block) {
+            if (srcPort->direction() == OUT) {
+                stream << indentation(1)
+                       << dstPort->name()
+                       << " <= "
+                       << portSignalName(*srcPort) << ";"
+                       << endl;
+            } else {
+                stream << indentation(1)
+                       << portSignalName(*srcPort)
+                       << " <= "
+                       << dstPort->name() << ";"
+                       << endl;
+            }
+        } else {
+            if (srcPort->direction() == OUT) {
+                stream << indentation(1)
+                       << signalAssignment(*dstPort, *srcPort)
+                       << endl;
+            } else {
+                stream << indentation(1)
+                       << signalAssignment(*srcPort, *dstPort)
+                       << endl;
+            }
+        }
+    } else {
+        string srcPortSignal;
+        if (srcPort->dataType() == BIT) {
+            srcPortSignal = portSignalName(*srcPort);
+        } else {
+            if (dstPort->dataType() == BIT) {
+                srcPortSignal = 
+                    portSignalName(*srcPort) + "(" + 
+                    Conversion::toString(
+                        property.port1FirstBit()) + ")";
+            } else {
+                int high = property.port1FirstBit() +
+                    property.width() - 1;
+                int low = property.port1FirstBit();
+                srcPortSignal = 
+                    portSignalName(*srcPort) +
+                    signalRange(high, low, true);
+            }
+        }
+        string dstPortSignal;
+
+        if (&dstPort->parentBlock() == &block) {
+            dstPortSignal = dstPort->name();
+        } else {
+            dstPortSignal = portSignalName(*dstPort);
+        }
+        if (dstPort->dataType() != BIT) {
+            if (srcPort->dataType() == BIT) {
+                dstPortSignal += "(" + Conversion::toString(
+                                            property.port2FirstBit()) + ")";
+            } else {
+                int high = property.port2FirstBit() +
+                    property.width() - 1;
+                int low = property.port2FirstBit();
+                dstPortSignal += signalRange(high, low, true);
+            }
+        }
+
+        if (srcPort->direction() == OUT) {
+            stream << indentation(1) << dstPortSignal
+                   << " <= " << srcPortSignal << ";"
+                   << endl;
+        } else {
+            stream << indentation(1) << srcPortSignal
+                   << " <= " << dstPortSignal << ";"
+                   << endl;
+        }
+    }
+}
 
 /**
  * Writes the component declarations of the given netlist block to the
@@ -537,12 +551,12 @@ VHDLNetlistWriter::writeSignalAssignments(
  */
 void
 VHDLNetlistWriter::writeComponentDeclarations(
-    const NetlistBlock& block,
+    const BaseNetlistBlock& block,
     std::ofstream& stream) const {
 
     std::set<string> declaredModules;
-    for (int i = 0; i < block.subBlockCount(); i++) {
-        NetlistBlock& component = block.subBlock(i);
+    for (size_t i = 0; i < block.subBlockCount(); i++) {
+        const BaseNetlistBlock& component = block.subBlock(i);
         if (AssocTools::containsKey(declaredModules, component.moduleName())) {
             continue;
         }
@@ -553,13 +567,13 @@ VHDLNetlistWriter::writeComponentDeclarations(
 
         declaredModules.insert(component.moduleName());
         stream << indentation(1) << "component " << component.moduleName()
-               << endl;
+               << " is" << endl;
         if (component.parameterCount() > 0) {
             stream << indentation(2) << "generic (" << endl;
-            for (int i = 0; i < component.parameterCount(); i++) {
-                Netlist::Parameter param = component.parameter(i);
-                stream << indentation(3) << param.name << " : "
-                       << param.type;
+            for (size_t i = 0; i < component.parameterCount(); i++) {
+                Parameter param = component.parameter(i);
+                stream << indentation(3) << param.name() << " : "
+                       << param.type();
                 if (i + 1 == component.parameterCount()) {
                     stream << ");";
                 } else {
@@ -569,8 +583,8 @@ VHDLNetlistWriter::writeComponentDeclarations(
             }
         }
         stream << indentation(2) << "port (" << endl;
-        for (int i = 0; i < component.portCount(); i++) {
-            NetlistPort& port = component.port(i);
+        for (size_t i = 0; i < component.portCount(); i++) {
+            const NetlistPort& port = component.port(i);
             stream << indentation(3) << port.name() << " : "
                    << directionString(port.direction()) << " ";
             if (port.dataType() == BIT) {
@@ -605,11 +619,11 @@ VHDLNetlistWriter::writeComponentDeclarations(
  */
 void
 VHDLNetlistWriter::writePortMappings(
-    const NetlistBlock& block,
+    const BaseNetlistBlock& block,
     std::ofstream& stream) const {
 
-    for (int i = 0; i < block.subBlockCount(); i++) {
-        NetlistBlock& component = block.subBlock(i);
+    for (size_t i = 0; i < block.subBlockCount(); i++) {
+        const BaseNetlistBlock& component = block.subBlock(i);
 
         // virtual NetlistBlocks are omitted
         if (component.isVirtual()) {
@@ -622,13 +636,13 @@ VHDLNetlistWriter::writePortMappings(
         // create generic map
         if (component.parameterCount() > 0) {
             stream << indentation(2) << "generic map (" << endl;
-            for (int i = 0; i < component.parameterCount(); i++) {
-                Netlist::Parameter param = component.parameter(i);
-                stream << indentation(3) << param.name << " => ";
-                if (param.type.lower() == PARAM_STRING) {
-                    stream << genericMapStringValue(param.value);
+            for (size_t i = 0; i < component.parameterCount(); i++) {
+                Parameter param = component.parameter(i);
+                stream << indentation(3) << param.name() << " => ";
+                if (param.type().lower() == PARAM_STRING) {
+                    stream << genericMapStringValue(param.value());
                 } else {
-                    stream << param.value;
+                    stream << param.value();
                 }
                 if (i == component.parameterCount() - 1) {
                     stream << ")" << endl;
@@ -640,32 +654,54 @@ VHDLNetlistWriter::writePortMappings(
 
         // create port map
         stream << indentation(2) << "port map (" << endl;
-        for (int i = 0; i < component.portCount(); i++) {
-            NetlistPort& port = component.port(i);
-            size_t vertexDescriptor = netlist().descriptor(port);
+        for (size_t i = 0; i < component.portCount(); i++) {
+            const NetlistPort& port = component.port(i);
+            size_t vertexDescriptor = block.netlist().descriptor(port);
             std::pair<out_edge_iterator, out_edge_iterator> edges =
-                boost::out_edges(vertexDescriptor, netlist());
+                boost::out_edges(vertexDescriptor, block.netlist());
 
             string srcConn = port.name();
             string dstConn = "";
             if (edges.first != edges.second) {
                 edge_descriptor edgeDescriptor = *edges.first;
                 vertex_descriptor dstVertex = boost::target(
-                    edgeDescriptor, netlist());
-                NetlistPort* dstPort = netlist()[dstVertex];
+                    edgeDescriptor, block.netlist());
+                const NetlistPort* dstPort = block.netlist()[dstVertex];
+                PortConnectionProperty property =
+                    block.netlist()[edgeDescriptor];
                 
-                if (dstPort->parentBlock() == &block) {
+                if (&dstPort->parentBlock() == &block) {
                     if (port.dataType() != dstPort->dataType()) {
+
+                        int index = 0;
+                        if (!property.fullyConnected() &&
+                            dstPort->dataType() == BIT_VECTOR &&
+                            port.dataType() == BIT) {
+                            index = property.port2FirstBit();
+                        }
+
                         if (port.dataType() == BIT) {
                             assert(dstPort->dataType() == BIT_VECTOR);
-                            dstConn = dstPort->name() + "(0)";
+                            dstConn = dstPort->name() + "("
+                                + Conversion::toString(index) +")";
                         } else {
                             assert(dstPort->dataType() == BIT);
-                            srcConn += "(0)";
-                            dstConn = dstPort->name();
+                            if (port.widthFormula() == "1") {
+                                srcConn += "(0)";
+                                dstConn = dstPort->name();
+                            } else {
+                                dstConn = portSignalName(port);
+                            }
                         }
                     } else {
-                        dstConn = dstPort->name();
+                        if ((!property.fullyConnected() ||
+                            dstPort->direction() == OUT) &&
+                            boost::out_degree(vertexDescriptor,
+                                block.netlist()) > 1) {
+                            dstConn = portSignalName(port);
+                        } else {
+                            dstConn = dstPort->name();
+                        }
                     }
                 } else {
                     dstConn = portSignalName(port);
@@ -689,11 +725,11 @@ VHDLNetlistWriter::writePortMappings(
  * @return The direction string.
  */
 std::string
-VHDLNetlistWriter::directionString(HDB::Direction direction) {
+VHDLNetlistWriter::directionString(Direction direction) {
     switch (direction) {
-    case HDB::IN: return "in";
-    case HDB::OUT: return "out";
-    case HDB::BIDIR: return "inout";
+    case IN: return "in";
+    case OUT: return "out";
+    case BIDIR: return "inout";
     default: assert(false);
     }
 
@@ -721,6 +757,15 @@ VHDLNetlistWriter::isNumber(const std::string& formula) {
     return true;
 }
 
+/**
+ * Returns true if port uses single parameter of its parent block as port
+ * width.
+ */
+bool
+VHDLNetlistWriter::usesParameterWidth(const NetlistPort& port) {
+    const BaseNetlistBlock& parent = port.parentBlock();
+    return parent.hasParameter(port.widthFormula());
+}
 
 /**
  * Returns a string which makes indetation of the given level.
@@ -745,7 +790,7 @@ VHDLNetlistWriter::generateIndentation(
     const std::string& indentation) {
 
     string generatedInd("");
-    for (unsigned int i = 0; i < indentationLevel; i++) {
+    for (size_t i = 0; i < indentationLevel; i++) {
         generatedInd += indentation;
     }
     return generatedInd;
@@ -760,11 +805,11 @@ VHDLNetlistWriter::generateIndentation(
 std::string
 VHDLNetlistWriter::portSignalName(const NetlistPort& port) {
 
-    NetlistBlock* parentBlock = port.parentBlock();
+    const BaseNetlistBlock* parentBlock = &port.parentBlock();
     string signalName = "";
     if (port.hasStaticValue()) {
         string bit = "";
-        if (port.staticValue() == ProGe::VCC) {
+        if (port.staticValue().is(StaticSignal::VCC)) {
             bit = "1";
         } else {
             bit = "0";
@@ -794,18 +839,29 @@ VHDLNetlistWriter::portSignalType(const NetlistPort& port) {
     } else {
         if (port.realWidthAvailable()) {
             int width = port.realWidth();
-            return "std_logic_vector(" + Conversion::toString(width?width-1:0) +
-                " downto 0)";
+            return "std_logic_vector" + signalRange((width?width-1:0), 0);
         } else if (isNumber(port.widthFormula()) && 
                    (Conversion::toInt(port.widthFormula()) == 0)) {
-            return "std_logic_vector(0 downto 0)";
-        } else {
-            return "std_logic_vector(" + port.widthFormula() +
+            return "std_logic_vector" + signalRange(0,0); 
+        } else if (usesParameterWidth(port)) {
+            return "std_logic_vector(" + parameterWidthValue(port) +
                 "-1 downto 0)";
+        } else {
+            return "std_logic_vector(" + port.widthFormula() + "-1 downto 0)";
         }
     }
 }
 
+/**
+ * Tries to determine whether the string generic needs quot marks for
+ * generic mapping
+ *
+ * If string literal contains '.',  or "__" it cannot be a valid
+ * VHDL label (i.e. another generic), thus it needs quotation marks.
+ *
+ * @param generic String generic value
+ * @return Generic mapping string
+ */
 TCEString
 VHDLNetlistWriter::genericMapStringValue(const TCEString& generic) const {
 
@@ -815,7 +871,7 @@ VHDLNetlistWriter::genericMapStringValue(const TCEString& generic) const {
     std::vector<TCEString> unallowed;
     unallowed.push_back(".");
     unallowed.push_back("__");
-    for (unsigned int i = 0; i < unallowed.size(); i++) {
+    for (size_t i = 0; i < unallowed.size(); i++) {
         if (generic.find(unallowed.at(i)) != TCEString::npos) {
             TCEString quoted;
             quoted << "\"" << generic << "\"";
@@ -824,4 +880,76 @@ VHDLNetlistWriter::genericMapStringValue(const TCEString& generic) const {
     }
     return generic;
 }
+
+/**
+ * Returns signal range i.e. (<high> downto <low>).
+ *
+ * Does not -1 the high index!
+ * If high == low and allowShort is true, just (<low>) is returned
+ *
+ * @param high MSB index 
+ * @param low LSB index
+ * @param allowShort If true, skips 'downto' if high == low
+ * @return Signal range string
+ */
+TCEString
+VHDLNetlistWriter::signalRange(
+    int high,
+    int low,
+    bool allowShort) {
+
+    if (high < low) {
+        TCEString msg;
+        msg << "High (" << high << ") boundary is smaller than low (" << low
+            << ") boundary!";
+        throw InvalidData(__FILE__, __LINE__, __func__, msg);
+    }
+
+    TCEString range = "(";
+    if (allowShort && high == low) {
+        range << low;
+    } else {
+        range << high << " downto " << low;
+    }
+    return range << ")";
 }
+
+/**
+ * Returns port width value of port that uses parameter as width.
+ */
+TCEString
+VHDLNetlistWriter::parameterWidthValue(const NetlistPort& port) {
+    return port.parentBlock().parameter(port.widthFormula()).value();
+}
+
+/**
+ * Writes suitable signal assignment code of two signals.
+ *
+ * The written code piece is "dst <= src;" with additional signal indexing
+ * in case the data types does not macth (i.e. BIT vs. BIT_VECTOR).
+ *
+ */
+std::string
+VHDLNetlistWriter::signalAssignment(
+    const NetlistPort& dst,
+    const NetlistPort& src) {
+
+    using std::string;
+
+    if (dst.dataType() == src.dataType()) {
+        return string(portSignalName(dst))
+            + " <= " + portSignalName(src) + ";";
+    } else {
+        // Note assuming that one port is data type of BIT and other is
+        // BIT_VECTOR of width og one.
+        bool indexDst = (dst.dataType() == BIT_VECTOR);
+        return string(portSignalName(dst))
+            + (indexDst?string("(0) <= "):string(" <= "))
+            + portSignalName(src)
+            + (indexDst?string(";"):string("(0);"));
+    }
+}
+
+} /* namespace ProGe */
+
+

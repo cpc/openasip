@@ -1531,6 +1531,7 @@ struct OperationDAGLanguageGrammar :
                  | str_p("FloatWord")
                  | str_p("DoubleWord")
                  | str_p("SimValue")
+                 | str_p("Var")
                  | struct_or_union_specifier
                  | enum_specifier)
                 [TokenizerActor(self.tokenData_, 

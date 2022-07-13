@@ -117,9 +117,7 @@ SocketEncoding::SocketEncoding(const ObjectState* state, SlotField& parent)
  * The destructor.
  */
 SocketEncoding::~SocketEncoding() {
-    SlotField* parent = this->parent();
-    setParent(NULL);
-    parent->removeSocketEncoding(*this);
+    detachFromParent();
 }
 
 
@@ -203,6 +201,46 @@ SocketEncoding::socketCodes() const {
 
 
 /**
+ * Returns the position of the socket code within the slot field.
+ */
+int
+SocketEncoding::socketCodePosition() const {
+    if (parent()->componentIDPosition() == BinaryEncoding::RIGHT) {
+        return parent()->width() - parent()->extraBits() -
+            socketCodes().width();
+    } else {
+        return 0;
+    }
+}
+
+
+/**
+ * Sets new encoding.
+ *
+ * @param encoding The encoding.
+ * @param extraBits The extrabits of the encoding.
+ * @exception ObjectAlreadyExists If the parent slot field already has an
+ *                                encoding for the same socket, or if the
+ *                                given encoding is ambiguous with another
+ *                                encoding in the parent slot field.
+ */
+void
+SocketEncoding::setEncoding(unsigned int encoding, unsigned int extraBits) {
+    SlotField* parent = this->parent();
+    unsigned int oldEncoding = this->encoding();
+    unsigned int oldExtrabits = this->extraBits();
+    detachFromParent();
+    Encoding::setEncoding(encoding, extraBits);
+    try {
+        parent->addSocketEncoding(*this);
+    } catch (ObjectAlreadyExists& e) {
+        Encoding::setEncoding(oldEncoding, oldExtrabits);
+        parent->addSocketEncoding(*this);
+    }
+    setParent(parent);
+}
+
+/**
  * Returns the position of the socket ID within the slot field.
  *
  * The position is always 0 if socket ID is in the right end of the
@@ -271,7 +309,22 @@ SocketEncoding::saveState() const {
     state->setName(OSNAME_SOCKET_ENCODING);
     state->setAttribute(OSKEY_SOCKET_NAME, socketName());
     if (hasSocketCodes()) {
-	state->setAttribute(OSKEY_SC_TABLE, socketCodes().name());
+        state->setAttribute(OSKEY_SC_TABLE, socketCodes().name());
     }
     return state;
 }
+
+
+/**
+ * Removes itself from the parent slot field.
+ */
+void
+SocketEncoding::detachFromParent() {
+    if (this->parent() == nullptr) {
+        return;
+    }
+    SlotField* parent = this->parent();
+    setParent(nullptr);
+    parent->removeSocketEncoding(*this);
+}
+

@@ -81,9 +81,9 @@ module testbench
     rst_x=1'b0;
     #(PERIOD*3);
     rst_x=1'b1;
-    #RUNTIME;
-    rst_x=1'b0;
-    #(PERIOD*3);
+    // Test runs until RUNTIME, which is equal to SIMTIME given by 
+    // iverilog_compile script. Reduced by 20ns to match vhdl simulation time.
+    #(RUNTIME-20);
     $finish;
   end
   

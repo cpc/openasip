@@ -55,6 +55,10 @@ public:
     int encodingWidth() const;
     int indexWidth() const;
 
+    void setMaxIndex(unsigned regIndex) { maxRegIndex_ = regIndex; }
+    bool isMaxIndexSet() const { return maxRegIndex_ != 0; }
+    unsigned maxIndex() const { return maxRegIndex_; }
+
     SocketCodeTable* parent() const;
 
     virtual ObjectState* saveState() const;
@@ -69,6 +73,8 @@ public:
     static const std::string OSKEY_EXTRA_BITS;
     /// ObjectState attribute key for the widht of register index.
     static const std::string OSKEY_INDEX_WIDTH;
+    /// ObjectState attribute key for the max-index attribute.
+    static const std::string OSKEY_MAX_INDEX;
 
 protected:
     PortCode(
@@ -91,6 +97,11 @@ private:
     bool hasEncoding_;
     /// The parent socket code table.
     SocketCodeTable* parent_;
+    /// In case this is set to non-zero, the whole width of the index
+    /// field is not used because the number of register indices is not
+    /// an exponent of two. This allow sharing the field with other
+    /// values.
+    unsigned maxRegIndex_;
 };
 
 #endif

@@ -1,0 +1,9 @@
+!register programcounter
+calla 90 10
+!register returnaddress
+!register programcounter
+calla 0xABB9 0x1
+!register returnaddress
+!output hex
+!register programcounter
+!quit

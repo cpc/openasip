@@ -476,6 +476,10 @@ bool simulateTrigger( \
 #define EXEC_OPERATION(OPNAME, ...) \
     const Operation& __used_in_macro_temp__ = opPool_.operation(#OPNAME); \
     executeOperation(__used_in_macro_temp__.behavior(), context, __VA_ARGS__);
+    #define OP(OPNAME, ...) \
+    const Operation& __used_in_macro_temp__ = opPool_.operation(#OPNAME); \
+    executeOperation(__used_in_macro_temp__.behavior(), context, __VA_ARGS__);
+
 
 #endif
 

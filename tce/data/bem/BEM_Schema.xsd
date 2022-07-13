@@ -280,6 +280,38 @@
     <xs:attribute name="name" type="xs:string"/>
 </xs:complexType>
 
+
+<!-- ==== OTA ================================================= -->
+
+<xs:complexType name="ota-format-type">
+    <xs:sequence>
+        <xs:element name="ota-encoding" type="ota-encoding-type"
+        minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="ota-operation" type="ota-operation-type"
+        minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+</xs:complexType>
+
+<xs:complexType name="ota-operation-type">
+    <xs:attribute name="name" type="xs:string"/>
+    <xs:attribute name="encoding" type="xs:positiveInteger"/>
+</xs:complexType>
+
+<xs:complexType name="ota-encoding-type">
+    <xs:sequence>
+        <xs:element name="ota-field" type="ota-field-type" minOccurs="0"
+        maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+</xs:complexType>
+
+<xs:complexType name="ota-field-type">
+    <xs:attribute name="piece" type="xs:int"/>
+    <xs:attribute name="start" type="xs:int"/>
+    <xs:attribute name="width" type="xs:int"/>
+</xs:complexType>
+
 <!-- ==== BEM FILE ====================================================== -->
 
 <xs:element name="adf-encoding">
@@ -295,6 +327,8 @@
             <xs:element name="slot" type="slot-type" minOccurs="0"
                         maxOccurs="unbounded"/>
             <xs:element name="immediate-slot" type="immediate-slot-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="ota-format" type="ota-format-type"
                         minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
         <xs:attribute name="version" type="xs:decimal" use="required"/>

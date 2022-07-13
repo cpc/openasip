@@ -113,6 +113,7 @@ ProDeTextGenerator::ProDeTextGenerator() {
     addText(TXT_COLUMN_BUS, "Bus");
     addText(TXT_COLUMN_SEGMENT, "Segment");
     addText(TXT_COLUMN_SRP, "SRP");
+    addText(TXT_COLUMN_OTA_OPERATION, "Operation");
 
     addText(TXT_BUTTON_UP, "&Up");
     addText(TXT_BUTTON_DOWN, "&Down");
@@ -161,6 +162,13 @@ ProDeTextGenerator::ProDeTextGenerator() {
 
     // Instruction template slot dialog
     addText(TXT_TEMPLATE_SLOT_DIALOG_TITLE, "Instruction Template Slot");
+
+    // OTA Formats dialog
+    addText(TXT_OTA_FORMATS_DIALOG_TITLE, "OTA Formats");
+    addText(TXT_OTA_FORMATS_BOX, "OTA Formats:");
+    addText(TXT_OTA_FORMATS_OPERATIONS_BOX, "Operations:");
+    // OTA Format operation dialog
+    addText(TXT_OTA_OPERATION_DIALOG_TITLE, "Operation");
 
     // Immediate slot dialog
     addText(TXT_IMMEDIATE_SLOT_DIALOG_TITLE, "Immediate Slots");
@@ -337,6 +345,8 @@ ProDeTextGenerator::ProDeTextGenerator() {
     addText(COMP_A_SOCKET, "a socket");
     addText(COMP_IMM_SLOT, "immediate slot");
     addText(COMP_AN_IMM_SLOT, "an immediate slot");
+    addText(COMP_AN_OTA_FORMAT, "an OTA format");
+    addText(COMP_OTA_FORMAT, "OTA format");
 
     // Component status templates for the statusline.
     addText(STATUS_FUNCTION_UNIT, "Function Unit:  name = %1%");

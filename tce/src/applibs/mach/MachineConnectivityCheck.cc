@@ -1638,6 +1638,21 @@ MachineConnectivityCheck::findReadPorts(const TTAMachine::Unit& rf) {
  }
 
 /**
+ * Returns true if all ports are connected to the bus.
+ */ 
+bool
+MachineConnectivityCheck::isConnected(
+    const std::set<TTAMachine::Port*> ports, const TTAMachine::Bus& bus) {
+     for (const auto& port : ports) {
+        if (!isConnected(bus, *port)) {
+            return false;
+        }
+     }
+     return true;
+ }
+
+
+/**
  * Returns busses that connects the given ports.
  */
 MachineConnectivityCheck::BusSet

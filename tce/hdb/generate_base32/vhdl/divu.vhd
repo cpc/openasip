@@ -1,0 +1,1 @@
+op3 <= std_logic_vector(unsigned(op1) / unsigned(op2));

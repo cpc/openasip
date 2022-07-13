@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2014 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of PortCode class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2014
  * @note rating: red
  */
 
@@ -39,6 +40,7 @@ const std::string PortCode::OSKEY_UNIT_NAME = "unit_name";
 const std::string PortCode::OSKEY_ENCODING = "encoding";
 const std::string PortCode::OSKEY_EXTRA_BITS = "extra_bits";
 const std::string PortCode::OSKEY_INDEX_WIDTH = "index_width";
+const std::string PortCode::OSKEY_MAX_INDEX = "max-index";
 
 
 /**
@@ -60,7 +62,8 @@ PortCode::PortCode(
       extraBits_(extraBits),
       indexWidth_(indexWidth),
       hasEncoding_(true),
-      parent_(NULL) {
+      parent_(NULL),
+      maxRegIndex_(0) {
     if (indexWidth_ < 0) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -81,7 +84,8 @@ PortCode::PortCode(const std::string& unitName, int indexWidth)
       extraBits_(0),
       indexWidth_(indexWidth),
       hasEncoding_(false),
-      parent_(NULL) {
+      parent_(NULL),
+      maxRegIndex_(0) {
     if (indexWidth_ < 0) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
@@ -102,9 +106,12 @@ PortCode::PortCode(const ObjectState* state)
       extraBits_(0),
       indexWidth_(0),
       hasEncoding_(false),
-      parent_(NULL) {
+      parent_(NULL),
+      maxRegIndex_(0) {
     try {
         unitName_ = state->stringAttribute(OSKEY_UNIT_NAME);
+        if (state->hasAttribute(OSKEY_MAX_INDEX))
+            maxRegIndex_ = state->intAttribute(OSKEY_MAX_INDEX);
         if (state->hasAttribute(OSKEY_ENCODING)) {
             encoding_ = state->intAttribute(OSKEY_ENCODING);
             extraBits_ = state->intAttribute(OSKEY_EXTRA_BITS);
@@ -235,6 +242,8 @@ PortCode::saveState() const {
         state->setAttribute(OSKEY_ENCODING, encoding());
         state->setAttribute(OSKEY_EXTRA_BITS, extraBits());
     }
+    if (maxRegIndex_ != 0)
+        state->setAttribute(OSKEY_MAX_INDEX, maxRegIndex_);
     state->setAttribute(OSKEY_INDEX_WIDTH, indexWidth());
     return state;
 }

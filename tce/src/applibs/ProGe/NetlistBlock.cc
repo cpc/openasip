@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
+ * @author Henry Linjamäki 2015 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -36,7 +37,13 @@
 
 #include "NetlistBlock.hh"
 #include "NetlistPort.hh"
+#include "NetlistPortGroup.hh"
 #include "Netlist.hh"
+#include "Parameter.hh"
+#include "NetlistWriter.hh"
+#include "VHDLNetlistWriter.hh"
+#include "VerilogNetlistWriter.hh"
+#include "FileSystem.hh"
 
 #include "SequenceTools.hh"
 #include "ContainerTools.hh"
@@ -49,23 +56,21 @@ using std::string;
 namespace ProGe {
 
 /**
- * Constructor. Creates a netlist block with no ports.
+ * Constructor. Creates a netlist  with no ports.
  *
- * The created block is empty. Only its name, the parent netlist and the
+ * The created  is empty. Only its name, the parent netlist and the
  * name of the instance module are defined.
  *
  * @param moduleName Name of the module.
  * @param instanceName Name of the instance of the module.
- * @param netlist The netlist which the block belongs to.
+ * @param netlist The netlist which the  belongs to.
  */
 NetlistBlock::NetlistBlock(
     const std::string& moduleName,
     const std::string& instanceName,
-    Netlist& netlist) :
-    moduleName_(moduleName), instanceName_(instanceName),
-    parentBlock_(NULL), netlist_(netlist) {
+    BaseNetlistBlock* parent)
+    : BaseNetlistBlock(moduleName, instanceName, parent) {
 }
-
 
 /**
  * The destructor.
@@ -73,34 +78,10 @@ NetlistBlock::NetlistBlock(
  * Deletes all the ports.
  */
 NetlistBlock::~NetlistBlock() {
-    SequenceTools::deleteAllItems(ports_);
 }
 
-
 /**
- * Returns the name of the block instance.
- *
- * @return The name of the block instance.
- */
-std::string
-NetlistBlock::instanceName() const {
-    return instanceName_;
-}
-
-
-/**
- * Returns the name of the module.
- *
- * @return The name of the module.
- */
-std::string
-NetlistBlock::moduleName() const {
-    return moduleName_;
-}
-
-
-/**
- * Sets the given parameter for the block.
+ * Sets the given parameter for the .
  *
  * @param name Name of the parameter.
  * @param type Type of the parameter.
@@ -112,357 +93,149 @@ NetlistBlock::setParameter(
     const std::string& type,
     const std::string& value) {
 
-    // remove the old parameter
-    for (ParameterTable::iterator iter = parameters_.begin();
-         iter != parameters_.end(); iter++) {
-        if (iter->name == name) {
-            parameters_.erase(iter);
-            break;
-        }
-    }
-
-    Netlist::Parameter toAdd = {name, type, value};
-    parameters_.push_back(toAdd);
+    setParameter(Parameter(name, type, value));
 }
 
-
-void
-NetlistBlock::setParameter(const Netlist::Parameter& param) {
-
-    setParameter(param.name, param.type, param.value);
-}
-
-
-/**
- * Tells whether the given parameter is defined for the block.
- *
- * @param name Name of the parameter.
- * @return True if the parameter is defined, otherwise false.
- */
-bool
-NetlistBlock::hasParameter(const std::string& name) const {
-    for (ParameterTable::const_iterator iter = parameters_.begin();
-         iter != parameters_.end(); iter++) {
-        if ((*iter).name == name) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-
-/**
- * Returns the parameter that has the given name.
- *
- * @param name Name of the parameter.
- * @return The parameter.
- * @exception NotAvailable If the block does not have the given parameter.
- */
-Netlist::Parameter
-NetlistBlock::parameter(const std::string& name) const {
-    for (ParameterTable::const_iterator iter = parameters_.begin();
-         iter != parameters_.end(); iter++) {
-        if (iter->name == name) {
-            return *iter;
-        }
-    }
-
-    throw NotAvailable(__FILE__, __LINE__, __func__);
-}
-
-/**
- * Returns the number of parameters.
- *
- * @return The number of parameters.
- */
-int
-NetlistBlock::parameterCount() const {
-    return parameters_.size();
-}
-
-
-/**
- * Returns a parameter by the given index.
- *
- * @param index The index.
- * @return The parameter at the given index.
- * @exception OutOfRange If the index is negative or not smaller than the
- *                       number of parameters.
- */
-Netlist::Parameter
-NetlistBlock::parameter(int index) const {
-    if (index < 0 || index >= parameterCount()) {
-        throw OutOfRange(__FILE__, __LINE__, __func__);
-    }
-
-    return parameters_[index];
-}
-
-/**
- * Adds the given port to the block.
- *
- * @param port The port to add.
- */
-void
-NetlistBlock::addPort(NetlistPort* port) {
-    assert(port != NULL);
-    assert(port->parentBlock() == NULL);
-    ports_.push_back(port);
-    size_t descriptor = boost::add_vertex(port, netlist_);
-    netlist_.mapDescriptor(*port, descriptor);
-}
-
-
-/**
- * Removes the given port from the block and from the netlist graph.
- *
- * This method is to be called from the destructor of NetlistPort only!
- *
- * @param port The port to remove.
- */
-void
-NetlistBlock::removePort(NetlistPort& port) {
-    assert(port.parentBlock() == NULL);
-    boost::clear_vertex(netlist_.descriptor(port), netlist_);
-    boost::remove_vertex(netlist_.descriptor(port), netlist_);
-    assert(ContainerTools::removeValueIfExists(ports_, &port));
-}
-
-
-/**
- * Returns the number of ports in the block.
- *
- * @return The number of ports.
- */
-int
-NetlistBlock::portCount() const {
-    return ports_.size();
-}
-
-
-/**
- * Returns a port by the given index.
- *
- * @param index The index.
- * @exception OutOfRange If the index is negative or not smaller than the
- *                       number of ports.
- */
-NetlistPort&
-NetlistBlock::port(int index) const {
-    if (index < 0 || index >= portCount()) {
-        throw OutOfRange(__FILE__, __LINE__, __func__);
-    }
-
-    return *ports_[index];
-}
-
-/**
- * Returns a port that matches (partially) the given name.
- *
- * @param name Name to be searched
- * @return First port that matches the search
- */
 NetlistPort* 
-NetlistBlock::portByName(const std::string& name) const {
+NetlistBlock::port(
+    const std::string& portName,
+    bool partialMatch) {
 
-    NetlistPort* port = NULL;
-    for (unsigned int i = 0; i < ports_.size(); i++) {
-        if (ports_.at(i)->name().find(name) != string::npos) {
-            port = ports_.at(i);
-            break;
-        }
-    }
-    return port;
-}
-
-
-/**
- * Adds the given block as sub block of this block.
- *
- * @param block The block.
- * @exception IllegalRegistration If the block is already a sub block or
- *                                if it belongs to another netlist.
- */
-void
-NetlistBlock::addSubBlock(NetlistBlock* block) {
-    if (block->hasParentBlock() || &block->netlist() != &netlist()) {
-        const string procName = "NetlistBlock::addSubBlock";
-        throw IllegalRegistration(__FILE__, __LINE__, procName);
-    }
-
-    childBlocks_.push_back(block);
+    return BaseNetlistBlock::findPort(portName, false, partialMatch);
 }
 
 /**
- * Returns the number of sub blocks.
- *
- * @return The number of sub blocks.
- */
-int
-NetlistBlock::subBlockCount() const {
-    return childBlocks_.size();
-}
-
-
-/**
- * Returns a sub block by the given index.
+ * Returns a sub  by the given index.
  *
  * @param index The index.
- * @return The sub block.
+ * @return The sub .
  * @exception OutOfRange If the given index is negative or not smaller than
  *                       the number of sub blocks.
  */
 NetlistBlock&
-NetlistBlock::subBlock(int index) const {
-    if (index < 0 || index >= subBlockCount()) {
+NetlistBlock::subBlock(size_t index) {
+    if (index >= subBlockCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
 
-    return *childBlocks_[index];
+    //todo check for and throw wrong subblass
+    return *dynamic_cast<NetlistBlock*>(&BaseNetlistBlock::subBlock(index));
 }
 
 /**
- * Tells whether the given block is an immediate sub block of this block.
+ * Returns the parent .
  *
- * @param block The block.
- * @return True if the given block is an immediate sub block, otherwise
- *         false.
+ * @return The parent .
+ * @exception InstanceNotFound If the  does not have a parent .
  */
-bool
-NetlistBlock::isSubBlock(const NetlistBlock& block) const {
-    return ContainerTools::containsValue(childBlocks_, &block);
-}
-
-
-/**
- * Tells whether the block has a parent block.
- *
- * @return True if the block has a parent block, otherwise false.
- */
-bool
-NetlistBlock::hasParentBlock() const {
-    return parentBlock_ != NULL;
-}
-
-
-/**
- * Returns the parent block.
- *
- * @return The parent block.
- * @exception InstanceNotFound If the block does not have a parent block.
- */
-NetlistBlock&
+const NetlistBlock&
 NetlistBlock::parentBlock() const {
     if (!hasParentBlock()) {
         const string procName = "NetlistBlock::parentBlock";
         throw InstanceNotFound(__FILE__, __LINE__, procName);
     }
 
-    return *parentBlock_;
+    //todo: fix parentblock may not be NetlistBlock.
+    return *dynamic_cast<const NetlistBlock*>(
+        &BaseNetlistBlock::parentBlock());
 }
 
 /**
- * Returns the netlist which the block belongs to.
+ * Returns the parent .
  *
- * @return The netlist.
+ * @return The parent .
+ * @exception InstanceNotFound If the  does not have a parent .
  */
-Netlist&
-NetlistBlock::netlist() const {
-    return netlist_;
+NetlistBlock&
+NetlistBlock::parentBlock() {
+    if (!hasParentBlock()) {
+        const string procName = "NetlistBlock::parentBlock";
+        throw InstanceNotFound(__FILE__, __LINE__, procName);
+    }
+
+    return *dynamic_cast<NetlistBlock*>(&BaseNetlistBlock::parentBlock());
 }
 
-
 /**
- * Copies the toplevel block and it's parameters to the given netlist.
- * Sub blocks are not copied.
+ * Copies the block without its children or internal connections - leaving
+ * only the outer portion of the block.
  *
  * @param instanceName New instance name for the copy
- * @param destination Destination netlist
- * @return Pointer to the netlist block copy
+ * @return Pointer to the netlist  copy
  */
 NetlistBlock*
-NetlistBlock::copyToNewNetlist(
-    const std::string& instanceName,
-    Netlist& destination) const {
+NetlistBlock::shallowCopy(
+    const std::string& instanceName) const {
 
-    NetlistBlock* core = new NetlistBlock(moduleName_, instanceName,
-                                          destination);
-    for (int i = 0; i < netlist_.parameterCount(); i++) {
-        Netlist::Parameter param = netlist_.parameter(i);
-        destination.setParameter(param.name, param.type, param.value);
+    NetlistBlock* block = new NetlistBlock(
+        this->moduleName(), instanceName, NULL);
+
+    for (size_t i = 0; i < this->parameterCount(); i++) {
+        block->setParameter(this->parameter(i));
     }
-    
-    for (int i = 0; i < portCount(); i++) {
-        NetlistPort* srcPort = &port(i);
-        if (srcPort->realWidthAvailable()) {
-            new NetlistPort(srcPort->name(), srcPort->widthFormula(),
-                            srcPort->realWidth(), srcPort->dataType(),
-                            srcPort->direction(), *core);
+    for (size_t i = 0; i < netlist().parameterCount(); i++) {
+        block->netlist().setParameter(this->netlist().parameter(i));
+    }
+    // Copy ports while preserving their insertion order.
+    std::map<std::string, NetlistPort*> copiedPorts;
+    for (size_t i = 0; i < portCount(); i++) {
+        NetlistPort* copiedPort = nullptr;
+        copiedPort = BaseNetlistBlock::port(i).copyTo(*block);
+        copiedPorts.insert({{copiedPort->name(), copiedPort}});
+    }
+    for (size_t i = 0; i < portGroupCount(); i++) {
+        const NetlistPortGroup* portGrp = &portGroup(i);
+        // Cloning to copy original class type, but clear ports as they are
+        // already created and added to the new block.
+        NetlistPortGroup* newGroup = portGrp->clone();
+        newGroup->clear();
+        for (auto port : *portGrp) {
+            newGroup->addPort(*copiedPorts.at(port->name()));
+        }
+        block->addPortGroup(newGroup);
+    }
+
+    for (size_t i = 0; i < packageCount(); i++) {
+        block->addPackage(this->package(i));
+    }
+
+    return block;
+}
+
+/**
+ * Writes self if non-empty and calls write() function of each sub block.
+ */
+void
+NetlistBlock::write(const Path& targetBaseDir, HDL targetLang) const {
+    if (netlist().hasConnections()) {
+        NetlistWriter* writer;
+        std::string topLevelDir = "";
+        if (targetLang == ProGe::VHDL) {
+            writer = new VHDLNetlistWriter(*this);
+            topLevelDir = targetBaseDir.string() +
+                FileSystem::DIRECTORY_SEPARATOR + "vhdl";
+        } else if (targetLang == ProGe::Verilog) {
+            writer = new VerilogNetlistWriter(*this);
+            topLevelDir = targetBaseDir.string() +
+                FileSystem::DIRECTORY_SEPARATOR + "verilog";
         } else {
-            int width = 0;
-            if (resolveRealWidth(srcPort, width)) {
-                new NetlistPort(
-                    srcPort->name(), srcPort->widthFormula(),
-                    width, srcPort->dataType(), srcPort->direction(), *core);
-            } else {
-                new NetlistPort(
-                    srcPort->name(), srcPort->widthFormula(),
-                    srcPort->dataType(), srcPort->direction(), *core);
+            assert(false && "Unsupported HDL.");
+        }
+
+        if (!FileSystem::fileExists(topLevelDir)) {
+            bool directoryCreated = FileSystem::createDirectory(topLevelDir);
+            if (!directoryCreated) {
+                std::string errorMsg = "Unable to create directory " +
+                    topLevelDir + ".";
+                throw IOException(__FILE__, __LINE__, __func__, errorMsg);
             }
         }
+
+        writer->write(topLevelDir);
+        delete writer;
     }
-    return core;
-}
 
-
-bool
-NetlistBlock::isVirtual() const {
-
-    return false;
-}
-
-bool
-NetlistBlock::resolveRealWidth(const NetlistPort* port, int& width) const {
-    
-    string formula = port->widthFormula();
-    // check if it is a parameter
-    for (int i = 0; i < netlist_.parameterCount(); i++) {
-        Netlist::Parameter param = netlist_.parameter(i);
-        if (param.name == formula) {
-            width = Conversion::toInt(param.value);
-            return true;
-        }
-    }
-    
-    // check if formula is a plain number
-    bool success = false;
-    try {
-        width = Conversion::toInt(formula);
-        success = true;
-    } catch (Exception& e) {
-        success = false;
-    }
-    return success;
-}
-
-void
-NetlistBlock::addPackage(
-    const std::string& packageName) {
-
-    if (!ContainerTools::containsValue(packages_, packageName)) {
-        packages_.push_back(packageName);
-    }
-}
-
-size_t
-NetlistBlock::packageCount() const {
-    return packages_.size();
-}
-
-const std::string&
-NetlistBlock::package(size_t idx) const {
-    return packages_.at(idx);
+    BaseNetlistBlock::write(targetBaseDir, targetLang);
 }
 
 } // namespace ProGe

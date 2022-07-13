@@ -50,6 +50,10 @@
 
 using namespace TTAMachine;
 
+const TCEString MachineInfo::LOCK_READ_ = "lock_read";
+const TCEString MachineInfo::TRY_LOCK_ADDR_ = "try_lock_addr";
+const TCEString MachineInfo::UNLOCK_ADDR_ = "unlock_addr";
+
 /**
  * Checks that the operands used in the operations of the given FU are
  * bound to some port.
@@ -731,6 +735,47 @@ bool MachineInfo::supportsPortGuardedJump(
 
     return false;
 }
+
+/**
+ * Searches for lock unit FUs and returns them.
+ *
+ * Lock unit FU must have the correct operations and an address space
+ *
+ * @param machine Architecture to be searched
+ * @return Vector of found lock unit FUs
+ */
+std::vector<const TTAMachine::FunctionUnit*>
+MachineInfo::findLockUnits(
+    const TTAMachine::Machine& machine) {
+
+    std::vector<TCEString> requiredOperations;
+    requiredOperations.push_back(LOCK_READ_);
+    requiredOperations.push_back(TRY_LOCK_ADDR_);
+    requiredOperations.push_back(UNLOCK_ADDR_);
+
+    std::vector<const FunctionUnit*> lockUnits;
+    Machine::FunctionUnitNavigator fuNav = machine.functionUnitNavigator();
+    for (int i = 0; i < fuNav.count(); i++) {
+         const FunctionUnit* fu = fuNav.item(i);
+         bool hasCorrectOperations = true;
+         for (unsigned int i = 0; i < requiredOperations.size(); i++) {
+             if (!fu->hasOperation(requiredOperations.at(i))) {
+                 hasCorrectOperations = false;
+                 break;
+             }
+         }
+         if (hasCorrectOperations) {
+             if (!fu->hasAddressSpace()) {
+                 TCEString msg;
+                 msg << "Lock Unit " << fu->name() << " has no address space";
+                 throw InvalidData(__FILE__, __LINE__, __func__, msg);
+             }
+             lockUnits.push_back(fu);
+         }
+    }
+    return lockUnits;
+}
+
 /**
  * Convenience function for getting OSAL operation from HWOperation description.
  *

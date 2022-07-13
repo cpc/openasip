@@ -1,3 +1,4 @@
+!output unsigned
 eq 35 35
 eq 3 -3
 eq -3 -3

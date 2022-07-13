@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2015 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of NetlistWriter class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Henry Linjamäki 2015 (henry.linjamaki-no.spam.tut.fi)
  * @note rating: red
  */
 
@@ -38,23 +39,24 @@
 
 namespace ProGe {
 
-class Netlist;
+class BaseNetlistBlock;
 
 /**
- * Interface for different netlist writers.
+ * Interface for different block level netlist writers.
  */
 class NetlistWriter {
 public:
-    NetlistWriter(const Netlist& netlist);
+    NetlistWriter(const BaseNetlistBlock& targetBlock);
     virtual ~NetlistWriter();
 
     virtual void write(const std::string& dstDirectory) = 0;
 
 protected:
-    const Netlist& netlist() const;
+    const BaseNetlistBlock& targetNetlistBlock() const;
 
 private:
-    const Netlist& netlist_;
+    /// Netlist block to be written.
+    const BaseNetlistBlock& netlistBlock_;
 };
 }
 

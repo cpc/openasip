@@ -131,6 +131,8 @@ public:
 
     int imemMauWidth() const;
 
+    InstructionBitVector* bemInstructionBits(const TTAProgram::Instruction&);
+
 protected:
     /// Map type for handling programs
     typedef std::map<std::string, TPEF::Binary*> TPEFMap;
@@ -151,7 +153,6 @@ protected:
     void setInstructionToStartAtBeginningOfMAU(
         const TTAProgram::Instruction& instruction);
     void setAllInstructionsToStartAtBeginningOfMAU();
-    InstructionBitVector* bemInstructionBits(const TTAProgram::Instruction&);
     InstructionBitVector* programBits() const;
 
     bool hasParameter(const std::string& paramName) const;

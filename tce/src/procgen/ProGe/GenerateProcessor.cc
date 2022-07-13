@@ -58,6 +58,7 @@ using std::string;
 using std::cerr;
 using std::endl;
 using std::cout;
+using std::vector;
 
 int const DEFAULT_IMEMWIDTH_IN_MAUS = 1;
 
@@ -99,18 +100,25 @@ bool
 GenerateProcessor::generateProcessor(int argc, char* argv[]) {
 
     ProGeCmdLineOptions options;
-    std::string outputDirectory = "";
-    std::string sharedOutputDir = "";
-    HDL language = VHDL;
     string entity = "";
 
     try {
 
         options.parse(argv, argc);
+        ProGeOptions progeOptions(options);
             
         std::string pluginParamQuery = options.pluginParametersQuery();
         if (pluginParamQuery != "") {
             return listICDecPluginParameters(pluginParamQuery);
+        }
+
+        if (options.isVerboseSwitchDefined()) {
+            Application::setVerboseLevel(
+                Application::VERBOSE_LEVEL_INCREASED);
+        }
+
+        if (options.isVerboseSpamSwitchDefined()) {
+            Application::setVerboseLevel(Application::VERBOSE_LEVEL_SPAM);
         }
 
         if (options.listAvailableIntegrators()) {
@@ -128,23 +136,13 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
             return false;
         }
 
-        getOutputDir(options, outputDirectory);
-        if (FileSystem::fileExists(outputDirectory)) {
-            cerr << "Error: Output directory " << outputDirectory
+        if (!options.forceOutputDirectory()
+            && FileSystem::fileExists(progeOptions.outputDirectory)) {
+            cerr << "Error: Output directory " << progeOptions.outputDirectory
                  << " already exists." << endl;
             return false;
         }
-        
-        if (options.sharedOutputDirectory() != "") {
-            sharedOutputDir = options.sharedOutputDirectory();
-            sharedOutputDir = FileSystem::expandTilde(sharedOutputDir);
-            sharedOutputDir = FileSystem::absolutePathOf(sharedOutputDir);
-        } else {
-            sharedOutputDir = outputDirectory;
-        }
 
-        entity = options.entityName();
-        
         string processorDefinition = options.processorToGenerate();
         if (FileSystem::fileExtension(processorDefinition) == ".adf") {
             loadMachine(processorDefinition);
@@ -163,6 +161,9 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         string hdl = options.hdl();
 
         int imemWidthInMAUs = DEFAULT_IMEMWIDTH_IN_MAUS;
+        if (machine_->RISCVMachine()) {
+            imemWidthInMAUs = 4;
+        }
 
         if (bem != "") {
             loadBinaryEncoding(bem);
@@ -171,18 +172,8 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
             loadMachineImplementation(idf);
         }
 
-        if (hdl == "vhdl" || hdl == "") {
-            language = VHDL;
-        } else if (hdl == "verilog") {
-           language = Verilog;
-        } else {
-            cerr << "Unknown HDL given: " << hdl << endl;
-            return false;
-        }
-        
-        ProGeUI::generateProcessor(
-            imemWidthInMAUs, language, outputDirectory, 
-            sharedOutputDir, entity, std::cerr, std::cerr);
+        ProGeUI::generateProcessor(progeOptions,
+            imemWidthInMAUs, std::cerr, std::cerr, std::cerr);
     } catch (ParserStopRequest) {
         return false;
     } catch (const IllegalCommandLine& exception) {
@@ -192,15 +183,20 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         cerr << e.errorMessage() << endl;
         cerr << "Exception thrown at: " << e.fileName() << ":" 
              << e.lineNum() << endl;
+        cerr << "  message: " << e.errorMessage() << endl;
         return false;
     }
 
+    ProGeOptions progeOptions(options);
+
     if (options.generateTestbench()) {
-        string testBenchDir = outputDirectory
+
+        string testBenchDir = progeOptions.outputDirectory
                 + FileSystem::DIRECTORY_SEPARATOR +
                 "tb";
         try {
-            ProGeUI::generateTestBench(language,testBenchDir, outputDirectory);
+            ProGeUI::generateTestBench(progeOptions.language, testBenchDir,
+                progeOptions.outputDirectory);
         } catch (const Exception& e) {
             std::cerr << "Warning: Processor Generator failed to "
                     << "generate testbench." << std::endl;
@@ -209,8 +205,10 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
 
         try {
             ProGeUI::generateScripts(
-                    language,outputDirectory, outputDirectory, sharedOutputDir,
-                    testBenchDir);
+                    progeOptions.language, progeOptions.outputDirectory,
+                    progeOptions.outputDirectory,
+                    progeOptions.sharedOutputDirectory,
+                    testBenchDir, progeOptions.simulationRuntime);
         } catch (const Exception& e) {
             std::cerr << "Warning: Processor Generator failed to "
                     << "generate simulation/compilation scripts."
@@ -222,14 +220,14 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
     string integrator = options.integratorName();
     if (!integrator.empty()) {
 
-        if (language == Verilog) {
+        if (progeOptions.language == Verilog) {
             std::cerr << "Verilog is not yet supported by Platform Integrator"
                       << std::endl;
             return false;
         }
 
-        string progeOutDir = outputDirectory;
-        string sharedOutDir = sharedOutputDir;
+        string progeOutDir = progeOptions.outputDirectory;
+        string sharedOutDir = progeOptions.sharedOutputDirectory;
         if (!options.useAbsolutePaths()) {
             string cwd = FileSystem::currentWorkingDir();
             FileSystem::relativeDir(cwd, progeOutDir);
@@ -244,12 +242,14 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         MemType dmem = string2MemType(options.dmemType());
         int fmax = options.clockFrequency();
         string devFamily = options.deviceFamilyName();
-        
+        string devName   = options.deviceName();
+        bool syncReset = options.syncReset();
+
         try {
             ProGeUI::integrateProcessor(
                 std::cout, std::cerr, progeOutDir, sharedOutDir,
-                integrator, entity, program, devFamily, imem, dmem,
-                language, fmax);
+                integrator, progeOptions.entityName, program, devFamily,
+                devName, imem, dmem, progeOptions.language, fmax, syncReset);
         } catch (const Exception& e) {
             std::cerr << "Processor integration failed: "
                       << e.procedureName() << ": "

@@ -247,6 +247,8 @@
                     minOccurs="0"/>     
         <xs:element name="port" type="register-file-port-type"
                     minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="zero-register" type="xs:boolean"
+                    minOccurs="0" maxOccurs="1" default="false"/>
     </xs:sequence>
     <xs:attribute name="name" type="attribute-type" use="required"/>
 </xs:complexType>
@@ -303,6 +305,27 @@
     <xs:attribute name="name" type="attribute-type" use="required"/>
 </xs:complexType>
 
+<!-- ===== OTA FORMAT ================================================= -->
+
+<xs:complexType name="ota-operand-type">
+    <xs:sequence>
+        <xs:element name="type" type="xs:string"
+                    minOccurs="0" maxOccurs="1"/>
+        <xs:element name="direction" type="xs:string"
+                    minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="ota-format-type">
+    <xs:sequence>
+        <xs:element name="ota-operand" type="ota-operand-type"
+        minOccurs="0" maxOccurs="unbounded"/>   
+        <xs:element name="ota-operation" type="xs:string"
+            minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>
 
 <!-- ===== IMMEDIATE UNIT ================================================= -->
 
@@ -338,6 +361,8 @@
         <xs:element name="max-writes" type="xs:nonNegativeInteger"/>
         <xs:element name="guard-latency" type="xs:positiveInteger"
                     minOccurs="0"/>     
+        <xs:element name="latency" type="xs:nonNegativeInteger"
+                    minOccurs="0" maxOccurs="1"/>
         <xs:element name="extension" type="extension-type"/>
         <xs:element name="port" type="immediate-unit-port-type"
                     minOccurs="0" maxOccurs="unbounded"/>
@@ -380,7 +405,11 @@
                         minOccurs="0"/>
             <xs:element name="immediate-unit" type="immediate-unit-type"
                         minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="template" type="template-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="immediate-slot" type="immediate-slot-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="ota-format" type="ota-format-type"
                         minOccurs="0" maxOccurs="unbounded"/>
         </xs:sequence>
         <xs:attribute name="version" type="xs:decimal" use="required"/>

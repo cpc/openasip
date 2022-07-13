@@ -49,10 +49,17 @@ using std::string;
  *
  * @param size The size of the RegisterFileState.
  * @param width Width of the registers.
+ * @param zeroRegister Tells whether the first index is hardcoded to zero
  */
-RegisterFileState::RegisterFileState(int size, int width) {
-    for (int i = 0; i < size; i++) {
-        registerStates_.push_back(new RegisterState(width));
+RegisterFileState::RegisterFileState(int size, int width, bool zeroRegister) :
+    zeroRegister_(zeroRegister) {
+    if (zeroRegister_) {
+        registerStates_.push_back(new RegisterState(width, true));
+    } else {
+        registerStates_.push_back(new RegisterState(width, false));
+    }
+    for (int i = 1; i < size; i++) {
+        registerStates_.push_back(new RegisterState(width, false));
     }
 }
 

@@ -78,7 +78,16 @@ hdbeditor_SOURCES = AddFUArchFromADFCmd.cc AddFUImplementationCmd.cc \
 	SetFUArchitectureCmd.hh \
 	SetRFArchitectureCmd.hh \
 	TestHDBCmdLineOptions.hh \
-	RFExternalPortDialog.hh
+	RFExternalPortDialog.hh \
+	AddOperationImplementationCmd.cc \
+	AddOperationImplementationCmd.hh \
+	OperationImplementationDialog.cc \
+	OperationImplementationDialog.hh \
+	AddOperationImplementationResourceCmd.cc \
+	AddOperationImplementationResourceCmd.hh \
+	OperationImplementationResourceDialog.cc \
+	OperationImplementationResourceDialog.hh \
+	VariableDialog.hh VariableDialog.cc
 
 
 hdbeditor_LDFLAGS = $(TCE_LDFLAGS)
@@ -130,5 +139,10 @@ hdbeditor_SOURCES += \
 	RFArchitectureDialog.hh AddSocketEntryCmd.hh \
 	FUArchitectureParametersDialog.hh BlockImplementationFileDialog.hh \
 	FUExternalPortDialog.hh HDBEditorAboutDialog.hh \
-	TestHDBCmdLineOptions.hh AddBusEntryCmd.hh 
+	TestHDBCmdLineOptions.hh AddBusEntryCmd.hh \
+	AddOperationImplementationResourceCmd.hh \
+	OperationImplementationResourceDialog.hh \
+	AddOperationImplementationCmd.hh \
+	OperationImplementationDialog.hh \
+	VariableDialog.hh
 ## headers end

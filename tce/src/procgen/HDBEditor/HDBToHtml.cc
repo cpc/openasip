@@ -73,6 +73,10 @@ const std::string HDBToHtml::RF_ARCHITECTURES = "Register Files";
 const std::string HDBToHtml::FU_IMPLEMENTATIONS = "FU Implementations";
 const std::string HDBToHtml::RF_IMPLEMENTATIONS = "RF Implementations";
 const std::string HDBToHtml::COST_PLUGINS = "Cost Function Plugins";
+const std::string HDBToHtml::OPERATION_IMPLEMENTATIONS =
+    "Operation Implementations";
+const std::string HDBToHtml::OPERATION_IMPLEMENTATION_RESOURCES =
+    "Operation Implementation Resources";
 
 /**
  * The Cosntructor.
@@ -515,6 +519,8 @@ HDBToHtml::rfArchToHtml(RowID id, std::ostream& stream) {
     } else {
         stream << "<td align=center>no</td></tr>";
     }
+    stream << "<tr><td align=right><b>Zero Register:</b></td><td" << 
+    " align=center>" << arch->zeroRegister() << "</td></tr>" << endl;
 
     stream << "</table></small><br>" << endl;    
     stream << "</body></html>" << endl;
@@ -973,4 +979,39 @@ HDBToHtml::costFunctionPluginToHtml(RowID id, std::ostream& stream) {
     stream << "</small></body></html>" << endl;
 
     delete plugin;
+}
+
+
+void
+HDBToHtml::OperationImplementationToHtml(RowID id, std::ostream& stream) {
+    OperationImplementation op = hdb_.OperationImplementationByID(id);
+
+    stream << "<html><body>";
+    stream << "<b>Operation Implementation</b><br/>";
+    stream << "operation : " << op.name << "<br/>";
+    stream << "implementation (VHDL) : " << op.implFileVhdl << "<br/>";
+    stream << "implementation (Verilog) : " << op.implFileVerilog << "<br/>";
+    for(const auto& r : op.resources) {
+        stream << "resource : " << r.name
+               << " * " << r.count
+               << "<br/>";
+    }
+    stream << "</body></html>\n";
+}
+
+void
+HDBToHtml::OperationImplementationResourceToHtml(RowID id, std::ostream& stream) {
+    OperationImplementationResource res
+        = hdb_.OperationImplementationResourceByID(id);
+
+    stream << "<html><body>";
+    stream << "<b>Operation Implementation Resource</b><br/>";
+    stream << "name : " << res.name << "<br/>";
+    for (const auto& sim : res.simFiles) {
+        stream << "simulation file : " << sim << "<br/>";
+    }
+    for (const auto& syn : res.synFiles) {
+        stream << "synthesis file : " << syn << "<br/>";
+    }
+    stream << "</body></html>";
 }

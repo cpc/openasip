@@ -517,8 +517,10 @@ int main(int argc, char* argv[]) {
                         stream.close();
 
                         if (diFormat == "ascii" || piFormat == "") {
+                            std::string dmemInitFile("dmem_");
+                            dmemInitFile += as->name() + "_init.img";
                             copyImageToTb(
-                                fileName, progeOutputDir, TB_DMEM_FILE);
+                                fileName, progeOutputDir, dmemInitFile);
                         }
                     }
                 }

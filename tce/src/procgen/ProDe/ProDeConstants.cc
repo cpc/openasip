@@ -96,6 +96,7 @@ const string ProDeConstants::CMD_NAME_EDIT_BUS_ORDER = "Bus Order";
 const string ProDeConstants::CMD_NAME_EDIT_ADDRESS_SPACES =
     "Edit Address Spaces";
 const string ProDeConstants::CMD_NAME_EDIT_TEMPLATES = "Edit Templates";
+const string ProDeConstants::CMD_NAME_EDIT_OTA_FORMATS = "Edit OTA Formats";
 
 const string ProDeConstants::CMD_NAME_ZOOM_IN = "Zoom In";
 const string ProDeConstants::CMD_NAME_ZOOM_OUT = "Zoom Out";
@@ -160,6 +161,7 @@ const string ProDeConstants::CMD_SNAME_SAVE_OPTIONS = "Sv Opt";
 const string ProDeConstants::CMD_SNAME_SAVEAS_OPTIONS = "SvAs Opt";
 const string ProDeConstants::CMD_SNAME_EDIT_ADDRESS_SPACES = "AS's";
 const string ProDeConstants::CMD_SNAME_EDIT_TEMPLATES = "ITs";
+const string ProDeConstants::CMD_SNAME_EDIT_OTA_FORMATS = "OTAFormats";
 const string ProDeConstants::CMD_SNAME_EDIT_MACHINE = "Mach Opt";
 const string ProDeConstants::CMD_SNAME_EDIT_IMMEDIATE_SLOTS = "ImmSlots";
 const string ProDeConstants::CMD_SNAME_EDIT_BUS_ORDER = "Bus Ord.";
@@ -192,6 +194,7 @@ const string ProDeConstants::CMD_ICON_EDIT_OPTIONS = "options.png";
 const string ProDeConstants::CMD_ICON_SAVE_OPTIONS = "filesave.png";
 const string ProDeConstants::CMD_ICON_EDIT_ADDRESS_SPACES = "memory.png";
 const string ProDeConstants::CMD_ICON_EDIT_TEMPLATES = "default.png";
+const string ProDeConstants::CMD_ICON_EDIT_OTA_FORMATS = "default.png";
 const string ProDeConstants::CMD_ICON_EDIT_CONNECTIONS = "connect.png";
 const string ProDeConstants::CMD_ICON_EDIT_MACHINE = "default.png";
 

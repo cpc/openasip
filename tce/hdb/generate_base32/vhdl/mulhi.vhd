@@ -1,0 +1,1 @@
+op3 <= std_logic_vector(resize(shift_right(signed(op1) * signed(op2), 32), 32));

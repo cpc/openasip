@@ -70,8 +70,9 @@ private:
         const std::string& memoryName, const std::string& memoryLine);
     void createTBConstFile(
         std::string dstDirectory,
-        const std::string dataWidth = "",
-        const std::string addrWidth = "");
+        const std::string& dmemImage = "dmem_init.img",
+        const std::string& dataWidth = "",
+        const std::string& addrWidth = "");
     void createProcArchVhdl(
         const std::string& dstDirectory, const std::string& topLevelVhdl,
         const std::string& signalMappings);

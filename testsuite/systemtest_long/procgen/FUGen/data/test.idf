@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>tce:DefaultICDecoderPlugin.so</file>
+    <parameter name="bustrace">
+      <value>yes</value>
+    </parameter>
+    <parameter name="bustracestartingcycle">
+      <value>5</value>
+    </parameter>
+  </ic-decoder-plugin>
+
+  <fu-generate name="ALU">
+    <operation name="add">
+      <hdb-file>tce:generate_base32.hdb</hdb-file>
+      <operation-id>1</operation-id>
+    </operation>
+    <operation name="addsub">
+      <hdb-file>tce:generate_base32.hdb</hdb-file>
+      <operation-id>14</operation-id>
+    </operation>
+    <operation name="xor">
+      <hdb-file>tce:generate_base32.hdb</hdb-file>
+      <operation-id>13</operation-id>
+    </operation>
+    <operation name="sxqw">
+      <hdb-file>tce:generate_base32.hdb</hdb-file>
+      <operation-id>12</operation-id>
+    </operation>
+    <operation name="sxhw">
+      <hdb-file>tce:generate_base32.hdb</hdb-file>
+      <operation-id>11</operation-id>
+    </operation>
+    <operation name="sub">
+      <hdb-file>tce:generate_base32.hdb</hdb-file>
+      <operation-id>10</operation-id>
+    </operation>
+    <operation name="shru">
+      <hdb-file>tce:generate_base32.hdb</hdb-file>
+      <operation-id>9</operation-id>
+    </operation>
+    <operation name="shr">
+      <hdb-file>tce:generate_base32.hdb</hdb-file>
+      <operation-id>8</operation-id>
+    </operation>
+    <operation name="shl">
+      <hdb-file>tce:generate_base32.hdb</hdb-file>
+      <operation-id>7</operation-id>
+    </operation>
+    <operation name="ior">
+      <hdb-file>tce:generate_base32.hdb</hdb-file>
+      <operation-id>6</operation-id>
+    </operation>
+    <operation name="gtu">
+      <hdb-file>tce:generate_base32.hdb</hdb-file>
+      <operation-id>5</operation-id>
+    </operation>
+    <operation name="gt">
+      <hdb-file>tce:generate_base32.hdb</hdb-file>
+      <operation-id>4</operation-id>
+    </operation>
+    <operation name="eq">
+      <hdb-file>tce:generate_base32.hdb</hdb-file>
+      <operation-id>3</operation-id>
+    </operation>
+    <operation name="and">
+      <hdb-file>tce:generate_base32.hdb</hdb-file>
+      <operation-id>2</operation-id>
+    </operation>
+  </fu-generate>
+
+
+  <fu-generate name="ADDER">
+    <operation name="add">
+      <hdb-file>data/test.hdb</hdb-file>
+      <operation-id>1</operation-id>
+    </operation>
+  </fu-generate>
+
+  <fu name="LSU_DATA">
+    <hdb-file>tce:lsu_le.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <rf name="BOOL">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>103</rf-id>
+  </rf>
+
+  <rf name="RF32">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>192</rf-id>
+  </rf>
+
+  <iu name="IMM">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>96</rf-id>
+  </iu>
+
+</adf-implementation>

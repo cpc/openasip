@@ -155,3 +155,12 @@ void
 Encoding::setParent(InstructionField* parent) {
     parent_ = parent;
 }
+
+/**
+ * Sets the encoding
+ */
+void
+Encoding::setEncoding(unsigned int encoding, unsigned int extraBits) {
+    encoding_ = encoding;
+    extraBits_ = extraBits;
+}

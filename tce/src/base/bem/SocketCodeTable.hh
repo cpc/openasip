@@ -40,6 +40,7 @@
 #include "Serializable.hh"
 
 class BinaryEncoding;
+class PortCode;
 class FUPortCode;
 class RFPortCode;
 class IUPortCode;
@@ -78,6 +79,7 @@ public:
     void setExtraBits(int bits);
     int extraBits() const;
     int width() const;
+    int maxCodeWidth() const;
 
     void addFUPortCode(FUPortCode& code);
     void removeFUPortCode(FUPortCode& code);
@@ -107,6 +109,9 @@ public:
     IUPortCode& iuPortCode(int index) const;
     bool hasIUPortCode(const std::string& immediateUnit) const;
     IUPortCode& iuPortCode(const std::string& immediateUnit) const;
+
+    int portCodeCount() const;
+    PortCode& portCode(int index) const;
 
     // methods inherited from Serializable interface
     virtual void loadState(const ObjectState* state);

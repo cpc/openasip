@@ -1,3 +1,4 @@
+!output unsigned
 lth 16896 15872
 lth 19392 19392
 lth 16896 19392

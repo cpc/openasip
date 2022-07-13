@@ -61,8 +61,6 @@ public:
 
     virtual void setDeviceFamily(TCEString devFamily);
 
-    virtual TCEString deviceName() const;
-    
     virtual TCEString devicePackage() const;
 
     virtual TCEString deviceSpeedClass() const;
@@ -82,7 +80,7 @@ protected:
     virtual MemoryGenerator& dmemInstance(
         MemInfo dmem,
         TTAMachine::FunctionUnit& lsuArch,
-        HDB::FUImplementation& lsuImplementation);
+        std::vector<std::string> lsuPorts);
 
 private:
 

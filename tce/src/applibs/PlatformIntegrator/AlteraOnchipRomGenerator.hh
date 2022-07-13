@@ -61,14 +61,15 @@ public:
 
     virtual void addMemory(
         const ProGe::NetlistBlock& ttaCore,
-        ProGe::Netlist& netlist,
-        int memIndex);
+        ProGe::NetlistBlock& integratorBlock,
+        int memIndex,
+        int coreId);
 
 protected:
 
     virtual TCEString moduleName() const;
     
-    virtual TCEString instanceName(int index) const;
+    virtual TCEString instanceName(int coreId, int memIndex) const;
 
 private:
     

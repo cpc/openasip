@@ -48,7 +48,8 @@ class RegisterState;
  */ 
 class RegisterFileState {
 public:
-    explicit RegisterFileState(int size, int width);
+    explicit RegisterFileState(int size, int width,
+    bool zeroRegister = false);
     virtual ~RegisterFileState();
 
     virtual RegisterState& registerState(int index);
@@ -63,6 +64,8 @@ private:
 
     /// Contains all the registers of the state.
     std::vector<RegisterState*> registerStates_;
+    // Zero register flag
+    bool zeroRegister_;
 };
 
 //////////////////////////////////////////////////////////////////////////////

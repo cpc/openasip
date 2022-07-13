@@ -46,6 +46,7 @@
 #include "FUImplementation.hh"
 #include "FUExternalPort.hh"
 #include "FunctionUnit.hh"
+#include "InverterBlock.hh"
 using ProGe::NetlistBlock;
 using ProGe::VirtualNetlistBlock;
 using ProGe::NetlistPort;
@@ -66,7 +67,7 @@ MemoryGenerator::MemoryGenerator(
     mauWidth_(mauWidth), widthInMaus_(widthInMaus), addrWidth_(addrWidth),
     initFile_(initFile), integrator_(integrator),
     warningStream_(warningStream), errorStream_(errorStream),
-    lsuArch_(NULL), lsuImplementation_(NULL) {
+    lsuArch_(NULL), lsuPorts_() {
 
 }
 
@@ -81,22 +82,19 @@ MemoryGenerator::~MemoryGenerator() {
 bool
 MemoryGenerator::isCompatible(
     const ProGe::NetlistBlock& ttaCore,
+    int coreId,
     std::vector<TCEString>& reasons) const {
 
-    if (lsuImplementation_ != NULL) {
-        for (int i = 0; i < lsuImplementation_->externalPortCount(); i++) {
-            const FUExternalPort& fuPort =
-                lsuImplementation_->externalPort(i);
-            if (!checkFuPort(fuPort, reasons)) {
-                return false;
-            }
+    for (std::string port : lsuPorts_) {
+        if (!checkFuPort(port, reasons)) {
+            return false;
         }
     }
     bool foundAll = true;
     PortMap::const_iterator iter = memPorts_.begin();
     while (iter != memPorts_.end()) {
-        TCEString corePort = corePortName(iter->first);
-        if (ttaCore.portByName(corePort) == NULL) {
+        TCEString corePort = corePortName(iter->first, coreId);
+        if (ttaCore.port(corePort) == NULL) {
             TCEString message = "Couldn't find port " + corePort +
                 " from toplevel";
             reasons.push_back(message);
@@ -109,13 +107,13 @@ MemoryGenerator::isCompatible(
 
 bool
 MemoryGenerator::checkFuPort(
-    const HDB::FUExternalPort& fuPort,
+    const std::string fuPort,
     std::vector<TCEString>& reasons) const {
 
-    PortMap::const_iterator iter = memPorts_.find(fuPort.name());
+    PortMap::const_iterator iter = memPorts_.find(fuPort);
     if (iter == memPorts_.end()) {
         TCEString msg;
-        msg << "MemoryGenerator does not have port " << fuPort.name();
+        msg << "MemoryGenerator does not have port " << fuPort;
         reasons.push_back(msg);
         return false;
     }
@@ -126,66 +124,65 @@ MemoryGenerator::checkFuPort(
 void
 MemoryGenerator::addMemory(
     const ProGe::NetlistBlock& ttaCore,
-    ProGe::Netlist& netlist,
-    int memIndex) {
+    ProGe::NetlistBlock& integratorBlock,
+    int memIndex,
+    int coreId) {
 
     BlockPair blocks =
-        createMemoryNetlistBlock(netlist, memIndex);
+        createMemoryNetlistBlock(integratorBlock, memIndex, coreId);
     NetlistBlock* mem = blocks.first;
     VirtualNetlistBlock* virt = blocks.second;
     assert(mem != NULL);
     assert(virt != NULL);
+    if (virt->portCount() > 0) {
+        integratorBlock.addSubBlock(virt);
+    }
 
     for (int i = 0; i < portCount(); i++) {
         const HDLPort* hdlPort = port(i);
-        NetlistPort* memPort = mem->portByName(hdlPort->name());
+        NetlistPort* memPort = mem->port(hdlPort->name());
         if (memPort == NULL) {
-            memPort = virt->portByName(hdlPort->name());
+            memPort = virt->port(hdlPort->name());
             if (memPort == NULL) {
                 TCEString msg = "Port ";
                 msg << hdlPort->name() << " not found from netlist block";
                 throw InvalidData(__FILE__, __LINE__, "MemoryGenerator", msg);
             }
         }
-        
-        TCEString portName = corePortName(portKeyName(hdlPort));
-        NetlistPort* corePort = NULL;
+
+        TCEString portName = corePortName(portKeyName(hdlPort), coreId);
+        const NetlistPort* corePort = NULL;
         // clock and reset must be connected to new toplevel ports
         if (portName == platformIntegrator()->clockPort()->name()) {
             corePort = platformIntegrator()->clockPort();
         } else if (portName == platformIntegrator()->resetPort()->name()) {
             corePort = platformIntegrator()->resetPort();
         } else {
-            corePort = ttaCore.portByName(portName);
+            corePort = ttaCore.port(portName);
         }
         assert(corePort != NULL);
 
         connectPorts(
-            netlist, *memPort, *corePort, hdlPort->needsInversion());
-    }
-
-    if (virt->portCount() > 0) {
-        netlist.topLevelBlock().addSubBlock(virt);
-    } else {
-        delete virt;
+            integratorBlock, *memPort, *corePort,
+            hdlPort->needsInversion(), coreId);
     }
 }
 
 
 MemoryGenerator::BlockPair
 MemoryGenerator::createMemoryNetlistBlock(
-    ProGe::Netlist& netlist,
-    int memIndex) {
+    ProGe::NetlistBlock& integratorBlock,
+    int memIndex,
+    int coreId) {
 
     VirtualNetlistBlock* staticConnectionsBlock = new VirtualNetlistBlock(
-        moduleName() + "_virt", instanceName(memIndex) + "_virt",
-        netlist);
+        moduleName() + "_virt", instanceName(coreId, memIndex) + "_virt");
+
 
     NetlistBlock* mem =
-        new NetlistBlock(
-            moduleName(), instanceName(memIndex), netlist);
-    netlist.topLevelBlock().addSubBlock(mem);
-    
+        new NetlistBlock(moduleName(), instanceName(coreId, memIndex));
+    integratorBlock.addSubBlock(mem);
+
     for (int i = 0; i < parameterCount(); i++) {
         mem->setParameter(parameter(i));
     }
@@ -322,7 +319,7 @@ MemoryGenerator::parameterCount() const {
     return params_.size();
 }
     
-const ProGe::Netlist::Parameter&
+const ProGe::Parameter&
 MemoryGenerator::parameter(int index) const {
     
     return params_.at(index);
@@ -330,9 +327,9 @@ MemoryGenerator::parameter(int index) const {
 
 
 void
-MemoryGenerator::addParameter(const ProGe::Netlist::Parameter& add) {
+MemoryGenerator::addParameter(const ProGe::Parameter& add) {
 
-    ProGe::Netlist::Parameter toAdd = {add.name, add.type, add.value};
+    ProGe::Parameter toAdd(add.name(), add.type(), add.value());
     params_.push_back(toAdd);
 }
 
@@ -373,17 +370,10 @@ MemoryGenerator::lsuArchitecture() const {
     return *lsuArch_;
 }
 
-
-const HDB::FUImplementation&
-MemoryGenerator::lsuImplementation() const {
-    
-    assert(lsuImplementation_ != NULL);
-    return *lsuImplementation_;
-}
-
-
 TCEString
-MemoryGenerator::corePortName(const TCEString& portBaseName) const {
+MemoryGenerator::corePortName(
+    const TCEString& portBaseName,
+    int coreId) const {
 
     // clock and reset port names are global
     if (portBaseName == integrator_->clockPort()->name() ||
@@ -392,6 +382,9 @@ MemoryGenerator::corePortName(const TCEString& portBaseName) const {
     }
 
     TCEString portName;
+    if (coreId >= 0) {
+            portName << "core" << coreId << "_";
+    }
     if (lsuArch_ != NULL) {
         portName << "fu_" << lsuArchitecture().name() << "_";
     }
@@ -403,35 +396,47 @@ MemoryGenerator::corePortName(const TCEString& portBaseName) const {
 void
 MemoryGenerator::addLsu(
     TTAMachine::FunctionUnit& lsuArch,
-    HDB::FUImplementation& lsuImplementation) {
+    std::vector<std::string> lsuPorts) {
 
     lsuArch_ = &lsuArch;
-    lsuImplementation_ = &lsuImplementation;
+    lsuPorts_ = lsuPorts;
 }
 
 
 TCEString
-MemoryGenerator::memoryIndexString(int memIndex) const {
+MemoryGenerator::memoryIndexString(int coreId, int memIndex) const {
 
     TCEString index;
+    if (coreId >= 0) {
+        index << coreId << "_";
+    }
     return index << memIndex;
 }
 
 void
 MemoryGenerator::connectPorts(
-    ProGe::Netlist& netlist,
-    ProGe::NetlistPort& memPort,
-    ProGe::NetlistPort& corePort,
-    bool inverted) {
+    ProGe::NetlistBlock& netlistBlock,
+    const ProGe::NetlistPort& memPort,
+    const ProGe::NetlistPort& corePort,
+    bool inverted,
+    int /*coreId*/) {
 
     if (inverted) {
-        netlist.connectPortsInverted(corePort, memPort);
+        ProGe::InverterBlock* InvertedBlock =
+            new ProGe::InverterBlock(corePort, memPort);
+        netlistBlock.addSubBlock(InvertedBlock);
+
+        netlistBlock.netlist().connect(
+            corePort, InvertedBlock->inputPort(), 0, 0, 1);
+        netlistBlock.netlist().connect(
+            InvertedBlock->outputPort(), memPort, 0, 0, 1);
+
     } else {
         if (memPort.dataType() == corePort.dataType()) {
-            netlist.connectPorts(memPort, corePort);
+            netlistBlock.netlist().connect(memPort, corePort);
         } else {
             // bit to bit vector connection, connect lowest bits
-            netlist.connectPorts(memPort, corePort, 0, 0, 1);
+            netlistBlock.netlist().connect(memPort, corePort, 0, 0, 1);
         }
     }
 }

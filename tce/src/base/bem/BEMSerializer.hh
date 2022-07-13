@@ -67,6 +67,7 @@ private:
     static ObjectState* longImmDstRegisterFieldToFile(
         const ObjectState* omState);
 
+
     static ObjectState* socketCodeTableToOM(const ObjectState* scTable);
     static ObjectState* longImmTagToOM(const ObjectState* fileTag);
     static ObjectState* moveSlotToOM(const ObjectState* fileSlot);
@@ -77,7 +78,7 @@ private:
     static ObjectState* slotFieldToOM(const ObjectState* fileSlot);
     static ObjectState* immediateSlotToOM(const ObjectState* fileSlot);
     static ObjectState* longImmDstRegFieldToOM(const ObjectState* fileField);
-
+    
     static void readRegisterFilePortCode(
         const ObjectState* filePortCode,
         ObjectState* omPortCode);

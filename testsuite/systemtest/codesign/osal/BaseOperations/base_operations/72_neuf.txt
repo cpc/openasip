@@ -1,3 +1,4 @@
+!output unsigned
 neuf 1934.34f 1934.33f
 neuf 123.123f -123.123f
 neuf 234.234f 234.234f

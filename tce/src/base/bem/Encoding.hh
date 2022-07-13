@@ -74,6 +74,7 @@ protected:
         InstructionField* parent);
     Encoding(const ObjectState* state, InstructionField* parent);
     void setParent(InstructionField* parent);
+    void setEncoding(unsigned int encoding, unsigned int extraBits);
 
 private:
     /// The encoding.

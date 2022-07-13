@@ -54,11 +54,14 @@ public:
         int port1FirstBit,
         int port2FirstBit,
         int width);
+    PortConnectionProperty(bool inverted);
     PortConnectionProperty();
     virtual ~PortConnectionProperty();
 
     int width() const;
     bool fullyConnected() const;
+    bool inverted() const;
+    void setInverted(bool setting);
 
     int port1FirstBit() const;
     int port2FirstBit() const;
@@ -70,6 +73,8 @@ private:
     int port2FirstBit_;
     /// The width of the connection.
     int width_;
+    /// The inversion flag.
+    bool inverted_;
 };
 }
 

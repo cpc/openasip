@@ -56,26 +56,26 @@ AlteraOnchipRamGenerator::AlteraOnchipRamGenerator(
     TCEString byteEnableWidth;
     byteEnableWidth << DATAW_G << "/8";
     addPort("dmem_data_in", 
-            new HDLPort("q", DATAW_G,
-                        ProGe::BIT_VECTOR, HDB::OUT, noInvert,
-                        memoryTotalWidth()));
+        new HDLPort("q", DATAW_G,
+            ProGe::BIT_VECTOR, ProGe::OUT, noInvert,
+            memoryTotalWidth()));
     addPort("dmem_data_out",
-            new HDLPort("data", DATAW_G,
-                        ProGe::BIT_VECTOR, HDB::IN, noInvert,
-                        memoryTotalWidth()));
+        new HDLPort("data", DATAW_G,
+            ProGe::BIT_VECTOR, ProGe::IN, noInvert,
+            memoryTotalWidth()));
     addPort("dmem_addr",
-            new HDLPort("address", ADDRW_G,
-                        ProGe::BIT_VECTOR, HDB::IN, noInvert,
-                        memoryAddrWidth()));
+        new HDLPort("address", ADDRW_G,
+            ProGe::BIT_VECTOR, ProGe::IN, noInvert,
+            memoryAddrWidth()));
     addPort("dmem_mem_en_x",
-            new HDLPort("clken", "1", ProGe::BIT, HDB::IN, inverted, 1));
+        new HDLPort("clken", "1", ProGe::BIT, ProGe::IN, inverted, 1));
     addPort("dmem_wr_en_x",
-            new HDLPort("wren", "1", ProGe::BIT, HDB::IN, inverted, 1));
+        new HDLPort("wren", "1", ProGe::BIT, ProGe::IN, inverted, 1));
     addPort("dmem_bytemask",
-            new HDLPort("byteena", byteEnableWidth, ProGe::BIT_VECTOR,
-                        HDB::IN, noInvert, memoryWidthInMaus()));
+        new HDLPort("byteena", byteEnableWidth, ProGe::BIT_VECTOR,
+            ProGe::IN, noInvert, memoryWidthInMaus()));
     addPort("clk",
-            new HDLPort("clock", "1", ProGe::BIT, HDB::IN, noInvert, 1));
+        new HDLPort("clock", "1", ProGe::BIT, ProGe::IN, noInvert, 1));
 }
 
 AlteraOnchipRamGenerator::~AlteraOnchipRamGenerator() {
@@ -102,9 +102,9 @@ AlteraOnchipRamGenerator::moduleName() const {
     
 
 TCEString
-AlteraOnchipRamGenerator::instanceName(int memIndex) const {
+AlteraOnchipRamGenerator::instanceName(int coreId, int memIndex) const {
     
     TCEString iname("onchip_dmem_");
-    return iname << memoryIndexString(memIndex);
+    return iname << memoryIndexString(coreId, memIndex);
 }
 

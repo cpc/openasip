@@ -46,7 +46,28 @@
     <xs:attribute name="name" type="xs:string"/>
 </xs:complexType>
 
-<!-- ===== FU =========================================== =============== -->
+<!-- ===== FU-GENERATE =================================================== -->
+
+<xs:complexType name="fu-generate-operation-type">
+    <xs:sequence>
+      <xs:element name="hdb-file" type="xs:string"/>
+      <xs:element name="operation-id" type="xs:integer"/>
+      <xs:element name="operation-latency" type="xs:integer" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+</xs:complexType>
+
+<xs:complexType name="fu-generate-type">
+    <xs:sequence>
+      <xs:element name="operation" type="fu-generate-operation-type"
+                  minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="option" type="xs:string"
+                  minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+</xs:complexType>
+
+<!-- ===== FU =========================================================== -->
 
 <xs:complexType name="fu-type">
     <xs:sequence>
@@ -89,13 +110,16 @@
 <!-- ===== ADF-IMPLEMENTATION =========================================== -->
 
 <xs:element name="adf-implementation">
+
     <xs:complexType>
         <xs:sequence>
             <xs:element name="ic-decoder-plugin" type="icdec-plugin-type" 
                         minOccurs="0" maxOccurs="1"/>
             <xs:element name="decompressor-file" type="xs:string"
                         minOccurs="0" maxOccurs="1"/>
-            <xs:element name="fu" type="fu-type" minOccurs="0" 
+            <xs:element name="fu-generate" type="fu-generate-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="fu" type="fu-type" minOccurs="0"
                         maxOccurs="unbounded"/>
             <xs:element name="rf" type="rf-type" minOccurs="0" 
                         maxOccurs="unbounded"/>

@@ -1,0 +1,7 @@
+jumpr 1
+!register programcounter
+jumpr 1234567
+!register programcounter
+jumpr -10
+!register programcounter
+!quit
