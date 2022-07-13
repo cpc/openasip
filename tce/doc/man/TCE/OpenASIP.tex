@@ -34,7 +34,7 @@
 \makeindex
 
 \begin{document}
-\title{TTA-based Co-design Environment v2.0-pre}
+\title{OpenASIP v2.0-pre}
 \ver{33}
 \firstday{2006-10-25}
 \lastday{2022-05-11}
@@ -51,13 +51,13 @@
 \chapter{INTRODUCTION}
 
 %\section{Document Overview}
-This is the user manual for TTA Co-design Environment (TCE)
+This is the user manual for OpenASIP
 \cite{tcewww}
 %\cite{lptce}.
 The document describes all the tools in the toolset, and a set of common use
 cases in the form of tutorials.
 
-Fig.\ref{fig:tce_overview} shows a simplified overview of TCE. TCE supports
+Fig.\ref{fig:tce_overview} shows a simplified overview of OpenASIP. OpenASIP supports
 programs written in C/C++ and OpenCL. User can easily design new customized
 Transport-Triggered Architecture (TTA) processors, compile the program,
 analyze the performance, and generate HDL implementations of the designed
@@ -68,7 +68,7 @@ application and upload new program image to continue development.
 \begin{figure}
   \begin{center}
     \includegraphics[width=10cm]{eps/tce_overview}
-    \caption{Overview of TTA Co-design Environment (TCE).}
+    \caption{Overview of OpenASIP.}
     \label{fig:tce_overview}
   \end{center}
 \end{figure}
@@ -81,7 +81,7 @@ and the powerful ASIP tools should provide increased productivity in
 comparison to fixed function accelerator implementations, which offer the
 highest performance.
 
-With TCE, TTA ASIP configuration, SW compilation, and simulation can
+With OpenASIP, ASIP configuration, SW compilation, and simulation can
 be carried out in the order of minutes and hence most of the time can
 be reserved to application and architecture co-development. It is fast
 to iterate over new TTA configurations, e.g., change the number and
@@ -97,10 +97,10 @@ be optimized to match the soft cores offered by FPGA vendors.
 
 \section{Document Overview}
 
-Chapter~\ref{chapter:tceFlow} provides an overview to the TCE
+Chapter~\ref{chapter:tceFlow} provides an overview to the OpenASIP
 processor design flow, and Chapter~\ref{chapter:tutorials} contains
-tutorials for several common TCE use cases. These should be sufficient
-for starting to use the TCE toolset.  The rest of the chapters
+tutorials for several common OpenASIP use cases. These should be sufficient
+for starting to use the OpenASIP toolset.  The rest of the chapters
 describe the use of each tool separately, and they can be referred to
 for information on more advanced usage the tools.
 
@@ -124,9 +124,10 @@ IDF & (Machine/Processor) Implementation Definition File.\\
 ILP & Instruction Level Parallelism.\\
 LLVM & Low Level Virtual Machine \\
 MAU & Minimum Addressable Unit\\
+OA & OpenASIP (toolset) \\
 PIG & Program Image Generator\\
 SQL & Structured Query Language.\\
-TCE & TTA Co-design Environment.\\
+TCE & TTA Co-design Environment (previous name of OpenASIP).\\
 TPEF & TTA Program Exchange Format \\
 TraceDB & Execution Trace Database. \\
 TTA & Transport Triggered Architecture.\\
@@ -151,7 +152,7 @@ XML & Extensible Markup Language. \\
 \hline
 \file{file name}   & file and directory names in running text\\
 \hline
-\textbf{bold}     & Shorthand name of a TCE application.\\
+\textbf{bold}     & Shorthand name of an OpenASIP application.\\
 \hline
 \shellcmd{courier}     & UNIX commands\\
 \hline
@@ -163,32 +164,32 @@ XML & Extensible Markup Language. \\
 \label{chapter:tceFlow}
 
 
-The main goal for the TTA Co-design Environment (TCE) is to provide a
+The main goal for OpenASIP is to provide a
 reliable and effective toolset for designing programmable application
 specific processors, and generate machine code for them from
 applications written in high-level languages, such as C, C++ or
 OpenCL.
 \begin{figure}
   \begin{center} \includegraphics[width=10cm]{eps/tce_flow}
-  \caption{Overview of TTA Co-design Environment (TCE). } 
+  \caption{Overview of OpenASIP. } 
   \label{fig:tce_flow} \end{center}
 \end{figure}
 
-In addition, TCE provides an extensible research platform for 
+In addition, OpenASIP provides an extensible research platform for 
 experimenting with new ideas for Transport Triggered Architectures (TTAs), 
 retargetable ILP code generation, and application specific processor 
 design methodology, among others.
 
 \section{Design Flow Overview}
 
-The main phases in the TCE are illustrated in
+The main phases in the OpenASIP are illustrated in
 Figure~\ref{fig:tce_flow} and listed in Table~\ref{tab:phases} The
-TCE design flow starts from an application described in a high level
+OpenASIP design flow starts from an application described in a high level
 language (currently the C language).  The initial software development
 phase is intended to be separate from the actual co-design flow of
-TCE. That is, the program is expected to be implemented and tested
-natively (on a workstation PC) before ``porting'' it to the TTA/TCE
-platform. The porting includes ensuring that TTA/TCE runs the program
+OpenASIP. That is, the program is expected to be implemented and tested
+natively (on a workstation PC) before ``porting'' it to the OpenASIP
+platform. The porting includes ensuring that OpenASIP runs the program
 correctly, and optimizing the hardware together with the software by
 modifying the resources and architecture of the processor to fit the
 application at hand -- a process called hardware/software co-design.
@@ -204,7 +205,7 @@ unit, to assist in iteration of the SW of TTA HW until results are satiscatory.
 The LLVM compiler framework~\cite{llvm-home-page} is used to compile
 the application to 'bitcode', the intermediate representation of
 LLVM. The resulting bitcode is then compiled and scheduled to a
-particular TTA processor by TCE. Traditional compiler optimizations
+particular TTA processor by OpenASIP. Traditional compiler optimizations
 are done in LLVM before bitcode generation, so it is possible to
 utilize the same bitcode file when exploring different TTA processors
 for running an application.
@@ -238,7 +239,7 @@ different output formats ranging from plain binary format to FPGA
 vendor specific embedded RAM formats.
 
 More details about the tools and design phases are given in Chapters
-\ref{sec:prode} - \ref{section:codesign}. The TCE tour tutorial in
+\ref{sec:prode} - \ref{section:codesign}. The OpenASIP tour tutorial in
 section~\ref{sec:tcetour} provides a hands-on introduction to the design
 flow.
 
@@ -277,7 +278,7 @@ flow.
 
 The flow consists of many separate tools and information is exchanged
 with files.  This chapter gives an overview of 8 file and database
-types manipulated by TCE applications and accessible to users of the
+types manipulated by OpenASIP applications and accessible to users of the
 toolset, architecture definition .adf and SW binary
 .tpef being the most important ones. Many files are XML so
 user can easily access them, if needed.
@@ -389,7 +390,7 @@ describe certain parameters used in implementations. In addition, HDB may
 include data of each implementation needed by the cost estimation
 algorithms.
 
-TCE ships with an example HDB that includes implementations for several
+OpenASIP ships with an example HDB that includes implementations for several
 function units and register files in VHDL, and cost data for the default
 interpolating cost estimation plugin. 
 
@@ -473,7 +474,7 @@ IDF) are stored in the database as well.
 \subsection{Summary of file types}
 \label{sec:summary}
 
-Table~\ref{tab:files} summarizes briefly the most common TCE file types.
+Table~\ref{tab:files} summarizes briefly the most common OpenASIP file types.
 
 \begin{table}[b]
   \begin{center}
@@ -511,10 +512,10 @@ memories, FPGA considerations and programming TTAs using OpenCL C.
 
 Let's start with the simplest one.
 
-\section{TCE Tour}
+\section{Open ASIP Tour}
 \label{sec:tcetour}
 
-This tutorial goes through most of the tools in TCE using a fairly simple
+This tutorial goes through most of the tools in OpenASIP using a fairly simple
 example application. It starts from C code and ends up with VHDL of the
 processor and a bit image of the parallel program. This tutorial will also
 explain how to accelerate an algorithm by customizing the instruction
@@ -582,7 +583,7 @@ lookup table. This is a quite usual method of algorithm optimization.
 \label{ssec:start_point}
 
 
-Copy the \file{minimal.adf} file included in TCE distribution to a new ADF
+Copy the \file{minimal.adf} file included in OpenASIP distribution to a new ADF
 file:
 
 \begin{verbatim}
@@ -590,7 +591,7 @@ file:
 \end{verbatim}
 
 The file describes a minimalistic TTA processor containing just enough
-resources that the TCE compiler can still compile C programs for it.
+resources that the OpenASIP compiler can still compile C programs for it.
 We use this {\em minimal architecture} as the starting point.
 Function units in \file{minimal.adf} are selected from the hardware
 database (HDB, Section~\ref{section:hdb}) so we are able to generate a VHDL
@@ -957,7 +958,7 @@ macros you can spot that function reflect() is only called with 8 and
 
 %\subsection{Analyzing the Custom Operation}
 
-A great advantage of TCE is that the operation semantics, processor
+A great advantage of OpenASIP is that the operation semantics, processor
 architecture, and implementation are separate abstractions. This
 simplifies designing custom operations since you can simulate your
 design by simply defining the simulation behaviour of the operation (in C/C++)
@@ -1106,7 +1107,7 @@ definitions to the newly created operation module.
 
 \paragraph{Defining the simulation behaviour of the operations} The new operations
 REFLECT8 and REFLECT32 do not yet have simulation behavior models, so
-we cannot simulate programs that use these operations with the TCE
+we cannot simulate programs that use these operations with the OpenASIP
 processor simulator. Open again the operation property dialog by
 right-clicking REFLECT8, then choosing \emph{Modify properties}. Now
 press the \emph{Open} button at the bottom to open an empty behavior
@@ -1194,11 +1195,11 @@ operation behavior reads data from the function unit's input ports and
 writes to output ports. The value of nBits is determined from the
 operation code (REFLECT8 or REFLECT32). Since the original software and
 the simulation behavior are both defined in C/C++, it is often easy
-to copy-paste the TCE simulation behavior definition from the part
+to copy-paste the simulation behavior definition from the part
 we plan to convert to a custom operation, like was done here.
 
 Save the code and close the editor. REFLECT8 and REFLECT32 operations
-now have TCE simulator behaviour models.
+now have simulator behaviour models.
 
 \paragraph{Compiling operation behavior.} REFLECT-operations have been
 added to the test module. Before we can simulate the behavior of our
@@ -1329,10 +1330,10 @@ Then open \file{crc\_with\_custom\_op.c} in your preferred text editor.
 %operations from C code without getting our hands dirty with
 %inline assembly.
 
-Usage of TCE custom operation macros/intrinsics is as follows:
+Usage of custom operation macros/intrinsics is as follows:
 
 \begin{verbatim}
- _TCE_<opName>(input1, ... , inputN, output1, ... , outputN);
+ _OA_<opName>(input1, ... , inputN, output1, ... , outputN);
 \end{verbatim}
 
 where <opName> is the name of the operation in OSAL. Number of input and
@@ -1344,8 +1345,8 @@ reflected result from it. We named the operations ``REFLECT8'' and ``REFLECT32''
 thus the intrinsics calls we need are as follows:
 
 \begin{verbatim}
- _TCE_REFLECT8(input1, output);
- _TCE_REFLECT32(input1, output);
+ _OA_REFLECT8(input1, output);
+ _OA_REFLECT32(input1, output);
 \end{verbatim}
 
 Let's modify the crcFast function to use the custom op. First declare 2 new
@@ -1364,25 +1365,25 @@ for-loop of crcFast().
 
 The input data of reflect function is read from array message[] in the for-loop.
 Let us modify this so that at the beginning of the loop the input data is
-read to the input variable. Then we will use the \_TCE\_REFLECT8 macro to run
+read to the input variable. Then we will use the \_OA\_REFLECT8 macro to run
 the custom operation, and finally replace the REFLECT\_DATA macro with the
 output variable. After these modifications the body of the for-loop should
 look like this:
 
 \begin{verbatim}
  input = message[byte];
- _TCE_REFLECT8(input, output);
+ _OA_REFLECT8(input, output);
  data = (unsigned char) output ^ (remainder >> (WIDTH - 8));
  remainder = crcTable[data] ^ (remainder << 8);
 \end{verbatim}
 
 Next we will modify the return statement. Originally it uses a
 REFLECT\_REMAINDER macro where nBits is defined as WIDTH and data is
-remainder. Simply use \_TCE\_REFLECT32 macro before return statement and
+remainder. Simply use \_OA\_REFLECT32 macro before return statement and
 replace the original macro with the variable output:
 
 \begin{verbatim}
- _TCE_REFLECT32(remainder, output);
+ _OA_REFLECT32(remainder, output);
  return (output ^ FINAL_XOR_VALUE);
 \end{verbatim}
 
@@ -1444,7 +1445,7 @@ instead of creating it yourself.
 Start HDBEditor (see Section~\ref{sec:hdbedit}): \\
 \shellcmd{hdbeditor \&}
 
-TCE needs some data of the FU implementation in order to be able to
+OA needs some data of the FU implementation in order to be able to
 generate processors that include the FU. \\
 
 \begin{enumerate}
@@ -1588,7 +1589,7 @@ by one as follows.
 \begin{enumerate}
 \item%
 Select implementation for RF: Click the RF name, 'Select Implementation',
-find the TCE's default HDB file (PREFIX/share/tce/hdb/asic\_130nm\_1.5V.hdb) 
+find the OS's default HDB file (PREFIX/share/tce/hdb/asic\_130nm\_1.5V.hdb) 
 from your tce installation path and select an implementation for the RF from 
 there.
 
@@ -1602,7 +1603,7 @@ select an implementation which is guarded i.e. select an implementation which
 has word ``guarded\_0'' in its name.
 
 \item%
-Similarly, select implementations for the function units from TCE's default
+Similarly, select implementations for the function units from OpenASIP's default
 HDB. Notice that it is vital that you choose the implementation for LSU from
 the asic\_130nm\_1.5V.hdb. Then select implementation for the reflecter but
 this time you have to use the \file{tour.hdb} created earlier to find the FU
@@ -1615,8 +1616,8 @@ Automatic selection - ProDe chooses the implementations from HDB files.
 \begin{enumerate}
 \item% 
 Select implementations for register files and function units all at once: 
-Click Auto Select Implementations, find the TCE's default HDB file from your 
-TCE installation path (PREFIX/share/tce/hdb/asic\_130nm\_1.5V.hdb), make sure
+Click Auto Select Implementations, find the OpenASIP's default HDB file from your 
+OpenASIP installation path (PREFIX/share/tce/hdb/asic\_130nm\_1.5V.hdb), make sure
 'Register Files' and 'Function Units' checkboxes are checked and press 'Find'.
 A dialog should appear saying 4 implementations were found; 2 for register
 files and 2 for function units. Click 'Yes'. If the number of found
@@ -1905,23 +1906,23 @@ the custom reflection operation was introduced only a 24 bit rightshift and an
 % Click, click, *wait a couple of weeks*, done! ;-)
 
 
-\section{Hello TTA World!}
+\section{Hello OpenASIP World!}
 
 What would a tutorial be without the traditional ``Hello World!''
 example? Interestingly enough, printing out ``Hello World'' in a
-standalone (operating system free) platform like the TTA of TCE is not 
+standalone (operating system free) ASIP is not
 totally straightforward. That is the reason this tutorial is not the first 
 one in this tutorial chapter.
 
 The first question is: where should I print the string? Naturally 
 it is easy to answer that question while working with the simulator: to
 the simulator console, of course. However, when implementing the final
-hardware of the TTA, the output is platform dependent. It can be a
+hardware of the ASIP, the output is platform dependent. It can be a
 debugging interface, serial port output, etc.
 
-In order to make printing data easier from TTAs designed
-with TCE, we have included an operation called STDOUT in the ``base operation 
-set'' that is installed with the TCE. The simulation behavior of the 
+In order to make printing data easier from ASIPs designed
+with OA, we have included an operation called STDOUT in the ``base operation 
+set'' that is installed with the tools. The simulation behavior of the 
 operation reads its input, expects it to be a 8bit char and writes the char
 verbatim to the simulator host's standard output. Of course, in case the 
 designer wants to use the operation in his final system he must provide the 
@@ -1929,9 +1930,9 @@ platform specific implementation for the function unit (FU) implementing the
 operation, or just remove the FU after the design is fully debugged and
 verified.
 
-The default implementation of \textit{printf()} in TCE uses the STDOUT
+The default implementation of \textit{printf()} in OpenASIP uses the STDOUT
 operation to print out data. Therefore, implementing a ``Hello World''
-application with TCE is as simple as adding an FU that implements
+application with OpenASIP is as simple as adding an FU that implements
 the STDOUT to the processor design and then calling \textit{printf()} in
 the simulated program. The simulator should print out the greeting
 as expected.
@@ -1948,7 +1949,7 @@ int main() {
 \end{verbatim}
 
 Next, compile it to an architecture that implements the
-STDOUT. TCE ships with a minimal architecture that also includes
+STDOUT. OpenASIP ships with a minimal architecture that also includes
 the STDOUT function unit, which you can use:
 
 \begin{verbatim}
@@ -1975,14 +1976,14 @@ That's it. Happy debugging!
 \section{Streaming I/O}
 \label{section:streamIO}
 
-Because TTA/TCE is an environment without operating system, there is also
+Because OpenASIP produces processors without operating system services, there is also
 no file system available for implementing file-based I/O. Therefore, one
 popular way to get input and output to/from the TTA is using shared memory
 for communicating the data. For stream processing type of applications,
 one can also use an I/O function unit that implements the required 
 operations for streaming.
 
-TCE ships with example operations for implementing stream type input/output. 
+OpenASIP ships with example operations for implementing stream type input/output. 
 These operations can be used to read and write samples from streams in the
 designed TTA processor. The basic interface of the operations allows reading and 
 writing samples from the streams and querying the status of an input or output stream 
@@ -2004,7 +2005,6 @@ environment variables respectively.
 Here is an example C code that implements streaming I/O with the operations:
 
 \begin{verbatim}
-#include "tceops.h"
 
 int main()
 {
@@ -2013,20 +2013,20 @@ int main()
 
     while (1)
     {
-        _TCE_STREAM_IN_STATUS(0, status);
+        _OA_STREAM_IN_STATUS(0, status);
 
         if (status == 0)
             break;
 
-        _TCE_STREAM_IN(0, byte);
-        _TCE_STREAM_OUT(byte);
+        _OA_STREAM_IN(0, byte);
+        _OA_STREAM_OUT(byte);
     }
 
     return 0;
 }
 \end{verbatim}
 
-This code uses the TCE operation invocation macros from \textit{tceops.h}
+This code uses the OA operation invocation macros from \textit{tceops.h}
 to read bytes from the input stream and write the same bytes to the
 output stream until there is no more data left. This situation is indicated
 with the status code 0 queried with the STREAM\_IN\_STATUS operation. The
@@ -2041,7 +2041,7 @@ the FU\_NAME from the streaming function units in the adf file.
 
 \subsection{Streaming I/O function units}
 VHDL implementations and HDB entries for streaming I/O have been included 
-in TCE since version 1.4. The \textit{stream.hdb} -file in the TCE installation
+in OpenASIP since version 1.4. The \textit{stream.hdb} -file in the OpenASIP installation
 directory contains one function unit with STREAM\_IN and
 STREAM\_IN\_STATUS -operations, and another FU contains the STREAM\_OUT and STREAM\_OUT\_
 STATUS
@@ -2109,8 +2109,8 @@ This should create a file named \file{cos16.opb} in the directory.
 
 \subsection{Introduction to DCT}
 
-Now you will be introduced to TCE assembler language and assembler usage.
-Your task is to write TCE assembly code for 2-Dimensional 8 times 8 point 
+Now you will be introduced to OpenASIP assembler language and assembler usage.
+Your task is to write OpenASIP assembly code for 2-Dimensional 8 times 8 point 
 Discrete Cosine Transform (DCT\_8x8).
 First take a look at the C code of DCT\_8x8
 \file{dct\_8x8\_16\_bit\_with\_sfus.c}.  
@@ -2144,7 +2144,7 @@ C(i) =
 F(x,y) = F(x)F(y) \nonumber
 \end{equation}
 
-\subsection{Introduction to TCE assembly}
+\subsection{Introduction to OpenASIP assembly}
 
 First take a look at assembly example in file \file{example.tceasm}
 to get familiar with syntax. More help can be found from
@@ -2158,7 +2158,7 @@ example.tceasm}
 The assembler will give some warnings saying that ``Source is
 wider than destination.'' but these can be ignored.
 
-The compiled tceasm code can be simulated with TCE
+The compiled tceasm code can be simulated with OpenASIP
 simulator, ttasim or proxim(GUI).
 
 \shellcmd{ttasim -a \ dct\_8x8\_16\_bit\_with\_sfus.adf -p example.tpef} , or
@@ -2176,7 +2176,7 @@ proxim's command line at the bottom of the main window):
 
 the output of x should be 0x40.
 
-\subsection{Implementing DCT on TCE assembly}
+\subsection{Implementing DCT on OpenASIP assembly}
 
 Next try to write assembly code which does the same functionality as the
 C code. The assembly code must be functional with the given machine
@@ -2229,7 +2229,7 @@ The initial input data is written to memory locations 0-63 in the file
 The reference output is given in \file{reference\_output}. You need to
 compare your assembly program's simulation result to the reference
 output. Comparision can be done by first dumping the memory contents in the
-TCE simulator with following command:
+OpenASIP simulator with following command:
 
 \shellcmd{x /a IODATA /n 64 /u b 0}
 
@@ -2252,7 +2252,7 @@ And then compare the result with reference:
 
 \shellcmd{diff -u output.txt reference\_output}
 
-When the TCE simulator memory dump is the same as the reference output your
+When the OA simulator memory dump is the same as the reference output your
 assembly code works and you have completed this tutorial. Of
 cource you might wish to improve your assembly code to minimize cycle
 count or/and instruction count.
@@ -2277,7 +2277,7 @@ one assembly code has 52 instructions and it runs the DCT8x8 in
 
 \section{Using multiple memories from C code}
 
-TCE supports accessing multiple address spaces from C code via the
+OpenASIp supports accessing multiple address spaces from C code via the
 \_\_attribute\_\_((address\_space(N)) extension. The numerical id from
 the attribute is used to connect the memory reference to the ADF 
 address space using the XML element \textbf{numerical-id}. There can be
@@ -2359,8 +2359,8 @@ space2 would have been stored at address 0 = NULL).
 
 When using custom operation calls to manually execute operations that access
 memory on processors that have multiple data address spaces,
-it should be done using \_TCEAS\_OPERATIONNAME macro instead of using
-\_TCE\_OPERATIONNAME macro. See section~\ref{sec:tceccCustOp}
+it should be done using \_OAAS\_OPERATIONNAME macro instead of using
+\_OA\_OPERATIONNAME macro. See section~\ref{sec:tceccCustOp}
  for more information about these custom operation call macros.
 
 \section{Running TTA on FPGA}
@@ -2421,7 +2421,7 @@ the program runs in endless loop and most of the time it stays in the
 ``sleep'' loop.
 
 Now you need to select implementations for the function units. This can be
-done in ProDe. See TCE tour section \ref{ssec:tcetour_final_products} for more
+done in ProDe. See the OpenASIP Tour section \ref{ssec:tcetour_final_products} for more
 information. Implementations for leds and rtimer are found from the fpga.hdb
 shipped with the tutorial files. Notice that there are 2 implementations for
 the rtimer. ID 3 is for 50 MHz clock frequency and ID 4 for 100 MHz. All other
@@ -2594,7 +2594,7 @@ There are few points to consider when creating a data memory controller:
  To convert 8-bit MAU addresses to 32-bit MAU addresses one needs to leave the
  2 bits out from LSB side.
 
- How this all shows in TCE is that data memory address width defined in ADF is
+ How this all shows in OA is that data memory address width defined in ADF is
  2 bits wider than the actual address bus coming out of LSU. When you are
  creating the memory component you should consider this.
 \item%
@@ -2693,10 +2693,10 @@ command is then:
 
 \section{How to print from Altera FPGAs}
 
-TCE comes with a special function unit which enables character output
+OA comes with a special function unit which enables character output
 from Altera FPGAs. This SFU utilizes Altera JTAG UART IP core and
 nios2-terminal host program for this functionality. Neither of them
-are included in TCE so you need the appropriate Altera software and
+are included in OA so you need the appropriate Altera software and
 libraries (namely Quartus~II and Nios~II EDS) in order to use the
 printing capability.
 
@@ -2747,7 +2747,7 @@ function units. To emphasize the lesson of this tutorial it is
 important that you compile the code without optimizations i.e. with
 \textit{-O0} flag. Otherwise our witty compiler will optimize the
 first \textit{printf()} call (which just prints a constant character
-string) into inlined \_TCE\_STDOUT operations.
+string) into inlined \_OA\_STDOUT operations.
 
 After compiling, execute the program in the instruction set simulator:
 
@@ -2755,7 +2755,7 @@ After compiling, execute the program in the instruction set simulator:
 
 You should see the printed text in your terminal. By the time of
 writing this tutorial, the duration of the ``Hello World'' printing
-with \textit{printf()} took 61 ms (time may vary depending on the TCE
+with \textit{printf()} took 61 ms (time may vary depending on the OA
 version).
 
 But speaking of the lesson, execute the following command to examine
@@ -2792,7 +2792,7 @@ simulate the new program, you notice no difference in the behavior
 
 \subsubsection{Light weight printing}
 
-TCE includes a Light Weigth PRinting (lwpr) library to provide small
+OA includes a Light Weigth PRinting (lwpr) library to provide small
 and simple functions for printing strings and integers for further
 reducing the instruction count overhead of print support. Take a look
 at the source code file \file{lightweight\_print.c} to see how these
@@ -3028,22 +3028,22 @@ optimizations. However, in case optimizations are applied,
 \textit{printf()} or \textit{iprintf()} may sometimes produce the
 smallest code overhead when printing \textbf{only constant strings}.
 This is possible when the compiler is able to reduce the function call
-into direct \_TCE\_STDOUT macro calls and fill NOP slots with the
+into direct \_OA\_STDOUT macro calls and fill NOP slots with the
 STDOUT operations. But in general it is advisable to use light weight
 printing library functions whenever applicable.
 
 
-\section{Designing Floating-point Processors with TCE}
+\section{Designing Floating-point Processors with OpenASIP}
 
-TCE supports single and half precision floating-point calculations. Single-precision calculations
+OpenASIP supports single and half precision floating-point calculations. Single-precision calculations
 can be performed by using the \emph{float} datatype in C code, or by using macros from 
-\emph{tceops.h}, such as \emph{\_TCE\_ADDF}. 
+\emph{tceops.h}, such as \emph{\_OA\_ADDF}. 
 
 If the compilation target architecture does not support these operations, 
 they can be emulated using integer arithmetic in software. Passing the switch \verb|--swfp| 
 to tcecc enables the software emulation library linkage.
 
-A set of floating-point FU implementations is included with TCE, in a HDB file named 
+A set of floating-point FU implementations is included with OA, in a HDB file named 
 \emph{fpu\_embedded.hdb}, which can be found at \emph{PREFIX/share/tce/hdb/fpu\_embedded.hdb}. 
 The FUs operate with 32-bit, single-precision floating point numbers. 
 Supported operations include addition, subtraction, negation, absolute value, 
@@ -3078,7 +3078,7 @@ Embedded Profile standard, which trades off accuracy for speed. Differences incl
     \item Division may not be correctly rounded, but should be accurate within 4 ulp.
 \end{itemize}
 
-The TCE Processor Simulator uses IEEE-compliant floats. With a processor simulated on GHDL or 
+The OS Processor Simulator uses IEEE-compliant floats. With a processor simulated on GHDL or 
 synthesized on actual hardware, the calculation results are thus slightly different from the 
 ones from Processor Simulator.
 
@@ -3143,7 +3143,7 @@ Latency:             26 (mw+3)
 Floating-point square root FU, using Hain's algorithm.
 
 Note that the C standard function sqrt does not take advantage of hardware acceleration; the
-\emph{\_TCE\_SQRTF} macro must be used instead.
+\emph{\_OA\_SQRTF} macro must be used instead.
 
 \item[fpu\_sp\_conv]
 
@@ -3299,8 +3299,8 @@ converted.
 Use of these parameters has the following caveats:
 
 \begin{itemize}
-    \item The TCE-CC compiler converts floating-point literals into 32-bit floats, so they have to be entered some other way, f.ex. by casting integer bitpatterns to floats, or with a \emph{cif} operation.
-    \item TCE does not include a HDB file for alternative bit widths
+    \item The oacc compiler converts floating-point literals into 32-bit floats, so they have to be entered some other way, f.ex. by casting integer bitpatterns to floats, or with a \emph{cif} operation.
+    \item OpenASIP does not include a HDB file for alternative bit widths
     \item Mantissa width affects the latency of the divider and square root FUs. The divider FU's latency is $(mw/2)+3$, and the square root FU's latency is $mw+3$.
     \item Bit widths other than single-precision have not been exhaustively tested. Half-precision floats appear to work in a simple test case.
 \end{itemize}
@@ -3337,14 +3337,14 @@ Using these switches, generating cores to designs with multiple TTAs can
 be done by using a shared HDL directory for all the cores (\verb|--shared-files-dir|) 
 and then naming each core with a different entity name (\verb|--entity-name|) to 
 avoid name clashes. How the cores are connected and the generation of
-the shared memory hierarchy is currently out of scope of TCE. While
+the shared memory hierarchy is currently out of scope of OA. While
 these switches assist in HDL generation of multi-TTA designs, the
 designer can also simulate multi-TTA designs at system level by
-using the TCE SystemC API (see Section~\ref{sec:SystemC}).
+using the OA SystemC API (see Section~\ref{sec:SystemC}).
 
 \section{OpenCL Support}
 
-TCE has experimental support for running both OpenCL C kernels and the host 
+OA has experimental support for running both OpenCL C kernels and the host 
 runtime in a same statically linked program. This can be used to benefit from
 parallelizable kernels written in OpenCL C without requiring a host processor 
 with an OpenCL C compiler.
@@ -3352,8 +3352,8 @@ with an OpenCL C compiler.
 The OpenCL support uses the {Portable OpenCL (pocl)} project. In order to
 add OpenCL support to tcecc, you should download and install the latest version of 
 pocl. At the end of the configure run, the script 
-mentions whether the OpenCL support was enabled or not. After building TCE
-You can check if the OpenCL C support is enabled via ``\verb|tcecc --supported-languages|''
+mentions whether the OpenCL support was enabled or not. After building OA
+you can check if the OpenCL C support is enabled via ``\verb|oacc --supported-languages|''
 switch.
 
 It must be emphasized that the OpenCL support is a work in progress and
@@ -3387,7 +3387,7 @@ same ones when launching the kernel, otherwise undefined behavior
 occurs. For the other parts, the OpenCL host runtime API can be used 
 similarly as in the ``regular mode`` where the kernels are (or can be)
 compiled and linked at runtime. This enables easier porting 
-of OpenCL programs to the TCE standalone OpenCL mode. In the
+of OpenCL programs to the OA standalone OpenCL mode. In the
 standalone mode, the compiler invokation APIs of the OpenCL host runtime 
 are implemented as dummy functions to produce source code level 
 compatibility with most of the OpenCL programs.
@@ -3395,7 +3395,7 @@ compatibility with most of the OpenCL programs.
 For example, the host program for invoking the dot\_product code
 can be written identically as it was done in the original OpenCL
 example. The host program can invoke the compiler etc. to make
-the program run in the regular OpenCL environments while in TCE
+the program run in the regular OpenCL environments while in OA
 standalone mode the kernel is compiled offline, linked to the
 main program, and the compiler calls are no-operations.
 
@@ -3415,7 +3415,7 @@ kernel and moving the buffers etc.
 
 \section{System-on-a-Chip design with AlmaIF Integrator}
 
-AlmaIF is a ''TCE standard`` integration interface. When a TCE core adheres
+AlmaIF is a ''OA standard`` integration interface. When a OA core adheres
 to the AlmaIF interfaces, they can be more easily plugged in to SoC designs with
 high-level programming model (OpenCL and HSA) support.
 
@@ -3515,13 +3515,13 @@ file with which you can program the FPGA fabric on your SoC.
 \section{Hardware Loops}
 \label{section:hwloops}
 
-This section explains the usage of hardware loop operations in TCE. The design
+This section explains the usage of hardware loop operations in OA. The design
 is based on the LLVM's generic hardware loop support (Hardware Loops pass)
 and its purpose is to provide enhancements to the program control unit in
 TTA by effectively handling loop control-flow (loop index update and conditional
 branch to loop-entry).
 
-TCE's implementation of hardware loops lowers the LLVM's hardware loop
+OA's implementation of hardware loops lowers the LLVM's hardware loop
 intrinsics to a backend instruction HWLOOP in the loop pre-header. The
 HWLOOP instruction takes two parameters
 \begin{itemize}
@@ -3535,7 +3535,7 @@ details such as whether and how the loop is cached is left to the underlying
 hardware implementation.
 
 \subsection{Tour to Using the Hardware Loops}
-The hardware loop can be enabled in the TCE by simply adding HWLOOP
+The hardware loop can be enabled in the OA by simply adding HWLOOP
 instructions to control-unit in the TTA design. To start with, \textbf{copy
 minimalist TTA machine by}:
 
@@ -3659,7 +3659,7 @@ op3 = z_1;
 \end{lstlisting}
 
 
-The ``Snippets'' may also refer to the following ``TCE standard'' signals.
+The ``Snippets'' may also refer to the following ``OA standard'' signals.
 
 \begin{description}
 \item[glock] Global lock input signaling that the TTA is locked.
@@ -3727,7 +3727,7 @@ at least 2 clock cycles to allow one for the memory.
 
 \subsection{Default Load and Store Operations}
 
-By default, TCE comes with load and store operation ``snippets'' that
+By default, OA comes with load and store operation ``snippets'' that
 implement a simple 32-bit interface for accessing the
 memory. Interface is generated when operations from
 'generate\_lsu32.hdb' HDB are used to generate the FU.
@@ -4369,7 +4369,7 @@ This describes when the operands are read or written from/to the function unit
 ports. R letter here means reading an input operand and W means writing a result to 
 an output operand.
 
-Note: the instruction scheduler of TCE cannot yet take advantage of scheduling 
+Note: the instruction scheduler of OA cannot yet take advantage of scheduling 
 input operands after the triggering operand, so all the input operands should be 
 read at cycle 0.
 
@@ -4695,7 +4695,7 @@ containing the results computed by the operation.
 \section{OSAL files}
 \label{section:osal_details}
 Operations are divided in ``operation modules''. For example, `base' module,
-included in the TCE distribution, contains all the operations available 
+included in the OA distribution, contains all the operations available 
 to the front end compiler's code generation.
 
 An operation in OSAL is defined by its properties
@@ -4707,7 +4707,7 @@ properties of the implementation, and are not defined in OSAL module.
 \subsection{Operation Properties}
 \label{ssec:operation-properties}
 
-The following properties define a TTA operation in TCE:
+The following properties define a TTA operation in OA:
 
 \begin{itemize}
 \item name (unique string)
@@ -4799,7 +4799,7 @@ Note: it is not necessary that, if operation A `affects' operation B, then B
 must contain A in its `affected-by' list.  Vice versa, if A is `affected-by'
 B, it is not needed that B must contain A in its `affects' list. This
 allows, for example, a user to add new operations that share state with 
-the base operations shipped with TCE, without needing to modify the base
+the base operations shipped with OA, without needing to modify the base
 operations.
 
 \paragraph{An example of defining multiple operations that share the
@@ -4835,7 +4835,7 @@ properties:
 \paragraph{identification number}
 Integer number in the range [1,N] where N is the number of inputs as defined
 in section~\ref{ssec:operation-properties} of operation declaration.  If N
-is zero, then no input declarations can be specified. TCE does not currently
+is zero, then no input declarations can be specified. OA does not currently
 allow operations with zero inputs to be defined.
 
 \paragraph{can-swap}
@@ -4928,9 +4928,9 @@ Example OperationDAG of the ADDSUB operation:
 
 To be complete, the model of an operation needs to describe the
 behavior of the operation. The behavior is specified in a restricted
-form of C++, the source language of the TCE toolset, augmented with
+form of C++, the source language of the OA toolset, augmented with
 macro definitions.  This definition is used for simulating the
-operation in the instruction set simulator of TCE.
+operation in the instruction set simulator of OA.
 
 \paragraph{Definition of Operation Behavior}
 
@@ -5507,11 +5507,11 @@ directory.
 
 \section{Supported Platforms}
 
-This section introduces the Platform Integrators which are shipped with TCE.
+This section introduces the Platform Integrators which are shipped with OA.
 
 \subsection{Altera based devices}
 
-Notice that TCE does not contain the vendor specific IP components such as
+Notice that OA does not contain the vendor specific IP components such as
 on-chip memory components. In order to simulate and synthesize the hardware
 you need to have Altera Quartus~II software and libraries installed.
 
@@ -5679,7 +5679,7 @@ in avalon.hdb. There are two ways of interfacing with the Avalon bus:
 The load store unit implementation must be mapped to \textit{avalon\_lsu} which is 
 stored in \textit{avalon.hdb}. In this method the data memory is selected in SOPC Builder and thus
 the data memory type parameter must be set to 'none' when integrator is
-executed. Due to the lack of memory mapper in the current TCE version, 
+executed. Due to the lack of memory mapper in the current OA version, 
 the data memory address space must be set to start from 0 in SOPC Builder. Also the size of
 data memory should match the data memory address space size defined in ADF.
 It is also possible to include Avalon SFU (see the next bullet) to a processor
@@ -5755,7 +5755,7 @@ name of the new toplevel entity be tta\_sopc. Command is
 Integrator will generate file tta\_sopc\_hw.tcl which can be used to import the
 component to SOPC Builder. Avalon SFU must be used with custom operation macros
 from C code. These macros are named as \textit{\_TCE\_AVALON\_<memory\_operation>}.
-For example \textit{\_TCE\_AVALON\_STW(addr, data)} performs 32-bit store operation
+For example \textit{\_OA\_AVALON\_STW(addr, data)} performs 32-bit store operation
 to address addr.
 
 % use case: both avalon LSU and avalon SFU
@@ -5783,7 +5783,7 @@ this integrator. Currently this integrator only works with Altera
 FPGA devices.
 
 HiBi compatible load store unit can be found from hibi\_adapter.hdb. Currently
-it is the only function unit shipped with TCE which implements the HiBi interface.
+it is the only function unit shipped with OA which implements the HiBi interface.
 This means that the only option for data memory type is 'onchip'. In addition,
 the onchip memory is generated as a dual port ram which means that the FPGA
 device must have support for dual port onchip memories.
@@ -5822,7 +5822,7 @@ other memory spaces are mapped as scratchpad memory, inaccessible from the AXI
 bus.
 
 The LSU compatible with this integrator can be found in almaif.hdb. Currently
-it is the only function unit shipped with TCE which implements this interface.
+it is the only function unit shipped with OA which implements this interface.
 This means that the only option for data and instruction memory type is
 'onchip'. The memories will be synthesized as Xilinx-compatible single port
 block RAM.
@@ -5858,7 +5858,7 @@ toplevel entity will be named 'almaif\_tta'. Command is
 HDB Editor (hdbeditor) is a graphical frontend for creating and
 modifying Hardware Databases i.e. HDB files (see Section~\ref{section:hdb}
 for details). By default, all the example HDB files are stored in the directory
-hdb/ of the TCE installation directory.
+hdb/ of the OA installation directory.
 
 \subsection{Usage}
 
@@ -5914,7 +5914,7 @@ requirements are:
   \item SRAM memory blocks have fixed latency of one for read operation.
   \item SRAM memory blocks can handle as many writes and reads in a
     single clock cycle as specified in the ADF.
-  \item TCE's Default IC / Decoder Plugin is used to generate the
+  \item OA's Default IC / Decoder Plugin is used to generate the
     decoder of the processor.
   \item \label{itm:bypass_req} SRAM bypasses write data to reading
     port if the accesses occurs at same cycle and at same
@@ -5922,7 +5922,7 @@ requirements are:
     bypass logic.
 \end{enumerate}
 
-To enable SRAM based register files in the implementation TCE must be
+To enable SRAM based register files in the implementation OA must be
 notified if a implementation of RF requires separate address
 cycle. This is done in HDBEditor by setting option ``Separate address
 cycle'' to true in the Register File Implementation dialog. This
@@ -6088,7 +6088,7 @@ files and use modelsim:
 
 \section{Function Unit Interface}
 
-Function unit interfaces follow a certain de facto standard in TCE. Here is
+Function unit interfaces follow a certain de facto standard in OA. Here is
 an example of a such interface:
 
 \begin{verbatim}
@@ -6154,7 +6154,7 @@ FUs can also have ports connecting to the external of the TTA processor
 core. They are declared like any other ports in the entity declaration but
 these ports must be defined as external in HDB.
 
-See the TCE Tour-tutorial (Section~\ref{sec:tcetour}) for an example how to
+See the OA Tour-tutorial (Section~\ref{sec:tcetour}) for an example how to
 add an FU implementation to hdb.
 
 \subsection{Operation code order}
@@ -6177,14 +6177,14 @@ operation codes should be ordered as following:
 HDBEditor and Processor Generator will issue a warning message if this
 guideline is not used in operation code numbering. Currently other
 numbering conventions can still be used but the support might be dropped
-in future versions of TCE. In order to ensure compatibility it is recommended
+in future versions of OA. In order to ensure compatibility it is recommended
 that you use this new convention.
 
 
 \subsection{Summary of interface ports}
 \subsubsection{Input/Output operand ports}
 \verb|VHDL-type: std_logic_vector| \\
-TCE naming convention is to use \verb|t1data| for the triggering input port
+OA naming convention is to use \verb|t1data| for the triggering input port
 and \verb|o1data, o2data ...| etc. for the rest of input operands. Output port
 is usually called \verb|r1data|.
 
@@ -6234,13 +6234,13 @@ assigned to the LSU in the ADF.
 
 \chapter{CODE GENERATION TOOLS}
 
-\section{TCE Compiler}
+\section{OpenASIP Compiler}
 \label{sec:frontend}
 
-\textbf{TCE compiler} compiles high level language (such as 
+\textbf{OpenASIP compiler collection} compiles high level language (such as
 C/C++) source files provided by the toolset user and produces a bitcode
-program or a parallel TTA program. Bitcode program is a non-architecture
-specific sequential program. Parallel TTA program, however, is 
+program or an ASIP-specific program. Bitcode program is a non-architecture
+specific sequential program. An ASIP program, however, is
 a architecture specific program that is optimized for the target architecture.
 
 The main idea between these two program formats is that you can compile your
@@ -6249,19 +6249,16 @@ dependent parallel code. This way you do not have to compile the source code
 again every time you make changes in the architecture. Instead you only need
 to compile the bitcode into parallel code.
 
-The frontend compiler uses the LLVM C compiler which again is built on GCC
-version 4.
-
 \textbf{Input}: program source file(s) in high-level language
 
-\textbf{Output}: a fully linked TTA program
+\textbf{Output}: a fully linked ASIP program
 
-\subsection{Usage of TCE compiler}
+\subsection{Usage of OpenASIP compiler}
 
-The usage of the \emph{tcecc} application is as follows:
+The usage of the \emph{oacc} application is as follows:
 
 \begin{verbatim}
-tcecc <options> source-or-bc-file1 source-or-bc-file2 ...
+oacc <options> source-or-bc-file1 source-or-bc-file2 ...
 \end{verbatim}
 
 The possible options of the application are the following:\\
@@ -6304,40 +6301,40 @@ W & warning & Ignored. \\
 \subsubsection{Examples of usage}
 % introduce most common use cases
 
-Usage of tcecc quite alike to gcc, excluding that warning options are
+Usage of oacc quite alike to gcc, excluding that warning options are
 ignored.
 
 If you wish to compile your source code into optimized bitcode the
 usage is:
 
-\shellcmd{tcecc -O2 -o myProg myProg.c} \\
+\shellcmd{oacc -O2 -o myProg myProg.c} \\
 
 On the other hand if you already have an architecture definition file of the
 target processor you can compile the source code directly to parallel program:
 
-\shellcmd{tcecc -O2 -a myProcessor.adf -o myProg.tpef myProg.c} \\
+\shellcmd{oacc -O2 -a myProcessor.adf -o myProg.tpef myProg.c} \\
 
 To compile the bitcode program into parallel program use:
 
-\shellcmd{tcecc -a myProcessor.adf -o myProg.tpef myProg.bc}
+\shellcmd{oacc -a myProcessor.adf -o myProg.tpef myProg.bc}
 
 Or if you want to a different scheduling configuration than the default:
 
-\shellcmd{tcecc -s /path/to/mySchedulerConfiguration.conf -a myProcessor.adf
+\shellcmd{oacc -s /path/to/mySchedulerConfiguration.conf -a myProcessor.adf
 -o myProg.tpef myProg.bc} \\
 
-Tcecc also has a ``leave dirty'' flag -d which preserves the intermediate
-files created by the compiler. After compilation is complete tcecc will tell
-you where to find these files (usually it is /tmp/tcecc-xxxxxx/). For example
+oacc also has a ``leave dirty'' flag -d which preserves the intermediate
+files created by the compiler. After compilation is complete oacc will tell
+you where to find these files (usually it is /tmp/oacc-xxxxxx/). For example
 if you try to compile your C-code straight into a scheduled program and
 something goes wrong in scheduling you can find the bitcode program from the
 temp directory.
 
-\shellcmd{tcecc -d -O2 -a myProcessor.adf -o myProg.tpef myProg.c}
+\shellcmd{oacc -d -O2 -a myProcessor.adf -o myProg.tpef myProg.c}
 
 After compilation you should see this kind of message:
 
-\textit{Intermediate files left in build dir /tmp/tcecc-xxxxxx}
+\textit{Intermediate files left in build dir /tmp/oacc-xxxxxx}
 
 where \textit{xxxxxx} is a random pattern of characters. \\
 
@@ -6345,24 +6342,24 @@ If you only want to compile the source code without linking
 (and optimization) use -c flag. Output file is named after the source file
 with .o appendix if you do not define an output name with -o.
 
-\shellcmd{tcecc -c myProg.c}
+\shellcmd{oacc -c myProg.c}
 
-\shellcmd{tcecc -c -o ~/another/path/myProg.o myProg.c} \\
+\shellcmd{oacc -c -o ~/another/path/myProg.o myProg.c} \\
 
-With tcecc you can explicitly define symbols you wish to preserve in the
+With oacc you can explicitly define symbols you wish to preserve in the
 binary. This can be useful in debugging and profiling if the compiler removes
 needed function labels.
 Symbols are given in a comma seperated list.
 
-\shellcmd{tcecc -O2 -a myMach.adf -k main,foo,bar -o myProg.tpef myProg.c}
+\shellcmd{oacc -O2 -a myMach.adf -k main,foo,bar -o myProg.tpef myProg.c}
 
 \paragraph{Plugins}
-% TODO: explain about tcecc plugins
+% TODO: explain about oacc plugins
 
 \subsection{Custom operations}
-\label{sec:tceccCustOp}
+\label{sec:oaccCustOp}
 
-Tcecc compiler automatically defines macros for operations found from
+Oacc compiler automatically defines macros for operations found from
 operation definition files in OSAL search paths and includes them
 when compiling your program.
 
@@ -6480,7 +6477,7 @@ The endianess mode is selected in ProDe's \emph{Architecture
 
 
 \subsection{Known issues}
-\label{sec:tceccIssues}
+\label{sec:oaccIssues}
 \begin{enumerate}
 
 \item
@@ -8930,7 +8927,7 @@ the application directory.
 \begin{tabular}{p{0.25\textwidth}p{0.60\textwidth}}
 \textbf{file name} &\textbf{Description} \\
 \hline
-program.bc & The program byte code (produced using ``\verb|tcecc --emit-llvm|'').\\
+program.bc & The program byte code (produced using ``\verb|oacc --emit-llvm|'').\\
 description.txt & The application description.\\
 simulate.ttasim & TTASIM simulation script piped to the TTASIM to produce
 ttasim.out file. If no such file is given the simulation is started with
@@ -9507,34 +9504,34 @@ descending level of connectivity, as follows:
 All bus-socket and socket-port connections are there. There is a shortcut for
 creating this type of connectivity in the ProDe tool.
 
-The easy target for the high-level language compiler tcecc. However, not
+The easy target for the high-level language compiler oacc. However, not
 a realistic design usually due to its high implementation costs.
 
 \item Directly reachable. The connectivity has been reduced. However, there is
 still at least one direct connection from each function unit (FU) and register file 
 (RF) output to all inputs.
 
-An easy target for tcecc.
+An easy target for oacc.
 
 \item Fully RF connected. All FUs are connected to all RFs. That is, you can 
 read and write any general purpose register (GPR) from any FU with a single
 move. However, some or all bypass connections between FUs might be missing.
 
-An easy target for tcecc. However, reduction of bypass connections means
+An easy target for oacc. However, reduction of bypass connections means
 that less software bypassing can be done.
 
 \item Reachable. All FUs are connected to at least one RF and all RFs (and thus
 other FUs) can be reached via one or more additional register copy moves. 
 
-Compilation is fully supported by tcecc. The number of copies is not 
-limited by tcecc. However, this style of connectivity results in suboptimal code due to the
+Compilation is fully supported by oacc. The number of copies is not 
+limited by oacc. However, this style of connectivity results in suboptimal code due to the
 additional register copies which introduce additional moves, consume registers, and
 produce dependencies to the code which hinder parallelism.
 
 \item RF disconnected. Some FUs are not connected to any RF or there are 
 ``separated islands'' without connectivity to other ``islands''.
 
-Not supported by tcecc. However, any connectivity type is supported by 
+Not supported by oacc. However, any connectivity type is supported by 
 the TCE assembler. Thus, one can resort to manual TTA assembly programming in
 this case.
 
@@ -9543,9 +9540,9 @@ this case.
 \section{Programmer Interface}
 
 This section describes the programmer interface, which is 
-the application binary interface followed by tcecc.
+the application binary interface followed by oacc.
 
-The programs produced by tcecc are fully linked and not expected
+The programs produced by oacc are fully linked and not expected
 to be relinked afterwards to other programs. Therefore, details 
 such as the function calling convention can be customized per program by 
 the compiler. For these parts, this section describes the current 
@@ -9554,7 +9551,7 @@ default behavior for reference.
 \subsection{Default Data Address Space Layout}
 \label{ssec:address-spaces-of-umach}
 
-When compiling from a higher-level language using tcecc, there 
+When compiling from a higher-level language using oacc, there 
 has to be at least one byte-addressible data address space in the machine. 
 This is the ``default address space'', marked with the numerical 
 id 0 in case there are multiple data address spaces. 
@@ -9565,7 +9562,7 @@ location after the global variables is the start location for heap,
 in case the program uses dynamic memory allocation. It grows upwards. 
 The stack, used to store the function local variables and to pass 
 parameters in the function calls, grows from the largest memory address 
-downwards. The start address of the stack can be changed with the tcecc 
+downwards. The start address of the stack can be changed with the oacc 
 switch \verb|--init-sp|.
 
 As both heap and stack grow dynamically towards each other, to way to
@@ -9589,7 +9586,7 @@ processor interfaces together.
 \subsection{Alignment of Words in Memory}
 \label{ssec:align-conventions}
 
-tcecc aligns the addresses of data word to the data type size in bytes.
+oacc aligns the addresses of data word to the data type size in bytes.
 For example, if a floating-point word takes 4 MAU's, its address must be 
 a multiple of 8. 
 
@@ -9719,7 +9716,7 @@ follow big endian byte order.
 \subsection{Function Calling Conventions}
 \label{ssec:calling-conventions}
 
-The current default calling convention generated by tcecc is as follows.
+The current default calling convention generated by oacc is as follows.
 
 The second 32-bit GPR (first register of second 32-bit register file,
 or second register of only 32-bit register file) of ADF
@@ -9756,7 +9753,7 @@ assigned to either above mentioned groups.  The register allocator may even
 dedicate one register file completely to caller-saved registers and another 
 to callee-saved registers.
 
-The current default register saving convention followed by tcecc is to have 
+The current default register saving convention followed by oacc is to have 
 treat all registers except FPR(when not used as FPR) as caller saved.
 
 \chapter{PRODUCING EFFICIENT TTA DESIGNS WITH TCE}
@@ -9998,11 +9995,11 @@ RTL simulation, especially with GHDL, requires a large amount of memory when
 simulating processors with large address spaces. One workaround is to lower
 the memory address widths for the address spaces in the simulated processor.
 
-\section{tcecc}
+\section{oacc}
 
 \subsubsection{Disappearing code}
 
-Tcecc is using the efficient LLVM compiler framework for its optimizations.
+Oacc is using the efficient LLVM compiler framework for its optimizations.
 Sometimes LLVM is too aggressive and removes code that you might not
 intend to get removed. This happens in case you write your output to a
 global variable which you might dump only in the simulator and never read 
@@ -10021,18 +10018,19 @@ current program.
 
 \subsection{Interrupt support}
 
-Currently TCE does not have support for TTA interrupts. This is mostly due to
+Currently OpenASIP does not have support for interrupts. This is mostly due to
 the fact that context saving is an expensive operation on TTA because the
 processor context can be huge. In general, TTA might not be the best
-architecture choice for the only processor in a control-oriented or reactive 
-system.
+architecture choice for the only processor in a control-oriented or reactive
+system. RISC-V ISA designs might get interrupt/exception support in the future
+releases.
 
 \section{Misc}
 
 \subsection{File Search Paths}
 
-The tools in TCE search for files such as HDBs and OSAL operation definitions,
-in addition to the TCE install locations, in the current working directory and
+The tools in OA search for files such as HDBs and OSAL operation definitions,
+in addition to the OA install locations, in the current working directory and
 its 'data' subdirectory. 
 
 \chapter{SystemC Simulation Example}
@@ -10076,7 +10074,7 @@ one in \textbf{lsu\_model.hh}.
 Finally, the actual main SystemC simulation code is defined as follows.
 As can be noted, both of the TTA cores use the same architecture loaded from
 \textbf{mmio.adf} of which contents are not presented here. In order to 
-make this example work, the TCE-included \textbf{minimal\_with\_io.adf} 
+make this example work, the OA-included \textbf{minimal\_with\_io.adf} 
 architecture can be used instead.
 
 \textbf{simulator.cc: The main simulation code:}
