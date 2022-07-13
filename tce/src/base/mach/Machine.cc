@@ -1060,7 +1060,7 @@ Machine::hasOperation(const TCEString& opName) const {
 }
 
 bool
-Machine::RISCVMachine() const {
+Machine::isRISCVMachine() const {
     OperationTriggeredFormatNavigator fNav =
         operationTriggeredFormatNavigator();
     int fCount = fNav.count();

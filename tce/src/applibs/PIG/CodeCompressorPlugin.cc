@@ -172,7 +172,7 @@ CodeCompressorPlugin::setMachine(const TTAMachine::Machine& machine) {
     }
     mau_ = bem_->width();
     // For RISCV fix mau to 4
-    if (machine.RISCVMachine()) {
+    if (machine.isRISCVMachine()) {
         mau_ = 8;
         setImemWidth(8);
         // fix machines imem width if adf has wrong value

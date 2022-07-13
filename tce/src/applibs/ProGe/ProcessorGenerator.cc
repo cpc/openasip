@@ -197,7 +197,7 @@ ProcessorGenerator::generateProcessor(
     BlockSourceCopier copier(
         implementation, options.entityName, options.language);
 
-    if (machine.RISCVMachine()) {
+    if (machine.isRISCVMachine()) {
         copier.getTemplateInstatiator().replacePlaceholder(
             "decomp-fetchblock-width", "INSTRUCTIONWIDTH");
     }

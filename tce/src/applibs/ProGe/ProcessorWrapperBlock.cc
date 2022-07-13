@@ -119,9 +119,9 @@ void
 ProcessorWrapperBlock::addInstructionMemory(
     const NetlistPortGroup& coreImemPort) {
     using SigT = SignalType;
-    bool isRISCV = context_.adf().RISCVMachine();
+    bool isRISCV = context_.adf().isRISCVMachine();
 
-    const int imemWidthInMaus = (context_.adf().RISCVMachine()) ? 4 : 1;
+    const int imemWidthInMaus = (context_.adf().isRISCVMachine()) ? 4 : 1;
     const int unusedBits = std::ceil(std::log2(imemWidthInMaus));
 
     std::string addrWidth = context_.globalPackage().fetchBlockAddressWidth();

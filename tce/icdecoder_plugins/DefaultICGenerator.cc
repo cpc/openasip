@@ -166,7 +166,7 @@ DefaultICGenerator::addICToNetlist(
                 Port* port = socket->port(i);
                 NetlistPort* unitPort;
                 // RISCV must have 32b pc port due to APC operation
-                if (machine_.RISCVMachine() && port == gcu->triggerPort()) {
+                if (machine_.isRISCVMachine() && port == gcu->triggerPort()) {
                     socketDataPort = new NetlistPort(
                         this->inputSocketDataPort(socket->name()),
                         Conversion::toString(32), ProGe::BIT_VECTOR,
@@ -1033,7 +1033,8 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
                         socketWidth =
                             Conversion::toString(socket->port(i)->width());
                     }
-                    if (socket->portCount() > 0 && machine_.RISCVMachine()) {
+                    if (socket->portCount() > 0
+                    && machine_.isRISCVMachine()) {
                         ControlUnit* gcu = machine_.controlUnit();
                         if (isGcuPort(socket->port(0)) &&
                             socket->port(0) == gcu->triggerPort()) {

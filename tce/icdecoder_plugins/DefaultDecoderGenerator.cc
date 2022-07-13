@@ -712,7 +712,7 @@ DefaultDecoderGenerator::verifyCompatibility() const {
     std::set_difference(
         cuOps.begin(), cuOps.end(), supportedOps.begin(), supportedOps.end(),
         std::inserter(unsupportedOps, unsupportedOps.begin()));
-    if (!unsupportedOps.empty() && !machine_.RISCVMachine()) {
+    if (!unsupportedOps.empty() && !machine_.isRISCVMachine()) {
         format errorMsg(
             "Decoder generator does not support operation %1% in CU.");
         errorMsg % TCEString::makeString(unsupportedOps, ", ");
@@ -728,7 +728,7 @@ DefaultDecoderGenerator::verifyCompatibility() const {
     // check that there are 3 delay slots in the transport pipeline
     // RISC-V supports 2 "delay slots"
     if (cu->delaySlots() != 3 &&
-        (!(cu->delaySlots() == 2 && machine_.RISCVMachine()))) {
+        (!(cu->delaySlots() == 2 && machine_.isRISCVMachine()))) {
         throw InvalidData(
             __FILE__, __LINE__, __func__,
             TCEString("Decoder generator supports only 4-stage transport ") +
@@ -3715,7 +3715,7 @@ DefaultDecoderGenerator::writeControlRegisterMappings(
                 stream << indentation(1) << simmControlPort(bus->name())
                        << " <= " << simmCntrlSignalName(bus->name()) << ";"
                        << endl;
-                if (!machine_.RISCVMachine()) {
+                if (!machine_.isRISCVMachine()) {
                     stream << indentation(1) << simmDataPort(bus->name())
                            << " <= " << simmDataSignalName(bus->name()) << ";"
                            << endl;

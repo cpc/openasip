@@ -161,7 +161,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         string hdl = options.hdl();
 
         int imemWidthInMAUs = DEFAULT_IMEMWIDTH_IN_MAUS;
-        if (machine_->RISCVMachine()) {
+        if (machine_->isRISCVMachine()) {
             imemWidthInMAUs = 4;
         }
 

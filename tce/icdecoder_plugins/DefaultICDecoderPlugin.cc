@@ -987,7 +987,7 @@ public:
         // complete the decoder block and connect it to the IC and units
         decoderGenerator_->completeDecoderBlock(generator, netlistBlock);
 
-        if (ttamachine_.RISCVMachine()) {
+        if (ttamachine_.isRISCVMachine()) {
             addRV32MicroCode(netlistBlock, generator);
         }
     }
@@ -1235,7 +1235,7 @@ public:
         HDLTemplateInstantiator& instantiator =
             copier.getTemplateInstatiator();
 
-        if (ttamachine_.RISCVMachine()) {
+        if (ttamachine_.isRISCVMachine()) {
             instantiator.replacePlaceholder(
                 "ifetch-stall-cond",
                 " and " + IFETCH_STALL_PORT_NAME + " = '0'");
@@ -1383,7 +1383,7 @@ public:
                 generateDebuggerCode(generator);
             }
         }
-        if (ttamachine_.RISCVMachine()) {
+        if (ttamachine_.isRISCVMachine()) {
             copier.instantiateHDLTemplate(
                 templateDir + DS + "rv32_ifetch.vhdl.tmpl", dstDirectory,
                 "ifetch.vhdl");
@@ -1632,7 +1632,7 @@ private:
     addInstructioRegisterBypass(
         HDL language, const NetlistGenerator& generator) {
         assert(
-            ttamachine_.RISCVMachine() &&
+            ttamachine_.isRISCVMachine() &&
             "Instruction register by pass only implemented for RISC-V");
 
         // Todo: remove when this feature is added to debugger-fetch.
