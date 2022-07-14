@@ -4,6 +4,6 @@
 
 datadir = ${prefix}/share/tce/manual
 
-nobase_data_DATA = TCE_manual.pdf
-EXTRA_DIST = TCE_manual.pdf
+nobase_data_DATA = OpenASIP_manual.pdf
+EXTRA_DIST = OpenASIP_manual.pdf
 

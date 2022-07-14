@@ -75,8 +75,8 @@ string Environment::newConfFile_ = "";
 string Environment::newErrorLogFileDir_ = "";
 string Environment::simTraceDir_ = "";
 
-const string Environment::PDF_MANUAL_INSTALLED = "manual/TCE_manual.pdf";
-const string Environment::PDF_MANUAL_SRC = "manual/TCE_manual.pdf";
+const string Environment::PDF_MANUAL_INSTALLED = "manual/OpenASIP_manual.pdf";
+const string Environment::PDF_MANUAL_SRC = "manual/OpenASIP_manual.pdf";
 
 const string Environment::MINIMAL_ADF_INSTALLED = "data/mach/minimal.adf";
 const string Environment::MINIMAL_ADF_SRC = "data/mach/minimal.adf";
