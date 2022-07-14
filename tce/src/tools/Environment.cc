@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2020 Tampere University.
+    Copyright (c) 2002-2022 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -921,8 +921,6 @@ Environment::minimalADF() {
 
 
 /**
- * Returns full path to the tce compiler tcecc.
- *
  * @return Full path to the tce compiler tcecc.
  */
 string
@@ -930,7 +928,7 @@ Environment::tceCompiler() {
 
     if (Environment::developerMode()) {
         std::string srcPath =
-            string(TCE_SRC_ROOT) + "/src/bintools/Compiler/tcecc";
+            string(TCE_SRC_ROOT) + "/src/bintools/Compiler/oacc";
 
         std::string llvmTceSrcPath =
             string(TCE_SRC_ROOT) + "/src/bintools/Compiler/llvm-tce/llvm-tce";
@@ -940,10 +938,10 @@ Environment::tceCompiler() {
                "Build broken, compiler paths not found.");
         return srcPath;
     } else {
-        std::string path = Application::installationDir() + "/bin/tcecc";
+        std::string path = Application::installationDir() + "/bin/oacc";
         assert(
             FileSystem::fileExists(path) &&
-            "Installation broken, tcecc not found.");
+            "Installation broken: oacc not found.");
         return path;
     }
 }
