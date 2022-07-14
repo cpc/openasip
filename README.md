@@ -13,9 +13,7 @@ supported operations, and the datapath interconnection network.
 
 The internal processor template of OpenASIP is based on the energy efficient and
 modular Transport Triggered Architecture (TTA), which is still its default
-target programming model for static multi-issue designs.
-
-OpenASIP, however, also has initial support for other programming models such
+target programming model for static multi-issue designs. OpenASIP, however, also has initial support for other programming models such
 as standard operation-based VLIW (demonstrated in Blocks CGRA) and since 2.0
 it received the first features to support customizing RISC-V ISA based
 processors.
