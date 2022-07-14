@@ -38,12 +38,10 @@
 namespace ProGe {
 
 ProGeContext::ProGeContext(
-    const TTAMachine::Machine& adf,
-    const IDF::MachineImplementation& idf,
+    const TTAMachine::Machine& adf, const IDF::MachineImplementation& idf,
     const std::string& progeOutputDirectory,
     const std::string& sharedOutputDirectory,
-    const std::string& coreEntityName,
-    HDL targetHDL,
+    const std::string& coreEntityName, HDL targetHDL,
     int /*imemWidthInMAUs */)
     : adf_(adf),
       idf_(idf),
@@ -51,11 +49,9 @@ ProGeContext::ProGeContext(
       sharedOutputDirectory_(sharedOutputDirectory),
       entityName_(coreEntityName),
       hdl_(targetHDL),
-      globalPackage_(new GlobalPackage(coreEntityName)) {
-}
+      globalPackage_(new GlobalPackage(coreEntityName)) {}
 
-ProGeContext::~ProGeContext() {
-}
+ProGeContext::~ProGeContext() {}
 
 const TTAMachine::Machine&
 ProGeContext::adf() const {

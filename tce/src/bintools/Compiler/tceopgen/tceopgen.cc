@@ -42,7 +42,7 @@
 #include "Operand.hh"
 #include "Application.hh"
 
-enum mode {NORMAL, FU_ADDRESSABLE, ADDRESSPACE, RISCV };
+enum mode { NORMAL, FU_ADDRESSABLE, ADDRESSPACE, RISCV };
 /**
  * Returns a C type string for the given operand type.
  */
@@ -83,9 +83,8 @@ operandTypeCString(const Operand& operand) {
  */
 void
 writeCustomOpMacro(
-    std::ostream& os, std::string& opName, const Operation& op, 
+    std::ostream& os, std::string& opName, const Operation& op,
     mode macroMode, bool legacy) {
-
     // Only generate valid RISC-V R-format intrinsics
     if (macroMode == RISCV) {
         if (op.numberOfInputs() != 2) {
@@ -105,21 +104,21 @@ writeCustomOpMacro(
         os << "#define _OA";
     }
 
-    const std::string outputOperandName = legacy ? "__tce_op_output_" :
-    "__oa_op_output_";
+    const std::string outputOperandName =
+        legacy ? "__tce_op_output_" : "__oa_op_output_";
 
     switch (macroMode) {
-    case RISCV:
-        os << "_RV_" << opName << "(";
-        break;
-    case FU_ADDRESSABLE:
-        os << "FU_" << opName << "(FU, ";
-        break;
-    case ADDRESSPACE:
-        os << "AS_" << opName << "(AS, ";
-        break;
-    default:
-        os << "_" << opName << "(";
+        case RISCV:
+            os << "_RV_" << opName << "(";
+            break;
+        case FU_ADDRESSABLE:
+            os << "FU_" << opName << "(FU, ";
+            break;
+        case ADDRESSPACE:
+            os << "AS_" << opName << "(AS, ";
+            break;
+        default:
+            os << "_" << opName << "(";
     }
 
     int seenInputs = 0;
@@ -187,25 +186,26 @@ writeCustomOpMacro(
     os << "asm " << volatileKeyword << "(";
 
     switch (macroMode) {
-    case RISCV: {
-        os << "\"//" << opName << " ";
-        int iterations = 0;
-        for (iterations = 0; iterations < op.numberOfInputs(); iterations++) {
-            os << "\\%" << std::to_string(iterations) << " ";
-        }
-        for (int i = 0; i < op.numberOfOutputs(); i++) {
-            os << "\\%" << std::to_string(iterations + i);
-        }
-    } break;
+        case RISCV: {
+            os << "\"//" << opName << " ";
+            int iterations = 0;
+            for (iterations = 0; iterations < op.numberOfInputs();
+                 iterations++) {
+                os << "\\%" << std::to_string(iterations) << " ";
+            }
+            for (int i = 0; i < op.numberOfOutputs(); i++) {
+                os << "\\%" << std::to_string(iterations + i);
+            }
+        } break;
     case FU_ADDRESSABLE:
-	    os << "FU\".";
-	    break;
+        os << "FU\".";
+        break;
     case ADDRESSPACE:
-	    os << "\"_AS.\" AS\".";
-	    break;
+        os << "\"_AS.\" AS\".";
+        break;
     default:
-	    os << "\"";
-	    break;
+        os << "\"";
+        break;
     }
 
     if (macroMode != RISCV) {
@@ -233,8 +233,8 @@ writeCustomOpMacro(
             os << ", ";
         // Only register inputs for RISC-V
         if (macroMode == RISCV) {
-            os << "\"r\"((" << operandTypeCString(operand)
-               << ")(i" << in << "))";
+            os << "\"r\"((" << operandTypeCString(operand) << ")(i" << in
+               << "))";
         } else if (operandTypeCString(operand) != "" && !operand.isVector()) {
             os << "\"ir\"((" << operandTypeCString(operand)
                << ")(i" << in << "))";

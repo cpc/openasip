@@ -42,16 +42,14 @@ namespace ProGe {
  * @param width The width of the connection.
  */
 PortConnectionProperty::PortConnectionProperty(
-    int port1FirstBit,
-    int port2FirstBit,
-    int width) :
-    port1FirstBit_(port1FirstBit), port2FirstBit_(port2FirstBit),
-    width_(width), inverted_(false) {
-}
+    int port1FirstBit, int port2FirstBit, int width)
+    : port1FirstBit_(port1FirstBit),
+      port2FirstBit_(port2FirstBit),
+      width_(width),
+      inverted_(false) {}
 
 PortConnectionProperty::PortConnectionProperty(bool inverted)
-    : port1FirstBit_(0), port2FirstBit_(0), width_(0), inverted_(inverted) {
-}
+    : port1FirstBit_(0), port2FirstBit_(0), width_(0), inverted_(inverted) {}
 
 /**
  * The constructor.
@@ -60,10 +58,8 @@ PortConnectionProperty::PortConnectionProperty(bool inverted)
  *
  * @param name Name of the connection.
  */
-PortConnectionProperty::PortConnectionProperty() :
-    port1FirstBit_(0), port2FirstBit_(0), width_(0), inverted_(false) {
-}
-
+PortConnectionProperty::PortConnectionProperty()
+    : port1FirstBit_(0), port2FirstBit_(0), width_(0), inverted_(false) {}
 
 /**
  * The destructor.

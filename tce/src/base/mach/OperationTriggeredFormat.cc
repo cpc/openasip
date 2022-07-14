@@ -38,7 +38,6 @@
 #include "ObjectState.hh"
 #include "Machine.hh"
 
-
 namespace TTAMachine {
 
 const std::string OperationTriggeredFormat::OSNAME_FORMAT = "ota-format";
@@ -47,10 +46,10 @@ const std::string OperationTriggeredFormat::OSKEY_OPERATION = "ota-operation";
 
 /**
  * The constructor.
- * 
+ *
  * Registers the operation code encoding to the parent
  * binary encoding automatically.
- * 
+ *
  * @param parent The parent OperationTriggeredFormat.
  */
 
@@ -62,10 +61,10 @@ OperationTriggeredFormat::OperationTriggeredFormat(
 
 /**
  * The constructor
- * 
+ *
  * Loads the state of the operation code encoding from
  * the given ObjectState tree
- * 
+ *
  * @param state The ObjectState tree
  * @param parent The parent binary encoding map
  * @exception ObjectStateLoadingException If an error occurs while loading
@@ -76,13 +75,13 @@ OperationTriggeredFormat::OperationTriggeredFormat(
     const ObjectState* state, Machine& owner)
     : Component(state) {
     const std::string procName =
-    "OperationTriggeredFormat::OperationTriggeredFormat";
+        "OperationTriggeredFormat::OperationTriggeredFormat";
     try {
         setMachine(owner);
     } catch (const ComponentAlreadyExists&) {
         MOMTextGenerator textGenerator;
-        boost::format errorMsg = textGenerator.text(
-            MOMTextGenerator::TXT_IT_EXISTS_BY_NAME);
+        boost::format errorMsg =
+            textGenerator.text(MOMTextGenerator::TXT_IT_EXISTS_BY_NAME);
         errorMsg % name();
         throw ObjectStateLoadingException(
             __FILE__, __LINE__, procName, errorMsg.str());
@@ -104,7 +103,6 @@ OperationTriggeredFormat::~OperationTriggeredFormat() {
     }
     unsetMachine();
 }
-
 
 std::vector<std::string>
 OperationTriggeredFormat::operations() const {
@@ -162,11 +160,11 @@ OperationTriggeredFormat::addOperand(OperationTriggeredOperand& op) {
 /**
  * Adds the OperationTriggeredFormat to the given machine.
  *
- * @param machine Machine to which the OperationTriggeredFormat Format is added.
- * @exception ComponentAlreadyExists If there already is another OperationTriggeredFormat Format
- *                                   by the same name or another
- *                                   empty OperationTriggeredFormat Format in the given
- *                                   machine.
+ * @param machine Machine to which the OperationTriggeredFormat Format is
+ * added.
+ * @exception ComponentAlreadyExists If there already is another
+ * OperationTriggeredFormat Format by the same name or another empty
+ * OperationTriggeredFormat Format in the given machine.
  */
 void
 OperationTriggeredFormat::setMachine(Machine& machine) {
@@ -177,8 +175,8 @@ OperationTriggeredFormat::setMachine(Machine& machine) {
 /**
  * Removes the OperationTriggeredFormat Format from its machine.
  *
- * The OperationTriggeredFormat Format is also deleted because it cannot be alone.
- * It must be registered to a machine.
+ * The OperationTriggeredFormat Format is also deleted because it cannot be
+ * alone. It must be registered to a machine.
  */
 void
 OperationTriggeredFormat::unsetMachine() {
@@ -187,7 +185,6 @@ OperationTriggeredFormat::unsetMachine() {
     internalUnsetMachine();
     mach->deleteOperationTriggeredFormat(*this);
 }
-
 
 void
 OperationTriggeredFormat::loadState(const ObjectState* state) {
@@ -204,12 +201,11 @@ OperationTriggeredFormat::loadState(const ObjectState* state) {
     try {
         for (int i = 0; i < newState->childCount(); i++) {
             ObjectState* child = newState->child(i);
-            if (child->name() ==
-            OperationTriggeredOperand::OSNAME_OPERAND) {
+            if (child->name() == OperationTriggeredOperand::OSNAME_OPERAND) {
                 new OperationTriggeredOperand(child, *this);
-            } else if (child->name() ==
-            OperationTriggeredFormat::OSKEY_OPERATION) {
-                    operations_.push_back(child->stringValue());
+            } else if (
+                child->name() == OperationTriggeredFormat::OSKEY_OPERATION) {
+                operations_.push_back(child->stringValue());
             }
         }
     } catch (const Exception& exception) {
@@ -242,4 +238,4 @@ OperationTriggeredFormat::saveState() const {
 
     return state;
 }
-}
+}  // namespace TTAMachine

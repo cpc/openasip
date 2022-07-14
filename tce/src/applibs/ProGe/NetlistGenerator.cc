@@ -691,10 +691,10 @@ namespace ProGe {
      */
     void NetlistGenerator::addGCUToNetlist(
         NetlistBlock& toplevelBlock, int imemWidthInMAUs) {
-        if (imemWidthInMAUs != 4 && context_.adf().RISCVMachine()) {
+        if (imemWidthInMAUs != 4 && context_.adf().isRISCVMachine()) {
             throw InvalidData(__FILE__, __LINE__, __func__,
                 "Imem width fixed to 4 MAUs for RISC-V machines");
-        } else if (imemWidthInMAUs != 1 && !context_.adf().RISCVMachine()) {
+        } else if (imemWidthInMAUs != 1 && !context_.adf().isRISCVMachine()) {
             throw InvalidData(__FILE__, __LINE__, __func__,
                 "Imem width is currently fixed to 1 MAU");
         }

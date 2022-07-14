@@ -35,13 +35,9 @@
 
 namespace ProGe {
 
-SignalGroup::SignalGroup()
-    : type_(SignalGroupType::UNDEFINED),
-      signals_() {
-}
+SignalGroup::SignalGroup() : type_(SignalGroupType::UNDEFINED), signals_() {}
 
-SignalGroup::~SignalGroup() {
-}
+SignalGroup::~SignalGroup() {}
 
 SignalGroupType
 SignalGroup::type() const {

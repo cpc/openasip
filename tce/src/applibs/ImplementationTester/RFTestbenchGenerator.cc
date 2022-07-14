@@ -124,11 +124,10 @@ RFTestbenchGenerator::createMachineState() {
 
     string name = RF_NAME_;
     // create simulation model of the RF
-    machRf_ = 
-        new TTAMachine::RegisterFile(
-            name, size, width, rfArch_->maxReads(), rfArch_->maxWrites(),
-            rfArch_->guardLatency(), TTAMachine::RegisterFile::NORMAL,
-            rfArch_->zeroRegister());
+    machRf_ = new TTAMachine::RegisterFile(
+        name, size, width, rfArch_->maxReads(), rfArch_->maxWrites(),
+        rfArch_->guardLatency(), TTAMachine::RegisterFile::NORMAL,
+        rfArch_->zeroRegister());
     machine_->addRegisterFile(*machRf_);
 
     MachineStateBuilder msmBuilder;

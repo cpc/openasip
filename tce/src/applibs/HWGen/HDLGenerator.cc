@@ -22,30 +22,32 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
-* @file HDLGenerator.cc
-*
-* @author Lasse Lehtonen 2017 (lasse.lehtonen-no.spam-tut.fi)
-*/
+ * @file HDLGenerator.cc
+ *
+ * @author Lasse Lehtonen 2017 (lasse.lehtonen-no.spam-tut.fi)
+ */
 #include "HDLGenerator.hh"
 
 namespace HDLGenerator {
-    void Synchronous::build() {
-        Generatable::build();
-        for (auto&& v : variables_) {
-            parentType<Module>()->registerVariable(v);
-        }
-        for (auto&& r : registers_) {
-            if (!isRegister(r)) {
-                throw std::runtime_error(
-                    r + " written in synchronous but isn't a register.");
-            }
-        }
+void
+Synchronous::build() {
+    Generatable::build();
+    for (auto&& v : variables_) {
+        parentType<Module>()->registerVariable(v);
     }
-
-    void Asynchronous::build() {
-        Generatable::build();
-        for (auto&& v : variables_) {
-            parentType<Module>()->registerVariable(v);
+    for (auto&& r : registers_) {
+        if (!isRegister(r)) {
+            throw std::runtime_error(
+                r + " written in synchronous but isn't a register.");
         }
     }
 }
+
+void
+Asynchronous::build() {
+    Generatable::build();
+    for (auto&& v : variables_) {
+        parentType<Module>()->registerVariable(v);
+    }
+}
+}  // namespace HDLGenerator

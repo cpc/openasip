@@ -86,12 +86,10 @@ void SOPCInterface::setProperty(
     setProperty(propertyName, convertedValue);
 }
 
-void SOPCInterface::setPort(
-    const TCEString& hdlName,
-    const TCEString& interfaceName,
-    ProGe::Direction direction,
-    int width) {
-
+void
+SOPCInterface::setPort(
+    const TCEString& hdlName, const TCEString& interfaceName,
+    ProGe::Direction direction, int width) {
     SOPCPort port = {hdlName, interfaceName, direction, width};
     ports_.push_back(port);
 }

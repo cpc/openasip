@@ -50,42 +50,39 @@ namespace ProGe {
  * @param dataWidth The width of the data port.
  * @param memInitFile Name of the memory initialization file loaded during
  *                    RTL-simulation.
- * @param isForSimulation Tells if the block is used in RTL simulation. Affects
- *                        placement of the HDL source.
+ * @param isForSimulation Tells if the block is used in RTL simulation.
+ * Affects placement of the HDL source.
  */
 SinglePortSSRAMBlock::SinglePortSSRAMBlock(
-    const std::string& addressWidth,
-    const std::string& dataWidth,
-    const std::string& memInitFile,
-    bool isForSimulation)
-    : BaseNetlistBlock("synch_sram", ""),
-      isForSimulation_(isForSimulation) {
-
+    const std::string& addressWidth, const std::string& dataWidth,
+    const std::string& memInitFile, bool isForSimulation)
+    : BaseNetlistBlock("synch_sram", ""), isForSimulation_(isForSimulation) {
     addParameter(Parameter("DATAW", "integer", dataWidth));
     addParameter(Parameter("ADDRW", "integer", addressWidth));
     addParameter(Parameter("INITFILENAME", "string", memInitFile));
     addParameter(Parameter("access_trace", "boolean", "false"));
-    addParameter(Parameter("ACCESSTRACEFILENAME", "string",
-        "\"access_trace\""));
+    addParameter(
+        Parameter("ACCESSTRACEFILENAME", "string", "\"access_trace\""));
 
     addPort(PortFactory::clockPort());
 
     // todo add memory ports via PortFactory
-    addPortGroup(memoryPortGroup_ = new NetlistPortGroup(
-        SignalGroupType::BITMASKED_SRAM_PORT,
-        new InPort("d", "DATAW", BIT_VECTOR, SignalType::WRITE_DATA),
-        new InPort("addr", "ADDRW", BIT_VECTOR, SignalType::ADDRESS),
-        new InBitPort("en_x", Signal(
-            SignalType::READ_WRITE_REQUEST, ActiveState::LOW)),
-        new InBitPort("wr_x",
-            Signal(SignalType::WRITEMODE, ActiveState::LOW)),
-        new InPort("bit_wr_x", "DATAW", BIT_VECTOR, SignalType::WRITE_BITMASK),
-        new OutPort("q", "DATAW", BIT_VECTOR, SignalType::READ_DATA)
-    ));
+    addPortGroup(
+        memoryPortGroup_ = new NetlistPortGroup(
+            SignalGroupType::BITMASKED_SRAM_PORT,
+            new InPort("d", "DATAW", BIT_VECTOR, SignalType::WRITE_DATA),
+            new InPort("addr", "ADDRW", BIT_VECTOR, SignalType::ADDRESS),
+            new InBitPort(
+                "en_x",
+                Signal(SignalType::READ_WRITE_REQUEST, ActiveState::LOW)),
+            new InBitPort(
+                "wr_x", Signal(SignalType::WRITEMODE, ActiveState::LOW)),
+            new InPort(
+                "bit_wr_x", "DATAW", BIT_VECTOR, SignalType::WRITE_BITMASK),
+            new OutPort("q", "DATAW", BIT_VECTOR, SignalType::READ_DATA)));
 }
 
-SinglePortSSRAMBlock::~SinglePortSSRAMBlock() {
-}
+SinglePortSSRAMBlock::~SinglePortSSRAMBlock() {}
 
 /**
  * Sets a file name where memory access trace is dumped for this memory.
@@ -106,17 +103,16 @@ void
 SinglePortSSRAMBlock::write(const Path& targetBaseDir, HDL targetLang) const {
     Path progeDataDir(Environment::dataDirPath("ProGe"));
 
-    std::string tempFile = (targetLang == VHDL)?
-        std::string("synch_sram.vhdl"):std::string("synch_sram.v");
+    std::string tempFile = (targetLang == VHDL)
+                               ? std::string("synch_sram.vhdl")
+                               : std::string("synch_sram.v");
     std::string targetDir =
-        (isForSimulation_)?
-            std::string("tb"):
-            ((targetLang == VHDL)?
-                std::string("vhdl"):
-                std::string("verilog"));
+        (isForSimulation_) ? std::string("tb")
+                           : ((targetLang == VHDL) ? std::string("vhdl")
+                                                   : std::string("verilog"));
     HDLTemplateInstantiator().instantiateTemplateFile(
-        (progeDataDir/"tb"/tempFile).string(),
-        (targetBaseDir/targetDir/tempFile).string());
+        (progeDataDir / "tb" / tempFile).string(),
+        (targetBaseDir / targetDir / tempFile).string());
 }
 
 } /* namespace ProGe */

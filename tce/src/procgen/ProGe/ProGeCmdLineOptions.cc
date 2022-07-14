@@ -71,7 +71,6 @@ const string FU_BACKREGISTER_LIST = "fu-back-register";
 const string FU_FRONTREGISTER_LIST = "fu-front-register";
 const string FU_MIDDLEREGISTER_LIST = "fu-middle-register";
 
-
 /**
  * The constructor.
  */
@@ -114,11 +113,12 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
             "g");
     addOption(integratorName);
 
-    StringCmdLineOptionParser* imemType =
-        new StringCmdLineOptionParser(
-            IMEM_TYPE, "Instruction memory type. Available types depends on "
-            "the platform integrator. Types are 'vhdl_array', 'onchip', "
-            "'sram', 'dram' and 'none'.", "f");
+    StringCmdLineOptionParser* imemType = new StringCmdLineOptionParser(
+        IMEM_TYPE,
+        "Instruction memory type. Available types depends on "
+        "the platform integrator. Types are 'vhdl_array', 'onchip', "
+        "'sram', 'dram' and 'none'.",
+        "f");
     addOption(imemType);
 
     StringCmdLineOptionParser* dmemType =
@@ -138,14 +138,14 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
             TPEF_NAME, "Name of tpef program.", "p");
     addOption(programName);
 
-    StringCmdLineOptionParser* entityName =
-        new StringCmdLineOptionParser(
-            ENTITY_NAME, 
-            "String to use to make the generated VHDL entities unique. This "
-            "is also used in the name of the top level entity platform "
-            "integrator creates. Default is 'tta0' for the core, thus "
-            "'tta0_toplevel' for the platform integrator top level "
-            "component.", "e");
+    StringCmdLineOptionParser* entityName = new StringCmdLineOptionParser(
+        ENTITY_NAME,
+        "String to use to make the generated VHDL entities unique. This "
+        "is also used in the name of the top level entity platform "
+        "integrator creates. Default is 'tta0' for the core, thus "
+        "'tta0_toplevel' for the platform integrator top level "
+        "component.",
+        "e");
     addOption(entityName);
 
     BoolCmdLineOptionParser* useAbsolutePaths = 
@@ -173,83 +173,63 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
             "Stratix\\ II", "m");
     addOption(deviceFamilyName);
 
-    StringCmdLineOptionParser* deviceName = 
-        new StringCmdLineOptionParser(
-            DEVICE_NAME,
-            "Set FPGA device family for integration. Stand-alone integrators "
-            "may ignore this parameter. Example: \"xc7z020clg400-1\"");
+    StringCmdLineOptionParser* deviceName = new StringCmdLineOptionParser(
+        DEVICE_NAME,
+        "Set FPGA device family for integration. Stand-alone integrators "
+        "may ignore this parameter. Example: \"xc7z020clg400-1\"");
     addOption(deviceName);
 
-    IntegerCmdLineOptionParser* simTime =
-        new IntegerCmdLineOptionParser(
-            SIMULATION_RUNTIME, 
-            "The runtime of the simulation in nanoseconds. Default: 52390 ns",
-            "r");
+    IntegerCmdLineOptionParser* simTime = new IntegerCmdLineOptionParser(
+        SIMULATION_RUNTIME,
+        "The runtime of the simulation in nanoseconds. Default: 52390 ns",
+        "r");
     addOption(simTime);
 
-    BoolCmdLineOptionParser* forceOutput =
-        new BoolCmdLineOptionParser(
-            FORCE_OUTPUT,
-            "Forces output writing into existing directory.",
-            "F");
+    BoolCmdLineOptionParser* forceOutput = new BoolCmdLineOptionParser(
+        FORCE_OUTPUT, "Forces output writing into existing directory.", "F");
     addOption(forceOutput);
 
-    BoolCmdLineOptionParser* syncReset =
-        new BoolCmdLineOptionParser(
-            SYNC_RESET,
-            "Generate Synchronous reset (default async).");
+    BoolCmdLineOptionParser* syncReset = new BoolCmdLineOptionParser(
+        SYNC_RESET, "Generate Synchronous reset (default async).");
     addOption(syncReset);
 
-    StringCmdLineOptionParser* hdbList =
-        new StringCmdLineOptionParser(
-            HDB_LIST,
-            "Comma separated list of HDBs for automated generation.",
-            "h");
+    StringCmdLineOptionParser* hdbList = new StringCmdLineOptionParser(
+        HDB_LIST, "Comma separated list of HDBs for automated generation.",
+        "h");
     addOption(hdbList);
 
-    StringCmdLineOptionParser* icdArgList =
-        new StringCmdLineOptionParser(
-            ICD_ARG_LIST,
-            "Comma separated list of IC decoder plugin arguments "
-            "for automated generation.");
+    StringCmdLineOptionParser* icdArgList = new StringCmdLineOptionParser(
+        ICD_ARG_LIST,
+        "Comma separated list of IC decoder plugin arguments "
+        "for automated generation.");
     addOption(icdArgList);
 
-    BoolCmdLineOptionParser* preferGen =
-        new BoolCmdLineOptionParser(
-            PREFER_GEN,
-            "Prefer HDL generation over existing HDB implementations."
-        );
+    BoolCmdLineOptionParser* preferGen = new BoolCmdLineOptionParser(
+        PREFER_GEN,
+        "Prefer HDL generation over existing HDB implementations.");
     addOption(preferGen);
 
-    BoolCmdLineOptionParser* resetAll =
-        new BoolCmdLineOptionParser(
-            DONT_RESET_ALL,
-            "Doesn't reset unnecessary registers (default false)."
-        );
+    BoolCmdLineOptionParser* resetAll = new BoolCmdLineOptionParser(
+        DONT_RESET_ALL,
+        "Doesn't reset unnecessary registers (default false).");
     addOption(resetAll);
 
-    StringCmdLineOptionParser* rfIcGateList =
-        new StringCmdLineOptionParser(
-            RF_ICGATE_LIST,
-            "Comma separated list of RFs to IC-Gate.");
+    StringCmdLineOptionParser* rfIcGateList = new StringCmdLineOptionParser(
+        RF_ICGATE_LIST, "Comma separated list of RFs to IC-Gate.");
     addOption(rfIcGateList);
 
-    StringCmdLineOptionParser* fuIcGateList =
-        new StringCmdLineOptionParser(
-            FU_ICGATE_LIST,
-            "Comma separated list of FUs to IC-Gate.");
+    StringCmdLineOptionParser* fuIcGateList = new StringCmdLineOptionParser(
+        FU_ICGATE_LIST, "Comma separated list of FUs to IC-Gate.");
     addOption(fuIcGateList);
 
-    StringCmdLineOptionParser* fuBackRegList =
-        new StringCmdLineOptionParser(
-            FU_BACKREGISTER_LIST,
-            "Comma separated list of FUs to back-register.");
+    StringCmdLineOptionParser* fuBackRegList = new StringCmdLineOptionParser(
+        FU_BACKREGISTER_LIST,
+        "Comma separated list of FUs to back-register.");
     addOption(fuBackRegList);
 
-    StringCmdLineOptionParser* fuFrontRegList =
-        new StringCmdLineOptionParser(
-            FU_FRONTREGISTER_LIST,
-            "Comma separated list of FUs to front-register.");
+    StringCmdLineOptionParser* fuFrontRegList = new StringCmdLineOptionParser(
+        FU_FRONTREGISTER_LIST,
+        "Comma separated list of FUs to front-register.");
     addOption(fuFrontRegList);
 
     StringCmdLineOptionParser* fuMiddleRegList =
@@ -257,7 +237,6 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
             FU_MIDDLEREGISTER_LIST,
             "Comma separated list of FUs to middle-register.");
     addOption(fuMiddleRegList);
-
 }
 
 
@@ -423,7 +402,6 @@ ProGeCmdLineOptions::deviceName() const {
  */
 std::string
 ProGeCmdLineOptions::simulationRuntime() const {
-
     int simTime = 52390;
     if (findOption(SIMULATION_RUNTIME)->isDefined()) {
         simTime = findOption(SIMULATION_RUNTIME)->integer();
@@ -434,44 +412,44 @@ ProGeCmdLineOptions::simulationRuntime() const {
     return s.str();
 }
 
-
 /**
- * Returns true if ProGe is allowed to write the processor files to an existing
- * directory.
+ * Returns true if ProGe is allowed to write the processor files to an
+ * existing directory.
  */
 bool
 ProGeCmdLineOptions::forceOutputDirectory() const {
     return findOption(FORCE_OUTPUT)->isFlagOn();
 }
 
- /**
+/**
  * Returns true if synchronous reset.
  */
- bool
- ProGeCmdLineOptions::syncReset() const {
+bool
+ProGeCmdLineOptions::syncReset() const {
     return findOption(SYNC_RESET)->isFlagOn();
- }
-
- /**
- * Returns true if asynchronous reset.
- */
- bool
- ProGeCmdLineOptions::asyncReset() const {
-    return !findOption(SYNC_RESET)->isFlagOn();
- }
+}
 
 /**
-* Helper for arguments with comma-separated arguments
-*/
+ * Returns true if asynchronous reset.
+ */
+bool
+ProGeCmdLineOptions::asyncReset() const {
+    return !findOption(SYNC_RESET)->isFlagOn();
+}
+
+/**
+ * Helper for arguments with comma-separated arguments
+ */
 std::vector<std::string>
-ProGeCmdLineOptions::commaSeparatedList(const std::string argumentName) const {
+ProGeCmdLineOptions::commaSeparatedList(
+    const std::string argumentName) const {
     std::vector<std::string> list;
     std::string str;
     if (findOption(argumentName)->isDefined()) {
         str = findOption(argumentName)->String();
     }
     std::stringstream ss(str);
-    while(ss.good()) {
+    while (ss.good()) {
         std::string sub;
         std::getline(ss, sub, ',');
         if (sub.size() > 1) {
@@ -505,7 +483,7 @@ ProGeCmdLineOptions::icdArgList() const {
     auto raw_pairs = commaSeparatedList(ICD_ARG_LIST);
     std::vector<std::pair<std::string, std::string>> parsed_pairs;
 
-    for(std::string key_val_pair : raw_pairs) {
+    for (std::string key_val_pair : raw_pairs) {
         if (key_val_pair.size() > 1) {
             std::stringstream kvp(key_val_pair);
             std::string key;
@@ -526,35 +504,36 @@ ProGeCmdLineOptions::fuIcGateList() const {
     return commaSeparatedList(FU_ICGATE_LIST);
 }
 
-
 std::vector<std::string>
 ProGeCmdLineOptions::fuBackRegistered() const {
     return commaSeparatedList(FU_BACKREGISTER_LIST);
 }
 
-std::vector<std::string> ProGeCmdLineOptions::fuFrontRegistered() const {
+std::vector<std::string>
+ProGeCmdLineOptions::fuFrontRegistered() const {
     return commaSeparatedList(FU_FRONTREGISTER_LIST);
 }
 
-std::vector<std::string> ProGeCmdLineOptions::fuMiddleRegistered() const {
+std::vector<std::string>
+ProGeCmdLineOptions::fuMiddleRegistered() const {
     return commaSeparatedList(FU_MIDDLEREGISTER_LIST);
 }
 
- /**
+/**
  * Returns true if preferring HDL Generation.
  */
- bool
- ProGeCmdLineOptions::preferHDLGeneration() const {
+bool
+ProGeCmdLineOptions::preferHDLGeneration() const {
     return findOption(PREFER_GEN)->isFlagOn();
- }
+}
 
 /**
  * Returns true if all registers should be reseted.
  */
- bool
- ProGeCmdLineOptions::resetAllRegisters() const {
+bool
+ProGeCmdLineOptions::resetAllRegisters() const {
     return !findOption(DONT_RESET_ALL)->isFlagOn();
- }
+}
 
 /**
  * Prints the version of the application.

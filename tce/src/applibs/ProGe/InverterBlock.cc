@@ -35,23 +35,19 @@
 
 #include "NetlistPort.hh"
 
-//todo Dynamically generate HDL code for inverter. Now relies hand written
-//     template code.
+// todo Dynamically generate HDL code for inverter. Now relies hand written
+//      template code.
 
 namespace ProGe {
 
-InverterBlock::InverterBlock()
-    : input_(NULL), invertedOut_(NULL) {
-}
+InverterBlock::InverterBlock() : input_(NULL), invertedOut_(NULL) {}
 
-InverterBlock::~InverterBlock() {
-}
+InverterBlock::~InverterBlock() {}
 
 InverterBlock::InverterBlock(
-    const NetlistPort& input,
-    const NetlistPort& /*output*/)
-    : BaseNetlistBlock("util_inverter", input.name() + "_" + "util_inverter") {
-
+    const NetlistPort& input, const NetlistPort& /*output*/)
+    : BaseNetlistBlock(
+          "util_inverter", input.name() + "_" + "util_inverter") {
     input_ = new InBitPort("data_in", *this);
     invertedOut_ = new OutBitPort("data_out", *this);
 }

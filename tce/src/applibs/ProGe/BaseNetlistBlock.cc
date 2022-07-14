@@ -59,8 +59,7 @@ BaseNetlistBlock::BaseNetlistBlock()
       netlist_(new Netlist()),
       instanceName_("defaultInstanceName_inst0"),
       moduleName_("defaultModuleName"),
-      packages_() {
-}
+      packages_() {}
 
 BaseNetlistBlock::BaseNetlistBlock(BaseNetlistBlock* parent)
     : parent_(parent),
@@ -72,15 +71,13 @@ BaseNetlistBlock::BaseNetlistBlock(BaseNetlistBlock* parent)
       instanceName_("defaultInstanceName_inst0"),
       moduleName_("defaultModuleName"),
       packages_() {
-
     if (parent_ != nullptr) {
         parent_->addSubBlock(this);
     }
 }
 
 BaseNetlistBlock::BaseNetlistBlock(
-    const std::string& moduleName,
-    const std::string& instanceName,
+    const std::string& moduleName, const std::string& instanceName,
     BaseNetlistBlock* parent)
     : parent_(parent),
       subBlocks_(),
@@ -91,7 +88,6 @@ BaseNetlistBlock::BaseNetlistBlock(
       instanceName_(instanceName),
       moduleName_(moduleName),
       packages_() {
-
     if (instanceName.empty()) {
         setInstanceName(moduleName + "_inst0");
     }
@@ -102,14 +98,13 @@ BaseNetlistBlock::BaseNetlistBlock(
 }
 
 BaseNetlistBlock::~BaseNetlistBlock() {
-
     if (parent_ != nullptr) {
         parent_->removeSubBlock(this);
         parent_ = nullptr;
     }
 
     for (PortGroupContainerType::reverse_iterator it = portGroups_.rbegin();
-        it != portGroups_.rend();) {
+         it != portGroups_.rend();) {
         NetlistPortGroup* toDeleted = *it;
         it++;
         portGroups_.pop_back();
@@ -117,7 +112,7 @@ BaseNetlistBlock::~BaseNetlistBlock() {
     }
 
     for (PortContainerType::reverse_iterator it = ports_.rbegin();
-        it != ports_.rend();) {
+         it != ports_.rend();) {
         NetlistPort* toDeleted = *it;
         it++;
         ports_.pop_back();
@@ -125,14 +120,15 @@ BaseNetlistBlock::~BaseNetlistBlock() {
     }
 
     for (BlockContainerType::reverse_iterator it = subBlocks_.rbegin();
-        it != subBlocks_.rend();) {
+         it != subBlocks_.rend();) {
         BaseNetlistBlock* toDeleted = *it;
         it++;
         subBlocks_.pop_back();
         delete toDeleted;
     }
 
-    delete netlist_; netlist_ = nullptr;
+    delete netlist_;
+    netlist_ = nullptr;
 }
 
 const std::string&
@@ -206,7 +202,8 @@ BaseNetlistBlock::parameter(const std::string& name) const {
         }
     }
 
-    throw NotAvailable(__FILE__, __LINE__, __func__,
+    throw NotAvailable(
+        __FILE__, __LINE__, __func__,
         std::string("The block (") + instanceName() + ":" + moduleName() +
             ") does not have parameter \"" + name + "\"");
 }
@@ -224,9 +221,10 @@ BaseNetlistBlock::parameter(const std::string& name) {
         }
     }
 
-    throw NotAvailable(__FILE__, __LINE__, __func__,
+    throw NotAvailable(
+        __FILE__, __LINE__, __func__,
         std::string("The block (") + instanceName() + ":" + moduleName() +
-        ") does not have parameter \"" + name + "\"");
+            ") does not have parameter \"" + name + "\"");
 }
 
 size_t
@@ -279,7 +277,8 @@ BaseNetlistBlock::portsBy(SignalType type) const {
  *
  *
  * @param The list of ports by matching signal type at the index.
- * @exception OutOfRange If the index is the number of found matches or larger.
+ * @exception OutOfRange If the index is the number of found matches or
+ * larger.
  */
 const NetlistPort&
 BaseNetlistBlock::portBy(SignalType type, size_t index) const {
@@ -287,13 +286,15 @@ BaseNetlistBlock::portBy(SignalType type, size_t index) const {
     if (index < matches.size()) {
         return *matches.at(index);
     } else {
-        THROW_EXCEPTION(OutOfRange, "No port by signal at index " +
-            Conversion::toString(index));
+        THROW_EXCEPTION(
+            OutOfRange,
+            "No port by signal at index " + Conversion::toString(index));
     }
 }
 
 /**
- * Return true if the netlist block has at least one port by given Signal Type.
+ * Return true if the netlist block has at least one port by given Signal
+ * Type.
  */
 bool
 BaseNetlistBlock::hasPortsBy(SignalType type) const {
@@ -313,9 +314,7 @@ BaseNetlistBlock::hasPortsBy(SignalType type) const {
  * @return The matching port. If not found, returns nullptr.
  */
 const NetlistPort*
-BaseNetlistBlock::port(
-    const std::string& portName,
-    bool partialMatch) const {
+BaseNetlistBlock::port(const std::string& portName, bool partialMatch) const {
     return findPort(portName, false, partialMatch);
 }
 
@@ -379,10 +378,12 @@ BaseNetlistBlock::parentBlock() {
 void
 BaseNetlistBlock::setInstanceName(const std::string& name) {
     if (hasParentBlock() && parentBlock().hasSubBlock(name)) {
-        THROW_EXCEPTION(ObjectAlreadyExists,
-            "New instance name of " + name + " is not unique within parent "
-            "block of " + parentBlock().instanceName() + " : " +
-            parentBlock().moduleName());
+        THROW_EXCEPTION(
+            ObjectAlreadyExists, "New instance name of " + name +
+                                     " is not unique within parent "
+                                     "block of " +
+                                     parentBlock().instanceName() + " : " +
+                                     parentBlock().moduleName());
     }
     instanceName_ = name;
 }
@@ -396,16 +397,13 @@ BaseNetlistBlock::setModuleName(const std::string& name) {
  * Adds sub block to this block and acquires ownership of it.
  *
  * @param subBlock The block to be added.
- * @param instanceName The instance base name to be given for sub block. If the
- *                     given or sub block's instance name is not unique within
- *                     the block The name will be prefixed with a running
- *                     number.
+ * @param instanceName The instance base name to be given for sub block. If
+ * the given or sub block's instance name is not unique within the block The
+ * name will be prefixed with a running number.
  */
 void
 BaseNetlistBlock::addSubBlock(
-    BaseNetlistBlock* subBlock,
-    const std::string& instanceName) {
-
+    BaseNetlistBlock* subBlock, const std::string& instanceName) {
     if (!instanceName.empty()) {
         subBlock->instanceName_ =
             NetlistTools::getUniqueInstanceName(*this, instanceName);
@@ -434,7 +432,7 @@ BaseNetlistBlock::addSubBlock(
  */
 void
 BaseNetlistBlock::deleteSubBlock(BaseNetlistBlock* subBlock) {
-    //todo remove port descriptions of deleted block in the netlist.
+    // todo remove port descriptions of deleted block in the netlist.
     for (size_t i = 0; i < subBlocks_.size(); i++) {
         if (subBlocks_.at(i) == subBlock) {
             BaseNetlistBlock* toDeleted = subBlocks_.at(i);
@@ -449,7 +447,7 @@ BaseNetlistBlock::deleteSubBlock(BaseNetlistBlock* subBlock) {
  */
 void
 BaseNetlistBlock::removeSubBlock(BaseNetlistBlock* subBlock) {
-    //todo remove port descriptions of removed block in the netlist.
+    // todo remove port descriptions of removed block in the netlist.
     for (size_t i = 0; i < subBlocks_.size(); i++) {
         if (subBlocks_.at(i) == subBlock) {
             ContainerTools::swapRemoveValue(subBlocks_, i);
@@ -469,9 +467,11 @@ NetlistPort*
 BaseNetlistBlock::addPort(NetlistPort* port) {
     assert(port != nullptr && "Attempted to add null port.");
     if (findPort(port->name(), false, false)) {
-        THROW_EXCEPTION(ObjectAlreadyExists, "Given port by name ("
-            + port->name() + ") already exists in the netlist block ("
-            + this->instanceName() +" : " + this->moduleName() +").");
+        THROW_EXCEPTION(
+            ObjectAlreadyExists,
+            "Given port by name (" + port->name() +
+                ") already exists in the netlist block (" +
+                this->instanceName() + " : " + this->moduleName() + ").");
     }
 
     if (!port->hasParentBlock() || &port->parentBlock() != this) {
@@ -492,7 +492,8 @@ BaseNetlistBlock::addPort(NetlistPort* port) {
  */
 void
 BaseNetlistBlock::removePort(NetlistPort* port) {
-    assert(&port->parentBlock() == this &&
+    assert(
+        &port->parentBlock() == this &&
         "Attempted to remove a port the block does not have.");
 
     netlist().unregisterPort(*port);
@@ -528,7 +529,7 @@ BaseNetlistBlock::removePortGroup(NetlistPortGroup* port) {
  * Adds parameter to the block overwriting the existing one by name.
  */
 void
-BaseNetlistBlock::setParameter(const Parameter& param ) {
+BaseNetlistBlock::setParameter(const Parameter& param) {
     for (Parameter& p : parameters_) {
         if (p.name() == param.name()) {
             p = param;
@@ -547,9 +548,10 @@ BaseNetlistBlock::addParameter(const Parameter& param) {
     // Check for uniqueness //
     for (Parameter& p : parameters_) {
         if (p.name() == param.name()) {
-            throw ObjectAlreadyExists(__FILE__, __LINE__,
-                "The block \"" + name() + "\" already has parameter\""
-                + param.name() + "\"");
+            throw ObjectAlreadyExists(
+                __FILE__, __LINE__,
+                "The block \"" + name() + "\" already has parameter\"" +
+                    param.name() + "\"");
         }
     }
 
@@ -570,12 +572,12 @@ BaseNetlistBlock::addParameter(const Parameter& param) {
  */
 NetlistPort*
 BaseNetlistBlock::findPort(
-    const std::string& portName,
-    bool recursiveSearch,
+    const std::string& portName, bool recursiveSearch,
     bool partialMatch) const {
-
     if (recursiveSearch) {
-        assert(false && "BaseNetlistBlock::findPort(): "
+        assert(
+            false &&
+            "BaseNetlistBlock::findPort(): "
             "recursive search not implemented.");
     }
 
@@ -593,22 +595,17 @@ BaseNetlistBlock::findPort(
         }
     }
 
-     return portPtr;
+    return portPtr;
 }
 
 void
-BaseNetlistBlock::build() {
-
-}
+BaseNetlistBlock::build() {}
 
 void
-BaseNetlistBlock::connect() {
-}
+BaseNetlistBlock::connect() {}
 
 void
-BaseNetlistBlock::finalize() {
-
-}
+BaseNetlistBlock::finalize() {}
 
 /**
  * Does nothing on self but calls write function on each sub block.
@@ -643,7 +640,8 @@ BaseNetlistBlock*
 BaseNetlistBlock::shallowCopy(const std::string& instanceName) const {
     BaseNetlistBlock* block = new BaseNetlistBlock(
         this->moduleName(),
-        (!instanceName.empty())?instanceName:this->instanceName(), nullptr);
+        (!instanceName.empty()) ? instanceName : this->instanceName(),
+        nullptr);
 
     for (size_t i = 0; i < this->parameterCount(); i++) {
         block->setParameter(this->parameter(i));
@@ -673,11 +671,11 @@ BaseNetlistBlock::shallowCopy(const std::string& instanceName) const {
         block->addPackage(this->package(i));
     }
 
-    assert(block->portCount() == this->portCount() &&
+    assert(
+        block->portCount() == this->portCount() &&
         "Port count mismatch in shallow copy.");
     return block;
 }
-
 
 Netlist&
 BaseNetlistBlock::netlist() {
@@ -686,9 +684,7 @@ BaseNetlistBlock::netlist() {
 }
 
 void
-BaseNetlistBlock::addPackage(
-    const std::string& packageName) {
-
+BaseNetlistBlock::addPackage(const std::string& packageName) {
     if (!ContainerTools::containsValue(packages_, packageName)) {
         packages_.push_back(packageName);
     }
@@ -711,7 +707,7 @@ void
 BaseNetlistBlock::setParent(BaseNetlistBlock* newparent) {
     if (parent_ != nullptr && parent_ != newparent) {
         BaseNetlistBlock* oldParent = parent_;
-        parent_ = nullptr; // Prevent parent block causing recursive call of
+        parent_ = nullptr;  // Prevent parent block causing recursive call of
         // setParent() when calling detachSubBlock().
         oldParent->removeSubBlock(this);
     }
@@ -719,8 +715,8 @@ BaseNetlistBlock::setParent(BaseNetlistBlock* newparent) {
 }
 
 /**
- * Connects all unconnected clock ports of sub block to this block's clock port
- * if there is one.
+ * Connects all unconnected clock ports of sub block to this block's clock
+ * port if there is one.
  */
 void
 BaseNetlistBlock::connectClocks() {

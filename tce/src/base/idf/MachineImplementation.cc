@@ -65,8 +65,7 @@ const std::string MachineImplementation::OSKEY_IC_DECODER_HDB =
 
 const std::string MachineImplementation::OSKEY_DECOMPRESSOR_FILE = 
     "decompressor_file";
-const std::string MachineImplementation::OSNAME_FU_GENERATED =
-    "fu_generated";
+const std::string MachineImplementation::OSNAME_FU_GENERATED = "fu_generated";
 const std::string MachineImplementation::OSNAME_FU_IMPLEMENTATIONS =
     "fu_impls";
 const std::string MachineImplementation::OSNAME_RF_IMPLEMENTATIONS = 
@@ -802,8 +801,7 @@ MachineImplementation::loadState(const ObjectState* state) {
         decompressorFile_ = state->stringAttribute(OSKEY_DECOMPRESSOR_FILE);
     }
 
-    ObjectState* fuGenerate = state->childByName(
-            OSNAME_FU_GENERATED);
+    ObjectState* fuGenerate = state->childByName(OSNAME_FU_GENERATED);
 
     for (int i = 0; i < fuGenerate->childCount(); i++) {
         ObjectState* child = fuGenerate->child(i);
@@ -1044,8 +1042,8 @@ MachineImplementation::makeImplFilesRelative(
             if (FileSystem::makeRelativePath(sPaths, hdb, rel)) {
                 hdb = rel;
             } else if (FileSystem::makeRelativePath(
-                Environment::hdbPaths(true), hdb, rel)) {
-            hdb = "tce:" + rel;
+                           Environment::hdbPaths(true), hdb, rel)) {
+                hdb = "tce:" + rel;
             }
         }
     }
@@ -1605,10 +1603,11 @@ MachineImplementation::hasFUGeneration(const std::string& name) const {
  */
 void
 MachineImplementation::removeFuGeneration(const std::string& name) {
-    fuGenerated_.erase(std::remove_if(fuGenerated_.begin(),
-    fuGenerated_.end(), [name] (FUGenerated& fu) {
-             return fu.name() == name;
-         }), fuGenerated_.end());
+    fuGenerated_.erase(
+        std::remove_if(
+            fuGenerated_.begin(), fuGenerated_.end(),
+            [name](FUGenerated& fu) { return fu.name() == name; }),
+        fuGenerated_.end());
 }
 
 /**
@@ -1620,6 +1619,5 @@ void
 MachineImplementation::addFuGeneration(const FUGenerated& fug) {
     fuGenerated_.emplace_back(fug);
 }
-
 }
 

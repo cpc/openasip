@@ -51,8 +51,10 @@
 using std::string;
 
 const std::string BinaryEncoding::OSNAME_BEM = "bem";
-const std::string BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BITS = "template-extra-bits";
-const std::string BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BIT_COUNT = "bit-count";
+const std::string BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BITS =
+    "template-extra-bits";
+const std::string BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BIT_COUNT =
+    "bit-count";
 const std::string BinaryEncoding::OSNAME_TEMPLATE_NAME = "template";
 
 /**
@@ -134,10 +136,8 @@ BinaryEncoding::moveSlot(int index) const {
  */
 bool
 BinaryEncoding::hasMoveSlot(const std::string& name) const {
-
     for (MoveSlotContainer::const_iterator iter = moveSlots_.begin();
          iter != moveSlots_.end(); iter++) {
-
         MoveSlot* slot = *iter;
         if (slot->name() == name) {
             return true;
@@ -160,7 +160,6 @@ MoveSlot&
 BinaryEncoding::moveSlot(const std::string& name) const {
     for (MoveSlotContainer::const_iterator iter = moveSlots_.begin();
          iter != moveSlots_.end(); iter++) {
-
         MoveSlot* slot = *iter;
         if (slot->name() == name) {
             return *slot;
@@ -255,7 +254,6 @@ BinaryEncoding::hasImmediateSlot(const std::string& name) const {
     for (ImmediateSlotContainer::const_iterator iter = 
              immediateSlots_.begin(); iter != immediateSlots_.end(); 
          iter++) {
-
         ImmediateSlotField* slot = *iter;
         if (slot->name() == name) {
             return true;
@@ -279,7 +277,6 @@ BinaryEncoding::immediateSlot(const std::string& name) const {
     for (ImmediateSlotContainer::const_iterator iter = 
              immediateSlots_.begin(); iter != immediateSlots_.end(); 
          iter++) {
-
         ImmediateSlotField* slot = *iter;
         if (slot->name() == name) {
             return *slot;
@@ -482,8 +479,8 @@ BinaryEncoding::removeLongImmDstRegisterField(LImmDstRegisterField& field) {
 }
 
 /**
- * Returns the number of instruction formats in the in binary encoding. 
- * 
+ * Returns the number of instruction formats in the in binary encoding.
+ *
  * @return The number of instruction formats.
  */
 
@@ -495,23 +492,24 @@ BinaryEncoding::instructionFormatCount() const {
 /**
  * Tells whether the binary encoding has an instruction format with the given
  * name.
- * 
- * @param name The name. 
- * @return True if the ecoding map contains an instruction format with the 
+ *
+ * @param name The name.
+ * @return True if the ecoding map contains an instruction format with the
  *         given name, otherwise false.
  */
 
 bool
 BinaryEncoding::hasInstructionFormat(const std::string name) const {
-    return std::find_if(instructionFormats_.begin(),
-    instructionFormats_.end(), [name](const InstructionFormat* it) {
-        return it->name() == name;
-    }) != instructionFormats_.end();
+    return std::find_if(
+               instructionFormats_.begin(), instructionFormats_.end(),
+               [name](const InstructionFormat* it) {
+                   return it->name() == name;
+               }) != instructionFormats_.end();
 }
 
 /**
- * Returns the instruction format with the given index. 
- * 
+ * Returns the instruction format with the given index.
+ *
  * @param index The index.
  * @return The instruction format
  * @exception OutOfRange If the given index is negative or not smaller than
@@ -520,17 +518,16 @@ BinaryEncoding::hasInstructionFormat(const std::string name) const {
  */
 
 InstructionFormat&
-BinaryEncoding::instructionFormat(int index) const{
+BinaryEncoding::instructionFormat(int index) const {
     if (index < 0 || index >= instructionFormatCount()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
     return *instructionFormats_[index];
-
 }
 
 /**
  * Adds the given instruction format to the encoding map.
- * 
+ *
  * @param format The instruction format to be added.
  * @exception ObjectAlreadyExists If the encoding map already contains a
  *                                a socket code table with the same name as
@@ -538,7 +535,7 @@ BinaryEncoding::instructionFormat(int index) const{
  */
 
 void
-BinaryEncoding::addInstructionFormat(InstructionFormat& format){
+BinaryEncoding::addInstructionFormat(InstructionFormat& format) {
     // verify that this is called from InstructionFormat constructor
     assert(format.parent() == NULL);
 
@@ -553,18 +550,15 @@ BinaryEncoding::addInstructionFormat(InstructionFormat& format){
 /**
  * Removes the given instruction format from the encoding map.
  * This method is to be called from the destructor Instruction Format.
- * 
+ *
  * @param format The instruction format to be removed.
  */
 
 void
-BinaryEncoding::removeInstructionFormat(InstructionFormat& format){
+BinaryEncoding::removeInstructionFormat(InstructionFormat& format) {
     assert(format.parent() == NULL);
-    assert(
-        ContainerTools::removeValueIfExists(instructionFormats_, &format));
+    assert(ContainerTools::removeValueIfExists(instructionFormats_, &format));
 }
-
-
 
 /**
  * Returns the number of socket code tables contained by the encoding map.
@@ -654,14 +648,13 @@ BinaryEncoding::removeSocketCodeTable(SocketCodeTable& table) {
 }
 
 /**
- * Returns the extra template bit amount in the largest template in the machine.
- * Needed for instructionField's bitPosition-method.
+ * Returns the extra template bit amount in the largest template in the
+ * machine. Needed for instructionField's bitPosition-method.
  *
  * @return The extra padding bits in the longest instruction template.
  */
 int
 BinaryEncoding::longestTemplateExtraBits() const {
-
     if (immediateField_ == NULL) return 0;
 
     TCEString longestTemplate = "";
@@ -747,16 +740,15 @@ BinaryEncoding::childField(int position) const {
 }
 
 /**
- * Returns the bit width of the maximum width instruction word defined by this 
+ * Returns the bit width of the maximum width instruction word defined by this
  * encoding map.
  *
- * @param If set, returns the instruction width of the given instruction template,
- *        otherwise the maximum.
+ * @param If set, returns the instruction width of the given instruction
+ * template, otherwise the maximum.
  * @return The bit width of the instruction word.
  */
 int
 BinaryEncoding::width() const {
-
     if (immediateField_ == NULL) return width("");
 
     int maxWidth = 0;
@@ -769,12 +761,11 @@ BinaryEncoding::width() const {
 }
 
 /**
- * Returns the bit width of the instruction word defined by an instruction template
- * in this encoding map.
+ * Returns the bit width of the instruction word defined by an instruction
+ * template in this encoding map.
  */
 int
 BinaryEncoding::width(const TCEString& templateName) const {
-
     int moveSlots = moveSlotCount();
     int immediateSlots = immediateSlotCount();
     int limmDstRegFields = longImmDstRegisterFieldCount();
@@ -789,7 +780,7 @@ BinaryEncoding::width(const TCEString& templateName) const {
         ImmediateSlotField& slot = immediateSlot(i);
         width += slot.width();
     }
-    
+
     for (int i = 0; i < limmDstRegFields; i++) {
         LImmDstRegisterField& field = longImmDstRegisterField(i);
         width += field.width();
@@ -803,7 +794,6 @@ BinaryEncoding::width(const TCEString& templateName) const {
     width += extraBits();
     return width;
 }
-
 
 /**
  * Loads the state of the binary encoding map from the given ObjectState
@@ -845,13 +835,15 @@ BinaryEncoding::loadState(const ObjectState* state) {
         } else if (child->name() == 
                    LImmDstRegisterField::OSNAME_LIMM_DST_REGISTER_FIELD) {
             new LImmDstRegisterField(child, *this);
-        } else if (child->name() ==
-                   BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BITS) {
+        } else if (
+            child->name() == BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BITS) {
             setTemplateExtraBits(
-                child->childByName(
-                    BinaryEncoding::OSNAME_TEMPLATE_NAME)->stringValue(),
-                child->childByName(
-                    BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BIT_COUNT)->intValue());
+                child->childByName(BinaryEncoding::OSNAME_TEMPLATE_NAME)
+                    ->stringValue(),
+                child
+                    ->childByName(
+                        BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BIT_COUNT)
+                    ->intValue());
         }
     }
     delete newState;
@@ -900,19 +892,20 @@ BinaryEncoding::saveState() const {
         bem->addChild(immediateControlField().saveState());
     }
 
-    for (TemplateExtraBitCountMap::const_iterator 
-             i = extraTemplateBits_.begin(), e = extraTemplateBits_.end(); 
+    for (TemplateExtraBitCountMap::const_iterator
+             i = extraTemplateBits_.begin(),
+             e = extraTemplateBits_.end();
          i != e; ++i) {
         TCEString templateName = (*i).first;
         int bitCount = (*i).second;
         ObjectState* root =
             new ObjectState(BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BITS);
 
-        ObjectState* templateNameObj = 
-            new ObjectState(BinaryEncoding::OSNAME_TEMPLATE_NAME);       
+        ObjectState* templateNameObj =
+            new ObjectState(BinaryEncoding::OSNAME_TEMPLATE_NAME);
         templateNameObj->setValue(templateName);
 
-        ObjectState* bitCountObj = 
+        ObjectState* bitCountObj =
             new ObjectState(BinaryEncoding::OSNAME_TEMPLATE_EXTRA_BIT_COUNT);
         bitCountObj->setValue(bitCount);
 
@@ -940,11 +933,8 @@ BinaryEncoding::saveState() const {
  */
 bool
 BinaryEncoding::hasSocketCodeTable(const std::string& name) const {
-
-    for (SocketCodeTableContainer::const_iterator iter = 
-             socketCodes_.begin();
+    for (SocketCodeTableContainer::const_iterator iter = socketCodes_.begin();
          iter != socketCodes_.end(); iter++) {
-        
         SocketCodeTable* table = *iter;
         if (table->name() == name) {
             return true;
@@ -998,9 +988,9 @@ void
 BinaryEncoding::deleteInstructionFormats() {
     SequenceTools::deleteAllItems(instructionFormats_);
 }
- /**
-  * Sets the extra padding bit count for an instruction template
-  */
+/**
+ * Sets the extra padding bit count for an instruction template
+ */
 void
 BinaryEncoding::setTemplateExtraBits(
     const TCEString& templateName, int bitCount) {
@@ -1009,12 +999,9 @@ BinaryEncoding::setTemplateExtraBits(
 
 int
 BinaryEncoding::templateExtraBits(const TCEString& templateName) const {
-
-    TemplateExtraBitCountMap::const_iterator pos = 
+    TemplateExtraBitCountMap::const_iterator pos =
         extraTemplateBits_.find(templateName);
 
-    if (pos == extraTemplateBits_.end())
-        return 0;
+    if (pos == extraTemplateBits_.end()) return 0;
     return (*pos).second;
 }
-

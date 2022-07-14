@@ -37,15 +37,15 @@
 #include <wx/app.h>
 
 /// Constructor.
-AddOperationImplementationCmd::AddOperationImplementationCmd() :
-    GUICommand(HDBEditorConstants::COMMAND_NAME_ADD_OPERATION_IMPLEMENTATION, NULL) {
-}
+AddOperationImplementationCmd::AddOperationImplementationCmd()
+    : GUICommand(
+          HDBEditorConstants::COMMAND_NAME_ADD_OPERATION_IMPLEMENTATION,
+          NULL) {}
 
 /// Execute command.
 bool
 AddOperationImplementationCmd::Do() {
-
-    OperationImplementationDialog *dialog =
+    OperationImplementationDialog* dialog =
         new OperationImplementationDialog();
     dialog->Show(true);
 
@@ -81,7 +81,6 @@ AddOperationImplementationCmd*
 AddOperationImplementationCmd::create() const {
     return new AddOperationImplementationCmd();
 }
-
 
 /**
  * Returns true if the command should be enabled in the menu/toolbar.

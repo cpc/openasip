@@ -42,7 +42,6 @@ const std::string PortCode::OSKEY_EXTRA_BITS = "extra_bits";
 const std::string PortCode::OSKEY_INDEX_WIDTH = "index_width";
 const std::string PortCode::OSKEY_MAX_INDEX = "max-index";
 
-
 /**
  * The constructor.
  *
@@ -55,8 +54,8 @@ const std::string PortCode::OSKEY_MAX_INDEX = "max-index";
  * @exception OutOfRange If the some of the given values is negative.
  */
 PortCode::PortCode(
-    const std::string& unitName, unsigned int encoding, unsigned int extraBits,
-    int indexWidth)
+    const std::string& unitName, unsigned int encoding,
+    unsigned int extraBits, int indexWidth)
     : unitName_(unitName),
       encoding_(encoding),
       extraBits_(extraBits),
@@ -242,8 +241,7 @@ PortCode::saveState() const {
         state->setAttribute(OSKEY_ENCODING, encoding());
         state->setAttribute(OSKEY_EXTRA_BITS, extraBits());
     }
-    if (maxRegIndex_ != 0)
-        state->setAttribute(OSKEY_MAX_INDEX, maxRegIndex_);
+    if (maxRegIndex_ != 0) state->setAttribute(OSKEY_MAX_INDEX, maxRegIndex_);
     state->setAttribute(OSKEY_INDEX_WIDTH, indexWidth());
     return state;
 }

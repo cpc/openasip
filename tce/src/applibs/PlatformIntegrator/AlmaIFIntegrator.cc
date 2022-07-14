@@ -46,7 +46,6 @@
 #include "HDLTemplateInstantiator.hh"
 #include <boost/format.hpp>
 
-
 using ProGe::NetlistBlock;
 using ProGe::NetlistPort;
 using ProGe::NetlistPortGroup;
@@ -60,28 +59,27 @@ const TCEString AlmaIFIntegrator::DEFAULT_DEVICE = "xc7z020clg400-1";
 AlmaIFIntegrator::AlmaIFIntegrator() : PlatformIntegrator() {
 }
 
-
 AlmaIFIntegrator::AlmaIFIntegrator(
-    const TTAMachine::Machine* machine,
-    const IDF::MachineImplementation* idf,
-    ProGe::HDL hdl,
-    TCEString progeOutputDir,
-    TCEString coreEntityName,
-    TCEString outputDir,
-    TCEString programName,
-    int targetClockFreq,
-    std::ostream& warningStream,
-    std::ostream& errorStream,
-    const MemInfo& imem,
-    MemType dmemType,
-    bool syncReset):
-    PlatformIntegrator(machine, idf, hdl, progeOutputDir, coreEntityName,
-                       outputDir, programName, targetClockFreq, warningStream,
-                       errorStream, imem, dmemType),
-    imemGen_(NULL), dmemGen_(), almaifBlock_(NULL), deviceFamily_(""),
-    fileGen_(new DefaultProjectFileGenerator(coreEntityName, this)),
-    secondDmem_(false), secondPmem_(false), dmemHandled_(false),
-    pmemHandled_(false), syncReset_(syncReset), broadcast_pmem_(false) {
+    const TTAMachine::Machine* machine, const IDF::MachineImplementation* idf,
+    ProGe::HDL hdl, TCEString progeOutputDir, TCEString coreEntityName,
+    TCEString outputDir, TCEString programName, int targetClockFreq,
+    std::ostream& warningStream, std::ostream& errorStream,
+    const MemInfo& imem, MemType dmemType, bool syncReset)
+    : PlatformIntegrator(
+          machine, idf, hdl, progeOutputDir, coreEntityName, outputDir,
+          programName, targetClockFreq, warningStream, errorStream, imem,
+          dmemType),
+      imemGen_(NULL),
+      dmemGen_(),
+      almaifBlock_(NULL),
+      deviceFamily_(""),
+      fileGen_(new DefaultProjectFileGenerator(coreEntityName, this)),
+      secondDmem_(false),
+      secondPmem_(false),
+      dmemHandled_(false),
+      pmemHandled_(false),
+      syncReset_(syncReset),
+      broadcast_pmem_(false) {
     if (idf->icDecoderParameterValue("debugger") != "external") {
         // TODO: Support for no debugger (e.g. instantiate a minimal one)
         TCEString msg =
@@ -89,7 +87,6 @@ AlmaIFIntegrator::AlmaIFIntegrator(
         throw InvalidData(__FILE__, __LINE__, "AlmaIFIntegrator", msg);
     }
 }
-
 
 AlmaIFIntegrator::~AlmaIFIntegrator() {
 
@@ -174,23 +171,24 @@ AlmaIFIntegrator::findMemories() {
 
     if (secondDmem_) {
         secondDmemName_ = secondDmemInfo.lsuName;
-        secondDmemDataw_ = secondDmemInfo.mauWidth * secondDmemInfo.widthInMaus;
+        secondDmemDataw_ =
+            secondDmemInfo.mauWidth * secondDmemInfo.widthInMaus;
         secondDmemAddrw_ = secondDmemInfo.portAddrw;
     } else if (foundDmem) {
         secondDmemDataw_ = 32;
-        secondDmemAddrw_ = dmemInfo_.asAddrw-2;
+        secondDmemAddrw_ = dmemInfo_.asAddrw - 2;
     }
 
     if (secondPmem_) {
         secondPmemName_ = secondPmemInfo.lsuName;
-        secondPmemDataw_ = secondPmemInfo.mauWidth * secondDmemInfo.widthInMaus;
+        secondPmemDataw_ =
+            secondPmemInfo.mauWidth * secondDmemInfo.widthInMaus;
         secondPmemAddrw_ = secondPmemInfo.portAddrw;
     } else if (foundPmem) {
         secondPmemDataw_ = 32;
-        secondPmemAddrw_ = pmemInfo_.asAddrw-2;
+        secondPmemAddrw_ = pmemInfo_.asAddrw - 2;
     }
 }
-
 
 void
 AlmaIFIntegrator::integrateProcessor(
@@ -207,7 +205,6 @@ AlmaIFIntegrator::integrateProcessor(
 
     projectFileGenerator()->writeProjectFiles();
 }
-
 
 /**
  * Returns the AXI bus facing address width: 2 bits for address space select
@@ -234,8 +231,8 @@ AlmaIFIntegrator::axiAddressWidth() const {
         MathTools::requiredBits0Bit0(
             std::max(0, dmemInfo_.mauWidth * dmemInfo_.widthInMaus / 8 - 1));
 
-    // Skip param if its width is set by a generic: if there is a larger memory
-    // (imem/dmem), the value will still be correct
+    // Skip param if its width is set by a generic: if there is a larger
+    // memory (imem/dmem), the value will still be correct
     int pmemAddressWidth = 0;
     if (pmemInfo_.asAddrw != 32) {
         pmemAddressWidth =
@@ -244,8 +241,8 @@ AlmaIFIntegrator::axiAddressWidth() const {
                 0, pmemInfo_.mauWidth * pmemInfo_.widthInMaus / 8 - 1));
     }
     int axiAddressWidth = std::max(
-                              std::max(imemAddressWidth, debugAddressWidth),
-                              std::max(dmemAddressWidth, pmemAddressWidth));
+        std::max(imemAddressWidth, debugAddressWidth),
+        std::max(dmemAddressWidth, pmemAddressWidth));
 
     return Conversion::toString(axiAddressWidth + 2);
 }
@@ -253,7 +250,6 @@ AlmaIFIntegrator::axiAddressWidth() const {
 void
 AlmaIFIntegrator::initAlmaifBlock() {
     ProGe::Netlist& netlist = integratorBlock()->netlist();
-
 
     TCEString platformPath = Environment::dataDirPath("ProGe");
     platformPath << FileSystem::DIRECTORY_SEPARATOR << "platform"
@@ -272,51 +268,50 @@ AlmaIFIntegrator::initAlmaifBlock() {
     for (int i = 0; i < machine()->busNavigator().count(); ++i) {
         int bus_width = machine()->busNavigator().item(i)->width();
         // Busess are padded to a multiple of 32 bits
-        bus_width = (bus_width+31)/32*32;
+        bus_width = (bus_width + 31) / 32 * 32;
         bustrace_width += bus_width;
     }
 
-    almaifBlock_ = new NetlistBlock(ALMAIF_MODULE,
-                                    ALMAIF_MODULE + "_0",
-                                    integratorBlock());
-    integratorBlock()->setParameter("axi_addr_width_g", "integer",
-                                    axiAddressWidth());
-    integratorBlock()->setParameter("axi_id_width_g", "integer",
-                                    "12");
-    almaifBlock_->setParameter("axi_addr_width_g", "integer",
-                               "axi_addr_width_g");
-    almaifBlock_->setParameter("axi_id_width_g", "integer",
-                               "axi_id_width_g");
+    almaifBlock_ = new NetlistBlock(
+        ALMAIF_MODULE, ALMAIF_MODULE + "_0", integratorBlock());
+    integratorBlock()->setParameter(
+        "axi_addr_width_g", "integer", axiAddressWidth());
+    integratorBlock()->setParameter("axi_id_width_g", "integer", "12");
+    almaifBlock_->setParameter(
+        "axi_addr_width_g", "integer", "axi_addr_width_g");
+    almaifBlock_->setParameter("axi_id_width_g", "integer", "axi_id_width_g");
 
-    almaifBlock_->setParameter("imem_addr_width_g", "integer",
-                               Conversion::toString(imemaddrw));
+    almaifBlock_->setParameter(
+        "imem_addr_width_g", "integer", Conversion::toString(imemaddrw));
 
     almaifBlock_->setParameter(
         "imem_axi_addr_width_g", "integer",
         Conversion::toString(imemAxiAddrw));
     if (imemInfo().type != VHDL_ARRAY) {
-        almaifBlock_->setParameter("imem_data_width_g", "integer",
-                                   Conversion::toString(imemdataw));
+        almaifBlock_->setParameter(
+            "imem_data_width_g", "integer", Conversion::toString(imemdataw));
     } else {
         almaifBlock_->setParameter("imem_data_width_g", "integer", "0");
     }
 
-    almaifBlock_->setParameter("bus_count_g", "integer",
-                               Conversion::toString(bustrace_width/32));
-    almaifBlock_->setParameter("local_mem_addrw_g", "integer",
-                               "local_mem_addrw_g");
+    almaifBlock_->setParameter(
+        "bus_count_g", "integer", Conversion::toString(bustrace_width / 32));
+    almaifBlock_->setParameter(
+        "local_mem_addrw_g", "integer", "local_mem_addrw_g");
 
     // Add and connect clock and reset ports
-    NetlistPort* clk = new NetlistPort(
-            "clk", "1", 1, ProGe::BIT, ProGe::IN, *almaifBlock_);
-    NetlistPort* rstx = new NetlistPort(
-            "rstx", "1", 1, ProGe::BIT, ProGe::IN, *almaifBlock_);
+    NetlistPort* clk =
+        new NetlistPort("clk", "1", 1, ProGe::BIT, ProGe::IN, *almaifBlock_);
+    NetlistPort* rstx =
+        new NetlistPort("rstx", "1", 1, ProGe::BIT, ProGe::IN, *almaifBlock_);
     netlist.connect(*clockPort(), *clk);
     netlist.connect(*resetPort(), *rstx);
 
-    almaifBlock_->setParameter("second_dmem_data_width_g", "integer",
+    almaifBlock_->setParameter(
+        "second_dmem_data_width_g", "integer",
         Conversion::toString(secondDmemDataw_));
-    almaifBlock_->setParameter("second_dmem_addr_width_g", "integer",
+    almaifBlock_->setParameter(
+        "second_dmem_addr_width_g", "integer",
         Conversion::toString(secondDmemAddrw_));
 
     if (secondDmem_) {
@@ -343,14 +338,15 @@ AlmaIFIntegrator::initAlmaifBlock() {
             Path(platformPath + "second_pmem_signal_declaration.snippet"));
     }
 
-
-    almaifBlock_->setParameter("second_pmem_data_width_g", "integer",
+    almaifBlock_->setParameter(
+        "second_pmem_data_width_g", "integer",
         Conversion::toString(secondPmemDataw_));
-    if (pmemInfo_.asAddrw == 32 ) {
-        almaifBlock_->setParameter("second_pmem_addr_width_g", "integer",
-                                   "local_mem_addrw_g");
+    if (pmemInfo_.asAddrw == 32) {
+        almaifBlock_->setParameter(
+            "second_pmem_addr_width_g", "integer", "local_mem_addrw_g");
     } else {
-        almaifBlock_->setParameter("second_pmem_addr_width_g", "integer",
+        almaifBlock_->setParameter(
+            "second_pmem_addr_width_g", "integer",
             Conversion::toString(secondPmemAddrw_));
     }
 
@@ -376,14 +372,13 @@ AlmaIFIntegrator::initAlmaifBlock() {
     integratorBlock()->addPortGroup(axislave_ext);
     netlist.connectGroupByName(*axislave_almaif, *axislave_ext);
 
-    if (pmemInfo_.asAddrw == 32 ) {
+    if (pmemInfo_.asAddrw == 32) {
         assert(
             broadcast_pmem_ == false &&
             "Broadcasting pmem not supported with m_axi");
-        integratorBlock()->setParameter("local_mem_addrw_g", "integer",
-                                        "10");
-        integratorBlock()->setParameter("axi_offset_g", "integer",
-                                        "1136656384");
+        integratorBlock()->setParameter("local_mem_addrw_g", "integer", "10");
+        integratorBlock()->setParameter(
+            "axi_offset_g", "integer", "1136656384");
         almaifBlock_->setParameter("axi_offset_g", "integer", "axi_offset_g");
 
         NetlistPortGroup* aximaster_almaif = axiMasterPortGroup();
@@ -392,8 +387,9 @@ AlmaIFIntegrator::initAlmaifBlock() {
         integratorBlock()->addPortGroup(aximaster_ext);
         netlist.connectGroupByName(*aximaster_almaif, *aximaster_ext);
     } else {
-        integratorBlock()->setParameter("local_mem_addrw_g", "integer",
-                                 Conversion::toString(pmemInfo_.portAddrw));
+        integratorBlock()->setParameter(
+            "local_mem_addrw_g", "integer",
+            Conversion::toString(pmemInfo_.portAddrw));
         almaifBlock_->setParameter("axi_offset_g", "integer", "0");
     }
 
@@ -402,32 +398,33 @@ AlmaIFIntegrator::initAlmaifBlock() {
     accelInstantiator_.replacePlaceholderFromFile(
         "mini-debugger-signal-declarations",
         Path(platformPath + "mini_debugger_signal_declaration.snippet"));
-    accelInstantiator_.replacePlaceholderFromFile("debugger",
-                    Path(platformPath + "mini_debugger.snippet"));
-    addPortToAlmaIFBlock("core_db_pc", coreCount * imemaddrw,
-                         ProGe::IN, "db_pc");
-    addPortToAlmaIFBlock("core_db_lockcnt", coreCount * 64,
-                         ProGe::IN, "db_lockcnt");
-    addPortToAlmaIFBlock("core_db_cyclecnt", coreCount * 64,
-                         ProGe::IN, "db_cyclecnt");
-    addPortToAlmaIFBlock("core_db_tta_nreset", coreCount,
-                         ProGe::OUT, "db_tta_nreset");
-    addPortToAlmaIFBlock("core_db_lockrq", coreCount,
-                         ProGe::OUT, "db_lockrq");
+    accelInstantiator_.replacePlaceholderFromFile(
+        "debugger", Path(platformPath + "mini_debugger.snippet"));
+    addPortToAlmaIFBlock(
+        "core_db_pc", coreCount * imemaddrw, ProGe::IN, "db_pc");
+    addPortToAlmaIFBlock(
+        "core_db_lockcnt", coreCount * 64, ProGe::IN, "db_lockcnt");
+    addPortToAlmaIFBlock(
+        "core_db_cyclecnt", coreCount * 64, ProGe::IN, "db_cyclecnt");
+    addPortToAlmaIFBlock(
+        "core_db_tta_nreset", coreCount, ProGe::OUT, "db_tta_nreset");
+    addPortToAlmaIFBlock(
+        "core_db_lockrq", coreCount, ProGe::OUT, "db_lockrq");
     if (dmem_dram_) {
         addPortToAlmaIFBlock(
             "core_db_dram_offset", 32, ProGe::OUT, "db_dram_offset");
         accelInstantiator_.replacePlaceholder(
-                "dram-offset-port-declaration",
-                "core_db_dram_offset : out std_logic_vector(32-1 downto 0);");
+            "dram-offset-port-declaration",
+            "core_db_dram_offset : out std_logic_vector(32-1 downto 0);");
         // We want to disable dmem from tta-accel, because dmem exists in dram
         accelInstantiator_.replacePlaceholder(
             "enable-dmem", "constant enable_dmem : boolean := false;");
     } else {
-        // Dummy signal to connect to not leave minidebuggers portmap undefined
+        // Dummy signal to connect to not leave minidebuggers portmap
+        // undefined
         accelInstantiator_.replacePlaceholder(
-                "dram-offset-dummy-declaration",
-                "signal core_db_dram_offset : std_logic_vector(32-1 downto 0);");
+            "dram-offset-dummy-declaration",
+            "signal core_db_dram_offset : std_logic_vector(32-1 downto 0);");
         accelInstantiator_.replacePlaceholder(
             "enable-dmem",
             "constant enable_dmem : boolean := dmem_data_width_g > 0;");
@@ -435,14 +432,15 @@ AlmaIFIntegrator::initAlmaifBlock() {
 
     if (imemInfo().type != VHDL_ARRAY) {
         // Ifetch signals
-        addPortToAlmaIFBlock("core_busy_out", coreCount,
-                             ProGe::OUT, "busy");
-        addPortToAlmaIFBlock("core_imem_data_out", coreCount * imemdataw,
-                             ProGe::OUT, "imem_data");
-        addPortToAlmaIFBlock("core_imem_en_x_in", coreCount,
-                             ProGe::IN, "imem_en_x");
-        addPortToAlmaIFBlock("core_imem_addr_in", coreCount * imemaddrw,
-                             ProGe::IN, "imem_addr");
+        addPortToAlmaIFBlock("core_busy_out", coreCount, ProGe::OUT, "busy");
+        addPortToAlmaIFBlock(
+            "core_imem_data_out", coreCount * imemdataw, ProGe::OUT,
+            "imem_data");
+        addPortToAlmaIFBlock(
+            "core_imem_en_x_in", coreCount, ProGe::IN, "imem_en_x");
+        addPortToAlmaIFBlock(
+            "core_imem_addr_in", coreCount * imemaddrw, ProGe::IN,
+            "imem_addr");
 
         if (imem_dp_) {
             const int strb_width = imemdataw / 8;
@@ -466,8 +464,8 @@ AlmaIFIntegrator::initAlmaifBlock() {
                      << FileSystem::DIRECTORY_SEPARATOR;
 
         accelInstantiator_.replacePlaceholderFromFile(
-                "imem-statements",
-                Path(platformPath + "imem_statements.snippet"));
+            "imem-statements",
+            Path(platformPath + "imem_statements.snippet"));
         if (imem_dp_) {
             accelInstantiator_.replacePlaceholderFromFile(
                 "imem-bcast",
@@ -490,20 +488,21 @@ AlmaIFIntegrator::initAlmaifBlock() {
 }
 
 void
-AlmaIFIntegrator::connectCoreMemories(MemInfo mem, TCEString mem_name,
-                                      TCEString mem_block_name, bool seconds) {
-    almaifBlock_->setParameter(mem_name + "_data_width_g", "integer",
-                Conversion::toString(mem.mauWidth * mem.widthInMaus));
-    almaifBlock_->setParameter(mem_name + "_addr_width_g", "integer",
-                               Conversion::toString(mem.portAddrw));
-
+AlmaIFIntegrator::connectCoreMemories(
+    MemInfo mem, TCEString mem_name, TCEString mem_block_name, bool seconds) {
+    almaifBlock_->setParameter(
+        mem_name + "_data_width_g", "integer",
+        Conversion::toString(mem.mauWidth * mem.widthInMaus));
+    almaifBlock_->setParameter(
+        mem_name + "_addr_width_g", "integer",
+        Conversion::toString(mem.portAddrw));
 
     TCEString platformPath = Environment::dataDirPath("ProGe");
     platformPath << FileSystem::DIRECTORY_SEPARATOR << "platform"
                  << FileSystem::DIRECTORY_SEPARATOR;
 
-    // If given memory wasn't found by findMemories(), we need dummy signals as
-    // a stand-in for the missing ports
+    // If given memory wasn't found by findMemories(), we need dummy signals
+    // as a stand-in for the missing ports
     if (mem.portAddrw == 0 || mem.type == DRAM) {
         Path snippet(platformPath + mem_name + "_signal_declaration.snippet");
         accelInstantiator_.replacePlaceholderFromFile(
@@ -525,30 +524,37 @@ AlmaIFIntegrator::connectCoreMemories(MemInfo mem, TCEString mem_name,
     TCEString lsu_prefix = "fu_" + mem.lsuName;
 
     int coreCount = 1;
-    addPortToAlmaIFBlock("core_" + mem_name + "_avalid_in", coreCount,
-                         ProGe::IN, lsu_prefix + "_avalid_out");
-    addPortToAlmaIFBlock("core_" + mem_name + "_aready_out", coreCount,
-                         ProGe::OUT, lsu_prefix + "_aready_in");
-    addPortToAlmaIFBlock("core_" + mem_name + "_aaddr_in",
-                         coreCount*mem.portAddrw,
-                         ProGe::IN, lsu_prefix + "_aaddr_out");
-    addPortToAlmaIFBlock("core_" + mem_name + "_awren_in", coreCount,
-                         ProGe::IN, lsu_prefix + "_awren_out");
+    addPortToAlmaIFBlock(
+        "core_" + mem_name + "_avalid_in", coreCount, ProGe::IN,
+        lsu_prefix + "_avalid_out");
+    addPortToAlmaIFBlock(
+        "core_" + mem_name + "_aready_out", coreCount, ProGe::OUT,
+        lsu_prefix + "_aready_in");
+    addPortToAlmaIFBlock(
+        "core_" + mem_name + "_aaddr_in", coreCount * mem.portAddrw,
+        ProGe::IN, lsu_prefix + "_aaddr_out");
+    addPortToAlmaIFBlock(
+        "core_" + mem_name + "_awren_in", coreCount, ProGe::IN,
+        lsu_prefix + "_awren_out");
     addPortToAlmaIFBlock(
         "core_" + mem_name + "_astrb_in",
         (mem.mauWidth * mem.widthInMaus + 7) / 8 * coreCount, ProGe::IN,
         lsu_prefix + "_astrb_out");
 
-    addPortToAlmaIFBlock("core_" + mem_name + "_adata_in",
-                         coreCount*mem.mauWidth*mem.widthInMaus,
-                         ProGe::IN, lsu_prefix + "_adata_out");
-    addPortToAlmaIFBlock("core_" + mem_name + "_rvalid_out", coreCount,
-                         ProGe::OUT, lsu_prefix + "_rvalid_in");
-    addPortToAlmaIFBlock("core_" + mem_name + "_rready_in", coreCount,
-                         ProGe::IN, lsu_prefix + "_rready_out");
-    addPortToAlmaIFBlock("core_" + mem_name + "_rdata_out",
-                         coreCount*mem.mauWidth*mem.widthInMaus,
-                         ProGe::OUT, lsu_prefix + "_rdata_in");
+    addPortToAlmaIFBlock(
+        "core_" + mem_name + "_adata_in",
+        coreCount * mem.mauWidth * mem.widthInMaus, ProGe::IN,
+        lsu_prefix + "_adata_out");
+    addPortToAlmaIFBlock(
+        "core_" + mem_name + "_rvalid_out", coreCount, ProGe::OUT,
+        lsu_prefix + "_rvalid_in");
+    addPortToAlmaIFBlock(
+        "core_" + mem_name + "_rready_in", coreCount, ProGe::IN,
+        lsu_prefix + "_rready_out");
+    addPortToAlmaIFBlock(
+        "core_" + mem_name + "_rdata_out",
+        coreCount * mem.mauWidth * mem.widthInMaus, ProGe::OUT,
+        lsu_prefix + "_rdata_in");
 
     if (seconds) {
         int addrWidth, dataWidth;
@@ -561,29 +567,34 @@ AlmaIFIntegrator::connectCoreMemories(MemInfo mem, TCEString mem_name,
             dataWidth = secondPmemDataw_;
             lsu_prefix = "fu_" + secondPmemName_;
         }
-        addPortToAlmaIFBlock("core_" + mem_name + "_2nd_avalid_in", coreCount,
-                     ProGe::IN, lsu_prefix + "_avalid_out");
-        addPortToAlmaIFBlock("core_" + mem_name + "_2nd_aready_out", coreCount,
-                             ProGe::OUT, lsu_prefix + "_aready_in");
-        addPortToAlmaIFBlock("core_" + mem_name + "_2nd_aaddr_in",
-                             coreCount*addrWidth,
-                             ProGe::IN, lsu_prefix + "_aaddr_out");
-        addPortToAlmaIFBlock("core_" + mem_name + "_2nd_awren_in", coreCount,
-                             ProGe::IN, lsu_prefix + "_awren_out");
-        addPortToAlmaIFBlock("core_" + mem_name + "_2nd_astrb_in",
-                             coreCount*dataWidth/8,
-                             ProGe::IN, lsu_prefix + "_astrb_out");
+        addPortToAlmaIFBlock(
+            "core_" + mem_name + "_2nd_avalid_in", coreCount, ProGe::IN,
+            lsu_prefix + "_avalid_out");
+        addPortToAlmaIFBlock(
+            "core_" + mem_name + "_2nd_aready_out", coreCount, ProGe::OUT,
+            lsu_prefix + "_aready_in");
+        addPortToAlmaIFBlock(
+            "core_" + mem_name + "_2nd_aaddr_in", coreCount * addrWidth,
+            ProGe::IN, lsu_prefix + "_aaddr_out");
+        addPortToAlmaIFBlock(
+            "core_" + mem_name + "_2nd_awren_in", coreCount, ProGe::IN,
+            lsu_prefix + "_awren_out");
+        addPortToAlmaIFBlock(
+            "core_" + mem_name + "_2nd_astrb_in", coreCount * dataWidth / 8,
+            ProGe::IN, lsu_prefix + "_astrb_out");
 
-        addPortToAlmaIFBlock("core_" + mem_name + "_2nd_adata_in",
-                             coreCount*dataWidth,
-                             ProGe::IN, lsu_prefix + "_adata_out");
-        addPortToAlmaIFBlock("core_" + mem_name + "_2nd_rvalid_out", coreCount,
-                             ProGe::OUT, lsu_prefix + "_rvalid_in");
-        addPortToAlmaIFBlock("core_" + mem_name + "_2nd_rready_in", coreCount,
-                             ProGe::IN, lsu_prefix + "_rready_out");
-        addPortToAlmaIFBlock("core_" + mem_name + "_2nd_rdata_out",
-                             coreCount*dataWidth,
-                             ProGe::OUT, lsu_prefix + "_rdata_in");
+        addPortToAlmaIFBlock(
+            "core_" + mem_name + "_2nd_adata_in", coreCount * dataWidth,
+            ProGe::IN, lsu_prefix + "_adata_out");
+        addPortToAlmaIFBlock(
+            "core_" + mem_name + "_2nd_rvalid_out", coreCount, ProGe::OUT,
+            lsu_prefix + "_rvalid_in");
+        addPortToAlmaIFBlock(
+            "core_" + mem_name + "_2nd_rready_in", coreCount, ProGe::IN,
+            lsu_prefix + "_rready_out");
+        addPortToAlmaIFBlock(
+            "core_" + mem_name + "_2nd_rdata_out", coreCount * dataWidth,
+            ProGe::OUT, lsu_prefix + "_rdata_in");
     }
 
     addMemoryPorts(
@@ -594,7 +605,8 @@ AlmaIFIntegrator::connectCoreMemories(MemInfo mem, TCEString mem_name,
             mem_block_name + "_b", secondDmemDataw_, secondDmemAddrw_,
             mem.isShared, false);
     } else {
-        bool make_local_sized = mem.asAddrw == 32 && (mem.asName == PMEM_NAME);
+        bool make_local_sized =
+            mem.asAddrw == 32 && (mem.asName == PMEM_NAME);
         addMemoryPorts(
             mem_block_name + "_b", secondPmemDataw_, secondPmemAddrw_,
             mem.isShared, make_local_sized);
@@ -602,38 +614,33 @@ AlmaIFIntegrator::connectCoreMemories(MemInfo mem, TCEString mem_name,
 }
 
 void
-AlmaIFIntegrator::addPortToAlmaIFBlock(const TCEString name,
-                                       const TCEString width,
-                                       const ProGe::Direction dir,
-                                       const TCEString core_name) {
-    NetlistPort* port = new NetlistPort(name, width, ProGe::BIT_VECTOR, dir,
-                                        *almaifBlock_);
-    if (core_name != "")
-        almaif_ttacore_ports[core_name] = port;
+AlmaIFIntegrator::addPortToAlmaIFBlock(
+    const TCEString name, const TCEString width, const ProGe::Direction dir,
+    const TCEString core_name) {
+    NetlistPort* port =
+        new NetlistPort(name, width, ProGe::BIT_VECTOR, dir, *almaifBlock_);
+    if (core_name != "") almaif_ttacore_ports[core_name] = port;
 }
 
 void
-AlmaIFIntegrator::addPortToAlmaIFBlock(const TCEString name,
-                                       const int width,
-                                       const ProGe::Direction dir,
-                                       const TCEString core_name) {
-    NetlistPort* port = new NetlistPort(name, Conversion::toString(width),
-                                        width, ProGe::BIT_VECTOR, dir,
-                                        *almaifBlock_);
-    if (core_name != "")
-        almaif_ttacore_ports[core_name] = port;
+AlmaIFIntegrator::addPortToAlmaIFBlock(
+    const TCEString name, const int width, const ProGe::Direction dir,
+    const TCEString core_name) {
+    NetlistPort* port = new NetlistPort(
+        name, Conversion::toString(width), width, ProGe::BIT_VECTOR, dir,
+        *almaifBlock_);
+    if (core_name != "") almaif_ttacore_ports[core_name] = port;
 }
 
 void
-AlmaIFIntegrator::addPortToGroup(NetlistPortGroup* port_group,
-                                 const ProGe::Direction dir,
-                                 const TCEString name,
-                                 const TCEString width) {
+AlmaIFIntegrator::addPortToGroup(
+    NetlistPortGroup* port_group, const ProGe::Direction dir,
+    const TCEString name, const TCEString width) {
     ProGe::DataType type = ProGe::BIT_VECTOR;
     if (width == "1") {
         type = ProGe::BIT;
     }
-    NetlistPort *port = new NetlistPort(name, width, type, dir);
+    NetlistPort* port = new NetlistPort(name, width, type, dir);
     port_group->addPort(*port);
 }
 
@@ -731,8 +738,8 @@ AlmaIFIntegrator::addMemoryPorts(
     addPortToAlmaIFBlock(prefix + "_avalid_out", mem_count, ProGe::OUT);
     addPortToAlmaIFBlock(prefix + "_aready_in", mem_count, ProGe::IN);
     if (overrideAsWidth) {
-        addPortToAlmaIFBlock(prefix + "_aaddr_out", "local_mem_addrw_g",
-                             ProGe::OUT);
+        addPortToAlmaIFBlock(
+            prefix + "_aaddr_out", "local_mem_addrw_g", ProGe::OUT);
     } else {
         addPortToAlmaIFBlock(prefix + "_aaddr_out", addr_width, ProGe::OUT);
     }
@@ -757,15 +764,15 @@ AlmaIFIntegrator::addAlmaifFiles() {
     if (pmemInfo_.asAddrw == 32) {
         Path snippet(platformPath + "axi_master_port_declaration.snippet");
         accelInstantiator_.replacePlaceholderFromFile(
-                                    "m-axi-port-declarations", snippet);
+            "m-axi-port-declarations", snippet);
     } else {
         Path snippet(platformPath + "axi_master_signal_declaration.snippet");
         accelInstantiator_.replacePlaceholderFromFile(
-                                    "m-axi-signal-declarations", snippet);
+            "m-axi-signal-declarations", snippet);
     }
 
     accelInstantiator_.instantiateTemplateFile(
-                            platformPath + "tta-accel.vhdl.tmpl", outputPath);
+        platformPath + "tta-accel.vhdl.tmpl", outputPath);
     almaifFiles.push_back(outputPath);
 
     copyPlatformFile(platformPath + "tta-axislave.vhdl", almaifFiles);
@@ -779,26 +786,25 @@ AlmaIFIntegrator::addAlmaifFiles() {
     // Copy synthesis scripts
     TCEString scriptPath = basePath + DS + "synthesis" + DS;
     accelInstantiator_.replacePlaceholder("part_name", deviceName());
-    accelInstantiator_.replacePlaceholder("toplevel_entity",
-                                          coreEntityName() + "_toplevel");
+    accelInstantiator_.replacePlaceholder(
+        "toplevel_entity", coreEntityName() + "_toplevel");
     copyPlatformFile(scriptPath + "find_fmax.py", almaifFiles, true);
     outputPath = progeFilePath("timing.tcl", true);
     accelInstantiator_.instantiateTemplateFile(
-                        scriptPath + "timing.tcl.tmpl", outputPath);
+        scriptPath + "timing.tcl.tmpl", outputPath);
     outputPath = progeFilePath("utilization.tcl", true);
     accelInstantiator_.instantiateTemplateFile(
-                        scriptPath + "utilization.tcl.tmpl", outputPath);
+        scriptPath + "utilization.tcl.tmpl", outputPath);
 
     for (unsigned int i = 0; i < almaifFiles.size(); i++) {
         projectFileGenerator()->addHdlFile(almaifFiles.at(i));
     }
 }
 
-
 void
-AlmaIFIntegrator::copyPlatformFile(const TCEString inputPath,
-    std::vector<TCEString>& fileList, bool isScript) const {
-
+AlmaIFIntegrator::copyPlatformFile(
+    const TCEString inputPath, std::vector<TCEString>& fileList,
+    bool isScript) const {
     TCEString outputPath;
     if (isScript) {
         outputPath = progeFilePath(FileSystem::fileOfPath(inputPath), true);
@@ -810,16 +816,14 @@ AlmaIFIntegrator::copyPlatformFile(const TCEString inputPath,
     fileList.push_back(outputPath);
 }
 
-
 bool
 AlmaIFIntegrator::integrateCore(const ProGe::NetlistBlock& core, int coreId) {
-
     ProGe::Netlist& netlist = integratorBlock()->netlist();
 
     TCEString clkPortName = PlatformIntegrator::TTA_CORE_CLK;
     TCEString resetPortName = PlatformIntegrator::TTA_CORE_RSTX;
 
-    if(!createMemories(coreId)) {
+    if (!createMemories(coreId)) {
         return false;
     }
 
@@ -832,8 +836,8 @@ AlmaIFIntegrator::integrateCore(const ProGe::NetlistBlock& core, int coreId) {
             signalAssignments += "aql_write_idx_out <= aql_write_idx;\n";
             portDeclaration +=
                 "aql_write_idx_out : out std_logic_vector(64-1 downto 0);\n";
-            addPortToAlmaIFBlock("aql_write_idx_out", 64,
-                                 ProGe::OUT, writeIdxPort->name());
+            addPortToAlmaIFBlock(
+                "aql_write_idx_out", 64, ProGe::OUT, writeIdxPort->name());
         }
 
         auto readIdxPort = core.port("read_idx_out");
@@ -841,26 +845,28 @@ AlmaIFIntegrator::integrateCore(const ProGe::NetlistBlock& core, int coreId) {
             signalAssignments += "aql_read_idx <= aql_read_idx_in;\n";
             portDeclaration +=
                 "aql_read_idx_in   : in std_logic_vector(64-1 downto 0);\n";
-            addPortToAlmaIFBlock("aql_read_idx_in", 64,
-                                 ProGe::IN, readIdxPort->name());
+            addPortToAlmaIFBlock(
+                "aql_read_idx_in", 64, ProGe::IN, readIdxPort->name());
 
             auto readIdxClearPort = core.port("read_idx_clear_in");
             assert(readIdxClearPort && "read_idx_clear_in not found.");
-            addPortToAlmaIFBlock("aql_read_idx_clear_out", 1, ProGe::OUT,
-                                 readIdxClearPort->name());
+            addPortToAlmaIFBlock(
+                "aql_read_idx_clear_out", 1, ProGe::OUT,
+                readIdxClearPort->name());
             signalAssignments +=
                 "aql_read_idx_clear_out <= aql_read_idx_clear;\n";
             portDeclaration +=
-                "aql_read_idx_clear_out : out std_logic_vector(0 downto 0);\n";
+                "aql_read_idx_clear_out : out std_logic_vector(0 downto "
+                "0);\n";
         } else {
             // Connect constant
             signalAssignments += "aql_read_idx <= (others => '0');\n";
         }
 
-        accelInstantiator_.replacePlaceholder("queue-port-declarations",
-                                              portDeclaration);
-        accelInstantiator_.replacePlaceholder("queue-signal-assignments",
-                                              signalAssignments);
+        accelInstantiator_.replacePlaceholder(
+            "queue-port-declarations", portDeclaration);
+        accelInstantiator_.replacePlaceholder(
+            "queue-signal-assignments", signalAssignments);
     }
     // Connect cycle count, stall count ports if needed by an FU
     auto ttaCCPort = core.port("debug_cycle_count_in");
@@ -881,7 +887,7 @@ AlmaIFIntegrator::integrateCore(const ProGe::NetlistBlock& core, int coreId) {
             netlist.connect(*resetPort(), core.port(i));
         } else {
             // Strip coreN_ -prefix for multicore TTAs
-            if (portName.substr(0,4) == "core") {
+            if (portName.substr(0, 4) == "core") {
                 TCEString coreKey;
                 coreKey << "core" << coreId;
                 size_t cutoff = portName.find_first_of('_');
@@ -891,8 +897,8 @@ AlmaIFIntegrator::integrateCore(const ProGe::NetlistBlock& core, int coreId) {
                 }
                 portName = portName.substr(cutoff + 1);
             }
-            if (almaif_ttacore_ports.find(portName)
-                   != almaif_ttacore_ports.end()) {
+            if (almaif_ttacore_ports.find(portName) !=
+                almaif_ttacore_ports.end()) {
                 int portWidth = almaif_ttacore_ports[portName]->realWidth();
 
                 // Connect AlmaIF block to TTA
@@ -906,12 +912,12 @@ AlmaIFIntegrator::integrateCore(const ProGe::NetlistBlock& core, int coreId) {
                         portWidth * coreId, imemInfo().mauWidth);
 
                 } else if (coreId != -1) {
-                    netlist.connect(core.port(i),
-                        *almaif_ttacore_ports[portName],
-                        0, portWidth*coreId, portWidth);
+                    netlist.connect(
+                        core.port(i), *almaif_ttacore_ports[portName], 0,
+                        portWidth * coreId, portWidth);
                 } else {
-                    netlist.connect(core.port(i),
-                        *almaif_ttacore_ports[portName]);
+                    netlist.connect(
+                        core.port(i), *almaif_ttacore_ports[portName]);
                 }
             } else if (
                 dmem_dram_ &&
@@ -963,14 +969,13 @@ AlmaIFIntegrator::imemInstance(MemInfo imem, int coreId) {
                     almaifBlock_, "INSTR", false, false);
             }
         } else if (imem.type == VHDL_ARRAY) {
-            imemGen_ =
-                new VhdlRomGenerator(imem.mauWidth, imem.widthInMaus,
-                                     imem.portAddrw,
-                                     programName() + "_imem_pkg.vhdl",
-                                     this, warningStream(), errorStream());
+            imemGen_ = new VhdlRomGenerator(
+                imem.mauWidth, imem.widthInMaus, imem.portAddrw,
+                programName() + "_imem_pkg.vhdl", this, warningStream(),
+                errorStream());
         } else if (imem.type != NONE) {
             TCEString msg = "Unsupported instruction memory type";
-                throw InvalidData(__FILE__, __LINE__, "AlmaIFIntegrator", msg);
+            throw InvalidData(__FILE__, __LINE__, "AlmaIFIntegrator", msg);
         }
     }
     return *imemGen_;
@@ -978,13 +983,13 @@ AlmaIFIntegrator::imemInstance(MemInfo imem, int coreId) {
 
 MemoryGenerator&
 AlmaIFIntegrator::dmemInstance(
-    MemInfo dmem,
-    TTAMachine::FunctionUnit& lsuArch,
+    MemInfo dmem, TTAMachine::FunctionUnit& lsuArch,
     std::vector<std::string> lsuPorts) {
-    if (dmem.asName == AXI_AS_NAME) { // AXI bus, export all ports to toplevel
-        return *(new DummyMemGenerator(dmem.mauWidth, dmem.widthInMaus,
-                                        dmem.portAddrw, this,
-                                        warningStream(), errorStream()));
+    if (dmem.asName ==
+        AXI_AS_NAME) {  // AXI bus, export all ports to toplevel
+        return *(new DummyMemGenerator(
+            dmem.mauWidth, dmem.widthInMaus, dmem.portAddrw, this,
+            warningStream(), errorStream()));
     }
 
     bool genSingleRam = false;
@@ -1035,8 +1040,9 @@ AlmaIFIntegrator::dmemInstance(
     MemoryGenerator* memGen = NULL;
 
     if ((isSecondInstance && dmem.isShared) || dmem.type == DRAM) {
-        memGen = new DummyMemGenerator(dmem.mauWidth, dmem.widthInMaus,
-                    dmem.portAddrw, this, warningStream(), errorStream());
+        memGen = new DummyMemGenerator(
+            dmem.mauWidth, dmem.widthInMaus, dmem.portAddrw, this,
+            warningStream(), errorStream());
     } else if (dmemGen_.find(dmem.asName) != dmemGen_.end()) {
         memGen = dmemGen_.find(dmem.asName)->second;
     } else {

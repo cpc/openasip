@@ -36,6 +36,7 @@
 #include "Serializable.hh"
 #include <vector>
 #include <map>
+#include <string>
 
 class BinaryEncoding;
 class OperationTriggeredEncoding;

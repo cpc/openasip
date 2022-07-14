@@ -144,7 +144,7 @@ public:
     TCEString hash() const;
 
     bool hasOperation(const TCEString& opName) const;
-    bool RISCVMachine() const;
+    bool isRISCVMachine() const;
 
     /**
      * A template class which contains machine components.

@@ -56,9 +56,6 @@ const string RegisterFile::OSKEY_MAX_WRITES = "max_w";
 const string RegisterFile::OSKEY_GUARD_LATENCY = "g_latency";
 const string RegisterFile::OSKEY_ZERO_REGISTER = "zero_register";
 
-
-
-
 /**
  * Constructor.
  *
@@ -637,5 +634,4 @@ void
 RegisterFile::setZeroRegister(const bool& value) {
     zeroRegister_ = value;
 }
-
 }

@@ -32,7 +32,6 @@
  * @note rating: red
  */
 
-
 #include "ADFSerializer.hh"
 #include "Bus.hh"
 #include "Guard.hh"
@@ -277,7 +276,7 @@ ADFSerializer::readMachine() {
     ObjectState* machineState = readState();
     Machine* mach = new Machine();
     mach->loadState(machineState);
-    
+
     delete machineState;
     return mach;
 }
@@ -392,7 +391,7 @@ ADFSerializer::convertToMDFFormat(const ObjectState* machineState) {
         }
     }
 
-    //Add operation triggered formats
+    // Add operation triggered formats
     for (int i = 0; i < machineState->childCount(); i++) {
         ObjectState* child = machineState->child(i);
         if (child->name() == OperationTriggeredFormat::OSNAME_FORMAT) {
@@ -726,8 +725,8 @@ ADFSerializer::registerFileToMDF(const ObjectState* rfState) {
     if (rfState->hasAttribute(RegisterFile::OSKEY_ZERO_REGISTER)) {
         ObjectState* zeroRegister = new ObjectState(RF_ZERO_REGISTER);
         regFile->addChild(zeroRegister);
-        zeroRegister->setValue(rfState->boolAttribute(
-            RegisterFile::OSKEY_ZERO_REGISTER));
+        zeroRegister->setValue(
+            rfState->boolAttribute(RegisterFile::OSKEY_ZERO_REGISTER));
     }
 
     return regFile;
@@ -803,12 +802,12 @@ ADFSerializer::immediateUnitToMDF(const ObjectState* iuState,
         guardLatency->setValue(
             iuState->stringAttribute(ImmediateUnit::OSKEY_GUARD_LATENCY));
     }
-    
+
     // add read latency element
     ObjectState* readLatency = new ObjectState(IU_LATENCY);
     iUnit->addChild(readLatency);
-    readLatency->setValue(iuState->stringAttribute(
-        ImmediateUnit::OSKEY_LATENCY));
+    readLatency->setValue(
+        iuState->stringAttribute(ImmediateUnit::OSKEY_LATENCY));
 
     // add extension element
     ObjectState* extension = new ObjectState(IU_EXTENSION);
@@ -1039,8 +1038,8 @@ ADFSerializer::convertToMachineFormat(const ObjectState* mdfState) {
                 // the instruction template must not belong to any IU in case
                 // one defines a template with implicit slots
                 instructionTemplateToMachine(child, machine);
-            } else if (child->name() ==
-            OperationTriggeredFormat::OSNAME_FORMAT) {
+            } else if (
+                child->name() == OperationTriggeredFormat::OSNAME_FORMAT) {
                 ObjectState* newChild = new ObjectState(*child);
                 machine->addChild(newChild);
             }
@@ -1575,8 +1574,8 @@ ADFSerializer::immediateUnitToMachine(
     // set read latency
     if (iuState->hasChild(IU_LATENCY)) {
         ObjectState* readLatencyChild = iuState->childByName(IU_LATENCY);
-        iu->setAttribute(ImmediateUnit::OSKEY_LATENCY,
-            readLatencyChild->stringValue());
+        iu->setAttribute(
+            ImmediateUnit::OSKEY_LATENCY, readLatencyChild->stringValue());
     } else {
         iu->setAttribute(ImmediateUnit::OSKEY_LATENCY, 1);
     }
@@ -2158,40 +2157,33 @@ ADFSerializer::instructionTemplateToMDF(
         ObjectState* slot = momITState->child(slotIndex);
         if (slot->stringAttribute(TemplateSlot::OSKEY_DESTINATION) ==
             iuName) {
+            ObjectState* correctTemplate = NULL;
 
-        ObjectState* correctTemplate = NULL;
-
-        for (int iuChildIndex = 0;
-             iuChildIndex < mdfIUState->childCount(); iuChildIndex++) {
-
-            ObjectState* iuChild = mdfIUState->child(iuChildIndex);
-            if (iuChild->name() == IU_TEMPLATE &&
-                iuChild->stringAttribute(IU_TEMPLATE_NAME) ==
-                iTempName) {
-                correctTemplate = iuChild;
+            for (int iuChildIndex = 0;
+                 iuChildIndex < mdfIUState->childCount(); iuChildIndex++) {
+                ObjectState* iuChild = mdfIUState->child(iuChildIndex);
+                if (iuChild->name() == IU_TEMPLATE &&
+                    iuChild->stringAttribute(IU_TEMPLATE_NAME) == iTempName) {
+                    correctTemplate = iuChild;
+                }
             }
-        }
 
-        if (correctTemplate == NULL) {
-            correctTemplate = new ObjectState(IU_TEMPLATE);
-            mdfIUState->addChild(correctTemplate);
-            correctTemplate->setAttribute(IU_TEMPLATE_NAME, iTempName);
-        }
-            
-        ObjectState* slotElem =
-                new ObjectState(IU_TEMPLATE_SLOT);
-        correctTemplate->addChild(slotElem);
-        ObjectState* nameElem =
-            new ObjectState(IU_TEMPLATE_SLOT_NAME);
-        slotElem->addChild(nameElem);
-        nameElem->setValue(
-            slot->stringAttribute(TemplateSlot::OSKEY_SLOT));
-        ObjectState* widthElem =
-            new ObjectState(IU_TEMPLATE_SLOT_WIDTH);
-        slotElem->addChild(widthElem);
-        widthElem->setValue(
-            slot->stringAttribute(
-                TemplateSlot::OSKEY_WIDTH));
+            if (correctTemplate == NULL) {
+                correctTemplate = new ObjectState(IU_TEMPLATE);
+                mdfIUState->addChild(correctTemplate);
+                correctTemplate->setAttribute(IU_TEMPLATE_NAME, iTempName);
+            }
+
+            ObjectState* slotElem = new ObjectState(IU_TEMPLATE_SLOT);
+            correctTemplate->addChild(slotElem);
+            ObjectState* nameElem = new ObjectState(IU_TEMPLATE_SLOT_NAME);
+            slotElem->addChild(nameElem);
+            nameElem->setValue(
+                slot->stringAttribute(TemplateSlot::OSKEY_SLOT));
+            ObjectState* widthElem = new ObjectState(IU_TEMPLATE_SLOT_WIDTH);
+            slotElem->addChild(widthElem);
+            widthElem->setValue(
+                slot->stringAttribute(TemplateSlot::OSKEY_WIDTH));
         }
     }
 
@@ -2264,35 +2256,35 @@ ADFSerializer::instructionTemplateToMachine(
     for (int slotIndex = 0; slotIndex < mdfITState->childCount();
          slotIndex++) {
         ObjectState* slot = mdfITState->child(slotIndex);
-		string slotName = slot->childByName(IU_TEMPLATE_SLOT_NAME)->
-		    stringValue();
-		string width = slot->childByName(IU_TEMPLATE_SLOT_WIDTH)->
-		    stringValue();
+        string slotName =
+            slot->childByName(IU_TEMPLATE_SLOT_NAME)->stringValue();
+        string width =
+            slot->childByName(IU_TEMPLATE_SLOT_WIDTH)->stringValue();
 
-		ObjectState* iTempSlot = momTemplateSlot(iTemp, slotName);
-		if (iTempSlot == NULL) {
-		    iTempSlot = new ObjectState(TemplateSlot::OSNAME_TEMPLATE_SLOT);
-		    iTempSlot->setAttribute(TemplateSlot::OSKEY_SLOT, slotName);
-		    iTempSlot->setAttribute(TemplateSlot::OSKEY_WIDTH, width);
-		    iTempSlot->setAttribute(TemplateSlot::OSKEY_DESTINATION, iuName);
-		    iTemp->addChild(iTempSlot);
-		} else {
-		    format errorMsg;
-		    if (iTempSlot->stringAttribute(
-		            TemplateSlot::OSKEY_DESTINATION) == iuName) {
-		        errorMsg = textGen.text(
-		            ADFSerializerTextGenerator::TXT_SAME_TEMPLATE_SLOT);
-		        errorMsg % slotName % iuName % templateName;
-		    } else {
-		        errorMsg = textGen.text(
-		            ADFSerializerTextGenerator::
-		            TXT_MULTIPLE_DESTINATIONS_IN_TEMPLATE_SLOT);
-		        errorMsg % slotName % templateName % iuName %
-		            iTempSlot->stringAttribute(
-		                TemplateSlot::OSKEY_DESTINATION);
-		    }
-		    throw SerializerException(
-		        __FILE__, __LINE__, procName, errorMsg.str());
+        ObjectState* iTempSlot = momTemplateSlot(iTemp, slotName);
+        if (iTempSlot == NULL) {
+            iTempSlot = new ObjectState(TemplateSlot::OSNAME_TEMPLATE_SLOT);
+            iTempSlot->setAttribute(TemplateSlot::OSKEY_SLOT, slotName);
+            iTempSlot->setAttribute(TemplateSlot::OSKEY_WIDTH, width);
+            iTempSlot->setAttribute(TemplateSlot::OSKEY_DESTINATION, iuName);
+            iTemp->addChild(iTempSlot);
+        } else {
+            format errorMsg;
+            if (iTempSlot->stringAttribute(TemplateSlot::OSKEY_DESTINATION) ==
+                iuName) {
+                errorMsg = textGen.text(
+                    ADFSerializerTextGenerator::TXT_SAME_TEMPLATE_SLOT);
+                errorMsg % slotName % iuName % templateName;
+            } else {
+                errorMsg = textGen.text(
+                    ADFSerializerTextGenerator::
+                        TXT_MULTIPLE_DESTINATIONS_IN_TEMPLATE_SLOT);
+                errorMsg % slotName % templateName % iuName %
+                    iTempSlot->stringAttribute(
+                        TemplateSlot::OSKEY_DESTINATION);
+            }
+            throw SerializerException(
+                __FILE__, __LINE__, procName, errorMsg.str());
         }
     }
 }

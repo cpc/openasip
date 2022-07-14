@@ -441,7 +441,6 @@ Machine::operationTriggeredFormatNavigator() const {
     return navigator;
 }
 
-
 /**
  * Returns a handle to the register files in the machine.
  *
@@ -612,7 +611,6 @@ void
 Machine::deleteOperationTriggeredFormat(OperationTriggeredFormat& format) {
     deleteComponent(operationTriggeredFormats_, format);
 }
-
 
 /**
  * Deletes the given address space.
@@ -808,15 +806,14 @@ Machine::loadState(const ObjectState* state) {
                 setGlobalControl(*cUnit);
             } else if (child->name() == ImmediateSlot::OSNAME_IMMEDIATE_SLOT) {
                 new ImmediateSlot(child, *this);
-            } else if (child->name() != 
-                       InstructionTemplate::OSNAME_INSTRUCTION_TEMPLATE &&
-                       child->name() !=
-                       OperationTriggeredFormat::OSNAME_FORMAT) {
+            } else if (
+                child->name() !=
+                    InstructionTemplate::OSNAME_INSTRUCTION_TEMPLATE &&
+                child->name() != OperationTriggeredFormat::OSNAME_FORMAT) {
                 throw ObjectStateLoadingException(
                     __FILE__, __LINE__, procName);
             }
         }
-        
 
     } catch (const Exception& e) {
         if (toAdd != NULL) {
@@ -864,8 +861,8 @@ Machine::loadState(const ObjectState* state) {
                        InstructionTemplate::OSNAME_INSTRUCTION_TEMPLATE) {
                 // instruction template loads its state completely
                 new InstructionTemplate(child, *this);
-            } else if (child->name() ==
-            OperationTriggeredFormat::OSNAME_FORMAT) {
+            } else if (
+                child->name() == OperationTriggeredFormat::OSNAME_FORMAT) {
                 new OperationTriggeredFormat(child, *this);
             }
         }
@@ -1063,23 +1060,23 @@ Machine::hasOperation(const TCEString& opName) const {
 }
 
 bool
-Machine::RISCVMachine() const {
+Machine::isRISCVMachine() const {
     OperationTriggeredFormatNavigator fNav =
-    operationTriggeredFormatNavigator();
+        operationTriggeredFormatNavigator();
     int fCount = fNav.count();
     if (fCount == 0) {
         return false;
     } else if (fCount != 6) {
         throw InvalidData(
-                __FILE__, __LINE__, __func__,
-                TCEString("Only Instruction format count 6 or 0 valid") +
-                "Given machine has " +
-                Conversion::toString(fCount) + " formats");
+            __FILE__, __LINE__, __func__,
+            TCEString("Only Instruction format count 6 or 0 valid") +
+                "Given machine has " + Conversion::toString(fCount) +
+                " formats");
     }
-    const std::vector<std::string> requiredFormats = 
-    {"riscv_r_type", "riscv_i_type", "riscv_s_type", "riscv_b_type",
-     "riscv_u_type", "riscv_j_type"};
-     
+    const std::vector<std::string> requiredFormats = {
+        "riscv_r_type", "riscv_i_type", "riscv_s_type",
+        "riscv_b_type", "riscv_u_type", "riscv_j_type"};
+
     for (const std::string f : requiredFormats) {
         if (!fNav.hasItem(f)) {
             throw InvalidData(
@@ -1088,6 +1085,5 @@ Machine::RISCVMachine() const {
         }
     }
     return true;
-    
 }
 }

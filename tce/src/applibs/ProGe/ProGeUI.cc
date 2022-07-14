@@ -161,21 +161,20 @@ ProGeUI::loadMachineImplementation(const std::string& idfFile) {
     idf_ = serializer.readMachineImplementation();
 }
 
-void ProGeUI::loadMachine(const TTAMachine::Machine& adf) {
+void
+ProGeUI::loadMachine(const TTAMachine::Machine& adf) {
     machine_ = new TTAMachine::Machine(adf);
 }
 
-
-void ProGeUI::loadBinaryEncoding(const BinaryEncoding& bem) {
+void
+ProGeUI::loadBinaryEncoding(const BinaryEncoding& bem) {
     bem_ = new BinaryEncoding(bem.saveState());
 }
 
-
-void ProGeUI::loadMachineImplementation(const IDF::MachineImplementation& idf) {
+void
+ProGeUI::loadMachineImplementation(const IDF::MachineImplementation& idf) {
     idf_ = new IDF::MachineImplementation(idf.saveState());
 }
-
-
 
 /**
  * Loads the given processor configuration.
@@ -290,7 +289,8 @@ ProGeUI::loadICDecoderGeneratorPlugin(
  * @exception InvalidData If HDB or IDF is erroneous or if BEM is not
  *                        compatible with the machine.
  * @exception IllegalMachine If the machine is illegal.
- * @exception OutOfRange If the given instruction memory width is not positive.
+ * @exception OutOfRange If the given instruction memory width is not
+ * positive.
  * @exception InstanceNotFound Something missing from HDB.
  * @exception IllegalParameters IC/Decoder plugin parameter not recognized
  */
@@ -355,9 +355,9 @@ ProGeUI::generateProcessor(
         *machine_, warningStream);
 
     try {
-        generator_.generateProcessor(options,
-            *machine_, *idf_, *plugin_, imemWidthInMAUs,
-            errorStream, warningStream, verboseStream);
+        generator_.generateProcessor(
+            options, *machine_, *idf_, *plugin_, imemWidthInMAUs, errorStream,
+            warningStream, verboseStream);
     } catch (Exception& e) {
         std::cerr << e.errorMessage() << std::endl;
     }
@@ -384,11 +384,11 @@ ProGeUI::generateTestBench(
         // Note: deprecated legacy test bench. Still used since the new test
         // bench does not yet support generation for verilog.
         ProGeTestBenchGenerator tbGen = ProGeTestBenchGenerator();
-        tbGen.generate(language, *machine_, *idf_, dstDir, progeOutDir,
-            entityName_);
+        tbGen.generate(
+            language, *machine_, *idf_, dstDir, progeOutDir, entityName_);
     } else {
-        // New test bench generation to be replacing the old one. WIP and first
-        // used to generate test benches for TTA processors.
+        // New test bench generation to be replacing the old one. WIP and
+        // first used to generate test benches for TTA processors.
         try {
             TestBenchBlock coreTestbench(
                 generator_.generatorContext(),
@@ -398,8 +398,8 @@ ProGeUI::generateTestBench(
             // There is one case the new test bench can not handle: same data
             // address spaces shared by two LSUs.
             ProGeTestBenchGenerator tbGen = ProGeTestBenchGenerator();
-            tbGen.generate(language, *machine_, *idf_, dstDir, progeOutDir,
-                entityName_);
+            tbGen.generate(
+                language, *machine_, *idf_, dstDir, progeOutDir, entityName_);
         }
     }
 }
@@ -412,19 +412,14 @@ ProGeUI::generateTestBench(
  * @param progeOutDir Shared HDL output directory.
  * @param testBenchDir Directory where a test bench is stored. 
  */
-void 
+void
 ProGeUI::generateScripts(
-    const ProGe::HDL language,
-    const std::string& dstDir,
-    const std::string& progeOutDir,
-    const std::string& sharedOutDir,
-    const std::string& testBenchDir,
-    const std::string& simulationRuntime) {
-
+    const ProGe::HDL language, const std::string& dstDir,
+    const std::string& progeOutDir, const std::string& sharedOutDir,
+    const std::string& testBenchDir, const std::string& simulationRuntime) {
     ProGeScriptGenerator sGen(
-        language, *idf_,
-        dstDir, progeOutDir, sharedOutDir, testBenchDir, entityName_,
-        simulationRuntime);
+        language, *idf_, dstDir, progeOutDir, sharedOutDir, testBenchDir,
+        entityName_, simulationRuntime);
     sGen.generateAll();
 }
 
@@ -446,21 +441,12 @@ ProGeUI::checkIfNull(void* nullPointer, const std::string& errorMsg) {
 
 void
 ProGeUI::integrateProcessor(
-    std::ostream& warningStream,
-    std::ostream& errorStream,
-    std::string progeOutDir,
-    std::string sharedOutputDir,
-    const std::string& platformIntegrator,
-    const std::string& coreEntityName,
-    const std::string& programName,
-    const std::string& deviceFamily,
-    const std::string& deviceName,
-    MemType imem,
-    MemType dmem,
-    HDL language,
-    int fmax,
-    bool syncReset) {
-
+    std::ostream& warningStream, std::ostream& errorStream,
+    std::string progeOutDir, std::string sharedOutputDir,
+    const std::string& platformIntegrator, const std::string& coreEntityName,
+    const std::string& programName, const std::string& deviceFamily,
+    const std::string& deviceName, MemType imem, MemType dmem, HDL language,
+    int fmax, bool syncReset) {
     string platformDir = progeOutDir + FileSystem::DIRECTORY_SEPARATOR +
         "platform";
 
@@ -526,7 +512,6 @@ ProGeUI::integrateProcessor(
 
 void
 ProGeUI::readImemParameters(MemInfo& imem) const {
-
     imem.mauWidth = bem_->width();
     // imem width in MAUs is fixed to 1 in ProGe
     imem.widthInMaus = 1;
@@ -539,13 +524,11 @@ ProGeUI::readImemParameters(MemInfo& imem) const {
 }
 
 void
-ProGeUI::generateIDF(const ProGeOptions& options,
-    std::ostream& verboseStream) {
-
+ProGeUI::generateIDF(
+    const ProGeOptions& options, std::ostream& verboseStream) {
     std::ostream nullstream(0);
-    std::ostream& verbose = Application::increasedVerbose() ? verboseStream :
-        nullstream;
-
+    std::ostream& verbose =
+        Application::increasedVerbose() ? verboseStream : nullstream;
 
     if (!idf_) {
         verbose << "IDF not set, trying automated generation.\n";
@@ -563,27 +546,27 @@ ProGeUI::generateIDF(const ProGeOptions& options,
     }
 
     std::vector<IDF::FUGenerated::Info> infos =
-            ProGeTools::createFUGeneratableOperationInfos(options, verbose);
+        ProGeTools::createFUGeneratableOperationInfos(options, verbose);
     //! Checking only operations that ADF has instead of them all
     //  would be faster.
     std::vector<IDF::FUGenerated::DAGOperation> dagops =
-            ProGeTools::generateableDAGOperations(infos, verbose);
+        ProGeTools::generateableDAGOperations(infos, verbose);
 
-    auto already_handled = [&](const std::string& name){
+    auto already_handled = [&](const std::string& name) {
         return std::find(handledFUs.begin(), handledFUs.end(), name) !=
-            handledFUs.end();
+               handledFUs.end();
     };
 
-    auto select_hdb_implementations = [&](){
+    auto select_hdb_implementations = [&]() {
         for (auto&& fu : machine_->functionUnitNavigator()) {
             if (already_handled(fu->name())) {
                 continue;
             }
             verbose << " select implementation for " << fu->name() << "... ";
-            FUImplementationLocation* loc = new IUImplementationLocation("",
-            -1, fu->name());
-            if (ProGeTools::checkForSelectableFU(options, *fu, *loc, verbose))
-            {
+            FUImplementationLocation* loc =
+                new IUImplementationLocation("", -1, fu->name());
+            if (ProGeTools::checkForSelectableFU(
+                    options, *fu, *loc, verbose)) {
                 verbose << "OK (selected " << loc->id() << " from "
                         << loc->hdbFile() << ")\n";
                 idf_->addFUImplementation(loc);
@@ -594,16 +577,16 @@ ProGeUI::generateIDF(const ProGeOptions& options,
         }
     };
 
-    auto generate_implementations = [&](){
+    auto generate_implementations = [&]() {
         for (auto&& fu : machine_->functionUnitNavigator()) {
             if (already_handled(fu->name())) {
                 continue;
             }
-            verbose << " generate implementation for "
-                    << fu->name() << "... ";
+            verbose << " generate implementation for " << fu->name()
+                    << "... ";
             IDF::FUGenerated fug(fu->name());
-            if(ProGeTools::checkForGeneratableFU(options, *fu, fug, infos,
-                                                dagops)) {
+            if (ProGeTools::checkForGeneratableFU(
+                    options, *fu, fug, infos, dagops)) {
                 verbose << "OK\n";
                 idf_->addFuGeneration(fug);
                 handledFUs.emplace_back(fug.name());
@@ -628,8 +611,8 @@ ProGeUI::generateIDF(const ProGeOptions& options,
             continue;
         }
         verbose << " select implementation for " << iu->name() << "... ";
-        IUImplementationLocation* loc = new IUImplementationLocation("", -1,
-            iu->name());
+        IUImplementationLocation* loc =
+            new IUImplementationLocation("", -1, iu->name());
         if (ProGeTools::checkForSelectableIU(options, *iu, *loc, verbose)) {
             verbose << "OK (selected " << loc->id() << " from "
                     << loc->hdbFile() << ")\n";
@@ -645,8 +628,8 @@ ProGeUI::generateIDF(const ProGeOptions& options,
             continue;
         }
         verbose << " select implementation for " << rf->name() << "... ";
-        RFImplementationLocation* loc = new RFImplementationLocation("", -1,
-            rf->name());
+        RFImplementationLocation* loc =
+            new RFImplementationLocation("", -1, rf->name());
         if (ProGeTools::checkForSelectableRF(options, *rf, *loc, verbose)) {
             verbose << "OK (selected " << loc->id() << " from "
                     << loc->hdbFile() << ")\n";
@@ -677,8 +660,8 @@ ProGeUI::generateIDF(const ProGeOptions& options,
             idf_->setICDecoderParameter("bypassinstructionregister", "yes");
         } else {
             throw std::runtime_error(
-                "Cannot decide ICDecoder parameters for "
-                + std::to_string(delaySlots) + "-stage GCU.");
+                "Cannot decide ICDecoder parameters for " +
+                std::to_string(delaySlots) + "-stage GCU.");
         }
     }
 }

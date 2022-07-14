@@ -99,8 +99,8 @@ std::string
 UnitImplementationLocation::hdbFile() const {
     vector<string> paths = Environment::hdbPaths();
     if (parent_) {
-    paths.insert(
-        paths.begin(), FileSystem::directoryOfPath(parent_->sourceIDF()));
+        paths.insert(
+            paths.begin(), FileSystem::directoryOfPath(parent_->sourceIDF()));
     }
     TCEString expandedPath(hdbFile_);
     expandedPath.replaceString("tce:", "");

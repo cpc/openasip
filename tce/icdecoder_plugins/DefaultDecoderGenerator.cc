@@ -108,7 +108,7 @@ const string LOCK_REQ_PORT_NAME = "lock_req";
 const string INTERNAL_MERGED_GLOCK_REQ_SIGNAL = "merged_glock_req";
 const string PRE_DECODE_MERGED_GLOCK_SIGNAL = "pre_decode_merged_glock";
 const string POST_DECODE_MERGED_GLOCK_SIGNAL = "post_decode_merged_glock";
-const string POST_DECODE_MERGED_GLOCK_OUTREG  = "post_decode_merged_glock_r";
+const string POST_DECODE_MERGED_GLOCK_OUTREG = "post_decode_merged_glock_r";
 const string PIPELINE_FILL_LOCK_SIGNAL = "decode_fill_lock_reg";
 
 const string JUMP = "jump";
@@ -153,15 +153,20 @@ const string DefaultDecoderGenerator::GLOCK_PORT_NAME = "glock";
  * @param icGenerator The IC generator.
  */
 DefaultDecoderGenerator::DefaultDecoderGenerator(
-    const TTAMachine::Machine& machine,
-    const BinaryEncoding& bem,
-    const CentralizedControlICGenerator& icGenerator) : 
-    machine_(machine), bem_(bem), icGenerator_(icGenerator),
-    nlGenerator_(NULL), decoderBlock_(NULL), generateLockTrace_(false),
-    language_(VHDL), generateDebugger_(false),
-    lockTraceStartingCycle_(1), generateAlternateGlockReqHandling_(false),
-    unitGlockBitMap_(), unitGlockReqBitMap_() {
-}
+    const TTAMachine::Machine& machine, const BinaryEncoding& bem,
+    const CentralizedControlICGenerator& icGenerator)
+    : machine_(machine),
+      bem_(bem),
+      icGenerator_(icGenerator),
+      nlGenerator_(NULL),
+      decoderBlock_(NULL),
+      generateLockTrace_(false),
+      language_(VHDL),
+      generateDebugger_(false),
+      lockTraceStartingCycle_(1),
+      generateAlternateGlockReqHandling_(false),
+      unitGlockBitMap_(),
+      unitGlockReqBitMap_() {}
 
 /**
  * SetHDL.
@@ -178,11 +183,13 @@ DefaultDecoderGenerator::setGenerateDebugger(bool generate) {
     generateDebugger_ = generate;
 }
 
-void DefaultDecoderGenerator::setSyncReset(bool value) {
+void
+DefaultDecoderGenerator::setSyncReset(bool value) {
     syncReset_ = value;
 }
 
-void DefaultDecoderGenerator::setGenerateBusEnable(bool value) {
+void
+DefaultDecoderGenerator::setGenerateBusEnable(bool value) {
     generateBusEnable_ = value;
 }
 
@@ -204,7 +211,6 @@ DefaultDecoderGenerator::setGenerateNoLoopbackGlock(bool generate) {
 DefaultDecoderGenerator::~DefaultDecoderGenerator() {
 }
 
-
 /**
  * Completes the decoder block in the given netlist block representing the
  * TTA core by adding the IC-interface and connecting the decoder to the
@@ -217,7 +223,6 @@ void
 DefaultDecoderGenerator::completeDecoderBlock(
     const ProGe::NetlistGenerator& nlGenerator,
     ProGe::NetlistBlock& coreBlock) {
-
     nlGenerator_ = &nlGenerator;
     NetlistBlock& decoder = nlGenerator.instructionDecoder();
     decoderBlock_ = &decoder;
@@ -241,8 +246,7 @@ DefaultDecoderGenerator::completeDecoderBlock(
             NetlistPort* decSimmCntrlPort = new NetlistPort(
                 simmControlPort(bus->name()), "1", 1, ProGe::BIT_VECTOR,
                 ProGe::OUT, decoder);
-            coreBlock.netlist().connect(*decSimmCntrlPort,
-                                        icSimmCntrlPort);
+            coreBlock.netlist().connect(*decSimmCntrlPort, icSimmCntrlPort);
         }
     }
 
@@ -250,13 +254,13 @@ DefaultDecoderGenerator::completeDecoderBlock(
     Machine::SocketNavigator socketNav = machine_.socketNavigator();
     for (int i = 0; i < socketNav.count(); i++) {
         Socket* socket = socketNav.item(i);
-        if ((socket->portCount() == 0 || socket->segmentCount() == 0)
-            && (socket->direction() == Socket::OUTPUT)) {
+        if ((socket->portCount() == 0 || socket->segmentCount() == 0) &&
+            (socket->direction() == Socket::OUTPUT)) {
             continue;
         }
         if (needsBusControl(*socket)) {
             NetlistPort* busCntrlPort = new NetlistPort(
-                socketBusControlPort(socket->name()), 
+                socketBusControlPort(socket->name()),
                 Conversion::toString(busControlWidth(*socket)),
                 busControlWidth(*socket), ProGe::BIT_VECTOR, ProGe::OUT,
                 decoder);
@@ -266,7 +270,7 @@ DefaultDecoderGenerator::completeDecoderBlock(
         }
         if (needsDataControl(*socket)) {
             NetlistPort* dataCntrlPort = new NetlistPort(
-                socketDataControlPort(socket->name()), 
+                socketDataControlPort(socket->name()),
                 Conversion::toString(dataControlWidth(*socket)),
                 dataControlWidth(*socket), ProGe::BIT_VECTOR, ProGe::OUT,
                 decoder);
@@ -287,7 +291,7 @@ DefaultDecoderGenerator::completeDecoderBlock(
             if (nlPort.direction() == ProGe::IN) {
                 NetlistPort& loadPort = nlGenerator.loadPort(nlPort);
                 NetlistPort* loadCntrlPort = new NetlistPort(
-                    fuLoadCntrlPort(fu->name(), port->name()), "1", 1, 
+                    fuLoadCntrlPort(fu->name(), port->name()), "1", 1,
                     ProGe::BIT, ProGe::OUT, decoder);
                 coreBlock.netlist().connect(*loadCntrlPort, loadPort);
             }
@@ -298,8 +302,8 @@ DefaultDecoderGenerator::completeDecoderBlock(
             NetlistPort& opcodePort = nlGenerator.fuOpcodePort(fuBlock);
             NetlistPort* opcodeCntrlPort = new NetlistPort(
                 fuOpcodeCntrlPort(fu->name()),
-                Conversion::toString(opcodeWidth(*fu)),
-                opcodeWidth(*fu), ProGe::BIT_VECTOR, ProGe::OUT, decoder);
+                Conversion::toString(opcodeWidth(*fu)), opcodeWidth(*fu),
+                ProGe::BIT_VECTOR, ProGe::OUT, decoder);
             coreBlock.netlist().connect(opcodePort, *opcodeCntrlPort);
         }
     }
@@ -308,15 +312,15 @@ DefaultDecoderGenerator::completeDecoderBlock(
     for (int i = 0; i < gcu->portCount(); i++) {
         BaseFUPort* port = gcu->port(i);
         if (!port->isInput() ||
-            port->name() == gcu->returnAddressPort()->name()  ||
+            port->name() == gcu->returnAddressPort()->name() ||
             port->isTriggering()) {
             continue;
         }
         NetlistPort& nlPort = nlGenerator.netlistPort(*port);
         NetlistPort& loadPort = nlGenerator.loadPort(nlPort);
         NetlistPort* loadCntrlPort = new NetlistPort(
-            fuLoadCntrlPort(gcu->name(), port->name()), "1", 1,
-            ProGe::BIT, ProGe::OUT, decoder);
+            fuLoadCntrlPort(gcu->name(), port->name()), "1", 1, ProGe::BIT,
+            ProGe::OUT, decoder);
         coreBlock.netlist().connect(*loadCntrlPort, loadPort);
     }
 
@@ -331,7 +335,7 @@ DefaultDecoderGenerator::completeDecoderBlock(
             NetlistPort& loadPort = nlGenerator.loadPort(nlPort);
 
             NetlistPort* loadCntrlPort = new NetlistPort(
-                rfLoadCntrlPort(rf->name(), port->name()), 
+                rfLoadCntrlPort(rf->name(), port->name()),
                 loadPort.widthFormula(), 1, ProGe::BIT, ProGe::OUT, decoder);
 
             coreBlock.netlist().connect(loadPort, *loadCntrlPort);
@@ -361,8 +365,8 @@ DefaultDecoderGenerator::completeDecoderBlock(
             RFPort* port = iu->port(i);
             NetlistPort& iuDataPort = nlGenerator.netlistPort(*port);
             NetlistPort& loadPort = nlGenerator.loadPort(iuDataPort);
-            std::string portName = iuReadLoadCntrlPort(iu->name(),
-                                                       port->name());
+            std::string portName =
+                iuReadLoadCntrlPort(iu->name(), port->name());
             NetlistPort* loadCntrlPort = new NetlistPort(
                 portName, "1", 1, ProGe::BIT, ProGe::OUT, decoder);
             coreBlock.netlist().connect(loadPort, *loadCntrlPort);
@@ -397,7 +401,7 @@ DefaultDecoderGenerator::completeDecoderBlock(
         if (nlGenerator.hasOpcodePort(iuDataPort) && opcodeWidth >= 0) {
             NetlistPort& opcodePort = nlGenerator.rfOpcodePort(iuDataPort);
             NetlistPort* opcodeCntrlPort = new NetlistPort(
-                iuWriteOpcodeCntrlPort(iu->name()), 
+                iuWriteOpcodeCntrlPort(iu->name()),
                 Conversion::toString(opcodeWidth), opcodeWidth,
                 ProGe::BIT_VECTOR, ProGe::OUT, decoder);
             coreBlock.netlist().connect(opcodePort, *opcodeCntrlPort);
@@ -440,22 +444,19 @@ DefaultDecoderGenerator::completeDecoderBlock(
                     guardPortName(*guard), "1", 1, ProGe::BIT, ProGe::IN,
                     decoder);
                 coreBlock.netlist().connect(
-                    nlGuardPort, *decGuardPort,
-                    regGuard->registerIndex(), 0, 1); 
+                    nlGuardPort, *decGuardPort, regGuard->registerIndex(), 0,
+                    1);
                 generatedRegGuards.insert(regGuard);
             }
         }
-    }    
-
-
+    }
 
     addLockReqPortToDecoder();
     addGlockPortToDecoder();
-    
+
     if (generateDebugger_) {
         /*NetlistPort* dbgResetPort = */ new NetlistPort(
-            "db_tta_nreset", "1", 1, 
-            ProGe::BIT, ProGe::IN, decoder);
+            "db_tta_nreset", "1", 1, ProGe::BIT, ProGe::IN, decoder);
     }
 }
 
@@ -477,8 +478,8 @@ DefaultDecoderGenerator::addLockReqPortToDecoder() {
 
     // add lock request port to decoder
     NetlistPort* lockReqPort = new NetlistPort(
-        LOCK_REQ_PORT_NAME, Conversion::toString(lockReqWidth),
-        lockReqWidth, ProGe::BIT_VECTOR, ProGe::IN, *decoderBlock_);
+        LOCK_REQ_PORT_NAME, Conversion::toString(lockReqWidth), lockReqWidth,
+        ProGe::BIT_VECTOR, ProGe::IN, *decoderBlock_);
 
     // connect the glock request ports of FUs to the lock request port
     int bitToConnect(0);
@@ -489,16 +490,13 @@ DefaultDecoderGenerator::addLockReqPortToDecoder() {
         }
         const NetlistBlock& fuBlock = nlGenerator_->netlistBlock(*fu);
         if (nlGenerator_->hasGlockReqPort(fuBlock)) {
-            NetlistPort& glockReqPort = 
-                nlGenerator_->glockReqPort(fuBlock);
-            netlist.connect(
-                *lockReqPort, glockReqPort, bitToConnect, 0, 1);
+            NetlistPort& glockReqPort = nlGenerator_->glockReqPort(fuBlock);
+            netlist.connect(*lockReqPort, glockReqPort, bitToConnect, 0, 1);
             unitGlockReqBitMap_[fu] = bitToConnect;
             bitToConnect++;
         }
     }
 }
-
 
 /**
  * Adds the global lock port to decoder and connects it to the glock ports
@@ -508,7 +506,6 @@ DefaultDecoderGenerator::addLockReqPortToDecoder() {
  */
 void
 DefaultDecoderGenerator::addGlockPortToDecoder() {
-
     int glockWidth = glockPortWidth();
 
     if (glockWidth == 0) {
@@ -560,7 +557,7 @@ DefaultDecoderGenerator::addGlockPortToDecoder() {
         if (iu->portCount() == 0) {
             continue;
         }
-        const NetlistBlock& iuBlock =  nlGenerator_->netlistBlock(*iu);
+        const NetlistBlock& iuBlock = nlGenerator_->netlistBlock(*iu);
         if (nlGenerator_->hasGlockPort(iuBlock)) {
             NetlistPort& glockPort = nlGenerator_->glockPort(iuBlock);
             assert(bitToConnect < glockWidth);
@@ -572,8 +569,8 @@ DefaultDecoderGenerator::addGlockPortToDecoder() {
 
     // If IC requests glock port.
     if (icGenerator_.hasGlockPort()) {
-        netlist.connect(*decGlockPort, icGenerator_.glockPort(),
-            bitToConnect, 0, 1);
+        netlist.connect(
+            *decGlockPort, icGenerator_.glockPort(), bitToConnect, 0, 1);
         bitToConnect++;
     }
 }
@@ -646,7 +643,7 @@ DefaultDecoderGenerator::glockPortWidth() const {
         if (iu->portCount() == 0) {
             continue;
         }
-        const NetlistBlock& iuBlock =  nlGenerator_->netlistBlock(*iu);
+        const NetlistBlock& iuBlock = nlGenerator_->netlistBlock(*iu);
         if (nlGenerator_->hasGlockPort(iuBlock)) {
             glockWidth++;
         }
@@ -694,7 +691,6 @@ DefaultDecoderGenerator::generateInstructionDecoder(
 std::set<int>
 DefaultDecoderGenerator::requiredRFLatencies(
     const TTAMachine::ImmediateUnit& /*iu*/) const {
-
     int acceptableLatencies[] = {0, 1};
     return std::set<int>(acceptableLatencies, acceptableLatencies + 2);
 }
@@ -711,43 +707,40 @@ DefaultDecoderGenerator::verifyCompatibility() const {
     ControlUnit* cu = machine_.controlUnit();
     assert(cu != NULL);
     MachineInfo::OperationSet cuOps = MachineInfo::getOpset(*cu);
-    MachineInfo::OperationSet supportedOps{
-        JUMP,     CALL};
+    MachineInfo::OperationSet supportedOps{JUMP, CALL};
     MachineInfo::OperationSet unsupportedOps;
     std::set_difference(
-        cuOps.begin(), cuOps.end(),
-        supportedOps.begin(), supportedOps.end(),
+        cuOps.begin(), cuOps.end(), supportedOps.begin(), supportedOps.end(),
         std::inserter(unsupportedOps, unsupportedOps.begin()));
-    if (!unsupportedOps.empty() && !machine_.RISCVMachine()) {
+    if (!unsupportedOps.empty() && !machine_.isRISCVMachine()) {
         format errorMsg(
             "Decoder generator does not support operation %1% in CU.");
         errorMsg % TCEString::makeString(unsupportedOps, ", ");
         THROW_EXCEPTION(InvalidData, errorMsg.str());
     }
 
-    if (machine_.hasOperation(APC) && 
+    if (machine_.hasOperation(APC) &&
         machine_.controlUnit()->outputPortCount() < 1) {
-        string errorMsg = 
+        string errorMsg =
             TCEString("APC operation requires an output port in the GCU");
         throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
     // check that there are 3 delay slots in the transport pipeline
     // RISC-V supports 2 "delay slots"
-    if (cu->delaySlots() != 3 && (!(cu->delaySlots() == 2 &&
-    machine_.RISCVMachine()))) {
+    if (cu->delaySlots() != 3 &&
+        (!(cu->delaySlots() == 2 && machine_.isRISCVMachine()))) {
         throw InvalidData(
             __FILE__, __LINE__, __func__,
-            TCEString("Decoder generator supports only 4-stage transport ")+
-            "pipeline of CU. Given machine has " + 
-            Conversion::toString(cu->delaySlots()+1) + " stages");
+            TCEString("Decoder generator supports only 4-stage transport ") +
+                "pipeline of CU. Given machine has " +
+                Conversion::toString(cu->delaySlots() + 1) + " stages");
     }
 
     // check that global guard latency is 1
     if (!(cu->globalGuardLatency() == 0 || (cu->globalGuardLatency() == 1))) {
-        string errorMsg = 
-            TCEString("Decoder generator supports only ") +
-            "global guard latency of 1. Given machine has " +
-            Conversion::toString(cu->globalGuardLatency());
+        string errorMsg = TCEString("Decoder generator supports only ") +
+                          "global guard latency of 1. Given machine has " +
+                          Conversion::toString(cu->globalGuardLatency());
         throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
 }
@@ -773,19 +766,18 @@ DefaultDecoderGenerator::setLockTraceStartingCycle(unsigned int startCycle) {
 }
 
 void
-DefaultDecoderGenerator::writeSignalDeclaration(std::ostream& stream,
-                                                ProGe::DataType type,
-                                                std::string sigName,
-                                                int width) const {
+DefaultDecoderGenerator::writeSignalDeclaration(
+    std::ostream& stream, ProGe::DataType type, std::string sigName,
+    int width) const {
     if (language_ == VHDL) {
         stream << indentation(1) << "signal " << sigName;
         if (type == ProGe::BIT_VECTOR) {
-            stream << " : std_logic_vector(" << width - 1
-                   << " downto 0);" << endl;
-        } else { // BIT
+            stream << " : std_logic_vector(" << width - 1 << " downto 0);"
+                   << endl;
+        } else {  // BIT
             stream << " : std_logic;" << endl;
         }
-    } else { // Verilog
+    } else {  // Verilog
         stream << indentation(1) << "reg";
         if (type == ProGe::BIT_VECTOR) {
             stream << "[" << width - 1 << ":0]";
@@ -795,8 +787,8 @@ DefaultDecoderGenerator::writeSignalDeclaration(std::ostream& stream,
 }
 
 void
-DefaultDecoderGenerator::writeComment(std::ostream& stream, int indent,
-                                      std::string comment) const {
+DefaultDecoderGenerator::writeComment(
+    std::ostream& stream, int indent, std::string comment) const {
     std::string delim = language_ == VHDL ? "-- " : "// ";
     stream << indentation(indent) << delim << comment << endl;
 }
@@ -816,9 +808,10 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) {
             stream << "use STD.textio.all;" << endl;
         }
         stream << "use work." << entityNameStr_ << "_globals.all;" << endl;
-        stream << "use work." << entityNameStr_ << "_gcu_opcodes.all;" << endl;
+        stream << "use work." << entityNameStr_ << "_gcu_opcodes.all;"
+               << endl;
         stream << "use work.tce_util.all;" << endl << endl;
-        
+
         string entityName = entityNameStr_ + "_decoder";
         stream << "entity " << entityName << " is" << endl << endl;
         
@@ -833,7 +826,7 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) {
         string architectureName = "rtl_andor";
         stream << "architecture " << architectureName << " of " << entityName
                << " is" << endl << endl;
-        
+
         writeMoveFieldSignals(stream);
         stream << endl;
         writeImmediateSlotSignals(stream);
@@ -874,7 +867,7 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) {
         writeGlockMapping(stream);
         stream << endl;
         writePipelineFillProcess(stream);
-        
+
         stream << endl << "end " << architectureName << ";" << endl;
     } else { //language_ == Verilog
         const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
@@ -896,7 +889,7 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) {
             *decoderBlock_, 1, indentation(1), stream);
 
         stream << endl;
-        
+
         writeMoveFieldSignals(stream);
         stream << endl;
         writeImmediateSlotSignals(stream);
@@ -932,8 +925,7 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) {
         
         int lockReqWidth = glockRequestWidth();
         stream << indentation(1) << "assign "
-               << NetlistGenerator::DECODER_LOCK_REQ_OUT_PORT
-               << "=";
+               << NetlistGenerator::DECODER_LOCK_REQ_OUT_PORT << "=";
         if (lockReqWidth > 0) {
             for (int i = 0; i < lockReqWidth; i++) {
                 stream << LOCK_REQ_PORT_NAME << "[" << i << "]";
@@ -945,12 +937,12 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) {
         } else {
           stream << "1'b0;" << endl;
         }
-        
+
         const int glockWidth = glockPortWidth();
         stream << indentation(1) << "assign " << GLOCK_PORT_NAME << " = {"
-               << Conversion::toString(glockWidth)
-               << "{" << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT << "}};"
-               << endl << endl;
+               << Conversion::toString(glockWidth) << "{"
+               << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT << "}};" << endl
+               << endl;
         stream << endl << "endmodule" << endl;
     }
 }
@@ -1022,19 +1014,14 @@ DefaultDecoderGenerator::writeLockDumpCode(std::ostream& stream) const {
                << "if count > " << (lockTraceStartingCycle_ - 1)
                << " then" << endl;
 
-        stream << indentation(4)
-               << "write(lineout, count-" << lockTraceStartingCycle_
-               << ", right, 12);" << endl
-               << indentation(4)
-               << "write(lineout, SEPARATOR);" << endl
+        stream << indentation(4) << "write(lineout, count-"
+               << lockTraceStartingCycle_ << ", right, 12);" << endl
+               << indentation(4) << "write(lineout, SEPARATOR);" << endl
                << indentation(4)
                << "write(lineout, conv_integer(unsigned'(\"\" & "
-               << POST_DECODE_MERGED_GLOCK_SIGNAL
-               << ")), right, 12);" << endl
-               << indentation(4)
-               << "write(lineout, SEPARATOR);" << endl
-               << indentation(4)
-               << "writeline(fileout, lineout);" << endl;
+               << POST_DECODE_MERGED_GLOCK_SIGNAL << ")), right, 12);" << endl
+               << indentation(4) << "write(lineout, SEPARATOR);" << endl
+               << indentation(4) << "writeline(fileout, lineout);" << endl;
 
         stream << indentation(3)
                << "end if;" << endl;
@@ -1102,37 +1089,37 @@ DefaultDecoderGenerator::writeLockDumpCode(std::ostream& stream) const {
  */
 void
 DefaultDecoderGenerator::writeMoveFieldSignals(std::ostream& stream) const {
-
-    writeComment(stream, 1, "signals for source, destination and guard fields");
+    writeComment(
+        stream, 1, "signals for source, destination and guard fields");
 
     for (int i = 0; i < bem_.moveSlotCount(); i++) {
         MoveSlot& slot = bem_.moveSlot(i);
         if (slot.width() > 0) {
-            writeSignalDeclaration(stream, ProGe::BIT_VECTOR,
-                                   moveFieldSignal(slot.name()),
-                                   slot.width());
+            writeSignalDeclaration(
+                stream, ProGe::BIT_VECTOR, moveFieldSignal(slot.name()),
+                slot.width());
         }
         if (slot.hasSourceField() && slot.sourceField().width() != 0) {
             SourceField& srcField = slot.sourceField();
-            writeSignalDeclaration(stream, ProGe::BIT_VECTOR,
-                                   srcFieldSignal(slot.name()),
-                                   srcField.width());
+            writeSignalDeclaration(
+                stream, ProGe::BIT_VECTOR, srcFieldSignal(slot.name()),
+                srcField.width());
         }
-        if (slot.hasDestinationField() && slot.destinationField().width() != 0) {
+        if (slot.hasDestinationField() &&
+            slot.destinationField().width() != 0) {
             DestinationField& dstField = slot.destinationField();
-            writeSignalDeclaration(stream, ProGe::BIT_VECTOR,
-                                   dstFieldSignal(slot.name()),
-                                   dstField.width());
+            writeSignalDeclaration(
+                stream, ProGe::BIT_VECTOR, dstFieldSignal(slot.name()),
+                dstField.width());
         }
         if (slot.hasGuardField()) {
             GuardField& grdField = slot.guardField();
-            writeSignalDeclaration(stream, ProGe::BIT_VECTOR,
-                                   guardFieldSignal(slot.name()),
-                                   grdField.width());
+            writeSignalDeclaration(
+                stream, ProGe::BIT_VECTOR, guardFieldSignal(slot.name()),
+                grdField.width());
         }
     }
 }
-
 
 /**
  * Writes the signals for dedicated immediate slots to the given stream.
@@ -1145,12 +1132,11 @@ DefaultDecoderGenerator::writeImmediateSlotSignals(
     writeComment(stream, 1, "signals for dedicated immediate slots");
     for (int i = 0; i < bem_.immediateSlotCount(); i++) {
         ImmediateSlotField& slot = bem_.immediateSlot(i);
-        writeSignalDeclaration(stream, ProGe::BIT_VECTOR,
-                               immSlotSignal(slot.name()),
-                               slot.width());
+        writeSignalDeclaration(
+            stream, ProGe::BIT_VECTOR, immSlotSignal(slot.name()),
+            slot.width());
     }
 }
-
 
 /**
  * Writes the signal for long immediate tag to the given stream.
@@ -1160,16 +1146,14 @@ DefaultDecoderGenerator::writeImmediateSlotSignals(
 void
 DefaultDecoderGenerator::writeLongImmediateTagSignal(
     std::ostream& stream) const {
-
     if (bem_.hasImmediateControlField()) {
         writeComment(stream, 1, "signal for long immediate tag");
 
-        writeSignalDeclaration(stream, ProGe::BIT_VECTOR,
-                               LIMM_TAG_SIGNAL,
-                               bem_.immediateControlField().width());
+        writeSignalDeclaration(
+            stream, ProGe::BIT_VECTOR, LIMM_TAG_SIGNAL,
+            bem_.immediateControlField().width());
     }
 }
-
 
 /**
  * Writes the squash signals of guards to the given stream.
@@ -1210,8 +1194,7 @@ DefaultDecoderGenerator::writeSquashSignals(
  * @param stream The stream to write.
  */
 void
-DefaultDecoderGenerator::writeSocketCntrlSignals(std::ostream& stream)  {
-
+DefaultDecoderGenerator::writeSocketCntrlSignals(std::ostream& stream) {
     writeComment(stream, 1, "socket control signals");
 
     Machine::SocketNavigator socketNav = machine_.socketNavigator();
@@ -1223,14 +1206,15 @@ DefaultDecoderGenerator::writeSocketCntrlSignals(std::ostream& stream)  {
 
         if (needsBusControl(*socket)) {
             std::string sigName = socketBusCntrlSignalName(socket->name());
-            writeSignalDeclaration(stream, ProGe::BIT_VECTOR, sigName,
-                                   busControlWidth(*socket));
+            writeSignalDeclaration(
+                stream, ProGe::BIT_VECTOR, sigName, busControlWidth(*socket));
             registerVectors.push_back(sigName);
         }
         if (needsDataControl(*socket)) {
             std::string sigName = socketDataCntrlSignalName(socket->name());
-            writeSignalDeclaration(stream, ProGe::BIT_VECTOR, sigName,
-                                   dataControlWidth(*socket));
+            writeSignalDeclaration(
+                stream, ProGe::BIT_VECTOR, sigName,
+                dataControlWidth(*socket));
             registerVectors.push_back(sigName);
         }
     }
@@ -1240,23 +1224,23 @@ DefaultDecoderGenerator::writeSocketCntrlSignals(std::ostream& stream)  {
     for (int i = 0; i < busNav.count(); i++) {
         Bus* bus = busNav.item(i);
         if (bus->immediateWidth() > 0) {
-            writeSignalDeclaration(stream, ProGe::BIT_VECTOR,
-                                   simmDataSignalName(bus->name()),
-                                   simmPortWidth(*bus));
-        registerVectors.push_back(simmDataSignalName(bus->name()));
-            writeSignalDeclaration(stream, ProGe::BIT_VECTOR,
-                                   simmCntrlSignalName(bus->name()), 1);
+            writeSignalDeclaration(
+                stream, ProGe::BIT_VECTOR, simmDataSignalName(bus->name()),
+                simmPortWidth(*bus));
+            registerVectors.push_back(simmDataSignalName(bus->name()));
+            writeSignalDeclaration(
+                stream, ProGe::BIT_VECTOR, simmCntrlSignalName(bus->name()),
+                1);
             registerVectors.push_back(simmCntrlSignalName(bus->name()));
         }
 
         if (generateBusEnable_) {
-            writeSignalDeclaration(stream, ProGe::BIT,
-                                   busMuxEnableRegister(*bus), 1);
+            writeSignalDeclaration(
+                stream, ProGe::BIT, busMuxEnableRegister(*bus), 1);
             registerBits.push_back(busMuxEnableRegister(*bus));
         }
     }
 }
-
 
 /**
  * Writes the FU control signals to the given stream.
@@ -1264,9 +1248,7 @@ DefaultDecoderGenerator::writeSocketCntrlSignals(std::ostream& stream)  {
  * @param stream The stream.
  */
 void
-DefaultDecoderGenerator::writeFUCntrlSignals(
-    std::ostream& stream) {
-
+DefaultDecoderGenerator::writeFUCntrlSignals(std::ostream& stream) {
     writeComment(stream, 1, "FU control signals");
 
     Machine::FunctionUnitNavigator fuNav = machine_.
@@ -1282,7 +1264,6 @@ DefaultDecoderGenerator::writeFUCntrlSignals(
     }
 }
 
-
 /**
  * Writes the control signals of the given FU to the given stream.
  *
@@ -1291,9 +1272,7 @@ DefaultDecoderGenerator::writeFUCntrlSignals(
  */
 void
 DefaultDecoderGenerator::writeFUCntrlSignals(
-    const TTAMachine::FunctionUnit& fu,
-    std::ostream& stream) {
-
+    const TTAMachine::FunctionUnit& fu, std::ostream& stream) {
     for (int i = 0; i < fu.portCount(); i++) {
         BaseFUPort* port = fu.port(i);
 
@@ -1314,16 +1293,13 @@ DefaultDecoderGenerator::writeFUCntrlSignals(
     }
 }
 
-
 /**
  * Writes the RF control signals to the given stream.
  *
  * @param stream The stream.
  */
 void
-DefaultDecoderGenerator::writeRFCntrlSignals(
-    std::ostream& stream) {
-
+DefaultDecoderGenerator::writeRFCntrlSignals(std::ostream& stream) {
     writeComment(stream, 1, "RF control signals");
 
     Machine::RegisterFileNavigator rfNav = machine_.
@@ -1337,53 +1313,48 @@ DefaultDecoderGenerator::writeRFCntrlSignals(
                             && port->outputSocket() != NULL;
 
             // load signal
-            std::string sigName = rfLoadSignalName(rf->name(),
-                                                   port->name(),
-                                                   async_signal);
+            std::string sigName =
+                rfLoadSignalName(rf->name(), port->name(), async_signal);
             writeSignalDeclaration(stream, ProGe::BIT, sigName, 1);
-            if (!async_signal)
-                registerBits.push_back(sigName);
+            if (!async_signal) registerBits.push_back(sigName);
 
             // opcode signal
             if (0 < rfOpcodeWidth(*rf)) {
-                std::string sigName = rfOpcodeSignalName(rf->name(),
-                                                         port->name(),
-                                                         async_signal);
-                writeSignalDeclaration(stream, ProGe::BIT_VECTOR,
-                                       sigName, rfOpcodeWidth(*rf));
+                std::string sigName = rfOpcodeSignalName(
+                    rf->name(), port->name(), async_signal);
+                writeSignalDeclaration(
+                    stream, ProGe::BIT_VECTOR, sigName, rfOpcodeWidth(*rf));
 
-                if (!async_signal)
-                    registerVectors.push_back(sigName);
+                if (!async_signal) registerVectors.push_back(sigName);
             }
         }
     }
 
-    Machine::ImmediateUnitNavigator iuNav =
-        machine_.immediateUnitNavigator();
+    Machine::ImmediateUnitNavigator iuNav = machine_.immediateUnitNavigator();
     for (int i = 0; i < iuNav.count(); i++) {
         ImmediateUnit* iu = iuNav.item(i);
         for (int i = 0; i < iu->portCount(); i++) {
             RFPort* port = iu->port(i);
             if (port->isOutput()) {
-
                 if (language_ == VHDL) {
-                    registerBits.push_back(iuReadLoadCntrlPort(iu->name(),
-                                                                 port->name()));
+                    registerBits.push_back(
+                        iuReadLoadCntrlPort(iu->name(), port->name()));
                     if (0 < rfOpcodeWidth(*iu)) {
                         registerVectors.push_back(
-                             iuReadOpcodeCntrlPort(iu->name(), port->name()));
+                            iuReadOpcodeCntrlPort(iu->name(), port->name()));
                     }
                 } else {
-                    std::string sigName = iuReadLoadCntrlSignal(iu->name(),
-                                                                port->name());
+                    std::string sigName =
+                        iuReadLoadCntrlSignal(iu->name(), port->name());
                     writeSignalDeclaration(stream, ProGe::BIT, sigName, 1);
                     registerBits.push_back(sigName);
 
                     if (0 < rfOpcodeWidth(*iu)) {
-                        sigName = iuReadOpcodeCntrlSignal(iu->name(),
-                                                          port->name());
-                        writeSignalDeclaration(stream, ProGe::BIT_VECTOR,
-                                               sigName, rfOpcodeWidth(*iu));
+                        sigName =
+                            iuReadOpcodeCntrlSignal(iu->name(), port->name());
+                        writeSignalDeclaration(
+                            stream, ProGe::BIT_VECTOR, sigName,
+                            rfOpcodeWidth(*iu));
                         registerVectors.push_back(sigName);
                     }
                 }
@@ -1409,26 +1380,25 @@ DefaultDecoderGenerator::writeRFCntrlSignals(
 void
 DefaultDecoderGenerator::writeGlockHandlingSignals(
     std::ostream& stream) const {
-
     assert(language_ == VHDL && "Support for other HDL not yet implemented.");
-    writeSignalDeclaration(stream, ProGe::BIT,
-                           INTERNAL_MERGED_GLOCK_REQ_SIGNAL, 1);
-    writeSignalDeclaration(stream, ProGe::BIT,
-                           PRE_DECODE_MERGED_GLOCK_SIGNAL, 1);
-    writeSignalDeclaration(stream, ProGe::BIT,
-                           POST_DECODE_MERGED_GLOCK_SIGNAL, 1);
-    writeSignalDeclaration(stream, ProGe::BIT,
-                           POST_DECODE_MERGED_GLOCK_OUTREG, 1);
+    writeSignalDeclaration(
+        stream, ProGe::BIT, INTERNAL_MERGED_GLOCK_REQ_SIGNAL, 1);
+    writeSignalDeclaration(
+        stream, ProGe::BIT, PRE_DECODE_MERGED_GLOCK_SIGNAL, 1);
+    writeSignalDeclaration(
+        stream, ProGe::BIT, POST_DECODE_MERGED_GLOCK_SIGNAL, 1);
+    writeSignalDeclaration(
+        stream, ProGe::BIT, POST_DECODE_MERGED_GLOCK_OUTREG, 1);
 }
 
 /**
  * Writes signals used in decode pipeline fill process.
  */
 void
-DefaultDecoderGenerator::writePipelineFillSignals(std::ostream& stream) const {
+DefaultDecoderGenerator::writePipelineFillSignals(
+    std::ostream& stream) const {
     writeSignalDeclaration(stream, ProGe::BIT, PIPELINE_FILL_LOCK_SIGNAL, 1);
 }
-
 
 /**
  * Writes dismembering of instruction word to signals to the given stream.
@@ -1438,13 +1408,12 @@ DefaultDecoderGenerator::writePipelineFillSignals(std::ostream& stream) const {
 void 
 DefaultDecoderGenerator::writeInstructionDismembering(
     std::ostream& stream) const {
-    
     std::string instructionPort = NetlistGenerator::DECODER_INSTR_WORD_PORT;
 
-    if (language_ == VHDL){
+    if (language_ == VHDL) {
         stream << indentation(1) << "-- dismembering of instruction" << endl;
-        stream << indentation(1) << "process ("
-               << instructionPort << ")" << endl;
+        stream << indentation(1) << "process (" << instructionPort << ")"
+               << endl;
         stream << indentation(1) << "begin --process" << endl;
             
         for (int i = 0; i < bem_.moveSlotCount(); i++) {
@@ -1453,56 +1422,56 @@ DefaultDecoderGenerator::writeInstructionDismembering(
 
             if (slot.width() > 0) {
                 stream << indentation(2) << moveFieldSignal(slot.name())
-                       << " <= " << instructionPort
-                       << "(" << slotPosition + slot.width() << "-1 downto "
+                       << " <= " << instructionPort << "("
+                       << slotPosition + slot.width() << "-1 downto "
                        << slotPosition << ");" << endl;
             }
             if (slot.hasSourceField() && slot.sourceField().width() != 0) {
                 SourceField& srcField = slot.sourceField();
-                stream << indentation(2) << srcFieldSignal(slot.name()) 
-                       << " <= " << instructionPort
-                       << "(" << slotPosition + srcField.bitPosition() + 
-                    srcField.width() - 1 << " downto " 
-                       << slotPosition + srcField.bitPosition() << ");" 
-                       << endl;
+                stream << indentation(2) << srcFieldSignal(slot.name())
+                       << " <= " << instructionPort << "("
+                       << slotPosition + srcField.bitPosition() +
+                              srcField.width() - 1
+                       << " downto " << slotPosition + srcField.bitPosition()
+                       << ");" << endl;
             }
             if (slot.hasDestinationField() &&
                 slot.destinationField().width() != 0) {
                 DestinationField& dstField = slot.destinationField();
-                stream << indentation(2) << dstFieldSignal(slot.name()) 
-                       << " <= " << instructionPort
-                       << "(" << slotPosition + dstField.bitPosition() + 
-                    dstField.width() - 1 << " downto " 
-                       << slotPosition + dstField.bitPosition() << ");" 
-                       << endl;
+                stream << indentation(2) << dstFieldSignal(slot.name())
+                       << " <= " << instructionPort << "("
+                       << slotPosition + dstField.bitPosition() +
+                              dstField.width() - 1
+                       << " downto " << slotPosition + dstField.bitPosition()
+                       << ");" << endl;
             }
             if (slot.hasGuardField()) {
                 GuardField& grdField = slot.guardField();
-                stream << indentation(2) << guardFieldSignal(slot.name()) 
-                       << " <= " << instructionPort
-                       << "(" << slotPosition + grdField.bitPosition() + 
-                    grdField.width() - 1 << " downto " 
-                       << slotPosition + grdField.bitPosition() << ");" 
-                       << endl;
+                stream << indentation(2) << guardFieldSignal(slot.name())
+                       << " <= " << instructionPort << "("
+                       << slotPosition + grdField.bitPosition() +
+                              grdField.width() - 1
+                       << " downto " << slotPosition + grdField.bitPosition()
+                       << ");" << endl;
             }
         }
         stream << endl;
         for (int i = 0; i < bem_.immediateSlotCount(); i++) {
             ImmediateSlotField& slot = bem_.immediateSlot(i);
-            stream << indentation(2) << immSlotSignal(slot.name()) << " <= "
-                   << instructionPort << "(" 
-                   << slot.bitPosition() + slot.width() - 1 << " downto " 
+            stream << indentation(2) << immSlotSignal(slot.name())
+                   << " <= " << instructionPort << "("
+                   << slot.bitPosition() + slot.width() - 1 << " downto "
                    << slot.bitPosition() << ");" << endl;
         }
         if (bem_.hasImmediateControlField()) {
             ImmediateControlField& icField = bem_.immediateControlField();
-            stream << indentation(2) << LIMM_TAG_SIGNAL << " <= " 
-                   << instructionPort << "(" 
-                   << icField.bitPosition() + icField.width() - 1 
+            stream << indentation(2) << LIMM_TAG_SIGNAL
+                   << " <= " << instructionPort << "("
+                   << icField.bitPosition() + icField.width() - 1
                    << " downto " << icField.bitPosition() << ");" << endl;
         }
         stream << indentation(1) << "end process;" << endl;
-    } else { // language == Verilog
+    } else {  // language == Verilog
         stream << indentation(1) << "// dismembering of instruction" << endl;
         stream << indentation(1) << "always@(*)" << endl;
         stream << indentation(1) << "begin //process" << endl;
@@ -1513,55 +1482,55 @@ DefaultDecoderGenerator::writeInstructionDismembering(
 
             if (slot.width() > 0) {
                 stream << indentation(2) << moveFieldSignal(slot.name())
-                       << " = " << instructionPort
-                       << "[" << slotPosition + slot.width()-1 << " : "
+                       << " = " << instructionPort << "["
+                       << slotPosition + slot.width() - 1 << " : "
                        << slotPosition << "];" << endl;
             }
             if (slot.hasSourceField() && slot.sourceField().width() != 0) {
                 SourceField& srcField = slot.sourceField();
-                stream << indentation(2) << srcFieldSignal(slot.name()) 
-                       << " = " << instructionPort
-                       << "[" << slotPosition + srcField.bitPosition() + 
-                    srcField.width() - 1 << " : " 
-                       << slotPosition + srcField.bitPosition() << "];" 
-                       << endl;
+                stream << indentation(2) << srcFieldSignal(slot.name())
+                       << " = " << instructionPort << "["
+                       << slotPosition + srcField.bitPosition() +
+                              srcField.width() - 1
+                       << " : " << slotPosition + srcField.bitPosition()
+                       << "];" << endl;
             }
             if (slot.hasDestinationField() &&
                 slot.destinationField().width() != 0) {
                 DestinationField& dstField = slot.destinationField();
-                stream << indentation(2) << dstFieldSignal(slot.name()) 
-                       << " = " << instructionPort
-                       << "[" << slotPosition + dstField.bitPosition() + 
-                    dstField.width() - 1 << " : " 
-                       << slotPosition + dstField.bitPosition() << "];" 
-                       << endl;
+                stream << indentation(2) << dstFieldSignal(slot.name())
+                       << " = " << instructionPort << "["
+                       << slotPosition + dstField.bitPosition() +
+                              dstField.width() - 1
+                       << " : " << slotPosition + dstField.bitPosition()
+                       << "];" << endl;
             }
             if (slot.hasGuardField()) {
                 GuardField& grdField = slot.guardField();
-                stream << indentation(2) << guardFieldSignal(slot.name()) 
-                       << " = " << instructionPort
-                       << "[" << slotPosition + grdField.bitPosition() + 
-                    grdField.width() - 1 << " : " 
-                       << slotPosition + grdField.bitPosition() << "];" 
-                       << endl;
+                stream << indentation(2) << guardFieldSignal(slot.name())
+                       << " = " << instructionPort << "["
+                       << slotPosition + grdField.bitPosition() +
+                              grdField.width() - 1
+                       << " : " << slotPosition + grdField.bitPosition()
+                       << "];" << endl;
             }
         }
         stream << endl;
         for (int i = 0; i < bem_.immediateSlotCount(); i++) {
             ImmediateSlotField& slot = bem_.immediateSlot(i);
             stream << indentation(2) << immSlotSignal(slot.name()) << " = "
-                   << instructionPort << "[" 
-                   << slot.bitPosition() + slot.width() - 1 << " : " 
+                   << instructionPort << "["
+                   << slot.bitPosition() + slot.width() - 1 << " : "
                    << slot.bitPosition() << "];" << endl;
         }
         if (bem_.hasImmediateControlField()) {
             ImmediateControlField& icField = bem_.immediateControlField();
-            stream << indentation(2) << LIMM_TAG_SIGNAL << " = " 
-                   << instructionPort << "[" 
-                   << icField.bitPosition() + icField.width() - 1 
-                   << " : " << icField.bitPosition() << "];" << endl;
+            stream << indentation(2) << LIMM_TAG_SIGNAL << " = "
+                   << instructionPort << "["
+                   << icField.bitPosition() + icField.width() - 1 << " : "
+                   << icField.bitPosition() << "];" << endl;
         }
-        stream << indentation(1) << "end" << endl;    
+        stream << indentation(1) << "end" << endl;
     }
 }
 
@@ -1592,7 +1561,6 @@ void
 DefaultDecoderGenerator::writeSquashSignalGenerationProcess(
     const TTAMachine::Bus& bus,
     std::ostream& stream) const {
-
     if(language_==VHDL){
         assert(bem_.hasMoveSlot(bus.name()));
         MoveSlot& slot = bem_.moveSlot(bus.name());
@@ -1601,13 +1569,12 @@ DefaultDecoderGenerator::writeSquashSignalGenerationProcess(
             MachineInfo::templatesUsingSlot(machine_, bus.name());
         bool ifClauseStarted = false;
 
-        if (!slot.hasGuardField() &&
-            affectingInstTemplates.size() == 0) {
+        if (!slot.hasGuardField() && affectingInstTemplates.size() == 0) {
             // the bus contains always true guard so squash has static value
             // Synthesis software should optimize it away
             string squashName = squashSignal(bus.name());
             stream << indentation(1) << "-- generate signal " << squashName
-                << endl;
+                   << endl;
             stream << indentation(1) << squashName << " <= '0';" << endl;
             return;
         }
@@ -1644,15 +1611,14 @@ DefaultDecoderGenerator::writeSquashSignalGenerationProcess(
             ifClauseStarted = true;
             stream << indentation(indLevel) << "if (";
             for (set<InstructionTemplate*>::const_iterator iter =
-                affectingInstTemplates.begin();
-                iter != affectingInstTemplates.end(); iter++) {
+                     affectingInstTemplates.begin();
+                 iter != affectingInstTemplates.end(); iter++) {
                 if (iter != affectingInstTemplates.begin()) {
                     stream << " or " << endl
-                        << indentation(indLevel) << "    ";
+                           << indentation(indLevel) << "    ";
                 }
-                ImmediateControlField& icField =
-                    bem_.immediateControlField();
-                InstructionTemplate* affectingTemp = *iter;      
+                ImmediateControlField& icField = bem_.immediateControlField();
+                InstructionTemplate* affectingTemp = *iter;
                 stream << "conv_integer(unsigned(" << LIMM_TAG_SIGNAL
                        << ")) = "
                        << icField.templateEncoding(affectingTemp->name());
@@ -1689,14 +1655,13 @@ DefaultDecoderGenerator::writeSquashSignalGenerationProcess(
                 UnconditionalGuardEncoding& enc =
                     grdField->unconditionalGuardEncoding(true);
                 stream << indentation(indLevel) << "when " << enc.encoding()
-                                               << " => "
-                                               << endl;
-                stream << indentation(indLevel+1) << squashSignal(slot.name())
-                                               << " <= '1';" << endl;
+                       << " => " << endl;
+                stream << indentation(indLevel + 1)
+                       << squashSignal(slot.name()) << " <= '1';" << endl;
             }
 
             stream << indentation(indLevel) << "when others =>" << endl;
-            stream << indentation(indLevel+1) << squashSignal(slot.name())
+            stream << indentation(indLevel + 1) << squashSignal(slot.name())
                    << " <= '0';" << endl;
             stream << indentation(indLevel-1) << "end case;" << endl;
         } else {
@@ -1711,7 +1676,7 @@ DefaultDecoderGenerator::writeSquashSignalGenerationProcess(
             assert(indLevel >= 0);
         }
         stream << indentation(1) << "end process;" << endl << endl;
-    } else { // language == Verilog
+    } else {  // language == Verilog
         std::set<InstructionTemplate*> affectingInstTemplates =
             MachineInfo::templatesUsingSlot(machine_, bus.name());
         bool ifClauseStarted = false;
@@ -1765,7 +1730,6 @@ DefaultDecoderGenerator::writeSquashSignalGenerationProcess(
                 stream << ")" << endl;
                 stream << indentation(indLevel+1) << squashSignal(bus.name())
                        << " <= 1'b1;" << endl;
-
             }
 
             if (ifClauseStarted) {
@@ -1774,40 +1738,40 @@ DefaultDecoderGenerator::writeSquashSignalGenerationProcess(
             }
             if (slot.hasGuardField()) {
                 stream << indentation(indLevel) << "case("
-                    << guardFieldSignal(slot.name()) << ")" << endl;
+                       << guardFieldSignal(slot.name()) << ")" << endl;
                 indLevel++;
                 for (int i = 0; i < grdField.gprGuardEncodingCount(); i++) {
                     GPRGuardEncoding& enc = grdField.gprGuardEncoding(i);
                     RegisterGuard& regGuard = findGuard(enc);
-                    writeSquashSignalSubstitution(Verilog,
-                        bus, enc, regGuard, stream, indLevel);
+                    writeSquashSignalSubstitution(
+                        Verilog, bus, enc, regGuard, stream, indLevel);
                 }
 
                 for (int i = 0; i < grdField.fuGuardEncodingCount(); i++) {
                     FUGuardEncoding& enc = grdField.fuGuardEncoding(i);
                     PortGuard& portGuard = findGuard(enc);
-                    writeSquashSignalSubstitution(Verilog,
-                        bus, enc, portGuard, stream, indLevel);
+                    writeSquashSignalSubstitution(
+                        Verilog, bus, enc, portGuard, stream, indLevel);
                 }
 
                 if (grdField.hasUnconditionalGuardEncoding(true)) {
                     UnconditionalGuardEncoding& enc =
                         grdField.unconditionalGuardEncoding(true);
                     stream << indentation(indLevel) << enc.encoding() << " :"
-                        << endl;
-                    stream << indentation(indLevel+1)
-                           << squashSignal(slot.name())
-                           << " <= 1'b1;" << endl;
+                           << endl;
+                    stream << indentation(indLevel + 1)
+                           << squashSignal(slot.name()) << " <= 1'b1;"
+                           << endl;
                 }
 
                 stream << indentation(indLevel) << "default:" << endl;
-                stream << indentation(indLevel+1) << squashSignal(slot.name()) 
-                       << " <= 1'b0;" << endl;
-                stream << indentation(indLevel-1) << "endcase" << endl;
+                stream << indentation(indLevel + 1)
+                       << squashSignal(slot.name()) << " <= 1'b0;" << endl;
+                stream << indentation(indLevel - 1) << "endcase" << endl;
             } else {
                 string squashName = squashSignal(bus.name());
-                stream << indentation(indLevel) << squashName
-                       << " <= 1'b0;" << endl;
+                stream << indentation(indLevel) << squashName << " <= 1'b0;"
+                       << endl;
             }
             stream << indentation(1) << "end" << endl << endl;
         } else {
@@ -1845,11 +1809,12 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
     string listStr;
     if (language_ == VHDL) {
         int indentLevel = 1;
-        stream << indentation(indentLevel) << "--long immediate write process" << endl;
+        stream << indentation(indentLevel) << "--long immediate write process"
+               << endl;
         stream << indentation(indentLevel) << "process (";
         stream << clockPort;
-        if (!syncReset_){
-            stream << ", "  << resetPort;
+        if (!syncReset_) {
+            stream << ", " << resetPort;
         }
         stream << ")" << endl;
         stream << indentation(indentLevel) << "begin --process" << endl;
@@ -1868,19 +1833,20 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
 
         for (int i = 0; i < iuNav.count(); i++) {
             ImmediateUnit* iu = iuNav.item(i);
-            stream << indentation(indentLevel) << iuWriteLoadCntrlPort(iu->name())
-                   << " <= '0';" << endl;
+            stream << indentation(indentLevel)
+                   << iuWriteLoadCntrlPort(iu->name()) << " <= '0';" << endl;
             stream << indentation(indentLevel) << iuWritePort(iu->name())
                    << " <= (others => '0');" << endl;
             if (rfOpcodeWidth(*iu) != 0)
-            stream << indentation(indentLevel) << iuWriteOpcodeCntrlPort(iu->name())
-                   << " <= (others => '0');" << endl;
+                stream << indentation(indentLevel)
+                       << iuWriteOpcodeCntrlPort(iu->name())
+                       << " <= (others => '0');" << endl;
         }
         // else
-        stream << indentation(indentLevel-1) << "elsif ";
+        stream << indentation(indentLevel - 1) << "elsif ";
         if (!syncReset_) {
             stream << "(clk'event and clk = '1') then" << endl
-                   << indentation(indentLevel)  << "if ";
+                   << indentation(indentLevel) << "if ";
             indentLevel += 1;
         }
         // global lock test
@@ -1890,18 +1856,20 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
             if (bem_.hasImmediateControlField()) {
                 if (i == 0) {
                     stream << indentation(indentLevel) << "if ("
-                           << instructionTemplateCondition(VHDL, iTemp->name())
+                           << instructionTemplateCondition(
+                                  VHDL, iTemp->name())
                            << ") then" << endl;
                 } else if (i+1 < itNav.count()) {
                     stream << indentation(indentLevel) << "elsif ("
-                           << instructionTemplateCondition(VHDL, iTemp->name())
+                           << instructionTemplateCondition(
+                                  VHDL, iTemp->name())
                            << ") then" << endl;
                 } else {
                     stream << indentation(indentLevel) << "else" << endl;
                 }
             }
-            writeInstructionTemplateProcedures(VHDL, *iTemp, indentLevel+1,
-                                               stream);
+            writeInstructionTemplateProcedures(
+                VHDL, *iTemp, indentLevel + 1, stream);
         }
 
         if (bem_.hasImmediateControlField()) {
@@ -1933,13 +1901,13 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
             stream << indentation(3) << iuWriteOpcodeCntrlSignal(iu->name())
                    << " <= 0;" << endl;
         }
-        stream  << indentation(2) << "end" << endl
-                << indentation(2) << "else" << endl
-                << indentation(2) << "begin" << endl
-                << indentation(3) << "if ("
-                << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT << " == 0)"
-                << endl
-                << indentation(3) << "begin" << endl;
+        stream << indentation(2) << "end" << endl
+               << indentation(2) << "else" << endl
+               << indentation(2) << "begin" << endl
+               << indentation(3) << "if ("
+               << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT << " == 0)"
+               << endl
+               << indentation(3) << "begin" << endl;
         for (int i = 0; i < itNav.count(); i++) {
             InstructionTemplate* iTemp = itNav.item(i);
             int indLevel = 4;
@@ -1995,8 +1963,7 @@ DefaultDecoderGenerator::writeInstructionTemplateProcedures(
                        << iuWriteLoadCntrlPort(iu->name()) << " <= '0';"
                        << endl;
 
-                stream << indentation(indLevel)
-                       << iuWritePort(iu->name())
+                stream << indentation(indLevel) << iuWritePort(iu->name())
                        << "(" << (iu->width() - 1) << " downto 0"
                        << ") <= tce_sxt(\"0\", " << iu->width() << ");"
                        << endl;
@@ -2053,7 +2020,7 @@ DefaultDecoderGenerator::writeInstructionTemplateProcedures(
                         LImmDstRegisterField& field = 
                             bem_.longImmDstRegisterField(
                             iTemp.name(), iu->name());
-                        stream << indentation(indLevel) 
+                        stream << indentation(indLevel)
                                << iuWriteOpcodeCntrlPort(iu->name()) << " <= "
                                << "tce_ext("
                                << NetlistGenerator::DECODER_INSTR_WORD_PORT
@@ -2267,8 +2234,7 @@ const {
 
         stream << indentation(1)
                << "// separate SRAM RF read decoding process" << endl;
-        stream << indentation(1)
-               << "always@(" << resetPort;
+        stream << indentation(1) << "always@(" << resetPort;
 
         // Sensitivity list //
         BusSet connectedToSramRFs;
@@ -2359,7 +2325,7 @@ DefaultDecoderGenerator::writeMainDecodingProcess(
         string listStr;
         stream << indentation(1) << "process (";
         stream << clockPort;
-        if (!syncReset_){
+        if (!syncReset_) {
             stream << ", " << resetPort;
         }
         stream << ")" << endl;
@@ -2367,19 +2333,20 @@ DefaultDecoderGenerator::writeMainDecodingProcess(
 
         // if reset is active
         if (syncReset_) {
-            stream << indentation(2)
-                   << "if (clk'event and clk = '1') then" << endl
-                   << indentation(2) << "if (" << resetPort
-                   << " = '0') then" << endl;
+            stream << indentation(2) << "if (clk'event and clk = '1') then"
+                   << endl
+                   << indentation(2) << "if (" << resetPort << " = '0') then"
+                   << endl;
             writeResettingOfControlRegisters(stream);
             stream << endl << indentation(2) << "else" << endl;
         } else {
-            stream << indentation(2) << "if (" << resetPort
-                   << " = '0') then" << endl;
+            stream << indentation(2) << "if (" << resetPort << " = '0') then"
+                   << endl;
             writeResettingOfControlRegisters(stream);
-            stream << endl << indentation(2)
-               << "elsif (clk'event and clk = '1') then "
-               <<  "-- rising clock edge" << endl;
+            stream << endl
+                   << indentation(2)
+                   << "elsif (clk'event and clk = '1') then "
+                   << "-- rising clock edge" << endl;
         }
         if (generateDebugger_) {
             string softResetPort = "db_tta_nreset";
@@ -2388,10 +2355,10 @@ DefaultDecoderGenerator::writeMainDecodingProcess(
                    << endl;
             writeResettingOfControlRegisters(stream);
             stream << indentation(3) << "elsif ("
-                   << PRE_DECODE_MERGED_GLOCK_SIGNAL << " = '0') then"
-                   << endl << endl;
+                   << PRE_DECODE_MERGED_GLOCK_SIGNAL << " = '0') then" << endl
+                   << endl;
         } else {
-            stream << indentation(2) <<  "if ("
+            stream << indentation(2) << "if ("
                    << PRE_DECODE_MERGED_GLOCK_SIGNAL;
             stream << " = '0')";
             stream << " then" << endl << endl;
@@ -2430,13 +2397,15 @@ DefaultDecoderGenerator::writeMainDecodingProcess(
  */
 void
 DefaultDecoderGenerator::writeGlockMapping(std::ostream& stream) const {
-
-    assert(language_ == VHDL && "writeGlockMapping() is not yet implemented "
+    assert(
+        language_ == VHDL &&
+        "writeGlockMapping() is not yet implemented "
         "for other HDLs.");
 
     // Generate output register for core lock status signal //
-    string propagateGlock(POST_DECODE_MERGED_GLOCK_OUTREG + " <= "
-                          + POST_DECODE_MERGED_GLOCK_SIGNAL + ";");
+    string propagateGlock(
+        POST_DECODE_MERGED_GLOCK_OUTREG +
+        " <= " + POST_DECODE_MERGED_GLOCK_SIGNAL + ";");
     string assertGlock(POST_DECODE_MERGED_GLOCK_OUTREG + " <= '1'" + ";");
     if (syncReset_) {
         stream << "  lock_reg_proc : process (clk)\n"
@@ -2466,12 +2435,11 @@ DefaultDecoderGenerator::writeGlockMapping(std::ostream& stream) const {
     int lockReqWidth = glockRequestWidth();
     stream << indentation(1) << NetlistGenerator::DECODER_LOCK_REQ_OUT_PORT
            << " <= " << INTERNAL_MERGED_GLOCK_REQ_SIGNAL << ";" << endl;
-    stream << indentation(1) << INTERNAL_MERGED_GLOCK_REQ_SIGNAL
-           << " <= ";
+    stream << indentation(1) << INTERNAL_MERGED_GLOCK_REQ_SIGNAL << " <= ";
     if (lockReqWidth > 0) {
         for (int i = 0; i < lockReqWidth; i++) {
             stream << LOCK_REQ_PORT_NAME << "(" << i << ")";
-            if (i+1 < lockReqWidth) {
+            if (i + 1 < lockReqWidth) {
                 stream << " or ";
             }
         }
@@ -2481,33 +2449,32 @@ DefaultDecoderGenerator::writeGlockMapping(std::ostream& stream) const {
     }
 
     stream << indentation(1) << PRE_DECODE_MERGED_GLOCK_SIGNAL
-        << " <= " << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT;
+           << " <= " << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT;
     if (lockReqWidth > 0) {
         stream << " or " << INTERNAL_MERGED_GLOCK_REQ_SIGNAL << ";" << endl;
     } else {
         stream << ";" << endl;
     }
     stream << indentation(1) << POST_DECODE_MERGED_GLOCK_SIGNAL
-        << " <= " << PRE_DECODE_MERGED_GLOCK_SIGNAL
-        << " or " << PIPELINE_FILL_LOCK_SIGNAL << ";" << endl;
+           << " <= " << PRE_DECODE_MERGED_GLOCK_SIGNAL << " or "
+           << PIPELINE_FILL_LOCK_SIGNAL << ";" << endl;
     stream << indentation(1) << NetlistGenerator::DECODER_LOCK_STATUS_PORT
-        << " <= " << POST_DECODE_MERGED_GLOCK_OUTREG << ";" << endl;
+           << " <= " << POST_DECODE_MERGED_GLOCK_OUTREG << ";" << endl;
 
     // Generate global lock wiring //
     const int glockWidth = glockPortWidth();
-    for (GlockBitType glockBitToConnect = 0;
-            glockBitToConnect < glockWidth;
-            glockBitToConnect++) {
+    for (GlockBitType glockBitToConnect = 0; glockBitToConnect < glockWidth;
+         glockBitToConnect++) {
         stream << indentation(1) << GLOCK_PORT_NAME << "("
                << Conversion::toString(glockBitToConnect) << ") <= ";
 
         // If the feature for alternate glock wiring is enabled and current
         // glock signal to be wired for the TTA Unit has glock request port.
-        if (generateAlternateGlockReqHandling_
-            && MapTools::containsKey(unitGlockBitMap_, glockBitToConnect)
-            && MapTools::containsKey(unitGlockReqBitMap_,
+        if (generateAlternateGlockReqHandling_ &&
+            MapTools::containsKey(unitGlockBitMap_, glockBitToConnect) &&
+            MapTools::containsKey(
+                unitGlockReqBitMap_,
                 unitGlockBitMap_.find(glockBitToConnect)->second)) {
-
             // Specialized global lock port map to avoid self-locking of FU.
             // Each FU that has global lock request will not receive
             // global lock signal unless another FU request global lock.
@@ -2515,7 +2482,7 @@ DefaultDecoderGenerator::writeGlockMapping(std::ostream& stream) const {
                 unitGlockBitMap_.find(glockBitToConnect)->second;
             UnitGlockReqBitMapType::const_iterator gr_it;
             for (gr_it = unitGlockReqBitMap_.begin();
-                gr_it != unitGlockReqBitMap_.end(); gr_it++) {
+                 gr_it != unitGlockReqBitMap_.end(); gr_it++) {
                 if (gr_it->first == associatedToGlockReq) {
                     continue;
                 }
@@ -2530,7 +2497,8 @@ DefaultDecoderGenerator::writeGlockMapping(std::ostream& stream) const {
             stream << POST_DECODE_MERGED_GLOCK_SIGNAL << ";";
         }
         if (MapTools::containsKey(unitGlockBitMap_, glockBitToConnect)) {
-            stream << " -- to "
+            stream
+                << " -- to "
                 << unitGlockBitMap_.find(glockBitToConnect)->second->name();
         }
         stream << endl;
@@ -2542,8 +2510,8 @@ DefaultDecoderGenerator::writeGlockMapping(std::ostream& stream) const {
  * available.
  */
 void
-DefaultDecoderGenerator::writePipelineFillProcess(std::ostream& stream) const {
-
+DefaultDecoderGenerator::writePipelineFillProcess(
+    std::ostream& stream) const {
     auto indstream = [&](unsigned level) -> std::ostream& {
         stream << indentation(level);
         return stream;
@@ -2571,7 +2539,7 @@ DefaultDecoderGenerator::writePipelineFillProcess(std::ostream& stream) const {
         indstream(2) << "end if;" << endl;
         indstream(1) << "end process decode_pipeline_fill_lock;" << endl;
 
-    } else { // language_ == Verilog
+    } else {  // language_ == Verilog
         // todo
     }
 }
@@ -2584,24 +2552,22 @@ DefaultDecoderGenerator::writePipelineFillProcess(std::ostream& stream) const {
 void
 DefaultDecoderGenerator::writeResettingOfControlRegisters(
     std::ostream& stream) const {
-
     std::string vector_reset = " <= (others => '0');";
     std::string bit_reset = " <= '0';";
-    if(language_ == Verilog) {
+    if (language_ == Verilog) {
         vector_reset = " <= 0;";
         bit_reset = " <= 1'b0;";
     }
 
-    for(auto const& signal : registerVectors) {
+    for (auto const& signal : registerVectors) {
         stream << indentation(3) << signal << vector_reset << endl;
     }
     stream << endl;
-    for(auto const& signal : registerBits) {
+    for (auto const& signal : registerBits) {
         stream << indentation(3) << signal << bit_reset << endl;
     }
     stream << endl;
 }
-
 
 /**
  * Writes the instruction decoding section to the main process in decoder.
@@ -2630,17 +2596,17 @@ DefaultDecoderGenerator::writeRulesForSourceControlSignals(
     int indent;
     indent = 4;
 
-  
     Machine::SocketNavigator socketNav = machine_.socketNavigator();
     for (int i = 0; i < socketNav.count(); i++) {
         Socket* socket = socketNav.item(i);
-        if (socket->direction() == Socket::OUTPUT
-            && socket->segmentCount() > 0 && socket->portCount() > 0) {
+        if (socket->direction() == Socket::OUTPUT &&
+            socket->segmentCount() > 0 && socket->portCount() > 0) {
             writeBusControlRulesOfOutputSocket(*socket, stream);
         }
 
-        writeComment(stream, indent,
-                     "bus control signals for short immediate sockets");
+        writeComment(
+            stream, indent,
+            "bus control signals for short immediate sockets");
         Machine::BusNavigator busNav = machine_.busNavigator();
         for (int i = 0; i < busNav.count(); i++) {
             Bus* bus = busNav.item(i);
@@ -2650,8 +2616,9 @@ DefaultDecoderGenerator::writeRulesForSourceControlSignals(
         }
     }
 
-    writeComment(stream, indent,
-                 "data control signals for output sockets connected to FUs");
+    writeComment(
+        stream, indent,
+        "data control signals for output sockets connected to FUs");
     Machine::FunctionUnitNavigator fuNav = machine_.functionUnitNavigator();
     for (int i = 0; i < fuNav.count(); i++) {
         FunctionUnit* fu = fuNav.item(i);
@@ -2689,8 +2656,8 @@ DefaultDecoderGenerator::writeRulesForSourceControlSignals(
         }
     }
 
-    stream << endl << indentation(indent)
-           << ((language_==VHDL)?"--":"//")
+    stream << endl
+           << indentation(indent) << ((language_ == VHDL) ? "--" : "//")
            << "control signals for IU read ports" << endl;
     writeComment(stream, indent, "control signals for IU read ports");
     Machine::ImmediateUnitNavigator iuNav = 
@@ -2716,7 +2683,6 @@ DefaultDecoderGenerator::writeRulesForSourceControlSignals(
 void
 DefaultDecoderGenerator::writeRulesForDestinationControlSignals(
     std::ostream& stream) const {
-
     writeComment(stream, 4, "control signals for FU inputs");
     Machine::FunctionUnitNavigator fuNav = machine_.functionUnitNavigator();
     for (int i = 0; i < fuNav.count(); i++) {
@@ -2750,7 +2716,6 @@ DefaultDecoderGenerator::writeRulesForDestinationControlSignals(
     }
 }
 
-
 /**
  * Writes the control signal rules of the given output socket.
  *
@@ -2775,8 +2740,7 @@ DefaultDecoderGenerator::writeBusControlRulesOfOutputSocket(
             SourceField& srcField = slot.sourceField();
             stream << indentation(indent) << "if ("
                    << squashSignal(bus->name()) << " = '0' and ";
-            stream << socketEncodingCondition(
-                VHDL, srcField, socket.name());
+            stream << socketEncodingCondition(VHDL, srcField, socket.name());
             stream << ") then" << endl;
             string busCntrlPin = busCntrlSignalPinOfSocket(socket, *bus);
             stream << indentation(indent + 1) << busCntrlPin << " <= '1';"
@@ -2809,24 +2773,22 @@ DefaultDecoderGenerator::writeBusControlRulesOfOutputSocket(
 
 void
 DefaultDecoderGenerator::writeSimmDataSignal(
-    const TTAMachine::Bus& bus, std::ostream& stream) const  {
+    const TTAMachine::Bus& bus, std::ostream& stream) const {
     int indent;
     indent = 4;
     SourceField& srcField = bem_.moveSlot(bus.name()).sourceField();
     ImmediateEncoding& enc = srcField.immediateEncoding();
-    stream << indentation(indent)
-           << simmDataSignalName(bus.name()) << " <= ";
+    stream << indentation(indent) << simmDataSignalName(bus.name()) << " <= ";
     if (bus.signExtends()) {
         stream << "tce_sxt(";
     } else {
         stream << "tce_ext(";
     }
     stream << srcFieldSignal(bus.name()) << "("
-           << enc.immediatePosition() + enc.immediateWidth() - 1
-           << " downto " << enc.immediatePosition() << "), "
+           << enc.immediatePosition() + enc.immediateWidth() - 1 << " downto "
+           << enc.immediatePosition() << "), "
            << simmDataSignalName(bus.name()) << "'length);" << endl;
-}   
-
+}
 
 /**
  * Writes the control signal rules for the socket that transports the short
@@ -2852,20 +2814,19 @@ DefaultDecoderGenerator::writeBusControlRulesOfSImmSocketOfBus(
                << " = '0'";
         if (enc.encodingWidth() > 0) {
             stream << " and ";
-            stream << "conv_integer(unsigned("
-                   << srcFieldSignal(bus.name()) << "("
-                   << enc.encodingPosition() + enc.encodingWidth() - 1
-                   << " downto " << enc.encodingPosition() << "))) = "
-                   << enc.encoding();
+            stream << "conv_integer(unsigned(" << srcFieldSignal(bus.name())
+                   << "(" << enc.encodingPosition() + enc.encodingWidth() - 1
+                   << " downto " << enc.encodingPosition()
+                   << "))) = " << enc.encoding();
         }
 
         stream << ") then" << endl;
-        stream << indentation(indent + 1)
-               << simmCntrlSignalName(bus.name()) << "(0) <= '1';" << endl;
+        stream << indentation(indent + 1) << simmCntrlSignalName(bus.name())
+               << "(0) <= '1';" << endl;
         writeSimmDataSignal(bus, stream);
         stream << indentation(indent) << "else" << endl;
-        stream << indentation(indent + 1)
-               << simmCntrlSignalName(bus.name()) << "(0) <= '0';" << endl;
+        stream << indentation(indent + 1) << simmCntrlSignalName(bus.name())
+               << "(0) <= '0';" << endl;
         stream << indentation(4) << "end if;" << endl;
     } else {
         stream << indentation(4) << "if (" 
@@ -2876,12 +2837,10 @@ DefaultDecoderGenerator::writeBusControlRulesOfSImmSocketOfBus(
                 << enc.encodingPosition() + enc.encodingWidth() - 1 << " : "
                 << enc.encodingPosition() << "] == " << enc.encoding();
         }
-        stream << ")" << endl
-               << indentation(4) << "begin" << endl;
+        stream << ")" << endl << indentation(4) << "begin" << endl;
         stream << indentation(5) << simmCntrlSignalName(bus.name())
                << "[0] <= 1'b1;" << endl;
-        stream << indentation(5) << simmDataSignalName(bus.name())
-               << " <= ";
+        stream << indentation(5) << simmDataSignalName(bus.name()) << " <= ";
 
         if (bus.signExtends()) {
             stream << "$signed(";
@@ -2924,10 +2883,9 @@ DefaultDecoderGenerator::writeControlRulesOfFUOutputPort(
             MoveSlot& slot = bem_.moveSlot(bus->name());
             SourceField& srcField = slot.sourceField();
             SocketEncoding& enc = srcField.socketEncoding(socket->name());
-            stream << indentation(indent) << "if (" << squashSignal(bus->name())
-                   << " = '0' and ";
-            stream << socketEncodingCondition(
-                 VHDL, srcField, socket->name());
+            stream << indentation(indent) << "if ("
+                   << squashSignal(bus->name()) << " = '0' and ";
+            stream << socketEncodingCondition(VHDL, srcField, socket->name());
             if (enc.hasSocketCodes()) {
                 SocketCodeTable& scTable = enc.socketCodes();
                 FUPortCode& code = scTable.fuPortCode(
@@ -2937,11 +2895,12 @@ DefaultDecoderGenerator::writeControlRulesOfFUOutputPort(
             } else {
                 stream << ") then" << endl;
             }
-            stream << indentation(indent + 1) << socketDataCntrlSignalName(socket->name())
-                   << " <= " << "conv_std_logic_vector(" 
-                   << icGenerator_.outputSocketDataControlValue(*socket, port) 
-                   << ", " << socketDataCntrlSignalName(socket->name()) 
-                   << "'length);" << endl; 
+            stream << indentation(indent + 1)
+                   << socketDataCntrlSignalName(socket->name()) << " <= "
+                   << "conv_std_logic_vector("
+                   << icGenerator_.outputSocketDataControlValue(*socket, port)
+                   << ", " << socketDataCntrlSignalName(socket->name())
+                   << "'length);" << endl;
             stream << indentation(indent) << "end if;" << endl;
         }
     } else {
@@ -2953,7 +2912,8 @@ DefaultDecoderGenerator::writeControlRulesOfFUOutputPort(
             SocketEncoding& enc = srcField.socketEncoding(socket->name());
             stream << indentation(indent) << "if ("
                    << squashSignal(bus->name()) << " == 0 && "
-                   << socketEncodingCondition(Verilog, srcField, socket->name());
+                   << socketEncodingCondition(
+                          Verilog, srcField, socket->name());
             if (enc.hasSocketCodes()) {
                 SocketCodeTable& scTable = enc.socketCodes();
                 FUPortCode& code = scTable.fuPortCode(
@@ -2963,9 +2923,9 @@ DefaultDecoderGenerator::writeControlRulesOfFUOutputPort(
             } else {
                 stream << ")" << endl;
             }
-            stream << indentation(indent) << socketDataCntrlSignalName(socket->name())
-                   << " <= "
-                   << icGenerator_.outputSocketDataControlValue(*socket, port) 
+            stream << indentation(indent)
+                   << socketDataCntrlSignalName(socket->name()) << " <= "
+                   << icGenerator_.outputSocketDataControlValue(*socket, port)
                    << ";" << endl;
         }
     }
@@ -2982,7 +2942,6 @@ void
 DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
     const TTAMachine::RFPort& port,
     std::ostream& stream) const {
-
     int indent = 4;
     assert(port.outputSocket() != NULL);
 
@@ -3029,8 +2988,7 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
                 }
             }
             stream << squashSignal(bus->name()) << " = '0' and ";
-            stream << socketEncodingCondition(
-                VHDL, srcField, socket->name());
+            stream << socketEncodingCondition(VHDL, srcField, socket->name());
             if (code != NULL && code->hasEncoding()) {
                 stream << " and " << portCodeCondition(VHDL, enc, *code);
             }
@@ -3054,17 +3012,19 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
                        << " <= '1';" << endl;
             }
             if (code != NULL) {
-                opcodeString =  indentation(indent + 1) + opcodeSignalName + " <= tce_ext("
-                       + rfOpcodeFromSrcOrDstField(VHDL, enc, *code) + ", "
-                       + opcodeSignalName + "'length);";
+                opcodeString = indentation(indent + 1) + opcodeSignalName +
+                               " <= tce_ext(" +
+                               rfOpcodeFromSrcOrDstField(VHDL, enc, *code) +
+                               ", " + opcodeSignalName + "'length);";
                 stream << opcodeString << endl;
             }
             
             if (needsDataControl(*socket)) {
-                stream << indentation(indent) 
+                stream << indentation(indent)
                        << socketDataCntrlSignalName(socket->name())
-                       << " <= conv_std_logic_vector(" 
-                       << icGenerator_.outputSocketDataControlValue(*socket, port)
+                       << " <= conv_std_logic_vector("
+                       << icGenerator_.outputSocketDataControlValue(
+                              *socket, port)
                        << ", " << socketDataCntrlSignalName(socket->name())
                        << "'length);" << endl;
             }                                                 
@@ -3076,7 +3036,8 @@ DefaultDecoderGenerator::writeControlRulesOfRFReadPort(
             if (dynamic_cast<ImmediateUnit*>(rf) != NULL) {
                 stream << iuReadLoadCntrlPort(rf->name(), port.name());
             } else {
-                stream << rfLoadSignalName(rf->name(), port.name(), async_signal);
+                stream << rfLoadSignalName(
+                    rf->name(), port.name(), async_signal);
             }
             stream << " <= '0';" << endl;
         }
@@ -3172,7 +3133,6 @@ void
 DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
     const TTAMachine::BaseFUPort& port,
     std::ostream& stream) const {
-
     int indent = 4;
     FunctionUnit* fu = port.parentUnit();
     Socket* socket = port.inputSocket();
@@ -3189,8 +3149,7 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
             DestinationField& dstField = moveSlot.destinationField();
             SocketEncoding& enc = dstField.socketEncoding(socket->name());
             stream << squashSignal(bus->name()) << " = '0' and ";
-            stream << socketEncodingCondition(
-                VHDL, dstField, socket->name());
+            stream << socketEncodingCondition(VHDL, dstField, socket->name());
             if (enc.hasSocketCodes()) {
                 SocketCodeTable& scTable = enc.socketCodes();
                 if (port.isOpcodeSetting()) {
@@ -3217,42 +3176,47 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                                 fu->name(), port.name(), operation->name());
                             stream << portCodeCondition(VHDL, enc, code) << ") then"
                                    << endl;
-                            stream << indentation(indent + 2)
-                                   << fuLoadSignalName(fu->name(), port.name())
-                                   << " <= '1';" << endl;
+                            stream
+                                << indentation(indent + 2)
+                                << fuLoadSignalName(fu->name(), port.name())
+                                << " <= '1';" << endl;
                             if (gcu != nullptr) {
                                 if (operation->name() == JUMP) {
                                     stream << indentation(indent + 2)
                                            << fuOpcodeSignalName(fu->name())
-                                           << " <= std_logic_vector(conv_unsigned(IFE_JUMP, "
+                                           << " <= "
+                                              "std_logic_vector(conv_"
+                                              "unsigned(IFE_JUMP, "
                                            << fuOpcodeSignalName(fu->name())
                                            << "'length));" << endl;
                                 } else if (operation->name() == CALL) {
                                     stream << indentation(indent + 2)
                                            << fuOpcodeSignalName(fu->name())
-                                           << " <= std_logic_vector(conv_unsigned(IFE_CALL, "
+                                           << " <= "
+                                              "std_logic_vector(conv_"
+                                              "unsigned(IFE_CALL, "
                                            << fuOpcodeSignalName(fu->name())
                                            << "'length));" << endl;
                                 }
                             } else {
-                                stream << indentation(indent + 2) 
+                                stream << indentation(indent + 2)
                                        << fuOpcodeSignalName(fu->name())
-                                       << " <= conv_std_logic_vector(" 
+                                       << " <= conv_std_logic_vector("
                                        << opcode(*operation) << ", "
                                        << fuOpcodeSignalName(fu->name())
-                                       << "'length);"
-                                       << endl;
+                                       << "'length);" << endl;
                             }
                             if (i+1 < fu->operationCount()) {
-                                stream << indentation(indent + 1) << "elsif (";
+                                stream << indentation(indent + 1)
+                                       << "elsif (";
                             }
                         }
                         stream << indentation(indent + 1) << "else" << endl;
-                        stream << indentation(indent + 2) 
+                        stream << indentation(indent + 2)
                                << fuLoadSignalName(fu->name(), port.name())
-                               << " <= '0';"
+                               << " <= '0';" << endl;
+                        stream << indentation(indent + 1) << "end if;"
                                << endl;
-                        stream << indentation(indent + 1) << "end if;" << endl;
                     } else {
                         FUPortCode& code = scTable.fuPortCode(
                             fu->name(), port.name(), fu->operation(0)->name());
@@ -3275,11 +3239,12 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                         stream << indentation(indent + 1)
                                << fuLoadSignalName(fu->name(), port.name())
                                << " <= '1';" << endl;
-                        opcodeAssignString = indentation(indent + 1)
-                            + fuOpcodeSignalName(fu->name())
-                            + " <= " + signalName
-                            + "(" + Conversion::toString(codeEnd) + " downto "
-                            + Conversion::toString(codeStart) + ")" + ";";
+                        opcodeAssignString =
+                            indentation(indent + 1) +
+                            fuOpcodeSignalName(fu->name()) +
+                            " <= " + signalName + "(" +
+                            Conversion::toString(codeEnd) + " downto " +
+                            Conversion::toString(codeStart) + ")" + ";";
                         stream << opcodeAssignString << endl;
                     }
                 } else {
@@ -3287,25 +3252,26 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
                         fu->name(), port.name());
                     stream << " and " << portCodeCondition(VHDL, enc, code) << ") then"
                            << endl;
-                    stream << indentation(indent + 1) 
-                           << fuLoadSignalName(fu->name(), port.name()) 
+                    stream << indentation(indent + 1)
+                           << fuLoadSignalName(fu->name(), port.name())
                            << " <= '1';" << endl;
                 }
 
             } else {
                 stream << ") then" << endl;
-                stream << indentation(indent + 1) 
+                stream << indentation(indent + 1)
                        << fuLoadSignalName(fu->name(), port.name())
                        << " <= '1';" << endl;
             }
             if (needsBusControl(*socket)) {
-                cntrlSignalString = indentation(indent + 1)
-                    + socketBusCntrlSignalName(socket->name())
-                    + " <= conv_std_logic_vector("
-                    + Conversion::toString(icGenerator_.inputSocketControlValue(
-                                               *socket, *bus->segment(0)))
-                    + ", "
-                    + socketBusCntrlSignalName(socket->name()) + "'length);";
+                cntrlSignalString =
+                    indentation(indent + 1) +
+                    socketBusCntrlSignalName(socket->name()) +
+                    " <= conv_std_logic_vector(" +
+                    Conversion::toString(icGenerator_.inputSocketControlValue(
+                        *socket, *bus->segment(0))) +
+                    ", " + socketBusCntrlSignalName(socket->name()) +
+                    "'length);";
                 stream << cntrlSignalString << endl;
             }
 
@@ -3317,10 +3283,11 @@ DefaultDecoderGenerator::writeControlRulesOfFUInputPort(
         }
 
         stream << indentation(indent) << "else" << endl;
-        stream << indentation(indent + 1) << fuLoadSignalName(fu->name(), port.name())
-               << " <= '0';" << endl;
+        stream << indentation(indent + 1)
+               << fuLoadSignalName(fu->name(), port.name()) << " <= '0';"
+               << endl;
         stream << indentation(indent) << "end if;" << endl;
-    } else { // language == Verilog
+    } else {  // language == Verilog
         for (BusSet::const_iterator iter = buses.begin(); iter != buses.end();
              iter++) {
             Bus* bus = *iter;
@@ -3445,7 +3412,6 @@ void
 DefaultDecoderGenerator::writeControlRulesOfRFWritePort(
     const TTAMachine::RFPort& port,
     std::ostream& stream) const {
-
     int indent = 4;
     BaseRegisterFile* rf = port.parentUnit();
     Socket* socket = port.inputSocket();
@@ -3462,8 +3428,7 @@ DefaultDecoderGenerator::writeControlRulesOfRFWritePort(
             DestinationField& dstField = moveSlot.destinationField();
             SocketEncoding& enc = dstField.socketEncoding(socket->name());
             stream << squashSignal(bus->name()) << " = '0' and ";
-            stream << socketEncodingCondition(
-                VHDL, dstField, socket->name());
+            stream << socketEncodingCondition(VHDL, dstField, socket->name());
             if (enc.hasSocketCodes()) {
                 SocketCodeTable& scTable = enc.socketCodes();
                 RFPortCode& code = scTable.rfPortCode(rf->name());
@@ -3473,28 +3438,30 @@ DefaultDecoderGenerator::writeControlRulesOfRFWritePort(
                 }
                 stream << ") then" << endl;
                 stream << indentation(indent + 1)
-                       << rfLoadSignalName(rf->name(), port.name()) << " <= '1';"
-                       << endl;
-                opcodeSignalString = indentation(indent + 1)
-                    + rfOpcodeSignalName(rf->name(), port.name()) + " <= "
-                    + rfOpcodeFromSrcOrDstField(VHDL, enc, code) +  ";";
+                       << rfLoadSignalName(rf->name(), port.name())
+                       << " <= '1';" << endl;
+                opcodeSignalString =
+                    indentation(indent + 1) +
+                    rfOpcodeSignalName(rf->name(), port.name()) +
+                    " <= " + rfOpcodeFromSrcOrDstField(VHDL, enc, code) + ";";
                 stream << opcodeSignalString << endl;
 
             } else {
                 stream << ") then" << endl;
                 stream << indentation(indent + 1)
-                       << rfLoadSignalName(rf->name(), port.name()) << " <= '1';"
-                       << endl;
+                       << rfLoadSignalName(rf->name(), port.name())
+                       << " <= '1';" << endl;
             }
 
             if (needsBusControl(*socket)) {
-                controlSignalString = indentation(indent + 1)
-                    + socketBusCntrlSignalName(socket->name())
-                    + " <= conv_std_logic_vector("
-                    + Conversion::toString(icGenerator_.inputSocketControlValue(
-                                               *socket, *bus->segment(0)))
-                    + ", "
-                    + socketBusCntrlSignalName(socket->name()) + "'length);";
+                controlSignalString =
+                    indentation(indent + 1) +
+                    socketBusCntrlSignalName(socket->name()) +
+                    " <= conv_std_logic_vector(" +
+                    Conversion::toString(icGenerator_.inputSocketControlValue(
+                        *socket, *bus->segment(0))) +
+                    ", " + socketBusCntrlSignalName(socket->name()) +
+                    "'length);";
 
                 stream << controlSignalString << endl;
             }
@@ -3506,8 +3473,9 @@ DefaultDecoderGenerator::writeControlRulesOfRFWritePort(
             }
         }
         stream << indentation(indent) << "else" << endl;
-        stream << indentation(indent + 1) << rfLoadSignalName(rf->name(), port.name())
-               << " <= '0';" << endl;
+        stream << indentation(indent + 1)
+               << rfLoadSignalName(rf->name(), port.name()) << " <= '0';"
+               << endl;
         stream << indentation(indent) << "end if;" << endl;
     } else {
         for (BusSet::const_iterator iter = buses.begin(); iter != buses.end();
@@ -3624,39 +3592,38 @@ DefaultDecoderGenerator::writeControlRegisterMappings(
         if (gcu->hasOperation(JUMP) || gcu->hasOperation(CALL)) {
             stream << indentation(1)
                    << NetlistGenerator::DECODER_PC_OPCODE_PORT
-                   << " <= " << fuOpcodeSignalName(gcu->name()) << ";" << endl;
+                   << " <= " << fuOpcodeSignalName(gcu->name()) << ";"
+                   << endl;
         }
 
         // map other GCU's load signals
         for (int i = 0; i < gcu->portCount(); i++) {
             BaseFUPort* port = gcu->port(i);
             if (!port->isInput() ||
-                port->name() == gcu->returnAddressPort()->name()  ||
+                port->name() == gcu->returnAddressPort()->name() ||
                 port->isTriggering()) {
                 continue;
             }
             stream << indentation(1)
                    << fuLoadCntrlPort(gcu->name(), port->name())
-                   << " <= "
-                   << fuLoadSignalName(gcu->name(), port->name())
+                   << " <= " << fuLoadSignalName(gcu->name(), port->name())
                    << ";" << endl;
         }
-            
+
         // map other GCU's load signals
         for (int i = 0; i < gcu->portCount(); i++) {
             BaseFUPort* port = gcu->port(i);
             if (!port->isInput() ||
-                port->name() == gcu->returnAddressPort()->name()  ||
+                port->name() == gcu->returnAddressPort()->name() ||
                 port->isTriggering()) {
                 continue;
             }
             stream << indentation(1)
                    << fuLoadCntrlPort(gcu->name(), port->name())
-                   << " <= "
-                   << fuLoadSignalName(gcu->name(), port->name())
+                   << " <= " << fuLoadSignalName(gcu->name(), port->name())
                    << ";" << endl;
         }
-            
+
         // map RF control signals
         Machine::RegisterFileNavigator rfNav = machine_.
             registerFileNavigator();
@@ -3701,8 +3668,8 @@ DefaultDecoderGenerator::writeControlRegisterMappings(
                 RFPort* port = iu->port(i);
                 bool readOpcodePortExists = decoderBlock_->port(
                     iuReadOpcodeCntrlPort(iu->name(), port->name()));
-                bool writeOpcodePortExists = decoderBlock_->port(
-                    iuWriteOpcodeCntrlPort(iu->name()));
+                bool writeOpcodePortExists =
+                    decoderBlock_->port(iuWriteOpcodeCntrlPort(iu->name()));
                 assert(readOpcodePortExists == writeOpcodePortExists);
                 if (rfOpcodeWidth(*iu) == 0 and readOpcodePortExists and
                     writeOpcodePortExists) {
@@ -3748,13 +3715,14 @@ DefaultDecoderGenerator::writeControlRegisterMappings(
                 stream << indentation(1) << simmControlPort(bus->name())
                        << " <= " << simmCntrlSignalName(bus->name()) << ";"
                        << endl;
-                if (!machine_.RISCVMachine()) {
+                if (!machine_.isRISCVMachine()) {
                     stream << indentation(1) << simmDataPort(bus->name())
-                    << " <= " << simmDataSignalName(bus->name()) << ";"
-                    << endl;
+                           << " <= " << simmDataSignalName(bus->name()) << ";"
+                           << endl;
                 } else {
                     stream << indentation(1) << simmDataPort(bus->name())
-                    << " <= " << RISCV_SIMM_PORT_IN_NAME << ";" << endl;
+                           << " <= " << RISCV_SIMM_PORT_IN_NAME << ";"
+                           << endl;
                 }
             }
         }
@@ -4481,7 +4449,6 @@ DefaultDecoderGenerator::iuWriteLoadCntrlSignal(const std::string& unitName) {
     return iuWriteLoadCntrlPort(unitName) + "_reg";
 }
 
-
 std::string
 DefaultDecoderGenerator::busMuxCntrlSignal(const TTAMachine::Bus& bus) {
     return bus.name() + "_src_sel";
@@ -4984,4 +4951,3 @@ DefaultDecoderGenerator::sacEnabled(const string& rfName) const
     const RFEntry& rfEntry = nlGenerator_->rfEntry(rfName);
     return rfEntry.implementation().separateAddressCycleParameter();
 }
-

@@ -53,20 +53,12 @@ namespace ProGe {
  * @param entityName Prefix name for opcode package
  */
 CUOpcodeGenerator::CUOpcodeGenerator(
-    const TTAMachine::Machine& mach,
-    const string& entityName) :
-    mach_(&mach), entityStr_(entityName) {
-}
+    const TTAMachine::Machine& mach, const string& entityName)
+    : mach_(&mach), entityStr_(entityName) {}
 
+CUOpcodeGenerator::CUOpcodeGenerator() : mach_(NULL), entityStr_() {}
 
-CUOpcodeGenerator::CUOpcodeGenerator() :
-    mach_(NULL), entityStr_() {
-}
-
-
-CUOpcodeGenerator::~CUOpcodeGenerator() {
-}
-
+CUOpcodeGenerator::~CUOpcodeGenerator() {}
 
 /*
  * Returns encodings for GCU as map<operationName, encoding>.
@@ -94,8 +86,8 @@ CUOpcodeGenerator::encoding(const std::string& operName) const {
     if (encMap.count(operName)) {
         return encMap.at(operName);
     } else {
-        THROW_EXCEPTION(InstanceNotFound,
-            "CU does not have operation" + operName + ".");
+        THROW_EXCEPTION(
+            InstanceNotFound, "CU does not have operation" + operName + ".");
     }
 }
 
@@ -106,7 +98,6 @@ size_t
 CUOpcodeGenerator::opcodeWidth() const {
     return CUOpcodeGenerator::gcuOpcodeWidth(*mach_);
 }
-
 
 /*
  * Generates RTL package that holds GCU's opcode encoding constants.
@@ -121,15 +112,15 @@ CUOpcodeGenerator::opcodeWidth() const {
  */
 void
 CUOpcodeGenerator::generateOpcodePackage(
-    HDL language,
-    std::ofstream& stream) const {
-
+    HDL language, std::ofstream& stream) const {
     OperationEncodingMapType gcuEncodings = encodings();
 
     // Add dummy operations for missing CALL and JUMP operations since ifetch
     // templates refers to them.
-    gcuEncodings.insert(make_pair(OperationType("call"), gcuEncodings.size()));
-    gcuEncodings.insert(make_pair(OperationType("jump"), gcuEncodings.size()));
+    gcuEncodings.insert(
+        make_pair(OperationType("call"), gcuEncodings.size()));
+    gcuEncodings.insert(
+        make_pair(OperationType("jump"), gcuEncodings.size()));
 
     if (language == VHDL) {
         WriteVhdlOpcodePackage(gcuEncodings, stream);
@@ -139,7 +130,6 @@ CUOpcodeGenerator::generateOpcodePackage(
         assert(false && "Unsupported HDL.");
     }
 }
-
 
 /*
  * Return required width for GCU's opcode ports.
@@ -153,51 +143,43 @@ CUOpcodeGenerator::gcuOpcodeWidth(const TTAMachine::Machine& mach) {
     if (opCount == 0) {
         return 0;
     } else {
-        return std::max(MathTools::requiredBits(opCount-1), 1);
+        return std::max(MathTools::requiredBits(opCount - 1), 1);
     }
 }
-
 
 /*
  * VHDL version for writing GCU opcode package.
  */
 void
 CUOpcodeGenerator::WriteVhdlOpcodePackage(
-    const OperationEncodingMapType& encodings,
-    std::ofstream& stream) const {
-
+    const OperationEncodingMapType& encodings, std::ofstream& stream) const {
     stream << "library IEEE;" << endl
-           << "use IEEE.std_logic_1164.all;" << endl << endl
+           << "use IEEE.std_logic_1164.all;" << endl
+           << endl
            << "package " + entityStr_ + "_gcu_opcodes is" << endl;
     OperationEncodingMapType::const_iterator it;
     for (it = encodings.begin(); it != encodings.end(); it++) {
-        stream << "  constant IFE_"
-               << StringTools::stringToUpper(it->first)
-               << " : natural := "
-               << Conversion::toString(it->second) << ";" << endl;
+        stream << "  constant IFE_" << StringTools::stringToUpper(it->first)
+               << " : natural := " << Conversion::toString(it->second) << ";"
+               << endl;
     }
     stream << "end " + entityStr_ + "_gcu_opcodes;" << endl;
 }
-
 
 /*
  * Verilog version for writing GCU opcode package.
  */
 void
 CUOpcodeGenerator::WriteVerilogOpcodePackage(
-    const OperationEncodingMapType& encodings,
-    std::ofstream& stream) const {
-
+    const OperationEncodingMapType& encodings, std::ofstream& stream) const {
     if (encodings.empty()) {
         return;
     }
 
     OperationEncodingMapType::const_iterator it;
     for (it = encodings.begin(); it != encodings.end(); it++) {
-        stream << "parameter IFE_"
-               << StringTools::stringToUpper(it->first)
-               << "="
-               << Conversion::toString(it->second);
+        stream << "parameter IFE_" << StringTools::stringToUpper(it->first)
+               << "=" << Conversion::toString(it->second);
         if (it != --encodings.end()) {
             stream << "," << endl;
         } else {

@@ -52,9 +52,9 @@
 
 using namespace IDF;
 using namespace HDB;
+using std::endl;
 using std::string;
 using std::vector;
-using std::endl;
 
 static const std::string UTILITY_VHDL_FILE = "tce_util_pkg.vhdl";
 static const std::string UTILITY_VERILOG_FILE = "tce_util_pkg.vh";
@@ -163,26 +163,27 @@ BlockSourceCopier::copyProcessorSpecific(const std::string& dstDirectory) {
         FileSystem::copy(sourceFile, dstFile);
     } else {
         sourceFile = Environment::dataDirPath("ProGe") + DS +
-            ((language_==Verilog)?
-                "idecompressor.v.tmpl":"idecompressor.vhdl.tmpl");
-        string file = ((language_==Verilog)?
-            "idecompressor.v":"idecompressor.vhdl");
+                     ((language_ == Verilog) ? "idecompressor.v.tmpl"
+                                             : "idecompressor.vhdl.tmpl");
+        string file =
+            ((language_ == Verilog) ? "idecompressor.v"
+                                    : "idecompressor.vhdl");
         dstFile = decompressorTargetDir + DS + file;
 
         if (!FileSystem::fileExists(dstFile)) {
             instantiator_.instantiateTemplateFile(sourceFile, dstFile);
         }
     }
-    
 
     string ifetchSrcFile;
-    ifetchSrcFile = Environment::dataDirPath("ProGe") + DS +
-        ((language_==Verilog)?"ifetch.v.tmpl":"ifetch.vhdl.tmpl");
+    ifetchSrcFile =
+        Environment::dataDirPath("ProGe") + DS +
+        ((language_ == Verilog) ? "ifetch.v.tmpl" : "ifetch.vhdl.tmpl");
     string ifetchTargetDir = decompressorTargetDir;
     assert(FileSystem::fileExists(ifetchTargetDir));
     string ifetchDstFile = 
         ifetchTargetDir + DS + ((language_==Verilog)?"ifetch.v":"ifetch.vhdl");
-    
+
     if (!FileSystem::fileExists(ifetchDstFile)) {
         instantiator_.instantiateTemplateFile(ifetchSrcFile, ifetchDstFile);
     }
@@ -225,7 +226,8 @@ BlockSourceCopier::instantiateHDLTemplate(
         dstFile = newName;
     }
 
-    instantiator_.instantiateTemplateFile(srcFile, dstDirectory + DS + dstFile);
+    instantiator_.instantiateTemplateFile(
+        srcFile, dstDirectory + DS + dstFile);
 }
 
 /**
@@ -235,7 +237,6 @@ HDLTemplateInstantiator&
 BlockSourceCopier::getTemplateInstatiator() {
     return instantiator_;
 }
-
 
 /**
  * Copies the block definition files of the given RF implementation to the
@@ -281,14 +282,14 @@ BlockSourceCopier::copyFiles(
 
         string absoluteFile;
 		try {
-			absoluteFile = FileSystem::findFileInSearchPaths(modulePaths,
-			    file.pathToFile());
+                    absoluteFile = FileSystem::findFileInSearchPaths(
+                        modulePaths, file.pathToFile());
         } catch (const Exception& e) {
-            string errorMsg = "Problem with "
-                + implementation.moduleName()
-                + " in HDB " + hdbFile + ".\n"
-                + "Unable to find file mentioned in HDB: "
-                + file.pathToFile() + ":\n";
+            string errorMsg =
+                "Problem with " + implementation.moduleName() + " in HDB " +
+                hdbFile + ".\n" +
+                "Unable to find file mentioned in HDB: " + file.pathToFile() +
+                ":\n";
             errorMsg += e.errorMessage();
             throw FileNotFound(__FILE__, __LINE__, __func__, errorMsg);
         }

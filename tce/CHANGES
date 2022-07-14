@@ -3,6 +3,39 @@
 
 Notable changes and features
 ----------------------------
+Licence:
+  - License has been changed to LGPL v2.1.
+
+Naming changes:
+  - In this release, we started shifting out the
+    "TCE" naming to "OA" (OpenASIP)
+  - Tools such as the compiler "tcecc" has been deprecated and replaced with
+    "oacc".
+  - To keep backwards compability, the old tools still work.
+
+(experimental) RISC-V support:
+  - Generate RISC-V ASIPs with custom instruction set extensions
+    (see RISC-V Tutorial in manual).
+  - New Operation Triggered Architecture (OTA) formats that map to the formats
+    of the RISC-V ISA.
+  - New operations added to OSAL for RISC-V
+  - oacc-riscv compiler driver that is able to adapt to RISC-V
+    custom instructions.
+
+FUGen:
+  - Generate function unit RTL with ProGe.
+  - Hardware is generated automatically if an operation has a DAG description.
+  - Alternatively add HDL snippets of operations to HDB to describe
+    new custom operations.
+
+Zero-register RFs:
+  - With the RISC-V support, new register file attribute
+    "zero-register" was added.
+  - This indicates that the first index of the register file is hardcoded to
+    zero value.
+
+RTL Generation updates:
+  - RTL generation code has been uniformed.
 
 Notable bugfixes
 ----------------------------

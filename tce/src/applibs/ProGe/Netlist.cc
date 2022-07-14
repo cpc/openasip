@@ -63,12 +63,11 @@ Netlist::Netlist() : coreEntityName_("") {
 Netlist::~Netlist() {
 }
 
-
 /**
  * Partially connects two netlist ports.
  *
  * Connects two given subsets of bits of two netlist ports. The bit subsets
- * have equal cardinality and represent an ordered range of adjacent bits. 
+ * have equal cardinality and represent an ordered range of adjacent bits.
  * The bits are connected in the same order (the first bit of the subset of
  * the first port is connected to the first bit of the subset of the second
  * port).
@@ -82,17 +81,13 @@ Netlist::~Netlist() {
  */
 bool
 Netlist::connect(
-    const NetlistPort& port1,
-    const NetlistPort& port2,
-    int port1FirstBit,
-    int port2FirstBit,
-    int width) {
-
+    const NetlistPort& port1, const NetlistPort& port2, int port1FirstBit,
+    int port2FirstBit, int width) {
     // PortConnectionProperty regards width 0 as fully connected
-     if (width == 0 && (port1.dataType() != port2.dataType())) {
-         // BIT to/from BIT_VECTOR connection needs partial connectivity
-         width = 1;
-     }
+    if (width == 0 && (port1.dataType() != port2.dataType())) {
+        // BIT to/from BIT_VECTOR connection needs partial connectivity
+        width = 1;
+    }
 
     size_t port1Descriptor = descriptor(port1);
     size_t port2Descriptor = descriptor(port2);
@@ -107,7 +102,6 @@ Netlist::connect(
     return true;
 }
 
-
 /**
  * Connects two netlist ports completely.
  *
@@ -120,14 +114,11 @@ Netlist::connect(
  * @param Return true, if connection was successful.
  */
 bool
-Netlist::connect(
-    const NetlistPort& port1,
-    const NetlistPort& port2) {
-
+Netlist::connect(const NetlistPort& port1, const NetlistPort& port2) {
     size_t port1Descriptor = descriptor(port1);
     size_t port2Descriptor = descriptor(port2);
-    bool needsInversion = port1.assignedSignal().activeState()
-        != port2.assignedSignal().activeState();
+    bool needsInversion = port1.assignedSignal().activeState() !=
+                          port2.assignedSignal().activeState();
     PortConnectionProperty property(needsInversion);
 
     // create first edge
@@ -141,10 +132,7 @@ Netlist::connect(
  * Removes connection between two ports.
  */
 void
-Netlist::disconnectPorts(
-    const NetlistPort& port1,
-    const NetlistPort& port2) {
-
+Netlist::disconnectPorts(const NetlistPort& port1, const NetlistPort& port2) {
     size_t port1Descriptor = descriptor(port1);
     size_t port2Descriptor = descriptor(port2);
 
@@ -159,27 +147,25 @@ Netlist::disconnectPorts(
  */
 bool
 Netlist::connect(
-    const NetlistPortGroup& group1,
-    const NetlistPortGroup& group2) {
-
+    const NetlistPortGroup& group1, const NetlistPortGroup& group2) {
     if (group1.portCount() != group2.portCount()) {
         return false;
     }
 
     std::map<SignalType, const NetlistPort*> portsOfGroup2;
     for (const NetlistPort* port : group2) {
-        assert(!AssocTools::containsKey(
-            portsOfGroup2, port->assignedSignal().type())
-            && "Netlist::Connect(): Currently cannot handle groups with "
-               "multiply of same signal type");
+        assert(
+            !AssocTools::containsKey(
+                portsOfGroup2, port->assignedSignal().type()) &&
+            "Netlist::Connect(): Currently cannot handle groups with "
+            "multiply of same signal type");
         portsOfGroup2.insert(
             std::make_pair(port->assignedSignal().type(), port));
     }
 
     for (const NetlistPort* from : group1) {
         SignalType matchingType = from->assignedSignal().type();
-        assert(AssocTools::containsKey(portsOfGroup2, matchingType)
-            && "");
+        assert(AssocTools::containsKey(portsOfGroup2, matchingType) && "");
         const NetlistPort* to = portsOfGroup2.at(matchingType);
         connect(*from, *to);
     }
@@ -194,10 +180,8 @@ Netlist::connect(
  */
 bool
 Netlist::connectBy(
-    SignalType byType,
-    const NetlistPortGroup& group1,
+    SignalType byType, const NetlistPortGroup& group1,
     const NetlistPortGroup& group2) {
-
     assert(group1.hasPortBySignal(byType));
     assert(group2.hasPortBySignal(byType));
 
@@ -223,10 +207,8 @@ Netlist::connectBy(
  */
 bool
 Netlist::connect(
-        const NetlistPortGroup& group1,
-        const NetlistPortGroup& group2,
-        std::map<SignalType, SignalType> connectionMap) {
-
+    const NetlistPortGroup& group1, const NetlistPortGroup& group2,
+    std::map<SignalType, SignalType> connectionMap) {
     for (const NetlistPort* port1 : group1) {
         SignalType type1 = port1->assignedSignal().type();
         SignalType type2 = SignalType::UNDEFINED;
@@ -254,27 +236,26 @@ Netlist::connect(
  */
 bool
 Netlist::connectGroupByName(
-    const NetlistPortGroup& group1,
-    const NetlistPortGroup& group2) {
-
+    const NetlistPortGroup& group1, const NetlistPortGroup& group2) {
     if (group1.portCount() != group2.portCount()) {
         return false;
     }
 
     std::map<std::string, const NetlistPort*> portsOfGroup2;
     for (const NetlistPort* port : group2) {
-        assert(!AssocTools::containsKey(portsOfGroup2, port->name())
-                && "Netlist::Connect(): group2 has multiple ports "
-                   "with the same name");
-        portsOfGroup2.insert(
-            std::make_pair(port->name(), port));
+        assert(
+            !AssocTools::containsKey(portsOfGroup2, port->name()) &&
+            "Netlist::Connect(): group2 has multiple ports "
+            "with the same name");
+        portsOfGroup2.insert(std::make_pair(port->name(), port));
     }
 
     for (const NetlistPort* from : group1) {
         std::string matchingName = from->name();
-        assert(AssocTools::containsKey(portsOfGroup2, matchingName)
-            && "Netlist::connectByName: The two port groups' names "
-               "do not match");
+        assert(
+            AssocTools::containsKey(portsOfGroup2, matchingName) &&
+            "Netlist::connectByName: The two port groups' names "
+            "do not match");
         const NetlistPort* to = portsOfGroup2.at(matchingName);
         connect(*from, *to);
     }
@@ -326,8 +307,9 @@ Netlist::hasConnections() const {
  */
 size_t
 Netlist::registerPort(NetlistPort& port) {
-    assert(!MapTools::containsKey(vertexDescriptorMap_, &port)
-        && "The port is already registered");
+    assert(
+        !MapTools::containsKey(vertexDescriptorMap_, &port) &&
+        "The port is already registered");
     size_t descriptor = boost::add_vertex(&port, *this);
     vertexDescriptorMap_.insert(
         std::pair<const NetlistPort*, size_t>(&port, descriptor));
@@ -391,11 +373,8 @@ Netlist::setParameter(
 }
 
 void
-Netlist::setParameter(const Parameter&  param) {
-    setParameter(
-        param.name(),
-        param.type(),
-        param.value());
+Netlist::setParameter(const Parameter& param) {
+    setParameter(param.name(), param.type(), param.value());
 }
 
 /**
@@ -444,7 +423,6 @@ Netlist::parameterCount() const {
     return parameters_.size();
 }
 
-
 /**
  * Returns the parameter at the given position.
  *
@@ -492,7 +470,7 @@ Netlist::descriptorEnd() {
 }
 
 Netlist::const_descriptor_iterator
-Netlist::descriptorBegin() const  {
+Netlist::descriptorBegin() const {
     return vertexDescriptorMap_.begin();
 }
 
@@ -520,8 +498,8 @@ Netlist::connectClocks(NetlistBlock& block) {
         const BaseNetlistBlock& cblock = block;
         clockOfSubBlock = cblock.subBlock(i).portsBy(SignalType::CLOCK);
         assert(clockOfSubBlock.size() < 2);
-        if (clockOfSubBlock.empty()
-            || block.netlist().isPortConnected(*clockOfSubBlock.at(0))) {
+        if (clockOfSubBlock.empty() ||
+            block.netlist().isPortConnected(*clockOfSubBlock.at(0))) {
             continue;
         } else {
             block.netlist().connect(*topClock, *clockOfSubBlock.at(0));
@@ -546,11 +524,10 @@ Netlist::connectResets(NetlistBlock& block) {
     for (size_t i = 0; i < block.subBlockCount(); i++) {
         std::vector<const NetlistPort*> clockOfSubBlock;
         const BaseNetlistBlock& cblock = block;
-        clockOfSubBlock = cblock.subBlock(i).
-            portsBy(SignalType::RESET);
+        clockOfSubBlock = cblock.subBlock(i).portsBy(SignalType::RESET);
         assert(clockOfSubBlock.size() < 2);
-        if (clockOfSubBlock.empty()
-            || block.netlist().isPortConnected(*clockOfSubBlock.at(0))) {
+        if (clockOfSubBlock.empty() ||
+            block.netlist().isPortConnected(*clockOfSubBlock.at(0))) {
             continue;
         } else {
             block.netlist().connect(*topClock, *clockOfSubBlock.at(0));

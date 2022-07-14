@@ -48,28 +48,27 @@ const IDF::MachineImplementation* PortFactory::staticImplementation_ = NULL;
 PortFactory::PortFactory()
 //    : machine_(NULL),
 //      implementation_(NULL)
-{
-}
+{}
 
 PortFactory::PortFactory(
     const TTAMachine::Machine& /*machine*/,
     const IDF::MachineImplementation& /*impl*/)
 //    : machine_(&machine),
 //      implementation_(&impl)
-{
-}
+{}
 
 PortFactory::~PortFactory() {
-    PortPrototypeContainer::iterator port_it =
-        portPrototypes_.begin();
+    PortPrototypeContainer::iterator port_it = portPrototypes_.begin();
     while (port_it != portPrototypes_.end()) {
-        delete port_it->second; port_it->second = NULL;
+        delete port_it->second;
+        port_it->second = NULL;
         port_it++;
     }
     PortGroupPrototypeContainer::iterator portGroup_it =
         portGroupPrototypes_.begin();
     while (portGroup_it != portGroupPrototypes_.end()) {
-        delete portGroup_it->second; portGroup_it->second = NULL;
+        delete portGroup_it->second;
+        portGroup_it->second = NULL;
         portGroup_it++;
     }
 }
@@ -86,48 +85,42 @@ PortFactory::registerPort(const NetlistPort* port) {
     registerPort(port->assignedSignal().type(), port);
 }
 
-
 void
 PortFactory::registerPorts() {
-    registerPort(new InBitPort("clk",
-        Signal(SignalType::CLOCK)));
-    registerPort(new InBitPort("rstx",
-        Signal(SignalType::RESET, ActiveState::LOW)));
+    registerPort(new InBitPort("clk", Signal(SignalType::CLOCK)));
+    registerPort(
+        new InBitPort("rstx", Signal(SignalType::RESET, ActiveState::LOW)));
 }
 
 void
 PortFactory::registerPortGroup(
-    SignalGroupType type,
-    const NetlistPortGroup* portGroup) {
+    SignalGroupType type, const NetlistPortGroup* portGroup) {
     assert(!AssocTools::containsKey(portGroupPrototypes_, type));
     portGroupPrototypes_.insert(std::make_pair(type, portGroup));
 }
 
 void
 PortFactory::registerPortGroup(const NetlistPortGroup* portGroup) {
-    assert(portGroup->assignedSignalGroup().type()
-        != SignalGroupType::UNDEFINED);
+    assert(
+        portGroup->assignedSignalGroup().type() !=
+        SignalGroupType::UNDEFINED);
 
     registerPortGroup(portGroup->assignedSignalGroup().type(), portGroup);
 }
 
 void
 PortFactory::registerPortGroups() {
-    registerPortGroup(
-        new NetlistPortGroup(
-            SignalGroup(SignalGroupType::INSTRUCTION_LINE),
-            new OutBitPort("imem_en_x",
-                Signal(SignalType::READ_REQUEST, ActiveState::LOW)),
-            new OutPort("imem_addr", "IMEMADDRWIDTH", BIT_VECTOR,
-                Signal(SignalType::ADDRESS)),
-            new InPort("imem_data", "IMEMWIDTHINMAUS*IMEMMAUWIDTH",
-                BIT_VECTOR,
-                Signal(SignalType::FETCHBLOCK)),
-            new InBitPort("busy",
-                Signal(SignalType::STALL))
-        )
-    );
-
+    registerPortGroup(new NetlistPortGroup(
+        SignalGroup(SignalGroupType::INSTRUCTION_LINE),
+        new OutBitPort(
+            "imem_en_x", Signal(SignalType::READ_REQUEST, ActiveState::LOW)),
+        new OutPort(
+            "imem_addr", "IMEMADDRWIDTH", BIT_VECTOR,
+            Signal(SignalType::ADDRESS)),
+        new InPort(
+            "imem_data", "IMEMWIDTHINMAUS*IMEMMAUWIDTH", BIT_VECTOR,
+            Signal(SignalType::FETCHBLOCK)),
+        new InBitPort("busy", Signal(SignalType::STALL))));
 }
 
 /**
@@ -176,8 +169,8 @@ void
 PortFactory::initializeContext(
     const TTAMachine::Machine& machine,
     const IDF::MachineImplementation& impl) {
-
-    assert(staticMachine_ == NULL && staticImplementation_ == NULL &&
+    assert(
+        staticMachine_ == NULL && staticImplementation_ == NULL &&
         "Attempted to initialize twice.");
     staticMachine_ = &machine;
     staticImplementation_ = &impl;
@@ -193,8 +186,9 @@ PortFactory::instance() {
         return instance_;
     } else {
         assert(staticMachine_ != NULL && staticImplementation_ != NULL);
-        return (instance_ =
-            new PortFactory(*staticMachine_, *staticImplementation_));
+        return (
+            instance_ =
+                new PortFactory(*staticMachine_, *staticImplementation_));
     }
 }
 
@@ -213,10 +207,9 @@ PortFactory::clockPort(Direction direction) {
  */
 NetlistPort*
 PortFactory::resetPort(Direction direction) {
-    static const InBitPort rstxPortPrototype("rstx", Signal(
-        SignalType::RESET, ActiveState::LOW));
+    static const InBitPort rstxPortPrototype(
+        "rstx", Signal(SignalType::RESET, ActiveState::LOW));
     return rstxPortPrototype.clone(direction != IN);
 }
-
 
 } /* namespace ProGe */

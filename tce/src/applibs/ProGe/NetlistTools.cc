@@ -57,9 +57,7 @@ namespace ProGe {
  */
 std::pair<const BaseNetlistBlock*, size_t>
 NetlistTools::commonParent(
-        const BaseNetlistBlock& b1,
-        const BaseNetlistBlock& b2) {
-
+    const BaseNetlistBlock& b1, const BaseNetlistBlock& b2) {
     // Todo check trivial cases: b1 id parent of b2 or vice versa.
 
     std::set<const BaseNetlistBlock*> parentChain;
@@ -117,7 +115,7 @@ NetlistTools::addPrefixToPortNames(
  */
 void
 NetlistTools::addPrefixToPortName(
-    NetlistPort& port,const std::string& prefix) {
+    NetlistPort& port, const std::string& prefix) {
     port.rename(prefix + port.name());
 }
 
@@ -130,7 +128,6 @@ size_t
 NetlistTools::renamePorts(
     NetlistPortGroup& portGroup,
     std::map<SignalType, const std::string>&& renameRules) {
-
     size_t renamedCount = 0;
     for (NetlistPort* port : portGroup) {
         SignalType type = port->assignedSignal().type();
@@ -156,9 +153,7 @@ NetlistTools::renamePorts(
  */
 std::string
 NetlistTools::getUniqueInstanceName(
-    const BaseNetlistBlock& within,
-    const std::string& basename) {
-
+    const BaseNetlistBlock& within, const std::string& basename) {
     std::string name(basename);
     while (within.hasSubBlock(name)) {
         int postFixNumber = -1;
@@ -167,7 +162,7 @@ NetlistTools::getUniqueInstanceName(
         for (rit = name.rbegin(); rit != name.rend(); rit++) {
             std::locale loc;
             if (!std::isdigit(*rit, loc)) {
-                it = rit.base(); // Points to first number digit or end().
+                it = rit.base();  // Points to first number digit or end().
                 break;
             }
         }
@@ -205,7 +200,7 @@ NetlistTools::parent(const BaseNetlistBlock* block) {
  */
 Direction
 NetlistTools::mirror(Direction direction) {
-    switch(direction) {
+    switch (direction) {
         case IN:
             return OUT;
             break;

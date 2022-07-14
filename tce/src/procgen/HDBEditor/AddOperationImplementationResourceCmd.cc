@@ -37,17 +37,16 @@
 #include <wx/app.h>
 
 /// Constructor.
-AddOperationImplementationResourceCmd::
-    AddOperationImplementationResourceCmd() :
-    GUICommand(HDBEditorConstants::
-        COMMAND_NAME_ADD_OPERATION_IMPLEMENTATION_RESOURCE, NULL) {
-}
+AddOperationImplementationResourceCmd::AddOperationImplementationResourceCmd()
+    : GUICommand(
+          HDBEditorConstants::
+              COMMAND_NAME_ADD_OPERATION_IMPLEMENTATION_RESOURCE,
+          NULL) {}
 
 /// Execute command.
 bool
 AddOperationImplementationResourceCmd::Do() {
-
-    OperationImplementationResourceDialog *dialog =
+    OperationImplementationResourceDialog* dialog =
         new OperationImplementationResourceDialog();
     dialog->Show(true);
 
@@ -83,7 +82,6 @@ AddOperationImplementationResourceCmd*
 AddOperationImplementationResourceCmd::create() const {
     return new AddOperationImplementationResourceCmd();
 }
-
 
 /**
  * Returns true if the command should be enabled in the menu/toolbar.

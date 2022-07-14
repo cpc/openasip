@@ -118,9 +118,9 @@ BEMTester::canAddComponentEncoding(
             int commonBits = commonBitCount(
                 encoding, extraBits, immEnc.encoding(), immEnc.extraBits(),
                 alignment);
-            if (commonBits == static_cast<int>(
-                MathTools::bitLength(encoding)) +
-                static_cast<int>(extraBits) || 
+            if (commonBits ==
+                    static_cast<int>(MathTools::bitLength(encoding)) +
+                        static_cast<int>(extraBits) ||
                 commonBits == immEnc.width()) {
                 return false;
             }
@@ -145,7 +145,6 @@ BEMTester::canAddComponentEncoding(
     return true;
 }
 
-
 /**
  * Tests whether the given priority encoding can be added to the given move
  * slot field.
@@ -161,9 +160,9 @@ BEMTester::canAddComponentEncoding(
  * not have effect.
  *
  * The tested encoding can cross boundaries of guard, source and destination
- * fields, overlapping multiple fields. A par of the encoding (i.e. overlapping
- * some slot field) may be indistinguishable as long as some other parts are
- * distinguishable.
+ * fields, overlapping multiple fields. A par of the encoding (i.e.
+ * overlapping some slot field) may be indistinguishable as long as some other
+ * parts are distinguishable.
  *
  * @param slot The slot where the encoding could be added.
  * @param encoding The encoding value. Avoid using zero value since its bit
@@ -179,11 +178,8 @@ BEMTester::canAddComponentEncoding(
  */
 bool
 BEMTester::canAddComponentPriorityEncoding(
-    MoveSlot& slot,
-    unsigned int encoding,
-    unsigned int extraBits,
+    MoveSlot& slot, unsigned int encoding, unsigned int extraBits,
     int offset) {
-
     bool canAdd = false;
     int encWidth = BEMTools::encodingWidth(encoding, extraBits);
     unsigned truncatedEnc;
@@ -199,38 +195,37 @@ BEMTester::canAddComponentPriorityEncoding(
     }
 
     if (fieldsOverlap(slot.guardField(), encWidth, offset)) {
-        std::tie(truncatedEnc, truncatedWidth, offsetInField) =
-            splitEncoding(encoding, encWidth,
-                slot.guardField().width(),
-                offset-slot.guardField().bitPosition());
+        std::tie(truncatedEnc, truncatedWidth, offsetInField) = splitEncoding(
+            encoding, encWidth, slot.guardField().width(),
+            offset - slot.guardField().bitPosition());
 
-        canAdd = canAdd || !conflictsWithGuardEncoding(slot.guardField(),
-            truncatedEnc, truncatedWidth, offsetInField);
+        canAdd = canAdd || !conflictsWithGuardEncoding(
+                               slot.guardField(), truncatedEnc,
+                               truncatedWidth, offsetInField);
     }
 
     if (fieldsOverlap(slot.sourceField(), encWidth, offset)) {
         const SourceField& field = slot.sourceField();
-        std::tie(truncatedEnc, truncatedWidth, offsetInField) =
-            splitEncoding(encoding, encWidth, field.width(),
-                offset-field.bitPosition());
+        std::tie(truncatedEnc, truncatedWidth, offsetInField) = splitEncoding(
+            encoding, encWidth, field.width(), offset - field.bitPosition());
 
-        canAdd = canAdd || !conflictsWithSourceEncodings(
-            field, truncatedEnc, truncatedWidth, offsetInField);
+        canAdd =
+            canAdd || !conflictsWithSourceEncodings(
+                          field, truncatedEnc, truncatedWidth, offsetInField);
     }
 
     if (fieldsOverlap(slot.destinationField(), encWidth, offset)) {
         const DestinationField& field = slot.destinationField();
-        std::tie(truncatedEnc, truncatedWidth, offsetInField) =
-            splitEncoding(encoding, encWidth, field.width(),
-                offset-field.bitPosition());
+        std::tie(truncatedEnc, truncatedWidth, offsetInField) = splitEncoding(
+            encoding, encWidth, field.width(), offset - field.bitPosition());
 
-        canAdd = canAdd || !conflictsWithDestinationEncodings(
-            field, truncatedEnc, truncatedWidth, offsetInField);
+        canAdd =
+            canAdd || !conflictsWithDestinationEncodings(
+                          field, truncatedEnc, truncatedWidth, offsetInField);
     }
 
     return canAdd;
 }
-
 
 /**
  * Tells whether the given port encoding can be added to the given socket
@@ -291,7 +286,7 @@ BEMTester::canAddPortEncoding(
             return false;
         }
     }
-    
+
     return true;
 }
 
@@ -344,7 +339,6 @@ BEMTester::commonBitCount(
     return commonBits;
 }
 
-
 /**
  * Calculates the alignment of encodings that has the given widths when they
  * are added to the given slot field.
@@ -367,9 +361,9 @@ BEMTester::calculateAlignment(
     }
 }
 
-
 /**
- * Checks if a field relatively at position to an instruction field do overlap.
+ * Checks if a field relatively at position to an instruction field do
+ * overlap.
  *
  * @verbatim
  *       |<- instruction field ->|
@@ -386,14 +380,10 @@ BEMTester::calculateAlignment(
  */
 bool
 BEMTester::fieldsOverlap(
-    const InstructionField& with,
-    unsigned int toFieldWidth,
-    int toFieldPos) {
-
-    return fieldsOverlap(with.width(), with.bitPosition(),
-        toFieldWidth, toFieldPos);
+    const InstructionField& with, unsigned int toFieldWidth, int toFieldPos) {
+    return fieldsOverlap(
+        with.width(), with.bitPosition(), toFieldWidth, toFieldPos);
 }
-
 
 /**
  * Checks if the given fields overlaps
@@ -415,15 +405,13 @@ BEMTester::fieldsOverlap(
  */
 bool
 BEMTester::fieldsOverlap(
-    unsigned width1, int pos1,
-    unsigned width2, int pos2) {
-
+    unsigned width1, int pos1, unsigned width2, int pos2) {
     // positive = overlapping width, negative = separation width
-    return (std::min(pos1+static_cast<int>(width1),
-                     pos2+static_cast<int>(width2)) -
+    return (std::min(
+                pos1 + static_cast<int>(width1),
+                pos2 + static_cast<int>(width2)) -
             std::max(pos1, pos2)) > 0;
 }
-
 
 /**
  * Checks that the given encoding and others in the field can be distinguished
@@ -435,18 +423,18 @@ BEMTester::fieldsOverlap(
  *              aligned.
  * @param offset The relative position of the encoding to the field's LSB.
  *               Positive shifts the encoding towards MSB and vice versa.
- * @return True if the encoding can not be distinguished from another encoding.
+ * @return True if the encoding can not be distinguished from another
+ * encoding.
  */
 bool
 BEMTester::conflictsWithGuardEncoding(
-    const GuardField& field,
-    unsigned int encoding, unsigned int /*width*/, int offset) {
-
+    const GuardField& field, unsigned int encoding, unsigned int /*width*/,
+    int offset) {
     for (int i = 0; i < field.gprGuardEncodingCount(); i++) {
         const GPRGuardEncoding& grdEnc = field.gprGuardEncoding(i);
 
-        if (MathTools::bitFieldsEquals(grdEnc.encoding(), 0,
-            encoding, offset, field.width())) {
+        if (MathTools::bitFieldsEquals(
+                grdEnc.encoding(), 0, encoding, offset, field.width())) {
             return true;
         }
     }
@@ -454,8 +442,8 @@ BEMTester::conflictsWithGuardEncoding(
     for (int i = 0; i < field.fuGuardEncodingCount(); i++) {
         const FUGuardEncoding& grdEnc = field.fuGuardEncoding(i);
 
-        if (MathTools::bitFieldsEquals(grdEnc.encoding(), 0,
-            encoding, offset, field.width())) {
+        if (MathTools::bitFieldsEquals(
+                grdEnc.encoding(), 0, encoding, offset, field.width())) {
             return true;
         }
     }
@@ -464,8 +452,8 @@ BEMTester::conflictsWithGuardEncoding(
         const UnconditionalGuardEncoding& grdEnc =
             field.unconditionalGuardEncoding(false);
 
-        if (MathTools::bitFieldsEquals(grdEnc.encoding(), 0,
-            encoding, offset, field.width())) {
+        if (MathTools::bitFieldsEquals(
+                grdEnc.encoding(), 0, encoding, offset, field.width())) {
             return true;
         }
     }
@@ -474,15 +462,14 @@ BEMTester::conflictsWithGuardEncoding(
         const UnconditionalGuardEncoding& grdEnc =
             field.unconditionalGuardEncoding(true);
 
-        if (MathTools::bitFieldsEquals(grdEnc.encoding(), 0,
-            encoding, offset, field.width())) {
+        if (MathTools::bitFieldsEquals(
+                grdEnc.encoding(), 0, encoding, offset, field.width())) {
             return true;
         }
     }
 
     return false;
 }
-
 
 /**
  * Checks that the given encoding and others in the field can be distinguished
@@ -494,13 +481,13 @@ BEMTester::conflictsWithGuardEncoding(
  *              aligned.
  * @param offset The relative position of the encoding to the field's LSB.
  *               Positive shifts the encoding towards MSB and vice versa.
- * @return True if the encoding can not be distinguished from another encoding.
+ * @return True if the encoding can not be distinguished from another
+ * encoding.
  */
 bool
 BEMTester::conflictsWithSourceEncodings(
-    const SourceField& field,
-    unsigned int encoding, unsigned int width, int offset) {
-
+    const SourceField& field, unsigned int encoding, unsigned int width,
+    int offset) {
     unsigned truncatedEncoding;
     unsigned truncatedWidth;
     unsigned truncatedOffset;
@@ -509,18 +496,19 @@ BEMTester::conflictsWithSourceEncodings(
         const SocketEncoding& socketEnc = field.socketEncoding(i);
 
         bool socketIDOverlap = fieldsOverlap(
-            socketEnc.socketIDWidth(), socketEnc.socketIDPosition(),
-            width, offset);
+            socketEnc.socketIDWidth(), socketEnc.socketIDPosition(), width,
+            offset);
         std::tie(truncatedEncoding, truncatedWidth, truncatedOffset) =
             splitEncodingTo(socketEnc, encoding, width, offset);
         bool socketIDMatch = MathTools::bitFieldsEquals(
-            socketEnc.encoding(), truncatedOffset,
-            truncatedEncoding, 0, truncatedWidth);
+            socketEnc.encoding(), truncatedOffset, truncatedEncoding, 0,
+            truncatedWidth);
 
         const SocketCodeTable& scTable = socketEnc.socketCodes();
         // Get the part that overlaps with port codes.
         std::tie(truncatedEncoding, truncatedWidth, truncatedOffset) =
-            splitEncoding(encoding, width, scTable.width(),
+            splitEncoding(
+                encoding, width, scTable.width(),
                 offset - socketEnc.socketCodePosition());
         bool socketCodeOverlap = truncatedWidth > 0;
         bool socketCodeMatch = conflictsWithSocketTableEncodings(
@@ -541,19 +529,19 @@ BEMTester::conflictsWithSourceEncodings(
     if (field.hasImmediateEncoding()) {
         const ImmediateEncoding& simmEnc = field.immediateEncoding();
         std::tie(truncatedEncoding, truncatedWidth, truncatedOffset) =
-            splitEncoding(encoding, width, simmEnc.encodingWidth(),
+            splitEncoding(
+                encoding, width, simmEnc.encodingWidth(),
                 offset - simmEnc.encodingPosition());
 
-        if (MathTools::bitFieldsEquals(simmEnc.encoding(), truncatedOffset,
-            truncatedEncoding, 0, truncatedWidth)) {
-
+        if (MathTools::bitFieldsEquals(
+                simmEnc.encoding(), truncatedOffset, truncatedEncoding, 0,
+                truncatedWidth)) {
             return true;
         }
     }
 
     return false;
 }
-
 
 /**
  * Checks that the given encoding and others in the field can be distinguished
@@ -565,13 +553,13 @@ BEMTester::conflictsWithSourceEncodings(
  *              aligned.
  * @param offset The relative position of the encoding to the field's LSB.
  *               Positive shifts the encoding towards MSB and vice versa.
- * @return True if the encoding can not be distinguished from another encoding.
+ * @return True if the encoding can not be distinguished from another
+ * encoding.
  */
 bool
 BEMTester::conflictsWithDestinationEncodings(
-    const DestinationField& field,
-    unsigned int encoding, unsigned int width, int offset) {
-
+    const DestinationField& field, unsigned int encoding, unsigned int width,
+    int offset) {
     unsigned truncatedEncoding;
     unsigned truncatedWidth;
     unsigned truncatedOffset;
@@ -582,15 +570,17 @@ BEMTester::conflictsWithDestinationEncodings(
             splitEncodingTo(socketEnc, encoding, width, offset);
 
         bool socketIDOverlap = fieldsOverlap(
-            socketEnc.socketIDWidth(), socketEnc.socketIDPosition(),
-            width, offset);
-        bool socketIDMatch = MathTools::bitFieldsEquals(socketEnc.encoding(),
-            truncatedOffset, truncatedEncoding, 0, truncatedWidth);
+            socketEnc.socketIDWidth(), socketEnc.socketIDPosition(), width,
+            offset);
+        bool socketIDMatch = MathTools::bitFieldsEquals(
+            socketEnc.encoding(), truncatedOffset, truncatedEncoding, 0,
+            truncatedWidth);
 
         const SocketCodeTable& scTable = socketEnc.socketCodes();
         // Get the part that overlaps with port codes.
         std::tie(truncatedEncoding, truncatedWidth, truncatedOffset) =
-            splitEncoding(encoding, width, scTable.width(),
+            splitEncoding(
+                encoding, width, scTable.width(),
                 offset - socketEnc.socketCodePosition());
 
         bool socketCodeOverlap = truncatedWidth > 0;
@@ -611,7 +601,6 @@ BEMTester::conflictsWithDestinationEncodings(
     return false;
 }
 
-
 /**
  * Checks that the given encoding and others in the socket table can be
  * distinguished from each other.
@@ -622,13 +611,13 @@ BEMTester::conflictsWithDestinationEncodings(
  *              aligned.
  * @param offset The relative position of the encoding to the field's LSB.
  *               Positive shifts the encoding towards MSB and vice versa.
- * @return True if the encoding can not be distinguished from another encoding.
+ * @return True if the encoding can not be distinguished from another
+ * encoding.
  */
 bool
 BEMTester::conflictsWithSocketTableEncodings(
-    const SocketCodeTable& scTable,
-    unsigned int encoding, unsigned int width, int offset) {
-
+    const SocketCodeTable& scTable, unsigned int encoding, unsigned int width,
+    int offset) {
     // The conflict checking assumes that port code is encoded as:
     //      |<-   width  ->|
     //      |   encoding   |<- (offset > 0) ------------------------|
@@ -645,8 +634,8 @@ BEMTester::conflictsWithSocketTableEncodings(
         if (portCode.encodingWidth() > 0) {
             // note: extrabits of SocketCodeTable are not considered.
             if (MathTools::bitFieldsEquals(
-                encoding, 0, portCode.encoding(),
-                portCode.encodingWidth()-width, width)) {
+                    encoding, 0, portCode.encoding(),
+                    portCode.encodingWidth() - width, width)) {
                 return true;
             }
         }
@@ -654,16 +643,15 @@ BEMTester::conflictsWithSocketTableEncodings(
         // Check index part
         if (portCode.indexWidth() > 0) {
             if (fieldsOverlap(portCode.indexWidth(), 0, width, offset)) {
-                // todo/note: check if suggested encoding lands on unused index
-                // (when isMaxIndexSet() == true. Currently the feature is not
-                // used anywhere).
+                // todo/note: check if suggested encoding lands on unused
+                // index (when isMaxIndexSet() == true. Currently the feature
+                // is not used anywhere).
                 return true;
             }
         }
     }
     return false;
 }
-
 
 /**
  *
@@ -687,16 +675,15 @@ BEMTester::conflictsWithSocketTableEncodings(
  */
 std::tuple<unsigned, unsigned, int>
 BEMTester::splitEncoding(
-    unsigned encoding, unsigned encodingWidth,
-    unsigned targetWidth, int offsetToTarget) {
-
+    unsigned encoding, unsigned encodingWidth, unsigned targetWidth,
+    int offsetToTarget) {
     long int resultWidth =
-          std::min(static_cast<int>(targetWidth),
-                   offsetToTarget+static_cast<int>(encodingWidth))
-          - std::max(0, offsetToTarget);
+        std::min(
+            static_cast<int>(targetWidth),
+            offsetToTarget + static_cast<int>(encodingWidth)) -
+        std::max(0, offsetToTarget);
 
-    if (offsetToTarget > static_cast<int>(targetWidth)
-        || resultWidth <= 0) {
+    if (offsetToTarget > static_cast<int>(targetWidth) || resultWidth <= 0) {
         return std::make_tuple(0, 0, 0);
     }
 
@@ -714,7 +701,6 @@ BEMTester::splitEncoding(
     return std::make_tuple(resultEncoding, resultWidth, resultOffset);
 }
 
-
 /**
  * Splits the given encoding that overlaps with the SocketEncoding.
  *
@@ -725,12 +711,9 @@ BEMTester::splitEncoding(
  */
 std::tuple<unsigned, unsigned, int>
 BEMTester::splitEncodingTo(
-    const SocketEncoding& socketEncoding,
-    unsigned encoding, unsigned encodingWidth, int offsetToTarget) {
-
-    return splitEncoding(encoding, encodingWidth,
-        socketEncoding.socketIDWidth(),
+    const SocketEncoding& socketEncoding, unsigned encoding,
+    unsigned encodingWidth, int offsetToTarget) {
+    return splitEncoding(
+        encoding, encodingWidth, socketEncoding.socketIDWidth(),
         offsetToTarget - socketEncoding.socketIDPosition());
 }
-
-

@@ -582,11 +582,10 @@ InstructionTemplate::loadState(const ObjectState* state) {
                     __FILE__, __LINE__, procName, errorMsg.str());
             }
 
-
             if (child->name() == TemplateSlot::OSNAME_TEMPLATE_SLOT) {
                 int width = child->intAttribute(TemplateSlot::OSKEY_WIDTH);
-                string destination = child->stringAttribute(
-                    TemplateSlot::OSKEY_DESTINATION);
+                string destination =
+                    child->stringAttribute(TemplateSlot::OSKEY_DESTINATION);
                 Machine::ImmediateUnitNavigator iuNav =
                     machine()->immediateUnitNavigator();
                 ImmediateUnit* iu = NULL;
@@ -603,8 +602,8 @@ InstructionTemplate::loadState(const ObjectState* state) {
 
                 addSlot(slotName, width, *iu);
             }
-            }
-        } catch (const Exception& exception) {
+        }
+    } catch (const Exception& exception) {
         throw ObjectStateLoadingException(
             __FILE__, __LINE__, procName, exception.errorMessage());
     }

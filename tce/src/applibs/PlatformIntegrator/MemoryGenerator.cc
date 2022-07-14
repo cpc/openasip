@@ -57,19 +57,18 @@ const TCEString MemoryGenerator::CLOCK_PORT = "clk";
 const TCEString MemoryGenerator::RESET_PORT = "rstx";
 
 MemoryGenerator::MemoryGenerator(
-    int mauWidth,
-    int widthInMaus,
-    int addrWidth,
-    TCEString initFile,
-    const PlatformIntegrator* integrator,
-    std::ostream& warningStream,
-    std::ostream& errorStream):
-    mauWidth_(mauWidth), widthInMaus_(widthInMaus), addrWidth_(addrWidth),
-    initFile_(initFile), integrator_(integrator),
-    warningStream_(warningStream), errorStream_(errorStream),
-    lsuArch_(NULL), lsuPorts_() {
-
-}
+    int mauWidth, int widthInMaus, int addrWidth, TCEString initFile,
+    const PlatformIntegrator* integrator, std::ostream& warningStream,
+    std::ostream& errorStream)
+    : mauWidth_(mauWidth),
+      widthInMaus_(widthInMaus),
+      addrWidth_(addrWidth),
+      initFile_(initFile),
+      integrator_(integrator),
+      warningStream_(warningStream),
+      errorStream_(errorStream),
+      lsuArch_(NULL),
+      lsuPorts_() {}
 
 MemoryGenerator::~MemoryGenerator() {
 
@@ -81,10 +80,8 @@ MemoryGenerator::~MemoryGenerator() {
 
 bool
 MemoryGenerator::isCompatible(
-    const ProGe::NetlistBlock& ttaCore,
-    int coreId,
+    const ProGe::NetlistBlock& ttaCore, int coreId,
     std::vector<TCEString>& reasons) const {
-
     for (std::string port : lsuPorts_) {
         if (!checkFuPort(port, reasons)) {
             return false;
@@ -107,9 +104,7 @@ MemoryGenerator::isCompatible(
 
 bool
 MemoryGenerator::checkFuPort(
-    const std::string fuPort,
-    std::vector<TCEString>& reasons) const {
-
+    const std::string fuPort, std::vector<TCEString>& reasons) const {
     PortMap::const_iterator iter = memPorts_.find(fuPort);
     if (iter == memPorts_.end()) {
         TCEString msg;
@@ -120,14 +115,10 @@ MemoryGenerator::checkFuPort(
     return true;
 }
 
-
 void
 MemoryGenerator::addMemory(
-    const ProGe::NetlistBlock& ttaCore,
-    ProGe::NetlistBlock& integratorBlock,
-    int memIndex,
-    int coreId) {
-
+    const ProGe::NetlistBlock& ttaCore, ProGe::NetlistBlock& integratorBlock,
+    int memIndex, int coreId) {
     BlockPair blocks =
         createMemoryNetlistBlock(integratorBlock, memIndex, coreId);
     NetlistBlock* mem = blocks.first;
@@ -163,21 +154,16 @@ MemoryGenerator::addMemory(
         assert(corePort != NULL);
 
         connectPorts(
-            integratorBlock, *memPort, *corePort,
-            hdlPort->needsInversion(), coreId);
+            integratorBlock, *memPort, *corePort, hdlPort->needsInversion(),
+            coreId);
     }
 }
 
-
 MemoryGenerator::BlockPair
 MemoryGenerator::createMemoryNetlistBlock(
-    ProGe::NetlistBlock& integratorBlock,
-    int memIndex,
-    int coreId) {
-
+    ProGe::NetlistBlock& integratorBlock, int memIndex, int coreId) {
     VirtualNetlistBlock* staticConnectionsBlock = new VirtualNetlistBlock(
         moduleName() + "_virt", instanceName(coreId, memIndex) + "_virt");
-
 
     NetlistBlock* mem =
         new NetlistBlock(moduleName(), instanceName(coreId, memIndex));
@@ -202,7 +188,6 @@ MemoryGenerator::createMemoryNetlistBlock(
     blocks.second = staticConnectionsBlock;
     return blocks;
 }
-
 
 int
 MemoryGenerator::memoryTotalWidth() const {
@@ -318,17 +303,14 @@ MemoryGenerator::parameterCount() const {
 
     return params_.size();
 }
-    
+
 const ProGe::Parameter&
 MemoryGenerator::parameter(int index) const {
-    
     return params_.at(index);
 }
 
-
 void
 MemoryGenerator::addParameter(const ProGe::Parameter& add) {
-
     ProGe::Parameter toAdd(add.name(), add.type(), add.value());
     params_.push_back(toAdd);
 }
@@ -372,9 +354,7 @@ MemoryGenerator::lsuArchitecture() const {
 
 TCEString
 MemoryGenerator::corePortName(
-    const TCEString& portBaseName,
-    int coreId) const {
-
+    const TCEString& portBaseName, int coreId) const {
     // clock and reset port names are global
     if (portBaseName == integrator_->clockPort()->name() ||
         portBaseName == integrator_->resetPort()->name()) {
@@ -383,7 +363,7 @@ MemoryGenerator::corePortName(
 
     TCEString portName;
     if (coreId >= 0) {
-            portName << "core" << coreId << "_";
+        portName << "core" << coreId << "_";
     }
     if (lsuArch_ != NULL) {
         portName << "fu_" << lsuArchitecture().name() << "_";
@@ -392,20 +372,15 @@ MemoryGenerator::corePortName(
     return portName;
 }
 
-
 void
 MemoryGenerator::addLsu(
-    TTAMachine::FunctionUnit& lsuArch,
-    std::vector<std::string> lsuPorts) {
-
+    TTAMachine::FunctionUnit& lsuArch, std::vector<std::string> lsuPorts) {
     lsuArch_ = &lsuArch;
     lsuPorts_ = lsuPorts;
 }
 
-
 TCEString
 MemoryGenerator::memoryIndexString(int coreId, int memIndex) const {
-
     TCEString index;
     if (coreId >= 0) {
         index << coreId << "_";
@@ -415,12 +390,8 @@ MemoryGenerator::memoryIndexString(int coreId, int memIndex) const {
 
 void
 MemoryGenerator::connectPorts(
-    ProGe::NetlistBlock& netlistBlock,
-    const ProGe::NetlistPort& memPort,
-    const ProGe::NetlistPort& corePort,
-    bool inverted,
-    int /*coreId*/) {
-
+    ProGe::NetlistBlock& netlistBlock, const ProGe::NetlistPort& memPort,
+    const ProGe::NetlistPort& corePort, bool inverted, int /*coreId*/) {
     if (inverted) {
         ProGe::InverterBlock* InvertedBlock =
             new ProGe::InverterBlock(corePort, memPort);

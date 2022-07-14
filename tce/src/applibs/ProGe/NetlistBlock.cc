@@ -66,11 +66,9 @@ namespace ProGe {
  * @param netlist The netlist which the  belongs to.
  */
 NetlistBlock::NetlistBlock(
-    const std::string& moduleName,
-    const std::string& instanceName,
+    const std::string& moduleName, const std::string& instanceName,
     BaseNetlistBlock* parent)
-    : BaseNetlistBlock(moduleName, instanceName, parent) {
-}
+    : BaseNetlistBlock(moduleName, instanceName, parent) {}
 
 /**
  * The destructor.
@@ -92,15 +90,11 @@ NetlistBlock::setParameter(
     const std::string& name,
     const std::string& type,
     const std::string& value) {
-
     setParameter(Parameter(name, type, value));
 }
 
-NetlistPort* 
-NetlistBlock::port(
-    const std::string& portName,
-    bool partialMatch) {
-
+NetlistPort*
+NetlistBlock::port(const std::string& portName, bool partialMatch) {
     return BaseNetlistBlock::findPort(portName, false, partialMatch);
 }
 
@@ -118,7 +112,7 @@ NetlistBlock::subBlock(size_t index) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
 
-    //todo check for and throw wrong subblass
+    // todo check for and throw wrong subblass
     return *dynamic_cast<NetlistBlock*>(&BaseNetlistBlock::subBlock(index));
 }
 
@@ -135,7 +129,7 @@ NetlistBlock::parentBlock() const {
         throw InstanceNotFound(__FILE__, __LINE__, procName);
     }
 
-    //todo: fix parentblock may not be NetlistBlock.
+    // todo: fix parentblock may not be NetlistBlock.
     return *dynamic_cast<const NetlistBlock*>(
         &BaseNetlistBlock::parentBlock());
 }
@@ -164,11 +158,9 @@ NetlistBlock::parentBlock() {
  * @return Pointer to the netlist  copy
  */
 NetlistBlock*
-NetlistBlock::shallowCopy(
-    const std::string& instanceName) const {
-
-    NetlistBlock* block = new NetlistBlock(
-        this->moduleName(), instanceName, NULL);
+NetlistBlock::shallowCopy(const std::string& instanceName) const {
+    NetlistBlock* block =
+        new NetlistBlock(this->moduleName(), instanceName, NULL);
 
     for (size_t i = 0; i < this->parameterCount(); i++) {
         block->setParameter(this->parameter(i));
@@ -213,11 +205,11 @@ NetlistBlock::write(const Path& targetBaseDir, HDL targetLang) const {
         if (targetLang == ProGe::VHDL) {
             writer = new VHDLNetlistWriter(*this);
             topLevelDir = targetBaseDir.string() +
-                FileSystem::DIRECTORY_SEPARATOR + "vhdl";
+                          FileSystem::DIRECTORY_SEPARATOR + "vhdl";
         } else if (targetLang == ProGe::Verilog) {
             writer = new VerilogNetlistWriter(*this);
             topLevelDir = targetBaseDir.string() +
-                FileSystem::DIRECTORY_SEPARATOR + "verilog";
+                          FileSystem::DIRECTORY_SEPARATOR + "verilog";
         } else {
             assert(false && "Unsupported HDL.");
         }
@@ -225,8 +217,8 @@ NetlistBlock::write(const Path& targetBaseDir, HDL targetLang) const {
         if (!FileSystem::fileExists(topLevelDir)) {
             bool directoryCreated = FileSystem::createDirectory(topLevelDir);
             if (!directoryCreated) {
-                std::string errorMsg = "Unable to create directory " +
-                    topLevelDir + ".";
+                std::string errorMsg =
+                    "Unable to create directory " + topLevelDir + ".";
                 throw IOException(__FILE__, __LINE__, __func__, errorMsg);
             }
         }

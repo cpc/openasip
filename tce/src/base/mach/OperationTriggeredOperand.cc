@@ -40,58 +40,57 @@ namespace TTAMachine {
 const std::string OperationTriggeredOperand::OSNAME_OPERAND = "operand";
 const std::string OperationTriggeredOperand::OSKEY_NAME = "name";
 const std::string OperationTriggeredOperand::OSKEY_TYPE = "type";
-const std::string OperationTriggeredOperand::OSKEY_DIRECTION="direction";
+const std::string OperationTriggeredOperand::OSKEY_DIRECTION = "direction";
 
 /**
  * The constructor.
- * 
+ *
  * Registers the operation code encoding to the parent
  * binary encoding automatically.
- * 
+ *
  * @param parent The parent OperationTriggeredFormat.
  */
 
 OperationTriggeredOperand::OperationTriggeredOperand(
-    const std::string& name, OperationTriggeredFormat& parent) :
-    SubComponent(), name_(name), type_(""), direction_("") {
-    
+    const std::string& name, OperationTriggeredFormat& parent)
+    : SubComponent(), name_(name), type_(""), direction_("") {
     name_ = StringTools::stringToLower(name);
     parent.addOperand(*this);
 }
 
 /**
  * The constructor
- * 
+ *
  * Loads the state of the operation code encoding from
  * the given ObjectState tree
- * 
+ *
  * @param state The ObjectState tree
  * @param parent The parent binary encoding map
  * @exception ObjectStateLoadingException If an error occurs while loading
               the state.
  */
 
-OperationTriggeredOperand::OperationTriggeredOperand(const ObjectState* state,
-OperationTriggeredFormat& parent)
+OperationTriggeredOperand::OperationTriggeredOperand(
+    const ObjectState* state, OperationTriggeredFormat& parent)
     : SubComponent(), name_(""), type_(""), direction_("") {
-        const std::string procName =
+    const std::string procName =
         "OperationTriggeredOperand::OperationTriggeredOperand";
-        // set name
-        try {
-            setName(state->stringAttribute(OSKEY_NAME));
-        } catch (const Exception& exception) {
-            throw ObjectStateLoadingException(
-                __FILE__, __LINE__, procName, exception.errorMessage());
-        }
-        parent.addOperand(*this);
-        loadState(state);
+    // set name
+    try {
+        setName(state->stringAttribute(OSKEY_NAME));
+    } catch (const Exception& exception) {
+        throw ObjectStateLoadingException(
+            __FILE__, __LINE__, procName, exception.errorMessage());
+    }
+    parent.addOperand(*this);
+    loadState(state);
 }
 
 /**
  * Destructor.
  */
 OperationTriggeredOperand::~OperationTriggeredOperand() {
-    //TODO
+    // TODO
 }
 
 /**
@@ -111,7 +110,6 @@ OperationTriggeredOperand::name() const {
  */
 void
 OperationTriggeredOperand::setName(const std::string& name) {
-
     std::string lowerName = StringTools::stringToLower(name);
 
     if (lowerName == this->name()) {
@@ -147,11 +145,11 @@ OperationTriggeredOperand::loadState(const ObjectState* state) {
         type_ = state->stringAttribute(OSKEY_TYPE);
         direction_ = state->stringAttribute(OSKEY_DIRECTION);
     } catch (const Exception& exception) {
-     const std::string procName = "OperationTriggeredOperand::loadState";
-     throw ObjectStateLoadingException(
-         __FILE__, __LINE__, procName, exception.errorMessage());
+        const std::string procName = "OperationTriggeredOperand::loadState";
+        throw ObjectStateLoadingException(
+            __FILE__, __LINE__, procName, exception.errorMessage());
     }
- 
+
     delete newState;
 }
 
@@ -171,4 +169,4 @@ OperationTriggeredOperand::saveState() const {
 
     return state;
 }
-}
+}  // namespace TTAMachine

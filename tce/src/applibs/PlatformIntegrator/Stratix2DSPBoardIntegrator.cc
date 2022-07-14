@@ -128,18 +128,14 @@ Stratix2DSPBoardIntegrator::integrateProcessor(
     addProGeFiles();
 
     projectFileGenerator()->writeProjectFiles();
-}   
-
+}
 
 MemoryGenerator&
 Stratix2DSPBoardIntegrator::dmemInstance(
-    MemInfo dmem,
-    TTAMachine::FunctionUnit& lsuArch,
+    MemInfo dmem, TTAMachine::FunctionUnit& lsuArch,
     std::vector<std::string> lsuPorts) {
-
     if (dmem.type == ONCHIP) {
-        return AlteraIntegrator::dmemInstance(dmem, lsuArch,
-                                              lsuPorts);
+        return AlteraIntegrator::dmemInstance(dmem, lsuArch, lsuPorts);
     } else if (dmem.type == SRAM) {
         if (dmemGen_ == NULL) {
             TCEString initFile = programName() + "_" + dmem.asName + ".img";
@@ -163,7 +159,6 @@ Stratix2DSPBoardIntegrator::dmemInstance(
 
 void
 Stratix2DSPBoardIntegrator::mapToplevelPorts() {
-
     NetlistBlock& tl = *integratorBlock();
     for (size_t i = 0; i < tl.portCount(); i++) {
         addSignalMapping(tl.port(i).name());

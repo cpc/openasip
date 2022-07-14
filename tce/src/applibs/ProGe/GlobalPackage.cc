@@ -36,11 +36,9 @@
 namespace ProGe {
 
 GlobalPackage::GlobalPackage(const std::string& entityName)
-    : entityName_(entityName) {
-}
+    : entityName_(entityName) {}
 
-GlobalPackage::~GlobalPackage() {
-}
+GlobalPackage::~GlobalPackage() {}
 
 /**
  * Return name of this package.
@@ -84,6 +82,6 @@ GlobalPackage::instructionDataWidth() const {
     return "INSTRUCTIONWIDTH";
 }
 
-//todo package writer
+// todo package writer
 
 } /* namespace ProGe */

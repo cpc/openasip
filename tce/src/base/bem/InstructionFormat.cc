@@ -30,7 +30,6 @@
  * @note rating: red
  */
 
-
 #include "InstructionFormat.hh"
 #include "OperationTriggeredEncoding.hh"
 #include "ObjectState.hh"
@@ -40,24 +39,20 @@
 #include "InstructionField.hh"
 #include <algorithm>
 
+const std::string InstructionFormat::OSNAME_INSTRUCTION_FORMAT = "ota-format";
 
-const std::string InstructionFormat::OSNAME_INSTRUCTION_FORMAT
-    = "ota-format";
-
-const std::string InstructionFormat::OSKEY_INSTRUCTION_FORMAT_NAME
-    = "name";
-const std::string InstructionFormat::OSKEY_OTA_OPERATION_NAME
-    = "ota-operation";
+const std::string InstructionFormat::OSKEY_INSTRUCTION_FORMAT_NAME = "name";
+const std::string InstructionFormat::OSKEY_OTA_OPERATION_NAME =
+    "ota-operation";
 const std::string InstructionFormat::OSKEY_OPERATION_NAME = "name";
-const std::string InstructionFormat::OSKEY_OPERATION_ENCODING_NAME
-    = "encoding";
-
+const std::string InstructionFormat::OSKEY_OPERATION_ENCODING_NAME =
+    "encoding";
 
 /**
  * The constructor.
- * 
+ *
  * Adds the instruction format to the parent binary encoding automatically.
- * 
+ *
  * @param name Name of the instruction format.
  * @param parent The parent BinaryEncoding.
  */
@@ -71,9 +66,9 @@ InstructionFormat::InstructionFormat(
 
 /**
  * The constructor.
- * 
+ *
  * Loads the state of the instruction format from the given ObjectState tree.
- * 
+ *
  * @param state The ObjectState tree.
  * @param parent The parent binary encoding map.
  * @exception ObjectStateLoadingException If an error occurs while loading
@@ -81,7 +76,7 @@ InstructionFormat::InstructionFormat(
  */
 
 InstructionFormat::InstructionFormat(
-    const ObjectState* state, BinaryEncoding& parent) 
+    const ObjectState* state, BinaryEncoding& parent)
     : parent_(NULL) {
     parent.addInstructionFormat(*this);
     parent_ = &parent;
@@ -90,7 +85,7 @@ InstructionFormat::InstructionFormat(
 
 /**
  * The destructor
- * 
+ *
  */
 
 InstructionFormat::~InstructionFormat() {
@@ -110,10 +105,9 @@ InstructionFormat::hasOperation(const std::string& op) const {
     return MapTools::containsKey(operations_, op);
 }
 
-
 /**
  * Returns the name of the instruction format.
- * 
+ *
  * @return The name of the instruction format
  */
 
@@ -123,8 +117,8 @@ InstructionFormat::name() const {
 }
 
 /**
- * Sets the name of the instruction format. 
- * 
+ * Sets the name of the instruction format.
+ *
  * @param name The name of the instruction format.
  */
 
@@ -133,12 +127,11 @@ InstructionFormat::setName(const std::string& name) {
     name_ = name;
 }
 
-
 /**
- * Adds an operation triggered move slot to the instruction format 
- * 
+ * Adds an operation triggered move slot to the instruction format
+ *
  * @param encoding The operation triggered move slot to be addeed
- * @exception ObjectAlreadyExists If the slot has already been added to the 
+ * @exception ObjectAlreadyExists If the slot has already been added to the
  *            instruction format.
  */
 
@@ -146,28 +139,26 @@ void
 InstructionFormat::addEncoding(OperationTriggeredEncoding& encoding) {
     if (!VectorTools::containsValue(encodings_, &encoding)) {
         encodings_.push_back(&encoding);
-    }
-    else {
+    } else {
         const std::string procName = "InstructionFormat::addEncoding";
         throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
     }
 }
 
 /**
- * Adds an operation to the instruction format 
- * 
+ * Adds an operation to the instruction format
+ *
  * @param op Operation name
  * @param encoding Encoding of the operation
- * @exception ObjectAlreadyExists If the slot has already been added to the 
+ * @exception ObjectAlreadyExists If the slot has already been added to the
  *            instruction format.
  */
 
 void
 InstructionFormat::addOperation(std::string op, int encoding) {
-    if (!MapTools::containsKey(operations_, op)){
+    if (!MapTools::containsKey(operations_, op)) {
         operations_.insert({op, encoding});
-    }
-    else {
+    } else {
         const std::string procName = "InstructionFormat::addOperation";
         throw ObjectAlreadyExists(__FILE__, __LINE__, procName);
     }
@@ -175,9 +166,9 @@ InstructionFormat::addOperation(std::string op, int encoding) {
 
 /**
  * Returns the number of operation triggered encodings.
- * 
+ *
  * @return The number of child fields.
- */     
+ */
 
 int
 InstructionFormat::childFieldCount() const {
@@ -186,8 +177,8 @@ InstructionFormat::childFieldCount() const {
 
 /**
  * Returns the bit width of the instruction format.
- * 
- * @return Bit width of the instruction format. 
+ *
+ * @return Bit width of the instruction format.
  */
 
 int
@@ -211,7 +202,6 @@ InstructionFormat::encoding(const std::string& op) const {
     return operations_.at(op);
 }
 
-
 /**
  * Loads the state of the instruction format from the given ObjectState tree.
  *
@@ -220,26 +210,27 @@ InstructionFormat::encoding(const std::string& op) const {
  *                                        the state.
  */
 
-void 
+void
 InstructionFormat::loadState(const ObjectState* state) {
     ObjectState* newState = new ObjectState(*state);
     try {
         setName(newState->stringAttribute(OSKEY_INSTRUCTION_FORMAT_NAME));
         for (int i = 0; i < newState->childCount(); i++) {
             ObjectState* child = newState->child(i);
-            if(child->name() == 
-            OperationTriggeredEncoding::OSNAME_OTA_ENCODING) {
+            if (child->name() ==
+                OperationTriggeredEncoding::OSNAME_OTA_ENCODING) {
                 new OperationTriggeredEncoding(child, *this);
-            } else if(child->name() == OSKEY_OTA_OPERATION_NAME) {
-                addOperation(child->stringAttribute(OSKEY_OPERATION_NAME),
+            } else if (child->name() == OSKEY_OTA_OPERATION_NAME) {
+                addOperation(
+                    child->stringAttribute(OSKEY_OPERATION_NAME),
                     child->intAttribute(OSKEY_OPERATION_ENCODING_NAME));
             }
         }
-     } catch (const Exception& exception) {
-     const std::string procName = "InstructionFormat::loadState";
-     throw ObjectStateLoadingException(
-         __FILE__, __LINE__, procName, exception.errorMessage());
-     }
+    } catch (const Exception& exception) {
+        const std::string procName = "InstructionFormat::loadState";
+        throw ObjectStateLoadingException(
+            __FILE__, __LINE__, procName, exception.errorMessage());
+    }
 }
 
 /**

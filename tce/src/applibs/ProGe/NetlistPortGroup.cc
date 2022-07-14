@@ -44,23 +44,16 @@
 namespace ProGe {
 
 NetlistPortGroup::NetlistPortGroup()
-    : parent_(nullptr),
-      ports_(),
-      signalGroup_() {
-}
+    : parent_(nullptr), ports_(), signalGroup_() {}
 
 /**
  * Copy constructor. Copies everything except parent block reference.
  */
 NetlistPortGroup::NetlistPortGroup(
-    const NetlistPortGroup& other,
-    bool asMirrored)
-    : parent_(nullptr),
-      ports_(),
-      signalGroup_(other.signalGroup_) {
-
-    std::insert_iterator<PortContainerType>
-        portInserter(ports_, ports_.begin());
+    const NetlistPortGroup& other, bool asMirrored)
+    : parent_(nullptr), ports_(), signalGroup_(other.signalGroup_) {
+    std::insert_iterator<PortContainerType> portInserter(
+        ports_, ports_.begin());
     for (size_t i = 0; i < other.portCount(); i++) {
         portInserter = other.portAt(i).clone(asMirrored);
     }
@@ -70,10 +63,7 @@ NetlistPortGroup::NetlistPortGroup(
  * Constructs empty port group with given SignalGroup.
  */
 NetlistPortGroup::NetlistPortGroup(SignalGroup signalGroup)
-    : parent_(nullptr),
-      ports_(),
-      signalGroup_(signalGroup) {
-}
+    : parent_(nullptr), ports_(), signalGroup_(signalGroup) {}
 
 NetlistPortGroup::~NetlistPortGroup() {
     if (!hasParent()) {
@@ -114,7 +104,6 @@ NetlistPortGroup::hasPortBySignal(SignalType type) const {
     return false;
 }
 
-
 /**
  * Returns first found port by given signal type.
  */
@@ -125,7 +114,8 @@ NetlistPortGroup::portBySignal(SignalType type) const {
             return *p;
         }
     }
-    THROW_EXCEPTION(InstanceNotFound,
+    THROW_EXCEPTION(
+        InstanceNotFound,
         "The port group does not have port by given signal type.");
 }
 
@@ -180,7 +170,8 @@ NetlistPortGroup::clone(bool asMirrored) const {
     NetlistPortGroup* newGroup = new NetlistPortGroup(*this, asMirrored);
     assert(this->portCount() == newGroup->portCount());
     for (size_t i = 0; i < portCount(); i++) {
-        assert(this->portAt(i).assignedSignal().type() ==
+        assert(
+            this->portAt(i).assignedSignal().type() ==
             newGroup->portAt(i).assignedSignal().type());
     }
     return newGroup;
@@ -197,7 +188,7 @@ NetlistPortGroup::end() {
 }
 
 NetlistPortGroup::const_iterator
-NetlistPortGroup::begin() const  {
+NetlistPortGroup::begin() const {
     return ports_.begin();
 }
 

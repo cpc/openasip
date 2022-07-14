@@ -101,13 +101,10 @@ KoskiIntegrator::projectFileGenerator() const {
     return ipXactGen_;
 }
 
-
 MemoryGenerator&
 KoskiIntegrator::dmemInstance(
-    MemInfo dmem,
-    TTAMachine::FunctionUnit& lsuArch,
+    MemInfo dmem, TTAMachine::FunctionUnit& lsuArch,
     std::vector<std::string> lsuPorts) {
-
     if (dmem.type == ONCHIP) {
         if (dmemGen_ == NULL) {
             TCEString initFile = programName() + "_" + dmem.asName + ".mif";
@@ -129,7 +126,6 @@ KoskiIntegrator::dmemInstance(
     
     return *dmemGen_;
 }
-
 
 void
 KoskiIntegrator::printInfo(std::ostream& stream) const {

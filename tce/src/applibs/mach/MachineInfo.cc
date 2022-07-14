@@ -745,9 +745,7 @@ bool MachineInfo::supportsPortGuardedJump(
  * @return Vector of found lock unit FUs
  */
 std::vector<const TTAMachine::FunctionUnit*>
-MachineInfo::findLockUnits(
-    const TTAMachine::Machine& machine) {
-
+MachineInfo::findLockUnits(const TTAMachine::Machine& machine) {
     std::vector<TCEString> requiredOperations;
     requiredOperations.push_back(LOCK_READ_);
     requiredOperations.push_back(TRY_LOCK_ADDR_);
@@ -756,22 +754,22 @@ MachineInfo::findLockUnits(
     std::vector<const FunctionUnit*> lockUnits;
     Machine::FunctionUnitNavigator fuNav = machine.functionUnitNavigator();
     for (int i = 0; i < fuNav.count(); i++) {
-         const FunctionUnit* fu = fuNav.item(i);
-         bool hasCorrectOperations = true;
-         for (unsigned int i = 0; i < requiredOperations.size(); i++) {
-             if (!fu->hasOperation(requiredOperations.at(i))) {
-                 hasCorrectOperations = false;
-                 break;
-             }
-         }
-         if (hasCorrectOperations) {
-             if (!fu->hasAddressSpace()) {
-                 TCEString msg;
-                 msg << "Lock Unit " << fu->name() << " has no address space";
-                 throw InvalidData(__FILE__, __LINE__, __func__, msg);
-             }
-             lockUnits.push_back(fu);
-         }
+        const FunctionUnit* fu = fuNav.item(i);
+        bool hasCorrectOperations = true;
+        for (unsigned int i = 0; i < requiredOperations.size(); i++) {
+            if (!fu->hasOperation(requiredOperations.at(i))) {
+                hasCorrectOperations = false;
+                break;
+            }
+        }
+        if (hasCorrectOperations) {
+            if (!fu->hasAddressSpace()) {
+                TCEString msg;
+                msg << "Lock Unit " << fu->name() << " has no address space";
+                throw InvalidData(__FILE__, __LINE__, __func__, msg);
+            }
+            lockUnits.push_back(fu);
+        }
     }
     return lockUnits;
 }

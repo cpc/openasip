@@ -229,8 +229,8 @@ ProGeTestBenchGenerator::generate(
         string addrWidth;
         string dmemImageFilename("dmem_");
         if (ASFUs.size() == 1) {
-            dmemImageFilename += ASFUs.begin()->second.at(0)->addressSpace()
-                ->name();
+            dmemImageFilename +=
+                ASFUs.begin()->second.at(0)->addressSpace()->name();
             dmemImageFilename += "_";
         }
         dmemImageFilename += "init.img";
@@ -278,8 +278,8 @@ ProGeTestBenchGenerator::generate(
         }
         // TODO: don't create whole file here just add memory widths and 
         // the init file entry
-        createTBConstFile(dstDirectory, dmemImageFilename, dataWidth,
-            addrWidth);
+        createTBConstFile(
+            dstDirectory, dmemImageFilename, dataWidth, addrWidth);
         ++it;
     }  
 
@@ -290,7 +290,7 @@ ProGeTestBenchGenerator::generate(
     // the beginning of the core FU (load store unit) mappings
     string LSUMapConst;
     if (language == VHDL) {
-        LSUMapConst = 
+        LSUMapConst =
             "port map (\n"
             "clk  => clk,\n"
             "rstx => rst_x,\n"
@@ -326,10 +326,10 @@ ProGeTestBenchGenerator::generate(
     }
     
     // read toplevel.vhdl from proge output dir for proc_arch.vhdl
-    string toplevel = progeOutDir + FileSystem::DIRECTORY_SEPARATOR
-        + ((language==VHDL)?"vhdl":"verilog")
-        + FileSystem::DIRECTORY_SEPARATOR + entityStr
-        + ((language==VHDL)?".vhdl":".v");
+    string toplevel = progeOutDir + FileSystem::DIRECTORY_SEPARATOR +
+                      ((language == VHDL) ? "vhdl" : "verilog") +
+                      FileSystem::DIRECTORY_SEPARATOR + entityStr +
+                      ((language == VHDL) ? ".vhdl" : ".v");
 
     createProcArchVhdl(dstDirectory, toplevel, LSUMapConst);
 }
@@ -497,64 +497,66 @@ ProGeTestBenchGenerator::getSignalMapping(
  */
 void
 ProGeTestBenchGenerator::createTBConstFile(
-        std::string dstDirectory,
-        const std::string& dmemImage,
-        const string& dataWidth,
-        const string& addrWidth) {
+    std::string dstDirectory, const std::string& dmemImage,
+    const string& dataWidth, const string& addrWidth) {
     string dstFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
-    ((language_ == VHDL)?
-        "testbench_constants_pkg.vhdl":"testbench_constants_pkg.vh");
+                     ((language_ == VHDL) ? "testbench_constants_pkg.vhdl"
+                                          : "testbench_constants_pkg.vh");
 
     createFile(dstFile);
 
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
     if(language_==VHDL){
         stream << "package testbench_constants is" << endl
-               << "-- width of the data memory"    << endl
+               << "-- width of the data memory" << endl
                << "constant DMEMDATAWIDTH : positive := "
-               << ((dataWidth.empty())? "1" : dataWidth)<< ";" << endl
+               << ((dataWidth.empty()) ? "1" : dataWidth) << ";" << endl
 
                << "-- address width of the data memory" << endl
                << "constant DMEMADDRWIDTH : positive := "
-               << ((addrWidth.empty()) ? "1" : addrWidth)<< ";" << endl
+               << ((addrWidth.empty()) ? "1" : addrWidth) << ";" << endl
 
                << "-- simulation run time" << endl
                << "constant RUNTIME : time := 5234 * 10 ns;" << endl
 
                << "-- memory init files" << endl
                << "constant DMEM_INIT_FILE : string := "
-               << ((dataWidth.empty()) ?
-                 "\"\";" :
-                 "\"tb" + FileSystem::DIRECTORY_SEPARATOR + dmemImage + "\";")
+               << ((dataWidth.empty())
+                       ? "\"\";"
+                       : "\"tb" + FileSystem::DIRECTORY_SEPARATOR +
+                             dmemImage + "\";")
                << endl
-               
+
                << "constant IMEM_INIT_FILE : string := "
-               << "\"tb" + FileSystem::DIRECTORY_SEPARATOR + "imem_init.img\";"
+               << "\"tb" + FileSystem::DIRECTORY_SEPARATOR +
+                      "imem_init.img\";"
                << endl
                << "end testbench_constants;" << endl;
     } else {
-        stream << "// width of the data memory"    << endl
+        stream << "// width of the data memory" << endl
                << "parameter DMEMDATAWIDTH = "
-               << ((dataWidth.empty())? "1" : dataWidth)<< "," << endl
+               << ((dataWidth.empty()) ? "1" : dataWidth) << "," << endl
 
                << "// address width of the data memory" << endl
                << "parameter DMEMADDRWIDTH = "
-               << ((addrWidth.empty()) ? "1" : addrWidth)<< "," << endl
+               << ((addrWidth.empty()) ? "1" : addrWidth) << "," << endl
 
                << "// simulation run time" << endl
                << "parameter RUNTIME = `SIMTIME,// ns" << endl
 
                << "// memory init files" << endl
                << "parameter DMEM_INIT_FILE = "
-               << ((dataWidth.empty()) ?
-                 "\"\"," :
-                 "\"tb" + FileSystem::DIRECTORY_SEPARATOR + dmemImage + "\",")
+               << ((dataWidth.empty())
+                       ? "\"\","
+                       : "\"tb" + FileSystem::DIRECTORY_SEPARATOR +
+                             dmemImage + "\",")
                << endl
-               
+
                << "parameter IMEM_INIT_FILE = "
-               << ((addrWidth.empty()) ?
-                  "\"\"" :
-                  "\"tb" + FileSystem::DIRECTORY_SEPARATOR + "imem_init.img\"")
+               << ((addrWidth.empty())
+                       ? "\"\""
+                       : "\"tb" + FileSystem::DIRECTORY_SEPARATOR +
+                             "imem_init.img\"")
                << endl;
     }
     stream.close();
