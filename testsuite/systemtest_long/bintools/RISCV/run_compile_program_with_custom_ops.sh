@@ -4,7 +4,7 @@ CC=../../../../tce/src/bintools/Compiler/oacc-riscv
 ELF=crc.elf
 LOG=compileLog.txt
 
-$CC -O0 -a $ADF -o $ELF $SRC 2>1 $LOG || exit 1;
+$CC -O0 -a $ADF -o $ELF $SRC &> $LOG
 
 if [ -s $LOG ]; then
     echo "failure"

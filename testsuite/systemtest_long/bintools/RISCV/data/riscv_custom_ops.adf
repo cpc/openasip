@@ -857,7 +857,7 @@
   <address-space name="data">
     <width>8</width>
     <min-address>131072</min-address>
-    <max-address>262144</max-address>
+    <max-address>262143</max-address>
     <numerical-id>1</numerical-id>
   </address-space>
 
