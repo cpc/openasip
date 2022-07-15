@@ -184,3 +184,12 @@ The development files of the following Boost libraries are required by TCE:
 Some distributions, like Fedora Core, include all Boost libraries in a
 single package, but some, like Debian, have separated them in several
 packages.
+
+RISC-V
+-----
+To simulate RISC-V programs in RTL simulation an elf2hex tool is needed. This
+can be acquired by installing the RISC-V GNU Toolchain:
+https://github.com/riscv-collab/riscv-gnu-toolchain
+
+Note: If you are using the the RISCV GNU Toolchain with OpenASIP for other purposes, the toolchain must be built with the RV32IM target as OpenASIP
+does not as of now support the RISC-V C-extension.

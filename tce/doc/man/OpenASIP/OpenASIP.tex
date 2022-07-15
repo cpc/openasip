@@ -3886,18 +3886,18 @@ binary image of the program in text format. Previously, we generated an
 executable and linkable format (ELF) \file{crc.elf}. To convert it to text
 format, we need additional tools.
 
-You can use RISCV GNU Toolchain and its riscv32-unknown-elf-elf2hex tool. Or 
-alternatively if you don't want to install the whole toolchain, you can use
-other projects such as SiFive's elf2hex:
-\url{https://github.com/sifive/elf2hex}
+You can use RISCV GNU Toolchain and its riscv32-unknown-elf-elf2hex tool:
+\url{https://github.com/riscv-collab/riscv-gnu-toolchain}.
+
+\shellcmd{riscv32-unknown-elf-elf2hex -{}-bit-width 32 -{}-input crc.elf -{}-output crc.hex}
 
 Now that the program is presented in hex format in a text file, it must be 
 converted to a binary presentation for the testbench. Do this with an included
 script:
 
-\shellcmd{oa-hex2bin -w 32 -o riscv-proc/tb/imem\_init.img hex.txt}
+\shellcmd{oa-hex2bin -w 32 -o riscv-proc/tb/imem\_init.img crc.hex}
 
-\shellcmd{oa-hex2bin -w 32 -o riscv-proc/tb/dmem\_data\_init.img hex.txt}
+\shellcmd{oa-hex2bin -w 32 -o riscv-proc/tb/dmem\_data\_init.img crc.hex}
 
 Currently the testbench uses separate instruction and data memories which is
 why both of them require a separate initialization file.
@@ -4005,7 +4005,7 @@ definitions to the newly created operation module.
 \item%
   Type `CRC\_XOR\_SHIFT' as the name of the operation.
 \item%
-  Add one input by pressing the \emph{Add} button under the operation input
+  Add two inputs by pressing the \emph{Add} button under the operation input
   list. Select \textit{UIntWord} as type.
 \item%
   Add one output by pressing the \emph{Add} button under the operation output
@@ -4259,10 +4259,20 @@ Add the new instructions to the R-format like previously.
     Click \emph{OK} on the OTA Formats dialog.
 \end{enumerate}
 
-Next modify the source code to use the REFLECT8 and REFLECT32 intrinsics as
-before. Add new crc variables "input" and "output" to the function to help
-make the intrinsic calls. Mark the second input of the reflect operation to 0.
-After the changes the loop body should look like this:
+Let's modify the crcFast function to use the custom op. First declare 2 new
+variables at the beginning of the function:
+
+\begin{verbatim}
+ crc input;
+ crc output;
+\end{verbatim}
+
+The input data of reflect function is read from array message[] in the for-loop.
+Let us modify this so that at the beginning of the loop the input data is
+read to the input variable. Then we will use the \_OA\_RV\_REFLECT8 macro to run
+the custom operation, and finally replace the REFLECT\_DATA macro with the
+output variable. After these modifications the body of the for-loop should
+look like this:
 
 \begin{verbatim}
   input = message[byte];
@@ -4291,7 +4301,7 @@ processor generator.
 When generating RISC-V processors, these HDBs are sufficient. If you are
 generating a TTA you might want to add generate\_rf\_iu.hdb to the list.
    
-Now compile the program and images as before and simulate the design in RTL 
+Now, compile the program and images as before and simulate the design in RTL 
 simulation. This time, you should see a more significant drop in cycle counts.
 
 \subsection{Final Words}
@@ -4304,8 +4314,8 @@ The RISC-V feature of the toolset is new and somewhat experimental. Currently
 OpenASIP does not include an instruction set simulator for RISC-V which is why
 the processor must be simulated in RTL simulation.
 
-For your own designs, we recommend that you use the included riscv.adf description
-as a base and add your own custom instructions on top of it.
+For your own designs, we recommend that you use the included riscv.adf
+description as a base and add your own custom instructions on top of it.
 
 
 
