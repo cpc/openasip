@@ -1508,7 +1508,7 @@ assert not runningInstalled or (tceInstalled and tceprefix != ""), \
         "Could not find TCE prefix. Is TCE installed in PATH?"
 
 if runningInstalled:
-    lowerintrinsicsplugin = os.path.join(tceprefix,"lib/tce/LowerIntrinsics.so")
+    lowerintrinsicsplugin = os.path.join(tceprefix,"lib/openasip/LowerIntrinsics.so")
     newlib_libdir = newlibLibdir(options)
     newlib_includes = newlibIncludes(options)
     bclib_includes = "-I "  + os.path.join(tceprefix,"share/tce/srclibs/include") + " "
@@ -1520,7 +1520,7 @@ if runningInstalled:
     tceOclBitcodeLibDir = os.path.join(tceprefix, "lib/llvmopencl")
     sourceLibSearchPaths = [os.path.join(tceprefix, "share/tce/srclibs/"),]
     dataDir = os.path.join(tceprefix, "share/tce/data/tcecc")
-    tceLibpath = os.path.join(tceprefix,"lib/tce/libtce.so")
+    tceLibpath = os.path.join(tceprefix,"lib/openasip/libtce.so")
 
     # All bclibs should be in the same newlib_libdir.
     # The source libs are located in separate dirs which
