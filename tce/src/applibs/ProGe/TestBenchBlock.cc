@@ -126,7 +126,7 @@ TestBenchBlock::write(const Path& targetBaseDir, HDL targetLang) const {
 
     Path progeDataDir(Environment::dataDirPath("ProGe"));
     instantiator.instantiateTemplateFile(
-        progeDataDir/"tb"/"multicore_testbench.vhdl.tmpl",
+        progeDataDir/"tb"/"testbench.vhdl.tmpl",
         targetBaseDir/"tb"/"testbench.vhdl");
     instantiator.instantiateTemplateFile(
         progeDataDir/"tb"/"clkgen.vhdl",

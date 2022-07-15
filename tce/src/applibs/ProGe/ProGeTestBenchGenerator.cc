@@ -594,7 +594,8 @@ ProGeTestBenchGenerator::copyTestBenchFiles(const std::string& dstDirectory) {
     
     inst.instantiateTemplateFile(
         sourceDir + DS + 
-        ((language_==VHDL)?"testbench.vhdl.tmpl":"testbench.v.tmpl"), 
+        ((language_==VHDL)?
+        "legacy_testbench.vhdl.tmpl":"legacy_testbench.v.tmpl"), 
         dstDirectory + DS +
         ((language_==VHDL)?"testbench.vhdl":"testbench.v"));
         

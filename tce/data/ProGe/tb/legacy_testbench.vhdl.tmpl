@@ -1,17 +1,17 @@
--- Copyright (c) 2002-2015 Tampere University.
+-- Copyright (c) 2002-2009 Tampere University.
 --
 -- This file is part of TTA-Based Codesign Environment (TCE).
---
+-- 
 -- Permission is hereby granted, free of charge, to any person obtaining a
 -- copy of this software and associated documentation files (the "Software"),
 -- to deal in the Software without restriction, including without limitation
 -- the rights to use, copy, modify, merge, publish, distribute, sublicense,
 -- and/or sell copies of the Software, and to permit persons to whom the
 -- Software is furnished to do so, subject to the following conditions:
---
+-- 
 -- The above copyright notice and this permission notice shall be included in
 -- all copies or substantial portions of the Software.
---
+-- 
 -- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 -- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 -- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,37 +20,34 @@
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
 -------------------------------------------------------------------------------
--- Title      : TTA-core testbench template
--- Project    : TCE
+-- Title      : testbench for TTA processor
+-- Project    : FlexDSP
 -------------------------------------------------------------------------------
 -- File       : testbench.vhdl
--- Author     : Henry Linjam�ki  <linjamah@kauluskeiju.cs.tut.fi>
--- Company    :
--- Created    : 2015-09-08
+-- Author     : Jaakko Sertamo  <sertamo@vlad.cs.tut.fi>
+-- Company    : TUT/IDCS
+-- Created    : 2001-07-13
 -- Last update: 2016-04-11
--- Platform   :
--- Standard   : VHDL'87
+-- Platform   : 
 -------------------------------------------------------------------------------
--- Description:
--------------------------------------------------------------------------------
--- Copyright (c) 2015
+-- Description: Simply resets the processor and triggers execution
 -------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author  Description
--- 2015-09-08  1.0      linjamah    Created
+-- 2001-07-13  1.0      sertamo Created
 -------------------------------------------------------------------------------
-
 library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Std_Logic_arith.all;
 use std.textio.all;
+use work.testbench_constants.all;
 use work.ENTITY_STR_globals.all;
 use work.ENTITY_STR_imem_mau.all;
 
 entity testbench is
 end testbench;
 
-architecture behavior of testbench is
+architecture testbench of testbench is
 
   component clkgen
     generic (
@@ -62,21 +59,45 @@ architecture behavior of testbench is
 
   signal clk : std_logic := '1';
 
-  component <<placeholder,dut-entity,proc>>
+  component proc
     port (
-      clk     : in  std_logic;
-      rstx    : in  std_logic;
-      <<placeholder,proc-entity-db-signals>>
-      locked  : out std_logic_vector(0 downto 0));
+      clk               : in  std_logic;
+      rst_x             : in  std_logic;
+      dmem_ext_bit_wr_x : in  std_logic_vector(DMEMDATAWIDTH-1 downto 0);
+      dmem_ext_wr_x     : in  std_logic;
+      dmem_ext_en_x     : in  std_logic;
+      dmem_ext_data     : in  std_logic_vector(DMEMDATAWIDTH-1 downto 0);
+      dmem_ext_addr     : in  std_logic_vector(DMEMADDRWIDTH-1 downto 0);
+      data_out          : out std_logic_vector(DMEMDATAWIDTH-1 downto 0);
+      imem_ext_bit_wr_x : in  std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+      imem_ext_wr_x     : in  std_logic;
+      imem_ext_en_x     : in  std_logic;
+      imem_ext_data     : in  std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+      imem_ext_addr     : in  std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+      dmem_busy         : out std_logic;
+      imem_busy         : out std_logic;
+      locked            : out std_logic);
   end component;
 
-  signal rstx   : std_logic;
+  signal rst_x         : std_logic;
+  signal dmem_bit_wr_x : std_logic_vector(DMEMDATAWIDTH-1 downto 0);
+  signal dmem_wr_x     : std_logic;
+  signal dmem_en_x     : std_logic;
+  signal dmem_data_in  : std_logic_vector(DMEMDATAWIDTH-1 downto 0);
+  signal dmem_addr     : std_logic_vector(DMEMADDRWIDTH-1 downto 0);
+  signal imem_bit_wr_x : std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+  signal imem_wr_x     : std_logic;
+  signal imem_en_x     : std_logic;
+  signal imem_data     : std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+  signal imem_addr     : std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+  signal dmem_busy     : std_logic;
+  signal imem_busy     : std_logic;
+  signal data_out      : std_logic_vector(DMEMDATAWIDTH-1 downto 0);
 
-  type   counter_array_t is array (0 to 0) of integer;
-  signal execution_count_reg : counter_array_t := (others => 0);
-  signal enable_clock        : std_logic       := '1';
-  signal lock_status_wire    : std_logic_vector(0 downto 0);
-
+  signal execution_count_reg : integer   := 0;
+  signal enable_clock        : std_logic := '1';
+  signal lock_status_wire    : std_logic;
+  
 begin
 
   clock : clkgen
@@ -86,36 +107,60 @@ begin
       clk => clk,
       en  => enable_clock);
 
-  dut : <<placeholder,dut-entity,proc>>
+  dut : proc
     port map (
-      clk     => clk,
-      rstx    => rstx,
-      <<placeholder,proc-instance-db-signals>>
-      locked  => lock_status_wire);
+      clk               => clk,
+      rst_x             => rst_x,
+      dmem_ext_bit_wr_x => dmem_bit_wr_x,
+      dmem_ext_wr_x     => dmem_wr_x,
+      dmem_ext_en_x     => dmem_en_x,
+      dmem_ext_data     => dmem_data_in,
+      dmem_ext_addr     => dmem_addr,
+      data_out          => data_out,
+      imem_ext_bit_wr_x => imem_bit_wr_x,
+      imem_ext_wr_x     => imem_wr_x,
+      imem_ext_en_x     => imem_en_x,
+      imem_ext_data     => imem_data,
+      imem_ext_addr     => imem_addr,
+      dmem_busy         => dmem_busy,
+      imem_busy         => imem_busy,
+      locked            => lock_status_wire);
+
+  dmem_bit_wr_x <= (others => '1');
+  dmem_wr_x     <= '1';
+  dmem_en_x     <= '1';
+  dmem_data_in  <= (others => '0');
+  dmem_addr     <= (others => '0');
+
+  imem_bit_wr_x <= (others => '1');
+  imem_wr_x     <= '1';
+  imem_en_x     <= '1';
+  imem_data     <= (others => '0');
+  imem_addr     <= (others => '0');
 
   run_test : process
   begin
-    rstx   <= '0';
+    rst_x   <= '0';
     -- Lower rstx a little after a clock edge so its clear on wich side reset
     -- lift off occurs.
     wait for (PERIOD*2 + PERIOD/10);
-    rstx   <= '1';
+    rst_x   <= '1';
     -- Test runs until requested amount of instructions have been executed or
     -- stopped by simulation script.
     wait;
   end process;
 
-  -- purpose: Counts executed instructions per core
+  -- purpose: Counts executed instructions
   -- type   : sequential
-  -- inputs : clk, rstx
+  -- inputs : clk, rst_x
   -- outputs: execution_count_reg
-  execution_counter : process (clk, rstx)
+  execution_counter : process (clk, rst_x)
   begin  -- process execution_counter
-    if rstx = '0' then                 -- asynchronous reset (active low)
-      execution_count_reg <= (others => 0);
+    if rst_x = '0' then                 -- asynchronous reset (active low)
+      execution_count_reg <= 0;
     elsif clk'event and clk = '1' then  -- rising clock edge
-      if lock_status_wire(0) = '0' then
-        execution_count_reg(0) <= execution_count_reg(0) + 1;
+      if lock_status_wire = '0' then
+        execution_count_reg <= execution_count_reg + 1;
       end if;
     end if;
   end process execution_counter;
@@ -132,7 +177,6 @@ begin
     variable good_v             : boolean := false;
     variable open_status_v      : file_open_status;
     variable execution_limit_v  : integer := -1;
-    variable all_finished_v     : boolean := false;
   begin  -- process clock_control
     file_open(open_status_v, execution_limit_file_v,
               "execution_limit", read_mode);
@@ -149,19 +193,10 @@ begin
       wait;
     end if;
 
-    -- Finish simulation is all cores have executed the set amount of
-    -- instructions.
-    while not all_finished_v loop
-      wait until clk'event and clk = '1';
-      all_finished_v := execution_count_reg(0) >= execution_limit_v;
-        all_finished_v := all_finished_v and
-                          execution_count_reg(0) >= execution_limit_v;
-    end loop;
-
+    wait on execution_count_reg until execution_count_reg >= execution_limit_v;
     enable_clock <= '0';
     wait;
-
+    
   end process clock_control;
 
-end behavior;
-
+end testbench;
