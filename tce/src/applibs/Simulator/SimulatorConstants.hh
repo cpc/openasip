@@ -51,7 +51,7 @@
 #define SIM_DEFAULT_COMMAND_LOG ".ttasim-history"
 
 /// The full title name of the CLI application
-#define SIM_CLI_TITLE "ttasim - TCE Simulator command line interface"
+#define SIM_CLI_TITLE "ttasim - TTA simulator command line interface"
 
 /// Alias for ClockCycleCount.
 typedef CycleCount ClockCycleCount;

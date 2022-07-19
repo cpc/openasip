@@ -3845,7 +3845,7 @@ must be separated to its own unit.
 \begin{figure}
   \begin{center}
     \includegraphics[width=10cm]{eps/start.eps}
-    \caption{Processor Designer (prode) when start ADF is opened}
+    \caption{Processor Designer (prode) with the starting point ADF loaded.}
     \label{fig:riscvStartProde}
   \end{center}
 \end{figure}
@@ -3855,7 +3855,7 @@ You'll learn how to edit the processor with ProDe later in this tutorial.
 \subsection{Compiling and simulating}
 \label{ssec:eval_start}
 Now we want to know how well the starting point architecture executes
-our program. We must compile the source code for this architecture
+our program. Let's compile the source code for this architecture
 with command:
 
 \shellcmd{oacc-riscv -O3 -a start.adf -o crc.elf main.c crc.c}
@@ -3864,7 +3864,7 @@ In addition to source codes, the compiler needs the architecture
 definition \file{start.adf}. It will produce a program called
 \file{crc.elf} which can be executed by this architecture. As \file{start.adf}
 does not yet include any custom instructions, the compiled program is fully
-compatible with the RISC-V RV32I ISA.
+compatible with the base RISC-V RV32I ISA.
 
 Now to simulate the processor in RTL simulation, we need to generate the
 processor RTL and its testbench:
@@ -3886,7 +3886,7 @@ binary image of the program in text format. Previously, we generated an
 executable and linkable format (ELF) \file{crc.elf}. To convert it to text
 format, we need additional tools.
 
-You can use RISCV GNU Toolchain and its riscv32-unknown-elf-elf2hex tool:
+You can use RISC-V GNU Toolchain and its riscv32-unknown-elf-elf2hex tool:
 \url{https://github.com/riscv-collab/riscv-gnu-toolchain}.
 
 \shellcmd{riscv32-unknown-elf-elf2hex -{}-bit-width 32 -{}-input crc.elf -{}-output crc.hex}
@@ -3922,9 +3922,10 @@ reached. You can see an instruction trace of the executed instructions in
 riscv\_instruction\_trace.dump and a trace of the register file traffic in 
 rf.dump. Cycles.dump stores the information about the amount of clock cycles
 and stalls. The simulation should take a bit under 400 cycles but your mileage
-may vary.
+may vary. You might see several assertions depending on your HDL simulator
+version, which you can safely ignore at this point.
 
-\subsection{Considering custom operations}
+\subsection{Using custom operations}
 %\subsection{Accelerating the CRC Algorithm}
 
 Custom operations (also known as special instructions) can be used to accelerate
@@ -3942,14 +3943,15 @@ operation which accelerates a smaller part of the algorithm, while
 keeping the architecture useful also for other applications.
 
 
-\subsection{Creating a custom operation with a DAG}
+\subsection{Defining a custom operation with a DAG}
+
 In OpenASIP the user can add custom operations to processor designs in two ways:
-with HDL snippets or DAG descriptions. With DAG descriptions, the user is able
-describe operations that can be described as a chain of already implemented operations.
-When this is not possible, HDL snippets are practical.
+with HDL snippets or directed acyclic graph (DAG) descriptions. With DAG descriptions,
+the user is able describe operations that can be described as a chain of already
+implemented operations. When this is not feasible, a new operation can be
+implemented by using HDL snippets.
+
 Let's first add a new custom operation with the DAG approach.
-
-
 
 %In this tutorial we add the FU
 %implementation for our custom operation so the processor
@@ -4033,8 +4035,8 @@ definitions to the newly created operation module.
   \end{center}
 \end{figure}
 
-
-Now open start.adf with ProDe to add then new custom instruction.
+Now open start.adf with ProDe to add the new custom operation to your
+processor architecture as a special instruction.
 
 \shellcmd{prode start.adf}
 
@@ -4048,13 +4050,13 @@ Now open start.adf with ProDe to add then new custom instruction.
   \item%
     Click the operation and press \emph{OK}
   \item%
-    Switch the operation-port binding so that the first operand is bound to 
+    Make sure the first operand is bound to
     P1 that is the triggering port. This is important when generating the 
     RISC-V decoder.
   \item%
     On the Operand usage view, you can change the desired latency by switching
-    the third operand write cycle. Leave it as it is because the operation is 
-    simple and can be therefore easily implemented in a single cycle.
+    the third operand write cycle. For this case, you can leave it as it is because
+    the operation is simple and can be therefore easily implemented in a single cycle.
   \item%
     Press \emph{OK} on the operation dialog.
   \item%
@@ -4062,8 +4064,8 @@ Now open start.adf with ProDe to add then new custom instruction.
 \end{enumerate}
 
 Now you have successfully added the operation to the processor
-microarchitecture. However we must still add it a the RISC-V instruction
-format.
+microarchitecture. We need to also add an RISC-V instruction
+format for it.
 
 \begin{enumerate}
   \item%
@@ -4118,16 +4120,16 @@ program and generate the program images for the testbench. Compile and run
 the program in RTL simulation. After the simulation is complete you see that
 the execution took 10 cycles less.
 
-\subsection{Creating a custom operation with a HDL snippet}
-In the previous section we described the operation as a DAG and were able to 
+\subsection{Defining a custom operation using an HDL snippet}
+
+In the previous section we described the operation as a DAG and were able to
 automatically generate the hardware for the new operation. However, it is not
-possible to describe the whole reflect loop as a DAG. In this subsection we
-implement the reflection loop as a VHDL snippet and add it to the architecture
-definition.
+possible to describe the whole reflect loop of CRC as an OpenASIP DAG.
 
-Start OSEd
+In this subsection we show how we can implement the reflection loop as a VHDL
+snippet and add it to the architecture definition as a special instruction.
 
-\shellcmd{osed \&}
+Start OSEd: \shellcmd{osed \&}
 
 \begin{enumerate}
 
@@ -4164,18 +4166,20 @@ themselves.
   \item%
     Create a file reflect8.vhd in the tour\_vhdl folder.
   \item%
-    Write the HDL of the operation and use opN for the input signals, eg.
-    op1, op2, op3 ... . The processor generator will map the function unit 
+    Write the HDL of the operation and use opN to refer to the input and output operands,
+    eg.  op1, op2, op3 ... . The processor generator will map the function unit
     input and outputs to these signals when generating the hardware. See
     Fig.~\ref{fig:reflect_snippet} for the correct HDL description of REFLECT8.
+    It ``flips'' the word by mirroring the upper bits to lower, etc.
   \item%
     Do the same thing but for the REFLECT32. Remember to set the loop iterator
-    limit to 31.
+    limit to 31 and the constant unside op1 to 31 so it mirrors the bits of the
+    whole 32 word.
   \item%
     Now we could also add a a verilog definition of the operation but as this
     exercise only goes through the VHDL generation, create an empty file
     called verilog.v in the same directory. Alternatively the user can write
-    the verilog version as an excersise.
+    the verilog version as an exercise.
 \end{enumerate}
 
 \begin{figure}
@@ -4186,7 +4190,7 @@ themselves.
   \end{center}
 \end{figure}
 
-Now that we have the snippets written, we can add the operation 
+Now that we have the snippets written, we can add the operation
 implementations to the hardware database.
 
 \shellcmd{hdbeditor \&}
@@ -4196,9 +4200,9 @@ implementations to the hardware database.
   Press \emph{Create hdb} under \emph{File}. Name it riscv\_tour.hdb
 \item%
   Press \emph{Add operation implementation} under \emph{Edit}. Name it
-  'reflect8'. 
+  'reflect8'.
 \item%
-  Add the VHDL Op implementation file. Also add the verilog file as a verilog
+  Add the VHDL Op implementation file reflect8.vhd. Also add the verilog file as a verilog
   Op implementation file.
 \item%
   Press \emph{OK}.
@@ -4291,17 +4295,17 @@ replace the original macro with the variable output:
   return (output ^ FINAL_XOR_VALUE);
 \end{verbatim}
 
-Now we can generate the processor. Because we want to use a use-defined
-hardware database, we must explicitly state the HDBs we want to use to the
+Now we can generate the processor. Because we want to use the hardware database
+we defined by ourselves, we must explicitly state the HDBs we want to use to the
 processor generator.
 
-\shellcmd{generateprocessor --hdb-list=asic\_130nm\_1.5V.hdb,generate\_base32.hdb,generate\_lsu\_32.hdb,riscv\_tour.hdb
+\shellcmd{generateprocessor -{}-hdb-list=asic\_130nm\_1.5V.hdb,generate\_base32.hdb,generate\_lsu\_32.hdb,riscv\_tour.hdb
 -o riscv-proc -t start.adf}
 
 When generating RISC-V processors, these HDBs are sufficient. If you are
 generating a TTA you might want to add generate\_rf\_iu.hdb to the list.
-   
-Now, compile the program and images as before and simulate the design in RTL 
+
+Now, compile the program and images as before and simulate the design in RTL
 simulation. This time, you should see a more significant drop in cycle counts.
 
 \subsection{Final Words}
@@ -4310,14 +4314,12 @@ This tutorial is now finished. Now you should know how to customize
 the RISC-V processor description by adding custom operations,
 as well as generate the processor implementation and its program image.
 
-The RISC-V feature of the toolset is new and somewhat experimental. Currently
-OpenASIP does not include an instruction set simulator for RISC-V which is why
-the processor must be simulated in RTL simulation.
+The RISC-V customization feature of the toolset is new and experimental.
+For example, currently OpenASIP does not include an instruction set simulator
+for RISC-V which is why the processor must be simulated in RTL simulation.
 
 For your own designs, we recommend that you use the included riscv.adf
 description as a base and add your own custom instructions on top of it.
-
-
 
 \chapter{PROCESSOR DESIGN TOOLS}
 \label{chapter:procgen}

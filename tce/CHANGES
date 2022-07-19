@@ -3,46 +3,35 @@
 
 Notable changes and features
 ----------------------------
-Licence:
-  - License has been changed to LGPL v2.1.
-
-Naming changes:
-  - In this release, we started shifting out the
-    "TCE" naming to "OA" (OpenASIP)
-  - Tools such as the compiler "tcecc" has been deprecated and replaced with
-    "oacc".
-  - To keep backwards compability, the old tools still work.
-
-(experimental) RISC-V support:
+- The license has been changed to LGPL v2.1.
+- Experimental RISC-V support:
   - Generate RISC-V ASIPs with custom instruction set extensions
-    (see RISC-V Tutorial in manual).
+    (see the RISC-V Tutorial in manual for usage).
   - New Operation Triggered Architecture (OTA) formats that map to the formats
     of the RISC-V ISA.
   - New operations added to OSAL for RISC-V
   - oacc-riscv compiler driver that is able to adapt to RISC-V
     custom instructions.
-
-FUGen:
-  - Generate function unit RTL with ProGe.
-  - Hardware is generated automatically if an operation has a DAG description.
-  - Alternatively add HDL snippets of operations to HDB to describe
-    new custom operations.
-
-Zero-register RFs:
-  - With the RISC-V support, new register file attribute
-    "zero-register" was added.
-  - This indicates that the first index of the register file is hardcoded to
-    zero value.
-
-RTL Generation updates:
-  - RTL generation code has been uniformed.
+- Toolset name change:
+  - To reflect the wider ISA support than TTAs, the "TCE" name is now changed
+    to "OA" (OpenASIP) in most of the places.
+  - Tools such as the compiler "tcecc" have been deprecated and replaced with
+    "oacc". To keep backwards compability, the old tools still work.
+- FUGen:
+  - Automated function unit RTL implementation generation feature: Hardware
+    is generated automatically if an operation has a DAG description that
+    can be resolved to an "HDL snippet".
+- Zero-register support:
+  - Since RISC-V needed it, a new register file attribute "zero-register" was
+    added to ADF. This indicates that the first index of the register file is
+    hardcoded to a zero value and thus can be utilized as the zero immediate
+    value.
+- RTL generation generation code has been unified.
 
 Notable bugfixes
 ----------------------------
 - GUIs: Patches to GTK assertion errors on (mostly) non-Ubuntu systems.
   Fixes Github issue #140. Thanks to Sarah Clark.
-
-
 
 1.25        June 2022
 =====================

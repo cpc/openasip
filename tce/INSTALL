@@ -22,7 +22,7 @@ Ubuntu 20.04+ / Debian 11
 
 sudo apt-get install libwxgtk3.0-gtk3-dev libboost-all-dev \
  tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make \
- latex2html libffi-dev autoconf automake libtool subversion git cmake
+ latex2html libffi-dev autoconf automake libtool subversion git cmake graphviz
 
 Ubuntu 16.04 LTS / 18.04 LTS
 ----------------------------
@@ -186,10 +186,28 @@ single package, but some, like Debian, have separated them in several
 packages.
 
 RISC-V
------
-To simulate RISC-V programs in RTL simulation an elf2hex tool is needed. This
-can be acquired by installing the RISC-V GNU Toolchain:
-https://github.com/riscv-collab/riscv-gnu-toolchain
+------
+You need to install the RISC-V GNU Toolchain which brings you the common
+bintools and a newlib-based libc:
 
-Note: If you are using the the RISCV GNU Toolchain with OpenASIP for other purposes, the toolchain must be built with the RV32IM target as OpenASIP
-does not as of now support the RISC-V C-extension.
+  https://github.com/riscv-collab/riscv-gnu-toolchain
+
+Note: If you are using the the RISCV GNU Toolchain with OpenASIP for other
+purposes, the toolchain must be built with the RV32IM target as OpenASIP does
+not currently support the RISC-V C-extension. Thus, you need to configure the
+toolchain build with commands like the following:
+
+  ./configure --prefix=/opt/riscv --with-arch=rv32im
+  make
+
+In addition, the elf2hex tool is needed to produce program hex images
+from the ELF files as follows:
+
+  git clone https://github.com/sifive/elf2hex.git
+  cd elf2hex
+  autoreconf -i
+  ./configure --prefix=/opt/riscv --target=riscv32-unknown-elf
+  make
+  make install
+
+

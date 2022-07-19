@@ -59,7 +59,7 @@
 %  COMMANDS
 % ------------------------------------------------------------------
 
-\newcommand{\theproject}[0]{TTA-based Co-design Environment}
+\newcommand{\theproject}[0]{OpenASIP}
 %\newcommand{\theschool}[0]{Tampere University}
 %\newcommand{\theinstitute}[0]{Department of Pervasive Computing}
 %\newcommand{\thegroup}[0]{Customized Parallel Computing group}

@@ -18,7 +18,7 @@ else
 MAKEMANUALS = false
 endif
 
-bin_SCRIPTS = tce-config
+bin_SCRIPTS = openasip-config
 
 # Note: as newlib makefiles do not support 'dist' have to include
 # the whole newlib-1.17.0 dir here.
@@ -59,3 +59,8 @@ distclean-local:
 dev-install: install
 	@./tools/scripts/install_all_headers ${prefix}
 
+all-local:
+	ln -sf ./openasip-config ./tce-config
+
+install-exec-hook:
+	cd $(DESTDIR) ; ln -sf openasip-config tce-config

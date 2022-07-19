@@ -1363,7 +1363,7 @@ AC_DEFINE_UNQUOTED([CONFIGURE_LDFLAGS], ["$LDFLAGS $TCE_LDFLAGS"],
 # Make AC_OUTPUT to create each file listed here.
 AC_CONFIG_FILES([
   Makefile
-  tce-config
+  openasip-config
   src/Makefile
   src/base/Makefile
   src/base/tpef/Makefile
