@@ -1409,7 +1409,7 @@ tceInstalled = True
 if 'TCE_INSTALL_DIR' in os.environ.keys():
     tceprefix = os.environ['TCE_INSTALL_DIR']
 else:
-    (exitCode, output) = subprocess.getstatusoutput("tce-config --prefix")
+    (exitCode, output) = subprocess.getstatusoutput("openasip-config --prefix")
     if exitCode != 0:
         tceInstalled = False
     else:

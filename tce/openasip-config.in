@@ -38,7 +38,7 @@ llvm_config="@LLVM_CONFIG@"
 usage()
 {
 	cat <<EOF
-Usage: tce-config [OPTIONS]
+Usage: openasip-config [OPTIONS]
 Options:
   [--version]
   [--prefix]

@@ -98,6 +98,7 @@ tce/ltmain.sh
 tce/missing
 tce/stamp-h1
 tce/tce-config
+tce/openasip-config
 tce/tce_config.h
 tce/tce_config.h.in
 tce/Python-bindings/src/Makefile-subdir.common
@@ -111,6 +112,7 @@ tce/src/bintools/Assembler/tceasm
 tce/src/bintools/BEMGenerator/createbem
 tce/src/bintools/BEMViewer/viewbem
 tce/src/bintools/Compiler/tcecc
+tce/src/bintools/Compiler/oacc
 tce/src/bintools/Compiler/OpenCL/aclocal.m4
 tce/src/bintools/Compiler/OpenCL/autom4te.cache/
 tce/src/bintools/Compiler/OpenCL/config.guess
