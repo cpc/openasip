@@ -358,7 +358,9 @@ bool OpsetDialog::bindPorts(TTAMachine::HWOperation& operation,
                     }
                 }
                 PortSet& portsOfSize = k->second;
-                PortSet::iterator portIter = portsOfSize.begin();
+                // Take the last element of the set
+                PortSet::iterator portIter = portsOfSize.end();
+                portIter--;
                 const TTAMachine::FUPort* fuPort = *portIter;
                 operation.bindPort(*operandIter, *fuPort);
                 if (fuPort->isTriggering()) {
