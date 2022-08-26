@@ -97,7 +97,7 @@ LLVMTCERISCVIntrinsicsLowering::findRegs(const std::string& s) const {
     for (TCEString i : asmSubStrings) {
         std::string ss = static_cast<std::string>(i);
         if (StringTools::containsChar(ss, '$')) {
-            regs += " " + s;
+            regs += " " + ss;
             foundRegs++;
         }
     }
@@ -190,7 +190,6 @@ LLVMTCERISCVIntrinsicsLowering::runOnMachineFunction(MachineFunction& MF) {
                 const unsigned OpIdx = 0;
                 std::string asmString =
                     std::string(j->getOperand(OpIdx).getSymbolName());
-
                 const std::string regs = findRegs(asmString);
                 const std::string opName = findOperationName(asmString);
                 const std::vector<int> regIdxs = findRegIndexes(j);
