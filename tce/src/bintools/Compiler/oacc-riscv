@@ -224,6 +224,9 @@ def compile_to_bitcode(input_files):
     if options.unroll_threshold == 0:
                     extra_opts += " -fno-unroll-loops"
 
+    tceOpsDir = tempDir + "/tceops.h"
+    compileFlags += "-include " + tceOpsDir
+
     for w in options.warnings:
         # Types of warnings supported by the compiler:
         white_list = []
@@ -242,7 +245,6 @@ def compile_to_bitcode(input_files):
         if w in white_list:
             compileFlags += "-W" + w + " "
     
-    tceOpsDir = tempDir + "/tceops.h"
     exitCode = run_command(
         "tceopgen -o " + tceOpsDir , options.verbose)
 
