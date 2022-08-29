@@ -50,6 +50,8 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
+use work.tce_util.all;
+
 
 entity synch_sram is
   generic (
@@ -243,7 +245,7 @@ begin  -- simulate
           file_open(access_trace_file, ACCESSTRACEFILENAME, append_mode);
           write(access_trace_line, cycle_count, right, 12);
           write(access_trace_line, separator_c);
-          hwrite(access_trace_line, addr, right, 12);
+          hwrite(access_trace_line, tce_ext(addr, 32), right, 12);
           write(access_trace_line, separator_c);
           write(access_trace_line, string'("1"), right, 12);
           write(access_trace_line, separator_c);

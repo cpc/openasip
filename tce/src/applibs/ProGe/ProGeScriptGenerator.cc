@@ -359,7 +359,7 @@ ProGeScriptGenerator::generateGhdlSimulate() {
            << "else" << endl
            << "    # Newer GHDL versions does not produce binary." << endl
            << "    ghdl -r --workdir=work --ieee=synopsys " << testbenchName_
-           << "  --stop-time=${runtime}ns" << endl
+           << "  --stop-time=${runtime}ns --ieee-asserts=disable-at-0" << endl
            << "fi" << endl;
 
     stream.close();
