@@ -175,6 +175,11 @@ def parse_options():
                       "If you are using this, remember to define "
                       "at least 'main' symbol.")
 
+    parser.add_option('--output-format',
+                      type="string", action="store", metavar='string',
+                      dest="output_format", default="",
+                      help="Emit program as a text file, bin or hex.")
+
 
     (options, args) = parser.parse_args()
     return (options, args)
@@ -272,7 +277,7 @@ def compile_to_bitcode(input_files):
     return bc_file
 
 def generate_code(bc_file, adf, objectCode=True, output=None):
-    (exitCode, prefix) = subprocess.getstatusoutput("tce-config --prefix")
+    (exitCode, prefix) = subprocess.getstatusoutput("openasip-config --prefix")
     if exitCode != 0 :
         exitWithError(prefix)
     lib_tce = str(os.path.join(prefix, "lib/libtce.so"))
@@ -391,6 +396,17 @@ def generate_start_func():
     text_file.write(start_func)
     text_file.close()
 
+def generate_image(options, elf_file, final_output):
+    hex_file = final_output
+    if options.output_format == "bin":
+        hex_file = tempDir + "/" + "tmp.hex"
+    if options.output_format == "bin" or options.output_format == "hex":
+        run_command("riscv32-unknown-elf-elf2hex --bit-width 32 \
+        --input " + elf_file + " > " + hex_file)
+        if options.output_format == "bin":
+            run_command("oa-hex2bin \
+            -w 32 -o " + final_output + " " + hex_file)
+
 if __name__ == "__main__":
     options, args = parse_options()
     global tempDir
@@ -417,9 +433,18 @@ if __name__ == "__main__":
     if options.compile_only:
         generate_code(bc_file, options.adf, False, final_output)
     else:
+        elf_file = final_output
+        if options.output_format == "bin" or options.output_format == "hex":
+            elf_file = tempDir + "/" + "tmp.elf"
+            if which("riscv32-unknown-elf-elf2hex") is None:
+                exitWithError("elf2hex must be installed for \
+                generating RISC-V images as a text file")
         generate_start_func()
         generate_linker_script(options)
         obj_file = generate_code(bc_file, options.adf, True)
         #Link with generated start and linker script
-        link(obj_file, final_output)
+        link(obj_file, elf_file)
+        if options.output_format == "bin" or options.output_format == "hex":
+            generate_image(options, elf_file, final_output)
+
     cleanup_and_exit(0)
