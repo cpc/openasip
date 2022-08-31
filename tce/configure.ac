@@ -1002,7 +1002,7 @@ if test x"$prefix" = xNONE; then
 else
   AC_DEFINE_UNQUOTED([TCE_INSTALLATION_ROOT],["$prefix"],
 	             [The installation directory])
-  AC_DEFINE_UNQUOTED([CONFIGDIR], ["$prefix/share/tce/etc"],
+  AC_DEFINE_UNQUOTED([CONFIGDIR], ["$prefix/share/openasip/etc"],
 	             [Directory for configurations])
 fi
 

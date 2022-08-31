@@ -1,4 +1,4 @@
-srclib_datadir = ${prefix}/share/tce/srclibs/
+srclib_datadir = ${prefix}/share/openasip/srclibs/
 srclib_data_DATA = liblwpr.sa
 
 src_datadir = ${srclib_datadir}/lwpr

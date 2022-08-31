@@ -82,7 +82,7 @@ const string Environment::MINIMAL_ADF_INSTALLED = "data/mach/minimal.adf";
 const string Environment::MINIMAL_ADF_SRC = "data/mach/minimal.adf";
 
 // macro definitions (maybe relocated later to config.h)
-#define INSTALLATION_DIR "/share/tce/"
+#define INSTALLATION_DIR "/share/openasip/"
 #define DS TCEString(FileSystem::DIRECTORY_SEPARATOR)
 
 

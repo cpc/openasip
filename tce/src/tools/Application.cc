@@ -545,7 +545,7 @@ Application::installationDir() {
     // .deb check: check if envvar TCE_INSTALL_DIR is set
     // and that dir exists ("icons" dir in our case)
     if (userRoot != "" && FileSystem::fileExists(
-        userRoot + "/share/tce/data/icons")) {
+        userRoot + "/share/openasip/data/icons")) {
         return userRoot;
     }
     return string(TCE_INSTALLATION_ROOT);

@@ -1,4 +1,4 @@
-datadir = ${prefix}/share/tce
+datadir = ${prefix}/share/openasip
 
 nobase_data_DATA = ${srcdir}/scripts/install_llvm_*.sh \
 	${srcdir}/patches/*.patch

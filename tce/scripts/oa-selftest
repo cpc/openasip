@@ -153,13 +153,13 @@ class TCETestCase(unittest.TestCase):
 
     def get_minimalADF(self):
         if TCETestCase.minimal_adf is None:
-            TCETestCase.minimal_adf = self.get_tcePrefix() + "/share/tce/data/mach/minimal.adf"
+            TCETestCase.minimal_adf = self.get_tcePrefix() + "/share/openasip/data/mach/minimal.adf"
             assert os.path.exists(TCETestCase.minimal_adf)
         return TCETestCase.minimal_adf
 
     def get_minimalStdoutADF(self):
         if TCETestCase.minimal_stdout_adf is None:
-            TCETestCase.minimal_stdout_adf = self.get_tcePrefix() + "/share/tce/data/mach/minimal_with_stdout.adf"
+            TCETestCase.minimal_stdout_adf = self.get_tcePrefix() + "/share/openasip/data/mach/minimal_with_stdout.adf"
             assert os.path.exists(TCETestCase.minimal_stdout_adf), \
                    "Could not find minimal_with_stdout.adf."
         return TCETestCase.minimal_stdout_adf

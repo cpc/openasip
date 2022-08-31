@@ -1516,15 +1516,15 @@ if runningInstalled:
     lowerintrinsicsplugin = os.path.join(tceprefix,"lib/openasip/LowerIntrinsics.so")
     newlib_libdir = newlibLibdir(options)
     newlib_includes = newlibIncludes(options)
-    bclib_includes = "-I "  + os.path.join(tceprefix,"share/tce/srclibs/include") + " "
+    bclib_includes = "-I "  + os.path.join(tceprefix,"share/openasip/srclibs/include") + " "
     opencl_includes = "" # same as newlib_includes
     srcRoot = None
     tceSAOpenCLBinDir = tceprefix + "/bin"
     tceSAOpenCLIncDir = os.path.join(tceprefix, "tce-llvm", "include")
     tceOclExtGenDir = os.path.join(tceprefix, "bin")
     tceOclBitcodeLibDir = os.path.join(tceprefix, "lib/llvmopencl")
-    sourceLibSearchPaths = [os.path.join(tceprefix, "share/tce/srclibs/"),]
-    dataDir = os.path.join(tceprefix, "share/tce/data/tcecc")
+    sourceLibSearchPaths = [os.path.join(tceprefix, "share/openasip/srclibs/"),]
+    dataDir = os.path.join(tceprefix, "share/openasip/data/tcecc")
     tceLibpath = os.path.join(tceprefix,"lib/openasip/libopenasip.so")
 
     # All bclibs should be in the same newlib_libdir.

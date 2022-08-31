@@ -1,4 +1,4 @@
-pkglibdir = ${prefix}/share/tce/codecompressors/base
+pkglibdir = ${prefix}/share/openasip/codecompressors/base
 pkglib_LTLIBRARIES = InstructionDictionary.la MoveSlotDictionary.la
 
 InstructionDictionary_la_SOURCES = InstructionDictionary.cc

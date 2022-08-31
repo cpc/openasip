@@ -1,6 +1,6 @@
 SUBDIRS = bitmaps
 
-datadir = ${prefix}/share/tce/data
+datadir = ${prefix}/share/openasip/data
 
 nobase_data_DATA =	$(srcdir)/ProDe/confschema.xsd \
 					$(srcdir)/bem/BEM_Schema.xsd \

@@ -1,6 +1,6 @@
 # Cannot change this to proper lib dir as the default HDB is referring to it.
 # TODO: fix the HDB also.
-pkglibdir = ${prefix}/share/tce/cost_estimator_plugins/fu
+pkglibdir = ${prefix}/share/openasip/cost_estimator_plugins/fu
 pkglib_LTLIBRARIES = StrictMatchFUEstimator.la InterpolatingFUEstimator.la
 
 StrictMatchFUEstimator_la_SOURCES = StrictMatchFUEstimator.cc

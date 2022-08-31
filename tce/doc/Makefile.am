@@ -1,6 +1,6 @@
 DOXYGEN_CONFIG_FILE = tools/Doxygen/doxygen.config	
 
-MAN_DIR = ${prefix}/share/tce/man
+MAN_DIR = ${prefix}/share/openasip/man
 
 EXTRA_DIST = latexdefs misc man/TCE
 

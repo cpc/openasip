@@ -1,4 +1,4 @@
-pkglibdir = ${prefix}/share/tce/icdecoder_plugins/base
+pkglibdir = ${prefix}/share/openasip/icdecoder_plugins/base
 pkglib_LTLIBRARIES = DefaultICDecoderPlugin.la
 
 DefaultICDecoderPlugin_la_SOURCES = \

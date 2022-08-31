@@ -587,7 +587,7 @@ Copy the \file{minimal.adf} file included in OpenASIP distribution to a new ADF
 file:
 
 \begin{verbatim}
-  cp $(tce-config --prefix)/share/tce/data/mach/minimal.adf start.adf
+  cp $(tce-config --prefix)/share/openasip/data/mach/minimal.adf start.adf
 \end{verbatim}
 
 The file describes a minimalistic TTA processor containing just enough
@@ -1589,7 +1589,7 @@ by one as follows.
 \begin{enumerate}
 \item%
 Select implementation for RF: Click the RF name, 'Select Implementation',
-find the OS's default HDB file (PREFIX/share/tce/hdb/asic\_130nm\_1.5V.hdb) 
+find the OS's default HDB file (PREFIX/share/openasip/hdb/asic\_130nm\_1.5V.hdb) 
 from your tce installation path and select an implementation for the RF from 
 there.
 
@@ -1617,7 +1617,7 @@ Automatic selection - ProDe chooses the implementations from HDB files.
 \item% 
 Select implementations for register files and function units all at once: 
 Click Auto Select Implementations, find the OpenASIP's default HDB file from your 
-OpenASIP installation path (PREFIX/share/tce/hdb/asic\_130nm\_1.5V.hdb), make sure
+OpenASIP installation path (PREFIX/share/openasip/hdb/asic\_130nm\_1.5V.hdb), make sure
 'Register Files' and 'Function Units' checkboxes are checked and press 'Find'.
 A dialog should appear saying 4 implementations were found; 2 for register
 files and 2 for function units. Click 'Yes'. If the number of found
@@ -1639,7 +1639,7 @@ function units should have implementations.
 %\item%
 %Next select the IC/Decoder generator plugin used to generate the
 %decoder in the control unit and interconnection network:
-%\textit{Browse... (installation\_path)/share/tce/icdecoder\_plugins/base/
+%\textit{Browse... (installation\_path)/share/openasip/icdecoder\_plugins/base/
 %DefaultICDecoderPlugin.so>OK}. This should be selected by default.
 
 \item%
@@ -1953,7 +1953,7 @@ STDOUT. OpenASIP ships with a minimal architecture that also includes
 the STDOUT function unit, which you can use:
 
 \begin{verbatim}
-cp $(tce-config --prefix)/share/tce/data/mach/minimal_with_stdout.adf .
+cp $(tce-config --prefix)/share/openasip/data/mach/minimal_with_stdout.adf .
 tcecc --swfp -O0 hello.c -a minimal_with_stdout.adf -o hello.tpef
 \end{verbatim}
 
@@ -3044,7 +3044,7 @@ they can be emulated using integer arithmetic in software. Passing the switch \v
 to tcecc enables the software emulation library linkage.
 
 A set of floating-point FU implementations is included with OA, in a HDB file named 
-\emph{fpu\_embedded.hdb}, which can be found at \emph{PREFIX/share/tce/hdb/fpu\_embedded.hdb}. 
+\emph{fpu\_embedded.hdb}, which can be found at \emph{PREFIX/share/openasip/hdb/fpu\_embedded.hdb}. 
 The FUs operate with 32-bit, single-precision floating point numbers. 
 Supported operations include addition, subtraction, negation, absolute value, 
 multiplication, division, square root, conversion between floats and integers, 
@@ -3166,7 +3166,7 @@ A floating-point comparator. Also includes the cheap absolute value and negation
 
 \subsection{Half-precision Support}
 
-A set of half-precision arithmetic units is included with tce in \emph{PREFIX/share/tce/hdb/fpu\_half.hdb}. In C and C++,
+A set of half-precision arithmetic units is included with tce in \emph{PREFIX/share/openasip/hdb/fpu\_half.hdb}. In C and C++,
 half-precision operations an only be invoked with \emph{tceops.h} macros. It may be helpful to define a \emph{half}
 class with overloaded operators to wrap the macros. The test case \emph{testsuite/systemtest/proge/hpu} is written
 using such a class. There is ongoing work to add acceleration for the \emph{half} datatype in OpenCL.
@@ -3539,7 +3539,7 @@ The hardware loop can be enabled in the OA by simply adding HWLOOP
 instructions to control-unit in the TTA design. To start with, \textbf{copy
 minimalist TTA machine by}:
 
-\shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf hwloop.adf}
+\shellcmd{cp \$(tce-config -{}-prefix)/share/openasip/data/mach/minimal.adf hwloop.adf}
 
 We can observe from OSED that the HWLOOP instruction takes two parameters.
 Hence, add an additional input port to the control-unit and add then the
@@ -3818,7 +3818,7 @@ Copy the \file{riscv.adf} file included in OpenASIP distribution to a new ADF
 file:
 
 \begin{verbatim}
-  cp $(tce-config --prefix)/share/tce/data/mach/riscv.adf start.adf
+  cp $(tce-config --prefix)/share/openasip/data/mach/riscv.adf start.adf
 \end{verbatim}
 
 The file describes a RISC-V processor containing a full bypass network
@@ -5317,13 +5317,13 @@ where the operation is first found will be effective):\\
    System-wide shared custom operations:
    \textit{TCE\_INSTALLATION\_DIR/opset/base/} \\ where
    TCE\_INSTALLATION\_DIR is the path where TCE accessories is installed (for
-   example /usr/local/share/tce).
+   example /usr/local/share/openasip).
 
 \item
    Default predefined and standard operations: \\
    \textit{TCE\_INSTALLATION\_DIR/opset/base/} \\ where
    TCE\_INSTALLATION\_DIR is the path where TCE accessories is installed (for
-   example /usr/local/share/tce).
+   example /usr/local/share/openasip).
 
 \end{enumerate}
 

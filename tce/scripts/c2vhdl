@@ -57,7 +57,7 @@ function check_minimal_adf {
 
 
     if which "tce-config" &>/dev/null; then 
-        adf="$(tce-config --prefix)/share/tce/data/mach/minimal_be.adf"
+        adf="$(tce-config --prefix)/share/openasip/data/mach/minimal_be.adf"
         if [ -e "${adf}" ]; then
             return
         fi

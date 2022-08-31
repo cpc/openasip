@@ -1,4 +1,4 @@
-pkglibdir = ${prefix}/share/tce/explorer/base
+pkglibdir = ${prefix}/share/openasip/explorer/base
 pkglib_LTLIBRARIES = \
 	FrequencySweepExplorer.la SimpleICOptimizer.la \
 	RemoveUnconnectedComponents.la MinimizeMachine.la \

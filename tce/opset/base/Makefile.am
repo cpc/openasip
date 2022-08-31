@@ -1,15 +1,15 @@
-basedir = ${prefix}/share/tce/opset/base
-avalondir = ${prefix}/share/tce/opset/base
-simple_iodir = ${prefix}/share/tce/opset/base
-doubledir = ${prefix}/share/tce/opset/base
-implicit_load_storedir = ${prefix}/share/tce/opset/base
+basedir = ${prefix}/share/openasip/opset/base
+avalondir = ${prefix}/share/openasip/opset/base
+simple_iodir = ${prefix}/share/openasip/opset/base
+doubledir = ${prefix}/share/openasip/opset/base
+implicit_load_storedir = ${prefix}/share/openasip/opset/base
 nobase_base_DATA = base.cc base.opp
 nobase_avalon_DATA = avalon.cc avalon.opp
 nobase_simple_io_DATA = simple_io.cc simple_io.opp
 nobase_double_DATA = double.cc double.opp
 nobase_implicit_load_store_DATA = implicit_load_store.cc implicit_load_store.opp
 
-pkglibdir = ${prefix}/share/tce/opset/base
+pkglibdir = ${prefix}/share/openasip/opset/base
 pkglib_LTLIBRARIES = base.la avalon.la simple_io.la double.la implicit_load_store.la
 
 base_la_SOURCES = base.cc
