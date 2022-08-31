@@ -2,7 +2,7 @@ bin_PROGRAMS = tceopgen tceoclextgen
 tceopgen_SOURCES = tceopgen.cc
 
 tceoclextgen_SOURCES = ExtensionGen.cc
-tceoclextgen_LDADD = ../../../libtce.la
+tceoclextgen_LDADD = ../../../libopenasip.la
 
 LIB_BASE_DIR = ../../../base
 LIB_TCETOOLS_DIR = ../../../tools
@@ -13,7 +13,7 @@ SRC_ROOT_DIR = $(top_srcdir)/src
 OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools
 
-tceopgen_LDADD = ../../../libtce.la
+tceopgen_LDADD = ../../../libopenasip.la
 
 MACH_DIR = ${SRC_ROOT_DIR}/base/mach
 

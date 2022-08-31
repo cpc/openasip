@@ -23,7 +23,7 @@ bin_PROGRAMS = blocks_translator
 blocks_translator_SOURCES = BlocksTranslator.cc BlocksFU.cc BlocksLSU.cc \
         BlocksALU.cc BlocksGCU.cc BlocksRF.cc BlocksIMM.cc BlocksMUL.cc \
         BlocksModel.cc
-blocks_translator_LDADD = ../../libtce.la
+blocks_translator_LDADD = ../../libopenasip.la
 
 AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} -I${ROOT_DIR} -I${OSAL_DIR} \
         -I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${LIB_BASE_DIR} \

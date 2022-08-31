@@ -18,15 +18,15 @@ simple_io_la_SOURCES = simple_io.cc
 double_la_SOURCES = double.cc
 implicit_load_store_la_SOURCES = implicit_load_store.cc
 
-# In case libtce.so is loaded using RTLD_LOCAL (e.g. by an icd
+# In case libopenasip.so is loaded using RTLD_LOCAL (e.g. by an icd
 # loader), the dlopen that opens the .opb does not get the missing 
-# libtce symbols. Add libtce as a dependency so they can be loaded
+# libopenasip symbols. Add libopenasip as a dependency so they can be loaded
 # when the plugins are loaded.
-base_la_LIBADD = ../../src/libtce.la
-avalon_la_LIBADD = ../../src/libtce.la
-simple_io_la_LIBADD = ../../src/libtce.la
-double_la_LIBADD = ../../src/libtce.la
-implicit_load_store_la_LIBADD = ../../src/libtce.la
+base_la_LIBADD = ../../src/libopenasip.la
+avalon_la_LIBADD = ../../src/libopenasip.la
+simple_io_la_LIBADD = ../../src/libopenasip.la
+double_la_LIBADD = ../../src/libopenasip.la
+implicit_load_store_la_LIBADD = ../../src/libopenasip.la
 
 EXTRA_DIST = ${nobase_base_DATA} ${nobase_avalon_DATA} ${nobase_simple_io_DATA} ${nobase_double_DATA} \
              ${nobase_implicit_load_store_DATA}

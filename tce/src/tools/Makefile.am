@@ -1,11 +1,11 @@
-noinst_LTLIBRARIES = libtcetools.la
+noinst_LTLIBRARIES = libopenasiptools.la
 
 # This should be always regenerated during a build and not
 # distributed.
-nodist_libtcetools_la_SOURCES = tce_version_string.h
+nodist_libopenasiptools_la_SOURCES = tce_version_string.h
 BUILT_SOURCES = tce_version_string.h
 
-libtcetools_la_SOURCES = Exception.cc CmdLineOptions.cc CmdLineOptionParser.cc \
+libopenasiptools_la_SOURCES = Exception.cc CmdLineOptions.cc CmdLineOptionParser.cc \
 	Environment.cc Application.cc XMLSerializer.cc ObjectState.cc \
 	FileSystem.cc DOMBuilderErrorHandler.cc TextGenerator.cc \
 	PluginTools.cc Conversion.cc StringTools.cc DataObject.cc SimValue.cc \
@@ -14,9 +14,9 @@ libtcetools_la_SOURCES = Exception.cc CmdLineOptions.cc CmdLineOptionParser.cc \
 	BitMatrix.cc TCEString.cc HalfFloatWord.cc Reversible.cc IPXact.cc
 
 if HAVE_SQLITE
-  libtcetools_la_SOURCES += SQLiteConnection.cc RelationalDBQueryResult.cc \
+  libopenasiptools_la_SOURCES += SQLiteConnection.cc RelationalDBQueryResult.cc \
 	SQLiteQueryResult.cc SQLite.cc RelationalDBConnection.cc RelationalDB.cc
-  libtcetools_la_LDFLAGS = ${SQLITE_LD_FLAGS} ${BOOST_LDFLAGS}
+  libopenasiptools_la_LDFLAGS = ${SQLITE_LD_FLAGS} ${BOOST_LDFLAGS}
 endif
 
 PROJECT_ROOT = $(top_srcdir)
@@ -60,7 +60,7 @@ tce_version_string.h: ../../../.git
 	@echo "Not compiling in a bazaar branch"
 
 ## headers start
-libtcetools_la_SOURCES += \
+libopenasiptools_la_SOURCES += \
 	BitMatrix.hh RelationalDBQueryResult.hh \
 	MathTools.hh OptionValue.hh \
 	CIStringSet.hh hash_set.hh \

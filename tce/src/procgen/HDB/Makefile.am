@@ -27,7 +27,7 @@ LIB_APPLIBS_SCHED_DIR = ../../applibs/Scheduler
 bin_PROGRAMS = createhdb
 createhdb_SOURCES = CreateHDB.cc CreateHDBCmdLineOptions.cc
 
-createhdb_LDADD = ../../libtce.la
+createhdb_LDADD = ../../libopenasip.la
 
 AM_CPPFLAGS = -I${HDB_DIR} -I${TOOLS_DIR}
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h

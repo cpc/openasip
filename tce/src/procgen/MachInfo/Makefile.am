@@ -33,7 +33,7 @@ APPLIBS_FSA_DIR = ../../applibs/FSA
 bin_PROGRAMS = machinfo
 
 machinfo_SOURCES = MachInfo.cc MachInfoCmdLineOptions.cc
-machinfo_LDADD = ../../libtce.la
+machinfo_LDADD = ../../libopenasip.la
 
 AM_CPPFLAGS = -I${HDB_DIR} -I${TOOLS_DIR} -I${PROGE_APPLIBS_DIR} \
 -I${MACH_DIR} -I${BEM_DIR} -I${IMPL_TESTER_DIR} -I${IDF_DIR} \

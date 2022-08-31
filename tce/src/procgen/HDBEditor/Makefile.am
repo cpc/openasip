@@ -91,11 +91,11 @@ hdbeditor_SOURCES = AddFUArchFromADFCmd.cc AddFUImplementationCmd.cc \
 
 
 hdbeditor_LDFLAGS = $(TCE_LDFLAGS)
-hdbeditor_LDADD = ../../libtce.la
+hdbeditor_LDADD = ../../libopenasip.la
 
 testhdb_SOURCES = TestHDB.cc TestHDBCmdLineOptions.cc
 testhdb_LDFLAGS = $(TCE_LDFLAGS)
-testhdb_LDADD = ../../libtce.la
+testhdb_LDADD = ../../libopenasip.la
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)
 

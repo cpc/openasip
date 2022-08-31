@@ -2,10 +2,10 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 SUBDIRS = passes
 
-noinst_LTLIBRARIES = libtcellvmbackend.la 
+noinst_LTLIBRARIES = libopenasipllvmbackend.la 
 pkglib_LTLIBRARIES = LLVMTCEPOMBuilder.la
 
-libtcellvmbackend_la_SOURCES = \
+libopenasipllvmbackend_la_SOURCES = \
     TCETargetMachine.cc TCEMCAsmInfo.cc  LLVMPOMBuilder.cc \
 	LLVMTCEBuilder.cc InstructionPatternAnalyzer.cc \
 	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc \
@@ -19,7 +19,7 @@ libtcellvmbackend_la_SOURCES = \
 	LLVMUtilities.cc \
 	LLVMTCERISCVIntrinsicsLowering.cc
 
-libtcellvmbackend_la_SOURCES += TCEStubTargetTransformInfo.cc \
+libopenasipllvmbackend_la_SOURCES += TCEStubTargetTransformInfo.cc \
 	TCEStubSubTarget.cc TCEStubTargetMachine.hh
 
 LLVMTCEPOMBuilder_la_SOURCES = LLVMTCEPOMBuilder.cc LLVMTCEPOMBuilder.hh
@@ -99,7 +99,7 @@ include_HEADERS = \
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
-libtcellvmbackend_la_SOURCES += \
+libopenasipllvmbackend_la_SOURCES += \
 	TCETargetMachinePlugin.hh \
 	LLVMTCECmdLineOptions.hh LLVMTCEPOMBuilder.hh \
 	MachineInstrDDG.hh \

@@ -19,7 +19,7 @@ bin_SCRIPTS = buildcompressor oa-hex2bin
 generatebits_SOURCES = PIGCmdLineOptions.cc PIGCLITextGenerator.cc \
 	GenerateBits.cc
 
-generatebits_LDADD = ../../libtce.la
+generatebits_LDADD = ../../libopenasip.la
 
 AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} \
         -I${MACH_DIR} -I${TPEF_DIR} -I${BEM_DIR} \

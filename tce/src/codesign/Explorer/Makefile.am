@@ -55,7 +55,7 @@ EXTRA_DIST = ${bin_SCRIPTS}
 
 explore_SOURCES = Explorer.cc 
 
-explore_LDADD = ../../libtce.la
+explore_LDADD = ../../libopenasip.la
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} \
 	-I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${BASE_DIR} \

@@ -22,8 +22,8 @@ If, while doing the final linking of TCE with LLVM, you see the following
 errors:
 
 ...
-../../.libs/libtce.so: undefined reference to `typeinfo for llvm::MCAsmInfo'
-../../.libs/libtce.so: undefined reference to `typeinfo for
+../../.libs/libopenasip.so: undefined reference to `typeinfo for llvm::MCAsmInfo'
+../../.libs/libopenasip.so: undefined reference to `typeinfo for
 ...
 
 This means that you have an LLVM that is not built with RTTI

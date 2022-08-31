@@ -12,7 +12,7 @@ TCE_LIB_DIRS = \
     $(shell find ${tce_root}/src -name .libs)
 LIB_MAGIC = -Wl,-rpath -Wl,
 TCE_LIB_FLAGS = $(addprefix ${LIB_MAGIC},${TCE_LIB_DIRS})
-TCE_LIBS = ${tce_root}/src/.libs/libtce${LIBRARY_SUFFIX}
+TCE_LIBS = ${tce_root}/src/.libs/libopenasip${LIBRARY_SUFFIX}
 
 simulator: simulator.cc mmio_send.tpef mmio_recv.tpef mem_map.h
 	${CXX} -fpermissive simulator.cc -I${tce_sim_inc} -I${tce_src_root}/base/osal \

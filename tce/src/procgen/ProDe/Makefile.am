@@ -119,7 +119,7 @@ prode_SOURCES = Model.cc\
 
 prode_LDFLAGS = $(TCE_LDFLAGS)
 
-prode_LDADD = ../../libtce.la
+prode_LDADD = ../../libopenasip.la
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)
 
@@ -150,7 +150,7 @@ AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_CXXFLAGS = -UNDEBUG ${AM_WXCXXFLAGS} 
 
-${LIB_TCETOOLS_DIR}/libtcetools.la:
+${LIB_TCETOOLS_DIR}/libopenasiptools.la:
 	@(cd ${LIB_TCETOOLS_DIR}; ${MAKE} || exit 1; cd ${CURDIR})
 ${LIB_MACH_DIR}/libmach.la:
 	@(cd ${LIB_MACH_DIR}; ${MAKE} || exit 1; cd ${CURDIR})

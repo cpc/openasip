@@ -16,10 +16,10 @@ DISASM_DIR = ${SRC_ROOT_DIR}/applibs/Disassembler
 bin_PROGRAMS = ttasim ttasim-tandem
 
 ttasim_SOURCES = TTASim.cc 
-ttasim_LDADD = ../../libtce.la 
+ttasim_LDADD = ../../libopenasip.la 
 
 ttasim_tandem_SOURCES = TTASimTandem.cc 
-ttasim_tandem_LDADD = ../../libtce.la 
+ttasim_tandem_LDADD = ../../libopenasip.la 
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} \
 	-I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${BASE_DIR} \

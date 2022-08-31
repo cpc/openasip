@@ -21,7 +21,7 @@ APPLIBS_FSA_DIR = ../../applibs/FSA
 bin_PROGRAMS = tpef2pasm
 tpef2pasm_SOURCES = tpef2pasm.cc
 
-tpef2pasm_LDADD = ../../libtce.la
+tpef2pasm_LDADD = ../../libopenasip.la
 
 AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} -I${ROOT_DIR} -I${OSAL_DIR} \
         -I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${LIB_BASE_DIR} \

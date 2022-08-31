@@ -170,12 +170,12 @@ OperationBuilder::buildObject(
          }
 
         if (Application::isInstalled()) {
-            /* Add a dependency to the installed libtce.so just in case
-               the .opb will be loaded through a libtce.so that is loaded
+            /* Add a dependency to the installed libopenasip.so just in case
+               the .opb will be loaded through a libopenasip.so that is loaded
                through a dlopen() with the RTLD_LOCAL flag. In that case
-               it can happen the loading of libtce.so to access some 
+               it can happen the loading of libopenasip.so to access some 
                specific functionality might not import all the symbols
-               required by the .opb loaded by libtce later. */
+               required by the .opb loaded by libopenasip later. */
             CXXFLAGS += " -L" + Application::installationDir() + "/lib -ltce ";
         }
 

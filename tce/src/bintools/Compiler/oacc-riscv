@@ -280,7 +280,7 @@ def generate_code(bc_file, adf, objectCode=True, output=None):
     (exitCode, prefix) = subprocess.getstatusoutput("openasip-config --prefix")
     if exitCode != 0 :
         exitWithError(prefix)
-    lib_tce = str(os.path.join(prefix, "lib/libtce.so"))
+    lib_tce = str(os.path.join(prefix, "lib/libopenasip.so"))
     if output is None:
         asm_file = create_temp_file(".o")
     else:

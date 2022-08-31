@@ -22,7 +22,7 @@ AM_CPPFLAGS = -I${TOOLS_DIR} -I${LLVM_BACKEND_DIR} -I${PROG_DIR} \
 	-I${UMACH_DIR} -I${SCHED_ALGO_DIR} -I${GRAPH_DIR} -I${OSAL_APPLIBS_DIR} ${LLVM_CPPFLAGS}
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
-llvm_tce_LDADD = ../../../libtce.la
+llvm_tce_LDADD = ../../../libopenasip.la
 
 AM_LDFLAGS = ${TCE_LDFLAGS}
 

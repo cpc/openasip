@@ -100,7 +100,7 @@ TCE_LIB_DIRS = ${TOP_SRCDIR}/src ${TOP_SRCDIR}/src/.libs
 LIB_MAGIC = -Wl,-rpath -Wl,
 TCE_LIB_FLAGS = $(addprefix ${LIB_MAGIC},${TCE_LIB_DIRS})
 
-TCE_LIBS = $(shell find ${TOP_SRCDIR}/src -name "libtce${LIBRARY_SUFFIX}" | grep -v dSYM| grep -v passes)
+TCE_LIBS = $(shell find ${TOP_SRCDIR}/src -name "libopenasip${LIBRARY_SUFFIX}" | grep -v dSYM| grep -v passes)
 
 .PHONY: dummy, all, clean
 
@@ -127,7 +127,7 @@ all: ${GCOV_TEST} ${INITIALIZATION} ${TESTS} ${GCOV_TEST2} ${FINALIZATION}
 
 # Strip the runner from (debug) symbols as they binaries are quite big and usually 
 # the runner itself is not a problem when debugging issues, but the
-# issue is in libtce.so.
+# issue is in libopenasip.so.
 %.rt: %-runner 
 	@echo Running $(patsubst %.rt,%,$@)${VALGRIND_TEXT}:;
 	@${WATCHDOG_CMD} "${VALGRIND_BIN} ${VALGRIND_OPTS} ./$<"

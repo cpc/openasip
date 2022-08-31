@@ -78,7 +78,7 @@ proxim_SOURCES = Proxim.cc ProximMainFrame.cc ConsoleWindow.cc \
 	ProximFindCmd.cc FindWindow.cc
 
 proxim_LDFLAGS = $(TCE_LDFLAGS)
-proxim_LDADD = ../../libtce.la
+proxim_LDADD = ../../libopenasip.la
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)
 
@@ -101,7 +101,7 @@ AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_CXXFLAGS = -UNDEBUG ${AM_WXCXXFLAGS} 
 
-${LIB_TCETOOLS_DIR}/libtcetools.la:
+${LIB_TCETOOLS_DIR}/libopenasiptools.la:
 	@(cd ${LIB_TCETOOLS_DIR}; ${MAKE} || exit 1; cd ${CURDIR})
 ${LIB_MACH_DIR}/libbase.la:
 	@(cd ${LIB_BASE_DIR}; ${MAKE} || exit 1; cd ${CURDIR})

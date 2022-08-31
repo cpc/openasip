@@ -20,7 +20,7 @@ APPLIBS_FSA_DIR = ../../applibs/FSA
 bin_PROGRAMS = dumptpef
 dumptpef_SOURCES = TPEFDumper.cc TPEFDumper.hh DumpTPEF.cc
 
-dumptpef_LDADD = ../../libtce.la
+dumptpef_LDADD = ../../libopenasip.la
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${ROOT_DIR} -I${OSAL_DIR} \
         -I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${LIB_BASE_DIR} \

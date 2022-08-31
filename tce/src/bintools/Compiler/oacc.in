@@ -1525,7 +1525,7 @@ if runningInstalled:
     tceOclBitcodeLibDir = os.path.join(tceprefix, "lib/llvmopencl")
     sourceLibSearchPaths = [os.path.join(tceprefix, "share/tce/srclibs/"),]
     dataDir = os.path.join(tceprefix, "share/tce/data/tcecc")
-    tceLibpath = os.path.join(tceprefix,"lib/openasip/libtce.so")
+    tceLibpath = os.path.join(tceprefix,"lib/openasip/libopenasip.so")
 
     # All bclibs should be in the same newlib_libdir.
     # The source libs are located in separate dirs which
@@ -1543,7 +1543,7 @@ else:
     bufalloc_libdir = os.path.join("@abs_top_srcdir@", "bclib/bufalloc")
     cpp_libdir = os.path.join("@abs_top_srcdir@", "bclib/cpp")
     newlib_libdir = newlibLibdir(options)
-    tceLibpath = os.path.join("@abs_top_builddir@", "src/.libs/libtce.so")
+    tceLibpath = os.path.join("@abs_top_builddir@", "src/.libs/libopenasip.so")
 
     # The standalone OpenCL paths.
     tceSAOpenCLDir = os.path.join(srcRoot, "bclib/saocl")

@@ -26,7 +26,7 @@ libapplibs_la_LIBADD = \
 	Explorer/libexplorer.la \
 	Estimator/libestimator.la \
 	dsdb/libdsdb.la \
-	LLVMBackend/libtcellvmbackend.la \
+	LLVMBackend/libopenasipllvmbackend.la \
 	ImplementationTester/libimpltester.la \
 	PlatformIntegrator/libplatformintegrator.la \
 	HWGen/libhwgen.la 

@@ -36,12 +36,12 @@ bin_PROGRAMS = generateprocessor ttaunittester
 generateprocessor_SOURCES = GenerateProcessor.cc \
 ProGeCmdLineOptions.cc ProGeCmdLineOptions.hh GenerateProcessor.hh
 
-generateprocessor_LDADD = ../../libtce.la
+generateprocessor_LDADD = ../../libopenasip.la
 
 ttaunittester_SOURCES = TTAUnitTester.cc TTAUnitTesterCmdLineOptions.cc \
 TTAUnitTesterCmdLineOptions.hh TTAUnitTester.hh
 
-ttaunittester_LDADD = ../../libtce.la
+ttaunittester_LDADD = ../../libopenasip.la
 
 AM_CPPFLAGS = -I${HDB_DIR} -I${TOOLS_DIR} -I${PROGE_APPLIBS_DIR} \
 -I${MACH_DIR} -I${BEM_DIR} -I${IMPL_TESTER_DIR} -I${IDF_DIR} \
