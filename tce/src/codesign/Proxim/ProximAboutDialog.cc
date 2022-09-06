@@ -45,7 +45,7 @@ ProximAboutDialog::ProximAboutDialog(wxWindow* parent):
 
     createContents(this, true, true);
     dynamic_cast<wxStaticText*>(FindWindow(ID_TEXT_PROGRAM_VERSION))->SetLabel(
-        _T("TCE ") + WxConversion::toWxString(VERSION));
+        _T("OpenASIP ") + WxConversion::toWxString(VERSION));
 }
 
 /**

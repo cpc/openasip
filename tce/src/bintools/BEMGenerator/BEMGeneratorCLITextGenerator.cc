@@ -39,7 +39,7 @@
 BEMGeneratorCLITextGenerator::BEMGeneratorCLITextGenerator() {
     addText(
         TXT_CLI_TITLE, 
-        "createbem - TCE Binary Encoding Map Generator command line "
+        "createbem - OpenASIP Binary Encoding Map Generator command line "
         "interface");
     addText(TXT_CLI_VERSION, VERSION);
 }

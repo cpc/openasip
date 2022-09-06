@@ -184,7 +184,7 @@ SchedulerCmdLineOptions::~SchedulerCmdLineOptions() {
  */
 void
 SchedulerCmdLineOptions::printVersion() const {
-    cout << "schedule - TCE Scheduler command line interface "
+    cout << "schedule - OpenASIP TTA Scheduler command line interface "
          <<  Application::TCEVersionString() << endl;
 }
 

@@ -54,7 +54,7 @@ CreateHDBCmdLineOptions::~CreateHDBCmdLineOptions() {
  */
 void
 CreateHDBCmdLineOptions::printVersion() const {
-    std::cout << "CreateHDB - TCE Hardware Database (HDB) initializer "
+    std::cout << "CreateHDB - OpenASIP Hardware Database (HDB) initializer "
               << Application::TCEVersionString() << std::endl; 
 }
 

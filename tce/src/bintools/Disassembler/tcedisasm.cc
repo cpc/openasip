@@ -106,7 +106,7 @@ public:
     }
 
     void printVersion() const {
-        std::cout << "tcedisasm - TCE parallel disassembler " 
+        std::cout << "tcedisasm - OpenASIP TTA parallel disassembler " 
                   << Application::TCEVersionString() << std::endl;
     }
 

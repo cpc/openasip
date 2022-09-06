@@ -125,7 +125,7 @@ OSEdAboutDialog::createContents(
 			 wxDefaultPosition, wxDefaultSize, 0);
     item3->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
     wxStaticText *item5 =
-	new wxStaticText(parent, -1, _T("TCE ") + WxConversion::toWxString(VERSION),
+	new wxStaticText(parent, -1, _T("OpenASIP ") + WxConversion::toWxString(VERSION),
 			 wxDefaultPosition, wxDefaultSize, 0);
     item3->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
     

@@ -39,7 +39,8 @@
 PIGCLITextGenerator::PIGCLITextGenerator() {
     addText(
         TXT_CLI_TITLE,
-        "generatebits - TCE Program Image Generator command line interface");
+        "generatebits - OpenASIP TTA " \
+        "Program Image Generator command line interface");
     addText(TXT_CLI_VERSION, VERSION);
     addText(TXT_CLI_USAGE, "Usage: generatebits <options> ADF");
     addText(

@@ -74,7 +74,7 @@ public:
     }
     
     void printVersion() const {
-        std::cout << "tceasm - TCE parallel assembler " 
+        std::cout << "tceasm - OpenASIP TTA parallel assembler " 
                   << Application::TCEVersionString() 
                   << std::endl;
     }

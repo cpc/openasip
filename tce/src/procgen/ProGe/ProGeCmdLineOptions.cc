@@ -540,7 +540,7 @@ ProGeCmdLineOptions::resetAllRegisters() const {
  */
 void
 ProGeCmdLineOptions::printVersion() const {
-    std::cout << "generateprocessor - TCE Processor Generator "
+    std::cout << "generateprocessor - OpenASIP Processor Generator "
               << Application::TCEVersionString() << std::endl;
 }
 
