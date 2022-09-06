@@ -122,7 +122,7 @@ fi
 
 if test "$echo_libs" = "yes"; then
     libdirs=-L@libdir@
-    echo "$libdirs -ltce"
+    echo "$libdirs -lopenasip"
 fi
 
 if test "$echo_cxxflags" = "yes"; then
