@@ -189,3 +189,5 @@ tce/configure~
 tce/tce_config.h.in~
 tce/src/applibs/LLVMBackend/passes/.dirstamp
 tce/src/procgen/MachInfo/machinfo
+src/bintools/Compiler/tcecc
+scripts/tce-selftest

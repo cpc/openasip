@@ -61,6 +61,10 @@ dev-install: install
 
 all-local:
 	ln -sf ./openasip-config ./tce-config
+	cd src/bintools/Compiler;  ln -sf oacc tcecc
+	cd scripts;  ln -sf oa-selftest tce-selftest
 
 install-exec-hook:
-	cd $(DESTDIR) ; ln -sf openasip-config tce-config
+	cd $(prefix)/bin;  ln -sf openasip-config tce-config
+	cd $(prefix)/bin;  ln -sf oacc tcecc
+	cd $(prefix)/bin;  ln -sf oa-selftest tce-selftest
