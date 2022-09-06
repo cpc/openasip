@@ -905,6 +905,12 @@ FUGen::parseOperations() {
             opInfo.initial = readFile(opImpl.initialImplFileVhdl);
             opInfo.postOp = readFile(opImpl.postOpImplFileVhdl);
         } else {
+            if (opImpl.implFileVerilog == "") {
+                const std::string msg = 
+                "Cannot generate operation \"" + opInfo.name +
+                "\" due to missing verilog operation implementation";
+                throw std::runtime_error(msg);
+            }
             opInfo.variables = opImpl.verilogVariables;
             opInfo.globalsignals = opImpl.verilogGlobalSignals;
             opInfo.implementation = readFile(opImpl.implFileVerilog);

@@ -249,11 +249,6 @@ OperationImplementationDialog::onOK(wxCommandEvent&) {
     }
 
     operation.implFileVerilog = sanitize(pick2_->GetPath());
-    if (operation.implFileVerilog.length() < 1) {
-        wxMessageBox(wxT("Give the operation Verilog implementation file."),
-            wxT("Error"), wxICON_ERROR);
-        return;
-    }
 
     operation.postOpImplFileVhdl = sanitize(pick11_->GetPath());
     operation.postOpImplFileVerilog = sanitize(pick21_->GetPath());
