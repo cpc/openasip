@@ -211,7 +211,7 @@ BEGIN
         file_open(rf_trace, "rf.dump", write_mode);
         start := false;
       end if;
-      wait on clk until clk = '1' and clk'last_value = '0';
+      wait on clk until clk = '1' and clk'last_value = '0' and glock = '0';
       opc := to_integer(unsigned(t1opcode));
       if(t1data /= reg(opc)) then
         if(t1load = '1' and unsigned(t1opcode) /= to_unsigned(0, 32)) then
