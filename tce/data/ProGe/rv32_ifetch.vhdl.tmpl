@@ -68,7 +68,7 @@ entity tta0_ifetch is
 
     rv_jump : in std_logic;
     rv_auipc : in std_logic;
-    rv_offset : in std_logic_vector(19 downto 0);
+    rv_offset : in std_logic_vector(31 downto 0);
 
     clk  : in std_logic;
     rstx : in std_logic);
@@ -78,7 +78,6 @@ architecture rtl_andor of tta0_ifetch is
 
   -- signals for program counter
   signal pc_reg      : std_logic_vector (IMEMADDRWIDTH-1 downto 0);
-  signal pc_wire     : std_logic_vector(IMEMADDRWIDTH-1 downto 0);
   signal pc_prev_reg : std_logic_vector (IMEMADDRWIDTH-1 downto 0);
   signal next_pc     : std_logic_vector (IMEMADDRWIDTH-1 downto 0);
 
@@ -90,9 +89,6 @@ architecture rtl_andor of tta0_ifetch is
 
   -- internal signals for initializing and locking execution
   signal lock       : std_logic;
-
-  signal imem_r : std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
-  signal imem_data_wire : std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
 
   signal reset_lock : std_logic;  
   constant IFETCH_DELAY : integer := 1;
@@ -110,7 +106,6 @@ architecture rtl_andor of tta0_ifetch is
  signal db_cyclecnt, db_lockcnt : std_logic_vector(64 - 1 downto 0);
  signal db_pc, db_pc_next       : std_logic_vector(IMEMADDRWIDTH-1 downto 0);
  
- signal pc_relative : std_logic;
  signal calla_address : std_logic_vector(31 downto 0);
  signal apc_result_reg : std_logic_vector(31 downto 0);
 
@@ -121,8 +116,6 @@ architecture rtl_andor of tta0_ifetch is
 
  signal eq, ne, ge, lt   : std_logic;
 
-
-  
 begin
 
   -- enable instruction memory
@@ -182,9 +175,9 @@ begin
     if rstx = '0' then
       apc_result_reg <= (others => '0');
     elsif rising_edge(clk) then
-        if rv_auipc = '1' and lock = '0' then
-          apc_result_reg <= std_logic_vector(resize(signed(control_pc), 32) + resize(signed(rv_offset), 32));
-        end if;
+      if rv_auipc = '1' and lock = '0' then
+        apc_result_reg <= std_logic_vector(resize(unsigned(control_pc), 32) + unsigned(rv_offset));
+      end if;
     end if;
   end process;
 
@@ -318,7 +311,7 @@ begin
       elsif pc_load = '1' then
         next_pc <= control_pc_next;
       elsif rv_jump = '1' then
-        next_pc <= std_logic_vector(unsigned(control_pc) + unsigned(rv_offset(next_pc'length-1 downto 0)));
+        next_pc <= std_logic_vector(unsigned(control_pc) + resize(unsigned(rv_offset), next_pc'length));
       --no branch
       else
         next_pc <= increased_pc;

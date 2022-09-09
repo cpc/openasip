@@ -1003,7 +1003,7 @@ RV32MicroCodeGenerator::generateFUTargetProcess(std::ofstream& stream) {
            << "    if(rstx = '0') then" << std::endl
            << "      target_fu_r <= (others => '0');" << std::endl
            << "    elsif clk'event and clk = '1' then" << std::endl
-           << "      if glock_in = '0' then" << std::endl
+           << "      if glock_in = '0' and halt = '0' then" << std::endl
            << "        target_fu_r <= target_fu;" << std::endl
            << "      end if;" << std::endl
            << "    end if;" << std::endl
@@ -1131,7 +1131,8 @@ RV32MicroCodeGenerator::generateMap(const std::string& dstDirectory) {
                << "  glock_in       : in std_logic;" << std::endl
                << "  data_hazard_in : in std_logic;" << std::endl
                << "  rs1_hazard_in  : in std_logic;" << std::endl
-               << "  rs2_hazard_in  : in std_logic;" << std::endl;
+               << "  rs2_hazard_in  : in std_logic;" << std::endl
+               << "  halt           : in std_logic;" << std::endl;
     }
     stream << "  fu_opcode_in : in  std_logic_vector(16 downto 0);"
            << std::endl
@@ -1173,9 +1174,9 @@ RV32MicroCodeGenerator::generateMap(const std::string& dstDirectory) {
            << "  moves_out  <= moves;" << std::endl
            << std::endl;
     if (hasForwarding_) {
-        stream << "data_hazard <= data_hazard_in;" << std::endl
-               << "rs1_hazard  <= rs1_hazard_in;" << std::endl
-               << "rs2_hazard  <= rs2_hazard_in;" << std::endl;
+        stream << "  data_hazard <= data_hazard_in;" << std::endl
+               << "  rs1_hazard  <= rs1_hazard_in;" << std::endl
+               << "  rs2_hazard  <= rs2_hazard_in;" << std::endl;
         stream << std::endl;
         generateFUTargetProcess(stream);
     }
@@ -1383,15 +1384,17 @@ RV32MicroCodeGenerator::generateWrapper(
             "  glock_in       : in std_logic;\n"
             "  data_hazard_in : in std_logic;\n"
             "  rs1_hazard_in  : in std_logic;\n"
-            "  rs2_hazard_in  : in std_logic;\n";
+            "  rs2_hazard_in  : in std_logic;\n"
+            "  halt           : in std_logic;\n";
 
         std::string forwardingPortMapping =
-            "clk            => clk,\n"
-            "rstx           => rstx,\n"
-            "glock_in       => glock_in,\n"
-            "data_hazard_in => data_hazard,\n"
-            "rs1_hazard_in  => rs1_hazard,\n"
-            "rs2_hazard_in  => rs2_hazard,\n";
+            "clk              => clk,\n"
+            "rstx             => rstx,\n"
+            "glock_in         => glock_in,\n"
+            "data_hazard_in   => data_hazard,\n"
+            "rs1_hazard_in    => rs1_hazard,\n"
+            "rs2_hazard_in    => rs2_hazard,\n"
+            "halt             => filling_instruction_pipeline,";
 
         instantiator.replacePlaceholder("forwarding-ports", forwardingPorts);
         instantiator.replacePlaceholder(

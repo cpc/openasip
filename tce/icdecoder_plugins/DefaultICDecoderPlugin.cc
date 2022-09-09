@@ -1072,10 +1072,10 @@ public:
             "rv_auipc", "1", ProGe::BIT, ProGe::OUT, *microCodeBlock);
 
         NetlistPort* rvOffsetPortMicroCode = new NetlistPort(
-            "rv_offset", "20", BIT_VECTOR, ProGe::OUT, *microCodeBlock);
+            "rv_offset", "32", BIT_VECTOR, ProGe::OUT, *microCodeBlock);
 
         NetlistPort* rvOffsetPortIfetch =
-            new NetlistPort("rv_offset", "20", BIT_VECTOR, ProGe::IN, ifetch);
+            new NetlistPort("rv_offset", "32", BIT_VECTOR, ProGe::IN, ifetch);
 
         NetlistPort* rvJumpPortIfetch =
             new NetlistPort("rv_jump", "1", ProGe::BIT, ProGe::IN, ifetch);

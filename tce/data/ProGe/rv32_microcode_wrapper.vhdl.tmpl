@@ -37,7 +37,7 @@ entity rv32_microcode_wrapper is
     ifetch_stall : out std_logic;
     rv_jump : out std_logic;
     rv_auipc : out std_logic;
-    rv_offset : out std_logic_vector(19 downto 0);
+    rv_offset : out std_logic_vector(31 downto 0);
     glock_in        : in  std_logic);
 
 end rv32_microcode_wrapper;
@@ -172,7 +172,7 @@ architecture rtl of rv32_microcode_wrapper is
 
   rv_jump <= rv_jump_wire;
 
-  rv_offset <= imm(19 downto 0);
+  rv_offset <= imm;
 
   rv_jump_wire <= '1' when (opcode = "1101111" and filling_instruction_pipeline = '0') else '0';
 
