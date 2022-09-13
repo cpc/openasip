@@ -1,0 +1,33 @@
+# This script runs Vivado synthesis and place+route for the TTA core
+# loading constraints from constraints.xdc and produces a timing summary report
+# before and after synthesis.
+
+set script_path [ file dirname [ file normalize [ info script ] ] ]
+set sources [join [list $script_path "/{platform,gcu_ic,vhdl}/*"] ""]
+read_vhdl [glob $sources]
+read_xdc [join [list $script_path "constraints.xdc"] "/"]
+
+# Following Vivado's perf-focused options
+synth_design -top <<placeholder,toplevel_entity>> \
+             -part <<placeholder,part_name>> \
+             -fanout_limit 400 -retiming -fsm_extraction one_hot \
+             -keep_equivalent_registers \
+             -resource_sharing off -no_lc -shreg_min_size 5 -mode out_of_context
+
+report_timing_summary -max_paths 3 -file pre_place_timing.txt
+
+# Following Vivado's ExplorePostRoutePhysOpt implementation settings
+opt_design -directive Explore
+place_design -directive Explore
+phys_opt_design -directive Explore
+route_design -directive Explore -tns_cleanup
+phys_opt_design -directive Explore
+
+report_timing_summary -max_paths 3 -file final_timing.txt
+
+if {[get_property SLACK [get_timing_paths]] >= 0} {
+    puts "Design met timing."
+    return
+} else {
+    error "Design failed to meet timing."
+}

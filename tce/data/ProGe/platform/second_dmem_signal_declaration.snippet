@@ -1,0 +1,9 @@
+signal core_dmem_2nd_avalid_in  : std_logic_vector(core_count_g-1 downto 0);
+signal core_dmem_2nd_aready_out : std_logic_vector(core_count_g-1 downto 0);
+signal core_dmem_2nd_aaddr_in   : std_logic_vector(core_count_g*second_dmem_addr_width_g-1 downto 0);
+signal core_dmem_2nd_awren_in   : std_logic_vector(core_count_g-1 downto 0);
+signal core_dmem_2nd_astrb_in   : std_logic_vector(core_count_g*(second_dmem_data_width_g+7)/8-1 downto 0);
+signal core_dmem_2nd_adata_in   : std_logic_vector(core_count_g*second_dmem_data_width_g-1 downto 0);
+signal core_dmem_2nd_rvalid_out : std_logic_vector(core_count_g-1 downto 0);
+signal core_dmem_2nd_rready_in  : std_logic_vector(core_count_g-1 downto 0);
+signal core_dmem_2nd_rdata_out  : std_logic_vector(core_count_g*second_dmem_data_width_g-1 downto 0);

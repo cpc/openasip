@@ -1,0 +1,3 @@
+#!/bin/bash
+rm -rf *.disabled
+cp ../../../../../tce/data/ProGe/platform/xilinx_{,dp_}blockram.vhdl .

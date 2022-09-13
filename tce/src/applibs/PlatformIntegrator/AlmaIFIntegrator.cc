@@ -44,7 +44,6 @@
 #include "FileSystem.hh"
 #include "MathTools.hh"
 #include "HDLTemplateInstantiator.hh"
-#include <boost/format.hpp>
 
 using ProGe::NetlistBlock;
 using ProGe::NetlistPort;
@@ -55,6 +54,9 @@ const TCEString AlmaIFIntegrator::PMEM_NAME = "param";
 const TCEString AlmaIFIntegrator::AXI_AS_NAME = "axi_as";
 const TCEString AlmaIFIntegrator::ALMAIF_MODULE = "tta_accel";
 const TCEString AlmaIFIntegrator::DEFAULT_DEVICE = "xc7z020clg400-1";
+
+const int AlmaIFIntegrator::DEFAULT_RESERVED_PRIVATE_MEM_SIZE = 2048;
+const int AlmaIFIntegrator::DEFAULT_LOCAL_MEMORY_WIDTH = 12;
 
 AlmaIFIntegrator::AlmaIFIntegrator() : PlatformIntegrator() {
 }
@@ -80,8 +82,11 @@ AlmaIFIntegrator::AlmaIFIntegrator(
       pmemHandled_(false),
       syncReset_(syncReset),
       broadcast_pmem_(false) {
-    if (idf->icDecoderParameterValue("debugger") != "external") {
-        // TODO: Support for no debugger (e.g. instantiate a minimal one)
+    if (idf->icDecoderParameterValue("debugger") == "external") {
+        hasMinimalDebugger_ = false;
+    } else if (idf->icDecoderParameterValue("debugger") == "minimal") {
+        hasMinimalDebugger_ = true;
+    } else {
         TCEString msg =
             "AlmaIF interface requires connections to an external debugger.";
         throw InvalidData(__FILE__, __LINE__, "AlmaIFIntegrator", msg);
@@ -164,6 +169,12 @@ AlmaIFIntegrator::findMemories() {
                 } else {
                     foundPmem = true;
                     pmemInfo_ = readLsuParameters(*fu);
+
+                    // Needed for the case when the local memory doesn't exist
+                    // and needs to reserved from the buffer memory
+                    if (as->hasNumericalId(0)) {
+                        hasSeparateLocalMemory_ = false;
+                    }
                 }
             }
         }
@@ -197,6 +208,14 @@ AlmaIFIntegrator::integrateProcessor(
     initPlatformNetlist(progeBlockInOldNetlist);
     findMemories();
     initAlmaifBlock();
+    const NetlistBlock& cores = progeBlock();
+    int coreCount = 1;
+    for (int i = 0; i < coreCount; i++) {
+        int coreId = coreCount == 1 ? -1 : i;
+        if (!integrateCore(cores, coreId)) {
+            return;
+        }
+    }
 
     writeNewToplevel();
 
@@ -239,6 +258,8 @@ AlmaIFIntegrator::axiAddressWidth() const {
             pmemInfo_.portAddrw +
             MathTools::requiredBits0Bit0(std::max(
                 0, pmemInfo_.mauWidth * pmemInfo_.widthInMaus / 8 - 1));
+    } else {
+        pmemAddressWidth = DEFAULT_LOCAL_MEMORY_WIDTH;
     }
     int axiAddressWidth = std::max(
         std::max(imemAddressWidth, debugAddressWidth),
@@ -250,6 +271,7 @@ AlmaIFIntegrator::axiAddressWidth() const {
 void
 AlmaIFIntegrator::initAlmaifBlock() {
     ProGe::Netlist& netlist = integratorBlock()->netlist();
+    TCEString core_count = "1";
 
     TCEString platformPath = Environment::dataDirPath("ProGe");
     platformPath << FileSystem::DIRECTORY_SEPARATOR << "platform"
@@ -277,6 +299,7 @@ AlmaIFIntegrator::initAlmaifBlock() {
     integratorBlock()->setParameter(
         "axi_addr_width_g", "integer", axiAddressWidth());
     integratorBlock()->setParameter("axi_id_width_g", "integer", "12");
+    almaifBlock_->setParameter("core_count_g", "integer", core_count);
     almaifBlock_->setParameter(
         "axi_addr_width_g", "integer", "axi_addr_width_g");
     almaifBlock_->setParameter("axi_id_width_g", "integer", "axi_id_width_g");
@@ -376,10 +399,17 @@ AlmaIFIntegrator::initAlmaifBlock() {
         assert(
             broadcast_pmem_ == false &&
             "Broadcasting pmem not supported with m_axi");
-        integratorBlock()->setParameter("local_mem_addrw_g", "integer", "10");
         integratorBlock()->setParameter(
-            "axi_offset_g", "integer", "1136656384");
-        almaifBlock_->setParameter("axi_offset_g", "integer", "axi_offset_g");
+            "local_mem_addrw_g", "integer",
+            Conversion::toString(DEFAULT_LOCAL_MEMORY_WIDTH - 2));
+
+        integratorBlock()->setParameter(
+            "axi_offset_low_g", "integer", "1136656384");
+        integratorBlock()->setParameter("axi_offset_high_g", "integer", "0");
+        almaifBlock_->setParameter(
+            "axi_offset_low_g", "integer", "axi_offset_low_g");
+        almaifBlock_->setParameter(
+            "axi_offset_high_g", "integer", "axi_offset_high_g");
 
         NetlistPortGroup* aximaster_almaif = axiMasterPortGroup();
         NetlistPortGroup* aximaster_ext = aximaster_almaif->clone();
@@ -390,16 +420,48 @@ AlmaIFIntegrator::initAlmaifBlock() {
         integratorBlock()->setParameter(
             "local_mem_addrw_g", "integer",
             Conversion::toString(pmemInfo_.portAddrw));
-        almaifBlock_->setParameter("axi_offset_g", "integer", "0");
+        almaifBlock_->setParameter("axi_offset_low_g", "integer", "0");
+        almaifBlock_->setParameter(
+            "axi_offset_high_g", "integer", "0");
     }
 
     int coreCount = 1;
-    almaifBlock_->setParameter("full_debugger_g", "integer", "0");
-    accelInstantiator_.replacePlaceholderFromFile(
-        "mini-debugger-signal-declarations",
-        Path(platformPath + "mini_debugger_signal_declaration.snippet"));
-    accelInstantiator_.replacePlaceholderFromFile(
-        "debugger", Path(platformPath + "mini_debugger.snippet"));
+    // Debug signals
+    if (!hasMinimalDebugger_) {
+        almaifBlock_->setParameter("full_debugger_g", "integer", "1");
+        accelInstantiator_.replacePlaceholderFromFile(
+            "full-debugger-port-declarations",
+            Path(platformPath + "full_debugger_port_declaration.snippet"));
+        accelInstantiator_.replacePlaceholderFromFile(
+            "debugger", Path(platformPath + "full_debugger.snippet"));
+
+        addPortToAlmaIFBlock(
+            "core_db_pc_start", coreCount * imemaddrw, ProGe::OUT,
+            "db_pc_start");
+        addPortToAlmaIFBlock(
+            "core_db_pc_next", coreCount * imemaddrw, ProGe::IN,
+            "db_pc_next");
+        addPortToAlmaIFBlock(
+            "core_db_bustraces", coreCount * bustrace_width, ProGe::IN,
+            "db_bustraces");
+    } else {
+        almaifBlock_->setParameter("full_debugger_g", "integer", "0");
+        accelInstantiator_.replacePlaceholderFromFile(
+            "mini-debugger-signal-declarations",
+            Path(platformPath + "mini_debugger_signal_declaration.snippet"));
+        accelInstantiator_.replacePlaceholderFromFile(
+            "debugger", Path(platformPath + "mini_debugger.snippet"));
+    }
+
+    // Set the default value in case when there is no separate scratchpad memory.
+    // AlmaIF interface must reserve some part of the global buffer memory
+    // (pmem) and communicate that in the interface
+    if (!hasSeparateLocalMemory_) {
+        almaifBlock_->setParameter(
+        "reserved_sp_bytes_g", "integer",
+        Conversion::toString(DEFAULT_RESERVED_PRIVATE_MEM_SIZE));
+    }
+
     addPortToAlmaIFBlock(
         "core_db_pc", coreCount * imemaddrw, ProGe::IN, "db_pc");
     addPortToAlmaIFBlock(
@@ -715,7 +777,7 @@ AlmaIFIntegrator::axiMasterPortGroup() {
 void
 AlmaIFIntegrator::addMemoryPorts(
     const TCEString prefix, int data_width, int addr_width,
-    const bool isShared, const bool overrideAsWidth) {
+    const bool /* isShared */, const bool overrideAsWidth) {
     int mem_count = 1;
 
     data_width = data_width * mem_count;
@@ -782,6 +844,16 @@ AlmaIFIntegrator::addAlmaifFiles() {
     copyPlatformFile(platformPath + "almaif_axi_expander.vhdl", almaifFiles);
     copyPlatformFile(platformPath + "membus_splitter.vhdl", almaifFiles);
     copyPlatformFile(platformPath + "almaif_membus_delay.vhdl", almaifFiles);
+    copyPlatformFile(dbPath + "registers-pkg.vhdl", almaifFiles);
+
+    if (hasMinimalDebugger_) {
+        copyPlatformFile(dbPath + "minidebugger.vhdl", almaifFiles);
+    } else {
+        copyPlatformFile(dbPath + "dbregbank.vhdl", almaifFiles);
+        copyPlatformFile(dbPath + "dbsm-entity.vhdl", almaifFiles);
+        copyPlatformFile(dbPath + "dbsm-rtl.vhdl", almaifFiles);
+        copyPlatformFile(dbPath + "debugger.vhdl", almaifFiles);
+    }
 
     // Copy synthesis scripts
     TCEString scriptPath = basePath + DS + "synthesis" + DS;
@@ -827,47 +899,6 @@ AlmaIFIntegrator::integrateCore(const ProGe::NetlistBlock& core, int coreId) {
         return false;
     }
 
-    if (coreId == -1) {
-        // connect AQL manager ports, if extant
-        auto writeIdxPort = core.port("write_idx_in");
-        std::string portDeclaration;
-        std::string signalAssignments;
-        if (writeIdxPort) {
-            signalAssignments += "aql_write_idx_out <= aql_write_idx;\n";
-            portDeclaration +=
-                "aql_write_idx_out : out std_logic_vector(64-1 downto 0);\n";
-            addPortToAlmaIFBlock(
-                "aql_write_idx_out", 64, ProGe::OUT, writeIdxPort->name());
-        }
-
-        auto readIdxPort = core.port("read_idx_out");
-        if (readIdxPort) {
-            signalAssignments += "aql_read_idx <= aql_read_idx_in;\n";
-            portDeclaration +=
-                "aql_read_idx_in   : in std_logic_vector(64-1 downto 0);\n";
-            addPortToAlmaIFBlock(
-                "aql_read_idx_in", 64, ProGe::IN, readIdxPort->name());
-
-            auto readIdxClearPort = core.port("read_idx_clear_in");
-            assert(readIdxClearPort && "read_idx_clear_in not found.");
-            addPortToAlmaIFBlock(
-                "aql_read_idx_clear_out", 1, ProGe::OUT,
-                readIdxClearPort->name());
-            signalAssignments +=
-                "aql_read_idx_clear_out <= aql_read_idx_clear;\n";
-            portDeclaration +=
-                "aql_read_idx_clear_out : out std_logic_vector(0 downto "
-                "0);\n";
-        } else {
-            // Connect constant
-            signalAssignments += "aql_read_idx <= (others => '0');\n";
-        }
-
-        accelInstantiator_.replacePlaceholder(
-            "queue-port-declarations", portDeclaration);
-        accelInstantiator_.replacePlaceholder(
-            "queue-signal-assignments", signalAssignments);
-    }
     // Connect cycle count, stall count ports if needed by an FU
     auto ttaCCPort = core.port("debug_cycle_count_in");
     if (ttaCCPort) {
@@ -947,7 +978,7 @@ AlmaIFIntegrator::exportUnconnectedPorts(int coreId) {
 }
 
 MemoryGenerator&
-AlmaIFIntegrator::imemInstance(MemInfo imem, int coreId) {
+AlmaIFIntegrator::imemInstance(MemInfo imem, int /* coreId */) {
     assert(imem.type != UNKNOWN && "Imem type not set!");
     int axiAddrWidth =
         MathTools::requiredBits0Bit0(

@@ -20,7 +20,12 @@ nobase_data_DATA =	$(srcdir)/ProDe/confschema.xsd \
 					$(srcdir)/ProGe/tb/*.vhdl.tmpl \
 					$(srcdir)/ProGe/tb/*.v \
 					$(srcdir)/ProGe/tb/*.v.tmpl \
-					$(srcdir)/ProGe/platform/*.vhd $(srcdir)/ProGe/platform/*.vhdl.tmpl \
+					$(srcdir)/ProGe/platform/*.vhd \
+					$(srcdir)/ProGe/platform/*.vhdl \
+					$(srcdir)/ProGe/platform/*.vhdl.tmpl \
+					$(srcdir)/ProGe/platform/*.snippet \
+					$(srcdir)/ProGe/synthesis/*.tcl.tmpl \
+					$(srcdir)/ProGe/synthesis/*.py \
 					$(srcdir)/Proxim/confschema.xsd \
 					$(srcdir)/hdb/*.vhdl.template \
 					$(srcdir)/tcecc/oclc_launcher_header.c \
@@ -28,7 +33,8 @@ nobase_data_DATA =	$(srcdir)/ProDe/confschema.xsd \
 					$(srcdir)/tcecc/oclc_initializer_object.cc  \
 					$(srcdir)/ProGe/tb/simulate.sh.tmpl \
 					$(srcdir)/ProGe/tb/compile.sh.tmpl \
-					$(srcdir)/ProGe/debugger/*.vhdl $(srcdir)/ProGe/debugger/*.vhdl.tmpl \
+					$(srcdir)/ProGe/debugger/*.vhdl \
+					$(srcdir)/ProGe/debugger/*.vhdl.tmpl \
 					$(srcdir)/ProGe/*.snippet \
 					$(srcdir)/ProGe/debugger/tb/*.vhdl
 

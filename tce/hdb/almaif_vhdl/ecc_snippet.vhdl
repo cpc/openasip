@@ -1,0 +1,1 @@
+op2 <= debug_cycle_count_in(32-1 downto 0);

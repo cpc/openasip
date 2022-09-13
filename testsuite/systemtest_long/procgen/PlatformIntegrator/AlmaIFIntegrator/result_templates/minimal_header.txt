@@ -1,0 +1,2 @@
+Device class: 1908
+Device ID: 19088743

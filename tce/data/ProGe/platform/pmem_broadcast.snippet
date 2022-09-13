@@ -1,0 +1,20 @@
+axi_pmem_wide_aready <= param_b_aready_in(0);
+param_b_avalid_out(0) <= axi_pmem_wide_avalid;
+param_b_aaddr_out(second_pmem_addr_width_g-1 downto 0) <= axi_pmem_wide_aaddr;
+param_b_awren_out(0) <= axi_pmem_wide_awren;
+param_b_astrb_out(second_pmem_strb_width-1 downto 0) <= axi_pmem_wide_astrb;
+param_b_adata_out(second_pmem_data_width_g-1 downto 0) <= axi_pmem_wide_adata;
+axi_pmem_wide_rvalid <= param_b_rvalid_in(0);
+param_b_rready_out(0) <= axi_pmem_wide_rready;
+axi_pmem_wide_rdata <= param_b_rdata_in(second_pmem_data_width_g-1 downto 0);
+
+pmem_broadcast : for I in 1 to core_count_g-1 generate                                  
+param_b_avalid_out(I) <= axi_pmem_wide_avalid and axi_pmem_wide_awren;                
+param_b_aaddr_out((I+1)*second_pmem_addr_width_g-1 downto I*second_pmem_addr_width_g)
+                    <= axi_pmem_wide_aaddr;                                         
+param_b_awren_out(I) <= axi_pmem_wide_awren;                                          
+param_b_astrb_out(second_pmem_strb_width*(I+1)-1 downto second_pmem_strb_width*I) <= axi_pmem_wide_astrb;                       
+param_b_adata_out((I+1)*second_pmem_data_width_g-1 downto I*second_pmem_data_width_g) <= axi_pmem_wide_adata;
+param_b_rready_out(I) <= '1';
+end generate;
+

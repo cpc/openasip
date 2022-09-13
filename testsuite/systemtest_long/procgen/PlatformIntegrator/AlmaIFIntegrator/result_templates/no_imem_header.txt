@@ -1,0 +1,3 @@
+DMEM size: 2048
+CQMEM size: 32768
+IMEM size: 0

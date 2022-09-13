@@ -1,0 +1,9 @@
+#!/bin/bash
+rm -rf proge-out
+rm -f *.img
+rm -f *.tpef
+rm -f run.log
+rm -f expected.txt
+rm -f xilinx_{,dp_}blockram.vhdl
+# renames the disabled tests back to normal
+rm -f *.disabled
