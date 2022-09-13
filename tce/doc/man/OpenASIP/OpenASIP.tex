@@ -587,7 +587,7 @@ Copy the \file{minimal.adf} file included in OpenASIP distribution to a new ADF
 file:
 
 \begin{verbatim}
-  cp $(tce-config --prefix)/share/openasip/data/mach/minimal.adf start.adf
+  cp $(tce-config --prefix)/share/tce/data/mach/minimal.adf start.adf
 \end{verbatim}
 
 The file describes a minimalistic TTA processor containing just enough
@@ -1589,7 +1589,7 @@ by one as follows.
 \begin{enumerate}
 \item%
 Select implementation for RF: Click the RF name, 'Select Implementation',
-find the OS's default HDB file (PREFIX/share/openasip/hdb/asic\_130nm\_1.5V.hdb) 
+find the OS's default HDB file (PREFIX/share/tce/hdb/asic\_130nm\_1.5V.hdb) 
 from your tce installation path and select an implementation for the RF from 
 there.
 
@@ -1617,7 +1617,7 @@ Automatic selection - ProDe chooses the implementations from HDB files.
 \item% 
 Select implementations for register files and function units all at once: 
 Click Auto Select Implementations, find the OpenASIP's default HDB file from your 
-OpenASIP installation path (PREFIX/share/openasip/hdb/asic\_130nm\_1.5V.hdb), make sure
+OpenASIP installation path (PREFIX/share/tce/hdb/asic\_130nm\_1.5V.hdb), make sure
 'Register Files' and 'Function Units' checkboxes are checked and press 'Find'.
 A dialog should appear saying 4 implementations were found; 2 for register
 files and 2 for function units. Click 'Yes'. If the number of found
@@ -1639,7 +1639,7 @@ function units should have implementations.
 %\item%
 %Next select the IC/Decoder generator plugin used to generate the
 %decoder in the control unit and interconnection network:
-%\textit{Browse... (installation\_path)/share/openasip/icdecoder\_plugins/base/
+%\textit{Browse... (installation\_path)/share/tce/icdecoder\_plugins/base/
 %DefaultICDecoderPlugin.so>OK}. This should be selected by default.
 
 \item%
@@ -1953,7 +1953,7 @@ STDOUT. OpenASIP ships with a minimal architecture that also includes
 the STDOUT function unit, which you can use:
 
 \begin{verbatim}
-cp $(tce-config --prefix)/share/openasip/data/mach/minimal_with_stdout.adf .
+cp $(tce-config --prefix)/share/tce/data/mach/minimal_with_stdout.adf .
 tcecc --swfp -O0 hello.c -a minimal_with_stdout.adf -o hello.tpef
 \end{verbatim}
 
@@ -3044,7 +3044,7 @@ they can be emulated using integer arithmetic in software. Passing the switch \v
 to tcecc enables the software emulation library linkage.
 
 A set of floating-point FU implementations is included with OA, in a HDB file named 
-\emph{fpu\_embedded.hdb}, which can be found at \emph{PREFIX/share/openasip/hdb/fpu\_embedded.hdb}. 
+\emph{fpu\_embedded.hdb}, which can be found at \emph{PREFIX/share/tce/hdb/fpu\_embedded.hdb}. 
 The FUs operate with 32-bit, single-precision floating point numbers. 
 Supported operations include addition, subtraction, negation, absolute value, 
 multiplication, division, square root, conversion between floats and integers, 
@@ -3166,7 +3166,7 @@ A floating-point comparator. Also includes the cheap absolute value and negation
 
 \subsection{Half-precision Support}
 
-A set of half-precision arithmetic units is included with tce in \emph{PREFIX/share/openasip/hdb/fpu\_half.hdb}. In C and C++,
+A set of half-precision arithmetic units is included with tce in \emph{PREFIX/share/tce/hdb/fpu\_half.hdb}. In C and C++,
 half-precision operations an only be invoked with \emph{tceops.h} macros. It may be helpful to define a \emph{half}
 class with overloaded operators to wrap the macros. The test case \emph{testsuite/systemtest/proge/hpu} is written
 using such a class. There is ongoing work to add acceleration for the \emph{half} datatype in OpenCL.
@@ -3539,7 +3539,7 @@ The hardware loop can be enabled in the OA by simply adding HWLOOP
 instructions to control-unit in the TTA design. To start with, \textbf{copy
 minimalist TTA machine by}:
 
-\shellcmd{cp \$(tce-config -{}-prefix)/share/openasip/data/mach/minimal.adf hwloop.adf}
+\shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf hwloop.adf}
 
 We can observe from OSED that the HWLOOP instruction takes two parameters.
 Hence, add an additional input port to the control-unit and add then the
@@ -3768,10 +3768,10 @@ memory. Interface is generated when operations from
 
 
 \section{RISC-V Tutorial}
-This tutorial goes through the RISC-V customization in OpenASIP toolset. It
-starts from C code and ends up with a VHDL of a customized processor.
+This tutorial goes through the RISC-V customization in the OpenASIP toolset. It
+starts from C code and ends up with a VHDL model of a customized processor.
 During the tutorial the user will learn how to add custom instructions to a 
-RISC-V architecture, as well as how to compile programs for the customized
+RISC-V processor, as well as how to compile programs for the customized
 architecture.
 
 \begin{verbatim}
@@ -3795,21 +3795,21 @@ architecture.
 
 \subsection{The Sample Application}
 
-The test application counts a 32-bit CRC (Cyclic Redundant Check)
+The test application computes a 32-bit CRC (Cyclic Redundancy Check)
 check value for a block of data, in this case 10 bytes. The C code
 implementation is written by Michael Barr and it is published under
-Public Domain. The implementation consists of two different version of
-crc, but we will be using the fast version only.
+Public Domain. The implementation consists of two different versions of
+CRC, but we will be using the fast version only.
 
 The program consists of two separate files: \file{main.c} contains the
 simple main function and \file{crc.c} contains the actual
 implementation. Open \file{crc.c} in your preferred editor and take a
-look at the code. Algorithm performs modulo-2 division, a byte at a
+look at the code. The algorithm performs modulo-2 division, a byte at a
 time, reflects the input data (MSB becomes LSB) depending on the
 previous remainder, and XORs the remainder with a predefined
 polynomial (32-bit constant). The main difference between the crcSlow
 and crcFast implementations is that crcFast exploits a precalculated
-lookup table. This is a quite usual method of algorithm optimization.
+lookup table. This is a common method of algorithm optimization.
 
 \subsection{Starting Point Processor Architecture}
 
@@ -3818,7 +3818,7 @@ Copy the \file{riscv.adf} file included in OpenASIP distribution to a new ADF
 file:
 
 \begin{verbatim}
-  cp $(tce-config --prefix)/share/openasip/data/mach/riscv.adf start.adf
+  cp $(tce-config --prefix)/share/tce/data/mach/riscv.adf start.adf
 \end{verbatim}
 
 The file describes a RISC-V processor containing a full bypass network
@@ -3860,8 +3860,8 @@ with command:
 
 \shellcmd{oacc-riscv -O3 -a start.adf -o crc.elf main.c crc.c}
 
-In addition to source codes, the compiler needs the architecture
-definition \file{start.adf}. It will produce a program called
+In addition to source code of the CRC algorithm, the compiler needs the
+architecture definition \file{start.adf} in order to schedule the instructions. It will produce a program called
 \file{crc.elf} which can be executed by this architecture. As \file{start.adf}
 does not yet include any custom instructions, the compiled program is fully
 compatible with the base RISC-V RV32I ISA.
@@ -3882,17 +3882,19 @@ After this generate the HDL packages for the instruction address space.
 \shellcmd{generatebits -x riscv-proc start.adf}
 
 To simulate the processor in RTL simulation, we need to generate a
-binary image of the program in text format. Previously, we generated an
+binary image of the program in text format in order to integrate the
+program image into the RTL model. Previously, we had generated an
 executable and linkable format (ELF) \file{crc.elf}. To convert it to text
-format, we need additional tools.
+format, we need some additional tools.
 
 You can use RISC-V GNU Toolchain and its riscv32-unknown-elf-elf2hex tool:
 \url{https://github.com/riscv-collab/riscv-gnu-toolchain}.
 
 \shellcmd{riscv32-unknown-elf-elf2hex -{}-bit-width 32 -{}-input crc.elf -{}-output crc.hex}
 
-Now that the program is presented in hex format in a text file, it must be 
-converted to a binary presentation for the testbench. Do this with an included
+Now that the program is in a hexadecimal format in a text file, it must be 
+converted from hex to a binary representation for the testbench which will run 
+the program on the RTL model. Convert to binary with an included
 script:
 
 \shellcmd{oa-hex2bin -w 32 -o riscv-proc/tb/imem\_init.img crc.hex}
@@ -3934,22 +3936,23 @@ accelerate the CRC application using CRC-specific operations.
 
 %\subsubsection{Evaluating Custom Operation Candidates}
 
-First of all, it is quite simple and efficient to implement CRC
-calculation entirely on hardware. However, implementing the whole CRC
+First of all, it is quite simple and efficient to implement the CRC
+calculations entirely on hardware. However, implementing the whole CRC
 function as a custom operation would be quite pointless and the
 flexibility benefits of using a processor-based implementation would diminish.
-Instead, we will concentrate on applying a ``fine grained'' custom
+Instead, we will concentrate on applying a more ``fine grained'' custom
 operation which accelerates a smaller part of the algorithm, while
-keeping the architecture useful also for other applications.
+keeping the architecture useful for other applications of this kind.
 
 
 \subsection{Defining a custom operation with a DAG}
 
 In OpenASIP the user can add custom operations to processor designs in two ways:
-with HDL snippets or directed acyclic graph (DAG) descriptions. With DAG descriptions,
-the user is able describe operations that can be described as a chain of already
-implemented operations. When this is not feasible, a new operation can be
-implemented by using HDL snippets.
+with HDL snippets or directed acyclic graph (DAG) descriptions. 
+With DAG descriptions, the user is able describe operations that can be
+described as a feed-forward chain of already implemented operations. 
+When this is not feasible, a new operation can be implemented by using 
+HDL snippets.
 
 Let's first add a new custom operation with the DAG approach.
 
@@ -5317,13 +5320,13 @@ where the operation is first found will be effective):\\
    System-wide shared custom operations:
    \textit{TCE\_INSTALLATION\_DIR/opset/base/} \\ where
    TCE\_INSTALLATION\_DIR is the path where TCE accessories is installed (for
-   example /usr/local/share/openasip).
+   example /usr/local/share/tce).
 
 \item
    Default predefined and standard operations: \\
    \textit{TCE\_INSTALLATION\_DIR/opset/base/} \\ where
    TCE\_INSTALLATION\_DIR is the path where TCE accessories is installed (for
-   example /usr/local/share/openasip).
+   example /usr/local/share/tce).
 
 \end{enumerate}
 
@@ -7664,13 +7667,13 @@ u & compressorparam & Parameter to the code compressor in form 'name=value'. \\
 d & dataimages  & Creates data images.\\
 g & decompressor & Generates a decompressor block. \\
 o & diformat & The output format of data image(s) ('ascii', 'array', 'mif', 
-'hex', 'bin2n' or 'binary'). Default is 'ascii'. \\
+'hex' or 'binary'). Default is 'ascii'. \\
 w & dmemwidthinmaus & Width of data memory in MAUs. Default is 1. \\
 x & hdl-dir & Directory root where are the ProGe generated HDL files
 generated by ProGe. If given, PIG will write imem\_mau\_pkg and compressor
 in that directory. Otherwise they are written to cwd.\\
 f & piformat & Determines the output format of the program image and data
-images. Value may be 'ascii', 'binary', 'hex', 'bin2n' or 'mif'.\\
+images. Value may be 'ascii', 'binary', 'hex' or 'mif'.\\
 s & showcompressors & Shows the compressor plugin descriptions. \\
 p & program & The TPEF program file(s).\\
 v & verbose & Display extra information during image creation: total 
