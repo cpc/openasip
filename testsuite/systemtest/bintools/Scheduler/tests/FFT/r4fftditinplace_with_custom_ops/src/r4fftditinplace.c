@@ -20,7 +20,7 @@
  * in-place complex radix-4 DIT FFT
  ************************************************************************* 
  * Project: FlexDSP                                  
- * Author: Risto Mäkinen <rmmakine@cs.tut.fi>                           
+ * Author: Risto Mï¿½kinen <rmmakine@cs.tut.fi>                           
  ************************************************************************/
 
 /*#define DEBUG_STAGE_OUTPUT*/
@@ -36,11 +36,14 @@
 
 #include "r4fftditinplace.h"
 #include "sfus.h"
+#include <string.h>
 
 /*Implementation of the algorithm begins.*/
 void
 r4fftditinplace (const int Input[], int Output[]) {
     int oper0, oper1, oper2, oper3;
+    int oper0in, oper1in, oper2in, oper3in = 0;
+    int oper0out, oper1out, oper2out, oper3out = 0;
     int factor0, factor1, factor2, factor3;
     int *oper0in_addr = 0; 
     int *oper1in_addr = 0; 
@@ -53,6 +56,7 @@ r4fftditinplace (const int Input[], int Output[]) {
     unsigned int stage = 0;
     unsigned int linidx = 0;
     int prod0, prod1, prod2, prod3;
+    
 
     /* Loop Counters:
      * stage -> counter for stages of FFT
@@ -67,11 +71,21 @@ r4fftditinplace (const int Input[], int Output[]) {
      */
     for (linidx = 0; linidx < (FFT_POINTS - 1); linidx += 4) {
         /*Generate the needed addresses of operands.*/	 
-        ag(oper0in_addr,oper0out_addr,Input,Output,stage,linidx);
-        ag(oper1in_addr,oper1out_addr,Input,Output,stage,linidx+1);
-        ag(oper2in_addr,oper2out_addr,Input,Output,stage,linidx+2);
-        ag(oper3in_addr,oper3out_addr,Input,Output,stage,linidx+3);
+        ag(oper0in,oper0out,Input,Output,stage,linidx);
+        ag(oper1in,oper1out,Input,Output,stage,linidx+1);
+        ag(oper2in,oper2out,Input,Output,stage,linidx+2);
+        ag(oper3in,oper3out,Input,Output,stage,linidx+3);
         /*Store operands and factors to local variables.*/
+        oper0in_addr = (int*)oper0in;
+        oper1in_addr = (int*)oper1in;
+        oper2in_addr = (int*)oper2in;
+        oper3in_addr = (int*)oper3in;
+
+        oper0out_addr = (int*)oper0out;
+        oper1out_addr = (int*)oper1out;
+        oper2out_addr = (int*)oper2out;
+        oper3out_addr = (int*)oper3out;
+
         oper0 = *oper0in_addr;
         factor0 = fgen(stage,linidx);
         oper1 = *oper1in_addr;
@@ -107,10 +121,20 @@ r4fftditinplace (const int Input[], int Output[]) {
     for (stage = 1; stage < FFT_POINTS_LOG4; stage++) { 
         for (linidx = 0; linidx < (FFT_POINTS - 1); linidx += 4) {	 
             
-            ag(oper0in_addr,oper0out_addr,Input,Output,stage,linidx);
-            ag(oper1in_addr,oper1out_addr,Input,Output,stage,linidx+1);
-            ag(oper2in_addr,oper2out_addr,Input,Output,stage,linidx+2);
-            ag(oper3in_addr,oper3out_addr,Input,Output,stage,linidx+3);
+            ag(oper0in,oper0out,Input,Output,stage,linidx);
+            ag(oper1in,oper1out,Input,Output,stage,linidx+1);
+            ag(oper2in,oper2out,Input,Output,stage,linidx+2);
+            ag(oper3in,oper3out,Input,Output,stage,linidx+3);
+
+            oper0in_addr = (int*)oper0in;
+            oper1in_addr = (int*)oper1in;
+            oper2in_addr = (int*)oper2in;
+            oper3in_addr = (int*)oper3in;
+
+            oper0out_addr = (int*)oper0out;
+            oper1out_addr = (int*)oper1out;
+            oper2out_addr = (int*)oper2out;
+            oper3out_addr = (int*)oper3out;
 
             oper0 = *oper0out_addr;
             factor0 = fgen(stage,linidx);

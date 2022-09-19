@@ -161,7 +161,11 @@ void TCERegisterInfo::eliminateFrameIndex(
              i != MI.memoperands_end(); i++) {
             const PseudoSourceValue* psv = (*i)->getPseudoValue();
             if (psv == NULL) {
+                #ifdef LLVM_OLDER_THAN_15
                 (*i)->setValue(new FixedStackPseudoSourceValue(FrameIndex, TII));
+                #else
+                (*i)->setValue(new FixedStackPseudoSourceValue(FrameIndex, tm));
+                #endif
             }
         }
         if (MI.memoperands_begin() == MI.memoperands_end()) {
@@ -171,7 +175,11 @@ void TCERegisterInfo::eliminateFrameIndex(
                 | MI.mayStore() * MachineMemOperand::MOStore);
             auto mmo = new MachineMemOperand(
                 MachinePointerInfo(), flags, 0, Align(tfi_->stackAlignment()));
+            #ifdef LLVM_OLDER_THAN_15
             mmo->setValue(new FixedStackPseudoSourceValue(FrameIndex, TII));
+            #else
+            mmo->setValue(new FixedStackPseudoSourceValue(FrameIndex, tm));
+            #endif
             MI.addMemOperand(MF,  mmo);
         }
     }

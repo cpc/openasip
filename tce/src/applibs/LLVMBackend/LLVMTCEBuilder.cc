@@ -1936,8 +1936,13 @@ LLVMTCEBuilder::addPointerAnnotations(
                         llvm::Type* type = 
                             dyn_cast<BitCastInst>(originMemOpValue)->getDestTy();
                         if (type->isPointerTy()) {
+                            #ifdef LLVM_OLDER_THAN_15
                             llvm::Type* typeElem = 
                                 cast<PointerType>(type)->getElementType();
+                            #else
+                            llvm::Type* typeElem = 
+                                cast<PointerType>(type)->getPointerElementType();
+                            #endif
                             if (typeElem->isVectorTy()) {
                                 int numElems = cast<VectorType>(typeElem)
                                                    ->getElementCount()

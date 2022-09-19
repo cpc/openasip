@@ -13,7 +13,7 @@ __attribute__((noinline))
 int main() {
     int x = 1 , y = 2;
     z = x + y;
-    x = test_function(z, y);
-    y = test_function(z, y);
+    x = test_function(&z, &y);
+    y = test_function(&z, &y);
     return z + y;
 }

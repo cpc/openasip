@@ -22,7 +22,7 @@ echo "### LLVM build mode: "$LLVM_BUILD_MODE
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 patch_dir=$script_dir/../patches
-llvm_co_dir=release_13
+llvm_co_dir=release_15
 
 mkdir -p $build_dir
 cd $build_dir
@@ -40,14 +40,14 @@ function fetch_llvm {
 
     if ! test -d $llvm_co_dir;
     then
-        git clone --single-branch --depth=1 --branch release/13.x https://github.com/cpc/llvmtce.git $llvm_co_dir\
-	    || eexit "Git clone $REV_TOFETCH from llvm failed"
+        git clone --single-branch --depth=1 --branch release/15.x https://github.com/cpc/llvmtce.git $llvm_co_dir\
+            || eexit "Git clone $REV_TOFETCH from llvm failed"
     else
         cd $llvm_co_dir;
-	git checkout release/13.x ||	eexit "checking out git branch failed"
-	git fetch
-	git reset --hard origin/release/13.x || eexit "resetting --hard HEAD failed"
-	cd ..;
+        git checkout release/15.x ||	eexit "checking out git branch failed"
+        git fetch
+        git reset --hard origin/release/15.x || eexit "resetting --hard HEAD failed"
+        cd ..;
     fi
 }
 
@@ -61,15 +61,14 @@ cd build
 # https://reviews.llvm.org/D54978#1390652
 # You might also need to delete libz3-dev.
 # This appears at least with Ubuntu 18.04.
-cmake ../llvm/ -DLLVM_ENABLE_PROJECTS=clang \
+cmake ../llvm/ -DLLVM_ENABLE_PROJECTS="clang;lld" \
     -G "Unix Makefiles" \
     $LLVM_BUILD_MODE\
     -DCMAKE_INSTALL_PREFIX=$TARGET_DIR \
-    -DLLVM_TARGETS_TO_BUILD="X86" \
+    -DLLVM_TARGETS_TO_BUILD="X86;RISCV" \
     -DLLVM_LINK_LLVM_DYLIB=TRUE \
     -DLLVM_ENABLE_RTTI=TRUE \
     -DLLVM_ENABLE_Z3_SOLVER=OFF \
     || eexit "Configuring LLVM/Clang failed."
-make -j8 CXXFLAGS="-std=c++11" REQUIRES_RTTI=1 \
-    || eexit "Building LLVM/Clang failed."
+make -j$(nproc) || eexit "Building LLVM/Clang failed."
 make install || eexit "Installation of LLVM/Clang failed."

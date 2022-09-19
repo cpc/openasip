@@ -122,7 +122,11 @@ TCEFrameLowering::eliminateCallFramePseudoInstr(
             I->getOperand(1).ChangeToRegister(mo2.getReg(), false, false, mo2.isKill(),
                                               false, false, mo2.isDebug());
             I->getOperand(2).ChangeToImmediate(val);
+            #ifdef LLVM_OLDER_THAN_15
             I->RemoveOperand(3);
+            #else
+            I->removeOperand(3);
+            #endif
         }
     } else {
         ERASE_INSTR_AND_RETURN(I);

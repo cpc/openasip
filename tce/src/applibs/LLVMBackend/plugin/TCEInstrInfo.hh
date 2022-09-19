@@ -143,16 +143,10 @@ namespace llvm {
         MachineInstr &mi,
         ArrayRef<MachineOperand> cond) const override;
 
-#ifdef LLVM_OLDER_THAN_12
-    virtual bool DefinesPredicate(
-        MachineInstr& MI,
-        std::vector<MachineOperand> &Pred) const override;
-#else
     virtual bool ClobbersPredicate(
         MachineInstr& MI, std::vector<MachineOperand>& Pred,
         bool SkipDead) const override;
-#endif
-
+        
     virtual bool
     SubsumesPredicate(
         ArrayRef<MachineOperand> Pred1,

@@ -156,11 +156,6 @@ namespace llvm {
         // We can ignore the bitwidth differences between the pointers
         // for now. It's the programmer's responsibility to ensure they
         // fit.
-#ifdef LLVM_OLDER_THAN_12
-        virtual bool isNoopAddrSpaceCast(unsigned SrcAS, unsigned DestAS) const override {
-            return true;
-        }
-#endif
         // ----------------------------------------------------
         //
         //  Below here TCE specific stuff is added, which is not copied from Sparc
