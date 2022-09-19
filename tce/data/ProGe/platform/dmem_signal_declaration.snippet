@@ -1,0 +1,29 @@
+signal core_dmem_avalid_in  : std_logic_vector(core_count_g-1 downto 0);
+signal core_dmem_aready_out : std_logic_vector(core_count_g-1 downto 0);
+signal core_dmem_aaddr_in   : std_logic_vector(core_count_g*dmem_addr_width_g-1 downto 0);
+signal core_dmem_awren_in   : std_logic_vector(core_count_g-1 downto 0);
+signal core_dmem_astrb_in   : std_logic_vector(core_count_g*(dmem_data_width_g+7)/8-1 downto 0);
+signal core_dmem_adata_in   : std_logic_vector(core_count_g*dmem_data_width_g-1 downto 0);
+signal core_dmem_rvalid_out : std_logic_vector(core_count_g-1 downto 0);
+signal core_dmem_rready_in  : std_logic_vector(core_count_g-1 downto 0);
+signal core_dmem_rdata_out  : std_logic_vector(core_count_g*dmem_data_width_g-1 downto 0);
+
+signal data_a_avalid_out : std_logic_vector(1-1 downto 0);
+signal data_a_aready_in  : std_logic_vector(1-1 downto 0);
+signal data_a_aaddr_out  : std_logic_vector(dmem_addr_width_g-1 downto 0);
+signal data_a_awren_out  : std_logic_vector(1-1 downto 0);
+signal data_a_astrb_out  : std_logic_vector((dmem_data_width_g+7)/8-1 downto 0);
+signal data_a_adata_out  : std_logic_vector(dmem_data_width_g-1 downto 0);
+signal data_a_rvalid_in  : std_logic_vector(1-1 downto 0);
+signal data_a_rready_out : std_logic_vector(1-1 downto 0);
+signal data_a_rdata_in   : std_logic_vector(dmem_data_width_g-1 downto 0);
+
+signal data_b_avalid_out : std_logic_vector(1-1 downto 0);
+signal data_b_aready_in  : std_logic_vector(1-1 downto 0);
+signal data_b_aaddr_out  : std_logic_vector(second_dmem_addr_width_g-1 downto 0);
+signal data_b_awren_out  : std_logic_vector(1-1 downto 0);
+signal data_b_astrb_out  : std_logic_vector((second_dmem_data_width_g+7)/8-1 downto 0);
+signal data_b_adata_out  : std_logic_vector(second_dmem_data_width_g-1 downto 0);
+signal data_b_rvalid_in  : std_logic_vector(1-1 downto 0);
+signal data_b_rready_out : std_logic_vector(1-1 downto 0);
+signal data_b_rdata_in   : std_logic_vector(second_dmem_data_width_g-1 downto 0);

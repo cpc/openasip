@@ -1,0 +1,3 @@
+signal core_db_pc_start   : std_logic_vector(core_count_g*imem_addr_width_g-1 downto 0);
+signal core_db_pc_next    : std_logic_vector(core_count_g*imem_addr_width_g-1 downto 0);
+signal core_db_bustraces  : std_logic_vector(core_count_g*32*bus_count_g-1 downto 0);

@@ -1,0 +1,33 @@
+axi_imem_aready_in <= INSTR_b_aready_in(0);
+INSTR_b_avalid_out(0) <= axi_imem_avalid_out;
+INSTR_b_aaddr_out(imem_axi_addr_width_g-1 downto 0) <= axi_imem_aaddr_out;
+INSTR_b_awren_out(0) <= axi_imem_awren_out;
+INSTR_b_astrb_out(4-1 downto 0) <= axi_imem_astrb_out;
+INSTR_b_adata_out(32-1 downto 0) <= axi_imem_adata_out;
+axi_imem_rvalid_in <= INSTR_b_rvalid_in(0);
+INSTR_b_rready_out(0) <= axi_imem_rready_out;
+axi_imem_rdata_in <= INSTR_b_rdata_in(32-1 downto 0);
+axi_imem_aready_in <= INSTR_b_aready_in(0);
+imem_broadcast : for I in 1 to core_count_g-1 generate
+  INSTR_b_avalid_out(I) <= axi_imem_avalid_out and axi_imem_awren_out;
+  INSTR_b_aaddr_out((I+1)*imem_axi_addr_width_g-1 downto I*imem_axi_addr_width_g)
+                        <= axi_imem_aaddr_out;
+  INSTR_b_awren_out(I) <= axi_imem_awren_out;
+  INSTR_b_astrb_out(4*(I+1)-1 downto 4*I) <= axi_imem_astrb_out;
+  INSTR_b_adata_out((I+1)*32-1 downto I*32) <= axi_imem_adata_out;
+  INSTR_b_rready_out(I) <= '1';
+end generate;
+
+INSTR_a_avalid_out <= not core_imem_en_x_in;
+tta_aready         <= INSTR_a_aready_in;
+INSTR_a_aaddr_out  <= core_imem_addr_in;
+INSTR_a_adata_out  <= (others => '0');
+INSTR_a_astrb_out  <= (others => '0');
+INSTR_a_awren_out  <= (others => '0');
+
+INSTR_a_rready_out <= not core_imem_en_x_in
+                      or not tta_nreset;
+tta_rvalid         <= INSTR_a_rvalid_in;
+core_imem_data_out <= INSTR_a_rdata_in;
+core_busy          <= (not tta_aready) or (not tta_rvalid);
+core_busy_out      <= core_busy;

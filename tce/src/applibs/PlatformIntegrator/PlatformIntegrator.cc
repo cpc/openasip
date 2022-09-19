@@ -426,6 +426,7 @@ PlatformIntegrator::readLsuParameters(const TTAMachine::FunctionUnit& lsu) {
     dmem.asAddrw = MathTools::requiredBits(lastAddr);
     dmem.asName = lsu.addressSpace()->name();
     dmem.lsuName = lsu.name();
+    dmem.isShared = false;
     return dmem;
 }
 
@@ -449,7 +450,7 @@ PlatformIntegrator::integrateCore(
 }
 
 void
-PlatformIntegrator::exportUnconnectedPorts(int coreId) {
+PlatformIntegrator::exportUnconnectedPorts(int /* coreId */) {
     const NetlistBlock& core = progeBlock();
     for (size_t i = 0; i < core.portCount(); i++) {
         const NetlistPort& port = core.port(i);

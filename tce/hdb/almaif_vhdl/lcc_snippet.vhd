@@ -1,0 +1,1 @@
+op2 <= debug_lock_count_in(32-1 downto 0);

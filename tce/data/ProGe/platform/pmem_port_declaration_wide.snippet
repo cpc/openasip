@@ -1,0 +1,33 @@
+core_pmem_avalid_in  : in std_logic_vector(core_count_g-1 downto 0);
+core_pmem_aready_out : out std_logic_vector(core_count_g-1 downto 0);
+core_pmem_aaddr_in   : in std_logic_vector(core_count_g*pmem_addr_width_g-1
+                                           downto 0);
+core_pmem_awren_in : in std_logic_vector(core_count_g-1 downto 0);
+core_pmem_astrb_in : in std_logic_vector((pmem_data_width_g+7)/8*core_count_g-1
+                                         downto 0);
+core_pmem_adata_in : in std_logic_vector(core_count_g*pmem_data_width_g-1
+                                         downto 0);
+core_pmem_rvalid_out : out std_logic_vector(core_count_g-1 downto 0);
+core_pmem_rready_in  : in std_logic_vector(core_count_g-1 downto 0);
+core_pmem_rdata_out  : out std_logic_vector(core_count_g*pmem_data_width_g-1
+                                            downto 0);
+
+param_a_avalid_out : out std_logic_vector(core_count_g-1 downto 0);
+param_a_aready_in  : in std_logic_vector(core_count_g-1 downto 0);
+param_a_aaddr_out  : out std_logic_vector(core_count_g*local_mem_addrw_g-1 downto 0);
+param_a_awren_out  : out std_logic_vector(core_count_g-1 downto 0);
+param_a_astrb_out  : out std_logic_vector(core_count_g*((pmem_data_width_g+7)/8)-1 downto 0);
+param_a_adata_out  : out std_logic_vector(core_count_g*pmem_data_width_g-1 downto 0);
+param_a_rvalid_in  : in std_logic_vector(core_count_g-1 downto 0);
+param_a_rready_out : out std_logic_vector(core_count_g-1 downto 0);
+param_a_rdata_in   : in std_logic_vector(core_count_g*pmem_data_width_g-1 downto 0);
+
+param_b_avalid_out : out std_logic_vector(core_count_g-1 downto 0);
+param_b_aready_in  : in std_logic_vector(core_count_g-1 downto 0);
+param_b_aaddr_out  : out std_logic_vector(core_count_g*second_pmem_addr_width_g-1 downto 0);
+param_b_awren_out  : out std_logic_vector(core_count_g-1 downto 0);
+param_b_astrb_out  : out std_logic_vector(core_count_g*((second_pmem_data_width_g+7)/8)-1 downto 0);
+param_b_adata_out  : out std_logic_vector(core_count_g*second_pmem_data_width_g-1 downto 0);
+param_b_rvalid_in  : in std_logic_vector(core_count_g-1 downto 0);
+param_b_rready_out : out std_logic_vector(core_count_g-1 downto 0);
+param_b_rdata_in   : in std_logic_vector(core_count_g*second_pmem_data_width_g-1 downto 0);

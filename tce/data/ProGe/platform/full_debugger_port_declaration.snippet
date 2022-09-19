@@ -1,0 +1,6 @@
+core_db_pc_start   : out std_logic_vector(core_count_g*imem_addr_width_g-1
+                                          downto 0);
+core_db_pc_next    : in std_logic_vector(core_count_g*imem_addr_width_g-1
+                                         downto 0);
+core_db_bustraces  : in std_logic_vector(core_count_g*32*bus_count_g-1
+                                         downto 0);

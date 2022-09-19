@@ -1,0 +1,6 @@
+    -- debugger signals
+    db_lockreq  : in std_logic;
+    db_rstx     : in std_logic;
+    db_pc       : out std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+    db_cyclecnt : out std_logic_vector(64-1 downto 0);
+    db_lockcnt  : out std_logic_vector(64-1 downto 0);

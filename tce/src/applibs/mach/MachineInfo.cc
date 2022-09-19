@@ -261,11 +261,22 @@ int
 MachineInfo::maxMemoryAlignment(const TTAMachine::Machine& mach) {
     int byteAlignment = 4; // Stack alignment is four bytes at minimum.
 
-    OperationDAGSelector::OperationSet opNames = getOpset(mach);
-    OperationDAGSelector::OperationSet::const_iterator it;
+    TTAMachine::FunctionUnit* fu = nullptr;
+    TTAMachine::Machine::FunctionUnitNavigator fuNav =
+        mach.functionUnitNavigator();
+    for (int i = 0; i < fuNav.count(); i++) {
+        fu = fuNav.item(i);
+        if (fu->hasAddressSpace()) {
+            if (fu->addressSpace()->hasNumericalId(0)) {
+                break;
+            }
+        }
+    }
+    assert(fu && "Didn't find the LSU with local AS");
+    for (int k = 0; k < fu->operationCount(); k++) {
+        TCEString operation = fu->operation(k)->name();
 
-    for (it = opNames.begin(); it != opNames.end(); ++it) {
-        const TCEString opName = StringTools::stringToLower(*it);
+        const TCEString opName = StringTools::stringToLower(operation);
         if (opName.length() > 2 && isdigit(opName[2])) {
             // Assume operations named ldNNxMM and stNNxMM are operations
             // with alignment of NN (or ldNN / stNN). 
@@ -306,7 +317,7 @@ MachineInfo::maxMemoryAlignment(const TTAMachine::Machine& mach) {
                     }
                 }
             }
-        } 
+        }
     }
 
     if (!(byteAlignment > 1 && !(byteAlignment & (byteAlignment - 1)))) {

@@ -36,26 +36,26 @@
 -- Revisions  :
 -- Date        Version  Author  Description
 -- 2013-03-18  1.0      zetterma Created
+-- 2022-09-14  2.0      leppane  AlmaIF version 2
 -------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
-use work.debugger_if.all;
 
 package register_pkg is
 
-  -----------------------------------------------------------------------------
-  -- program counter width
-  constant pc_width_c : integer := db_pc_width;
   -- status registers
-  constant nof_status_registers_c : integer := 4;
+  constant nof_status_registers_c : integer := 6;
   -- single registers
-  constant TTA_STATUS       : integer := 0;
-  constant TTA_PC           : integer := 1;
-  constant TTA_CYCLECNT     : integer := 2;
-  constant TTA_LOCKCNT      : integer := 3;
+  constant TTA_STATUS        : integer := 0;
+  constant TTA_PC            : integer := 1;
+  constant TTA_CYCLECNT      : integer := 2;
+  constant TTA_CYCLECNT_HIGH : integer := 3;
+  constant TTA_LOCKCNT       : integer := 4;
+  constant TTA_LOCKCNT_HIGH  : integer := 5;
+
 
   -- control_registers
   constant control_addresspace_start_c : integer := 2**7;
@@ -78,52 +78,34 @@ package register_pkg is
   constant TTA_INTERFACE_TYPE   : integer := 2 + info_addresspace_start_c;
   constant TTA_CORE_COUNT       : integer := 3 + info_addresspace_start_c;
   constant TTA_CTRL_SIZE        : integer := 4 + info_addresspace_start_c;
-  constant TTA_DMEM_SIZE        : integer := 5 + info_addresspace_start_c;
-  constant TTA_IMEM_SIZE        : integer := 6 + info_addresspace_start_c;
-  constant TTA_PMEM_SIZE        : integer := 7 + info_addresspace_start_c;
-  constant TTA_DEBUG_SUPPORT    : integer := 8 + info_addresspace_start_c;
-  constant TTA_BP_COUNT         : integer := 9 + info_addresspace_start_c;
-  
+
+  constant TTA_IMEM_SIZE        : integer := 5 + info_addresspace_start_c;
+  constant TTA_IMEM_START_LOW   : integer := 6 + info_addresspace_start_c;
+  constant TTA_IMEM_START_HIGH  : integer := 7 + info_addresspace_start_c;
+
+  constant TTA_CQMEM_SIZE_LOW   : integer := 8  + info_addresspace_start_c;
+  constant TTA_CQMEM_SIZE_HIGH  : integer := 9  + info_addresspace_start_c;
+  constant TTA_CQMEM_START_LOW  : integer := 10 + info_addresspace_start_c;
+  constant TTA_CQMEM_START_HIGH : integer := 11 + info_addresspace_start_c;
+
+  constant TTA_DMEM_SIZE_LOW    : integer := 12 + info_addresspace_start_c;
+  constant TTA_DMEM_SIZE_HIGH   : integer := 13 + info_addresspace_start_c;
+  constant TTA_DMEM_START_LOW   : integer := 14 + info_addresspace_start_c;
+  constant TTA_DMEM_START_HIGH  : integer := 15 + info_addresspace_start_c;
+
+  constant TTA_FEATURE_FLAGS_LOW  : integer := 16 + info_addresspace_start_c;
+  constant TTA_FEATURE_FLAGS_HIGH : integer := 17 + info_addresspace_start_c;
+  constant TTA_PTR_SIZE           : integer := 18 + info_addresspace_start_c;
+
+
+  constant TTA_DEBUG_SUPPORT    : integer := 19 + info_addresspace_start_c;
+  constant TTA_BP_COUNT         : integer := 20 + info_addresspace_start_c;
+
   -- debugger command bits
   constant DEBUG_CMD_RESET    : integer := 0;
   constant DEBUG_CMD_CONTINUE : integer := 1;
   constant DEBUG_CMD_BREAK    : integer := 2;
-  -- bus trace registers (placed in address space after status registers)
-  constant bustrace_width_c : integer := 32;
 
-  -----------------------------------------------------------------------------
-  -- Register definition helper type
-  -----------------------------------------------------------------------------
-  type regdef_t is
-  record
-    reg : integer;
-    bits : integer;
-  end record;
-  type registers_t is array (integer range <>) of regdef_t;
-
-  -----------------------------------------------------------------------------
-  -- Status register definitions
-  -----------------------------------------------------------------------------
-  constant status_registers_c : registers_t(0 to nof_status_registers_c-1)
-    := ( (reg => TTA_STATUS,       bits => 6),
-         (reg => TTA_PC,           bits => pc_width_c),
-         (reg => TTA_CYCLECNT,     bits => 32),
-         (reg => TTA_LOCKCNT,      bits => 32)
-   );
-
-  -----------------------------------------------------------------------------
-  -- Control register definitions
-  -----------------------------------------------------------------------------
-  constant control_registers_c : registers_t(control_addresspace_start_c to
-                                               control_addresspace_start_c
-                                               + nof_control_registers_c-1)
-          -- continue- and break bits are not registred
-    := ( (reg => TTA_DEBUG_CMD,  bits => 1),
-         (reg => TTA_PC_START,   bits => pc_width_c),
-         (reg => TTA_DEBUG_CTRL, bits => 12),
-         (reg => TTA_DEBUG_BP0,  bits => 32),
-         (reg => TTA_DEBUG_BP1,  bits => pc_width_c),
-         (reg => TTA_DEBUG_BP2,  bits => pc_width_c)
-   );
+  constant FF_AXI_MASTER : integer := 0;
 
 end register_pkg;

@@ -1,0 +1,5 @@
+DMEM size: 8192
+CQMEM size: 32768
+IMEM size: 32768
+Success with cycle count comparison
+Success with stall count comparison

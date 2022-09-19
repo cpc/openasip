@@ -1,0 +1,22 @@
+-- AXI4-Lite Master for global mem
+m_axi_awvalid  : out std_logic;
+m_axi_awready  : in  std_logic;
+m_axi_awaddr   : out std_logic_vector(32-1 downto 0);
+m_axi_awprot   : out std_logic_vector(3-1 downto 0);
+--
+m_axi_wvalid   : out std_logic;
+m_axi_wready   : in  std_logic;
+m_axi_wdata    : out std_logic_vector(pmem_data_width_g-1 downto 0);
+m_axi_wstrb    : out std_logic_vector(pmem_data_width_g/8-1 downto 0);
+--
+m_axi_bvalid   : in  std_logic;
+m_axi_bready   : out std_logic;
+--
+m_axi_arvalid  : out std_logic;
+m_axi_arready  : in  std_logic;
+m_axi_araddr   : out std_logic_vector(32-1 downto 0);
+m_axi_arprot   : out std_logic_vector(3-1 downto 0);
+--
+m_axi_rvalid   : in  std_logic;
+m_axi_rready   : out std_logic;
+m_axi_rdata    : in  std_logic_vector(pmem_data_width_g-1 downto 0);

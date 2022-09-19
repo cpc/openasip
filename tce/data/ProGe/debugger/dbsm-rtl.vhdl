@@ -44,6 +44,8 @@ use ieee.numeric_std.all;
 use work.register_pkg.all;
 
 architecture rtl of dbsm is
+  constant num_breakpoints_c : integer := num_pc_breakpoints_g + num_cc_breakpoints_g;
+
   signal lockrq_bppc : std_logic_vector(1 downto 0);
   signal lockrq_bpcc : std_logic;
   signal lockrq_forcebp : std_logic;
@@ -68,7 +70,7 @@ begin
   -----------------------------------------------------------------------------
   -- bp#0: cycle count, single step
   -- assert lockrq when cycle count is hit.
-  -- deassert lock when continu
+  -- deassert lock when continue
   breakpoint0 : process(clk, nreset)
   begin
     if (nreset = '0') then
@@ -119,7 +121,7 @@ begin
       lockrq_wait <= '0';
     elsif rising_edge(clk) then
       pc_next_r <= pc_next;
-      if unsigned(bp_ena(db_breakpoints-1 downto 1)) /= 0 and extlock = '0' then
+      if unsigned(bp_ena(num_breakpoints_c-1 downto 1)) /= 0 and extlock = '0' then
         if lockrq_wait = '0' and tta_jump = '1' then
           lockrq_wait <= '1';
         else
