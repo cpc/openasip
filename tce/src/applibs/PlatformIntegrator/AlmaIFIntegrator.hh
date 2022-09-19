@@ -123,6 +123,9 @@ private:
     static const TCEString ALMAIF_MODULE;
     static const TCEString DEFAULT_DEVICE;
 
+    static const int DEFAULT_RESERVED_PRIVATE_MEM_SIZE;
+    static const int DEFAULT_LOCAL_MEMORY_WIDTH;
+
     MemoryGenerator* imemGen_;
     std::map<TCEString, MemoryGenerator*> dmemGen_;
     std::map<TCEString, ProGe::NetlistPort*> almaif_ttacore_ports;
@@ -139,15 +142,18 @@ private:
     bool secondDmem_, secondPmem_;
     bool dmemHandled_, pmemHandled_;
     std::string secondDmemName_;
-    int secondDmemDataw_, secondDmemAddrw_;
+    int secondDmemDataw_ = 0;
+    int secondDmemAddrw_ = 0;
     std::string secondPmemName_;
     int secondPmemDataw_, secondPmemAddrw_;
     HDLTemplateInstantiator accelInstantiator_;
 
+    bool hasMinimalDebugger_;
+    bool hasSeparateLocalMemory_ = true;
     bool syncReset_;
     bool broadcast_pmem_;
-    bool dmem_dram_;
-    bool imem_dp_;
+    bool dmem_dram_ = false;
+    bool imem_dp_ = false;
 };
 
 #endif

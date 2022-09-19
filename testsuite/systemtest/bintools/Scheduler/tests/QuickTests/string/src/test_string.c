@@ -7,6 +7,8 @@
  */
 
 #include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
 #ifdef __TCE_V1__
 #include "tceops.h"
 #else

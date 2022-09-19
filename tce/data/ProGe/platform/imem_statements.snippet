@@ -1,0 +1,59 @@
+imem_delay : entity work.almaif_membus_delay
+generic map (
+  mem_dataw_g  => dataw_c,
+  mem_addrw_g  => axi_addr_width_g-2
+) port map (
+  clk => clk, rstx => rstx,
+  -- Bus from upstream
+  s_avalid_in  => imem_avalid,
+  s_aready_out => imem_aready,
+  s_aaddr_in   => axi_aaddr,
+  s_awren_in   => axi_awren,
+  s_astrb_in   => axi_astrb,
+  s_adata_in   => axi_adata,
+  s_rvalid_out => imem_rvalid,
+  s_rready_in  => imem_rready,
+  s_rdata_out  => imem_rdata,
+  -- Bus to downstream
+  m_avalid_out => imem_d_avalid,
+  m_aready_in  => imem_d_aready,
+  m_aaddr_out  => imem_d_aaddr,
+  m_awren_out  => imem_d_awren,
+  m_astrb_out  => imem_d_astrb,
+  m_adata_out  => imem_d_adata,
+  m_rvalid_in  => imem_d_rvalid,
+  m_rready_out => imem_d_rready,
+  m_rdata_in   => imem_d_rdata
+);
+
+imem_expander : entity work.almaif_axi_expander
+generic map (
+  mem_dataw_g  => dataw_c,
+  mem_addrw_g  => imem_axi_addr_width_g,
+  axi_dataw_g  => dataw_c,
+  axi_addrw_g  => axi_addr_width_g,
+  sync_reset_g => sync_reset_g
+) port map (
+    clk => clk, rstx => rstx,
+  -- Bus to AXI if
+  axi_avalid_in  => imem_d_avalid,
+  axi_aready_out => imem_d_aready,
+  axi_aaddr_in   => imem_d_aaddr,
+  axi_awren_in   => imem_d_awren,
+  axi_astrb_in   => imem_d_astrb,
+  axi_adata_in   => imem_d_adata,
+  axi_rvalid_out => imem_d_rvalid,
+  axi_rready_in  => imem_d_rready,
+  axi_rdata_out  => imem_d_rdata,
+  -- Bus to memory
+  mem_avalid_out => axi_imem_avalid_out,
+  mem_aready_in  => axi_imem_aready_in,
+  mem_aaddr_out  => axi_imem_aaddr_out,
+  mem_awren_out  => axi_imem_awren_out,
+  mem_astrb_out  => axi_imem_astrb_out,
+  mem_adata_out  => axi_imem_adata_out,
+  mem_rvalid_in  => axi_imem_rvalid_in,
+  mem_rready_out => axi_imem_rready_out,
+  mem_rdata_in   => axi_imem_rdata_in
+);
+

@@ -1,0 +1,22 @@
+-- AXI4-Lite Master signals
+signal m_axi_awvalid  : std_logic;
+signal m_axi_awready  : std_logic;
+signal m_axi_awaddr   : std_logic_vector(axi_addr_width_g-1 downto 0);
+signal m_axi_awprot   : std_logic_vector(3-1 downto 0);
+--
+signal m_axi_wvalid   : std_logic;
+signal m_axi_wready   : std_logic;
+signal m_axi_wdata    : std_logic_vector(dmem_data_width_g-1 downto 0);
+signal m_axi_wstrb    : std_logic_vector(dmem_data_width_g/8-1 downto 0);
+--
+signal m_axi_bvalid   : std_logic;
+signal m_axi_bready   : std_logic;
+--
+signal m_axi_arvalid  : std_logic;
+signal m_axi_arready  : std_logic;
+signal m_axi_araddr   : std_logic_vector(axi_addr_width_g-1 downto 0);
+signal m_axi_arprot   : std_logic_vector(3-1 downto 0);
+--
+signal m_axi_rvalid   : std_logic;
+signal m_axi_rready   : std_logic;
+signal m_axi_rdata    : std_logic_vector(dmem_data_width_g-1 downto 0);

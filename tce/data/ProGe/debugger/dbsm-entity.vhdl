@@ -47,18 +47,20 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.register_pkg.all;
-use work.debugger_if.all;
 
 entity dbsm is
   generic (
     data_width_g : integer := 32;
-    pc_width_g   : integer := 11
+    pc_width_g   : integer := 11;
+    num_pc_breakpoints_g : integer := 2;
+    num_cc_breakpoints_g : integer := 1
     );
   port (
     clk      : in std_logic;
     nreset   : in std_logic;
     --
-    bp_ena   : in std_logic_vector(db_breakpoints-1 downto 0);
+    bp_ena   : in std_logic_vector(num_pc_breakpoints_g
+                                   + num_cc_breakpoints_g - 1 downto 0);
     -- Cycle count breakpoint targets
     bp_target_cc      : in std_logic_vector(data_width_g-1 downto 0);
     bpcc_type : in std_logic_vector(1 downto 0);

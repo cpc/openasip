@@ -34,11 +34,7 @@
 
 #include "tce_config.h"
 
-#ifdef LLVM_OLDER_THAN_14
-#include "llvm/Support/TargetRegistry.h"
-#else
 #include "llvm/MC/TargetRegistry.h"
-#endif
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/CodeGen/TargetLowering.h>
 // LLVM has function with parameter named as "PIC". Command line
@@ -83,7 +79,6 @@ namespace llvm {
      * Base class common to TCEStubTargetMachine(for middle end) and
      * TCETargetMachine(for backend)
      */
-#ifndef LLVM_OLDER_THAN_12
     class TCEBaseTargetMachine : public LLVMTargetMachine {
     public:
         TCEBaseTargetMachine(
@@ -100,22 +95,6 @@ namespace llvm {
             ttaMach_ = mach;
         }
     };
-#elif LLVM_OLDER_THAN_12
-    class TCEBaseTargetMachine : public LLVMTargetMachine {
-    public:
-        TCEBaseTargetMachine(
-            const Target &T, const Triple& TT,
-            const llvm::StringRef& CPU, const llvm::StringRef& FS,
-            const TargetOptions &Options,
-            Reloc::Model RM, CodeModel::Model CM,
-            CodeGenOpt::Level OL);
-        const TTAMachine::Machine* ttaMach_;
-        virtual void setTTAMach(
-            const TTAMachine::Machine* mach) {
-            ttaMach_ = mach;
-        }
-    };
-#endif
 
     /**
      * TargetStub for middle end optimizations. (for loopvectorizer initially)

@@ -1,0 +1,53 @@
+dbg_gen : for I in 0 to core_count_g-1 generate
+debugger_i: entity work.debugger
+  generic map (
+    data_width_g         => dataw_c,
+    addr_width_g         => ctrl_addr_width_c,
+    axi_addr_width_g     => axi_addr_width_g,
+    imem_data_width_g    => imem_data_width_g,
+    imem_addr_width_g    => imem_addr_width_g,
+    dmem_data_width_g    => dmem_data_width_g,
+    dmem_addr_width_g    => dmem_addr_width_g,
+    pmem_data_width_g    => pmem_data_width_g,
+    pmem_addr_width_g    => local_mem_addrw_g,
+    bus_count_g          => bus_count_g,
+    core_count_g         => core_count_g,
+
+    core_id_width_g => dbg_core_sel_width_c,
+    core_id_g       => I,
+
+    reserved_sp_bytes_g  => reserved_sp_bytes_g,
+    axi_offset_low_g     => axi_offset_low_g,
+    axi_offset_high_g    => axi_offset_high_g
+  ) port map (
+    clk               => clk,
+    rstx              => rstx,
+
+    avalid_in         => ctrl_avalid,
+    aready_out        => ctrl_aready,
+    aaddr_in          => axi_aaddr,
+    awren_in          => axi_awren,
+    astrb_in          => axi_astrb,
+    adata_in          => axi_adata,
+    rvalid_out        => ctrl_rvalid,
+    rready_in         => ctrl_rready,
+    rdata_out         => ctrl_rdata((I+1)*dataw_c-1 downto I*dataw_c),
+    core_sel_in       => ctrl_core_sel,
+
+    pc_start_out      => core_db_pc_start((I+1)*imem_addr_width_g-1
+                                          downto I*imem_addr_width_g),
+    pc_in             => core_db_pc((I+1)*imem_addr_width_g-1
+                                          downto I*imem_addr_width_g),
+    bustraces_in      => core_db_bustraces((I+1)*32*bus_count_g-1
+                                           downto I*32*bus_count_g),
+    lockcnt_in        => core_db_lockcnt((I+1)*64-1 downto I*64),
+    cyclecnt_in       => core_db_cyclecnt((I+1)*64-1 downto I*64),
+    pc_next_in        => core_db_pc_next((I+1)*imem_addr_width_g-1
+                                          downto I*imem_addr_width_g),
+    extlock_in        => core_busy(I),
+    bp_lockrq_out     => core_db_lockrq(I),
+    tta_nreset_out    => tta_nreset(I),
+    tta_jump_in       => '1'
+    );
+end generate dbg_gen;
+core_db_tta_nreset <= tta_nreset;

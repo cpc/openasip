@@ -1,0 +1,4 @@
+signal lockcnt_r, cyclecnt_r   : unsigned(64 - 1 downto 0);
+signal db_pc_next       : std_logic_vector(IMEMADDRWIDTH-1 downto 0);
+constant db_pc_start : std_logic_vector(IMEMADDRWIDTH-1 downto 0)
+                       := (others => '0');

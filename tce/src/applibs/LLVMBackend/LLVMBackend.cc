@@ -82,11 +82,7 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 #endif
 #include "tce_config.h" // to get llvm version
 
-#ifdef LLVM_OLDER_THAN_14
-#include "llvm/Support/TargetRegistry.h"
-#else
 #include "llvm/MC/TargetRegistry.h"
-#endif
 
 #include "llvm/Support/FileSystem.h"
 
@@ -522,8 +518,18 @@ LLVMBackend::maxAllocaAlignment(const llvm::Module& mod) const {
                 if (!isa<const llvm::AllocaInst>(i)) continue;
                 const llvm::AllocaInst* alloca = 
                     dyn_cast<const llvm::AllocaInst>(i);
+                #ifdef LLVM_OLDER_THAN_15
                 maxAlignment = std::max(maxAlignment,
+                                        (unsigned)alloca->getAlign().value());
+                                        maxAlignment = std::max(maxAlignment,
                                         (unsigned)alloca->getAlignment());
+                #else
+                maxAlignment = std::max(maxAlignment,
+                                        (unsigned)alloca->getAlign().value());
+                                        maxAlignment = std::max(maxAlignment,
+                                        (unsigned)alloca->getAlign().value());
+                #endif
+
             }
         }
     }

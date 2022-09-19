@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ipxact:abstractionDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ipxact="http://www.accellera.org/XMLSchema/IPXACT/1685-2014" xmlns:kactus2="http://kactus2.cs.tut.fi" xsi:schemaLocation="http://www.accellera.org/XMLSchema/IPXACT/1685-2014/ http://www.accellera.org/XMLSchema/IPXACT/1685-2014/index.xsd">
+    <ipxact:vendor>CPC</ipxact:vendor>
+    <ipxact:library>interface</ipxact:library>
+    <ipxact:name>lsu_32bit.absDef</ipxact:name>
+    <ipxact:version>1.0</ipxact:version>
+    <ipxact:busType vendor="CPC" library="interface" name="lsu_32bit" version="1.0"/>
+    <ipxact:ports>
+        <ipxact:port>
+            <ipxact:logicalName>debug_lock_count_in</ipxact:logicalName>
+            <ipxact:wire>
+                <ipxact:onMaster>
+                    <ipxact:presence>required</ipxact:presence>
+                    <ipxact:width>64</ipxact:width>
+                    <ipxact:direction>in</ipxact:direction>
+                </ipxact:onMaster>
+                <ipxact:defaultValue>0</ipxact:defaultValue>
+            </ipxact:wire>
+        </ipxact:port>
+    </ipxact:ports>
+    <ipxact:vendorExtensions>
+        <kactus2:version>3,4,0,0</kactus2:version>
+    </ipxact:vendorExtensions>
+</ipxact:abstractionDefinition>

@@ -902,7 +902,10 @@ using std::endl;
 
 const std::string ENABLE_FEATURE = "yes";
 const std::string GENERATE_DEBUGGER_PARAM = "debugger";
-const std::string GENERATE_DEBUGGER_PARAM_YES = "external";
+const std::string GENERATE_DEBUGGER_PARAM_YES = ENABLE_FEATURE;
+const std::string GENERATE_DEBUGGER_PARAM_INTERNAL = "internal";
+const std::string GENERATE_DEBUGGER_PARAM_EXTERNAL = "external";
+const std::string GENERATE_DEBUGGER_PARAM_MINIMAL = "minimal";
 const std::string GENERATE_BUS_TRACE_PARAM = "bustrace";
 const std::string GENERATE_BUS_TRACE_PARAM_YES = ENABLE_FEATURE;
 const std::string GENERATE_LOCK_TRACE_PARAM = "locktrace";
@@ -928,14 +931,19 @@ public:
     DefaultICDecoderGenerator(
         const TTAMachine::Machine& machine, const BinaryEncoding& bem)
         : ICDecoderGeneratorPlugin(machine, bem, PLUGIN_DESCRIPTION),
+          dbsmBlock(NULL),
           icGenerator_(NULL),
           decoderGenerator_(NULL),
           ttamachine_(machine),
           bem_(bem) {
         addParameter(
-            GENERATE_DEBUGGER_PARAM, 
-            "Generates wires to the hardware debugger if value is '"
-            + GENERATE_DEBUGGER_PARAM_YES + "'.");
+            GENERATE_DEBUGGER_PARAM,
+            "Generates wires to the internal hardware debugger if "
+            "the value is '" + GENERATE_DEBUGGER_PARAM_INTERNAL
+            + "', and to the external debugger if the value is '"
+            + GENERATE_DEBUGGER_PARAM_EXTERNAL + "'. A minimal set of wires, "
+            "for softreset and break, are added if the value is '"
+            + GENERATE_DEBUGGER_PARAM_MINIMAL + "'.");
         addParameter(
             GENERATE_BUS_TRACE_PARAM,
             "Generates code that prints bus trace if the value is '" +
@@ -1101,6 +1109,19 @@ public:
             .widthFormula();
         NetlistBlock* fetchBlock = &generator.instructionFetch();
         NetlistBlock* icBlock = NULL;
+
+        bool is_external = false, is_internal = false, is_minimal = false;
+
+        if (parameterValue(GENERATE_DEBUGGER_PARAM) ==
+            GENERATE_DEBUGGER_PARAM_EXTERNAL) {
+              is_external = true;
+        } else if (parameterValue(GENERATE_DEBUGGER_PARAM) ==
+            GENERATE_DEBUGGER_PARAM_MINIMAL) {
+              is_minimal = true;
+        } else {
+              is_internal = true;
+        }
+
         for (std::size_t i = 0; i < toplevelBlock.subBlockCount(); i++) {
             icBlock = &toplevelBlock.subBlock(i);
             if (icBlock->instanceName() == "ic")
@@ -1109,78 +1130,235 @@ public:
                 break;
         }
 
+        if (is_internal) {
+            //Include debugger package with width constants in tta0.vhdl
+            toplevelBlock.addPackage("debugger_if");
+        }
+
         NetlistPort* ttaResetPort = new NetlistPort(
             "db_tta_nreset", "1", BIT, ProGe::IN, toplevelBlock);
-        NetlistPort* ttaLockcountPort = new NetlistPort(
-            "db_lockcnt", "64", ProGe::BIT_VECTOR, ProGe::OUT, toplevelBlock);
-        NetlistPort* ttaCyclecountPort = new NetlistPort(
-            "db_cyclecnt", "64", ProGe::BIT_VECTOR, ProGe::OUT,
-            toplevelBlock);
+        NetlistPort *ttaLockcountPort = new NetlistPort("db_lockcnt",
+            "64", ProGe::BIT_VECTOR, ProGe::OUT, toplevelBlock);
+        NetlistPort *ttaCyclecountPort = new NetlistPort("db_cyclecnt",
+            "64", ProGe::BIT_VECTOR, ProGe::OUT, toplevelBlock);
 
-        NetlistPort* ttaPCPort = new NetlistPort(
-            "db_pc", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::OUT,
-            toplevelBlock);
+        NetlistPort *ttaPCPort = new NetlistPort("db_pc",
+            "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::OUT, toplevelBlock);
 
-        NetlistPort* dbGlockReqPort =
-            new NetlistPort("db_lockrq", "1", BIT, ProGe::IN, toplevelBlock);
+        if (is_minimal || is_external) {
 
-        // Connect to the highest bit of decoder lockrq vector, others are
-        // already connected
-        NetlistPort* decoderGlockReqPort = decoderBlock->port("lock_req");
-        int bit = decoderGenerator_->glockRequestWidth()-1;
-        toplevelBlock.netlist().connect(
-            *dbGlockReqPort, *decoderGlockReqPort, 0, bit, 1);
+            NetlistPort* dbGlockReqPort = new NetlistPort(
+                "db_lockrq", "1", BIT, ProGe::IN, toplevelBlock);
 
-        // Connect ifetch debug ports
-        NetlistPort* ifetchDebugResetPort = new NetlistPort(
-            "db_rstx", "1", 1, ProGe::BIT, ProGe::IN, *fetchBlock);
-        toplevelBlock.netlist().connect(*ttaResetPort, *ifetchDebugResetPort);
+            // Connect to the highest bit of decoder lockrq vector, others are
+            // already connected
+            NetlistPort* decoderGlockReqPort =
+                decoderBlock->port("lock_req");
+            int bit = decoderGenerator_->glockRequestWidth()-1;
+            toplevelBlock.netlist().connect(
+                *dbGlockReqPort, *decoderGlockReqPort, 0, bit, 1);
 
-        NetlistPort* ifetchDebugLockRqPort = new NetlistPort(
-            "db_lockreq", "1", 1, ProGe::BIT, ProGe::IN, *fetchBlock);
-        toplevelBlock.netlist().connect(
-            *dbGlockReqPort, *ifetchDebugLockRqPort);
+            // Connect ifetch debug ports
+            NetlistPort* ifetchDebugResetPort = new NetlistPort(
+                "db_rstx", "1", 1, ProGe::BIT, ProGe::IN, *fetchBlock);
+            toplevelBlock.netlist().connect(*ttaResetPort,
+                                            *ifetchDebugResetPort);
 
-        NetlistPort* ifetchCyclecountPort = new NetlistPort(
-            "db_cyclecnt", "64", 64, ProGe::BIT_VECTOR, ProGe::OUT,
-            *fetchBlock);
-        toplevelBlock.netlist().connect(
-            *ifetchCyclecountPort, *ttaCyclecountPort);
-        NetlistPort* ifetchLockcountPort = new NetlistPort(
-            "db_lockcnt", "64", 64, ProGe::BIT_VECTOR, ProGe::OUT,
-            *fetchBlock);
-        toplevelBlock.netlist().connect(
-            *ifetchLockcountPort, *ttaLockcountPort);
+            NetlistPort* ifetchDebugLockRqPort = new NetlistPort(
+                "db_lockreq", "1", 1, ProGe::BIT, ProGe::IN, *fetchBlock);
+            toplevelBlock.netlist().connect(*dbGlockReqPort,
+                *ifetchDebugLockRqPort);
 
-        NetlistPort* ifetchPCPort = new NetlistPort(
-            "db_pc", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::OUT,
-            *fetchBlock);
-        toplevelBlock.netlist().connect(*ifetchPCPort, *ttaPCPort);
+            NetlistPort* ifetchCyclecountPort = new NetlistPort(
+                "db_cyclecnt", "64", 64, ProGe::BIT_VECTOR, ProGe::OUT,
+                *fetchBlock);
+            toplevelBlock.netlist().connect(
+                *ifetchCyclecountPort, *ttaCyclecountPort);
+            NetlistPort* ifetchLockcountPort = new NetlistPort(
+                "db_lockcnt", "64", 64, ProGe::BIT_VECTOR, ProGe::OUT,
+                *fetchBlock);
+            toplevelBlock.netlist().connect(
+                *ifetchLockcountPort, *ttaLockcountPort);
 
-        // Add debugger interface ports to tta0 entity
-        NetlistPort* ttaPCStartPort = new NetlistPort(
-            "db_pc_start", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::IN,
-            toplevelBlock);
-        NetlistPort* ttaBustracePort = new NetlistPort(
-            "db_bustraces", "BUSTRACE_WIDTH", ProGe::BIT_VECTOR, ProGe::OUT,
-            toplevelBlock);
+            NetlistPort* ifetchPCPort = new NetlistPort(
+                "db_pc", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::OUT,
+                *fetchBlock);
+            toplevelBlock.netlist().connect(*ifetchPCPort, *ttaPCPort);
+        }
+        if (!is_minimal) {
+            //Add debugger interface ports to tta0 entity
+            NetlistPort *ttaPCStartPort = new NetlistPort("db_pc_start",
+                "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::IN, toplevelBlock);
+            NetlistPort *ttaBustracePort = new NetlistPort("db_bustraces",
+                "BUSTRACE_WIDTH", ProGe::BIT_VECTOR, ProGe::OUT, toplevelBlock);
 
-        // Connect bustraces out and away
-        NetlistPort* icBustracePort = icBlock->port("db_bustraces");
-        assert(icBustracePort);
-        toplevelBlock.netlist().connect(*icBustracePort, *ttaBustracePort);
+            // Connect bustraces out and away
+            NetlistPort* icBustracePort = icBlock->port("db_bustraces");
+            assert(icBustracePort);
+            toplevelBlock.netlist().connect(
+                *icBustracePort, *ttaBustracePort);
 
-        NetlistPort* dbPCNextPort = new NetlistPort(
-            "db_pc_next", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::OUT,
-            toplevelBlock);
-        NetlistPort* ifetchPCStartPort = new NetlistPort(
-            "db_pc_start", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::IN,
-            *fetchBlock);
-        toplevelBlock.netlist().connect(*ifetchPCStartPort, *ttaPCStartPort);
-        NetlistPort* ifetchPCNextPort = new NetlistPort(
-            "db_pc_next", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::OUT,
-            *fetchBlock);
-        toplevelBlock.netlist().connect(*ifetchPCNextPort, *dbPCNextPort);
+            if (is_external) {
+                NetlistPort* dbPCNextPort = new NetlistPort(
+                    "db_pc_next", "IMEMADDRWIDTH",
+                    ProGe::BIT_VECTOR, ProGe::OUT, toplevelBlock);
+
+                NetlistPort* ifetchPCStartPort = new NetlistPort(
+                    "db_pc_start", "IMEMADDRWIDTH", ProGe::BIT_VECTOR,
+                    ProGe::IN, *fetchBlock);
+                toplevelBlock.netlist().connect(*ifetchPCStartPort,
+                                                *ttaPCStartPort);
+                NetlistPort* ifetchPCNextPort = new NetlistPort(
+                    "db_pc_next", "IMEMADDRWIDTH", ProGe::BIT_VECTOR,
+                    ProGe::OUT, *fetchBlock);
+                toplevelBlock.netlist().connect(*ifetchPCNextPort,
+                                                *dbPCNextPort);
+
+            } else if (is_internal) { // Generate internal debugger
+                NetlistPort* ttaBpEnaPort = new NetlistPort(
+                    "db_bp_ena", "1+db_breakpoints",
+                    ProGe::BIT_VECTOR, ProGe::IN, toplevelBlock);
+                NetlistPort* ttaBp0Port = new NetlistPort(
+                    "bp_target_cc", "db_breakpoints_cc*db_data_width",
+                    ProGe::BIT_VECTOR, ProGe::IN, toplevelBlock);
+                NetlistPort* ttaBp41Port = new NetlistPort(
+                    "bp_target_pc", "db_breakpoints_pc*IMEMADDRWIDTH",
+                    ProGe::BIT_VECTOR, ProGe::IN,
+                    toplevelBlock);
+                NetlistPort* ttaBpHitPort = new NetlistPort(
+                    "db_bp_hit", "2+db_breakpoints",
+                    ProGe::BIT_VECTOR, ProGe::OUT, toplevelBlock);
+                NetlistPort* ttaContinuePort = new NetlistPort(
+                    "db_tta_continue", "1", BIT, ProGe::IN, toplevelBlock);
+                NetlistPort* ttaForceBreakPort = new NetlistPort(
+                    "db_tta_forcebreak", "1", BIT, ProGe::IN, toplevelBlock);
+                NetlistPort* ttaStdoutBreakPort = new NetlistPort(
+                    "db_tta_stdoutbreak", "1", BIT, ProGe::IN, toplevelBlock);
+
+                //Build and connect the debugger state machine block in tta0.vhdl
+                dbsmBlock = new NetlistBlock("dbsm", "dbsm_1");
+                toplevelBlock.addSubBlock(dbsmBlock);
+
+                dbsmBlock->setParameter("cyclecnt_width_g", "integer",
+                                        "db_data_width");
+                dbsmBlock->setParameter("pc_width_g", "integer",
+                                        "IMEMADDRWIDTH");
+
+                NetlistPort* dbsmClkPort = new NetlistPort(
+                    "clk", "1", BIT, ProGe::IN, *dbsmBlock);
+                toplevelBlock.netlist().connect(
+                    *dbsmClkPort, generator.clkPort(toplevelBlock));
+
+                NetlistPort* dbsmNresetPort = new NetlistPort(
+                    "nreset", "1", BIT, ProGe::IN, *dbsmBlock);
+                toplevelBlock.netlist().connect(
+                    *dbsmNresetPort, generator.rstPort(toplevelBlock));
+
+                NetlistPort* dbsmBpEnaPort = new NetlistPort(
+                    "bp_ena", "1+db_breakpoints",
+                    ProGe::BIT_VECTOR, ProGe::IN, *dbsmBlock);
+                toplevelBlock.netlist().connect(*ttaBpEnaPort, *dbsmBpEnaPort);
+
+                NetlistPort* dbsmBp0Port = new NetlistPort(
+                    "bp_target_cc", "db_breakpoints_cc*cyclecnt_width_g",
+                    ProGe::BIT_VECTOR,
+                    ProGe::IN, *dbsmBlock);
+                toplevelBlock.netlist().connect(*ttaBp0Port, *dbsmBp0Port);
+
+                NetlistPort* dbsmCyclecountPort = new NetlistPort(
+                    "cyclecnt", "cyclecnt_width_g", ProGe::BIT_VECTOR,
+                    ProGe::IN, *dbsmBlock);
+
+                NetlistPort* dbsmBp41Port = new NetlistPort(
+                    "bp_target_pc", "db_breakpoints_pc*IMEMADDRWIDTH",
+                    ProGe::BIT_VECTOR, ProGe::IN, *dbsmBlock);
+                toplevelBlock.netlist().connect(*ttaBp41Port, *dbsmBp41Port);
+
+                NetlistPort* dbsmPCNextPort = new NetlistPort(
+                    "pc_next", "IMEMADDRWIDTH", ProGe::BIT_VECTOR,
+                    ProGe::IN, *dbsmBlock);
+
+                NetlistPort* dbsmContinuePort = new NetlistPort(
+                    "tta_continue", "1", BIT, ProGe::IN, *dbsmBlock);
+                toplevelBlock.netlist().connect(
+                    *ttaContinuePort, *dbsmContinuePort);
+
+                NetlistPort* dbsmForceBreakPort = new NetlistPort(
+                    "tta_forcebreak", "1", BIT, ProGe::IN, *dbsmBlock);
+                toplevelBlock.netlist().connect(*ttaForceBreakPort,
+                    *dbsmForceBreakPort);
+
+                NetlistPort* dbsmStdoutBreakPort = new NetlistPort(
+                    "tta_stdoutbreak", "1", BIT, ProGe::IN, *dbsmBlock);
+                toplevelBlock.netlist().connect(
+                    *ttaStdoutBreakPort, *dbsmStdoutBreakPort);
+
+                NetlistPort* dbsmBpHitPort = new NetlistPort(
+                    "bp_hit", "2+db_breakpoints",
+                    ProGe::BIT_VECTOR, ProGe::OUT, *dbsmBlock);
+                toplevelBlock.netlist().connect(*ttaBpHitPort, *dbsmBpHitPort);
+
+                NetlistPort* dbsmExtlockPort = new NetlistPort(
+                    "extlock", "1", BIT, ProGe::IN, *dbsmBlock);
+                toplevelBlock.netlist().connect(
+                    *toplevelBlock.port("busy"), *dbsmExtlockPort);
+
+
+                // Connect to the highest bit of decoder lockrq vector, others are
+                // already connected
+                NetlistPort* dbsmGlockReqPort = new NetlistPort(
+                    "bp_lockrq", "1", BIT, ProGe::OUT, *dbsmBlock);
+                NetlistPort* decoderGlockReqPort =
+                    decoderBlock->port("lock_req");
+                int bit = decoderGenerator_->glockRequestWidth()-1;
+                toplevelBlock.netlist().connect(
+                    *dbsmGlockReqPort, *decoderGlockReqPort, 0, bit, 1);
+
+                // Connect ifetch debug ports
+                NetlistPort* ifetchDebugLockRqPort = new NetlistPort(
+                    "db_lockreq", "1", 1, ProGe::BIT, ProGe::IN, *fetchBlock);
+                toplevelBlock.netlist().connect(*dbsmGlockReqPort,
+                    *ifetchDebugLockRqPort);
+                NetlistPort* ifetchDebugResetPort = new NetlistPort(
+                    "db_rstx", "1", 1, ProGe::BIT, ProGe::IN, *fetchBlock);
+                toplevelBlock.netlist().connect(*ttaResetPort,
+                    *ifetchDebugResetPort);
+                NetlistPort* ifetchPCStartPort = new NetlistPort(
+                    "db_pc_start", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::IN,
+                    *fetchBlock);
+                toplevelBlock.netlist().connect(*ifetchPCStartPort,
+                                                *ttaPCStartPort);
+                NetlistPort* ifetchPCPort = new NetlistPort(
+                    "db_pc", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::OUT,
+                    *fetchBlock);
+                toplevelBlock.netlist().connect(*ifetchPCPort, *ttaPCPort);
+                NetlistPort* ifetchPCNextPort = new NetlistPort(
+                    "db_pc_next", "IMEMADDRWIDTH", ProGe::BIT_VECTOR, ProGe::OUT,
+                    *fetchBlock);
+                toplevelBlock.netlist().connect(
+                    *ifetchPCNextPort, *dbsmPCNextPort);
+                NetlistPort* ifetchCyclecountPort = new NetlistPort(
+                    "db_cyclecnt", "64", 64, ProGe::BIT_VECTOR, ProGe::OUT,
+                    *fetchBlock);
+                toplevelBlock.netlist().connect(
+                    *ifetchCyclecountPort, *ttaCyclecountPort);
+                toplevelBlock.netlist().connect(
+                    *ifetchCyclecountPort, *dbsmCyclecountPort);
+                NetlistPort* ifetchLockcountPort = new NetlistPort(
+                    "db_lockcnt", "64", 64, ProGe::BIT_VECTOR, ProGe::OUT,
+                    *fetchBlock);
+                toplevelBlock.netlist().connect(
+                    *ifetchLockcountPort, *ttaLockcountPort);
+                NetlistPort *ttaInstrPort = new NetlistPort(
+                    "db_instr", "IMEMWIDTHINMAUS*IMEMMAUWIDTH",
+                    ProGe::BIT_VECTOR, ProGe::OUT, toplevelBlock);
+                NetlistPort* ifetchFetchblockPort =
+                    fetchBlock->port("fetchblock");
+                toplevelBlock.netlist().connect(
+                    *ifetchFetchblockPort, *ttaInstrPort);
+
+            }
+        }
 
         // Connect decoder softreset
         NetlistPort* decoderDBResetPort = decoderBlock->port("db_tta_nreset");
@@ -1331,13 +1509,22 @@ public:
 
                 generator.instructionFetch().setParameter(
                     "debug_logic_g", "boolean", "true");
-                instantiator.replacePlaceholderFromFile(
+                if (parameterValue(GENERATE_DEBUGGER_PARAM) ==
+                    GENERATE_DEBUGGER_PARAM_MINIMAL) {
+                  instantiator.replacePlaceholderFromFile(
                     "db-port-declarations",
-                    Path(proGeDataDir / "debug_port_declaration.snippet"));
-                instantiator.replacePlaceholderFromFile(
+                    Path(proGeDataDir/"debug_minimal_port_declaration.snippet"));
+                  instantiator.replacePlaceholderFromFile(
                     "db-signal-declarations",
-                    Path(proGeDataDir / "debug_signal_declaration.snippet"));
-
+                    Path(proGeDataDir/"debug_minimal_signal_declaration.snippet"));
+                } else {
+                  instantiator.replacePlaceholderFromFile(
+                          "db-port-declarations",
+                          Path(proGeDataDir/"debug_port_declaration.snippet"));
+                  instantiator.replacePlaceholderFromFile(
+                          "db-signal-declarations",
+                          Path(proGeDataDir/"debug_signal_declaration.snippet"));
+                }
                 copier.instantiateHDLTemplate(
                     templateDir + DS + "ifetch." +
                         (language == VHDL ? "vhdl" : "v") + ".tmpl",
@@ -1456,12 +1643,15 @@ private:
      *
      * @return True if IC generator should generate the code.
      */
-    bool generateDebugger() const {
+    bool generateDebugger(bool minimal = true) const {
         if (!hasParameterSet(GENERATE_DEBUGGER_PARAM)) {
             return false;
         } else {
             string paramValue = parameterValue(GENERATE_DEBUGGER_PARAM);
-            if (paramValue == GENERATE_DEBUGGER_PARAM_YES) {
+            if (paramValue == GENERATE_DEBUGGER_PARAM_YES ||
+                paramValue == GENERATE_DEBUGGER_PARAM_INTERNAL ||
+                paramValue == GENERATE_DEBUGGER_PARAM_EXTERNAL ||
+                (paramValue == GENERATE_DEBUGGER_PARAM_MINIMAL && minimal)) {
                 return true;
             } else {
                 return false;
@@ -1697,6 +1887,8 @@ private:
             decoderGenerator_->setGenerateLockTrace(false);
         }
     }
+
+    NetlistBlock* dbsmBlock;
 
     DefaultICGenerator* icGenerator_;
     DefaultDecoderGenerator* decoderGenerator_;

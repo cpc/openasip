@@ -9,7 +9,8 @@ core.*
 core
 *.lo
 *.la
-**/data
+tce/test/**/data
+testsuite/**/data
 **/*-runner
 **/runner
 tce/Makefile

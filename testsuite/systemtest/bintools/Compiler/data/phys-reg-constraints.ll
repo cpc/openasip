@@ -11,9 +11,9 @@ entry:
   tail call void asm sideeffect ".call_global_ctors", ""() #2, !srcloc !1
 
   %a = call i32 asm sideeffect "TEST", "=r,{RF.5},{RF.6},{RF.7},{RF.8}"(i32 49152, i32 14, i32 2560, i32 240)
-  store volatile i32 %a, i32* @result, align 4, !tbaa !2
+  store volatile i32 %a, ptr @result, align 4, !tbaa !2
 
-  %res = load volatile i32, i32* @result, align 4
+  %res = load volatile i32, ptr @result, align 4
   %cond = icmp eq i32 %res, 51966
   %char = select i1 %cond, i32 84, i32 70
   tail call void asm sideeffect "STDOUT", "ir"(i32 %char)
@@ -29,7 +29,7 @@ entry:
   br label %while.body
 
 while.body:                                       ; preds = %entry, %while.body
-  store volatile i32 0, i32* @__dummy__, align 4, !tbaa !2
+  store volatile i32 0, ptr @__dummy__, align 4, !tbaa !2
   br label %while.body
 }
 
