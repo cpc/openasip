@@ -36,7 +36,7 @@ libprogram_la_SOURCES = Program.cc Address.cc Instruction.cc Terminal.cc \
 	TerminalInstructionReference.cc
 
 include_HEADERS = Program.hh Address.hh Address.icc GlobalScope.hh Scope.hh \
-	DataLabel.hh Label.hh 
+	DataLabel.hh Label.hh Procedure.hh Procedure.icc CodeSnippet.hh
 
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
 
