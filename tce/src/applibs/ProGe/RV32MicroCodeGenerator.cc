@@ -67,9 +67,12 @@
 #include "InstructionFormat.hh"
 #include "BitVector.hh"
 #include "MapTools.hh"
+#include "VectorTools.hh"
 #include "MachineConnectivityCheck.hh"
 
 #define RV32_RTL_GEN_VERBOSE 0
+
+using namespace std;
 
 namespace ProGe {
 
@@ -320,7 +323,15 @@ RV32MicroCodeGenerator::addRPorts(const std::string& opName) {
     }
     rs1Ports_.insert({opName, rs1Port});
     rs2Ports_.insert({opName, rs2Port});
-    simmPorts_.insert({opName, rs2Port});
+    // Do not add custom ops to simm ports
+    if (MapTools::containsValue(operationNameTable, opName)) {
+        const std::string riscvOpName =MapTools::keyForValue
+        <string, map<string, string>, string>(operationNameTable, opName);
+        // Do not add M-extension ops
+        if (!VectorTools::containsValue(mExtensionOps, riscvOpName)) {
+            simmPorts_.insert({opName, rs2Port});
+        }
+    }
     rdPorts_.insert({opName, rdPort});
 }
 
@@ -569,10 +580,10 @@ RV32MicroCodeGenerator::connectRF() {
 
     if (!success) {
         std::string msg =
-            "Could not find enough connectivity in the"
+            "Could not find enough connectivity in the "
             "interconnect to construct RISC-V control and decode logic. Make "
-            "sure"
-            "the minimum connections are in place and that the operand-port"
+            "sure "
+            "the minimum connections are in place and that the operand-port "
             "bindings are valid in FUs";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }

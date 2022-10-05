@@ -83,9 +83,7 @@ private:
     std::unordered_map<std::string, BaseFUPort*> simmPorts_;
 
     void initializeOperations();
-
-    static const std::vector<std::string> mExtensionOps_;
-
+    
     std::unordered_map<Port*, int> sourcePortID_;
 
     std::unordered_map<Port*, std::vector<std::string>>

@@ -53,4 +53,7 @@ const std::map<std::string, std::string> operationNameTable = {
     {"mulhu", "mulhiu"}, {"rem", "rem"},    {"remu", "remu"},
     {"div", "div"},      {"divu", "divu"}};
 
+const std::vector<std::string> mExtensionOps = {
+    "mul", "mulh", "mulhu", "mulhsu", "div", "divu", "rem", "remu"};
+
 #endif
