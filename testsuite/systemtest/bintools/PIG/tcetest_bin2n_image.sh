@@ -47,7 +47,7 @@ $TCECC -O0 -llwpr -a $ADF -o $TPEF $SRC || echo "Error from tcecc."
 $GENERATEBITS  -e $TOP -x ${PROGE_OUT} -d -w 4 -p $TPEF -f ascii $ADF \
     || echo "Error from PIG"
 
-./ascii2bin2n.py $IMG $IMG_REF
+python3 ascii2bin2n.py $IMG $IMG_REF
 
 $GENERATEBITS -e $TOP -x ${PROGE_OUT} -d -w 4 -p $TPEF -f bin2n $ADF \
     || echo "Error from PIG"
