@@ -67,6 +67,7 @@
 #include "OperationTriggeredFormat.hh"
 #include "OperationTriggeredEncoding.hh"
 #include "OperationTriggeredField.hh"
+#include "TCEString.hh"
 
 using std::string;
 using std::pair;
@@ -216,13 +217,17 @@ BEMGenerator::addRiscvFormat(
         new OperationTriggeredField(*opcode, 2, 25, 7);
 
         std::vector<std::string> operations = format->operations();
-        unsigned int amountOfCustomOps = 0;
+        unsigned int amountOfCustomOps = 1;
         for (const std::string op : operations) {
             if (MapTools::containsKey(riscvRTypeOperations, op)) {
                 instrFormat->addOperation(op, riscvRTypeOperations.at(op));
             } else {
                 unsigned int customEncoding = 0b0001011;
                 customEncoding += (amountOfCustomOps << 7);
+                //Preserve this for printing
+                if (TCEString(op).lower() == "stdout_riscv") {
+                    customEncoding = 0b0000000;
+                }
                 instrFormat->addOperation(op, customEncoding);
                 amountOfCustomOps++;
             }

@@ -1727,8 +1727,8 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <description>sign extend from 1 bit to 64 bits</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
-    <in element-width="8" id="1" type="SIntWord"/>
-    <out element-width="64" id="2" type="SLongWord"/>
+    <in element-count="1" element-width="8" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="64" id="2" type="SLongWord"/>
     <trigger-semantics>
       EXEC_OPERATION(sxb64, IO(1), IO(2));
     </trigger-semantics>
@@ -4639,8 +4639,8 @@ Input 2: The branch target.</description>
     <trigger-semantics>EXEC_OPERATION(bnz, IO(1));
   </trigger-semantics>
   </operation>
-  
-    <operation>
+
+  <operation>
     <name>BNZR</name>
     <description>Branch-if-not-zero. Jumps to the given PC relative location if the value is non-zero.
 
@@ -4862,7 +4862,7 @@ Input 2: The branch target.</description>
     </trigger-semantics>
   </operation>
 
-   <operation>
+  <operation>
     <name>BEQR</name>
     <description>Branch-if-equal. Compares the first two operands, uses the third as PC relative branch target.</description>
     <inputs>3</inputs>
@@ -5034,15 +5034,26 @@ Input 2: The branch target.</description>
 
   <operation>
     <name>HWLOOP</name>
-      <description>Hardware-loop instruction to iterate given number of instruction. Operand-1: Iteration count and Operand-2: Number of instructions.
+    <description>Hardware-loop instruction to iterate given number of instruction. Operand-1: Iteration count and Operand-2: Number of instructions.
           The instruction only guarantees the loop-iterations. Insturction cache behaviour (eg: Loop bufffers) are left to hardware to handle.
       </description>
-      <inputs>2</inputs>
-      <outputs>0</outputs>
-      <side-effects/>
-      <control-flow/>
-      <in element-count="1" element-width="32" id="1" type="UIntWord"/>
-      <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <control-flow/>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STDOUT_RISCV</name>
+    <description>Writes a single 8bit char to "standard output" which is platform dependent. Used for debugging. printf() uses this by default.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <in element-count="1" element-width="8" id="1" type="RawData"/>
+    <in element-count="1" element-width="8" id="2" type="RawData"/>
+    <out element-count="1" element-width="1" id="3" type="RawData"/>
   </operation>
 
 </osal>
