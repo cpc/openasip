@@ -233,8 +233,12 @@ writeCustomOpMacro(
             os << ", ";
         // Only register inputs for RISC-V
         if (macroMode == RISCV) {
-            os << "\"r\"((" << operandTypeCString(operand) << ")(i" << in
-               << "))";
+            if (operandTypeCString(operand) != "") {
+                os << "\"r\"((" << operandTypeCString(operand) << ")(i" << in
+                << "))";
+            } else {
+                os << "\"r\"(i" << in << ")";
+            }
         } else if (operandTypeCString(operand) != "" && !operand.isVector()) {
             os << "\"ir\"((" << operandTypeCString(operand)
                << ")(i" << in << "))";
