@@ -173,6 +173,8 @@ ProcessorGenerator::generateProcessor(
     // Generate generatable FU implementations.
     std::vector<std::string> globalOptions;
     globalOptions.emplace_back("active low reset");
+    globalOptions.emplace_back("asynchronous reset");
+    globalOptions.emplace_back("reset everything");
     FUGen::implement(
         options, globalOptions, generatorContext_->idf().FUGenerations(),
         generatorContext_->adf(), coreTopBlock_);
