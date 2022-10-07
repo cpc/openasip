@@ -3379,6 +3379,9 @@ TDGen::writeInstrInfo(std::ostream& os) {
         }
         opNames_["ST32fr"] = "ST32";
         opNames_["ST32fi"] = "ST32";
+
+        opNames_["ST32hr"] = "ST32";
+        opNames_["ST32hi"] = "ST32";
         
         opNames_["ST16hr"] = "ST16";
         opNames_["ST16hi"] = "ST16";
