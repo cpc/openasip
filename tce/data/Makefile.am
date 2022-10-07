@@ -8,7 +8,7 @@ nobase_data_DATA =	$(srcdir)/ProDe/confschema.xsd \
 					$(srcdir)/mach/minimal.adf \
 					$(srcdir)/mach/minimal_be.adf \
 					$(srcdir)/mach/minimal_with_stdout.adf \
-					$(srcdir)/mach/riscv.adf \
+					$(srcdir)/mach/rv32im.adf \
 					$(srcdir)/osal/Operation_Schema.xsd \
 					$(srcdir)/idf/IDF_Schema.xsd \
 					$(srcdir)/OSEd/behavior_definition_template.cc \

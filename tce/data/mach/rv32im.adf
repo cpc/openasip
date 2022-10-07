@@ -73,14 +73,14 @@
     </writes-to>
   </socket>
 
-  <socket name="gcu_i1">
+  <socket name="GCU_i1">
     <reads-from>
       <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="gcu_o1">
+  <socket name="GCU_ra_o1">
     <writes-to>
       <bus>B2</bus>
       <segment>seg1</segment>
@@ -95,28 +95,28 @@
     </writes-to>
   </socket>
 
-  <socket name="RF_o1_2">
+  <socket name="RF_o2">
     <writes-to>
       <bus>B0</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
 
-  <socket name="S1">
+  <socket name="GCU_i2">
     <reads-from>
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="S2">
+  <socket name="GCU_i3">
     <reads-from>
       <bus>B0</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="S3">
+  <socket name="GCU_apc_o1">
     <writes-to>
       <bus>B2</bus>
       <segment>seg1</segment>
@@ -131,14 +131,14 @@
     </writes-to>
   </socket>
 
-  <socket name="S4">
+  <socket name="GCU_ra_i1">
     <reads-from>
       <bus>B2</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="S5">
+  <socket name="ALU_i2">
     <reads-from>
       <bus>B3</bus>
       <segment>seg1</segment>
@@ -149,14 +149,14 @@
     </reads-from>
   </socket>
 
-  <socket name="S6">
+  <socket name="ALU_i1">
     <reads-from>
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="S7">
+  <socket name="ALU_o1">
     <writes-to>
       <bus>B0</bus>
       <segment>seg1</segment>
@@ -171,28 +171,28 @@
     </writes-to>
   </socket>
 
-  <socket name="lsu_i2_1">
+  <socket name="LSU_i2">
     <reads-from>
       <bus>B3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="lsu_i3_1">
+  <socket name="LSU_i3">
     <reads-from>
       <bus>B0</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="lsu_i1_1">
+  <socket name="LSU_i1">
     <reads-from>
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="lsu_o1_1">
+  <socket name="LSU_o1">
     <writes-to>
       <bus>B2</bus>
       <segment>seg1</segment>
@@ -203,23 +203,81 @@
     </writes-to>
     <writes-to>
       <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="STDOUT_i1">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="STDOUT_i2">
+    <reads-from>
+      <bus>B0</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="STDOUT_o1">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B0</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="MUL_DIV_i1">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="MUL_DIV_i2">
+    <reads-from>
+      <bus>B0</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="MUL_DIV_o1">
+    <writes-to>
+      <bus>B0</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B2</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
 
   <function-unit name="ALU">
     <port name="P1">
-      <connects-to>S6</connects-to>
+      <connects-to>ALU_i1</connects-to>
       <width>32</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <port name="P2">
-      <connects-to>S5</connects-to>
+      <connects-to>ALU_i2</connects-to>
       <width>32</width>
     </port>
     <port name="P3">
-      <connects-to>S7</connects-to>
+      <connects-to>ALU_o1</connects-to>
       <width>32</width>
     </port>
     <operation>
@@ -427,21 +485,21 @@
 
   <function-unit name="LSU">
     <port name="in1t">
-      <connects-to>lsu_i1_1</connects-to>
+      <connects-to>LSU_i1</connects-to>
       <width>32</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <port name="in2">
-      <connects-to>lsu_i2_1</connects-to>
+      <connects-to>LSU_i2</connects-to>
       <width>32</width>
     </port>
     <port name="out1">
-      <connects-to>lsu_o1_1</connects-to>
+      <connects-to>LSU_o1</connects-to>
       <width>32</width>
     </port>
     <port name="in3">
-      <connects-to>lsu_i3_1</connects-to>
+      <connects-to>LSU_i3</connects-to>
       <width>32</width>
     </port>
     <operation>
@@ -607,6 +665,222 @@
     <address-space>data</address-space>
   </function-unit>
 
+  <function-unit name="STDOUT">
+    <port name="P1">
+      <connects-to>STDOUT_i1</connects-to>
+      <width>8</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="P2">
+      <connects-to>STDOUT_i2</connects-to>
+      <width>1</width>
+    </port>
+    <port name="P3">
+      <connects-to>STDOUT_o1</connects-to>
+      <width>1</width>
+    </port>
+    <operation>
+      <name>stdout_riscv</name>
+      <bind name="1">P1</bind>
+      <bind name="2">P2</bind>
+      <bind name="3">P3</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+  <function-unit name="MUL_DIV">
+    <port name="in1t">
+      <connects-to>MUL_DIV_i1</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="in2">
+      <connects-to>MUL_DIV_i2</connects-to>
+      <width>32</width>
+    </port>
+    <port name="out1">
+      <connects-to>MUL_DIV_o1</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>mul</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>mulhi</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>mulhisu</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>mulhiu</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>div</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>divu</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>rem</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>remu</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
   <register-file name="RF">
     <type>normal</type>
     <size>32</size>
@@ -620,7 +894,7 @@
       <connects-to>RF_o1</connects-to>
     </port>
     <port name="r2">
-      <connects-to>RF_o1_2</connects-to>
+      <connects-to>RF_o2</connects-to>
     </port>
     <zero-register>1</zero-register>
   </register-file>
@@ -640,26 +914,26 @@
 
   <global-control-unit name="CU">
     <port name="pc">
-      <connects-to>gcu_i1</connects-to>
+      <connects-to>GCU_i1</connects-to>
       <width>32</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <port name="in">
-      <connects-to>S1</connects-to>
+      <connects-to>GCU_i2</connects-to>
       <width>32</width>
     </port>
     <port name="in2">
-      <connects-to>S2</connects-to>
+      <connects-to>GCU_i3</connects-to>
       <width>32</width>
     </port>
     <port name="out">
-      <connects-to>S3</connects-to>
+      <connects-to>GCU_apc_o1</connects-to>
       <width>32</width>
     </port>
     <special-port name="ra">
-      <connects-to>gcu_o1</connects-to>
-      <connects-to>S4</connects-to>
+      <connects-to>GCU_ra_o1</connects-to>
+      <connects-to>GCU_ra_i1</connects-to>
       <width>32</width>
     </special-port>
     <return-address>ra</return-address>
@@ -758,6 +1032,15 @@
     <ota-operation>sra</ota-operation>
     <ota-operation>slt</ota-operation>
     <ota-operation>sltu</ota-operation>
+    <ota-operation>stdout_riscv</ota-operation>
+    <ota-operation>div</ota-operation>
+    <ota-operation>divu</ota-operation>
+    <ota-operation>mul</ota-operation>
+    <ota-operation>mulhsu</ota-operation>
+    <ota-operation>mulh</ota-operation>
+    <ota-operation>mulhu</ota-operation>
+    <ota-operation>remu</ota-operation>
+    <ota-operation>rem</ota-operation>
   </ota-format>
 
   <ota-format name="riscv_i_type">
