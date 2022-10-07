@@ -194,11 +194,12 @@ private:
     std::string constantName(ConstantNode* node, OperationDAG* dag);
     std::string constantName(DAGConstant dag);
 
-    bool isLSUDataPort(const std::string& portName) const;
+    bool isLSUDataPort(const std::string& portName);
     ProGe::Signal inferLSUSignal(const std::string& portName) const;
 
     // parseOperation results
     int maxLatency_;
+    int minLatency_;
 
     const ProGeOptions& options_;
     std::vector<std::string> globalOptions_;
@@ -257,4 +258,5 @@ private:
     bool middleRegistered_ = false;
     bool backRegistered_ = false;
     int addressWidth_ = 0;
+    bool isLSU_ = false;
 };

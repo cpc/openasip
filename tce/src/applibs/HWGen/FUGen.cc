@@ -513,7 +513,7 @@ FUGen::readImplementation(
  * @return True if the port is LSU data memory port.
  */
 bool
-FUGen::isLSUDataPort(const std::string& portName) const {
+FUGen::isLSUDataPort(const std::string& portName) {
     if (!adfFU_->hasAddressSpace()) {
         return false;
     }
@@ -524,6 +524,8 @@ FUGen::isLSUDataPort(const std::string& portName) const {
 
     for (auto magicWord : magicWords) {
         if (portName.find(magicWord) != std::string::npos) {
+            //Assume the FU is an LSU
+            isLSU_ = true;
             return true;
         }
     }
@@ -678,7 +680,12 @@ FUGen::buildOperations() {
     }
 
     for (std::string signal : resourceInputs_) {
-        operationCp << DefaultAssign(signal, "-");
+        // Zero initialize this configuration to avoid simulation warnings
+        if (isLSU_ && minLatency_ < 3) {
+            operationCp << DefaultAssign(signal, "0");
+        } else {
+            operationCp << DefaultAssign(signal, "-");
+        }
     }
 
     for (auto&& pair : dagConstants_) {
@@ -703,7 +710,12 @@ FUGen::buildOperations() {
 
         for (int id : schedule.results) {
             std::string source = operandSignal(name, id);
-            defaultValues.append(DefaultAssign(source, "-"));
+            // Zero initialize this configuration to avoid simulation warnings
+            if (isLSU_ && minLatency_ < 3) {
+                defaultValues.append(DefaultAssign(source, "0"));
+            } else {
+                defaultValues.append(DefaultAssign(source, "-"));
+            }
         }
 
         for (auto&& operand : schedule.operands) {
@@ -815,14 +827,23 @@ FUGen::buildOperations() {
         } else {
             operationCp.addVariable(SignedVariable(v.name, w));
         }
-
-        operationCp << DefaultAssign(v.name, "-");
+        // Zero initialize this configuration to avoid simulation warnings
+        if (isLSU_ && minLatency_ < 3) {
+            operationCp << DefaultAssign(v.name, "0");
+        } else {
+            operationCp << DefaultAssign(v.name, "-");
+        }
     }
     for (auto&& s : renamedGlobalSignals_) {
         int w = std::stoi(s.width);
         fu_ << Wire(s.name, w);     // creates the signal declaration
         operationCp.reads(s.name);  // adds it to sensitivity list
-        operationCp << DefaultAssign(s.name, "-");
+        // Zero initialize this configuration to avoid simulation warnings
+        if (isLSU_ && minLatency_ < 3) {
+            operationCp << DefaultAssign(s.name, "0");
+        } else {
+            operationCp << DefaultAssign(s.name, "-");
+        }
     }
 
     operationCp << defaultValues << defaultSnippets << triggeredSnippets;
@@ -930,6 +951,7 @@ FUGen::parseOperations() {
     }
 
     maxLatency_ = 0;
+    minLatency_ = INT_MAX;
     for (auto&& op : operations_) {
         TTAMachine::HWOperation* hwOp = adfFU_->operation(op);
         int hwOpOperands = hwOp->operandCount();
@@ -949,6 +971,7 @@ FUGen::parseOperations() {
                     operationCycles_[op] = latency;
                 }
                 maxLatency_ = std::max(maxLatency_, latency);
+                minLatency_ = std::min(minLatency_, latency);
             }
         }
 
