@@ -30,24 +30,28 @@
  * @note rating: red
  */
 
-#include <algorithm>
-#include <string>
+#include "OpsetDialog.hh"
 
 #include <wx/spinctrl.h>
 #include <wx/statline.h>
 #include <wx/textctrl.h>
-#include "OpsetDialog.hh"
-#include "HWOperation.hh"
-#include "Operation.hh"
-#include "FunctionUnit.hh"
-#include "OperationPool.hh"
-#include "OperationModule.hh"
-#include "OperationIndex.hh"
-#include "WxConversion.hh"
+
+#include <algorithm>
+#include <string>
+
+#include "AddressSpace.hh"
 #include "ErrorDialog.hh"
-#include "FUPort.hh"
 #include "ExecutionPipeline.hh"
+#include "FUPort.hh"
+#include "FunctionUnit.hh"
+#include "HWOperation.hh"
+#include "MathTools.hh"
 #include "Operand.hh"
+#include "Operation.hh"
+#include "OperationIndex.hh"
+#include "OperationModule.hh"
+#include "OperationPool.hh"
+#include "WxConversion.hh"
 
 using namespace TTAMachine;
 
@@ -237,7 +241,14 @@ OpsetDialog::createOperation(FunctionUnit& fu) {
         opWidths.Append(WxConversion::toWxString(oper.width()));
 
         if (oper.isInput()) {
-            inputs[oper.width()].insert(oper.index());
+            int opWidth;
+            if (oper.isAddress()) {
+                assert(fu.hasAddressSpace());
+                opWidth = MathTools::requiredBits(fu.addressSpace()->end());
+            } else {
+                opWidth = oper.width();
+            }
+            inputs[opWidth].insert(oper.index());
             opWidths.Append(WxConversion::toWxString("b input, "));
             operation->pipeline()->addPortRead(oper.index(), 0, 1);
         } else if (oper.isOutput()) {
