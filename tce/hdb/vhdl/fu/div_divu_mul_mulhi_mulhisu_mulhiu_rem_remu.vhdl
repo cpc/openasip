@@ -90,7 +90,7 @@ architecture div_divu_mul_mulhi_mulhisu_mulhiu_rem_remu_rtl of div_divu_mul_mulh
   constant cp_op_remu_c   : std_logic_vector(2 downto 0) := "111"; -- remu
 
   -- controller --
-  type state_t is (S_IDLE, S_BUSY, S_HALT_LOCK, S_DONE);
+  type state_t is (S_IDLE, S_BUSY, S_DONE);
   type ctrl_t is record
     state         : state_t;
     cnt           : std_logic_vector(4 downto 0); -- iteration counter
@@ -98,6 +98,7 @@ architecture div_divu_mul_mulhi_mulhisu_mulhiu_rem_remu_rtl of div_divu_mul_mulh
     cp_op_ff      : std_logic_vector(2 downto 0); -- operation that was executed
     t1datas_signed : std_logic;
     t2datas_signed : std_logic;
+    out_en        : std_logic;
     t2data_abs       : std_logic_vector(dataw-1 downto 0);
   end record;
   signal ctrl : ctrl_t;
@@ -129,13 +130,8 @@ architecture div_divu_mul_mulhi_mulhisu_mulhiu_rem_remu_rtl of div_divu_mul_mulh
   signal lock_req_r : std_logic;
   signal is_div : std_logic;
 
-  signal t1opcode_r   :  std_logic_vector(2 downto 0); 
-  signal t1load_r     :  std_logic; -- trigger operation
   signal t2data_r     :  std_logic_vector(dataw-1 downto 0); 
-  signal t1data_2r    :  std_logic_vector(dataw-1 downto 0);
-  signal t2data_2r    :  std_logic_vector(dataw-1 downto 0);
-
-  signal t2data_shadow : std_logic_vector(dataw-1 downto 0);
+  signal t2data_shadow    :  std_logic_vector(dataw-1 downto 0);
 
   signal result_r : std_logic_vector(dataw-1 downto 0);
 
@@ -161,27 +157,6 @@ begin
     end if;
   end process input_shadow_sp;
 
-  input_pipeline_sp : process(clk, rstx)
-  begin
-    if (rstx = '0') then
-      t1data_2r <= (others => '0');
-      t2data_2r <= (others => '0');
-      t1opcode_r <= (others => '0');
-      t1load_r <= '0';
-    elsif rising_edge(clk) then
-      if (glock = '0') then
-        t1load_r <= t1load;
-      end if;
-      if (glock = '0' and t1load = '1') then
-        t1data_2r <= t1data;
-        t2data_2r <= t2data_shadow;
-        t1opcode_r <= t1opcode;
-      end if;
-    end if;
-  end process input_pipeline_sp;
-
-    
-
   -- Co-Processor Controller ----------------------------------------------------------------
   -- -------------------------------------------------------------------------------------------
   coprocessor_ctrl: process(rstx, clk)
@@ -191,12 +166,14 @@ begin
       ctrl.t2data_abs  <= (others => '-');
       ctrl.cnt      <= (others => '-');
       ctrl.cp_op_ff <= (others => '-');
+      ctrl.out_en <= '0';
       div.sign_mod  <= '-';
       lock_req_r <= '0';
     elsif rising_edge(clk) then
       if glock = '0' or lock_req_r = '1'  then
       -- defaults --
         lock_req_r <= '0';
+        ctrl.out_en <= '0';
 
         -- FSM --
         case ctrl.state is
@@ -205,22 +182,22 @@ begin
             -- arbitration
             ctrl.cp_op_ff <= ctrl.cp_op;
             ctrl.cnt      <= "11110"; -- iterative cycle counter
-            if (t1load_r = '1') then -- trigger new operation
+            if (t1load = '1') then -- trigger new operation
                 lock_req_r <= '1';
                 if (DIVISION_EN = true) then
                 -- DIV: check relevant input signs for result sign compensation --
                 if (ctrl.cp_op(1 downto 0) = cp_op_div_c(1 downto 0)) then -- signed div operation
-                    div.sign_mod <= (t1data_2r(t1data_2r'left) xor t2data_2r(t2data_2r'left)) and or_reduce_f(t2data_2r); -- different signs AND divisor not zero
+                    div.sign_mod <= (t1data(t1data'left) xor t2data_shadow(t2data_shadow'left)) and or_reduce_f(t2data_shadow); -- different signs AND divisor not zero
                 elsif (ctrl.cp_op(1 downto 0) = cp_op_rem_c(1 downto 0)) then -- signed rem operation
-                    div.sign_mod <= t1data_2r(t1data_2r'left);
+                    div.sign_mod <= t1data(t1data'left);
                 else
                     div.sign_mod <= '0';
                 end if;
                 -- DIV: abs(t2data) --
-                if ((t2data_2r(t2data_2r'left) and ctrl.t2datas_signed) = '1') then -- signed division?
-                    ctrl.t2data_abs <= std_logic_vector(0 - unsigned(t2data_2r)); -- make positive
+                if ((t2data_shadow(t2data_shadow'left) and ctrl.t2datas_signed) = '1') then -- signed division?
+                    ctrl.t2data_abs <= std_logic_vector(0 - unsigned(t2data_shadow)); -- make positive
                 else
-                    ctrl.t2data_abs <= t2data_2r;
+                    ctrl.t2data_abs <= t2data_shadow;
                 end if;
                 end if;
                 -- is fast multiplication?--
@@ -235,17 +212,12 @@ begin
             lock_req_r <= '1';
             ctrl.cnt <= std_logic_vector(unsigned(ctrl.cnt) - 1);
             if (ctrl.cnt = "00000") then -- abort on trap
-              ctrl.state <= S_HALT_LOCK;
-            end if;
-
-            when S_HALT_LOCK =>
-            --We need to halt the lock for one extra cycle
-            --because output is registered
-              lock_req_r <= '1';
               ctrl.state <= S_DONE;
+            end if;
 
             when S_DONE => -- final step
             lock_req_r <= '1';
+            ctrl.out_en <= '1';
             ctrl.state  <= S_IDLE;
 
             when others => -- undefined
@@ -259,7 +231,7 @@ begin
   glock_req <= lock_req_r;
 
   -- co-processor operation --
-  ctrl.cp_op <= t1opcode_r;
+  ctrl.cp_op <= t1opcode;
 
   -- input operands treated as signed? --
   ctrl.t1datas_signed <= '1' when (ctrl.cp_op = cp_op_mulh_c) or (ctrl.cp_op = cp_op_mulhsu_c) or
@@ -283,13 +255,13 @@ begin
     end case;
   end process decode_div_cp;
 
-  decode_op_start_cp : process(t1load_r, is_div)
+  decode_op_start_cp : process(t1load, is_div)
   begin
     mul.start <= '0';
     div.start <= '0';
-    if (t1load_r = '1' and is_div = '1')   then
+    if (t1load = '1' and is_div = '1')   then
       div.start <= '1';
-    elsif (t1load_r = '1') then
+    elsif (t1load = '1') then
       mul.start <= '1';
     end if;
   end process decode_op_start_cp;
@@ -305,8 +277,8 @@ begin
       if rising_edge(clk) then
         if glock = '0' or lock_req_r = '1' then
           if (mul.start = '1') then
-            mul.dsp_x <= signed((t1data_2r(t1data_2r'left) and ctrl.t1datas_signed) & t1data_2r);
-            mul.dsp_y <= signed((t2data_2r(t2data_2r'left) and ctrl.t2datas_signed) & t2data_2r);
+            mul.dsp_x <= signed((t1data(t1data'left) and ctrl.t1datas_signed) & t1data);
+            mul.dsp_y <= signed((t2data_shadow(t2data_shadow'left) and ctrl.t2datas_signed) & t2data_shadow);
           end if;
           mul.prod <= std_logic_vector(mul.dsp_z(63 downto 0));
         end if;
@@ -339,7 +311,7 @@ begin
         if glock = '0' or lock_req_r = '1' then
           if (mul.start = '1') then -- start new multiplication
             mul.prod(63 downto 32) <= (others => '0');
-            mul.prod(31 downto 00) <= t1data_2r;
+            mul.prod(31 downto 00) <= t1data;
           elsif (ctrl.state = S_BUSY) or (ctrl.state = S_DONE) then -- processing step or sign-finalization step
             mul.prod(63 downto 31) <= mul.add(32 downto 0);
             mul.prod(30 downto 00) <= mul.prod(31 downto 1);
@@ -349,13 +321,13 @@ begin
     end process multiplier_core;
 
     -- multiply with 0/1 via addition --
-    mul_update: process(mul, ctrl, t2data_2r)
+    mul_update: process(mul, ctrl, t2data_shadow)
     begin
       if (mul.prod(0) = '1') then -- multiply with 1
         if (ctrl.state = S_DONE) and (ctrl.t1datas_signed = '1') then -- for signed operations only: take care of negative weighted MSB -> multiply with -1
-          mul.add <= std_logic_vector(unsigned(mul.p_sext & mul.prod(63 downto 32)) - unsigned((t2data_2r(t2data_2r'left) and ctrl.t2datas_signed) & t2data_2r));
+          mul.add <= std_logic_vector(unsigned(mul.p_sext & mul.prod(63 downto 32)) - unsigned((t2data_shadow(t2data_shadow'left) and ctrl.t2datas_signed) & t2data_shadow));
         else -- multiply with +1
-          mul.add <= std_logic_vector(unsigned(mul.p_sext & mul.prod(63 downto 32)) + unsigned((t2data_2r(t2data_2r'left) and ctrl.t2datas_signed) & t2data_2r));
+          mul.add <= std_logic_vector(unsigned(mul.p_sext & mul.prod(63 downto 32)) + unsigned((t2data_shadow(t2data_shadow'left) and ctrl.t2datas_signed) & t2data_shadow));
         end if;
       else -- multiply with 0
         mul.add <= mul.p_sext & mul.prod(63 downto 32);
@@ -386,10 +358,10 @@ begin
       if rising_edge(clk) then
         if glock = '0' or lock_req_r = '1' then
           if (div.start = '1') then -- start new division
-            if ((t1data_2r(t1data_2r'left) and ctrl.t1datas_signed) = '1') then -- signed division?
-              div.quotient <= std_logic_vector(0 - unsigned(t1data_2r)); -- make positive
+            if ((t1data(t1data'left) and ctrl.t1datas_signed) = '1') then -- signed division?
+              div.quotient <= std_logic_vector(0 - unsigned(t1data)); -- make positive
             else
-              div.quotient <= t1data_2r;
+              div.quotient <= t1data;
             end if;
             div.remainder <= (others => '0');
           elsif (ctrl.state = S_BUSY) or (ctrl.state = S_DONE) then -- running?
@@ -431,7 +403,7 @@ begin
     if (rstx = '0') then
       result_r <= (others => '0');
     elsif rising_edge(clk) then
-      if glock = '0' or lock_req_r = '1' then
+      if ctrl.out_en = '1' then
         case ctrl.cp_op_ff is
           when cp_op_mul_c =>
             result_r <= mul.prod(31 downto 00);
