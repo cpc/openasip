@@ -16,7 +16,7 @@
 
 /* if do not have #include_next support, then we
    have to define the limits here. */
-# if !defined __GNUC__ || __GNUC__ < 2 || defined __TCE__
+# if !defined __GNUC__ || __GNUC__ < 2 || defined __TCE__ || defined __OA_RISCV__
 
 #  ifndef _LIMITS_H
 #   define _LIMITS_H	1
@@ -125,7 +125,7 @@
 
 #endif	 /* !_LIBC_LIMITS_H_ */
 
-#if defined __GNUC__ && !defined _GCC_LIMITS_H_ && !defined __TCE__
+#if defined __GNUC__ && !defined _GCC_LIMITS_H_ && !defined __TCE__ && !defined __OA_RISCV__
 /* `_GCC_LIMITS_H_' is what GCC's file defines.  */
 # include_next <limits.h>
 #endif /* __GNUC__ && !_GCC_LIMITS_H_ */

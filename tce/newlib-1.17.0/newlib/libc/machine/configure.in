@@ -62,6 +62,7 @@ if test -n "${machine_dir}"; then
 	xstormy16) AC_CONFIG_SUBDIRS(xstormy16) ;;
 	z8k) AC_CONFIG_SUBDIRS(z8k) ;;
 	tce) AC_CONFIG_SUBDIRS(tce) ;;
+	riscv) AC_CONFIG_SUBDIRS(riscv) ;;
   esac;
 fi
 

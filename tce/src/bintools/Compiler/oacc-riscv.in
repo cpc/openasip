@@ -34,18 +34,62 @@ from shutil import which
 from subprocess import Popen, PIPE
 from xml.etree import ElementTree as ET
 
+scriptDir = os.path.abspath(os.path.dirname(sys.argv[0]))
+runningInstalled = 'src/bintools/Compiler' not in scriptDir or not \
+     os.path.exists(os.path.join("@abs_top_builddir@",
+                                 "src/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so"))
 
-script_dir = os.path.dirname(sys.argv[0])
+### tce install prefix
+tceInstalled = True
+tceprefix = ""
+if 'TCE_INSTALL_DIR' in os.environ.keys():
+    tceprefix = os.environ['TCE_INSTALL_DIR']
+else:
+    (exitCode, output) = subprocess.getstatusoutput("openasip-config --prefix")
+    if exitCode != 0:
+        tceInstalled = False
+    else:
+        tceprefix = output
 
+assert not runningInstalled or (tceInstalled and tceprefix != ""), \
+        "Could not find TCE prefix. Is TCE installed in PATH?"
+
+def newlibIncludes():
+    if runningInstalled:
+        return "-I " + os.path.join(tceprefix, "riscv/include")
+    else:
+        return ( " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libc/include") +
+            " -I " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libm/include") + " ")
+
+def newlibLibdir():
+    if runningInstalled:
+        return os.path.join(tceprefix, "riscv/lib")
+    else:
+        return os.path.join("@abs_top_builddir@", "newlib-1.17.0/riscv-llvm/riscv/newlib")
+
+#find path for libgcc
+def rtLibInclude():
+    (exitCode, path) = subprocess.getstatusoutput("riscv32-unknown-elf-gcc -print-libgcc-file-name")
+    if exitCode != 0 :
+        exitWithError(path)
+    return os.path.dirname(path)
+
+def stdLibFlags():
+    flags = ""
+    flags += "-L " + rtLibInclude() + " "
+    flags += "-L " + newlibLibdir() + " "
+    return str(flags)
+
+                                                 
 def run_command(command, echoStderr=True, echoStdout=True, echoCmd=False):
     """Runs the given shell command and returns its exit code.
 
     If echoOutput is False, stdout and stderr are redirected to /dev/null."""
-    
-    from subprocess import Popen, PIPE
 
     if echoCmd:
         print(command)
+    
+    from subprocess import Popen, PIPE
 
     if not echoStdout:
         stdoutRedir = open('/dev/null', 'w')
@@ -68,8 +112,6 @@ tempfiles = []
 
 def hasMExtension(options):
     global MMachine
-    if bitness64 is not None:
-        return bitness64
     MMachine = False
     if options.adf_file != "":
         #TODO: We should check all M extension operations here
@@ -77,17 +119,12 @@ def hasMExtension(options):
     return MMachine
 
 def create_temp_file(suffix=""):
-    if options.leave_tempfiles:
-        tf = mkstemp(suffix=suffix, dir=os.getcwd())[1]
-    else:
-        tf = mkstemp(suffix=suffix)[1]
+    tf = mkstemp(suffix=suffix, dir=tempDir)[1]
     tempfiles.append(tf)
     return tf
 
 def cleanup_and_exit(retval=0):
     if not options.leave_tempfiles:
-        for tf in tempfiles:
-            os.unlink(tf)
         rmtree(tempDir)
         
     sys.exit(retval)
@@ -107,7 +144,7 @@ def parse_options():
                       dest='optimization_level', default=3,
                       help="Optimization level. O0-O3")
 
-    parser.add_option("-S", "--compile-only", dest="compile_only",
+    parser.add_option("-c", "--compile-only", dest="compile_only",
                       action="store_true", default=False,
                       help="Compile only. Do not assemble or link.")
 
@@ -165,7 +202,7 @@ def parse_options():
                       help="List of additional LLVM passes to run after the regular ones.")
 
     parser.add_option('--disable-internalize',
-                      action="store_true", dest='disable_internalize', default=False,
+                      action="store_true", dest='disable_internalize', default=True,
                       help="Do not internalize (make static) global symbols by default.")
 
     parser.add_option('-k', '--keep-symbols',
@@ -180,8 +217,45 @@ def parse_options():
                       dest="output_format", default="",
                       help="Emit program as a text file, bin or hex.")
 
+    parser.add_option('-B',
+             type="string", action="append", metavar='directory',
+             dest="B_cc_switches", default=[],
+             help="Passed to gcc.")
 
-    (options, args) = parser.parse_args()
+    parser.add_option('-f',
+             type="string", action="append", metavar='opt_var',
+             dest="f_cc_switches", default=[],
+             help="Passed to gcc.")
+
+    parser.add_option('-g',
+             action="store_true",
+             dest="g_cc_switch", default=False,
+             help="Passed to gcc.")
+    
+    parser.add_option('--isystem',
+             type="string", action="append", metavar='directory',
+             dest="isystem_cc_switches", default=[],
+             help="Passed to gcc as -system switch. Also -isystem is supported.")
+    
+    parser.add_option('--tce-build-mode', action="store_true",
+             dest="tce_build_mode", default=False,
+             help="Use when building TCE's bitcode libraries. Sets build directory search paths correctly.")
+
+
+    # fix gcc switches, which cannot be represented in OptionParser format by adding extra "-" before switch
+    args = []
+    for opt in sys.argv[1:]:
+        if opt.startswith("-isystem"): opt = "-" + opt
+        if opt.startswith("-cl-"): opt = "-" + opt
+        args.append(opt)
+
+    # parse valid args
+    options, args = parser.parse_args(args)
+
+    if options.tce_build_mode:
+        # Ensure we find the OSAL directories to produce the tceopgen macros for
+        # launching STDOUT etc. from C implementations in newlib.
+        os.environ['TCE_DEVEL_MODE'] = '1'
     return (options, args)
 
 def exitWithError(status, errorMessage=None):
@@ -213,24 +287,75 @@ def optimizeBytecode(inFile):
         extra_opts = options.extra_llvm_opts.split(',')
         optSwitches += ' -' + ' -'.join(extra_opts)
     outputName = tempDir + "/" + os.path.basename(inFile) + "_optimized.bc"
-    command = "opt -enable-new-pm=0 -f " + inFile + " -o " + outputName + " " + optSwitches
-    exitCode = run_command(command, options.verbose)
+    command = "opt -O3 -enable-new-pm=0 -f " + inFile + " -o " + outputName + " " + optSwitches
+    exitCode = run_command(command, echoCmd=options.verbose)
     if exitCode != 0:
         exitWithError(1, "Error while optimizing bytecode: " + command + "\n")
     return outputName
-    
+
+def assemble(input_file, output_file):
+    compileFlags = ""
+    if not options.tce_build_mode:
+        compileFlags += "--rtlib=libgcc "
+    for w in options.warnings:
+        # Types of warnings supported by the compiler:
+        white_list = []
+        if True:
+            white_list = ['no-empty-body',
+                          'no-dangling-else',
+                          'no-unknown-warning-option',
+                          'no-bad-literal',
+                          'no-literal-range',
+                          'no-pointer-sign',
+                          'no-return-type',
+                          'no-unused-value',
+                          'no-ignored-qualifiers',
+                          'no-incompatible-pointer-types-discards-qualifiers',
+                          'no-implicit-function-declaration']   
+    if w in white_list:
+        compileFlags += "-W" + w + " "
+    if options.g_cc_switch:
+        compileFlags += "-g "
+    for i in options.include_dirs:
+        compileFlags += "-I" + i + " "
+    for i in options.defines:
+        compileFlags += "-D" + i + " "
+    march = "-march=rv32i"
+    if hasMExtension :
+        march += "m"
+    retval = \
+        run_command("clang -D__OA_RISCV__ -I %s %s -target riscv32 %s -O3 -c %s -o %s" % \
+        (tempDir, compileFlags, march, input_file, output_file), echoCmd=options.verbose)
+    if retval != 0: cleanup_and_exit(retval)
+    return output_file
+
 def compile_to_bitcode(input_files):    
     bc_files = []
     compileFlags = ""
+    compileFlags += "-O" + str(options.optimization_level) + " "
+    if not options.tce_build_mode:
+        compileFlags += newlibIncludes() + " "
+    if options.g_cc_switch:
+        compileFlags += "-g "
     for i in options.include_dirs:
         compileFlags += "-I" + i + " "
     for i in options.defines:
         compileFlags += "-D" + i + " "
     if options.unroll_threshold == 0:
-                    extra_opts += " -fno-unroll-loops"
+        compileFlags += " -fno-unroll-loops"
+
+    for i in options.f_cc_switches:
+        if True:
+            # Some of the gcc -f flags not supported by clang,
+            # just skip them silently for now for gcc compatibility.
+            if i == "short-enums": continue
+        compileFlags += "-f" + i + " "
+
+    for i in options.isystem_cc_switches:
+        compileFlags += "-isystem" + i + " "
 
     tceOpsDir = tempDir + "/tceops.h"
-    compileFlags += "-include " + tceOpsDir
+    compileFlags += "-include " + tceOpsDir + " "
 
     for w in options.warnings:
         # Types of warnings supported by the compiler:
@@ -249,9 +374,15 @@ def compile_to_bitcode(input_files):
                           'no-implicit-function-declaration']
         if w in white_list:
             compileFlags += "-W" + w + " "
+
+    # generate tceops.h
+    if runningInstalled:
+        tceopgen = "tceopgen"
+    else:
+        tceopgen = "@abs_top_builddir@" + "/src/bintools/Compiler/tceopgen/tceopgen"
     
     exitCode = run_command(
-        "tceopgen -o " + tceOpsDir , options.verbose)
+        tceopgen + " -o " + tempDir + "/tceops.h" , echoCmd=options.verbose)
 
     if exitCode != 0:
         exitWithError(1, "Error while generating custom operation macros:\n")
@@ -262,7 +393,7 @@ def compile_to_bitcode(input_files):
         if hasMExtension :
             march += "m"
         retval = \
-            run_command("clang -I %s %s -target riscv32 %s -O3 -c -emit-llvm %s -o %s" % \
+            run_command("clang -D__OA_RISCV__ -I %s %s -target riscv32 %s -c -emit-llvm %s -o %s" % \
             (tempDir, compileFlags, march, input_file, bc_file), echoCmd=options.verbose)
 
         if retval != 0: cleanup_and_exit(retval)
@@ -274,25 +405,26 @@ def compile_to_bitcode(input_files):
     opt_bc_file = optimizeBytecode(bc_file)
     if retval != 0: cleanup_and_exit(retval)
 
-    return bc_file
+    return opt_bc_file
 
 def generate_code(bc_file, adf, objectCode=True, output=None):
     (exitCode, prefix) = subprocess.getstatusoutput("openasip-config --prefix")
     if exitCode != 0 :
         exitWithError(prefix)
-    lib_tce = str(os.path.join(prefix, "lib/libopenasip.so"))
+
+    if runningInstalled:
+        lib_tce = str(os.path.join(prefix, "lib/libopenasip.so"))
+    else:
+        lib_tce = os.path.join("@abs_top_builddir@", "src/.libs/libopenasip.so")
     if output is None:
         asm_file = create_temp_file(".o")
     else:
         asm_file = output
-    dump_options = ""
-    llvmaa_options = ""
     fileType = "--filetype=obj"
     if objectCode == False :
         fileType = "--filetype=asm"
     retval = run_command("llc %s -load %s -adf %s %s -o %s" %
-    (fileType, lib_tce, adf,  bc_file, asm_file), 
-                            echoStdout=True, echoCmd=options.verbose)
+    (fileType, lib_tce, adf,  bc_file, asm_file),echoCmd=options.verbose)
     if retval != 0: cleanup_and_exit(retval)
     return asm_file 
 
@@ -301,7 +433,7 @@ def link(obj_files, output):
     init_asm = os.path.join(tempDir, "init.S")
     init_out = os.path.join(tempDir, "init.o")
     link_script = os.path.join(tempDir, "riscv.ld")
-    retval = run_command("clang -march=rv32i  -target riscv32 -c %s -o %s" % (init_asm, init_out))
+    retval = run_command("clang -D__OA_RISCV__ -march=rv32i  -target riscv32 -c %s -o %s" % (init_asm, init_out))
     if retval != 0: cleanup_and_exit(retval)
     lib_names = ""
     lib_dirs = ""
@@ -310,8 +442,10 @@ def link(obj_files, output):
     for lib_dir in options.lib_dir:
         lib_dirs += "-L " + lib_dir + " "
 
-    retval = run_command("ld.lld %s %s -Ttext=0 -T %s %s %s -o %s" %
-    (lib_names, lib_dirs, link_script, init_out, obj_files, output), echoCmd=options.verbose)
+    extra_flags = stdLibFlags()
+
+    retval = run_command("ld.lld -lc -lm -lgcc  %s %s %s -Ttext=0 -T %s %s %s -o %s" %
+    (lib_names, lib_dirs, extra_flags, link_script, init_out, obj_files, output), echoCmd=options.verbose)
 
     if retval != 0: cleanup_and_exit(retval)
     return output
@@ -357,6 +491,7 @@ def generate_linker_script(options):
     "__mem   = " + str(instr_start) + ";\n"\
     "__stack = " + str(data_end) + ";\n"\
     "__global = " + str(data_start) + ";\n"\
+    "_end = " + str(data_start) + ";\n"\
     "\n"\
     "SECTIONS\n"\
     "{\n"\
@@ -411,11 +546,18 @@ if __name__ == "__main__":
     options, args = parse_options()
     global tempDir
     tempDir = mkdtemp("","oacc-")
+    if options.adf is None:
+        adf = os.path.join("@abs_top_builddir@",
+                                 "data/mach/rv32im.adf")
+        options.adf = adf
     if len(args) == 0:
-        sys.exit(0)
-    
+        exitWithError(1, "No input files given")
+
     if which("ld.lld") is None:
         exitWithError("lld must be installed for linking")
+
+    if which("riscv32-unknown-elf-gcc") is None:
+        exitWithError("RISCV GNU Toolchain must be installed!")
 
     final_output = options.output
     if options.output is None:
@@ -425,13 +567,25 @@ if __name__ == "__main__":
         else:
             input_without_extension = args[0]
         if options.compile_only:
-            final_output = input_without_extension + ".s"
+            final_output = input_without_extension + ".o"
         else:
             final_output = "a.out"
 
-    bc_file = compile_to_bitcode(args)
+    isAsm = False
+    pieces = args[0].split(".")
+    extension = pieces.pop()
+    if extension == "S" or extension == "s":
+        isAsm = True
+
+    if isAsm is False:
+        bc_file = compile_to_bitcode(args)
+    else:
+        assert len(args) == 1
+        asmFile = assemble(str(args[0]), options.output)
+        sys.exit(0)
+    
     if options.compile_only:
-        generate_code(bc_file, options.adf, False, final_output)
+        generate_code(bc_file, options.adf, True, final_output)
     else:
         elf_file = final_output
         if options.output_format == "bin" or options.output_format == "hex":

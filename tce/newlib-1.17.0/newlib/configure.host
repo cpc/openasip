@@ -236,6 +236,9 @@ case "${host_cpu}" in
   tce*)
 	machine_dir=tce
 	;;
+  riscv*)
+	machine_dir=riscv
+	;;
   thumb)
 	machine_dir=arm
 	;;
@@ -480,6 +483,10 @@ case "${host}" in
   tce*)
 	newlib_cflags="${newlib_cflags} -DMISSING_SYSCALL_NAMES"
 	sys_dir=tce
+	;;
+  riscv*)
+	sys_dir=riscv
+	have_crt0="no"
 	;;
   thumb-*-*)
 	sys_dir=arm

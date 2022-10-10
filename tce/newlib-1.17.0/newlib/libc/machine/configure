@@ -11531,6 +11531,10 @@ subdirs="$subdirs z8k"
 
 subdirs="$subdirs tce"
  ;;
+	riscv)
+
+subdirs="$subdirs riscv"
+ ;;
   esac;
 fi
 

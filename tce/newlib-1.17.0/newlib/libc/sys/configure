@@ -480,6 +480,7 @@ ac_subdirs_all="$ac_subdirs_all sysnecv850"
 ac_subdirs_all="$ac_subdirs_all sysvi386"
 ac_subdirs_all="$ac_subdirs_all sysvnecv70"
 ac_subdirs_all="$ac_subdirs_all tce"
+ac_subdirs_all="$ac_subdirs_all riscv"
 ac_subdirs_all="$ac_subdirs_all tic80"
 ac_subdirs_all="$ac_subdirs_all w65"
 ac_subdirs_all="$ac_subdirs_all z8ksim"
@@ -11444,6 +11445,10 @@ subdirs="$subdirs sysvnecv70"
 
 subdirs="$subdirs tce"
  ;;
+	riscv)
+
+subdirs="$subdirs riscv"
+ ;;
 	tic80)
 
 subdirs="$subdirs tic80"
@@ -11462,6 +11467,7 @@ fi
 CRT0=
 if test "x${have_crt0}" = "xyes"; then
   CRT0=crt0.o
+  CRT0_DIR=libc/sys/${sys_dir}/
 fi
 
 

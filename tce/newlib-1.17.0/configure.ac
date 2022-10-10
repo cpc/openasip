@@ -904,6 +904,9 @@ case "${target}" in
   tcele64-*)
     noconfigdirs="$noconfigdirs texinfo etc bfd binutils gas gcc gdb ld target-libstdc++-v3 opcodes target-libgloss ${libgcj}"
     ;;
+  riscv-*)
+    noconfigdirs="$noconfigdirs texinfo etc bfd binutils gas gcc gdb ld target-libstdc++-v3 opcodes target-libgloss ${libgcj}"
+    ;;
   v810-*-*)
     noconfigdirs="$noconfigdirs bfd binutils gas gcc gdb ld target-libstdc++-v3 opcodes target-libgloss ${libgcj}"
     ;;

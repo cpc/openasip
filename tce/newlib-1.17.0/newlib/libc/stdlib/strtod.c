@@ -150,7 +150,7 @@ static _CONST double tinytens[] = { 1e-16, 1e-32, 1e-64, 1e-128,
 
 #define Rounding Flt_Rounds
 
-#if defined(__TCE__) && defined(__clang__)
+#if (defined(__TCE__) || defined(__OA_RISCV__)) && defined(__clang__)
 
 /* This was not defined in Clang compilation as of 2010-03-01. */
 #ifdef Flt_Rounds

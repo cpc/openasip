@@ -1501,11 +1501,18 @@ AC_CONFIG_FILES([src/applibs/LLVMBackend/passes/buildllvmpass],
 AC_CONFIG_FILES([src/bintools/Compiler/oacc], 
                 [chmod +x src/bintools/Compiler/oacc])
 
+AC_CONFIG_FILES([src/bintools/Compiler/oacc-riscv], 
+                [chmod +x src/bintools/Compiler/oacc-riscv])
+
 # Configure newlib as well
 m4_pattern_allow([^AS_FOR_TARGET$])
 
 NEWLIB_CFLAGS="--tce-build-mode -O2 -fno-builtin -Wno-unknown-warning-option \
 -Wno-literal-range -Wno-pointer-sign -Wno-return-type \
+-Wno-empty-body -Wno-dangling-else -Wno-implicit-function-declaration -Wno-unused-value"
+
+RISCV_NEWLIB_CFLAGS="--tce-build-mode -D__riscv_float_abi_soft -D__riscv_xlen=32 -O2 -fno-builtin --disable-internalize \
+-Wno-unknown-warning-option -Wno-literal-range -Wno-pointer-sign -Wno-return-type \
 -Wno-empty-body -Wno-dangling-else -Wno-implicit-function-declaration -Wno-unused-value"
 
 AC_CONFIG_COMMANDS_POST ([
@@ -1527,6 +1534,27 @@ CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss \
 2>&1 | egrep -v "to force reconfigure";
 ])
+
+AC_CONFIG_COMMANDS_POST ([
+echo "=== Configuring newlib for riscv =====";
+# make srcdir absolute
+builddirectory=$PWD
+cd $srcdir;
+srcdir=$PWD;
+cd $builddirectory;
+# create builddir (if necessary)
+mkdir -p newlib-1.17.0/riscv-llvm;
+cd newlib-1.17.0/riscv-llvm;
+RANLIB_FOR_TARGET=ranlib \
+NM_FOR_TARGET=nm AR_FOR_TARGET=ar \
+AS_FOR_TARGET=as LD_FOR_TARGET=ld \
+CFLAGS_FOR_TARGET="$RISCV_NEWLIB_CFLAGS" \
+CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc-riscv \
+CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc-riscv \
+$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=riscv --disable-multilib --disable-libgloss \
+2>&1 | egrep -v "to force reconfigure";
+])
+
 
 AC_CONFIG_COMMANDS_POST ([
 echo "=== Configuring newlib for little endian machines =====";

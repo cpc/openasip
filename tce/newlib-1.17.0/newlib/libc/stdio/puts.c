@@ -70,18 +70,30 @@ static char sccsid[] = "%W% (Berkeley) %G%";
 #include "fvwrite.h"
 #include "local.h"
 
-#ifdef __TCE__
+#if defined(__OA__RISCV__) || defined(__TCE__)
 #include "tceops.h"
+
 int 
 _DEFUN(puts, (s),
        char _CONST * s) 
 {
     char c;
     while ((c =*s) != 0) {
+       #ifndef __TCE__
+       int tmp = 0;
+       //Use a version of STDOUT that follows R-format
+       _OA_RV_STDOUT_RISCV((int)(c), 0, tmp);
+       #else
         _TCE_STDOUT((int)(c));
+       #endif
         s++;
     }
+    #ifndef __TCE__
+    int tmp = 0;
+    _OA_RV_STDOUT_RISCV('\n', 0, tmp);
+    #else
     _TCE_STDOUT('\n');
+    #endif
 }
 #else
 

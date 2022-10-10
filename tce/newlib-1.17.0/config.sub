@@ -1207,6 +1207,8 @@ case $basic_machine in
 		;;
 	tce*)
 		;;
+	riscv*)
+		;;
 	*-unknown)
 		# Make sure to match an already-canonicalized machine name.
 		;;

@@ -129,8 +129,11 @@ LLVMTCERISCVIntrinsicsLowering::findOperationName(
         }
     }
     if (opName == "") {
-        std::string msg = "Failed to find operation name from: " + s;
-        throw InvalidData(__FILE__, __LINE__, __func__, msg);
+        const std::string msg = 
+        "Warning: Failed to find operation name from: \"" + s + "\"";
+        std::cerr << msg << std::endl;
+        //std::string msg = "Failed to find operation name from: " + s;
+        //throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
     return opName;
 }
@@ -190,8 +193,11 @@ LLVMTCERISCVIntrinsicsLowering::runOnMachineFunction(MachineFunction& MF) {
                 const unsigned OpIdx = 0;
                 std::string asmString =
                     std::string(j->getOperand(OpIdx).getSymbolName());
-                const std::string regs = findRegs(asmString);
                 const std::string opName = findOperationName(asmString);
+                if (opName == "") {
+                    continue;
+                }
+                const std::string regs = findRegs(asmString);
                 const std::vector<int> regIdxs = findRegIndexes(j);
 
                 int encoding = constructEncoding(opName, regIdxs);
