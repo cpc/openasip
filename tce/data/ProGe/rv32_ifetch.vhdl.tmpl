@@ -109,13 +109,6 @@ architecture rtl_andor of tta0_ifetch is
  signal calla_address : std_logic_vector(31 downto 0);
  signal apc_result_reg : std_logic_vector(31 downto 0);
 
- signal is_equal : std_logic;
- signal is_greater_equal : std_logic;
- signal cmp_signed : std_logic;
- signal adder_result : std_logic_vector(31 downto 0);
-
- signal eq, ne, ge, lt   : std_logic;
-
 begin
 
   -- enable instruction memory
@@ -128,45 +121,6 @@ begin
   ra_out           <= return_addr_reg;
 
   lock <= not fetch_en or busy;
-
-  adder_result <= std_logic_vector(signed(cond) - signed(comp));
-
-  eq <= is_equal;
-  ne <= not is_equal;
-  lt <= (not is_greater_equal);
-  ge <= is_greater_equal;
-
-  process(adder_result)
-  begin
-    if(unsigned(adder_result) = to_unsigned(0,32)) then
-      is_equal <= '1';
-    else
-      is_equal <= '0';
-    end if;
-  end process;
-
-  process(pc_opcode)
-  begin
-    cmp_signed <= '0';
-    if (unsigned(pc_opcode) = IFE_BLTR) then
-      cmp_signed <= '1';
-    elsif (unsigned(pc_opcode) = IFE_BGER) then
-      cmp_signed <= '1';
-    end if;
-  end process;
-
-  process(cond, comp, adder_result, cmp_signed)
-  begin
-    if((cond(31) xor comp(31)) = '0') then
-      if(adder_result(31) = '0') then
-        is_greater_equal <= '1';
-      else
-        is_greater_equal <= '0';
-      end if;
-    else
-      is_greater_equal <= cond(31) xor cmp_signed;
-    end if;
-  end process;
 
   calla_address <=std_logic_vector(resize(unsigned(pc_in), 32) + unsigned(cond));
   
@@ -257,40 +211,33 @@ begin
     end if;
   end process;
 
-  take_cond_branch_proc : process(pc_opcode, eq, ne, lt, ge)
+  take_cond_branch_proc : process(pc_opcode, cond, comp)
   begin
+    take_cond_branch <= '0';
     if (unsigned(pc_opcode) = IFE_BGER) then
-      take_cond_branch <= '0';
-      if ge = '1'    then
+      if signed(cond) >= signed(comp) then
         take_cond_branch <= '1';
       end if;
     elsif (unsigned(pc_opcode) = IFE_BGEUR) then
-      take_cond_branch <= '0';
-      if ge = '1'    then
+      if unsigned(cond) >= unsigned(comp) then
         take_cond_branch <= '1';
       end if;
     elsif (unsigned(pc_opcode) = IFE_BLTR) then
-      take_cond_branch <= '0';
-      if lt = '1'    then
+      if signed(cond) < signed(comp) then
         take_cond_branch <= '1';
       end if;
     elsif (unsigned(pc_opcode) = IFE_BLTUR) then
-      take_cond_branch <= '0';
-      if lt = '1'    then
+      if unsigned(cond) < unsigned(comp) then
         take_cond_branch <= '1';
       end if;
     elsif (unsigned(pc_opcode) = IFE_BNER) then
-      take_cond_branch <= '0';
-      if ne = '1'    then
+      if signed(cond) /= signed(comp) then
         take_cond_branch <= '1';
       end if;
     elsif (unsigned(pc_opcode) = IFE_BEQR) then
-      take_cond_branch <= '0';
-      if eq = '1'    then
+      if signed(cond) = signed(comp)    then
         take_cond_branch <= '1';
       end if;
-    else 
-      take_cond_branch <= '0';
     end if;
   end process take_cond_branch_proc;
   
