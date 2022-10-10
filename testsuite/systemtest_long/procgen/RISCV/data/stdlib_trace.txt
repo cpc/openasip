@@ -1,0 +1,5 @@
+Testing printf
+Testing puts
+exp(1.9) is roughly 6
+100*sin(2.2) is roughly 80
+OpenASIP rules
