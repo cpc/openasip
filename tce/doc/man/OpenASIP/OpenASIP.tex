@@ -3814,14 +3814,14 @@ lookup table. This is a quite usual method of algorithm optimization.
 \subsection{Starting Point Processor Architecture}
 
 
-Copy the \file{riscv.adf} file included in OpenASIP distribution to a new ADF
+Copy the \file{rv32im.adf} file included in OpenASIP distribution to a new ADF
 file:
 
 \begin{verbatim}
-  cp $(tce-config --prefix)/share/openasip/data/mach/riscv.adf start.adf
+  cp $(openasip-config --prefix)/share/openasip/data/mach/rv32im.adf start.adf
 \end{verbatim}
 
-The file describes a RISC-V processor containing a full bypass network
+The file describes a RISC-V (RV32IM) processor containing a full bypass network
 and function units that implement the RISC-V operations.
 We use this description as the starting point.
 
@@ -3858,13 +3858,26 @@ Now we want to know how well the starting point architecture executes
 our program. Let's compile the source code for this architecture
 with command:
 
-\shellcmd{oacc-riscv -O3 -a start.adf -o crc.elf main.c crc.c}
+\shellcmd{oacc-riscv -O3 -a start.adf -{}-output-format=bin -o crc.img main.c crc.c}
 
 In addition to source codes, the compiler needs the architecture
 definition \file{start.adf}. It will produce a program called
 \file{crc.elf} which can be executed by this architecture. As \file{start.adf}
 does not yet include any custom instructions, the compiled program is fully
-compatible with the base RISC-V RV32I ISA.
+compatible with the RISC-V RV32IM ISA. output-format=bin
+specifies that the compiler should emit the output as a binary text file that
+can be used for RTL simulation.
+
+For verifying that your changes to the processor and crc algorithm were correct,
+add the switch $-D\_DEBUG$ to the oacc-riscv command:
+
+\shellcmd{oacc-riscv -D\_DEBUG -O3 -a start.adf -{}-output-format=bin -o crc.img main.c crc.c}
+
+By enabling the \_DEBUG 
+define on the command line, we enable debug prints in the CRC source code.
+This way you can verify that the changes you do throughout the tutorial are correct.
+Notice that printing takes the majority of the CPU time
+which affects the results!
 
 Now to simulate the processor in RTL simulation, we need to generate the
 processor RTL and its testbench:
@@ -3881,23 +3894,13 @@ After this generate the HDL packages for the instruction address space.
 
 \shellcmd{generatebits -x riscv-proc start.adf}
 
-To simulate the processor in RTL simulation, we need to generate a
-binary image of the program in text format. Previously, we generated an
-executable and linkable format (ELF) \file{crc.elf}. To convert it to text
-format, we need additional tools.
+Copy the binary file we generated previously with oacc-riscv to the
+\file{riscv-proc/tb} directory. Do an identical copy for both instruction
+and data image
 
-You can use RISC-V GNU Toolchain and its riscv32-unknown-elf-elf2hex tool:
-\url{https://github.com/riscv-collab/riscv-gnu-toolchain}.
+\shellcmd{cp crc.img riscv-proc/tb/imem\_init.img}
 
-\shellcmd{riscv32-unknown-elf-elf2hex -{}-bit-width 32 -{}-input crc.elf -{}-output crc.hex}
-
-Now that the program is presented in hex format in a text file, it must be 
-converted to a binary presentation for the testbench. Do this with an included
-script:
-
-\shellcmd{oa-hex2bin -w 32 -o riscv-proc/tb/imem\_init.img crc.hex}
-
-\shellcmd{oa-hex2bin -w 32 -o riscv-proc/tb/dmem\_data\_init.img crc.hex}
+\shellcmd{cp crc.img riscv-proc/tb/dmem\_data\_init.img}
 
 Currently the testbench uses separate instruction and data memories which is
 why both of them require a separate initialization file.
@@ -3915,14 +3918,15 @@ modsim\_simulate.sh scripts if you have ModelSim installed.
 
 and simulate the processor and the program run
 
-\shellcmd{./ghdl\_simulate.sh}
+\shellcmd{./ghdl\_simulate.sh -r 100000}
 
 After a moment the simulation exits automatically when the exit function is
 reached. You can see an instruction trace of the executed instructions in
 riscv\_instruction\_trace.dump and a trace of the register file traffic in 
 rf.dump. Cycles.dump stores the information about the amount of clock cycles
-and stalls. The simulation should take a bit under 400 cycles but your mileage
-may vary. You might see several assertions depending on your HDL simulator
+and stalls. In the hdl\_sim\_stdout.txt you can see what was printed to stdout
+if you compiled the program with $-D\_DEBUG$.
+You might see several assertions depending on your HDL simulator
 version, which you can safely ignore at this point.
 
 \subsection{Using custom operations}
@@ -4064,8 +4068,8 @@ processor architecture as a special instruction.
 \end{enumerate}
 
 Now you have successfully added the operation to the processor
-microarchitecture. We need to also add an RISC-V instruction
-format for it.
+microarchitecture. We need to also add it to a RISC-V instruction
+format.
 
 \begin{enumerate}
   \item%
@@ -4106,23 +4110,23 @@ In our case we need to write a single word into the CRC\_XOR\_SHIFT and read the
 result from it.
 
 \begin{verbatim}
-  _OA_RV_CRC_XOR_SHIFT(crcTable[data], remainder, remainder);
+  _OA_RV_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
 \end{verbatim}
 
 After you add the macro, the loop body should look like this:
 \begin{verbatim}
   data = REFLECT_DATA(message[byte]) ^ (remainder >> (WIDTH - 8));
-  _OA_RV_CRC_XOR_SHIFT(crcTable[data], remainder, remainder);
+  _OA_RV_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
 \end{verbatim}
 
 Now regenerate the processor the same way as previously. Also compile the
 program and generate the program images for the testbench. Compile and run
 the program in RTL simulation. After the simulation is complete you see that
-the execution took 10 cycles less.
+the execution took slightly fewer cycles but same information was printed to stdout.
 
 \subsection{Defining a custom operation using an HDL snippet}
 
-In the previous section we described the operation as a DAG and were able to
+In the previous section, we described the operation as a DAG and were able to
 automatically generate the hardware for the new operation. However, it is not
 possible to describe the whole reflect loop of CRC as an OpenASIP DAG.
 
@@ -4282,7 +4286,7 @@ look like this:
   input = message[byte];
   _OA_RV_REFLECT8(input, 0, output);
   data = (unsigned char) output ^ (remainder >> (WIDTH - 8));
-  _OA_RV_CRC_XOR_SHIFT(crcTable[data], remainder, remainder);
+  _OA_RV_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
 \end{verbatim}
 
    
@@ -4299,14 +4303,16 @@ Now we can generate the processor. Because we want to use the hardware database
 we defined by ourselves, we must explicitly state the HDBs we want to use to the
 processor generator.
 
-\shellcmd{generateprocessor -{}-hdb-list=asic\_130nm\_1.5V.hdb,generate\_base32.hdb,generate\_lsu\_32.hdb,riscv\_tour.hdb
--o riscv-proc -t start.adf}
+\shellcmd{generateprocessor -{}-hdb-list=asic\_130nm\_1.5V.hdb,generate\_base32.hdb,\\
+generate\_lsu\_32.hdb,riscv\_tour.hdb -o riscv-proc -t start.adf}
 
 When generating RISC-V processors, these HDBs are sufficient. If you are
 generating a TTA you might want to add generate\_rf\_iu.hdb to the list.
 
 Now, compile the program and images as before and simulate the design in RTL
-simulation. This time, you should see a more significant drop in cycle counts.
+simulation. This time, you should see a more significant drop in cycle counts
+but same information should still be printed to stdout meaning that the algorithm
+was executed correctly.
 
 \subsection{Final Words}
 
@@ -4318,7 +4324,7 @@ The RISC-V customization feature of the toolset is new and experimental.
 For example, currently OpenASIP does not include an instruction set simulator
 for RISC-V which is why the processor must be simulated in RTL simulation.
 
-For your own designs, we recommend that you use the included riscv.adf
+For your own designs, we recommend that you use the included \file{rv32im.adf}
 description as a base and add your own custom instructions on top of it.
 
 \chapter{PROCESSOR DESIGN TOOLS}
