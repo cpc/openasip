@@ -11,7 +11,7 @@
 # possible move  on the bus. This  test case tests  that valid program
 # image and decoder is generated.
 
-srcDir=../../../../tce/src
+srcDir=../../../../openasip/src
 DATA=./data
 ADF=${DATA}/p2p_conns.adf
 IDF_VHDL=${DATA}/p2p_conns_vhdl.idf
@@ -24,7 +24,7 @@ PROGE_OUT_VHDL="proge-out-vhdl"
 PROGE_OUT_VERILOG="proge-out-verilog"
 TOP="top"
 TTABUSTRACE=ttabustrace
-GENBUSTRACE=../../../../tce/tools/scripts/generatebustrace.sh
+GENBUSTRACE=../../../../openasip/tools/scripts/generatebustrace.sh
 BEM=test.bem
 
 

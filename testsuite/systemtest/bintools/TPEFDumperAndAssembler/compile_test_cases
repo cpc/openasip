@@ -1,2 +1,2 @@
 #!/bin/bash
-../../../../tce/tools/scripts/exec_max_time 60 "../../../../tce/src/bintools/Assembler/tceasm data/memoryworm.adf data/memoryworm.tceasm"
+../../../../openasip/tools/scripts/exec_max_time 60 "../../../../openasip/src/bintools/Assembler/tceasm data/memoryworm.adf data/memoryworm.tceasm"

@@ -10,7 +10,7 @@ TPEF="bustrace.tpef"
 PROGE_OUT="proge-output"
 TOP="top"
 TTABUSTRACE=tta-bustrace
-GENBUSTRACE=../../../../tce/tools/scripts/generatebustrace.sh
+GENBUSTRACE=../../../../openasip/tools/scripts/generatebustrace.sh
 
 leavedirty=
 OPTIND=1

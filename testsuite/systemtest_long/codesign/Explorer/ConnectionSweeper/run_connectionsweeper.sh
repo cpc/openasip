@@ -1,7 +1,7 @@
 #!/bin/bash
-EXPLORE_BIN="../../../../../tce/src/codesign/Explorer/explore"
-COMPILER_BIN="../../../../../tce/src/bintools/Compiler/tcecc"
-TTASIM_BIN="../../../../../tce/src/codesign/ttasim/ttasim"
+EXPLORE_BIN="../../../../../openasip/src/codesign/Explorer/explore"
+COMPILER_BIN="../../../../../openasip/src/bintools/Compiler/tcecc"
+TTASIM_BIN="../../../../../openasip/src/codesign/ttasim/ttasim"
 
 ADF_PATH="./data/minimal2bus.adf"
 "${EXPLORE_BIN}" -a ${ADF_PATH} testi.dsdb 1>/dev/null

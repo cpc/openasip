@@ -4,7 +4,7 @@
 $test_description="parallel simulation: 64, 256, and 1025 point FFT testcase by Risto and Teemu";
 
 // the binary being tested
-$test_bin="../../../../tce/src/codesign/ttasim/ttasim";
+$test_bin="../../../../openasip/src/codesign/ttasim/ttasim";
 
 // args given to program
 // $bin_args="";

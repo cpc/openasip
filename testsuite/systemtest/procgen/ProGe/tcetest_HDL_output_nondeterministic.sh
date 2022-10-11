@@ -7,7 +7,7 @@ testName="HDL_output_nondeterministic"
 progeOutDir="proge-output-${testName}"
 progeOutDir2="proge-output-${testName}2"
 dataDir="./data/HDL_output_nondeterministic"
-srcDir="../../../../tce/src"
+srcDir="../../../../openasip/src"
 
 IDF="${dataDir}/HDL_nondeterm.idf"
 ADF="${dataDir}/HDL_nondeterm.adf"

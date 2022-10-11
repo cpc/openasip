@@ -3,7 +3,7 @@
 
   <ic-decoder-plugin>
     <name>DefaultICDecoder</name>
-    <file>../../../../../tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+    <file>../../../../../openasip/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
     <parameter name="bustrace">
       <value>yes</value>
     </parameter>
@@ -13,27 +13,27 @@
   </ic-decoder-plugin>
 
   <fu name="LSU">
-    <hdb-file>../../../../../tce/hdb/mixed_hdl.hdb</hdb-file>
+    <hdb-file>../../../../../openasip/hdb/mixed_hdl.hdb</hdb-file>
     <fu-id>2</fu-id>
   </fu>
 
   <fu name="ALU">
-    <hdb-file>../../../../../tce/hdb/mixed_hdl.hdb</hdb-file>
+    <hdb-file>../../../../../openasip/hdb/mixed_hdl.hdb</hdb-file>
     <fu-id>3</fu-id>
   </fu>
 
   <fu name="reflecter">
-    <hdb-file>../../../../../tce/hdb/mixed_hdl.hdb</hdb-file>
+    <hdb-file>../../../../../openasip/hdb/mixed_hdl.hdb</hdb-file>
     <fu-id>1</fu-id>
   </fu>
 
   <rf name="RF">
-    <hdb-file>../../../../../tce/hdb/mixed_hdl.hdb</hdb-file>
+    <hdb-file>../../../../../openasip/hdb/mixed_hdl.hdb</hdb-file>
     <rf-id>1</rf-id>
   </rf>
 
   <rf name="BOOL">
-    <hdb-file>../../../../../tce/hdb/mixed_hdl.hdb</hdb-file>
+    <hdb-file>../../../../../openasip/hdb/mixed_hdl.hdb</hdb-file>
     <rf-id>1</rf-id>
   </rf>
 

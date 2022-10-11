@@ -3,7 +3,7 @@
 $test_description="misc simulation features";
 
 // the binary being tested
-$test_bin="../../../../tce/src/codesign/ttasim/ttasim";
+$test_bin="../../../../openasip/src/codesign/ttasim/ttasim";
 
 // args given to program
 // $bin_args="";

@@ -1,7 +1,7 @@
 rm -rf proge-output
 
-ADF=../../../../tce/data/mach/rv32im.adf
-OACC_RISCV=../../../../tce/src/bintools/Compiler/oacc-riscv
+ADF=../../../../openasip/data/mach/rv32im.adf
+OACC_RISCV=../../../../openasip/src/bintools/Compiler/oacc-riscv
 generateprocessor --hdb-list=generate_base32.hdb,asic_130nm_1.5V.hdb,generate_lsu_32.hdb -t $ADF &>/dev/null
 generatebits -x proge-output $ADF &>/dev/null
 $OACC_RISCV --adf $ADF --output-format=bin -o proge-output/tb/imem_init.img data/stdlibTest.c &>/dev/null

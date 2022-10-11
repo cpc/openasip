@@ -5,4 +5,4 @@ cd $CURDIR
 ./generate_hdb.sh
 ./generate_tracedb.sh
 # Test with:
-# ../../../../tce/src/codesign/Estimator/estimate -p data/worm.tpef -t data/worm.tpef.trace data/worm.adf data/worm.idf
+# ../../../../openasip/src/codesign/Estimator/estimate -p data/worm.tpef -t data/worm.tpef.trace data/worm.adf data/worm.idf

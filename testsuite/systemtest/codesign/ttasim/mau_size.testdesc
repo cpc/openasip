@@ -3,5 +3,5 @@
 $test_description="Tests memory accessing FUs with different MAU sizes.";
 
 // the binary being tested
-$test_bin="../../../../tce/src/codesign/ttasim/ttasim";
+$test_bin="../../../../openasip/src/codesign/ttasim/ttasim";
 ?>

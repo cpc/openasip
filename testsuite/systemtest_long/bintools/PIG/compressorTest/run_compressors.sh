@@ -9,14 +9,14 @@
 # can assure that the compressors will work with up-to-date tce tools.
 # There is no point compressing pre-generated, age old tpefs.
 
-CC=../../../../../tce/src/bintools/Compiler/tcecc
-PROGE=../../../../../tce/src/procgen/ProGe/generateprocessor
-PIG=../../../../../tce/src/bintools/PIG/generatebits
-CBEM=../../../../../tce/src/bintools/BEMGenerator/createbem
+CC=../../../../../openasip/src/bintools/Compiler/tcecc
+PROGE=../../../../../openasip/src/procgen/ProGe/generateprocessor
+PIG=../../../../../openasip/src/bintools/PIG/generatebits
+CBEM=../../../../../openasip/src/bintools/BEMGenerator/createbem
 
 SRC="data/crc.c data/main.c"
 INC="-Idata/"
-ORIG=../../../../../tce/data/mach/minimal_be.adf
+ORIG=../../../../../openasip/data/mach/minimal_be.adf
 ADF=minimal.adf
 IDF=data/minimal.idf
 BEM=minimal.bem
@@ -26,8 +26,8 @@ DIR0=proge-output-no-compression
 DIR1=proge-output-InstructionDictionary
 DIR2=proge-output-MoveSlotDictionary
 
-COMP1=../../../../../tce/compressors/InstructionDictionary.so
-COMP2=../../../../../tce/compressors/MoveSlotDictionary.so
+COMP1=../../../../../openasip/compressors/InstructionDictionary.so
+COMP2=../../../../../openasip/compressors/MoveSlotDictionary.so
 
 IMEM=app.img
 DMEM=app_data.img

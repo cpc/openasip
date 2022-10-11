@@ -4,7 +4,7 @@
 #
 # usage:
 #
-# tce_build_root=$PWD/../../../../tce/src (or similar)
+# tce_build_root=$PWD/../../../../openasip/src (or similar)
 # . ../../../tce_src_paths.sh (or similar)
 
 ttasim_dir=$tce_build_root/codesign/ttasim/

@@ -1,22 +1,22 @@
 #!/bin/bash
 # Initialize the test HDB.
 rm -f data/test.hdb
-../../../../tce/src/procgen/HDB/createhdb data/test.hdb
+../../../../openasip/src/procgen/HDB/createhdb data/test.hdb
 sqlite3 data/test.hdb <<EOF
 BEGIN;
 
 INSERT INTO cost_function_plugin 
 VALUES(1, 'jepjep', 'StrictMatchFUEstimator', 
-       '../../../../tce/cost_estimator_plugins/fu/StrictMatchFUEstimator.so', 
+       '../../../../openasip/cost_estimator_plugins/fu/StrictMatchFUEstimator.so', 
        'fu');
 
 INSERT INTO cost_function_plugin 
 VALUES(2, 'jepjep', 'DefaultICDecoder', 
-       '../../../../tce/icdecoder_plugins/DefaultICDecoderPlugin.so', 'icdec');
+       '../../../../openasip/icdecoder_plugins/DefaultICDecoderPlugin.so', 'icdec');
 
 INSERT INTO cost_function_plugin 
 VALUES(3, 'jepjep', 'StrictMatchRFEstimator', 
-       '../../../../tce/cost_estimator_plugins/rf/StrictMatchRFEstimator.so', 
+       '../../../../openasip/cost_estimator_plugins/rf/StrictMatchRFEstimator.so', 
        'rf');
 
 INSERT INTO cost_estimation_data(id, plugin_reference, name, value) 

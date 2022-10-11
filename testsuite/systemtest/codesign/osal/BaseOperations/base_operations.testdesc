@@ -5,7 +5,7 @@
 $test_description="base operations";
 
 // the binary being tested
-$test_bin="../../../../../tce/src/codesign/osal/OSALTester/testosal";
+$test_bin="../../../../../openasip/src/codesign/osal/OSALTester/testosal";
 
 // args given to program
 $bin_args="";

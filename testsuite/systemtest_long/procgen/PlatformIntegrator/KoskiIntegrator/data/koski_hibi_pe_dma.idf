@@ -3,41 +3,41 @@
 
   <ic-decoder-plugin>
     <name>DefaultICDecoder</name>
-    <file>../../../../../tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+    <file>../../../../../openasip/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
   </ic-decoder-plugin>
 
   <fu name="ALU">
-    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <fu-id>375</fu-id>
   </fu>
 
   <fu name="mul">
-    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <fu-id>88</fu-id>
   </fu>
 
   <fu name="ALU_1">
-    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <fu-id>375</fu-id>
   </fu>
 
   <fu name="LSU">
-    <hdb-file>../../../../../tce/hdb/hibi_adapter.hdb</hdb-file>
+    <hdb-file>../../../../../openasip/hdb/hibi_adapter.hdb</hdb-file>
     <fu-id>1</fu-id>
   </fu>
 
   <rf name="RF">
-    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <rf-id>96</rf-id>
   </rf>
 
   <rf name="BOOL">
-    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <rf-id>96</rf-id>
   </rf>
 
   <rf name="RF_1">
-    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <rf-id>96</rf-id>
   </rf>
 

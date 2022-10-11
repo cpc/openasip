@@ -1,5 +1,5 @@
 #!/bin/bash
-EXPLORE_BIN="../../../../../tce/src/codesign/Explorer/explore"
+EXPLORE_BIN="../../../../../openasip/src/codesign/Explorer/explore"
 
 TEMPLATE_NAME="newTemplate"
 WIDTH=99

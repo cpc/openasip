@@ -13,7 +13,7 @@ TTASIM_OUT="tmp-le-prog.ttasim.out"
 PROGE_OUT="proge-out"
 TOP="top"
 TTABUSTRACE="tmp-le-prog.bustrace"
-GENBUSTRACE=../../../../tce/tools/scripts/generatebustrace.sh
+GENBUSTRACE=../../../../openasip/tools/scripts/generatebustrace.sh
 
 leavedirty=false
 OPTIND=1

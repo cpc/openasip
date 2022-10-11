@@ -1,1 +1,1 @@
-make -s -C ../../../../tce/doc/man/TCE/systemc_example clean
+make -s -C ../../../../openasip/doc/man/OpenASIP/systemc_example clean

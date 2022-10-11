@@ -1,5 +1,5 @@
 #!/bin/sh
-tce_build_root=$PWD/../../../../../tce/src
+tce_build_root=$PWD/../../../../../openasip/src
 . ../../../../tce_src_paths.sh
 cd data
 

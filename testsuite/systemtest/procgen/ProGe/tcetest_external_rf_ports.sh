@@ -2,7 +2,7 @@
 ### TCE TESTCASE
 ### title: Test that RFs with external ports are generated correctly.
 
-srcDir=../../../../tce/src
+srcDir=../../../../openasip/src
 
 ADF="./data/external_rf_ports/external_rf.adf"
 IDF="./data/external_rf_ports/external_rf.idf"

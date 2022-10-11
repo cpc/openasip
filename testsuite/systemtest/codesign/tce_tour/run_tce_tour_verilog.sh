@@ -1,10 +1,10 @@
 #!/bin/bash
 # Script to run checking verilog against vhdl on tce tour test
 
-CREATEBEM=../../../../tce/src/bintools/BEMGenerator/createbem
-PROGE=../../../../tce/src/procgen/ProGe/generateprocessor
-PIG=../../../../tce/src/bintools/PIG/generatebits
-TCECC=../../../../tce/src/bintools/Compiler/tcecc
+CREATEBEM=../../../../openasip/src/bintools/BEMGenerator/createbem
+PROGE=../../../../openasip/src/procgen/ProGe/generateprocessor
+PIG=../../../../openasip/src/bintools/PIG/generatebits
+TCECC=../../../../openasip/src/bintools/Compiler/tcecc
 
 MACH1=data/start.adf
 MACH2=data/custom.adf

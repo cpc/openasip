@@ -5,7 +5,7 @@
 TCECC=tcecc
 PROGE=generateprocessor
 PIG=generatebits
-GENBUSTRACE=../../../../tce/tools/scripts/generatebustrace.sh
+GENBUSTRACE=../../../../openasip/tools/scripts/generatebustrace.sh
 
 testDataDir=data/sram_rf
 testAdf="${testDataDir}/complex_multiply_stdout.adf"

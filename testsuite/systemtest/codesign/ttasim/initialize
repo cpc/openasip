@@ -1,8 +1,8 @@
 #!/bin/bash
 CURDIR=${PWD}
-../../../../tce/src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/test
-../../../../tce/src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/debug
-../../../../tce/src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/FFT_testcase
+../../../../openasip/src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/test
+../../../../openasip/src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/debug
+../../../../openasip/src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/FFT_testcase
 chmod +x run_*.sh
 rm -f data/*.bustrace
 rm -f data/*.trace.*

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tce=$PWD/../../../../tce/
+tce=$PWD/../../../../openasip/
 machine=${tce}/scheduler/testbench/ADF/ti64x_subset.adf
 ttasim=${tce}/src/codesign/ttasim/ttasim
 tcecc=${tce}/src/bintools/Compiler/tcecc

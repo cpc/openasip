@@ -1,8 +1,8 @@
 #!/bin/bash
 
-TCECC=../../../../../tce/src/bintools/Compiler/tcecc
-PROGE=../../../../../tce/src/procgen/ProGe/generateprocessor
-PIG=../../../../../tce/src/bintools/PIG/generatebits
+TCECC=../../../../../openasip/src/bintools/Compiler/tcecc
+PROGE=../../../../../openasip/src/procgen/ProGe/generateprocessor
+PIG=../../../../../openasip/src/bintools/PIG/generatebits
 INTEG=Stratix3DevKit
 TPEF=program.tpef
 SRC=data/main.c

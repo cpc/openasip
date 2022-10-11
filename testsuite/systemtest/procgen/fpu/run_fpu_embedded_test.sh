@@ -1,8 +1,9 @@
 #!/bin/bash
-TCECC=../../../../tce/src/bintools/Compiler/tcecc
-DISASM=../../../../tce/src/bintools/Disassembler/tcedisasm
-PROGE=../../../../tce/src/procgen/ProGe/generateprocessor
-PIG=../../../../tce/src/bintools/PIG/generatebits
+
+TCECC=../../../../openasip/src/bintools/Compiler/tcecc
+DISASM=../../../../openasip/src/bintools/Disassembler/tcedisasm
+PROGE=../../../../openasip/src/procgen/ProGe/generateprocessor
+PIG=../../../../openasip/src/bintools/PIG/generatebits
 
 PDIR=proge-output
 ADF=data/test_fpu_embedded.adf

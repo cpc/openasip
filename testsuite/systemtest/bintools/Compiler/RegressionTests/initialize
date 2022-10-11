@@ -1,2 +1,2 @@
 #!/bin/bash
-ln -s ../../../../../../tce/scheduler/testbench/Operations/simulator_test_operations.opp data/simulator_test_operations.opp
+ln -s ../../../../../../openasip/scheduler/testbench/Operations/simulator_test_operations.opp data/simulator_test_operations.opp

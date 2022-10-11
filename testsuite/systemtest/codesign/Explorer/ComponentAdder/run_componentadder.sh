@@ -1,7 +1,7 @@
 #!/bin/bash
-EXPLORE_BIN="../../../../../tce/src/codesign/Explorer/explore"
+EXPLORE_BIN="../../../../../openasip/src/codesign/Explorer/explore"
 
-MINIMAL_ADF_PATH="../../../../../tce/data/mach/minimal.adf"
+MINIMAL_ADF_PATH="../../../../../openasip/data/mach/minimal.adf"
 ADF_PATH="${MINIMAL_ADF_PATH}"
 
 # add rfs to minimal machine

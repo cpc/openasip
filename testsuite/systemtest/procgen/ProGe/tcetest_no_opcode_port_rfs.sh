@@ -2,7 +2,7 @@
 ### TCE TESTCASE
 ### title: Tests valid code is generated for that (single register) RFs with no opcode.
 
-srcDir=../../../../tce/src
+srcDir=../../../../openasip/src
 DATA=./data/no_opcode_rfs
 ADF="${DATA}/no_opcode_rfs.adf"
 IDF="${DATA}/no_opcode_rfs.idf"
@@ -15,7 +15,7 @@ TPEF="test.tpef"
 PROGE_OUT="proge-out"
 TOP="top"
 TTABUSTRACE=ttabustrace
-GENBUSTRACE=../../../../tce/tools/scripts/generatebustrace.sh
+GENBUSTRACE=../../../../openasip/tools/scripts/generatebustrace.sh
 
 usage() {
     echo "Options: "

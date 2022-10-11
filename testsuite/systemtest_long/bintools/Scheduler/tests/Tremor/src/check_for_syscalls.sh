@@ -1,6 +1,6 @@
 #!/bin/sh
 {
-~/tce/src/codesign/ttasim/ttasim <<EOF
+~/openasip/src/codesign/ttasim/ttasim <<EOF
 puts "#Loading the program to search the syscalls from..."
 prog $1
 puts "#Done... scanning for sys..."

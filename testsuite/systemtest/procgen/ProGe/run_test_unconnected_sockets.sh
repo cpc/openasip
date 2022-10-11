@@ -5,7 +5,7 @@
 
 progeOutDir="proge-output-sockets"
 dataDir="./data/unconnected_sockets"
-srcDir="../../../../tce/src"
+srcDir="../../../../openasip/src"
 
 PROGE="${srcDir}/procgen/ProGe/generateprocessor"
 ADF="${dataDir}/socket_test.adf"

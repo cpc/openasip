@@ -2,10 +2,10 @@
 ### TCE TESTCASE
 ### title: Generate a processor with debugger interface and simulate
 
-TCECC=../../../../tce/src/bintools/Compiler/tcecc
-PROGE=../../../../tce/src/procgen/ProGe/generateprocessor
-PIG=../../../../tce/src/bintools/PIG/generatebits
-GENBUSTRACE=../../../../tce/tools/scripts/generatebustrace.sh
+TCECC=../../../../openasip/src/bintools/Compiler/tcecc
+PROGE=../../../../openasip/src/procgen/ProGe/generateprocessor
+PIG=../../../../openasip/src/bintools/PIG/generatebits
+GENBUSTRACE=../../../../openasip/tools/scripts/generatebustrace.sh
 
 ADF=data/debugger/debugger.adf
 IDF=data/debugger/debugger.idf

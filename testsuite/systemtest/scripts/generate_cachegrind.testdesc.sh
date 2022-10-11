@@ -1,11 +1,11 @@
 #!/bin/sh
 
 # To generate the traces:
-# ../../../tce/src/codesign/ttasim/ttasim -e "setting procedure_transfer_tracking 1; setting profile_data_saving 1; mach ../../../tce/data/mach/minimal_with_stdout.adf; prog data/hello.tpef;  run; quit;"
-# ../../../tce/src/codesign/ttasim/ttasim -e "setting procedure_transfer_tracking 1; setting profile_data_saving 1; mach ../../../tce/data/mach/minimal_with_stdout.adf; prog data/function_pointers.tpef;  run; quit;"
+# ../../../openasip/src/codesign/ttasim/ttasim -e "setting procedure_transfer_tracking 1; setting profile_data_saving 1; mach ../../../openasip/data/mach/minimal_with_stdout.adf; prog data/hello.tpef;  run; quit;"
+# ../../../openasip/src/codesign/ttasim/ttasim -e "setting procedure_transfer_tracking 1; setting profile_data_saving 1; mach ../../../openasip/data/mach/minimal_with_stdout.adf; prog data/function_pointers.tpef;  run; quit;"
 
-cmd=../../../tce/scripts/generate_cachegrind
-dis=../../../tce/src/bintools/Disassembler/tcedisasm
+cmd=../../../openasip/scripts/generate_cachegrind
+dis=../../../openasip/src/bintools/Disassembler/tcedisasm
 mach=data/minimal_with_stdout.adf
 
 tmp=`mktemp tmpXXXXX`

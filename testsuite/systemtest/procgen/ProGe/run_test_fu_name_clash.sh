@@ -2,7 +2,7 @@
 
 progeOutDir="proge-output-funame"
 dataDir="./data/fu_name"
-srcDir="../../../../tce/src"
+srcDir="../../../../openasip/src"
 
 TCECC="${srcDir}/bintools/Compiler/tcecc"
 PROGE="${srcDir}/procgen/ProGe/generateprocessor"

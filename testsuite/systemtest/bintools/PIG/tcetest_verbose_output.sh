@@ -10,8 +10,8 @@ ADF=$DATA/le_mach.adf
 TPEF=dmem_endianess.tpef
 IMG=dmem_endianess.img
 PIG_OUT="pig-out"
-TCECC=../../../../tce/src/bintools/Compiler/tcecc
-GENERATEBITS=../../../../tce/src/bintools/PIG/generatebits
+TCECC=../../../../openasip/src/bintools/Compiler/tcecc
+GENERATEBITS=../../../../openasip/src/bintools/PIG/generatebits
 
 function eexit {
     echo $1

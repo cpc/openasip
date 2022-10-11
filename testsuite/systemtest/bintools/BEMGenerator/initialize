@@ -1,2 +1,2 @@
 #!/bin/bash
-../../../../tce/src/bintools/BEMGenerator/createbem -o data/complex.bem data/complex.adf
+../../../../openasip/src/bintools/BEMGenerator/createbem -o data/complex.bem data/complex.adf

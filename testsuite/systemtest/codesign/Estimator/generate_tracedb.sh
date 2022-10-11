@@ -5,7 +5,7 @@
 # options on.
 rm -f data/worm.tpef.trace*
 {
-../../../../tce/src/codesign/ttasim/ttasim <<EOF
+../../../../openasip/src/codesign/ttasim/ttasim <<EOF
 setting execution_trace on
 setting rf_tracking on
 setting bus_trace on

@@ -2,7 +2,7 @@
 
   <ic-decoder-plugin>
     <name>DefaultICDecoder</name>
-    <file>../../../../tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+    <file>../../../../openasip/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
     <hdb-file>data/test.hdb</hdb-file>
   </ic-decoder-plugin>
 

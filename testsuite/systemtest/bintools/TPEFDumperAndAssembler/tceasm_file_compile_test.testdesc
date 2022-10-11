@@ -4,7 +4,7 @@
 // short test description
 $test_description="Prints compiled memoryworm test case with tpef dumper.";
 // the binary being tested
-$test_bin="../../../../tce/src/bintools/TPEFDumper/dumptpef";
+$test_bin="../../../../openasip/src/bintools/TPEFDumper/dumptpef";
 // arguments given to the program
 $bin_args="-f -s -l -j0 -j1 -j2 -j3 -j4 -j5 -j6 -j7 -j8 -j9 -j10 -j11 -j12 data/memoryworm.tpef";
 ?>

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # generate generated_program.bc's
-../../../../tce/scheduler/testbench/scheduler_tester.py -c ../../../../tce/scheduler/passes/sequential_tcecc_scheduler.conf -vx -g "-O3 -k_Output" -a misc/1_bus_min_opset.adf  -d
+../../../../openasip/scheduler/testbench/scheduler_tester.py -c ../../../../openasip/scheduler/passes/sequential_tcecc_scheduler.conf -vx -g "-O3 -k_Output" -a misc/1_bus_min_opset.adf  -d
 
 PROGRAM_BC_FILES=`find -name program.bc`
 

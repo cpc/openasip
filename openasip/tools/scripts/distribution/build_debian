@@ -1,0 +1,112 @@
+#!/bin/bash
+# Creates a new Debian package from the current source tree and 
+# deletes all older packages from the openasip/ directory.
+#
+# Good starting point for information:
+# http://www.ibm.com/developerworks/linux/library/l-debpkg.html
+#
+# $1    package version number, default TCE_ROOT bzr revision
+
+# set -x 
+
+TCE_ROOT=${TCE_ROOT:-"$PWD"}
+
+DEB_ARCH=${DEB_ARCH:-"amd64"}
+PROGRAM_NAME=${PROGRAM_NAME:-"tce"}
+
+SCRIPT_DIR=`dirname $0`
+log_file=build_debian.log
+
+function eexit {
+    echo "$1"
+    cleanup
+    exit 1
+}
+
+function cleanup {
+    rm -fr $TMP_DIR
+    rm -f $TCE_ROOT/distro
+}
+
+# adds the $1 param to the end of PATH variable
+function addToPath {
+    local re='[:\n]{1}'
+    if [ -z "$(echo "$PATH" | grep -E "${1}${re}")" ]; then
+        export PATH="${PATH}:${1}"
+    fi  
+}
+
+function init_temp_dir {
+    TMP_DIR=$(mktemp -d)
+    echo "Temporary directory for the package: ${TMP_DIR}"
+
+    mkdir $TMP_DIR/DEBIAN
+    cp $SCRIPT_DIR/DEBIAN/* $TMP_DIR/DEBIAN
+}
+
+function build_and_install {
+    echo "A dummy file that marks this a root of a distributed TCE release." > distro
+    ./autogen.sh &> ${log_file}
+#    make clean &> ${log_file}
+    ./configure &> ${log_file} || eexit "configure failed."
+    make -sj8 &> ${log_file} || eexit "build failed."
+    make DESTDIR=${TMP_DIR} dev-install &> ${log_file} || eexit "make failed."
+}
+
+function create_deb {
+    # create the new .deb
+    dpkg -b $TMP_DIR $package_name || eexit "building package with dpkg failed."
+}
+
+
+### MAIN ###
+
+# package version given as a parameter or 
+if [ "${1}x" != "x" ]; then
+    VERSION="${1}"
+else
+    VERSION="$(bzr revno $TCE_ROOT)"
+fi
+
+package_name=${PROGRAM_NAME}_${VERSION}_${DEB_ARCH}.deb
+
+if test -e $TCE_ROOT/$package_name; then
+eexit "The package already found. Want to build the same revision again? Please remove the old package first."
+fi
+
+echo "Creating a .deb for TCE with version: ${VERSION} using tce: ${TCE_ROOT}"
+
+init_temp_dir
+
+echo "Building and installing TCE."
+
+cd $TCE_ROOT
+
+build_and_install
+
+cat > $TMP_DIR/DEBIAN/control <<EOF
+Package: ${PROGRAM_NAME}
+Version: ${VERSION}
+Section: devel 
+Priority: optional
+Architecture: ${DEB_ARCH}
+Essential: no
+Depends: libwxgtk2.8-0, libboost-filesystem1.42.0, \
+libboost-graph1.42.0, libboost-regex1.42.0, \
+libboost-thread1.42.0, tcl8.4, libedit2, \
+libsqlite3-0, libxerces-c28, g++, gcc 
+Pre-Depends: perl 
+Recommends: llvm (=3.2)
+Suggests: kpdf | acroread | evince, sqlite3
+Installed-Size: $(du -s $TMP_DIR/usr | awk '{print $1}')
+Maintainer: TCE developers <tce-users@cs.tut.fi>
+Provides: ${PROGRAM_NAME}
+Description: TTA Co-design Environment. A toolset for designing new TTA-based processors and programming them.
+EOF
+
+# remove old packages
+rm -f ${PROGRAM_NAME}-*.deb
+
+create_deb
+
+cleanup

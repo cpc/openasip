@@ -1,5 +1,5 @@
 #!/bin/bash
-_TCE_ROOT="../../../../../tce"
+_TCE_ROOT="../../../../../openasip"
 EXPLORE_BIN="${_TCE_ROOT}/src/codesign/Explorer/explore"
 COMPILER_BIN="${_TCE_ROOT}/src/bintools/Compiler/tcecc"
 TTASIM_BIN="${_TCE_ROOT}/src/codesign/ttasim/ttasim"

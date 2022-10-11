@@ -1,7 +1,7 @@
 #!/bin/bash
 
-PROGE=../../../../tce/src/procgen/ProGe/generateprocessor
-PIG=../../../../tce/src/bintools/PIG/generatebits
+PROGE=../../../../openasip/src/procgen/ProGe/generateprocessor
+PIG=../../../../openasip/src/bintools/PIG/generatebits
 
 ADF=data/limm_test.adf
 IDF=data/limm_test.idf

@@ -1,5 +1,5 @@
 #!/bin/bash
-TCE_ROOT="../../../../../tce"
+TCE_ROOT="../../../../../openasip"
 EXPLORE="${TCE_ROOT}/src/codesign/Explorer/explore"
 ADF="./data/bloated3xminimal.adf"
 TPEF="./data/scheduled.tpef"
@@ -42,7 +42,7 @@ if [ "${READS_NEW}" -ge "${READS_OLD}" ]; then
 fi
 
 # simulate output
-ttasim="../../../../../tce/src/codesign/ttasim/ttasim -q"
+ttasim="../../../../../openasip/src/codesign/ttasim/ttasim -q"
 {
 ${ttasim} <<EOF
 mach $NEW_CONF.adf

@@ -1,0 +1,264 @@
+This file lists solutions to common troubles people have with 
+compilation and installation of TCE.
+
+tcecc crashes with Ubuntu 16.04
+-------------------------------
+
+This is likely due to the default installation of LLVM 3.8 used
+by several Ubuntu libraries being accidentally used. It is not compatible
+with the TCE patched LLVM, thus the fix is to ensure the TCE tools
+use the correct version.
+
+For example, install your LLVM to /usr/local/lib and add it to
+your LD_LIBRARY_PATH. You might also need to create a symlink
+to libLLVM-3.8.so.1 from your libLLVM-3.8.so as TCE build seems
+to insist on linking to a file with that name (probably because it
+finds it in the default search paths during build).
+
+TCE build failing when linking with LLVM
+-----------------------------------------
+
+If, while doing the final linking of TCE with LLVM, you see the following
+errors:
+
+...
+../../.libs/libopenasip.so: undefined reference to `typeinfo for llvm::MCAsmInfo'
+../../.libs/libopenasip.so: undefined reference to `typeinfo for
+...
+
+This means that you have an LLVM that is not built with RTTI
+info. Please consult the INSTALL file of TCE for information on
+how to correctly build LLVM so it can be used from external
+projects that use C++ RTTI.
+
+configure does not find wxWidgets library
+-----------------------------------------
+
+If you are sure that you have all wxWidgets headers and libraries installed
+(you can verify this by using wx-config), and configure is still unable to
+find it, the problem might be caused by gcc 4.0 and strict compiler flags.
+
+For example, when one has defined 'CXXFLAGS=-ansi -Wall -pedantic', the
+configure test that test compiles a small wxWidgets test program fails
+because of errors found in wxWidgets headers. A workaround to this is to
+add '-Wno-long-long' to the CXXFLAGS. This makes the compiler skip errors
+reported of usage of 'long long', which causes the compilation to fail.
+
+Manuals and specification documents are not built
+-------------------------------------------------
+
+Make sure you have installed the transfig package and latex2html.
+
+"Could not link against" error during configure
+-----------------------------------------------
+
+At least Ubuntu 14.04 (as of 2014-03-31) does not link the new Boost library
+versions to standard library directories. The Boost library checks in the configure
+script fail mysteriously because due to multiple (older) Boost version
+confusing the installation path detection. In this case, either remove the old
+versions of Boost or force the configure script to find only one version
+installed to a certain location. For example:
+
+ ./configure --with-boost-libdir=/usr/lib/x86_64-linux-gnu
+
+A stack size error in Proxim's console
+--------------------------------------
+
+Tcl 8.5 has a bug with stack size detection which causes Proxim's
+interpreter to not work at all with it, therefore it's not officially
+supported by TCE at the moment. Although, it is possible to circumvent
+this issue by changing the stack size in shell with:
+  ulimit -s unlimited
+
+Red Hat Enterprise Linux 4.x (or CentOS 4.x)
+--------------------------------------------
+
+This distribution does not provide majority of the libraries
+required by TCE. In addition, it ships quite old gcc, 
+the version 3.4.x.
+
+In order to make compiling TCE in this system easier, we distribute
+a binary package for the required libraries.
+
+Download it for x86-64 from:
+
+	http://tce.cs.tut.fi/lib/tce_libs-CentOS4.6-x64.tar.gz
+
+After unpacking the archive to /opt, one should regenerate
+the build scripts by going to the root of the tce sources and
+executing the following command:
+
+	/opt/tce_libs/bin/autoreconf
+
+Then TCE build should be configured with the following command line:
+
+CXXFLAGS=-O3 CFLAGS=-O3 ./configure --with-boost=/opt/tce_libs --with-xerces=/opt/tce_libs \
+            --with-xerces=/opt/tce_libs --with-editline=/opt/tce_libs \
+            --with-sqlite3=/opt/tce_libs
+
+After this TCE should build and install with:
+
+	make && sudo make install
+
+If you wish to compile the libraries yourself, here is a quick howto for
+x86-64 distibutions. Let's assume the install directory is /opt/tce_libs
+
+xerces-c-2.7:
+-------------
+unzipped to: /home/<user>/pkg_src/xerces-c-2.7.0-src
+export XERCESCROOT env before running configure:
+$ export XERCESCROOT=/home/<user>/pkg_src/xerces-c-2.7.0-src
+$ cd /home/<user>/pkg_src/xerces-c-2.7.0-src
+$ chmod a+x runConfigure configure
+$ ./runConfigure -p linux -P /opt/tce_libs -b 64
+$ gmake
+$ su
+# make install
+# ldconfig
+
+wxGTK-2.8.9:
+------------
+unzipped to /home/<user>/pkg_src/wxGTK-2.8.9
+$ cd /home/<user>/pkg_src/wxGTK-2.8.9
+$ mkdir gtkbuild && cd gtkbuild
+$ ../configure --prefix=/opt/tce_libs
+$ make
+$ su
+# make install
+# ldconfig
+
+libedit:
+--------
+unzipped to /home/<user>/pkg_src/libedit-<version>
+$ cd /home/<user>/pkg_src/libedit-<version>
+$ ./configure --prefix=/opt/tce_libs
+$ make
+$ su
+# make install
+# ldconfig
+
+sqlite3:
+--------
+unzipped to /home/<user>/pkg_src/sqlite-3.6.4
+$ cd /home/<user>/pkg_src/sqlite-3.6.4
+$ ./configure --prefix=/opt/tce_libs
+$ make
+$ su
+# make install
+# ldconfig
+
+boost:
+------
+unzipped to /home/<user>/pkg_src/boost_1_36_0
+$ cd /home/<user>/pkg_src/boost_1_36_0
+$ ./configure --prefix=/opt/tce_libs
+
+llvm-2.6:
+---------
+unzipped to /home/<user>/pkg_src/llvm-2.6
+$ cd /home/<user>/pkg_src/llvm-2.6
+$ mkdir build && cd build
+$ ../configure --prefix=/opt/tce_libs --enable-pic
+
+changing ENVs
+-------------
+export PATH=/opt/tce_libs/bin:$PATH
+export LD_LIBRARY_PATH=/opt/tce-libs/lib:$LD_LIBRARY_PATH
+
+FreeBSD
+-------
+
+All the needed libraries except llvm are available on the ports collection.
+
+Compilation and installation works the same way as in any Linux distro, but
+the fact FreeBSD (at least 6.x-RELEASE) uses gcc-3.x series instead of 4.x, and
+that some headers & libraries are installed in a different location than in
+Ubuntu, makes the use of some configure switches neccessary:
+
+./configure --prefix=INSTALLATION_DIRECTORY                     \
+            --with-tcl-headers=/usr/local/include/tcl8.4        \
+            CPPFLAGS=-I/usr/local/include                       \
+            CXXFLAGS="-O3 -W -Wall -pedantic -Wno-long-long -g" \
+            LDFLAGS=-L/usr/local/lib
+
+After configure step ends, copy /usr/local/bin/libtool to the build directory
+(i.e. the directory you ran configure script in) and then you are ready to
+compile:
+
+gmake && gmake install
+
+(default system make is BSD make in FreeBSD systems, we need to use gmake
+to run GNU make).
+
+Installing prerequisite libraries without superuser priviledges
+---------------------------------------------------------------
+
+When installing as a normal user, it is likely that the development
+packages of the required librariers are missing in the system and they
+can be installed only by the superuser system widely.  In this case, the
+solution is to download respective source packages, compile them, and
+install also them in a user's directory just like the TCE itself.
+
+In this example, it is assumed that the tce will be installed in
+/share/userdir/openasip/tce-v.n where th v.n is substituted with the version
+number of the TCE. First, the following packages (as tar archieves) are 
+downloaded from the webpages of boost, tcl, wxWidgets, xerces, and sqlite 
+projects:
+
+boost_1_41_0.tar.gz                
+tcl8.4.19-src.tar.gz
+wxWidgets-2.8.10.tar.gz
+xerces-c_2_8_0-x86-linux-gcc_3_4.tar.gz
+sqlite-amalgamation-3.6.22.tar.gz
+
+compiled, and installed on /share/userdir/openasip/extras in the following 
+directories (directories must be created with mkdir before the
+installation): 
+
+$ ls extras/
+boost  sqlite3  tcldevel  wxWidgets  xerces
+
+For the tcl a symbolic link libtcl.so -> libtcl8.4.so must be created 
+in extras/tcldevel/lib/
+
+Next, the tce sources are obtained with bzr (bzr requires python2.4),
+the TCE instructions are followed, and as instructed the 
+
+llvm-2.6.tar
+llvm-gcc-4.2-2.6.source.tar 
+
+are downloaded and compiled. The llvm-2.6 is installed in  
+/share/userdir/openasip/llvm-2.6 instead of extras/ in this example.
+
+Naturally, the compilation of TCE requires defining the libraries explicitly.
+Therefore, before TCE compilation the environment has to be set:
+
+export PATH=/share/userdir/openasip/tce-v.n/bin:share/userdir/openasip/llvm-2.6/bin:$PATH
+
+export LD_LIBRARY_PATH=/share/userdir/openasip/llvm-2.6/lib:/share/userdir/openasip/extras/boost/lib:/share/userdir/openasip/extras/tcldevel/lib:/share/userdir/openasip/extras/wxWidgets/lib:/share/userdir/openasip/extras/xerces/lib:/share/userdir/openasip/extras/sqlite3:$LD_LIBRARY_PATH
+
+export LDFLAGS="-L/share/userdir/openasip/extras/tcldevel/lib -L/share/userdir/openasip/extras/xerces/lib"
+
+and the paths must be given also for the configure command of the TCE 
+compilation:
+
+./configure --with-boost=/share/userdir/openasip/extras/boost --with-wxwidgets=/share/userdir/openasip/extras/wxWidgets --with-tcl-headers=/share/userdir/openasip/extras/tcldevel/include --with-xerces=/share/userdir/openasip/extras/xerces --with-sqlite3=/share/userdir/openasip/extras/sqlite3 --prefix=/share/userdir/openasip/tce-v.n
+
+Thereafter, make && make install should work fine. Remeber also to set
+the LD_LIBRARY_PATH and PATH variables after the installation when you
+try to run the tce for the first time in a new shell.
+
+
+C++ global object constructors
+------------------------------
+
+In case your program uses C++ global objects with constructors, your
+main() definition must be defined with __attribute__((noinline)). 
+Otherwise your program might get corrupted stack pointer in the
+beginning. This is a known issue yet to be fixed.
+
+If you want to contribute a fix to this, ask in tce-devel for pointers as
+how to implement this properly is well-known.
+
+
+

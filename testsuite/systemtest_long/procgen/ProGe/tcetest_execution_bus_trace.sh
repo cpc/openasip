@@ -2,7 +2,7 @@
 ### TCE TESTCASE
 ### title: Tests that correct execution bus trace is generated.
 
-srcDir=../../../../tce/src
+srcDir=../../../../openasip/src
 DATA=./data/execution_bus_trace
 ADF="${DATA}/execbustrace.adf"
 IDF_VHDL="${DATA}/execbustrace.idf"
@@ -16,7 +16,7 @@ PROGE_OUT_VHDL="proge-out-vhdl"
 PROGE_OUT_VERILOG="proge-out-verilog"
 TOP="top"
 TTABUSTRACE=ttabustrace
-GENBUSTRACE=../../../../tce/tools/scripts/generatebustrace.sh
+GENBUSTRACE=../../../../openasip/tools/scripts/generatebustrace.sh
 
 
 OPTIND=1

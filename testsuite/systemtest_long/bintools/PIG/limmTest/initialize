@@ -7,8 +7,8 @@ g++ -o data/generate_asm data/generate_asm.cc >& /dev/null
 
 TESTDIR=$PWD
 # compile icdecoderplugin
-cd ../../../../../tce/icdecoder_plugins/ && make >& /dev/null
+cd ../../../../../openasip/icdecoder_plugins/ && make >& /dev/null
 
 cd $TESTDIR
 # compile the compressor plugins
-cd ../../../../../tce/compressors/ && make >& /dev/null
+cd ../../../../../openasip/compressors/ && make >& /dev/null

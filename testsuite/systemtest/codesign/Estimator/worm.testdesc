@@ -3,5 +3,5 @@
 $test_description="Estimation of costs of the simple Worm test case";
 
 // the binary being tested
-$test_bin="../../../../tce/src/codesign/Estimator/estimate -p data/worm.tpef -t data/worm.tpef.trace data/worm.adf data/worm.idf";
+$test_bin="../../../../openasip/src/codesign/Estimator/estimate -p data/worm.tpef -t data/worm.tpef.trace data/worm.adf data/worm.idf";
 ?>

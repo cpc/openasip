@@ -1,8 +1,8 @@
 #!/bin/bash
-tcecc=../../../../../tce/src/bintools/Compiler/tcecc
-tcedisasm=../../../../../tce/src/bintools/Disassembler/tcedisasm
+tcecc=../../../../../openasip/src/bintools/Compiler/tcecc
+tcedisasm=../../../../../openasip/src/bintools/Disassembler/tcedisasm
 tpef=`mktemp tmpXXXXX`
-adf=../../../../../tce/scheduler/testbench/ADF/huge.adf
+adf=../../../../../openasip/scheduler/testbench/ADF/huge.adf
 
 # this is necessary to see operation dag changes..
 $tcecc --clear-plugin-cache > /dev/null

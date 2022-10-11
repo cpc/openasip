@@ -1,5 +1,5 @@
 #!/bin/bash
-TCE_ROOT="../../../../../tce"
+TCE_ROOT="../../../../../openasip"
 EXPLORE_BIN="${TCE_ROOT}/src/codesign/Explorer/explore"
 
 PLUGIN="FrequencySweepExplorer"

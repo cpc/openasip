@@ -1,10 +1,10 @@
 #!/bin/bash
-EXPLORE_BIN="../../../../../tce/src/codesign/Explorer/explore"
-COMPILER_BIN="../../../../../tce/src/bintools/Compiler/tcecc"
-TTASIM_BIN="../../../../../tce/src/codesign/ttasim/ttasim"
+EXPLORE_BIN="../../../../../openasip/src/codesign/Explorer/explore"
+COMPILER_BIN="../../../../../openasip/src/bintools/Compiler/tcecc"
+TTASIM_BIN="../../../../../openasip/src/codesign/ttasim/ttasim"
 
 ADF_PATH="./data/bloated3xminimal.adf"
-MINIMAL_ADF_PATH="../../../../../tce/data/mach/minimal.adf"
+MINIMAL_ADF_PATH="../../../../../openasip/data/mach/minimal.adf"
 "${EXPLORE_BIN}" -a ${ADF_PATH} testi.dsdb 1>/dev/null
 "${EXPLORE_BIN}" -d ./data/ testi.dsdb 1>/dev/null
 NEW_CONFIG="$(${EXPLORE_BIN} -e MinimizeMachine -s 1 -u frequency=50 testi.dsdb | tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"

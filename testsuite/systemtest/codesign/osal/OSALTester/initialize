@@ -1,2 +1,2 @@
 #!/bin/bash
-../../../../../tce/src/codesign/osal/OSALBuilder/buildopset data/operations
+../../../../../openasip/src/codesign/osal/OSALBuilder/buildopset data/operations

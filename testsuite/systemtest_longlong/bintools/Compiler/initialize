@@ -11,8 +11,8 @@ exit
 if test -d ~/project/experimental/EEMBC/DENBench;
 then
     ln -sdnf  ~/project/experimental/EEMBC/DENBench DENBench
-    ln -sdnf $PWD/../../../../tce/scheduler/testbench/Operations/ DENBench/consumer/data
-    cd ../../../../tce/scheduler/testbench/Operations/
+    ln -sdnf $PWD/../../../../openasip/scheduler/testbench/Operations/ DENBench/consumer/data
+    cd ../../../../openasip/scheduler/testbench/Operations/
     make > /dev/null
     rm -f denbench_verification.testdesc.disabled
 else

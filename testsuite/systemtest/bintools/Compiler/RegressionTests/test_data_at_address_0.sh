@@ -1,9 +1,9 @@
 #!/bin/bash
-tcecc=../../../../../tce/src/bintools/Compiler/tcecc
+tcecc=../../../../../openasip/src/bintools/Compiler/tcecc
 tpef=`mktemp tmpXXXXX`
-adf=../../../../../tce/scheduler/testbench/ADF/FU_constrained.adf
+adf=../../../../../openasip/scheduler/testbench/ADF/FU_constrained.adf
 prog=data/data_at_0.c
-dumptpef=../../../../../tce/src/bintools/TPEFDumper/dumptpef
+dumptpef=../../../../../openasip/src/bintools/TPEFDumper/dumptpef
 
 # This used to crash due to inability assign a move after
 # trigger move was scheduled before an operand move in a

@@ -13,17 +13,17 @@
   </ic-decoder-plugin>
 
   <fu name="LSU">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <fu-id>62</fu-id>
   </fu>
 
   <fu name="cfi_cfiu_cif_cifu">
-    <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/fpu_embedded.hdb</hdb-file>
     <fu-id>16</fu-id>
   </fu>
 
   <fu name="add_and_eq_gt_gtu_ior_shl_shr_shru_sub_sxhw_sxqw_xor">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <fu-id>380</fu-id>
   </fu>
 
@@ -33,27 +33,27 @@
   </fu>
 
   <fu name="macf_msuf_addf_mulf_subf">
-    <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/fpu_embedded.hdb</hdb-file>
     <fu-id>23</fu-id>
   </fu>
 
   <fu name="absf_negf_eqf_nef_ltf_lef_gef_gtf_minf_maxf">
-    <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/fpu_embedded.hdb</hdb-file>
     <fu-id>29</fu-id>
   </fu>
 
   <rf name="RF">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <rf-id>958</rf-id>
   </rf>
 
   <rf name="RF_1">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <rf-id>958</rf-id>
   </rf>
 
   <rf name="BOOL">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <rf-id>96</rf-id>
   </rf>
 

@@ -1,7 +1,7 @@
 #!/bin/bash
-PROGE=../../../../../tce/src/procgen/ProGe/generateprocessor
-TCECC=../../../../../tce/src/bintools/Compiler/tcecc
-PIG=../../../../../tce/src/bintools/PIG/generatebits
+PROGE=../../../../../openasip/src/procgen/ProGe/generateprocessor
+TCECC=../../../../../openasip/src/bintools/Compiler/tcecc
+PIG=../../../../../openasip/src/bintools/PIG/generatebits
 ADF=data/koski_hibi_pe_dma.adf
 IDF=$(echo $ADF | sed 's/.adf/.idf/g')
 SRC=data/main.c

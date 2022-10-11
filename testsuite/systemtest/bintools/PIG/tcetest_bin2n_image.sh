@@ -11,8 +11,8 @@ IMG=dmem_endianess.img
 IMG_REF=dmem_endianess_ref.img
 PROGE_OUT="proge-out"
 TOP="top"
-TCECC=../../../../tce/src/bintools/Compiler/tcecc
-GENERATEBITS=../../../../tce/src/bintools/PIG/generatebits
+TCECC=../../../../openasip/src/bintools/Compiler/tcecc
+GENERATEBITS=../../../../openasip/src/bintools/PIG/generatebits
 
 function eexit {
     echo $1

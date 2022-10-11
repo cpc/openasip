@@ -1,14 +1,14 @@
 #!/bin/bash
 # Script to run tce tour test
 
-TTASIM=../../../../tce/src/codesign/ttasim/ttasim
+TTASIM=../../../../openasip/src/codesign/ttasim/ttasim
 SIMCMD=data/simulator_commands
-CREATEBEM=../../../../tce/src/bintools/BEMGenerator/createbem
-PROGE=../../../../tce/src/procgen/ProGe/generateprocessor
-PIG=../../../../tce/src/bintools/PIG/generatebits
-TCECC=../../../../tce/src/bintools/Compiler/tcecc
+CREATEBEM=../../../../openasip/src/bintools/BEMGenerator/createbem
+PROGE=../../../../openasip/src/procgen/ProGe/generateprocessor
+PIG=../../../../openasip/src/bintools/PIG/generatebits
+TCECC=../../../../openasip/src/bintools/Compiler/tcecc
 
-MINIMAL=../../../../tce/data/mach/minimal.adf
+MINIMAL=../../../../openasip/data/mach/minimal.adf
 MACH1=start.adf
 MACH2=data/custom.adf
 IDF=data/custom_vhdl.idf

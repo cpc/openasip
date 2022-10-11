@@ -11,10 +11,10 @@ TTABUSTRACE=ttabustrace
 HDBS="data/test.hdb,generate_base32.hdb,generate_rf_iu.hdb"
 HDBS="$HDBS,lsu_le.hdb"
 ICD_OPTS="bustrace:yes,bustracestartingcycle:5"
-GENBUSTRACE=../../../../tce/tools/scripts/generatebustrace.sh
-TCECC=../../../../tce/src/bintools/Compiler/tcecc
-PROGE=../../../../tce/src/procgen/ProGe/generateprocessor
-GENERATEBITS=../../../../tce/src/bintools/PIG/generatebits
+GENBUSTRACE=../../../../openasip/tools/scripts/generatebustrace.sh
+TCECC=../../../../openasip/src/bintools/Compiler/tcecc
+PROGE=../../../../openasip/src/procgen/ProGe/generateprocessor
+GENERATEBITS=../../../../openasip/src/bintools/PIG/generatebits
 
 OPTIND=1
 while getopts "d" OPTION

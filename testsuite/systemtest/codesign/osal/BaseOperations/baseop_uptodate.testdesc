@@ -12,6 +12,6 @@ $test_bin="expr";
 // mulhi, mulhiu, mulhisu, rem, remu not tested yet + 5
 // STDOUT for RISCV + 1
 // LD8/ST8 and LD16/ST16, LD32/ST32 , LD64/ST64/LDU32 same file, +5. ILSU in same file (11 instructions) +10; Total +22.
-$bin_args="`ls -1 base_operations/*.txt|grep -v \"_output\.txt\"|wc -l` - `cat ../../../../../tce/opset/base/base.opp ../../../../../tce/opset/base/double.opp ../../../../../tce/opset/base/implicit_load_store.opp |grep \"<name>\"|wc -l` + 22 ; exit 0";
+$bin_args="`ls -1 base_operations/*.txt|grep -v \"_output\.txt\"|wc -l` - `cat ../../../../../openasip/opset/base/base.opp ../../../../../openasip/opset/base/double.opp ../../../../../openasip/opset/base/implicit_load_store.opp |grep \"<name>\"|wc -l` + 22 ; exit 0";
 
 ?>

@@ -5,7 +5,7 @@
 
 progeOutDir="proge-output"
 dataDir="./data/no_lsunits"
-srcDir="../../../../tce/src"
+srcDir="../../../../openasip/src"
 genproc="procgen/ProGe/generateprocessor"
 createbem="bintools/BEMGenerator/createbem"
 

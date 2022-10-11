@@ -1,10 +1,10 @@
 #!/bin/bash
-tcecc=../../../../../tce/src/bintools/Compiler/tcecc
-tcedisasm=../../../../../tce/src/bintools/Disassembler/tcedisasm 
+tcecc=../../../../../openasip/src/bintools/Compiler/tcecc
+tcedisasm=../../../../../openasip/src/bintools/Disassembler/tcedisasm 
 tpef=`mktemp tmpXXXXX`
 soft_float_adf=data/minimal_with_stdout.adf
 hw_sqrt_adf=data/minimal_with_stdout_and_sqrtf.adf
-ttasim=../../../../../tce/src/codesign/ttasim/ttasim
+ttasim=../../../../../openasip/src/codesign/ttasim/ttasim
 
 $tcecc -O0 -a $soft_float_adf -o $tpef data/test_sqrt.c
 $ttasim -p $tpef -a $soft_float_adf -e "run; quit;"

@@ -1,14 +1,14 @@
 #!/bin/bash
 
-PROGE=../../../../tce/src/procgen/ProGe/generateprocessor
-PIG=../../../../tce/src/bintools/PIG/generatebits
+PROGE=../../../../openasip/src/procgen/ProGe/generateprocessor
+PIG=../../../../openasip/src/bintools/PIG/generatebits
 
 ADF=data/fft_simm.adf
 IDF=data/fft_simm.idf
 BEM=data/fft_simm.bem
 PROGE_OUT=proge-output
 TPEF=data/fft_simm.tpef
-COMP=../../../../tce/compressors/InstructionDictionary.so
+COMP=../../../../openasip/compressors/InstructionDictionary.so
 
 # runtime in cycles
 CYCLES=5234

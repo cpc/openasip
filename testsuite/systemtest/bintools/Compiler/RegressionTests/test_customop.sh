@@ -1,11 +1,11 @@
 #!/bin/bash
 
-tcecc=../../../../../tce/src/bintools/Compiler/tcecc
-tcedisasm=../../../../../tce/src/bintools/Disassembler/tcedisasm
-tceopgen=../../../../../tce/src/bintools/Compiler/tceopgen/tceopgen
+tcecc=../../../../../openasip/src/bintools/Compiler/tcecc
+tcedisasm=../../../../../openasip/src/bintools/Disassembler/tcedisasm
+tceopgen=../../../../../openasip/src/bintools/Compiler/tceopgen/tceopgen
 
 tpef=`mktemp tmpXXXXX`
-adf=../../../../../tce/scheduler/testbench/ADF/huge.adf
+adf=../../../../../openasip/scheduler/testbench/ADF/huge.adf
 program=data/customop.c
 
 $tceopgen 2>&1 | grep -o "_TCE_ADD(i1, i2, o1)"

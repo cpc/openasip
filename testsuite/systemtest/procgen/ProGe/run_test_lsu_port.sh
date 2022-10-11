@@ -2,7 +2,7 @@
 
 progeOutDir="proge-output-lsuport"
 dataDir="./data/lsu_port"
-srcDir="../../../../tce/src"
+srcDir="../../../../openasip/src"
 
 PROGE="${srcDir}/procgen/ProGe/generateprocessor"
 

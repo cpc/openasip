@@ -1,7 +1,7 @@
 #!/bin/bash
-TCECC=../../../../../tce/src/bintools/Compiler/tcecc
-PROGE=../../../../../tce/src/procgen/ProGe/generateprocessor
-PIG=../../../../../tce/src/bintools/PIG/generatebits
+TCECC=../../../../../openasip/src/bintools/Compiler/tcecc
+PROGE=../../../../../openasip/src/procgen/ProGe/generateprocessor
+PIG=../../../../../openasip/src/bintools/PIG/generatebits
 ADF=data/avalon_sfu.adf
 IDF=$(echo $ADF | sed 's/.adf/.idf/g')
 TPEF=prog.tpef

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-tcecc=../../../../../tce/src/bintools/Compiler/tcecc
-ttasim=../../../../../tce/src/codesign/ttasim/ttasim
+tcecc=../../../../../openasip/src/bintools/Compiler/tcecc
+ttasim=../../../../../openasip/src/codesign/ttasim/ttasim
 
 tpef=`mktemp tmpXXXXX`
 

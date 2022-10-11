@@ -1,5 +1,5 @@
 #!/bin/bash
-export TCE_ROOT="../../../../../tce"
+export TCE_ROOT="../../../../../openasip"
 
 function addToVarBeg {
     export $1="${2}${!1}"

@@ -1,6 +1,6 @@
 SRC=data/crc-custom.c
 ADF=data/riscv_custom_ops.adf
-CC=../../../../tce/src/bintools/Compiler/oacc-riscv
+CC=../../../../openasip/src/bintools/Compiler/oacc-riscv
 ELF=crc.elf
 LOG=compileLog.txt
 

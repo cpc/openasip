@@ -13,12 +13,12 @@
   </ic-decoder-plugin>
 
   <fu name="LSU">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <fu-id>62</fu-id>
   </fu>
 
   <fu name="cfi_cfiu_cif_cifu">
-    <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/fpu_embedded.hdb</hdb-file>
     <fu-id>16</fu-id>
   </fu>
 
@@ -28,42 +28,42 @@
   </fu>
 
   <fu name="abs_and_ior_xor">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <fu-id>345</fu-id>
   </fu>
 
   <fu name="sxhw">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <fu-id>1</fu-id>
   </fu>
 
   <fu name="sxqw">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <fu-id>83</fu-id>
   </fu>
 
   <fu name="shl_shr_shru">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <fu-id>46</fu-id>
   </fu>
 
   <fu name="eq_gt_gtu">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <fu-id>37</fu-id>
   </fu>
 
   <fu name="macf_addf_subf_mulf_eqf_shr_shl_gtf_ltf_add_mul_mac_sub_eq_gt_lt">
-    <hdb-file>../../../../tce/hdb/fpu_embedded.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/fpu_embedded.hdb</hdb-file>
     <fu-id>30</fu-id>
   </fu>
 
   <rf name="RF">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <rf-id>958</rf-id>
   </rf>
 
   <rf name="BOOL">
-    <hdb-file>../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../openasip/hdb/asic_130nm_1.5V.hdb</hdb-file>
     <rf-id>96</rf-id>
   </rf>
 
