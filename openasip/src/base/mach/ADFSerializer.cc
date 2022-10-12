@@ -63,7 +63,7 @@ using namespace TTAMachine;
 const string MDF = "adf";
 const string MDF_VERSION = "version";
 // writes files according to ADF specs version 1.10.x
-const string MDF_VERSION_NUMBER = "1.10";
+const string MDF_VERSION_NUMBER = "1.20";
 // 1.8:
 // - adf: little-endian
 // 1.9 ??

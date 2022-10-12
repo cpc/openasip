@@ -327,7 +327,7 @@ ObjectState*
 BEMSerializer::convertToFileFormat(const ObjectState* state) {
 
     ObjectState* fileState = new ObjectState(ADF_ENCODING);
-    const string version = "1.4";
+    const string version = "1.5";
     const string requiredVersion = "1.4";
     fileState->setAttribute(BEM_VERSION_STR, version);
     fileState->setAttribute(REQUIRED_VERSION, requiredVersion);
