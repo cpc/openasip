@@ -32,6 +32,7 @@ from optparse import OptionParser
 from shutil import rmtree
 from shutil import which
 from subprocess import Popen, PIPE
+from venv import create
 from xml.etree import ElementTree as ET
 
 scriptDir = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -42,6 +43,7 @@ runningInstalled = 'src/bintools/Compiler' not in scriptDir or not \
 ### tce install prefix
 tceInstalled = True
 tceprefix = ""
+additionalTmpFiles = []
 if 'TCE_INSTALL_DIR' in os.environ.keys():
     tceprefix = os.environ['TCE_INSTALL_DIR']
 else:
@@ -126,7 +128,8 @@ def create_temp_file(suffix=""):
 def cleanup_and_exit(retval=0):
     if not options.leave_tempfiles:
         rmtree(tempDir)
-        
+        for i in additionalTmpFiles:
+            os.unlink(str(i))
     sys.exit(retval)
 
 def parse_options():
@@ -148,7 +151,7 @@ def parse_options():
                       action="store_true", default=False,
                       help="Compile only. Do not assemble or link.")
 
-    parser.add_option("", "--leave-tempfiles", dest="leave_tempfiles",
+    parser.add_option("-d", "--leave-tempfiles", dest="leave_tempfiles",
                       action="store_true", default=False,
                       help="Do not delete the temporary files.")
 
@@ -293,27 +296,9 @@ def optimizeBytecode(inFile):
         exitWithError(1, "Error while optimizing bytecode: " + command + "\n")
     return outputName
 
-def assemble(input_file, output_file):
+def assemble(input_files, output_file=""):
     compileFlags = ""
-    if not options.tce_build_mode:
-        compileFlags += "--rtlib=libgcc "
-    for w in options.warnings:
-        # Types of warnings supported by the compiler:
-        white_list = []
-        if True:
-            white_list = ['no-empty-body',
-                          'no-dangling-else',
-                          'no-unknown-warning-option',
-                          'no-bad-literal',
-                          'no-literal-range',
-                          'no-pointer-sign',
-                          'no-return-type',
-                          'no-unused-value',
-                          'no-ignored-qualifiers',
-                          'no-incompatible-pointer-types-discards-qualifiers',
-                          'no-implicit-function-declaration']   
-    if w in white_list:
-        compileFlags += "-W" + w + " "
+    output_files = []
     if options.g_cc_switch:
         compileFlags += "-g "
     for i in options.include_dirs:
@@ -323,11 +308,25 @@ def assemble(input_file, output_file):
     march = "-march=rv32i"
     if hasMExtension :
         march += "m"
+    if output_file != "":
+        compileFlags += "-o " + output_file + " "
+    inputArgs = " ".join(input_files)
+    obj_file_name = output_file
+    if output_file == "":
+        for input_file in input_files:
+            #Change extension
+            obj_file_name = os.path.splitext(input_file)[0]
+            obj_file_name = obj_file_name + ".o"
+            #Get basename, clang will emit the file in current dir
+            obj_file_name = os.path.basename(obj_file_name)
+            output_files.append(obj_file_name)
+    else:
+        output_files.append(obj_file_name)
     retval = \
-        run_command("clang -D__OA_RISCV__ -I %s %s -target riscv32 %s -O3 -c %s -o %s" % \
-        (tempDir, compileFlags, march, input_file, output_file), echoCmd=options.verbose)
+        run_command("clang -D__OA_RISCV__ -I %s %s -target riscv32 %s -O3 -c %s" % \
+        (tempDir, compileFlags, march, inputArgs), echoCmd=options.verbose)
     if retval != 0: cleanup_and_exit(retval)
-    return output_file
+    return output_files
 
 def compile_to_bitcode(input_files):    
     bc_files = []
@@ -426,7 +425,7 @@ def generate_code(bc_file, adf, objectCode=True, output=None):
     retval = run_command("llc %s -load %s -adf %s %s -o %s" %
     (fileType, lib_tce, adf,  bc_file, asm_file),echoCmd=options.verbose)
     if retval != 0: cleanup_and_exit(retval)
-    return asm_file 
+    return [asm_file] 
 
 
 def link(obj_files, output):
@@ -434,6 +433,7 @@ def link(obj_files, output):
     init_out = os.path.join(tempDir, "init.o")
     link_script = os.path.join(tempDir, "riscv.ld")
     retval = run_command("clang -D__OA_RISCV__ -march=rv32i  -target riscv32 -c %s -o %s" % (init_asm, init_out))
+    obj_files = " ".join(obj_files)
     if retval != 0: cleanup_and_exit(retval)
     lib_names = ""
     lib_dirs = ""
@@ -519,13 +519,14 @@ def generate_start_func():
     start_func =  ".global _start\n"\
     ".global __global\n"\
     ".global __stack\n"\
+    ".global end\n"\
     ".section .text\n"\
     "_start:\n"\
     "   la    t0, __global\n"\
     "   la    sp, __stack\n"\
     "   call  main\n"\
-    "_end:\n"\
-    "   j _end\n"
+    "end:\n"\
+    "   j end\n"
     file_path = os.path.join(tempDir, "init.S")
     text_file = open(file_path, "w")
     text_file.write(start_func)
@@ -534,7 +535,7 @@ def generate_start_func():
 def generate_image(options, elf_file, final_output):
     hex_file = final_output
     if options.output_format == "bin":
-        hex_file = tempDir + "/" + "tmp.hex"
+        hex_file = create_temp_file(".hex")
     if options.output_format == "bin" or options.output_format == "hex":
         run_command("riscv32-unknown-elf-elf2hex --bit-width 32 \
         --input " + elf_file + " > " + hex_file)
@@ -559,46 +560,47 @@ if __name__ == "__main__":
     if which("riscv32-unknown-elf-gcc") is None:
         exitWithError("RISCV GNU Toolchain must be installed!")
 
+    if which("riscv32-unknown-elf-elf2hex") is None:
+        exitWithError("elf2hex must be installed for \
+        generating RISC-V images as a text file")
+
     final_output = options.output
     if options.output is None:
-        pieces = args[0].split(".")
-        if len(pieces) > 0:
-            input_without_extension = ".".join(pieces[0:-1])
-        else:
-            input_without_extension = args[0]
-        if options.compile_only:
-            final_output = input_without_extension + ".o"
-        else:
-            final_output = "a.out"
+        final_output = "a.out"
+        
+    if not options.compile_only:
+        generate_start_func()
+        generate_linker_script(options)
+
+    elf_file = final_output
+    if options.output_format == "bin" or options.output_format == "hex":
+        elf_file = create_temp_file(".hex")
 
     isAsm = False
     pieces = args[0].split(".")
     extension = pieces.pop()
+
     if extension == "S" or extension == "s":
         isAsm = True
 
+    obj_file = ""
     if isAsm is False:
         bc_file = compile_to_bitcode(args)
+        if options.compile_only:
+            generate_code(bc_file, options.adf, True, final_output)
+            cleanup_and_exit(0)
+        obj_files = generate_code(bc_file, options.adf, True)
     else:
-        assert len(args) == 1
-        asmFile = assemble(str(args[0]), options.output)
-        sys.exit(0)
+        if options.compile_only:
+            asmFile = assemble(args, final_output)
+            cleanup_and_exit(0)
+        else:
+            obj_files = assemble(args)
+            additionalTmpFiles.extend(obj_files)
     
-    if options.compile_only:
-        generate_code(bc_file, options.adf, True, final_output)
-    else:
-        elf_file = final_output
-        if options.output_format == "bin" or options.output_format == "hex":
-            elf_file = tempDir + "/" + "tmp.elf"
-            if which("riscv32-unknown-elf-elf2hex") is None:
-                exitWithError("elf2hex must be installed for \
-                generating RISC-V images as a text file")
-        generate_start_func()
-        generate_linker_script(options)
-        obj_file = generate_code(bc_file, options.adf, True)
-        #Link with generated start and linker script
-        link(obj_file, elf_file)
-        if options.output_format == "bin" or options.output_format == "hex":
-            generate_image(options, elf_file, final_output)
+    #Link with generated start and linker script
+    link(obj_files, elf_file)
+    if options.output_format == "bin" or options.output_format == "hex":
+        generate_image(options, elf_file, final_output)
 
     cleanup_and_exit(0)
