@@ -45,7 +45,7 @@ nobase_base_DATA =	$(srcdir)/asic_130nm_1.5V.hdb \
 EXTRA_DIST = ${nobase_base_DATA}
 
 generate_lsu_32.hdb: generate_lsu/shared/* generate_lsu/generate.py
-	cd generate_lsu; ./generate.py $@
+	cd generate_lsu; ./generate.py generate_lsu_32.hdb
 
 generate_lsu/*/ipxact/* generate_lsu/*/vhdl/* generate_lsu/*/verilog/*: generate_lsu_32.hdb
 
