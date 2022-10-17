@@ -192,3 +192,7 @@ openasip/src/applibs/LLVMBackend/passes/.dirstamp
 openasip/src/procgen/MachInfo/machinfo
 src/bintools/Compiler/tcecc
 scripts/tce-selftest
+/openasip/hdb/generate_lsu_*.hdb
+/openasip/hdb/generate_lsu/*
+!/openasip/hdb/generate_lsu/shared
+!/openasip/hdb/generate_lsu/generate.py
