@@ -710,7 +710,7 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
         optSwitches += ' -' + ' -'.join(extra_opts)
 
     internalize_api_list = " -internalize-public-api-list=" \
-                           "_start,_pthread_start,_dthread_start,memcpy"
+                           "_start,_pthread_start,_dthread_start,memcpy,memset"
     if options.keep_symbols != "":
         internalize_api_list += "," + options.keep_symbols
 
@@ -764,7 +764,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     outputName = fileNamePrefix + "_emul_internalized.bc"
 
     internalize_api_list = " -internalize-public-api-list=" \
-                           "_start,_pthread_start,memcpy"
+                           "_start,_pthread_start,memcpy,memset"
     if options.keep_symbols != "":
         internalize_api_list += "," + options.keep_symbols
 
