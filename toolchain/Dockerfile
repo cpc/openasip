@@ -27,4 +27,9 @@ RUN git clone https://github.com/cpc/tce.git tce-devel
 
 RUN cd tce-devel/tce && tools/scripts/install_llvm_14.sh $HOME/local
 
+COPY tce-env.sh /root/tce-env.sh
+COPY tce-build.sh /root/tce-build.sh
+
+RUN /root/tce-build.sh
+
 CMD while true; do sleep 10; done;
