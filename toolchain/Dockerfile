@@ -32,4 +32,14 @@ COPY tce-build.sh /root/tce-build.sh
 
 RUN /root/tce-build.sh
 
-CMD while true; do sleep 10; done;
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+  apt install -y vim tmux iproute2 xvfb x11vnc wget
+
+RUN cd /root && wget http://openasip.org/tutorial_files/tce_tutorials.tar.gz
+
+COPY start.sh /root/start.sh
+
+EXPOSE 5900
+
+CMD sh -c /root/start.sh

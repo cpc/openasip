@@ -21,3 +21,8 @@ Links:
 
  * [The toolset web pages](http://openasip.org)
  * [Customized Parallel Computing group's home page](http://cpc.cs.tut.fi). CPC leads the development of TCE.
+
+## Toolchain 
+
+ * Build the docker image: `docker build -t openasip-testing -f toolchain/Dockerfile --progress tty toolchain`
+ * Run the docker image: `docker run -p5900:5900 openasip-testing`
