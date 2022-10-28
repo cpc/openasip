@@ -611,7 +611,6 @@ function run_unit_tests {
 
     # sets errors=yes if $TEMP_FILE size non zero
     log_failure testing
-    cat ${TEMP_FILE}
 
     # if unit test errors change stop testing them (only with -b)
     if [[ "${last_unit_test_error}x" != "x" && "${errors}x" != "nox" && \
