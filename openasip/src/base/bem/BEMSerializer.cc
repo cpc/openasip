@@ -189,14 +189,14 @@ BEMSerializer::readState() {
     double version = fileState->doubleAttribute(BEM_VERSION_STR);
     if (fileState->hasAttribute(REQUIRED_VERSION)) {
         double requiredVersion = fileState->doubleAttribute(REQUIRED_VERSION);
-        if (requiredVersion > 1.4) {
+        if (requiredVersion > 1.5) {
             THROW_EXCEPTION(
                 SerializerException,
                 "Cannot parse the file. "
                 "The file requests parser version of " +
                     fileState->stringAttribute(REQUIRED_VERSION) +
                     ". "
-                    "The version of the parser is 1.4.");
+                    "The version of the parser is 1.5.");
         }
     }
     if (version < 1.2) {
@@ -328,7 +328,7 @@ BEMSerializer::convertToFileFormat(const ObjectState* state) {
 
     ObjectState* fileState = new ObjectState(ADF_ENCODING);
     const string version = "1.5";
-    const string requiredVersion = "1.4";
+    const string requiredVersion = "1.5";
     fileState->setAttribute(BEM_VERSION_STR, version);
     fileState->setAttribute(REQUIRED_VERSION, requiredVersion);
 
