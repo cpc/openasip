@@ -143,7 +143,7 @@ OTAOperationDialog::addRISCVBaseOperations(std::set<TCEString> opset) const {
     } else if (format_->name() == "riscv_j_type") {
         ops = riscvJTypeOperations;
     }
-    for (const auto op : ops) {
+    for (const auto& op : ops) {
         const std::string opName = op.first;
         if (!opNameFilter_.empty() &&
             opName.find(opNameFilter_) == std::string::npos) {

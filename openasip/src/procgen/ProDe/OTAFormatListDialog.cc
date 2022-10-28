@@ -305,7 +305,6 @@ OTAFormatListDialog::onAddOTAFormat(wxCommandEvent&) {
 
     // Check the name validity.
     if (!validFormatName()) {
-        ProDeTextGenerator* prodeTexts = ProDeTextGenerator::instance();
         std::string message = "Format name is illegal. Legal names are:\n" \
         "riscv_r_type\n" \
         "riscv_i_type\n" \

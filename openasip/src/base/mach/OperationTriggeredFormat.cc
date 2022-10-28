@@ -139,7 +139,7 @@ OperationTriggeredFormat::operation(int index) const {
 
 bool
 OperationTriggeredFormat::hasOperation(const std::string& opName) const {
-    for (const std::string op : operations_) {
+    for (const std::string& op : operations_) {
         if (op == opName) {
             return true;
         }

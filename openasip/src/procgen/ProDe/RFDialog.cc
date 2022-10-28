@@ -89,9 +89,9 @@ RFDialog::RFDialog(
     width_(ModelConstants::DEFAULT_WIDTH),
     maxReads_(0),
     maxWrites_(0),
+    zeroRegister_(false),
     portListCtrl_(NULL),
-    typeChoice_(NULL),
-    zeroRegister_(false) {
+    typeChoice_(NULL) {
 
     //registerFile_->updateMaxReadsAndWrites();
     createContents(this, true, true);

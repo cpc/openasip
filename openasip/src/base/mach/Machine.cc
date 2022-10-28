@@ -1077,7 +1077,7 @@ Machine::isRISCVMachine() const {
         "riscv_r_type", "riscv_i_type", "riscv_s_type",
         "riscv_b_type", "riscv_u_type", "riscv_j_type"};
 
-    for (const std::string f : requiredFormats) {
+    for (const std::string& f : requiredFormats) {
         if (!fNav.hasItem(f)) {
             throw InvalidData(
                 __FILE__, __LINE__, __func__,

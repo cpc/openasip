@@ -218,7 +218,7 @@ BEMGenerator::addRiscvFormat(
 
         std::vector<std::string> operations = format->operations();
         unsigned int amountOfCustomOps = 1;
-        for (const std::string op : operations) {
+        for (const std::string& op : operations) {
             if (MapTools::containsKey(riscvRTypeOperations, op)) {
                 instrFormat->addOperation(op, riscvRTypeOperations.at(op));
             } else {
@@ -250,7 +250,7 @@ BEMGenerator::addRiscvFormat(
         new OperationTriggeredField(*opcode, 1, 12, 3);
         new OperationTriggeredField(*opcode, 2, 25, 7);
         std::vector<std::string> operations = format->operations();
-        for (const std::string op : operations) {
+        for (const std::string& op : operations) {
             if (MapTools::containsKey(riscvITypeOperations, op)) {
                 instrFormat->addOperation(op, riscvITypeOperations.at(op));
             } else {
@@ -273,7 +273,7 @@ BEMGenerator::addRiscvFormat(
         new OperationTriggeredField(*opcode, 0, 0, 7);
         new OperationTriggeredField(*opcode, 1, 12, 3);
         std::vector<std::string> operations = format->operations();
-        for (const std::string op : operations) {
+        for (const std::string& op : operations) {
             if (MapTools::containsKey(riscvSTypeOperations, op)) {
                 instrFormat->addOperation(op, riscvSTypeOperations.at(op));
             } else {
@@ -298,7 +298,7 @@ BEMGenerator::addRiscvFormat(
         new OperationTriggeredField(*opcode, 0, 0, 7);
         new OperationTriggeredField(*opcode, 1, 12, 3);
         std::vector<std::string> operations = format->operations();
-        for (const std::string op : operations) {
+        for (const std::string& op : operations) {
             if (MapTools::containsKey(riscvBTypeOperations, op)) {
                 instrFormat->addOperation(op, riscvBTypeOperations.at(op));
             } else {
@@ -316,7 +316,7 @@ BEMGenerator::addRiscvFormat(
         new OperationTriggeredField(*imm, 0, 12, 20);
         new OperationTriggeredField(*opcode, 0, 0, 7);
         std::vector<std::string> operations = format->operations();
-        for (const std::string op : operations) {
+        for (const std::string& op : operations) {
             if (MapTools::containsKey(riscvUTypeOperations, op)) {
                 instrFormat->addOperation(op, riscvUTypeOperations.at(op));
             } else {
@@ -337,7 +337,7 @@ BEMGenerator::addRiscvFormat(
         new OperationTriggeredField(*imm, 3, 31, 1);
         new OperationTriggeredField(*opcode, 0, 0, 7);
         std::vector<std::string> operations = format->operations();
-        for (const std::string op : operations) {
+        for (const std::string& op : operations) {
             if (MapTools::containsKey(riscvJTypeOperations, op)) {
                 instrFormat->addOperation(op, riscvJTypeOperations.at(op));
             } else {

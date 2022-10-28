@@ -1940,8 +1940,17 @@ LLVMTCEBuilder::addPointerAnnotations(
                             llvm::Type* typeElem = 
                                 cast<PointerType>(type)->getElementType();
                             #else
-                            llvm::Type* typeElem = 
-                                cast<PointerType>(type)->getPointerElementType();
+                            //TODO: Replace this with getLoadStoreType but
+                            // it takes a non const argument?
+                            assert((isa<LoadInst>(originMemOpValue)
+                            || isa<StoreInst>(originMemOpValue)) &&
+                            "Expected Load or Store instruction");
+                            llvm::Type* typeElem = NULL;
+                            if (auto *LI = dyn_cast<LoadInst>(originMemOpValue))
+                                typeElem = LI->getType();
+                            else
+                                typeElem = cast<StoreInst>(originMemOpValue)
+                                ->getValueOperand()->getType();
                             #endif
                             if (typeElem->isVectorTy()) {
                                 int numElems = cast<VectorType>(typeElem)
