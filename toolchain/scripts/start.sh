@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-. /root/tce-env.sh
+source /root/scripts/tce-env.sh
 
 Xvfb :0 &
 x11vnc -ncache 10 -display :0 &

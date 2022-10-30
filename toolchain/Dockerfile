@@ -6,6 +6,7 @@ ENV TZ="Etc/UTC"
 WORKDIR /root
 
 EXPOSE 5900
+COPY scripts /root/scripts
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 
@@ -29,10 +30,7 @@ RUN git clone https://github.com/cpc/tce.git tce-devel
 
 RUN cd tce-devel/tce && tools/scripts/install_llvm_14.sh $HOME/local
 
-COPY tce-env.sh /root/tce-env.sh
-COPY tce-build.sh /root/tce-build.sh
-
-RUN /root/tce-build.sh
+RUN /root/scripts/tce-build.sh
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
@@ -44,6 +42,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
   apt install -y fluxbox
 
-COPY start.sh /root/start.sh
+RUN echo "source /root/scripts/tce-env.sh || true" >> /root/.profile
 
-CMD sh -c /root/start.sh
+CMD sh -c /root/scripts/start.sh
