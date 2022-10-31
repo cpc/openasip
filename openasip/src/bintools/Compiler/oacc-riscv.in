@@ -407,12 +407,8 @@ def compile_to_bitcode(input_files):
     return opt_bc_file
 
 def generate_code(bc_file, adf, objectCode=True, output=None):
-    (exitCode, prefix) = subprocess.getstatusoutput("openasip-config --prefix")
-    if exitCode != 0 :
-        exitWithError(prefix)
-
     if runningInstalled:
-        lib_tce = str(os.path.join(prefix, "lib/libopenasip.so"))
+        lib_tce = str(os.path.join(tceprefix, "lib/libopenasip.so"))
     else:
         lib_tce = os.path.join("@abs_top_builddir@", "src/.libs/libopenasip.so")
     if output is None:
@@ -533,6 +529,9 @@ def generate_start_func():
     text_file.close()
 
 def generate_image(options, elf_file, final_output):
+    if which("riscv32-unknown-elf-elf2hex") is None:
+        exitWithError("elf2hex must be installed for \
+        generating RISC-V images as a text file")
     hex_file = final_output
     if options.output_format == "bin":
         hex_file = create_temp_file(".hex")
@@ -559,10 +558,6 @@ if __name__ == "__main__":
 
     if which("riscv32-unknown-elf-gcc") is None:
         exitWithError("RISCV GNU Toolchain must be installed!")
-
-    if which("riscv32-unknown-elf-elf2hex") is None:
-        exitWithError("elf2hex must be installed for \
-        generating RISC-V images as a text file")
 
     final_output = options.output
     if options.output is None:
