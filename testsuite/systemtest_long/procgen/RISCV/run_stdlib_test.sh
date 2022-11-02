@@ -4,6 +4,14 @@ ADF=../../../../openasip/data/mach/rv32im.adf
 OACC_RISCV=../../../../openasip/src/bintools/Compiler/oacc-riscv
 generateprocessor --hdb-list=generate_base32.hdb,asic_130nm_1.5V.hdb,generate_lsu_32.hdb -t $ADF &>/dev/null
 generatebits -x proge-output $ADF &>/dev/null
+
+# Assume we don't have compile support for RISCV
+RISCV_GCC=$(which riscv32-unknown-elf-gcc 2> /dev/null)
+if [ "x$RISCV_GCC" == "x" ]
+then
+    exit 0
+fi
+
 $OACC_RISCV --adf $ADF --output-format=bin -o proge-output/tb/imem_init.img data/stdlibTest.c &>/dev/null
 cp proge-output/tb/imem_init.img proge-output/tb/dmem_data_init.img || exit 1
 cd proge-output

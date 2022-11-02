@@ -180,6 +180,8 @@ AC_SUBST(lt_objdir)
 AC_CHECK_PROG([LATEX], [latex], [yes], [no], [], [])
 AC_CHECK_PROG([LATEX2HTML], [latex2html], [yes], [no], [], [])
 
+AC_CHECK_PROG([RISCV32_UNKNOWN_ELF], [riscv32-unknown-elf-gcc], [yes], [no], [], [])
+
 if test x$LATEX = xyes
   then if test x$LATEX2HTML = xyes
     then MAKEMANUALS=true
@@ -188,6 +190,13 @@ fi
 
 # Do not create manuals if latex or latex2html are not available
 AM_CONDITIONAL([MANUALS], test x$MAKEMANUALS = xtrue)
+
+if test x$RISCV32_UNKNOWN_ELF = xyes
+then MAKE_RISCV_NEWLIB=true
+fi
+# Do not compile newlib for RISCV if RISCV gcc not installed
+AM_CONDITIONAL([COMPILE_RISCV_NEWLIB], test x$MAKE_RISCV_NEWLIB = xtrue)
+
 
 AX_PTHREAD()
 
@@ -1535,26 +1544,6 @@ $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-mul
 2>&1 | egrep -v "to force reconfigure";
 ])
 
-AC_CONFIG_COMMANDS_POST ([
-echo "=== Configuring newlib for riscv =====";
-# make srcdir absolute
-builddirectory=$PWD
-cd $srcdir;
-srcdir=$PWD;
-cd $builddirectory;
-# create builddir (if necessary)
-mkdir -p newlib-1.17.0/riscv-llvm;
-cd newlib-1.17.0/riscv-llvm;
-RANLIB_FOR_TARGET=ranlib \
-NM_FOR_TARGET=nm AR_FOR_TARGET=ar \
-AS_FOR_TARGET=as LD_FOR_TARGET=ld \
-CFLAGS_FOR_TARGET="$RISCV_NEWLIB_CFLAGS" \
-CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc-riscv \
-CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc-riscv \
-$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=riscv --disable-multilib --disable-libgloss \
-2>&1 | egrep -v "to force reconfigure";
-])
-
 
 AC_CONFIG_COMMANDS_POST ([
 echo "=== Configuring newlib for little endian machines =====";
@@ -1595,6 +1584,27 @@ CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tcele64-llvm --disable-multilib --disable-libgloss \
 2>&1 | egrep -v "to force reconfigure";
 ])
+
+AC_CONFIG_COMMANDS_POST ([
+echo "=== Configuring newlib for riscv =====";
+# make srcdir absolute
+builddirectory=$PWD
+cd $srcdir;
+srcdir=$PWD;
+cd $builddirectory;
+# create builddir (if necessary)
+mkdir -p newlib-1.17.0/riscv-llvm;
+cd newlib-1.17.0/riscv-llvm;
+RANLIB_FOR_TARGET=ranlib \
+NM_FOR_TARGET=nm AR_FOR_TARGET=ar \
+AS_FOR_TARGET=as LD_FOR_TARGET=ld \
+CFLAGS_FOR_TARGET="$RISCV_NEWLIB_CFLAGS" \
+CXX_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc-riscv \
+CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc-riscv \
+$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=riscv --disable-multilib --disable-libgloss \
+2>&1 | egrep -v "to force reconfigure";
+])
+
 
 # Generate config.status and launch it. config.status then
 # performs all configuration actions.
