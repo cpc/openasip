@@ -708,11 +708,16 @@ DefaultDecoderGenerator::verifyCompatibility() const {
     assert(cu != NULL);
     MachineInfo::OperationSet cuOps = MachineInfo::getOpset(*cu);
     MachineInfo::OperationSet supportedOps{JUMP, CALL};
+    MachineInfo::OperationSet riscvOps{CALLA, BEQR, BNER, BLTR,
+    BLTUR, BGER, BGEUR, APC, CALLR};
     MachineInfo::OperationSet unsupportedOps;
+    if (machine_.isRISCVMachine()) {
+        supportedOps.insert(riscvOps.begin(), riscvOps.end());
+    }
     std::set_difference(
         cuOps.begin(), cuOps.end(), supportedOps.begin(), supportedOps.end(),
         std::inserter(unsupportedOps, unsupportedOps.begin()));
-    if (!unsupportedOps.empty() && !machine_.isRISCVMachine()) {
+    if (!unsupportedOps.empty()) {
         format errorMsg(
             "Decoder generator does not support operation %1% in CU.");
         errorMsg % TCEString::makeString(unsupportedOps, ", ");
