@@ -217,19 +217,22 @@ BEMGenerator::addRiscvFormat(
         new OperationTriggeredField(*opcode, 2, 25, 7);
 
         std::vector<std::string> operations = format->operations();
-        unsigned int amountOfCustomOps = 1;
+        // Preserve first few encodings for fixed special case
+        unsigned int amountOfCustomOps = 10;
         for (const std::string& op : operations) {
             if (MapTools::containsKey(riscvRTypeOperations, op)) {
                 instrFormat->addOperation(op, riscvRTypeOperations.at(op));
             } else {
                 unsigned int customEncoding = 0b0001011;
-                customEncoding += (amountOfCustomOps << 7);
                 //Preserve this for printing
                 if (TCEString(op).lower() == "stdout_riscv") {
-                    customEncoding = 0b0000000;
+                    customEncoding = 0b0001011;
+                } else {
+                    customEncoding += (amountOfCustomOps << 7);
+                    amountOfCustomOps++;
                 }
+                assert(amountOfCustomOps < 127);
                 instrFormat->addOperation(op, customEncoding);
-                amountOfCustomOps++;
             }
         }
     } else if (name == "riscv_i_type") {
