@@ -1,3 +1,7 @@
+#!/bin/bash
+### TCE TESTCASE
+### title: Try to compile a program with RISCV custom ops
+
 SRC=data/crc-custom.c
 ADF=data/riscv_custom_ops.adf
 CC=../../../../openasip/src/bintools/Compiler/oacc-riscv

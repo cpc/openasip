@@ -1,3 +1,7 @@
+#!/bin/bash
+### TCE TESTCASE
+### title: Generate RISCV processor without bypasses and simulate
+
 rm -rf proge-output
 
 ADF=data/no_bypass.adf
@@ -7,7 +11,7 @@ generatebits -x proge-output $ADF &>/dev/null
 cp data/dmem_init.img proge-output/tb/dmem_param_init.img || exit 1
 cp data/imem_init.img proge-output/tb || exit 1
 cd proge-output
-./ghdl_compile.sh &>/dev/null
+./ghdl_compile.sh &>/dev/null || eexit "Ghdl compile failed" 
 ./ghdl_simulate.sh -r 420000 &>/dev/null
 
 cd ..

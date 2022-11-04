@@ -1,3 +1,9 @@
+#!/bin/bash
+### TCE TESTCASE
+### title: Test stdlib with RISCV
+
+set -x
+
 rm -rf proge-output
 
 ADF=../../../../openasip/data/mach/rv32im.adf
@@ -15,7 +21,7 @@ fi
 $OACC_RISCV --adf $ADF --output-format=bin -o proge-output/tb/imem_init.img data/stdlibTest.c &>/dev/null
 cp proge-output/tb/imem_init.img proge-output/tb/dmem_data_init.img || exit 1
 cd proge-output
-./ghdl_compile.sh &>/dev/null
+./ghdl_compile.sh &>/dev/null || eexit "Ghdl compile failed"
 ./ghdl_simulate.sh -r 420000 &>/dev/null
 
 cd ..
