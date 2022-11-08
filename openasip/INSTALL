@@ -187,8 +187,8 @@ packages.
 
 RISC-V
 ------
-You need to install the RISC-V GNU Toolchain which brings you the common
-bintools and a newlib-based libc:
+You need to install the RISC-V GNU Toolchain (version 12.1.0+)
+which brings you the common bintools:
 
   https://github.com/riscv-collab/riscv-gnu-toolchain
 
