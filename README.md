@@ -21,4 +21,4 @@ Links:
 
  * [The toolset web pages](http://openasip.org)
  * [Customized Parallel Computing group's home page](http://cpc.cs.tut.fi). CPC leads the development of TCE.
- * [toolchain/README.md](Docker toolchain documentation)
+ * [Docker toolchain documentation](toolchain/README.md)
