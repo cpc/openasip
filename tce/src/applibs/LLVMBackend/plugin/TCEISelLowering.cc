@@ -1109,6 +1109,7 @@ TCETargetLowering::LowerBuildVector(SDValue Op, SelectionDAG &DAG) const {
                 case MVT::i8: packName << "8"; break;
                 case MVT::i16: packName << "16"; break;
                 case MVT::i32: packName << "32"; break;
+                default: std::cerr << elemVT.SimpleTy << ", "; break;
                 }
                 packName << "X" << elemCount;
                 // pack op not found from the adf or too big
