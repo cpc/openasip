@@ -875,6 +875,6 @@ dot_product (global const float4 *a,
 
 
 if __name__ == '__main__':
-    print("Testing TCE installation, this can take up to two hours.")
-    print("Time to go for a lunch? Use -v to see the progress.")
+    print("Testing TCE installation, this can take up to 15 minutes.")
+    print("Time to go for a coffee? Use -v to see the progress.")
     unittest.main()
