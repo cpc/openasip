@@ -25,6 +25,7 @@
  * @note rating: red
  */
 
+#include <cmath>
 #include <vector>
 #include <string>
 #include <memory>

@@ -322,6 +322,10 @@ MAKE_OPT="-k"
 export TCE_DEVEL_MODE=1
 export PATH="$PATH:/bin:/usr/local/bin:/usr/bin"
 
+# Yet another workaround for https://github.com/cpc/openasip/issues/91
+# Ensure we are testing the build tree openasip.so.
+export LD_LIBRARY_PATH=$PWD/src/.libs:$LD_LIBRARY_PATH
+
 USER=`whoami`
 
 if [ "$USER" == "root" ]; then
