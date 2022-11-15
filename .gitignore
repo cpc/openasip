@@ -197,3 +197,4 @@ scripts/tce-selftest
 !/openasip/hdb/generate_lsu/shared
 !/openasip/hdb/generate_lsu/generate.py
 openasip/scripts/tce-selftest
+openasip/src/bintools/Compiler/oacc-riscv
