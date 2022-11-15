@@ -116,6 +116,7 @@ all: ${GCOV_TEST} ${INITIALIZATION} ${TESTS} ${GCOV_TEST2} ${FINALIZATION}
 
 %-runner.o: %-runner.cpp
 	${CXX} ${TCE_INCLUDES} ${CPPFLAGS} ${CXXFLAGS} \
+	-Wno-sign-compare -Wno-ignored-qualifiers -Wno-catch-value \
         ${EDITLINE_INCLUDES} ${BOOST_INCLUDES} -I ${CXXDIR} -I ${CXXDIR}/.. \
         ${EXTRA_COMPILER_FLAGS} \
 	    -g -c $< -o $@
