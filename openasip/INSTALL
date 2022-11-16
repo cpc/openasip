@@ -1,13 +1,13 @@
 Supported Operating Systems
 ===========================
 
-TCE requires a Unix-style operating system such as Linux. Debian-based
+OpenASIP requires a Unix-style operating system such as Linux. Debian-based
 distributions like Debian and Ubuntu should have most of the required
 libraries included, but other recent distribution versions should work
 fine too. MacOS support is experimental.
 
-The following installation steps install prerequisities, the TCE-patched
-LLVM and TCE to in $HOME/local.
+The following installation steps install prerequisities, the OpenASIP-patched
+LLVM and OpenASIP to in $HOME/local.
 
 Installing Prerequisities
 =========================
@@ -54,29 +54,29 @@ Red Hat Enterprise Linux 8 & clones
 sudo yum install -y wxGTK3-devel boost-devel tcl-devel libedit-devel \
  sqlite-devel xerces-c-devel gcc-c++ make autoconf automake libtool git svn
 
-Get the Latest TCE Source Code
+Get the Latest OpenASIP Source Code
 ==============================
 
-  git clone https://github.com/cpc/tce.git tce-devel
+  git clone https://github.com/cpc/openasip.git openasip-devel
 
 Alternatively you can get one of the release branches, e.g.:
 
-  git clone -b release-1.25 https://github.com/cpc/tce.git tce-1.25
+  git clone -b openasip-2.0 https://github.com/cpc/openasip.git openasip-2.0
 
 LLVM and Clang
 ==============
 
-In order to compile programs from C/C++ with TCE, you need to install
+In order to compile programs from C/C++ with OpenASIP, you need to install
 LLVM and Clang with a few additional patches and use correct LLVM build
-switches to fix some issues affecting TCE usage.
+switches to fix some issues affecting OpenASIP usage.
 
 You can do this easiest as follows:
 
-   cd tce-1.25/tce OR cd tce-devel/tce
-   tools/scripts/install_llvm_14.sh $HOME/local
+   cd openasip-2.0/openasip OR cd openasip-devel/openasip
+   tools/scripts/install_llvm_15.sh $HOME/local
 
 After successful installation, add information about installed libraries to the
-search path. We assume TCE will be installed to the same location later.
+search path. We assume OpenASIP will be installed to the same location later.
 
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/local/lib
   export PATH=$HOME/local/bin:$PATH
@@ -85,108 +85,23 @@ search path. We assume TCE will be installed to the same location later.
 You might want to put the above environment variable modification commands to
 your ~/.bashrc or similar so they are taken in effect automatically whenever
 you start a new shell. Otherwise you need to remember to enter them
-before attempting to use LLVM or TCE.
+before attempting to use LLVM or OpenASIP.
 
-Notice that TCE and LLVM installation folder comes first in the path variable.
-This is to prevent TCE of using system's LLVM installation. This might
+Notice that OpenASIP and LLVM installation folder comes first in the path variable.
+This is to prevent OpenASIP of using system's LLVM installation. This might
 interfere with other tools in your system which rely on using system's LLVM
 installation. If this is the case, then better option is to put above lines to
 a separate tce-env.sh file and place this file somewhere in your path or home
-directory. Now when you open a new shell and need to use TCE, just source this
+directory. Now when you open a new shell and need to use OpenASIP, just source this
 file to your shell with:
 
    source tce-env.sh
 
-Building and Installing TCE
-===========================
-
-In the root of TCE sources (e.g. tce-devel/tce), run:
-
-  ./autogen.sh && ./configure --prefix=$HOME/local && make -j8 && make install
-
-Now TCE commands such as 'ttasim' should work. Check this with:
-
-  ttasim --version
-
-Now try to run the smoke test script to see if it finds any problems with
-your installation:
-
-Then run the smoke test script:
-
-  tce-selftest -v
-
-If this finished correctly, you are all set! For learning to use TCE, a good
-way is to start with the TCE user manual's tutorials, e.g., the "TCE tour".
-
-Upgrading TCE
-=============
-
-Later on, if you want to update your TCE installation with the latest changes
-committed in the version control system, you can do the following steps:
-
-Update the source code modifications:
-
-  cd tce-devel/tce
-  git pull
-
-Build and install the updated TCE:
-
-  make && make install
-
-Further information of library and tools prerequisite versions
-==============================================================
-
-These are the current prerequisites for libraries and tools required to
-build TCE:
-
-Host compiler         Supported versions
------------------     ------------------
-GCC                   9.0+
-Clang                 13 to 14
-
-Library               supported versions                   library license
------------------     ------------------                   ---------------
-Xerces-C++            2.3.0+                               Apache v2.0
-wxWidgets             2.8+                                 wxWidgets
-Tcl                   8.0-8.4                              BSD-style
-Boost                 1.48.0-1.53.0                        very permissive
-sqlite3               3.2.0+                               public domain
-LLVM                  13 to 14                             LLVM Release License
-Editline              2.9                                  BSD-style
-Python                3.6+                                 PSF license
-
-Please remember to install the '-dev' versions of the packages in order to get
-the library headers which are need to compile client code against them.
-You also need a version of "GNU Make" to build TCE.
-
-Editline
---------
-
-Editline is used for command line editing/history browsing capabilities to
-the command line interface of the simulator.
-
-You can download the sources here: http://www.thrysoee.dk/editline/
-
-Note: this library might require 'termcap' library in some distributions.
-The package is named 'libedit-dev' in Debian-based distributions.
-
-Boost
------
-The development files of the following Boost libraries are required by TCE:
-. regexp,
-. spirit,
-. filesystem,
-. format,
-. thread,
-. graph,
-. tuple
-
-Some distributions, like Fedora Core, include all Boost libraries in a
-single package, but some, like Debian, have separated them in several
-packages.
-
 RISC-V
 ------
+If you wish to build OpenASIP with support for RISC-V, you need to install the
+following prerequisites before installing OpenASIP.
+
 You need to install the RISC-V GNU Toolchain (version 12.1.0+)
 which brings you the common bintools:
 
@@ -209,5 +124,98 @@ from the ELF files as follows:
   ./configure --prefix=/opt/riscv --target=riscv32-unknown-elf
   make
   make install
+
+Add the install bin directory to the $PATH environment. If you installed
+the tools to /opt/riscv, add:
+
+export PATH=/opt/riscv/bin:$PATH
+
+Building and Installing OpenASIP
+===========================
+
+In the root of OpenASIP sources (e.g. openasip-devel/openasip), run:
+
+  ./autogen.sh && ./configure --prefix=$HOME/local && make -j8 && make install
+
+Now OpenASIP commands such as 'ttasim' should work. Check this with:
+
+  ttasim --version
+
+Now try to run the smoke test script to see if it finds any problems with
+your installation:
+
+Then run the smoke test script:
+
+  oa-selftest -v
+
+If this finished correctly, you are all set! For learning to use OpenASIP, a good
+way is to start with the OpenASIP user manual's tutorials, e.g., the "OpenASIP tour".
+
+Upgrading OpenASIP
+=============
+
+Later on, if you want to update your OpenASIP installation with the latest changes
+committed in the version control system, you can do the following steps:
+
+Update the source code modifications:
+
+  cd openasip-devel/openasip
+  git pull
+
+Build and install the updated OpenASIP:
+
+  make && make install
+
+Further information of library and tools prerequisite versions
+==============================================================
+
+These are the current prerequisites for libraries and tools required to
+build OpenASIP:
+
+Host compiler         Supported versions
+-----------------     ------------------
+GCC                   9.0+
+Clang                 13 to 14
+
+Library               supported versions                   library license
+-----------------     ------------------                   ---------------
+Xerces-C++            2.3.0+                               Apache v2.0
+wxWidgets             2.8+                                 wxWidgets
+Tcl                   8.0-8.4                              BSD-style
+Boost                 1.48.0-1.53.0                        very permissive
+sqlite3               3.2.0+                               public domain
+LLVM                  13 to 14                             LLVM Release License
+Editline              2.9                                  BSD-style
+Python                3.6+                                 PSF license
+
+Please remember to install the '-dev' versions of the packages in order to get
+the library headers which are need to compile client code against them.
+You also need a version of "GNU Make" to build OpenASIP.
+
+Editline
+--------
+
+Editline is used for command line editing/history browsing capabilities to
+the command line interface of the simulator.
+
+You can download the sources here: http://www.thrysoee.dk/editline/
+
+Note: this library might require 'termcap' library in some distributions.
+The package is named 'libedit-dev' in Debian-based distributions.
+
+Boost
+-----
+The development files of the following Boost libraries are required by OpenASIP:
+. regexp,
+. spirit,
+. filesystem,
+. format,
+. thread,
+. graph,
+. tuple
+
+Some distributions, like Fedora Core, include all Boost libraries in a
+single package, but some, like Debian, have separated them in several
+packages.
 
 
