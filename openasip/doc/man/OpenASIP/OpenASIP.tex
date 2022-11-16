@@ -3861,8 +3861,7 @@ with command:
 \shellcmd{oacc-riscv -O3 -a start.adf -{}-output-format=bin -o crc.img main.c crc.c}
 
 In addition to source codes, the compiler needs the architecture
-definition \file{start.adf}. It will produce a program called
-\file{crc.elf} which can be executed by this architecture. As \file{start.adf}
+definition \file{start.adf}. As \file{start.adf}
 does not yet include any custom instructions, the compiled program is fully
 compatible with the RISC-V RV32IM ISA. output-format=bin
 specifies that the compiler should emit the output as a binary text file that
@@ -3922,9 +3921,9 @@ and simulate the processor and the program run
 
 After a moment the simulation exits automatically when the exit function is
 reached. You can see an instruction trace of the executed instructions in
-riscv\_instruction\_trace.dump and a trace of the register file traffic in 
-rf.dump. Cycles.dump stores the information about the amount of clock cycles
-and stalls. In the hdl\_sim\_stdout.txt you can see what was printed to stdout
+``riscv\_instruction\_trace.dump`` and a trace of the register file traffic in 
+``rf.dump``. ``Cycles.dump`` stores the information about the amount of clock cycles
+and stalls. In the ``hdl\_sim\_stdout.txt`` you can see what was printed to stdout
 if you compiled the program with $-D\_DEBUG$.
 You might see several assertions depending on your HDL simulator
 version, which you can safely ignore at this point.
@@ -4089,6 +4088,8 @@ format.
     Click \emph{OK} on the operation dialog.
   \item%
     Click \emph{OK} on the OTA Formats dialog.
+  \item%
+    Save the ADF by pressing Ctrl-S or by clicking the save icon and close ProDe.
 \end{enumerate}
 
 Now we have added the operation both in the microarchitecture and the
@@ -4177,7 +4178,7 @@ themselves.
     It ``flips'' the word by mirroring the upper bits to lower, etc.
   \item%
     Do the same thing but for the REFLECT32. Remember to set the loop iterator
-    limit to 31 and the constant unside op1 to 31 so it mirrors the bits of the
+    limit to 31 and the constant inside op1 to 31 so it mirrors the bits of the
     whole 32 word.
   \item%
     Now we could also add a a verilog definition of the operation but as this
@@ -4266,6 +4267,8 @@ Add the new instructions to the R-format like previously.
     Add REFLECT32 similarly.
   \item%
     Click \emph{OK} on the OTA Formats dialog.
+  \item%
+    Save the ADF by pressing Ctrl-S or by clicking the save icon and close ProDe.
 \end{enumerate}
 
 Let's modify the crcFast function to use the custom op. First declare 2 new
@@ -4302,10 +4305,13 @@ replace the original macro with the variable output:
 
 Now we can generate the processor. Because we want to use the hardware database
 we defined by ourselves, we must explicitly state the HDBs we want to use to the
-processor generator.
+processor generator, save them to an environment variable ``HDBS``:
 
-\shellcmd{generateprocessor -{}-hdb-list=asic\_130nm\_1.5V.hdb,generate\_base32.hdb,\\
-generate\_lsu\_32.hdb,riscv\_tour.hdb -o riscv-proc -t start.adf}
+\shellcmd{HDBS=asic\_130nm\_1.5V.hdb,generate\_base32.hdb,generate\_lsu\_32.hdb,riscv\_tour.hdb}
+
+After that, write the generateprocessor command with the hdb-list argument:
+
+\shellcmd{generateprocessor -{}-hdb-list=\$HDBS -o riscv-proc -t start.adf}
 
 When generating RISC-V processors, these HDBs are sufficient. If you are
 generating a TTA you might want to add generate\_rf\_iu.hdb to the list.
@@ -4906,14 +4912,14 @@ All commands end in semicolon.
 
 \begin{description}
 
-\item[SimValue \emph{name}\{, \emph{name2}, ... \}] %
+\item[Var \emph{name}\{, \emph{name2}, ... \}] %
   Creates a temporary variables with given name. Usage examples:
 
-SimValue temp;
+  Var temp;
 
-SimValue temp1, temp2;
+  Var temp1, temp2;
 
-\item[EXEC\_OPERATION(\emph{operationname}, \emph{input1}, ..., \emph{inputN}, \emph{output1}, ..., \emph{outputN})] 
+\item[OP(\emph{operationname}, \emph{input1}, ..., \emph{inputN}, \emph{output1}, ..., \emph{outputN})] 
  Calls another operation with the given operand values. 
 
 The input values can be either temporary variables, inputs to the operation
@@ -4933,8 +4939,8 @@ Example OperationDAG of the ADDSUB operation:
 
 \begin{verbatim}
      <trigger-semantics>
-       EXEC_OPERATION(add, IO(1), IO(2), IO(3));
-       EXEC_OPERATION(sub, IO(1), IO(2), IO(4));
+       OP(add, IO(1), IO(2), IO(3));
+       OP(sub, IO(1), IO(2), IO(4));
      </trigger-semantics>
 \end{verbatim}
 
