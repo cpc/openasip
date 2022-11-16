@@ -8,6 +8,7 @@
 *.pypp.cpp
 *.pypp.hpp
 *.so
+**/.deps
 **/.libs
 **/*-runner
 **/*.html
@@ -26,25 +27,19 @@ openasip/*/Makefile
 openasip/a.out
 openasip/aclocal.m4
 openasip/autom4te.cache/
-openasip/bclib/cpp/.deps/
 openasip/bclib/cpp/Makefile
 openasip/bclib/include/CL/Makefile
 openasip/bclib/include/Makefile
-openasip/bclib/lwpr/.deps/
 openasip/bclib/lwpr/Makefile
-openasip/bclib/saocl/.deps/
 openasip/bclib/saocl/Makefile
 openasip/compile
-openasip/compressors/.deps/
 openasip/config.guess
 openasip/config.log
 openasip/config.status
 openasip/config.sub
 openasip/configure
 openasip/configure~
-openasip/cost_estimator_plugins/fu/.deps/
 openasip/cost_estimator_plugins/fu/Makefile
-openasip/cost_estimator_plugins/rf/.deps/
 openasip/cost_estimator_plugins/rf/Makefile
 openasip/data/bitmaps/Makefile
 openasip/depcomp
@@ -64,8 +59,6 @@ openasip/doc/man/TCE/TCE.out
 openasip/doc/man/TCE/TCE.pdf
 openasip/doc/man/TCE/TCE.toc
 openasip/doc/man/TCE/tcedocs.cls
-openasip/explorer/.deps/
-openasip/icdecoder_plugins/.deps/
 openasip/install-sh
 openasip/libtool
 openasip/llvm-build-Release/
@@ -85,7 +78,6 @@ openasip/newlib-1.17.0/configure.lineno
 openasip/newlib-1.17.0/serdep.tmp
 openasip/newlib-1.17.0/tce-llvm
 openasip/openasip-config
-openasip/opset/base/.deps/
 openasip/opset/base/Makefile
 openasip/Python-bindings/src/Makefile-subdir.common
 openasip/Python-bindings/src/setup.py
@@ -93,10 +85,6 @@ openasip/Python-bindings/test/RunPythonFileTests/run_tests.sh
 openasip/scheduler/**/Makefile
 openasip/scheduler/**/Makefile.in
 openasip/scripts/tce-selftest
-openasip/src/.deps/
-openasip/src/*/*/.deps
-openasip/src/*/*/*/.deps
-openasip/src/*/*/*/*/.deps
 openasip/src/*/*/*/*/Makefile
 openasip/src/*/*/*/Makefile
 openasip/src/*/*/Makefile
@@ -162,14 +150,12 @@ openasip/src/procgen/ProDe/prode
 openasip/src/procgen/ProGe/buildicdecoderplugin
 openasip/src/procgen/ProGe/generateprocessor
 openasip/src/procgen/ProGe/ttaunittester
-openasip/src/tools/.deps/
 openasip/src/tools/.libs/
 openasip/src/tools/Makefile
 openasip/src/tools/tce_version_string.h
 openasip/stamp-h1
 openasip/tce_config.h
 openasip/tce_config.h.in
-openasip/tce_config.h.in~
 openasip/tce-config
 openasip/test/**/data
 openasip/test/applibs/Makefile
@@ -181,7 +167,6 @@ openasip/test/Makefile
 openasip/test/Makefile_configure_settings
 openasip/test/Makefile.in
 openasip/test/procgen/Makefile
-RE:.*/.deps
 RE:.*/.libs
 RE:.*/Makefile.in
 RE:openasip/src/.*/Makefile
@@ -195,6 +180,10 @@ testsuite/systemtest_long/bintools/Scheduler/**/program.bc
 testsuite/systemtest/bintools/Scheduler/**/program.bc
 vgcore*
 
-# Overrides
+# Override for the defaults above
+!/openasip/doc/latexdefs/fig/Makefile
+!/openasip/doc/man/**/Makefile
+!/openasip/newlib-1.17.0/newlib/libc/sys/linux/include/rpc/Makefile
+!/openasip/test/**/Makefile
 !/openasip/hdb/generate_lsu/generate.py
 !/openasip/hdb/generate_lsu/shared
