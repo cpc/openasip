@@ -1,9 +1,8 @@
-2.0        unreleased
+2.0     November 2022
 =====================
 
 Notable changes and features
 ----------------------------
-- The license has been changed to LGPL v2.1.
 - Experimental RISC-V support:
   - Generate RISC-V ASIPs with custom instruction set extensions
     (see the RISC-V Tutorial in manual for usage).
@@ -14,7 +13,7 @@ Notable changes and features
     custom instructions.
 - Toolset name change:
   - To reflect the wider ISA support than TTAs, the "TCE" name is now changed
-    to "OA" (OpenASIP) in most of the places.
+    to "OA" (OpenASIP) in most of the places and the old name phased out.
   - Tools such as the compiler "tcecc" have been deprecated and replaced with
     "oacc". To keep backwards compability, the old tools still work.
 - FUGen:
@@ -32,6 +31,7 @@ Notable changes and features
 - Program Image Generation supports Bin2n-format, which is a binary format
   where each word has been zero-padded to the next power-of-two. Used for
   AlmaIF instruction memory region.
+- The license has been changed to LGPL v2.1.
 
 Notable bugfixes
 ----------------------------
