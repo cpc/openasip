@@ -138,8 +138,6 @@ openasip/tce-config
 openasip/test/**/data
 openasip/test/Makefile_configure_settings
 openasip/test/Makefile.in
-RE:.*/Makefile.in
-RE:openasip/test/.*/Makefile.in
 scripts/tce-selftest
 src/bintools/Compiler/tcecc
 testsuite/**/data
@@ -148,10 +146,19 @@ testsuite/systemtest_long/bintools/Scheduler/**/program.bc
 testsuite/systemtest/bintools/Scheduler/**/program.bc
 vgcore*
 
-# Override for the defaults above
+# Keep these files (not generated, so we need them in the repo)
 !/openasip/doc/latexdefs/fig/Makefile
 !/openasip/doc/man/**/Makefile
 !/openasip/newlib-1.17.0/newlib/libc/sys/linux/include/rpc/Makefile
 !/openasip/test/**/Makefile
 !/openasip/hdb/generate_lsu/generate.py
 !/openasip/hdb/generate_lsu/shared
+
+# And remove these as they are generated at build time
+/openasip/test/Makefile
+/openasip/test/applibs/Makefile
+/openasip/test/applibs/Scheduler/Makefile
+/openasip/test/applibs/Scheduler/ProgramRepresentations/Makefile
+/openasip/test/applibs/wxToolkit/Makefile
+/openasip/test/base/Makefile
+/openasip/test/procgen/Makefile
