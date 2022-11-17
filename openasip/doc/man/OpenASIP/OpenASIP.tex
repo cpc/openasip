@@ -3922,7 +3922,7 @@ and simulate the processor and the program run
 After a moment the simulation exits automatically when the exit function is
 reached. You can see an instruction trace of the executed instructions in
 ``riscv\_instruction\_trace.dump`` and a trace of the register file traffic in 
-``rf.dump``. ``Cycles.dump`` stores the information about the amount of clock cycles
+``rf.dump``. ``cycles.dump`` stores the information about the amount of clock cycles
 and stalls. In the ``hdl\_sim\_stdout.txt`` you can see what was printed to stdout
 if you compiled the program with $-D\_DEBUG$.
 You might see several assertions depending on your HDL simulator
@@ -4180,11 +4180,6 @@ themselves.
     Do the same thing but for the REFLECT32. Remember to set the loop iterator
     limit to 31 and the constant inside op1 to 31 so it mirrors the bits of the
     whole 32 word.
-  \item%
-    Now we could also add a a verilog definition of the operation but as this
-    exercise only goes through the VHDL generation, create an empty file
-    called verilog.v in the same directory. Alternatively the user can write
-    the verilog version as an exercise.
 \end{enumerate}
 
 \begin{figure}
