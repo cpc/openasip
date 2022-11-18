@@ -2,8 +2,6 @@
 ### TCE TESTCASE
 ### title: Test stdlib with RISCV
 
-set -x
-
 rm -rf proge-output
 
 ADF=../../../../openasip/data/mach/rv32im.adf
@@ -31,7 +29,7 @@ RTL_TRACE=proge-output/hdl_sim_stdout.txt
 
 DIFF_FILE=diff.txt
 
-diff -ar ${GOLDEN_TRACE} ${RTL_TRACE} > $DIFF_FILE
+diff -ar ${GOLDEN_TRACE} ${RTL_TRACE} > $DIFF_FILE || exit 1
 if [ -s $DIFF_FILE ]; then
     echo STDLIB TEST FAILED
     exit 1;

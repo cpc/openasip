@@ -33,8 +33,8 @@ DIFF_FILE=proge-output/bypass_test.diff
 [ ! -s "$GOLDEN_REG_TRACE" ]  && { echo "FAILURE: Golden reg trace  is empty"; exit 1; }
 [ ! -s" $RTL_REG_TRACE" ]     && { echo "FAILURE: RTL reg trace is empty"; exit 1; }
 
-diff ${RTL_ITRACE} ${GOLDEN_ITRACE} > $DIFF_FILE
-diff ${RTL_REG_TRACE} ${GOLDEN_REG_TRACE} >> $DIFF_FILE
+diff ${RTL_ITRACE} ${GOLDEN_ITRACE} > $DIFF_FILE || exit 1
+diff ${RTL_REG_TRACE} ${GOLDEN_REG_TRACE} >> $DIFF_FILE || exit 1
 if [ -s $DIFF_FILE ]; then
     echo BYPASS TEST FAILED
     exit 1;
