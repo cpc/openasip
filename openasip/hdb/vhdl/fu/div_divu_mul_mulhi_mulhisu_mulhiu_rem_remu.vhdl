@@ -130,7 +130,7 @@ architecture div_divu_mul_mulhi_mulhisu_mulhiu_rem_remu_rtl of div_divu_mul_mulh
   signal lock_req_r : std_logic;
   signal is_div : std_logic;
 
-  signal t2data_r     :  std_logic_vector(dataw-1 downto 0); 
+  signal t2data_r         :  std_logic_vector(dataw-1 downto 0); 
   signal t2data_shadow    :  std_logic_vector(dataw-1 downto 0);
 
   signal result_r : std_logic_vector(dataw-1 downto 0);
@@ -151,8 +151,8 @@ begin
     if (rstx = '0') then
       t2data_r <= (others => '0');
     elsif rising_edge(clk) then
-      if (glock = '0' and t1load = '1') then
-        t2data_r <= t2data;
+      if (glock = '0' and t2load = '1') then
+          t2data_r <= t2data;
       end if;
     end if;
   end process input_shadow_sp;
@@ -178,14 +178,13 @@ begin
         -- FSM --
         case ctrl.state is
 
-            when S_IDLE => -- wait for start signal
+          when S_IDLE => -- wait for start signal
             -- arbitration
             ctrl.cp_op_ff <= ctrl.cp_op;
             ctrl.cnt      <= "11110"; -- iterative cycle counter
-            if (t1load = '1') then -- trigger new operation
-                lock_req_r <= '1';
-                if (DIVISION_EN = true) then
-                -- DIV: check relevant input signs for result sign compensation --
+            if (t1load = '1' and glock = '0') then -- trigger new operation
+              if (DIVISION_EN = true) then
+              -- DIV: check relevant input signs for result sign compensation --
                 if (ctrl.cp_op(1 downto 0) = cp_op_div_c(1 downto 0)) then -- signed div operation
                     div.sign_mod <= (t1data(t1data'left) xor t2data_shadow(t2data_shadow'left)) and or_reduce_f(t2data_shadow); -- different signs AND divisor not zero
                 elsif (ctrl.cp_op(1 downto 0) = cp_op_rem_c(1 downto 0)) then -- signed rem operation
@@ -199,28 +198,29 @@ begin
                 else
                     ctrl.t2data_abs <= t2data_shadow;
                 end if;
-                end if;
-                -- is fast multiplication?--
-                if (is_div = '0') and (FAST_MUL_EN = true) then
-                  ctrl.state <= S_DONE;
-                else -- serial division or serial multiplication
-                  ctrl.state <= S_BUSY;
-                end if;
+              end if;
+              -- is fast multiplication?--
+              if (is_div = '0') and (FAST_MUL_EN = true) then
+                ctrl.out_en <= '1';
+                ctrl.state <= S_IDLE;
+              else -- serial division or serial multiplication
+                lock_req_r <= '1';
+                ctrl.state <= S_BUSY;
+              end if;
             end if;
 
-            when S_BUSY => -- processing
+          when S_BUSY => -- processing
             lock_req_r <= '1';
             ctrl.cnt <= std_logic_vector(unsigned(ctrl.cnt) - 1);
             if (ctrl.cnt = "00000") then -- abort on trap
               ctrl.state <= S_DONE;
             end if;
 
-            when S_DONE => -- final step
-            lock_req_r <= '1';
+          when S_DONE => -- final step
             ctrl.out_en <= '1';
             ctrl.state  <= S_IDLE;
 
-            when others => -- undefined
+          when others => -- undefined
             ctrl.state <= S_IDLE;
         end case;
       end if;
@@ -255,13 +255,13 @@ begin
     end case;
   end process decode_div_cp;
 
-  decode_op_start_cp : process(t1load, is_div)
+  decode_op_start_cp : process(t1load, is_div, glock)
   begin
     mul.start <= '0';
     div.start <= '0';
-    if (t1load = '1' and is_div = '1')   then
+    if (t1load = '1' and is_div = '1' and glock = '0')   then
       div.start <= '1';
-    elsif (t1load = '1') then
+    elsif (t1load = '1' and glock = '0') then
       mul.start <= '1';
     end if;
   end process decode_op_start_cp;
@@ -280,13 +280,13 @@ begin
             mul.dsp_x <= signed((t1data(t1data'left) and ctrl.t1datas_signed) & t1data);
             mul.dsp_y <= signed((t2data_shadow(t2data_shadow'left) and ctrl.t2datas_signed) & t2data_shadow);
           end if;
-          mul.prod <= std_logic_vector(mul.dsp_z(63 downto 0));
         end if;
       end if;
     end process multiplier_core;
 
     -- actual multiplication --
     mul.dsp_z <= mul.dsp_x * mul.dsp_y;
+    mul.prod <= std_logic_vector(mul.dsp_z(63 downto 0));
 
   end generate; --/multiplier_core_parallel
 
