@@ -67,7 +67,7 @@ entity xilinx_basic_alu is
   port (
     clk : in std_logic;
     rstx : in std_logic;
-    glock_in : in std_logic;
+    glock : in std_logic;
     operation_in : in std_logic_vector(3 downto 0);
     data_in1t_in : in std_logic_vector(31 downto 0);
     load_in1t_in : in std_logic;
@@ -116,7 +116,7 @@ architecture rtl of xilinx_basic_alu is
   signal ior_op3 : std_logic_vector(31 downto 0);
   signal shift_op1 : std_logic_vector(31 downto 0);
   signal shift_op2 : std_logic_vector(4 downto 0);
-  signal shift_op3 : std_ulogic_vector(31 downto 0);
+  signal shift_op3 : std_logic_vector(31 downto 0);
   signal sub_op1 : std_logic_vector(31 downto 0);
   signal sub_op2 : std_logic_vector(31 downto 0);
   signal sub_op3 : std_logic_vector(31 downto 0);
@@ -187,21 +187,17 @@ architecture rtl of xilinx_basic_alu is
     );
     port (
       -- global control --
-      clk_i         : in  std_ulogic;
+      clk           : in  std_logic;
       -- operand data --
-      opa_i         : in  std_ulogic_vector(DATA_WIDTH-1 downto 0);
-      opb_i         : in  std_ulogic_vector(DATA_WIDTH-1 downto 0);
+      opa_i         : in  std_logic_vector(DATA_WIDTH-1 downto 0);
+      opb_i         : in  std_logic_vector(DATA_WIDTH-1 downto 0);
       -- operation control --
-      shift_dir_i   : in  std_ulogic; -- 0: right, 1: left (shift dreiction)
-      arith_shift_i : in  std_ulogic; -- 0: logical, 1: arithmetical (only for right shifts)
-      rnd_en_i      : in  std_ulogic; -- 0: rounding disabled, 1: rounding enabled
-      rnd_mode_i    : in  std_ulogic; -- 0: floor, 1: infinity (type of rounding)
+      shift_dir_i   : in  std_logic; -- 0: right, 1: left (shift dreiction)
+      arith_shift_i : in  std_logic; -- 0: logical, 1: arithmetical (only for right shifts)
+      rnd_en_i      : in  std_logic; -- 0: rounding disabled, 1: rounding enabled
+      rnd_mode_i    : in  std_logic; -- 0: floor, 1: infinity (type of rounding)
       -- operation result --
-      data_o        : out std_ulogic_vector(DATA_WIDTH-1 downto 0);
-      z_flag_o      : out std_ulogic; -- zero flag
-      o_flag_o      : out std_ulogic; -- overflow flag
-      c_flag_o      : out std_ulogic; -- carry flag
-      n_flag_o      : out std_ulogic  -- negative flag
+      data_o        : out std_logic_vector(DATA_WIDTH-1 downto 0)
     );
   end component;
 
@@ -209,21 +205,17 @@ begin
 
   shifter : generic_sru
     port map (
-      clk_i         => clk,
+      clk           => clk,
       -- operand data --
-      opa_i         => std_ulogic_vector(shift_op1),
-      opb_i         => std_ulogic_vector(padded_shift),
+      opa_i         => std_logic_vector(shift_op1),
+      opb_i         => std_logic_vector(padded_shift),
       -- operation control --
       shift_dir_i   => shift_dir, -- 0: right, 1: left (shift dreiction)
       arith_shift_i => shift_arith, -- 0: logical, 1: arithmetical (only for right shifts)
       rnd_en_i      => '0',
       rnd_mode_i    => '0',
       -- operation result --
-      data_o        => shift_op3,
-      z_flag_o      => open,
-      o_flag_o      => open,
-      c_flag_o      => open,
-      n_flag_o      => open
+      data_o        => shift_op3
     );
   padded_shift <= pad & shift_op2;
 
@@ -256,7 +248,7 @@ begin
   shadow_in2_sp : process(clk)
   begin
     if clk = '1' and clk'event then
-      if glock_in = '0' and load_in2_in = '1' then
+      if glock = '0' and load_in2_in = '1' then
         shadow_in2_r <= data_in2_in;
       end if;
     end if;
@@ -358,7 +350,7 @@ begin
     if clk = '1' and clk'event then
       if rstx = '0' then
       else
-        if glock_in = '0' then
+        if glock = '0' then
           trigger_in1t_1_r <= load_in1t_in;
           trigger_in2_1_r <= load_in1t_in;
           if trigger_in1t_1_r = '1' then
@@ -376,7 +368,7 @@ begin
             operation_3_r <= operation_2_r;
           end if;
         end if;
-        if glock_in = '0' and load_in1t_in = '1' then
+        if glock = '0' and load_in1t_in = '1' then
           operation_1_r <= operation_in;
           data_in1t_1_r <= data_in1t;
           data_in2_1_r <= data_in2;
@@ -394,7 +386,7 @@ begin
     if clk = '1' and clk'event then
       if rstx = '0' then
       else
-        if glock_in = '0' then
+        if glock = '0' then
           arith_op3_r <= arith_op3;
           and_op3_r <= and_op3;
           eq_op3_r <= eq_op3;
