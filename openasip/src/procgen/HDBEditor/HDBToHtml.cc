@@ -31,32 +31,31 @@
  * @note rating: red
  */
 
-#include <time.h>
-
 #include "HDBToHtml.hh"
 
-#include "ContainerTools.hh"
+#include <ctime>
 
-#include "FUEntry.hh"
-#include "FUArchitecture.hh"
-#include "FUImplementation.hh"
-#include "FunctionUnit.hh"
-#include "FUPort.hh"
-#include "HWOperation.hh"
-#include "ExecutionPipeline.hh"
-#include "PipelineElement.hh"
-#include "FUExternalPort.hh"
-#include "RFExternalPort.hh"
-#include "FUPortImplementation.hh"
 #include "BlockImplementationFile.hh"
-#include "RFEntry.hh"
+#include "ContainerTools.hh"
+#include "CostEstimationData.hh"
+#include "CostFunctionPlugin.hh"
+#include "DataObject.hh"
+#include "ExecutionPipeline.hh"
+#include "FUArchitecture.hh"
+#include "FUEntry.hh"
+#include "FUExternalPort.hh"
+#include "FUImplementation.hh"
+#include "FUPort.hh"
+#include "FUPortImplementation.hh"
+#include "FunctionUnit.hh"
+#include "HDBManager.hh"
+#include "HWOperation.hh"
+#include "PipelineElement.hh"
 #include "RFArchitecture.hh"
+#include "RFEntry.hh"
+#include "RFExternalPort.hh"
 #include "RFImplementation.hh"
 #include "RFPortImplementation.hh"
-#include "HDBManager.hh"
-#include "CostEstimationData.hh"
-#include "DataObject.hh"
-#include "CostFunctionPlugin.hh"
 
 using namespace TTAMachine;
 using namespace HDB;

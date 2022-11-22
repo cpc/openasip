@@ -31,15 +31,17 @@
  * @author Pekka Jääskeläinen 2005-2014 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
-#include <iostream>
+#include <cmath> // isnan()
 #include <fstream>
-#include <math.h> // isnan()
+#include <iostream>
 
 #include "OSAL.hh"
 #include "TCEString.hh"
 #include "OperationGlobals.hh"
 #include "Application.hh"
 #include "Conversion.hh"
+
+using namespace std;
 
 #define RUNTIME_ERROR_WITH_INT(MESSAGE, DATA) {\
        int len = strlen(MESSAGE) + 15;                \

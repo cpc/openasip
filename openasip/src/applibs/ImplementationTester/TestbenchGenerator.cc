@@ -30,19 +30,21 @@
  * @note rating: red
  */
 
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <vector>
-#include <map>
-#include <stdint.h>
-#include <boost/format.hpp>
 #include "TestbenchGenerator.hh"
-#include "StringTools.hh"
+
+#include <boost/format.hpp>
+#include <cstdint>
+#include <fstream>
+#include <map>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include "Conversion.hh"
 #include "Environment.hh"
 #include "FileSystem.hh"
-#include "Conversion.hh"
 #include "HWBlockImplementation.hh"
+#include "StringTools.hh"
 
 using std::string;
 using std::vector;

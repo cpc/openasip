@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <cstdlib>
 #include "tceops.h"
 
 #define N 2

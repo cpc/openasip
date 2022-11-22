@@ -30,21 +30,20 @@
  * @note rating: red
  */
 
-#include <iostream>
-#include <fstream>
-#include <set>
-#include <assert.h>
 #include <boost/format.hpp>
+#include <cassert>
+#include <fstream>
+#include <iostream>
+#include <set>
 
-#include "OperationPool.hh"
-#include "Operation.hh"
 #include "Conversion.hh"
-#include "OperationIndex.hh"
-#include "Operand.hh"
-#include "Machine.hh"
-#include "StringTools.hh"
 #include "HWOperation.hh"
-
+#include "Machine.hh"
+#include "Operand.hh"
+#include "Operation.hh"
+#include "OperationIndex.hh"
+#include "OperationPool.hh"
+#include "StringTools.hh"
 
 /**
  * Returns a C type string for the given operand type.

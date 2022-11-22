@@ -32,10 +32,11 @@
 
 #define __STDC_LIMIT_MACROS
 
+#include <cassert>
+#include <climits>
+#include <cstdlib>
+
 #include "opencl_types.hh"
-#include <assert.h>
-#include <stdlib.h>
-#include <limits.h>
 
 //#define DEBUG_OCL_HOST
 
@@ -44,7 +45,9 @@
 #endif
 
 #include <CL/cl.h>
-#include <string.h>
+
+#include <cstring>
+
 #include "cl_tce.h"
 
 #define DUMMY_PLATFORM_ID 42

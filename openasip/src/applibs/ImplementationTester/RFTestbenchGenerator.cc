@@ -30,26 +30,28 @@
  * @note rating: red
  */
 
-#include <string>
-#include <sstream>
-#include <vector>
-#include <boost/random.hpp>
-#include <boost/nondet_random.hpp>
-#include <ctime>
-#include <stdint.h>
-#include "HDBManager.hh"
-#include "RFEntry.hh"
-#include "TestbenchGenerator.hh"
 #include "RFTestbenchGenerator.hh"
-#include "RFArchitecture.hh"
+
+#include <boost/nondet_random.hpp>
+#include <boost/random.hpp>
+#include <cstdint>
+#include <ctime>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include "HDBManager.hh"
 #include "Machine.hh"
 #include "MachineState.hh"
 #include "MachineStateBuilder.hh"
-#include "MemorySystem.hh"
-#include "RegisterFileState.hh"
-#include "RFPortImplementation.hh"
-#include "RFImplementation.hh"
 #include "MathTools.hh"
+#include "MemorySystem.hh"
+#include "RFArchitecture.hh"
+#include "RFEntry.hh"
+#include "RFImplementation.hh"
+#include "RFPortImplementation.hh"
+#include "RegisterFileState.hh"
+#include "TestbenchGenerator.hh"
 
 using std::string;
 using std::vector;

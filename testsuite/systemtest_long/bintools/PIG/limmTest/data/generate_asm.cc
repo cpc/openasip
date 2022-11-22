@@ -1,7 +1,7 @@
 #include <cstdlib>
-#include <iostream>
+#include <ctime>
 #include <fstream>
-#include <time.h>
+#include <iostream>
 
 const int TEST_SAMPLES = 1023;
 const std::string TCEASM = "limm_test.tceasm";

@@ -30,39 +30,38 @@
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-#include <iostream>
-#include <cstdlib>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <vector>
-#include <map>
-#include <stdint.h>
-
 #include "ImplementationTester.hh"
-#include "HDBManager.hh"
+
+#include <cstdint>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include "CachedHDBManager.hh"
-#include "FUEntry.hh"
 #include "FUArchitecture.hh"
+#include "FUEntry.hh"
 #include "FUImplementation.hh"
-#include "RFEntry.hh"
-#include "RFArchitecture.hh"
-#include "RFImplementation.hh"
+#include "FUTestbenchGenerator.hh"
 #include "FunctionUnit.hh"
+#include "GhdlSimulator.hh"
+#include "HDBManager.hh"
+#include "HWBlockImplementation.hh"
+#include "ImplementationSimulator.hh"
+#include "InputPortState.hh"
 #include "Machine.hh"
 #include "MachineState.hh"
 #include "MachineStateBuilder.hh"
 #include "MemorySystem.hh"
-#include "OutputPortState.hh"
-#include "InputPortState.hh"
-#include "FUTestbenchGenerator.hh"
-#include "RFTestbenchGenerator.hh"
-#include "ImplementationSimulator.hh"
-#include "GhdlSimulator.hh"
 #include "ModelsimSimulator.hh"
-#include "HWBlockImplementation.hh"
+#include "OutputPortState.hh"
+#include "RFArchitecture.hh"
+#include "RFEntry.hh"
+#include "RFImplementation.hh"
+#include "RFTestbenchGenerator.hh"
 
 using std::string;
 using std::vector;

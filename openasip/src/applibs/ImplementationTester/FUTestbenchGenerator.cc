@@ -31,30 +31,32 @@
  * @note rating: red
  */
 
-#include <string>
-#include <sstream>
-#include <vector>
-#include <boost/random.hpp>
-#include <boost/nondet_random.hpp>
-#include <ctime>
-#include <stdint.h>
-#include "HDBManager.hh"
-#include "FUEntry.hh"
-#include "TestbenchGenerator.hh"
 #include "FUTestbenchGenerator.hh"
+
+#include <boost/nondet_random.hpp>
+#include <boost/random.hpp>
+#include <cstdint>
+#include <ctime>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#include "Conversion.hh"
 #include "FUArchitecture.hh"
+#include "FUEntry.hh"
+#include "FUImplementation.hh"
+#include "FUPortImplementation.hh"
 #include "FunctionUnit.hh"
+#include "HDBManager.hh"
+#include "HWOperation.hh"
+#include "InputPortState.hh"
 #include "Machine.hh"
 #include "MachineState.hh"
 #include "MachineStateBuilder.hh"
 #include "MemorySystem.hh"
 #include "OutputPortState.hh"
-#include "InputPortState.hh"
-#include "FUPortImplementation.hh"
-#include "FUImplementation.hh"
-#include "HWOperation.hh"
 #include "StringTools.hh"
-#include "Conversion.hh"
+#include "TestbenchGenerator.hh"
 
 using std::string;
 using std::vector;

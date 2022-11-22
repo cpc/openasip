@@ -31,27 +31,27 @@
  * @author Heikki Kultala 2011-2016 (heikki.kultala-no.spam-tut.fi)
  */
 
-#include <assert.h>
-#include "tce_config.h"
-#include <llvm/IR/Type.h>
-#include <llvm/IR/Function.h>
-#include <llvm/CodeGen/MachineInstrBuilder.h>
-#include <llvm/CodeGen/MachineFrameInfo.h>
-#include <llvm/CodeGen/TargetInstrInfo.h>
-#include <llvm/Target/TargetOptions.h>
+#include "TCERegisterInfo.hh"
 
 #include <llvm/ADT/STLExtras.h>
+#include <llvm/CodeGen/MachineFrameInfo.h>
+#include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/CodeGen/RegisterScavenging.h>
+#include <llvm/CodeGen/TargetInstrInfo.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Type.h>
+#include <llvm/Target/TargetOptions.h>
 
-#include "TCEPlugin.hh"
-#include "TCERegisterInfo.hh"
-#include "TCETargetMachine.hh"
-#include "TCEInstrInfo.hh"
-#include "TCEString.hh"
+#include <cassert>
+
 #include "Application.hh"
-#include "tce_config.h"
-#include "LLVMTCECmdLineOptions.hh"
 #include "Exception.hh"
+#include "LLVMTCECmdLineOptions.hh"
+#include "TCEInstrInfo.hh"
+#include "TCEPlugin.hh"
+#include "TCEString.hh"
+#include "TCETargetMachine.hh"
+#include "tce_config.h"
 
 using namespace llvm;
 

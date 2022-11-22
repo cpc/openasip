@@ -30,18 +30,18 @@
  * @author Pekka Jääskeläinen 2014
  */
 
-#include "Machine.hh"
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+
 #include "ControlUnit.hh"
-#include "MachInfoCmdLineOptions.hh"
-#include "OperationPool.hh"
-#include "HWOperation.hh"
-#include "Operation.hh"
 #include "Conversion.hh"
 #include "FUPort.hh"
-
-#include <iostream>
-#include <fstream>
-#include <stdlib.h>
+#include "HWOperation.hh"
+#include "MachInfoCmdLineOptions.hh"
+#include "Machine.hh"
+#include "Operation.hh"
+#include "OperationPool.hh"
 
 static MachInfoCmdLineOptions options;
 

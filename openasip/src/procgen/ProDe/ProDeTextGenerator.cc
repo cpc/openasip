@@ -30,9 +30,9 @@
  * @note rating: red
  */
 
-#include <string.h>
-
 #include "ProDeTextGenerator.hh"
+
+#include <cstring>
 
 using std::string;
 

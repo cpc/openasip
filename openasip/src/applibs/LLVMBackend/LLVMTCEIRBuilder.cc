@@ -38,48 +38,49 @@
 #include "CompilerWarnings.hh"
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
-#include "LLVMTCEIRBuilder.hh"
-#include "ControlFlowGraph.hh"
-#include "Procedure.hh"
-#include "AddressSpace.hh"
-#include "ControlUnit.hh"
-#include "DataDependenceGraph.hh"
-#include "TerminalBasicBlockReference.hh"
-#include "TerminalSymbolReference.hh"
-#include "TerminalFUPort.hh"
-#include "SequentialScheduler.hh"
-#include "PreOptimizer.hh"
-#include "BBSchedulerController.hh"
-#include "CycleLookBackSoftwareBypasser.hh"
-#include "CopyingDelaySlotFiller.hh"
-#include "SimpleIfConverter.hh"
-#include "Peel2BBLoops.hh"
-#include "passes/InnerLoopFinder.hh"
-#include "Machine.hh"
-#include "InstructionReferenceManager.hh"
-#include "Program.hh"
-#include "RegisterCopyAdder.hh"
-#include "LLVMTCECmdLineOptions.hh"
-#include "Instruction.hh"
-#include "FunctionUnit.hh"
-#include "HWOperation.hh"
-#include "FUPort.hh"
-#include "BasicBlock.hh"
-#include "Move.hh"
-#include "MapTools.hh"
-#include "PRegionMarkerAnalyzer.hh"
-#include "PostpassOperandSharer.hh"
-#include "CallsToJumps.hh"
-#include "AbsoluteToRelativeJumps.hh"
-
-#include <stdlib.h>
 #include <llvm/ADT/SmallString.h>
+#include <llvm/CodeGen/MachineJumpTableInfo.h>
+#include <llvm/CodeGen/MachineMemOperand.h>
+#include <llvm/IR/Value.h>
 #include <llvm/MC/MCContext.h>
 #include <llvm/MC/MCSymbol.h>
-#include <llvm/CodeGen/MachineJumpTableInfo.h>
-#include <llvm/IR/Value.h>
-#include <llvm/CodeGen/MachineMemOperand.h>
+
+#include <cstdlib>
+
+#include "AbsoluteToRelativeJumps.hh"
+#include "AddressSpace.hh"
+#include "BBSchedulerController.hh"
+#include "BasicBlock.hh"
+#include "CallsToJumps.hh"
+#include "ControlFlowGraph.hh"
+#include "ControlUnit.hh"
+#include "CopyingDelaySlotFiller.hh"
+#include "CycleLookBackSoftwareBypasser.hh"
+#include "DataDependenceGraph.hh"
+#include "FUPort.hh"
+#include "FunctionUnit.hh"
+#include "HWOperation.hh"
+#include "Instruction.hh"
+#include "InstructionReferenceManager.hh"
+#include "LLVMTCECmdLineOptions.hh"
+#include "LLVMTCEIRBuilder.hh"
+#include "Machine.hh"
+#include "MapTools.hh"
+#include "Move.hh"
+#include "PRegionMarkerAnalyzer.hh"
+#include "Peel2BBLoops.hh"
+#include "PostpassOperandSharer.hh"
+#include "PreOptimizer.hh"
+#include "Procedure.hh"
+#include "Program.hh"
+#include "RegisterCopyAdder.hh"
+#include "SequentialScheduler.hh"
+#include "SimpleIfConverter.hh"
+#include "TerminalBasicBlockReference.hh"
+#include "TerminalFUPort.hh"
+#include "TerminalSymbolReference.hh"
 #include "llvm/Analysis/AliasAnalysis.h"
+#include "passes/InnerLoopFinder.hh"
 
 POP_COMPILER_DIAGS
 

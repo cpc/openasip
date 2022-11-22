@@ -32,22 +32,23 @@
  * @author Heikki Kultala 2011-2012 (heikki.kultala-no.spam-tut.fi)
  */
 
-#include <assert.h>
-#include <string>
-#include "tce_config.h"
-#include <llvm/IR/Function.h>
-#include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/Intrinsics.h>
-#include <llvm/IR/CallingConv.h>
-#include <llvm/CodeGen/TargetLowering.h>
 #include <llvm/CodeGen/CallingConvLower.h>
-#include <llvm/CodeGen/SelectionDAG.h>
 #include <llvm/CodeGen/MachineFrameInfo.h>
-#include <llvm/CodeGen/MachineRegisterInfo.h>
 #include <llvm/CodeGen/MachineInstrBuilder.h>
+#include <llvm/CodeGen/MachineRegisterInfo.h>
+#include <llvm/CodeGen/SelectionDAG.h>
+#include <llvm/CodeGen/TargetLowering.h>
+#include <llvm/IR/CallingConv.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Intrinsics.h>
 #include <llvm/Support/raw_ostream.h>
-
 #include <llvm/Target/TargetLoweringObjectFile.h>
+
+#include <cassert>
+#include <string>
+
+#include "tce_config.h"
 
 //#include <llvm/Config/config.h>
 

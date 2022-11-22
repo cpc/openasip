@@ -28,8 +28,9 @@
  * @author Kalle Raiskila 2014
  */
 
-#include <assert.h>
 #include "RemoteMemory.hh"
+
+#include <cassert>
 
 typedef MinimumAddressableUnit MAU;
 

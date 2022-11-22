@@ -35,13 +35,13 @@
 //  -green/-yellow/-red <color> - Sets the colors of the bar
 //
 
-#include <cxxtest/Gui.h>
-
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cxxtest/Gui.h>
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 namespace CxxTest
 {

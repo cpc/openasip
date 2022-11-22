@@ -43,9 +43,9 @@
 #include <cstdio>
 
 // for backtrace printing:
-#include <signal.h>
-
 #include <sys/types.h>
+
+#include <csignal>
 // macros to evaluate exit status of pclose() (from autoconf manual)
 #ifdef HAVE_SYS_WAIT_H
 # include <sys/wait.h>

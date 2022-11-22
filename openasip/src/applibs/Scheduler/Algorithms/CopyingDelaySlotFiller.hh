@@ -33,14 +33,16 @@
 #ifndef COPYING_DELAY_SLOT_FILLER_HH
 #define COPYING_DELAY_SLOT_FILLER_HH
 
+#include <list>
 #include <map>
 #include <vector>
-#include <list>
-#include "Exception.hh"
-#include "ProgramOperation.hh"
+
+#include "Bus.hh"
+#include "ControlFlowEdge.hh"
 #include "ControlFlowGraph.hh"
 #include "DataDependenceGraph.hh"
-#include "ControlFlowEdge.hh"
+#include "Exception.hh"
+#include "ProgramOperation.hh"
 
 class BasicBlockNode;
 class ControlFlowGraph;

@@ -30,17 +30,17 @@
  * @note rating: red
  */
 
-#include <iostream>
+#include <cassert>
 #include <fstream>
+#include <iostream>
 #include <set>
-#include <assert.h>
 
-#include "OperationPool.hh"
-#include "Operation.hh"
-#include "Conversion.hh"
-#include "OperationIndex.hh"
-#include "Operand.hh"
 #include "Application.hh"
+#include "Conversion.hh"
+#include "Operand.hh"
+#include "Operation.hh"
+#include "OperationIndex.hh"
+#include "OperationPool.hh"
 
 enum mode { NORMAL, FU_ADDRESSABLE, ADDRESSPACE, RISCV };
 /**

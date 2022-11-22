@@ -32,22 +32,24 @@
  * @note reviewed Jul 13 2004 by vpj, ll, jn, am
  */
 
-#include <wx/wx.h>
-#include <wx/cmdproc.h>
-#include <stdlib.h>
-#include <limits>
+#include "EditPart.hh"
+
 #include <math.h>
+#include <wx/cmdproc.h>
+#include <wx/wx.h>
+
+#include <cstdlib>
+#include <limits>
 
 #include "Application.hh"
+#include "ComponentCommand.hh"
 #include "ContainerTools.hh"
+#include "EditPolicy.hh"
+#include "Figure.hh"
 #include "MachinePart.hh"
 #include "Port.hh"
-#include "Segment.hh"
-#include "EditPart.hh"
-#include "Figure.hh"
-#include "EditPolicy.hh"
 #include "Request.hh"
-#include "ComponentCommand.hh"
+#include "Segment.hh"
 
 using std::vector;
 using std::set;

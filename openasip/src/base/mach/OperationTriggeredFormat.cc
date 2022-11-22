@@ -30,13 +30,14 @@
  * @note rating: red
  */
 
-#include <stdio.h>
-
 #include "OperationTriggeredFormat.hh"
-#include "OperationTriggeredOperand.hh"
+
+#include <cstdio>
+
 #include "MOMTextGenerator.hh"
-#include "ObjectState.hh"
 #include "Machine.hh"
+#include "ObjectState.hh"
+#include "OperationTriggeredOperand.hh"
 
 namespace TTAMachine {
 

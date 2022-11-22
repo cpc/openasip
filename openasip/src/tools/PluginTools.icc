@@ -31,7 +31,7 @@
  * @note rating: green
  */
 
-#include <stdint.h>
+#include <cstdint>
 
 /**
  * Loads a symbol from a module.

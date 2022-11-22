@@ -32,7 +32,8 @@
 //
 
 #include <cxxtest/ErrorFormatter.h>
-#include <stdio.h>
+
+#include <cstdio>
 
 namespace CxxTest 
 {

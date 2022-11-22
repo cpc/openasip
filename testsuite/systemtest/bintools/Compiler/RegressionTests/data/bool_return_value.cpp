@@ -1,4 +1,4 @@
- #include <stdio.h>
+ #include <cstdio>
 
 volatile int eq = 0;
 volatile int gt = 0;
