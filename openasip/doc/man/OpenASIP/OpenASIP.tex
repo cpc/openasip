@@ -255,7 +255,7 @@ flow.
       \hline
       \hline
       ProDe                & Define FUs, registers, intercconects of TTA core & GUI  & .adf \\
-      tcecc                & Compile software                                 & CLI  & .tpef \\
+      oacc                 & Compile software                                 & CLI  & .tpef \\
       Proxim               & Simulate TTA cores (architectural level)         & GUI  & report \\
       ttasim               & Simulate TTA cores (architectural level)         & CLI  & report \\
       OSEd                 & Operation Set Abstraction Layer database editor  & GUI  & operation db \\
@@ -331,7 +331,7 @@ used and how they are connected \cite{ADF-specs}.  ADF can be created with
 ProDe manually or, e.g., by automated design space exploration tools. ADF 
 is a specification of the target ``processor architecture'', meaning that only 
 the information needed to generate valid programs for the processor is stored, 
-but nothing else. This file is needed by many tools, such as tcecc, ttasim, and ProGe.
+but nothing else. This file is needed by many tools, such as oacc, ttasim, and ProGe.
 
 The XML snippet below gives an idea of ADF.
 \begin{verbatim}
@@ -570,9 +570,9 @@ lookup table. This is a quite usual method of algorithm optimization.
 % 
 % We first generate LLVM bitcode from the C code. The bitcode
 % will be later compiled to an architecture dependent TTA program.
-% Compile the C code with the 'tcecc' compiler:
+% Compile the C code with the 'oacc' compiler:
 % 
-% \shellcmd{tcecc -O3 -o crc.bc -k result -D\_DEBUG crc.c main.c}
+% \shellcmd{oacc -O3 -o crc.bc -k result -D\_DEBUG crc.c main.c}
 % 
 % This produces an architecture independent bitcode program \file{crc.bc}
 % of the C code. The switch -k was used to tell the
@@ -587,7 +587,7 @@ Copy the \file{minimal.adf} file included in OpenASIP distribution to a new ADF
 file:
 
 \begin{verbatim}
-  cp $(tce-config --prefix)/share/openasip/data/mach/minimal.adf start.adf
+  cp $(openasip-config --prefix)/share/openasip/data/mach/minimal.adf start.adf
 \end{verbatim}
 
 The file describes a minimalistic TTA processor containing just enough
@@ -641,7 +641,7 @@ Now we want to know how well the starting point architecture executes
 our program. We must compile the source code for this architecture
 with command:
 
-\shellcmd{tcecc -O3 -a start.adf -o crc.tpef -k result -k test main.c crc.c}
+\shellcmd{oacc -O3 -a start.adf -o crc.tpef -k result -k test main.c crc.c}
 
 In addition to source codes, the compiler needs the TTA architecture
 definition \file{start.adf}. It will produce a parallel program called
@@ -814,7 +814,7 @@ Add 3 more buses. After you have added the buses you have to connect it to the
 sockets. Easiest way to do this is to select ``Tools->Fully connect IC''.
 Save the architecture, recompile the source code for the new architecture:
 
-\shellcmd{tcecc -O3 -a large.adf -o crc.tpef -k result -k test crc.c main.c}
+\shellcmd{oacc -O3 -a large.adf -o crc.tpef -k result -k test crc.c main.c}
 
 This time let's simulate the program using the command line interface of the
 instruction set simulator:
@@ -1324,7 +1324,7 @@ Then open \file{crc\_with\_custom\_op.c} in your preferred text editor.
 
 \begin{enumerate}
 \item
-%--- tceops.h is included automatically by tcecc since a long time ago.
+%--- tceops.h is included automatically by oacc since a long time ago.
 %Add \#include ``tceops.h'' to the top of the file. This includes
 %automatically generated macros which allow us to use specific
 %operations from C code without getting our hands dirty with
@@ -1393,7 +1393,7 @@ And now we are ready. Remember to save the file.
 Compile the C code that now uses custom operations for the architecture that includes
 the special function units:
 
-\shellcmd{tcecc -O3 -a custom.adf -o crc\_with\_custom\_op.tpef -k result }\verb#\#\\
+\shellcmd{oacc -O3 -a custom.adf -o crc\_with\_custom\_op.tpef -k result }\verb#\#\\
 \shellcmd{\ \ -k test crc\_with\_custom\_op.c main.c}
 
 \item%
@@ -1645,7 +1645,7 @@ function units should have implementations.
 \item%
 Enable bus tracing from the Implementation-dialog's IC / Decoder Plugin tab.
 Set the bustrace plugin parameter to ``yes'' and the bustracestartingcycle to
-``5''. The generated processor will now get a component which writes the bus
+``6''. The generated processor will now get a component which writes the bus
 value from every cycle to a text file for verification purposes. Notice that
 this option should not be used if the processor will be synthesized.
 
@@ -1823,7 +1823,7 @@ connect the IC, as in Fig.\ref{fig:prode_largecustom} and save.
 \end{figure}
 
 
-\shellcmd{tcecc -O3 -a large\_custom.adf -o crc\_with\_custom\_op.tpef -k result -k test crc\_with\_custom\_op.c main.c}
+\shellcmd{oacc -O3 -a large\_custom.adf -o crc\_with\_custom\_op.tpef -k result -k test crc\_with\_custom\_op.c main.c}
 
 \shellcmd{ttasim -a large\_custom.adf -p crc\_with\_custom\_op.tpef}
 
@@ -1953,8 +1953,8 @@ STDOUT. OpenASIP ships with a minimal architecture that also includes
 the STDOUT function unit, which you can use:
 
 \begin{verbatim}
-cp $(tce-config --prefix)/share/openasip/data/mach/minimal_with_stdout.adf .
-tcecc --swfp -O0 hello.c -a minimal_with_stdout.adf -o hello.tpef
+cp $(openasip-config --prefix)/share/openasip/data/mach/minimal_with_stdout.adf .
+oacc --swfp -O0 hello.c -a minimal_with_stdout.adf -o hello.tpef
 \end{verbatim}
 
 %$ this dollar sign ``closes'' the equation, so syntax highlight works correctly
@@ -2360,7 +2360,7 @@ space2 would have been stored at address 0 = NULL).
 When using custom operation calls to manually execute operations that access
 memory on processors that have multiple data address spaces,
 it should be done using \_OAAS\_OPERATIONNAME macro instead of using
-\_OA\_OPERATIONNAME macro. See section~\ref{sec:tceccCustOp}
+\_OA\_OPERATIONNAME macro. See section~\ref{sec:oaccCustOp}
  for more information about these custom operation call macros.
 
 \section{Running TTA on FPGA}
@@ -2508,7 +2508,7 @@ already haven't done it:
 
 Then compile the program:
 
-\shellcmd{tcecc -O3 -a tutorial2.adf -o blink.tpef blink\_mem.c}
+\shellcmd{oacc -O3 -a tutorial2.adf -o blink.tpef blink\_mem.c}
 
 Before you can generate processor vhdl you must select implementations for
 the function units. Open the architecture in ProDe and select Tools->Processor
@@ -2684,7 +2684,7 @@ In addition you can compile the code without optimizations. This way the
 compiler leaves function calls in place and uses stack. The compilation
 command is then:
 
-\shellcmd{tcecc -O0 -a tutorial2.adf -o blink.tpef blink\_mem.c}
+\shellcmd{oacc -O0 -a tutorial2.adf -o blink.tpef blink\_mem.c}
 
 
 %\subsection{FPGA process in general}
@@ -2734,7 +2734,7 @@ assumes clock frequency of 100 MHz.
 Now compile the source code with the following command:
 
 \begin{verbatim}
-  tcecc -O0 --swfp -a test.adf -o std_print.tpef std_print.c
+  oacc -O0 --swfp -a test.adf -o std_print.tpef std_print.c
 \end{verbatim}
 
 The compilation command contains a few flags that should be explained
@@ -2782,7 +2782,7 @@ do this with program \textit{sed}:
 
 Now recompile the program and check the instruction count:
 
-\shellcmd{tcecc -O0 -a test.adf -o std\_print.tpef std\_print.c}
+\shellcmd{oacc -O0 -a test.adf -o std\_print.tpef std\_print.c}
 
 \shellcmd{dumptpef -m std\_print.tpef}
 
@@ -2805,7 +2805,7 @@ tutorial.
 
 Compile the new code to see the difference of using lwpr:
 
-\shellcmd{tcecc -O0 -llwpr -a test.adf -o lightweight\_print.tpef lightweight\_print.c}
+\shellcmd{oacc -O0 -llwpr -a test.adf -o lightweight\_print.tpef lightweight\_print.c}
 
 Notice the new compilation flag \textit{-llwpr} for including the light
 weight printing library.
@@ -2851,7 +2851,7 @@ wide. This should be enough for our application according to the
 Next recompile the application so it adapts to the new address space
 sizes:
 
-\shellcmd{tcecc -O0 -llwpr -a test.adf -o lightweight\_print.tpef lightweight\_print.c}
+\shellcmd{oacc -O0 -llwpr -a test.adf -o lightweight\_print.tpef lightweight\_print.c}
 
 If you wish you can execute the program with ttasim to verify that it
 still works after the address space sizes changed.
@@ -3041,7 +3041,7 @@ can be performed by using the \emph{float} datatype in C code, or by using macro
 
 If the compilation target architecture does not support these operations, 
 they can be emulated using integer arithmetic in software. Passing the switch \verb|--swfp| 
-to tcecc enables the software emulation library linkage.
+to oacc enables the software emulation library linkage.
 
 A set of floating-point FU implementations is included with OA, in a HDB file named 
 \emph{fpu\_embedded.hdb}, which can be found at \emph{PREFIX/share/openasip/hdb/fpu\_embedded.hdb}. 
@@ -3350,7 +3350,7 @@ parallelizable kernels written in OpenCL C without requiring a host processor
 with an OpenCL C compiler.
 
 The OpenCL support uses the {Portable OpenCL (pocl)} project. In order to
-add OpenCL support to tcecc, you should download and install the latest version of 
+add OpenCL support to oacc, you should download and install the latest version of
 pocl. At the end of the configure run, the script 
 mentions whether the OpenCL support was enabled or not. After building OA
 you can check if the OpenCL C support is enabled via ``\verb|oacc --supported-languages|''
@@ -3403,11 +3403,11 @@ The command line to compile both the host code and the kernel to
 a single program is as follows:
 
 \begin{verbatim}
- tcecc -a mytta.adf -O3 host.c dot.cl -o dot_product -loclhost-sa
+ oacc -a mytta.adf -O3 host.c dot.cl -o dot_product -loclhost-sa
 \end{verbatim}
 
 The resulting program can be simulated and executed like any 
-other TTA program produced by tcecc.
+other TTA program produced by oacc.
 
 The \textit{oclhost-sa} library provides the more-or-less dummy
 implementations of the host runtime APIs to enable launching the
@@ -3539,7 +3539,7 @@ The hardware loop can be enabled in the OA by simply adding HWLOOP
 instructions to control-unit in the TTA design. To start with, \textbf{copy
 minimalist TTA machine by}:
 
-\shellcmd{cp \$(tce-config -{}-prefix)/share/openasip/data/mach/minimal.adf hwloop.adf}
+\shellcmd{cp \$(openasip-config -{}-prefix)/share/openasip/data/mach/minimal.adf hwloop.adf}
 
 We can observe from OSED that the HWLOOP instruction takes two parameters.
 Hence, add an additional input port to the control-unit and add then the
@@ -3566,7 +3566,7 @@ int main() {
 
 \textbf{Copy-paste the code to the newly created file and compile it to TPEF} by
 
-\shellcmd{tcecc -O3 -o example.tpef -a hwloop.adf example.c}
+\shellcmd{oacc -O3 -o example.tpef -a hwloop.adf example.c}
 
 Next, to see  how the hardware loop works,  \textbf{simulate the program
   in TTA simulator ProXim} by:
@@ -3922,7 +3922,7 @@ and simulate the processor and the program run
 After a moment the simulation exits automatically when the exit function is
 reached. You can see an instruction trace of the executed instructions in
 ``riscv\_instruction\_trace.dump`` and a trace of the register file traffic in 
-``rf.dump``. ``Cycles.dump`` stores the information about the amount of clock cycles
+``rf.dump``. ``cycles.dump`` stores the information about the amount of clock cycles
 and stalls. In the ``hdl\_sim\_stdout.txt`` you can see what was printed to stdout
 if you compiled the program with $-D\_DEBUG$.
 You might see several assertions depending on your HDL simulator
@@ -4180,11 +4180,6 @@ themselves.
     Do the same thing but for the REFLECT32. Remember to set the loop iterator
     limit to 31 and the constant inside op1 to 31 so it mirrors the bits of the
     whole 32 word.
-  \item%
-    Now we could also add a a verilog definition of the operation but as this
-    exercise only goes through the VHDL generation, create an empty file
-    called verilog.v in the same directory. Alternatively the user can write
-    the verilog version as an exercise.
 \end{enumerate}
 
 \begin{figure}
@@ -10110,7 +10105,7 @@ The simulator can be compiled with the following command (assuming gcc
 used):
 
 \begin{verbatim}
-g++ `tce-config --includes --libs` simulator.cc -lsystemc -O3 -o simulator
+g++ `openasip-config --includes --libs` simulator.cc -lsystemc -O3 -o simulator
 \end{verbatim}
 
 The simulation should produce output similar to the following:
