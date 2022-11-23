@@ -143,9 +143,8 @@ openasip/test/Makefile.in
 scripts/tce-selftest
 src/bintools/Compiler/tcecc
 testsuite/**/data
-testsuite/systemtest_long/bintools/Compiler/**/program.bc
-testsuite/systemtest_long/bintools/Scheduler/**/program.bc
-testsuite/systemtest/bintools/Scheduler/**/program.bc
+testsuite/**/proge-output
+testsuite/systemtest_long/**/program.bc
 vgcore*
 
 # Keep these files (not generated, so we need them in the repo)
