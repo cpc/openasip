@@ -541,6 +541,7 @@ Environment::osalPaths() {
         DS + "custom";
     // search path taken from environment
     string envPath = Environment::environmentVariable("TCE_OSAL_PATH");
+    envPath = FileSystem::absolutePathOf(envPath);
     // as a last resort fall-back, operations are always searched in
     // in current working directory
     string cwd = FileSystem::currentWorkingDir();
