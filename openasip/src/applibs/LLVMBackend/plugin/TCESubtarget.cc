@@ -74,7 +74,6 @@ TCESubtarget::TCESubtarget(TCETargetMachinePlugin* plugin)
       pluginFile_(BackendPluginFile),
       plugin_(plugin),
       InstrItins(getInstrItineraryForCPU("generic")) {
-    assert(&InstrItins != nullptr && "IstrItins nullptr");
     assert(InstrItins.Itineraries != nullptr && "IstrItins not initialized");
 }
 
