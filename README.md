@@ -278,7 +278,7 @@ The package is named 'libedit-dev' in Debian-based distributions.
 
 Boost
 -----
-The development files of the following Boost libraries are required by OpenASIP:
+The development files of the following Boost libraries are required by OpenASIP:<br>
 . regexp,<br>
 . spirit,<br>
 . filesystem,<br>
