@@ -3,6 +3,7 @@
 
 Notable changes and features
 ----------------------------
+- Added support for LLVM 15.
 - Experimental RISC-V support:
   - Generate RISC-V ASIPs with custom instruction set extensions
     (see the RISC-V Tutorial in manual for usage).
@@ -25,7 +26,16 @@ Notable changes and features
     added to ADF. This indicates that the first index of the register file is
     hardcoded to a zero value and thus can be utilized as the zero immediate
     value.
-- RTL generation generation code has been unified.
+- DAG syntax changes:
+  - New "Var" and "OP" keywords that can be used alongside "SimValue"
+    and "EXEC_OPERATION".
+- AlmaIFV2:
+  - Hardware generation support for AlmaIFV2 was added.
+  - Read more on the following publication:
+    Topi Leppänen, Panagiotis Mousouliotis, Georgios Keramidas, Joonas Multanen, Pekka Jääskeläinen:"Unified OpenCL Integration Methodology for FPGA Designs",
+    in NorCAS 2021: IEEE Nordic Circuits and Systems Conference
+
+- RTL generation code has been unified.
 - oacc --data-start can be used to redefine the global data
   starting address in the default address space.
 - Program Image Generation supports Bin2n-format, which is a binary format
