@@ -146,10 +146,6 @@ OperationDialog::initialize() {
     // Resource grid.
     resourceGrid_->EnableEditing(false);
     resourceGrid_->SetDefaultCellAlignment(wxALIGN_CENTRE, wxALIGN_CENTRE);
-    resourceGrid_->SetDefaultCellBackgroundColour(
-        wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    resourceGrid_->SetSelectionBackground(ProDeConstants::WHITE_COLOR);
-    resourceGrid_->SetSelectionForeground(ProDeConstants::BLACK_COLOR);
     resourceGrid_->DisableDragColSize();
     resourceGrid_->DisableDragRowSize();
 
@@ -157,7 +153,6 @@ OperationDialog::initialize() {
     usageGrid_->EnableEditing(false);
     usageGrid_->DisableDragColSize();
     usageGrid_->DisableDragRowSize();
-    usageGrid_->SetDefaultCellBackgroundColour(ProDeConstants::WHITE_COLOR);
 
     latencyText_ = dynamic_cast<wxStaticText*>(FindWindow(ID_LATENCY));
 }
