@@ -265,7 +265,6 @@ BUBasicBlockScheduler::handleLoopDDG(
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
     minCycle_ = 0;
-    schedulingTime_.restart();
 
     if (renamer_ != NULL) {
         renamer_->initialize(ddg);
