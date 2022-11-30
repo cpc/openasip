@@ -484,28 +484,14 @@ HDBManager::HDBManager(const std::string& hdbFile)
             // rename default_vhdl and default_verilog to initial_*
             // and add latency column
             dbConnection_->updateQuery(std::string(
-                "ALTER TABLE operation_implementation RENAME TO "
-                "operation_implementation_old"));
+                "ALTER TABLE operation_implementation ADD COLUMN "
+                "latency INTEGER;"));
             dbConnection_->updateQuery(std::string(
-                "CREATE TABLE operation_implementation ( "
-                "id INTEGER PRIMARY KEY, "
-                "latency INTEGER, "
-                "name TEXT NOT NULL, "
-                "bus_definition TEXT, "
-                "post_op_vhdl TEXT, "
-                "post_op_verilog TEXT, "
-                "initial_vhdl TEXT, "
-                "initial_verilog TEXT)"));
+                "ALTER TABLE operation_implementation RENAME COLUMN "
+                "default_vhdl TO initial_vhdl;"));
             dbConnection_->updateQuery(std::string(
-                "INSERT INTO operation_implementation "
-                    "(id, name, bus_definition, post_op_vhdl, post_op_verilog, "
-                    "initial_vhdl, initial_verilog) "
-                "SELECT id, name, bus_definition, post_op_vhdl, post_op_verilog, "
-                       "default_vhdl, default_verilog "
-                "FROM operation_implementation_old"));
-            dbConnection_->updateQuery(std::string(
-                "DROP TABLE operation_implementation_old"));
-
+                "ALTER TABLE operation_implementation RENAME COLUMN "
+                "default_verilog TO initial_verilog;"));
             dbConnection_->updateVersion(6);
         } catch (const RelationalDBException& exception) {
             throw IOException(
