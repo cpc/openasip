@@ -243,7 +243,7 @@ ProGeScriptGenerator::generateGhdlCompile() {
     stream << "fi" << endl;
 
     stream << endl;
-    string program = "ghdl -i --workdir=" + workDir_;
+    string program = "ghdl -i --std=08 --workdir=" + workDir_;
     string exitOnFailure = " || exit 1";
     outputScriptCommands(stream, vhdlFiles_, program, exitOnFailure);
 
@@ -255,7 +255,7 @@ ProGeScriptGenerator::generateGhdlCompile() {
 
     stream << endl;
     // compile command for ghdl
-    stream << "ghdl -m --workdir=" << workDir_ 
+    stream << "ghdl -m --std=08 --workdir=" << workDir_ 
            << " --ieee=synopsys -fexplicit " << testbenchName_ << endl;
 
     stream << "exit 0" << endl;
@@ -358,7 +358,7 @@ ProGeScriptGenerator::generateGhdlSimulate() {
            << " --stop-time=${runtime}ns" << endl
            << "else" << endl
            << "    # Newer GHDL versions does not produce binary." << endl
-           << "    ghdl -r --workdir=work --ieee=synopsys " << testbenchName_
+           << "    ghdl -r --std=08 --workdir=work --ieee=synopsys " << testbenchName_
            << "  --stop-time=${runtime}ns --ieee-asserts=disable-at-0" << endl
            << "fi" << endl;
 

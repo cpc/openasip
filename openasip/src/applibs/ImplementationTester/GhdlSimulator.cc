@@ -91,7 +91,7 @@ bool GhdlSimulator::simulate(std::vector<std::string>& errors) {
     } else {
         // In the latest GHDL no executable is produces, thus the simulation
         // command is different.
-        command = string("ghdl -r --ieee=synopsys --workdir=") + workDir()
+        command = string("ghdl -r --std=08 --ieee=synopsys --workdir=") + workDir()
             + " testbench  2>&1";
     }
     if (verbose()) {
@@ -107,7 +107,7 @@ bool GhdlSimulator::simulate(std::vector<std::string>& errors) {
 bool 
 GhdlSimulator::importFile(
     std::string file, std::vector<std::string>& errors) {
-    string command = "ghdl  -i --ieee=synopsys --workdir=" 
+    string command = "ghdl  -i --std=08 --ieee=synopsys --workdir=" 
         + workDir() + " " + file + " 2>&1";
     if (verbose()) {
         // TODO: get output stream
@@ -118,7 +118,7 @@ GhdlSimulator::importFile(
 }
 
 bool GhdlSimulator::compileDesign(std::vector<std::string>& errors) {
-    string command = "ghdl  -m --ieee=synopsys --workdir=" 
+    string command = "ghdl  -m --std=08 --ieee=synopsys --workdir=" 
         + workDir() + " testbench 2>&1";
     if (verbose()) {
         // TODO: get output stream
