@@ -407,8 +407,8 @@ FUTestbenchGenerator::createTbCode() {
             << "_data(current_cycle)" << std::endl
             << INDENT INDENT INDENT INDENT 
             << "report lf & \"TCE Assert: Verification failed at cycle \" "
-            << "& integer'image(current_cycle)" << std::endl
-            << INDENT INDENT INDENT INDENT <<"& \" output: \" "
+            << "& integer'image(current_cycle) & \" for output " << i << "\"" << std::endl
+            << INDENT INDENT INDENT INDENT <<"& \" actual: \" "
             << "& to_hstring(" << hwDataPortName << ")" 
             << std::endl
             << INDENT INDENT INDENT INDENT << "& " 
