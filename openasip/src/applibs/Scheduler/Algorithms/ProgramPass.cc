@@ -73,11 +73,11 @@ void
 ProgramPass::executeProcedurePass(
     TTAProgram::Program& program, const TTAMachine::Machine& targetMachine,
     ProcedurePass& procedurePass) {
-  auto totalTimeStart = std::chrono::steady_clock::now();
+    auto totalTimeStart = std::chrono::steady_clock::now();
 
-  FunctionNameList proceduresToProcess, proceduresToIgnore;
-  if (procedurePass.interPassData().hasDatum("FUNCTIONS_TO_PROCESS")) {
-    proceduresToProcess = dynamic_cast<FunctionNameList &>(
+    FunctionNameList proceduresToProcess, proceduresToIgnore;
+    if (procedurePass.interPassData().hasDatum("FUNCTIONS_TO_PROCESS")) {
+      proceduresToProcess = dynamic_cast<FunctionNameList &>(
         procedurePass.interPassData().datum("FUNCTIONS_TO_PROCESS"));
     } else if (procedurePass.interPassData().hasDatum("FUNCTIONS_TO_IGNORE")) {
         proceduresToIgnore = 
