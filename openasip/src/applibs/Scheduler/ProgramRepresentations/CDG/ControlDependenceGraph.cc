@@ -32,11 +32,10 @@
  * @note rating: red
  */
 
-#include <iostream>
-
 #include <algorithm>
 #include <chrono>
 #include <functional>
+#include <iostream>
 #include <list>
 #include <map>
 #include <vector>
@@ -369,7 +368,7 @@ ControlDependenceGraph::createPostDominanceTree(
     revGraph_ = &cGraph_->reversedGraph();
 
     bool modified = false;
-    int counter = 0; // NOLINT Disable claim this is unused
+    int counter = 0;  // NOLINT Disable claim this is unused
     std::vector<ControlFlowEdge*> addedEdges;
     BasicBlockNode& cfgExitNode = cGraph_->exitNode();
     do {
@@ -762,8 +761,8 @@ ControlDependenceGraph::analyzeCDG() {
     /// of each component
     int componentCount = detectStrongComponents(componentMap, rootMap);
     long elapsed = std::chrono::duration_cast<std::chrono::seconds>(
-                  std::chrono::steady_clock::now() - timer)
-                  .count();
+                       std::chrono::steady_clock::now() - timer)
+                       .count();
     if (Application::verboseLevel() > DEBUG_LEVEL) {
         Application::logStream() << (boost::format(
         "\t\tStrong components: %d components, %d minutes and %d seconds.\n")
@@ -781,7 +780,7 @@ ControlDependenceGraph::analyzeCDG() {
     /// boost::on_finish_vertex will give us post order numbering
     boost::time_stamper<CDGOrder, int, boost::on_finish_vertex>
         lastOrderStamper(lastOrder, fStamp);
-    timer = std::chrono::steady_clock::now(); // restart
+    timer = std::chrono::steady_clock::now();  // restart
     /// Sort nodes in post order, starting from entry node
     boost::depth_first_visit(
         graph_, descriptor(entryNode()),
@@ -795,7 +794,7 @@ ControlDependenceGraph::analyzeCDG() {
             % (elapsed/60) % (elapsed%60)).str();
     }
 
-    timer = std::chrono::steady_clock::now(); // restart
+    timer = std::chrono::steady_clock::now();  // restart
     /// Computes "region" information, for each node X, set of nodes that are
     /// executed when X is executed (for node Z, on all paths from X to entry,
     /// if node Z is region all children of Z will be in "region" of X
@@ -809,7 +808,7 @@ ControlDependenceGraph::analyzeCDG() {
             % (elapsed/60) % (elapsed%60)).str();
     }
 
-    timer = std::chrono::steady_clock::now(); // restart
+    timer = std::chrono::steady_clock::now();  // restart
     /// Computes "eec" information, for each node X, set of nodes that are
     /// executed when any node in subgraph of X is executed, computed using
     /// region information
@@ -823,7 +822,7 @@ ControlDependenceGraph::analyzeCDG() {
             % (elapsed/60) % (elapsed%60)).str();
     }
     analyzed_ = true;
-    timer = std::chrono::steady_clock::now(); // restart
+    timer = std::chrono::steady_clock::now();  // restart
 #if 0
     // This is really not needed, just for comparing with PDG edge generation
     // if necessary

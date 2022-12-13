@@ -72,7 +72,7 @@ UntilCommand::~UntilCommand() {
  * @exception NumberFormatException Is never thrown by this command.
  */
 bool
-UntilCommand::execute(const std::vector<DataObject>& arguments) {    
+UntilCommand::execute(const std::vector<DataObject>& arguments) {
     const int argumentCount = arguments.size() - 1;
     if (!checkArgumentCount(argumentCount, 0, 1)) {
         return false;

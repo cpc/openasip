@@ -34,14 +34,14 @@
 #define PIPELINE_RESOURCE_MODEL_BENCHMARK_TEST_HH
 
 #include <TestSuite.h>
-#include <string>
-#include <fstream>
-#include <chrono>
 
-#include "Machine.hh"
-#include "ReservationTableFUResourceConflictDetector.hh"
+#include <chrono>
+#include <fstream>
+#include <string>
+
 #include "DCMFUResourceConflictDetector.hh"
 #include "FSAFUResourceConflictDetector.hh"
+#include "Machine.hh"
 #include "ReservationTableFUResourceConflictDetector.hh"
 
 class PipelineResourceModelBenchMarkTest : public CxxTest::TestSuite {
@@ -77,34 +77,33 @@ PipelineResourceModelBenchMarkTest::PipelineResourceModelBenchMarkTest() :
 
 #include <cfloat>
 
-#define INIT_DETECTOR(DETECTOR__, FU__, CODE__) {       \
-    double total = 0.0;\
-    double best = DBL_MAX;\
-    double worst = 0.0;\
-    for (int round = 0; round < INITIALIZATION_ROUNDS; ++round) {\
-        auto timer = std::chrono::steady_clock::now(); \
-        for (int i = 0; i < INITIALIZATION_COUNT; ++i) {\
-            DETECTOR__ d(*FU__);                        \
-            CODE__;\
-        }\
-        double val = std::chrono::duration_cast<std::chrono::seconds>( \
-                  std::chrono::steady_clock::now() - timer) \
-                  .count();\
-        Application::logStream() \
-            << #FU__ << " round " << round << ": " << val << " s (" \
-            << val / INITIALIZATION_COUNT << " on avg)" << std::endl;\
-        if (val > worst)\
-            worst = val;\
-        if (val < best)\
-            best = val;\
-        total += val;\
-    }\
-\
-    Application::logStream()\
-        << "=== best: " << best << " worst: " << worst\
-        << " average: " << total / INITIALIZATION_ROUNDS\
-        << std::endl << std::endl;\
-}
+#define INIT_DETECTOR(DETECTOR__, FU__, CODE__)                            \
+    {                                                                      \
+        double total = 0.0;                                                \
+        double best = DBL_MAX;                                             \
+        double worst = 0.0;                                                \
+        for (int round = 0; round < INITIALIZATION_ROUNDS; ++round) {      \
+            auto timer = std::chrono::steady_clock::now();                 \
+            for (int i = 0; i < INITIALIZATION_COUNT; ++i) {               \
+                DETECTOR__ d(*FU__);                                       \
+                CODE__;                                                    \
+            }                                                              \
+            double val = std::chrono::duration_cast<std::chrono::seconds>( \
+                             std::chrono::steady_clock::now() - timer)     \
+                             .count();                                     \
+            Application::logStream()                                       \
+                << #FU__ << " round " << round << ": " << val << " s ("    \
+                << val / INITIALIZATION_COUNT << " on avg)" << std::endl;  \
+            if (val > worst) worst = val;                                  \
+            if (val < best) best = val;                                    \
+            total += val;                                                  \
+        }                                                                  \
+                                                                           \
+        Application::logStream()                                           \
+            << "=== best: " << best << " worst: " << worst                 \
+            << " average: " << total / INITIALIZATION_ROUNDS << std::endl  \
+            << std::endl;                                                  \
+    }
 
 #define INIT(CLASS__, ADDITIONAL_CODE__) \
     Application::logStream() \
@@ -133,38 +132,38 @@ PipelineResourceModelBenchMarkTest::testInitialization() {
 #endif
 }
 
-#define SIMULATE_DETECTOR(DETECTOR__, FU__, CODE__, ISSUE__) {  \
-    double total = 0.0;                                     \
-    double best = DBL_MAX;\
-    double worst = 0.0;\
-    const int operations = FU__->operationCount();      \
-    for (int round = 0; round < SIMULATION_ROUNDS; ++round) {\
-        DETECTOR__ d(*FU__);                                 \
-        CODE__;                                              \
-        auto timer = std::chrono::steady_clock::now(); \
-        for (unsigned i = 0; i < SIMULATED_OPERATION_COUNT; ++i) {\
-            const int op = i % (operations); \
-            d.ISSUE__(op);\
-            d.advanceCycleInline();\
-        }                                                               \
-        double val = std::chrono::duration_cast<std::chrono::seconds>(  \
-                  std::chrono::steady_clock::now() - timer)             \
-                  .count();                                             \
-        Application::logStream()                                        \
-        << #FU__ << " round " << round << ": " << val << " s ("         \
-        << SIMULATED_OPERATION_COUNT/(val*1e6) << " Mops)" << std::endl; \
-        if (val > worst)\
-            worst = val;\
-        if (val < best)\
-            best = val;\
-        total += val;\
-    }\
-\
-    Application::logStream()\
-        << "=== best: " << best << " worst: " << worst\
-        << " average: " << total / SIMULATION_ROUNDS\
-        << std::endl << std::endl;\
-}
+#define SIMULATE_DETECTOR(DETECTOR__, FU__, CODE__, ISSUE__)               \
+    {                                                                      \
+        double total = 0.0;                                                \
+        double best = DBL_MAX;                                             \
+        double worst = 0.0;                                                \
+        const int operations = FU__->operationCount();                     \
+        for (int round = 0; round < SIMULATION_ROUNDS; ++round) {          \
+            DETECTOR__ d(*FU__);                                           \
+            CODE__;                                                        \
+            auto timer = std::chrono::steady_clock::now();                 \
+            for (unsigned i = 0; i < SIMULATED_OPERATION_COUNT; ++i) {     \
+                const int op = i % (operations);                           \
+                d.ISSUE__(op);                                             \
+                d.advanceCycleInline();                                    \
+            }                                                              \
+            double val = std::chrono::duration_cast<std::chrono::seconds>( \
+                             std::chrono::steady_clock::now() - timer)     \
+                             .count();                                     \
+            Application::logStream()                                       \
+                << #FU__ << " round " << round << ": " << val << " s ("    \
+                << SIMULATED_OPERATION_COUNT / (val * 1e6) << " Mops)"     \
+                << std::endl;                                              \
+            if (val > worst) worst = val;                                  \
+            if (val < best) best = val;                                    \
+            total += val;                                                  \
+        }                                                                  \
+                                                                           \
+        Application::logStream()                                           \
+            << "=== best: " << best << " worst: " << worst                 \
+            << " average: " << total / SIMULATION_ROUNDS << std::endl      \
+            << std::endl;                                                  \
+    }
 
 #define SIMULATE(CLASS__, ADDITIONAL_CODE__, ISSUE__)   \
     Application::logStream() \

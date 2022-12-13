@@ -31,8 +31,8 @@
  * @note rating: red
  */
 
-#include <utility>
 #include <chrono>
+#include <utility>
 
 // include this before boost to avoid deprecation
 // warnings
@@ -419,8 +419,8 @@ ProgramDependenceGraph::serializePDG() {
         int componentCount = detectStrongComponents(
             componentMap, rootMap, filteredCDG);
         elapsed = std::chrono::duration_cast<std::chrono::seconds>(
-                  std::chrono::steady_clock::now() - timer)
-                  .count();
+                      std::chrono::steady_clock::now() - timer)
+                      .count();
         if (Application::verboseLevel() > DEBUG_LEVEL) {
             Application::logStream() << (boost::format(
             "\t\tStrong components:%d components, %d minutes and %d seconds.\n")
@@ -438,7 +438,7 @@ ProgramDependenceGraph::serializePDG() {
     /// boost::on_finish_vertex will give us post order numbering
     boost::time_stamper<PDGOrder, int, boost::on_finish_vertex>
         lastOrderStamper(lastOrder, fStamp);
-    timer = std::chrono::steady_clock::now(); // restart
+    timer = std::chrono::steady_clock::now();  // restart
     /// Computes post order of all the nodes in PDG
     boost::depth_first_visit(
         filteredCDG, descriptor(entryNode()),
@@ -454,11 +454,11 @@ ProgramDependenceGraph::serializePDG() {
     /// If not computed on CDG and copied, computes 'region' information for
     /// all nodes of a graph
     if (!cdg_->analyzed()) {
-        timer = std::chrono::steady_clock::now(); // restart
+        timer = std::chrono::steady_clock::now();  // restart
         computeRegionInfo(lastMap, filteredCDG);
         elapsed = std::chrono::duration_cast<std::chrono::seconds>(
-                  std::chrono::steady_clock::now() - timer)
-                  .count();
+                      std::chrono::steady_clock::now() - timer)
+                      .count();
         if (Application::verboseLevel() > DEBUG_LEVEL) {
             Application::logStream() << (boost::format(
                 "\t\tRegion: %d minutes and %d seconds.\n")
@@ -466,11 +466,11 @@ ProgramDependenceGraph::serializePDG() {
         }
         /// If not computed on CDG and copied, computes 'eec' information for
         /// all nodes of a graph
-        timer = std::chrono::steady_clock::now(); // restart
+        timer = std::chrono::steady_clock::now();  // restart
         computeEECInfo(lastMap, filteredCDG);
         elapsed = std::chrono::duration_cast<std::chrono::seconds>(
-                  std::chrono::steady_clock::now() - timer)
-                  .count();
+                      std::chrono::steady_clock::now() - timer)
+                      .count();
         if (Application::verboseLevel() > DEBUG_LEVEL) {
             Application::logStream() << (boost::format(
                 "\t\tEEC: %d minutes and %d seconds.\n")
@@ -478,7 +478,7 @@ ProgramDependenceGraph::serializePDG() {
         }
     }
 
-    timer = std::chrono::steady_clock::now(); // restart
+    timer = std::chrono::steady_clock::now();  // restart
     /// If CDG comes analyzed we need to add region and eec info for
     /// dummy ENTRYNODE of DDG. By it's definition, ENTRYNODE is leaf
     /// in terms of control dependence, region == eec
