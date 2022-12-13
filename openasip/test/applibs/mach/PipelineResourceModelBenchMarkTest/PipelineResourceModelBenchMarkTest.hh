@@ -36,7 +36,7 @@
 #include <TestSuite.h>
 #include <string>
 #include <fstream>
-#include <boost/timer.hpp>
+#include <chrono>
 
 #include "Machine.hh"
 #include "ReservationTableFUResourceConflictDetector.hh"
@@ -82,12 +82,14 @@ PipelineResourceModelBenchMarkTest::PipelineResourceModelBenchMarkTest() :
     double best = DBL_MAX;\
     double worst = 0.0;\
     for (int round = 0; round < INITIALIZATION_ROUNDS; ++round) {\
-        boost::timer t; \
+        auto timer = std::chrono::steady_clock::now(); \
         for (int i = 0; i < INITIALIZATION_COUNT; ++i) {\
             DETECTOR__ d(*FU__);                        \
             CODE__;\
         }\
-        double val = t.elapsed();\
+        double val = std::chrono::duration_cast<std::chrono::seconds>( \
+                  std::chrono::steady_clock::now() - timer) \
+                  .count();\
         Application::logStream() \
             << #FU__ << " round " << round << ": " << val << " s (" \
             << val / INITIALIZATION_COUNT << " on avg)" << std::endl;\
@@ -119,7 +121,7 @@ void
 PipelineResourceModelBenchMarkTest::testInitialization() {
 #if defined(BENCHMARKING_ENABLED) && defined(INIT_BENCHMARK)
 
-    boost::timer t;
+    auto timer = std::chrono::steady_clock::now();
     Application::logStream() 
         << "INITIALIZATION_ROUNDS " << INITIALIZATION_ROUNDS << std::endl
         << "INITIALIZATION_COUNT " << INITIALIZATION_COUNT << std::endl;
@@ -139,13 +141,15 @@ PipelineResourceModelBenchMarkTest::testInitialization() {
     for (int round = 0; round < SIMULATION_ROUNDS; ++round) {\
         DETECTOR__ d(*FU__);                                 \
         CODE__;                                              \
-        boost::timer t; \
+        auto timer = std::chrono::steady_clock::now(); \
         for (unsigned i = 0; i < SIMULATED_OPERATION_COUNT; ++i) {\
             const int op = i % (operations); \
             d.ISSUE__(op);\
             d.advanceCycleInline();\
         }                                                               \
-        double val = t.elapsed();                                       \
+        double val = std::chrono::duration_cast<std::chrono::seconds>(  \
+                  std::chrono::steady_clock::now() - timer)             \
+                  .count();                                             \
         Application::logStream()                                        \
         << #FU__ << " round " << round << ": " << val << " s ("         \
         << SIMULATED_OPERATION_COUNT/(val*1e6) << " Mops)" << std::endl; \

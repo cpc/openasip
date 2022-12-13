@@ -430,7 +430,7 @@ FUStateTest::testMemoryAccessingFUState() {
 
 #ifdef CONFLICT_DETECTOR_BENCHMARK 
 
-#include <boost/timer.hpp>
+#include <chrono>
 #include <iostream>
 
 #define INIT_COUNT 100000
@@ -439,7 +439,7 @@ FUStateTest::testMemoryAccessingFUState() {
 #define BENCHMARK_INIT(FU_MACH, CREATE_DETECTOR) \
     std::cout.flush(); \
 \
-    t.restart(); \
+    timer = std::chrono::steady_clock::now();  \
     for (int count = 0; count < INIT_COUNT; ++count) {\
         FUConflictDetectorIndex detectors;\
         MachineStateBuilder builder;\
@@ -450,14 +450,16 @@ FUStateTest::testMemoryAccessingFUState() {
         delete builder.build(srcMach, memSys, detectors, false);\
         delete detector;\
     }\
-    last = t.elapsed();\
+    last = std::chrono::duration_cast<std::chrono::seconds>( \
+                  std::chrono::steady_clock::now() - timer) \
+                  .count();\
     std::cout << last << "s ";\
     std::cout.flush()
 
 #define BENCHMARK_INITIALIZATION(FU_MACH, CREATE_DETECTOR) {\
     std::cout \
         << "Initializing " #FU_MACH " " << INIT_COUNT << " times..."; \
-    boost::timer t;\
+    auto timer = std::chrono::steady_clock::now(); \
     double best = DBL_MAX;\
     double last = 0.0;\
     const TTAMachine::Machine& srcMach = *FU_MACH##Mach;\
@@ -538,7 +540,7 @@ FUStateTest::benchmarkInitLazyFSA() {
     {\
         std::cout \
             << "Executing operations in " #FU_MACH " " << EXEC_COUNT << " times..."; \
-        boost::timer t;\
+        auto timer = std::chrono::steady_clock::now();\
         std::cout.flush();\
         double best = DBL_MAX;\
         double last = 0.0;\
@@ -575,14 +577,16 @@ FUStateTest::benchmarkInitLazyFSA() {
                execMoves.push_back(new BuslessExecutableMove(immediateSource, port));\
             }\
 \
-            t.restart();\
+            timer = std::chrono::steady_clock::now(); \
             for (int i = 0; i < EXEC_COUNT; ++i) {\
                 execMoves.at(i % execMoves.size())->executeWrite();\
                 fuState.endClock();\
                 fuState.advanceClock();\
             }\
 \
-            last = t.elapsed();\
+            last = std::chrono::duration_cast<std::chrono::seconds>( \
+                  std::chrono::steady_clock::now() - timer) \
+                  .count();\
 \
             std::cout << last << "s ";\
             std::cout.flush();\
