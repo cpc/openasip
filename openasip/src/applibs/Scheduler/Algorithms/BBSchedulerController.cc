@@ -35,8 +35,6 @@
 #include <string>
 #include <cstdlib>
 
-#include <boost/timer.hpp>
-
 #include "BBSchedulerController.hh"
 #include "ControlFlowGraph.hh"
 #include "DataDependenceGraph.hh"

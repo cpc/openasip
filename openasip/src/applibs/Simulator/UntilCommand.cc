@@ -43,7 +43,6 @@
 #include "Procedure.hh"
 
 #include <iostream>
-#include <boost/timer.hpp>
 
 /**
  * Constructor.
@@ -74,8 +73,6 @@ UntilCommand::~UntilCommand() {
  */
 bool
 UntilCommand::execute(const std::vector<DataObject>& arguments) {
-    boost::timer time;
-    
     const int argumentCount = arguments.size() - 1;
     if (!checkArgumentCount(argumentCount, 0, 1)) {
         return false;

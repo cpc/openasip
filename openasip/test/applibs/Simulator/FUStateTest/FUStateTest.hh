@@ -428,50 +428,53 @@ FUStateTest::testMemoryAccessingFUState() {
     TS_ASSERT_EQUALS(output.value().intValue(), 10);
 }
 
-#ifdef CONFLICT_DETECTOR_BENCHMARK 
+#ifdef CONFLICT_DETECTOR_BENCHMARK
 
-#include <boost/timer.hpp>
+#include <chrono>
 #include <iostream>
 
 #define INIT_COUNT 100000
 #define EXEC_COUNT 10000000
 
-#define BENCHMARK_INIT(FU_MACH, CREATE_DETECTOR) \
-    std::cout.flush(); \
-\
-    t.restart(); \
-    for (int count = 0; count < INIT_COUNT; ++count) {\
-        FUConflictDetectorIndex detectors;\
-        MachineStateBuilder builder;\
-        FUResourceConflictDetector* detector = CREATE_DETECTOR;\
-        if (detector != NULL) detectors[#FU_MACH] = detector;\
-        MemorySystem memSys(srcMach);\
-\
-        delete builder.build(srcMach, memSys, detectors, false);\
-        delete detector;\
-    }\
-    last = t.elapsed();\
-    std::cout << last << "s ";\
+#define BENCHMARK_INIT(FU_MACH, CREATE_DETECTOR)                 \
+    std::cout.flush();                                           \
+                                                                 \
+    timer = std::chrono::steady_clock::now();                    \
+    for (int count = 0; count < INIT_COUNT; ++count) {           \
+        FUConflictDetectorIndex detectors;                       \
+        MachineStateBuilder builder;                             \
+        FUResourceConflictDetector* detector = CREATE_DETECTOR;  \
+        if (detector != NULL) detectors[#FU_MACH] = detector;    \
+        MemorySystem memSys(srcMach);                            \
+                                                                 \
+        delete builder.build(srcMach, memSys, detectors, false); \
+        delete detector;                                         \
+    }                                                            \
+    last = std::chrono::duration_cast<std::chrono::seconds>(     \
+               std::chrono::steady_clock::now() - timer)         \
+               .count();                                         \
+    std::cout << last << "s ";                                   \
     std::cout.flush()
 
-#define BENCHMARK_INITIALIZATION(FU_MACH, CREATE_DETECTOR) {\
-    std::cout \
-        << "Initializing " #FU_MACH " " << INIT_COUNT << " times..."; \
-    boost::timer t;\
-    double best = DBL_MAX;\
-    double last = 0.0;\
-    const TTAMachine::Machine& srcMach = *FU_MACH##Mach;\
-    const TTAMachine::FunctionUnit& fu = \
-        *srcMach.functionUnitNavigator().item(0); \
-\
-    for (int i = 0; i < 3; ++i) {\
-        BENCHMARK_INIT(FU_MACH, CREATE_DETECTOR);\
-        best = std::min(best, last);\
-    }\
-\
-    std::cout \
-      << " best=" << best << " average=" << best/INIT_COUNT << std::endl;}
-
+#define BENCHMARK_INITIALIZATION(FU_MACH, CREATE_DETECTOR)                \
+    {                                                                     \
+        std::cout << "Initializing " #FU_MACH " " << INIT_COUNT           \
+                  << " times...";                                         \
+        auto timer = std::chrono::steady_clock::now();                    \
+        double best = DBL_MAX;                                            \
+        double last = 0.0;                                                \
+        const TTAMachine::Machine& srcMach = *FU_MACH##Mach;              \
+        const TTAMachine::FunctionUnit& fu =                              \
+            *srcMach.functionUnitNavigator().item(0);                     \
+                                                                          \
+        for (int i = 0; i < 3; ++i) {                                     \
+            BENCHMARK_INIT(FU_MACH, CREATE_DETECTOR);                     \
+            best = std::min(best, last);                                  \
+        }                                                                 \
+                                                                          \
+        std::cout << " best=" << best << " average=" << best / INIT_COUNT \
+                  << std::endl;                                           \
+    }
 
 /**
  * Bechmark the different conflict detection models.
@@ -533,70 +536,72 @@ FUStateTest::benchmarkInitLazyFSA() {
     BENCHMARK_INITIALIZATION(fpu, CREATOR_LFSA);
 }
 
-
-#define BENCHMARK_SIMULATION(FU_MACH, CREATE_DETECTOR) \
-    {\
-        std::cout \
-            << "Executing operations in " #FU_MACH " " << EXEC_COUNT << " times..."; \
-        boost::timer t;\
-        std::cout.flush();\
-        double best = DBL_MAX;\
-        double last = 0.0;\
-        const TTAMachine::Machine& srcMach = *FU_MACH##Mach;\
-        const TTAMachine::FunctionUnit& fu = \
-           *srcMach.functionUnitNavigator().item(0); \
-\
-        for (int repeat = 0; repeat < 3; ++repeat) {\
-            FUConflictDetectorIndex detectors;\
-            MachineStateBuilder builder;\
-            FUResourceConflictDetector* detector = CREATE_DETECTOR;\
-            if (detector != NULL) detectors[#FU_MACH] = detector;\
-            MemorySystem memSys(srcMach);\
-\
-            MachineState* msm = NULL;\
-            CATCH_ANY(msm = builder.build(srcMach, memSys, detectors, false));\
-            FUState& fuState = msm->fuState(#FU_MACH);\
-\
-            std::vector<ExecutableMove*> execMoves;\
-            for (int i = 0; i < FU_MACH##Operations.size(); ++i) {\
-                InlineImmediateValue* immediateSource = \
-                    new InlineImmediateValue(1);\
-               int immediate = 1;\
-               SimValue val(immediate, 1);\
-               immediateSource->setValue(val);\
-\
-               Operation* op = FU_MACH##Operations.at(i);\
-               assert(op != NULL);\
-               std::string portName = \
-                   std::string("t.") + StringTools::stringToLower(op->name());\
-               PortState& port = msm->portState(\
-                   portName, #FU_MACH);\
-               assert(&port != &NullPortState::instance());\
-               execMoves.push_back(new BuslessExecutableMove(immediateSource, port));\
-            }\
-\
-            t.restart();\
-            for (int i = 0; i < EXEC_COUNT; ++i) {\
-                execMoves.at(i % execMoves.size())->executeWrite();\
-                fuState.endClock();\
-                fuState.advanceClock();\
-            }\
-\
-            last = t.elapsed();\
-\
-            std::cout << last << "s ";\
-            std::cout.flush();\
-\
-            delete detector;\
-            delete msm;\
-            AssocTools::deleteAllItems(execMoves);\
-\
-            best = std::min(best, last);\
-        }\
-\
-        std::cout \
-            << " best=" << best << " average=" << best/EXEC_COUNT << std::endl;\
-\
+#define BENCHMARK_SIMULATION(FU_MACH, CREATE_DETECTOR)                     \
+    {                                                                      \
+        std::cout << "Executing operations in " #FU_MACH " " << EXEC_COUNT \
+                  << " times...";                                          \
+        auto timer = std::chrono::steady_clock::now();                     \
+        std::cout.flush();                                                 \
+        double best = DBL_MAX;                                             \
+        double last = 0.0;                                                 \
+        const TTAMachine::Machine& srcMach = *FU_MACH##Mach;               \
+        const TTAMachine::FunctionUnit& fu =                               \
+            *srcMach.functionUnitNavigator().item(0);                      \
+                                                                           \
+        for (int repeat = 0; repeat < 3; ++repeat) {                       \
+            FUConflictDetectorIndex detectors;                             \
+            MachineStateBuilder builder;                                   \
+            FUResourceConflictDetector* detector = CREATE_DETECTOR;        \
+            if (detector != NULL) detectors[#FU_MACH] = detector;          \
+            MemorySystem memSys(srcMach);                                  \
+                                                                           \
+            MachineState* msm = NULL;                                      \
+            CATCH_ANY(                                                     \
+                msm = builder.build(srcMach, memSys, detectors, false));   \
+            FUState& fuState = msm->fuState(#FU_MACH);                     \
+                                                                           \
+            std::vector<ExecutableMove*> execMoves;                        \
+            for (int i = 0; i < FU_MACH##Operations.size(); ++i) {         \
+                InlineImmediateValue* immediateSource =                    \
+                    new InlineImmediateValue(1);                           \
+                int immediate = 1;                                         \
+                SimValue val(immediate, 1);                                \
+                immediateSource->setValue(val);                            \
+                                                                           \
+                Operation* op = FU_MACH##Operations.at(i);                 \
+                assert(op != NULL);                                        \
+                std::string portName =                                     \
+                    std::string("t.") +                                    \
+                    StringTools::stringToLower(op->name());                \
+                PortState& port = msm->portState(portName, #FU_MACH);      \
+                assert(&port != &NullPortState::instance());               \
+                execMoves.push_back(                                       \
+                    new BuslessExecutableMove(immediateSource, port));     \
+            }                                                              \
+                                                                           \
+            timer = std::chrono::steady_clock::now();                      \
+            for (int i = 0; i < EXEC_COUNT; ++i) {                         \
+                execMoves.at(i % execMoves.size())->executeWrite();        \
+                fuState.endClock();                                        \
+                fuState.advanceClock();                                    \
+            }                                                              \
+                                                                           \
+            last = std::chrono::duration_cast<std::chrono::seconds>(       \
+                       std::chrono::steady_clock::now() - timer)           \
+                       .count();                                           \
+                                                                           \
+            std::cout << last << "s ";                                     \
+            std::cout.flush();                                             \
+                                                                           \
+            delete detector;                                               \
+            delete msm;                                                    \
+            AssocTools::deleteAllItems(execMoves);                         \
+                                                                           \
+            best = std::min(best, last);                                   \
+        }                                                                  \
+                                                                           \
+        std::cout << " best=" << best << " average=" << best / EXEC_COUNT  \
+                  << std::endl;                                            \
     }
 
 void

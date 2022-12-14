@@ -32,7 +32,6 @@
  * @note rating: red
  */
 
-#include <boost/timer.hpp>
 #include <sstream>
 #include <fstream>
 #include <algorithm>

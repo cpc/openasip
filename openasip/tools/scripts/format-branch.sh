@@ -13,7 +13,7 @@ if [ ! -d .git ]; then
   fi
 fi
 
-REF_BRANCH=${1:-origin/master}
+REF_BRANCH=${1:-origin/main}
 SCRIPTDIR=openasip/tools/scripts
 
 echo "Diffing against ${REF_BRANCH}..."
@@ -21,7 +21,7 @@ echo "Diffing against ${REF_BRANCH}..."
 PATCHY=/tmp/p.patch
 
 rm -f $PATCHY
-git diff master -U0 --no-color >$PATCHY
+git diff main -U0 --no-color >$PATCHY
 
 $SCRIPTDIR/clang-format-diff.py \
  -regex '(.*(\.hh$|\.cc$|\.c$|\.h$))' \

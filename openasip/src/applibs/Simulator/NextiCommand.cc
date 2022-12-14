@@ -79,8 +79,6 @@ NextiCommand::~NextiCommand() {
  */
 bool
 NextiCommand::execute(const std::vector<DataObject>& arguments) {
-    boost::timer time;    
-
     const int argumentCount = arguments.size() - 1;
     if (!checkArgumentCount(argumentCount, 0, 1)) {
         return false;

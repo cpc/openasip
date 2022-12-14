@@ -32,13 +32,13 @@
  * @note rating: red
  */
 
-#include <iostream>
-
-#include <vector>
 #include <algorithm>
+#include <chrono>
 #include <functional>
+#include <iostream>
 #include <list>
 #include <map>
+#include <vector>
 
 // these need to be included before Boost so we include a working
 // and warning-free hash_map
@@ -48,14 +48,13 @@
 #include "CompilerWarnings.hh"
 IGNORE_CLANG_WARNING("-Wunused-local-typedef")
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
-#include <boost/graph/reverse_graph.hpp>
-#include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/breadth_first_search.hpp>
-#include <boost/graph/properties.hpp>
-#include <boost/graph/strong_components.hpp>
-#include <boost/graph/graph_utility.hpp>
-#include <boost/timer.hpp>
 #include <boost/format.hpp>
+#include <boost/graph/breadth_first_search.hpp>
+#include <boost/graph/depth_first_search.hpp>
+#include <boost/graph/graph_utility.hpp>
+#include <boost/graph/properties.hpp>
+#include <boost/graph/reverse_graph.hpp>
+#include <boost/graph/strong_components.hpp>
 POP_COMPILER_DIAGS
 POP_CLANG_DIAGS
 
@@ -369,7 +368,7 @@ ControlDependenceGraph::createPostDominanceTree(
     revGraph_ = &cGraph_->reversedGraph();
 
     bool modified = false;
-    int counter = 0;
+    int counter = 0;  // NOLINT Disable claim this is unused
     std::vector<ControlFlowEdge*> addedEdges;
     BasicBlockNode& cfgExitNode = cGraph_->exitNode();
     do {
@@ -755,14 +754,15 @@ ControlDependenceGraph::analyzeCDG() {
 
     CDGOrderMap componentMap;
     DescriptorMap rootMap;
-    boost::timer timer;
+    auto timer = std::chrono::steady_clock::now();
     /// Find all strong components (loops) in a graph, loop entry nodes
     /// will have number identifying for which loop component they are entries
     /// and the strongComponents_ will contains all nodes that are part
     /// of each component
-    long elapsed = 0;
     int componentCount = detectStrongComponents(componentMap, rootMap);
-    elapsed = static_cast<long>(timer.elapsed());
+    long elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                       std::chrono::steady_clock::now() - timer)
+                       .count();
     if (Application::verboseLevel() > DEBUG_LEVEL) {
         Application::logStream() << (boost::format(
         "\t\tStrong components: %d components, %d minutes and %d seconds.\n")
@@ -780,48 +780,56 @@ ControlDependenceGraph::analyzeCDG() {
     /// boost::on_finish_vertex will give us post order numbering
     boost::time_stamper<CDGOrder, int, boost::on_finish_vertex>
         lastOrderStamper(lastOrder, fStamp);
-    timer.restart();
+    timer = std::chrono::steady_clock::now();  // restart
     /// Sort nodes in post order, starting from entry node
     boost::depth_first_visit(
         graph_, descriptor(entryNode()),
         boost::make_dfs_visitor(lastOrderStamper), colorsDFS);
-    elapsed = static_cast<long>(timer.elapsed());
+    elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                  std::chrono::steady_clock::now() - timer)
+                  .count();
     if (Application::verboseLevel() > DEBUG_LEVEL) {
         Application::logStream() << (boost::format(
             "\t\tPost order: %d minutes and %d seconds.\n")
             % (elapsed/60) % (elapsed%60)).str();
     }
 
-    timer.restart();
+    timer = std::chrono::steady_clock::now();  // restart
     /// Computes "region" information, for each node X, set of nodes that are
     /// executed when X is executed (for node Z, on all paths from X to entry,
     /// if node Z is region all children of Z will be in "region" of X
     computeRegionInfo(lastMap);
-    elapsed = static_cast<long>(timer.elapsed());
+    elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                  std::chrono::steady_clock::now() - timer)
+                  .count();
     if (Application::verboseLevel() > DEBUG_LEVEL) {
         Application::logStream() << (boost::format(
             "\t\tRegion: %d minutes and %d seconds.\n")
             % (elapsed/60) % (elapsed%60)).str();
     }
 
-    timer.restart();
+    timer = std::chrono::steady_clock::now();  // restart
     /// Computes "eec" information, for each node X, set of nodes that are
     /// executed when any node in subgraph of X is executed, computed using
     /// region information
     computeEECInfo(lastMap);
-    elapsed = static_cast<long>(timer.elapsed());
+    elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                  std::chrono::steady_clock::now() - timer)
+                  .count();
     if (Application::verboseLevel() > DEBUG_LEVEL) {
         Application::logStream() << (boost::format(
             "\t\tEEC: %d minutes and %d seconds.\n")
             % (elapsed/60) % (elapsed%60)).str();
     }
     analyzed_ = true;
-    timer.restart();
+    timer = std::chrono::steady_clock::now();  // restart
 #if 0
     // This is really not needed, just for comparing with PDG edge generation
     // if necessary
     computeRelations(lastMap);
-    elapsed = static_cast<long>(timer.elapsed());
+    elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                  std::chrono::steady_clock::now() - timer)
+                  .count();
     if (Application::verboseLevel() > DEBUG_LEVEL) {
         Application::logStream() << (boost::format(
             "\t\tRelations: %d minutes and %d seconds.\n")

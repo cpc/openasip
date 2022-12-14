@@ -30,17 +30,19 @@
  * @note rating: red
  */
 
-#include <boost/timer.hpp>
-#include <boost/format.hpp>
-
 #include "ProgramPass.hh"
-#include "Program.hh"
-#include "ProcedurePass.hh"
+
+#include <boost/format.hpp>
+#include <chrono>
+#include <ctime>
+
 #include "Application.hh"
-#include "Procedure.hh"
-#include "POMDisassembler.hh"
-#include "InterPassDatum.hh"
 #include "InterPassData.hh"
+#include "InterPassDatum.hh"
+#include "POMDisassembler.hh"
+#include "Procedure.hh"
+#include "ProcedurePass.hh"
+#include "Program.hh"
 
 /**
  * Constructor.
@@ -72,13 +74,12 @@ void
 ProgramPass::executeProcedurePass(
     TTAProgram::Program& program, const TTAMachine::Machine& targetMachine,
     ProcedurePass& procedurePass) {
-    boost::timer totalTime;
+    auto totalTimeStart = std::chrono::steady_clock::now();
 
     FunctionNameList proceduresToProcess, proceduresToIgnore;
     if (procedurePass.interPassData().hasDatum("FUNCTIONS_TO_PROCESS")) {
-        proceduresToProcess = 
-            dynamic_cast<FunctionNameList&>(
-                procedurePass.interPassData().datum("FUNCTIONS_TO_PROCESS"));
+        proceduresToProcess = dynamic_cast<FunctionNameList&>(
+            procedurePass.interPassData().datum("FUNCTIONS_TO_PROCESS"));
     } else if (procedurePass.interPassData().hasDatum("FUNCTIONS_TO_IGNORE")) {
         proceduresToIgnore = 
             dynamic_cast<FunctionNameList&>(
@@ -101,9 +102,8 @@ ProgramPass::executeProcedurePass(
             proceduresToIgnore.find(proc.name()) !=
             proceduresToIgnore.end())
             continue;
-            
 
-        boost::timer currentTime;
+        auto currentTimeStart = std::chrono::steady_clock::now();
         std::size_t totalProcedures = 0;
         if (Application::verboseLevel() > 0) {
 
@@ -124,20 +124,24 @@ ProgramPass::executeProcedurePass(
         ++proceduresDone;
 
         if (Application::verboseLevel() > 0) {
-            double cur = currentTime.elapsed();
-            double tot = totalTime.elapsed();
-            long currentElapsed = static_cast<long>(cur);
-            long totalElapsed = static_cast<long>(tot);
-            long eta = 
-                static_cast<long>(
-                    (tot / proceduresDone) * 
-                    (totalProcedures - proceduresDone));
+            long currentElapsed =
+                std::chrono::duration_cast<std::chrono::seconds>(
+                    std::chrono::steady_clock::now() - currentTimeStart)
+                    .count();
+            long totalElapsed =
+                std::chrono::duration_cast<std::chrono::seconds>(
+                    std::chrono::steady_clock::now() - totalTimeStart)
+                    .count();
+            long eta = static_cast<long>(
+                (totalElapsed / proceduresDone) *
+                (totalProcedures - proceduresDone));
             Application::logStream()
-                << (boost::format(
-                        " %d min %d s. Total %d min %d s. ETA in %d min %d s")
-                    % (currentElapsed / 60) % (currentElapsed % 60)
-                    % (totalElapsed / 60) % (totalElapsed % 60)
-                    % (eta / 60) % (eta % 60)).str()
+                << (boost::format(" %d min %d s. Total %d min %d s. ETA in "
+                                  "%d min %d s") %
+                    (currentElapsed / 60) % (currentElapsed % 60) %
+                    (totalElapsed / 60) % (totalElapsed % 60) % (eta / 60) %
+                    (eta % 60))
+                       .str()
                 << std::endl;
         }
     }
