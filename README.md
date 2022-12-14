@@ -92,29 +92,22 @@ Ubuntu 20.04+ / Debian 11
 &nbsp; tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make \ <br>
 &nbsp; latex2html libffi-dev autoconf automake libtool subversion git cmake graphviz_
 
-Ubuntu 16.04 LTS / 18.04 LTS
-----------------------------
-
-&nbsp; _sudo apt-get install libwxgtk3.0-dev libboost-all-dev \ <br>
-&nbsp; tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make \ <br>
-&nbsp; latex2html libffi-dev autoconf automake libtool subversion git cmake_
-
-Ubuntu 14.04 LTS and older
+Ubuntu 18.04 LTS and older
 --------------------------
 
-Not supported anymore due to GCC version too low (LLVM currently requires 5.1+)
+Not supported anymore due to SQLite version too low (currently requires 3.25+)
 
-Debian 9 / 10
--------------
+Debian 10
+---------
 
 &nbsp; _sudo apt-get install libwxgtk3.0-dev libboost-{filesystem,graph,regex,thread}-dev \ <br>
 &nbsp; tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make latex2html \ <br>
 &nbsp; libffi-dev autoconf automake libtool subversion git cmake_
 
-Debian 8 and older
+Debian 9 and older
 ------------------
 
-Not supported anymore due to GCC version too low (LLVM currently requires 5.1+)
+Not supported anymore due to SQLite version too low (currently requires 3.25+)
 
 Red Hat Enterprise Linux 8 & clones
 -----------------------------------
