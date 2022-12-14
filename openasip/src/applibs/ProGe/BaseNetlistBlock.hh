@@ -27,7 +27,7 @@
  * Declaration of BaseNetlistBlock class.
  *
  * Created on: 20.4.2015
- * @author Henry Linjam‰ki 2015 (henry.linjamaki-no.spam-tut.fi)
+ * @author Henry Linjam√§ki 2015 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 

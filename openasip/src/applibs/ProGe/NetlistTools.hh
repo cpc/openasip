@@ -27,7 +27,7 @@
  * Declaration of NetlistTools class.
  *
  * Created on: 5.5.2015
- * @author: Henry Linjam‰ki (henry.linjamaki-no.spam-tut.fi)
+ * @author: Henry Linjam√§ki (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 

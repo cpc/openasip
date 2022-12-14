@@ -25,7 +25,7 @@
  * @file SignalGroupDefinitions.hh
  *
  * Created on: 3.6.2015
- * @author Henry Linjam‰ki 2015 (henry.linjamaki-no.spam-tut.fi)
+ * @author Henry Linjam√§ki 2015 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
