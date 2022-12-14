@@ -1,6 +1,15 @@
 2.1        unreleased
 =====================
 
+Notable changes and features
+----------------------------
+
+Notable bugfixes
+----------------------------
+- ProDe: Fix operand usage and resource boxes to use default colors propagated
+  from system theme instead of manually setting them to black and white.
+
+>>>>>>> origin/prode-operand-dialog-color
 2.0     November 2022
 =====================
 
