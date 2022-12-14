@@ -1,7 +1,7 @@
 This project is licensed under LPGL v2.1.
 
 Some files in this project are licensed under more permissive
-MIT and Apache 2.0 and licensed. However, due to copyleft of the LGPG
+MIT and Apache 2.0 and licensed. However, due to copyleft of the LGPL v2.1
 license, the future modifications will be sublicensed with LGPL v2.1.
 
 License information listed below.

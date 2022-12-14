@@ -39,7 +39,6 @@
 #include <ostream>
 #include <ctime>
 
-#include <boost/timer.hpp>
 #include <set>
 
 #include "Exception.hh"
