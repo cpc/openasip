@@ -1696,11 +1696,20 @@ DSDBManager::applicationCount() const {
 DSDBManager::ParetoSetConnectivityAndCycles 
 DSDBManager::paretoSetConnectivityAndCycles(RowID application) const {
 
+    std::set<RowID> ids;
     if (application == ILLEGAL_ROW_ID) {
-        std::set<RowID> ids = applicationIDs();
-        assert(ids.size() == 1);
-        application = *ids.begin();
-    } 
+        ids = applicationIDs();
+    } else {
+        ids.insert(application);
+    }
+
+    //build the "GROUP BY" clause to include all requested applications
+    std::string appsGroup = "(";
+    for (auto const& e : ids) {
+        appsGroup += std::to_string(e);
+        appsGroup += ",";
+    }
+    appsGroup[appsGroup.size() - 1] = ')'; //replace last comma with closing brace
 
     ParetoSetConnectivityAndCycles paretoSet;
 
@@ -1710,7 +1719,7 @@ DSDBManager::paretoSetConnectivityAndCycles(RowID application) const {
     try {
         theQuery =
             (boost::format(
-                "SELECT machine_configuration.id AS id, connection_count, "
+                "SELECT machine_configuration.id AS id, CAST(AVG(connection_count) as INT), "
                 "       cycles "
                 "FROM application, architecture, machine_configuration, "
                 "     cycle_count "
@@ -1718,9 +1727,10 @@ DSDBManager::paretoSetConnectivityAndCycles(RowID application) const {
                 "      cycle_count.architecture AND "
                 "      cycle_count.unschedulable = 0 AND "
                 "      cycle_count.cycles IS NOT NULL AND "
-                "      cycle_count.application = %d AND "
-                "      architecture.id = cycle_count.architecture;") %
-             application).str();
+                "      cycle_count.application IN %s AND "
+                "      architecture.id = cycle_count.architecture "
+                "GROUP BY machine_configuration.id;") %
+             appsGroup).str();
 
         queryResult = dbConnection_->query(theQuery);
 
