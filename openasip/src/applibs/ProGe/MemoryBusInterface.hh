@@ -27,7 +27,7 @@
  * Declaration of MemoryBusInterface class.
  *
  * Created on: 16.6.2016
- * @author Henry Linjam‰ki 2016 (henry.linjamaki-no.spam-tut.fi)
+ * @author Henry Linjam√§ki 2016 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 

@@ -43,7 +43,7 @@ enum mcheck_status
    null, the standard function prints on stderr and then calls `abort'.  */
 extern int mcheck (void (*__abortfunc) (enum mcheck_status));
 
-/* Similar to `mcheck´ but performs checks for all block whenever one of
+/* Similar to `mcheckÂ´ but performs checks for all block whenever one of
    the memory handling functions is called.  This can be very slow.  */
 extern int mcheck_pedantic (void (*__abortfunc) (enum mcheck_status));
 

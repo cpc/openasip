@@ -27,7 +27,7 @@
  * Declaration of NetlistWriter class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @author Henry Linjam‰ki 2015 (henry.linjamaki-no.spam.tut.fi)
+ * @author Henry Linjam√§ki 2015 (henry.linjamaki-no.spam.tut.fi)
  * @note rating: red
  */
 

@@ -27,7 +27,7 @@
  * Declaration of IGenerationPhases class.
  *
  * Created on: 20.4.2015
- * @author: Henry Linjam‰ki (henry.linjamaki-no.spam-tut.fi)
+ * @author: Henry Linjam√§ki (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 

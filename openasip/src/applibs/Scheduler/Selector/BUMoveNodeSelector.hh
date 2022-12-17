@@ -26,7 +26,7 @@
  *
  * Declaration of BUMoveNodeSelector class.
  *
- * @author Vladim’r Guzma 2011(vladimir.guzma-no.spam-tut.fi)
+ * @author Vladimir Guzma 2011(vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 
