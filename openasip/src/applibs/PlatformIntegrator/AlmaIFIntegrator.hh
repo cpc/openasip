@@ -44,18 +44,12 @@ public:
 
     AlmaIFIntegrator(
         const TTAMachine::Machine* machine,
-        const IDF::MachineImplementation* idf,
-        ProGe::HDL hdl,
-        TCEString progeOutputDir,
-        TCEString entityName,
-        TCEString outputDir,
-        TCEString programName,
-        int targetClockFreq,
-        std::ostream& warningStream,
-        std::ostream& errorStream,
-        const MemInfo& imem,
-        MemType dmemType,
-        bool syncReset);
+        const IDF::MachineImplementation* idf, ProGe::HDL hdl,
+        TCEString progeOutputDir, TCEString entityName, TCEString outputDir,
+        TCEString programName, int targetClockFreq,
+        std::ostream& warningStream, std::ostream& errorStream,
+        const MemInfo& imem, MemType dmemType, bool syncReset,
+        bool generateIntegratedTestbench);
 
     virtual ~AlmaIFIntegrator();
 
@@ -114,6 +108,8 @@ private:
                               const int width,
                               const ProGe::Direction dir,
                               const TCEString core_name = "");
+    void generateIntegratedTestbench();
+
     ProGe::NetlistPortGroup* axiSlavePortGroup();
     ProGe::NetlistPortGroup* axiMasterPortGroup();
 
@@ -154,6 +150,8 @@ private:
     bool broadcast_pmem_;
     bool dmem_dram_ = false;
     bool imem_dp_ = false;
+
+    bool generateIntegratedTestbench_ = false;
 };
 
 #endif

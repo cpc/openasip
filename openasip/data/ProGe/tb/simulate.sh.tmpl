@@ -11,6 +11,13 @@ function usage() {
     echo "  -t SPEC    Time resolution limit (ModelSim)."
     echo "             SPEC is in regex of (e|1|10|100)(fs|ps|ns|us|ms|sec)"
     echo "             where e is empty string. Default is ns."
+    echo "  -n         Set the testbench entity name. Default is 'testbench'"
+    echo "  -p         Set the program image path generic, by default the"
+    echo "             generic is not set"
+    echo "  -d         Set the data image path generic, by default the"
+    echo "             generic is not set"
+    echo "  -s         Signal address. The default signal address used for"
+    echo "             completion polling. By default the generic is not set"
     echo "  -h         This help text."
 }
 
@@ -23,6 +30,11 @@ trap cleanup EXIT
 runtime=${DEFAULT_RUN_TIME:?}
 exec_count=
 sim_res=ns
+tb_entity="testbench"
+prog_img_generic=""
+data_img_generic=""
+signal_address_generic=""
+data_dump_generic=""
 
 function is_positive() {
     local val=$1
@@ -32,7 +44,7 @@ function is_positive() {
 }
 
 OPTIND=1
-while getopts "r:i:ct:h" OPTION
+while getopts "r:i:ct:n:p:s:d:o:h" OPTION
 do
     case $OPTION in
         r)
@@ -51,6 +63,16 @@ do
             ;;
         t)
             sim_res=$OPTARG
+            ;;
+        n)  tb_entity=$OPTARG
+            ;;
+        p)  prog_img_generic=" -gimem_image=$OPTARG "
+            ;;
+        d)  data_img_generic=" -gdmem_image=$OPTARG "
+            ;;
+        o)  data_dump_generic=" -gdmem_dump_path=$OPTARG "
+            ;;
+        s)  signal_address_generic=" -gcompletion_signal_address_g=$OPTARG "
             ;;
         h)
             usage

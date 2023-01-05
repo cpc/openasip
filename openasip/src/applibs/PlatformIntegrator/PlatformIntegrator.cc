@@ -164,6 +164,17 @@ PlatformIntegrator::outputFilePath(
     return pathToFile;
 }
 
+TCEString
+PlatformIntegrator::tbFilePath(TCEString fileName, bool absolute) const {
+    TCEString pathToFile = progeOutputDir_ + FileSystem::DIRECTORY_SEPARATOR +
+                           +"tb" + FileSystem::DIRECTORY_SEPARATOR + fileName;
+
+    if (absolute) {
+        pathToFile = FileSystem::absolutePathOf(pathToFile);
+    }
+
+    return pathToFile;
+}
 
 void
 PlatformIntegrator::setSharedOutputDir(const TCEString& sharedDir) {

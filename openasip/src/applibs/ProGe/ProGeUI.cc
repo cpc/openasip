@@ -446,7 +446,7 @@ ProGeUI::integrateProcessor(
     const std::string& platformIntegrator, const std::string& coreEntityName,
     const std::string& programName, const std::string& deviceFamily,
     const std::string& deviceName, MemType imem, MemType dmem, HDL language,
-    int fmax, bool syncReset) {
+    int fmax, bool syncReset, bool generateIntegratedTestbench) {
     string platformDir = progeOutDir + FileSystem::DIRECTORY_SEPARATOR +
         "platform";
 
@@ -480,7 +480,7 @@ ProGeUI::integrateProcessor(
         integrator = new AlmaIFIntegrator(
             machine_, idf_, language, progeOutDir, coreEntityName,
             platformDir, programName, fmax, warningStream, errorStream,
-            imemInfo, dmem, syncReset);
+            imemInfo, dmem, syncReset, generateIntegratedTestbench);
     } else {
         string errorMsg = "Unknown platform integrator: "
             + platformIntegrator;

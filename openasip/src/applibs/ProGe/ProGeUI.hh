@@ -95,20 +95,13 @@ protected:
         const std::string& pluginFile, const std::string& pluginName);
 
     void integrateProcessor(
-        std::ostream& warningStream,
-        std::ostream& errorStream,
-        std::string progeOutDir,
-        std::string sharedOutputDir,
+        std::ostream& warningStream, std::ostream& errorStream,
+        std::string progeOutDir, std::string sharedOutputDir,
         const std::string& platformIntegrator,
-        const std::string& coreEntityName,
-        const std::string& programName,
-        const std::string& deviceFamily,
-        const std::string& deviceName,
-        MemType imem,
-        MemType dmem,
-        HDL language,
-        int fmax,
-        bool syncReset);
+        const std::string& coreEntityName, const std::string& programName,
+        const std::string& deviceFamily, const std::string& deviceName,
+        MemType imem, MemType dmem, HDL language, int fmax, bool syncReset,
+        bool generateIntegratedTestbench);
 
     /// The loaded machine.
     TTAMachine::Machine* machine_;

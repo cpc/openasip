@@ -268,6 +268,15 @@ protected:
     progeFilePath(TCEString fileName, bool absolute = false) const;
 
     /**
+     * Returns string to the tb-output path of the fileName
+     *
+     * @param filename Name of file
+     * @param absolute Return absolute path
+     * @return Path to file
+     */
+    TCEString tbFilePath(TCEString fileName, bool absolute = false) const;
+
+    /**
      * Utility function for processing vhdl signals.
      *
      * Signal name format is fu_name_<TAG>_name : <dir> <type> {);}
