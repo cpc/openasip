@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2021-2022 Tampere University.
+ Copyright (C) 2021-2023 Tampere University.
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
  *
  * Implementation of RV32MicroCodeGenerator class.
  *
- * @author Kari Hepola 2021-2022 (kari.hepola@tuni.fi)
+ * @author Kari Hepola 2021-2023 (kari.hepola@tuni.fi)
  * @note rating: red
  */
 
@@ -70,6 +70,7 @@
 #include "MapTools.hh"
 #include "VectorTools.hh"
 #include "MachineConnectivityCheck.hh"
+#include "LicenseGenerator.hh"
 
 #define RV32_RTL_GEN_VERBOSE 0
 
@@ -1128,6 +1129,7 @@ RV32MicroCodeGenerator::generateMap(const std::string& dstDirectory) {
 
     std::ofstream stream;
     stream.open(mapFile);
+    stream << LicenseGenerator::generateMITLicense("2023", "--");
 
     stream << "library IEEE;" << std::endl
            << "use IEEE.std_logic_1164.all;" << std::endl
