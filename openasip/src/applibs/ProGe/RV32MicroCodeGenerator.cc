@@ -79,9 +79,10 @@ using namespace std;
 namespace ProGe {
 
 RV32MicroCodeGenerator::RV32MicroCodeGenerator(
-    const Machine& machine, const BinaryEncoding& bem)
-    : machine_(&machine),
-      bem_(&bem),
+    const Machine& machine, const BinaryEncoding& bem,
+    const std::string& entityName)
+    : 
+      MicroCodeGenerator(machine, bem, entityName),
       RF_(NULL),
       rs1Bus_(NULL),
       rs2Bus_(NULL),
@@ -1134,7 +1135,7 @@ RV32MicroCodeGenerator::generateMap(const std::string& dstDirectory) {
     stream << "library IEEE;" << std::endl
            << "use IEEE.std_logic_1164.all;" << std::endl
            << "use IEEE.numeric_std.all;" << std::endl
-           << "use work.tta0_globals.all;" << std::endl
+           << "use work." << entityName_ << "_globals.all;" << std::endl
            << std::endl
            << std::endl;
 

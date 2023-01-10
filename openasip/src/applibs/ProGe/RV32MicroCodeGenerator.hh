@@ -67,7 +67,8 @@ namespace ProGe {
 class RV32MicroCodeGenerator : public MicroCodeGenerator {
 
 public:
-    RV32MicroCodeGenerator(const Machine& machine, const BinaryEncoding& bem);
+    RV32MicroCodeGenerator(const Machine& machine, const BinaryEncoding& bem,
+    const std::string& entityName);
     ~RV32MicroCodeGenerator();
 
     void generateRTL(HDLTemplateInstantiator& instantiator,
@@ -174,9 +175,6 @@ private:
     void throwOperandCountError(
     const std::string& op, int required, int found) const;
 
-
-    const Machine* machine_;
-    const BinaryEncoding* bem_;
     std::vector<Bus*> busses_;
 
     RegisterFile* RF_;
