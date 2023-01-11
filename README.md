@@ -22,6 +22,12 @@ OpenASIP has been developed by several researchers (and research assistants) of
 Tampere University (Finland) and various other international contributors
 since the early 2003.
 
+License:
+ * OpenASIP project source code is licensed with LGPL v2.1.
+ * Generated hardware description files are licensed with a more liberal MIT license.
+ * Read more in [LICENSE.txt](https://github.com/cpc/openasip/blob/main/LICENSE.txt)
+
+
 Links:
 
  * [The toolset web pages](http://openasip.org)
