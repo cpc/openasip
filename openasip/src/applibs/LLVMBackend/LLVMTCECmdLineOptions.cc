@@ -32,6 +32,8 @@
  */
 
 #include "LLVMTCECmdLineOptions.hh"
+
+#include "AddressSpace.hh"
 #include "Environment.hh"
 
 const std::string LLVMTCECmdLineOptions::SWL_EMULATION_LIB = "emulation";
@@ -211,10 +213,8 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() {
         new UnsignedIntegerCmdLineOptionParser(
             SWL_INIT_SP,
             "Initialize the stack pointer of the program to the given value."));
-    addOption(
-        new UnsignedIntegerCmdLineOptionParser(
-            SWL_DATA_START,
-            "Override the global data start address."));
+    addOption(new StringListCmdLineOptionParser(
+        SWL_DATA_START, "Override the global data start address."));
 
     addOption(
         new BoolCmdLineOptionParser(
@@ -433,13 +433,61 @@ LLVMTCECmdLineOptions::initialStackPointerValue() const {
 }
 
 bool
-LLVMTCECmdLineOptions::isDataStartAddressSet() const {
-   return findOption(SWL_DATA_START)->isDefined();
+LLVMTCECmdLineOptions::isDataStartAddressSet(
+    TTAMachine::AddressSpace& aSpace) const {
+    CmdLineOptionParser* opts = findOption(SWL_DATA_START);
+    if (opts->isDefined()) {
+        int size = opts->listSize();
+        if (size == 1) {
+            return true;
+        }
+        if (size % 2 != 0) {
+            abortWithError(
+                "ERROR: Data-start option must be either just the start"
+                " of the default address space (unsigned integer),"
+                " or a list consisting of pairs:"
+                " <Address-Space Name>,<Address-Space Start>")
+        }
+        for (int i = 1; i <= size; i += 2) {
+            TCEString as_name = opts->String(i);
+            if (as_name == aSpace.name()) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 uint64_t
-LLVMTCECmdLineOptions::dataStartAddress() const {
-    return findOption(SWL_DATA_START)->unsignedInteger();
+LLVMTCECmdLineOptions::dataStartAddress(
+    TTAMachine::AddressSpace& aSpace) const {
+    CmdLineOptionParser* opts = findOption(SWL_DATA_START);
+    if (opts->isDefined()) {
+        int size = opts->listSize();
+        if (size == 1) {
+            uint64_t tmp = Conversion::toUnsignedLong(opts->String(1));
+            return tmp;
+        }
+        if (size % 2 != 0) {
+            abortWithError(
+                "ERROR: Data-start option must be either just the start"
+                " of the default address space (unsigned integer),"
+                " or a list consisting of pairs:"
+                " <Address-Space Name>,<Address-Space Start>")
+        }
+        for (int i = 1; i <= size; i += 2) {
+            TCEString as_name = opts->String(i);
+            if (as_name == aSpace.name()) {
+                return Conversion::toUnsignedLong(opts->String(i + 1));
+            }
+        }
+    }
+    abortWithError(
+        "ERROR: Failed parsing the data-start-option."
+        " Data-start option must be either just the start"
+        " of the default address space (unsigned integer),"
+        " or a list consisting of pairs:"
+        " <Address-Space Name>,<Address-Space Start>")
 }
 
 bool

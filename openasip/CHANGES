@@ -4,6 +4,10 @@
 Notable changes and features
 ----------------------------
 - SQLite version requirement raised to 3.25+
+- New syntax for data-start option in oacc and llvm-tce.
+  Now it's possible to optionally give a list of pairs of
+  <address-space-name>,<data-start>.
+  - Added the same option to generatebits with the same syntax.
 
 Notable bugfixes
 ----------------------------

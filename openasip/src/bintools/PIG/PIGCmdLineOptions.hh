@@ -57,7 +57,7 @@ public:
     bool showCompressors() const;
     std::string progeOutputDirectory() const;
     std::string entityName() const;
-
+    CmdLineOptionParser* dataStart() const;
     virtual void printVersion() const;
     virtual void printHelp() const;
     void printUsage() const;
@@ -89,6 +89,8 @@ private:
     static const std::string SHOW_COMPRESSORS_PARAM_NAME;
     /// Long name of the parameter which tells the proge-output dir
     static const std::string HDL_OUTPUT_DIR;
+
+    static const std::string DATA_START;
 };
 
 #endif

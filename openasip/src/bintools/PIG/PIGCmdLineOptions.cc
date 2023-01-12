@@ -53,6 +53,7 @@ const std::string PIGCmdLineOptions::COMPRESSOR_PARAMS_PARAM_NAME =
 const std::string PIGCmdLineOptions::SHOW_COMPRESSORS_PARAM_NAME =
     "showcompressors";
 const std::string PIGCmdLineOptions::HDL_OUTPUT_DIR = "hdl-dir";
+const std::string PIGCmdLineOptions::DATA_START = "data-start";
 const string ENTITY_NAME = "entity-name";
 
 /**
@@ -123,6 +124,18 @@ PIGCmdLineOptions::PIGCmdLineOptions() : CmdLineOptions("") {
     StringCmdLineOptionParser* hdlDir = new StringCmdLineOptionParser(
         HDL_OUTPUT_DIR, hdlDirDesc, "x");
     addOption(hdlDir);
+
+    string dataStartDesc(
+        "Data-start option is used "
+        "to set the global data start address for the address spaces. "
+        "The default is the first address of the address space. "
+        "data-start option must either be just the start "
+        "of the default address space (a single unsigned integer), "
+        "or a list consisting of pairs: "
+        "<Address-Space Name>,<Address-Space Start>");
+    StringListCmdLineOptionParser* dataStart =
+        new StringListCmdLineOptionParser(DATA_START, dataStartDesc);
+    addOption(dataStart);
 
     StringCmdLineOptionParser* entityName = 
         new StringCmdLineOptionParser(
@@ -289,6 +302,11 @@ PIGCmdLineOptions::showCompressors() const {
 std::string
 PIGCmdLineOptions::progeOutputDirectory() const {
     return findOption(HDL_OUTPUT_DIR)->String();
+}
+
+CmdLineOptionParser*
+PIGCmdLineOptions::dataStart() const {
+    return findOption(DATA_START);
 }
 
 std::string
