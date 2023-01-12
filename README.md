@@ -24,7 +24,7 @@ since the early 2003.
 
 License:
  * OpenASIP project source code is licensed with LGPL v2.1.
- * Generated hardware description files are licensed with a more liberal MIT license.
+ * Generated hardware description files are public domain.
  * Read more in [LICENSE.txt](https://github.com/cpc/openasip/blob/main/LICENSE.txt)
 
 
