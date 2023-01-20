@@ -118,7 +118,7 @@ GhdlSimulator::importFile(
 }
 
 bool GhdlSimulator::compileDesign(std::vector<std::string>& errors) {
-    string command = "ghdl  -m --ieee=synopsys --workdir=" 
+    string command = "ghdl  -m -Wno-hide --ieee=synopsys --workdir=" 
         + workDir() + " testbench 2>&1";
     if (verbose()) {
         // TODO: get output stream

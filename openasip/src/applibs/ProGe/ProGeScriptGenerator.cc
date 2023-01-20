@@ -265,11 +265,8 @@ ProGeScriptGenerator::generateGhdlCompile(
         stream << endl;
     }
     // compile command for ghdl
-
-    stream << "if [ \"$only_add_files\" = \"no\" ]; then" << endl;
-    stream << "    ghdl -m --workdir=" << workDir_
-           << " --ieee=synopsys -fexplicit " << tbName << endl;
-    stream << "fi" << endl;
+    stream << "ghdl -m --workdir=" << workDir_ 
+           << " --ieee=synopsys -fexplicit -Wno-hide " << testbenchName_ << endl;
 
     stream << "exit 0" << endl;
     stream.close();

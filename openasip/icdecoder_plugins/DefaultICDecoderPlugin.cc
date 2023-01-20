@@ -1422,7 +1422,7 @@ public:
                 IFETCH_STALL_PORT_NAME + " : in std_logic;");
 
             ProGe::RV32MicroCodeGenerator* microCodeGen =
-                new RV32MicroCodeGenerator(ttamachine_, bem_);
+                new RV32MicroCodeGenerator(ttamachine_, bem_, entityString);
             microCodeGen->setBypassInstructionRegister(
                 bypassInstructionRegister());
             microCodeGen->generateRTL(instantiator, dstDirectory);
