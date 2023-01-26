@@ -578,13 +578,13 @@ RFTestbenchGenerator::createTbCode() {
             << "(current_cycle)" << std::endl
             << INDENT INDENT INDENT INDENT 
             << "report lf & \"TCE Assert: Verification failed at cycle \" "
-            << "& str(current_cycle, 10)" << std::endl
+            << "& integer'image(current_cycle)" << std::endl
             << INDENT INDENT INDENT INDENT <<"& \" output: \" "
-            << "& str(conv_integer(signed(" << portName << ")), 10)" 
+            << "& to_hstring(" << portName << ")" 
             << std::endl
             << INDENT INDENT INDENT INDENT << "& " 
-            << "\" expected: \" & str(conv_integer(signed(" << portName
-            << "_data(current_cycle))), 10)  severity error;" 
+            << "\" expected: \" & to_hstring(" << portName
+            << "_data(current_cycle))  severity error;" 
             << std::endl << std::endl;
     }
     tbCodeStream() << INDENT INDENT << "end if;" << std::endl;
