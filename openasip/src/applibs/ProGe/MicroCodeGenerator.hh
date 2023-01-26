@@ -36,6 +36,7 @@ namespace TTAMachine {
     class Port;
 }
 
+class BinaryEncoding;
 class InstructionBitVector;
 class HDLTemplateInstantiator;
 
@@ -46,7 +47,9 @@ namespace ProGe {
 class MicroCodeGenerator {
 
 public:
-    MicroCodeGenerator() = default;
+    MicroCodeGenerator(const Machine& machine, const BinaryEncoding& bem,
+    const std::string& entityName)
+    : machine_(&machine), bem_(&bem), entityName_(entityName) {};
     ~MicroCodeGenerator() = default;
 
     virtual void generateRTL(HDLTemplateInstantiator& instantiator,
@@ -56,7 +59,10 @@ public:
         Bus* bus;
         Port* port;
     };
-
+protected:
+    const Machine* machine_;
+    const BinaryEncoding* bem_;
+    const std::string entityName_;
 };
 }
 #endif

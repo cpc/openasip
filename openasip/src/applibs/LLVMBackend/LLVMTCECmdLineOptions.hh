@@ -41,6 +41,9 @@
 #include "InterPassDatum.hh"
 #include "tce_config.h" // VERSION
 
+namespace TTAMachine {
+class AddressSpace;
+}
 /**
  * Command line options class for the llvm-tce compiler CLI.
  *
@@ -95,8 +98,8 @@ public:
     bool isInitialStackPointerValueSet() const;
     uint64_t initialStackPointerValue() const;
 
-    bool isDataStartAddressSet() const;
-    uint64_t dataStartAddress() const;
+    bool isDataStartAddressSet(TTAMachine::AddressSpace& aSpace) const;
+    uint64_t dataStartAddress(TTAMachine::AddressSpace& aSpace) const;
 
     bool printInlineAsmWarnings() const;
     bool generatePluginOnly() const;

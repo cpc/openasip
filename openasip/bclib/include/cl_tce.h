@@ -24,7 +24,7 @@
 /**
  * Declarations used by the OpenCL implementation of TCE.
  *
- * @author Pekka J‰‰skel‰inen 2009-2010
+ * @author Pekka J√§√§skel√§inen 2009-2010
  */
 #ifndef CL_TCE_H_
 #define CL_TCE_H_

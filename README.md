@@ -13,7 +13,8 @@ supported operations, and the datapath interconnection network.
 
 The internal processor template of OpenASIP is based on the energy efficient and
 modular Transport Triggered Architecture (TTA), which is still its default
-target programming model for static multi-issue designs. OpenASIP, however, also has initial support for other programming models such
+target programming model for static multi-issue designs. OpenASIP, however,
+also has initial support for other programming models such
 as standard operation-based VLIW (demonstrated in Blocks CGRA) and since 2.0
 it received the first features to support customizing RISC-V ISA based
 processors.
@@ -21,6 +22,13 @@ processors.
 OpenASIP has been developed by several researchers (and research assistants) of
 Tampere University (Finland) and various other international contributors
 since the early 2003.
+
+License:
+ * OpenASIP project source code is licensed with LGPL v2.1.
+ * Generated hardware description files are licensed with a more
+permissive MIT license, to allow the designer more freedom to
+choose the licensing of the produced processors.
+ * Read more in [LICENSE.txt](https://github.com/cpc/openasip/blob/main/LICENSE.txt)
 
 Links:
 
@@ -92,29 +100,22 @@ Ubuntu 20.04+ / Debian 11
 &nbsp; tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make \ <br>
 &nbsp; latex2html libffi-dev autoconf automake libtool subversion git cmake graphviz_
 
-Ubuntu 16.04 LTS / 18.04 LTS
-----------------------------
-
-&nbsp; _sudo apt-get install libwxgtk3.0-dev libboost-all-dev \ <br>
-&nbsp; tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make \ <br>
-&nbsp; latex2html libffi-dev autoconf automake libtool subversion git cmake_
-
-Ubuntu 14.04 LTS and older
+Ubuntu 18.04 LTS and older
 --------------------------
 
-Not supported anymore due to GCC version too low (LLVM currently requires 5.1+)
+Not supported anymore due to SQLite version too low (currently requires 3.25+)
 
-Debian 9 / 10
--------------
+Debian 10
+---------
 
 &nbsp; _sudo apt-get install libwxgtk3.0-dev libboost-{filesystem,graph,regex,thread}-dev \ <br>
 &nbsp; tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make latex2html \ <br>
 &nbsp; libffi-dev autoconf automake libtool subversion git cmake_
 
-Debian 8 and older
+Debian 9 and older
 ------------------
 
-Not supported anymore due to GCC version too low (LLVM currently requires 5.1+)
+Not supported anymore due to SQLite version too low (currently requires 3.25+)
 
 Red Hat Enterprise Linux 8 & clones
 -----------------------------------

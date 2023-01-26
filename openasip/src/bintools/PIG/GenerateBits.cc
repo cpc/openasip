@@ -419,6 +419,7 @@ int main(int argc, char* argv[]) {
         imageGenerator.loadMachine(*mach);        
         imageGenerator.loadPrograms(tpefMap);
         imageGenerator.setEntityName(entityStr);
+        imageGenerator.setDataStartOptions(options->dataStart());
 
         if (Application::verboseLevel() > 0) {
             Application::logStream()

@@ -27,7 +27,7 @@
  * Declaration of SinglePortSSRAMBlock class.
  *
  * Created on: 8.9.2015
- * @author Henry Linjam‰ki 2015 (henry.linjamaki-no.spam-tut.fi)
+ * @author Henry Linjam√§ki 2015 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 

@@ -26,7 +26,7 @@
  *
  * Test data header for AOutReaderTest.
  *
- * @author Mikael Lepistö 2004 (tmlepist-no.spam-cs.tut.fi) 
+ * @author Mikael LepistÃ¶ 2004 (tmlepist-no.spam-cs.tut.fi) 
  */
 
 #ifndef TTA_AOUT_READER_TEST_HEADER

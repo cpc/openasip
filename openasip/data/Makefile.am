@@ -20,6 +20,8 @@ nobase_data_DATA =	$(srcdir)/ProDe/confschema.xsd \
 					$(srcdir)/ProGe/tb/*.vhdl.tmpl \
 					$(srcdir)/ProGe/tb/*.v \
 					$(srcdir)/ProGe/tb/*.v.tmpl \
+					$(srcdir)/ProGe/tb/almaif/*.vhdl \
+					$(srcdir)/ProGe/tb/almaif/*.vhdl.tmpl \
 					$(srcdir)/ProGe/platform/*.vhd \
 					$(srcdir)/ProGe/platform/*.vhdl \
 					$(srcdir)/ProGe/platform/*.vhdl.tmpl \

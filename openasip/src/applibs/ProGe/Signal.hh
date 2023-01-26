@@ -27,7 +27,7 @@
  * Declaration of Signal class.
  *
  * Created on: 25.5.2015
- * @author Henry Linjam‰ki 2015 (henry.linjamaki-no.spam-tut.fi)
+ * @author Henry Linjam√§ki 2015 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 

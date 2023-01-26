@@ -35,8 +35,6 @@
 #include <string>
 #include <cstdlib>
 
-#include <boost/timer.hpp>
-
 #include "BasicBlockScheduler.hh"
 #include "DataDependenceGraph.hh"
 #include "SimpleResourceManager.hh"
@@ -113,7 +111,6 @@ BasicBlockScheduler::handleDDG(
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
     minCycle_ = minCycle;
-    schedulingTime_.restart();
 
     if (renamer_ != NULL) {
         renamer_->initialize(ddg);
@@ -259,7 +256,6 @@ BasicBlockScheduler::handleLoopDDG(
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
     minCycle_ = 0;
-    schedulingTime_.restart();
 
     if (renamer_ != NULL) {
         renamer_->initialize(ddg);

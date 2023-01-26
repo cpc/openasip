@@ -31,6 +31,7 @@
  * @note rating: red
  */
 
+#include <chrono>
 #include <utility>
 
 // include this before boost to avoid deprecation
@@ -43,7 +44,6 @@
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <boost/graph/exception.hpp>
-#include <boost/timer.hpp>
 #include <boost/format.hpp>
 #include <boost/graph/graphviz.hpp>
 
@@ -409,7 +409,7 @@ ProgramDependenceGraph::serializePDG() {
     /// Created filtered PDG graph containing only control dependence edges
     CDGFilter<Graph> filter(graph_);
     FilteredCDG  filteredCDG = FilteredCDG(graph_, filter);
-    boost::timer timer;
+    auto timer = std::chrono::steady_clock::now();
     long elapsed = 0;
     /// Detect strong components if they were not detected in CDG and transferred
     if (!cdg_->analyzed()) {
@@ -418,7 +418,9 @@ ProgramDependenceGraph::serializePDG() {
         /// Modifies graph_ with added close nodes and close edges
         int componentCount = detectStrongComponents(
             componentMap, rootMap, filteredCDG);
-        elapsed = static_cast<long>(timer.elapsed());
+        elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                      std::chrono::steady_clock::now() - timer)
+                      .count();
         if (Application::verboseLevel() > DEBUG_LEVEL) {
             Application::logStream() << (boost::format(
             "\t\tStrong components:%d components, %d minutes and %d seconds.\n")
@@ -436,12 +438,14 @@ ProgramDependenceGraph::serializePDG() {
     /// boost::on_finish_vertex will give us post order numbering
     boost::time_stamper<PDGOrder, int, boost::on_finish_vertex>
         lastOrderStamper(lastOrder, fStamp);
-    timer.restart();
+    timer = std::chrono::steady_clock::now();  // restart
     /// Computes post order of all the nodes in PDG
     boost::depth_first_visit(
         filteredCDG, descriptor(entryNode()),
         boost::make_dfs_visitor(lastOrderStamper), colorsDFS);
-    elapsed = static_cast<long>(timer.elapsed());
+    elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                  std::chrono::steady_clock::now() - timer)
+                  .count();
     if (Application::verboseLevel() > DEBUG_LEVEL) {
         Application::logStream() << (boost::format(
             "\t\tPost order: %d minutes and %d seconds.\n")
@@ -450,9 +454,11 @@ ProgramDependenceGraph::serializePDG() {
     /// If not computed on CDG and copied, computes 'region' information for
     /// all nodes of a graph
     if (!cdg_->analyzed()) {
-        timer.restart();
+        timer = std::chrono::steady_clock::now();  // restart
         computeRegionInfo(lastMap, filteredCDG);
-        elapsed = static_cast<long>(timer.elapsed());
+        elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                      std::chrono::steady_clock::now() - timer)
+                      .count();
         if (Application::verboseLevel() > DEBUG_LEVEL) {
             Application::logStream() << (boost::format(
                 "\t\tRegion: %d minutes and %d seconds.\n")
@@ -460,9 +466,11 @@ ProgramDependenceGraph::serializePDG() {
         }
         /// If not computed on CDG and copied, computes 'eec' information for
         /// all nodes of a graph
-        timer.restart();
+        timer = std::chrono::steady_clock::now();  // restart
         computeEECInfo(lastMap, filteredCDG);
-        elapsed = static_cast<long>(timer.elapsed());
+        elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                      std::chrono::steady_clock::now() - timer)
+                      .count();
         if (Application::verboseLevel() > DEBUG_LEVEL) {
             Application::logStream() << (boost::format(
                 "\t\tEEC: %d minutes and %d seconds.\n")
@@ -470,7 +478,7 @@ ProgramDependenceGraph::serializePDG() {
         }
     }
 
-    timer.restart();
+    timer = std::chrono::steady_clock::now();  // restart
     /// If CDG comes analyzed we need to add region and eec info for
     /// dummy ENTRYNODE of DDG. By it's definition, ENTRYNODE is leaf
     /// in terms of control dependence, region == eec

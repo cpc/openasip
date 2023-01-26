@@ -40,6 +40,10 @@ for filepath in $@; do
 		convert $filepath 'ISO-8859-1' ;
 	elif [ $mtype = 'windows-1252' ]; then 
 		convert $filepath 'WINDOWS-1252' ;
+	elif [ $mtype = 'utf-8' ]; then
+		continue ;
+	elif [ $mtype = 'us-ascii' ]; then 
+		continue ;
 	else echo "$filepath - skipped: $mtype"
 	fi
 done

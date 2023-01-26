@@ -3,6 +3,8 @@ function usage() {
     echo "Prepares processor design for RTL simulation."
     echo "Options:"
     echo "  -c     Enables code coverage."
+    echo "  -a     Only adds the files, but doesn't run"
+    echo "         the final testbench compilation"
     echo "  -h     This helpful help text."
 }
 
@@ -12,12 +14,17 @@ function cleanup() {
 }
 trap cleanup EXIT
 
+only_add_files=no
+
 OPTIND=1
-while getopts "ch" OPTION
+while getopts "cah" OPTION
 do
     case $OPTION in
         c)
             enable_coverage=yes
+            ;;
+        a)
+            only_add_files=yes
             ;;
         h)
             usage

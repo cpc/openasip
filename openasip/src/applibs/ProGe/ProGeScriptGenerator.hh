@@ -67,13 +67,19 @@ public:
 
     void generateModsimCompile();
 
-    void generateGhdlCompile();
+    void generateGhdlCompile(
+        std::string scriptName, std::string tbName,
+        std::vector<std::list<std::string>> filesToCompile,
+        bool clearWorkingDir);
+
+    void generatePlatformGhdlCompile();
 
     void generateIverilogCompile();
 
     void generateModsimSimulate();
 
     void generateGhdlSimulate();
+    void generatePlatformGhdlSimulate();
 
     void generateIverilogSimulate();
 
@@ -137,6 +143,7 @@ private:
     std::list<std::string> vhdlFiles_;
     std::list<std::string> gcuicFiles_;
     std::list<std::string> testBenchFiles_;
+    std::list<std::string> platformFiles_;
 
     // directory used by ghdl/modelsim as work directory when compiling
     const std::string workDir_;
@@ -144,6 +151,7 @@ private:
     const std::string verDir_;
     const std::string gcuicDir_;
     const std::string tbDir_;
+    const std::string platformDir_;
 
     // file names for scripts to be generated
     const std::string modsimCompileScriptName_;
@@ -152,9 +160,11 @@ private:
     const std::string modsimSimulateScriptName_;
     const std::string ghdlSimulateScriptName_;
     const std::string iverilogSimulateScriptName_;
+    const std::string ghdlPlatformCompileScriptName_;
 
     // test bench name 
     const std::string testbenchName_;
+    const std::string platformTestbenchName_;
     const std::string toplevelEntity_;
     const IDF::MachineImplementation& idf_;
     const ProGe::HDL language_;

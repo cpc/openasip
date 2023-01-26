@@ -11,7 +11,8 @@ libopenasiptools_la_SOURCES = Exception.cc CmdLineOptions.cc CmdLineOptionParser
 	PluginTools.cc Conversion.cc StringTools.cc DataObject.cc SimValue.cc \
 	ConfigurationFile.cc ProcessorConfigurationFile.cc Listener.cc \
 	Informer.cc Options.cc OptionValue.cc CmdLineParser.cc MathTools.cc \
-	BitMatrix.cc TCEString.cc HalfFloatWord.cc Reversible.cc IPXact.cc
+	BitMatrix.cc TCEString.cc HalfFloatWord.cc Reversible.cc IPXact.cc \
+	LicenseGenerator.cc
 
 if HAVE_SQLITE
   libopenasiptools_la_SOURCES += SQLiteConnection.cc RelationalDBQueryResult.cc \
@@ -45,7 +46,7 @@ include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseT
 	CmdLineOptionParser.hh CmdLineOptionParser.icc MapTools.hh MapTools.icc \
 	CIStringSet.hh ContainerTools.hh ContainerTools.icc Listener.hh \
 	Informer.hh Informer.icc HalfFloatWord.hh tce_config_public.h \
-	CompilerWarnings.hh Environment.hh
+	CompilerWarnings.hh Environment.hh LicenseGenerator.hh
 
 REVNO=$(shell which git > /dev/null && echo -n "-r" && git rev-list HEAD | wc -l)
 
@@ -93,6 +94,7 @@ libopenasiptools_la_SOURCES += \
 	AssocTools.icc FileSystem.icc \
 	ContainerTools.icc BitMatrix.icc \
 	TCEString.icc SetTools.icc \
-	Informer.icc VectorTools.icc 
+	Informer.icc VectorTools.icc \
+	LicenseGenerator.hh
 
 ## headers end

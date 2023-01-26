@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2021-2022 Tampere University.
+ Copyright (C) 2021-2023 Tampere University.
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
  *
  * Implementation of RV32MicroCodeGenerator class.
  *
- * @author Kari Hepola 2021-2022 (kari.hepola@tuni.fi)
+ * @author Kari Hepola 2021-2023 (kari.hepola@tuni.fi)
  * @note rating: red
  */
 
@@ -70,6 +70,7 @@
 #include "MapTools.hh"
 #include "VectorTools.hh"
 #include "MachineConnectivityCheck.hh"
+#include "LicenseGenerator.hh"
 
 #define RV32_RTL_GEN_VERBOSE 0
 
@@ -78,9 +79,10 @@ using namespace std;
 namespace ProGe {
 
 RV32MicroCodeGenerator::RV32MicroCodeGenerator(
-    const Machine& machine, const BinaryEncoding& bem)
-    : machine_(&machine),
-      bem_(&bem),
+    const Machine& machine, const BinaryEncoding& bem,
+    const std::string& entityName)
+    : 
+      MicroCodeGenerator(machine, bem, entityName),
       RF_(NULL),
       rs1Bus_(NULL),
       rs2Bus_(NULL),
@@ -1128,11 +1130,12 @@ RV32MicroCodeGenerator::generateMap(const std::string& dstDirectory) {
 
     std::ofstream stream;
     stream.open(mapFile);
+    stream << LicenseGenerator::generateMITLicense("2023", "--");
 
     stream << "library IEEE;" << std::endl
            << "use IEEE.std_logic_1164.all;" << std::endl
            << "use IEEE.numeric_std.all;" << std::endl
-           << "use work.tta0_globals.all;" << std::endl
+           << "use work." << entityName_ << "_globals.all;" << std::endl
            << std::endl
            << std::endl;
 

@@ -34,44 +34,44 @@
  * @note rating: red
  */
 
-#include <vector>
-#include <string>
-#include <cmath>
-
 #include "ProgramImageGenerator.hh"
-#include "AsciiProgramImageWriter.hh"
+
+#include <cmath>
+#include <string>
+#include <vector>
+
 #include "ArrayProgramImageWriter.hh"
-#include "RawImageWriter.hh"
-#include "MifImageWriter.hh"
-#include "VhdlImageWriter.hh"
-#include "VhdlProgramImageWriter.hh"
-#include "CoeImageWriter.hh"
-#include "HexImageWriter.hh"
+#include "AsciiProgramImageWriter.hh"
 #include "Bin2nImageWriter.hh"
 #include "Bin2nProgramImageWriter.hh"
-#include "InstructionBitVector.hh"
-#include "CodeCompressorPlugin.hh"
-#include "DefaultCompressor.hh"
-#include "PIGTextGenerator.hh"
-
-#include "ControlUnit.hh"
-#include "BinaryEncoding.hh"
-#include "StringSection.hh"
-#include "CodeSection.hh"
-#include "RelocSection.hh"
-#include "RelocElement.hh"
 #include "Binary.hh"
-#include "InstructionElement.hh"
-#include "Program.hh"
-#include "Move.hh"
-#include "Terminal.hh"
-#include "TerminalImmediate.hh"
-#include "Immediate.hh"
-#include "Machine.hh"
-
-#include "PluginTools.hh"
+#include "BinaryEncoding.hh"
+#include "CmdLineOptionParser.hh"
+#include "CodeCompressorPlugin.hh"
+#include "CodeSection.hh"
+#include "CoeImageWriter.hh"
+#include "ControlUnit.hh"
+#include "DefaultCompressor.hh"
 #include "Environment.hh"
 #include "FileSystem.hh"
+#include "HexImageWriter.hh"
+#include "Immediate.hh"
+#include "InstructionBitVector.hh"
+#include "InstructionElement.hh"
+#include "Machine.hh"
+#include "MifImageWriter.hh"
+#include "Move.hh"
+#include "PIGTextGenerator.hh"
+#include "PluginTools.hh"
+#include "Program.hh"
+#include "RawImageWriter.hh"
+#include "RelocElement.hh"
+#include "RelocSection.hh"
+#include "StringSection.hh"
+#include "Terminal.hh"
+#include "TerminalImmediate.hh"
+#include "VhdlImageWriter.hh"
+#include "VhdlProgramImageWriter.hh"
 
 using namespace TTAMachine;
 using namespace TPEF;
@@ -528,7 +528,15 @@ ProgramImageGenerator::writeDataSection(
         AddressImage startingAddress = dataSection.startingAddress();
         // If we already have put something, fill the correct number,
         // not from 0.
-        unsigned int zeroFillStart = dataBits.size() / 8; // 8 bits per byte
+        unsigned int zeroFillStart = 0;
+        if ((dataBits.size() == 0) && isDataStartSet(addressSpace)) {
+            // User can set custom starting address, which means that the
+            // beginning is not zero-filled up to that point
+            zeroFillStart = dataStartAddress(addressSpace);
+        } else {
+            zeroFillStart = dataBits.size() / 8;  // 8 bits per byte
+        }
+
         for (AddressImage i = zeroFillStart; i < startingAddress; i++) {
             dataBits.pushBack(0, 8);
         }
@@ -746,4 +754,62 @@ void
 ProgramImageGenerator::setEntityName(const std::string& entity) {
     
     entityName_ = entity;
+}
+
+void
+ProgramImageGenerator::setDataStartOptions(CmdLineOptionParser* options) {
+    dataStartOptions_ = options;
+}
+
+const std::string ProgramImageGenerator::DATA_START_DESC(
+    "Data-start option is used "
+    "to set the global data start address for the address spaces. "
+    "The default is the first address of the address space. "
+    "data-start option must either be just the start "
+    "of the default address space (a single unsigned integer), "
+    "or a list consisting of pairs: "
+    "<Address-Space Name>,<Address-Space Start>");
+
+bool
+ProgramImageGenerator::isDataStartSet(std::string aSpace) const {
+    CmdLineOptionParser* opts = dataStartOptions_;
+    assert(opts);
+    if (opts->isDefined()) {
+        int size = opts->listSize();
+        if (size == 1) {
+            return true;
+        }
+        if (size % 2 != 0) {
+            abortWithError("ERROR: " + DATA_START_DESC);
+        }
+        for (int i = 1; i <= size; i += 2) {
+            TCEString as_name = opts->String(i);
+            if (as_name == aSpace) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+uint64_t
+ProgramImageGenerator::dataStartAddress(std::string aSpace) const {
+    CmdLineOptionParser* opts = dataStartOptions_;
+    assert(opts);
+    if (opts->isDefined()) {
+        int size = opts->listSize();
+        if (size == 1) {
+            return Conversion::toUnsignedLong(opts->String(1));
+        }
+        if (size % 2 != 0) {
+            abortWithError("ERROR: " + DATA_START_DESC);
+        }
+        for (int i = 1; i <= size; i += 2) {
+            TCEString as_name = opts->String(i);
+            if (as_name == aSpace) {
+                return Conversion::toUnsignedLong(opts->String(i + 1));
+            }
+        }
+    }
+    abortWithError("ERROR: " + DATA_START_DESC);
 }

@@ -56,7 +56,7 @@ const TCEString AlmaIFIntegrator::ALMAIF_MODULE = "tta_accel";
 const TCEString AlmaIFIntegrator::DEFAULT_DEVICE = "xc7z020clg400-1";
 
 const int AlmaIFIntegrator::DEFAULT_RESERVED_PRIVATE_MEM_SIZE = 2048;
-const int AlmaIFIntegrator::DEFAULT_LOCAL_MEMORY_WIDTH = 12;
+const int AlmaIFIntegrator::DEFAULT_LOCAL_MEMORY_WIDTH = 15;
 
 AlmaIFIntegrator::AlmaIFIntegrator() : PlatformIntegrator() {
 }
@@ -66,7 +66,8 @@ AlmaIFIntegrator::AlmaIFIntegrator(
     ProGe::HDL hdl, TCEString progeOutputDir, TCEString coreEntityName,
     TCEString outputDir, TCEString programName, int targetClockFreq,
     std::ostream& warningStream, std::ostream& errorStream,
-    const MemInfo& imem, MemType dmemType, bool syncReset)
+    const MemInfo& imem, MemType dmemType, bool syncReset,
+    bool generateIntegratedTestbench)
     : PlatformIntegrator(
           machine, idf, hdl, progeOutputDir, coreEntityName, outputDir,
           programName, targetClockFreq, warningStream, errorStream, imem,
@@ -81,7 +82,8 @@ AlmaIFIntegrator::AlmaIFIntegrator(
       dmemHandled_(false),
       pmemHandled_(false),
       syncReset_(syncReset),
-      broadcast_pmem_(false) {
+      broadcast_pmem_(false),
+      generateIntegratedTestbench_(generateIntegratedTestbench) {
     if (idf->icDecoderParameterValue("debugger") == "external") {
         hasMinimalDebugger_ = false;
     } else if (idf->icDecoderParameterValue("debugger") == "minimal") {
@@ -222,6 +224,10 @@ AlmaIFIntegrator::integrateProcessor(
     addAlmaifFiles();
     addProGeFiles();
 
+    if (generateIntegratedTestbench_) {
+        generateIntegratedTestbench();
+    }
+
     projectFileGenerator()->writeProjectFiles();
 }
 
@@ -296,9 +302,13 @@ AlmaIFIntegrator::initAlmaifBlock() {
 
     almaifBlock_ = new NetlistBlock(
         ALMAIF_MODULE, ALMAIF_MODULE + "_0", integratorBlock());
+
+    netlist.setParameter("AXI_ADDR_WIDTH", "integer", axiAddressWidth());
     integratorBlock()->setParameter(
-        "axi_addr_width_g", "integer", axiAddressWidth());
-    integratorBlock()->setParameter("axi_id_width_g", "integer", "12");
+        "axi_addr_width_g", "integer", "AXI_ADDR_WIDTH");
+    netlist.setParameter("AXI_ID_WIDTH", "integer", "12");
+    integratorBlock()->setParameter(
+        "axi_id_width_g", "integer", "AXI_ID_WIDTH");
     almaifBlock_->setParameter("core_count_g", "integer", core_count);
     almaifBlock_->setParameter(
         "axi_addr_width_g", "integer", "axi_addr_width_g");
@@ -404,7 +414,7 @@ AlmaIFIntegrator::initAlmaifBlock() {
             Conversion::toString(DEFAULT_LOCAL_MEMORY_WIDTH - 2));
 
         integratorBlock()->setParameter(
-            "axi_offset_low_g", "integer", "1136656384");
+            "axi_offset_low_g", "integer", "1073741824");
         integratorBlock()->setParameter("axi_offset_high_g", "integer", "0");
         almaifBlock_->setParameter(
             "axi_offset_low_g", "integer", "axi_offset_low_g");
@@ -1151,4 +1161,33 @@ AlmaIFIntegrator::pinTag() const {
 ProjectFileGenerator*
 AlmaIFIntegrator::projectFileGenerator() const {
     return fileGen_;
+}
+
+void
+AlmaIFIntegrator::generateIntegratedTestbench() {
+    const TCEString DS = FileSystem::DIRECTORY_SEPARATOR;
+
+    FileSystem::createDirectory(progeFilePath("tb", true));
+
+    TCEString basePath = Environment::dataDirPath("ProGe");
+    TCEString tbPath = basePath + DS + "tb" + DS + "almaif" + DS;
+    TCEString outputPath = tbFilePath("almaif-tb.vhdl", true);
+
+    HDLTemplateInstantiator tbInstantiator(coreEntityName());
+    if (pmemInfo_.asAddrw == 32) {
+        tbInstantiator.replacePlaceholderFromFile(
+            "m-axi-port-declarations",
+            Path(tbPath + "almaif-tb-m-axi-port-declarations-snippet.vhdl"));
+        tbInstantiator.replacePlaceholderFromFile(
+            "m-axi-port-connections",
+            Path(tbPath + "almaif-tb-m-axi-port-connections-snippet.vhdl"));
+        tbInstantiator.replacePlaceholderFromFile(
+            "m-axi-external-mem-instantiation",
+            Path(
+                tbPath +
+                "almaif-tb-m-axi-external-mem-instantiation-snippet.vhdl"));
+        FileSystem::copy(tbPath + "axi-mem.vhdl", tbFilePath("axi-mem.vhdl"));
+    }
+    tbInstantiator.instantiateTemplateFile(
+        tbPath + "almaif-tb.vhdl.tmpl", outputPath);
 }

@@ -79,7 +79,7 @@ function run_test {
     find -name "*.vhd"  -exec ghdl -i --workdir=work {} \; >/dev/null 2>&1
 
     ghdl -i --workdir=work $TB_SRC >/dev/null 2>&1
-    ghdl -m --workdir=work --ieee=synopsys -fexplicit \
+    ghdl -m -Wno-hide --workdir=work --ieee=synopsys -fexplicit \
          --warn-no-unused tta_almaif_tb > compile.log 2>&1
 
     if [ -e tta_almaif_tb ]; then

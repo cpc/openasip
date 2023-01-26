@@ -57,6 +57,7 @@ namespace TTAMachine {
 
 class BinaryEncoding;
 class CodeCompressorPlugin;
+class CmdLineOptionParser;
 
 /**
  * The main class of program image generator module.
@@ -106,6 +107,9 @@ public:
     CodeCompressorPlugin& compressor() { return *compressor_; }
 
     void setEntityName(const std::string& entity);
+    void setDataStartOptions(CmdLineOptionParser* options);
+    bool isDataStartSet(std::string aSpace) const;
+    uint64_t dataStartAddress(std::string aSpace) const;
 
     static std::vector<std::string> availableCompressors();
     static void printCompressorDescription(
@@ -131,6 +135,9 @@ private:
     CodeCompressorPlugin* compressor_;
     /// Toplevel entity name
     std::string entityName_;
+
+    static const std::string DATA_START_DESC;
+    CmdLineOptionParser* dataStartOptions_;
     /// The plugin tool.
     PluginTools pluginTool_;
     

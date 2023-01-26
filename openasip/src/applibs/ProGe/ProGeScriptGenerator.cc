@@ -84,40 +84,38 @@ const string MAGICAL_RUNTIME_CONSTANT = "52390";
  * directory.
  */
 ProGeScriptGenerator::ProGeScriptGenerator(
-    const ProGe::HDL language,
-    const IDF::MachineImplementation& idf,
-    const std::string& dstDir,
-    const std::string& progeOutDir,
-    const std::string& sharedOutDir,
-    const std::string& testBenchDir,
+    const ProGe::HDL language, const IDF::MachineImplementation& idf,
+    const std::string& dstDir, const std::string& progeOutDir,
+    const std::string& sharedOutDir, const std::string& testBenchDir,
     const std::string& toplevelEntity = "tta0",
-    const std::string& simulationRuntime) :
-    dstDir_(dstDir), 
-    progeOutDir_(progeOutDir),
-    sharedOutDir_(sharedOutDir),
-    testBenchDir_(testBenchDir),
-    workDir_("work"),
-    vhdlDir_("vhdl"),
-    verDir_("verilog"),
-    gcuicDir_("gcu_ic"),
-    tbDir_("tb"),
-    modsimCompileScriptName_("modsim_compile.sh"),
-    ghdlCompileScriptName_("ghdl_compile.sh"),
-    iverilogCompileScriptName_("iverilog_compile.sh"),
-    modsimSimulateScriptName_("modsim_simulate.sh"),
-    ghdlSimulateScriptName_("ghdl_simulate.sh"),
-    iverilogSimulateScriptName_("iverilog_simulate.sh"),
-    testbenchName_("testbench"),
-    toplevelEntity_(toplevelEntity),
-    idf_(idf),
-    language_(language),
-    simulationRuntime_(simulationRuntime){
-
+    const std::string& simulationRuntime)
+    : dstDir_(dstDir),
+      progeOutDir_(progeOutDir),
+      sharedOutDir_(sharedOutDir),
+      testBenchDir_(testBenchDir),
+      workDir_("work"),
+      vhdlDir_("vhdl"),
+      verDir_("verilog"),
+      gcuicDir_("gcu_ic"),
+      tbDir_("tb"),
+      platformDir_("platform"),
+      modsimCompileScriptName_("modsim_compile.sh"),
+      ghdlCompileScriptName_("ghdl_compile.sh"),
+      iverilogCompileScriptName_("iverilog_compile.sh"),
+      modsimSimulateScriptName_("modsim_simulate.sh"),
+      ghdlSimulateScriptName_("ghdl_simulate.sh"),
+      iverilogSimulateScriptName_("iverilog_simulate.sh"),
+      ghdlPlatformCompileScriptName_("ghdl_platform_compile.sh"),
+      testbenchName_("testbench"),
+      platformTestbenchName_("tta_almaif_tb"),
+      toplevelEntity_(toplevelEntity),
+      idf_(idf),
+      language_(language),
+      simulationRuntime_(simulationRuntime) {
     fetchFiles();
     packageFilesFirst();
     prepareFiles();
 }
-
 
 /**
  * The destructor.
@@ -135,10 +133,17 @@ ProGeScriptGenerator::~ProGeScriptGenerator() {
 void
 ProGeScriptGenerator::generateAll() {
     generateModsimCompile();
-    
-    if(language_==VHDL)
-        generateGhdlCompile();
-    else
+
+    if (language_ == VHDL) {
+        generateGhdlCompile(
+            ghdlCompileScriptName_, testbenchName_,
+            {vhdlFiles_, gcuicFiles_, testBenchFiles_}, true);
+        if (!platformFiles_.empty()) {
+            generateGhdlCompile(
+                ghdlPlatformCompileScriptName_, platformTestbenchName_,
+                {platformFiles_}, false);
+        }
+    } else
         generateIverilogCompile();
 
     generateModsimSimulate();
@@ -168,6 +173,11 @@ ProGeScriptGenerator::generateModsimCompile() {
     stream << "rm -rf " << workDir_ << endl;
     stream << "vlib " << workDir_ << endl;
     stream << "vmap"  << endl;
+
+    stream << "if [ \"$only_add_files\" = \"yes\" ]; then" << endl;
+    stream << "    echo \"-a option is not available for modelsim.\"; exit 2;"
+           << endl;
+    stream << "fi" << endl;
 
     stream << "if [ \"$enable_coverage\" = \"yes\" ]; then" << endl;
     stream << "    coverage_opt=\"" << coverageOpt << "\"" << endl;
@@ -223,19 +233,23 @@ ProGeScriptGenerator::generateModsimCompile() {
  * @exception IOException 
  */
 void
-ProGeScriptGenerator::generateGhdlCompile() {
-    string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
-        ghdlCompileScriptName_;
+ProGeScriptGenerator::generateGhdlCompile(
+    std::string scriptName, std::string tbName,
+    std::vector<std::list<std::string>> filesToCompile,
+    bool clearWorkingDir) {
+    string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR + scriptName;
 
     createExecutableFile(dstFile);
 
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
     generateCompileStart(stream);
 
-    stream << "rm -rf " << workDir_ << endl;
-    stream << "mkdir -p work" << endl;
-    stream << "rm -rf bus.dump" << endl;
-    stream << "rm -rf " << testbenchName_ << endl;
+    if (clearWorkingDir) {
+        stream << "rm -rf " << workDir_ << endl;
+        stream << "mkdir -p work" << endl;
+        stream << "rm -rf bus.dump" << endl;
+        stream << "rm -rf " << tbName << endl;
+    }
 
     stream << "if [ \"$enable_coverage\" = \"yes\" ]; then" << endl;
     stream << "    echo \"-c option is not available for ghdl.\"; exit 2;"
@@ -245,17 +259,13 @@ ProGeScriptGenerator::generateGhdlCompile() {
     stream << endl;
     string program = "ghdl -i --std=08 --workdir=" + workDir_;
     string exitOnFailure = " || exit 1";
-    outputScriptCommands(stream, vhdlFiles_, program, exitOnFailure);
 
-    stream << endl;
-    outputScriptCommands(stream, gcuicFiles_, program, exitOnFailure);
-
-    stream << endl;
-    outputScriptCommands(stream, testBenchFiles_, program, exitOnFailure);
-
-    stream << endl;
+    for (auto& files : filesToCompile) {
+        outputScriptCommands(stream, files, program, exitOnFailure);
+        stream << endl;
+    }
     // compile command for ghdl
-    stream << "ghdl -m --std=08 --workdir=" << workDir_ 
+    stream << "ghdl -m --std=08 -Wno-hide --workdir=" << workDir_ 
            << " --ieee=synopsys -fexplicit " << testbenchName_ << endl;
 
     stream << "exit 0" << endl;
@@ -353,13 +363,14 @@ ProGeScriptGenerator::generateGhdlSimulate() {
     stream << "    echo \"-c option is not available for ghdl.\"; exit 2;"
            << endl;
     stream << "fi" << endl;
-    stream << "if [ -e " << testbenchName_ << " ]; then" << endl
-           << "    ./" << testbenchName_
+    stream << "if [ -e ${tb_entity} ]; then" << endl
+           << "    ./${tb_entity}"
            << " --stop-time=${runtime}ns" << endl
            << "else" << endl
            << "    # Newer GHDL versions does not produce binary." << endl
            << "    ghdl -r --std=08 --workdir=work --ieee=synopsys " << testbenchName_
            << "  --stop-time=${runtime}ns --ieee-asserts=disable-at-0" << endl
+
            << "fi" << endl;
 
     stream.close();
@@ -737,6 +748,8 @@ ProGeScriptGenerator::fetchFiles() {
             vhdlFiles_.push_back(imemMauPkg);
         }
     }
+    std::string DS = FileSystem::DIRECTORY_SEPARATOR;
+
     std::string sharedDir = 
         sharedOutDir_ + FileSystem::DIRECTORY_SEPARATOR +
         ((language_==VHDL)?vhdlDir_:verDir_);
@@ -763,6 +776,13 @@ ProGeScriptGenerator::fetchFiles() {
         findFiles(vhdlRegex, 
             FileSystem::directoryContents(dstDir_, absolutePaths),
             testBenchFiles_);
+    }
+
+    dirName = progeOutDir_ + DS + platformDir_;
+    if (FileSystem::fileIsDirectory(dirName)) {
+        findFiles(
+            vhdlRegex, FileSystem::directoryContents(dirName, absolutePaths),
+            platformFiles_);
     }
 }
 
@@ -848,6 +868,10 @@ ProGeScriptGenerator::prepareFiles() {
     }
     itl = testBenchFiles_.begin();
     while (itl != testBenchFiles_.end()) {
+        FileSystem::relativeDir(dstDir_, *itl++);
+    }
+    itl = platformFiles_.begin();
+    while (itl != platformFiles_.end()) {
         FileSystem::relativeDir(dstDir_, *itl++);
     }
 }

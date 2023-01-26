@@ -34,7 +34,6 @@
 #ifndef TTA_BB_SCHEDULER_HH
 #define TTA_BB_SCHEDULER_HH
 
-#include <boost/timer.hpp>
 #include <boost/progress.hpp>
 
 #include "MoveNodeSelector.hh"
@@ -165,8 +164,6 @@ protected:
     int minCycle_;
 
     MoveNodeSelector* selector_;
-    /// Time for getting the scheduling time for current basic block.
-    boost::timer schedulingTime_;
     int bypassedCount_;
     int deadResults_;
 

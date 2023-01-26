@@ -188,33 +188,6 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
     }
 
     ProGeOptions progeOptions(options);
-
-    if (options.generateTestbench()) {
-        string testBenchDir = progeOptions.outputDirectory +
-                              FileSystem::DIRECTORY_SEPARATOR + "tb";
-        try {
-            ProGeUI::generateTestBench(
-                progeOptions.language, testBenchDir,
-                progeOptions.outputDirectory);
-        } catch (const Exception& e) {
-            std::cerr << "Warning: Processor Generator failed to "
-                    << "generate testbench." << std::endl;
-            std::cerr << e.errorMessage() << std::endl;
-        }
-
-        try {
-            ProGeUI::generateScripts(
-                progeOptions.language, progeOptions.outputDirectory,
-                progeOptions.outputDirectory,
-                progeOptions.sharedOutputDirectory, testBenchDir,
-                progeOptions.simulationRuntime);
-        } catch (const Exception& e) {
-            std::cerr << "Warning: Processor Generator failed to "
-                    << "generate simulation/compilation scripts."
-                    << std::endl;
-            std::cerr << e.errorMessage() << std::endl;
-        }
-    }
     
     string integrator = options.integratorName();
     if (!integrator.empty()) {
@@ -247,7 +220,8 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
             ProGeUI::integrateProcessor(
                 std::cout, std::cerr, progeOutDir, sharedOutDir, integrator,
                 progeOptions.entityName, program, devFamily, devName, imem,
-                dmem, progeOptions.language, fmax, syncReset);
+                dmem, progeOptions.language, fmax, syncReset,
+                options.generateTestbench());
         } catch (const Exception& e) {
             std::cerr << "Processor integration failed: "
                       << e.procedureName() << ": "
@@ -255,7 +229,34 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
             return false;
         }
     }
-    
+
+    if (options.generateTestbench()) {
+        string testBenchDir = progeOptions.outputDirectory +
+                              FileSystem::DIRECTORY_SEPARATOR + "tb";
+        try {
+            ProGeUI::generateTestBench(
+                progeOptions.language, testBenchDir,
+                progeOptions.outputDirectory);
+        } catch (const Exception& e) {
+            std::cerr << "Warning: Processor Generator failed to "
+                      << "generate testbench." << std::endl;
+            std::cerr << e.errorMessage() << std::endl;
+        }
+
+        try {
+            ProGeUI::generateScripts(
+                progeOptions.language, progeOptions.outputDirectory,
+                progeOptions.outputDirectory,
+                progeOptions.sharedOutputDirectory, testBenchDir,
+                progeOptions.simulationRuntime);
+        } catch (const Exception& e) {
+            std::cerr << "Warning: Processor Generator failed to "
+                      << "generate simulation/compilation scripts."
+                      << std::endl;
+            std::cerr << e.errorMessage() << std::endl;
+        }
+    }
+
     return true;
 }
 
