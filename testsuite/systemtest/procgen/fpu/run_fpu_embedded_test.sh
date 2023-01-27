@@ -33,13 +33,7 @@ cd $PDIR || exit 1
 
 ./ghdl_compile.sh >& /dev/null ||  exit 1
 # TODO how long does the simulation actually need to run?
-if [ -e testbench ]; then
-    eval "./testbench --vcd=wave.vcd --assert-level=none --stop-time=${RUNTIME}ns >& /dev/null" || exit 1
-else
-    ghdl -r --workdir=work --ieee=synopsys testbench \
-         --vcd=wave.vcd --assert-level=none --stop-time=${RUNTIME}ns \
-         >& /dev/null || exit 1
-fi
+./ghdl_simulate.sh -r ${RUNTIME} >& /dev/null || exit 1
 
 # Print simulation output
 cat printchar_output.txt
@@ -59,13 +53,9 @@ $PROGE -t -i $IDF -o $PDIR $ADF
 $PIG -d -w 4 -p $TPEF -x $PDIR $ADF #>& /dev/null
 cd $PDIR || exit 1
 ./ghdl_compile.sh >& /dev/null || exit 1
-if [ -e testbench ]; then
-    eval "./testbench --vcd=wave.vcd --assert-level=none --stop-time=${RUNTIME}ns >& /dev/null" || exit 1
-else
-    ghdl -r --workdir=work --ieee=synopsys testbench \
-         --vcd=wave.vcd --assert-level=none --stop-time=${RUNTIME}ns \
-         >& /dev/null || exit 1
-fi
+
+./ghdl_simulate.sh -r ${RUNTIME} >& /dev/null || exit 1
+
 cat printchar_output.txt
 
 echo "Testing Sabrewing FPU..."
@@ -82,11 +72,7 @@ $PROGE -t -i $IDF -o $PDIR $ADF
 $PIG -d -w 4 -p $TPEF -x $PDIR $ADF #>& /dev/null
 cd $PDIR || exit 1
 ./ghdl_compile.sh >& /dev/null || exit 1
-if [ -e testbench ]; then
-    eval "./testbench --vcd=wave.vcd --assert-level=none --stop-time=${RUNTIME}ns >& /dev/null" || exit 1
-else
-    ghdl -r --workdir=work --ieee=synopsys testbench \
-         --vcd=wave.vcd --assert-level=none --stop-time=${RUNTIME}ns \
-         >& /dev/null || exit 1
-fi
+
+./ghdl_simulate.sh -r ${RUNTIME} >& /dev/null || exit 1
+
 cat printchar_output.txt

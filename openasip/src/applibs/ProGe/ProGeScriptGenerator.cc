@@ -257,7 +257,7 @@ ProGeScriptGenerator::generateGhdlCompile(
     stream << "fi" << endl;
 
     stream << endl;
-    string program = "ghdl -i --std=08 --workdir=" + workDir_;
+    string program = "ghdl -i ${std_version} --workdir=" + workDir_;
     string exitOnFailure = " || exit 1";
 
     for (auto& files : filesToCompile) {
@@ -265,8 +265,10 @@ ProGeScriptGenerator::generateGhdlCompile(
         stream << endl;
     }
     // compile command for ghdl
-    stream << "ghdl -m --std=08 -Wno-hide --workdir=" << workDir_ 
-           << " --ieee=synopsys -fexplicit " << testbenchName_ << endl;
+    stream << "if [ \"$only_add_files\" = \"no\" ]; then" << endl;
+    stream << "    ghdl -m ${std_version} -Wno-hide --workdir=" << workDir_
+           << " --ieee=synopsys -fexplicit " << tbName << endl;
+    stream << "fi" << endl;
 
     stream << "exit 0" << endl;
     stream.close();
@@ -368,9 +370,9 @@ ProGeScriptGenerator::generateGhdlSimulate() {
            << " --stop-time=${runtime}ns" << endl
            << "else" << endl
            << "    # Newer GHDL versions does not produce binary." << endl
-           << "    ghdl -r --std=08 --workdir=work --ieee=synopsys " << testbenchName_
-           << "  --stop-time=${runtime}ns --ieee-asserts=disable-at-0" << endl
-
+           << "    ghdl -r ${std_version} --workdir=work --ieee=synopsys "
+           << "${tb_entity} --stop-time=${runtime}ns "
+           << "--ieee-asserts=disable-at-0 ${generic_list}" << endl
            << "fi" << endl;
 
     stream.close();

@@ -51,8 +51,7 @@ generatebits -d -w 4 -p ${TPEF} -x ${PROCDIR} ${ADF} >& /dev/null \
 cd ${PROCDIR}
 ./ghdl_compile.sh >& /dev/null \
     || { echo "Error from ghdl_compile.sh"; exit 1; }
-ghdl -r --workdir=work --ieee=synopsys testbench --assert-level=none \
-     --stop-time=1000ns >& /dev/null \
+./ghdl_simulate.sh -r 1000 >& /dev/null \
     || { echo "Error from simulation"; exit 1; }
 cd ../..
 diff ${TPEF}.bustrace \

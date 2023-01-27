@@ -32,14 +32,9 @@ $PIG -d -w 4 -p $TPEF -x $PDIR $ADF >& /dev/null
 cd $PDIR || exit 1
 
 # change the simulation time
-./ghdl_compile.sh >& /dev/null ||  exit 1
-if [ -e testbench ]; then
-    eval "./testbench --assert-level=none --vcd=wave.vcd --stop-time=${RUNTIME}ns >& /dev/null" || exit 1
-else
-    ghdl -r --workdir=work --ieee=synopsys testbench \
-         --vcd=wave.vcd --assert-level=none --stop-time=${RUNTIME}ns \
-         >& /dev/null || exit 1
-fi
+./ghdl_compile.sh -v93c >& /dev/null ||  exit 1
+
+./ghdl_simulate.sh -v93c -r ${RUNTIME} >& /dev/null || exit 1
 
 # Print simulation output
 cat printchar_output.txt
@@ -58,14 +53,10 @@ rm temp.txt
 $PROGE -t -i $IDF -o $PDIR $ADF
 $PIG -d -w 4 -p $TPEF -x $PDIR $ADF >& /dev/null
 cd $PDIR || exit 1
-./ghdl_compile.sh >& /dev/null ||  exit 1
-if [ -e testbench ]; then
-    eval "./testbench --assert-level=none --vcd=wave.vcd --stop-time=${RUNTIME}ns >& /dev/null" || exit 1
-else
-    ghdl -r --workdir=work --ieee=synopsys testbench \
-         --vcd=wave.vcd --assert-level=none --stop-time=${RUNTIME}ns \
-         >& /dev/null || exit 1
-fi
+./ghdl_compile.sh -v93c >& /dev/null ||  exit 1
+
+./ghdl_simulate.sh -v93c -r ${RUNTIME} >& /dev/null || exit 1
+
 cat printchar_output.txt
 
 echo "Testing SIMD2 half operations..."
@@ -82,13 +73,8 @@ rm temp.txt
 $PROGE -t -i $IDF -o $PDIR $ADF
 $PIG -d -w 4 -p $TPEF -x $PDIR $ADF >& /dev/null
 cd $PDIR || exit 1
-./ghdl_compile.sh >& /dev/null ||  exit 1
-if [ -e testbench ]; then
-    eval "./testbench --assert-level=none --vcd=wave.vcd --stop-time=${RUNTIME}ns >& /dev/null" || exit 1
-else
-    ghdl -r --workdir=work --ieee=synopsys testbench \
-         --vcd=wave.vcd --assert-level=none --stop-time=${RUNTIME}ns \
-         >& /dev/null || exit 1
-fi
+./ghdl_compile.sh -v93c >& /dev/null ||  exit 1
+
+./ghdl_simulate.sh -v93c -r ${RUNTIME} >& /dev/null || exit 1
 
 cat printchar_output.txt

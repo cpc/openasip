@@ -5,6 +5,7 @@ function usage() {
     echo "  -c     Enables code coverage."
     echo "  -a     Only adds the files, but doesn't run"
     echo "         the final testbench compilation"
+    echo "  -v     VHDL standard version 87/93/93c/00/02/08"
     echo "  -h     This helpful help text."
 }
 
@@ -15,9 +16,10 @@ function cleanup() {
 trap cleanup EXIT
 
 only_add_files=no
+std_version="--std=08"
 
 OPTIND=1
-while getopts "cah" OPTION
+while getopts "cav:h" OPTION
 do
     case $OPTION in
         c)
@@ -25,6 +27,9 @@ do
             ;;
         a)
             only_add_files=yes
+            ;;
+        v)
+            std_version="--std=$OPTARG"
             ;;
         h)
             usage

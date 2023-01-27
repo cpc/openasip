@@ -93,8 +93,8 @@ GHDL=$(which ghdl 2> /dev/null)
 if [ "x${GHDL}" != "x" ]
 then
   cd $PROGE_OUT_VHDL || exit 1
-  ./ghdl_compile.sh >& /dev/null || echo "ghdl compile failed."
-  ./ghdl_simulate.sh >& /dev/null || echo "ghdl simulation failed."
+  ./ghdl_compile.sh -v93c >& /dev/null || echo "ghdl compile failed."
+  ./ghdl_simulate.sh -v93c >& /dev/null || echo "ghdl simulation failed."
   cd ..
   diff $TTABUSTRACE \
       <(head -n $(wc -l < $TTABUSTRACE) < $PROGE_OUT_VHDL/execbus.dump) \
