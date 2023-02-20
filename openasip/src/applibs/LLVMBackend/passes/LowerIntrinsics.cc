@@ -110,7 +110,7 @@ bool
 LowerIntrinsics::doInitialization(Module &M) {
    
     // Initialize list of intrinsics to lower.
-    replace_.insert(Intrinsic::flt_rounds);
+    replace_.insert(Intrinsic::get_rounding);
     replace_.insert(Intrinsic::ceil);
     replace_.insert(Intrinsic::floor);
     replace_.insert(Intrinsic::round);
@@ -151,8 +151,8 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
                Function* callee = ci->getCalledFunction();
                if (callee != NULL && callee->isIntrinsic() &&
                    replace_.find(callee->getIntrinsicID()) != replace_.end()) {
-                   if (callee->getIntrinsicID() == Intrinsic::flt_rounds) {
-                       // Replace FLT_ROUNDS intrinsic with the actual
+                   if (callee->getIntrinsicID() == Intrinsic::get_rounding) {
+                       // Replace GET_ROUNDING intrinsic with the actual
                        // constant value to avoid stupid  "if (1 == 0)"
                        // code even with full optimizations.
                        I->replaceAllUsesWith(
