@@ -264,7 +264,8 @@ def parse_options():
 def exitWithError(status, errorMessage=None):
     if errorMessage is not None:
         print(errorMessage, sys.stderr)
-    rmtree(tempDir)
+    if not options.leave_tempfiles:
+        rmtree(tempDir)
     sys.exit(status)
 
 def optimizeBytecode(inFile):
@@ -291,6 +292,7 @@ def optimizeBytecode(inFile):
         optSwitches += ' -' + ' -'.join(extra_opts)
     outputName = tempDir + "/" + os.path.basename(inFile) + "_optimized.bc"
     command = "opt -O3 -enable-new-pm=0 -f " + inFile + " -o " + outputName + " " + optSwitches
+
     exitCode = run_command(command, echoCmd=options.verbose)
     if exitCode != 0:
         exitWithError(1, "Error while optimizing bytecode: " + command + "\n")
