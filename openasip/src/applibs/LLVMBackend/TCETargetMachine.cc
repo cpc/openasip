@@ -97,7 +97,7 @@ public:
         const MCSubtargetInfo&, raw_ostream&) override {}
 
     void
-    printRegName(raw_ostream& OS, unsigned RegNo) const override {}
+    printRegName(raw_ostream& OS, MCRegister Reg) const override {}
 };
 
 // In TCE target we don't print the MCInsts from LLVM, but
