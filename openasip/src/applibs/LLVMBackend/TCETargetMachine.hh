@@ -110,7 +110,7 @@ plugin_(plugin) {
             const Target &T, const Triple& TTriple,
             const llvm::StringRef& CPU, const llvm::StringRef& FS,
             const TargetOptions &Options,
-            Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
+            std::optional<Reloc::Model> RM, std::optional<CodeModel::Model> CM,
             CodeGenOpt::Level OL, bool isLittle);
 
 	virtual ~TCETargetMachine();

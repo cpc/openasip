@@ -535,7 +535,7 @@ public:
     // return false. Otherwise return nullopt and fill out Cond with the test
     // condition.
 
-    Optional<bool>
+    std::optional<bool>
     createTripCountGreaterCondition(
         int TC, MachineBasicBlock &MBB,
         SmallVectorImpl<MachineOperand> &Cond) override {

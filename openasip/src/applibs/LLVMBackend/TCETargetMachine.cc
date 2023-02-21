@@ -145,7 +145,7 @@ TCETargetMachine::TCETargetMachine(
     const Target &T, const Triple& TTriple,
     const llvm::StringRef& CPU, const llvm::StringRef& FS,
     const TargetOptions &Options,
-    Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM, CodeGenOpt::Level OL, bool) :
+    std::optional<Reloc::Model> RM, std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL, bool) :
     TCEBaseTargetMachine(T, TTriple, CPU, FS, Options,
                          RM?*RM:Reloc::Model::Static, CM?*CM:CodeModel::Small, OL),
     // Note: Reloc::Model does not have "Default" named member. "Static" is ok?

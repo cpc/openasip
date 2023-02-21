@@ -134,7 +134,7 @@ TCEBaseTargetMachine::TCEBaseTargetMachine(
 TCEStubTargetMachine::TCEStubTargetMachine(
     const Target &T, const Triple &TT, const llvm::StringRef& CPU,
     const llvm::StringRef& FS, const TargetOptions &Options,
-    Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
+    std::optional<Reloc::Model> RM, std::optional<CodeModel::Model> CM,
     CodeGenOpt::Level OL, bool) :
     TCEBaseTargetMachine(T, TT, CPU, FS, Options,
                          RM?*RM:Reloc::Model::Static,
