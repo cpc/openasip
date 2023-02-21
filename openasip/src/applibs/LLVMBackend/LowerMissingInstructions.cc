@@ -665,7 +665,6 @@ bool LowerMissingInstructions::doFinalization(Module& /* M */) {
 //
 bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
     bool Changed = false;
-    BasicBlock::InstListType &BBIL = BB.getInstList();
 
     // Loop over all of the instructions, looking for instructions to lower
     // instructions
@@ -778,7 +777,7 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
             }
                         
             
-            I = --BBIL.erase(I);
+            BB.erase(I, I);
             Changed = true;
             
             NumLowered++;
