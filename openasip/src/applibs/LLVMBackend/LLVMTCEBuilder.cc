@@ -335,7 +335,7 @@ LLVMTCEBuilder::initDataSections() {
         def.address = 0;
         def.addressSpaceId = 
             cast<PointerType>(gv.getType())->getAddressSpace();
-        def.alignment = std::max(gvAlign.hasValue()? gvAlign->value():0, (long unsigned int)(dl_->getPrefTypeAlignment(type)));
+        def.alignment = std::max(gvAlign.has_value()? gvAlign->value():0, (long unsigned int)(dl_->getPrefTypeAlignment(type)));
         def.size = dl_->getTypeStoreSize(type);
         // memcpy seems to assume global values are aligned by 4
         if (def.size > def.alignment) {
