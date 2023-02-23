@@ -208,7 +208,7 @@ TCEInstrInfo::BlockHasNoFallThrough(const MachineBasicBlock& MBB) const {
 void TCEInstrInfo::
 storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                     unsigned SrcReg, bool isKill, int FI,
-                    const TargetRegisterClass *RC) const {
+                    const TargetRegisterClass *RC, Register vReg) const {
   DebugLoc DL;
 
   if (I != MBB.end()) DL = I->getDebugLoc();
@@ -228,7 +228,7 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 void TCEInstrInfo::
 loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                      unsigned DestReg, int FI,
-                     const TargetRegisterClass *RC) const {
+                     const TargetRegisterClass *RC, Register vReg) const {
   DebugLoc DL;
 
   if (I != MBB.end()) DL = I->getDebugLoc();

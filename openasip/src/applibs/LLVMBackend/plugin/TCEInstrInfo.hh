@@ -85,15 +85,16 @@ namespace llvm {
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             unsigned srcReg, bool isKill, int frameIndex,
-            const TargetRegisterClass* rc) const;
+            const TargetRegisterClass* rc, Register vReg) const;
 
         // changed in LLVM 2.8:
         virtual void storeRegToStackSlot(
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             Register srcReg, bool isKill, int frameIndex,
-            const TargetRegisterClass* rc, const TargetRegisterInfo*) const override {
-            storeRegToStackSlot(mbb, mbbi, srcReg, isKill, frameIndex, rc);
+            const TargetRegisterClass* rc, const TargetRegisterInfo*,
+            Register vReg) const override {
+            storeRegToStackSlot(mbb, mbbi, srcReg, isKill, frameIndex, rc, 0);
         }
 
         // TODO: this is in the form of the llvm 2.7 version of this method.
@@ -102,15 +103,16 @@ namespace llvm {
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             unsigned destReg, int frameIndex,
-            const TargetRegisterClass* rc) const;
+            const TargetRegisterClass* rc, Register vReg) const;
 
         // changed in LLVM 2.8:
         virtual void loadRegFromStackSlot(
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             Register destReg, int frameIndex,
-            const TargetRegisterClass* rc, const TargetRegisterInfo*) const override {
-            loadRegFromStackSlot(mbb, mbbi, destReg, frameIndex, rc);
+            const TargetRegisterClass* rc, const TargetRegisterInfo*,
+            Register vReg) const override {
+            loadRegFromStackSlot(mbb, mbbi, destReg, frameIndex, rc, 0);
         }
 
     virtual void copyPhysReg(
