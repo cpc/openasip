@@ -295,7 +295,7 @@ def optimizeBytecode(inFile):
         extra_opts = options.extra_llvm_opts.split(',')
         optSwitches += ' -' + ' -'.join(extra_opts)
     outputName = tempDir + "/" + os.path.basename(inFile) + "_optimized.bc"
-    command = "opt -passes=\"" + default_passes + '\"' + " -f " + inFile + " -o " + outputName + " " + optSwitches
+    command = "opt -enable-new-pm=0 -passes=\"" + default_passes + '\"' + " -f " + inFile + " -o " + outputName + " " + optSwitches
 
     exitCode = run_command(command, echoCmd=options.verbose)
     if exitCode != 0:
