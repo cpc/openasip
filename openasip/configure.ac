@@ -556,27 +556,27 @@ LLVM_INCLUDEDIR=/usr/include
 fi
 
 case "$LLVM_VERSION" in
-     14*)
-     AC_DEFINE([LLVM_14], [], "Using LLVM 14")
-     LLVM_VERSION=14
-     LLVM_LIBRARYVERSION=14
-     LLVM_OLDER_THAN_15=1
-     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVMTCE-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
-     LLVM_SHARED_LIB=-lLLVMTCE-$LLVM_LIBRARYVERSION
-     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
-     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the wide custom vector extension patch(wide)")
-     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
-;;
      15*)
      AC_DEFINE([LLVM_15], [], "Using LLVM 15")
      LLVM_VERSION=15
      LLVM_LIBRARYVERSION=15
+     LLVM_OLDER_THAN_16=1
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVMTCE-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVMTCE-$LLVM_LIBRARYVERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
      AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the wide custom vector extension patch(wide)")
      AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
 
+;;
+     16*)
+     AC_DEFINE([LLVM_16], [], "Using LLVM 16")
+     LLVM_VERSION=16
+     LLVM_LIBRARYVERSION=16
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVMTCE-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVMTCE-$LLVM_LIBRARYVERSION
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the wide custom vector extension patch(wide)")
+     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
 ;;
      *)
    AC_MSG_NOTICE(
@@ -594,9 +594,9 @@ AC_MSG_NOTICE([
 ])
 
 
-if  test "x$LLVM_OLDER_THAN_15" == "x1";
+if  test "x$LLVM_OLDER_THAN_16" == "x1";
 then
-AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_15, 1, [LLVM version is older than 14])
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_16, 1, [LLVM version is older than 16])
 fi
 
 
@@ -1244,13 +1244,14 @@ for flag in $CXXFLAGS; do
     fi
 done
    
-# Set the flags to use -std=c++0x or -std=c++11.
+# Set the flags to use -std=c++0x or -std=c++17.
 if test x"$define_cxx0x" = xtrue; then
    AC_DEFINE(HAVE_CXX0X, [], [Using C++0x language standard switch.])
    CXXFLAGS="$CXXFLAGS -std=c++0x"
+### TODO: Include option for the c++14 flag that was here before?
 else
-   AC_DEFINE(HAVE_CXX11, [], [Using C++11 language standard switch.])
-   CXXFLAGS="$CXXFLAGS -std=c++14"
+   AC_DEFINE(HAVE_CXX11, [], [Using C++17 language standard switch.])
+   CXXFLAGS="$CXXFLAGS -std=c++17"
 fi
 
 
