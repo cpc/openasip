@@ -126,7 +126,7 @@ TCERegisterInfo::getReservedRegs(const MachineFunction& mf) const {
     return reserved;
 }
 
-void TCERegisterInfo::eliminateFrameIndex(
+bool TCERegisterInfo::eliminateFrameIndex(
     MachineBasicBlock::iterator II, int SPAdj, 
     unsigned FIOperandNum,
     RegScavenger *RS) const {
@@ -279,7 +279,7 @@ void TCERegisterInfo::eliminateFrameIndex(
 
        if (Offset == 0) {
             MI.getOperand(FIOperandNum).ChangeToRegister(TCE::SP, false);
-            return;
+            return false;
         }
 
        // try to use a combined add+ld/st operation (a base+offset load/store), 
@@ -366,6 +366,7 @@ void TCERegisterInfo::eliminateFrameIndex(
            }
        }
     }
+    return false;
 }
 
 

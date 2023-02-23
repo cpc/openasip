@@ -64,7 +64,7 @@ namespace llvm {
 
         BitVector getReservedRegs(const MachineFunction &MF) const override;
 
-        void eliminateFrameIndex(MachineBasicBlock::iterator II,
+        bool eliminateFrameIndex(MachineBasicBlock::iterator II,
                                  int SPAdj, unsigned FIOperandNum,
                                  RegScavenger *RS = NULL) const override;
 
