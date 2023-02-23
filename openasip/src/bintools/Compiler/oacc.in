@@ -669,17 +669,15 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
     # memset() et. al. since (at least older versions of) LoopIdiomRecognize
     # ended up generating a call to memset() inside them, causing infinite
     # recursion.
-    default_opts = " -O3 -disable-simplify-libcalls " + \
+    default_passes = "default<O3>"
+    default_opts = "-disable-simplify-libcalls " + \
                    "-disable-loop-idiom-memcpy " + \
                    "-disable-loop-idiom-memset "
-
-    # no inline
-    # In version 14, "disable-inlining" was removed from opt and replaced with
-    # "inline"
-    if @LLVM_VERSION@ < 14:
-        default_opts += options.noinline and "-disable-inlining " or "-inline-threshold=%d " % options.inline_threshold
-    else:
-        default_opts += (not options.noinline) and "-inline " or "-inline-threshold=%d " % options.inline_threshold
+    if not options.noinline:
+        default_passes += ",inline"
+        # Should this be checked independent of options.noinline?
+        if options.inline_threshold:
+            default_opts = "-inline-threshold=%d " % options.inline_threshold
 
     # no need to run this, since intrinsics are lowered in isel...
 
@@ -699,11 +697,9 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
     # -O0 optimization doesn't exist in opt
     optSwitches = ""
 
-    if options.optimization_level == 1 or options.disable_internalize:
-        # disable-internalize missing in llvm 3.6
-        optSwitches = (default_opts)
-    elif options.optimization_level > 1:
-        optSwitches = (" -internalize "+ default_opts)
+    if options.optimization_level > 1 and not options.disable_internalize:
+        default_passes += ",internalize"
+    optSwitches = default_opts
 
     if options.extra_llvm_opts != "":
         extra_opts = options.extra_llvm_opts.split(',')
@@ -728,7 +724,8 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
     if options.soft_float or not options.autovectorize:
         optSwitches += " -vectorize-slp=false -vectorize-loops=false "
 
-    command = "opt -enable-new-pm=0 -f " + inFile + " -o " + outputName + " " + optSwitches + extraSwitches
+    command = "opt -passes=\"" + default_passes + "\" -f " + inFile + " -o " \
+        + outputName + " " + optSwitches + extraSwitches
 
     exitCode = runCommand(command, verbose)
 
@@ -768,22 +765,18 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     if options.keep_symbols != "":
         internalize_api_list += "," + options.keep_symbols
 
-    no_inline = ""
-    # In version 14, "disable-inlining" was removed from opt and replaced with
-    # "inline"
-    if options.noinline:
-        if @LLVM_VERSION@ < 14:
-            no_inline = " -disable-inlining "
-    else: 
-        if @LLVM_VERSION@ >= 14:
-            no_inline = " -inline "
+    passes = ""
+    if not options.noinline:
+        passes = "-passes=\"inline"
 
     if not options.disable_internalize:
-        internalizeCmd = " -internalize " + internalize_api_list
-    else:
-        internalizeCmd = ""
+        passes += ",internalize"
+        optSwitches += " " + internalize_api_list
 
-    command = ("opt -enable-new-pm=0 " + linkedName + no_inline +
+    if passes != "":
+        passes += "\""
+
+    command = ("opt -enable-new-pm=0" + passes + linkedName +
                " -f " + internalizeCmd + " -o " + outputName +
                 " " + optSwitches)
 
