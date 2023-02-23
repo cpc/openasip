@@ -56,6 +56,8 @@ using namespace llvm;
 
 class TCEDAGToDAGISel : public llvm::SelectionDAGISel {
 public:
+    static char ID;
+
     explicit TCEDAGToDAGISel(llvm::TCETargetMachine& tm);
     virtual ~TCEDAGToDAGISel();
 
@@ -87,11 +89,13 @@ private:
     #include "TCEGenDAGISel.inc"
 };
 
+char TCEDAGToDAGISel::ID = 0;
+
 /**
  * Constructor.
  */
 TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
-    SelectionDAGISel(tm), 
+    SelectionDAGISel(ID, tm), 
     lowering_(*static_cast<TCETargetLowering*>(tm.getTargetLowering())), 
     subtarget_(*tm.getSubtargetImpl()), tm_(&tm) {
 }
