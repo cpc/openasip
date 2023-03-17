@@ -5841,6 +5841,76 @@ have 32-bit data width; instruction memory does not have this constraint. All
 other memory spaces are mapped as scratchpad memory, inaccessible from the AXI
 bus.
 
+Control register organization can be seen in Table \ref{tab:almaif_ctrl}.
+All other memory spaces are mapped as scratchpad memory, inaccessible from the
+AXI bus. Buses are divided into bus trace registers by first padding them to
+the nearest 32 bits, and then dividing them in 32-bit register slots,
+starting from bus 0 and its least-significant word. For example, if a machine
+has three buses with indices 0, 1 and 2 that are 16, 64 and 32 bits wide,
+respectively, the first bus trace register at 0x040 will hold the 16-bit bus,
+padded with 16 zeros, the second will hold the lower half of the 64-bit bus,
+the third will hold its upper half, and the fourth, at 0x04c, will hold the
+32-bit bus.
+
+\begin{table}[H]
+  \begin{center}
+    \caption{Control register organization}
+    \label{tab:almaif_ctrl}
+    \begin{tabular}{lll}
+    \textbf{Address offset} &\textbf{Direction} &\textbf{Function} \\
+    \hline
+    0x000 & R & Status: Shows why the TTA core is in a break state \\
+          &   & Bit 0: single-stepping breakpoint \\
+          &   & Bit 1: Breakpoint 1 \\
+          &   & Bit 2: Breakpoint 2 \\
+          &   & Bit 3: Manual breakpoint \\
+    0x004 & R & Program counter \\
+    0x008 & R & Cycle count (low 32 bits) \\
+    0x00c & R & Cycle count (high 32 bits) \\
+    0x010 & R & Stall count (low 32 bits) \\
+    0x014 & R & Stall count (high 32 bits) \\
+    \hline
+    0x040      & R & First bus trace register \\
+    0x044      & R & Second bus trace register \\
+               &   & ... \\
+    0x040 + 4n &   & (n+1):th bus trace register \\
+    \hline
+    0x200 & W & Command (1 = reset, 2 = run, 4 = break) \\
+    0x204 & RW & Start address \\
+    0x208 & RW & Breakpoint enable \\
+          &    & Bit 0-1: Reserved \\
+          &    & Bit 2: Enable single-stepping breakpoint \\
+          &    & Bit 3: Enable breakpoint 1 \\
+          &    & Bit 3: Enable breakpoint 2 \\
+    0x210 & RW & Breakpoint 1 address \\
+    0x214 & RW & Breakpoint 2 address \\
+    \hline
+    0x300 & R & Device class (0x774) \\
+    0x304 & R & Device ID (unimplemented) \\
+    0x308 & R & Interface version (0x3) \\
+    0x30c & R & Core count (0x1) \\
+    0x310 & R & CTRL size, per core, in bytes \\
+    0x314 & R & Instruction memory size, in bytes \\
+    0x318 & R & Instruction memory start (low 32 bits) \\
+    0x31c & R & Instruction memory start (high 32 bits) \\
+    0x320 & R & CQ memory size, in bytes (low 32 bits) \\
+    0x324 & R & CQ memory size, in bytes (high 32 bits) \\
+    0x328 & R & CQ memory start (low 32 bits) \\
+    0x32c & R & CQ memory start (high 32 bits) \\
+    0x330 & R & Data memory size, in bytes (low 32 bits)  \\
+    0x334 & R & Data memory size, in bytes (high 32 bits)  \\
+    0x338 & R & Data memory start (low 32 bits) \\
+    0x33c & R & Data memory start (high 32 bits) \\
+    0x340 & R & Feature flags (low 32 bits) \\
+    0x344 & R & Feature flags (high 32 bits) \\
+    0x348 & R & Pointer size \\
+    0x34c & R & Debug feature support (0x1) \\
+    0x350 & R & Breakpoint count (0x2) \\
+    \end{tabular}
+  \end{center}
+\end{table}
+
+
 The LSU compatible with this integrator can be found in almaif.hdb. Currently
 it is the only function unit shipped with OA which implements this interface.
 This means that the only option for data and instruction memory type is
