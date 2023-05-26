@@ -118,7 +118,7 @@ architecture rtl of almaif_decoder is
                 := std_logic_vector(to_unsigned(mem_offset_g/4, axi_addrw_g-2));
   constant mem_mask_c   : std_logic_vector(axi_addrw_g-2-1 downto 0)
                      -- := (mem_addrw_g-2-1 downto 0 => '0', others => '1');
-                        := not std_logic_vector(to_unsigned(2**(mem_addrw_g-2)-1,
+                        := not std_logic_vector(to_unsigned(2**mem_addrw_g-1,
                                                             axi_addrw_g-2));
 
   constant mem_width_log2 : integer := integer(ceil(log2(real(mem_dataw_g))));
