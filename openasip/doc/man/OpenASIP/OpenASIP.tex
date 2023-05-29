@@ -3579,193 +3579,6 @@ The number  of delay slots is  defined in the control  unit of  the ADF.
 Stepping  through the  program we  should observe that the loop in the
 above source  code is repeated by 128 times before exiting the  loop.
 
-\section{Function Unit Generator}
-
-Function Unit Generator (FUGen) is an automatic HDL generator for
-creating the boilerplate code binding operation hardware implementations
-together as a function unit with a combination of multiple operations,
-or with complex operations consisting of a number of simpler operations.
-
-FUGen can be used for all function units including ones
-that use external ports. FUGen alters the traditional hardware design
-flow for automating the creation of function units with different
-operation combinations. Individual operations need to be described
-once and can then be used in combination with any other operations.
-
-This section gives usage description with examples for utilizing the
-FUGen in the processor RTL generation parts of the design flow.
-
-\subsection{Operation Implementations}
-
-% TODO: does it really need both even if the user is interested
-% only on one of the languages?
-For FUGen to operate it needs both verilog and VHDL description for
-the operations. Operation descriptions are raw code ``snippets''
-written in the corresponding hardware description
-language. ``Snippets'' must refer to all of the operations operands as
-defined in the OSAL. In addition, ``snippets'' may refer to additional
-variables, ``resource'' ports, ``external ports'', or some generally
-available signals. ``Resource'' refers to a VHDL entity or a verilog
-module that the FUGen can instantiate to allow creating more complex
-operations that, for example, use blackbox models. FUGen can also
-generate most operations from OSAL Operation DAGs as long as all the
-nodes have ``snippet'' implementations.
-
-% TODO: might be worth mentioning how it generates pipelined
-% implementations?
-
-
-The following give examples of snippets for VHDL and Verilog for the
-base operation set MUL operation.
-
-\begin{lstlisting}[language=VHDL,caption={VHDL ``snippet'' for MUL operation}]
-op3 <= std_logic_vector(resize(unsigned(op1) *
-                               unsigned(op2), op3'length));  
-\end{lstlisting}
-
-\begin{lstlisting}[language=Verilog,caption={Verilog ``snippet'' for MUL operation}]
-op3 = op1 * op2;
-\end{lstlisting}
-
-The OSAL operands are referred in the HDL code as ``op1'', ``op2'',
-etc. The order of the operand numbering, and their widths are the same as defined
-in OSAL.
-
-When referring to variables, and when implementing operations otherwise, one
-must adhere to the hardware description language's own syntax and semantic rules.
-For example, the ADDH examples below implement the half-floating point
-addition operation using the Designware's fp\_mac blackbox module. When referring to
-a ``resource'', one must also specify its index after the port's name as one operation
-may instantiate multiple resources. FUGen counts the resource usage per
-operation and reuses them.
-% TODO: this explanation is a bit confusing. The examples are not self
-% explanatory either.
-
-\begin{lstlisting}[language=VHDL,caption={VHDL ``snippet'' for ADDH operation}]
-a_1 <= op1;
-var_v := op2;
-b_1 <= X"3C00";
-c_1 <= var_v;
-op3 <= z_1;
-rnd_1 <= "000";
-\end{lstlisting}
-
-\begin{lstlisting}[language=Verilog,caption={Verilog ``snippet'' for ADDH operation}]
-a_1 = op1;
-b_1 = 16'h3c00;
-c_1 = op2;
-rnd_1 = 3'b000;
-op3 = z_1;
-\end{lstlisting}
-
-
-The ``Snippets'' may also refer to the following ``OA standard'' signals.
-
-\begin{description}
-\item[glock] Global lock input signaling that the TTA is locked.
-\item[glockreq] Global lock request that places the TTA under a
-  lock. Global Lock Request may not depend on the ``glock'' to avoid
-  combinatorial loops.
-\item[trigger] A Signal that has a logical one value only at the clock cycle that
-  the operation is triggered. It is useful in some situations, as normally a
-  generated FU may ``execute'' the previously triggered operation
-  ``snippet'' (thus cause logic toggling) even though the operation was
-  not triggered on the current clock cycle.
-\end{description}
-
-For implementing a resource one must create the resource entity in
-VHDL or a module in verilog and describe it as a IP-XACT component.
-External ports are descibed as a IP-XACT abstract bus definition.
-
-After creating resouces or ``snippets'' they can be added to the HDB
-along with all the variables used in the ``snippets''. Resources and
-external port descriptions must be created before the operations using
-them.
-
-In ProDe, for generating a function unit one must add all operation
-implementations used in it in ``Processor Implementation'' dialog's
-``Function Unit Generation'' pane. However, this is only capable of
-adding operations that have direct implementations in the HDB.
-
-FUGen is also capable of generating operations based on their OSAL definition.
-For example, the multiply-accumulate operation can be built from snippets for
-multiplication and addition. Specifying this in the IDF is not supported, and
-instead, automatic selection of operation implementations must be used. This is
-done alongside processor generation by specifying HDBs to search for the
-operations with the \verb|--hdb-list| argument. Processor Generator first
-attempts to select full function unit implementations, and falls back on FUGen
-snippets if that fails.
-
-There are HDBs with basic operation operation snippets, covering most of our
-operation set:
-\begin{description}
-  \item[generate\_base32.hdb] Scalar arithmetic operations.
-  \item[generate\_lsu\_32.hdb] HDBs containing AlmaIF Integrator -compatible
-    snippets for simple LSU implementations.
-  \item[generate\_rf\_iu.hdb] Generic register file implementations.
-\end{description}
-
-\subsection{HDL Details and Limitations}
-
-Everything should be described in lower case. Only integer
-generics/parameters are allowed for ``resources'' and they must have a
-value. Code ``snippets'' may not read its OSAL output or refer to any
-signal in any way before it has been written to. Outputs from
-``resources'' may be considered as having been written already.
-
-``Resources'' must implement its operation in zero clock cycles
-although may have a clock and a reset. If a ``resource'' has a clock and/or
-a reset, they must be named ``clk'' and ``rstx'', respectively.
-
-Operation implementations can also have a post-operation
-``snippet''. These are meant mainly to allow implementing load
-operations. Normal ``snippets'' are ``executed'' the clock cycle the FU
-is triggered, but post-operation ``snippets'' are ``executed'' on the
-last operation's last clock cycle. As all generated operations have a
-registered output, this means load operations must have a latency of
-at least 2 clock cycles to allow one for the memory.
-
-\subsection{Default Load and Store Operations}
-
-By default, OA comes with load and store operation ``snippets'' that
-implement a simple 32-bit interface for accessing the
-memory. Interface is generated when operations from
-'generate\_lsu32.hdb' HDB are used to generate the FU.
-
-\begin{figure}[tbh]
-\centerline{\psfig{figure=eps/fugen/default_lsu32_iface.eps,width=0.95\textwidth}}
-\caption{Default generated LSU interface signals from TTA's perspective.}
-\label{fig:default_lsu32_iface}
-\end{figure}
-
-\begin{description}
-\item[avalid\_out] Access valid is asserted when the FU wants to make
-  a memory access. TTA is locked when 'aready' is not asserted and
-  'avalid' is.
-\item[aready\_in] Access ready from the memory side. Must not depend
-  on 'avalid'. Transaction must happen when both 'avalid' and 'aready'
-  are asserted.
-\item[aaddr\_out] Access address. Byte address.
-\item[awren\_out] Access active high write or active low read signal.
-\item[astrb\_out] Access strobe. Active high bits for the bytes that
-  are written to or read from the memory. Accesses are always aligned
-  on the access' width. E.g 16-bit operation on a 32-bit data lane
-  only ever generates strobes '0011' or '1100'.
-\item[adata\_out] Access data. Bytes that correspond to the strobe
-  carry valid data. E.g. 8-bit write to the memory may come on
-  different byte on the data lane depending on the address. Bit 0 on
-  'astrb' marks weather byte 0 is valid on 'adata', etc.
-\item[rvalid\_in] Read valid from memory. If 'rready' is not asserted
-  the memory must delay the data.
-\item[rready\_out] Read ready. Transaction must occure when both
-  'rvalid' and 'rready' are asserted. If 'rvalid' is not asserted FU
-  locks the core until the read data arrives.
-\item[rdata\_in] Read data. Data must always be on the LSBits for
-  different loads. E.g. a 16-bit loads from a wider memory must come
-  in the bits 15:0. 'astrb' is sufficient to infer the load's width
-  and the bits that must be shifted to those LSBits.
-\end{description}
-
 
 \section{RISC-V Tutorial}
 This tutorial goes through the RISC-V customization in OpenASIP toolset. It
@@ -5456,6 +5269,230 @@ parameter.
 
 \end{longtable}
 \end{center}
+
+
+\subsection{Function Unit Generator}
+
+Function Unit Generator (FUGen) is an automatic HDL generator for
+creating the boilerplate code binding operation hardware implementations
+together as a function unit with a combination of multiple operations,
+or with complex operations consisting of a number of simpler operations.
+
+FUGen can be used for all function units including ones
+that use external ports. FUGen alters the traditional hardware design
+flow for automating the creation of function units with different
+operation combinations. Individual operations need to be described
+once and can then be used in combination with any other operations.
+
+This section gives usage description with examples for utilizing the
+FUGen in the processor RTL generation parts of the design flow.
+
+\subsubsection{Operation Implementations}
+
+% TODO: does it really need both even if the user is interested
+% only on one of the languages?
+For FUGen to operate it needs both verilog and VHDL description for
+the operations. Operation descriptions are raw code ``snippets''
+written in the corresponding hardware description
+language. ``Snippets'' must refer to all of the operations operands as
+defined in the OSAL. In addition, ``snippets'' may refer to additional
+variables, ``resource'' ports, ``external ports'', or some generally
+available signals. ``Resource'' refers to a VHDL entity or a verilog
+module that the FUGen can instantiate to allow creating more complex
+operations that, for example, use blackbox models. FUGen can also
+generate most operations from OSAL Operation DAGs as long as all the
+nodes have ``snippet'' implementations.
+
+% TODO: might be worth mentioning how it generates pipelined
+% implementations?
+
+
+The following give examples of snippets for VHDL and Verilog for the
+base operation set MUL operation.
+
+\begin{lstlisting}[language=VHDL,caption={VHDL ``snippet'' for MUL operation}]
+op3 <= std_logic_vector(resize(unsigned(op1) *
+                               unsigned(op2), op3'length));
+\end{lstlisting}
+
+\begin{lstlisting}[language=Verilog,caption={Verilog ``snippet'' for MUL operation}]
+op3 = op1 * op2;
+\end{lstlisting}
+
+The OSAL operands are referred in the HDL code as ``op1'', ``op2'',
+etc. The order of the operand numbering, and their widths are the same as defined
+in OSAL.
+
+When referring to variables, and when implementing operations otherwise, one
+must adhere to the hardware description language's own syntax and semantic rules.
+For example, the ADDH examples below implement the half-floating point
+addition operation using the Designware's fp\_mac blackbox module. When referring to
+a ``resource'', one must also specify its index after the port's name as one operation
+may instantiate multiple resources. FUGen counts the resource usage per
+operation and reuses them.
+% TODO: this explanation is a bit confusing. The examples are not self
+% explanatory either.
+
+\begin{lstlisting}[language=VHDL,caption={VHDL ``snippet'' for ADDH operation}]
+a_1 <= op1;
+var_v := op2;
+b_1 <= X"3C00";
+c_1 <= var_v;
+op3 <= z_1;
+rnd_1 <= "000";
+\end{lstlisting}
+
+\begin{lstlisting}[language=Verilog,caption={Verilog ``snippet'' for ADDH operation}]
+a_1 = op1;
+b_1 = 16'h3c00;
+c_1 = op2;
+rnd_1 = 3'b000;
+op3 = z_1;
+\end{lstlisting}
+
+
+The ``Snippets'' may also refer to the following ``OA standard'' signals.
+
+\begin{description}
+\item[glock] Global lock input signaling that the TTA is locked.
+\item[glockreq] Global lock request that places the TTA under a
+  lock. Global Lock Request may not depend on the ``glock'' to avoid
+  combinatorial loops.
+\item[trigger] A Signal that has a logical one value only at the clock cycle that
+  the operation is triggered. It is useful in some situations, as normally a
+  generated FU may ``execute'' the previously triggered operation
+  ``snippet'' (thus cause logic toggling) even though the operation was
+  not triggered on the current clock cycle.
+\end{description}
+
+For implementing a resource one must create the resource entity in
+VHDL or a module in verilog and describe it as a IP-XACT component.
+External ports are descibed as a IP-XACT abstract bus definition.
+
+After creating resouces or ``snippets'' they can be added to the HDB
+along with all the variables used in the ``snippets''. Resources and
+external port descriptions must be created before the operations using
+them.
+
+In ProDe, for generating a function unit one must add all operation
+implementations used in it in ``Processor Implementation'' dialog's
+``Function Unit Generation'' panel. However, this is only capable of
+adding operations that have direct implementations in the HDB.
+
+FUGen is also capable of generating operations based on their OSAL definition.
+For example, the multiply-accumulate operation can be built from snippets for
+multiplication and addition. Specifying this in the IDF is not supported, and
+instead, automatic selection of operation implementations must be used. This is
+done alongside processor generation by specifying HDBs to search for the
+operations with the \verb|--hdb-list| argument. Processor Generator first
+attempts to select full function unit implementations, and falls back on FUGen
+snippets if that fails.
+
+There are HDBs with basic operation operation snippets, covering most of our
+operation set:
+\begin{description}
+  \item[generate\_base32.hdb] Scalar arithmetic operations.
+  \item[generate\_lsu\_32.hdb] HDBs containing AlmaIF Integrator -compatible
+    snippets for simple LSU implementations.
+  \item[generate\_rf\_iu.hdb] Generic register file implementations.
+\end{description}
+
+
+
+\subsubsection{Operation Implementation Resources}
+
+Operation Implementation Resources are IP components instantiated inside the
+function unit. The Operation Implementation Resources can be multi-cycle,
+and the tool will automatically schedule the data movement out of the
+component after the defined latency in the HDB.
+In addition to the IP component RTL source, the Implementation
+Resources need an IP-XACT component file, which describes the component
+interface, so that the tool knows how the component is instantiated.
+
+
+
+By default, OA comes with load and store operation ``snippets'' that
+implement a simple 32-bit interface for accessing the
+memory. Interface is generated when operations from
+'generate\_lsu32.hdb' HDB are used to generate the FU.
+This is also an example use of operation implementation resources, since
+the function unit contains an IP component (lsu\_registers.vhdl)
+implementing a multi-cycle hand-shaking memory operation.
+
+
+In addition to the Operation implementation resource, three (3) different
+snippets need to be provided. First, initial\_vhdl for default
+connectivity of the signals, when no operation is being launched
+(see hdb/generate\_lsu/shared/defaults.vhdl). Then secondly, the operation
+implementation snippet itself (to the same place as the HDL snippet, see
+hdb/generate\_lsu/shared/ldxx.vhdl which initiates a memory read). That
+snippet defines what is done at the time the operation is being launched in
+the resource. And thirdly, post\_op\_vhdl, which defines how the operands are
+moved out of the resource (see ld32-post-op.vhdl, which moves the memory read
+results out of the resource).
+Having these three snippets controlling the Implementation Resource behavior
+makes it possible to integrate the multi-cycle components into the
+function-unit pipeline in exactly the same way as the more bare-bones HDL
+snippets.
+
+
+
+\begin{figure}[tbh]
+\centerline{\psfig{figure=eps/fugen/default_lsu32_iface.eps,width=0.95\textwidth}}
+\caption{Default generated LSU interface signals from TTA's perspective.}
+\label{fig:default_lsu32_iface}
+\end{figure}
+
+\begin{description}
+\item[avalid\_out] Access valid is asserted when the FU wants to make
+  a memory access. TTA is locked when 'aready' is not asserted and
+  'avalid' is.
+\item[aready\_in] Access ready from the memory side. Must not depend
+  on 'avalid'. Transaction must happen when both 'avalid' and 'aready'
+  are asserted.
+\item[aaddr\_out] Access address. Byte address.
+\item[awren\_out] Access active high write or active low read signal.
+\item[astrb\_out] Access strobe. Active high bits for the bytes that
+  are written to or read from the memory. Accesses are always aligned
+  on the access' width. E.g 16-bit operation on a 32-bit data lane
+  only ever generates strobes '0011' or '1100'.
+\item[adata\_out] Access data. Bytes that correspond to the strobe
+  carry valid data. E.g. 8-bit write to the memory may come on
+  different byte on the data lane depending on the address. Bit 0 on
+  'astrb' marks weather byte 0 is valid on 'adata', etc.
+\item[rvalid\_in] Read valid from memory. If 'rready' is not asserted
+  the memory must delay the data.
+\item[rready\_out] Read ready. Transaction must occure when both
+  'rvalid' and 'rready' are asserted. If 'rvalid' is not asserted FU
+  locks the core until the read data arrives.
+\item[rdata\_in] Read data. Data must always be on the LSBits for
+  different loads. E.g. a 16-bit loads from a wider memory must come
+  in the bits 15:0. 'astrb' is sufficient to infer the load's width
+  and the bits that must be shifted to those LSBits.
+\end{description}
+
+
+
+\subsubsection{HDL Details and Limitations}
+
+Everything should be described in lower case. Only integer
+generics/parameters are allowed for ``resources'' and they must have a
+value. Code ``snippets'' may not read its OSAL output or refer to any
+signal in any way before it has been written to. Outputs from
+``resources'' may be considered as having been written already.
+
+Operation Implementation resources may have a clock and a reset.
+They must be named ``clk'' and ``rstx'', respectively.
+
+Operation implementations can also have a post-operation
+``snippet''. These are meant mainly to allow implementing load
+operations. Normal ``snippets'' are ``executed'' the clock cycle the FU
+is triggered, but post-operation ``snippets'' are ``executed'' on the
+last operation's last clock cycle. As all generated operations have a
+registered output, this means load operations must have a latency of
+at least 2 clock cycles to allow one for the memory.
+
+
 
 \section{Platform Integrator}
 \label{sec:platformIntegrator}
