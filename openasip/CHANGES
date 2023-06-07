@@ -13,6 +13,7 @@ Main changes and features
 - Added register file generator (RFGen), which allows RF RTL to be directly
   generated from ADF descriptions. Verilog and VHDL supported.
 - Improved Verilog RTL generation, especially in FUGen.
+- Add a latency to clock/lock cycle counter to increase clock frequency
 
 Deprecation notice
 ------------------
