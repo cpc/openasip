@@ -771,6 +771,7 @@ AlmaIFIntegrator::axiMasterPortGroup() {
     addPortToGroup(axiBus, ProGe::IN, "m_axi_wready", "1");
     addPortToGroup(axiBus, ProGe::OUT, "m_axi_wdata", "32");
     addPortToGroup(axiBus, ProGe::OUT, "m_axi_wstrb", "4");
+    addPortToGroup(axiBus, ProGe::OUT, "m_axi_wlast", "1");
     addPortToGroup(axiBus, ProGe::IN, "m_axi_bvalid", "1");
     addPortToGroup(axiBus, ProGe::OUT, "m_axi_bready", "1");
     addPortToGroup(axiBus, ProGe::OUT, "m_axi_arvalid", "1");

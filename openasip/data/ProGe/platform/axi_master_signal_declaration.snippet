@@ -8,6 +8,7 @@ signal m_axi_wvalid   : std_logic;
 signal m_axi_wready   : std_logic;
 signal m_axi_wdata    : std_logic_vector(dmem_data_width_g-1 downto 0);
 signal m_axi_wstrb    : std_logic_vector(dmem_data_width_g/8-1 downto 0);
+signal m_axi_wlast    : std_logic;
 --
 signal m_axi_bvalid   : std_logic;
 signal m_axi_bready   : std_logic;
