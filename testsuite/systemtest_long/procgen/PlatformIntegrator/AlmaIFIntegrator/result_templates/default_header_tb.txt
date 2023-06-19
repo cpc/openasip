@@ -1,0 +1,10 @@
+DMEM size: 2048
+CQMEM size: 32768
+IMEM start: 32768
+DMEM start: 98304
+CQMEM start: 65536
+IMEM Initialization complete
+DMEM Initialization complete
+CQMEM Initialization complete
+Core done
+Output written
