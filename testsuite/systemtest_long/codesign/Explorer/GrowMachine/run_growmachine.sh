@@ -9,7 +9,7 @@ MINIMAL_ADF_PATH="${_TCE_ROOT}/data/mach/minimal_be.adf"
 SUPERIORITY=5      # superiority percentage
 "${EXPLORE_BIN}" -d data/ growmachine.dsdb 1>/dev/null
 "${EXPLORE_BIN}" -a ${MINIMAL_ADF_PATH} growmachine.dsdb 1>/dev/null
-NEW_CONFIGS=($("${EXPLORE_BIN}" -e GrowMachine -s 1 -u superiority=${SUPERIORITY} growmachine.dsdb \
+NEW_CONFIGS=($("${EXPLORE_BIN}" -v -e GrowMachine -s 1 -u superiority=${SUPERIORITY} growmachine.dsdb 2>&1 \
 | grep -x '[[:space:]][0-9][0-9]*' | xargs))
 
 #echo "New config(s) created: ${NEW_CONFIGS[@]}" 

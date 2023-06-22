@@ -1320,7 +1320,7 @@ Output returns '1' if input 1 is greater than input 2 and otherwise returns '0'.
     <in element-count="1" element-width="64" id="1" type="ULongWord"/>
     <out element-count="1" element-width="64" id="2" type="ULongWord"/>
     <trigger-semantics>
-      EXEC_OPERATION(apc, IO(1));
+      EXEC_OPERATION(apc, IO(1), IO(2));
     </trigger-semantics>
   </operation>
 

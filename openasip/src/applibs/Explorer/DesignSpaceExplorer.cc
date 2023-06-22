@@ -218,6 +218,8 @@ DesignSpaceExplorer::evaluate(
                 testApplication.hasFunctionsOfInterest();
             std::vector<ClockCycleCount> instructionExecutionCounts;
 
+            oStream_->str("");
+            oStream_->seekp(0);
             // simulate the scheduled program
             ClockCycleCount totalCycleCount;
             const ExecutionTrace* traceDB = NULL;

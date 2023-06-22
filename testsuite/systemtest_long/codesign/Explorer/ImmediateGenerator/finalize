@@ -1,0 +1,2 @@
+#!/bin/bash
+rm -rf test{3b,4b}.dsdb 2.adf
