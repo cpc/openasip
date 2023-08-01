@@ -141,7 +141,8 @@ private:
     int secondDmemDataw_ = 0;
     int secondDmemAddrw_ = 0;
     std::string secondPmemName_;
-    int secondPmemDataw_, secondPmemAddrw_;
+    int secondPmemDataw_ = 0;
+    int secondPmemAddrw_ = 0;
     HDLTemplateInstantiator accelInstantiator_;
 
     bool hasMinimalDebugger_;
