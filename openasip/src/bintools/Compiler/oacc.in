@@ -664,12 +664,18 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
 
     verbose = options.verbose
 
+    # -O0 optimization doesn't exist in opt
+    optSwitches = ""
+    default_passes = ""
+    if options.optimization_level > 1 and not options.disable_internalize:
+        default_passes += "internalize,"
+    default_passes += "default<O3>"
+
     # Disable memcpy and memset generation since they are typically slower
     # than the original inline loops, and can break things when compiling
     # memset() et. al. since (at least older versions of) LoopIdiomRecognize
     # ended up generating a call to memset() inside them, causing infinite
     # recursion.
-    default_passes = "default<O3>"
     default_opts = "-disable-simplify-libcalls " + \
                    "-disable-loop-idiom-memcpy " + \
                    "-disable-loop-idiom-memset "
@@ -677,14 +683,12 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
         default_passes += ",inline"
         # Should this be checked independent of options.noinline?
         if options.inline_threshold:
-            default_opts = "-inline-threshold=%d " % options.inline_threshold
+            default_opts += "-inline-threshold=%d " % options.inline_threshold
 
     # no need to run this, since intrinsics are lowered in isel...
-
     # hower if it's run before some optimizations is might be still
     # possible before isel in that case later optimization passes
     # must be selected very carefully in TCETargetMachine::addPreISel()
-
     #lowerIntrinsicsPass = " -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
     #default_opts += lowerIntrinsicsPass
 
@@ -694,11 +698,6 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
     if options.unroll_threshold == 0:
         default_opts += " --disable-loop-unrolling "
 
-    # -O0 optimization doesn't exist in opt
-    optSwitches = ""
-
-    if options.optimization_level > 1 and not options.disable_internalize:
-        default_passes += ",internalize"
     optSwitches = default_opts
 
     if options.extra_llvm_opts != "":
@@ -766,18 +765,20 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
         internalize_api_list += "," + options.keep_symbols
 
     passes = ""
-    if not options.noinline:
-        passes = "-passes=\"inline"
-
     if not options.disable_internalize:
-        passes += ",internalize"
+        passes += "-passes=\"internalize"
         optSwitches += " " + internalize_api_list
+
+    if not options.noinline:
+        if passes != "":
+            passes +=","
+        passes += "inline"
 
     if passes != "":
         passes += "\""
 
-    command = ("opt -enable-new-pm=0" + passes + linkedName +
-               " -f " + internalizeCmd + " -o " + outputName +
+    command = ("opt -enable-new-pm=0 " + passes + " " + linkedName +
+               " -f " + " -o " + outputName +
                 " " + optSwitches)
 
     (exitCode, output) = runCommandBuffered(command, verbose, stripOutput=False)
