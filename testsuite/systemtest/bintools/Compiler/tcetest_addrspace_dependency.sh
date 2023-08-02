@@ -1,7 +1,7 @@
 #!/bin/sh
 ### TCE TESTCASE
 ### title: Initialization of the stack pointer to a custom value
-### xstdout: 9
+### xstdout: 2
 
 ADF=data/multi_addrspace.adf
 SRC=data/addr_space_deps.c
