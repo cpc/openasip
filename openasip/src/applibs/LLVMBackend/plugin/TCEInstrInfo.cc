@@ -208,7 +208,11 @@ TCEInstrInfo::BlockHasNoFallThrough(const MachineBasicBlock& MBB) const {
 void TCEInstrInfo::
 storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                     unsigned SrcReg, bool isKill, int FI,
+                    #ifdef LLVM_OLDER_THAN_16
+                    const TargetRegisterClass *RC) const {
+                    #else
                     const TargetRegisterClass *RC, Register vReg) const {
+                    #endif
   DebugLoc DL;
 
   if (I != MBB.end()) DL = I->getDebugLoc();
@@ -228,7 +232,11 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
 void TCEInstrInfo::
 loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                      unsigned DestReg, int FI,
+                     #ifdef LLVM_OLDER_THAN_16
+                     const TargetRegisterClass *RC) const {
+                     #else
                      const TargetRegisterClass *RC, Register vReg) const {
+                     #endif
   DebugLoc DL;
 
   if (I != MBB.end()) DL = I->getDebugLoc();
@@ -534,8 +542,11 @@ public:
     // true. If the trip count is statically known to be not greater than TC,
     // return false. Otherwise return nullopt and fill out Cond with the test
     // condition.
-
+    #ifdef LLVM_OLDER_THAN_16
+    Optional<bool>
+    #else
     std::optional<bool>
+    #endif
     createTripCountGreaterCondition(
         int TC, MachineBasicBlock &MBB,
         SmallVectorImpl<MachineOperand> &Cond) override {

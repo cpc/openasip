@@ -1044,7 +1044,11 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
         cmd += " -I`" LLVM_CONFIG " --includedir`";
 
     cmd +=
+        #ifdef LLVM_OLDER_THAN_16
+        " " + CXX14_FLAG +
+        #else
         " " + CXX17_FLAG +
+        #endif
         " " + endianOption +
         " " + bitnessOption +
         " " + pluginSources +

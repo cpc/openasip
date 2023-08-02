@@ -109,7 +109,11 @@ namespace llvm {
             const Target &T, const Triple& TT,
             const llvm::StringRef& CPU, const llvm::StringRef& FS,
             const TargetOptions &Options,
+            #ifdef LLVM_OLDER_THAN_16
+            Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
+            #else
             std::optional<Reloc::Model> RM, std::optional<CodeModel::Model> CM,
+            #endif
             CodeGenOpt::Level OL, bool isLittle);
 
         // TODO: this is no longer virtual in llvm 6.0

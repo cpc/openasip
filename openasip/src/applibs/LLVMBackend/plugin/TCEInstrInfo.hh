@@ -85,16 +85,25 @@ namespace llvm {
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             unsigned srcReg, bool isKill, int frameIndex,
+            #ifdef LLVM_OLDER_THAN_16
+            const TargetRegisterClass* rc) const;
+            #else
             const TargetRegisterClass* rc, Register vReg) const;
+            #endif
 
         // changed in LLVM 2.8:
         virtual void storeRegToStackSlot(
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             Register srcReg, bool isKill, int frameIndex,
+            #ifdef LLVM_OLDER_THAN_16
+            const TargetRegisterClass* rc, const TargetRegisterInfo*) const override {
+            storeRegToStackSlot(mbb, mbbi, srcReg, isKill, frameIndex, rc);
+            #else
             const TargetRegisterClass* rc, const TargetRegisterInfo*,
             Register vReg) const override {
             storeRegToStackSlot(mbb, mbbi, srcReg, isKill, frameIndex, rc, 0);
+            #endif
         }
 
         // TODO: this is in the form of the llvm 2.7 version of this method.
@@ -103,16 +112,25 @@ namespace llvm {
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             unsigned destReg, int frameIndex,
+            #ifdef LLVM_OLDER_THAN_16
+            const TargetRegisterClass* rc) const;
+            #else
             const TargetRegisterClass* rc, Register vReg) const;
+            #endif
 
         // changed in LLVM 2.8:
         virtual void loadRegFromStackSlot(
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             Register destReg, int frameIndex,
+            #ifdef LLVM_OLDER_THAN_16
+            const TargetRegisterClass* rc, const TargetRegisterInfo*) const override {
+            loadRegFromStackSlot(mbb, mbbi, destReg, frameIndex, rc);
+            #else
             const TargetRegisterClass* rc, const TargetRegisterInfo*,
             Register vReg) const override {
             loadRegFromStackSlot(mbb, mbbi, destReg, frameIndex, rc, 0);
+            #endif
         }
 
     virtual void copyPhysReg(
