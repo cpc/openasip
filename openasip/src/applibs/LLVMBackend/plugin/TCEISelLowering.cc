@@ -1891,7 +1891,7 @@ void TCETargetLowering::ReplaceNodeResults(
         #ifdef LLVM_OLDER_THAN_16
         if (lsdn->getAlignment() >= 4) {
         #else
-        if (lsdn->getAlign() >= 4) {}
+        if (lsdn->getAlign() >= 4) {
         #endif
             load = DAG.getLoad(
             MVT::i32, node, chain, lsdn->getBasePtr(), MachinePointerInfo());
