@@ -230,6 +230,7 @@ public:
  */
 GeneratedTCEPlugin::GeneratedTCEPlugin() : 
     TCETargetMachinePlugin() {
+        lowering_ = nullptr;
 }
 
 

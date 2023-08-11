@@ -64,7 +64,11 @@ namespace llvm {
 
         BitVector getReservedRegs(const MachineFunction &MF) const override;
 
+        #ifdef LLVM_OLDER_THAN_16
         void eliminateFrameIndex(MachineBasicBlock::iterator II,
+        #else
+        bool eliminateFrameIndex(MachineBasicBlock::iterator II,
+        #endif
                                  int SPAdj, unsigned FIOperandNum,
                                  RegScavenger *RS = NULL) const override;
 

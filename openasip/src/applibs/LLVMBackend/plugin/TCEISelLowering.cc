@@ -220,7 +220,11 @@ TCETargetLowering::LowerFormalArguments(
                     // TCE IS NO LONGER ALWAYS BIG-ENDIAN!
                     // TCE is big endian, add an offset based on the ObjectVT.
                     unsigned Offset = DEFAULT_SIZE - std::max(
+                        #ifdef LLVM_OLDER_THAN_16
                         1UL, ObjectVT.getSizeInBits().getFixedSize()/8);
+                        #else
+                        1UL, ObjectVT.getSizeInBits().getFixedValue()/8);
+                        #endif
                     FIPtr = DAG.getNode(
                         ISD::ADD, dl, DEFAULT_TYPE, FIPtr,
                         DAG.getConstant(Offset, dl, DEFAULT_TYPE));
@@ -1870,8 +1874,11 @@ void TCETargetLowering::ReplaceNodeResults(
             std::cerr << "Error: null loadsdnde!" << std::endl;
             return;
         }
-
+        #ifdef LLVM_OLDER_THAN_16
         if (lsdn->getAlignment() < 2 &&
+        #else
+        if (lsdn->getAlign() < 2 &&
+        #endif
             lsdn->getMemoryVT() != MVT::i8 && lsdn->getMemoryVT() != MVT::i1) {
             assert(0 && "Cannot lower 16-bit memory op with only one byte alignment");
         }
@@ -1880,7 +1887,11 @@ void TCETargetLowering::ReplaceNodeResults(
 
         SDValue load;
         SDValue lowBits;
+        #ifdef LLVM_OLDER_THAN_16
         if (lsdn->getAlignment() >= 4) {
+        #else
+        if (lsdn->getAlign() >= 4) {
+        #endif
             load = DAG.getLoad(
             MVT::i32, node, chain, lsdn->getBasePtr(), MachinePointerInfo());
         } else {
@@ -1913,7 +1924,11 @@ void TCETargetLowering::ReplaceNodeResults(
 
         SDValue finalVal;
         if (lsdn->getExtensionType() == ISD::ZEXTLOAD) {
+            #ifdef LLVM_OLDER_THAN_16
             shiftedVal = lsdn->getAlignment() < 4 ?
+            #else
+            shiftedVal = lsdn->getAlign() < 4 ?
+            #endif
                 DAG.getNode(ISD::SRA, node, MVT::i32, load, lowBits):
                 load;
 
@@ -1953,7 +1968,11 @@ void TCETargetLowering::ReplaceNodeResults(
                 assert(0 && "Wrong memory vt in sextload!");
             }
         } else { // anyext/noext.
+            #ifdef LLVM_OLDER_THAN_16
             finalVal = lsdn->getAlignment() < 4 ?
+            #else
+            finalVal = lsdn->getAlign() < 4 ?
+            #endif
                 DAG.getNode(ISD::SRA, node, MVT::i32, load, lowBits):
                 load;
         }
@@ -1992,7 +2011,11 @@ SDValue TCETargetLowering::lowerExtOrBoolLoad(
     SDValue alignedAddr;
     SDValue lowBits;
 
+    #ifdef LLVM_OLDER_THAN_16
     if (lsdn->getAlignment() >= 4) {
+    #else
+    if (lsdn->getAlign() >= 4) {
+    #endif
         alignedAddr = lsdn->getBasePtr();
         lowBits = DAG.getConstant(0l, op, MVT::i32);
     } else {
@@ -2014,11 +2037,19 @@ SDValue TCETargetLowering::lowerExtOrBoolLoad(
 
     // this is little-endian code. big endian needs different.
     if (lsdn->getExtensionType() == ISD::ZEXTLOAD) {
+        #ifdef LLVM_OLDER_THAN_16
         auto shiftedValue = lsdn->getAlignment() < 4 ?
+        #else
+        auto shiftedValue = lsdn->getAlign() < 4 ?
+        #endif
             DAG.getNode(ISD::SRA, op, MVT::i32, load, lowBits) :
             load;
         if (lsdn->getMemoryVT() == MVT::i16) {
+            #ifdef LLVM_OLDER_THAN_16
             assert(lsdn->getAlignment() >= 2 &&
+            #else
+            assert(lsdn->getAlign() >= 2 &&
+            #endif
                    "Cannot (yet?) emulate a 16-bit load which has 1-byte alignment. "
                    " 16-bit memory operations needed to compile this code." );
             std::cerr << "\t\tSource is 16 bits." << std::endl;
@@ -2044,7 +2075,11 @@ SDValue TCETargetLowering::lowerExtOrBoolLoad(
 
         // shift left to get it to upper bits, then arithmetic right.
         if (lsdn->getMemoryVT() == MVT::i16) {
+            #ifdef LLVM_OLDER_THAN_16
             auto shiftsLeft = lsdn->getAlignment() < 4 ?
+            #else
+            auto shiftsLeft = lsdn->getAlign() < 4 ?
+            #endif
                 DAG.getNode(ISD::SUB, op, MVT::i32,
                             DAG.getConstant(16l, op, MVT::i32),
                             lowBits) :
@@ -2056,7 +2091,11 @@ SDValue TCETargetLowering::lowerExtOrBoolLoad(
                 DAG.getConstant(16l, op, MVT::i32));
             return shiftDown;
         } else if (lsdn->getMemoryVT() == MVT::i8) {
+            #ifdef LLVM_OLDER_THAN_16
             auto shiftsLeft = lsdn->getAlignment() < 4 ?
+            #else
+            auto shiftsLeft = lsdn->getAlign() < 4 ?
+            #endif
                 DAG.getNode(ISD::SUB, op, MVT::i32,
                             DAG.getConstant(24l, op, MVT::i32),
                             lowBits) :
@@ -2068,7 +2107,11 @@ SDValue TCETargetLowering::lowerExtOrBoolLoad(
                 DAG.getConstant(24l, op, MVT::i32));
             return shiftDown;
         } else if (lsdn->getMemoryVT() == MVT::i1) {
+            #ifdef LLVM_OLDER_THAN_16
             auto shiftsLeft = lsdn->getAlignment() < 4 ?
+            #else
+            auto shiftsLeft = lsdn->getAlign() < 4 ?
+            #endif
                 DAG.getNode(ISD::SUB, op, MVT::i32,
                             DAG.getConstant(31l, op, MVT::i32),
                             lowBits) :
@@ -2087,7 +2130,11 @@ SDValue TCETargetLowering::lowerExtOrBoolLoad(
 
     // anyext?
     if (lsdn->getExtensionType() == ISD::EXTLOAD) {
+        #ifdef LLVM_OLDER_THAN_16
         auto shiftedValue = lsdn->getAlignment() < 4 ?
+        #else
+        auto shiftedValue = lsdn->getAlign() < 4 ?
+        #endif
             DAG.getNode(ISD::SRA, op, MVT::i32, load, lowBits) :
             load;
         auto shiftDown = DAG.getNode(ISD::SRA, op, MVT::i32, load, lowBits);

@@ -665,7 +665,9 @@ bool LowerMissingInstructions::doFinalization(Module& /* M */) {
 //
 bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
     bool Changed = false;
+    #ifdef LLVM_OLDER_THAN_16
     BasicBlock::InstListType &BBIL = BB.getInstList();
+    #endif
 
     // Loop over all of the instructions, looking for instructions to lower
     // instructions
@@ -777,8 +779,11 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                 I->replaceAllUsesWith(NewCall);
             }
                         
-            
+            #ifdef LLVM_OLDER_THAN_16
             I = --BBIL.erase(I);
+            #else
+            BB.erase(I, I);
+            #endif
             Changed = true;
             
             NumLowered++;

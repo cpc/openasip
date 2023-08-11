@@ -138,6 +138,7 @@ const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
 const TCEString LLVMBackend::CXX0X_FLAG = "-std=c++0x";
 const TCEString LLVMBackend::CXX11_FLAG = "-std=c++11";
 const TCEString LLVMBackend::CXX14_FLAG = "-std=c++14";
+const TCEString LLVMBackend::CXX17_FLAG = "-std=c++17";
 
 Pass* createWorkItemAliasAnalysisPass();
 
@@ -1043,7 +1044,11 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
         cmd += " -I`" LLVM_CONFIG " --includedir`";
 
     cmd +=
+        #ifdef LLVM_OLDER_THAN_16
         " " + CXX14_FLAG +
+        #else
+        " " + CXX17_FLAG +
+        #endif
         " " + endianOption +
         " " + bitnessOption +
         " " + pluginSources +

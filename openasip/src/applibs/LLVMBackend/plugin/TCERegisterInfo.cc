@@ -125,8 +125,11 @@ TCERegisterInfo::getReservedRegs(const MachineFunction& mf) const {
 
     return reserved;
 }
-
+#ifdef LLVM_OLDER_THAN_16
 void TCERegisterInfo::eliminateFrameIndex(
+#else
+bool TCERegisterInfo::eliminateFrameIndex(
+#endif
     MachineBasicBlock::iterator II, int SPAdj, 
     unsigned FIOperandNum,
     RegScavenger *RS) const {
@@ -279,7 +282,11 @@ void TCERegisterInfo::eliminateFrameIndex(
 
        if (Offset == 0) {
             MI.getOperand(FIOperandNum).ChangeToRegister(TCE::SP, false);
+            #ifdef LLVM_OLDER_THAN_16
             return;
+            #else
+            return false;
+            #endif
         }
 
        // try to use a combined add+ld/st operation (a base+offset load/store), 
@@ -366,6 +373,11 @@ void TCERegisterInfo::eliminateFrameIndex(
            }
        }
     }
+    #ifdef LLVM_OLDER_THAN_16
+    return;
+    #else
+    return false;
+    #endif
 }
 
 

@@ -1,6 +1,7 @@
 #include "tceops.h"
 
 char data = 0;
+// Non-volatile pointer points to volatile data.
 volatile char *addr;
 int
 main() {

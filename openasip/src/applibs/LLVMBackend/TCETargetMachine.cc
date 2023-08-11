@@ -97,7 +97,11 @@ public:
         const MCSubtargetInfo&, raw_ostream&) override {}
 
     void
+    #ifdef LLVM_OLDER_THAN_16
     printRegName(raw_ostream& OS, unsigned RegNo) const override {}
+    #else
+    printRegName(raw_ostream& OS, MCRegister Reg) const override {}
+    #endif
 };
 
 // In TCE target we don't print the MCInsts from LLVM, but
@@ -145,7 +149,11 @@ TCETargetMachine::TCETargetMachine(
     const Target &T, const Triple& TTriple,
     const llvm::StringRef& CPU, const llvm::StringRef& FS,
     const TargetOptions &Options,
+    #ifdef LLVM_OLDER_THAN_16
     Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM, CodeGenOpt::Level OL, bool) :
+    #else
+    std::optional<Reloc::Model> RM, std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL, bool) :
+    #endif
     TCEBaseTargetMachine(T, TTriple, CPU, FS, Options,
                          RM?*RM:Reloc::Model::Static, CM?*CM:CodeModel::Small, OL),
     // Note: Reloc::Model does not have "Default" named member. "Static" is ok?

@@ -3,6 +3,8 @@
 
 Notable changes and features
 ----------------------------
+- Added support for LLVM 16.
+- Dropped support for LLVM versions older than 15.
 - SQLite version requirement raised to 3.25+
 - New syntax for data-start option in oacc and llvm-tce.
   Now it's possible to optionally give a list of pairs of

@@ -264,11 +264,16 @@ def parse_options():
 def exitWithError(status, errorMessage=None):
     if errorMessage is not None:
         print(errorMessage, sys.stderr)
-    rmtree(tempDir)
+    if not options.leave_tempfiles:
+        rmtree(tempDir)
     sys.exit(status)
 
 def optimizeBytecode(inFile):
-    default_opts = (not options.noinline) and "-inline " or "-inline-threshold=%d " % options.inline_threshold
+    default_passes = "default<O3>"
+    if not options.noinline:
+        default_passes += ",inline"
+        if options.inline_threshold:
+            default_opts = "-inline-threshold=%d " % options.inline_threshold
     default_opts += "-unroll-allow-partial -unroll-threshold=%d " % options.unroll_threshold
     optSwitches = ""
     if options.unroll_threshold == 0:
@@ -290,7 +295,8 @@ def optimizeBytecode(inFile):
         extra_opts = options.extra_llvm_opts.split(',')
         optSwitches += ' -' + ' -'.join(extra_opts)
     outputName = tempDir + "/" + os.path.basename(inFile) + "_optimized.bc"
-    command = "opt -O3 -enable-new-pm=0 -f " + inFile + " -o " + outputName + " " + optSwitches
+    command = "opt -enable-new-pm=0 -passes=\"" + default_passes + '\"' + " -f " + inFile + " -o " + outputName + " " + optSwitches
+
     exitCode = run_command(command, echoCmd=options.verbose)
     if exitCode != 0:
         exitWithError(1, "Error while optimizing bytecode: " + command + "\n")

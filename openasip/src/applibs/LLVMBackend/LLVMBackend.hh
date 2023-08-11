@@ -112,6 +112,7 @@ private:
     static const TCEString CXX0X_FLAG;
     static const TCEString CXX11_FLAG;
     static const TCEString CXX14_FLAG;
+    static const TCEString CXX17_FLAG;
 };
 
 #endif
