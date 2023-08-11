@@ -688,9 +688,9 @@ def optimizeBytecode(inFile, fileNamePrefix, extraSwitches = ""):
             default_passes += ",inline"
             # Should this be checked independent of options.noinline?
             if options.inline_threshold:
-               default_opts += "-inline-threshold=%d " % options.inline_threshold
+                default_opts += "-inline-threshold=%d " % options.inline_threshold
     else:
-       default_opts += (not options.noinline) and "-inline " or "-inline-threshold=%d " % options.inline_threshold
+        default_opts += (not options.noinline) and "-inline " or "-inline-threshold=%d " % options.inline_threshold
 
     # no need to run this, since intrinsics are lowered in isel...
     # hower if it's run before some optimizations is might be still

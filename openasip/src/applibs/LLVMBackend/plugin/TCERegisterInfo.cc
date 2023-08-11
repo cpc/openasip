@@ -378,7 +378,6 @@ bool TCERegisterInfo::eliminateFrameIndex(
     #else
     return false;
     #endif
-    
 }
 
 

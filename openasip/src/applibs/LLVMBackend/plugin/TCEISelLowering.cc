@@ -225,7 +225,6 @@ TCETargetLowering::LowerFormalArguments(
                         #else
                         1UL, ObjectVT.getSizeInBits().getFixedValue()/8);
                         #endif
-                        
                     FIPtr = DAG.getNode(
                         ISD::ADD, dl, DEFAULT_TYPE, FIPtr,
                         DAG.getConstant(Offset, dl, DEFAULT_TYPE));

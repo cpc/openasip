@@ -1248,7 +1248,6 @@ done
 if test x"$define_cxx0x" = xtrue; then
    AC_DEFINE(HAVE_CXX0X, [], [Using C++0x language standard switch.])
    CXXFLAGS="$CXXFLAGS -std=c++0x"
-### TODO: Include option for the c++14 flag that was here before?
 else
    if test "x$LLVM_OLDER_THAN_16" == "x1"; then
       AC_DEFINE(HAVE_CXX11, [], [Using C++11 language standard switch.])
