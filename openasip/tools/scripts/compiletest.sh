@@ -200,7 +200,9 @@ WARNINGS="\
 .*[[:space:]]undeclared[[:space:]].*|\
 .*implicit[[:space:]]declaration.*|\
 .*catastrophic[[:space:]]error.*|\
-.*[[:space:]]undefined[[:space:]].*"
+.*[[:space:]]undefined[[:space:]].*|\
+.*Segmentation[[:space:]]fault.*"
+
 
 
 # Filter away lines that match one of these regexps from lines acquired 
