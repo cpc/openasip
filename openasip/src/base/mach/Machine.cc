@@ -806,12 +806,6 @@ Machine::loadState(const ObjectState* state) {
                 setGlobalControl(*cUnit);
             } else if (child->name() == ImmediateSlot::OSNAME_IMMEDIATE_SLOT) {
                 new ImmediateSlot(child, *this);
-            } else if (
-                child->name() !=
-                    InstructionTemplate::OSNAME_INSTRUCTION_TEMPLATE &&
-                child->name() != OperationTriggeredFormat::OSNAME_FORMAT) {
-                throw ObjectStateLoadingException(
-                    __FILE__, __LINE__, procName);
             }
         }
 
