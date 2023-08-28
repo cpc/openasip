@@ -169,35 +169,19 @@ file to your shell with:
 RISC-V
 ------
 If you wish to build OpenASIP with support for RISC-V, you need to install the
-following prerequisites before installing OpenASIP.
+following prerequisites before installing OpenASIP. RISC-V GNU Toolchain
+(https://github.com/riscv-collab/riscv-gnu-toolchain) (version 12.1.0+)
+for common bintools and elf2hex (https://github.com/sifive/elf2hex) for
+generating hex files from RISC-V ELF files.
 
-You need to install the RISC-V GNU Toolchain (version 12.1.0+)
-which brings you the common bintools:
+The easiest way to acquire there tools is to use the included installation
+script:
 
-&nbsp; https://github.com/riscv-collab/riscv-gnu-toolchain
+&nbsp; _tools/scripts/install_riscv_tools.sh $HOME/local_  
 
-Note: If you are using the the RISCV GNU Toolchain with OpenASIP for other
-purposes, the toolchain must be built with the RV32IM target as OpenASIP does
-not currently support the RISC-V C-extension. Thus, you need to configure the
-toolchain build with commands like the following:
+Make sure your installation directory is added to PATH correctly:
 
-&nbsp; _./configure --prefix=/opt/riscv --with-arch=rv32im_ <br>
-&nbsp; _make_
-
-In addition, the elf2hex tool is needed to produce program hex images
-from the ELF files as follows:
-
-&nbsp; _git clone https://github.com/sifive/elf2hex.git <br>
-&nbsp; cd elf2hex <br>
-&nbsp; autoreconf -i <br>
-&nbsp; ./configure --prefix=/opt/riscv --target=riscv32-unknown-elf <br>
-&nbsp; make <br>
-&nbsp; make install_
-
-Add the install bin directory to the $PATH environment. If you installed
-the tools to /opt/riscv, add:
-
-&nbsp; export PATH=/opt/riscv/bin:$PATH
+&nbsp; export PATH=$HOME/local/bin:$PATH <br> 
 
 Building and Installing OpenASIP
 ===========================
