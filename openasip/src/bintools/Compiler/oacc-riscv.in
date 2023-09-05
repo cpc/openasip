@@ -434,7 +434,7 @@ def link(obj_files, output):
     if which("ld.lld") is None:
         exitWithError("lld must be installed for linking")
     if which("riscv32-unknown-elf-gcc") is None:
-        exitWithError("RISCV GNU Toolchain must be installed!")
+        exitWithError("RISCV GNU Toolchain must be installed")
     init_asm = os.path.join(tempDir, "init.S")
     init_out = os.path.join(tempDir, "init.o")
     link_script = os.path.join(tempDir, "riscv.ld")
