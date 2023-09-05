@@ -181,8 +181,6 @@ AC_SUBST(lt_objdir)
 AC_CHECK_PROG([LATEX], [latex], [yes], [no], [], [])
 AC_CHECK_PROG([LATEX2HTML], [latex2html], [yes], [no], [], [])
 
-AC_CHECK_PROG([RISCV32_UNKNOWN_ELF], [riscv32-unknown-elf-gcc], [yes], [no], [], [])
-
 if test x$LATEX = xyes
   then if test x$LATEX2HTML = xyes
     then MAKEMANUALS=true
@@ -191,13 +189,6 @@ fi
 
 # Do not create manuals if latex or latex2html are not available
 AM_CONDITIONAL([MANUALS], test x$MAKEMANUALS = xtrue)
-
-if test x$RISCV32_UNKNOWN_ELF = xyes
-then MAKE_RISCV_NEWLIB=true
-fi
-# Do not compile newlib for RISCV if RISCV gcc not installed
-AM_CONDITIONAL([COMPILE_RISCV_NEWLIB], test x$MAKE_RISCV_NEWLIB = xtrue)
-
 
 AX_PTHREAD()
 
