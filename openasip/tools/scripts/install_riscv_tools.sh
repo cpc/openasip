@@ -1,7 +1,13 @@
 #!/bin/bash
 
 TARGET_DIR=${1:?"Missing installation directory argument"}
-ON_PATCH_FAIL="exit 1"
+
+GNU_TOOLCHAIN_OPTS=""
+
+if test "x$2" == "x--parallel-build"
+then
+GNU_TOOLCHAIN_OPTS=-j$(nproc)
+fi
 
 build_dir="riscv-tools-build"
 
@@ -23,7 +29,7 @@ function install_gnu_toolchain {
     git checkout $version || eexit "git checkout $name $version failed"
     ./configure --prefix=$TARGET_DIR --with-arch=rv32im \
         || eexit "configure $name failed"
-    make -j$(nproc) || eexit "make $name failed"
+    make $GNU_TOOLCHAIN_OPTS || eexit "make $name failed"
     cd ..
 }
 
