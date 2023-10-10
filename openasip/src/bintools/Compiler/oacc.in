@@ -275,11 +275,11 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                     command =  ("clang -D__TCEMC__ -O%d %s %s -emit-llvm -c "\
                                     "-I" + tmpDir +\
                                     " " + compileFlags + " " + extra_opts + " " + baseName + suffix + " -o " +\
-                                    outFileName + ".tobelowered;" ) % \
+                                    outFileName + ";" ) % \
                                     (options.frontend_optlevel, \
                                          tripleOption, triple)
 
-                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
+                    command += lowerMemIntrinsicCommand(outFileName + "", outFileName)
 
                 elif suffix == ".cl":
 
@@ -386,10 +386,10 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                     compile(cpp_trampoline, trampoline_bc)
 
                     # Link the trampoline (+registration object) and the kernel together.
-                    command = "llvm-link %s %s -o %s.tobelowered;" % \
+                    command = "llvm-link %s %s -o %s;" % \
                                (kernel_bc, trampoline_bc, outFileName)
 
-                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
+                    command += lowerMemIntrinsicCommand(outFileName + "", outFileName)
 
                 elif suffix == ".cpp" or suffix == ".cc":
                     input_file = baseName + suffix
@@ -404,7 +404,7 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                                     "-O%d "\
                                     "-c -I" + tmpDir + \
                                     " " + compileFlags + " " + input_file + " -o " +\
-                                    outFileName + ".tobelowered1;") % \
+                                    outFileName + "1;") % \
                                     (tripleOption, triple, extra_opts, options.frontend_optlevel)
 
                     # For some reason C++ code does not get mallocs lowered to
@@ -412,14 +412,14 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                     # pass.
                     # lowerallocs removed in 2.7?
                     #command += "opt -lowerallocs %s -o %s;" % \
-#                        (outFileName + ".tobelowered1", outFileName + ".tobelowered")
+#                        (outFileName + "1", outFileName + "")
 
-                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered1", outFileName)
+                    command += lowerMemIntrinsicCommand(outFileName + "1", outFileName)
 
                 elif suffix == ".ll":
-                    command = ("llvm-as " + baseName + suffix + " -o " + outFileName + ".tobelowered;")
+                    command = ("llvm-as " + baseName + suffix + " -o " + outFileName + ";")
 
-                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
+                    command += lowerMemIntrinsicCommand(outFileName + "", outFileName)
 
                 elif suffix == ".o" or (suffix == ".bc" and options.force_link):
                     outFileName = fName + ".bc"
@@ -464,8 +464,10 @@ def exitWithError(status, errorMessage=None):
 
 def lowerMemIntrinsicCommand(srcFile, dstFile):
     optSwitches = ""
-    commandp = "opt -enable-new-pm=0 -f -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
-    command = commandp + " -o " + dstFile + " " + srcFile + " " + optSwitches
+    command = ""
+    #commandp = "opt -enable-new-pm=0 -f -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
+    #commandp = "opt -passes=<lowerintrinsic> -f -load=" + lowerintrinsicsplugin
+    #command = commandp + " -o " + dstFile + " " + srcFile + " " + optSwitches
     return command
 
 ###
@@ -809,9 +811,12 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
            passes += "\""
 
     if @LLVM_VERSION@ >= 16:
-        command = ("opt -enable-new-pm=0 " + passes + " " + linkedName +
+       command = ("opt " + passes + " " + linkedName +
                    " -f " + " -o " + outputName +
                    " " + optSwitches)
+        #command = ("opt -enable-new-pm=0 " + passes + " " + linkedName +
+        #           " -f " + " -o " + outputName +
+        #           " " + optSwitches)
     else:
         command = ("opt -enable-new-pm=0 " + linkedName + no_inline +
                    " -f " + internalizeCmd + " -o " + outputName +
