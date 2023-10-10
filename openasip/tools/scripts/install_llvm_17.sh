@@ -22,7 +22,7 @@ echo "### LLVM build mode: "$LLVM_BUILD_MODE
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 patch_dir=$script_dir/../patches
-llvm_co_dir=release_15
+llvm_co_dir=release_17
 
 mkdir -p $build_dir
 cd $build_dir
@@ -40,13 +40,13 @@ function fetch_llvm {
 
     if ! test -d $llvm_co_dir;
     then
-        git clone --single-branch --depth=1 --branch release/15.x https://github.com/cpc/llvmtce.git $llvm_co_dir\
+        git clone --single-branch --depth=1 --branch release/17.x https://github.com/cpc/llvmtce.git $llvm_co_dir\
             || eexit "Git clone $REV_TOFETCH from llvm failed"
     else
         cd $llvm_co_dir;
-        git checkout release/15.x ||	eexit "checking out git branch failed"
+        git checkout release/17.x ||	eexit "checking out git branch failed"
         git fetch
-        git reset --hard origin/release/15.x || eexit "resetting --hard HEAD failed"
+        git reset --hard origin/release/17.x || eexit "resetting --hard HEAD failed"
         cd ..;
     fi
 }
