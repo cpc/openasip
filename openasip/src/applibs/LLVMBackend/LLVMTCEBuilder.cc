@@ -525,22 +525,22 @@ LLVMTCEBuilder::createDataDefinition(
     bool forceInitialize, unsigned forceAlignment) {
 
     unsigned sz = dl_->getTypeStoreSize(cv->getType());
-    unsigned align = (forceAlignment == 0)?
-        dl_->getABITypeAlignment(cv->getType()):forceAlignment;
+    llvm::Align align = (forceAlignment == 0)?
+        dl_->getABITypeAlign(cv->getType()):llvm::Align(forceAlignment);
 
     // KLUDGE FIX: Currently, for little-endian machines, OSAL base simd
     // module has only vector load and store operations that require full
     // vector width alignment.
     // Remove this when accesses can be done at ABI alignment.
     if (mach_->isLittleEndian() && cv->getType()->isVectorTy()) {
-        align = (forceAlignment == 0)?sz:forceAlignment;
+        align = (forceAlignment == 0)?llvm::Align(sz):llvm::Align(forceAlignment);
     }
 
     TTAMachine::AddressSpace& aSpace = 
         addressSpaceById(addressSpaceId);
     TTAProgram::DataMemory& dmem = dataMemoryForAddressSpace(aSpace);
 
-    padToAlignment(addressSpaceId, addr, align);
+    padToAlignment(addressSpaceId, addr, align.value());
 
     // paddedAddr is the actual address data was put to
     // after alignment.
@@ -639,7 +639,7 @@ LLVMTCEBuilder::createIntDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantInt* ci, 
     bool isPointer) {
 
-    assert(addr % (dl_->getABITypeAlignment(ci->getType())) == 0 && 
+    assert(addr % (dl_->getABITypeAlign(ci->getType()).value()) == 0 && 
            "Invalid alignment for constant int!");
 
     std::vector<MinimumAddressableUnit> maus;
@@ -694,7 +694,7 @@ void
 LLVMTCEBuilder::createFPDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantFP* cfp) {
 
-    assert(addr % (dl_->getABITypeAlignment(cfp->getType())) == 0 
+    assert(addr % (dl_->getABITypeAlign(cfp->getType()).value()) == 0 
            && "Invalid alignment for constant fp!");
 
     TTAMachine::AddressSpace& aSpace = 
@@ -840,7 +840,7 @@ void
 LLVMTCEBuilder::createExprDataDefinition(
     int addressSpaceId, unsigned& addr, const ConstantExpr* ce, int offset) {
 
-    assert(addr % (dl_->getABITypeAlignment(ce->getType())) == 0 && 
+    assert(addr % (dl_->getABITypeAlign(ce->getType()).value()) == 0 && 
            "Invalid alignment for constant expr!");
 
     unsigned opcode = ce->getOpcode();
