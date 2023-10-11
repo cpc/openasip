@@ -275,11 +275,11 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                     command =  ("clang -D__TCEMC__ -O%d %s %s -emit-llvm -c "\
                                     "-I" + tmpDir +\
                                     " " + compileFlags + " " + extra_opts + " " + baseName + suffix + " -o " +\
-                                    outFileName + ";" ) % \
+                                    outFileName + ".tobelowered;" ) % \
                                     (options.frontend_optlevel, \
                                          tripleOption, triple)
 
-                    command += lowerMemIntrinsicCommand(outFileName + "", outFileName)
+                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
 
                 elif suffix == ".cl":
 
@@ -386,10 +386,10 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                     compile(cpp_trampoline, trampoline_bc)
 
                     # Link the trampoline (+registration object) and the kernel together.
-                    command = "llvm-link %s %s -o %s;" % \
+                    command = "llvm-link %s %s -o %s.tobelowered;" % \
                                (kernel_bc, trampoline_bc, outFileName)
 
-                    command += lowerMemIntrinsicCommand(outFileName + "", outFileName)
+                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
 
                 elif suffix == ".cpp" or suffix == ".cc":
                     input_file = baseName + suffix
@@ -404,7 +404,7 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                                     "-O%d "\
                                     "-c -I" + tmpDir + \
                                     " " + compileFlags + " " + input_file + " -o " +\
-                                    outFileName + "1;") % \
+                                    outFileName + ".tobelowered1;") % \
                                     (tripleOption, triple, extra_opts, options.frontend_optlevel)
 
                     # For some reason C++ code does not get mallocs lowered to
@@ -412,14 +412,14 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                     # pass.
                     # lowerallocs removed in 2.7?
                     #command += "opt -lowerallocs %s -o %s;" % \
-#                        (outFileName + "1", outFileName + "")
+#                        (outFileName + ".tobelowered1", outFileName + ".tobelowered")
 
-                    command += lowerMemIntrinsicCommand(outFileName + "1", outFileName)
+                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered1", outFileName)
 
                 elif suffix == ".ll":
-                    command = ("llvm-as " + baseName + suffix + " -o " + outFileName + ";")
+                    command = ("llvm-as " + baseName + suffix + " -o " + outFileName + ".tobelowered;")
 
-                    command += lowerMemIntrinsicCommand(outFileName + "", outFileName)
+                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
 
                 elif suffix == ".o" or (suffix == ".bc" and options.force_link):
                     outFileName = fName + ".bc"
@@ -464,10 +464,8 @@ def exitWithError(status, errorMessage=None):
 
 def lowerMemIntrinsicCommand(srcFile, dstFile):
     optSwitches = ""
-    command = ""
-    #commandp = "opt -enable-new-pm=0 -f -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
-    #commandp = "opt -passes=<lowerintrinsic> -f -load=" + lowerintrinsicsplugin
-    #command = commandp + " -o " + dstFile + " " + srcFile + " " + optSwitches
+    commandp = "opt -passes=\'lowerintrinsic\' -f -load-pass-plugin=" + lowerintrinsicsplugin
+    command = commandp + " -o " + dstFile + " " + srcFile + " " + optSwitches
     return command
 
 ###
