@@ -323,7 +323,8 @@ LLVMBackend::llvmRequiredOpset(bool includeFloatOps, bool littleEndian, bool bit
  *                The directory should be removed by the caller after use.
  */
 LLVMBackend::LLVMBackend(bool useInstalledVersion, TCEString tempDir) : 
-    useInstalledVersion_(useInstalledVersion), tempDir_(tempDir) {
+    useInstalledVersion_(useInstalledVersion), tempDir_(tempDir), mach_(NULL),
+    pluginGen_(NULL) {
 
     cachePath_ = Environment::llvmtceCachePath();
 
@@ -347,23 +348,43 @@ LLVMBackend::LLVMBackend(bool useInstalledVersion, TCEString tempDir) :
  * Destructor.
  */
 LLVMBackend::~LLVMBackend() {
+    if (pluginGen_ != NULL) {
+        delete pluginGen_;
+    }
+    pluginGen_ = NULL;
+
+}
+
+/**
+ * Sets the target machine and creates a plugin generator for it.
+ *
+ * @param target The target machine
+*/
+
+void
+LLVMBackend::setMachine(TTAMachine::Machine& target) {
+    mach_ = &target;
+    if (pluginGen_ != NULL) {
+        delete pluginGen_;
+    }
+    pluginGen_ = new TDGen(target);
 }
 
 /**
  * Compiles bytecode for the given target machine.
  *
  * @param bytecodeFile Full path to the llvm bytecode file to compile.
- * @param target Target machine to compile the bytecode for.
  * @param optLevel Optimization level.
  * @param debug If true, enable LLVM debug printing.
  */
 TTAProgram::Program*
 LLVMBackend::compile(
     const std::string& bytecodeFile, const std::string& emulationBytecodeFile,
-    TTAMachine::Machine& target, int optLevel, bool debug,
-    InterPassData* ipData) {
+    int optLevel, bool debug, InterPassData* ipData) {
+    
+    assert(mach_ != NULL && "Machine not set, forgot to call setMachine()?");
     // Check target machine
-    MachineValidator validator(target);
+    MachineValidator validator(*mach_);
     std::set<MachineValidator::ErrorCode> checks;
     checks.insert(MachineValidator::GCU_MISSING);
     checks.insert(MachineValidator::GCU_AS_MISSING);
@@ -450,16 +471,16 @@ LLVMBackend::compile(
 
     // Create target machine plugin.
 #if (!defined(HAVE_CXX11) && !defined(HAVE_CXX0X))
-    std::auto_ptr<TCETargetMachinePlugin> plugin(createPlugin(target));
+    std::auto_ptr<TCETargetMachinePlugin> plugin(createPlugin());
 #else
-    std::unique_ptr<TCETargetMachinePlugin> plugin(createPlugin(target));
+    std::unique_ptr<TCETargetMachinePlugin> plugin(createPlugin());
 #endif
 
     TTAProgram::Program* result = NULL;
     try {
         // Compile.
         result =
-            compile(*m.release(), emuM.release(), *plugin, target, optLevel,
+            compile(*m.release(), emuM.release(), *plugin, optLevel,
                     debug, ipData);
     } catch (...) {
         // delete the backend plugin if we don't want to save it
@@ -467,7 +488,7 @@ LLVMBackend::compile(
         // current process. TCETargetMachinePlugin dtor should unload it.
         if (!options_->saveBackendPlugin()) {
             TCEString pluginPath = 
-                cachePath_ + DS + pluginFilename(target);
+                cachePath_ + DS + pluginFilename();
             FileSystem::removeFileOrDirectory(pluginPath);
         }
         delete res; res = NULL;
@@ -480,7 +501,7 @@ LLVMBackend::compile(
     // current process. TCETargetMachinePlugin dtor should unload it.
     if (!options_->saveBackendPlugin()) {
         TCEString pluginPath = 
-            cachePath_ + DS + pluginFilename(target);
+            cachePath_ + DS + pluginFilename();
         FileSystem::removeFileOrDirectory(pluginPath);
     }
     delete res; res = NULL;
@@ -570,7 +591,6 @@ createTCEMCSubtargetInfo(const Triple& TT, StringRef CPU, StringRef FS) {
  *
  * @param module LLVM module to compile.
  * @param plugin Target architecture compiler plugin.
- * @param target Target architecture as Machine object.
  * @param optLevel Optimization level.
  * @param debug If true, enable LLVM debug printing.
  * @return Module compiled to program for the target architecture.
@@ -578,13 +598,14 @@ createTCEMCSubtargetInfo(const Triple& TT, StringRef CPU, StringRef FS) {
 TTAProgram::Program*
 LLVMBackend::compile(
     llvm::Module& module, llvm::Module* emulationModule,
-    TCETargetMachinePlugin& plugin, TTAMachine::Machine& target, int optLevel,
+    TCETargetMachinePlugin& plugin, int optLevel,
     bool /*debug*/, InterPassData* ipData) {
+    assert(mach_ != NULL && "Machine not set, forgot to call setMachine()?");
     ipData_ = ipData;
     // TODO: fixme
     std::string targetStr = "tce-llvm";
-    if (target.isLittleEndian()) {
-        if (target.is64bit()) {
+    if (mach_->isLittleEndian()) {
+        if (mach_->is64bit()) {
             targetStr = "tcele64-llvm";
         } else {
             targetStr = "tcele-llvm";
@@ -637,7 +658,7 @@ LLVMBackend::compile(
     // on the maximum alignment of any stack object in
     // the program, recompute this now as the llvm::Module has
     // been loaded
-    unsigned maxMachineAlignment = (unsigned)MachineInfo::maxMemoryAlignment(target);
+    unsigned maxMachineAlignment = (unsigned)MachineInfo::maxMemoryAlignment(*mach_);
     module.setOverrideStackAlignment(maxMachineAlignment);
     if (options_->assumeADFStackAlignment()) {
 
@@ -673,12 +694,12 @@ LLVMBackend::compile(
     // we just pass it through TCETargetMachine for now
     // even though it's really module specific.
     targetMachine->setStackAlignment(
-        std::max((unsigned)(target.is64bit() ? 8 : 4),
+        std::max((unsigned)(mach_->is64bit() ? 8 : 4),
                  module.getOverrideStackAlignment()));
 
     // This hack must be cleaned up before adding TCE target to llvm upstream
     // these are needed by TCETargetMachine::addInstSelector passes
-    targetMachine->setTargetMachinePlugin(plugin, target);
+    targetMachine->setTargetMachinePlugin(plugin, *mach_);
     targetMachine->setEmulationModule(emulationModule);
 
     /**
@@ -780,7 +801,7 @@ LLVMBackend::compile(
     // AA parameter.
     AliasAnalysis* AA = NULL;
     LLVMTCEIRBuilder* b = 
-        new LLVMTCEIRBuilder(*targetMachine, &target, *ipData, AA);
+        new LLVMTCEIRBuilder(*targetMachine, mach_, *ipData, AA);
     b->setInnerLoopFinder(loopFinder);
     builder = b;
 
@@ -788,7 +809,7 @@ LLVMBackend::compile(
         builder->setInitialStackPointerValue(
             options_->initialStackPointerValue());
     }
-    addPass(new ConstantTransformer(target));
+    addPass(new ConstantTransformer(*mach_));
     addPass(builder);
     Passes.run(module);
 
@@ -803,12 +824,11 @@ LLVMBackend::compile(
 
 /**
  * Creates TCETargetMachinePlugin for target architecture.
- *
- * @param target Target machine to build plugin for.
  */
 TCETargetMachinePlugin*
-LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
-    std::string pluginFile = pluginFilename(target);
+LLVMBackend::createPlugin() {
+    assert(mach_ != NULL && "Machine not set, forgot to call setMachine()?");
+    std::string pluginFile = pluginFilename();
     std::string pluginFileName;
     std::string tempPluginFileName;
 
@@ -880,12 +900,11 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
     }
 
     if (!options_->useOldBackendSources()) {
-        // Create target instruction and register definitions in .td files.
-        TDGen* pluginGenPtr = new TDGen(target);
+        // Create target instruction and register definitions in .td files
+
 
         try {
-            pluginGenPtr->generateBackend(tempDir_);
-            delete pluginGenPtr;
+            pluginGen_->generateBackend(tempDir_);
         } catch(Exception& e) {
             std::string msg =
                 "Failed to build compiler plugin for target architecture: ";
@@ -1028,10 +1047,10 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
     // NOTE: this could be get from Makefile.am
     TCEString pluginSources = srcsPath + "PluginCompileWrapper.cc ";
 
-    TCEString endianOption = target.isLittleEndian() ?
+    TCEString endianOption = mach_->isLittleEndian() ?
         "-DLITTLE_ENDIAN_TARGET" : "";
 
-    TCEString bitnessOption = target.is64bit() ? "-DTARGET64BIT" : "";
+    TCEString bitnessOption = mach_->is64bit() ? "-DTARGET64BIT" : "";
     // Compile plugin to cache.
     // CXX and SHARED_CXX_FLAGS defined in tce_config.h
     cmd = std::string(CXX) +
@@ -1095,14 +1114,13 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
  * incompatible backend plugins between TCE revisions.
  *  The filename is used for cached plugins.
  *
- * @param target Target architecture.
  * @return Filename for the target architecture.
  */
 std::string
-LLVMBackend::pluginFilename(
-    const TTAMachine::Machine& target) {
-    TDGen TDGenerator(target);
-    const std::string buffer = TDGenerator.generateBackend();
+LLVMBackend::pluginFilename() {
+    assert(pluginGen_ != NULL &&
+        "TDPlugin not set, forgot to call setMachine()?");
+    const std::string buffer = pluginGen_->generateBackend();
 
     // Generate a hash based on the backend output
     boost::hash<std::string> string_hasher;

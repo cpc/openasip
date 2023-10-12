@@ -87,10 +87,6 @@ public:
 
     virtual std::vector<unsigned> getVectorRVDRegNums() const override;
 
-    virtual const std::string* adfXML() override {
-        return &adfXML_;
-    }
-
     virtual MVT::SimpleValueType getDefaultType() const override {
 #ifdef TARGET64BIT
         return MVT::i64;
@@ -199,7 +195,6 @@ private:
     /// Set of valid LLVM opcodes for stack accesses.
     TCETools::CIStringSet validStackAccessOperations_;
 
-    std::string adfXML_;
     std::string dataASName_;
 };
 }
@@ -215,9 +210,6 @@ public:
 
         GeneratedTCEPlugin* plugin = new GeneratedTCEPlugin();
         plugin->manualInitialize();
-
-        // Pass adf xml string to the middle-end stub targetmachine
-        TCEStubTargetMachine::setADFString(*(plugin->adfXML()));
 
         // Register LLVM Target and TCE Stub TargetMachine
         LLVMInitializeTCETargetInfo();

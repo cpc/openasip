@@ -150,22 +150,24 @@ TCEStubTargetMachine::TCEStubTargetMachine(
     ST = new TCEStubSubTarget(TT, CPU, FS, *this);
 
     // For autovectorization to work we need to set target machine information:
-    // Load ADF from static adfXML string
+    auto* option = static_cast<llvm::cl::opt<std::string>*>(
+        llvm::cl::getRegisteredOptions().lookup("adf"));
+    const std::string adfName = option->getValue();
+
     ADFSerializer serializer;
-    serializer.setSourceString(adfXML_);
+    if (adfName == "") {
+        const std::string msg = "ADF not passed to opt,"
+                                "make sure it is included in oacc";
+        throw CompileError(__FILE__, __LINE__, __func__, msg);
+    }
+    
+    serializer.setSourceFile(adfName);
     // Create and set TTAMachine
     TTAMachine::Machine* targetTTAMachine = serializer.readMachine();
     setTTAMach(targetTTAMachine);
 }
 
 TCEStubTargetMachine::~TCEStubTargetMachine() {}
-
-void
-TCEStubTargetMachine::setADFString(std::string adfXML) {
-    adfXML_ = adfXML;
-}
-
-std::string TCEStubTargetMachine::adfXML_ = "";
 
 namespace {
     /**

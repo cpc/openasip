@@ -78,7 +78,8 @@ class TDGen {
 public:
     TDGen(const TTAMachine::Machine& mach);
     virtual ~TDGen();
-    void generateBackend(std::string& path);
+    void generateBackend(const std::string& path) const;
+    std::string generateBackend() const;
     // todo clear out virtual functions. they are a remaind of removed
     // TDGenSIMD.
 protected:
@@ -456,10 +457,20 @@ protected:
     TCEString getMovePattern(
         const char& opdType, const std::string& inputPattern) const;
 
+    void initializeBackendContents();
     const TTAMachine::Machine& mach_;
 
     // Current dwarf register number.
     unsigned dregNum_;
+    std::string registerInfo_;
+    std::string addressingModeDefs_;
+    std::string operandDefs_;
+    std::string instrInfo_;
+    std::string instrFormats_;
+    std::string callingConv_;
+    std::string argRegsArray_;
+    std::string backendCode_;
+    std::string topLevelTD_;
 
     /// Float type subword width.
     static const int FP_SUBW_WIDTH;

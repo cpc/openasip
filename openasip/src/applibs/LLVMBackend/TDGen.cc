@@ -339,7 +339,7 @@ const std::string TDGen::guardRegTemplateName = "Guard";
  * @param mach Machine to generate plugin for.
  */
 TDGen::TDGen(const TTAMachine::Machine& mach) :
-    mach_(mach), dregNum_(0),
+    mach_(mach), dregNum_(0), maxVectorSize_(0),
     highestLaneInt_(-1), highestLaneBool_(-1),
     hasExBoolRegs_(false), hasExIntRegs_(false), hasSelect_(false),
     littleEndian_(mach.isLittleEndian()),
@@ -371,6 +371,7 @@ TDGen::TDGen(const TTAMachine::Machine& mach) :
 
     immInfo_ = ImmediateAnalyzer::analyze(mach_);
     maxScalarWidth_ = mach.is64bit() ? 64 : 32;
+    initializeBackendContents();
 }
 
 /**
@@ -379,31 +380,68 @@ TDGen::TDGen(const TTAMachine::Machine& mach) :
 TDGen::~TDGen() {
     delete immInfo_;
 }
+/*
+ * Initializes backend components so that they are not generated
+ * multiple times, as we need to use them both for hash generation
+ * and the *.td files.
+*/
+void
+TDGen::initializeBackendContents() {
+    std::ostringstream registerInfoBuffer;
+    std::ostringstream addressingModeDefsBuffer; 
+    std::ostringstream operandDefsBuffer;
+    std::ostringstream instrInfoBuffer;
+    std::ostringstream instrFormatsBuffer;
+    std::ostringstream callingConvBuffer;
+    std::ostringstream argRegsArrayBuffer;
+    std::ostringstream backendCodeBuffer;
+    std::ostringstream topLevelTDBuffer;
+
+    writeRegisterInfo(registerInfoBuffer);
+    writeAddressingModeDefs(addressingModeDefsBuffer);
+    writeOperandDefs(operandDefsBuffer);
+    writeInstrInfo(instrInfoBuffer);
+    writeInstrFormats(instrFormatsBuffer);
+    writeCallingConv(callingConvBuffer);
+    writeArgRegsArray(argRegsArrayBuffer);
+    writeBackendCode(backendCodeBuffer);
+    writeTopLevelTD(topLevelTDBuffer);
+
+    registerInfo_ = registerInfoBuffer.str();
+    addressingModeDefs_ = addressingModeDefsBuffer.str();
+    operandDefs_ = operandDefsBuffer.str();
+    instrInfo_ = instrInfoBuffer.str();
+    instrFormats_ = instrFormatsBuffer.str();
+    callingConv_ = callingConvBuffer.str();
+    argRegsArray_ = argRegsArrayBuffer.str();
+    backendCode_ = backendCodeBuffer.str();
+    topLevelTD_ = topLevelTDBuffer.str();
+}
 
 /**
  * Generates all files required to build a tce backend plugin
  * (excluding static plugin code included from include/llvm/TCE/).
  */
 void
-TDGen::generateBackend(std::string& path) {
+TDGen::generateBackend(const std::string& path) const {
     std::ofstream regTD;
     regTD.open((path + "/GenRegisterInfo.td").c_str());
-    writeRegisterInfo(regTD);
+    regTD << registerInfo_;
     regTD.close();
 
     std::ofstream instrTD0;
     instrTD0.open((path + "/GenInstrInfo0.td").c_str());
-    writeAddressingModeDefs(instrTD0);
+    instrTD0 << addressingModeDefs_;
     instrTD0.close();
 
     std::ofstream operandTD;
     operandTD.open((path + "/GenOperandInfo.td").c_str());
-    writeOperandDefs(operandTD);
+    operandTD << operandDefs_;
     operandTD.close();
 
     std::ofstream instrTD;
     instrTD.open((path + "/GenInstrInfo.td").c_str());
-    writeInstrInfo(instrTD);
+    instrTD << instrInfo_;
 #ifdef DEBUG_TDGEN
     writeInstrInfo(std::cerr);
 #endif
@@ -411,27 +449,27 @@ TDGen::generateBackend(std::string& path) {
 
     std::ofstream formatTD;
     formatTD.open((path + "/GenTCEInstrFormats.td").c_str());
-    writeInstrFormats(formatTD);
+    formatTD << instrFormats_;
     formatTD.close();
 
     std::ofstream ccTD;
     ccTD.open((path + "/GenCallingConv.td").c_str());
-    writeCallingConv(ccTD);
+    ccTD << callingConv_;
     ccTD.close();
 
     std::ofstream argArr;
     argArr.open((path + "/ArgRegs.hh").c_str());
-    writeArgRegsArray(argArr);
+    argArr << argRegsArray_;
     argArr.close();
 
     std::ofstream pluginInc;
     pluginInc.open((path + "/Backend.inc").c_str());
-    writeBackendCode(pluginInc);
+    pluginInc << backendCode_;
     pluginInc.close();
 
     std::ofstream topLevelTD;
     topLevelTD.open((path + "/TCE.td").c_str());
-    writeTopLevelTD(topLevelTD);
+    topLevelTD << topLevelTD_;
     topLevelTD.close();
 }
 
@@ -440,20 +478,11 @@ TDGen::generateBackend(std::string& path) {
  * Used for hash generation.
  */
 std::string
-TDGen::generateBackend() {
-    std::ostringstream buffer; 
-
-    writeRegisterInfo(buffer);
-    writeAddressingModeDefs(buffer);
-    writeOperandDefs(buffer);
-    writeInstrInfo(buffer);
-    writeInstrFormats(buffer);
-    writeCallingConv(buffer);
-    writeArgRegsArray(buffer);
-    writeBackendCode(buffer);
-    writeTopLevelTD(buffer);
-
-    return buffer.str();
+TDGen::generateBackend() const {
+    const std::string buffer = registerInfo_ + addressingModeDefs_
+        + operandDefs_ + instrInfo_ + instrFormats_ + callingConv_
+        + argRegsArray_ + backendCode_ + topLevelTD_;
+    return buffer;
 }
 
 /**
@@ -839,6 +868,7 @@ TDGen::analyzeRegisters() {
 
             // Skip the 0th index of a register file with zero register flag
             if (currentIdx == 0 && rf->zeroRegister()) {
+                regsFound = true;
                 continue;
             }
 

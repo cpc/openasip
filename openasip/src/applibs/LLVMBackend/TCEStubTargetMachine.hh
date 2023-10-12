@@ -128,10 +128,6 @@ namespace llvm {
             const override {
             return ST;
         }
-
-        static void setADFString(std::string adfXML);
-
-        static std::string adfXML_;
     };
 } //end namespace llvm
 #endif
