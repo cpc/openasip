@@ -436,6 +436,27 @@ TDGen::generateBackend(std::string& path) {
 }
 
 /**
+ * Writes tce backend plugin code into a single string.
+ * Used for hash generation.
+ */
+std::string
+TDGen::generateBackend() {
+    std::ostringstream buffer; 
+
+    writeRegisterInfo(buffer);
+    writeAddressingModeDefs(buffer);
+    writeOperandDefs(buffer);
+    writeInstrInfo(buffer);
+    writeInstrFormats(buffer);
+    writeCallingConv(buffer);
+    writeArgRegsArray(buffer);
+    writeBackendCode(buffer);
+    writeTopLevelTD(buffer);
+
+    return buffer.str();
+}
+
+/**
  * Writes .td definition of a single register to the output stream.
  *
  * @param o Output stream to write the definition to.
@@ -3990,21 +4011,6 @@ TDGen::writeBackendCode(std::ostream& o) {
         o << "    validStackAccessOperations_.insert(\"" << opName << "\");"
           << std::endl;
     }
-
-    // Target machine .adf XML string.
-    o << std::endl;
-    std::string adfXML;
-    ADFSerializer serializer;
-    serializer.setDestinationString(adfXML);
-    serializer.writeMachine(mach_);
-    o << "    adfXML_ = \"";
-    for (unsigned int i = 0; i < adfXML.length(); i++) {
-        if (adfXML[i] == '"') o << "\\\"";
-        else if (adfXML[i] == '\n') o << "\"\n\"";
-        else o << adfXML[i];
-    }
-    o << "\";" << std::endl;
-
 
     // data address space
     const TTAMachine::Machine::FunctionUnitNavigator& nav =

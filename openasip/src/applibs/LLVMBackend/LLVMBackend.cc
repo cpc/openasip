@@ -1101,7 +1101,21 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target) {
 std::string
 LLVMBackend::pluginFilename(
     const TTAMachine::Machine& target) {
-    TCEString fileName = target.hash();
+    TDGen TDGenerator(target);
+    const std::string buffer = TDGenerator.generateBackend();
+
+    // Generate a hash based on the backend output
+    boost::hash<std::string> string_hasher;
+    size_t h = string_hasher(buffer);
+
+    TCEString hash =
+        (Conversion::toHexString(buffer.length())).substr(2);
+
+    hash += "_";
+    hash += (Conversion::toHexString(h)).substr(2);
+
+    TCEString fileName = hash;
+    // add toolset version to the hash
     fileName += "-" + Application::TCEVersionString();
     fileName += PLUGIN_SUFFIX;
 

@@ -1524,7 +1524,7 @@ if runningInstalled:
     tceOclBitcodeLibDir = os.path.join(tceprefix, "lib/llvmopencl")
     sourceLibSearchPaths = [os.path.join(tceprefix, "share/openasip/srclibs/"),]
     dataDir = os.path.join(tceprefix, "share/openasip/data/tcecc")
-    tceLibpath = os.path.join(tceprefix,"lib/openasip/libopenasip.so")
+    tceLibpath = os.path.join(tceprefix,"lib/libopenasip.so")
 
     # All bclibs should be in the same newlib_libdir.
     # The source libs are located in separate dirs which
@@ -1594,7 +1594,7 @@ if options.autovectorize and options.adf_file != "":
                 backendPluginPath = \
                     "%s/%s" % (options.plugin_cache_dir, line.split()[-1])
                 extraOptSwitches = \
-                    " -load %s -load %s" % (tceLibpath, backendPluginPath)
+                    " -load %s -load %s --adf %s" % (tceLibpath, backendPluginPath, options.adf_file)
     else:
         exitWithError(1, "Error generating TCE LLVM Backend plugin.")
 
