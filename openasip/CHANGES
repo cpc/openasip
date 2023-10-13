@@ -10,6 +10,10 @@ Notable changes and features
   Now it's possible to optionally give a list of pairs of
   <address-space-name>,<data-start>.
   - Added the same option to generatebits with the same syntax.
+- Now, backend plugin name is generated from the hash of TDGen output.
+  This allows better reuse of the backend plugins as only machine attributes
+  that are visible to LLVM are inspected.
+- Added an installation script for RISC-V prerequisites
 
 Notable bugfixes
 ----------------------------
