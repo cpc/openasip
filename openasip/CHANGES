@@ -10,12 +10,15 @@ Notable changes and features
   Now it's possible to optionally give a list of pairs of
   <address-space-name>,<data-start>.
   - Added the same option to generatebits with the same syntax.
+- AlmaIF: add RAM models which infer the BRAM on Intel Arria 10
+  - Enabled with bram-vendor:intel in generateprocessor parameters.
 
 Notable bugfixes
 ----------------------------
 - ProDe: Fix operand usage and resource boxes to use default colors propagated
   from system theme instead of manually setting them to black and white.
 - AlmaIF: Fix a bug in almaif_decoder memory mask computation
+- Add a latency to clock/lock cycle counter to increase clock frequency
 
 2.0     November 2022
 =====================

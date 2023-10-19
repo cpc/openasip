@@ -919,6 +919,8 @@ const std::string PLUGIN_DESCRIPTION =
 const std::string NO_SELF_LOCKING_PARAM = "no-self-locking";
 const std::string NO_SELF_LOCKING_PARAM_YES = ENABLE_FEATURE;
 const std::string SYNC_RESET = "synchronous-reset";
+const std::string BRAM_VENDOR = "bram-vendor";
+const std::string BRAM_VENDOR_INTEL = "intel";
 
 #include <iostream>
 #include <cmath>
@@ -966,6 +968,10 @@ public:
             "-1 delay slot by removing instruction fetch register. "
             "'" +
                 ENABLE_FEATURE + "' to enable the feature.");
+        addParameter(BRAM_VENDOR,
+                "Set FPGA vendor to set specific Block RAM to ensure the "
+                "correct inference. Supported values: \"" + BRAM_VENDOR_INTEL
+                + "\". By default generates xilinx-compatible BRAMs.");
 
         icGenerator_ = new DefaultICGenerator(machine);
         decoderGenerator_ = new DefaultDecoderGenerator(

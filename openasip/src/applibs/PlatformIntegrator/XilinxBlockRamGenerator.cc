@@ -43,13 +43,18 @@ using std::endl;
 
 const TCEString XilinxBlockRamGenerator::SP_FILE = "xilinx_blockram.vhdl";
 const TCEString XilinxBlockRamGenerator::DP_FILE = "xilinx_dp_blockram.vhdl";
+const TCEString XilinxBlockRamGenerator::INTEL_SP_DW_FILE =
+    "intel_dw_blockram.vhdl";
+const TCEString XilinxBlockRamGenerator::INTEL_DP_FILE =
+    "intel_dp_blockram.vhdl";
 
 XilinxBlockRamGenerator::XilinxBlockRamGenerator(
     int memMauWidth, int widthInMaus, int addrWidth, int portBDataWidth,
     int portBAddrWidth, const PlatformIntegrator* integrator,
     std::ostream& warningStream, std::ostream& errorStream,
     bool connectToArbiter, ProGe::NetlistBlock* almaifBlock,
-    TCEString signalPrefix, bool overrideAddrWidth, bool singleMemoryBlock)
+    TCEString signalPrefix, bool overrideAddrWidth, bool singleMemoryBlock,
+    bool intelCompatible, bool pseudoDualPort)
     : MemoryGenerator(
           memMauWidth, widthInMaus, addrWidth, "", integrator, warningStream,
           errorStream),
@@ -57,7 +62,9 @@ XilinxBlockRamGenerator::XilinxBlockRamGenerator(
       almaifBlock_(almaifBlock),
       signalPrefix_(signalPrefix),
       overrideAddrWidth_(overrideAddrWidth),
-      singleMemoryBlock_(singleMemoryBlock) {
+      singleMemoryBlock_(singleMemoryBlock),
+      intelCompatible_(intelCompatible),
+      pseudoDualPort_(pseudoDualPort) {
     assert (!connectToArbiter || almaifBlock != nullptr);
 
     ProGe::Parameter dataw = {"dataw_g", "integer",
@@ -225,9 +232,23 @@ XilinxBlockRamGenerator::addMemory(
 
 std::vector<TCEString>
 XilinxBlockRamGenerator::generateComponentFile(TCEString outputPath) {
-    TCEString inputFile =
-        templatePath() << FileSystem::DIRECTORY_SEPARATOR
-                       << (connectToArbiter_ ? DP_FILE : SP_FILE);
+    TCEString componentFileName = "";
+    if (connectToArbiter_) {
+        if (intelCompatible_) {
+            if (pseudoDualPort_) {
+                componentFileName = INTEL_SP_DW_FILE;
+            } else {
+                componentFileName = INTEL_DP_FILE;
+            }
+        } else {
+            componentFileName = DP_FILE;
+        }
+    } else {
+        componentFileName = SP_FILE;
+    }
+
+    TCEString inputFile = templatePath() << FileSystem::DIRECTORY_SEPARATOR
+                                         << componentFileName;
     TCEString outputFile;
     outputFile << outputPath << FileSystem::DIRECTORY_SEPARATOR
                << moduleName() << ".vhdl";
@@ -241,9 +262,22 @@ XilinxBlockRamGenerator::generateComponentFile(TCEString outputPath) {
 
 TCEString
 XilinxBlockRamGenerator::moduleName() const {
-    TCEString name = "xilinx_";
-    if (connectToArbiter_)
-        name += "dp_";
+    TCEString name;
+    if (connectToArbiter_) {
+        if (intelCompatible_) {
+            if (pseudoDualPort_) {
+                name = "intel_dw_";
+            } else {
+                name = "intel_dp_";
+            }
+        } else {
+            name = "xilinx_dp_";
+        }
+    } else {
+        // single-port xilinx_blockram.vhdl is also intel compatible
+        name = "xilinx_";
+    }
+
     name += "blockram";
     return name;
 }

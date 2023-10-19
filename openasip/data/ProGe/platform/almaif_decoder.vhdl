@@ -89,6 +89,7 @@ entity almaif_decoder is
     m_axi_wready   : in  std_logic;
     m_axi_wdata    : out std_logic_vector(mem_dataw_g-1 downto 0);
     m_axi_wstrb    : out std_logic_vector(mem_dataw_g/8-1 downto 0);
+    m_axi_wlast    : out std_logic;
     --
     m_axi_bvalid   : in  std_logic;
     m_axi_bready   : out std_logic;
@@ -270,6 +271,7 @@ begin
   m_axi_wvalid <= m_axi_wvalid_r;
   m_axi_wdata  <= m_axi_wdata_r;
   m_axi_wstrb  <= m_axi_wstrb_r;
+  m_axi_wlast <= '1';
   -- Ignore the response
   m_axi_bready <= '1';
 

@@ -47,7 +47,8 @@ public:
         bool connectToArbiter = false,
         ProGe::NetlistBlock* almaifBlocks = nullptr,
         TCEString signalPrefix = "", bool overrideAddrWidth = false,
-        bool singleMemoryBlock = false);
+        bool singleMemoryBlock = false, bool intelCompatible = false,
+        bool pseudoDualPort = false);
 
     virtual ~XilinxBlockRamGenerator();
 
@@ -85,10 +86,12 @@ protected:
     const bool singleMemoryBlock_;
 
 private:
-
+    bool intelCompatible_ = false;
+    bool pseudoDualPort_ = false;
     static const TCEString DP_FILE;
     static const TCEString SP_FILE;
-
+    static const TCEString INTEL_SP_DW_FILE;
+    static const TCEString INTEL_DP_FILE;
 };
 
 #endif

@@ -78,6 +78,8 @@ architecture rtl_andor of ENTITY_STR_ifetch is
   signal increased_pc    : std_logic_vector(IMEMADDRWIDTH-1 downto 0);
   signal return_addr_reg : std_logic_vector(IMEMADDRWIDTH-1 downto 0);
 
+  signal lockcnt_increment_r, cyclecnt_increment_r : integer range 0 to 1;
+
   -- internal signals for initializing and locking execution
   signal lock       : std_logic;
   signal mem_en_lock_r : std_logic;
@@ -223,16 +225,24 @@ begin
       if not sync_reset_g and rstx = '0' then -- async reset (active low)
         lockcnt_r  <= (others => '0');
         cyclecnt_r <= (others => '0');
+        lockcnt_increment_r <= 0;
+        cyclecnt_increment_r <= 0;
       elsif rising_edge(clk) then
         if (sync_reset_g and rstx = '0') or db_rstx = '0' then
           lockcnt_r  <= (others => '0');
           cyclecnt_r <= (others => '0');
+          lockcnt_increment_r <= 0;
+          cyclecnt_increment_r <= 0;
         elsif db_lockreq = '0' then
           if lock = '1' then
-            lockcnt_r  <= lockcnt_r  + 1;
+            lockcnt_increment_r <= 1;
+            cyclecnt_increment_r <= 0;
           else
-            cyclecnt_r <= cyclecnt_r + 1;
+            lockcnt_increment_r <= 0;
+            cyclecnt_increment_r <= 1;
           end if;
+          lockcnt_r  <= lockcnt_r  + lockcnt_increment_r;
+          cyclecnt_r <= cyclecnt_r + cyclecnt_increment_r;
         end if;
       end if;
     end process;
