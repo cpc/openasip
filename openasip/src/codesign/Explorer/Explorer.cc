@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University.
+    Copyright (c) 2002-2017 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -30,10 +30,9 @@
  *
  * @author Jari Mäntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
  * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2011
+ * @author Pekka Jääskeläinen 2011, 2017
  * @note rating: red
  */
-
 
 #include <string>
 #include <vector>
@@ -386,8 +385,50 @@ printParetoSet(const DSDBManager& dsdb, TCEString criteriaSet) {
                   << " | ";
 
         std::cout << std::setw(CYCLES_COL_W) << std::right << point.get<2>()
-                  << std::endl;        
+                  << std::endl;
     }
+}
+
+bool
+dumpConfiguration(
+    DSDBManager* dsdb, const ExplorerCmdLineOptions& options, RowID confID) {
+    DSDBManager::MachineConfiguration configuration =
+        dsdb->configuration(confID);
+    std::string adfFileName = options.adfOutFile()
+                                  ? options.adfOutFileName()
+                                  : Conversion::toString(confID) + ".adf";
+    try {
+        dsdb->writeArchitectureToFile(
+            configuration.architectureID, adfFileName);
+        if (Application::verboseLevel() > 0) {
+            Application::logStream()
+                << "Written ADF file of configuration " << confID << " to "
+                << adfFileName << std::endl;
+        }
+    } catch (const Exception& e) {
+        Application::errorStream()
+            << "Error occured while writing the ADF." << std::endl;
+        return false;
+    }
+
+    if (configuration.hasImplementation) {
+        std::string idfFileName = Conversion::toString(confID) + ".idf";
+        try {
+            dsdb->writeImplementationToFile(
+                configuration.implementationID, idfFileName);
+            if (Application::verboseLevel() > 0) {
+                Application::logStream()
+                    << "Written IDF file of configuration " << confID
+                    << " to " << idfFileName << std::endl;
+            }
+        } catch (const Exception& e) {
+            Application::errorStream()
+                << "Error occured while writing the IDF to " << idfFileName
+                << ": " << e.errorMessage() << std::endl;
+            return false;
+        }
+    }
+    return true;
 }
 
 /**
@@ -415,6 +456,14 @@ int main(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& i) {
         std::cerr << i.errorMessage() <<  std::endl;
+        return EXIT_FAILURE;
+    }
+
+    if (options->writeOutConfiguration() &&
+        options->writeOutBestConfiguration()) {
+        Application::errorStream()
+            << "Only one of '-w' or '--dump_best' can be "
+            << "given at the time." << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -462,6 +511,7 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
+    RowID addedConfID = 0;
     // adds new configuration to the DSDB
     if (options->adfFile()) {
         TTAMachine::Machine* adf = NULL;
@@ -478,10 +528,11 @@ int main(int argc, char* argv[]) {
                 conf.implementationID = dsdb->addImplementation(*idf, 0, 0);
                 conf.hasImplementation = true;
             }
-            RowID confID = dsdb->addConfiguration(conf);
-            std::cout 
-                << "Added configuration " << confID << " into the DSDB." 
-                << std::endl;
+            addedConfID = dsdb->addConfiguration(conf);
+            if (Application::verboseLevel() > 0)
+                Application::logStream()
+                    << "Added configuration " << addedConfID
+                    << " into the DSDB." << std::endl;
             delete adf;
             delete idf;
             doneUseful = true;
@@ -603,45 +654,15 @@ int main(int argc, char* argv[]) {
     if (options->writeOutConfiguration()) {
         for (int i = 0; i < options->numberOfConfigurationsToWrite(); i++) {
             if (dsdb->hasConfiguration(options->configurationToWrite(i))) {
-                DSDBManager::MachineConfiguration configuration = 
-                    dsdb->configuration(options->configurationToWrite(i));
-                std::string adfFileName = 
-                    Conversion::toString(options->configurationToWrite(i))
-                    + ".adf";
-                try {
-                    dsdb->writeArchitectureToFile(
-                        configuration.architectureID, adfFileName);
-                    std::cout << "Written ADF file of configuration "
-                              << options->configurationToWrite(i)
-                              << std::endl;
-                } catch (const Exception& e) {
-                    std::cerr << "Error occured while writing the ADF." 
-                              << std::endl;
+                if (!dumpConfiguration(
+                        dsdb, *options, options->configurationToWrite(i))) {
                     delete dsdb;
                     return EXIT_FAILURE;
                 }
-
-                if (configuration.hasImplementation) {
-                    std::string idfFileName = 
-                        Conversion::toString(options->configurationToWrite(i))
-                        + ".idf";
-                    try {
-                        dsdb->writeImplementationToFile(
-                            configuration.implementationID, idfFileName);
-                        std::cout << "Written IDF file of configuration "
-                                  << options->configurationToWrite(i)
-                                  << std::endl;
-                    } catch (const Exception& e) {
-                        std::cerr << "Error occured while writing the IDF."
-                                  << std::endl;
-                        delete dsdb;
-                        return EXIT_FAILURE;
-                    }
-                }
             } else {
                 // dsdb didn't have requested configuration
-                std::cerr << "No configuration found with id: " 
-                          << options->configurationToWrite(i) << "." 
+                std::cerr << "No configuration found with id: "
+                          << options->configurationToWrite(i) << "."
                           << std::endl;
                 delete dsdb;
                 return EXIT_FAILURE;
@@ -762,15 +783,20 @@ int main(int argc, char* argv[]) {
                       << pathToHdb << std::endl;
         }
     }
-    
+
     try {
-        RowID startPointConfigurationID = options->startConfiguration();        
+        RowID startPointConfigurationID = options->startConfiguration();
+
+        if (startPointConfigurationID == 0 && options->adfFile()) {
+            startPointConfigurationID = addedConfID;
+        }
+
         if (startPointConfigurationID == 0 &&
             explorer->requiresStartingPointArchitecture()) {
-            std::cerr 
-                << "No starting point configuration defined. " << std::endl
-                << "Use -s <confID> to define the configuration to "
-                << "start the exploration from." << std::endl;
+            std::cerr << "No starting point configuration defined. "
+                      << std::endl
+                      << "Use -s or -a to define a configuration to "
+                      << "start the exploration from." << std::endl;
             return EXIT_FAILURE;
 
         }
@@ -780,9 +806,15 @@ int main(int argc, char* argv[]) {
             cout 
                 << "No fitting processor configurations were created." << endl;
         } else {
-            std::cout << "Best result configurations:" << std::endl;
-            for (unsigned int i = 0; i < result.size(); i++) {
-                cout << " " << result[i] << endl;
+            if (Application::verboseLevel() > 0) {
+                Application::logStream()
+                    << "Best result configurations:" << std::endl;
+                for (unsigned int i = 0; i < result.size(); i++) {
+                    Application::logStream() << " " << result[i] << endl;
+                }
+            }
+            if (options->writeOutBestConfiguration() && result.size() > 0) {
+                dumpConfiguration(dsdb, *options, result[result.size() - 1]);
             }
         }
     } catch (const Exception& e) {

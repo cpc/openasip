@@ -211,6 +211,8 @@ DesignSpaceExplorer::evaluate(
                 return false;
             }
 
+            oStream_->str("");
+            oStream_->seekp(0);
             // simulate the scheduled program
             ClockCycleCount runnedCycles;
             const ExecutionTrace* traceDB = NULL;

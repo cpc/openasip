@@ -1,2 +1,0 @@
-#!/bin/bash
-rm -rf test{3b{ne,},4b}.dsdb {2,3}.adf

@@ -9088,13 +9088,13 @@ database can be queried applications can be added into and removed from the
 database and the explored configurations in the database can be written as
 files for further examination.
 
-Please refer to \textit{explroe -h} for a full listing of possible options.
+Please refer to \textit{explore -h} for a full listing of possible options.
 
 Depending on the exploration plugin, the exploring results machine
 configurations in to the exploration result database dsdb. The best results
 from the previous exploration run are given at the end of the exploration:
 
-\verb|explore -e RemoveUnconnectedComponents -a data/FFTTest --hdb=data/initial.hdb data/test.dsdb|
+\verb|explore -v -e RemoveUnconnectedComponents -a data/FFTTest --hdb=data/initial.hdb data/test.dsdb|
 
 \begin{verbatim}
 Best result configurations:
@@ -9406,6 +9406,105 @@ Example of invoking the plugin:
 
 \shellcmd{explore -e VLIWConnectIC -a test.adf -s 1 test.dsdb}\\
 \shellcmd{explore -w 2 test.dsdb}
+
+\subsection{Explorer Plugin: BusMergeMinimizer}
+
+BusMergeMinimizer tries to optimize a machine's interconnection network by "merging" two buses into one, which then has the connections of both original buses.
+A simulation trace based heuristic decides which buses to merge: the idea is that when buses are seldom active at the same time, they can be merged without hurting performance much.
+There is more information in the paper "Greedy Heuristics for Transport Triggered Architecture Interconnect Exploration".
+Buses are merged until only one bus is left, and all intermediate machine configurations are saved.
+The user needs to specify one or more test programs to guide the plugin:
+
+\shellcmd{explore -d CHStone2/adpcm icpass.dsdb}
+
+The plugin currently does not currently write test program runtimes to the database, so it is recommended to save the plugin's output prints:
+
+\shellcmd{explore -e BusMergeMinimizer -a test.adf -s 1 icpass.dsdb 2>\&1 | tee icpass\_log.txt}
+
+The log can then be examined to see runtimes:
+
+\shellcmd{grep icpass\_log.txt -e "Cycle count"}
+
+And choose a output configuration with a good compromise between IC complexity and runtime, for example:
+
+\shellcmd{explore -w 10 icpass.dsdb}
+
+
+\subsection{Explorer Plugin: RFPortMergeMinimizer}
+
+RFPortMergeMinimizer optimizes a machine's register file connections. It is used in a similar manner as BusMergeMinimizer. 
+RF ports are merged until there is only one input and one output port. The parameter \textit{rf\_to\_merge=RF\_NAME}
+can be used to select register file which ports will be minimized. If the parameter is not given
+the ports of all register files will be merged one by one in a round-robin order. Optional parameters
+\textit{cc\_threshold} and \textit{stop\_port\_count} are used to stop merging after cycle threshold has been reached or certain number of ports is left.
+
+
+\shellcmd{explore -d CHStone2/adpcm rfpass.dsdb}
+
+\shellcmd{explore -e RFPortMergeMinimizer -a test.adf -s 1 rfpass.dsdb 2>\&1 | tee rfpass\_log.txt}
+
+\shellcmd{grep rfpass\_log.txt -e "Cycle count"}
+
+\shellcmd{explore -w 10 rfpass.dsdb}
+
+
+\subsection{Explorer Plugin: AllOperationMachine}
+
+AllOperationMachine takes all operations from the OSAL and creates a single separate 
+function unit for each operation. A 
+minimal.adf should be used as a starting point architecture. This plugin is an 
+initial part of the AutoExplorer plugin described later and should not be used alone.
+
+Example:
+\shellcmd{explore -V -e AllOperationMachine -a minimal.adf -s 1 test.dsdb}
+
+\subsection{Explorer Plugin: PruneUnusedUnits}
+
+PruneUnusedUnits schedules the program to the input configuration machine and 
+removes the FUs and RFs that were not used. Plugin is a part of AutoExplorer plugin and is not designed to run separately.
+
+Example:
+\shellcmd{explore -V -e PruneUnusedUnits -s 2 test.dsdb}
+
+\subsection{Explorer Plugin: FUMergeMinimizer}
+
+FUMergeMinimizer merges FUs that were rarely used at the same time. The idea 
+behind this is the same as in the BusMergeMinimizer and RFPortMinimizer plugins. 
+User can specify the number of minimum separate LSUs with \textit{num\_lsu} 
+parameter (default 1). To exclude function units from merging use 
+\textit{dont\_merge} parameter and its value should be string containing 
+function unit names(case sensitive) separated by semicolon.
+
+Example:
+\shellcmd{explore -V -e FUMergeMinimizer -u num\_lsu=2 -u dont\_merge="funame1;funame2" -s 4 test.dsdb}
+
+\subsection{Explorer Plugin: ShrinkRegisterCounts}
+
+ShrinkRegisterCounts iteratively reduces the number of registers in the register 
+files. Optional parameters \textit{cc\_threshold} and \textit{rf\_to\_shrink} are used to stop shrinking after cycle threshold has been reached or specify a certain RF to shrink.
+
+Example:
+\shellcmd{explore -V -e ShrinkRegisterCounts -s 1 test.dsdb}
+
+\subsection{Explorer Plugin: AutoExplorer}
+
+AutoExplorer combines (AllOperationMachine, PruneUnusedUnits, VLIWConnectIC, 
+FUMergeMinimizer, BusMergeMinimizer, RFPortMergeMinimizer, 
+ShrinkRegisterCounts, ImmediateGenerator, ShortImmediate optimizer) plugins and runs them in sequence. 
+Each plugin output best configuration is passed to the next plugin input 
+resulting an automatically optimized architecture for a certain program in the 
+end. Each individual plugin parameters can be passed into the AutoExplorer 
+plugin. A minimal.adf should be used as a starting point architecture. Compulsory parameters \textit{target\_cc} 
+and \textit{target\_f} define the desired target performance in cycle count and frequency in MHz. 
+Other parameters are \textit{mode=scalar|vector} describe output target architecture type to contain just scalar(default) or additional vector operations.
+\textit{result\_size} limits number of found architectures during exploration.
+\textit{num\_lsu} defines number of parallel load-store units.
+\textit{skeleton} tells that predesigned architecture with custom function units is used as a starting point. Skeleton parameter is the list of such FU names.
+
+Example:
+\shellcmd{explore -V -e AutoExplorer -a minimal.adf -u target\_f=20000 -u target\_cc=150 -s 1 test.dsdb}
+
+More information about AutoExplorer in a publication: AEx: Automated High-Level Synthesis of Compiler Programmable Co-Processors, JSPS, Feb 2023.
 
 \subsection{Explorer Plugin: BlocksConnectIC}
 

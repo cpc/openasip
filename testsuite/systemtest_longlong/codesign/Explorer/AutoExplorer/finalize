@@ -1,0 +1,6 @@
+#!/bin/bash
+rm -f test.dsdb
+rm -f test_app-matrix1/program.bc
+rm -f \:memory*
+rm -f a.out
+rm -f best.adf

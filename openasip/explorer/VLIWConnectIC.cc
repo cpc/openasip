@@ -32,18 +32,20 @@
  * @note rating: red
  */
 
-#include <vector>
 #include <algorithm>
+#include <vector>
 
-#include "DesignSpaceExplorerPlugin.hh"
-#include "DSDBManager.hh"
-#include "HDBRegistry.hh"
-#include "Exception.hh"
-#include "Machine.hh"
-#include "Conversion.hh"
-#include "Segment.hh"
-#include "Guard.hh"
 #include "ControlUnit.hh"
+#include "Conversion.hh"
+#include "DSDBManager.hh"
+#include "DesignSpaceExplorerPlugin.hh"
+#include "Exception.hh"
+#include "ExplorationTools.hh"
+#include "Guard.hh"
+#include "HDBRegistry.hh"
+#include "Machine.hh"
+#include "MachineConnectivityCheck.hh"
+#include "Segment.hh"
 
 //using namespace TTAProgram;
 using namespace TTAMachine;
@@ -291,6 +293,31 @@ VLIWConnectIC : public DesignSpaceExplorerPlugin {
             }
         }
 
+        // Create one RF connection to itself
+        for (int rfid = 0; rfid < rfNavi.count(); rfid++) {
+            RegisterFile* rf = rfNavi.item(rfid);
+
+            if (!MachineConnectivityCheck::isConnected(
+                    *rf->firstReadPort(), *rf->firstWritePort())) {
+                for (int busid = 0; busid < busNavi.count(); busid++) {
+                    Bus* bus = busNavi.item(busid);
+                    if (bus->width() == rf->firstReadPort()->width()) {
+                        Socket* inSocket =
+                            rf->firstWritePort()->inputSocket();
+                        Socket* outSocket =
+                            rf->firstReadPort()->outputSocket();
+                        if (!bus->isConnectedTo(*inSocket)) {
+                            bus->segment(0)->attachSocket(*inSocket);
+                        }
+                        if (!bus->isConnectedTo(*outSocket)) {
+                            bus->segment(0)->attachSocket(*outSocket);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
         // Add bypasses
         for (int widx = 0; widx < numDistinctBusWidths; ++widx) {
             for (unsigned int i = 0; i < writeSockets[widx].size(); i++) {
@@ -317,10 +344,12 @@ VLIWConnectIC : public DesignSpaceExplorerPlugin {
             bus->setImmediateWidth(shortImmediateWidth_);
 
             // connect each bus to immediate unit to avoid register files access
-            ImmediateUnit* immu = mach->immediateUnitNavigator().item(0);
-            if (!immu->port(0)->outputSocket()->isConnectedTo(*bus)) {
-                immu->port(0)->outputSocket()->attachBus(*bus->segment(0));
-            }
+            //            ImmediateUnit* immu =
+            //            mach->immediateUnitNavigator().item(0); if
+            //            (!immu->port(0)->outputSocket()->isConnectedTo(*bus))
+            //            {
+            //                immu->port(0)->outputSocket()->attachBus(*bus->segment(0));
+            //            }
         }
 
         // add unconnected long immediate buses
@@ -349,6 +378,7 @@ VLIWConnectIC : public DesignSpaceExplorerPlugin {
 
         // add new configuration to dsdb
         RowID confID = dsdb.addConfiguration(conf);
+        evaluate(conf);
         result.push_back(confID);
         return result;
     }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<adf version="1.7">
+<adf version="1.11">
 
   <bus name="bus0">
     <width>32</width>
@@ -91,6 +91,36 @@
     </short-immediate>
   </bus>
 
+  <bus name="bus3">
+    <width>32</width>
+    <guard>
+      <always-true/>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>boolean</name>
+          <index>0</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>boolean</name>
+          <index>0</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <segment name="segment">
+      <writes-to/>
+    </segment>
+    <short-immediate>
+      <extension>zero</extension>
+      <width>0</width>
+    </short-immediate>
+  </bus>
+
   <socket name="fu1_i1">
     <reads-from>
       <bus>bus0</bus>
@@ -102,6 +132,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -119,6 +153,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu1_o1">
@@ -132,6 +170,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -149,6 +191,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu2_o1">
@@ -162,6 +208,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -179,6 +229,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu3_i1">
@@ -192,6 +246,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -209,6 +267,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu3_o1">
@@ -222,6 +284,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -239,6 +305,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu4_i2">
@@ -252,6 +322,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -269,6 +343,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu5_i1">
@@ -282,6 +360,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -299,6 +381,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu6_i1">
@@ -312,6 +398,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -329,6 +419,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu6_o1">
@@ -342,6 +436,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -359,6 +457,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu7_i2">
@@ -372,6 +474,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -389,6 +495,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu8_i1">
@@ -402,6 +512,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -419,6 +533,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu9_i1">
@@ -432,6 +550,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -449,6 +571,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu9_o1">
@@ -462,6 +588,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -479,6 +609,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="rf0_i1">
@@ -492,6 +626,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -509,6 +647,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="rf1_i1">
@@ -522,6 +664,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -539,6 +685,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="rf2_i1">
@@ -552,6 +702,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -569,6 +723,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="rf3_i1">
@@ -582,6 +740,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -599,6 +761,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="boolean_i1">
@@ -612,6 +778,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -629,6 +799,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="gcu_i1">
@@ -642,6 +816,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -659,6 +837,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="gcu_o1">
@@ -672,6 +854,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -689,6 +875,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="rf4_o1">
@@ -702,6 +892,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -719,6 +913,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu10_i2">
@@ -732,6 +930,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -749,6 +951,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu11_i1">
@@ -762,6 +968,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -779,6 +989,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu12_i1">
@@ -792,6 +1006,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -809,6 +1027,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu12_o1">
@@ -822,6 +1044,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -839,6 +1065,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu13_i2">
@@ -852,6 +1082,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -869,6 +1103,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu14_i1">
@@ -882,6 +1120,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -899,6 +1141,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu15_i1">
@@ -912,6 +1158,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -929,6 +1179,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu15_o1">
@@ -942,6 +1196,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -959,6 +1217,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu16_i2">
@@ -972,6 +1234,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -989,6 +1255,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu17_i1">
@@ -1002,6 +1272,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1019,6 +1293,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu17_i2">
@@ -1032,6 +1310,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1049,6 +1331,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu18_i2">
@@ -1062,6 +1348,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1079,6 +1369,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="rf5_i1">
@@ -1092,6 +1386,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1109,6 +1407,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu19_i1">
@@ -1122,6 +1424,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1139,6 +1445,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu19_o1">
@@ -1152,6 +1462,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -1169,6 +1483,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu20_o1">
@@ -1182,6 +1500,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -1199,6 +1521,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu21_i2">
@@ -1212,6 +1538,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1229,6 +1559,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu22_i1">
@@ -1242,6 +1576,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1259,6 +1597,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu22_o1">
@@ -1272,6 +1614,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -1289,6 +1635,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu23_o1">
@@ -1302,6 +1652,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -1319,6 +1673,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu24_i2">
@@ -1332,6 +1690,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1349,6 +1711,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu25_i1">
@@ -1362,6 +1728,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1379,6 +1749,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu25_o1">
@@ -1392,6 +1766,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -1409,6 +1787,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu26_o1">
@@ -1422,6 +1804,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -1439,6 +1825,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu27_i1">
@@ -1452,6 +1842,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1469,6 +1863,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu27_o1">
@@ -1482,6 +1880,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -1499,6 +1901,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="rf6_o1">
@@ -1512,6 +1918,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -1529,6 +1939,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu28_i2">
@@ -1542,6 +1956,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1559,6 +1977,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu29_i1">
@@ -1572,6 +1994,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1589,6 +2015,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu30_i1">
@@ -1602,6 +2032,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1619,6 +2053,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu30_o1">
@@ -1632,6 +2070,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -1649,6 +2091,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu31_i2">
@@ -1662,6 +2108,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1679,6 +2129,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu32_i1">
@@ -1692,6 +2146,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1709,6 +2167,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu33_i1">
@@ -1722,6 +2184,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1739,6 +2205,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu33_o1">
@@ -1752,6 +2222,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -1769,6 +2243,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu34_i2">
@@ -1782,6 +2260,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1799,6 +2281,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu35_i1">
@@ -1812,6 +2298,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1829,6 +2319,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </writes-to>
   </socket>
 
   <socket name="fu35_i2">
@@ -1842,6 +2336,10 @@
     </reads-from>
     <reads-from>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </reads-from>
   </socket>
@@ -1859,6 +2357,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu36_i2">
@@ -1874,6 +2376,10 @@
       <bus>bus2</bus>
       <segment>segment</segment>
     </reads-from>
+    <reads-from>
+      <bus>bus3</bus>
+      <segment>segment</segment>
+    </reads-from>
   </socket>
 
   <socket name="fu36_o1">
@@ -1887,6 +2393,10 @@
     </writes-to>
     <writes-to>
       <bus>bus2</bus>
+      <segment>segment</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus3</bus>
       <segment>segment</segment>
     </writes-to>
   </socket>
@@ -4155,17 +4665,12 @@
     <width>32</width>
     <max-reads>1</max-reads>
     <max-writes>1</max-writes>
+    <latency>1</latency>
     <extension>zero</extension>
     <port name="read1">
       <connects-to>imm0_o1</connects-to>
     </port>
     <template name="no_limm"/>
-    <template name="template">
-      <slot>
-        <name>bus0</name>
-        <width>32</width>
-      </slot>
-    </template>
   </immediate-unit>
 
 </adf>

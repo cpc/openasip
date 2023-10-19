@@ -7,7 +7,7 @@ ADF_PATH="./data/bloated3xminimal.adf"
 MINIMAL_ADF_PATH="../../../../../openasip/data/mach/minimal.adf"
 "${EXPLORE_BIN}" -a ${ADF_PATH} testi.dsdb 1>/dev/null
 "${EXPLORE_BIN}" -d ./data/ testi.dsdb 1>/dev/null
-NEW_CONFIG="$(${EXPLORE_BIN} -e MinimizeMachine -s 1 -u frequency=50 testi.dsdb | tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
+NEW_CONFIG="$(${EXPLORE_BIN} -v -e MinimizeMachine -s 1 -u frequency=50 testi.dsdb 2>&1 | tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
 
 "${EXPLORE_BIN}" -w "${NEW_CONFIG}" testi.dsdb 1>/dev/null
 

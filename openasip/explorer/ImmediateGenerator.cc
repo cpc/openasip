@@ -30,32 +30,36 @@
  * @note rating: red
  */
 
-#include <vector>
-#include <string>
+#include <algorithm>
+#include <functional>
 #include <set>
+#include <string>
+#include <vector>
 
-#include "DesignSpaceExplorerPlugin.hh"
-#include "DSDBManager.hh"
-#include "Machine.hh"
-#include "TemplateSlot.hh"
-#include "Exception.hh"
-
-#include "TestApplication.hh"
-#include "Program.hh"
-#include "Instruction.hh"
-#include "Move.hh"
-#include "Terminal.hh"
-#include "HDBRegistry.hh"
-#include "ICDecoderEstimatorPlugin.hh"
-#include "ControlUnit.hh"
-#include "HWOperation.hh"
-#include "StringTools.hh"
-#include "Segment.hh"
-#include "CostEstimates.hh"
 #include "Application.hh"
-#include "Procedure.hh"
-#include "MachineResourceModifier.hh"
+#include "BEMGenerator.hh"
+#include "BinaryEncoding.hh"
+#include "ControlUnit.hh"
 #include "Conversion.hh"
+#include "CostEstimates.hh"
+#include "DSDBManager.hh"
+#include "DesignSpaceExplorerPlugin.hh"
+#include "Exception.hh"
+#include "HDBRegistry.hh"
+#include "HWOperation.hh"
+#include "ICDecoderEstimatorPlugin.hh"
+#include "Instruction.hh"
+#include "Machine.hh"
+#include "MachineResourceModifier.hh"
+#include "Move.hh"
+#include "MoveSlot.hh"
+#include "Procedure.hh"
+#include "Program.hh"
+#include "Segment.hh"
+#include "StringTools.hh"
+#include "TemplateSlot.hh"
+#include "Terminal.hh"
+#include "TestApplication.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;
@@ -76,7 +80,6 @@ class ImmediateGenerator : public DesignSpaceExplorerPlugin {
         addInsTemplateName_(""),
         modInsTemplateName_(""),
         width_(32),
-        widthPart_(8),
         split_(false),
         dstImmUnitName_("") {
 
@@ -89,7 +92,6 @@ class ImmediateGenerator : public DesignSpaceExplorerPlugin {
         addParameter(addInsTemplateNamePN_, STRING, false, addInsTemplateName_);
         addParameter(modInsTemplateNamePN_, STRING, false, modInsTemplateName_);
         addParameter(widthPN_, UINT, false, Conversion::toString(width_));
-        addParameter(widthPartPN_, UINT, false, Conversion::toString(widthPart_));
         addParameter(splitPN_, BOOL, false, Conversion::toString(split_));
         addParameter(dstImmUnitNamePN_, STRING, false, dstImmUnitName_);
     }
@@ -110,7 +112,6 @@ class ImmediateGenerator : public DesignSpaceExplorerPlugin {
      * - add_it_name, string, add empty instruction template with a given name.
      * - modify_it_name, string, modify instruction template with a given name.
      * - width, int, instruction template supported width.
-     * - width_part, int, minimum size of width per slot. Default 8.
      * - split, boolean, split immediate among slots.
      * - dst_imm_unit, string, destination immediate unit.
      *
@@ -183,6 +184,7 @@ class ImmediateGenerator : public DesignSpaceExplorerPlugin {
                 CostEstimates estimates;
 
                 RowID confID = dsdb.addConfiguration(newConf);
+                evaluate(newConf);
                 result.push_back(confID);
             }
 
@@ -209,6 +211,7 @@ private:
     static const std::string widthPartPN_;
     static const std::string splitPN_;
     static const std::string dstImmUnitNamePN_;
+    static const std::string temporaryTemplateName_;
 
     // parameters
     /// print values
@@ -221,8 +224,6 @@ private:
     std::string modInsTemplateName_;
     /// width of the target template
     unsigned int width_;
-    /// minimum width on long instruction slot when splitting the template. 
-    unsigned int widthPart_;
     /// make evenly bus/slot wise splitted template.
     bool split_;
     /// destination immediate unit name
@@ -238,11 +239,97 @@ private:
         readCompulsoryParameter(addInsTemplateNamePN_, addInsTemplateName_);
         readCompulsoryParameter(modInsTemplateNamePN_, modInsTemplateName_);
         readCompulsoryParameter(widthPN_, width_);
-        readCompulsoryParameter(widthPartPN_, widthPart_);
         readCompulsoryParameter(splitPN_, split_);
         readCompulsoryParameter(dstImmUnitNamePN_, dstImmUnitName_);
     }
-    
+
+    std::vector<int>
+    benchmark(TTAMachine::Machine& mach) {
+        int busCount = mach.busNavigator().count();
+        std::vector<int> busUtilization(busCount, 0);
+
+        DSDBManager& dsdb = db();
+        std::set<RowID> applicationIDs = dsdb.applicationIDs();
+
+        bool hasLimmTemplate = false;
+        auto itNavigator = mach.instructionTemplateNavigator();
+        for (int i = 0; i < itNavigator.count(); ++i) {
+            if (itNavigator.item(i)->slotCount() > 0) {
+                hasLimmTemplate = true;
+                break;
+            }
+        }
+        if (!hasLimmTemplate) {
+            addSplitInsTemplate(mach, temporaryTemplateName_, true);
+        }
+
+        for (std::set<RowID>::const_iterator id = applicationIDs.begin();
+             id != applicationIDs.end(); id++) {
+            std::string applicationPath = dsdb.applicationPath(*id);
+            TestApplication testApplication(applicationPath);
+
+            std::string applicationFile = testApplication.applicationPath();
+
+            // test that program is found
+            if (applicationFile.length() < 1) {
+                throw InvalidData(
+                    __FILE__, __LINE__, __func__,
+                    (boost::format(
+                         "No program found from application dir '%s'") %
+                     applicationPath)
+                        .str());
+            }
+
+            std::unique_ptr<TTAProgram::Program> scheduledProgram(
+                schedule(applicationFile, mach));
+
+            if (scheduledProgram.get() == NULL) {
+                throw InvalidData(
+                    __FILE__, __LINE__, __func__,
+                    (boost::format("Failed to schedule program '%s'") %
+                     applicationPath)
+                        .str());
+                continue;
+            }
+
+            // simulate the scheduled program
+            Program::InstructionVector instructions =
+                scheduledProgram->instructionVector();
+
+            std::vector<ClockCycleCount> executions(instructions.size(), 0);
+
+            ClockCycleCount partialCycleCount;
+            simulate(
+                *scheduledProgram, mach, testApplication, 0,
+                partialCycleCount, false, false, &executions);
+
+            for (unsigned int i = 0; i < executions.size(); ++i) {
+                if (executions[i] == 0) continue;
+                Instruction* instr = instructions[i];
+
+                for (int j = 0; j < instr->moveCount(); j++) {
+                    Move& move = instr->move(j);
+                    const Bus& bus = move.bus();
+                    busUtilization[bus.position()] += 1;
+                }
+            }
+        }
+
+        std::vector<int> indices;
+        for (int i = 0; i < busCount; ++i) {
+            indices.push_back(i);
+        }
+
+        std::sort(
+            indices.begin(), indices.end(), [&busUtilization](int a, int b) {
+                return busUtilization[a] < busUtilization[b];
+            });
+
+        if (!hasLimmTemplate) {
+            removeInsTemplate(mach, temporaryTemplateName_);
+        }
+        return indices;
+    }
 
     /**
      * Print info about instruction templates of a given machine.
@@ -347,7 +434,10 @@ private:
      * @param mach Target machine.
      * @param name Instruction template name to be added.
      */
-    void addSplitInsTemplate(TTAMachine::Machine& mach, std::string name) {
+    void
+    addSplitInsTemplate(
+        TTAMachine::Machine& mach, std::string name,
+        bool forceDefaults = false) {
         TTAMachine::InstructionTemplate* insTemplate = NULL; 
 
         // find target immediate unit for the instruction template slots
@@ -405,38 +495,33 @@ private:
             return;
         }
 
-        // TODO: split among immediate slots also?
-        Machine::BusNavigator busNav = mach.busNavigator();
+        auto bemGen = BEMGenerator(mach);
+        auto bem = bemGen.generate();
 
-        int slotCount = (width_/widthPart_);
-
-        // if too few busses to make even one widthPart_ length template slot
-        if (busNav.count() < slotCount) {
-            slotCount = busNav.count();
+        std::vector<int> priority;
+        if (!forceDefaults && db().applicationCount() > 0) {
+            priority = benchmark(mach);
+        } else {
+            int busCount = bem->moveSlotCount();
+            for (int i = 0; i < busCount; ++i) {
+                priority.push_back(i);
+            }
         }
+        sortByWidth(priority, bem, width_);
 
-        int overSpill = width_ - (slotCount * widthPart_);
-        int widthAdd = 0;
-        TTAMachine::Bus* busP = NULL;
-        for (int bus = 0; bus < slotCount; bus++) {
-            busP = busNav.item(bus);
+        int remaining = width_;
+        for (auto&& ms : priority) {
+            MoveSlot& moveSlot = bem->moveSlot(ms);
+            int widthAdd = moveSlot.width();
 
-            if (overSpill > 0) {
-                if (overSpill < static_cast<int>(
-                            busP->width() - widthPart_)) {
-                    widthAdd = overSpill;
-                    overSpill = -1; // all spilled
-                } else {
-                    widthAdd = busP->width() - widthPart_;
-                    overSpill = overSpill - widthAdd;
-                }
-            } else {
-                widthAdd = 0;
+            // Add the entire remainder either if the bus has more bits than
+            // needed or if all busses have been used
+            if (widthAdd > remaining || ms == priority.back()) {
+                widthAdd = remaining;
             }
 
             try {
-                insTemplate->addSlot(busP->name(), widthPart_ + widthAdd, 
-                        *dstImmUnit);
+                insTemplate->addSlot(moveSlot.name(), widthAdd, *dstImmUnit);
             } catch (const Exception& e) {
                 std::ostringstream msg(std::ostringstream::out);
                 msg << "Error while using ImmediateGenerator:" << endl
@@ -446,21 +531,46 @@ private:
                 insTemplate = NULL;
                 return;
             }
+
+            remaining -= widthAdd;
+            if (remaining == 0) {
+                break;
+            }
+        }
+        delete bem;
+
+        if (!forceDefaults) {
+            createNewConfig_ = true;
+        }
+    }
+
+    /**
+     * Adjusts priority vector to consume the least number of busses while
+     * still respecting the ordering: order the first N busses so that their
+     *
+     * @param mach Target machine.
+     * @param name Instruction template name to be added.
+     */
+    void
+    sortByWidth(
+        std::vector<int>& priority, BinaryEncoding* bem, int targetWidth) {
+        size_t usedBuses = priority.size();
+        int width = 0;
+        for (size_t bus = 0; bus < priority.size(); ++bus) {
+            int ms = priority[bus];
+            width += bem->moveSlot(ms).width();
+            if (width >= targetWidth) {
+                usedBuses = bus + 1;
+                break;
+            }
+        }
+        while (priority.size() > usedBuses) {
+            priority.pop_back();
         }
 
-        // check if all spilled
-        if (overSpill > 0) {
-            std::ostringstream msg(std::ostringstream::out);
-            msg << "Error while using ImmediateGenerator:" << endl
-                << "Immediate template generation failed, width=\"" << width_
-                << "\" too great by: \"" << overSpill << "\"" << endl;
-            verboseLog(msg.str());
-            delete insTemplate;
-            insTemplate = NULL;
-            return;
-        }
-
-        createNewConfig_ = true;
+        std::sort(priority.begin(), priority.end(), [bem](int a, int b) {
+            return bem->moveSlot(a).width() > bem->moveSlot(b).width();
+        });
     }
 };
 
@@ -473,5 +583,6 @@ const std::string ImmediateGenerator::widthPN_("width");
 const std::string ImmediateGenerator::widthPartPN_("width_part");
 const std::string ImmediateGenerator::splitPN_("split");
 const std::string ImmediateGenerator::dstImmUnitNamePN_("dst_imm_unit");
+const std::string ImmediateGenerator::temporaryTemplateName_("ImmGenTemp");
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ImmediateGenerator)

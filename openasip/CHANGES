@@ -10,6 +10,13 @@ Notable changes and features
   Now it's possible to optionally give a list of pairs of
   <address-space-name>,<data-start>.
   - Added the same option to generatebits with the same syntax.
+- Automated Processor Exploration
+  - Open-sourcing the methodology described in:
+  "AEx: Automated High-Level Synthesis of Compiler Programmable Co-Processors"
+  published in JSPS, 2023
+  - Automatically finds an optimized processor architecture for an input set
+    of applications.
+
 
 Notable bugfixes
 ----------------------------
