@@ -68,9 +68,6 @@ using namespace llvm;
 class LowerIntrinsics : public PassInfoMixin<LowerIntrinsics> {
 public:
     PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM);
-    // from llvm::Pass:
-    bool doInitialization(Module &M);
-    bool doFinalization (Module &M);
 
     // to suppress Clang warnings
     //using llvm::FunctionPass::doInitialization;
@@ -79,6 +76,8 @@ public:
     bool runOnBasicBlock(BasicBlock &BB);
 
 private:
+    bool doInitialization(Module &M);
+    bool doFinalization (Module &M);
     /// List of intrinsics to replace.
     std::set<unsigned> replace_;
     IntrinsicLowering* iLowering_;
@@ -88,9 +87,12 @@ private:
 PreservedAnalyses LowerIntrinsics::run(Function &F,
                                        FunctionAnalysisManager &AM) {
     //errs() << F.getName() << "\n";
+  Module *parentModule = F.getParent();
+  doInitialization(*parentModule);
   for (BasicBlock &BB : F) {
       runOnBasicBlock(BB);
   }
+  doFinalization(*parentModule);
   return PreservedAnalyses::all();
 }
 
