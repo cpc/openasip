@@ -130,6 +130,7 @@ namespace llvm {
         SDValue LowerBuildBooleanVectorVector(
             SDValue Op, MVT newElementVT, int elemCount, SelectionDAG &DAG) const;
         SDValue lowerHWLoops(SDValue op, SelectionDAG &dag) const;
+        SDValue lowerFABS(SDValue op, SelectionDAG &dag) const;
 
         SDValue lowerExtOrBoolLoad(SDValue op, SelectionDAG& DAG) const;
 

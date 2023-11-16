@@ -568,6 +568,9 @@ TCETargetLowering::TCETargetLowering(
     setOperationAction(ISD::FP_TO_SINT, MVT::i8   , Promote);
     setOperationAction(ISD::FP_TO_SINT, MVT::i16  , Promote);
 
+    setOperationAction(ISD::FABS, MVT::f32  , Custom);
+    setOperationAction(ISD::FABS, MVT::f64  , Custom);
+
     setOperationAction(ISD::GlobalAddress, DEFAULT_TYPE, Custom);
     setOperationAction(ISD::BlockAddress, DEFAULT_TYPE, Custom);
     setOperationAction(ISD::ConstantPool , DEFAULT_TYPE, Custom);
@@ -1412,6 +1415,29 @@ TCETargetLowering::lowerHWLoops(SDValue op, SelectionDAG &dag) const {
 }
 
 /**
+ * Lowers FABS operation.
+ *
+ * TODO: Do not custom lower if FABS supported by machine.
+ */
+SDValue
+TCETargetLowering::lowerFABS(SDValue op, SelectionDAG &dag) const {
+    MVT VT = op.getSimpleValueType();
+    assert(VT == MVT::f32 || VT == MVT::f64);
+
+    SDLoc DL(op);
+    MVT castType = (VT == MVT::f32) ? MVT::i32 : MVT::i64;
+
+    // Bitcast to integer type.
+    SDValue tmp = dag.getNode(ISD::BITCAST, DL, castType, op.getOperand(0));
+    // Mask with MSB set to zero.
+    SDValue mask = (VT == MVT::f32) ? dag.getConstant(0x7fffffff, DL, MVT::i32)
+                 : dag.getConstant(0x7fffffffffffffff, DL, MVT::i64);
+    // Bitcast back to floating point type.
+    SDValue tmp2 = dag.getNode(ISD::AND, DL, castType, tmp, mask);
+    return dag.getNode(ISD::BITCAST, DL, VT, tmp2);
+}
+
+/**
  * Handles custom operation lowerings.
  */
 SDValue
@@ -1433,6 +1459,7 @@ TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) const {
     case ISD::DYNAMIC_STACKALLOC: {
         assert(false && "Dynamic stack allocation not yet implemented.");
     }
+    case ISD::FABS: return lowerFABS(op, dag);
 #ifdef OLD_VECTOR_CODE
     case ISD::LOAD: return LowerLOAD(op, dag);
 #endif
