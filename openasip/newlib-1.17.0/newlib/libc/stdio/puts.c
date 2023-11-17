@@ -70,7 +70,7 @@ static char sccsid[] = "%W% (Berkeley) %G%";
 #include "fvwrite.h"
 #include "local.h"
 
-#if defined(__OA__RISCV__) || defined(__TCE__)
+#if defined(__OA_RISCV__) || defined(__TCE__)
 #include "tceops.h"
 
 int 
