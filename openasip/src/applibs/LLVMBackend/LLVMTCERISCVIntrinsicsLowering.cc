@@ -148,7 +148,9 @@ LLVMTCERISCVIntrinsicsLowering::findRegIndexes(
     for (unsigned o = 0; o < it->getNumOperands(); o++) {
         const MachineOperand& mo = it->getOperand(o);
         if (mo.isReg()) {
-            int idx = mo.getReg() - 40;
+            // TODO: Fix this virtual to physical reg mapping
+            const int magicNumber = 41;
+            int idx = mo.getReg() - magicNumber;
             regIdxs.push_back(idx);
             if (idx < 0 && idx > 31) {
                 std::string msg =
