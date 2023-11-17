@@ -40,6 +40,6 @@ if [ $(wc -l < "${DIFF_FILE}") -gt 0 ]; then
     echo STDLIB TEST FAILED
     exit 1;
 fi
-rm -rf proge-output
-rm $DIFF_FILE
+#rm -rf proge-output
+#rm $DIFF_FILE
 exit 0;

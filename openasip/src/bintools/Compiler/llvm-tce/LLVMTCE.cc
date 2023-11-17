@@ -71,7 +71,7 @@ main(int argc, char* argv[]) {
     // Parse command line options.
     try {
         options->parse(argv, argc);
-    } catch (ParserStopRequest) {
+    } catch (ParserStopRequest const&) {
         return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& e) {
         std::cerr << e.errorMessageStack() << std::endl;

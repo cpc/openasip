@@ -95,7 +95,7 @@ VLIWConnectICCmd::Do() {
         TTAMachine::Machine& newMachine = 
             *dsdb->architecture(confID+result.size());
         machine->copyFromMachine(newMachine);
-    } catch (Exception e) {
+    } catch (Exception const& e) {
         std::cerr << "Could not create VLIW Connect IC" << std::endl;
         FileSystem::removeFileOrDirectory(dsdbFile);
         model->popFromStack();

@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     try {
         options->parse(argv, argc);
         Application::setCmdLineOptions(options);
-    } catch (ParserStopRequest) {
+    } catch (ParserStopRequest const&) {
         return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& i) {
         std::cerr << i.errorMessage() << std::endl;

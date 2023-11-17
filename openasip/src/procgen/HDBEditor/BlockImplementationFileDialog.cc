@@ -165,7 +165,7 @@ BlockImplementationFileDialog::onOK(wxCommandEvent&) {
                      break;
                  }
              }
-    } catch (FileNotFound f) {
+    } catch (FileNotFound const& f) {
         wxString message = _T("File not found from the VHDL search paths.");
         ErrorDialog dialog(this, message);
         dialog.ShowModal();

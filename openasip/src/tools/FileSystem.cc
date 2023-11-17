@@ -540,7 +540,7 @@ FileSystem::copy(const std::string& source, const std::string& target) {
             }
         }
         fs::copy_file(sourcePath, targetPath);
-    } catch (boost::filesystem::filesystem_error e) {
+    } catch (boost::filesystem::filesystem_error const& e) {
         throw IOException(
             __FILE__, __LINE__, __func__, 
             (boost::format(

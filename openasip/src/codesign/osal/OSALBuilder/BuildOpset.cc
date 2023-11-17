@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
             return EXIT_FAILURE;
         }
 
-    } catch (ParserStopRequest) {
+    } catch (ParserStopRequest const&) {
         return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& i) { 
         cerr << i.errorMessage() << endl;

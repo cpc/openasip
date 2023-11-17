@@ -72,7 +72,7 @@ SaveOptionsCmd::Do() {
     try {
         writer.writeOptions(*options);
         options->clearModified();
-    } catch (Exception e) {
+    } catch (Exception const& e) {
         ErrorDialog errorDialog(parentWindow(),
             WxConversion::toWxString(e.errorMessage()));
         errorDialog.ShowModal();

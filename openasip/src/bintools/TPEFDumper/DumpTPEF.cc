@@ -182,9 +182,9 @@ int main(int argc, char* argv[]) {
 
     try {
         options.parse(argv, argc);
-    } catch (ParserStopRequest) {
+    } catch (ParserStopRequest const&) {
 	    return 0;
-    } catch (IllegalCommandLine& e) {
+    } catch (IllegalCommandLine const& e) {
         std::cerr << "Illegal command line parameters: "
                   << e.errorMessage() << std::endl;
 
