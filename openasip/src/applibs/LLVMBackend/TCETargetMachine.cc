@@ -277,7 +277,12 @@ TCEPassConfig::addPreISel() {
     if (options != NULL && !options->disableHWLoops() &&
         ((static_cast<TCETargetMachine*>(TM))->ttaMach_)
             ->hasOperation("hwloop"))
-        addPass(createHardwareLoopsLegacyPass());
+        #ifdef LLVM_OLDER_THAN_17
+            addPass(createHardwareLoopsPass());
+        #else
+            addPass(createHardwareLoopsLegacyPass());
+        #endif
+        
 
     // lower floating point stuff.. maybe could use plugin as param instead machine...    
     addPass(createLowerMissingInstructionsPass(
