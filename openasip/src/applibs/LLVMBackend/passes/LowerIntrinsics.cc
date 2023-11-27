@@ -34,29 +34,29 @@
 
 #define DEBUG_TYPE "lowerintrinsics"
 
-#include "CompilerWarnings.hh"
+#include <CompilerWarnings.hh>
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
-#include "llvm/Transforms/Scalar.h"
-#include "llvm/Transforms/Utils/UnifyFunctionExitNodes.h"
-#include "tce_config.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/Intrinsics.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/Support/Compiler.h"
-#include "llvm/IR/Function.h"
-#include "llvm/Pass.h"
-#include "llvm/Passes/PassBuilder.h"
-#include "llvm/Passes/PassPlugin.h"
-#include "llvm/CodeGen/IntrinsicLowering.h"
-#include "tce_config.h"
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Transforms/Utils/UnifyFunctionExitNodes.h>
+#include <tce_config.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/Intrinsics.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/Support/Compiler.h>
+#include <llvm/IR/Function.h>
+#include <llvm/Pass.h>
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Passes/PassPlugin.h>
+#include <llvm/CodeGen/IntrinsicLowering.h>
+#include <tce_config.h>
 
 POP_COMPILER_DIAGS
 
-#include "llvm/IR/DataLayout.h"
+#include <llvm/IR/DataLayout.h>
 typedef llvm::DataLayout TargetData;
 
 using namespace llvm;
