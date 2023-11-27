@@ -70,7 +70,7 @@ that is/are the most relevant to the topic (overall TCE, softcores/FPGA or RISC-
 @inproceedings{OpenASIP2_0,  
   title={OpenASIP 2.0: Co-Design Toolset for RISC-V Application-Specific Instruction-SetProcessors},  
   author={Hepola, Kari and Multanen, Joonas and J{\"a}{\"a}skel{\"a}inen, Pekka},  
-  booktitle={2022 IEEE 33rd International Conference on Application-specific Systems, Architecturesand     Processors (ASAP)},  
+  booktitle={2022 IEEE 33rd International Conference on Application-specific Systems, Architectures and Processors (ASAP)},  
   pages={161--165},  
   year={2022},  
   organization={IEEE}  
@@ -274,7 +274,7 @@ build OpenASIP:
 | Tcl        	| 8.0-8.4            	| BSD-style            	|
 | Boost      	| 1.48.0-1.53.0      	| very permissive      	|
 | sqlite3    	| 3.2.0+             	| public domain        	|
-| LLVM       	| 16-17                 	| LLVM Release License 	|
+| LLVM       	| 16-17                 | LLVM Release License 	|
 | Editline   	| 2.9                	| BSD-style            	|
 | Python     	| 3.6+               	| PSF license          	|
 
