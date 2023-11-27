@@ -44,6 +44,9 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "BEMGenerator.hh"
 #include "Exception.hh"
 
+#include "tce_config.h"
+
+
 POP_COMPILER_DIAGS
 
 namespace llvm {
@@ -149,7 +152,11 @@ LLVMTCERISCVIntrinsicsLowering::findRegIndexes(
         const MachineOperand& mo = it->getOperand(o);
         if (mo.isReg()) {
             // TODO: Fix this virtual to physical reg mapping
+            #ifdef LLVM_OLDER_THAN_17
+            const int magicNumber = 40;
+            #else
             const int magicNumber = 41;
+            #endif
             int idx = mo.getReg() - magicNumber;
             regIdxs.push_back(idx);
             if (idx < 0 && idx > 31) {
