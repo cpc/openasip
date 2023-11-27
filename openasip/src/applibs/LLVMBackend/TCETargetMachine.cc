@@ -295,13 +295,6 @@ TCEPassConfig::addPreISel() {
 
     CodeGenOpt::Level OptLevel = getOptLevel();
 
-    // if llvm-tce opt level is -O2 or -O3
-    if (OptLevel != CodeGenOpt::None) {
-        // get some pass lists from llvm/Support/StandardPasses.h from 
-        // createStandardLTOPasses function. (do not add memcpyopt or dce!)
-        //addPass(createInternalizePass());
-    }
-    
     // NOTE: This must be added before Machine function analysis pass..
     // needed by POMBuilder to prevent writing debug data to data section
     // might be good to disable when printing out machine function code...

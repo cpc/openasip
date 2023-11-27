@@ -152,11 +152,11 @@ LLVMTCERISCVIntrinsicsLowering::findRegIndexes(
         const MachineOperand& mo = it->getOperand(o);
         if (mo.isReg()) {
             // TODO: Fix this virtual to physical reg mapping
-            #ifdef LLVM_OLDER_THAN_17
+#ifdef LLVM_OLDER_THAN_17
             const int magicNumber = 40;
-            #else
+#else
             const int magicNumber = 41;
-            #endif
+#endif
             int idx = mo.getReg() - magicNumber;
             regIdxs.push_back(idx);
             if (idx < 0 && idx > 31) {
