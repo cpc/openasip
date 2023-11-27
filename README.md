@@ -102,7 +102,7 @@ Ubuntu 20.04+ / Debian 11
 ```bash
 sudo apt-get install libwxgtk3.0-gtk3-dev libboost-all-dev \
 tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make \
-latex2html libffi-dev autoconf automake libtool subversion git cmake graphviz \
+latex2html libffi-dev autoconf automake libtool subversion git cmake graphviz
 ```
 
 Ubuntu 18.04 LTS and older
