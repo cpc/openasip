@@ -155,9 +155,17 @@ switches to fix some issues affecting OpenASIP usage.
 You can do this easiest as follows:
 
 ```bash
-cd openasip-2.0/openasip OR cd openasip-devel/openasip
+cd openasip-devel/openasip
 ./tools/scripts/install_llvm_17.sh $HOME/local
 ```
+
+Alternatively, if you cloned the release branch:
+
+```bash
+cd openasip-2.0/openasip
+./tools/scripts/install_llvm_17.sh $HOME/local
+```
+
 
 After successful installation, add information about installed libraries to the
 search path. We assume OpenASIP will be installed to the same location later.
