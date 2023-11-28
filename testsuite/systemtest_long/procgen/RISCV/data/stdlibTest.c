@@ -21,7 +21,7 @@ int main() {
     printf("\n");
 
     const char src[14] = "OpenASIP rules";
-    const char dst[14];
+    char dst[14];
     memcpy(&dst, &src, strlen(src)+1);
     printf("%s", dst);
     return 0;
