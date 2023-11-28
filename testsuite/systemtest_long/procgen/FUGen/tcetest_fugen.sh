@@ -16,6 +16,11 @@ TCECC=../../../../openasip/src/bintools/Compiler/tcecc
 PROGE=../../../../openasip/src/procgen/ProGe/generateprocessor
 GENERATEBITS=../../../../openasip/src/bintools/PIG/generatebits
 
+ghdl_bin=$(which ghdl 2> /dev/null)
+if [ "x${ghdl_bin}" == "x" ]; then
+    exit 0
+fi
+
 OPTIND=1
 while getopts "d" OPTION
 do
@@ -75,12 +80,6 @@ function run_test() {
     runexeclimit=$(line-count $TTABUSTRACE)
     # Limit on real simulation time
     runtimelimit=1000000000
-
-    # If GHDL is found from PATH, compile and simulate
-    GHDL=$(which ghdl 2> /dev/null)
-    if [ "x${GHDL}" == "x" ]; then
-        abort-with-msg "GHDL not found in path."
-    fi
 
     cd $PROGE_OUT
     ./ghdl_compile.sh >& /dev/null || abort-with-msg "ghdl compile failed."
