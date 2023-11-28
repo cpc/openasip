@@ -170,7 +170,7 @@ MDFDocument::openADF(const string& filename) {
     try {
         model_ = new Model(filename);
         model_->addObserver(this);
-    } catch (Exception e) {
+    } catch (Exception const& e) {
         // Display an error dialog and return false.
         ProDeTextGenerator* prodeTexts = ProDeTextGenerator::instance();
         boost::format fmt =

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2023 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -29,30 +29,34 @@
  *
  * @author Veli-Pekka Jaaskelainen 2008 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Joonas Multanen 2023 (joonas.multanen-no.spam-tuni.fi)
  */
 
 #define DEBUG_TYPE "lowerintrinsics"
 
-#include "CompilerWarnings.hh"
+#include <CompilerWarnings.hh>
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
-#include "llvm/Transforms/Scalar.h"
-#include "llvm/Transforms/Utils/UnifyFunctionExitNodes.h"
-#include "tce_config.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/Intrinsics.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/Support/Compiler.h"
-#include "llvm/Pass.h"
-#include "llvm/CodeGen/IntrinsicLowering.h"
-#include "tce_config.h"
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Transforms/Utils/UnifyFunctionExitNodes.h>
+#include <tce_config.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/Intrinsics.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/Support/Compiler.h>
+#include <llvm/IR/Function.h>
+#include <llvm/Pass.h>
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Passes/PassPlugin.h>
+#include <llvm/CodeGen/IntrinsicLowering.h>
+#include <tce_config.h>
 
 POP_COMPILER_DIAGS
 
-#include "llvm/IR/DataLayout.h"
+#include <llvm/IR/DataLayout.h>
 typedef llvm::DataLayout TargetData;
 
 using namespace llvm;
@@ -60,61 +64,44 @@ using namespace llvm;
 #include <iostream>
 #include <set>
 
-namespace {
-    class LowerIntrinsics : public FunctionPass {
-    public:
-        static char ID; // Pass ID, replacement for typeid       
-        LowerIntrinsics();
-        virtual ~LowerIntrinsics();
 
-        // from llvm::Pass:
-        bool doInitialization(Module &M);
-        bool doFinalization (Module &M);
+class LowerIntrinsics : public PassInfoMixin<LowerIntrinsics> {
+public:
+    PreservedAnalyses run(Function &F, FunctionAnalysisManager &AM);
 
-        // to suppress Clang warnings
-        using llvm::FunctionPass::doInitialization;
-        using llvm::FunctionPass::doFinalization;
+    // to suppress Clang warnings
+    //using llvm::FunctionPass::doInitialization;
+    //using llvm::FunctionPass::doFinalization;
 
-        bool runOnBasicBlock(BasicBlock &BB);
-        bool runOnFunction(Function &F) override;
-       
-     private:
-        /// List of intrinsics to replace.
-        std::set<unsigned> replace_;
-        IntrinsicLowering* iLowering_;
-        TargetData* td_;
-    };
+    bool runOnBasicBlock(BasicBlock &BB);
 
-    char LowerIntrinsics::ID = 0;
-    RegisterPass<LowerIntrinsics>
-    X("lowerintrinsics", "Lower llvm intrinsics back to libcalls.");
-}
+private:
+    bool doInitialization(Module &M);
+    bool doFinalization (Module &M);
+    /// List of intrinsics to replace.
+    std::set<unsigned> replace_;
+    IntrinsicLowering* iLowering_;
+    TargetData* td_;
+};
 
-
-/**
- * Constructor
- */
-LowerIntrinsics::LowerIntrinsics() :
-    FunctionPass(ID),
-    iLowering_(NULL), td_(NULL) {
-}
-
-/**
- * Destructor
- */
-LowerIntrinsics::~LowerIntrinsics() {
+PreservedAnalyses LowerIntrinsics::run(Function &F,
+                                       FunctionAnalysisManager &AM) {
+    //errs() << F.getName() << "\n";
+  Module *parentModule = F.getParent();
+  doInitialization(*parentModule);
+  for (BasicBlock &BB : F) {
+      runOnBasicBlock(BB);
+  }
+  doFinalization(*parentModule);
+  return PreservedAnalyses::all();
 }
 
 
 bool
 LowerIntrinsics::doInitialization(Module &M) {
-   
+
     // Initialize list of intrinsics to lower.
-    #ifdef LLVM_OLDER_THAN_16
-    replace_.insert(Intrinsic::flt_rounds);
-    #else
     replace_.insert(Intrinsic::get_rounding);
-    #endif
     replace_.insert(Intrinsic::ceil);
     replace_.insert(Intrinsic::floor);
     replace_.insert(Intrinsic::round);
@@ -122,7 +109,7 @@ LowerIntrinsics::doInitialization(Module &M) {
     replace_.insert(Intrinsic::memcpy);
     replace_.insert(Intrinsic::memset);
     replace_.insert(Intrinsic::memmove);
-    
+
     assert(iLowering_ == NULL && td_ == NULL);
     td_ = new TargetData(&M);
     iLowering_ = new IntrinsicLowering(*td_);
@@ -131,64 +118,75 @@ LowerIntrinsics::doInitialization(Module &M) {
 
 bool
 LowerIntrinsics::doFinalization(Module& /*M*/) {
-    if (iLowering_ != NULL) { 
+    if (iLowering_ != NULL) {
         delete iLowering_;
         iLowering_ = NULL;
     }
     if (td_ != NULL) {
         delete td_;
         td_ = NULL;
-    }    
+    }
     return true;
 }
 
 
 bool
 LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
-    
-   bool changed = true;
-   while (changed)  {
-       changed = false;
-       for (BasicBlock::iterator I = BB.begin(), E = BB.end(); I != E; ++I) {
-           CallInst* ci = dyn_cast<CallInst>(&(*I));
-           if (ci != NULL && ci->arg_size() != 0) {
-               Function* callee = ci->getCalledFunction();
-               if (callee != NULL && callee->isIntrinsic() &&
-                   replace_.find(callee->getIntrinsicID()) != replace_.end()) {
-                   #ifdef LLVM_OLDER_THAN_16
-                   if (callee->getIntrinsicID() == Intrinsic::flt_rounds) {
-                       // Replace FLT_ROUNDS intrinsic with the actual
-                   #else
-                   if (callee->getIntrinsicID() == Intrinsic::get_rounding) {
-                       // Replace GET_ROUNDING intrinsic with the actual
-                   #endif
-                       // constant value to avoid stupid  "if (1 == 0)"
-                       // code even with full optimizations.
-                       I->replaceAllUsesWith(
-                           ConstantInt::get(
-                               Type::getInt32Ty(BB.getContext()), 0, true));
-                       I->eraseFromParent();
-                       changed = true;
-                       break;
-                   } else {
-                       iLowering_->LowerIntrinsicCall(ci);
-                       changed = true;
-                       break;
-                   }
-               }
-           }
-       }
-   }
-   return true;
-}
-
-bool
-LowerIntrinsics::runOnFunction(Function &F) {
-
-    for (BasicBlock &BB : F) {
-        runOnBasicBlock(BB);
+    bool changed = true;
+    while (changed)  {
+        changed = false;
+        for (BasicBlock::iterator I = BB.begin(), E = BB.end(); I != E; ++I) {
+            CallInst* ci = dyn_cast<CallInst>(&(*I));
+            if (ci != NULL && ci->arg_size() != 0) {
+                Function* callee = ci->getCalledFunction();
+                if (callee != NULL && callee->isIntrinsic() &&
+                    replace_.find(callee->getIntrinsicID()) != replace_.end()) {
+                    if (callee->getIntrinsicID() == Intrinsic::get_rounding) {
+                        // Replace GET_ROUNDING intrinsic with the actual
+                        // constant value to avoid stupid  "if (1 == 0)"
+                        // code even with full optimizations.
+                        I->replaceAllUsesWith(
+                            ConstantInt::get(
+                                Type::getInt32Ty(BB.getContext()), 0, true));
+                        I->eraseFromParent();
+                        changed = true;
+                        break;
+                    } else {
+                        iLowering_->LowerIntrinsicCall(ci);
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+        }
     }
-
     return true;
 }
 
+
+/* New PM Registration */
+llvm::PassPluginLibraryInfo getLowerIntrinsicsPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "LowerIntrinsics", LLVM_VERSION_STRING,
+          [](PassBuilder &PB) {
+            PB.registerVectorizerStartEPCallback(
+                [](llvm::FunctionPassManager &PM, OptimizationLevel Level) {
+                  PM.addPass(LowerIntrinsics());
+                });
+            PB.registerPipelineParsingCallback(
+                [](StringRef Name, llvm::FunctionPassManager &PM,
+                   ArrayRef<llvm::PassBuilder::PipelineElement>) {
+                  if (Name == "lowerintrinsic") {
+                    PM.addPass(LowerIntrinsics());
+                    return true;
+                  }
+                  return false;
+                });
+          }};
+}
+
+#ifndef LLVM_LOWERINTRINSICS_LINK_INTO_TOOLS
+extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
+llvmGetPassPluginInfo() {
+  return getLowerIntrinsicsPluginInfo();
+}
+#endif

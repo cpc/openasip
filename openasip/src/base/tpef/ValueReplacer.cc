@@ -58,7 +58,7 @@ ValueReplacer::ValueReplacer(const SafePointable* obj) :
 
     try {
         streamPosition_ = stream_->writePosition();
-    } catch (UnreachableStream e) {
+    } catch (UnreachableStream const& e) {
         bool replacerConstructorBadStream = false;
         assert(replacerConstructorBadStream);
     }

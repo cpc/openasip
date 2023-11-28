@@ -6,12 +6,18 @@ rm -rf proge-output
 
 ADF=data/bypass.adf
 
-generateprocessor --hdb-list=generate_base32.hdb,asic_130nm_1.5V.hdb,generate_lsu_32.hdb -t $ADF &>/dev/null
-generatebits -x proge-output $ADF &>/dev/null
+generateprocessor --hdb-list=generate_base32.hdb,asic_130nm_1.5V.hdb,generate_lsu_32.hdb -t $ADF &>/dev/null || exit 1
+generatebits -x proge-output $ADF &>/dev/null || exit 1
 cp data/dmem_init.img proge-output/tb/dmem_param_init.img || exit 1
 cp data/imem_init.img proge-output/tb || exit 1
-cd proge-output
-./ghdl_compile.sh &>/dev/null || eexit "Ghdl compile failed"
+cd proge-output || exit 1
+
+ghdl_bin=$(which ghdl 2> /dev/null)
+if [ "x${ghdl_bin}" == "x" ]; then
+    exit 0
+fi
+
+./ghdl_compile.sh &>/dev/null || exit 1
 ./ghdl_simulate.sh -r 420000 &>/dev/null
 
 cd ..

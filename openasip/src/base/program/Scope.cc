@@ -390,9 +390,9 @@ Scope::addCodeLabel(const CodeLabel* codeLabel) {
             while (!scope->isGlobal()) {
                 try {
                     scope = &scope->parent();
-                } catch (WrongSubclass) {
+                } catch (WrongSubclass const&) {
                     assert(false);
-                } catch (IllegalRegistration) {
+                } catch (IllegalRegistration const&) {
                     assert(false);
                 }
             }
@@ -428,9 +428,9 @@ Scope::addDataLabel(const DataLabel* dataLabel) {
             while (!scope->isGlobal()) {
                 try {
                     scope = &scope->parent();
-                } catch (WrongSubclass) {
+                } catch (WrongSubclass const&) {
                     assert(false);
-                } catch (IllegalRegistration) {
+                } catch (IllegalRegistration const&) {
                     assert(false);
                 }
             }

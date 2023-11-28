@@ -944,7 +944,7 @@ int main(int argc, char* argv[]) {
     OsalCmdLineOptions options;
     try {
         options.parse(argv, argc);
-    } catch (ParserStopRequest) {
+    } catch (ParserStopRequest const&) {
         return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& i) {
         cerr << i.errorMessage() << endl;

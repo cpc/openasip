@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     BEMGeneratorCmdLineOptions options;
     try {
         options.parse(argv, argc);
-    } catch (ParserStopRequest) {
+    } catch (ParserStopRequest const&) {
         return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& exception) {
         cerr << exception.errorMessage() << endl;

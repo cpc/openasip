@@ -40,7 +40,7 @@ AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 # OpenASIP 2.0 = 26:0:0
 # OpenASIP 2.1 = 27:0:0
 
-AC_SUBST([LIB_VERSION], ["27:0:0"])
+AC_SUBST([LIB_VERSION], ["28:0:0"])
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
@@ -547,11 +547,11 @@ LLVM_INCLUDEDIR=/usr/include
 fi
 
 case "$LLVM_VERSION" in
-     15*)
-     AC_DEFINE([LLVM_15], [], "Using LLVM 15")
-     LLVM_VERSION=15
-     LLVM_LIBRARYVERSION=15
-     LLVM_OLDER_THAN_16=1
+     16*)
+     AC_DEFINE([LLVM_16], [], "Using LLVM 16")
+     LLVM_VERSION=16
+     LLVM_LIBRARYVERSION=16
+     LLVM_OLDER_THAN_17=1
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVMTCE-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVMTCE-$LLVM_LIBRARYVERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
@@ -559,10 +559,10 @@ case "$LLVM_VERSION" in
      AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
 
 ;;
-     16*)
-     AC_DEFINE([LLVM_16], [], "Using LLVM 16")
-     LLVM_VERSION=16
-     LLVM_LIBRARYVERSION=16
+     17*)
+     AC_DEFINE([LLVM_17], [], "Using LLVM 17")
+     LLVM_VERSION=17
+     LLVM_LIBRARYVERSION=17
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVMTCE-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVMTCE-$LLVM_LIBRARYVERSION
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
@@ -585,9 +585,9 @@ AC_MSG_NOTICE([
 ])
 
 
-if  test "x$LLVM_OLDER_THAN_16" == "x1";
+if  test "x$LLVM_OLDER_THAN_17" == "x1";
 then
-AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_16, 1, [LLVM version is older than 16])
+AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_17, 1, [LLVM version is older than 17])
 fi
 
 
@@ -1240,13 +1240,8 @@ if test x"$define_cxx0x" = xtrue; then
    AC_DEFINE(HAVE_CXX0X, [], [Using C++0x language standard switch.])
    CXXFLAGS="$CXXFLAGS -std=c++0x"
 else
-   if test "x$LLVM_OLDER_THAN_16" == "x1"; then
-      AC_DEFINE(HAVE_CXX11, [], [Using C++11 language standard switch.])
-      CXXFLAGS="$CXXFLAGS -std=c++14"
-   else
-      AC_DEFINE(HAVE_CXX11, [], [Using C++17 language standard switch.])
-      CXXFLAGS="$CXXFLAGS -std=c++17"
-   fi
+   AC_DEFINE(HAVE_CXX11, [], [Using C++17 language standard switch.])
+   CXXFLAGS="$CXXFLAGS -std=c++17"
 fi
 
 

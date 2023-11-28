@@ -53,7 +53,7 @@ main(int argc, char* argv[]) {
     CreateHDBCmdLineOptions options;
     try {
         options.parse(argv, argc);
-    } catch (ParserStopRequest) {
+    } catch (ParserStopRequest const&) {
             return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& i) {
         std::cerr << i.errorMessage() << std::endl;

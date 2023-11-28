@@ -244,6 +244,11 @@ def parse_options():
              dest="tce_build_mode", default=False,
              help="Use when building TCE's bitcode libraries. Sets build directory search paths correctly.")
 
+    parser.add_option('--lld', action="store_true",
+             dest="lld", default=False,
+             help="Use the LLVM lld linker instead of the gcc object code linker.")
+
+
 
     # fix gcc switches, which cannot be represented in OptionParser format by adding extra "-" before switch
     args = []
@@ -295,8 +300,7 @@ def optimizeBytecode(inFile):
         extra_opts = options.extra_llvm_opts.split(',')
         optSwitches += ' -' + ' -'.join(extra_opts)
     outputName = tempDir + "/" + os.path.basename(inFile) + "_optimized.bc"
-    command = "opt -enable-new-pm=0 -passes=\"" + default_passes + '\"' + " -f " + inFile + " -o " + outputName + " " + optSwitches
-
+    command = "opt -passes=\"" + default_passes + '\"' + " -f " + inFile + " -o " + outputName + " " + optSwitches
     exitCode = run_command(command, echoCmd=options.verbose)
     if exitCode != 0:
         exitWithError(1, "Error while optimizing bytecode: " + command + "\n")
@@ -450,10 +454,18 @@ def link(obj_files, output):
 
     extra_flags = stdLibFlags()
 
-    retval = run_command("ld.lld -lc -lm -lgcc  %s %s %s -Ttext=0 -T %s %s %s -o %s" %
-    (lib_names, lib_dirs, extra_flags, link_script, init_out, obj_files, output), echoCmd=options.verbose)
+    command = "riscv32-unknown-elf-ld  %s %s %s -Ttext=0 -T %s %s %s -o %s -lc -lm -lgcc" % \
+        (lib_names, lib_dirs, extra_flags, link_script, init_out, obj_files, output)
 
-    if retval != 0: cleanup_and_exit(retval)
+    if options.lld:
+        command = "ld.lld -lc -lm -lgcc  %s %s %s -Ttext=0 -T %s %s %s -o %s" % \
+        (lib_names, lib_dirs, extra_flags, link_script, init_out, obj_files, output)
+
+    retval = run_command(command, echoCmd=options.verbose,
+                         echoStderr=options.verbose, echoStdout=options.verbose)
+
+    if retval != 0:
+        exitWithError(retval, "Error in linking. Run with -v to see verbose output")
     return output
 
 def generate_linker_script(options):

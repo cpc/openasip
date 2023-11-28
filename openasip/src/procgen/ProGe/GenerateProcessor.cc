@@ -174,7 +174,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
 
         ProGeUI::generateProcessor(
             progeOptions, imemWidthInMAUs, std::cerr, std::cerr, std::cerr);
-    } catch (ParserStopRequest) {
+    } catch (ParserStopRequest const&) {
         return false;
     } catch (const IllegalCommandLine& exception) {
         cerr << exception.errorMessage() << endl;

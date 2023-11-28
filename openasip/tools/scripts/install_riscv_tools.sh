@@ -40,7 +40,7 @@ function install_elf2hex {
     git clone $repository || eexit "git clone $name failed"
     cd $name
     git checkout $version || eexit "git checkout $name $version failed"
-    ./configure --prefix=$TARGET_DIR --with-arch=rv32im \
+    ./configure --prefix=$TARGET_DIR --target=riscv32-unknown-elf \
         || eexit "configure $name failed"
     make || eexit "make $name failed"
     make install || eexit "make install $name failed"

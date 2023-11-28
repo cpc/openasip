@@ -277,7 +277,12 @@ TCEPassConfig::addPreISel() {
     if (options != NULL && !options->disableHWLoops() &&
         ((static_cast<TCETargetMachine*>(TM))->ttaMach_)
             ->hasOperation("hwloop"))
-        addPass(createHardwareLoopsPass());
+        #ifdef LLVM_OLDER_THAN_17
+            addPass(createHardwareLoopsPass());
+        #else
+            addPass(createHardwareLoopsLegacyPass());
+        #endif
+        
 
     // lower floating point stuff.. maybe could use plugin as param instead machine...    
     addPass(createLowerMissingInstructionsPass(
@@ -290,13 +295,6 @@ TCEPassConfig::addPreISel() {
 
     CodeGenOpt::Level OptLevel = getOptLevel();
 
-    // if llvm-tce opt level is -O2 or -O3
-    if (OptLevel != CodeGenOpt::None) {
-        // get some pass lists from llvm/Support/StandardPasses.h from 
-        // createStandardLTOPasses function. (do not add memcpyopt or dce!)
-        addPass(createInternalizePass());
-    }
-    
     // NOTE: This must be added before Machine function analysis pass..
     // needed by POMBuilder to prevent writing debug data to data section
     // might be good to disable when printing out machine function code...

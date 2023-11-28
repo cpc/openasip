@@ -1017,7 +1017,7 @@ Environment::defaultICDecoderPlugin() {
         std::string path = FileSystem::findFileInSearchPaths(paths, file);
 
         return path;
-    } catch(FileNotFound e) {
+    } catch(FileNotFound const& e) {
         abortWithError(
             "Installation broken, DefaultICDecoderPlugin.so not found.");
         return ""; // just to remove a warning
