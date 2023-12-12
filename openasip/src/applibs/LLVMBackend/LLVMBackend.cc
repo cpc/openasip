@@ -1123,8 +1123,8 @@ LLVMBackend::pluginFilename() {
     const std::string buffer = pluginGen_->generateBackend();
 
     // Generate a hash based on the backend output
-    boost::hash<std::string> string_hasher;
-    size_t h = string_hasher(buffer);
+    boost::hash<std::string> stringHasher;
+    size_t h = stringHasher(buffer);
 
     TCEString hash =
         (Conversion::toHexString(buffer.length())).substr(2);
