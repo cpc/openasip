@@ -191,9 +191,10 @@ main(int argc, char* argv[]) {
             argc, argv_array.data(), "llvm flags\n");
 
         LLVMBackend compiler(useInstalledVersion, options->tempDir());
+        compiler.setMachine(*mach);
         TTAProgram::Program* seqProg =
             compiler.compile(
-                bytecodeFile, emulationCode, *mach, optLevel, debug, ipData);
+                bytecodeFile, emulationCode, optLevel, debug, ipData);
 
         TTAProgram::Program::writeToTPEF(*seqProg, outputFileName);
         delete seqProg;

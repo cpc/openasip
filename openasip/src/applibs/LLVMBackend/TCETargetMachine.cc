@@ -309,8 +309,13 @@ TCEPassConfig::addPreISel() {
  */
 TTAMachine::Machine*
 TCETargetMachine::createMachine() {
+    LLVMTCECmdLineOptions* options =
+        dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
+
+    assert(options->isMachineFileDefined() && "ADF not defined");
+    assert(options->machineFile() != "" && "ADF not defined");
     ADFSerializer serializer;
-    serializer.setSourceString(*plugin_->adfXML());
+    serializer.setSourceFile(options->machineFile());
     return serializer.readMachine();
 }
 

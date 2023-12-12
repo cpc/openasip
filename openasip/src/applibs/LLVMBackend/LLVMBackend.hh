@@ -53,6 +53,7 @@ namespace llvm {
     class TCETargetMachinePlugin;
 }
 
+class TDGen;
 class InterPassData;
 class SchedulingPlan;
 class LLVMTCECmdLineOptions;
@@ -68,25 +69,25 @@ public:
     LLVMBackend(bool useInstalledVersion, TCEString tempDir);
     virtual ~LLVMBackend();
 
+    void setMachine(TTAMachine::Machine& target);
     TTAProgram::Program* compile(
         const std::string& bytecodeFile,
-        const std::string& emulationBytecodeFile, TTAMachine::Machine& target,
+        const std::string& emulationBytecodeFile,
         int optLevel, bool debug = false, InterPassData* ipData = NULL);
 
     TTAProgram::Program* compile(
         llvm::Module& module, llvm::Module* emulationModule,
-        llvm::TCETargetMachinePlugin& plugin, TTAMachine::Machine& target,
+        llvm::TCETargetMachinePlugin& plugin,
         int optLevel, bool debug = false, InterPassData* ipData = NULL);
 
     TTAProgram::Program* schedule(
         const std::string& bytecodeFile,
-        const std::string& emulationBytecodeFile, TTAMachine::Machine& target,
+        const std::string& emulationBytecodeFile,
         int optLevel = 2, bool debug = false, SchedulingPlan* plan = NULL);
 
-    llvm::TCETargetMachinePlugin* createPlugin(
-        const TTAMachine::Machine& target);
+    llvm::TCETargetMachinePlugin* createPlugin();
 
-    std::string pluginFilename(const TTAMachine::Machine& target);
+    std::string pluginFilename();
 
 private:
 
@@ -105,6 +106,8 @@ private:
     LLVMTCECmdLineOptions* options_;
 
     InterPassData* ipData_;
+    TTAMachine::Machine* mach_;
+    TDGen* pluginGen_;
 
     static const std::string TBLGEN_INCLUDES;
     static const std::string PLUGIN_PREFIX;

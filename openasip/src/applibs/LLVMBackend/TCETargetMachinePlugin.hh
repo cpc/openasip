@@ -155,8 +155,6 @@ namespace llvm {
        virtual int getTruePredicateOpcode(unsigned opc) const = 0;
        virtual int getFalsePredicateOpcode(unsigned opc) const = 0;
 
-       /// Returns pointer to xml string of the target machine .adf
-       virtual const std::string* adfXML() = 0;
        /// Returns name of the data address space.
        virtual std::string dataASName() = 0;
        /// Returns ID number of the return address register.
