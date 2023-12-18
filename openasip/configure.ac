@@ -40,7 +40,7 @@ AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 # OpenASIP 2.0 = 26:0:0
 # OpenASIP 2.1 = 27:0:0
 
-AC_SUBST([LIB_VERSION], ["28:0:0"])
+AC_SUBST([LIB_VERSION], ["27:0:0"])
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
