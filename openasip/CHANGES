@@ -1,11 +1,13 @@
-2.1        unreleased
+2.1        December 2023
 =====================
 
 Notable changes and features
 ----------------------------
-- Added support for LLVM 16.
-- Dropped support for LLVM versions older than 15.
+- Added support for LLVM 17 and 16.
+- Dropped support for LLVM versions older than 16.
 - SQLite version requirement raised to 3.25+
+- The LLVM legacy pass manager for opt is no longer supported.
+  All opt passes now use the new LLVM pass manager.
 - New syntax for data-start option in oacc and llvm-tce.
   Now it's possible to optionally give a list of pairs of
   <address-space-name>,<data-start>.

@@ -142,7 +142,7 @@ git clone https://github.com/cpc/openasip.git openasip-devel
 Alternatively you can get one of the release branches, e.g.:
 
 ```bash
-git clone -b openasip-2.0 https://github.com/cpc/openasip.git openasip-2.0
+git clone -b openasip-2.1 https://github.com/cpc/openasip.git openasip-2.1
 ```
 
 LLVM and Clang
@@ -162,7 +162,7 @@ cd openasip-devel/openasip
 Alternatively, if you cloned the release branch:
 
 ```bash
-cd openasip-2.0/openasip
+cd openasip-2.1/openasip
 ./tools/scripts/install_llvm_17.sh $HOME/local
 ```
 
@@ -272,7 +272,7 @@ build OpenASIP:
 | Host compiler 	| Supported versions 	|
 |---------------	|--------------------	|
 | GCC           	| 9.0+               	|
-| Clang         	| 13 to 14           	|
+| Clang         	| 16 to 17           	|
 
 
 | Library       | Supported versions 	| Library license      	|
