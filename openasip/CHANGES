@@ -1,27 +1,27 @@
-2.2        unreleased
+2.2     unreleased
 =====================
 
-2.1        December 2023
+2.1     December 2023
 =====================
 
-Notable changes and features
-----------------------------
-- Added support for LLVM 17 and 16.
-- Dropped support for LLVM versions older than 16.
+Main changes and features
+-------------------------
+- Added support for LLVM 17 and 16. Dropped support for LLVM versions
+  older than 16. The LLVM legacy pass manager for opt is no longer
+  supported. All opt passes now use the new LLVM pass manager.
 - SQLite version requirement raised to 3.25+
-- The LLVM legacy pass manager for opt is no longer supported.
-  All opt passes now use the new LLVM pass manager.
 - New syntax for data-start option in oacc and llvm-tce.
   Now it's possible to optionally give a list of pairs of
   <address-space-name>,<data-start>.
   - Added the same option to generatebits with the same syntax.
-- Now, backend plugin name is generated from the hash of TDGen output.
-  This allows better reuse of the backend plugins as only machine attributes
-  that are visible to LLVM are inspected.
-- Added an installation script for RISC-V prerequisites
+- The compiler backend plugin name is now generated from the hash of
+  TDGen output. This allows better reuse of the backend plugins as only
+  machine attributes that are visible to LLVM are inspected, speeding
+  up automated design space exploration runs.
+- Added an installation script for the RISC-V prerequisites.
 
 Notable bugfixes
-----------------------------
+----------------
 - ProDe: Fix operand usage and resource boxes to use default colors propagated
   from system theme instead of manually setting them to black and white.
 - AlmaIF: Fix a bug in almaif_decoder memory mask computation
