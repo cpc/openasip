@@ -830,7 +830,6 @@ LLVMBackend::createPlugin() {
     assert(mach_ != NULL && "Machine not set, forgot to call setMachine()?");
     std::string pluginFile = pluginFilename();
     std::string pluginFileName;
-    std::string tempPluginFileName;
 
     // Create cache directory if it doesn't exist.
     if (!FileSystem::fileIsDirectory(cachePath_)) {
@@ -838,11 +837,8 @@ LLVMBackend::createPlugin() {
     }
 
     pluginFileName = cachePath_ + DS + pluginFile;
-    tempPluginFileName = cachePath_ + DS + pluginFile + ".%%_%%_%%_%%";
 
     llvm::SmallString<128> ResultPath;
-    llvm::sys::fs::createUniqueFile(llvm::Twine(tempPluginFileName), ResultPath);
-    tempPluginFileName = ResultPath.str().str();
 
     // Static plugin source files path.
     std::string srcsPath = "";
@@ -1051,6 +1047,11 @@ LLVMBackend::createPlugin() {
         "-DLITTLE_ENDIAN_TARGET" : "";
 
     TCEString bitnessOption = mach_->is64bit() ? "-DTARGET64BIT" : "";
+
+    std::string tempPluginFileName;
+    tempPluginFileName = cachePath_ + DS + pluginFile + ".%%_%%_%%_%%";
+    llvm::sys::fs::createUniqueFile(llvm::Twine(tempPluginFileName), ResultPath);
+    tempPluginFileName = ResultPath.str().str();
     // Compile plugin to cache.
     // CXX and SHARED_CXX_FLAGS defined in tce_config.h
     cmd = std::string(CXX) +
