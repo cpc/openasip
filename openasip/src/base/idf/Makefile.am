@@ -1,7 +1,7 @@
 
 noinst_LTLIBRARIES = libidf.la
 libidf_la_SOURCES = MachineImplementation.cc UnitImplementationLocation.cc \
-IDFSerializer.cc NullUnitImplementationLocation.cc FUGenerated.cc 
+IDFSerializer.cc NullUnitImplementationLocation.cc FUGenerated.cc RFGenerated.cc
 
 libidf_la_LDFLAGS = $PTHREAD_LIBS
 
@@ -28,5 +28,5 @@ libidf_la_SOURCES += \
 	SocketImplementationLocation.hh RFImplementationLocation.hh \
 	MachineImplementation.hh BusImplementationLocation.hh \
 	NullUnitImplementationLocation.hh IDFSerializer.hh \
-    FUGenerated.hh
+	FUGenerated.hh RFGenerated.hh
 ## headers end

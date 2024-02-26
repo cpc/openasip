@@ -92,6 +92,7 @@
 #include "ProGeOptions.hh"
 
 #include "FUGen.hh"
+#include "RFGen.hh"
 
 using boost::format;
 using std::endl;
@@ -177,6 +178,11 @@ ProcessorGenerator::generateProcessor(
     globalOptions.emplace_back("reset everything");
     FUGen::implement(
         options, globalOptions, generatorContext_->idf().FUGenerations(),
+        generatorContext_->adf(), coreTopBlock_);
+
+    // Generate generatable RF implementations.
+    RFGen::implement(
+        options, globalOptions, generatorContext_->idf().RFGenerations(),
         generatorContext_->adf(), coreTopBlock_);
 
     coreTopBlock_->write(Path(options.outputDirectory), options.language);

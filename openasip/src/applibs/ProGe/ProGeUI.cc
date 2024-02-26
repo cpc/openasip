@@ -536,12 +536,21 @@ ProGeUI::generateIDF(
     }
 
     std::vector<std::string> handledFUs;
+    std::vector<std::string> handledRFs;
 
     // Prefill the handledFUs with values from the .idf-file
     for (auto&& fu : machine_->functionUnitNavigator()) {
         if (idf_->hasFUImplementation(fu->name()) ||
             idf_->hasFUGeneration(fu->name())) {
             handledFUs.emplace_back(fu->name());
+        }
+    }
+
+    // Prefill the handledRFs with values from the .idf-file
+    for (auto&& rf : machine_->registerFileNavigator()) {
+        if (idf_->hasRFImplementation(rf->name()) ||
+            idf_->hasRFGeneration(rf->name())) {
+            handledRFs.emplace_back(rf->name());
         }
     }
 
@@ -552,14 +561,15 @@ ProGeUI::generateIDF(
     std::vector<IDF::FUGenerated::DAGOperation> dagops =
         ProGeTools::generateableDAGOperations(infos, verbose);
 
-    auto already_handled = [&](const std::string& name) {
-        return std::find(handledFUs.begin(), handledFUs.end(), name) !=
-               handledFUs.end();
+    auto already_handled = [&](const std::string& name,
+                               const std::vector<std::string> handledEntries) {
+        return std::find(handledEntries.begin(), handledEntries.end(), name) !=
+               handledEntries.end();
     };
 
-    auto select_hdb_implementations = [&]() {
+    auto select_fu_hdb_implementations = [&]() {
         for (auto&& fu : machine_->functionUnitNavigator()) {
-            if (already_handled(fu->name())) {
+            if (already_handled(fu->name(), handledFUs)) {
                 continue;
             }
             verbose << " select implementation for " << fu->name() << "... ";
@@ -577,9 +587,9 @@ ProGeUI::generateIDF(
         }
     };
 
-    auto generate_implementations = [&]() {
+    auto generate_fu_implementations = [&]() {
         for (auto&& fu : machine_->functionUnitNavigator()) {
-            if (already_handled(fu->name())) {
+            if (already_handled(fu->name(), handledFUs)) {
                 continue;
             }
             verbose << " generate implementation for " << fu->name()
@@ -598,11 +608,11 @@ ProGeUI::generateIDF(
 
     // Create or select FUs.
     if (options.preferHDLGeneration) {
-        generate_implementations();
-        select_hdb_implementations();
+        generate_fu_implementations();
+        select_fu_hdb_implementations();
     } else {
-        select_hdb_implementations();
-        generate_implementations();
+        select_fu_hdb_implementations();
+        generate_fu_implementations();
     }
 
     // IUs.
@@ -622,21 +632,17 @@ ProGeUI::generateIDF(
         }
     }
 
-    // RFs.
     for (auto&& rf : machine_->registerFileNavigator()) {
-        if (idf_->hasRFImplementation(rf->name())) {
+        if (already_handled(rf->name(), handledRFs)) {
             continue;
         }
-        verbose << " select implementation for " << rf->name() << "... ";
-        RFImplementationLocation* loc =
-            new RFImplementationLocation("", -1, rf->name());
-        if (ProGeTools::checkForSelectableRF(options, *rf, *loc, verbose)) {
-            verbose << "OK (selected " << loc->id() << " from "
-                    << loc->hdbFile() << ")\n";
-            idf_->addRFImplementation(loc);
-        } else {
-            verbose << "FAIL\n";
-        }
+        verbose << " generate implementation for " << rf->name()
+                << "... ";
+        IDF::RFGenerated rfg(rf->name());
+        // Assume that we can always generate the missing RFs.
+        verbose << "OK\n";
+        idf_->addRFGeneration(rfg);
+        handledRFs.emplace_back(rfg.name());
     }
 
     // IC/Decoder plugin.

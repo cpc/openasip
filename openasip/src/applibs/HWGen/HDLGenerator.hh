@@ -1138,6 +1138,11 @@ namespace HDLGenerator {
             return *this;
         }
 
+        Behaviour& operator<<(RawCodeLine&& rhs) {
+            addComponent(rhs);
+            return *this;
+        }
+
         Behaviour& operator<<(Assign& assignment) {
             addComponent(assignment);
             return *this;
@@ -1206,6 +1211,11 @@ namespace HDLGenerator {
 
         void set_prefix(std::string prefix) {
             prefix_ = prefix;
+        }
+
+        Module& operator<<(RawCodeLine&& rawCodeLine) {
+            rawCodeLines_.emplace_back(rawCodeLine);
+            return *this;
         }
 
         Module& operator<<(Behaviour& rhs) {
@@ -1493,6 +1503,9 @@ namespace HDLGenerator {
                        << ident << "use ieee.std_logic_1164.all;\n"
                        << ident << "use ieee.numeric_std.all;\n"
                        << ident << "use ieee.std_logic_misc.all;\n"
+                       << ident << "use STD.textio.all;\n"
+                       << ident << "use ieee.std_logic_textio.all;\n"
+                       << ident << "use IEEE.math_real.all;\n"
                 // Entity
                        << ident << "\n"
                        << ident << "entity " << name() << " is\n";
@@ -1547,6 +1560,12 @@ namespace HDLGenerator {
                 for (auto&& r : registers_) {
                     r.declare(stream, lang, level + 1);
                 }
+
+                // Raw code lines
+                for (auto&& r : rawCodeLines_) {
+                    r.hdl(stream, lang, level + 1);
+                }
+
                 // declare components
                 std::vector<std::string> declared;
                 for (auto&& m : modules_) {
@@ -1638,6 +1657,13 @@ namespace HDLGenerator {
                 for (auto&& r : registers_) {
                     r.declare(stream, lang, level + 1);
                 }
+
+                // Raw code lines
+                stream << "\n";
+                for (auto&& r : rawCodeLines_) {
+                    r.hdl(stream, lang, level + 1);
+                }
+
                 // instantiate stuff
                 for (auto&& m : modules_) {
                     stream << "\n";
@@ -1683,6 +1709,7 @@ namespace HDLGenerator {
         }
         int id_ = 0;
         std::string prefix_;
+        std::vector<RawCodeLine> rawCodeLines_;
         std::unordered_set<std::string> options_;
         std::vector<std::string> headerComment_;
         std::vector<Parameter> parameters_;

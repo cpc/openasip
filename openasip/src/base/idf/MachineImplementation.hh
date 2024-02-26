@@ -41,7 +41,7 @@
 #include "BusImplementationLocation.hh"
 #include "SocketImplementationLocation.hh"
 #include "FUGenerated.hh"
-
+#include "RFGenerated.hh"
 
 
 namespace IDF {
@@ -173,6 +173,12 @@ public:
     bool hasFUGeneration(const std::string& name) const;
     void removeFuGeneration(const std::string& name);
     void addFuGeneration(const FUGenerated& fug);
+    const std::vector<RFGenerated>& RFGenerations() const;
+    std::vector<RFGenerated>& RFGenerations();
+    bool hasRFGeneration(const std::string& name) const;
+    void removeRFGeneration(const std::string& name);
+    void addRFGeneration(const RFGenerated& rfg);
+
 
 private:
     /// Vector type for UnitImplementationLocation.
@@ -200,6 +206,8 @@ private:
 
     /// Generated FUs.
     std::vector<FUGenerated> fuGenerated_;
+    /// Generated RFs.
+    std::vector<RFGenerated> RFGenerated_;
 
     /// FU implementations.
     ImplementationTable fuImplementations_;

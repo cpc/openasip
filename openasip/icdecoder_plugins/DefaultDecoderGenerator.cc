@@ -1315,7 +1315,7 @@ DefaultDecoderGenerator::writeRFCntrlSignals(std::ostream& stream) {
         for (int i = 0; i < rf->portCount(); i++) {
             RFPort* port = rf->port(i);
             bool async_signal = sacEnabled(rf->name())
-                            && port->outputSocket() != NULL;
+                && port->outputSocket() != NULL;
 
             // load signal
             std::string sigName =
@@ -4953,6 +4953,11 @@ bool
 DefaultDecoderGenerator::sacEnabled(const string& rfName) const
 {
     assert(nlGenerator_ != NULL);
-    const RFEntry& rfEntry = nlGenerator_->rfEntry(rfName);
-    return rfEntry.implementation().separateAddressCycleParameter();
+    // RFGenerated RFs do not have a HDB entry.
+    if (nlGenerator_->rfHasEntry(rfName)) {
+        const RFEntry& rfEntry = nlGenerator_->rfEntry(rfName);
+        return rfEntry.implementation().separateAddressCycleParameter();
+    } else {
+        return false;
+    }
 }

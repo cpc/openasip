@@ -1597,6 +1597,21 @@ MachineImplementation::hasFUGeneration(const std::string& name) const {
 }
 
 /**
+ * Return true if RF is to be generated.
+ *
+ * @param name Name of the RF Generation to check.
+ */
+bool
+MachineImplementation::hasRFGeneration(const std::string& name) const {
+    for (const auto rfg : RFGenerated_) {
+        if (rfg.name() == name) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Remove fu from generation list.
  *
  * @param name Name of the FU Generation to remove.
@@ -1618,6 +1633,32 @@ MachineImplementation::removeFuGeneration(const std::string& name) {
 void
 MachineImplementation::addFuGeneration(const FUGenerated& fug) {
     fuGenerated_.emplace_back(fug);
+}
+
+/**
+ * Return all RFs to generate.
+ */
+const std::vector<RFGenerated>&
+MachineImplementation::RFGenerations() const {
+    return RFGenerated_;
+}
+
+/**
+ * Return all RFs to generate.
+ */
+std::vector<RFGenerated>&
+MachineImplementation::RFGenerations() {
+    return RFGenerated_;
+}
+
+/**
+ * Add RF to generation list.
+ *
+ * @param rfg RF Generation to add.
+ */
+void
+MachineImplementation::addRFGeneration(const RFGenerated& rfg) {
+    RFGenerated_.emplace_back(rfg);
 }
 }
 
