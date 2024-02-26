@@ -15,8 +15,8 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
 use work.tce_util.all;
-use work.stratix_test_array_sram_globals.all;
 use work.stratix_test_array_sram_imem_mau.all;
+use work.stratix_test_array_sram_globals.all;
 use work.stratix_test_array_sram_toplevel_params.all;
 
 entity stratix_test_array_sram_toplevel is

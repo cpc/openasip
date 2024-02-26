@@ -5,8 +5,8 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
 use work.tce_util.all;
-use work.stratix_export_test_globals.all;
 use work.stratix_export_test_imem_mau.all;
+use work.stratix_export_test_globals.all;
 use work.stratix_export_test_toplevel_params.all;
 
 entity stratix_export_test_toplevel is

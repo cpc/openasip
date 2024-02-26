@@ -25,8 +25,8 @@
 // Lasse Lehtonen 2017.
 
 module rf_1wr_1rd_lat1
-  #(parameter data_width_g,
-    parameter depth_g)
+  #(parameter data_width_g = 32,
+    parameter depth_g = 32)
    (
     input                       clk,
     input                       rstx,
