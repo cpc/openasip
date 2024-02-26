@@ -76,6 +76,7 @@ libproge_la_SOURCES += \
 	ProcessorWrapperBlock.hh LoopBufferBlock.hh \
 	MemoryBusInterface.hh \
 	GeneratableFUNetlistBlock.hh \
+	GeneratableRFNetlistBlock.hh \
 	OperationPool.hh Operation.hh Operand.hh \
 	IPXact.hh ProGeCmdLineOptions.hh ProGeTools.hh \
 	MicroCodeGenerator.hh RV32MicroCodeGenerator.hh \

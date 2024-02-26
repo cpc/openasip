@@ -61,7 +61,7 @@ jobs:
             cmake \
             graphviz \
             bc \
-            ghdl iverilog \
+            ghdl iverilog verilator \
             python3 ninja-build pkg-config libglib2.0-dev \
             libpixman-1-dev libslirp-dev flex bison file device-tree-compiler \
             zlib1g-dev libfdt-dev python3-tomli \

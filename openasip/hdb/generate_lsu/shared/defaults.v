@@ -13,3 +13,6 @@ adata_out = adata_out_1;
 
 rvalid_in_1 = rvalid_in;
 rready_out = rready_out_1;
+rdata_in_1 = rdata_in;
+
+glockreq = glockreq_out_1;

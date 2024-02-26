@@ -13,8 +13,8 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
 use work.tce_util.all;
-use work.koskenlaskija_globals.all;
 use work.koskenlaskija_imem_mau.all;
+use work.koskenlaskija_globals.all;
 use work.koskenlaskija_toplevel_params.all;
 
 entity koskenlaskija_toplevel is

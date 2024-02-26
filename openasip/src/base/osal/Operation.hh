@@ -157,6 +157,15 @@ public:
     virtual bool areValid(
         const InputOperandVector& inputs,
         const OperationContext& context) const;
+    virtual void makeTestVectors(
+        std::vector<InputOperandVector>& testVectorsOut,
+        ::RandomNumberGenerator::SeedType seed,
+        const OperationContext& context,
+        unsigned numberOfVector = 20) const;
+    virtual void makeTestVectors(
+        std::vector<InputOperandVector>& testVectorsOut,
+        ::RandomNumberGenerator::SeedType seed,
+        unsigned numberOfVector = 20) const;
 
     virtual void createState(OperationContext& context) const;
     virtual void deleteState(OperationContext& context) const;

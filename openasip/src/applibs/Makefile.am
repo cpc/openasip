@@ -1,7 +1,7 @@
 SUBDIRS = Interpreter Simulator osal TraceDB \
 bem PIG Assembler hdb Scheduler Estimator ProGe EPSGenerator mach idf \
 costdb program FSA Explorer dsdb  LLVMBackend ImplementationTester \
-PlatformIntegrator HWGen
+PlatformIntegrator TestGenerator HWGen
 
 noinst_LTLIBRARIES = libapplibs.la
 
@@ -29,6 +29,7 @@ libapplibs_la_LIBADD = \
 	LLVMBackend/libopenasipllvmbackend.la \
 	ImplementationTester/libimpltester.la \
 	PlatformIntegrator/libplatformintegrator.la \
+        TestGenerator/libtege.la \
 	HWGen/libhwgen.la 
   
 

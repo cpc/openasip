@@ -322,9 +322,9 @@ namespace HDLGenerator {
 
         Width width() final { return {strWidth_, width_}; }
 
-        void declare(std::ostream& stream, Language lang, int ident) {
+        void declare(std::ostream& stream, Language lang, int indent) {
             if (lang == Language::VHDL) {
-                stream << StringTools::indent(ident) << "signal "
+                stream << StringTools::indent(indent) << "signal "
                        << name() << " : ";
                 if (width_ < 0 || width_ > 1 || wt_ == WireType::Vector) {
                     if (strWidth_.empty()) {
@@ -339,7 +339,7 @@ namespace HDLGenerator {
                     stream << "std_logic;\n";
                 }
             } else if (lang == Language::Verilog) {
-                stream << StringTools::indent(ident) << "reg ";
+                stream << StringTools::indent(indent) << "reg ";
                 if (width_ < 0 || width_ > 1) {
                     if (strWidth_.empty()) {
                         stream << "[" << std::to_string(width_ - 1) << ":0] ";
@@ -539,15 +539,15 @@ namespace HDLGenerator {
      */
     class Assign : public SequentialStatement {
     public:
-        Assign(std::string var, LHSValue value)
+        Assign(std::string var, LHSValue value, bool isConstant = false)
             : SequentialStatement(var), index_(-1), upperBound_(-1),
-              lowerBound_(-1), value_(value) {}
-        Assign(std::string var, LHSValue value, int idx)
+              lowerBound_(-1), value_(value), isConstant_(isConstant) {}
+        Assign(std::string var, LHSValue value, int idx, bool isConstant = false)
             : SequentialStatement(var), index_(idx), upperBound_(-1),
-              lowerBound_(-1), value_(value) {}
-        Assign(std::string var, LHSValue value, int ub, int lb)
+              lowerBound_(-1), value_(value), isConstant_(isConstant) {}
+        Assign(std::string var, LHSValue value, int ub, int lb, bool isConstant = false)
             : SequentialStatement(var), index_(-1), upperBound_(ub),
-              lowerBound_(lb), value_(value) {}
+              lowerBound_(lb), value_(value), isConstant_(isConstant) {}
 
         void build() override {
             Generatable::build();
@@ -579,7 +579,9 @@ namespace HDLGenerator {
                     stream << " <= ";
                 }
             } else if (lang == Language::Verilog) {
-                if (!(parentIs<Synchronous>() || parentIs<Asynchronous>())) {
+                if (isConstant_) {
+                    stream << StringTools::indent(level) << "assign " << name();
+                } else if (!(parentIs<Synchronous>() || parentIs<Asynchronous>() )) {
                     stream << StringTools::indent(level) << "always @*\n"
                            << StringTools::indent(level + 1) << name();
                 } else {
@@ -607,6 +609,7 @@ namespace HDLGenerator {
         int upperBound_;
         int lowerBound_;
         LHSValue value_;
+        bool isConstant_;
     };
 
     /**
@@ -839,7 +842,7 @@ namespace HDLGenerator {
                         stream << StringTools::indent(level) << "end else if ";
                     }
                     iter->first.hdl(stream, lang);
-                    stream << ") begin\n";
+                    stream << " begin\n";
                     iter->second->hdl(stream, lang, level + 1);
                 }
                 if (elseBlock_ != nullptr) {
@@ -1138,6 +1141,11 @@ namespace HDLGenerator {
             return *this;
         }
 
+        Behaviour& operator<<(RawCodeLine&& rhs) {
+            addComponent(rhs);
+            return *this;
+        }
+
         Behaviour& operator<<(Assign& assignment) {
             addComponent(assignment);
             return *this;
@@ -1206,6 +1214,11 @@ namespace HDLGenerator {
 
         void set_prefix(std::string prefix) {
             prefix_ = prefix;
+        }
+
+        Module& operator<<(RawCodeLine&& rawCodeLine) {
+            rawCodeLines_.emplace_back(rawCodeLine);
+            return *this;
         }
 
         Module& operator<<(Behaviour& rhs) {
@@ -1468,7 +1481,7 @@ namespace HDLGenerator {
                         p.name() == "glock_in") {
                         stream << p.name() << ")";
                     } else {
-                        stream << instance << "_" << name() << ")";
+                        stream << instance << "_" << p.name() << ")";
                     }
                     separator = ",\n";
                 }
@@ -1482,20 +1495,23 @@ namespace HDLGenerator {
             clear();
             build();
             if (lang == Language::VHDL) {
-                std::string ident = StringTools::indent(level);
+                std::string indent = StringTools::indent(level);
                 // Header comment
                 for (auto&& line : headerComment_) {
-                    stream << ident <<  "-- " << line << "\n";
+                    stream << indent <<  "-- " << line << "\n";
                 }
                 // Libraries
-                stream << ident << "\n"
-                       << ident << "library ieee;\n"
-                       << ident << "use ieee.std_logic_1164.all;\n"
-                       << ident << "use ieee.numeric_std.all;\n"
-                       << ident << "use ieee.std_logic_misc.all;\n"
+                stream << indent << "\n"
+                       << indent << "library ieee;\n"
+                       << indent << "use ieee.std_logic_1164.all;\n"
+                       << indent << "use ieee.numeric_std.all;\n"
+                       << indent << "use ieee.std_logic_misc.all;\n"
+                       << indent << "use STD.textio.all;\n"
+                       << indent << "use ieee.std_logic_textio.all;\n"
+                       << indent << "use IEEE.math_real.all;\n"
                 // Entity
-                       << ident << "\n"
-                       << ident << "entity " << name() << " is\n";
+                       << indent << "\n"
+                       << indent << "entity " << name() << " is\n";
                 // - Generics
                 if (!parameters_.empty()) {
                     std::string separator = "";
@@ -1518,10 +1534,10 @@ namespace HDLGenerator {
                     }
                     stream << ");\n";
                 }
-                stream << ident << "end entity " << name() << ";\n"
+                stream << indent << "end entity " << name() << ";\n"
                 // Architecture
-                       << ident << "\n"
-                       << ident << "architecture rtl of "
+                       << indent << "\n"
+                       << indent << "architecture rtl of "
                                         << name() << " is\n";
                 // constants
                 if (!constants_.empty() || !binaryConstants_.empty()) {
@@ -1547,6 +1563,12 @@ namespace HDLGenerator {
                 for (auto&& r : registers_) {
                     r.declare(stream, lang, level + 1);
                 }
+
+                // Raw code lines
+                for (auto&& r : rawCodeLines_) {
+                    r.hdl(stream, lang, level + 1);
+                }
+
                 // declare components
                 std::vector<std::string> declared;
                 for (auto&& m : modules_) {
@@ -1638,6 +1660,13 @@ namespace HDLGenerator {
                 for (auto&& r : registers_) {
                     r.declare(stream, lang, level + 1);
                 }
+
+                // Raw code lines
+                stream << "\n";
+                for (auto&& r : rawCodeLines_) {
+                    r.hdl(stream, lang, level + 1);
+                }
+
                 // instantiate stuff
                 for (auto&& m : modules_) {
                     stream << "\n";
@@ -1683,6 +1712,7 @@ namespace HDLGenerator {
         }
         int id_ = 0;
         std::string prefix_;
+        std::vector<RawCodeLine> rawCodeLines_;
         std::unordered_set<std::string> options_;
         std::vector<std::string> headerComment_;
         std::vector<Parameter> parameters_;
