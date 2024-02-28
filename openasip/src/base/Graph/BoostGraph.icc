@@ -2064,9 +2064,7 @@ BoostGraph<GraphNode, GraphEdge>::calculatePathLengthsFast() const {
             int sdLen = len + eWeight;
             
             // find the place in the sourcedistances table
-            typename std::map<
-                const GraphNode*,int, typename GraphNode::Comparator>
-            ::iterator sdIter = sinkDistances_.find(tailNode);
+            auto sdIter = sinkDistances_.find(tailNode);
             // update if this path is longer.
             if (sdIter == sinkDistances_.end()) {
                 sinkDistances_[tailNode] = sdLen;
@@ -2217,15 +2215,11 @@ BoostGraph<GraphNode, GraphEdge>::calculateSourceDistances(
             }
 
             // normal or loop-containing length?
-            typename std::map<
-            const GraphNode*,int, typename GraphNode::Comparator> &
-                sourceDistances =
+            auto & sourceDistances =
                 edge->isBackEdge() ? loopingSourceDistances_:sourceDistances_;
 
             // find the place in the sourcedistances table
-            typename std::map<
-                const GraphNode*,int, typename GraphNode::Comparator>
-                ::iterator sdIter = sourceDistances.find(headNode);
+            auto sdIter = sourceDistances.find(headNode);
 
             // if not yet there, add
             if (sdIter == sourceDistances.end()) {
@@ -2292,9 +2286,7 @@ BoostGraph<GraphNode, GraphEdge>::calculateSourceDistances(
             int destLen = len + eWeight;
 
             // find the place in the sourcedistances table
-            typename std::map<
-            const GraphNode*,int, typename GraphNode::Comparator>
-                ::iterator sdIter = loopingSourceDistances_.find(headNode);
+            auto sdIter = loopingSourceDistances_.find(headNode);
 
             // if not yet there, add
             if (sdIter == loopingSourceDistances_.end()) {
@@ -2343,13 +2335,10 @@ BoostGraph<GraphNode, GraphEdge>::calculateSinkDistance(
         assert(false&&"cannot calc sink distance for graph which is not dag");
     }
 
-    std::map<const GraphNode*,int, typename GraphNode::Comparator> &
-        sinkDistances = looping ? loopingSinkDistances_ : sinkDistances_;
+    auto &sinkDistances = looping ? loopingSinkDistances_ : sinkDistances_;
 
     // find the place in the sourcedistances table
-    typename std::map<
-        const GraphNode*,int, typename GraphNode::Comparator>
-        ::iterator sdIter = sinkDistances.find(&node);
+    auto sdIter = sinkDistances.find(&node);
 
     // if not yet there, add
     if (sdIter == sinkDistances.end()) {
@@ -2479,16 +2468,12 @@ BoostGraph<GraphNode, GraphEdge>::maxSourceDistance(const GraphNode& node)
 
 
     for (int i = 0; i < 2; i++) {
-        typename std::map<
-        const GraphNode*,int,typename GraphNode::Comparator>::
-            iterator iter = loopingSourceDistances_.find(&node);
+        auto iter = loopingSourceDistances_.find(&node);
         if (iter != loopingSourceDistances_.end()) {
             return iter->second;
         }
 
-        typename std::map<
-        const GraphNode*,int,typename GraphNode::Comparator>::
-            iterator iter2 = sourceDistances_.find(&node);
+        auto iter2 = sourceDistances_.find(&node);
 
         if (iter2 == sourceDistances_.end()) {
             if (i == 0) {
@@ -2531,9 +2516,7 @@ BoostGraph<GraphNode, GraphEdge>::maxSinkDistance(const GraphNode& node)
     }
 
     for (int i = 0; i < 2; i++) {
-        typename std::map<
-        const GraphNode*,int,typename GraphNode::Comparator>::
-            iterator iter = loopingSinkDistances_.find(&node);
+        auto iter = loopingSinkDistances_.find(&node);
         if (iter != loopingSinkDistances_.end()) {
             if (sinkDistances_.find(&node) == sinkDistances_.end() ||
                 iter->second > sinkDistances_[&node]) {
@@ -2541,9 +2524,7 @@ BoostGraph<GraphNode, GraphEdge>::maxSinkDistance(const GraphNode& node)
             }
         }
 
-        typename std::map<
-        const GraphNode*,int,typename GraphNode::Comparator>::
-            iterator iter2 = sinkDistances_.find(&node);
+        auto iter2 = sinkDistances_.find(&node);
 
         if (iter2 == sinkDistances_.end()) {
             calculatePathLengths();
