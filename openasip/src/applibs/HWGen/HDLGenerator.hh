@@ -839,7 +839,7 @@ namespace HDLGenerator {
                         stream << StringTools::indent(level) << "end else if ";
                     }
                     iter->first.hdl(stream, lang);
-                    stream << ") begin\n";
+                    stream << " begin\n";
                     iter->second->hdl(stream, lang, level + 1);
                 }
                 if (elseBlock_ != nullptr) {

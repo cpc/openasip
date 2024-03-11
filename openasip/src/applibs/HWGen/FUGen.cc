@@ -710,12 +710,8 @@ FUGen::buildOperations() {
 
         for (int id : schedule.results) {
             std::string source = operandSignal(name, id);
-            // Zero initialize this configuration to avoid simulation warnings
-            if (isLSU_ && minLatency_ < 3) {
-                defaultValues.append(DefaultAssign(source, "0"));
-            } else {
-                defaultValues.append(DefaultAssign(source, "-"));
-            }
+            // Zero initialize always
+            defaultValues.append(DefaultAssign(source, "0"));
         }
 
         for (auto&& operand : schedule.operands) {
