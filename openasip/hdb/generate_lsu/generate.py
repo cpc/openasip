@@ -118,7 +118,7 @@ def extend(width: int, value: str, lang: str):
     if lang == "vhdl":
         return "({}-1 downto 0 => {})".format(int(width), value);
     else:
-        return "{{{0}{{{1}}}".format(int(width), value)
+        return "{{{0}{{{1}}}}}".format(int(width), value)
 
 
 def bit_select(signal: str, bit: int, lang: str):
@@ -413,7 +413,7 @@ def add_operation(op: Operation, resource_id: int, c):
             c.execute("INSERT INTO operation_implementation_globalsignal VALUES (NULL, ?, ?, ?, ?, ?, ?)",
                       (op_impl_id, "load_data_32b", "32", "Logic", "VHDL", "0"))
             c.execute("INSERT INTO operation_implementation_globalsignal VALUES (NULL, ?, ?, ?, ?, ?, ?)",
-                      (op_impl_id, "load_data_32b", "32", "Logic", "VHDL", "0"))
+                      (op_impl_id, "load_data_32b", "32", "Logic", "Verilog", "0"))
         else:
             c.execute("INSERT INTO operation_implementation_globalsignal VALUES (NULL, ?, ?, ?, ?, ?, ?)",
                       (op_impl_id, "strobe_32b", "4", "Logic", "VHDL", "0"))
