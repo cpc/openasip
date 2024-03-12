@@ -396,7 +396,7 @@ def add_operation(op: Operation, resource_id: int, c):
 
     c.execute("INSERT INTO operation_implementation VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)",
               (latency, op.name, bus_definition, post_op_vhdl, post_op_vlog,
-               "generate_lsu/shared/defaults.vhdl", "generate_lsu/shared/defaults.vlog"))
+               "generate_lsu/shared/defaults.vhdl", "generate_lsu/shared/defaults.v"))
     op_impl_id = c.lastrowid;
 
     c.execute("INSERT INTO block_source_file VALUES (NULL, ?, 0)", (main_vhdl,))
