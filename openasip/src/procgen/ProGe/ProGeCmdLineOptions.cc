@@ -70,6 +70,7 @@ const string DONT_RESET_ALL = "dont-reset-all";
 const string FU_BACKREGISTER_LIST = "fu-back-register";
 const string FU_FRONTREGISTER_LIST = "fu-front-register";
 const string FU_MIDDLEREGISTER_LIST = "fu-middle-register";
+const string DONT_CARE_INIT = "dont-care-init";
 
 /**
  * The constructor.
@@ -237,6 +238,12 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
             FU_MIDDLEREGISTER_LIST,
             "Comma separated list of FUs to middle-register.");
     addOption(fuMiddleRegList);
+
+    BoolCmdLineOptionParser* dontCareInit = new BoolCmdLineOptionParser(
+        DONT_CARE_INIT,
+        "Initialize FUGen generated signals as don't care. E.g. some FPGA tool optimizations prefer these.");
+    addOption(dontCareInit);
+
 }
 
 
@@ -534,6 +541,15 @@ bool
 ProGeCmdLineOptions::resetAllRegisters() const {
     return !findOption(DONT_RESET_ALL)->isFlagOn();
 }
+
+/**
+ * Returns true if HDL Generated signals should initialize as don't care.
+ */
+bool
+ProGeCmdLineOptions::dontCareInitialization() const {
+    return findOption(DONT_CARE_INIT)->isFlagOn();
+}
+
 
 /**
  * Prints the version of the application.

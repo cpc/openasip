@@ -71,7 +71,8 @@ struct ProGeOptions {
           resetAllRegisters(cmd.resetAllRegisters()),
           fuBackRegistered(cmd.fuBackRegistered()),
           fuFrontRegistered(cmd.fuFrontRegistered()),
-          fuMiddleRegistered(cmd.fuMiddleRegistered()) {
+          fuMiddleRegistered(cmd.fuMiddleRegistered()),
+          dontCareInitialization(cmd.dontCareInitialization()) {
         validate();
     }
 
@@ -109,6 +110,7 @@ struct ProGeOptions {
     std::vector<std::string> fuBackRegistered;
     std::vector<std::string> fuFrontRegistered;
     std::vector<std::string> fuMiddleRegistered;
+    bool dontCareInitialization;
 
 
     void validate() {

@@ -683,8 +683,10 @@ FUGen::buildOperations() {
         // Zero initialize this configuration to avoid simulation warnings
         if (isLSU_ && minLatency_ < 3) {
             operationCp << DefaultAssign(signal, "0");
-        } else {
+        } else if (options_.dontCareInitialization) {
             operationCp << DefaultAssign(signal, "-");
+        } else {
+            operationCp << DefaultAssign(signal, "0");
         }
     }
 
@@ -823,11 +825,12 @@ FUGen::buildOperations() {
         } else {
             operationCp.addVariable(SignedVariable(v.name, w));
         }
-        // Zero initialize this configuration to avoid simulation warnings
         if (isLSU_ && minLatency_ < 3) {
             operationCp << DefaultAssign(v.name, "0");
-        } else {
+        } else if (options_.dontCareInitialization) {
             operationCp << DefaultAssign(v.name, "-");
+        } else {
+            operationCp << DefaultAssign(v.name, "0");
         }
     }
     for (auto&& s : renamedGlobalSignals_) {
@@ -837,8 +840,10 @@ FUGen::buildOperations() {
         // Zero initialize this configuration to avoid simulation warnings
         if (isLSU_ && minLatency_ < 3) {
             operationCp << DefaultAssign(s.name, "0");
-        } else {
+        } else if (options_.dontCareInitialization) {
             operationCp << DefaultAssign(s.name, "-");
+        } else {
+            operationCp << DefaultAssign(s.name, "0");
         }
     }
 
