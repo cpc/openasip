@@ -92,6 +92,7 @@ private:
     void writePortMappings(
         const BaseNetlistBlock& block,
         std::ofstream& stream) const;
+    static bool usesParameterWidth(const NetlistPort& port);
     std::string indentation(unsigned int level) const;
 
     /**
@@ -112,6 +113,7 @@ private:
     static bool isNumber(const std::string& formula);
     static std::string portSignalName(const NetlistPort& port);
     static std::string portSignalType(const NetlistPort& port);
+    static TCEString parameterWidthValue(const NetlistPort& port);
     
     /// Width of the ground signal.
     int groundWidth_;

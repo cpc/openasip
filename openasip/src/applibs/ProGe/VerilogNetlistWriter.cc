@@ -182,9 +182,12 @@ VerilogNetlistWriter::writeBlock(
     // create architecture
     writeSignalDeclarations(block, outFile);
     outFile << endl;
+    std::cout << "xxx 0" << std::endl;
     writeSignalAssignments(block, outFile);
     outFile << endl;
+    std::cout << "xxx 1" << std::endl;
     writePortMappings(block, outFile);
+    std::cout << "xxx 2" << std::endl;
     outFile << "endmodule" << endl;
     outFile << endl;
     outFile.close();
@@ -534,25 +537,53 @@ VerilogNetlistWriter::writePortMappings(
                 edge_descriptor edgeDescriptor = *edges.first;
                 vertex_descriptor dstVertex =
                     boost::target(edgeDescriptor, block.netlist());
-                NetlistPort* dstPort = block.netlist()[dstVertex];
-
+                const NetlistPort* dstPort = block.netlist()[dstVertex];
+                PortConnectionProperty property =
+                    block.netlist()[edgeDescriptor];
                 if (&dstPort->parentBlock() == &block) {
                     if (port.dataType() != dstPort->dataType()) {
+                        int index = 0;
+                        if (!property.fullyConnected() &&
+                            dstPort->dataType() == BIT_VECTOR &&
+                            port.dataType() == BIT) {
+
+                            index = property.port2FirstBit();
+                        }
+
                         if (port.dataType() == BIT) {
+
                             assert(dstPort->dataType() == BIT_VECTOR);
-                            dstConn = dstPort->name() + "[0]";
+                            dstConn = dstPort->name() + "[" + 
+                                Conversion::toString(index) + "]";
                         } else {
+
                             assert(dstPort->dataType() == BIT);
-                            srcConn += "[0]";
-                            dstConn = dstPort->name();
+                            if (port.widthFormula() == "1") {
+                                srcConn += "[0]";
+                                dstConn = dstPort->name();
+                            } else {
+                                dstConn = portSignalName(port);
+                            }
                         }
                     } else {
-                        dstConn = dstPort->name();
+
+                        if ((!property.fullyConnected() ||
+                             dstPort->direction() == OUT) &&
+                            boost::out_degree(
+                                vertexDescriptor, block.netlist()) > 1) {
+
+                            dstConn = portSignalName(port);
+                        } else {
+
+                            dstConn = dstPort->name();
+                        }
                     }
                 } else {
+
                     dstConn = portSignalName(port);
                 }
             } else {
+
                 dstConn = portSignalName(port);
             }
             stream << indentation(3) << "." << srcConn << "(" << dstConn << ")";
@@ -601,6 +632,15 @@ VerilogNetlistWriter::isNumber(const std::string& formula) {
     return true;
 }
 
+/**
+ * Returns true if port uses single parameter of its parent block as port
+ * width.
+ */
+bool
+VerilogNetlistWriter::usesParameterWidth(const NetlistPort& port) {
+    const BaseNetlistBlock& parent = port.parentBlock();
+    return parent.hasParameter(port.widthFormula());
+}
 
 /**
  * Returns a string which makes indetation of the given level.
@@ -641,10 +681,16 @@ std::string
 VerilogNetlistWriter::portSignalName(const NetlistPort& port) {
     const BaseNetlistBlock* parentBlock = &port.parentBlock();
     if (port.hasStaticValue()) {
-        return "{" + Conversion::toString(port.realWidth()) + "{" +
-               ((port.staticValue().is(StaticSignal::VCC)) ? "1'b1"
-                                                           : "1'b0") +
-               "}}";
+        std::string portWidth;
+        if (port.realWidthAvailable()) {
+            portWidth = Conversion::toString(port.realWidth());
+        } else {
+            portWidth = port.widthFormula();
+        }
+        return "{" + portWidth + "{" +
+                   ((port.staticValue().is(StaticSignal::VCC)) ? "1'b1"
+                                                               : "1'b0") +
+                "}}";
     }
     return parentBlock->instanceName() + "_" + port.name() +"_wire";
 }
@@ -662,12 +708,15 @@ VerilogNetlistWriter::portSignalType(const NetlistPort& port) {
     } else {
         if (port.realWidthAvailable()) {
             int width = port.realWidth();
-            return "[" + Conversion::toString(width?width-1:0) + ":0]";
+            return " [" + Conversion::toString(width?width-1:0) + ":0]";
         } else if (isNumber(port.widthFormula()) && 
                    (Conversion::toInt(port.widthFormula()) == 0)) {
-            return "[0:0]";
+            return " [0:0]";
+        } else if (usesParameterWidth(port)) {
+            return " [" + parameterWidthValue(port) +
+                   ":0]";
         } else {
-            return "[" + port.widthFormula()+"-1: 0]";
+            return " [ " + port.widthFormula()+"-1: 0]";
         }
     }
 }
@@ -690,4 +739,14 @@ VerilogNetlistWriter::genericMapStringValue(const TCEString& generic) const {
     }
     return generic;
 }
+
+/**
+ * Returns port width value of port that uses parameter as width.
+ */
+TCEString
+VerilogNetlistWriter::parameterWidthValue(const NetlistPort& port) {
+    return port.parentBlock().parameter(port.widthFormula()).value();
+}
+
+
 }

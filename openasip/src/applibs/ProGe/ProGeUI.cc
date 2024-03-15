@@ -380,28 +380,21 @@ ProGeUI::generateTestBench(
     checkIfNull(machine_, "ADF not loaded");
     checkIfNull(idf_, "IDF not loaded");
 
-    if (language == Verilog) {
-        // Note: deprecated legacy test bench. Still used since the new test
-        // bench does not yet support generation for verilog.
-        ProGeTestBenchGenerator tbGen = ProGeTestBenchGenerator();
-        tbGen.generate(
-            language, *machine_, *idf_, dstDir, progeOutDir, entityName_);
-    } else {
-        // New test bench generation to be replacing the old one. WIP and
-        // first used to generate test benches for TTA processors.
-        try {
+    try {
+            std::cout << "Trying TB generation" << std::endl;
             TestBenchBlock coreTestbench(
                 generator_.generatorContext(),
                 generator_.processorTopLevel());
+                std::cout << "Writing TB..." << std::endl;
             coreTestbench.write(Path(progeOutDir), language);
         } catch (Exception& e) {
             // There is one case the new test bench can not handle: same data
             // address spaces shared by two LSUs.
+            std::cout << "Reverting to old testbench generator" << std::endl;
             ProGeTestBenchGenerator tbGen = ProGeTestBenchGenerator();
             tbGen.generate(
                 language, *machine_, *idf_, dstDir, progeOutDir, entityName_);
         }
-    }
 }
 
 /** 

@@ -110,13 +110,16 @@ SinglePortByteMaskSSRAMBlock::write(
     const Path& targetBaseDir, HDL targetLang) const {
     Path progeDataDir(Environment::dataDirPath("ProGe"));
 
-    assert(targetLang == VHDL);
+    assert(targetLang == VHDL || targetLang == Verilog);
 
-    std::string tempFile = std::string("synch_byte_mask_sram.vhdl");
+    std::string tempFile = (targetLang == VHDL)
+                               ? std::string("synch_byte_mask_sram.vhdl")
+                               : std::string("synch_byte_mask_sram.v");
     std::string targetDir =
         (isForSimulation_) ? std::string("tb")
                            : ((targetLang == VHDL) ? std::string("vhdl")
                                                    : std::string("verilog"));
+
     HDLTemplateInstantiator().instantiateTemplateFile(
         (progeDataDir / "tb" / tempFile).string(),
         (targetBaseDir / targetDir / tempFile).string());
