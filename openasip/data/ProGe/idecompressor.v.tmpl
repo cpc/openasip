@@ -27,10 +27,11 @@
 
 `timescale 10ns/1ns
 module ENTITY_STR_decompressor
-#(    
-`include "ENTITY_STR_globals_pkg.vh"
-,
+#(
 `include "ENTITY_STR_imem_mau_pkg.vh"
+,
+`include "ENTITY_STR_globals_pkg.vh"
+
 )
 (
     output fetch_en,

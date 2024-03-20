@@ -97,17 +97,13 @@ std::cout << "--2" << std::endl;
     connectResets();
     connectLockStatus(*coreLocked);
 
-    // Package holding instruction bus constants
-    std::set<std::string> procPackages{context.globalPackage().name()};
-
     // Other packages possibly holding constants used in core ports.
     for (size_t i = 0; i < processorBlock.packageCount(); i++) {
-        procPackages.insert(processorBlock.package(i));
+        addPackage(processorBlock.package(i));
     }
 
-    for (auto packageStr : procPackages) {
-        addPackage(packageStr);
-    }
+    // Package holding instruction bus constants
+    addPackage(context.globalPackage().name());
 
     // TODO: Check if there are params for this block and
     //       Add package if needed.

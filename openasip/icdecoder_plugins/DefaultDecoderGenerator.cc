@@ -881,6 +881,9 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) {
                << "module " << entityName << endl
                << "#(" << endl
                << "`include \""
+               << entityNameStr_ << "_imem_mau_pkg.vh\"" << endl
+               << "," << endl
+               << "`include \""
                << entityNameStr_ << "_globals_pkg.vh\"" << endl
                << "," << endl
                << "`include \""  << "gcu_opcodes_pkg.vh\"" << endl

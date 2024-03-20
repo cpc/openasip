@@ -198,8 +198,8 @@ namespace ProGe {
 
         // add toplevel block
         coreBlock_ = new NetlistBlock(entityNameStr, "tta_core");
-        coreBlock_->addPackage(context_.coreEntityName() + "_globals");
         coreBlock_->addPackage(context_.coreEntityName() + "_imem_mau");
+        coreBlock_->addPackage(context_.coreEntityName() + "_globals");
 
         // add GCU to the netlist
         addGCUToNetlist(*coreBlock_, imemWidthInMAUs);

@@ -1179,6 +1179,9 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
         //include parameters here
                << "#(" << endl
                << "`include \""
+               << entityNameStr_ << "_imem_mau_pkg.vh\"" << endl
+               << "," << endl
+               << "`include \""
                << entityNameStr_ << "_globals_pkg.vh\"" << endl
                << ")" << endl;
 

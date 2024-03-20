@@ -291,7 +291,10 @@ ProcessorGenerator::generateGlobalsPackage(
                << "parameter IMEMWIDTHINMAUS = " << imemWidthInMAUs << ","
                << endl
                << "// clock period" << endl
-               << "parameter PERIOD = 10," << endl;  // 10 will equal 10ns
+               << "parameter PERIOD = 10," << endl  // 10 will equal 10ns
+               << "// instruction width" << endl
+               << "parameter IMEMDATAWIDTH = IMEMWIDTHINMAUS*IMEMMAUWIDTH,"
+               << endl;
 
         plugin.writeGlobalDefinitions(ProGe::Verilog, stream);
 

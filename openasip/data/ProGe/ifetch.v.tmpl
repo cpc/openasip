@@ -28,11 +28,11 @@
 `timescale 10ns/1ns
 module ENTITY_STR_ifetch 
 #(
+`include "ENTITY_STR_imem_mau_pkg.vh"
+,
 `include "ENTITY_STR_globals_pkg.vh"
 ,
 `include "gcu_opcodes_pkg.vh"
-,
-`include "ENTITY_STR_imem_mau_pkg.vh"
 )
     (
     // program counter in
