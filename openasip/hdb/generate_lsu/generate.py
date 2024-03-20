@@ -78,7 +78,9 @@ def case_start(bits: int, bus_width: int, signal: str, lang: str):
     low = high - bits + 1
     if lang == "vhdl":
         return "case {} is".format(slice(signal, high, low, lang))
-    else:
+    elif lang == "verilog":
+        return "case ({})".format(slice(signal, high, low, lang))
+    else: # SystemVerilog
         return "unique case ({})".format(slice(signal, high, low, lang))
 
 def case_end(lang: str):
