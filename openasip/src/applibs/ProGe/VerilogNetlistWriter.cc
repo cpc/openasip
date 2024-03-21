@@ -57,6 +57,7 @@ using std::pair;
 
 const std::string GROUND_SIGNAL = "ground_signal";
 const std::string PARAM_STRING = "string";
+const std::string PARAM_BOOLEAN = "boolean";
 
 namespace ProGe {
 
@@ -172,22 +173,19 @@ VerilogNetlistWriter::writeBlock(
     }
 
     outFile << ")" << endl;
-    
+
     // create port declarations
     writePortDeclaration(block, 1, indentation(1), outFile);
     outFile << endl;
-    
+
     // create generics
     writeGenericDeclaration(block, 1, indentation(1), outFile);
     // create architecture
     writeSignalDeclarations(block, outFile);
     outFile << endl;
-    std::cout << "xxx 0" << std::endl;
     writeSignalAssignments(block, outFile);
     outFile << endl;
-    std::cout << "xxx 1" << std::endl;
     writePortMappings(block, outFile);
-    std::cout << "xxx 2" << std::endl;
     outFile << "endmodule" << endl;
     outFile << endl;
     outFile.close();
@@ -216,7 +214,16 @@ VerilogNetlistWriter::writeGenericDeclaration(
                    << param.name();
             if (param.defaultValue() != "") {
                 stream << " = ";
-                if (param.type().lower() == PARAM_STRING) {
+                if (param.type().lower() == PARAM_BOOLEAN) {
+                    if (param.defaultValue() == "false") {
+                        stream << "0";
+                    } else if (param.defaultValue() == "true") {
+                        stream << "1";
+                    } else {
+                        string errorMsg = "VerilogNetlistWriter: invalid value for boolean parameter";
+                        throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
+                    }
+                } else if (param.type().lower() == PARAM_STRING) {
                     // string literal needs quot. marks
                     if (!param.defaultValue().startsWith("\""))
                         stream << "\"";
@@ -506,8 +513,16 @@ VerilogNetlistWriter::writePortMappings(
             for (size_t i = 0; i < component.parameterCount(); i++) {
                 Parameter param = component.parameter(i);
                 stream << indentation(2) << "." << param.name() << "(";
-
-                if (param.type().lower() == PARAM_STRING) {
+                if (param.type().lower() == PARAM_BOOLEAN) {
+                    if (param.defaultValue() == "false") {
+                        stream << "0";
+                    } else if (param.defaultValue() == "true") {
+                        stream << "1";
+                    } else {
+                        string errorMsg = "VerilogNetlistWriter: invalid value for boolean parameter";
+                        throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
+                    }
+                } else if (param.type().lower() == PARAM_STRING) {
                     stream << genericMapStringValue(param.value());
                 } else {
                     stream << param.value();
