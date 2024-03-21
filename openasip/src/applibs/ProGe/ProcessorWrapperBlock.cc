@@ -55,7 +55,6 @@ ProcessorWrapperBlock::ProcessorWrapperBlock(
     : BaseNetlistBlock("proc", ""),
       context_(context),
       coreBlock_(processorBlock.shallowCopy()) {
-    std::cout << "--1" << std::endl;
     assert(processorBlock.portCount() > 0);
     assert(coreBlock_->portCount() > 0);
 
@@ -67,31 +66,22 @@ ProcessorWrapperBlock::ProcessorWrapperBlock(
 
     // Instantiate core //
     addSubBlock(coreBlock_);
-std::cout << "--2" << std::endl;
     // Memory instantiations and connections //
     for (size_t i = 0; i < coreBlock_->portGroupCount(); i++) {
-        std::cout << "--3" << std::endl;
         const NetlistPortGroup& portGrp = coreBlock_->portGroup(i);
         SignalGroupType type = portGrp.assignedSignalGroup().type();
-        std::cout << "--4" << std::endl;
         if (type == SignalGroupType::INSTRUCTION_LINE) {
-            std::cout << "--5" << std::endl;
             addInstructionMemory(portGrp);
         } else if (type == SignalGroupType::BITMASKED_SRAM_PORT) {
-            std::cout << "--6" << std::endl;
             auto dmemIf = dynamic_cast<const MemoryBusInterface*>(&portGrp);
-            std::cout << "--6.1" << std::endl;
             assert(dmemIf != nullptr);
-            std::cout << "--8" << std::endl;
             addDataMemory(*dmemIf);
         } else if (type == SignalGroupType::BYTEMASKED_SRAM_PORT) {
-            std::cout << "--7" << std::endl;
             auto dmemIf = dynamic_cast<const MemoryBusInterface*>(&portGrp);
             assert(dmemIf != nullptr);
             addDataMemory2(*dmemIf);
         }
     }
-    std::cout << "--" << std::endl;
 
     connectClocks();
     connectResets();
