@@ -70,7 +70,7 @@ SinglePortSSRAMBlock::SinglePortSSRAMBlock(
     addPortGroup(
         memoryPortGroup_ = new NetlistPortGroup(
             SignalGroupType::BITMASKED_SRAM_PORT,
-            new InPort("d", "DATAW", BIT_VECTOR, SignalType::WRITE_DATA),
+            new InPort("d", dataWidth, BIT_VECTOR, SignalType::WRITE_DATA),
             new InPort("addr", "ADDRW", BIT_VECTOR, SignalType::ADDRESS),
             new InBitPort(
                 "en_x",
@@ -78,7 +78,7 @@ SinglePortSSRAMBlock::SinglePortSSRAMBlock(
             new InBitPort(
                 "wr_x", Signal(SignalType::WRITEMODE, ActiveState::LOW)),
             new InPort(
-                "bit_wr_x", "DATAW", BIT_VECTOR, SignalType::WRITE_BITMASK),
+                "bit_wr_x", dataWidth, BIT_VECTOR, SignalType::WRITE_BITMASK),
             new OutPort("q", "DATAW", BIT_VECTOR, SignalType::READ_DATA)));
 }
 
