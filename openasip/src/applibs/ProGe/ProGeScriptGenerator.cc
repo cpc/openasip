@@ -296,7 +296,7 @@ ProGeScriptGenerator::generateIverilogCompile() {
 
     stream << "rm -rf " << testbenchName_ << endl
            << endl
-           << "iverilog -g2001 -D _IVERILOG_ "
+           << "iverilog -g2012 -D _IVERILOG_ "
            << "-D SIMTIME=" << simulationRuntime_ << " "
            << "-Itb -Iverilog -Igcu_ic ";
     outputScriptCommands(stream, vhdlFiles_, ""," \\");
