@@ -42,12 +42,12 @@ module testbench
 )
     ();
 
-    wire  clk;
-    reg   rstx;
-    wire  rstx_wire;
-    reg   enable_clock;
-    reg   execution_count_reg;
-    wire  lock_status_wire;
+    wire        clk;
+    reg         rstx;
+    wire        rstx_wire;
+    reg         enable_clock;
+    integer    execution_count_reg;
+    wire     [0:0]  lock_status_wire;
 
     initial
     begin
@@ -75,10 +75,10 @@ module testbench
   // outputs: execution_count_reg
   always @(posedge clk) begin
     if (rstx == 0) begin
-      execution_count_reg <= 0;
+      execution_count_reg = 0;
     end else begin
       if (lock_status_wire[0] == 'b0) begin
-        execution_count_reg[0] += 1;
+        execution_count_reg += 1;
       end
     end
   end
