@@ -36,12 +36,14 @@
 
 module synch_sram
 #(
-    parameter init          =1,
-    parameter INITFILENAME  ="ram_init",
-    parameter trace         =1,
+    parameter init          = 1,
+    parameter INITFILENAME  = "ram_init",
+    parameter trace         = 1,
     parameter TRACEFILENAME = "dpram_trace",
     // trace_mode 0: hex, trace_mode 1: integer, trace_mode 2: unsigned
     parameter trace_mode    = 0,
+    parameter access_trace = 1,
+    parameter ACCESSTRACEFILENAME = "access_trace",
     parameter DATAW = 32,
     parameter ADDRW = 7
 )
