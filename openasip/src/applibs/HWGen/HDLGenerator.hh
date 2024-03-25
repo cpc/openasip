@@ -1478,7 +1478,7 @@ namespace HDLGenerator {
                         p.name() == "glock_in") {
                         stream << p.name() << ")";
                     } else {
-                        stream << instance << "_" << name() << ")";
+                        stream << instance << "_" << p.name() << ")";
                     }
                     separator = ",\n";
                 }
