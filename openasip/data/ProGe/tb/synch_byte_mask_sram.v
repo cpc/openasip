@@ -33,7 +33,7 @@ reg [DW-1:0] wr_mask;
 
 integer line;
 
-assign line <= aaddr;
+assign line = aaddr;
 
 always @(posedge clk) begin
     if (avalid && awren) begin
@@ -44,10 +44,11 @@ always @(posedge clk) begin
     end
 end
 
+integer i,j;
 always @* begin
     wr_mask = 0;
-    gen_mask_cp: for (int i = 0; i < DW8; i = i + 1) begin
-        for (int j = i * 8; j < i * 8 + 8; j = j + 1) begin
+    for (i = 0; i < DW8; i = i + 1) begin
+        for (j = i * 8; j < i * 8 + 8; j = j + 1) begin
             wr_mask[j] = astrb[i];
         end
     end
