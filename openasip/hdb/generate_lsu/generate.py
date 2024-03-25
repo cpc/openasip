@@ -462,6 +462,9 @@ def main(hdb_filename):
         c.execute("INSERT INTO block_source_file VALUES (NULL, \"generate_lsu/shared/lsu_registers.vhdl\", 1)")
         c.execute("INSERT INTO operation_implementation_resource_source_file VALUES (NULL, ?, ?)",
                   (resource_id, c.lastrowid))
+        c.execute("INSERT INTO block_source_file VALUES (NULL, \"generate_lsu/shared/lsu_registers.v\", 2)")
+        c.execute("INSERT INTO operation_implementation_resource_source_file VALUES (NULL, ?, ?)",
+                  (resource_id, c.lastrowid))
 
         for access_width in [8, 16, 32, 64, 128, 256, 512, 1024, 2048]:
             if access_width > bus_width:
