@@ -187,7 +187,7 @@ ProGeScriptGenerator::generateModsimCompile() {
     string coverageOptAssign = " $coverage_opt";
     string program =
     ((language_==VHDL)?
-        "vcom": "vlog +define+SIMTIME=" + simulationRuntime_ +
+        "vcom": "vlog -sv +define+SIMTIME=" + simulationRuntime_ +
         " +incdir+verilog +incdir+gcu_ic +incdir+tb");
     string exitOnFailure = "|| exit 1";
     string checkSynthesisFLag = (language_==VHDL)?" -check_synthesis":"";
