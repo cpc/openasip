@@ -102,15 +102,11 @@ TestBenchBlock::~TestBenchBlock() {
 void
 TestBenchBlock::write(const Path& targetBaseDir, HDL targetLang) const {
     // Check language compatibility //
-    std::cout << "--1" << std::endl;
     if (targetLang != VHDL && targetLang != Verilog) {
         THROW_EXCEPTION(NotAvailable, "Only VHDL and Verilog are supported.");
     }
-    std::cout << "--2" << std::endl;
     HDLTemplateInstantiator instantiator(context_.coreEntityName());
-    std::cout << "--3" << std::endl;
     instantiator.replacePlaceholder("dut-entity", proc_->moduleName());
-    std::cout << "--4" << std::endl;
     if (context_.idf().icDecoderParameterValue("debugger") == "external") {
         if (targetLang == VHDL) {
             instantiator.replacePlaceholder("proc-entity-db-signals",
@@ -127,11 +123,8 @@ TestBenchBlock::write(const Path& targetBaseDir, HDL targetLang) const {
                 "debugger generation.");
         }
     }
-    std::cout << "--5" << std::endl;
     FileSystem::createDirectory(targetBaseDir/"tb");
-    std::cout << "--6" << std::endl;
     Path progeDataDir(Environment::dataDirPath("ProGe"));
-    std::cout << "--7" << std::endl;   
     if (targetLang == VHDL) {
         instantiator.instantiateTemplateFile(
             progeDataDir/"tb"/"testbench.vhdl.tmpl",
@@ -147,7 +140,6 @@ TestBenchBlock::write(const Path& targetBaseDir, HDL targetLang) const {
             progeDataDir/"tb"/"clkgen.v",
             targetBaseDir/"tb"/"clkgen.v");
     } 
-    std::cout << "--8" << std::endl;
     proc_->write(targetBaseDir, targetLang);
 }
 
