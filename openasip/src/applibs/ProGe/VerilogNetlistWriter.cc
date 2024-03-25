@@ -172,14 +172,14 @@ VerilogNetlistWriter::writeBlock(
         separator = ",";
     }
 
+    // create generics
+    writeGenericDeclaration(block, 1, indentation(1), outFile);
+
     outFile << ")" << endl;
 
     // create port declarations
     writePortDeclaration(block, 1, indentation(1), outFile);
     outFile << endl;
-
-    // create generics
-    writeGenericDeclaration(block, 1, indentation(1), outFile);
     // create architecture
     writeSignalDeclarations(block, outFile);
     outFile << endl;
@@ -205,6 +205,9 @@ VerilogNetlistWriter::writeGenericDeclaration(
     const BaseNetlistBlock& block, unsigned int indentationLevel,
     const std::string& indentation, std::ostream& stream) {
     if (block.parameterCount() > 0) {
+        if (block.netlist().parameterCount() > 0 || block.packageCount() != 0) {
+            stream << ",";
+        }
         stream << endl;
         for (size_t i = 0; i < block.parameterCount(); i++) {
             stream << generateIndentation(indentationLevel, indentation)
@@ -233,7 +236,9 @@ VerilogNetlistWriter::writeGenericDeclaration(
                     stream << param.defaultValue();
                 }
             }
-            stream << ";" << endl;
+            if (i != block.parameterCount()-1) {
+                stream << "," << endl;
+            }
         }
     }
 }
@@ -729,7 +734,7 @@ VerilogNetlistWriter::portSignalType(const NetlistPort& port) {
             return " [0:0]";
         } else if (usesParameterWidth(port)) {
             return " [" + parameterWidthValue(port) +
-                   ":0]";
+                   "-1 :0]";
         } else {
             return " [ " + port.widthFormula()+"-1: 0]";
         }
