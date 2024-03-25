@@ -36,47 +36,49 @@
 
 module testbench
 #(
-`include "testbench_constants_pkg.vh"
+`include "ENTITY_STR_imem_mau_pkg.vh"
 ,
 `include "ENTITY_STR_globals_pkg.vh"
-,
-`include "ENTITY_STR_imem_mau_pkg.vh"
 )
     ();
 
-    reg clk;
-    reg rst_x;
-    reg enable_clock;
+    wire  clk;
+    reg   rstx;
+    wire  rstx_wire;
+    reg   enable_clock;
+    reg   execution_count_reg;
+    wire  lock_status_wire;
 
     initial
-      clk = 1;
+    begin
       enable_clock = 1;
-
-    //always#(PERIOD/2) clk = ~clk;
+    end
 
   initial
   begin
-    rst_x = 1'b0;
+    rstx = 1'b0;
     #(PERIOD*2 + PERIOD/10);
-    rst_x = 1'b1;
+    rstx = 1'b1;
     // Test runs until RUNTIME, which is equal to SIMTIME given by 
     // iverilog_compile script. Reduced by 20ns to match vhdl simulation time.
-    #(RUNTIME-20);
+    //#(RUNTIME-20);
     // Test runs until requested amount of instructions have been executed or
     // stopped by simulation script.
     $finish;
-  end
+  end // initial begin
+
+  assign rstx_wire = rstx;
 
   // purpose: Counts executed instructions per core
   // type   : sequential
   // inputs : clk, rstx
   // outputs: execution_count_reg
   always @(posedge clk) begin
-    if rstx == 0 begin
+    if (rstx == 0) begin
       execution_count_reg <= 0;
-    else begin
-      if lock_status_wire(0) == 'b0 then
-        execution_count_reg(0) += 1;
+    end else begin
+      if (lock_status_wire[0] == 'b0) begin
+        execution_count_reg[0] += 1;
       end
     end
   end
@@ -88,18 +90,18 @@ module testbench
   // inputs : execution_count_reg
   // outputs: enable_clock
 
-  clock #(
+  clkgen #(
     .PERIOD  (PERIOD)
   )
-  clkgen(
+  clock(
     .clk     (clk),
     .en      (enable_clock)
   );
 
   proc dut(
     .clk           ( clk),
-    .rst_x         ( rst_x),
-    <<placeholder,proc-instance-db-signals>>
+    .rstx         ( rstx_wire),
+    
     .locked        (lock_status_wire)
     );
 
