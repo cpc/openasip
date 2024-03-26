@@ -233,13 +233,55 @@ RFGen::createGuardProcess() {
     vhdlString += "  end loop;\n";
     vhdlString += "END PROCESS guard_out_cp;\n";
 
-    std::string verilogString
-        = std::string("  always @* begin\n")
+    inputPortIndex = 0;
+    std::string verilogString = 
+        std::string("  always @* begin\n")
         + "    for (i = 0; i < " + std::to_string(adfRF_->size())
-        + "; i = i + 1) begin\n"
-        + "      guard_out[i] = " + mainRegName_ + "[i][0];\n"
-        + "    end\n"
-        + "  end\n" + "\n";
+        + "; i = i + 1) begin\n";
+    if (adfRF_->guardLatency() == 0) {
+        for (int i = 0; i < adfRF_->portCount(); ++i) {
+            TTAMachine::RFPort* adfPort =
+                static_cast<TTAMachine::RFPort*>(adfRF_->port(i));
+            if (!adfPort->isInput()) {
+                continue;
+            }
+            std::string loadPortName = "load_" + adfPort->name() + "_in";
+            std::string opcodePortName = "opcode_" + adfPort->name() + "_in";
+            std::string dataPortName = "data_" + adfPort->name() + "_in";
+            if (inputPortIndex == 0) {
+                verilogString += "    if ";
+            } else {
+                verilogString += "    end else if ";
+            }
+            verilogString += "("
+                + loadPortName + " == '1 && i == "
+                + opcodePortName + ") begin\n";
+            verilogString +=
+                "      " + guardPortName_ + "[i] <= " + dataPortName + "[0];\n";
+            inputPortIndex += 1;
+        }
+        verilogString += "   end else begin\n";
+        verilogString +=
+            "      " + guardPortName_ + "[i] <= " +
+            mainRegName_ + "[i][0];\n";
+        verilogString += "    end\n";
+
+    } else if (adfRF_->guardLatency() == 1) {
+        for (int i = 0; i < adfRF_->portCount(); ++i) {
+            TTAMachine::RFPort* adfPort =
+                static_cast<TTAMachine::RFPort*>(adfRF_->port(i));
+            if (!adfPort->isInput()) {
+                continue;
+            }
+            verilogString +=
+                "      " + guardPortName_ + "[i] <= " +
+                mainRegName_ + "[i][0];\n";
+        }
+    }
+    verilogString += "  end\n";
+    verilogString += "  end\n";
+
+    
     behaviour_ << RawCodeLine(vhdlString, verilogString);
 }
 
