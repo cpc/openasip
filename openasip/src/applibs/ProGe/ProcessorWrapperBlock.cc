@@ -172,18 +172,13 @@ ProcessorWrapperBlock::addInstructionMemory(
 void
 ProcessorWrapperBlock::addDataMemory(const MemoryBusInterface& coreDmemPort) {
     using SigT = SignalType;
-    std::cout << "--9" << std::endl;
 
     const NetlistPort& addrPort = coreDmemPort.portBySignal(SigT::ADDRESS);
     const NetlistPort& dataPort = coreDmemPort.portBySignal(SigT::WRITE_DATA);
-std::cout << "--10" << std::endl;
     SinglePortSSRAMBlock* dmemBlock = new SinglePortSSRAMBlock(
         addrPort.widthFormula(), dataPort.widthFormula(),
         TCEString("tb/dmem_") + coreDmemPort.addressSpace() + "_init.img",
         /* isForSmulation = */ true);
-        std::cout << "dmem addr width formula: " << addrPort.widthFormula() << std::endl;
-        std::cout << "dmem data width formula: " << dataPort.widthFormula() << std::endl;
-    std::cout << "Adding bitmasked data memory" << std::endl;
     addSubBlock(dmemBlock, TCEString("dmem_") + coreDmemPort.addressSpace());
 
     if (!netlist().connect(dmemBlock->memoryPort(), coreDmemPort)) {
@@ -206,9 +201,6 @@ ProcessorWrapperBlock::addDataMemory2(
             addrPort.widthFormula(), dataPort.widthFormula(),
             TCEString("tb/dmem_") + coreDmemPort.addressSpace() + "_init.img",
             /* isForSmulation = */ true);
-            std::cout << "dmem addr width formula: " << addrPort.widthFormula() << std::endl;
-        std::cout << "dmem data width formula: " << dataPort.widthFormula() << std::endl;
-    std::cout << "Adding bytemasked data memory" << std::endl;
     addSubBlock(dmemBlock, TCEString("dmem_") + coreDmemPort.addressSpace());
 
     if (!netlist().connect(dmemBlock->memoryPort(), coreDmemPort)) {
