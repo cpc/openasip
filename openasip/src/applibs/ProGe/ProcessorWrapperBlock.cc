@@ -95,10 +95,7 @@ ProcessorWrapperBlock::ProcessorWrapperBlock(
     // Package holding instruction bus constants
     addPackage(context.globalPackage().name());
 
-    // TODO: Check if there are params for this block and
-    //       Add package if needed.
-    //       
-    //addPackage(context.coreEntityName() + "_params");
+    addPackage(context.coreEntityName() + "_params");
 
     // Handle unknown ports
     handleUnconnectedPorts();

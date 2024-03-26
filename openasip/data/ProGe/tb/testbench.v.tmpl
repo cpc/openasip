@@ -96,7 +96,7 @@ module testbench
 
    initial begin
       wait(enable_clock == 1);
-      clk <= 1'b0;
+      clk <= 1'b1;
       forever begin
          #(PERIOD/2) clk <= ~clk;
       end

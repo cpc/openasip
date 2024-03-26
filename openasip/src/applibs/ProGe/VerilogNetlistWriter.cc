@@ -108,13 +108,18 @@ VerilogNetlistWriter::writeNetlistParameterPackage(
         netlistParameterPkgName() + "_pkg.vh";
     ofstream outFile;
     outFile.open(fileName.c_str(), ofstream::out);
-    for (size_t i = 0; i < targetNetlistBlock().netlist().parameterCount();
-         i++) {
-        Parameter param = targetNetlistBlock().netlist().parameter(i);
-        outFile << "parameter " << param.name() << " = " << param.value();
-        if (i != targetNetlistBlock().netlist().parameterCount() - 1)
-            outFile << ",";
-        outFile << endl;
+    if (targetNetlistBlock().netlist().parameterCount() == 0) {
+        outFile << "parameter " << targetNetlistBlock().moduleName() 
+                << "_DUMMY " << " = 0" << endl;
+    } else {
+        for (size_t i = 0; i < targetNetlistBlock().netlist().parameterCount();
+             i++) {
+            Parameter param = targetNetlistBlock().netlist().parameter(i);
+            outFile << "parameter " << param.name() << " = " << param.value();
+            if (i != targetNetlistBlock().netlist().parameterCount() - 1)
+                outFile << ",";
+            outFile << endl;
+         }
     }
 }
 
@@ -707,10 +712,7 @@ VerilogNetlistWriter::portSignalName(const NetlistPort& port) {
         } else {
             portWidth = port.widthFormula();
         }
-        return "{" + portWidth + "{" +
-                   ((port.staticValue().is(StaticSignal::VCC)) ? "1'b1"
-                                                               : "1'b0") +
-                "}}";
+        return ((port.staticValue().is(StaticSignal::VCC)) ? "'1" : "'0");
     }
     return parentBlock->instanceName() + "_" + port.name() +"_wire";
 }
