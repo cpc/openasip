@@ -560,8 +560,7 @@ DefaultICGenerator::generateInputMux(
         stream << "end rtl;" << endl;
     } else {
         string entityName = inputMuxEntityName(segmentConns);
-        stream << "`timescale 10ns/1ns" << endl
-               << "module " << entityName << "" << endl << endl;
+        stream << "module " << entityName << "" << endl << endl;
         writeInputSocketComponentDeclaration(Verilog,segmentConns, 1, stream);
         stream << indentation(2) 
                << "// If width of input bus is greater than width of output,"
@@ -765,8 +764,7 @@ DefaultICGenerator::generateOutputSocket(
         stream << indentation(1) << "end process output;" << endl << endl;
         stream << "end output_socket_andor;" << endl;
     } else { // language_ == Verilog
-        stream << "`timescale 10ns/1ns" << endl
-               << "module " << entityName << endl;
+        stream << "module " << entityName << endl;
         writeOutputSocketComponentDeclaration(Verilog,
             portConns, segmentConns, 1, stream);
         
@@ -1174,8 +1172,7 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
     } else { // language_ == Verilog
         const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
         string entityName = entityNameStr_ + "_interconn";
-        stream << "`timescale 1ns/1ns" << endl
-               << "module " << entityName << endl
+        stream << "module " << entityName << endl
         //include parameters here
                << "#(" << endl
                << "`include \""

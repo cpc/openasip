@@ -32,7 +32,6 @@
 // 2012-04-04  1.0  Vinogradov
 // 2024-03-14  1.1  multanej
 //////////////////////////////////////////////////////////////////////////////
-`timescale 1ns/1ns
 
 module testbench
 #(
@@ -42,12 +41,16 @@ module testbench
 )
     ();
 
-    wire        clk;
+    reg        clk;
     reg         rstx;
     wire        rstx_wire;
     reg         enable_clock;
     integer    execution_count_reg;
     wire     [0:0]  lock_status_wire;
+    integer execution_count_limit;
+    integer  exec_count_file;
+    integer  scan_file;
+
 
     initial
     begin
@@ -56,6 +59,14 @@ module testbench
 
   initial
   begin
+     exec_count_file = $fopen("execution_limit", "r");
+     if (exec_count_file != 0) begin
+        // execution_limit should contain a single line with the execution count.
+        scan_file = $fscanf(exec_count_file, "%d", execution_count_limit);
+        wait(execution_count_reg == execution_count_limit)
+        $finish;
+     end
+
     rstx = 1'b0;
     #(PERIOD*2 + PERIOD/10);
     rstx = 1'b1;
@@ -64,7 +75,6 @@ module testbench
     //#(RUNTIME-20);
     // Test runs until requested amount of instructions have been executed or
     // stopped by simulation script.
-    $finish;
   end // initial begin
 
   assign rstx_wire = rstx;
@@ -83,20 +93,21 @@ module testbench
     end
   end
 
+
+   initial begin
+      wait(enable_clock == 1);
+      clk <= 1'b0;
+      forever begin
+         #(PERIOD/2) clk <= ~clk;
+      end
+   end
+   
   // purpose: Controls clock generation. At beginning of the simulation the
   //          clock is enabled. If execution limit is defined then the clock
   //          will be stopped causing simulation to end.
   // type   : combinational
   // inputs : execution_count_reg
   // outputs: enable_clock
-
-  clkgen #(
-    .PERIOD  (PERIOD)
-  )
-  clock(
-    .clk     (clk),
-    .en      (enable_clock)
-  );
 
   proc dut(
     .clk           ( clk),

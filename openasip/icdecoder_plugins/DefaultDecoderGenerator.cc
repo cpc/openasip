@@ -877,8 +877,7 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) {
     } else { //language_ == Verilog
         const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
         string entityName = entityNameStr_ + "_decoder";
-        stream << "`timescale 1ns/1ns" << endl
-               << "module " << entityName << endl
+        stream << "module " << entityName << endl
                << "#(" << endl
                << "`include \""
                << entityNameStr_ << "_imem_mau_pkg.vh\"" << endl
