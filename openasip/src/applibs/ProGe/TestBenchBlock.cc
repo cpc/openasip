@@ -136,9 +136,6 @@ TestBenchBlock::write(const Path& targetBaseDir, HDL targetLang) const {
         instantiator.instantiateTemplateFile(
             progeDataDir/"tb"/"testbench.v.tmpl",
             targetBaseDir/"tb"/"testbench.v");
-        instantiator.instantiateTemplateFile(
-            progeDataDir/"tb"/"clkgen.v",
-            targetBaseDir/"tb"/"clkgen.v");
     } 
     proc_->write(targetBaseDir, targetLang);
 }
