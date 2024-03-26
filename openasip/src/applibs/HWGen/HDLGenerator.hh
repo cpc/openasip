@@ -539,15 +539,15 @@ namespace HDLGenerator {
      */
     class Assign : public SequentialStatement {
     public:
-        Assign(std::string var, LHSValue value)
+        Assign(std::string var, LHSValue value, bool isConstant = false)
             : SequentialStatement(var), index_(-1), upperBound_(-1),
-              lowerBound_(-1), value_(value) {}
-        Assign(std::string var, LHSValue value, int idx)
+              lowerBound_(-1), value_(value), isConstant_(isConstant) {}
+        Assign(std::string var, LHSValue value, int idx, bool isConstant = false)
             : SequentialStatement(var), index_(idx), upperBound_(-1),
-              lowerBound_(-1), value_(value) {}
-        Assign(std::string var, LHSValue value, int ub, int lb)
+              lowerBound_(-1), value_(value), isConstant_(isConstant) {}
+        Assign(std::string var, LHSValue value, int ub, int lb, bool isConstant = false)
             : SequentialStatement(var), index_(-1), upperBound_(ub),
-              lowerBound_(lb), value_(value) {}
+              lowerBound_(lb), value_(value), isConstant_(isConstant) {}
 
         void build() override {
             Generatable::build();
@@ -579,7 +579,9 @@ namespace HDLGenerator {
                     stream << " <= ";
                 }
             } else if (lang == Language::Verilog) {
-                if (!(parentIs<Synchronous>() || parentIs<Asynchronous>())) {
+                if (isConstant_) {
+                    stream << StringTools::indent(level) << "assign " << name();
+                } else if (!(parentIs<Synchronous>() || parentIs<Asynchronous>() )) {
                     stream << StringTools::indent(level) << "always @*\n"
                            << StringTools::indent(level + 1) << name();
                 } else {
@@ -607,6 +609,7 @@ namespace HDLGenerator {
         int upperBound_;
         int lowerBound_;
         LHSValue value_;
+        bool isConstant_;
     };
 
     /**

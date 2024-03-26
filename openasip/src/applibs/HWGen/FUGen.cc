@@ -566,8 +566,6 @@ FUGen::inferLSUSignal(const std::string& portName) const {
 
 void
 FUGen::createExternalInterfaces(bool genIntegrator) {
-    std::cout << "------ Creating external interfaces ------" << std::endl;
-    std::cout << "genIntegrator: " << (genIntegrator ? "TRUE" : "FALSE") << std::endl;
     std::set<std::pair<ProGe::NetlistPort*, ProGe::NetlistPort*>> lsuPorts;
     Replace replaceAddress = {"addrw_c", std::to_string(addressWidth_)};
     for (auto&& ei : extIfaces_) {
@@ -595,7 +593,6 @@ FUGen::createExternalInterfaces(bool genIntegrator) {
             ProGe::NetlistPort* internal = new ProGe::NetlistPort(
                 port.name, width, ProGe::DataType::BIT_VECTOR, dir,
                 *netlistBlock_);
-            std::cout << "isLSUDataPort(extName): " << isLSUDataPort(extName) << std::endl;
             if (isLSUDataPort(extName) && !genIntegrator) {
                 ext = new ProGe::NetlistPort(
                     extName, width, ProGe::DataType::BIT_VECTOR, dir, *core_,
@@ -896,7 +893,7 @@ FUGen::finalizeHDL() {
         fu_ << Wire("glockreq");
         behaviour_ << Assign("glockreq_out", LHSSignal("glockreq"));
     } else {
-        behaviour_ << Assign("glockreq_out", BinaryLiteral("0"));
+        behaviour_ << Assign("glockreq_out", BinaryLiteral("0"), true);
     }
 
     // Finalize and set global options.
