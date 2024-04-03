@@ -398,10 +398,8 @@ ProGeScriptGenerator::generateIverilogSimulate() {
            << endl;
     stream << "fi" << endl;
 
-    stream << "./" << testbenchName_ 
-           << " --assert-level=none --stop-time="
-           << "${runtime}" << "ns"
-           << endl;
+    stream << "./" << testbenchName_
+           << " --assert-level=none" << endl;
 
     stream.close();
 }
