@@ -51,11 +51,17 @@ module testbench
     integer  exec_count_file;
     integer  scan_file;
 
+  // Stop simulation after `SIMTIME, if defined
+  `ifdef SIMTIME
+  initial begin
+     #(`SIMTIME) $finish;
+  end
+  `endif
 
-    initial
-    begin
-      enable_clock = 1;
-    end
+  initial
+  begin
+    enable_clock = 1;
+  end
 
   initial
   begin
