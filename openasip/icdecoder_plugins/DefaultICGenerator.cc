@@ -1856,7 +1856,7 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                << indentation(2) << "$fclose(executionfileout);" << endl
                << indentation(2) << "forever" << endl
                << indentation(2) << "begin" << endl
-               << indentation(3) << "#PERIOD;" << endl;
+               << indentation(3) << "@(posedge clk);" << endl;
         if (busTraceStartingCycle_ > 0) {
             stream << indentation(3) << "if(count > "
                    << busTraceStartingCycle_ - 1
