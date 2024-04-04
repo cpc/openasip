@@ -21,6 +21,11 @@ if [ "x${ghdl_bin}" == "x" ]; then
     exit 0
 fi
 
+iverilog_bin=$(which iverilog 2> /dev/null)
+if [ "x${iverilog_bin}" == "x" ]; then
+    exit 0
+fi
+
 OPTIND=1
 while getopts "d" OPTION
 do
@@ -57,6 +62,41 @@ clear_test_data() {
 
 function line-count() {
     wc -l < $1
+}
+
+function run_verilog_test() {
+    ADF=$1
+    EXTRA_OPTS=$2
+    PROGE_OUT=$3
+    $TCECC -O3 -a $ADF -o $TPEF $SRC >& $ERRORLOG \
+        || abort-with-msg "Error from tceasm."
+    $GENBUSTRACE -l 200 -o $TTABUSTRACE $ADF $TPEF \
+        || abort-with-msg "Error in bus trace generation."
+    $PROGE --icd-arg-list=$ICD_OPTS $EXTRA_OPTS -e $ENTITY -l "verilog" -t -o $PROGE_OUT $ADF \
+        || abort-with-msg "Error from ProGe"
+    $GENERATEBITS -e $ENTITY -x $PROGE_OUT -d -w4 -p $TPEF $ADF \
+        || abort-with-msg "Error from PIG"
+    # Duct tape fix due to fugen not copying resource implementation files
+    # to proge output directory (issue #27)
+    #cp data/adder_resource.vhd $PROGE_OUT/vhdl
+    #sed -i 's/fu_adder/{adder_resource,fu_adder}/' $PROGE_OUT/ghdl_compile.sh
+    #sed -i 's/fu_big_alu/{adder_resource,fu_big_alu}/' $PROGE_OUT/ghdl_compile.sh
+    # Limit on executed instructions
+    runexeclimit=$(line-count $TTABUSTRACE)
+    # Limit on real simulation time
+    runtimelimit=1000000
+
+    cd $PROGE_OUT
+    ### TODO: Add execution time / num. executed instructions
+    ###       limit to iverilog compilation/simulation.
+    ./iverilog_compile.sh >& /dev/null || abort-with-msg "iverilog compile failed."
+    ./iverilog_simulate.sh >& /dev/null || abort-with-msg "iverilog simulation failed."
+    cd ..
+    diff $TTABUSTRACE \
+         <(head -n $(line-count $TTABUSTRACE) \
+                < $PROGE_OUT/execbus.dump) \
+        || abort-with-msg "Difference found in bustrace."
+    return 0
 }
 
 function run_test() {
@@ -104,6 +144,10 @@ clear_test_data
 FU_LIST="SMALL_ALU,BIG_ALU"
 RES_HDB_LIST="data/test.hdb,generate_base32.hdb,generate_rf_iu.hdb,generate_lsu_32.hdb"
 XIL_HDB_LIST="xilinx_series7.hdb,generate_base32.hdb,generate_rf_iu.hdb,generate_lsu_32.hdb"
+
+run_verilog_test "data/one_fu/mach.adf" "" "proge_out_1fu_back"
+
+clear_test_data
 
 run_test "data/one_fu/mach.adf" "-i data/mach.idf" "proge_out_1fu_back"
 run_test "data/one_fu/mach.adf" "-i data/mach.idf --fu-front-register=all --fu-back-register=SCALAR" "proge_out_1fu_front"
