@@ -887,7 +887,7 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) {
                << "," << endl
                << "`include \""  << "gcu_opcodes_pkg.vh\"" << endl
                << ")" << endl;
-        
+
         VerilogNetlistWriter::writePortDeclaration(
             *decoderBlock_, 1, indentation(1), stream);
 
@@ -911,7 +911,11 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) {
         stream << endl;
         writeRFCntrlSignals(stream);
         stream << endl;
-        
+        writeGlockHandlingSignals(stream);
+        stream << endl;
+        writePipelineFillSignals(stream);
+        stream << endl;
+
         if (generateLockTrace_) {
             writeLockDumpCode(stream);
             stream << endl;
@@ -929,7 +933,10 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) {
         stream << endl;
         writeMainDecodingProcess(stream);
         stream << endl;
-        
+        writeGlockMapping(stream);
+        stream << endl;
+        writePipelineFillProcess(stream);
+
         int lockReqWidth = glockRequestWidth();
         stream << indentation(1) << "assign "
                << NetlistGenerator::DECODER_LOCK_REQ_OUT_PORT << "=";
@@ -948,7 +955,7 @@ DefaultDecoderGenerator::writeInstructionDecoder(std::ostream& stream) {
         const int glockWidth = glockPortWidth();
         stream << indentation(1) << "assign " << GLOCK_PORT_NAME << " = {"
                << Conversion::toString(glockWidth) << "{"
-               << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT << "}};" << endl
+               << POST_DECODE_MERGED_GLOCK_SIGNAL << "}};" << endl
                << endl;
         stream << endl << "endmodule" << endl;
     }
@@ -1387,15 +1394,19 @@ DefaultDecoderGenerator::writeRFCntrlSignals(std::ostream& stream) {
 void
 DefaultDecoderGenerator::writeGlockHandlingSignals(
     std::ostream& stream) const {
-    assert(language_ == VHDL && "Support for other HDL not yet implemented.");
-    writeSignalDeclaration(
-        stream, ProGe::BIT, INTERNAL_MERGED_GLOCK_REQ_SIGNAL, 1);
-    writeSignalDeclaration(
-        stream, ProGe::BIT, PRE_DECODE_MERGED_GLOCK_SIGNAL, 1);
-    writeSignalDeclaration(
-        stream, ProGe::BIT, POST_DECODE_MERGED_GLOCK_SIGNAL, 1);
-    writeSignalDeclaration(
-        stream, ProGe::BIT, POST_DECODE_MERGED_GLOCK_OUTREG, 1);
+    if(language_ == VHDL) {
+        writeSignalDeclaration(
+            stream, ProGe::BIT, INTERNAL_MERGED_GLOCK_REQ_SIGNAL, 1);
+        writeSignalDeclaration(
+            stream, ProGe::BIT, PRE_DECODE_MERGED_GLOCK_SIGNAL, 1);
+        writeSignalDeclaration(
+            stream, ProGe::BIT, POST_DECODE_MERGED_GLOCK_SIGNAL, 1);
+        writeSignalDeclaration(
+            stream, ProGe::BIT, POST_DECODE_MERGED_GLOCK_OUTREG, 1);
+    } else { // Verilog
+        writeSignalDeclaration(
+            stream, ProGe::BIT, POST_DECODE_MERGED_GLOCK_SIGNAL, 1);
+    }
 }
 
 /**
@@ -2404,111 +2415,112 @@ DefaultDecoderGenerator::writeMainDecodingProcess(
  */
 void
 DefaultDecoderGenerator::writeGlockMapping(std::ostream& stream) const {
-    assert(
-        language_ == VHDL &&
-        "writeGlockMapping() is not yet implemented "
-        "for other HDLs.");
-
-    // Generate output register for core lock status signal //
-    string propagateGlock(
-        POST_DECODE_MERGED_GLOCK_OUTREG +
-        " <= " + POST_DECODE_MERGED_GLOCK_SIGNAL + ";");
-    string assertGlock(POST_DECODE_MERGED_GLOCK_OUTREG + " <= '1'" + ";");
-    if (syncReset_) {
-        stream << "  lock_reg_proc : process (clk)\n"
-               << "  begin\n"
-               << "    if (clk'event and clk = '1') then\n"
-               << "      if (rstx = '0') then\n"
-               << "      -- Locked during active reset\n"
-               << "        " << assertGlock << "\n"
-               << "      else\n"
-               << "        " << propagateGlock << "\n"
-               << "      end if;\n"
-               << "    end if;\n"
-               << "  end process lock_reg_proc;\n\n";
-    } else {
-        stream << "  lock_reg_proc : process (clk, rstx)\n"
-               << "  begin\n"
-               << "    if (rstx = '0') then\n"
-               << "      -- Locked during active reset\n"
-               << "      " << assertGlock << "\n"
-               << "    elsif (clk'event and clk = '1') then\n"
-               << "      " << propagateGlock << "\n"
-               << "    end if;\n"
-               << "  end process lock_reg_proc;\n\n";
-    }
-
-    // Generate global lock request wiring //
-    int lockReqWidth = glockRequestWidth();
-    stream << indentation(1) << NetlistGenerator::DECODER_LOCK_REQ_OUT_PORT
-           << " <= " << INTERNAL_MERGED_GLOCK_REQ_SIGNAL << ";" << endl;
-    stream << indentation(1) << INTERNAL_MERGED_GLOCK_REQ_SIGNAL << " <= ";
-    if (lockReqWidth > 0) {
-        for (int i = 0; i < lockReqWidth; i++) {
-            stream << LOCK_REQ_PORT_NAME << "(" << i << ")";
-            if (i + 1 < lockReqWidth) {
-                stream << " or ";
-            }
-        }
-        stream << ";" << endl;
-    } else {
-        stream << "'0';" << endl;
-    }
-
-    stream << indentation(1) << PRE_DECODE_MERGED_GLOCK_SIGNAL
-           << " <= " << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT;
-    if (lockReqWidth > 0) {
-        stream << " or " << INTERNAL_MERGED_GLOCK_REQ_SIGNAL << ";" << endl;
-    } else {
-        stream << ";" << endl;
-    }
-    stream << indentation(1) << POST_DECODE_MERGED_GLOCK_SIGNAL
-           << " <= " << PRE_DECODE_MERGED_GLOCK_SIGNAL << " or "
-           << PIPELINE_FILL_LOCK_SIGNAL << ";" << endl;
-    stream << indentation(1) << NetlistGenerator::DECODER_LOCK_STATUS_PORT
-           << " <= " << POST_DECODE_MERGED_GLOCK_OUTREG << ";" << endl;
-
-    // Generate global lock wiring //
-    const int glockWidth = glockPortWidth();
-    for (GlockBitType glockBitToConnect = 0; glockBitToConnect < glockWidth;
-         glockBitToConnect++) {
-        stream << indentation(1) << GLOCK_PORT_NAME << "("
-               << Conversion::toString(glockBitToConnect) << ") <= ";
-
-        // If the feature for alternate glock wiring is enabled and current
-        // glock signal to be wired for the TTA Unit has glock request port.
-        if (generateAlternateGlockReqHandling_ &&
-            MapTools::containsKey(unitGlockBitMap_, glockBitToConnect) &&
-            MapTools::containsKey(
-                unitGlockReqBitMap_,
-                unitGlockBitMap_.find(glockBitToConnect)->second)) {
-            // Specialized global lock port map to avoid self-locking of FU.
-            // Each FU that has global lock request will not receive
-            // global lock signal unless another FU request global lock.
-            const Unit* associatedToGlockReq =
-                unitGlockBitMap_.find(glockBitToConnect)->second;
-            UnitGlockReqBitMapType::const_iterator gr_it;
-            for (gr_it = unitGlockReqBitMap_.begin();
-                 gr_it != unitGlockReqBitMap_.end(); gr_it++) {
-                if (gr_it->first == associatedToGlockReq) {
-                    continue;
-                }
-                GlockReqBitType glockReqBitToConnect = gr_it->second;
-                stream << LOCK_REQ_PORT_NAME << "("
-                       << Conversion::toString(glockReqBitToConnect)
-                       << ") or ";
-            }
-            stream << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT << ";";
+    if (language_ == VHDL) {
+        // Generate output register for core lock status signal //
+        string propagateGlock(
+            POST_DECODE_MERGED_GLOCK_OUTREG +
+            " <= " + POST_DECODE_MERGED_GLOCK_SIGNAL + ";");
+        string assertGlock(POST_DECODE_MERGED_GLOCK_OUTREG + " <= '1'" + ";");
+        if (syncReset_) {
+            stream << "  lock_reg_proc : process (clk)\n"
+                   << "  begin\n"
+                   << "    if (clk'event and clk = '1') then\n"
+                   << "      if (rstx = '0') then\n"
+                   << "      -- Locked during active reset\n"
+                   << "        " << assertGlock << "\n"
+                   << "      else\n"
+                   << "        " << propagateGlock << "\n"
+                   << "      end if;\n"
+                   << "    end if;\n"
+                   << "  end process lock_reg_proc;\n\n";
         } else {
-            // Regular global lock port map.
-            stream << POST_DECODE_MERGED_GLOCK_SIGNAL << ";";
+            stream << "  lock_reg_proc : process (clk, rstx)\n"
+                   << "  begin\n"
+                   << "    if (rstx = '0') then\n"
+                   << "      -- Locked during active reset\n"
+                   << "      " << assertGlock << "\n"
+                   << "    elsif (clk'event and clk = '1') then\n"
+                   << "      " << propagateGlock << "\n"
+                   << "    end if;\n"
+                   << "  end process lock_reg_proc;\n\n";
         }
-        if (MapTools::containsKey(unitGlockBitMap_, glockBitToConnect)) {
-            stream
-                << " -- to "
-                << unitGlockBitMap_.find(glockBitToConnect)->second->name();
+
+        // Generate global lock request wiring //
+        int lockReqWidth = glockRequestWidth();
+        stream << indentation(1) << NetlistGenerator::DECODER_LOCK_REQ_OUT_PORT
+               << " <= " << INTERNAL_MERGED_GLOCK_REQ_SIGNAL << ";" << endl;
+        stream << indentation(1) << INTERNAL_MERGED_GLOCK_REQ_SIGNAL << " <= ";
+        if (lockReqWidth > 0) {
+            for (int i = 0; i < lockReqWidth; i++) {
+                stream << LOCK_REQ_PORT_NAME << "(" << i << ")";
+                if (i + 1 < lockReqWidth) {
+                    stream << " or ";
+                }
+            }
+            stream << ";" << endl;
+        } else {
+            stream << "'0';" << endl;
         }
-        stream << endl;
+
+        stream << indentation(1) << PRE_DECODE_MERGED_GLOCK_SIGNAL
+               << " <= " << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT;
+        if (lockReqWidth > 0) {
+            stream << " or " << INTERNAL_MERGED_GLOCK_REQ_SIGNAL << ";" << endl;
+        } else {
+            stream << ";" << endl;
+        }
+        stream << indentation(1) << POST_DECODE_MERGED_GLOCK_SIGNAL
+               << " <= " << PRE_DECODE_MERGED_GLOCK_SIGNAL << " or "
+               << PIPELINE_FILL_LOCK_SIGNAL << ";" << endl;
+        stream << indentation(1) << NetlistGenerator::DECODER_LOCK_STATUS_PORT
+               << " <= " << POST_DECODE_MERGED_GLOCK_OUTREG << ";" << endl;
+
+        // Generate global lock wiring //
+        const int glockWidth = glockPortWidth();
+        for (GlockBitType glockBitToConnect = 0; glockBitToConnect < glockWidth;
+             glockBitToConnect++) {
+            stream << indentation(1) << GLOCK_PORT_NAME << "("
+                   << Conversion::toString(glockBitToConnect) << ") <= ";
+
+            // If the feature for alternate glock wiring is enabled and current
+            // glock signal to be wired for the TTA Unit has glock request port.
+            if (generateAlternateGlockReqHandling_ &&
+                MapTools::containsKey(unitGlockBitMap_, glockBitToConnect) &&
+                MapTools::containsKey(
+                    unitGlockReqBitMap_,
+                    unitGlockBitMap_.find(glockBitToConnect)->second)) {
+                // Specialized global lock port map to avoid self-locking of FU.
+                // Each FU that has global lock request will not receive
+                // global lock signal unless another FU request global lock.
+                const Unit* associatedToGlockReq =
+                    unitGlockBitMap_.find(glockBitToConnect)->second;
+                UnitGlockReqBitMapType::const_iterator gr_it;
+                for (gr_it = unitGlockReqBitMap_.begin();
+                     gr_it != unitGlockReqBitMap_.end(); gr_it++) {
+                    if (gr_it->first == associatedToGlockReq) {
+                        continue;
+                    }
+                    GlockReqBitType glockReqBitToConnect = gr_it->second;
+                    stream << LOCK_REQ_PORT_NAME << "("
+                           << Conversion::toString(glockReqBitToConnect)
+                           << ") or ";
+                }
+                stream << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT << ";";
+            } else {
+                // Regular global lock port map.
+                stream << POST_DECODE_MERGED_GLOCK_SIGNAL << ";";
+            }
+            if (MapTools::containsKey(unitGlockBitMap_, glockBitToConnect)) {
+                stream
+                    << " -- to "
+                    << unitGlockBitMap_.find(glockBitToConnect)->second->name();
+            }
+            stream << endl;
+        }
+    } else {
+        // TODO: Complete this to same as VHDL version
+        stream << indentation(1) << "assign " << POST_DECODE_MERGED_GLOCK_SIGNAL
+               << " = " << PIPELINE_FILL_LOCK_SIGNAL << ";" << endl;
     }
 }
 
@@ -2547,7 +2559,19 @@ DefaultDecoderGenerator::writePipelineFillProcess(
         indstream(1) << "end process decode_pipeline_fill_lock;" << endl;
 
     } else {  // language_ == Verilog
-        // todo
+        if (syncReset_) {
+            assert(false && "synch reset not yet implemented in Verilog.");
+        } else {
+            indstream(1) << "always@(posedge clk or negedge rstx) begin" << endl;
+            indstream(2) << "if (~rstx) begin" << endl;
+            indstream(3) << "decode_fill_lock_reg <= '1;" << endl;
+            indstream(2) << "end else begin" << endl;
+            indstream(3) << "if (lock == '0) begin" << endl;
+            indstream(4) << "decode_fill_lock_reg <= '0;" << endl;
+            indstream(3) << "end" << endl;
+            indstream(2) << "end" << endl;
+            indstream(1) << "end" << endl;
+        }
     }
 }
 
