@@ -1394,19 +1394,14 @@ DefaultDecoderGenerator::writeRFCntrlSignals(std::ostream& stream) {
 void
 DefaultDecoderGenerator::writeGlockHandlingSignals(
     std::ostream& stream) const {
-    if(language_ == VHDL) {
-        writeSignalDeclaration(
-            stream, ProGe::BIT, INTERNAL_MERGED_GLOCK_REQ_SIGNAL, 1);
-        writeSignalDeclaration(
-            stream, ProGe::BIT, PRE_DECODE_MERGED_GLOCK_SIGNAL, 1);
-        writeSignalDeclaration(
-            stream, ProGe::BIT, POST_DECODE_MERGED_GLOCK_SIGNAL, 1);
-        writeSignalDeclaration(
-            stream, ProGe::BIT, POST_DECODE_MERGED_GLOCK_OUTREG, 1);
-    } else { // Verilog
-        writeSignalDeclaration(
-            stream, ProGe::BIT, POST_DECODE_MERGED_GLOCK_SIGNAL, 1);
-    }
+    writeSignalDeclaration(
+        stream, ProGe::BIT, INTERNAL_MERGED_GLOCK_REQ_SIGNAL, 1);
+    writeSignalDeclaration(
+        stream, ProGe::BIT, PRE_DECODE_MERGED_GLOCK_SIGNAL, 1);
+    writeSignalDeclaration(
+        stream, ProGe::BIT, POST_DECODE_MERGED_GLOCK_SIGNAL, 1);
+    writeSignalDeclaration(
+        stream, ProGe::BIT, POST_DECODE_MERGED_GLOCK_OUTREG, 1);
 }
 
 /**
@@ -2517,10 +2512,103 @@ DefaultDecoderGenerator::writeGlockMapping(std::ostream& stream) const {
             }
             stream << endl;
         }
-    } else {
-        // TODO: Complete this to same as VHDL version
-        stream << indentation(1) << "assign " << POST_DECODE_MERGED_GLOCK_SIGNAL
-               << " = " << PIPELINE_FILL_LOCK_SIGNAL << ";" << endl;
+    } else { // Verilog
+        string propagateGlock(
+            POST_DECODE_MERGED_GLOCK_OUTREG +
+            " = " + POST_DECODE_MERGED_GLOCK_SIGNAL + ";");
+        string assertGlock(POST_DECODE_MERGED_GLOCK_OUTREG + " = '1" + ";");
+
+        if (syncReset_) {
+            assert(false && "synch reset not yet implemented in Verilog.");
+        } else {
+            stream << "  always@(posedge clk or negedge rstx) begin" << endl
+                   << "    if (~rstx) begin" << endl
+                   << "      // Locked during active reset" << endl
+                   << "      " << assertGlock << endl
+                   << "    end else begin" << endl
+                   << "      " << propagateGlock << endl
+                   << "    end" << endl
+                   << "  end" << endl;
+        }
+
+        // Generate global lock request wiring //
+        int lockReqWidth = glockRequestWidth();
+        stream << indentation(1) << "assign "
+               << NetlistGenerator::DECODER_LOCK_REQ_OUT_PORT
+               << " = " << INTERNAL_MERGED_GLOCK_REQ_SIGNAL << ";" << endl;
+        stream << indentation(1) << "assign "
+               << INTERNAL_MERGED_GLOCK_REQ_SIGNAL << " = ";
+        if (lockReqWidth > 0) {
+            for (int i = 0; i < lockReqWidth; i++) {
+                stream << LOCK_REQ_PORT_NAME << "[" << i << "]";
+                if (i + 1 < lockReqWidth) {
+                    stream << " | ";
+                }
+            }
+            stream << ";" << endl;
+        } else {
+            stream << "'0;" << endl;
+        }
+
+        stream << indentation(1) << "assign "
+               << PRE_DECODE_MERGED_GLOCK_SIGNAL
+               << " = " << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT;
+        if (lockReqWidth > 0) {
+            stream << " | " << INTERNAL_MERGED_GLOCK_REQ_SIGNAL << ";" << endl;
+        } else {
+            stream << ";" << endl;
+        }
+        stream << indentation(1) << "assign "
+               << POST_DECODE_MERGED_GLOCK_SIGNAL
+               << " = " << PRE_DECODE_MERGED_GLOCK_SIGNAL << " | "
+               << PIPELINE_FILL_LOCK_SIGNAL << ";" << endl;
+        stream << indentation(1) << "assign "
+               << NetlistGenerator::DECODER_LOCK_STATUS_PORT
+               << " = " << POST_DECODE_MERGED_GLOCK_OUTREG << ";" << endl;
+
+        // Generate global lock wiring //
+        const int glockWidth = glockPortWidth();
+        for (GlockBitType glockBitToConnect = 0; glockBitToConnect < glockWidth;
+             glockBitToConnect++) {
+            stream << indentation(1) << "assign "
+                   << GLOCK_PORT_NAME << "["
+                   << Conversion::toString(glockBitToConnect) << "] = ";
+
+            // If the feature for alternate glock wiring is enabled and current
+            // glock signal to be wired for the TTA Unit has glock request port.
+            if (generateAlternateGlockReqHandling_ &&
+                MapTools::containsKey(unitGlockBitMap_, glockBitToConnect) &&
+                MapTools::containsKey(
+                    unitGlockReqBitMap_,
+                    unitGlockBitMap_.find(glockBitToConnect)->second)) {
+                // Specialized global lock port map to avoid self-locking of FU.
+                // Each FU that has global lock request will not receive
+                // global lock signal unless another FU request global lock.
+                const Unit* associatedToGlockReq =
+                    unitGlockBitMap_.find(glockBitToConnect)->second;
+                UnitGlockReqBitMapType::const_iterator gr_it;
+                for (gr_it = unitGlockReqBitMap_.begin();
+                     gr_it != unitGlockReqBitMap_.end(); gr_it++) {
+                    if (gr_it->first == associatedToGlockReq) {
+                        continue;
+                    }
+                    GlockReqBitType glockReqBitToConnect = gr_it->second;
+                    stream << LOCK_REQ_PORT_NAME << "["
+                           << Conversion::toString(glockReqBitToConnect)
+                           << "] | ";
+                }
+                stream << NetlistGenerator::DECODER_LOCK_REQ_IN_PORT << ";";
+            } else {
+                // Regular global lock port map.
+                stream << POST_DECODE_MERGED_GLOCK_SIGNAL << ";";
+            }
+            if (MapTools::containsKey(unitGlockBitMap_, glockBitToConnect)) {
+                stream
+                    << " // to "
+                    << unitGlockBitMap_.find(glockBitToConnect)->second->name();
+            }
+            stream << endl;
+        }
     }
 }
 
