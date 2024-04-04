@@ -75,6 +75,7 @@ module ENTITY_STR_ifetch
 
     integer reset_cntr;
     reg reset_lock;
+    reg mem_en_lock_r;
 
     parameter IFETCH_DELAY=1;
 
@@ -88,28 +89,30 @@ module ENTITY_STR_ifetch
     assign ra_out= return_addr_reg;
     assign fetchblock = instruction_reg;
 
-    assign lock = ~fetch_en | busy;
+    assign lock = ~fetch_en | busy | mem_en_lock_r;
 
     always@(posedge clk or negedge rstx)
-    if(~rstx)
-    begin
+    if (~rstx) begin
+        mem_en_lock_r <= '1;
+    end else begin
+        mem_en_lock_r <= '0;
+    end
+
+    always@(posedge clk or negedge rstx)
+    if (~rstx) begin
         pc_reg          <= 0;
         pc_prev_reg     <= {IMEMADDRWIDTH{1'b0}};
         return_addr_reg <= {IMEMADDRWIDTH{1'b0}};
         instruction_reg <= {IMEMWIDTHINMAUS*IMEMMAUWIDTH{1'b0}};
         reset_cntr      <= 0;
         reset_lock      <= 1'b1;
-    end
-    else
-    begin
-        if( fetch_en && ~lock)
-        begin
+    end else begin
+        if (fetch_en && ~lock) begin
             pc_reg      <= next_pc;
             pc_prev_reg <= pc_reg;
         end
 
-        if(~lock)
-        begin
+        if (~lock) begin
             if( reset_cntr < IFETCH_DELAY )
                 reset_cntr <= reset_cntr + 1;
             else
@@ -123,7 +126,7 @@ module ENTITY_STR_ifetch
             if(ra_load)
                 return_addr_reg <= ra_in;
             else
-            if(pc_load && pc_opcode==IFE_CALL)
+            if (pc_load && pc_opcode==IFE_CALL)
                 // return address transformed to same form as all others addresses
                 // provided as input
                 return_addr_reg <= increased_pc;
@@ -133,9 +136,9 @@ module ENTITY_STR_ifetch
     assign increased_pc = pc_reg + IMEMWIDTHINMAUS;
 
     always@(*)
-    if(pc_load)
+    if (pc_load)
         next_pc = pc_in;
-    else// no branch
+    else // no branch
         next_pc = increased_pc;
 
 endmodule
