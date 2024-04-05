@@ -54,7 +54,7 @@ module testbench
   // Stop simulation after `SIMTIME, if defined
   `ifdef SIMTIME
   initial begin
-     #(`SIMTIME) $finish;
+     #(`SIMTIME + PERIOD) $finish;
   end
   `endif
 
