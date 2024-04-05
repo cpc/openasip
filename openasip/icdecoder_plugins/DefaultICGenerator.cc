@@ -1838,7 +1838,7 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                << indentation(1) << "//synthesis translate_off" << endl
                << indentation(1) << "integer regularfileout;" << endl << endl
                << indentation(1) << "integer executionfileout;" << endl << endl
-               << indentation(1) << "integer count=0;" << endl
+               << indentation(1) << "integer count=-1;" << endl
                << indentation(1) << "integer executioncount=0;" << endl << endl
                << indentation(1) << "`define REGULARDUMPFILE \"bus.dump\""
                << indentation(1)
