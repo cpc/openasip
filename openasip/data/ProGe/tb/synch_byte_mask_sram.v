@@ -33,6 +33,24 @@ reg [DW-1:0] wr_mask;
 
 integer line;
 
+integer k;
+
+//this  initial path can be synthesize by quartus
+ initial
+   if(init)
+     if(INITFILENAME!="")
+       begin
+          $readmemb(INITFILENAME,mem_r);
+          $display("Memory initialized from file %s",INITFILENAME);
+       end
+     else
+       begin
+          for(k=0; k<2**ADDRW; k=k+1)
+            mem_r[k]={DATAW{1'b0}};
+          $display("Memory initialized to zeroes!");
+       end
+
+
 assign line = aaddr;
 
 always @(posedge clk) begin
