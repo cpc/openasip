@@ -47,12 +47,12 @@ abort-with-msg() {
 }
 
 clear_test_data() {
-    rm -rf basic width_mismatch
-    rm -rf proge_out_1fu_back          proge_out_1fu_front          proge_out_1fu_middle
-    rm -rf proge_out_ic_gate_1fu_back  proge_out_ic_gate_1fu_front  proge_out_ic_gate_1fu_middle
-    rm -rf proge_out_3fu_back          proge_out_3fu_front          proge_out_3fu_middle
-    rm -rf proge_out_res_back          proge_out_res_front          proge_out_res_middle
-    rm -rf proge_out_xilinx_back       proge_out_xilinx_front       proge_out_xilinx_middle
+    rm -rf basic width_mismatch*
+    rm -rf proge_out_1fu_back*          proge_out_1fu_front*          proge_out_1fu_middle*
+    rm -rf proge_out_ic_gate_1fu_back*  proge_out_ic_gate_1fu_front*  proge_out_ic_gate_1fu_middle*
+    rm -rf proge_out_3fu_back*          proge_out_3fu_front*          proge_out_3fu_middle*
+    rm -rf proge_out_res_back*          proge_out_res_front*          proge_out_res_middle*
+    rm -rf proge_out_xilinx_back*       proge_out_xilinx_front*       proge_out_xilinx_middle*
     rm -f $TPEF
     rm -f *.img
     rm -f *.tpef.*
@@ -145,10 +145,25 @@ FU_LIST="SMALL_ALU,BIG_ALU"
 RES_HDB_LIST="data/test.hdb,generate_base32.hdb,generate_rf_iu.hdb,generate_lsu_32.hdb"
 XIL_HDB_LIST="xilinx_series7.hdb,generate_base32.hdb,generate_rf_iu.hdb,generate_lsu_32.hdb"
 
-run_verilog_test "data/one_fu/mach.adf" "" "proge_out_1fu_back"
+### Verilog tests
+run_verilog_test "data/one_fu/mach.adf" "" "proge_out_1fu_back-verilog-test"
+run_verilog_test "data/one_fu/mach.adf" " --fu-front-register=all --fu-back-register=SCALAR" "proge_out_1fu_front-verilog"
+run_verilog_test "data/one_fu/mach.adf" " --fu-back-register=SCALAR" "proge_out_1fu_middle-verilog"
 
-clear_test_data
+run_verilog_test "data/one_fu/mach.adf" " --fu-ic-gate=all" "proge_out_ic_gate_1fu_back-verilog"
+run_verilog_test "data/one_fu/mach.adf" " --fu-ic-gate=all --fu-front-register=all --fu-back-register=SCALAR" "proge_out_ic_gate_1fu_front-verilog"
+### This test fails in FUGen!
+#run_verilog_test "data/one_fu/mach.adf" " --fu-ic-gate=all --fu-middle-register=all --fu-back-register=SCALAR" "proge_out_ic_gate_1fu_middle-verilog"
 
+run_verilog_test "data/three_fu/mach.adf" "" "proge_out_3fu_back-verilog"
+run_verilog_test "data/three_fu/mach.adf" " --fu-front-register=all --fu-back-register=SCALAR" "proge_out_3fu_front-verilog"
+### This test fails in FUGen!
+#run_verilog_test "data/three_fu/mach.adf" " --fu-middle-register=all --fu-back-register=SCALAR" "proge_out_3fu_middle-verilog"
+### This test fails in FUGen!
+#run_verilog_test "data/xilinx_test/mach.adf" "" "proge_out_xilinx_back-verilog"  
+
+
+### VHDL tests
 run_test "data/one_fu/mach.adf" "-i data/mach.idf" "proge_out_1fu_back"
 run_test "data/one_fu/mach.adf" "-i data/mach.idf --fu-front-register=all --fu-back-register=SCALAR" "proge_out_1fu_front"
 run_test "data/one_fu/mach.adf" "-i data/mach.idf --fu-back-register=SCALAR" "proge_out_1fu_middle"
