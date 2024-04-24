@@ -265,6 +265,13 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
 
                 if options.unroll_threshold == 0:
                     extra_opts += " -fno-unroll-loops"
+                else:
+                    extra_opts += " -mllvm --unroll-threshold=" + str(options.unroll_threshold)
+
+                if options.inline_threshold == 0 or options.noinline:
+                    extra_opts += " -fno-inline-functions"
+                else:
+                    extra_opts += " -mllvm --inline-threshold=" + str(options.inline_threshold)
 
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
                 if suffix == ".c":
