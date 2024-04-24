@@ -780,39 +780,30 @@ FUGen::buildOperations() {
 
             for (std::string subop : schedules) {
                 auto schedule = scheduledOperations_[subop];
-                //std::cerr << "subop: " << subop << " schedule.src=" << std::endl;
                 std::string baseOp = schedule.baseOp;
 
-                //TODO: can we assume this?
-                auto operand = schedule.operands.front();
                 if (schedule.initialCycle == cycle) {
                     auto& impl = baseOperations_[baseOp].implementation;
                     if (!impl.empty()) {
                         std::set<std::string> statements;
                         prepareSnippet(subop, impl, onTrigger, statements);
 
-                        //TODO: A hack
-                        std::string srcSignal = "";
-                        std::vector<std::string> dstSignals;
-                        for (const auto& key : subOpConnectionMap) {
-                            if (TCEString(key.first).startsWith(subop)) {
-                                dstSignals = key.second;
-                                srcSignal = key.first;
-                                break;
-                            }
-                        }
-                        std::cerr << "subop: " << subop << " " << srcSignal << " " << dstSignals.size() << std::endl;
-                        for (const auto& dstSignal : dstSignals) {
-                            if (operand.portWidth > operand.operandWidth) {
-                                onTrigger.append(Assign(
-                                    dstSignal,
-                                    Splice(srcSignal, operand.operandWidth - 1, 0)));
-                            } else if (operand.portWidth < operand.operandWidth) {
-                                onTrigger.append(Assign(
-                                    dstSignal,
-                                    Ext(srcSignal, operand.operandWidth, operand.portWidth)));
-                            } else {
-                                onTrigger.append(Assign(dstSignal, LHSSignal(srcSignal)));
+                        for (auto&& operand : schedule.operands) {
+                            int id = operand.id;
+                            std::string srcSignal = operand.signalName;
+                            std::string dstSignal = operandSignal(subop, id);
+                            if (TCEString(dstSignal).startsWith("subop") && !operand.isOutput) {
+                                if (operand.portWidth > operand.operandWidth) {
+                                    onTrigger.append(Assign(
+                                        dstSignal,
+                                        Splice(srcSignal, operand.operandWidth - 1, 0)));
+                                } else if (operand.portWidth < operand.operandWidth) {
+                                    onTrigger.append(Assign(
+                                        dstSignal,
+                                        Ext(srcSignal, operand.operandWidth, operand.portWidth)));
+                                } else {
+                                    onTrigger.append(Assign(dstSignal, LHSSignal(srcSignal)));
+                                }
                             }
                         }
                     }
