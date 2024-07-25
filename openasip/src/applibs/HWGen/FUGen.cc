@@ -674,6 +674,7 @@ FUGen::buildOperations() {
     CodeBlock defaultValues;
     CodeBlock defaultSnippets;
     CodeBlock triggeredSnippets;
+    CodeBlock operationOutAssignments;
 
     for (auto&& d : extOutputs_) {
         operationCp << DefaultAssign(d.first, d.second);
@@ -721,7 +722,10 @@ FUGen::buildOperations() {
 
             std::string source = operand.signalName;
             std::string destination = operandSignal(name, id);
-            if (operand.portWidth > operand.operandWidth) {
+            if (operand.isOutput) {
+                operationOutAssignments.append(Assign(
+                    destination, LHSSignal(source)));
+            } else if (operand.portWidth > operand.operandWidth) {
                 defaultValues.append(Assign(
                     destination,
                     Splice(source, operand.operandWidth - 1, 0)));
@@ -732,10 +736,9 @@ FUGen::buildOperations() {
             } else {
                 defaultValues.append(Assign(destination, LHSSignal(source)));
             }
-
             if (!operand.isOutput) {
                 operationCp.reads(destination);
-            }
+            } 
         }
 
         replacesPerOp_[name] = buildReplaces(name);
@@ -847,7 +850,8 @@ FUGen::buildOperations() {
         }
     }
 
-    operationCp << defaultValues << defaultSnippets << triggeredSnippets;
+    operationCp << defaultValues     << defaultSnippets
+                << triggeredSnippets << operationOutAssignments;
     behaviour_ << operationCp;
 }
 
