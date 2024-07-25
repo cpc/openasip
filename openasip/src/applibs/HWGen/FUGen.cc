@@ -722,19 +722,20 @@ FUGen::buildOperations() {
 
             std::string source = operand.signalName;
             std::string destination = operandSignal(name, id);
+            CodeBlock* cb = &defaultValues;
             if (operand.isOutput) {
-                operationOutAssignments.append(Assign(
-                    destination, LHSSignal(source)));
-            } else if (operand.portWidth > operand.operandWidth) {
-                defaultValues.append(Assign(
+                cb = &operationOutAssignments;
+            }
+            if (operand.portWidth > operand.operandWidth) {
+                cb->append(Assign(
                     destination,
                     Splice(source, operand.operandWidth - 1, 0)));
             } else if (operand.portWidth < operand.operandWidth) {
-                defaultValues.append(Assign(
+                cb->append(Assign(
                     destination,
                     Ext(source, operand.operandWidth, operand.portWidth)));
             } else {
-                defaultValues.append(Assign(destination, LHSSignal(source)));
+                cb->append(Assign(destination, LHSSignal(source)));
             }
             if (!operand.isOutput) {
                 operationCp.reads(destination);
