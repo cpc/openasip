@@ -706,6 +706,22 @@ FUGen::buildOperations() {
         operationCp.reads(signal);
     }
 
+    // source -> destinations
+    std::map<std::string, std::vector<std::string>> subOpConnectionMap;
+
+    for (auto&& pair : scheduledOperations_) {
+        auto schedule = pair.second;
+        std::string name = pair.first;
+        for (auto&& operand : schedule.operands) {
+            int id = operand.id;
+            std::string source = operand.signalName;
+            std::string destination = operandSignal(name, id);
+            if (TCEString(destination).startsWith("subop") && !operand.isOutput) {
+                subOpConnectionMap[source].push_back(destination);
+            }
+        }
+    }
+
     std::set<std::string> defaultStatements;
     for (auto&& pair : scheduledOperations_) {
         auto schedule = pair.second;
@@ -719,7 +735,6 @@ FUGen::buildOperations() {
 
         for (auto&& operand : schedule.operands) {
             int id = operand.id;
-
             std::string source = operand.signalName;
             std::string destination = operandSignal(name, id);
             CodeBlock* cb = &defaultValues;
@@ -765,12 +780,41 @@ FUGen::buildOperations() {
 
             for (std::string subop : schedules) {
                 auto schedule = scheduledOperations_[subop];
+                //std::cerr << "subop: " << subop << " schedule.src=" << std::endl;
                 std::string baseOp = schedule.baseOp;
+
+                //TODO: can we assume this?
+                auto operand = schedule.operands.front();
                 if (schedule.initialCycle == cycle) {
                     auto& impl = baseOperations_[baseOp].implementation;
                     if (!impl.empty()) {
                         std::set<std::string> statements;
                         prepareSnippet(subop, impl, onTrigger, statements);
+
+                        //TODO: A hack
+                        std::string srcSignal = "";
+                        std::vector<std::string> dstSignals;
+                        for (const auto& key : subOpConnectionMap) {
+                            if (TCEString(key.first).startsWith(subop)) {
+                                dstSignals = key.second;
+                                srcSignal = key.first;
+                                break;
+                            }
+                        }
+                        std::cerr << "subop: " << subop << " " << srcSignal << " " << dstSignals.size() << std::endl;
+                        for (const auto& dstSignal : dstSignals) {
+                            if (operand.portWidth > operand.operandWidth) {
+                                onTrigger.append(Assign(
+                                    dstSignal,
+                                    Splice(srcSignal, operand.operandWidth - 1, 0)));
+                            } else if (operand.portWidth < operand.operandWidth) {
+                                onTrigger.append(Assign(
+                                    dstSignal,
+                                    Ext(srcSignal, operand.operandWidth, operand.portWidth)));
+                            } else {
+                                onTrigger.append(Assign(dstSignal, LHSSignal(srcSignal)));
+                            }
+                        }
                     }
                     emptyBlock = false;
                 }
