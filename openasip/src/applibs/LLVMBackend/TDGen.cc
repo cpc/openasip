@@ -338,47 +338,52 @@ const std::string TDGen::guardRegTemplateName = "Guard";
  *
  * @param mach Machine to generate plugin for.
  */
-TDGen::TDGen(const TTAMachine::Machine& mach) :
-    mach_(mach), dregNum_(0), maxVectorSize_(0),
+TDGen::TDGen(const TTAMachine::Machine& mach, bool initialize) :
+    mach_(mach), immInfo_(NULL), dregNum_(0), maxVectorSize_(0),
     highestLaneInt_(-1), highestLaneBool_(-1),
     hasExBoolRegs_(false), hasExIntRegs_(false), hasSelect_(false),
     littleEndian_(mach.isLittleEndian()),
     argRegCount_(1),
     requiredI32Regs_(0), requiredI64Regs_(0), prebypassStackIndeces_(false),
     use64bitForFP_(false) {
-    tempRegFiles_ = MachineConnectivityCheck::tempRegisterFiles(mach);
+    // These are TTA-specific, which we don't want to run for other targets
+    if (initialize) {
+        tempRegFiles_ = MachineConnectivityCheck::tempRegisterFiles(mach);
 
-    prebypassStackIndeces_ = false;
+        prebypassStackIndeces_ = false;
 
-    if (mach.is64bit()) {
-        std::set<int> scalarWidths { 1, 32 };
-        hasConditionalMoves_ =
-            MachineConnectivityCheck::hasConditionalMoves(mach_, scalarWidths);
+        if (mach.is64bit()) {
+            std::set<int> scalarWidths { 1, 32 };
+            hasConditionalMoves_ =
+                MachineConnectivityCheck::hasConditionalMoves(mach_, scalarWidths);
 
-        // TODO: this does not make sense! requires more!
-        requiredI64Regs_ = 0;
-        requiredI64Regs_ += argRegCount_;
+            // TODO: this does not make sense! requires more!
+            requiredI64Regs_ = 0;
+            requiredI64Regs_ += argRegCount_;
 
-    } else {
-        std::set<int> scalarWidths { 1, 32 };
-        hasConditionalMoves_ =
-            MachineConnectivityCheck::hasConditionalMoves(mach_, scalarWidths);
+        } else {
+            std::set<int> scalarWidths { 1, 32 };
+            hasConditionalMoves_ =
+                MachineConnectivityCheck::hasConditionalMoves(mach_, scalarWidths);
 
-        // TODO: this does not make sense! requires more!
-        requiredI32Regs_ = 0;
-        requiredI32Regs_ += argRegCount_;
+            // TODO: this does not make sense! requires more!
+            requiredI32Regs_ = 0;
+            requiredI32Regs_ += argRegCount_;
+        }
+        immInfo_ = ImmediateAnalyzer::analyze(mach_);
+        maxScalarWidth_ = mach.is64bit() ? 64 : 32;
+        initializeBackendContents();
     }
 
-    immInfo_ = ImmediateAnalyzer::analyze(mach_);
-    maxScalarWidth_ = mach.is64bit() ? 64 : 32;
-    initializeBackendContents();
 }
 
 /**
  * Destructor.
  */
 TDGen::~TDGen() {
-    delete immInfo_;
+    if (immInfo_ != NULL) {
+        delete immInfo_;
+    }
 }
 /*
  * Initializes backend components so that they are not generated
@@ -5372,6 +5377,35 @@ TDGen::getMatchableOperationDAG(
     return nullptr;
 }
 
+/**
+ * Returns a vector of DAGs that can be used in LLVM pattern.
+ *
+ * Operation DAGs are traversed in the order of trigger-semantics in the
+ * first .opp file found in path that defines the Operation.
+ *
+ * This method does not transfer ownership.
+ *
+ * @return The matchable operation DAGs. Empty if could not find.
+ */
+const std::vector<OperationDAG*>
+TDGen::getMatchableOperationDAGs(
+    const Operation& op) {
+    std::vector<OperationDAG*> matchableDAGs;
+    for (int i = 0; i < op.dagCount(); i++) {
+        OperationDAG& dag = op.dag(i);
+        if (op.dagError(i) != "") {
+            std::cerr << "Broken dag in operation " << op.name()
+                      << op.dagCode(i) << std::endl;
+            continue;
+        }
+
+        if (operationDAGCanBeMatched(dag)) {
+            matchableDAGs.push_back(&dag);
+        }
+    }
+    return matchableDAGs;
+}
+
 
 /**
  * Returns operation pattern in llvm .td format.
@@ -5621,7 +5655,11 @@ TDGen::constantNodeString(
             }
         }
     }
-    return Conversion::toString(node.value());
+    // TODO: Declaring without type specifier is not valid?
+    // The constnode would return this if it is the outer most op in the dag
+    return mach_.is64bit() ?
+                    "(i64 " + Conversion::toString(node.value()) + ")":
+                    "(i32 " + Conversion::toString(node.value()) + ")";
 }
 
 /**

@@ -43,6 +43,8 @@
 #include "GUITextGenerator.hh"
 #include "ProDeTextGenerator.hh"
 
+#include "RISCVFields.hh"
+
 using std::string;
 using boost::format;
 using namespace TTAMachine;
@@ -195,7 +197,7 @@ OTAFormatListDialog::updateOperationList() {
 
     for (int i = 0; i < f->operationCount(); i++) {
         operationList_->InsertItem(
-            0, WxConversion::toWxString(f->operation(i)));
+            0, WxConversion::toWxString(f->operationAtIndex(i)));
     }
 
     FindWindow(ID_ADD_OPERATION)->Enable();
@@ -278,12 +280,15 @@ OTAFormatListDialog::selectedOperation() {
 
 bool
 OTAFormatListDialog::validFormatName() const {
-    if (OTAFormatName_ == "riscv_r_type" ||
-        OTAFormatName_ == "riscv_i_type" ||
-        OTAFormatName_ == "riscv_s_type" ||
-        OTAFormatName_ == "riscv_b_type" ||
-        OTAFormatName_ == "riscv_u_type" ||
-        OTAFormatName_ == "riscv_j_type") {
+    if (OTAFormatName_ == RISCVFields::RISCV_R_TYPE_NAME   ||
+        OTAFormatName_ == RISCVFields::RISCV_R1_TYPE_NAME  ||
+        OTAFormatName_ == RISCVFields::RISCV_R3R_TYPE_NAME ||
+        OTAFormatName_ == RISCVFields::RISCV_R1R_TYPE_NAME ||
+        OTAFormatName_ == RISCVFields::RISCV_I_TYPE_NAME   ||
+        OTAFormatName_ == RISCVFields::RISCV_S_TYPE_NAME   ||
+        OTAFormatName_ == RISCVFields::RISCV_B_TYPE_NAME   ||
+        OTAFormatName_ == RISCVFields::RISCV_U_TYPE_NAME   ||
+        OTAFormatName_ == RISCVFields::RISCV_J_TYPE_NAME) {
         return true;
     }
     return false;
@@ -305,13 +310,16 @@ OTAFormatListDialog::onAddOTAFormat(wxCommandEvent&) {
 
     // Check the name validity.
     if (!validFormatName()) {
-        std::string message = "Format name is illegal. Legal names are:\n" \
-        "riscv_r_type\n" \
-        "riscv_i_type\n" \
-        "riscv_s_type\n" \
-        "riscv_b_type\n" \
-        "riscv_u_type\n" \
-        "riscv_j_type\n";
+        std::string message = "Format name is illegal. Legal names are:\n" + \
+        RISCVFields::RISCV_R_TYPE_NAME   + "\n" + \
+        RISCVFields::RISCV_R1_TYPE_NAME  + "\n" + \
+        RISCVFields::RISCV_R3R_TYPE_NAME + "\n" + \
+        RISCVFields::RISCV_R1R_TYPE_NAME + "\n" + \
+        RISCVFields::RISCV_I_TYPE_NAME   + "\n" + \
+        RISCVFields::RISCV_S_TYPE_NAME   + "\n" + \
+        RISCVFields::RISCV_B_TYPE_NAME   + "\n" + \
+        RISCVFields::RISCV_U_TYPE_NAME   + "\n" + \
+        RISCVFields::RISCV_J_TYPE_NAME   + "\n";
         InformationDialog warning(
             this, WxConversion::toWxString(message));
         warning.ShowModal();
@@ -358,8 +366,8 @@ OTAFormatListDialog::onOTAFormatName(wxCommandEvent&) {
     machine_->operationTriggeredFormatNavigator();
     if (trimmedName == _T("")) {
         FindWindow(ID_ADD_OTA_FORMAT)->Disable();
-    //Only 6 formats in RISC-V
-    } else if (nav.count() > 5) {
+    //Only 6 formats in RISC-V + 3 custom formats
+    } else if (nav.count() > 8) {
         FindWindow(ID_ADD_OTA_FORMAT)->Disable();
     } else {
         FindWindow(ID_ADD_OTA_FORMAT)->Enable();

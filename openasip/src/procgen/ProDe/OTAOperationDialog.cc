@@ -88,27 +88,34 @@ OTAOperationDialog::~OTAOperationDialog() {
 
 int
 OTAOperationDialog::numberOfInputs() const {
-    if (format_->name() == "riscv_r_type" ||
-        format_->name() == "riscv_i_type") {
+    if (format_->name() == RISCVFields::RISCV_R_TYPE_NAME ||
+        format_->name() == RISCVFields::RISCV_I_TYPE_NAME) {
         return 2;
     }
-    if (format_->name() == "riscv_s_type" ||
-        format_->name() == "riscv_b_type") {
+    if (format_->name() == RISCVFields::RISCV_S_TYPE_NAME ||
+        format_->name() == RISCVFields::RISCV_B_TYPE_NAME) {
         return 3;
     }
-    if (format_->name() == "riscv_u_type" ||
-        format_->name() == "riscv_j_type") {
+    if (format_->name() == RISCVFields::RISCV_U_TYPE_NAME   ||
+        format_->name() == RISCVFields::RISCV_J_TYPE_NAME   ||
+        format_->name() == RISCVFields::RISCV_R1R_TYPE_NAME ||
+        format_->name() == RISCVFields::RISCV_R1_TYPE_NAME) {
         return 1;
+    }
+    if (format_->name() == RISCVFields::RISCV_R3R_TYPE_NAME) {
+        return 3;
     }
     return 0;
 }
 
 int
 OTAOperationDialog::numberOfOutputs() const {
-    if (format_->name() == "riscv_r_type" ||
-        format_->name() == "riscv_i_type" ||
-        format_->name() == "riscv_u_type" ||
-        format_->name() == "riscv_j_type") {
+    if (format_->name() == RISCVFields::RISCV_R_TYPE_NAME   ||
+        format_->name() == RISCVFields::RISCV_R1R_TYPE_NAME ||
+        format_->name() == RISCVFields::RISCV_I_TYPE_NAME   ||
+        format_->name() == RISCVFields::RISCV_U_TYPE_NAME   ||
+        format_->name() == RISCVFields::RISCV_R3R_TYPE_NAME ||
+        format_->name() == RISCVFields::RISCV_J_TYPE_NAME) {
         return 1;
     }
     return 0;
@@ -116,12 +123,15 @@ OTAOperationDialog::numberOfOutputs() const {
 
 bool
 OTAOperationDialog::validFormatName() const {
-    if (format_->name() == "riscv_r_type" ||
-        format_->name() == "riscv_i_type" ||
-        format_->name() == "riscv_s_type" ||
-        format_->name() == "riscv_b_type" ||
-        format_->name() == "riscv_u_type" ||
-        format_->name() == "riscv_j_type") {
+    if (format_->name() == RISCVFields::RISCV_R_TYPE_NAME   ||
+        format_->name() == RISCVFields::RISCV_R1_TYPE_NAME  ||
+        format_->name() == RISCVFields::RISCV_R1R_TYPE_NAME ||
+        format_->name() == RISCVFields::RISCV_R3R_TYPE_NAME ||
+        format_->name() == RISCVFields::RISCV_I_TYPE_NAME   ||
+        format_->name() == RISCVFields::RISCV_S_TYPE_NAME   ||
+        format_->name() == RISCVFields::RISCV_B_TYPE_NAME   ||
+        format_->name() == RISCVFields::RISCV_U_TYPE_NAME   ||
+        format_->name() == RISCVFields::RISCV_J_TYPE_NAME) {
         return true;
     }
     return false;
@@ -130,18 +140,18 @@ OTAOperationDialog::validFormatName() const {
 std::set<TCEString>
 OTAOperationDialog::addRISCVBaseOperations(std::set<TCEString> opset) const {
     std::map<std::string, int> ops;
-    if (format_->name() == "riscv_r_type") {
-        ops = riscvRTypeOperations;
-    } else if (format_->name() == "riscv_i_type") {
-        ops = riscvITypeOperations;
-    } else if (format_->name() == "riscv_s_type") {
-        ops = riscvSTypeOperations;
-    } else if (format_->name() == "riscv_b_type") {
-        ops = riscvBTypeOperations;
-    } else if (format_->name() == "riscv_u_type") {
-        ops = riscvUTypeOperations;
-    } else if (format_->name() == "riscv_j_type") {
-        ops = riscvJTypeOperations;
+    if (format_->name() == RISCVFields::RISCV_R_TYPE_NAME) {
+        ops = RISCVFields::RISCVRTypeOperations;
+    } else if (format_->name() == RISCVFields::RISCV_I_TYPE_NAME) {
+        ops = RISCVFields::RISCVITypeOperations;
+    } else if (format_->name() == RISCVFields::RISCV_S_TYPE_NAME) {
+        ops = RISCVFields::RISCVSTypeOperations;
+    } else if (format_->name() == RISCVFields::RISCV_B_TYPE_NAME) {
+        ops = RISCVFields::RISCVBTypeOperations;
+    } else if (format_->name() == RISCVFields::RISCV_U_TYPE_NAME) {
+        ops = RISCVFields::RISCVUTypeOperations;
+    } else if (format_->name() == RISCVFields::RISCV_J_TYPE_NAME) {
+        ops = RISCVFields::RISCVJTypeOperations;
     }
     for (const auto& op : ops) {
         const std::string opName = op.first;
@@ -154,7 +164,7 @@ OTAOperationDialog::addRISCVBaseOperations(std::set<TCEString> opset) const {
             opset.insert(opName);
             continue;
         }
-        const std::string OAName = operationNameTable.at(opName);
+        const std::string OAName = RISCVFields::RISCVOperationNameTable.at(opName);
         if (format_->machine()->hasOperation(OAName)) {
             opset.insert(opName);
         }
@@ -172,7 +182,10 @@ OTAOperationDialog::TransferDataToWindow() {
     operationList_->Clear();
 
     std::set<TCEString> opset;
-    if (format_->name() == "riscv_r_type") {
+    if (format_->name() == RISCVFields::RISCV_R_TYPE_NAME   ||
+        format_->name() == RISCVFields::RISCV_R3R_TYPE_NAME ||
+        format_->name() == RISCVFields::RISCV_R1R_TYPE_NAME ||
+        format_->name() == RISCVFields::RISCV_R1_TYPE_NAME) {
         Machine::FunctionUnitNavigator nav =
             format_->machine()->functionUnitNavigator();
         for (int i = 0; i < nav.count(); i++) {
@@ -191,7 +204,7 @@ OTAOperationDialog::TransferDataToWindow() {
                 } else if (op->numberOfOutputs() != numberOfOutputs()) {
                     continue;
                 } else if (MapTools::containsValue(
-                    operationNameTable, opName)) {
+                    RISCVFields::RISCVOperationNameTable, opName)) {
                         continue;
                 }
                 opset.insert(opName);

@@ -1,0 +1,146 @@
+# Compiler and flags
+CXX := g++
+CXXFLAGS := -O2 -fPIC -std=c++17
+
+# Get include directory from llvmtce-config
+LLVMTCE_INCLUDE_DIR := $(shell llvmtce-config --includedir)
+CXXFLAGS += -I$(LLVMTCE_INCLUDE_DIR) -I .
+TABLEGEN_INCLUDE = -I$(LLVMTCE_INCLUDE_DIR) -I .
+
+# Linking flags
+LDFLAGS := -shared
+
+# Tablegen executable
+TABLEGEN := llvm-tblgen
+
+# TD file for tablegen
+TD_FILE := RISCV.td
+
+# Source files
+CPP_SRCS := \
+    ./AsmParser/RISCVAsmParser.cpp \
+    ./RISCVRedundantCopyElimination.cpp \
+    ./RISCVPushPopOptimizer.cpp \
+    ./RISCVAsmPrinter.cpp \
+    ./RISCVExpandAtomicPseudoInsts.cpp \
+    ./RISCVCodeGenPrepare.cpp \
+    ./RISCVInstrInfo.cpp \
+    ./RISCVExpandPseudoInsts.cpp \
+    ./RISCVMergeBaseOffset.cpp \
+    ./RISCVISelLowering.cpp \
+    ./MCA/RISCVCustomBehaviour.cpp \
+    ./RISCVGatherScatterLowering.cpp \
+    ./RISCVMacroFusion.cpp \
+    ./RISCVInsertReadWriteCSR.cpp \
+    ./RISCVMachineFunctionInfo.cpp \
+    ./TargetInfo/RISCVTargetInfo.cpp \
+    ./RISCVInsertVSETVLI.cpp \
+    ./GISel/RISCVLegalizerInfo.cpp \
+    ./GISel/RISCVInstructionSelector.cpp \
+    ./GISel/RISCVCallLowering.cpp \
+    ./GISel/RISCVRegisterBankInfo.cpp \
+    ./MCTargetDesc/RISCVInstPrinter.cpp \
+    ./MCTargetDesc/RISCVBaseInfo.cpp \
+    ./MCTargetDesc/RISCVTargetStreamer.cpp \
+    ./MCTargetDesc/RISCVMCTargetDesc.cpp \
+    ./MCTargetDesc/RISCVMCObjectFileInfo.cpp \
+    ./MCTargetDesc/RISCVMatInt.cpp \
+    ./MCTargetDesc/RISCVELFStreamer.cpp \
+    ./MCTargetDesc/RISCVAsmBackend.cpp \
+    ./MCTargetDesc/RISCVMCCodeEmitter.cpp \
+    ./MCTargetDesc/RISCVMCExpr.cpp \
+    ./MCTargetDesc/RISCVELFObjectWriter.cpp \
+    ./MCTargetDesc/RISCVMCAsmInfo.cpp \
+    ./RISCVRegisterInfo.cpp \
+    ./RISCVTargetObjectFile.cpp \
+    ./RISCVISelDAGToDAG.cpp \
+    ./RISCVRVVInitUndef.cpp \
+    ./RISCVMoveMerger.cpp \
+    ./RISCVTargetMachine.cpp \
+    ./Disassembler/RISCVDisassembler.cpp \
+    ./RISCVFrameLowering.cpp \
+    ./RISCVSubtarget.cpp \
+    ./RISCVTargetTransformInfo.cpp \
+    ./RISCVOptWInstrs.cpp \
+    ./RISCVMakeCompressible.cpp
+
+# Define tablegen targets
+TABLEGEN_TARGETS := \
+    RISCVGenAsmMatcher.inc \
+    RISCVGenAsmWriter.inc \
+    RISCVGenCompressInstEmitter.inc \
+    RISCVGenDAGISel.inc \
+    RISCVGenDisassemblerTables.inc \
+    RISCVGenGlobalISel.inc \
+    RISCVGenInstrInfo.inc \
+    RISCVGenMCCodeEmitter.inc \
+    RISCVGenMCPseudoLowering.inc \
+    RISCVGenRegisterBank.inc \
+    RISCVGenRegisterInfo.inc \
+    RISCVGenSearchableTables.inc \
+    RISCVGenSubtargetInfo.inc
+
+
+# Object files
+OBJS := $(CPP_SRCS:.cpp=.o)
+
+# Output shared library
+LIBRARY := plugin.so
+
+.PHONY: all clean
+
+# Default target
+all: $(LIBRARY)
+
+# Generate .inc files with llvm-tblgen
+RISCVGenAsmMatcher.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-asm-matcher $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenAsmWriter.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-asm-writer $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenCompressInstEmitter.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-compress-inst-emitter $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenDAGISel.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-dag-isel $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenDisassemblerTables.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-disassembler $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenGlobalISel.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-global-isel $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenInstrInfo.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-instr-info $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenMCCodeEmitter.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-emitter $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenMCPseudoLowering.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-pseudo-lowering $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenRegisterBank.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-register-bank $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenRegisterInfo.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-register-info $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenSearchableTables.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-searchable-tables $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenSubtargetInfo.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-subtarget $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+# Compile sources in parallel
+%.o: %.cpp $(TABLEGEN_TARGETS)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Link object files into shared library
+$(LIBRARY): $(OBJS)
+	$(CXX) $(LDFLAGS) -o $@ $(OBJS)
+	rm -f $(OBJS) $(TABLEGEN_TARGETS)
+
+# Clean up
+clean:
+	rm -f $(OBJS) $(LIBRARY) $(TABLEGEN_TARGETS)

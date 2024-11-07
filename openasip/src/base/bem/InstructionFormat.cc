@@ -191,10 +191,22 @@ InstructionFormat::width() const {
     return width;
 }
 
-std::map<std::string, int>
-InstructionFormat::operations() const {
-    return operations_;
+int
+InstructionFormat::operationCount() const {
+    return operations_.size();
 }
+
+std::string
+InstructionFormat::operationAtIndex(const int index) const {
+    if (index > operationCount() - 1) {
+        const std::string msg = "Operation index out of range.";
+        throw OutOfRange(__FILE__, __LINE__, __func__, msg);
+    }
+    auto it = operations_.begin();
+    std::advance(it, index);
+    return it->first;
+}
+
 
 int
 InstructionFormat::encoding(const std::string& op) const {

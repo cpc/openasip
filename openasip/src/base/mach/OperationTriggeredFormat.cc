@@ -104,11 +104,6 @@ OperationTriggeredFormat::~OperationTriggeredFormat() {
     unsetMachine();
 }
 
-std::vector<std::string>
-OperationTriggeredFormat::operations() const {
-    return operations_;
-}
-
 void
 OperationTriggeredFormat::addOperation(const std::string& op) {
     operations_.push_back(op);
@@ -129,7 +124,7 @@ OperationTriggeredFormat::operationCount() const {
 }
 
 std::string
-OperationTriggeredFormat::operation(int index) const {
+OperationTriggeredFormat::operationAtIndex(int index) const {
     if (index > operationCount() - 1) {
         const std::string msg = "Operation index out of range.";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);

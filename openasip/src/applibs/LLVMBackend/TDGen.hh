@@ -76,10 +76,10 @@ class RegisterClass;
  */
 class TDGen {
 public:
-    TDGen(const TTAMachine::Machine& mach);
+    TDGen(const TTAMachine::Machine& mach, bool initialize=true);
     virtual ~TDGen();
-    void generateBackend(const std::string& path) const;
-    std::string generateBackend() const;
+    virtual void generateBackend(const std::string& path) const;
+    virtual std::string generateBackend() const;
     // todo clear out virtual functions. they are a remaind of removed
     // TDGenSIMD.
 protected:
@@ -297,6 +297,9 @@ protected:
     const OperationDAG* getMatchableOperationDAG(
         const Operation& op);
 
+    const std::vector<OperationDAG*> getMatchableOperationDAGs(
+        const Operation& op);
+
     std::string tceOperationPattern(const Operation& op);
 
     std::string patOutputs(const Operation& op, const std::string& oprTypes);
@@ -428,7 +431,6 @@ protected:
         std::ostream& os, const TCEString& nodeName,
         const TCEString& opNameBase, int i);
 
-    ImmInfo* immInfo_ = nullptr;
     /// Maps (operation, operand) pairs to i32 immediate operand definition
     /// names.
     std::map<ImmInfoKey, std::string> immOperandDefs_;
@@ -459,6 +461,8 @@ protected:
 
     void initializeBackendContents();
     const TTAMachine::Machine& mach_;
+
+    ImmInfo* immInfo_;
 
     // Current dwarf register number.
     unsigned dregNum_;

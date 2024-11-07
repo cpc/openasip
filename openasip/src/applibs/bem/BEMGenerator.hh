@@ -81,7 +81,8 @@ private:
     void addEncodings(GuardField& field) const;
 
     void addRiscvFormat(TTAMachine::OperationTriggeredFormat* format,
-    BinaryEncoding& bem) const;
+    BinaryEncoding& bem, unsigned& amountOfRCustomOps,
+    unsigned& amountOfR3RCustomOps) const;
 
     void addPortCodes(
         SocketCodeTable& table, 

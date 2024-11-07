@@ -1,5 +1,13 @@
-SUBDIRS=tceopgen llvm-tce
+SUBDIRS=tceopgen llvm-tce riscv-tdgen
 
 bin_SCRIPTS = oacc oacc-riscv
 EXTRA_DIST = ${bin_SCRIPTS}
 
+# Generate the default plugin here so that
+# it is not done multiple times in parallel when compiling newlib
+post-build:
+	./oacc-riscv --generate-plugin
+
+all: post-build
+
+.PHONY: post-build

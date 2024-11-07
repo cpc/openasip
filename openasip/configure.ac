@@ -1457,6 +1457,7 @@ AC_CONFIG_FILES([
   src/bintools/Compiler/Makefile
   src/bintools/Compiler/tceopgen/Makefile
   src/bintools/Compiler/llvm-tce/Makefile
+  src/bintools/Compiler/riscv-tdgen/Makefile
   src/applibs/ImplementationTester/Makefile
   src/applibs/PlatformIntegrator/Makefile
   tools/Makefile

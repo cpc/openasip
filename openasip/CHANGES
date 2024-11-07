@@ -1,6 +1,14 @@
 2.2     unreleased
 =====================
 
+Main changes and features
+-------------------------
+- RISC-V compiler now generates new LLVM Targets from RISC-V ADFs
+  and loads them dynamically, which adds support for automatic
+  instruction selection for RISC-V custom instructions.
+
+
+
 2.1     December 2023
 =====================
 

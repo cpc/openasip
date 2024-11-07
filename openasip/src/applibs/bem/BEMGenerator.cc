@@ -179,11 +179,16 @@ BEMGenerator::addTopLevelFields(BinaryEncoding& bem) const {
         addEncodings(*field);
     }
 
+    unsigned amountOfRCustomOps = 0;
+    unsigned amountOfR3RCustomOps = 0;
+
     Machine::OperationTriggeredFormatNavigator fNav =
         machine_->operationTriggeredFormatNavigator();
+
+    // For CVX-IF, make sure these are iterated in the correct order.
     for (int i = 0; i < fNav.count(); i++) {
         OperationTriggeredFormat* fTemp = fNav.item(i);
-        addRiscvFormat(fTemp, bem);
+        addRiscvFormat(fTemp, bem, amountOfRCustomOps, amountOfR3RCustomOps);
     }
 }
 
@@ -196,11 +201,14 @@ BEMGenerator::addTopLevelFields(BinaryEncoding& bem) const {
 
 void
 BEMGenerator::addRiscvFormat(
-    OperationTriggeredFormat* format, BinaryEncoding& bem) const {
+    OperationTriggeredFormat* format, BinaryEncoding& bem,
+    unsigned& amountOfRCustomOps, unsigned& amountOfR3RCustomOps) const {
     std::string name = format->name();
     InstructionFormat* instrFormat = new InstructionFormat(name, bem);
+    const unsigned OPC_CUSTOM_0 = 0b0001011;
+    const unsigned OPC_CUSTOM_1 = 0b0101011;
 
-    if (name == "riscv_r_type") {
+    if (name == RISCVFields::RISCV_R_TYPE_NAME) {
         OperationTriggeredEncoding* rs1 =
             new OperationTriggeredEncoding(std::string("rs1"), *instrFormat);
         OperationTriggeredEncoding* rs2 =
@@ -216,26 +224,21 @@ BEMGenerator::addRiscvFormat(
         new OperationTriggeredField(*opcode, 1, 12, 3);
         new OperationTriggeredField(*opcode, 2, 25, 7);
 
-        std::vector<std::string> operations = format->operations();
-        // Preserve first few encodings for fixed special case
-        unsigned int amountOfCustomOps = 10;
-        for (const std::string& op : operations) {
-            if (MapTools::containsKey(riscvRTypeOperations, op)) {
-                instrFormat->addOperation(op, riscvRTypeOperations.at(op));
+        // Reserve first few encodings for fixed special case
+        for (int i = 0; i < format->operationCount(); i++) {
+            const std::string op = format->operationAtIndex(i);
+            if (MapTools::containsKey(RISCVFields::RISCVRTypeOperations, op)) {
+                instrFormat->addOperation(op, RISCVFields::RISCVRTypeOperations.at(op));
             } else {
-                unsigned int customEncoding = 0b0001011;
-                //Preserve this for printing
-                if (TCEString(op).lower() == "stdout_riscv") {
-                    customEncoding = 0b0001011;
-                } else {
-                    customEncoding += (amountOfCustomOps << 7);
-                    amountOfCustomOps++;
-                }
-                assert(amountOfCustomOps < 127);
+                unsigned int customEncoding = OPC_CUSTOM_0;
+                customEncoding += (amountOfRCustomOps << 7);
+                amountOfRCustomOps++;
+                // 10 bit encoding for operation
+                assert(amountOfRCustomOps < 1024);
                 instrFormat->addOperation(op, customEncoding);
             }
         }
-    } else if (name == "riscv_i_type") {
+    } else if (name == RISCVFields::RISCV_I_TYPE_NAME) {
         // TODO: shift operations use immediate bits for funct code in this
         //  format
         OperationTriggeredEncoding* rs1 =
@@ -252,15 +255,15 @@ BEMGenerator::addRiscvFormat(
         new OperationTriggeredField(*opcode, 0, 0, 7);
         new OperationTriggeredField(*opcode, 1, 12, 3);
         new OperationTriggeredField(*opcode, 2, 25, 7);
-        std::vector<std::string> operations = format->operations();
-        for (const std::string& op : operations) {
-            if (MapTools::containsKey(riscvITypeOperations, op)) {
-                instrFormat->addOperation(op, riscvITypeOperations.at(op));
+        for (int i = 0; i < format->operationCount(); i++) {
+            const std::string op = format->operationAtIndex(i);
+            if (MapTools::containsKey(RISCVFields::RISCVITypeOperations, op)) {
+                instrFormat->addOperation(op, RISCVFields::RISCVITypeOperations.at(op));
             } else {
                 assert(false);
             }
         }
-    } else if (name == "riscv_s_type") {
+    } else if (name == RISCVFields::RISCV_S_TYPE_NAME) {
         OperationTriggeredEncoding* rs1 =
             new OperationTriggeredEncoding(std::string("rs1"), *instrFormat);
         OperationTriggeredEncoding* imm =
@@ -275,15 +278,15 @@ BEMGenerator::addRiscvFormat(
             std::string("opcode"), *instrFormat);
         new OperationTriggeredField(*opcode, 0, 0, 7);
         new OperationTriggeredField(*opcode, 1, 12, 3);
-        std::vector<std::string> operations = format->operations();
-        for (const std::string& op : operations) {
-            if (MapTools::containsKey(riscvSTypeOperations, op)) {
-                instrFormat->addOperation(op, riscvSTypeOperations.at(op));
+        for (int i = 0; i < format->operationCount(); i++) {
+            const std::string op = format->operationAtIndex(i);
+            if (MapTools::containsKey(RISCVFields::RISCVSTypeOperations, op)) {
+                instrFormat->addOperation(op, RISCVFields::RISCVSTypeOperations.at(op));
             } else {
                 assert(false);
             }
         }
-    } else if (name == "riscv_b_type") {
+    } else if (name == RISCVFields::RISCV_B_TYPE_NAME) {
         OperationTriggeredEncoding* rs1 =
             new OperationTriggeredEncoding(std::string("rs1"), *instrFormat);
         OperationTriggeredEncoding* imm =
@@ -300,15 +303,15 @@ BEMGenerator::addRiscvFormat(
             std::string("opcode"), *instrFormat);
         new OperationTriggeredField(*opcode, 0, 0, 7);
         new OperationTriggeredField(*opcode, 1, 12, 3);
-        std::vector<std::string> operations = format->operations();
-        for (const std::string& op : operations) {
-            if (MapTools::containsKey(riscvBTypeOperations, op)) {
-                instrFormat->addOperation(op, riscvBTypeOperations.at(op));
+        for (int i = 0; i < format->operationCount(); i++) {
+            const std::string op = format->operationAtIndex(i);
+            if (MapTools::containsKey(RISCVFields::RISCVBTypeOperations, op)) {
+                instrFormat->addOperation(op, RISCVFields::RISCVBTypeOperations.at(op));
             } else {
                 assert(false);
             }
         }
-    } else if (name == "riscv_u_type") {
+    } else if (name == RISCVFields::RISCV_U_TYPE_NAME) {
         OperationTriggeredEncoding* rd =
             new OperationTriggeredEncoding(std::string("rd"), *instrFormat);
         new OperationTriggeredField(*rd, 0, 7, 5);
@@ -318,15 +321,15 @@ BEMGenerator::addRiscvFormat(
             new OperationTriggeredEncoding(std::string("imm"), *instrFormat);
         new OperationTriggeredField(*imm, 0, 12, 20);
         new OperationTriggeredField(*opcode, 0, 0, 7);
-        std::vector<std::string> operations = format->operations();
-        for (const std::string& op : operations) {
-            if (MapTools::containsKey(riscvUTypeOperations, op)) {
-                instrFormat->addOperation(op, riscvUTypeOperations.at(op));
+        for (int i = 0; i < format->operationCount(); i++) {
+            const std::string op = format->operationAtIndex(i);
+            if (MapTools::containsKey(RISCVFields::RISCVUTypeOperations, op)) {
+                instrFormat->addOperation(op, RISCVFields::RISCVUTypeOperations.at(op));
             } else {
                 assert(false);
             }
         }
-    } else if (name == "riscv_j_type") {
+    } else if (name == RISCVFields::RISCV_J_TYPE_NAME) {
         OperationTriggeredEncoding* rd =
             new OperationTriggeredEncoding(std::string("rd"), *instrFormat);
         new OperationTriggeredField(*rd, 0, 7, 5);
@@ -339,15 +342,95 @@ BEMGenerator::addRiscvFormat(
         new OperationTriggeredField(*imm, 2, 15, 8);
         new OperationTriggeredField(*imm, 3, 31, 1);
         new OperationTriggeredField(*opcode, 0, 0, 7);
-        std::vector<std::string> operations = format->operations();
-        for (const std::string& op : operations) {
-            if (MapTools::containsKey(riscvJTypeOperations, op)) {
-                instrFormat->addOperation(op, riscvJTypeOperations.at(op));
+        for (int i = 0; i < format->operationCount(); i++) {
+            const std::string op = format->operationAtIndex(i);
+            if (MapTools::containsKey(RISCVFields::RISCVJTypeOperations, op)) {
+                instrFormat->addOperation(op, RISCVFields::RISCVJTypeOperations.at(op));
             } else {
                 assert(false);
             }
         }
-    } else {
+        // This is a custom format for unary operations
+        // but it still uses R-format with rs2 = x0
+    } else if (name == RISCVFields::RISCV_R1R_TYPE_NAME) {
+        OperationTriggeredEncoding* rs1 =
+            new OperationTriggeredEncoding(std::string("rs1"), *instrFormat);
+        OperationTriggeredEncoding* rd =
+            new OperationTriggeredEncoding(std::string("rd"), *instrFormat);
+        new OperationTriggeredField(*rs1, 0, 15, 5);
+        new OperationTriggeredField(*rd, 0, 7, 5);
+        OperationTriggeredEncoding* opcode = new OperationTriggeredEncoding(
+            std::string("opcode"), *instrFormat);
+        new OperationTriggeredField(*opcode, 0, 0, 7);
+        new OperationTriggeredField(*opcode, 1, 12, 3);
+        new OperationTriggeredField(*opcode, 2, 25, 7);
+
+        for (int i = 0; i < format->operationCount(); i++) {
+            const std::string op = format->operationAtIndex(i);
+            unsigned int customEncoding = OPC_CUSTOM_0;
+            customEncoding += (amountOfRCustomOps << 7);
+            amountOfRCustomOps++;
+            // 10 bit encoding for operation
+            assert(amountOfRCustomOps < 1024);
+            instrFormat->addOperation(op, customEncoding);
+        }
+        // unary without output, stdout for example
+    } else if (name == RISCVFields::RISCV_R1_TYPE_NAME) {
+        OperationTriggeredEncoding* rs1 =
+            new OperationTriggeredEncoding(std::string("rs1"), *instrFormat);
+        new OperationTriggeredField(*rs1, 0, 15, 5);
+        OperationTriggeredEncoding* opcode = new OperationTriggeredEncoding(
+            std::string("opcode"), *instrFormat);
+        new OperationTriggeredField(*opcode, 0, 0, 7);
+        new OperationTriggeredField(*opcode, 1, 12, 3);
+        new OperationTriggeredField(*opcode, 2, 25, 7);
+
+        for (int i = 0; i < format->operationCount(); i++) {
+            const std::string op = format->operationAtIndex(i);
+            unsigned int customEncoding = OPC_CUSTOM_0;
+            // Reserve this for printing
+            if (TCEString(op).lower() != "stdout") {
+                customEncoding += (amountOfRCustomOps << 7);
+                amountOfRCustomOps++;
+            }
+            // 10 bit encoding for operation
+            assert(amountOfRCustomOps < 1024);
+            instrFormat->addOperation(op, customEncoding);
+        }
+    } else if (name == RISCVFields::RISCV_R3R_TYPE_NAME) {
+        OperationTriggeredEncoding* rs1 =
+            new OperationTriggeredEncoding(std::string("rs1"), *instrFormat);
+        OperationTriggeredEncoding* rs2 =
+            new OperationTriggeredEncoding(std::string("rs2"), *instrFormat);
+        OperationTriggeredEncoding* rs3 =
+            new OperationTriggeredEncoding(std::string("rs3"), *instrFormat);
+        OperationTriggeredEncoding* rd =
+            new OperationTriggeredEncoding(std::string("rd"), *instrFormat);
+        new OperationTriggeredField(*rs1, 0, 15, 5);
+        new OperationTriggeredField(*rs2, 0, 20, 5);
+        new OperationTriggeredField(*rs3, 0, 27, 5);
+        new OperationTriggeredField(*rd, 0, 7, 5);
+        OperationTriggeredEncoding* opcode = new OperationTriggeredEncoding(
+            std::string("opcode"), *instrFormat);
+        new OperationTriggeredField(*opcode, 0, 0, 7);
+        new OperationTriggeredField(*opcode, 1, 12, 3);
+        new OperationTriggeredField(*opcode, 2, 25, 2);
+
+        // Reserve first few encodings for fixed special case
+        for (int i = 0; i < format->operationCount(); i++) {
+            const std::string op = format->operationAtIndex(i);
+            if (MapTools::containsKey(RISCVFields::RISCVRTypeOperations, op)) {
+                instrFormat->addOperation(op, RISCVFields::RISCVRTypeOperations.at(op));
+            } else {
+                unsigned int customEncoding = OPC_CUSTOM_0;
+                customEncoding += (amountOfRCustomOps << 7);
+                amountOfRCustomOps++;
+                // 10 bit encoding for operation
+                assert(amountOfRCustomOps < 32);
+                instrFormat->addOperation(op, customEncoding);
+            }
+        }
+    }  else {
         // TODO: Throw some meaniningful exception here
         assert(false);
     }

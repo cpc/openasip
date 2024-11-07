@@ -207,35 +207,6 @@
     </writes-to>
   </socket>
 
-  <socket name="STDOUT_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="STDOUT_i2">
-    <reads-from>
-      <bus>B0</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="STDOUT_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-    <writes-to>
-      <bus>B0</bus>
-      <segment>seg1</segment>
-    </writes-to>
-    <writes-to>
-      <bus>B2</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
   <socket name="MUL_DIV_i1">
     <reads-from>
       <bus>B1</bus>
@@ -263,6 +234,13 @@
       <bus>B2</bus>
       <segment>seg1</segment>
     </writes-to>
+  </socket>
+
+  <socket name="STDOUT_i1">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <function-unit name="ALU">
@@ -665,44 +643,6 @@
     <address-space>data</address-space>
   </function-unit>
 
-  <function-unit name="STDOUT">
-    <port name="P1">
-      <connects-to>STDOUT_i1</connects-to>
-      <width>8</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="P2">
-      <connects-to>STDOUT_i2</connects-to>
-      <width>1</width>
-    </port>
-    <port name="P3">
-      <connects-to>STDOUT_o1</connects-to>
-      <width>1</width>
-    </port>
-    <operation>
-      <name>stdout_riscv</name>
-      <bind name="1">P1</bind>
-      <bind name="2">P2</bind>
-      <bind name="3">P3</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
   <function-unit name="MUL_DIV">
     <port name="in1t">
       <connects-to>MUL_DIV_i1</connects-to>
@@ -881,6 +821,26 @@
     <address-space/>
   </function-unit>
 
+  <function-unit name="stdout">
+    <port name="in1t">
+      <connects-to>STDOUT_i1</connects-to>
+      <width>8</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <operation>
+      <name>stdout</name>
+      <bind name="1">in1t</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
   <register-file name="RF">
     <type>normal</type>
     <size>32</size>
@@ -1032,7 +992,6 @@
     <ota-operation>sra</ota-operation>
     <ota-operation>slt</ota-operation>
     <ota-operation>sltu</ota-operation>
-    <ota-operation>stdout_riscv</ota-operation>
     <ota-operation>div</ota-operation>
     <ota-operation>divu</ota-operation>
     <ota-operation>mul</ota-operation>
@@ -1083,6 +1042,12 @@
 
   <ota-format name="riscv_j_type">
     <ota-operation>jal</ota-operation>
+  </ota-format>
+
+  <ota-format name="riscv_r1r_type"/>
+
+  <ota-format name="riscv_r1_type">
+    <ota-operation>stdout</ota-operation>
   </ota-format>
 
 </adf>

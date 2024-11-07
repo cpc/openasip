@@ -1060,12 +1060,6 @@ Machine::isRISCVMachine() const {
     int fCount = fNav.count();
     if (fCount == 0) {
         return false;
-    } else if (fCount != 6) {
-        throw InvalidData(
-            __FILE__, __LINE__, __func__,
-            TCEString("Only Instruction format count 6 or 0 valid") +
-                "Given machine has " + Conversion::toString(fCount) +
-                " formats");
     }
     const std::vector<std::string> requiredFormats = {
         "riscv_r_type", "riscv_i_type", "riscv_s_type",

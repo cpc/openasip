@@ -52,10 +52,8 @@ public:
     void addOperation(const std::string& op);
     void removeOperation(const std::string& op);
 
-    std::vector<std::string> operations() const;
-
     int operationCount() const;
-    std::string operation(int index) const;
+    std::string operationAtIndex(int index) const;
     bool hasOperation(const std::string& opName) const;
 
 
