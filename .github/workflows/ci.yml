@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - riscv_compiler_improvements
   pull_request:
     branches:
       - main
