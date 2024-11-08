@@ -1,0 +1,103 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Set environment variables
+        run: |
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/local/lib" >> $GITHUB_ENV
+          echo "PATH=$HOME/local/bin:$PATH" >> $GITHUB_ENV
+          echo "LDFLAGS=-L$HOME/local/lib" >> $GITHUB_ENV
+
+          ## TMPDIR
+          TMPDIR=$HOME/tmp
+          echo "TMPDIR=$TMPDIR" >> $GITHUB_ENV
+          mkdir -p $TMPDIR
+
+      - name: Print Envs
+        run: |
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+          echo "LDFLAGS=$LDFLAGS"
+          echo "PATH=$PATH"
+          echo "TMPDIR=$TMPDIR"
+ 
+      - name: Cache APT dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            /var/cache/apt/archives
+            /home/runner/.cache/pip
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/debian/control') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwxgtk3.0-gtk3-dev \
+            libboost-all-dev \
+            tcl8.6-dev \
+            libedit-dev \
+            libsqlite3-dev \
+            sqlite3 \
+            libxerces-c-dev \
+            g++ \
+            make \
+            latex2html \
+            libffi-dev \
+            autoconf \
+            automake \
+            libtool \
+            subversion \
+            git \
+            cmake \
+            graphviz \
+            bc
+
+      - name: Create $HOME/local directory
+        run: |
+          mkdir -p $HOME/local  # Ensure the directory exists
+
+      - name: Cache LLVM installation
+        uses: actions/cache@v3
+        with:
+          path: $HOME/local
+          key: ${{ runner.os }}-llvm-${{ hashFiles('openasip/tools/scripts/install_llvm_17.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-llvm-
+
+      - name: Install LLVM
+        run: |
+          if [ ! -d "$HOME/local/bin/clang" ]; then
+            cd openasip
+            ./tools/scripts/install_llvm_17.sh $HOME/local
+          else
+            echo "LLVM is already installed, skipping installation."
+          fi
+
+      - name: Compile and install
+        run: |
+          cd openasip
+          ./autogen.sh
+          ./configure --prefix=$HOME/local
+          make -j$(nproc)
+          make install
+
+      - name: Run tests
+        run: |
+          cd openasip
+          ./tools/scripts/compiletest.sh -c
