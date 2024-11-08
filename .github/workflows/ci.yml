@@ -34,16 +34,6 @@ jobs:
           echo "PATH=$PATH"
           echo "TMPDIR=$TMPDIR"
  
-      - name: Cache APT dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            /var/cache/apt/archives
-            /home/runner/.cache/pip
-          key: ${{ runner.os }}-apt-${{ hashFiles('**/debian/control') }}
-          restore-keys: |
-            ${{ runner.os }}-apt-
-
       - name: Install dependencies
         run: |
           sudo apt-get update
