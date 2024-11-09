@@ -13,15 +13,18 @@ jobs:
   build:
     runs-on: ubuntu-22.04 
 
+    env:
+      LLVM_VERSION: 17
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: Set environment variables
         run: |
-          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/local/lib" >> $GITHUB_ENV
-          echo "PATH=$HOME/local/bin:$PATH" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$HOME/local/lib" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ env.HOME }}/local/lib" >> $GITHUB_ENV
+          echo "PATH=${{ env.HOME }}/local/bin:$PATH" >> $GITHUB_ENV
+          echo "LDFLAGS=-L${{ env.HOME }}/local/lib" >> $GITHUB_ENV
 
           ## TMPDIR
           TMPDIR=$HOME/tmp
@@ -57,34 +60,43 @@ jobs:
             git \
             cmake \
             graphviz \
-            bc
+            bc \
+            ghdl
 
-      - name: Create $HOME/local directory
+      - name: Create ${{ env.HOME }}/local directory
         run: |
-          mkdir -p $HOME/local  # Ensure the directory exists
+          mkdir -p ${{ env.HOME }}/local  # Ensure the directory exists
 
-      - name: Cache LLVM installation
-        uses: actions/cache@v3
+      - name: Restore LLVM cache
+        id: llvm-cache-restore
+        uses: actions/cache/restore@v4
         with:
-          path: $HOME/local
-          key: ${{ runner.os }}-llvm-${{ hashFiles('openasip/tools/scripts/install_llvm_17.sh') }}
-          restore-keys: |
-            ${{ runner.os }}-llvm-
+          path: |
+            ${{ env.HOME }}/local
+          key: ${{ runner.os }}-llvm-${{ hashFiles('openasip/tools/scripts/install_llvm_${{ env.LLVM_VERSION }}.sh') }}
 
       - name: Install LLVM
         run: |
-          if [ ! -d "$HOME/local/bin/clang" ]; then
+          if [[ "${{ steps.llvm-cache-restore.outputs.cache-hit }}" != "true" ]]; then
+            echo "Cache not found. Installing LLVM..."
             cd openasip
-            ./tools/scripts/install_llvm_17.sh $HOME/local
+            ./tools/scripts/install_llvm_${{ env.LLVM_VERSION }}.sh ${{ env.HOME }}/local
           else
-            echo "LLVM is already installed, skipping installation."
+            echo "Cache hit! LLVM is already installed, skipping installation."
           fi
+
+      - name: Save LLVM cache
+        id: llvm-cache-save
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.HOME }}/local
+          key: ${{ steps.llvm-cache-restore.outputs.cache-primary-key }}
 
       - name: Compile and install
         run: |
           cd openasip
           ./autogen.sh
-          ./configure --prefix=$HOME/local
+          ./configure --prefix=${{ env.HOME }}/local
           make -j$(nproc)
           make install
 
