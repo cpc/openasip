@@ -22,9 +22,9 @@ jobs:
         
       - name: Set environment variables
         run: |
-          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ env.HOME }}/local/lib" >> $GITHUB_ENV
-          echo "PATH=${{ env.HOME }}/local/bin:$PATH" >> $GITHUB_ENV
-          echo "LDFLAGS=-L${{ env.HOME }}/local/lib" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/local/lib" >> $GITHUB_ENV
+          echo "PATH=${{ github.workspace }}/local/bin:$PATH" >> $GITHUB_ENV
+          echo "LDFLAGS=-L${{ github.workspace }}/local/lib" >> $GITHUB_ENV
 
           ## TMPDIR
           TMPDIR=$HOME/tmp
@@ -63,16 +63,16 @@ jobs:
             bc \
             ghdl
 
-      - name: Create ${{ env.HOME }}/local directory
+      - name:
         run: |
-          mkdir -p ${{ env.HOME }}/local  # Ensure the directory exists
+          mkdir -p ${{ github.workspace }}/local
 
       - name: Restore LLVM cache
         id: llvm-cache-restore
         uses: actions/cache/restore@v4
         with:
           path: |
-            ${{ env.HOME }}/local
+            ${{ github.workspace }}/local
           key: ${{ runner.os }}-llvm-${{ hashFiles('openasip/tools/scripts/install_llvm_${{ env.LLVM_VERSION }}.sh') }}
 
       - name: Install LLVM
@@ -80,7 +80,7 @@ jobs:
           if [[ "${{ steps.llvm-cache-restore.outputs.cache-hit }}" != "true" ]]; then
             echo "Cache not found. Installing LLVM..."
             cd openasip
-            ./tools/scripts/install_llvm_${{ env.LLVM_VERSION }}.sh ${{ env.HOME }}/local
+            ./tools/scripts/install_llvm_${{ env.LLVM_VERSION }}.sh ${{ github.workspace }}/local
           else
             echo "Cache hit! LLVM is already installed, skipping installation."
           fi
@@ -89,14 +89,14 @@ jobs:
         id: llvm-cache-save
         uses: actions/cache/save@v4
         with:
-          path: ${{ env.HOME }}/local
+          path: ${{ github.workspace }}/local
           key: ${{ steps.llvm-cache-restore.outputs.cache-primary-key }}
 
       - name: Compile and install
         run: |
           cd openasip
           ./autogen.sh
-          ./configure --prefix=${{ env.HOME }}/local
+          ./configure --prefix=${{ github.workspace }}/local
           make -j$(nproc)
           make install
 
