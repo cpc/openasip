@@ -1,0 +1,105 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04 
+
+    env:
+      LLVM_VERSION: 17
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set environment variables
+        run: |
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/local/lib" >> $GITHUB_ENV
+          echo "PATH=${{ github.workspace }}/local/bin:$PATH" >> $GITHUB_ENV
+          echo "LDFLAGS=-L${{ github.workspace }}/local/lib" >> $GITHUB_ENV
+
+          ## TMPDIR
+          TMPDIR=$HOME/tmp
+          echo "TMPDIR=$TMPDIR" >> $GITHUB_ENV
+          mkdir -p $TMPDIR
+
+      - name: Print Envs
+        run: |
+          echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+          echo "LDFLAGS=$LDFLAGS"
+          echo "PATH=$PATH"
+          echo "TMPDIR=$TMPDIR"
+ 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwxgtk3.0-gtk3-dev \
+            libboost-all-dev \
+            tcl8.6-dev \
+            libedit-dev \
+            libsqlite3-dev \
+            sqlite3 \
+            libxerces-c-dev \
+            g++ \
+            make \
+            latex2html \
+            libffi-dev \
+            autoconf \
+            automake \
+            libtool \
+            subversion \
+            git \
+            cmake \
+            graphviz \
+            bc \
+            ghdl
+
+      - name:
+        run: |
+          mkdir -p ${{ github.workspace }}/local
+
+      - name: Restore LLVM cache
+        id: llvm-cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ${{ github.workspace }}/local
+          key: ${{ runner.os }}-llvm-${{ hashFiles('openasip/tools/scripts/install_llvm_${{ env.LLVM_VERSION }}.sh') }}
+
+      - name: Install LLVM
+        run: |
+          if [[ "${{ steps.llvm-cache-restore.outputs.cache-hit }}" != "true" ]]; then
+            echo "Cache not found. Installing LLVM..."
+            cd openasip
+            ./tools/scripts/install_llvm_${{ env.LLVM_VERSION }}.sh ${{ github.workspace }}/local
+          else
+            echo "Cache hit! LLVM is already installed, skipping installation."
+          fi
+
+      - name: Save LLVM cache
+        id: llvm-cache-save
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/local
+          key: ${{ steps.llvm-cache-restore.outputs.cache-primary-key }}
+
+      - name: Compile and install
+        run: |
+          cd openasip
+          ./autogen.sh
+          ./configure --prefix=${{ github.workspace }}/local
+          make -j$(nproc)
+          make install
+
+      - name: Run tests
+        run: |
+          cd openasip
+          ./tools/scripts/compiletest.sh -c

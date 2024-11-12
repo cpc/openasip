@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 # 
-# Copyright (C) 2022 Tampere University.
+# Copyright (C) 2022-2024 Tampere University.
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -17,9 +17,9 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #
-# @author Kari Hepola 2022
+# @author Kari Hepola 2022-2024
 #
-# RISC-V compiler driver that utilizes LLVM and the OpenASIP backend
+# A LLVM-based compiler driver for RISC-V ASIPs
 #
 # Usage: oacc-riscv module1.c module2.c -o module
 #
@@ -34,6 +34,9 @@ from shutil import which
 from subprocess import Popen, PIPE
 from venv import create
 from xml.etree import ElementTree as ET
+import hashlib
+import base64
+import tempfile
 
 scriptDir = os.path.abspath(os.path.dirname(sys.argv[0]))
 runningInstalled = 'src/bintools/Compiler' not in scriptDir or not \
@@ -42,8 +45,10 @@ runningInstalled = 'src/bintools/Compiler' not in scriptDir or not \
 
 ### tce install prefix
 tceInstalled = True
-tceprefix = ""
+tceprefix = "@prefix@"
 additionalTmpFiles = []
+tempfiles = []
+
 if 'TCE_INSTALL_DIR' in os.environ.keys():
     tceprefix = os.environ['TCE_INSTALL_DIR']
 else:
@@ -55,6 +60,23 @@ else:
 
 assert not runningInstalled or (tceInstalled and tceprefix != ""), \
         "Could not find TCE prefix. Is TCE installed in PATH?"
+
+
+def generateLoweringMacros():
+    op_list = ["max", "min", "maxu", "minu", "abs", "rotr", "rotl", "select"]
+    macro_defs = ""
+    with open(options.adf, 'r') as file:
+        for line in file:
+            for op in op_list:
+                search_string = "<ota-operation>" + op + "</ota-operation>"
+                if search_string in line:
+                    macro_defs += "#define OPENASIP_" + op.upper() + " 1\n"
+                    op_list.remove(op)
+
+    definesPath = os.path.join(tmpTargetPluginDir, "OpenASIPDefines.h")
+    definesFile = open(definesPath, "w")
+    definesFile.write(macro_defs)
+    definesFile.close()
 
 def newlibIncludes():
     if runningInstalled:
@@ -82,7 +104,6 @@ def stdLibFlags():
     flags += "-L " + newlibLibdir() + " "
     return str(flags)
 
-                                                 
 def run_command(command, echoStderr=True, echoStdout=True, echoCmd=False):
     """Runs the given shell command and returns its exit code.
 
@@ -110,16 +131,6 @@ def run_command(command, echoStderr=True, echoStdout=True, echoCmd=False):
              stderr=stderrFD, close_fds=False)
     return process.wait()
 
-tempfiles = []
-
-def hasMExtension(options):
-    global MMachine
-    MMachine = False
-    if options.adf_file != "":
-        #TODO: We should check all M extension operations here
-        MMachine = ">mul</" in open(options.adf_file).read()
-    return MMachine
-
 def create_temp_file(suffix=""):
     tf = mkstemp(suffix=suffix, dir=tempDir)[1]
     tempfiles.append(tf)
@@ -132,6 +143,85 @@ def cleanup_and_exit(retval=0):
             os.unlink(str(i))
     sys.exit(retval)
 
+def calculate_hash(file_path):
+    md5_hash = hashlib.md5()
+    with open(file_path, "rb") as file:
+        file_contents = file.read()
+        md5_hash.update(file_contents)
+    
+    raw_md5_hash = md5_hash.digest()
+    base64hash = base64.urlsafe_b64encode(raw_md5_hash).decode('utf-8')
+    return base64hash
+
+def move_file(src, dst):
+    try:
+        os.rename(src, dst)
+    except OSError as e:
+        # Fall back to using shutil.move() + os.rename
+        try:
+            dirname, basename = os.path.split(dst)
+            temp = tempfile.NamedTemporaryFile(prefix=basename, dir=dirname).name
+            shutil.move(src, temp)
+            os.rename(temp, dst)
+        except shutil.Error as se:
+            print(f"Error moving file: {se}")
+            exitWithError(1, "Error moving file: {se}")
+
+
+def getLLVMTargetPlugin():
+    if runningInstalled:
+        riscvtdgen = "riscv-tdgen"
+    else:
+        riscvtdgen = "@abs_top_builddir@" + "/src/bintools/Compiler/riscv-tdgen/riscv-tdgen"
+    
+    exitCode = run_command(
+        riscvtdgen + " -o " + tempDir + " -a " + options.adf,
+        echoStdout=options.verbose,
+        echoCmd=options.verbose)
+
+    if exitCode != 0:
+        exitWithError(1, "Error while generating instruction descriptions:\n")
+
+    ISEHash = calculate_hash(ISEDescriptionPath)
+    pluginPath = os.path.join(targetCacheDir, ISEHash + ".so")
+    tmpPluginPath = os.path.join(tmpTargetPluginDir, "plugin.so")
+    if not os.path.isfile(pluginPath):
+        compileLLVMTargetPlugin()
+        move_file(tmpPluginPath, pluginPath)
+    return pluginPath
+
+def compileLLVMTargetPlugin():
+    shutil.copytree(llvmRISCVFileDir, tmpTargetPluginDir)
+    move_file(ISEDescriptionPath, os.path.join(tmpTargetPluginDir,
+        os.path.basename(ISEDescriptionPath)))
+    
+    generateLoweringMacros()
+    
+    oldPath = os.getcwd()
+    os.chdir(tmpTargetPluginDir)
+
+    cmd = "cp " + pluginMakefilePath + " " + "Makefile"
+    exitCode = run_command(cmd, echoStdout=options.verbose,
+                           echoCmd=options.verbose)
+    if exitCode != 0:
+        exitWithError(1, "Error: copying Makefile template " + cmd + "\n")
+
+    # The file name of this differs in the installation dir compated to source tree
+    # The RISC-V Target doesn't actually utilize anything from here so just create an empty file
+    # TODO: Make this cleaner
+    with open(tceprefix + "/include/llvm/Config/config.h", 'w'):
+        pass
+
+
+    cmd = "make -j$(nproc)"
+    if options.tce_build_mode:
+        cmd = "make"
+    exitCode = run_command(cmd, echoStdout=options.verbose,
+                           echoCmd=options.verbose)
+    if exitCode != 0:
+        exitWithError(1, "Error: in compiling the target plugin" + cmd + "\n")
+
+    os.chdir(oldPath)
 def parse_options():
     parser = OptionParser()
     parser.add_option("-o", "--output", dest="output",
@@ -141,6 +231,14 @@ def parse_options():
     parser.add_option("-a", "--adf", dest="adf",
                       help="The OpenASIP architecture description format file.", 
                       metavar="FILE", default=None)
+    
+    parser.add_option("--mattr", dest="mattr",
+                      help="Target architecture features (e.g., +m,+a,+c)",
+                      default="-c,+m")
+
+    parser.add_option("--march", dest="march",
+                      help="Target architecture (riscv32 or riscv64)", 
+                      metavar="string", default="riscv32")
 
     parser.add_option('-O', '--optimization-level',
                       type="int", action="store", metavar='level',
@@ -150,6 +248,10 @@ def parse_options():
     parser.add_option("-c", "--compile-only", dest="compile_only",
                       action="store_true", default=False,
                       help="Compile only. Do not assemble or link.")
+    
+    parser.add_option("-S", dest="gen_asm",
+                      action="store_true", default=False,
+                      help="Only run preprocess and compilation steps.")
 
     parser.add_option("-d", "--leave-tempfiles", dest="leave_tempfiles",
                       action="store_true", default=False,
@@ -161,22 +263,22 @@ def parse_options():
     parser.add_option('-D', '--preprocessor-define',
                       type="string", action="append", metavar='string',
                       dest="defines", default=[],
-                      help="Passed to gcc.")
+                      help="Passed to clang.")
                       
     parser.add_option('-I', '--include-directory',
                       type="string", action="append", metavar='directory',
                       dest="include_dirs", default=[],
-                      help="Passed to gcc.")
+                      help="Passed to clang.")
 
     parser.add_option('-l', '--library-name',
                       type="string", action="append", metavar='string',
                       dest="lib_name", default=[],
-                      help="Passed to ld.ldd.")
+                      help="Passed to the linker.")
 
     parser.add_option('-L', '--library-directory',
                       type="string", action="append", metavar='directory',
                       dest="lib_dir", default=[],
-                      help="Passed to ld.ldd.")
+                      help="Passed to the linker.")
     
     parser.add_option('-W', '--warning',
                       type="string", action="append", metavar='type',
@@ -223,30 +325,48 @@ def parse_options():
     parser.add_option('-B',
              type="string", action="append", metavar='directory',
              dest="B_cc_switches", default=[],
-             help="Passed to gcc.")
+             help="Passed to clang.")
 
     parser.add_option('-f',
              type="string", action="append", metavar='opt_var',
              dest="f_cc_switches", default=[],
-             help="Passed to gcc.")
+             help="Passed to clang.")
 
     parser.add_option('-g',
              action="store_true",
              dest="g_cc_switch", default=False,
-             help="Passed to gcc.")
+             help="Passed to clang.")
     
     parser.add_option('--isystem',
              type="string", action="append", metavar='directory',
              dest="isystem_cc_switches", default=[],
-             help="Passed to gcc as -system switch. Also -isystem is supported.")
+             help="Passed to clang as -system switch. Also -isystem is supported.")
     
     parser.add_option('--tce-build-mode', action="store_true",
              dest="tce_build_mode", default=False,
              help="Use when building TCE's bitcode libraries. Sets build directory search paths correctly.")
 
+    parser.add_option('--init-sp',
+             type="long", action="store", metavar='value',
+             dest='init_sp', default=None,
+             help="Set the initial stack pointer of the program to the given value.")
+
+    parser.add_option('--data-start',
+             type="long", action="store", metavar='value',
+             dest='data_start', default=None,
+             help="Set the global data start address for the default address space. The default is the first address of the address space.")
+
     parser.add_option('--lld', action="store_true",
              dest="lld", default=False,
              help="Use the LLVM lld linker instead of the gcc object code linker.")
+
+    parser.add_option('--generate-plugin', action="store_true",
+             dest="generate_plugin", default=False,
+             help="Generate plugin into the cache")
+    
+    parser.add_option('--clear-plugin-cache', action="store_true",
+             dest="clear_plugin_cache", default=False,
+             help="Clear plugin cache")
 
 
 
@@ -299,44 +419,12 @@ def optimizeBytecode(inFile):
     if options.extra_llvm_opts != "":
         extra_opts = options.extra_llvm_opts.split(',')
         optSwitches += ' -' + ' -'.join(extra_opts)
-    outputName = tempDir + "/" + os.path.basename(inFile) + "_optimized.bc"
+    outputName = os.path.join(tempDir, os.path.basename(inFile) + "_optimized.bc")
     command = "opt -passes=\"" + default_passes + '\"' + " -f " + inFile + " -o " + outputName + " " + optSwitches
     exitCode = run_command(command, echoCmd=options.verbose)
     if exitCode != 0:
         exitWithError(1, "Error while optimizing bytecode: " + command + "\n")
     return outputName
-
-def assemble(input_files, output_file=""):
-    compileFlags = ""
-    output_files = []
-    if options.g_cc_switch:
-        compileFlags += "-g "
-    for i in options.include_dirs:
-        compileFlags += "-I" + i + " "
-    for i in options.defines:
-        compileFlags += "-D" + i + " "
-    march = "-march=rv32i"
-    if hasMExtension :
-        march += "m"
-    if output_file != "":
-        compileFlags += "-o " + output_file + " "
-    inputArgs = " ".join(input_files)
-    obj_file_name = output_file
-    if output_file == "":
-        for input_file in input_files:
-            #Change extension
-            obj_file_name = os.path.splitext(input_file)[0]
-            obj_file_name = obj_file_name + ".o"
-            #Get basename, clang will emit the file in current dir
-            obj_file_name = os.path.basename(obj_file_name)
-            output_files.append(obj_file_name)
-    else:
-        output_files.append(obj_file_name)
-    retval = \
-        run_command("clang -D__OA_RISCV__ -I %s %s -target riscv32 %s -O3 -c %s" % \
-        (tempDir, compileFlags, march, inputArgs), echoCmd=options.verbose)
-    if retval != 0: cleanup_and_exit(retval)
-    return output_files
 
 def compile_to_bitcode(input_files):    
     bc_files = []
@@ -351,7 +439,7 @@ def compile_to_bitcode(input_files):
     for i in options.defines:
         compileFlags += "-D" + i + " "
     if options.unroll_threshold == 0:
-        compileFlags += " -fno-unroll-loops"
+        compileFlags += " -fno-unroll-loops "
 
     for i in options.f_cc_switches:
         if True:
@@ -363,8 +451,7 @@ def compile_to_bitcode(input_files):
     for i in options.isystem_cc_switches:
         compileFlags += "-isystem" + i + " "
 
-    tceOpsDir = tempDir + "/tceops.h"
-    compileFlags += "-include " + tceOpsDir + " "
+    compileFlags += "-include " + tceOpsPath + " "
 
     for w in options.warnings:
         # Types of warnings supported by the compiler:
@@ -389,21 +476,18 @@ def compile_to_bitcode(input_files):
         tceopgen = "tceopgen"
     else:
         tceopgen = "@abs_top_builddir@" + "/src/bintools/Compiler/tceopgen/tceopgen"
-    
+
     exitCode = run_command(
-        tceopgen + " -o " + tempDir + "/tceops.h" , echoCmd=options.verbose)
+        tceopgen + " -o " + tceOpsPath, echoCmd=options.verbose)
 
     if exitCode != 0:
         exitWithError(1, "Error while generating custom operation macros:\n")
 
     for input_file in input_files:
         bc_file = create_temp_file(input_file.replace("/", ".") + ".bc")
-        march = "-march=rv32i"
-        if hasMExtension :
-            march += "m"
         retval = \
-            run_command("clang -D__OA_RISCV__ -I %s %s -target riscv32 %s -c -emit-llvm %s -o %s" % \
-            (tempDir, compileFlags, march, input_file, bc_file), echoCmd=options.verbose)
+            run_command("clang -target %s -D__OA_RISCV__ -I %s %s -c -emit-llvm %s -o %s" % \
+            (options.march, tempDir, compileFlags, input_file, bc_file), echoCmd=options.verbose)
 
         if retval != 0: cleanup_and_exit(retval)
         bc_files.append(bc_file)
@@ -416,11 +500,7 @@ def compile_to_bitcode(input_files):
 
     return opt_bc_file
 
-def generate_code(bc_file, adf, objectCode=True, output=None):
-    if runningInstalled:
-        lib_tce = str(os.path.join(tceprefix, "lib/libopenasip.so"))
-    else:
-        lib_tce = os.path.join("@abs_top_builddir@", "src/.libs/libopenasip.so")
+def generate_code(bc_file, objectCode=True, output=None):
     if output is None:
         asm_file = create_temp_file(".o")
     else:
@@ -428,8 +508,9 @@ def generate_code(bc_file, adf, objectCode=True, output=None):
     fileType = "--filetype=obj"
     if objectCode == False :
         fileType = "--filetype=asm"
-    retval = run_command("llc %s -load %s -adf %s %s -o %s" %
-    (fileType, lib_tce, adf,  bc_file, asm_file),echoCmd=options.verbose)
+    retval = run_command("llc %s -load %s --march=%s  --mattr=%s %s -o %s" %
+    (fileType, getLLVMTargetPlugin(), options.march, options.mattr,
+     bc_file, asm_file),echoCmd=options.verbose)
     if retval != 0: cleanup_and_exit(retval)
     return [asm_file] 
 
@@ -442,7 +523,12 @@ def link(obj_files, output):
     init_asm = os.path.join(tempDir, "init.S")
     init_out = os.path.join(tempDir, "init.o")
     link_script = os.path.join(tempDir, "riscv.ld")
-    retval = run_command("clang -D__OA_RISCV__ -march=rv32i  -target riscv32 -c %s -o %s" % (init_asm, init_out))
+    command = "riscv32-unknown-elf-gcc -D__OA_RISCV__ -c %s -o %s" % (init_asm, init_out)
+    retval = run_command(command, echoCmd=options.verbose,
+                         echoStderr=options.verbose, echoStdout=options.verbose)
+
+    if retval != 0:
+        exitWithError(retval, "Error in compiling. Run with -v to see verbose output")
     obj_files = " ".join(obj_files)
     if retval != 0: cleanup_and_exit(retval)
     lib_names = ""
@@ -564,50 +650,133 @@ def generate_image(options, elf_file, final_output):
             run_command("oa-hex2bin \
             -w 32 -o " + final_output + " " + hex_file)
 
+def check_input_files(input_files):
+    if len(input_files) == 0:
+        exitWithError(1, "No input files given")
+    else:
+        first_extension = None
+        for file in input_files:
+            file_extension = file.split('.')[-1]
+            if first_extension is None:
+                first_extension = file_extension
+            elif file_extension != first_extension:
+                exitWithError(1, "All files must have the same extension")
+            if file_extension.lower() not in ['c', 's', 'S']:
+                exitWithError(1, "The file extension must be .c, .s, or .S")
+        
+        # Check if all files have 's' or 'S' extension
+        if first_extension.lower() in ['s', 'S']:
+            return True
+    return False
+
+
+def assemble(input_files, output=None):
+    if len(input_files) != 1:
+        exitWithError(1, "Assembler only supports 1 input file currently")
+    asm_file = output
+    all_files = " ".join(input_files)
+    run_preprocess = input_files[0].endswith('.S')
+    if output is None:
+        asm_file = create_temp_file(".o")
+
+    fileType = "--filetype=obj"
+    preprocessed_file = input_files[0]
+    if run_preprocess:
+        preprocessed_file = create_temp_file(".s")
+        compileFlags = ""
+        # todo: defines
+        for i in options.defines:
+            compileFlags += "-D" + i + " "
+        for i in options.include_dirs:
+            compileFlags += "-I" + i + " "
+        retval = run_command("clang -E %s -o %s %s" %
+        (compileFlags, preprocessed_file, all_files),echoCmd=options.verbose)
+    retval = run_command("llvm-mc %s -load %s --arch %s %s -o %s" %
+    (fileType, getLLVMTargetPlugin(), options.march,
+     preprocessed_file, asm_file),echoCmd=options.verbose)
+    if retval != 0: cleanup_and_exit(retval)
+    return [asm_file] 
+
 if __name__ == "__main__":
     options, args = parse_options()
+
+    global targetCacheDir
+    targetCacheDir = os.path.expanduser("~/.cache/openasip/oacc-riscv")
+
     global tempDir
     tempDir = mkdtemp("","oacc-")
+
+
+    if options.clear_plugin_cache:
+        so_files = glob.glob(os.path.join(targetCacheDir, '*.so'))
+        # Remove each .so file
+        for file in so_files:
+            os.remove(file)
+        cleanup_and_exit(0)
+
+    isAsm = False
+
+    if not options.generate_plugin:
+        isAsm = check_input_files(args)
+
+    global tmpTargetPluginDir
+    global llvmRISCVFileDir
+    global tceOpsPath
+    global pluginMakefilePath
+
+    os.makedirs(targetCacheDir, exist_ok=True)
+    tceOpsPath = os.path.join(tempDir, "tceops.h")
+    llvmRISCVFileDir = os.path.join(tceprefix, "riscv/LLVMRISCVTarget/RISCV")
+    tmpTargetPluginDir = os.path.join(tempDir, "RISCV")
+
+    ISEDescriptionPath = os.path.join(tempDir,"RISCVInstrInfoOpenASIP.td")
+
+    if runningInstalled:
+        pluginMakefilePath = os.path.join(tceprefix,
+                                "share/openasip/data/riscv/RISCVPluginMakefile")
+    else:
+        pluginMakefilePath = os.path.join("@abs_top_builddir@",
+                                "data/riscv/RISCVPluginMakefile")
     if options.adf is None:
-        adf = os.path.join("@abs_top_builddir@",
-                                 "data/mach/rv32im.adf")
+        adf = ""
+        if runningInstalled:
+            adf = os.path.join(tceprefix,
+                                 "share/openasip/data/mach/rv32im.adf")
+        else:
+            adf = os.path.join("@abs_top_builddir@",
+                                    "data/mach/rv32im.adf")
         options.adf = adf
-    if len(args) == 0:
-        exitWithError(1, "No input files given")
+
+    pluginPath = getLLVMTargetPlugin()
+
+    if options.generate_plugin:
+        cleanup_and_exit(0)
 
     final_output = options.output
     if options.output is None:
         final_output = "a.out"
         
-    if not options.compile_only:
+    if not options.compile_only and not options.gen_asm:
         generate_start_func()
         generate_linker_script(options)
 
     elf_file = final_output
     if options.output_format == "bin" or options.output_format == "hex":
         elf_file = create_temp_file(".hex")
-
-    isAsm = False
-    pieces = args[0].split(".")
-    extension = pieces.pop()
-
-    if extension == "S" or extension == "s":
-        isAsm = True
-
-    obj_file = ""
-    if isAsm is False:
-        bc_file = compile_to_bitcode(args)
+    
+    obj_files = []
+    if isAsm:
         if options.compile_only:
-            generate_code(bc_file, options.adf, True, final_output)
-            cleanup_and_exit(0)
-        obj_files = generate_code(bc_file, options.adf, True)
-    else:
-        if options.compile_only:
-            asmFile = assemble(args, final_output)
+            obj_files = assemble(args, final_output)
             cleanup_and_exit(0)
         else:
             obj_files = assemble(args)
-            additionalTmpFiles.extend(obj_files)
+    else:
+        bc_file = compile_to_bitcode(args)
+        if options.compile_only or options.gen_asm:
+            generate_code(bc_file, not options.gen_asm, final_output)
+            cleanup_and_exit(0)
+        obj_files = generate_code(bc_file, True)
     
     #Link with generated start and linker script
     link(obj_files, elf_file)

@@ -97,8 +97,9 @@ public:
     void removeLongImmDstRegisterField(LImmDstRegisterField& field);
 
     int instructionFormatCount() const;
-    bool hasInstructionFormat(const std::string name) const;
+    bool hasInstructionFormat(const std::string& name) const;
     InstructionFormat& instructionFormat(int index) const;
+    InstructionFormat* instructionFormat(const std::string& name) const;
     void addInstructionFormat(InstructionFormat& format);
     void removeInstructionFormat(InstructionFormat& format);
 

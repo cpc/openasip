@@ -3,7 +3,9 @@
 
 #include <map>
 
-const std::map<std::string, int> riscvRTypeOperations = {
+namespace RISCVFields {
+
+const std::map<std::string, int> RISCVRTypeOperations = {
     {"add", 0b00000000000110011},   {"sub", 0b01000000000110011},
     {"xor", 0b00000001000110011},   {"or", 0b00000001100110011},
     {"and", 0b00000001110110011},   {"sll", 0b00000000010110011},
@@ -14,7 +16,7 @@ const std::map<std::string, int> riscvRTypeOperations = {
     {"div", 0b00000011000110011},   {"divu", 0b00000011010110011},
     {"rem", 0b00000011100110011},   {"remu", 0b00000011110110011}};
 
-const std::map<std::string, int> riscvITypeOperations = {
+const std::map<std::string, int> RISCVITypeOperations = {
     {"addi", 0b0000010011},        {"xori", 0b1000010011},
     {"ori", 0b1100010011},         {"andi", 0b1110010011},
     {"slli", 0b00000000010010011}, {"srli", 0b00000001010010011},
@@ -24,19 +26,19 @@ const std::map<std::string, int> riscvITypeOperations = {
     {"lbu", 0b1000000011},         {"lhu", 0b1010000011},
     {"jalr", 0b0001100111}};
 
-const std::map<std::string, int> riscvSTypeOperations = {
+const std::map<std::string, int> RISCVSTypeOperations = {
     {"sb", 0b0000100011}, {"sh", 0b0010100011}, {"sw", 0b0100100011}};
 
-const std::map<std::string, int> riscvBTypeOperations = {
+const std::map<std::string, int> RISCVBTypeOperations = {
     {"beq", 0b0001100011}, {"bne", 0b0011100011},  {"blt", 0b1001100011},
     {"bge", 0b1011100011}, {"bltu", 0b1101100011}, {"bgeu", 0b1111100011}};
 
-const std::map<std::string, int> riscvUTypeOperations = {
+const std::map<std::string, int> RISCVUTypeOperations = {
     {"lui", 0b0110111}, {"auipc", 0b0010111}};
 
-const std::map<std::string, int> riscvJTypeOperations = {{"jal", 0b1101111}};
+const std::map<std::string, int> RISCVJTypeOperations = {{"jal", 0b1101111}};
 
-const std::map<std::string, std::string> operationNameTable = {
+const std::map<std::string, std::string> RISCVOperationNameTable = {
     {"add", "add"},      {"sub", "sub"},    {"xor", "xor"},
     {"or", "ior"},       {"sll", "shl"},    {"srl", "shru"},
     {"sra", "shr"},      {"slt", "lt"},     {"sltu", "ltu"},
@@ -53,7 +55,19 @@ const std::map<std::string, std::string> operationNameTable = {
     {"mulhu", "mulhiu"}, {"rem", "rem"},    {"remu", "remu"},
     {"div", "div"},      {"divu", "divu"}};
 
-const std::vector<std::string> mExtensionOps = {
+const std::vector<std::string> RISCVMExtensionOperations = {
     "mul", "mulh", "mulhu", "mulhsu", "div", "divu", "rem", "remu"};
+
+const std::string RISCV_R_TYPE_NAME   = "riscv_r_type";
+const std::string RISCV_I_TYPE_NAME   = "riscv_i_type";
+const std::string RISCV_U_TYPE_NAME   = "riscv_u_type";
+const std::string RISCV_S_TYPE_NAME   = "riscv_s_type";
+const std::string RISCV_J_TYPE_NAME   = "riscv_j_type";
+const std::string RISCV_B_TYPE_NAME   = "riscv_b_type";
+const std::string RISCV_R3R_TYPE_NAME = "riscv_r3r_type";
+const std::string RISCV_R1R_TYPE_NAME = "riscv_r1r_type";
+const std::string RISCV_R1_TYPE_NAME  = "riscv_r1_type";
+
+}
 
 #endif

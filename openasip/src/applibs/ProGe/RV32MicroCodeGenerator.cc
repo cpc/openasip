@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2021-2023 Tampere University.
+ Copyright (C) 2021-2024 Tampere University.
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
  *
  * Implementation of RV32MicroCodeGenerator class.
  *
- * @author Kari Hepola 2021-2023 (kari.hepola@tuni.fi)
+ * @author Kari Hepola 2021-2024 (kari.hepola@tuni.fi)
  * @note rating: red
  */
 
@@ -95,7 +95,8 @@ RV32MicroCodeGenerator::RV32MicroCodeGenerator(
       bypassInstructionRegister_(false),
       hasForwarding_(false),
       variableLengthOpLatency_(false),
-      eVariant_(false) {
+      eVariant_(false),
+      hasCustom0Operations_(false) {
     Machine::BusNavigator busNav = machine.busNavigator();
     for (int i = 0; i < busNav.count(); i++) {
         busses_.push_back(busNav.item(i));
@@ -141,21 +142,21 @@ void
 RV32MicroCodeGenerator::initializeOperations() {
     for (int i = 0; i < bem_->instructionFormatCount(); i++) {
         InstructionFormat fTemp = bem_->instructionFormat(i);
-        std::map<std::string, int> ops = fTemp.operations();
-        for (const auto& op : ops) {
-            std::string name = op.first;
-            int encoding = op.second;
+        for (int j = 0; j < fTemp.operationCount(); j++) {
+            std::string name = fTemp.operationAtIndex(j);
+            int encoding = fTemp.encoding(name);
             BitVector bits = BitVector();
-            if (fTemp.name() == "riscv_r_type") {
+            if (fTemp.name() == RISCVFields::RISCV_R_TYPE_NAME) {
                 bits.pushBack(encoding, 17);
                 std::string encBits = bits.toString();
-                if (MapTools::containsKey(operationNameTable, name)) {
-                    const std::string tceOpName = operationNameTable.at(name);
+                if (MapTools::containsKey(RISCVFields::RISCVOperationNameTable, name)) {
+                    const std::string tceOpName = RISCVFields::RISCVOperationNameTable.at(name);
                     rOperations_.insert({tceOpName, encBits});
                 } else {
+                    hasCustom0Operations_ = true;
                     rOperations_.insert({name, encBits});
                 }
-            } else if (fTemp.name() == "riscv_i_type") {
+            } else if (fTemp.name() == RISCVFields::RISCV_I_TYPE_NAME) {
                 std::string encBits;
                 // Shift operations use imm bits for opcode
                 if (name == "srai" || name == "slli" || name == "srli") {
@@ -165,48 +166,66 @@ RV32MicroCodeGenerator::initializeOperations() {
                     bits.pushBack(encoding, 10);
                     encBits = bits.toString();
                 }
-                if (MapTools::containsKey(operationNameTable, name)) {
-                    const std::string tceOpName = operationNameTable.at(name);
+                if (MapTools::containsKey(RISCVFields::RISCVOperationNameTable, name)) {
+                    const std::string tceOpName = RISCVFields::RISCVOperationNameTable.at(name);
                     iOperations_.insert({tceOpName, encBits});
                 } else {
                     iOperations_.insert({name, encBits});
                 }
-            } else if (fTemp.name() == "riscv_s_type") {
+            } else if (fTemp.name() == RISCVFields::RISCV_S_TYPE_NAME) {
                 bits.pushBack(encoding, 10);
                 std::string encBits = bits.toString();
-                if (MapTools::containsKey(operationNameTable, name)) {
-                    const std::string tceOpName = operationNameTable.at(name);
+                if (MapTools::containsKey(RISCVFields::RISCVOperationNameTable, name)) {
+                    const std::string tceOpName = RISCVFields::RISCVOperationNameTable.at(name);
                     sOperations_.insert({tceOpName, encBits});
                 } else {
                     sOperations_.insert({name, encBits});
                 }
-            } else if (fTemp.name() == "riscv_b_type") {
+            } else if (fTemp.name() == RISCVFields::RISCV_B_TYPE_NAME) {
                 bits.pushBack(encoding, 10);
                 std::string encBits = bits.toString();
-                if (MapTools::containsKey(operationNameTable, name)) {
-                    const std::string tceOpName = operationNameTable.at(name);
+                if (MapTools::containsKey(RISCVFields::RISCVOperationNameTable, name)) {
+                    const std::string tceOpName = RISCVFields::RISCVOperationNameTable.at(name);
                     bOperations_.insert(
-                        {operationNameTable.at(name), encBits});
+                        {RISCVFields::RISCVOperationNameTable.at(name), encBits});
                 } else {
                     bOperations_.insert({name, encBits});
                 }
-            } else if (fTemp.name() == "riscv_u_type") {
+            } else if (fTemp.name() == RISCVFields::RISCV_U_TYPE_NAME) {
                 bits.pushBack(encoding, 7);
                 std::string encBits = bits.toString();
-                if (MapTools::containsKey(operationNameTable, name)) {
-                    const std::string tceOpName = operationNameTable.at(name);
+                if (MapTools::containsKey(RISCVFields::RISCVOperationNameTable, name)) {
+                    const std::string tceOpName = RISCVFields::RISCVOperationNameTable.at(name);
                     ujOperations_.insert({tceOpName, encBits});
                 } else {
                     ujOperations_.insert({name, encBits});
                 }
-            } else if (fTemp.name() == "riscv_j_type") {
+            } else if (fTemp.name() == RISCVFields::RISCV_J_TYPE_NAME) {
                 bits.pushBack(encoding, 7);
                 std::string encBits = bits.toString();
-                if (MapTools::containsKey(operationNameTable, name)) {
-                    const std::string tceOpName = operationNameTable.at(name);
+                if (MapTools::containsKey(RISCVFields::RISCVOperationNameTable, name)) {
+                    const std::string tceOpName = RISCVFields::RISCVOperationNameTable.at(name);
                     ujOperations_.insert({tceOpName, encBits});
                 } else {
                     ujOperations_.insert({name, encBits});
+                }
+            } else if (fTemp.name() == RISCVFields::RISCV_R1R_TYPE_NAME) {
+                bits.pushBack(encoding, 17);
+                std::string encBits = bits.toString();
+                if (MapTools::containsKey(RISCVFields::RISCVOperationNameTable, name)) {
+                    const std::string tceOpName = RISCVFields::RISCVOperationNameTable.at(name);
+                    r1rOperations_.insert({tceOpName, encBits});
+                } else {
+                    r1rOperations_.insert({name, encBits});
+                }
+            } else if (fTemp.name() == RISCVFields::RISCV_R1_TYPE_NAME) {
+                bits.pushBack(encoding, 17);
+                std::string encBits = bits.toString();
+                if (MapTools::containsKey(RISCVFields::RISCVOperationNameTable, name)) {
+                    const std::string tceOpName = RISCVFields::RISCVOperationNameTable.at(name);
+                    r1Operations_.insert({tceOpName, encBits});
+                } else {
+                    r1Operations_.insert({name, encBits});
                 }
             }
         }
@@ -236,6 +255,20 @@ RV32MicroCodeGenerator::validateOperations() const {
         }
     }
     for (const auto& op : rOperations_) {
+        const std::string opName = op.first;
+        if (!machine_->hasOperation(opName)) {
+            throwOperationNotFoundError(opName);
+        }
+    }
+
+    for (const auto& op : r1rOperations_) {
+        const std::string opName = op.first;
+        if (!machine_->hasOperation(opName)) {
+            throwOperationNotFoundError(opName);
+        }
+    }
+
+    for (const auto& op : r1Operations_) {
         const std::string opName = op.first;
         if (!machine_->hasOperation(opName)) {
             throwOperationNotFoundError(opName);
@@ -312,7 +345,6 @@ RV32MicroCodeGenerator::addRPorts(const std::string& opName) {
         throwOperandCountError(opName, 3, op->operandCount());
     }
     FUPort* rs1Port = op->port(1);
-    ;
     FUPort* rs2Port = op->port(2);
     FUPort* rdPort = op->port(3);
     if (!rs1Port->isTriggering()) {
@@ -327,15 +359,49 @@ RV32MicroCodeGenerator::addRPorts(const std::string& opName) {
     rs1Ports_.insert({opName, rs1Port});
     rs2Ports_.insert({opName, rs2Port});
     // Do not add custom ops to simm ports
-    if (MapTools::containsValue(operationNameTable, opName)) {
+    if (MapTools::containsValue(RISCVFields::RISCVOperationNameTable, opName)) {
         const std::string riscvOpName =MapTools::keyForValue
-        <string, map<string, string>, string>(operationNameTable, opName);
+        <string, map<string, string>, string>(RISCVFields::RISCVOperationNameTable, opName);
         // Do not add M-extension ops
-        if (!VectorTools::containsValue(mExtensionOps, riscvOpName)) {
+        if (!VectorTools::containsValue(RISCVFields::RISCVMExtensionOperations,
+            riscvOpName)) {
             simmPorts_.insert({opName, rs2Port});
         }
     }
     rdPorts_.insert({opName, rdPort});
+}
+
+void
+RV32MicroCodeGenerator::addR1RPorts(const std::string& opName) {
+    FunctionUnit* fu = mapFunctionUnit(opName);
+    HWOperation* op = fu->operation(opName);
+    if (op->operandCount() != 2) {
+        throwOperandCountError(opName, 2, op->operandCount());
+    }
+    FUPort* rs1Port = op->port(1);
+    FUPort* rdPort = op->port(2);
+    if (!rs1Port->isTriggering()) {
+        throwTriggeringPortError(rs1Port, "rs1");
+    }
+    if (!rdPort->isOutput()) {
+        throwOutputPortError(rdPort, "rd");
+    }
+    rs1Ports_.insert({opName, rs1Port});
+    rdPorts_.insert({opName, rdPort});
+}
+
+void
+RV32MicroCodeGenerator::addR1Ports(const std::string& opName) {
+    FunctionUnit* fu = mapFunctionUnit(opName);
+    HWOperation* op = fu->operation(opName);
+    if (op->operandCount() != 1) {
+        throwOperandCountError(opName, 1, op->operandCount());
+    }
+    FUPort* rs1Port = op->port(1);
+    if (!rs1Port->isTriggering()) {
+        throwTriggeringPortError(rs1Port, "rs1");
+    }
+    rs1Ports_.insert({opName, rs1Port});
 }
 
 void
@@ -453,6 +519,12 @@ RV32MicroCodeGenerator::findOperationPorts() {
     }
     for (const auto& op : ujOperations_) {
         addUJPorts(op.first);
+    }
+    for (const auto& op : r1rOperations_) {
+        addR1RPorts(op.first);
+    }
+    for (const auto& op : r1Operations_) {
+        addR1Ports(op.first);
     }
 }
 
@@ -722,6 +794,69 @@ RV32MicroCodeGenerator::constructRInstructions(Port* src1, Port* src2) const {
 }
 
 std::unordered_map<std::string, InstructionBitVector*>
+RV32MicroCodeGenerator::constructR1RInstructions(Port* src1, Port* /*src2*/) const {
+    std::unordered_map<std::string, InstructionBitVector*> retval;
+    CodeCompressorPlugin* compressor = &pig_->compressor();
+    for (const auto& op : r1rOperations_) {
+        Instruction* instruction = new Instruction();
+        HWOperation* operation =
+            mapFunctionUnit(op.first)->operation(op.first);
+
+        FUPort* rs1Port = static_cast<FUPort*>(rs1Ports_.at(op.first));
+        FUPort* rdPort = static_cast<FUPort*>(rdPorts_.at(op.first));
+
+        if (dynamic_cast<RFPort*>(src1)) {
+            instruction->addMove(std::make_shared<Move>(
+                new TerminalRegister(*src1, 0),
+                new TerminalFUPort(*rs1Port, *operation), *rs1Bus_));
+        } else {
+            instruction->addMove(std::make_shared<Move>(
+                new TerminalFUPort(*static_cast<BaseFUPort*>(src1)),
+                new TerminalFUPort(*rs1Port, *operation), *rs1Bus_));
+        }
+
+        instruction->addMove(std::make_shared<Move>(
+            new TerminalFUPort(*rdPort), new TerminalRegister(*rdRFPort_, 0),
+            *rdBus_));
+
+        InstructionBitVector* bits =
+            compressor->bemInstructionBits(*instruction);
+        delete instruction;
+        retval.insert({op.first, bits});
+    }
+    return retval;
+}
+
+std::unordered_map<std::string, InstructionBitVector*>
+RV32MicroCodeGenerator::constructR1Instructions(Port* src1, Port* /*src2*/) const {
+    std::unordered_map<std::string, InstructionBitVector*> retval;
+    CodeCompressorPlugin* compressor = &pig_->compressor();
+    for (const auto& op : r1Operations_) {
+        Instruction* instruction = new Instruction();
+        HWOperation* operation =
+            mapFunctionUnit(op.first)->operation(op.first);
+
+        FUPort* rs1Port = static_cast<FUPort*>(rs1Ports_.at(op.first));
+
+        if (dynamic_cast<RFPort*>(src1)) {
+            instruction->addMove(std::make_shared<Move>(
+                new TerminalRegister(*src1, 0),
+                new TerminalFUPort(*rs1Port, *operation), *rs1Bus_));
+        } else {
+            instruction->addMove(std::make_shared<Move>(
+                new TerminalFUPort(*static_cast<BaseFUPort*>(src1)),
+                new TerminalFUPort(*rs1Port, *operation), *rs1Bus_));
+        }
+
+        InstructionBitVector* bits =
+            compressor->bemInstructionBits(*instruction);
+        delete instruction;
+        retval.insert({op.first, bits});
+    }
+    return retval;
+}
+
+std::unordered_map<std::string, InstructionBitVector*>
 RV32MicroCodeGenerator::constructIInstructions(
     Port* src1, Port* /*src2*/) const {
     std::unordered_map<std::string, InstructionBitVector*> retval;
@@ -963,6 +1098,8 @@ RV32MicroCodeGenerator::generateFUTargetProcess(std::ofstream& stream) {
     operations.insert(sOperations_.begin(), sOperations_.end());
     operations.insert(bOperations_.begin(), bOperations_.end());
     operations.insert(ujOperations_.begin(), ujOperations_.end());
+    operations.insert(r1rOperations_.begin(), r1rOperations_.end());
+    operations.insert(r1Operations_.begin(), r1Operations_.end());
     int len = std::ceil(std::log2(sourceOperationMap_.size()));
 
     stream << "  process(fu_opcode)" << std::endl
@@ -1033,6 +1170,9 @@ RV32MicroCodeGenerator::addRs1ForwardingConditions(
         ProGe::RV32MicroCodeGenerator::*instructionFunc)(Port* p1, Port* p2)
         const,
     std::ofstream& stream) const {
+    if (ops.size() == 0) {
+        return;
+    }
     bool firstOpcodeCond = true;
     for (const auto& op : ops) {
         std::string opcodeCond = "        elsif ";
@@ -1235,6 +1375,12 @@ RV32MicroCodeGenerator::generateMap(const std::string& dstDirectory) {
     instructions = constructUJInstructions();
     addBitsToMap(instructions, ujOperations_, stream);
 
+    instructions = constructR1RInstructions(rs1RFPort_, rs2RFPort_);
+    addBitsToMap(instructions, r1rOperations_, stream);
+
+    instructions = constructR1Instructions(rs1RFPort_, rs2RFPort_);
+    addBitsToMap(instructions, r1Operations_, stream);
+
     stream << "    else" << std::endl;
     stream << "      moves <= \"" + NOP_ + "\";" << std::endl;
 
@@ -1255,6 +1401,12 @@ RV32MicroCodeGenerator::generateMap(const std::string& dstDirectory) {
         addRs1ForwardingConditions(
             iOperations_,
             &ProGe::RV32MicroCodeGenerator::constructIInstructions, stream);
+        addRs1ForwardingConditions(
+            r1rOperations_,
+            &ProGe::RV32MicroCodeGenerator::constructR1RInstructions, stream);
+        addRs1ForwardingConditions(
+            r1Operations_,
+            &ProGe::RV32MicroCodeGenerator::constructR1Instructions, stream);
         stream << "      end if;\n"
                << "    if(rs2_hazard = '1') then\n";
         addRs2ForwardingConditions(
@@ -1282,6 +1434,7 @@ RV32MicroCodeGenerator::generateOperationLatencyLogic(
     HDLTemplateInstantiator& instantiator) {
     std::map<std::string, std::string> operations;
     operations.insert(rOperations_.begin(), rOperations_.end());
+    operations.insert(r1rOperations_.begin(), r1rOperations_.end());
     int maxVal = 1;
     for (const auto& op : iOperations_) {
         if (!rOperations_.count(op.first)) {
@@ -1550,6 +1703,11 @@ RV32MicroCodeGenerator::generateWrapper(
         fsm_sensitivity_list_signals);
     instantiator.replacePlaceholder(
         "rv32-microcode-execute-logic", executeLogic);
+
+    if (hasCustom0Operations_) {
+        instantiator.replacePlaceholder("rv32-custom0-frame-cond",
+            "or frame_r_c(1) = opcode");
+    }
     instantiator.instantiateTemplateFile(
         templateDir + DS + "rv32_microcode_wrapper.vhdl.tmpl",
         fileDst + DS + "rv32_microcode_wrapper.vhdl");

@@ -46,7 +46,8 @@ include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseT
 	CmdLineOptionParser.hh CmdLineOptionParser.icc MapTools.hh MapTools.icc \
 	CIStringSet.hh ContainerTools.hh ContainerTools.icc Listener.hh \
 	Informer.hh Informer.icc HalfFloatWord.hh tce_config_public.h \
-	CompilerWarnings.hh Environment.hh LicenseGenerator.hh
+	CompilerWarnings.hh Environment.hh LicenseGenerator.hh RISCVTools.hh \
+	RISCVTools.icc
 
 REVNO=$(shell which git > /dev/null && echo -n "-r" && git rev-list HEAD | wc -l)
 
@@ -95,6 +96,7 @@ libopenasiptools_la_SOURCES += \
 	ContainerTools.icc BitMatrix.icc \
 	TCEString.icc SetTools.icc \
 	Informer.icc VectorTools.icc \
-	LicenseGenerator.hh
+	LicenseGenerator.hh RISCVTools.hh \
+	RISCVTools.icc
 
 ## headers end

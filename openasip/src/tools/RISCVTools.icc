@@ -1,0 +1,88 @@
+/*
+ Copyright (C) 2024 Tampere University.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
+ */
+/**
+ * @file RISCVTools.icc
+ *
+ * Implementation of RISCVTools class.
+ *
+ * @author Kari Hepola 2024 (kari.hepola@tuni.fi)
+ * @note rating: red
+ */
+
+#include <bitset>
+
+int
+RISCVTools::getFunc3Int(const int encoding) {
+    const int mask = 0b1110000000;
+    const int enc = ((encoding & mask) >> 7);
+    return enc;
+}
+
+int
+RISCVTools::getFunc7Int(const int encoding) {
+    const int mask = 0b11111110000000000;
+    const int enc = ((encoding & mask) >> 10);
+    return enc;
+}
+
+int
+RISCVTools::getFunc2Int(const int encoding) {
+    const int mask = 0b11000000000000000;
+    const int enc = ((encoding & mask) >> 15);
+    return enc;
+}
+
+int
+RISCVTools::getOpcodeInt(const int encoding) {
+    const int mask = 0b1111111;
+    const int enc = encoding & mask;
+    return enc;
+}
+
+std::string
+RISCVTools::getFunc3Str(const int encoding) {
+    const int enc = getFunc3Int(encoding);
+    const std::string encStr = std::bitset<3>(enc).to_string();
+    assert(encStr.length() == 3);
+    return "0b" + encStr;
+}
+
+
+std::string
+RISCVTools::getFunc7Str(const int encoding) {
+    const int enc = getFunc7Int(encoding);
+    const std::string encStr = std::bitset<7>(enc).to_string();
+    assert(encStr.length() == 7);
+    return "0b" + encStr;
+}
+
+std::string
+RISCVTools::getFunc2Str(const int encoding) {
+    const int enc = getFunc7Int(encoding);
+    const std::string encStr = std::bitset<2>(enc).to_string();
+    assert(encStr.length() == 2);
+    return "0b" + encStr;
+}
+
+std::string
+RISCVTools::getOpcodeStr(const int encoding) {
+    const int enc = getOpcodeInt(encoding);
+    const std::string encStr = std::bitset<7>(enc).to_string();
+    assert(encStr.length() == 7);
+    return "0b" + encStr;
+}

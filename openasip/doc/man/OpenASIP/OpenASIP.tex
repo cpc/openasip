@@ -3905,10 +3905,18 @@ format.
     Save the ADF by pressing Ctrl-S or by clicking the save icon and close ProDe.
 \end{enumerate}
 
-Now we have added the operation both in the microarchitecture and the
-instruction format. Next, we need to call the new CRC\_XOR\_SHIFT custom
-instruction with an intrinsic from the source code. Open \file{crc.c} line
-224.
+At this point, we can utilize the automatically retargeting compiler to generate the machine code.
+Generate the assembly to inspect whether the compiler was able to select your custom instruction,
+\emph{crc\_xor\_shift}, automatically:
+
+\shellcmd{oacc-riscv -D\_DEBUG -O3 -a start.adf -S -c -o crc.s main.c crc.c}
+
+Open \file{crc.s} and you should be able to see that the compiler was able to select
+the instruction automatically.
+
+
+Alternative method is to use so called intrinsics to guarantee that the instruction is used.
+Open \file{crc.c} line 224.
 
 Usage of OpenASIP RISC-V custom operation macros/intrinsics is as follows:
 
@@ -3941,7 +3949,7 @@ the execution took slightly fewer cycles but same information was printed to std
 \subsection{Defining a custom operation using an HDL snippet}
 
 In the previous section, we described the operation as a DAG and were able to
-automatically generate the hardware for the new operation. However, it is not
+automatically generate the hardware and the code for the new operation. However, it is not
 possible to describe the whole reflect loop of CRC as an OpenASIP DAG.
 
 In this subsection we show how we can implement the reflection loop as a VHDL
@@ -3960,10 +3968,8 @@ Start OSEd: \shellcmd{osed \&}
 \item%
   Type `REFLECT8' as the name of the operation.
 \item%
-  Add two inputs by pressing the \emph{Add} button under the operation input
-  list. Select \textit{UIntWord} as type. Currently OpenASIP requires RISC-V
-  custom instructions to have two inputs to follow the R-format, so we use one
-  empty input to pad the instruction.
+  Add one input by pressing the \emph{Add} button under the operation input
+  list. Select \textit{UIntWord} as type.
 \item%
   Add one output by pressing the \emph{Add} button under the operation output
   list. Select \textit{UIntWord} as type.
@@ -4053,7 +4059,7 @@ description.
     Press \emph{OK} on the FU dialog.
 \end{enumerate}
 
-Add the new instructions to the R-format like previously.
+Add the new instructions to the \emph{riscv\_r1r\_type} format:
 
 \begin{enumerate}
   \item%
@@ -4062,7 +4068,7 @@ Add the new instructions to the R-format like previously.
     architecture definition. The compiler and ProGe expects these names to be 
     found in the definition. 
   \item%
-    Click the \emph{riscv\_r\_type} item.
+    Click the \emph{riscv\_r1r\_type} item.
     The operations included in this format are listed in the operations menu,
     RISC-V naming scheme is used for the operations.
   \item%
@@ -4079,6 +4085,7 @@ Add the new instructions to the R-format like previously.
     Save the ADF by pressing Ctrl-S or by clicking the save icon and close ProDe.
 \end{enumerate}
 
+Now, we can only utilize intrinsics as the we did not describe the operation as a DAG.
 Let's modify the crcFast function to use the custom op. First declare 2 new
 variables at the beginning of the function:
 
@@ -4096,7 +4103,7 @@ look like this:
 
 \begin{verbatim}
   input = message[byte];
-  _OA_RV_REFLECT8(input, 0, output);
+  _OA_RV_REFLECT8(input, output);
   data = (unsigned char) output ^ (remainder >> (WIDTH - 8));
   _OA_RV_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
 \end{verbatim}
@@ -4107,7 +4114,7 @@ REFLECT\_REMAINDER macro where nBits is defined as WIDTH and data is
 remainder. Simply use \_OA\_RV\_REFLECT32 macro before return statement and
 replace the original macro with the variable output:
 \begin{verbatim}
-  _OA_RV_REFLECT32(remainder, 0, output);
+  _OA_RV_REFLECT32(remainder, output);
   return (output ^ FINAL_XOR_VALUE);
 \end{verbatim}
 

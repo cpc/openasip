@@ -82,15 +82,14 @@ _DEFUN(puts, (s),
        #ifndef __TCE__
        int tmp = 0;
        //Use a version of STDOUT that follows R-format
-       _OA_RV_STDOUT_RISCV((int)(c), 0, tmp);
+       _OA_RV_STDOUT((int)(c));
        #else
         _TCE_STDOUT((int)(c));
        #endif
         s++;
     }
     #ifndef __TCE__
-    int tmp = 0;
-    _OA_RV_STDOUT_RISCV('\n', 0, tmp);
+    _OA_RV_STDOUT('\n');
     #else
     _TCE_STDOUT('\n');
     #endif

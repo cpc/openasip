@@ -108,6 +108,8 @@ private:
     instantiator);
 
     std::map<std::string, std::string> rOperations_;
+    std::map<std::string, std::string> r1rOperations_;
+    std::map<std::string, std::string> r1Operations_;
     std::map<std::string, std::string> iOperations_;
     std::map<std::string, std::string> sOperations_;
     std::map<std::string, std::string> bOperations_;
@@ -121,6 +123,8 @@ private:
 
     FunctionUnit* mapFunctionUnit(const std::string& operation) const;
 
+    void addR1Ports(const std::string& opName);
+    void addR1RPorts(const std::string& opName);
     void addRPorts(const std::string& opName);
     void addIPorts(const std::string& opName);
     void addSPorts(const std::string& opName);
@@ -148,6 +152,10 @@ private:
     constructBInstructions(Port* src1, Port* src2) const;
     std::unordered_map<std::string, InstructionBitVector*>
     constructUJInstructions() const;
+    std::unordered_map<std::string, InstructionBitVector*>
+    constructR1RInstructions(Port* src1, Port* src2) const;
+    std::unordered_map<std::string, InstructionBitVector*>
+    constructR1Instructions(Port* src1, Port* src2) const;
 
     void addBitsToMap(
         std::unordered_map<std::string, InstructionBitVector*> instructions,
@@ -212,6 +220,7 @@ private:
     bool hasForwarding_;
     bool variableLengthOpLatency_;
     bool eVariant_;
+    bool hasCustom0Operations_;
 
 };
 }

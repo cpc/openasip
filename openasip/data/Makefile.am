@@ -38,6 +38,7 @@ nobase_data_DATA =	$(srcdir)/ProDe/confschema.xsd \
 					$(srcdir)/ProGe/debugger/*.vhdl \
 					$(srcdir)/ProGe/debugger/*.vhdl.tmpl \
 					$(srcdir)/ProGe/*.snippet \
-					$(srcdir)/ProGe/debugger/tb/*.vhdl
+					$(srcdir)/ProGe/debugger/tb/*.vhdl \
+					$(srcdir)/riscv/*
 
 EXTRA_DIST = ${nobase_data_DATA}

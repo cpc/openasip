@@ -46,6 +46,8 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
 #include "tce_config.h"
 
+#include "RISCVFields.hh"
+
 
 POP_COMPILER_DIAGS
 
@@ -80,7 +82,7 @@ InstructionFormat*
 LLVMTCERISCVIntrinsicsLowering::findRFormat() {
     InstructionFormat* format = NULL;
     for (int f = 0; f < bem_->instructionFormatCount(); f++) {
-        if (bem_->instructionFormat(f).name() == "riscv_r_type") {
+        if (bem_->instructionFormat(f).name() == RISCVFields::RISCV_R_TYPE_NAME) {
             format = &bem_->instructionFormat(f);
             break;
         }

@@ -1,5 +1,4 @@
-SUBDIRS=tceopgen llvm-tce
+SUBDIRS=tceopgen llvm-tce riscv-tdgen
 
 bin_SCRIPTS = oacc oacc-riscv
 EXTRA_DIST = ${bin_SCRIPTS}
-

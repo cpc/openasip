@@ -60,7 +60,8 @@ public:
     void addEncoding(OperationTriggeredEncoding& encoding);
     void addOperation(std::string op, int encoding);
 
-    std::map<std::string, int> operations() const;
+    int operationCount() const;
+    std::string operationAtIndex(const int index) const;
 
     bool hasOperation(const std::string& op) const;
     int encoding(const std::string& op) const;

@@ -84,6 +84,7 @@ openasip/src/bintools/BlocksTranslator/blocks_translator
 openasip/src/bintools/Compiler/llvm-tce/llvm-tce
 openasip/src/bintools/Compiler/oacc
 openasip/src/bintools/Compiler/oacc-riscv
+openasip/src/bintools/Compiler/riscv-tdgen/riscv-tdgen
 openasip/src/bintools/Compiler/OpenCL/aclocal.m4
 openasip/src/bintools/Compiler/OpenCL/autom4te.cache/
 openasip/src/bintools/Compiler/OpenCL/config.guess

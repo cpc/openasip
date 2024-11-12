@@ -2,33 +2,35 @@
 ### TCE TESTCASE
 ### title: Try to compile a program with RISCV custom ops
 
-SRC=data/crc-custom.c
-ADF=data/riscv_custom_ops.adf
+SRC=data/test.c
+ADF=data/custom.adf
 CC=../../../../openasip/src/bintools/Compiler/oacc-riscv
-ELF=crc.elf
-LOG=compileLog.txt
+ASM_FILE=test.s
+OBJ_FILE=test.o
 
-# Assume we don't have compile support for RISCV
-RISCV_GCC=$(which riscv32-unknown-elf-gcc 2> /dev/null)
-if [ "x$RISCV_GCC" == "x" ]
-then
-    exit 0
-fi
+rm -f $ASM_FILE
 
-$CC -O0 -a $ADF -o $ELF $SRC &> $LOG || exit 1
+# Remove all cached plugins
+$CC --clear-plugin-cache
 
-if [ -s $LOG ]; then
-    echo "failure"
-    exit 1;
-elif ! [ -f $ELF ]; then
-    echo "failure"
-    exit 1;
-elif ! [ -s $ELF ]; then
-    echo "failure"
-    exit 1;
-fi
 
-rm $LOG
-rm $ELF
+$CC -c -S -O0 -a $ADF -o $ASM_FILE $SRC &> /dev/null
+
+
+# Check that the compiler utilizes the custom ops #
+
+for pattern in "test_op_1" "test_op_2" "test_op_3" "test_op_4" "test_op_5"; do
+    if ! grep -q "$pattern" "$ASM_FILE"; then
+        echo "Missing instruction $pattern"
+        exit 1
+    fi
+done
+
+rm -f $ASM_FILE
+
+# Check that the compiler can generate object code #
+$CC -c -O0 -a $ADF -o $OBJ_FILE $SRC || exit 1
+rm -f $OBJ_FILE
+
 
 exit 0;

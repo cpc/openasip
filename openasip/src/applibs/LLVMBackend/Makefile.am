@@ -17,7 +17,7 @@ libopenasipllvmbackend_la_SOURCES = \
 	TCEStubTargetMachine.cc \
 	InlineAsmParser.cc \
 	LLVMUtilities.cc \
-	LLVMTCERISCVIntrinsicsLowering.cc
+	RISCVTDGen.cc
 
 libopenasipllvmbackend_la_SOURCES += TCEStubTargetTransformInfo.cc \
 	TCEStubSubTarget.cc TCEStubTargetMachine.hh
@@ -114,6 +114,6 @@ libopenasipllvmbackend_la_SOURCES += \
 	TCEStubSubTarget.hh \
 	InlineAsmParser.hh \
 	LLVMUtilities.hh \
-	LLVMTCERISCVIntrinsicsLowering.hh
+	RISCVTDGen.hh
 
 ## headers end

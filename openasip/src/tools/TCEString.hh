@@ -117,6 +117,9 @@ public:
 
     static std::string filterDigits(const std::string& str);
 
+    static std::string intToHexString(int num);
+    static std::string unsignedToHexString(unsigned num);
+
     struct ICLess {
         bool operator() (const TCEString& lhs, const TCEString& rhs) const;
     };

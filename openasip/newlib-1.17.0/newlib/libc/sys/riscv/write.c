@@ -16,9 +16,8 @@ _DEFUN (_write, (file, ptr, len),
         int   len)
 {
     int i;
-    for (i = 0; i < len; i++) {         
-        int tmp = 0;   
-        _OA_RV_STDOUT_RISCV((int)ptr[i], 0, tmp);
+    for (i = 0; i < len; i++) {
+        _OA_RV_STDOUT((int)ptr[i]);
     }
     return len;
 }

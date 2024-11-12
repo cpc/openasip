@@ -85,15 +85,6 @@ void
 writeCustomOpMacro(
     std::ostream& os, std::string& opName, const Operation& op,
     mode macroMode, bool legacy) {
-    // Only generate valid RISC-V R-format intrinsics
-    if (macroMode == RISCV) {
-        if (op.numberOfInputs() != 2) {
-            return;
-        }
-        if (op.numberOfOutputs() != 1) {
-            return;
-        }
-    }
 
     if (op.numberOfInputs() + op.numberOfOutputs() == 0)
         return;
@@ -186,17 +177,21 @@ writeCustomOpMacro(
     os << "asm " << volatileKeyword << "(";
 
     switch (macroMode) {
-        case RISCV: {
-            os << "\"//" << opName << " ";
-            int iterations = 0;
-            for (iterations = 0; iterations < op.numberOfInputs();
-                 iterations++) {
-                os << "\\%" << std::to_string(iterations) << " ";
+    case RISCV: {
+        //
+        os << "\"OA_" << opName << " ";
+        int iterations = 0;
+        for (iterations = 0; iterations < op.numberOfInputs();
+                iterations++) {
+            os << "%" << std::to_string(iterations);
+            if (iterations != op.numberOfInputs() - 1) {
+                os << ", ";
             }
-            for (int i = 0; i < op.numberOfOutputs(); i++) {
-                os << "\\%" << std::to_string(iterations + i);
-            }
-        } break;
+        }
+        for (int i = 0; i < op.numberOfOutputs(); i++) {
+            os << ", %" << std::to_string(iterations + i);
+        }
+    } break;
     case FU_ADDRESSABLE:
         os << "FU\".";
         break;

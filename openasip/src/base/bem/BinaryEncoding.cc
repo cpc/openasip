@@ -499,7 +499,7 @@ BinaryEncoding::instructionFormatCount() const {
  */
 
 bool
-BinaryEncoding::hasInstructionFormat(const std::string name) const {
+BinaryEncoding::hasInstructionFormat(const std::string& name) const {
     return std::find_if(
                instructionFormats_.begin(), instructionFormats_.end(),
                [name](const InstructionFormat* it) {
@@ -523,6 +523,25 @@ BinaryEncoding::instructionFormat(int index) const {
         throw OutOfRange(__FILE__, __LINE__, __func__);
     }
     return *instructionFormats_[index];
+}
+
+/**
+ * Returns the instruction format with the given name.
+ *
+ * @param name The name of the format.
+ * @return The instruction format, null if not found
+ */
+
+InstructionFormat*
+BinaryEncoding::instructionFormat(const std::string& name) const {
+    InstructionFormat* format = NULL;
+    for (int f = 0; f < instructionFormatCount(); f++) {
+        if (instructionFormat(f).name() == name) {
+            format = &instructionFormat(f);
+            break;
+        }
+    }
+    return format;
 }
 
 /**

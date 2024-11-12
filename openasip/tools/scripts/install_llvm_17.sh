@@ -40,13 +40,13 @@ function fetch_llvm {
 
     if ! test -d $llvm_co_dir;
     then
-        git clone --single-branch --depth=1 --branch release/17.x https://github.com/cpc/llvmtce.git $llvm_co_dir\
+        git clone --single-branch --depth=1 --branch release/18.x https://github.com/cpc/llvmtce.git $llvm_co_dir\
             || eexit "Git clone $REV_TOFETCH from llvm failed"
     else
         cd $llvm_co_dir;
-        git checkout release/17.x ||	eexit "checking out git branch failed"
+        git checkout release/18.x ||	eexit "checking out git branch failed"
         git fetch
-        git reset --hard origin/release/17.x || eexit "resetting --hard HEAD failed"
+        git reset --hard origin/release/18.x || eexit "resetting --hard HEAD failed"
         cd ..;
     fi
 }
@@ -65,7 +65,7 @@ cmake ../llvm/ -DLLVM_ENABLE_PROJECTS="clang;lld" \
     -G "Unix Makefiles" \
     $LLVM_BUILD_MODE\
     -DCMAKE_INSTALL_PREFIX=$TARGET_DIR \
-    -DLLVM_TARGETS_TO_BUILD="X86;RISCV" \
+    -DLLVM_TARGETS_TO_BUILD="X86" \
     -DLLVM_LINK_LLVM_DYLIB=TRUE \
     -DLLVM_ENABLE_RTTI=TRUE \
     -DLLVM_ENABLE_Z3_SOLVER=OFF \
