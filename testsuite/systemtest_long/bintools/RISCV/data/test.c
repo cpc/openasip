@@ -20,3 +20,7 @@ int test_func4(int a) {
     _OA_RV_TEST_OP_4(a, retval);
     return retval;
 }
+
+int test_func5(int a, int b) {
+    return (a + b) & -3;
+}

@@ -528,6 +528,26 @@
         </writes>
       </pipeline>
     </operation>
+    <operation>
+      <name>test_op_5</name>
+      <bind name="1">P1</bind>
+      <bind name="2">P2</bind>
+      <bind name="3">P3</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
     <address-space/>
   </function-unit>
 
@@ -1072,6 +1092,7 @@
     <ota-operation>rem</ota-operation>
     <ota-operation>test_op_1</ota-operation>
     <ota-operation>test_op_2</ota-operation>
+    <ota-operation>test_op_5</ota-operation>
   </ota-format>
 
   <ota-format name="riscv_i_type">

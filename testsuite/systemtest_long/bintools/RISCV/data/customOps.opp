@@ -62,4 +62,20 @@ OP(add, a, 122, IO(2));
 </trigger-semantics>
   </operation>
 
+
+  <operation>
+    <name>TEST_OP_5</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="SIntWord"/>
+    <trigger-semantics>Var a;
+OP(add, IO(1), IO(2), a);
+OP(and, a, -3, IO(3));
+
+</trigger-semantics>
+  </operation>
+
 </osal>

@@ -19,7 +19,7 @@ $CC -c -S -O0 -a $ADF -o $ASM_FILE $SRC &> /dev/null
 
 # Check that the compiler utilizes the custom ops #
 
-for pattern in "test_op_1" "test_op_2" "test_op_3" "test_op_4"; do
+for pattern in "test_op_1" "test_op_2" "test_op_3" "test_op_4" "test_op_5"; do
     if ! grep -q "$pattern" "$ASM_FILE"; then
         echo "Missing instruction $pattern"
         exit 1
