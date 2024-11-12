@@ -57,22 +57,14 @@ RISCVTDGen::RISCVTDGen(const TTAMachine::Machine& mach)
     initializeBackendContents();
 }
 
-std::string
-RISCVTDGen::intToHexString(int num) const {
-    std::stringstream ss;
-    ss << "0x" << std::hex << std::uppercase << num;
-    return ss.str();
-}
-
-std::string
-RISCVTDGen::unsignedToHexString(unsigned num) const {
-    std::stringstream ss;
-    ss << "0x" << std::hex << std::uppercase << num;
-    return ss.str();
-}
-
-// TODO: OpenASIP converts hex numbers to unsigned by default. This converted
-// number might not fit into i32
+/**
+ * OpenASIP converts hex numbers to unsigned by default. The converted
+ * number might not fit into i32. This function transforms
+ * the given instruction pattern to use hex encoding.
+ *
+ * @param pattern The instruction pattern.
+ * @return The instruction pattern in hex format.
+ */
 std::string
 RISCVTDGen::decimalsToHex(const std::string& pattern) const {
     std::regex patternRegex(R"((i32\s)(-?\d+))");
@@ -80,21 +72,23 @@ RISCVTDGen::decimalsToHex(const std::string& pattern) const {
     std::string modifiedPattern = pattern;
 
     auto start = modifiedPattern.cbegin();
-    while (std::regex_search(start, modifiedPattern.cend(), match, patternRegex)) {
+    while (std::regex_search(
+        start, modifiedPattern.cend(), match, patternRegex)) {
         try {
             std::string numStr = match[2].str();
             std::string hexStr;
 
             if (numStr[0] == '-') {
                 int num = std::stoi(numStr);
-                hexStr = intToHexString(num);
+                hexStr = TCEString::intToHexString(num);
             } else {
                 unsigned long num = std::stoul(numStr);
-                hexStr = unsignedToHexString(num);
+                hexStr = TCEString::unsignedToHexString(num);
             }
 
             // Calculate the actual start position in the modified string
-            size_t matchPos = match.position(2) + std::distance(modifiedPattern.cbegin(), start);
+            size_t matchPos = match.position(2) + std::distance(
+                modifiedPattern.cbegin(), start);
             modifiedPattern.replace(matchPos, match.length(2), hexStr);
             // Move start past the replaced part
             start = modifiedPattern.cbegin() + matchPos + hexStr.length();
@@ -110,17 +104,6 @@ RISCVTDGen::decimalsToHex(const std::string& pattern) const {
     return modifiedPattern;
 }
 
-InstructionFormat*
-RISCVTDGen::findFormat(const std::string name) const {
-    InstructionFormat* format = NULL;
-    for (int f = 0; f < bem_->instructionFormatCount(); f++) {
-        if (bem_->instructionFormat(f).name() == name) {
-            format = &bem_->instructionFormat(f);
-            break;
-        }
-    }
-    return format;
-}
 
 void
 RISCVTDGen::findCustomOps() {
@@ -132,7 +115,7 @@ RISCVTDGen::findCustomOps() {
         RISCVFields::RISCV_R3R_TYPE_NAME
     };
     for (const std::string& fName : formatsToSearch) {
-        InstructionFormat* format = findFormat(fName);
+        InstructionFormat* format = bem_->instructionFormat(fName);
         if (format == NULL) {
             continue;
         }
@@ -184,14 +167,13 @@ RISCVTDGen::writeInstructionDeclaration(std::ostream& o,
     std::string f7 = RISCVTools::getFunc7Str(encoding);
     const std::string fType = getFormatType(name);
     assert(fType != "");
-    std::string opc = "OPC_CUSTOM_1";
+    std::string opc = "OPC_CUSTOM_0";
     if (fType == "OARVR3R") {
+        std::string opc = "OPC_CUSTOM_1";
         // rs3 takes 5 bits from f7
         f7 = RISCVTools::getFunc2Str(encoding);
-    // Patch other formats to this
     } else {
-        f7 = RISCVTools::getFunc2Str(encoding);
-        f7.insert(2, "00000");
+        f7 = RISCVTools::getFunc7Str(encoding);
     }
     o << "def " << "OA_" + opName.upper() << " : " << fType << "<" << f7
       <<", " << f3 << ", " << opc << ", \"" << "oa_" + name << "\">;";
@@ -237,7 +219,7 @@ RISCVTDGen::transformTCEPattern(std::string pattern,
         patTCEStr.replaceString("R32IRegs:$op2", "(XLenVT GPR:$rd)");
     }
     patTCEStr.replaceString("\n", "");
-    //patTCEStr = decimalsToHex(patTCEStr);
+    patTCEStr = decimalsToHex(patTCEStr);
     return patTCEStr;
 }
 

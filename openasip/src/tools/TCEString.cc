@@ -284,6 +284,20 @@ TCEString::filterDigits(const std::string& str) {
     return result;
 }
 
+std::string
+TCEString::intToHexString(int num) {
+    std::stringstream ss;
+    ss << "0x" << std::hex << std::uppercase << num;
+    return ss.str();
+}
+
+std::string
+TCEString::unsignedToHexString(unsigned num) {
+    std::stringstream ss;
+    ss << "0x" << std::hex << std::uppercase << num;
+    return ss.str();
+}
+
 
 /**
  * Implementation of lhs < rhs string comparison case insensitively.
@@ -297,4 +311,5 @@ TCEString::ICLess::operator() (
     const TCEString& lhs, const TCEString& rhs) const {
     return lhs.lower() < rhs.lower();
 }
+
 

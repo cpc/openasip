@@ -422,11 +422,10 @@ BEMGenerator::addRiscvFormat(
             if (MapTools::containsKey(RISCVFields::RISCVRTypeOperations, op)) {
                 instrFormat->addOperation(op, RISCVFields::RISCVRTypeOperations.at(op));
             } else {
-                unsigned int customEncoding = OPC_CUSTOM_0;
-                customEncoding += (amountOfRCustomOps << 7);
-                amountOfRCustomOps++;
-                // 10 bit encoding for operation
-                assert(amountOfRCustomOps < 32);
+                unsigned int customEncoding = OPC_CUSTOM_1;
+                customEncoding += (amountOfR3RCustomOps << 7);
+                amountOfR3RCustomOps++;
+                assert(amountOfR3RCustomOps < 32);
                 instrFormat->addOperation(op, customEncoding);
             }
         }

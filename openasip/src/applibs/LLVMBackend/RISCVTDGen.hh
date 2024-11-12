@@ -64,8 +64,6 @@ protected:
     void dumpClassDefinitions(std::ostream&) const;
     std::string getFormatType(const std::string& opName) const;
 
-    std::string intToHexString(int num) const;
-    std::string unsignedToHexString(unsigned num) const;
     std::string decimalsToHex(const std::string& pattern) const;
 
     BinaryEncoding* bem_;

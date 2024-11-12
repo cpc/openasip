@@ -16,7 +16,7 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301 USA
  */
 /**
- * @file riscv-tdgen
+ * @file riscv-tdgen.cc
  *
  * LLVM target definition generator driver for RISC-V 
  *
