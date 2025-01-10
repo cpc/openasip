@@ -7,14 +7,18 @@ rm -f limm_test.tceasm
 
 rm -f limm_test_2bus.tpef*
 rm -f limm_test_3bus.tpef*
+rm -f limm_test_2bus_sign_extend.tpef*
 rm -f limm_test_2bus*.img
 rm -f limm_test_3bus*.img
+rm -f limm_test_2bus_sign_extend*.img
 
 rm -f sim_in1
 rm -f sim_in2
+rm -f sim_in3
 
 rm -f limm_2bus.bem
 rm -f limm_3bus.bem
+rm -f limm_2bus_sign_extend.bem
 
 rm -rf proge-output_2bus
 rm -rf proge-output_2bus_simple
@@ -22,3 +26,6 @@ rm -rf proge-output_2bus_moveslot
 rm -rf proge-output_3bus
 rm -rf proge-output_3bus_simple
 rm -rf proge-output_3bus_moveslot
+rm -rf proge-output_2bus_sign_extend
+rm -rf proge-output_2bus_sign_extend_simple
+rm -rf proge-output_2bus_sign_extend_moveslot

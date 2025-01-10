@@ -20,11 +20,12 @@ COMP1=../../../../../openasip/compressors/InstructionDictionary.so
 COMP2=../../../../../openasip/compressors/MoveSlotDictionary.so
 
 # this is the cycle count of tceasm execution
-CYCLES=2048
+CYCLES=2050
 
 ASM=limm_test.tceasm
 SIM_IN1=sim_in1
 SIM_IN2=sim_in2
+SIM_IN3=sim_in3
 
 ADF1=data/limm_2bus.adf
 IDF1=data/limm_2bus.idf
@@ -40,6 +41,13 @@ IMEM2=limm_test_3bus.img
 DMEM2=limm_test_3bus_data.img
 BEM2=limm_3bus.bem
 
+ADF3=data/limm_2bus_sign_extend.adf
+IDF3=data/limm_2bus_sign_extend.idf
+TPEF3=limm_test_2bus_sign_extend.tpef
+IMEM3=limm_test_2bus_sign_extend.img
+DMEM3=limm_test_2bus_sign_extend_data.img
+BEM3=limm_2bus_sign_extend.bem
+
 P_DIR1=proge-output_2bus
 P_DIR1_ID=proge-output_2bus_simple
 P_DIR1_MS=proge-output_2bus_moveslot
@@ -47,6 +55,10 @@ P_DIR1_MS=proge-output_2bus_moveslot
 P_DIR2=proge-output_3bus
 P_DIR2_ID=proge-output_3bus_simple
 P_DIR2_MS=proge-output_3bus_moveslot
+
+P_DIR3=proge-output_2bus_sign_extend
+P_DIR3_ID=proge-output_2bus_sign_extend_simple
+P_DIR3_MS=proge-output_2bus_sign_extend_moveslot
 
 function eexit {
     echo $1
@@ -64,26 +76,33 @@ fi
 
 $TCEASM -o $TPEF1 $ADF1 $ASM || eexit "Failed to compile asm"
 $TCEASM -o $TPEF2 $ADF2 $ASM || eexit "Failed to compile asm"
+$TCEASM -o $TPEF3 $ADF3 $ASM || eexit "Failed to compile asm"
 
 # create simulation commands
 #(simulator won't get stuck this way if input is illegal)
 echo "setting bus_trace 1" > $SIM_IN1
 echo "setting bus_trace 1" > $SIM_IN2
+echo "setting bus_trace 1" > $SIM_IN3
 echo "mach $ADF1" >> $SIM_IN1
 echo "mach $ADF2" >> $SIM_IN2
+echo "mach $ADF3" >> $SIM_IN3
 echo "prog $TPEF1" >> $SIM_IN1
 echo "prog $TPEF2" >> $SIM_IN2
+echo "prog $TPEF3" >> $SIM_IN3
 echo "run" >> $SIM_IN1
 echo "run" >> $SIM_IN2
+echo "run" >> $SIM_IN3
 echo "quit" >> $SIM_IN1
 echo "quit" >> $SIM_IN2
+echo "quit" >> $SIM_IN3
 
 $TTASIM < $SIM_IN1 || eexit "Failed to simulate"
 $TTASIM < $SIM_IN2 || eexit "Failed to simulate"
-
+$TTASIM < $SIM_IN3 || eexit "Failed to simulate"
 
 $CREATEBEM $ADF1 || eexit "Failed to create bem"
 $CREATEBEM $ADF2 || eexit "Failed to create bem"
+$CREATEBEM $ADF3 || eexit "Failed to create bem"
 
 $PROGE -t -b $BEM1 -o $P_DIR1 -i $IDF1 $ADF1 2>&1 || eexit "ProGe failed"
 cp -r $P_DIR1 $P_DIR1_ID
@@ -93,6 +112,9 @@ $PROGE -t -b $BEM2 -o $P_DIR2 -i $IDF2 $ADF2 2>&1 || eexit "ProGe failed"
 cp -r $P_DIR2 $P_DIR2_ID
 cp -r $P_DIR2 $P_DIR2_MS
 
+$PROGE -t -b $BEM3 -o $P_DIR3 -i $IDF3 $ADF3 2>&1 || eexit "ProGe failed"
+cp -r $P_DIR3 $P_DIR3_ID
+cp -r $P_DIR3 $P_DIR3_MS
 
 # create images for 2 bus limm without compression
 $PIG -b $BEM1 -d -w 4 -x $P_DIR1 -p $TPEF1 $ADF1 2>&1 || eexit "PIG failed..oink oink"
@@ -112,6 +134,14 @@ $PIG -b $BEM2 -d -w 4 -x $P_DIR2_ID -p $TPEF2 -g -c $COMP1 $ADF2 2>&1 || eexit "
 # create images for 3 bus limm using moveslot dictionary compression
 $PIG -b $BEM2 -d -w 4 -x $P_DIR2_MS -p $TPEF2 -g -c $COMP2 $ADF2 2>&1 || eexit "PIG failed with MoveSlotDictionary"
 
+# create images for 2 bus limm with sign extension
+$PIG -b $BEM3 -d -w 4 -x $P_DIR3 -p $TPEF3 $ADF3 2>&1 || eexit "PIG failed..oink oink"
+
+# create images for 2 bus limm with sign extension using instruction dictionary compression
+$PIG -b $BEM3 -d -w 4 -x $P_DIR3_ID -p $TPEF3 -g -c $COMP1 $ADF3 2>&1 || eexit "PIG failed with InstructionDictionary"
+
+# create images for 2 bus limm with sign extension using moveslot dictionary compression
+$PIG -b $BEM3 -d -w 4 -x $P_DIR3_MS -p $TPEF3 -g -c $COMP2 $ADF3 2>&1 || eexit "PIG failed with MoveSlotDictionary"
 
 cd $P_DIR1
 ./ghdl_compile.sh >& /dev/null
@@ -145,6 +175,22 @@ cd $P_DIR2_MS
 cd ..
 
 
+cd $P_DIR3
+./ghdl_compile.sh >& /dev/null
+./ghdl_simulate.sh >& /dev/null
+cd ..
+
+cd $P_DIR3_ID
+./ghdl_compile.sh >& /dev/null
+./ghdl_simulate.sh >& /dev/null
+cd ..
+
+cd $P_DIR3_MS
+./ghdl_compile.sh >& /dev/null
+./ghdl_simulate.sh >& /dev/null
+cd ..
+
+
 head -n $CYCLES $P_DIR1/bus.dump > $TPEF1.rtl_bustrace
 head -n $CYCLES $P_DIR1_ID/bus.dump > $TPEF1.rtl_id_comp_bustrace
 head -n $CYCLES $P_DIR1_MS/bus.dump > $TPEF1.rtl_ms_comp_bustrace
@@ -152,6 +198,10 @@ head -n $CYCLES $P_DIR1_MS/bus.dump > $TPEF1.rtl_ms_comp_bustrace
 head -n $CYCLES $P_DIR2/bus.dump > $TPEF2.rtl_bustrace
 head -n $CYCLES $P_DIR2_ID/bus.dump > $TPEF2.rtl_id_comp_bustrace
 head -n $CYCLES $P_DIR2_MS/bus.dump > $TPEF2.rtl_ms_comp_bustrace
+
+head -n $CYCLES $P_DIR3/bus.dump > $TPEF3.rtl_bustrace
+head -n $CYCLES $P_DIR3_ID/bus.dump > $TPEF3.rtl_id_comp_bustrace
+head -n $CYCLES $P_DIR3_MS/bus.dump > $TPEF3.rtl_ms_comp_bustrace
 
 
 diff -u $TPEF1.bustrace $TPEF1.rtl_bustrace || echo "$ADF1 without compression failed"
@@ -161,3 +211,7 @@ diff -u $TPEF1.bustrace $TPEF1.rtl_ms_comp_bustrace || echo "$ADF1 with moveslot
 diff -u $TPEF2.bustrace $TPEF2.rtl_bustrace || echo "$ADF2 without compression failed"
 diff -u $TPEF2.bustrace $TPEF2.rtl_id_comp_bustrace || echo "$ADF2 with instruction dictionary failed"
 diff -u $TPEF2.bustrace $TPEF2.rtl_ms_comp_bustrace || echo "$ADF2 with moveslot dictionary failed"
+
+diff -u $TPEF3.bustrace $TPEF3.rtl_bustrace || echo "$ADF3 without compression failed"
+diff -u $TPEF3.bustrace $TPEF3.rtl_id_comp_bustrace || echo "$ADF3 with instruction dictionary failed"
+diff -u $TPEF3.bustrace $TPEF3.rtl_ms_comp_bustrace || echo "$ADF3 with moveslot dictionary failed"

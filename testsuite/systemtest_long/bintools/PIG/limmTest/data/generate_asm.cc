@@ -3,6 +3,7 @@
 #include <fstream>
 #include <time.h>
 
+// Number of randomly generated values
 const int TEST_SAMPLES = 1023;
 const std::string TCEASM = "limm_test.tceasm";
 
@@ -31,6 +32,14 @@ int main() {
         file << "... , ... , ... [IU.0 = " << data << "];" << std::endl
              << "IU.0 -> RF.0, ..., ...;" << std::endl;
     }
+
+    // Explicitly added immediate values
+
+    // Regression test for case, where a value was falsely interpreted
+    // as a negative value, when the MSB of a byte was '1'. Occurred,
+    // when immediate unit used sign extension.
+    file << "... , ... , ... [IU.0 = 136];" << std::endl
+             << "IU.0 -> RF.0, ..., ...;" << std::endl;
 
     file.close();
     return 0;
