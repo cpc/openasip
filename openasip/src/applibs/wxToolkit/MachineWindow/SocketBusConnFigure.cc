@@ -59,8 +59,8 @@ SocketBusConnFigure::~SocketBusConnFigure() {
 void
 SocketBusConnFigure::drawSelf(wxDC* dc) {
     assert(source_ != NULL && target_ != NULL);
-    wxPen pen = wxPen(DEFAULT_COLOUR, 1, wxSOLID);
-    wxBrush brush = wxBrush(DEFAULT_COLOUR, wxSOLID);
+    wxPen pen = wxPen(DEFAULT_COLOUR, 1, wxPENSTYLE_SOLID);
+    wxBrush brush = wxBrush(DEFAULT_COLOUR, wxBRUSHSTYLE_SOLID);
     dc->SetPen(pen);
     dc->SetBrush(brush);
     drawConnection(dc);

@@ -66,8 +66,8 @@ MoveFigure::drawSelf(wxDC* dc) {
 
     assert(bus_ != NULL);
 
-    wxPen pen = wxPen(DEFAULT_COLOUR, 4, wxSOLID);
-    wxBrush brush = wxBrush(DEFAULT_COLOUR, wxSOLID);
+    wxPen pen = wxPen(DEFAULT_COLOUR, 4, wxPENSTYLE_SOLID);
+    wxBrush brush = wxBrush(DEFAULT_COLOUR, wxBRUSHSTYLE_SOLID);
     dc->SetPen(pen);
     dc->SetBrush(brush);
 

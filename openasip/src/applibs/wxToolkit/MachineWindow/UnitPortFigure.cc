@@ -73,7 +73,7 @@ UnitPortFigure::layoutChildren(wxDC*) {
     for (unsigned int i = 0; i < children_.size(); i++) {
 
         children_[i]->setWidth(size_.GetWidth());
-        
+
         if (!oneSet && !children_[i]->xSet()) {
             children_[i]->setX(location_.x);
             oneSet = true;
@@ -92,11 +92,11 @@ UnitPortFigure::layoutChildren(wxDC*) {
  */
 void
 UnitPortFigure::drawSelf(wxDC* dc) {
-    wxPen pen = wxPen(DEFAULT_COLOUR, 1, wxSOLID);
+    wxPen pen = wxPen(DEFAULT_COLOUR, 1, wxPENSTYLE_SOLID);
     dc->SetPen(pen);
-    wxBrush brush = wxBrush(DEFAULT_BG_COLOUR, wxSOLID);
+    wxBrush brush = wxBrush(DEFAULT_BG_COLOUR, wxBRUSHSTYLE_SOLID);
     if (highlighted_) {
-        brush = wxBrush(highlight_, wxSOLID);
+        brush = wxBrush(highlight_, wxBRUSHSTYLE_SOLID);
     }
     dc->SetBrush(brush);
     dc->DrawRectangle(location_.x, location_.y, size_.GetWidth(),

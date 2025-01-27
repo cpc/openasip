@@ -79,11 +79,11 @@ UnitFigure::~UnitFigure() {
 void
 UnitFigure::drawSelf(wxDC* dc) {
 
-    wxPen pen = wxPen(DEFAULT_COLOUR, 1, wxSOLID);
+    wxPen pen = wxPen(DEFAULT_COLOUR, 1, wxPENSTYLE_SOLID);
     dc->SetPen(pen);
-    wxBrush brush = wxBrush(DEFAULT_BG_COLOUR, wxSOLID);
+    wxBrush brush = wxBrush(DEFAULT_BG_COLOUR, wxBRUSHSTYLE_SOLID);
     if (highlighted_) {
-        brush = wxBrush(highlight_, wxSOLID);
+        brush = wxBrush(highlight_, wxBRUSHSTYLE_SOLID);
     }
     dc->SetBrush(brush);
 
@@ -95,44 +95,44 @@ UnitFigure::drawSelf(wxDC* dc) {
     if (type_ == _T("FU:")) {
         if (!highlighted_) {
             if (info_.StartsWith(_T("{ AS:"))) {
-                dc->SetBrush(wxBrush(wxColour(170,255,170),wxSOLID));
+                dc->SetBrush(wxBrush(wxColour(170,255,170), wxBRUSHSTYLE_SOLID));
             } else {
-                dc->SetBrush(wxBrush(wxColour(205,205,255),wxSOLID));
+                dc->SetBrush(wxBrush(wxColour(205,205,255), wxBRUSHSTYLE_SOLID));
             }
         } else {
             if (info_.StartsWith(_T("{ AS:"))) {
                 dc->SetBrush(wxBrush(wxColour((53+highlight_.Red()*2)/3,
                                               (82+highlight_.Green()*2)/3,
                                               (53+highlight_.Blue()*2)/3),
-                                     wxSOLID));
+                                     wxBRUSHSTYLE_SOLID));
             } else {
                 dc->SetBrush(wxBrush(wxColour((68+highlight_.Red()*2)/3,
                                               (68+highlight_.Green()*2)/3,
                                               (82+highlight_.Blue()*2)/3),
-                                     wxSOLID));
+                                     wxBRUSHSTYLE_SOLID));
             }
         }
         dc->DrawRoundedRectangle(
             location_.x, location_.y, size_.GetWidth(),
             size_.GetHeight(), size_.GetHeight()*0.25);
     } else if (type_ == _T("GCU:")) {
-        dc->SetBrush(wxBrush(wxColour(250,145,255), wxSOLID));
+        dc->SetBrush(wxBrush(wxColour(250,145,255), wxBRUSHSTYLE_SOLID));
         dc->DrawRoundedRectangle(
             location_.x, location_.y, size_.GetWidth(),
             size_.GetHeight(), size_.GetHeight()*0.4);
     } else if (type_ == _T("IMM:")) {
-        dc->SetBrush(wxBrush(wxColour(255,168,140),wxSOLID));
+        dc->SetBrush(wxBrush(wxColour(255,168,140), wxBRUSHSTYLE_SOLID));
         wxPoint points[4];
         points[0] = wxPoint(size_.GetWidth()/2-10, size_.GetHeight());
         points[1] = wxPoint(size_.GetWidth()/2+10, size_.GetHeight());
         points[2] = wxPoint(size_.GetWidth(),0);
         points[3] = wxPoint(0,0);
         dc->DrawPolygon(
-            4, points, 
+            4, points,
             location_.x, location_.y,
             wxODDEVEN_RULE);
     } else { // register file
-        dc->SetBrush(wxBrush(wxColour(240,230,150),wxSOLID));
+        dc->SetBrush(wxBrush(wxColour(240,230,150), wxBRUSHSTYLE_SOLID));
         dc->DrawRectangle(
             location_.x, location_.y, size_.GetWidth(),
             size_.GetHeight());
@@ -159,7 +159,7 @@ UnitFigure::drawSelf(wxDC* dc) {
     if (!drawInfoRow) {
         // In case we do not write the details (operation set) to the unit,
         // print the name of the unit larger.
-        dc->SetFont(wxFont(16, wxDEFAULT, wxNORMAL, wxNORMAL));
+        dc->SetFont(wxFont(16, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
     }
     dc->GetTextExtent(name_, &nameWidth, &nameHeight);
 
@@ -175,7 +175,7 @@ UnitFigure::drawSelf(wxDC* dc) {
 
         int infoWidth;
         int infoHeight;
-    
+
         dc->GetTextExtent(info_, &infoWidth, &infoHeight);
 
         int infoX = location_.x + size_.GetWidth() / 2 - infoWidth / 2;

@@ -128,11 +128,11 @@ void
 BusFigure::drawSelf(wxDC* dc) {
 
     if (children_.empty()) {
-	wxPen pen = wxPen(DEFAULT_COLOUR, 1, wxSOLID);
-	wxBrush brush = wxBrush(DEFAULT_COLOUR, wxSOLID);
+	wxPen pen = wxPen(DEFAULT_COLOUR, 1, wxPENSTYLE_SOLID);
+	wxBrush brush = wxBrush(DEFAULT_COLOUR, wxBRUSHSTYLE_SOLID);
 	dc->SetPen(pen);
 	dc->SetBrush(brush);
-	
+
 	dc->DrawRectangle(location_.x, location_.y,
 			  size_.GetWidth(), size_.GetHeight());
     }
