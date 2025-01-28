@@ -96,6 +96,35 @@ This step needs root/admin privileges.
 For Ubuntus, you need to enable the universe and multiverse repositories first:
 https://help.ubuntu.com/community/Repositories/Ubuntu#Adding_Repositories_in_Ubuntu
 
+Ubuntu 24.04
+-------------------------
+This version of Ubuntu has only libwxgtk3.2 and it requires to build wxGTK manualy
+```bash
+wget https://github.com/wxWidgets/wxWidgets/releases/download/v3.0.5.1/wxWidgets-3.0.5.1.tar.bz2
+tar xjf wxWidgets-3.0.5.1.tar.bz2
+cd wxWidgets-3.0.5.1
+mkdir build-gtk
+cd build-gtk
+../configure --with-gtk
+#change j to your cpu number
+make -j64
+sudo make install
+```
+
+It could be impossible to build with default libboost-all-dev, please use version 1.74
+
+```bash
+sudo apt install libboost1.74-all-dev
+```
+To get rid of message
+```
+Gtk-Message: 20:48:44.631: Failed to load module "canberra-gtk-module"
+```
+this optional install could be done too before or after build.
+```bash
+sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
+```
+
 Ubuntu 20.04+ / Debian 11
 -------------------------
 
