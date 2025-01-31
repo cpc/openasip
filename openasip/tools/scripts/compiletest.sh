@@ -38,6 +38,7 @@ skipUnitTests=no
 installAfterCompile=no
 runSelfTests=no
 tagIfSuccess=no
+numProcesses=""
 
 # These are used by the script to figure out how many successive compile test
 # runs have been executed successfully. After the given count of executions,
@@ -60,7 +61,7 @@ mkdir -p ${HOME}/.openasip
 touch -a "${lastOkRevisionFile}"
 
 # Process command line arguments (from Advanced Bash-Scripting Guide).
-while getopts "vhngqckmsuiIt" Option
+while getopts "vhngqckmsuiItp:" Option
 do
     case $Option in
         v     ) 
@@ -114,6 +115,10 @@ do
 
         tagIfSuccess=yes;;
 
+        p     )
+        numProcesses=$OPTARG
+        ;;
+
         h     ) 
 
         echo "TCE compile&test script (c) 2003-2013 Pekka J��skel�inen";
@@ -164,7 +169,10 @@ do
         echo "    and long) tests pass."
         echo "    Notice that you shouldn't use this if you have local";
         echo "    uncommitted changes!";
-        echo 
+        echo
+        echo "-p  Number of parallel processes to run tests with.";
+        echo "    If no value given, will use one process per CPU core.";
+        echo
 
         exit 0;;
 
@@ -348,6 +356,7 @@ else
     LOG_DIR="$PWD"
 fi
 
+
 # number of lines to tail from error log when mailing the error report
 LINES_FROM_ERROR_LOG=1500
 
@@ -407,6 +416,11 @@ currentLine=""
 firstDialog=yes
 
 DENBENCH_TESTDESC=$SYSTEMTEST_LONGLONG_DIR/bintools/Compiler/denbench_verification.testdesc
+
+NUM_PROC_PARAM=""
+if [ "x${numProcesses}" != "x" ]; then
+    NUM_PROC_PARAM="-p $numProcesses"
+fi
 
 function link_systemtest_dirs {
     if [ ! -h $SYSTEMTEST_DIR ]
@@ -643,7 +657,7 @@ function run_system_tests {
 
     cd $SYSTEMTEST_DIR
     {
-        ../../openasip/tools/scripts/systemtest.py $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
+        ../../openasip/tools/scripts/systemtest.py $STPARAM $NUM_PROC_PARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
     } 1> $TEMP_FILE 2>&1
 
     log_failure system_testing
@@ -663,7 +677,7 @@ function run_long_system_tests {
 
     cd $SYSTEMTEST_LONG_DIR
     {
-        ../../openasip/tools/scripts/systemtest.py $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
+        ../../openasip/tools/scripts/systemtest.py $STPARAM $NUM_PROC_PARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
     } 1> $TEMP_FILE 2>&1
 
     log_failure long_testing
@@ -683,7 +697,7 @@ function run_longlong_system_tests {
 
     cd $SYSTEMTEST_LONGLONG_DIR
     {
-        ../../openasip/tools/scripts/systemtest.py $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
+        ../../openasip/tools/scripts/systemtest.py $STPARAM $NUM_PROC_PARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
     } 1> $TEMP_FILE 2>&1
 
     log_failure longlong_testing
