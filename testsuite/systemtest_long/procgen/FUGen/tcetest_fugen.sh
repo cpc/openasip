@@ -159,9 +159,7 @@ run_verilog_test "data/three_fu/mach.adf" "" "proge_out_3fu_back-verilog"
 run_verilog_test "data/three_fu/mach.adf" " --fu-front-register=all --fu-back-register=SCALAR" "proge_out_3fu_front-verilog"
 ### This test fails in FUGen!
 #run_verilog_test "data/three_fu/mach.adf" " --fu-middle-register=all --fu-back-register=SCALAR" "proge_out_3fu_middle-verilog"
-### This test fails in FUGen!
-#run_verilog_test "data/xilinx_test/mach.adf" "" "proge_out_xilinx_back-verilog"  
-
+run_verilog_test "data/xilinx_test/mach.adf" "" "proge_out_xilinx_back-verilog"  
 
 ### VHDL tests
 run_test "data/one_fu/mach.adf" "-i data/mach.idf" "proge_out_1fu_back"
