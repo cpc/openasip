@@ -706,22 +706,6 @@ FUGen::buildOperations() {
         operationCp.reads(signal);
     }
 
-    // source -> destinations
-    std::map<std::string, std::vector<std::string>> subOpConnectionMap;
-
-    for (auto&& pair : scheduledOperations_) {
-        auto schedule = pair.second;
-        std::string name = pair.first;
-        for (auto&& operand : schedule.operands) {
-            int id = operand.id;
-            std::string source = operand.signalName;
-            std::string destination = operandSignal(name, id);
-            if (TCEString(destination).startsWith("subop") && !operand.isOutput) {
-                subOpConnectionMap[source].push_back(destination);
-            }
-        }
-    }
-
     std::set<std::string> defaultStatements;
     for (auto&& pair : scheduledOperations_) {
         auto schedule = pair.second;
