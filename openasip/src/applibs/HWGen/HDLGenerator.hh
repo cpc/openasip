@@ -322,9 +322,9 @@ namespace HDLGenerator {
 
         Width width() final { return {strWidth_, width_}; }
 
-        void declare(std::ostream& stream, Language lang, int ident) {
+        void declare(std::ostream& stream, Language lang, int indent) {
             if (lang == Language::VHDL) {
-                stream << StringTools::indent(ident) << "signal "
+                stream << StringTools::indent(indent) << "signal "
                        << name() << " : ";
                 if (width_ < 0 || width_ > 1 || wt_ == WireType::Vector) {
                     if (strWidth_.empty()) {
@@ -339,7 +339,7 @@ namespace HDLGenerator {
                     stream << "std_logic;\n";
                 }
             } else if (lang == Language::Verilog) {
-                stream << StringTools::indent(ident) << "reg ";
+                stream << StringTools::indent(indent) << "reg ";
                 if (width_ < 0 || width_ > 1) {
                     if (strWidth_.empty()) {
                         stream << "[" << std::to_string(width_ - 1) << ":0] ";
@@ -1495,23 +1495,23 @@ namespace HDLGenerator {
             clear();
             build();
             if (lang == Language::VHDL) {
-                std::string ident = StringTools::indent(level);
+                std::string indent = StringTools::indent(level);
                 // Header comment
                 for (auto&& line : headerComment_) {
-                    stream << ident <<  "-- " << line << "\n";
+                    stream << indent <<  "-- " << line << "\n";
                 }
                 // Libraries
-                stream << ident << "\n"
-                       << ident << "library ieee;\n"
-                       << ident << "use ieee.std_logic_1164.all;\n"
-                       << ident << "use ieee.numeric_std.all;\n"
-                       << ident << "use ieee.std_logic_misc.all;\n"
-                       << ident << "use STD.textio.all;\n"
-                       << ident << "use ieee.std_logic_textio.all;\n"
-                       << ident << "use IEEE.math_real.all;\n"
+                stream << indent << "\n"
+                       << indent << "library ieee;\n"
+                       << indent << "use ieee.std_logic_1164.all;\n"
+                       << indent << "use ieee.numeric_std.all;\n"
+                       << indent << "use ieee.std_logic_misc.all;\n"
+                       << indent << "use STD.textio.all;\n"
+                       << indent << "use ieee.std_logic_textio.all;\n"
+                       << indent << "use IEEE.math_real.all;\n"
                 // Entity
-                       << ident << "\n"
-                       << ident << "entity " << name() << " is\n";
+                       << indent << "\n"
+                       << indent << "entity " << name() << " is\n";
                 // - Generics
                 if (!parameters_.empty()) {
                     std::string separator = "";
@@ -1534,10 +1534,10 @@ namespace HDLGenerator {
                     }
                     stream << ");\n";
                 }
-                stream << ident << "end entity " << name() << ";\n"
+                stream << indent << "end entity " << name() << ";\n"
                 // Architecture
-                       << ident << "\n"
-                       << ident << "architecture rtl of "
+                       << indent << "\n"
+                       << indent << "architecture rtl of "
                                         << name() << " is\n";
                 // constants
                 if (!constants_.empty() || !binaryConstants_.empty()) {

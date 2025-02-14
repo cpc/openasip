@@ -8005,6 +8005,285 @@ t & syms & Prints the symbol tables. \\
 % TODO: perhaps a simple example of the resulting dump in here?
 
 
+\section{Test Generator (generatetests)}
+\label{section:tege}
+
+\textbf{Test Generator} (TeGe) is a program to generate test cases for
+the given architecture.
+
+\textbf{Input}: ADF, [IDF], [TPEF]
+
+\textbf{Output}: program and data images (.img), bus traces, reference
+programs.
+
+\subsection{Usage}
+
+The usage of the \emph{generatetests} application is as follows:
+
+\begin{verbatim}
+generatetests <options> -a adffile
+\end{verbatim}
+
+The \emph{adffile} is the ADF file.
+
+The possible options of the application are as follows:\\
+
+\begin{tabular}{p{0.10\textwidth}p{0.15\textwidth}
+                p{0.65\textwidth}}
+
+\textbf{Short Name} &\textbf{Long Name} &\textbf{Description} \\
+\hline
+a & adf & The target architecture for the generated tests. The option
+is mandatory. \\
+i & idf & The Implementation definition for the architecture. The option is
+optional but implicitly disables some test generators if left out.\\
+l & list-generators & Lists the test generators with their names, descriptions
+and activation status.\\
+e & enable & Enables the test generators by names that are disabled by
+default. The generator names are separated with commas. \\
+d & disable & Disables the test generators by names. The generator names are
+separated with commas.\\
+D & disable-all & Disables all the test generators. This option can be
+used with-e option to enable only certain tests conveniently. \\
+s & seed & Set seed value that is used in the test generators for
+randomized tests. The option accepts number and string as input.
+If the input is left out then new seed is generated and printed into
+stdout. If the option is not specified then default seed value is used. \\
+o & output & The directory where the test files are placed. If option is not
+specified nor the option \emph{hdl-dir} then the files are placed
+under ./tests/ directory.\\
+x & hdl-dir & Directory root where ProGe generated HDL files and generates
+the program and data image files. The test files are placed under
+\emph{hdl-dir}/tb/tests directory.\\
+f & format & Output format of program and data images. Choices are 'ascii',
+'array', 'mif', 'coe', 'vhdl' or 'binary'. Default is 'ascii' \\
+p & program & Additional user defined test programs (TPEF) to be included
+in tests.\\
+
+\end{tabular}\\
+
+Test generator is a tool to generate various test case programs
+automatically from the targeted architecture. The tests are generated
+from the tool's test generator units which each is responsible to test
+some area of the architecture.
+
+The tool outputs test case files consisting of program images, bus
+traces of the test programs and/or reference code files (TPEF, disasm)
+as ``original'' reference sources of the test cases.
+
+%TODO table of generated files
+
+The test generator creates random input values when it is generating
+tests for operations of the architecture and assumes that the values
+are valid. If the value generation needs to be restricted there is
+couple way to control input generation in OSAL by:
+
+\begin{itemize}
+\item inspecting the input values to be given to operation and
+  discarding the invalid ones,
+\item overriding the random input generation and generating the custom input
+  instead.
+\end{itemize}
+
+\subsubsection{Custom test input validation}
+
+Validation of inputs of a operation is done by writing input check
+code between INPUT\_VALIDATION and END\_INPUT\_VALIDATION block. If
+the given inputs are correct for the operation the DECLARE\_VALID
+expression is used to accept the values. Below is example code of
+input validation of SQRTF operation:
+
+\begin{verbatim}
+OPERATION(SQRTF)
+
+TRIGGER
+    IO(2) = sqrtf(FLT(1));
+END_TRIGGER;
+
+INPUT_VALIDATION
+    if (FLT(1) >= 0.0f ) { // Check the input is positive.
+        DECLARE_VALID;     // If so then accept the input.
+    }                      // Otherwise the input is discarded.
+END_INPUT_VALIDATION
+
+END_OPERATION(SQRTF)
+\end{verbatim}
+
+\subsubsection{Custom test input generation}
+
+To add custom test input values for a operation use
+DEFINE\_TESTVECTORS block to define the test values (aka.  ``test
+vectors''). The custom test values are fed by defining values for each
+input operand of the operation using IO and SUBWORD expressions and
+then adding them with ADD\_TESTVECTOR expression.  The following
+example defines three test vectors:
+
+\begin{verbatim}
+OPERATION(MAX)
+
+TRIGGER
+    SIntWord in1 = static_cast<SIntWord>(INT(1));
+    SIntWord in2 = static_cast<SIntWord>(INT(2));
+    SIntWord in3 = (in1 > in2) ? in1 : in2;
+    IO(3) = static_cast<SIntWord>(in3);
+END_TRIGGER;
+
+DEFINE_TESTVECTORS
+    IO(1) = 1;
+    IO(2) = -1;
+    ADD_TESTVECTOR;
+    IO(1) = -1;
+    IO(2) = 1;
+    ADD_TESTVECTOR;
+    IO(1) = -1;
+    IO(2) = -1;
+    ADD_TESTVECTOR;
+END_DEFINE_TESTVECTORS
+
+END_OPERATION(MAX)
+\end{verbatim}
+
+\subsubsection{examples of the usage}
+
+The following command is minimum example that generates tests for the
+given architecture using default seed value and puts them under
+\emph{tests} directory.
+
+\begin{verbatim}
+> generatetests -a machine.adf
+> ls tests/
+\end{verbatim}
+
+The generated tests can be stored to other directory with
+\emph{output} and \emph{hdl-dir} options. The first of the following
+examples writes test files into user defined directory and the second
+example writes the files into \emph{hdl-dir}/tb/tests directory.
+
+\begin{verbatim}
+> generatetests -a machine.adf -o other-directory
+> ls other-directory/
+> generatetests -a machine.adf -x path-to-proge-dir
+> ls path-to-proge-dir/tb/tests/
+\end{verbatim}
+
+Different seed value can be set with \emph{seed} option. The first
+example uses given value as seed and the second example generates new
+seed:
+
+\begin{verbatim}
+> generatetests -a machine.adf -s 1234567
+> generatetests -a machine.adf -s
+Generated seed: 109604828
+\end{verbatim}
+
+The test generators of the program can be viewed with
+\emph{list-generators}. To enable and disable test generators during
+test generation use \emph{enable} and \emph{disable} options.
+
+\begin{verbatim}
+> generatetests -l
+immediate-tests [enabled]
+    Generates various short and long immediate values.
+operation-tests [enabled]
+    Generates tests for basic operations for each Function Unit.
+...
+> generatetests -e immediate-tests,operation-tests -a machine.adf
+> generatetests -d immediate-tests,operation-tests -a machine.adf
+\end{verbatim}
+
+The additional test code can be included with \emph{program} option:
+
+\begin{verbatim}
+> generatetests -a machine.adf -p example1.tpef -p example2.tpef
+> generatetests -a machine.adf -p example1.tpef,example2.tpef
+\end{verbatim}
+
+\subsection{Test Runner Script}
+\label{subsection:testrunner}
+
+The usage of the \emph{testrunner.py} script is as follows:
+
+\begin{verbatim}
+./testrunner.py <options>
+\end{verbatim}
+
+This script is generated by test generator. The all possible optional
+options of the script are as follows:
+
+\begin{tabular}{p{0.10\textwidth}p{0.15\textwidth}
+                p{0.65\textwidth}}
+
+\textbf{Short Name} &\textbf{Long Name} &\textbf{Description} \\
+\hline
+i & input &
+Specifies input directory where the test cases are searched from.
+Default directory is '\textit{PROGEOUTPUT/tests}' where PROGEOUTPUT is
+'.' or directory set by option -x. \\
+
+o & output &
+Specifies output directory where the results of test cases are placed
+to.  Default directory is '\textit{PROGEOUTPUT/test-results}' where PROGEOUTPUT
+is '.' by default or directory set by option -x. \\
+
+x & hdl-dir &
+Specifies directory where a processor design is generated by ProGe. By
+default the script is assumed to be placed in this directory and
+therefore the option is not needed unless it is placed else
+where. Default directory is tectit{PROGEOUTPUT} which is '.'.\\
+
+t & testcase &
+Instead of running all test cases from input directory this option
+only runs a single test case by name. \\
+
+s & simulator &
+Specifies RTL simulator to used in RTL simulation. Choices are
+\textit{modelsim}, \textit{ghdl} and \textit{auto}. When the choice is
+\textit{auto} the simulator is selected automatically. Default
+choice is \textit{auto}. \\
+
+\end{tabular} \\
+
+Test runner script is generated by test generator tool (section
+\ref{section:tege}) and is used to run the generated tests in a
+processor design. The script reads test cases from input directory,
+runs them in RTL simulator and reports results in terminal screen and
+output directory.
+
+The test cases files needed in simulation run are recognized by their
+extension and these file names without file extension are treated as
+test case names. The runner script expects to find the test case files
+for a single test case by patterns of \textit{<test-name>.bustrace},
+\textit{<test-name>.img} and
+\textit{<test-name>\_<address-space-name>.img}.
+
+The first file contains reference bus trace which is compared to one
+produced in RTL simulation. If the bus traces matches a test case is
+treated as passed and otherwise treated as failure. The second file
+contains instruction image of the test case and the last file(s)
+contains data images for each address space by name. At minimum the
+test runner script needs a bus trace and instruction image of a test
+case must be found, otherwise the test case is ignored.
+
+For running all test cases the script requires a RTL simulator to be
+found in PATH. Also, the script expects that a test bench is generated
+for the processor design by ProGe with \textit{-t} option.
+
+Below is example usage of test runner from generating a processor
+design to running tests on it.
+
+\begin{verbatim}
+> generateprocessor -t -o proge-output -i some.idf some.adf
+> generatebits -d -w 4 -x proge-output some.adf
+> generatetests -a some.adf -i some.idf -x proge-output
+> cd proge-output
+> ./testrunner.py
+    OK ALU-operation-tests
+    OK icache-test
+  FAIL mul-operation-tests (bustrace mismatch)
+>
+\end{verbatim}
+
+
 \chapter{CO-DESIGN TOOLS}
 \label{section:codesign}
 

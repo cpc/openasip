@@ -681,10 +681,7 @@ FUGen::buildOperations() {
     }
 
     for (std::string signal : resourceInputs_) {
-        // Zero initialize this configuration to avoid simulation warnings
-        if (isLSU_ && minLatency_ < 3) {
-            operationCp << DefaultAssign(signal, "0");
-        } else if (options_.dontCareInitialization) {
+        if (options_.dontCareInitialization) {
             operationCp << DefaultAssign(signal, "-");
         } else {
             operationCp << DefaultAssign(signal, "0");
@@ -848,9 +845,7 @@ FUGen::buildOperations() {
         } else {
             operationCp.addVariable(SignedVariable(v.name, w));
         }
-        if (isLSU_ && minLatency_ < 3) {
-            operationCp << DefaultAssign(v.name, "0");
-        } else if (options_.dontCareInitialization) {
+        if (options_.dontCareInitialization) {
             operationCp << DefaultAssign(v.name, "-");
         } else {
             operationCp << DefaultAssign(v.name, "0");
@@ -860,10 +855,7 @@ FUGen::buildOperations() {
         int w = std::stoi(s.width);
         fu_ << Wire(s.name, w);     // creates the signal declaration
         operationCp.reads(s.name);  // adds it to sensitivity list
-        // Zero initialize this configuration to avoid simulation warnings
-        if (isLSU_ && minLatency_ < 3) {
-            operationCp << DefaultAssign(s.name, "0");
-        } else if (options_.dontCareInitialization) {
+        if (options_.dontCareInitialization) {
             operationCp << DefaultAssign(s.name, "-");
         } else {
             operationCp << DefaultAssign(s.name, "0");

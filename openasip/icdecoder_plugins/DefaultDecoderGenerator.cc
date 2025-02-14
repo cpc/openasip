@@ -1635,10 +1635,10 @@ DefaultDecoderGenerator::writeSquashSignalGenerationProcess(
                 stream << "conv_integer(unsigned(" << LIMM_TAG_SIGNAL
                        << ")) = "
                        << icField.templateEncoding(affectingTemp->name());
-                stream << ") then" << endl;
-                stream << indentation(indLevel+1) << squashSignal(bus.name())
-                       << " <= '1';" << endl;
             }
+            stream << ") then" << endl;
+            stream << indentation(indLevel+1) << squashSignal(bus.name())
+                   << " <= '1';" << endl;
         }
 
         if (ifClauseStarted) {

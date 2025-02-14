@@ -137,7 +137,7 @@ private:
     std::string entityName_;
 
     static const std::string DATA_START_DESC;
-    CmdLineOptionParser* dataStartOptions_;
+    CmdLineOptionParser* dataStartOptions_ = nullptr;
     /// The plugin tool.
     PluginTools pluginTool_;
     

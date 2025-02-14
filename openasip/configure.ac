@@ -1387,6 +1387,7 @@ AC_CONFIG_FILES([
   src/bintools/BEMViewer/Makefile
   src/bintools/Assembler/Makefile
   src/bintools/Disassembler/Makefile
+  src/bintools/TestGenerator/Makefile
   src/bintools/BlocksTranslator/Makefile
   src/bintools/BlocksDisassembler/Makefile
   src/applibs/Scheduler/Selector/Makefile
@@ -1425,6 +1426,7 @@ AC_CONFIG_FILES([
   src/applibs/EPSGenerator/Makefile
   src/applibs/costdb/Makefile
   src/applibs/program/Makefile
+  src/applibs/TestGenerator/Makefile
   src/codesign/Estimator/Makefile
   src/procgen/HDB/Makefile 
   src/procgen/ProGe/Makefile

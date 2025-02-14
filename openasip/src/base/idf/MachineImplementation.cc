@@ -40,6 +40,9 @@
 #include "IDFSerializer.hh"
 #include "ObjectState.hh"
 
+#include "CacheImplementation.hh"
+#include "ArbiterImplementation.hh"
+
 using std::string;
 using std::vector;
 
@@ -76,7 +79,10 @@ const std::string MachineImplementation::OSNAME_BUS_IMPLEMENTATIONS =
     "bus_impls";
 const std::string MachineImplementation::OSNAME_SOCKET_IMPLEMENTATIONS = 
     "socket_impls";
-
+const std::string MachineImplementation::OSNAME_L1_ICACHE_IMPLEMENTATION =
+    "l1_icache_implementation";
+const std::string MachineImplementation::OSNAME_INSTRUCTION_ARBITER =
+    "instruction-arbiter";
 
 /**
  * The constructor.
@@ -230,7 +236,6 @@ MachineImplementation::hasDecompressorFile() const {
 bool
 MachineImplementation::hasFUImplementation(
     const std::string& unitName) const {
-
     return findImplementation(fuImplementations_, unitName) != NULL;
 }
 
@@ -768,6 +773,16 @@ MachineImplementation::loadState(const ObjectState* state) {
 
     clearState();
 
+    if (state->hasChild(OSNAME_INSTRUCTION_ARBITER)) {
+        instructionArbiter_ = new ArbiterImplementation(
+            state->childByName(OSNAME_INSTRUCTION_ARBITER));
+    }
+
+    if (state->hasChild(OSNAME_L1_ICACHE_IMPLEMENTATION)) {
+        level1InstructionCache_ = new CacheImplementation(
+            state->childByName(OSNAME_L1_ICACHE_IMPLEMENTATION)
+                 ->childByName(CacheImplementation::OSNAME_CACHE_IMPLEMENTATION));
+    }
 
     if (state->hasChild(OSNAME_IC_DECODER_PLUGIN)) {
         ObjectState* icdecState = state->childByName(OSNAME_IC_DECODER_PLUGIN);
@@ -863,6 +878,18 @@ MachineImplementation::saveState() const {
 
     ObjectState* state = new ObjectState(OSNAME_MACHINE_IMPLEMENTATION);
     state->setAttribute(OSKEY_SOURCE_IDF, sourceIDF_);
+
+    if (hasInstructionArbiter()) {
+        state->addChild(instructionArbiter().saveState());
+    }
+
+
+    if (hasL1InstructionCache()) {
+        ObjectState* l1icacheState = new ObjectState(
+            OSNAME_L1_ICACHE_IMPLEMENTATION);
+        l1icacheState->addChild(l1InstructionCache().saveState());
+        state->addChild(l1icacheState);
+    }
 
     // add ic&decoder data
     if (hasICDecoderPluginName()) {
@@ -1529,6 +1556,41 @@ MachineImplementation::loadFromIDF(const std::string& idfFileName) {
 }
 
 /**
+ * Returns true if level 1 instruction cache is defined, otherwise false.
+ */
+bool
+MachineImplementation::hasL1InstructionCache() const {
+    return level1InstructionCache_ != nullptr;
+}
+
+/**
+ * Sets L1 instruction cache implementation.
+ */
+void
+MachineImplementation::setL1InstructionCache(CacheImplementation* params) {
+    if (hasL1InstructionCache()) {
+        delete level1InstructionCache_;
+        level1InstructionCache_ = nullptr;
+    }
+    level1InstructionCache_ = params;
+}
+
+/**
+ * Returns cache parameters for level 1 instruction cache.
+ * @exception InstanceNotFound Thrown if the cache implementation is not
+ *                             defined.
+ */
+CacheImplementation&
+MachineImplementation::l1InstructionCache() const {
+    if (!hasL1InstructionCache()) {
+        std::string msg("No cache parameters for L1 instruction cache were "
+            "not defined.");
+        THROW_EXCEPTION(InstanceNotFound, msg);
+    }
+    return *level1InstructionCache_;
+}
+
+/**
  * Returns true if the given file is a library file of TCE.
  *
  * If the file is a TCE library file, its absolute absolute path returned via
@@ -1564,6 +1626,47 @@ MachineImplementation::isLibraryImplFile(
 
     return false;
 }
+
+/**
+ * Returns true is user defined instruction bus arbiter is present.
+ */
+bool
+MachineImplementation::hasInstructionArbiter() const {
+    return instructionArbiter_ != nullptr;
+}
+
+/**
+ * Sets current instruction arbiter implementation.
+ */
+void
+MachineImplementation::setInstructionArbiter(ArbiterImplementation* arbImpl) {
+    if (instructionArbiter_ != nullptr) {
+        delete instructionArbiter_;
+        instructionArbiter_ = nullptr;
+    }
+    instructionArbiter_ = arbImpl;
+}
+
+/**
+ * Return implementation details of instruction arbiter.
+ */
+ArbiterImplementation&
+MachineImplementation::instructionArbiter() const {
+    assert(instructionArbiter_ != nullptr);
+    return *instructionArbiter_;
+}
+
+/**
+ * Returns true if simulation exit logic is set to be generated.
+ */
+bool
+MachineImplementation::hasSimulationExitLogic() const {
+    if (icDecoderParameterValue("simulation-exit-logic") == "yes") {
+        return true;
+    }
+    return false;
+}
+
 
 /**
  * Return all FUs to generate.

@@ -39,45 +39,45 @@
 
 namespace ProGe {
 
-    class GeneratableRFNetlistBlock : public NetlistBlock {
-    public:
-        GeneratableRFNetlistBlock(const std::string& moduleName,
-            const std::string instanceName, NetlistGenerator& generator)
-            : NetlistBlock(moduleName, instanceName), generator_(generator) {}
+class GeneratableRFNetlistBlock : public NetlistBlock {
+public:
+    GeneratableRFNetlistBlock(const std::string& moduleName,
+        const std::string instanceName, NetlistGenerator& generator)
+        : NetlistBlock(moduleName, instanceName), generator_(generator) {}
 
-        virtual ~GeneratableRFNetlistBlock() = default;
+    virtual ~GeneratableRFNetlistBlock() = default;
 
-        void addInOperand(TTAMachine::RFPort* port, int id, int numRegisters) {
-            (void) id;
-            NetlistPort* dataPort =
-                new NetlistPort("data_" + port->name() + "_in",
-                    std::to_string(port->width()), BIT_VECTOR, IN, *this);
-            NetlistPort* loadPort = new NetlistPort(
-                "load_" + port->name() + "_in", "1", BIT, IN, *this);
-            generator_.mapLoadPort(*dataPort, *loadPort);
-            generator_.mapNetlistPort(*port, *dataPort);
-            NetlistPort* opcodePort =
-                new NetlistPort("opcode_" + port->name() + "_in",
-                MathTools::requiredBits(numRegisters - 1),
-                BIT_VECTOR, IN, *this);
-            generator_.mapRFOpcodePort(*dataPort, *opcodePort);
-        }
-        void addOutOperand(TTAMachine::RFPort* port, int numRegisters) {
-            NetlistPort* dataPort =
-                new NetlistPort("data_" + port->name() + "_out",
-                    std::to_string(port->width()), BIT_VECTOR, OUT, *this);
-            NetlistPort* loadPort = new NetlistPort(
-                "load_" + port->name() + "_in", "1", BIT, IN, *this);
-            generator_.mapLoadPort(*dataPort, *loadPort);
-            generator_.mapNetlistPort(*port, *dataPort);
-            NetlistPort* opcodePort =
-                new NetlistPort("opcode_" + port->name() + "_in",
-                MathTools::requiredBits(numRegisters - 1),
-                BIT_VECTOR, IN, *this);
-            generator_.mapRFOpcodePort(*dataPort, *opcodePort);
-        }
+    void addInOperand(TTAMachine::RFPort* port, int id, int numRegisters) {
+        (void) id;
+        NetlistPort* dataPort =
+            new NetlistPort("data_" + port->name() + "_in",
+                std::to_string(port->width()), BIT_VECTOR, IN, *this);
+        NetlistPort* loadPort = new NetlistPort(
+            "load_" + port->name() + "_in", "1", BIT, IN, *this);
+        generator_.mapLoadPort(*dataPort, *loadPort);
+        generator_.mapNetlistPort(*port, *dataPort);
+        NetlistPort* opcodePort =
+            new NetlistPort("opcode_" + port->name() + "_in",
+            MathTools::requiredBits(numRegisters - 1),
+            BIT_VECTOR, IN, *this);
+        generator_.mapRFOpcodePort(*dataPort, *opcodePort);
+    }
+    void addOutOperand(TTAMachine::RFPort* port, int numRegisters) {
+        NetlistPort* dataPort =
+            new NetlistPort("data_" + port->name() + "_out",
+                std::to_string(port->width()), BIT_VECTOR, OUT, *this);
+        NetlistPort* loadPort = new NetlistPort(
+            "load_" + port->name() + "_in", "1", BIT, IN, *this);
+        generator_.mapLoadPort(*dataPort, *loadPort);
+        generator_.mapNetlistPort(*port, *dataPort);
+        NetlistPort* opcodePort =
+            new NetlistPort("opcode_" + port->name() + "_in",
+            MathTools::requiredBits(numRegisters - 1),
+            BIT_VECTOR, IN, *this);
+        generator_.mapRFOpcodePort(*dataPort, *opcodePort);
+    }
 
-    private:
-        NetlistGenerator& generator_;
-    };
+private:
+    NetlistGenerator& generator_;
+};
 }
