@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2002-2011 Tampere University.
@@ -115,10 +115,10 @@ def setupOptionParser():
 def valid_options(options, args):
     """Checks the given or default option values are valid."""
     if not path.isdir(options.input_dir):
-        print "Error: no such input directory: %s" % options.input_dir
+        print("Error: no such input directory: %s" % options.input_dir)
         return False
     if not path.isdir(options.proge_dir):
-        print "Error: no such hdl directory: %s" % options.proge_dir
+        print("Error: no such hdl directory: %s" % options.proge_dir)
         return False
     return True
 
@@ -159,9 +159,9 @@ def diff_bustrace(ref_bustrace, new_bustrace):
     diff_content = None
     diff_status = False
     try:
-        ref_file = open(ref_bustrace, 'rU')
+        ref_file = open(ref_bustrace, 'r')
         ref_str = ref_file.readlines()
-        new_file = open(new_bustrace, 'rU')
+        new_file = open(new_bustrace, 'r')
         num_of_lines = len(ref_str)
         new_str = new_file.readlines()[:num_of_lines]
         diff_content = [ line for line in difflib.unified_diff(ref_str,
@@ -170,7 +170,7 @@ def diff_bustrace(ref_bustrace, new_bustrace):
                                                                new_bustrace) ]
         diff_status = len(diff_content) != 0;
     except Exception as e:
-#        print "Exception in diff_bustrace():", e #debug
+#        print("Exception in diff_bustrace():", e #debug)
         return (True, None)
 
     return (diff_status, diff_content)
@@ -252,11 +252,11 @@ def run_command(cmdString):
     Returns exit code of the shell command.
     """
     devNull = open(os.devnull, 'w')
-#    print "Running shell cmd: " + cmdString #debug
+#    print("Running shell cmd: " + cmdString #debug)
     process = Popen(cmdString, shell=True, stdout=devNull, stderr=devNull,
                     close_fds=False)
     if process == None:
-        print "Error: Could not create shell process."
+        print("Error: Could not create shell process.")
         sys.exit(2)
     process.communicate()
     return process.returncode
@@ -429,7 +429,7 @@ def run_testcases(progeoutdir, outputdir, list_of_testcases, rtl_simulator):
     RTL-simulator and collects data from it.
     """
     if prepare_testbench(progeoutdir, rtl_simulator) != 0:
-        print "Test bench compilation failed."
+        print("Test bench compilation failed.")
         return False
 
     num_failing = 0
@@ -441,12 +441,12 @@ def run_testcases(progeoutdir, outputdir, list_of_testcases, rtl_simulator):
                                            progeoutdir, outputdir)
             if not success:
                 num_failing += 1
-            print test_result_format(testcase.testname, success, reason)
+            print(test_result_format(testcase.testname, success, reason))
             summary_file.write(test_result_format(
                     testcase.testname, success, reason) + '\n')
 
         except Exception as e:
-            print "caught exception:", e
+            print("caught exception:", e)
 
     #TODO compile coverage report
     summary_file.close()
@@ -491,13 +491,13 @@ def main():
     testcases = get_testcases(options)
     simulator = select_rtl_simulator(options.simulator)
     if simulator == None:
-        print "No RTL simulator available."
+        print("No RTL simulator available.")
         return 1
-#    print "Using RTL-simulator: " + simulator
+#    print("Using RTL-simulator: " + simulator)
     try:
         prepare_testrun_env(options)
     except InitError as e:
-        print e
+        print(e)
         return 1
     num_failing = run_testcases(options.proge_dir, options.output_dir, \
                                 testcases, simulator)
