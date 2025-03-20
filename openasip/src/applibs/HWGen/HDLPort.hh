@@ -69,7 +69,7 @@ namespace HDLGenerator {
                 if (dir_ == Direction::In) {
                     stream << "input ";
                 } else {
-                    stream << "output reg ";
+                    stream << "output logic ";
                 }
                 if (!parametricWidth_.empty()) {
                     stream << "[" << parametricWidth_ << "-1:0] ";

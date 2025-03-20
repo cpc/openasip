@@ -1,5 +1,5 @@
 noinst_LTLIBRARIES = libhwgen.la
-libhwgen_la_SOURCES = FUGen.cc RFGen.cc HDLGenerator.cc LHSValue.cc
+libhwgen_la_SOURCES = FUGen.cc RFGen.cc HDLGenerator.cc LHSValue.cc TrackerGen.cc
 
 
 SRC_ROOT_DIR = $(top_srcdir)/src
@@ -16,6 +16,8 @@ OSAL_DIR = ${BASE_DIR}/osal
 GRAPH_DIR = ${BASE_DIR}/Graph
 APPLIBS_PROGE_DIR = ${SRC_ROOT_DIR}/applibs/ProGe
 PROCGEN_PROGE_DIR = ${SRC_ROOT_DIR}/procgen/ProGe
+BEM_DIR = ${APPLIBS_DIR}/bem
+BASE_BEM_DIR = ${BASE_DIR}/bem
 
 
 AM_CPPFLAGS = -I${IDF_DIR} \
@@ -29,7 +31,8 @@ AM_CPPFLAGS = -I${IDF_DIR} \
 	-I${PROCGEN_PROGE_DIR} \
 	-I$(SRC_ROOT_DIR)/applibs/Explorer \
 	-I$(SRC_ROOT_DIR)/applibs/dsdb \
-	-I$(SRC_ROOT_DIR)/applibs/Simulator
+	-I$(SRC_ROOT_DIR)/applibs/Simulator \
+	-I${BEM_DIR} -I${APPLIBS_DIR}/mach -I${APPLIBS_DIR}/osal -I${BASE_BEM_DIR}
 
 
 dist-hook:
@@ -40,6 +43,6 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 ## headers start
 libhwgen_la_SOURCES += \
 	FUGen.hh RFGen.hh HDLGenerator.hh HWGenTools.hh HDLRegister.hh \
-	HDLPort.hh LHSValue.hh Generatable.hh WidthTransformations.hh \
-	BinaryOps.hh
+	HDLPort.hh LHSValue.hh Generatable.hh WidthTransformations.hh TrackerGen.hh\
+	BinaryOps.hh CoproCusops.hh
 ## headers end

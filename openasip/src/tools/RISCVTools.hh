@@ -41,17 +41,17 @@ struct R4Instruction {
 
 class RISCVTools {
 public:
-    static std::string getFunc3Str(const int encoding);
-    static std::string getFunc7Str(const int encoding);
-    static std::string getFunc2Str(const int encoding);
-    static std::string getOpcodeStr(const int encoding);
-    static int getFunc3Int(const int encoding);
-    static int getFunc7Int(const int encoding);
-    static int getFunc2Int(const int encoding);
-    static int getOpcodeInt(const int encoding);
+    static inline std::string getFunc3Str(const int encoding);
+    static inline std::string getFunc7Str(const int encoding);
+    static inline std::string getFunc2Str(const int encoding);
+    static inline std::string getOpcodeStr(const int encoding);
+    static inline int getFunc3Int(const int encoding);
+    static inline int getFunc7Int(const int encoding);
+    static inline int getFunc2Int(const int encoding);
+    static inline int getOpcodeInt(const int encoding);
     static inline void findCustomOps(
         std::map<std::string, int>& customOps_, BinaryEncoding* bem_);
-    static R4Instruction decodeR4Instruction(const uint32_t opcode);
+    static inline R4Instruction decodeR4Instruction(const uint32_t opcode);
 };
 
 #include "RISCVTools.icc"

@@ -30,7 +30,7 @@
 #include <string>
 
 namespace HDLGenerator {
-    enum class Language { VHDL, Verilog };
+    enum class Language { VHDL, Verilog, SV };
     enum class WireType { Auto, Vector };
     enum class Direction { In, Out };
     enum class ResetOption { Mandatory, Optional };
