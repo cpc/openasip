@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2018 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,20 +22,35 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
-* @file HWGenTools.hh
-*
-* @author Aleksi Tervo 2018 (aleksi.tervo-no.spam-tut.fi)
-*/
-#pragma once
-#include <string>
+ * @file GenerateCoprocessor.hh
+ *
+ * Declaration of GenerateCoprocessor class from GenerateProcessor.
+ *
+ * @author Tharaka Sampath
+ */
 
-namespace HDLGenerator {
-    enum class Language { VHDL, Verilog, SV };
-    enum class WireType { Auto, Vector };
-    enum class Direction { In, Out };
-    enum class ResetOption { Mandatory, Optional };
-    struct Width {
-        std::string strWidth;
-        int intWidth;
-    };
-}
+#ifndef GENERATE_COPROCESSOR_HH
+#define GENERATE_COPROCESSOR_HH
+
+#include "ProGeUI.hh"
+#include "Exception.hh"
+
+class CoprocessorCmdLineOptions;
+
+/**
+ * Implements the command line user interface 'generateCoprocessor'.
+ */
+class GenerateCoprocessor : public ProGe::ProGeUI {
+public:
+    GenerateCoprocessor();
+    virtual ~GenerateCoprocessor();
+
+    bool generateCoprocessor(int argc, char* argv[]);
+
+private:
+    void getOutputDir(
+        const CoprocessorCmdLineOptions& options,
+        std::string& outputDir);
+};
+
+#endif

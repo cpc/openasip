@@ -71,6 +71,15 @@ VerilogNetlistWriter::VerilogNetlistWriter(
     : NetlistWriter(targetBlock), groundWidth_(0) {}
 
 /**
+ * Overloaded constructor for SV
+ *
+ * @param netlist The input netlist.
+ */
+VerilogNetlistWriter::VerilogNetlistWriter(
+    const BaseNetlistBlock& targetBlock, HDL lang)
+    : NetlistWriter(targetBlock), groundWidth_(0), lang_(lang) {}
+    
+/**
  * The destructor.
  */
 VerilogNetlistWriter::~VerilogNetlistWriter() {
@@ -105,7 +114,7 @@ void
 VerilogNetlistWriter::writeNetlistParameterPackage(
     const std::string& dstDirectory) const {
     string fileName = dstDirectory + FileSystem::DIRECTORY_SEPARATOR + 
-        netlistParameterPkgName() + "_pkg.vh";
+        netlistParameterPkgName() + "_pkg" + format_;
     ofstream outFile;
     outFile.open(fileName.c_str(), ofstream::out);
     if (targetNetlistBlock().netlist().parameterCount() == 0) {
@@ -145,7 +154,7 @@ void
 VerilogNetlistWriter::writeBlock(
     const BaseNetlistBlock& block, const std::string& dstDirectory) {
     string fileName = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
-        block.moduleName() + ".v";
+        block.moduleName() + format_;
     if (!FileSystem::fileIsCreatable(fileName) && 
         !(FileSystem::fileExists(fileName) && 
           FileSystem::fileIsWritable(fileName))) {
@@ -166,14 +175,14 @@ VerilogNetlistWriter::writeBlock(
     string separator;
     outFile << "#(" << endl;
     if (block.netlist().parameterCount() > 0) {
-        outFile << "`include \"" << netlistParameterPkgName() << "_pkg.vh\""
+        outFile << "`include \"" << netlistParameterPkgName() << "_pkg" << format_ << "\""
                 << endl;
         separator = ",";
     }
 
     for (size_t i = 0; i < block.packageCount(); i++) {
         outFile << separator << endl;
-        outFile << "`include \"" << block.package(i) << "_pkg.vh\"" << endl;
+        outFile << "`include \"" << block.package(i) << "_pkg" << format_ << "\"" << endl;
         separator = ",";
     }
 
@@ -770,5 +779,13 @@ VerilogNetlistWriter::parameterWidthValue(const NetlistPort& port) {
     return port.parentBlock().parameter(port.widthFormula()).value();
 }
 
+//Outputs the format as a string .v or .sv
+void VerilogNetlistWriter::formatresolve() {
+    if (lang_ == SV) {
+        format_ = ".sv"; 
+    } else {
+        format_ = ".v";
+    }
+}
 
 }

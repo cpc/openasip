@@ -38,12 +38,15 @@
 int main(int argc, char* argv[]) {
     std::string outputDir;
     std::string adfPath;
+    std::string rocc_str;
+    bool rocc;
 
     // Check if the correct number of arguments is provided
-    if (argc != 5) {
+    if (argc != 7) {
         std::cout << "Usage: riscv-tdgen" << std::endl
                   << "   -o Output directory." << std::endl
-                  << "   -a ADF path." << std::endl;
+                  << "   -a ADF path." << std::endl
+                  << "   -r 'T':Enable ROCC encodings, OR 'F'" << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -53,13 +56,21 @@ int main(int argc, char* argv[]) {
             outputDir = argv[i + 1];
         } else if (std::strcmp(argv[i], "-a") == 0) {
             adfPath = argv[i + 1];
+        }else if (std::strcmp(argv[i], "-r") == 0) {
+            rocc_str = argv[i + 1];
         }
     }
 
     TTAMachine::Machine* mach = TTAMachine::Machine::loadFromADF(adfPath);
     assert(mach != NULL);
 
-    RISCVTDGen tdgen(*mach);
+    if (rocc_str == "T") {
+        rocc = true;
+    } else {
+        rocc = false;
+    }
+
+    RISCVTDGen tdgen(*mach, rocc);
     tdgen.generateBackend(outputDir);
     delete mach;
 

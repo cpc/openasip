@@ -52,6 +52,7 @@ class BaseNetlistBlock;
 class VerilogNetlistWriter : public NetlistWriter {
 public:
     VerilogNetlistWriter(const BaseNetlistBlock& targetBlock);
+    VerilogNetlistWriter(const BaseNetlistBlock& targetBlock, HDL lang); //constructor included with SV language
     virtual ~VerilogNetlistWriter();
 
     virtual void write(const std::string& dstDirectory);
@@ -114,9 +115,14 @@ private:
     static std::string portSignalName(const NetlistPort& port);
     static std::string portSignalType(const NetlistPort& port);
     static TCEString parameterWidthValue(const NetlistPort& port);
+    void formatresolve();
     
     /// Width of the ground signal.
     int groundWidth_;
+    //For Language: Verilog OR SV
+    HDL lang_;
+    // Format SV or v
+    std::string format_;
     
 };
 }

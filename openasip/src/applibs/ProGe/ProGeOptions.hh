@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2002-2017 Tampere University.
+ Copyright (c) 2002-2025 Tampere University.
 
  This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -33,6 +33,7 @@
 
 #include "FileSystem.hh"
 #include "ProGeCmdLineOptions.hh"
+#include "CoprocessorCmdLineOptions.hh" //For CVXIF CMD options
 #include "ProGeTypes.hh"
 #include <string>
 #include <utility>
@@ -76,6 +77,16 @@ struct ProGeOptions {
         validate();
     }
 
+    //Constructor for CVXIF stuff
+    ProGeOptions(const CoprocessorCmdLineOptions& cmd, bool CVXIFEN)
+        : processorToGenerate(cmd.processorToGenerate()),
+          bemFile(cmd.bemFile()), idfFile(cmd.idfFile()),
+          languageStr("sv"), outputDirectory(cmd.outputDirectory()),
+          preferHDLGeneration(true), entityName(cmd.entityName()),
+          coproInterface(cmd.interFace()), hdbList(cmd.hdbList()) {
+        validate();
+    }  
+
     std::string processorToGenerate;
     std::string bemFile;
     std::string idfFile;
@@ -86,6 +97,7 @@ struct ProGeOptions {
     std::string pluginParametersQuery;
     bool generateTestbench;
 
+    std::string coproInterface;
     std::string integratorName;
     std::string imemType;
     std::string dmemType;
@@ -111,7 +123,10 @@ struct ProGeOptions {
     std::vector<std::string> fuFrontRegistered;
     std::vector<std::string> fuMiddleRegistered;
     bool dontCareInitialization;
-
+    //To enable CVXIF coprocessor generator
+    bool CVXIFCoproGen;
+    // To enable  ROCC coprocessor generation
+    bool roccGen;
 
     void validate() {
         if (outputDirectory.empty()) {
@@ -128,6 +143,8 @@ struct ProGeOptions {
         }
         if (languageStr == "verilog") {
             language = ProGe::HDL::Verilog;
+        } else if (languageStr == "sv"){
+            language = ProGe::HDL::SV;
         } else {
             language = ProGe::HDL::VHDL;
         }
@@ -136,7 +153,13 @@ struct ProGeOptions {
             hdbList.emplace_back("generate_lsu_32.hdb");
             hdbList.emplace_back("generate_rf_iu.hdb");
             hdbList.emplace_back("asic_130nm_1.5V.hdb");
-
+        }
+        if (coproInterface == "rocc") {
+            CVXIFCoproGen = false;
+            roccGen = true;
+        } else {
+            CVXIFCoproGen = true;
+            roccGen = false;
         }
     }
 };

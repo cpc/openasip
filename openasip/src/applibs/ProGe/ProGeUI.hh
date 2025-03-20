@@ -46,6 +46,7 @@
 #include "PluginTools.hh"
 #include "MemoryGenerator.hh"
 #include "ProGeOptions.hh"
+#include "CoproGen.hh" //For CVXIF coprocessor
 
 
 namespace TTAMachine {
@@ -116,6 +117,8 @@ private:
     void generateIDF(const ProGeOptions& options,
         std::ostream& verboseStream);
 
+    void removeFUsIDF(IDF::MachineImplementation* idf);
+
     /// The loaded binary encoding map.
     BinaryEncoding* bem_;
     /// The loaded machine implementation.
@@ -130,6 +133,8 @@ private:
     std::string entityName_;
 
     ProcessorGenerator generator_;
+    //CoproGen obj
+    CoproGen coprogenerator_;
 
     static const std::string DEFAULT_ENTITY_STR;
 };

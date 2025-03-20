@@ -41,7 +41,7 @@ class InstructionFormat;
 
 class RISCVTDGen : public TDGen {
 public:
-    RISCVTDGen(const TTAMachine::Machine& mach);
+    RISCVTDGen(const TTAMachine::Machine& mach, bool roccEn);
     virtual ~RISCVTDGen() = default;
     virtual void generateBackend(const std::string& path) const;
     virtual std::string generateBackend() const;
@@ -64,6 +64,8 @@ protected:
     void dumpClassDefinitions(std::ostream&) const;
     std::string getFormatType(const std::string& opName) const;
 
+    std::string intToHexString(int num) const;
+    std::string unsignedToHexString(unsigned num) const;
     std::string decimalsToHex(const std::string& pattern) const;
 
     BinaryEncoding* bem_;

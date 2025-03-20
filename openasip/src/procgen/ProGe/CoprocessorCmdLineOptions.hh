@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,40 +22,45 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file ProGeTypes.hh
+ * @file CoprocessorCmdLineOptions.hh
  *
- * Declaration of the data types used in ProGe.
+ * Declaration of CoprocessorCmdLineOptions class from ProGeCmdLineOptions.
  *
- * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @author Vinogradov Viacheslav(added Verilog generating) 2012 
- * @note rating: red
+ * @author Tharaka Sampath
  */
 
-#ifndef TTA_PROGE_TYPES_HH
-#define TTA_PROGE_TYPES_HH
+#ifndef COPRO_CMD_LINE_OPTIONS_HH
+#define COPRO_CMD_LINE_OPTIONS_HH
 
-namespace ProGe {
+#include <utility> // std::pair
+#include "CmdLineOptions.hh"
+/**
+ * Command line options for the command line interface of ProGe 
+ * (generateprocessor).
+ */
+class CoprocessorCmdLineOptions : public CmdLineOptions {
+public:
+    CoprocessorCmdLineOptions();
+    virtual ~CoprocessorCmdLineOptions();
 
-/// HDLs supported by ProGe.
-enum HDL {
-    VHDL=0, ///< VHDL
-    Verilog, ///< Verilog
-    SV  ///<SystemVerilog
+    std::string cusOpcode() const;
+    std::string processorToGenerate() const;
+    std::string bemFile() const;
+    std::string idfFile() const;
+    std::string hdl() const;
+    std::string outputDirectory() const;
+
+    std::string entityName() const;
+    bool forceOutputDirectory() const;
+    bool preferHDLGeneration() const;
+    std::vector<std::string> commaSeparatedList(const std::string argumentName) const;
+    std::vector<std::string> hdbList() const;
+
+    //Interface parameters
+    std::string interFace() const;
+
+    virtual void printVersion() const;
+    virtual void printHelp() const;
 };
-
-/// Data types of hardware ports.
-enum DataType {
-    BIT, ///< One bit.
-    BIT_VECTOR ///< Several bits.
-};
-
-/// Direction of the port.
-enum Direction {
-    IN, ///< Input port.
-    OUT, ///< Output port.
-    BIDIR ///< Bidirectional port.
-};
-
-}
 
 #endif

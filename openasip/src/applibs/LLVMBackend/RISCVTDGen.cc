@@ -49,14 +49,30 @@
 
 #define DEBUG_RISCV_TDGEN 0
 
-RISCVTDGen::RISCVTDGen(const TTAMachine::Machine& mach)
+RISCVTDGen::RISCVTDGen(const TTAMachine::Machine& mach, bool roccEn)
     : TDGen(mach, false), bem_(NULL) {
-    bem_ = BEMGenerator(mach).generate();
+    bem_ = BEMGenerator(mach, roccEn).generate();
     assert(bem_ != NULL);
     findCustomOps();
     initializeBackendContents();
 }
 
+std::string
+RISCVTDGen::intToHexString(int num) const {
+    std::stringstream ss;
+    ss << "0x" << std::hex << std::uppercase << num;
+    return ss.str();
+}
+
+std::string
+RISCVTDGen::unsignedToHexString(unsigned num) const {
+    std::stringstream ss;
+    ss << "0x" << std::hex << std::uppercase << num;
+    return ss.str();
+}
+
+// TODO: OpenASIP converts hex numbers to unsigned by default. This converted
+// number might not fit into i32
 /**
  * OpenASIP converts hex numbers to unsigned by default. The converted
  * number might not fit into i32. This function transforms
@@ -67,7 +83,7 @@ RISCVTDGen::RISCVTDGen(const TTAMachine::Machine& mach)
  */
 std::string
 RISCVTDGen::decimalsToHex(const std::string& pattern) const {
-    std::regex patternRegex(R"((i32\s)(-?\d+))");
+    std::regex patternRegex(R"((XLenVT\s)(-?\d+))");
     std::smatch match;
     std::string modifiedPattern = pattern;
 
@@ -208,6 +224,7 @@ RISCVTDGen::transformTCEPattern(std::string pattern,
     // Replace register specifiers
     TCEString patTCEStr = TCEString(pattern);
     patTCEStr.replaceString("R32IRegs:$op1", "(XLenVT GPR:$rs1)");
+    patTCEStr.replaceString("i32 ", "XLenVT ");
     if (numIns == 3) {
         patTCEStr.replaceString("R32IRegs:$op2", "(XLenVT GPR:$rs2)");
         patTCEStr.replaceString("R32IRegs:$op3", "(XLenVT GPR:$rs3)");

@@ -245,7 +245,11 @@ namespace HDLGenerator {
     class BinaryConstant : public Generatable {
     public:
         BinaryConstant(std::string name, int width, int value)
-            : Generatable(name), width_(width), value_(value) {}
+            : Generatable(name), width_(width), value_(value), copro_(false) {}
+
+        BinaryConstant(std::string name, int width, int value, std::string encoding)
+            : Generatable(name), width_(width), value_(value), copro_(true), enconding_(encoding) {
+            }
 
         int value() const noexcept { return value_; }
 
@@ -254,13 +258,18 @@ namespace HDLGenerator {
         void declare(std::ostream& stream, Language lang, int level) {
             std::string binVal = "";
             int tempVal = value_;
-            for (int i = width_ - 1; i >= 0; --i) {
-                long power = static_cast<long>(std::pow(2, i));
-                if (power <= tempVal) {
-                    tempVal -= power;
-                    binVal += "1";
-                } else {
-                    binVal += "0";
+
+            if (copro_) {
+                binVal = enconding_ ;
+            } else {
+                for (int i = width_ - 1; i >= 0; --i) {
+                    long power = static_cast<long>(std::pow(2, i));
+                    if (power <= tempVal) {
+                        tempVal -= power;
+                        binVal += "1";
+                    } else {
+                        binVal += "0";
+                    }
                 }
             }
 
@@ -280,6 +289,9 @@ namespace HDLGenerator {
     private:
         int width_;
         int value_;
+        bool copro_;
+        std::string cusopcode_;
+        std::string enconding_;
     };
 
     /**
@@ -339,7 +351,7 @@ namespace HDLGenerator {
                     stream << "std_logic;\n";
                 }
             } else if (lang == Language::Verilog) {
-                stream << StringTools::indent(indent) << "reg ";
+                stream << StringTools::indent(indent) << "wire ";  // Changed to a wire type(Net)
                 if (width_ < 0 || width_ > 1) {
                     if (strWidth_.empty()) {
                         stream << "[" << std::to_string(width_ - 1) << ":0] ";
@@ -951,7 +963,7 @@ namespace HDLGenerator {
             } else if (lang == Language::Verilog) {
                 stream << "\n";
                 stream << StringTools::indent(level) << "// " << name() << "\n";
-                stream << StringTools::indent(level) << "always @*";
+                stream << StringTools::indent(level) << "always_comb";
                 /**
                  * @lassetodo Sensitivity list implementation here
                  * for verilog if needed.
@@ -1291,6 +1303,10 @@ namespace HDLGenerator {
         void appendToHeader(const std::string& line) {
             headerComment_.emplace_back(line);
         }
+        // Adding package files
+        void setPackages(const std::string& pname){         
+            packages_.emplace_back(pname);
+        }
 
         virtual bool isRegister(const std::string& name) final {
             for (auto&& r : registers_) {
@@ -1605,6 +1621,12 @@ namespace HDLGenerator {
                 // Module
                 stream << StringTools::indent(level) << "\n";
                 stream << StringTools::indent(level) << "module " << name();
+                // Packages as imports
+                if (!packages_.empty()) {
+                    for (auto&& package : packages_) {
+                        stream << "\n   import " << package << "::*;\n" ;
+                    }
+                }
                 // - Parameters
                 if (!parameters_.empty()) {
                     std::string separator = "";
@@ -1724,5 +1746,6 @@ namespace HDLGenerator {
         std::vector<std::shared_ptr<Variable> > variables_;
         std::vector<std::shared_ptr<Behaviour>> behaviours_;
         std::vector<Module> modules_;
+        std::vector<std::string> packages_;
     };
 }

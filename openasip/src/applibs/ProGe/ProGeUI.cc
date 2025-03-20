@@ -42,6 +42,7 @@
 #include "ProGeUI.hh"
 #include "ProGeTypes.hh"
 #include "ProcessorGenerator.hh"
+#include "CoproGen.hh"              //CVXIF coprocessor generator
 #include "TestBenchBlock.hh"
 
 #include "Machine.hh"
@@ -115,6 +116,28 @@ ProGeUI::~ProGeUI() {
     }
 }
 
+/**
+ * Removes FUs from the IDF for the RISCV Coprocessors
+ */
+void 
+ProGeUI::removeFUsIDF(IDF::MachineImplementation* idf) {
+    const std::vector<std::string> fuNames = {
+        "alu",
+        "lsu",
+        "mul_div",
+        "ALU",
+        "LSU",
+        "MUL_DIV",
+        "stdout" 
+    };
+    for (std::string fuName : fuNames) {
+        if (idf->hasFUGeneration(fuName)) {
+            idf->removeFuGeneration(fuName);
+        } else if (idf->hasFUImplementation(fuName)) {
+            idf->removeFUImplementation(fuName);
+        }
+    }
+}
 
 /**
  * Loads machine from the given ADF file.
@@ -355,9 +378,18 @@ ProGeUI::generateProcessor(
         *machine_, warningStream);
 
     try {
-        generator_.generateProcessor(
-            options, *machine_, *idf_, *plugin_, imemWidthInMAUs, errorStream,
-            warningStream, verboseStream);
+        //selecting OpenAsip OR CV-X || ROCC generator
+        if ((options.CVXIFCoproGen) || (options.roccGen)) {     
+            // Removing FUs in the Core
+            removeFUsIDF(idf_); 
+            coprogenerator_.coproGenerate(
+                options, *machine_, *idf_, *plugin_, imemWidthInMAUs, errorStream,
+                warningStream, verboseStream);
+        } else {
+            generator_.generateProcessor(
+                options, *machine_, *idf_, *plugin_, imemWidthInMAUs, errorStream,
+                warningStream, verboseStream);
+        }
     } catch (Exception& e) {
         std::cerr << e.errorMessage() << std::endl;
     }
