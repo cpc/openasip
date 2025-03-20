@@ -931,7 +931,7 @@ MachineImplementation::saveState() const {
     // add Generated FUs.
     ObjectState* fuGenerated = new ObjectState(OSNAME_FU_GENERATED);
     state->addChild(fuGenerated);
-    for (const auto fug : fuGenerated_) {
+    for (const auto& fug : fuGenerated_) {
         fuGenerated->addChild(fug.saveState());
     }
 
@@ -1691,7 +1691,7 @@ MachineImplementation::FUGenerations() {
  */
 bool
 MachineImplementation::hasFUGeneration(const std::string& name) const {
-    for (const auto fug : fuGenerated_) {
+    for (const auto& fug : fuGenerated_) {
         if (fug.name() == name) {
             return true;
         }
@@ -1706,7 +1706,7 @@ MachineImplementation::hasFUGeneration(const std::string& name) const {
  */
 bool
 MachineImplementation::hasRFGeneration(const std::string& name) const {
-    for (const auto rfg : RFGenerated_) {
+    for (const auto& rfg : RFGenerated_) {
         if (rfg.name() == name) {
             return true;
         }

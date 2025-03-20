@@ -45,6 +45,7 @@ class DestinationField;
 class SourceField;
 class GuardField;
 class SocketCodeTable;
+class InstructionFormat;
 
 namespace TTAMachine {
     class Machine;
@@ -61,6 +62,7 @@ namespace TTAMachine {
 class BEMGenerator {
 public:
     BEMGenerator(const TTAMachine::Machine& machine);
+    BEMGenerator(const TTAMachine::Machine& machine, bool coproInterface);
     virtual ~BEMGenerator();
 
     BinaryEncoding* generate();
@@ -79,10 +81,13 @@ private:
     void addEncodings(DestinationField& field) const;
     void addEncodings(SourceField& field) const;
     void addEncodings(GuardField& field) const;
+    void funcencodeRiscv(
+        TTAMachine::OperationTriggeredFormat* format,
+        InstructionFormat* instrFormat, const unsigned& custom_op,
+        unsigned& amountOfRCustomOps, unsigned& rocc_f3) const;
 
     void addRiscvFormat(TTAMachine::OperationTriggeredFormat* format,
-    BinaryEncoding& bem, unsigned& amountOfRCustomOps,
-    unsigned& amountOfR3RCustomOps) const;
+    BinaryEncoding& bem, unsigned& amountOfRCustomOps) const;
 
     void addPortCodes(
         SocketCodeTable& table, 
@@ -129,6 +134,8 @@ private:
     const TTAMachine::Machine* machine_;
     /// A map which tells which socket code table belongs to a socket.
     SCTableMap scTableMap_;
+    // ROCC interface selector for the Coprocessor Generation.
+    bool rocc_ = false;
 };
 
 #endif

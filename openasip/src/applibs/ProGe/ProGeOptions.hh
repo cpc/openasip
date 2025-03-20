@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2002-2017 Tampere University.
+ Copyright (c) 2002-2025 Tampere University.
 
  This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -31,12 +31,14 @@
 
 #pragma once
 
-#include "FileSystem.hh"
-#include "ProGeCmdLineOptions.hh"
-#include "ProGeTypes.hh"
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "CoprocessorCmdLineOptions.hh"  //For CVXIF CMD options
+#include "FileSystem.hh"
+#include "ProGeCmdLineOptions.hh"
+#include "ProGeTypes.hh"
 
 struct ProGeOptions {
 
@@ -50,29 +52,51 @@ struct ProGeOptions {
 
     ProGeOptions(const ProGeCmdLineOptions& cmd)
         : processorToGenerate(cmd.processorToGenerate()),
-          bemFile(cmd.bemFile()), idfFile(cmd.idfFile()),
-          languageStr(cmd.hdl()), outputDirectory(cmd.outputDirectory()),
+          bemFile(cmd.bemFile()),
+          idfFile(cmd.idfFile()),
+          languageStr(cmd.hdl()),
+          outputDirectory(cmd.outputDirectory()),
           sharedOutputDirectory(cmd.sharedOutputDirectory()),
           pluginParametersQuery(cmd.pluginParametersQuery()),
           generateTestbench(cmd.generateTestbench()),
-          integratorName(cmd.integratorName()), imemType(cmd.imemType()),
-          dmemType(cmd.dmemType()), clockFrequency(cmd.clockFrequency()),
-          tpefName(cmd.tpefName()), entityName(cmd.entityName()),
+          integratorName(cmd.integratorName()),
+          imemType(cmd.imemType()),
+          dmemType(cmd.dmemType()),
+          clockFrequency(cmd.clockFrequency()),
+          tpefName(cmd.tpefName()),
+          entityName(cmd.entityName()),
           useAbsolutePaths(cmd.useAbsolutePaths()),
           listAvailableIntegrators(cmd.listAvailableIntegrators()),
           deviceFamilyName(cmd.deviceFamilyName()),
           deviceName(cmd.deviceName()),
           simulationRuntime(cmd.simulationRuntime()),
           forceOutputDirectory(cmd.forceOutputDirectory()),
-          asyncReset(cmd.asyncReset()), syncReset(cmd.syncReset()),
-          hdbList(cmd.hdbList()), rfIcGateList(cmd.rfIcGateList()),
-          fuIcGateList(cmd.fuIcGateList()), icdArgList(cmd.icdArgList()),
+          asyncReset(cmd.asyncReset()),
+          syncReset(cmd.syncReset()),
+          hdbList(cmd.hdbList()),
+          rfIcGateList(cmd.rfIcGateList()),
+          fuIcGateList(cmd.fuIcGateList()),
+          icdArgList(cmd.icdArgList()),
           preferHDLGeneration(cmd.preferHDLGeneration()),
           resetAllRegisters(cmd.resetAllRegisters()),
           fuBackRegistered(cmd.fuBackRegistered()),
           fuFrontRegistered(cmd.fuFrontRegistered()),
           fuMiddleRegistered(cmd.fuMiddleRegistered()),
           dontCareInitialization(cmd.dontCareInitialization()) {
+        validate();
+    }
+
+    // Constructor for CVXIF stuff
+    ProGeOptions(const CoprocessorCmdLineOptions& cmd, bool CVXIFEN)
+        : processorToGenerate(cmd.processorToGenerate()),
+          bemFile(cmd.bemFile()),
+          idfFile(cmd.idfFile()),
+          languageStr("sv"),
+          outputDirectory(cmd.outputDirectory()),
+          coproInterface(cmd.interFace()),
+          entityName(cmd.entityName()),
+          hdbList(cmd.hdbList()),
+          preferHDLGeneration(true) {
         validate();
     }
 
@@ -86,6 +110,7 @@ struct ProGeOptions {
     std::string pluginParametersQuery;
     bool generateTestbench;
 
+    std::string coproInterface;
     std::string integratorName;
     std::string imemType;
     std::string dmemType;
@@ -105,13 +130,16 @@ struct ProGeOptions {
     std::vector<std::string> rfIcGateList;
     std::vector<std::string> fuIcGateList;
     std::vector<std::pair<std::string, std::string>> icdArgList;
-    bool preferHDLGeneration;
-    bool resetAllRegisters;
+    bool preferHDLGeneration = false;
+    bool resetAllRegisters = true;
     std::vector<std::string> fuBackRegistered;
     std::vector<std::string> fuFrontRegistered;
     std::vector<std::string> fuMiddleRegistered;
     bool dontCareInitialization;
-
+    // To enable CVXIF coprocessor generator
+    bool CVXIFCoproGen;
+    // To enable  ROCC coprocessor generation
+    bool roccGen;
 
     void validate() {
         if (outputDirectory.empty()) {
@@ -128,6 +156,8 @@ struct ProGeOptions {
         }
         if (languageStr == "verilog") {
             language = ProGe::HDL::Verilog;
+        } else if (languageStr == "sv") {
+            language = ProGe::HDL::SV;
         } else {
             language = ProGe::HDL::VHDL;
         }
@@ -136,7 +166,16 @@ struct ProGeOptions {
             hdbList.emplace_back("generate_lsu_32.hdb");
             hdbList.emplace_back("generate_rf_iu.hdb");
             hdbList.emplace_back("asic_130nm_1.5V.hdb");
-
+        }
+        if (coproInterface == "rocc") {
+            CVXIFCoproGen = false;
+            roccGen = true;
+        } else if (coproInterface == "cvx") {
+            CVXIFCoproGen = true;
+            roccGen = false;
+        } else {
+            CVXIFCoproGen = false;
+            roccGen = false;
         }
     }
 };

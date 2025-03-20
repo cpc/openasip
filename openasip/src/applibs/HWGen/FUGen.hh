@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2017-2019 Tampere University.
+    Copyright (c) 2017-2025 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,10 +22,10 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
-* @file FUGen.hh
-*
-* @author Lasse Lehtonen 2017 (lasse.lehtonen-no.spam-tut.fi)
-*/
+ * @file FUGen.hh
+ *
+ * @author Lasse Lehtonen 2017 (lasse.lehtonen-no.spam-tut.fi)
+ */
 #pragma once
 
 #include "FUGenerated.hh"
@@ -86,6 +86,17 @@ public:
             auto as = adfFU_->addressSpace();
             addressWidth_ = MathTools::requiredBits(as->end());
         }
+
+        // Checking the CVXIF coprocessor generation
+        if (options.CVXIFCoproGen) {
+            generateCVXIF_ = true;
+            generateROCC_ = false;
+            opcodeWidth_ = 32;
+        } else if (options.roccGen) {
+            generateCVXIF_ = false;
+            generateROCC_ = true;
+            opcodeWidth_ = 32;
+        }
     }
 
     static void implement(const ProGeOptions& options,
@@ -142,14 +153,21 @@ private:
     };
 
     void createOutputPipeline();
+    // For creating output pipelines for CVXIF
+    void createOutputPipelineCVXIF();
 
     void addRegisterIfMissing(std::string name, int width,
                               HDLGenerator::WireType wt
                               = HDLGenerator::WireType::Auto);
+    void addRegisterIfMissing(
+        std::string name, std::string width);
 
+    void addWireIfMissing(
+        std::string name, int width = 1,
+        HDLGenerator::WireType wt = HDLGenerator::WireType::Auto);
     std::string findAbsolutePath(std::string file);
 
-    void createFUHeaderComment();
+    void createFUHeaderComment(const TTAMachine::Machine& machine);
     void createMandatoryPorts();
     void checkForValidity();
     void createExternalInterfaces(bool genIntegrator);
@@ -163,6 +181,9 @@ private:
     void scheduleOperations();
     void createPortPipeline();
     void createShadowRegisters();
+    void createInputsConnected();
+    void selectionLogic();
+    void outputSelect();
 
     OperandConnection subOpConnection(OperationDAG* dag, OperationDAGEdge* edge,
                                       bool isOutput);
@@ -183,6 +204,8 @@ private:
     HDLGenerator::Language selectedLanguage();
 
     // Functions which construct pipelined signal names
+    std::string enableSignal(
+        std::string name, int cycle);  // Enable signal pullup
     std::string opcodeSignal(int stage);
     std::string triggerSignal(int stage);
     std::string opcodeConstant(std::string operation);
@@ -193,6 +216,11 @@ private:
     std::string subOpName(OperationNode* node);
     std::string constantName(ConstantNode* node, OperationDAG* dag);
     std::string constantName(DAGConstant dag);
+    // For pipeline name pullups
+    std::string registeredNameOP(std::string name);
+    std::string pipelineNameShadow(std::string port, int cycle);
+    std::string pipelineConfig(std::string port, int cycle);
+    std::string valtoBinaryOne(int width, int value);
 
     bool isLSUDataPort(const std::string& portName);
     ProGe::Signal inferLSUSignal(const std::string& portName) const;
@@ -212,7 +240,6 @@ private:
 
     std::vector<std::string> operations_;
     int opcodeWidth_;
-
     std::string moduleName_;
     ProGe::NetlistBlock* netlistBlock_;
 
@@ -250,6 +277,9 @@ private:
     std::string triggerPort_;
 
     std::vector<std::string> registers_;
+    std::vector<std::string> wires_;
+    std::vector<std::string> enablesignals_;
+    std::string Nconfigbits_ = "cvxif_sup_pkg::NConfigbits_C";
 
     bool useGlockRequest_ = false;
     bool useGlock_ = false;
@@ -259,4 +289,8 @@ private:
     bool backRegistered_ = false;
     int addressWidth_ = 0;
     bool isLSU_ = false;
+    // Bool for enabling CVXIF related FU generation
+    bool generateCVXIF_ = false;
+    // Bool for enabling ROCC related FU generation
+    bool generateROCC_ = false;
 };

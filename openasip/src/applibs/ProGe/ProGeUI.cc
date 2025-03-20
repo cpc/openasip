@@ -34,49 +34,44 @@
  * @note rating: red
  */
 
+#include "ProGeUI.hh"
+
+#include <cmath>
 #include <fstream>
 #include <string>
 #include <vector>
-#include <cmath>
 
-#include "ProGeUI.hh"
-#include "ProGeTypes.hh"
-#include "ProcessorGenerator.hh"
-#include "TestBenchBlock.hh"
-
-#include "Machine.hh"
 #include "ADFSerializer.hh"
-#include "ControlUnit.hh"
-#include "SpecialRegisterPort.hh"
-#include "FUPort.hh"
-
-#include "BinaryEncoding.hh"
-#include "BEMSerializer.hh"
+#include "AlmaIFIntegrator.hh"
+#include "AvalonIntegrator.hh"
 #include "BEMGenerator.hh"
+#include "BEMSerializer.hh"
 #include "BEMValidator.hh"
-
-#include "MachineImplementation.hh"
+#include "BinaryEncoding.hh"
+#include "ControlUnit.hh"
+#include "RVCoprocessorGenerator.hh"  
+#include "Environment.hh"
+#include "FUPort.hh"
+#include "FileSystem.hh"
 #include "IDFSerializer.hh"
 #include "IDFValidator.hh"
-
-#include "ProcessorConfigurationFile.hh"
-#include "Environment.hh"
-#include "FileSystem.hh"
-
-#include "ProGeScriptGenerator.hh"
-#include "ProGeTestBenchGenerator.hh"
-
+#include "KoskiIntegrator.hh"
+#include "Machine.hh"
+#include "MachineImplementation.hh"
 #include "MathTools.hh"
 #include "Netlist.hh"
 #include "NetlistBlock.hh"
 #include "PlatformIntegrator.hh"
+#include "ProGeScriptGenerator.hh"
+#include "ProGeTestBenchGenerator.hh"
+#include "ProGeTools.hh"
+#include "ProGeTypes.hh"
+#include "ProcessorConfigurationFile.hh"
+#include "ProcessorGenerator.hh"
+#include "SpecialRegisterPort.hh"
 #include "Stratix2DSPBoardIntegrator.hh"
 #include "Stratix3DevKitIntegrator.hh"
-#include "KoskiIntegrator.hh"
-#include "AvalonIntegrator.hh"
-#include "AlmaIFIntegrator.hh"
-
-#include "ProGeTools.hh"
+#include "TestBenchBlock.hh"
 
 using namespace IDF;
 using std::string;
@@ -115,6 +110,21 @@ ProGeUI::~ProGeUI() {
     }
 }
 
+/**
+ * Removes FUs from the IDF for the RISCV Coprocessors
+ */
+void
+ProGeUI::removeFUsIDF(IDF::MachineImplementation* idf) {
+    const std::vector<std::string> fuNames = {
+        "alu", "lsu", "mul_div", "ALU", "LSU", "MUL_DIV", "stdout"};
+    for (std::string fuName : fuNames) {
+        if (idf->hasFUGeneration(fuName)) {
+            idf->removeFuGeneration(fuName);
+        } else if (idf->hasFUImplementation(fuName)) {
+            idf->removeFUImplementation(fuName);
+        }
+    }
+}
 
 /**
  * Loads machine from the given ADF file.
@@ -355,9 +365,18 @@ ProGeUI::generateProcessor(
         *machine_, warningStream);
 
     try {
-        generator_.generateProcessor(
-            options, *machine_, *idf_, *plugin_, imemWidthInMAUs, errorStream,
-            warningStream, verboseStream);
+        // selecting OpenAsip OR CV-X || ROCC generator
+        if ((options.CVXIFCoproGen) || (options.roccGen)) {
+            // Removing FUs in the Core
+            removeFUsIDF(idf_);
+            rvCoprocessorGenerator_.generateRVCoprocessor(
+                options, *machine_, *idf_, *plugin_, imemWidthInMAUs,
+                errorStream, warningStream, verboseStream);
+        } else {
+            generator_.generateProcessor(
+                options, *machine_, *idf_, *plugin_, imemWidthInMAUs,
+                errorStream, warningStream, verboseStream);
+        }
     } catch (Exception& e) {
         std::cerr << e.errorMessage() << std::endl;
     }
@@ -381,17 +400,16 @@ ProGeUI::generateTestBench(
     checkIfNull(idf_, "IDF not loaded");
 
     try {
-            TestBenchBlock coreTestbench(
-                generator_.generatorContext(),
-                generator_.processorTopLevel());
-            coreTestbench.write(Path(progeOutDir), language);
-        } catch (Exception& e) {
-            // There is one case the new test bench can not handle: same data
-            // address spaces shared by two LSUs.
-            ProGeTestBenchGenerator tbGen = ProGeTestBenchGenerator();
-            tbGen.generate(
-                language, *machine_, *idf_, dstDir, progeOutDir, entityName_);
-        }
+        TestBenchBlock coreTestbench(
+            generator_.generatorContext(), generator_.processorTopLevel());
+        coreTestbench.write(Path(progeOutDir), language);
+    } catch (Exception& e) {
+        // There is one case the new test bench can not handle: same data
+        // address spaces shared by two LSUs.
+        ProGeTestBenchGenerator tbGen = ProGeTestBenchGenerator();
+        tbGen.generate(
+            language, *machine_, *idf_, dstDir, progeOutDir, entityName_);
+    }
 }
 
 /** 
@@ -551,15 +569,17 @@ ProGeUI::generateIDF(
     std::vector<IDF::FUGenerated::DAGOperation> dagops =
         ProGeTools::generateableDAGOperations(infos, verbose);
 
-    auto already_handled = [&](const std::string& name,
-                               const std::vector<std::string> handledEntries) {
-        return std::find(handledEntries.begin(), handledEntries.end(), name) !=
-               handledEntries.end();
-    };
+    auto alreadyHandled =
+        [&](const std::string& name,
+            const std::vector<std::string> handledEntries) {
+            return std::find(
+                       handledEntries.begin(), handledEntries.end(), name) !=
+                   handledEntries.end();
+        };
 
-    auto select_fu_hdb_implementations = [&]() {
+    auto selectFUHDBImplementations = [&]() {
         for (auto&& fu : machine_->functionUnitNavigator()) {
-            if (already_handled(fu->name(), handledFUs)) {
+            if (alreadyHandled(fu->name(), handledFUs)) {
                 continue;
             }
             verbose << " select implementation for " << fu->name() << "... ";
@@ -577,9 +597,9 @@ ProGeUI::generateIDF(
         }
     };
 
-    auto generate_fu_implementations = [&]() {
+    auto generateFUImplementations = [&]() {
         for (auto&& fu : machine_->functionUnitNavigator()) {
-            if (already_handled(fu->name(), handledFUs)) {
+            if (alreadyHandled(fu->name(), handledFUs)) {
                 continue;
             }
             verbose << " generate implementation for " << fu->name()
@@ -598,11 +618,11 @@ ProGeUI::generateIDF(
 
     // Create or select FUs.
     if (options.preferHDLGeneration) {
-        generate_fu_implementations();
-        select_fu_hdb_implementations();
+        generateFUImplementations();
+        selectFUHDBImplementations();
     } else {
-        select_fu_hdb_implementations();
-        generate_fu_implementations();
+        selectFUHDBImplementations();
+        generateFUImplementations();
     }
 
     // IUs.
@@ -623,11 +643,10 @@ ProGeUI::generateIDF(
     }
 
     for (auto&& rf : machine_->registerFileNavigator()) {
-        if (already_handled(rf->name(), handledRFs)) {
+        if (alreadyHandled(rf->name(), handledRFs)) {
             continue;
         }
-        verbose << " generate implementation for " << rf->name()
-                << "... ";
+        verbose << " generate implementation for " << rf->name() << "... ";
         IDF::RFGenerated rfg(rf->name());
         // Assume that we can always generate the missing RFs.
         verbose << "OK\n";

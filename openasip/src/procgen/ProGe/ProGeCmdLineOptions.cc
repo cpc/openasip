@@ -244,7 +244,6 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
         "Initialize FUGen generated signals as don't care. "
         "E.g. some FPGA tool optimizations prefer these.");
     addOption(dontCareInit);
-
 }
 
 
@@ -550,7 +549,6 @@ bool
 ProGeCmdLineOptions::dontCareInitialization() const {
     return findOption(DONT_CARE_INIT)->isFlagOn();
 }
-
 
 /**
  * Prints the version of the application.

@@ -12,8 +12,8 @@ NetlistPortGroup.cc SignalGroupDefinitions.cc \
 ProGeContext.cc GlobalPackage.cc \
 TestBenchBlock.cc SinglePortSSRAMBlock.cc \
 ProcessorWrapperBlock.cc LoopBufferBlock.cc MemoryBusInterface.cc \
-ProGeTools.cc RV32MicroCodeGenerator.cc \
-SinglePortByteMaskSSRAMBlock.cc
+ProGeTools.cc RV32MicroCodeGenerator.cc RVCoprocessorGenerator.cc\
+SinglePortByteMaskSSRAMBlock.cc 
 
 
 SRC_ROOT_DIR = $(top_srcdir)/src
@@ -79,7 +79,7 @@ libproge_la_SOURCES += \
 	GeneratableRFNetlistBlock.hh \
 	OperationPool.hh Operation.hh Operand.hh \
 	IPXact.hh ProGeCmdLineOptions.hh ProGeTools.hh \
-	MicroCodeGenerator.hh RV32MicroCodeGenerator.hh \
+	MicroCodeGenerator.hh RV32MicroCodeGenerator.hh RVCoprocessorGenerator.hh\
 	SinglePortByteMaskSSRAMBlock.hh
 
 ## headers end

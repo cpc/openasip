@@ -225,14 +225,14 @@ namespace ProGe {
         for (int i = 0; i < context_.idf().rfImplementationCount(); i++) {
             RFImplementationLocation& location =
                 context_.idf().rfImplementation(i);
-            addRFToNetlist(options, location, *coreBlock_);
+            addRFToNetlist(location, *coreBlock_);
         }
 
         // add immediate units to the netlist
         for (int i = 0; i < context_.idf().iuImplementationCount(); i++) {
             RFImplementationLocation& location =
                 context_.idf().iuImplementation(i);
-            addIUToNetlist(options, location, *coreBlock_);
+            addIUToNetlist(location, *coreBlock_);
         }
 
         plugin_.completeNetlist(*coreBlock_, *this);
@@ -240,6 +240,38 @@ namespace ProGe {
         return coreBlock_;
     }
 
+    /**
+     * Generates the netlist block of the coprocessor.
+     *
+     * @param imemWidthInMAUs Width of instruction memory in MAUs.
+     * @param entityNameStr The name string used to make the netlist blocks
+     *                      uniquely named.
+     * @return The newly generated netlist block.
+     */
+    NetlistBlock*
+    NetlistGenerator::generateCoprocessor(
+        int imemWidthInMAUs,
+        TCEString entityNameStr = TOPLEVEL_BLOCK_DEFAULT_NAME) {
+        if (imemWidthInMAUs < 1) {
+            string errorMsg =
+                "Instruction memory width in MAUs must be positive.";
+            throw OutOfRange(__FILE__, __LINE__, __func__, errorMsg);
+        }
+
+        // add toplevel block
+        coreBlock_ = new NetlistBlock(entityNameStr, "CVXIF_TOP");
+        coreBlock_->addPackage("cvxif_");
+        coreBlock_->addPackage("cvxif_instr_");
+
+        addFUPortstoNetlist(*coreBlock_);
+
+        // add Generated FUs to the toplevel netlist.
+        for (auto fug : context_.idf().FUGenerations()) {
+            addGeneratableFUsToNetlist(fug, *coreBlock_); //MODIFY
+        }
+
+        return coreBlock_;
+    }
     /**
      * Returns the netlist port which is corresponding to the given port in
      * the
@@ -974,7 +1006,7 @@ namespace ProGe {
         return block;
     }
 
-     GeneratableRFNetlistBlock* NetlistGenerator::addGeneratableRFsToNetlist(
+    GeneratableRFNetlistBlock* NetlistGenerator::addGeneratableRFsToNetlist(
         const IDF::RFGenerated& rfg, NetlistBlock& coreBlock) {
 
         std::string rfName = "rf_" + rfg.name();
@@ -1363,7 +1395,7 @@ namespace ProGe {
      */
     void
     NetlistGenerator::addRFToNetlist(
-        const ProGeOptions& options, const RFImplementationLocation& location,
+        const RFImplementationLocation& location,
         NetlistBlock& netlistBlock) {
         if (!context_.adf().registerFileNavigator().hasItem(
                 location.unitName())) {
@@ -1373,7 +1405,7 @@ namespace ProGe {
         }
         RegisterFile* rf =
             context_.adf().registerFileNavigator().item(location.unitName());
-        addBaseRFToNetlist(options, *rf, location, netlistBlock,
+        addBaseRFToNetlist(*rf, location, netlistBlock,
             RF_NAME_PREFIX);
     }
 
@@ -1392,7 +1424,7 @@ namespace ProGe {
      */
     void
     NetlistGenerator::addIUToNetlist(
-        const ProGeOptions& options, const RFImplementationLocation& location,
+        const RFImplementationLocation& location,
         NetlistBlock& netlistBlock) {
         if (!context_.adf().immediateUnitNavigator().hasItem(
                 location.unitName())) {
@@ -1402,7 +1434,7 @@ namespace ProGe {
         }
         ImmediateUnit* iu =
             context_.adf().immediateUnitNavigator().item(location.unitName());
-        addBaseRFToNetlist(options, *iu, location, netlistBlock,
+        addBaseRFToNetlist(*iu, location, netlistBlock,
             IU_NAME_PREFIX);
     }
 
@@ -1425,7 +1457,6 @@ namespace ProGe {
      */
     void
     NetlistGenerator::addBaseRFToNetlist(
-        const ProGeOptions& options,
         const TTAMachine::BaseRegisterFile& regFile,
         const RFImplementationLocation& location, NetlistBlock& targetBlock,
         const std::string& blockNamePrefix) {
@@ -2255,5 +2286,27 @@ namespace ProGe {
         }
         return SignalType::UNDEFINED;
     }
+    
+    /**
+     * Adds the Fu ports to the given //TODO
+     * top-level block.
+     *
+     * @param toplevelBlock The top-level block of the netlist.
+     * @param 
+     */
+    void NetlistGenerator::addFUPortstoNetlist(
+        NetlistBlock& toplevelBlock){
 
+            NetlistPort* tlClkPort =
+            new InBitPort(CLOCK_PORT_NAME, toplevelBlock, SignalType::CLOCK);
+            NetlistPort* tlRstPort = new InBitPort(RESET_PORT_NAME, toplevelBlock,
+            Signal(SignalType::RESET, ActiveState::LOW));
+
+            mapClockPort(toplevelBlock, *tlClkPort);
+            mapResetPort(toplevelBlock, *tlRstPort);
+
+        Netlist::connectClocks(toplevelBlock);
+        Netlist::connectResets(toplevelBlock);
+
+        }
 } // namespace ProGe

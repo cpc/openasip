@@ -8,6 +8,8 @@ Main changes and features
 - RISC-V compiler now generates new LLVM Targets from RISC-V ADFs
   and loads them dynamically, which adds support for automatic
   instruction selection for RISC-V custom instructions.
+- Added feature to generate SFUs with RISC-V custom instructions 
+  that can be interfaced with CV-X and ROCC interfaces, utilizing FUGen.
 
 Deprecation notice
 ------------------

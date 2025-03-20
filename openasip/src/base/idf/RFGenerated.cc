@@ -52,7 +52,7 @@ RFGenerated::saveState() const {
 
     state->setAttribute(ATTRIB_NAME, name_);
 
-    for (const auto option : options_) {
+    for (const auto& option : options_) {
         ObjectState* opState = new ObjectState(TAG_OPTION);
         opState->setValue(option);
         state->addChild(opState);

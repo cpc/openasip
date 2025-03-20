@@ -95,6 +95,9 @@ namespace ProGe {
         NetlistBlock* generate(
             const ProGeOptions& options, int imemWidthInMAUs,
             TCEString entityNameStr, std::ostream& warningStream);
+        // Generate CVXIF coprocessor
+        NetlistBlock* generateCoprocessor(
+            int imemWidthInMAUs, TCEString entityNameStr);
 
         NetlistPort& netlistPort(
             const TTAMachine::Port& port, Direction dir = IN) const;
@@ -192,15 +195,12 @@ namespace ProGe {
             NetlistBlock& coreBlock, NetlistBlock& fuBlock,
             const TTAMachine::FunctionUnit& adfFU);
         void addRFToNetlist(
-            const ProGeOptions& options,
             const IDF::RFImplementationLocation& location,
             NetlistBlock& netlistBlock);
         void addIUToNetlist(
-            const ProGeOptions& options,
             const IDF::RFImplementationLocation& location,
             NetlistBlock& netlistBlock);
         void addBaseRFToNetlist(
-            const ProGeOptions& options,
             const TTAMachine::BaseRegisterFile& regFile,
             const IDF::RFImplementationLocation& location,
             NetlistBlock& netlistBlock, const std::string& blockNamePrefix);
@@ -248,6 +248,8 @@ namespace ProGe {
         static TTAMachine::AddressSpace& instructionMemory(
             const TTAMachine::Machine& machine);
         static Direction translateDirection(HDB::Direction direction);
+        void addFUPortstoNetlist(
+            NetlistBlock& toplevelBlock);  // Maps generated FUs ports
 
         const ProGeContext& context_;
         /// The generator plugin.

@@ -87,6 +87,17 @@ BEMGenerator::BEMGenerator(const Machine& machine) :
     machine_(&machine) {
 }
 
+/**
+ * BEM constructor for the Coprocessor generation.
+ * Overloaded BEM constructor related to CV-X-If and ROCC coprocessor generation.
+ * RISCV instrucion encodings are created based on the coproInterface boolean.
+ *
+ * @param machine The machine for which the binary encoding map will be
+ *                generated.
+ * @param coproInterface Bool for enabling the ROCC format
+ */
+BEMGenerator::BEMGenerator(const Machine& machine, bool coproInterface)
+    : machine_(&machine), rocc_(coproInterface) {}
 
 /**
  * The destructor.
@@ -179,8 +190,8 @@ BEMGenerator::addTopLevelFields(BinaryEncoding& bem) const {
         addEncodings(*field);
     }
 
-    unsigned amountOfRCustomOps = 0;
-    unsigned amountOfR3RCustomOps = 0;
+    // Reserve first opcodes for special cases
+    unsigned amountOfRCustomOps = 10;
 
     Machine::OperationTriggeredFormatNavigator fNav =
         machine_->operationTriggeredFormatNavigator();
@@ -188,7 +199,42 @@ BEMGenerator::addTopLevelFields(BinaryEncoding& bem) const {
     // For CVX-IF, make sure these are iterated in the correct order.
     for (int i = 0; i < fNav.count(); i++) {
         OperationTriggeredFormat* fTemp = fNav.item(i);
-        addRiscvFormat(fTemp, bem, amountOfRCustomOps, amountOfR3RCustomOps);
+        addRiscvFormat(fTemp, bem, amountOfRCustomOps);
+    }
+}
+
+/**
+ * RISC-V F7,F3 encoding generation
+ */
+
+void
+BEMGenerator::funcencodeRiscv(
+    OperationTriggeredFormat* format, InstructionFormat* instrFormat,
+    const unsigned& custom_op, unsigned& amountOfRCustomOps,
+    unsigned& rocc_f3) const {
+    for (int i = 0; i < format->operationCount(); i++) {
+        const std::string op = format->operationAtIndex(i);
+        if (MapTools::containsKey(RISCVFields::RISCVRTypeOperations, op)) {
+            instrFormat->addOperation(
+                op, RISCVFields::RISCVRTypeOperations.at(op));
+        } else {
+            if (rocc_) {  // For the ROCC interface F3=rocc_f3, F7 in
+                          // incrementals
+                unsigned int customEncoding = (rocc_f3 << 7) + custom_op;
+                customEncoding += (amountOfRCustomOps << 10);
+                amountOfRCustomOps++;
+                // 10 bit encoding for operation
+                assert(amountOfRCustomOps < 1024);
+                instrFormat->addOperation(op, customEncoding);
+            } else {  // F7:F3 in incrementals
+                unsigned int customEncoding = custom_op;
+                customEncoding += (amountOfRCustomOps << 7);
+                amountOfRCustomOps++;
+                // 10 bit encoding for operation
+                assert(amountOfRCustomOps < 1024);
+                instrFormat->addOperation(op, customEncoding);
+            }
+        }
     }
 }
 
@@ -202,11 +248,13 @@ BEMGenerator::addTopLevelFields(BinaryEncoding& bem) const {
 void
 BEMGenerator::addRiscvFormat(
     OperationTriggeredFormat* format, BinaryEncoding& bem,
-    unsigned& amountOfRCustomOps, unsigned& amountOfR3RCustomOps) const {
+    unsigned& amountOfRCustomOps) const {
     std::string name = format->name();
     InstructionFormat* instrFormat = new InstructionFormat(name, bem);
     const unsigned OPC_CUSTOM_0 = 0b0001011;
     const unsigned OPC_CUSTOM_1 = 0b0101011;
+    unsigned OP_ROCC_F3 =
+        0b0;  // For ROCC F3 enconding for R type custom instructions
 
     if (name == RISCVFields::RISCV_R_TYPE_NAME) {
         OperationTriggeredEncoding* rs1 =
@@ -223,21 +271,11 @@ BEMGenerator::addRiscvFormat(
         new OperationTriggeredField(*opcode, 0, 0, 7);
         new OperationTriggeredField(*opcode, 1, 12, 3);
         new OperationTriggeredField(*opcode, 2, 25, 7);
+        OP_ROCC_F3 = 0b111;
+        // Encoding generation
+        funcencodeRiscv(
+            format, instrFormat, OPC_CUSTOM_0, amountOfRCustomOps, OP_ROCC_F3);
 
-        // Reserve first few encodings for fixed special case
-        for (int i = 0; i < format->operationCount(); i++) {
-            const std::string op = format->operationAtIndex(i);
-            if (MapTools::containsKey(RISCVFields::RISCVRTypeOperations, op)) {
-                instrFormat->addOperation(op, RISCVFields::RISCVRTypeOperations.at(op));
-            } else {
-                unsigned int customEncoding = OPC_CUSTOM_0;
-                customEncoding += (amountOfRCustomOps << 7);
-                amountOfRCustomOps++;
-                // 10 bit encoding for operation
-                assert(amountOfRCustomOps < 1024);
-                instrFormat->addOperation(op, customEncoding);
-            }
-        }
     } else if (name == RISCVFields::RISCV_I_TYPE_NAME) {
         // TODO: shift operations use immediate bits for funct code in this
         //  format
@@ -364,16 +402,11 @@ BEMGenerator::addRiscvFormat(
         new OperationTriggeredField(*opcode, 0, 0, 7);
         new OperationTriggeredField(*opcode, 1, 12, 3);
         new OperationTriggeredField(*opcode, 2, 25, 7);
+        OP_ROCC_F3 = 0b110;
 
-        for (int i = 0; i < format->operationCount(); i++) {
-            const std::string op = format->operationAtIndex(i);
-            unsigned int customEncoding = OPC_CUSTOM_0;
-            customEncoding += (amountOfRCustomOps << 7);
-            amountOfRCustomOps++;
-            // 10 bit encoding for operation
-            assert(amountOfRCustomOps < 1024);
-            instrFormat->addOperation(op, customEncoding);
-        }
+        funcencodeRiscv(
+            format, instrFormat, OPC_CUSTOM_0, amountOfRCustomOps, OP_ROCC_F3);
+
         // unary without output, stdout for example
     } else if (name == RISCVFields::RISCV_R1_TYPE_NAME) {
         OperationTriggeredEncoding* rs1 =
@@ -388,11 +421,13 @@ BEMGenerator::addRiscvFormat(
         for (int i = 0; i < format->operationCount(); i++) {
             const std::string op = format->operationAtIndex(i);
             unsigned int customEncoding = OPC_CUSTOM_0;
-            // Reserve this for printing
-            if (TCEString(op).lower() != "stdout") {
+            //Preserve this for printing
+            if (TCEString(op).lower() == "stdout") {
+                 customEncoding = OPC_CUSTOM_0;
+            } else {
                 customEncoding += (amountOfRCustomOps << 7);
                 amountOfRCustomOps++;
-            }
+             }
             // 10 bit encoding for operation
             assert(amountOfRCustomOps < 1024);
             instrFormat->addOperation(op, customEncoding);
@@ -423,9 +458,9 @@ BEMGenerator::addRiscvFormat(
                 instrFormat->addOperation(op, RISCVFields::RISCVRTypeOperations.at(op));
             } else {
                 unsigned int customEncoding = OPC_CUSTOM_1;
-                customEncoding += (amountOfR3RCustomOps << 7);
-                amountOfR3RCustomOps++;
-                assert(amountOfR3RCustomOps < 32);
+                customEncoding += (amountOfRCustomOps << 7);
+                amountOfRCustomOps++;
+                assert(amountOfRCustomOps < 32);
                 instrFormat->addOperation(op, customEncoding);
             }
         }

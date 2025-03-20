@@ -384,8 +384,7 @@ LLVMIRTools::newIdentifier() {
  * instructions.
  */
 std::string
-LLVMIRTools::alignment(
-    const Operand& operandInfo) const {
+LLVMIRTools::alignment(const Operand& operandInfo) const {
     return std::string("align ") +
         Conversion::toString(alignmentValue(operandInfo));
 }
@@ -395,8 +394,7 @@ LLVMIRTools::alignment(
  * instructions.
  */
 int
-LLVMIRTools::alignmentValue(
-    const Operand& operandInfo) const {
+LLVMIRTools::alignmentValue(const Operand& operandInfo) const {
 
     int bitWidth = operandInfo.elementCount()*operandInfo.elementWidth();
     return MathTools::ceil_div(bitWidth, 8);
@@ -406,8 +404,7 @@ LLVMIRTools::alignmentValue(
  * Converts signed integer value to LLVM IR constant presentation.
  */
 std::string
-LLVMIRTools::constant(
-    SIntWord value) const {
+LLVMIRTools::constant(SIntWord value) const {
     return Conversion::toString(value);
 }
 
@@ -415,8 +412,7 @@ LLVMIRTools::constant(
  * Converts unsigned integer value to LLVM IR constant presentation.
  */
 std::string
-LLVMIRTools::constant(
-    UIntWord value) const {
+LLVMIRTools::constant(UIntWord value) const {
     return Conversion::toString(value);
 }
 
@@ -424,8 +420,7 @@ LLVMIRTools::constant(
  * Returns half float in 0xH#### format.
  */
 std::string
-LLVMIRTools::constant(
-    HalfFloatWord value) const {
+LLVMIRTools::constant(HalfFloatWord value) const {
     return std::string("0xH") +
         Conversion::toHexString(value.getBinaryRep(), 4, false);
 }
@@ -434,14 +429,12 @@ LLVMIRTools::constant(
  * Returns float in hex string representation.
  */
 std::string
-LLVMIRTools::constant(
-    FloatWord value) const {
+LLVMIRTools::constant(FloatWord value) const {
     return Conversion::doubleToHexString(value);
 }
 
 std::string
-LLVMIRTools::constant(
-    DoubleWord value) const {
+LLVMIRTools::constant(DoubleWord value) const {
     return Conversion::doubleToHexString(value);
 }
 
@@ -452,9 +445,7 @@ LLVMIRTools::constant(
  * return "<4 x i32>".
  */
 LLVMIRTools::Type
-LLVMIRTools::typeOf(
-    const Operand& operandInfo) const {
-
+LLVMIRTools::typeOf(const Operand& operandInfo) const {
     if (operandInfo.elementCount() > 1) {
         std::string vectorType("<");
         vectorType += Conversion::toString(operandInfo.elementCount()) +
@@ -471,21 +462,17 @@ LLVMIRTools::typeOf(
  * Since LLVM 15 this is an opaque ptr type for all operands
  */
 std::string
-LLVMIRTools::pointerTypeOf(
-    const Operand&) const {
-
+LLVMIRTools::pointerTypeOf(const Operand&) const {
     return "ptr";
 }
 
 /**
  * Composes string of pointer to type generated from Operand.
- * 
+ *
  * Since LLVM 15 this is an opaque ptr type for all operands
  */
 std::string
-LLVMIRTools::pointerOfTo(
-        const Operand&,
-        stringCRef) const {
+LLVMIRTools::pointerOfTo(const Operand&, stringCRef) const {
 
     return "ptr";
 }
@@ -496,8 +483,7 @@ LLVMIRTools::pointerOfTo(
  * e.g. For vector operand types returns the base type instead of vector-type.
  */
 LLVMIRTools::Type
-LLVMIRTools::singleTypeOf(
-    const Operand& operandInfo) const {
+LLVMIRTools::singleTypeOf(const Operand& operandInfo) const {
 
     int widthOfType = 0;
     if (operandInfo.elementCount() > 1) {
@@ -542,8 +528,7 @@ LLVMIRTools::singleTypeOf(
  * Operand.
  */
 std::string
-LLVMIRTools::constant(
-    const Operand& operandInfo,
+LLVMIRTools::constant(const Operand& operandInfo,
     const SimValue& value) const {
 
     TCEString constantStr;
@@ -598,9 +583,7 @@ LLVMIRTools::constant(
  * concatenated string of the arguments.
  */
 std::string
-LLVMIRTools::bothNonEmpty(
-    stringCRef str1,
-    stringCRef str2) const {
+LLVMIRTools::bothNonEmpty(stringCRef str1, stringCRef str2) const {
     if (str1.empty() || str2.empty()) {
         return "";
     } else {

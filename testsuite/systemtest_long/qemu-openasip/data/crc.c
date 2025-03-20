@@ -198,13 +198,13 @@ crcFast(unsigned char const message[], int nBytes) {
     for (byte = 0; byte < nBytes; ++byte) {
         input = message[byte];
         // _OA_REFLECT8(input, output);
-        asm volatile(".insn r 0x0B, 0x02, 0x00, %0, %1, x0"
+        asm volatile(".insn r 0x0B, 0x04, 0x01, %0, %1, x0"
                      : "=r"(output)
                      : "r"(input));
 
         data = (unsigned char)output ^ (remainder >> (WIDTH - 8));
         // _OA_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
-        asm volatile(".insn r 0x0B, 0x00, 0x00, %0, %1, %2"
+        asm volatile(".insn r 0x0B, 0x02, 0x01, %0, %1, %2"
                      : "=r"(remainder)
                      : "r"(remainder), "r"(crcTable[data]));
     }
@@ -213,7 +213,7 @@ crcFast(unsigned char const message[], int nBytes) {
      * The final remainder is the CRC.
      */
     // _OA_REFLECT32(remainder, output);
-    asm volatile(".insn r 0x0B, 0x01, 0x00, %0, %1, x0"
+    asm volatile(".insn r 0x0B, 0x03, 0x01, %0, %1, x0"
                  : "=r"(output)
                  : "r"(remainder));
 

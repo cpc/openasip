@@ -38,26 +38,26 @@
 
 namespace IDF {
 
-    class RFGenerated : public Serializable {
-    public:
-        struct Info {
-            int id;
-            int latency;
-        };
-
-        RFGenerated() = default;
-        RFGenerated(const std::string& name);
-        virtual ~RFGenerated() = default;
-
-        void loadState(const ObjectState* state) override;
-        ObjectState* saveState() const override;
-
-        std::string name() const;
-        void name(const std::string& newName);
-        const std::vector<std::string>& options() const;
-
-    private:
-        std::string name_;
-        std::vector<std::string> options_;
+class RFGenerated : public Serializable {
+public:
+    struct Info {
+        int id;
+        int latency;
     };
+
+    RFGenerated() = default;
+    RFGenerated(const std::string& name);
+    virtual ~RFGenerated() = default;
+
+    void loadState(const ObjectState* state) override;
+    ObjectState* saveState() const override;
+
+    std::string name() const;
+    void name(const std::string& newName);
+    const std::vector<std::string>& options() const;
+
+private:
+    std::string name_;
+    std::vector<std::string> options_;
+};
 }

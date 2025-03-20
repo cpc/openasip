@@ -285,7 +285,6 @@ RFGen::createGuardProcess() {
     verilogString += "  end\n";
     verilogString += "  end\n";
 
-    
     behaviour_ << RawCodeLine(vhdlString, verilogString);
 }
 
