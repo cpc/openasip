@@ -87,7 +87,7 @@ namespace HDLGenerator {
                 }
             } else if (lang == Language::Verilog) {
                 if (literal_.name().empty()) {
-                    stream << "0;\n";
+                    stream << "'0;\n";
                 } else {
                     literal_.hdl(stream, lang);
                     stream << ";\n";

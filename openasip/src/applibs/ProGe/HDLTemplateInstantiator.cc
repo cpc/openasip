@@ -140,6 +140,44 @@ HDLTemplateInstantiator::instantiateTemplateFile(
 }
 
 /**
+ * Creates a target HDL file from a HDL template replacing Nelements number of
+ * keywords
+ */
+void
+HDLTemplateInstantiator::instantiateCoprocessorTemplateFile(
+    const std::string& templateFile, const std::string& dstFile,
+    const std::string (&coproreplcement_keys)[8],
+    const std::string (&coproreplcement_words)[8], int Nelements) {
+    std::ifstream input(templateFile.c_str());
+
+    if (!input.is_open())
+        throw UnreachableStream(
+            __FILE__, __LINE__, __func__,
+            TCEString("Could not open ") + templateFile + " for reading.");
+
+    std::ofstream output(dstFile.c_str(), std::ios::trunc);
+
+    if (!output.is_open())
+        throw UnreachableStream(
+            __FILE__, __LINE__, __func__,
+            TCEString("Could not open ") + dstFile + " for writing. CVXIF");
+
+    while (!input.eof()) {
+        char line_buf[1024];
+        input.getline(line_buf, 1024);
+        TCEString line(line_buf);
+        for (int i = 0; i < Nelements; i++) {
+            line.replaceString(
+                coproreplcement_keys[i], coproreplcement_words[i]);
+        }
+        fillPlaceholders(line);
+        output << line << std::endl;
+    }
+    input.close();
+    output.close();
+}
+
+/**
  * Fills all placeholder templates with added replace strings by key.
  *
  * The placeholder markers are in form "<<placeholder,key>>" or

@@ -37,7 +37,7 @@
 #include <utility> // std::pair
 #include "CmdLineOptions.hh"
 /**
- * Command line options for the command line interface of ProGe 
+ * Command line options for the command line interface of ProGe
  * (generateprocessor).
  */
 class ProGeCmdLineOptions : public CmdLineOptions {
