@@ -81,8 +81,10 @@ private:
     void addEncodings(DestinationField& field) const;
     void addEncodings(SourceField& field) const;
     void addEncodings(GuardField& field) const;
-    void funcencodeRiscv(TTAMachine::OperationTriggeredFormat* format, 
-    InstructionFormat* instrFormat, const unsigned& custom_op, unsigned& amountOfRCustomOps, unsigned& rocc_f3) const;
+    void funcencodeRiscv(
+        TTAMachine::OperationTriggeredFormat* format,
+        InstructionFormat* instrFormat, const unsigned& custom_op,
+        unsigned& amountOfRCustomOps, unsigned& rocc_f3) const;
 
     void addRiscvFormat(TTAMachine::OperationTriggeredFormat* format,
     BinaryEncoding& bem, unsigned& amountOfRCustomOps,
@@ -135,7 +137,6 @@ private:
     SCTableMap scTableMap_;
     // ROCC interface selector for the Coprocessor Generation
     bool rocc_;
-    
 };
 
 #endif

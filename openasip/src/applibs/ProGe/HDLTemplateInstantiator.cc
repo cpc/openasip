@@ -140,15 +140,14 @@ HDLTemplateInstantiator::instantiateTemplateFile(
 }
 
 /**
- * Creates a target HDL file from a HDL template replacing Nelements number of keywords 
+ * Creates a target HDL file from a HDL template replacing Nelements number of
+ * keywords
  */
-void 
+void
 HDLTemplateInstantiator::instantiateCoprocessorTemplateFile(
-    const std::string& templateFile,
-    const std::string& dstFile,
+    const std::string& templateFile, const std::string& dstFile,
     const std::string (&coproreplcement_keys)[8],
-    const std::string (&coproreplcement_words)[8],
-    int Nelements) {
+    const std::string (&coproreplcement_words)[8], int Nelements) {
     std::ifstream input(templateFile.c_str());
 
     if (!input.is_open())
@@ -163,20 +162,19 @@ HDLTemplateInstantiator::instantiateCoprocessorTemplateFile(
             __FILE__, __LINE__, __func__,
             TCEString("Could not open ") + dstFile + " for writing. CVXIF");
 
-        while (!input.eof()) {
-            char line_buf[1024]; 
-            input.getline(line_buf, 1024);
-            TCEString line(line_buf);
-            for (int i = 0; i < Nelements ; i++){
-                line.replaceString(coproreplcement_keys[i], coproreplcement_words[i]);
-            }
-            fillPlaceholders(line);
-            output << line << std::endl;
-        
+    while (!input.eof()) {
+        char line_buf[1024];
+        input.getline(line_buf, 1024);
+        TCEString line(line_buf);
+        for (int i = 0; i < Nelements; i++) {
+            line.replaceString(
+                coproreplcement_keys[i], coproreplcement_words[i]);
+        }
+        fillPlaceholders(line);
+        output << line << std::endl;
     }
     input.close();
     output.close();
-    
 }
 
 /**

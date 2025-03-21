@@ -214,7 +214,7 @@ NetlistBlock::write(const Path& targetBaseDir, HDL targetLang) const {
             writer = new VerilogNetlistWriter(*this, targetLang);
             topLevelDir = targetBaseDir.string() +
                           FileSystem::DIRECTORY_SEPARATOR + "systemverilog";
-        }else {
+        } else {
             assert(false && "Unsupported HDL.");
         }
 

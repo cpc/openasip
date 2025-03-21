@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
             outputDir = argv[i + 1];
         } else if (std::strcmp(argv[i], "-a") == 0) {
             adfPath = argv[i + 1];
-        }else if (std::strcmp(argv[i], "-r") == 0) {
+        } else if (std::strcmp(argv[i], "-r") == 0) {
             rocc_str = argv[i + 1];
         }
     }

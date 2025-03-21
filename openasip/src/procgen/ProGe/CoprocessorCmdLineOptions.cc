@@ -1,25 +1,20 @@
 /*
-    Copyright (c) 2002-2025 Tampere University.
+    Copyright (C) 2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
 
-    Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation
-    the rights to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell copies of the Software, and to permit persons to whom the
-    Software is furnished to do so, subject to the following conditions:
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
 
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-    DEALINGS IN THE SOFTWARE.
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+    02110-1301 USA
  */
 /**
  * @file CoprocessorCmdLineOptions.cc
@@ -29,16 +24,18 @@
  * @author Tharaka Sampath
  */
 
+#include "CoprocessorCmdLineOptions.hh"
+
 #include <iostream>
 #include <sstream>
-#include "CoprocessorCmdLineOptions.hh"
+
 #include "tce_config.h"
 
-using std::string;
 using std::cout;
 using std::endl;
+using std::string;
 
-const string InterF= "coproInterface";
+const string InterF = "coproInterface";
 const string BEM_PARAM_NAME = "bem";
 const string IDF_PARAM_NAME = "idf";
 const string HDL_PARAM_NAME = "hdl";
@@ -51,34 +48,31 @@ const string HDB_LIST = "hdb-list";
 /**
  * The constructor.
  */
-CoprocessorCmdLineOptions::CoprocessorCmdLineOptions() : 
-    CmdLineOptions("") {
-
+CoprocessorCmdLineOptions::CoprocessorCmdLineOptions() : CmdLineOptions("") {
     StringCmdLineOptionParser* Interface = new StringCmdLineOptionParser(
         InterF, "Select the Coprocessor Interface :- 'cvx' OR 'rocc'", "c");
     addOption(Interface);
 
-    StringCmdLineOptionParser* bemFile = new StringCmdLineOptionParser(
-        BEM_PARAM_NAME, "The BEM file ", "b");
+    StringCmdLineOptionParser* bemFile =
+        new StringCmdLineOptionParser(BEM_PARAM_NAME, "The BEM file ", "b");
     addOption(bemFile);
 
     StringCmdLineOptionParser* hdlParam = new StringCmdLineOptionParser(
-        HDL_PARAM_NAME, "The language of the HDL to generate. 'vhdl' = VHDL", "l");
+        HDL_PARAM_NAME, "The language of the HDL to generate. 'vhdl' = VHDL",
+        "l");
     addOption(hdlParam);
 
-    StringCmdLineOptionParser* idfFile = new StringCmdLineOptionParser(
-        IDF_PARAM_NAME, "The IDF file", "i");
+    StringCmdLineOptionParser* idfFile =
+        new StringCmdLineOptionParser(IDF_PARAM_NAME, "The IDF file", "i");
     addOption(idfFile);
 
-    StringCmdLineOptionParser* outputDirectory = 
+    StringCmdLineOptionParser* outputDirectory =
         new StringCmdLineOptionParser(
             OUTPUTDIR_PARAM_NAME, "The output directory", "o");
     addOption(outputDirectory);
 
     StringCmdLineOptionParser* entityName = new StringCmdLineOptionParser(
-        ENTITY_NAME,
-        "Coprocessor TOP name as a String.",
-        "e");
+        ENTITY_NAME, "Coprocessor TOP name as a String.", "e");
     addOption(entityName);
 
     BoolCmdLineOptionParser* preferGen = new BoolCmdLineOptionParser(
@@ -92,12 +86,10 @@ CoprocessorCmdLineOptions::CoprocessorCmdLineOptions() :
     addOption(hdbList);
 }
 
-
 /**
  * The destructor.
  */
-CoprocessorCmdLineOptions::~CoprocessorCmdLineOptions() {
-}
+CoprocessorCmdLineOptions::~CoprocessorCmdLineOptions() {}
 
 /**
  * Returns the ADF or PCF file given as last argument.
@@ -216,6 +208,6 @@ void
 CoprocessorCmdLineOptions::printHelp() const {
     printVersion();
     cout << "Usage: generatecoprocessor [options] <coprocessor>" << endl
-         << "where <coprocessor> means an ADF file." << endl; 
+         << "where <coprocessor> means an ADF file." << endl;
     CmdLineOptions::printHelp();
 }

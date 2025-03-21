@@ -22,10 +22,10 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
-* @file FUGen.hh
-*
-* @author Lasse Lehtonen 2017 (lasse.lehtonen-no.spam-tut.fi)
-*/
+ * @file FUGen.hh
+ *
+ * @author Lasse Lehtonen 2017 (lasse.lehtonen-no.spam-tut.fi)
+ */
 #pragma once
 
 #include "FUGenerated.hh"
@@ -87,7 +87,7 @@ public:
             addressWidth_ = MathTools::requiredBits(as->end());
         }
 
-        //Checking the CVXIF coprocessor generation
+        // Checking the CVXIF coprocessor generation
         if (options.CVXIFCoproGen) {
             cvxifEN_ = true;
             roccEN_ = false;
@@ -153,18 +153,19 @@ private:
     };
 
     void createOutputPipeline();
-    //For creating output pipelines for CVXIF
+    // For creating output pipelines for CVXIF
     void createOutputPipelineCVXIF();
 
     void addRegisterIfMissing(std::string name, int width,
                               HDLGenerator::WireType wt
                               = HDLGenerator::WireType::Auto);
-    void addRegisterIfMissing(std::string name, std::string width,
-                                HDLGenerator::WireType wt
-                                = HDLGenerator::WireType::Auto);
+    void addRegisterIfMissing(
+        std::string name, std::string width,
+        HDLGenerator::WireType wt = HDLGenerator::WireType::Auto);
 
-    void addWireIfMissing(std::string name, int width = 1, 
-                              HDLGenerator::WireType wt = HDLGenerator::WireType::Auto);
+    void addWireIfMissing(
+        std::string name, int width = 1,
+        HDLGenerator::WireType wt = HDLGenerator::WireType::Auto);
     std::string findAbsolutePath(std::string file);
 
     void createFUHeaderComment(const TTAMachine::Machine& machine);
@@ -181,7 +182,7 @@ private:
     void scheduleOperations();
     void createPortPipeline();
     void createShadowRegisters();
-    void CreateInputRegister();     //Make all the inputs registered
+    void CreateInputRegister();  // Make all the inputs registered
     void CreateInputsConnected();
     void selectionlogic();
     void outputSelect();
@@ -206,7 +207,8 @@ private:
     HDLGenerator::Language selectedLanguage();
 
     // Functions which construct pipelined signal names
-    std::string enableSignal(std::string name, int cycle);             // Enable signal pullup
+    std::string enableSignal(
+        std::string name, int cycle);  // Enable signal pullup
     std::string opcodeSignal(int stage);
     std::string triggerSignal(int stage);
     std::string opcodeConstant(std::string operation);
@@ -217,7 +219,7 @@ private:
     std::string subOpName(OperationNode* node);
     std::string constantName(ConstantNode* node, OperationDAG* dag);
     std::string constantName(DAGConstant dag);
-    //For pipeline name pullups
+    // For pipeline name pullups
     std::string registeredNameOP(std::string name);
     std::string pipelineNameShadow(std::string port, int cycle);
     std::string pipelineConfig(std::string port, int cycle);
@@ -241,8 +243,8 @@ private:
 
     std::vector<std::string> operations_;
     int opcodeWidth_;
-    int config_width_= 17; //17 bits for the config bits
-    int input_opcodeWidth_= opcodeWidth_ + config_width_;
+    int config_width_ = 17;  // 17 bits for the config bits
+    int input_opcodeWidth_ = opcodeWidth_ + config_width_;
 
     std::string moduleName_;
     ProGe::NetlistBlock* netlistBlock_;
@@ -283,7 +285,7 @@ private:
     std::vector<std::string> registers_;
     std::vector<std::string> wires_;
     std::vector<std::string> enablesignals_;
-    std::string Nconfigbits_="cvxif_sup_pkg::NConfigbits_C";
+    std::string Nconfigbits_ = "cvxif_sup_pkg::NConfigbits_C";
 
     bool useGlockRequest_ = false;
     bool useGlock_ = false;
@@ -293,9 +295,8 @@ private:
     bool backRegistered_ = false;
     int addressWidth_ = 0;
     bool isLSU_ = false;
-    //CVXIF generator enable
-    bool cvxifEN_= false;
+    // CVXIF generator enable
+    bool cvxifEN_ = false;
     // ROCC enable
-    bool roccEN_= false;
-
+    bool roccEN_ = false;
 };

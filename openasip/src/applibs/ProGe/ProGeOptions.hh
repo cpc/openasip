@@ -31,13 +31,14 @@
 
 #pragma once
 
-#include "FileSystem.hh"
-#include "ProGeCmdLineOptions.hh"
-#include "CoprocessorCmdLineOptions.hh" //For CVXIF CMD options
-#include "ProGeTypes.hh"
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "CoprocessorCmdLineOptions.hh"  //For CVXIF CMD options
+#include "FileSystem.hh"
+#include "ProGeCmdLineOptions.hh"
+#include "ProGeTypes.hh"
 
 struct ProGeOptions {
 
@@ -51,23 +52,31 @@ struct ProGeOptions {
 
     ProGeOptions(const ProGeCmdLineOptions& cmd)
         : processorToGenerate(cmd.processorToGenerate()),
-          bemFile(cmd.bemFile()), idfFile(cmd.idfFile()),
-          languageStr(cmd.hdl()), outputDirectory(cmd.outputDirectory()),
+          bemFile(cmd.bemFile()),
+          idfFile(cmd.idfFile()),
+          languageStr(cmd.hdl()),
+          outputDirectory(cmd.outputDirectory()),
           sharedOutputDirectory(cmd.sharedOutputDirectory()),
           pluginParametersQuery(cmd.pluginParametersQuery()),
           generateTestbench(cmd.generateTestbench()),
-          integratorName(cmd.integratorName()), imemType(cmd.imemType()),
-          dmemType(cmd.dmemType()), clockFrequency(cmd.clockFrequency()),
-          tpefName(cmd.tpefName()), entityName(cmd.entityName()),
+          integratorName(cmd.integratorName()),
+          imemType(cmd.imemType()),
+          dmemType(cmd.dmemType()),
+          clockFrequency(cmd.clockFrequency()),
+          tpefName(cmd.tpefName()),
+          entityName(cmd.entityName()),
           useAbsolutePaths(cmd.useAbsolutePaths()),
           listAvailableIntegrators(cmd.listAvailableIntegrators()),
           deviceFamilyName(cmd.deviceFamilyName()),
           deviceName(cmd.deviceName()),
           simulationRuntime(cmd.simulationRuntime()),
           forceOutputDirectory(cmd.forceOutputDirectory()),
-          asyncReset(cmd.asyncReset()), syncReset(cmd.syncReset()),
-          hdbList(cmd.hdbList()), rfIcGateList(cmd.rfIcGateList()),
-          fuIcGateList(cmd.fuIcGateList()), icdArgList(cmd.icdArgList()),
+          asyncReset(cmd.asyncReset()),
+          syncReset(cmd.syncReset()),
+          hdbList(cmd.hdbList()),
+          rfIcGateList(cmd.rfIcGateList()),
+          fuIcGateList(cmd.fuIcGateList()),
+          icdArgList(cmd.icdArgList()),
           preferHDLGeneration(cmd.preferHDLGeneration()),
           resetAllRegisters(cmd.resetAllRegisters()),
           fuBackRegistered(cmd.fuBackRegistered()),
@@ -77,15 +86,19 @@ struct ProGeOptions {
         validate();
     }
 
-    //Constructor for CVXIF stuff
+    // Constructor for CVXIF stuff
     ProGeOptions(const CoprocessorCmdLineOptions& cmd, bool CVXIFEN)
         : processorToGenerate(cmd.processorToGenerate()),
-          bemFile(cmd.bemFile()), idfFile(cmd.idfFile()),
-          languageStr("sv"), outputDirectory(cmd.outputDirectory()),
-          preferHDLGeneration(true), entityName(cmd.entityName()),
-          coproInterface(cmd.interFace()), hdbList(cmd.hdbList()) {
+          bemFile(cmd.bemFile()),
+          idfFile(cmd.idfFile()),
+          languageStr("sv"),
+          outputDirectory(cmd.outputDirectory()),
+          preferHDLGeneration(true),
+          entityName(cmd.entityName()),
+          coproInterface(cmd.interFace()),
+          hdbList(cmd.hdbList()) {
         validate();
-    }  
+    }
 
     std::string processorToGenerate;
     std::string bemFile;
@@ -123,7 +136,7 @@ struct ProGeOptions {
     std::vector<std::string> fuFrontRegistered;
     std::vector<std::string> fuMiddleRegistered;
     bool dontCareInitialization;
-    //To enable CVXIF coprocessor generator
+    // To enable CVXIF coprocessor generator
     bool CVXIFCoproGen;
     // To enable  ROCC coprocessor generation
     bool roccGen;
@@ -143,7 +156,7 @@ struct ProGeOptions {
         }
         if (languageStr == "verilog") {
             language = ProGe::HDL::Verilog;
-        } else if (languageStr == "sv"){
+        } else if (languageStr == "sv") {
             language = ProGe::HDL::SV;
         } else {
             language = ProGe::HDL::VHDL;

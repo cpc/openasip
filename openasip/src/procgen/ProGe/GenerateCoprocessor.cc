@@ -1,25 +1,20 @@
 /*
-    Copyright (c) 2002-2025 Tampere University.
+    Copyright (C) 2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
 
-    Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation
-    the rights to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell copies of the Software, and to permit persons to whom the
-    Software is furnished to do so, subject to the following conditions:
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
 
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-    DEALINGS IN THE SOFTWARE.
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+    02110-1301 USA
  */
 /**
  * @file GenerateCoprocessor.cc
@@ -29,15 +24,16 @@
  * @author Tharaka Sampath
  */
 
-#include <string>
-#include <iostream>
-
 #include "GenerateCoprocessor.hh"
-#include "CoprocessorCmdLineOptions.hh"
-#include "FileSystem.hh"
-#include "Environment.hh"
-#include "Machine.hh"
+
+#include <iostream>
+#include <string>
+
 #include "BinaryEncoding.hh"
+#include "CoprocessorCmdLineOptions.hh"
+#include "Environment.hh"
+#include "FileSystem.hh"
+#include "Machine.hh"
 #include "StringTools.hh"
 
 using namespace ProGe;
@@ -52,7 +48,8 @@ int const DEFAULT_IMEMWIDTH_IN_MAUS = 1;
 /**
  * The main program of generatecoprocessor application.
  */
-int main(int argc, char* argv[]) {
+int
+main(int argc, char* argv[]) {
     GenerateCoprocessor ui;
     bool successful = ui.generateCoprocessor(argc, argv);
     if (successful) {
@@ -62,20 +59,15 @@ int main(int argc, char* argv[]) {
     }
 }
 
-
 /**
  * The constructor.
  */
-GenerateCoprocessor::GenerateCoprocessor() {
-}
-
+GenerateCoprocessor::GenerateCoprocessor() {}
 
 /**
  * The destructor.
  */
-GenerateCoprocessor::~GenerateCoprocessor() {
-}
-
+GenerateCoprocessor::~GenerateCoprocessor() {}
 
 /**
  * Parses the command line arguments and generates the coprocessor with FUs.
@@ -85,12 +77,10 @@ GenerateCoprocessor::~GenerateCoprocessor() {
  */
 bool
 GenerateCoprocessor::generateCoprocessor(int argc, char* argv[]) {
-
     CoprocessorCmdLineOptions options;
     string entity = "";
 
     try {
-
         options.parse(argv, argc);
         ProGeOptions progeOptions(options, true);
 
@@ -102,7 +92,7 @@ GenerateCoprocessor::generateCoprocessor(int argc, char* argv[]) {
         if (options.isVerboseSpamSwitchDefined()) {
             Application::setVerboseLevel(Application::VERBOSE_LEVEL_SPAM);
         }
-        
+
         if (options.numberOfArguments() == 0) {
             options.printHelp();
             return false;
@@ -117,16 +107,15 @@ GenerateCoprocessor::generateCoprocessor(int argc, char* argv[]) {
         string processorDefinition = options.processorToGenerate();
         if (FileSystem::fileExtension(processorDefinition) == ".adf") {
             loadMachine(processorDefinition);
-        } else if (FileSystem::fileExtension(processorDefinition) == 
-                   ".pcf") {
+        } else if (FileSystem::fileExtension(processorDefinition) == ".pcf") {
             loadProcessorConfiguration(processorDefinition);
         } else {
-            cerr << "Unknown file: " << processorDefinition 
-                 << ". The given file must be either an ADF or PCF file." 
+            cerr << "Unknown file: " << processorDefinition
+                 << ". The given file must be either an ADF or PCF file."
                  << endl;
             throw IllegalCommandLine(__FILE__, __LINE__, __func__);
         }
-        
+
         string bem = options.bemFile();
         string idf = options.idfFile();
         string hdl = options.hdl();
@@ -145,8 +134,8 @@ GenerateCoprocessor::generateCoprocessor(int argc, char* argv[]) {
         return false;
     } catch (const Exception& e) {
         cerr << e.errorMessage() << endl;
-        cerr << "Exception thrown at: " << e.fileName() << ":" 
-             << e.lineNum() << endl;
+        cerr << "Exception thrown at: " << e.fileName() << ":" << e.lineNum()
+             << endl;
         cerr << "  message: " << e.errorMessage() << endl;
         return false;
     }
@@ -156,22 +145,20 @@ GenerateCoprocessor::generateCoprocessor(int argc, char* argv[]) {
     return true;
 }
 
-/** 
+/**
  * Generates the output directory name.
  *
  * @param options Proge command line options.
- * @param outputDir String where output directory name is to be stored. 
+ * @param outputDir String where output directory name is to be stored.
  */
 void
 GenerateCoprocessor::getOutputDir(
-    const CoprocessorCmdLineOptions& options,
-    std::string& outputDir) {
-
+    const CoprocessorCmdLineOptions& options, std::string& outputDir) {
     outputDir = options.outputDirectory();
 
     if (outputDir == "") {
-        outputDir = FileSystem::currentWorkingDir() + 
-            FileSystem::DIRECTORY_SEPARATOR + "_out";
+        outputDir = FileSystem::currentWorkingDir() +
+                    FileSystem::DIRECTORY_SEPARATOR + "_out";
     } else {
         outputDir = FileSystem::expandTilde(outputDir);
         outputDir = FileSystem::absolutePathOf(outputDir);

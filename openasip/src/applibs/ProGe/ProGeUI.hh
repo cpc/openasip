@@ -38,16 +38,15 @@
 
 #include <string>
 
-#include "TCEString.hh"
-#include "ProcessorGenerator.hh"
-#include "ProGeTypes.hh"
-#include "ICDecoderGeneratorPlugin.hh"
+#include "CoproGen.hh"  //For CVXIF coprocessor
 #include "Exception.hh"
-#include "PluginTools.hh"
+#include "ICDecoderGeneratorPlugin.hh"
 #include "MemoryGenerator.hh"
+#include "PluginTools.hh"
 #include "ProGeOptions.hh"
-#include "CoproGen.hh" //For CVXIF coprocessor
-
+#include "ProGeTypes.hh"
+#include "ProcessorGenerator.hh"
+#include "TCEString.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -133,7 +132,7 @@ private:
     std::string entityName_;
 
     ProcessorGenerator generator_;
-    //CoproGen obj
+    // CoproGen obj
     CoproGen coprogenerator_;
 
     static const std::string DEFAULT_ENTITY_STR;

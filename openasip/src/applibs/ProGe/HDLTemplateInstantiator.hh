@@ -60,13 +60,11 @@ public:
     void instantiateTemplateFile(
         const std::string& templateFile,
         const std::string& dstFile);
-    //For implementing CVXIF coprocessor specific templates
+    // For implementing CVXIF coprocessor specific templates
     void instantiateCoprocessorTemplateFile(
-        const std::string& templateFile,
-        const std::string& dstFile,
+        const std::string& templateFile, const std::string& dstFile,
         const std::string (&coproreplcement_keys)[8],
-        const std::string (&coproreplcement_words)[8],
-        int Nelements);
+        const std::string (&coproreplcement_words)[8], int Nelements);
 
 private:
     typedef TCEString PlaceholderKey;
