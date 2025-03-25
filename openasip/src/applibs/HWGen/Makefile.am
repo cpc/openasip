@@ -44,5 +44,5 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 libhwgen_la_SOURCES += \
 	FUGen.hh RFGen.hh HDLGenerator.hh HWGenTools.hh HDLRegister.hh \
 	HDLPort.hh LHSValue.hh Generatable.hh WidthTransformations.hh TrackerGen.hh\
-	BinaryOps.hh 
+	BinaryOps.hh CoproCusops.hh
 ## headers end

@@ -124,7 +124,7 @@ FUGen::opcodeSignal(int stage) {
 
 std::string
 FUGen::triggerSignal(int stage) {
-    if ((cvxifEN_) || (roccEN_)) {
+    if ((generateCVXIF_) || (generateROCC_)) {
         return "operation_enable_in";
     } else if (stage == 0) {
         return "load_" + triggerPort_ + "_in";
@@ -271,7 +271,7 @@ FUGen::createFUHeaderComment(const TTAMachine::Machine& machine) {
     fu_.appendToHeader("Operations:");
 
     CoproCusops cusopgen =
-        CoproCusops(machine, roccEN_);  // For coprocessor encodings
+        CoproCusops(machine, generateROCC_);  // For coprocessor encodings
 
     if (adfFU_->operationCount() > 1) {
         size_t maxOpNameLen = 0;
@@ -288,7 +288,7 @@ FUGen::createFUHeaderComment(const TTAMachine::Machine& machine) {
         std::sort(operations_.begin(), operations_.end());
         int opcode = 0;
         for (auto&& op : operations_) {
-            if ((cvxifEN_) || (roccEN_)) {
+            if ((generateCVXIF_) || (generateROCC_)) {
                 fu_ << BinaryConstant(
                     opcodeConstant(op), opcodeWidth_, opcode,
                     cusopgen.cusencode(op));
@@ -310,7 +310,7 @@ FUGen::createFUHeaderComment(const TTAMachine::Machine& machine) {
         operations_.emplace_back(hwop->name());
         fu_.appendToHeader("  " + hwop->name() + " : 0");
 
-        if ((cvxifEN_) || (roccEN_)) {
+        if ((generateCVXIF_) || (generateROCC_)) {
             int opcode = 1;
             fu_ << BinaryConstant(
                 opcodeConstant(hwop->name()), opcodeWidth_, opcode,
@@ -396,7 +396,7 @@ FUGen::createMandatoryPorts() {
     }
     fu_ << InPort("clk") << InPort(resetPort);
     // For CVXIF coprocessor FU's
-    if (cvxifEN_) {
+    if (generateCVXIF_) {
         fu_ << InPort(
             "configbits_in", Nconfigbits_,
             WireType::Vector);  // configbits input
@@ -419,7 +419,7 @@ FUGen::createMandatoryPorts() {
             fu_ << OutPort(
                 "configbits_" + op + "_out", Nconfigbits_, WireType::Vector);
         }
-    } else if (roccEN_) {  // For ROCC interface connections
+    } else if (generateROCC_) {  // For ROCC interface connections
         fu_ << InPort("glock_in") << InPort("out_ready")
             << InPort("operation_in", opcodeWidth_, WireType::Vector)
             << InPort("configs_in", 6, WireType::Vector)
@@ -449,7 +449,7 @@ FUGen::createMandatoryPorts() {
             fu_ << InPort(
                 "data_" + adfPort->name() + "_in", adfPort->width(),
                 WireType::Vector);
-            if ((cvxifEN_) || (roccEN_)) {
+            if ((generateCVXIF_) || (generateROCC_)) {
                 NULL;
             } else {
                 fu_ << InPort("load_" + adfPort->name() + "_in");
@@ -481,7 +481,7 @@ FUGen::checkForValidity() {
             TTAMachine::FUPort* fuPort = hwOp->port(operand + 1);
 
             // CVXIF coprocessor features selection
-            if (cvxifEN_) {
+            if (generateCVXIF_) {
                 if (fuPort->isOutput()) {
                     numoutputs++;
                     if (numoutputs == 1) {
@@ -960,8 +960,8 @@ FUGen::buildOperations() {
                 continue;
             }
 
-            if (cvxifEN_) {  // Adding the if else clause for the Opcode
-                             // selections with the accept signal
+            if (generateCVXIF_) {  // Adding the if else clause for the Opcode
+                                   // selections with the accept signal
                 int Nstage;
                 for (int i = 0; i < adfFU_->portCount(); ++i) {
                     TTAMachine::FUPort* adfPort =
@@ -1021,7 +1021,7 @@ FUGen::buildOperations() {
                 } else {  // When there is only one operation in the FU
                     If opIf(
                         BinaryLiteral("1"), DefaultAssign("dummy"));  // Dummy
-                    if (roccEN_) {  // For ROCC
+                    if (generateROCC_) {  // For ROCC
                         opIf =
                             If(LogicalAnd(
                                    Equals(
@@ -1051,8 +1051,9 @@ FUGen::buildOperations() {
             triggeredSnippets.append(opIf);
         }
     }
-    if (cvxifEN_) {  // Adding accept and ready conditions for CV-X-If control
-                     // logic
+    if (generateCVXIF_) {  // Adding accept and ready conditions for CV-X-If
+                           // control
+                           // logic
         defaultValues.append(Assign("accept_o", BinaryLiteral("0")));
         defaultValues.append(Assign("ready_o", BinaryLiteral("'1")));
     }
@@ -1137,10 +1138,10 @@ FUGen::prepareSnippet(
 
 void
 FUGen::finalizeHDL() {
-    if (cvxifEN_) {
+    if (generateCVXIF_) {
         fu_.setPackages("cvxif_sup_pkg");  // Adding the package which has the
                                            // configbit lengths
-    } else if (roccEN_) {
+    } else if (generateROCC_) {
         NULL;
     } else {
         // Create lock request wires
@@ -1588,7 +1589,7 @@ FUGen::createShadowRegisters() {
             }
             std::string name;
             // CVXIF selection
-            if (cvxifEN_) {
+            if (generateCVXIF_) {
                 name = pipelineNameShadow(adfPort->name(), 0);
             } else {
                 name = pipelineName(adfPort->name(), 0);
@@ -1614,7 +1615,7 @@ FUGen::createShadowRegisters() {
         std::string dataPort = currentName[p];
         std::string output;
         // CVXIF selection
-        if (cvxifEN_) {
+        if (generateCVXIF_) {
             output = pipelineNameShadow(p, 0);
         } else {
             output = pipelineName(p, 0);
@@ -1628,7 +1629,7 @@ FUGen::createShadowRegisters() {
 
             auto portLoad = Equals(LHSSignal(loadPort), BinaryLiteral("1"));
             // CVXIF selection
-            if (cvxifEN_) {
+            if (generateCVXIF_) {
                 If iffi(portLoad, Assign(shadowReg, LHSSignal(dataPort)));
                 behaviour_ << (Synchronous("shadow_" + p + "_sp") << iffi);
             } else {
@@ -1682,7 +1683,7 @@ FUGen::createPortPipeline() {
     }
 
     // Pipelines for operand data
-    if (cvxifEN_) {
+    if (generateCVXIF_) {
         for (int i = 0; i < adfFU_->portCount(); ++i) {
             auto port = adfFU_->port(i);
             int length = maxLatency_;
@@ -1790,7 +1791,7 @@ FUGen::createOutputPipeline() {
             std::string nextconfigReg;
             std::string prevconfigReg;
             // For ROCC interface
-            if (roccEN_) {
+            if (generateROCC_) {
                 nextconfigReg = pipelineConfig(port->name(), cycle);
                 prevconfigReg = pipelineConfig(port->name(), cycle + 1);
                 if (cycle == 0) {
@@ -1832,7 +1833,7 @@ FUGen::createOutputPipeline() {
 
                 CodeBlock regAssignBlk;
                 regAssignBlk.append(Assign(nextReg, source));
-                if (roccEN_) {
+                if (generateROCC_) {
                     regAssignBlk.append(
                         Assign(nextconfigReg, LHSSignal("configs_in")));
                 }
@@ -1863,7 +1864,7 @@ FUGen::createOutputPipeline() {
 
                 CodeBlock interAssignBlk;
                 interAssignBlk.append(Assign(nextReg, LHSSignal(prevReg)));
-                if (roccEN_) {
+                if (generateROCC_) {
                     interAssignBlk.append(
                         Assign(nextconfigReg, LHSSignal(prevconfigReg)));
                 }
@@ -1899,7 +1900,7 @@ FUGen::createOutputPipeline() {
                 CodeBlock elseBody;
                 elseBody.append(Assign(valid, BinaryLiteral("0")));
                 // For ROCC, making output zero explicitly
-                if ((cycle == 1) && (roccEN_)) {
+                if ((cycle == 1) && (generateROCC_)) {
                     elseBody.append(Assign(nextReg, BinaryLiteral("0")));
                     elseBody.append(
                         Assign(nextconfigReg, BinaryLiteral("0")));
@@ -1924,8 +1925,9 @@ FUGen::createOutputPipeline() {
     behaviour_ << sync;
 
     Asynchronous async("output_pipeline_cp");
-    if (roccEN_) {  // For ROCC, pipeline outputs are written only when the
-                    // processor has raised the out_ready
+    if (generateROCC_) {  // For ROCC, pipeline outputs are written only when
+                          // the
+                          // processor has raised the out_ready
         async << If(
             Equals(LHSSignal("out_ready"), BinaryLiteral("1")), lastStage);
     } else {
@@ -2045,7 +2047,7 @@ FUGen::createOutputPipelineCVXIF() {
 // Outputs binary value with a bit width equal to "width", having 1 to the
 // position of value and rest are 0(index starts)
 std::string
-FUGen::ValtoBinaryOne(int width, int value) {
+FUGen::valtoBinaryOne(int width, int value) {
     std::string binVal = "";
     for (int i = width; i > 0; --i) {
         if (i == value) {
@@ -2080,7 +2082,7 @@ FUGen::selectionlogic() {
         LHSSignal("prev_sel_r"));  // Selection shifting case block
     for (int i = 1; i < operations_.size() + 1; i++) {
         CodeBlock individualCaseBlock;
-        std::string caseString = ValtoBinaryOne(operations_.size(), i);
+        std::string caseString = valtoBinaryOne(operations_.size(), i);
         fu_ << Wire("prev_shifted" + std::to_string(i), operations_.size());
 
         if (i == operations_.size()) {  // Default case
@@ -2088,7 +2090,7 @@ FUGen::selectionlogic() {
             for (int j = 1; j < operations_.size() + 1; j++) {
                 individualCaseBlock.append(Assign(
                     "prev_shifted" + std::to_string(j),
-                    LHSSignal(ValtoBinaryOne(operations_.size(), j))));
+                    LHSSignal(valtoBinaryOne(operations_.size(), j))));
             }
         } else {
             int val = i;
@@ -2096,7 +2098,7 @@ FUGen::selectionlogic() {
                 int newVal = val + j;
                 individualCaseBlock.append(Assign(
                     "prev_shifted" + std::to_string(j),
-                    LHSSignal(ValtoBinaryOne(operations_.size(), newVal))));
+                    LHSSignal(valtoBinaryOne(operations_.size(), newVal))));
                 if (newVal == operations_.size()) {
                     val = -j;
                 }
@@ -2181,7 +2183,7 @@ FUGen::outputSelect() {
     std::string caseString = "";
     for (auto op : operations_) {
         CodeBlock newselectedSignals;
-        caseString = ValtoBinaryOne(operations_.size(), k);
+        caseString = valtoBinaryOne(operations_.size(), k);
 
         newselectedSignals.append(
             Assign("configbits_out", LHSSignal(pipelineConfig(op, 1))));
@@ -2264,13 +2266,13 @@ FUGen::implement(
         fugen.createExternalInterfaces(!options.integratorName.empty());
         fugen.createOperationResources();
 
-        if (fugen.cvxifEN_) {  // CVXIF selection
+        if (fugen.generateCVXIF_) {  // CVXIF selection
             fugen.CreateInputsConnected();
             fugen.buildOperations();
             fugen.createOutputPipelineCVXIF();
             fugen.selectionlogic();
             fugen.outputSelect();
-        } else if (fugen.roccEN_) {  // ROCC selection
+        } else if (fugen.generateROCC_) {  // ROCC selection
             fugen.CreateInputsConnected();
             fugen.buildOperations();
             fugen.createOutputPipeline();

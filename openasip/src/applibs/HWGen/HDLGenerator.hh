@@ -989,7 +989,7 @@ namespace HDLGenerator {
             } else if (lang == Language::Verilog) {
                 stream << "\n";
                 stream << StringTools::indent(level) << "// " << name() << "\n";
-                stream << StringTools::indent(level) << "always_comb";
+                stream << StringTools::indent(level) << "always @*";
                 /**
                  * @lassetodo Sensitivity list implementation here
                  * for verilog if needed.

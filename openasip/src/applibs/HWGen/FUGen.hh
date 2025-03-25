@@ -89,12 +89,12 @@ public:
 
         // Checking the CVXIF coprocessor generation
         if (options.CVXIFCoproGen) {
-            cvxifEN_ = true;
-            roccEN_ = false;
+            generateCVXIF_ = true;
+            generateROCC_ = false;
             opcodeWidth_ = 32;
         } else if (options.roccGen) {
-            cvxifEN_ = false;
-            roccEN_ = true;
+            generateCVXIF_ = false;
+            generateROCC_ = true;
             opcodeWidth_ = 32;
         }
     }
@@ -223,7 +223,7 @@ private:
     std::string registeredNameOP(std::string name);
     std::string pipelineNameShadow(std::string port, int cycle);
     std::string pipelineConfig(std::string port, int cycle);
-    std::string ValtoBinaryOne(int width, int value);
+    std::string valtoBinaryOne(int width, int value);
 
     bool isLSUDataPort(const std::string& portName);
     ProGe::Signal inferLSUSignal(const std::string& portName) const;
@@ -243,9 +243,6 @@ private:
 
     std::vector<std::string> operations_;
     int opcodeWidth_;
-    int config_width_ = 17;  // 17 bits for the config bits
-    int input_opcodeWidth_ = opcodeWidth_ + config_width_;
-
     std::string moduleName_;
     ProGe::NetlistBlock* netlistBlock_;
 
@@ -296,7 +293,7 @@ private:
     int addressWidth_ = 0;
     bool isLSU_ = false;
     // CVXIF generator enable
-    bool cvxifEN_ = false;
+    bool generateCVXIF_ = false;
     // ROCC enable
-    bool roccEN_ = false;
+    bool generateROCC_ = false;
 };

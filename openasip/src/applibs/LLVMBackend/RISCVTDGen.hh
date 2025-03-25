@@ -49,8 +49,7 @@ public:
 protected:
     virtual void initializeBackendContents();
     InstructionFormat* findFormat(const std::string name) const;
-    void findCustomOps();
-    
+
     void writeInstructionDeclarations(std::ostream& o) const;
     void writePatternDefinition(std::ostream& o, Operation& op);
     void writePatternDefinitions(std::ostream& o);
@@ -74,6 +73,5 @@ protected:
     std::string patternStr_;
 
 };
-
 
 #endif

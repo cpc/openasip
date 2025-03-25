@@ -43,8 +43,6 @@ using std::endl;
 using std::string;
 using std::vector;
 
-int const DEFAULT_IMEMWIDTH_IN_MAUS = 1;
-
 /**
  * The main program of generatecoprocessor application.
  */

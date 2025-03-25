@@ -42,11 +42,11 @@ int main(int argc, char* argv[]) {
     bool rocc;
 
     // Check if the correct number of arguments is provided
-    if (argc != 7) {
+    if (argc != 5) {
         std::cout << "Usage: riscv-tdgen" << std::endl
                   << "   -o Output directory." << std::endl
                   << "   -a ADF path." << std::endl
-                  << "   -r 'T':Enable ROCC encodings, OR 'F'" << std::endl;
+                  << "   -r 'T':Enable ROCC encodings, OR 'F'. Default:F" << std::endl;
         return EXIT_FAILURE;
     }
 

@@ -53,22 +53,8 @@ RISCVTDGen::RISCVTDGen(const TTAMachine::Machine& mach, bool roccEn)
     : TDGen(mach, false), bem_(NULL) {
     bem_ = BEMGenerator(mach, roccEn).generate();
     assert(bem_ != NULL);
-    findCustomOps();
+    RISCVTools::findCustomOps(customOps_, bem_);
     initializeBackendContents();
-}
-
-std::string
-RISCVTDGen::intToHexString(int num) const {
-    std::stringstream ss;
-    ss << "0x" << std::hex << std::uppercase << num;
-    return ss.str();
-}
-
-std::string
-RISCVTDGen::unsignedToHexString(unsigned num) const {
-    std::stringstream ss;
-    ss << "0x" << std::hex << std::uppercase << num;
-    return ss.str();
 }
 
 // TODO: OpenASIP converts hex numbers to unsigned by default. This converted
@@ -118,30 +104,6 @@ RISCVTDGen::decimalsToHex(const std::string& pattern) const {
     }
 
     return modifiedPattern;
-}
-
-
-void
-RISCVTDGen::findCustomOps() {
-    customOps_.clear();
-    const std::vector<std::string> formatsToSearch = {
-        RISCVFields::RISCV_R_TYPE_NAME,
-        RISCVFields::RISCV_R1R_TYPE_NAME,
-        RISCVFields::RISCV_R1_TYPE_NAME,
-        RISCVFields::RISCV_R3R_TYPE_NAME
-    };
-    for (const std::string& fName : formatsToSearch) {
-        InstructionFormat* format = bem_->instructionFormat(fName);
-        if (format == NULL) {
-            continue;
-        }
-        for (int i = 0; i < format->operationCount(); i++) {
-            const std::string op = format->operationAtIndex(i);
-            if (!MapTools::containsKey(RISCVFields::RISCVRTypeOperations, op)) {
-                customOps_.insert({op, format->encoding(op)});
-            }
-        }
-    }
 }
 
 // TODO: make this mapping better so that it works for any numIns
