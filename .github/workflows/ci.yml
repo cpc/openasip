@@ -61,7 +61,8 @@ jobs:
             cmake \
             graphviz \
             bc \
-            ghdl
+            ghdl \
+            iverilog
 
       - name:
         run: |
