@@ -1221,13 +1221,13 @@
   <address-space name="IMEM">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>262143</max-address>
+    <max-address>16383</max-address>
   </address-space>
 
   <address-space name="data">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>262143</max-address>
+    <max-address>16383</max-address>
     <shared-memory>0</shared-memory>
     <numerical-id>0</numerical-id>
   </address-space>
