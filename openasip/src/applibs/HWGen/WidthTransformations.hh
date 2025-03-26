@@ -100,13 +100,13 @@ namespace HDLGenerator {
                        int signalWidth) {
             std::string sigWidth = std::to_string(signalWidth);
             vhdl_ = "((" + extWidth + "-1 downto " + sigWidth + " => " + name;
-            verilog_ = "{{" + extWidth + "-" + sigWidth + "{" + name + "}";
+            verilog_ = "{{" + extWidth + "{" + name + "}";
             if (signalWidth > 1) {
                 vhdl_ += "(" + sigWidth + "-1)";
                 verilog_ += "[" + sigWidth + "-1]";
             }
             vhdl_ += ") & " + name + ")";
-            verilog_ += "}}" + name + "}";
+            verilog_ += "}}";
         }
     };
 }

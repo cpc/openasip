@@ -1,0 +1,125 @@
+// Copyright (c) 2002-2024 Tampere University.
+// Copyright (c) 2012 Vinogradov Viacheslav
+//
+// This file is part of TTA-Based Codesign Environment (TCE).
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// Description: architecture for processor with a core with single port data
+// memory/cache (structural) and with a core with dual-port data memory/cache
+// (structural_dp_dmem)
+//////////////////////////////////////////////////////////////////////////////
+// Title      : testbench for TTA processor
+//////////////////////////////////////////////////////////////////////////////
+// Description: Simply resets the processor and triggers execution
+//////////////////////////////////////////////////////////////////////////////
+// Revisions  :
+// 2012-04-04  1.0  Vinogradov
+// 2024-03-14  1.1  multanej
+//////////////////////////////////////////////////////////////////////////////
+
+module testbench
+#(
+`include "ENTITY_STR_imem_mau_pkg.vh"
+,
+`include "ENTITY_STR_globals_pkg.vh"
+)
+    ();
+
+    reg        clk;
+    reg         rstx;
+    wire        rstx_wire;
+    reg         enable_clock;
+    integer    execution_count_reg;
+    wire     [0:0]  lock_status_wire;
+    integer execution_count_limit;
+    integer  exec_count_file;
+    integer  scan_file;
+
+  // Stop simulation after `SIMTIME, if defined
+  `ifdef SIMTIME
+  initial begin
+     #(`SIMTIME + PERIOD) $finish;
+  end
+  `endif
+
+  initial
+  begin
+    enable_clock = 1;
+  end
+
+  initial
+  begin
+     exec_count_file = $fopen("execution_limit", "r");
+     if (exec_count_file != 0) begin
+        // execution_limit should contain a single line with the execution count.
+        scan_file = $fscanf(exec_count_file, "%d", execution_count_limit);
+        wait(execution_count_reg == execution_count_limit)
+        $finish;
+     end
+
+    rstx = 1'b0;
+    #(PERIOD*2 + PERIOD/10);
+    rstx = 1'b1;
+    // Test runs until RUNTIME, which is equal to SIMTIME given by 
+    // iverilog_compile script. Reduced by 20ns to match vhdl simulation time.
+    //#(RUNTIME-20);
+    // Test runs until requested amount of instructions have been executed or
+    // stopped by simulation script.
+  end // initial begin
+
+  assign rstx_wire = rstx;
+
+  // purpose: Counts executed instructions per core
+  // type   : sequential
+  // inputs : clk, rstx
+  // outputs: execution_count_reg
+  always @(posedge clk) begin
+    if (rstx == 0) begin
+      execution_count_reg = 0;
+    end else begin
+      if (lock_status_wire[0] == 'b0) begin
+        execution_count_reg += 1;
+      end
+    end
+  end
+
+
+   initial begin
+      wait(enable_clock == 1);
+      clk <= 1'b1;
+      forever begin
+         #(PERIOD/2) clk <= ~clk;
+      end
+   end
+   
+  // purpose: Controls clock generation. At beginning of the simulation the
+  //          clock is enabled. If execution limit is defined then the clock
+  //          will be stopped causing simulation to end.
+  // type   : combinational
+  // inputs : execution_count_reg
+  // outputs: enable_clock
+
+  proc dut(
+    .clk           ( clk),
+    .rstx         ( rstx_wire),
+    
+    .locked        (lock_status_wire)
+    );
+
+endmodule

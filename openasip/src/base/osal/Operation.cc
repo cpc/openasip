@@ -35,6 +35,7 @@
 
 #include <algorithm>
 
+#include "RandomNumberGenerator.hh"
 #include "Operation.hh"
 #include "OperationPimpl.hh"
 #include "TCEString.hh"
@@ -325,7 +326,11 @@ Operation::isBaseOffsetMemOperation() const {
     return upperName == "ALDW" || upperName == "ALDHU" || 
         upperName == "ALDH" || upperName == "ALDQU" ||
         upperName == "ALDQ" || upperName == "ASTW" ||
-        upperName == "ASTH" || upperName == "ASTQ";
+            upperName == "ASTH"  || upperName == "ASTQ"     ||
+            upperName == "ALD8"  || upperName == "ALDU8"    ||
+            upperName == "ALD16" || upperName == "ALDU16"   ||
+            upperName == "ALD32" || upperName == "AST32"    ||
+            upperName == "AST16" || upperName == "AST8";
 }
 
 /**
@@ -578,6 +583,51 @@ Operation::areValid(
     return canBeSimulated()
         && (inputs.size() == static_cast<size_t>(numberOfInputs()))
         && pimpl_->behavior().areValid(inputs, context);
+}
+
+/**
+ * Returns set of test vectors for the operation.
+ *
+ * Base implementation returns random set of test vectors. Custom operations
+ * may override this and return their own defined test vectors.
+ *
+ * @param testVectorsOut The container where new test vectors are added to.
+ * @param seed The seed value for randomized test vector generation. Same seed
+ *             used in subsequent calls produces same set of test vectors.
+ * @param context The operation context for test vector generation.
+ */
+void
+Operation::makeTestVectors(
+    std::vector<InputOperandVector>& testVectorsOut,
+    RandomNumberGenerator::SeedType seed,
+    const OperationContext& context,
+    unsigned numberOfVector) const {
+
+    if (!canBeSimulated()) {
+        return;
+    }
+
+    pimpl_->behavior().makeTestVectors(
+        testVectorsOut, seed, context, numberOfVector);
+}
+
+/**
+ * Returns set of random test vectors suitable for basic operations.
+ *
+ * Base implementation returns random set of test vectors. Custom operations
+ * may override this and return their own defined test vectors.
+ *
+ * @param testVectorsOut The container where new test vectors are added to.
+ * @param seed The seed value for randomized test vector generation.
+ */
+void
+Operation::makeTestVectors(
+    std::vector<InputOperandVector>& testVectorsOut,
+    RandomNumberGenerator::SeedType seed,
+    unsigned numberOfVector) const {
+
+    OperationContext opContext;
+    makeTestVectors(testVectorsOut, seed, opContext, numberOfVector);
 }
 
 /**

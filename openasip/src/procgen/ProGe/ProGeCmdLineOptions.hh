@@ -81,6 +81,7 @@ public:
     std::vector<std::string> fuBackRegistered() const;
     std::vector<std::string> fuFrontRegistered() const;
     std::vector<std::string> fuMiddleRegistered() const;
+    bool dontCareInitialization() const;
 
     virtual void printVersion() const;
     virtual void printHelp() const;

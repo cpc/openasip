@@ -102,16 +102,14 @@ TestBenchBlock::~TestBenchBlock() {
 void
 TestBenchBlock::write(const Path& targetBaseDir, HDL targetLang) const {
     // Check language compatibility //
-    if (targetLang != VHDL) {
-        THROW_EXCEPTION(NotAvailable, "Only VHDL is supported.");
+    if (targetLang != VHDL && targetLang != Verilog) {
+        THROW_EXCEPTION(NotAvailable, "Only VHDL and Verilog are supported.");
     }
-
     HDLTemplateInstantiator instantiator(context_.coreEntityName());
-
     instantiator.replacePlaceholder("dut-entity", proc_->moduleName());
-
     if (context_.idf().icDecoderParameterValue("debugger") == "external") {
-        instantiator.replacePlaceholder("proc-entity-db-signals",
+        if (targetLang == VHDL) {
+            instantiator.replacePlaceholder("proc-entity-db-signals",
                 "db_pc_start : in std_logic_vector(IMEMADDRWIDTH-1 downto 0);\n"
                 "db_tta_nreset : in std_logic;\n"
                 "db_lockrq     : in std_logic;");
@@ -120,18 +118,25 @@ TestBenchBlock::write(const Path& targetBaseDir, HDL targetLang) const {
                 "db_pc_start   => (others => '0'),\n"
                 "db_tta_nreset => '1',\n"
                 "db_lockrq     => '0',");
+        } else {
+            THROW_EXCEPTION(NotAvailable, "Only VHDL is supported external"
+                "debugger generation.");
+        }
     }
-
     FileSystem::createDirectory(targetBaseDir/"tb");
-
     Path progeDataDir(Environment::dataDirPath("ProGe"));
-    instantiator.instantiateTemplateFile(
-        progeDataDir/"tb"/"testbench.vhdl.tmpl",
-        targetBaseDir/"tb"/"testbench.vhdl");
-    instantiator.instantiateTemplateFile(
-        progeDataDir/"tb"/"clkgen.vhdl",
-        targetBaseDir/"tb"/"clkgen.vhdl");
-
+    if (targetLang == VHDL) {
+        instantiator.instantiateTemplateFile(
+            progeDataDir/"tb"/"testbench.vhdl.tmpl",
+            targetBaseDir/"tb"/"testbench.vhdl");
+        instantiator.instantiateTemplateFile(
+            progeDataDir/"tb"/"clkgen.vhdl",
+            targetBaseDir/"tb"/"clkgen.vhdl");
+    } else {
+        instantiator.instantiateTemplateFile(
+            progeDataDir/"tb"/"testbench.v.tmpl",
+            targetBaseDir/"tb"/"testbench.v");
+    } 
     proc_->write(targetBaseDir, targetLang);
 }
 

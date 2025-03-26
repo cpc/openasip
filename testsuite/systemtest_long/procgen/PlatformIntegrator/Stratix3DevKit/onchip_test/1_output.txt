@@ -18,8 +18,8 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
 use work.tce_util.all;
-use work.stratix_test_onchip_onchip_globals.all;
 use work.stratix_test_onchip_onchip_imem_mau.all;
+use work.stratix_test_onchip_onchip_globals.all;
 use work.stratix_test_onchip_onchip_toplevel_params.all;
 
 entity stratix_test_onchip_onchip_toplevel is

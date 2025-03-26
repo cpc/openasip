@@ -773,8 +773,7 @@ const std::string ProgramImageGenerator::DATA_START_DESC(
 bool
 ProgramImageGenerator::isDataStartSet(std::string aSpace) const {
     CmdLineOptionParser* opts = dataStartOptions_;
-    assert(opts);
-    if (opts->isDefined()) {
+    if (opts != nullptr && opts->isDefined()) {
         int size = opts->listSize();
         if (size == 1) {
             return true;

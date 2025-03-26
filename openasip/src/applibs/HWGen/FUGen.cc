@@ -674,17 +674,17 @@ FUGen::buildOperations() {
     CodeBlock defaultValues;
     CodeBlock defaultSnippets;
     CodeBlock triggeredSnippets;
+    CodeBlock operationOutAssignments;
 
     for (auto&& d : extOutputs_) {
         operationCp << DefaultAssign(d.first, d.second);
     }
 
     for (std::string signal : resourceInputs_) {
-        // Zero initialize this configuration to avoid simulation warnings
-        if (isLSU_ && minLatency_ < 3) {
-            operationCp << DefaultAssign(signal, "0");
-        } else {
+        if (options_.dontCareInitialization) {
             operationCp << DefaultAssign(signal, "-");
+        } else {
+            operationCp << DefaultAssign(signal, "0");
         }
     }
 
@@ -710,34 +710,32 @@ FUGen::buildOperations() {
 
         for (int id : schedule.results) {
             std::string source = operandSignal(name, id);
-            // Zero initialize this configuration to avoid simulation warnings
-            if (isLSU_ && minLatency_ < 3) {
-                defaultValues.append(DefaultAssign(source, "0"));
-            } else {
-                defaultValues.append(DefaultAssign(source, "-"));
-            }
+            // Zero initialize always
+            defaultValues.append(DefaultAssign(source, "0"));
         }
 
         for (auto&& operand : schedule.operands) {
             int id = operand.id;
-
             std::string source = operand.signalName;
             std::string destination = operandSignal(name, id);
+            CodeBlock* cb = &defaultValues;
+            if (operand.isOutput) {
+                cb = &operationOutAssignments;
+            }
             if (operand.portWidth > operand.operandWidth) {
-                defaultValues.append(Assign(
+                cb->append(Assign(
                     destination,
                     Splice(source, operand.operandWidth - 1, 0)));
             } else if (operand.portWidth < operand.operandWidth) {
-                defaultValues.append(Assign(
+                cb->append(Assign(
                     destination,
                     Ext(source, operand.operandWidth, operand.portWidth)));
             } else {
-                defaultValues.append(Assign(destination, LHSSignal(source)));
+                cb->append(Assign(destination, LHSSignal(source)));
             }
-
             if (!operand.isOutput) {
                 operationCp.reads(destination);
-            }
+            } 
         }
 
         replacesPerOp_[name] = buildReplaces(name);
@@ -764,11 +762,31 @@ FUGen::buildOperations() {
             for (std::string subop : schedules) {
                 auto schedule = scheduledOperations_[subop];
                 std::string baseOp = schedule.baseOp;
+
                 if (schedule.initialCycle == cycle) {
                     auto& impl = baseOperations_[baseOp].implementation;
                     if (!impl.empty()) {
                         std::set<std::string> statements;
                         prepareSnippet(subop, impl, onTrigger, statements);
+
+                        for (auto&& operand : schedule.operands) {
+                            int id = operand.id;
+                            std::string srcSignal = operand.signalName;
+                            std::string dstSignal = operandSignal(subop, id);
+                            if (TCEString(dstSignal).startsWith("subop") && !operand.isOutput) {
+                                if (operand.portWidth > operand.operandWidth) {
+                                    onTrigger.append(Assign(
+                                        dstSignal,
+                                        Splice(srcSignal, operand.operandWidth - 1, 0)));
+                                } else if (operand.portWidth < operand.operandWidth) {
+                                    onTrigger.append(Assign(
+                                        dstSignal,
+                                        Ext(srcSignal, operand.operandWidth, operand.portWidth)));
+                                } else {
+                                    onTrigger.append(Assign(dstSignal, LHSSignal(srcSignal)));
+                                }
+                            }
+                        }
                     }
                     emptyBlock = false;
                 }
@@ -827,26 +845,25 @@ FUGen::buildOperations() {
         } else {
             operationCp.addVariable(SignedVariable(v.name, w));
         }
-        // Zero initialize this configuration to avoid simulation warnings
-        if (isLSU_ && minLatency_ < 3) {
-            operationCp << DefaultAssign(v.name, "0");
-        } else {
+        if (options_.dontCareInitialization) {
             operationCp << DefaultAssign(v.name, "-");
+        } else {
+            operationCp << DefaultAssign(v.name, "0");
         }
     }
     for (auto&& s : renamedGlobalSignals_) {
         int w = std::stoi(s.width);
         fu_ << Wire(s.name, w);     // creates the signal declaration
         operationCp.reads(s.name);  // adds it to sensitivity list
-        // Zero initialize this configuration to avoid simulation warnings
-        if (isLSU_ && minLatency_ < 3) {
-            operationCp << DefaultAssign(s.name, "0");
-        } else {
+        if (options_.dontCareInitialization) {
             operationCp << DefaultAssign(s.name, "-");
+        } else {
+            operationCp << DefaultAssign(s.name, "0");
         }
     }
 
-    operationCp << defaultValues << defaultSnippets << triggeredSnippets;
+    operationCp << defaultValues     << defaultSnippets
+                << triggeredSnippets << operationOutAssignments;
     behaviour_ << operationCp;
 }
 
@@ -892,7 +909,7 @@ FUGen::finalizeHDL() {
         fu_ << Wire("glockreq");
         behaviour_ << Assign("glockreq_out", LHSSignal("glockreq"));
     } else {
-        behaviour_ << Assign("glockreq_out", BinaryLiteral("0"));
+        behaviour_ << Assign("glockreq_out", BinaryLiteral("0"), true);
     }
 
     // Finalize and set global options.
