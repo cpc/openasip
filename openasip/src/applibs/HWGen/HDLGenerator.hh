@@ -359,8 +359,7 @@ namespace HDLGenerator {
                     stream << "std_logic;\n";
                 }
             } else if (lang == Language::Verilog) {
-                stream << StringTools::indent(indent)
-                       << "wire ";  // Changed to a wire type(Net)
+                stream << StringTools::indent(indent) << "reg "; 
                 if (width_ < 0 || width_ > 1) {
                     if (strWidth_.empty()) {
                         stream << "[" << std::to_string(width_ - 1) << ":0] ";
