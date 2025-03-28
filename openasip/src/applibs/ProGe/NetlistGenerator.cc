@@ -241,6 +241,41 @@ namespace ProGe {
     }
 
     /**
+     * Generates the netlist block of the coprocessor.
+     *
+     * @param imemWidthInMAUs Width of instruction memory in MAUs.
+     * @param entityNameStr The name string used to make the netlist blocks
+     *                      uniquely named.
+     * @return The newly generated netlist block.
+     */
+    NetlistBlock*
+    NetlistGenerator::generatecopro(
+        const ProGeOptions& options, int imemWidthInMAUs,
+        TCEString entityNameStr = TOPLEVEL_BLOCK_DEFAULT_NAME,
+        std::ostream& warningStream = std::cerr) {
+        if (imemWidthInMAUs < 1) {
+            string errorMsg =
+                "Instruction memory width in MAUs must be positive.";
+            throw OutOfRange(__FILE__, __LINE__, __func__, errorMsg);
+        }
+
+        // add toplevel block
+        coreBlock_ = new NetlistBlock(entityNameStr, "CVXIF_TOP");
+        coreBlock_->addPackage("cvxif_");
+        coreBlock_->addPackage("cvxif_instr_");
+
+        addFUPortstoNetlist(*coreBlock_);
+
+        // add Genrated FUs to the toplevel netlist.
+        for (auto fug : context_.idf().FUGenerations()) {
+            addGeneratableFUsToNetlist(fug, *coreBlock_); //MODIFY
+        }
+
+        //plugin_.completeNetlist(*coreBlock_, *this);
+
+        return coreBlock_;
+    }
+    /**
      * Returns the netlist port which is corresponding to the given port in
      * the
      * machine object model.
@@ -2255,5 +2290,27 @@ namespace ProGe {
         }
         return SignalType::UNDEFINED;
     }
+    
+    /**
+     * Adds the Fu ports to the given //TODO
+     * top-level block.
+     *
+     * @param toplevelBlock The top-level block of the netlist.
+     * @param 
+     */
+    void NetlistGenerator::addFUPortstoNetlist(
+        NetlistBlock& toplevelBlock){
 
+            NetlistPort* tlClkPort =
+            new InBitPort(CLOCK_PORT_NAME, toplevelBlock, SignalType::CLOCK);
+            NetlistPort* tlRstPort = new InBitPort(RESET_PORT_NAME, toplevelBlock,
+            Signal(SignalType::RESET, ActiveState::LOW));
+
+            mapClockPort(toplevelBlock, *tlClkPort);
+            mapResetPort(toplevelBlock, *tlRstPort);
+
+        Netlist::connectClocks(toplevelBlock);
+        Netlist::connectResets(toplevelBlock);
+
+        }
 } // namespace ProGe
