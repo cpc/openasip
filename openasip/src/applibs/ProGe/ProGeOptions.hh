@@ -170,8 +170,11 @@ struct ProGeOptions {
         if (coproInterface == "rocc") {
             CVXIFCoproGen = false;
             roccGen = true;
-        } else {
+        } else if (coproInterface == "cvx") {
             CVXIFCoproGen = true;
+            roccGen = false;
+        } else {
+            CVXIFCoproGen = false;
             roccGen = false;
         }
     }

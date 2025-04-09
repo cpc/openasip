@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
     bool rocc;
 
     // Check if the correct number of arguments is provided
-    if (argc != 5) {
+    if (!(argc == 7 || argc == 5)) {
         std::cout << "Usage: riscv-tdgen" << std::endl
                   << "   -o Output directory." << std::endl
                   << "   -a ADF path." << std::endl

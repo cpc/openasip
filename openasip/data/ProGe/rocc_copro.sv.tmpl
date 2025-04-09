@@ -96,6 +96,7 @@ module FUNAME_coprocessor
   reg [6:0]  inter_func_r;
   reg [4:0]  inter_rd_r;
   reg inter_en_r;
+  reg inter_cmd_valid;
 
   assign busy = '0; // Expects the core always accepts the data from the coprocessor
   assign cmd_ready = '1;
@@ -108,17 +109,17 @@ module FUNAME_coprocessor
   
   // CMD Control COMB
   always_comb begin
-    inter_rs1_r     <= '0;
-    inter_rs2_r     <= '0;
-    inter_opcode_r  <= '0;
-    inter_rd_r      <= '0;
-    inter_en_r      <= '0;
+    inter_rs1_r     = '0;
+    inter_rs2_r     = '0;
+    inter_opcode_r  = '0;
+    inter_rd_r      = '0;
+    inter_en_r      = '0;
       if (inter_cmd_valid == 1) begin   // Valid from the ROCC
-          inter_rs1_r     <= inter_rs1;
-          inter_rs2_r     <= inter_rs2;
-          inter_opcode_r  <= {inter_func, bits_reg, bits_reg, cmd_bits_inst_xd, cmd_bits_inst_xs1, cmd_bits_inst_xs2, bits_reg, inter_opcode};
-          inter_rd_r      <= inter_rd;
-          inter_en_r      <= '1;
+          inter_rs1_r     = inter_rs1;
+          inter_rs2_r     = inter_rs2;
+          inter_opcode_r  = {inter_func, bits_reg, bits_reg, cmd_bits_inst_xd, cmd_bits_inst_xs1, cmd_bits_inst_xs2, bits_reg, inter_opcode};
+          inter_rd_r      = inter_rd;
+          inter_en_r      = '1;
       end 
   end
 

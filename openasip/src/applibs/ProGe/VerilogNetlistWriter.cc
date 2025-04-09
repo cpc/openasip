@@ -99,7 +99,7 @@ VerilogNetlistWriter::write(const std::string& dstDirectory) {
         string errorMsg = "Empty input netlist block.";
         throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
-
+    formatresolve();
     writeNetlistParameterPackage(dstDirectory);
     writeBlock(block, dstDirectory);
 }
@@ -155,7 +155,7 @@ void
 VerilogNetlistWriter::writeBlock(
     const BaseNetlistBlock& block, const std::string& dstDirectory) {
     string fileName = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
-                      block.moduleName() + format_;
+                      block.moduleName() + ".v";//format_;
     if (!FileSystem::fileIsCreatable(fileName) && 
         !(FileSystem::fileExists(fileName) && 
           FileSystem::fileIsWritable(fileName))) {
@@ -779,13 +779,13 @@ VerilogNetlistWriter::parameterWidthValue(const NetlistPort& port) {
     return port.parentBlock().parameter(port.widthFormula()).value();
 }
 
-// Outputs the format as a string .v or .sv
+// Outputs the format as a string .v or .vh
 void
 VerilogNetlistWriter::formatresolve() {
     if (lang_ == SV) {
         format_ = ".sv";
     } else {
-        format_ = ".v";
+        format_ = ".vh";
     }
 }
 }
