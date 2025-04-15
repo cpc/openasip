@@ -122,15 +122,15 @@ TestBenchBlock::write(const Path& targetBaseDir, HDL targetLang) const {
                 "db_lockrq     => '0',");
     }
 
-    FileSystem::createDirectory(targetBaseDir/"tb");
+    FileSystem::createDirectory(targetBaseDir / std::string("tb"));
 
     Path progeDataDir(Environment::dataDirPath("ProGe"));
     instantiator.instantiateTemplateFile(
-        progeDataDir/"tb"/"testbench.vhdl.tmpl",
-        targetBaseDir/"tb"/"testbench.vhdl");
+        progeDataDir / std::string("tb") / std::string("testbench.vhdl.tmpl"),
+        targetBaseDir / std::string("tb") / std::string("testbench.vhdl"));
     instantiator.instantiateTemplateFile(
-        progeDataDir/"tb"/"clkgen.vhdl",
-        targetBaseDir/"tb"/"clkgen.vhdl");
+        progeDataDir / std::string("tb") / std::string("clkgen.vhdl"),
+        targetBaseDir / std::string("tb") / std::string("clkgen.vhdl"));
 
     proc_->write(targetBaseDir, targetLang);
 }
