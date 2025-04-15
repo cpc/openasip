@@ -33,8 +33,6 @@
 #ifndef TTA_BB_SCHEDULER_CONTROLLER_HH
 #define TTA_BB_SCHEDULER_CONTROLLER_HH
 
-#include <boost/progress.hpp>
-
 #include "BasicBlockPass.hh"
 #include "ControlFlowGraphPass.hh"
 #include "ProcedurePass.hh"
@@ -130,9 +128,6 @@ private:
     int basicBlocksScheduled_;
     /// Total basic blocks in the CFG currently being scheduled.
     int totalBasicBlocks_;
-    /// Fancy progress bar. Pointer because creation outputs the initial
-    /// progress bar and we want it only on verbose mode.
-    boost::progress_display* progressBar_;
 
     LLVMTCECmdLineOptions* options_;
 };

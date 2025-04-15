@@ -88,25 +88,25 @@ static const int DEFAULT_LOWMEM_MODE_THRESHOLD = 200000;
  * @param delaySlotFiller Helper module implementing jump delay slot filling
  */
 BBSchedulerController::BBSchedulerController(
-    const TTAMachine::Machine& targetMachine,
-    InterPassData& data,
-    SoftwareBypasser* bypasser,
-    CopyingDelaySlotFiller* delaySlotFiller,
-    DataDependenceGraph* bigDDG) :
-    BasicBlockPass(data), ControlFlowGraphPass(data), ProcedurePass(data),
-    ProgramPass(data), targetMachine_(targetMachine), 
-    scheduledProcedure_(NULL), bigDDG_(bigDDG), 
-    softwareBypasser_(bypasser), delaySlotFiller_(delaySlotFiller),
-    basicBlocksScheduled_(0), totalBasicBlocks_(0), progressBar_(NULL) {
-
+    const TTAMachine::Machine& targetMachine, InterPassData& data,
+    SoftwareBypasser* bypasser, CopyingDelaySlotFiller* delaySlotFiller,
+    DataDependenceGraph* bigDDG)
+    : BasicBlockPass(data),
+      ControlFlowGraphPass(data),
+      ProcedurePass(data),
+      ProgramPass(data),
+      targetMachine_(targetMachine),
+      scheduledProcedure_(NULL),
+      bigDDG_(bigDDG),
+      softwareBypasser_(bypasser),
+      delaySlotFiller_(delaySlotFiller),
+      basicBlocksScheduled_(0),
+      totalBasicBlocks_(0) {
     CmdLineOptions *cmdLineOptions = Application::cmdLineOptions();
     options_ = dynamic_cast<LLVMTCECmdLineOptions*>(cmdLineOptions);
-
 }
 
 BBSchedulerController::~BBSchedulerController() {
-    delete progressBar_; 
-    progressBar_ = NULL;
 }
 
 /**
@@ -232,11 +232,6 @@ BBSchedulerController::handleBasicBlock(
         executeDDGPass(
             bb, targetMachine, irm, bbSchedulers, bbn);
 
-        if (Application::verboseLevel() > 0) {
-            if (progressBar_ != NULL)
-                ++(*progressBar_);
-        }
-
         ++basicBlocksScheduled_;
     }
     if (rr != NULL) {
@@ -289,16 +284,6 @@ BBSchedulerController::handleProcedure(
         Application::logStream() 
             << " -- " << totalBasicBlocks_ << " basic blocks" << std::endl;
         basicBlocksScheduled_ = 0;
-
-        const bool enableProgressBar = false;
-        if (progressBar_ == NULL) {
-            if (enableProgressBar) {
-                progressBar_ = 
-                    new boost::progress_display(totalBasicBlocks_ + 1);
-            }
-        } else {
-            progressBar_->restart(totalBasicBlocks_ + 1);
-        }
     }
 
 #ifdef CFG_SNAPSHOTS
