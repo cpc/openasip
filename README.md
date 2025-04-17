@@ -195,8 +195,9 @@ source tce-env.sh
 
 RISC-V
 ------
-If you wish to build OpenASIP with support for RISC-V, you need to install the
-following prerequisites before installing OpenASIP. RISC-V GNU Toolchain
+
+If you wish to build OpenASIP with its experimental support for RISC-V, you
+need to install the RISC-V GNU Toolchain
 (https://github.com/riscv-collab/riscv-gnu-toolchain) (version 12.1.0+)
 for common bintools and elf2hex (https://github.com/sifive/elf2hex) for
 generating hex files from RISC-V ELF files.
@@ -213,6 +214,10 @@ Make sure your installation directory is added to `PATH` correctly:
 ```bash
 export PATH=$HOME/local/bin:$PATH
 ```
+
+After this the RISC-V support can be enabled by adding `--enable-riscv`
+option to the configure command in the following general
+building and installation instructions.
 
 Building and Installing OpenASIP
 ===========================
@@ -239,10 +244,11 @@ oa-selftest -v
 ```
 
 If this finished correctly, you are all set! For learning to use OpenASIP, a good
-way is to start with the OpenASIP user manual's ([openasip/manual/OpenASIP_manual.pdf](https://github.com/cpc/openasip/blob/main/openasip/manual/OpenASIP_manual.pdf))
-tutorials, e.g., the "OpenASIP tour"
-that goes through the basic TTA customization aspects. The RISC-V customization
-features are demonstrated in the "RISC-V Tutorial".
+way is to start with the OpenASIP user manual's
+([openasip/manual/OpenASIP_manual.pdf](https://github.com/cpc/openasip/blob/main/openasip/manual/OpenASIP_manual.pdf))
+tutorials, e.g., the "OpenASIP tour" that goes through the basic TTA
+customization aspects. The RISC-V customization features are demonstrated in
+the "RISC-V Tutorial".
 
 Upgrading OpenASIP
 =============
