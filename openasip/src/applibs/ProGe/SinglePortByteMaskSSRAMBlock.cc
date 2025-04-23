@@ -118,7 +118,7 @@ SinglePortByteMaskSSRAMBlock::write(
                            : ((targetLang == VHDL) ? std::string("vhdl")
                                                    : std::string("verilog"));
     HDLTemplateInstantiator().instantiateTemplateFile(
-        (progeDataDir / "tb" / tempFile).string(),
+        (progeDataDir / std::string("tb") / tempFile).string(),
         (targetBaseDir / targetDir / tempFile).string());
 }
 

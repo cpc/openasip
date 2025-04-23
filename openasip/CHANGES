@@ -3,6 +3,7 @@
 
 Main changes and features
 -------------------------
+- Out of the box support for Ubuntu 24.04 LTS.
 - RISC-V compiler now generates new LLVM Targets from RISC-V ADFs
   and loads them dynamically, which adds support for automatic
   instruction selection for RISC-V custom instructions.

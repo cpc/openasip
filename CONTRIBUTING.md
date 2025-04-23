@@ -76,4 +76,9 @@ rm -f $program
 The expected output (and input, in case it's  a console program reading from stdin) are stored in subdirs named after the .testdesc file (e.g. ''MyTest.testdesc'' has ''MyTest'' input/output subdir)
 with files named ''1_mytest.txt'' and ''1_output.txt'' for the input and output, respectively.
 
-For the unit tests, the test directories are in ''tce/test''. chdir to the wanted test directory and execute ''make'' to run the tests recursively.
+For the unit tests, the test directories are in ''tce/test''.
+cd to the wanted test directory and execute ''make'' to run the tests recursively.
+
+Note: that some of the tests expect the TCE_DEVEL_MODE environment variable set
+to 1 before executing in order to find the auxialiary files from the
+build directory.

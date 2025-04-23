@@ -34,8 +34,6 @@
 #ifndef TTA_BB_SCHEDULER_HH
 #define TTA_BB_SCHEDULER_HH
 
-#include <boost/progress.hpp>
-
 #include "MoveNodeSelector.hh"
 #include "DDGPass.hh"
 #include "BasicBlockPass.hh"

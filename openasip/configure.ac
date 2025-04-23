@@ -542,6 +542,17 @@ case $host_os in
   ;;
 esac
 
+AC_ARG_ENABLE(riscv,
+[AS_HELP_STRING([--enable-riscv],[enable the (experimental) RISC-V support])],
+[
+ ENABLE_RISCV=true
+],
+[
+ ENABLE_RISCV=false
+]
+)
+AM_CONDITIONAL(RISCV, test x$ENABLE_RISCV = xtrue)
+
 # Hack for debian sid packages
 if test x"$LLVM_INCLUDEDIR" == x/usr/include/llvm; then
 LLVM_INCLUDEDIR=/usr/include
@@ -680,14 +691,14 @@ GUI_INCLUDES="$GUI_INCLUDES $($wxwindowsBin --cxxflags)"
 # if wx-config is found and the version is 2.4.*, conditional
 # WX is set.
 case "$($wxwindowsBin --version)" in
-     2.6.* | 2.8.* | 2.9.* | 3.0.* | 3.1.*)
+     2.6.* | 2.8.* | 2.9.* | 3.0.* | 3.1.* | 3.2.* )
    DO_WX_COMPILE=true
    ;;
      *)
    DO_WX_COMPILE=false
    AC_MSG_NOTICE(
    [
-    wxWidgets version must be 2.6.*, 2.8.* or 3.0.* in order to
+    wxWidgets version must be 2.6.*, 2.8.*, 3.0.* or 3.2.* in order to
     build graphical user interfaces.
    ])
    ;;
@@ -1579,6 +1590,9 @@ $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tcele64-llvm --disable
 2>&1 | egrep -v "to force reconfigure";
 ])
 
+if test x"$ENABLE_RISCV" = xtrue
+then
+
 AC_CONFIG_COMMANDS_POST ([
 echo "=== Configuring newlib for riscv =====";
 # make srcdir absolute
@@ -1599,6 +1613,7 @@ $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=riscv --disable-multil
 2>&1 | egrep -v "to force reconfigure";
 ])
 
+fi
 
 # Generate config.status and launch it. config.status then
 # performs all configuration actions.
@@ -1661,6 +1676,14 @@ then
 else
   echo "Found LLVM version $LLVM_VERSION"
 fi
+
+if test x"$ENABLE_RISCV" = xtrue
+then
+  echo "RISC-V support enabled."
+else
+  echo "RISC-V support not enabled."
+fi
+
 
 #  else
 #     

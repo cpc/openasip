@@ -19,7 +19,7 @@
 #
 # @author Kari Hepola 2022-2024
 #
-# A LLVM-based compiler driver for RISC-V ASIPs
+# An LLVM-based compiler driver for RISC-V ASIPs
 #
 # Usage: oacc-riscv module1.c module2.c -o module
 #
@@ -57,6 +57,13 @@ else:
         tceInstalled = False
     else:
         tceprefix = output
+
+llvmInstallPrefix = None
+(exitCode, output) = subprocess.getstatusoutput("llvmtce-config --prefix")
+if exitCode != 0:
+    exitWithError("Couldn't find LLVM.")
+else:
+    llvmInstallPrefix = output
 
 assert not runningInstalled or (tceInstalled and tceprefix != ""), \
         "Could not find TCE prefix. Is TCE installed in PATH?"
@@ -173,7 +180,7 @@ def getLLVMTargetPlugin():
         riscvtdgen = "riscv-tdgen"
     else:
         riscvtdgen = "@abs_top_builddir@" + "/src/bintools/Compiler/riscv-tdgen/riscv-tdgen"
-    
+
     exitCode = run_command(
         riscvtdgen + " -o " + tempDir + " -a " + options.adf,
         echoStdout=options.verbose,
@@ -209,7 +216,7 @@ def compileLLVMTargetPlugin():
     # The file name of this differs in the installation dir compated to source tree
     # The RISC-V Target doesn't actually utilize anything from here so just create an empty file
     # TODO: Make this cleaner
-    with open(tceprefix + "/include/llvm/Config/config.h", 'w'):
+    with open(llvmInstallPrefix + "/include/llvm/Config/config.h", 'w'):
         pass
 
 
@@ -726,7 +733,7 @@ if __name__ == "__main__":
 
     os.makedirs(targetCacheDir, exist_ok=True)
     tceOpsPath = os.path.join(tempDir, "tceops.h")
-    llvmRISCVFileDir = os.path.join(tceprefix, "riscv/LLVMRISCVTarget/RISCV")
+    llvmRISCVFileDir = os.path.join(llvmInstallPrefix, "riscv/LLVMRISCVTarget/RISCV")
     tmpTargetPluginDir = os.path.join(tempDir, "RISCV")
 
     ISEDescriptionPath = os.path.join(tempDir,"RISCVInstrInfoOpenASIP.td")

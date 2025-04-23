@@ -356,15 +356,18 @@ LoopBufferBlock::write(const Path& targetBaseDir, HDL targetLang) const {
             "loop_stop_in : in std_logic;");
         instantiator.replacePlaceholderFromFile(
             "fsm-logic",
-            progeDataDir / "inflooper_fsm_with_stopping.snippet");
+            progeDataDir /
+                std::string("inflooper_fsm_with_stopping.snippet"));
         instantiator.replacePlaceholderFromFile(
             "signal-declarations",
-            progeDataDir / "inflooper_stop_signals.snippet");
+            progeDataDir / std::string("inflooper_stop_signals.snippet"));
         instantiator.replacePlaceholderFromFile(
-            "stop-reg", progeDataDir / "inflooper_stop_register.snippet");
+            "stop-reg",
+            progeDataDir / std::string("inflooper_stop_register.snippet"));
     } else {
         instantiator.replacePlaceholderFromFile(
-            "fsm-logic", progeDataDir / "inflooper_fsm_default.snippet");
+            "fsm-logic",
+            progeDataDir / std::string("inflooper_fsm_default.snippet"));
     }
 
     instantiator.instantiateTemplateFile(

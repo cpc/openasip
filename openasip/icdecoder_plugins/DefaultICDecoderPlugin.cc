@@ -1442,7 +1442,8 @@ public:
                 // Signal declarations as a stand-in for debug ports
                 instantiator.replacePlaceholderFromFile(
                     "db-signal-declarations",
-                    proGeDataDir / "no_debug_signal_declaration.snippet");
+                    proGeDataDir /
+                        std::string("no_debug_signal_declaration.snippet"));
             }
 
             if (hasSynchronousReset()) {
@@ -1481,7 +1482,9 @@ public:
 
             instantiator.replacePlaceholderFromFile(
                 "default-instr-reg-write",
-                Path(proGeDataDir / "default-instr-reg-write.snippet"));
+                Path(
+                    proGeDataDir /
+                    std::string("default-instr-reg-write.snippet")));
 
             // Next PC process sensitivity list
             std::string sensitivityStringPCBypassed =
@@ -1511,19 +1514,29 @@ public:
                     "debug_logic_g", "boolean", "true");
                 if (parameterValue(GENERATE_DEBUGGER_PARAM) ==
                     GENERATE_DEBUGGER_PARAM_MINIMAL) {
-                  instantiator.replacePlaceholderFromFile(
-                    "db-port-declarations",
-                    Path(proGeDataDir/"debug_minimal_port_declaration.snippet"));
-                  instantiator.replacePlaceholderFromFile(
-                    "db-signal-declarations",
-                    Path(proGeDataDir/"debug_minimal_signal_declaration.snippet"));
+                    instantiator.replacePlaceholderFromFile(
+                        "db-port-declarations",
+                        Path(
+                            proGeDataDir /
+                            std::string(
+                                "debug_minimal_port_declaration.snippet")));
+                    instantiator.replacePlaceholderFromFile(
+                        "db-signal-declarations",
+                        Path(
+                            proGeDataDir /
+                            std::string(
+                                "debug_minimal_signal_declaration.snippet")));
                 } else {
-                  instantiator.replacePlaceholderFromFile(
-                          "db-port-declarations",
-                          Path(proGeDataDir/"debug_port_declaration.snippet"));
-                  instantiator.replacePlaceholderFromFile(
-                          "db-signal-declarations",
-                          Path(proGeDataDir/"debug_signal_declaration.snippet"));
+                    instantiator.replacePlaceholderFromFile(
+                        "db-port-declarations",
+                        Path(
+                            proGeDataDir /
+                            std::string("debug_port_declaration.snippet")));
+                    instantiator.replacePlaceholderFromFile(
+                        "db-signal-declarations",
+                        Path(
+                            proGeDataDir /
+                            std::string("debug_signal_declaration.snippet")));
                 }
                 copier.instantiateHDLTemplate(
                     templateDir + DS + "ifetch." +
