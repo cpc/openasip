@@ -26,35 +26,35 @@
 
 #include <bitset>
 
-int
+inline int
 RISCVTools::getFunc3Int(const int encoding) {
     const int mask = 0b1110000000;
     const int enc = ((encoding & mask) >> 7);
     return enc;
 }
 
-int
+inline int
 RISCVTools::getFunc7Int(const int encoding) {
     const int mask = 0b11111110000000000;
     const int enc = ((encoding & mask) >> 10);
     return enc;
 }
 
-int
+inline int
 RISCVTools::getFunc2Int(const int encoding) {
     const int mask = 0b11000000000000000;
     const int enc = ((encoding & mask) >> 15);
     return enc;
 }
 
-int
+inline int
 RISCVTools::getOpcodeInt(const int encoding) {
     const int mask = 0b1111111;
     const int enc = encoding & mask;
     return enc;
 }
 
-std::string
+inline std::string
 RISCVTools::getFunc3Str(const int encoding) {
     const int enc = getFunc3Int(encoding);
     const std::string encStr = std::bitset<3>(enc).to_string();
@@ -63,7 +63,7 @@ RISCVTools::getFunc3Str(const int encoding) {
 }
 
 
-std::string
+inline std::string
 RISCVTools::getFunc7Str(const int encoding) {
     const int enc = getFunc7Int(encoding);
     const std::string encStr = std::bitset<7>(enc).to_string();
@@ -71,7 +71,7 @@ RISCVTools::getFunc7Str(const int encoding) {
     return "0b" + encStr;
 }
 
-std::string
+inline std::string
 RISCVTools::getFunc2Str(const int encoding) {
     const int enc = getFunc7Int(encoding);
     const std::string encStr = std::bitset<2>(enc).to_string();
@@ -79,7 +79,7 @@ RISCVTools::getFunc2Str(const int encoding) {
     return "0b" + encStr;
 }
 
-std::string
+inline std::string
 RISCVTools::getOpcodeStr(const int encoding) {
     const int enc = getOpcodeInt(encoding);
     const std::string encStr = std::bitset<7>(enc).to_string();
