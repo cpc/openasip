@@ -1,3 +1,35 @@
+/*
+    Copyright (c) 2002-2025 Tampere University.
+
+    This file is part of TTA-Based Codesign Environment (TCE).
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+ */
+/**
+ * @file RISCVInstructionExecutor.cc
+ *
+ * Definition of RISCVInstructionExecutor class.
+ *
+ * @author Eetu Soronen 2025 (eetu.soronen@tuni.fi)
+ * @note rating: red
+ */
+
 #include <string>
 #include <vector>
 
@@ -13,9 +45,10 @@
 #include "RISCVFields.hh"
 
 /**
- * Helper function for the extern C functions.
  * Takes in a Machine object and returns a map of instruction names and their
  * encodings.
+ * 
+ * Helper function for the extern C functions.
  */
 std::map<std::string, int>
 findRISCVCustomOps(const TTAMachine::Machine &mach) {
@@ -51,21 +84,21 @@ findRISCVCustomOps(const TTAMachine::Machine &mach) {
 extern "C" {
 
 static std::unique_ptr<OperationPool> pool = nullptr;
-static std::map<std::string, int> custom_ops;
+static std::map<std::string, int> customOps;
 static std::unique_ptr<TTAMachine::Machine> machine;
 
 int
-InitializeMachine(const char *machine_path, char **error) {
+initializeMachine(const char *machinePath, char **error) {
     machine.reset();
 
     try {
         machine = std::unique_ptr<TTAMachine::Machine>(
-            TTAMachine::Machine::loadFromADF(machine_path));
+            TTAMachine::Machine::loadFromADF(machinePath));
     } catch (const SerializerException &e) {
         if (error != nullptr) {
-            std::string error_msg =
+            std::string errorStr =
                 std::string("InitializeMachine error: ") + e.errorMessage();
-            *error = strdup(error_msg.c_str());
+            *error = strdup(errorStr.c_str());
         }
         return -1;
     }
@@ -74,13 +107,13 @@ InitializeMachine(const char *machine_path, char **error) {
         pool = std::make_unique<OperationPool>();
     }
 
-    custom_ops = findRISCVCustomOps(*machine);
+    customOps = findRISCVCustomOps(*machine);
 
     return 0;
 }
 
 int
-UnpackInstruction(const uint32_t opcode, char **output, char **error) {
+unpackInstruction(const uint32_t opcode, char **output, char **error) {
     if (machine == nullptr) {
         *error = strdup(
             "UnpackInstruction error: Machine not initialized. Call "
@@ -115,7 +148,7 @@ UnpackInstruction(const uint32_t opcode, char **output, char **error) {
     }
 
     std::string opName = "";
-    for (const auto &op : custom_ops) {
+    for (const auto &op : customOps) {
         uint32_t encoding = op.second;
         bool isMatch = false;
 
@@ -149,9 +182,9 @@ UnpackInstruction(const uint32_t opcode, char **output, char **error) {
 }
 
 int
-ExecuteInstruction32(
+executeInstruction32(
     const char *opName, const uint32_t *inputs, uint32_t *output,
-    char **error_msg) {
+    char **error) {
     const int width = 32;
 
     if (pool == nullptr) {
@@ -159,8 +192,8 @@ ExecuteInstruction32(
     }
 
     if (output == nullptr) {
-        if (error_msg != nullptr) {
-            *error_msg = strdup(
+        if (error != nullptr) {
+            *error = strdup(
                 "ExecuteInstruction32 error: Output parameter is null");
         }
         return -1;
@@ -169,8 +202,8 @@ ExecuteInstruction32(
     Operation *op = &(pool->operation(opName));
 
     if (op == &NullOperation::instance()) {
-        if (error_msg != nullptr) {
-            *error_msg =
+        if (error != nullptr) {
+            *error =
                 strdup("ExecuteInstruction32 error: Operation not found");
         }
         return -1;
@@ -181,54 +214,54 @@ ExecuteInstruction32(
     behavior.createState(opContext);
 
     size_t total_operands = op->numberOfInputs() + op->numberOfOutputs();
-    std::vector<SimValue> sim_values;
-    sim_values.reserve(total_operands);
+    std::vector<SimValue> simValues;
+    simValues.reserve(total_operands);
 
-    SimValue **sim_value_ptrs = new SimValue *[total_operands];
+    SimValue **simValuePtrs = new SimValue *[total_operands];
 
     for (int i = 0; i < op->numberOfInputs(); i++) {
-        sim_values.push_back(SimValue(inputs[i], width));
-        sim_value_ptrs[i] = &sim_values.back();
+        simValues.push_back(SimValue(inputs[i], width));
+        simValuePtrs[i] = &simValues.back();
     }
 
     for (int i = 0; i < op->numberOfOutputs(); i++) {
-        sim_values.push_back(SimValue(0, width));
-        sim_value_ptrs[op->numberOfInputs() + i] = &sim_values.back();
+        simValues.push_back(SimValue(0, width));
+        simValuePtrs[op->numberOfInputs() + i] = &simValues.back();
     }
 
-    if (!behavior.simulateTrigger(sim_value_ptrs, opContext)) {
-        if (error_msg != nullptr) {
-            *error_msg = strdup(
+    if (!behavior.simulateTrigger(simValuePtrs, opContext)) {
+        if (error != nullptr) {
+            *error = strdup(
                 "ExecuteInstruction32 error: simulating the execution, "
                 "simulateTrigger failed.");
         }
-        delete[] sim_value_ptrs;
+        delete[] simValuePtrs;
         behavior.deleteState(opContext);
         return -1;
     }
 
     for (int i = 0; i < op->numberOfOutputs(); i++) {
-        output[i] = sim_value_ptrs[op->numberOfInputs() + i]->uIntWordValue();
+        output[i] = simValuePtrs[op->numberOfInputs() + i]->uIntWordValue();
     }
 
-    delete[] sim_value_ptrs;
+    delete[] simValuePtrs;
     behavior.deleteState(opContext);
     return 0;
 }
 
 int
-ExecuteInstruction64(
+executeInstruction64(
     const char *opName, const uint64_t *inputs, uint64_t *output,
-    char **error_msg) {
-    const int width = 32;
+    char **error) {
+    const int width = 64;
 
     if (pool == nullptr) {
         pool = std::make_unique<OperationPool>();
     }
 
     if (output == nullptr) {
-        if (error_msg != nullptr) {
-            *error_msg = strdup(
+        if (error != nullptr) {
+            *error = strdup(
                 "ExecuteInstruction64 error: Output parameter is null");
         }
         return -1;
@@ -237,8 +270,8 @@ ExecuteInstruction64(
     Operation *op = &(pool->operation(opName));
 
     if (op == &NullOperation::instance()) {
-        if (error_msg != nullptr) {
-            *error_msg =
+        if (error != nullptr) {
+            *error =
                 strdup("ExecuteInstruction64 error: operation not found");
         }
         return -1;
@@ -249,38 +282,38 @@ ExecuteInstruction64(
     behavior.createState(opContext);
 
     size_t total_operands = op->numberOfInputs() + op->numberOfOutputs();
-    std::vector<SimValue> sim_values;
-    sim_values.reserve(total_operands);
+    std::vector<SimValue> simValues;
+    simValues.reserve(total_operands);
 
-    SimValue **sim_value_ptrs = new SimValue *[total_operands];
+    SimValue **simValuePtrs = new SimValue *[total_operands];
 
     for (int i = 0; i < op->numberOfInputs(); i++) {
-        sim_values.push_back(SimValue(inputs[i], width));
-        sim_value_ptrs[i] = &sim_values.back();
+        simValues.push_back(SimValue(inputs[i], width));
+        simValuePtrs[i] = &simValues.back();
     }
 
     for (int i = 0; i < op->numberOfOutputs(); i++) {
-        sim_values.push_back(SimValue(0, width));
-        sim_value_ptrs[op->numberOfInputs() + i] = &sim_values.back();
+        simValues.push_back(SimValue(0, width));
+        simValuePtrs[op->numberOfInputs() + i] = &simValues.back();
     }
 
-    if (!behavior.simulateTrigger(sim_value_ptrs, opContext)) {
-        if (error_msg != nullptr) {
-            *error_msg = strdup(
+    if (!behavior.simulateTrigger(simValuePtrs, opContext)) {
+        if (error != nullptr) {
+            *error = strdup(
                 "ExecuteInstruction64 error: simulating the execution, "
                 "simulateTrigger failed.");
         }
-        delete[] sim_value_ptrs;
+        delete[] simValuePtrs;
         behavior.deleteState(opContext);
         return -1;
     }
 
     for (int i = 0; i < op->numberOfOutputs(); i++) {
         output[i] =
-            sim_value_ptrs[op->numberOfInputs() + i]->uLongWordValue();
+            simValuePtrs[op->numberOfInputs() + i]->uLongWordValue();
     }
 
-    delete[] sim_value_ptrs;
+    delete[] simValuePtrs;
     behavior.deleteState(opContext);
     return 0;
 }

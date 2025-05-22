@@ -8,7 +8,7 @@ libosal_la_SOURCES = OperationBehavior.cc OperationContext.cc \
 	OperationDAGEdge.cc OperationDAGBehavior.cc OperationDAGConverter.cc \
 	OperationDAGBuilder.cc OperationGlobals.cc OperationPoolPimpl.cc \
 	OperationContextPimpl.cc OperationPimpl.cc ConstantNode.cc \
-    OperationBuilder.cc InstructionExecutor.cc
+    OperationBuilder.cc RISCVInstructionExecutor.cc
 
 PROJECT_ROOT = $(top_srcdir)
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
@@ -17,7 +17,8 @@ AM_CPPFLAGS = -I${PROJECT_ROOT}/src/tools \
               -I../../applibs/Simulator \
               -I$(PROJECT_ROOT)/src/base/Graph ${LLVM_CPPFLAGS} \
 			  -I$(PROJECT_ROOT)/src/applibs/bem \
-			  -I$(PROJECT_ROOT)/src/base/bem 
+			  -I$(PROJECT_ROOT)/src/base/bem \
+			  -I$(PROJECT_ROOT)/src/base/mach 
 
 AM_CXXFLAGS = -UNDEBUG
 
@@ -58,5 +59,5 @@ libosal_la_SOURCES += \
 	Operation.icc OperationModule.icc \
 	OperationBehavior.icc SimulateTriggerWrappers.icc \
 	OperationPool.icc OperationIndex.icc \
-	InstructionExecutor.hh
+	RISCVInstructionExecutor.hh
 ## headers end
