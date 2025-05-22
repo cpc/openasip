@@ -86,3 +86,17 @@ RISCVTools::getOpcodeStr(const int encoding) {
     assert(encStr.length() == 7);
     return "0b" + encStr;
 }
+
+/**
+ * @param instruction the whole opcode, as it is found in the objdump
+ * @return Struct of decoded values. Register values are discarded.
+ */
+inline R4Instruction
+RISCVTools::decodeR4Instruction(const uint32_t instruction) {
+    int baseopcode = instruction & 0x7F;
+    int funct3 = (instruction >> 12) & 0x7;
+    int funct7 = (instruction >> 25) & 0x7F;
+    int funct2 = (instruction >> 25) & 0x3;
+    return {baseopcode, funct3, funct7, funct2};
+}
+

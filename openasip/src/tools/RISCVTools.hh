@@ -32,6 +32,13 @@
 
 class InstructionFormat;
 
+struct R4Instruction {
+    int baseopcode;
+    int funct3;
+    int funct7;
+    int funct2;
+};
+
 class RISCVTools {
 public:
     static std::string getFunc3Str(const int encoding);
@@ -42,6 +49,7 @@ public:
     static int getFunc7Int(const int encoding);
     static int getFunc2Int(const int encoding);
     static int getOpcodeInt(const int encoding);
+    static R4Instruction decodeR4Instruction(const uint32_t opcode);
 };
 
 #include "RISCVTools.icc"
