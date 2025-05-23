@@ -25,36 +25,37 @@
  */
 
 #include <bitset>
+#include "MapTools.hh"
 
-int
+inline int
 RISCVTools::getFunc3Int(const int encoding) {
     const int mask = 0b1110000000;
     const int enc = ((encoding & mask) >> 7);
     return enc;
 }
 
-int
+inline int
 RISCVTools::getFunc7Int(const int encoding) {
     const int mask = 0b11111110000000000;
     const int enc = ((encoding & mask) >> 10);
     return enc;
 }
 
-int
+inline int
 RISCVTools::getFunc2Int(const int encoding) {
     const int mask = 0b11000000000000000;
     const int enc = ((encoding & mask) >> 15);
     return enc;
 }
 
-int
+inline int
 RISCVTools::getOpcodeInt(const int encoding) {
     const int mask = 0b1111111;
     const int enc = encoding & mask;
     return enc;
 }
 
-std::string
+inline std::string
 RISCVTools::getFunc3Str(const int encoding) {
     const int enc = getFunc3Int(encoding);
     const std::string encStr = std::bitset<3>(enc).to_string();
@@ -63,7 +64,7 @@ RISCVTools::getFunc3Str(const int encoding) {
 }
 
 
-std::string
+inline std::string
 RISCVTools::getFunc7Str(const int encoding) {
     const int enc = getFunc7Int(encoding);
     const std::string encStr = std::bitset<7>(enc).to_string();
@@ -71,7 +72,7 @@ RISCVTools::getFunc7Str(const int encoding) {
     return "0b" + encStr;
 }
 
-std::string
+inline std::string
 RISCVTools::getFunc2Str(const int encoding) {
     const int enc = getFunc7Int(encoding);
     const std::string encStr = std::bitset<2>(enc).to_string();
@@ -79,10 +80,47 @@ RISCVTools::getFunc2Str(const int encoding) {
     return "0b" + encStr;
 }
 
-std::string
+inline std::string
 RISCVTools::getOpcodeStr(const int encoding) {
     const int enc = getOpcodeInt(encoding);
     const std::string encStr = std::bitset<7>(enc).to_string();
     assert(encStr.length() == 7);
     return "0b" + encStr;
 }
+
+void
+RISCVTools::findCustomOps(std::map<std::string, int>& customOps_, BinaryEncoding* bem_) {
+    customOps_.clear();
+    const std::vector<std::string> formatsToSearch = {
+        RISCVFields::RISCV_R_TYPE_NAME,
+        RISCVFields::RISCV_R1R_TYPE_NAME,
+        RISCVFields::RISCV_R1_TYPE_NAME,
+        RISCVFields::RISCV_R3R_TYPE_NAME
+    };
+    for (const std::string& fName : formatsToSearch) {
+        InstructionFormat* format = bem_->instructionFormat(fName);
+        if (format == NULL) {
+            continue;
+        }
+        for (int i = 0; i < format->operationCount(); i++) {
+            const std::string op = format->operationAtIndex(i);
+            if (!MapTools::containsKey(RISCVFields::RISCVRTypeOperations, op)) {
+                customOps_.insert({op, format->encoding(op)});
+            }
+        }
+    }
+}
+
+/**
+ * @param instruction the whole opcode, as it is found in the objdump
+ * @return Struct of decoded values. Register values are discarded.
+ */
+inline R4Instruction
+RISCVTools::decodeR4Instruction(const uint32_t instruction) {
+    int baseopcode = instruction & 0x7F;
+    int funct3 = (instruction >> 12) & 0x7;
+    int funct7 = (instruction >> 25) & 0x7F;
+    int funct2 = (instruction >> 25) & 0x3;
+    return {baseopcode, funct3, funct7, funct2};
+}
+
