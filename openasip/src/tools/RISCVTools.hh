@@ -49,6 +49,8 @@ public:
     static int getFunc7Int(const int encoding);
     static int getFunc2Int(const int encoding);
     static int getOpcodeInt(const int encoding);
+    static inline void findCustomOps(
+        std::map<std::string, int>& customOps_, BinaryEncoding* bem_);
     static R4Instruction decodeR4Instruction(const uint32_t opcode);
 };
 
