@@ -1238,7 +1238,7 @@ class Tester:
         for i in range(0, len(moreStats)*len(self.archs)):
             cols += 'l|'
 
-        sys.stdout.write('\\begin{tabular}{|l|%s} \hline\n' % cols)
+        sys.stdout.write('\\begin{tabular}{|l|%s} \\hline\n' % cols)
         sys.stdout.write(''.ljust(firstColumnWidth))
         sys.stdout.write(' & ')
         archsPrinted = 0
@@ -1272,14 +1272,14 @@ class Tester:
                 if archsPrinted < len(self.archs):
                     sys.stdout.write(' &')
 
-        sys.stdout.write('\\\\ \hline\n')
+        sys.stdout.write('\\\\ \\hline\n')
 
     def printLatexRow(self, testCase, firstColumnWidth=30):
         """
         Prints a single row of the LaTeX table.
         """
         global moreStats
-        sys.stdout.write(os.path.basename(testCase.directory).replace('_', '\_').ljust(firstColumnWidth))
+        sys.stdout.write(os.path.basename(testCase.directory).replace('_', '\\_').ljust(firstColumnWidth))
         sys.stdout.write(' & ')
 
         archsPrinted = 0
