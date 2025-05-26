@@ -62,7 +62,8 @@ jobs:
             graphviz \
             bc \
             ghdl \
-            verilator
+            iverilog \
+            verilator 
 
       - name:
         run: |
