@@ -32,36 +32,39 @@
  * @note rating: red
  */
 
-#include <sstream>
-#include <fstream>
-#include <algorithm>
-#include <set>
-#include <vector>
-#include <string>
-
 #include "DesignSpaceExplorer.hh"
+
+#include <algorithm>
+#include <fstream>
+#include <set>
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include "ADFSerializer.hh"
-#include "ExplorerCmdLineOptions.hh"
-#include "DesignSpaceExplorerPlugin.hh"
-#include "CostEstimates.hh"
-#include "ExecutionTrace.hh"
-#include "DSDBManager.hh"
-#include "Machine.hh"
-#include "Program.hh"
-#include "MachineImplementation.hh"
-#include "PluginTools.hh"
-#include "CostEstimatorTypes.hh"
-#include "UniversalMachine.hh"
-#include "StringTools.hh"
-#include "OperationBehavior.hh"
-#include "SimulatorToolbox.hh"
-#include "SimulatorFrontend.hh"
-#include "SimulatorInterpreter.hh"
-#include "ExecutableInstruction.hh"
-#include "OperationGlobals.hh"
 #include "Application.hh"
 #include "ComponentImplementationSelector.hh"
+#include "CostEstimates.hh"
+#include "CostEstimatorTypes.hh"
+#include "DSDBManager.hh"
+#include "DesignSpaceExplorerPlugin.hh"
 #include "Exception.hh"
+#include "ExecutableInstruction.hh"
+#include "ExecutionTrace.hh"
+#include "ExplorerCmdLineOptions.hh"
+#include "Instruction.hh"
+#include "Machine.hh"
+#include "MachineImplementation.hh"
+#include "OperationBehavior.hh"
+#include "OperationGlobals.hh"
+#include "PluginTools.hh"
+#include "Procedure.hh"
+#include "Program.hh"
+#include "SimulatorFrontend.hh"
+#include "SimulatorInterpreter.hh"
+#include "SimulatorToolbox.hh"
+#include "StringTools.hh"
+#include "UniversalMachine.hh"
 
 using std::set;
 using std::vector;
@@ -211,24 +214,33 @@ DesignSpaceExplorer::evaluate(
                 return false;
             }
 
+            bool hasFunctionsOfInterest =
+                testApplication.hasFunctionsOfInterest();
+            std::vector<ClockCycleCount> instructionExecutionCounts;
+
             // simulate the scheduled program
-            ClockCycleCount runnedCycles;
+            ClockCycleCount totalCycleCount;
             const ExecutionTrace* traceDB = NULL;
             if (configuration.hasImplementation && estimate) {
                 traceDB = simulate(
-                    *scheduledProgram, *adf, testApplication, 0, runnedCycles,
-                    true);
+                    *scheduledProgram, *adf, testApplication, 0,
+                    totalCycleCount, true, false,
+                    hasFunctionsOfInterest ? &instructionExecutionCounts
+                                           : nullptr);
             } else {
                 simulate(
-                    *scheduledProgram, *adf, testApplication, 0, runnedCycles,
-                    false);
+                    *scheduledProgram, *adf, testApplication, 0,
+                    totalCycleCount, false, false,
+                    hasFunctionsOfInterest ? &instructionExecutionCounts
+                                           : nullptr);
             }
 
             //std::cerr << "DEBUG: simulated" << std::endl;
             // verify the simulation
             if (testApplication.hasCorrectOutput()) {
-                string correctResult = testApplication.correctOutput();
-                string resultString = oStream_->str();
+                string correctResult =
+                    StringTools::trim(testApplication.correctOutput());
+                string resultString = StringTools::trim(oStream_->str());
                 if (resultString != correctResult) {
                     std::cerr << "Simulation FAILED, possible bug in scheduler!"
                               << std::endl;
@@ -250,17 +262,45 @@ DesignSpaceExplorer::evaluate(
                     adf = NULL;
                     return false;
                 }
-                //std::cerr << "DEBUG: simulation OK" << std::endl;
+                // std::cerr << "DEBUG: simulation OK" << std::endl;
                 // reset the stream pointer in to the beginning and empty the
                 // stream
                 oStream_->str("");
                 oStream_->seekp(0);
             }
 
+            // Accumulate the cycle counts from functions of interest,
+            // if defined in the application.
+            ClockCycleCount cycleCountOfInterest = totalCycleCount;
+            if (hasFunctionsOfInterest) {
+                cycleCountOfInterest = (ClockCycleCount)(0);
+                size_t instructionCount =
+                    scheduledProgram->instructionVector().size();
+                assert(instructionExecutionCounts.size() == instructionCount);
+                auto& interestingProcedures =
+                    testApplication.functionsOfInterest();
+                for (const auto& procName : interestingProcedures) {
+                    if (!scheduledProgram->hasProcedure(procName)) continue;
+                    TTAProgram::Procedure& proc =
+                        scheduledProgram->procedure(procName);
+                    ClockCycleCount procCycles = 0;
+                    for (auto i = proc.startAddress().location();
+                         i <= proc.endAddress().location(); ++i) {
+                        procCycles += instructionExecutionCounts[i];
+                    }
+                    if (Application::increasedVerbose()) {
+                        Application::logStream()
+                            << "[Procedure: " << procName
+                            << ", size: " << proc.instructionCount()
+                            << " cc: " << procCycles << "] " << std::endl;
+                    }
+                    cycleCountOfInterest += procCycles;
+                }
+            }
+
             // add simulated cycle count to dsdb
             dsdb_->addCycleCount(
-                    (*i), configuration.architectureID,
-                    runnedCycles);
+                (*i), configuration.architectureID, cycleCountOfInterest);
 
             if (configuration.hasImplementation && estimate) {
                 // energy estimate the simulated program
@@ -417,7 +457,7 @@ DesignSpaceExplorer::simulate(
     const TestApplication& testApplication, const ClockCycleCount&,
     ClockCycleCount& runnedCycles, const bool tracing,
     const bool useCompiledSimulation,
-    std::vector<ClockCycleCount>* executionCounts) {
+    std::vector<ClockCycleCount>* instructionExecutionCounts) {
     // initialize the simulator
     SimulatorFrontend simulator(
         useCompiledSimulation ? 
@@ -484,13 +524,13 @@ DesignSpaceExplorer::simulate(
     }
 
     runnedCycles = simulator.cycleCount();
-    
+
     int instructionCount = program.instructionVector().size();
-    if (executionCounts) {
-        executionCounts->resize(instructionCount, 0);
-        for (int i=0; i<instructionCount; ++i) {
-            (*executionCounts)[i] = simulator.executableInstructionAt(i)
-                .executionCount();
+    if (instructionExecutionCounts != nullptr) {
+        instructionExecutionCounts->resize(instructionCount, 0);
+        for (int i = 0; i < instructionCount; ++i) {
+            (*instructionExecutionCounts)[i] =
+                simulator.executableInstructionAt(i).executionCount();
         }
     }
 

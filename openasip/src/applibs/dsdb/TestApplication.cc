@@ -45,10 +45,12 @@ const string TestApplication::DESCRIPTION_FILE_NAME_ = "description.txt";
 const string TestApplication::APPLICATION_BASE_FILE_NAME_ = "program";
 const string TestApplication::SETUP_FILE_NAME_ = "setup.sh";
 const string TestApplication::SIMULATE_TTASIM_FILE_NAME_ = "simulate.ttasim";
-const string 
-TestApplication::CORRECT_OUTPUT_FILE_NAME_ = "correct_simulation_output";
+const string TestApplication::CORRECT_OUTPUT_FILE_NAME_ =
+    "correct_simulation_output";
 const string TestApplication::VERIFY_FILE_NAME_ = "verify.sh";
 const string TestApplication::CLEANUP_FILE_NAME_ = "cleanup.sh";
+const string TestApplication::FUNCTIONS_OF_INTEREST_FILE_NAME_ =
+    "functions_of_interest";
 const string TestApplication::MAX_RUNTIME_ = "max_runtime";
 const int TestApplication::MAX_LINE_LENGTH_ = 512;
 
@@ -75,6 +77,16 @@ TestApplication::TestApplication(const string& testApplicationPath)
                 __FILE__, __LINE__, __func__, exception.errorMessage());
         }
         fclose(file);
+    }
+
+    if (hasFunctionsOfInterest()) {
+        std::ifstream f(
+            testApplicationPath_ + FileSystem::DIRECTORY_SEPARATOR +
+            FUNCTIONS_OF_INTEREST_FILE_NAME_);
+        std::string str(
+            (std::istreambuf_iterator<char>(f)),
+            std::istreambuf_iterator<char>());
+        functionsOfInterest_ = TCEString(str).split(",");
     }
 }
 
@@ -302,8 +314,19 @@ TestApplication::hasCleanupSimulation() const {
 }
 
 /**
+ * @return true if 'functions_of_interest' file is found in the application
+ * directory.
+ */
+bool
+TestApplication::hasFunctionsOfInterest() const {
+    return FileSystem::fileIsReadable(
+        testApplicationPath_ + FileSystem::DIRECTORY_SEPARATOR +
+        FUNCTIONS_OF_INTEREST_FILE_NAME_);
+}
+
+/**
  * Returns the application path in the test application directory.
- * 
+ *
  * If the file 'sequential_program' does not exists returns an empty string.
  *
  * @return The path of the 'sequential_program' file.
