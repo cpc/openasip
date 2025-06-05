@@ -1,0 +1,14 @@
+#!/bin/sh
+
+QEMU_PATH=${QEMU_OPENASIP_PATH:-$HOME/qemu-openasip}
+QEMU_EXECUTABLE="$QEMU_PATH/build/qemu-system-riscv32"
+
+if [ -f "$QEMU_EXECUTABLE" ]; then
+    rm -f tcetest_qemu-openasip.py.disabled
+else
+    touch tcetest_qemu-openasip.py.disabled
+fi
+
+if ! command -v riscv64-unknown-elf-gcc >/dev/null 2>&1; then
+    touch tcetest_qemu-openasip.py.disabled
+fi
