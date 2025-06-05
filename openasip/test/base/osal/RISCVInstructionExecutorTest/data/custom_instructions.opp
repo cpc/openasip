@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>CRC_XOR_SHIFT</name>
+    <description/>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <in element-count="1" element-width="32" id="2" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="3" type="UIntWord"/>
+    <trigger-semantics>Var a;
+OP(shl, IO(1),8,a);
+OP(xor,IO(2),a,IO(3));
+
+
+</trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>REFLECT8</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>REFLECT32</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="UIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="UIntWord"/>
+  </operation>
+
+</osal>
