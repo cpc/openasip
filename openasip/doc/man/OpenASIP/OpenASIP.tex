@@ -22,7 +22,7 @@
 \documentclass[a4paper,twoside]{tceusermanual}
 \usepackage{pslatex,verbatim}
 \usepackage{mathtools}
-\usepackage[dvipdfm]{hyperref}
+\usepackage{hyperref}
 \usepackage[font=footnotesize]{caption}
 \usepackage[font=footnotesize]{subfig}
 \usepackage{listings}
@@ -4135,6 +4135,66 @@ Now, compile the program and images as before and simulate the design in RTL
 simulation. This time, you should see a more significant drop in cycle counts
 but same information should still be printed to stdout meaning that the algorithm
 was executed correctly.
+
+\subsection{QEMU-OpenASIP}
+
+Using RTL simulation for verifying and debugging software running in OpenASIP 
+designs with custom RISC-V instructions may be too slow, especially with 
+larger programs. To support faster early software development and debugging, 
+OpenASIP supports integration with QEMU: The base QEMU RISC-V model is used 
+for non-customized instructions and when the QEMU encounters an instruction it 
+doesn't recognize, OpenASIP emulates it using the OSAL definitions.
+
+You can build the OpenASIP QEMU fork with:
+
+\begin{verbatim}
+$ git clone https://github.com/cpc/qemu-openasip.git
+$ cd qemu-openasip 
+$ ./configure --target-list=riscv64-softmmu,riscv32-softmmu
+$ make -j${nproc}
+\end{verbatim}
+
+And then you can run any program with custom OSAL instructions with the QEMU's
+RISC-V 'virt' machine by specifying the new machine parameter \textbf{oasip\_machine}.
+For example:
+
+\begin{verbatim}
+$ ./build/qemu-system-riscv32 \
+    -machine virt,oasip_machine=/path/to/machine.adf \
+    -bios none \
+    -nographic \
+    -no-reboot \
+    -kernel /path/to/program.elf
+\end{verbatim}
+
+The program (or "kernel") you want to execute should be a .elf file if you are targeting 
+baremetal, but for example RISC-V linux with a BusyBox works too. The process 
+for running a RISC-V program is not different from standard QEMU.
+
+You can compile the program with custom instructions using oacc-riscv compiler 
+or standard riscv-unknown-elf-gcc, though in the latter case you must declare 
+your instructions in the insn-r bit format, for example:
+
+\begin{verbatim}
+# oacc-riscv can compile custom instructions written in the standard format:
+_OA_RV_REFLECT32(remainder, output)
+
+# with standard unknown-elf-gcc you have to write the custom instructions by hand:
+asm volatile(".insn r 0x0B, 0x01, 0x00, %0, %1, x0"
+                 : "=r"(output)
+                 : "r"(remainder));
+\end{verbatim}
+
+You can find the bit format of an instruction with riscv-tdgen tool, also included 
+in OpenASIP if you have built it with the --enable-riscv flag.
+\begin{verbatim}
+$ riscv-tdgen -a /path/to/machine.adf -o out.txt
+\end{verbatim}
+
+Provided you have installed OpenASIP and the libopenasip.so is in your LD\_LIBRARY\_PATH,
+QEMU will link to it and send all of the unknown instructions to OSAL for execution.
+The instruction behaviors should be available in the standard paths, 
+see chapter~\ref{sec:osalpaths}.
 
 \subsection{Final Words}
 
