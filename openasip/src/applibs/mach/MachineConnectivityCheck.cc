@@ -968,6 +968,9 @@ bool MachineConnectivityCheck::raConnected(const TTAMachine::Machine& machine) {
     static bool spammed = false;
     // check connection from RA to jump for fn return.
     ControlUnit& cu = *machine.controlUnit();
+
+    if (cu.returnAddressPort() == nullptr) return true;
+
     SpecialRegisterPort& ra = *cu.returnAddressPort();
     if (cu.hasOperation("jump")) {
         auto jumpOp = cu.operation("jump");
