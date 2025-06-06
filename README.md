@@ -225,10 +225,6 @@ Make sure your installation directory is added to `PATH` correctly:
 export PATH=$HOME/local/bin:$PATH
 ```
 
-After this the RISC-V support can be enabled by adding `--enable-riscv`
-option to the configure command in the following general
-building and installation instructions.
-
 Building and Installing OpenASIP
 ===========================
 

@@ -542,17 +542,6 @@ case $host_os in
   ;;
 esac
 
-AC_ARG_ENABLE(riscv,
-[AS_HELP_STRING([--enable-riscv],[enable the (experimental) RISC-V support])],
-[
- ENABLE_RISCV=true
-],
-[
- ENABLE_RISCV=false
-]
-)
-AM_CONDITIONAL(RISCV, test x$ENABLE_RISCV = xtrue)
-
 # Hack for debian sid packages
 if test x"$LLVM_INCLUDEDIR" == x/usr/include/llvm; then
 LLVM_INCLUDEDIR=/usr/include
@@ -1590,9 +1579,6 @@ $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tcele64-llvm --disable
 2>&1 | egrep -v "to force reconfigure";
 ])
 
-if test x"$ENABLE_RISCV" = xtrue
-then
-
 AC_CONFIG_COMMANDS_POST ([
 echo "=== Configuring newlib for riscv =====";
 # make srcdir absolute
@@ -1612,8 +1598,6 @@ CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc-riscv \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=riscv --disable-multilib --disable-libgloss \
 2>&1 | egrep -v "to force reconfigure";
 ])
-
-fi
 
 # Generate config.status and launch it. config.status then
 # performs all configuration actions.
@@ -1675,13 +1659,6 @@ then
   echo "NOTE! Supported LLVM version not found. Compiling C programs is disabled."
 else
   echo "Found LLVM version $LLVM_VERSION"
-fi
-
-if test x"$ENABLE_RISCV" = xtrue
-then
-  echo "RISC-V support enabled."
-else
-  echo "RISC-V support not enabled."
 fi
 
 

@@ -21,7 +21,7 @@ function eexit {
 }
 
 function install_gnu_toolchain {
-    version=2023.07.07
+    version=2025.05.30
     repository=https://github.com/riscv-collab/riscv-gnu-toolchain
     name=riscv-gnu-toolchain
     git clone $repository || eexit "git clone $name failed"

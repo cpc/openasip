@@ -6,10 +6,7 @@ SUBDIRS += bclib
 SUBDIRS += newlib-1.17.0/tce-llvm 
 SUBDIRS += newlib-1.17.0/tcele-llvm 
 SUBDIRS += newlib-1.17.0/tcele64-llvm
-
-if RISCV
 SUBDIRS += newlib-1.17.0/riscv-llvm
-endif
 
 AUTOMAKE_OPTIONS = foreign
 
