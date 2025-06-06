@@ -6,8 +6,7 @@ SUBDIRS += bclib
 SUBDIRS += newlib-1.17.0/tce-llvm 
 SUBDIRS += newlib-1.17.0/tcele-llvm 
 SUBDIRS += newlib-1.17.0/tcele64-llvm
-
-RISCV_SUB_DIRS = newlib-1.17.0/riscv-llvm
+SUBDIRS += newlib-1.17.0/riscv-llvm
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -63,10 +62,6 @@ dev-install: install
 	@./tools/scripts/install_all_headers ${prefix}
 
 all-local:
-	+cd src/bintools/Compiler && ./oacc-riscv --generate-plugin --tce-build-mode
-	@for dir in $(RISCV_SUB_DIRS); do \
-		$(MAKE) -C $$dir || exit 1; \
-	done
 	ln -sf ./openasip-config ./tce-config
 	cd src/bintools/Compiler;  ln -sf oacc tcecc
 	cd scripts;  ln -sf oa-selftest tce-selftest
