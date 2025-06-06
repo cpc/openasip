@@ -27,21 +27,22 @@
  * Declaration of TestApplication class.
  *
  * @author Jari Mäntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2012
+ * @author Pekka Jääskeläinen 2012, 2025
  * @note rating: red
  */
 
 #ifndef TTA_TEST_APPLICATION_HH
 #define TTA_TEST_APPLICATION_HH
 
+#include <sstream>
 #include <string>
 #include <vector>
-#include <sstream>
-#include "Exception.hh"
 
+#include "Exception.hh"
+#include "TCEString.hh"
 
 /**
- * Class for handling files in test application directory. 
+ * Class for handling files in test application directory.
  */
 class TestApplication {
 public:
@@ -59,6 +60,7 @@ public:
     bool hasCorrectOutput() const;
     bool hasVerifySimulation() const;
     bool hasCleanupSimulation() const;
+    bool hasFunctionsOfInterest() const;
     bool isValid() const { 
         return hasApplication() && 
             (hasCorrectOutput() || hasVerifySimulation());
@@ -72,12 +74,18 @@ public:
     void cleanupSimulation() const;
     ClockCycles cycleCount() const;
     Runtime maxRuntime() const;
+    const std::vector<TCEString>&
+    functionsOfInterest() const {
+        return functionsOfInterest_;
+    }
 
 private:
     /// Path of the test application directory.
     const std::string testApplicationPath_;
     /// Maximum runtime of the test appication in nano seconds
     Runtime maxRuntime_;
+    /// The names of the functions of interest (in terms of cycle count).
+    std::vector<TCEString> functionsOfInterest_;
 
     /// File name of the description text for the application.
     static const std::string DESCRIPTION_FILE_NAME_;
@@ -96,6 +104,11 @@ private:
     static const std::string VERIFY_FILE_NAME_;
     /// Name of the clean up file.
     static const std::string CLEANUP_FILE_NAME_;
+    /// Name of the file that has a comma separated list of functions of
+    /// interest for the cycle count measurements in the given app.
+    /// The exclusive profile of these functions will be used as the
+    /// cycle count in evaluation.
+    static const std::string FUNCTIONS_OF_INTEREST_FILE_NAME_;
     /// Name of the file that contains maximum runtime.
     static const std::string MAX_RUNTIME_;
     /// Maximum line length in a file.

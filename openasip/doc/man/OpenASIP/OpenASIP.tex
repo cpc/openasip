@@ -9052,17 +9052,20 @@ evaluating hundreds or even thousands of processor configurations.
 
 \textbf{Output}: ExpResDB (Section~\ref{sec:expresdb})
 
-\subsection{Explorer Application format}
+\subsection{Explorer Application Directory}
 
-Applications are given as directories that contain the application specific
-files to the Explorer. Below is a description of all the possible files inside
-the application directory.
+Software applications that drive the design space exploration are given as folders
+that contain the application specific files to the Explorer. Below is a description
+of all the possible files inside the application directory.
 
 \begin{tabular}{p{0.25\textwidth}p{0.60\textwidth}}
 \textbf{file name} &\textbf{Description} \\
 \hline
 program.bc & The program byte code (produced using ``\verb|oacc --emit-llvm|'').\\
 description.txt & The application description.\\
+functions\_of\_interest & Comma separated list of functions in the program
+that should be (exclusively) included in the execution time measurement. This
+file is optional. If not given, the whole application's execution time is used. \\
 simulate.ttasim & TTASIM simulation script piped to the TTASIM to produce
 ttasim.out file. If no such file is given the simulation is started with
 "until 0" command.\\
