@@ -7,9 +7,6 @@ LLVMTCE_INCLUDE_DIR := $(shell llvmtce-config --includedir)
 CXXFLAGS += -I$(LLVMTCE_INCLUDE_DIR) -I .
 TABLEGEN_INCLUDE = -I$(LLVMTCE_INCLUDE_DIR) -I .
 
-# Linking flags
-LDFLAGS := -shared
-
 # Tablegen executable
 TABLEGEN := llvm-tblgen
 
@@ -138,7 +135,7 @@ RISCVGenSubtargetInfo.inc: $(TD_FILE)
 
 # Link object files into shared library
 $(LIBRARY): $(OBJS)
-	$(CXX) $(LDFLAGS) -o $@ $(OBJS)
+	$(CXX) -shared $(LDFLAGS) -o $@ $(OBJS)
 	rm -f $(OBJS) $(TABLEGEN_TARGETS)
 
 # Clean up
