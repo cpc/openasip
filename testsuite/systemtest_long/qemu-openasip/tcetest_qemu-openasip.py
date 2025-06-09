@@ -132,8 +132,5 @@ def run_test():
     return run_qemu()
 
 if __name__ == "__main__":
-    SYSTEM_TCE_DEVL_MODE = os.environ.get('TCE_DEVEL_MODE', '') 
-    os.environ['TCE_DEVEL_MODE'] = '0' # averts a linking error that causes the behavior to not load properly
     success = run_test()
-    os.environ['TCE_DEVEL_MODE'] = SYSTEM_TCE_DEVL_MODE
     exit(0 if success else 1)
