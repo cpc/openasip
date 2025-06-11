@@ -264,9 +264,8 @@ class IntegrationTestCase(object):
         if test_case_file.endswith(".testdesc"):
             self._load_legacy_testdesc()
         elif os.path.basename(test_case_file).startswith("tcetest_") and \
-                os.path.basename(test_case_file).endswith(".sh"):
+                os.path.basename(test_case_file).endswith((".sh", ".py")):
             self._load_sh_testdesc()
-
         # list of tuples of test data:
         # (stdin, expected stdout)
         self._test_data = []

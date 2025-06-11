@@ -177,6 +177,8 @@ OperationBuilder::buildObject(
                specific functionality might not import all the symbols
                required by the .opb loaded by libopenasip later. */
             LDFLAGS += " -L" + Application::installationDir() + "/lib -lopenasip ";
+        } else {
+            LDFLAGS += " -L" + string(TCE_SRC_ROOT) + "/src/.libs -lopenasip ";        
         }
 
         // Add user defined CXXFLAGS + CPPFLAGS to the end because they

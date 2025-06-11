@@ -61,9 +61,15 @@ jobs:
             cmake \
             graphviz \
             bc \
-            ghdl
+            ghdl \
+            python3 ninja-build pkg-config libglib2.0-dev \
+            libpixman-1-dev libslirp-dev flex bison file device-tree-compiler \
+            zlib1g-dev libfdt-dev python3-tomli \
+            gcc-riscv64-unknown-elf
 
-      - name:
+          sudo apt-get purge -y 'llvm-*' 'clang-*' 'libllvm-*' 'lld-*'
+          
+      - name: Create workspace directory
         run: |
           mkdir -p ${{ github.workspace }}/local
 
@@ -100,6 +106,11 @@ jobs:
           make -j$(nproc)
           make install
 
+      - name: install QEMU-OpenASIP
+        run: |
+          cd openasip
+          python3 ./tools/scripts/install_qemu.py $HOME/qemu-openasip
+          
       - name: Run tests
         run: |
           cd openasip
