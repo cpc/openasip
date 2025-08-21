@@ -1874,6 +1874,8 @@ FUGen::createOutputPipeline() {
         lastStage.append(Assign(
             "data_" + port->name() + "_out",
             LHSSignal(pipelineName(port->name(), 0))));
+        outputElsebody.append(
+            Assign("data_" + port->name() + "_out", BinaryLiteral("0")));
     }
 
     Synchronous sync("output_pipeline_sp");
@@ -1885,8 +1887,13 @@ FUGen::createOutputPipeline() {
     if (generateROCC_) {  // For ROCC, pipeline outputs are written only when
                           // the
                           // processor has raised the out_ready
-        async << If(
+        If outputAssign(
             Equals(LHSSignal("out_ready"), BinaryLiteral("1")), lastStage);
+        // setting pipeline select else values
+        outputElsebody.append(Assign("configs_out", BinaryLiteral("0")));
+        outputElsebody.append(Assign("out_valid", BinaryLiteral("0")));
+        outputAssign.elseClause(outputElsebody);
+        async << outputAssign;
     } else {
         async << lastStage;
     }
