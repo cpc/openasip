@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2020 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -80,28 +80,38 @@ Pass* createInstructionPatternAnalyzer();
 class DummyInstPrinter : public MCInstPrinter {
 public:
     DummyInstPrinter(
-        const llvm::MCAsmInfo& mai, const llvm::MCInstrInfo& mii, 
-        const llvm::MCRegisterInfo& mri) : llvm::MCInstPrinter(mai, mii, mri) {}
+        const llvm::MCAsmInfo& mai, const llvm::MCInstrInfo& mii,
+        const llvm::MCRegisterInfo& mri)
+        : llvm::MCInstPrinter(mai, mii, mri) {}
 
     bool
     applyTargetSpecificCLOption(StringRef Opt) override {
         return false;
     }
+
+#if LLVM_MAJOR_VERSION < 21
     std::pair<const char*, uint64_t>
     getMnemonic(const MCInst* MI) override {
         return std::make_pair(nullptr, 0);
     }
 
+    void
+    printRegName(raw_ostream& OS, MCRegister Reg) const override {}
+
+#else
+    std::pair<const char*, uint64_t>
+    getMnemonic(const MCInst&) const override {
+        return std::make_pair(nullptr, 0);
+    }
+
+    void
+    printRegName(raw_ostream& OS, MCRegister Reg) override {}
+#endif
+
     void printInst(
         const MCInst*, uint64_t, StringRef,
         const MCSubtargetInfo&, raw_ostream&) override {}
 
-    void
-    #ifdef LLVM_OLDER_THAN_16
-    printRegName(raw_ostream& OS, unsigned RegNo) const override {}
-    #else
-    printRegName(raw_ostream& OS, MCRegister Reg) const override {}
-    #endif
 };
 
 // In TCE target we don't print the MCInsts from LLVM, but
@@ -149,11 +159,13 @@ TCETargetMachine::TCETargetMachine(
     const Target &T, const Triple& TTriple,
     const llvm::StringRef& CPU, const llvm::StringRef& FS,
     const TargetOptions &Options,
-    #ifdef LLVM_OLDER_THAN_16
+#ifdef LLVM_OLDER_THAN_16
     Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM, CodeGenOpt::Level OL, bool) :
-    #else
-    std::optional<Reloc::Model> RM, std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL, bool) :
-    #endif
+#else
+    std::optional<Reloc::Model> RM, std::optional<CodeModel::Model> CM,
+    CodeGenOptLevel OL, bool)
+    :
+#endif
     TCEBaseTargetMachine(T, TTriple, CPU, FS, Options,
                          RM?*RM:Reloc::Model::Static, CM?*CM:CodeModel::Small, OL),
     // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
@@ -245,24 +257,17 @@ TCEPassConfig::addPreISel() {
         dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
     if (options != NULL && !options->disableHWLoops() &&
         ((static_cast<TCETargetMachine*>(TM))->ttaMach_)
-            ->hasOperation("hwloop"))
-        #ifdef LLVM_OLDER_THAN_17
-            addPass(createHardwareLoopsPass());
-        #else
-            addPass(createHardwareLoopsLegacyPass());
-        #endif
-        
+        ->hasOperation("hwloop"))
+        addPass(createHardwareLoopsLegacyPass());
 
-    // lower floating point stuff.. maybe could use plugin as param instead machine...    
+    // lower floating point stuff.. maybe could use plugin as param instead machine...
     addPass(createLowerMissingInstructionsPass(
                 *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
-    
+
     if ((static_cast<TCETargetMachine*>(TM))->emulationModule_ != NULL) {
         addPass(createLinkBitcodePass(
                   *((static_cast<TCETargetMachine*>(TM))->emulationModule_)));
     }
-
-    CodeGenOpt::Level OptLevel = getOptLevel();
 
     // NOTE: This must be added before Machine function analysis pass..
     // needed by POMBuilder to prevent writing debug data to data section

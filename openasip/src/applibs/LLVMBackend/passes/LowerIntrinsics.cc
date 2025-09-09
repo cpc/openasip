@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2023 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,14 +32,13 @@
  * @author Joonas Multanen 2023 (joonas.multanen-no.spam-tuni.fi)
  */
 
-#define DEBUG_TYPE "lowerintrinsics"
-
 #include <CompilerWarnings.hh>
 IGNORE_COMPILER_WARNING("-Wunused-parameter")
 
+#include "tce_config.h"
+
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Utils/UnifyFunctionExitNodes.h>
-#include <tce_config.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Constants.h>
@@ -52,7 +51,6 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Passes/PassPlugin.h>
 #include <llvm/CodeGen/IntrinsicLowering.h>
-#include <tce_config.h>
 
 POP_COMPILER_DIAGS
 
@@ -81,11 +79,10 @@ private:
     /// List of intrinsics to replace.
     std::set<unsigned> replace_;
     IntrinsicLowering* iLowering_;
-    TargetData* td_;
 };
 
-PreservedAnalyses LowerIntrinsics::run(Function &F,
-                                       FunctionAnalysisManager &AM) {
+PreservedAnalyses
+LowerIntrinsics::run(Function& F, FunctionAnalysisManager&) {
     //errs() << F.getName() << "\n";
   Module *parentModule = F.getParent();
   doInitialization(*parentModule);
@@ -95,7 +92,6 @@ PreservedAnalyses LowerIntrinsics::run(Function &F,
   doFinalization(*parentModule);
   return PreservedAnalyses::all();
 }
-
 
 bool
 LowerIntrinsics::doInitialization(Module &M) {
@@ -110,9 +106,14 @@ LowerIntrinsics::doInitialization(Module &M) {
     replace_.insert(Intrinsic::memset);
     replace_.insert(Intrinsic::memmove);
 
-    assert(iLowering_ == NULL && td_ == NULL);
-    td_ = new TargetData(&M);
-    iLowering_ = new IntrinsicLowering(*td_);
+    assert(iLowering_ == NULL);
+#if LLVM_MAJOR_VERSION < 21
+    DataLayout* DL = new DataLayout(&M);
+    iLowering_ = new IntrinsicLowering(*DL);
+    delete DL;
+#else
+    iLowering_ = new IntrinsicLowering(M.getDataLayout());
+#endif
     return true;
 }
 
@@ -122,13 +123,8 @@ LowerIntrinsics::doFinalization(Module& /*M*/) {
         delete iLowering_;
         iLowering_ = NULL;
     }
-    if (td_ != NULL) {
-        delete td_;
-        td_ = NULL;
-    }
     return true;
 }
-
 
 bool
 LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {

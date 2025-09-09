@@ -52,8 +52,13 @@ std::string getSourceLocationString(const llvm::MachineInstr& mi);
 
 /// First = Inline asm kind defined in llvm/IR/InlineAsm.h
 /// Second = The associated operands.
+#if LLVM_MAJOR_VERSION < 21
 using AsmOperands =
     std::tuple< unsigned, std::vector<const llvm::MachineOperand*>>;
+#else
+using AsmOperands = std::tuple<
+    llvm::InlineAsm::Flag, std::vector<const llvm::MachineOperand*>>;
+#endif
 /// Inline assembly operand position. The numbers are matched to template
 /// strings in inline asm texts - e.g. 2 => "$2".
 using AsmPosition = unsigned;

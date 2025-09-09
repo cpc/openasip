@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2015 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,11 +32,12 @@
 #ifndef TTA_TCE_STUB_TARGET_MACHINE_HH
 #define TTA_TCE_STUB_TARGET_MACHINE_HH
 
-#include "tce_config.h"
-
-#include "llvm/MC/TargetRegistry.h"
-#include <llvm/Target/TargetMachine.h>
+#include <llvm/CodeGen/CodeGenTargetMachineImpl.h>
 #include <llvm/CodeGen/TargetLowering.h>
+#include <llvm/MC/TargetRegistry.h>
+#include <llvm/Target/TargetMachine.h>
+
+#include "tce_config.h"
 // LLVM has function with parameter named as "PIC". Command line
 // option -DPIC messes up the compilation.
 #define PICCOPY PIC
@@ -74,6 +75,11 @@ namespace llvm {
     class TCEStubTargetMachine;
     class TCEStubSubTarget;
     class TargetSubTargetInfo;
+#if LLVM_MAJOR_VERSION >= 21
+    typedef llvm::CodeGenTargetMachineImpl LLVMTargetMachine;
+#else
+    typedef llvm::CodeGenOpt::Level CodeGenOptLevel;
+#endif
 
     /**
      * Base class common to TCEStubTargetMachine(for middle end) and
@@ -84,7 +90,7 @@ namespace llvm {
         TCEBaseTargetMachine(
             const Target& T, const Triple& TT, const llvm::StringRef& CPU,
             const llvm::StringRef& FS, const TargetOptions& Options,
-            Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL);
+            Reloc::Model RM, CodeModel::Model CM, CodeGenOptLevel OL);
         virtual bool
         isNoopAddrSpaceCast(unsigned SrcAS, unsigned DestAS) const override {
             return true;
@@ -105,16 +111,12 @@ namespace llvm {
         TCEStubSubTarget *ST;
 
     public:
-	TCEStubTargetMachine(
-            const Target &T, const Triple& TT,
-            const llvm::StringRef& CPU, const llvm::StringRef& FS,
-            const TargetOptions &Options,
-            #ifdef LLVM_OLDER_THAN_16
-            Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
-            #else
-            std::optional<Reloc::Model> RM, std::optional<CodeModel::Model> CM,
-            #endif
-            CodeGenOpt::Level OL, bool isLittle);
+        TCEStubTargetMachine(
+            const Target& T, const Triple& TT, const llvm::StringRef& CPU,
+            const llvm::StringRef& FS, const TargetOptions& Options,
+            std::optional<Reloc::Model> RM,
+            std::optional<CodeModel::Model> CM, CodeGenOptLevel OL,
+            bool isLittle);
 
         // TODO: this is no longer virtual in llvm 6.0
         // I wonder what this button does..

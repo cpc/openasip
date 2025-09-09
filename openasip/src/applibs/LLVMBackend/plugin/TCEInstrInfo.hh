@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -85,25 +85,19 @@ namespace llvm {
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             unsigned srcReg, bool isKill, int frameIndex,
-            #ifdef LLVM_OLDER_THAN_16
-            const TargetRegisterClass* rc) const;
-            #else
             const TargetRegisterClass* rc, Register vReg) const;
-            #endif
 
-        // changed in LLVM 2.8:
         virtual void storeRegToStackSlot(
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             Register srcReg, bool isKill, int frameIndex,
-            #ifdef LLVM_OLDER_THAN_16
-            const TargetRegisterClass* rc, const TargetRegisterInfo*) const override {
-            storeRegToStackSlot(mbb, mbbi, srcReg, isKill, frameIndex, rc);
-            #else
             const TargetRegisterClass* rc, const TargetRegisterInfo*,
-            Register vReg) const override {
+            Register vReg
+#if LLVM_MAJOR_VERSION >= 21
+            , MachineInstr::MIFlag Flags = MachineInstr::NoFlags
+#endif
+          ) const override {
             storeRegToStackSlot(mbb, mbbi, srcReg, isKill, frameIndex, rc, 0);
-            #endif
         }
 
         // TODO: this is in the form of the llvm 2.7 version of this method.
@@ -112,40 +106,44 @@ namespace llvm {
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             unsigned destReg, int frameIndex,
-            #ifdef LLVM_OLDER_THAN_16
-            const TargetRegisterClass* rc) const;
-            #else
             const TargetRegisterClass* rc, Register vReg) const;
-            #endif
 
-        // changed in LLVM 2.8:
         virtual void loadRegFromStackSlot(
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             Register destReg, int frameIndex,
-            #ifdef LLVM_OLDER_THAN_16
-            const TargetRegisterClass* rc, const TargetRegisterInfo*) const override {
-            loadRegFromStackSlot(mbb, mbbi, destReg, frameIndex, rc);
-            #else
             const TargetRegisterClass* rc, const TargetRegisterInfo*,
-            Register vReg) const override {
+            Register vReg
+#if LLVM_MAJOR_VERSION >= 21
+            , MachineInstr::MIFlag Flags = MachineInstr::NoFlags
+#endif
+          ) const override {
             loadRegFromStackSlot(mbb, mbbi, destReg, frameIndex, rc, 0);
-            #endif
         }
 
-    virtual void copyPhysReg(
-        MachineBasicBlock& mbb,
-        MachineBasicBlock::iterator mbbi,
-        const DebugLoc& DL,
-        MCRegister destReg, MCRegister srcReg,
-        bool KillSrc) const override;
-
+#if LLVM_MAJOR_VERSION >= 21
+        virtual void copyPhysReg(
+          MachineBasicBlock& mbb,
+          MachineBasicBlock::iterator mbbi,
+          const DebugLoc& DL,
+          Register destReg, Register srcReg,
+          bool killSrc,
+          bool renamableDest = false,
+          bool renamableSrc = false) const override;
+#else
+        virtual void copyPhysReg(
+          MachineBasicBlock& mbb,
+          MachineBasicBlock::iterator mbbi,
+          const DebugLoc& DL,
+          MCRegister destReg, MCRegister srcReg,
+          bool killSrc) const override;
+#endif
         virtual bool reverseBranchCondition(
             llvm::SmallVectorImpl<llvm::MachineOperand>& cond) const override;
 
         virtual bool analyzeBranch(
             MachineBasicBlock &MBB, MachineBasicBlock *&TBB,
-            MachineBasicBlock *&FBB, 
+            MachineBasicBlock *&FBB,
             llvm::SmallVectorImpl<llvm::MachineOperand>& cond,
             bool allowModify = false)
             const override;

@@ -42,7 +42,7 @@ using namespace llvm;
 bool
 TCETTIImpl::isHardwareLoopProfitable(
     Loop *L, ScalarEvolution &SE, AssumptionCache &AC,
-    TargetLibraryInfo *LibInfo, HardwareLoopInfo &HWLoopInfo) {
+    TargetLibraryInfo *LibInfo, HardwareLoopInfo &HWLoopInfo) const {
     // Check TCE flag for hwloop
     LLVMTCECmdLineOptions *options =
         dynamic_cast<LLVMTCECmdLineOptions *>(Application::cmdLineOptions());

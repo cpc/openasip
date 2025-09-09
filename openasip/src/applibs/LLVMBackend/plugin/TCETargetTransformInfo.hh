@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2022 Kanishkan Vadivel/Eindhoven University.
+    Copyright (c) 2002-2025 Kanishkan Vadivel/Eindhoven University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -64,7 +64,7 @@ public:
               ST->getTargetLowering())) {}
     bool isHardwareLoopProfitable(
         Loop *L, ScalarEvolution &SE, AssumptionCache &AC,
-        TargetLibraryInfo *LibInfo, HardwareLoopInfo &HWLoopInfo);
+        TargetLibraryInfo *LibInfo, HardwareLoopInfo &HWLoopInfo) const override;
 };
 }  // namespace llvm
 

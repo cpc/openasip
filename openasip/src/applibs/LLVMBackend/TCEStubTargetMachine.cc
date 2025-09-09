@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2015 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -99,30 +99,26 @@ StringRef getTargetDesc(const Triple &TT) {
 
 /* Base class constructor */
 TCEBaseTargetMachine::TCEBaseTargetMachine(
-    const Target &T, const Triple& TT, const llvm::StringRef& CPU,
-    const llvm::StringRef& FS, const TargetOptions &Options,
-    Reloc::Model RM, CodeModel::Model CM, CodeGenOpt::Level OL) :
-    LLVMTargetMachine(T, getTargetDesc(TT), TT, CPU, FS, Options, RM, CM, OL),
-    ttaMach_(NULL) {
-}
-
+    const Target& T, const Triple& TT, const llvm::StringRef& CPU,
+    const llvm::StringRef& FS, const TargetOptions& Options, Reloc::Model RM,
+    CodeModel::Model CM, CodeGenOptLevel OL)
+    : LLVMTargetMachine(
+          T, getTargetDesc(TT), TT, CPU, FS, Options, RM, CM, OL),
+      ttaMach_(NULL) {}
 
 TCEStubTargetMachine::TCEStubTargetMachine(
-    const Target &T, const Triple &TT, const llvm::StringRef& CPU,
-    const llvm::StringRef& FS, const TargetOptions &Options,
-    #ifdef LLVM_OLDER_THAN_16
-    Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
-    #else
+    const Target& T, const Triple& TT, const llvm::StringRef& CPU,
+    const llvm::StringRef& FS, const TargetOptions& Options,
     std::optional<Reloc::Model> RM, std::optional<CodeModel::Model> CM,
-    #endif
-    CodeGenOpt::Level OL, bool) :
-    TCEBaseTargetMachine(T, TT, CPU, FS, Options,
-                         RM?*RM:Reloc::Model::Static,
-                         CM?*CM:CodeModel::Small, OL),
-    // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
-    // Note: CodeModel does not have "Default" named member. "Small" is ok?
-    TLOF(new TargetLoweringObjectFileELF) {
-//    TLOF(new TargetLoweringObjectFile) {
+    CodeGenOptLevel OL, bool)
+    : TCEBaseTargetMachine(
+          T, TT, CPU, FS, Options, RM ? *RM : Reloc::Model::Static,
+          CM ? *CM : CodeModel::Small, OL),
+      // Note: Reloc::Model does not have "Default" named member. "Static" is
+      // ok? Note: CodeModel does not have "Default" named member. "Small" is
+      // ok?
+      TLOF(new TargetLoweringObjectFileELF) {
+    //    TLOF(new TargetLoweringObjectFile) {
     ST = new TCEStubSubTarget(TT, CPU, FS, *this);
 
     // For autovectorization to work we need to set target machine information:

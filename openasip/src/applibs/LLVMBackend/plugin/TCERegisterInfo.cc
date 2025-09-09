@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -125,12 +125,9 @@ TCERegisterInfo::getReservedRegs(const MachineFunction& mf) const {
 
     return reserved;
 }
-#ifdef LLVM_OLDER_THAN_16
-void TCERegisterInfo::eliminateFrameIndex(
-#else
+
 bool TCERegisterInfo::eliminateFrameIndex(
-#endif
-    MachineBasicBlock::iterator II, int SPAdj, 
+    MachineBasicBlock::iterator II, int SPAdj,
     unsigned FIOperandNum,
     RegScavenger *RS) const {
 
@@ -153,8 +150,7 @@ bool TCERegisterInfo::eliminateFrameIndex(
 
     DebugLoc dl = MI.getDebugLoc();
     int FrameIndex = MI.getOperand(FIOperandNum).getIndex();
-    // Addressable stack objects are accessed using neg. offsets from %fp
-    // NO THEY ARE NOT! apwards from SP!
+    // Addressable stack objects are accessed upwards from SP.
     MachineFunction &MF = *MI.getParent()->getParent();
 
     auto& frameinfo = MF.getFrameInfo();
@@ -164,11 +160,7 @@ bool TCERegisterInfo::eliminateFrameIndex(
              i != MI.memoperands_end(); i++) {
             const PseudoSourceValue* psv = (*i)->getPseudoValue();
             if (psv == NULL) {
-                #ifdef LLVM_OLDER_THAN_15
-                (*i)->setValue(new FixedStackPseudoSourceValue(FrameIndex, TII));
-                #else
                 (*i)->setValue(new FixedStackPseudoSourceValue(FrameIndex, tm));
-                #endif
             }
         }
         if (MI.memoperands_begin() == MI.memoperands_end()) {
@@ -176,14 +168,16 @@ bool TCERegisterInfo::eliminateFrameIndex(
             auto flags = static_cast<MachineMemOperand::Flags>(
                 MI.mayLoad() * MachineMemOperand::MOLoad
                 | MI.mayStore() * MachineMemOperand::MOStore);
+#if LLVM_MAJOR_VERSION >= 21
             auto mmo = new MachineMemOperand(
-                MachinePointerInfo(), flags, 0, Align(tfi_->stackAlignment()));
-            #ifdef LLVM_OLDER_THAN_15
-            mmo->setValue(new FixedStackPseudoSourceValue(FrameIndex, TII));
-            #else
+              MachinePointerInfo(), flags, llvm::LocationSize::precise(0),
+              Align(tfi_->stackAlignment()));
+#else
+            auto mmo = new MachineMemOperand(
+              MachinePointerInfo(), flags, 0, Align(tfi_->stackAlignment()));
+#endif
             mmo->setValue(new FixedStackPseudoSourceValue(FrameIndex, tm));
-            #endif
-            MI.addMemOperand(MF,  mmo);
+            MI.addMemOperand(MF, mmo);
         }
     }
 

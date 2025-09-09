@@ -3,5 +3,3 @@ CURDIR=$(pwd)
 rm -rf testi.dsdb
 rm -rf sim.tpef
 rm -rf ttasim_output.temp
-
-cp -f data/program.new data/program.ll

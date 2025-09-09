@@ -54,7 +54,7 @@ using namespace llvm;
 
 #define DEBUG_TYPE "tcestubtti"
 
-
+#if LLVM_MAJOR_VERSION < 21
 unsigned
 TCEStubTTIImpl::getNumberOfRegisters(bool vector) {
     // without adf information we have no clue about registers
@@ -67,11 +67,14 @@ TCEStubTTIImpl::getNumberOfRegisters(bool vector) {
 
     return MachineInfo::numberOfRegisters(*(TM->ttaMach_), widestOperand);
 }
+#else
+// This method is not in the LLVM 21's interface. TODO: check
+// the required interfaces for vectorization info.
+#endif
 
+#if LLVM_MAJOR_VERSION < 21
 unsigned
-TCEStubTTIImpl::getRegisterBitWidth(bool vector)
-const
-{
+TCEStubTTIImpl::getRegisterBitWidth(bool vector) const {
     // without adf information we have no clue about registers
     if (TM->ttaMach_ == NULL)
         return 0;
@@ -88,10 +91,42 @@ TCEStubTTIImpl::getMaxInterleaveFactor(unsigned VF) {
     return 2;
 }
 
+#else
+
+llvm::TypeSize
+TCEStubTTIImpl::getRegisterBitWidth(
+    TargetTransformInfo::RegisterKind K) const {
+    bool vector = K != llvm::TargetTransformInfo::RegisterKind::RGK_Scalar;
+    // without adf information we have no clue about registers
+    if (TM->ttaMach_ == NULL) TypeSize::getZero();
+
+    // Widest operand tells directly the widest register
+    return TypeSize::getFixed(
+        MachineInfo::findWidestOperand(*(TM->ttaMach_), vector));
+}
+
 unsigned
-TCEStubTTIImpl::getCastInstrCost(unsigned Opcode, Type *Dst, Type *Src
-				 , const Instruction*
-) {
+TCEStubTTIImpl::getMaxInterleaveFactor(llvm::ElementCount) const {
+    // This means maximum loop unroll factor
+    // 2 because loopvectorizer requires >1
+    // TODO: find some way adjust this.
+    return 2;
+}
+
+#endif
+
+#if LLVM_MAJOR_VERSION < 21
+unsigned
+TCEStubTTIImpl::getCastInstrCost(
+    unsigned Opcode, Type* Dst, Type* Src, const Instruction*)
+#else
+llvm::InstructionCost
+TCEStubTTIImpl::getCastInstrCost(
+    unsigned Opcode, Type* Dst, Type* Src,
+    llvm::TargetTransformInfo::CastContextHint,
+    llvm::TargetTransformInfo::TargetCostKind, const Instruction*) const
+#endif
+{
     // TODO: Maybe use ADF/osal information to figure out real cost
     // 1 selected at the moment because LLVM cost model assumed way too high
     // cost for trunc/zext instructions. Too low value here might lead to 

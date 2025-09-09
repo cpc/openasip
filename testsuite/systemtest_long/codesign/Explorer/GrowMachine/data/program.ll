@@ -1,0 +1,797 @@
+; ModuleID = 'data/program.bc'
+source_filename = "llvm-link"
+target datalayout = "E-p:32:32:32-i1:8:8-i8:8:32-i16:16:32-i32:32:32-i64:32:32-f16:16:16-f32:32:32-f64:32:32-v64:64:64-i128:128-v128:128:128-v256:256:256-v512:512:512-v1024:1024:1024-v2048:2048:2048-v4096:4096:4096-a0:0:32-n32"
+target triple = "tce-tut-unknown-llvm"
+
+@A = internal unnamed_addr global [100 x i32] zeroinitializer, align 4
+@B = internal unnamed_addr global [100 x i32] zeroinitializer, align 4
+@C = internal unnamed_addr global [100 x i32] zeroinitializer, align 4
+@_Output = dso_local local_unnamed_addr global [100 x i32] zeroinitializer, align 4
+
+; Function Attrs: noinline noreturn nounwind
+define dso_local void @_start() local_unnamed_addr #0 {
+entry:
+  tail call void asm sideeffect ".call_global_ctors", ""() #4, !srcloc !3
+  %call = tail call fastcc i32 @main(i32 0, ptr null, ptr null) #5
+  tail call void asm sideeffect ".call_global_dtors", ""() #4, !srcloc !4
+  tail call fastcc void @_exit() #6
+  unreachable
+}
+
+; Function Attrs: nofree noinline noreturn nounwind memory(argmem: readwrite)
+define internal fastcc void @_exit() unnamed_addr #1 {
+entry:
+  %__dummy__ = alloca i32, align 4
+  call void @llvm.lifetime.start.p0(i64 4, ptr nonnull %__dummy__)
+  br label %while.cond
+
+while.cond:                                       ; preds = %while.cond, %entry
+  store volatile i32 0, ptr %__dummy__, align 4, !tbaa !5
+  br label %while.cond
+}
+
+; Function Attrs: nocallback nofree nosync nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.lifetime.start.p0(i64 immarg, ptr captures(none)) #2
+
+; Function Attrs: nofree norecurse nosync nounwind
+define internal fastcc i32 @main(i32 %argc, ptr readnone captures(none) %argv, ptr readnone captures(none) %envp) unnamed_addr #3 {
+entry:
+  br label %for.body.i
+
+for.body.i:                                       ; preds = %for.body.i, %entry
+  %i.023.i = phi i32 [ 0, %entry ], [ %inc.i.24, %for.body.i ]
+  %arrayidx.i = getelementptr inbounds i32, ptr @A, i32 %i.023.i
+  store i32 1, ptr %arrayidx.i, align 4, !tbaa !5
+  %inc.i = add nuw nsw i32 %i.023.i, 1
+  %arrayidx.i.1 = getelementptr inbounds i32, ptr @A, i32 %inc.i
+  store i32 1, ptr %arrayidx.i.1, align 4, !tbaa !5
+  %inc.i.1 = add nuw nsw i32 %i.023.i, 2
+  %arrayidx.i.2 = getelementptr inbounds i32, ptr @A, i32 %inc.i.1
+  store i32 1, ptr %arrayidx.i.2, align 4, !tbaa !5
+  %inc.i.2 = add nuw nsw i32 %i.023.i, 3
+  %arrayidx.i.3 = getelementptr inbounds i32, ptr @A, i32 %inc.i.2
+  store i32 1, ptr %arrayidx.i.3, align 4, !tbaa !5
+  %inc.i.3 = add nuw nsw i32 %i.023.i, 4
+  %arrayidx.i.4 = getelementptr inbounds i32, ptr @A, i32 %inc.i.3
+  store i32 1, ptr %arrayidx.i.4, align 4, !tbaa !5
+  %inc.i.4 = add nuw nsw i32 %i.023.i, 5
+  %arrayidx.i.5 = getelementptr inbounds i32, ptr @A, i32 %inc.i.4
+  store i32 1, ptr %arrayidx.i.5, align 4, !tbaa !5
+  %inc.i.5 = add nuw nsw i32 %i.023.i, 6
+  %arrayidx.i.6 = getelementptr inbounds i32, ptr @A, i32 %inc.i.5
+  store i32 1, ptr %arrayidx.i.6, align 4, !tbaa !5
+  %inc.i.6 = add nuw nsw i32 %i.023.i, 7
+  %arrayidx.i.7 = getelementptr inbounds i32, ptr @A, i32 %inc.i.6
+  store i32 1, ptr %arrayidx.i.7, align 4, !tbaa !5
+  %inc.i.7 = add nuw nsw i32 %i.023.i, 8
+  %arrayidx.i.8 = getelementptr inbounds i32, ptr @A, i32 %inc.i.7
+  store i32 1, ptr %arrayidx.i.8, align 4, !tbaa !5
+  %inc.i.8 = add nuw nsw i32 %i.023.i, 9
+  %arrayidx.i.9 = getelementptr inbounds i32, ptr @A, i32 %inc.i.8
+  store i32 1, ptr %arrayidx.i.9, align 4, !tbaa !5
+  %inc.i.9 = add nuw nsw i32 %i.023.i, 10
+  %arrayidx.i.10 = getelementptr inbounds i32, ptr @A, i32 %inc.i.9
+  store i32 1, ptr %arrayidx.i.10, align 4, !tbaa !5
+  %inc.i.10 = add nuw nsw i32 %i.023.i, 11
+  %arrayidx.i.11 = getelementptr inbounds i32, ptr @A, i32 %inc.i.10
+  store i32 1, ptr %arrayidx.i.11, align 4, !tbaa !5
+  %inc.i.11 = add nuw nsw i32 %i.023.i, 12
+  %arrayidx.i.12 = getelementptr inbounds i32, ptr @A, i32 %inc.i.11
+  store i32 1, ptr %arrayidx.i.12, align 4, !tbaa !5
+  %inc.i.12 = add nuw nsw i32 %i.023.i, 13
+  %arrayidx.i.13 = getelementptr inbounds i32, ptr @A, i32 %inc.i.12
+  store i32 1, ptr %arrayidx.i.13, align 4, !tbaa !5
+  %inc.i.13 = add nuw nsw i32 %i.023.i, 14
+  %arrayidx.i.14 = getelementptr inbounds i32, ptr @A, i32 %inc.i.13
+  store i32 1, ptr %arrayidx.i.14, align 4, !tbaa !5
+  %inc.i.14 = add nuw nsw i32 %i.023.i, 15
+  %arrayidx.i.15 = getelementptr inbounds i32, ptr @A, i32 %inc.i.14
+  store i32 1, ptr %arrayidx.i.15, align 4, !tbaa !5
+  %inc.i.15 = add nuw nsw i32 %i.023.i, 16
+  %arrayidx.i.16 = getelementptr inbounds i32, ptr @A, i32 %inc.i.15
+  store i32 1, ptr %arrayidx.i.16, align 4, !tbaa !5
+  %inc.i.16 = add nuw nsw i32 %i.023.i, 17
+  %arrayidx.i.17 = getelementptr inbounds i32, ptr @A, i32 %inc.i.16
+  store i32 1, ptr %arrayidx.i.17, align 4, !tbaa !5
+  %inc.i.17 = add nuw nsw i32 %i.023.i, 18
+  %arrayidx.i.18 = getelementptr inbounds i32, ptr @A, i32 %inc.i.17
+  store i32 1, ptr %arrayidx.i.18, align 4, !tbaa !5
+  %inc.i.18 = add nuw nsw i32 %i.023.i, 19
+  %arrayidx.i.19 = getelementptr inbounds i32, ptr @A, i32 %inc.i.18
+  store i32 1, ptr %arrayidx.i.19, align 4, !tbaa !5
+  %inc.i.19 = add nuw nsw i32 %i.023.i, 20
+  %arrayidx.i.20 = getelementptr inbounds i32, ptr @A, i32 %inc.i.19
+  store i32 1, ptr %arrayidx.i.20, align 4, !tbaa !5
+  %inc.i.20 = add nuw nsw i32 %i.023.i, 21
+  %arrayidx.i.21 = getelementptr inbounds i32, ptr @A, i32 %inc.i.20
+  store i32 1, ptr %arrayidx.i.21, align 4, !tbaa !5
+  %inc.i.21 = add nuw nsw i32 %i.023.i, 22
+  %arrayidx.i.22 = getelementptr inbounds i32, ptr @A, i32 %inc.i.21
+  store i32 1, ptr %arrayidx.i.22, align 4, !tbaa !5
+  %inc.i.22 = add nuw nsw i32 %i.023.i, 23
+  %arrayidx.i.23 = getelementptr inbounds i32, ptr @A, i32 %inc.i.22
+  store i32 1, ptr %arrayidx.i.23, align 4, !tbaa !5
+  %inc.i.23 = add nuw nsw i32 %i.023.i, 24
+  %arrayidx.i.24 = getelementptr inbounds i32, ptr @A, i32 %inc.i.23
+  store i32 1, ptr %arrayidx.i.24, align 4, !tbaa !5
+  %inc.i.24 = add nuw nsw i32 %i.023.i, 25
+  %exitcond.not.i.24 = icmp eq i32 %inc.i.24, 100
+  br i1 %exitcond.not.i.24, label %for.body3.i, label %for.body.i, !llvm.loop !9
+
+for.body3.i:                                      ; preds = %for.body.i, %for.body3.i
+  %i.124.i = phi i32 [ %inc6.i.24, %for.body3.i ], [ 0, %for.body.i ]
+  %arrayidx4.i = getelementptr inbounds i32, ptr @B, i32 %i.124.i
+  store i32 1, ptr %arrayidx4.i, align 4, !tbaa !5
+  %inc6.i = add nuw nsw i32 %i.124.i, 1
+  %arrayidx4.i.1 = getelementptr inbounds i32, ptr @B, i32 %inc6.i
+  store i32 1, ptr %arrayidx4.i.1, align 4, !tbaa !5
+  %inc6.i.1 = add nuw nsw i32 %i.124.i, 2
+  %arrayidx4.i.2 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.1
+  store i32 1, ptr %arrayidx4.i.2, align 4, !tbaa !5
+  %inc6.i.2 = add nuw nsw i32 %i.124.i, 3
+  %arrayidx4.i.3 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.2
+  store i32 1, ptr %arrayidx4.i.3, align 4, !tbaa !5
+  %inc6.i.3 = add nuw nsw i32 %i.124.i, 4
+  %arrayidx4.i.4 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.3
+  store i32 1, ptr %arrayidx4.i.4, align 4, !tbaa !5
+  %inc6.i.4 = add nuw nsw i32 %i.124.i, 5
+  %arrayidx4.i.5 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.4
+  store i32 1, ptr %arrayidx4.i.5, align 4, !tbaa !5
+  %inc6.i.5 = add nuw nsw i32 %i.124.i, 6
+  %arrayidx4.i.6 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.5
+  store i32 1, ptr %arrayidx4.i.6, align 4, !tbaa !5
+  %inc6.i.6 = add nuw nsw i32 %i.124.i, 7
+  %arrayidx4.i.7 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.6
+  store i32 1, ptr %arrayidx4.i.7, align 4, !tbaa !5
+  %inc6.i.7 = add nuw nsw i32 %i.124.i, 8
+  %arrayidx4.i.8 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.7
+  store i32 1, ptr %arrayidx4.i.8, align 4, !tbaa !5
+  %inc6.i.8 = add nuw nsw i32 %i.124.i, 9
+  %arrayidx4.i.9 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.8
+  store i32 1, ptr %arrayidx4.i.9, align 4, !tbaa !5
+  %inc6.i.9 = add nuw nsw i32 %i.124.i, 10
+  %arrayidx4.i.10 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.9
+  store i32 1, ptr %arrayidx4.i.10, align 4, !tbaa !5
+  %inc6.i.10 = add nuw nsw i32 %i.124.i, 11
+  %arrayidx4.i.11 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.10
+  store i32 1, ptr %arrayidx4.i.11, align 4, !tbaa !5
+  %inc6.i.11 = add nuw nsw i32 %i.124.i, 12
+  %arrayidx4.i.12 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.11
+  store i32 1, ptr %arrayidx4.i.12, align 4, !tbaa !5
+  %inc6.i.12 = add nuw nsw i32 %i.124.i, 13
+  %arrayidx4.i.13 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.12
+  store i32 1, ptr %arrayidx4.i.13, align 4, !tbaa !5
+  %inc6.i.13 = add nuw nsw i32 %i.124.i, 14
+  %arrayidx4.i.14 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.13
+  store i32 1, ptr %arrayidx4.i.14, align 4, !tbaa !5
+  %inc6.i.14 = add nuw nsw i32 %i.124.i, 15
+  %arrayidx4.i.15 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.14
+  store i32 1, ptr %arrayidx4.i.15, align 4, !tbaa !5
+  %inc6.i.15 = add nuw nsw i32 %i.124.i, 16
+  %arrayidx4.i.16 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.15
+  store i32 1, ptr %arrayidx4.i.16, align 4, !tbaa !5
+  %inc6.i.16 = add nuw nsw i32 %i.124.i, 17
+  %arrayidx4.i.17 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.16
+  store i32 1, ptr %arrayidx4.i.17, align 4, !tbaa !5
+  %inc6.i.17 = add nuw nsw i32 %i.124.i, 18
+  %arrayidx4.i.18 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.17
+  store i32 1, ptr %arrayidx4.i.18, align 4, !tbaa !5
+  %inc6.i.18 = add nuw nsw i32 %i.124.i, 19
+  %arrayidx4.i.19 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.18
+  store i32 1, ptr %arrayidx4.i.19, align 4, !tbaa !5
+  %inc6.i.19 = add nuw nsw i32 %i.124.i, 20
+  %arrayidx4.i.20 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.19
+  store i32 1, ptr %arrayidx4.i.20, align 4, !tbaa !5
+  %inc6.i.20 = add nuw nsw i32 %i.124.i, 21
+  %arrayidx4.i.21 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.20
+  store i32 1, ptr %arrayidx4.i.21, align 4, !tbaa !5
+  %inc6.i.21 = add nuw nsw i32 %i.124.i, 22
+  %arrayidx4.i.22 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.21
+  store i32 1, ptr %arrayidx4.i.22, align 4, !tbaa !5
+  %inc6.i.22 = add nuw nsw i32 %i.124.i, 23
+  %arrayidx4.i.23 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.22
+  store i32 1, ptr %arrayidx4.i.23, align 4, !tbaa !5
+  %inc6.i.23 = add nuw nsw i32 %i.124.i, 24
+  %arrayidx4.i.24 = getelementptr inbounds i32, ptr @B, i32 %inc6.i.23
+  store i32 1, ptr %arrayidx4.i.24, align 4, !tbaa !5
+  %inc6.i.24 = add nuw nsw i32 %i.124.i, 25
+  %exitcond26.not.i.24 = icmp eq i32 %inc6.i.24, 100
+  br i1 %exitcond26.not.i.24, label %for.body10.i, label %for.body3.i, !llvm.loop !11
+
+for.body10.i:                                     ; preds = %for.body3.i, %for.body10.i
+  %i.225.i = phi i32 [ %inc13.i.24, %for.body10.i ], [ 0, %for.body3.i ]
+  %arrayidx11.i = getelementptr inbounds i32, ptr @C, i32 %i.225.i
+  store i32 0, ptr %arrayidx11.i, align 4, !tbaa !5
+  %inc13.i = add nuw nsw i32 %i.225.i, 1
+  %arrayidx11.i.1 = getelementptr inbounds i32, ptr @C, i32 %inc13.i
+  store i32 0, ptr %arrayidx11.i.1, align 4, !tbaa !5
+  %inc13.i.1 = add nuw nsw i32 %i.225.i, 2
+  %arrayidx11.i.2 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.1
+  store i32 0, ptr %arrayidx11.i.2, align 4, !tbaa !5
+  %inc13.i.2 = add nuw nsw i32 %i.225.i, 3
+  %arrayidx11.i.3 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.2
+  store i32 0, ptr %arrayidx11.i.3, align 4, !tbaa !5
+  %inc13.i.3 = add nuw nsw i32 %i.225.i, 4
+  %arrayidx11.i.4 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.3
+  store i32 0, ptr %arrayidx11.i.4, align 4, !tbaa !5
+  %inc13.i.4 = add nuw nsw i32 %i.225.i, 5
+  %arrayidx11.i.5 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.4
+  store i32 0, ptr %arrayidx11.i.5, align 4, !tbaa !5
+  %inc13.i.5 = add nuw nsw i32 %i.225.i, 6
+  %arrayidx11.i.6 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.5
+  store i32 0, ptr %arrayidx11.i.6, align 4, !tbaa !5
+  %inc13.i.6 = add nuw nsw i32 %i.225.i, 7
+  %arrayidx11.i.7 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.6
+  store i32 0, ptr %arrayidx11.i.7, align 4, !tbaa !5
+  %inc13.i.7 = add nuw nsw i32 %i.225.i, 8
+  %arrayidx11.i.8 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.7
+  store i32 0, ptr %arrayidx11.i.8, align 4, !tbaa !5
+  %inc13.i.8 = add nuw nsw i32 %i.225.i, 9
+  %arrayidx11.i.9 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.8
+  store i32 0, ptr %arrayidx11.i.9, align 4, !tbaa !5
+  %inc13.i.9 = add nuw nsw i32 %i.225.i, 10
+  %arrayidx11.i.10 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.9
+  store i32 0, ptr %arrayidx11.i.10, align 4, !tbaa !5
+  %inc13.i.10 = add nuw nsw i32 %i.225.i, 11
+  %arrayidx11.i.11 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.10
+  store i32 0, ptr %arrayidx11.i.11, align 4, !tbaa !5
+  %inc13.i.11 = add nuw nsw i32 %i.225.i, 12
+  %arrayidx11.i.12 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.11
+  store i32 0, ptr %arrayidx11.i.12, align 4, !tbaa !5
+  %inc13.i.12 = add nuw nsw i32 %i.225.i, 13
+  %arrayidx11.i.13 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.12
+  store i32 0, ptr %arrayidx11.i.13, align 4, !tbaa !5
+  %inc13.i.13 = add nuw nsw i32 %i.225.i, 14
+  %arrayidx11.i.14 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.13
+  store i32 0, ptr %arrayidx11.i.14, align 4, !tbaa !5
+  %inc13.i.14 = add nuw nsw i32 %i.225.i, 15
+  %arrayidx11.i.15 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.14
+  store i32 0, ptr %arrayidx11.i.15, align 4, !tbaa !5
+  %inc13.i.15 = add nuw nsw i32 %i.225.i, 16
+  %arrayidx11.i.16 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.15
+  store i32 0, ptr %arrayidx11.i.16, align 4, !tbaa !5
+  %inc13.i.16 = add nuw nsw i32 %i.225.i, 17
+  %arrayidx11.i.17 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.16
+  store i32 0, ptr %arrayidx11.i.17, align 4, !tbaa !5
+  %inc13.i.17 = add nuw nsw i32 %i.225.i, 18
+  %arrayidx11.i.18 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.17
+  store i32 0, ptr %arrayidx11.i.18, align 4, !tbaa !5
+  %inc13.i.18 = add nuw nsw i32 %i.225.i, 19
+  %arrayidx11.i.19 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.18
+  store i32 0, ptr %arrayidx11.i.19, align 4, !tbaa !5
+  %inc13.i.19 = add nuw nsw i32 %i.225.i, 20
+  %arrayidx11.i.20 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.19
+  store i32 0, ptr %arrayidx11.i.20, align 4, !tbaa !5
+  %inc13.i.20 = add nuw nsw i32 %i.225.i, 21
+  %arrayidx11.i.21 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.20
+  store i32 0, ptr %arrayidx11.i.21, align 4, !tbaa !5
+  %inc13.i.21 = add nuw nsw i32 %i.225.i, 22
+  %arrayidx11.i.22 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.21
+  store i32 0, ptr %arrayidx11.i.22, align 4, !tbaa !5
+  %inc13.i.22 = add nuw nsw i32 %i.225.i, 23
+  %arrayidx11.i.23 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.22
+  store i32 0, ptr %arrayidx11.i.23, align 4, !tbaa !5
+  %inc13.i.23 = add nuw nsw i32 %i.225.i, 24
+  %arrayidx11.i.24 = getelementptr inbounds i32, ptr @C, i32 %inc13.i.23
+  store i32 0, ptr %arrayidx11.i.24, align 4, !tbaa !5
+  %inc13.i.24 = add nuw nsw i32 %i.225.i, 25
+  %exitcond27.not.i.24 = icmp eq i32 %inc13.i.24, 100
+  br i1 %exitcond27.not.i.24, label %for.cond1.preheader, label %for.body10.i, !llvm.loop !12
+
+for.cond1.preheader:                              ; preds = %for.body10.i, %for.inc13
+  %k.072 = phi i32 [ %inc14, %for.inc13 ], [ 0, %for.body10.i ]
+  %p_c.071 = phi ptr [ %incdec.ptr9.1, %for.inc13 ], [ @C, %for.body10.i ]
+  %mul = mul nuw nsw i32 %k.072, 10
+  %arrayidx = getelementptr inbounds [100 x i32], ptr @B, i32 0, i32 %mul
+  %incdec.ptr7 = getelementptr inbounds i32, ptr %arrayidx, i32 1
+  %incdec.ptr7.1 = getelementptr inbounds i32, ptr %arrayidx, i32 2
+  %incdec.ptr7.2 = getelementptr inbounds i32, ptr %arrayidx, i32 3
+  %incdec.ptr7.3 = getelementptr inbounds i32, ptr %arrayidx, i32 4
+  %incdec.ptr7.4 = getelementptr inbounds i32, ptr %arrayidx, i32 5
+  %incdec.ptr7.5 = getelementptr inbounds i32, ptr %arrayidx, i32 6
+  %incdec.ptr7.6 = getelementptr inbounds i32, ptr %arrayidx, i32 7
+  %incdec.ptr7.7 = getelementptr inbounds i32, ptr %arrayidx, i32 8
+  %incdec.ptr7.8 = getelementptr inbounds i32, ptr %arrayidx, i32 9
+  %0 = load i32, ptr %arrayidx, align 4, !tbaa !5
+  %1 = load i32, ptr %incdec.ptr7, align 4, !tbaa !5
+  %2 = load i32, ptr %incdec.ptr7.1, align 4, !tbaa !5
+  %3 = load i32, ptr %incdec.ptr7.2, align 4, !tbaa !5
+  %4 = load i32, ptr %incdec.ptr7.3, align 4, !tbaa !5
+  %5 = load i32, ptr %incdec.ptr7.4, align 4, !tbaa !5
+  %6 = load i32, ptr %incdec.ptr7.5, align 4, !tbaa !5
+  %7 = load i32, ptr %incdec.ptr7.6, align 4, !tbaa !5
+  %8 = load i32, ptr %incdec.ptr7.7, align 4, !tbaa !5
+  %9 = load i32, ptr %incdec.ptr7.8, align 4, !tbaa !5
+  br label %for.body3
+
+for.body3:                                        ; preds = %for.body3, %for.cond1.preheader
+  %i.070 = phi i32 [ 0, %for.cond1.preheader ], [ %inc11.1, %for.body3 ]
+  %p_c.169 = phi ptr [ %p_c.071, %for.cond1.preheader ], [ %incdec.ptr9.1, %for.body3 ]
+  %p_a.068 = phi ptr [ @A, %for.cond1.preheader ], [ %incdec.ptr.9.1, %for.body3 ]
+  store i32 0, ptr %p_c.169, align 4, !tbaa !5
+  %incdec.ptr = getelementptr inbounds i32, ptr %p_a.068, i32 1
+  %10 = load i32, ptr %p_a.068, align 4, !tbaa !5
+  %mul8 = mul nsw i32 %0, %10
+  store i32 %mul8, ptr %p_c.169, align 4, !tbaa !5
+  %incdec.ptr.1 = getelementptr inbounds i32, ptr %p_a.068, i32 2
+  %11 = load i32, ptr %incdec.ptr, align 4, !tbaa !5
+  %mul8.1 = mul nsw i32 %1, %11
+  %add.1 = add nsw i32 %mul8.1, %mul8
+  store i32 %add.1, ptr %p_c.169, align 4, !tbaa !5
+  %incdec.ptr.2 = getelementptr inbounds i32, ptr %p_a.068, i32 3
+  %12 = load i32, ptr %incdec.ptr.1, align 4, !tbaa !5
+  %mul8.2 = mul nsw i32 %2, %12
+  %add.2 = add nsw i32 %mul8.2, %add.1
+  store i32 %add.2, ptr %p_c.169, align 4, !tbaa !5
+  %incdec.ptr.3 = getelementptr inbounds i32, ptr %p_a.068, i32 4
+  %13 = load i32, ptr %incdec.ptr.2, align 4, !tbaa !5
+  %mul8.3 = mul nsw i32 %3, %13
+  %add.3 = add nsw i32 %mul8.3, %add.2
+  store i32 %add.3, ptr %p_c.169, align 4, !tbaa !5
+  %incdec.ptr.4 = getelementptr inbounds i32, ptr %p_a.068, i32 5
+  %14 = load i32, ptr %incdec.ptr.3, align 4, !tbaa !5
+  %mul8.4 = mul nsw i32 %4, %14
+  %add.4 = add nsw i32 %mul8.4, %add.3
+  store i32 %add.4, ptr %p_c.169, align 4, !tbaa !5
+  %incdec.ptr.5 = getelementptr inbounds i32, ptr %p_a.068, i32 6
+  %15 = load i32, ptr %incdec.ptr.4, align 4, !tbaa !5
+  %mul8.5 = mul nsw i32 %5, %15
+  %add.5 = add nsw i32 %mul8.5, %add.4
+  store i32 %add.5, ptr %p_c.169, align 4, !tbaa !5
+  %incdec.ptr.6 = getelementptr inbounds i32, ptr %p_a.068, i32 7
+  %16 = load i32, ptr %incdec.ptr.5, align 4, !tbaa !5
+  %mul8.6 = mul nsw i32 %6, %16
+  %add.6 = add nsw i32 %mul8.6, %add.5
+  store i32 %add.6, ptr %p_c.169, align 4, !tbaa !5
+  %incdec.ptr.7 = getelementptr inbounds i32, ptr %p_a.068, i32 8
+  %17 = load i32, ptr %incdec.ptr.6, align 4, !tbaa !5
+  %mul8.7 = mul nsw i32 %7, %17
+  %add.7 = add nsw i32 %mul8.7, %add.6
+  store i32 %add.7, ptr %p_c.169, align 4, !tbaa !5
+  %incdec.ptr.8 = getelementptr inbounds i32, ptr %p_a.068, i32 9
+  %18 = load i32, ptr %incdec.ptr.7, align 4, !tbaa !5
+  %mul8.8 = mul nsw i32 %8, %18
+  %add.8 = add nsw i32 %mul8.8, %add.7
+  store i32 %add.8, ptr %p_c.169, align 4, !tbaa !5
+  %incdec.ptr.9 = getelementptr inbounds i32, ptr %p_a.068, i32 10
+  %19 = load i32, ptr %incdec.ptr.8, align 4, !tbaa !5
+  %mul8.9 = mul nsw i32 %9, %19
+  %add.9 = add nsw i32 %mul8.9, %add.8
+  store i32 %add.9, ptr %p_c.169, align 4, !tbaa !5
+  %incdec.ptr9 = getelementptr inbounds i32, ptr %p_c.169, i32 1
+  store i32 0, ptr %incdec.ptr9, align 4, !tbaa !5
+  %incdec.ptr.13 = getelementptr inbounds i32, ptr %p_a.068, i32 11
+  %20 = load i32, ptr %incdec.ptr.9, align 4, !tbaa !5
+  %mul8.14 = mul nsw i32 %0, %20
+  store i32 %mul8.14, ptr %incdec.ptr9, align 4, !tbaa !5
+  %incdec.ptr.1.1 = getelementptr inbounds i32, ptr %p_a.068, i32 12
+  %21 = load i32, ptr %incdec.ptr.13, align 4, !tbaa !5
+  %mul8.1.1 = mul nsw i32 %1, %21
+  %add.1.1 = add nsw i32 %mul8.1.1, %mul8.14
+  store i32 %add.1.1, ptr %incdec.ptr9, align 4, !tbaa !5
+  %incdec.ptr.2.1 = getelementptr inbounds i32, ptr %p_a.068, i32 13
+  %22 = load i32, ptr %incdec.ptr.1.1, align 4, !tbaa !5
+  %mul8.2.1 = mul nsw i32 %2, %22
+  %add.2.1 = add nsw i32 %mul8.2.1, %add.1.1
+  store i32 %add.2.1, ptr %incdec.ptr9, align 4, !tbaa !5
+  %incdec.ptr.3.1 = getelementptr inbounds i32, ptr %p_a.068, i32 14
+  %23 = load i32, ptr %incdec.ptr.2.1, align 4, !tbaa !5
+  %mul8.3.1 = mul nsw i32 %3, %23
+  %add.3.1 = add nsw i32 %mul8.3.1, %add.2.1
+  store i32 %add.3.1, ptr %incdec.ptr9, align 4, !tbaa !5
+  %incdec.ptr.4.1 = getelementptr inbounds i32, ptr %p_a.068, i32 15
+  %24 = load i32, ptr %incdec.ptr.3.1, align 4, !tbaa !5
+  %mul8.4.1 = mul nsw i32 %4, %24
+  %add.4.1 = add nsw i32 %mul8.4.1, %add.3.1
+  store i32 %add.4.1, ptr %incdec.ptr9, align 4, !tbaa !5
+  %incdec.ptr.5.1 = getelementptr inbounds i32, ptr %p_a.068, i32 16
+  %25 = load i32, ptr %incdec.ptr.4.1, align 4, !tbaa !5
+  %mul8.5.1 = mul nsw i32 %5, %25
+  %add.5.1 = add nsw i32 %mul8.5.1, %add.4.1
+  store i32 %add.5.1, ptr %incdec.ptr9, align 4, !tbaa !5
+  %incdec.ptr.6.1 = getelementptr inbounds i32, ptr %p_a.068, i32 17
+  %26 = load i32, ptr %incdec.ptr.5.1, align 4, !tbaa !5
+  %mul8.6.1 = mul nsw i32 %6, %26
+  %add.6.1 = add nsw i32 %mul8.6.1, %add.5.1
+  store i32 %add.6.1, ptr %incdec.ptr9, align 4, !tbaa !5
+  %incdec.ptr.7.1 = getelementptr inbounds i32, ptr %p_a.068, i32 18
+  %27 = load i32, ptr %incdec.ptr.6.1, align 4, !tbaa !5
+  %mul8.7.1 = mul nsw i32 %7, %27
+  %add.7.1 = add nsw i32 %mul8.7.1, %add.6.1
+  store i32 %add.7.1, ptr %incdec.ptr9, align 4, !tbaa !5
+  %incdec.ptr.8.1 = getelementptr inbounds i32, ptr %p_a.068, i32 19
+  %28 = load i32, ptr %incdec.ptr.7.1, align 4, !tbaa !5
+  %mul8.8.1 = mul nsw i32 %8, %28
+  %add.8.1 = add nsw i32 %mul8.8.1, %add.7.1
+  store i32 %add.8.1, ptr %incdec.ptr9, align 4, !tbaa !5
+  %incdec.ptr.9.1 = getelementptr inbounds i32, ptr %p_a.068, i32 20
+  %29 = load i32, ptr %incdec.ptr.8.1, align 4, !tbaa !5
+  %mul8.9.1 = mul nsw i32 %9, %29
+  %add.9.1 = add nsw i32 %mul8.9.1, %add.8.1
+  store i32 %add.9.1, ptr %incdec.ptr9, align 4, !tbaa !5
+  %incdec.ptr9.1 = getelementptr inbounds i32, ptr %p_c.169, i32 2
+  %inc11.1 = add nuw nsw i32 %i.070, 2
+  %exitcond.not.1 = icmp eq i32 %inc11.1, 10
+  br i1 %exitcond.not.1, label %for.inc13, label %for.body3, !llvm.loop !13
+
+for.inc13:                                        ; preds = %for.body3
+  %inc14 = add nuw nsw i32 %k.072, 1
+  %exitcond75.not = icmp eq i32 %inc14, 10
+  br i1 %exitcond75.not, label %for.cond19.preheader, label %for.cond1.preheader, !llvm.loop !14
+
+for.cond19.preheader:                             ; preds = %for.inc13, %for.cond19.preheader
+  %k.174 = phi i32 [ %inc32.1, %for.cond19.preheader ], [ 0, %for.inc13 ]
+  %arrayidx24 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %k.174
+  %30 = load i32, ptr %arrayidx24, align 4, !tbaa !5
+  %arrayidx27 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %k.174
+  store i32 %30, ptr %arrayidx27, align 4, !tbaa !5
+  %add23.1 = add nuw nsw i32 %k.174, 10
+  %arrayidx24.1 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.1
+  %31 = load i32, ptr %arrayidx24.1, align 4, !tbaa !5
+  %arrayidx27.1 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.1
+  store i32 %31, ptr %arrayidx27.1, align 4, !tbaa !5
+  %add23.2 = add nuw nsw i32 %k.174, 20
+  %arrayidx24.2 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.2
+  %32 = load i32, ptr %arrayidx24.2, align 4, !tbaa !5
+  %arrayidx27.2 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.2
+  store i32 %32, ptr %arrayidx27.2, align 4, !tbaa !5
+  %add23.3 = add nuw nsw i32 %k.174, 30
+  %arrayidx24.3 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.3
+  %33 = load i32, ptr %arrayidx24.3, align 4, !tbaa !5
+  %arrayidx27.3 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.3
+  store i32 %33, ptr %arrayidx27.3, align 4, !tbaa !5
+  %add23.4 = add nuw nsw i32 %k.174, 40
+  %arrayidx24.4 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.4
+  %34 = load i32, ptr %arrayidx24.4, align 4, !tbaa !5
+  %arrayidx27.4 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.4
+  store i32 %34, ptr %arrayidx27.4, align 4, !tbaa !5
+  %add23.5 = add nuw nsw i32 %k.174, 50
+  %arrayidx24.5 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.5
+  %35 = load i32, ptr %arrayidx24.5, align 4, !tbaa !5
+  %arrayidx27.5 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.5
+  store i32 %35, ptr %arrayidx27.5, align 4, !tbaa !5
+  %add23.6 = add nuw nsw i32 %k.174, 60
+  %arrayidx24.6 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.6
+  %36 = load i32, ptr %arrayidx24.6, align 4, !tbaa !5
+  %arrayidx27.6 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.6
+  store i32 %36, ptr %arrayidx27.6, align 4, !tbaa !5
+  %add23.7 = add nuw nsw i32 %k.174, 70
+  %arrayidx24.7 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.7
+  %37 = load i32, ptr %arrayidx24.7, align 4, !tbaa !5
+  %arrayidx27.7 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.7
+  store i32 %37, ptr %arrayidx27.7, align 4, !tbaa !5
+  %add23.8 = add nuw nsw i32 %k.174, 80
+  %arrayidx24.8 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.8
+  %38 = load i32, ptr %arrayidx24.8, align 4, !tbaa !5
+  %arrayidx27.8 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.8
+  store i32 %38, ptr %arrayidx27.8, align 4, !tbaa !5
+  %add23.9 = add nuw nsw i32 %k.174, 90
+  %arrayidx24.9 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.9
+  %39 = load i32, ptr %arrayidx24.9, align 4, !tbaa !5
+  %arrayidx27.9 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.9
+  store i32 %39, ptr %arrayidx27.9, align 4, !tbaa !5
+  %inc32 = or i32 %k.174, 1
+  %arrayidx24.11 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %inc32
+  %40 = load i32, ptr %arrayidx24.11, align 4, !tbaa !5
+  %arrayidx27.12 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %inc32
+  store i32 %40, ptr %arrayidx27.12, align 4, !tbaa !5
+  %add23.1.1 = add nuw nsw i32 %k.174, 11
+  %arrayidx24.1.1 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.1.1
+  %41 = load i32, ptr %arrayidx24.1.1, align 4, !tbaa !5
+  %arrayidx27.1.1 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.1.1
+  store i32 %41, ptr %arrayidx27.1.1, align 4, !tbaa !5
+  %add23.2.1 = add nuw nsw i32 %k.174, 21
+  %arrayidx24.2.1 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.2.1
+  %42 = load i32, ptr %arrayidx24.2.1, align 4, !tbaa !5
+  %arrayidx27.2.1 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.2.1
+  store i32 %42, ptr %arrayidx27.2.1, align 4, !tbaa !5
+  %add23.3.1 = add nuw nsw i32 %k.174, 31
+  %arrayidx24.3.1 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.3.1
+  %43 = load i32, ptr %arrayidx24.3.1, align 4, !tbaa !5
+  %arrayidx27.3.1 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.3.1
+  store i32 %43, ptr %arrayidx27.3.1, align 4, !tbaa !5
+  %add23.4.1 = add nuw nsw i32 %k.174, 41
+  %arrayidx24.4.1 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.4.1
+  %44 = load i32, ptr %arrayidx24.4.1, align 4, !tbaa !5
+  %arrayidx27.4.1 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.4.1
+  store i32 %44, ptr %arrayidx27.4.1, align 4, !tbaa !5
+  %add23.5.1 = add nuw nsw i32 %k.174, 51
+  %arrayidx24.5.1 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.5.1
+  %45 = load i32, ptr %arrayidx24.5.1, align 4, !tbaa !5
+  %arrayidx27.5.1 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.5.1
+  store i32 %45, ptr %arrayidx27.5.1, align 4, !tbaa !5
+  %add23.6.1 = add nuw nsw i32 %k.174, 61
+  %arrayidx24.6.1 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.6.1
+  %46 = load i32, ptr %arrayidx24.6.1, align 4, !tbaa !5
+  %arrayidx27.6.1 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.6.1
+  store i32 %46, ptr %arrayidx27.6.1, align 4, !tbaa !5
+  %add23.7.1 = add nuw nsw i32 %k.174, 71
+  %arrayidx24.7.1 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.7.1
+  %47 = load i32, ptr %arrayidx24.7.1, align 4, !tbaa !5
+  %arrayidx27.7.1 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.7.1
+  store i32 %47, ptr %arrayidx27.7.1, align 4, !tbaa !5
+  %add23.8.1 = add nuw nsw i32 %k.174, 81
+  %arrayidx24.8.1 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.8.1
+  %48 = load i32, ptr %arrayidx24.8.1, align 4, !tbaa !5
+  %arrayidx27.8.1 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.8.1
+  store i32 %48, ptr %arrayidx27.8.1, align 4, !tbaa !5
+  %add23.9.1 = add nuw nsw i32 %k.174, 91
+  %arrayidx24.9.1 = getelementptr inbounds [100 x i32], ptr @C, i32 0, i32 %add23.9.1
+  %49 = load i32, ptr %arrayidx24.9.1, align 4, !tbaa !5
+  %arrayidx27.9.1 = getelementptr inbounds [100 x i32], ptr @_Output, i32 0, i32 %add23.9.1
+  store i32 %49, ptr %arrayidx27.9.1, align 4, !tbaa !5
+  %inc32.1 = add nuw nsw i32 %k.174, 2
+  %exitcond77.not.1 = icmp eq i32 %inc32.1, 10
+  br i1 %exitcond77.not.1, label %for.body.i53, label %for.cond19.preheader, !llvm.loop !15
+
+for.body.i53:                                     ; preds = %for.cond19.preheader, %for.body.i53
+  %i.023.i49 = phi i32 [ %inc.i51.24, %for.body.i53 ], [ 0, %for.cond19.preheader ]
+  %arrayidx.i50 = getelementptr inbounds i32, ptr @A, i32 %i.023.i49
+  store i32 1, ptr %arrayidx.i50, align 4, !tbaa !5
+  %inc.i51 = add nuw nsw i32 %i.023.i49, 1
+  %arrayidx.i50.1 = getelementptr inbounds i32, ptr @A, i32 %inc.i51
+  store i32 1, ptr %arrayidx.i50.1, align 4, !tbaa !5
+  %inc.i51.1 = add nuw nsw i32 %i.023.i49, 2
+  %arrayidx.i50.2 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.1
+  store i32 1, ptr %arrayidx.i50.2, align 4, !tbaa !5
+  %inc.i51.2 = add nuw nsw i32 %i.023.i49, 3
+  %arrayidx.i50.3 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.2
+  store i32 1, ptr %arrayidx.i50.3, align 4, !tbaa !5
+  %inc.i51.3 = add nuw nsw i32 %i.023.i49, 4
+  %arrayidx.i50.4 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.3
+  store i32 1, ptr %arrayidx.i50.4, align 4, !tbaa !5
+  %inc.i51.4 = add nuw nsw i32 %i.023.i49, 5
+  %arrayidx.i50.5 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.4
+  store i32 1, ptr %arrayidx.i50.5, align 4, !tbaa !5
+  %inc.i51.5 = add nuw nsw i32 %i.023.i49, 6
+  %arrayidx.i50.6 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.5
+  store i32 1, ptr %arrayidx.i50.6, align 4, !tbaa !5
+  %inc.i51.6 = add nuw nsw i32 %i.023.i49, 7
+  %arrayidx.i50.7 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.6
+  store i32 1, ptr %arrayidx.i50.7, align 4, !tbaa !5
+  %inc.i51.7 = add nuw nsw i32 %i.023.i49, 8
+  %arrayidx.i50.8 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.7
+  store i32 1, ptr %arrayidx.i50.8, align 4, !tbaa !5
+  %inc.i51.8 = add nuw nsw i32 %i.023.i49, 9
+  %arrayidx.i50.9 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.8
+  store i32 1, ptr %arrayidx.i50.9, align 4, !tbaa !5
+  %inc.i51.9 = add nuw nsw i32 %i.023.i49, 10
+  %arrayidx.i50.10 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.9
+  store i32 1, ptr %arrayidx.i50.10, align 4, !tbaa !5
+  %inc.i51.10 = add nuw nsw i32 %i.023.i49, 11
+  %arrayidx.i50.11 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.10
+  store i32 1, ptr %arrayidx.i50.11, align 4, !tbaa !5
+  %inc.i51.11 = add nuw nsw i32 %i.023.i49, 12
+  %arrayidx.i50.12 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.11
+  store i32 1, ptr %arrayidx.i50.12, align 4, !tbaa !5
+  %inc.i51.12 = add nuw nsw i32 %i.023.i49, 13
+  %arrayidx.i50.13 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.12
+  store i32 1, ptr %arrayidx.i50.13, align 4, !tbaa !5
+  %inc.i51.13 = add nuw nsw i32 %i.023.i49, 14
+  %arrayidx.i50.14 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.13
+  store i32 1, ptr %arrayidx.i50.14, align 4, !tbaa !5
+  %inc.i51.14 = add nuw nsw i32 %i.023.i49, 15
+  %arrayidx.i50.15 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.14
+  store i32 1, ptr %arrayidx.i50.15, align 4, !tbaa !5
+  %inc.i51.15 = add nuw nsw i32 %i.023.i49, 16
+  %arrayidx.i50.16 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.15
+  store i32 1, ptr %arrayidx.i50.16, align 4, !tbaa !5
+  %inc.i51.16 = add nuw nsw i32 %i.023.i49, 17
+  %arrayidx.i50.17 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.16
+  store i32 1, ptr %arrayidx.i50.17, align 4, !tbaa !5
+  %inc.i51.17 = add nuw nsw i32 %i.023.i49, 18
+  %arrayidx.i50.18 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.17
+  store i32 1, ptr %arrayidx.i50.18, align 4, !tbaa !5
+  %inc.i51.18 = add nuw nsw i32 %i.023.i49, 19
+  %arrayidx.i50.19 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.18
+  store i32 1, ptr %arrayidx.i50.19, align 4, !tbaa !5
+  %inc.i51.19 = add nuw nsw i32 %i.023.i49, 20
+  %arrayidx.i50.20 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.19
+  store i32 1, ptr %arrayidx.i50.20, align 4, !tbaa !5
+  %inc.i51.20 = add nuw nsw i32 %i.023.i49, 21
+  %arrayidx.i50.21 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.20
+  store i32 1, ptr %arrayidx.i50.21, align 4, !tbaa !5
+  %inc.i51.21 = add nuw nsw i32 %i.023.i49, 22
+  %arrayidx.i50.22 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.21
+  store i32 1, ptr %arrayidx.i50.22, align 4, !tbaa !5
+  %inc.i51.22 = add nuw nsw i32 %i.023.i49, 23
+  %arrayidx.i50.23 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.22
+  store i32 1, ptr %arrayidx.i50.23, align 4, !tbaa !5
+  %inc.i51.23 = add nuw nsw i32 %i.023.i49, 24
+  %arrayidx.i50.24 = getelementptr inbounds i32, ptr @A, i32 %inc.i51.23
+  store i32 1, ptr %arrayidx.i50.24, align 4, !tbaa !5
+  %inc.i51.24 = add nuw nsw i32 %i.023.i49, 25
+  %exitcond.not.i52.24 = icmp eq i32 %inc.i51.24, 100
+  br i1 %exitcond.not.i52.24, label %for.body3.i58, label %for.body.i53, !llvm.loop !9
+
+for.body3.i58:                                    ; preds = %for.body.i53, %for.body3.i58
+  %i.124.i54 = phi i32 [ %inc6.i56.24, %for.body3.i58 ], [ 0, %for.body.i53 ]
+  %arrayidx4.i55 = getelementptr inbounds i32, ptr @B, i32 %i.124.i54
+  store i32 1, ptr %arrayidx4.i55, align 4, !tbaa !5
+  %inc6.i56 = add nuw nsw i32 %i.124.i54, 1
+  %arrayidx4.i55.1 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56
+  store i32 1, ptr %arrayidx4.i55.1, align 4, !tbaa !5
+  %inc6.i56.1 = add nuw nsw i32 %i.124.i54, 2
+  %arrayidx4.i55.2 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.1
+  store i32 1, ptr %arrayidx4.i55.2, align 4, !tbaa !5
+  %inc6.i56.2 = add nuw nsw i32 %i.124.i54, 3
+  %arrayidx4.i55.3 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.2
+  store i32 1, ptr %arrayidx4.i55.3, align 4, !tbaa !5
+  %inc6.i56.3 = add nuw nsw i32 %i.124.i54, 4
+  %arrayidx4.i55.4 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.3
+  store i32 1, ptr %arrayidx4.i55.4, align 4, !tbaa !5
+  %inc6.i56.4 = add nuw nsw i32 %i.124.i54, 5
+  %arrayidx4.i55.5 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.4
+  store i32 1, ptr %arrayidx4.i55.5, align 4, !tbaa !5
+  %inc6.i56.5 = add nuw nsw i32 %i.124.i54, 6
+  %arrayidx4.i55.6 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.5
+  store i32 1, ptr %arrayidx4.i55.6, align 4, !tbaa !5
+  %inc6.i56.6 = add nuw nsw i32 %i.124.i54, 7
+  %arrayidx4.i55.7 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.6
+  store i32 1, ptr %arrayidx4.i55.7, align 4, !tbaa !5
+  %inc6.i56.7 = add nuw nsw i32 %i.124.i54, 8
+  %arrayidx4.i55.8 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.7
+  store i32 1, ptr %arrayidx4.i55.8, align 4, !tbaa !5
+  %inc6.i56.8 = add nuw nsw i32 %i.124.i54, 9
+  %arrayidx4.i55.9 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.8
+  store i32 1, ptr %arrayidx4.i55.9, align 4, !tbaa !5
+  %inc6.i56.9 = add nuw nsw i32 %i.124.i54, 10
+  %arrayidx4.i55.10 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.9
+  store i32 1, ptr %arrayidx4.i55.10, align 4, !tbaa !5
+  %inc6.i56.10 = add nuw nsw i32 %i.124.i54, 11
+  %arrayidx4.i55.11 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.10
+  store i32 1, ptr %arrayidx4.i55.11, align 4, !tbaa !5
+  %inc6.i56.11 = add nuw nsw i32 %i.124.i54, 12
+  %arrayidx4.i55.12 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.11
+  store i32 1, ptr %arrayidx4.i55.12, align 4, !tbaa !5
+  %inc6.i56.12 = add nuw nsw i32 %i.124.i54, 13
+  %arrayidx4.i55.13 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.12
+  store i32 1, ptr %arrayidx4.i55.13, align 4, !tbaa !5
+  %inc6.i56.13 = add nuw nsw i32 %i.124.i54, 14
+  %arrayidx4.i55.14 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.13
+  store i32 1, ptr %arrayidx4.i55.14, align 4, !tbaa !5
+  %inc6.i56.14 = add nuw nsw i32 %i.124.i54, 15
+  %arrayidx4.i55.15 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.14
+  store i32 1, ptr %arrayidx4.i55.15, align 4, !tbaa !5
+  %inc6.i56.15 = add nuw nsw i32 %i.124.i54, 16
+  %arrayidx4.i55.16 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.15
+  store i32 1, ptr %arrayidx4.i55.16, align 4, !tbaa !5
+  %inc6.i56.16 = add nuw nsw i32 %i.124.i54, 17
+  %arrayidx4.i55.17 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.16
+  store i32 1, ptr %arrayidx4.i55.17, align 4, !tbaa !5
+  %inc6.i56.17 = add nuw nsw i32 %i.124.i54, 18
+  %arrayidx4.i55.18 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.17
+  store i32 1, ptr %arrayidx4.i55.18, align 4, !tbaa !5
+  %inc6.i56.18 = add nuw nsw i32 %i.124.i54, 19
+  %arrayidx4.i55.19 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.18
+  store i32 1, ptr %arrayidx4.i55.19, align 4, !tbaa !5
+  %inc6.i56.19 = add nuw nsw i32 %i.124.i54, 20
+  %arrayidx4.i55.20 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.19
+  store i32 1, ptr %arrayidx4.i55.20, align 4, !tbaa !5
+  %inc6.i56.20 = add nuw nsw i32 %i.124.i54, 21
+  %arrayidx4.i55.21 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.20
+  store i32 1, ptr %arrayidx4.i55.21, align 4, !tbaa !5
+  %inc6.i56.21 = add nuw nsw i32 %i.124.i54, 22
+  %arrayidx4.i55.22 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.21
+  store i32 1, ptr %arrayidx4.i55.22, align 4, !tbaa !5
+  %inc6.i56.22 = add nuw nsw i32 %i.124.i54, 23
+  %arrayidx4.i55.23 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.22
+  store i32 1, ptr %arrayidx4.i55.23, align 4, !tbaa !5
+  %inc6.i56.23 = add nuw nsw i32 %i.124.i54, 24
+  %arrayidx4.i55.24 = getelementptr inbounds i32, ptr @B, i32 %inc6.i56.23
+  store i32 1, ptr %arrayidx4.i55.24, align 4, !tbaa !5
+  %inc6.i56.24 = add nuw nsw i32 %i.124.i54, 25
+  %exitcond26.not.i57.24 = icmp eq i32 %inc6.i56.24, 100
+  br i1 %exitcond26.not.i57.24, label %for.body10.i63, label %for.body3.i58, !llvm.loop !11
+
+for.body10.i63:                                   ; preds = %for.body3.i58, %for.body10.i63
+  %i.225.i59 = phi i32 [ %inc13.i61.24, %for.body10.i63 ], [ 0, %for.body3.i58 ]
+  %arrayidx11.i60 = getelementptr inbounds i32, ptr @C, i32 %i.225.i59
+  store i32 0, ptr %arrayidx11.i60, align 4, !tbaa !5
+  %inc13.i61 = add nuw nsw i32 %i.225.i59, 1
+  %arrayidx11.i60.1 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61
+  store i32 0, ptr %arrayidx11.i60.1, align 4, !tbaa !5
+  %inc13.i61.1 = add nuw nsw i32 %i.225.i59, 2
+  %arrayidx11.i60.2 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.1
+  store i32 0, ptr %arrayidx11.i60.2, align 4, !tbaa !5
+  %inc13.i61.2 = add nuw nsw i32 %i.225.i59, 3
+  %arrayidx11.i60.3 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.2
+  store i32 0, ptr %arrayidx11.i60.3, align 4, !tbaa !5
+  %inc13.i61.3 = add nuw nsw i32 %i.225.i59, 4
+  %arrayidx11.i60.4 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.3
+  store i32 0, ptr %arrayidx11.i60.4, align 4, !tbaa !5
+  %inc13.i61.4 = add nuw nsw i32 %i.225.i59, 5
+  %arrayidx11.i60.5 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.4
+  store i32 0, ptr %arrayidx11.i60.5, align 4, !tbaa !5
+  %inc13.i61.5 = add nuw nsw i32 %i.225.i59, 6
+  %arrayidx11.i60.6 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.5
+  store i32 0, ptr %arrayidx11.i60.6, align 4, !tbaa !5
+  %inc13.i61.6 = add nuw nsw i32 %i.225.i59, 7
+  %arrayidx11.i60.7 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.6
+  store i32 0, ptr %arrayidx11.i60.7, align 4, !tbaa !5
+  %inc13.i61.7 = add nuw nsw i32 %i.225.i59, 8
+  %arrayidx11.i60.8 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.7
+  store i32 0, ptr %arrayidx11.i60.8, align 4, !tbaa !5
+  %inc13.i61.8 = add nuw nsw i32 %i.225.i59, 9
+  %arrayidx11.i60.9 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.8
+  store i32 0, ptr %arrayidx11.i60.9, align 4, !tbaa !5
+  %inc13.i61.9 = add nuw nsw i32 %i.225.i59, 10
+  %arrayidx11.i60.10 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.9
+  store i32 0, ptr %arrayidx11.i60.10, align 4, !tbaa !5
+  %inc13.i61.10 = add nuw nsw i32 %i.225.i59, 11
+  %arrayidx11.i60.11 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.10
+  store i32 0, ptr %arrayidx11.i60.11, align 4, !tbaa !5
+  %inc13.i61.11 = add nuw nsw i32 %i.225.i59, 12
+  %arrayidx11.i60.12 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.11
+  store i32 0, ptr %arrayidx11.i60.12, align 4, !tbaa !5
+  %inc13.i61.12 = add nuw nsw i32 %i.225.i59, 13
+  %arrayidx11.i60.13 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.12
+  store i32 0, ptr %arrayidx11.i60.13, align 4, !tbaa !5
+  %inc13.i61.13 = add nuw nsw i32 %i.225.i59, 14
+  %arrayidx11.i60.14 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.13
+  store i32 0, ptr %arrayidx11.i60.14, align 4, !tbaa !5
+  %inc13.i61.14 = add nuw nsw i32 %i.225.i59, 15
+  %arrayidx11.i60.15 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.14
+  store i32 0, ptr %arrayidx11.i60.15, align 4, !tbaa !5
+  %inc13.i61.15 = add nuw nsw i32 %i.225.i59, 16
+  %arrayidx11.i60.16 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.15
+  store i32 0, ptr %arrayidx11.i60.16, align 4, !tbaa !5
+  %inc13.i61.16 = add nuw nsw i32 %i.225.i59, 17
+  %arrayidx11.i60.17 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.16
+  store i32 0, ptr %arrayidx11.i60.17, align 4, !tbaa !5
+  %inc13.i61.17 = add nuw nsw i32 %i.225.i59, 18
+  %arrayidx11.i60.18 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.17
+  store i32 0, ptr %arrayidx11.i60.18, align 4, !tbaa !5
+  %inc13.i61.18 = add nuw nsw i32 %i.225.i59, 19
+  %arrayidx11.i60.19 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.18
+  store i32 0, ptr %arrayidx11.i60.19, align 4, !tbaa !5
+  %inc13.i61.19 = add nuw nsw i32 %i.225.i59, 20
+  %arrayidx11.i60.20 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.19
+  store i32 0, ptr %arrayidx11.i60.20, align 4, !tbaa !5
+  %inc13.i61.20 = add nuw nsw i32 %i.225.i59, 21
+  %arrayidx11.i60.21 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.20
+  store i32 0, ptr %arrayidx11.i60.21, align 4, !tbaa !5
+  %inc13.i61.21 = add nuw nsw i32 %i.225.i59, 22
+  %arrayidx11.i60.22 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.21
+  store i32 0, ptr %arrayidx11.i60.22, align 4, !tbaa !5
+  %inc13.i61.22 = add nuw nsw i32 %i.225.i59, 23
+  %arrayidx11.i60.23 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.22
+  store i32 0, ptr %arrayidx11.i60.23, align 4, !tbaa !5
+  %inc13.i61.23 = add nuw nsw i32 %i.225.i59, 24
+  %arrayidx11.i60.24 = getelementptr inbounds i32, ptr @C, i32 %inc13.i61.23
+  store i32 0, ptr %arrayidx11.i60.24, align 4, !tbaa !5
+  %inc13.i61.24 = add nuw nsw i32 %i.225.i59, 25
+  %exitcond27.not.i62.24 = icmp eq i32 %inc13.i61.24, 100
+  br i1 %exitcond27.not.i62.24, label %pin_down.exit64, label %for.body10.i63, !llvm.loop !12
+
+pin_down.exit64:                                  ; preds = %for.body10.i63
+  ret i32 0
+}
+
+attributes #0 = { noinline noreturn nounwind "frame-pointer"="all" "min-legal-vector-width"="0" "no-builtins" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #1 = { nofree noinline noreturn nounwind memory(argmem: readwrite) "frame-pointer"="all" "min-legal-vector-width"="0" "no-builtins" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #2 = { nocallback nofree nosync nounwind willreturn memory(argmem: readwrite) }
+attributes #3 = { nofree norecurse nosync nounwind "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" }
+attributes #4 = { nounwind }
+attributes #5 = { nobuiltin nounwind "no-builtins" }
+attributes #6 = { nobuiltin noreturn "no-builtins" }
+
+!llvm.ident = !{!0, !0, !0}
+!llvm.module.flags = !{!1, !2}
+
+!0 = !{!"clang version 15.0.0 (git@github.com:cpc/llvmtce.git 2d698cadf7e580c77139011f050a4b85d9e9b7e1)"}
+!1 = !{i32 1, !"wchar_size", i32 4}
+!2 = !{i32 7, !"frame-pointer", i32 2}
+!3 = !{i64 666}
+!4 = !{i64 1035}
+!5 = !{!6, !6, i64 0}
+!6 = !{!"int", !7, i64 0}
+!7 = !{!"omnipotent char", !8, i64 0}
+!8 = !{!"Simple C/C++ TBAA"}
+!9 = distinct !{!9, !10}
+!10 = !{!"llvm.loop.mustprogress"}
+!11 = distinct !{!11, !10}
+!12 = distinct !{!12, !10}
+!13 = distinct !{!13, !10}
+!14 = distinct !{!14, !10}
+!15 = distinct !{!15, !10}

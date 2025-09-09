@@ -338,11 +338,18 @@ MachineInstrDDG::preceedingNodeUsesOrDefinesReg(
                 return true;
             }
         }
-        
-        if (instr->readsRegister(physReg) || 
+
+#if LLVM_MAJOR_VERSION < 21
+        if (instr->readsRegister(physReg) ||
             instr->modifiesRegister(physReg, regInfo_)) {
             return true;
-        } 
+        }
+#else
+        if (instr->readsRegister(physReg, regInfo_) ||
+            instr->modifiesRegister(physReg, regInfo_)) {
+            return true;
+        }
+#endif
     }
     return false;
 }

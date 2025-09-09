@@ -251,6 +251,10 @@ ProGeScriptGenerator::generateGhdlCompile(
         stream << "rm -rf " << tbName << endl;
     }
 
+    // ghdl might get confused with other CC contents than 'gcc' which it uses
+    // to determine the compiler driver to use
+    stream << "CC=gcc" << endl;
+
     stream << "if [ \"$enable_coverage\" = \"yes\" ]; then" << endl;
     stream << "    echo \"-c option is not available for ghdl.\"; exit 2;"
            << endl;

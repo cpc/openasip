@@ -166,14 +166,14 @@ You can do this easiest as follows:
 
 ```bash
 cd openasip-devel/openasip
-./tools/scripts/install_llvm_17.sh $HOME/local
+./tools/scripts/install_llvm_21.sh $HOME/local
 ```
 
 Alternatively, if you cloned the release branch:
 
 ```bash
 cd openasip-2.1/openasip
-./tools/scripts/install_llvm_17.sh $HOME/local
+./tools/scripts/install_llvm_21.sh $HOME/local
 ```
 
 
@@ -279,22 +279,20 @@ Further information of library and tools prerequisite versions
 ==============================================================
 
 These are the current prerequisites for libraries and tools required to
-build OpenASIP:  
+build OpenASIP:
 
 | Host compiler 	| Supported versions 	|
 |---------------	|--------------------	|
 | GCC           	| 9.0+               	|
-| Clang         	| 16 to 17           	|
-
 
 | Library       | Supported versions 	| Library license      	|
 |------------	|--------------------	|----------------------	|
 | Xerces-C++ 	| 2.3.0+             	| Apache v2.0          	|
-| wxWidgets  	| 2.8+               	| wxWidgets            	|
+| wxWidgets  	| 3.0+               	| wxWidgets            	|
 | Tcl        	| 8.0-8.6            	| BSD-style            	|
 | Boost      	| 1.48.0-1.83.0      	| very permissive      	|
 | sqlite3    	| 3.2.0+             	| public domain        	|
-| LLVM       	| 16-17                 | LLVM Release License 	|
+| LLVM       	| 21                    | LLVM Release License 	|
 | Editline   	| 2.9                	| BSD-style            	|
 | Python     	| 3.6+               	| PSF license          	|
 

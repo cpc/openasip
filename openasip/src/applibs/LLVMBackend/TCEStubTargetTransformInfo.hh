@@ -59,12 +59,23 @@ namespace llvm {
             : BaseT(TM, F.getParent()->getDataLayout()),
               TM(TM), ST(TM->getSubtargetImpl()) {}
 
-        unsigned getNumberOfRegisters(bool vector);
-	unsigned getRegisterBitWidth(bool vector) const;
-        unsigned getMaxInterleaveFactor(unsigned VF);
-        unsigned getCastInstrCost(unsigned Opcode, Type *Dst, Type *Src
-				  , const Instruction* = nullptr
-				  );
+#if LLVM_MAJOR_VERSION < 21
+        unsigned getNumberOfRegisters(bool vector) override;
+        unsigned getRegisterBitWidth(bool vector) const override;
+        unsigned getMaxInterleaveFactor(unsigned VF) override;
+        unsigned getCastInstrCost(
+            unsigned Opcode, Type* Dst, Type* Src,
+            const Instruction* = nullptr) override;
+#else
+        llvm::TypeSize getRegisterBitWidth(
+            TargetTransformInfo::RegisterKind K) const override;
+        unsigned getMaxInterleaveFactor(ElementCount VF) const override;
+        llvm::InstructionCost getCastInstrCost(
+            unsigned opcode, Type* dst, Type* src,
+            llvm::TargetTransformInfo::CastContextHint,
+            llvm::TargetTransformInfo::TargetCostKind,
+            const Instruction* = nullptr) const override;
+#endif
     };
 }
 

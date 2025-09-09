@@ -78,25 +78,30 @@ class PluginTools;
 extern "C" void LLVMInitializeTCETarget();
 
 namespace llvm {
-    class TCEPassConfig : public TargetPassConfig {
-    public:
-	TCEPassConfig(
-	    LLVMTargetMachine* tm, 
-	    PassManagerBase& pm, 
-	    TCETargetMachinePlugin* plugin) :
-	    TargetPassConfig(*tm, pm),
-plugin_(plugin) {
-	    assert(plugin_ != NULL);
-	}
 
-	virtual bool addPreISel();
-	virtual bool addInstSelector();
+#if LLVM_MAJOR_VERSION >= 21
+typedef llvm::CodeGenTargetMachineImpl LLVMTargetMachine;
+#else
+typedef llvm::CodeGenOpt::Level CodeGenOptLevel;
+#endif
 
-	virtual void addPreRegAlloc();
-	virtual void addPreSched2();
+class TCEPassConfig : public TargetPassConfig {
+public:
+    TCEPassConfig(
+        LLVMTargetMachine* tm, PassManagerBase& pm,
+        TCETargetMachinePlugin* plugin)
+        : TargetPassConfig(*tm, pm), plugin_(plugin) {
+        assert(plugin_ != NULL);
+    }
 
-	TCETargetMachinePlugin* plugin_;
-    };
+    virtual bool addPreISel();
+    virtual bool addInstSelector();
+
+    virtual void addPreRegAlloc();
+    virtual void addPreSched2();
+
+    TCETargetMachinePlugin* plugin_;
+};
 
     class Module;
 
@@ -107,17 +112,13 @@ plugin_(plugin) {
 
     public:
         TCETargetMachine(
-            const Target &T, const Triple& TTriple,
+            const Target& T, const Triple& TTriple,
             const llvm::StringRef& CPU, const llvm::StringRef& FS,
-            const TargetOptions &Options,
-            #ifdef LLVM_OLDER_THAN_16
-            Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM,
-            #else
-            std::optional<Reloc::Model> RM, std::optional<CodeModel::Model> CM,
-            #endif
-            CodeGenOpt::Level OL, bool isLittle);
+            const TargetOptions& Options, std::optional<Reloc::Model> RM,
+            std::optional<CodeModel::Model> CM, CodeGenOptLevel OL,
+            bool isLittle);
 
-	virtual ~TCETargetMachine();
+        virtual ~TCETargetMachine();
 
         virtual void setTargetMachinePlugin(
             TCETargetMachinePlugin& plugin, TTAMachine::Machine& target);

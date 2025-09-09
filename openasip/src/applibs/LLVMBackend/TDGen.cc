@@ -1,7 +1,7 @@
  /*
-    Copyright (c) 2002-2020 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -7451,8 +7451,8 @@ void TDGen::createSelectPatterns(std::ostream& os) {
  * Generates llvm patterns for constants which are not supported directly as
  * immediates by the target machine.
  *
- * For example, if a target does not sign extending immediates, a pattern is
- * generated that transforms negative constants C to (SUB 0, -C).
+ * For example, if a target does not support sign extended immediates, a pattern
+ * is generated that transforms negative constants C to (SUB 0, -C).
  */
 void
 TDGen::createConstantMaterializationPatterns(std::ostream& os) {
@@ -7467,7 +7467,7 @@ TDGen::createConstantMaterializationPatterns(std::ostream& os) {
     os << std::endl << "// Arithmetic negation XForm fragment."
        << std::endl << "def aneg_xform : SDNodeXForm<imm, [{"
        << std::endl << "    return CurDAG->getTargetConstant("
-       << std::endl << "        -(N->getZExtValue()), SDLoc(N), MVT::i32);"
+       << std::endl << "        -(N->getSExtValue()), SDLoc(N), MVT::i32);"
        << std::endl << "}]>;"
        << std::endl << std::endl;
 

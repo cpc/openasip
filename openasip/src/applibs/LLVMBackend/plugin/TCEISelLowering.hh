@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -100,7 +100,11 @@ namespace llvm {
 
         void LowerAsmOperandForConstraint(
             SDValue Op,
+#if LLVM_MAJOR_VERSION < 21
             std::string& Constraint,
+#else
+            llvm::StringRef Constraint,
+#endif
             std::vector<SDValue>& Ops,
             SelectionDAG& DAG) const override;
 

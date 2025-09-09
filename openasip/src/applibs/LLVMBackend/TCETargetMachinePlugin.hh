@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2015 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -191,12 +191,27 @@ namespace llvm {
            return &dl_;
        }
 
-        virtual TCETargetMachine* getCurrentTargetMachine() {
-            return tm_;
-        }
-        virtual const TCETargetMachine* getCurrentTargetMachine() const {
-            return tm_;
-        }
+       virtual void
+       setDataLayout(const std::string& DLString) {
+#if LLVM_MAJOR_VERSION < 21
+           dl_->reset(dataLayoutStr.c_str());
+#else
+           auto DL = DataLayout::parse(DLString);
+           if (!DL) {
+             assert (false && "Couldn't generate datalayout.");
+           }
+           dl_ = DL.get();
+#endif
+       }
+
+       virtual TCETargetMachine*
+       getCurrentTargetMachine() {
+           return tm_;
+       }
+       virtual const TCETargetMachine*
+       getCurrentTargetMachine() const {
+           return tm_;
+       }
 
        virtual bool analyzeCCBranch(
            llvm::MachineInstr& i,

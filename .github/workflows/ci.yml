@@ -88,7 +88,7 @@ jobs:
             cd openasip
             ./tools/scripts/install_llvm_${{ env.LLVM_VERSION }}.sh ${{ github.workspace }}/local
           else
-            echo "Cache hit! LLVM is already installed, skipping installation."
+            echo "Cache hit! LLVM ${{ env.LLVM_VERSION }} is already installed, skipping installation."
           fi
 
       - name: Save LLVM cache
