@@ -177,17 +177,10 @@ plugin_(plugin) {
         virtual TargetPassConfig *createPassConfig(
             PassManagerBase &PM) override;
 
-        #ifdef LLVM_OLDER_THAN_15
-        TargetTransformInfo
-        getTargetTransformInfo(const Function& F) override {
-            return plugin_->getTargetTransformInfo(F);
-        }
-        #else
         TargetTransformInfo
         getTargetTransformInfo(const Function& F) const override {
             return plugin_->getTargetTransformInfo(F);
         }
-        #endif
 
         std::string operationName(unsigned opc) const {
             return plugin_->operationName(opc);

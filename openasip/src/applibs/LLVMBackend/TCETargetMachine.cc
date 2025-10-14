@@ -202,50 +202,19 @@ TCETargetMachine::setTargetMachinePlugin(
         missingOps_.insert(std::make_pair(llvm::ISD::FSQRT, MVT::f32));
     }
 
-    // register machine to plugin
-    plugin_->registerTargetMachine(*this);
-
     initAsmInfo();
 
-    // Set data layout with correct stack alignment.
-    unsigned alignBits = MachineInfo::maxMemoryAlignment(target) * 8;
-    TCEString dataLayoutStr("");
-    if (plugin_->isLittleEndian()) {
-        dataLayoutStr += target.is64bit() ? "e-p:64:64:64" : "e-p:32:32:32";
-    } else {
-        dataLayoutStr += "E-p:32:32:32";
-    }
-    dataLayoutStr += "-a0:0:" + Conversion::toString(alignBits);
     if (target.is64bit()) {
-        dataLayoutStr += "-i1:8:64";
-        dataLayoutStr += "-i8:8:64";
-        dataLayoutStr += "-i16:16:64";
-        dataLayoutStr += "-i32:32:64";
-        dataLayoutStr += "-i64:64:64";
-        dataLayoutStr += "-f16:16:64";
-        dataLayoutStr += "-f32:32:64";
+        plugin_->setDataLayout(DataLayoutStringLE64);
     } else {
-        dataLayoutStr += "-i1:8:8";
-        dataLayoutStr += "-i8:8:32";
-        dataLayoutStr += "-i16:16:32";
-        dataLayoutStr += "-i32:32:32";
-        dataLayoutStr += "-i64:64:64";
-        dataLayoutStr += "-f16:16:16";
-        dataLayoutStr += "-f32:32:32";
+      if (plugin_->isLittleEndian()) {
+          plugin_->setDataLayout(DataLayoutStringLE);
+      } else {
+          plugin_->setDataLayout(DataLayoutStringBE);
+      }
     }
-    dataLayoutStr += "-f64:64:64";
-    dataLayoutStr += "-v64:64:64";
-    dataLayoutStr += "-v128:128:128";
-    dataLayoutStr += "-v256:256:256";
-    dataLayoutStr += "-v512:512:512";
-    dataLayoutStr += "-v1024:1024:1024";
-#if LLVM_HAS_CUSTOM_VECTOR_EXTENSION == 2
-    dataLayoutStr += "-v2048:2048:2048";
-    dataLayoutStr += "-v4096:4096:4096";
-#endif
-
-    DataLayout* dl = plugin_->getDataLayout();
-    dl->reset(dataLayoutStr.c_str());
+    // register machine to plugin
+    plugin_->registerTargetMachine(*this);
 }
 
 /**

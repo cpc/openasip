@@ -37,41 +37,6 @@
 
 #include "tce_config.h"
 
-#define TCELE64DLString \
-    "E-p:64:64:64"    \
-    "-a0:0:64"        \
-    "-i1:8:8"         \
-    "-i8:8:64"        \
-    "-i16:16:64"      \
-    "-i32:32:64"      \
-    "-i64:64:64"      \
-    "-f16:16:64"      \
-    "-f32:32:64"      \
-    "-f64:64:64"      \
-    "-v64:64:64"      \
-    "-v128:128:128"    \
-    "-v256:256:256"    \
-    "-v512:512:512"    \
-    "-v1024:1024:1024" \
-    "-v2048:2048:2048" \
-    "-v4096:4096:4096"
-
-#define TCEBEDLString \
-    "E-p:32:32:32"    \
-    "-a0:0:32"        \
-    "-i1:8:8"         \
-    "-i8:8:32"        \
-    "-i16:16:32"      \
-    "-i32:32:32"      \
-    "-i64:32:32"      \
-    "-f16:16:16"      \
-    "-f32:32:32"      \
-    "-f64:32:64"      \
-    "-v64:32:64"      \
-    "-v128:32:128"    \
-    "-v512:32:512"    \
-    "-v1024:32:1024"
-
 #include <llvm/IR/DataLayout.h>
 #include <llvm/CodeGen/SelectionDAGTargetInfo.h>
 
@@ -90,7 +55,7 @@ namespace TTAMachine {
 /**
  * TCE target machine plugin interface.
  */
-namespace llvm { 
+namespace llvm {
    class TargetInstrInfo;
    class TCEInstrInfo;
    class TargetLowering;
@@ -108,10 +73,8 @@ namespace llvm {
 
    class TCETargetMachinePlugin {
     public:
-       // TODO: why is here this default??
        TCETargetMachinePlugin() : lowering_(NULL), tm_(NULL),
-                                  dl_(TCELE64DLString) {};
-                             // this is overwritten anyway later
+                                  dl_("") {};
 
        virtual ~TCETargetMachinePlugin() {};
 
@@ -219,10 +182,12 @@ namespace llvm {
        virtual bool is64bit() const = 0;
 
        virtual const DataLayout* getDataLayout() const {
+           assert(!dl_.isDefault());
            return &dl_;
        }
 
        virtual DataLayout* getDataLayout() {
+           assert(!dl_.isDefault());
            return &dl_;
        }
 
