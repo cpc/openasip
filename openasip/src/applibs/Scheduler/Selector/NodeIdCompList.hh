@@ -46,8 +46,7 @@
  * node id. stupid but working order.
  *
  */
-class RLPriorityNodeId:
-    public std::binary_function<MoveNode*, MoveNode*, bool> {
+class RLPriorityNodeId {
 public:
     /**
      * Compares two nodes according to their priority in the ready list.

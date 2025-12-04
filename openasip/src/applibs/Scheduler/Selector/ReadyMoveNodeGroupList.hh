@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Declaration of ReadyMoveNodeGroupList class.
  *
- * @author Pekka Jääskeläinen 2007 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2007,2025 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -45,8 +45,7 @@
  * distance from farthest sink node.
  *
  */
-class RLPriorityCriticalPath:
-    public std::binary_function<MoveNode*, MoveNode*, bool> {
+class RLPriorityCriticalPath {
 public:
     /**
      * Compares two nodes according to their priority in the ready list.
@@ -84,8 +83,7 @@ public:
  * distance from farthest source node. Futher away from source the better.
  *
  */
-class RLBUPriorityCriticalPath:
-public std::binary_function<MoveNode*, MoveNode*, bool> {
+class RLBUPriorityCriticalPath {
 public:
     /**
      * Compares two nodes according to their priority in the ready list.

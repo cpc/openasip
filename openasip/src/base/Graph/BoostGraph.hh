@@ -66,6 +66,7 @@ namespace boost {
 
 #include "CompilerWarnings.hh"
 IGNORE_CLANG_WARNING("-Wunused-local-typedef")
+IGNORE_COMPILER_WARNING("-Wmaybe-uninitialized")
 #include <boost/config.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/subgraph.hpp>
