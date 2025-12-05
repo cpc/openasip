@@ -37,7 +37,7 @@
 \title{OpenASIP v2.2-pre}
 \ver{36}
 \firstday{2006-10-25}
-\lastday{2023-12-18}
+\lastday{2025-12-04}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -3834,7 +3834,7 @@ definitions to the newly created operation module.
 \item%
   Press \emph{Open DAG}
 \item%
-  Type the operation description in the dialog as a DAG by combining an SHRU
+  Type the operation description in the dialog as a DAG by combining an SHL
   and XOR operation, see Fig.~\ref{fig:crc_dag}.
 \item%
   Press \emph{Save} and then \emph{OK}.
@@ -4153,9 +4153,13 @@ description as a base and add your own custom instructions on top of it.
 \section{RISC-V Coprocessor generation}
 \label{sec:coproriscv}
 
-This section eloborates the process of generating coprocessors with the \textit{generatecoprocessor} utilizing the same files as in section~\ref{sec:riscvtute} and RTL simulation of them with supported host cores.
+This section of the tutorial presents adding custom RISC-V instructions as coprocessors utilizing OpenASIP toolset. The reader will learn how to implement a portion of an algorithm as a custom operation on coprocessors and execute a program on RTL simulations of them with supported host RISC-V cores. 
 
-Tutorial files should be downloaded and extracted as in the above section, however, the same procedure for it, is mentioned below.
+RTLs of coprocessors are generated with the \textit{generatecoprocessor} tool (The description of the tool is in section~\ref{sec:gencopro}). The tool is currently able to produce RTL files based for 'CV-X' and 'RoCC' interfaces. 
+
+Same tutorial files and operation adding procedures as in section~\ref{sec:riscvtute} are used in here, however, the first part of this section elaborates the same process for the readers who haven't gone through it. Subsection~\ref{ssec:cvxinterface} explains further procedure related to 'CV-X' interface, while subsection~\ref{ssec:roccinterface} describes 'RoCC' interface related process.
+
+Tutorial files can be downloaded and extracted as shown below.
 
 \begin{verbatim}
   > wget http://openasip.org/tutorial_files/tce_tutorials.tar.gz
@@ -4176,7 +4180,9 @@ Tutorial files should be downloaded and extracted as in the above section, howev
   drwxr-xr-x 2 tce tce  4096 2010-05-28 11:40 tour_vhdl
 \end{verbatim}
 
-The custom operation used in this tutorial is \textit{crc\_xor\_shift} which is already made in the above section. The necessary steps for adding the custom instruction as a DAG operation, is as below.
+The sample application used in here is a 32-bit CRC (Cyclic Redundant Check) check value for a block of data written in C code by Michael Barr. The algorithm performs modulo-2 division, a byte at a time, reflects the input data (MSB becomes LSB) depending on the previous remainder, and XORs the remainder with a predefined polynomial (32-bit constant).
+
+The aim is to accelerate the algorithm by implementing some functionality/functionalities as custom instruction/instructions. In this tutorial, \textit{crc\_xor\_shift} is implemented as a custom operation and the necessary steps for adding the custom instruction as a DAG operation, is as shown below.
 
 \paragraph{Using Operation Set Editor (OSEd) to add the operation data.}
 
@@ -4236,7 +4242,7 @@ definitions to the newly created operation module.
 \item%
   Press \emph{Open DAG}
 \item%
-  Type the operation description in the dialog as a DAG by combining an SHRU
+  Type the operation description in the dialog as a DAG by combining an SHL
   and XOR operation, see Fig.~\ref{fig:crc_dag}.
 \item%
   Press \emph{Save} and then \emph{OK}.
@@ -4267,6 +4273,17 @@ Now open coprogen.adf with ProDe to add the new custom operation to your archite
 \shellcmd{prode coprogen.adf}
 
 \begin{enumerate}
+    
+  \item%
+    Right click on the raster (alternatively, go to edit from the menu) select \textbf{Add}, from the drop down menu.
+  \item%
+    Select \textbf{Socket...} from the secondary drop down menu.
+    \item%
+    Select all the options under \textit{BUS} in \textit{Detached Buses} and click \emph{Attach}.
+    \item%
+    Type the name as \textit{fuin1} and select the \textit{Direction} as input and click \emph{OK}.
+    \item%
+    Repeat 1-3 steps twice and create one more input socket and an output socket by choosing the direction as in step 4. There have to be two input sockets and an output socket at the end. The names can be given appropriately.
   \item%
     Right click on the raster (alternatively, go to edit from the menu) select \textbf{Add}, from the drop down menu.
   \item%
@@ -4274,7 +4291,7 @@ Now open coprogen.adf with ProDe to add the new custom operation to your archite
   \item%
     Type the Name as \textit{custom}
   \item%
-    Add three ports: two input and one output by clicking \textit{add} three times in the Ports section. 
+    Add three ports: two input and one output by clicking \textit{add} three times in the Ports section. Select the sockets created in step 1-5 appropriately.
   \item%
     Click \emph{add from Opset} in FU dialog box.
   \item%
@@ -4318,8 +4335,9 @@ Now you have successfully added the operation to the microarchitecture. We need 
 Now the custom instruction has been succefully added to the architecture file. In the next subsection coprocessor generation and simulation for each of the interfaces are eloborated seperately.
 
 \subsection{CV-X interface}
+\label{ssec:cvxinterface}
 
-For the CV-X interface, the CORE-V CVA6 is used as the compatible RISC-V host core. To continue with the tutorial, cloned repository of the CVA6 as well as the tools mandatory for simulating CVA6, should have to be present. The neccessary files and the quick setup guide for CVA6, can be found on the link:
+For the CV-X interface, the CORE-V CVA6 is used as the compatible RISC-V host core. To continue with the tutorial, cloned repository of the CVA6 as well as the tools mandatory for simulating CVA6, should have to be present. The necessary files and the quick setup guide for CVA6, can be found on the link:
 \url{https://github.com/openhwgroup/cva6} 
 (Steps 1 to 7 in the quick setup must be followed).
 
@@ -4333,14 +4351,14 @@ Next, the generated hardware files need to be integrated with the CVA6 host core
 
 \begin{enumerate}
   \item%
-    Directory paths mentioned under \textit{//CVXIF} in the file \file{cva6/core/Flist.cva6} need to be replace with the directory paths of the generated RTL files.
+    Directory paths mentioned under \textit{//CVXIF} in the file \file{cva6/core/Flist.cva6} replaced with the directory paths of the generated RTL files.
   \item%
     The name of the \textit{cvxif\_example\_coprocessor} in the file \file{cva6/corev\_apu/src/ariane.sv} have to be replaced with the given name to the coprocessor.
     \item%
-    As the \textit{oacc\_riscv} compiler can generate binaries targetting the custom operations, \textit{oacc\_riscv} needs to be configured into the compilation function in the file \file{cva6/verif/sim/cva6.py}
+    As the \textit{oacc-riscv} compiler can generate binaries targetting the custom operations, \textit{oacc-riscv} needs to be configured into the compilation function in the file \file{cva6/verif/sim/cva6.py}
 \end{enumerate}
 
-Executing the following steps will copy the generated RTL files into the CVA6 and modify the neccessary files.  
+Executing the following steps will copy the generated RTL files into the CVA6 and modify the necessary files.  
 
 \shellcmd{export cva6\_path=\{<CVA6 LOCAL REPOSITORY PATH>\}}
 
@@ -4352,10 +4370,13 @@ Executing the following steps will copy the generated RTL files into the CVA6 an
 
 \shellcmd{bash coproGen\_tour.sh}
 
-The script \file{coproGen\_tour.sh} compiles \file{crc.c} and \file{main.c} files utilizing the \textit{oacc\_riscv} compiler targetting the \textit{coprogen.adf} and executes the CVA6 simulation with Verilator.
+The script \file{coproGen\_tour.sh} compiles \file{crc.c} and \file{main.c} files utilizing the \textit{oacc-riscv} compiler targeting the \textit{coprogen.adf} and executes the CVA6 simulation with Verilator.
+The successful execution of the script produces a compiled assembly program named \file{’cvxif.asm} from the C code. Included custom instruction \textit{oa\_crc\_xor\_shift} can be seen on it.
+Furthermore, the C code has the precomputed result for the CRC operation and the script modifies the \file{main.c} file to check if the simulation produces the same result. RTL simulation prints a PASSED message if the result is correct.
 
 
 \subsection{RoCC interface}
+\label{ssec:roccinterface}
 
 For the RoCC Interface, Rocket-chip in the chipyard repository, is used as the compatible RISC-V host core in this tutorial. To proceed further with the tutorial, initial repository setup has to be done according  to the following: \url{https://chipyard.readthedocs.io/en/latest/Chipyard-Basics/Initial-Repo-Setup.html}. 
 
@@ -4365,7 +4386,7 @@ Following command generates the hardware RTL files for the coprocessor that can 
 
 Above command produces files related to the coprocessor in the folder \file{out\_rocc/systemverilog}
 
-Next, the generated RTL files have to be integrated with the Rocket-chip and neccessary configurations have to be done.
+Next, the generated RTL files have to be integrated with the Rocket-chip and necessary configurations have to be done.
 
 Executing following commands will copy the generated RTL files and do the appropriate modifications to the chipyard configurations.
 
@@ -4379,6 +4400,8 @@ Executing following commands will copy the generated RTL files and do the approp
 
 \shellcmd{bash coproGen\_tour.sh}
 
+The successful execution of the script produces a compiled assembly program named \file{rocc.asm} from the C code. Included custom instruction \textit{oa\_crc\_xor\_shift} can be seen on it.
+Furthermore, the C code has the precomputed result for the CRC operation and the script modifies the \file{main.c} file to check if the simulation produces the same result. RTL simulation prints a PASSED message if the result is correct.  
 
 \chapter{PROCESSOR DESIGN TOOLS}
 \label{chapter:procgen}
@@ -4608,7 +4631,7 @@ selected DAG code from the list box below. A new DAG section can be created
 either by selecting \emph{New DAG} list box item or pressing the \emph{New} button.
 By pressing the \emph{Undo} button, it is possible to revert changes to current
 code from the last saved position. DAG can be saved to operation's definition
-file by pressing the \emph{Save} button. Unneccessary DAG sections can be deleted
+file by pressing the \emph{Save} button. Unnecessary DAG sections can be deleted
 by pressing the \emph{Delete} button.
 
 If code section contains valid OSAL DAG code, then the editor window shows

@@ -33,17 +33,6 @@ class WithMultiRoCCFromBuildRoCC(harts: Int*) extends Config((site, here, up) =>
   }
 })
 
-class WithMultiRoCCGemmini[T <: Data : Arithmetic, U <: Data, V <: Data](
-  harts: Int*)(gemminiConfig: GemminiArrayConfig[T,U,V] = GemminiConfigs.defaultConfig) extends Config((site, here, up) => {
-  case MultiRoCCKey => up(MultiRoCCKey, site) ++ harts.distinct.map { i =>
-    (i -> Seq((p: Parameters) => {
-      implicit val q = p
-      val gemmini = LazyModule(new Gemmini(gemminiConfig))
-      gemmini
-    }))
-  }
-})
-
 class WithAccumulatorRoCC(op: OpcodeSet = OpcodeSet.custom1) extends Config((site, here, up) => {
   case BuildRoCC => up(BuildRoCC) ++ Seq((p: Parameters) => {
     val accumulator = LazyModule(new AccumulatorExample(op, n = 4)(p))
