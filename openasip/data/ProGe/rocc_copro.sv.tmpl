@@ -1,0 +1,142 @@
+/*
+ * Copyright (c) 2025 Tampere University.
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+module FUNAME_coprocessor
+ #( parameter xLen = 64,
+     PRV_SZ = 2
+ )
+ ( input clock,
+    input                                reset,
+    output                               cmd_ready,
+    input                                cmd_valid,
+    input [6:0]                          cmd_bits_inst_funct,
+    input [4:0]                          cmd_bits_inst_rs2,
+    input [4:0]                          cmd_bits_inst_rs1,
+    input                                cmd_bits_inst_xd,
+    input                                cmd_bits_inst_xs1,
+    input                                cmd_bits_inst_xs2,
+    input [4:0]                          cmd_bits_inst_rd,
+    input [6:0]                          cmd_bits_inst_opcode,
+    input [xLen-1:0]                     cmd_bits_rs1,
+    input [xLen-1:0]                     cmd_bits_rs2,
+    input                                cmd_bits_status_debug,
+    input                                cmd_bits_status_cease,
+    input                                cmd_bits_status_wfi,
+    input [63:0]                         cmd_bits_status_isa,
+    input [PRV_SZ-1:0]                   cmd_bits_status_dprv,
+    input                                cmd_bits_status_dv,
+    input [PRV_SZ-1:0]                   cmd_bits_status_prv,
+    input                                cmd_bits_status_v,
+    input                                cmd_bits_status_sd,
+    input [22:0]                         cmd_bits_status_zero2,
+    input                                cmd_bits_status_mpv,
+    input                                cmd_bits_status_gva,
+    input                                cmd_bits_status_mbe,
+    input                                cmd_bits_status_sbe,
+    input [1:0]                          cmd_bits_status_sxl,
+    input [1:0]                          cmd_bits_status_uxl,
+    input                                cmd_bits_status_sd_rv32,
+    input [7:0]                          cmd_bits_status_zero1,
+    input                                cmd_bits_status_tsr,
+    input                                cmd_bits_status_tw,
+    input                                cmd_bits_status_tvm,
+    input                                cmd_bits_status_mxr,
+    input                                cmd_bits_status_sum,
+    input                                cmd_bits_status_mprv,
+    input [1:0]                          cmd_bits_status_xs,
+    input [1:0]                          cmd_bits_status_fs,
+    input [1:0]                          cmd_bits_status_vs,
+    input [1:0]                          cmd_bits_status_mpp,
+    input [0:0]                          cmd_bits_status_spp,
+    input                                cmd_bits_status_mpie,
+    input                                cmd_bits_status_ube,
+    input                                cmd_bits_status_spie,
+    input                                cmd_bits_status_upie,
+    input                                cmd_bits_status_mie,
+    input                                cmd_bits_status_hie,
+    input                                cmd_bits_status_sie,
+    input                                cmd_bits_status_uie,
+    input                                resp_ready,
+    output                               resp_valid,
+    output [4:0]                         resp_bits_rd,
+    output [xLen-1:0]                    resp_bits_data,
+    output                               busy
+ );
+
+  localparam [4:0] bits_reg = 5'b00000;
+
+  logic [63:0] inter_rs1;
+  logic [63:0] inter_rs2;
+  logic [6:0]  inter_opcode;
+  logic [6:0]  inter_func;
+  logic [4:0]  inter_rd;
+
+  reg [63:0] inter_rs1_r;
+  reg [63:0] inter_rs2_r;
+  reg [31:0]  inter_opcode_r;
+  reg [6:0]  inter_func_r;
+  reg [4:0]  inter_rd_r;
+  reg inter_en_r;
+  reg inter_cmd_valid;
+
+  assign busy = '0; // Expects the core always accepts the data from the coprocessor
+  assign cmd_ready = '1;
+  assign inter_rs1 = cmd_bits_rs1;
+  assign inter_rs2 = cmd_bits_rs2;
+  assign inter_opcode = cmd_bits_inst_opcode;
+  assign inter_func = cmd_bits_inst_funct;
+  assign inter_rd = cmd_bits_inst_rd;
+  assign inter_cmd_valid = cmd_valid;
+  
+  // CMD Control COMB
+  always_comb begin
+    inter_rs1_r     = '0;
+    inter_rs2_r     = '0;
+    inter_opcode_r  = '0;
+    inter_rd_r      = '0;
+    inter_en_r      = '0;
+      if (inter_cmd_valid == 1) begin   // Valid from the ROCC
+          inter_rs1_r     = inter_rs1;
+          inter_rs2_r     = inter_rs2;
+          inter_opcode_r  = {inter_func, bits_reg, bits_reg, cmd_bits_inst_xd, cmd_bits_inst_xs1, cmd_bits_inst_xs2, bits_reg, inter_opcode};
+          inter_rd_r      = inter_rd;
+          inter_en_r      = '1;
+      end 
+  end
+
+ // FU
+ fu_FUNAME fu_functionunit_i (
+      .clk(clock),
+      .rstx(~reset),
+      .glock_in(0),
+      .operation_in(inter_opcode_r),
+      .data_P1_in(inter_rs1_r[31:0]),
+      .operation_enable_in(inter_en_r),
+      .data_P2_in(inter_rs2_r[31:0]),
+      .configs_in({inter_rd_r,inter_en_r}),
+      .configs_out(resp_bits_rd),
+      .out_ready(resp_ready),
+      .out_valid(resp_valid),
+      .data_P3_out(resp_bits_data[31:0])
+  );
+
+endmodule
