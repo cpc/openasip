@@ -60,6 +60,11 @@ namespace llvm {
             return &TLI;
         }
 
+        const llvm::TargetRegisterInfo*
+        getRegisterInfo() const {
+            assert(false && "Unimplemented.");
+            return nullptr;
+        }
     };
 } // end namespace llvm
 #endif

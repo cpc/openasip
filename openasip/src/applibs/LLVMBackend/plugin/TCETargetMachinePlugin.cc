@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2015 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -32,10 +32,15 @@
  * @note rating: red
  */
 
-//#include <llvm/Config/config.h>
+#include <llvm/Analysis/TargetTransformInfo.h>
+#include <llvm/CodeGen/BasicTTIImpl.h>
+
 #include <string>
 #include <iostream>
 #include <sstream>
+
+#include <memory>
+
 #include "TCETargetMachinePlugin.hh"
 #include "TCEPlugin.hh"
 #include "TCETargetMachine.hh"
@@ -289,26 +294,32 @@ GeneratedTCEPlugin::getRegisterInfo() const {
 /**
  * Returns TargetFrameInfo object for TCE target.
  */
-const TargetFrameLowering* 
+const TargetFrameLowering*
 GeneratedTCEPlugin::getFrameLowering() const {
     return frameInfo_;
 }
 
 TargetTransformInfo
 GeneratedTCEPlugin::getTargetTransformInfo(const Function& F) const {
+#if LLVM_MAJOR_VERSION < 21
     return TargetTransformInfo(TCETTIImpl(tm_, F));
+#else
+    std::unique_ptr<const llvm::TargetTransformInfoImplBase> TTI(
+      new TCETTIImpl(tm_, F));
+    return TargetTransformInfo(std::move(TTI));
+#endif
 }
 
 /**
  * Returns TargetLowering object for TCE target.
  */
-TargetLowering* 
-GeneratedTCEPlugin::getTargetLowering() const { 
+TargetLowering*
+GeneratedTCEPlugin::getTargetLowering() const {
     assert(lowering_ != NULL && "TCETargetMachine has not registered to plugin.");
     return lowering_;
 }
 
-const TargetSubtargetInfo* 
+const TargetSubtargetInfo*
 GeneratedTCEPlugin::getSubtarget() const {
     return subTarget_;
 }

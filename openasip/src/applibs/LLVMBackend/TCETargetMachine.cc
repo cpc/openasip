@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2020 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -80,28 +80,38 @@ Pass* createInstructionPatternAnalyzer();
 class DummyInstPrinter : public MCInstPrinter {
 public:
     DummyInstPrinter(
-        const llvm::MCAsmInfo& mai, const llvm::MCInstrInfo& mii, 
-        const llvm::MCRegisterInfo& mri) : llvm::MCInstPrinter(mai, mii, mri) {}
+        const llvm::MCAsmInfo& mai, const llvm::MCInstrInfo& mii,
+        const llvm::MCRegisterInfo& mri)
+        : llvm::MCInstPrinter(mai, mii, mri) {}
 
     bool
     applyTargetSpecificCLOption(StringRef Opt) override {
         return false;
     }
+
+#if LLVM_MAJOR_VERSION < 21
     std::pair<const char*, uint64_t>
     getMnemonic(const MCInst* MI) override {
         return std::make_pair(nullptr, 0);
     }
 
+    void
+    printRegName(raw_ostream& OS, MCRegister Reg) const override {}
+
+#else
+    std::pair<const char*, uint64_t>
+    getMnemonic(const MCInst&) const override {
+        return std::make_pair(nullptr, 0);
+    }
+
+    void
+    printRegName(raw_ostream& OS, MCRegister Reg) override {}
+#endif
+
     void printInst(
         const MCInst*, uint64_t, StringRef,
         const MCSubtargetInfo&, raw_ostream&) override {}
 
-    void
-    #ifdef LLVM_OLDER_THAN_16
-    printRegName(raw_ostream& OS, unsigned RegNo) const override {}
-    #else
-    printRegName(raw_ostream& OS, MCRegister Reg) const override {}
-    #endif
 };
 
 // In TCE target we don't print the MCInsts from LLVM, but
@@ -149,11 +159,13 @@ TCETargetMachine::TCETargetMachine(
     const Target &T, const Triple& TTriple,
     const llvm::StringRef& CPU, const llvm::StringRef& FS,
     const TargetOptions &Options,
-    #ifdef LLVM_OLDER_THAN_16
+#ifdef LLVM_OLDER_THAN_16
     Optional<Reloc::Model> RM, Optional<CodeModel::Model> CM, CodeGenOpt::Level OL, bool) :
-    #else
-    std::optional<Reloc::Model> RM, std::optional<CodeModel::Model> CM, CodeGenOpt::Level OL, bool) :
-    #endif
+#else
+    std::optional<Reloc::Model> RM, std::optional<CodeModel::Model> CM,
+    CodeGenOptLevel OL, bool)
+    :
+#endif
     TCEBaseTargetMachine(T, TTriple, CPU, FS, Options,
                          RM?*RM:Reloc::Model::Static, CM?*CM:CodeModel::Small, OL),
     // Note: Reloc::Model does not have "Default" named member. "Static" is ok?
@@ -202,50 +214,19 @@ TCETargetMachine::setTargetMachinePlugin(
         missingOps_.insert(std::make_pair(llvm::ISD::FSQRT, MVT::f32));
     }
 
-    // register machine to plugin
-    plugin_->registerTargetMachine(*this);
-
     initAsmInfo();
 
-    // Set data layout with correct stack alignment.
-    unsigned alignBits = MachineInfo::maxMemoryAlignment(target) * 8;
-    TCEString dataLayoutStr("");
-    if (plugin_->isLittleEndian()) {
-        dataLayoutStr += target.is64bit() ? "e-p:64:64:64" : "e-p:32:32:32";
-    } else {
-        dataLayoutStr += "E-p:32:32:32";
-    }
-    dataLayoutStr += "-a0:0:" + Conversion::toString(alignBits);
     if (target.is64bit()) {
-        dataLayoutStr += "-i1:8:64";
-        dataLayoutStr += "-i8:8:64";
-        dataLayoutStr += "-i16:16:64";
-        dataLayoutStr += "-i32:32:64";
-        dataLayoutStr += "-i64:64:64";
-        dataLayoutStr += "-f16:16:64";
-        dataLayoutStr += "-f32:32:64";
+        plugin_->setDataLayout(DataLayoutStringLE64);
     } else {
-        dataLayoutStr += "-i1:8:8";
-        dataLayoutStr += "-i8:8:32";
-        dataLayoutStr += "-i16:16:32";
-        dataLayoutStr += "-i32:32:32";
-        dataLayoutStr += "-i64:64:64";
-        dataLayoutStr += "-f16:16:16";
-        dataLayoutStr += "-f32:32:32";
+      if (plugin_->isLittleEndian()) {
+          plugin_->setDataLayout(DataLayoutStringLE);
+      } else {
+          plugin_->setDataLayout(DataLayoutStringBE);
+      }
     }
-    dataLayoutStr += "-f64:64:64";
-    dataLayoutStr += "-v64:64:64";
-    dataLayoutStr += "-v128:128:128";
-    dataLayoutStr += "-v256:256:256";
-    dataLayoutStr += "-v512:512:512";
-    dataLayoutStr += "-v1024:1024:1024";
-#if LLVM_HAS_CUSTOM_VECTOR_EXTENSION == 2
-    dataLayoutStr += "-v2048:2048:2048";
-    dataLayoutStr += "-v4096:4096:4096";
-#endif
-
-    DataLayout* dl = plugin_->getDataLayout();
-    dl->reset(dataLayoutStr.c_str());
+    // register machine to plugin
+    plugin_->registerTargetMachine(*this);
 }
 
 /**
@@ -276,24 +257,17 @@ TCEPassConfig::addPreISel() {
         dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
     if (options != NULL && !options->disableHWLoops() &&
         ((static_cast<TCETargetMachine*>(TM))->ttaMach_)
-            ->hasOperation("hwloop"))
-        #ifdef LLVM_OLDER_THAN_17
-            addPass(createHardwareLoopsPass());
-        #else
-            addPass(createHardwareLoopsLegacyPass());
-        #endif
-        
+        ->hasOperation("hwloop"))
+        addPass(createHardwareLoopsLegacyPass());
 
-    // lower floating point stuff.. maybe could use plugin as param instead machine...    
+    // lower floating point stuff.. maybe could use plugin as param instead machine...
     addPass(createLowerMissingInstructionsPass(
                 *((static_cast<TCETargetMachine*>(TM))->ttaMach_)));
-    
+
     if ((static_cast<TCETargetMachine*>(TM))->emulationModule_ != NULL) {
         addPass(createLinkBitcodePass(
                   *((static_cast<TCETargetMachine*>(TM))->emulationModule_)));
     }
-
-    CodeGenOpt::Level OptLevel = getOptLevel();
 
     // NOTE: This must be added before Machine function analysis pass..
     // needed by POMBuilder to prevent writing debug data to data section

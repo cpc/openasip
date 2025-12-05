@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2013 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1361,8 +1361,14 @@ TCETargetLowering::lowerHWLoops(SDValue op, SelectionDAG &dag) const {
         dag.dump();
         assert(false && "HWLoop should not have more than one Use");
     }
+#if LLVM_MAJOR_VERSION < 21
     auto linkNode = op->use_begin();
+#else
+    auto linkNode = op->use_begin()->getUser();
+#endif
+
     auto linkOpc = linkNode->getOpcode();
+
     if (linkOpc == ISD::BR || linkOpc == ISD::HANDLENODE) {
         // hwloop follows branch (or) last instruction of BB,
         // No action needed.
@@ -1386,7 +1392,11 @@ TCETargetLowering::lowerHWLoops(SDValue op, SelectionDAG &dag) const {
         // Swap the use list of op and linkNode
         if (i == 0) {
             // Set TokenFactor as 1st operand
+#if LLVM_MAJOR_VERSION < 21
             ops.push_back(SDValue(*linkNode, 0));
+#else
+            ops.push_back(SDValue(linkNode, 0));
+#endif
 
             // Create operand list for linkNode
             for (int j = 0; j < linkNode->getNumOperands(); j++) {
@@ -1403,13 +1413,21 @@ TCETargetLowering::lowerHWLoops(SDValue op, SelectionDAG &dag) const {
         }
     }
     SDLoc dl(op);
+#if LLVM_MAJOR_VERSION < 21
     dag.ReplaceAllUsesWith(*linkNode, &op);
+#else
+    dag.ReplaceAllUsesWith(linkNode, &op);
+#endif
     auto Chain = dag.UpdateNodeOperands(op.getNode(), ArrayRef<SDValue>(ops));
     if (replaceLinkNode) {
         SDValue newLinkNode = dag.getNode(
             linkNode->getOpcode(), dl, MVT::Other,
             ArrayRef<SDValue>(linkOps));
+#if LLVM_MAJOR_VERSION < 21
         dag.ReplaceAllUsesWith(*linkNode, &newLinkNode);
+#else
+        dag.ReplaceAllUsesWith(linkNode, &newLinkNode);
+#endif
     }
     return op;
 }
@@ -1496,8 +1514,13 @@ TCETargetLowering::PerformDAGCombine(SDNode *N, DAGCombinerInfo &DCI) const {
                 } else {
                     assert((chain.getOpcode() == ISD::TokenFactor) &&
                         "chain to brcond is not TokenFactor.");
+#if LLVM_MAJOR_VERSION < 21
                     assert((N->use_begin()->getOpcode() == ISD::BR) &&
                         "brcond is not connected to br.");
+#else
+                    assert((N->use_begin()->getUser()->getOpcode() == ISD::BR) &&
+                        "brcond is not connected to br.");
+#endif
                     SmallVector<SDValue, 8> Ops;
                     bool hasDecrement = false;
                     for (unsigned i = 0, e = chain->getNumOperands(); i != e;
@@ -1650,11 +1673,15 @@ TCETargetLowering::getRegForInlineAsmConstraint(
 void
 TCETargetLowering::LowerAsmOperandForConstraint(
     SDValue Op,
-    std::string& Constraint,
+#if LLVM_MAJOR_VERSION < 21
+            std::string& Constraint,
+#else
+            llvm::StringRef Constraint,
+#endif
     std::vector<SDValue>& Ops,
     SelectionDAG& DAG) const {
 
-    if (Constraint.length() == 1) {
+    if (Constraint.size() == 1) {
         switch (Constraint[0]) {
             case 'i':
                 if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
@@ -1841,8 +1868,13 @@ SDValue
     Type *ArgTy = ArgVT.getTypeForEVT(*DAG.getContext());
     Entry.Node = Op;
     Entry.Ty = ArgTy;
+#if LLVM_MAJOR_VERSION < 21
     Entry.IsSExt = shouldSignExtendTypeInLibCall(ArgVT, isSigned);
     Entry.IsZExt = !shouldSignExtendTypeInLibCall(ArgVT, isSigned);
+#else
+    Entry.IsSExt = shouldSignExtendTypeInLibCall(ArgTy, isSigned);
+    Entry.IsZExt = !shouldSignExtendTypeInLibCall(ArgTy, isSigned);
+#endif
     Args.push_back(Entry);
   }
   SDValue Callee = DAG.getExternalSymbol(getLibcallName(LC),
@@ -1868,7 +1900,11 @@ SDValue
     InChain = TCChain;
 
   TargetLowering::CallLoweringInfo CLI(DAG);
+#if LLVM_MAJOR_VERSION < 21
   bool signExtend = shouldSignExtendTypeInLibCall(RetVT, isSigned);
+#else
+  bool signExtend = shouldSignExtendTypeInLibCall(RetTy, isSigned);
+#endif
   CLI.setDebugLoc(SDLoc(Node))
       .setChain(InChain)
       .setLibCallee(getLibcallCallingConv(LC), RetTy, Callee,

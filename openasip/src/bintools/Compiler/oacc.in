@@ -393,7 +393,7 @@ def processInputFiles(inFiles, tmpDir, options, tceopsDir=None):
                     compile(cpp_trampoline, trampoline_bc)
 
                     # Link the trampoline (+registration object) and the kernel together.
-                    command = "llvm-link %s %s -o %s.tobelowered;" % \
+                    command = "llvm-link --suppress-warnings %s %s -o %s.tobelowered;" % \
                                (kernel_bc, trampoline_bc, outFileName)
 
                     command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
@@ -473,6 +473,12 @@ def lowerMemIntrinsicCommand(srcFile, dstFile):
     optSwitches = ""
     commandp = "opt -passes=\'lowerintrinsic\' -f -load-pass-plugin=" + lowerintrinsicsplugin
     command = commandp + " -o " + dstFile + " " + srcFile + " " + optSwitches
+    # LLVM 21 started to complain about not being able to create a target machine
+    # for tce-tut-unknown-llvm. This is a bit worrying since we rely on the fact
+    # that opt etc. do not require the actual target machine for OpenASIP to be
+    # present in upstream LLVM (since generate and load them with our own tooling).
+    # For now, just silience the warning (passing --no-warn didn't do it).
+    command += " 2>&1 | (grep -v 'WARNING: failed to create target machine' || true) "
     return command
 
 ###
@@ -639,7 +645,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
                 if not sym in defSyms:
                     undefSyms.append(sym)
 
-    command = "llvm-link -o " + linkedFileName + ".bc "
+    command = "llvm-link --suppress-warnings -o " + linkedFileName + ".bc "
 
     #if options.link_start_files:
     #    command += startFile
@@ -758,7 +764,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     emulationLib = os.path.join(newlib_libdir, "float_emulation.o") + " "
     linkedName = fileNamePrefix + "_libemul.bc"
 
-    command = ("llvm-link -f " + inFile + " " + emulationLib + " -o " + linkedName)
+    command = ("llvm-link --suppress-warnings -f " + inFile + " " + emulationLib + " -o " + linkedName)
 
     (exitCode, output) = runCommandBuffered(command, verbose, stripOutput=False)
 

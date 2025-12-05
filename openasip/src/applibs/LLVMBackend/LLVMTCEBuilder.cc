@@ -303,7 +303,7 @@ LLVMTCEBuilder::initDataSections() {
         mang_->getNameWithPrefix(Buffer, &(*i), false);
         TCEString name(Buffer.c_str());
 
-        const llvm::GlobalObject& gv = *i;
+        const llvm::GlobalVariable& gv = llvm::cast<llvm::GlobalVariable>(*i);
         MaybeAlign gvAlign = gv.getAlign();
 
         if (gv.hasSection() &&
@@ -333,13 +333,18 @@ LLVMTCEBuilder::initDataSections() {
         DataDef def;
         def.name = name;
         def.address = 0;
-        def.addressSpaceId = 
+        def.addressSpaceId =
             cast<PointerType>(gv.getType())->getAddressSpace();
-        #ifdef LLVM_OLDER_THAN_16
-        def.alignment = std::max(gvAlign.hasValue()? gvAlign->value():0, (long unsigned int)(dl_->getPrefTypeAlignment(type)));
-        #else
-        def.alignment = std::max(gvAlign.has_value()? gvAlign->value():0, (long unsigned int)(dl_->getPrefTypeAlignment(type)));
-        #endif
+        def.alignment =
+#if LLVM_MAJOR_VERSION < 21
+            std::max(
+                gvAlign.has_value() ? gvAlign->value() : 0,
+                (long unsigned int)(dl_->getPrefTypeAlignment(type)));
+#else
+            std::max(
+                gvAlign.has_value() ? gvAlign->value() : 0,
+                (long unsigned int)(dl_->getPrefTypeAlign(type).value()));
+#endif
         def.size = dl_->getTypeStoreSize(type);
         // memcpy seems to assume global values are aligned by 4
         if (def.size > def.alignment) {
@@ -3012,12 +3017,20 @@ LLVMTCEBuilder::emitOperationMacro(
             continue;
         } else if (o == asmDescOp && mo.isImm()) {
             // Skip inline assembly flags.
+#if LLVM_MAJOR_VERSION < 21
             unsigned flag = mo.getImm();
             if (InlineAsm::getKind(flag) == InlineAsm::Kind_Clobber) {
                 clobberOp = o + 1;
             }
-
             asmDescOp += 1 + InlineAsm::getNumOperandRegisters(flag);
+#else
+            InlineAsm::Flag flag(mo.getImm());
+            if (flag.isClobberKind()) {
+                clobberOp = o + 1;
+            }
+            asmDescOp += 1 + flag.getNumOperandRegisters();
+#endif
+
             continue;
         } else if (o == clobberOp) {
             if (mf.getRegInfo().isReserved(mo.getReg())) {

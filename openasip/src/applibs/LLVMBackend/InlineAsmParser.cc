@@ -63,6 +63,15 @@
 #include "llvm/IR/Mangler.h"
 #include <llvm/ADT/SmallString.h>
 
+#if LLVM_MAJOR_VERSION > 20
+#define Kind_RegUse Kind::RegUse
+#define Kind_RegDefEarlyClobber Kind::RegDefEarlyClobber
+#define Kind_RegDef Kind::RegDef
+#define Kind_Clobber Kind::Clobber
+#define Kind_Mem Kind::Mem
+#define Kind_Imm Kind::Imm
+#endif
+
 using namespace llvm;
 
 InlineAsmParser::InlineAsmParser(
@@ -213,7 +222,11 @@ InlineAsmParser::addLiveRangeData(
     auto& liveRangeData = *bb.liveRangeData_;
     AsmOperandMap asmOperandMap = getInlineAsmOperands(mi);
     for (auto& opds : asmOperandMap) {
+#if LLVM_MAJOR_VERSION < 21
         auto asmOpdKind = std::get<0>(opds.second);
+#else
+        llvm::InlineAsm::Kind asmOpdKind = std::get<0>(opds.second).getKind();
+#endif
         auto& asmOpdNodes = std::get<1>(opds.second);
         TCEString reg;
         switch (asmOpdKind) {
@@ -308,7 +321,12 @@ InlineAsmParser::substituteAsmString(
     AsmOperandMap opdMap = getInlineAsmOperands(mi);
     for (auto& asmOpd : opdMap) {
         unsigned asmOpdPos = asmOpd.first;
-        unsigned asmOpdKind = std::get<0>(asmOpd.second);
+#if LLVM_MAJOR_VERSION < 21
+        auto asmOpdKind = std::get<0>(asmOpd.second);
+#else
+        llvm::InlineAsm::Kind asmOpdKind =
+            std::get<0>(asmOpd.second).getKind();
+#endif
         std::vector<const llvm::MachineOperand*>& flagOpds =
             std::get<1>(asmOpd.second);
         unsigned numAsmOpds = flagOpds.size();

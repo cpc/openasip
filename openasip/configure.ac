@@ -464,7 +464,7 @@ AC_PATH_PROGS([LLVM_CONFIG], [llvmtce-config llvm-config], [$llvmDir/bin])
 llvmConf=$LLVM_CONFIG
 ],
 [llvmDir=""
-AC_PATH_PROGS([LLVM_CONFIG], [llvmtce-config llvm-config llvm-config-6.0 llvm-config-5.0 llvm-config-3.5 llvm-config-3.4 llvm-config-3.3 llvm-config-3.2 ])
+AC_PATH_PROGS([LLVM_CONFIG], [llvmtce-config])
 llvmConf=$LLVM_CONFIG
 ]
 )
@@ -476,7 +476,7 @@ AC_MSG_NOTICE([
   systems, development support comes in separate '-dev' packages.])
 else
 
-AC_CHECK_FILE($llvmConf, 
+AC_CHECK_FILE($llvmConf,
 [
 LLVM_VERSION=$($llvmConf --version)
 LLVM_MAJOR_VERSION=$($llvmConf --version | cut -d '.' -f 1-2)
@@ -506,7 +506,7 @@ AC_DEFINE_UNQUOTED([LLVM_CONFIG], ["$LLVM_CONFIG"],
 LLVM_TCELE_TARGET=no
 
 AC_MSG_CHECKING([if the little endian tcele target is supported in Clang/LLVM])
-if $LLVM_BINDIR/clang conftest.c -target tcele-tut-llvm -emit-llvm -S -c -o - 2>/dev/null | grep -cq 'target triple = "tcele-tut-llvm"';
+if $LLVM_BINDIR/clang conftest.c -target tcele-tut-llvm -emit-llvm -S -c -o - 2>/dev/null | grep -cq 'target triple = "tcele-';
 then
   AC_MSG_RESULT([yes])
   LLVM_TCELE_TARGET=yes
@@ -522,7 +522,7 @@ AC_LANG_CONFTEST(
 ])
 
 AC_MSG_CHECKING([if the little endian 64-bit tcele64 target is supported in Clang/LLVM])
-if $LLVM_BINDIR/clang conftest.c -target tcele64-tut-llvm -emit-llvm -S -c -o - 2>/dev/null | grep -cq 'target triple = "tcele64-tut-llvm"';
+if $LLVM_BINDIR/clang conftest.c -target tcele64-tut-llvm -emit-llvm -S -c -o - 2>/dev/null | grep -cq 'target triple = "tcele64-tut';
 then
   AC_MSG_RESULT([yes])
   LLVM_TCELE64_TARGET=yes
@@ -548,28 +548,19 @@ LLVM_INCLUDEDIR=/usr/include
 fi
 
 case "$LLVM_VERSION" in
-     16*)
-     AC_DEFINE([LLVM_16], [], "Using LLVM 16")
-     LLVM_VERSION=16
-     LLVM_LIBRARYVERSION=16
-     LLVM_OLDER_THAN_17=1
-     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVMTCE-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
-     LLVM_SHARED_LIB=-lLLVMTCE-$LLVM_LIBRARYVERSION
+     21*)
+     AC_DEFINE([LLVM_21], [], "Using LLVM 21")
+     LLVM_VERSION=21
+     LLVM_LIBRARYVERSION=21
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVMTCE
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+     # This patch should be unnecessary in LLVM 21, it seems to have a wide
+     # range of vector datatypes up to 4096.
      AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the wide custom vector extension patch(wide)")
      AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
+;;
 
-;;
-     17*)
-     AC_DEFINE([LLVM_17], [], "Using LLVM 17")
-     LLVM_VERSION=17
-     LLVM_LIBRARYVERSION=17
-     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVMTCE-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
-     LLVM_SHARED_LIB=-lLLVMTCE-$LLVM_LIBRARYVERSION
-     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
-     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the wide custom vector extension patch(wide)")
-     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
-;;
      *)
    AC_MSG_NOTICE(
    [
@@ -584,12 +575,6 @@ esac
 AC_MSG_NOTICE([
   You have to install LLVM to be able to compile from C.])
 ])
-
-
-if  test "x$LLVM_OLDER_THAN_17" == "x1";
-then
-AC_DEFINE_UNQUOTED(LLVM_OLDER_THAN_17, 1, [LLVM version is older than 17])
-fi
 
 
 if test ! -e $LLVM_SHARED_LIB_FILE;
@@ -615,6 +600,9 @@ AM_CONDITIONAL(TCELE64_AVAILABLE, test x$LLVM_TCELE64_TARGET = xyes)
 
 AC_DEFINE_UNQUOTED([LLVM_VERSION], ["$LLVM_VERSION"], 
 "The LLVM version string.")
+
+AC_DEFINE_UNQUOTED([LLVM_MAJOR_VERSION], [$LLVM_VERSION], 
+"The LLVM major version.")
 
 AC_SUBST([LLVM_VERSION], ["$LLVM_VERSION"])
 AC_SUBST([LLVM_CPPFLAGS], ["$LLVM_CPPFLAGS"])

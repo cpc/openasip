@@ -61,9 +61,10 @@ IGNORE_COMPILER_WARNING("-Wcomment")
 POP_COMPILER_DIAGS
 
 #include <map>
+#include <set>
 
-namespace llvm {    
-  struct MachineDCE : public MachineFunctionPass {
+namespace llvm {
+struct MachineDCE : public MachineFunctionPass {
     static char ID;
     MachineDCE() : MachineFunctionPass(ID) {}
     typedef std::map<std::string, MachineFunction*> FunctionMap;
@@ -96,4 +97,4 @@ namespace llvm {
     typedef std::set<std::string> UnusedFunctionsList;
     UnusedFunctionsList removeableFunctions;
   };
-}
+  }  // namespace llvm

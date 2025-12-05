@@ -219,10 +219,11 @@ def compileLLVMTargetPlugin():
     with open(llvmInstallPrefix + "/include/llvm/Config/config.h", 'w'):
         pass
 
-
     cmd = "make -j$(nproc)"
     if options.tce_build_mode:
         cmd = "make"
+
+    cmd += " LLVM_VERSION=@LLVM_VERSION@"
     exitCode = run_command(cmd, echoStdout=options.verbose,
                            echoCmd=options.verbose)
     if exitCode != 0:
@@ -398,6 +399,8 @@ def exitWithError(status, errorMessage=None):
         print(errorMessage, sys.stderr)
     if not options.leave_tempfiles:
         rmtree(tempDir)
+    else:
+        print("Temp directory left in %s" % tempDir)
     sys.exit(status)
 
 def optimizeBytecode(inFile):

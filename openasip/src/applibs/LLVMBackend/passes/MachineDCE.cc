@@ -115,8 +115,8 @@ bool MachineDCE::doInitialization(Module &M) {
 #endif
 
     for (Module::const_iterator f = M.begin(), e = M.end(); f != e; ++f) {
-        if (!(f->getName().equals("_start") ||
-              f->getName().equals("_exit")))
+        if (!(f->getName().str() == "_start" ||
+              f->getName().str() == "_exit"))
             continue;
         baseUsers_.insert(f->getName().data());
 #ifdef DEBUG_MACHINE_DCE

@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -56,9 +56,7 @@ using namespace llvm;
 
 class TCEDAGToDAGISel : public llvm::SelectionDAGISel {
 public:
-    #ifndef LLVM_OLDER_THAN_16
     static char ID;
-    #endif
 
     explicit TCEDAGToDAGISel(llvm::TCETargetMachine& tm);
     virtual ~TCEDAGToDAGISel();
@@ -68,9 +66,11 @@ public:
 
     void Select(llvm::SDNode* op) override;
 
+#if LLVM_MAJOR_VERSION < 21
     virtual StringRef getPassName() const override {
         return "TCE DAG->DAG Pattern Instruction Selection";
     }
+#endif
 
 private:
 
@@ -88,10 +88,17 @@ private:
     const llvm::TCESubtarget& subtarget_;
     llvm::TCETargetMachine* tm_;
 
-    #include "TCEGenDAGISel.inc"
+#include "TCEGenDAGISel.inc"
 };
 
-#ifndef LLVM_OLDER_THAN_16
+#if LLVM_MAJOR_VERSION >= 21
+class TCEDAGToDAGISelLegacy : public llvm::SelectionDAGISelLegacy {
+public:
+  static char ID;
+  explicit TCEDAGToDAGISelLegacy(llvm::TCETargetMachine &Target);
+};
+
+#else
 char TCEDAGToDAGISel::ID = 0;
 #endif
 
@@ -99,12 +106,12 @@ char TCEDAGToDAGISel::ID = 0;
  * Constructor.
  */
 TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
-    #ifdef LLVM_OLDER_THAN_16
+#if LLVM_MAJOR_VERSION < 21
+    SelectionDAGISel(ID, tm),
+#else
     SelectionDAGISel(tm),
-    #else
-    SelectionDAGISel(ID, tm), 
-    #endif
-    lowering_(*static_cast<TCETargetLowering*>(tm.getTargetLowering())), 
+#endif
+    lowering_(*static_cast<TCETargetLowering*>(tm.getTargetLowering())),
     subtarget_(*tm.getSubtargetImpl()), tm_(&tm) {
 }
 
@@ -147,7 +154,7 @@ TCEDAGToDAGISel::Select(SDNode* n) {
         MachineBasicBlock* dest =
             cast<BasicBlockSDNode>(n->getOperand(1))->getBasicBlock();
         SELECT_NODE_AND_RETURN(
-	    n, TCE::TCEBR, MVT::Other, CurDAG->getBasicBlock(dest), chain);
+          n, TCE::TCEBR, MVT::Other, CurDAG->getBasicBlock(dest), chain);
     } else if (n->getOpcode() == ISD::FrameIndex) {
         int fi = cast<FrameIndexSDNode>(n)->getIndex();
 
@@ -169,15 +176,15 @@ TCEDAGToDAGISel::Select(SDNode* n) {
         if (node2->getOpcode() == ISD::SETCC) {
             SDValue val1 = n->getOperand(1);
             SDValue val2 = n->getOperand(2);
-            
+
             SDValue n2val1 = node2->getOperand(0);
             SDValue n2val2 = node2->getOperand(1);
-            
+
             if (val1 == n2val1 && val2 == n2val2 && node2->hasOneUse()) {
                 int opc;
                 ISD::CondCode cc = cast<CondCodeSDNode>(
                     node2->getOperand(2))->get();
-                
+
                 switch (cc) {
                 case ISD::SETLT:
                 case ISD::SETLE:
@@ -292,12 +299,29 @@ TCEDAGToDAGISel::SelectADDRrr(
  *
  * @param tm Target machine description.
  */
+
 FunctionPass*
 llvm::createTCEISelDag(TCETargetMachine& tm) {
+#if LLVM_MAJOR_VERSION < 21
     return new TCEDAGToDAGISel(tm);
+#else
+    return new TCEDAGToDAGISelLegacy(tm);
+#endif
 }
 
-bool 
+
+#if LLVM_MAJOR_VERSION >= 21
+
+char TCEDAGToDAGISelLegacy::ID = 0;
+
+TCEDAGToDAGISelLegacy::TCEDAGToDAGISelLegacy(TCETargetMachine &tm) :
+    SelectionDAGISelLegacy(ID, std::make_unique<TCEDAGToDAGISel>(tm)) {
+}
+
+#endif
+
+
+bool
 TCEDAGToDAGISel::isBroadcast(SDNode *n) {
     return TCETargetLowering::isBroadcast(n);
 }
@@ -308,7 +332,7 @@ TCEDAGToDAGISel::isConstantBuild(SDNode* n) {
     for (unsigned i = 1; i <operandCount; i++) {
         SDValue val2 = n->getOperand(i);
         SDNode *n2 = val2.getNode();
-        if (n2->getOpcode() != ISD::Constant ) { 
+        if (n2->getOpcode() != ISD::Constant) {
             return false;
         }
     }
