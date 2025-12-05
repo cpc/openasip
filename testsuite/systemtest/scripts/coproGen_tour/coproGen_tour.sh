@@ -86,6 +86,10 @@ else
 
     sed 's/RocketConfig/SmallrocketConfig/' ${ROCC_PATH}/variables.mk
 
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/local/lib
+    export PATH=$HOME/local/bin:$PATH
+    export LDFLAGS=-L$HOME/local/lib
+
     oacc-riscv ${oacc_flags} -c --mattr "+c,+m" -r -a ${adf_path} -o ${ROCC_PATH}/tests/compiled.o ${c_programs}
     oacc-riscv ${oacc_flags} -S --mattr "+c,+m" -r -a ${adf_path} -o rocc.asm ${c_programs}
 
