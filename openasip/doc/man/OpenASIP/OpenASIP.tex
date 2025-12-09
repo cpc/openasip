@@ -3921,7 +3921,7 @@ Open \file{crc.c} line 224.
 Usage of OpenASIP RISC-V custom operation macros/intrinsics is as follows:
 
 \begin{verbatim}
- _OA_RV_<opName>(input1, ... , inputN, output1, ... , outputN);
+ _OA_<opName>(input1, ... , inputN, output1, ... , outputN);
 \end{verbatim}
 
 where <opName> is the name of the operation in OSAL. Number of input and
@@ -3932,13 +3932,13 @@ In our case we need to write a single word into the CRC\_XOR\_SHIFT and read the
 result from it.
 
 \begin{verbatim}
-  _OA_RV_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
+  _OA_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
 \end{verbatim}
 
 After you add the macro, the loop body should look like this:
 \begin{verbatim}
   data = REFLECT_DATA(message[byte]) ^ (remainder >> (WIDTH - 8));
-  _OA_RV_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
+  _OA_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
 \end{verbatim}
 
 Now regenerate the processor the same way as previously. Also compile the
@@ -4103,9 +4103,9 @@ look like this:
 
 \begin{verbatim}
   input = message[byte];
-  _OA_RV_REFLECT8(input, output);
+  _OA_REFLECT8(input, output);
   data = (unsigned char) output ^ (remainder >> (WIDTH - 8));
-  _OA_RV_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
+  _OA_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
 \end{verbatim}
 
    
@@ -4114,7 +4114,7 @@ REFLECT\_REMAINDER macro where nBits is defined as WIDTH and data is
 remainder. Simply use \_OA\_RV\_REFLECT32 macro before return statement and
 replace the original macro with the variable output:
 \begin{verbatim}
-  _OA_RV_REFLECT32(remainder, output);
+  _OA_REFLECT32(remainder, output);
   return (output ^ FINAL_XOR_VALUE);
 \end{verbatim}
 
@@ -4177,7 +4177,7 @@ your instructions in the insn-r bit format, for example:
 
 \begin{verbatim}
 # oacc-riscv can compile custom instructions written in the standard format:
-_OA_RV_REFLECT32(remainder, output)
+_OA_REFLECT32(remainder, output)
 
 # with standard unknown-elf-gcc you have to write the custom instructions by hand:
 asm volatile(".insn r 0x0B, 0x01, 0x00, %0, %1, x0"

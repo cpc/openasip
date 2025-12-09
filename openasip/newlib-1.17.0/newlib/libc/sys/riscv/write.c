@@ -17,7 +17,7 @@ _DEFUN (_write, (file, ptr, len),
 {
     int i;
     for (i = 0; i < len; i++) {
-        _OA_RV_STDOUT((int)ptr[i]);
+        _OA_STDOUT((int)ptr[i]);
     }
     return len;
 }

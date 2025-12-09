@@ -79,18 +79,10 @@ _DEFUN(puts, (s),
 {
     char c;
     while ((c =*s) != 0) {
-       #ifndef __TCE__
-       _OA_RV_STDOUT((int)(c));
-       #else
         _TCE_STDOUT((int)(c));
-       #endif
         s++;
     }
-    #ifndef __TCE__
-    _OA_RV_STDOUT('\n');
-    #else
     _TCE_STDOUT('\n');
-    #endif
 }
 #else
 

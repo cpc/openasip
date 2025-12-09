@@ -81,11 +81,7 @@ int
 _DEFUN(putchar, (c),
        int c)
 {
-    #ifndef __TCE__
-    _OA_RV_STDOUT((int)(c));
-    #else
     _TCE_STDOUT((int)(c));
-    #endif
 }
 #else
 

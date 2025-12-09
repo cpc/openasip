@@ -484,9 +484,9 @@ def compile_to_bitcode(input_files):
 
     # generate tceops.h
     if runningInstalled:
-        tceopgen = "tceopgen"
+        tceopgen = "tceriscvopgen"
     else:
-        tceopgen = "@abs_top_builddir@" + "/src/bintools/Compiler/tceopgen/tceopgen"
+        tceopgen = "@abs_top_builddir@" + "/src/bintools/Compiler/tceopgen/tceriscvopgen"
 
     exitCode = run_command(
         tceopgen + " -o " + tceOpsPath, echoCmd=options.verbose)
