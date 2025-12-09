@@ -80,8 +80,6 @@ _DEFUN(puts, (s),
     char c;
     while ((c =*s) != 0) {
        #ifndef __TCE__
-       int tmp = 0;
-       //Use a version of STDOUT that follows R-format
        _OA_RV_STDOUT((int)(c));
        #else
         _TCE_STDOUT((int)(c));

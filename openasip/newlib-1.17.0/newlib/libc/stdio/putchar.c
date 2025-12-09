@@ -75,13 +75,17 @@ static char sccsid[] = "%W% (Berkeley) %G%";
 
 #undef putchar
 
-#ifdef __TCE__
+#if defined(__OA_RISCV__) || defined(__TCE__)
 #include "tceops.h"
 int
 _DEFUN(putchar, (c),
        int c)
 {
+    #ifndef __TCE__
+    _OA_RV_STDOUT((int)(c));
+    #else
     _TCE_STDOUT((int)(c));
+    #endif
 }
 #else
 
