@@ -61,7 +61,8 @@ else:
 llvmInstallPrefix = None
 (exitCode, output) = subprocess.getstatusoutput("llvmtce-config --prefix")
 if exitCode != 0:
-    exitWithError("Couldn't find LLVM.")
+    print("Error: Couldn't find LLVM.")
+    sys.exit(1)
 else:
     llvmInstallPrefix = output
 
