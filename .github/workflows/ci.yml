@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04 
+    runs-on: ubuntu-24.04
 
     env:
       LLVM_VERSION: 21
@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set environment variables
         run: |
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/local/lib" >> $GITHUB_ENV
@@ -31,13 +31,13 @@ jobs:
           echo "TMPDIR=$TMPDIR" >> $GITHUB_ENV
           mkdir -p $TMPDIR
 
-      - name: Print Envs
+      - name: Print envs
         run: |
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
           echo "LDFLAGS=$LDFLAGS"
           echo "PATH=$PATH"
           echo "TMPDIR=$TMPDIR"
- 
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -68,7 +68,7 @@ jobs:
             gcc-riscv64-unknown-elf
 
           sudo apt-get purge -y 'llvm-*' 'clang-*' 'libllvm-*' 'lld-*'
-          
+
       - name: Create workspace directory
         run: |
           mkdir -p ${{ github.workspace }}/local
@@ -106,29 +106,24 @@ jobs:
           make -j$(nproc)
           make install
 
-      - name: install QEMU-OpenASIP
+      - name: Install QEMU-OpenASIP
         run: |
           cd openasip
           python3 ./tools/scripts/install_qemu.py $HOME/qemu-openasip
 
-      - name: Run tests
+      - name: Unit tests
         run: |
-          cd openasip
-          ./tools/scripts/compiletest.sh -c
+          cd openasip/test
+          make -s
+
+      - name: System tests
+        run: |
+          python3 openasip/tools/scripts/systemtest.py -os -p$(nproc)
 
       - name: Dump error logs
         if: failure()
         run: |
-          cd openasip
-          if [ -f compiletest.error.log ]; then
-             echo "### compiletest.error.log:"
-             cat compiletest.error.log
-          fi
-          if [ -f systemtest/difference.txt ]; then
-             echo "### systemtest/difference.txt"
-             cat systemtest/difference.txt
-          fi
-          if [ -f systemtest_long/difference.txt ]; then
-             echo "### systemtest_long/difference.txt"
-             cat systemtest_long/difference.txt
+          if [ -f difference.txt ]; then
+             echo "### systemtest difference.txt"
+             cat difference.txt
           fi
