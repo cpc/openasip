@@ -242,7 +242,7 @@ def parse_options():
     
     parser.add_option("--mattr", dest="mattr",
                       help="Target architecture features (e.g., +m,+a,+c)",
-                      default="-c,+m")
+                      default="-c,-zca,-zcb,-zcd,+m")
 
     parser.add_option("--march", dest="march",
                       help="Target architecture (riscv32 or riscv64)", 
@@ -496,7 +496,7 @@ def compile_to_bitcode(input_files):
     for input_file in input_files:
         bc_file = create_temp_file(input_file.replace("/", ".") + ".bc")
         retval = \
-            run_command("clang -target %s -D__OA_RISCV__ -I %s %s -c -emit-llvm %s -o %s" % \
+            run_command("clang -march=rv32im -target %s -D__OA_RISCV__ -I %s %s -c -emit-llvm %s -o %s" % \
             (options.march, tempDir, compileFlags, input_file, bc_file), echoCmd=options.verbose)
 
         if retval != 0: cleanup_and_exit(retval)
