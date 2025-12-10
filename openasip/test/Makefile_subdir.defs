@@ -8,7 +8,7 @@ SUBDIRS = $(wildcard *Test)
 all:
 	@@(for dname in ${SUBDIRS}; do \
 		cd $$dname; \
-		test -s Makefile && ${MAKE} && \
+		test -s Makefile && ${MAKE} || exit 1; \
 		cd .. ; \
 	done)
 
