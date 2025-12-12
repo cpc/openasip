@@ -17,7 +17,7 @@ int test_func3(int a) {
 
 int test_func4(int a) {
     int retval = 0;
-    _OA_RV_TEST_OP_4(a, retval);
+    _OA_TEST_OP_4(a, retval);
     return retval;
 }
 
