@@ -25,6 +25,7 @@ module FUNAME_coprocessor
 #(
     // CVXIF Types According to the CVA6
     parameter  int unsigned NrRgprPorts         = 3,
+    parameter  int unsigned XLEN                = 32,
     parameter  type         readregflags_t      = logic,
     parameter  type         writeregflags_t     = logic,
     parameter  type         id_t                = logic,
@@ -38,7 +39,7 @@ module FUNAME_coprocessor
     parameter  type         x_result_t          = logic,
     parameter  type         cvxif_req_t         = logic,
     parameter  type         cvxif_resp_t        = logic,
-    localparam type         registers_t         = logic [NrRgprPorts-1:0][31:0]
+    localparam type         registers_t         = logic [NrRgprPorts-1:0][XLEN-1:0]
 ) (
     input  logic        clk_i,        // Clock
     input  logic        rst_ni,       // Asynchronous reset active low
@@ -109,6 +110,7 @@ module FUNAME_coprocessor
   assign instruction_in        = cvxif_sup_pkg::OpcodeMask & x_issue_req_i.instr;
   assign x_result_valid_i      = x_issue_valid_i & x_issue_ready_o & instr_accept;
   assign configbits_in_i       = {x_result_valid_i, x_issue_req_i.instr[11:7], x_issue_resp_o.writeback, x_issue_req_i.hartid, x_issue_req_i.id};
+  assign x_issue_resp_o.register_read = {(NrRgprPorts == 3 ? 1'b1 : 1'b0), 1'b1, 1'b1};
 
   fu_FUNAME function_unit_i (
       .clk(clk_i),

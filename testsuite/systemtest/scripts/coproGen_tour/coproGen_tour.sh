@@ -38,7 +38,7 @@ if [[ "${INTERFACE}" -eq 1 ]]; then
     ${CVA6_REPO_DIR}/core/systemverilog/instr_tracker_custom.sv
     }' ${cva6_path}/core/Flist.cva6
 
-    cp ${ariane_path} ${cva6_path}/corev_apu/src/
+    sed -i 's/cvxif_example_coprocessor/custom_coprocessor/g' ${cva6_path}/corev_apu/src/ariane.sv
     cp -r ${svfiles_path} ${cva6_path}/core/
 
     test_o="${cva6_path}/verif/tests/custom/simple_test/test.o"
@@ -76,7 +76,7 @@ if [[ "${INTERFACE}" -eq 1 ]]; then
     today_date=$(date "+%Y-%m-%d")
     sim_out_path=out_${today_date}
 
-    grep "SUCCESS" ${cva6_sim_path}/${sim_out_path}/veri-testharness_sim/final.cv32a60x.log || echo "Simulation ERROR"
+    grep "SUCCESS" ${cva6_sim_path}/${sim_out_path}/veri-testharness_sim/final.cv32a60x.log.iss || echo "Simulation ERROR"
 else
     cp ${TOUR_PATH}/RoCCFragments.scala ${chipyardconfig_path}/fragments
     cp ${TOUR_PATH}/RocketConfigs.scala ${chipyardconfig_path}

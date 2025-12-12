@@ -4366,13 +4366,13 @@ Executing the following steps will copy the generated RTL files into the CVA6 an
 
 \shellcmd{export INTERFACE=1}
 
-\shellcmd{cp OPENASIP\_PATH/testsuite/systemtest/scripts/coproGen\_tour/coproGen\_tour.f coproGen\_tour.sh}
+\shellcmd{cp \$OPENASIP\_PATH/testsuite/systemtest/scripts/coproGen\_tour/coproGen\_tour.sh coproGen\_tour.sh}
 
 \shellcmd{bash coproGen\_tour.sh}
 
 The script \file{coproGen\_tour.sh} compiles \file{crc.c} and \file{main.c} files utilizing the \textit{oacc-riscv} compiler targeting the \textit{coprogen.adf} and executes the CVA6 simulation with Verilator.
 The successful execution of the script produces a compiled assembly program named \file{’cvxif.asm} from the C code. Included custom instruction \textit{oa\_crc\_xor\_shift} can be seen on it.
-Furthermore, the C code has the precomputed result for the CRC operation and the script modifies the \file{main.c} file to check if the simulation produces the same result. RTL simulation prints a PASSED message if the result is correct.
+Furthermore, the C code has the precomputed result for the CRC operation and the script modifies the \file{main.c} file to check if the simulation produces the same result. RTL simulation prints a SUCCESS message if the result is correct.
 
 
 \subsection{RoCC interface}
@@ -4396,7 +4396,7 @@ Executing following commands will copy the generated RTL files and do the approp
 
 \shellcmd{export INTERFACE=2}
 
-\shellcmd{cp OPENASIP\_PATH/testsuite/systemtest/scripts/coproGen\_tour/coproGen\_tour.sh .}
+\shellcmd{cp \$OPENASIP\_PATH/testsuite/systemtest/scripts/coproGen\_tour/coproGen\_tour.sh .}
 
 \shellcmd{bash coproGen\_tour.sh}
 
