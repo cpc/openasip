@@ -177,13 +177,18 @@ def move_file(src, dst):
 
 
 def getLLVMTargetPlugin():
+    if options.rocc_enable:
+        rocc_encode = "T"
+    else:
+        rocc_encode = "F"
+
     if runningInstalled:
         riscvtdgen = "riscv-tdgen"
     else:
         riscvtdgen = "@abs_top_builddir@" + "/src/bintools/Compiler/riscv-tdgen/riscv-tdgen"
 
     exitCode = run_command(
-        riscvtdgen + " -o " + tempDir + " -a " + options.adf,
+        riscvtdgen + " -o " + tempDir + " -a " + options.adf + " -r " + rocc_encode,
         echoStdout=options.verbose,
         echoCmd=options.verbose)
 
@@ -377,6 +382,10 @@ def parse_options():
              dest="clear_plugin_cache", default=False,
              help="Clear plugin cache")
 
+    parser.add_option("-r", "--rocc", dest="rocc_enable",
+                      action="store_true", default=False,
+                      help="Enable ROCC interface compatible custom instruction generation")
+
 
 
     # fix gcc switches, which cannot be represented in OptionParser format by adding extra "-" before switch
@@ -487,6 +496,10 @@ def compile_to_bitcode(input_files):
         tceopgen = "tceriscvopgen"
     else:
         tceopgen = "@abs_top_builddir@" + "/src/bintools/Compiler/tceopgen/tceriscvopgen"
+
+    if options.rocc_enable:
+        options.march = "riscv64"
+        compileFlags += "-march=rv64gc -mcmodel=medany "
 
     exitCode = run_command(
         tceopgen + " -o " + tceOpsPath, echoCmd=options.verbose)

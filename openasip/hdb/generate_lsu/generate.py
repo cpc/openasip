@@ -78,7 +78,9 @@ def case_start(bits: int, bus_width: int, signal: str, lang: str):
     low = high - bits + 1
     if lang == "vhdl":
         return "case {} is".format(slice(signal, high, low, lang))
-    else:
+    elif lang == "verilog":
+        return "case ({})".format(slice(signal, high, low, lang))
+    else: # SystemVerilog
         return "unique case ({})".format(slice(signal, high, low, lang))
 
 def case_end(lang: str):
@@ -118,7 +120,7 @@ def extend(width: int, value: str, lang: str):
     if lang == "vhdl":
         return "({}-1 downto 0 => {})".format(int(width), value);
     else:
-        return "{{{0}{{{1}}}".format(int(width), value)
+        return "{{{0}{{{1}}}}}".format(int(width), value)
 
 
 def bit_select(signal: str, bit: int, lang: str):
@@ -396,7 +398,7 @@ def add_operation(op: Operation, resource_id: int, c):
 
     c.execute("INSERT INTO operation_implementation VALUES (NULL, ?, ?, ?, ?, ?, ?, ?)",
               (latency, op.name, bus_definition, post_op_vhdl, post_op_vlog,
-               "generate_lsu/shared/defaults.vhdl", "generate_lsu/shared/defaults.vlog"))
+               "generate_lsu/shared/defaults.vhdl", "generate_lsu/shared/defaults.v"))
     op_impl_id = c.lastrowid;
 
     c.execute("INSERT INTO block_source_file VALUES (NULL, ?, 0)", (main_vhdl,))
@@ -413,7 +415,7 @@ def add_operation(op: Operation, resource_id: int, c):
             c.execute("INSERT INTO operation_implementation_globalsignal VALUES (NULL, ?, ?, ?, ?, ?, ?)",
                       (op_impl_id, "load_data_32b", "32", "Logic", "VHDL", "0"))
             c.execute("INSERT INTO operation_implementation_globalsignal VALUES (NULL, ?, ?, ?, ?, ?, ?)",
-                      (op_impl_id, "load_data_32b", "32", "Logic", "VHDL", "0"))
+                      (op_impl_id, "load_data_32b", "32", "Logic", "Verilog", "0"))
         else:
             c.execute("INSERT INTO operation_implementation_globalsignal VALUES (NULL, ?, ?, ?, ?, ?, ?)",
                       (op_impl_id, "strobe_32b", "4", "Logic", "VHDL", "0"))
@@ -458,6 +460,9 @@ def main(hdb_filename):
                   ("lsu_registers_{}".format(bus_width), "generate_lsu/" + reg_file))
         resource_id = c.lastrowid
         c.execute("INSERT INTO block_source_file VALUES (NULL, \"generate_lsu/shared/lsu_registers.vhdl\", 1)")
+        c.execute("INSERT INTO operation_implementation_resource_source_file VALUES (NULL, ?, ?)",
+                  (resource_id, c.lastrowid))
+        c.execute("INSERT INTO block_source_file VALUES (NULL, \"generate_lsu/shared/lsu_registers.v\", 2)")
         c.execute("INSERT INTO operation_implementation_resource_source_file VALUES (NULL, ?, ?)",
                   (resource_id, c.lastrowid))
 

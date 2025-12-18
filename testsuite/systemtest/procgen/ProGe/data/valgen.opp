@@ -10,4 +10,13 @@
     <out element-count="1" element-width="64" id="2" type="RawData"/>
   </operation>
 
+  <operation>
+    <name>ONES32</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in element-count="1" element-width="32" id="1" type="SIntWord"/>
+    <out element-count="1" element-width="32" id="2" type="SIntWord"/>
+  </operation>
+
 </osal>

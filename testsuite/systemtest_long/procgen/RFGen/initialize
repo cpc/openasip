@@ -1,0 +1,9 @@
+#!/bin/bash
+# disable the test if GHDL is not installed on the machine
+
+rm -f *.disabled
+
+ghdl_bin=$(which ghdl 2> /dev/null)
+if [ "x${ghdl_bin}" == "x" ]; then
+    touch tcetest_rfgen_ghdl.sh.disabled
+fi

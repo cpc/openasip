@@ -184,9 +184,13 @@
     function integer bit_width;
     input integer value;
     begin
-        value=value-1;
-        for (bit_width=0; value>0; bit_width=bit_width+1)
+       if (value == 1) begin
+          bit_width = 1;
+       end else begin
+          value=value-1;
+          for (bit_width=0; value>0; bit_width=bit_width+1)
             value = value>>1;
+       end
     end
     endfunction
     

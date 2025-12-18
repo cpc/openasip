@@ -41,12 +41,14 @@
 #include "BusImplementationLocation.hh"
 #include "SocketImplementationLocation.hh"
 #include "FUGenerated.hh"
-
+#include "RFGenerated.hh"
 
 
 namespace IDF {
 
 class UnitImplementationLocation;
+class ArbiterImplementation;
+class CacheImplementation;
 
 /**
  * Represents the implementation of a machine defined in an IDF.
@@ -95,6 +97,16 @@ public:
     int iuImplementationCount() const;
     int busImplementationCount() const;
     int socketImplementationCount() const;
+
+    bool hasL1InstructionCache() const;
+    void setL1InstructionCache(CacheImplementation* cacheImpl);
+    CacheImplementation& l1InstructionCache() const;
+
+    bool hasInstructionArbiter() const;
+    void setInstructionArbiter(ArbiterImplementation* arbImpl);
+    ArbiterImplementation& instructionArbiter() const;
+
+    bool hasSimulationExitLogic() const;
 
     FUImplementationLocation& fuImplementation(const std::string& fu) const;
     RFImplementationLocation& rfImplementation(const std::string& rf) const;
@@ -167,12 +179,22 @@ public:
     static const std::string OSNAME_BUS_IMPLEMENTATIONS;
     /// ObjectState name for socket implementation container.
     static const std::string OSNAME_SOCKET_IMPLEMENTATIONS;
+    /// ObjectState name for L1 instruction cache parameters.
+    static const std::string OSNAME_L1_ICACHE_IMPLEMENTATION;
+    /// ObjectState name for instruction interface specification.
+    static const std::string OSNAME_INSTRUCTION_ARBITER;
 
     const std::vector<FUGenerated>& FUGenerations() const;
     std::vector<FUGenerated>& FUGenerations();
     bool hasFUGeneration(const std::string& name) const;
     void removeFuGeneration(const std::string& name);
     void addFuGeneration(const FUGenerated& fug);
+    const std::vector<RFGenerated>& RFGenerations() const;
+    std::vector<RFGenerated>& RFGenerations();
+    bool hasRFGeneration(const std::string& name) const;
+    void removeRFGeneration(const std::string& name);
+    void addRFGeneration(const RFGenerated& rfg);
+
 
 private:
     /// Vector type for UnitImplementationLocation.
@@ -200,6 +222,8 @@ private:
 
     /// Generated FUs.
     std::vector<FUGenerated> fuGenerated_;
+    /// Generated RFs.
+    std::vector<RFGenerated> RFGenerated_;
 
     /// FU implementations.
     ImplementationTable fuImplementations_;
@@ -230,6 +254,10 @@ private:
     /// Possible alternative file paths for missing implementation files.
     std::vector<std::string> alternativeFiles_;
 
+    /// L1 instruction cache implementation.
+    CacheImplementation* level1InstructionCache_ = nullptr;
+    /// Instruction Bus arbiter implementation.
+    ArbiterImplementation* instructionArbiter_ = nullptr;
 };
 }
 

@@ -165,7 +165,7 @@ do
         echo "    and long) tests pass."
         echo "    Notice that you shouldn't use this if you have local";
         echo "    uncommitted changes!";
-        echo 
+        echo
 
         exit 0;;
 

@@ -81,6 +81,7 @@
 #include "MemoryBusInterface.hh"
 
 #include "GeneratableFUNetlistBlock.hh"
+#include "GeneratableRFNetlistBlock.hh"
 #include "ProGeTools.hh"
 
 using namespace IDF;
@@ -197,8 +198,8 @@ namespace ProGe {
 
         // add toplevel block
         coreBlock_ = new NetlistBlock(entityNameStr, "tta_core");
-        coreBlock_->addPackage(context_.coreEntityName() + "_globals");
         coreBlock_->addPackage(context_.coreEntityName() + "_imem_mau");
+        coreBlock_->addPackage(context_.coreEntityName() + "_globals");
 
         // add GCU to the netlist
         addGCUToNetlist(*coreBlock_, imemWidthInMAUs);
@@ -213,6 +214,11 @@ namespace ProGe {
             IDF::FUImplementationLocation& location =
                 context_.idf().fuImplementation(i);
             addFUToNetlist(location, *coreBlock_, warningStream);
+        }
+
+        // add Generated RFs to the toplevel netlist.
+        for (auto rfg : context_.idf().RFGenerations()) {
+            addGeneratableRFsToNetlist(rfg, *coreBlock_);
         }
 
         // add register files to the netlist
@@ -234,6 +240,41 @@ namespace ProGe {
         return coreBlock_;
     }
 
+    /**
+     * Generates the netlist block of the coprocessor.
+     *
+     * @param imemWidthInMAUs Width of instruction memory in MAUs.
+     * @param entityNameStr The name string used to make the netlist blocks
+     *                      uniquely named.
+     * @return The newly generated netlist block.
+     */
+    NetlistBlock*
+    NetlistGenerator::generatecopro(
+        const ProGeOptions& options, int imemWidthInMAUs,
+        TCEString entityNameStr = TOPLEVEL_BLOCK_DEFAULT_NAME,
+        std::ostream& warningStream = std::cerr) {
+        if (imemWidthInMAUs < 1) {
+            string errorMsg =
+                "Instruction memory width in MAUs must be positive.";
+            throw OutOfRange(__FILE__, __LINE__, __func__, errorMsg);
+        }
+
+        // add toplevel block
+        coreBlock_ = new NetlistBlock(entityNameStr, "CVXIF_TOP");
+        coreBlock_->addPackage("cvxif_");
+        coreBlock_->addPackage("cvxif_instr_");
+
+        addFUPortstoNetlist(*coreBlock_);
+
+        // add Genrated FUs to the toplevel netlist.
+        for (auto fug : context_.idf().FUGenerations()) {
+            addGeneratableFUsToNetlist(fug, *coreBlock_); //MODIFY
+        }
+
+        //plugin_.completeNetlist(*coreBlock_, *this);
+
+        return coreBlock_;
+    }
     /**
      * Returns the netlist port which is corresponding to the given port in
      * the
@@ -683,6 +724,17 @@ namespace ProGe {
     }
 
     /**
+     * Returns true if there is an entry for the RF name given as parameter.
+     *
+     * @param rfName Name of the RF in ADF.
+     * @return True if RF entry exists, false otherwise.
+     */
+    bool
+    NetlistGenerator::rfHasEntry(const std::string& rfName) const {
+        return MapTools::containsKey(rfEntryMap_, rfName) ? true : false;
+    }
+
+    /**
      * Adds the global control unit to the netlist as sub-block of the given
      * top-level block.
      *
@@ -956,6 +1008,65 @@ namespace ProGe {
 
         return block;
     }
+
+     GeneratableRFNetlistBlock* NetlistGenerator::addGeneratableRFsToNetlist(
+        const IDF::RFGenerated& rfg, NetlistBlock& coreBlock) {
+
+        std::string rfName = "rf_" + rfg.name();
+        std::transform(rfName.begin(), rfName.end(), rfName.begin(), ::tolower);
+
+        GeneratableRFNetlistBlock* block = new GeneratableRFNetlistBlock(
+            rfName, rfName + "_generated", *this);
+        coreBlock.addSubBlock(block);
+
+        RegisterFile* rf =
+            context_.adf().registerFileNavigator().item(rfg.name());
+
+        mapNetlistBlock(*rf, *block);
+
+        // add clock port
+        NetlistPort* clkPort = new NetlistPort("clk", "1", 1, BIT, IN, *block);
+        mapClockPort(*block, *clkPort);
+        // connect clock port
+        NetlistPort& tlClkPort = this->clkPort(coreBlock);
+        coreBlock.netlist().connect(*clkPort, tlClkPort);
+
+        // add reset port
+        NetlistPort* rstPort = new NetlistPort("rstx", "1", 1, BIT, IN, *block);
+        mapResetPort(*block, *rstPort);
+        // connect reset port
+        NetlistPort& tlRstPort = this->rstPort(coreBlock);
+        coreBlock.netlist().connect(*rstPort, tlRstPort);
+
+        // add global lock port
+        NetlistPort* glockPort =
+            new NetlistPort("glock_in", "1", 1, BIT, IN, *block);
+        mapGlobalLockPort(*block, *glockPort);
+
+        // operand ports.
+        for (int i = 0; i < rf->portCount(); ++i) {
+            RFPort* adfPort = dynamic_cast<RFPort*>(rf->port(i));
+
+            if (adfPort->isInput()) {
+                block->addInOperand(adfPort, i, rf->numberOfRegisters());
+            } else {
+                block->addOutOperand(adfPort, rf->numberOfRegisters());
+            }
+        }
+
+        // add guard port
+        if (rf->isUsedAsGuard()) {
+            string guardPortName = "guard_out";
+            string size;
+            size = Conversion::toString(rf->numberOfRegisters());
+            NetlistPort* guardPort = new NetlistPort(guardPortName, size,
+                BIT_VECTOR, OUT, *block);
+            mapRFGuardPort(*block, *guardPort);
+        }
+
+        return block;
+    }
+
 
     /**
      * Adds the FU identified by the given FUImplementationLocation
@@ -2179,5 +2290,27 @@ namespace ProGe {
         }
         return SignalType::UNDEFINED;
     }
+    
+    /**
+     * Adds the Fu ports to the given //TODO
+     * top-level block.
+     *
+     * @param toplevelBlock The top-level block of the netlist.
+     * @param 
+     */
+    void NetlistGenerator::addFUPortstoNetlist(
+        NetlistBlock& toplevelBlock){
 
+            NetlistPort* tlClkPort =
+            new InBitPort(CLOCK_PORT_NAME, toplevelBlock, SignalType::CLOCK);
+            NetlistPort* tlRstPort = new InBitPort(RESET_PORT_NAME, toplevelBlock,
+            Signal(SignalType::RESET, ActiveState::LOW));
+
+            mapClockPort(toplevelBlock, *tlClkPort);
+            mapResetPort(toplevelBlock, *tlRstPort);
+
+        Netlist::connectClocks(toplevelBlock);
+        Netlist::connectResets(toplevelBlock);
+
+        }
 } // namespace ProGe
