@@ -41,14 +41,8 @@
 #include <unistd.h> // for truncate
 #include <sys/types.h> // for truncate
 
-/* This must be before any of the boost inclusions, to ensure
- * that the boost filesystem API we get agrees with what is
- * exposed through the header. */
 #include "FileSystem.hh"
 
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/convenience.hpp>
-#include <boost/filesystem/exception.hpp>
 #include "CompilerWarnings.hh"
 IGNORE_CLANG_WARNING("-Wkeyword-macro")
 #include <boost/regex.hpp>
@@ -65,8 +59,6 @@ const std::string FileSystem::DIRECTORY_SEPARATOR =
 string(DIR_SEPARATOR);
 const std::string FileSystem::CURRENT_DIRECTORY = ".";
 const std::string FileSystem::STRING_WILD_CARD = "*";
-
-using namespace boost::filesystem;
 
 /**
  * Returns the path part of the given file name.
@@ -278,7 +270,7 @@ FileSystem::isPath(const std::string& pathName) {
 string
 FileSystem::fileExtension(const std::string& fileName) {
     const Path path(fileName);
-    return boost::filesystem::extension(path);
+    return path.extension();
 }
 
 /**
@@ -290,7 +282,7 @@ FileSystem::fileExtension(const std::string& fileName) {
 string
 FileSystem::fileNameBody(const std::string& fileName) {
     const Path path(fileName);
-    return boost::filesystem::basename(path);
+    return path.stem();
 }
 
 /**
@@ -308,8 +300,7 @@ FileSystem::absolutePathOf(const std::string& pathName) {
         absolutePath = currentWorkingDir() + DIRECTORY_SEPARATOR + pathName;
     }
     Path path(absolutePath);
-    path.normalize();
-    return path.string();
+    return path.lexically_normal().string();
 }
 
 /** 
@@ -354,14 +345,19 @@ FileSystem::lastModificationTime(const std::string& filePath) {
         return std::time_t(-1);
     }
     
-    std::time_t lastModTime;
+    std::filesystem::file_time_type lastModFilesystemTime;
     try {
-        lastModTime = boost::filesystem::last_write_time(filePath);
+        lastModFilesystemTime = std::filesystem::last_write_time(filePath);
     } catch (...) {
-        lastModTime = std::time_t(-1);
+        return(std::time_t(-1));
     }
+    using namespace std::chrono;
+    auto filesystemTimeNow = std::filesystem::file_time_type::clock::now();
+    auto systemTimeNow = system_clock::now();
+    auto lastModTime = time_point_cast<system_clock::duration>(
+        lastModFilesystemTime - filesystemTimeNow + systemTimeNow);
     
-    return lastModTime;
+    return system_clock::to_time_t(lastModTime);
 }
 
 /**
@@ -380,7 +376,7 @@ FileSystem::sizeInBytes(const std::string& filePath) {
 
     uintmax_t fileSize;
     try {
-        fileSize = boost::filesystem::file_size(filePath);
+        fileSize = std::filesystem::file_size(filePath);
     } catch (...) {
         fileSize = static_cast<uintmax_t>(-1);
     }
@@ -417,8 +413,8 @@ FileSystem::createDirectory(const std::string& path) {
         }
         try {
             Path dirPath(currentPath);
-            if (!boost::filesystem::exists(dirPath)) {
-                boost::filesystem::create_directory(dirPath);
+            if (!std::filesystem::exists(dirPath)) {
+                std::filesystem::create_directory(dirPath);
             }
         } catch (...) {
             // directory creation failed, probably because of lacking rights
@@ -494,7 +490,7 @@ FileSystem::removeFileOrDirectory(const std::string& path) {
     if (fileExists(path)) {
         try {
             Path tcePath(path);
-            boost::filesystem::remove_all(tcePath);
+            std::filesystem::remove_all(tcePath);
             return true;
         } catch (...) {
             // failed to destroy a file or directory
@@ -522,7 +518,7 @@ FileSystem::removeFileOrDirectory(const std::string& path) {
  */
 void
 FileSystem::copy(const std::string& source, const std::string& target) {
-    namespace fs = boost::filesystem;
+    namespace fs = std::filesystem;
     Path sourcePath(source);
     Path targetPath(target);
 
@@ -540,7 +536,7 @@ FileSystem::copy(const std::string& source, const std::string& target) {
             }
         }
         fs::copy_file(sourcePath, targetPath);
-    } catch (boost::filesystem::filesystem_error const& e) {
+    } catch (std::filesystem::filesystem_error const& e) {
         throw IOException(
             __FILE__, __LINE__, __func__, 
             (boost::format(
@@ -602,11 +598,11 @@ FileSystem::directoryContents(
     try {
         std::vector<std::string> contents;
         // default construction yields past the end
-        boost::filesystem::directory_iterator end_iter;
+        std::filesystem::directory_iterator end_iter;
         
         if (directory != "") {
             Path path(directory);
-            for (boost::filesystem::directory_iterator iter(path); 
+            for (std::filesystem::directory_iterator iter(path); 
                  iter != end_iter; iter++) {
                 if (absolutePaths) {
                     contents.push_back(absolutePathOf(iter->path().string()));
@@ -616,8 +612,8 @@ FileSystem::directoryContents(
 
             }
         } else {
-            for (boost::filesystem::directory_iterator iter(
-                     boost::filesystem::current_path()); 
+            for (std::filesystem::directory_iterator iter(
+                     std::filesystem::current_path()); 
                  iter != end_iter; iter++) {
                 if (absolutePaths) {
                     contents.push_back(absolutePathOf(iter->path().string()));
@@ -629,7 +625,7 @@ FileSystem::directoryContents(
         
         return contents;
 
-    } catch (const boost::filesystem::filesystem_error& e) {
+    } catch (const std::filesystem::filesystem_error& e) {
         throw FileNotFound(__FILE__, __LINE__, __func__, e.what());
     }
 }
@@ -648,9 +644,9 @@ FileSystem::directorySubTrees(const std::string& directory) {
     std::vector<std::string> subTrees;
     
     try {    
-        directory_iterator end_itr;
+        std::filesystem::directory_iterator end_itr;
     
-        for (directory_iterator itr(directory); itr != end_itr; ++itr) {
+        for (std::filesystem::directory_iterator itr(directory); itr != end_itr; ++itr) {
             if (is_directory(*itr) && exists(*itr) && 
                 (*itr).path().string().find(".") == string::npos) {
                 subTrees.push_back((*itr).path().string());
@@ -663,7 +659,7 @@ FileSystem::directorySubTrees(const std::string& directory) {
                 }
             }
         }
-    } catch (const boost::filesystem::filesystem_error& e) {
+    } catch (const std::filesystem::filesystem_error& e) {
         throw FileNotFound(__FILE__, __LINE__, __func__, e.what());
     }        
         
@@ -687,19 +683,15 @@ FileSystem::findFileInDirectoryTree(
     if (!exists(startDirectory)) {
         return false;
     }
-    directory_iterator end_itr;
+    std::filesystem::directory_iterator end_itr;
     
-    for (directory_iterator itr(startDirectory); itr != end_itr; ++itr) {
+    for (std::filesystem::directory_iterator itr(startDirectory); itr != end_itr; ++itr) {
         if (is_directory(*itr)) {
             Path p((*itr).path().string());
             if (findFileInDirectoryTree(p, fileName, pathFound))
                 return true;
         }
-#if BOOST_VERSION >= 103600
         else if (itr->path().filename() == fileName)
-#else
-        else if (itr->leaf() == fileName)
-#endif
         {
             pathFound = Path((*itr).path().string());
             return true;
@@ -761,7 +753,7 @@ FileSystem::compareFileNames(
 bool 
 FileSystem::relativeDir(const std::string& baseDir, std::string& toRelDir) {
 
-    namespace fs = boost::filesystem;
+    namespace fs = std::filesystem;
     
     Path basePath(baseDir);
     Path toRelPath(toRelDir);
@@ -777,22 +769,18 @@ FileSystem::relativeDir(const std::string& baseDir, std::string& toRelDir) {
         ++dstIt, ++POIt, ++sameCount) {}
 
     // both parameter dirs have to be absolute
-    // first path part is allways '/'
+    // first path part is always '/'
     if (sameCount < 1) {
         return false;
     }
     
-    // if the to be realtive dir is under the base dir
+    // if the to be relative dir is under the base dir
     if (dstIt == dstEndIt) {
         toRelDir.clear();
         while (POIt != POEndIt) {
-#if BOOST_FILESYSTEM_VERSION < 3
-            toRelDir.append(*POIt++);
-#else
             std::string const tmp = POIt->string();
             toRelDir.append(tmp);
             POIt++;
-#endif
             if (POIt != POEndIt) {
                 toRelDir.append(DIRECTORY_SEPARATOR);
             }
@@ -801,13 +789,9 @@ FileSystem::relativeDir(const std::string& baseDir, std::string& toRelDir) {
     } else { // if above
         std::string temp;
         while (POIt != POEndIt) {
-#if BOOST_FILESYSTEM_VERSION < 3
-            temp.append(*POIt++);
-#else
             std::string const tmp = POIt->string();
             POIt++;
             temp.append(tmp);
-#endif
             if (POIt != POEndIt) {
                 temp.append(DIRECTORY_SEPARATOR);
             }
@@ -1077,34 +1061,20 @@ FileSystem::countLines(const std::string& filepath) {
 /**
  * Constructs an empty Path.
  */
-Path::Path() : boost::filesystem::path() {
+Path::Path() : std::filesystem::path() {
 }
 
 /**
- * Constructor for implicit conversion from boost::filesystem::path.
+ * Constructor for implicit conversion from std::filesystem::path.
  */
-Path::Path(const boost::filesystem::path& path) :
-    boost::filesystem::path(path) {
+Path::Path(const std::filesystem::path& path) :
+    std::filesystem::path(path) {
 }
 
 /**
  * Destructor.
  */
 Path::~Path() {
-}
-
-/**
- * Copy constructor.
- */
-Path&
-Path::operator=(const boost::filesystem::path& pathName) {
-    if (this == &pathName) {
-        return *this;
-    }
-
-    boost::filesystem::path::assign(
-        pathName.string().begin(), pathName.string().end());
-    return *this;
 }
 
 /**
@@ -1127,11 +1097,4 @@ Path::operator TCEString() const {
 const char*
 Path::c_str() const {
     return this->string().c_str();
-}
-
-/**
- * Appends file of directory to the path.
- */
-Path operator/(const Path& path, const std::string& fileOrDir) {
-    return Path(boost::filesystem::operator/(path, fileOrDir));
 }
