@@ -152,7 +152,8 @@ IDFValidator::checkRFImplementations() {
 
     for (int i = 0; i < rfNav.count(); i++) {
         RegisterFile* rf = rfNav.item(i);
-        if (!idf_.hasRFImplementation(rf->name())) {
+        if (!idf_.hasRFImplementation(rf->name()) &&
+            !idf_.hasRFGeneration(rf->name())) {
             format errorMsg(
                 "IDF does not define an implementation for "
                 "register file %1%.");

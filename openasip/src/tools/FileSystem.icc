@@ -212,7 +212,7 @@ FileSystem::findFromDirectoryRecursive(
     const std::string& directory,
     STLCONT& found) {
 
-    using namespace boost::filesystem;
+    using namespace std::filesystem;
 
     const boost::regex re(regex, boost::regex::perl|boost::regex::icase);
 

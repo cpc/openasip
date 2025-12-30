@@ -100,13 +100,32 @@ namespace HDLGenerator {
                        int signalWidth) {
             std::string sigWidth = std::to_string(signalWidth);
             vhdl_ = "((" + extWidth + "-1 downto " + sigWidth + " => " + name;
-            verilog_ = "{{" + extWidth + "-" + sigWidth + "{" + name + "}";
+            verilog_ = "{{" + extWidth + "{" + name + "}";
             if (signalWidth > 1) {
                 vhdl_ += "(" + sigWidth + "-1)";
                 verilog_ += "[" + sigWidth + "-1]";
             }
             vhdl_ += ") & " + name + ")";
-            verilog_ += "}}" + name + "}";
+            verilog_ += "}}";
+        }
+    };
+
+    /**
+     * concat with Splicing  of a vector.
+     */
+    class Concatsplice : public LHSValue {
+    public:
+        Concatsplice(
+            std::string name1, LHSValue name2, int upperBound_name1,
+            int lowerBound_name1) {
+            readList_.insert(name1);
+            readList_.insert(name2.vhdl());
+            vhdl_ = name1 + "(" + std::to_string(upperBound_name1) +
+                    " downto " + std::to_string(lowerBound_name1) + ") & " +
+                    name2.vhdl();
+            verilog_ = "{" + name1 + "[" + std::to_string(upperBound_name1) +
+                       ":" + std::to_string(lowerBound_name1) + "]," +
+                       name2.verilog() + "}";
         }
     };
 }

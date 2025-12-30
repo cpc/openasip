@@ -1,0 +1,163 @@
+/*
+ * Copyright (c) 2025 Tampere University.
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+ 
+module FUNAME_coprocessor
+  import cvxif_sup_pkg::*;
+#(
+    // CVXIF Types According to the CVA6
+    parameter  int unsigned NrRgprPorts         = 3,
+    parameter  int unsigned XLEN                = 32,
+    parameter  type         readregflags_t      = logic,
+    parameter  type         writeregflags_t     = logic,
+    parameter  type         id_t                = logic,
+    parameter  type         hartid_t            = logic,
+    parameter  type         x_compressed_req_t  = logic,
+    parameter  type         x_compressed_resp_t = logic,
+    parameter  type         x_issue_req_t       = logic,
+    parameter  type         x_issue_resp_t      = logic,
+    parameter  type         x_register_t        = logic,
+    parameter  type         x_commit_t          = logic,
+    parameter  type         x_result_t          = logic,
+    parameter  type         cvxif_req_t         = logic,
+    parameter  type         cvxif_resp_t        = logic,
+    localparam type         registers_t         = logic [NrRgprPorts-1:0][XLEN-1:0]
+) (
+    input  logic        clk_i,        // Clock
+    input  logic        rst_ni,       // Asynchronous reset active low
+    input  cvxif_req_t  cvxif_req_i,
+    output cvxif_resp_t cvxif_resp_o
+); 
+
+  //Compressed interface
+  logic               x_compressed_valid_i;
+  logic               x_compressed_ready_o;
+  x_compressed_req_t  x_compressed_req_i;
+  x_compressed_resp_t x_compressed_resp_o;
+  //Issue interface
+  logic               x_issue_valid_i;
+  logic               x_issue_ready_o;
+  x_issue_req_t       x_issue_req_i;
+  x_issue_resp_t      x_issue_resp_o;
+  //Commit interface
+  logic               x_commit_valid_i;
+  x_commit_t          x_commit_i;
+  // Register interface signals
+  x_register_t        register;
+  logic               register_valid;
+  //Result interface
+  logic               x_result_valid_o;
+  logic               x_result_ready_i;
+  x_result_t          x_result_o;
+
+  assign x_compressed_valid_i            = cvxif_req_i.compressed_valid;
+  assign x_compressed_req_i              = cvxif_req_i.compressed_req;
+  assign x_issue_valid_i                 = cvxif_req_i.issue_valid;
+  assign x_issue_req_i                   = cvxif_req_i.issue_req;
+  assign x_commit_valid_i                = cvxif_req_i.commit_valid;
+  assign x_commit_i                      = cvxif_req_i.commit;
+  assign x_result_ready_i                = cvxif_req_i.result_ready;
+  assign register                        = cvxif_req_i.register;
+  assign register_valid                  = cvxif_req_i.register_valid;
+
+  assign cvxif_resp_o.compressed_ready = x_compressed_ready_o;
+  assign cvxif_resp_o.compressed_resp  = x_compressed_resp_o;
+  assign cvxif_resp_o.issue_ready      = x_issue_ready_o;
+  assign cvxif_resp_o.issue_resp       = x_issue_resp_o;
+  assign cvxif_resp_o.result_valid     = x_result_valid_o;
+  assign cvxif_resp_o.result           = x_result_o;
+  assign cvxif_resp_o.register_ready   = x_issue_ready_o;
+
+  //Compressed interface handler/decoder
+  cvxifcompressed_decoder #(
+    .x_compressed_req_t (x_compressed_req_t),
+    .x_compressed_resp_t(x_compressed_resp_t)
+  ) compressed_decoder_i (
+    .clk_i              (clk_i), //No current use
+    .compressed_valid   (x_compressed_valid_i),
+    .x_compressed_req   (x_compressed_req_i),
+    .x_compressed_resp  (x_compressed_resp_o),
+    .compressed_ready   (x_compressed_ready_o)
+  );
+
+  logic[cvxif_sup_pkg::NConfigbits_C-1 : 0]       configbits_in_i;  // For input config bits
+  logic               				    	              x_result_valid_i; // For intermediate result valid			
+  logic[cvxif_sup_pkg::NConfigbits_C-1 : 0]       configbits_o;     // For config bits out the FU
+  logic[cvxif_sup_pkg::X_RFW_WIDTH-1 : 0]         result_data_out;  // For data out from the function unit
+  logic instr_accept, instr_ready;
+  logic[31:0] instruction_in;
+  CONFIG_DEFINE
+  assign x_issue_ready_o       = instr_ready && register.rs_valid[0] && register.rs_valid[1] && (NrRgprPorts == 3 ? register.rs_valid[2] : 1'b1);
+  assign x_issue_resp_o.accept = instr_accept;
+  assign instruction_in        = cvxif_sup_pkg::OpcodeMask & x_issue_req_i.instr;
+  assign x_result_valid_i      = x_issue_valid_i & x_issue_ready_o & instr_accept;
+  assign configbits_in_i       = {x_result_valid_i, x_issue_req_i.instr[11:7], x_issue_resp_o.writeback, x_issue_req_i.hartid, x_issue_req_i.id};
+  assign x_issue_resp_o.register_read = {(NrRgprPorts == 3 ? 1'b1 : 1'b0), 1'b1, 1'b1};
+
+  fu_FUNAME function_unit_i (
+      .clk(clk_i),
+      .rstx(rst_ni),
+      .operation_enable_in(x_issue_valid_i),
+      .result_ready_in(x_result_ready_i),
+      .configbits_in(configbits_in_i),
+      .operation_in(instruction_in), 
+      CONFIG_ENINPUT1.data_OUTPUTF_out(result_data_out),
+      CONFIG_BITS.configbits_out(configbits_o),
+      .accept_o(instr_accept),
+      .ready_o(instr_ready)
+  );
+
+  always_comb begin
+    x_issue_resp_o.writeback = 1'b0;
+    if (instr_accept) begin
+        x_issue_resp_o.writeback = 1'b1;
+    end
+  end
+
+  instr_tracker_FUNAME #(
+    .IdWidth(cvxif_sup_pkg::X_ID_WIDTH),
+    .HWidth(cvxif_sup_pkg::X_HARTID_WIDTH),
+    .IdBits(cvxif_sup_pkg::IdBits)
+  ) instruction_tracker_i (
+    .clk(clk_i),
+    .rstx(rst_ni),
+    .commit_hartid_i(x_commit_i.hartid),      
+    .commit_id_i(x_commit_i.id),
+    .commit_kill_i(x_commit_i.commit_kill),
+    .commit_valid_i(x_commit_valid_i),
+    .issue_hartid_i(x_issue_req_i.hartid),
+    .issue_id_i(x_issue_req_i.id),
+    .issue_valid_i(x_issue_resp_o.accept),
+    SEARCH_CONFIGOUT_COMMIT_TRACKER.output_hartid_i(configbits_o[cvxif_sup_pkg::X_ID_WIDTH + cvxif_sup_pkg::X_HARTID_WIDTH - 1 : cvxif_sup_pkg::X_ID_WIDTH]),
+    .output_id_i(configbits_o[cvxif_sup_pkg::X_ID_WIDTH - 1 : 0]),
+    .output_valid_i(configbits_o[cvxif_sup_pkg::NConfigbits_C-1])
+  );
+
+  always_comb begin
+    x_result_valid_o   = configbits_o[cvxif_sup_pkg::NConfigbits_C-1];  
+    x_result_o.id      = configbits_o[cvxif_sup_pkg::X_ID_WIDTH - 1 : 0]; 
+    x_result_o.rd      = configbits_o[cvxif_sup_pkg::NConfigbits_C-2 : cvxif_sup_pkg::NConfigbits_C - 1 - 5];                             
+    x_result_o.we      = configbits_o[cvxif_sup_pkg::X_ID_WIDTH + cvxif_sup_pkg::X_HARTID_WIDTH + cvxif_sup_pkg::X_DUALWRITE : cvxif_sup_pkg::X_ID_WIDTH + cvxif_sup_pkg::X_HARTID_WIDTH] & x_result_valid_o;              
+    x_result_o.hartid  = configbits_o[cvxif_sup_pkg::X_ID_WIDTH + cvxif_sup_pkg::X_HARTID_WIDTH - 1 : cvxif_sup_pkg::X_ID_WIDTH];
+    x_result_o.data    = result_data_out;
+  end
+
+endmodule

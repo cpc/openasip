@@ -12,8 +12,8 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
 use work.tce_util.all;
-use work.tta_avalon_lsu_globals.all;
 use work.tta_avalon_lsu_imem_mau.all;
+use work.tta_avalon_lsu_globals.all;
 use work.tta_avalon_lsu_toplevel_params.all;
 
 entity tta_avalon_lsu_toplevel is

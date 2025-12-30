@@ -66,7 +66,6 @@ ProcessorWrapperBlock::ProcessorWrapperBlock(
 
     // Instantiate core //
     addSubBlock(coreBlock_);
-
     // Memory instantiations and connections //
     for (size_t i = 0; i < coreBlock_->portGroupCount(); i++) {
         const NetlistPortGroup& portGrp = coreBlock_->portGroup(i);
@@ -88,17 +87,13 @@ ProcessorWrapperBlock::ProcessorWrapperBlock(
     connectResets();
     connectLockStatus(*coreLocked);
 
-    // Package holding instruction bus constants
-    std::set<std::string> procPackages{context.globalPackage().name()};
-
     // Other packages possibly holding constants used in core ports.
     for (size_t i = 0; i < processorBlock.packageCount(); i++) {
-        procPackages.insert(processorBlock.package(i));
+        addPackage(processorBlock.package(i));
     }
 
-    for (auto packageStr : procPackages) {
-        addPackage(packageStr);
-    }
+    // Package holding instruction bus constants
+    addPackage(context.globalPackage().name());
 
     addPackage(context.coreEntityName() + "_params");
 
@@ -181,7 +176,6 @@ ProcessorWrapperBlock::addDataMemory(const MemoryBusInterface& coreDmemPort) {
 
     const NetlistPort& addrPort = coreDmemPort.portBySignal(SigT::ADDRESS);
     const NetlistPort& dataPort = coreDmemPort.portBySignal(SigT::WRITE_DATA);
-
     SinglePortSSRAMBlock* dmemBlock = new SinglePortSSRAMBlock(
         addrPort.widthFormula(), dataPort.widthFormula(),
         TCEString("tb/dmem_") + coreDmemPort.addressSpace() + "_init.img",

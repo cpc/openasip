@@ -560,8 +560,7 @@ DefaultICGenerator::generateInputMux(
         stream << "end rtl;" << endl;
     } else {
         string entityName = inputMuxEntityName(segmentConns);
-        stream << "`timescale 10ns/1ns" << endl
-               << "module " << entityName << "" << endl << endl;
+        stream << "module " << entityName << "" << endl << endl;
         writeInputSocketComponentDeclaration(Verilog,segmentConns, 1, stream);
         stream << indentation(2) 
                << "// If width of input bus is greater than width of output,"
@@ -765,8 +764,7 @@ DefaultICGenerator::generateOutputSocket(
         stream << indentation(1) << "end process output;" << endl << endl;
         stream << "end output_socket_andor;" << endl;
     } else { // language_ == Verilog
-        stream << "`timescale 10ns/1ns" << endl
-               << "module " << entityName << endl;
+        stream << "module " << entityName << endl;
         writeOutputSocketComponentDeclaration(Verilog,
             portConns, segmentConns, 1, stream);
         
@@ -1174,10 +1172,12 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
     } else { // language_ == Verilog
         const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
         string entityName = entityNameStr_ + "_interconn";
-        stream << "`timescale 1ns/1ns" << endl
-               << "module " << entityName << endl
+        stream << "module " << entityName << endl
         //include parameters here
                << "#(" << endl
+               << "`include \""
+               << entityNameStr_ << "_imem_mau_pkg.vh\"" << endl
+               << "," << endl
                << "`include \""
                << entityNameStr_ << "_globals_pkg.vh\"" << endl
                << ")" << endl;
@@ -1838,7 +1838,7 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                << indentation(1) << "//synthesis translate_off" << endl
                << indentation(1) << "integer regularfileout;" << endl << endl
                << indentation(1) << "integer executionfileout;" << endl << endl
-               << indentation(1) << "integer count=0;" << endl
+               << indentation(1) << "integer count=-1;" << endl
                << indentation(1) << "integer executioncount=0;" << endl << endl
                << indentation(1) << "`define REGULARDUMPFILE \"bus.dump\""
                << indentation(1)
@@ -1856,7 +1856,7 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                << indentation(2) << "$fclose(executionfileout);" << endl
                << indentation(2) << "forever" << endl
                << indentation(2) << "begin" << endl
-               << indentation(3) << "#PERIOD;" << endl;
+               << indentation(3) << "@(posedge clk);" << endl;
         if (busTraceStartingCycle_ > 0) {
             stream << indentation(3) << "if(count > "
                    << busTraceStartingCycle_ - 1

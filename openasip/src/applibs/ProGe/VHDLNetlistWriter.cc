@@ -631,7 +631,6 @@ VHDLNetlistWriter::writePortMappings(
                 const NetlistPort* dstPort = block.netlist()[dstVertex];
                 PortConnectionProperty property =
                     block.netlist()[edgeDescriptor];
-
                 if (&dstPort->parentBlock() == &block) {
                     if (port.dataType() != dstPort->dataType()) {
                         int index = 0;
@@ -668,6 +667,7 @@ VHDLNetlistWriter::writePortMappings(
                     dstConn = portSignalName(port);
                 }
             } else {
+
                 dstConn = portSignalName(port);
             }
             stream << indentation(3) << srcConn << " => " << dstConn;

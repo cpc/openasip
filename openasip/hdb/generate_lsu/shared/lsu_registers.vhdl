@@ -26,7 +26,7 @@
 -- Author     : Kati Tervo
 -- Company    :
 -- Created    : 2019-08-27
--- Last update: 2019-08-27
+-- Last update: 2024-03-22
 -- Platform   :
 -------------------------------------------------------------------------------
 -- Description: LSU interface, handling registers and locking
@@ -135,6 +135,7 @@ begin
       rready_rr <= '0';
       addr_low_r <= (others => '0');
       addr_low_rr <= (others => '0');
+      rdata_r <= (others => '0');
     elsif rising_edge(clk) then
 
       if avalid_r = '1' and aready_in = '1' then

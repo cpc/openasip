@@ -187,7 +187,7 @@ ProGeScriptGenerator::generateModsimCompile() {
     string coverageOptAssign = " $coverage_opt";
     string program =
     ((language_==VHDL)?
-        "vcom": "vlog +define+SIMTIME=" + simulationRuntime_ +
+        "vcom": "vlog -sv +define+SIMTIME=" + simulationRuntime_ +
         " +incdir+verilog +incdir+gcu_ic +incdir+tb");
     string exitOnFailure = "|| exit 1";
     string checkSynthesisFLag = (language_==VHDL)?" -check_synthesis":"";
@@ -300,7 +300,7 @@ ProGeScriptGenerator::generateIverilogCompile() {
 
     stream << "rm -rf " << testbenchName_ << endl
            << endl
-           << "iverilog -g2001 -D _IVERILOG_ "
+           << "iverilog -g2012 -D _IVERILOG_ "
            << "-D SIMTIME=" << simulationRuntime_ << " "
            << "-Itb -Iverilog -Igcu_ic ";
     outputScriptCommands(stream, vhdlFiles_, ""," \\");
@@ -402,10 +402,8 @@ ProGeScriptGenerator::generateIverilogSimulate() {
            << endl;
     stream << "fi" << endl;
 
-    stream << "./" << testbenchName_ 
-           << " --assert-level=none --stop-time="
-           << "${runtime}" << "ns"
-           << endl;
+    stream << "./" << testbenchName_
+           << " --assert-level=none" << endl;
 
     stream.close();
 }

@@ -57,9 +57,9 @@ public:
 private:
     const char* machine_file_path = "data/machine.adf";
     const uint32_t opcodes[3] = {
-        0x00730e8b, /* .insn r 0x0B, 0x00, 0x00, t4, t1, t2 oa_crc_xor_shift*/
-        0x01d3138b, /* .insn r 0x0B, 0x01, 0x00, t2, t1, t4 oa_reflect32 */
-        0x00732e8b  /* .insn r 0x0B, 0x02, 0x00, t4, t1, t2 oa_reflect8 */
+        0x2732e8b, /* .insn r 0x0B, 0x00, 0x00, t4, t1, t2 oa_crc_xor_shift*/
+        0x3d3338b, /* .insn r 0x0B, 0x01, 0x00, t2, t1, t4 oa_reflect32 */
+        0x2734e8b  /* .insn r 0x0B, 0x02, 0x00, t4, t1, t2 oa_reflect8 */
     };
 
     const char* opNames[3] = {"crc_xor_shift", "reflect32", "reflect8"};

@@ -42,6 +42,7 @@
 #include "OperationGlobals.hh"
 #include "Operation.hh"
 #include "Operand.hh"
+#include "RandomNumberGenerator.hh"
 
 using std::string;
 
@@ -100,6 +101,71 @@ OperationBehavior::areValid(
     return true;
 }
 
+/**
+ * The default implementation of test vector generation.
+ *
+ * Generates set of test vectors with randomized values. Calls areValid()
+ * for each generated test vector to check and discard invalid vectors.
+ * New test vectors are appended to the testVectorsOut.
+ *
+ * @param testVectorsOut The container where new test vectors are added to.
+ * @param seed The seed value for randomized test vector generation.
+ * @param context The operation context for test vector generation.
+ * @param numberOfVectors The number of test vectors attempted to generate.
+ */
+void
+OperationBehavior::makeTestVectors(
+        std::vector<InputOperandVector>& testVectorsOut,
+        RandomNumberGenerator::SeedType seed,
+        const OperationContext& context,
+        unsigned numberOfVectors) const {
+
+    if (parent_.isNull()) {
+        return;
+    }
+
+    const size_t nVectorsAlrearyIn = testVectorsOut.size();
+    const size_t nVectorsToGenerate = numberOfVectors + nVectorsAlrearyIn;
+    const size_t attempts = 30 + nVectorsToGenerate;
+    RandomNumberGenerator throwDice(seed);
+
+    for (size_t itv = 0; itv < attempts; itv++) {
+        testVectorsOut.push_back(InputOperandVector(parent_.numberOfInputs()));
+        InputOperandVector& operands = testVectorsOut.back();
+        for (int iop = 0; iop < parent_.numberOfInputs(); iop++) {
+            for (int ielem = 0;
+                ielem < parent_.input(iop).elementCount();
+                ielem++) {
+                Operand::OperandType type = parent_.input(iop).type();
+                if (type == Operand::FLOAT_WORD) {
+                    assert(parent_.input(iop).elementWidth() == 32);
+                    operands.at(iop).setFloatElement(
+                        ielem, RandomNumberGenerator::asFloat(throwDice()));
+                } else if (type == Operand::HALF_FLOAT_WORD) {
+                    assert(parent_.input(iop).elementWidth() == 16);
+                    operands.at(iop).setHalfFloatElement(
+                        ielem, 
+                        RandomNumberGenerator::asHalfFloat(throwDice()));
+                } else if (type == Operand::DOUBLE_WORD) {
+                    assert(parent_.input(iop).elementWidth() == 64);
+                    operands.at(iop).setDoubleFloatElement(
+                        ielem, RandomDoubleGenerator(throwDice())());
+                } else {
+                    operands.at(iop).setElement(
+                        ielem, parent_.input(iop).elementWidth(), throwDice());
+                }
+            }
+        }
+        assert(testVectorsOut.back().size() ==
+            static_cast<size_t>(parent_.numberOfInputs()));
+        if (!areValid(testVectorsOut.back(), context)) {
+            testVectorsOut.pop_back(); // Discard invalid vector
+        }
+        if (testVectorsOut.size() >= nVectorsToGenerate ) {
+            break;
+        }
+    }
+}
 
 /**
  * Writes text to the output stream specified

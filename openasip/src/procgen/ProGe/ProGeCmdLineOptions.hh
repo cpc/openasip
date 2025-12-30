@@ -37,7 +37,7 @@
 #include <utility> // std::pair
 #include "CmdLineOptions.hh"
 /**
- * Command line options for the command line interface of ProGe 
+ * Command line options for the command line interface of ProGe
  * (generateprocessor).
  */
 class ProGeCmdLineOptions : public CmdLineOptions {
@@ -81,6 +81,7 @@ public:
     std::vector<std::string> fuBackRegistered() const;
     std::vector<std::string> fuFrontRegistered() const;
     std::vector<std::string> fuMiddleRegistered() const;
+    bool dontCareInitialization() const;
 
     virtual void printVersion() const;
     virtual void printHelp() const;
