@@ -530,8 +530,14 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
  * Initializes the target lowering.
  */
 TCETargetLowering::TCETargetLowering(
-    TargetMachine &TM, const TCESubtarget &subt)
-    : TargetLowering(TM), tm_(static_cast<TCETargetMachine &>(TM)) {
+    TargetMachine& TM, const TCESubtarget& subt)
+    :
+#if LLVM_MAJOR_VERSION < 22
+      TargetLowering(TM),
+#else
+      TargetLowering(TM, subt),
+#endif
+      tm_(static_cast<TCETargetMachine&>(TM)) {
     LLVMTCECmdLineOptions* opts = dynamic_cast<LLVMTCECmdLineOptions*>(
         Application::cmdLineOptions());
 
@@ -790,7 +796,23 @@ TCETargetLowering::TCETargetLowering(
             default: std::cerr << nodetype << ", "; break;
             };
         }
+#if LLVM_MAJOR_VERSION > 21
+        // Use LLVM's default LibCall expansion mechanism.
+        switch (nodetype) {
+            case ISD::SDIV:
+            case ISD::UDIV:
+            case ISD::SREM:
+            case ISD::UREM:
+            case ISD::MUL:
+                setOperationAction(nodetype, valuetype, LibCall);
+                break;
+            default:
+                setOperationAction(nodetype, valuetype, Expand);
+                break;
+        };
+#else
         setOperationAction(nodetype, valuetype, Expand);
+#endif
         iter++;
     }
 
@@ -1200,6 +1222,7 @@ TCETargetLowering::getSetCCResultType(
 }
 
 #ifdef OLD_VECTOR_CODE
+#error Obsolete snippet saved for later reference.
 static
 SDValue LowerLOAD(SDValue Op, SelectionDAG &DAG) {
     EVT VT = Op.getValueType();
@@ -1277,12 +1300,16 @@ std::pair<int, TCEString> TCETargetLowering::getConstShiftNodeAndTCEOP(SDValue o
     }
 }
 
+/**
+ * Custom shift lowering to support ultra-reduced machines without an
+ * hardware "barrel shifter".
+ */
 SDValue
 TCETargetLowering::LowerShift(SDValue op, SelectionDAG& dag) const {
 
     auto shiftOpcodes = getConstShiftNodeAndTCEOP(op);
     int shiftOpcode = shiftOpcodes.first;
-    assert(shiftOpcode && "Shift opcide not supported, should not be here");
+    assert(shiftOpcode && "Shift opcode not supported, should not be here");
 
     SDValue R = op.getOperand(0);
     SDValue Amt = op.getOperand(1);
@@ -1854,52 +1881,51 @@ TCETargetLowering::isBroadcast(SDNode *n) {
     return true;
 }
 
-
-// TODO: This is copypaste from legalizeDAG. Because the
-// routine in legalizeDAG is not public
+/* This is originally a copypaste from LLVM's LegalizeDAG, because the routine
+ * in legalizeDAG is  not callable directly as it's private and we need to
+ * call it to expand the shifts. */
 SDValue
-    TCETargetLowering::ExpandLibCall(RTLIB::Libcall LC, SDNode *Node,
-                                     bool isSigned, SelectionDAG &DAG) const {
-
-  TargetLowering::ArgListTy Args;
-  TargetLowering::ArgListEntry Entry;
-  for (const SDValue &Op : Node->op_values()) {
-    EVT ArgVT = Op.getValueType();
-    Type *ArgTy = ArgVT.getTypeForEVT(*DAG.getContext());
-    Entry.Node = Op;
-    Entry.Ty = ArgTy;
-#if LLVM_MAJOR_VERSION < 21
-    Entry.IsSExt = shouldSignExtendTypeInLibCall(ArgVT, isSigned);
-    Entry.IsZExt = !shouldSignExtendTypeInLibCall(ArgVT, isSigned);
+TCETargetLowering::ExpandLibCall(
+    RTLIB::Libcall LC, SDNode* Node, bool isSigned, SelectionDAG& DAG) const {
+    TargetLowering::ArgListTy Args;
+    for (const SDValue& Op : Node->op_values()) {
+        EVT ArgVT = Op.getValueType();
+        Type* ArgTy = ArgVT.getTypeForEVT(*DAG.getContext());
+#if LLVM_MAJOR_VERSION < 22
+        TargetLowering::ArgListEntry Entry;
+        Entry.Node = Op;
+        Entry.Ty = ArgTy;
 #else
-    Entry.IsSExt = shouldSignExtendTypeInLibCall(ArgTy, isSigned);
-    Entry.IsZExt = !shouldSignExtendTypeInLibCall(ArgTy, isSigned);
+        TargetLowering::ArgListEntry Entry(Op, ArgTy);
 #endif
-    Args.push_back(Entry);
-  }
-  SDValue Callee = DAG.getExternalSymbol(getLibcallName(LC),
-                                         getPointerTy(DAG.getDataLayout(),0));
+        Entry.IsSExt = shouldSignExtendTypeInLibCall(ArgTy, isSigned);
+        Entry.IsZExt = !shouldSignExtendTypeInLibCall(ArgTy, isSigned);
+        Args.push_back(Entry);
+    }
+    SDValue Callee = DAG.getExternalSymbol(
+        getLibcallName(LC), getPointerTy(DAG.getDataLayout(), 0));
 
-  EVT RetVT = Node->getValueType(0);
-  Type *RetTy = RetVT.getTypeForEVT(*DAG.getContext());
+    assert(!Callee.isUndef());
+    EVT RetVT = Node->getValueType(0);
+    Type* RetTy = RetVT.getTypeForEVT(*DAG.getContext());
 
-  // By default, the input chain to this libcall is the entry node of the
-  // function. If the libcall is going to be emitted as a tail call then
-  // TLI.isUsedByReturnOnly will change it to the right chain if the return
-  // node which is being folded has a non-entry input chain.
-  SDValue InChain = DAG.getEntryNode();
+    // By default, the input chain to this libcall is the entry node of the
+    // function. If the libcall is going to be emitted as a tail call then
+    // TLI.isUsedByReturnOnly will change it to the right chain if the return
+    // node which is being folded has a non-entry input chain.
+    SDValue InChain = DAG.getEntryNode();
 
-  // isTailCall may be true since the callee does not reference caller stack
-  // frame. Check if it's in the right position and that the return types match.
-  SDValue TCChain = InChain;
-  const Function &F = DAG.getMachineFunction().getFunction();
-  bool isTailCall =
-      isInTailCallPosition(DAG, Node, TCChain) &&
-      (RetTy == F.getReturnType() || F.getReturnType()->isVoidTy());
-  if (isTailCall)
-    InChain = TCChain;
+    // isTailCall may be true since the callee does not reference caller stack
+    // frame. Check if it's in the right position and that the return types
+    // match.
+    SDValue TCChain = InChain;
+    const Function& F = DAG.getMachineFunction().getFunction();
+    bool isTailCall =
+        isInTailCallPosition(DAG, Node, TCChain) &&
+        (RetTy == F.getReturnType() || F.getReturnType()->isVoidTy());
+    if (isTailCall) InChain = TCChain;
 
-  TargetLowering::CallLoweringInfo CLI(DAG);
+    TargetLowering::CallLoweringInfo CLI(DAG);
 #if LLVM_MAJOR_VERSION < 21
   bool signExtend = shouldSignExtendTypeInLibCall(RetVT, isSigned);
 #else

@@ -43,16 +43,14 @@ using namespace llvm;
 TCEStubSubTarget::TCEStubSubTarget(
     const Triple& TT, const StringRef& CPU, const StringRef& FS,
     const TCEStubTargetMachine& TM)
-    :
-#if LLVM_MAJOR_VERSION < 21
-      TargetSubtargetInfo(
-          TT, CPU, FS, FS, ArrayRef<SubtargetFeatureKV>(),
-          ArrayRef<SubtargetSubTypeKV>(), NULL, NULL, NULL, NULL, NULL, NULL),
-#else
-      TargetSubtargetInfo(
+    : TargetSubtargetInfo(
           TT, CPU, FS, FS, llvm::ArrayRef<llvm::StringRef>(),
           ArrayRef<SubtargetFeatureKV>(), ArrayRef<SubtargetSubTypeKV>(),
           NULL, NULL, NULL, NULL, NULL, NULL),
+#if LLVM_MAJOR_VERSION < 22
+      TLI(TM)
+#else
+      TLI(TM, *this)
 #endif
-      TLI(TM) {
+{
 }

@@ -27,6 +27,10 @@
  * Convert instruction which are not supported by the machine to
  * function calls.
  *
+ * We perform this because there is no binary linker in the compiler chain
+ * which would be required by the regular libcall conversion in the LLVM
+ * code generation.
+ *
  * NOTE: Right now system is limited to replace only those operations, which
  *       use only one bitwidth integers for example i1.icmp.i32.i32 cannot
  *       be lowered to function call.

@@ -17,9 +17,11 @@ void __attribute__((noinline)) checksum() {
 
 void
 init_data() {
-    // Loop unroll with unroll condition (SAMPLE_SIZE % N != 0)
-    // Should not be converted to hwloop
-    #pragma clang loop unroll_count(5)
+// Loop unroll with unroll condition (SAMPLE_SIZE % N != 0)
+// Is not converted to hwloop before LLVM 22. LLVM 22 seems
+// to create a nice != 1015 condition check which causes no
+// troubles.
+#pragma clang loop unroll_count(5)
     for (int x = 0; x < SAMPLE_SIZE; x++) {
         input[x] = SAMPLE_SIZE - x;
     }

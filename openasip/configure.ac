@@ -464,7 +464,7 @@ AC_PATH_PROGS([LLVM_CONFIG], [llvmtce-config llvm-config], [$llvmDir/bin])
 llvmConf=$LLVM_CONFIG
 ],
 [llvmDir=""
-AC_PATH_PROGS([LLVM_CONFIG], [llvmtce-config])
+AC_PATH_PROGS([LLVM_CONFIG], [llvmtce-config llvm-config])
 llvmConf=$LLVM_CONFIG
 ]
 )
@@ -547,6 +547,8 @@ if test x"$LLVM_INCLUDEDIR" == x/usr/include/llvm; then
 LLVM_INCLUDEDIR=/usr/include
 fi
 
+ENABLE_RISCV=true
+
 case "$LLVM_VERSION" in
      21*)
      AC_DEFINE([LLVM_21], [], "Using LLVM 21")
@@ -555,10 +557,16 @@ case "$LLVM_VERSION" in
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVMTCE
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
-     # This patch should be unnecessary in LLVM 21, it seems to have a wide
-     # range of vector datatypes up to 4096.
-     AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2], "LLVM has the wide custom vector extension patch(wide)")
-     AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
+;;
+     22.*)
+     AC_DEFINE([LLVM_22], [], "Using LLVM 22 (git)")
+     LLVM_VERSION=22
+     LLVM_LIBRARYVERSION=22git
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-22git
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+     # The upstream LLVM doesn't (yet) have the RISC-V customization support.
+     ENABLE_RISCV=false
 ;;
 
      *)
@@ -576,6 +584,15 @@ AC_MSG_NOTICE([
   You have to install LLVM to be able to compile from C.])
 ])
 
+
+AM_CONDITIONAL([RISCV], test x$ENABLE_RISCV = xtrue)
+
+
+# The patch for SIMD is not needed any more in the recent LLVMs.
+# TODO: remove this macro.
+AC_DEFINE([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], [2],
+"LLVM has the wide custom vector extension patch(wide)")
+AC_SUBST([LLVM_HAS_CUSTOM_VECTOR_EXTENSION], ["2"])
 
 if test ! -e $LLVM_SHARED_LIB_FILE;
 then
@@ -1567,6 +1584,9 @@ $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tcele64-llvm --disable
 2>&1 | egrep -v "to force reconfigure";
 ])
 
+if test x$ENABLE_RISCV = xtrue;
+then
+
 AC_CONFIG_COMMANDS_POST ([
 echo "=== Configuring newlib for riscv =====";
 # make srcdir absolute
@@ -1586,6 +1606,16 @@ CC_FOR_TARGET=`pwd`/../../src/bintools/Compiler/oacc-riscv \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=riscv --disable-multilib --disable-libgloss \
 2>&1 | egrep -v "to force reconfigure";
 ])
+
+rm -f ../testsuite/systemtest_long/bintools/RISCV/tcetest_custom_ops.sh.disabled
+rm -f ../testsuite/systemtest_long/procgen/RISCV/tcetest_stdlib.sh.disabled
+
+else
+
+touch ../testsuite/systemtest_long/bintools/RISCV/tcetest_custom_ops.sh.disabled
+touch ../testsuite/systemtest_long/procgen/RISCV/tcetest_stdlib.sh.disabled
+
+fi
 
 # Generate config.status and launch it. config.status then
 # performs all configuration actions.
