@@ -58,6 +58,8 @@ class TCEDAGToDAGISel : public llvm::SelectionDAGISel {
 public:
     static char ID;
 
+    TCEDAGToDAGISel() = delete;
+
     explicit TCEDAGToDAGISel(llvm::TCETargetMachine& tm);
     virtual ~TCEDAGToDAGISel();
 

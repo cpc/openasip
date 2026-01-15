@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -87,6 +87,35 @@ std::string
 TCESubtarget::pluginFileName() {
     return pluginFile_;
 }
+
+#if LLVM_MAJOR_VERSION > 21
+void
+TCESubtarget::initLibcallLoweringInfo(LibcallLoweringInfo& Info) const {
+    static const struct {
+        const RTLIB::Libcall Op;
+        const RTLIB::LibcallImpl Impl;
+    } LibraryCalls[] = {
+        {RTLIB::MUL_I32, RTLIB::impl___mulsi3},
+        {RTLIB::MUL_I64, RTLIB::impl___muldi3},
+        {RTLIB::SDIV_I32, RTLIB::impl___divsi3},
+        {RTLIB::SDIV_I64, RTLIB::impl___divdi3},
+        {RTLIB::SHL_I32, RTLIB::impl___ashlsi3},
+        {RTLIB::SHL_I64, RTLIB::impl___ashldi3},
+        {RTLIB::SRA_I32, RTLIB::impl___ashrsi3},
+        {RTLIB::SRA_I64, RTLIB::impl___ashrdi3},
+        {RTLIB::SREM_I32, RTLIB::impl___modsi3},
+        {RTLIB::SREM_I64, RTLIB::impl___moddi3},
+        {RTLIB::SRL_I32, RTLIB::impl___lshrsi3},
+        {RTLIB::SRL_I64, RTLIB::impl___lshrdi3},
+        {RTLIB::UDIV_I32, RTLIB::impl___udivsi3},
+        {RTLIB::UDIV_I64, RTLIB::impl___udivdi3},
+        {RTLIB::UREM_I32, RTLIB::impl___umodsi3},
+        {RTLIB::UREM_I64, RTLIB::impl___umoddi3},
+    };
+
+    for (const auto& LC : LibraryCalls) Info.setLibcallImpl(LC.Op, LC.Impl);
+}
+#endif
 
 const TargetInstrInfo* TCESubtarget::getInstrInfo() const {
     return plugin_->getInstrInfo();

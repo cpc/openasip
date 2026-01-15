@@ -70,23 +70,28 @@ using namespace llvm;
 /**
  * Constructor.
  */
-TCEInstrInfo::TCEInstrInfo(
-    const TCETargetMachinePlugin* plugin) :
-    TCEGenInstrInfo(TCE::ADJCALLSTACKDOWN, TCE::ADJCALLSTACKUP),
-    ri_(*this), plugin_(plugin) {
+TCEInstrInfo::TCEInstrInfo(const TCETargetMachinePlugin* plugin)
+    : ri_(*this),
+#if LLVM_MAJOR_VERSION < 22
+      TCEGenInstrInfo(TCE::ADJCALLSTACKDOWN, TCE::ADJCALLSTACKUP),
+#else
+      TCEGenInstrInfo(
+          *plugin->getSubtarget(), ri_, TCE::ADJCALLSTACKDOWN,
+          TCE::ADJCALLSTACKUP),
+#endif
+      plugin_(plugin) {
 }
 
 /**
  * Destructor.
  */
-TCEInstrInfo:: ~TCEInstrInfo() {   
-}
+TCEInstrInfo::~TCEInstrInfo() {}
 
 /**
  * Inserts a branch instruction or brach instructions into llvm MBB.
  *
  * If the MBB already has an unconditional branch at end, does nothing.
- * 
+ *
  * @param mbb where to insert the branch instructions.
  * @param tbb jump target basic block
  * @param fbb false condition jump target, if insertin 2 branches
@@ -205,51 +210,48 @@ TCEInstrInfo::BlockHasNoFallThrough(const MachineBasicBlock& MBB) const {
     }
 }
 
-void TCEInstrInfo::
-storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
-                    unsigned SrcReg, bool isKill, int FI,
-                    #ifdef LLVM_OLDER_THAN_16
-                    const TargetRegisterClass *RC) const {
-                    #else
-                    const TargetRegisterClass *RC, Register vReg) const {
-                    #endif
-  DebugLoc DL;
+void
+TCEInstrInfo::storeRegToStackSlotImpl(
+    MachineBasicBlock& MBB, MachineBasicBlock::iterator I, unsigned SrcReg,
+    bool isKill, int FI, const TargetRegisterClass* RC, Register vReg) const {
+    DebugLoc DL;
 
-  if (I != MBB.end()) DL = I->getDebugLoc();
+    if (I != MBB.end()) DL = I->getDebugLoc();
 
-  BuildMI(MBB, I, DL, get(plugin_->getStore(RC))).addFrameIndex(FI).addImm(0)
-      .addReg(SrcReg, getKillRegState(isKill));
+    BuildMI(MBB, I, DL, get(plugin_->getStore(RC)))
+        .addFrameIndex(FI)
+        .addImm(0)
+        .addReg(SrcReg, getKillRegState(isKill));
 
-  LLVMContext& context = MBB.getParent()->getFunction().getContext();
-  llvm::Metadata* md = llvm::MDString::get(context, "AA_CATEGORY_STACK_SLOT");
-  MDNode* mdNode =
-      MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
-  MachineOperand metaDataOperand = MachineOperand::CreateMetadata(mdNode);
-  I--; // buildmi moves the iterator to next ins, point to the created one.
-  I->addOperand(metaDataOperand);
+    LLVMContext& context = MBB.getParent()->getFunction().getContext();
+    llvm::Metadata* md =
+        llvm::MDString::get(context, "AA_CATEGORY_STACK_SLOT");
+    MDNode* mdNode =
+        MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
+    MachineOperand metaDataOperand = MachineOperand::CreateMetadata(mdNode);
+    I--;  // buildmi moves the iterator to next ins, point to the created one.
+    I->addOperand(metaDataOperand);
 }
 
-void TCEInstrInfo::
-loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
-                     unsigned DestReg, int FI,
-                     #ifdef LLVM_OLDER_THAN_16
-                     const TargetRegisterClass *RC) const {
-                     #else
-                     const TargetRegisterClass *RC, Register vReg) const {
-                     #endif
-  DebugLoc DL;
+void
+TCEInstrInfo::loadRegFromStackSlotImpl(
+    MachineBasicBlock& MBB, MachineBasicBlock::iterator I, unsigned DestReg,
+    int FI, const TargetRegisterClass* RC, Register vReg) const {
+    DebugLoc DL;
 
-  if (I != MBB.end()) DL = I->getDebugLoc();
-  BuildMI(MBB, I, DL, get(plugin_->getLoad(RC)), DestReg).addFrameIndex(FI)
-      .addImm(0);
+    if (I != MBB.end()) DL = I->getDebugLoc();
+    BuildMI(MBB, I, DL, get(plugin_->getLoad(RC)), DestReg)
+        .addFrameIndex(FI)
+        .addImm(0);
 
-  LLVMContext& context = MBB.getParent()->getFunction().getContext();
-  llvm::Metadata* md = llvm::MDString::get(context, "AA_CATEGORY_STACK_SLOT");
-  MDNode* mdNode =
-      MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
-  MachineOperand metaDataOperand = MachineOperand::CreateMetadata(mdNode);
-  I--; // buildmi moves the iterator to next ins, point to the created one.
-  I->addOperand(metaDataOperand);
+    LLVMContext& context = MBB.getParent()->getFunction().getContext();
+    llvm::Metadata* md =
+        llvm::MDString::get(context, "AA_CATEGORY_STACK_SLOT");
+    MDNode* mdNode =
+        MDNode::get(context, llvm::ArrayRef<llvm::Metadata*>(&md, 1));
+    MachineOperand metaDataOperand = MachineOperand::CreateMetadata(mdNode);
+    I--;  // buildmi moves the iterator to next ins, point to the created one.
+    I->addOperand(metaDataOperand);
 }
 
 /**

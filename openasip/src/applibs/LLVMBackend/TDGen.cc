@@ -1068,7 +1068,7 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
     for (; i < regs32bit_.size(); i++) {
         std::string regName = "I" + Conversion::toString(i);
         writeRegisterDef(o, regs32bit_[i], regName, "R32", "", GPR);
-        
+
         if (!regsInRFClasses_.count(regs32bit_[i].rf)) {
             regsInRFClasses_[regs32bit_[i].rf] = std::vector<std::string>();
         }
@@ -1078,12 +1078,12 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
     }
 
     o << std::endl;
-    
+
     if (!mach_.is64bit()) {
         // Bypass registers
         for (size_t j = 0; j < 256; ++j) {
             std::string regName = "BP" + Conversion::toString(j);
-            
+
             o << "def " << regName << " : " 
               << "R32<\"ByPass_Regs" 
               << "\", []>, DwarfRegNum<"
@@ -3575,13 +3575,23 @@ TDGen::writeInstrInfo(std::ostream& os) {
     createConstantMaterializationPatterns(os);
     createConstShiftPatterns(os);
     createBoolAndHalfLoadPatterns(os);
+
+    os << std::endl;
+#if LLVM_MAJOR_VERSION > 21
+    if (mach_.is64bit())
+        os << "defm : RemapAllTargetPseudoPointerOperands<R64IRegs>;"
+           << std::endl;
+    else
+        os << "defm : RemapAllTargetPseudoPointerOperands<R32IRegs>;"
+           << std::endl;
+#endif
 }
 
 void TDGen::writeCallDefRegs(std::ostream& o) {
     for (unsigned i = 0; i < resRegNames_.size(); i++) {
         if (i > 0) o << ", ";
         o << resRegNames_[i];
-    }    
+    }
     for (unsigned i = 0; i < gprRegNames_.size(); i++) {
         o << ", " << gprRegNames_[i];
     }

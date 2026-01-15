@@ -621,9 +621,9 @@ LLVMBackend::compile(
     std::string featureString ="";
 
     // run registering code, which should have been done by LLVM
-    
-    // Initialize targets first. needs 
-    // #include <llvm/Target/TargetSelecty.h>, 
+
+    // Initialize targets first. needs
+    // #include <llvm/Target/TargetSelecty.h>,
     // whose defines collide with tce_config.h
 
     //InitializeAllTargets();
@@ -633,9 +633,11 @@ LLVMBackend::compile(
     LLVMInitializeTCETargetInfo();
     LLVMInitializeTCETarget();
 
+    llvm::Triple targetTriple(targetStr);
+
     // get registered target machine and set plugin.
     const Target* tceTarget =
-        TargetRegistry::lookupTarget(targetStr, errorStr);
+        TargetRegistry::lookupTarget(targetTriple, errorStr);
     Target* nonconst_target = const_cast<Target*>(tceTarget);
 
     if (!tceTarget) {
@@ -653,7 +655,9 @@ LLVMBackend::compile(
     std::string cpuStr = "tce";
 
     TargetOptions Options;
+#if LLVM_MAJOR_VERSION < 22
     Options.UnsafeFPMath = false; //EnableUnsafeFPMath;
+#endif
     Options.NoInfsFPMath = false; //EnableNoInfsFPMath;
     Options.NoNaNsFPMath = false; //EnableNoNaNsFPMath;
     Options.HonorSignDependentRoundingFPMathOption = false;
@@ -684,10 +688,9 @@ LLVMBackend::compile(
     Options.GuaranteedTailCallOpt = true; //EnableGuaranteedTailCallOpt;
 
     TCETargetMachine* targetMachine =
-        static_cast<TCETargetMachine*>(
-            tceTarget->createTargetMachine(
-                targetStr, cpuStr, featureString, Options,
-                Reloc::Model::Static));
+        static_cast<TCETargetMachine*>(tceTarget->createTargetMachine(
+            targetTriple, cpuStr, featureString, Options,
+            Reloc::Model::Static));
 
     if (!targetMachine) {
         errs() << "Could not create tce target machine" << "\n";

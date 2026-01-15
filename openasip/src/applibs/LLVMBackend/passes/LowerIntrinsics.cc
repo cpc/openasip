@@ -49,7 +49,11 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include <llvm/IR/Function.h>
 #include <llvm/Pass.h>
 #include <llvm/Passes/PassBuilder.h>
+#if LLVM_MAJOR_VERSION < 22
 #include <llvm/Passes/PassPlugin.h>
+#else
+#include <llvm/Plugins/PassPlugin.h>
+#endif
 #include <llvm/CodeGen/IntrinsicLowering.h>
 
 POP_COMPILER_DIAGS

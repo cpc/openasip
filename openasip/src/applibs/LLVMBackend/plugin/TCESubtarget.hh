@@ -66,6 +66,11 @@ namespace llvm {
             return &InstrItins;
         }
 
+#if LLVM_MAJOR_VERSION > 21
+        virtual void initLibcallLoweringInfo(
+            LibcallLoweringInfo& Info) const override;
+#endif
+
         virtual const TargetInstrInfo* getInstrInfo() const override;
         virtual const TargetFrameLowering* getFrameLowering() const override;
         virtual const TargetLowering* getTargetLowering() const override;

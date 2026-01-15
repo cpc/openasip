@@ -81,44 +81,44 @@ namespace llvm {
         virtual bool BlockHasNoFallThrough(
             const MachineBasicBlock &MBB) const;
 
-        virtual void storeRegToStackSlot(
-            MachineBasicBlock& mbb,
-            MachineBasicBlock::iterator mbbi,
+        virtual void storeRegToStackSlotImpl(
+            MachineBasicBlock& mbb, MachineBasicBlock::iterator mbbi,
             unsigned srcReg, bool isKill, int frameIndex,
             const TargetRegisterClass* rc, Register vReg) const;
 
-        virtual void storeRegToStackSlot(
-            MachineBasicBlock& mbb,
-            MachineBasicBlock::iterator mbbi,
+        virtual void
+        storeRegToStackSlot(
+            MachineBasicBlock& mbb, MachineBasicBlock::iterator mbbi,
             Register srcReg, bool isKill, int frameIndex,
-            const TargetRegisterClass* rc, const TargetRegisterInfo*,
-            Register vReg
-#if LLVM_MAJOR_VERSION >= 21
-            , MachineInstr::MIFlag Flags = MachineInstr::NoFlags
+            const TargetRegisterClass* rc,
+#if LLVM_MAJOR_VERSION < 22
+            const TargetRegisterInfo*,
 #endif
-          ) const override {
-            storeRegToStackSlot(mbb, mbbi, srcReg, isKill, frameIndex, rc, 0);
+            Register vReg, MachineInstr::MIFlag Flags = MachineInstr::NoFlags)
+            const override {
+            storeRegToStackSlotImpl(
+                mbb, mbbi, srcReg, isKill, frameIndex, rc, 0);
         }
 
-        // TODO: this is in the form of the llvm 2.7 version of this method.
-        // this is however called by the newer version of the function.
-        virtual void loadRegFromStackSlot(
-            MachineBasicBlock& mbb,
-            MachineBasicBlock::iterator mbbi,
-            unsigned destReg, int frameIndex,
-            const TargetRegisterClass* rc, Register vReg) const;
+        virtual void loadRegFromStackSlotImpl(
+            MachineBasicBlock& mbb, MachineBasicBlock::iterator mbbi,
+            unsigned destReg, int frameIndex, const TargetRegisterClass* rc,
+            Register vReg) const;
 
-        virtual void loadRegFromStackSlot(
-            MachineBasicBlock& mbb,
-            MachineBasicBlock::iterator mbbi,
-            Register destReg, int frameIndex,
-            const TargetRegisterClass* rc, const TargetRegisterInfo*,
-            Register vReg
-#if LLVM_MAJOR_VERSION >= 21
-            , MachineInstr::MIFlag Flags = MachineInstr::NoFlags
+        virtual void
+        loadRegFromStackSlot(
+            MachineBasicBlock& mbb, MachineBasicBlock::iterator mbbi,
+            Register destReg, int frameIndex, const TargetRegisterClass* rc,
+#if LLVM_MAJOR_VERSION < 22
+            const TargetRegisterInfo*,
 #endif
-          ) const override {
-            loadRegFromStackSlot(mbb, mbbi, destReg, frameIndex, rc, 0);
+            Register vReg,
+#if LLVM_MAJOR_VERSION > 21
+            unsigned /* SubReg */,
+#endif
+            MachineInstr::MIFlag Flags =
+                MachineInstr::NoFlags) const override {
+            loadRegFromStackSlotImpl(mbb, mbbi, destReg, frameIndex, rc, 0);
         }
 
 #if LLVM_MAJOR_VERSION >= 21
