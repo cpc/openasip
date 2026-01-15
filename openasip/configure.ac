@@ -568,7 +568,16 @@ case "$LLVM_VERSION" in
      # The upstream LLVM doesn't (yet) have the RISC-V customization support.
      ENABLE_RISCV=false
 ;;
-
+     23.*)
+     AC_DEFINE([LLVM_23], [], "Using LLVM 23 (git)")
+     LLVM_VERSION=23
+     LLVM_LIBRARYVERSION=23git
+     LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
+     LLVM_SHARED_LIB=-lLLVM-23git
+     LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
+     # The upstream LLVM doesn't (yet) have the RISC-V customization support.
+     ENABLE_RISCV=false
+;;
      *)
    AC_MSG_NOTICE(
    [
@@ -1676,7 +1685,7 @@ if test x"$LLVM_VERSION" = x
 then
   echo "NOTE! Supported LLVM version not found. Compiling C programs is disabled."
 else
-  echo "Found LLVM version $LLVM_VERSION"
+  echo "Found LLVM version $LLVM_VERSION".
 fi
 
 
