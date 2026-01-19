@@ -60,7 +60,8 @@ class ProGeContext;
 class NetlistGenerator;
 
 /**
- * Controller class of ProGe.
+ * class for handling CV-X-IF or ROCC coprocessor, support packages and
+ * FU generation.
  */
 class CoproGen : public ProcessorGenerator {
 public:
@@ -78,14 +79,14 @@ private:
     void validateMachine(
         const TTAMachine::Machine& machine, std::ostream& errorStream,
         std::ostream& warningStream);
-    void generateSupPackage(const std::string& dstDirectory);
-    void generateinsdecoder(
+    void generateSupportPackage(const std::string& dstDirectory);
+    void generateInstructionDecoder(
         const ProGeOptions& options);  // Instruciton decoder maker
-    void makecoprocessor(
-        const ProGeOptions& options, IDF::FUGenerated& Fu,
+    void makeCoprocessor(
+        const ProGeOptions& options, IDF::FUGenerated& FU,
         const TTAMachine::Machine& machine);
     void makeROCCcoprocessor(
-        const ProGeOptions& options, IDF::FUGenerated& Fu,
+        const ProGeOptions& options, IDF::FUGenerated& FU,
         const TTAMachine::Machine& machine);
 
     NetlistBlock* coreTopBlock_;

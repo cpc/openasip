@@ -290,11 +290,11 @@ FUGen::createFUHeaderComment(const TTAMachine::Machine& machine) {
         for (auto&& op : operations_) {
             if ((generateCVXIF_) || (generateROCC_)) {
                 fu_ << BinaryConstant(
-                    opcodeConstant(op), opcodeWidth_, opcode,
+                    opcodeConstant(op), opCodeWidth_, opcode,
                     cusopgen.cusencode(op));
             } else {
                 fu_ << BinaryConstant(
-                    opcodeConstant(op), opcodeWidth_, opcode);
+                    opcodeConstant(op), opCodeWidth_, opcode);
             }
             std::ostringstream comment;
             comment << boost::format(
@@ -313,7 +313,7 @@ FUGen::createFUHeaderComment(const TTAMachine::Machine& machine) {
         if ((generateCVXIF_) || (generateROCC_)) {
             int opcode = 1;
             fu_ << BinaryConstant(
-                opcodeConstant(hwop->name()), opcodeWidth_, opcode,
+                opcodeConstant(hwop->name()), opCodeWidth_, opcode,
                 cusopgen.cusencode(hwop->name()));
         }
     }
@@ -401,7 +401,7 @@ FUGen::createMandatoryPorts() {
             "configbits_in", Nconfigbits_,
             WireType::Vector);  // configbits input
         fu_ << InPort(
-            "operation_in", opcodeWidth_,
+            "operation_in", opCodeWidth_,
             WireType::Vector);  // For instruction input
         fu_ << InPort("operation_enable_in");
         fu_ << InPort("result_ready_in");
@@ -421,7 +421,7 @@ FUGen::createMandatoryPorts() {
         }
     } else if (generateROCC_) {  // For ROCC interface connections
         fu_ << InPort("glock_in") << InPort("out_ready")
-            << InPort("operation_in", opcodeWidth_, WireType::Vector)
+            << InPort("operation_in", opCodeWidth_, WireType::Vector)
             << InPort("configs_in", 6, WireType::Vector)
             << InPort("operation_enable_in");
 
@@ -433,7 +433,7 @@ FUGen::createMandatoryPorts() {
     } else {
         fu_ << InPort("glock_in") << OutPort("glockreq_out");
         if (adfFU_->operationCount() > 1) {
-            fu_ << InPort("operation_in", opcodeWidth_, WireType::Vector);
+            fu_ << InPort("operation_in", opCodeWidth_, WireType::Vector);
         }
         if (addressWidth_ > 0) {
             fu_ << IntegerConstant("addrw_c", addressWidth_);
@@ -1456,7 +1456,7 @@ FUGen::scheduleOperations() {
 
 // Making inputs connected with the operand inputs
 void
-FUGen::CreateInputsConnected() {
+FUGen::createInputsConnected() {
     std::unordered_map<std::string, std::string> currentName;
     std::unordered_map<std::string, int> portWidth;
     CodeBlock inregisterblock;
@@ -1482,7 +1482,7 @@ FUGen::CreateInputsConnected() {
 
 // Making all the inputs registered
 void
-FUGen::CreateInputRegister() {
+FUGen::createInputRegister() {
     std::unordered_map<std::string, std::string> currentName;
     std::unordered_map<std::string, int> portWidth;
     CodeBlock inregisterblock;
@@ -1512,7 +1512,7 @@ FUGen::CreateInputRegister() {
     // operation port registering
     std::string registeredOp = "operation_in_r";
     std::string opportIn = "operation_in";
-    addRegisterIfMissing(registeredOp, opcodeWidth_, WireType::Vector);
+    addRegisterIfMissing(registeredOp, opCodeWidth_, WireType::Vector);
     inregisterblock.append(Assign(registeredOp, LHSSignal(opportIn)));
 
     std::string InputEnPort = enableSignal("input", 0);
@@ -1624,7 +1624,7 @@ FUGen::createPortPipeline() {
         if (operations_.size() > 1) {
             std::string prevOpcode = opcodeSignal(i);
             std::string nextOpcode = opcodeSignal(i + 1);
-            addRegisterIfMissing(nextOpcode, opcodeWidth_, WireType::Vector);
+            addRegisterIfMissing(nextOpcode, opCodeWidth_, WireType::Vector);
             if (i == 0) {
                 firstStage.append(Assign(nextOpcode, LHSSignal(prevOpcode)));
             } else {
@@ -1901,7 +1901,7 @@ FUGen::createOutputPipeline() {
     behaviour_ << async;
 }
 
-// Output pipeline for CV-X-IF FU
+// Creating operation output pipelines for CV-X-IF FU
 void
 FUGen::createOutputPipelineCVXIF() {
     CodeBlock operationPipeline;
@@ -2232,13 +2232,13 @@ FUGen::implement(
         fugen.createOperationResources();
 
         if (fugen.generateCVXIF_) {  // CVXIF selection
-            fugen.CreateInputsConnected();
+            fugen.createInputsConnected();
             fugen.buildOperations();
             fugen.createOutputPipelineCVXIF();
             fugen.selectionlogic();
             fugen.outputSelect();
         } else if (fugen.generateROCC_) {  // ROCC selection
-            fugen.CreateInputsConnected();
+            fugen.createInputsConnected();
             fugen.buildOperations();
             fugen.createOutputPipeline();
         } else {  // TTA selection

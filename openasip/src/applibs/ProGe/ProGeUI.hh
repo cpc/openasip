@@ -132,7 +132,7 @@ private:
     std::string entityName_;
 
     ProcessorGenerator generator_;
-    // CoproGen obj
+    // Object for coprocessor generation 
     CoproGen coprogenerator_;
 
     static const std::string DEFAULT_ENTITY_STR;

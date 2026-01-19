@@ -70,7 +70,7 @@ public:
             fu_(StringTools::stringToLower("fu_" + fug.name())),
             adfFU_(machine.functionUnitNavigator().item(fug.name())),
             operations_(),
-            opcodeWidth_(MathTools::requiredBits(adfFU_->operationCount()-1)),
+            opCodeWidth_(MathTools::requiredBits(adfFU_->operationCount()-1)),
             moduleName_("fu_" + fug_.name()) {
 
         // Find the netlistblock
@@ -91,11 +91,11 @@ public:
         if (options.CVXIFCoproGen) {
             generateCVXIF_ = true;
             generateROCC_ = false;
-            opcodeWidth_ = 32;
+            opCodeWidth_ = 32;
         } else if (options.roccGen) {
             generateCVXIF_ = false;
             generateROCC_ = true;
-            opcodeWidth_ = 32;
+            opCodeWidth_ = 32;
         }
     }
 
@@ -182,8 +182,8 @@ private:
     void scheduleOperations();
     void createPortPipeline();
     void createShadowRegisters();
-    void CreateInputRegister();  // Make all the inputs registered
-    void CreateInputsConnected();
+    void createInputRegister();  // Make all the inputs registered
+    void createInputsConnected();
     void selectionlogic();
     void outputSelect();
     void assignvalues();
@@ -242,7 +242,7 @@ private:
     TTAMachine::FunctionUnit* adfFU_;
 
     std::vector<std::string> operations_;
-    int opcodeWidth_;
+    int opCodeWidth_;
     std::string moduleName_;
     ProGe::NetlistBlock* netlistBlock_;
 
