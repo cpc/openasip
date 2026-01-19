@@ -17,10 +17,10 @@
     02110-1301 USA
  */
 /**
- * @file CoproGen.cc derived from ProcessorGenerator
+ * @file RVCoprocessorGenerator.cc derived from ProcessorGenerator
  */
 
-#include "CoproGen.hh"
+#include "RVCoprocessorGenerator.hh"
 
 #include <algorithm>
 #include <boost/format.hpp>
@@ -86,23 +86,22 @@ namespace ProGe {
 /**
  * The constructor.
  */
-CoproGen::CoproGen() : coreTopBlock_(NULL) {}
+RVCoprocessorGenerator::RVCoprocessorGenerator() : coreTopBlock_(NULL) {}
 
 /**
  * The destructor.
  */
-CoproGen::~CoproGen() {
+RVCoprocessorGenerator::~RVCoprocessorGenerator() {
     delete coreTopBlock_;
     coreTopBlock_ = NULL;
 }
 
 /**
- * Generates the coprocessor.
- *
- * @see ProGeUI::coproGenerate()
+ * Generates HDL for CV-X-IF and ROCC interface based coprocessor tops, FUs 
+ * and supporting files
  */
 void
-CoproGen::coproGenerate(
+RVCoprocessorGenerator::generateRVCoprocessor(
     const ProGeOptions& options, const TTAMachine::Machine& machine,
     const IDF::MachineImplementation& implementation,
     ProGe::ICDecoderGeneratorPlugin& plugin, int imemWidthInMAUs,
@@ -178,7 +177,7 @@ CoproGen::coproGenerate(
  * Makes the top of the ROCC Coprocessor
  */
 void
-CoproGen::makeROCCcoprocessor(
+RVCoprocessorGenerator::makeROCCcoprocessor(
     const ProGeOptions& options, IDF::FUGenerated& FU,
     const TTAMachine::Machine& machine) {
     TTAMachine::FunctionUnit* adfFU =
@@ -215,7 +214,7 @@ CoproGen::makeROCCcoprocessor(
  * Makes the top of the Coprocessor
  */
 void
-CoproGen::makeCoprocessor(
+RVCoprocessorGenerator::makeCoprocessor(
     const ProGeOptions& options, IDF::FUGenerated& FU,
     const TTAMachine::Machine& machine) {
     TTAMachine::FunctionUnit* adfFU =
@@ -311,7 +310,7 @@ CoproGen::makeCoprocessor(
 
 // Instantiates the compressed decoder TODO
 void
-CoproGen::generateInstructionDecoder(const ProGeOptions& options) {
+RVCoprocessorGenerator::generateInstructionDecoder(const ProGeOptions& options) {
     const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
     const std::string dstDirectory = options.outputDirectory;
     std::string sourceFile;
@@ -334,7 +333,7 @@ CoproGen::generateInstructionDecoder(const ProGeOptions& options) {
  * @param dstDirectory The destination directory.
  */
 void
-CoproGen::generateSupportPackage(const std::string& dstDirectory) {
+RVCoprocessorGenerator::generateSupportPackage(const std::string& dstDirectory) {
     string dstFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
                      "systemverilog/cvxif_sup_pkg.sv";
     bool created = FileSystem::createFile(dstFile);
@@ -382,7 +381,7 @@ CoproGen::generateSupportPackage(const std::string& dstDirectory) {
  * machine.
  */
 void
-CoproGen::validateMachine(
+RVCoprocessorGenerator::validateMachine(
     const TTAMachine::Machine& machine, std::ostream& errorStream,
     std::ostream& warningStream) {
     MachineValidator validator(machine);

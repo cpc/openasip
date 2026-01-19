@@ -63,12 +63,12 @@ class NetlistGenerator;
  * class for handling CV-X-IF or ROCC coprocessor, support packages and
  * FU generation.
  */
-class CoproGen : public ProcessorGenerator {
+class RVCoprocessorGenerator : public ProcessorGenerator {
 public:
-    CoproGen();
-    virtual ~CoproGen();
+    RVCoprocessorGenerator();
+    virtual ~RVCoprocessorGenerator();
 
-    void coproGenerate(
+    void generateRVCoprocessor(
         const ProGeOptions& options, const TTAMachine::Machine& machine,
         const IDF::MachineImplementation& implementation,
         ICDecoderGeneratorPlugin& plugin, int imemWidthInMAUs,

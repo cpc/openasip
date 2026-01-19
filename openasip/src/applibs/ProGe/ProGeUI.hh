@@ -38,7 +38,7 @@
 
 #include <string>
 
-#include "CoproGen.hh"  //For CVXIF coprocessor
+#include "RVCoprocessorGenerator.hh" 
 #include "Exception.hh"
 #include "ICDecoderGeneratorPlugin.hh"
 #include "MemoryGenerator.hh"
@@ -132,8 +132,8 @@ private:
     std::string entityName_;
 
     ProcessorGenerator generator_;
-    // Object for coprocessor generation 
-    CoproGen coprogenerator_;
+    // Object for ROCC and CV-X-IF coprocessor generation 
+    RVCoprocessorGenerator rvcoprocessorgenerator_;
 
     static const std::string DEFAULT_ENTITY_STR;
 };
