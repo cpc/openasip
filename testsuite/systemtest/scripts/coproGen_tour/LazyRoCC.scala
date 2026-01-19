@@ -1,5 +1,8 @@
+// Original file was taken from Chipyard, University of California, Berkeley. 
+// Chipyard is licensed under BSD 3-Clause License and Apache License Version 2.0
 // See LICENSE.Berkeley for license details.
-// See LICENSE.SiFive for license details.
+// See LICENSE.SiFive for license details in Chipyard.
+
 
 package freechips.rocketchip.tile
 
