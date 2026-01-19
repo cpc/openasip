@@ -4153,11 +4153,20 @@ description as a base and add your own custom instructions on top of it.
 \section{RISC-V Coprocessor generation}
 \label{sec:coproriscv}
 
-This section of the tutorial presents adding custom RISC-V instructions as coprocessors utilizing OpenASIP toolset. The reader will learn how to implement a portion of an algorithm as a custom operation on coprocessors and execute a program on RTL simulations of them with supported host RISC-V cores. 
+This section of the tutorial presents adding custom RISC-V instructions as Special 
+Function Units (SFUs) that can be interfaced with supported interfaces utilizing 
+OpenASIP toolset. The reader will learn how to implement a portion of an 
+algorithm as a custom operation and execute a program on RTL simulations with 
+supported host RISC-V cores. 
 
-RTLs of coprocessors are generated with the \textit{generatecoprocessor} tool (The description of the tool is in section~\ref{sec:gencopro}). The tool is currently able to produce RTL files based for 'CV-X' and 'RoCC' interfaces. 
+RTLs are generated with the \textit{generatecoprocessor} command line tool (The description 
+of the tool is in section~\ref{sec:gencopro}). The tool is currently able to produce RTL files 
+based for 'CV-X' and 'RoCC' interfaces. 
 
-Same tutorial files and operation adding procedures as in section~\ref{sec:riscvtute} are used in here, however, the first part of this section elaborates the same process for the readers who haven't gone through it. Subsection~\ref{ssec:cvxinterface} explains further procedure related to 'CV-X' interface, while subsection~\ref{ssec:roccinterface} describes 'RoCC' interface related process.
+Same tutorial files and operation adding procedures as in section~\ref{sec:riscvtute} are used 
+in here, however, the first part of this section elaborates the same process for the readers who 
+haven't gone through it. Subsection~\ref{ssec:cvxinterface} explains further procedure related to 
+'CV-X' interface, while subsection~\ref{ssec:roccinterface} describes 'RoCC' interface related process.
 
 Tutorial files can be downloaded and extracted as shown below.
 
@@ -4165,7 +4174,7 @@ Tutorial files can be downloaded and extracted as shown below.
   > wget http://openasip.org/tutorial_files/tce_tutorials.tar.gz
   > tar -xzf tce_tutorials.tar.gz
   > cd tce_tutorials/tce_tour
-  > ls -la
+  > ls
   
   total 84
   drwxr-xr-x 3 tce tce  4096 2010-05-28 11:40 .
@@ -4180,9 +4189,15 @@ Tutorial files can be downloaded and extracted as shown below.
   drwxr-xr-x 2 tce tce  4096 2010-05-28 11:40 tour_vhdl
 \end{verbatim}
 
-The sample application used in here is a 32-bit CRC (Cyclic Redundant Check) check value for a block of data written in C code by Michael Barr. The algorithm performs modulo-2 division, a byte at a time, reflects the input data (MSB becomes LSB) depending on the previous remainder, and XORs the remainder with a predefined polynomial (32-bit constant).
+The sample application used in here is a 32-bit CRC (Cyclic Redundant Check) check value for a 
+block of data written in C code by Michael Barr. The algorithm performs modulo-2 division, a 
+byte at a time, reflects the input data (MSB becomes LSB) depending on the previous remainder, 
+and XORs the remainder with a predefined polynomial (32-bit constant).
 
-The aim is to accelerate the algorithm by implementing some functionality/functionalities as custom instruction/instructions. In this tutorial, \textit{crc\_xor\_shift} is implemented as a custom operation and the necessary steps for adding the custom instruction as a DAG operation, is as shown below.
+The aim is to accelerate the algorithm by implementing some functionality/functionalities as 
+custom instruction/instructions. In this tutorial, \textit{crc\_xor\_shift} is implemented as a 
+custom operation and the necessary steps for adding the custom instruction as a DAG operation, 
+is as shown below.
 
 \paragraph{Using Operation Set Editor (OSEd) to add the operation data.}
 
@@ -4268,14 +4283,16 @@ file:
   cp $(openasip-config --prefix)/share/openasip/data/mach/rv32im.adf coprogen.adf
 \end{verbatim}
 
-Now open coprogen.adf with ProDe to add the new custom operation to your architecture definition file as a custom instruction within a function unit.
+Now open coprogen.adf with ProDe to add the new custom operation to your architecture definition 
+file as a custom instruction within a function unit.
 
 \shellcmd{prode coprogen.adf}
 
 \begin{enumerate}
     
   \item%
-    Right click on the raster (alternatively, go to edit from the menu) select \textbf{Add}, from the drop down menu.
+    Right click on the raster (alternatively, go to edit from the menu) select \textbf{Add}, from 
+    the drop down menu.
   \item%
     Select \textbf{Socket...} from the secondary drop down menu.
     \item%
@@ -4283,15 +4300,19 @@ Now open coprogen.adf with ProDe to add the new custom operation to your archite
     \item%
     Type the name as \textit{fuin1} and select the \textit{Direction} as input and click \emph{OK}.
     \item%
-    Repeat 1-3 steps twice and create one more input socket and an output socket by choosing the direction as in step 4. There have to be two input sockets and an output socket at the end. The names can be given appropriately.
+    Repeat 1-3 steps twice and create one more input socket and an output socket by choosing the 
+    direction as in step 4. There have to be two input sockets and an output socket at the end. The 
+    names can be given appropriately.
   \item%
-    Right click on the raster (alternatively, go to edit from the menu) select \textbf{Add}, from the drop down menu.
+    Right click on the raster (alternatively, go to edit from the menu) select \textbf{Add}, from the 
+    drop down menu.
   \item%
     Select \textbf{Function Unit...} from the secondary drop down menu.
   \item%
     Type the Name as \textit{custom}
   \item%
-    Add three ports: two input and one output by clicking \textit{add} three times in the Ports section. Select the sockets created in step 1-5 appropriately.
+    Add three ports: two input and one output by clicking \textit{add} three times in the Ports section. 
+    Select the sockets created in step 1-5 appropriately.
   \item%
     Click \emph{add from Opset} in FU dialog box.
   \item%
@@ -4308,7 +4329,8 @@ Now open coprogen.adf with ProDe to add the new custom operation to your archite
     Press \emph{OK} on the FU dialog.
 \end{enumerate}
 
-Now you have successfully added the operation to the microarchitecture. We need to also add it to a RISC-V instruction format.
+Now you have successfully added the operation to the microarchitecture. We need to also add it to a 
+RISC-V instruction format.
 
 \begin{enumerate}
   \item%
@@ -4332,12 +4354,15 @@ Now you have successfully added the operation to the microarchitecture. We need 
     Save the ADF by pressing Ctrl-S or by clicking the save icon and close ProDe.
 \end{enumerate}
 
-Now the custom instruction has been succefully added to the architecture file. In the next subsection coprocessor generation and simulation for each of the interfaces are eloborated seperately.
+Now the custom instruction has been succefully added to the architecture file. In the next subsection 
+coprocessor generation and simulation for each of the interfaces are eloborated seperately.
 
 \subsection{CV-X interface}
 \label{ssec:cvxinterface}
 
-For the CV-X interface, the CORE-V CVA6 is used as the compatible RISC-V host core. To continue with the tutorial, cloned repository of the CVA6 as well as the tools mandatory for simulating CVA6, should have to be present. The necessary files and the quick setup guide for CVA6, can be found on the link:
+For the CV-X interface, the CORE-V CVA6 is used as the compatible RISC-V host core. To continue with 
+the tutorial, cloned repository of the CVA6 as well as the tools mandatory for simulating CVA6, should 
+have to be present. The necessary files and the quick setup guide for CVA6, can be found on the link:
 \url{https://github.com/openhwgroup/cva6} 
 (Steps 1 to 7 in the quick setup must be followed). (This work has been tested with CVA6 V5.3.0)
 
@@ -4347,15 +4372,19 @@ Following command generates the hardware description files for the coprocessor w
 
 Above command produces the CV-X-IF compatible coprocessor RTL files in the path \file{out\_cvx/systemverilog}
 
-Next, the generated hardware files need to be integrated with the CVA6 host core. For that, modifications are needed for two files in the CVA6,
+Next, the generated hardware files need to be integrated with the CVA6 host core. For that, modifications 
+are needed for two files in the CVA6,
 
 \begin{enumerate}
   \item%
-    Directory paths mentioned under \textit{//CVXIF} in the file \file{cva6/core/Flist.cva6} replaced with the directory paths of the generated RTL files.
+    Directory paths mentioned under \textit{//CVXIF} in the file \file{cva6/core/Flist.cva6} replaced with 
+    the directory paths of the generated RTL files.
   \item%
-    The name of the \textit{cvxif\_example\_coprocessor} in the file \file{cva6/corev\_apu/src/ariane.sv} have to be replaced with the given name to the coprocessor.
+    The name of the \textit{cvxif\_example\_coprocessor} in the file \file{cva6/corev\_apu/src/ariane.sv} 
+    have to be replaced with the given name to the coprocessor.
     \item%
-    As the \textit{oacc-riscv} compiler can generate binaries targetting the custom operations, \textit{oacc-riscv} needs to be configured into the compilation function in the file \file{cva6/verif/sim/cva6.py}
+    As the \textit{oacc-riscv} compiler can generate binaries targetting the custom operations, 
+    \textit{oacc-riscv} needs to be configured into the compilation function in the file \file{cva6/verif/sim/cva6.py}
 \end{enumerate}
 
 Executing the following steps will copy the generated RTL files into the CVA6 and modify the necessary files.  
@@ -4370,26 +4399,37 @@ Executing the following steps will copy the generated RTL files into the CVA6 an
 
 \shellcmd{bash coproGen\_tour.sh}
 
-The script \file{coproGen\_tour.sh} compiles \file{crc.c} and \file{main.c} files utilizing the \textit{oacc-riscv} compiler targeting the \textit{coprogen.adf} and executes the CVA6 simulation with Verilator.
-The successful execution of the script produces a compiled assembly program named \file{’cvxif.asm} from the C code. Included custom instruction \textit{oa\_crc\_xor\_shift} can be seen on it.
-Furthermore, the C code has the precomputed result for the CRC operation and the script modifies the \file{main.c} file to check if the simulation produces the same result. RTL simulation prints a SUCCESS message if the result is correct.
+The script \file{coproGen\_tour.sh} compiles \file{crc.c} and \file{main.c} files utilizing the 
+\textit{oacc-riscv} compiler targeting the \textit{coprogen.adf} and executes the CVA6 simulation 
+with Verilator.
+The successful execution of the script produces a compiled assembly program named \file{’cvxif.asm} 
+from the C code. Included custom instruction \textit{oa\_crc\_xor\_shift} can be seen on it.
+Furthermore, the C code has the precomputed result for the CRC operation and the script modifies 
+the \file{main.c} file to check if the simulation produces the same result. RTL simulation prints a 
+SUCCESS message if the result is correct.
 
 
 \subsection{RoCC interface}
 \label{ssec:roccinterface}
 
-For the RoCC Interface, Rocket-chip in the chipyard repository, is used as the compatible RISC-V host core in this tutorial. To proceed further with the tutorial, initial repository setup has to be done according  to the following: \url{https://chipyard.readthedocs.io/en/latest/Chipyard-Basics/Initial-Repo-Setup.html}. 
+For the RoCC Interface, Rocket-chip in the chipyard repository, is used as the compatible RISC-V 
+host core in this tutorial. To proceed further with the tutorial, initial repository setup has to 
+be done according  to the following: 
+\url{https://chipyard.readthedocs.io/en/latest/Chipyard-Basics/Initial-Repo-Setup.html}. 
 (This work has been tested with chipyard version 1.13.0)
 
-Following command generates the hardware RTL files for the coprocessor that can be integrated with the RoCC interface.
+Following command generates the hardware RTL files for the coprocessor that can be integrated 
+with the RoCC interface.
 
 \shellcmd{generatecoprocessor -o out\_rocc -c rocc coprogen.adf}
 
 Above command produces files related to the coprocessor in the folder \file{out\_rocc/systemverilog}
 
-Next, the generated RTL files have to be integrated with the Rocket-chip and necessary configurations have to be done.
+Next, the generated RTL files have to be integrated with the Rocket-chip and necessary configurations 
+have to be done.
 
-Executing following commands will copy the generated RTL files and do the appropriate modifications to the chipyard configurations.
+Executing following commands will copy the generated RTL files and do the appropriate modifications 
+to the chipyard configurations.
 
 \shellcmd{export ROCC\_PATH=\{<CHIPYARD LOCAL REPOSITORY PATH>\}}
 
@@ -4401,8 +4441,11 @@ Executing following commands will copy the generated RTL files and do the approp
 
 \shellcmd{bash coproGen\_tour.sh}
 
-The successful execution of the script produces a compiled assembly program named \file{rocc.asm} from the C code. Included custom instruction \textit{oa\_crc\_xor\_shift} can be seen on it.
-Furthermore, the C code has the precomputed result for the CRC operation and the script modifies the \file{main.c} file to check if the simulation produces the same result. RTL simulation prints a PASSED message if the result is correct.  
+The successful execution of the script produces a compiled assembly program named \file{rocc.asm} 
+from the C code. Included custom instruction \textit{oa\_crc\_xor\_shift} can be seen on it.
+Furthermore, the C code has the precomputed result for the CRC operation and the script modifies 
+the \file{main.c} file to check if the simulation produces the same result. RTL simulation prints a 
+PASSED message if the result is correct.  
 
 \chapter{PROCESSOR DESIGN TOOLS}
 \label{chapter:procgen}
@@ -6230,22 +6273,34 @@ toplevel entity will be named 'almaif\_tta'. Command is
 
 \section{Coprocessor Generator}
 \label{sec:gencopro}
-Coprocessor Generator is a command line tool for producing synthesizable hardware description of a coprocessor implemented as a special function unit. The coprocessor contains custom RISC-V operations specified by an architecture definition file, is incorporated with a standard interface that can be seamlessly integrated with compatible host cores.
+Coprocessor Generator is a command line tool for producing synthesizable hardware 
+description of a coprocessor implemented as a special function unit (SFU). SFUs are 
+implemented utilizing FUGen which contain custom RISC-V operations specified by 
+an architecture definition file. They are incorporated with standard interfaces 
+that can be seamlessly integrated with compatible host cores.
 
 \textbf{Input}: HDB, ADF
 
 \textbf{Output}: System Verilog implementation of the coprocessor
 
-The coprocessor generator is invoked with the following syntax:
+Hardware generator is invoked with the following syntax:
 
 \textit{generatecoprocessor <options> architecture}
 
-The argument \textit{architecture} is the architecture definition file that contains the custom function unit to be implemented. The architecture definition file could be based on \file{rv32im.adf} (RISC-V starting point architecure, Subsection~\ref{subsec:startarc}) or an architecture definition file contains only the function unit which should be implemented as a coprocessor.
+The argument \textit{architecture} is the architecture definition file that 
+contains the custom function unit to be implemented. The architecture 
+definition file could be based on \file{rv32im.adf} (RISC-V starting point 
+architecure, Subsection~\ref{subsec:startarc}) or an architecture definition 
+file contains only the function unit which should be implemented.
 
-Currently, Generate coprocessor is capable of producing coprocessor hardware descriptions for two commonly used generalized coprocessor integration interfaces. Option -c accepts keyword 'cvx' for Core-V eXtension interface (CV-X-IF) and 'rocc' for RoCC interface.
-Funtion units in the coprocessor can have operations with various latencies including complex DAG operations.
+Currently, the tool is capable of producing hardware descriptions for 
+two commonly used generalized coprocessor integration interfaces. Option -c 
+accepts keyword 'cvx' for Core-V eXtension interface (CV-X-IF) and 
+'rocc' for RoCC interface. Funtion units in the coprocessor can have operations with various 
+latencies including complex DAG operations.
 
-The generated coprocessors can be integrated with host RISC-V cores that support the relevant integration interface.
+The generated coprocessors can be integrated with host RISC-V cores 
+that support the relevant integration interface.
 
 
 
