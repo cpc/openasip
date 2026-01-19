@@ -634,11 +634,20 @@ LLVMTCEIRBuilder::buildTCECFG(llvm::MachineFunction& mf) {
 
                 // Validate loop pattern (one fall-through and one jump back).
                 auto loopBody = *mbb.succ_begin();
+#if LLVM_MAJOR_VERSION < 21
                 auto it = find(
                     loopBody->succ_begin(), loopBody->succ_end(), loopBody);
-                assert((loopBody->succ_size() == 2 &&
+                assert(
+                    (loopBody->succ_size() == 2 &&
                      it != loopBody->succ_end()) &&
                     "HWLoop body should have one loop-back and exit edge");
+#else
+                auto it = find(loopBody->successors(), loopBody);
+                assert(
+                    (loopBody->succ_size() == 2 &&
+                     it != loopBody->succ_end()) &&
+                    "HWLoop body should have one loop-back and exit edge");
+#endif
 
                 hwloopMBBs.insert(*mbb.succ_begin());
                 continue;

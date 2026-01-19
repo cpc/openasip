@@ -27,7 +27,7 @@
  * Implementation of TestFileWriter class.
  *
  * Created on: 12.3.2015
- * @author: Henry Linjam‰ki 2015 (henry.linjamaki-no.spam-tut.fi)
+ * @author: Henry Linjam√§ki 2015 (henry.linjamaki-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -217,7 +217,8 @@ TestFileWriter::makeTPEF() {
 void 
 TestFileWriter::makeTestRunnerScript(const Path altDirectory) {
 
-    Path src = Path(Environment::dataDirPath("TeGe"))/"testrunner.py";
+    Path src = Path(Environment::dataDirPath("TeGe"));
+    src /= std::string("testrunner.py");
     Path dst;
     if (altDirectory.empty()) {
         dst = outputDirectory_;

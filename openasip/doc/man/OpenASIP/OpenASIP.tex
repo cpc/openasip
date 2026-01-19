@@ -22,7 +22,7 @@
 \documentclass[a4paper,twoside]{tceusermanual}
 \usepackage{pslatex,verbatim}
 \usepackage{mathtools}
-\usepackage[dvipdfm]{hyperref}
+\usepackage{hyperref}
 \usepackage[font=footnotesize]{caption}
 \usepackage[font=footnotesize]{subfig}
 \usepackage{listings}
@@ -3922,7 +3922,7 @@ Open \file{crc.c} line 224.
 Usage of OpenASIP RISC-V custom operation macros/intrinsics is as follows:
 
 \begin{verbatim}
- _OA_RV_<opName>(input1, ... , inputN, output1, ... , outputN);
+ _OA_<opName>(input1, ... , inputN, output1, ... , outputN);
 \end{verbatim}
 
 where <opName> is the name of the operation in OSAL. Number of input and
@@ -3933,13 +3933,13 @@ In our case we need to write a single word into the CRC\_XOR\_SHIFT and read the
 result from it.
 
 \begin{verbatim}
-  _OA_RV_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
+  _OA_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
 \end{verbatim}
 
 After you add the macro, the loop body should look like this:
 \begin{verbatim}
   data = REFLECT_DATA(message[byte]) ^ (remainder >> (WIDTH - 8));
-  _OA_RV_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
+  _OA_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
 \end{verbatim}
 
 Now regenerate the processor the same way as previously. Also compile the
@@ -4104,9 +4104,9 @@ look like this:
 
 \begin{verbatim}
   input = message[byte];
-  _OA_RV_REFLECT8(input, output);
+  _OA_REFLECT8(input, output);
   data = (unsigned char) output ^ (remainder >> (WIDTH - 8));
-  _OA_RV_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
+  _OA_CRC_XOR_SHIFT(remainder, crcTable[data], remainder);
 \end{verbatim}
 
    
@@ -4115,7 +4115,7 @@ REFLECT\_REMAINDER macro where nBits is defined as WIDTH and data is
 remainder. Simply use \_OA\_RV\_REFLECT32 macro before return statement and
 replace the original macro with the variable output:
 \begin{verbatim}
-  _OA_RV_REFLECT32(remainder, output);
+  _OA_REFLECT32(remainder, output);
   return (output ^ FINAL_XOR_VALUE);
 \end{verbatim}
 
@@ -4136,6 +4136,66 @@ Now, compile the program and images as before and simulate the design in RTL
 simulation. This time, you should see a more significant drop in cycle counts
 but same information should still be printed to stdout meaning that the algorithm
 was executed correctly.
+
+\subsection{QEMU-OpenASIP}
+
+Using RTL simulation for verifying and debugging software running in OpenASIP 
+designs with custom RISC-V instructions may be too slow, especially with 
+larger programs. To support faster early software development and debugging, 
+OpenASIP supports integration with QEMU: The base QEMU RISC-V model is used 
+for non-customized instructions and when the QEMU encounters an instruction it 
+doesn't recognize, OpenASIP emulates it using the OSAL definitions.
+
+You can build the OpenASIP QEMU fork with:
+
+\begin{verbatim}
+$ git clone https://github.com/cpc/qemu-openasip.git
+$ cd qemu-openasip 
+$ ./configure --target-list=riscv64-softmmu,riscv32-softmmu
+$ make -j${nproc}
+\end{verbatim}
+
+And then you can run any program with custom OSAL instructions with the QEMU's
+RISC-V 'virt' machine by specifying the new machine parameter \textbf{oasip\_machine}.
+For example:
+
+\begin{verbatim}
+$ ./build/qemu-system-riscv32 \
+    -machine virt,oasip_machine=/path/to/machine.adf \
+    -bios none \
+    -nographic \
+    -no-reboot \
+    -kernel /path/to/program.elf
+\end{verbatim}
+
+The program (or "kernel") you want to execute should be a .elf file if you are targeting 
+baremetal, but for example RISC-V linux with a BusyBox works too. The process 
+for running a RISC-V program is not different from standard QEMU.
+
+You can compile the program with custom instructions using oacc-riscv compiler 
+or standard riscv-unknown-elf-gcc, though in the latter case you must declare 
+your instructions in the insn-r bit format, for example:
+
+\begin{verbatim}
+# oacc-riscv can compile custom instructions written in the standard format:
+_OA_REFLECT32(remainder, output)
+
+# with standard unknown-elf-gcc you have to write the custom instructions by hand:
+asm volatile(".insn r 0x0B, 0x01, 0x00, %0, %1, x0"
+                 : "=r"(output)
+                 : "r"(remainder));
+\end{verbatim}
+
+You can find the bit format of an instruction with riscv-tdgen tool, also included 
+in OpenASIP if you have built it with the --enable-riscv flag.
+\begin{verbatim}
+$ riscv-tdgen -a /path/to/machine.adf -o out.txt
+\end{verbatim}
+
+Provided you have installed OpenASIP and the libopenasip.so is in your LD\_LIBRARY\_PATH,
+QEMU will link to it and send all of the unknown instructions to OSAL for execution.
+The instruction behaviors should be available in the standard paths, 
+see chapter~\ref{sec:osalpaths}.
 
 \subsection{Final Words}
 
@@ -9684,17 +9744,20 @@ evaluating hundreds or even thousands of processor configurations.
 
 \textbf{Output}: ExpResDB (Section~\ref{sec:expresdb})
 
-\subsection{Explorer Application format}
+\subsection{Explorer Application Directory}
 
-Applications are given as directories that contain the application specific
-files to the Explorer. Below is a description of all the possible files inside
-the application directory.
+Software applications that drive the design space exploration are given as folders
+that contain the application specific files to the Explorer. Below is a description
+of all the possible files inside the application directory.
 
 \begin{tabular}{p{0.25\textwidth}p{0.60\textwidth}}
 \textbf{file name} &\textbf{Description} \\
 \hline
 program.bc & The program byte code (produced using ``\verb|oacc --emit-llvm|'').\\
 description.txt & The application description.\\
+functions\_of\_interest & Comma separated list of functions in the program
+that should be (exclusively) included in the execution time measurement. This
+file is optional. If not given, the whole application's execution time is used. \\
 simulate.ttasim & TTASIM simulation script piped to the TTASIM to produce
 ttasim.out file. If no such file is given the simulation is started with
 "until 0" command.\\

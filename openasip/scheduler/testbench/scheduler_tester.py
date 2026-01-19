@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2002-2010 Tampere University.
+# Copyright (c) 2002-2025 Tampere University.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 #
@@ -23,7 +23,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 #
-# @author 2006-2010 Pekka Jääskeläinen
+# @author 2006-2010,2025 Pekka Jääskeläinen
 #
 
 import getopt, sys, os, glob, builtins, subprocess, time, signal, csv, tempfile, math
@@ -1238,16 +1238,16 @@ class Tester:
         for i in range(0, len(moreStats)*len(self.archs)):
             cols += 'l|'
 
-        sys.stdout.write('\\begin{tabular}{|l|%s} \\hline\n' % cols)
+        sys.stdout.write(r'\\begin{tabular}{|l|%s} \hline\n' % cols)
         sys.stdout.write(''.ljust(firstColumnWidth))
         sys.stdout.write(' & ')
         archsPrinted = 0
         for arch in self.archs:
             archName = os.path.basename(arch)[0:-4]
             if len(moreStats) > 1:
-                sys.stdout.write('\\multicolumn{%d}{l}{\\textbf{%s}}' % (len(moreStats), archName))
+                sys.stdout.write(r'\\multicolumn{%d}{l}{\\textbf{%s}}' % (len(moreStats), archName))
             else:
-                sys.stdout.write('\\textbf{%s}' % archName)
+                sys.stdout.write(r'\\textbf{%s}' % archName)
             archsPrinted += 1
             if archsPrinted < len(self.archs):
                 sys.stdout.write(' & ')
@@ -1272,7 +1272,7 @@ class Tester:
                 if archsPrinted < len(self.archs):
                     sys.stdout.write(' &')
 
-        sys.stdout.write('\\\\ \\hline\n')
+        sys.stdout.write(r'\\\\ \hline\n')
 
     def printLatexRow(self, testCase, firstColumnWidth=30):
         """

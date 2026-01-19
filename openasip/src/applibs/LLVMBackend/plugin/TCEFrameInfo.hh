@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2010 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -57,20 +57,20 @@ namespace llvm {
 //
 
 
-    class TCEFrameLowering : public TargetFrameLowering {
-    public:
+class TCEFrameLowering : public TargetFrameLowering {
+public:
 
-    /** !! Important !! *************
-     * If the last boolean parameter of the constructor is set to false, 
-     * stack realignment is not allowed. This means, that every stack object
-     * having a bigger alignment than the stack's own alignment, will be 
-     * reduced to have the stack's alignment.
-     * 
-     * For example, if stack realignment parameter is set to false, and 
-     * stack has alignment of 4, and v4i32 vector has alignment of 16 
-     * (bytes) -> vector's alignment in stack will be demoted to 4.
-     */
-        TCEFrameLowering(
+  /** !! Important !! *************
+   * If the last boolean parameter of the constructor is set to false,
+   * stack realignment is not allowed. This means, that every stack object
+   * having a bigger alignment than the stack's own alignment, will be
+   * reduced to have the stack's alignment.
+   *
+   * For example, if stack realignment parameter is set to false, and
+   * stack has alignment of 4, and v4i32 vector has alignment of 16
+   * (bytes) -> vector's alignment in stack will be demoted to 4.
+   */
+    TCEFrameLowering(
             TCERegisterInfo* tri,
             const TCEInstrInfo* tii,
             int stackAlignment) :
@@ -89,16 +89,20 @@ namespace llvm {
             MachineBasicBlock &MBB,
             MachineBasicBlock::iterator I) const override;
 
-    void emitPrologue(MachineFunction &mf, MachineBasicBlock &MBB) const override;
-        void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const override;
-        bool hasFP(const MachineFunction &MF) const override;
-        int stackAlignment() const { return stackAlignment_; }
-        bool containsCall(const MachineFunction& mf) const;
-    private:
-        int stackAlignment_;
-        const TCERegisterInfo* tri_;
-        const TCEInstrInfo& tii_;
-    };
+  void emitPrologue(MachineFunction &mf, MachineBasicBlock &MBB) const override;
+  void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const override;
+#if LLVM_MAJOR_VERSION < 21
+  bool hasFP(const MachineFunction &MF) const override;
+#else
+  bool hasFPImpl(const MachineFunction &MF) const override;
+#endif
+  int stackAlignment() const { return stackAlignment_; }
+  bool containsCall(const MachineFunction& mf) const;
+private:
+  int stackAlignment_;
+  const TCERegisterInfo* tri_;
+  const TCEInstrInfo& tii_;
+};
 } // /namespace
 
 #endif

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2012 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -25,7 +25,7 @@
  * TCE custom op macro header generator for LLVM TCE backend.
  *
  * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2009 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2007-2012
  *
  * @note rating: red
  */
@@ -34,15 +34,16 @@
 #include <fstream>
 #include <set>
 #include <assert.h>
-
+#include <algorithm>
 #include "OperationPool.hh"
 #include "Operation.hh"
 #include "Conversion.hh"
 #include "OperationIndex.hh"
 #include "Operand.hh"
 #include "Application.hh"
+#include "TCEString.hh"
 
-enum mode { NORMAL, FU_ADDRESSABLE, ADDRESSPACE, RISCV };
+enum mode {NORMAL, FU_ADDRESSABLE, ADDRESSPACE};
 /**
  * Returns a C type string for the given operand type.
  */
@@ -77,62 +78,11 @@ operandTypeCString(const Operand& operand) {
     return "unsigned";
 }
 
-/**
- * Produces the _TCE_OPNAME or _TCEFU_OPNAME macro that can be written to the
- * tceops.h header file from the given operation.
- */
 void
-writeCustomOpMacro(
-    std::ostream& os, std::string& opName, const Operation& op,
-    mode macroMode, bool legacy) {
-
-    if (op.numberOfInputs() + op.numberOfOutputs() == 0)
-        return;
-
-    if (legacy) {
-        os << "#define _TCE";
-    } else {
-        os << "#define _OA";
-    }
-
-    const std::string outputOperandName =
-        legacy ? "__tce_op_output_" : "__oa_op_output_";
-
-    switch (macroMode) {
-        case RISCV:
-            os << "_RV_" << opName << "(";
-            break;
-        case FU_ADDRESSABLE:
-            os << "FU_" << opName << "(FU, ";
-            break;
-        case ADDRESSPACE:
-            os << "AS_" << opName << "(AS, ";
-            break;
-        default:
-            os << "_" << opName << "(";
-    }
-
-    int seenInputs = 0;
-    int seenOutputs = 0;
-    for (int i = 1; 
-         i < (op.numberOfInputs() + op.numberOfOutputs() + 1);
-         i++) {
-
-        const Operand& operand = op.operand(i);
-        if (i > 1)
-            os << ", ";
-        if (operand.isInput()) {
-            seenInputs++;
-            os << "i" << seenInputs;
-        } else {
-            seenOutputs++;
-            os << "o" << seenOutputs;
-        }
-    }
-
-    os << ") do { ";
-
-    /* Generate temporary variables to ensure casting to
+writeASM (std::ostream& os, std::string& opName, const Operation& op, 
+          mode macroMode) {
+    
+    /* Generate the temporary variables to ensure casting to
      a correct value from the inline assembly statement.
 
      Without this, LLVM inline assembly used i8 for the
@@ -161,51 +111,42 @@ writeCustomOpMacro(
 
     for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
         const Operand& operand = op.output(out - 1);
-        std::string operandTypeString = operandTypeCString(operand);
+        TCEString operandTypeString = operand.CTypeString();
         if (operandTypeString != "" && !operand.isVector()) {
-            os << operandTypeCString(operand) << " " << outputOperandName
-               << out << " = (" << operandTypeCString(operand) << ")0; ";
+          os << operand.CTypeString() << " __tce_op_output_" << out
+               << " = (" << operand.CTypeString() << ")0; ";
         }
     }
 
+    /*
+      In principle only operations that *modify* state data should
+      be marked volatile. However, we are only able to control single
+      operation invokations, therefore we have to also mark operations
+      that only read state also in order to prevent them to be moved
+      above operations modifying the same state, etc.
+    */
     std::string volatileKeyword = "";
-    if (op.writesMemory() || op.hasSideEffects() ||
-            op.affectsCount() > 0 || op.affectedByCount() > 0) {
+    if (op.hasSideEffects() || op.writesMemory() || op.readsMemory() ||
+        op.canTrap() || op.isClocked() || op.affectsCount() > 0 ||
+        op.affectedByCount() > 0 || op.isControlFlowOperation()) {
         volatileKeyword = "volatile ";
     }
 
     os << "asm " << volatileKeyword << "(";
 
     switch (macroMode) {
-    case RISCV: {
-        //
-        os << "\"OA_" << opName << " ";
-        int iterations = 0;
-        for (iterations = 0; iterations < op.numberOfInputs();
-                iterations++) {
-            os << "%" << std::to_string(iterations);
-            if (iterations != op.numberOfInputs() - 1) {
-                os << ", ";
-            }
-        }
-        for (int i = 0; i < op.numberOfOutputs(); i++) {
-            os << ", %" << std::to_string(iterations + i);
-        }
-    } break;
     case FU_ADDRESSABLE:
-        os << "FU\".";
-        break;
+      os << "FU\".";
+      break;
     case ADDRESSPACE:
-        os << "\"_AS.\" AS\".";
-        break;
+      os << "\"_AS.\" AS\".";
+      break;
     default:
-        os << "\"";
-        break;
+      os << "\"";
+      break;
     }
 
-    if (macroMode != RISCV) {
-        os << opName;
-    }
+    os << opName;
     os << "\":";
 
     for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
@@ -213,8 +154,8 @@ writeCustomOpMacro(
 
         if (out > 1)
             os << ", ";
-        if (operandTypeCString(operand) != "" && !operand.isVector()) {
-            os << "\"=r\"( " << outputOperandName << out << ")";
+        if (operand.CTypeString() != "" && !operand.isVector()) {
+            os << "\"=r\"(" << " __tce_op_output_" << out << ")";
         } else {
             os << "\"=r\"(o" << out << ")";
         }
@@ -227,15 +168,8 @@ writeCustomOpMacro(
         if (in > 1)
             os << ", ";
         // Only register inputs for RISC-V
-        if (macroMode == RISCV) {
-            if (operandTypeCString(operand) != "") {
-                os << "\"r\"((" << operandTypeCString(operand) << ")(i" << in
-                << "))";
-            } else {
-                os << "\"r\"(i" << in << ")";
-            }
-        } else if (operandTypeCString(operand) != "" && !operand.isVector()) {
-            os << "\"ir\"((" << operandTypeCString(operand)
+	if (operand.CTypeString() != "" && !operand.isVector()) {
+            os << "\"ir\"((" << operand.CTypeString()
                << ")(i" << in << "))";
         } else {
             if (operand.isVector()) {
@@ -247,16 +181,144 @@ writeCustomOpMacro(
     }
 
     os << "); ";
+}
+
+/**
+ * Produces the _TCE_OPNAME or _TCEFU_OPNAME macro that can be written to the
+ * tceops.h header file from the given operation.
+ */
+void
+writeCustomOpMacro(
+    std::ostream& os, std::string& opName, const Operation& op, 
+    mode macroMode, bool legacy) {
+
+    if (op.numberOfInputs() + op.numberOfOutputs() == 0)
+        return;
+
+    if (legacy) {
+        os << "#define _TCE";
+    } else {
+        os << "#define _OA";
+    }
+
+    const std::string outputOperandName = "__tce_op_output_";
+
+    switch (macroMode) {
+    case FU_ADDRESSABLE:
+	os << "FU_" << opName << "(FU, ";
+	break;
+    case ADDRESSPACE:
+	os << "AS_" << opName << "(AS, ";
+	break;
+    default:
+	os << "_" << opName << "(";
+    }
+
+    int seenInputs = 0;
+    int seenOutputs = 0;
+    for (int i = 1; 
+         i < (op.numberOfInputs() + op.numberOfOutputs() + 1);
+         i++) {
+
+        const Operand& operand = op.operand(i);
+        if (i > 1)
+            os << ", ";
+        if (operand.isInput()) {
+            seenInputs++;
+            os << "i" << seenInputs;
+        } else {
+            seenOutputs++;
+            os << "o" << seenOutputs;
+        }
+    }
+
+    os << ") do { ";
+
+    writeASM (os, opName, op, macroMode);
 
     // write the results from the temps to the output variables
     for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
         const Operand& operand = op.output(out - 1);
-        if (operandTypeCString(operand) != "" && !operand.isVector()) {
+        if (operand.CTypeString() != "" && !operand.isVector()) {
             os << "o" << out << " = " << outputOperandName << out << ";";
         }
     }
 
     os << "} while(0) " << std::endl;
+}
+
+/**
+ * Produces aesthetic function wrapper that can be written to the
+ * tceops.h header file from the given operation.
+ */
+void
+writeFunctionCallWrapper(
+    std::ostream& os, std::string& opName, const Operation& op, 
+    mode macroMode) {
+
+    // only operations with a single output, int or float types only
+    if (op.numberOfOutputs() != 1 
+        || op.output(0).isVector()
+        || op.output(0).type() == Operand::DOUBLE_WORD
+        || op.output(0).CTypeString() == "")
+        return;
+
+    for (int i = 0; i < op.numberOfInputs(); ++i) {
+        if (op.input(i).type() == Operand::DOUBLE_WORD 
+            || op.input(i).CTypeString() == "")
+            return;
+    }
+    std::string opname(opName);
+    transform(opname.begin(), opname.end(), opname.begin(), ::tolower);
+    os << "static inline " << op.output(0).CTypeString() << " _tce_" 
+       <<  opname << "(";
+    
+    for (int i = 1; 
+         i < op.numberOfInputs() + 1;
+         i++) {
+        if (i > 1)
+            os << ", ";
+        os << op.input(i - 1).CTypeString() << " i" << i;
+    }
+    os << ") { ";
+    writeASM (os, opName, op, macroMode);
+    os << " return __tce_op_output_1;}\n";
+
+}
+
+/**
+ * Produces aesthetic function call wrappers for single output operations that
+ * are written to the tceops.h
+ */
+void
+writeFunctionCallWrappers(std::ostream& os) {
+  
+    OperationPool pool;
+    OperationIndex& index = pool.index();
+    std::set<std::string> operations;
+
+    for (int m = 0; m < index.moduleCount(); m++) {
+        OperationModule& mod = index.module(m);
+        try {
+            for (int o = 0; o < index.operationCount(mod); o++) {
+
+                std::string opName = index.operationName(o, mod);
+                const Operation& op = pool.operation(opName.c_str());
+                if (operations.count(opName) > 0) {
+                    continue;
+                }
+                operations.insert(opName);
+
+                writeFunctionCallWrapper(os, opName, op, NORMAL);
+            }
+        } catch (const Exception& e) {
+            Application::errorStream()
+                << "ERROR: " << e.errorMessage() << std::endl;
+            continue;
+        }
+    }
+    os << "static inline unsigned char _tce_wavg3(unsigned char i1, unsigned char i2, unsigned char i3) { unsigned char __tce_op_output_1 = (unsigned char)0; asm (\"WAVG3\":\"=r\"( __tce_op_output_1):\"ir\"((unsigned char)(i1)), \"ir\"((unsigned char)(i2)), \"ir\"((unsigned char)(i3)));  return __tce_op_output_1;}\n";
+    os << "static inline float _tce_select(float i1, float i2, unsigned int i3) {float __tce_op_output_1 = (float)0; asm (\"SELECT\":\"=r\"(__tce_op_output_1):\"ir\"(i1), \"ir\"(i2), \"ir\"((unsigned int)(i3))); return __tce_op_output_1;}\n";
 }
 
 /**
@@ -285,8 +347,6 @@ writeCustomOpMacros(std::ostream& os) {
                 // Write both legacy and new macros
                 writeCustomOpMacro(os, opName, op, NORMAL, true);
                 writeCustomOpMacro(os, opName, op, NORMAL, false);
-                writeCustomOpMacro(os, opName, op, RISCV, true);
-                writeCustomOpMacro(os, opName, op, RISCV, false);
                 writeCustomOpMacro(os, opName, op, FU_ADDRESSABLE, true);
                 writeCustomOpMacro(os, opName, op, FU_ADDRESSABLE, false);
                 if (op.usesMemory()) {
@@ -300,6 +360,15 @@ writeCustomOpMacros(std::ostream& os) {
             continue;
         }
     }
+}
+
+void
+writeParallelRegionMacros(std::ostream& os) {
+    os << "#define _TCEPREGION_START(ID)                   \\" << std::endl
+       << "asm volatile (\".pregion_start.\" # ID) " << std::endl
+       << std::endl
+       << "#define _TCEPREGION_END()                     \\" << std::endl
+       << "asm volatile (\".pregion_end\")" << std::endl;
 }
 
 /**
@@ -317,20 +386,38 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
+
+    std::ostream* outStream = NULL;
+    std::ofstream* customFile = NULL;
+
     if (argc == 1) {
-        writeCustomOpMacros(std::cout);
+        outStream = &std::cout;
     } else if (argc == 3) {
-        std::ofstream customops;
-        customops.open(argv[2]);
-        if (!customops.good()) {
+        customFile = new std::ofstream();
+        customFile->open(argv[2]);
+        if (!customFile->good()) {
             std::cerr << "Error opening '" << argv[2]
                       << "' for writing." << std::endl;
             return EXIT_FAILURE;
         }       
-        writeCustomOpMacros(customops);
-        customops.close();
-    } else   {
+        outStream = customFile;
+    } else  {
         assert(false);
+    }
+
+    *outStream << "#ifndef TCE_TCEOPS_H" << std::endl
+              << "#define TCE_TCEOPS_H" << std::endl;
+
+    writeCustomOpMacros(*outStream);
+    //for single output operations generate user friendly wrappers
+    writeFunctionCallWrappers(*outStream);
+    writeParallelRegionMacros(*outStream);
+
+    *outStream << std::endl << "#endif" << std::endl;
+
+    if (customFile != NULL) {
+        customFile->close();
+        delete customFile;
     }
 
     return EXIT_SUCCESS;   

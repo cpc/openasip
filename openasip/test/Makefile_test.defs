@@ -125,13 +125,13 @@ all: ${GCOV_TEST} ${INITIALIZATION} ${TESTS} ${GCOV_TEST2} ${FINALIZATION}
 	${CXX} $@.o ${TCE_LIB_FLAGS} ${TCE_LIBS} ${LDFLAGS} ${EXTRA_LINKER_FLAGS} \
         ${CPPFLAGS} ${LIB_FLAGS} ${CXXFLAGS} -o $@
 	strip $@
-
 # Strip the runner from (debug) symbols as they binaries are quite big and usually 
 # the runner itself is not a problem when debugging issues, but the
 # issue is in libopenasip.so.
+
 %.rt: %-runner 
 	@echo Running $(patsubst %.rt,%,$@)${VALGRIND_TEXT}:;
-	@${WATCHDOG_CMD} "${VALGRIND_BIN} ${VALGRIND_OPTS} ./$<"
+	${VALGRIND_BIN} ${VALGRIND_OPTS} TCE_DEVEL_MODE=1 ./$<
 
 # This has to be there otherwise %.hh won't get called for each *Test.hh
 dummy:

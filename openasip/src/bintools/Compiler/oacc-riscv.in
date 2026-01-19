@@ -19,7 +19,7 @@
 #
 # @author Kari Hepola 2022-2024
 #
-# A LLVM-based compiler driver for RISC-V ASIPs
+# An LLVM-based compiler driver for RISC-V ASIPs
 #
 # Usage: oacc-riscv module1.c module2.c -o module
 #
@@ -57,6 +57,14 @@ else:
         tceInstalled = False
     else:
         tceprefix = output
+
+llvmInstallPrefix = None
+(exitCode, output) = subprocess.getstatusoutput("llvmtce-config --prefix")
+if exitCode != 0:
+    print("Error: Couldn't find LLVM.")
+    sys.exit(1)
+else:
+    llvmInstallPrefix = output
 
 assert not runningInstalled or (tceInstalled and tceprefix != ""), \
         "Could not find TCE prefix. Is TCE installed in PATH?"
@@ -178,7 +186,7 @@ def getLLVMTargetPlugin():
         riscvtdgen = "riscv-tdgen"
     else:
         riscvtdgen = "@abs_top_builddir@" + "/src/bintools/Compiler/riscv-tdgen/riscv-tdgen"
-    
+
     exitCode = run_command(
         riscvtdgen + " -o " + tempDir + " -a " + options.adf + " -r " + rocc_encode,
         echoStdout=options.verbose,
@@ -214,13 +222,14 @@ def compileLLVMTargetPlugin():
     # The file name of this differs in the installation dir compated to source tree
     # The RISC-V Target doesn't actually utilize anything from here so just create an empty file
     # TODO: Make this cleaner
-    with open(tceprefix + "/include/llvm/Config/config.h", 'w'):
+    with open(llvmInstallPrefix + "/include/llvm/Config/config.h", 'w'):
         pass
-
 
     cmd = "make -j$(nproc)"
     if options.tce_build_mode:
         cmd = "make"
+
+    cmd += " LLVM_VERSION=@LLVM_VERSION@"
     exitCode = run_command(cmd, echoStdout=options.verbose,
                            echoCmd=options.verbose)
     if exitCode != 0:
@@ -239,7 +248,7 @@ def parse_options():
     
     parser.add_option("--mattr", dest="mattr",
                       help="Target architecture features (e.g., +m,+a,+c)",
-                      default="-c,+m")
+                      default="-c,-zca,-zcb,-zcd,+m")
 
     parser.add_option("--march", dest="march",
                       help="Target architecture (riscv32 or riscv64)", 
@@ -400,6 +409,8 @@ def exitWithError(status, errorMessage=None):
         print(errorMessage, sys.stderr)
     if not options.leave_tempfiles:
         rmtree(tempDir)
+    else:
+        print("Temp directory left in %s" % tempDir)
     sys.exit(status)
 
 def optimizeBytecode(inFile):
@@ -482,9 +493,13 @@ def compile_to_bitcode(input_files):
 
     # generate tceops.h
     if runningInstalled:
-        tceopgen = "tceopgen"
+        tceopgen = "tceriscvopgen"
     else:
-        tceopgen = "@abs_top_builddir@" + "/src/bintools/Compiler/tceopgen/tceopgen"
+        tceopgen = "@abs_top_builddir@" + "/src/bintools/Compiler/tceopgen/tceriscvopgen"
+
+    if options.rocc_enable:
+        options.march = "riscv64"
+        compileFlags += "-march=rv64gc -mcmodel=medany "
 
     if options.rocc_enable:
         options.march = "riscv64"
@@ -499,7 +514,7 @@ def compile_to_bitcode(input_files):
     for input_file in input_files:
         bc_file = create_temp_file(input_file.replace("/", ".") + ".bc")
         retval = \
-            run_command("clang -target %s -D__OA_RISCV__ -I %s %s -c -emit-llvm %s -o %s" % \
+            run_command("clang -march=rv32im -target %s -D__OA_RISCV__ -I %s %s -c -emit-llvm %s -o %s" % \
             (options.march, tempDir, compileFlags, input_file, bc_file), echoCmd=options.verbose)
 
         if retval != 0: cleanup_and_exit(retval)
@@ -739,7 +754,7 @@ if __name__ == "__main__":
 
     os.makedirs(targetCacheDir, exist_ok=True)
     tceOpsPath = os.path.join(tempDir, "tceops.h")
-    llvmRISCVFileDir = os.path.join(tceprefix, "riscv/LLVMRISCVTarget/RISCV")
+    llvmRISCVFileDir = os.path.join(llvmInstallPrefix, "riscv/LLVMRISCVTarget/RISCV")
     tmpTargetPluginDir = os.path.join(tempDir, "RISCV")
 
     ISEDescriptionPath = os.path.join(tempDir,"RISCVInstrInfoOpenASIP.td")

@@ -87,8 +87,7 @@ private:
         unsigned& amountOfRCustomOps, unsigned& rocc_f3) const;
 
     void addRiscvFormat(TTAMachine::OperationTriggeredFormat* format,
-    BinaryEncoding& bem, unsigned& amountOfRCustomOps,
-    unsigned& amountOfR3RCustomOps) const;
+    BinaryEncoding& bem, unsigned& amountOfRCustomOps) const;
 
     void addPortCodes(
         SocketCodeTable& table, 
@@ -135,8 +134,8 @@ private:
     const TTAMachine::Machine* machine_;
     /// A map which tells which socket code table belongs to a socket.
     SCTableMap scTableMap_;
-    // ROCC interface selector for the Coprocessor Generation
-    bool rocc_;
+    // ROCC interface selector for the Coprocessor Generation.
+    bool rocc_ = false;
 };
 
 #endif

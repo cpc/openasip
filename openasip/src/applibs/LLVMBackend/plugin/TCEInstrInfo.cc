@@ -1,7 +1,7 @@
 /*
-    Copyright (c) 2002-2009 Tampere University.
+    Copyright (c) 2002-2025 Tampere University.
 
-    This file is part of TTA-Based Codesign Environment (TCE).
+    This file is part of OpenASIP.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -261,20 +261,22 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
  * @param destReg Register where the value is copied to.
  * @param rc Class of the register to copy.
  */
-void TCEInstrInfo::copyPhysReg(
-    MachineBasicBlock& mbb,
-    MachineBasicBlock::iterator mbbi,
-    const DebugLoc& DL,
-        MCRegister destReg, MCRegister srcReg,
-    bool killSrc) const
+#if LLVM_MAJOR_VERSION >= 21
+void
+TCEInstrInfo::copyPhysReg(
+  MachineBasicBlock& mbb, MachineBasicBlock::iterator mbbi, const DebugLoc& DL,
+  Register destReg, Register srcReg, bool killSrc, bool renamableDest,
+  bool renamableSrc) const
+#else
+void
+TCEInstrInfo::copyPhysReg(
+  MachineBasicBlock& mbb, MachineBasicBlock::iterator mbbi, const DebugLoc& DL,
+  MCRegister destReg, MCRegister srcReg, bool killSrc) const
+#endif
 {
     DebugLoc dl;
     if (mbbi != mbb.end()) dl = mbbi->getDebugLoc();
-/*
-    BuildMI(mbb, mbbi, dl, 
-            get(plugin_->getRegCopy(destReg, srcReg)), destReg).
-        .addReg(SrcReg, getKillRegState(isKillSrc));
-*/
+
     if (copyPhysVectorReg(mbb, mbbi, dl, destReg, srcReg, killSrc)) {
         return;
     }
@@ -542,11 +544,7 @@ public:
     // true. If the trip count is statically known to be not greater than TC,
     // return false. Otherwise return nullopt and fill out Cond with the test
     // condition.
-    #ifdef LLVM_OLDER_THAN_16
-    Optional<bool>
-    #else
     std::optional<bool>
-    #endif
     createTripCountGreaterCondition(
         int TC, MachineBasicBlock &MBB,
         SmallVectorImpl<MachineOperand> &Cond) override {
@@ -556,8 +554,9 @@ public:
     void setPreheader(MachineBasicBlock *NewPreheader) override{};
 
     void adjustTripCount(int TripCountAdjust) override{};
-
-    void disposed() override{};
+#if LLVM_MAJOR_VERSION < 21
+    void disposed() override {};
+#endif
 };
 }  // namespace
 
@@ -566,7 +565,7 @@ TCEInstrInfo::analyzeLoopForPipelining(MachineBasicBlock *LoopBB) const {
     return std::make_unique<TCEPipelinerLoopInfo>();
 }
 
-bool 
+bool
 TCEInstrInfo::isPredicated(const MachineInstr& mi_ref) const {
     const MachineInstr* mi = &mi_ref;
     // TODO: should be conditional move here..

@@ -578,10 +578,14 @@ createTCEMCSubtargetInfo(const Triple& TT, StringRef CPU, StringRef FS) {
     ArrayRef<SubtargetFeatureKV> PF;
     ArrayRef<SubtargetSubTypeKV> PD;
 
+#if LLVM_MAJOR_VERSION < 21
     MCSubtargetInfo* X = new MCSubtargetInfo(
         TT, CPU, /*TuneCPU*/ "", FS, PF, PD, WPR, WL, RA, nullptr, nullptr,
         nullptr);
-
+#else
+    MCSubtargetInfo* X = new MCSubtargetInfo(
+        TT, CPU, "", FS, {}, PF, PD, WPR, WL, RA, nullptr, nullptr, nullptr);
+#endif
     return X;
 }
 
@@ -711,9 +715,13 @@ LLVMBackend::compile(
     
     llvm::raw_fd_ostream sos(STDOUT_FILENO, false);
 
+#if LLVM_MAJOR_VERSION < 21
     targetMachine->addPassesToEmitFile(
         Passes, sos, nullptr, CGFT_AssemblyFile);
-
+#else
+    targetMachine->addPassesToEmitFile(
+        Passes, sos, nullptr, CodeGenFileType::AssemblyFile);
+#endif
 
     // Add alias analysis pass that is distributed with pocl library.
     if (options_->isWorkItemAAFileDefined()) {
@@ -800,7 +808,7 @@ LLVMBackend::compile(
     // When LLVMTCEIRBuilder is called from TCEScheduler it will require
     // AA parameter.
     AliasAnalysis* AA = NULL;
-    LLVMTCEIRBuilder* b = 
+    LLVMTCEIRBuilder* b =
         new LLVMTCEIRBuilder(*targetMachine, mach_, *ipData, AA);
     b->setInnerLoopFinder(loopFinder);
     builder = b;

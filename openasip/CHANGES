@@ -3,11 +3,16 @@
 
 Main changes and features
 -------------------------
+- LLVM 21 support (dropped support for LLVM 17).
+- Out of the box support for Ubuntu 24.04 LTS.
 - RISC-V compiler now generates new LLVM Targets from RISC-V ADFs
   and loads them dynamically, which adds support for automatic
   instruction selection for RISC-V custom instructions.
 
-
+Deprecation notice
+------------------
+- Big endian TTA support is now deprecated and will be removed in
+  a future release.
 
 2.1     December 2023
 =====================

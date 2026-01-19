@@ -11,15 +11,15 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04 
+    runs-on: ubuntu-24.04
 
     env:
-      LLVM_VERSION: 17
+      LLVM_VERSION: 21
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Set environment variables
         run: |
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/local/lib" >> $GITHUB_ENV
@@ -31,18 +31,18 @@ jobs:
           echo "TMPDIR=$TMPDIR" >> $GITHUB_ENV
           mkdir -p $TMPDIR
 
-      - name: Print Envs
+      - name: Print envs
         run: |
           echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
           echo "LDFLAGS=$LDFLAGS"
           echo "PATH=$PATH"
           echo "TMPDIR=$TMPDIR"
- 
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libwxgtk3.0-gtk3-dev \
+            libwxgtk3.2-dev \
             libboost-all-dev \
             tcl8.6-dev \
             libedit-dev \
@@ -61,11 +61,15 @@ jobs:
             cmake \
             graphviz \
             bc \
-            ghdl \
-            iverilog \
-            verilator 
+            ghdl iverilog verilator \
+            python3 ninja-build pkg-config libglib2.0-dev \
+            libpixman-1-dev libslirp-dev flex bison file device-tree-compiler \
+            zlib1g-dev libfdt-dev python3-tomli \
+            gcc-riscv64-unknown-elf
 
-      - name:
+          sudo apt-get purge -y 'llvm-*' 'clang-*' 'libllvm-*' 'lld-*'
+
+      - name: Create workspace directory
         run: |
           mkdir -p ${{ github.workspace }}/local
 
@@ -84,7 +88,7 @@ jobs:
             cd openasip
             ./tools/scripts/install_llvm_${{ env.LLVM_VERSION }}.sh ${{ github.workspace }}/local
           else
-            echo "Cache hit! LLVM is already installed, skipping installation."
+            echo "Cache hit! LLVM ${{ env.LLVM_VERSION }} is already installed, skipping installation."
           fi
 
       - name: Save LLVM cache
@@ -102,7 +106,24 @@ jobs:
           make -j$(nproc)
           make install
 
-      - name: Run tests
+      - name: Install QEMU-OpenASIP
         run: |
           cd openasip
-          ./tools/scripts/compiletest.sh -c
+          python3 ./tools/scripts/install_qemu.py $HOME/qemu-openasip
+
+      - name: Unit tests
+        run: |
+          cd openasip/test
+          make -s
+
+      - name: System tests
+        run: |
+          python3 openasip/tools/scripts/systemtest.py -os -p$(nproc)
+
+      - name: Dump error logs
+        if: failure()
+        run: |
+          if [ -f difference.txt ]; then
+             echo "### systemtest difference.txt"
+             cat difference.txt
+          fi

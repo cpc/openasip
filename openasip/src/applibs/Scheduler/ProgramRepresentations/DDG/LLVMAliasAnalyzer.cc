@@ -118,14 +118,14 @@ LLVMAliasAnalyzer::analyze(
     // In practice it is usually just one.
     MemoryAliasAnalyzer::AliasingResult result = ALIAS_UNKNOWN;
     while (begin1 != instr1->memoperands_end()) {
-        const llvm::Value* val1 = (*begin1)->getValue();        
-        uint64_t size1 = (*begin1)->getSize();
+        const llvm::Value* val1 = (*begin1)->getValue();
+        auto size1 = (*begin1)->getSize();
         llvm::MachineInstr::mmo_iterator begin2 =
             instr2->memoperands_begin();        
             
         while (begin2 != instr2->memoperands_end()) {
             const llvm::Value* val2 = (*begin2)->getValue();
-            uint64_t size2 = (*begin2)->getSize();
+            auto size2 = (*begin2)->getSize();
             if (val1 && val2) {
             
                 AliasResult res = 

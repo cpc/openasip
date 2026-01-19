@@ -106,7 +106,8 @@ ProcessorWrapperBlock::~ProcessorWrapperBlock() {}
 void
 ProcessorWrapperBlock::write(
     const Path& targetBaseDir, HDL targetLang) const {
-    BaseNetlistBlock::writeSelf(targetBaseDir / "tb", targetLang);
+    BaseNetlistBlock::writeSelf(
+        targetBaseDir / std::string("tb"), targetLang);
     BaseNetlistBlock::write(targetBaseDir, targetLang);
 }
 

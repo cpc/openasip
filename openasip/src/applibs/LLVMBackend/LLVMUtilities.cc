@@ -103,8 +103,13 @@ getInlineAsmOperands(const llvm::MachineInstr& mi) {
             i++;
             continue;
         }
+#if LLVM_MAJOR_VERSION < 21
         unsigned opdKind = InlineAsm::getKind(mo.getImm());
         unsigned numAsmOpds = InlineAsm::getNumOperandRegisters(mo.getImm());
+#else
+        InlineAsm::Flag opdKind(mo.getImm());
+        unsigned numAsmOpds = opdKind.getNumOperandRegisters();
+#endif
         unsigned flagOpdBegin = i + 1;
         unsigned flagOpdEnd = flagOpdBegin + numAsmOpds;
         std::vector<const llvm::MachineOperand*> flagOps;

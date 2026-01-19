@@ -38,37 +38,9 @@
 #include <string>
 #include <vector>
 
-#include <boost/version.hpp>
-
 #include "TCEString.hh"
 
-/*
- * Useful to know in case you need to adjust this threshold:
- *
- * Boost 1.44 is the oldest version of Boost that ships
- * boost filesystem v3. 1.49 seems to be the newest that
- * ships v2.
- *
- * Also note that value of BOOST_FILESYSTEM_VERSION
- * is currently #ifdef'd against in FileSystem.{cc,hh,icc}
- * files, to support using either of the Boost filesystem
- * APIs.
- */
-#if BOOST_VERSION < 104400
-#define BOOST_FILESYSTEM_VERSION 2
-#else
-#define BOOST_FILESYSTEM_VERSION 3
-#endif
-
-// Needs to be declared if C++11 standard is used with boost/filesystem, 
-// otherwise linker errors occur.
-#if BOOST_VERSION <= 105100
-#define BOOST_NO_SCOPED_ENUMS
-#else
-#define BOOST_NO_CXX11_SCOPED_ENUMS
-#endif
-
-#include <boost/filesystem/path.hpp>
+#include <filesystem>
 
 #include <unistd.h> // access()
 
@@ -194,18 +166,15 @@ public:
 /**
  * Class for handling paths.
  */
-class Path : public boost::filesystem::path {
+class Path : public std::filesystem::path {
 public:
     Path();
-    explicit Path(const boost::filesystem::path& path);
-    Path& operator=(const boost::filesystem::path& pathName);
+    Path(const std::filesystem::path& path);
     operator std::string() const;
     operator TCEString() const;
     const char* c_str() const;
     virtual ~Path();
 };
-
-Path operator/(const Path& path, const std::string& fileOrDir);
 
 #include "FileSystem.icc"
 

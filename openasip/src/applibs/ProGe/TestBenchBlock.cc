@@ -123,20 +123,22 @@ TestBenchBlock::write(const Path& targetBaseDir, HDL targetLang) const {
                 "debugger generation.");
         }
     }
-    FileSystem::createDirectory(targetBaseDir/"tb");
+
+    FileSystem::createDirectory(targetBaseDir / std::string("tb"));
     Path progeDataDir(Environment::dataDirPath("ProGe"));
     if (targetLang == VHDL) {
         instantiator.instantiateTemplateFile(
-            progeDataDir/"tb"/"testbench.vhdl.tmpl",
-            targetBaseDir/"tb"/"testbench.vhdl");
+            progeDataDir / std::string("tb") / std::string("testbench.vhdl.tmpl"),
+            targetBaseDir / std::string("tb") / std::string("testbench.vhdl"));
         instantiator.instantiateTemplateFile(
-            progeDataDir/"tb"/"clkgen.vhdl",
-            targetBaseDir/"tb"/"clkgen.vhdl");
+            progeDataDir / std::string("tb") / std::string("clkgen.vhdl"),
+            targetBaseDir / std::string("tb") / std::string("clkgen.vhdl"));
     } else {
         instantiator.instantiateTemplateFile(
-            progeDataDir/"tb"/"testbench.v.tmpl",
-            targetBaseDir/"tb"/"testbench.v");
-    } 
+            progeDataDir / std::string("tb") / std::string("testbench.v.tmpl"),
+            targetBaseDir / std::string("tb") / std::string("testbench.v"));
+    }
+
     proc_->write(targetBaseDir, targetLang);
 }
 

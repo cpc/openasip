@@ -346,13 +346,13 @@ FUGen::copyImplementation(
 void
 FUGen::createImplementationFiles() {
     if (options_.language == ProGe::HDL::VHDL) {
-        Path dir = Path(options_.outputDirectory) / "vhdl";
+        Path dir = Path(options_.outputDirectory) / std::string("vhdl");
         FileSystem::createDirectory(dir.string());
         Path file = dir / (fu_.name() + ".vhd");
         std::ofstream ofs(file);
         fu_.implement(ofs, Language::VHDL);
     } else if (options_.language == ProGe::HDL::Verilog) {
-        Path dir = Path(options_.outputDirectory) / "verilog";
+        Path dir = Path(options_.outputDirectory) / std::string("verilog");
         FileSystem::createDirectory(dir.string());
         Path file = dir / (fu_.name() + ".v");
         std::ofstream ofs(file);

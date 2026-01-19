@@ -96,8 +96,17 @@ This step needs root/admin privileges.
 For Ubuntus, you need to enable the universe and multiverse repositories first:
 https://help.ubuntu.com/community/Repositories/Ubuntu#Adding_Repositories_in_Ubuntu
 
-Ubuntu 20.04+ / Debian 11
--------------------------
+Ubuntu 24.04 LTS
+----------------
+
+```bash
+sudo apt-get install libwxgtk3.2-dev libboost-all-dev \
+tcl8.6-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c-dev g++ make \
+latex2html libffi-dev autoconf automake libtool subversion git cmake graphviz
+```
+
+Ubuntu 20.04, 22.04 / Debian 11
+-------------------------------
 
 ```bash
 sudo apt-get install libwxgtk3.0-gtk3-dev libboost-all-dev \
@@ -108,7 +117,8 @@ latex2html libffi-dev autoconf automake libtool subversion git cmake graphviz
 Ubuntu 18.04 LTS and older
 --------------------------
 
-Not supported anymore due to SQLite version too low (currently requires 3.25+)
+Not supported anymore due to the shipped SQLite version being too low. OpenASIP
+currently requires 3.25+.
 
 Debian 10
 ---------
@@ -156,14 +166,14 @@ You can do this easiest as follows:
 
 ```bash
 cd openasip-devel/openasip
-./tools/scripts/install_llvm_17.sh $HOME/local
+./tools/scripts/install_llvm_21.sh $HOME/local
 ```
 
 Alternatively, if you cloned the release branch:
 
 ```bash
 cd openasip-2.1/openasip
-./tools/scripts/install_llvm_17.sh $HOME/local
+./tools/scripts/install_llvm_21.sh $HOME/local
 ```
 
 
@@ -181,7 +191,7 @@ your ~/.bashrc or similar so they are taken in effect automatically whenever
 you start a new shell. Otherwise you need to remember to enter them
 before attempting to use LLVM or OpenASIP.
 
-Notice that OpenASIP and LLVM installation folder comes first in the path variable.
+Notice that OpenASIP and LLVM installation folders appear first in the path variable.
 This is to prevent OpenASIP of using system's LLVM installation. This might
 interfere with other tools in your system which rely on using system's LLVM
 installation. If this is the case, then better option is to put above lines to
@@ -195,8 +205,9 @@ source tce-env.sh
 
 RISC-V
 ------
-If you wish to build OpenASIP with support for RISC-V, you need to install the
-following prerequisites before installing OpenASIP. RISC-V GNU Toolchain
+
+If you wish to build OpenASIP with its experimental support for RISC-V, you
+need to install the RISC-V GNU Toolchain
 (https://github.com/riscv-collab/riscv-gnu-toolchain) (version 12.1.0+)
 for common bintools and elf2hex (https://github.com/sifive/elf2hex) for
 generating hex files from RISC-V ELF files.
@@ -239,13 +250,14 @@ oa-selftest -v
 ```
 
 If this finished correctly, you are all set! For learning to use OpenASIP, a good
-way is to start with the OpenASIP user manual's ([openasip/manual/OpenASIP_manual.pdf](https://github.com/cpc/openasip/blob/main/openasip/manual/OpenASIP_manual.pdf))
-tutorials, e.g., the "OpenASIP tour"
-that goes through the basic TTA customization aspects. The RISC-V customization
-features are demonstrated in the "RISC-V Tutorial".
+way is to start with the OpenASIP user manual's
+([openasip/manual/OpenASIP_manual.pdf](https://github.com/cpc/openasip/blob/main/openasip/manual/OpenASIP_manual.pdf))
+tutorials, e.g., the "OpenASIP tour" that goes through the basic TTA
+customization aspects. The RISC-V customization features are demonstrated in
+the "RISC-V Tutorial".
 
 Upgrading OpenASIP
-=============
+==================
 
 Later on, if you want to update your OpenASIP installation with the latest changes
 committed in the version control system, you can do the following steps:
@@ -267,22 +279,20 @@ Further information of library and tools prerequisite versions
 ==============================================================
 
 These are the current prerequisites for libraries and tools required to
-build OpenASIP:  
+build OpenASIP:
 
 | Host compiler 	| Supported versions 	|
 |---------------	|--------------------	|
 | GCC           	| 9.0+               	|
-| Clang         	| 16 to 17           	|
-
 
 | Library       | Supported versions 	| Library license      	|
 |------------	|--------------------	|----------------------	|
 | Xerces-C++ 	| 2.3.0+             	| Apache v2.0          	|
-| wxWidgets  	| 2.8+               	| wxWidgets            	|
-| Tcl        	| 8.0-8.4            	| BSD-style            	|
-| Boost      	| 1.48.0-1.53.0      	| very permissive      	|
+| wxWidgets  	| 3.0+               	| wxWidgets            	|
+| Tcl        	| 8.0-8.6            	| BSD-style            	|
+| Boost      	| 1.48.0-1.83.0      	| very permissive      	|
 | sqlite3    	| 3.2.0+             	| public domain        	|
-| LLVM       	| 16-17                 | LLVM Release License 	|
+| LLVM       	| 21                    | LLVM Release License 	|
 | Editline   	| 2.9                	| BSD-style            	|
 | Python     	| 3.6+               	| PSF license          	|
 

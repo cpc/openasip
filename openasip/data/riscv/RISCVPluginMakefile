@@ -7,9 +7,6 @@ LLVMTCE_INCLUDE_DIR := $(shell llvmtce-config --includedir)
 CXXFLAGS += -I$(LLVMTCE_INCLUDE_DIR) -I .
 TABLEGEN_INCLUDE = -I$(LLVMTCE_INCLUDE_DIR) -I .
 
-# Linking flags
-LDFLAGS := -shared
-
 # Tablegen executable
 TABLEGEN := llvm-tblgen
 
@@ -30,7 +27,6 @@ CPP_SRCS := \
     ./RISCVISelLowering.cpp \
     ./MCA/RISCVCustomBehaviour.cpp \
     ./RISCVGatherScatterLowering.cpp \
-    ./RISCVMacroFusion.cpp \
     ./RISCVInsertReadWriteCSR.cpp \
     ./RISCVMachineFunctionInfo.cpp \
     ./TargetInfo/RISCVTargetInfo.cpp \
@@ -54,7 +50,6 @@ CPP_SRCS := \
     ./RISCVRegisterInfo.cpp \
     ./RISCVTargetObjectFile.cpp \
     ./RISCVISelDAGToDAG.cpp \
-    ./RISCVRVVInitUndef.cpp \
     ./RISCVMoveMerger.cpp \
     ./RISCVTargetMachine.cpp \
     ./Disassembler/RISCVDisassembler.cpp \
@@ -80,6 +75,44 @@ TABLEGEN_TARGETS := \
     RISCVGenSearchableTables.inc \
     RISCVGenSubtargetInfo.inc
 
+ifneq ($(LLVM_VERSION),17)
+
+TABLEGEN_TARGETS += \
+    RISCVGenMacroFusion.inc \
+    RISCVGenSDNodeInfo.inc \
+    RISCVGenO0PreLegalizeGICombiner.inc \
+    RISCVGenPreLegalizeGICombiner.inc \
+    RISCVGenPostLegalizeGICombiner.inc \
+    RISCVGenExegesis.inc
+
+CPP_SRCS += \
+    RISCVInterleavedAccess.cpp \
+    RISCVCallingConv.cpp \
+    RISCVDeadRegisterDefinitions.cpp \
+    RISCVFoldMemOffset.cpp \
+    RISCVIndirectBranchTracking.cpp \
+    RISCVInsertWriteVXRM.cpp \
+    RISCVLandingPadSetup.cpp \
+    RISCVLateBranchOpt.cpp \
+    RISCVLoadStoreOptimizer.cpp \
+    RISCVPostRAExpandPseudoInsts.cpp \
+    RISCVSelectionDAGInfo.cpp \
+    RISCVVectorMaskDAGMutation.cpp \
+    RISCVVectorPeephole.cpp \
+    RISCVVLOptimizer.cpp \
+    RISCVVMV0Elimination.cpp \
+    RISCVZacasABIFix.cpp \
+    ./GISel/RISCVO0PreLegalizerCombiner.cpp \
+    ./GISel/RISCVPostLegalizerCombiner.cpp \
+    ./GISel/RISCVPreLegalizerCombiner.cpp
+
+else
+
+CPP_SRCS += \
+    RISCVMacroFusion.cpp \
+    RISCVRVVInitUndef.cpp
+
+endif
 
 # Object files
 OBJS := $(CPP_SRCS:.cpp=.o)
@@ -101,6 +134,9 @@ RISCVGenAsmWriter.inc: $(TD_FILE)
 
 RISCVGenCompressInstEmitter.inc: $(TD_FILE)
 	$(TABLEGEN) --gen-compress-inst-emitter $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenMacroFusion.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-macro-fusion-pred $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
 
 RISCVGenDAGISel.inc: $(TD_FILE)
 	$(TABLEGEN) --gen-dag-isel $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
@@ -132,13 +168,28 @@ RISCVGenSearchableTables.inc: $(TD_FILE)
 RISCVGenSubtargetInfo.inc: $(TD_FILE)
 	$(TABLEGEN) --gen-subtarget $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
 
+RISCVGenSDNodeInfo.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-sd-node-info $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenExegesis.inc: $(TD_FILE)
+	$(TABLEGEN) --gen-exegesis $(TABLEGEN_INCLUDE) -o $@ $(TD_FILE)
+
+RISCVGenO0PreLegalizeGICombiner.inc: RISCVGISel.td
+	$(TABLEGEN) --gen-global-isel-combiner -combiners="RISCVO0PreLegalizerCombiner" $(TABLEGEN_INCLUDE) -o $@ RISCVGISel.td
+
+RISCVGenPreLegalizeGICombiner.inc: RISCVGISel.td
+	$(TABLEGEN) --gen-global-isel-combiner -combiners="RISCVPreLegalizerCombiner" $(TABLEGEN_INCLUDE) -o $@ RISCVGISel.td
+
+RISCVGenPostLegalizeGICombiner.inc: RISCVGISel.td
+	$(TABLEGEN) --gen-global-isel-combiner -combiners="RISCVPostLegalizerCombiner" $(TABLEGEN_INCLUDE) -o $@ RISCVGISel.td
+
 # Compile sources in parallel
 %.o: %.cpp $(TABLEGEN_TARGETS)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Link object files into shared library
 $(LIBRARY): $(OBJS)
-	$(CXX) $(LDFLAGS) -o $@ $(OBJS)
+	$(CXX) -shared $(LDFLAGS) -o $@ $(OBJS)
 	rm -f $(OBJS) $(TABLEGEN_TARGETS)
 
 # Clean up
