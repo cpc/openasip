@@ -561,9 +561,9 @@ case "$LLVM_VERSION" in
      22.*)
      AC_DEFINE([LLVM_22], [], "Using LLVM 22 (git)")
      LLVM_VERSION=22
-     LLVM_LIBRARYVERSION=22git
+     LLVM_LIBRARYVERSION=22-rc1
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
-     LLVM_SHARED_LIB=-lLLVM-22git
+     LLVM_SHARED_LIB=-lLLVM-${LLVM_LIBRARYVERSION}
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
      # The upstream LLVM doesn't (yet) have the RISC-V customization support.
      ENABLE_RISCV=false
