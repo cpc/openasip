@@ -1456,10 +1456,10 @@ FUGen::scheduleOperations() {
 
 // Making inputs connected with the operand inputs
 void
-FUGen::CreateInputsConnected() {
+FUGen::createInputsConnected() {
     std::unordered_map<std::string, std::string> currentName;
     std::unordered_map<std::string, int> portWidth;
-    CodeBlock inregisterblock;
+    CodeBlock inRegisterBlk;
 
     for (int i = 0; i < adfFU_->portCount(); ++i) {
         TTAMachine::FUPort* adfPort =
@@ -1473,52 +1473,11 @@ FUGen::CreateInputsConnected() {
             addWireIfMissing(
                 operationOperands, portWidth[adfPort->name()],
                 WireType::Vector);
-            inregisterblock.append(Assign(
+            inRegisterBlk.append(Assign(
                 operationOperands, LHSSignal(currentName[adfPort->name()])));
         }
     }
-    behaviour_ << (Asynchronous("Connecting input ports") << inregisterblock);
-}
-
-// Making all the inputs registered
-void
-FUGen::CreateInputRegister() {
-    std::unordered_map<std::string, std::string> currentName;
-    std::unordered_map<std::string, int> portWidth;
-    CodeBlock inregisterblock;
-
-    for (int i = 0; i < adfFU_->portCount(); ++i) {
-        TTAMachine::FUPort* adfPort =
-            static_cast<TTAMachine::FUPort*>(adfFU_->port(i));
-        portWidth[adfPort->name()] = adfPort->width();
-
-        if (adfPort->isInput()) {
-            currentName[adfPort->name()] = "data_" + adfPort->name() + "_in";
-            std::string RegisteredInput = "data_" + adfPort->name() + "_r";
-
-            addRegisterIfMissing(
-                RegisteredInput, portWidth[adfPort->name()],
-                WireType::Vector);
-            inregisterblock.append(Assign(
-                RegisteredInput, LHSSignal(currentName[adfPort->name()])));
-        }
-    }
-    // configbits_in port registering
-    std::string Configport = "configbits_r";
-    std::string ConfigportIn = "configbits_in";
-    addRegisterIfMissing(Configport, Nconfigbits_, WireType::Vector);
-    inregisterblock.append(Assign(Configport, LHSSignal(ConfigportIn)));
-
-    // operation port registering
-    std::string registeredOp = "operation_in_r";
-    std::string opportIn = "operation_in";
-    addRegisterIfMissing(registeredOp, opcodeWidth_, WireType::Vector);
-    inregisterblock.append(Assign(registeredOp, LHSSignal(opportIn)));
-
-    std::string InputEnPort = enableSignal("input", 0);
-    If InputEnregister(
-        Equals(LHSSignal(InputEnPort), BinaryLiteral("1")), inregisterblock);
-    behaviour_ << (Synchronous("InputRegistering_sp") << InputEnregister);
+    behaviour_ << (Asynchronous("Connecting input ports") << inRegisterBlk);
 }
 
 void
@@ -1746,17 +1705,17 @@ FUGen::createOutputPipeline() {
             std::string nextReg = pipelineName(port->name(), cycle);
             std::string prevReg = pipelineName(port->name(), cycle + 1);
             std::string valid = pipelineValid(port->name(), cycle);
-            std::string nextconfigReg;
-            std::string prevconfigReg;
+            std::string nextConfigReg;
+            std::string prevConfigReg;
             // For ROCC interface
             if (generateROCC_) {
-                nextconfigReg = pipelineConfig(port->name(), cycle);
-                prevconfigReg = pipelineConfig(port->name(), cycle + 1);
+                nextConfigReg = pipelineConfig(port->name(), cycle);
+                prevConfigReg = pipelineConfig(port->name(), cycle + 1);
                 if (cycle == 0) {
-                    fu_ << Wire(nextconfigReg, width, WireType::Vector);
+                    fu_ << Wire(nextConfigReg, width, WireType::Vector);
                 } else {
                     addRegisterIfMissing(
-                        nextconfigReg, width, WireType::Vector);
+                        nextConfigReg, width, WireType::Vector);
                 }
             }
 
@@ -1793,7 +1752,7 @@ FUGen::createOutputPipeline() {
                 regAssignBlk.append(Assign(nextReg, source));
                 if (generateROCC_) {
                     regAssignBlk.append(
-                        Assign(nextconfigReg, LHSSignal("configs_in")));
+                        Assign(nextConfigReg, LHSSignal("configs_in")));
                 }
 
                 if (cycleActive) {
@@ -1824,7 +1783,7 @@ FUGen::createOutputPipeline() {
                 interAssignBlk.append(Assign(nextReg, LHSSignal(prevReg)));
                 if (generateROCC_) {
                     interAssignBlk.append(
-                        Assign(nextconfigReg, LHSSignal(prevconfigReg)));
+                        Assign(nextConfigReg, LHSSignal(prevConfigReg)));
                 }
 
                 if (cycleActive) {
@@ -1861,12 +1820,12 @@ FUGen::createOutputPipeline() {
                 if ((cycle == 1) && (generateROCC_)) {
                     elseBody.append(Assign(nextReg, BinaryLiteral("0")));
                     elseBody.append(
-                        Assign(nextconfigReg, BinaryLiteral("0")));
+                        Assign(nextConfigReg, BinaryLiteral("0")));
                     // CP config assignment to Config_out and Out_valid
                     lastStage.append(Assign(
-                        "configs_out", LHSSignal(nextconfigReg + "[5:1]")));
+                        "configs_out", LHSSignal(nextConfigReg + "[5:1]")));
                     lastStage.append(Assign(
-                        "out_valid", LHSSignal(nextconfigReg + "[0]")));
+                        "out_valid", LHSSignal(nextConfigReg + "[0]")));
                 }
                 validOperations.elseClause(elseBody);
                 outputPipeline.append(validOperations);
@@ -1901,12 +1860,13 @@ FUGen::createOutputPipeline() {
     behaviour_ << async;
 }
 
-// Output pipeline for CV-X-IF FU
+// Creating output pipelines for operations and related configurations
+// for CV-X-IF FU
 void
 FUGen::createOutputPipelineCVXIF() {
     CodeBlock operationPipeline;
-    CodeBlock cotrolLogic_comb;
-    CodeBlock DefaultVals;
+    CodeBlock controlLogicComb;
+    CodeBlock defaultVals;
     for (std::string op : operations_) {
         int Nstage;
         int width;
@@ -1929,33 +1889,33 @@ FUGen::createOutputPipelineCVXIF() {
                 }
             }
         }
-        CodeBlock stage_block;
-        CodeBlock ctrl_block;
+        CodeBlock opStageBlk;
+        CodeBlock ctrlBlk;
         CodeBlock ctrlLogicBlk;
         CodeBlock ctrlSignals;
         Equals cntrlCondition(LHSSignal("Dum_sig"), LHSSignal("Dum_sig"));
         for (int pipestage = Nstage; pipestage > 0; pipestage--) {
             std::string nextReg = pipelineName(op, pipestage);
             std::string prevReg = pipelineName(op, pipestage + 1);
-            std::string nextConfigbits = pipelineConfig(op, pipestage);
-            std::string prevConfigbits = pipelineConfig(op, pipestage + 1);
-            std::string ifEnablesignal = enableSignal(op, pipestage - 1);
-            std::string setEnablesignal = enableSignal(op, pipestage);
-            CodeBlock out_configs;
+            std::string nextConfigBits = pipelineConfig(op, pipestage);
+            std::string prevConfigBits = pipelineConfig(op, pipestage + 1);
+            std::string ifEnableSignal = enableSignal(op, pipestage - 1);
+            std::string setEnableSignal = enableSignal(op, pipestage);
+            CodeBlock outConfigsBlk;
             Equals condition(LHSSignal("Dum_sig"), LHSSignal("Dum_sig"));
 
             // Adding the register signals
             addRegisterIfMissing(nextReg, width, WireType::Vector);
             addRegisterIfMissing(
-                nextConfigbits, Nconfigbits_, WireType::Vector);
+                nextConfigBits, Nconfigbits_, WireType::Vector);
 
             // Pipeline control signal assignment
-            ctrlSignals.append(Assign(setEnablesignal, BinaryLiteral("'1")));
-            DefaultVals.append(Assign(setEnablesignal, BinaryLiteral("'0")));
-            addWireIfMissing(setEnablesignal, 1);
+            ctrlSignals.append(Assign(setEnableSignal, BinaryLiteral("'1")));
+            defaultVals.append(Assign(setEnableSignal, BinaryLiteral("'0")));
+            addWireIfMissing(setEnableSignal, 1);
 
             std::string selConfigbit =
-                nextConfigbits + "[cvxif_sup_pkg::NConfigbits_C-1]";
+                nextConfigBits + "[cvxif_sup_pkg::NConfigbits_C-1]";
             std::string configEnBit = "";
             if (pipestage == 1) {
                 configEnBit = "config_" + op + "_kill_in";
@@ -1963,14 +1923,14 @@ FUGen::createOutputPipelineCVXIF() {
                 condition = Equals(
                     BitwiseOr(
                         BitwiseOr(
-                            LHSSignal(ifEnablesignal),
+                            LHSSignal(ifEnableSignal),
                             LHSSignal(configEnBit)),
                         BitwiseNot(LHSSignal(selConfigbit))),
                     BinaryLiteral("'1"));
             } else {
                 condition = Equals(
                     BitwiseOr(BitwiseOr(
-                        LHSSignal(ifEnablesignal),
+                        LHSSignal(ifEnableSignal),
                         BitwiseNot(LHSSignal(selConfigbit)))),
                     BinaryLiteral("'1"));
             }
@@ -1980,28 +1940,28 @@ FUGen::createOutputPipelineCVXIF() {
                 Ext source(
                     operandSignal(connected.operation, connected.operandID),
                     width, connected.operandWidth);
-                out_configs.append(Assign(nextReg, source));
-                out_configs.append(
-                    Assign(nextConfigbits, LHSSignal("configbits_" + op)));
+                outConfigsBlk.append(Assign(nextReg, source));
+                outConfigsBlk.append(
+                    Assign(nextConfigBits, LHSSignal("configbits_" + op)));
             } else {  // Assigning rest of the pipelining stages
-                out_configs.append(Assign(nextReg, LHSSignal(prevReg)));
-                out_configs.append(
-                    Assign(nextConfigbits, LHSSignal(prevConfigbits)));
+                outConfigsBlk.append(Assign(nextReg, LHSSignal(prevReg)));
+                outConfigsBlk.append(
+                    Assign(nextConfigBits, LHSSignal(prevConfigBits)));
             }
 
-            If ifblock(condition, out_configs);
-            stage_block.append(ifblock);
+            If ifBlock(condition, outConfigsBlk);
+            opStageBlk.append(ifBlock);
             // Pipeline control Logic if block
-            If ifcntrl(condition, ctrlSignals);
-            ctrl_block.append(ifcntrl);
+            If ifCntrl(condition, ctrlSignals);
+            ctrlBlk.append(ifCntrl);
         }
 
-        operationPipeline.append(stage_block);
-        cotrolLogic_comb.append(ctrl_block);
+        operationPipeline.append(opStageBlk);
+        controlLogicComb.append(ctrlBlk);
     }
 
     Asynchronous async("Pipeline Control Logic");
-    async << DefaultVals << cotrolLogic_comb;
+    async << defaultVals << controlLogicComb;
     behaviour_ << async;
 
     Synchronous sync("output_pipeline_sp");
@@ -2026,21 +1986,21 @@ FUGen::valtoBinaryOne(int width, int value) {
 
 // Selection signal logic generation for CV-X-IF
 void
-FUGen::selectionlogic() {
+FUGen::selectionLogic() {
     CodeBlock selBlock;
     CodeBlock configSignalBlck;
     CodeBlock DefaultVal;
-    std::string configsignal = "{";
+    std::string configSignal = "{";
     for (std::string op :
          operations_) {  // Making the config selection signal
-        configsignal = configsignal + "config_" + op + "_enable_in, ";
+        configSignal = configSignal + "config_" + op + "_enable_in, ";
         configSignalBlck.append(Assign(
             "configbits_" + op + "_out",
             LHSSignal("configbits_" + op + "_1_r")));
     }
-    configsignal = configsignal.substr(0, configsignal.size() - 2);
-    configsignal = configsignal + "}";
-    configSignalBlck.append(Assign("config_sel", LHSSignal(configsignal)));
+    configSignal = configSignal.substr(0, configSignal.size() - 2);
+    configSignal = configSignal + "}";
+    configSignalBlck.append(Assign("config_sel", LHSSignal(configSignal)));
     fu_ << Wire("config_sel", operations_.size());
 
     Switch selSwitch(
@@ -2075,48 +2035,48 @@ FUGen::selectionlogic() {
     }
     selBlock.append(selSwitch);
 
-    CodeBlock newselSignal;  // Seperately, makes the New selection logic
+    CodeBlock newSelectSignal;  // Seperately, makes the New selection logic
     If ifBlock(BinaryLiteral("1"), DefaultAssign("dummy"));
     for (int i = 1; i < operations_.size() + 1; i++) {
-        HDLGenerator::LHSValue andedsignals;
-        HDLGenerator::LHSValue oredsignalsR;
+        HDLGenerator::LHSValue andedSignals;
+        HDLGenerator::LHSValue oredSignalsR;
         for (int j = 0; j < operations_.size(); j++) {
-            BitwiseAnd Anded(
+            BitwiseAnd bitwiseAnded(
                 LHSSignal(
                     "prev_shifted" + std::to_string(i) + "[" +
                     std::to_string(j) + "]"),
                 LHSSignal("config_sel[" + std::to_string(j) + "]"));
             if (j == 0) {
-                andedsignals = Anded;
+                andedSignals = bitwiseAnded;
             } else {
-                BitwiseOr oredsignals(Anded, andedsignals);
-                andedsignals = oredsignals;
-                oredsignalsR = oredsignals;
+                BitwiseOr bitwiseOred(bitwiseAnded, andedSignals);
+                andedSignals = bitwiseOred;
+                oredSignalsR = bitwiseOred;
             }
         }
         if (operations_.size() == 1) {
-            oredsignalsR = LHSSignal("(config_sel)");
+            oredSignalsR = LHSSignal("(config_sel)");
         }
         if (i == 1) {
             ifBlock =
-                If(oredsignalsR,
+                If(oredSignalsR,
                    Assign(
                        "new_sel_d",
                        LHSSignal("prev_shifted" + std::to_string(i))));
         } else {
             ifBlock.elseIfClause(
-                oredsignalsR,
+                oredSignalsR,
                 Assign(
                     "new_sel_d",
                     LHSSignal("prev_shifted" + std::to_string(i))));
         }
     }
-    newselSignal.append(ifBlock);
+    newSelectSignal.append(ifBlock);
     DefaultVal.append(Assign("new_sel_d", BinaryLiteral("'0")));
 
     Asynchronous selSignalLogic("Selection signal logic");
     selSignalLogic << DefaultVal << configSignalBlck << selBlock
-                   << newselSignal;
+                   << newSelectSignal;
     behaviour_ << selSignalLogic;
 }
 
@@ -2232,13 +2192,13 @@ FUGen::implement(
         fugen.createOperationResources();
 
         if (fugen.generateCVXIF_) {  // CVXIF selection
-            fugen.CreateInputsConnected();
+            fugen.createInputsConnected();
             fugen.buildOperations();
             fugen.createOutputPipelineCVXIF();
-            fugen.selectionlogic();
+            fugen.selectionLogic();
             fugen.outputSelect();
         } else if (fugen.generateROCC_) {  // ROCC selection
-            fugen.CreateInputsConnected();
+            fugen.createInputsConnected();
             fugen.buildOperations();
             fugen.createOutputPipeline();
         } else {  // TTA selection

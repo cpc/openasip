@@ -19,7 +19,8 @@
 /**
  * @file CoproCusops.hh
  *
- * Custom Instruction encoding assigning
+ * Assign encodings of custom RISCV instructions extracted from BEM 
+ * for CV-X-IF and ROCC FUs
  * @author Tharaka Sampath
  */
 

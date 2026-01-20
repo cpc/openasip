@@ -49,7 +49,7 @@
 #include "BEMValidator.hh"
 #include "BinaryEncoding.hh"
 #include "ControlUnit.hh"
-#include "CoproGen.hh"  //CVXIF coprocessor generator
+#include "RVCoprocessorGenerator.hh"  
 #include "Environment.hh"
 #include "FUPort.hh"
 #include "FileSystem.hh"
@@ -369,7 +369,7 @@ ProGeUI::generateProcessor(
         if ((options.CVXIFCoproGen) || (options.roccGen)) {
             // Removing FUs in the Core
             removeFUsIDF(idf_);
-            coprogenerator_.coproGenerate(
+            rvCoprocessorGenerator_.generateRVCoprocessor(
                 options, *machine_, *idf_, *plugin_, imemWidthInMAUs,
                 errorStream, warningStream, verboseStream);
         } else {

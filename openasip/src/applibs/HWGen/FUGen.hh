@@ -182,11 +182,9 @@ private:
     void scheduleOperations();
     void createPortPipeline();
     void createShadowRegisters();
-    void CreateInputRegister();  // Make all the inputs registered
-    void CreateInputsConnected();
-    void selectionlogic();
+    void createInputsConnected();
+    void selectionLogic();
     void outputSelect();
-    void assignvalues();
 
     OperandConnection subOpConnection(OperationDAG* dag, OperationDAGEdge* edge,
                                       bool isOutput);
@@ -292,8 +290,8 @@ private:
     bool backRegistered_ = false;
     int addressWidth_ = 0;
     bool isLSU_ = false;
-    // CVXIF generator enable
+    // Bool for enabling CVXIF related FU generation
     bool generateCVXIF_ = false;
-    // ROCC enable
+    // Bool for enabling ROCC related FU generation
     bool generateROCC_ = false;
 };

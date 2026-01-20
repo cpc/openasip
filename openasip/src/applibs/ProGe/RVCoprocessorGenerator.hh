@@ -19,13 +19,7 @@
 /**
  * @file CoProGe.hh
  *
- * Declaration of Co Processor Generator class.
- *
- * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
- * @author Pekka Jääskeläinen 2011
- * @author Vinogradov Viacheslav(added SV generating) 2012
- * @note rating: red
+ * Declaration of CoProcessor Generator class for CV-X-IF and ROCC.
  */
 
 #ifndef COPROCESSOR_GENERATOR_HH
@@ -60,14 +54,15 @@ class ProGeContext;
 class NetlistGenerator;
 
 /**
- * Controller class of ProGe.
+ * class for handling CV-X-IF or ROCC coprocessor, support packages and
+ * FU generation.
  */
-class CoproGen : public ProcessorGenerator {
+class RVCoprocessorGenerator : public ProcessorGenerator {
 public:
-    CoproGen();
-    virtual ~CoproGen();
+    RVCoprocessorGenerator();
+    virtual ~RVCoprocessorGenerator();
 
-    void coproGenerate(
+    void generateRVCoprocessor(
         const ProGeOptions& options, const TTAMachine::Machine& machine,
         const IDF::MachineImplementation& implementation,
         ICDecoderGeneratorPlugin& plugin, int imemWidthInMAUs,
@@ -78,8 +73,8 @@ private:
     void validateMachine(
         const TTAMachine::Machine& machine, std::ostream& errorStream,
         std::ostream& warningStream);
-    void generateSupPackage(const std::string& dstDirectory);
-    void generateinsdecoder(
+    void generateSupportPackage(const std::string& dstDirectory);
+    void generateInstructionDecoder(
         const ProGeOptions& options);  // Instruciton decoder maker
     void makecoprocessor(
         const ProGeOptions& options, IDF::FUGenerated& Fu,

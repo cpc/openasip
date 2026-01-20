@@ -17,10 +17,10 @@
     02110-1301 USA
  */
 /**
- * @file CoproGen.cc derived from ProcessorGenerator
+ * @file RVCoprocessorGenerator.cc derived from ProcessorGenerator
  */
 
-#include "CoproGen.hh"
+#include "RVCoprocessorGenerator.hh"
 
 #include <algorithm>
 #include <boost/format.hpp>
@@ -86,23 +86,22 @@ namespace ProGe {
 /**
  * The constructor.
  */
-CoproGen::CoproGen() : coreTopBlock_(NULL) {}
+RVCoprocessorGenerator::RVCoprocessorGenerator() : coreTopBlock_(NULL) {}
 
 /**
  * The destructor.
  */
-CoproGen::~CoproGen() {
+RVCoprocessorGenerator::~RVCoprocessorGenerator() {
     delete coreTopBlock_;
     coreTopBlock_ = NULL;
 }
 
 /**
- * Generates the coprocessor.
- *
- * @see ProGeUI::coproGenerate()
+ * Generates HDL for CV-X-IF and ROCC interface based coprocessor tops, FUs 
+ * and supporting files
  */
 void
-CoproGen::coproGenerate(
+RVCoprocessorGenerator::generateRVCoprocessor(
     const ProGeOptions& options, const TTAMachine::Machine& machine,
     const IDF::MachineImplementation& implementation,
     ProGe::ICDecoderGeneratorPlugin& plugin, int imemWidthInMAUs,
@@ -157,15 +156,15 @@ CoproGen::coproGenerate(
     }
     // Makes CVX Coprocessor TOP for each FU
     if (options.roccGen == true) {
-        for (auto Fu : generatorContext_->idf().FUGenerations()) {
-            makeROCCcoprocessor(options, Fu, generatorContext_->adf());
+        for (auto FU : generatorContext_->idf().FUGenerations()) {
+            makeROCCcoprocessor(options, FU, generatorContext_->adf());
         }
     } else {
-        for (auto Fu : generatorContext_->idf().FUGenerations()) {
-            makecoprocessor(options, Fu, generatorContext_->adf());
+        for (auto FU : generatorContext_->idf().FUGenerations()) {
+            makecoprocessor(options, FU, generatorContext_->adf());
         }
-        generateinsdecoder(options);  // Generates Compressed decoder
-        generateSupPackage(
+        generateInstructionDecoder(options);  // Generates Compressed decoder
+        generateSupportPackage(
             options.outputDirectory);  // Generates the support package
         // Implementing Instruction Tracker
         TrackerGen::generateTracker(
@@ -178,11 +177,11 @@ CoproGen::coproGenerate(
  * Makes the top of the ROCC Coprocessor
  */
 void
-CoproGen::makeROCCcoprocessor(
-    const ProGeOptions& options, IDF::FUGenerated& Fu,
+RVCoprocessorGenerator::makeROCCcoprocessor(
+    const ProGeOptions& options, IDF::FUGenerated& FU,
     const TTAMachine::Machine& machine) {
     TTAMachine::FunctionUnit* adfFU =
-        machine.functionUnitNavigator().item(Fu.name());
+        machine.functionUnitNavigator().item(FU.name());
     const std::string dstDirectory =
         options.outputDirectory;  // destination directory
     const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
@@ -199,11 +198,11 @@ CoproGen::makeROCCcoprocessor(
     sourceFile =
         Environment::dataDirPath("ProGe") + DS + "rocc_copro.sv.tmpl";
     std::string file =
-        StringTools::stringToLower("coprocessor_" + Fu.name()) + ".sv";
+        StringTools::stringToLower("coprocessor_" + FU.name()) + ".sv";
     dstFile = coproTargetDir + DS + "systemverilog/" + file;
     std::string replcements1[8], replcements2[8];  // replacement keys
     replcements1[0] = {"FUNAME"};
-    replcements2[0] = StringTools::stringToLower(Fu.name());
+    replcements2[0] = StringTools::stringToLower(FU.name());
 
     if (!FileSystem::fileExists(dstFile)) {
         instantiate_.instantiateCoprocessorTemplateFile(
@@ -215,11 +214,11 @@ CoproGen::makeROCCcoprocessor(
  * Makes the top of the Coprocessor
  */
 void
-CoproGen::makecoprocessor(
-    const ProGeOptions& options, IDF::FUGenerated& Fu,
+RVCoprocessorGenerator::makecoprocessor(
+    const ProGeOptions& options, IDF::FUGenerated& FU,
     const TTAMachine::Machine& machine) {
     TTAMachine::FunctionUnit* adfFU =
-        machine.functionUnitNavigator().item(Fu.name());
+        machine.functionUnitNavigator().item(FU.name());
     const std::string dstDirectory =
         options.outputDirectory;  // destination directory
     const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
@@ -236,14 +235,14 @@ CoproGen::makecoprocessor(
     sourceFile =
         Environment::dataDirPath("ProGe") + DS + "cvxif_coprocessor.sv.tmpl";
     std::string file =
-        StringTools::stringToLower(Fu.name()) + "_coprocessor.sv";
+        StringTools::stringToLower(FU.name()) + "_coprocessor.sv";
     dstFile = coproTargetDir + DS + "systemverilog/" + file;
     std::string coproreplcements1[8] = {
         "FUNAME",      "INPUT1",        "OUTPUTF",
         "CONFIG_EN",   "CONFIG_DEFINE", "OUT_COMMIT_TRACKER",
         "CONFIG_BITS", "SEARCH_CONFIG"};  // replacement keys REMOVE INPUT2
     std::string coproreplcements2[8];
-    coproreplcements2[0] = StringTools::stringToLower(Fu.name());
+    coproreplcements2[0] = StringTools::stringToLower(FU.name());
     int j = 0;
     int k = 1;
     for (int i = 0; i < adfFU->portCount();
@@ -311,7 +310,7 @@ CoproGen::makecoprocessor(
 
 // Instantiates the compressed decoder TODO
 void
-CoproGen::generateinsdecoder(const ProGeOptions& options) {
+RVCoprocessorGenerator::generateInstructionDecoder(const ProGeOptions& options) {
     const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
     const std::string dstDirectory = options.outputDirectory;
     std::string sourceFile;
@@ -334,7 +333,7 @@ CoproGen::generateinsdecoder(const ProGeOptions& options) {
  * @param dstDirectory The destination directory.
  */
 void
-CoproGen::generateSupPackage(const std::string& dstDirectory) {
+RVCoprocessorGenerator::generateSupportPackage(const std::string& dstDirectory) {
     string dstFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
                      "systemverilog/cvxif_sup_pkg.sv";
     bool created = FileSystem::createFile(dstFile);
@@ -382,7 +381,7 @@ CoproGen::generateSupPackage(const std::string& dstDirectory) {
  * machine.
  */
 void
-CoproGen::validateMachine(
+RVCoprocessorGenerator::validateMachine(
     const TTAMachine::Machine& machine, std::ostream& errorStream,
     std::ostream& warningStream) {
     MachineValidator validator(machine);
