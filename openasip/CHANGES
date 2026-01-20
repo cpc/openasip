@@ -1,3 +1,11 @@
+2.3     January 2026
+=====================
+
+Main changes and features
+-------------------------
+- Added feature to generate SFUs with RISC-V custom instructions 
+  that can be interfaced with CV-X and ROCC interfaces, utilizing FUGen.
+
 2.2     unreleased
 =====================
 
