@@ -1748,24 +1748,24 @@ FUGen::createOutputPipeline() {
                     operandSignal(connection.operation, connection.operandID),
                     width, connection.operandWidth);
 
-                CodeBlock regAssignBlk;
-                regAssignBlk.append(Assign(nextReg, source));
+                CodeBlock regAssignBlock;
+                regAssignBlock.append(Assign(nextReg, source));
                 if (generateROCC_) {
-                    regAssignBlk.append(
+                    regAssignBlock.append(
                         Assign(nextConfigReg, LHSSignal("configs_in")));
                 }
 
                 if (cycleActive) {
                     if (operations_.size() == 1) {
-                        validOperations.elseIfClause(triggered, regAssignBlk);
+                        validOperations.elseIfClause(triggered, regAssignBlock);
                     } else {
-                        validOperations.elseIfClause(active, regAssignBlk);
+                        validOperations.elseIfClause(active, regAssignBlock);
                     }
                 } else {
                     if (operations_.size() == 1) {
-                        validOperations = If(triggered, regAssignBlk);
+                        validOperations = If(triggered, regAssignBlock);
                     } else {
-                        validOperations = If(active, regAssignBlk);
+                        validOperations = If(active, regAssignBlock);
                     }
                 }
                 cycleActive = true;
@@ -2039,7 +2039,7 @@ FUGen::selectionLogic() {
     If ifBlock(BinaryLiteral("1"), DefaultAssign("dummy"));
     for (int i = 1; i < operations_.size() + 1; i++) {
         HDLGenerator::LHSValue andedSignals;
-        HDLGenerator::LHSValue oredSignalsR;
+        HDLGenerator::LHSValue oredSignals;
         for (int j = 0; j < operations_.size(); j++) {
             BitwiseAnd bitwiseAnded(
                 LHSSignal(
@@ -2051,21 +2051,21 @@ FUGen::selectionLogic() {
             } else {
                 BitwiseOr bitwiseOred(bitwiseAnded, andedSignals);
                 andedSignals = bitwiseOred;
-                oredSignalsR = bitwiseOred;
+                oredSignals = bitwiseOred;
             }
         }
         if (operations_.size() == 1) {
-            oredSignalsR = LHSSignal("(config_sel)");
+            oredSignals = LHSSignal("(config_sel)");
         }
         if (i == 1) {
             ifBlock =
-                If(oredSignalsR,
+                If(oredSignals,
                    Assign(
                        "new_sel_d",
                        LHSSignal("prev_shifted" + std::to_string(i))));
         } else {
             ifBlock.elseIfClause(
-                oredSignalsR,
+                oredSignals,
                 Assign(
                     "new_sel_d",
                     LHSSignal("prev_shifted" + std::to_string(i))));

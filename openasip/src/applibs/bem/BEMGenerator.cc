@@ -90,14 +90,14 @@ BEMGenerator::BEMGenerator(const Machine& machine) :
 /**
  * BEM constructor for the Coprocessor generation.
  * Overloaded BEM constructor related to CV-X-If and ROCC coprocessor generation.
- * RISCV instrucion encodings are created based on the coproInterF boolean.
+ * RISCV instrucion encodings are created based on the coproInterface boolean.
  *
  * @param machine The machine for which the binary encoding map will be
  *                generated.
- * @param coproInterF Bool for enabling the ROCC format
+ * @param coproInterface Bool for enabling the ROCC format
  */
-BEMGenerator::BEMGenerator(const Machine& machine, bool coproInterF)
-    : machine_(&machine), rocc_(coproInterF) {}
+BEMGenerator::BEMGenerator(const Machine& machine, bool coproInterface)
+    : machine_(&machine), rocc_(coproInterface) {}
 
 /**
  * The destructor.

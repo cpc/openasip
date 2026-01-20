@@ -62,7 +62,7 @@ namespace TTAMachine {
 class BEMGenerator {
 public:
     BEMGenerator(const TTAMachine::Machine& machine);
-    BEMGenerator(const TTAMachine::Machine& machine, bool coproInterF);
+    BEMGenerator(const TTAMachine::Machine& machine, bool coproInterface);
     virtual ~BEMGenerator();
 
     BinaryEncoding* generate();
