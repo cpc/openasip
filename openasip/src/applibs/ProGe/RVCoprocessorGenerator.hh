@@ -76,12 +76,11 @@ private:
     void generateSupportPackage(const std::string& dstDirectory);
     void generateInstructionDecoder(
         const ProGeOptions& options);  // Instruciton decoder maker
-    void makecoprocessor(
+    void makeCoprocessor(
         const ProGeOptions& options, IDF::FUGenerated& Fu,
         const TTAMachine::Machine& machine);
     void makeROCCcoprocessor(
-        const ProGeOptions& options, IDF::FUGenerated& Fu,
-        const TTAMachine::Machine& machine);
+        const ProGeOptions& options, IDF::FUGenerated& Fu);
 
     NetlistBlock* coreTopBlock_;
     TCEString entityStr_;

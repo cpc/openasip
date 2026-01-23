@@ -39,7 +39,7 @@
 
 #include "Operation.hh"
 #include "TCEString.hh"
-
+#include "TCETargetDataLayout.hh"
 
 class Operand;
 

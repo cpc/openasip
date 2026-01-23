@@ -20,7 +20,7 @@ libopenasipllvmbackend_la_SOURCES = \
 	RISCVTDGen.cc
 
 libopenasipllvmbackend_la_SOURCES += TCEStubTargetTransformInfo.cc \
-	TCEStubSubTarget.cc TCEStubTargetMachine.hh
+	TCEStubSubTarget.cc TCEStubTargetMachine.hh TCETargetDataLayout.hh
 
 LLVMTCEPOMBuilder_la_SOURCES = LLVMTCEPOMBuilder.cc LLVMTCEPOMBuilder.hh
 LLVMTCEPOMBuilder_la_LDFLAGS = -module
@@ -94,6 +94,7 @@ include_HEADERS = \
  LLVMTCECmdLineOptions.hh \
  TCEStubTargetMachine.hh \
  TCEStubSubTarget.hh \
+ TCETargetDataLayout.hh \
  plugin/TCEItinerary.td
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
@@ -112,6 +113,7 @@ libopenasipllvmbackend_la_SOURCES += \
 	TCEStubSubTarget.hh \
 	TCEStubTargetTransformInfo.hh \
 	TCEStubSubTarget.hh \
+	TCETargetDataLayout.hh \
 	InlineAsmParser.hh \
 	LLVMUtilities.hh \
 	RISCVTDGen.hh

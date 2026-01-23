@@ -38,7 +38,8 @@ AM_CPPFLAGS = -I${PROJECT_ROOT} -I${PROJECT_ROOT}/src/base/memory \
 	-I$(PROJECT_ROOT)/src/applibs/dsdb \
 	-I$(PROJECT_ROOT)/src/applibs/Simulator \
 	-I$(PROJECT_ROOT)/src/applibs/Estimator \
-	-I$(PROJECT_ROOT)/src/procgen/ProGe
+	-I$(PROJECT_ROOT)/src/procgen/ProGe \
+	-I${PROJECT_ROOT}/src/applibs/LLVMBackend/
 AM_LDFLAGS = -L../bintools/Compiler/llvm-tce/
 
 include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseType.hh \
@@ -102,6 +103,6 @@ libopenasiptools_la_SOURCES += \
 	RandomNumberGenerator.hh CompileTools.hh\
 	LLVMIRTools.hh \
 	LicenseGenerator.hh RISCVTools.hh \
-	RISCVTools.icc
+	RISCVTools.icc 
 
 ## headers end
