@@ -1,6 +1,6 @@
-Information and guidelines for people contributing code back to TCE.
+Information and guidelines for people contributing code back to OpenASIP.
 
-TCE coding style
+Coding Style
 ================
 
 The coding style is roughly defined by `openasip/.clang-format`. The all-important indentation style is 4 spaces, no tabs.
@@ -8,14 +8,14 @@ The coding style is roughly defined by `openasip/.clang-format`. The all-importa
 Note that large parts of the codebase were written before semi-formal style checking, so you may want to run the formatter on only your changes and leave the rest of the file alone to minimize unnecessary noise in your commits. For example, you could run the below from within `openasip/` before committing:
 
 ```shell
-git diff -U0 --no-color HEAD | clang-format-diff -p2 -i
+./tools/scripts/format-diff.sh
 ```
 
-TCE Test Suite
+Test Suite
 ==============
 
-The TCE test suite includes both fine grained unit tests and "systemtests"
-that test the command line interfaces of the tools using test scripts. In case you want to contribute code for TCE, you should ensure your modifications pass the test suite before submitting the patch/committing. In addition, if you add a new feature, you should include a system test (actually an integration test), some unit tests, or preferably both, with your merge request.
+The test suite includes both fine grained unit tests and "systemtests"
+that test the command line interfaces of the tools using test scripts. In case you want to contribute code for OpenASIP, you should ensure your modifications pass the test suite before submitting the patch/committing. In addition, if you add a new feature, you should include a system test (actually an integration test), some unit tests, or preferably both, with your merge request.
 
 The system tests are under 'testsuite' directory. '''Note:''' The test system currently works only with a source tree build.
 
