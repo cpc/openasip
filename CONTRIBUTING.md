@@ -3,33 +3,13 @@ Information and guidelines for people contributing code back to TCE.
 TCE coding style
 ================
 
-There used to be a huge coding style manual all TCE developers slavishly and humbly followed :P Nowadays, as there is plenty of code, the easiest way is to just match the style of the existing code.
+The coding style is roughly defined by `openasip/.clang-format`. The all-important indentation style is 4 spaces, no tabs.
 
-If in doubt, look around. Good references are the oldest pieces of code (from the times when we had stricter code review process) inside src/base. Take a look at some of the files there to get the feeling.
+Note that large parts of the codebase were written before semi-formal style checking, so you may want to run the formatter on only your changes and leave the rest of the file alone to minimize unnecessary noise in your commits. For example, you could run the below from within `openasip/` before committing:
 
-The basic guidelines:
-
- * the indentations should be 4 spaces (no tabs)
- * maximum of 78 characters per line
-
-In case of emacs, you should use the stroustrup style.
-
-Example .emacs:
-
+```shell
+git diff -U0 --no-color HEAD | clang-format-diff -p2 -i
 ```
-(defun my-c-mode-common-hook ()
-  (c-set-style "stroustrup")
-  ;; other customizations can go here
-  )
-  (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
-
-(setq default-tab-width 4)
-(setq-default indent-tabs-mode nil)
-
-(add-to-list 'auto-mode-alist '("\\.icc$" . c++-mode))
-```
-
-This setups the "stroustrup" style for C/C++ code and makes emacs detect the .icc files (inline C++ definitions in TCE) as C++ files.
 
 TCE Test Suite
 ==============
