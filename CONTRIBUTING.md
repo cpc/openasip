@@ -11,6 +11,12 @@ Note that large parts of the codebase were written before semi-formal style chec
 ./tools/scripts/format-diff.sh
 ```
 
+Alternatively, to format a whole branch at a time:
+
+```shell
+./tools/scripts/format-branch.sh
+```
+
 Test Suite
 ==============
 
