@@ -10,6 +10,9 @@ Main changes and features
   instruction selection for RISC-V custom instructions.
 - Added feature to generate SFUs with RISC-V custom instructions 
   that can be interfaced with CV-X and ROCC interfaces, utilizing FUGen.
+- Added register file generator (RFGen), which allows RF RTL to be directly
+  generated from ADF descriptions. Verilog and VHDL supported.
+- Improved Verilog RTL generation, especially in FUGen.
 
 Deprecation notice
 ------------------
