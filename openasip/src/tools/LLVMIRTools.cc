@@ -111,10 +111,10 @@ std::string
 LLVMIRTools::targetInfo(bool littleEndian) const {
     std::string targetInfoStr = "target datalayout = \"";
     if(littleEndian){
-        targetInfoStr += DataLayoutStringBE;
+        targetInfoStr += DataLayoutStringLE;
     }
     else{
-        targetInfoStr += DataLayoutStringLE;
+        targetInfoStr += DataLayoutStringBE;
     }
     targetInfoStr += "\"\n";
     targetInfoStr += std::string("target triple = \"")
