@@ -57,6 +57,7 @@ using std::pair;
 
 const std::string GROUND_SIGNAL = "ground_signal";
 const std::string PARAM_STRING = "string";
+const std::string PARAM_BOOLEAN = "boolean";
 
 namespace ProGe {
 
@@ -68,6 +69,15 @@ namespace ProGe {
 VerilogNetlistWriter::VerilogNetlistWriter(
     const BaseNetlistBlock& targetBlock)
     : NetlistWriter(targetBlock), groundWidth_(0) {}
+
+/**
+ * Overloaded constructor for SV
+ *
+ * @param netlist The input netlist.
+ */
+VerilogNetlistWriter::VerilogNetlistWriter(
+    const BaseNetlistBlock& targetBlock, HDL lang)
+    : NetlistWriter(targetBlock), groundWidth_(0), lang_(lang) {}
 
 /**
  * The destructor.
@@ -89,7 +99,7 @@ VerilogNetlistWriter::write(const std::string& dstDirectory) {
         string errorMsg = "Empty input netlist block.";
         throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
-
+    formatresolve();
     writeNetlistParameterPackage(dstDirectory);
     writeBlock(block, dstDirectory);
 }
@@ -103,17 +113,23 @@ VerilogNetlistWriter::write(const std::string& dstDirectory) {
 void
 VerilogNetlistWriter::writeNetlistParameterPackage(
     const std::string& dstDirectory) const {
-    string fileName = dstDirectory + FileSystem::DIRECTORY_SEPARATOR + 
-        netlistParameterPkgName() + "_pkg.vh";
+    string fileName = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
+                      netlistParameterPkgName() + "_pkg" + format_;
     ofstream outFile;
     outFile.open(fileName.c_str(), ofstream::out);
-    for (size_t i = 0; i < targetNetlistBlock().netlist().parameterCount();
-         i++) {
-        Parameter param = targetNetlistBlock().netlist().parameter(i);
-        outFile << "parameter " << param.name() << " = " << param.value();
-        if (i != targetNetlistBlock().netlist().parameterCount() - 1)
-            outFile << ",";
-        outFile << endl;
+    if (targetNetlistBlock().netlist().parameterCount() == 0) {
+        outFile << "parameter " << targetNetlistBlock().moduleName()
+                << "_DUMMY "
+                << " = 0" << endl;
+    } else {
+        for (size_t i = 0;
+             i < targetNetlistBlock().netlist().parameterCount(); i++) {
+            Parameter param = targetNetlistBlock().netlist().parameter(i);
+            outFile << "parameter " << param.name() << " = " << param.value();
+            if (i != targetNetlistBlock().netlist().parameterCount() - 1)
+                outFile << ",";
+            outFile << endl;
+        }
     }
 }
 
@@ -139,7 +155,7 @@ void
 VerilogNetlistWriter::writeBlock(
     const BaseNetlistBlock& block, const std::string& dstDirectory) {
     string fileName = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
-        block.moduleName() + ".v";
+                      block.moduleName() + ".v";//format_;
     if (!FileSystem::fileIsCreatable(fileName) && 
         !(FileSystem::fileExists(fileName) && 
           FileSystem::fileIsWritable(fileName))) {
@@ -160,25 +176,26 @@ VerilogNetlistWriter::writeBlock(
     string separator;
     outFile << "#(" << endl;
     if (block.netlist().parameterCount() > 0) {
-        outFile << "`include \"" << netlistParameterPkgName() << "_pkg.vh\""
-                << endl;
+        outFile << "`include \"" << netlistParameterPkgName() << "_pkg"
+                << format_ << "\"" << endl;
         separator = ",";
     }
 
     for (size_t i = 0; i < block.packageCount(); i++) {
         outFile << separator << endl;
-        outFile << "`include \"" << block.package(i) << "_pkg.vh\"" << endl;
+        outFile << "`include \"" << block.package(i) << "_pkg" << format_
+                << "\"" << endl;
         separator = ",";
     }
 
+    // create generics
+    writeGenericDeclaration(block, 1, indentation(1), outFile);
+
     outFile << ")" << endl;
-    
+
     // create port declarations
     writePortDeclaration(block, 1, indentation(1), outFile);
     outFile << endl;
-    
-    // create generics
-    writeGenericDeclaration(block, 1, indentation(1), outFile);
     // create architecture
     writeSignalDeclarations(block, outFile);
     outFile << endl;
@@ -204,6 +221,10 @@ VerilogNetlistWriter::writeGenericDeclaration(
     const BaseNetlistBlock& block, unsigned int indentationLevel,
     const std::string& indentation, std::ostream& stream) {
     if (block.parameterCount() > 0) {
+        if (block.netlist().parameterCount() > 0 ||
+            block.packageCount() != 0) {
+            stream << ",";
+        }
         stream << endl;
         for (size_t i = 0; i < block.parameterCount(); i++) {
             stream << generateIndentation(indentationLevel, indentation)
@@ -213,7 +234,19 @@ VerilogNetlistWriter::writeGenericDeclaration(
                    << param.name();
             if (param.defaultValue() != "") {
                 stream << " = ";
-                if (param.type().lower() == PARAM_STRING) {
+                if (param.type().lower() == PARAM_BOOLEAN) {
+                    if (param.defaultValue() == "false") {
+                        stream << "0";
+                    } else if (param.defaultValue() == "true") {
+                        stream << "1";
+                    } else {
+                        string errorMsg =
+                            "VerilogNetlistWriter: invalid value for boolean "
+                            "parameter";
+                        throw InvalidData(
+                            __FILE__, __LINE__, __func__, errorMsg);
+                    }
+                } else if (param.type().lower() == PARAM_STRING) {
                     // string literal needs quot. marks
                     if (!param.defaultValue().startsWith("\""))
                         stream << "\"";
@@ -223,7 +256,9 @@ VerilogNetlistWriter::writeGenericDeclaration(
                     stream << param.defaultValue();
                 }
             }
-            stream << ";" << endl;
+            if (i != block.parameterCount() - 1) {
+                stream << "," << endl;
+            }
         }
     }
 }
@@ -503,8 +538,19 @@ VerilogNetlistWriter::writePortMappings(
             for (size_t i = 0; i < component.parameterCount(); i++) {
                 Parameter param = component.parameter(i);
                 stream << indentation(2) << "." << param.name() << "(";
-
-                if (param.type().lower() == PARAM_STRING) {
+                if (param.type().lower() == PARAM_BOOLEAN) {
+                    if (param.defaultValue() == "false") {
+                        stream << "0";
+                    } else if (param.defaultValue() == "true") {
+                        stream << "1";
+                    } else {
+                        string errorMsg =
+                            "VerilogNetlistWriter: invalid value for boolean "
+                            "parameter";
+                        throw InvalidData(
+                            __FILE__, __LINE__, __func__, errorMsg);
+                    }
+                } else if (param.type().lower() == PARAM_STRING) {
                     stream << genericMapStringValue(param.value());
                 } else {
                     stream << param.value();
@@ -534,20 +580,40 @@ VerilogNetlistWriter::writePortMappings(
                 edge_descriptor edgeDescriptor = *edges.first;
                 vertex_descriptor dstVertex =
                     boost::target(edgeDescriptor, block.netlist());
-                NetlistPort* dstPort = block.netlist()[dstVertex];
-
+                const NetlistPort* dstPort = block.netlist()[dstVertex];
+                PortConnectionProperty property =
+                    block.netlist()[edgeDescriptor];
                 if (&dstPort->parentBlock() == &block) {
                     if (port.dataType() != dstPort->dataType()) {
+                        int index = 0;
+                        if (!property.fullyConnected() &&
+                            dstPort->dataType() == BIT_VECTOR &&
+                            port.dataType() == BIT) {
+                            index = property.port2FirstBit();
+                        }
+
                         if (port.dataType() == BIT) {
                             assert(dstPort->dataType() == BIT_VECTOR);
-                            dstConn = dstPort->name() + "[0]";
+                            dstConn = dstPort->name() + "[" +
+                                      Conversion::toString(index) + "]";
                         } else {
                             assert(dstPort->dataType() == BIT);
-                            srcConn += "[0]";
-                            dstConn = dstPort->name();
+                            if (port.widthFormula() == "1") {
+                                srcConn += "[0]";
+                                dstConn = dstPort->name();
+                            } else {
+                                dstConn = portSignalName(port);
+                            }
                         }
                     } else {
-                        dstConn = dstPort->name();
+                        if ((!property.fullyConnected() ||
+                             dstPort->direction() == OUT) &&
+                            boost::out_degree(
+                                vertexDescriptor, block.netlist()) > 1) {
+                            dstConn = portSignalName(port);
+                        } else {
+                            dstConn = dstPort->name();
+                        }
                     }
                 } else {
                     dstConn = portSignalName(port);
@@ -601,6 +667,15 @@ VerilogNetlistWriter::isNumber(const std::string& formula) {
     return true;
 }
 
+/**
+ * Returns true if port uses single parameter of its parent block as port
+ * width.
+ */
+bool
+VerilogNetlistWriter::usesParameterWidth(const NetlistPort& port) {
+    const BaseNetlistBlock& parent = port.parentBlock();
+    return parent.hasParameter(port.widthFormula());
+}
 
 /**
  * Returns a string which makes indetation of the given level.
@@ -641,10 +716,13 @@ std::string
 VerilogNetlistWriter::portSignalName(const NetlistPort& port) {
     const BaseNetlistBlock* parentBlock = &port.parentBlock();
     if (port.hasStaticValue()) {
-        return "{" + Conversion::toString(port.realWidth()) + "{" +
-               ((port.staticValue().is(StaticSignal::VCC)) ? "1'b1"
-                                                           : "1'b0") +
-               "}}";
+        std::string portWidth;
+        if (port.realWidthAvailable()) {
+            portWidth = Conversion::toString(port.realWidth());
+        } else {
+            portWidth = port.widthFormula();
+        }
+        return ((port.staticValue().is(StaticSignal::VCC)) ? "'1" : "'0");
     }
     return parentBlock->instanceName() + "_" + port.name() +"_wire";
 }
@@ -662,12 +740,14 @@ VerilogNetlistWriter::portSignalType(const NetlistPort& port) {
     } else {
         if (port.realWidthAvailable()) {
             int width = port.realWidth();
-            return "[" + Conversion::toString(width?width-1:0) + ":0]";
+            return " [" + Conversion::toString(width ? width - 1 : 0) + ":0]";
         } else if (isNumber(port.widthFormula()) && 
                    (Conversion::toInt(port.widthFormula()) == 0)) {
-            return "[0:0]";
+            return " [0:0]";
+        } else if (usesParameterWidth(port)) {
+            return " [" + parameterWidthValue(port) + "-1 :0]";
         } else {
-            return "[" + port.widthFormula()+"-1: 0]";
+            return " [ " + port.widthFormula() + "-1: 0]";
         }
     }
 }
@@ -689,5 +769,23 @@ VerilogNetlistWriter::genericMapStringValue(const TCEString& generic) const {
         }
     }
     return generic;
+}
+
+/**
+ * Returns port width value of port that uses parameter as width.
+ */
+TCEString
+VerilogNetlistWriter::parameterWidthValue(const NetlistPort& port) {
+    return port.parentBlock().parameter(port.widthFormula()).value();
+}
+
+// Outputs the format as a string .v or .vh
+void
+VerilogNetlistWriter::formatresolve() {
+    if (lang_ == SV) {
+        format_ = ".sv";
+    } else {
+        format_ = ".vh";
+    }
 }
 }

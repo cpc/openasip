@@ -2542,7 +2542,7 @@ HDBManager::addOperationImplementation(
     dbConnection_->updateQuery(i1);
     RowID newid = dbConnection_->lastInsertRowID();
 
-    for (const auto r : operation.resources) {
+    for (const auto& r : operation.resources) {
         std::string i2 = "INSERT INTO operation_implementation_resources("
             "id, operation, resource, count) "
             "VALUES (NULL, " + std::to_string(newid)
@@ -2552,7 +2552,7 @@ HDBManager::addOperationImplementation(
         dbConnection_->updateQuery(i2);
     }
 
-    for (const auto r : operation.vhdlVariables) {
+    for (const auto& r : operation.vhdlVariables) {
         std::string i2 = "INSERT INTO operation_implementation_variable("
             "id, operation, name, width, type, language) "
             "VALUES (NULL, " + std::to_string(newid)
@@ -2563,7 +2563,7 @@ HDBManager::addOperationImplementation(
         dbConnection_->updateQuery(i2);
     }
 
-    for (const auto r : operation.verilogVariables) {
+    for (const auto& r : operation.verilogVariables) {
         std::string i2 = "INSERT INTO operation_implementation_variable("
             "id, operation, name, width, type, language) "
             "VALUES (NULL, " + std::to_string(newid)

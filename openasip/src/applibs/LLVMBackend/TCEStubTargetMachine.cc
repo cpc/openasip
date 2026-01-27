@@ -51,6 +51,7 @@ IGNORE_COMPILER_WARNING("-Wunused-parameter")
 #include "ADFSerializer.hh"
 #include "TCEStubTargetTransformInfo.hh"
 #include "TCEStubSubTarget.hh"
+#include "TCETargetDataLayout.hh"
 #include <llvm/Target/TargetLoweringObjectFile.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/CodeGen/Passes.h>

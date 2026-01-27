@@ -75,7 +75,7 @@ FUGenerated::saveState() const {
 
     state->setAttribute(ATTRIB_NAME, name_);
 
-    for (const auto operation : operations_) {
+    for (const auto& operation : operations_) {
         ObjectState* opState = new ObjectState(TAG_OPERATION);
         opState->setAttribute(ATTRIB_NAME, operation.operationName);
         ObjectState* hdbState = new ObjectState(TAG_HDBFILE);
@@ -90,7 +90,7 @@ FUGenerated::saveState() const {
         state->addChild(opState);
     }
 
-    for (const auto option : options_) {
+    for (const auto& option : options_) {
         ObjectState* opState = new ObjectState(TAG_OPTION);
         opState->setValue(option);
         state->addChild(opState);

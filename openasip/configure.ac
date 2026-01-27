@@ -1274,18 +1274,12 @@ AC_MSG_ERROR(
 [boost library not found. Install it or use --with-boost switch])
 fi
 
-AX_BOOST_FILESYSTEM
-if test -z "$BOOST_FILESYSTEM_LIB"
-then
-AC_MSG_ERROR(
-[boost_filesystem library not found. Install it or use --with-boost-filesystem switch])
-fi
 #boost::system is not needed for anything AFAIK, works without...
 AX_BOOST_SYSTEM
 if test -z "$BOOST_SYSTEM_LIB"
 then
 AC_MSG_NOTICE(
-[boost_filesystem library not found. This may be problem if boost 1.35 or later is used. Install it or use --with-boost-system switch])
+[boost_system library not found. This may be problem if boost 1.35 or later is used. Install it or use --with-boost-system switch])
 fi
 
 AX_BOOST_REGEX
@@ -1320,7 +1314,7 @@ LDFLAGS="$LDFLAGS $PTHREAD_LIBS $LIBS"
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 
 BOOST_LDFLAGS="$BOOST_LDFLAGS $BOOST_REGEX_LIB $BOOST_THREAD_LIB \
-$BOOST_FILESYSTEM_LIB $BOOST_SYSTEM_LIB"
+$BOOST_SYSTEM_LIB"
 
 if test -d test
 then
@@ -1401,6 +1395,7 @@ AC_CONFIG_FILES([
   src/bintools/BEMViewer/Makefile
   src/bintools/Assembler/Makefile
   src/bintools/Disassembler/Makefile
+  src/bintools/TestGenerator/Makefile
   src/bintools/BlocksTranslator/Makefile
   src/bintools/BlocksDisassembler/Makefile
   src/applibs/Scheduler/Selector/Makefile
@@ -1439,6 +1434,7 @@ AC_CONFIG_FILES([
   src/applibs/EPSGenerator/Makefile
   src/applibs/costdb/Makefile
   src/applibs/program/Makefile
+  src/applibs/TestGenerator/Makefile
   src/codesign/Estimator/Makefile
   src/procgen/HDB/Makefile 
   src/procgen/ProGe/Makefile

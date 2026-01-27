@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<adf version="1.10">
+<adf version="1.20">
 
   <little-endian/>
 
@@ -883,13 +883,13 @@
   <address-space name="IMEM">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>262143</max-address>
+    <max-address>65535</max-address>
   </address-space>
 
   <address-space name="data">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>262143</max-address>
+    <max-address>65535</max-address>
     <shared-memory>0</shared-memory>
     <numerical-id>0</numerical-id>
   </address-space>

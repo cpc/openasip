@@ -48,6 +48,7 @@
 namespace IDF {
     class MachineImplementation;
     class FUGenerated;
+    class RFGenerated;
 }
 
 namespace HDB {
@@ -77,12 +78,14 @@ namespace ProGe {
     class ProGeContext;
     class Signal;
     class GeneratableFUNetlistBlock;
+    class GeneratableRFNetlistBlock;
 
     /**
      * Generates a netlist of processor building blocks. [DEPRECATED]
      */
     class NetlistGenerator {
         friend class GeneratableFUNetlistBlock;
+        friend class GeneratableRFNetlistBlock;
 
     public:
         NetlistGenerator(
@@ -92,6 +95,9 @@ namespace ProGe {
         NetlistBlock* generate(
             const ProGeOptions& options, int imemWidthInMAUs,
             TCEString entityNameStr, std::ostream& warningStream);
+        // Generate CVXIF coprocessor
+        NetlistBlock* generateCoprocessor(
+            int imemWidthInMAUs, TCEString entityNameStr);
 
         NetlistPort& netlistPort(
             const TTAMachine::Port& port, Direction dir = IN) const;
@@ -121,6 +127,7 @@ namespace ProGe {
 
         HDB::FUEntry& fuEntry(const std::string& fuName) const;
         HDB::RFEntry& rfEntry(const std::string& rfName) const;
+        bool rfHasEntry(const std::string& rfName) const;
 
         const ProGeContext& context() const { return context_; }
 
@@ -181,20 +188,19 @@ namespace ProGe {
             NetlistBlock& netlistBlock, std::ostream& warningStream);
         GeneratableFUNetlistBlock* addGeneratableFUsToNetlist(
             const IDF::FUGenerated& fug, NetlistBlock& netlistBlock);
+        GeneratableRFNetlistBlock* addGeneratableRFsToNetlist(
+            const IDF::RFGenerated& rfg, NetlistBlock& netlistBlock);
         void addFUExternalPortsToNetlist(
             const HDB::FUImplementation& fuImplementation,
             NetlistBlock& coreBlock, NetlistBlock& fuBlock,
             const TTAMachine::FunctionUnit& adfFU);
         void addRFToNetlist(
-            const ProGeOptions& options,
             const IDF::RFImplementationLocation& location,
             NetlistBlock& netlistBlock);
         void addIUToNetlist(
-            const ProGeOptions& options,
             const IDF::RFImplementationLocation& location,
             NetlistBlock& netlistBlock);
         void addBaseRFToNetlist(
-            const ProGeOptions& options,
             const TTAMachine::BaseRegisterFile& regFile,
             const IDF::RFImplementationLocation& location,
             NetlistBlock& netlistBlock, const std::string& blockNamePrefix);
@@ -242,6 +248,8 @@ namespace ProGe {
         static TTAMachine::AddressSpace& instructionMemory(
             const TTAMachine::Machine& machine);
         static Direction translateDirection(HDB::Direction direction);
+        void addFUPortstoNetlist(
+            NetlistBlock& toplevelBlock);  // Maps generated FUs ports
 
         const ProGeContext& context_;
         /// The generator plugin.

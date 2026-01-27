@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>tce:DefaultICDecoderPlugin.so</file>
+  </ic-decoder-plugin>
+
+  <rf name="RF">
+    <hdb-file>tce:asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>96</rf-id>
+  </rf>
+
+</adf-implementation>

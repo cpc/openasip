@@ -317,7 +317,6 @@ Boost
 The development files of the following Boost libraries are required by OpenASIP
 . regexp
 . spirit
-. filesystem
 . format
 . thread
 . graph

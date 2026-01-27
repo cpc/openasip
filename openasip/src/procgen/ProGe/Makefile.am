@@ -31,7 +31,7 @@ LIB_BEM_DIR = ../../base/bem
 APPLIBS_FSA_DIR = ../../applibs/FSA
 
 bin_SCRIPTS = buildicdecoderplugin
-bin_PROGRAMS = generateprocessor ttaunittester
+bin_PROGRAMS = generateprocessor ttaunittester generatecoprocessor
 
 generateprocessor_SOURCES = GenerateProcessor.cc \
 ProGeCmdLineOptions.cc ProGeCmdLineOptions.hh GenerateProcessor.hh
@@ -42,6 +42,11 @@ ttaunittester_SOURCES = TTAUnitTester.cc TTAUnitTesterCmdLineOptions.cc \
 TTAUnitTesterCmdLineOptions.hh TTAUnitTester.hh
 
 ttaunittester_LDADD = ../../libopenasip.la
+
+generatecoprocessor_SOURCES = GenerateCoprocessor.cc \
+CoprocessorCmdLineOptions.cc CoprocessorCmdLineOptions.hh GenerateCoprocessor.hh
+
+generatecoprocessor_LDADD = ../../libopenasip.la
 
 AM_CPPFLAGS = -I${HDB_DIR} -I${TOOLS_DIR} -I${PROGE_APPLIBS_DIR} \
 -I${MACH_DIR} -I${BEM_DIR} -I${IMPL_TESTER_DIR} -I${IDF_DIR} \
@@ -64,4 +69,8 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 generateprocessor_SOURCES += \
 	TTAUnitTesterCmdLineOptions.hh GenerateProcessor.hh \
 	ProGeCmdLineOptions.hh TTAUnitTester.hh 
+
+generatecoprocessor_SOURCES += \
+	TTAUnitTesterCmdLineOptions.hh GenerateCoprocessor.hh \
+	CoprocessorCmdLineOptions.hh TTAUnitTester.hh 
 ## headers end
