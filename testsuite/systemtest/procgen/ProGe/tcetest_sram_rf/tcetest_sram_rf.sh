@@ -5,7 +5,7 @@
 TCECC=tcecc
 PROGE=generateprocessor
 PIG=generatebits
-GENBUSTRACE=../../../../openasip/tools/scripts/generatebustrace.sh
+GENBUSTRACE=generatebustrace.sh
 
 testDataDir=data/sram_rf
 testAdf="${testDataDir}/complex_multiply_stdout.adf"
@@ -28,6 +28,8 @@ abort_w_msg() {
     echo "$1"
     exit 1
 }
+
+leavedirty=false
 
 OPTIND=1
 while getopts "d" OPTION
@@ -79,4 +81,3 @@ if [ "${leavedirty}" != "true" ]; then
 fi
 
 exit 0
-

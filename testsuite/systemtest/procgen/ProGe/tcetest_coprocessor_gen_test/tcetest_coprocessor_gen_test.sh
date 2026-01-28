@@ -5,7 +5,7 @@
 DATA=./data
 ADF="${DATA}/rv32im_test.adf"
 HDB1="${DATA}/valgen.hdb"
-OPENASIP_HDB_PATH=",../../../../openasip/hdb"
+OPENASIP_HDB_PATH=",../../../../../openasip/hdb"
 HDB2="${OPENASIP_HDB_PATH}/generate_base32.hdb"
 HDB3="${OPENASIP_HDB_PATH}/generate_lsu_32.hdb"
 HDB4="${OPENASIP_HDB_PATH}/generate_rf_iu.hdb"

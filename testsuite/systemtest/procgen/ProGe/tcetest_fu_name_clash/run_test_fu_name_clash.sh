@@ -2,13 +2,14 @@
 
 progeOutDir="proge-output-funame"
 dataDir="./data/fu_name"
-srcDir="../../../../openasip/src"
 
-TCECC="${srcDir}/bintools/Compiler/tcecc"
-PROGE="${srcDir}/procgen/ProGe/generateprocessor"
-PIG="${srcDir}/bintools/PIG/generatebits"
+TCECC="tcecc"
+PROGE="generateprocessor"
+PIG="generatebits"
 SRC="${dataDir}/main.c"
 TPEF="funame_test.tpef"
+IMG="funame_test.img"
+DATAIMG="funame_test_data.img"
 ADF="${dataDir}/funame_test.adf"
 IDF=`echo $ADF | sed 's/.adf/.idf/g'`
 TOP="spiegel"
@@ -31,4 +32,7 @@ then
     cd ${progeOutDir}
     ./ghdl_compile.sh >& /dev/null  || echo "GHDL compile failed!"
     ./ghdl_simulate.sh >& /dev/null || echo "GHDL simulate failed!"
+    cd ..
 fi
+
+rm -rf ${progeOutDir} $TPEF $IMG $DATAIMG

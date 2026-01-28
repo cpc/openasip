@@ -2,20 +2,19 @@
 ### TCE TESTCASE
 ### title: Tests valid code is generated for that (single register) RFs with no opcode.
 
-srcDir=../../../../openasip/src
 DATA=./data/no_opcode_rfs
 ADF="${DATA}/no_opcode_rfs.adf"
 IDF="${DATA}/no_opcode_rfs.idf"
 SRC="${DATA}/no_opcode_rfs.tceasm"
-TCECC="${srcDir}/bintools/Compiler/tcecc"
-TCEASM="${srcDir}/bintools/Assembler/tceasm"
-PROGE="${srcDir}/procgen/ProGe/generateprocessor"
-PIG="${srcDir}/bintools/PIG/generatebits"
+TCECC="tcecc"
+TCEASM="tceasm"
+PROGE="generateprocessor"
+PIG="generatebits"
 TPEF="test.tpef"
 PROGE_OUT="proge-out"
 TOP="top"
 TTABUSTRACE=ttabustrace
-GENBUSTRACE=../../../../openasip/tools/scripts/generatebustrace.sh
+GENBUSTRACE=generatebustrace.sh
 
 usage() {
     echo "Options: "

@@ -2,15 +2,13 @@
 ### TCE TESTCASE
 ### title: Test that RFs with external ports are generated correctly.
 
-srcDir=../../../../openasip/src
-
 ADF="./data/external_rf_ports/external_rf.adf"
 IDF="./data/external_rf_ports/external_rf.idf"
 HDB="./data/external_rf_ports/rf_with_ext_port.hdb"
 SRC="./data/external_rf_ports/main.c"
-TCECC="${srcDir}/bintools/Compiler/tcecc"
-PROGE="${srcDir}/procgen/ProGe/generateprocessor"
-PIG="${srcDir}/bintools/PIG/generatebits"
+TCECC="tcecc"
+PROGE="generateprocessor"
+PIG="generatebits"
 TPEF="ext_rf_main.tpef"
 PROGE_OUT="ext_rf_proge_out"
 TOP="core_toplevel"
@@ -41,16 +39,10 @@ fi
 GHDL=$(which ghdl 2> /dev/null)
 if [ "x${GHDL}" != "x" ]
 then
-  cd $PROGE_OUT 
+  cd $PROGE_OUT
   ./ghdl_compile.sh >& /dev/null || echo "ghdl compile failed."
   ./ghdl_simulate.sh >& /dev/null || echo "ghdl simulation failed."
   cd ..
 fi
 
 clear_test_data
-
-
-
-
-
-
