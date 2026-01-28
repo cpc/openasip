@@ -560,7 +560,7 @@ begin
       file_open(dmem_dump_file, dmem_dump_path, write_mode);
       for i in 0 to dmem_size/4-1 loop
           axi_read(dmem_start+i*4, dmem_word);
-          write(line_out, integer'image(to_integer(unsigned(dmem_word))));
+          write(line_out, integer'image(to_integer(signed(dmem_word))));
           writeline(dmem_dump_file, line_out);
       end loop;
       file_close(dmem_dump_file);

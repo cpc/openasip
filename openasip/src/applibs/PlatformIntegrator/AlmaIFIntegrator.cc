@@ -93,6 +93,7 @@ AlmaIFIntegrator::AlmaIFIntegrator(
             "AlmaIF interface requires connections to an external debugger.";
         throw InvalidData(__FILE__, __LINE__, "AlmaIFIntegrator", msg);
     }
+    intelCompatible_ = idf->icDecoderParameterValue("bram-vendor") == "intel";
 }
 
 AlmaIFIntegrator::~AlmaIFIntegrator() {
@@ -771,6 +772,7 @@ AlmaIFIntegrator::axiMasterPortGroup() {
     addPortToGroup(axiBus, ProGe::IN, "m_axi_wready", "1");
     addPortToGroup(axiBus, ProGe::OUT, "m_axi_wdata", "32");
     addPortToGroup(axiBus, ProGe::OUT, "m_axi_wstrb", "4");
+    addPortToGroup(axiBus, ProGe::OUT, "m_axi_wlast", "1");
     addPortToGroup(axiBus, ProGe::IN, "m_axi_bvalid", "1");
     addPortToGroup(axiBus, ProGe::OUT, "m_axi_bready", "1");
     addPortToGroup(axiBus, ProGe::OUT, "m_axi_arvalid", "1");
@@ -1004,10 +1006,11 @@ AlmaIFIntegrator::imemInstance(MemInfo imem, int /* coreId */) {
                     imem.portAddrw, this, warningStream(), errorStream(),
                     true, almaifBlock_, "INSTR", false, false);
             } else {
-                imemGen_ = new XilinxBlockRamGenerator(
-                    imem.mauWidth, imem.widthInMaus, imem.portAddrw, 32,
-                    axiAddrWidth, this, warningStream(), errorStream(), true,
-                    almaifBlock_, "INSTR", false, false);
+                imemGen_ = new XilinxBlockRamGenerator(imem.mauWidth,
+                    imem.widthInMaus, imem.portAddrw, 32, axiAddrWidth, this,
+                    warningStream(), errorStream(), true, almaifBlock_,
+                    "INSTR", false, false, intelCompatible_,
+                    intelCompatible_);
             }
         } else if (imem.type == VHDL_ARRAY) {
             imemGen_ = new VhdlRomGenerator(
@@ -1090,11 +1093,11 @@ AlmaIFIntegrator::dmemInstance(
         if (dmem.type == ONCHIP) {
             // onchip mem size is scalable, use value from adf's Address Space
             int addrw = dmem.portAddrw;
-            memGen = new XilinxBlockRamGenerator(
-                dmem.mauWidth, dmem.widthInMaus, addrw, bDataWidth,
-                bAddrWidth, this, warningStream(), errorStream(),
-                genDualPortRam, almaifBlock_, dmem.asName, overrideAsWidth,
-                genSingleRam);
+            memGen =
+                new XilinxBlockRamGenerator(dmem.mauWidth, dmem.widthInMaus,
+                    addrw, bDataWidth, bAddrWidth, this, warningStream(),
+                    errorStream(), genDualPortRam, almaifBlock_, dmem.asName,
+                    overrideAsWidth, genSingleRam, intelCompatible_, false);
         } else {
             TCEString msg = "Unsupported data memory type";
             throw InvalidData(__FILE__, __LINE__, "AlmaIFIntegrator", msg);

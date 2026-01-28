@@ -8,6 +8,7 @@ m_axi_wvalid   : out std_logic;
 m_axi_wready   : in  std_logic;
 m_axi_wdata    : out std_logic_vector(pmem_data_width_g-1 downto 0);
 m_axi_wstrb    : out std_logic_vector(pmem_data_width_g/8-1 downto 0);
+m_axi_wlast    : out std_logic;
 --
 m_axi_bvalid   : in  std_logic;
 m_axi_bready   : out std_logic;
