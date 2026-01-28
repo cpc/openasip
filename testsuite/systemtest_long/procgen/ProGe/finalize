@@ -1,8 +1,0 @@
-#!/bin/bash
-rm -rf proge-output
-rm -fr shared-output
-rm -f *.img
-rm -f tmp-*
-
-# renames the disabled tests back to normal
-rm -f *.disabled

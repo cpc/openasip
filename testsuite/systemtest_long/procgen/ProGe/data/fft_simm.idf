@@ -1,7 +1,7 @@
 <adf-implementation>
   <ic-decoder-plugin>
     <name>DefaultICDecoder</name>
-    <file>../../../../../openasip/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+    <file>DefaultICDecoderPlugin.so</file>
     <hdb-file></hdb-file>
     <parameter name="bustrace">
       <value>yes</value>
