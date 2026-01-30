@@ -3588,34 +3588,13 @@ TDGen::writeInstrInfo(std::ostream& os) {
 }
 
 void TDGen::writeCallDefRegs(std::ostream& o) {
+
     for (unsigned i = 0; i < resRegNames_.size(); i++) {
         if (i > 0) o << ", ";
         o << resRegNames_[i];
     }
-    for (unsigned i = 0; i < gprRegNames_.size(); i++) {
-        o << ", " << gprRegNames_[i];
-    }
-
-    // call dest may call others which may mess up these
-    for (unsigned i = 0; i < argRegNames_.size(); i++) {
-        o << ", " << argRegNames_[i];
-    }
-
-    std::map<int, std::vector<RegisterInfo>>::const_iterator it;
-    for (it = registers_.begin(); it != registers_.end(); ++it) {
-        int regsWidth = it->first;
-
-        const std::vector<RegisterInfo>& regs = it->second;
-        TCEString baseClass = baseClasses_.find(regsWidth)->second;
-
-        for (size_t i = 0; i < regs.size(); ++i) {
-            // Don't declare <=32b registers again, it has been done in TDGen.
-            if (regsWidth > maxScalarWidth_) {
-                RegisterInfo reg = regs[i];
-                o << ", " << reg.regName_;
-            }
-        }
-    }
+    // GPRs, argument registers, and vector registers are clobbered by calls
+    // but this is now handled by the RegMask operand added to CALL instructions
 }
 
 
@@ -8447,7 +8426,7 @@ void TDGen::writeAddressingModeDefs(std::ostream& o) {
           << "def brtarget : Operand<OtherVT>; " << std::endl
           << "def calltarget : Operand<i32>;" << std::endl;
 
-        o << "def SDT_TCECall    : SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>;" << std::endl;
+        o << "def SDT_TCECall    : SDTypeProfile<0, -1, [SDTCisVT<0, i32>]>;" << std::endl;
     } else {
         o << std::endl
           << "// Addressing modes." << std::endl
@@ -8468,7 +8447,7 @@ void TDGen::writeAddressingModeDefs(std::ostream& o) {
           << "def brtarget : Operand<OtherVT>; " << std::endl
           << "def calltarget : Operand<i64>;" << std::endl;
 
-        o << "def SDT_TCECall    : SDTypeProfile<0, 1, [SDTCisVT<0, i64>]>;" << std::endl;
+        o << "def SDT_TCECall    : SDTypeProfile<0, -1, [SDTCisVT<0, i64>]>;" << std::endl;
     }
 }
 

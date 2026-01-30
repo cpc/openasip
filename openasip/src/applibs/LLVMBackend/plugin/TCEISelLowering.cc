@@ -492,11 +492,17 @@ TCETargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   std::vector<EVT> NodeTys;
   NodeTys.push_back(MVT::Other);   // Returns a chain
   NodeTys.push_back(MVT::Glue);    // Returns a flag for retval copy to use.
-  SDValue Ops[] = { Chain, Callee, InFlag };
+
+  // Get call-preserved register mask to indicate which registers are clobbered
+  const TargetRegisterInfo *TRI = DAG.getSubtarget().getRegisterInfo();
+  const uint32_t *Mask = TRI->getCallPreservedMask(DAG.getMachineFunction(), CallConv);
+  SDValue RegMaskOp = DAG.getRegisterMask(Mask);
+
+  SDValue Ops[] = { Chain, Callee, RegMaskOp, InFlag };
 
   Chain = DAG.getNode(
       TCEISD::CALL, dl, ArrayRef<EVT>(NodeTys), 
-      ArrayRef<SDValue>(Ops, InFlag.getNode() ? 3 : 2));
+      ArrayRef<SDValue>(Ops, InFlag.getNode() ? 4 : 3));
 
   InFlag = Chain.getValue(1);
 
