@@ -122,7 +122,7 @@ OperationBehaviorLoader::importBehavior(const Operation& parent) {
     } catch (const Exception& e) {
         string msg = 
             std::string("Behavior definition for ") + parent.name() + 
-            " could not be loaded.";        
+            " could not be loaded: " + e.errorMessage();
         DynamicLibraryException error(__FILE__, __LINE__, __func__, msg);
         error.setCause(e);
         throw error;
