@@ -38,6 +38,7 @@ There is  no
 #include "ansidecl.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 
 #define DEF_SIZE 5000
@@ -797,6 +798,7 @@ DEFUN( iscommand,(ptr, idx),
 }
 
 
+int
 DEFUN(copy_past_newline,(ptr, idx, dst),
       string_type *ptr AND
       unsigned int idx AND
