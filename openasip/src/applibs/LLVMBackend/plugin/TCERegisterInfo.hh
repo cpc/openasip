@@ -34,6 +34,7 @@
 #define TCE_REGISTER_INFO_H
 
 #include <llvm/ADT/BitVector.h>
+#include <llvm/IR/CallingConv.h>
 
 #include "TCESubtarget.hh"
 
@@ -41,6 +42,8 @@
 #include "TCEGenRegisterInfo.inc"
 
 #include "tce_config.h"
+
+#include <vector>
 
 namespace llvm {
     class TargetInstrInfo;
@@ -63,6 +66,9 @@ namespace llvm {
         const MCPhysReg* getCalleeSavedRegs(const MachineFunction *MF = 0) const override;
 
         BitVector getReservedRegs(const MachineFunction &MF) const override;
+
+        const uint32_t *getCallPreservedMask(
+            const MachineFunction &MF, CallingConv::ID CC) const override;
 
         #ifdef LLVM_OLDER_THAN_16
         void eliminateFrameIndex(MachineBasicBlock::iterator II,
@@ -87,6 +93,12 @@ namespace llvm {
 
         const TargetInstrInfo& tii_;
         const TCEFrameLowering* tfi_;
+
+        // A set bit indicates the register is PRESERVED (not clobbered).
+        // Has to be private variable so the return value of
+        // getCallPreservedMask stays alive. Has to be mutable so the const
+        // getCallPreservedMask can edit this.
+        mutable std::vector<uint32_t> CallPreservedMask_;
     };
 }
 

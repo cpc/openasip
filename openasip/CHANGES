@@ -16,6 +16,9 @@ Main changes and features
 - AlmaIF: add RAM models which infer the BRAM on Intel Arria 10
   - Enabled with bram-vendor:intel in generateprocessor parameters.
 - Add a latency to clock/lock cycle counter to increase clock frequency
+- Make call clobbering use register mask operand instead of implicit defs
+  - This fixes the compiler to now again work with more than 255 registers,
+    which has been broken since LLVM 16.
 
 Deprecation notice
 ------------------

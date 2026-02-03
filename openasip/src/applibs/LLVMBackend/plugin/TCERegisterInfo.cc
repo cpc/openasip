@@ -99,6 +99,29 @@ TCERegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
 }
 
 /**
+ * Returns the call-preserved register mask.
+ *
+ * This is used by LLVM to determine which registers are clobbered by
+ * function calls. A set bit indicates the register is PRESERVED (not
+ * clobbered).
+ */
+const uint32_t *
+TCERegisterInfo::getCallPreservedMask(
+    const MachineFunction &MF, CallingConv::ID CC) const {
+    unsigned NumRegs = getNumRegs();
+    unsigned MaskSize = (NumRegs + 31) / 32;
+
+    CallPreservedMask_.resize(MaskSize);
+    std::fill(CallPreservedMask_.begin(), CallPreservedMask_.end(), 0);
+
+    // Mark callee-saved registers as preserved
+    for (const MCPhysReg *R = getCalleeSavedRegs(&MF); *R; ++R) {
+        CallPreservedMask_[*R / 32] |= (1u << (*R % 32));
+    }
+    return CallPreservedMask_.data();
+}
+
+/**
  * Returns list of reserved registers.
  */
 BitVector
