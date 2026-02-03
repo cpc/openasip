@@ -94,6 +94,10 @@ namespace llvm {
         const TargetInstrInfo& tii_;
         const TCEFrameLowering* tfi_;
 
+        // A set bit indicates the register is PRESERVED (not clobbered).
+        // Has to be private variable so the return value of
+        // getCallPreservedMask stays alive. Has to be mutable so the const
+        // getCallPreservedMask can edit this.
         mutable std::vector<uint32_t> CallPreservedMask_;
     };
 }
