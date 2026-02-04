@@ -19,6 +19,12 @@ Main changes and features
 - Make call clobbering use register mask operand instead of implicit defs
   - This fixes the compiler to now again work with more than 255 registers,
     which has been broken since LLVM 16.
+- Automated Processor Exploration
+  - Open-sourcing the methodology described in:
+  "AEx: Automated High-Level Synthesis of Compiler Programmable Co-Processors"
+  published in JSPS, 2023, https://doi.org/10.1007/s11265-023-01841-3
+  - Automatically finds an optimized processor architecture for an input set
+    of applications.
 
 Deprecation notice
 ------------------

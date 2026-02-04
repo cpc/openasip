@@ -1,0 +1,6 @@
+#!/bin/bash
+rm -rf test.dsdb
+
+# Compile the input program.
+../../../../../openasip/src/bintools/Compiler/tcecc --little-endian --emit-llvm test_app-matrix1/src/matrix1.c -k_Output -o test_app-matrix1/program.bc
+

@@ -12,13 +12,13 @@ fi
 
 {
     "${EXPLORE}" -a ${ADF} simple_test.dsdb
-    NEW_CONF="$(${EXPLORE} -e SimpleICOptimizer -s 1 -u tpef=${TPEF} simple_test.dsdb \
+    NEW_CONF="$(${EXPLORE} -v -e SimpleICOptimizer -s 1 -u tpef=${TPEF} simple_test.dsdb 2>&1 \
     | tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
-    echo "New config created: ${NEW_CONF}" 
-} 1>${OUTPUT} 2>&1
+    echo "New config created: ${NEW_CONF}"
+} 1>${OUTPUT}
 
 # checking that enough connections are removed
-"${EXPLORE}" -w $NEW_CONF simple_test.dsdb 1>/dev/null
+"${EXPLORE}" -w $NEW_CONF simple_test.dsdb
 COUNT_ADF="${ADF}"
 SOCNUM_OLD="$(grep '<socket name.*>' ${COUNT_ADF} | wc -l)"
 WRITES_OLD="$(grep '<writes-to>' ${COUNT_ADF} | wc -l)"

@@ -1,0 +1,7 @@
+<?php
+// short test description
+$test_description="AutoExplorer plugin test case with matrix1 DSP program.";
+
+// the binary being tested
+$test_bin="./run_matrix1.sh";
+?>

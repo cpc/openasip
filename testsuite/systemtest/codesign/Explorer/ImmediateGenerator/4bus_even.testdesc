@@ -1,7 +1,0 @@
-<?php
-// short test description
-$test_description="ImmediateGenerator Explorer plugin test case with even split.";
-
-// the binary being tested
-$test_bin="./run_4bus_even.sh";
-?>
