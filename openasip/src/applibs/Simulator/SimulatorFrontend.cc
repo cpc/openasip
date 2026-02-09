@@ -31,20 +31,19 @@
  * @note rating: red
  */
 
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <iomanip>
+#include <condition_variable>
 #include <ctime>
+#include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <thread>
 
 #include "CompilerWarnings.hh"
 IGNORE_CLANG_WARNING("-Wkeyword-macro")
 #include <boost/regex.hpp>
 POP_CLANG_DIAGS
-#include <boost/thread.hpp>
-#include <boost/bind.hpp>
-#include <boost/version.hpp>
 
 #include "Binary.hh"
 #include "BinaryReader.hh"
@@ -944,46 +943,20 @@ SimulatorFrontend::stopTimer() {
 
 /**
  * A thread function for handling simulation timeout
- * 
+ *
  * @param timeout timeout in seconds
  */
-void 
-timeoutThread(unsigned int timeout, SimulatorFrontend* simFE) {
-    if (timeout == 0) {
+static void
+timeoutThread(unsigned int timeout, SimulatorFrontend* simFE,
+    std::condition_variable& cv, std::mutex& mtx, bool& done) {
+    if (timeout == 0)
         return;
-    }
-      
-    TTASimulationController* simCon = simFE->simCon_;
-    boost::xtime xt; 
-    boost::xtime xtPoll; 
-#if BOOST_VERSION < 105000
-    boost::xtime_get(&xt, boost::TIME_UTC);
-#else
-    /* TIME_UTC was replaced by TIME_UTC_ in boost 1.50, to avoid
-     * clashing with a similarly named C11 macro. */
-    boost::xtime_get(&xt, boost::TIME_UTC_);
-#endif
-    unsigned int pollTime = 5; // poll time in seconds
-    xtPoll = xt;
-    xt.sec += timeout; 
 
-    xtPoll.sec += pollTime;
-    while (xt.sec > xtPoll.sec) {
-        boost::thread::sleep(xtPoll);
-        xtPoll.sec += pollTime;
-        if (simCon != simFE->simCon_) {
-            return;
-        }
-    }
-    boost::thread::sleep(xt);
+    std::unique_lock<std::mutex> lk{mtx};
+    cv.wait_for(lk, std::chrono::seconds{timeout}, [&] { return done; });
 
-    if (simCon != simFE->simCon_) {
-        return;
-    }
-
-    if (!simFE->hasSimulationEnded()) {
+    if (!simFE->hasSimulationEnded())
         simFE->prepareToStop(SRE_AFTER_TIMEOUT);
-    }
 }
 
 /**
@@ -995,11 +968,27 @@ timeoutThread(unsigned int timeout, SimulatorFrontend* simFE) {
  */
 void
 SimulatorFrontend::run() {
+    bool done = false;
+    std::mutex mtx;
+    std::condition_variable cv;
+
+    std::thread timeout{timeoutThread, simulationTimeout_, this, std::ref(cv),
+        std::ref(mtx), std::ref(done)};
+
     startTimer();
-    boost::thread timeout(
-        boost::bind(timeoutThread, simulationTimeout_, this));
+
     simCon_->run();
+
     stopTimer();
+
+    /* stop timeout thread */
+    mtx.lock();
+    done = true;
+    mtx.unlock();
+
+    cv.notify_all();
+    timeout.join();
+
     SequenceTools::deleteAllItems(utilizationStats_);
 }
 
@@ -1012,11 +1001,24 @@ SimulatorFrontend::run() {
  */
 void
 SimulatorFrontend::runUntil(UIntWord address) {
+    bool done = false;
+    std::mutex mtx;
+    std::condition_variable cv;
+
+    std::thread timeout{timeoutThread, simulationTimeout_, this, std::ref(cv),
+        std::ref(mtx), std::ref(done)};
+
     startTimer();
-    boost::thread timeout(boost::bind(timeoutThread, 
-        simulationTimeout_, this));
     simCon_->runUntil(address);
     stopTimer();
+
+    mtx.lock();
+    done = true;
+    mtx.unlock();
+
+    cv.notify_all();
+    timeout.join();
+
     // invalidate utilization statistics (they are not fresh anymore)
     SequenceTools::deleteAllItems(utilizationStats_);
 }
@@ -1052,12 +1054,24 @@ void
 SimulatorFrontend::next(int count) {
     assert(simCon_ != NULL);
 
+    bool done = false;
+    std::mutex mtx;
+    std::condition_variable cv;
+
+    std::thread timeout{timeoutThread, simulationTimeout_, this, std::ref(cv),
+        std::ref(mtx), std::ref(done)};
+
     startTimer();
-    boost::thread timeout(boost::bind(timeoutThread, 
-        simulationTimeout_, this));
     simCon_->next(count);
     stopTimer();
-    
+
+    mtx.lock();
+    done = true;
+    mtx.unlock();
+
+    cv.notify_all();
+    timeout.join();
+
     // invalidate utilization statistics (they are not fresh anymore)
     SequenceTools::deleteAllItems(utilizationStats_);
 }
