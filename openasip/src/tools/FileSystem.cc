@@ -1096,5 +1096,5 @@ Path::operator TCEString() const {
  */
 const char*
 Path::c_str() const {
-    return this->string().c_str();
+    return this->std::filesystem::path::c_str();
 }
