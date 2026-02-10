@@ -75,7 +75,6 @@ using std::cout;
 using std::endl;
 using std::ofstream;
 using std::ios;
-using std::set_unexpected;
 
 
 // static member variable initializations
@@ -123,8 +122,7 @@ Application::initialize() {
     errorStream_ = &cerr;
     warningStream_ = &cerr;
 
-    // set the unexpected exception callback
-    set_unexpected(Application::unexpectedExceptionHandler);
+    std::set_terminate(Application::unexpectedExceptionHandler);
 
     // register finalization function to be called when exit() is called
     // so Application is finalized automatically on program exit
@@ -133,7 +131,7 @@ Application::initialize() {
             "Application initialization failed.");
         abortProgram();
     }
- 
+
     initialized_ = true;
 }
 
@@ -272,12 +270,34 @@ Application::abortProgram() {
  */
 void
 Application::unexpectedExceptionHandler() {
-    *logStream_
-        << std::endl
-        << "Program aborted because of leaked unexpected exception. "
-        << std::endl << std::endl <<
-        "Information of the last thrown TCE exception: " << std::endl
-        << Exception::lastExceptionInfo() << std::endl;
+    try {
+        std::exception_ptr eptr{std::current_exception()};
+        if (eptr) {
+            std::rethrow_exception(eptr);
+        } else {
+            *logStream_ << std::endl
+                        << "Program exiting without exception." << std::endl;
+        }
+
+    } catch (const std::exception& ex) {
+        *logStream_ << std::endl
+                    << "Program exiting because of unexpected exception."
+                    << std::endl
+                    << std::endl
+                    << ex.what() << std::endl;
+
+    } catch (const Exception& ex) {
+        *logStream_ << std::endl
+                    << "Program exiting because of unexpected exception."
+                    << std::endl
+                    << std::endl
+                    << Exception::info(ex) << std::endl;
+
+    } catch (...) {
+        *logStream_ << std::endl
+                    << "Program exiting with unknown exception." << std::endl;
+    }
+
     abortProgram();
 }
 

@@ -40,8 +40,6 @@ using std::string;
 
 const string Exception::unknownProcMsg_ = "(unknown)";
 
-std::string Exception::lastExceptionInfo_ = "";
-
 ///////////////////////////////////////////////////////////////////////////////
 // Exception
 ///////////////////////////////////////////////////////////////////////////////
@@ -54,16 +52,18 @@ std::string Exception::lastExceptionInfo_ = "";
  * @param procname Name of the procedure.
  * @param errorMessage Error message.
  */
-Exception::Exception(
-    std::string filename,
-    int linenum,
-    std::string procname,
-    std::string errorMessage) :
-    file_(filename), line_(linenum), proc_(procname), 
-    errorMessage_(errorMessage), cause_(NULL) {
-    lastExceptionInfo_ = 
-        filename + ", line " + Conversion::toString(linenum) + ". Message: " + 
-        errorMessage;
+Exception::Exception(std::string filename, int linenum, std::string procname,
+    std::string errorMessage)
+    : file_(filename), line_(linenum), proc_(procname),
+      errorMessage_(errorMessage), cause_(NULL) {}
+
+/**
+ * Get exception nicely formatted as a string.
+ */
+std::string
+Exception::info(const Exception& ex) {
+    return ex.fileName() + ":" + Conversion::toString(ex.lineNum()) + ":" +
+           ex.errorMessage();
 }
 
 /**
@@ -94,19 +94,6 @@ Exception::hasCause() const {
 const Exception&
 Exception::cause() const {
     return *cause_;
-}
-
-/**
- * Returns information of the last exception thrown.
- *
- * This is useful in debugging. It's used in Application.hh's unexpected
- * exception handler.
- *
- * @return A string describing the last thrown exception.
- */
-std::string
-Exception::lastExceptionInfo() {
-    return lastExceptionInfo_;
 }
 
 /**

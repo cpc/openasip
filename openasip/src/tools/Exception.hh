@@ -57,7 +57,7 @@ public:
         std::string filename, int linenum,
         std::string procname = unknownProcMsg_,
         std::string errorMessage = "");
-    
+
     virtual ~Exception();
 
     std::string fileName() const;
@@ -69,16 +69,13 @@ public:
     /// Used when no procedure name is given.
     static const std::string unknownProcMsg_;
 
-    /// Returns information of the last thrown exception.
-    static std::string lastExceptionInfo();
+    static std::string info(const Exception& ex);
 
     void setCause(const Exception &cause);
     bool hasCause() const;
     const Exception& cause() const;
 
 private:
-    /// Information of the last thrown exception for easing the debugging.
-    static std::string lastExceptionInfo_;
     /// Name of the file where exception occurred.
     std::string file_;
     /// Line number in the file.
