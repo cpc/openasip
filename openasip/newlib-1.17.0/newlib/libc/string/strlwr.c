@@ -34,8 +34,7 @@ QUICKREF
 #include <ctype.h>
 
 char *
-strlwr (a)
-     char *a;
+strlwr (char *a)
 {
   char *ret = a;
 

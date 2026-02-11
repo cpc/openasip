@@ -81,7 +81,7 @@ PORTABILITY
 #define inline
 #endif
 
-static inline char	*med3 _PARAMS((char *, char *, char *, int (*)()));
+static inline char	*med3 _PARAMS((char *, char *, char *, int (*)(const void *, const void *)));
 static inline void	 swapfunc _PARAMS((char *, char *, int, int));
 
 #define min(a, b)	(a) < (b) ? a : b
@@ -131,7 +131,7 @@ _DEFUN(med3, (a, b, c, cmp),
 	char *a _AND
 	char *b _AND
 	char *c _AND
-	int (*cmp)())
+	int (*cmp)(const void *, const void *))
 {
 	return cmp(a, b) < 0 ?
 	       (cmp(b, c) < 0 ? b : (cmp(a, c) < 0 ? c : a ))
@@ -143,7 +143,7 @@ _DEFUN(qsort, (a, n, es, cmp),
 	void *a _AND
 	size_t n _AND
 	size_t es _AND
-	int (*cmp)())
+	int (*cmp)(const void *, const void *))
 {
 	char *pa, *pb, *pc, *pd, *pl, *pm, *pn;
 	int d, r, swaptype, swap_cnt;

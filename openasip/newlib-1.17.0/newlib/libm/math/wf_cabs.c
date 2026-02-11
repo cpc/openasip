@@ -13,8 +13,7 @@ struct complex {
 };
 
 float
-cabsf(z)
-	struct complex z;
+cabsf(struct complex z)
 {
 	return hypotf(z.x, z.y);
 }
