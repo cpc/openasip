@@ -75,12 +75,10 @@ public:
     const InstructionContainer& implicitInstructionsAt(
         InstructionAddress addr) const;
 
-private:
-    /// Copying not allowed.
-    InstructionMemory(const InstructionMemory&);
-    /// Assignment not allowed.
-    InstructionMemory& operator=(const InstructionMemory&);
+    InstructionMemory(const InstructionMemory&) = delete;
+    InstructionMemory& operator=(const InstructionMemory&) = delete;
 
+private:
     /// The starting address of the instruction memory address space.
     InstructionAddress startAddress_;
 

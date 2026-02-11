@@ -54,9 +54,8 @@ public:
 
     virtual TCEString toString() const;
 
-private:
-    /// Assignment not allowed.
-    TerminalImmediate& operator=(const TerminalImmediate&);
+    TerminalImmediate& operator=(const TerminalImmediate&) = delete;
+
 protected:
     /// Value of the inline immediate.
     SimValue value_;

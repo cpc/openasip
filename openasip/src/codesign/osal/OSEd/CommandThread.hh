@@ -46,13 +46,11 @@ public:
     virtual ~CommandThread();
 
     virtual ExitCode Entry();
-  
+
+    CommandThread(const CommandThread&) = delete;
+    CommandThread& operator=(const CommandThread&) = delete;
+
 private:
-    /// Copying not allowed.
-    CommandThread(const CommandThread&);
-    /// Assignment not allowed.
-    CommandThread& operator=(const CommandThread&);
-    
     /// Command to be executed.
     std::string cmd_;
 };

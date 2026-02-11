@@ -55,12 +55,10 @@ public:
 
     MoveGuard* copy() const;
 
-private:
-    /// Copying not allowed.
-    MoveGuard(const MoveGuard&);
-    /// Assignment not allowed.
-    MoveGuard& operator=(const MoveGuard&);
+    MoveGuard(const MoveGuard&) = delete;
+    MoveGuard& operator=(const MoveGuard&) = delete;
 
+private:
     /// The guard object.
     const TTAMachine::Guard* guard_;
 };

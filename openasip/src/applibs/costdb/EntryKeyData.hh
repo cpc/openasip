@@ -68,12 +68,9 @@ public:
         const EntryKeyData*, const EntryKeyData*) const = 0;
     /// Converts the data into a string.
     virtual std::string toString() const = 0;
-    
-private:
-    /// Copying not allowed.
-    EntryKeyData(const EntryKeyData&);
-    /// Assignment not allowed.
-    EntryKeyData& operator=(const EntryKeyData&);
+
+    EntryKeyData(const EntryKeyData&) = delete;
+    EntryKeyData& operator=(const EntryKeyData&) = delete;
 };
 
 
@@ -94,14 +91,12 @@ public:
         const EntryKeyData* data1, const EntryKeyData* data2) const;
     std::string toString() const;
 
+    EntryKeyDataInt(const EntryKeyDataInt&) = delete;
+    EntryKeyDataInt& operator=(const EntryKeyDataInt&) = delete;
+
 private:
     /// Integer data.
     int data_;
-
-    /// Copying not allowed.
-    EntryKeyDataInt(const EntryKeyDataInt&);
-    /// Assignment not allowed.
-    EntryKeyDataInt& operator=(const EntryKeyDataInt&);
 };
 
 
@@ -122,14 +117,12 @@ public:
         const EntryKeyData* data1, const EntryKeyData* data2) const;
     std::string toString() const;
 
+    EntryKeyDataDouble(const EntryKeyDataDouble&) = delete;
+    EntryKeyDataDouble& operator=(const EntryKeyDataDouble&) = delete;
+
 private:
     /// Double data.
     double data_;
-
-    /// Copying not allowed.
-    EntryKeyDataDouble(const EntryKeyDataDouble&);
-    /// Assignment not allowed.
-    EntryKeyDataDouble& operator=(const EntryKeyDataDouble&);
 };
 
 
@@ -150,14 +143,13 @@ public:
         const EntryKeyData* data1, const EntryKeyData* data2) const;
     std::string toString() const;
 
+    EntryKeyDataOperationSet(const EntryKeyDataOperationSet&) = delete;
+    EntryKeyDataOperationSet&
+    operator=(const EntryKeyDataOperationSet&) = delete;
+
 private:
     /// Operation set data.
     std::set<std::string> data_;
-    
-    /// Copying not allowed.
-    EntryKeyDataOperationSet(const EntryKeyDataOperationSet&);
-    /// Assignment not allowed.
-    EntryKeyDataOperationSet& operator=(const EntryKeyDataOperationSet&);
 };
 
 /**
@@ -177,14 +169,12 @@ public:
         const EntryKeyData* data1, const EntryKeyData* data2) const;
     std::string toString() const;
 
+    EntryKeyDataBool(const EntryKeyDataBool&) = delete;
+    EntryKeyDataBool& operator=(const EntryKeyDataBool&) = delete;
+
 private:
     /// Boolean data.
     bool data_;
-    
-    /// Copying not allowed.
-    EntryKeyDataBool(const EntryKeyDataBool&);
-    /// Assignment not allowed.
-    EntryKeyDataBool& operator=(const EntryKeyDataBool&);
 };
 
 /**
@@ -204,14 +194,13 @@ public:
         const EntryKeyData* data1, const EntryKeyData* data2) const;
     std::string toString() const;
 
+    EntryKeyDataFunctionUnit(const EntryKeyDataFunctionUnit&) = delete;
+    EntryKeyDataFunctionUnit&
+    operator=(const EntryKeyDataFunctionUnit&) = delete;
+
 private:
     /// FunctionUnit* data.
     const TTAMachine::FunctionUnit* data_;
-    
-    /// Copying not allowed.
-    EntryKeyDataFunctionUnit(const EntryKeyDataFunctionUnit&);
-    /// Assignment not allowed.
-    EntryKeyDataFunctionUnit& operator=(const EntryKeyDataFunctionUnit&);
 };
 
 #endif

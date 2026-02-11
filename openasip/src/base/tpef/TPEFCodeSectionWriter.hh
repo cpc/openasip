@@ -59,12 +59,10 @@ protected:
     virtual void writeInfo(BinaryStream& stream, const Section* sect) const;
     virtual void writeId(BinaryStream& stream, HalfWord id) const;
 
-private:
-    /// Copying not allowed.
-    TPEFCodeSectionWriter(const TPEFCodeSectionWriter&);
-    /// Assignment not allowed.
-    TPEFCodeSectionWriter& operator=(const TPEFCodeSectionWriter&);
+    TPEFCodeSectionWriter(const TPEFCodeSectionWriter&) = delete;
+    TPEFCodeSectionWriter& operator=(const TPEFCodeSectionWriter&) = delete;
 
+private:
     void writeAttributeField(
         BinaryStream& stream,
         SectionElement* elem,

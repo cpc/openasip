@@ -43,20 +43,16 @@ class DisassemblyElement;
  */
 class DisassemblyMove : public DisassemblyInstructionSlot {
 public:
-    DisassemblyMove(
-        DisassemblyElement* source,
-        DisassemblyElement* destination,
-        DisassemblyGuard* guard = NULL);        
-    
+    DisassemblyMove(DisassemblyElement* source,
+        DisassemblyElement* destination, DisassemblyGuard* guard = NULL);
+
     virtual ~DisassemblyMove();
     virtual std::string toString() const;
 
-private:
-    /// Coying not allowed.
-    DisassemblyMove(const DisassemblyMove&);
-    /// Assignment not allowed.
-    DisassemblyMove& operator=(const DisassemblyMove&);
+    DisassemblyMove(const DisassemblyMove&) = delete;
+    DisassemblyMove& operator=(const DisassemblyMove&) = delete;
 
+private:
     /// The source of the move.
     DisassemblyElement* source_;
     /// The destination of the move.

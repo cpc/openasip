@@ -103,7 +103,7 @@ public:
 
     virtual TCEString name() const;
     virtual TCEString description() const;
-    
+
     virtual void addDag(const TCEString& code);
     virtual void removeDag(int index);
     virtual int dagCount() const;
@@ -138,7 +138,7 @@ public:
     virtual void setBranch(bool setting);
     virtual void setControlFlowOperation(bool setting);
     virtual bool isPure() const;
-    
+
     virtual Operand& input(int index) const;
     virtual void addInput(Operand* operand);
     virtual Operand& output(int index) const;
@@ -175,7 +175,7 @@ public:
     bool isNull() const;
 
     TCEString emulationFunctionName() const;
-   
+
     OperationPimpl& impl() { return *pimpl_; }
 private:
     /// Private implementation in a separate source file.
@@ -211,7 +211,7 @@ public:
     virtual bool isClocked() const;
     virtual bool isControlFlowOperation() const;
     virtual bool isCall() const;
-    virtual bool isBranch() const;    
+    virtual bool isBranch() const;
     virtual bool dependsOn(const Operation& op) const;
     virtual int affectsCount() const;
     virtual int affectedByCount() const;
@@ -225,7 +225,7 @@ public:
 
     virtual void setBehavior(OperationBehavior& behavior);
     virtual OperationBehavior& behavior() const;
-    
+
     virtual bool simulateTrigger(
         SimValue**,
         OperationContext& context) const;
@@ -233,15 +233,13 @@ public:
     virtual void createState(OperationContext& context) const;
     virtual void deleteState(OperationContext& context) const;
 
+    NullOperation(const NullOperation&) = delete;
+    NullOperation& operator=(const NullOperation&) = delete;
+
 protected:
-    /// Some gcc versions warn about private constructors.
     NullOperation();
+
 private:
-    /// Copying not allowed.
-    NullOperation(const NullOperation&);
-    /// Assignment not allowed.
-    NullOperation& operator=(const NullOperation&);
-    
     /// Unique instance of NullOperation.
     static NullOperation instance_;
 };

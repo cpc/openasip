@@ -51,11 +51,8 @@ public:
     virtual bool isEnabled();
     virtual std::string icon() const;
 
-private:
-    /// Copying not allowed.
-    OSEdMemoryCmd(const OSEdMemoryCmd&);
-    /// Assignment not allowed.
-    OSEdMemoryCmd& operator=(const OSEdMemoryCmd&);
+    OSEdMemoryCmd(const OSEdMemoryCmd&) = delete;
+    OSEdMemoryCmd& operator=(const OSEdMemoryCmd&) = delete;
 };
 
 #endif

@@ -54,12 +54,8 @@ class LongImmediateRegisterState;
  */
 class LongImmediateUnitState : public ClockedState {
 public:
-    LongImmediateUnitState(
-        int size, 
-        int latency, 
-        const std::string& name, 
-        int width, 
-        bool signExtend);
+    LongImmediateUnitState(int size, int latency, const std::string& name,
+        int width, bool signExtend);
     virtual ~LongImmediateUnitState();
 
     virtual SimValue& registerValue(int index);
@@ -71,12 +67,10 @@ public:
     virtual void endClock();
     virtual void advanceClock();
 
+    LongImmediateUnitState(const LongImmediateUnitState&) = delete;
+    LongImmediateUnitState& operator=(const LongImmediateUnitState&) = delete;
+
 private:
-    /// Copying not allowed.
-    LongImmediateUnitState(const LongImmediateUnitState&);
-    /// Assignment not allowed.
-    LongImmediateUnitState& operator=(const LongImmediateUnitState&);
-    
     void clear();
 
     /**
@@ -89,7 +83,7 @@ private:
         Item() : arrival_(0), value_(64), index_(0) {}
         Item(SimValue value, int index, unsigned arrival)
             : arrival_(arrival), value_(value), index_(index) {}
-      
+
         /// Timer of the item.
         unsigned arrival_;
         /// Value of the item.
@@ -97,7 +91,7 @@ private:
         /// Index of the item.
         int index_;
     };
-    
+
     typedef std::queue<Item> ItemQueue;
     typedef std::vector<LongImmediateRegisterState*> RegisterContainer;
     typedef std::vector<SimValue> ValueContainer;
@@ -140,13 +134,14 @@ public:
     virtual void endClock();
     virtual void advanceClock();
 
-private:
-    NullLongImmediateUnitState();
-    /// Copying not allowed.
-    NullLongImmediateUnitState(const NullLongImmediateUnitState&);
-    /// Assignment not allowed.
-    NullLongImmediateUnitState& operator=(const NullLongImmediateUnitState&);
+    NullLongImmediateUnitState(const NullLongImmediateUnitState&) = delete;
+    NullLongImmediateUnitState&
+    operator=(const NullLongImmediateUnitState&) = delete;
 
+protected:
+    NullLongImmediateUnitState();
+
+private:
     /// Unique instance of NullLongImmediateUnitState.
     static NullLongImmediateUnitState* instance_;
 };

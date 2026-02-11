@@ -65,6 +65,9 @@ public:
     int fieldCount() const;
     const EntryKeyField& field(int index) const;
 
+    CostDBEntryKey(const CostDBEntryKey&) = delete;
+    CostDBEntryKey& operator=(const CostDBEntryKey&) = delete;
+
 private:
     /// Table of entry fields.
     typedef std::vector<EntryKeyField*> FieldTable;
@@ -73,11 +76,6 @@ private:
     const EntryKeyProperty* type_;
     /// Fields of the entry key.
     FieldTable fields_;
-
-    /// Copying not allowed.
-    CostDBEntryKey(const CostDBEntryKey&);
-    /// Assignment not allowed.
-    CostDBEntryKey& operator=(const CostDBEntryKey&);
 };
 
 #include "CostDBEntryKey.icc"

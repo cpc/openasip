@@ -52,16 +52,14 @@ class OperationBehaviorLoader;
  *
  * A first time operation calls simulateTrigger()
  * proxy creates the appropriate operation behavior model for the operation.
- * Proxy replaces itself in the operation with the newly created behavior 
+ * Proxy replaces itself in the operation with the newly created behavior
  * model. That new model then executes all simulation functions.
  */
 class OperationBehaviorProxy : public OperationBehavior {
 public:
-    OperationBehaviorProxy(
-        Operation& targetOperation, 
-        OperationBehaviorLoader& loader,
-        bool alwaysReloadBehavior=false);
-    
+    OperationBehaviorProxy(Operation& targetOperation,
+        OperationBehaviorLoader& loader, bool alwaysReloadBehavior = false);
+
     virtual ~OperationBehaviorProxy();
 
     virtual bool simulateTrigger(
@@ -76,14 +74,12 @@ public:
     virtual void setAlwaysReloadBehavior(bool f) { alwaysReloadBehavior_ = f; }
     void uninitializeBehavior() const;
 
-private:
-    /// Copying not allowed.
-    OperationBehaviorProxy(const OperationBehaviorProxy&);
-    /// Assignment not allowed.
-    OperationBehaviorProxy& operator=(const OperationBehaviorProxy&);
+    OperationBehaviorProxy(const OperationBehaviorProxy&) = delete;
+    OperationBehaviorProxy& operator=(const OperationBehaviorProxy&) = delete;
 
+private:
     void initializeBehavior() const;
-   
+
     /// Operation that owns this proxy;
     Operation* target_;
     /// Used to load behavior model for operation.

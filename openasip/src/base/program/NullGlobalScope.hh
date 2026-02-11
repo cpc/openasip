@@ -45,15 +45,13 @@ public:
     virtual ~NullGlobalScope();
     static NullGlobalScope& instance();
 
+    NullGlobalScope(const NullGlobalScope&) = delete;
+    NullGlobalScope& operator=(const NullGlobalScope&) = delete;
+
 protected:
     NullGlobalScope();
 
 private:
-    /// Copying not allowed.
-    NullGlobalScope(const NullGlobalScope&);
-    /// Assignment not allowed.
-    NullGlobalScope& operator=(const NullGlobalScope&);
-
     /// Unique instance of NullGlobalScope.
     static NullGlobalScope instance_;
 };

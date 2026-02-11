@@ -51,11 +51,8 @@ public:
     virtual bool isEnabled();
     virtual std::string icon() const;
 
-private:
-    /// Copying not allowed.
-    OSEdPropertiesCmd(const OSEdPropertiesCmd&);
-    /// Assignment not allowed.
-    OSEdPropertiesCmd& operator=(const OSEdPropertiesCmd&);
+    OSEdPropertiesCmd(const OSEdPropertiesCmd&) = delete;
+    OSEdPropertiesCmd& operator=(const OSEdPropertiesCmd&) = delete;
 };
 
 #endif

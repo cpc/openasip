@@ -60,9 +60,9 @@ class CompiledSimSymbolGenerator;
 
 /**
  * A class that generates C/C++ code for FU conflict detection cases
- * 
+ *
  * Used for the compiled simulation
- * 
+ *
  */
 class ConflictDetectionCodeGenerator {
 public:
@@ -71,7 +71,7 @@ public:
         const CompiledSimSymbolGenerator&,
         bool conflictDetectionEnabled = false);
     virtual ~ConflictDetectionCodeGenerator();
-    
+
     std::string includes();
     std::string symbolDeclaration(const TTAMachine::FunctionUnit& fu);
     std::string extraInitialization();
@@ -79,21 +79,21 @@ public:
     std::string updateSymbolDeclarations();
     std::string advanceClockCode();
     std::string detectConflicts(const TTAMachine::HWOperation& op);
-    
+
     bool conflictDetectionEnabled() const;
-    
+
+    ConflictDetectionCodeGenerator(
+        const ConflictDetectionCodeGenerator&) = delete;
+    ConflictDetectionCodeGenerator&
+    operator=(const ConflictDetectionCodeGenerator&) = delete;
+
 private:
-    /// Copying not allowed.
-    ConflictDetectionCodeGenerator(const ConflictDetectionCodeGenerator&);
-    /// Assignment not allowed.
-    ConflictDetectionCodeGenerator& operator=(const ConflictDetectionCodeGenerator&);
-    
     /// The machine
     const TTAMachine::Machine& machine_;
-    
+
     /// True, if the conflict detection is enabled
     bool conflictDetectionEnabled_;
-    
+
     /// The FU resource conflict detector used, empty string if disabled.
     std::string conflictDetectorType_;
     /// The method in the resource conflict detector used to detect conflicts, 
@@ -104,12 +104,12 @@ private:
     /// A method to be called on the conflict detector for initialization,
     /// empty if none.
     std::string conflictDetectorExtraInitMethod_;
-    
+
     /// 1=fu.name(), 2=conflict detector object name
     typedef std::map<std::string, std::string> ConflictDetectorObjectNameMap;
     /// The resource conflict detector object name for each FU if any.
     ConflictDetectorObjectNameMap conflictDetectors_;
-    
+
     /// Symbol generator
     const CompiledSimSymbolGenerator& symbolGen_;
 };

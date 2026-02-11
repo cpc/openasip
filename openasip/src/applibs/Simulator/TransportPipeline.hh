@@ -25,7 +25,7 @@
  * @file TransportPipeline.hh
  *
  * Declaration of TransportPipeline class.
- * 
+ *
  * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
  * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
@@ -59,11 +59,10 @@ public:
     bool hasPendingOperations() const {
         return true;
     }
-   
+
+    TransportPipeline& operator=(const TransportPipeline&) = delete;
+
 private:
-    /// Assignment not allowed.
-    TransportPipeline& operator=(const TransportPipeline&);
-    
     /// Operation to be triggered next.
     Operation* operation_;
     /// Operation context used to fetch the values for PC and RA.

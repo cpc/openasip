@@ -43,19 +43,14 @@
  */
 class ResultDialog : public wxDialog {
 public:
-    ResultDialog(
-        wxWindow* parent, 
-        std::vector<std::string> output,
-        const std::string& title,
-        const std::string& module = "");
+    ResultDialog(wxWindow* parent, std::vector<std::string> output,
+        const std::string& title, const std::string& module = "");
     virtual ~ResultDialog();
 
+    ResultDialog(const ResultDialog&) = delete;
+    ResultDialog operator=(const ResultDialog&) = delete;
+
 private:
-    /// Copying not allowed.
-    ResultDialog(const ResultDialog&);
-    /// Assignment not allowed.
-    ResultDialog operator=(const ResultDialog&);
-    
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     void setTexts();
     virtual bool TransferDataToWindow();

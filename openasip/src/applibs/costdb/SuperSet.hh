@@ -53,11 +53,8 @@ public:
     SuperSet(const EntryKeyFieldProperty* type);
     virtual ~SuperSet();
 
-private:
-    /// Copying not allowed.
-    SuperSet(const SuperSet&);
-    /// Assignment not allowed.
-    SuperSet& operator=(const SuperSet&);
+    SuperSet(const SuperSet&) = delete;
+    SuperSet& operator=(const SuperSet&) = delete;
 };
 
 #endif

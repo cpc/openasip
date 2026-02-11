@@ -37,7 +37,7 @@
 class EditPart;
 class Request;
 class ComponentCommand;
- 
+
 /**
  * Determines how an EditPart acts when a Request is performed on it.
  *
@@ -69,15 +69,12 @@ public:
      */
     virtual bool canHandle(Request* request) const = 0;
 
+    EditPolicy& operator=(EditPolicy& old) = delete;
+    EditPolicy(EditPolicy& old) = delete;
+
 protected:
     /// Host EditPart of this EditPolicy.
     EditPart* host_;
-
-private:
-    /// Assignment not allowed.
-    EditPolicy& operator=(EditPolicy& old);
-    /// Copying not allowed.
-    EditPolicy(EditPolicy& old);
 };
 
 #include "EditPolicy.icc"

@@ -52,6 +52,10 @@ class AOutRelocationSectionReader : public AOutSectionReader {
 public:
     virtual ~AOutRelocationSectionReader();
 
+    AOutRelocationSectionReader(const AOutRelocationSectionReader&) = delete;
+    AOutRelocationSectionReader&
+    operator=(AOutRelocationSectionReader&) = delete;
+
 protected:
     AOutRelocationSectionReader();
 
@@ -66,10 +70,10 @@ private:
      * Relocation types of a.out
      */
     enum RelocType {
-        RELOC_8,   ///< 1 byte relocation 
-        RELOC_16,  ///< 2 bytes relocation 
-        RELOC_32,  ///< 4 bytes relocation
-        NO_RELOC   ///< no relocation
+        RELOC_8,  ///< 1 byte relocation
+        RELOC_16, ///< 2 bytes relocation
+        RELOC_32, ///< 4 bytes relocation
+        NO_RELOC  ///< no relocation
     };
 
     void initializeRelocElement(
@@ -77,11 +81,6 @@ private:
         AOutReader* reader) const;
 
     bool checkIfExtern(Word word) const;
-
-    /// Copying not allowed.
-    AOutRelocationSectionReader(const AOutRelocationSectionReader&);
-    /// Assignment not allowed.
-    AOutRelocationSectionReader& operator=(AOutRelocationSectionReader&);
 
     RelocElement::RelocType aOutToTPEFRelocType(
         RelocType aOutRelocType) const;

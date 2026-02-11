@@ -67,12 +67,10 @@ public:
     InstructionMemory* build(
         const TTAProgram::Program& prog, MachineState& state);
 
-private:
-    /// Copying not allowed.
-    SimProgramBuilder(const SimProgramBuilder&);
-    /// Assignment not allowed.
-    SimProgramBuilder& operator=(const SimProgramBuilder&);
+    SimProgramBuilder(const SimProgramBuilder&) = delete;
+    SimProgramBuilder& operator=(const SimProgramBuilder&) = delete;
 
+private:
     StateData* processBidirTerminal(
         const TTAProgram::Terminal& theTerminal, MachineState& state);
 

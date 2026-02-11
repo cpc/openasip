@@ -44,7 +44,7 @@
  * Tcl implementation of ScriptInterpreter.
  *
  * Tcl (Tool command language) is a very simple programming language. In TCE
- * it is used for command language for Simulator. (Maybe for some other 
+ * it is used for command language for Simulator. (Maybe for some other
  * application too.)
  *
  * Is able to interpret all tcl commands and user defined CustomCommands.
@@ -72,12 +72,12 @@ public:
     virtual bool processScriptFile(const std::string& scriptFileName);
 
     static int customCommandRedirector(
-        ClientData cd,
-        Tcl_Interp* interp,
-        int objc, 
-        Tcl_Obj *CONST objv[]);
+        ClientData cd, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 
     virtual InterpreterContext& context() const;
+
+    TclInterpreter(const TclInterpreter&) = delete;
+    TclInterpreter& operator=(const TclInterpreter&) = delete;
 
 protected:
     virtual void addCustomCommandToInterpreter(const CustomCommand& command);
@@ -85,11 +85,6 @@ protected:
         const CustomCommand& command);
 
 private:
-    /// Copying not allowed.
-    TclInterpreter(const TclInterpreter&);
-    /// Assignment not allowed
-    TclInterpreter& operator=(const TclInterpreter&);
-
     /// Context for interpreter.
     InterpreterContext* context_;
     /// Interpreter instance.

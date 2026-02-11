@@ -45,7 +45,7 @@ class RegisterState;
 
 /**
  * Class that manages RegisterState objects.
- */ 
+ */
 class RegisterFileState {
 public:
     explicit RegisterFileState(int size, int width,
@@ -56,12 +56,10 @@ public:
 
     virtual std::size_t registerCount() const;
 
-private:
-    /// Copying not allowed.
-    RegisterFileState(const RegisterFileState&);
-    /// Assignment not allowed.
-    RegisterFileState& operator=(const RegisterFileState);
+    RegisterFileState(const RegisterFileState&) = delete;
+    RegisterFileState& operator=(const RegisterFileState) = delete;
 
+private:
     /// Contains all the registers of the state.
     std::vector<RegisterState*> registerStates_;
     // Zero register flag
@@ -83,13 +81,13 @@ public:
 
     virtual RegisterState& registerState(int index);
 
-private:
-    NullRegisterFileState();
-    /// Copying not allowed.
-    NullRegisterFileState(const NullRegisterFileState&);
-    /// Assignment not allowed.
-    NullRegisterFileState& operator=(const NullRegisterFileState&);
+    NullRegisterFileState(const NullRegisterFileState&) = delete;
+    NullRegisterFileState& operator=(const NullRegisterFileState&) = delete;
 
+protected:
+    NullRegisterFileState();
+
+private:
     /// Unique instance of NullRegisterFileState.
     static NullRegisterFileState* instance_;
 };

@@ -47,16 +47,13 @@ class SocketContainerFigure : public Figure {
 public:
     SocketContainerFigure();
     virtual ~SocketContainerFigure();
-    
+
+    SocketContainerFigure& operator=(SocketContainerFigure& old) = delete;
+    SocketContainerFigure(SocketContainerFigure& old) = delete;
+
 protected:
     virtual void layoutChildren(wxDC*);
     virtual void layoutSelf(wxDC*);
-
-private:
-    /// Assignment not allowed.
-    SocketContainerFigure& operator=(SocketContainerFigure& old);
-    /// Copying not allowed.
-    SocketContainerFigure(SocketContainerFigure& old);
 };
 
 #endif

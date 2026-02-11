@@ -81,24 +81,21 @@ public:
 
     Operation* effectiveOperation(const TCEString& name);
 
+    OperationIndex(const OperationIndex&) = delete;
+    OperationIndex& operator=(const OperationIndex&) = delete;
+
 private:
     /// Contains all operation modules indexed by full path names.
     typedef std::map<std::string, std::vector<OperationModule*> >
         ModuleTable;
-    /// Contains all object state trees of modules indexed by operation 
-    ///definition module names.
+    /// Contains all object state trees of modules indexed by operation
+    /// definition module names.
     typedef std::map<std::string, ObjectState*> DefinitionTable;
-   
-    /// Copying not allowed.
-    OperationIndex(const OperationIndex&);
-    /// Assignment not allowed.
-    OperationIndex& operator=(const OperationIndex&);
 
     void readOperations(const OperationModule& module);
 
-    OperationModule& moduleOf(
-        const std::string& path, 
-        const std::string& operName);
+    OperationModule&
+    moduleOf(const std::string& path, const std::string& operName);
 
     /// List of paths searched for the operation modules.
     std::vector<std::string> paths_;

@@ -56,19 +56,18 @@ public:
     void loadOperationProperties(
         Operation& operation, const OperationModule& module);
 
+    OperationPropertyLoader(const OperationPropertyLoader&) = delete;
+    OperationPropertyLoader&
+    operator=(const OperationPropertyLoader&) = delete;
+
 private:
     /// Container containing already read ObjectState trees.
     typedef std::map<std::string, std::vector<ObjectState*> > ObjectStateCache;
-    
+
     /// Iterator for map containing already read ObjectState trees.
     typedef ObjectStateCache::iterator MapIter;
     /// value_type for map containing already read ObjectState trees.
     typedef ObjectStateCache::value_type ValueType;
-
-    /// Copying not allowed.
-    OperationPropertyLoader(const OperationPropertyLoader&);
-    /// Assignment not allowed.
-    OperationPropertyLoader& operator=(const OperationPropertyLoader&);
 
     void loadModule(const OperationModule& module);
 

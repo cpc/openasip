@@ -47,10 +47,10 @@ class OperationContextPimpl;
 #define DEFAULT_FU_NAME "unnamed_fu"
 
 /**
- * OperationContext is used to store any implementation and context dependent 
- * data that may affect the result of an operation. 
+ * OperationContext is used to store any implementation and context dependent
+ * data that may affect the result of an operation.
  *
- * In typical client applications, operation implementations are related to 
+ * In typical client applications, operation implementations are related to
  * a function unit.
  */
 class OperationContext {
@@ -63,9 +63,9 @@ public:
         InstructionAddress& programCounter,
         SimValue& returnAddress,
         int delayCycles);
-    
+
     OperationContext(const OperationContext&);
-    
+
     OperationState& state(const char* name) const;
 
     /// Type of state registry.
@@ -106,9 +106,9 @@ public:
     CycleCount cycleCount() const;
     void setCycleCountVariable(CycleCount& cycleCount);
 
+    OperationContext& operator=(const OperationContext&) = delete;
+
 private:
-    /// Assignment not allowed
-    OperationContext& operator=(const OperationContext&);
     /// Implementation in separate source file to speed up compiling.
     OperationContextPimpl* pimpl_;
 };

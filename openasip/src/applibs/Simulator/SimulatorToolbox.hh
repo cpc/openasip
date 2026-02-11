@@ -58,18 +58,16 @@ public:
 
     static OperationPool& operationPool();
     static SimulatorTextGenerator& textGenerator();
-    
+
     static boost::regex fuPortRegex();
 
+    SimulatorToolbox(const SimulatorToolbox&) = delete;
+    SimulatorToolbox& operator=(const SimulatorToolbox&) = delete;
+
 protected:
-    /// Instantiation not allowed.
     SimulatorToolbox();
 
 private:
-    /// Copying not allowed.
-    SimulatorToolbox(const SimulatorToolbox&);
-    /// Assignment not allowed.
-    SimulatorToolbox& operator=(const SimulatorToolbox&);
 
     /// Global instance of OperationPool.
     static OperationPool* pool_;

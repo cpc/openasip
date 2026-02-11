@@ -51,16 +51,15 @@ public:
 
     std::string name() const;
     std::string entryName() const;
+
+    EntryKeyFieldProperty(const EntryKeyFieldProperty&) = delete;
+    EntryKeyFieldProperty& operator=(const EntryKeyFieldProperty&) = delete;
+
 private:
     /// Field type.
     std::string name_;
     /// Entry type in which the field belongs to.
     const EntryKeyProperty* parent_;
-
-    /// Copying not allowed.
-    EntryKeyFieldProperty(const EntryKeyFieldProperty&);
-    /// Assignment not allowed.
-    EntryKeyFieldProperty& operator=(const EntryKeyFieldProperty&);
 };
 
 #include "EntryKeyFieldProperty.icc"

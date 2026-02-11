@@ -43,12 +43,10 @@ public:
     OSEdOptionsDialog(wxWindow* parent);
     virtual ~OSEdOptionsDialog();
 
-private:
-    /// Copying not allowed.
-    OSEdOptionsDialog(const OSEdOptionsDialog&);
-    /// Assignment not allowed.
-    OSEdOptionsDialog& operator=(const OSEdOptionsDialog&);
+    OSEdOptionsDialog(const OSEdOptionsDialog&) = delete;
+    OSEdOptionsDialog& operator=(const OSEdOptionsDialog&) = delete;
 
+private:
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     void setTexts();
     bool TransferDataToWindow();

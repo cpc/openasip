@@ -75,14 +75,13 @@ public:
     void addInstruction(Instruction& ins);
     void insertInstructionAfter(const Instruction& pos, Instruction* ins);
 
+    NullProcedure(const NullProcedure&) = delete;
+    NullProcedure& operator=(const NullProcedure&) = delete;
+
 protected:
     NullProcedure();
 
 private:
-    /// Copying not allowed.
-    NullProcedure(const NullProcedure&);
-    /// Assignment not allowed.
-    NullProcedure& operator=(const NullProcedure&);
 
     /// Unique instance of NullProcedure.
     static NullProcedure instance_;

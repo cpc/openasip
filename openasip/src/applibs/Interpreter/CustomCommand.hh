@@ -32,7 +32,7 @@
  * @note rating: green
  */
 
-#ifndef TTA_CUSTOM_COMMAND_HH 
+#ifndef TTA_CUSTOM_COMMAND_HH
 #define TTA_CUSTOM_COMMAND_HH
 
 #include <string>
@@ -70,15 +70,14 @@ public:
     virtual std::string helpText() const = 0;
 
     bool checkArgumentCount(int argumentCount, int minimum, int maximum);
-    bool checkIntegerArgument(const DataObject& argument);    
+    bool checkIntegerArgument(const DataObject& argument);
     bool checkPositiveIntegerArgument(const DataObject& argument);
     bool checkUnsignedIntegerArgument(const DataObject& argument);
     bool checkDoubleArgument(const DataObject& argument);
 
+    CustomCommand& operator=(const CustomCommand&) = delete;
+
 private:
-    /// Assignment not allowed.
-    CustomCommand& operator=(const CustomCommand&);
-    
     /// The name of the command.
     std::string name_;
     /// Context of the command.

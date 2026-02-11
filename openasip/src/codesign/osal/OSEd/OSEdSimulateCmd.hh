@@ -44,19 +44,15 @@ class OSEdSimulateCmd : public GUICommand {
 public:
     OSEdSimulateCmd();
     virtual ~OSEdSimulateCmd();
-	
+
     virtual int id() const;
     virtual GUICommand* create() const;
     virtual bool Do();
     virtual bool isEnabled();
     virtual std::string icon() const;
 
-private:
-    /// Copying not allowed.
-    OSEdSimulateCmd(const OSEdSimulateCmd&);
-    /// Assignment not allowed.
-    OSEdSimulateCmd& operator=(const OSEdSimulateCmd&);
-
+    OSEdSimulateCmd(const OSEdSimulateCmd&) = delete;
+    OSEdSimulateCmd& operator=(const OSEdSimulateCmd&) = delete;
 };
 
 #endif

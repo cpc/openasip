@@ -51,11 +51,8 @@ public:
     virtual bool isEnabled();
     virtual std::string icon() const;
 
-private:
-    /// Copying not allowed.
-    OSEdBuildAllCmd(const OSEdBuildAllCmd&);
-    /// Assignment not allowed.
-    OSEdBuildAllCmd& operator=(const OSEdBuildAllCmd&);
+    OSEdBuildAllCmd(const OSEdBuildAllCmd&) = delete;
+    OSEdBuildAllCmd& operator=(const OSEdBuildAllCmd&) = delete;
 };
 
 #endif

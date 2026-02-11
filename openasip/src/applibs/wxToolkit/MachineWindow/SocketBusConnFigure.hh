@@ -48,17 +48,15 @@ public:
     SocketBusConnFigure();
     virtual ~SocketBusConnFigure();
 
+    SocketBusConnFigure& operator=(SocketBusConnFigure& old) = delete;
+    SocketBusConnFigure(SocketBusConnFigure& old) = delete;
+
 protected:
     virtual void drawSelf(wxDC* dc);
     virtual void drawConnection(wxDC* dc);
     virtual void layoutSelf(wxDC* dc);
 
 private:
-    /// Assignment not allowed.
-    SocketBusConnFigure& operator=(SocketBusConnFigure& old);
-    /// Copying not allowed.
-    SocketBusConnFigure(SocketBusConnFigure& old);
-
     /// Default colour for the figure.
     static const wxColour DEFAULT_COLOUR;
 };

@@ -55,11 +55,8 @@ public:
         std::istream& iStream = std::cin, std::ostream& oStream = std::cout);
     virtual ~LineReader();
 
-    virtual void initialize(
-        std::string defPrompt = "",
-        FILE* in = stdin, 
-        FILE* out = stdout, 
-        FILE* err = stderr) = 0;
+    virtual void initialize(std::string defPrompt = "", FILE* in = stdin,
+        FILE* out = stdout, FILE* err = stderr) = 0;
 
     virtual std::string readLine(std::string prompt = "") = 0;
 
@@ -81,16 +78,15 @@ public:
     virtual std::size_t inputsInHistory() const;
     virtual std::string inputHistoryEntry(std::size_t age) const;
 
+    LineReader(const LineReader&) = delete;
+    LineReader& operator=(const LineReader&) = delete;
+
 protected:
     void setInitialized();
     bool initialized() const;
     void putInInputHistory(const std::string& inputLine);
 
 private:
-    /// Copying not allowed.
-    LineReader(const LineReader&);
-    /// Assignment not allowed.
-    LineReader& operator=(const LineReader&);
     /// Flag indicating whether LineReader is initialized.
     bool initialized_;
     /// The input history.
@@ -100,7 +96,7 @@ private:
     /// Should the history be appended in a file?
     bool saveHistoryToFile_;
     /// The output stream to write the command history to.
-    std::ofstream* historyFile_; 
+    std::ofstream* historyFile_;
     /// The filename to write the command history to.
     std::string historyFilename_;
     /// The input stream.

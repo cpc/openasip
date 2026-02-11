@@ -54,11 +54,8 @@ public:
     virtual ComponentCommand* getCommand(Request* request);
     virtual bool canHandle(Request* request) const;
 
-private:
-    /// Assignment not allowed.
-    ProDeBusEditPolicy& operator=(ProDeBusEditPolicy& old);
-    /// Copying not allowed.
-    ProDeBusEditPolicy(ProDeBusEditPolicy& old);
+    ProDeBusEditPolicy(ProDeBusEditPolicy& old) = delete;
+    ProDeBusEditPolicy& operator=(ProDeBusEditPolicy& old) = delete;
 };
 
 #endif

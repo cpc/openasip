@@ -55,10 +55,10 @@ public:
     virtual OperationExecutor* copy();
     virtual void setContext(OperationContext& context);
 
-private:
-    /// Assignment not allowed.
-    OneCycleOperationExecutor& operator=(const OneCycleOperationExecutor&);
+    OneCycleOperationExecutor&
+    operator=(const OneCycleOperationExecutor&) = delete;
 
+private:
     void initializeIOVector();
 
     /// Operation context.
@@ -66,7 +66,7 @@ private:
     /// Operation to be executed next.
     Operation* operation_;
     /// Inputs and outputs for the operation.
-    SimValue** io_;   
+    SimValue** io_;
     /// True if all the results are ready.
     bool ready_;
     /// True if the io_ vector is initialized-

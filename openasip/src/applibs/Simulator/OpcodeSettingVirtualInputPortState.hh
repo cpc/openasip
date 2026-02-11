@@ -27,7 +27,7 @@
  * Declaration of OpcodeSettingVirtualInputPortState class.
  *
  * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi) 
+ * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -50,16 +50,11 @@ class OperationExecutor;
  */
 class OpcodeSettingVirtualInputPortState : public InputPortState {
 public:
-    OpcodeSettingVirtualInputPortState(
-        Operation& operation, 
-        OperationExecutor& executor,
-        FUState& parent, 
-        InputPortState& real);
+    OpcodeSettingVirtualInputPortState(Operation& operation,
+        OperationExecutor& executor, FUState& parent, InputPortState& real);
 
     OpcodeSettingVirtualInputPortState(
-        Operation& operation, 
-        FUState& parent, 
-        InputPortState& real);
+        Operation& operation, FUState& parent, InputPortState& real);
 
     virtual ~OpcodeSettingVirtualInputPortState();
 
@@ -68,13 +63,12 @@ public:
 
     InputPortState* realPort() const;
 
-private:
-    /// Copying not allowed.
     OpcodeSettingVirtualInputPortState(
-        const OpcodeSettingVirtualInputPortState&);
-    /// Assignment not allowed.
-    OpcodeSettingVirtualInputPortState& operator=(
-        const OpcodeSettingVirtualInputPortState&);
+        const OpcodeSettingVirtualInputPortState&) = delete;
+    OpcodeSettingVirtualInputPortState&
+    operator=(const OpcodeSettingVirtualInputPortState&) = delete;
+
+private:
     /// Operation of the port.
     Operation& operation_;
     /// Operation executor used to execute the operation in the target FU,

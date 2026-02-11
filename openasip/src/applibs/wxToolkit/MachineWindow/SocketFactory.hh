@@ -51,11 +51,8 @@ public:
 
     virtual EditPart* createEditPart(TTAMachine::MachinePart* component);
 
-private:
-    /// Assignment not allowed.
-    SocketFactory& operator=(SocketFactory& old);
-    /// Copying not allowed.
-    SocketFactory(SocketFactory& old);
+    SocketFactory& operator=(SocketFactory& old) = delete;
+    SocketFactory(SocketFactory& old) = delete;
 };
 
 #endif

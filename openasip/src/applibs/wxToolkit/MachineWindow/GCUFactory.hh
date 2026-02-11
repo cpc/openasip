@@ -49,11 +49,8 @@ public:
 
     virtual EditPart* createEditPart(TTAMachine::MachinePart* component);
 
-private:
-    /// Assignment not allowed.
-    GCUFactory& operator=(GCUFactory& old);
-    /// Copying not allowed.
-    GCUFactory(GCUFactory& old);
+    GCUFactory& operator=(GCUFactory& old) = delete;
+    GCUFactory(GCUFactory& old) = delete;
 };
 
 #endif

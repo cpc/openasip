@@ -86,6 +86,9 @@ public:
     ComponentCommand* performRequest(Request* request) const;
     bool canHandle(Request* request) const;
 
+    EditPart& operator=(EditPart& old) = delete;
+    EditPart(EditPart& old) = delete;
+
 protected:
     /// Parent of this EditPart.
     EditPart* parent_;
@@ -107,11 +110,6 @@ protected:
     std::vector<EditPart*> children_;
 
 private:
-    /// Assignment not allowed.
-    EditPart& operator=(EditPart& old);
-    /// Copying not allowed.
-    EditPart(EditPart& old);
-
     static float distance(wxPoint p, wxRect r);
 };
 

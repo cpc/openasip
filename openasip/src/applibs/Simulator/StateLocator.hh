@@ -53,21 +53,18 @@ public:
     StateLocator();
     virtual ~StateLocator();
 
-    void addState(
-        const TTAMachine::MachinePart& momComponent, 
-        StateData& state);
+    void
+    addState(const TTAMachine::MachinePart& momComponent, StateData& state);
     StateData& state(const TTAMachine::MachinePart& momComponent) const;
 
-private:
-    /// Copying not allowed.
-    StateLocator(const StateLocator&);
-    /// Assignment not allowed.
-    StateLocator& operator=(const StateLocator&);
+    StateLocator(const StateLocator&) = delete;
+    StateLocator& operator=(const StateLocator&) = delete;
 
+private:
     /// State objects indexed by MOM components.
-    typedef std::map<const TTAMachine::MachinePart*, StateData*> 
-    StateContainer;
-    
+    typedef std::map<const TTAMachine::MachinePart*, StateData*>
+        StateContainer;
+
     /// Contains all the states indexed by MOM components.
     StateContainer states_;
 };

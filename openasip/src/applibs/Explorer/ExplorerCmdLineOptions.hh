@@ -85,11 +85,8 @@ public:
     bool compilerOptions() const;
     std::string compilerOptionsString() const;
 
-private:
-    /// Copying not allowed.
-    ExplorerCmdLineOptions(const ExplorerCmdLineOptions&);
-    /// Assignment not allowed.
-    ExplorerCmdLineOptions& operator=(const ExplorerCmdLineOptions&);
+    ExplorerCmdLineOptions(const ExplorerCmdLineOptions&) = delete;
+    ExplorerCmdLineOptions& operator=(const ExplorerCmdLineOptions&) = delete;
 };
 
 #endif

@@ -128,13 +128,13 @@ public:
     void setAlwaysWriteResults(bool);
     void setTriggerInvalidatesResults(bool);
     void setFUOrdered(bool);
-    
+
     int maximumLatency() const;
 
     // functions inherited from Serializable interface
     virtual void loadState(const ObjectState* state);
     virtual ObjectState* saveState() const;
-    
+
     virtual void copyFromMachine(Machine& machine);
 
     static Machine* loadFromADF(const std::string& adfFileName);
@@ -259,10 +259,10 @@ public:
     void setLittleEndian(bool flag) { littleEndian_ = flag; }
     bool is64bit() const { return bitness64_; }
     void set64bits(bool flag) { bitness64_ = flag; }
-private:
-    /// Assignment not allowed.
-    Machine& operator=(const Machine&);
 
+    Machine& operator=(const Machine&) = delete;
+
+private:
     template <typename ContainerType, typename ComponentType>
     void addComponent(ContainerType& container, ComponentType& toAdd);
 
@@ -313,7 +313,7 @@ private:
 
     // Name of the empty instruction template created by default.
     const std::string EMPTY_ITEMP_NAME_;
-    
+
     // Result move have to be always written to register. Effectively
     // disable dead result read elimination.
     bool alwaysWriteResults_;

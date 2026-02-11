@@ -58,9 +58,12 @@ public:
     virtual void parse(char* argv[], int argc);
     virtual void parse(std::vector<std::string> options);
     virtual void storeOptions(Options& options);
-    
+
     virtual int numberOfArguments() const;
     virtual std::string argument(int index) const;
+
+    CmdLineParser(const CmdLineParser&) = delete;
+    CmdLineParser& operator=(const CmdLineParser&) = delete;
 
 protected:
     void addOption(CmdLineOptionParser* opt);
@@ -96,10 +99,6 @@ private:
     typedef
     std::map<std::string, CmdLineOptionParser*>::const_iterator constMapIter;
 
-    /// Copying not allowed.
-    CmdLineParser(const CmdLineParser&);
-    /// Assignment not allowed.
-    CmdLineParser& operator=(const CmdLineParser&);
 
     void parseAll();
 

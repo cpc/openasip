@@ -45,10 +45,8 @@
  */
 class SimulationController : public TTASimulationController {
 public:
-
-    SimulationController(
-        SimulatorFrontend& frontend,
-        const TTAMachine::Machine& machine, 
+    SimulationController(SimulatorFrontend& frontend,
+        const TTAMachine::Machine& machine,
         const TTAProgram::Program& program,
         bool fuResourceConflictDetection = true,
         bool detailedSimulation = false);
@@ -70,16 +68,14 @@ public:
     virtual MachineState& machineState(int core=-1);
     virtual const InstructionMemory& instructionMemory(int core=-1) const;
 
-    virtual std::string registerFileValue(
-        const std::string& rfName, 
-        int registerIndex = -1);
-    
+    virtual std::string
+    registerFileValue(const std::string& rfName, int registerIndex = -1);
+
     virtual SimValue immediateUnitRegisterValue(
     const std::string& iuName, int index = -1);
-    
-    virtual SimValue FUPortValue(
-        const std::string& fuName, 
-        const std::string& portName);
+
+    virtual SimValue
+    FUPortValue(const std::string& fuName, const std::string& portName);
 
 protected:
     virtual bool simulateCycle();
@@ -91,12 +87,10 @@ protected:
     /// The instruction memory models of cores.
     std::vector<InstructionMemory*> instructionMemories_;
 
-private:
-    /// Copying not allowed.
-    SimulationController(const SimulationController&);
-    /// Assignment not allowed.
-    SimulationController& operator=(const SimulationController&);
+    SimulationController(const SimulationController&) = delete;
+    SimulationController& operator=(const SimulationController&) = delete;
 
+private:
     void buildFUResourceConflictDetectors(const TTAMachine::Machine& machine);
     void findExitPoints(
         const TTAProgram::Program& program,

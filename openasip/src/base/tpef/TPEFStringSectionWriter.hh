@@ -56,12 +56,11 @@ protected:
 
     virtual Word elementSize(const Section* section) const;
 
-private:
-    /// Copying not allowed.
-    TPEFStringSectionWriter(const TPEFStringSectionWriter&);
-    /// Assignment not allowed.
-    TPEFStringSectionWriter& operator=(const TPEFStringSectionWriter&);
+    TPEFStringSectionWriter(const TPEFStringSectionWriter&) = delete;
+    TPEFStringSectionWriter&
+    operator=(const TPEFStringSectionWriter&) = delete;
 
+private:
     /// Unique instance of class.
     static const TPEFStringSectionWriter instance_;
 };

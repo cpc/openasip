@@ -47,15 +47,13 @@ public:
     MemoryAccessingFUState(const TCEString& name, Memory& memory);
     virtual ~MemoryAccessingFUState();
 
+    MemoryAccessingFUState(const MemoryAccessingFUState&) = delete;
+    MemoryAccessingFUState& operator=(const MemoryAccessingFUState&) = delete;
+
 protected:
     virtual OperationContext& context();
 
 private:
-    /// Copying not allowed.
-    MemoryAccessingFUState(const MemoryAccessingFUState&);
-    /// Assignment not allowed.
-    MemoryAccessingFUState& operator=(const MemoryAccessingFUState&);
-
     /// Memory wrapper instance.
     Memory& memory_;
 

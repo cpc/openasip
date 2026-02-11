@@ -51,11 +51,8 @@ public:
     virtual bool isEnabled();
     virtual std::string icon() const;
 
-private:
-    /// Copying not allowed.
-    OSEdModifyBehaviorCmd(const OSEdModifyBehaviorCmd&);
-    /// Assignment not allowed.
-    OSEdModifyBehaviorCmd& operator=(const OSEdModifyBehaviorCmd&);
+    OSEdModifyBehaviorCmd(const OSEdModifyBehaviorCmd&) = delete;
+    OSEdModifyBehaviorCmd& operator=(const OSEdModifyBehaviorCmd&) = delete;
 };
 
 #endif

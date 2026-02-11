@@ -55,12 +55,10 @@ protected:
 
     virtual void writeSize(BinaryStream& stream, const Section* sect) const;
 
-private:
-    /// Copying not allowed.
-    TPEFNullSectionWriter(const TPEFNullSectionWriter&);
-    /// Assignment not allowed.
-    TPEFNullSectionWriter operator=(const TPEFNullSectionWriter&);
+    TPEFNullSectionWriter(const TPEFNullSectionWriter&) = delete;
+    TPEFNullSectionWriter operator=(const TPEFNullSectionWriter&) = delete;
 
+private:
     /// Unique instance of a class.
     static const TPEFNullSectionWriter instance_;
 };

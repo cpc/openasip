@@ -44,14 +44,13 @@ class ProDeOptionsSerializer : public GUIOptionsSerializer {
 public:
     ProDeOptionsSerializer();
     virtual ~ProDeOptionsSerializer();
+
+    ProDeOptionsSerializer(const ProDeOptionsSerializer&) = delete;
+    ProDeOptionsSerializer& operator=(const ProDeOptionsSerializer&) = delete;
+
 private:
     ObjectState* convertToConfigFileFormat(const ObjectState* options) const;
     ObjectState* convertToOptionsObjectFormat(const ObjectState* root) const;
-
-    /// Copying not allowed.
-    ProDeOptionsSerializer(const ProDeOptionsSerializer&);
-    /// Assignment not allowed.
-    ProDeOptionsSerializer& operator=(const ProDeOptionsSerializer&);
 };
 
 #endif

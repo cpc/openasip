@@ -45,11 +45,11 @@ public:
     ConnectRequest(EditPart* part);
     virtual ~ConnectRequest();
     EditPart* part();
+
+    ConnectRequest(Request& old) = delete;
+    ConnectRequest& operator=(Request& old) = delete;
+
 private:
-    /// Assignment not allowed.
-    ConnectRequest& operator=(Request& old);
-    /// Copying not allowed.
-    ConnectRequest(Request& old);
     /// EditPart associated with the request.
     EditPart* part_;
 };

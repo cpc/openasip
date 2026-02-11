@@ -42,7 +42,7 @@ namespace TTAProgram {
 class InstructionReference;
 
 /**
- * Represents an inline immediate that refers to an (absolute) instruction 
+ * Represents an inline immediate that refers to an (absolute) instruction
  * address via the InstructionReference indirection.
  */
 class TerminalInstructionReference : public TerminalInstructionAddress {
@@ -57,9 +57,10 @@ public:
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
 
+    TerminalInstructionAddress&
+    operator=(const TerminalInstructionAddress&) = delete;
+
 private:
-    /// Assignment not allowed.
-    TerminalInstructionAddress& operator=(const TerminalInstructionAddress&);
     /// Referred instruction.
     InstructionReference ref_;
 };

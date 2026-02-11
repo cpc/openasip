@@ -275,11 +275,8 @@ public:
     virtual void printVersion() const;
     virtual void printHelp() const;
 
-private:
-    /// Copying not allowed.
-    OsalCmdLineOptions(const OsalCmdLineOptions&);
-    /// Assignment not allowed.
-    OsalCmdLineOptions& operator=(const OsalCmdLineOptions&);
+    OsalCmdLineOptions(const OsalCmdLineOptions&) = delete;
+    OsalCmdLineOptions& operator=(const OsalCmdLineOptions&) = delete;
 };
 
 #endif

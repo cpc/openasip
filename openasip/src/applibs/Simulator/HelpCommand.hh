@@ -50,11 +50,9 @@ public:
     virtual bool execute(const std::vector<DataObject>& arguments);
 
     virtual std::string helpText() const;
-private:
-    /// Assignment not allowed.
-    HelpCommand& operator=(const HelpCommand&);
-    /// Copying not allowed.
-    HelpCommand(const HelpCommand& cmd);
+
+    HelpCommand(const HelpCommand& cmd) = delete;
+    HelpCommand& operator=(const HelpCommand&) = delete;
 };
 
 #endif

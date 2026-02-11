@@ -48,15 +48,12 @@ public:
     UnitContainerFigure();
     virtual ~UnitContainerFigure();
 
+    UnitContainerFigure& operator=(UnitContainerFigure& old) = delete;
+    UnitContainerFigure(UnitContainerFigure& old) = delete;
+
 protected:
     virtual void layoutSelf(wxDC*);
     virtual void layoutChildren(wxDC*);
-
-private:
-    /// Assignment not allowed.
-    UnitContainerFigure& operator=(UnitContainerFigure& old);
-    /// Copying not allowed.
-    UnitContainerFigure(UnitContainerFigure& old);
 };
 
 #endif

@@ -54,9 +54,10 @@ public:
     virtual Address address() const;
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
+
+    TerminalAddress& operator=(const TerminalAddress&) = delete;
+
 private:
-    /// Assignment not allowed.
-    TerminalAddress& operator=(const TerminalAddress&);
     /// Address space of the address.
     const TTAMachine::AddressSpace& space_;
 };

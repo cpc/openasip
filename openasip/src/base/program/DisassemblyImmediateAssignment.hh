@@ -53,13 +53,12 @@ public:
     virtual ~DisassemblyImmediateAssignment();
     virtual std::string toString() const;
 
-private:
-    /// Coying not allowed.
-    DisassemblyImmediateAssignment(const DisassemblyImmediateAssignment&);
-    /// Assignment not allowed.
-    DisassemblyImmediateAssignment& operator=(
-	const DisassemblyImmediateAssignment&);
+    DisassemblyImmediateAssignment(
+        const DisassemblyImmediateAssignment&) = delete;
+    DisassemblyImmediateAssignment&
+    operator=(const DisassemblyImmediateAssignment&) = delete;
 
+private:
     /// Value of the immediate.
     SimValue value_;
     /// The destination register.

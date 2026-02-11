@@ -61,10 +61,9 @@ public:
     static Memory& memory();
 
     static void destroy();
-	
-    static OperationModule& module(
-        const std::string& path, 
-        const std::string& mod);
+
+    static OperationModule&
+    module(const std::string& path, const std::string& mod);
 
     static Operation* operation(
         const std::string& path,
@@ -74,19 +73,19 @@ public:
     static bool operationExists(const std::string& name);
 
     static bool isEffective(OperationModule& module, const std::string& name);
-   
+
     static Word memoryStart();
     static Word memoryEnd();
-     
+
     virtual ~OperationContainer();
 
-private:
-    OperationContainer();
-    /// Copying not allowed.
-    OperationContainer(const OperationContainer&);
-    /// Assignment not allowed.
-    OperationContainer& operator=(const OperationContainer&);
+    OperationContainer(const OperationContainer&) = delete;
+    OperationContainer& operator=(const OperationContainer&) = delete;
 
+protected:
+    OperationContainer();
+
+private:
     /// Creation function name for operation behavior.
     static const std::string CREATE_FUNCTION;
     /// Operation behavior deletion function name.

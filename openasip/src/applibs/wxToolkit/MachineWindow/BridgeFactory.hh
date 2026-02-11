@@ -49,11 +49,8 @@ public:
 
     virtual EditPart* createEditPart(TTAMachine::MachinePart* component);
 
-private:
-    /// Assignment not allowed.
-    BridgeFactory& operator=(BridgeFactory& old);
-    /// Copying not allowed.
-    BridgeFactory(BridgeFactory& old);
+    BridgeFactory& operator=(BridgeFactory& old) = delete;
+    BridgeFactory(BridgeFactory& old) = delete;
 };
 
 #endif

@@ -49,15 +49,15 @@ public:
     void addAnnotation(DisassemblyAnnotation* annotation);
     int annotationCount() const;
 
+    DisassemblyInstructionSlot(const DisassemblyInstructionSlot&) = delete;
+    DisassemblyInstructionSlot&
+    operator=(const DisassemblyInstructionSlot&) = delete;
+
 protected:
     DisassemblyInstructionSlot();
 
 private:
-    /// Copying not allowed.
-    DisassemblyInstructionSlot(const DisassemblyInstructionSlot&);
-    /// Assignment not allowed.
-    DisassemblyInstructionSlot& operator=(const DisassemblyInstructionSlot&);
-    /// Annotationes of move or long immediates.
+    /// Annotations of move or long immediates.
     std::vector<DisassemblyAnnotation*> annotationes_;
 };
 

@@ -46,17 +46,12 @@ class FUState;
 class InputPortState : public PortState {
 public:
     InputPortState(FUState& parent, int width);
-    InputPortState(
-        FUState& parent, 
-        SimValue& registerToUse);
+    InputPortState(FUState& parent, SimValue& registerToUse);
 
     virtual ~InputPortState();
 
-private:
-    /// Copying not allowed.
-    InputPortState(const InputPortState&);
-    /// Assignment not allowed.
-    InputPortState& operator=(const InputPortState&);
+    InputPortState(const InputPortState&) = delete;
+    InputPortState& operator=(const InputPortState&) = delete;
 };
 
 #endif

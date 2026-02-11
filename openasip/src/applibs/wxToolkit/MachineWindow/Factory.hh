@@ -48,15 +48,12 @@ public:
     virtual ~Factory();
     /// Returns an EditPart that corresponds to a Machine component.
     virtual EditPart* createEditPart(TTAMachine::MachinePart* component) = 0;
-    
+
+    Factory& operator=(Factory& old) = delete;
+    Factory(Factory& old) = delete;
+
 protected:
     Factory();
-
-private:
-    /// Assignment not allowed.
-    Factory& operator=(Factory& old);
-    /// Copying not allowed.
-    Factory(Factory& old);
 };
 
 #endif

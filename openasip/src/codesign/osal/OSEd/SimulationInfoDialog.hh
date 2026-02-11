@@ -52,12 +52,10 @@ public:
 
     virtual void handleEvent(OSEdInformer::EventId id);
 
-private:
-    /// Copying not allowed.
-    SimulationInfoDialog(const SimulationInfoDialog&);
-    /// Assignment not allowed.
-    SimulationInfoDialog& operator=(const SimulationInfoDialog&);
+    SimulationInfoDialog(const SimulationInfoDialog&) = delete;
+    SimulationInfoDialog& operator=(const SimulationInfoDialog&) = delete;
 
+private:
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     virtual bool TransferDataToWindow();
     void setTexts();

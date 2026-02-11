@@ -49,16 +49,14 @@ public:
     virtual ~UnitPortFigure();
     std::string name() const;
 
+    UnitPortFigure& operator=(UnitPortFigure& old) = delete;
+    UnitPortFigure(UnitPortFigure& old) = delete;
+
 protected:
     virtual void layoutChildren(wxDC*);
     virtual void drawSelf(wxDC* dc);
 
 private:
-    /// Assignment not allowed.
-    UnitPortFigure& operator=(UnitPortFigure& old);
-    /// Copying not allowed.
-    UnitPortFigure(UnitPortFigure& old);
-
     /// Default colour for the figure.
     static const wxColour DEFAULT_COLOUR;
     /// Default background colour for the figure.

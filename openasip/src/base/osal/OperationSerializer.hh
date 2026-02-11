@@ -59,12 +59,10 @@ public:
     void setSchemaFile(const std::string& filename);
     void setUseSchema(bool useSchema);
 
-private:
-    /// Copying not allowed.
-    OperationSerializer(const OperationSerializer&);
-    /// Assignment not allowed.
-    OperationSerializer& operator=(const OperationSerializer&);
+    OperationSerializer(const OperationSerializer&) = delete;
+    OperationSerializer& operator=(const OperationSerializer&) = delete;
 
+private:
     ObjectState* convertToXMLFormat(const ObjectState* state);
     ObjectState* convertToOperationFormat(const ObjectState* state);
 

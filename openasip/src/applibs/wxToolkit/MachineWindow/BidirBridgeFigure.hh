@@ -48,15 +48,12 @@ public:
     BidirBridgeFigure();
     virtual ~BidirBridgeFigure();
 
+    BidirBridgeFigure& operator=(BidirBridgeFigure& old) = delete;
+    BidirBridgeFigure(BidirBridgeFigure& old) = delete;
+
 protected:
     virtual void drawSelf(wxDC* dc);
     virtual void layoutChildren(wxDC*);
-
-private:
-    /// Assignment not allowed.
-    BidirBridgeFigure& operator=(BidirBridgeFigure& old);
-    /// Copying not allowed.
-    BidirBridgeFigure(BidirBridgeFigure& old);
 };
 
 #endif

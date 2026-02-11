@@ -49,15 +49,12 @@ public:
 
     virtual EditPart* createEditPart(TTAMachine::MachinePart* component);
 
-private:
-    /// Assignment not allowed.
-    UnitPortFactory& operator=(UnitPortFactory& old);
-    /// Copying not allowed.
-    UnitPortFactory(UnitPortFactory& old);
+    UnitPortFactory& operator=(UnitPortFactory& old) = delete;
+    UnitPortFactory(UnitPortFactory& old) = delete;
 
-    void addSocket(
-        EditPart* portEditPart, 
-        TTAMachine::MachinePart* socket) const;
+private:
+    void
+    addSocket(EditPart* portEditPart, TTAMachine::MachinePart* socket) const;
 };
 
 #endif

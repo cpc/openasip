@@ -50,21 +50,17 @@ class ObjectState;
  */
 class OperationPropertyDialog : public wxDialog {
 public:
-    OperationPropertyDialog(
-        wxWindow* parent, 
-        Operation* op, 
-        OperationModule& module,
-        const std::string& path);
+    OperationPropertyDialog(wxWindow* parent, Operation* op,
+        OperationModule& module, const std::string& path);
     virtual ~OperationPropertyDialog();
-    
+
     Operation* operation() const;
 
-private:
-    /// Copying not allowed.
-    OperationPropertyDialog(const OperationPropertyDialog&);
-    /// Assignment not allowed.
-    OperationPropertyDialog& operator=(const OperationPropertyDialog&);
+    OperationPropertyDialog(const OperationPropertyDialog&) = delete;
+    OperationPropertyDialog&
+    operator=(const OperationPropertyDialog&) = delete;
 
+private:
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     wxBitmap createBitmaps(size_t index);
     virtual bool TransferDataToWindow();
@@ -102,7 +98,7 @@ private:
     void moveUp(std::vector<Operand*>& ops, int id, wxListCtrl* list);
     void moveDown(std::vector<Operand*>& ops, int id, wxListCtrl* list);
     std::vector<std::string> getSelectedItems(wxListCtrl* listCtrl);
-       
+
     void onOk(wxCommandEvent& event);
     ObjectState* saveOperation();
     void setTexts();
@@ -186,7 +182,7 @@ private:
     Operation* operation_;
     /// Original operation's ObjectState tree
     ObjectState* orig_;
-    
+
     /// Name of the operation.
     wxString name_;
     /// Module in which operation belongs to.
@@ -221,7 +217,7 @@ private:
     std::vector<std::string> affects_;
     /// Operations that are affected by this operation.
     std::vector<std::string> affectedBy_;
-    
+
     bool operationWasCreatedHere_;
     DECLARE_EVENT_TABLE()
 };

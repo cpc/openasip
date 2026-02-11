@@ -88,6 +88,9 @@ public:
     void setTPEFVersion(TPEFHeaders::TPEFVersion version);
     TPEFHeaders::TPEFVersion TPEFVersion() const;
 
+    BinaryStream(BinaryStream& old) = delete;
+    BinaryStream& operator=(BinaryStream& old) = delete;
+
 private:
     /// The input stream.
     std::ifstream iStream_;
@@ -105,11 +108,6 @@ private:
 
     /// Indicates TPEF format version used.
     TPEFHeaders::TPEFVersion tpefVersion_;
-
-    /// Assignment not allowed.
-    BinaryStream& operator=(BinaryStream& old);
-    /// Copying not allowed.
-    BinaryStream(BinaryStream& old);
 
     void openInput(std::string name);
     void openOutput(std::string name);

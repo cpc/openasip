@@ -54,15 +54,13 @@ public:
     void setDirection(BridgeFigure::Direction direction);
     Direction direction() const;
 
+    BridgeFigure& operator=(BridgeFigure& old) = delete;
+    BridgeFigure(BridgeFigure& old) = delete;
+
 protected:
     virtual void drawSelf(wxDC* dc);
 
 private:
-    /// Assignment not allowed.
-    BridgeFigure& operator=(BridgeFigure& old);
-    /// Copying not allowed.
-    BridgeFigure(BridgeFigure& old);
-
     /// Direction of the bridge.
     Direction direction_;
 

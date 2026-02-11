@@ -43,21 +43,14 @@
  */
 class OutputPortState : public PortState {
 public:
-    OutputPortState(
-        FUState& parent, 
-        std::size_t width);
+    OutputPortState(FUState& parent, std::size_t width);
 
-    OutputPortState(
-        FUState& parent, 
-        SimValue& registerToUse);
+    OutputPortState(FUState& parent, SimValue& registerToUse);
 
     virtual ~OutputPortState();
-   
-private:
-    /// Copying not allowed.
-    OutputPortState(const OutputPortState&);
-    /// Assignment not allowed.
-    OutputPortState& operator=(const OutputPortState&);
+
+    OutputPortState(const OutputPortState&) = delete;
+    OutputPortState& operator=(const OutputPortState&) = delete;
 };
 
 #endif

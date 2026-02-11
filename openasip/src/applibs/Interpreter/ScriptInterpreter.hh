@@ -72,11 +72,9 @@ public:
     virtual bool error() const;
 
     virtual void setVariable(
-        const std::string& interpreterVariableName, 
-        const std::string& value);
-    virtual void setVariable(
-        const std::string& interpreterVariableName, 
-        int value);
+        const std::string& interpreterVariableName, const std::string& value);
+    virtual void
+    setVariable(const std::string& interpreterVariableName, int value);
 
     virtual std::string variableStringValue(
         const std::string& interpreterVariableName);
@@ -92,47 +90,42 @@ public:
 
 	std::vector<std::string> customCommandsSortedByName();
 
-    virtual void initialize(
-        int argc, 
-        char* argv[], 
-        InterpreterContext* context,
-        LineReader* reader) = 0;
+        virtual void initialize(int argc, char* argv[],
+            InterpreterContext* context, LineReader* reader) = 0;
 
-    virtual void setVariableToInterpreter(
-        const std::string& name, const DataObject& value) = 0;
-    virtual DataObject variable(const std::string& name) = 0;
-    virtual bool interpret(const std::string& commandLine) = 0;
-    virtual void setResultToInterpreter(const DataObject& value) = 0;
+        virtual void setVariableToInterpreter(
+            const std::string& name, const DataObject& value) = 0;
+        virtual DataObject variable(const std::string& name) = 0;
+        virtual bool interpret(const std::string& commandLine) = 0;
+        virtual void setResultToInterpreter(const DataObject& value) = 0;
 
-    virtual InterpreterContext& context() const = 0;
-   
-protected:
-    virtual void addCustomCommandToInterpreter(
-        const CustomCommand& command) = 0;
-    virtual void removeCustomCommandFromInterpreter(
-        const CustomCommand& command) = 0;
+        virtual InterpreterContext& context() const = 0;
 
-private:
-    /// Iterator for map.
-    typedef std::map<std::string, CustomCommand*>::iterator MapIter;
-    /// val_type for map.
-    typedef std::map<std::string, CustomCommand*>::value_type ValType;
-    
-    /// Copying not allowed.
-    ScriptInterpreter(const ScriptInterpreter&);
-    /// Assignment not allowed.
-    ScriptInterpreter& operator=(const ScriptInterpreter&);
-    
-    /// Map containing all custom commands for interpreter.
-    std::map<std::string, CustomCommand*> commands_;
-    /// The latest interpreter result. 
-    DataObject* result_;
-    /// Indicates whether we are in error state.
-    bool errorState_;
-    /// True if Interpreter is finalized.
-    bool finalized_;
-    /// LineReader for interpreter.
-    LineReader* reader_;
+        ScriptInterpreter(const ScriptInterpreter&) = delete;
+        ScriptInterpreter& operator=(const ScriptInterpreter&) = delete;
+
+    protected:
+        virtual void
+        addCustomCommandToInterpreter(const CustomCommand& command) = 0;
+        virtual void
+        removeCustomCommandFromInterpreter(const CustomCommand& command) = 0;
+
+    private:
+        /// Iterator for map.
+        typedef std::map<std::string, CustomCommand*>::iterator MapIter;
+        /// val_type for map.
+        typedef std::map<std::string, CustomCommand*>::value_type ValType;
+
+        /// Map containing all custom commands for interpreter.
+        std::map<std::string, CustomCommand*> commands_;
+        /// The latest interpreter result.
+        DataObject* result_;
+        /// Indicates whether we are in error state.
+        bool errorState_;
+        /// True if Interpreter is finalized.
+        bool finalized_;
+        /// LineReader for interpreter.
+        LineReader* reader_;
 };
 
 #endif

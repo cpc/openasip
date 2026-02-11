@@ -44,11 +44,8 @@ public:
     virtual ~DisassemblyNOP();
     virtual std::string toString() const;
 
-private:
-    /// Coying not allowed.
-    DisassemblyNOP(const DisassemblyNOP&);
-    /// Assignment not allowed.
-    DisassemblyNOP& operator=(const DisassemblyNOP&);
+    DisassemblyNOP(const DisassemblyNOP&) = delete;
+    DisassemblyNOP& operator=(const DisassemblyNOP&) = delete;
 };
 
 #endif

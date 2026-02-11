@@ -50,10 +50,13 @@ class Interpolation: public Matcher {
 public:
     Interpolation(const EntryKeyFieldProperty* type);
     virtual ~Interpolation();
-    
+
     void quickFilter(const CostDBEntryKey&, CostDBTypes::EntryTable&);
     void filter(
         const CostDBEntryKey& searchKey, CostDBTypes::EntryTable& components);
+
+    Interpolation(const Interpolation&) = delete;
+    Interpolation& operator=(const Interpolation&) = delete;
 
 private:
     /**
@@ -68,11 +71,6 @@ private:
 
     /// Entries created during interpolation.
     CostDBTypes::EntryTable created_;
-
-    /// Copying not allowed.
-    Interpolation(const Interpolation&);
-    /// Assignment not allowed.
-    Interpolation& operator=(const Interpolation&);
 };
 
 #endif

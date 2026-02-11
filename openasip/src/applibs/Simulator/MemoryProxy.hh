@@ -78,15 +78,14 @@ public:
 
     MemoryAccess writeAccess(unsigned int idx) const;
 
+    MemoryProxy(const MemoryProxy&) = delete;
+    MemoryProxy& operator=(const MemoryProxy&) = delete;
+
 private:
     SimulatorFrontend & frontend_;
 
     /// Wrapped memory.
     Memory* memory_;
-    /// Copying not allowed.
-    MemoryProxy(const MemoryProxy&);
-    /// Assignment not allowed.
-    MemoryProxy& operator=(const MemoryProxy&);
 
     /// List of initiated reads on the last cycle.
     std::vector<MemoryAccess> reads_;

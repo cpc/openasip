@@ -50,19 +50,15 @@ class ObjectState;
  */
 class OperationDAGDialog : public wxDialog {
 public:
-    OperationDAGDialog(
-        wxWindow* parent, 
-        Operation* op);
+    OperationDAGDialog(wxWindow* parent, Operation* op);
     virtual ~OperationDAGDialog();
-    
+
     Operation* operation() const;
 
-private:
-    /// Copying not allowed.
-    OperationDAGDialog(const OperationDAGDialog&);
-    /// Assignment not allowed.
-    OperationDAGDialog& operator=(const OperationDAGDialog&);
+    OperationDAGDialog(const OperationDAGDialog&) = delete;
+    OperationDAGDialog& operator=(const OperationDAGDialog&) = delete;
 
+private:
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     virtual bool TransferDataToWindow();
     void updateIndex();
@@ -105,7 +101,7 @@ private:
     Operation* operation_;
     /// Original operation's ObjectState tree
     ObjectState* orig_;
-    
+
     // Text box for editing dag
     wxTextCtrl* dagEdit_;
     //
@@ -121,7 +117,7 @@ private:
     // Bitmap for holding the dot image
     wxStaticBitmap* dagStaticBitmap_;
     wxStaticBoxSizer *dagImageStaticBoxSizer_;
-    
+
     // Scrolled window for DAG
     wxScrolledWindow *dagWindow_;
 

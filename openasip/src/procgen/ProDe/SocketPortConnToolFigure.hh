@@ -47,14 +47,14 @@ public:
     SocketPortConnToolFigure(bool creating);
     virtual ~SocketPortConnToolFigure();
 
+    SocketPortConnToolFigure(SocketPortConnToolFigure& old) = delete;
+    SocketPortConnToolFigure&
+    operator=(SocketPortConnToolFigure& old) = delete;
+
 protected:
     virtual void drawSelf(wxDC* dc);
-private:
-    /// Assignment not allowed.
-    SocketPortConnToolFigure& operator=(SocketPortConnToolFigure& old);
-    /// Copying not allowed.
-    SocketPortConnToolFigure(SocketPortConnToolFigure& old);
 
+private:
     /// Figure color for connections being created.
     static const wxColor LINE_COLOR_GREEN;
     /// Figure color for connections being removed.

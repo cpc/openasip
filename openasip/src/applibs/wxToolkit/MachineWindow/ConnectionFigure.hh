@@ -50,19 +50,15 @@ public:
     Figure* source() const;
     Figure* target() const;
 
+    ConnectionFigure& operator=(ConnectionFigure& old) = delete;
+    ConnectionFigure(ConnectionFigure& old) = delete;
+
 protected:
     ConnectionFigure();
     /// Source of connection.
     Figure* source_;
     /// Target of connection.
     Figure* target_;
-
-private:
-    /// Assignment not allowed.
-    ConnectionFigure& operator=(ConnectionFigure& old);
-    /// Copying not allowed.
-    ConnectionFigure(ConnectionFigure& old);
-
 };
 
 #include "ConnectionFigure.icc"

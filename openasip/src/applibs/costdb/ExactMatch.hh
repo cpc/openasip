@@ -53,11 +53,8 @@ public:
         CostDBTypes::EntryTable& components);
     void filter(const CostDBEntryKey&, CostDBTypes::EntryTable&);
 
-private:
-    /// Copying not allowed.
-    ExactMatch(const ExactMatch&);
-    /// Assignment not allowed.
-    ExactMatch& operator=(const ExactMatch&);
+    ExactMatch(const ExactMatch&) = delete;
+    ExactMatch& operator=(const ExactMatch&) = delete;
 };
 
 #endif

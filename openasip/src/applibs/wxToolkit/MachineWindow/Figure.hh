@@ -74,6 +74,9 @@ public:
     void setOptions(MachineCanvasOptions* options);
     MachineCanvasOptions* options();
 
+    Figure& operator=(Figure& old) = delete;
+    Figure(Figure& old) = delete;
+
 protected:
     virtual void drawSelf(wxDC* dc);
     void drawChildren(wxDC* dc);
@@ -102,12 +105,6 @@ protected:
 
     /// Options which are used for customizing figures.
     MachineCanvasOptions* options_;
-
-private:
-    /// Assignment not allowed.
-    Figure& operator=(Figure& old);
-    /// Copying not allowed.
-    Figure(Figure& old);
 };
 
 #include "Figure.icc"

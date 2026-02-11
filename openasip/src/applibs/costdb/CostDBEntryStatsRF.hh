@@ -61,6 +61,9 @@ public:
     virtual void setEnergyWrite(double energy);
     virtual void setEnergyReadWrite(int reads, int writes, double energy);
 
+    CostDBEntryStatsRF(const CostDBEntryStatsRF&) = delete;
+    CostDBEntryStatsRF& operator=(const CostDBEntryStatsRF&) = delete;
+
 protected:
     virtual CostDBEntryStats* createStats() const;
 
@@ -71,11 +74,6 @@ private:
     typedef std::map<const std::string, double> DelayMap;
 
     static std::string generateReadWriteString(int reads, int writes);
-
-    /// Copying not allowed.
-    CostDBEntryStatsRF(const CostDBEntryStatsRF&);
-    /// Assignment not allowed.
-    CostDBEntryStatsRF& operator=(const CostDBEntryStatsRF&);
 };
 
 #endif

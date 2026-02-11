@@ -56,14 +56,12 @@ public:
 
     virtual FUState& parent() const;
 
+    PortState(const PortState&) = delete;
+    PortState& operator=(const PortState&) = delete;
+
 protected:
     /// Parent of the port.
     FUState* parent_;
-private:
-    /// Copying not allowed.
-    PortState(const PortState&);
-    /// Assignment not allowed.
-    PortState& operator=(const PortState&);    
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -78,18 +76,18 @@ public:
     static NullPortState& instance();
 
     virtual ~NullPortState();
-    
+
     virtual void setValue(const SimValue& value);
     virtual const SimValue& value() const;
     virtual FUState& parent() const;
 
-private:
-    NullPortState();
-    /// Copying not allowed.
-    NullPortState(const NullPortState&);
-    /// Assignment not allowed.
-    NullPortState& operator=(const NullPortState&);
+    NullPortState(const NullPortState&) = delete;
+    NullPortState& operator=(const NullPortState&) = delete;
 
+protected:
+    NullPortState();
+
+private:
     /// Unique instance of NullPortState class.
     static NullPortState* instance_;
 };

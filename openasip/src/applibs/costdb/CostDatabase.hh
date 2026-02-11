@@ -82,6 +82,9 @@ public:
         const CostDBEntryKey& searchKey,
         const CostDBTypes::MatchTypeTable& match) const;
 
+    CostDatabase(const CostDatabase&) = delete;
+    CostDatabase& operator=(const CostDatabase&) = delete;
+
 private:
     /// CostDatabase must be created with instance() method.
     CostDatabase(const HDB::HDBManager& hdb);
@@ -98,7 +101,7 @@ private:
     /// Search type for each entry type.
     typedef std::map<
         const EntryKeyProperty*,CostDBTypes::MatchTypeTable> MatchTypeMap;
-    
+
     /// Search strategy used for queries.
     SearchStrategy* searchStrategy_;
     /// Database entries.
@@ -118,10 +121,6 @@ private:
     static CostDatabase* instance_;
     /// Registry of CostDatabases.
     CostDatabaseRegistry* registry_;
-    /// Copying not allowed.
-    CostDatabase(const CostDatabase&);
-    /// Assignment not allowed.
-    CostDatabase& operator=(const CostDatabase&);
 };
 
 #endif

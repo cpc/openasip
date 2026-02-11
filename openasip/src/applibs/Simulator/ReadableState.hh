@@ -45,11 +45,8 @@ public:
 
     virtual const SimValue& value() const = 0;
 
-private:
-    /// Copying not allowed.
-    ReadableState(const ReadableState&);
-    /// Assignment not allowed.
-    ReadableState& operator=(const ReadableState&);
+    ReadableState(const ReadableState&) = delete;
+    ReadableState& operator=(const ReadableState&) = delete;
 };
 
 #endif

@@ -58,12 +58,11 @@ protected:
 
     virtual void writeInfo(BinaryStream& stream, const Section* sect) const;
 
-private:
-    /// Copying not allowed.
-    TPEFLineNumSectionWriter(const TPEFLineNumSectionWriter&);
-    /// Assignment not allowed.
-    TPEFLineNumSectionWriter operator=(const TPEFLineNumSectionWriter&);
+    TPEFLineNumSectionWriter(const TPEFLineNumSectionWriter&) = delete;
+    TPEFLineNumSectionWriter
+    operator=(const TPEFLineNumSectionWriter&) = delete;
 
+private:
     /// An unique instance of class.
     static const TPEFLineNumSectionWriter instance_;
     /// The fixed size address space element.

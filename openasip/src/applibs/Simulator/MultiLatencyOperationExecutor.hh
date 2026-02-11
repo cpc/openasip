@@ -76,11 +76,10 @@ public:
         opSimulator_ = &sim;
     }
 
-private:
-    /// Assignment not allowed.
-    MultiLatencyOperationExecutor& operator=(
-        const MultiLatencyOperationExecutor&);
+    MultiLatencyOperationExecutor&
+    operator=(const MultiLatencyOperationExecutor&) = delete;
 
+private:
     ExecutingOperation& findFreeExecutingOperation();
 
     /// Operation context.

@@ -52,7 +52,7 @@ class OperationContext;
  * A private implementation class for Operation
  */
 class OperationPimpl {
-public:    
+public:
     friend class Operation;
     ~OperationPimpl();
 
@@ -62,21 +62,18 @@ public:
     void setCall(bool setting);
     void setBranch(bool setting);
     void setControlFlowOperation(bool setting);
-    
+
     Operand& operand(int id) const;
+
+    OperationPimpl(const OperationPimpl&) = delete;
+    OperationPimpl& operator=(const OperationPimpl&) = delete;
+
 private:
-    OperationPimpl(
-        const TCEString& name, 
-        OperationBehavior& behavior);
+    OperationPimpl(const TCEString& name, OperationBehavior& behavior);
     OperationPimpl();
-    
-    /// Copying not allowed.
-    OperationPimpl(const OperationPimpl&);
-    /// Assignment not allowed.
-    OperationPimpl& operator=(const OperationPimpl&);
-    
+
     TCEString description() const;
-    
+
     void addDag(const TCEString& code);
     void removeDag(int index);
     int dagCount() const;
@@ -93,7 +90,7 @@ private:
     bool isClocked() const;
     bool isControlFlowOperation() const;
     bool isCall() const;
-    bool isBranch() const;    
+    bool isBranch() const;
     bool dependsOn(const Operation& op) const;
     void setReadsMemory(bool setting);
     void setWritesMemory(bool setting);
@@ -126,21 +123,20 @@ private:
     bool isNull() const;
 
     TCEString emulationFunctionName() const;
-    
+
     /**
      * Internal container for information of one DAG.
      */
-    struct OperationDAGInfo { 
+    struct OperationDAGInfo {
         /// Source code for creating DAG for operation.
         std::string code;
         /// Error message if creating DAG failed.
         std::string error;
         /// If code was already tried to compile and it did not succeed.
         bool compilationFailed;
-        /// DAG presentation of code. set to 
+        /// DAG presentation of code. set to
         /// NullOperationDAG if could not be created.
         OperationDAG* dag;
-      
     };
 
     typedef std::vector<OperationDAGInfo> DAGContainer;
@@ -159,7 +155,7 @@ private:
     std::string description_;
     /// Table of DAGs and their source codes of an operation.
     mutable DAGContainer dags_;
-   
+
     /// The number of inputs of the Operation.
     int inputs_;
     /// The number of outputs of the Operation.

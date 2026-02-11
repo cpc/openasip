@@ -57,11 +57,9 @@ public:
 
     virtual void setValue(const SimValue& value);
 
-private:
-    /// Copying not allowed.
-    TriggeringInputPortState(const TriggeringInputPortState&);
-    /// Assignment not allowed.
-    TriggeringInputPortState& operator=(const TriggeringInputPortState&);
+    TriggeringInputPortState(const TriggeringInputPortState&) = delete;
+    TriggeringInputPortState&
+    operator=(const TriggeringInputPortState&) = delete;
 };
 
 #endif

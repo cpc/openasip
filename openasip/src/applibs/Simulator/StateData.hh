@@ -46,11 +46,8 @@ public:
     StateData();
     virtual ~StateData();
 
-private:
-    /// Copying not allowed.
-    StateData(const StateData&);
-    /// Assignment not allowed.
-    StateData& operator=(const StateData&);
+    StateData(const StateData&) = delete;
+    StateData& operator=(const StateData&) = delete;
 };
 
 #endif

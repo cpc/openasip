@@ -53,12 +53,11 @@ public:
 
     virtual void loadState(const ObjectState* state);
     ObjectState* saveState() const;
-private:
-    /// Copying not allowed.
-    OSEdOptions(const OSEdOptions&);
-    /// Assignment not allowed.
-    OSEdOptions& operator=(const OSEdOptions&);
 
+    OSEdOptions(const OSEdOptions&) = delete;
+    OSEdOptions& operator=(const OSEdOptions&) = delete;
+
+private:
     /// Editor used to edit operation behavior files.
     std::string editor_;
 };

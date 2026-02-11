@@ -47,15 +47,13 @@ public:
     TriggeringPortFigure(std::string name, int bitWidth);
     virtual ~TriggeringPortFigure();
 
+    TriggeringPortFigure& operator=(TriggeringPortFigure& old) = delete;
+    TriggeringPortFigure(TriggeringPortFigure& old) = delete;
+
 protected:
     virtual void drawSelf(wxDC* dc);
 
 private:
-    /// Assignment not allowed.
-    TriggeringPortFigure& operator=(TriggeringPortFigure& old);
-    /// Copying not allowed.
-    TriggeringPortFigure(TriggeringPortFigure& old);
-
     /// Default colour for the figure.
     static const wxColour DEFAULT_COLOUR;
     /// Default background colour for the figure.

@@ -48,19 +48,17 @@ class OSEd : public wxApp {
 public:
     OSEd();
     virtual ~OSEd();
-    
+
     virtual bool OnInit();
     virtual int OnExit();
-    
+
     OSEdMainFrame* mainFrame() const;
     OSEdOptions* options() const;
-    
+
+    OSEd(const OSEd&) = delete;
+    OSEd& operator=(const OSEd&) = delete;
+
 private:
-    /// Copying not allowed.
-    OSEd(const OSEd&);
-    /// Assignment not allowed.
-    OSEd& operator=(const OSEd&);
-    
     void createDefaultOptions();
 
     /// Main window of the application.

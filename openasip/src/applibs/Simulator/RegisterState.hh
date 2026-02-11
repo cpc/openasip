@@ -52,10 +52,13 @@ public:
     RegisterState(int width, bool constantZero = false);
     RegisterState(SimValue& sharedRegister);
     virtual ~RegisterState();
-    
+
     virtual void setValue(const SimValue& value);
     virtual const SimValue& value() const;
-    
+
+    RegisterState(const RegisterState&) = delete;
+    RegisterState& operator=(const RegisterState&) = delete;
+
 protected:
     /// Value of the RegisterState. @todo Fix this mutable mess.
     /// It's needed because OutputPortState needs to mask the value_ in
@@ -63,10 +66,6 @@ protected:
     SimValue& value_;
 
 private:
-    /// Copying not allowed.
-    RegisterState(const RegisterState&);
-    /// Assignment not allowed.
-    RegisterState& operator=(const RegisterState&);    
     /// Is the storage of this RegisterState shared with someone else?
     bool shared_;
     /// Is this register constant zero?
@@ -85,17 +84,17 @@ public:
     static NullRegisterState& instance();
 
     virtual ~NullRegisterState();
-    
+
     virtual void setValue(const SimValue& value);
     virtual const SimValue& value() const;
 
-private:
-    NullRegisterState();
-    /// Copying not allowed.
-    NullRegisterState(const NullRegisterState&);
-    /// Assignment not allowed.
-    NullRegisterState& operator=(const NullRegisterState&);
+    NullRegisterState(const NullRegisterState&) = delete;
+    NullRegisterState& operator=(const NullRegisterState&) = delete;
 
+protected:
+    NullRegisterState();
+
+private:
     /// Unique instance of NullRegisterState.
     static NullRegisterState* instance_;
 };

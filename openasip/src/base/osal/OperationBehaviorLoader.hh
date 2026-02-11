@@ -60,17 +60,16 @@ public:
 
     void freeBehavior();
 
+    OperationBehaviorLoader(const OperationBehaviorLoader&) = delete;
+    OperationBehaviorLoader&
+    operator=(const OperationBehaviorLoader&) = delete;
+
 private:
     /// Contains operation behavior models indexed by operation names.
     typedef std::map<std::string, OperationBehavior*> BehaviorMap;
     /// Contains all deletion function of operation behavior models.
     typedef std::map<OperationBehavior*, void (*)(OperationBehavior*)>
         DestructionMap;
-    
-    /// Copying not allowed.
-    OperationBehaviorLoader(const OperationBehaviorLoader&);
-    /// Assignment not allowed.
-    OperationBehaviorLoader& operator=(const OperationBehaviorLoader&);
 
     /// The name of the creation function in dynamic module.
     static const std::string CREATE_FUNC;

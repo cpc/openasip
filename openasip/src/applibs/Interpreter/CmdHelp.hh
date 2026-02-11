@@ -57,9 +57,7 @@ public:
     virtual bool execute(const std::vector<DataObject>& arguments);
     virtual std::string helpText() const;
 
-private:
-    /// Assignment not allowed.
-    CmdHelp& operator=(const CmdHelp&);
+    CmdHelp& operator=(const CmdHelp&) = delete;
 };
 
 #endif

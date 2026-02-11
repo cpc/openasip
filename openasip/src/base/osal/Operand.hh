@@ -77,7 +77,7 @@ public:
     static const std::string BOOL_STRING;
     static const std::string RAW_DATA_STRING;
     static const std::string UNKNOWN_TYPE_STRING;
-    
+
     /// Object state name for operand id.
     static const std::string OPRND_ID;
     /// Object state name for operand type.
@@ -131,11 +131,10 @@ public:
 
     static int defaultElementWidth(OperandType type);
 
+    Operand& operator=(const Operand&) = delete;
+
 private:
     void clear();
-
-    /// Assignment not allowed.
-    Operand& operator=(const Operand&);
 
     /// Index of the Operand.
     int index_;
@@ -182,11 +181,12 @@ public:
     virtual const std::set<int>& swap() const;
     virtual bool isNull() const { return true; }
 
-private:
-    NullOperand();
-    /// Assignment not allowed.
-    NullOperand& operator=(const NullOperand&);
+    NullOperand& operator=(const NullOperand&) = delete;
 
+protected:
+    NullOperand();
+
+private:
     /// Unique instance.
     static NullOperand* instance_;
 

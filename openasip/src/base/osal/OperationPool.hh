@@ -61,12 +61,11 @@ public:
     static void cleanupCache();
 
     static void setLLVMTargetInstrInfo(const llvm::MCInstrInfo* tid);
+
+    OperationPool(const OperationPool&) = delete;
+    OperationPool& operator=(const OperationPool&) = delete;
+
 private:
-    /// Copying not allowed.
-    OperationPool(const OperationPool&);
-    /// Assignment not allowed.
-    OperationPool& operator=(const OperationPool&);
-    
     /// Private implementation in a separate source file.
     OperationPoolPimpl* pimpl_;
 };

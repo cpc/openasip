@@ -52,16 +52,13 @@ protected:
 
     virtual Section::SectionType type() const;
 
+    TPEFUDataSectionReader(const TPEFUDataSectionReader&) = delete;
+    TPEFUDataSectionReader& operator=(TPEFUDataSectionReader&) = delete;
+
 private:
     /// Prototype instance of TPEFUDataSectionReader to be registered to
     /// SectionReader.
     static TPEFUDataSectionReader proto_;
-
-    /// Copying not allowed.
-    TPEFUDataSectionReader(const TPEFUDataSectionReader&);
-    /// Assignment not allowed.
-    TPEFUDataSectionReader& operator=(TPEFUDataSectionReader&);
-
 };
 }
 

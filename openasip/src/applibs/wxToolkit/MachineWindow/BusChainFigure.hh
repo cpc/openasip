@@ -49,16 +49,14 @@ public:
     BusChainFigure();
     virtual ~BusChainFigure();
 
+    BusChainFigure& operator=(BusChainFigure& old) = delete;
+    BusChainFigure(BusChainFigure& old) = delete;
+
 protected:
     virtual void layoutChildren(wxDC*);
     virtual void drawSelf(wxDC*);
 
 private:
-    /// Assignment not allowed.
-    BusChainFigure& operator=(BusChainFigure& old);
-    /// Copying not allowed.
-    BusChainFigure(BusChainFigure& old);
-
     /// Default colour for the figure.
     static const wxColour DEFAULT_COLOUR;
 };

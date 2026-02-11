@@ -46,81 +46,75 @@ namespace TTAMachine {
 
 namespace TTAProgram {
 
-/**
- * Represents an input or output port of a function unit and (when
- * applicable) the operation code written into it.
- *
- * Notice that, in principle, operation codes can be written into FU output 
- * ports.
- */
-class TerminalFUPort : public Terminal {
-public:
-    TerminalFUPort(
-        const TTAMachine::FUPort& opcodeSettingPort, 
-        const TTAMachine::HWOperation& opcode);
+    /**
+     * Represents an input or output port of a function unit and (when
+     * applicable) the operation code written into it.
+     *
+     * Notice that, in principle, operation codes can be written into FU
+     * output ports.
+     */
+    class TerminalFUPort : public Terminal {
+    public:
+        TerminalFUPort(const TTAMachine::FUPort& opcodeSettingPort,
+            const TTAMachine::HWOperation& opcode);
 
-    TerminalFUPort(const TTAMachine::BaseFUPort& port);
-    TerminalFUPort(const TTAMachine::HWOperation& operation, int opIndex);
-    virtual ~TerminalFUPort();
+        TerminalFUPort(const TTAMachine::BaseFUPort& port);
+        TerminalFUPort(const TTAMachine::HWOperation& operation, int opIndex);
+        virtual ~TerminalFUPort();
 
-    virtual bool isOpcodeSetting() const;
+        virtual bool isOpcodeSetting() const;
 
-    virtual bool isTriggering() const;
+        virtual bool isTriggering() const;
 
-    virtual bool isFUPort() const;
-    virtual bool isRA() const;
+        virtual bool isFUPort() const;
+        virtual bool isRA() const;
 
-    virtual const TTAMachine::FunctionUnit& functionUnit() const;
-    virtual Operation& operation() const;
-    virtual Operation& hintOperation() const;
-    // sets the "hint operation" for moves which are not opcode setting
-    // but are known to be part of an operation execution
-    virtual void setOperation(const TTAMachine::HWOperation& hwOp);
-    void setHintOperation(const char* name);
+        virtual const TTAMachine::FunctionUnit& functionUnit() const;
+        virtual Operation& operation() const;
+        virtual Operation& hintOperation() const;
+        // sets the "hint operation" for moves which are not opcode setting
+        // but are known to be part of an operation execution
+        virtual void setOperation(const TTAMachine::HWOperation& hwOp);
+        void setHintOperation(const char* name);
 
-    virtual int operationIndex() const;
-    virtual void setOperationIndex(int index) { opIndex_ = index; }
-    virtual const TTAMachine::Port& port() const;
-    virtual Terminal* copy() const;
-    virtual bool equals(const Terminal& other) const;
-    
-    virtual const TTAMachine::HWOperation* hwOperation() const;
+        virtual int operationIndex() const;
+        virtual void setOperationIndex(int index) { opIndex_ = index; }
+        virtual const TTAMachine::Port& port() const;
+        virtual Terminal* copy() const;
+        virtual bool equals(const Terminal& other) const;
 
-    /// these methods are used to group terminals belonging to a single
-    /// program operation invocation
-    bool hasProgramOperation() const { 
-        return po_ != NULL && po_.get() != NULL; 
-    }
-    void setProgramOperation(ProgramOperationPtr po) { 
-        po_ = po; 
-    }
-    ProgramOperationPtr programOperation() const { 
-        return po_; 
-    }
+        virtual const TTAMachine::HWOperation* hwOperation() const;
 
-    virtual TCEString toString() const;
+        /// these methods are used to group terminals belonging to a single
+        /// program operation invocation
+        bool hasProgramOperation() const {
+            return po_ != NULL && po_.get() != NULL;
+        }
+        void setProgramOperation(ProgramOperationPtr po) { po_ = po; }
+        ProgramOperationPtr programOperation() const { return po_; }
 
+        virtual TCEString toString() const;
 
-private:
-    // copy constructor used internally by copy();
-    TerminalFUPort(const TerminalFUPort& tfup);
+        TerminalFUPort& operator=(const TerminalFUPort&) = delete;
 
-    /// Assignment not allowed.
-    TerminalFUPort& operator=(const TerminalFUPort&);
-    int findNewOperationIndex() const;
+    private:
+        // copy constructor used internally by copy();
+        TerminalFUPort(const TerminalFUPort& tfup);
 
-    /// Port of the unit.
-    const TTAMachine::BaseFUPort& port_;
-    /// Operation code transported to the port.
-    const TTAMachine::HWOperation* operation_;
-    /// The OSAL operation.
-    Operation* opcode_;
-    /// Operation index.
-    int opIndex_;
-    /// The ProgramOperation this terminal belongs to, if applicable.
-    /// The instance is shared by all the TerminalFUs belonging to 
-    /// the operation.
-    ProgramOperationPtr po_;
+        int findNewOperationIndex() const;
+
+        /// Port of the unit.
+        const TTAMachine::BaseFUPort& port_;
+        /// Operation code transported to the port.
+        const TTAMachine::HWOperation* operation_;
+        /// The OSAL operation.
+        Operation* opcode_;
+        /// Operation index.
+        int opIndex_;
+        /// The ProgramOperation this terminal belongs to, if applicable.
+        /// The instance is shared by all the TerminalFUs belonging to
+        /// the operation.
+        ProgramOperationPtr po_;
 };
 
 }

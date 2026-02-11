@@ -49,15 +49,13 @@ public:
     void setSelection(Figure* selection);
     virtual wxRect bounds() const;
 
+    SelectionFigure& operator=(SelectionFigure& old) = delete;
+    SelectionFigure(SelectionFigure& old) = delete;
+
 protected:
     virtual void drawSelf(wxDC* dc);
 
 private:
-    /// Assignment not allowed.
-    SelectionFigure& operator=(SelectionFigure& old);
-    /// Copying not allowed.
-    SelectionFigure(SelectionFigure& old);
-
     /// Selected part figure.
     Figure* selection_;
 

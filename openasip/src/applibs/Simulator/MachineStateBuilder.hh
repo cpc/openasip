@@ -64,45 +64,32 @@ public:
     MachineStateBuilder(bool detailedSimulationModel=false);
     virtual ~MachineStateBuilder();
 
-    MachineState* build(
-        const TTAMachine::Machine& machine, 
-        MemorySystem& memSys);
+    MachineState*
+    build(const TTAMachine::Machine& machine, MemorySystem& memSys);
 
-    MachineState* build(
-        const TTAMachine::Machine& machine, 
-        MemorySystem& memSys,
-        FUConflictDetectorIndex& detectors,
-        bool throwWhenConflict=true);
+    MachineState*
+    build(const TTAMachine::Machine& machine, MemorySystem& memSys,
+        FUConflictDetectorIndex& detectors, bool throwWhenConflict = true);
 
     MachineState* build(
         const TTAMachine::Machine& machine,
         MemorySystem& memSys,
         StateLocator& locator);
 
-private:
-    /// Copying not allowed.
-    MachineStateBuilder(const MachineStateBuilder&); 
-    /// Assignment not allowed.
-    MachineStateBuilder& operator=(const MachineStateBuilder&);
+    MachineStateBuilder(const MachineStateBuilder&) = delete;
+    MachineStateBuilder& operator=(const MachineStateBuilder&) = delete;
 
+private:
     MachineState* buildMachineState(
         const TTAMachine::Machine& machine,
         MemorySystem& memSys,
         StateLocator& locator);
 
-    void addPortToFU(
-        MachineState* machineState, 
-        TTAMachine::BaseFUPort* port, 
-        FUState* state,
-        TTAMachine::FunctionUnit* fu,
-        StateLocator& locator);
+    void addPortToFU(MachineState* machineState, TTAMachine::BaseFUPort* port,
+        FUState* state, TTAMachine::FunctionUnit* fu, StateLocator& locator);
 
-    void addPortToFU(
-        MachineState* machineState, 
-        TTAMachine::BaseFUPort* port, 
-        FUState* state,
-        TTAMachine::FunctionUnit* fu,
-        StateLocator& locator,
+    void addPortToFU(MachineState* machineState, TTAMachine::BaseFUPort* port,
+        FUState* state, TTAMachine::FunctionUnit* fu, StateLocator& locator,
         SimValue& sharedRegister);
 
     void bindPortsToOperands(

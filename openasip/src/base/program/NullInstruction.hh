@@ -63,15 +63,13 @@ public:
 
     int size() const;
 
+    NullInstruction(const NullInstruction&) = delete;
+    NullInstruction& operator=(const NullInstruction&) = delete;
+
 protected:
     NullInstruction();
 
 private:
-    /// Copying not allowed.
-    NullInstruction(const NullInstruction&);
-    /// Assignment not allowed.
-    NullInstruction& operator=(const NullInstruction&);
-
     /// Unique instance of NullInstruction.
     static NullInstruction instance_;
 };

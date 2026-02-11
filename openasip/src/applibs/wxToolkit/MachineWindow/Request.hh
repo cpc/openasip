@@ -59,12 +59,10 @@ public:
     void setType(RequestType type);
     RequestType type() const;
 
-private:
-    /// Assignment not allowed.
-    Request& operator=(Request& old);
-    /// Copying not allowed.
-    Request(Request& old);
+    Request& operator=(Request& old) = delete;
+    Request(Request& old) = delete;
 
+private:
     /// Determines type of this Request.
     RequestType type_;
 };
