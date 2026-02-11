@@ -37,6 +37,7 @@
 #include <algorithm>
 #include <map>
 #include <limits>
+#include <random>
 
 #include "Machine.hh"
 #include "MachineConnectivityCheck.hh"
@@ -391,12 +392,12 @@ ICacheTestGenerator::generateJumpTargets(
         return;
     }
 
-    RandomNumberGenerator rng(seed_);
-    std::random_shuffle(jumpTargets.begin(), --jumpTargets.end(),
-        [&rng] (unsigned n) -> unsigned {
-        return rng() % n;
-    });
-    seed_ = rng();
+    std::random_device rd;
+    std::mt19937 g{rd()};
+
+    std::shuffle(jumpTargets.begin(), --jumpTargets.end(), g);
+
+    seed_ = rd();
 }
 
 /**
