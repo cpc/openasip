@@ -59,7 +59,7 @@ private:
     void refreshStopPoints();
     void onClose(wxCommandEvent& event);
 
-    void onBreakpointsModified(SimulatorEvent& event);
+    void onBreakpointsModified(wxEvent& simEvent);
     void onDeleteBreakpoint(wxCommandEvent& event);
     void onDeleteWatch(wxCommandEvent& event);
     void onBreakpointLookup(wxCommandEvent& event);

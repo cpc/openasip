@@ -57,12 +57,12 @@ public:
     void clear();
 
 private:
-    virtual void onSimulatorBusy(SimulatorEvent& event);
-    virtual void onSimulatorDone(SimulatorEvent& event);
+    virtual void onSimulatorBusy(wxEvent& simEvent);
+    virtual void onSimulatorDone(wxEvent& simEvent);
 
     void createContents();
-    void onSimulatorOutput(const SimulatorEvent& event);
-    void onError(const SimulatorEvent& event);
+    void onSimulatorOutput(wxEvent& simEvent);
+    void onError(wxEvent& simEvent);
     void textEntered(wxCommandEvent& event);
     void onInputKey(wxKeyEvent& event);
     /// Output text control.

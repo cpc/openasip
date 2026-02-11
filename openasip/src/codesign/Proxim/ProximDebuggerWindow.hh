@@ -64,8 +64,8 @@ public:
     void showLine(int lineNum);
 
 private:
-    void onProgramLoaded(const SimulatorEvent& event);
-    void onSimulationStop(const SimulatorEvent& event);
+    void onProgramLoaded(wxEvent& event);
+    void onSimulationStop(wxEvent& event);
     void onSourceFileChoice(wxCommandEvent& event);
     wxSizer* createContents(wxWindow *parent, bool call_fit, bool set_sizer);
 

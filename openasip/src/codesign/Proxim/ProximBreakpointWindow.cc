@@ -330,7 +330,8 @@ ProximBreakpointWindow::onBreakpointSelection(wxListEvent&) {
  * @param event Event to handle.
  */
 void
-ProximBreakpointWindow::onBreakpointsModified(SimulatorEvent& event) {
+ProximBreakpointWindow::onBreakpointsModified(wxEvent& simEvent) {
+    auto& event = dynamic_cast<SimulatorEvent&>(simEvent);
     refreshStopPoints();
     // Skip event so it's passed to the parent class.
     event.Skip();

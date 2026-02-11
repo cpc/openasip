@@ -93,33 +93,33 @@ private:
 // Macro for setting up event handler for simulation thread termination.
 #define EVT_SIMULATOR_TERMINATED(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(SimulatorEvent::EVT_SIMULATOR_TERMINATED, id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 // Macro for setting up event handler for simulation start.
 #define EVT_SIMULATOR_START(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(SimulatorEvent::EVT_SIMULATOR_START, id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 // Macro for setting up event handler simulation stop.
 #define EVT_SIMULATOR_STOP(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(SimulatorEvent::EVT_SIMULATOR_STOP, id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 // Macro for setting up event handler for textual output from the
 // simulator interpreter.
 #define EVT_SIMULATOR_OUTPUT(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(SimulatorEvent::EVT_SIMULATOR_OUTPUT, id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 // Macro for setting up event handler for executed command event
 // from the simulator interpreter.
 #define EVT_SIMULATOR_COMMAND(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(SimulatorEvent::EVT_SIMULATOR_COMMAND, id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 // Macro for setting up event handler for completed command execution event
@@ -127,71 +127,71 @@ private:
 #define EVT_SIMULATOR_COMMAND_DONE(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(SimulatorEvent::EVT_SIMULATOR_COMMAND_DONE, \
     id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 // Macro for setting up event handler for simulator error event.
 #define EVT_SIMULATOR_ERROR(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(SimulatorEvent::EVT_SIMULATOR_ERROR, id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 #define EVT_SIMULATOR_MACHINE_LOADED(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(SimulatorEvent::EVT_SIMULATOR_MACHINE_LOADED, \
     id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 #define EVT_SIMULATOR_LOADING_PROGRAM(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(SimulatorEvent::EVT_SIMULATOR_LOADING_PROGRAM, \
     id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 #define EVT_SIMULATOR_PROGRAM_LOADED(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(SimulatorEvent::EVT_SIMULATOR_PROGRAM_LOADED, \
     id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 #define EVT_SIMULATOR_LOADING_MACHINE(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(SimulatorEvent::EVT_SIMULATOR_LOADING_MACHINE, \
     id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 #define EVT_SIMULATOR_MACHINE_LOADED(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(SimulatorEvent::EVT_SIMULATOR_MACHINE_LOADED, \
     id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 #define EVT_SIMULATOR_RUNTIME_ERROR(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(\
     SimulatorEvent::EVT_SIMULATOR_RUNTIME_ERROR,	\
     id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 #define EVT_SIMULATOR_RUNTIME_WARNING(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(\
     SimulatorEvent::EVT_SIMULATOR_RUNTIME_WARNING,	\
     id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 #define EVT_SIMULATOR_RUN(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(\
     SimulatorEvent::EVT_SIMULATOR_RUN,	\
     id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 #define EVT_SIMULATOR_RESET(id, fn) \
     DECLARE_EVENT_TABLE_ENTRY(\
     SimulatorEvent::EVT_SIMULATOR_RESET,	\
     id, -1, \
-    (wxObjectEventFunction)(wxEventFunction)(wxCommandEventFunction)&fn, \
+    &fn, \
     (wxObject*)NULL ),
 
 #endif

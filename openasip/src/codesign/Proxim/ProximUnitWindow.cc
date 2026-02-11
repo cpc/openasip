@@ -106,7 +106,7 @@ ProximUnitWindow::reinitialize() {
  * Event handler which is called when a new program is loaded in the simulator.
  */
 void
-ProximUnitWindow::onProgramLoaded(const SimulatorEvent&) {
+ProximUnitWindow::onProgramLoaded(wxEvent&) {
     reinitialize();
 }
 
@@ -125,7 +125,7 @@ ProximUnitWindow::update() {
  * Updates the value list.
  */
 void
-ProximUnitWindow::onSimulationStop(const SimulatorEvent&) {
+ProximUnitWindow::onSimulationStop(wxEvent&) {
     update();
 }
 

@@ -208,7 +208,7 @@ ProximDebuggerWindow::showLine(int lineNum) {
  * Event handler which is called when a new program is loaded in the simulator.
  */
 void
-ProximDebuggerWindow::onProgramLoaded(const SimulatorEvent&) {
+ProximDebuggerWindow::onProgramLoaded(wxEvent&) {
     loadProgram(ProximToolbox::program());
 }
 
@@ -217,7 +217,7 @@ ProximDebuggerWindow::onProgramLoaded(const SimulatorEvent&) {
  * Event handler which is called when simulation step ends.
  */
 void
-ProximDebuggerWindow::onSimulationStop(const SimulatorEvent&) {
+ProximDebuggerWindow::onSimulationStop(wxEvent&) {
     // unhilight old lines
     for (int lineNum : currentLineNums_) {
         setLineAttributes(lineNum, wxTextAttr(*wxBLACK, *wxWHITE));

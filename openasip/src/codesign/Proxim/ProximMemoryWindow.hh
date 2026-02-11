@@ -57,8 +57,8 @@ public:
     virtual ~ProximMemoryWindow();
     virtual void reset();
 private:
-    void onProgramLoaded(const SimulatorEvent& event);
-    void onSimulationStop(const SimulatorEvent& event);
+    void onProgramLoaded(wxEvent& simEvent);
+    void onSimulationStop(wxEvent& simEvent);
     void loadProgramMemory();
     void loadMemory(const TTAMachine::AddressSpace& as);
     void initialize();

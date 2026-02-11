@@ -56,8 +56,8 @@ protected:
         long style = wxTAB_TRAVERSAL);
     virtual ~ProximSimulatorWindow();
 private:
-    virtual void onSimulatorBusy(SimulatorEvent& event);
-    virtual void onSimulatorDone(SimulatorEvent& event);
+    virtual void onSimulatorBusy(wxEvent& event);
+    virtual void onSimulatorDone(wxEvent& event);
     ProximSimulatorWindow(const ProximSimulatorWindow&);
     ProximSimulatorWindow& operator=(const ProximSimulatorWindow&);
 
