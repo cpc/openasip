@@ -325,8 +325,11 @@ protected:
     std::vector<ExecutionTrace*> traceDBs_;
     /// Whether traceDB at index is owned by simulator
     /// (or taken away by client using lastTraceDB())
-    std::vector<bool> traceDBOwned_;
-    
+    /// Use char instead of bool because gcc14's bit vector implementation
+    /// causes an out-of-bounds access warning when the vector is resized to be
+    /// < 8 elements long.
+    std::vector<char> traceDBOwned_;
+
     /// The simple execution tracker for storing trace of executed 
     /// instructions.
     std::vector<ExecutionTracker*> executionTrackers_;
