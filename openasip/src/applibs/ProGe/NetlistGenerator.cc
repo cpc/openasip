@@ -187,7 +187,7 @@ namespace ProGe {
      */
     NetlistBlock*
     NetlistGenerator::generate(
-        const ProGeOptions& options, int imemWidthInMAUs,
+        [[maybe_unused]] const ProGeOptions& options, int imemWidthInMAUs,
         TCEString entityNameStr = TOPLEVEL_BLOCK_DEFAULT_NAME,
         std::ostream& warningStream = std::cerr) {
         if (imemWidthInMAUs < 1) {
