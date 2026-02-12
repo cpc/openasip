@@ -456,17 +456,16 @@ LowerMissingInstructions::getFootprint(Instruction& I) {
 
 void LowerMissingInstructions::addFunctionForFootprints(
     Module& M, FunctionType* /*fType*/, Operation& op, std::string suffix) {
-    
+
     // set replace footprints for operations to emulate
-    // (there might be multiple different footprints for the same 
+    // (there might be multiple different footprints for the same
     //  emulation function)
-    const std::vector<std::string>& 
-        footprints = llvmFootprints(op.name() + suffix);
-                       
-    for (unsigned int j = 0; j < footprints.size(); j++) {                
+    const std::vector<std::string> footprints = llvmFootprints(op.name() + suffix);
+
+    for (unsigned int j = 0; j < footprints.size(); j++) {
         Function* func = M.getFunction(op.emulationFunctionName());
         replaceFunctions[footprints[j]] = func;
-        
+
 #if 0
         std::cerr << "Operation: " << op.name()
                   << " is emulated with: " << op.emulationFunctionName() 
