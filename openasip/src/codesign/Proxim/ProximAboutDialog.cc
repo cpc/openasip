@@ -72,7 +72,8 @@ ProximAboutDialog::createContents(
     item0->Add( 20, 20, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item1 = new wxStaticText( parent, ID_TEXT_PROGRAM_NAME, WxConversion::toWxString(ProximConstants::PROXIM_TITLE), wxDefaultPosition, wxDefaultSize, 0 );
-    item1->SetFont( wxFont( 25, wxROMAN, wxNORMAL, wxNORMAL ) );
+
+    item1->SetFont(wxFontInfo(25).Family(wxFONTFAMILY_ROMAN));
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item2 = new wxStaticText( parent, ID_TEXT_PROGRAM_VERSION, wxT(VERSION), wxDefaultPosition, wxDefaultSize, 0 );
