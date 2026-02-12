@@ -169,7 +169,7 @@ llvm::PassPluginLibraryInfo getLowerIntrinsicsPluginInfo() {
   return {LLVM_PLUGIN_API_VERSION, "LowerIntrinsics", LLVM_VERSION_STRING,
           [](PassBuilder &PB) {
             PB.registerVectorizerStartEPCallback(
-                [](llvm::FunctionPassManager &PM, OptimizationLevel Level) {
+                [](llvm::FunctionPassManager &PM, OptimizationLevel /*Level*/) {
                   PM.addPass(LowerIntrinsics());
                 });
             PB.registerPipelineParsingCallback(
