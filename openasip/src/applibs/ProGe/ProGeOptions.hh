@@ -88,7 +88,7 @@ struct ProGeOptions {
 
     // Constructor for CVXIF stuff
     // boolean is only used for overload resolution
-    ProGeOptions(const CoprocessorCmdLineOptions& cmd, bool /*CVXIFEN*/)
+    ProGeOptions(const CoprocessorCmdLineOptions& cmd, [[maybe_unused]] bool CVXIFEN)
         : processorToGenerate(cmd.processorToGenerate()),
           bemFile(cmd.bemFile()),
           idfFile(cmd.idfFile()),
