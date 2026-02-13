@@ -774,10 +774,14 @@ if __name__ == "__main__":
 
     if options.test_cases == []:
         if len(args) == 0:
-            root_dir = "."
+            root_dirs = ["."]
         else:
-            root_dir = args[0]
-        all_test_cases = find_test_cases(root_dir)
+            root_dirs = args
+
+        all_test_cases = []
+        for d in root_dirs:
+            all_test_cases += find_test_cases(d)
+
     else:
         for fn in options.test_cases:
             if not os.access(fn, os.R_OK):
