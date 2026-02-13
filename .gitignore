@@ -107,6 +107,7 @@ openasip/src/bintools/Compiler/OpenCL/tests/atlocal
 openasip/src/bintools/Compiler/tcecc
 openasip/src/bintools/Compiler/tceopgen/tceoclextgen
 openasip/src/bintools/Compiler/tceopgen/tceopgen
+openasip/src/bintools/Compiler/tceopgen/tceriscvopgen
 openasip/src/bintools/Compiler/tdgen/tdgen_transport
 openasip/src/bintools/DictionaryTool/dictionary_tool
 openasip/src/bintools/Disassembler/tcedisasm
@@ -132,6 +133,7 @@ openasip/src/procgen/MachInfo/machinfo
 openasip/src/procgen/ProDe/prode
 openasip/src/procgen/ProGe/buildicdecoderplugin
 openasip/src/procgen/ProGe/generateprocessor
+openasip/src/procgen/ProGe/generatecoprocessor
 openasip/src/procgen/ProGe/ttaunittester
 openasip/src/tools/.libs/
 openasip/src/tools/tce_version_string.h
