@@ -94,14 +94,12 @@ public:
     bool hasSourceLineNumber() const;
     int sourceLineNumber() const;
     bool hasSourceFileName() const;
-    std::string sourceFileName() const;   
-    
-private:
-    /// Copying not allowed.
-    Move(const Move&);
-    /// Assignment not allowed.
-    Move& operator=(const Move&);
+    std::string sourceFileName() const;
 
+    Move(const Move&) = delete;
+    Move& operator=(const Move&) = delete;
+
+private:
     /// Parent instruction of the move.
     Instruction* parent_;
     /// The source of the move.

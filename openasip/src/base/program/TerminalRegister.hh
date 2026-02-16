@@ -74,10 +74,9 @@ public:
 
     virtual TCEString toString() const;
 
-private:
-    /// Assignment not allowed.
-    TerminalRegister& operator=(const TerminalRegister&);
+    TerminalRegister& operator=(const TerminalRegister&) = delete;
 
+private:
     /// Unit of the terminal.
     const TTAMachine::Unit& unit_;
     /// Port of the unit.

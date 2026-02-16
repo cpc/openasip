@@ -72,6 +72,9 @@ public:
     int statisticsCount() const;
     const CostDBEntryStats& statistics(int index) const;
 
+    CostDBEntry(const CostDBEntry&) = delete;
+    CostDBEntry& operator=(const CostDBEntry&) = delete;
+
 private:
     /// Type definition for a table of statistics.
     typedef std::vector<CostDBEntryStats*> StatsTable;
@@ -80,11 +83,6 @@ private:
     CostDBEntryKey* entryKey_;
     /// Statistics of the entry.
     StatsTable entryStats_;
-
-    /// Copying not allowed.
-    CostDBEntry(const CostDBEntry&);
-    /// Assignment not allowed.
-    CostDBEntry& operator=(const CostDBEntry&);
 };
 
 #endif

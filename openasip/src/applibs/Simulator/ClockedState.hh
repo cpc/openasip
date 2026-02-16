@@ -47,11 +47,8 @@ public:
     /// this is called at (re)initialization of the simulation
     virtual void reset() {}
 
-private:
-    /// Copying not allowed.
-    ClockedState(const ClockedState&);
-    /// Assignment not allowed.
-    ClockedState& operator=(const ClockedState&);
+    ClockedState(const ClockedState&) = delete;
+    ClockedState& operator=(const ClockedState&) = delete;
 };
 
 #endif

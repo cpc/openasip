@@ -52,6 +52,9 @@ public:
 
     virtual ~AOutTextSectionReader();
 
+    AOutTextSectionReader(const AOutTextSectionReader&) = delete;
+    AOutTextSectionReader& operator=(const AOutTextSectionReader&) = delete;
+
 protected:
     AOutTextSectionReader();
     virtual Section::SectionType type() const;
@@ -74,11 +77,6 @@ private:
     void setReference(
         InstructionElement* elem, SectionOffset sectionOffset,
         SectionId sectionID) const;
-
-    /// Copying not allowed.
-    AOutTextSectionReader(const AOutTextSectionReader&);
-    /// Assignment not allowed.
-    AOutTextSectionReader& operator=(const AOutTextSectionReader&);
 
     /// Prototype to be registered to SectionReader.
     static AOutTextSectionReader proto_;

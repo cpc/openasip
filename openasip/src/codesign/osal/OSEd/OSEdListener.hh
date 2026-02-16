@@ -45,11 +45,8 @@ public:
     virtual ~OSEdListener();
     virtual void handleEvent(OSEdInformer::EventId id) = 0;
 
-private:
-    /// Copying not allowed.
-    OSEdListener(const OSEdListener&);
-    /// Assignment not allowed.
-    OSEdListener& operator=(const OSEdListener&);
+    OSEdListener(const OSEdListener&) = delete;
+    OSEdListener& operator=(const OSEdListener&) = delete;
 };
 
 #endif

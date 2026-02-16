@@ -57,12 +57,10 @@ protected:
     virtual void layoutChildren(wxDC*);
     virtual void drawSelf(wxDC*);
 
-private:
-    /// Assignment not allowed.
-    UnitFigure& operator=(UnitFigure& old);
-    /// Copying not allowed.
-    UnitFigure(UnitFigure& old);
+    UnitFigure& operator=(UnitFigure& old) = delete;
+    UnitFigure(UnitFigure& old) = delete;
 
+private:
     /// Type identifier of the unit.
     wxString type_;
     /// Name of the unit.

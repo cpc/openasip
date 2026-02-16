@@ -47,9 +47,7 @@ class OperationContext;
  */
 class SimpleOperationExecutor : public OperationExecutor {
 public:
-    SimpleOperationExecutor(
-        int latency,  
-        FUState& parent);
+    SimpleOperationExecutor(int latency, FUState& parent);
     virtual ~SimpleOperationExecutor();
 
     virtual int latency() const;
@@ -59,10 +57,10 @@ public:
     virtual OperationExecutor* copy();
     virtual void setContext(OperationContext& context);
 
-private:
-    /// Assignment not allowed.
-    SimpleOperationExecutor& operator=(const SimpleOperationExecutor&);
+    SimpleOperationExecutor&
+    operator=(const SimpleOperationExecutor&) = delete;
 
+private:
     /**
      * Models one cell of the ring buffer of operations.
      */
@@ -70,21 +68,21 @@ private:
         /**
          * Constructor.
          */
-        BufferCell() : 
-            operation_(NULL), ready_(false), boundOperation_(NULL) {}
+        BufferCell()
+            : operation_(NULL), ready_(false), boundOperation_(NULL) {}
         /// Inputs and outputs for the operation.
         SimValue* io_[EXECUTOR_MAX_OPERAND_COUNT];
-        /// Original inputs and outputs of the operation. 
+        /// Original inputs and outputs of the operation.
         /// @note the limitation on max io ports to
         /// avoid dynamic allocation of the array.
         SimValue ioOrig_[EXECUTOR_MAX_OPERAND_COUNT];
-        /// Operation to be executed, set to NULL when results have been 
+        /// Operation to be executed, set to NULL when results have been
         /// moved to output ports.
         Operation* operation_;
         /// Flag telling whether results are ready or not.
         bool ready_;
         /// Tells the operation for which the bindings are initialized in
-        /// this "pipeline cell", NULL in case bindings have not been 
+        /// this "pipeline cell", NULL in case bindings have not been
         /// initialized.
         Operation* boundOperation_;
     };

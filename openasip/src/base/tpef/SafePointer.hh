@@ -105,7 +105,7 @@ private:
 /**
  * Class containing all the hash functions if hash_map is
  * used. However the use of hash_map will make program very slow
- * unless MapTools::containsValue() is not optimised for 
+ * unless MapTools::containsValue() is not optimised for
  * hash_tables or that function should be circumvented.
  */
 class HashFunctions {
@@ -307,6 +307,9 @@ protected:
         std::set<SafePointerList*>&
         listsToDelete);
 
+    SafePointer(SafePointer&) = delete;
+    SafePointer& operator=(SafePointer&) = delete;
+
 private:
 
     /// The reference to the real object.
@@ -341,12 +344,6 @@ private:
 
     /// Map for cache.
     static KeyForCacheMap* keyForCache_;
-
-    /// Assignment not allowed.
-    SafePointer& operator=(SafePointer&);
-
-    /// Copying not allowed.
-    SafePointer(SafePointer&);
 
 #ifndef NDEBUG
     std::string debugString_;

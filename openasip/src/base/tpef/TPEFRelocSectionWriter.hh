@@ -59,12 +59,10 @@ protected:
 
     virtual void writeInfo(BinaryStream& stream, const Section* sect) const;
 
-private:
-    /// Copying not allowed.
-    TPEFRelocSectionWriter(const TPEFRelocSectionWriter&);
-    /// Assignment not allowed.
-    TPEFRelocSectionWriter operator=(const TPEFRelocSectionWriter&);
+    TPEFRelocSectionWriter(const TPEFRelocSectionWriter&) = delete;
+    TPEFRelocSectionWriter operator=(const TPEFRelocSectionWriter&) = delete;
 
+private:
     /// An unique instance of class.
     static const TPEFRelocSectionWriter instance_;
     /// The fixed size of reloc element.

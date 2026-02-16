@@ -70,6 +70,9 @@ public:
     template <typename T>
     void importSymbol(const std::string& symbolName, T*& target);
 
+    PluginTools(const PluginTools&) = delete;
+    PluginTools& operator=(const PluginTools&) = delete;
+
 private:
     typedef std::vector<std::string>::iterator VecIter;
     typedef std::map<std::string, void*>::iterator MapIter;
@@ -79,11 +82,6 @@ private:
         const std::string& symbolName, const std::string& module = "");
 
     std::string findModule(const std::string& module);
-
-    /// Copying not allowed.
-    PluginTools(const PluginTools&);
-    /// Assignment not allowed.
-    PluginTools& operator=(const PluginTools&);
 
     /// Search paths of dynamic modules.
     std::vector<std::string> searchPaths_;

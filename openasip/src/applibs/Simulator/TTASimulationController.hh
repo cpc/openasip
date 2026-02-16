@@ -70,17 +70,16 @@ class TTASimulationController {
 public:
     /// The states of simulation.
     enum SimulationStatus {
-        STA_INITIALIZING,///< Simulation is being initialized.
-        STA_INITIALIZED, ///< Simulation initialized and ready to run.
-        STA_RUNNING,     ///< A run command (run, stepi, until...) given.
-        STA_STOPPED,     ///< Simulation stopped for some reason.
-        STA_FINISHED     
+        STA_INITIALIZING, ///< Simulation is being initialized.
+        STA_INITIALIZED,  ///< Simulation initialized and ready to run.
+        STA_RUNNING,      ///< A run command (run, stepi, until...) given.
+        STA_STOPPED,      ///< Simulation stopped for some reason.
+        STA_FINISHED
         ///< Simulation ended after executing the last instruction.
     };
 
-    TTASimulationController(
-        SimulatorFrontend & frontend,
-        const TTAMachine::Machine& machine, 
+    TTASimulationController(SimulatorFrontend& frontend,
+        const TTAMachine::Machine& machine,
         const TTAProgram::Program& program);
 
     virtual ~TTASimulationController();
@@ -94,19 +93,16 @@ public:
     virtual void runUntil(UIntWord address) = 0;
 
     virtual void reset() = 0;
-    
-    
-    virtual std::string registerFileValue(
-        const std::string& rfName, 
-        int registerIndex = -1) = 0;
-    
+
+    virtual std::string
+    registerFileValue(const std::string& rfName, int registerIndex = -1) = 0;
+
     virtual SimValue immediateUnitRegisterValue(
     const std::string& iuName, int index = -1) = 0;
-    
-    virtual SimValue FUPortValue(
-        const std::string& fuName, 
-        const std::string& portName) = 0;
-    
+
+    virtual SimValue
+    FUPortValue(const std::string& fuName, const std::string& portName) = 0;
+
     virtual void prepareToStop(StopReason reason);
     virtual unsigned int stopReasonCount() const;
     virtual StopReason stopReason(unsigned int index) const;
@@ -117,32 +113,31 @@ public:
     virtual MemorySystem& memorySystem(int coreId=-1);
     virtual SimulatorFrontend& frontend();
     virtual bool automaticFinishImpossible() const;
-    
+
     virtual std::set<InstructionAddress> findProgramExitPoints(
         const TTAProgram::Program& program,
         const TTAMachine::Machine& machine) const;
 
+    TTASimulationController(const TTASimulationController&) = delete;
+    TTASimulationController&
+    operator=(const TTASimulationController&) = delete;
+
 protected:
-    /// Copying not allowed.
-    TTASimulationController(const TTASimulationController&);
-    /// Assignment not allowed.
-    TTASimulationController& operator=(const TTASimulationController&);
-    
     /// The container type for reasons why simulation stop was requested.
     typedef std::set<StopReason> StopReasonContainer;
-    
+
     /// Reference to the simulator frontend
     SimulatorFrontend& frontend_;
     /// The simulated Machine Object Model.
     const TTAMachine::Machine& sourceMachine_;
     /// Program object model of the simulated program.
     const TTAProgram::Program& program_;
-   
+
     /// Flag indicating that simulation should stop.
     bool stopRequested_;
     /// The set of reasons the simulation was stopped.
     StopReasonContainer stopReasons_;
- 
+
     /// The current state of the simulation.
     SimulationStatus state_;
     /// How many clock cycles have been simulated.

@@ -572,7 +572,7 @@ createTCEMCInstrInfo() {
 
 static MCSubtargetInfo*
 createTCEMCSubtargetInfo(const Triple& TT, StringRef CPU, StringRef FS) {
-    const MCWriteProcResEntry WPR[] = {{0, 0}};
+    const MCWriteProcResEntry WPR[] = {{0, 0, 0}};
     const MCWriteLatencyEntry WL[] = {{0, 0}};
     const MCReadAdvanceEntry RA[] = {{0, 0, 0}};
     ArrayRef<SubtargetFeatureKV> PF;

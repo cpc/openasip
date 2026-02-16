@@ -59,7 +59,7 @@ SocketPortConnFigure::~SocketPortConnFigure() {
 void
 SocketPortConnFigure::drawSelf(wxDC* dc) {
     assert(source_ != NULL && target_ != NULL);
-    wxPen pen = wxPen(DEFAULT_COLOUR, 1, wxSOLID);
+    wxPen pen = wxPen(DEFAULT_COLOUR, 1, wxPENSTYLE_SOLID);
     dc->SetPen(pen);
     drawConnection(dc);
 }

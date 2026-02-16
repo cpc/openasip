@@ -66,6 +66,9 @@ public:
     static EntryKeyProperty* find(std::string type);
     static void destroy();
 
+    EntryKeyProperty(const EntryKeyProperty&) = delete;
+    EntryKeyProperty& operator=(const EntryKeyProperty&) = delete;
+
 protected:
     EntryKeyProperty(std::string propertyName);
 
@@ -82,11 +85,6 @@ private:
 
     /// All known entry types.
     static EntryPropertyTable entryTypes_;
-
-    /// Copying not allowed.
-    EntryKeyProperty(const EntryKeyProperty&);
-    /// Assignment not allowed.
-    EntryKeyProperty& operator=(const EntryKeyProperty&);
 };
 
 #include "EntryKeyProperty.icc"

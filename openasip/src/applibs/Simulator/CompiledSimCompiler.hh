@@ -42,7 +42,7 @@ class CompiledSimCompiler {
 public:
     CompiledSimCompiler();
     virtual ~CompiledSimCompiler();
-    
+
     int compileDirectory(
         const std::string& dirName,
         const std::string& flags = "",
@@ -53,24 +53,22 @@ public:
         const std::string& flags = "",
         const std::string& outputExtension = ".o",
         bool verbose = false) const;
-    
+
     int compileToSO(
         const std::string& path,
         const std::string& flags = "",
         bool verbose = false) const;
-    
+
     /// cpp flags used for compiled simulation
     static const char* COMPILED_SIM_CPP_FLAGS;
-    
+
     /// flags used when compiling .so files
     static const char* COMPILED_SIM_SO_FLAGS;
-    
+
+    CompiledSimCompiler(const CompiledSimCompiler&) = delete;
+    CompiledSimCompiler& operator=(const CompiledSimCompiler&) = delete;
+
 private:
-    /// Copying not allowed.
-    CompiledSimCompiler(const CompiledSimCompiler&);
-    /// Assignment not allowed.
-    CompiledSimCompiler& operator=(const CompiledSimCompiler&);
-    
     /// Number of threads to use while compiling through a Makefile
     int threadCount_;
     /// The compiler to use

@@ -60,12 +60,10 @@ public:
 
     int width() const;
 
-private:
-    /// Copying not allowed.
-    BusState(const BusState&);
-    /// Assignment not allowed.
-    BusState& operator=(const BusState&);
+    BusState(const BusState&) = delete;
+    BusState& operator=(const BusState&) = delete;
 
+private:
     /// Name of the bus.
     std::string name_;
     /// Width of the bus.
@@ -85,19 +83,19 @@ private:
 class NullBusState : public BusState {
 public:
     static NullBusState& instance();
-    
+
     virtual ~NullBusState();
 
     virtual void setValue(const SimValue& value);
     virtual const SimValue& value() const;
 
-private:
-    NullBusState();
-    /// Copying not allowed.
-    NullBusState(const NullBusState&);
-    /// Assignment not allowed.
-    NullBusState& operator=(const NullBusState&);
+    NullBusState(const NullBusState&) = delete;
+    NullBusState& operator=(const NullBusState&) = delete;
 
+protected:
+    NullBusState();
+
+private:
     /// Unique instance of NullBusState.
     static NullBusState* instance_;
 };

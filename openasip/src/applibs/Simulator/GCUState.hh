@@ -64,11 +64,10 @@ public:
 
     virtual OperationContext& context();
 
+    GCUState(const GCUState&) = delete;
+    GCUState& operator=(const GCUState&) = delete;
+
 private:
-    /// Copying not allowed.
-    GCUState(const GCUState&);
-    /// Assignment not allowed.
-    GCUState& operator=(const GCUState&);
     /// Natural word width as minimum addressable units.
     int naturalWordWidth_;
     /// The return address register.

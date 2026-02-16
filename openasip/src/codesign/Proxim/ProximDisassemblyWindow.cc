@@ -195,7 +195,7 @@ ProximDisassemblyWindow::loadProgram(const Program& program) {
  * simulator.
  */
 void
-ProximDisassemblyWindow::onProgramLoaded(const SimulatorEvent&) {
+ProximDisassemblyWindow::onProgramLoaded(wxEvent&) {
     loadProgram(ProximToolbox::program());
 }
 
@@ -325,7 +325,7 @@ ProximDisassemblyWindow::onRunUntil(wxCommandEvent&) {
  * stops.
  */
 void
-ProximDisassemblyWindow::onSimulatorStop(const SimulatorEvent&) {
+ProximDisassemblyWindow::onSimulatorStop(wxEvent&) {
     Word pc = wxGetApp().simulation()->frontend()->programCounter();
     if (codeTable_->moveCellAttrProvider() != NULL) {
         codeTable_->moveCellAttrProvider()->update();
@@ -343,7 +343,8 @@ ProximDisassemblyWindow::onSimulatorStop(const SimulatorEvent&) {
  * @param event Event of a command execution.
  */
 void
-ProximDisassemblyWindow::onSimulatorCommand(SimulatorEvent& event) {
+ProximDisassemblyWindow::onSimulatorCommand(wxEvent& simEvent) {
+    auto& event = dynamic_cast<SimulatorEvent&>(simEvent);
     if (codeGrid_ != NULL) {
         codeGrid_->ForceRefresh();
     }

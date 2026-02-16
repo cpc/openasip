@@ -52,16 +52,14 @@ public:
 
     bool debugMode();
     std::string scriptString();
-    
+
     std::string machineFile();
     std::string programFile();
     SimulatorFrontend::SimulationType backendType();
-    
-private:
-    /// Copying not allowed.
-    SimulatorCmdLineOptions(const SimulatorCmdLineOptions&);
-    /// Assignment not allowed.
-    SimulatorCmdLineOptions& operator=(const SimulatorCmdLineOptions&);
+
+    SimulatorCmdLineOptions(const SimulatorCmdLineOptions&) = delete;
+    SimulatorCmdLineOptions&
+    operator=(const SimulatorCmdLineOptions&) = delete;
 };
 
 #endif

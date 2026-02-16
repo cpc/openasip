@@ -52,17 +52,15 @@ public:
 
     virtual wxRect virtualBounds() const;
 
+    BusFigure& operator=(BusFigure& old) = delete;
+    BusFigure(BusFigure& old) = delete;
+
 protected:
     virtual void layoutSelf(wxDC*);
     virtual void layoutChildren(wxDC*);
     virtual void drawSelf(wxDC*);
 
 private:
-    /// Assignment not allowed.
-    BusFigure& operator=(BusFigure& old);
-    /// Copying not allowed.
-    BusFigure(BusFigure& old);
-
     /// Slot of the bus.
     unsigned int slot_;
     /// Default colour for the figure.

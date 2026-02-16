@@ -52,9 +52,9 @@ public:
         const wxString& title,
         const wxPoint& pos,
         const wxSize& size);
-    
+
     virtual ~OSEdMainFrame();
-    
+
     OSEdTreeView* treeView() const;
     CommandRegistry* registry() const;
     OSEdInformer* informer() const;
@@ -63,11 +63,10 @@ public:
     void updateMenuBar();
     void onCommandEvent(wxCommandEvent& event);
 
+    OSEdMainFrame(const OSEdMainFrame&) = delete;
+    OSEdMainFrame& operator=(const OSEdMainFrame&) = delete;
+
 private:
-    /// Copying not allowed.
-    OSEdMainFrame(const OSEdMainFrame&);
-    /// Assignment not allowed.
-    OSEdMainFrame& operator=(const OSEdMainFrame&);
 
     /// Command registry.
     CommandRegistry* registry_;
@@ -77,7 +76,7 @@ private:
     OSEdInformer* informer_;
     /// Status bar of the main window.
     wxStatusBar* statusBar_;
-    
+
     DECLARE_EVENT_TABLE()
 };
 

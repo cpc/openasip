@@ -132,7 +132,7 @@ ProximMachineStateWindow::~ProximMachineStateWindow() {
  * Event handler which is called when a new program is loaded in the simulator.
  */
 void
-ProximMachineStateWindow::onProgramLoaded(const SimulatorEvent&) {
+ProximMachineStateWindow::onProgramLoaded(wxEvent&) {
     TTAMachine::Machine* machine =
         const_cast<Machine*>(&simulator_->machine());
     canvas_->setMachine(machine);
@@ -156,7 +156,7 @@ ProximMachineStateWindow::reset() {
  * Refreshes the register values.
  */
 void
-ProximMachineStateWindow::onSimulationStop(const SimulatorEvent&) {
+ProximMachineStateWindow::onSimulationStop(wxEvent&) {
 
     // Store pointer to the selected machine part.
     const MachinePart* selection = NULL;

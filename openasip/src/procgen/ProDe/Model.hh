@@ -64,8 +64,11 @@ public:
     void popFromStack(bool modified = false);
     void setNotModified() { modified_ = false; }
     bool isModified() const { return modified_; }
-private:
 
+    Model(const Model&) = delete;
+    Model& operator=(const Model&) = delete;
+
+private:
     /// Maximum undo stack size.
     static const unsigned int UNDO_STACK_MAX_SIZE;
 
@@ -78,10 +81,6 @@ private:
     /// Model observers.
     ObserverTable observers_;
 
-    /// Copying not allowed.
-    Model(const Model&);
-    /// Assignment not allowed.
-    Model& operator=(const Model&);
 
     /// Maximum size of the undo stack.
     unsigned undoStackSize_;

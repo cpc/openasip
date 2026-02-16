@@ -44,19 +44,17 @@ class OSEdUserManualCmd : public GUICommand {
 public:
     OSEdUserManualCmd();
     virtual ~OSEdUserManualCmd();
-	
+
     virtual int id() const;
     virtual GUICommand* create() const;
     virtual bool Do();
     virtual bool isEnabled();
     virtual std::string icon() const;
 
-private:
-    /// Copying not allowed.
-    OSEdUserManualCmd(const OSEdUserManualCmd&);
-    /// Assignment not allowed.
-    OSEdUserManualCmd& operator=(const OSEdUserManualCmd&);
+    OSEdUserManualCmd(const OSEdUserManualCmd&) = delete;
+    OSEdUserManualCmd& operator=(const OSEdUserManualCmd&) = delete;
 
+private:
     std::string userManual() const;
 };
 

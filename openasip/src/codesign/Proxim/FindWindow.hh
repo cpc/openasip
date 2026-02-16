@@ -53,10 +53,13 @@ public:
     virtual void reset();
 
 private:
+    void onProgramLoaded(wxEvent& simEvent);
     void onInputText(wxCommandEvent& event);
     void onFindPrev(wxCommandEvent& event);
     void onFindNext(wxCommandEvent& event);
     bool find(std::string searchString);
+
+    void handleInputText();
 
     wxSizer* createContents(wxWindow *parent, bool call_fit, bool set_sizer);
 

@@ -53,11 +53,8 @@ public:
     SubSet(const EntryKeyFieldProperty* type);
     virtual ~SubSet();
 
-private:
-    /// Copying not allowed.
-    SubSet(const SubSet&);
-    /// Assignment not allowed.
-    SubSet& operator=(const SubSet&);
+    SubSet(const SubSet&) = delete;
+    SubSet& operator=(const SubSet&) = delete;
 };
 
 #endif

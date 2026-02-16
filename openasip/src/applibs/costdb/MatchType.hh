@@ -58,14 +58,13 @@ public:
     CostDBTypes::TypeOfMatch matchingType() const;
     bool isEqual(const MatchType& m) const;
 
+    MatchType& operator=(const MatchType&) = delete;
+
 private:
     /// Type of field.
     const EntryKeyFieldProperty* fieldType_;
     /// Type of match.
     CostDBTypes::TypeOfMatch matchType_;
-
-    /// Assignment not allowed.
-    MatchType& operator=(const MatchType&);
 };
 
 #include "MatchType.icc"

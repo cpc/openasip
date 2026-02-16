@@ -52,12 +52,10 @@ protected:
 
     virtual Section::SectionType type() const;
 
-private:
-    /// Copying not allowed.
-    TPEFDataSectionReader(const TPEFDataSectionReader&);
-    /// Assignment not allowed.
-    TPEFDataSectionReader& operator=(TPEFDataSectionReader&);
+    TPEFDataSectionReader(const TPEFDataSectionReader&) = delete;
+    TPEFDataSectionReader& operator=(TPEFDataSectionReader&) = delete;
 
+private:
     /// Prototype instance of TPEFDataSectionReader to be registered to
     /// SectionReader.
     static TPEFDataSectionReader proto_;

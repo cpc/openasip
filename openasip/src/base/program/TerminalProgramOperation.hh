@@ -33,8 +33,8 @@
 #ifndef TTA_TERMINAL_PROGRAM_OPERATION_HH
 #define TTA_TERMINAL_PROGRAM_OPERATION_HH
 
-#include "TerminalInstructionAddress.hh"
 #include "ProgramOperation.hh"
+#include "TerminalInstructionAddress.hh"
 
 namespace TTAProgram {
 
@@ -44,8 +44,8 @@ namespace TTAProgram {
  * program).
  *
  * The returned instruction address is the one of the trigger move of the
- * tracked ProgramOperation. This class is used to refer to the location of
- * an another ProgramOperation strictly (not wanting to refer to the 
+ * tracked ProgramOperation. This class is used to refer to the location
+ * of an another ProgramOperation strictly (not wanting to refer to the
  * beginning of a BB).
  */
 class TerminalProgramOperation : public TerminalInstructionAddress {
@@ -54,17 +54,11 @@ public:
     TerminalProgramOperation(ProgramOperationPtr po);
     virtual ~TerminalProgramOperation();
 
-    ProgramOperationPtr programOperation() const {
-        return po_;
-    }
+    ProgramOperationPtr programOperation() const { return po_; }
 
-    void setProgramOperation(ProgramOperationPtr po) {
-        po_ = po;
-    }
+    void setProgramOperation(ProgramOperationPtr po) { po_ = po; }
 
-    bool isProgramOperationKnown() const {
-        return po_.get() != NULL;
-    }
+    bool isProgramOperationKnown() const { return po_.get() != NULL; }
 
     bool isProgramOperationReference() const { return true; }
     bool isAddressKnown() const;
@@ -75,15 +69,16 @@ public:
     virtual bool equals(const Terminal& other) const;
 
     TCEString label() const { return label_; }
-    
+
+    TerminalProgramOperation&
+    operator=(const TerminalProgramOperation&) = delete;
+
 private:
-    /// Assignment not allowed.
-    TerminalProgramOperation& operator=(const TerminalProgramOperation&);
     /// The referred PO. The pointer can be copied, e.g. to DDG.
     ProgramOperationPtr po_;
     TCEString label_;
 };
 
-}
+} // namespace TTAProgram
 
 #endif

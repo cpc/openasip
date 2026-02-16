@@ -59,12 +59,11 @@ protected:
 
     virtual Word elementSize(const Section* section) const;
 
-private:
-    /// Copying not allowed.
-    TPEFSymbolSectionWriter(const TPEFSymbolSectionWriter&);
-    /// Assignment not allowed.
-    TPEFSymbolSectionWriter operator=(const TPEFSymbolSectionWriter&);
+    TPEFSymbolSectionWriter(const TPEFSymbolSectionWriter&) = delete;
+    TPEFSymbolSectionWriter
+    operator=(const TPEFSymbolSectionWriter&) = delete;
 
+private:
     void writeValueAndSize(
         BinaryStream &stream,
         const SymbolElement* elem) const;

@@ -41,20 +41,17 @@ class BusState;
 class WritableState;
 class SimValue;
 
-
 /**
  * Represents an interpreted move which does not utilize a transport bus.
  *
  * Moves that utilize this class include control unit internal moves such
- * as control flow operations (jump, call) with immediate or RA source. 
- * This class can be used also for simulating data transports of sequential 
+ * as control flow operations (jump, call) with immediate or RA source.
+ * This class can be used also for simulating data transports of sequential
  * code, as writing to (the universal) bus is not necessary in that case.
  */
 class BuslessExecutableMove : public ExecutableMove {
 public:
-    BuslessExecutableMove(
-        const ReadableState& src, 
-        WritableState& dst);
+    BuslessExecutableMove(const ReadableState& src, WritableState& dst);
 
     BuslessExecutableMove(
         const ReadableState& src,
@@ -71,17 +68,14 @@ public:
     BuslessExecutableMove(
         InlineImmediateValue* immediateSource,
         WritableState& dst);
-    
+
     virtual ~BuslessExecutableMove();
 
     virtual void executeRead();
     virtual void executeWrite();
 
-private:
-    /// Copying not allowed.
-    BuslessExecutableMove(const BuslessExecutableMove&);
-    /// Assignment not allowed.
-    BuslessExecutableMove& operator=(const BuslessExecutableMove&);
+    BuslessExecutableMove(const BuslessExecutableMove&) = delete;
+    BuslessExecutableMove& operator=(const BuslessExecutableMove&) = delete;
 };
 
 #endif

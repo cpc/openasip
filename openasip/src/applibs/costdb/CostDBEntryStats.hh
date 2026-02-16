@@ -93,6 +93,9 @@ protected:
     /// String for reads and writes energy.
     static const std::string ENERGY_READ_WRITE;
 
+    CostDBEntryStats(const CostDBEntryStats&) = delete;
+    CostDBEntryStats& operator=(const CostDBEntryStats&) = delete;
+
 private:
     /// Map of energies.
     typedef std::map<const std::string, double> EnergyMap;
@@ -110,11 +113,6 @@ private:
     /// a resource. However, in case of FUs the active energy does not
     /// exist and but energies are defined for each operation.
     EnergyMap energies_;
-
-    /// Copying not allowed.
-    CostDBEntryStats(const CostDBEntryStats&);
-    /// Assignment not allowed.
-    CostDBEntryStats& operator=(const CostDBEntryStats&);
 };
 
 #include "CostDBEntryStats.icc"

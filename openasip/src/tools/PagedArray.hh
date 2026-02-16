@@ -87,13 +87,11 @@ public:
     size_t allocatedMemory() const;
     void clear();
 
+    PagedArray(const PagedArray&) = delete;
+    PagedArray& operator=(const PagedArray&) = delete;
+
 private:
     void deletePages();
-
-    /// Copying not allowed.
-    PagedArray(const PagedArray&);
-    /// Assignment not allowed.
-    PagedArray& operator=(const PagedArray&);
 
     /// Storage for the data pages.
     /// Created pages are stored in table from which they are found

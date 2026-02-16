@@ -145,11 +145,11 @@ public:
     static const Byte AOUT_WORD_ALIGN;
     /// Word size of address space.
     static const Byte AOUT_WORD_SIZE;
-    
+
     /// Name of universal machines code address space.
     static const char* AOUT_CODE_ASPACE_NAME;
     /// Name of universal machines data address space.
-    static const char* AOUT_DATA_ASPACE_NAME;    
+    static const char* AOUT_DATA_ASPACE_NAME;
 
     /**
      * Stores the data of a.out file header.
@@ -217,6 +217,9 @@ protected:
 
     virtual bool isMyStreamType(BinaryStream& stream) const;
 
+    AOutReader(const AOutReader&) = delete;
+    AOutReader& operator=(const AOutReader&) = delete;
+
 private:
     void readHeader(BinaryStream& stream) const;
 
@@ -225,11 +228,6 @@ private:
         Length length) const;
 
     void addOrDeleteSection(Section* section, Binary* binary) const;
-
-    /// Copying not allowed.
-    AOutReader(const AOutReader&);
-    /// Assignment not allowed.
-    AOutReader& operator=(const AOutReader&);
 
     /// Undefined address space.
     mutable ASpaceElement* undefASpace_;

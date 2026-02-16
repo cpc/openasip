@@ -47,12 +47,10 @@ public:
 
     void execute();
 
-private:
-    /// Copying not allowed.
-    LongImmUpdateAction(const LongImmUpdateAction&);
-    /// Assignment not allowed.
-    LongImmUpdateAction& operator=(const LongImmUpdateAction&);
+    LongImmUpdateAction(const LongImmUpdateAction&) = delete;
+    LongImmUpdateAction& operator=(const LongImmUpdateAction&) = delete;
 
+private:
     /// Value to be updated.
     SimValue value_;
     /// Destination register.

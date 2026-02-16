@@ -88,6 +88,9 @@ public:
 
     virtual void reset();
 
+    FUState(const FUState&) = delete;
+    FUState& operator=(const FUState&) = delete;
+
 protected:
     /// The idle status of the FU. The derived classes should
     /// alway set this to true when possible to avoid unnecessary
@@ -95,20 +98,12 @@ protected:
     bool idle_;
 
 private:
-    /// Copying not allowed.
-    FUState(const FUState&);
-    /// Assignment not allowed.
-    FUState& operator=(const FUState&);
-
     void clearPorts();
     bool sameBindings(
-        OperationExecutor& exec1, 
-        OperationExecutor& exec2,
-        Operation& op);
+        OperationExecutor& exec1, OperationExecutor& exec2, Operation& op);
 
-    virtual void setOperationSimulator(
-        Operation& op, 
-        DetailedOperationSimulator& sim);
+    virtual void
+    setOperationSimulator(Operation& op, DetailedOperationSimulator& sim);
 
     /// Maps operations to executors.
     typedef std::map<Operation*, OperationExecutor*> ExecutorContainer;
@@ -166,13 +161,14 @@ public:
         Operation& op);
 
     virtual OperationExecutor* executor(Operation& op);
-    
-private:
+
+    NullFUState(const NullFUState&) = delete;
+    NullFUState& operator=(const NullFUState&) = delete;
+
+protected:
     NullFUState();
-    /// Copying not allowed.
-    NullFUState(const NullFUState&);
-    /// Assignment not allowed.
-    NullFUState& operator=(const NullFUState&);
+
+private:
     /// Unique instance of NullFUState.
     static NullFUState instance_;
 };

@@ -45,16 +45,15 @@ public:
     virtual ~NullInstructionReferenceManager();
     static NullInstructionReferenceManager& instance();
 
-protected:
+    NullInstructionReferenceManager(
+        const NullInstructionReferenceManager&) = delete;
+    NullInstructionReferenceManager&
+    operator=(const NullInstructionReferenceManager&) = delete;
+
+private:
     NullInstructionReferenceManager();
 
 private:
-    /// Copying not allowed.
-    NullInstructionReferenceManager(const NullInstructionReferenceManager&);
-    /// Assignment not allowed.
-    NullInstructionReferenceManager& operator=(
-        const NullInstructionReferenceManager&);
-
     /// Unique instance of NullInstructionReferenceManager.
     static NullInstructionReferenceManager instance_;
 };

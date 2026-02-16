@@ -78,23 +78,22 @@ class TTASimulationController;
 struct ProcedureBBRelations {
     /// Procedure start per basic block starts
     std::map<InstructionAddress, InstructionAddress> procedureStart;
-    
+
     typedef std::multimap<InstructionAddress, InstructionAddress> 
         BasicBlockStarts;
-        
+
     /// All basic block start addresses per procedure start
     BasicBlockStarts basicBlockStarts;
-    
+
     /// Basic block starts and their corresponding .cpp files
     std::map<InstructionAddress, std::string> basicBlockFiles;
 };
 
-
 /**
  * A class that generates C/C++ code from the given POM and MOM
- * 
+ *
  * Used for the compiled simulation
- * 
+ *
  */
 class CompiledSimCodeGenerator {
 public:
@@ -115,7 +114,7 @@ public:
         const TCEString& globalSymbolPrefix = "");
 
     virtual ~CompiledSimCodeGenerator();
-    
+
     virtual void generateToDirectory(const std::string& dirName);
     virtual StringSet createdFiles() const;
     virtual AddressMap basicBlocks() const;
@@ -123,12 +122,11 @@ public:
 
     static TCETools::CIStringSet supportedMemoryOperations();
 
+    CompiledSimCodeGenerator(const CompiledSimCodeGenerator&) = delete;
+    CompiledSimCodeGenerator&
+    operator=(const CompiledSimCodeGenerator&) = delete;
+
 private:
-    /// Copying not allowed.
-    CompiledSimCodeGenerator(const CompiledSimCodeGenerator&);
-    /// Assignment not allowed.
-    CompiledSimCodeGenerator& operator=(const CompiledSimCodeGenerator&);
-    
     /**
     * A struct for handling delayed assignments for the FU results
     */
@@ -140,10 +138,10 @@ private:
         /// The FU result symbol
         std::string fuResultSymbol;
     };
-    
+
     /// A type for operation symbol declarations: 1=op.name 2=op.symbol
     typedef std::multimap<std::string, std::string> OperationSymbolDeclarations;
-    
+
     /// FU Result writes
     typedef std::multimap<int, DelayedAssignment> DelayedAssignments;
     typedef std::map<std::string, int> FUResultWrites;
@@ -164,10 +162,10 @@ private:
     void generateSymbolDeclarations();
     void generateJumpTableCode();
     void generateMakefile();
-    
+
     void addDeclaredSymbol(const std::string& name, int width);
     void addUsedRFSymbols();
-        
+
     std::string handleJump(const TTAMachine::HWOperation& op);
     std::string handleOperation(const TTAMachine::HWOperation& op);
     std::string handleOperationWithoutDag(const TTAMachine::HWOperation& op);
@@ -179,10 +177,10 @@ private:
     std::string generateStoreTrigger(const TTAMachine::HWOperation& op);
     std::string generateLoadTrigger(const TTAMachine::HWOperation& op);
 
-// guard-pipeline related methods    
+    // guard-pipeline related methods
     bool handleRegisterWrite(
         const std::string& regSymbolName, std::ostream& stream);
-    
+
     std::string guardPipelineTopSymbol(const TTAMachine::RegisterGuard& guard);
     void generateGuardPipelineVariables(std::ostream& stream);
     void generateGuardPipelineAdvance(std::ostream& stream);
@@ -191,19 +189,19 @@ private:
         const TTAMachine::FUPort& resultPort, 
         const std::string& value, 
         int latency);
-    
+
     std::string generateFUResultRead(
         const std::string& destination, 
         const std::string& resultSymbol);
 
     int maxLatency() const;
-    
+
     std::vector<TTAMachine::Port*> fuOutputPorts(
         const TTAMachine::FunctionUnit& fu) const;
 
     static bool isStoreOperation(const std::string& opName);
     static bool isLoadOperation(const std::string& opName);
-                
+
     /// The machine used for simulation
     const TTAMachine::Machine& machine_;
     /// The simulated program
@@ -212,7 +210,7 @@ private:
     const TTASimulationController& simController_;
     /// GCU
     const TTAMachine::ControlUnit& gcu_;
-    
+
     /// Should we let frontend handle each cycle end
     bool handleCycleEnd_;
     /// Is this a dynamic compiled simulation?
@@ -221,19 +219,19 @@ private:
     bool basicBlockPerFile_;
     /// Should the generator start with a new file after function end
     bool functionPerFile_;
-    
+
     /// Type for SimValue symbol declarations: string=symbolname, int=width
     typedef std::map<std::string, int> SimValueSymbolDeclarations;
     /// A list of all symbols that are declared after the program code is ready
     SimValueSymbolDeclarations declaredSymbols_;
-    
+
     /// A set of all the declared functions
     StringSet declaredFunctions_;
     /// A list of the code files created during the process
     StringSet createdFiles_;
     /// A list of used operations
     OperationSymbolDeclarations usedOperations_;
-       
+
     /// Absolute instruction # being processed
     int instructionNumber_;
     /// Istruction counter for checking how many instructions to put per file
@@ -244,7 +242,7 @@ private:
     bool isProcedureBegin_;
     /// Pointer to the current Procedure being processed
     const TTAProgram::Procedure* currentProcedure_;
-    
+
     /// last instruction of the current basic block
     InstructionAddress lastInstructionOfBB_;
     /// name of the last used guard variable
@@ -267,9 +265,9 @@ private:
 
     /// The operation pool
     OperationPool operationPool_;
-    
+
     /// Directory where to write the source files of the engine.
-    std::string targetDirectory_;    
+    std::string targetDirectory_;
     /// Name of the class to be created
     std::string className_;
     /// Header filename
@@ -282,7 +280,7 @@ private:
     std::string currentFileName_;
     /// Current output stream i.e. the above file
     std::ostream* os_;
-    
+
     /// The symbol generator
     CompiledSimSymbolGenerator symbolGen_;
 

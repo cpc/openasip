@@ -96,7 +96,8 @@ ProximCmdHistoryWindow::updateCommandList() {
  * is received.
  */
 void
-ProximCmdHistoryWindow::onSimulatorCommand(SimulatorEvent& event) {
+ProximCmdHistoryWindow::onSimulatorCommand(wxEvent& simEvent) {
+    auto& event = dynamic_cast<SimulatorEvent&>(simEvent);
     updateCommandList();
     event.Skip();
 }

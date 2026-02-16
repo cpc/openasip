@@ -66,12 +66,11 @@ public:
 
     Instruction* parent() const { return parent_; }
     void setParent(Instruction* ins) { parent_ = ins; }
-private:
-    /// Copying not allowed.
-    Immediate(const Immediate&);
-    /// Assignment not allowed.
-    Immediate& operator=(const Immediate&);
 
+    Immediate(const Immediate&) = delete;
+    Immediate& operator=(const Immediate&) = delete;
+
+private:
     /// Value of the immediate.
     TerminalImmediate* value_;
 

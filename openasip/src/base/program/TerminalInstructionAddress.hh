@@ -38,27 +38,26 @@
 
 namespace TTAProgram {
 
-/**
- * An interface for Terminals that represent inline immediates that refer 
- * to (absolute) instruction addresses.
- */
-class TerminalInstructionAddress : public TerminalImmediate {
-public:
-    TerminalInstructionAddress();
-    virtual ~TerminalInstructionAddress();
+    /**
+     * An interface for Terminals that represent inline immediates that refer
+     * to (absolute) instruction addresses.
+     */
+    class TerminalInstructionAddress : public TerminalImmediate {
+    public:
+        TerminalInstructionAddress();
+        virtual ~TerminalInstructionAddress();
 
-    bool isInstructionAddress() const { return true; }
-    // the value as an instructionAddress()
-    virtual Address address() const = 0;
-    SimValue value() const { 
-        return SimValue(address().location(), WORD_BITWIDTH); 
-    }
-    virtual Terminal* copy() const = 0;
-    virtual bool equals(const Terminal& other) const = 0;
+        bool isInstructionAddress() const { return true; }
+        // the value as an instructionAddress()
+        virtual Address address() const = 0;
+        SimValue value() const {
+            return SimValue(address().location(), WORD_BITWIDTH);
+        }
+        virtual Terminal* copy() const = 0;
+        virtual bool equals(const Terminal& other) const = 0;
 
-private:
-    /// Assignment not allowed.
-    TerminalInstructionAddress& operator=(const TerminalInstructionAddress&);
+        TerminalInstructionAddress&
+        operator=(const TerminalInstructionAddress&) = delete;
 };
 
 }

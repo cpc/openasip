@@ -53,7 +53,7 @@ public:
 
     virtual ~ProximCmdHistoryWindow();
 private:
-    void onSimulatorCommand(SimulatorEvent& event);
+    void onSimulatorCommand(wxEvent& simEvent);
     void updateCommandList();
     wxSizer* createContents(wxWindow* parent, bool set_sizer, bool call_fit);
 

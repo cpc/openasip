@@ -57,16 +57,14 @@ protected:
 
     void readInfo(BinaryStream& stream, Section* sect) const;
 
-private:
-    /// Copying not allowed.
-    TPEFRelocSectionReader(const TPEFRelocSectionReader&);
-    /// Assignment not allowed.
-    TPEFRelocSectionReader& operator=(TPEFRelocSectionReader&);
+    TPEFRelocSectionReader(const TPEFRelocSectionReader&) = delete;
+    TPEFRelocSectionReader& operator=(TPEFRelocSectionReader&) = delete;
 
+private:
     /// Prototype instance of TPEFRelocSectionReader to be registered to
     /// SectionReader.
     static TPEFRelocSectionReader proto_;
-    
+
     /// Section id of last referenced section.
     static SectionId refSectionId_;
 };

@@ -62,15 +62,15 @@ public:
     virtual ~DirectAccessMemory();
 
     void write(ULongWord address, Memory::MAU data) override;
-    
+
     void fastWriteMAU(
         ULongWord address,
         ULongWord data);
-    
+
     void fastWrite2MAUsBE(
         ULongWord address,
         ULongWord data);
-    
+
     void fastWrite4MAUsBE(
         ULongWord address,
         ULongWord data);
@@ -78,21 +78,21 @@ public:
     void fastWrite2MAUsLE(
         ULongWord address,
         ULongWord data);
-    
+
     void fastWrite4MAUsLE(
         ULongWord address,
         ULongWord data);
 
     Memory::MAU read(ULongWord address) override;
-    
+
     void fastReadMAU(
         ULongWord address,
         ULongWord& data);
-    
+
     void fastRead2MAUsBE(
         ULongWord address,
         ULongWord& data);
-    
+
     void fastRead4MAUsBE(
         ULongWord address,
         ULongWord& data);
@@ -100,7 +100,7 @@ public:
     void fastRead2MAUsLE(
         ULongWord address,
         ULongWord& data);
-    
+
     void fastRead4MAUsLE(
         ULongWord address,
         ULongWord& data);
@@ -111,16 +111,13 @@ public:
 
     void writeBE(ULongWord address, int count, ULongWord data) override;
 
+    DirectAccessMemory(const DirectAccessMemory&) = delete;
+    DirectAccessMemory& operator=(const DirectAccessMemory&) = delete;
 
     using Memory::write;
     using Memory::read;
 
 private:
-    /// Copying not allowed.
-    DirectAccessMemory(const DirectAccessMemory&);
-    /// Assignment not allowed.
-    DirectAccessMemory& operator=(const DirectAccessMemory&);
-
     /// Starting point of the address space.
     Word start_;
     /// End point of the address space.
@@ -130,7 +127,7 @@ private:
     /// precalculated MAUSize_ * 3
     Word MAUSize3_;
     /// precalculated MAUSize_ * 2
-    Word MAUSize2_;    
+    Word MAUSize2_;
     /// Size of the natural word as MAUs.
     Word wordSize_;
     /// Mask bit pattern for unpacking IntWord to MAUs.

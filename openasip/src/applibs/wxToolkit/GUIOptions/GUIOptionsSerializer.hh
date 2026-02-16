@@ -59,6 +59,9 @@ public:
     void writeOptions(const GUIOptions& options);
     GUIOptions* readOptions();
 
+    GUIOptionsSerializer(const GUIOptionsSerializer&) = delete;
+    GUIOptionsSerializer& operator=(const GUIOptionsSerializer&) = delete;
+
 protected:
     virtual ObjectState* convertToConfigFileFormat(
         const ObjectState* options) const;
@@ -76,10 +79,6 @@ private:
         const ObjectState* ksElem,
         ObjectState* options) const;
 
-    /// Copying not allowed.
-    GUIOptionsSerializer(const GUIOptionsSerializer&);
-    /// Assignment not allowed.
-    GUIOptionsSerializer& operator=(const GUIOptionsSerializer&);
     /// Name of the configuration to read/write.
     std::string configurationName_;
 };

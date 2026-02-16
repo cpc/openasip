@@ -62,17 +62,15 @@ public:
     void addAnnotation(DisassemblyAnnotation* annotation);
     int annotationCount() const;
 
+    DisassemblyInstruction(const DisassemblyInstruction&) = delete;
+    DisassemblyInstruction operator=(const DisassemblyInstruction&) = delete;
+
 private:
     /// Vector of DisassemblyMoves.
     typedef std::vector<DisassemblyInstructionSlot*> MoveTable;
 
     /// Vector of DisassemblyMoves.
     typedef std::vector<DisassemblyImmediateAssignment*> LongImmediateTable;
-
-    /// Copying not allowed.
-    DisassemblyInstruction(const DisassemblyInstruction&);
-    /// Assignment not allowed.
-    DisassemblyInstruction operator=(const DisassemblyInstruction&);
 
     /// List of instruction moves.
     MoveTable moves_;

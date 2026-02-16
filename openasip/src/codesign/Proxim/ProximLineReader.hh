@@ -83,11 +83,10 @@ public:
 
     std::string inputHistoryFilename() const;
 
+    ProximLineReader(const ProximLineReader&) = delete;
+    ProximLineReader& operator=(const ProximLineReader&) = delete;
+
 private:
-    /// Copying not allowed.
-    ProximLineReader(const ProximLineReader&);
-    /// Assignment not allowed.
-    ProximLineReader& operator=(const ProximLineReader&);
     wxMutex* mutex_;
     /// Condition, which is signaled when user input is received from the GUI.
     wxCondition* input_;

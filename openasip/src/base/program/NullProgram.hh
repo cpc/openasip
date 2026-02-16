@@ -75,15 +75,13 @@ public:
 
     InstructionReferenceManager& instructionReferenceManager();
 
+    NullProgram(const NullProgram&) = delete;
+    NullProgram& operator=(const NullProgram&) = delete;
+
 protected:
     NullProgram();
 
 private:
-    /// Copying not allowed.
-    NullProgram(const NullProgram&);
-    /// Assignment not allowed.
-    NullProgram& operator=(const NullProgram&);
-
     /// Unique instance of NullProgram.
     static NullProgram instance_;
 };

@@ -54,7 +54,7 @@ class OperationPoolPimpl {
 public:
     friend class OperationPool;
     ~OperationPoolPimpl();
-    
+
     Operation& operation(const char* name);
     OperationIndex& index();
     bool sharesState(const Operation& op);
@@ -64,29 +64,29 @@ public:
     static void setLLVMTargetInstrInfo(const llvm::MCInstrInfo* tid) {
         llvmTargetInstrInfo_ = tid;
     }
+
+    OperationPoolPimpl(const OperationPoolPimpl&) = delete;
+    OperationPoolPimpl& operator=(const OperationPoolPimpl&) = delete;
+
 private:
     OperationPoolPimpl();
-    
+
     /// Container for operations indexed by their names.
     typedef std::map<std::string, Operation*> OperationTable;
 
-    /// Copying not allowed.
-    OperationPoolPimpl(const OperationPoolPimpl&);
-    /// Assignment not allowed.
-    OperationPoolPimpl& operator=(const OperationPoolPimpl&);
     Operation* loadFromLLVM(const llvm::MCInstrDesc& tid);
     /// Operation pool uses this to load behavior models of the operations.
     static OperationBehaviorLoader* loader_;
     /// Indexed table used to find out which operation module contains the
     /// given operation.
     static OperationIndex* index_;
-    
+
     OperationSerializer serializer_;
-    
+
     /// Contains all operations that have been already requested by the client.
     static OperationTable operationCache_;
     /// Contains all operation behavior proxies.
-    static std::vector<OperationBehaviorProxy*> proxies_; 
+    static std::vector<OperationBehaviorProxy*> proxies_;
     /// If this is set, OSAL data is loaded from the TargetInstrInfo
     /// instead of .opp XML files. Used when calling the TCE scheduler from
     /// non-TTA LLVM targets.

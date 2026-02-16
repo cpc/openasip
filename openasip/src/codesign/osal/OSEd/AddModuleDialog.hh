@@ -46,16 +46,14 @@ public:
 
     std::string name() const;
 
-private:
-    /// Copying not allowed.
-    AddModuleDialog(const AddModuleDialog&);
-    /// Assignment not allowed.
-    AddModuleDialog& operator=(const AddModuleDialog&);
+    AddModuleDialog(const AddModuleDialog&) = delete;
+    AddModuleDialog& operator=(const AddModuleDialog&) = delete;
 
+private:
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     void onOk(wxCommandEvent& event);
     void setTexts();
-    
+
     /**
      * Widget ids.
      */
@@ -63,12 +61,12 @@ private:
         ID_TEXT,
         ID_MODULE_NAME
     };
-    
+
     /// Path in which module is added.
     std::string path_;
     /// Name of the module.
     wxString name_;
-    
+
     DECLARE_EVENT_TABLE()
 };
 

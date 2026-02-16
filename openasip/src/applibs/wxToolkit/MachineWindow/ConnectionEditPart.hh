@@ -50,12 +50,10 @@ public:
     void setSource(EditPart* source);
     void setTarget(EditPart* target);
 
-private:
-    /// Assignment not allowed.
-    ConnectionEditPart& operator=(ConnectionEditPart& old);
-    /// Copying not allowed.
-    ConnectionEditPart(ConnectionEditPart& old);
+    ConnectionEditPart& operator=(ConnectionEditPart& old) = delete;
+    ConnectionEditPart(ConnectionEditPart& old) = delete;
 
+private:
     /// Source of connection.
     EditPart* source_;
     /// Target of connection.

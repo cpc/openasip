@@ -66,6 +66,10 @@ protected:
 
     virtual void readData(BinaryStream& stream, Section* section) const;
 
+    AOutSymbolSectionReader(const AOutSymbolSectionReader&) = delete;
+    AOutSymbolSectionReader&
+    operator=(const AOutSymbolSectionReader&) = delete;
+
 private:
     /**
      * All the information of read a.out stab.
@@ -77,7 +81,7 @@ private:
             stabType(aType), other(anOther), description(aDescr),
             value(aValue), nameOffset(aName) {
         }
-                
+
         /// Stab type.
         Byte stabType;
         /// Stab other field.
@@ -94,19 +98,14 @@ private:
         BinaryStream& stream, SectionOffset sectionOffset,
         AOutReader* reader) const;
 
-    /// Copying not allowed.
-    AOutSymbolSectionReader(const AOutSymbolSectionReader&);
-    /// Assignment not allowed.
-    AOutSymbolSectionReader& operator=(const AOutSymbolSectionReader&);
-
     /// Data symbol size in bytes.
     static const Word DATA_SYMBOL_SIZE;
-    
-    /// One of the symbols that are used to indicate start of new 
+
+    /// One of the symbols that are used to indicate start of new
     /// compilation module in a.out symbol table
     static const std::string GCC_MODULE_START_SYMBOL1;
 
-    /// One of the symbols that are used to indicate start of new 
+    /// One of the symbols that are used to indicate start of new
     /// compilation module in a.out symbol table
     static const std::string GCC_MODULE_START_SYMBOL2;
 
@@ -124,21 +123,19 @@ private:
      * for instructions starting from startAddress. There is own
      * replacement map for each compilation unit.
      */
-    struct CompilationModule {        
-        CompilationModule(Word startAddress) : 
-            startAddress_(startAddress) {
-        }
-        
+    struct CompilationModule {
+        CompilationModule(Word startAddress) : startAddress_(startAddress) {}
+
         /// Start address of linked compilation module in a.out
         Word startAddress_;
-        
+
         /// Resources id replacements for the compilation module.
         std::map<Word, SectionOffset> resources_;
     };
-    
+
     /// Resource id:s for strings.
     mutable std::map<std::string, Word> resolvedResources_;
-    
+
     /// List of compilation modules of a.out
     mutable std::vector<CompilationModule> addedResources_;
 

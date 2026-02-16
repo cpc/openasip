@@ -107,7 +107,7 @@ public:
     virtual bool isIUResource() const;
     // Determine if resource is ITemplateResource
     virtual bool isITemplateResource() const;
-    
+
     // Get instruction index for resource
     inline int instructionIndex(int cycle) const;
 
@@ -120,6 +120,10 @@ public:
     virtual bool operator < (const SchedulingResource& other) const;
     virtual void clear();
     virtual void setMaxCycle(unsigned int) {};
+
+    SchedulingResource(const SchedulingResource&) = delete;
+    SchedulingResource& operator=(const SchedulingResource&) = delete;
+
 protected:
     // Tests if all referenced resources in dependent groups are of correct
     // type
@@ -127,7 +131,7 @@ protected:
     // Tests if all referenced resources in related groups are of correct
     // type
     virtual bool validateRelatedGroups() ;
-    
+
     // initiation interval used for modulo scheduler
     int initiationInterval_;
 
@@ -136,10 +140,6 @@ private:
     typedef std::vector<SchedulingResource*> SchedulingResourceVector;
     // A container storing SchedulingResourceVectors
     typedef std::vector<SchedulingResourceVector> SchedulingResourceGroup;
-    // Copying forbidden (it is abstract class but anyway)
-    SchedulingResource(const SchedulingResource&);
-    //Assignment forbidden (it is abstract class but anyway)
-    SchedulingResource& operator=(const SchedulingResource&);
 
     // The related resource group
     SchedulingResourceGroup relatedResourceGroup_;
@@ -150,7 +150,7 @@ private:
 
     typedef std::set<const SchedulingResource*> SchedulingResourceSet;
     SchedulingResourceSet relatedResourceSet_;
-    
+
     // Counts number of times particular resource was used
     int useCount_;
 };
@@ -160,26 +160,24 @@ private:
  */
 class SchedulingResourceSet {
 public:
-    SchedulingResourceSet();
-    ~SchedulingResourceSet();
     void insert(SchedulingResource& resource);
     int count() const;
     SchedulingResource& resource(int index) const;
     void remove(SchedulingResource& resource);
-    SchedulingResourceSet& operator=(const SchedulingResourceSet& newSet);
     void sort();
     void clear();
     bool hasResource(SchedulingResource& res);
+
 private:
     // List for resources.
     typedef std::vector<SchedulingResource*> ResourceList;
-    
+
     struct less_name {
         bool operator()(SchedulingResource* x, SchedulingResource* y) {
             return *x < *y;
         }
     };
-    
+
     // Scheduling resources in the set.
     ResourceList resources_;
 };

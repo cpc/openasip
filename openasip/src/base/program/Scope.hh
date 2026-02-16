@@ -47,7 +47,7 @@ class DataLabel;
 /**
  * Scopes provide containers for different visibility level labels.
  *
- * @todo Implement rest of the Scopes (only GlobalScope is supported 
+ * @todo Implement rest of the Scopes (only GlobalScope is supported
  * currently).
  */
 class Scope {
@@ -115,12 +115,10 @@ protected:
     void addChild(const Scope& scope);
     const Scope& child(int index) const;
 
-private:
-    /// Copying not allowed.
-    Scope(const Scope&);
-    /// Assignment not allowed.
-    Scope& operator=(const Scope&);
+    Scope(const Scope&) = delete;
+    Scope& operator=(const Scope&) = delete;
 
+private:
     /// The smallest outer scope that contains this scope.
     Scope* parent_;
 };

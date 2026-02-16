@@ -51,12 +51,10 @@ public:
     OutputOperandDialog(wxWindow* window, Operand* operand, int index);
     virtual ~OutputOperandDialog();
 
-private:
-    /// Copying not allowed.
-    OutputOperandDialog(const OutputOperandDialog&);
-    /// Assignment not allowed.
-    OutputOperandDialog& operator=(const OutputOperandDialog&);
+    OutputOperandDialog(const OutputOperandDialog&) = delete;
+    OutputOperandDialog& operator=(const OutputOperandDialog&) = delete;
 
+private:
     wxSizer* createContents(wxWindow* window, bool call_fit, bool set_sizer);
     void onOk(wxCommandEvent& event);
     void onType(wxCommandEvent& event);

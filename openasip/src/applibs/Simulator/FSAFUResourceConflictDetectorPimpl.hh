@@ -49,15 +49,15 @@ class FSAFUResourceConflictDetectorPimpl {
 public:
     friend class FSAFUResourceConflictDetector;
     ~FSAFUResourceConflictDetectorPimpl();
+
+    FSAFUResourceConflictDetectorPimpl(
+        const FSAFUResourceConflictDetectorPimpl&) = delete;
+    FSAFUResourceConflictDetectorPimpl&
+    operator=(const FSAFUResourceConflictDetectorPimpl&) = delete;
+
 private:
     FSAFUResourceConflictDetectorPimpl(const TTAMachine::FunctionUnit& fu);
-    /// Copying not allowed.
-    FSAFUResourceConflictDetectorPimpl(
-        const FSAFUResourceConflictDetectorPimpl&);
-    /// Assignment not allowed.
-    FSAFUResourceConflictDetectorPimpl& operator=(
-        const FSAFUResourceConflictDetectorPimpl&);
-    
+
     /// The FSA.
     FUFiniteStateAutomaton fsa_;
     /// Current state of the FSA.

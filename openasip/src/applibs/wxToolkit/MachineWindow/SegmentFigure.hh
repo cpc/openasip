@@ -50,15 +50,13 @@ public:
 
     void setLast(bool last);
 
+    SegmentFigure& operator=(SegmentFigure& old) = delete;
+    SegmentFigure(SegmentFigure& old) = delete;
+
 protected:
     virtual void drawSelf(wxDC* dc);
 
 private:
-    /// Assignment not allowed.
-    SegmentFigure& operator=(SegmentFigure& old);
-    /// Copying not allowed.
-    SegmentFigure(SegmentFigure& old);
-
     /// True if segment is the last segment in a bus.
     bool last_;
 

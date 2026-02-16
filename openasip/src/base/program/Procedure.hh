@@ -87,12 +87,10 @@ public:
 
     CodeSnippet* copy() const;
 
-private:
-    /// Copying not allowed.
-    Procedure(const Procedure&);
-    /// Assignment not allowed.
-    Procedure& operator=(const Procedure&);
+    Procedure(const Procedure&) = delete;
+    Procedure& operator=(const Procedure&) = delete;
 
+private:
     /// The name of the procedure.
     const TCEString name_;
     /// The alignment of instructions.

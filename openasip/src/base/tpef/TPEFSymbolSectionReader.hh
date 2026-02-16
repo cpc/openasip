@@ -53,11 +53,10 @@ protected:
 
     virtual Section::SectionType type() const;
 
+    TPEFSymbolSectionReader(const TPEFSymbolSectionReader&) = delete;
+    TPEFSymbolSectionReader& operator=(TPEFSymbolSectionReader&) = delete;
+
 private:
-    /// Copying not allowed.
-    TPEFSymbolSectionReader(const TPEFSymbolSectionReader&);
-    /// Assignment not allowed.
-    TPEFSymbolSectionReader& operator=(TPEFSymbolSectionReader&);
 
     SymbolElement* createSymbol(
         SymbolElement::SymbolType symType,

@@ -43,8 +43,8 @@ class MemoryContents;
 /**
  * Class that models an "ideal" memory.
  *
- * An ideal memory is defined as a memory with read latency zero. 
- * The data is available at the same cycle in which the load is initiated. 
+ * An ideal memory is defined as a memory with read latency zero.
+ * The data is available at the same cycle in which the load is initiated.
  * Also, after a store is initiated, data is written into memory as soon as
  * the clock advances.
  *
@@ -65,12 +65,10 @@ public:
 
     virtual void fillWithZeros();
 
-private:
-    /// Copying not allowed.
-    IdealSRAM(const IdealSRAM&);
-    /// Assignment not allowed.
-    IdealSRAM& operator=(const IdealSRAM&);
+    IdealSRAM(const IdealSRAM&) = delete;
+    IdealSRAM& operator=(const IdealSRAM&) = delete;
 
+private:
     /// Starting point of the address space.
     UIntWord start_;
     /// End point of the address space.

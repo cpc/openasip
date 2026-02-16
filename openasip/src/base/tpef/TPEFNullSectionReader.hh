@@ -49,12 +49,10 @@ protected:
     virtual ~TPEFNullSectionReader();
     virtual Section::SectionType type() const;
 
-private:
-    /// Copying not allowed.
-    TPEFNullSectionReader(const TPEFNullSectionReader&);
-    /// Assignment not allowed.
-    TPEFNullSectionReader& operator=(TPEFNullSectionReader&);
+    TPEFNullSectionReader(const TPEFNullSectionReader&) = delete;
+    TPEFNullSectionReader& operator=(TPEFNullSectionReader&) = delete;
 
+private:
     /// Prototype instance of TPEFNullSectionReader to be registered to
     /// SectionReader.
     static TPEFNullSectionReader proto_;

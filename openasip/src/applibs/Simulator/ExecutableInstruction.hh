@@ -64,12 +64,11 @@ public:
 
     void setExitPoint(bool b);
     bool isExitPoint() const;
-    
+
+    ExecutableInstruction(const ExecutableInstruction&) = delete;
+    ExecutableInstruction& operator=(const ExecutableInstruction&) = delete;
+
 private:
-    /// Copying not allowed.
-    ExecutableInstruction(const ExecutableInstruction&);
-    /// Assignment not allowed.
-    ExecutableInstruction& operator=(const ExecutableInstruction&);
     /// Contains ExecutableMoves.
     typedef std::vector<ExecutableMove*> MoveContainer;
     /// Contains long immediate update actions.

@@ -100,7 +100,7 @@ MachineCanvas::~MachineCanvas() {
 void
 MachineCanvas::OnDraw(wxDC& dc) {
 
-    wxBrush backgroundBrush(*wxLIGHT_GREY, wxSOLID);
+    wxBrush backgroundBrush(*wxLIGHT_GREY, wxBRUSHSTYLE_SOLID);
     dc.SetBackground(backgroundBrush);
 
 #if wxCHECK_VERSION(3, 0, 0)
@@ -115,7 +115,7 @@ MachineCanvas::OnDraw(wxDC& dc) {
 #endif
 
     // Set the canvas font.
-    dc.SetFont(wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL));
+    dc.SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     // Set scaling factor.
     dc.SetUserScale(zoomFactor_, zoomFactor_);

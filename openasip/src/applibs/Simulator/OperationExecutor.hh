@@ -65,6 +65,8 @@ public:
     virtual void setContext(OperationContext& context) = 0;
     virtual void reset();
 
+    OperationExecutor& operator=(const OperationExecutor&) = delete;
+
 protected:
     /// PortStates that are bound to a certain input or output operand.
     std::vector<PortState*> bindings_;
@@ -72,8 +74,6 @@ protected:
     /// mode.
     bool hasPendingOperations_;
 private:
-    /// Assignment not allowed.
-    OperationExecutor& operator=(const OperationExecutor&);
 
     /// Parent of the executor.
     FUState* parent_;

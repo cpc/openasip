@@ -68,6 +68,9 @@ public:
      */
     virtual void filter(const CostDBEntryKey&, CostDBTypes::EntryTable&) = 0;
 
+    Matcher(const Matcher&) = delete;
+    Matcher& operator=(const Matcher&) = delete;
+
 protected:
     const EntryKeyFieldProperty* fieldType() const;
     bool onlyThisFieldDiffers(
@@ -76,11 +79,6 @@ protected:
         const CostDBEntry& entry2) const;
 
 private:
-    /// Copying not allowed.
-    Matcher(const Matcher&);
-    /// Assignment not allowed.
-    Matcher& operator=(const Matcher&);
-
     /// Type of the field on which filtering is applied to.
     const EntryKeyFieldProperty* fieldType_;
 };

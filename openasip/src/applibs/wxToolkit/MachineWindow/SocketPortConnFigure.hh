@@ -48,15 +48,13 @@ public:
     SocketPortConnFigure();
     virtual ~SocketPortConnFigure();
 
+    SocketPortConnFigure& operator=(SocketPortConnFigure& old) = delete;
+    SocketPortConnFigure(SocketPortConnFigure& old) = delete;
+
 protected:
     virtual void drawSelf(wxDC* dc);
     virtual void layoutSelf(wxDC* dc);
     virtual void drawConnection(wxDC* dc);
-private:
-    /// Assignment not allowed.
-    SocketPortConnFigure& operator=(SocketPortConnFigure& old);
-    /// Copying not allowed.
-    SocketPortConnFigure(SocketPortConnFigure& old);
 
     /// Default colour for the figure.
     static const wxColour DEFAULT_COLOUR;

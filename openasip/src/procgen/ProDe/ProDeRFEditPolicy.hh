@@ -55,11 +55,8 @@ public:
     virtual ComponentCommand* getCommand(Request* request);
     virtual bool canHandle(Request* request) const;
 
-private:
-    /// Assignment not allowed.
-    ProDeRFEditPolicy& operator=(ProDeRFEditPolicy& old);
-    /// Copying not allowed.
-    ProDeRFEditPolicy(ProDeRFEditPolicy& old);
+    ProDeRFEditPolicy(ProDeRFEditPolicy& old) = delete;
+    ProDeRFEditPolicy& operator=(ProDeRFEditPolicy& old) = delete;
 };
 
 #endif

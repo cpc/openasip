@@ -56,7 +56,6 @@ class CodeSnippet;
  */
 class Instruction : public AnnotatedInstructionElement {
 public:
-    
 #ifdef TCE_PYTHON_BINDINGS
 
     // Py++ generated code has problems with the default values
@@ -120,16 +119,14 @@ public:
 
     void setFinalAddress(InstructionAddress addr) { finalAddress_ = addr; }
 
+    Instruction(const Instruction&) = delete;
+    Instruction& operator=(const Instruction&) = delete;
+
 private:
     /// List for moves.
     typedef std::vector<std::shared_ptr<Move> > MoveList;
     /// List for immediates.
     typedef std::vector<std::shared_ptr<Immediate> > ImmList;
-
-    /// Copying not allowed.
-    Instruction(const Instruction&);
-    /// Assignment not allowed.
-    Instruction& operator=(const Instruction&);
 
     /// Moves contained in this instruction.
     MoveList moves_;

@@ -335,10 +335,10 @@ DataDependenceGraphTest::testProcedureDDG() {
 
         }
     } catch ( Exception &e ) {
-        std::cerr << Exception::lastExceptionInfo () << std::endl;
+        std::cerr << Exception::info(e) << std::endl;
         TS_ASSERT(0);
     }
-    
+
     delete ddg;
     currentProgram = NULL;
     }

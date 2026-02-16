@@ -67,12 +67,10 @@ public:
     void clearHighlights();
     void highlight(Word address, unsigned count, const wxColour& colour);
 
-private:
-    /// Copying not allowed.
-    MemoryControl(const MemoryControl&);
-    /// Assignment not allowed.
-    MemoryControl& operator=(const MemoryControl&);
+    MemoryControl(const MemoryControl&) = delete;
+    MemoryControl& operator=(const MemoryControl&) = delete;
 
+private:
     /// Size label for byte size.
     static const std::string SIZE_MAU;
     /// Size label for half word size.

@@ -51,11 +51,8 @@ public:
     SimpleScriptInterpreter();
     virtual ~SimpleScriptInterpreter();
 
-    virtual void initialize(
-        int argc, 
-        char* argv[], 
-        InterpreterContext* context, 
-        LineReader* reader);
+    virtual void initialize(int argc, char* argv[],
+        InterpreterContext* context, LineReader* reader);
 
     virtual void setVariableToInterpreter(
         const std::string& name, const DataObject& value);
@@ -66,6 +63,9 @@ public:
 
     virtual InterpreterContext& context() const;
 
+    SimpleScriptInterpreter(const SimpleScriptInterpreter&) = delete;
+    SimpleScriptInterpreter& operator=(const ScriptInterpreter&) = delete;
+
 protected:
     virtual void addCustomCommandToInterpreter(const CustomCommand& command);
     virtual void removeCustomCommandFromInterpreter(
@@ -73,11 +73,6 @@ protected:
 private:
     /// Map for variables.
     typedef std::map<std::string, std::string> VariableMap;
-
-    /// Copying not allowed.
-    SimpleScriptInterpreter(const SimpleScriptInterpreter&);
-    /// Assignment not allowed.
-    SimpleScriptInterpreter& operator=(const ScriptInterpreter&);
 
     /// Holds all the variables given to interpreter.
     VariableMap variables_;

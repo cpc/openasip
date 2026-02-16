@@ -130,7 +130,7 @@ ProximMemoryWindow::loadMemory(const AddressSpace& as) {
  * Event handler which is called when a new program is loaded in the simulator.
  */
 void
-ProximMemoryWindow::onProgramLoaded(const SimulatorEvent&) {
+ProximMemoryWindow::onProgramLoaded(wxEvent&) {
     loadProgramMemory();
 }
 
@@ -186,7 +186,7 @@ ProximMemoryWindow::onASChoice(wxCommandEvent&) {
  * Refreshes the memory display.
  */
 void
-ProximMemoryWindow::onSimulationStop(const SimulatorEvent&) {
+ProximMemoryWindow::onSimulationStop(wxEvent&) {
 
     memoryControl_->clearHighlights();
 

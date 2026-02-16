@@ -70,7 +70,7 @@ ProximSimulatorWindow::~ProximSimulatorWindow() {
  * Disables the window when the simulator is busy.
  */
 void
-ProximSimulatorWindow::onSimulatorBusy(SimulatorEvent&) {
+ProximSimulatorWindow::onSimulatorBusy(wxEvent&) {
     Disable();
 }
 
@@ -78,7 +78,7 @@ ProximSimulatorWindow::onSimulatorBusy(SimulatorEvent&) {
  * Enables the window when the simulator is not busy.
  */
 void
-ProximSimulatorWindow::onSimulatorDone(SimulatorEvent&) {
+ProximSimulatorWindow::onSimulatorDone(wxEvent&) {
     Enable();
 }
 

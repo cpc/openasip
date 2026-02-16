@@ -54,12 +54,11 @@ public:
     virtual ComponentCommand* getCommand(Request* request);
     virtual bool canHandle(Request* request) const;
 
+    ProDePortEditPolicy(ProDePortEditPolicy& old) = delete;
+    ProDePortEditPolicy& operator=(ProDePortEditPolicy& old) = delete;
+
 private:
     ComponentCommand* createConnectCmd(Request* request);
-    /// Assignment not allowed.
-    ProDePortEditPolicy& operator=(ProDePortEditPolicy& old);
-    /// Copying not allowed.
-    ProDePortEditPolicy(ProDePortEditPolicy& old);
 };
 
 #endif

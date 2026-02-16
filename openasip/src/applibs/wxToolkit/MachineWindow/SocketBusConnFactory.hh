@@ -51,11 +51,8 @@ public:
 	EditPart* source,
 	EditPart* target) const;
 
-private:
-    /// Assignment not allowed.
-    SocketBusConnFactory& operator=(SocketBusConnFactory& old);
-    /// Copying not allowed.
-    SocketBusConnFactory(SocketBusConnFactory& old);
+    SocketBusConnFactory& operator=(SocketBusConnFactory& old) = delete;
+    SocketBusConnFactory(SocketBusConnFactory& old) = delete;
 };
 
 #endif

@@ -55,12 +55,10 @@ public:
 
     virtual void handleEvent(OSEdInformer::EventId event);
 
-private:
-    /// Copying not allowed.
-    MemoryDialog(const MemoryDialog&);
-    /// Assignment not allowed.
-    MemoryDialog& operator=(const MemoryDialog&);
+    MemoryDialog(const MemoryDialog&) = delete;
+    MemoryDialog& operator=(const MemoryDialog&) = delete;
 
+private:
     wxSizer* createContents(wxWindow* window, bool call_fit, bool set_sizer);
     void setTexts();
     void onClose(wxCommandEvent&);

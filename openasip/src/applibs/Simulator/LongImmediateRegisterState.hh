@@ -46,22 +46,18 @@ class SimValue;
  */
 class LongImmediateRegisterState : public StateData {
 public:
-    LongImmediateRegisterState(
-        LongImmediateUnitState* parent, 
-        int index,
-        int width,
-        bool signExtend);
+    LongImmediateRegisterState(LongImmediateUnitState* parent, int index,
+        int width, bool signExtend);
     virtual ~LongImmediateRegisterState();
 
     virtual void setValue(const SimValue& value);
     virtual const SimValue& value() const;
 
-private:
-    /// Copying not allowed.
-    LongImmediateRegisterState(const LongImmediateRegisterState&);
-    /// Assignment not allowed.
-    LongImmediateRegisterState& operator=(const LongImmediateRegisterState&);
+    LongImmediateRegisterState(const LongImmediateRegisterState&) = delete;
+    LongImmediateRegisterState&
+    operator=(const LongImmediateRegisterState&) = delete;
 
+private:
     /// Parent unit of the register state.
     LongImmediateUnitState* parent_;
     /// Index of the register.

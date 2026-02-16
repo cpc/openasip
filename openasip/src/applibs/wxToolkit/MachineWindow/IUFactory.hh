@@ -39,7 +39,7 @@
 class EditPart;
 
 /**
- * Factory for creating immediate unit EditParts corresponding to a 
+ * Factory for creating immediate unit EditParts corresponding to a
  * given Machine ImmediateUnit object.
  */
 class IUFactory : public EditPartFactory {
@@ -49,11 +49,8 @@ public:
 
     virtual EditPart* createEditPart(TTAMachine::MachinePart* component);
 
-private:
-    /// Assignment not allowed.
-    IUFactory& operator=(IUFactory& old);
-    /// Copying not allowed.
-    IUFactory(IUFactory& old);
+    IUFactory& operator=(IUFactory& old) = delete;
+    IUFactory(IUFactory& old) = delete;
 };
 
 #endif

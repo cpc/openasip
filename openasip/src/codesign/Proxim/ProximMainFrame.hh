@@ -73,12 +73,12 @@ private:
 
     void onCommandEvent(wxCommandEvent& event);
     void onToggleWindow(wxCommandEvent& event);
-    void onSimulatorTerminated(SimulatorEvent& event);
-    void onSimulatorEvent(SimulatorEvent& event);
+    void onSimulatorTerminated(wxEvent& event);
+    void onSimulatorEvent(wxEvent& simEvent);
     void onKeyEvent(wxKeyEvent& event);
     void onClose(wxCloseEvent& event);
     void onStatusTimer(wxTimerEvent& event);
-    void onReset(const SimulatorEvent& event);
+    void onReset(wxEvent& event);
     void updateCommand(wxUpdateUIEvent& event);
     void updateToggleItem(wxUpdateUIEvent& event);
     void updateSimulationStatus();

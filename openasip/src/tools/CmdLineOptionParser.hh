@@ -83,16 +83,13 @@ public:
     virtual bool isFlagOff() const;
     virtual int listSize() const;
 
+    CmdLineOptionParser(const CmdLineOptionParser&) = delete;
+    CmdLineOptionParser& operator=(const CmdLineOptionParser&) = delete;
+
 protected:
     void setDefined();
 
 private:
-
-    /// Copying not allowed.
-    CmdLineOptionParser(const CmdLineOptionParser&);
-    /// Assignment not allowed.
-    CmdLineOptionParser& operator=(const CmdLineOptionParser&);
-
     /// The full name of an option.
     std::string longName_;
     /// The optional alias (shorter name).
@@ -127,12 +124,11 @@ public:
     virtual bool parseValue(std::string arguments, std::string prefix);
     virtual int integer(int index = 0) const;
 
-private:
-    /// Copying not allowed.
-    IntegerCmdLineOptionParser(const IntegerCmdLineOptionParser&);
-    /// Assignment not allowed.
-    IntegerCmdLineOptionParser& operator=(const IntegerCmdLineOptionParser&);
+    IntegerCmdLineOptionParser(const IntegerCmdLineOptionParser&) = delete;
+    IntegerCmdLineOptionParser&
+    operator=(const IntegerCmdLineOptionParser&) = delete;
 
+private:
     /// The value of option.
     int value_;
 };
@@ -157,14 +153,12 @@ public:
     virtual bool parseValue(std::string arguments, std::string prefix);
     virtual unsigned unsignedInteger(int index = 0) const;
 
-private:
-    /// Copying not allowed.
     UnsignedIntegerCmdLineOptionParser(
-        const UnsignedIntegerCmdLineOptionParser&);
-    /// Assignment not allowed.
-    UnsignedIntegerCmdLineOptionParser& operator=(
-        const UnsignedIntegerCmdLineOptionParser&);
+        const UnsignedIntegerCmdLineOptionParser&) = delete;
+    UnsignedIntegerCmdLineOptionParser&
+    operator=(const UnsignedIntegerCmdLineOptionParser&) = delete;
 
+private:
     /// The value of option.
     unsigned value_;
 };
@@ -190,12 +184,11 @@ public:
     virtual bool parseValue(std::string arguments, std::string prefix);
     virtual std::string String(int index = 0) const;
 
-private:
-    /// Copying not allowed.
-    StringCmdLineOptionParser(const StringCmdLineOptionParser&);
-    /// Assignment not allowed.
-    StringCmdLineOptionParser& operator=(const StringCmdLineOptionParser&);
+    StringCmdLineOptionParser(const StringCmdLineOptionParser&) = delete;
+    StringCmdLineOptionParser&
+    operator=(const StringCmdLineOptionParser&) = delete;
 
+private:
     /// The value of the option.
     std::string value_;
 };
@@ -222,14 +215,12 @@ public:
     virtual bool isFlagOn() const;
     virtual bool isFlagOff() const;
 
-private:
-    /// Copying not allowed.
     OptionalStringCmdLineOptionParser(
-        const OptionalStringCmdLineOptionParser&);
-    /// Assignment not allowed.
-    OptionalStringCmdLineOptionParser& operator=(
-        const OptionalStringCmdLineOptionParser&);
+        const OptionalStringCmdLineOptionParser&) = delete;
+    OptionalStringCmdLineOptionParser&
+    operator=(const OptionalStringCmdLineOptionParser&) = delete;
 
+private:
     /// The value of the option.
     std::string value_;
     /// The flag status.
@@ -256,12 +247,11 @@ public:
     virtual bool parseValue(std::string arguments, std::string prefix);
     virtual double real() const;
 
-private:
-    /// Copying not allowed.
-    RealCmdLineOptionParser(const RealCmdLineOptionParser&);
-    /// Assignment not allowed.
-    RealCmdLineOptionParser& operator=(const RealCmdLineOptionParser&);
+    RealCmdLineOptionParser(const RealCmdLineOptionParser&) = delete;
+    RealCmdLineOptionParser&
+    operator=(const RealCmdLineOptionParser&) = delete;
 
+private:
     /// The value of the option.
     double value_;
 };
@@ -290,12 +280,11 @@ public:
     virtual bool isFlagOn() const;
     virtual bool isFlagOff() const;
 
-private:
-    /// Copying not allowed.
-    BoolCmdLineOptionParser(const BoolCmdLineOptionParser&);
-    /// Assignment not allowed.
-    BoolCmdLineOptionParser& operator=(const BoolCmdLineOptionParser&);
+    BoolCmdLineOptionParser(const BoolCmdLineOptionParser&) = delete;
+    BoolCmdLineOptionParser&
+    operator=(const BoolCmdLineOptionParser&) = delete;
 
+private:
     /// The value of option.
     bool value_;
 };
@@ -322,13 +311,12 @@ public:
     virtual int integer(int index = 0) const;
     virtual int listSize() const;
 
-private:
-    /// Copying not allowed.
-    IntegerListCmdLineOptionParser(const IntegerListCmdLineOptionParser&);
-    /// Assignment not allowed.
+    IntegerListCmdLineOptionParser(
+        const IntegerListCmdLineOptionParser&) = delete;
     IntegerListCmdLineOptionParser&
-    operator=(const IntegerListCmdLineOptionParser&);
+    operator=(const IntegerListCmdLineOptionParser&) = delete;
 
+private:
     /// The values in integer list.
     std::vector<int> values_;
 };
@@ -356,13 +344,12 @@ public:
     virtual std::string String(int index = 0) const;
     virtual int listSize() const;
 
-private:
-    /// Copying not allowed.
-    StringListCmdLineOptionParser(const StringListCmdLineOptionParser&);
-    /// Assignment not allowed.
+    StringListCmdLineOptionParser(
+        const StringListCmdLineOptionParser&) = delete;
     StringListCmdLineOptionParser&
-    operator=(const StringListCmdLineOptionParser&);
+    operator=(const StringListCmdLineOptionParser&) = delete;
 
+private:
     /// The values in string list.
     std::vector<std::string> values_;
 };

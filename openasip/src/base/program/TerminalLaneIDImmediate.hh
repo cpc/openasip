@@ -42,8 +42,7 @@ namespace TTAProgram {
  * Represents a special inline immediate that is fixed to the lane id of
  * the scheduled move in a clustered/SMMT machine.
  */
-class TerminalLaneIDImmediate : 
-        public TerminalImmediate {
+class TerminalLaneIDImmediate : public TerminalImmediate {
 public:
     TerminalLaneIDImmediate(SimValue value);
     virtual ~TerminalLaneIDImmediate();
@@ -55,14 +54,13 @@ public:
 
     virtual TCEString toString() const;
 
-private:
-    /// Assignment not allowed.
-    TerminalLaneIDImmediate& operator=(const TerminalLaneIDImmediate&);
+    TerminalLaneIDImmediate&
+    operator=(const TerminalLaneIDImmediate&) = delete;
+
 protected:
     /// Value of the inline immediate.
     SimValue value_;
 };
-
 }
 
 #endif

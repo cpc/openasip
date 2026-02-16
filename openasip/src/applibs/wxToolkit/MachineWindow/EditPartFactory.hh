@@ -50,24 +50,21 @@ public:
     virtual ~EditPartFactory();
     void registerFactory(Factory* factory);
 
+    EditPartFactory& operator=(EditPartFactory& old) = delete;
+    EditPartFactory(EditPartFactory& old) = delete;
+
 protected:
     EditPartFactory(EditPolicyFactory& editPolicyFactory);
 
     EditPart* checkCache(const TTAMachine::MachinePart* component) const;
     void writeToCache(EditPart* editPart);
-    
+
     /// Registered factories.
     std::vector<Factory*> factories_;
     /// Container for already created EditParts.
     static std::vector<EditPart*> created_;
     /// Factory which creates edit policies for edit parts.
     EditPolicyFactory& editPolicyFactory_;
-
-private:
-    /// Assignment not allowed.
-    EditPartFactory& operator=(EditPartFactory& old);
-    /// Copying not allowed.
-    EditPartFactory(EditPartFactory& old);
 };
 
 #include "EditPartFactory.icc"

@@ -56,12 +56,10 @@ public:
     explicit DropDownMenu(MenuType type);
     virtual ~DropDownMenu();
 
+    DropDownMenu(const DropDownMenu&) = delete;
+    DropDownMenu& operator=(const DropDownMenu&) = delete;
+
 private:
-    /// Copying not allowed.
-    DropDownMenu(const DropDownMenu&);
-    /// Assignment not allowed.
-    DropDownMenu& operator=(const DropDownMenu&);
-    
     void onMenuEvent(wxCommandEvent& event);
     void updateMenu();
 

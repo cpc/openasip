@@ -67,11 +67,8 @@ public:
     virtual bool isFlagOff() const;
     virtual int listSize() const;
 
-private:
-    /// Copying not allowed.
-    OptionValue(const OptionValue&);
-    /// Assignment not allowed.
-    OptionValue& operator=(const OptionValue&);
+    OptionValue(const OptionValue&) = delete;
+    OptionValue& operator=(const OptionValue&) = delete;
 };
 
 
@@ -89,12 +86,10 @@ public:
     virtual int integerValue(int index = 0) const;
     virtual void setIntegerValue(int value);
 
-private:
-    /// Copying not allowed.
-    IntegerOptionValue(const IntegerOptionValue&);
-    /// Assignment not allowed.
-    IntegerOptionValue& operator=(const IntegerOptionValue&);
+    IntegerOptionValue(const IntegerOptionValue&) = delete;
+    IntegerOptionValue& operator=(const IntegerOptionValue&) = delete;
 
+private:
     /// The value of option.
     int value_;
 };
@@ -113,12 +108,11 @@ public:
     virtual unsigned unsignedIntegerValue(int index = 0) const;
     virtual void setUnsignedIntegerValue(unsigned value);
 
-private:
-    /// Copying not allowed.
-    UnsignedIntegerOptionValue(const UnsignedIntegerOptionValue&);
-    /// Assignment not allowed.
-    UnsignedIntegerOptionValue& operator=(const UnsignedIntegerOptionValue&);
+    UnsignedIntegerOptionValue(const UnsignedIntegerOptionValue&) = delete;
+    UnsignedIntegerOptionValue&
+    operator=(const UnsignedIntegerOptionValue&) = delete;
 
+private:
     /// The value of option.
     unsigned value_;
 };
@@ -137,12 +131,10 @@ public:
     virtual std::string stringValue(int index = 0) const;
     virtual void setStringValue(const std::string& value);
 
-private:
-    /// Copying not allowed.
-    StringOptionValue(const StringOptionValue&);
-    /// Assignment not allowed.
-    StringOptionValue& operator=(const StringOptionValue&);
+    StringOptionValue(const StringOptionValue&) = delete;
+    StringOptionValue& operator=(const StringOptionValue&) = delete;
 
+private:
     /// The value of the option.
     std::string value_;
 };
@@ -162,12 +154,10 @@ public:
     virtual double realValue() const;
     virtual void setRealValue(double value);
 
-private:
-    /// Copying not allowed.
-    RealOptionValue(const RealOptionValue&);
-    /// Assignment not allowed.
-    RealOptionValue& operator=(const RealOptionValue&);
+    RealOptionValue(const RealOptionValue&) = delete;
+    RealOptionValue& operator=(const RealOptionValue&) = delete;
 
+private:
     /// The value of the option.
     double value_;
 };
@@ -190,12 +180,10 @@ public:
     virtual bool isFlagOff() const;
     virtual void setBoolValue(bool value);
 
-private:
-    /// Copying not allowed.
-    BoolOptionValue(const BoolOptionValue&);
-    /// Assignment not allowed.
-    BoolOptionValue& operator=(const BoolOptionValue&);
+    BoolOptionValue(const BoolOptionValue&) = delete;
+    BoolOptionValue& operator=(const BoolOptionValue&) = delete;
 
+private:
     /// The value of option.
     bool value_;
 };
@@ -216,12 +204,10 @@ public:
     virtual int listSize() const;
     virtual void setIntegerListValue(std::vector<int> values);
 
-private:
-    /// Copying not allowed.
-    IntegerListOptionValue(const IntegerListOptionValue&);
-    /// Assignment not allowed.
-    IntegerListOptionValue& operator=(const IntegerListOptionValue&);
+    IntegerListOptionValue(const IntegerListOptionValue&) = delete;
+    IntegerListOptionValue& operator=(const IntegerListOptionValue&) = delete;
 
+private:
     /// The value of option.
     std::vector<int> values_;
 };
@@ -243,12 +229,10 @@ public:
     virtual int listSize() const;
     virtual void setStringListValue(std::vector<std::string> values);
 
-private:
-    /// Copying not allowed.
-    StringListOptionValue(const StringListOptionValue&);
-    /// Assignment not allowed.
-    StringListOptionValue& operator=(const StringListOptionValue&);
+    StringListOptionValue(const StringListOptionValue&) = delete;
+    StringListOptionValue& operator=(const StringListOptionValue&) = delete;
 
+private:
     /// The value of option.
     std::vector<std::string> values_;
 };

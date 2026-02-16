@@ -45,7 +45,7 @@ class FixedRegisters {
 public:
     FixedRegisters();
     virtual ~FixedRegisters();
-    
+
     SimValue& stackPointer() const;
     SimValue& integerArgumentRegister(int index) const;
     SimValue& floatArgumentRegister(int index) const;
@@ -58,12 +58,10 @@ public:
     void setIntegerReturnValue(SimValue& value);
     void setFloatReturnValue(SimValue& value);
 
-private:
-    /// Copying not allowed.
-    FixedRegisters(const FixedRegisters&);
-    /// Assignment not allowed.
-    FixedRegisters& operator=(const FixedRegisters);
+    FixedRegisters(const FixedRegisters&) = delete;
+    FixedRegisters& operator=(const FixedRegisters) = delete;
 
+private:
     /// Stack pointer.
     SimValue* stackPointer_;
     /// Integer argument registers.

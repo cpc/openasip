@@ -50,11 +50,8 @@ public:
         std::istream& iStream = std::cin, std::ostream& oStream = std::cout);
     virtual ~BaseLineReader();
 
-    virtual void initialize(
-        std::string defPrompt = "",
-        FILE* in = stdin, 
-        FILE* out = stdout, 
-        FILE* err = stderr);
+    virtual void initialize(std::string defPrompt = "", FILE* in = stdin,
+        FILE* out = stdout, FILE* err = stderr);
 
     virtual void setPromptPrinting(bool flag);
 
@@ -64,12 +61,10 @@ public:
         std::string question, std::string allowedChars,
         bool caseSensitive = false, char defaultAnswer = '\0');
 
-private:
-    /// Copying not allowed.
-    BaseLineReader(const BaseLineReader&);
-    /// Assignment not allowed.
-    BaseLineReader& operator=(const BaseLineReader&);
+    BaseLineReader(const BaseLineReader&) = delete;
+    BaseLineReader& operator=(const BaseLineReader&) = delete;
 
+private:
     void printPrompt() const;
 
     static const int MAX_LINE_LENGTH;

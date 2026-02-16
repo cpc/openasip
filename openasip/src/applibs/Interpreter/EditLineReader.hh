@@ -47,7 +47,7 @@ extern "C" {
  * LineReader implementation using libedit library.
  *
  * libedit offers functionality to edit a line as well as command history
- * browsing functionality. In other words, user can edit the line he is 
+ * browsing functionality. In other words, user can edit the line he is
  * writing as well as browse history of commands.
  */
 class EditLineReader : public LineReader {
@@ -55,26 +55,21 @@ public:
     explicit EditLineReader(std::string program = "");
     virtual ~EditLineReader();
 
-    virtual void initialize(
-        std::string defPrompt = "",
-        FILE* in = stdin, 
-        FILE* out = stdout, 
-        FILE* err = stderr);
+    virtual void initialize(std::string defPrompt = "", FILE* in = stdin,
+        FILE* out = stdout, FILE* err = stderr);
     virtual std::string readLine(std::string prompt = "");
     virtual char charQuestion(
         std::string question, std::string allowedChars,
         bool caseSensitive = false, char defaultAnswer = '\0');
+
+    EditLineReader(const EditLineReader&) = delete;
+    EditLineReader& operator=(const EditLineReader&) = delete;
 
 private:
     /// value_type for map.
     typedef std::map<EditLine*, EditLineReader*>::value_type ValType;
     /// Iterator for map.
     typedef std::map<EditLine*, EditLineReader*>::iterator MapIt;
-    
-    /// Copying not allowed.
-    EditLineReader(const EditLineReader&);
-    /// Assignment not allowed.
-    EditLineReader& operator=(const EditLineReader&);
 
     static char* wrapperToCallPrompt(EditLine* edit);
     char* prompt();

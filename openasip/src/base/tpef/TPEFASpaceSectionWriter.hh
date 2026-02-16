@@ -57,12 +57,11 @@ protected:
 
     virtual Word elementSize(const Section* section) const;
 
-private:
-    /// Copying not allowed.
-    TPEFASpaceSectionWriter(const TPEFASpaceSectionWriter&);
-    /// Assignment not allowed.
-    TPEFASpaceSectionWriter operator=(const TPEFASpaceSectionWriter&);
+    TPEFASpaceSectionWriter(const TPEFASpaceSectionWriter&) = delete;
+    TPEFASpaceSectionWriter
+    operator=(const TPEFASpaceSectionWriter&) = delete;
 
+private:
     void writeElement(
         BinaryStream &stream,
         const ASpaceElement* elem,

@@ -43,8 +43,7 @@ __LOCK_INIT_RECURSIVE(static, __env_lock_object);
 #endif
 
 void
-__env_lock (ptr)
-     struct _reent *ptr;
+__env_lock (struct _reent *ptr)
 {
 #ifndef __SINGLE_THREAD__
   __lock_acquire_recursive (__env_lock_object);
@@ -52,8 +51,7 @@ __env_lock (ptr)
 }
 
 void
-__env_unlock (ptr)
-     struct _reent *ptr;
+__env_unlock (struct _reent *ptr)
 {
 #ifndef __SINGLE_THREAD__
   __lock_release_recursive (__env_lock_object);

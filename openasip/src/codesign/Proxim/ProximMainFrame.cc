@@ -211,7 +211,7 @@ ProximMainFrame::initialize() {
  * Closes the GUI when the simulator engine is terminated.
  */
 void
-ProximMainFrame::onSimulatorTerminated(SimulatorEvent&) {
+ProximMainFrame::onSimulatorTerminated(wxEvent&) {
     Destroy();
 }
 
@@ -548,8 +548,9 @@ ProximMainFrame::dockWindow(wxWindow* window) {
  * @param event Simulator event to handle.
  */
 void
-ProximMainFrame::onSimulatorEvent(SimulatorEvent& event) {
+ProximMainFrame::onSimulatorEvent(wxEvent& simEvent) {
 
+    auto &event = dynamic_cast<SimulatorEvent&>(simEvent);
     updateSimulationStatus();
 
     WXTYPE eventType = event.GetEventType();
@@ -999,7 +1000,7 @@ ProximMainFrame::updateMemoryWindowMenuItem() {
  * Event handler for the simulator reset event.
  */
 void
-ProximMainFrame::onReset(const SimulatorEvent&) {
+ProximMainFrame::onReset(wxEvent&) {
     reset();
 }
 

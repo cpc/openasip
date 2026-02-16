@@ -50,15 +50,13 @@ public:
     UIntWord location() const;
     const TTAMachine::AddressSpace& space() const;
 
+    NullAddress(const NullAddress&) = delete;
+    NullAddress& operator=(const NullAddress&) = delete;
+
 protected:
     NullAddress();
 
 private:
-    /// Copying not allowed.
-    NullAddress(const NullAddress&);
-    /// Assignment not allowed.
-    NullAddress& operator=(const NullAddress&);
-
     static NullAddress instance_;
 };
 

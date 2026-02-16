@@ -61,11 +61,8 @@ public:
         const CostDBEntryKey&,
         CostDBTypes::EntryTable& components);
 
-private:
-    /// Copying not allowed.
-    SelectSet(const SelectSet&);
-    /// Assignment not allowed.
-    SelectSet& operator=(const SelectSet&);
+    SelectSet(const SelectSet&) = delete;
+    SelectSet& operator=(const SelectSet&) = delete;
 };
 
 #include "SelectSet.icc"

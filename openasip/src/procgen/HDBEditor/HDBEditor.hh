@@ -55,12 +55,11 @@ public:
 
     HDBEditorMainFrame& mainFrame() const;
     HDBBrowserWindow* browser() const;
+
+    HDBEditor(const HDBEditor&) = delete;
+    HDBEditor& operator=(const HDBEditor&) = delete;
+
 private:
-    /// Copying not allowed.
-    HDBEditor(const HDBEditor&);
-    /// Assignment not allowed.
-    HDBEditor& operator=(const HDBEditor&);
-    
     void createDefaultOptions();
 
     /// Main window of the application.

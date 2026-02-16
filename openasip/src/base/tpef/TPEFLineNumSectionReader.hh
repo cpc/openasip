@@ -55,6 +55,9 @@ protected:
 
     virtual void readInfo(BinaryStream& stream, Section* sect) const;
 
+    TPEFLineNumSectionReader(const TPEFLineNumSectionReader&) = delete;
+    TPEFLineNumSectionReader& operator=(TPEFLineNumSectionReader&) = delete;
+
 private:
     /// Prototype instance of TPEFLineNumSectionReader to be registered to
     /// SectionReader.
@@ -63,12 +66,6 @@ private:
     /// Identification code of text section which is referenced from
     /// currently read section.
     static SectionId codeSectionId_;
-
-    /// Copying not allowed.
-    TPEFLineNumSectionReader(const TPEFLineNumSectionReader&);
-    /// Assignment not allowed.
-    TPEFLineNumSectionReader& operator=(TPEFLineNumSectionReader&);
-
 };
 }
 

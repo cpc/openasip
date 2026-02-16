@@ -86,17 +86,15 @@ namespace Texts {
         virtual void addText(int textId, const std::string& templateString);
         virtual void replaceText(int textId, const std::string& newString);
 
-    private:
         /// value_type for map.
         typedef std::map<int, const std::string*>::value_type ValType;
         /// Iterator for map.
         typedef std::map<int, const std::string*>::iterator MapIter;
 
-        /// Copying not allowed.
-        TextGenerator(const TextGenerator&);
-        /// Assignment not allowed.
-        TextGenerator& operator=(const TextGenerator&);
+        TextGenerator(const TextGenerator&) = delete;
+        TextGenerator& operator=(const TextGenerator&) = delete;
 
+    private:
         /// Database that contains all template strings.
         std::map<int, const std::string*> dataBase_;
     };

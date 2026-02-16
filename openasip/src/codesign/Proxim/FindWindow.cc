@@ -46,7 +46,7 @@
 
 BEGIN_EVENT_TABLE(FindWindow, ProximSimulatorWindow)
     EVT_TEXT(ID_OP_INPUT, FindWindow::onInputText)
-    EVT_SIMULATOR_PROGRAM_LOADED(0, FindWindow::onInputText)
+    EVT_SIMULATOR_PROGRAM_LOADED(0, FindWindow::onProgramLoaded)
     EVT_TEXT_ENTER(ID_OP_INPUT, FindWindow::onFindNext)
     EVT_BUTTON(ID_FIND_PREV, FindWindow::onFindPrev)
     EVT_BUTTON(ID_FIND_NEXT, FindWindow::onFindNext)
@@ -77,11 +77,21 @@ FindWindow::reset() {
     // Do nothing.
 }
 
+void
+FindWindow::onProgramLoaded(wxEvent&) {
+    handleInputText();
+}
+
 /**
  * Called when the input text changes or match case checkbox changes state.
  */
 void
 FindWindow::onInputText(wxCommandEvent&) {
+    handleInputText();
+}
+
+void
+FindWindow::handleInputText() {
     wxString inputwxString = opInput_->GetValue();
 
     if (inputwxString.Length() > 2) {

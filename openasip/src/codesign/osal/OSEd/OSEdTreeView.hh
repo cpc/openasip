@@ -55,7 +55,7 @@ class OSEdTreeView : public wxTreeCtrl {
 public:
     OSEdTreeView(wxWindow* parent, OSEdInfoView* infoView);
     virtual ~OSEdTreeView();
-    
+
     Operation* selectedOperation();
     wxTreeItemId selectedOperationId();
     std::string moduleOfOperation(wxTreeItemId id);
@@ -78,22 +78,20 @@ public:
     bool isModuleSelected() const;
     bool isOperationSelected() const;
 
+    OSEdTreeView(const OSEdTreeView&) = delete;
+    OSEdTreeView& operator=(const OSEdTreeView&) = delete;
+
 private:
     /// Value type for the map.
     typedef std::map<std::string, wxTreeItemId>::value_type ValType;
     /// Iterators for the maps.
     typedef std::map<std::string, wxTreeItemId>::iterator Iter;
     typedef std::multimap<std::string, wxTreeItemId>::iterator IterM;
-    
-    /// Copying not allowed.
-    OSEdTreeView(const OSEdTreeView&);
-    /// Assignment not allowed.
-    OSEdTreeView& operator=(const OSEdTreeView&);
-    
+
     bool isPath(wxTreeItemId id) const;
     bool isModule(wxTreeItemId id) const;
     bool isOperation(wxTreeItemId id) const;
-    
+
     void onItemClicked(wxTreeEvent& event);
     void onDropDownMenu(wxMouseEvent& event);
     void onItemSelected(wxTreeEvent& event);
@@ -105,8 +103,8 @@ private:
     /// Modules of the operation data base.
     std::multimap<std::string, wxTreeItemId> modules_;
     /// Operations of operation data base.
-    std::multimap<std::string, wxTreeItemId> operations_; 
-    
+    std::multimap<std::string, wxTreeItemId> operations_;
+
     DECLARE_EVENT_TABLE()
 };
 

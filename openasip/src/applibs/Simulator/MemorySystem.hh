@@ -82,12 +82,10 @@ public:
 
     bool hasMemory(const TCEString& aSpaceName) const;
 
-private:
-    /// Copying not allowed.
-    MemorySystem(const MemorySystem&);
-    /// Assignment not allowed.
-    MemorySystem& operator=(const MemorySystem&);
+    MemorySystem(const MemorySystem&) = delete;
+    MemorySystem& operator=(const MemorySystem&) = delete;
 
+private:
     /// Maps address spaces to memory instances.
     typedef std::map<const TTAMachine::AddressSpace*, MemoryPtr> MemoryMap;
 

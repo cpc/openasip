@@ -54,7 +54,7 @@ public:
         EVENT_RESET,       ///< Event when operation is reseted.
         EVENT_MEMORY       ///< Event when memory may be changed.
     };
-    
+
     OSEdInformer();
     virtual ~OSEdInformer();
 
@@ -62,14 +62,12 @@ public:
     void registerListener(EventId event, OSEdListener* listener);
     void unregisterListener(EventId event, OSEdListener* listener);
 
+    OSEdInformer(const OSEdInformer&) = delete;
+    OSEdInformer& operator=(const OSEdInformer&) = delete;
+
 private:
     /// Container for mapping event ids to Listener objects.
     typedef std::map<EventId, std::vector<OSEdListener*> > ListenerContainer;
-
-    /// Copying not allowed.
-    OSEdInformer(const OSEdInformer&);
-    /// Assignment not allowed.
-    OSEdInformer& operator=(const OSEdInformer&);
 
     /// All listeners.
     ListenerContainer listeners_;

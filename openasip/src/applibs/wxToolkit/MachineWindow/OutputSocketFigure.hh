@@ -48,15 +48,13 @@ public:
     OutputSocketFigure();
     virtual ~OutputSocketFigure();
 
+    OutputSocketFigure& operator=(OutputSocketFigure& old) = delete;
+    OutputSocketFigure(OutputSocketFigure& old) = delete;
+
 protected:
     virtual void drawSelf(wxDC* dc);
 
 private:
-    /// Assignment not allowed.
-    OutputSocketFigure& operator=(OutputSocketFigure& old);
-    /// Copying not allowed.
-    OutputSocketFigure(OutputSocketFigure& old);
-
     /// Default colour for the figure.
     static const wxColour DEFAULT_COLOUR;
     /// Default background colour for the figure.

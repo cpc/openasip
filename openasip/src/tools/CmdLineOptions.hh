@@ -61,9 +61,12 @@ public:
     void parse(std::vector<std::string> argv);
     virtual void printHelp() const;
     virtual void printVersion() const = 0;
-    
+
     virtual bool isVerboseSwitchDefined() const;
     virtual bool isVerboseSpamSwitchDefined() const;
+
+    CmdLineOptions(const CmdLineOptions&) = delete;
+    CmdLineOptions& operator=(const CmdLineOptions&) = delete;
 
 protected:
     bool optionGiven(std::string key) const;
@@ -76,10 +79,6 @@ private:
     typedef
     std::map<std::string, CmdLineOptionParser*>::const_iterator constMapIter;
 
-    /// Copying not allowed.
-    CmdLineOptions(const CmdLineOptions&);
-    /// Assignment not allowed.
-    CmdLineOptions& operator=(const CmdLineOptions&);
 
     void parseAll();
 

@@ -65,12 +65,10 @@ public:
     /// Name of the dialog so it can be found with wxWindow::FindWindowByName
     static const wxString DIALOG_NAME;
 
-private:
-    /// Copying not allowed.
-    SimulateDialog(const SimulateDialog&);
-    /// Assignment not allowed.
-    SimulateDialog& operator=(const SimulateDialog&);
+    SimulateDialog(const SimulateDialog&) = delete;
+    SimulateDialog& operator=(const SimulateDialog&) = delete;
 
+private:
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     wxBitmap createBitmap(unsigned int index);
     virtual bool TransferDataToWindow();

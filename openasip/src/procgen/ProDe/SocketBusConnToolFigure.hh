@@ -47,15 +47,13 @@ public:
     SocketBusConnToolFigure(bool creating);
     virtual ~SocketBusConnToolFigure();
 
+    SocketBusConnToolFigure(SocketBusConnToolFigure& old) = delete;
+    SocketBusConnToolFigure& operator=(SocketBusConnToolFigure& old) = delete;
+
 protected:
     virtual void drawSelf(wxDC* dc);
 
 private:
-    /// Assignment not allowed.
-    SocketBusConnToolFigure& operator=(SocketBusConnToolFigure& old);
-    /// Copying not allowed.
-    SocketBusConnToolFigure(SocketBusConnToolFigure& old);
-
     /// Figure color for connections being removed
     static const wxColor LINE_COLOR_RED;
     /// Figure color for connections being removed.

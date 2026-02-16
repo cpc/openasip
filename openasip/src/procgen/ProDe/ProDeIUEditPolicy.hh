@@ -54,11 +54,8 @@ public:
     virtual ComponentCommand* getCommand(Request* request);
     virtual bool canHandle(Request* request) const;
 
-private:
-    /// Assignment not allowed.
-    ProDeIUEditPolicy& operator=(ProDeIUEditPolicy& old);
-    /// Copying not allowed.
-    ProDeIUEditPolicy(ProDeIUEditPolicy& old);
+    ProDeIUEditPolicy(ProDeIUEditPolicy& old) = delete;
+    ProDeIUEditPolicy& operator=(ProDeIUEditPolicy& old) = delete;
 };
 
 #endif

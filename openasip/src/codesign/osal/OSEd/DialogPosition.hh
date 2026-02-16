@@ -60,14 +60,12 @@ public:
     static wxPoint getPosition(Dialogs dialog);
     static void setPosition(Dialogs dialog, wxPoint point);
 
+    DialogPosition(const DialogPosition&) = delete;
+    DialogPosition& operator=(const DialogPosition&) = delete;
+
 private:
     /// Container for dialog positions.
     typedef std::map<Dialogs, wxPoint> PositionMap;
-
-    /// Copying not allowed.
-    DialogPosition(const DialogPosition&);
-    /// Assignment not allowed.
-    DialogPosition& operator=(const DialogPosition&);
 
     DialogPosition();
     ~DialogPosition();

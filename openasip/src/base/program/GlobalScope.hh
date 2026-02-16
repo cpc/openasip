@@ -76,6 +76,9 @@ public:
     virtual void setDataLabelAddressSpace(
         const TTAMachine::AddressSpace& space);
 
+    GlobalScope(const GlobalScope&) = delete;
+    GlobalScope& operator=(const GlobalScope&) = delete;
+
 protected:
     virtual void addGlobalCodeLabel(
         const CodeLabel& codeLabel, const Scope& owner);
@@ -83,7 +86,6 @@ protected:
         const DataLabel& codeLabel, const Scope& owner);
 
 private:
-
     /**
      * Connects a label and its owner for bookkeeping.
      */
@@ -99,11 +101,6 @@ private:
         /// The owner scope of the label.
         const Scope* owner_;
     };
-
-    /// Copying not allowed.
-    GlobalScope(const GlobalScope&);
-    /// Assignment not allowed.
-    GlobalScope& operator=(const GlobalScope&);
 
     /// List for LabelOwners.
     typedef std::vector<LabelOwner*> LabelOwnerList;

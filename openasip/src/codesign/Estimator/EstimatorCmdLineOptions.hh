@@ -55,12 +55,10 @@ public:
 
     std::string TPEF();
     std::string traceDB();
-    
-private:
-    /// Copying not allowed.
-    EstimatorCmdLineOptions(const EstimatorCmdLineOptions&);
-    /// Assignment not allowed.
-    EstimatorCmdLineOptions& operator=(const EstimatorCmdLineOptions&);
+
+    EstimatorCmdLineOptions(const EstimatorCmdLineOptions&) = delete;
+    EstimatorCmdLineOptions&
+    operator=(const EstimatorCmdLineOptions&) = delete;
 };
 
 #endif

@@ -72,11 +72,11 @@ SelectionFigure::drawSelf(wxDC* dc) {
     // Draw blue rectangles around selected EditParts figures.
     if (selection_ != NULL) {
 
-        wxPen pen = wxPen(wxColour(0,0,255), 2, wxSHORT_DASH);
+        wxPen pen = wxPen(wxColour(0,0,255), 2, wxPENSTYLE_SHORT_DASH);
         if (isSVGcontext) {
-            pen.SetStyle(wxSOLID);
+            pen.SetStyle(wxPENSTYLE_SOLID);
         }
-        wxBrush brush = wxBrush(wxColor(0,0,0), wxTRANSPARENT);
+        wxBrush brush = wxBrush(wxColor(0,0,0), wxBRUSHSTYLE_TRANSPARENT);
         dc->SetBrush(brush);
         dc->SetPen(pen);
         wxRect bounds = selection_->bounds();

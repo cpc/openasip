@@ -70,7 +70,7 @@ RandomNumberGenerator::seed(RandomNumberGenerator::SeedType seed) {
  */
 RandomNumberGenerator::RNGValueType
 RandomNumberGenerator::generateNewSeed() {
-    return RandomNumberGenerator(time(0))();
+    return RandomNumberGenerator(time(nullptr))();
 }
 
 /**

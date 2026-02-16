@@ -49,11 +49,8 @@ public:
 
     virtual EditPart* createEditPart(TTAMachine::MachinePart* component);
 
-private:
-    /// Assignment not allowed.
-    BusFactory& operator=(BusFactory& old);
-    /// Copying not allowed.
-    BusFactory(BusFactory& old);
+    BusFactory& operator=(BusFactory& old) = delete;
+    BusFactory(BusFactory& old) = delete;
 };
 
 #endif

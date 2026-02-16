@@ -1057,7 +1057,7 @@ _DEFUN (_strtod_r, (ptr, s00, se),
 		else {
 #ifdef Avoid_Underflow
 			if (scale && y <= 2*P*Exp_msk1) {
-				if (aadj <= 0x7fffffff) {
+				if (aadj <= 0x80000000) {
 					if ((z = aadj) <= 0)
 						z = 1;
 					aadj = z;

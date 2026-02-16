@@ -192,7 +192,8 @@ ConsoleWindow::createContents() {
  * @param event Simulator interpreter text output event.
  */
 void
-ConsoleWindow::onSimulatorOutput(const SimulatorEvent& event) {
+ConsoleWindow::onSimulatorOutput(wxEvent& simEvent) {
+    auto& event = dynamic_cast<SimulatorEvent&>(simEvent);
     // Append text to the output widget.
     std::string text = event.data();
     outTextCtrl_->AppendText(WxConversion::toWxString(text));
@@ -208,7 +209,8 @@ ConsoleWindow::onSimulatorOutput(const SimulatorEvent& event) {
  * @param event Simulator interpreter command event.
  */
 void
-ConsoleWindow::onError(const SimulatorEvent& event) {
+ConsoleWindow::onError(wxEvent& simEvent) {
+    auto& event = dynamic_cast<SimulatorEvent&>(simEvent);
     std::string error = event.data();
     wxTextAttr oldStyle = outTextCtrl_->GetDefaultStyle();
     outTextCtrl_->SetDefaultStyle(wxTextAttr(*wxRED));
@@ -278,7 +280,7 @@ ConsoleWindow::clear() {
  * method is overloaded to not to lock the window.
  */
 void
-ConsoleWindow::onSimulatorBusy(SimulatorEvent&) {
+ConsoleWindow::onSimulatorBusy(wxEvent&) {
     // Do nothing.
 }
 
@@ -290,6 +292,6 @@ ConsoleWindow::onSimulatorBusy(SimulatorEvent&) {
  * no need to do anything.
  */
 void
-ConsoleWindow::onSimulatorDone(SimulatorEvent&) {
+ConsoleWindow::onSimulatorDone(wxEvent&) {
     // Do nothing.
 }

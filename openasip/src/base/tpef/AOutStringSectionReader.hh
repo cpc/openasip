@@ -48,6 +48,10 @@ class AOutStringSectionReader : public AOutSectionReader {
 public:
     virtual ~AOutStringSectionReader();
 
+    AOutStringSectionReader(const AOutStringSectionReader&) = delete;
+    AOutStringSectionReader&
+    operator=(const AOutStringSectionReader&) = delete;
+
 protected:
     AOutStringSectionReader();
 
@@ -56,11 +60,6 @@ protected:
     virtual Section::SectionType type() const;
 
 private:
-    /// Copying not allowed.
-    AOutStringSectionReader(const AOutStringSectionReader&);
-    /// Assignment not allowed.
-    AOutStringSectionReader& operator=(const AOutStringSectionReader&);
-
     /// Static attribute enables registering to SectionReader
     /// before main function is executed.
     static AOutStringSectionReader proto_;

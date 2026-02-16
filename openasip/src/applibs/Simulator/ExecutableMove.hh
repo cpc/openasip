@@ -52,9 +52,7 @@ class SimValue;
 class ExecutableMove {
 public:
     ExecutableMove(
-        const ReadableState& src, 
-        BusState& bus, 
-        WritableState& dst);
+        const ReadableState& src, BusState& bus, WritableState& dst);
 
     ExecutableMove(
         const ReadableState& src,
@@ -74,7 +72,7 @@ public:
         InlineImmediateValue* immediateSource,
         BusState& bus,
         WritableState& dst);
-    
+
     virtual ~ExecutableMove();
 
     virtual void executeRead();
@@ -85,9 +83,12 @@ public:
     ClockCycleCount executionCount() const;
     void resetExecutionCount();
 
+    ExecutableMove(const ExecutableMove&) = delete;
+    ExecutableMove& operator=(const ExecutableMove&) = delete;
+
 protected:
     ExecutableMove();
-    
+
     /// Source of the move.
     const ReadableState* src_;
     /// Bus of the move.
@@ -104,12 +105,8 @@ protected:
     ClockCycleCount executionCount_;
     /// True in case this move was squashed last time it was executed.
     bool squashed_;
-   
+
 private:
-    /// Copying not allowed.
-    ExecutableMove(const ExecutableMove&);
-    /// Assignment not allowed.
-    ExecutableMove& operator=(const ExecutableMove&);
     /// If the move source is an inline immediate, the instance
     /// is stored here so it can be deleted in the destructor.
     InlineImmediateValue* inlineImmediate_;

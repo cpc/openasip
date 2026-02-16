@@ -65,11 +65,11 @@ SegmentFigure::~SegmentFigure() {
 void
 SegmentFigure::drawSelf(wxDC* dc) {
 
-    wxPen pen = wxPen(DEFAULT_COLOUR, 1, wxSOLID);
-    wxBrush brush = wxBrush(DEFAULT_COLOUR, wxSOLID);
+    wxPen pen = wxPen(DEFAULT_COLOUR, 1, wxPENSTYLE_SOLID);
+    wxBrush brush = wxBrush(DEFAULT_COLOUR, wxBRUSHSTYLE_SOLID);
     if (highlighted_) {
-	pen = wxPen(highlight_, 1, wxSOLID);
-	brush = wxBrush(highlight_, wxSOLID);
+	pen = wxPen(highlight_, 1, wxPENSTYLE_SOLID);
+	brush = wxBrush(highlight_, wxBRUSHSTYLE_SOLID);
     }
 
     dc->SetPen(pen);
@@ -77,7 +77,7 @@ SegmentFigure::drawSelf(wxDC* dc) {
 
     if (!last_) {
 
-	// draw arrow 
+	// draw arrow
 	const int arrowSize = 8;
 	wxPoint arrowPoints[3];
 	arrowPoints[0] = wxPoint(

@@ -54,12 +54,10 @@ public:
     void setSchemaFile(const std::string& fileName);
     void setUseSchema(bool useSchema);
 
-private:
-    /// Copying not allowed.
-    OSEdOptionsSerializer(const OSEdOptionsSerializer&);
-    /// Assignment not allowed.
-    OSEdOptionsSerializer& operator=(const OSEdOptionsSerializer&);
+    OSEdOptionsSerializer(const OSEdOptionsSerializer&) = delete;
+    OSEdOptionsSerializer& operator=(const OSEdOptionsSerializer&) = delete;
 
+private:
     /// Instance of XMLSerializer.
     XMLSerializer serializer_;
 };

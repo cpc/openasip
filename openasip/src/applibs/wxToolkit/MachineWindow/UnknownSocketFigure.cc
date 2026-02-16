@@ -60,9 +60,9 @@ UnknownSocketFigure::~UnknownSocketFigure() {
  */
 void
 UnknownSocketFigure::drawSelf(wxDC* dc) {
-    wxPen pen = wxPen(DEFAULT_COLOUR, 1, wxSOLID);
+    wxPen pen = wxPen(DEFAULT_COLOUR, 1, wxPENSTYLE_SOLID);
     dc->SetPen(pen);
-    wxBrush brush = wxBrush(DEFAULT_BG_COLOUR, wxSOLID);
+    wxBrush brush = wxBrush(DEFAULT_BG_COLOUR, wxBRUSHSTYLE_SOLID);
     dc->SetBrush(brush);
     dc->DrawRectangle(
 	location_.x, location_.y, size_.GetWidth(), size_.GetHeight());

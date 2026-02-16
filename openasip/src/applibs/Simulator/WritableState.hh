@@ -45,11 +45,8 @@ public:
 
     virtual void setValue(const SimValue& value) = 0;
 
-private:
-    /// Copying not allowed.
-    WritableState(const WritableState&);
-    /// Assignment not allowed.
-    WritableState& operator=(const WritableState&);
+    WritableState(const WritableState&) = delete;
+    WritableState& operator=(const WritableState&) = delete;
 };
 
 #endif

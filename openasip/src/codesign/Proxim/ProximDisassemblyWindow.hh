@@ -67,9 +67,9 @@ public:
 private:
     void initialize();
     void resetGrid();
-    void onProgramLoaded(const SimulatorEvent& event);
-    void onSimulatorStop(const SimulatorEvent& event);
-    void onSimulatorCommand(SimulatorEvent& event);
+    void onProgramLoaded(wxEvent& simEvent);
+    void onSimulatorStop(wxEvent& simEvent);
+    void onSimulatorCommand(wxEvent& simEvent);
     void onRightClick(wxGridEvent& event);
     void onSetBreakpoint(wxCommandEvent& event);
     void onSetTempBp(wxCommandEvent& event);

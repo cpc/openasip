@@ -54,30 +54,32 @@ class CompiledSimulationPimpl {
 public:
     friend class CompiledSimulation;
     ~CompiledSimulationPimpl();
-private:
+
+    CompiledSimulationPimpl(const CompiledSimulationPimpl&) = delete;
+    CompiledSimulationPimpl&
+    operator=(const CompiledSimulationPimpl&) = delete;
+
+protected:
     CompiledSimulationPimpl();
-    /// Copying not allowed.
-    CompiledSimulationPimpl(const CompiledSimulationPimpl&);
-    /// Assignment not allowed.
-    CompiledSimulationPimpl& operator=(const CompiledSimulationPimpl&);
-    
+
+private:
     /// The memory system
     MemorySystem* memorySystem_;
     /// The simulator frontend
     SimulatorFrontend* frontend_;
     /// Simulation controller
     CompiledSimController* controller_;
-    
+
     /// Type for symbol map: string = symbolname, SimValue* = value location
     typedef std::map<std::string, SimValue*> Symbols;
     /// A Symbol map for easily getting the SimValues out of the simulation
     Symbols symbols_;
     /// The jump table
     JumpTable jumpTable_;
-    
+
     /// Program exit points in a set
     std::set<InstructionAddress> exitPoints_;
-    
+
     /// The Compiled Simulation compiler
     CompiledSimCompiler compiler_;
     /// Plugintools used to load the compiled .so files

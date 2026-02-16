@@ -51,15 +51,13 @@ public:
         Operand* operand,
         int numberOfOperands,
         int operandIndex);
-    
+
     virtual ~InputOperandDialog();
-    
+
+    InputOperandDialog(const InputOperandDialog&) = delete;
+    InputOperandDialog& operator=(const InputOperandDialog&) = delete;
+
 private:
-    /// Copying not allowed.
-    InputOperandDialog(const InputOperandDialog&);
-    /// Assignment not allowed.
-    InputOperandDialog& operator=(const InputOperandDialog&);
-    
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     virtual bool TransferDataToWindow();
     void updateList();
@@ -76,7 +74,7 @@ private:
     void updateElementWidths();
     void updateElementCounts();
     void setTexts();
-    
+
     /**
      * Component ids.
      */

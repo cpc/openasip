@@ -57,14 +57,11 @@ public:
     virtual void setEnergyActive(double energy);
     virtual void setEnergyOperation(const std::string& name, double energy);
 
+    CostDBEntryStatsFU(const CostDBEntryStatsFU&) = delete;
+    CostDBEntryStatsFU& operator=(const CostDBEntryStatsFU&) = delete;
+
 protected:
     virtual CostDBEntryStats* createStats() const;
-
-private:
-    /// Copying not allowed.
-    CostDBEntryStatsFU(const CostDBEntryStatsFU&);
-    /// Assignment not allowed.
-    CostDBEntryStatsFU& operator=(const CostDBEntryStatsFU&);
 };
 
 #endif

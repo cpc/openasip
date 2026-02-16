@@ -49,15 +49,12 @@ public:
     BusContainerFigure();
     virtual ~BusContainerFigure();
 
+    BusContainerFigure& operator=(BusContainerFigure& old) = delete;
+    BusContainerFigure(BusContainerFigure& old) = delete;
+
 protected:
     virtual void layoutSelf(wxDC*);
     virtual void layoutChildren(wxDC*);
-
-private:
-    /// Assignment not allowed.
-    BusContainerFigure& operator=(BusContainerFigure& old);
-    /// Copying not allowed.
-    BusContainerFigure(BusContainerFigure& old);
 };
 
 #endif

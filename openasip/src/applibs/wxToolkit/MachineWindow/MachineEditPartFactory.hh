@@ -60,12 +60,10 @@ public:
     virtual EditPart* createEditPart(TTAMachine::MachinePart* component);
     EditPart* createEditPart(TTAMachine::Machine* machine);
 
-private:
-    /// Assignment not allowed.
-    MachineEditPartFactory& operator=(MachineEditPartFactory& old);
-    /// Copying not allowed.
-    MachineEditPartFactory(MachineEditPartFactory& old);
+    MachineEditPartFactory& operator=(MachineEditPartFactory& old) = delete;
+    MachineEditPartFactory(MachineEditPartFactory& old) = delete;
 
+private:
     EditPart* getUnits(TTAMachine::Machine* machine);
     EditPart* getSockets(TTAMachine::Machine* machine);
     EditPart* getBusChains(TTAMachine::Machine* machine);

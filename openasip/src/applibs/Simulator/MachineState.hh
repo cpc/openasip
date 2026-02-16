@@ -68,7 +68,7 @@ public:
     GCUState& gcuState();
     BusState& busState(const std::string& name);
     FUState& fuState(const std::string& name);
-    
+
     int FUStateCount() const;
     FUState& fuState(int index);
     void advanceClockOfAllFUStates();
@@ -77,10 +77,9 @@ public:
     void advanceClockOfAllLongImmediateUnitStates();
     void resetAllFUs();
     void clearBuses();
-    
-    PortState& portState(
-        const std::string& portName, 
-        const std::string& fuName);
+
+    PortState&
+    portState(const std::string& portName, const std::string& fuName);
     LongImmediateUnitState& longImmediateUnitState(const std::string& name);
     RegisterFileState& registerFileState(const std::string& name);
     GuardState& guardState(const TTAMachine::Guard& guard);
@@ -89,28 +88,23 @@ public:
     void addBusState(BusState* state, const std::string& name);
     void addFUState(FUState* state, const std::string& name);
     void addPortState(
-        PortState* state, 
-        const std::string& name, 
-        const std::string& fuName);
+        PortState* state, const std::string& name, const std::string& fuName);
     void addLongImmediateUnitState(
         LongImmediateUnitState* state,
         const std::string& name);
-    void addRegisterFileState(
-        RegisterFileState* state, 
-        const std::string& name);
+    void
+    addRegisterFileState(RegisterFileState* state, const std::string& name);
     void addGuardState(GuardState* state, const TTAMachine::Guard& guard);
-        
+
     void addOperationExecutor(OperationExecutor* executor);
 
     bool isFinished() const { return finished_; }
     void setFinished(bool finished=true) { finished_ = finished; }
 
-private:
-    /// Copying not allowed.
-    MachineState(const MachineState&);
-    /// Assignment not allowed.
-    MachineState& operator=(const MachineState&);
+    MachineState(const MachineState&) = delete;
+    MachineState& operator=(const MachineState&) = delete;
 
+private:
     /// Contains bus states indexed by names.
     typedef std::map<std::string, BusState*> BusContainer;
     /// Contains function unit states indexed by names.

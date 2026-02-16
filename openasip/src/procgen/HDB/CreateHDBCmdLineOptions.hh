@@ -48,11 +48,9 @@ public:
     virtual void printVersion() const;
     virtual void printHelp() const;
 
-private:
-    /// Copying not allowed.
-    CreateHDBCmdLineOptions(const CreateHDBCmdLineOptions&);
-    /// Assignment not allowed.
-    CreateHDBCmdLineOptions& operator=(const CreateHDBCmdLineOptions&);
+    CreateHDBCmdLineOptions(const CreateHDBCmdLineOptions&) = delete;
+    CreateHDBCmdLineOptions&
+    operator=(const CreateHDBCmdLineOptions&) = delete;
 };
 
 #endif

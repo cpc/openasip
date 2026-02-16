@@ -217,16 +217,6 @@ SchedulingResource::hasDependentResource(
 }
 
 /**
- * Constructor.
- */
-SchedulingResourceSet::SchedulingResourceSet() {}
-
-/**
- * Destructor.
- */
-SchedulingResourceSet::~SchedulingResourceSet() {}
-
-/**
  * Insert a scheduling resource in the set.
  *
  * @param resource Resource to insert.
@@ -303,21 +293,6 @@ SchedulingResourceSet::hasResource(SchedulingResource& resource) {
         iter++;
     }
     return false;
-}
-
-/**
- * Assignment operator.
- *
- * @param newSet Set to assign resources from.
- * @return This set with newly assigned contents.
- */
-SchedulingResourceSet&
-SchedulingResourceSet::operator=(const SchedulingResourceSet& newSet) {
-    resources_.clear();
-    for (int i = 0; i < newSet.count(); i++) {
-        insert(newSet.resource(i));
-    }
-    return *this;
 }
 
 /**

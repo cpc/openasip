@@ -43,12 +43,10 @@ public:
     explicit OSEdAboutDialog(wxWindow* parent);
     virtual ~OSEdAboutDialog();
 
+    OSEdAboutDialog(const OSEdAboutDialog&) = delete;
+    OSEdAboutDialog& operator=(const OSEdAboutDialog&) = delete;
+
 private:
-    /// Copying not allowed.
-    OSEdAboutDialog(const OSEdAboutDialog&);
-    /// Assignment not allowed.
-    OSEdAboutDialog& operator=(const OSEdAboutDialog&);
-    
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     void setTexts();
 

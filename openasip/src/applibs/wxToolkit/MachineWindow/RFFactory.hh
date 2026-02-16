@@ -39,7 +39,7 @@
 class EditPart;
 
 /**
- * Factory for creating register file EditParts corresponding to a 
+ * Factory for creating register file EditParts corresponding to a
  * given Machine RegisterFile object.
  */
 class RFFactory : public EditPartFactory {
@@ -49,11 +49,8 @@ public:
 
     virtual EditPart* createEditPart(TTAMachine::MachinePart* component);
 
-private:
-    /// Assignment not allowed.
-    RFFactory& operator=(RFFactory& old);
-    /// Copying not allowed.
-    RFFactory(RFFactory& old);
+    RFFactory& operator=(RFFactory& old) = delete;
+    RFFactory(RFFactory& old) = delete;
 };
 
 #endif

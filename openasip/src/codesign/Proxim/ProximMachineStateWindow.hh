@@ -75,9 +75,8 @@ public:
     };
 
 private:
-    void onMachineLoaded(const SimulatorEvent& event);
-    void onProgramLoaded(const SimulatorEvent& event);
-    void onSimulationStop(const SimulatorEvent& event);
+    void onProgramLoaded(wxEvent& simEvent);
+    void onSimulationStop(wxEvent& simEvent);
     void createContents();
     void onZoom(wxCommandEvent& event);
     void setUtilizationHighlights();

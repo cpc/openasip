@@ -59,9 +59,7 @@ class GlobalLock;
  */
 class GuardState : public ClockedState, public ReadableState {
 public:
-    GuardState(
-        const ReadableState& targetRegister, 
-        int latency);
+    GuardState(const ReadableState& targetRegister, int latency);
 
     virtual ~GuardState();
 
@@ -70,23 +68,21 @@ public:
     virtual void endClock();
     virtual void advanceClock();
 
+    GuardState(const GuardState&) = delete;
+    GuardState& operator=(const GuardState&) = delete;
+
 protected:
     /// Only subclasses allowed to create empty GuardStates
     GuardState();
 
 private:
-
-    /// Copying not allowed.
-    GuardState(const GuardState&);
-    /// Assignment not allowed.
-    GuardState& operator=(const GuardState&);
     /// The target register watched by this guard.
     const ReadableState* target_;
     /// Value history ring buffer.
     std::vector<SimValue> history_;
     /// History ring buffer position. Point to the index of the current
     /// value of the guard.
-    int position_;    
+    int position_;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -101,14 +97,14 @@ public:
     static NullGuardState& instance();
 
     virtual ~NullGuardState();
-    
-private:
+
+    NullGuardState(const NullGuardState&) = delete;
+    NullGuardState& operator=(const NullGuardState&) = delete;
+
+protected:
     NullGuardState();
-    /// Copying not allowed.
-    NullGuardState(const NullGuardState&);
-    /// Assignment not allowed.
-    NullGuardState& operator=(const NullGuardState&);
-    
+
+private:
     /// Unique instance of NullGuardState (singleton).
     static NullGuardState instance_;
 };
@@ -123,21 +119,19 @@ private:
 class DirectGuardState : public GuardState {
 public:
     DirectGuardState(const ReadableState& targetRegister);
-    
+
     virtual ~DirectGuardState();
-    
+
     virtual const SimValue& value() const;
 
     virtual void endClock();
     virtual void advanceClock();
-    
+
+    DirectGuardState() = delete;
+    DirectGuardState(const DirectGuardState&) = delete;
+    DirectGuardState& operator=(const DirectGuardState&) = delete;
+
 private:
-    DirectGuardState();
-    /// Copying not allowed.
-    DirectGuardState(const DirectGuardState&);
-    /// Assignment not allowed.
-    DirectGuardState& operator=(const DirectGuardState&);
-    
     /// The target register watched by this guard.
     const ReadableState* target_;
 };

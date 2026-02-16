@@ -46,8 +46,8 @@
  * use a constant ID for requesting the conflict detection data instead of
  * first fetching the constant from a map for the executed operation.
  */
-class ConflictDetectingOperationExecutor : 
-    public MultiLatencyOperationExecutor {
+class ConflictDetectingOperationExecutor
+    : public MultiLatencyOperationExecutor {
 public:
     ConflictDetectingOperationExecutor(
         FUResourceConflictDetector& detector,
@@ -63,16 +63,16 @@ public:
 
     virtual OperationExecutor* copy();
 
+    ConflictDetectingOperationExecutor&
+    operator=(const ConflictDetectingOperationExecutor&) = delete;
+
 private:
-    /// Assignment not allowed.
-    ConflictDetectingOperationExecutor& 
-    operator=(const ConflictDetectingOperationExecutor&);
     /// The conflict detector used to test whether starting operation is
     /// legal.
     FUResourceConflictDetector& detector_;
     /// The conflict detector ID of the operation executed with this executor.
     const FUResourceConflictDetector::OperationID operationID_;
-    /// True in case an exception should be thrown in case of a resource 
+    /// True in case an exception should be thrown in case of a resource
     /// conflict.
     const bool throwWhenConflict_;
     /// Counter for detected conflicts.

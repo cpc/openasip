@@ -56,12 +56,10 @@ protected:
     virtual void readInfo(BinaryStream& stream, Section* sect) const;
     virtual HalfWord readId(BinaryStream& stream) const;
 
-private:
-    /// Copying not allowed.
-    TPEFCodeSectionReader(const TPEFCodeSectionReader&);
-    /// Assignment not allowed.
-    TPEFCodeSectionReader& operator=(TPEFCodeSectionReader&);
+    TPEFCodeSectionReader(const TPEFCodeSectionReader&) = delete;
+    TPEFCodeSectionReader& operator=(TPEFCodeSectionReader&) = delete;
 
+private:
     void readAnnotations(
         BinaryStream& stream, InstructionElement* elem) const;
 

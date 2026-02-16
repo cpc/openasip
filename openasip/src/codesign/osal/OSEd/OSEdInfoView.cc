@@ -96,27 +96,31 @@ OSEdInfoView::clear() {
  */
 void
 OSEdInfoView::pathView() {
-    
+
     clear();
     OSEdTextGenerator& texts = OSEdTextGenerator::instance();
     format fmt = texts.text(OSEdTextGenerator::TXT_COLUMN_SEARCH_PATHS);
     InsertColumn(
-        0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT, 
+        0, WxConversion::toWxString(fmt.str()), wxLIST_FORMAT_LEFT,
         OSEdConstants::DEFAULT_COLUMN_WIDTH * 2);
-    
+
     vector<string> paths = Environment::osalPaths();
     for (size_t i = 0; i < paths.size(); i++) {
         wxListItem item;
         if (FileSystem::fileExists(paths[i])) {
             // path exists, let's write it bold
-            wxFont boldFont = wxFont(10, wxROMAN, wxNORMAL, wxBOLD);
+            wxFont boldFont = wxFont(10,
+                    wxFONTFAMILY_ROMAN,
+                    wxFONTSTYLE_NORMAL,
+                    wxFONTWEIGHT_BOLD);
+
             item.SetFont(boldFont);
         }
         item.SetId(i);
         int index = InsertItem(item);
         SetItemText(index, WxConversion::toWxString(paths[i]));
-    } 
-    
+    }
+
     mode_ = MODE_PATH;
 }
 
@@ -180,7 +184,11 @@ OSEdInfoView::operationView(const std::string& path, const std::string& mod) {
         wxListItem item;
         if (OperationContainer::isEffective(module, name)) {
             // operation is effective, let's put it with bold font
-            wxFont boldFont = wxFont(10, wxROMAN, wxNORMAL, wxBOLD);
+            wxFont boldFont = wxFont(10,
+                    wxFONTFAMILY_ROMAN,
+                    wxFONTSTYLE_NORMAL,
+                    wxFONTWEIGHT_BOLD);
+
             item.SetFont(boldFont);
         }
         item.SetId(j);

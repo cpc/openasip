@@ -71,6 +71,9 @@ public:
         CostDBTypes::EntryTable components,
         const CostDBTypes::MatchTypeTable& match);
 
+    FilterSearch(const FilterSearch&) = delete;
+    FilterSearch& operator=(const FilterSearch&) = delete;
+
 private:
     /**
      * Represents a cache entry.
@@ -88,6 +91,10 @@ private:
             CostDBTypes::MatchTypeTable matchingType,
             const CostDBEntryKey* key) const;
 	CostDBTypes::EntryTable entries() const;
+
+        Cache(const Cache&) = delete;
+        Cache& operator=(const Cache&) = delete;
+
     private:
         /// Type of match used for these results.
 	CostDBTypes::MatchTypeTable matchType_;
@@ -95,11 +102,6 @@ private:
 	CostDBEntryKey* searchKey_;
         /// Resulting database entries. Not owned by this class.
 	CostDBTypes::EntryTable entries_;
-
-        /// Copying not allowed.
-        Cache(const Cache&);
-        /// Assignment not allowed.
-        Cache& operator=(const Cache&);
     };
 
     /// Table of cache entries.
@@ -118,11 +120,6 @@ private:
     /// strategy itself is deleted. Thus, this storage exists to
     /// deallocate the memory reserved by matchers.
     MatcherTable matcherStorage_;
-
-    /// Copying not allowed.
-    FilterSearch(const FilterSearch&);
-    /// Assignment not allowed.
-    FilterSearch& operator=(const FilterSearch&);
 };
 
 #endif

@@ -53,16 +53,15 @@ public:
 
     virtual void addChild(Figure* child);
 
+    ContentsFigure& operator=(ContentsFigure& old) = delete;
+    ContentsFigure(ContentsFigure& old) = delete;
+
 protected:
     virtual void layoutSelf(wxDC*);
     virtual void layoutChildren(wxDC*);
     virtual void draw(wxDC* dc);
-private:
-    /// Assignment not allowed.
-    ContentsFigure& operator=(ContentsFigure& old);
-    /// Copying not allowed.
-    ContentsFigure(ContentsFigure& old);
 
+private:
     /// Contains all the units.
     UnitContainerFigure* units_;
     /// Contains all the buses.

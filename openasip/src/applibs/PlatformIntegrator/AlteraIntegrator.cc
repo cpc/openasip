@@ -101,7 +101,7 @@ AlteraIntegrator::integrateProcessor(
 }
 
 MemoryGenerator&
-AlteraIntegrator::imemInstance(MemInfo imem, int coreId) {
+AlteraIntegrator::imemInstance(MemInfo imem, [[maybe_unused]] int coreId) {
     assert(imem.type != UNKNOWN && "Imem type not set!");
 
     TCEString initFile;

@@ -49,12 +49,10 @@ public:
     EditPart* contents() const;
     void setContents(EditPart* contents);
 
-private:
-    /// Assignment not allowed.
-    RootEditPart& operator=(RootEditPart& old);
-    /// Copying not allowed.
-    RootEditPart(RootEditPart& old);
+    RootEditPart& operator=(RootEditPart& old) = delete;
+    RootEditPart(RootEditPart& old) = delete;
 
+private:
     void collectTrash();
     /// Contents EditPart which parents all EditParts in the View.
     EditPart* contents_;

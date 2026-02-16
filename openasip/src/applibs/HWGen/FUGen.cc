@@ -1096,7 +1096,7 @@ FUGen::finalizeHDL() {
         fu_.setPackages("cvxif_sup_pkg");  // Adding the package which has the
                                            // configbit lengths
     } else if (generateROCC_) {
-        NULL;
+        // Don't do anything
     } else {
         // Create lock request wires
         if (useGlockRequest_) {

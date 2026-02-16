@@ -47,27 +47,27 @@ struct RequestQueue;
 /**
  * Memory Model interface provides methods for emulating memory access.
  *
- * The interface provides methods for emulating the access to data memory by 
+ * The interface provides methods for emulating the access to data memory by
  * operations of the target architecture such as load and store. In addition,
  * an interface is implemented for direct access to the memory storage for
  * the debugging user interfaces.
  *
  * The abstract base class Memory implements all functionality except for
- * the actual write() and read() methods which write and read a single unit 
- * to the memory storage as efficiently as possible. That is left for the 
- * derived classes to implement, as it depends on the storage data structure 
+ * the actual write() and read() methods which write and read a single unit
+ * to the memory storage as efficiently as possible. That is left for the
+ * derived classes to implement, as it depends on the storage data structure
  * used, etc.
  *
- * Memory base class implements the correct ordering of loads and stores within
- * the same cycle: loads in the same cycle do not see the values of 
- * the writes in that cycle. That is, the writes are committed to the memory 
- * array at cycleAdvance() call. Derived classes may loosen this behavior
- * and let the client take care of the correct ordering of the memory
- * accesses, as is the case with the compiled simulation engine and the
- * DirectAccessMemory implementation it uses for simulating data memory.
+ * Memory base class implements the correct ordering of loads and stores
+ * within the same cycle: loads in the same cycle do not see the values of the
+ * writes in that cycle. That is, the writes are committed to the memory array
+ * at cycleAdvance() call. Derived classes may loosen this behavior and let
+ * the client take care of the correct ordering of the memory accesses, as is
+ * the case with the compiled simulation engine and the DirectAccessMemory
+ * implementation it uses for simulating data memory.
  *
  * The Memory abstraction deals with MAUs (commonly bytes). The client can
- * access the Memory for storing writing doubles and floats in case it 
+ * access the Memory for storing writing doubles and floats in case it
  * implements floating point memory operations. Interface for those is
  * out of the abstraction level of this interface.
  */
@@ -118,20 +118,19 @@ public:
     virtual ULongWord MAUSize() { return MAUSize_; }
 
     bool isLittleEndian() { return littleEndian_; }
+
+    Memory(const Memory&) = delete;
+    Memory& operator=(const Memory&) = delete;
+
 protected:
 
     void packBE(const Memory::MAUTable data, int size, ULongWord& value);
     void unpackBE(const ULongWord& value, int size, Memory::MAUTable data);
     void packLE(const Memory::MAUTable data, int size, ULongWord& value);
     void unpackLE(const ULongWord& value, int size, Memory::MAUTable data);
-    
+
     bool littleEndian_;
 private:
-    /// Copying not allowed.
-    Memory(const Memory&);
-    /// Assignment not allowed.
-    Memory& operator=(const Memory&);
-
     void checkRange(ULongWord startAddress, int numberOfMAUs);
 
     /// Starting point of the address space.
