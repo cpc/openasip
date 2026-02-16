@@ -1,0 +1,1 @@
+../../../data/hdb/fft_coeff_generator_struct.vhd

@@ -1,0 +1,1 @@
+../../../data/hdb/ldw_stw.vhdl

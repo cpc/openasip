@@ -711,21 +711,28 @@ def setup_exec_env():
 
     bld_root += "/openasip"
 
-    subtreeroots = ["scripts", "src/bintools", "src/codesign", "src/procgen"]
+    subtreeroots = ["scripts", "src/bintools", "src/codesign", "src/procgen",
+                    "tools"]
+
     # If any of the dirs inside the subtreeroots contains at least one
     # of these tested binaries, put the dir to the PATH.
-    wanted_binaries = ["blocks_translator", "buildcompressor", "buildestimatorplugin",
-                       "buildexplorerplugin", "buildicdecoderplugin", "buildopset",
-                       "c2vhdl", "createbem", "createhdb", "dictionary_tool",
+    wanted_binaries = ["blocks_translator", "buildcompressor",
+                       "buildestimatorplugin", "buildexplorerplugin",
+                       "buildicdecoderplugin", "buildopset", "c2vhdl",
+                       "createbem", "createhdb", "dictionary_tool",
                        "dump_instruction_execution_trace", "dumptpef",
-                       "estimate", "explore", "generatebits", "generate_cachegrind",
-                       "generateprocessor", "hdbeditor", "llvm-tce", "machine_instruction_info",
-                       "mc-stats", "minimize-ic", "osed", "pareto-vis", "prode",
-                       "proxim", "tceasm", "tcecc", "tce-config", "tcedisasm", "tpef2pasm",
-                       "tceoclextgen", "tceopgen",
-                       "testhdb", "testosal", "ttasim", "ttasim-tandem",
-                       "ttaunittester", "viewbem", "rtlstats", "generatetests"]
-    tce_path_env = ""
+                       "estimate", "explore", "generatebits",
+                       "generate_cachegrind", "generateprocessor", "hdbeditor",
+                       "llvm-tce", "machine_instruction_info", "mc-stats",
+                       "minimize-ic", "osed", "pareto-vis", "prode", "proxim",
+                       "tceasm", "tcecc", "tce-config", "tcedisasm",
+                       "tpef2pasm", "tceoclextgen", "tceopgen",
+                       "generatesimulator", "testhdb", "testosal", "ttasim",
+                       "ttasim-tandem", "ttaunittester", "viewbem", "rtlstats",
+                       "generatetests", "generatebustrace.sh"]
+
+    tce_path_env = bld_root + ":"
+
     max_depth = 2
     for root in subtreeroots:
         new_dirs = get_fs_tree_dirs(os.path.join(bld_root, root), max_depth=max_depth)
@@ -767,10 +774,14 @@ if __name__ == "__main__":
 
     if options.test_cases == []:
         if len(args) == 0:
-            root_dir = "."
+            root_dirs = ["."]
         else:
-            root_dir = args[0]
-        all_test_cases = find_test_cases(root_dir)
+            root_dirs = args
+
+        all_test_cases = []
+        for d in root_dirs:
+            all_test_cases += find_test_cases(d)
+
     else:
         for fn in options.test_cases:
             if not os.access(fn, os.R_OK):
