@@ -27,7 +27,7 @@ License:
  * OpenASIP project source code is licensed with LGPL v2.1.
  * Generated hardware description files are licensed with a more
 permissive MIT license, to allow the designer more freedom to
-choose the licensing of the produced processors.
+choose the sublicensing of the produced processors.
  * Read more in [LICENSE.txt](https://github.com/cpc/openasip/blob/main/LICENSE.txt)
 
 Links:
@@ -162,20 +162,11 @@ In order to compile programs from C/C++ with OpenASIP, you need to install
 LLVM and Clang with a few additional patches and use correct LLVM build
 switches to fix some issues affecting OpenASIP usage.
 
-You can do this easiest as follows:
+You can do this easiest as follows under the source directory:
 
 ```bash
-cd openasip-devel/openasip
-./tools/scripts/install_llvm_21.sh $HOME/local
+./tools/scripts/install_llvm_22.sh $HOME/local
 ```
-
-Alternatively, if you cloned the release branch:
-
-```bash
-cd openasip-2.1/openasip
-./tools/scripts/install_llvm_21.sh $HOME/local
-```
-
 
 After successful installation, add information about installed libraries to the
 search path. We assume OpenASIP will be installed to the same location later.
@@ -292,7 +283,7 @@ build OpenASIP:
 | Tcl        	| 8.0-8.6            	| BSD-style            	|
 | Boost      	| 1.48.0-1.83.0      	| very permissive      	|
 | sqlite3    	| 3.2.0+             	| public domain        	|
-| LLVM       	| 21                    | LLVM Release License 	|
+| LLVM       	| 21 or 22            | LLVM Release License 	|
 | Editline   	| 2.9                	| BSD-style            	|
 | Python     	| 3.6+               	| PSF license          	|
 
