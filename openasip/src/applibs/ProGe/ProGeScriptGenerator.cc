@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2011 Tampere University.
+    Copyright (c) 2002-2026 Tampere University.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -351,10 +351,8 @@ ProGeScriptGenerator::generateModsimSimulate() {
     stream.close();
 }
 
-/** 
+/**
  * Generates a script for simulating using ghdl.
- *
- * @exception IOException 
  */
 void
 ProGeScriptGenerator::generateGhdlSimulate() {
@@ -371,9 +369,11 @@ ProGeScriptGenerator::generateGhdlSimulate() {
     stream << "fi" << endl;
     stream << "if [ -e ${tb_entity} ]; then" << endl
            << "    ./${tb_entity}"
-           << " --stop-time=${runtime}ns" << endl
+           << " --stop-time=${runtime}ns "
+           << "--ieee-asserts=disable-at-0 ${generic_list}" << endl
            << "else" << endl
-           << "    # Newer GHDL versions does not produce binary." << endl
+           << "    # Newer GHDL versions do not produce an executable binary."
+           << endl
            << "    ghdl -r ${std_version} --workdir=work --ieee=synopsys "
            << "${tb_entity} --stop-time=${runtime}ns "
            << "--ieee-asserts=disable-at-0 ${generic_list}" << endl
