@@ -3,7 +3,7 @@
 
 # Mandatory macro. Set the name of the package and the version number.
 # Email address is for bug reporting.
-AC_INIT([openasip],[2.2-pre],[tce@lists.tuni.fi])
+AC_INIT([openasip],[2.2],[tce@lists.tuni.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
@@ -23,7 +23,7 @@ AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 # TCE 1.9 = 9:0:0
 # TCE 1.10 = 10:0:0
 # TCE 1.11 = 11:0:0
-# TCE 1.12 = 12:0:
+# TCE 1.12 = 12:0:0
 # TCE 1.13 = 13:0:0
 # TCE 1.14 = 14:0:0
 # TCE 1.15 = 15:0:0
@@ -559,9 +559,9 @@ case "$LLVM_VERSION" in
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
 ;;
      22.*)
-     AC_DEFINE([LLVM_22], [], "Using LLVM 22 (git)")
+     AC_DEFINE([LLVM_22], [], "Using LLVM 22")
      LLVM_VERSION=22
-     LLVM_LIBRARYVERSION=22-rc1
+     LLVM_LIBRARYVERSION=22
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
      LLVM_SHARED_LIB=-lLLVM-${LLVM_LIBRARYVERSION}
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"

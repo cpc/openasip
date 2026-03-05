@@ -22,7 +22,7 @@ echo "### LLVM build mode: "$LLVM_BUILD_MODE
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 patch_dir=$script_dir/../patches
-llvm_co_dir=release_21
+llvm_co_dir=release_22
 llvm_branch=openasip-llvm-22-patched
 
 mkdir -p $build_dir
