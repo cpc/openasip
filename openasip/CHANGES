@@ -1,14 +1,14 @@
-2.2     unreleased
+2.2        March 2026
 =====================
 
 Main changes and features
 -------------------------
-- LLVM 21 support (dropped support for LLVM 17).
+- Support for LLVM versions 21 and 22 (dropped support for LLVM 17).
 - Out of the box support for Ubuntu 24.04 LTS.
 - RISC-V compiler now generates new LLVM Targets from RISC-V ADFs
   and loads them dynamically, which adds support for automatic
   instruction selection for RISC-V custom instructions.
-- Added feature to generate SFUs with RISC-V custom instructions 
+- Added a feature to generate SFUs with RISC-V custom instructions
   that can be interfaced with CV-X and ROCC interfaces, utilizing FUGen.
 - Added register file generator (RFGen), which allows RF RTL to be directly
   generated from ADF descriptions. Verilog and VHDL supported.
@@ -20,15 +20,13 @@ Main changes and features
   - This fixes the compiler to now again work with more than 255 registers,
     which has been broken since LLVM 16.
 - Automated Processor Exploration
-  - Open-sourcing the methodology described in:
+  - Integrated the automated architecture exploration methodology described in
   "AEx: Automated High-Level Synthesis of Compiler Programmable Co-Processors"
   published in JSPS, 2023, https://doi.org/10.1007/s11265-023-01841-3
-  - Automatically finds an optimized processor architecture for an input set
-    of applications.
 
 Deprecation notice
 ------------------
-- Big endian TTA support is now deprecated and will be removed in
+- Big endian TTA support is now deprecated and might be removed in
   a future release.
 
 2.1     December 2023
