@@ -69,7 +69,7 @@ function run_verilog_test() {
 
     # If iverilog is found from PATH, compile and simulate
     IVERILOG=$(which iverilog 2> /dev/null)
-    if [ "x${GHDL}" != "x" ]
+    if [ "x${IVERILOG}" != "x" ]
     then
         cd $PROGE_OUT || exit 1
         ./iverilog_compile.sh >& /dev/null || echo "iverilog compile failed."
