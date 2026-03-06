@@ -111,6 +111,10 @@ jobs:
           cd openasip
           python3 ./tools/scripts/install_qemu.py $HOME/qemu-openasip
 
+      - name: oa-selftest
+        run: |
+          oa-selftest -v -f
+
       - name: Unit tests
         run: |
           cd openasip/test
