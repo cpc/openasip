@@ -1124,7 +1124,7 @@ FUImplementationDialog::createContents(
     wxButton *item61 = new wxButton( parent, ID_MOVE_SOURCE_DOWN, wxT("▾"), wxDefaultPosition, wxSize(20, 20), 0 );
     item17_3->Add( item61, 0, wxALIGN_CENTER|wxALL, 5 );
     
-    item17_1->Add( item17_3, 0, wxALIGN_RIGHT|wxALIGN_CENTER, 5 );
+    item17_1->Add( item17_3, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
 
     item15->Add( item17_1, 0, wxGROW|wxALL, 5 );
     
