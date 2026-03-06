@@ -15,8 +15,8 @@ The internal processor template of OpenASIP is based on the energy efficient and
 modular Transport Triggered Architecture (TTA), which is still its default
 target programming model for static multi-issue designs. OpenASIP, however,
 also has initial support for other programming models such
-as standard operation-based VLIW (demonstrated in Blocks CGRA) and since 2.0
-it received the first features to support customizing RISC-V ISA based
+as standard operation-based VLIW (demonstrated in Blocks CGRA) and in 2.0
+it got the first features to support customizing RISC-V ISA based
 processors.
 
 OpenASIP has been developed by several researchers (and research assistants) of
@@ -152,7 +152,7 @@ git clone https://github.com/cpc/openasip.git openasip-devel
 Alternatively you can get one of the release branches, e.g.:
 
 ```bash
-git clone -b openasip-2.1 https://github.com/cpc/openasip.git openasip-2.1
+git clone -b openasip-2.2 https://github.com/cpc/openasip.git openasip-2.2
 ```
 
 LLVM and Clang
@@ -204,7 +204,7 @@ for common bintools and elf2hex (https://github.com/sifive/elf2hex) for
 generating hex files from RISC-V ELF files.
 
 The easiest way to acquire there tools is to use the included installation
-script:
+script under the source directory:
 
 ```bash
 ./tools/scripts/install_riscv_tools.sh $HOME/local
@@ -253,7 +253,7 @@ Upgrading OpenASIP
 Later on, if you want to update your OpenASIP installation with the latest changes
 committed in the version control system, you can do the following steps:
 
-Update the source code modifications:
+Update the source code modifications, for example:
 
 ```bash
 cd openasip-devel/openasip
