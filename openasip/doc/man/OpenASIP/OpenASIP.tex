@@ -3867,10 +3867,6 @@ processor architecture as a special instruction.
   \item%
     Click the operation and press \emph{OK}
   \item%
-    Make sure the first operand is bound to
-    P1 that is the triggering port. This is important when generating the 
-    RISC-V decoder.
-  \item%
     On the Operand usage view, you can change the desired latency by switching
     the third operand write cycle. For this case, you can leave it as it is because
     the operation is simple and can be therefore easily implemented in a single cycle.
@@ -4045,9 +4041,6 @@ description.
     Filter REFLECT8.
   \item%
     Click the operation and press \emph{OK}
-  \item%
-    Switch the operation-port binding so that the first operand is bound to 
-    P1 that is the triggering port.
   \item%
     On the Operand usage view, you can change the desired latency by switching,
     the third operand write cycle. Leave it as it is because the operation is 
@@ -4275,12 +4268,6 @@ name of the user account being used for the tutorial.  This directory
 is intended for the custom operations defined by the current user, and
 should always have sufficient access rights.
 
-\begin{figure}
-  \begin{center} \includegraphics[width=0.8\textwidth]{eps/osed_crc_xor_shift.eps}
-  \caption{Operation Set Editor when adding new operation CRC\_XOR\_SHIFT.} 
-  \label{fig:osed_crc_xor_shift} \end{center}
-\end{figure}
-
 
 \begin{enumerate}
 \item%
@@ -4326,14 +4313,6 @@ definitions to the newly created operation module.
   will pop up. Press \emph{Yes} to confirm the action.
   The operation definition is now added to the module.
 \end{enumerate}
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=12cm]{eps/crc_dag.eps}
-    \caption{CRC\_XOR\_SHIFT DAG description}
-    \label{fig:crc_dag}
-  \end{center}
-\end{figure}
 
 
 Next, make a new copy of the \file{rv32im.adf} file included in OpenASIP distribution to a new ADF
