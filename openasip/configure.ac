@@ -566,7 +566,7 @@ case "$LLVM_VERSION" in
      LLVM_SHARED_LIB=-lLLVM-${LLVM_LIBRARYVERSION}
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
      # The upstream LLVM doesn't (yet) have the RISC-V customization support.
-     ENABLE_RISCV=false
+     ENABLE_RISCV=true
 ;;
      23.*)
      AC_DEFINE([LLVM_23], [], "Using LLVM 23 (git)")
