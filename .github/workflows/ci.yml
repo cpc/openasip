@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
     branches:
-      - main
+      - [main, openasip-2.2]
   workflow_dispatch:
 
 jobs:
