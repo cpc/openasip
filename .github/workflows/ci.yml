@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
     branches:
-      - main
+      - [main, openasip-2.2]
   workflow_dispatch:
 
 jobs:
@@ -110,6 +110,10 @@ jobs:
         run: |
           cd openasip
           python3 ./tools/scripts/install_qemu.py $HOME/qemu-openasip
+
+      - name: oa-selftest
+        run: |
+          oa-selftest -v -f
 
       - name: Unit tests
         run: |
