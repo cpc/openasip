@@ -441,6 +441,7 @@ def optimizeBytecode(inFile):
         optSwitches += ' -' + ' -'.join(extra_opts)
     outputName = os.path.join(tempDir, os.path.basename(inFile) + "_optimized.bc")
     command = "opt -passes=\"" + default_passes + '\"' + " -f " + inFile + " -o " + outputName + " " + optSwitches
+    command += " 2>&1 | (grep -v 'WARNING: failed to create target machine' || true) "
     exitCode = run_command(command, echoCmd=options.verbose)
     if exitCode != 0:
         exitWithError(1, "Error while optimizing bytecode: " + command + "\n")
