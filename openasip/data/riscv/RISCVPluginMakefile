@@ -14,50 +14,7 @@ TABLEGEN := llvm-tblgen
 TD_FILE := RISCV.td
 
 # Source files
-CPP_SRCS := \
-    ./AsmParser/RISCVAsmParser.cpp \
-    ./RISCVRedundantCopyElimination.cpp \
-    ./RISCVPushPopOptimizer.cpp \
-    ./RISCVAsmPrinter.cpp \
-    ./RISCVExpandAtomicPseudoInsts.cpp \
-    ./RISCVCodeGenPrepare.cpp \
-    ./RISCVInstrInfo.cpp \
-    ./RISCVExpandPseudoInsts.cpp \
-    ./RISCVMergeBaseOffset.cpp \
-    ./RISCVISelLowering.cpp \
-    ./MCA/RISCVCustomBehaviour.cpp \
-    ./RISCVGatherScatterLowering.cpp \
-    ./RISCVInsertReadWriteCSR.cpp \
-    ./RISCVMachineFunctionInfo.cpp \
-    ./TargetInfo/RISCVTargetInfo.cpp \
-    ./RISCVInsertVSETVLI.cpp \
-    ./GISel/RISCVLegalizerInfo.cpp \
-    ./GISel/RISCVInstructionSelector.cpp \
-    ./GISel/RISCVCallLowering.cpp \
-    ./GISel/RISCVRegisterBankInfo.cpp \
-    ./MCTargetDesc/RISCVInstPrinter.cpp \
-    ./MCTargetDesc/RISCVBaseInfo.cpp \
-    ./MCTargetDesc/RISCVTargetStreamer.cpp \
-    ./MCTargetDesc/RISCVMCTargetDesc.cpp \
-    ./MCTargetDesc/RISCVMCObjectFileInfo.cpp \
-    ./MCTargetDesc/RISCVMatInt.cpp \
-    ./MCTargetDesc/RISCVELFStreamer.cpp \
-    ./MCTargetDesc/RISCVAsmBackend.cpp \
-    ./MCTargetDesc/RISCVMCCodeEmitter.cpp \
-    ./MCTargetDesc/RISCVMCExpr.cpp \
-    ./MCTargetDesc/RISCVELFObjectWriter.cpp \
-    ./MCTargetDesc/RISCVMCAsmInfo.cpp \
-    ./RISCVRegisterInfo.cpp \
-    ./RISCVTargetObjectFile.cpp \
-    ./RISCVISelDAGToDAG.cpp \
-    ./RISCVMoveMerger.cpp \
-    ./RISCVTargetMachine.cpp \
-    ./Disassembler/RISCVDisassembler.cpp \
-    ./RISCVFrameLowering.cpp \
-    ./RISCVSubtarget.cpp \
-    ./RISCVTargetTransformInfo.cpp \
-    ./RISCVOptWInstrs.cpp \
-    ./RISCVMakeCompressible.cpp
+CPP_SRCS := $(shell find . -name "*.cpp")
 
 # Define tablegen targets
 TABLEGEN_TARGETS := \
@@ -84,34 +41,6 @@ TABLEGEN_TARGETS += \
     RISCVGenPreLegalizeGICombiner.inc \
     RISCVGenPostLegalizeGICombiner.inc \
     RISCVGenExegesis.inc
-
-CPP_SRCS += \
-    RISCVInterleavedAccess.cpp \
-    RISCVCallingConv.cpp \
-    RISCVDeadRegisterDefinitions.cpp \
-    RISCVFoldMemOffset.cpp \
-    RISCVIndirectBranchTracking.cpp \
-    RISCVInsertWriteVXRM.cpp \
-    RISCVLandingPadSetup.cpp \
-    RISCVLateBranchOpt.cpp \
-    RISCVLoadStoreOptimizer.cpp \
-    RISCVPostRAExpandPseudoInsts.cpp \
-    RISCVSelectionDAGInfo.cpp \
-    RISCVVectorMaskDAGMutation.cpp \
-    RISCVVectorPeephole.cpp \
-    RISCVVLOptimizer.cpp \
-    RISCVVMV0Elimination.cpp \
-    RISCVZacasABIFix.cpp \
-    ./GISel/RISCVO0PreLegalizerCombiner.cpp \
-    ./GISel/RISCVPostLegalizerCombiner.cpp \
-    ./GISel/RISCVPreLegalizerCombiner.cpp
-
-else
-
-CPP_SRCS += \
-    RISCVMacroFusion.cpp \
-    RISCVRVVInitUndef.cpp
-
 endif
 
 # Object files

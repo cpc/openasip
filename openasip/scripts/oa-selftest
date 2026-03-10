@@ -365,20 +365,20 @@ class TestExplorer(TCETestCase):
         takes a while!)
         """
         # Generate .idf using the ImplementationSelector plugin
-        command = 'explore -e ImplementationSelector -a {0} -s1 test.dsdb'.format(self.get_minimalADF())
+        command = 'explore -v -e ImplementationSelector -a {0} -s1 test.dsdb'.format(self.get_minimalADF())
         (timeout, stdout, stderr, code) = self.runWithTimeout(command, 120)
-        self.assertTrue('Best result configurations:' in stdout)
-        self.assertTrue('2' in stdout)
-        self.assertEqual(stderr.strip(), '')
+        self.assertTrue('Best result configurations:' in stderr)
+        self.assertTrue('2' in stderr)
+        self.assertEqual(stdout.strip(), '')
         self.assertEqual(code, 0)
 
         # Dump the .idf a file.
         (timeout, stdout, stderr, code) = self.runWithTimeout(
-            'explore -w 2 test.dsdb', 120)
-        self.assertEqual(stderr.strip(), '')
+            'explore -v -w 2 test.dsdb', 120)
+        self.assertEqual(stdout.strip(), '')
         self.assertEqual(code, 0)
-        self.assertTrue('Written ADF file of configuration 2' in stdout)
-        self.assertTrue('Written IDF file of configuration 2' in stdout)
+        self.assertTrue('Written ADF file of configuration 2' in stderr)
+        self.assertTrue('Written IDF file of configuration 2' in stderr)
         self.assertTrue(os.path.exists('2.adf'))
         self.assertTrue(os.path.exists('2.idf'))
 
@@ -483,21 +483,21 @@ class TestEstimator(TCETestCase):
         """
 
         # Generate .idf using explorer
-        command = 'explore -e ImplementationSelector -a {0} -s 1 test.dsdb'.format(self.get_bigEndianMinimalADF())
+        command = 'explore -v -e ImplementationSelector -a {0} -s 1 test.dsdb'.format(self.get_bigEndianMinimalADF())
         (timeout, stdout, stderr, code) = self.runWithTimeout(command, 120)
-        self.assertTrue('Best result configurations:' in stdout)
-        self.assertTrue('2' in stdout)
-        self.assertEqual(stderr.strip(), '')
+        self.assertTrue('Best result configurations:' in stderr)
+        self.assertTrue('2' in stderr)
+        self.assertEqual(stdout.strip(), '')
         self.assertEqual(code, 0)
 
         # Dump the .idf a file.
         (timeout, stdout, stderr, code) = self.runWithTimeout(
-            'explore -w 2 test.dsdb', 60
+            'explore -v -w 2 test.dsdb', 60
         )
-        self.assertEqual(stderr.strip(), '')
+        self.assertEqual(stdout.strip(), '')
         self.assertEqual(code, 0)
-        self.assertTrue('Written ADF file of configuration 2' in stdout)
-        self.assertTrue('Written IDF file of configuration 2' in stdout)
+        self.assertTrue('Written ADF file of configuration 2' in stderr)
+        self.assertTrue('Written IDF file of configuration 2' in stderr)
         self.assertTrue(os.path.exists('2.adf'))
         self.assertTrue(os.path.exists('2.idf'))
 
@@ -547,21 +547,21 @@ class TestProGeAndPIG(TCETestCase):
         """
 
         # Generate .idf using the ImplementationSelector plugin
-        command = 'explore -e ImplementationSelector -a {0} -s1 test.dsdb'.format(
+        command = 'explore -v -e ImplementationSelector -a {0} -s1 test.dsdb'.format(
             self.get_minimalADF())
         (timeout, stdout, stderr, code) = self.runWithTimeout(command, 120)
-        self.assertTrue('Best result configurations:' in stdout)
-        self.assertTrue('2' in stdout)
-        self.assertEqual(stderr.strip(), '')
+        self.assertTrue('Best result configurations:' in stderr)
+        self.assertTrue('2' in stderr)
+        self.assertEqual(stdout.strip(), '')
         self.assertEqual(code, 0)
 
         # Dump the .idf a file.
         (timeout, stdout, stderr, code) = self.runWithTimeout(
-            'explore -w 2 test.dsdb', 120)
-        self.assertEqual(stderr.strip(), '')
+            'explore -v -w 2 test.dsdb', 120)
+        self.assertEqual(stdout.strip(), '')
         self.assertEqual(code, 0)
-        self.assertTrue('Written ADF file of configuration 2' in stdout)
-        self.assertTrue('Written IDF file of configuration 2' in stdout)
+        self.assertTrue('Written ADF file of configuration 2' in stderr)
+        self.assertTrue('Written IDF file of configuration 2' in stderr)
         self.assertTrue(os.path.exists('2.adf'))
         self.assertTrue(os.path.exists('2.idf'))
 
