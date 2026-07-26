@@ -44,6 +44,30 @@ try:
 except:
     mp_supported = False
 
+# Module-level options used by worker processes. Set in __main__ and, under
+# non-fork start methods, re-injected via Pool initializer.
+options = None
+
+def _pool(processes):
+    """Create a process pool compatible with this script's globals.
+
+    Python 3.14 defaults to the 'forkserver' start method on Linux. Workers
+    then re-import this module without the __main__-assigned 'options'
+    global. Prefer 'fork' so workers inherit that state (and the open
+    difference.txt handle) as they did historically.
+    """
+    if not mp_supported:
+        raise RuntimeError("multiprocessing is not available")
+    try:
+        return multiprocessing.get_context("fork").Pool(processes)
+    except ValueError:
+        # Platform without fork: fall back to default and initialize workers.
+        return Pool(processes, initializer=_init_worker, initargs=(options,))
+
+def _init_worker(opts):
+    global options
+    options = opts
+
 from difflib import unified_diff
 from optparse import OptionParser
 from subprocess import Popen, PIPE
@@ -642,7 +666,7 @@ def run_test_dirs_in_parallel(test_dirs):
 
     all_ok = True
 
-    exec_pool = Pool(options.par_process_count)
+    exec_pool = _pool(options.par_process_count)
     exec_results = []
     for test_dir in test_dirs.keys():
         exec_results.append(exec_pool.apply_async(run_test_dir_par, (test_dir, test_dirs[test_dir])))
@@ -653,7 +677,7 @@ def run_test_dirs_in_parallel(test_dirs):
     return all_ok
 
 def run_initializers_in_parallel(test_dirs):
-    initializer_pool = Pool(options.par_process_count)
+    initializer_pool = _pool(options.par_process_count)
     initializer_results = []
 
     for test_dir in test_dirs.keys():
@@ -664,7 +688,7 @@ def run_initializers_in_parallel(test_dirs):
     initializer_pool.join()
 
 def run_finalizers_in_parallel(test_dirs):
-    finalizer_pool = Pool(options.par_process_count)
+    finalizer_pool = _pool(options.par_process_count)
     finalizer_results = []
 
     for test_dir in test_dirs.keys():
@@ -682,7 +706,7 @@ def run_all_tests_in_parallel(test_dirs):
     # scheduler_tester.py uses constant name files for functioning.
     run_initializers_in_parallel(test_dirs)
 
-    exec_pool = Pool(options.par_process_count)
+    exec_pool = _pool(options.par_process_count)
     exec_results = []
     for test_dir in test_dirs.keys():
         for test_case in test_dirs[test_dir]:
