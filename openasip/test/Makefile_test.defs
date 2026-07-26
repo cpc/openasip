@@ -107,7 +107,27 @@ TCE_LIBS = $(shell find ${TOP_SRCDIR}/src -name "libopenasip${LIBRARY_SUFFIX}" |
 # This is required to avoid make deleting the "intermediate" files,
 # which is required to rerun the test without building.
 .SECONDARY: $(patsubst %.rt,%-runner, ${TESTS})
-.NOTPARALLEL: ${GCOV_TEST} ${INITIALIZATION} ${TESTS} ${GCOV_TEST2} ${FINALIZATION}
+
+# Serialize this Makefile. Relying on ".NOTPARALLEL: <targets>" is not
+# enough with GNU Make 4.4+: those targets can still be started together
+# under -j, so FINALIZATION (cleanup) races with TESTS and deletes
+# fixtures such as data/tmp_*.hdb while the runner is still using them.
+.NOTPARALLEL:
+
+# Ensure init -> tests -> cleanup even if a future make changes
+# .NOTPARALLEL semantics again.
+ifneq ($(strip ${FINALIZATION}),)
+${FINALIZATION}: ${TESTS} ${GCOV_TEST2}
+endif
+ifneq ($(strip ${GCOV_TEST2}),)
+${GCOV_TEST2}: ${TESTS}
+endif
+ifneq ($(strip ${TESTS}),)
+${TESTS}: ${INITIALIZATION} ${GCOV_TEST}
+endif
+ifneq ($(strip ${INITIALIZATION}),)
+${INITIALIZATION}: ${GCOV_TEST}
+endif
 
 all: ${GCOV_TEST} ${INITIALIZATION} ${TESTS} ${GCOV_TEST2} ${FINALIZATION}
 
