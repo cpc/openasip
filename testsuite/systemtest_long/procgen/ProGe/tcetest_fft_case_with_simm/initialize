@@ -1,7 +1,7 @@
 #!/bin/bash
 # disable the test if GHDL is not installed on the machine
 
-rm -f *.disabled
+rm -f test_fft_case_with_simm.testdesc.disabled
 
 ghdl_bin=$(which ghdl 2> /dev/null)
 if [ "x${ghdl_bin}" == "x" ]; then
