@@ -38,6 +38,8 @@
 // warnings
 #include "hash_set.hh"
 
+#include "CompilerWarnings.hh"
+IGNORE_COMPILER_WARNING("-Wmaybe-uninitialized")
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/graph/strong_components.hpp>

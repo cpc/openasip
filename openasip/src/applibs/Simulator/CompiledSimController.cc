@@ -332,7 +332,7 @@ CompiledSimController::programCounter() const {
  * @return The address of the last executed instruction
  */
 InstructionAddress
-CompiledSimController::lastExecutedInstruction() const {
+CompiledSimController::lastExecutedInstruction(int /*coreId*/) const {
     return simulation_->lastExecutedInstruction();
 }
 

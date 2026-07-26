@@ -487,7 +487,8 @@ namespace HDLGenerator {
             return wireType_ == WireType::Vector || width_ > 1;
         }
 
-        WireType wireType() {
+        using Generatable::wireType;
+        WireType wireType() const override {
             return wireType_;
         }
 
