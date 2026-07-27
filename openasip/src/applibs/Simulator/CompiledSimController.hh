@@ -68,7 +68,7 @@ public:
     virtual void reset();
 
     virtual InstructionAddress programCounter() const;
-    virtual InstructionAddress lastExecutedInstruction() const;
+    virtual InstructionAddress lastExecutedInstruction(int coreId = -1) const;
     virtual ClockCycleCount clockCount() const;
 
     virtual boost::shared_ptr<CompiledSimulation> compiledSimulation();

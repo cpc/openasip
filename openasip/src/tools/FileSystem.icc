@@ -30,10 +30,7 @@
  * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
  */
 
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/convenience.hpp>
-#include <boost/filesystem/exception.hpp>
-#include <boost/version.hpp>
+#include <filesystem>
 
 #include "CompilerWarnings.hh"
 IGNORE_CLANG_WARNING("-Wkeyword-macro")
@@ -216,14 +213,6 @@ FileSystem::findFromDirectoryRecursive(
 
     const boost::regex re(regex, boost::regex::perl|boost::regex::icase);
 
-#if BOOST_VERSION < 103302
-    const boost::regex reb("^\\..*|.*/\\..*",
-        boost::regex::perl|boost::regex::icase);
-    if (regex_match(directory, reb)) {
-        return false;
-    }   
-#endif
-
     if (!exists(Path(directory))) {
         return false;
     }
@@ -231,12 +220,6 @@ FileSystem::findFromDirectoryRecursive(
     directory_iterator dirIt(directory);
     directory_iterator endIt;
     while (dirIt != endIt) {
-#if BOOST_VERSION < 103302
-        if (regex_match((*dirIt).string(), reb)) {
-            ++dirIt;
-            continue;
-        }   
-#endif
         if (regex_match((*dirIt).path().string(), re)) {
             found.push_back((*dirIt).path().string());
         }

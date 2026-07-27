@@ -1430,6 +1430,10 @@ SimulatorFrontend::initializeTracing() {
         procedureTransferTracing_ || saveProfileData_ || 
         saveUtilizationData_ || busTracing_) {
 
+// GCC 15 false positive: -Wstringop-overflow on std::vector::resize to a
+// small size (coreCount == 1). Related to the known libstdc++ warning for
+// short vector reallocations; see also the note on traceDBOwned_.
+IGNORE_COMPILER_WARNING("-Wstringop-overflow")
         int coreCount = 1;
         
         traceDBs_.resize(coreCount, NULL);
@@ -1438,6 +1442,7 @@ SimulatorFrontend::initializeTracing() {
         rfAccessTrackers_.resize(coreCount, NULL);
         procedureTransferTrackers_.resize(coreCount, NULL);
         busTrackers_.resize(coreCount, NULL);
+POP_COMPILER_DIAGS
         for (int core = 0; core < 1; ++core) {
 
             ExecutionTrace* traceDB = traceDBs_.at(core);

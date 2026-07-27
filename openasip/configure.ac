@@ -563,7 +563,10 @@ case "$LLVM_VERSION" in
      LLVM_VERSION=22
      LLVM_LIBRARYVERSION=22
      LLVM_SHARED_LIB_FILE=$LLVM_LIBDIR/libLLVM-$LLVM_LIBRARYVERSION$LIBRARY_SUFFIX
-     LLVM_SHARED_LIB=-lLLVM-${LLVM_LIBRARYVERSION}
+     # Prefer the TCE-built shared library SONAME so a system
+     # libLLVM-22.so (Debian/Ubuntu) is not picked up when -L/usr/lib
+     # precedes the custom LLVM libdir.
+     LLVM_SHARED_LIB=-lLLVMTCE
      LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
      # The upstream LLVM doesn't (yet) have the RISC-V customization support.
      ENABLE_RISCV=true
