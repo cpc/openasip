@@ -26,8 +26,8 @@
  *
  * Declaration of class CmdLineParser.
  *
- * @author Jussi Nyk�nen 2003 (nykanen-no.spam-cs.tut.fi)
- * @author Jari M�ntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
+ * @author Jussi Nykänen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Jari Mäntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
  * @note reviewed 3 December 2003 by jn, kl, ao
  * @note rating: red
  */
@@ -36,8 +36,11 @@
 #define TTA_CMD_LINE_PARSER_HH
 
 #include <map>
+#include <set>
 #include <vector>
 #include <string>
+
+#include <boost/program_options.hpp>
 
 #include "CmdLineOptionParser.hh"
 #include "Exception.hh"
@@ -48,7 +51,9 @@ class Options;
 /**
  * Abstract base class for command line parsers.
  *
- * Is capable of storing and parsing commmand line options.
+ * Stores declared options and parses the command line with
+ * boost::program_options, then applies the results to the registered
+ * CmdLineOptionParser instances.
  */
 class CmdLineParser {
 public:
@@ -69,14 +74,7 @@ protected:
     void addOption(CmdLineOptionParser* opt);
     CmdLineOptionParser* findOption(std::string name) const;
 
-    bool parseOption(
-        std::string option, std::string& name, std::string& arguments,
-        std::string& prefix, bool& hasArgument) const;
-    bool readPrefix(
-        std::string& option,
-        std::string& prefix,
-        bool& longOption) const;
-    bool isPrefix(std::string name) const;
+    virtual void parseAll();
 
     /// Database for holding options with their long names as a key.
     std::map<std::string, CmdLineOptionParser*> optionLongNames_;
@@ -90,6 +88,11 @@ protected:
     /// Legal prefixes are stored here.
     std::vector<std::string> prefixes_;
 
+    /// Visible boost option descriptions (used for parsing and help).
+    boost::program_options::options_description visibleOptions_;
+    /// Hidden boost option descriptions (parsing only).
+    boost::program_options::options_description hiddenOptions_;
+
 private:
     /// For adding new values to maps.
     typedef std::map<std::string, CmdLineOptionParser*>::value_type valType;
@@ -99,13 +102,15 @@ private:
     typedef
     std::map<std::string, CmdLineOptionParser*>::const_iterator constMapIter;
 
-
-    void parseAll();
+    void registerBoostOption(CmdLineOptionParser* opt);
+    bool isPrefix(std::string name) const;
 
     /// The name of the program.
     std::string progName_;
     /// The description of usage of program.
     std::string description_;
+    /// Long option names already registered with boost::program_options.
+    std::set<std::string> registeredBoostNames_;
 
     /// Number of characters reserved for printing short version
     /// of commandline flag.

@@ -105,11 +105,6 @@ SchedulerCmdLineOptions::SchedulerCmdLineOptions(): CmdLineOptions(USAGE) {
 
 
     addOption(
-        new BoolCmdLineOptionParser(
-            SWL_RENAME_REGISTERS, 
-            "Rename already allocated registers during scheduler"));
-
-    addOption(
         new IntegerCmdLineOptionParser(
             SWL_IF_CONVERSION_THRESHOLD,
             "The maximum number of moves in an if-structure to predicate "

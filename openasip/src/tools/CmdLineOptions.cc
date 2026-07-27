@@ -155,104 +155,36 @@ CmdLineOptions::parse(std::vector<string> argv) {
 
     parseAll();
 }
+
 /**
  * Parses all command line options.
+ *
+ * Handles --help / -h and --version before delegating to the
+ * boost::program_options-based parser in CmdLineParser.
  *
  * @exception IllegalCommandLine If parsing fails.
  * @exception ParserStopRequest The client should not proceed.
  */
 void
 CmdLineOptions::parseAll() {
-    // finished is set to true when options are parsed and the rest are
-    // command line arguments
-    bool finished = false;
-
-    // checkArguments is set to false when command line arguments can start
-    // with "-" or "--"
-    bool checkArguments = true;
-    unsigned int i = 0;
-
-    while (i < commandLine_.size()) {
-        string optString = commandLine_[i];
-
-        if (!finished) {
-            string prefix = "";
-            string name = "";
-            string arguments = "";
-
-            // hasArgument is true when option has argument
-            bool hasArgument = true;
-
-            if (!parseOption(
-                    optString, name, arguments, prefix, hasArgument)) {
-                finished = true;
-                if (optString == "--") {
-                    checkArguments = false;
-                    i++;
-                    continue;
-                } else {
-                    arguments_.push_back(optString);
-                    i++;
-                    continue;
-                }
-            }
-
-	    //
-            if (name == "help" || name == "h") {
-                printHelp();
-                string msg = "The client should not proceed";
-                string method = "CmdLineParser::parseAll()";
-                throw ParserStopRequest(__FILE__, __LINE__, method, msg);
-            } else if (name == "version") {
-                printVersion();
-                string msg = "The client should not proceed";
-                string method = "CmdLineParser::parseAll()";
-                throw ParserStopRequest(__FILE__, __LINE__, method, msg);
-            }
-
-            CmdLineOptionParser* opt = findOption(name);
-
-            if (arguments == "" &&
-                dynamic_cast<BoolCmdLineOptionParser*>(opt) == NULL) {
-
-                // argument for an option may be separated with space
-                if (i < commandLine_.size() - 1 &&
-                    commandLine_[i+1].substr(0, 1) != "-") {
-                    hasArgument = true;
-                    arguments = commandLine_[i+1];
-                    i++;
-                }
-            }
-
-            bool doneWithParsing = opt->parseValue(arguments, prefix);
-
-            if (!doneWithParsing) {
-                if (hasArgument) {
-                    // all the rest in command line are "extra" strings
-                    arguments_.push_back(arguments);
-                    finished = true;
-                    i++;
-                } else {
-                    // this is the situation when we have something like
-                    // -abcd (multible flags put together)
-                    for (unsigned int i = 0; i < arguments.length(); i++) {
-                        opt = findOption(arguments.substr(i, 1));
-                        opt->parseValue("", prefix);
-                    }
-                }
-            }
-        } else {
-
-            // finished reading options, all rest are command line arguments
-            if (checkArguments && optString[0] == '-') {
-                string msg = "Illegal command line argument: " + optString;
-                string method = "CmdLineOptions::parse()";
-                throw IllegalCommandLine(__FILE__, __LINE__, method, msg);
-            }
-            arguments_.push_back(optString);
+    for (unsigned int i = 0; i < commandLine_.size(); i++) {
+        const string& tok = commandLine_[i];
+        // Standalone -h / --help always mean help (historical behavior),
+        // even if a tool also registered a short option named "h".
+        if (tok == "help" || tok == "--help" || tok == "-h" || tok == "h") {
+            printHelp();
+            string msg = "The client should not proceed";
+            string method = "CmdLineOptions::parseAll()";
+            throw ParserStopRequest(__FILE__, __LINE__, method, msg);
+        } else if (tok == "version" || tok == "--version") {
+            printVersion();
+            string msg = "The client should not proceed";
+            string method = "CmdLineOptions::parseAll()";
+            throw ParserStopRequest(__FILE__, __LINE__, method, msg);
         }
-        i++;
     }
+
+    CmdLineParser::parseAll();
 }
 
 /**

@@ -41,14 +41,14 @@
 #include "Exception.hh"
 #include "Options.hh"
 
+namespace po = boost::program_options;
+
 const int CmdLineParser::SHORT_FLAG = 2;
 const int CmdLineParser::LONG_FLAG = 22;
 
 using std::vector;
 using std::map;
 using std::string;
-using std::setw;
-using std::left;
 
 /**
  * Constructor.
@@ -57,7 +57,11 @@ using std::left;
  * Only prefix is currently "no-".
  */
 CmdLineParser::CmdLineParser(std::string description) :
-    progName_(""), description_(description) {
+    prefixes_(),
+    visibleOptions_("Options"),
+    hiddenOptions_("Hidden options"),
+    progName_(""),
+    description_(description) {
 
     prefixes_.push_back(string("no-"));
 }
@@ -72,6 +76,87 @@ CmdLineParser::~CmdLineParser() {
     }
     optionShortNames_.clear();
     commandLine_.clear();
+}
+
+/**
+ * Add a new option to option data base and to the boost option descriptions.
+ *
+ * Option name must differ from any prefix.
+ *
+ * @param opt The option to be added.
+ */
+void
+CmdLineParser::addOption(CmdLineOptionParser* opt) {
+    assert(!isPrefix(opt->longName()));
+
+    // Historical behavior: first registration for a long name wins.
+    // Ignore duplicates so boost::program_options does not see the same
+    // option twice (which causes ambiguous-option errors at parse time).
+    std::pair<mapIter, bool> inserted =
+        optionLongNames_.insert(valType(opt->longName(), opt));
+    if (!inserted.second) {
+        delete opt;
+        return;
+    }
+
+    // if option has shorter alias, also it is added
+    if (opt->shortName() != "") {
+        optionShortNames_.insert(valType(opt->shortName(), opt));
+    }
+
+    registerBoostOption(opt);
+}
+
+/**
+ * Register the option with boost::program_options.
+ *
+ * Value-bearing options are registered as strings so existing parseValue()
+ * logic can validate and convert them. Boolean options also get a hidden
+ * --no-<name> counterpart to preserve the historical "no-" prefix.
+ *
+ * @param opt The option to register.
+ */
+void
+CmdLineParser::registerBoostOption(CmdLineOptionParser* opt) {
+    if (registeredBoostNames_.count(opt->longName()) != 0) {
+        return;
+    }
+    registeredBoostNames_.insert(opt->longName());
+
+    string boostName = opt->longName();
+    // Only single-character aliases are short options for boost. Some
+    // callers incorrectly pass the long name as the "alias"; ignore those.
+    if (opt->shortName().size() == 1 &&
+        opt->shortName() != opt->longName()) {
+        boostName += "," + opt->shortName();
+    }
+
+    po::options_description& target =
+        opt->isHidden() ? hiddenOptions_ : visibleOptions_;
+
+    if (dynamic_cast<BoolCmdLineOptionParser*>(opt) != NULL) {
+        target.add_options()(
+            boostName.c_str(), po::bool_switch(),
+            opt->description().c_str());
+        // Preserve historical --no-<longname> support for boolean flags.
+        string noName = "no-" + opt->longName();
+        if (registeredBoostNames_.count(noName) == 0) {
+            registeredBoostNames_.insert(noName);
+            hiddenOptions_.add_options()(
+                noName.c_str(), po::bool_switch(), "");
+        }
+    } else if (dynamic_cast<OptionalStringCmdLineOptionParser*>(opt) !=
+               NULL) {
+        target.add_options()(
+            boostName.c_str(),
+            po::value<string>()->implicit_value(""),
+            opt->description().c_str());
+    } else {
+        // Typed parsing and validation remain in CmdLineOptionParser.
+        target.add_options()(
+            boostName.c_str(), po::value<string>(),
+            opt->description().c_str());
+    }
 }
 
 /**
@@ -121,7 +206,6 @@ CmdLineParser::parse(char* argv[], int argc) {
  * Loads all command line arguments and parses them.
  *
  * @param options Command line options pre-parsed in vector.
- * @param argc The number of command line options.
  * @exception IllegalCommandLine If parsing is not succesfull.
  * @exception ParserStopRequest If help or version option is found.
  */
@@ -174,184 +258,64 @@ CmdLineParser::findOption(std::string name) const {
 }
 
 /**
- * Parses all command line options.
+ * Parses all command line options using boost::program_options.
  *
  * @exception IllegalCommandLine If parsing fails.
  */
 void
 CmdLineParser::parseAll() {
-    // finished is set to true when options are parsed and the rest are
-    // command line arguments
-    bool finished = false;
+    arguments_.clear();
 
-    // checkArguments is set to false when command line arguments can start
-    // with "-" or "--"
-    bool checkArguments = true;
-    unsigned int i = 0;
+    po::options_description allOptions;
+    allOptions.add(visibleOptions_);
+    allOptions.add(hiddenOptions_);
+    allOptions.add_options()(
+        "__positional", po::value<vector<string> >(), "positional");
 
-    while (i < commandLine_.size()) {
-        string optString = commandLine_[i];
+    po::positional_options_description positional;
+    positional.add("__positional", -1);
 
-        if (!finished) {
-            string prefix = "";
-            string name = "";
-            string arguments = "";
+    try {
+        po::parsed_options parsed =
+            po::command_line_parser(commandLine_)
+                .options(allOptions)
+                .positional(positional)
+                .style(po::command_line_style::unix_style)
+                .run();
 
-            // hasArgument is true when option has argument
-            bool hasArgument = true;
+        // Apply in command-line order so later flags override earlier ones
+        // (e.g. -g followed by --no-gigolo).
+        for (vector<po::option>::const_iterator i = parsed.options.begin();
+             i != parsed.options.end(); ++i) {
+            const po::option& opt = *i;
 
-            if (!parseOption(optString, name, arguments, prefix, hasArgument)) {
-                finished = true;
-                if (optString == "--") {
-                    checkArguments = false;
-                    i++;
-                    continue;
-                } else {
-                    arguments_.push_back(optString);
-                    i++;
-                    continue;
+            if (opt.string_key.empty() || opt.string_key == "__positional") {
+                for (vector<string>::const_iterator v = opt.value.begin();
+                     v != opt.value.end(); ++v) {
+                    arguments_.push_back(*v);
                 }
+                continue;
             }
 
-            CmdLineOptionParser* opt = findOption(name);
-
-            if (arguments == "" &&
-                dynamic_cast<BoolCmdLineOptionParser*>(opt) == NULL) {
-
-                // argument for an option may be separated with space
-                if (i < commandLine_.size() - 1 &&
-                    commandLine_[i+1].substr(0, 1) != "-") {
-                    hasArgument = true;
-                    arguments = commandLine_[i+1];
-                    i++;
-                }
+            if (opt.string_key.compare(0, 3, "no-") == 0) {
+                string realName = opt.string_key.substr(3);
+                findOption(realName)->parseValue("", "no-");
+                continue;
             }
 
-            bool doneWithParsing = opt->parseValue(arguments, prefix);
-
-            if (!doneWithParsing) {
-                if (hasArgument) {
-                    // all the rest in command line are "extra" strings
-                    arguments_.push_back(arguments);
-                    finished = true;
-                    i++;
-                } else {
-                    // this is the situation when we have something like
-                    // -abcd (multible flags put together)
-                    for (unsigned int i = 0; i < arguments.length(); i++) {
-                        opt = findOption(arguments.substr(i, 1));
-                        opt->parseValue("", prefix);
-                    }
-                }
-            }
-        } else {
-
-            // finished reading options, all rest are command line arguments
-            if (checkArguments && optString[0] == '-') {
-                string msg = "Illegal command line argument: " + optString;
-                string method = "CmdLineParser::parse()";
-                throw IllegalCommandLine(__FILE__, __LINE__, method, msg);
-            }
-            arguments_.push_back(optString);
-        }
-        i++;
-    }
-}
-
-/**
- * Parses one option.
- *
- * Each option should have name and prefix (-, --, -no, or --no). Arguments are
- * mandatory for all except Boolean options.
- *
- * @param option The whole option.
- * @param name The name of the option.
- * @param arguments The arguments for option.
- * @param prefix The prefix of option.
- * @param hasArgument False if argument is part of option body (eg. -abc).
- * @return True if option is command line option, false if option is
- *         command line argument.
- * @exception IllegalCommandLine If option is illegal.
- */
-bool
-CmdLineParser::parseOption(
-    std::string option, std::string& name, std::string& arguments,
-    std::string& prefix, bool& hasArgument) const {
-    // first there is either '-' or '--'
-    bool longOption = false;
-    if (!readPrefix(option, prefix, longOption)) {
-        return false;
-    }
-
-    if (longOption) {
-        // then there is the name of the option
-        unsigned int pos = 0;
-        while (pos < option.length() && option[pos] != '=') {
-            ++pos;
-        }
-        name = option.substr(0, pos);
-        option.erase(0, pos);
-    } else {
-        // option name is only one character
-        name = option.substr(0, 1);
-        option.erase(0, 1);
-    }
-
-    // then there might be value
-    if (option.length() > 0 && option[0] == '=') {
-        if (!longOption) {
-            string method = "CmdLineParser::parseOption()";
-            string message = "Illegal short option: = not allowed.";
-            throw IllegalCommandLine(__FILE__, __LINE__, method, message);
-        }
-        option.erase(0, 1);
-        arguments = option;
-    } else {
-        arguments = option;
-        if (arguments == "" || !longOption) {
-            hasArgument = false;
-        }
-    }
-    return true;
-}
-
-/**
- * Reads prefix of option.
- *
- * @param option The whole option as a string.
- * @param prefix The prefix of option.
- * @param longOption True if option starts with "--".
- * @return True, if prefix is found, false otherwise.
- */
-bool
-CmdLineParser::readPrefix(
-    std::string& option,
-    std::string& prefix,
-    bool& longOption) const {
-
-    if (option == "--") {
-        return false;
-    } else if (option.substr(0, 1) != "-") {
-        return false;
-    } else {
-        option.erase(0, 1);
-        if (option.substr(0, 1) == "-") {
-            longOption = true;
-            option.erase(0, 1);
-        }
-
-        // then there might be also something else in the prefix
-        // (eg. --no-print, prefix is --no)
-        for (unsigned int i = 0; i < prefixes_.size(); i++) {
-
-            if (option.length() > prefixes_[i].length() &&
-                option.substr(0, prefixes_[i].length()) == prefixes_[i]) {
-
-                prefix = prefixes_[i];
-                option.erase(0, prefix.length());
-                break;
+            CmdLineOptionParser* parser = findOption(opt.string_key);
+            if (dynamic_cast<BoolCmdLineOptionParser*>(parser) != NULL) {
+                parser->parseValue("", "");
+            } else if (opt.value.empty()) {
+                parser->parseValue("", "");
+            } else {
+                parser->parseValue(opt.value.front(), "");
             }
         }
+    } catch (const IllegalCommandLine&) {
+        throw;
+    } catch (const po::error& e) {
+        string method = "CmdLineParser::parseAll()";
+        throw IllegalCommandLine(__FILE__, __LINE__, method, e.what());
     }
-    return true;
 }

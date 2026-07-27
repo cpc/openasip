@@ -70,6 +70,8 @@ public:
 
 protected:
     bool optionGiven(std::string key) const;
+    virtual void parseAll();
+
 private:
     /// For adding new values to maps.
     typedef  std::map<std::string, CmdLineOptionParser*>::value_type valType;
@@ -78,9 +80,6 @@ private:
     /// For traversing const maps.
     typedef
     std::map<std::string, CmdLineOptionParser*>::const_iterator constMapIter;
-
-
-    void parseAll();
 
     /// The name of the program.
     std::string progName_;

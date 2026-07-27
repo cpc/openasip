@@ -33,26 +33,6 @@
  */
 
 /**
- * Add a new option to option data base.
- *
- * Option name must differ from any prefix.
- *
- * @param opt The option to be added.
- */
-inline void
-CmdLineParser::addOption(CmdLineOptionParser* opt) {
-
-    assert(!isPrefix(opt->longName()));
-
-    optionLongNames_.insert(valType(opt->longName(), opt));
-
-    // if option has shorter alias, also it is added
-    if (opt->shortName() != "") {
-        optionShortNames_.insert(valType(opt->shortName(), opt));
-    }
-}
-
-/**
  * Returns the number of command line arguments.
  *
  * @return The number of command line arguments.
@@ -94,5 +74,3 @@ CmdLineParser::isPrefix(std::string name) const {
     }
     return false;
 }
-
-

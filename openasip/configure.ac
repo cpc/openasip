@@ -1299,6 +1299,13 @@ AC_MSG_ERROR(
 [boost_thread library not found. Install it or use --with-boost-thread switch])
 fi
 
+AX_BOOST_PROGRAM_OPTIONS
+if test -z "$BOOST_PROGRAM_OPTIONS_LIB"
+then
+AC_MSG_ERROR(
+[boost_program_options library not found. Install it or use --with-boost-program-options switch])
+fi
+
 
 ################################
 #
@@ -1317,7 +1324,7 @@ LDFLAGS="$LDFLAGS $PTHREAD_LIBS $LIBS"
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 
 BOOST_LDFLAGS="$BOOST_LDFLAGS $BOOST_REGEX_LIB $BOOST_THREAD_LIB \
-$BOOST_SYSTEM_LIB"
+$BOOST_SYSTEM_LIB $BOOST_PROGRAM_OPTIONS_LIB"
 
 if test -d test
 then
