@@ -880,9 +880,11 @@ FUGen::buildOperations() {
                 if (schedule.initialCycle == cycle) {
                     auto& impl = baseOperations_[baseOp].implementation;
                     if (!impl.empty()) {
-                        std::set<std::string> statements;
-                        prepareSnippet(subop, impl, onTrigger, statements);
-
+                        // Assign DAG sub-operation operands before evaluating
+                        // the operator body. VHDL signal assignments settle
+                        // over delta cycles; Verilog blocking assignments in
+                        // always @* do not, so result-before-operand order
+                        // computes stale values (e.g. shl2add, aes0).
                         for (auto&& operand : schedule.operands) {
                             int id = operand.id;
                             std::string srcSignal = operand.signalName;
@@ -901,6 +903,8 @@ FUGen::buildOperations() {
                                 }
                             }
                         }
+                        std::set<std::string> statements;
+                        prepareSnippet(subop, impl, onTrigger, statements);
                     }
                     emptyBlock = false;
                 }
