@@ -66,6 +66,8 @@ module synch_sram
     if(init)
         if(INITFILENAME!="")
         begin
+            for(i=0;i<2**ADDRW;i=i+1)
+                mem_r[i]={DATAW{1'b0}};
 	        $readmemb(INITFILENAME,mem_r);
             $display("Memory initialized from file %s",INITFILENAME);
          end

@@ -40,6 +40,8 @@ integer k;
    if(init)
      if(INITFILENAME!="")
        begin
+          for(k=0; k<2**ADDRW; k=k+1)
+            mem_r[k]={DATAW{1'b0}};
           $readmemb(INITFILENAME,mem_r);
           $display("Memory initialized from file %s",INITFILENAME);
        end

@@ -65,6 +65,14 @@ module testbench
 
   initial
   begin
+    rstx = 1'b0;
+    #(PERIOD*2 + PERIOD/10);
+    rstx = 1'b1;
+  end
+
+  // Separate from reset: waiting here first would skip rstx and stall the core.
+  initial
+  begin
      exec_count_file = $fopen("execution_limit", "r");
      if (exec_count_file != 0) begin
         // execution_limit should contain a single line with the execution count.
@@ -72,16 +80,7 @@ module testbench
         wait(execution_count_reg == execution_count_limit)
         $finish;
      end
-
-    rstx = 1'b0;
-    #(PERIOD*2 + PERIOD/10);
-    rstx = 1'b1;
-    // Test runs until RUNTIME, which is equal to SIMTIME given by 
-    // iverilog_compile script. Reduced by 20ns to match vhdl simulation time.
-    //#(RUNTIME-20);
-    // Test runs until requested amount of instructions have been executed or
-    // stopped by simulation script.
-  end // initial begin
+  end
 
   assign rstx_wire = rstx;
 

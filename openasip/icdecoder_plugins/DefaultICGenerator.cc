@@ -1836,35 +1836,17 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                << "// setting DUMP false will disable dumping" << endl << endl
                << indentation(1) << "// Do not synthesize!" << endl
                << indentation(1) << "//synthesis translate_off" << endl
-               << indentation(1) << "integer regularfileout;" << endl << endl
-               << indentation(1) << "integer executionfileout;" << endl << endl
-               << indentation(1) << "integer count=-1;" << endl
-               << indentation(1) << "integer executioncount=0;" << endl << endl
+               << indentation(1) << "integer regularfileout;" << endl
+               << indentation(1) << "integer executionfileout;" << endl
+               << indentation(1) << "integer cyclecount;" << endl
+               << indentation(1) << "integer executioncount;" << endl << endl
                << indentation(1) << "`define REGULARDUMPFILE \"bus.dump\""
+               << endl
                << indentation(1)
                << "`define EXECUTIONDUMPFILE \"execbus.dump\""
-               << endl << endl
+               << endl << endl;
 
-               << indentation(1) << "initial" << endl
-               << indentation(1) << "begin" << endl
-               << indentation(2)
-               << "regularfileout = $fopen(`REGULARDUMPFILE,\"w\");" << endl
-               << indentation(2) << "$fclose(regularfileout);" << endl
-               << indentation(2)
-               << "executionfileout = $fopen(`EXECUTIONDUMPFILE,\"w\");"
-               << endl
-               << indentation(2) << "$fclose(executionfileout);" << endl
-               << indentation(2) << "forever" << endl
-               << indentation(2) << "begin" << endl
-               << indentation(3) << "@(posedge clk);" << endl;
-        if (busTraceStartingCycle_ > 0) {
-            stream << indentation(3) << "if(count > "
-                   << busTraceStartingCycle_ - 1
-                   << ")" << endl;
-        }
         std::string format_string = "%0d";
-        std::string count_string = "count - " +
-            Conversion::toString(busTraceStartingCycle_);
         std::string variable_list = "";
 
         Machine::BusNavigator busNav = machine_.busNavigator();
@@ -1875,30 +1857,43 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
             variable_list += ", $unsigned(" +
                 Conversion::toString(busSignal(bus))+")";
         }
-        
-        stream << indentation(3) << "begin" << endl
-               << indentation(4) << "regularfileout = "
-                   "$fopen(`REGULARDUMPFILE,\"a\");" << endl
-               << indentation(4) << "$fwrite(regularfileout,"
-               << "\"" << format_string << "\\n\"" << ", "
-               << count_string << variable_list << ");" << endl
-               << indentation(4) << "$fclose(regularfileout);" << endl
-               << indentation(4) << "if(glock == 0)" << endl
-               << indentation(4) << "begin" << endl
-               << indentation(5) << "executionfileout = "
-               "$fopen(`EXECUTIONDUMPFILE,\"a\");" << endl
-               << indentation(5) << "$fwrite(executionfileout,"
-               << "\"" << format_string << "\\n\"" << ", executioncount"
-               << variable_list << ");" << endl
-               << indentation(5) << "$fclose(executionfileout);" << endl
-               << indentation(5) << "executioncount = executioncount + 1;"
+
+        stream << indentation(1) << "initial begin" << endl
+               << indentation(2) << "cyclecount = 0;" << endl
+               << indentation(2) << "executioncount = 0;" << endl
+               << indentation(2)
+               << "regularfileout = $fopen(`REGULARDUMPFILE, \"w\");" << endl
+               << indentation(2)
+               << "executionfileout = $fopen(`EXECUTIONDUMPFILE, \"w\");"
                << endl
-               << indentation(4) << "end" << endl
-               << indentation(3) << "end" << endl
-               << indentation(3) << "count = count + 1;" << endl
+               << indentation(2) << "forever begin" << endl
+               << indentation(3) << "@(posedge clk);" << endl;
+        if (busTraceStartingCycle_ > 0) {
+            stream << indentation(3) << "if (cyclecount >= "
+                   << busTraceStartingCycle_ << ") begin" << endl;
+        }
+        std::string dumpIndent = indentation(
+            busTraceStartingCycle_ > 0 ? 4 : 3);
+        stream << dumpIndent << "$fwrite(regularfileout, \""
+               << format_string << "\\n\", cyclecount"
+               << (busTraceStartingCycle_ > 0
+                       ? (" - " + Conversion::toString(busTraceStartingCycle_))
+                       : "")
+               << variable_list << ");" << endl
+               << dumpIndent << "if (glock == 0) begin" << endl
+               << dumpIndent << "  $fwrite(executionfileout, \""
+               << format_string << "\\n\", executioncount"
+               << variable_list << ");" << endl
+               << dumpIndent << "  executioncount = executioncount + 1;"
+               << endl
+               << dumpIndent << "end" << endl;
+        if (busTraceStartingCycle_ > 0) {
+            stream << indentation(3) << "end" << endl;
+        }
+        stream << indentation(3) << "cyclecount = cyclecount + 1;" << endl
                << indentation(2) << "end" << endl
                << indentation(1) << "end" << endl
-               << indentation(1) << "//synthesis translate_on" << endl;    
+               << indentation(1) << "//synthesis translate_on" << endl;
     }
 }
 
