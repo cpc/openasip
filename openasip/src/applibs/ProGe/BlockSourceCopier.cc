@@ -46,6 +46,7 @@
 #include "RFEntry.hh"
 #include "FUImplementation.hh"
 #include "RFImplementation.hh"
+#include "BlockImplementationFile.hh"
 #include "FileSystem.hh"
 #include "AssocTools.hh"
 #include "HDLTemplateInstantiator.hh"
@@ -276,6 +277,7 @@ void
 BlockSourceCopier::copyFiles(
     const HDB::HWBlockImplementation& implementation,
     const std::string& hdbFile, const std::string& dstDirectory) {
+    bool copiedForLanguage = false;
     for (int i = 0; i < implementation.implementationFileCount(); i++) {
         BlockImplementationFile& file = implementation.file(i);
         vector<string> modulePaths = Environment::vhdlPaths(hdbFile);
@@ -298,17 +300,22 @@ BlockSourceCopier::copyFiles(
             string fileName = FileSystem::fileOfPath(absoluteFile);
             string targetDir, targetFile;
             string DS = FileSystem::DIRECTORY_SEPARATOR;
+            BlockImplementationFile::Format format = file.format();
+            bool matchesVhdl = language_ == VHDL &&
+                format == BlockImplementationFile::VHDL;
+            bool matchesVerilog = language_ == Verilog &&
+                (format == BlockImplementationFile::Verilog ||
+                 format == BlockImplementationFile::Verilogsim);
 
-            if(language_== VHDL && (ProGe::HDL)file.format()==VHDL) {
+            if (matchesVhdl) {
                 targetDir = dstDirectory + DS + "vhdl";
-            } else
-            if(language_== Verilog && (ProGe::HDL) file.format()==Verilog) {
+            } else if (matchesVerilog) {
                 targetDir = dstDirectory + DS + "verilog";
             } else {
                 setCopied(absoluteFile);
                 continue;//next file for check
             }
-            
+
             targetFile = targetDir + DS + fileName;
             
             if (!FileSystem::fileExists(targetDir)) {
@@ -331,7 +338,25 @@ BlockSourceCopier::copyFiles(
                     __FILE__, __LINE__, __func__, errorMsg);
             }
             setCopied(absoluteFile);
+            copiedForLanguage = true;
+        } else {
+            BlockImplementationFile::Format format = file.format();
+            if ((language_ == VHDL &&
+                 format == BlockImplementationFile::VHDL) ||
+                (language_ == Verilog &&
+                 (format == BlockImplementationFile::Verilog ||
+                  format == BlockImplementationFile::Verilogsim))) {
+                copiedForLanguage = true;
+            }
         }
+    }
+    if (implementation.implementationFileCount() > 0 && !copiedForLanguage) {
+        string hdlName = (language_ == Verilog) ? "Verilog" : "VHDL";
+        string errorMsg =
+            "No " + hdlName + " implementation file for module " +
+            implementation.moduleName() + " in HDB " + hdbFile +
+            ". Omitting the unit would change instruction encodings.";
+        throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
 }
 

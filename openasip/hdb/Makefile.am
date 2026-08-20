@@ -1,6 +1,7 @@
 basedir = ${prefix}/share/openasip/hdb
 nobase_base_DATA =	$(srcdir)/asic_130nm_1.5V.hdb \
 					$(srcdir)/vhdl/fu/* \
+					$(srcdir)/verilog/fu/* \
 					$(srcdir)/vhdl/rf/* \
 					$(srcdir)/vhdl/pkg/* \
 					$(srcdir)/stratixII.hdb \
