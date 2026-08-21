@@ -1447,10 +1447,14 @@ public:
 
             if (!generateDebugger()) {
                 // Signal declarations as a stand-in for debug ports
+                instantiator.replacePlaceholder("db-port-declarations", "");
                 instantiator.replacePlaceholderFromFile(
                     "db-signal-declarations",
                     proGeDataDir /
-                        std::string("no_debug_signal_declaration.snippet"));
+                        std::string(
+                            language == VHDL
+                                ? "no_debug_signal_declaration.snippet"
+                                : "no_debug_signal_declaration.v.snippet"));
             }
 
             if (hasSynchronousReset()) {
@@ -1478,7 +1482,10 @@ public:
                 if (language == VHDL) {
                     generator.instructionFetch().setParameter(
                         "no_glock_loopback_g", "std_logic", "'1'");
-                }  // todo verilog version
+                } else {
+                    generator.instructionFetch().setParameter(
+                        "no_glock_loopback_g", "bit", "1'b1");
+                }
             }
 
             // Set the pc opcode port width
@@ -1509,56 +1516,38 @@ public:
             instantiator.replacePlaceholder(
                 "not-bypassed-next-pc-condition", conditionString);
 
-            if (generateDebugger()) {  // DEBUGTODO
-                if (language != VHDL) {
-                    std::string errorMsg =
-                        "Language not set to VHDL when HW debugger is in "
-                        "use.";
-                    throw Exception(__FILE__, __LINE__, __func__, errorMsg);
-                }
-
-                generator.instructionFetch().setParameter(
-                    "debug_logic_g", "boolean", "true");
-                if (parameterValue(GENERATE_DEBUGGER_PARAM) ==
-                    GENERATE_DEBUGGER_PARAM_MINIMAL) {
-                    instantiator.replacePlaceholderFromFile(
-                        "db-port-declarations",
-                        Path(
-                            proGeDataDir /
-                            std::string(
-                                "debug_minimal_port_declaration.snippet")));
-                    instantiator.replacePlaceholderFromFile(
-                        "db-signal-declarations",
-                        Path(
-                            proGeDataDir /
-                            std::string(
-                                "debug_minimal_signal_declaration.snippet")));
+            if (generateDebugger()) {
+                if (language == VHDL) {
+                    generator.instructionFetch().setParameter(
+                        "debug_logic_g", "boolean", "true");
                 } else {
-                    instantiator.replacePlaceholderFromFile(
-                        "db-port-declarations",
-                        Path(
-                            proGeDataDir /
-                            std::string("debug_port_declaration.snippet")));
-                    instantiator.replacePlaceholderFromFile(
-                        "db-signal-declarations",
-                        Path(
-                            proGeDataDir /
-                            std::string("debug_signal_declaration.snippet")));
+                    generator.instructionFetch().setParameter(
+                        "debug_logic_g", "integer", "1");
                 }
-                copier.instantiateHDLTemplate(
-                    templateDir + DS + "ifetch." +
-                        (language == VHDL ? "vhdl" : "v") + ".tmpl",
-                    dstDirectory,
-                    std::string("ifetch.") +
-                        (language == VHDL ? "vhdl" : "v"));
-            } else {
-                copier.instantiateHDLTemplate(
-                    templateDir + DS + "ifetch." +
-                        (language == VHDL ? "vhdl" : "v") + ".tmpl",
-                    dstDirectory,
-                    std::string("ifetch.") +
-                        (language == VHDL ? "vhdl" : "v"));
+                const bool verilog = (language == Verilog);
+                const bool minimal =
+                    parameterValue(GENERATE_DEBUGGER_PARAM) ==
+                    GENERATE_DEBUGGER_PARAM_MINIMAL;
+                std::string portSnippet =
+                    minimal ? "debug_minimal_port_declaration"
+                            : "debug_port_declaration";
+                std::string signalSnippet =
+                    minimal ? "debug_minimal_signal_declaration"
+                            : "debug_signal_declaration";
+                portSnippet += verilog ? ".v.snippet" : ".snippet";
+                signalSnippet += verilog ? ".v.snippet" : ".snippet";
+                instantiator.replacePlaceholderFromFile(
+                    "db-port-declarations",
+                    Path(proGeDataDir / portSnippet));
+                instantiator.replacePlaceholderFromFile(
+                    "db-signal-declarations",
+                    Path(proGeDataDir / signalSnippet));
             }
+            copier.instantiateHDLTemplate(
+                templateDir + DS + "ifetch." +
+                    (language == VHDL ? "vhdl" : "v") + ".tmpl",
+                dstDirectory,
+                std::string("ifetch.") + (language == VHDL ? "vhdl" : "v"));
         } catch (const Exception& e) {
             abortWithError(e.errorMessage());
         }
@@ -1582,21 +1571,17 @@ public:
         decoderGenerator_->generateInstructionDecoder(generator, dstDirectory);
 
         if (generateDebugger()) {
-            if (language != VHDL) {
-                std::string errorMsg =
-                    "Language not set to VHDL when HW debugger is in use.";
-                throw Exception(__FILE__, __LINE__, __func__, errorMsg);
-            } else {
-                generateDebuggerCode(generator);
-            }
+            generateDebuggerCode(generator);
         }
         if (ttamachine_.isRISCVMachine()) {
+            if (language != VHDL) {
+                std::string errorMsg =
+                    "RISC-V instruction fetch is not supported for "
+                    "given HDL.";
+                throw Exception(__FILE__, __LINE__, __func__, errorMsg);
+            }
             copier.instantiateHDLTemplate(
                 templateDir + DS + "rv32_ifetch.vhdl.tmpl", dstDirectory,
-                "ifetch.vhdl");
-        } else {
-            copier.instantiateHDLTemplate(
-                templateDir + DS + "ifetch.vhdl.tmpl", dstDirectory,
                 "ifetch.vhdl");
         }
     }

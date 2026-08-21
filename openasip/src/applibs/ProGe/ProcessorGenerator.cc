@@ -247,14 +247,15 @@ ProcessorGenerator::generateGlobalsPackage(
     }
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
 
+    int bustrace_width = 0;
+    for (int i = 0; i < machine.busNavigator().count(); ++i) {
+        int bus_width = machine.busNavigator().item(i)->width();
+        // Buses are padded to a multiple of 32 bits
+        bus_width = (bus_width + 31) / 32 * 32;
+        bustrace_width += bus_width;
+    }
+
     if (language == ProGe::VHDL) {
-        int bustrace_width = 0;
-        for (int i = 0; i < machine.busNavigator().count(); ++i) {
-            int bus_width = machine.busNavigator().item(i)->width();
-            // Busess are padded to a multiple of 32 bits
-            bus_width = (bus_width + 31) / 32 * 32;
-            bustrace_width += bus_width;
-        }
 
         stream << "library work;" << endl
                << "use work." << entityStr_ << "_imem_mau.all;" << endl
@@ -294,6 +295,9 @@ ProcessorGenerator::generateGlobalsPackage(
                << "parameter PERIOD = 10," << endl  // 10 will equal 10ns
                << "// instruction width" << endl
                << "parameter IMEMDATAWIDTH = IMEMWIDTHINMAUS*IMEMMAUWIDTH,"
+               << endl
+               << "// padded interconnect bustrace width" << endl
+               << "parameter BUSTRACE_WIDTH = " << bustrace_width << ","
                << endl;
 
         plugin.writeGlobalDefinitions(ProGe::Verilog, stream);

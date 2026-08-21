@@ -2,17 +2,17 @@
 // Copyright (c) 2012 Vinogradov Viacheslav
 //
 // This file is part of TTA-Based Codesign Environment (TCE).
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
 // to deal in the Software without restriction, including without limitation
 // the rights to use, copy, modify, merge, publish, distribute, sublicense,
 // and/or sell copies of the Software, and to permit persons to whom the
 // Software is furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,125 +20,164 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
-//////////////////////////////////////////////////////////////////////////////
-// Revisions  :
-// 2012-04-04  1.0  Vinogradov 
-//////////////////////////////////////////////////////////////////////////////
 
-module ENTITY_STR_ifetch 
+module ENTITY_STR_ifetch
 #(
 `include "ENTITY_STR_imem_mau_pkg.vh"
 ,
 `include "ENTITY_STR_globals_pkg.vh"
 ,
 `include "gcu_opcodes_pkg.vh"
+,
+    parameter no_glock_loopback_g = 1'b0,
+    parameter extra_fetch_cycles = 0,
+    parameter sync_reset_g = 0,
+    parameter debug_logic_g = 0,
+    parameter [IMEMADDRWIDTH-1:0] pc_init_g = {IMEMADDRWIDTH{1'b0}}
 )
     (
-    // program counter in
     input[IMEMADDRWIDTH-1:0]    pc_in,
-    //return address out
     output[IMEMADDRWIDTH-1:0]   ra_out,
-    // return address in
     input[IMEMADDRWIDTH-1:0]    ra_in,
-    // if(etch control signals
     input   pc_load,
     input   ra_load,
-    input   pc_opcode,
-    //instruction memory interface
-    input[IMEMWIDTHINMAUS*IMEMMAUWIDTH-1:0]imem_data,
+    input[<<placeholder,pc-opcode-len,0>>:0] pc_opcode,
+    input[IMEMWIDTHINMAUS*IMEMMAUWIDTH-1:0] imem_data,
     output[IMEMADDRWIDTH-1:0] imem_addr,
     output imem_en_x,
-    output[IMEMWIDTHINMAUS*IMEMMAUWIDTH-1:0]fetchblock,
+    output[IMEMWIDTHINMAUS*IMEMMAUWIDTH-1:0] fetchblock,
     input   busy,
-
-    // global lock
     output   glock,
-
-    // external control interface
-    input fetch_en,//fetch_enable
-
-    input   clk ,
+    input fetch_en,
+    <<placeholder,db-port-declarations>>
+    input   clk,
     input   rstx
     );
 
-    // signals for program counter
     reg[IMEMADDRWIDTH-1:0] pc_reg;
+    wire[IMEMADDRWIDTH-1:0] pc_wire;
     reg[IMEMADDRWIDTH-1:0] pc_prev_reg;
     reg[IMEMADDRWIDTH-1:0] next_pc;
-
     wire[IMEMADDRWIDTH-1:0] increased_pc;
     reg[IMEMADDRWIDTH-1:0] return_addr_reg;
     reg[IMEMWIDTHINMAUS*IMEMMAUWIDTH-1:0] instruction_reg;
 
-    // internal signals for initializing and locking execution
     wire lock;
-
     integer reset_cntr;
     reg reset_lock;
     reg mem_en_lock_r;
 
-    parameter IFETCH_DELAY=1;
+    <<placeholder,db-signal-declarations>>
 
-    // enable instruction memory
-    assign imem_en_x = !fetch_en;
-    // do not fetch new instruction when processor is locked
-    assign imem_addr = (~lock)?pc_reg:pc_prev_reg;
+    parameter IFETCH_DELAY = 1;
 
-    // propagate lock to global lock
-    assign glock = busy | reset_lock | ~fetch_en;
-    assign ra_out= return_addr_reg;
+    assign imem_en_x = (fetch_en && !mem_en_lock_r) ? 1'b0 : 1'b1;
+    assign imem_addr = pc_wire;
+    assign glock = busy | reset_lock | ~(fetch_en | no_glock_loopback_g);
+    assign ra_out = return_addr_reg;
     assign fetchblock = instruction_reg;
-
     assign lock = ~fetch_en | busy | mem_en_lock_r;
 
-    always@(posedge clk or negedge rstx)
-    if (~rstx) begin
-        mem_en_lock_r <= '1;
-    end else begin
-        mem_en_lock_r <= '0;
-    end
-
-    always@(posedge clk or negedge rstx)
-    if (~rstx) begin
-        pc_reg          <= 0;
-        pc_prev_reg     <= {IMEMADDRWIDTH{1'b0}};
-        return_addr_reg <= {IMEMADDRWIDTH{1'b0}};
-        instruction_reg <= {IMEMWIDTHINMAUS*IMEMMAUWIDTH{1'b0}};
-        reset_cntr      <= 0;
-        reset_lock      <= 1'b1;
-    end else begin
-        if (fetch_en && ~lock) begin
-            pc_reg      <= next_pc;
-            pc_prev_reg <= pc_reg;
-        end
-
-        if (~lock) begin
-            if( reset_cntr < IFETCH_DELAY )
-                reset_cntr <= reset_cntr + 1;
+    always @(posedge clk or negedge rstx) begin
+        if (!sync_reset_g && !rstx) begin
+            mem_en_lock_r <= 1'b1;
+        end else begin
+            if ((sync_reset_g && !rstx) || !db_rstx)
+                mem_en_lock_r <= 1'b1;
             else
-            if( reset_cntr == IFETCH_DELAY )
-                reset_lock <= 1'b0;
-
-            // instruction register write
-            if( fetch_en )
-                instruction_reg <= imem_data[IMEMWIDTHINMAUS*IMEMMAUWIDTH-1:0];
-            // return address
-            if(ra_load)
-                return_addr_reg <= ra_in;
-            else
-            if (pc_load && pc_opcode==IFE_CALL)
-                // return address transformed to same form as all others addresses
-                // provided as input
-                return_addr_reg <= increased_pc;
+                mem_en_lock_r <= 1'b0;
         end
     end
 
-    assign increased_pc = pc_reg + IMEMWIDTHINMAUS;
+    always @(posedge clk or negedge rstx) begin
+        if (!sync_reset_g && !rstx) begin
+            pc_reg      <= pc_init_g;
+            pc_prev_reg <= {IMEMADDRWIDTH{1'b0}};
+        end else begin
+            if ((sync_reset_g && !rstx) || !db_rstx) begin
+                pc_reg      <= db_pc_start;
+                pc_prev_reg <= {IMEMADDRWIDTH{1'b0}};
+            end else if (!lock) begin
+                pc_reg      <= next_pc;
+                pc_prev_reg <= pc_reg;
+            end
+        end
+    end
 
-    always@(*)
-    if (pc_load)
-        next_pc = pc_in;
-    else // no branch
-        next_pc = increased_pc;
+    always @(posedge clk or negedge rstx) begin
+        if (!sync_reset_g && !rstx) begin
+            return_addr_reg <= {IMEMADDRWIDTH{1'b0}};
+        end else begin
+            if ((sync_reset_g && !rstx) || !db_rstx) begin
+                return_addr_reg <= {IMEMADDRWIDTH{1'b0}};
+            end else if (!lock) begin
+                if (ra_load)
+                    return_addr_reg <= ra_in;
+                else if (pc_load && pc_opcode == IFE_CALL)
+                    return_addr_reg <= increased_pc;
+            end
+        end
+    end
+
+    always @(posedge clk or negedge rstx) begin
+        if (!sync_reset_g && !rstx) begin
+            instruction_reg <= {IMEMWIDTHINMAUS*IMEMMAUWIDTH{1'b0}};
+            reset_cntr      <= 0;
+            reset_lock      <= 1'b1;
+        end else begin
+            if ((sync_reset_g && !rstx) || !db_rstx) begin
+                instruction_reg <= {IMEMWIDTHINMAUS*IMEMMAUWIDTH{1'b0}};
+                reset_cntr      <= 0;
+                reset_lock      <= 1'b1;
+            end else if (!lock) begin
+                if (reset_cntr < IFETCH_DELAY)
+                    reset_cntr <= reset_cntr + 1;
+                else
+                    reset_lock <= 1'b0;
+                instruction_reg <= imem_data;
+            end
+        end
+    end
+
+    assign pc_wire = (!lock) ? pc_reg : pc_prev_reg;
+    assign increased_pc = pc_wire + IMEMWIDTHINMAUS;
+
+    always @(*) begin
+        if (pc_load && (pc_opcode == IFE_CALL || pc_opcode == IFE_JUMP))
+            next_pc = pc_in;
+        else
+            next_pc = increased_pc;
+    end
+
+    always @(posedge clk or negedge rstx) begin
+        if (!sync_reset_g && !rstx) begin
+            lockcnt_r  <= 64'd0;
+            cyclecnt_r <= 64'd0;
+            lockcnt_increment_r <= 0;
+            cyclecnt_increment_r <= 0;
+        end else begin
+            if ((sync_reset_g && !rstx) || !db_rstx) begin
+                lockcnt_r  <= 64'd0;
+                cyclecnt_r <= 64'd0;
+                lockcnt_increment_r <= 0;
+                cyclecnt_increment_r <= 0;
+            end else if (debug_logic_g && !db_lockreq) begin
+                if (lock) begin
+                    lockcnt_increment_r <= 1;
+                    cyclecnt_increment_r <= 0;
+                end else begin
+                    lockcnt_increment_r <= 0;
+                    cyclecnt_increment_r <= 1;
+                end
+                lockcnt_r  <= lockcnt_r  + lockcnt_increment_r;
+                cyclecnt_r <= cyclecnt_r + cyclecnt_increment_r;
+            end
+        end
+    end
+
+    assign db_cyclecnt = cyclecnt_r;
+    assign db_lockcnt  = lockcnt_r;
+    assign db_pc       = pc_reg;
+    assign db_pc_next  = next_pc;
 
 endmodule

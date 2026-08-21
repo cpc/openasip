@@ -902,9 +902,30 @@ DefaultICGenerator::generateOutputSocket(
  */
 void
 DefaultICGenerator::writeBustraceExportCode(std::ostream& stream) const {
-    stream << indentation(1) << "db_bustraces <= " << endl;
-
     Machine::BusNavigator busNav = machine_.busNavigator();
+
+    if (language_ == Verilog) {
+        stream << indentation(1) << "assign db_bustraces = {" << endl;
+        for (int i = 0; i < busNav.count(); i++) {
+            int idx = busNav.count() - 1 - i;
+            int busWidth = busNav.item(idx)->width();
+            stream << indentation(2);
+            if (busWidth % 32 != 0) {
+                stream << "{{" << (32 - busWidth) << "{1'b0}}, "
+                       << busSignal(*busNav.item(idx)) << "}";
+            } else {
+                stream << busSignal(*busNav.item(idx));
+            }
+            if (i != busNav.count() - 1) {
+                stream << ",";
+            }
+            stream << endl;
+        }
+        stream << indentation(1) << "};" << endl;
+        return;
+    }
+
+    stream << indentation(1) << "db_bustraces <= " << endl;
 
     for (int i = 0; i < busNav.count(); i++) {
         if (i % 4 == 0) {
@@ -1182,6 +1203,12 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
                << entityNameStr_ << "_globals_pkg.vh\"" << endl
                << ")" << endl;
 
+        if (exportBustrace_ && (icBlock_->port("db_bustraces") == NULL)) {
+            new NetlistPort(
+                "db_bustraces", "BUSTRACE_WIDTH", ProGe::BIT_VECTOR,
+                ProGe::OUT, *icBlock_);
+        }
+
         VerilogNetlistWriter::writePortDeclaration(
             *icBlock_, 1, indentation(1), stream);
         VerilogNetlistWriter::writeGenericDeclaration(
@@ -1193,6 +1220,11 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
 
         if (generateBusTrace_) {
             writeBusDumpCode(stream);
+            stream << endl;
+        }
+
+        if (exportBustrace_) {
+            writeBustraceExportCode(stream);
             stream << endl;
         }
         

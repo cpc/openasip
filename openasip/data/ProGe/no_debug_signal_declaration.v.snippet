@@ -1,0 +1,11 @@
+    localparam db_rstx = 1'b1;
+    localparam db_lockreq = 1'b0;
+    localparam [IMEMADDRWIDTH-1:0] db_pc_start = {IMEMADDRWIDTH{1'b0}};
+    integer lockcnt_increment_r;
+    integer cyclecnt_increment_r;
+    reg [63:0] lockcnt_r;
+    reg [63:0] cyclecnt_r;
+    wire [IMEMADDRWIDTH-1:0] db_pc;
+    wire [IMEMADDRWIDTH-1:0] db_pc_next;
+    wire [63:0] db_cyclecnt;
+    wire [63:0] db_lockcnt;
