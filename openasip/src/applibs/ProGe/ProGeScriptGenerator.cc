@@ -162,6 +162,7 @@ ProGeScriptGenerator::generateAll() {
             generateIverilogPlatformSimulate();
         }
     }
+}
 
 /** 
  * Generates a script for compilation using modelsim.

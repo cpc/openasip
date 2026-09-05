@@ -259,8 +259,6 @@ XilinxBlockRamGenerator::generateComponentFile(TCEString outputPath) {
     TCEString inputFile = templatePath() << FileSystem::DIRECTORY_SEPARATOR
                                          << componentFileName;
     TCEString outputFile;
-    TCEString hdlExt =
-        (platformIntegrator()->hdl() == ProGe::Verilog) ? ".v" : ".vhdl";
     outputFile << outputPath << FileSystem::DIRECTORY_SEPARATOR
                << moduleName() << hdlExt;
 
