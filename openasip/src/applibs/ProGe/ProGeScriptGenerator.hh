@@ -75,6 +75,7 @@ public:
     void generatePlatformGhdlCompile();
 
     void generateIverilogCompile();
+    void generateIverilogPlatformCompile();
 
     void generateModsimSimulate();
 
@@ -82,6 +83,7 @@ public:
     void generatePlatformGhdlSimulate();
 
     void generateIverilogSimulate();
+    void generateIverilogPlatformSimulate();
 
 private:
     void generateCompileStart(std::ostream& stream);
@@ -161,6 +163,8 @@ private:
     const std::string ghdlSimulateScriptName_;
     const std::string iverilogSimulateScriptName_;
     const std::string ghdlPlatformCompileScriptName_;
+    const std::string iverilogPlatformCompileScriptName_;
+    const std::string iverilogPlatformSimulateScriptName_;
 
     // test bench name 
     const std::string testbenchName_;

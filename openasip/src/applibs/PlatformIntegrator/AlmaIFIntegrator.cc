@@ -829,37 +829,57 @@ void
 AlmaIFIntegrator::addAlmaifFiles() {
     const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
     std::vector<TCEString> almaifFiles;
+    const bool verilog = (hdl() == ProGe::Verilog);
+    const TCEString hdlExt = verilog ? ".v" : ".vhdl";
+    const TCEString tmplExt = verilog ? ".v.tmpl" : ".vhdl.tmpl";
 
     TCEString basePath = Environment::dataDirPath("ProGe");
     TCEString platformPath = basePath + DS + "platform" + DS;
     TCEString dbPath = basePath + DS + "debugger" + DS;
 
-    TCEString outputPath = outputFilePath("tta-accel.vhdl", true);
-    if (pmemInfo_.asAddrw == 32) {
-        Path snippet(platformPath + "axi_master_port_declaration.snippet");
-        accelInstantiator_.replacePlaceholderFromFile(
-            "m-axi-port-declarations", snippet);
-    } else {
-        Path snippet(platformPath + "axi_master_signal_declaration.snippet");
-        accelInstantiator_.replacePlaceholderFromFile(
-            "m-axi-signal-declarations", snippet);
+    TCEString outputPath = outputFilePath("tta-accel" + hdlExt, true);
+    if (!verilog) {
+        if (pmemInfo_.asAddrw == 32) {
+            Path snippet(platformPath + "axi_master_port_declaration.snippet");
+            accelInstantiator_.replacePlaceholderFromFile(
+                "m-axi-port-declarations", snippet);
+        } else {
+            Path snippet(
+                platformPath + "axi_master_signal_declaration.snippet");
+            accelInstantiator_.replacePlaceholderFromFile(
+                "m-axi-signal-declarations", snippet);
+        }
     }
 
     accelInstantiator_.instantiateTemplateFile(
-        platformPath + "tta-accel.vhdl.tmpl", outputPath);
+        platformPath + "tta-accel" + tmplExt, outputPath);
     almaifFiles.push_back(outputPath);
 
-    copyPlatformFile(platformPath + "tta-axislave.vhdl", almaifFiles);
-    copyPlatformFile(platformPath + "almaif_decoder.vhdl", almaifFiles);
-    copyPlatformFile(platformPath + "almaif_axi_arbiter.vhdl", almaifFiles);
-    copyPlatformFile(platformPath + "almaif_mc_arbiter.vhdl", almaifFiles);
-    copyPlatformFile(platformPath + "almaif_axi_expander.vhdl", almaifFiles);
-    copyPlatformFile(platformPath + "membus_splitter.vhdl", almaifFiles);
-    copyPlatformFile(platformPath + "almaif_membus_delay.vhdl", almaifFiles);
-    copyPlatformFile(dbPath + "registers-pkg.vhdl", almaifFiles);
+    copyPlatformFile(platformPath + "tta-axislave" + hdlExt, almaifFiles);
+    copyPlatformFile(platformPath + "almaif_decoder" + hdlExt, almaifFiles);
+    copyPlatformFile(platformPath + "almaif_axi_arbiter" + hdlExt, almaifFiles);
+    copyPlatformFile(platformPath + "almaif_mc_arbiter" + hdlExt, almaifFiles);
+    copyPlatformFile(platformPath + "almaif_axi_expander" + hdlExt, almaifFiles);
+    copyPlatformFile(platformPath + "membus_splitter" + hdlExt, almaifFiles);
+    copyPlatformFile(platformPath + "almaif_membus_delay" + hdlExt, almaifFiles);
+    if (verilog) {
+        copyPlatformFile(platformPath + "tce_util_functions.vh", almaifFiles);
+        copyPlatformFile(dbPath + "registers_pkg.vh", almaifFiles);
+    } else {
+        copyPlatformFile(dbPath + "registers-pkg.vhdl", almaifFiles);
+    }
 
     if (hasMinimalDebugger_) {
+        if (verilog) {
+            TCEString msg =
+                "Minimal debugger is not supported for Verilog AlmaIF.";
+            throw InvalidData(__FILE__, __LINE__, __func__, msg);
+        }
         copyPlatformFile(dbPath + "minidebugger.vhdl", almaifFiles);
+    } else if (verilog) {
+        copyPlatformFile(dbPath + "dbregbank.v", almaifFiles);
+        copyPlatformFile(dbPath + "dbsm.v", almaifFiles);
+        copyPlatformFile(dbPath + "debugger.v", almaifFiles);
     } else {
         copyPlatformFile(dbPath + "dbregbank.vhdl", almaifFiles);
         copyPlatformFile(dbPath + "dbsm-entity.vhdl", almaifFiles);
@@ -1120,6 +1140,14 @@ AlmaIFIntegrator::printInfo(std::ostream& stream) const {
         << "Supported data memory types are 'onchip' and 'none'." << std::endl
         << "Data and Parameter memory spaces must be named '" << DMEM_NAME
         << "' and '" << PMEM_NAME << "' respectively." << std::endl
+        << "The AlmaIF testbench mailbox generic completion_signal_address_g "
+        << "must be overridden at simulation time with the byte address of "
+        << "the program completion flag. The template default (4) will "
+        << "overwrite data at that address. Example: "
+        << "ghdl_simulate.sh -g completion_signal_address_g=<addr> or "
+        << "iverilog_platform_compile.sh -- "
+        << "-P tta_almaif_tb.completion_signal_address_g=<addr>."
+        << std::endl
         << std::endl;
 }
 
@@ -1169,28 +1197,44 @@ AlmaIFIntegrator::projectFileGenerator() const {
 void
 AlmaIFIntegrator::generateIntegratedTestbench() {
     const TCEString DS = FileSystem::DIRECTORY_SEPARATOR;
+    const bool verilog = (hdl() == ProGe::Verilog);
+    const TCEString hdlExt = verilog ? ".v" : ".vhdl";
+    const TCEString tmplExt = verilog ? ".v.tmpl" : ".vhdl.tmpl";
 
     FileSystem::createDirectory(progeFilePath("tb", true));
 
     TCEString basePath = Environment::dataDirPath("ProGe");
     TCEString tbPath = basePath + DS + "tb" + DS + "almaif" + DS;
-    TCEString outputPath = tbFilePath("almaif-tb.vhdl", true);
+    TCEString outputPath = tbFilePath("almaif-tb" + hdlExt, true);
 
     HDLTemplateInstantiator tbInstantiator(coreEntityName());
     if (pmemInfo_.asAddrw == 32) {
+        if (verilog) {
+            TCEString msg =
+                "Verilog AlmaIF testbench does not yet support a 32-bit "
+                "parameter address space (AXI master).";
+            throw InvalidData(__FILE__, __LINE__, __func__, msg);
+        }
+        TCEString snippetExt = verilog ? ".v" : ".vhdl";
         tbInstantiator.replacePlaceholderFromFile(
             "m-axi-port-declarations",
-            Path(tbPath + "almaif-tb-m-axi-port-declarations-snippet.vhdl"));
+            Path(
+                tbPath + "almaif-tb-m-axi-port-declarations-snippet" +
+                snippetExt));
         tbInstantiator.replacePlaceholderFromFile(
             "m-axi-port-connections",
-            Path(tbPath + "almaif-tb-m-axi-port-connections-snippet.vhdl"));
+            Path(
+                tbPath + "almaif-tb-m-axi-port-connections-snippet" +
+                snippetExt));
         tbInstantiator.replacePlaceholderFromFile(
             "m-axi-external-mem-instantiation",
             Path(
                 tbPath +
-                "almaif-tb-m-axi-external-mem-instantiation-snippet.vhdl"));
-        FileSystem::copy(tbPath + "axi-mem.vhdl", tbFilePath("axi-mem.vhdl"));
+                "almaif-tb-m-axi-external-mem-instantiation-snippet" +
+                snippetExt));
+        FileSystem::copy(
+            tbPath + "axi-mem" + hdlExt, tbFilePath("axi-mem" + hdlExt));
     }
     tbInstantiator.instantiateTemplateFile(
-        tbPath + "almaif-tb.vhdl.tmpl", outputPath);
+        tbPath + "almaif-tb" + tmplExt, outputPath);
 }

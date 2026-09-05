@@ -1,0 +1,490 @@
+`timescale 1ns/1ps
+// Copyright (c) 2016-2023 Tampere University.
+//
+// This file is part of TTA-Based Codesign Environment (TCE).
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// Converted from VHDL almaif-tb.vhdl
+// Loads IMEM/DMEM via AXI, issues debugger CONTINUE, polls completion mailbox.
+
+module tta_almaif_tb
+#(
+`include "ENTITY_STR_imem_mau_pkg.vh"
+,
+`include "ENTITY_STR_globals_pkg.vh"
+,
+`include "ENTITY_STR_toplevel_params_pkg.vh"
+,
+  parameter imem_image = "../prog.img",
+  parameter dmem_image = "../prog_param.img",
+  parameter log_path = "../run.log",
+  parameter dmem_dump_path = "../dmem.log",
+  parameter clk_period = PERIOD,
+  // REQUIRED: override with the byte address of the program done flag.
+  // Default 4 is only a placeholder and will clobber data at address 4.
+  // GHDL:  -g completion_signal_address_g=<addr>
+  // Icarus (compile): iverilog_platform_compile.sh -- -P tta_almaif_tb.completion_signal_address_g=<addr>
+  parameter completion_signal_address_g = 4
+);
+
+  `include "registers_pkg.vh"
+  localparam dataw = 32;
+  `include "tce_util_pkg.vh"
+
+  localparam real stall_threshold = 0.1;
+  localparam integer core_dbg_addrw = 32;
+  localparam integer core_dbg_dataw = 32;
+  localparam integer imem_word_width_c = (IMEMDATAWIDTH+31)/32;
+  localparam integer imem_word_sel_c = bit_width(imem_word_width_c-1);
+  localparam integer id_width_c = AXI_ID_WIDTH;
+  localparam integer axi_addrw_c = AXI_ADDR_WIDTH;
+  localparam integer imem_word_nextPO2 = 2 ** bit_width(IMEMDATAWIDTH-1);
+  localparam integer imem_data_count = imem_word_nextPO2 / 16;
+
+  wire clk;
+  reg clk_ena;
+  reg nreset;
+
+  reg [31:0] in_data [0:65535];
+  reg [15:0] imem_data [0:imem_data_count-1];
+  reg [31:0] val_out;
+  reg [31:0] vals_in [0:63];
+  reg [31:0] vals_out [0:63];
+
+  reg [31:0] s_axi_awaddr;
+  reg s_axi_awvalid;
+  wire s_axi_awready;
+  reg [31:0] s_axi_wdata;
+  reg [3:0] s_axi_wstrb;
+  reg s_axi_wvalid;
+  wire s_axi_wready;
+  wire [1:0] s_axi_bresp;
+  wire s_axi_bvalid;
+  reg s_axi_bready;
+  reg [31:0] s_axi_araddr;
+  reg s_axi_arvalid;
+  wire s_axi_arready;
+  wire [31:0] s_axi_rdata;
+  wire [1:0] s_axi_rresp;
+  wire s_axi_rvalid;
+  reg s_axi_rready;
+  reg [id_width_c-1:0] s_axi_awid;
+  reg [7:0] s_axi_awlen;
+  reg [2:0] s_axi_awsize;
+  reg [1:0] s_axi_awburst;
+  wire [id_width_c-1:0] s_axi_bid;
+  reg [id_width_c-1:0] s_axi_arid;
+  reg [7:0] s_axi_arlen;
+  reg [2:0] s_axi_arsize;
+  reg [1:0] s_axi_arburst;
+  wire [id_width_c-1:0] s_axi_rid;
+  wire s_axi_rlast;
+  reg s_axi_wlast;
+  wire locked;
+
+  integer seed1;
+  integer seed2;
+
+  function [31:0] endian_swap;
+    input [31:0] a;
+    integer i;
+    integer j;
+    integer nbytes;
+    begin
+      nbytes = 4;
+      for (i = 0; i < nbytes; i = i + 1) begin
+        j = nbytes - 1 - i;
+        endian_swap[i*8 +: 8] = a[j*8 +: 8];
+      end
+    end
+  endfunction
+
+  function real urand;
+    begin
+      seed1 = (seed1 * 1103515245 + 12345) & 32'h7fffffff;
+      seed2 = (seed2 * 1664525 + 1013904223) & 32'h7fffffff;
+      urand = seed1 / 2147483648.0;
+    end
+  endfunction
+
+  clkgen #(
+    .PERIOD (PERIOD)
+  ) clk_gen (
+    .clk (clk),
+    .en  (clk_ena)
+  );
+
+  ENTITY_STR_toplevel dut (
+    .clk           (clk),
+    .rstx          (nreset),
+    .s_axi_awaddr  (s_axi_awaddr[axi_addrw_c-1:0]),
+    .s_axi_awvalid (s_axi_awvalid),
+    .s_axi_awready (s_axi_awready),
+    .s_axi_wdata   (s_axi_wdata),
+    .s_axi_wstrb   (s_axi_wstrb),
+    .s_axi_wvalid  (s_axi_wvalid),
+    .s_axi_wready  (s_axi_wready),
+    .s_axi_bresp   (s_axi_bresp),
+    .s_axi_bvalid  (s_axi_bvalid),
+    .s_axi_bready  (s_axi_bready),
+    .s_axi_araddr  (s_axi_araddr[axi_addrw_c-1:0]),
+    .s_axi_arvalid (s_axi_arvalid),
+    .s_axi_arready (s_axi_arready),
+    .s_axi_rdata   (s_axi_rdata),
+    .s_axi_rresp   (s_axi_rresp),
+    .s_axi_rvalid  (s_axi_rvalid),
+    .s_axi_rready  (s_axi_rready),
+    .s_axi_awid    (s_axi_awid),
+    .s_axi_awlen   (s_axi_awlen),
+    .s_axi_awsize  (s_axi_awsize),
+    .s_axi_awburst (s_axi_awburst),
+    .s_axi_bid     (s_axi_bid),
+    .s_axi_arid    (s_axi_arid),
+    .s_axi_arlen   (s_axi_arlen),
+    .s_axi_arsize  (s_axi_arsize),
+    .s_axi_arburst (s_axi_arburst),
+    .s_axi_rid     (s_axi_rid),
+    .s_axi_rlast   (s_axi_rlast),
+    .locked        (locked)
+  );
+
+  task axi_write;
+    input integer address;
+    input [core_dbg_dataw-1:0] value;
+    begin
+      s_axi_awlen   <= 8'b0;
+      s_axi_awvalid <= 1'b1;
+      s_axi_awaddr  <= address;
+      while (s_axi_awready == 1'b0)
+        @(posedge clk);
+      s_axi_awvalid <= 1'b0;
+      s_axi_wvalid  <= 1'b1;
+      s_axi_wdata   <= value;
+      s_axi_wlast   <= 1'b1;
+      @(posedge clk);
+      while (s_axi_wready == 1'b0)
+        @(posedge clk);
+      s_axi_wvalid <= 1'b0;
+      @(posedge clk);
+      s_axi_wlast   <= 1'b0;
+      s_axi_wvalid  <= 1'b0;
+      s_axi_awvalid <= 1'b0;
+    end
+  endtask
+
+  task axi_bwrite;
+    input integer address;
+    input integer length;
+    integer I;
+    real randv;
+    begin
+      s_axi_awlen   <= length - 1;
+      s_axi_awvalid <= 1'b1;
+      s_axi_awaddr  <= address;
+      while (s_axi_awready == 1'b0)
+        @(posedge clk);
+      s_axi_awvalid <= 1'b0;
+      I = 0;
+      while (I < length) begin
+        randv = urand();
+        if (randv < stall_threshold) begin
+          s_axi_wvalid <= 1'b1;
+          s_axi_wdata  <= in_data[I];
+          if (I == length - 1)
+            s_axi_wlast <= 1'b1;
+          @(posedge clk);
+          while (s_axi_wready == 1'b0)
+            @(posedge clk);
+          I = I + 1;
+        end else begin
+          s_axi_wvalid <= 1'b0;
+          @(posedge clk);
+        end
+      end
+      s_axi_wlast  <= 1'b0;
+      s_axi_wvalid <= 1'b0;
+      @(posedge clk);
+    end
+  endtask
+
+  task axi_bwrite_16;
+    input integer address;
+    input integer length;
+    integer I;
+    begin
+      s_axi_wstrb   <= 4'b1100;
+      s_axi_awsize  <= 3'b001;
+      s_axi_awlen   <= length - 1;
+      s_axi_awvalid <= 1'b1;
+      s_axi_awaddr  <= address;
+      while (s_axi_awready == 1'b0)
+        @(posedge clk);
+      s_axi_awvalid <= 1'b0;
+      for (I = 0; I < length; I = I + 1) begin
+        if (I == length - 1)
+          s_axi_wlast <= 1'b1;
+        s_axi_wvalid <= 1'b1;
+        if (s_axi_wstrb == 4'b1100) begin
+          s_axi_wdata[15:0]  <= imem_data[I];
+          s_axi_wdata[31:16] <= 16'b0;
+        end else begin
+          s_axi_wdata[15:0]  <= 16'b0;
+          s_axi_wdata[31:16] <= imem_data[I];
+        end
+        s_axi_wstrb <= ~s_axi_wstrb;
+        @(posedge clk);
+        while (s_axi_wready == 1'b0)
+          @(posedge clk);
+      end
+      s_axi_wlast  <= 1'b0;
+      s_axi_wvalid <= 1'b0;
+      s_axi_wstrb  <= 4'b1111;
+      s_axi_awsize <= 3'b010;
+      @(posedge clk);
+    end
+  endtask
+
+  task dbg_command;
+    input integer command;
+    reg [core_dbg_dataw-1:0] cmdreg;
+    begin
+      cmdreg = {core_dbg_dataw{1'b0}};
+      cmdreg[command] = 1'b1;
+      axi_write(TTA_DEBUG_CMD * 4, cmdreg);
+    end
+  endtask
+
+  task axi_read;
+    input integer address;
+    output [core_dbg_dataw-1:0] value;
+    begin
+      s_axi_arlen   <= 8'b0;
+      s_axi_arvalid <= 1'b1;
+      s_axi_araddr  <= address;
+      while (s_axi_arready == 1'b0)
+        @(posedge clk);
+      s_axi_arvalid <= 1'b0;
+      s_axi_rready  <= 1'b1;
+      while (s_axi_rvalid == 1'b0)
+        @(posedge clk);
+      value = s_axi_rdata;
+      @(posedge clk);
+      s_axi_rready <= 1'b0;
+    end
+  endtask
+
+  task axi_bread;
+    input integer address;
+    input integer length;
+    integer I;
+    real randv;
+    begin
+      @(posedge clk);
+      s_axi_arlen   <= length - 1;
+      s_axi_arvalid <= 1'b1;
+      s_axi_araddr  <= address;
+      @(posedge clk);
+      while (s_axi_arready == 1'b0)
+        @(posedge clk);
+      s_axi_arvalid <= 1'b0;
+      I = 0;
+      while (I < length) begin
+        randv = urand();
+        if (randv > stall_threshold) begin
+          s_axi_rready <= 1'b1;
+          @(posedge clk);
+          while (s_axi_rvalid == 1'b0)
+            @(posedge clk);
+          vals_out[I] <= s_axi_rdata;
+          I = I + 1;
+        end else begin
+          s_axi_rready <= 1'b0;
+          @(posedge clk);
+        end
+      end
+      @(posedge clk);
+    end
+  endtask
+
+  integer logfile;
+  integer dmem_dump_file;
+  integer mem_init;
+  integer i;
+  integer k;
+  integer scan_ok;
+  integer dmem_size;
+  integer cqmem_size;
+  integer dmem_start;
+  integer cqmem_start;
+  integer imem_start;
+  reg [IMEMDATAWIDTH-1:0] imem_word;
+  reg [imem_word_nextPO2-1:0] imem_word_padded;
+  reg [31:0] dmem_word;
+  reg [31:0] value;
+  integer c;
+
+  initial begin
+    clk_ena = 1'b1;
+    seed1 = 733035985;
+    seed2 = 787335972;
+    logfile = $fopen(log_path, "w");
+    if (logfile == 0) begin
+      $display("Failed to open log file %s", log_path);
+      $finish;
+    end
+
+    nreset        = 1'b0;
+    s_axi_awid    = {id_width_c{1'b0}};
+    s_axi_awsize  = 3'b010;
+    s_axi_awburst = 2'b01;
+    s_axi_arid    = {id_width_c{1'b0}};
+    s_axi_arlen   = 8'b0;
+    s_axi_arsize  = 3'b010;
+    s_axi_arburst = 2'b01;
+    s_axi_awaddr  = 32'b0;
+    s_axi_araddr  = 32'b0;
+    s_axi_wdata   = 32'b0;
+    s_axi_wlast   = 1'b0;
+    s_axi_wvalid  = 1'b0;
+    s_axi_arvalid = 1'b0;
+    s_axi_awvalid = 1'b0;
+    s_axi_bready  = 1'b1;
+    s_axi_wstrb   = 4'b1111;
+    s_axi_rready  = 1'b0;
+
+    @(posedge clk);
+    @(posedge clk);
+    nreset = 1'b1;
+    @(posedge clk);
+    @(posedge clk);
+    @(posedge clk);
+
+    axi_read(TTA_DMEM_SIZE_LOW * 4, dmem_word);
+    dmem_size = dmem_word;
+    $fdisplay(logfile, "DMEM size: %0d", dmem_size);
+    $fflush(logfile);
+
+    axi_read(TTA_CQMEM_SIZE_LOW * 4, dmem_word);
+    cqmem_size = dmem_word;
+    $fdisplay(logfile, "CQMEM size: %0d", cqmem_size);
+    $fflush(logfile);
+
+    axi_read(TTA_IMEM_START_LOW * 4, dmem_word);
+    imem_start = dmem_word;
+    $fdisplay(logfile, "IMEM start: %0d", imem_start);
+    $fflush(logfile);
+
+    axi_read(TTA_DMEM_START_LOW * 4, dmem_word);
+    dmem_start = dmem_word;
+    $fdisplay(logfile, "DMEM start: %0d", dmem_start);
+    $fflush(logfile);
+
+    axi_read(TTA_CQMEM_START_LOW * 4, dmem_word);
+    cqmem_start = dmem_word;
+    $fdisplay(logfile, "CQMEM start: %0d", cqmem_start);
+    $fflush(logfile);
+
+    i = 0;
+    mem_init = $fopen(imem_image, "r");
+    if (mem_init == 0) begin
+      $display("Failed to open instruction memory image %s", imem_image);
+      $finish;
+    end
+    begin : imem_load
+      while (!$feof(mem_init) && (i < (1 << IMEMADDRWIDTH))) begin
+        scan_ok = $fscanf(mem_init, "%b", imem_word);
+        if (scan_ok != 1) begin
+          if ($feof(mem_init))
+            disable imem_load;
+          $display("Read error in instruction memory initialization file");
+          $finish;
+        end
+        imem_word_padded = {{(imem_word_nextPO2-IMEMDATAWIDTH){1'b0}}, imem_word};
+        for (k = 0; k < imem_data_count; k = k + 1)
+          imem_data[k] = imem_word_padded[16*(k+1)-1 -: 16];
+        axi_bwrite_16(i * imem_data_count * 2 + imem_start, imem_data_count);
+        i = i + 1;
+      end
+    end
+    $fclose(mem_init);
+    $fdisplay(logfile, "IMEM Initialization complete");
+    $fflush(logfile);
+
+    for (i = 0; i < dmem_size/4; i = i + 1)
+      axi_write(dmem_start + i * 4, 32'b0);
+
+    i = 0;
+    mem_init = $fopen(dmem_image, "r");
+    if (mem_init == 0) begin
+      $display("Failed to open data memory image %s", dmem_image);
+      $finish;
+    end
+    begin : dmem_load
+      while (!$feof(mem_init) && (i < dmem_size/4)) begin
+        scan_ok = $fscanf(mem_init, "%b", dmem_word);
+        if (scan_ok != 1) begin
+          if ($feof(mem_init))
+            disable dmem_load;
+          $display("Read error in data memory initialization file");
+          $finish;
+        end
+        axi_write(i * 4 + dmem_start, dmem_word);
+        i = i + 1;
+      end
+    end
+    $fclose(mem_init);
+    $fdisplay(logfile, "DMEM Initialization complete");
+    $fflush(logfile);
+
+    for (i = 0; i < cqmem_size/4; i = i + 1)
+      axi_write(cqmem_start + i * 4, 32'b0);
+    $fdisplay(logfile, "CQMEM Initialization complete");
+    $fflush(logfile);
+
+    axi_write(dmem_start + completion_signal_address_g, 32'h00000000);
+    dbg_command(DEBUG_CMD_CONTINUE);
+
+    value = 32'h00000000;
+    while (value == 32'h00000000)
+      axi_read(dmem_start + completion_signal_address_g, value);
+
+    dbg_command(DEBUG_CMD_BREAK);
+    $fdisplay(logfile, "Core done");
+    $fdisplay(logfile, "Test output value: %0d", value);
+    $fflush(logfile);
+
+    dmem_dump_file = $fopen(dmem_dump_path, "w");
+    if (dmem_dump_file == 0) begin
+      $display("Failed to open dmem dump file %s", dmem_dump_path);
+      $finish;
+    end
+    for (i = 0; i < dmem_size/4; i = i + 1) begin
+      axi_read(dmem_start + i * 4, dmem_word);
+      $fdisplay(dmem_dump_file, "%0d", $signed(dmem_word));
+    end
+    $fclose(dmem_dump_file);
+
+    $fdisplay(logfile, "Output written");
+    $fflush(logfile);
+    $fclose(logfile);
+    clk_ena = 1'b0;
+    $finish;
+  end
+
+endmodule

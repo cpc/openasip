@@ -22,9 +22,13 @@ nobase_data_DATA =	$(srcdir)/ProDe/confschema.xsd \
 					$(srcdir)/ProGe/tb/*.v.tmpl \
 					$(srcdir)/ProGe/tb/almaif/*.vhdl \
 					$(srcdir)/ProGe/tb/almaif/*.vhdl.tmpl \
+					$(srcdir)/ProGe/tb/almaif/*.v.tmpl \
 					$(srcdir)/ProGe/platform/*.vhd \
 					$(srcdir)/ProGe/platform/*.vhdl \
 					$(srcdir)/ProGe/platform/*.vhdl.tmpl \
+					$(srcdir)/ProGe/platform/*.v \
+					$(srcdir)/ProGe/platform/*.v.tmpl \
+					$(srcdir)/ProGe/platform/*.vh \
 					$(srcdir)/ProGe/platform/*.snippet \
 					$(srcdir)/ProGe/synthesis/*.tcl.tmpl \
 					$(srcdir)/ProGe/synthesis/*.py \
@@ -37,6 +41,8 @@ nobase_data_DATA =	$(srcdir)/ProDe/confschema.xsd \
 					$(srcdir)/ProGe/tb/compile.sh.tmpl \
 					$(srcdir)/ProGe/debugger/*.vhdl \
 					$(srcdir)/ProGe/debugger/*.vhdl.tmpl \
+					$(srcdir)/ProGe/debugger/*.v \
+					$(srcdir)/ProGe/debugger/*.vh \
 					$(srcdir)/ProGe/*.snippet \
 					$(srcdir)/ProGe/debugger/tb/*.vhdl \
 					$(srcdir)/riscv/* \

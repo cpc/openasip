@@ -61,6 +61,11 @@ entity tta_almaif_tb is
     dmem_dump_path              : string := "../dmem.log";
     clk_period                  : time := PERIOD;
     completion_signal_address_g : integer := 4);
+    -- completion_signal_address_g is REQUIRED at simulation time. The default
+    -- (4) is only a placeholder and will overwrite data memory bytes 4-7.
+    -- Pass the byte address of the program completion flag, for example:
+    --   ghdl_simulate.sh -g completion_signal_address_g=<addr>
+    --   iverilog_platform_compile.sh -- -P tta_almaif_tb.completion_signal_address_g=<addr>
 end tta_almaif_tb;
 
 architecture testbench of tta_almaif_tb is

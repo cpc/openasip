@@ -106,6 +106,8 @@ ProGeScriptGenerator::ProGeScriptGenerator(
       ghdlSimulateScriptName_("ghdl_simulate.sh"),
       iverilogSimulateScriptName_("iverilog_simulate.sh"),
       ghdlPlatformCompileScriptName_("ghdl_platform_compile.sh"),
+      iverilogPlatformCompileScriptName_("iverilog_platform_compile.sh"),
+      iverilogPlatformSimulateScriptName_("iverilog_platform_simulate.sh"),
       testbenchName_("testbench"),
       platformTestbenchName_("tta_almaif_tb"),
       toplevelEntity_(toplevelEntity),
@@ -143,16 +145,23 @@ ProGeScriptGenerator::generateAll() {
                 ghdlPlatformCompileScriptName_, platformTestbenchName_,
                 {platformFiles_}, false);
         }
-    } else
+    } else {
         generateIverilogCompile();
+        if (!platformFiles_.empty()) {
+            generateIverilogPlatformCompile();
+        }
+    }
 
     generateModsimSimulate();
     
     if(language_==VHDL)
         generateGhdlSimulate();
-    else
+    else {
         generateIverilogSimulate();
-}
+        if (!platformFiles_.empty()) {
+            generateIverilogPlatformSimulate();
+        }
+    }
 
 /** 
  * Generates a script for compilation using modelsim.
@@ -312,6 +321,36 @@ ProGeScriptGenerator::generateIverilogCompile() {
     stream.close();
 }
 
+void
+ProGeScriptGenerator::generateIverilogPlatformCompile() {
+    string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
+        iverilogPlatformCompileScriptName_;
+
+    createExecutableFile(dstFile);
+
+    std::ofstream stream(dstFile.c_str(), std::ofstream::out);
+    generateCompileStart(stream);
+
+    stream << "if [ \"$enable_coverage\" = \"yes\" ]; then" << endl;
+    stream << "    echo \"-c option is not available for iverilog.\"; exit 2;"
+           << endl;
+    stream << "fi" << endl;
+
+    stream << "rm -rf " << platformTestbenchName_ << endl
+           << endl
+           << "iverilog -g2012 -D _IVERILOG_ "
+           << "-Itb -Iverilog -Igcu_ic -Iplatform "
+           << "\"$@\" \\" << endl;
+    outputScriptCommands(stream, vhdlFiles_, ""," \\");
+    outputScriptCommands(stream, gcuicFiles_, ""," \\");
+    outputScriptCommands(stream, platformFiles_, ""," \\");
+    outputScriptCommands(stream, testBenchFiles_, ""," \\");
+
+    stream << "-s " << platformTestbenchName_ << " \\" << endl;
+    stream << "-o " << platformTestbenchName_ << endl;
+    stream.close();
+}
+
 /** 
  * Generates a script for simulating using modelsims vsim. 
  */
@@ -404,6 +443,35 @@ ProGeScriptGenerator::generateIverilogSimulate() {
 
     stream << "./" << testbenchName_
            << " --assert-level=none" << endl;
+
+    stream.close();
+}
+
+void
+ProGeScriptGenerator::generateIverilogPlatformSimulate() {
+    string dstFile = dstDir_ + FileSystem::DIRECTORY_SEPARATOR +
+        iverilogPlatformSimulateScriptName_;
+
+    createExecutableFile(dstFile);
+
+    std::ofstream stream(dstFile.c_str(), std::ofstream::out);
+    generateSimulationStart(stream);
+
+    stream << "if [ \"$enable_coverage\" = \"yes\" ]; then" << endl;
+    stream << "    echo \"-c option is not available for iverilog.\"; exit 2;"
+           << endl;
+    stream << "fi" << endl;
+
+    stream << "if [ ! -e ./" << platformTestbenchName_ << " ]; then" << endl
+           << "    echo \"" << platformTestbenchName_
+           << " not found. Run iverilog_platform_compile.sh first "
+           << "(override completion_signal_address_g with "
+           << "iverilog_platform_compile.sh -- "
+           << "-P tta_almaif_tb.completion_signal_address_g=<addr>).\""
+           << endl
+           << "    exit 1" << endl
+           << "fi" << endl
+           << "./" << platformTestbenchName_ << " \"$@\"" << endl;
 
     stream.close();
 }

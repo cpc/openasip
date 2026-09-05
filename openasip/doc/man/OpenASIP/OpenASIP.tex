@@ -6303,6 +6303,25 @@ toplevel entity will be named 'almaif\_tta'. Command is
 \shellcmd{generateprocessor -i proc.idf -o proge-out -a -g AlmaIFIntegrator
 -d onchip -f onchip -e almaif\_tta -p program.tpef proc.adf}
 
+When generating an AlmaIF testbench (\texttt{-t}), the completion mailbox
+generic \texttt{completion\_signal\_address\_g} \textbf{must} be overridden
+at simulation time with the byte address of the program done flag. The
+template default is 4 and will overwrite data memory at that address (for
+example AES S-box bytes). VHDL/GHDL:
+
+\shellcmd{ghdl\_simulate.sh -g completion\_signal\_address\_g=<addr>}
+
+Verilog/Icarus (compile-time parameter):
+
+\shellcmd{iverilog\_platform\_compile.sh -- -P tta\_almaif\_tb.completion\_signal\_address\_g=<addr>}
+
+The address can be queried with \texttt{ttasim}:
+\texttt{mach <adf>; prog <tpef>; symbol\_address done}.
+
+Verilog generation is supported with \texttt{-l verilog} and the same
+AlmaIFIntegrator options. Use \texttt{debugger:external} in the IC decoder
+plugin arguments.
+
 
 \section{Coprocessor Generator}
 \label{sec:gencopro}

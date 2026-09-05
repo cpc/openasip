@@ -1,0 +1,912 @@
+`timescale 1ns/1ps
+// Copyright (c) 2016-2017 Tampere University
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+// DEALINGS IN THE SOFTWARE.
+// Converted from VHDL tta-accel.vhdl
+
+module tta_accel
+#(
+  parameter core_count_g             = 1,
+  parameter axi_addr_width_g         = 21,
+  parameter axi_id_width_g           = 12,
+  parameter imem_data_width_g        = 64,
+  parameter imem_addr_width_g        = 16,
+  parameter dmem_data_width_g        = 32,
+  parameter dmem_addr_width_g        = 14,
+  parameter pmem_data_width_g        = 32,
+  parameter pmem_addr_width_g        = 14,
+  parameter imem_axi_addr_width_g    = 17,
+  parameter bus_count_g              = 3,
+  parameter local_mem_addrw_g        = 14,
+  parameter axi_offset_low_g         = 0,
+  parameter axi_offset_high_g        = 0,
+  parameter full_debugger_g          = 1,
+  parameter sync_reset_g             = 0,
+  parameter second_dmem_data_width_g = 32,
+  parameter second_dmem_addr_width_g = 14,
+  parameter second_pmem_data_width_g = 32,
+  parameter second_pmem_addr_width_g = 14,
+  parameter enable_second_dmem_g     = 0,
+  parameter enable_second_pmem_g     = 0,
+  parameter broadcast_pmem_g         = 0,
+  parameter reserved_sp_bytes_g      = 0
+)
+(
+  input clk,
+  input rstx,
+  input [axi_addr_width_g-1:0] s_axi_awaddr,
+  input s_axi_awvalid,
+  output s_axi_awready,
+  input [31:0] s_axi_wdata,
+  input [3:0] s_axi_wstrb,
+  input s_axi_wvalid,
+  output s_axi_wready,
+  output [1:0] s_axi_bresp,
+  output s_axi_bvalid,
+  input s_axi_bready,
+  input [axi_addr_width_g-1:0] s_axi_araddr,
+  input s_axi_arvalid,
+  output s_axi_arready,
+  output [31:0] s_axi_rdata,
+  output [1:0] s_axi_rresp,
+  output s_axi_rvalid,
+  input s_axi_rready,
+  input [axi_id_width_g-1:0] s_axi_awid,
+  input [7:0] s_axi_awlen,
+  input [2:0] s_axi_awsize,
+  input [1:0] s_axi_awburst,
+  output [axi_id_width_g-1:0] s_axi_bid,
+  input [axi_id_width_g-1:0] s_axi_arid,
+  input [7:0] s_axi_arlen,
+  input [2:0] s_axi_arsize,
+  input [1:0] s_axi_arburst,
+  output [axi_id_width_g-1:0] s_axi_rid,
+  output s_axi_rlast,
+
+  output [core_count_g*imem_addr_width_g-1:0] core_db_pc_start,
+  input  [core_count_g*imem_addr_width_g-1:0] core_db_pc_next,
+  input  [core_count_g*32*bus_count_g-1:0] core_db_bustraces,
+
+  input  [core_count_g-1:0] core_dmem_avalid_in,
+  output [core_count_g-1:0] core_dmem_aready_out,
+  input  [core_count_g*dmem_addr_width_g-1:0] core_dmem_aaddr_in,
+  input  [core_count_g-1:0] core_dmem_awren_in,
+  input  [(dmem_data_width_g+7)/8*core_count_g-1:0] core_dmem_astrb_in,
+  input  [core_count_g*dmem_data_width_g-1:0] core_dmem_adata_in,
+  output [core_count_g-1:0] core_dmem_rvalid_out,
+  input  [core_count_g-1:0] core_dmem_rready_in,
+  output [core_count_g*dmem_data_width_g-1:0] core_dmem_rdata_out,
+
+  output [0:0] data_a_avalid_out,
+  input  [0:0] data_a_aready_in,
+  output [dmem_addr_width_g-1:0] data_a_aaddr_out,
+  output [0:0] data_a_awren_out,
+  output [(dmem_data_width_g+7)/8-1:0] data_a_astrb_out,
+  output [dmem_data_width_g-1:0] data_a_adata_out,
+  input  [0:0] data_a_rvalid_in,
+  output [0:0] data_a_rready_out,
+  input  [dmem_data_width_g-1:0] data_a_rdata_in,
+
+  output [0:0] data_b_avalid_out,
+  input  [0:0] data_b_aready_in,
+  output [second_dmem_addr_width_g-1:0] data_b_aaddr_out,
+  output [0:0] data_b_awren_out,
+  output [(second_dmem_data_width_g+7)/8-1:0] data_b_astrb_out,
+  output [second_dmem_data_width_g-1:0] data_b_adata_out,
+  input  [0:0] data_b_rvalid_in,
+  output [0:0] data_b_rready_out,
+  input  [second_dmem_data_width_g-1:0] data_b_rdata_in,
+
+  input  [core_count_g-1:0] core_pmem_avalid_in,
+  output [core_count_g-1:0] core_pmem_aready_out,
+  input  [core_count_g*pmem_addr_width_g-1:0] core_pmem_aaddr_in,
+  input  [core_count_g-1:0] core_pmem_awren_in,
+  input  [(pmem_data_width_g+7)/8*core_count_g-1:0] core_pmem_astrb_in,
+  input  [core_count_g*pmem_data_width_g-1:0] core_pmem_adata_in,
+  output [core_count_g-1:0] core_pmem_rvalid_out,
+  input  [core_count_g-1:0] core_pmem_rready_in,
+  output [core_count_g*pmem_data_width_g-1:0] core_pmem_rdata_out,
+
+  output [0:0] param_a_avalid_out,
+  input  [0:0] param_a_aready_in,
+  output [local_mem_addrw_g-1:0] param_a_aaddr_out,
+  output [0:0] param_a_awren_out,
+  output [(pmem_data_width_g+7)/8-1:0] param_a_astrb_out,
+  output [pmem_data_width_g-1:0] param_a_adata_out,
+  input  [0:0] param_a_rvalid_in,
+  output [0:0] param_a_rready_out,
+  input  [pmem_data_width_g-1:0] param_a_rdata_in,
+
+  output [0:0] param_b_avalid_out,
+  input  [0:0] param_b_aready_in,
+  output [second_pmem_addr_width_g-1:0] param_b_aaddr_out,
+  output [0:0] param_b_awren_out,
+  output [(second_pmem_data_width_g+7)/8-1:0] param_b_astrb_out,
+  output [second_pmem_data_width_g-1:0] param_b_adata_out,
+  input  [0:0] param_b_rvalid_in,
+  output [0:0] param_b_rready_out,
+  input  [second_pmem_data_width_g-1:0] param_b_rdata_in,
+
+  output [core_count_g-1:0] core_busy_out,
+  output [core_count_g*imem_data_width_g-1:0] core_imem_data_out,
+  input  [core_count_g-1:0] core_imem_en_x_in,
+  input  [core_count_g*imem_addr_width_g-1:0] core_imem_addr_in,
+
+  output [core_count_g-1:0] INSTR_a_avalid_out,
+  input  [core_count_g-1:0] INSTR_a_aready_in,
+  output [core_count_g*imem_addr_width_g-1:0] INSTR_a_aaddr_out,
+  output [core_count_g-1:0] INSTR_a_awren_out,
+  output [(imem_data_width_g+7)/8*core_count_g-1:0] INSTR_a_astrb_out,
+  output [core_count_g*imem_data_width_g-1:0] INSTR_a_adata_out,
+  input  [core_count_g-1:0] INSTR_a_rvalid_in,
+  output [core_count_g-1:0] INSTR_a_rready_out,
+  input  [core_count_g*imem_data_width_g-1:0] INSTR_a_rdata_in,
+
+  output [core_count_g-1:0] INSTR_b_avalid_out,
+  input  [core_count_g-1:0] INSTR_b_aready_in,
+  output [core_count_g*imem_axi_addr_width_g-1:0] INSTR_b_aaddr_out,
+  output [core_count_g-1:0] INSTR_b_awren_out,
+  output [4*core_count_g-1:0] INSTR_b_astrb_out,
+  output [core_count_g*32-1:0] INSTR_b_adata_out,
+  input  [core_count_g-1:0] INSTR_b_rvalid_in,
+  output [core_count_g-1:0] INSTR_b_rready_out,
+  input  [core_count_g*32-1:0] INSTR_b_rdata_in,
+
+  output [core_count_g-1:0] core_db_tta_nreset,
+  output [core_count_g-1:0] core_db_lockrq,
+  input  [core_count_g*imem_addr_width_g-1:0] core_db_pc,
+  input  [core_count_g*64-1:0] core_db_lockcnt,
+  input  [core_count_g*64-1:0] core_db_cyclecnt
+);
+
+  localparam dataw = 32;
+  `include "tce_util_pkg.vh"
+
+  localparam integer dataw_c = 32;
+  localparam integer ctrl_addr_width_c = 8;
+  localparam integer dbg_core_sel_width_c = bit_width(core_count_g);
+  localparam integer imem_byte_sel_width_c = bit_width((imem_data_width_g+7)/8);
+  localparam integer dmem_byte_sel_width_c = bit_width((dmem_data_width_g+7)/8);
+  localparam integer pmem_byte_sel_width_c = bit_width((pmem_data_width_g+7)/8);
+  localparam integer pmem_offset_c = axi_offset_low_g + (2**(axi_addr_width_g-2))*3;
+  localparam enable_dmem = (dmem_data_width_g > 0);
+  localparam enable_pmem = (pmem_data_width_g > 0);
+  localparam enable_second_dmem = (enable_second_dmem_g > 0);
+  localparam enable_second_pmem = (enable_second_pmem_g > 0);
+  localparam broadcast_pmem_c = (broadcast_pmem_g > 0);
+  localparam integer imem_strb_width_c = (imem_data_width_g+7)/8;
+
+  wire axi_avalid;
+  wire axi_aready;
+  wire [axi_addr_width_g-2-1:0] axi_aaddr;
+  wire axi_awren;
+  wire [dataw_c/8-1:0] axi_astrb;
+  wire [dataw_c-1:0] axi_adata;
+  wire axi_rvalid;
+  wire axi_rready;
+  wire [dataw_c-1:0] axi_rdata;
+
+  wire dmem_avalid, dmem_aready, dmem_rvalid, dmem_rready;
+  wire [dataw_c-1:0] dmem_rdata;
+  wire ctrl_avalid, ctrl_aready, ctrl_rvalid, ctrl_rready;
+  wire [core_count_g*dataw_c-1:0] ctrl_rdata;
+  wire pmem_avalid, pmem_aready, pmem_rvalid, pmem_rready;
+  wire [dataw_c-1:0] pmem_rdata;
+
+  wire imem_d_avalid, dmem_d_avalid, pmem_d_avalid;
+  wire imem_d_aready, dmem_d_aready, pmem_d_aready;
+  wire [axi_addr_width_g-2-1:0] imem_d_aaddr, dmem_d_aaddr, pmem_d_aaddr;
+  wire imem_d_awren, dmem_d_awren, pmem_d_awren;
+  wire [dataw_c/8-1:0] imem_d_astrb, dmem_d_astrb, pmem_d_astrb;
+  wire [dataw_c-1:0] imem_d_adata, dmem_d_adata, pmem_d_adata;
+  wire imem_d_rvalid, dmem_d_rvalid, pmem_d_rvalid;
+  wire imem_d_rready, dmem_d_rready, pmem_d_rready;
+  wire [dataw_c-1:0] imem_d_rdata, dmem_d_rdata, pmem_d_rdata;
+
+  wire imem_avalid, imem_aready, imem_rvalid, imem_rready;
+  wire [dataw_c-1:0] imem_rdata;
+
+  wire [core_count_g-1:0] core_busy;
+  wire [core_count_g-1:0] tta_nreset;
+  wire [dbg_core_sel_width_c-1:0] ctrl_core_sel;
+
+  wire mc_arb_pmem_avalid;
+  wire mc_arb_pmem_aready;
+  wire [pmem_addr_width_g-1:0] mc_arb_pmem_aaddr;
+  wire mc_arb_pmem_awren;
+  wire [(pmem_data_width_g+7)/8-1:0] mc_arb_pmem_astrb;
+  wire [pmem_data_width_g-1:0] mc_arb_pmem_adata;
+  wire mc_arb_pmem_rvalid;
+  wire mc_arb_pmem_rready;
+  wire [pmem_data_width_g-1:0] mc_arb_pmem_rdata;
+
+  wire axi_imem_avalid_out;
+  wire axi_imem_aready_in;
+  wire [imem_axi_addr_width_g-1:0] axi_imem_aaddr_out;
+  wire axi_imem_awren_out;
+  wire [3:0] axi_imem_astrb_out;
+  wire [dataw_c-1:0] axi_imem_adata_out;
+  wire axi_imem_rvalid_in;
+  wire axi_imem_rready_out;
+  wire [dataw_c-1:0] axi_imem_rdata_in;
+
+  wire [core_count_g-1:0] tta_aready;
+  wire [core_count_g-1:0] tta_rvalid;
+
+  wire axi_dmem_wide_avalid, axi_pmem_wide_avalid;
+  wire axi_dmem_wide_aready, axi_pmem_wide_aready;
+  wire axi_dmem_wide_awren, axi_pmem_wide_awren;
+  wire axi_dmem_wide_rvalid, axi_pmem_wide_rvalid;
+  wire axi_dmem_wide_rready, axi_pmem_wide_rready;
+  wire [second_dmem_addr_width_g-1:0] axi_dmem_wide_aaddr;
+  wire [(second_dmem_data_width_g+7)/8-1:0] axi_dmem_wide_astrb;
+  wire [second_dmem_data_width_g-1:0] axi_dmem_wide_adata;
+  wire [second_dmem_data_width_g-1:0] axi_dmem_wide_rdata;
+  wire [second_pmem_addr_width_g-1:0] axi_pmem_wide_aaddr;
+  wire [(second_pmem_data_width_g+7)/8-1:0] axi_pmem_wide_astrb;
+  wire [second_pmem_data_width_g-1:0] axi_pmem_wide_adata;
+  wire [second_pmem_data_width_g-1:0] axi_pmem_wide_rdata;
+
+  wire [core_count_g-1:0] core_dmem_2nd_avalid_in;
+  wire [core_count_g-1:0] core_dmem_2nd_aready_out;
+  wire [core_count_g*second_dmem_addr_width_g-1:0] core_dmem_2nd_aaddr_in;
+  wire [core_count_g-1:0] core_dmem_2nd_awren_in;
+  wire [core_count_g*(second_dmem_data_width_g+7)/8-1:0] core_dmem_2nd_astrb_in;
+  wire [core_count_g*second_dmem_data_width_g-1:0] core_dmem_2nd_adata_in;
+  wire [core_count_g-1:0] core_dmem_2nd_rvalid_out;
+  wire [core_count_g-1:0] core_dmem_2nd_rready_in;
+  wire [core_count_g*second_dmem_data_width_g-1:0] core_dmem_2nd_rdata_out;
+
+  wire [core_count_g-1:0] core_pmem_2nd_avalid_in;
+  wire [core_count_g-1:0] core_pmem_2nd_aready_out;
+  wire [core_count_g*second_pmem_addr_width_g-1:0] core_pmem_2nd_aaddr_in;
+  wire [core_count_g-1:0] core_pmem_2nd_awren_in;
+  wire [core_count_g*(second_pmem_data_width_g+7)/8-1:0] core_pmem_2nd_astrb_in;
+  wire [core_count_g*second_pmem_data_width_g-1:0] core_pmem_2nd_adata_in;
+  wire [core_count_g-1:0] core_pmem_2nd_rvalid_out;
+  wire [core_count_g-1:0] core_pmem_2nd_rready_in;
+  wire [core_count_g*second_pmem_data_width_g-1:0] core_pmem_2nd_rdata_out;
+
+  assign core_dmem_2nd_avalid_in = {core_count_g{1'b0}};
+  assign core_dmem_2nd_aaddr_in  = {(core_count_g*second_dmem_addr_width_g){1'b0}};
+  assign core_dmem_2nd_awren_in  = {core_count_g{1'b0}};
+  assign core_dmem_2nd_astrb_in  = {(core_count_g*(second_dmem_data_width_g+7)/8){1'b0}};
+  assign core_dmem_2nd_adata_in  = {(core_count_g*second_dmem_data_width_g){1'b0}};
+  assign core_dmem_2nd_rready_in = {core_count_g{1'b1}};
+  assign core_pmem_2nd_avalid_in = {core_count_g{1'b0}};
+  assign core_pmem_2nd_aaddr_in  = {(core_count_g*second_pmem_addr_width_g){1'b0}};
+  assign core_pmem_2nd_awren_in  = {core_count_g{1'b0}};
+  assign core_pmem_2nd_astrb_in  = {(core_count_g*(second_pmem_data_width_g+7)/8){1'b0}};
+  assign core_pmem_2nd_adata_in  = {(core_count_g*second_pmem_data_width_g){1'b0}};
+  assign core_pmem_2nd_rready_in = {core_count_g{1'b1}};
+
+  tta_axislave #(
+    .axi_addrw_g  (axi_addr_width_g),
+    .axi_idw_g    (axi_id_width_g),
+    .axi_dataw_g  (dataw_c),
+    .sync_reset_g (sync_reset_g)
+  ) tta_axislave_1 (
+    .clk           (clk),
+    .rstx          (rstx),
+    .s_axi_awid    (s_axi_awid),
+    .s_axi_awaddr  (s_axi_awaddr),
+    .s_axi_awlen   (s_axi_awlen),
+    .s_axi_awsize  (s_axi_awsize),
+    .s_axi_awburst (s_axi_awburst),
+    .s_axi_awvalid (s_axi_awvalid),
+    .s_axi_awready (s_axi_awready),
+    .s_axi_wdata   (s_axi_wdata),
+    .s_axi_wstrb   (s_axi_wstrb),
+    .s_axi_wvalid  (s_axi_wvalid),
+    .s_axi_wready  (s_axi_wready),
+    .s_axi_bid     (s_axi_bid),
+    .s_axi_bresp   (s_axi_bresp),
+    .s_axi_bvalid  (s_axi_bvalid),
+    .s_axi_bready  (s_axi_bready),
+    .s_axi_arid    (s_axi_arid),
+    .s_axi_araddr  (s_axi_araddr),
+    .s_axi_arlen   (s_axi_arlen),
+    .s_axi_arsize  (s_axi_arsize),
+    .s_axi_arburst (s_axi_arburst),
+    .s_axi_arvalid (s_axi_arvalid),
+    .s_axi_arready (s_axi_arready),
+    .s_axi_rid     (s_axi_rid),
+    .s_axi_rdata   (s_axi_rdata),
+    .s_axi_rresp   (s_axi_rresp),
+    .s_axi_rlast   (s_axi_rlast),
+    .s_axi_rvalid  (s_axi_rvalid),
+    .s_axi_rready  (s_axi_rready),
+    .avalid_out    (axi_avalid),
+    .aready_in     (axi_aready),
+    .aaddr_out     (axi_aaddr),
+    .awren_out     (axi_awren),
+    .astrb_out     (axi_astrb),
+    .adata_out     (axi_adata),
+    .rvalid_in     (axi_rvalid),
+    .rready_out    (axi_rready),
+    .rdata_in      (axi_rdata)
+  );
+
+  membus_splitter #(
+    .core_count_g      (core_count_g),
+    .axi_addr_width_g  (axi_addr_width_g),
+    .axi_data_width_g  (dataw_c),
+    .ctrl_addr_width_g (ctrl_addr_width_c),
+    .imem_addr_width_g (imem_addr_width_g + imem_byte_sel_width_c),
+    .dmem_addr_width_g (dmem_addr_width_g + dmem_byte_sel_width_c),
+    .pmem_addr_width_g (pmem_addr_width_g + pmem_byte_sel_width_c)
+  ) bus_splitter (
+    .avalid_in        (axi_avalid),
+    .aready_out       (axi_aready),
+    .aaddr_in         (axi_aaddr),
+    .rvalid_out       (axi_rvalid),
+    .rready_in        (axi_rready),
+    .rdata_out        (axi_rdata),
+    .dmem_avalid_out  (dmem_avalid),
+    .dmem_aready_in   (dmem_aready),
+    .dmem_rvalid_in   (dmem_rvalid),
+    .dmem_rready_out  (dmem_rready),
+    .dmem_rdata_in    (dmem_rdata),
+    .pmem_avalid_out  (pmem_avalid),
+    .pmem_aready_in   (pmem_aready),
+    .pmem_rvalid_in   (pmem_rvalid),
+    .pmem_rready_out  (pmem_rready),
+    .pmem_rdata_in    (pmem_rdata),
+    .imem_avalid_out  (imem_avalid),
+    .imem_aready_in   (imem_aready),
+    .imem_rvalid_in   (imem_rvalid),
+    .imem_rready_out  (imem_rready),
+    .imem_rdata_in    (imem_rdata),
+    .ctrl_avalid_out   (ctrl_avalid),
+    .ctrl_aready_in    (ctrl_aready),
+    .ctrl_rvalid_in    (ctrl_rvalid),
+    .ctrl_rready_out   (ctrl_rready),
+    .ctrl_rdata_in     (ctrl_rdata),
+    .ctrl_core_sel_out (ctrl_core_sel)
+  );
+
+  genvar I;
+  generate
+    for (I = 0; I < core_count_g; I = I + 1) begin : dbg_gen
+      debugger #(
+        .data_width_g        (dataw_c),
+        .addr_width_g        (ctrl_addr_width_c),
+        .axi_addr_width_g    (axi_addr_width_g),
+        .imem_data_width_g   (imem_data_width_g),
+        .imem_addr_width_g   (imem_addr_width_g),
+        .dmem_data_width_g   (dmem_data_width_g),
+        .dmem_addr_width_g   (dmem_addr_width_g),
+        .pmem_data_width_g   (pmem_data_width_g),
+        .pmem_addr_width_g   (local_mem_addrw_g),
+        .bus_count_g         (bus_count_g),
+        .core_count_g        (core_count_g),
+        .core_id_width_g     (dbg_core_sel_width_c),
+        .core_id_g           (I),
+        .reserved_sp_bytes_g (reserved_sp_bytes_g),
+        .axi_offset_low_g    (axi_offset_low_g),
+        .axi_offset_high_g   (axi_offset_high_g)
+      ) debugger_i (
+        .clk            (clk),
+        .rstx           (rstx),
+        .avalid_in      (ctrl_avalid),
+        .aready_out     (ctrl_aready),
+        .aaddr_in       (axi_aaddr),
+        .awren_in       (axi_awren),
+        .astrb_in       (axi_astrb),
+        .adata_in       (axi_adata),
+        .rvalid_out     (ctrl_rvalid),
+        .rready_in      (ctrl_rready),
+        .rdata_out      (ctrl_rdata[(I+1)*dataw_c-1:I*dataw_c]),
+        .core_sel_in    (ctrl_core_sel),
+        .pc_start_out   (core_db_pc_start[(I+1)*imem_addr_width_g-1:I*imem_addr_width_g]),
+        .pc_in          (core_db_pc[(I+1)*imem_addr_width_g-1:I*imem_addr_width_g]),
+        .bustraces_in   (core_db_bustraces[(I+1)*32*bus_count_g-1:I*32*bus_count_g]),
+        .lockcnt_in     (core_db_lockcnt[(I+1)*64-1:I*64]),
+        .cyclecnt_in    (core_db_cyclecnt[(I+1)*64-1:I*64]),
+        .pc_next_in     (core_db_pc_next[(I+1)*imem_addr_width_g-1:I*imem_addr_width_g]),
+        .extlock_in     (core_busy[I]),
+        .bp_lockrq_out  (core_db_lockrq[I]),
+        .tta_nreset_out (tta_nreset[I]),
+        .tta_jump_in    (1'b1)
+      );
+    end
+  endgenerate
+  assign core_db_tta_nreset = tta_nreset;
+
+  generate
+    if (core_count_g > 1) begin : mc_arbiters
+      if (enable_dmem) begin : gen_dmem_arbiter
+        almaif_mc_arbiter #(
+          .mem_dataw_g  (dmem_data_width_g),
+          .mem_addrw_g  (dmem_addr_width_g),
+          .core_count_g (core_count_g),
+          .sync_reset_g (sync_reset_g)
+        ) mc_arbiter_dmem (
+          .clk                (clk),
+          .rstx               (rstx),
+          .tta_sync_nreset_in (tta_nreset),
+          .tta_avalid_in      (core_dmem_avalid_in),
+          .tta_aready_out     (core_dmem_aready_out),
+          .tta_aaddr_in       (core_dmem_aaddr_in),
+          .tta_awren_in       (core_dmem_awren_in),
+          .tta_astrb_in       (core_dmem_astrb_in),
+          .tta_adata_in       (core_dmem_adata_in),
+          .tta_rvalid_out     (core_dmem_rvalid_out),
+          .tta_rready_in      (core_dmem_rready_in),
+          .tta_rdata_out      (core_dmem_rdata_out),
+          .mem_avalid_out     (data_a_avalid_out[0]),
+          .mem_aready_in      (data_a_aready_in[0]),
+          .mem_aaddr_out      (data_a_aaddr_out),
+          .mem_awren_out      (data_a_awren_out[0]),
+          .mem_astrb_out      (data_a_astrb_out),
+          .mem_adata_out      (data_a_adata_out),
+          .mem_rvalid_in      (data_a_rvalid_in[0]),
+          .mem_rready_out     (data_a_rready_out[0]),
+          .mem_rdata_in       (data_a_rdata_in)
+        );
+      end
+      if (enable_pmem && !broadcast_pmem_c) begin : gen_pmem_arbiter
+        almaif_mc_arbiter #(
+          .mem_dataw_g  (pmem_data_width_g),
+          .mem_addrw_g  (pmem_addr_width_g),
+          .core_count_g (core_count_g),
+          .sync_reset_g (sync_reset_g)
+        ) mc_arbiter_pmem (
+          .clk                (clk),
+          .rstx               (rstx),
+          .tta_sync_nreset_in (tta_nreset),
+          .tta_avalid_in      (core_pmem_avalid_in),
+          .tta_aready_out     (core_pmem_aready_out),
+          .tta_aaddr_in       (core_pmem_aaddr_in),
+          .tta_awren_in       (core_pmem_awren_in),
+          .tta_astrb_in       (core_pmem_astrb_in),
+          .tta_adata_in       (core_pmem_adata_in),
+          .tta_rvalid_out     (core_pmem_rvalid_out),
+          .tta_rready_in      (core_pmem_rready_in),
+          .tta_rdata_out      (core_pmem_rdata_out),
+          .mem_avalid_out     (mc_arb_pmem_avalid),
+          .mem_aready_in      (mc_arb_pmem_aready),
+          .mem_aaddr_out      (mc_arb_pmem_aaddr),
+          .mem_awren_out      (mc_arb_pmem_awren),
+          .mem_astrb_out      (mc_arb_pmem_astrb),
+          .mem_adata_out      (mc_arb_pmem_adata),
+          .mem_rvalid_in      (mc_arb_pmem_rvalid),
+          .mem_rready_out     (mc_arb_pmem_rready),
+          .mem_rdata_in       (mc_arb_pmem_rdata)
+        );
+      end
+    end else begin : no_mc_arbiters
+      assign data_a_avalid_out      = core_dmem_avalid_in;
+      assign core_dmem_aready_out   = data_a_aready_in;
+      assign data_a_aaddr_out       = core_dmem_aaddr_in;
+      assign data_a_awren_out       = core_dmem_awren_in;
+      assign data_a_astrb_out       = core_dmem_astrb_in;
+      assign data_a_adata_out       = core_dmem_adata_in;
+      assign core_dmem_rvalid_out   = data_a_rvalid_in;
+      assign data_a_rready_out      = core_dmem_rready_in;
+      assign core_dmem_rdata_out    = data_a_rdata_in;
+      assign mc_arb_pmem_avalid     = core_pmem_avalid_in[0];
+      assign core_pmem_aready_out   = mc_arb_pmem_aready;
+      assign mc_arb_pmem_aaddr      = core_pmem_aaddr_in;
+      assign mc_arb_pmem_awren      = core_pmem_awren_in[0];
+      assign mc_arb_pmem_astrb      = core_pmem_astrb_in;
+      assign mc_arb_pmem_adata      = core_pmem_adata_in;
+      assign core_pmem_rvalid_out   = mc_arb_pmem_rvalid;
+      assign mc_arb_pmem_rready     = core_pmem_rready_in[0];
+      assign core_pmem_rdata_out    = mc_arb_pmem_rdata;
+    end
+  endgenerate
+
+  generate
+    if (axi_offset_low_g != 0) begin : gen_decoder
+      wire m_axi_awvalid, m_axi_awready, m_axi_wvalid, m_axi_wready;
+      wire m_axi_bvalid, m_axi_bready, m_axi_arvalid, m_axi_arready;
+      wire m_axi_rvalid, m_axi_rready, m_axi_wlast;
+      wire [axi_addr_width_g-1:0] m_axi_awaddr, m_axi_araddr;
+      wire [2:0] m_axi_awprot, m_axi_arprot;
+      wire [dmem_data_width_g-1:0] m_axi_wdata, m_axi_rdata;
+      wire [dmem_data_width_g/8-1:0] m_axi_wstrb;
+      assign m_axi_awready = 1'b0;
+      assign m_axi_wready  = 1'b0;
+      assign m_axi_bvalid  = 1'b0;
+      assign m_axi_arready = 1'b0;
+      assign m_axi_rvalid  = 1'b0;
+      assign m_axi_rdata   = {dmem_data_width_g{1'b0}};
+      almaif_decoder #(
+        .mem_dataw_g  (pmem_data_width_g),
+        .mem_addrw_g  (local_mem_addrw_g),
+        .axi_addrw_g  (32),
+        .mem_offset_g (pmem_offset_c),
+        .sync_reset_g (sync_reset_g)
+      ) decoder_pmem (
+        .clk            (clk),
+        .rstx           (rstx),
+        .arb_avalid_in  (mc_arb_pmem_avalid),
+        .arb_aready_out (mc_arb_pmem_aready),
+        .arb_aaddr_in   (mc_arb_pmem_aaddr),
+        .arb_awren_in   (mc_arb_pmem_awren),
+        .arb_astrb_in   (mc_arb_pmem_astrb),
+        .arb_adata_in   (mc_arb_pmem_adata),
+        .arb_rvalid_out (mc_arb_pmem_rvalid),
+        .arb_rready_in  (mc_arb_pmem_rready),
+        .arb_rdata_out  (mc_arb_pmem_rdata),
+        .mem_avalid_out (param_a_avalid_out[0]),
+        .mem_aready_in  (param_a_aready_in[0]),
+        .mem_aaddr_out  (param_a_aaddr_out),
+        .mem_awren_out  (param_a_awren_out[0]),
+        .mem_astrb_out  (param_a_astrb_out),
+        .mem_adata_out  (param_a_adata_out),
+        .mem_rvalid_in  (param_a_rvalid_in[0]),
+        .mem_rready_out (param_a_rready_out[0]),
+        .mem_rdata_in   (param_a_rdata_in),
+        .m_axi_awvalid  (m_axi_awvalid),
+        .m_axi_awready  (m_axi_awready),
+        .m_axi_awaddr   (m_axi_awaddr),
+        .m_axi_awprot   (m_axi_awprot),
+        .m_axi_wvalid   (m_axi_wvalid),
+        .m_axi_wready   (m_axi_wready),
+        .m_axi_wdata    (m_axi_wdata),
+        .m_axi_wstrb    (m_axi_wstrb),
+        .m_axi_wlast    (m_axi_wlast),
+        .m_axi_bvalid   (m_axi_bvalid),
+        .m_axi_bready   (m_axi_bready),
+        .m_axi_arvalid  (m_axi_arvalid),
+        .m_axi_arready  (m_axi_arready),
+        .m_axi_araddr   (m_axi_araddr),
+        .m_axi_arprot   (m_axi_arprot),
+        .m_axi_rvalid   (m_axi_rvalid),
+        .m_axi_rready   (m_axi_rready),
+        .m_axi_rdata    (m_axi_rdata)
+      );
+    end else if (!broadcast_pmem_c) begin : no_decoder
+      assign param_a_avalid_out[0] = mc_arb_pmem_avalid;
+      assign mc_arb_pmem_aready    = param_a_aready_in[0];
+      assign param_a_aaddr_out     = mc_arb_pmem_aaddr;
+      assign param_a_awren_out[0]  = mc_arb_pmem_awren;
+      assign param_a_astrb_out     = mc_arb_pmem_astrb;
+      assign param_a_adata_out     = mc_arb_pmem_adata;
+      assign mc_arb_pmem_rvalid    = param_a_rvalid_in[0];
+      assign param_a_rready_out[0] = mc_arb_pmem_rready;
+      assign mc_arb_pmem_rdata     = param_a_rdata_in;
+    end else begin : connect_bcast_pmem
+      assign param_a_avalid_out    = core_pmem_avalid_in;
+      assign core_pmem_aready_out  = param_a_aready_in;
+      assign param_a_aaddr_out     = core_pmem_aaddr_in;
+      assign param_a_awren_out     = core_pmem_awren_in;
+      assign param_a_astrb_out     = core_pmem_astrb_in;
+      assign param_a_adata_out     = core_pmem_adata_in;
+      assign core_pmem_rvalid_out  = param_a_rvalid_in;
+      assign param_a_rready_out    = core_pmem_rready_in;
+      assign core_pmem_rdata_out   = param_a_rdata_in;
+    end
+  endgenerate
+
+  generate
+    if (enable_dmem) begin : gen_dmem_expander
+      almaif_membus_delay #(
+        .mem_dataw_g (dataw_c),
+        .mem_addrw_g (axi_addr_width_g-2)
+      ) dmem_delay (
+        .clk (clk), .rstx (rstx),
+        .s_avalid_in  (dmem_avalid),
+        .s_aready_out (dmem_aready),
+        .s_aaddr_in   (axi_aaddr),
+        .s_awren_in   (axi_awren),
+        .s_astrb_in   (axi_astrb),
+        .s_adata_in   (axi_adata),
+        .s_rvalid_out (dmem_rvalid),
+        .s_rready_in  (dmem_rready),
+        .s_rdata_out  (dmem_rdata),
+        .m_avalid_out (dmem_d_avalid),
+        .m_aready_in  (dmem_d_aready),
+        .m_aaddr_out  (dmem_d_aaddr),
+        .m_awren_out  (dmem_d_awren),
+        .m_astrb_out  (dmem_d_astrb),
+        .m_adata_out  (dmem_d_adata),
+        .m_rvalid_in  (dmem_d_rvalid),
+        .m_rready_out (dmem_d_rready),
+        .m_rdata_in   (dmem_d_rdata)
+      );
+
+      almaif_axi_expander #(
+        .mem_dataw_g  (second_dmem_data_width_g),
+        .mem_addrw_g  (second_dmem_addr_width_g),
+        .axi_dataw_g  (dataw_c),
+        .axi_addrw_g  (axi_addr_width_g),
+        .sync_reset_g (sync_reset_g)
+      ) dmem_expander (
+        .clk (clk), .rstx (rstx),
+        .axi_avalid_in  (dmem_d_avalid),
+        .axi_aready_out (dmem_d_aready),
+        .axi_aaddr_in   (dmem_d_aaddr),
+        .axi_awren_in   (dmem_d_awren),
+        .axi_astrb_in   (dmem_d_astrb),
+        .axi_adata_in   (dmem_d_adata),
+        .axi_rvalid_out (dmem_d_rvalid),
+        .axi_rready_in  (dmem_d_rready),
+        .axi_rdata_out  (dmem_d_rdata),
+        .mem_avalid_out (axi_dmem_wide_avalid),
+        .mem_aready_in  (axi_dmem_wide_aready),
+        .mem_aaddr_out  (axi_dmem_wide_aaddr),
+        .mem_awren_out  (axi_dmem_wide_awren),
+        .mem_astrb_out  (axi_dmem_wide_astrb),
+        .mem_adata_out  (axi_dmem_wide_adata),
+        .mem_rvalid_in  (axi_dmem_wide_rvalid),
+        .mem_rready_out (axi_dmem_wide_rready),
+        .mem_rdata_in   (axi_dmem_wide_rdata)
+      );
+
+      if (enable_second_dmem) begin : gen_dmem_axi_arbiter
+        almaif_axi_arbiter #(
+          .mem_dataw_g (second_dmem_data_width_g),
+          .mem_addrw_g (second_dmem_addr_width_g)
+        ) dmem_axi_arbiter (
+          .clk (clk), .rstx (rstx),
+          .tta_avalid_in  (core_dmem_2nd_avalid_in[0]),
+          .tta_aready_out (core_dmem_2nd_aready_out[0]),
+          .tta_aaddr_in   (core_dmem_2nd_aaddr_in),
+          .tta_awren_in   (core_dmem_2nd_awren_in[0]),
+          .tta_astrb_in   (core_dmem_2nd_astrb_in),
+          .tta_adata_in   (core_dmem_2nd_adata_in),
+          .tta_rvalid_out (core_dmem_2nd_rvalid_out[0]),
+          .tta_rready_in  (core_dmem_2nd_rready_in[0]),
+          .tta_rdata_out  (core_dmem_2nd_rdata_out),
+          .axi_avalid_in  (axi_dmem_wide_avalid),
+          .axi_aready_out (axi_dmem_wide_aready),
+          .axi_aaddr_in   (axi_dmem_wide_aaddr),
+          .axi_awren_in   (axi_dmem_wide_awren),
+          .axi_astrb_in   (axi_dmem_wide_astrb),
+          .axi_adata_in   (axi_dmem_wide_adata),
+          .axi_rvalid_out (axi_dmem_wide_rvalid),
+          .axi_rready_in  (axi_dmem_wide_rready),
+          .axi_rdata_out  (axi_dmem_wide_rdata),
+          .mem_avalid_out (data_b_avalid_out[0]),
+          .mem_aready_in  (data_b_aready_in[0]),
+          .mem_aaddr_out  (data_b_aaddr_out),
+          .mem_awren_out  (data_b_awren_out[0]),
+          .mem_astrb_out  (data_b_astrb_out),
+          .mem_adata_out  (data_b_adata_out),
+          .mem_rvalid_in  (data_b_rvalid_in[0]),
+          .mem_rready_out (data_b_rready_out[0]),
+          .mem_rdata_in   (data_b_rdata_in)
+        );
+      end else begin : no_dmem_axi_arbiter
+        assign data_b_avalid_out[0] = axi_dmem_wide_avalid;
+        assign axi_dmem_wide_aready = data_b_aready_in[0];
+        assign data_b_aaddr_out     = axi_dmem_wide_aaddr;
+        assign data_b_awren_out[0]  = axi_dmem_wide_awren;
+        assign data_b_astrb_out     = axi_dmem_wide_astrb;
+        assign data_b_adata_out     = axi_dmem_wide_adata;
+        assign axi_dmem_wide_rvalid = data_b_rvalid_in[0];
+        assign data_b_rready_out[0] = axi_dmem_wide_rready;
+        assign axi_dmem_wide_rdata  = data_b_rdata_in;
+      end
+    end else begin : no_dmem_expander
+      assign dmem_aready = 1'b1;
+      assign dmem_rvalid = 1'b1;
+      assign dmem_rdata  = {dataw_c{1'b0}};
+      assign data_b_avalid_out = 1'b0;
+      assign data_b_aaddr_out  = {second_dmem_addr_width_g{1'b0}};
+      assign data_b_awren_out  = 1'b0;
+      assign data_b_astrb_out  = {((second_dmem_data_width_g+7)/8){1'b0}};
+      assign data_b_adata_out  = {second_dmem_data_width_g{1'b0}};
+      assign data_b_rready_out = 1'b0;
+    end
+  endgenerate
+
+  generate
+    if (enable_pmem) begin : gen_pmem_expander
+      almaif_membus_delay #(
+        .mem_dataw_g (dataw_c),
+        .mem_addrw_g (axi_addr_width_g-2)
+      ) pmem_delay (
+        .clk (clk), .rstx (rstx),
+        .s_avalid_in  (pmem_avalid),
+        .s_aready_out (pmem_aready),
+        .s_aaddr_in   (axi_aaddr),
+        .s_awren_in   (axi_awren),
+        .s_astrb_in   (axi_astrb),
+        .s_adata_in   (axi_adata),
+        .s_rvalid_out (pmem_rvalid),
+        .s_rready_in  (pmem_rready),
+        .s_rdata_out  (pmem_rdata),
+        .m_avalid_out (pmem_d_avalid),
+        .m_aready_in  (pmem_d_aready),
+        .m_aaddr_out  (pmem_d_aaddr),
+        .m_awren_out  (pmem_d_awren),
+        .m_astrb_out  (pmem_d_astrb),
+        .m_adata_out  (pmem_d_adata),
+        .m_rvalid_in  (pmem_d_rvalid),
+        .m_rready_out (pmem_d_rready),
+        .m_rdata_in   (pmem_d_rdata)
+      );
+
+      almaif_axi_expander #(
+        .mem_dataw_g  (second_pmem_data_width_g),
+        .mem_addrw_g  (second_pmem_addr_width_g),
+        .axi_dataw_g  (dataw_c),
+        .axi_addrw_g  (axi_addr_width_g),
+        .sync_reset_g (sync_reset_g)
+      ) pmem_epander (
+        .clk (clk), .rstx (rstx),
+        .axi_avalid_in  (pmem_d_avalid),
+        .axi_aready_out (pmem_d_aready),
+        .axi_aaddr_in   (pmem_d_aaddr),
+        .axi_awren_in   (pmem_d_awren),
+        .axi_astrb_in   (pmem_d_astrb),
+        .axi_adata_in   (pmem_d_adata),
+        .axi_rvalid_out (pmem_d_rvalid),
+        .axi_rready_in  (pmem_d_rready),
+        .axi_rdata_out  (pmem_d_rdata),
+        .mem_avalid_out (axi_pmem_wide_avalid),
+        .mem_aready_in  (axi_pmem_wide_aready),
+        .mem_aaddr_out  (axi_pmem_wide_aaddr),
+        .mem_awren_out  (axi_pmem_wide_awren),
+        .mem_astrb_out  (axi_pmem_wide_astrb),
+        .mem_adata_out  (axi_pmem_wide_adata),
+        .mem_rvalid_in  (axi_pmem_wide_rvalid),
+        .mem_rready_out (axi_pmem_wide_rready),
+        .mem_rdata_in   (axi_pmem_wide_rdata)
+      );
+
+      if (enable_second_pmem) begin : gen_pmem_axi_arbiter
+        almaif_axi_arbiter #(
+          .mem_dataw_g (second_pmem_data_width_g),
+          .mem_addrw_g (second_pmem_addr_width_g)
+        ) pmem_axi_arbiter (
+          .clk (clk), .rstx (rstx),
+          .tta_avalid_in  (core_pmem_2nd_avalid_in[0]),
+          .tta_aready_out (core_pmem_2nd_aready_out[0]),
+          .tta_aaddr_in   (core_pmem_2nd_aaddr_in),
+          .tta_awren_in   (core_pmem_2nd_awren_in[0]),
+          .tta_astrb_in   (core_pmem_2nd_astrb_in),
+          .tta_adata_in   (core_pmem_2nd_adata_in),
+          .tta_rvalid_out (core_pmem_2nd_rvalid_out[0]),
+          .tta_rready_in  (core_pmem_2nd_rready_in[0]),
+          .tta_rdata_out  (core_pmem_2nd_rdata_out),
+          .axi_avalid_in  (axi_pmem_wide_avalid),
+          .axi_aready_out (axi_pmem_wide_aready),
+          .axi_aaddr_in   (axi_pmem_wide_aaddr),
+          .axi_awren_in   (axi_pmem_wide_awren),
+          .axi_astrb_in   (axi_pmem_wide_astrb),
+          .axi_adata_in   (axi_pmem_wide_adata),
+          .axi_rvalid_out (axi_pmem_wide_rvalid),
+          .axi_rready_in  (axi_pmem_wide_rready),
+          .axi_rdata_out  (axi_pmem_wide_rdata),
+          .mem_avalid_out (param_b_avalid_out[0]),
+          .mem_aready_in  (param_b_aready_in[0]),
+          .mem_aaddr_out  (param_b_aaddr_out),
+          .mem_awren_out  (param_b_awren_out[0]),
+          .mem_astrb_out  (param_b_astrb_out),
+          .mem_adata_out  (param_b_adata_out),
+          .mem_rvalid_in  (param_b_rvalid_in[0]),
+          .mem_rready_out (param_b_rready_out[0]),
+          .mem_rdata_in   (param_b_rdata_in)
+        );
+      end else if (!broadcast_pmem_c) begin : no_pmem_axi_arbiter
+        assign param_b_avalid_out[0] = axi_pmem_wide_avalid;
+        assign axi_pmem_wide_aready  = param_b_aready_in[0];
+        assign param_b_aaddr_out     = axi_pmem_wide_aaddr;
+        assign param_b_awren_out[0]  = axi_pmem_wide_awren;
+        assign param_b_astrb_out     = axi_pmem_wide_astrb;
+        assign param_b_adata_out     = axi_pmem_wide_adata;
+        assign axi_pmem_wide_rvalid  = param_b_rvalid_in[0];
+        assign param_b_rready_out[0] = axi_pmem_wide_rready;
+        assign axi_pmem_wide_rdata   = param_b_rdata_in;
+      end
+    end else begin : no_pmem_expander
+      assign pmem_aready = 1'b1;
+      assign pmem_rvalid = 1'b1;
+      assign pmem_rdata  = {dataw_c{1'b0}};
+      assign param_b_avalid_out = 1'b0;
+      assign param_b_aaddr_out  = {second_pmem_addr_width_g{1'b0}};
+      assign param_b_awren_out  = 1'b0;
+      assign param_b_astrb_out  = {((second_pmem_data_width_g+7)/8){1'b0}};
+      assign param_b_adata_out  = {second_pmem_data_width_g{1'b0}};
+      assign param_b_rready_out = 1'b0;
+    end
+  endgenerate
+
+  almaif_membus_delay #(
+    .mem_dataw_g (dataw_c),
+    .mem_addrw_g (axi_addr_width_g-2)
+  ) imem_delay (
+    .clk (clk), .rstx (rstx),
+    .s_avalid_in  (imem_avalid),
+    .s_aready_out (imem_aready),
+    .s_aaddr_in   (axi_aaddr),
+    .s_awren_in   (axi_awren),
+    .s_astrb_in   (axi_astrb),
+    .s_adata_in   (axi_adata),
+    .s_rvalid_out (imem_rvalid),
+    .s_rready_in  (imem_rready),
+    .s_rdata_out  (imem_rdata),
+    .m_avalid_out (imem_d_avalid),
+    .m_aready_in  (imem_d_aready),
+    .m_aaddr_out  (imem_d_aaddr),
+    .m_awren_out  (imem_d_awren),
+    .m_astrb_out  (imem_d_astrb),
+    .m_adata_out  (imem_d_adata),
+    .m_rvalid_in  (imem_d_rvalid),
+    .m_rready_out (imem_d_rready),
+    .m_rdata_in   (imem_d_rdata)
+  );
+
+  almaif_axi_expander #(
+    .mem_dataw_g  (dataw_c),
+    .mem_addrw_g  (imem_axi_addr_width_g),
+    .axi_dataw_g  (dataw_c),
+    .axi_addrw_g  (axi_addr_width_g),
+    .sync_reset_g (sync_reset_g)
+  ) imem_expander (
+    .clk (clk), .rstx (rstx),
+    .axi_avalid_in  (imem_d_avalid),
+    .axi_aready_out (imem_d_aready),
+    .axi_aaddr_in   (imem_d_aaddr),
+    .axi_awren_in   (imem_d_awren),
+    .axi_astrb_in   (imem_d_astrb),
+    .axi_adata_in   (imem_d_adata),
+    .axi_rvalid_out (imem_d_rvalid),
+    .axi_rready_in  (imem_d_rready),
+    .axi_rdata_out  (imem_d_rdata),
+    .mem_avalid_out (axi_imem_avalid_out),
+    .mem_aready_in  (axi_imem_aready_in),
+    .mem_aaddr_out  (axi_imem_aaddr_out),
+    .mem_awren_out  (axi_imem_awren_out),
+    .mem_astrb_out  (axi_imem_astrb_out),
+    .mem_adata_out  (axi_imem_adata_out),
+    .mem_rvalid_in  (axi_imem_rvalid_in),
+    .mem_rready_out (axi_imem_rready_out),
+    .mem_rdata_in   (axi_imem_rdata_in)
+  );
+
+  assign axi_imem_aready_in = INSTR_b_aready_in[0];
+  assign INSTR_b_avalid_out[0] = axi_imem_avalid_out;
+  assign INSTR_b_aaddr_out[imem_axi_addr_width_g-1:0] = axi_imem_aaddr_out;
+  assign INSTR_b_awren_out[0] = axi_imem_awren_out;
+  assign INSTR_b_astrb_out[3:0] = axi_imem_astrb_out;
+  assign INSTR_b_adata_out[31:0] = axi_imem_adata_out;
+  assign axi_imem_rvalid_in = INSTR_b_rvalid_in[0];
+  assign INSTR_b_rready_out[0] = axi_imem_rready_out;
+  assign axi_imem_rdata_in = INSTR_b_rdata_in[31:0];
+
+  generate
+    for (I = 1; I < core_count_g; I = I + 1) begin : imem_broadcast
+      assign INSTR_b_avalid_out[I] = axi_imem_avalid_out & axi_imem_awren_out;
+      assign INSTR_b_aaddr_out[(I+1)*imem_axi_addr_width_g-1:I*imem_axi_addr_width_g] = axi_imem_aaddr_out;
+      assign INSTR_b_awren_out[I] = axi_imem_awren_out;
+      assign INSTR_b_astrb_out[4*(I+1)-1:4*I] = axi_imem_astrb_out;
+      assign INSTR_b_adata_out[(I+1)*32-1:I*32] = axi_imem_adata_out;
+      assign INSTR_b_rready_out[I] = 1'b1;
+    end
+  endgenerate
+
+  assign INSTR_a_avalid_out = ~core_imem_en_x_in;
+  assign tta_aready         = INSTR_a_aready_in;
+  assign INSTR_a_aaddr_out  = core_imem_addr_in;
+  assign INSTR_a_adata_out  = {(core_count_g*imem_data_width_g){1'b0}};
+  assign INSTR_a_astrb_out  = {((imem_data_width_g+7)/8*core_count_g){1'b0}};
+  assign INSTR_a_awren_out  = {core_count_g{1'b0}};
+  assign INSTR_a_rready_out = (~core_imem_en_x_in) | (~tta_nreset);
+  assign tta_rvalid         = INSTR_a_rvalid_in;
+  assign core_imem_data_out = INSTR_a_rdata_in;
+  assign core_busy          = (~tta_aready) | (~tta_rvalid);
+  assign core_busy_out      = core_busy;
+
+endmodule
