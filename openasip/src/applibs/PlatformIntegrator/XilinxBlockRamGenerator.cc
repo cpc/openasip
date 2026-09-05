@@ -228,26 +228,41 @@ XilinxBlockRamGenerator::addMemory(
 
 std::vector<TCEString>
 XilinxBlockRamGenerator::generateComponentFile(TCEString outputPath) {
+    const bool verilog =
+        platformIntegrator()->hdl() == ProGe::Verilog;
+    const TCEString hdlExt = verilog ? ".v" : ".vhdl";
     TCEString componentFileName = "";
     if (connectToArbiter_) {
         if (intelCompatible_) {
+            if (verilog) {
+                TCEString msg =
+                    "Intel on-chip memories are not supported for Verilog.";
+                throw InvalidData(__FILE__, __LINE__, __func__, msg);
+            }
             if (pseudoDualPort_) {
                 componentFileName = INTEL_SP_DW_FILE;
             } else {
                 componentFileName = INTEL_DP_FILE;
             }
         } else {
-            componentFileName = DP_FILE;
+            componentFileName = "xilinx_dp_blockram" + hdlExt;
         }
     } else {
+        if (verilog) {
+            TCEString msg =
+                "Single-port Xilinx block RAM is not supported for Verilog.";
+            throw InvalidData(__FILE__, __LINE__, __func__, msg);
+        }
         componentFileName = SP_FILE;
     }
 
     TCEString inputFile = templatePath() << FileSystem::DIRECTORY_SEPARATOR
                                          << componentFileName;
     TCEString outputFile;
+    TCEString hdlExt =
+        (platformIntegrator()->hdl() == ProGe::Verilog) ? ".v" : ".vhdl";
     outputFile << outputPath << FileSystem::DIRECTORY_SEPARATOR
-               << moduleName() << ".vhdl";
+               << moduleName() << hdlExt;
 
     FileSystem::copy(inputFile, outputPath);
     std::vector<TCEString> files;

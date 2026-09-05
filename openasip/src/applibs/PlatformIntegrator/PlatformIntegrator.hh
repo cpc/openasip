@@ -173,6 +173,8 @@ public:
      */
     TCEString coreEntityName() const;
 
+    ProGe::HDL hdl() const { return hdl_; }
+
     const TTAMachine::Machine* machine() const;
 
     const IDF::MachineImplementation* idf() const;

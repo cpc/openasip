@@ -191,12 +191,6 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
     
     string integrator = options.integratorName();
     if (!integrator.empty()) {
-        if (progeOptions.language == Verilog) {
-            std::cerr << "Verilog is not yet supported by Platform Integrator"
-                      << std::endl;
-            return false;
-        }
-
         string progeOutDir = progeOptions.outputDirectory;
         string sharedOutDir = progeOptions.sharedOutputDirectory;
         if (!options.useAbsolutePaths()) {

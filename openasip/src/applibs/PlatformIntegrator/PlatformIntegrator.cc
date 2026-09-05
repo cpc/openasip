@@ -42,6 +42,7 @@
 #include "NetlistBlock.hh"
 #include "NetlistPort.hh"
 #include "VHDLNetlistWriter.hh"
+#include "VerilogNetlistWriter.hh"
 #include "ProjectFileGenerator.hh"
 #include "Machine.hh"
 #include "HWOperation.hh"
@@ -622,17 +623,22 @@ PlatformIntegrator::writeNewToplevel() {
     ProGe::NetlistWriter* writer;
     if (hdl_ == ProGe::VHDL) {
         writer = new ProGe::VHDLNetlistWriter(*integratorBlock_);
+    } else if (hdl_ == ProGe::Verilog) {
+        writer = new ProGe::VerilogNetlistWriter(*integratorBlock_);
     } else {
-        assert(false);
+        TCEString msg = "Unsupported HDL for platform integrator toplevel.";
+        throw InvalidData(__FILE__, __LINE__, "platformIntegrator", msg);
     }
 
     TCEString platformDir = outputPath();
     writer->write(platformDir);
     delete writer;
 
-    
+    TCEString hdlExt = (hdl_ == ProGe::Verilog) ? ".v" : ".vhdl";
+    TCEString pkgExt = (hdl_ == ProGe::Verilog) ? ".vh" : ".vhdl";
+
     TCEString toplevelFile =
-        outputFilePath(coreEntityName() + "_toplevel.vhdl");
+        outputFilePath(coreEntityName() + "_toplevel" + hdlExt);
     if (!FileSystem::fileExists(toplevelFile)) {
         TCEString msg = "NetlistWriter failed to create file " + toplevelFile;
         throw FileNotFound(__FILE__, __LINE__, "platformIntegrator", msg);
@@ -640,7 +646,7 @@ PlatformIntegrator::writeNewToplevel() {
     projectFileGenerator()->addHdlFile(toplevelFile);
 
     TCEString paramFile =
-        outputFilePath(platformEntityName() + "_params_pkg.vhdl");
+        outputFilePath(platformEntityName() + "_params_pkg" + pkgExt);
     if (FileSystem::fileExists(paramFile)) {
         projectFileGenerator()->addHdlFile(paramFile);
     }
