@@ -24,10 +24,7 @@ Tampere University (Finland) and various other international contributors
 since the early 2003.
 
 License:
- * OpenASIP project source code is licensed with LGPL v2.1.
- * Generated hardware description files are licensed with a more
-permissive MIT license, to allow the designer more freedom to
-choose the sublicensing of the produced processors.
+ * OpenASIP project source code is licensed with the MIT license. New contributions will be MIT licensed.
  * Read more in [LICENSE.txt](https://github.com/cpc/openasip/blob/main/LICENSE.txt)
 
 Links:
