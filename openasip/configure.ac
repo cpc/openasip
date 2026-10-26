@@ -535,12 +535,13 @@ if test x"$LLVM_RTTI_CHECK" != x; then
 AC_MSG_ERROR([Your LLVM was not built with RTTI. You should rebuild LLVM with 'make REQUIRES_RTTI=1'. See TCE's INSTALL file for more information.])
 fi
 
-# Add LLVM libdir into the Darwin RPATH
-case $host_os in
-  darwin* )
-  LLVM_LDFLAGS="$LLVM_LDFLAGS -rpath $LLVM_LIBDIR"
-  ;;
-esac
+# Embed LLVM libdir in RUNPATH so libLLVMTCE is found without
+# LD_LIBRARY_PATH. The libtool wrapper used during 'make install'
+# resets LD_LIBRARY_PATH to the build .libs, which would otherwise
+# hide $HOME/local/lib (see riscv-tdgen / libLLVMTCE.so).
+# -Wl,-rpath is passed through libtool to ld; libtool's own -rpath
+# is not always honoured on Debian/Ubuntu.
+LLVM_LDFLAGS="$LLVM_LDFLAGS -Wl,-rpath,$LLVM_LIBDIR"
 
 # Hack for debian sid packages
 if test x"$LLVM_INCLUDEDIR" == x/usr/include/llvm; then

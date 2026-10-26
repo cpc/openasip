@@ -1890,8 +1890,11 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                 Conversion::toString(busSignal(bus))+")";
         }
 
+        // Start at -1 so the Verilog X->1 clock edge at t=0 is skipped.
+        // VHDL clkgen first rises at t=PERIOD; dumping that as cycle 0
+        // matches the VHDL bus.dump numbering used by tce_tour_verilog.
         stream << indentation(1) << "initial begin" << endl
-               << indentation(2) << "cyclecount = 0;" << endl
+               << indentation(2) << "cyclecount = -1;" << endl
                << indentation(2) << "executioncount = 0;" << endl
                << indentation(2)
                << "regularfileout = $fopen(`REGULARDUMPFILE, \"w\");" << endl
@@ -1900,17 +1903,12 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                << endl
                << indentation(2) << "forever begin" << endl
                << indentation(3) << "@(posedge clk);" << endl;
-        if (busTraceStartingCycle_ > 0) {
-            stream << indentation(3) << "if (cyclecount >= "
-                   << busTraceStartingCycle_ << ") begin" << endl;
-        }
-        std::string dumpIndent = indentation(
-            busTraceStartingCycle_ > 0 ? 4 : 3);
+        stream << indentation(3) << "if (cyclecount >= "
+               << busTraceStartingCycle_ << ") begin" << endl;
+        std::string dumpIndent = indentation(4);
         stream << dumpIndent << "$fwrite(regularfileout, \""
                << format_string << "\\n\", cyclecount"
-               << (busTraceStartingCycle_ > 0
-                       ? (" - " + Conversion::toString(busTraceStartingCycle_))
-                       : "")
+               << " - " << busTraceStartingCycle_
                << variable_list << ");" << endl
                << dumpIndent << "if (glock == 0) begin" << endl
                << dumpIndent << "  $fwrite(executionfileout, \""
@@ -1919,9 +1917,7 @@ DefaultICGenerator::writeBusDumpCode(std::ostream& stream) const {
                << dumpIndent << "  executioncount = executioncount + 1;"
                << endl
                << dumpIndent << "end" << endl;
-        if (busTraceStartingCycle_ > 0) {
-            stream << indentation(3) << "end" << endl;
-        }
+        stream << indentation(3) << "end" << endl;
         stream << indentation(3) << "cyclecount = cyclecount + 1;" << endl
                << indentation(2) << "end" << endl
                << indentation(1) << "end" << endl

@@ -669,11 +669,16 @@ def generate_image(options, elf_file, final_output):
     if options.output_format == "bin":
         hex_file = create_temp_file(".hex")
     if options.output_format == "bin" or options.output_format == "hex":
-        run_command("riscv32-unknown-elf-elf2hex --bit-width 32 \
+        exitCode = run_command("riscv32-unknown-elf-elf2hex --bit-width 32 \
         --input " + elf_file + " > " + hex_file)
+        if exitCode != 0:
+            exitWithError(1, "elf2hex failed while generating " + hex_file)
         if options.output_format == "bin":
-            run_command("oa-hex2bin \
+            exitCode = run_command("oa-hex2bin \
             -w 32 -o " + final_output + " " + hex_file)
+            if exitCode != 0:
+                exitWithError(1, "oa-hex2bin failed while generating " +
+                              final_output)
 
 def check_input_files(input_files):
     if len(input_files) == 0:
