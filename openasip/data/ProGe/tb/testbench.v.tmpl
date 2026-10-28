@@ -51,10 +51,11 @@ module testbench
     integer  exec_count_file;
     integer  scan_file;
 
-  // Stop simulation after `SIMTIME, if defined
+  // Stop a half-period after SIMTIME so the last posedge is dumped, matching
+  // GHDL --stop-time=SIMTIME. SIMTIME+PERIOD added an extra Verilog cycle.
   `ifdef SIMTIME
   initial begin
-     #(`SIMTIME + PERIOD) $finish;
+     #(`SIMTIME + PERIOD/2) $finish;
   end
   `endif
 

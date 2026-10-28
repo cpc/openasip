@@ -406,7 +406,7 @@ def parse_options():
 
 def exitWithError(status, errorMessage=None):
     if errorMessage is not None:
-        print(errorMessage, sys.stderr)
+        print(errorMessage, file=sys.stderr)
     if not options.leave_tempfiles:
         rmtree(tempDir)
     else:
@@ -662,17 +662,27 @@ def generate_start_func():
     text_file.close()
 
 def generate_image(options, elf_file, final_output):
-    if which("riscv32-unknown-elf-elf2hex") is None:
-        exitWithError("elf2hex must be installed for \
-        generating RISC-V images as a text file")
+    # freedom-elf2hex wrappers often leave objcopy unset. Call the
+    # prefixed GNU tools directly so --output-format=bin/hex works.
+    objcopy = which("riscv32-unknown-elf-objcopy")
+    bin2hex = which("riscv32-unknown-elf-bin2hex")
+    if objcopy is None or bin2hex is None:
+        exitWithError(1, "riscv32-unknown-elf-objcopy and "
+                      "riscv32-unknown-elf-bin2hex must be installed "
+                      "for generating RISC-V images as a text file")
+    bin_file = create_temp_file(".bin")
+    exitCode = run_command("%s %s -O binary %s" %
+                           (objcopy, elf_file, bin_file))
+    if exitCode != 0:
+        exitWithError(1, "objcopy failed while generating " + bin_file)
     hex_file = final_output
     if options.output_format == "bin":
         hex_file = create_temp_file(".hex")
     if options.output_format == "bin" or options.output_format == "hex":
-        exitCode = run_command("riscv32-unknown-elf-elf2hex --bit-width 32 \
-        --input " + elf_file + " > " + hex_file)
+        exitCode = run_command("%s -w 32 %s %s" %
+                               (bin2hex, bin_file, hex_file))
         if exitCode != 0:
-            exitWithError(1, "elf2hex failed while generating " + hex_file)
+            exitWithError(1, "bin2hex failed while generating " + hex_file)
         if options.output_format == "bin":
             exitCode = run_command("oa-hex2bin \
             -w 32 -o " + final_output + " " + hex_file)
